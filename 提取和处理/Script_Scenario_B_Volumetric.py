@@ -111,7 +111,7 @@ if __name__ == "__main__":
     
     # 假设你有一个已经存在的点云文件 (这里为了测试，你可以暂时用上面的 result_features.csv 假装是 CFD 点云)
     # 实际使用时，替换成组内的真实数据路径
-    cfd_file = "result_features.csv" 
+    #cfd_file = "result_features.csv" 
     
-    if os.path.exists(stl_file) and os.path.exists(cfd_file):
-        process_volumetric_dataset(stl_file, cfd_file, "train_data_volumetric.csv")
+    #if os.path.exists(stl_file) and os.path.exists(cfd_file):
+       # process_volumetric_dataset(stl_file, cfd_file, "train_data_volumetric.csv")
