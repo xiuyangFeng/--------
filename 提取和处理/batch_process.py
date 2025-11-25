@@ -23,10 +23,10 @@ def find_surface_file(case_dir):
     else:
         return surface_files[0]
 
-def find_cloud_files(case_dir, cloud_subdir="ascii_clean"):
+def find_cloud_files(case_dir, cloud_subdir="ascii_merged"):
     """
     在病例目录中查找所有的 .csv 或 .npy 点云文件。
-    cloud_subdir: 清洗后点云所在的子目录，默认 ascii_clean。
+    cloud_subdir: 清洗后点云所在的子目录，默认 ascii_merged。
     排除以 'result_' 开头的文件，避免重复处理输出文件。
     """
     search_dir = os.path.join(case_dir, cloud_subdir)
@@ -103,10 +103,10 @@ def load_boundary_conditions(case_dir):
             
     return bc_data
 
-def process_case(case_dir, output_root_dir, cloud_subdir="ascii_clean", output_subdir="ascii_mapped"):
+def process_case(case_dir, output_root_dir, cloud_subdir="ascii_merged", output_subdir="ascii_mapped"):
     """
     处理单个病例目录。
-    cloud_subdir: 已清洗的 CFD 点云所在子目录（默认 ascii_clean）。
+    cloud_subdir: 已清洗的 CFD 点云所在子目录（默认 ascii_merged）。
     output_subdir: 输出特征文件的子目录（默认 ascii_mapped）。
     """
     case_name = os.path.basename(case_dir)
@@ -195,7 +195,7 @@ def main():
     parser = argparse.ArgumentParser(description="批量处理血管几何特征提取 (Batch Processing for Vessel Geometric Features)")
     parser.add_argument("--input_dir", type=str, default="点云", help="输入数据根目录，包含多个病例文件夹 (默认: 点云)")
     parser.add_argument("--output_dir", type=str, default="outdate", help="输出数据根目录 (默认: outdate)")
-    parser.add_argument("--cloud_subdir", type=str, default="ascii_clean", help="清洗后的 CFD 点云子目录，默认 ascii_clean")
+    parser.add_argument("--cloud_subdir", type=str, default="ascii_merged", help="清洗后的 CFD 点云子目录，默认 ascii_merged")
     parser.add_argument("--output_subdir", type=str, default="ascii_mapped", help="特征输出子目录，默认 ascii_mapped")
     
     args = parser.parse_args()
