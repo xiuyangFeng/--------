@@ -1,87 +1,139 @@
+import os
+from pathlib import Path
 import pandas as pd
 import numpy as np
-import os
 
-def convert_fluent_to_csv(input_path, output_path, convert_to_mm=True):
+# 将 Fluent 输出列名映射到统一字段，方便后续代码直接使用
+RENAME_MAP = {
+    "x-coordinate": "x",
+    "y-coordinate": "y",
+    "z-coordinate": "z",
+    "pressure": "p",
+    "x-velocity": "u",
+    "y-velocity": "v",
+    "z-velocity": "w",
+    "velocity-magnitude": "vel_mag",
+    "wall-shear": "wss",
+    "x-wall-shear": "wss_x",
+    "y-wall-shear": "wss_y",
+    "z-wall-shear": "wss_z",
+    "face-area-magnitude": "face_area",
+    "nodenumber": "node_id",
+}
+
+
+def convert_fluent_to_csv(input_path: Path, output_path: Path, convert_to_mm: bool = True) -> None:
+    """
+    清洗单个 Fluent 导出的 ASCII 数据文件并写出 CSV。
+    参数:
+        input_path: 输入 ASCII 文件路径
+        output_path: 输出 CSV 文件路径
+        convert_to_mm: 是否将坐标从米转换为毫米
+    """
     print(f"🧹 正在清洗 CFD 数据: {input_path}")
-    
-    # 1. 读取非标准格式
-    # sep=r'\s+' 表示分隔符是任意数量的空格
-    # skiprows 需要根据文件实际情况调整，如果第一行就是表头，就不需要 skip
+
     try:
-        df = pd.read_csv(input_path, sep=r'\s+', engine='python')
+        df = pd.read_csv(input_path, sep=r"\s+", engine="python")
     except Exception as e:
-        print(f"读取失败，请检查表头: {e}")
+        print(f"❌ 读取失败，请检查表头: {e}")
         return
 
+    # 重命名列，统一字段名
+    df = df.rename(columns=RENAME_MAP)
     print(f"   - 原始数据列名: {df.columns.tolist()}")
-    
-    # 2. 重命名列 (标准化为我们代码通用的名字)
-    # 根据你的数据片段，建立映射关系
-    rename_map = {
-        'x-coordinate': 'x',
-        'y-coordinate': 'y',
-        'z-coordinate': 'z',
-        'pressure': 'p',
-        'x-velocity': 'u',
-        'y-velocity': 'v',
-        'z-velocity': 'w',
-        'wall-shear': 'wss',  # 可选
-        'nodenumber': 'node_id' # 可选
-    }
-    
-    # 过滤掉无关列，只保留映射中存在的
-    # 注意：有的软件导出列名可能略有不同，如 "x-velo" 等，请核对
-    df = df.rename(columns=rename_map)
-    
-    # 确保只保留我们需要的列
-    needed_cols = ['x', 'y', 'z', 'u', 'v', 'w', 'p']
-    # 如果有 wss 也保留，后面分析用
-    if 'wss' in df.columns:
-        needed_cols.append('wss')
-        
-    # 检查列是否存在
-    missing_cols = [c for c in needed_cols if c not in df.columns]
-    if missing_cols:
-        print(f"❌ 警告: 缺少列 {missing_cols}，请检查原始文件的列名拼写！")
+
+    # 确保几何坐标存在
+    missing_xyz = [c for c in ("x", "y", "z") if c not in df.columns]
+    if missing_xyz:
+        print(f"❌ 缺少坐标列 {missing_xyz}，跳过该文件。")
         return
 
-    df = df[needed_cols]
+    # 可选的常见列顺序，便于后续模型直接读取
+    preferred_cols = [
+        "node_id",
+        "x",
+        "y",
+        "z",
+        "u",
+        "v",
+        "w",
+        "p",
+        "vel_mag",
+        "wss",
+        "wss_x",
+        "wss_y",
+        "wss_z",
+        "face_area",
+    ]
+    available_cols = [c for c in preferred_cols if c in df.columns]
 
-    # 3. 关键步骤：单位转换 (米 -> 毫米)
-    # 你的数据看起来是 E-02 (0.01米级)，通常是米。
-    # 而 STL 也是医学影像导出的，通常是毫米。
+    # 坐标单位转换：米 -> 毫米
     if convert_to_mm:
-        print("   - [Unit] 检测到数据可能是米(m)，正在转换为毫米(mm)...")
-        df['x'] = df['x'] * 1000.0
-        df['y'] = df['y'] * 1000.0
-        df['z'] = df['z'] * 1000.0
-        # 注意：速度单位 m/s 不需要变，压力 Pa 不需要变
-        # 只有几何坐标需要对齐
+        df["x"] = df["x"] * 1000.0
+        df["y"] = df["y"] * 1000.0
+        df["z"] = df["z"] * 1000.0
 
-    # 4. 生成 is_wall 标签 (可选，但对 GNN 很重要)
-    # 逻辑：速度为0的点是壁面
-    speed = np.sqrt(df['u']**2 + df['v']**2 + df['w']**2)
-    df['is_wall'] = (speed < 1e-6).astype(int)
-    print(f"   - 识别到 {df['is_wall'].sum()} 个壁面点，{len(df) - df['is_wall'].sum()} 个内部点。")
+    # is_wall 标记：有速度时用速度模判定，没有速度时默认全是壁面
+    if {"u", "v", "w"}.issubset(df.columns):
+        speed = np.sqrt(df["u"] ** 2 + df["v"] ** 2 + df["w"] ** 2)
+        df["is_wall"] = (speed < 1e-6).astype(int)
+    else:
+        df["is_wall"] = 1
 
-    # 5. 保存
+    # 保留优先列 + 其他未识别列
+    ordered_cols = available_cols + [c for c in df.columns if c not in available_cols]
+    df = df[ordered_cols]
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)
     print(f"✅ 清洗完成! 已保存至: {output_path}")
     print(df.head())
 
-if __name__ == "__main__":
-    # 输入你的文件名 (把你的数据保存为 cfd_raw.txt)
-    input_file = "cfd_raw.txt" 
-    output_file = "cfd_clean.csv"
-    
-    # 创建一个假的测试文件（为了演示，你可以直接用你的真实文件）
-    # 实际使用时请注释掉下面生成文件的代码
-    if not os.path.exists(input_file):
-        with open(input_file, 'w') as f:
-            f.write("""nodenumber x-coordinate y-coordinate z-coordinate pressure velocity-magnitude x-velocity y-velocity z-velocity wall-shear x-wall-shear y-wall-shear z-wall-shear
-1 -2.819E-02 1.528E-01 -8.884E-01 1.026E+02 0.000E+00 0.000E+00 0.000E+00 0.000E+00 4.853E-01 -1.26E-01 -2.80E-01 -3.72E-01
-2 -2.820E-02 1.527E-01 -8.883E-01 1.026E+02 2.308E-03 -6.057E-04 -1.343E-03 -1.777E-03 0.000E+00 0.000E+00 0.000E+00 0.000E+00
-""")
 
-    convert_fluent_to_csv(input_file, output_file, convert_to_mm=True)
+def batch_clean_fluent_data(
+    root_dir: Path,
+    ascii_dir_name: str = "ascii",
+    output_dir_name: str = "ascii_clean",
+    convert_to_mm: bool = True,
+) -> None:
+    """
+    批量遍历点云数据目录，清洗所有 ASCII 文件。
+    目录结构约定:
+        root_dir/
+            病例编号/
+                ascii/            <- Fluent 导出的原始 ASCII 文件
+                ascii_clean/      <- 本函数生成的清洗后 CSV (自动创建)
+    参数:
+        root_dir: 点云根目录（包含多个编号文件夹）
+        ascii_dir_name: 原始 ASCII 子目录名
+        output_dir_name: 输出 CSV 子目录名
+        convert_to_mm: 是否执行坐标单位转换
+    """
+    root_dir = Path(root_dir)
+    if not root_dir.exists():
+        print(f"❌ 根目录不存在: {root_dir}")
+        return
+
+    case_dirs = [p for p in root_dir.iterdir() if p.is_dir()]
+    if not case_dirs:
+        print(f"❌ 未在 {root_dir} 下找到病例子目录。")
+        return
+
+    for case_dir in sorted(case_dirs):
+        ascii_dir = case_dir / ascii_dir_name
+        if not ascii_dir.is_dir():
+            continue
+
+        out_dir = case_dir / output_dir_name
+        print(f"📂 处理病例 {case_dir.name} -> {out_dir}")
+        for ascii_file in sorted(ascii_dir.iterdir()):
+            if not ascii_file.is_file():
+                continue
+            # 文件名本身无扩展名，统一加 .csv 输出
+            output_path = out_dir / f"{ascii_file.name}.csv"
+            convert_fluent_to_csv(ascii_file, output_path, convert_to_mm=convert_to_mm)
+
+
+if __name__ == "__main__":
+    # 默认从当前目录下的“点云”文件夹批量处理所有病例的 ASCII 数据
+    batch_clean_fluent_data(Path("点云"))
