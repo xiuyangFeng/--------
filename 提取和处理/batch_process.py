@@ -3,6 +3,7 @@ import argparse
 import glob
 import time
 import traceback
+import re
 from Script_Scenario_B_Volumetric import process_volumetric_dataset, prepare_geometry_data, process_single_cloud
 
 def find_surface_file(case_dir):
@@ -43,6 +44,65 @@ def find_cloud_files(case_dir, cloud_subdir="ascii_clean"):
     
     return cloud_files
 
+def load_boundary_conditions(case_dir):
+    """
+    加载该病例的所有边界条件文件 (.out)。
+    返回一个字典: time_step -> { "Inlet_Velocity": val, "Outlet_Pressure_LE": val, ... }
+    """
+    # 定义文件名与特征名的映射
+    file_mapping = {
+        "vf-in-rfile.out": "Inlet_Velocity",
+        "p-outle-rfile.out": "Outlet_Pressure_LE",
+        "p-outli-rfile.out": "Outlet_Pressure_LI",
+        "p-outre-rfile.out": "Outlet_Pressure_RE",
+        "p-outri-rfile.out": "Outlet_Pressure_RI"
+    }
+    
+    # 存储结果: step -> { feature_name: value }
+    bc_data = {}
+    
+    for filename, feature_name in file_mapping.items():
+        file_path = os.path.join(case_dir, filename)
+        if not os.path.exists(file_path):
+            print(f"⚠️  [警告] 未找到边界条件文件: {filename}")
+            continue
+            
+        try:
+            with open(file_path, 'r') as f:
+                lines = f.readlines()
+                
+            # 跳过头部，找到数据开始的地方
+            # 假设数据行以数字开头 (int)
+            start_idx = 0
+            for i, line in enumerate(lines):
+                parts = line.strip().split()
+                if len(parts) >= 2 and parts[0].isdigit():
+                    start_idx = i
+                    break
+            
+            # 读取数据
+            for line in lines[start_idx:]:
+                parts = line.strip().split()
+                if len(parts) < 2:
+                    continue
+                
+                # 第一列是 Time Step (int), 第二列是 Value (float)
+                try:
+                    step = int(parts[0])
+                    val = float(parts[1])
+                    
+                    if step not in bc_data:
+                        bc_data[step] = {}
+                    
+                    bc_data[step][feature_name] = val
+                except ValueError:
+                    continue
+                    
+        except Exception as e:
+            print(f"❌ 读取 {filename} 失败: {str(e)}")
+            
+    return bc_data
+
 def process_case(case_dir, output_root_dir, cloud_subdir="ascii_clean", output_subdir="ascii_mapped"):
     """
     处理单个病例目录。
@@ -81,6 +141,11 @@ def process_case(case_dir, output_root_dir, cloud_subdir="ascii_clean", output_s
         traceback.print_exc()
         return False
 
+    # 3.6 加载全局边界条件
+    global_bcs_map = load_boundary_conditions(case_dir)
+    if not global_bcs_map:
+        print(f"⚠️  [警告] {case_name} 未加载到任何边界条件数据。")
+
     # 4. 遍历处理每个点云文件
     for cloud_path in cloud_files:
         cloud_filename = os.path.basename(cloud_path)
@@ -92,8 +157,24 @@ def process_case(case_dir, output_root_dir, cloud_subdir="ascii_clean", output_s
             print(f"   处理点云: {cloud_filename} ...")
             start_time = time.time()
             
+            # 提取时间步
+            # 假设文件名格式: CaseName-TimeStep.csv (例如 004-1121.csv)
+            # 使用正则提取文件名末尾的数字
+            time_step = None
+            match = re.search(r'-(\d+)\.', cloud_filename)
+            if match:
+                time_step = int(match.group(1))
+            
+            current_bcs = {}
+            if time_step is not None and time_step in global_bcs_map:
+                current_bcs = global_bcs_map[time_step]
+            elif time_step is not None:
+                # 尝试寻找最近的时间步或者报错? 这里暂时只打印警告
+                # print(f"   ⚠️  警告: 时间步 {time_step} 在 BC 文件中未找到对应数据。")
+                pass
+            
             # 调用核心处理函数 (使用预处理好的几何数据)
-            process_single_cloud(geo_data, cloud_path, output_path)
+            process_single_cloud(geo_data, cloud_path, output_path, global_bcs=current_bcs)
             
             elapsed = time.time() - start_time
             print(f"   ✅ 完成，耗时 {elapsed:.2f}s. 输出: {output_filename}")
