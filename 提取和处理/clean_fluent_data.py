@@ -203,4 +203,4 @@ def batch_clean_fluent_data(
 
 if __name__ == "__main__":
     # 默认从当前目录下的“点云”文件夹批量处理所有病例的 ASCII 数据
-    batch_clean_fluent_data(Path("点云"))
+    batch_clean_fluent_data(Path("data"))

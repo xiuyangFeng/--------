@@ -44,63 +44,160 @@ def find_cloud_files(case_dir, cloud_subdir="ascii_merged"):
     
     return cloud_files
 
+def detect_boundary_condition_type(case_dir):
+    """
+    检测边界条件类型。
+    
+    基于出口文件类型来区分：
+    - 压力边界：有 p-out*.out 文件（出口为压力）
+    - 流量边界：有 flow-out*.out 文件（出口为流量）
+    
+    注意：两种边界条件现在都使用 vf-in-rfile.out 作为入口文件
+    （流量边界的 vf-in-rfile.out 由 generate_outlet_flows.py 从质量流量转换而来）
+    
+    返回: 
+        1 = 压力边界
+        0 = 流量边界
+        None = 无法检测
+    """
+    # 检查入口文件（两种边界条件都需要）
+    inlet_file = os.path.join(case_dir, "vf-in-rfile.out")
+    
+    # 通过出口文件类型来区分边界条件类型
+    pressure_outlet = os.path.join(case_dir, "p-outle-rfile.out")
+    flow_outlet = os.path.join(case_dir, "flow-outle-rfile.out")
+    
+    if os.path.exists(inlet_file) and os.path.exists(pressure_outlet):
+        return 1  # 压力边界
+    elif os.path.exists(inlet_file) and os.path.exists(flow_outlet):
+        return 0  # 流量边界
+    else:
+        # 回退检测：检查原始流量边界文件
+        original_flow_inlet = os.path.join(case_dir, "report-def-2-rfile.out")
+        if os.path.exists(original_flow_inlet) and os.path.exists(flow_outlet):
+            print(f"⚠️  [提示] 检测到原始流量边界文件，请先运行 generate_outlet_flows.py 生成 vf-in-rfile.out")
+            return 0  # 流量边界（但入口文件需要转换）
+        return None
+
+
+def read_bc_file(file_path):
+    """
+    读取单个边界条件文件，返回 step -> value 的字典。
+    """
+    data = {}
+    if not os.path.exists(file_path):
+        return data
+        
+    try:
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+            
+        # 跳过头部，找到数据开始的地方
+        start_idx = 0
+        for i, line in enumerate(lines):
+            parts = line.strip().split()
+            if len(parts) >= 2 and parts[0].isdigit():
+                start_idx = i
+                break
+        
+        # 读取数据
+        for line in lines[start_idx:]:
+            parts = line.strip().split()
+            if len(parts) < 2:
+                continue
+            
+            try:
+                step = int(parts[0])
+                val = float(parts[1])
+                data[step] = val
+            except ValueError:
+                continue
+                
+    except Exception as e:
+        print(f"❌ 读取 {file_path} 失败: {str(e)}")
+        
+    return data
+
+
 def load_boundary_conditions(case_dir):
     """
     加载该病例的所有边界条件文件 (.out)。
-    返回一个字典: time_step -> { "Inlet_Velocity": val, "Outlet_Pressure_LE": val, ... }
+    
+    自动检测边界条件类型：
+    - BC_Flag=1: 压力边界 (vf-in + p-out*)
+    - BC_Flag=0: 流量边界 (vf-in + flow-out*)
+    
+    注意：两种边界条件现在都使用 vf-in-rfile.out 作为入口文件。
+    流量边界的 vf-in-rfile.out 由 generate_outlet_flows.py 从质量流量转换而来。
+    
+    返回一个字典: time_step -> [BC_Flag, in, O1, O2, O3, O4]
+    其中:
+        - BC_Flag: 边界条件类型标志 (1=压力边界, 0=流量边界)
+        - in: 入口体积流量 (两种边界条件统一为体积流量)
+        - O1: 左外髂支动脉出口 (压力边界时为压力, 流量边界时为流量)
+        - O2: 左内髂支动脉出口
+        - O3: 右外髂支动脉出口
+        - O4: 右内髂支动脉出口
     """
-    # 定义文件名与特征名的映射
-    file_mapping = {
-        "vf-in-rfile.out": "Inlet_Velocity",
-        "p-outle-rfile.out": "Outlet_Pressure_LE",
-        "p-outli-rfile.out": "Outlet_Pressure_LI",
-        "p-outre-rfile.out": "Outlet_Pressure_RE",
-        "p-outri-rfile.out": "Outlet_Pressure_RI"
-    }
+    # 检测边界条件类型
+    bc_type = detect_boundary_condition_type(case_dir)
     
-    # 存储结果: step -> { feature_name: value }
-    bc_data = {}
+    if bc_type is None:
+        print(f"⚠️  [警告] 无法检测边界条件类型，缺少必要的边界条件文件")
+        return {}
     
-    for filename, feature_name in file_mapping.items():
+    bc_type_name = "压力边界" if bc_type == 1 else "流量边界"
+    print(f"📊 检测到边界条件类型: {bc_type_name} (BC_Flag={bc_type})")
+    
+    # 根据边界条件类型定义文件映射
+    # 注意：两种边界条件现在都使用 vf-in-rfile.out 作为入口文件
+    # 流量边界的 vf-in-rfile.out 由 generate_outlet_flows.py 从质量流量转换而来
+    if bc_type == 1:  # 压力边界
+        file_mapping = {
+            "inlet": "vf-in-rfile.out",       # 入口体积速率
+            "O1": "p-outle-rfile.out",        # 左外髂支动脉出口压力
+            "O2": "p-outli-rfile.out",        # 左内髂支动脉出口压力
+            "O3": "p-outre-rfile.out",        # 右外髂支动脉出口压力
+            "O4": "p-outri-rfile.out"         # 右内髂支动脉出口压力
+        }
+    else:  # 流量边界
+        file_mapping = {
+            "inlet": "vf-in-rfile.out",       # 入口体积流量 (由 generate_outlet_flows.py 生成)
+            "O1": "flow-outle-rfile.out",     # 左外髂支动脉出口流量
+            "O2": "flow-outli-rfile.out",     # 左内髂支动脉出口流量
+            "O3": "flow-outre-rfile.out",     # 右外髂支动脉出口流量
+            "O4": "flow-outri-rfile.out"      # 右内髂支动脉出口流量
+        }
+    
+    # 读取各个文件的数据
+    bc_raw_data = {}
+    for key, filename in file_mapping.items():
         file_path = os.path.join(case_dir, filename)
         if not os.path.exists(file_path):
             print(f"⚠️  [警告] 未找到边界条件文件: {filename}")
-            continue
-            
-        try:
-            with open(file_path, 'r') as f:
-                lines = f.readlines()
-                
-            # 跳过头部，找到数据开始的地方
-            # 假设数据行以数字开头 (int)
-            start_idx = 0
-            for i, line in enumerate(lines):
-                parts = line.strip().split()
-                if len(parts) >= 2 and parts[0].isdigit():
-                    start_idx = i
-                    break
-            
-            # 读取数据
-            for line in lines[start_idx:]:
-                parts = line.strip().split()
-                if len(parts) < 2:
-                    continue
-                
-                # 第一列是 Time Step (int), 第二列是 Value (float)
-                try:
-                    step = int(parts[0])
-                    val = float(parts[1])
-                    
-                    if step not in bc_data:
-                        bc_data[step] = {}
-                    
-                    bc_data[step][feature_name] = val
-                except ValueError:
-                    continue
-                    
-        except Exception as e:
-            print(f"❌ 读取 {filename} 失败: {str(e)}")
-            
+            bc_raw_data[key] = {}
+        else:
+            bc_raw_data[key] = read_bc_file(file_path)
+    
+    # 获取所有时间步的并集
+    all_steps = set()
+    for key in bc_raw_data:
+        all_steps.update(bc_raw_data[key].keys())
+    
+    # 构建最终的边界条件数据: step -> [BC_Flag, in, O1, O2, O3, O4]
+    bc_data = {}
+    for step in all_steps:
+        inlet_val = bc_raw_data["inlet"].get(step, 0.0)
+        o1_val = bc_raw_data["O1"].get(step, 0.0)
+        o2_val = bc_raw_data["O2"].get(step, 0.0)
+        o3_val = bc_raw_data["O3"].get(step, 0.0)
+        o4_val = bc_raw_data["O4"].get(step, 0.0)
+        
+        bc_data[step] = [float(bc_type), inlet_val, o1_val, o2_val, o3_val, o4_val]
+    
+    if bc_data:
+        print(f"✅ 成功加载 {len(bc_data)} 个时间步的边界条件数据")
+    
     return bc_data
 
 def process_case(case_dir, output_root_dir, cloud_subdir="ascii_merged", output_subdir="ascii_mapped"):
@@ -165,13 +262,15 @@ def process_case(case_dir, output_root_dir, cloud_subdir="ascii_merged", output_
             if match:
                 time_step = int(match.group(1))
             
-            current_bcs = {}
+            current_bcs = None
             if time_step is not None and time_step in global_bcs_map:
                 current_bcs = global_bcs_map[time_step]
-            elif time_step is not None:
-                # 尝试寻找最近的时间步或者报错? 这里暂时只打印警告
-                # print(f"   ⚠️  警告: 时间步 {time_step} 在 BC 文件中未找到对应数据。")
-                pass
+            elif time_step is not None and global_bcs_map:
+                # 如果找不到精确匹配的时间步，尝试找最近的时间步
+                available_steps = list(global_bcs_map.keys())
+                closest_step = min(available_steps, key=lambda s: abs(s - time_step))
+                current_bcs = global_bcs_map[closest_step]
+                # print(f"   ⚠️  警告: 时间步 {time_step} 使用最近的 BC 数据 (step={closest_step})。")
             
             # 调用核心处理函数 (使用预处理好的几何数据)
             process_single_cloud(geo_data, cloud_path, output_path, global_bcs=current_bcs)

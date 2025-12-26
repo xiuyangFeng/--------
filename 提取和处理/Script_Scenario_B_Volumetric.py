@@ -117,10 +117,21 @@ def process_single_cloud(geo_data, cfd_cloud_path, output_csv_path, global_bcs=N
             df_out[f"Feature_{k}"] = cloud_others[:, k]
 
     # 6. 添加全局边界条件 (Global Boundary Conditions)
+    # 支持两种格式:
+    #   - 列表格式: [BC_Flag, Inlet, O1, O2, O3, O4]
+    #   - 字典格式: {bc_name: bc_value, ...} (向后兼容)
     if global_bcs:
-        for bc_name, bc_value in global_bcs.items():
-            # 为每一行添加相同的值
-            df_out[bc_name] = bc_value
+        if isinstance(global_bcs, list) and len(global_bcs) == 6:
+            # 新格式: [BC_Flag, Inlet, O1, O2, O3, O4]
+            bc_names = ["BC_Flag", "BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"]
+            for bc_name, bc_value in zip(bc_names, global_bcs):
+                df_out[bc_name] = bc_value
+        elif isinstance(global_bcs, dict):
+            # 旧格式: 字典形式 (向后兼容)
+            for bc_name, bc_value in global_bcs.items():
+                df_out[bc_name] = bc_value
+        else:
+            print(f"⚠️  [警告] 无法识别的边界条件格式: {type(global_bcs)}")
             
     df_out.to_csv(output_csv_path, index=False)  # 将结果保存为CSV文件，不包含行索引
     # print(f"✅ Saved: {output_csv_path}")  # 注释掉的打印语句，显示保存成功的信息

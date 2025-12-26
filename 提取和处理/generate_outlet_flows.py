@@ -1,14 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-生成各出口流量文件脚本
+生成入口体积流量和各出口流量文件脚本
 
 功能：
 1. 读取入口质量流量曲线 (report-def-2-rfile.out)
-2. 转换为体积流量：体积流量 = 质量流量 / 密度(1060 kg/m³)
-3. 读取出口流量比 (outlet-flow-ratio.csv)
-4. 计算各出口流量 = (入口质量流量 / 1060) × 出口流量比
-5. 保存为对应的 .out 文件
+2. 生成入口体积流量文件 (vf-in-rfile.out):
+   - 入口体积流量 = 入口质量流量 / 密度(1060 kg/m³)
+3. 读取出口流量比 (outlet-flow-ratio.csv 或 .xlsx)
+4. 生成各出口体积流量文件:
+   - 出口体积流量 = 入口体积流量 × 出口流量比
+5. 保存为对应的 .out 文件 (FLUENT report 格式)
+
+输出文件：
+- vf-in-rfile.out: 入口体积流量（与压力边界条件格式一致）
+- flow-outle-rfile.out: 左外髂支动脉出口体积流量
+- flow-outli-rfile.out: 左内髂支动脉出口体积流量
+- flow-outre-rfile.out: 右外髂支动脉出口体积流量
+- flow-outri-rfile.out: 右内髂支动脉出口体积流量
 
 支持单病例处理和批量处理。
 """
@@ -17,6 +26,7 @@ import os
 import csv
 from pathlib import Path
 import argparse
+import pandas as pd
 
 
 def read_fluent_report_file(file_path):
@@ -57,27 +67,46 @@ def read_fluent_report_file(file_path):
 
 def read_outlet_flow_ratio(file_path):
     """
-    读取出口流量比例文件
+    读取出口流量比例文件 (支持 .csv 和 .xlsx)
     
     Parameters:
     -----------
     file_path : str or Path
-        outlet-flow-ratio.csv 文件路径
+        outlet-flow-ratio.csv 或 .xlsx 文件路径
     
     Returns:
     --------
     dict
         {outlet_name: ratio} 的字典
     """
-    with open(file_path, 'r') as f:
-        reader = csv.reader(f)
-        headers = next(reader)  # 第一行：列名
-        values = next(reader)   # 第二行：数值
+    file_path = Path(file_path)
+    
+    if file_path.suffix.lower() == '.xlsx':
+        # 读取 Excel 文件
+        df = pd.read_excel(file_path)
+        # 假设格式：第一行为列名（出口名），第二行为数值（比例）
+        headers = df.columns.tolist()
+        values = df.iloc[0].tolist()
+    else:
+        # 默认按 CSV 读取
+        with open(file_path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            try:
+                headers = next(reader)  # 第一行：列名
+                values = next(reader)   # 第二行：数值
+            except StopIteration:
+                print(f"⚠️  文件内容为空: {file_path}")
+                return {}
     
     # 构建字典
     ratios = {}
     for col_name, value in zip(headers, values):
-        ratios[col_name] = float(value)
+        try:
+            # 过滤掉非数值列
+            val = float(value)
+            ratios[col_name] = val
+        except (ValueError, TypeError):
+            continue
     
     return ratios
 
@@ -111,22 +140,25 @@ def write_fluent_report_file(file_path, data, outlet_name, title_suffix="etc..")
 
 
 def process_single_case(case_dir, inlet_file="report-def-2-rfile.out", 
-                       ratio_file="outlet-flow-ratio.csv", overwrite=False, density=1060.0):
+                       ratio_file="outlet-flow-ratio.csv", overwrite=False, density=1060.0,
+                       inlet_output_file="vf-in-rfile.out"):
     """
-    处理单个病例，生成各出口流量文件
+    处理单个病例，生成各出口流量文件和入口体积流量文件
     
     Parameters:
     -----------
     case_dir : str or Path
         病例目录路径
     inlet_file : str
-        入口流量文件名
+        入口质量流量文件名
     ratio_file : str
-        流量比文件名
+        流量比文件名（若设为默认值，将优先尝试寻找 .xlsx 格式）
     overwrite : bool
         是否覆盖已存在的文件
     density : float
         血液密度 (kg/m³)，默认 1060，用于将质量流量转换为体积流量
+    inlet_output_file : str
+        入口体积流量输出文件名，默认 vf-in-rfile.out（与压力边界格式一致）
     
     Returns:
     --------
@@ -135,7 +167,17 @@ def process_single_case(case_dir, inlet_file="report-def-2-rfile.out",
     """
     case_dir = Path(case_dir)
     inlet_path = case_dir / inlet_file
-    ratio_path = case_dir / ratio_file
+    
+    # 自动识别比例文件：如果默认的 .csv 不存在但 .xlsx 存在，则使用 .xlsx
+    if ratio_file == "outlet-flow-ratio.csv":
+        ratio_path_xlsx = case_dir / "outlet-flow-ratio.xlsx"
+        ratio_path_csv = case_dir / "outlet-flow-ratio.csv"
+        if ratio_path_xlsx.exists():
+            ratio_path = ratio_path_xlsx
+        else:
+            ratio_path = ratio_path_csv
+    else:
+        ratio_path = case_dir / ratio_file
     
     # 检查文件是否存在
     if not inlet_path.exists():
@@ -160,6 +202,31 @@ def process_single_case(case_dir, inlet_file="report-def-2-rfile.out",
     # 为每个出口生成流量文件
     generated_files = []
     
+    # ========================================
+    # 1. 生成入口体积流量文件
+    # ========================================
+    inlet_volume_output = case_dir / inlet_output_file
+    
+    if inlet_volume_output.exists() and not overwrite:
+        print(f"   ⊙ 跳过已存在: {inlet_volume_output.name}")
+    else:
+        # 计算入口体积流量 = 入口质量流量 / 密度
+        inlet_volume_data = []
+        for row in inlet_data:
+            inlet_volume_data.append({
+                'Time Step': row['Time Step'],
+                'Value': row['Value'] / density,  # 质量流量 / 密度 = 体积流量
+                'flow-time': row['flow-time']
+            })
+        
+        # 写入文件
+        write_fluent_report_file(inlet_volume_output, inlet_volume_data, "vf-in")
+        generated_files.append(inlet_volume_output)
+        print(f"   ✓ 生成入口体积流量: {inlet_volume_output.name}")
+    
+    # ========================================
+    # 2. 生成各出口流量文件
+    # ========================================
     for outlet_name, ratio in flow_ratios.items():
         # 构造输出文件名（从 flow-outle-rfile 变为 flow-outle-rfile.out）
         output_file = case_dir / f"{outlet_name}.out"
@@ -182,13 +249,14 @@ def process_single_case(case_dir, inlet_file="report-def-2-rfile.out",
         # 写入文件
         write_fluent_report_file(output_file, outlet_data, outlet_name)
         generated_files.append(output_file)
-        print(f"   ✓ 生成: {output_file.name} (比例: {ratio:.6f})")
+        print(f"   ✓ 生成出口流量: {output_file.name} (比例: {ratio:.6f})")
     
     return generated_files
 
 
 def batch_process(root_dir, inlet_file="report-def-2-rfile.out",
-                 ratio_file="outlet-flow-ratio.csv", overwrite=False, density=1060.0):
+                 ratio_file="outlet-flow-ratio.csv", overwrite=False, density=1060.0,
+                 inlet_output_file="vf-in-rfile.out"):
     """
     批量处理多个病例
     
@@ -197,13 +265,15 @@ def batch_process(root_dir, inlet_file="report-def-2-rfile.out",
     root_dir : str or Path
         包含多个病例子目录的根目录
     inlet_file : str
-        入口流量文件名
+        入口质量流量文件名
     ratio_file : str
         流量比文件名
     overwrite : bool
         是否覆盖已存在的文件
     density : float
         血液密度 (kg/m³)，默认 1060，用于将质量流量转换为体积流量
+    inlet_output_file : str
+        入口体积流量输出文件名
     
     Returns:
     --------
@@ -221,33 +291,54 @@ def batch_process(root_dir, inlet_file="report-def-2-rfile.out",
     
     results = {}
     
-    # 遍历所有子目录
-    case_dirs = sorted([d for d in root_dir.iterdir() if d.is_dir()])
+    print(f"🔍 正在递归搜索有效病例目录...")
     
-    if not case_dirs:
-        print("⚠️  未找到任何子目录")
+    # 递归查找所有包含入口流量文件的目录
+    # 只要目录下有 inlet_file，我们就认为这是一个需要处理的病例目录
+    valid_case_dirs = []
+    try:
+        # 使用 rglob 匹配文件名
+        for p in root_dir.rglob(inlet_file):
+            valid_case_dirs.append(p.parent)
+    except Exception as e:
+        print(f"❌ 搜索目录时出错: {e}")
         return results
     
-    print(f"找到 {len(case_dirs)} 个病例目录\n")
+    # 去重并排序
+    valid_case_dirs = sorted(list(set(valid_case_dirs)))
     
-    for case_dir in case_dirs:
+    if not valid_case_dirs:
+        print(f"⚠️  在 {root_dir} 及其子目录下未找到包含 {inlet_file} 的有效目录")
+        return results
+    
+    print(f"找到 {len(valid_case_dirs)} 个有效病例目录\n")
+    
+    for case_dir in valid_case_dirs:
+        # 计算相对于根目录的路径，方便日志显示
+        try:
+            display_name = case_dir.relative_to(root_dir)
+        except ValueError:
+            display_name = case_dir.name
+
         generated_files = process_single_case(
             case_dir, 
             inlet_file=inlet_file,
             ratio_file=ratio_file,
             overwrite=overwrite,
-            density=density
+            density=density,
+            inlet_output_file=inlet_output_file
         )
-        results[case_dir.name] = generated_files
-        print()
+        if generated_files:
+            results[str(display_name)] = generated_files
+        print("-" * 40)
     
     # 统计信息
     print("=" * 60)
     total_files = sum(len(files) for files in results.values())
     processed_cases = sum(1 for files in results.values() if len(files) > 0)
     print(f"✅ 处理完成！")
-    print(f"   - 处理病例数: {processed_cases}/{len(case_dirs)}")
-    print(f"   - 生成文件数: {total_files}")
+    print(f"   - 处理病例数: {processed_cases}/{len(valid_case_dirs)}")
+    print(f"   - 生成文件数: {total_files} (含入口体积流量)")
     
     return results
 
@@ -255,7 +346,7 @@ def batch_process(root_dir, inlet_file="report-def-2-rfile.out",
 def main():
     """命令行入口"""
     parser = argparse.ArgumentParser(
-        description="生成各出口流量文件（从入口流量和流量比计算）",
+        description="生成入口体积流量和各出口流量文件（从入口质量流量和流量比计算）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 使用示例:
@@ -271,7 +362,13 @@ def main():
   # 自定义文件名
   python generate_outlet_flows.py --case 点云/001 \\
       --inlet report-def-2-rfile.out \\
-      --ratio outlet-flow-ratio.csv
+      --ratio outlet-flow-ratio.csv \\
+      --inlet-output vf-in-rfile.out
+
+功能说明:
+  1. 读取入口质量流量文件 (report-def-2-rfile.out)
+  2. 生成入口体积流量文件: 体积流量 = 质量流量 / 密度(1060)
+  3. 生成各出口体积流量文件: 出口流量 = 入口体积流量 × 出口流量比
         """
     )
     
@@ -282,9 +379,11 @@ def main():
     
     # 文件名参数
     parser.add_argument('--inlet', type=str, default='report-def-2-rfile.out',
-                       help='入口流量文件名（默认: report-def-2-rfile.out）')
+                       help='入口质量流量文件名（默认: report-def-2-rfile.out）')
     parser.add_argument('--ratio', type=str, default='outlet-flow-ratio.csv',
                        help='流量比文件名（默认: outlet-flow-ratio.csv）')
+    parser.add_argument('--inlet-output', type=str, default='vf-in-rfile.out',
+                       help='入口体积流量输出文件名（默认: vf-in-rfile.out）')
     
     # 其他选项
     parser.add_argument('--density', type=float, default=1060.0,
@@ -302,10 +401,11 @@ def main():
             inlet_file=args.inlet,
             ratio_file=args.ratio,
             overwrite=args.overwrite,
-            density=args.density
+            density=args.density,
+            inlet_output_file=args.inlet_output
         )
         if generated:
-            print(f"\n✅ 成功生成 {len(generated)} 个文件")
+            print(f"\n✅ 成功生成 {len(generated)} 个文件（含入口体积流量）")
         else:
             print("\n⚠️  未生成任何文件")
     
@@ -316,7 +416,8 @@ def main():
             inlet_file=args.inlet,
             ratio_file=args.ratio,
             overwrite=args.overwrite,
-            density=args.density
+            density=args.density,
+            inlet_output_file=args.inlet_output
         )
 
 
