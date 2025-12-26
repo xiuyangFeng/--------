@@ -92,6 +92,10 @@ def convert_fluent_to_csv(input_path: Path, output_path: Path, convert_to_mm: bo
     df = df.rename(columns=rename_dict)
     print(f"   - 原始数据列名: {df.columns.tolist()}")
 
+    # 如果有节点编号，清洗后不再保留
+    if "node_id" in df.columns:
+        df = df.drop(columns=["node_id"])
+
     # 确保几何坐标存在
     missing_xyz = [c for c in ("x", "y", "z") if c not in df.columns]
     if missing_xyz:
@@ -99,21 +103,7 @@ def convert_fluent_to_csv(input_path: Path, output_path: Path, convert_to_mm: bo
         return
 
     # 可选的常见列顺序，便于后续模型直接读取
-    preferred_cols = [
-        "node_id",
-        "x",
-        "y",
-        "z",
-        "u",
-        "v",
-        "w",
-        "p",
-        "vel_mag",
-        "wss",
-        "wss_x",
-        "wss_y",
-        "wss_z",
-    ]
+    preferred_cols = ["x", "y", "z", "u", "v", "w", "p", "vel_mag", "wss", "wss_x", "wss_y", "wss_z"]
     available_cols = [c for c in preferred_cols if c in df.columns]
 
     # 壁面 ascii 可能缺少速度列，补齐为 0 便于后续与内部点合并
