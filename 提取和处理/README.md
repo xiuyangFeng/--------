@@ -222,22 +222,29 @@ python generate_outlet_flows.py --batch 点云 --overwrite
 - 自动计算并生成4个出口流量文件：`flow-outle-rfile.out`、`flow-outli-rfile.out`、`flow-outre-rfile.out`、`flow-outri-rfile.out`
 - 详细使用说明请参考 `出口流量生成说明.md`
 
-## 生成图数据并训练（可选）
-1) 将特征 CSV 转为 PyG 数据：
-```bash
-python dataset.py       # 默认读取当前目录下首个 CSV，生成 test_graph.pt
-# 或者自定义：
-# python - <<'PY'
-# from dataset import GraphDataset
-# GraphDataset(k=20).process_file("outdata/004/ascii_mapped/result_features_004-1121.csv",
-#                                 "004_graph.pt")
-# PY
-```
-2) 训练 PI-GNN：
-```bash
-python train.py    # 自动读取当前目录下首个 .pt
-```
-可在 `train.py` 内调整 batch 大小、学习率、物理损失权重等。
+## 物理信息 GNN 训练 (GNN_train 模块)
+
+该模块位于 `min-road/GNN_train` 下，提供了从 CSV 特征数据到 GNN 模型训练与验证的完整流水线。
+
+- **输入特征 (16维)**：包括空间坐标 `(x, y, z)`、归一化时间 `t` (0~1s)、以及提取的几何特征和边界条件。
+- **预测目标 (5维)**：`u, v, w` (速度)、`p` (压力)、`wss` (壁面剪切应力)。
+- **图构建**：使用 K=6 的 KNN 算法基于节点坐标构建局部连接。
+
+### 快速启动
+1. **数据转换**：将 CSV 转换为图格式 `.pt`
+   ```bash
+   python min-road/GNN_train/data_converter.py --data-root ./data --output-dir ./min-road/GNN_train/processed_data
+   ```
+2. **模型训练**：
+   ```bash
+   python min-road/GNN_train/train.py --data-dir ./min-road/GNN_train/processed_data --epochs 100
+   ```
+3. **模型验证**：
+   ```bash
+   python min-road/GNN_train/validate.py --model-path ./min-road/GNN_train/checkpoints/best_model.pt --data-list test_files.txt
+   ```
+
+更多详情见 [GNN_train/README.md](file:///Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/min-road/GNN_train/README.md)。
 
 ## 常见问题与排查
 - **未找到 `vmtk`/`vtk`**：确认已在 Conda 环境安装并激活；Mac/Linux 可用 `python -c "import vmtk"` 试运行。

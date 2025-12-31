@@ -1,0 +1,184 @@
+{
+  "description": "特征归一化参数",
+  "methods": {
+    "keep_unchanged": [
+      "Abscissa",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
+      "is_wall",
+      "BC_Flag"
+    ],
+    "min_max": [
+      "NormRadius"
+    ],
+    "z_score": [
+      "Curvature",
+      "u",
+      "v",
+      "w",
+      "p",
+      "vel_mag",
+      "wss",
+      "wss_x",
+      "wss_y",
+      "wss_z"
+    ],
+    "bc_physical_scaling": {
+      "bc_inlet": [
+        "BC_Inlet"
+      ],
+      "bc_outlets": [
+        "BC_O1",
+        "BC_O2",
+        "BC_O3",
+        "BC_O4"
+      ]
+    }
+  },
+  "boundary_condition_scaling": {
+    "description": "边界条件使用基于物理意义的手动缩放",
+    "inlet_flow": {
+      "formula": "scaled = Q_in × 1e5",
+      "original_range": "~1e-5 m³/s",
+      "scaled_range": "0.5 ~ 5.0",
+      "restore": "Q_in = scaled / 1e5"
+    },
+    "outlet_flow_BC_Flag_0": {
+      "formula": "scaled = Q_out × 1e5",
+      "original_range": "~1e-6 ~ 1e-5 m³/s",
+      "scaled_range": "0.1 ~ 2.0",
+      "restore": "Q_out = scaled / 1e5"
+    },
+    "outlet_pressure_BC_Flag_1": {
+      "formula": "scaled = (P - 15000) / 1000",
+      "original_range": "~13000 ~ 16000 Pa",
+      "scaled_range": "-1.5 ~ +1.5",
+      "restore": "P = scaled × 1000 + 15000"
+    }
+  },
+  "bc_scaling_config": {
+    "inlet_flow": {
+      "scale_factor": 100000.0,
+      "description": "入口流量 (m³/s) × 1e5 → 0.5~5.0"
+    },
+    "outlet_flow": {
+      "scale_factor": 100000.0,
+      "description": "出口流量 (m³/s) × 1e5 → 0.1~2.0"
+    },
+    "outlet_pressure": {
+      "offset": 15000,
+      "scale": 1000,
+      "description": "出口压力 (Pa): (P - 15000) / 1000 → -1.5~+1.5"
+    }
+  },
+  "use_log_wss": false,
+  "statistics": {
+    "Curvature": {
+      "mean": 85555.13481740505,
+      "std": 3481503.6782840756,
+      "min": 2.697578565857839e-05,
+      "max": 159589744.0,
+      "median": 0.067306749522686
+    },
+    "u": {
+      "mean": 0.002165407771882564,
+      "std": 0.06744019867135016,
+      "min": -0.585693503007874,
+      "max": 0.7370204024566929,
+      "median": 0.0
+    },
+    "v": {
+      "mean": 0.0010168971185913166,
+      "std": 0.04759687689353364,
+      "min": -0.4830642820866141,
+      "max": 0.5936965722519685,
+      "median": 0.0
+    },
+    "w": {
+      "mean": -0.029496628746519055,
+      "std": 0.07746514470859263,
+      "min": -0.749653284007874,
+      "max": 0.2629194458110236,
+      "median": 0.0
+    },
+    "p": {
+      "mean": 15632.035054071328,
+      "std": 621.4576916408454,
+      "min": 13994.957877559056,
+      "max": 16543.34103992126,
+      "median": 15953.491154173227
+    },
+    "vel_mag": {
+      "mean": 0.057160753665998876,
+      "std": 0.10250307789831693,
+      "min": 0.0,
+      "max": 0.9344181222047244,
+      "median": 0.0
+    },
+    "wss": {
+      "mean": 0.5622569066344809,
+      "std": 1.039481450706048,
+      "min": 0.0,
+      "max": 24.71066079559055,
+      "median": 0.2404637084385829
+    },
+    "wss_x": {
+      "mean": 0.02817762296263705,
+      "std": 0.6893379336669788,
+      "min": -15.470638024094487,
+      "max": 20.307531466377952,
+      "median": 0.0
+    },
+    "wss_y": {
+      "mean": 0.027725159598810223,
+      "std": 0.545342133585774,
+      "min": -9.18296940770866,
+      "max": 12.069794457637794,
+      "median": 0.0
+    },
+    "wss_z": {
+      "mean": -0.18371341516115042,
+      "std": 0.7354248751525958,
+      "min": -11.94811298440945,
+      "max": 8.07043255792126,
+      "median": 0.0
+    },
+    "NormRadius": {
+      "mean": 0.9206775759580144,
+      "std": 0.21762398488879972,
+      "min": 0.0197196355691848,
+      "max": 1.6545512866862413,
+      "median": 1.0001275155950555
+    },
+    "x": {
+      "mean": -6.661504685368074e-19,
+      "std": 0.18938559597820656,
+      "min": -0.429117938135559,
+      "max": 0.4634853456106252,
+      "median": 0.006709442219736
+    },
+    "y": {
+      "mean": 2.1253227902999322e-16,
+      "std": 0.0858772935044842,
+      "min": -0.2238809284748542,
+      "max": 0.220800453709754,
+      "median": 0.003938267540872
+    },
+    "z": {
+      "mean": 3.932306402150608e-18,
+      "std": 0.48833426962253856,
+      "min": -0.8958646717537578,
+      "max": 0.999354194729147,
+      "median": -0.0113864958573708
+    }
+  },
+  "restore_formulas": {
+    "z_score": "original = normalized * std + mean",
+    "min_max": "original = normalized * (max - min) + min",
+    "log_wss": "若 use_log_wss=True，先逆 log 变换: sign(x) * (exp(|x|) - epsilon)",
+    "bc_inlet": "Q_in = scaled / 1e5",
+    "bc_outlet_flow": "Q_out = scaled / 1e5",
+    "bc_outlet_pressure": "P = scaled × 1000 + 15000"
+  }
+}
