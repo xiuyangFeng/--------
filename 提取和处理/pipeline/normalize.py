@@ -1,0 +1,451 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+特征归一化模块
+
+对提取的特征数据进行归一化处理，为训练做准备。
+
+归一化策略:
+- 保持不变: Abscissa (已在[0,1]), Tangent_X/Y/Z (单位向量), is_wall (二值)
+- Min-max: NormRadius → [0, 1]
+- Z-score: Curvature, u, v, w, p, vel_mag, wss, wss_x/y/z
+
+边界条件缩放（基于物理意义，移除 BC_Flag 相关逻辑）:
+- BC_Inlet (入口流量): Q_in × 1e5 → 0.5~5.0
+- BC_O1~O4 (出口压力): (P - 15000) / 1000 → -1.5~+1.5
+
+使用示例:
+  # 处理单个病例
+  python normalize.py --case ZHANG_CHUN
+  
+  # 处理所有病例
+  python normalize.py
+"""
+
+import argparse
+import json
+import time
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+
+# 导入配置
+from config import (
+    DATA_ROOT,
+    FEATURES_DIR,
+    NORMALIZED_DIR,
+    NORMALIZATION_CONFIG,
+    get_case_dirs,
+)
+
+
+# 特征分组配置
+FEATURE_GROUPS = {
+    # 保持不变的特征
+    "keep_unchanged": [
+        "Abscissa",      # 已归一化到 [0, 1]
+        "Tangent_X",     # 单位向量分量
+        "Tangent_Y",
+        "Tangent_Z",
+        "is_wall",       # 二值标记
+    ],
+    
+    # 使用 min-max 归一化的特征
+    "min_max": ["NormRadius"],
+    
+    # 使用 Z-score 标准化的特征
+    "z_score": [
+        "Curvature",
+        "u", "v", "w",
+        "p",
+        "vel_mag",
+        "wss", "wss_x", "wss_y", "wss_z",
+    ],
+    
+    # 边界条件特征
+    "bc_inlet": ["BC_Inlet"],
+    "bc_outlets": ["BC_O1", "BC_O2", "BC_O3", "BC_O4"],
+    
+    # 坐标（可选归一化）
+    "coordinates": ["x", "y", "z"],
+}
+
+# 边界条件缩放参数（简化版，移除 BC_Flag 判断）
+BC_SCALING = {
+    # 入口流量: Q_in × 1e5
+    "inlet": {"scale_factor": 1e5},
+    # 出口压力: (P - 15000) / 1000
+    "outlet_pressure": {"offset": 15000, "scale": 1000},
+}
+
+
+def compute_statistics(values: np.ndarray) -> Dict:
+    """计算数组的统计量"""
+    return {
+        "mean": float(np.nanmean(values)),
+        "std": float(np.nanstd(values)),
+        "min": float(np.nanmin(values)),
+        "max": float(np.nanmax(values)),
+    }
+
+
+def z_score_normalize(values: np.ndarray, mean: float, std: float) -> np.ndarray:
+    """Z-score 标准化"""
+    if std < 1e-10:
+        return np.zeros_like(values)
+    return (values - mean) / std
+
+
+def min_max_normalize(values: np.ndarray, min_val: float, max_val: float) -> np.ndarray:
+    """Min-max 归一化到 [0, 1]"""
+    range_val = max_val - min_val
+    if range_val < 1e-10:
+        return np.full_like(values, 0.5)
+    return (values - min_val) / range_val
+
+
+def collect_global_statistics(
+    case_dirs: List[Path], 
+    input_subdir: str
+) -> Dict:
+    """
+    收集所有病例的全局统计量
+    """
+    print("\n📊 收集全局统计量...")
+    
+    # 初始化累积数据
+    feature_values = {
+        **{feat: [] for feat in FEATURE_GROUPS["z_score"]},
+        **{feat: [] for feat in FEATURE_GROUPS["min_max"]},
+    }
+    
+    # 边界条件值（用于验证）
+    bc_inlet_values = []
+    bc_outlet_values = {feat: [] for feat in FEATURE_GROUPS["bc_outlets"]}
+    
+    total_files = 0
+    
+    for case_dir in tqdm(case_dirs, desc="扫描病例"):
+        input_dir = case_dir / input_subdir
+        if not input_dir.exists():
+            continue
+        
+        csv_files = list(input_dir.glob("result_features_*.csv"))
+        if not csv_files:
+            continue
+        
+        # 采样部分文件（加速统计）
+        sample_files = csv_files[::max(1, len(csv_files) // 10)]
+        
+        for csv_file in sample_files:
+            try:
+                df = pd.read_csv(csv_file)
+                total_files += 1
+                
+                # 收集常规特征值
+                for feat in feature_values.keys():
+                    if feat in df.columns:
+                        feature_values[feat].extend(df[feat].values.tolist())
+                
+                # 收集边界条件
+                if "BC_Inlet" in df.columns:
+                    bc_inlet_values.extend(df["BC_Inlet"].values.tolist())
+                
+                for feat in FEATURE_GROUPS["bc_outlets"]:
+                    if feat in df.columns:
+                        bc_outlet_values[feat].extend(df[feat].values.tolist())
+                        
+            except Exception as e:
+                print(f"  ⚠️ 读取 {csv_file.name} 失败: {e}")
+    
+    print(f"  已扫描 {total_files} 个文件")
+    
+    # 计算统计量
+    global_stats = {}
+    
+    print("\n  === Z-score 标准化特征 ===")
+    for feat in FEATURE_GROUPS["z_score"]:
+        if feat in feature_values and feature_values[feat]:
+            arr = np.array(feature_values[feat])
+            global_stats[feat] = compute_statistics(arr)
+            print(f"  {feat}: mean={global_stats[feat]['mean']:.6f}, "
+                  f"std={global_stats[feat]['std']:.6f}")
+    
+    print("\n  === Min-max 归一化特征 ===")
+    for feat in FEATURE_GROUPS["min_max"]:
+        if feat in feature_values and feature_values[feat]:
+            arr = np.array(feature_values[feat])
+            global_stats[feat] = compute_statistics(arr)
+            print(f"  {feat}: min={global_stats[feat]['min']:.6f}, "
+                  f"max={global_stats[feat]['max']:.6f}")
+    
+    # 显示边界条件范围（用于验证缩放参数）
+    print("\n  === 边界条件原始范围 ===")
+    if bc_inlet_values:
+        arr = np.array(bc_inlet_values)
+        stats = compute_statistics(arr)
+        scaled_min = stats['min'] * BC_SCALING["inlet"]["scale_factor"]
+        scaled_max = stats['max'] * BC_SCALING["inlet"]["scale_factor"]
+        print(f"  BC_Inlet: 原始=[{stats['min']:.6e}, {stats['max']:.6e}], "
+              f"缩放后=[{scaled_min:.4f}, {scaled_max:.4f}]")
+    
+    for feat, values in bc_outlet_values.items():
+        if values:
+            arr = np.array(values)
+            stats = compute_statistics(arr)
+            cfg = BC_SCALING["outlet_pressure"]
+            scaled_min = (stats['min'] - cfg['offset']) / cfg['scale']
+            scaled_max = (stats['max'] - cfg['offset']) / cfg['scale']
+            print(f"  {feat}: 原始=[{stats['min']:.2f}, {stats['max']:.2f}] Pa, "
+                  f"缩放后=[{scaled_min:.4f}, {scaled_max:.4f}]")
+    
+    global_stats["bc_scaling"] = BC_SCALING
+    
+    return global_stats
+
+
+def normalize_dataframe(df: pd.DataFrame, global_stats: Dict) -> pd.DataFrame:
+    """
+    对单个 DataFrame 进行归一化
+    """
+    df_norm = df.copy()
+    
+    # 1. 保持不变的特征（无需处理）
+    
+    # 2. Min-max 归一化
+    for feat in FEATURE_GROUPS["min_max"]:
+        if feat in df_norm.columns and feat in global_stats:
+            stats = global_stats[feat]
+            df_norm[feat] = min_max_normalize(
+                df_norm[feat].values,
+                stats["min"], stats["max"]
+            )
+    
+    # 3. Z-score 标准化
+    for feat in FEATURE_GROUPS["z_score"]:
+        if feat in df_norm.columns and feat in global_stats:
+            stats = global_stats[feat]
+            df_norm[feat] = z_score_normalize(
+                df_norm[feat].values,
+                stats["mean"], stats["std"]
+            )
+    
+    # 4. 入口流量缩放: Q_in × 1e5
+    inlet_cfg = BC_SCALING["inlet"]
+    for feat in FEATURE_GROUPS["bc_inlet"]:
+        if feat in df_norm.columns:
+            df_norm[feat] = df_norm[feat].values * inlet_cfg["scale_factor"]
+    
+    # 5. 出口压力缩放: (P - 15000) / 1000
+    # 新格式统一使用压力边界，不再需要 BC_Flag 判断
+    outlet_cfg = BC_SCALING["outlet_pressure"]
+    for feat in FEATURE_GROUPS["bc_outlets"]:
+        if feat in df_norm.columns:
+            df_norm[feat] = (df_norm[feat].values - outlet_cfg["offset"]) / outlet_cfg["scale"]
+    
+    # 处理 NaN 和 Inf
+    df_norm = df_norm.replace([np.inf, -np.inf], np.nan)
+    df_norm = df_norm.fillna(0)
+    
+    return df_norm
+
+
+def process_case(
+    case_dir: Path,
+    input_subdir: str,
+    output_subdir: str,
+    global_stats: Dict,
+) -> bool:
+    """
+    处理单个病例的所有文件
+    """
+    input_dir = case_dir / input_subdir
+    output_dir = case_dir / output_subdir
+    
+    if not input_dir.exists():
+        print(f"  ❌ 输入目录不存在: {input_subdir}")
+        return False
+    
+    csv_files = list(input_dir.glob("result_features_*.csv"))
+    if not csv_files:
+        print(f"  ❌ 未找到特征文件")
+        return False
+    
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 处理每个文件
+    success_count = 0
+    for csv_file in tqdm(csv_files, desc=f"处理 {case_dir.name}", leave=False):
+        try:
+            df = pd.read_csv(csv_file)
+            df_norm = normalize_dataframe(df, global_stats)
+            
+            output_path = output_dir / csv_file.name
+            df_norm.to_csv(output_path, index=False)
+            success_count += 1
+            
+        except Exception as e:
+            print(f"  ❌ 处理 {csv_file.name} 失败: {e}")
+    
+    print(f"  ✅ 完成: {success_count}/{len(csv_files)} 个文件")
+    return success_count > 0
+
+
+def save_normalization_params(global_stats: Dict, output_path: str) -> None:
+    """保存归一化参数到 JSON 文件"""
+    params = {
+        "description": "特征归一化参数",
+        "feature_groups": FEATURE_GROUPS,
+        "bc_scaling": BC_SCALING,
+        "statistics": {k: v for k, v in global_stats.items() if k != "bc_scaling"},
+        "restore_formulas": {
+            "z_score": "original = normalized * std + mean",
+            "min_max": "original = normalized * (max - min) + min",
+            "bc_inlet": "Q_in = scaled / 1e5",
+            "bc_outlet_pressure": "P = scaled × 1000 + 15000",
+        }
+    }
+    
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(params, f, indent=2, ensure_ascii=False)
+    
+    print(f"\n📁 归一化参数已保存到: {output_path}")
+
+
+def process_all_cases(
+    data_root: Path = None,
+    target_case: Optional[str] = None,
+    input_subdir: str = None,
+    output_subdir: str = None,
+) -> None:
+    """批量处理所有病例"""
+    if data_root is None:
+        data_root = DATA_ROOT
+    else:
+        data_root = Path(data_root)
+    
+    if input_subdir is None:
+        input_subdir = FEATURES_DIR
+    if output_subdir is None:
+        output_subdir = NORMALIZED_DIR
+    
+    # 获取病例目录
+    case_dirs = get_case_dirs(data_root)
+    
+    # 过滤指定病例
+    if target_case:
+        target_std = target_case.replace(' ', '_').replace('-', '_').upper()
+        case_dirs = [
+            d for d in case_dirs 
+            if d.name.replace(' ', '_').replace('-', '_').upper() == target_std
+        ]
+    
+    if not case_dirs:
+        if target_case:
+            print(f"❌ 未找到病例: {target_case}")
+        else:
+            print(f"❌ 未找到任何病例")
+        return
+    
+    print("🚀 特征归一化")
+    print("=" * 50)
+    print(f"📁 数据根目录: {data_root}")
+    print(f"📂 输入子目录: {input_subdir}")
+    print(f"📂 输出子目录: {output_subdir}")
+    print(f"📊 待处理病例数: {len(case_dirs)}")
+    
+    # 第一阶段：收集全局统计量
+    global_stats = collect_global_statistics(case_dirs, input_subdir)
+    
+    if not global_stats:
+        print("❌ 未能收集到统计量，请检查数据")
+        return
+    
+    # 保存归一化参数
+    params_path = data_root / "normalization_params_global.json"
+    save_normalization_params(global_stats, str(params_path))
+    
+    # 第二阶段：应用归一化
+    print("\n🔄 应用归一化...")
+    total_start = time.time()
+    ok = 0
+    
+    for idx, case_dir in enumerate(case_dirs, 1):
+        try:
+            rel_path = case_dir.relative_to(data_root)
+        except ValueError:
+            rel_path = case_dir.name
+        
+        print(f"\n[{idx}/{len(case_dirs)}] {rel_path}")
+        
+        if process_case(case_dir, input_subdir, output_subdir, global_stats):
+            ok += 1
+    
+    total_time = time.time() - total_start
+    
+    print(f"\n{'=' * 50}")
+    print("🎉 归一化完成!")
+    print(f"⏱️  总耗时: {total_time:.1f}s")
+    print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
+    print(f"📁 归一化参数: {params_path}")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="特征归一化",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+归一化策略:
+  - 保持不变: Abscissa, Tangent_X/Y/Z, is_wall
+  - Min-max: NormRadius → [0, 1]
+  - Z-score: Curvature, u/v/w, p, vel_mag, wss*
+
+边界条件缩放（新格式，无 BC_Flag）:
+  - BC_Inlet: Q_in × 1e5 → 0.5~5.0
+  - BC_O1~O4: (P - 15000) / 1000 → -1.5~+1.5
+
+示例:
+  python normalize.py --case ZHANG_CHUN
+  python normalize.py
+        """
+    )
+    parser.add_argument(
+        "--data-root",
+        type=str,
+        default=None,
+        help="数据根目录",
+    )
+    parser.add_argument(
+        "--case",
+        type=str,
+        default=None,
+        help="指定处理的病例名称",
+    )
+    parser.add_argument(
+        "--input-subdir",
+        type=str,
+        default=None,
+        help=f"输入子目录，默认 {FEATURES_DIR}",
+    )
+    parser.add_argument(
+        "--output-subdir",
+        type=str,
+        default=None,
+        help=f"输出子目录，默认 {NORMALIZED_DIR}",
+    )
+    
+    args = parser.parse_args()
+    
+    process_all_cases(
+        data_root=args.data_root,
+        target_case=args.case,
+        input_subdir=args.input_subdir,
+        output_subdir=args.output_subdir,
+    )
+
+
+if __name__ == "__main__":
+    main()
