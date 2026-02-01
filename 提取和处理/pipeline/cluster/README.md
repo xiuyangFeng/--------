@@ -6,55 +6,64 @@
 cluster/
 ├── run_pipeline.slurm      # 完整流程 SLURM 脚本
 ├── run_single_step.slurm   # 单步骤 SLURM 脚本
+├── run_array.slurm         # Array Job 脚本（并行处理多病例）
 ├── batch_submit.sh         # 批量提交脚本
+├── generate_case_list.sh   # 生成病例列表
 ├── logs/                   # 日志目录（自动创建）
 └── README.md               # 本文件
 ```
 
+## 集群配置
+
+当前配置基于以下集群环境：
+- **分区**: CPU
+- **每节点核心数**: 192
+- **Conda 环境**: rag_venv
+
 ## 快速开始
 
-### 1. 配置环境
-
-编辑 SLURM 脚本中的环境配置部分：
+### 1. 配置权限
 
 ```bash
-# 根据你的集群修改
-#SBATCH --partition=compute    # 分区名称
-source ~/.bashrc
-conda activate rag_venv        # conda 环境名称
+cd pipeline/cluster
+chmod +x *.sh
 ```
 
 ### 2. 提交作业
 
-```bash
-cd pipeline/cluster
+#### 方式一：Array Job（推荐，并行处理多个病例）
 
+```bash
+# 自动扫描所有病例并提交 Array Job
+./batch_submit.sh --array
+
+# 指定病例
+./batch_submit.sh --array ZHANG_CHUN LI_MING WANG_WEI
+```
+
+**Array Job 优势**：
+- 单节点 192 核可同时处理 ~6 个病例（每个32核）
+- 统一管理，方便监控和取消
+- 资源利用率高
+
+#### 方式二：独立作业模式
+
+```bash
 # 处理单个病例（推荐先测试）
 sbatch run_pipeline.slurm ZHANG_CHUN
 
-# 处理所有病例
-sbatch run_pipeline.slurm
-
-# 批量提交多个病例（每个病例一个作业）
-chmod +x batch_submit.sh
+# 批量提交（每个病例一个独立作业）
 ./batch_submit.sh
-
-# 从步骤2开始（跳过预处理）
-sbatch run_pipeline.slurm ZHANG_CHUN 2
-
-# 只运行步骤1（预处理）
-sbatch run_pipeline.slurm ZHANG_CHUN 1 1
+./batch_submit.sh ZHANG_CHUN LI_MING
 ```
 
 ### 3. 单步骤运行
 
-如果需要分步骤运行：
-
 ```bash
-# 步骤1: 数据预处理
+# 步骤1: 数据预处理（清洗+合并+降采样）
 sbatch run_single_step.slurm preprocess ZHANG_CHUN
 
-# 步骤2: 几何特征提取
+# 步骤2: 几何特征提取（中心线+边界条件）
 sbatch run_single_step.slurm extract_features ZHANG_CHUN
 
 # 步骤3: 归一化
@@ -64,6 +73,16 @@ sbatch run_single_step.slurm normalize ZHANG_CHUN
 sbatch run_single_step.slurm convert_to_graph ZHANG_CHUN
 ```
 
+### 4. 从指定步骤开始
+
+```bash
+# 从步骤2开始（跳过预处理）
+sbatch run_pipeline.slurm ZHANG_CHUN 2
+
+# 只运行步骤1-2
+sbatch run_pipeline.slurm ZHANG_CHUN 1 2
+```
+
 ## 监控作业
 
 ```bash
@@ -71,25 +90,46 @@ sbatch run_single_step.slurm convert_to_graph ZHANG_CHUN
 squeue -u $USER
 
 # 实时查看输出
-tail -f logs/pipeline_<JOB_ID>.out
+tail -f logs/gnn_pipeline_<JOB_ID>.out
+tail -f logs/gnn_array_<JOB_ID>_<TASK_ID>.out  # Array Job
 
 # 取消作业
 scancel <JOB_ID>
+
+# 取消所有 Array Job 任务
+scancel <ARRAY_JOB_ID>
 
 # 查看作业详情
 scontrol show job <JOB_ID>
 ```
 
-## 资源配置建议
+## 时间估算（单病例，约80帧数据）
 
-| 步骤 | CPU | 内存 | 预估时间（单病例） |
-|------|-----|------|-------------------|
-| preprocess | 4-8 | 16G | 10-30 分钟 |
-| extract_features | 2-4 | 8G | 30-60 分钟 |
-| normalize | 2-4 | 8G | 5-10 分钟 |
-| convert_to_graph | 4-8 | 16G | 10-20 分钟 |
+| 步骤 | 描述 | CPU | 预估时间 |
+|------|------|-----|----------|
+| preprocess | 清洗+合并+降采样 | 16-32 | 15-30 分钟 |
+| extract_features | 中心线提取(VMTK)+特征映射 | 16-32 | 30-60 分钟 |
+| normalize | 特征归一化 | 8-16 | 5-10 分钟 |
+| convert_to_graph | KNN图构建 | 16-32 | 10-20 分钟 |
+| **总计** | 完整流程 | 32 | **1-2 小时** |
 
-完整流程建议：8 CPU，32G 内存，2-4 小时
+### 多病例并行估算
+
+| 病例数 | 模式 | 并行度 | 总耗时 |
+|--------|------|--------|--------|
+| 1 | 单作业 | 1 | 1-2 小时 |
+| 6 | Array Job | 6 | 1-2 小时 |
+| 10 | Array Job | 6 | 2-4 小时 |
+| 20 | Array Job | 6 | 4-8 小时 |
+
+## 资源配置说明
+
+当前配置（192核节点）：
+- **run_pipeline.slurm**: 32核/任务，单病例完整流程
+- **run_single_step.slurm**: 16核/任务，单步骤运行
+- **run_array.slurm**: 32核/任务，同时最多6个任务并行
+
+如需调整，编辑对应脚本中的 `--ntasks-per-node` 参数。
 
 ## 常见问题
 
@@ -103,7 +143,10 @@ module load vtk  # 如果需要
 
 ### 2. 内存不足
 
-增加 `#SBATCH --mem=64G`
+脚本未设置内存限制，如遇内存问题可添加：
+```bash
+#SBATCH --mem=64G
+```
 
 ### 3. VMTK 报错
 
@@ -113,12 +156,19 @@ conda activate rag_venv
 pip install vmtk
 ```
 
-### 4. 查看详细日志
+### 4. Array Job 任务失败
 
 ```bash
-# 查看标准输出
-cat logs/pipeline_<JOB_ID>.out
+# 查看失败任务的错误日志
+cat logs/gnn_array_<JOB_ID>_<TASK_ID>.err
 
-# 查看错误输出
-cat logs/pipeline_<JOB_ID>.err
+# 重新提交单个失败的病例
+sbatch run_pipeline.slurm <CASE_NAME>
+```
+
+### 5. 指定特定节点运行
+
+取消脚本中的注释：
+```bash
+#SBATCH -w node01
 ```

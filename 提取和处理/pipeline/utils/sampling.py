@@ -98,13 +98,72 @@ def random_sampling(
     return sampled_indices
 
 
+def hybrid_sampling(
+    points: np.ndarray,
+    n_samples: int,
+    fps_ratio: float = 0.2,
+    seed: Optional[int] = None
+) -> np.ndarray:
+    """
+    混合采样：先 FPS 后随机
+    
+    策略：
+    1. 先用 FPS 采样 fps_ratio 比例的点，确保空间覆盖（保护分支血管）
+    2. 再从剩余点中随机采样，增加数据多样性
+    
+    优点：兼顾空间覆盖和数据多样性
+    
+    参数:
+        points: 点云坐标，形状 (N, 3)
+        n_samples: 需要采样的点数
+        fps_ratio: FPS 采样占比（默认 0.2 = 20%，可调整为 0.3 或 0.4）
+        seed: 随机种子
+    
+    返回:
+        采样点的索引数组
+    """
+    n_points = len(points)
+    
+    # 如果需要采样的点数大于等于总点数，返回所有索引
+    if n_samples >= n_points:
+        return np.arange(n_points)
+    
+    # 计算 FPS 和随机采样的点数
+    n_fps = int(n_samples * fps_ratio)
+    n_random = n_samples - n_fps
+    
+    # 确保至少有 1 个 FPS 点（如果 n_samples > 0）
+    if n_fps == 0 and n_samples > 0:
+        n_fps = 1
+        n_random = n_samples - 1
+    
+    # 第一步：FPS 确保空间覆盖
+    fps_indices = farthest_point_sampling(points, n_fps, seed)
+    
+    # 第二步：从剩余点中随机采样
+    remaining_mask = np.ones(n_points, dtype=bool)
+    remaining_mask[fps_indices] = False
+    remaining_indices = np.where(remaining_mask)[0]
+    
+    if n_random > 0 and len(remaining_indices) > 0:
+        n_random_actual = min(n_random, len(remaining_indices))
+        random_indices_local = random_sampling(
+            points[remaining_indices], n_random_actual, seed
+        )
+        random_indices = remaining_indices[random_indices_local]
+        return np.concatenate([fps_indices, random_indices])
+    else:
+        return fps_indices
+
+
 def stratified_sampling_by_distance(
     surface_df: pd.DataFrame,
     inner_df: pd.DataFrame,
     boundary_threshold: float = 2.0,
     boundary_core_ratio: Tuple[float, float] = (0.7, 0.3),
     target_total: int = 40000,
-    sampling_method: str = "fps",
+    sampling_method: str = "hybrid",
+    fps_ratio: float = 0.2,
     seed: Optional[int] = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -119,6 +178,7 @@ def stratified_sampling_by_distance(
     4. 采样方法：
        - FPS：最远点采样，空间均匀，防止截断（推荐，但较慢）
        - Random：随机采样，速度快，但可能分布不均
+       - Hybrid：混合采样，先 FPS 确保空间覆盖，再随机采样增加多样性
     
     参数:
         surface_df: 壁面点数据
@@ -126,7 +186,8 @@ def stratified_sampling_by_distance(
         boundary_threshold: 近壁区阈值（mm）
         boundary_core_ratio: (近壁层比例, 核心层比例)，默认 (0.7, 0.3)
         target_total: 目标总点数
-        sampling_method: 采样方法，"fps" 或 "random"
+        sampling_method: 采样方法，"fps", "random" 或 "hybrid"
+        fps_ratio: 混合采样时 FPS 的占比（默认 0.2），仅当 method="hybrid" 时生效
         seed: 随机种子
     
     返回:
@@ -203,8 +264,12 @@ def stratified_sampling_by_distance(
     elif sampling_method.lower() == "random":
         sampling_func = random_sampling
         method_name = "随机"
+    elif sampling_method.lower() == "hybrid":
+        # 使用 lambda 包装以支持 fps_ratio 参数
+        sampling_func = lambda pts, n, s: hybrid_sampling(pts, n, fps_ratio, s)
+        method_name = f"混合(FPS {fps_ratio*100:.0f}%)"
     else:
-        raise ValueError(f"不支持的采样方法: {sampling_method}，请使用 'fps' 或 'random'")
+        raise ValueError(f"不支持的采样方法: {sampling_method}，请使用 'fps', 'random' 或 'hybrid'")
     
     # 进行采样
     sampled_indices = []
@@ -278,3 +343,30 @@ if __name__ == "__main__":
     print("\n随机采样测试:")
     random_indices = random_sampling(test_points, 100, seed=42)
     print(f"  采样点数: {len(random_indices)}")
+    
+    # 测试混合采样
+    print("\n混合采样测试 (FPS 20%):")
+    hybrid_indices_20 = hybrid_sampling(test_points, 100, fps_ratio=0.2, seed=42)
+    print(f"  采样点数: {len(hybrid_indices_20)}")
+    print(f"  FPS 点数: {int(100 * 0.2)}, 随机点数: {100 - int(100 * 0.2)}")
+    
+    print("\n混合采样测试 (FPS 30%):")
+    hybrid_indices_30 = hybrid_sampling(test_points, 100, fps_ratio=0.3, seed=42)
+    print(f"  采样点数: {len(hybrid_indices_30)}")
+    print(f"  FPS 点数: {int(100 * 0.3)}, 随机点数: {100 - int(100 * 0.3)}")
+    
+    # 验证混合采样的空间覆盖
+    print("\n空间覆盖分析:")
+    from scipy.spatial import cKDTree
+    
+    # 计算各种采样方法的最近邻距离分布
+    def analyze_coverage(indices, name):
+        sampled = test_points[indices]
+        tree = cKDTree(sampled)
+        dists, _ = tree.query(test_points, k=1)
+        print(f"  {name}: 最大距离={dists.max():.3f}, 平均距离={dists.mean():.3f}")
+    
+    analyze_coverage(fps_indices, "FPS")
+    analyze_coverage(random_indices, "随机")
+    analyze_coverage(hybrid_indices_20, "混合(20%FPS)")
+    analyze_coverage(hybrid_indices_30, "混合(30%FPS)")

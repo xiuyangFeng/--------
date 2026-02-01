@@ -97,7 +97,8 @@ def process_single_frame(
     target_total: int = 40000,
     boundary_threshold: float = 2.0,
     boundary_core_ratio: tuple = (0.7, 0.3),
-    sampling_method: str = "fps",
+    sampling_method: str = "hybrid",
+    fps_ratio: float = 0.2,
     seed: Optional[int] = 1234,
     convert_to_mm: bool = True,
 ) -> bool:
@@ -111,7 +112,8 @@ def process_single_frame(
         target_total: 目标总点数
         boundary_threshold: 近壁区阈值（mm）
         boundary_core_ratio: 预算分配比例
-        sampling_method: 采样方法
+        sampling_method: 采样方法，"fps", "random" 或 "hybrid"
+        fps_ratio: 混合采样时 FPS 的占比（默认 0.2），仅当 method="hybrid" 时生效
         seed: 随机种子
         convert_to_mm: 是否转换坐标单位
     
@@ -124,8 +126,10 @@ def process_single_frame(
         inner_raw_df = load_ascii_df(inner_file)
         
         # 2. 清洗数据
-        surface_df = clean_cfd_data(surface_raw_df, convert_to_mm=convert_to_mm)
-        inner_df = clean_cfd_data(inner_raw_df, convert_to_mm=convert_to_mm)
+        # surface_file (ascii) 为壁面数据，is_wall=True
+        # inner_file (ascii_in) 为内部数据，is_wall=False
+        surface_df = clean_cfd_data(surface_raw_df, convert_to_mm=convert_to_mm, is_wall=True)
+        inner_df = clean_cfd_data(inner_raw_df, convert_to_mm=convert_to_mm, is_wall=False)
         
         # 3. 分层降采样合并
         merged_df, _ = stratified_sampling_by_distance(
@@ -135,6 +139,7 @@ def process_single_frame(
             boundary_core_ratio=boundary_core_ratio,
             target_total=target_total,
             sampling_method=sampling_method,
+            fps_ratio=fps_ratio,
             seed=seed,
         )
         
@@ -156,7 +161,8 @@ def process_single_case(
     target_total: int = 40000,
     boundary_threshold: float = 2.0,
     boundary_core_ratio: tuple = (0.7, 0.3),
-    sampling_method: str = "fps",
+    sampling_method: str = "hybrid",
+    fps_ratio: float = 0.2,
     seed: Optional[int] = 1234,
     mode: str = "debug",
 ) -> bool:
@@ -169,7 +175,8 @@ def process_single_case(
         target_total: 目标总点数
         boundary_threshold: 近壁区阈值
         boundary_core_ratio: 预算分配比例
-        sampling_method: 采样方法
+        sampling_method: 采样方法，"fps", "random" 或 "hybrid"
+        fps_ratio: 混合采样时 FPS 的占比（默认 0.2），仅当 method="hybrid" 时生效
         seed: 随机种子
         mode: 处理模式 (debug/production)
     
@@ -217,6 +224,7 @@ def process_single_case(
             boundary_threshold=boundary_threshold,
             boundary_core_ratio=boundary_core_ratio,
             sampling_method=sampling_method,
+            fps_ratio=fps_ratio,
             seed=seed,
         ):
             success_count += 1
@@ -238,7 +246,8 @@ def process_all_cases(
     target_total: int = 40000,
     boundary_threshold: float = 2.0,
     boundary_core_ratio: tuple = (0.7, 0.3),
-    sampling_method: str = "fps",
+    sampling_method: str = "hybrid",
+    fps_ratio: float = 0.2,
     seed: Optional[int] = 1234,
     mode: str = "debug",
 ) -> None:
@@ -251,7 +260,8 @@ def process_all_cases(
         target_total: 目标总点数
         boundary_threshold: 近壁区阈值
         boundary_core_ratio: 预算分配比例
-        sampling_method: 采样方法
+        sampling_method: 采样方法，"fps", "random" 或 "hybrid"
+        fps_ratio: 混合采样时 FPS 的占比（默认 0.2），仅当 method="hybrid" 时生效
         seed: 随机种子
         mode: 处理模式
     """
@@ -282,7 +292,10 @@ def process_all_cases(
     print("=" * 50)
     print(f"📁 数据根目录: {data_root}")
     print(f"📊 目标点数: {target_total}")
-    print(f"📊 采样方法: {sampling_method}")
+    if sampling_method.lower() == "hybrid":
+        print(f"📊 采样方法: {sampling_method} (FPS {fps_ratio*100:.0f}%)")
+    else:
+        print(f"📊 采样方法: {sampling_method}")
     print(f"📊 近壁区阈值: {boundary_threshold}mm")
     print(f"📊 预算分配: 近壁层 {boundary_core_ratio[0]*100:.0f}% : 核心层 {boundary_core_ratio[1]*100:.0f}%")
     print(f"📊 处理模式: {mode}")
@@ -307,6 +320,7 @@ def process_all_cases(
             boundary_threshold=boundary_threshold,
             boundary_core_ratio=boundary_core_ratio,
             sampling_method=sampling_method,
+            fps_ratio=fps_ratio,
             seed=seed,
             mode=mode,
         ):
@@ -338,6 +352,9 @@ def main():
   # 使用随机采样（速度快）
   python preprocess.py --sampling-method random
   
+  # 使用混合采样（推荐，兼顾覆盖和多样性）
+  python preprocess.py --sampling-method hybrid --fps-ratio 0.3
+  
   # 自定义目标点数
   python preprocess.py --target-points 50000
   
@@ -366,9 +383,15 @@ def main():
     parser.add_argument(
         "--sampling-method",
         type=str,
-        choices=["fps", "random"],
+        choices=["fps", "random", "hybrid"],
         default=SAMPLING_CONFIG["sampling_method"],
-        help=f"采样方法，默认 {SAMPLING_CONFIG['sampling_method']}",
+        help=f"采样方法：fps/random/hybrid，默认 {SAMPLING_CONFIG['sampling_method']}",
+    )
+    parser.add_argument(
+        "--fps-ratio",
+        type=float,
+        default=SAMPLING_CONFIG.get("hybrid_fps_ratio", 0.2),
+        help=f"混合采样时 FPS 占比，默认 {SAMPLING_CONFIG.get('hybrid_fps_ratio', 0.2)}（仅当 method=hybrid 时生效）",
     )
     parser.add_argument(
         "--boundary-threshold",
@@ -419,6 +442,7 @@ def main():
         boundary_threshold=args.boundary_threshold,
         boundary_core_ratio=(args.boundary_ratio, args.core_ratio),
         sampling_method=args.sampling_method,
+        fps_ratio=args.fps_ratio,
         seed=args.seed,
         mode=args.mode,
     )

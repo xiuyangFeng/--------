@@ -178,10 +178,16 @@ python convert_to_graph.py --case ZHANG_CHUN
 **输出**：`processed/merged/`
 
 ```bash
-# 基本用法
+# 基本用法（默认使用混合采样）
 python preprocess.py --case ZHANG_CHUN
 
-# 使用随机采样（速度快，但质量稍差）
+# 使用混合采样，调整 FPS 比例（更好的空间覆盖）
+python preprocess.py --case ZHANG_CHUN --sampling-method hybrid --fps-ratio 0.3
+
+# 使用纯 FPS（最佳空间覆盖，但较慢）
+python preprocess.py --case ZHANG_CHUN --sampling-method fps
+
+# 使用随机采样（速度快，但可能丢失分支血管）
 python preprocess.py --case ZHANG_CHUN --sampling-method random
 
 # 自定义目标点数（默认 40000）
@@ -191,12 +197,22 @@ python preprocess.py --case ZHANG_CHUN --target-points 50000
 python preprocess.py
 ```
 
+**采样方法对比**：
+| 方法 | 说明 | 优点 | 缺点 |
+|------|------|------|------|
+| `hybrid` | 混合采样（默认）| 兼顾空间覆盖与数据多样性 | 需要调参 |
+| `fps` | 最远点采样 | 空间分布均匀，防止截断 | 计算较慢 |
+| `random` | 随机采样 | 速度快 | 可能丢失分支血管数据 |
+
+> **混合采样策略**：先用 FPS 采样 20%（可配置）的点确保空间覆盖（保护分支血管），再从剩余点中随机采样 80% 增加数据多样性。
+
 **参数说明**：
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
 | `--case` | 无 | 指定病例名称，不指定则处理所有 |
 | `--target-points` | 40000 | 目标总点数 |
-| `--sampling-method` | fps | 采样方法：fps(质量高)/random(速度快) |
+| `--sampling-method` | hybrid | 采样方法：hybrid/fps/random |
+| `--fps-ratio` | 0.2 | 混合采样时 FPS 占比（仅 hybrid 模式生效） |
 | `--boundary-threshold` | 2.0 | 近壁区阈值 (mm) |
 | `--boundary-ratio` | 0.7 | 近壁层预算比例 |
 | `--mode` | debug | 处理模式：debug/production |
@@ -351,7 +367,8 @@ DATA_SOURCES = {
 # 降采样配置
 SAMPLING_CONFIG = {
     "target_total_points": 40000,   # 目标点数
-    "sampling_method": "fps",       # fps 或 random
+    "sampling_method": "hybrid",    # hybrid / fps / random
+    "hybrid_fps_ratio": 0.2,        # 混合采样时 FPS 占比
     "boundary_threshold": 2.0,      # 近壁区阈值 (mm)
     ...
 }
@@ -414,8 +431,12 @@ conda install -c vmtk vmtk
 
 ### 2. 内存不足 (FPS 采样)
 
-使用随机采样替代：
+使用混合采样或随机采样替代：
 ```bash
+# 推荐：混合采样（保留 20% FPS 确保覆盖）
+python preprocess.py --sampling-method hybrid
+
+# 或：纯随机采样（最快，但可能丢失分支血管）
 python preprocess.py --sampling-method random
 ```
 
@@ -467,8 +488,8 @@ SAMPLING_CONFIG = {
 # 1. 进入 pipeline 目录
 cd pipeline
 
-# 2. 先测试单个病例
-python run_all.py --case ZHANG_CHUN --sampling-method random
+# 2. 先测试单个病例（默认使用混合采样）
+python run_all.py --case ZHANG_CHUN
 
 # 3. 检查输出
 ls ../data_new/AG/fast/ZHANG_CHUN/processed/graphs/

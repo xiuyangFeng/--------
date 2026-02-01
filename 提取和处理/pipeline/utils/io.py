@@ -102,13 +102,21 @@ def load_ascii_df(input_path: Path) -> pd.DataFrame:
     return df
 
 
-def clean_cfd_data(df: pd.DataFrame, convert_to_mm: bool = True) -> pd.DataFrame:
+def clean_cfd_data(
+    df: pd.DataFrame, 
+    convert_to_mm: bool = True,
+    is_wall: Optional[bool] = None,
+) -> pd.DataFrame:
     """
     清洗单个 CFD 数据的 DataFrame。
     
     参数:
         df: 原始数据 DataFrame
         convert_to_mm: 是否将坐标从米转换为毫米
+        is_wall: 是否为壁面数据
+            - True: 壁面数据（来自 ascii 文件），标记 is_wall=1
+            - False: 内部数据（来自 ascii_in 文件），标记 is_wall=0
+            - None: 使用旧的速度阈值判断（向后兼容）
     
     返回:
         清洗后的 DataFrame
@@ -148,12 +156,19 @@ def clean_cfd_data(df: pd.DataFrame, convert_to_mm: bool = True) -> pd.DataFrame
         if shear_col not in df.columns:
             df[shear_col] = 0.0
     
-    # is_wall 标记：基于速度判断
-    if {"u", "v", "w"}.issubset(df.columns):
-        speed = np.sqrt(df["u"] ** 2 + df["v"] ** 2 + df["w"] ** 2)
-        df["is_wall"] = (speed < 1e-6).astype(int)
+    # is_wall 标记：根据数据来源判断
+    if is_wall is not None:
+        # 直接根据数据来源设置
+        # is_wall=True: 壁面数据（来自 ascii 文件）
+        # is_wall=False: 内部数据（来自 ascii_in 文件）
+        df["is_wall"] = 1 if is_wall else 0
     else:
-        df["is_wall"] = 1
+        # 向后兼容：使用速度阈值判断
+        if {"u", "v", "w"}.issubset(df.columns):
+            speed = np.sqrt(df["u"] ** 2 + df["v"] ** 2 + df["w"] ** 2)
+            df["is_wall"] = (speed < 1e-6).astype(int)
+        else:
+            df["is_wall"] = 1
     
     # 移除面积字段
     if "face_area" in df.columns:

@@ -1,13 +1,14 @@
 #!/bin/bash
-#SBATCH --job-name=gnn_pipeline          # 作业名称
-#SBATCH --partition=compute              # 分区（根据集群配置修改）
+#Author: XY
+#SBATCH --partition=CPU                  # 分区
 #SBATCH --nodes=1                        # 节点数
-#SBATCH --ntasks=1                       # 任务数
-#SBATCH --cpus-per-task=8                # 每任务CPU核数
-#SBATCH --mem=32G                        # 内存
-#SBATCH --time=24:00:00                  # 最大运行时间
-#SBATCH --output=logs/pipeline_%j.out    # 标准输出
-#SBATCH --error=logs/pipeline_%j.err     # 错误输出
+#SBATCH --ntasks-per-node=32             # 每节点任务数（192核可用，预留资源给系统）
+#SBATCH --job-name=gnn_pipeline          # 作业名称
+#SBATCH --output=logs/%x_%j.out          # 标准输出
+#SBATCH --error=logs/%x_%j.err           # 错误输出
+#SBATCH --time=04:00:00                  # 最大运行时间（单病例约1-2小时）
+# 可选：指定节点
+# #SBATCH -w node01
 
 # ============================================================================
 # GNN Pipeline - 集群运行脚本
@@ -28,13 +29,17 @@ SAMPLING_METHOD=${4:-"fps"}  # 采样方法（默认fps）
 # 环境配置 - 根据你的集群环境修改
 # ============================================================================
 
-# 加载模块（根据集群配置）
+# 清理并加载模块
+module purge
 # module load anaconda3
 # module load vtk
 
 # 激活 conda 环境
 source ~/.bashrc
 conda activate rag_venv
+
+# 切换到提交目录
+cd $SLURM_SUBMIT_DIR
 
 # 设置工作目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,13 +1,14 @@
 #!/bin/bash
+#Author: XY
+#SBATCH --partition=CPU                  # 分区
+#SBATCH --nodes=1                        # 节点数
+#SBATCH --ntasks-per-node=16             # 每节点任务数
 #SBATCH --job-name=gnn_step              # 作业名称
-#SBATCH --partition=compute              # 分区
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=16G
-#SBATCH --time=4:00:00
-#SBATCH --output=logs/step_%j.out
-#SBATCH --error=logs/step_%j.err
+#SBATCH --output=logs/%x_%j.out          # 标准输出
+#SBATCH --error=logs/%x_%j.err           # 错误输出
+#SBATCH --time=02:00:00                  # 最大运行时间
+# 可选：指定节点
+# #SBATCH -w node01
 
 # ============================================================================
 # GNN Pipeline - 单步骤运行脚本
@@ -24,8 +25,11 @@ STEP_NAME=${1:-"preprocess"}
 CASE_NAME=${2:-""}
 
 # 环境配置
+module purge
 source ~/.bashrc
 conda activate rag_venv
+
+cd $SLURM_SUBMIT_DIR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"

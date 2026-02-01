@@ -90,8 +90,12 @@ SAMPLING_CONFIG = {
     # 预算分配比例 (近壁层, 核心层)
     "boundary_core_ratio": (0.7, 0.3),
     
-    # 采样方法: "fps" (最远点采样) 或 "random" (随机采样)
-    "sampling_method": "fps",
+    # 采样方法: "fps" (最远点采样), "random" (随机采样), 或 "hybrid" (混合采样)
+    "sampling_method": "hybrid",
+    
+    # 混合采样参数（仅当 sampling_method="hybrid" 时生效）
+    # FPS 占比: 0.2 = 20%（推荐），可调整为 0.3 或 0.4 以增强空间覆盖
+    "hybrid_fps_ratio": 0.2,
     
     # 随机种子
     "seed": 1234,
