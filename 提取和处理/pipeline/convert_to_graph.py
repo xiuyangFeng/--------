@@ -31,7 +31,9 @@
 """
 
 import argparse
+import json
 import re
+import shutil
 import time
 from pathlib import Path
 from typing import Optional, List
@@ -47,6 +49,7 @@ from tqdm import tqdm
 from config import (
     DATA_ROOT,
     NORMALIZED_DIR,
+    COORD_NORMALIZED_DIR,
     GRAPHS_DIR,
     GRAPH_CONFIG,
     get_case_dirs,
@@ -184,6 +187,16 @@ def process_case(
     
     # 创建输出目录
     output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 复制坐标系变换参数（用于推理时逆变换）
+    coord_norm_dir = case_dir / COORD_NORMALIZED_DIR
+    transform_params_src = coord_norm_dir / "transform_params.json"
+    if transform_params_src.exists():
+        transform_params_dst = output_dir / "transform_params.json"
+        shutil.copy2(transform_params_src, transform_params_dst)
+        print(f"  📋 已复制坐标系变换参数")
+    else:
+        print(f"  ⚠️ 未找到坐标系变换参数: {transform_params_src}")
     
     print(f"  📁 找到 {len(file_step_pairs)} 个时间步")
     print(f"  🔗 KNN 邻居数: {k}")

@@ -3,14 +3,18 @@
 """
 特征归一化模块
 
-对提取的特征数据进行归一化处理，为训练做准备。
+对坐标系归一化后的数据进行特征归一化处理，为训练做准备。
+
+输入: processed/coord_normalized/ (坐标系归一化后的数据)
+输出: processed/normalized/ (特征归一化后的数据)
 
 归一化策略:
 - 保持不变: Abscissa (已在[0,1]), Tangent_X/Y/Z (单位向量), is_wall (二值)
+- 保持不变: x, y, z (坐标已在coord_normalize步骤归一化到[-1,1])
 - Min-max: NormRadius → [0, 1]
 - Z-score: Curvature, u, v, w, p, vel_mag, wss, wss_x/y/z
 
-边界条件缩放（基于物理意义，移除 BC_Flag 相关逻辑）:
+边界条件缩放（基于物理意义）:
 - BC_Inlet (入口流量): Q_in × 1e5 → 0.5~5.0
 - BC_O1~O4 (出口压力): (P - 15000) / 1000 → -1.5~+1.5
 
@@ -36,6 +40,7 @@ from tqdm import tqdm
 from config import (
     DATA_ROOT,
     FEATURES_DIR,
+    COORD_NORMALIZED_DIR,
     NORMALIZED_DIR,
     NORMALIZATION_CONFIG,
     get_case_dirs,
@@ -328,7 +333,7 @@ def process_all_cases(
         data_root = Path(data_root)
     
     if input_subdir is None:
-        input_subdir = FEATURES_DIR
+        input_subdir = COORD_NORMALIZED_DIR  # 从坐标系归一化后的数据读取
     if output_subdir is None:
         output_subdir = NORMALIZED_DIR
     
@@ -428,7 +433,7 @@ def main():
         "--input-subdir",
         type=str,
         default=None,
-        help=f"输入子目录，默认 {FEATURES_DIR}",
+        help=f"输入子目录，默认 {COORD_NORMALIZED_DIR}",
     )
     parser.add_argument(
         "--output-subdir",

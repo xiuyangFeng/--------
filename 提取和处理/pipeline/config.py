@@ -67,7 +67,10 @@ MERGED_DIR = f"{OUTPUT_BASE}/merged"
 # 添加几何特征后的数据目录
 FEATURES_DIR = f"{OUTPUT_BASE}/features"
 
-# 归一化后的数据目录
+# 坐标系归一化后的数据目录
+COORD_NORMALIZED_DIR = f"{OUTPUT_BASE}/coord_normalized"
+
+# 特征归一化后的数据目录
 NORMALIZED_DIR = f"{OUTPUT_BASE}/normalized"
 
 # 图数据目录

@@ -6,8 +6,9 @@ Pipeline 一键运行脚本
 按顺序执行完整的数据处理流程:
 1. preprocess.py: 数据清洗 + 合并 + 降采样
 2. extract_features.py: 几何特征提取 + 边界条件
-3. normalize.py: 特征归一化
-4. convert_to_graph.py: 转换为图数据
+3. coord_normalize.py: 坐标系归一化（中心化 + PCA对齐 + 缩放）【新增】
+4. normalize.py: 特征归一化
+5. convert_to_graph.py: 转换为图数据
 
 使用示例:
   # 处理单个病例
@@ -17,7 +18,7 @@ Pipeline 一键运行脚本
   python run_all.py
   
   # 跳过已完成的步骤
-  python run_all.py --start-step 2
+  python run_all.py --start-step 3
   
   # 使用随机采样（速度快）
   python run_all.py --sampling-method random
@@ -33,6 +34,7 @@ from config import (
     DATA_ROOT,
     MERGED_DIR,
     FEATURES_DIR,
+    COORD_NORMALIZED_DIR,
     NORMALIZED_DIR,
     GRAPHS_DIR,
     SAMPLING_CONFIG,
@@ -42,6 +44,7 @@ from config import (
 )
 from preprocess import process_all_cases as preprocess
 from extract_features import process_all_cases as extract_features
+from coord_normalize import process_all_cases as coord_normalize
 from normalize import process_all_cases as normalize
 from convert_to_graph import process_all_cases as convert_to_graph
 
@@ -50,7 +53,7 @@ def run_pipeline(
     data_root: Path = None,
     target_case: Optional[str] = None,
     start_step: int = 1,
-    end_step: int = 4,
+    end_step: int = 5,
     target_points: int = None,
     sampling_method: str = None,
     mode: str = None,
@@ -62,8 +65,8 @@ def run_pipeline(
     参数:
         data_root: 数据根目录
         target_case: 指定处理的病例名称
-        start_step: 开始步骤 (1-4)
-        end_step: 结束步骤 (1-4)
+        start_step: 开始步骤 (1-5)
+        end_step: 结束步骤 (1-5)
         target_points: 目标点数
         sampling_method: 采样方法
         mode: 处理模式
@@ -84,7 +87,7 @@ def run_pipeline(
         k_neighbors = GRAPH_CONFIG["k_neighbors"]
     
     print("=" * 60)
-    print("🚀 Pipeline - 新数据格式完整处理流程")
+    print("🚀 Pipeline - 完整处理流程（含坐标系归一化）")
     print("=" * 60)
     print(f"📁 数据根目录: {data_root}")
     print(f"📊 目标点数: {target_points}")
@@ -106,7 +109,7 @@ def run_pipeline(
     # 步骤1: 数据预处理
     if start_step <= 1 <= end_step:
         print("\n" + "=" * 60)
-        print("📌 步骤1/4: 数据预处理（清洗 + 合并 + 降采样）")
+        print("📌 步骤1/5: 数据预处理（清洗 + 合并 + 降采样）")
         print("=" * 60)
         
         preprocess(
@@ -123,7 +126,7 @@ def run_pipeline(
     # 步骤2: 几何特征提取
     if start_step <= 2 <= end_step:
         print("\n" + "=" * 60)
-        print("📌 步骤2/4: 几何特征提取 + 边界条件")
+        print("📌 步骤2/5: 几何特征提取 + 边界条件")
         print("=" * 60)
         
         extract_features(
@@ -133,23 +136,36 @@ def run_pipeline(
             output_subdir=FEATURES_DIR,
         )
     
-    # 步骤3: 特征归一化
+    # 步骤3: 坐标系归一化【新增】
     if start_step <= 3 <= end_step:
         print("\n" + "=" * 60)
-        print("📌 步骤3/4: 特征归一化")
+        print("📌 步骤3/5: 坐标系归一化（中心化 + PCA对齐 + 缩放）")
+        print("=" * 60)
+        
+        coord_normalize(
+            data_root=data_root,
+            target_case=target_case,
+            input_subdir=FEATURES_DIR,
+            output_subdir=COORD_NORMALIZED_DIR,
+        )
+    
+    # 步骤4: 特征归一化
+    if start_step <= 4 <= end_step:
+        print("\n" + "=" * 60)
+        print("📌 步骤4/5: 特征归一化")
         print("=" * 60)
         
         normalize(
             data_root=data_root,
             target_case=target_case,
-            input_subdir=FEATURES_DIR,
+            input_subdir=COORD_NORMALIZED_DIR,
             output_subdir=NORMALIZED_DIR,
         )
     
-    # 步骤4: 图数据转换
-    if start_step <= 4 <= end_step:
+    # 步骤5: 图数据转换
+    if start_step <= 5 <= end_step:
         print("\n" + "=" * 60)
-        print("📌 步骤4/4: 图数据转换")
+        print("📌 步骤5/5: 图数据转换")
         print("=" * 60)
         
         convert_to_graph(
@@ -170,10 +186,18 @@ def run_pipeline(
     print("\n📂 输出目录结构:")
     print(f"  病例目录/")
     print(f"  └── processed/")
-    print(f"      ├── merged/      # 步骤1: 合并降采样后的数据")
-    print(f"      ├── features/    # 步骤2: 添加几何特征和边界条件")
-    print(f"      ├── normalized/  # 步骤3: 归一化后的数据")
-    print(f"      └── graphs/      # 步骤4: PyG 图数据 (.pt)")
+    print(f"      ├── merged/           # 步骤1: 合并降采样后的数据")
+    print(f"      ├── features/         # 步骤2: 添加几何特征和边界条件")
+    print(f"      ├── coord_normalized/ # 步骤3: 坐标系归一化后的数据")
+    print(f"      │   └── transform_params.json  # 变换参数（用于逆变换）")
+    print(f"      ├── normalized/       # 步骤4: 特征归一化后的数据")
+    print(f"      └── graphs/           # 步骤5: PyG 图数据 (.pt)")
+    print(f"          └── transform_params.json  # 变换参数副本")
+    
+    print("\n💡 提示:")
+    print("  - 训练时使用 dataset.CFDAugmentedDataset 加载数据")
+    print("  - 启用 augment=True 进行在线数据增强（旋转、平移）")
+    print("  - 推理时可使用 transform_params.json 还原到原始坐标系")
 
 
 def main():
@@ -182,10 +206,16 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 处理流程:
-  步骤1: preprocess.py      - 数据清洗 + 合并 + 降采样
+  步骤1: preprocess.py       - 数据清洗 + 合并 + 降采样
   步骤2: extract_features.py - 几何特征提取 + 边界条件
-  步骤3: normalize.py        - 特征归一化
-  步骤4: convert_to_graph.py - 转换为图数据
+  步骤3: coord_normalize.py  - 坐标系归一化（中心化+PCA对齐+缩放）【新增】
+  步骤4: normalize.py        - 特征归一化
+  步骤5: convert_to_graph.py - 转换为图数据
+
+坐标系归一化说明:
+  - 消除不同病例间血管位置和朝向的差异
+  - 将坐标归一化到 [-1, 1] 范围
+  - 速度、切线等矢量特征同步旋转
 
 示例:
   # 处理单个病例（完整流程）
@@ -194,8 +224,8 @@ def main():
   # 处理所有病例
   python run_all.py
   
-  # 从步骤2开始（跳过预处理）
-  python run_all.py --start-step 2
+  # 从步骤3开始（跳过预处理和特征提取）
+  python run_all.py --start-step 3
   
   # 只执行步骤1和2
   python run_all.py --end-step 2
@@ -220,15 +250,15 @@ def main():
         "--start-step",
         type=int,
         default=1,
-        choices=[1, 2, 3, 4],
-        help="开始步骤 (1-4)，默认 1",
+        choices=[1, 2, 3, 4, 5],
+        help="开始步骤 (1-5)，默认 1",
     )
     parser.add_argument(
         "--end-step",
         type=int,
-        default=4,
-        choices=[1, 2, 3, 4],
-        help="结束步骤 (1-4)，默认 4",
+        default=5,
+        choices=[1, 2, 3, 4, 5],
+        help="结束步骤 (1-5)，默认 5",
     )
     parser.add_argument(
         "--target-points",
@@ -239,7 +269,7 @@ def main():
     parser.add_argument(
         "--sampling-method",
         type=str,
-        choices=["fps", "random"],
+        choices=["fps", "random", "hybrid"],
         default=None,
         help=f"采样方法，默认 {SAMPLING_CONFIG['sampling_method']}",
     )
