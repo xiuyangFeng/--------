@@ -1,6 +1,6 @@
 # Pipeline - 血管 CFD 数据处理流程
 
-> 将 Fluent 仿真输出数据转换为 GNN 训练所需的图数据格式
+> 将 Fluent 仿真输出数据转换为 GNN 训练所需的图数据格式，支持在线数据增强
 
 ## 📋 目录
 
@@ -10,6 +10,7 @@
 - [数据要求](#数据要求)
 - [快速开始](#快速开始)
 - [分步使用](#分步使用)
+- [数据增强](#数据增强)
 - [集群运行](#集群运行)
 - [配置说明](#配置说明)
 - [输出说明](#输出说明)
@@ -19,7 +20,7 @@
 
 ## 概述
 
-本 Pipeline 将 Fluent CFD 仿真的原始输出数据，经过 **4 个步骤** 处理为 PyTorch Geometric 图数据：
+本 Pipeline 将 Fluent CFD 仿真的原始输出数据，经过 **5 个步骤** 处理为 PyTorch Geometric 图数据：
 
 ```
 原始数据                    处理流程                         最终输出
@@ -27,16 +28,25 @@
 │ ascii/      │     │ 步骤1: preprocess      │     │ graphs/     │
 │ (壁面数据)   │ ──▶ │   清洗+合并+降采样      │     │ *.pt        │
 ├─────────────┤     ├────────────────────────┤     │             │
-│ ascii_in/   │     │ 步骤2: extract_features│ ──▶ │ PyG Data:   │
+│ ascii_in/   │     │ 步骤2: extract_features│     │ PyG Data:   │
 │ (内部数据)   │ ──▶ │   几何特征+边界条件     │     │ - x: 15维   │
 ├─────────────┤     ├────────────────────────┤     │ - y: 4维    │
-│ *.stl       │     │ 步骤3: normalize       │     │ - edge_idx  │
-│ (表面模型)   │ ──▶ │   特征归一化            │     └─────────────┘
-├─────────────┤     ├────────────────────────┤
-│ Global_     │     │ 步骤4: convert_to_graph│
-│ conditions/ │ ──▶ │   转换为图数据          │
-└─────────────┘     └────────────────────────┘
+│ *.stl       │     │ 步骤3: coord_normalize │ ──▶ │ - edge_idx  │
+│ (表面模型)   │ ──▶ │   坐标系归一化【新增】   │     │             │
+├─────────────┤     ├────────────────────────┤     │ + 在线增强   │
+│ Global_     │     │ 步骤4: normalize       │     │   (旋转/平移)│
+│ conditions/ │ ──▶ │   特征归一化            │     └─────────────┘
+└─────────────┘     ├────────────────────────┤
+                    │ 步骤5: convert_to_graph│
+                    │   转换为图数据          │
+                    └────────────────────────┘
 ```
+
+### 新增功能 (v2.0)
+
+- **坐标系归一化**：中心化 + PCA主轴对齐 + 缩放，消除病例间位置/朝向差异
+- **在线数据增强**：训练时动态应用旋转、平移等增强，提升模型泛化能力
+- **矢量同步变换**：速度、切线等矢量特征在坐标变换时自动同步旋转
 
 ---
 
@@ -48,9 +58,12 @@ pipeline/
 ├── config.py               # 配置文件
 ├── preprocess.py           # 步骤1: 数据预处理
 ├── extract_features.py     # 步骤2: 几何特征提取
-├── normalize.py            # 步骤3: 特征归一化
-├── convert_to_graph.py     # 步骤4: 图数据转换
+├── coord_normalize.py      # 步骤3: 坐标系归一化【新增】
+├── normalize.py            # 步骤4: 特征归一化
+├── convert_to_graph.py     # 步骤5: 图数据转换
 ├── run_all.py              # 一键运行全流程
+├── augmentation.py         # 数据增强函数【新增】
+├── dataset.py              # 数据集类（含在线增强）【新增】
 ├── utils/                  # 工具模块
 │   ├── __init__.py
 │   ├── io.py               # 数据读写
@@ -156,10 +169,13 @@ python preprocess.py --case ZHANG_CHUN
 # 步骤2: 几何特征提取
 python extract_features.py --case ZHANG_CHUN
 
-# 步骤3: 特征归一化
+# 步骤3: 坐标系归一化【新增】
+python coord_normalize.py --case ZHANG_CHUN
+
+# 步骤4: 特征归一化
 python normalize.py --case ZHANG_CHUN
 
-# 步骤4: 图数据转换
+# 步骤5: 图数据转换
 python convert_to_graph.py --case ZHANG_CHUN
 ```
 
@@ -254,14 +270,61 @@ python extract_features.py
 
 ---
 
-### 步骤3: normalize.py - 特征归一化
+### 步骤3: coord_normalize.py - 坐标系归一化【新增】
+
+**功能**：
+- 中心化：将点云几何中心移到原点 (0, 0, 0)
+- PCA对齐：将血管主轴旋转到 Z 轴方向
+- 缩放：将坐标归一化到 [-1, 1] 范围
+- 同步旋转：速度、切线等矢量特征自动同步旋转
+
+**输入**：`processed/features/`  
+**输出**：`processed/coord_normalized/` + `transform_params.json`
+
+```bash
+# 基本用法
+python coord_normalize.py --case ZHANG_CHUN
+
+# 处理所有病例
+python coord_normalize.py
+```
+
+**为什么需要坐标系归一化？**
+
+1. **消除无关变异**：不同病例血管位置/朝向差异与流体力学规律无关
+2. **数值稳定性**：原始坐标（毫米）数值较大，归一化后更适合神经网络
+3. **增强一致性**：统一坐标系后，在线增强（旋转、平移）才有意义
+
+**矢量特征同步变换**：
+
+| 特征类型 | 变换方式 | 说明 |
+|----------|----------|------|
+| 坐标 (x, y, z) | 中心化 + 旋转 + 缩放 | 核心变换目标 |
+| 速度 (u, v, w) | 仅旋转 | 矢量，必须同步旋转 |
+| 切线 (Tangent_X/Y/Z) | 仅旋转 | 矢量，必须同步旋转 |
+| WSS矢量 (wss_x/y/z) | 仅旋转 | 矢量，必须同步旋转 |
+| 压力、曲率、半径等 | 不变 | 标量/内蕴属性 |
+
+**输出的 transform_params.json**：
+```json
+{
+  "centroid": [x, y, z],       // 原始质心
+  "rotation_matrix": [[...]],  // PCA旋转矩阵
+  "scale_factor": 123.45       // 缩放因子
+}
+```
+> 推理时可使用这些参数将预测结果逆变换回原始坐标系
+
+---
+
+### 步骤4: normalize.py - 特征归一化
 
 **功能**：
 - 收集全局统计量
 - 对各特征进行归一化/标准化
 - 保存归一化参数（用于推理时还原）
 
-**输入**：`processed/features/`  
+**输入**：`processed/coord_normalized/`  
 **输出**：`processed/normalized/` + `normalization_params_global.json`
 
 ```bash
@@ -275,6 +338,7 @@ python normalize.py
 **归一化策略**：
 | 特征类型 | 方法 | 说明 |
 |----------|------|------|
+| x, y, z | 保持不变 | 已在 coord_normalize 归一化到 [-1, 1] |
 | Abscissa, Tangent_X/Y/Z, is_wall | 保持不变 | 已归一化或二值 |
 | NormRadius | Min-Max | → [0, 1] |
 | Curvature, u/v/w, p, wss* | Z-score | (x - μ) / σ |
@@ -283,7 +347,7 @@ python normalize.py
 
 ---
 
-### 步骤4: convert_to_graph.py - 图数据转换
+### 步骤5: convert_to_graph.py - 图数据转换
 
 **功能**：
 - 构建 KNN 图结构
@@ -327,6 +391,76 @@ Data(
 [0:3]   速度: u, v, w
 [3]     压力: p
 ```
+
+---
+
+## 数据增强
+
+Pipeline 提供在线数据增强功能，在训练时动态应用，提升模型泛化能力。
+
+### 使用 CFDAugmentedDataset
+
+```python
+from pipeline.dataset import CFDAugmentedDataset, CFDDataModule
+
+# 方式1：直接使用数据集
+train_dataset = CFDAugmentedDataset(
+    root='data_new/AG/fast',
+    case_names=['ZHANG_CHUN', 'LI_SI'],
+    augment=True,  # 启用增强
+    augment_config={
+        "rotation_prob": 0.5,      # 旋转概率
+        "translation_prob": 0.5,   # 平移概率
+        "translation_range": 0.1,  # 平移范围
+    }
+)
+
+val_dataset = CFDAugmentedDataset(
+    root='data_new/AG/fast',
+    case_names=['WANG_WU'],
+    augment=False,  # 验证集不增强
+)
+
+# 方式2：使用 DataModule
+dm = CFDDataModule(
+    root='data_new/AG/fast',
+    train_cases=['ZHANG_CHUN', 'LI_SI'],
+    val_cases=['WANG_WU'],
+    test_cases=['ZHAO_LIU'],
+)
+train_loader = dm.train_dataloader(batch_size=32)
+val_loader = dm.val_dataloader(batch_size=32)
+```
+
+### 支持的增强操作
+
+| 操作 | 函数 | 说明 | 推荐 |
+|------|------|------|------|
+| 随机旋转 | `random_rotation()` | 绕 x/y/z 轴随机旋转，矢量同步变换 | ✅ 推荐 |
+| 随机平移 | `random_translation()` | 在归一化坐标系下平移 | ✅ 推荐 |
+| 微小缩放 | `small_scale_augmentation()` | ±2% 缩放 | ⚠️ 慎用 |
+| 镜像翻转 | `mirror_augmentation()` | 沿指定轴镜像 | ⚠️ 视情况 |
+
+### 增强配置
+
+```python
+DEFAULT_AUGMENT_CONFIG = {
+    "rotation_prob": 0.5,       # 旋转概率
+    "rotation_axes": "xyz",     # 可旋转的轴
+    "translation_prob": 0.5,    # 平移概率
+    "translation_range": 0.1,   # 平移范围 [-0.1, 0.1]
+    "scale_prob": 0.0,          # 缩放概率（默认关闭）
+    "scale_range": (0.98, 1.02),
+    "mirror_prob": 0.0,         # 镜像概率（默认关闭）
+}
+```
+
+### 重要提醒
+
+1. **矢量同步变换**：旋转时，坐标、速度(u,v,w)、切线(Tangent)、标签(y) 会自动同步旋转
+2. **验证集不增强**：验证/测试集应设置 `augment=False`
+3. **禁止大幅缩放**：会改变雷诺数，导致物理不一致
+4. **禁止形状变形**：血管变形后流场完全改变，旧标签不适用
 
 ---
 
@@ -399,23 +533,29 @@ export PIPELINE_MODE="production"              # 覆盖处理模式
 └── processed/              # 处理输出
     ├── merged/             # 步骤1: 合并降采样
     │   ├── merged-1120.csv
-    │   ├── merged-1122.csv
     │   └── ...
     ├── features/           # 步骤2: 添加几何特征
     │   ├── result_features_merged-1120.csv
     │   └── ...
-    ├── normalized/         # 步骤3: 归一化
+    ├── coord_normalized/   # 步骤3: 坐标系归一化【新增】
+    │   ├── result_features_merged-1120.csv
+    │   ├── ...
+    │   └── transform_params.json  # 坐标变换参数
+    ├── normalized/         # 步骤4: 特征归一化
     │   ├── result_features_merged-1120.csv
     │   └── ...
-    └── graphs/             # 步骤4: 图数据
+    └── graphs/             # 步骤5: 图数据
         ├── result_features_merged-1120.pt
-        └── ...
+        ├── ...
+        └── transform_params.json  # 变换参数副本
 ```
 
-全局归一化参数保存在：
-```
-data_new/normalization_params_global.json
-```
+**参数文件说明**：
+
+| 文件 | 位置 | 用途 |
+|------|------|------|
+| `transform_params.json` | coord_normalized/, graphs/ | 坐标系变换参数，推理时用于逆变换 |
+| `normalization_params_global.json` | data_new/ | 全局特征归一化参数 |
 
 ---
 
@@ -444,7 +584,14 @@ python preprocess.py --sampling-method random
 
 使用 `--start-step` 跳过已完成的步骤：
 ```bash
-python run_all.py --case ZHANG_CHUN --start-step 2  # 从步骤2开始
+python run_all.py --case ZHANG_CHUN --start-step 3  # 从步骤3（坐标系归一化）开始
+```
+
+### 3.1 如何跳过坐标系归一化？
+
+如果不需要坐标系归一化（不推荐），可以直接从 features 目录读取：
+```bash
+python normalize.py --input-subdir processed/features
 ```
 
 ### 4. 如何添加新的数据源？
@@ -484,19 +631,65 @@ SAMPLING_CONFIG = {
 
 ## 完整示例
 
+### 数据处理
+
 ```bash
 # 1. 进入 pipeline 目录
 cd pipeline
 
-# 2. 先测试单个病例（默认使用混合采样）
+# 2. 先测试单个病例（完整 5 步流程）
 python run_all.py --case ZHANG_CHUN
 
 # 3. 检查输出
 ls ../data_new/AG/fast/ZHANG_CHUN/processed/graphs/
+ls ../data_new/AG/fast/ZHANG_CHUN/processed/coord_normalized/transform_params.json
 
 # 4. 确认无误后，处理所有病例
 python run_all.py
 
 # 5. 完成后，图数据可用于 GNN 训练
 # 图数据位于: data_new/AG/fast/*/processed/graphs/*.pt
+```
+
+### 训练时使用在线增强
+
+```python
+from pipeline.dataset import CFDAugmentedDataset
+from torch_geometric.loader import DataLoader
+
+# 加载数据（训练集启用增强）
+train_dataset = CFDAugmentedDataset(
+    root='data_new/AG/fast',
+    case_names=['ZHANG_CHUN', 'LI_SI', 'WANG_WU'],
+    augment=True,
+)
+
+# 创建 DataLoader
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+
+# 训练循环
+for batch in train_loader:
+    # batch.x: [B*N, 15] 输入特征
+    # batch.y: [B*N, 4] 目标输出
+    # batch.edge_index: [2, E] 边索引
+    ...
+```
+
+### 推理时还原坐标系
+
+```python
+import json
+import numpy as np
+from pipeline.coord_normalize import inverse_transform
+
+# 加载变换参数
+with open('transform_params.json') as f:
+    params = json.load(f)
+
+# 逆变换预测结果
+coords_orig, velocity_orig = inverse_transform(
+    coords_pred,    # 模型预测的坐标
+    velocity_pred,  # 模型预测的速度
+    params
+)
 ```
