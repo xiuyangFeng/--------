@@ -135,7 +135,7 @@ def random_rotation(
     axis: str = None,
     angle: float = None,
     coord_indices: Tuple[int, int] = (0, 3),
-    tangent_indices: Tuple[int, int] = (7, 10),
+    tangent_indices: Tuple[int, int] = (6, 9),
     velocity_indices: Tuple[int, int] = (0, 3),
 ) -> Data:
     """
@@ -155,9 +155,10 @@ def random_rotation(
         增强后的 Data 对象（原对象的副本）
     
     注意:
-        默认索引基于以下特征顺序:
-        x: [0:3] 坐标, [3] 时间, [4:7] 几何标量, [7:10] 切线, ...
+        默认索引基于以下特征顺序（10维节点特征）:
+        x: [0:3] 坐标, [3:6] 几何标量, [6:9] 切线, [9] is_wall
         y: [0:3] 速度, [3] 压力
+        global_cond: [0] t_norm, [1:6] BC (图级属性，旋转不影响)
     """
     # 克隆数据
     data = data.clone()
@@ -260,7 +261,7 @@ def mirror_augmentation(
     data: Data,
     axis: str = None,
     coord_indices: Tuple[int, int] = (0, 3),
-    tangent_indices: Tuple[int, int] = (7, 10),
+    tangent_indices: Tuple[int, int] = (6, 9),
     velocity_indices: Tuple[int, int] = (0, 3),
 ) -> Data:
     """
@@ -460,13 +461,14 @@ if __name__ == "__main__":
     print("数据增强模块测试")
     print("=" * 50)
     
-    # 创建测试数据
+    # 创建测试数据（新格式：10维节点特征 + 图级全局条件）
     N = 100
-    x = torch.randn(N, 16)  # 15维特征 + 1
+    x = torch.randn(N, 10)  # 10维节点特征
     y = torch.randn(N, 4)   # 4维标签
     edge_index = torch.randint(0, N, (2, N * 6))
+    global_cond = torch.randn(1, 6)  # 全局条件
     
-    data = Data(x=x, y=y, edge_index=edge_index)
+    data = Data(x=x, y=y, edge_index=edge_index, global_cond=global_cond)
     
     print(f"原始数据: x.shape={data.x.shape}, y.shape={data.y.shape}")
     

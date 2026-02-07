@@ -77,8 +77,8 @@ def main():
     
     print(f"测试样本数量: {len(test_files)}")
     
-    # 2. 初始化并加载模型 (输入维度 17)
-    model = SimpleGNN(in_channels=17, hidden_channels=64, out_channels=4).to(device)
+    # 2. 初始化并加载模型 (节点特征10维 + 全局条件6维)
+    model = SimpleGNN(node_dim=10, global_dim=6, hidden_channels=64, out_channels=4).to(device)
     
     # 手动指定 weights_only=False 以兼容 PyTorch 2.6+
     checkpoint = torch.load(args.model_path, map_location=device, weights_only=False)

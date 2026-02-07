@@ -131,7 +131,7 @@ def main():
         print(f"\n[1] GNN + PINN 模型 ({args.pinn_model})")
         print("-" * 60)
         
-        pinn_model = GNN_PINN(in_channels=17, hidden_channels=args.hidden_dim, out_channels=4).to(device)
+        pinn_model = GNN_PINN(node_dim=10, global_dim=6, hidden_channels=args.hidden_dim, out_channels=4).to(device)
         pinn_model.load_state_dict(torch.load(pinn_model_path, map_location=device, weights_only=True))
         
         pinn_metrics, pinn_preds, pinn_targets = evaluate_model(pinn_model, test_loader, device, 'pinn')
@@ -155,7 +155,7 @@ def main():
         print(f"\n[2] 普通 GNN 模型 ({args.gnn_model})")
         print("-" * 60)
         
-        gnn_model = SimpleGNN(in_channels=17, hidden_channels=args.hidden_dim, out_channels=4).to(device)
+        gnn_model = SimpleGNN(node_dim=10, global_dim=6, hidden_channels=args.hidden_dim, out_channels=4).to(device)
         gnn_model.load_state_dict(torch.load(gnn_model_path, map_location=device, weights_only=True))
         
         gnn_metrics, gnn_preds, gnn_targets = evaluate_model(gnn_model, test_loader, device, 'gnn')

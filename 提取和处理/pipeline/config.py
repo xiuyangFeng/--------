@@ -169,6 +169,42 @@ GRAPH_CONFIG = {
 }
 
 # ============================================================================
+# 特征维度配置
+# ============================================================================
+
+# 节点特征名称（存储在 data.x 中，逐点不同）
+NODE_FEATURE_NAMES = [
+    "x", "y", "z",                                     # 坐标 (3)
+    "Abscissa", "NormRadius", "Curvature",              # 几何标量 (3)
+    "Tangent_X", "Tangent_Y", "Tangent_Z",              # 切线向量 (3)
+    "is_wall",                                          # 壁面标记 (1)
+]
+NODE_FEATURE_DIM = len(NODE_FEATURE_NAMES)  # = 10
+
+# 全局条件名称（存储在 data.global_cond 中，整个图共享）
+GLOBAL_COND_NAMES = [
+    "t_norm",                                           # 归一化时间 (1)
+    "BC_Inlet",                                         # 入口体积流量 (1)
+    "BC_O1", "BC_O2", "BC_O3", "BC_O4",               # 出口压力 (4)
+]
+GLOBAL_COND_DIM = len(GLOBAL_COND_NAMES)  # = 6
+
+# 目标输出名称
+TARGET_NAMES = ["u", "v", "w", "p"]
+TARGET_DIM = len(TARGET_NAMES)  # = 4
+
+# 模型输入维度（节点特征 + 全局条件拼接后）
+MODEL_INPUT_DIM = NODE_FEATURE_DIM + GLOBAL_COND_DIM  # = 16
+
+# 节点特征中各组的索引范围
+FEATURE_INDICES = {
+    "coords": (0, 3),       # x, y, z
+    "geom_scalar": (3, 6),  # Abscissa, NormRadius, Curvature
+    "tangent": (6, 9),      # Tangent_X, Tangent_Y, Tangent_Z
+    "is_wall": (9, 10),     # is_wall
+}
+
+# ============================================================================
 # 处理模式配置
 # ============================================================================
 

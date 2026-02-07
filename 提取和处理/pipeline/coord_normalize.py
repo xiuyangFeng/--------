@@ -23,6 +23,7 @@
 
 import argparse
 import json
+import shutil
 import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -270,6 +271,14 @@ def process_case(
     with open(params_path, 'w', encoding='utf-8') as f:
         json.dump(transform_params, f, indent=2, ensure_ascii=False)
     print(f"  💾 变换参数已保存: {params_path.name}")
+    
+    # 复制边界条件元数据（BC 是标量，不受坐标系变换影响）
+    bc_meta_src = input_dir / "bc_metadata.json"
+    if bc_meta_src.exists():
+        shutil.copy2(bc_meta_src, output_dir / "bc_metadata.json")
+        print(f"  📋 已复制边界条件元数据: bc_metadata.json")
+    else:
+        print(f"  ⚠️ 未找到边界条件元数据: {bc_meta_src}")
     
     # 显示变换信息
     print(f"  📊 质心: [{transform_params['centroid'][0]:.2f}, "

@@ -14,9 +14,10 @@
 - Min-max: NormRadius → [0, 1]
 - Z-score: Curvature, u, v, w, p, vel_mag, wss, wss_x/y/z
 
-边界条件缩放（基于物理意义）:
+边界条件缩放（基于物理意义，从 bc_metadata.json 侧文件读取）:
 - BC_Inlet (入口流量): Q_in × 1e5 → 0.5~5.0
 - BC_O1~O4 (出口压力): (P - 15000) / 1000 → -1.5~+1.5
+归一化后保存为 bc_metadata_normalized.json
 
 使用示例:
   # 处理单个病例
@@ -127,9 +128,9 @@ def collect_global_statistics(
         **{feat: [] for feat in FEATURE_GROUPS["min_max"]},
     }
     
-    # 边界条件值（用于验证）
+    # 边界条件值从侧文件收集（用于验证缩放范围）
     bc_inlet_values = []
-    bc_outlet_values = {feat: [] for feat in FEATURE_GROUPS["bc_outlets"]}
+    bc_outlet_values = {"BC_O1": [], "BC_O2": [], "BC_O3": [], "BC_O4": []}
     
     total_files = 0
     
@@ -150,21 +151,27 @@ def collect_global_statistics(
                 df = pd.read_csv(csv_file)
                 total_files += 1
                 
-                # 收集常规特征值
+                # 收集常规特征值（不再包含 BC 列，BC 在侧文件中）
                 for feat in feature_values.keys():
                     if feat in df.columns:
                         feature_values[feat].extend(df[feat].values.tolist())
-                
-                # 收集边界条件
-                if "BC_Inlet" in df.columns:
-                    bc_inlet_values.extend(df["BC_Inlet"].values.tolist())
-                
-                for feat in FEATURE_GROUPS["bc_outlets"]:
-                    if feat in df.columns:
-                        bc_outlet_values[feat].extend(df[feat].values.tolist())
                         
             except Exception as e:
                 print(f"  ⚠️ 读取 {csv_file.name} 失败: {e}")
+        
+        # 从侧文件收集边界条件（用于验证缩放范围）
+        bc_meta_path = input_dir / "bc_metadata.json"
+        if bc_meta_path.exists():
+            try:
+                with open(bc_meta_path, 'r', encoding='utf-8') as f:
+                    bc_meta = json.load(f)
+                for stem, bc_vals in bc_meta.get("data", {}).items():
+                    if len(bc_vals) == 5:
+                        bc_inlet_values.append(bc_vals[0])
+                        for i, key in enumerate(["BC_O1", "BC_O2", "BC_O3", "BC_O4"]):
+                            bc_outlet_values[key].append(bc_vals[i + 1])
+            except Exception as e:
+                print(f"  ⚠️ 读取 bc_metadata.json 失败: {e}")
     
     print(f"  已扫描 {total_files} 个文件")
     
@@ -238,24 +245,55 @@ def normalize_dataframe(df: pd.DataFrame, global_stats: Dict) -> pd.DataFrame:
                 stats["mean"], stats["std"]
             )
     
-    # 4. 入口流量缩放: Q_in × 1e5
-    inlet_cfg = BC_SCALING["inlet"]
-    for feat in FEATURE_GROUPS["bc_inlet"]:
-        if feat in df_norm.columns:
-            df_norm[feat] = df_norm[feat].values * inlet_cfg["scale_factor"]
-    
-    # 5. 出口压力缩放: (P - 15000) / 1000
-    # 新格式统一使用压力边界，不再需要 BC_Flag 判断
-    outlet_cfg = BC_SCALING["outlet_pressure"]
-    for feat in FEATURE_GROUPS["bc_outlets"]:
-        if feat in df_norm.columns:
-            df_norm[feat] = (df_norm[feat].values - outlet_cfg["offset"]) / outlet_cfg["scale"]
+    # 注意: 边界条件（BC_Inlet, BC_O1~O4）不再在 CSV 中，
+    # 改为在 process_case() 中从 bc_metadata.json 侧文件统一归一化
     
     # 处理 NaN 和 Inf
     df_norm = df_norm.replace([np.inf, -np.inf], np.nan)
     df_norm = df_norm.fillna(0)
     
     return df_norm
+
+
+def normalize_bc_metadata(bc_meta: Dict) -> Dict:
+    """
+    对边界条件元数据进行归一化。
+    
+    缩放策略:
+    - BC_Inlet: Q_in × 1e5
+    - BC_O1~O4: (P - 15000) / 1000
+    
+    参数:
+        bc_meta: 原始 bc_metadata.json 内容
+    
+    返回:
+        归一化后的元数据字典
+    """
+    inlet_cfg = BC_SCALING["inlet"]
+    outlet_cfg = BC_SCALING["outlet_pressure"]
+    
+    normalized_data = {}
+    for stem, bc_vals in bc_meta.get("data", {}).items():
+        if len(bc_vals) == 5:
+            # [Inlet, O1, O2, O3, O4]
+            norm_inlet = bc_vals[0] * inlet_cfg["scale_factor"]
+            norm_outlets = [
+                (bc_vals[i] - outlet_cfg["offset"]) / outlet_cfg["scale"]
+                for i in range(1, 5)
+            ]
+            normalized_data[stem] = [norm_inlet] + norm_outlets
+        else:
+            print(f"  ⚠️ 跳过 {stem}: 边界条件格式错误 (期望5个值，实际{len(bc_vals)}个)")
+    
+    return {
+        "description": "归一化后的边界条件元数据",
+        "fields": ["BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"],
+        "scaling": {
+            "BC_Inlet": "Q_in × 1e5",
+            "BC_O1~O4": "(P - 15000) / 1000",
+        },
+        "data": normalized_data,
+    }
 
 
 def process_case(
@@ -281,7 +319,7 @@ def process_case(
     
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # 处理每个文件
+    # 处理每个 CSV 文件（逐点特征归一化）
     success_count = 0
     for csv_file in tqdm(csv_files, desc=f"处理 {case_dir.name}", leave=False):
         try:
@@ -294,6 +332,25 @@ def process_case(
             
         except Exception as e:
             print(f"  ❌ 处理 {csv_file.name} 失败: {e}")
+    
+    # 处理边界条件元数据（全局条件归一化）
+    bc_meta_path = input_dir / "bc_metadata.json"
+    if bc_meta_path.exists():
+        try:
+            with open(bc_meta_path, 'r', encoding='utf-8') as f:
+                bc_meta = json.load(f)
+            
+            bc_meta_norm = normalize_bc_metadata(bc_meta)
+            
+            bc_norm_path = output_dir / "bc_metadata_normalized.json"
+            with open(bc_norm_path, 'w', encoding='utf-8') as f:
+                json.dump(bc_meta_norm, f, indent=2, ensure_ascii=False)
+            
+            print(f"  📋 边界条件归一化完成: {len(bc_meta_norm['data'])} 个时间步")
+        except Exception as e:
+            print(f"  ⚠️ 边界条件归一化失败: {e}")
+    else:
+        print(f"  ⚠️ 未找到边界条件元数据: {bc_meta_path}")
     
     print(f"  ✅ 完成: {success_count}/{len(csv_files)} 个文件")
     return success_count > 0

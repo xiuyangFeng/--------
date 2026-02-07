@@ -11,13 +11,13 @@
 3. 加载边界条件（固定从 Global_conditions 目录）
 4. 输出到 processed/features/
 
-几何特征:
+几何特征（逐点，写入 CSV）:
 - Abscissa: 弧长坐标（归一化到 [0, 1]）
 - NormRadius: 归一化半径距离（距壁面距离/局部半径）
 - Curvature: 曲率
 - Tangent_X/Y/Z: 切线向量分量
 
-边界条件（移除 BC_Flag，统一使用压力边界）:
+边界条件（全局条件，保存为 bc_metadata.json 侧文件，不再逐行写入 CSV）:
 - BC_Inlet: 入口体积流量
 - BC_O1~O4: 四个髂支出口压力
 
@@ -30,6 +30,7 @@
 """
 
 import argparse
+import json
 import re
 import time
 import traceback
@@ -105,6 +106,60 @@ def find_cloud_files(case_dir: Path, cloud_subdir: str) -> List[Path]:
     return sorted(cloud_files)
 
 
+def export_centerline(centerline, vtp_path: Path, csv_path: Optional[Path] = None) -> None:
+    """
+    保存中心线为 VTP（可视化）和 CSV（点云）格式。
+    
+    参数:
+        centerline: VTK PolyData 中心线对象
+        vtp_path: VTP 文件输出路径（可在 ParaView 中打开）
+        csv_path: CSV 文件输出路径（点云数据，可选）
+    """
+    vtp_path = Path(vtp_path)
+    vtp_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # 保存 VTP 格式（可视化）
+    writer = vtk.vtkXMLPolyDataWriter()
+    writer.SetFileName(str(vtp_path))
+    writer.SetInputData(centerline)
+    if writer.Write() == 0:
+        raise RuntimeError(f"写入 VTP 失败: {vtp_path}")
+    
+    # 保存 CSV 格式（点云数据）
+    if csv_path is None:
+        return
+    
+    csv_path = Path(csv_path)
+    pts = vtk_to_numpy(centerline.GetPoints().GetData())
+    pd_obj = centerline.GetPointData()
+    
+    def get_arr(name: str):
+        arr = pd_obj.GetArray(name)
+        return vtk_to_numpy(arr) if arr is not None else None
+    
+    # 基础坐标
+    data = {
+        "x": pts[:, 0],
+        "y": pts[:, 1],
+        "z": pts[:, 2],
+    }
+    
+    # 导出几何属性
+    for key in ["Abscissas", "MaximumInscribedSphereRadius", "Curvature"]:
+        arr = get_arr(key)
+        if arr is not None:
+            data[key] = arr
+    
+    # 导出切线向量
+    tangent = get_arr("FrenetTangent")
+    if tangent is not None and len(tangent.shape) > 1 and tangent.shape[1] == 3:
+        data["Tangent_X"] = tangent[:, 0]
+        data["Tangent_Y"] = tangent[:, 1]
+        data["Tangent_Z"] = tangent[:, 2]
+    
+    pd.DataFrame(data).to_csv(csv_path, index=False)
+
+
 def prepare_geometry_data(stl_path: str) -> dict:
     """
     预处理几何数据：读取STL，提取中心线，构建KDTree。
@@ -113,7 +168,7 @@ def prepare_geometry_data(stl_path: str) -> dict:
         stl_path: STL 表面文件路径
     
     返回:
-        包含所有必要几何对象的字典
+        包含所有必要几何对象的字典，包括原始中心线对象
     """
     print(f"  🔧 预处理几何数据: {Path(stl_path).name}")
     
@@ -126,6 +181,7 @@ def prepare_geometry_data(stl_path: str) -> dict:
     cl_pd = centerline.GetPointData()
     
     geo_data = {
+        "centerline": centerline,  # 保留原始中心线对象，用于导出
         "cl_points": cl_points,
         "arr_abscissa": vtk_to_numpy(cl_pd.GetArray("Abscissas")),
         "arr_radius": vtk_to_numpy(cl_pd.GetArray("MaximumInscribedSphereRadius")),
@@ -147,16 +203,16 @@ def process_single_cloud(
     geo_data: dict,
     cloud_path: str,
     output_path: str,
-    global_bcs: Optional[list] = None,
 ) -> None:
     """
     使用预处理好的几何数据处理单个点云文件。
+    
+    注意: 边界条件不再写入 CSV，而是由 process_case() 统一保存到 bc_metadata.json。
     
     参数:
         geo_data: 预处理的几何数据字典
         cloud_path: 点云文件路径
         output_path: 输出文件路径
-        global_bcs: 边界条件 [inlet, O1, O2, O3, O4]（5 个值，无 BC_Flag）
     """
     # 解包几何数据
     cl_points = geo_data["cl_points"]
@@ -223,21 +279,7 @@ def process_single_cloud(
     # 添加原始点云的其他特征
     df_out = pd.concat([df_out, cloud_others_df], axis=1)
     
-    # 添加边界条件（新格式：5 个值，无 BC_Flag）
-    if global_bcs is not None:
-        if len(global_bcs) == 5:
-            # 新格式: [Inlet, O1, O2, O3, O4]
-            bc_names = ["BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"]
-            for bc_name, bc_value in zip(bc_names, global_bcs):
-                df_out[bc_name] = bc_value
-        elif len(global_bcs) == 6:
-            # 兼容旧格式: [BC_Flag, Inlet, O1, O2, O3, O4]
-            # 跳过 BC_Flag，只保留后 5 个值
-            bc_names = ["BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"]
-            for bc_name, bc_value in zip(bc_names, global_bcs[1:]):
-                df_out[bc_name] = bc_value
-        else:
-            print(f"  ⚠️ 边界条件格式错误: 期望 5 或 6 个值，实际 {len(global_bcs)} 个")
+    # 注意: 边界条件不再逐行写入 CSV，改为统一保存到 bc_metadata.json
     
     # 保存输出
     output_path = Path(output_path)
@@ -249,6 +291,7 @@ def process_case(
     case_dir: Path,
     input_subdir: str = None,
     output_subdir: str = None,
+    save_centerline: bool = True,
 ) -> bool:
     """
     处理单个病例目录。
@@ -257,6 +300,7 @@ def process_case(
         case_dir: 病例目录
         input_subdir: 输入点云子目录（默认使用 MERGED_DIR）
         output_subdir: 输出特征子目录（默认使用 FEATURES_DIR）
+        save_centerline: 是否保存中心线文件（VTP + CSV）
     
     返回:
         是否成功
@@ -295,16 +339,28 @@ def process_case(
         traceback.print_exc()
         return False
     
-    # 5. 加载边界条件（固定使用 Global_conditions 目录）
+    # 5. 保存中心线文件（VTP 可视化 + CSV 点云数据）
+    if save_centerline:
+        try:
+            centerline_dir = case_dir / "centerline"
+            vtp_path = centerline_dir / "centerline.vtp"
+            csv_path = centerline_dir / "centerline_points.csv"
+            export_centerline(geo_data["centerline"], vtp_path, csv_path)
+            print(f"  📍 中心线已保存: {centerline_dir.name}/")
+        except Exception as e:
+            print(f"  ⚠️ 中心线保存失败: {e}")
+    
+    # 6. 加载边界条件（固定使用 Global_conditions 目录）
     bc_dir = case_dir / BC_DIR
     global_bcs_map = load_boundary_conditions(bc_dir)
     
     if not global_bcs_map:
         print(f"  ⚠️ 未加载到边界条件数据，将跳过边界条件特征")
     
-    # 6. 处理每个点云文件
+    # 7. 处理每个点云文件，同时收集边界条件元数据
     success_count = 0
     start_time = time.time()
+    bc_metadata = {}  # {文件stem: [Inlet, O1, O2, O3, O4]}
     
     for i, cloud_path in enumerate(cloud_files, 1):
         cloud_filename = cloud_path.name
@@ -330,10 +386,19 @@ def process_case(
                 closest_step = min(available_steps, key=lambda s: abs(s - time_step))
                 current_bcs = global_bcs_map[closest_step]
             
-            # 处理点云
-            process_single_cloud(geo_data, str(cloud_path), str(output_path), 
-                               global_bcs=current_bcs)
+            # 处理点云（不再传入 BC，BC 单独保存）
+            process_single_cloud(geo_data, str(cloud_path), str(output_path))
             success_count += 1
+            
+            # 收集边界条件到元数据（统一格式为 5 个值）
+            if current_bcs is not None:
+                if len(current_bcs) == 5:
+                    bc_metadata[cloud_path.stem] = [float(v) for v in current_bcs]
+                elif len(current_bcs) == 6:
+                    # 旧格式: 跳过 BC_Flag，只保留后 5 个值
+                    bc_metadata[cloud_path.stem] = [float(v) for v in current_bcs[1:]]
+                else:
+                    print(f"  ⚠️ 边界条件格式错误: 期望 5 或 6 个值，实际 {len(current_bcs)} 个")
             
             # 进度显示
             if i % 10 == 0 or i == len(cloud_files):
@@ -347,6 +412,27 @@ def process_case(
             print(f"  ❌ 处理 {cloud_filename} 失败: {e}")
     
     total_time = time.time() - start_time
+    
+    # 8. 保存边界条件元数据（全局条件，不再逐行存入 CSV）
+    if bc_metadata:
+        bc_meta_path = output_dir / "bc_metadata.json"
+        bc_meta_content = {
+            "description": "边界条件元数据（全局条件，每个时间步共享）",
+            "fields": ["BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"],
+            "units": {
+                "BC_Inlet": "m³/s (入口体积流量)",
+                "BC_O1": "Pa (左外髂支出口压力)",
+                "BC_O2": "Pa (左内髂支出口压力)",
+                "BC_O3": "Pa (右外髂支出口压力)",
+                "BC_O4": "Pa (右内髂支出口压力)",
+            },
+            "data": bc_metadata,
+        }
+        with open(bc_meta_path, 'w', encoding='utf-8') as f:
+            json.dump(bc_meta_content, f, indent=2, ensure_ascii=False)
+        print(f"  📋 边界条件元数据已保存: {bc_meta_path.name} ({len(bc_metadata)} 个时间步)")
+    else:
+        print(f"  ⚠️ 未保存边界条件元数据（无有效数据）")
     
     if success_count > 0:
         print(f"  ✅ 完成: {success_count}/{len(cloud_files)} 个文件, 耗时 {total_time:.1f}s")
@@ -362,9 +448,17 @@ def process_all_cases(
     target_case: Optional[str] = None,
     input_subdir: str = None,
     output_subdir: str = None,
+    save_centerline: bool = True,
 ) -> None:
     """
     批量处理所有病例。
+    
+    参数:
+        data_root: 数据根目录
+        target_case: 指定处理的病例名称
+        input_subdir: 输入点云子目录
+        output_subdir: 输出特征子目录
+        save_centerline: 是否保存中心线文件（VTP + CSV）
     """
     if data_root is None:
         data_root = DATA_ROOT
@@ -395,6 +489,7 @@ def process_all_cases(
     print(f"📂 输入子目录: {input_subdir or MERGED_DIR}")
     print(f"📂 输出子目录: {output_subdir or FEATURES_DIR}")
     print(f"📂 边界条件目录: {BC_DIR}")
+    print(f"📍 保存中心线: {'是' if save_centerline else '否'}")
     print(f"📊 待处理病例数: {len(case_dirs)}")
     
     total_start = time.time()
@@ -410,7 +505,7 @@ def process_all_cases(
         print(f"[{idx}/{len(case_dirs)}] {rel_path}")
         print("=" * 50)
         
-        if process_case(case_dir, input_subdir, output_subdir):
+        if process_case(case_dir, input_subdir, output_subdir, save_centerline):
             ok += 1
     
     total_time = time.time() - total_start
@@ -430,8 +525,13 @@ def main():
   1. 读取 STL 表面模型，提取中心线
   2. 从 processed/merged/ 读取合并后的点云
   3. 映射几何特征（Abscissa, NormRadius, Curvature, Tangent）
-  4. 从 Global_conditions/ 加载边界条件
-  5. 输出到 processed/features/
+  4. 保存中心线文件（VTP 可视化 + CSV 点云数据）
+  5. 从 Global_conditions/ 加载边界条件
+  6. 输出到 processed/features/
+
+中心线输出:
+  - centerline/centerline.vtp: 可在 ParaView 中打开的可视化文件
+  - centerline/centerline_points.csv: 点云数据，包含几何属性
 
 边界条件说明:
   新格式统一使用压力边界，不再需要 BC_Flag:
@@ -444,6 +544,9 @@ def main():
   
   # 处理所有病例
   python extract_features.py
+  
+  # 不保存中心线文件
+  python extract_features.py --no-centerline
         """
     )
     parser.add_argument(
@@ -470,6 +573,12 @@ def main():
         default=None,
         help=f"输出特征子目录，默认 {FEATURES_DIR}",
     )
+    parser.add_argument(
+        "--no-centerline",
+        action="store_true",
+        default=False,
+        help="不保存中心线文件（VTP + CSV），默认保存",
+    )
     
     args = parser.parse_args()
     
@@ -478,6 +587,7 @@ def main():
         target_case=args.case,
         input_subdir=args.input_subdir,
         output_subdir=args.output_subdir,
+        save_centerline=not args.no_centerline,
     )
 
 

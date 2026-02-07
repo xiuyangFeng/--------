@@ -149,8 +149,8 @@ def main():
     train_loader = DataLoader(VascularDataset(train_files), batch_size=args.batch_size, shuffle=True)
     val_loader = DataLoader(VascularDataset(val_files), batch_size=args.batch_size)
     
-    # 3. 初始化模型 (输入维度 17，输出维度 4)
-    model = SimpleGNN(in_channels=17, hidden_channels=64, out_channels=4).to(device)
+    # 3. 初始化模型 (节点特征10维 + 全局条件6维，输出4维)
+    model = SimpleGNN(node_dim=10, global_dim=6, hidden_channels=64, out_channels=4).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     
     # 学习率调度器：当验证集损失在 20 轮内不下降时，将学习率乘以 0.5

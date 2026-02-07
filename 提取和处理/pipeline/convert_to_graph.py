@@ -9,16 +9,19 @@
 1. 读取归一化后的特征数据
 2. 构建 KNN 图结构
 3. 组装输入特征和目标输出
-4. 保存为 .pt 文件
+4. 加载全局条件（边界条件 + 时间）作为图级属性
+5. 保存为 .pt 文件
 
-输入特征 (15维，移除 BC_Flag):
+节点特征 data.x (10维):
 - 坐标: x, y, z (3)
-- 时间: t_norm (1)
 - 几何特征: Abscissa, NormRadius, Curvature, Tangent_X/Y/Z (6)
 - 边界标志: is_wall (1)
+
+全局条件 data.global_cond (1x6):
+- 时间: t_norm (1)
 - 边界条件: BC_Inlet, BC_O1~O4 (5)
 
-目标输出 (4维):
+目标输出 data.y (4维):
 - 速度: u, v, w (3)
 - 压力: p (1)
 
@@ -69,7 +72,8 @@ def extract_time_step(filename: str) -> Optional[int]:
 def build_graph_from_csv(
     file_path: Path, 
     t_norm: float, 
-    k: int = 6
+    bc_values: list = None,
+    k: int = 6,
 ) -> Data:
     """
     读取 CSV 文件并构建图结构。
@@ -77,41 +81,42 @@ def build_graph_from_csv(
     参数:
         file_path: CSV 文件路径
         t_norm: 归一化的时间值 [0, 1]
+        bc_values: 归一化后的边界条件 [BC_Inlet, BC_O1, BC_O2, BC_O3, BC_O4]
         k: KNN 邻居数
     
     返回:
-        PyG Data 对象
+        PyG Data 对象，包含:
+        - x: [N, 10] 节点特征 (坐标3 + 几何6 + is_wall1)
+        - edge_index: [2, E] 边索引
+        - y: [N, 4] 目标输出 (u, v, w, p)
+        - global_cond: [1, 6] 全局条件 (t_norm + BC_Inlet + BC_O1~O4)
     """
     df = pd.read_csv(file_path)
     
     # 1. 提取坐标
     coords = df[['x', 'y', 'z']].values
     
-    # 2. 构建输入特征 (15维，无 BC_Flag)
-    # (x, y, z, t) + 几何特征(6) + is_wall(1) + 边界条件(5)
-    
-    # 时间特征
-    t_feat = np.full((coords.shape[0], 1), t_norm)
-    
-    # 几何特征
+    # 2. 构建节点特征 (10维): 坐标(3) + 几何(6) + is_wall(1)
     geom_feats = df[['Abscissa', 'NormRadius', 'Curvature', 
                      'Tangent_X', 'Tangent_Y', 'Tangent_Z']].values
-    
-    # 边界标志 (仅 is_wall，无 BC_Flag)
     is_wall = df[['is_wall']].values
     
-    # 边界条件 (5个值)
-    bc_feats = df[['BC_Inlet', 'BC_O1', 'BC_O2', 'BC_O3', 'BC_O4']].values
-    
-    # 拼接所有特征: [x, y, z, t, Abscissa, NormRadius, Curvature, Tx, Ty, Tz, is_wall, BC_Inlet, BC_O1~O4]
-    x = np.hstack([coords, t_feat, geom_feats, is_wall, bc_feats])
+    # 拼接节点特征: [x, y, z, Abscissa, NormRadius, Curvature, Tx, Ty, Tz, is_wall]
+    x = np.hstack([coords, geom_feats, is_wall])
     x = torch.from_numpy(x).float()
     
-    # 3. 提取目标输出 (4维: u, v, w, p)
+    # 3. 构建全局条件 (6维): t_norm(1) + BC(5)
+    if bc_values is not None and len(bc_values) == 5:
+        global_cond = torch.tensor([[t_norm] + bc_values], dtype=torch.float32)  # [1, 6]
+    else:
+        # 如果没有 BC 数据，用 0 填充
+        global_cond = torch.tensor([[t_norm, 0.0, 0.0, 0.0, 0.0, 0.0]], dtype=torch.float32)
+    
+    # 4. 提取目标输出 (4维: u, v, w, p)
     y = df[['u', 'v', 'w', 'p']].values
     y = torch.from_numpy(y).float()
     
-    # 4. 构建边索引 (使用 KNN)
+    # 5. 构建边索引 (使用 KNN)
     nbrs = NearestNeighbors(n_neighbors=k+1, algorithm='ball_tree').fit(coords)
     _, indices = nbrs.kneighbors(coords)
     
@@ -122,8 +127,8 @@ def build_graph_from_csv(
     
     edge_index = torch.from_numpy(np.stack([row, col])).long()
     
-    # 创建 PyG Data 对象
-    data = Data(x=x, edge_index=edge_index, y=y)
+    # 创建 PyG Data 对象（global_cond 作为图级属性）
+    data = Data(x=x, edge_index=edge_index, y=y, global_cond=global_cond)
     
     return data
 
@@ -198,6 +203,24 @@ def process_case(
     else:
         print(f"  ⚠️ 未找到坐标系变换参数: {transform_params_src}")
     
+    # 加载归一化后的边界条件元数据
+    bc_meta_path = input_dir / "bc_metadata_normalized.json"
+    bc_data_map = {}
+    if bc_meta_path.exists():
+        try:
+            with open(bc_meta_path, 'r', encoding='utf-8') as f:
+                bc_meta = json.load(f)
+            bc_data_map = bc_meta.get("data", {})
+            print(f"  📋 已加载边界条件: {len(bc_data_map)} 个时间步")
+        except Exception as e:
+            print(f"  ⚠️ 读取边界条件失败: {e}")
+    else:
+        print(f"  ⚠️ 未找到边界条件元数据: {bc_meta_path}")
+    
+    # 复制边界条件元数据到 graphs 目录（用于追溯）
+    if bc_meta_path.exists():
+        shutil.copy2(bc_meta_path, output_dir / "bc_metadata_normalized.json")
+    
     print(f"  📁 找到 {len(file_step_pairs)} 个时间步")
     print(f"  🔗 KNN 邻居数: {k}")
     
@@ -206,7 +229,18 @@ def process_case(
     for csv_file, step in tqdm(file_step_pairs, desc=f"处理 {case_name}", leave=False):
         try:
             t_norm = (step - min_step) / total_range
-            data = build_graph_from_csv(csv_file, t_norm, k=k)
+            
+            # 查找对应的边界条件
+            # CSV 文件名格式: result_features_merged-{step}.csv
+            # bc_data_map 的 key 格式: merged-{step}
+            bc_values = None
+            csv_stem = csv_file.stem  # result_features_merged-1120
+            # 去掉 "result_features_" 前缀得到原始文件 stem
+            original_stem = csv_stem.replace("result_features_", "")
+            if original_stem in bc_data_map:
+                bc_values = bc_data_map[original_stem]
+            
+            data = build_graph_from_csv(csv_file, t_norm, bc_values=bc_values, k=k)
             
             # 保存为 .pt 文件
             out_name = csv_file.stem + ".pt"
@@ -289,12 +323,13 @@ def process_all_cases(
     
     # 显示输入特征说明
     print("\n📋 图数据格式说明:")
-    print("  输入特征 x (15维):")
+    print("  节点特征 x (10维):")
     print("    [0:3]   坐标: x, y, z")
-    print("    [3]     时间: t_norm")
-    print("    [4:10]  几何: Abscissa, NormRadius, Curvature, Tangent_X/Y/Z")
-    print("    [10]    边界标志: is_wall")
-    print("    [11:16] 边界条件: BC_Inlet, BC_O1~O4")
+    print("    [3:9]   几何: Abscissa, NormRadius, Curvature, Tangent_X/Y/Z")
+    print("    [9]     边界标志: is_wall")
+    print("  全局条件 global_cond (1x6):")
+    print("    [0]     时间: t_norm")
+    print("    [1:6]   边界条件: BC_Inlet, BC_O1~O4")
     print("  目标输出 y (4维):")
     print("    [0:3]   速度: u, v, w")
     print("    [3]     压力: p")
@@ -306,11 +341,13 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 图数据格式:
-  输入特征 x (15维，无 BC_Flag):
+  节点特征 x (10维):
     - 坐标 (3): x, y, z
-    - 时间 (1): t_norm
     - 几何 (6): Abscissa, NormRadius, Curvature, Tangent_X/Y/Z
     - 边界标志 (1): is_wall
+    
+  全局条件 global_cond (1x6):
+    - 时间 (1): t_norm
     - 边界条件 (5): BC_Inlet, BC_O1~O4
     
   目标输出 y (4维):
