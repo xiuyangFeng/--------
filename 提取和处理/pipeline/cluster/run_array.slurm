@@ -51,6 +51,7 @@ fi
 
 # 获取当前任务对应的病例名
 CASE_NAME=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" "$CASE_LIST_FILE")
+ALLOW_NEAREST_BC=${ALLOW_NEAREST_BC:-0}
 
 if [ -z "$CASE_NAME" ]; then
     echo "错误: 无法获取任务 $SLURM_ARRAY_TASK_ID 对应的病例名"
@@ -71,6 +72,9 @@ echo ""
 
 # 运行 pipeline
 CMD="python run_all.py --case $CASE_NAME"
+if [ "$ALLOW_NEAREST_BC" = "1" ]; then
+    CMD="$CMD --allow-nearest-bc"
+fi
 echo "执行: $CMD"
 $CMD
 

@@ -22,8 +22,10 @@
 # 获取命令行参数
 CASE_NAME=${1:-""}           # 病例名称（可选）
 START_STEP=${2:-1}           # 开始步骤（默认1）
-END_STEP=${3:-4}             # 结束步骤（默认4）
-SAMPLING_METHOD=${4:-"fps"}  # 采样方法（默认fps）
+END_STEP=${3:-5}             # 结束步骤（默认5）
+SAMPLING_METHOD=${4:-"hybrid"}  # 采样方法（默认hybrid）
+FPS_RATIO=${5:-"0.2"}        # hybrid 模式下 FPS 占比
+ALLOW_NEAREST_BC=${ALLOW_NEAREST_BC:-0}
 
 # ============================================================================
 # 环境配置 - 根据你的集群环境修改
@@ -81,9 +83,14 @@ CMD="python run_all.py"
 CMD="$CMD --start-step $START_STEP"
 CMD="$CMD --end-step $END_STEP"
 CMD="$CMD --sampling-method $SAMPLING_METHOD"
+CMD="$CMD --fps-ratio $FPS_RATIO"
 
 if [ -n "$CASE_NAME" ]; then
     CMD="$CMD --case $CASE_NAME"
+fi
+
+if [ "$ALLOW_NEAREST_BC" = "1" ]; then
+    CMD="$CMD --allow-nearest-bc"
 fi
 
 # 执行

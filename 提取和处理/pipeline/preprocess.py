@@ -24,9 +24,10 @@
 """
 
 import argparse
+import json
 import time
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 import numpy as np
 import pandas as pd
@@ -88,6 +89,44 @@ def find_matching_files(case_dir: Path) -> dict:
     matched = {k: (surface_files[k], inner_files[k]) for k in common_keys}
     
     return matched
+
+
+def summarize_frame_alignment(case_dir: Path) -> Dict[str, object]:
+    """统计 ascii 与 ascii_in 的时间步对齐情况。"""
+    surface_path = case_dir / SURFACE_DIR
+    inner_path = case_dir / INNER_DIR
+
+    def collect_steps(folder: Path) -> set:
+        steps = set()
+        if not folder.is_dir():
+            return steps
+        for p in folder.iterdir():
+            if not p.is_file():
+                continue
+            stem = p.stem
+            if '-' not in stem:
+                continue
+            number_part = stem.split('-')[-1]
+            if number_part.isdigit():
+                steps.add(int(number_part))
+        return steps
+
+    surface_steps = collect_steps(surface_path)
+    inner_steps = collect_steps(inner_path)
+    matched_steps = sorted(surface_steps & inner_steps)
+    surface_only = sorted(surface_steps - inner_steps)
+    inner_only = sorted(inner_steps - surface_steps)
+
+    return {
+        "surface_count": len(surface_steps),
+        "inner_count": len(inner_steps),
+        "matched_count": len(matched_steps),
+        "surface_only_count": len(surface_only),
+        "inner_only_count": len(inner_only),
+        "matched_steps": matched_steps,
+        "surface_only_steps": surface_only,
+        "inner_only_steps": inner_only,
+    }
 
 
 def process_single_frame(
@@ -185,8 +224,8 @@ def process_single_case(
     """
     case_dir = Path(case_dir)
     case_name = case_dir.name
-    
-    # 查找匹配文件
+
+    alignment = summarize_frame_alignment(case_dir)
     matched_files = find_matching_files(case_dir)
     
     if not matched_files:
@@ -200,7 +239,15 @@ def process_single_case(
     output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"\n📂 处理病例: {case_name}")
-    print(f"   找到 {len(matched_files)} 个时间帧")
+    print(
+        f"   时间帧: 壁面 {alignment['surface_count']} / 内部 {alignment['inner_count']} / "
+        f"匹配 {alignment['matched_count']}"
+    )
+    if alignment["surface_only_count"] or alignment["inner_only_count"]:
+        print(
+            f"   ⚠️ 未配对帧: 仅壁面 {alignment['surface_only_count']} / "
+            f"仅内部 {alignment['inner_only_count']}"
+        )
     print(f"   目标点数: {target_total}")
     print(f"   采样方法: {sampling_method}")
     print(f"   处理模式: {mode}")
@@ -231,11 +278,30 @@ def process_single_case(
             print(f"   ✅ 已保存: {output_path.name}")
     
     total_time = time.time() - start_time
-    
+
+    report_path = output_dir / "preprocess_report.json"
+    report = {
+        "case_name": case_name,
+        "surface_count": alignment["surface_count"],
+        "inner_count": alignment["inner_count"],
+        "matched_count": alignment["matched_count"],
+        "surface_only_count": alignment["surface_only_count"],
+        "inner_only_count": alignment["inner_only_count"],
+        "surface_only_steps": alignment["surface_only_steps"],
+        "inner_only_steps": alignment["inner_only_steps"],
+        "target_total": target_total,
+        "sampling_method": sampling_method,
+        "fps_ratio": fps_ratio if sampling_method == "hybrid" else None,
+        "success_count": success_count,
+    }
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
+
     print(f"\n🎉 {case_name} 处理完成!")
     print(f"   成功: {success_count}/{len(matched_files)} 个时间帧")
     print(f"   耗时: {total_time:.1f}s")
     print(f"   输出: {output_dir}")
+    print(f"   报告: {report_path.name}")
     
     return success_count > 0
 

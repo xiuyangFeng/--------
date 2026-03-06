@@ -56,8 +56,10 @@ def run_pipeline(
     end_step: int = 5,
     target_points: int = None,
     sampling_method: str = None,
+    fps_ratio: float = None,
     mode: str = None,
     k_neighbors: int = None,
+    strict_bc_match: bool = True,
 ) -> None:
     """
     运行完整的数据处理流程。
@@ -81,6 +83,8 @@ def run_pipeline(
         target_points = SAMPLING_CONFIG["target_total_points"]
     if sampling_method is None:
         sampling_method = SAMPLING_CONFIG["sampling_method"]
+    if fps_ratio is None:
+        fps_ratio = SAMPLING_CONFIG["hybrid_fps_ratio"]
     if mode is None:
         mode = MODE
     if k_neighbors is None:
@@ -92,8 +96,11 @@ def run_pipeline(
     print(f"📁 数据根目录: {data_root}")
     print(f"📊 目标点数: {target_points}")
     print(f"📊 采样方法: {sampling_method}")
+    if sampling_method == "hybrid":
+        print(f"📊 FPS 占比: {fps_ratio}")
     print(f"📊 处理模式: {mode}")
     print(f"📊 KNN 邻居数: {k_neighbors}")
+    print(f"📊 BC 严格匹配: {'是' if strict_bc_match else '否'}")
     
     if target_case:
         print(f"🎯 指定病例: {target_case}")
@@ -120,6 +127,7 @@ def run_pipeline(
             boundary_threshold=SAMPLING_CONFIG["boundary_threshold"],
             boundary_core_ratio=SAMPLING_CONFIG["boundary_core_ratio"],
             seed=SAMPLING_CONFIG["seed"],
+            fps_ratio=fps_ratio,
             mode=mode,
         )
     
@@ -134,6 +142,7 @@ def run_pipeline(
             target_case=target_case,
             input_subdir=MERGED_DIR,
             output_subdir=FEATURES_DIR,
+            strict_bc_match=strict_bc_match,
         )
     
     # 步骤3: 坐标系归一化【新增】
@@ -281,10 +290,21 @@ def main():
         help=f"处理模式，默认 {MODE}",
     )
     parser.add_argument(
+        "--fps-ratio",
+        type=float,
+        default=None,
+        help=f"混合采样时 FPS 占比，默认 {SAMPLING_CONFIG['hybrid_fps_ratio']}",
+    )
+    parser.add_argument(
         "--k",
         type=int,
         default=None,
         help=f"KNN 邻居数，默认 {GRAPH_CONFIG['k_neighbors']}",
+    )
+    parser.add_argument(
+        "--allow-nearest-bc",
+        action="store_true",
+        help="允许使用最近时间步 BC 作为兜底；默认严格匹配",
     )
     
     args = parser.parse_args()
@@ -300,8 +320,10 @@ def main():
         end_step=args.end_step,
         target_points=args.target_points,
         sampling_method=args.sampling_method,
+        fps_ratio=args.fps_ratio,
         mode=args.mode,
         k_neighbors=args.k,
+        strict_bc_match=not args.allow_nearest_bc,
     )
 
 

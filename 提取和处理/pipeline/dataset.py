@@ -47,6 +47,11 @@ from augmentation import (
 )
 
 
+def load_graph_data(path: Path) -> Data:
+    """兼容 PyTorch 新版本的图数据加载。"""
+    return torch.load(path, weights_only=False)
+
+
 class CFDGraphDataset(Dataset):
     """
     CFD 图数据集
@@ -107,7 +112,7 @@ class CFDGraphDataset(Dataset):
         return len(self.data_files)
     
     def __getitem__(self, idx: int) -> Data:
-        data = torch.load(self.data_files[idx])
+        data = load_graph_data(self.data_files[idx])
         
         if self.transform is not None:
             data = self.transform(data)
@@ -196,7 +201,7 @@ class CFDAugmentedDataset(Dataset):
         self.cached_data = None
         if preload:
             print("📥 预加载数据到内存...")
-            self.cached_data = [torch.load(f) for f in self.data_files]
+            self.cached_data = [load_graph_data(f) for f in self.data_files]
         
         augment_status = "启用" if augment else "禁用"
         print(f"📊 数据集: {len(self.data_files)} 个样本, "
@@ -211,7 +216,7 @@ class CFDAugmentedDataset(Dataset):
         if self.cached_data is not None:
             data = self.cached_data[idx].clone()
         else:
-            data = torch.load(self.data_files[idx])
+            data = load_graph_data(self.data_files[idx])
         
         # 应用增强
         if self.augment:

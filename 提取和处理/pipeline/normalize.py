@@ -14,9 +14,9 @@
 - Min-max: NormRadius → [0, 1]
 - Z-score: Curvature, u, v, w, p, vel_mag, wss, wss_x/y/z
 
-边界条件缩放（基于物理意义，从 bc_metadata.json 侧文件读取）:
-- BC_Inlet (入口流量): Q_in × 1e5 → 0.5~5.0
-- BC_O1~O4 (出口压力): (P - 15000) / 1000 → -1.5~+1.5
+边界条件缩放（从 bc_metadata.json 侧文件读取）:
+- BC_Inlet (入口流量): 保持物理缩放 Q_in × 1e5
+- BC_O1~O4 (出口压力): 默认使用全局统计量标准化，可切换为固定缩放
 归一化后保存为 bc_metadata_normalized.json
 
 使用示例:
@@ -79,13 +79,7 @@ FEATURE_GROUPS = {
     "coordinates": ["x", "y", "z"],
 }
 
-# 边界条件缩放参数（简化版，移除 BC_Flag 判断）
-BC_SCALING = {
-    # 入口流量: Q_in × 1e5
-    "inlet": {"scale_factor": 1e5},
-    # 出口压力: (P - 15000) / 1000
-    "outlet_pressure": {"offset": 15000, "scale": 1000},
-}
+BC_SCALING = NORMALIZATION_CONFIG["bc_scaling"]
 
 
 def compute_statistics(values: np.ndarray) -> Dict:
@@ -128,7 +122,7 @@ def collect_global_statistics(
         **{feat: [] for feat in FEATURE_GROUPS["min_max"]},
     }
     
-    # 边界条件值从侧文件收集（用于验证缩放范围）
+    # 边界条件值从侧文件收集（用于计算和验证缩放范围）
     bc_inlet_values = []
     bc_outlet_values = {"BC_O1": [], "BC_O2": [], "BC_O3": [], "BC_O4": []}
     
@@ -194,6 +188,12 @@ def collect_global_statistics(
             print(f"  {feat}: min={global_stats[feat]['min']:.6f}, "
                   f"max={global_stats[feat]['max']:.6f}")
     
+    # 记录 BC 统计量，供全局条件归一化使用
+    global_stats["BC_Inlet"] = compute_statistics(np.array(bc_inlet_values)) if bc_inlet_values else None
+    for feat, values in bc_outlet_values.items():
+        if values:
+            global_stats[feat] = compute_statistics(np.array(values))
+
     # 显示边界条件范围（用于验证缩放参数）
     print("\n  === 边界条件原始范围 ===")
     if bc_inlet_values:
@@ -204,15 +204,22 @@ def collect_global_statistics(
         print(f"  BC_Inlet: 原始=[{stats['min']:.6e}, {stats['max']:.6e}], "
               f"缩放后=[{scaled_min:.4f}, {scaled_max:.4f}]")
     
+    outlet_strategy = BC_SCALING["outlet_pressure"].get("strategy", "fixed")
     for feat, values in bc_outlet_values.items():
         if values:
             arr = np.array(values)
             stats = compute_statistics(arr)
-            cfg = BC_SCALING["outlet_pressure"]
-            scaled_min = (stats['min'] - cfg['offset']) / cfg['scale']
-            scaled_max = (stats['max'] - cfg['offset']) / cfg['scale']
-            print(f"  {feat}: 原始=[{stats['min']:.2f}, {stats['max']:.2f}] Pa, "
-                  f"缩放后=[{scaled_min:.4f}, {scaled_max:.4f}]")
+            if outlet_strategy == "z_score":
+                scaled_min = z_score_normalize(arr, stats["mean"], stats["std"]).min()
+                scaled_max = z_score_normalize(arr, stats["mean"], stats["std"]).max()
+                print(f"  {feat}: 原始=[{stats['min']:.2f}, {stats['max']:.2f}] Pa, "
+                      f"z-score后=[{scaled_min:.4f}, {scaled_max:.4f}]")
+            else:
+                cfg = BC_SCALING["outlet_pressure"]
+                scaled_min = (stats['min'] - cfg['offset']) / cfg['scale']
+                scaled_max = (stats['max'] - cfg['offset']) / cfg['scale']
+                print(f"  {feat}: 原始=[{stats['min']:.2f}, {stats['max']:.2f}] Pa, "
+                      f"固定缩放后=[{scaled_min:.4f}, {scaled_max:.4f}]")
     
     global_stats["bc_scaling"] = BC_SCALING
     
@@ -255,13 +262,13 @@ def normalize_dataframe(df: pd.DataFrame, global_stats: Dict) -> pd.DataFrame:
     return df_norm
 
 
-def normalize_bc_metadata(bc_meta: Dict) -> Dict:
+def normalize_bc_metadata(bc_meta: Dict, global_stats: Dict) -> Dict:
     """
     对边界条件元数据进行归一化。
     
     缩放策略:
     - BC_Inlet: Q_in × 1e5
-    - BC_O1~O4: (P - 15000) / 1000
+    - BC_O1~O4: 默认按全局统计量做 z-score，可回退固定缩放
     
     参数:
         bc_meta: 原始 bc_metadata.json 内容
@@ -271,16 +278,24 @@ def normalize_bc_metadata(bc_meta: Dict) -> Dict:
     """
     inlet_cfg = BC_SCALING["inlet"]
     outlet_cfg = BC_SCALING["outlet_pressure"]
+    outlet_strategy = outlet_cfg.get("strategy", "fixed")
     
     normalized_data = {}
     for stem, bc_vals in bc_meta.get("data", {}).items():
         if len(bc_vals) == 5:
             # [Inlet, O1, O2, O3, O4]
             norm_inlet = bc_vals[0] * inlet_cfg["scale_factor"]
-            norm_outlets = [
-                (bc_vals[i] - outlet_cfg["offset"]) / outlet_cfg["scale"]
-                for i in range(1, 5)
-            ]
+            norm_outlets = []
+            for i, feat in enumerate(FEATURE_GROUPS["bc_outlets"], start=1):
+                raw_val = bc_vals[i]
+                if outlet_strategy == "z_score":
+                    stats = global_stats.get(feat)
+                    if not stats:
+                        raise ValueError(f"缺少 {feat} 的全局统计量，无法执行 z-score 归一化")
+                    norm_val = float(z_score_normalize(np.array([raw_val]), stats["mean"], stats["std"])[0])
+                else:
+                    norm_val = (raw_val - outlet_cfg["offset"]) / outlet_cfg["scale"]
+                norm_outlets.append(norm_val)
             normalized_data[stem] = [norm_inlet] + norm_outlets
         else:
             print(f"  ⚠️ 跳过 {stem}: 边界条件格式错误 (期望5个值，实际{len(bc_vals)}个)")
@@ -288,9 +303,17 @@ def normalize_bc_metadata(bc_meta: Dict) -> Dict:
     return {
         "description": "归一化后的边界条件元数据",
         "fields": ["BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"],
+        "strategy": {
+            "BC_Inlet": "fixed_scale",
+            "BC_O1~O4": outlet_strategy,
+        },
         "scaling": {
             "BC_Inlet": "Q_in × 1e5",
-            "BC_O1~O4": "(P - 15000) / 1000",
+            "BC_O1~O4": (
+                "z-score(global mean/std)"
+                if outlet_strategy == "z_score"
+                else f"(P - {outlet_cfg['offset']}) / {outlet_cfg['scale']}"
+            ),
         },
         "data": normalized_data,
     }
@@ -340,7 +363,7 @@ def process_case(
             with open(bc_meta_path, 'r', encoding='utf-8') as f:
                 bc_meta = json.load(f)
             
-            bc_meta_norm = normalize_bc_metadata(bc_meta)
+            bc_meta_norm = normalize_bc_metadata(bc_meta, global_stats)
             
             bc_norm_path = output_dir / "bc_metadata_normalized.json"
             with open(bc_norm_path, 'w', encoding='utf-8') as f:
@@ -367,7 +390,11 @@ def save_normalization_params(global_stats: Dict, output_path: str) -> None:
             "z_score": "original = normalized * std + mean",
             "min_max": "original = normalized * (max - min) + min",
             "bc_inlet": "Q_in = scaled / 1e5",
-            "bc_outlet_pressure": "P = scaled × 1000 + 15000",
+            "bc_outlet_pressure": (
+                "P = normalized * std + mean"
+                if BC_SCALING["outlet_pressure"].get("strategy", "fixed") == "z_score"
+                else f"P = scaled × {BC_SCALING['outlet_pressure']['scale']} + {BC_SCALING['outlet_pressure']['offset']}"
+            ),
         }
     }
     
@@ -466,8 +493,8 @@ def main():
   - Z-score: Curvature, u/v/w, p, vel_mag, wss*
 
 边界条件缩放（新格式，无 BC_Flag）:
-  - BC_Inlet: Q_in × 1e5 → 0.5~5.0
-  - BC_O1~O4: (P - 15000) / 1000 → -1.5~+1.5
+  - BC_Inlet: Q_in × 1e5
+  - BC_O1~O4: 默认 z-score(global mean/std)，可切换为固定缩放
 
 示例:
   python normalize.py --case ZHANG_CHUN
