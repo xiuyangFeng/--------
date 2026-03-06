@@ -117,15 +117,18 @@ def build_graph_from_csv(
     y = torch.from_numpy(y).float()
     
     # 5. 构建边索引 (使用 KNN)
-    nbrs = NearestNeighbors(n_neighbors=k+1, algorithm='ball_tree').fit(coords)
+    effective_k = min(k, max(1, coords.shape[0] - 1))
+    nbrs = NearestNeighbors(n_neighbors=effective_k + 1, algorithm='ball_tree').fit(coords)
     _, indices = nbrs.kneighbors(coords)
     
     # 转换为 PyG 的 edge_index 格式 [2, num_edges]
     # indices 的第一列是节点自身，忽略它
-    row = np.repeat(np.arange(coords.shape[0]), k)
+    row = np.repeat(np.arange(coords.shape[0]), effective_k)
     col = indices[:, 1:].flatten()
     
-    edge_index = torch.from_numpy(np.stack([row, col])).long()
+    edges = np.stack([row, col])
+    reverse_edges = np.stack([col, row])
+    edge_index = torch.from_numpy(np.concatenate([edges, reverse_edges], axis=1)).long()
     
     # 创建 PyG Data 对象（global_cond 作为图级属性）
     data = Data(x=x, edge_index=edge_index, y=y, global_cond=global_cond)
@@ -226,6 +229,7 @@ def process_case(
     
     # 处理每个时间步
     success_count = 0
+    missing_bc_count = 0
     for csv_file, step in tqdm(file_step_pairs, desc=f"处理 {case_name}", leave=False):
         try:
             t_norm = (step - min_step) / total_range
@@ -239,6 +243,8 @@ def process_case(
             original_stem = csv_stem.replace("result_features_", "")
             if original_stem in bc_data_map:
                 bc_values = bc_data_map[original_stem]
+            else:
+                missing_bc_count += 1
             
             data = build_graph_from_csv(csv_file, t_norm, bc_values=bc_values, k=k)
             
@@ -249,8 +255,23 @@ def process_case(
             
         except Exception as e:
             print(f"  ❌ 处理 {csv_file.name} 失败: {e}")
+
+    report_path = output_dir / "graph_conversion_report.json"
+    report = {
+        "case_name": case_name,
+        "time_step_count": len(file_step_pairs),
+        "success_count": success_count,
+        "missing_bc_count": missing_bc_count,
+        "k_neighbors": k,
+        "edge_direction": "bidirectional_knn",
+    }
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
     
     print(f"  ✅ 完成: {success_count}/{len(file_step_pairs)} 个文件")
+    if missing_bc_count:
+        print(f"  ⚠️ 缺少 BC 的时间步: {missing_bc_count}")
+    print(f"  📄 报告: {report_path.name}")
     return success_count > 0
 
 

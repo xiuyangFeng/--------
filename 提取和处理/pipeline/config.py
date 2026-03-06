@@ -153,10 +153,23 @@ NORMALIZATION_CONFIG = {
     "bc_scaling": {
         # 入口流量: Q_in × 1e5 → 0.5~5.0
         "inlet": {"scale_factor": 1e5},
-        
-        # 出口压力: (P - 15000) / 1000 → -1.5~+1.5
-        "outlet_pressure": {"offset": 15000, "scale": 1000},
+
+        # 出口压力默认使用统计量标准化，避免把单批数据先验硬编码进 pipeline。
+        # 可选 strategy:
+        #   - "z_score": 使用全局 mean/std
+        #   - "fixed": 使用 offset/scale 的固定缩放
+        "outlet_pressure": {
+            "strategy": "z_score",
+            "offset": 15000,
+            "scale": 1000,
+        },
     }
+}
+
+# 坐标系归一化配置
+COORD_NORMALIZATION_CONFIG = {
+    # PCA 第一主成分对齐到的目标轴，可选 "x" / "y" / "z"
+    "principal_axis_target": "z",
 }
 
 # ============================================================================

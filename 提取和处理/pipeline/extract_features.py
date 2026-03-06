@@ -50,7 +50,7 @@ from config import (
     BC_DIR,
     get_case_dirs,
 )
-from utils.io import load_boundary_conditions
+from utils.io import load_boundary_conditions, resolve_bc_for_step, summarize_bc_coverage
 
 # 添加父目录到路径，以便导入 vmtk_core
 import sys
@@ -292,6 +292,7 @@ def process_case(
     input_subdir: str = None,
     output_subdir: str = None,
     save_centerline: bool = True,
+    strict_bc_match: bool = True,
 ) -> bool:
     """
     处理单个病例目录。
@@ -353,14 +354,29 @@ def process_case(
     # 6. 加载边界条件（固定使用 Global_conditions 目录）
     bc_dir = case_dir / BC_DIR
     global_bcs_map = load_boundary_conditions(bc_dir)
+    cloud_steps = []
+    for cloud_path in cloud_files:
+        match = re.search(r'-(\d+)$', cloud_path.stem)
+        if match:
+            cloud_steps.append(int(match.group(1)))
+    bc_coverage = summarize_bc_coverage(global_bcs_map, cloud_steps) if cloud_steps else None
     
     if not global_bcs_map:
         print(f"  ⚠️ 未加载到边界条件数据，将跳过边界条件特征")
+    elif bc_coverage is not None:
+        print(
+            f"  📋 BC 覆盖: 目标 {bc_coverage['target_count']} / 匹配 {bc_coverage['matched_count']} / "
+            f"缺失 {bc_coverage['missing_count']}"
+        )
+        if bc_coverage["missing_count"]:
+            print("  ⚠️ 存在未覆盖时间步；默认严格匹配，不使用最近邻兜底")
     
     # 7. 处理每个点云文件，同时收集边界条件元数据
     success_count = 0
     start_time = time.time()
     bc_metadata = {}  # {文件stem: [Inlet, O1, O2, O3, O4]}
+    bc_match_summary = {"exact": 0, "nearest": 0, "missing": 0}
+    fallback_matches = []
     
     for i, cloud_path in enumerate(cloud_files, 1):
         cloud_filename = cloud_path.name
@@ -378,13 +394,20 @@ def process_case(
             
             # 获取对应的边界条件
             current_bcs = None
-            if time_step is not None and time_step in global_bcs_map:
-                current_bcs = global_bcs_map[time_step]
-            elif time_step is not None and global_bcs_map:
-                # 找最近的时间步
-                available_steps = list(global_bcs_map.keys())
-                closest_step = min(available_steps, key=lambda s: abs(s - time_step))
-                current_bcs = global_bcs_map[closest_step]
+            if time_step is not None:
+                current_bcs, matched_step, match_mode = resolve_bc_for_step(
+                    global_bcs_map,
+                    time_step,
+                    allow_nearest=not strict_bc_match,
+                )
+                bc_match_summary[match_mode] += 1
+                if match_mode == "nearest":
+                    fallback_matches.append(
+                        {
+                            "cloud_step": time_step,
+                            "matched_bc_step": matched_step,
+                        }
+                    )
             
             # 处理点云（不再传入 BC，BC 单独保存）
             process_single_cloud(geo_data, str(cloud_path), str(output_path))
@@ -399,6 +422,8 @@ def process_case(
                     bc_metadata[cloud_path.stem] = [float(v) for v in current_bcs[1:]]
                 else:
                     print(f"  ⚠️ 边界条件格式错误: 期望 5 或 6 个值，实际 {len(current_bcs)} 个")
+            elif time_step is not None:
+                print(f"  ⚠️ 时间步 {time_step} 缺少精确匹配 BC，已跳过 BC 元数据写入")
             
             # 进度显示
             if i % 10 == 0 or i == len(cloud_files):
@@ -419,6 +444,9 @@ def process_case(
         bc_meta_content = {
             "description": "边界条件元数据（全局条件，每个时间步共享）",
             "fields": ["BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"],
+            "matching_policy": "exact_only" if strict_bc_match else "allow_nearest",
+            "match_summary": bc_match_summary,
+            "fallback_matches": fallback_matches,
             "units": {
                 "BC_Inlet": "m³/s (入口体积流量)",
                 "BC_O1": "Pa (左外髂支出口压力)",
@@ -433,10 +461,24 @@ def process_case(
         print(f"  📋 边界条件元数据已保存: {bc_meta_path.name} ({len(bc_metadata)} 个时间步)")
     else:
         print(f"  ⚠️ 未保存边界条件元数据（无有效数据）")
+
+    report_path = output_dir / "feature_extraction_report.json"
+    report = {
+        "case_name": case_name,
+        "cloud_file_count": len(cloud_files),
+        "success_count": success_count,
+        "bc_matching_policy": "exact_only" if strict_bc_match else "allow_nearest",
+        "bc_match_summary": bc_match_summary,
+        "bc_coverage": bc_coverage,
+        "fallback_matches": fallback_matches,
+    }
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
     
     if success_count > 0:
         print(f"  ✅ 完成: {success_count}/{len(cloud_files)} 个文件, 耗时 {total_time:.1f}s")
         print(f"  📂 输出目录: {output_dir}")
+        print(f"  📄 报告: {report_path.name}")
         return True
     else:
         print(f"  ❌ 失败: 没有文件被成功处理")
@@ -449,6 +491,7 @@ def process_all_cases(
     input_subdir: str = None,
     output_subdir: str = None,
     save_centerline: bool = True,
+    strict_bc_match: bool = True,
 ) -> None:
     """
     批量处理所有病例。
@@ -490,6 +533,7 @@ def process_all_cases(
     print(f"📂 输出子目录: {output_subdir or FEATURES_DIR}")
     print(f"📂 边界条件目录: {BC_DIR}")
     print(f"📍 保存中心线: {'是' if save_centerline else '否'}")
+    print(f"📍 BC 严格匹配: {'是' if strict_bc_match else '否'}")
     print(f"📊 待处理病例数: {len(case_dirs)}")
     
     total_start = time.time()
@@ -505,7 +549,7 @@ def process_all_cases(
         print(f"[{idx}/{len(case_dirs)}] {rel_path}")
         print("=" * 50)
         
-        if process_case(case_dir, input_subdir, output_subdir, save_centerline):
+        if process_case(case_dir, input_subdir, output_subdir, save_centerline, strict_bc_match):
             ok += 1
     
     total_time = time.time() - total_start
@@ -537,6 +581,7 @@ def main():
   新格式统一使用压力边界，不再需要 BC_Flag:
   - BC_Inlet: 入口体积流量 (m³/s)
   - BC_O1~O4: 四个髂支出口压力 (Pa)
+  - 默认严格要求时间步精确匹配；如需最近邻兜底，使用 --allow-nearest-bc
 
 示例:
   # 处理指定病例
@@ -579,6 +624,12 @@ def main():
         default=False,
         help="不保存中心线文件（VTP + CSV），默认保存",
     )
+    parser.add_argument(
+        "--allow-nearest-bc",
+        action="store_true",
+        default=False,
+        help="允许使用最近时间步 BC 作为兜底；默认只接受精确匹配",
+    )
     
     args = parser.parse_args()
     
@@ -588,6 +639,7 @@ def main():
         input_subdir=args.input_subdir,
         output_subdir=args.output_subdir,
         save_centerline=not args.no_centerline,
+        strict_bc_match=not args.allow_nearest_bc,
     )
 
 

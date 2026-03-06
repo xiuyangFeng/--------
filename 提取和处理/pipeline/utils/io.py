@@ -7,7 +7,7 @@
 """
 
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from io import StringIO
 
 import pandas as pd
@@ -331,6 +331,53 @@ def load_boundary_conditions(bc_dir: Path) -> Dict[int, list]:
         print(f"  ✅ 加载 {len(bc_data)} 个时间步的边界条件")
     
     return bc_data
+
+
+def summarize_bc_coverage(
+    bc_data: Dict[int, list],
+    target_steps: list[int],
+) -> Dict[str, object]:
+    """统计目标时间步与 BC 数据的覆盖关系。"""
+    bc_steps = sorted(int(step) for step in bc_data.keys())
+    target_set = {int(step) for step in target_steps}
+    bc_set = set(bc_steps)
+
+    matched = sorted(target_set & bc_set)
+    missing = sorted(target_set - bc_set)
+    extra = sorted(bc_set - target_set)
+
+    return {
+        "target_count": len(target_set),
+        "bc_count": len(bc_set),
+        "matched_count": len(matched),
+        "missing_count": len(missing),
+        "extra_count": len(extra),
+        "missing_steps": missing,
+        "extra_steps": extra,
+        "matched_steps": matched,
+    }
+
+
+def resolve_bc_for_step(
+    bc_data: Dict[int, list],
+    step: int,
+    allow_nearest: bool = False,
+) -> Tuple[Optional[list], Optional[int], str]:
+    """
+    解析某个时间步对应的边界条件。
+
+    返回:
+        (bc_values, matched_step, match_mode)
+        match_mode 为 "exact" / "nearest" / "missing"
+    """
+    if step in bc_data:
+        return bc_data[step], step, "exact"
+
+    if allow_nearest and bc_data:
+        matched_step = min(bc_data.keys(), key=lambda s: abs(s - step))
+        return bc_data[matched_step], matched_step, "nearest"
+
+    return None, None, "missing"
 
 
 if __name__ == "__main__":

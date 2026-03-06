@@ -66,10 +66,13 @@ sbatch run_single_step.slurm preprocess ZHANG_CHUN
 # 步骤2: 几何特征提取（中心线+边界条件）
 sbatch run_single_step.slurm extract_features ZHANG_CHUN
 
-# 步骤3: 归一化
+# 步骤3: 坐标系归一化
+sbatch run_single_step.slurm coord_normalize ZHANG_CHUN
+
+# 步骤4: 特征归一化
 sbatch run_single_step.slurm normalize ZHANG_CHUN
 
-# 步骤4: 图数据转换
+# 步骤5: 图数据转换
 sbatch run_single_step.slurm convert_to_graph ZHANG_CHUN
 ```
 
@@ -81,6 +84,9 @@ sbatch run_pipeline.slurm ZHANG_CHUN 2
 
 # 只运行步骤1-2
 sbatch run_pipeline.slurm ZHANG_CHUN 1 2
+
+# 允许 extract_features 在 BC 缺失时使用最近时间步兜底
+ALLOW_NEAREST_BC=1 sbatch run_pipeline.slurm ZHANG_CHUN
 ```
 
 ## 监控作业

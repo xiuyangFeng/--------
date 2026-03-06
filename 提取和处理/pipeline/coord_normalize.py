@@ -37,6 +37,7 @@ from tqdm import tqdm
 from config import (
     DATA_ROOT,
     FEATURES_DIR,
+    COORD_NORMALIZATION_CONFIG,
     get_case_dirs,
 )
 
@@ -49,6 +50,7 @@ def normalize_coordinate_system(
     velocity: np.ndarray = None,
     tangent: np.ndarray = None,
     wss_vec: np.ndarray = None,
+    principal_axis_target: str = "z",
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Dict]:
     """
     坐标系归一化：中心化 + PCA对齐 + 缩放
@@ -75,9 +77,18 @@ def normalize_coordinate_system(
     pca = PCA(n_components=3)
     pca.fit(coords_centered)
     
-    # PCA components 的行是主成分方向，按方差从大到小排列
-    # 我们要让第一主成分（最大方差）对齐到 Z 轴
-    R = pca.components_.T  # 旋转矩阵 [3, 3]
+    # PCA components 的行是主成分方向，按方差从大到小排列。
+    # coords_centered @ pca.components_.T 会把 PC1, PC2, PC3 依次映射到 X, Y, Z。
+    # 为了显式控制目标轴，这里重排主成分顺序。
+    axis_orders = {
+        "x": [0, 1, 2],
+        "y": [1, 0, 2],
+        "z": [1, 2, 0],
+    }
+    if principal_axis_target not in axis_orders:
+        raise ValueError(f"不支持的 principal_axis_target: {principal_axis_target}")
+    axis_order = axis_orders[principal_axis_target]
+    R = pca.components_[axis_order].T  # 旋转矩阵 [3, 3]
     
     # 确保旋转矩阵是右手系（行列式为正）
     if np.linalg.det(R) < 0:
@@ -109,6 +120,7 @@ def normalize_coordinate_system(
         "centroid": centroid.tolist(),
         "rotation_matrix": R.tolist(),
         "scale_factor": float(scale_factor),
+        "principal_axis_target": principal_axis_target,
         "pca_explained_variance_ratio": pca.explained_variance_ratio_.tolist(),
     }
     
@@ -184,7 +196,13 @@ def process_dataframe(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
     
     # 执行坐标系归一化
     coords_norm, velocity_rot, tangent_rot, wss_vec_rot, transform_params = \
-        normalize_coordinate_system(coords, velocity, tangent, wss_vec)
+        normalize_coordinate_system(
+            coords,
+            velocity,
+            tangent,
+            wss_vec,
+            principal_axis_target=COORD_NORMALIZATION_CONFIG["principal_axis_target"],
+        )
     
     # 构建输出 DataFrame
     df_norm = df.copy()
@@ -264,7 +282,10 @@ def process_case(
     
     # 只用坐标计算变换参数
     coords = first_df[['x', 'y', 'z']].values
-    _, _, _, _, transform_params = normalize_coordinate_system(coords)
+    _, _, _, _, transform_params = normalize_coordinate_system(
+        coords,
+        principal_axis_target=COORD_NORMALIZATION_CONFIG["principal_axis_target"],
+    )
     
     # 保存变换参数
     params_path = output_dir / "transform_params.json"
@@ -285,6 +306,7 @@ def process_case(
           f"{transform_params['centroid'][1]:.2f}, "
           f"{transform_params['centroid'][2]:.2f}]")
     print(f"  📊 缩放因子: {transform_params['scale_factor']:.4f}")
+    print(f"  📊 主轴目标轴: {transform_params['principal_axis_target']}")
     print(f"  📊 PCA方差比: {[f'{r:.2%}' for r in transform_params['pca_explained_variance_ratio']]}")
     
     # 提取旋转矩阵用于后续处理

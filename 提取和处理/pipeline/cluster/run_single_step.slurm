@@ -16,13 +16,15 @@
 # 使用方法:
 #   sbatch run_single_step.slurm preprocess                    # 步骤1
 #   sbatch run_single_step.slurm extract_features              # 步骤2
-#   sbatch run_single_step.slurm normalize                     # 步骤3
-#   sbatch run_single_step.slurm convert_to_graph              # 步骤4
+#   sbatch run_single_step.slurm coord_normalize               # 步骤3
+#   sbatch run_single_step.slurm normalize                     # 步骤4
+#   sbatch run_single_step.slurm convert_to_graph              # 步骤5
 #   sbatch run_single_step.slurm preprocess ZHANG_CHUN         # 指定病例
 # ============================================================================
 
 STEP_NAME=${1:-"preprocess"}
 CASE_NAME=${2:-""}
+ALLOW_NEAREST_BC=${ALLOW_NEAREST_BC:-0}
 
 # 环境配置
 module purge
@@ -47,6 +49,9 @@ echo "=============================================="
 CMD="python ${STEP_NAME}.py"
 if [ -n "$CASE_NAME" ]; then
     CMD="$CMD --case $CASE_NAME"
+fi
+if [ "$STEP_NAME" = "extract_features" ] && [ "$ALLOW_NEAREST_BC" = "1" ]; then
+    CMD="$CMD --allow-nearest-bc"
 fi
 
 echo "执行: $CMD"
