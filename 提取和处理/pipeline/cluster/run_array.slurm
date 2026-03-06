@@ -37,7 +37,8 @@ cd $SLURM_SUBMIT_DIR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
-cd "$PIPELINE_DIR"
+PROJECT_DIR="$(dirname "$PIPELINE_DIR")"
+cd "$PROJECT_DIR"
 
 mkdir -p "$SCRIPT_DIR/logs"
 
@@ -71,7 +72,7 @@ echo "=============================================="
 echo ""
 
 # 运行 pipeline
-CMD="python run_all.py --case $CASE_NAME"
+CMD="python -m pipeline.run_all --case $CASE_NAME"
 if [ "$ALLOW_NEAREST_BC" = "1" ]; then
     CMD="$CMD --allow-nearest-bc"
 fi

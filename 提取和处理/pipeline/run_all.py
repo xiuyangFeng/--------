@@ -12,41 +12,52 @@ Pipeline 一键运行脚本
 
 使用示例:
   # 处理单个病例
-  python run_all.py --case ZHANG_CHUN
+  python -m pipeline.run_all --case ZHANG_CHUN
   
   # 处理所有病例
-  python run_all.py
+  python -m pipeline.run_all
   
   # 跳过已完成的步骤
-  python run_all.py --start-step 3
+  python -m pipeline.run_all --start-step 3
   
   # 使用随机采样（速度快）
-  python run_all.py --sampling-method random
+  python -m pipeline.run_all --sampling-method random
 """
 
 import argparse
+import sys
 import time
 from pathlib import Path
 from typing import Optional
 
 # 导入各处理模块
-from config import (
-    DATA_ROOT,
-    MERGED_DIR,
-    FEATURES_DIR,
-    COORD_NORMALIZED_DIR,
-    NORMALIZED_DIR,
-    GRAPHS_DIR,
-    SAMPLING_CONFIG,
-    GRAPH_CONFIG,
-    MODE,
-    get_case_dirs,
-)
-from preprocess import process_all_cases as preprocess
-from extract_features import process_all_cases as extract_features
-from coord_normalize import process_all_cases as coord_normalize
-from normalize import process_all_cases as normalize
-from convert_to_graph import process_all_cases as convert_to_graph
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from pipeline.config import (
+        DATA_ROOT,
+        MERGED_DIR,
+        FEATURES_DIR,
+        COORD_NORMALIZED_DIR,
+        NORMALIZED_DIR,
+        GRAPHS_DIR,
+        SAMPLING_CONFIG,
+        GRAPH_CONFIG,
+        MODE,
+        get_case_dirs,
+    )
+else:
+    from .config import (
+        DATA_ROOT,
+        MERGED_DIR,
+        FEATURES_DIR,
+        COORD_NORMALIZED_DIR,
+        NORMALIZED_DIR,
+        GRAPHS_DIR,
+        SAMPLING_CONFIG,
+        GRAPH_CONFIG,
+        MODE,
+        get_case_dirs,
+    )
 
 
 def run_pipeline(
@@ -112,6 +123,19 @@ def run_pipeline(
     print()
     
     total_start = time.time()
+
+    if __package__ in {None, ""}:
+        from pipeline.preprocess import process_all_cases as preprocess
+        from pipeline.extract_features import process_all_cases as extract_features
+        from pipeline.coord_normalize import process_all_cases as coord_normalize
+        from pipeline.normalize import process_all_cases as normalize
+        from pipeline.convert_to_graph import process_all_cases as convert_to_graph
+    else:
+        from .preprocess import process_all_cases as preprocess
+        from .extract_features import process_all_cases as extract_features
+        from .coord_normalize import process_all_cases as coord_normalize
+        from .normalize import process_all_cases as normalize
+        from .convert_to_graph import process_all_cases as convert_to_graph
     
     # 步骤1: 数据预处理
     if start_step <= 1 <= end_step:
@@ -204,7 +228,7 @@ def run_pipeline(
     print(f"          └── transform_params.json  # 变换参数副本")
     
     print("\n💡 提示:")
-    print("  - 训练时使用 dataset.CFDAugmentedDataset 加载数据")
+    print("  - 训练时使用 pipeline.dataset.CFDAugmentedDataset 加载数据")
     print("  - 启用 augment=True 进行在线数据增强（旋转、平移）")
     print("  - 推理时可使用 transform_params.json 还原到原始坐标系")
 
@@ -228,19 +252,19 @@ def main():
 
 示例:
   # 处理单个病例（完整流程）
-  python run_all.py --case ZHANG_CHUN
+  python -m pipeline.run_all --case ZHANG_CHUN
   
   # 处理所有病例
-  python run_all.py
+  python -m pipeline.run_all
   
   # 从步骤3开始（跳过预处理和特征提取）
-  python run_all.py --start-step 3
+  python -m pipeline.run_all --start-step 3
   
   # 只执行步骤1和2
-  python run_all.py --end-step 2
+  python -m pipeline.run_all --end-step 2
   
   # 使用随机采样（速度快）
-  python run_all.py --sampling-method random
+  python -m pipeline.run_all --sampling-method random
         """
     )
     parser.add_argument(

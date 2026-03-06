@@ -31,9 +31,15 @@ from typing import Optional, List, Dict
 
 import json
 import sys
-# 添加父目录到路径，以便导入处理模块
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from Script_Scenario_B_Volumetric import prepare_geometry_data, process_single_cloud, load_normalization_params
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+from legacy.preprocess.Script_Scenario_B_Volumetric import (
+    prepare_geometry_data,
+    process_single_cloud,
+    load_normalization_params,
+)
 
 
 # 数据源路径配置
@@ -523,4 +529,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -48,7 +48,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_DIR="$(dirname "$PIPELINE_DIR")"
 
-cd "$PIPELINE_DIR"
+cd "$PROJECT_DIR"
 
 # 创建日志目录
 mkdir -p "$SCRIPT_DIR/logs"
@@ -64,7 +64,7 @@ echo "节点: $SLURM_NODELIST"
 echo "CPU核数: $SLURM_CPUS_PER_TASK"
 echo "开始时间: $(date)"
 echo ""
-echo "工作目录: $PIPELINE_DIR"
+echo "工作目录: $PROJECT_DIR"
 echo "数据目录: $PROJECT_DIR/data_new"
 echo ""
 echo "参数:"
@@ -79,7 +79,7 @@ echo ""
 # ============================================================================
 
 # 构建命令
-CMD="python run_all.py"
+CMD="python -m pipeline.run_all"
 CMD="$CMD --start-step $START_STEP"
 CMD="$CMD --end-step $END_STEP"
 CMD="$CMD --sampling-method $SAMPLING_METHOD"

@@ -9,11 +9,13 @@ from pathlib import Path
 import shutil
 import pandas as pd
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 # -------------------- 配置区 --------------------
 # STL 存放目录
-STL_DIR = Path("stl_data")
+STL_DIR = PROJECT_ROOT / "stl_data"
 # 点云根目录
-POINT_DIR = Path("点云")
+POINT_DIR = PROJECT_ROOT / "点云"
 # 映射文件路径
 MAPPING_PATH = STL_DIR / "id_mapping.csv"
 

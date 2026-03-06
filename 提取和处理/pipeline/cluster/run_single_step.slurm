@@ -35,7 +35,8 @@ cd $SLURM_SUBMIT_DIR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
-cd "$PIPELINE_DIR"
+PROJECT_DIR="$(dirname "$PIPELINE_DIR")"
+cd "$PROJECT_DIR"
 
 mkdir -p "$SCRIPT_DIR/logs"
 
@@ -46,7 +47,7 @@ echo "开始时间: $(date)"
 echo "=============================================="
 
 # 构建命令
-CMD="python ${STEP_NAME}.py"
+CMD="python -m pipeline.${STEP_NAME}"
 if [ -n "$CASE_NAME" ]; then
     CMD="$CMD --case $CASE_NAME"
 fi

@@ -29,6 +29,8 @@ import numpy as np
 
 from io import StringIO
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 
 # ============================================================================
 # 工具函数
@@ -59,7 +61,7 @@ def pause():
 
 def load_mapping_file():
     """加载最新的映射文件"""
-    stl_dir = Path("stl_data")
+    stl_dir = PROJECT_ROOT / "stl_data"
     
     # 优先使用 JSON 格式的映射文件
     json_files = sorted(stl_dir.glob("new_mapping_*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -234,8 +236,8 @@ def scan_data_folder() -> Dict[str, Dict]:
     扫描 data 文件夹，获取所有病例的文件信息
     返回: {anonymous_id: {'source_folder': path, 'stl': path, 'ascii': path, ...}}
     """
-    data_dir = Path("data")
-    stl_dir = Path("stl_data/anonymized")
+    data_dir = PROJECT_ROOT / "data"
+    stl_dir = PROJECT_ROOT / "stl_data" / "anonymized"
     
     if not data_dir.exists():
         print("❌ data 文件夹不存在")
@@ -339,7 +341,7 @@ def prepare_case_data(dry_run=False):
     
     print(f"📊 找到 {len(case_info)} 个病例\n")
     
-    point_cloud_dir = Path("点云")
+    point_cloud_dir = PROJECT_ROOT / "点云"
     point_cloud_dir.mkdir(exist_ok=True)
     
     success_count = 0
@@ -498,7 +500,10 @@ def extract_centerlines(overwrite=False, save_csv=True):
     # 检查并延迟导入 VTK 和 vmtk_core 库
     try:
         import vtk
-        import vmtk_core
+        try:
+            from legacy.preprocess import vmtk_core
+        except ImportError:
+            import vmtk_core
     except ImportError as e:
         print(f"❌ 无法导入所需的库: {e}")
         print("   请运行以下命令安装依赖:")
@@ -508,7 +513,7 @@ def extract_centerlines(overwrite=False, save_csv=True):
         pause()
         return
     
-    point_cloud_dir = Path("点云")
+    point_cloud_dir = PROJECT_ROOT / "点云"
     if not point_cloud_dir.exists():
         print("❌ 点云目录不存在，请先运行数据准备")
         pause()
@@ -617,7 +622,7 @@ def generate_outlet_flows(overwrite=False, density=1060.0):
     """批量生成出口流量文件"""
     print_header("生成出口流量文件")
     
-    point_cloud_dir = Path("点云")
+    point_cloud_dir = PROJECT_ROOT / "点云"
     if not point_cloud_dir.exists():
         print("❌ 点云目录不存在")
         pause()
@@ -697,7 +702,7 @@ def clean_cfd_data(convert_to_mm=True):
     """批量清洗 CFD ASCII 数据文件"""
     print_header("数据清洗 - Fluent ASCII 文件")
     
-    point_cloud_dir = Path("点云")
+    point_cloud_dir = PROJECT_ROOT / "点云"
     if not point_cloud_dir.exists():
         print("❌ 点云目录不存在")
         pause()
@@ -773,7 +778,7 @@ def merge_point_clouds():
     """合并 ascii_clean 和 ascii_in_clean 的点云数据"""
     print_header("合并点云数据")
     
-    point_cloud_dir = Path("点云")
+    point_cloud_dir = PROJECT_ROOT / "点云"
     if not point_cloud_dir.exists():
         print("❌ 点云目录不存在")
         pause()
@@ -912,7 +917,13 @@ def extract_geometric_features(cloud_subdir="ascii_merged", output_subdir="ascii
     
     # 延迟导入依赖 vtk 的模块
     try:
-        from Script_Scenario_B_Volumetric import process_single_cloud, prepare_geometry_data
+        try:
+            from legacy.preprocess.Script_Scenario_B_Volumetric import (
+                process_single_cloud,
+                prepare_geometry_data,
+            )
+        except ImportError:
+            from Script_Scenario_B_Volumetric import process_single_cloud, prepare_geometry_data
     except ImportError as e:
         print(f"❌ 无法导入所需的库: {e}")
         print("   请运行以下命令安装依赖:")
@@ -920,8 +931,8 @@ def extract_geometric_features(cloud_subdir="ascii_merged", output_subdir="ascii
         pause()
         return
     
-    point_cloud_dir = Path("点云")
-    output_dir = Path("outdata")
+    point_cloud_dir = PROJECT_ROOT / "点云"
+    output_dir = PROJECT_ROOT / "outdata"
     
     if not point_cloud_dir.exists():
         print("❌ 点云目录不存在")
@@ -1092,9 +1103,7 @@ def show_menu():
 
 def main():
     """主函数"""
-    # 切换到脚本所在目录
-    script_dir = Path(__file__).parent
-    os.chdir(script_dir)
+    os.chdir(PROJECT_ROOT)
     
     while True:
         try:
@@ -1137,4 +1146,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

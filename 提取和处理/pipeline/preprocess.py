@@ -14,17 +14,18 @@
 
 使用示例:
   # 处理单个病例（调试模式）
-  python preprocess.py --case ZHANG_CHUN --mode debug
+  python -m pipeline.preprocess --case ZHANG_CHUN --mode debug
   
   # 处理所有病例（生产模式）
-  python preprocess.py --mode production
+  python -m pipeline.preprocess --mode production
   
   # 自定义目标点数
-  python preprocess.py --target-points 50000
+  python -m pipeline.preprocess --target-points 50000
 """
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
 from typing import Optional, List, Dict
@@ -33,17 +34,29 @@ import numpy as np
 import pandas as pd
 
 # 导入配置和工具
-from config import (
-    DATA_ROOT, 
-    SURFACE_DIR, 
-    INNER_DIR, 
-    MERGED_DIR,
-    SAMPLING_CONFIG,
-    MODE,
-    get_case_dirs,
-)
-from utils.io import load_ascii_df, clean_cfd_data, save_csv
-from utils.sampling import stratified_sampling_by_distance
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from pipeline.config import (
+        DATA_ROOT,
+        SURFACE_DIR,
+        INNER_DIR,
+        MERGED_DIR,
+        SAMPLING_CONFIG,
+        MODE,
+        get_case_dirs,
+    )
+    from pipeline.utils.io import load_ascii_df, clean_cfd_data, save_csv
+else:
+    from .config import (
+        DATA_ROOT,
+        SURFACE_DIR,
+        INNER_DIR,
+        MERGED_DIR,
+        SAMPLING_CONFIG,
+        MODE,
+        get_case_dirs,
+    )
+    from .utils.io import load_ascii_df, clean_cfd_data, save_csv
 
 
 def find_matching_files(case_dir: Path) -> dict:
@@ -159,6 +172,11 @@ def process_single_frame(
     返回:
         是否成功
     """
+    if __package__ in {None, ""}:
+        from pipeline.utils.sampling import stratified_sampling_by_distance
+    else:
+        from .utils.sampling import stratified_sampling_by_distance
+
     try:
         # 1. 读取数据
         surface_raw_df = load_ascii_df(surface_file)
@@ -413,19 +431,19 @@ def main():
 
 示例:
   # 处理指定病例
-  python preprocess.py --case ZHANG_CHUN
+  python -m pipeline.preprocess --case ZHANG_CHUN
   
   # 使用随机采样（速度快）
-  python preprocess.py --sampling-method random
+  python -m pipeline.preprocess --sampling-method random
   
   # 使用混合采样（推荐，兼顾覆盖和多样性）
-  python preprocess.py --sampling-method hybrid --fps-ratio 0.3
+  python -m pipeline.preprocess --sampling-method hybrid --fps-ratio 0.3
   
   # 自定义目标点数
-  python preprocess.py --target-points 50000
+  python -m pipeline.preprocess --target-points 50000
   
   # 生产模式（不保留中间文件）
-  python preprocess.py --mode production
+  python -m pipeline.preprocess --mode production
         """
     )
     parser.add_argument(

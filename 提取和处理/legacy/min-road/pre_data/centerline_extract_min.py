@@ -31,9 +31,11 @@ import vtk
 from vtkmodules.util.numpy_support import vtk_to_numpy
 
 import sys
-# 添加父目录到路径，以便导入 vmtk_core
-sys.path.insert(0, str(Path(__file__).parent.parent))
-import vmtk_core
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+from legacy.preprocess import vmtk_core
 
 
 # 数据源路径配置
@@ -300,4 +302,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

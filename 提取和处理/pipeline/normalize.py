@@ -21,10 +21,10 @@
 
 使用示例:
   # 处理单个病例
-  python normalize.py --case ZHANG_CHUN
+  python -m pipeline.normalize --case ZHANG_CHUN
   
   # 处理所有病例
-  python normalize.py
+  python -m pipeline.normalize
 """
 
 import argparse
@@ -38,14 +38,24 @@ import pandas as pd
 from tqdm import tqdm
 
 # 导入配置
-from config import (
-    DATA_ROOT,
-    FEATURES_DIR,
-    COORD_NORMALIZED_DIR,
-    NORMALIZED_DIR,
-    NORMALIZATION_CONFIG,
-    get_case_dirs,
-)
+try:
+    from .config import (
+        DATA_ROOT,
+        FEATURES_DIR,
+        COORD_NORMALIZED_DIR,
+        NORMALIZED_DIR,
+        NORMALIZATION_CONFIG,
+        get_case_dirs,
+    )
+except ImportError:
+    from config import (
+        DATA_ROOT,
+        FEATURES_DIR,
+        COORD_NORMALIZED_DIR,
+        NORMALIZED_DIR,
+        NORMALIZATION_CONFIG,
+        get_case_dirs,
+    )
 
 
 # 特征分组配置
@@ -497,8 +507,8 @@ def main():
   - BC_O1~O4: 默认 z-score(global mean/std)，可切换为固定缩放
 
 示例:
-  python normalize.py --case ZHANG_CHUN
-  python normalize.py
+  python -m pipeline.normalize --case ZHANG_CHUN
+  python -m pipeline.normalize
         """
     )
     parser.add_argument(

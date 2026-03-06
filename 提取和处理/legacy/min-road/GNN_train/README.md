@@ -5,7 +5,7 @@
 ## 📊 流程概述
 
 1.  **数据转换**：将 `ascii_normalized_128` 文件夹中的 CSV 文件转换为 PyTorch Geometric 的 `.pt` 格式。
-2.  **模型训练**：基于 **Graph Transformer** 模型（带残差连接与多头注意力）预测 `u, v, w, p`。
+2.  **模型训练**：基于 GCN 模型预测 `u, v, w, p, wss`。
 3.  **验证评估**：在测试集上计算 MAE, RMSE 和 R² 等指标。
 
 ## 🛠️ 环境依赖 (针对服务器 A100 集群部署)
@@ -55,7 +55,7 @@ python data_converter.py --data-root ../data --output-dir ./processed_data --k 6
 
 ### 2. 模型训练
 
-使用转换后的数据训练 **Graph Transformer** 模型：
+使用转换后的数据训练 3 层 GCN 模型：
 
 ```bash
 python train.py --data-dir ./processed_data --epochs 100 --batch-size 4 --lr 0.001
@@ -64,26 +64,14 @@ python train.py --data-dir ./processed_data --epochs 100 --batch-size 4 --lr 0.0
 - 训练过程中会自动划分 80% 训练集，10% 验证集，10% 测试集。
 - 测试集的文件路径会保存到 `test_files.txt`。
 - 最优模型权重保存在 `checkpoints/best_model.pt`。
-- 训练日志保存在 `train_log.txt`。
 
-### 3. (新增) 训练过程可视化
-
-查看损失函数下降曲线：
-
-```bash
-python visualize_loss.py --log-file train_log.txt
-```
-
-### 4. 模型验证与可视化评估
+### 3. 模型验证
 
 在测试集上评估模型预测效果：
 
 ```bash
 python validate.py --model-path ./checkpoints/best_model.pt --data-list test_files.txt
 ```
-
-- 该脚本会输出各项误差指标（MAE, RMSE, R²）。
-- 同时会在当前目录下生成 `prediction_scatter.png`，直观展示预测值与真实值的偏差。
 
 ## 🧠 特征设计说明
 
@@ -92,7 +80,7 @@ python validate.py --model-path ./checkpoints/best_model.pt --data-list test_fil
 2.  **时间 (1)**: `t` (从文件名提取并归一化到 0-1s 范围)
 3.  **几何特征 (6)**: `Abscissa, NormRadius, Curvature, Tangent_X/Y/Z`
 4.  **边界标志 (2)**: `is_wall, BC_Flag`
-5.  **边界条件 (4)**: `BC_Inlet, BC_O1, BC_O2, BC_O3, BC_O4`
+5.  **边界条件 (5)**: `BC_Inlet, BC_O1, BC_O2, BC_O3, BC_O4`
 
 ### 预测目标 (5维)
 - `u, v, w` (速度三分量)

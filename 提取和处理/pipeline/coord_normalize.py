@@ -15,10 +15,10 @@
 
 使用示例:
   # 处理单个病例
-  python coord_normalize.py --case ZHANG_CHUN
+  python -m pipeline.coord_normalize --case ZHANG_CHUN
   
   # 处理所有病例
-  python coord_normalize.py
+  python -m pipeline.coord_normalize
 """
 
 import argparse
@@ -34,12 +34,23 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 # 导入配置
-from config import (
-    DATA_ROOT,
-    FEATURES_DIR,
-    COORD_NORMALIZATION_CONFIG,
-    get_case_dirs,
-)
+if __package__ in {None, ""}:
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from pipeline.config import (
+        DATA_ROOT,
+        FEATURES_DIR,
+        COORD_NORMALIZATION_CONFIG,
+        get_case_dirs,
+    )
+else:
+    from .config import (
+        DATA_ROOT,
+        FEATURES_DIR,
+        COORD_NORMALIZATION_CONFIG,
+        get_case_dirs,
+    )
 
 # 输出目录（在 features 和 normalized 之间）
 COORD_NORMALIZED_DIR = "processed/coord_normalized"
@@ -456,8 +467,8 @@ def main():
   - 标量特征（压力、曲率等）: 不变
 
 示例:
-  python coord_normalize.py --case ZHANG_CHUN
-  python coord_normalize.py
+  python -m pipeline.coord_normalize --case ZHANG_CHUN
+  python -m pipeline.coord_normalize
         """
     )
     parser.add_argument(

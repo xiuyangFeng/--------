@@ -13,10 +13,10 @@ from io import StringIO
 import pandas as pd
 import numpy as np
 
-# 添加父目录到路径，以便导入配置
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from config import BC_FILE_MAPPING, BC_DIR, BLOOD_DENSITY
+try:
+    from ..config import BC_FILE_MAPPING, BC_DIR, BLOOD_DENSITY
+except ImportError:
+    from config import BC_FILE_MAPPING, BC_DIR, BLOOD_DENSITY
 
 
 # Fluent 输出列名映射到统一字段

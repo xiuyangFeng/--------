@@ -10,7 +10,7 @@ CFD 图数据集模块
 - CFDAugmentedDataset: 带在线增强的数据集
 
 使用示例:
-  from dataset import CFDAugmentedDataset
+  from pipeline.dataset import CFDAugmentedDataset
   
   # 训练集（启用增强）
   train_dataset = CFDAugmentedDataset(
@@ -37,14 +37,24 @@ from torch.utils.data import Dataset
 from torch_geometric.data import Data
 
 # 导入增强函数
-from augmentation import (
-    random_rotation,
-    random_translation,
-    small_scale_augmentation,
-    mirror_augmentation,
-    apply_augmentations,
-    DEFAULT_AUGMENT_CONFIG,
-)
+try:
+    from .augmentation import (
+        random_rotation,
+        random_translation,
+        small_scale_augmentation,
+        mirror_augmentation,
+        apply_augmentations,
+        DEFAULT_AUGMENT_CONFIG,
+    )
+except ImportError:
+    from pipeline.augmentation import (
+        random_rotation,
+        random_translation,
+        small_scale_augmentation,
+        mirror_augmentation,
+        apply_augmentations,
+        DEFAULT_AUGMENT_CONFIG,
+    )
 
 
 def load_graph_data(path: Path) -> Data:

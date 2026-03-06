@@ -27,10 +27,10 @@
 
 使用示例:
   # 处理单个病例
-  python convert_to_graph.py --case ZHANG_CHUN
+  python -m pipeline.convert_to_graph --case ZHANG_CHUN
   
   # 处理所有病例
-  python convert_to_graph.py
+  python -m pipeline.convert_to_graph
 """
 
 import argparse
@@ -49,14 +49,24 @@ from sklearn.neighbors import NearestNeighbors
 from tqdm import tqdm
 
 # 导入配置
-from config import (
-    DATA_ROOT,
-    NORMALIZED_DIR,
-    COORD_NORMALIZED_DIR,
-    GRAPHS_DIR,
-    GRAPH_CONFIG,
-    get_case_dirs,
-)
+try:
+    from .config import (
+        DATA_ROOT,
+        NORMALIZED_DIR,
+        COORD_NORMALIZED_DIR,
+        GRAPHS_DIR,
+        GRAPH_CONFIG,
+        get_case_dirs,
+    )
+except ImportError:
+    from config import (
+        DATA_ROOT,
+        NORMALIZED_DIR,
+        COORD_NORMALIZED_DIR,
+        GRAPHS_DIR,
+        GRAPH_CONFIG,
+        get_case_dirs,
+    )
 
 
 def extract_time_step(filename: str) -> Optional[int]:
@@ -375,8 +385,8 @@ def main():
     - u, v, w, p
 
 示例:
-  python convert_to_graph.py --case ZHANG_CHUN
-  python convert_to_graph.py --k 8
+  python -m pipeline.convert_to_graph --case ZHANG_CHUN
+  python -m pipeline.convert_to_graph --k 8
         """
     )
     parser.add_argument(

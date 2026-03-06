@@ -23,10 +23,10 @@
 
 使用示例:
   # 处理单个病例
-  python extract_features.py --case ZHANG_CHUN
+  python -m pipeline.extract_features --case ZHANG_CHUN
   
   # 处理所有病例
-  python extract_features.py
+  python -m pipeline.extract_features
 """
 
 import argparse
@@ -43,19 +43,37 @@ import vtk
 from vtkmodules.util.numpy_support import vtk_to_numpy
 
 # 导入配置和工具
-from config import (
-    DATA_ROOT,
-    MERGED_DIR,
-    FEATURES_DIR,
-    BC_DIR,
-    get_case_dirs,
-)
-from utils.io import load_boundary_conditions, resolve_bc_for_step, summarize_bc_coverage
+if __package__ in {None, ""}:
+    import sys
 
-# 添加父目录到路径，以便导入 vmtk_core
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-import vmtk_core
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from pipeline.config import (
+        DATA_ROOT,
+        MERGED_DIR,
+        FEATURES_DIR,
+        BC_DIR,
+        get_case_dirs,
+    )
+    from pipeline.utils.io import (
+        load_boundary_conditions,
+        resolve_bc_for_step,
+        summarize_bc_coverage,
+    )
+else:
+    from .config import (
+        DATA_ROOT,
+        MERGED_DIR,
+        FEATURES_DIR,
+        BC_DIR,
+        get_case_dirs,
+    )
+    from .utils.io import (
+        load_boundary_conditions,
+        resolve_bc_for_step,
+        summarize_bc_coverage,
+    )
+
+from legacy.preprocess import vmtk_core
 
 
 def find_surface_file(case_dir: Path) -> Optional[Path]:
@@ -585,13 +603,13 @@ def main():
 
 示例:
   # 处理指定病例
-  python extract_features.py --case ZHANG_CHUN
+  python -m pipeline.extract_features --case ZHANG_CHUN
   
   # 处理所有病例
-  python extract_features.py
+  python -m pipeline.extract_features
   
   # 不保存中心线文件
-  python extract_features.py --no-centerline
+  python -m pipeline.extract_features --no-centerline
         """
     )
     parser.add_argument(

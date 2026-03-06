@@ -4,7 +4,23 @@ import glob
 import time
 import traceback
 import re
-from Script_Scenario_B_Volumetric import process_volumetric_dataset, prepare_geometry_data, process_single_cloud
+
+
+def _load_processing_functions():
+    try:
+        from .Script_Scenario_B_Volumetric import (
+            process_volumetric_dataset,
+            prepare_geometry_data,
+            process_single_cloud,
+        )
+    except ImportError:
+        from Script_Scenario_B_Volumetric import (  # type: ignore
+            process_volumetric_dataset,
+            prepare_geometry_data,
+            process_single_cloud,
+        )
+
+    return process_volumetric_dataset, prepare_geometry_data, process_single_cloud
 
 def find_surface_file(case_dir):
     """
@@ -207,6 +223,7 @@ def process_case(case_dir, output_root_dir, cloud_subdir="ascii_merged", output_
     output_subdir: 输出特征文件的子目录（默认 ascii_mapped）。
     """
     case_name = os.path.basename(case_dir)
+    _, prepare_geometry_data, process_single_cloud = _load_processing_functions()
     print(f"\n========================================")
     print(f"📂 处理病例: {case_name}")
     print(f"========================================")

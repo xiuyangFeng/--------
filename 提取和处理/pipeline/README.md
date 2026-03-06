@@ -105,7 +105,7 @@ pip install vtk vmtk
 ### 3. 验证安装
 
 ```bash
-cd pipeline
+cd <repo-root>
 python config.py  # 测试配置文件
 ```
 
@@ -158,34 +158,34 @@ cellnumber, x-coordinate, y-coordinate, z-coordinate, pressure, velocity-magnitu
 ### 方式一：一键处理（推荐）
 
 ```bash
-cd pipeline
+cd <repo-root>
 
 # 处理单个病例（推荐先测试）
-python run_all.py --case ZHANG_CHUN
+python -m pipeline.run_all --case ZHANG_CHUN
 
 # 处理所有启用的病例
-python run_all.py
+python -m pipeline.run_all
 ```
 
 ### 方式二：分步处理
 
 ```bash
-cd pipeline
+cd <repo-root>
 
 # 步骤1: 数据预处理
-python preprocess.py --case ZHANG_CHUN
+python -m pipeline.preprocess --case ZHANG_CHUN
 
 # 步骤2: 几何特征提取
-python extract_features.py --case ZHANG_CHUN
+python -m pipeline.extract_features --case ZHANG_CHUN
 
 # 步骤3: 坐标系归一化【新增】
-python coord_normalize.py --case ZHANG_CHUN
+python -m pipeline.coord_normalize --case ZHANG_CHUN
 
 # 步骤4: 特征归一化
-python normalize.py --case ZHANG_CHUN
+python -m pipeline.normalize --case ZHANG_CHUN
 
 # 步骤5: 图数据转换
-python convert_to_graph.py --case ZHANG_CHUN
+python -m pipeline.convert_to_graph --case ZHANG_CHUN
 ```
 
 ---
@@ -204,22 +204,22 @@ python convert_to_graph.py --case ZHANG_CHUN
 
 ```bash
 # 基本用法（默认使用混合采样）
-python preprocess.py --case ZHANG_CHUN
+python -m pipeline.preprocess --case ZHANG_CHUN
 
 # 使用混合采样，调整 FPS 比例（更好的空间覆盖）
-python preprocess.py --case ZHANG_CHUN --sampling-method hybrid --fps-ratio 0.3
+python -m pipeline.preprocess --case ZHANG_CHUN --sampling-method hybrid --fps-ratio 0.3
 
 # 使用纯 FPS（最佳空间覆盖，但较慢）
-python preprocess.py --case ZHANG_CHUN --sampling-method fps
+python -m pipeline.preprocess --case ZHANG_CHUN --sampling-method fps
 
 # 使用随机采样（速度快，但可能丢失分支血管）
-python preprocess.py --case ZHANG_CHUN --sampling-method random
+python -m pipeline.preprocess --case ZHANG_CHUN --sampling-method random
 
 # 自定义目标点数（默认 40000）
-python preprocess.py --case ZHANG_CHUN --target-points 50000
+python -m pipeline.preprocess --case ZHANG_CHUN --target-points 50000
 
 # 处理所有病例
-python preprocess.py
+python -m pipeline.preprocess
 ```
 
 **采样方法对比**：
@@ -256,10 +256,10 @@ python preprocess.py
 
 ```bash
 # 基本用法
-python extract_features.py --case ZHANG_CHUN
+python -m pipeline.extract_features --case ZHANG_CHUN
 
 # 处理所有病例
-python extract_features.py
+python -m pipeline.extract_features
 ```
 
 **CSV 输出特征（逐点）**：
@@ -298,10 +298,10 @@ python extract_features.py
 
 ```bash
 # 基本用法
-python coord_normalize.py --case ZHANG_CHUN
+python -m pipeline.coord_normalize --case ZHANG_CHUN
 
 # 处理所有病例
-python coord_normalize.py
+python -m pipeline.coord_normalize
 ```
 
 **为什么需要坐标系归一化？**
@@ -344,10 +344,10 @@ python coord_normalize.py
 
 ```bash
 # 基本用法
-python normalize.py --case ZHANG_CHUN
+python -m pipeline.normalize --case ZHANG_CHUN
 
 # 处理所有病例
-python normalize.py
+python -m pipeline.normalize
 ```
 
 **CSV 归一化策略（逐点特征）**：
@@ -379,13 +379,13 @@ python normalize.py
 
 ```bash
 # 基本用法
-python convert_to_graph.py --case ZHANG_CHUN
+python -m pipeline.convert_to_graph --case ZHANG_CHUN
 
 # 自定义邻居数（默认 6）
-python convert_to_graph.py --case ZHANG_CHUN --k 8
+python -m pipeline.convert_to_graph --case ZHANG_CHUN --k 8
 
 # 处理所有病例
-python convert_to_graph.py
+python -m pipeline.convert_to_graph
 ```
 
 **输出图数据格式**：
@@ -609,24 +609,24 @@ conda install -c vmtk vmtk
 使用混合采样或随机采样替代：
 ```bash
 # 推荐：混合采样（保留 20% FPS 确保覆盖）
-python preprocess.py --sampling-method hybrid
+python -m pipeline.preprocess --sampling-method hybrid
 
 # 或：纯随机采样（最快，但可能丢失分支血管）
-python preprocess.py --sampling-method random
+python -m pipeline.preprocess --sampling-method random
 ```
 
 ### 3. 处理中断，如何继续？
 
 使用 `--start-step` 跳过已完成的步骤：
 ```bash
-python run_all.py --case ZHANG_CHUN --start-step 3  # 从步骤3（坐标系归一化）开始
+python -m pipeline.run_all --case ZHANG_CHUN --start-step 3  # 从步骤3（坐标系归一化）开始
 ```
 
 ### 3.1 如何跳过坐标系归一化？
 
 如果不需要坐标系归一化（不推荐），可以直接从 features 目录读取：
 ```bash
-python normalize.py --input-subdir processed/features
+python -m pipeline.normalize --input-subdir processed/features
 ```
 
 ### 4. 如何添加新的数据源？
@@ -645,7 +645,7 @@ DATA_SOURCES = {
 
 ```bash
 # 命令行方式
-python run_all.py --target-points 50000
+python -m pipeline.run_all --target-points 50000
 
 # 或修改 config.py
 SAMPLING_CONFIG = {
@@ -694,17 +694,17 @@ for number, filename in ascii_files.items():
 
 ```bash
 # 1. 进入 pipeline 目录
-cd pipeline
+cd <repo-root>
 
 # 2. 先测试单个病例（完整 5 步流程）
-python run_all.py --case ZHANG_CHUN
+python -m pipeline.run_all --case ZHANG_CHUN
 
 # 3. 检查输出
 ls ../data_new/AG/fast/ZHANG_CHUN/processed/graphs/
 ls ../data_new/AG/fast/ZHANG_CHUN/processed/coord_normalized/transform_params.json
 
 # 4. 确认无误后，处理所有病例
-python run_all.py
+python -m pipeline.run_all
 
 # 5. 完成后，图数据可用于 GNN 训练
 # 图数据位于: data_new/AG/fast/*/processed/graphs/*.pt

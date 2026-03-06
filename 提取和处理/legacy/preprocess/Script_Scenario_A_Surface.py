@@ -1,9 +1,18 @@
 import os
 import numpy as np
 import pandas as pd
-import vtk
-from vtkmodules.util.numpy_support import vtk_to_numpy, numpy_to_vtk
-import vmtk_core  # 导入我们写好的核心模块
+
+
+def _load_geometry_dependencies():
+    import vtk
+    from vtkmodules.util.numpy_support import vtk_to_numpy, numpy_to_vtk
+
+    try:
+        from . import vmtk_core  # type: ignore
+    except ImportError:
+        import vmtk_core  # type: ignore
+
+    return vtk, vtk_to_numpy, numpy_to_vtk, vmtk_core
 
 def process_surface_dataset(stl_path, output_csv_path):
     """
@@ -12,6 +21,7 @@ def process_surface_dataset(stl_path, output_csv_path):
         stl_path: STL文件路径
         output_csv_path: 输出CSV文件路径
     """
+    vtk, vtk_to_numpy, _, vmtk_core = _load_geometry_dependencies()
     print(f"🚀 [Scenario A] Processing Surface: {stl_path}")
     
     # 1. 读取表面几何模型

@@ -20,7 +20,7 @@ Pipeline - 新数据格式完整处理流程
 5. convert_to_graph: 图数据转换 → processed/graphs/
 
 数据增强:
-- 在线增强: 使用 dataset.CFDAugmentedDataset 在训练时动态增强
+- 在线增强: 使用 pipeline.dataset.CFDAugmentedDataset 在训练时动态增强
 - 支持: 随机旋转、随机平移（矢量特征同步变换）
 
 数据源: data_new/

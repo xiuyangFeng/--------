@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 from io import StringIO
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 # 将 Fluent 输出列名映射到统一字段，方便后续代码直接使用
 RENAME_MAP = {
     "x-coordinate": "x",
@@ -202,5 +204,5 @@ def batch_clean_fluent_data(
 
 
 if __name__ == "__main__":
-    # 默认从当前目录下的“点云”文件夹批量处理所有病例的 ASCII 数据
-    batch_clean_fluent_data(Path("data"))
+    # 默认从项目根目录下的“data”文件夹批量处理所有病例的 ASCII 数据
+    batch_clean_fluent_data(PROJECT_ROOT / "data")

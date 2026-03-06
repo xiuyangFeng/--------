@@ -16,7 +16,7 @@
 - 大幅缩放
 
 使用示例:
-  from augmentation import random_rotation, random_translation
+  from pipeline.augmentation import random_rotation, random_translation
   
   # 在 DataLoader 中使用
   data = random_rotation(data, axis='z')

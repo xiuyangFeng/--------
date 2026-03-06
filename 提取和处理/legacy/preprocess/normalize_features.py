@@ -606,7 +606,7 @@ def main():
     args = parser.parse_args()
     
     # 解析路径
-    script_dir = Path(__file__).parent
+    script_dir = Path(__file__).resolve().parents[2]
     data_root = Path(args.data_root)
     if not data_root.is_absolute():
         data_root = script_dir / data_root
@@ -679,4 +679,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
