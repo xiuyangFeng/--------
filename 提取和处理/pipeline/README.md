@@ -55,6 +55,12 @@
 - **节点特征精简**：`data.x` 从 15 维降为 10 维，减少约 40% 存储和内存占用
 - **模型全局条件注入**：模型 forward 时通过 `data.batch` 索引广播全局条件到节点，再拼接输入
 
+### 新增功能 (v2.2) - Production 模式清理
+
+- **自动清理中间目录**：使用 `python -m pipeline.run_all --mode production` 时，流程成功完成后会自动删除本次运行上游步骤的中间目录
+- **按最终输出校验后再清理**：仅当目标步骤输出存在时才删除中间目录，避免误删失败病例的数据
+- **调试/生产双模式**：`debug` 保留 `processed/` 下中间结果，`production` 仅保留本次运行的最终步骤输出
+
 ---
 
 ## 目录结构
@@ -106,7 +112,7 @@ pip install vtk vmtk
 
 ```bash
 cd <repo-root>
-python config.py  # 测试配置文件
+python -m pipeline.config  # 测试配置文件
 ```
 
 ---
@@ -160,8 +166,11 @@ cellnumber, x-coordinate, y-coordinate, z-coordinate, pressure, velocity-magnitu
 ```bash
 cd <repo-root>
 
-# 处理单个病例（推荐先测试）
+# 调试模式：保留所有中间文件（默认，推荐先测试）
 python -m pipeline.run_all --case ZHANG_CHUN
+
+# 生产模式：完整跑通后自动清理本次运行的上游中间目录
+python -m pipeline.run_all --case ZHANG_CHUN --mode production
 
 # 处理所有启用的病例
 python -m pipeline.run_all
@@ -240,7 +249,7 @@ python -m pipeline.preprocess
 | `--fps-ratio` | 0.2 | 混合采样时 FPS 占比（仅 hybrid 模式生效） |
 | `--boundary-threshold` | 2.0 | 近壁区阈值 (mm) |
 | `--boundary-ratio` | 0.7 | 近壁层预算比例 |
-| `--mode` | debug | 处理模式：debug/production |
+| `--mode` | debug | 运行模式参数；自动清理仅在 `pipeline.run_all --mode production` 中生效 |
 
 ---
 
@@ -337,10 +346,11 @@ python -m pipeline.coord_normalize
 **功能**：
 - 收集全局统计量
 - 对各特征进行归一化/标准化
+- 对边界条件侧文件 `bc_metadata.json` 做统一缩放/标准化
 - 保存归一化参数（用于推理时还原）
 
 **输入**：`processed/coord_normalized/`（CSV + `bc_metadata.json`）  
-**输出**：`processed/normalized/`（CSV + `bc_metadata_normalized.json` + `normalization_params_global.json`）
+**输出**：`processed/normalized/`（CSV + `bc_metadata_normalized.json`）以及数据根目录下的 `normalization_params_global.json`
 
 ```bash
 # 基本用法
@@ -362,7 +372,14 @@ python -m pipeline.normalize
 | 特征类型 | 方法 | 说明 |
 |----------|------|------|
 | BC_Inlet | × 1e5 | 入口流量缩放 → 0.5~5.0 |
-| BC_O1~O4 | (x - 15000) / 1000 | 出口压力缩放 → -1.5~+1.5 |
+| BC_O1~O4 | 默认 Z-score | 按全局统计量标准化：`(x - μ) / σ` |
+
+> 当前默认配置见 `pipeline/config.py` 中 `NORMALIZATION_CONFIG["bc_scaling"]["outlet_pressure"]["strategy"] = "z_score"`。  
+> 如需与旧流程兼容，可切换为 `fixed`，此时使用固定缩放 `(x - 15000) / 1000`。
+
+**归一化参数文件**：
+- `normalization_params_global.json` 保存在数据根目录（默认 `data_new/`）
+- 文件中包含逐点特征统计量、BC 缩放策略以及逆变换公式
 
 ---
 
@@ -537,7 +554,7 @@ SAMPLING_CONFIG = {
 }
 
 # 处理模式
-MODE = "debug"  # debug: 保留中间文件 / production: 只保留最终输出
+MODE = "debug"  # debug: 保留中间文件 / production: run_all 完成后自动清理本次运行上游目录
 ```
 
 ### 环境变量（集群使用）
@@ -551,7 +568,11 @@ export PIPELINE_MODE="production"              # 覆盖处理模式
 
 ## 输出说明
 
-处理完成后，每个病例目录下会生成：
+### debug 模式（默认）
+
+使用 `python -m pipeline.run_all --mode debug` 或直接省略 `--mode` 时，会保留完整中间结果，便于检查每一步输出。
+
+处理完成后，每个病例目录下通常会生成：
 
 ```
 病例目录/
@@ -562,11 +583,13 @@ export PIPELINE_MODE="production"              # 覆盖处理模式
 └── processed/              # 处理输出
     ├── merged/             # 步骤1: 合并降采样
     │   ├── merged-1120.csv
-    │   └── ...
+    │   ├── ...
+    │   └── preprocess_report.json
     ├── features/           # 步骤2: 添加几何特征
     │   ├── result_features_merged-1120.csv
     │   ├── ...
-    │   └── bc_metadata.json         # 边界条件元数据（全局条件）
+    │   ├── bc_metadata.json         # 边界条件元数据（全局条件）
+    │   └── feature_extraction_report.json
     ├── coord_normalized/   # 步骤3: 坐标系归一化
     │   ├── result_features_merged-1120.csv
     │   ├── ...
@@ -580,17 +603,44 @@ export PIPELINE_MODE="production"              # 覆盖处理模式
         ├── result_features_merged-1120.pt
         ├── ...
         ├── transform_params.json         # 变换参数副本
-        └── bc_metadata_normalized.json   # BC元数据副本
+        ├── bc_metadata_normalized.json   # BC元数据副本
+        └── graph_conversion_report.json
 ```
+
+### production 模式
+
+使用 `python -m pipeline.run_all --mode production` 时：
+- 会先正常执行各步骤
+- 仅当最终步骤输出存在时，才删除本次运行上游步骤的中间目录
+- 默认完整流程 `1 -> 5` 结束后，会删除 `merged/`、`features/`、`coord_normalized/`、`normalized/`，保留 `graphs/`
+- 如果只跑到某个中间步骤，例如 `--end-step 4`，则会保留 `normalized/`，删除本次运行更早的步骤目录
+
+示例：
+
+```bash
+# 保留所有中间文件（默认）
+python -m pipeline.run_all --case ZHANG_CHUN --mode debug
+
+# 完整流程后只保留最终图数据
+python -m pipeline.run_all --case ZHANG_CHUN --mode production
+
+# 只跑到步骤4，并清理步骤1-3的输出
+python -m pipeline.run_all --case ZHANG_CHUN --end-step 4 --mode production
+```
+
+> 自动清理逻辑当前实现于 `pipeline.run_all`。如果你是手动逐步执行 `preprocess/extract_features/coord_normalize/normalize/convert_to_graph`，各步骤会保留自己的输出，不会跨步骤自动删除目录。
 
 **参数文件说明**：
 
 | 文件 | 位置 | 用途 |
 |------|------|------|
 | `transform_params.json` | coord_normalized/, graphs/ | 坐标系变换参数，推理时用于逆变换 |
-| `normalization_params_global.json` | data_new/ | 全局特征归一化参数 |
+| `normalization_params_global.json` | 数据根目录 | 全局特征归一化参数 |
 | `bc_metadata.json` | features/, coord_normalized/ | 原始边界条件（每时间步 5 个值） |
 | `bc_metadata_normalized.json` | normalized/, graphs/ | 归一化后的边界条件 |
+| `preprocess_report.json` | merged/ | 时间帧对齐与采样结果报告 |
+| `feature_extraction_report.json` | features/ | 几何特征提取与 BC 匹配报告 |
+| `graph_conversion_report.json` | graphs/ | 图转换统计与缺失 BC 报告 |
 
 ---
 

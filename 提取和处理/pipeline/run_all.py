@@ -25,10 +25,11 @@ Pipeline 一键运行脚本
 """
 
 import argparse
+import shutil
 import sys
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 # 导入各处理模块
 if __package__ in {None, ""}:
@@ -113,11 +114,23 @@ def run_pipeline(
     print(f"📊 KNN 邻居数: {k_neighbors}")
     print(f"📊 BC 严格匹配: {'是' if strict_bc_match else '否'}")
     
+    case_dirs = get_case_dirs(data_root)
     if target_case:
+        target_std = target_case.replace(' ', '_').replace('-', '_').upper()
+        case_dirs = [
+            d for d in case_dirs
+            if d.name.replace(' ', '_').replace('-', '_').upper() == target_std
+        ]
         print(f"🎯 指定病例: {target_case}")
     else:
-        case_dirs = get_case_dirs(data_root)
         print(f"📊 待处理病例数: {len(case_dirs)}")
+
+    if not case_dirs:
+        if target_case:
+            print(f"❌ 未找到病例: {target_case}")
+        else:
+            print("❌ 未找到任何病例")
+        return
     
     print(f"📋 执行步骤: {start_step} → {end_step}")
     print()
@@ -208,6 +221,13 @@ def run_pipeline(
             output_subdir=GRAPHS_DIR,
             k=k_neighbors,
         )
+
+    if mode == "production":
+        cleanup_intermediate_outputs(
+            case_dirs=case_dirs,
+            start_step=start_step,
+            end_step=end_step,
+        )
     
     total_time = time.time() - total_start
     
@@ -231,6 +251,73 @@ def run_pipeline(
     print("  - 训练时使用 pipeline.dataset.CFDAugmentedDataset 加载数据")
     print("  - 启用 augment=True 进行在线数据增强（旋转、平移）")
     print("  - 推理时可使用 transform_params.json 还原到原始坐标系")
+    if mode == "production":
+        print("  - production 模式已自动清理本次运行上游步骤的中间目录")
+
+
+def _step_output_dir(case_dir: Path, step: int) -> Path:
+    step_dirs = {
+        1: MERGED_DIR,
+        2: FEATURES_DIR,
+        3: COORD_NORMALIZED_DIR,
+        4: NORMALIZED_DIR,
+        5: GRAPHS_DIR,
+    }
+    return case_dir / step_dirs[step]
+
+
+def _case_has_final_output(case_dir: Path, final_step: int) -> bool:
+    final_dir = _step_output_dir(case_dir, final_step)
+    if not final_dir.exists():
+        return False
+
+    if final_step == 5:
+        return any(final_dir.glob("*.pt"))
+    if final_step == 4:
+        return any(final_dir.glob("result_features_*.csv"))
+    if final_step == 3:
+        return (final_dir / "transform_params.json").exists()
+    if final_step == 2:
+        return any(final_dir.glob("result_features_*.csv"))
+    if final_step == 1:
+        return any(final_dir.glob("merged-*.csv"))
+    return False
+
+
+def cleanup_intermediate_outputs(
+    case_dirs: List[Path],
+    start_step: int,
+    end_step: int,
+) -> None:
+    """
+    在 production 模式下清理本次运行生成的上游中间目录。
+
+    仅当最终步骤的目标输出存在时才清理，避免误删失败病例的数据。
+    """
+    if start_step >= end_step:
+        return
+
+    print("\n" + "=" * 60)
+    print("🧹 Production 清理中间目录")
+    print("=" * 60)
+
+    deleted = 0
+    skipped = 0
+
+    for case_dir in case_dirs:
+        if not _case_has_final_output(case_dir, end_step):
+            print(f"  ⚠️ 跳过 {case_dir.name}: 未检测到步骤{end_step}的有效输出")
+            skipped += 1
+            continue
+
+        for step in range(start_step, end_step):
+            output_dir = _step_output_dir(case_dir, step)
+            if output_dir.exists():
+                shutil.rmtree(output_dir)
+                print(f"  🗑️ 已删除 {case_dir.name}/{output_dir.relative_to(case_dir)}")
+                deleted += 1
+
+    print(f"✅ 清理完成: 删除 {deleted} 个目录, 跳过 {skipped} 个病例")
 
 
 def main():
