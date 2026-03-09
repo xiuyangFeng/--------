@@ -27,6 +27,7 @@ BC_FEATURES = [name for name in GLOBAL_COND_NAMES if name != "t_norm"]
 
 @dataclass(frozen=True)
 class FieldPlanItem:
+    # 一个 plan item 对应一个可直接训练的 JSON 配置文件。
     exp_id: str
     experiment_name: str
     config: ExperimentConfig
@@ -46,6 +47,7 @@ class FieldPlanItem:
 
 
 def base_optim_config() -> OptimConfig:
+    # 第一阶段所有 baseline / ablation 默认共用一套优化器超参，避免实验变量混杂。
     return OptimConfig(
         epochs=200,
         lr=5e-4,
@@ -72,6 +74,7 @@ def build_data_config(
     augment: bool,
     augment_config: Mapping[str, object] | None,
 ) -> DataConfig:
+    # 这里故意把构造逻辑集中起来，方便后续全局调整 batch size / dataloader 策略。
     return DataConfig(
         data_root=data_root,
         split_file=split_file,
@@ -127,6 +130,8 @@ def make_plan_item(
     notes: str = "",
     tags: Sequence[str] | None = None,
 ) -> FieldPlanItem:
+    # make_plan_item 是所有实验模板的公共出口。
+    # 统一从这里构建 config，可以保证 meta / run / data 命名口径始终一致。
     config = ExperimentConfig(
         run=build_run_config(experiment_name=experiment_name, output_root=output_root),
         data=build_data_config(
@@ -170,6 +175,7 @@ def canonical_feature_set(
     include_bc: bool,
     coords_only: bool = False,
 ) -> str:
+    # feature_set 会进入实验记录和输出索引，所以这里保持简短且稳定。
     parts = ["coord", "t"]
     if include_bc:
         parts.append("bc")
@@ -183,6 +189,7 @@ def canonical_feature_set(
 
 
 def main_aug_presets() -> Dict[str, Dict[str, object]]:
+    # 第一版只暴露文档里要求的增强层级，不引入更激进的形变操作。
     return {
         "none": {},
         "rotate": {
@@ -221,6 +228,7 @@ def build_task_a_baselines(
     output_root: str,
     seed: int,
 ) -> List[FieldPlanItem]:
+    # 这 4 组直接对应 docs/任务A实验清单.md 里的第一批必须跑通实验。
     main_augment = main_aug_presets()["rotate_translate"]
     return [
         make_plan_item(
@@ -331,6 +339,7 @@ def build_input_ablation_plan(
     output_root: str,
     seed: int,
 ) -> List[FieldPlanItem]:
+    # 输入特征消融要回答的是：BC / geometry / is_wall 分别有没有贡献。
     main_augment = main_aug_presets()["rotate_translate"]
     entries = [
         (
@@ -409,6 +418,7 @@ def build_geometry_ablation_plan(
     output_root: str,
     seed: int,
 ) -> List[FieldPlanItem]:
+    # 几何分量消融固定 backbone 和其他输入，只改变显式几何子集。
     main_augment = main_aug_presets()["rotate_translate"]
     full = COORD_FEATURES + GEOMETRY_FEATURES + IS_WALL_FEATURE
     variants = [
@@ -477,6 +487,7 @@ def build_augment_ablation_plan(
     output_root: str,
     seed: int,
 ) -> List[FieldPlanItem]:
+    # 增强消融单独比较训练时的数据增强强度，不动 backbone 和输入特征。
     presets = main_aug_presets()
     variants = [
         ("A-Abl-04-01", "field_transformer_aug_none", False, presets["none"], "none"),
@@ -531,6 +542,7 @@ def build_coord_ablation_plan(
     seed: int,
     coord_variants: Mapping[str, str],
 ) -> List[FieldPlanItem]:
+    # 坐标归一化实验强依赖真实数据目录组织，所以只接受外部显式传入 variant -> subdir 映射。
     items: List[FieldPlanItem] = []
     for idx, (variant_name, graphs_subdir) in enumerate(coord_variants.items(), start=1):
         items.append(
@@ -568,6 +580,7 @@ def build_task_a_plan(
     groups: Iterable[str],
     coord_variants: Mapping[str, str] | None = None,
 ) -> List[FieldPlanItem]:
+    # groups 控制这次批量生成哪些实验块；seeds 控制每个实验块重复多少随机种子。
     group_set = set(groups)
     items: List[FieldPlanItem] = []
     for seed in seeds:

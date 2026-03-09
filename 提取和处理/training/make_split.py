@@ -10,6 +10,9 @@ from typing import List
 def load_cases(path: str | Path) -> List[str]:
     path = Path(path)
     if path.suffix.lower() == ".json":
+        # 兼容两种最常见输入：
+        # 1. ["case_a", "case_b", ...]
+        # 2. {"cases": ["case_a", "case_b", ...]}
         with open(path, "r", encoding="utf-8") as f:
             raw = json.load(f)
         if isinstance(raw, dict) and "cases" in raw:
@@ -47,6 +50,7 @@ def main() -> None:
     if len(cases) < 3:
         raise ValueError("病例数至少需要 3 个才能生成 train/val/test 划分")
 
+    # 这里先去重再随机打乱，保证同一病例不会因为输入文件重复而影响划分比例。
     random.seed(args.seed)
     cases = sorted(set(cases))
     random.shuffle(cases)
@@ -84,4 +88,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

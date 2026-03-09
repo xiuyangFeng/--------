@@ -16,6 +16,7 @@ from .utils import dump_json, ensure_dir, resolve_device, set_seed, timestamp
 
 
 def build_run_dir(config: ExperimentConfig, split: SplitSpec) -> Path:
+    # run_dir 把 experiment_name / split / seed / timestamp 全部带上，方便后续追溯单次实验。
     run_name = f"{config.run.experiment_name}_{split.split_version}_seed{config.system.seed}_{timestamp()}"
     return ensure_dir(Path(config.run.output_root) / run_name)
 
@@ -30,6 +31,8 @@ def build_run_manifest(
     test_metrics: Dict[str, float],
     dataset_sizes: Dict[str, int],
 ) -> Dict[str, object]:
+    # run_manifest 是给“训练结束后的世界”看的，而不是给训练过程看的。
+    # 后面做任务 B/C、实验记录汇总、论文表格回溯时，都尽量读这个文件。
     return {
         "task": config.meta.task,
         "exp_id": config.meta.exp_id,
@@ -75,6 +78,17 @@ def build_run_manifest(
             "early_stopping_patience": config.optim.early_stopping_patience,
             "target_weights": config.optim.target_weights,
             "grad_clip_norm": config.optim.grad_clip_norm,
+        },
+        "physics": {
+            "enabled": config.physics.enabled,
+            "warmup_epochs": config.physics.warmup_epochs,
+            "density": config.physics.density,
+            "viscosity": config.physics.viscosity,
+            "coord_scales": config.physics.coord_scales,
+            "time_scale": config.physics.time_scale,
+            "continuity_weight": config.physics.continuity_weight,
+            "momentum_weight": config.physics.momentum_weight,
+            "no_slip_weight": config.physics.no_slip_weight,
         },
         "dataset_sizes": dataset_sizes,
         "best_epoch": fit_result["best_epoch"],
@@ -176,6 +190,7 @@ def main() -> None:
         device=device,
         loss_weights=torch.tensor(config.optim.target_weights, dtype=torch.float32),
         grad_clip_norm=config.optim.grad_clip_norm,
+        physics_config=config.physics,
     )
 
     run_dir = build_run_dir(config, split)
@@ -199,6 +214,7 @@ def main() -> None:
         "num_val_graphs": len(val_dataset),
         "num_test_graphs": len(test_dataset),
     }
+    # summary 维持轻量，适合快速查看；完整信息放在 run_manifest。
     summary = {
         "device": str(device),
         "exp_id": config.meta.exp_id,
@@ -208,6 +224,7 @@ def main() -> None:
         "split_version": split.split_version,
         "seed": config.system.seed,
         "model": config.model.name,
+        "physics_enabled": config.physics.enabled,
         **dataset_sizes,
         "best_epoch": fit_result["best_epoch"],
         "best_val_loss": fit_result["best_val_loss"],
@@ -242,6 +259,10 @@ def main() -> None:
             "enabled_node_features": "|".join(config.data.enabled_node_features),
             "enabled_global_features": "|".join(config.data.enabled_global_features),
             "augment": config.data.augment,
+            "physics_enabled": config.physics.enabled,
+            "physics_continuity_weight": config.physics.continuity_weight,
+            "physics_momentum_weight": config.physics.momentum_weight,
+            "physics_no_slip_weight": config.physics.no_slip_weight,
             "best_epoch": fit_result["best_epoch"],
             "best_val_loss": fit_result["best_val_loss"],
             "test_rmse": test_metrics["rmse"],
@@ -262,6 +283,10 @@ def main() -> None:
             "enabled_node_features",
             "enabled_global_features",
             "augment",
+            "physics_enabled",
+            "physics_continuity_weight",
+            "physics_momentum_weight",
+            "physics_no_slip_weight",
             "best_epoch",
             "best_val_loss",
             "test_rmse",

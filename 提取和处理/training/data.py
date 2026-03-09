@@ -15,6 +15,10 @@ from pipeline.dataset import load_graph_data
 
 @dataclass
 class FeatureMask:
+    # 不直接裁掉特征维度，而是保留定长输入并按位 mask。
+    # 这样做的好处是：
+    # 1. 不需要因为消融而反复改模型输入维度
+    # 2. checkpoint / 导出格式在不同实验间保持兼容
     node_mask: torch.Tensor
     global_mask: torch.Tensor
 
@@ -47,6 +51,8 @@ class FieldGraphDataset(Dataset):
         preload: bool = False,
         feature_mask: Optional[FeatureMask] = None,
     ):
+        # root/case_names/graphs_subdir 共同决定这次实验读取哪些图。
+        # 这里约定“患者级 split -> 病例目录 -> 图快照文件”三层路径关系。
         self.root = Path(root)
         self.case_names = case_names
         self.graphs_subdir = graphs_subdir
@@ -69,6 +75,7 @@ class FieldGraphDataset(Dataset):
 
         self.cached_data = None
         if preload:
+            # preload 适合数据量不大、I/O 较慢的场景；服务器显存/内存紧张时不要开。
             self.cached_data = [load_graph_data(path) for path in self.data_files]
 
     def __len__(self) -> int:
@@ -82,6 +89,7 @@ class FieldGraphDataset(Dataset):
             data = load_graph_data(data_path)
 
         if self.augment:
+            # 数据增强只在训练集启用；验证/测试必须使用原始图，避免评估口径漂移。
             data = apply_augmentations(data, self.augment_config)
 
         if self.feature_mask is not None:

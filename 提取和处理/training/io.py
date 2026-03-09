@@ -39,6 +39,8 @@ def append_experiment_index(
         existing_fields = reader.fieldnames or []
         existing_rows = list(reader)
 
+    # 实验索引字段会随着项目推进逐渐变多。
+    # 这里选择“读旧表 -> 合并列 -> 重写整表”，保证新增列不会把旧索引写坏。
     merged_fields = existing_fields.copy()
     for field in requested_fields:
         if field not in merged_fields:
@@ -56,6 +58,8 @@ def append_experiment_index(
 
 
 def sanitize_batch_metadata(values) -> List[str]:
+    # PyG batch 后，字符串元信息有时会保留成单值，有时会变成 list/tuple。
+    # 导出脚本统一走这个函数，把两种情况收口成 List[str]。
     if isinstance(values, (list, tuple)):
         return [str(v) for v in values]
     return [str(values)]

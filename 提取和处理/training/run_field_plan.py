@@ -9,6 +9,7 @@ from typing import Iterable, List
 
 
 def load_manifest(path: str | Path) -> List[dict]:
+    # run_field_plan 不解析具体 config 内容，只依赖 manifest 里已经固化好的 config_path。
     with open(path, "r", encoding="utf-8") as f:
         raw = json.load(f)
     return list(raw.get("items", []))
@@ -21,6 +22,7 @@ def filter_items(
     exp_id: str,
     seed: int | None,
 ) -> List[dict]:
+    # 这里保持最朴素的筛选逻辑，方便后面扩展成按 tag / model / feature_set 过滤。
     selected = []
     for item in items:
         if study_group and item.get("study_group") != study_group:
@@ -66,6 +68,7 @@ def main() -> None:
         raise ValueError("筛选后没有可执行的实验项")
 
     for idx, item in enumerate(items, start=1):
+        # 这里直接调用 `python -m training.train_field`，避免批量入口和单实验入口出现两套逻辑。
         command = [
             args.python,
             "-m",

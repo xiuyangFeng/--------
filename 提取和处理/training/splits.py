@@ -18,6 +18,7 @@ class SplitSpec:
 
     @classmethod
     def from_json(cls, path: str | Path) -> "SplitSpec":
+        # split 是整个实验体系的根输入之一，因此这里保持极简、显式、不可猜。
         with open(path, "r", encoding="utf-8") as f:
             raw = json.load(f)
         return cls(

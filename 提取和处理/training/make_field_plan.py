@@ -25,6 +25,7 @@ def timestamp() -> str:
 
 
 def parse_groups(value: str) -> List[str]:
+    # 生成器只接受有限的实验组名字，防止拼写错误时默默生成空结果。
     groups = [item.strip() for item in value.split(",") if item.strip()]
     valid = {"baseline", "input", "geometry", "augment", "coord"}
     unknown = sorted(set(groups) - valid)
@@ -34,6 +35,7 @@ def parse_groups(value: str) -> List[str]:
 
 
 def parse_coord_variants(values: List[str]) -> Dict[str, str]:
+    # 坐标归一化实验显式要求 name=subdir，避免把目录逻辑硬编码进 plan.py。
     variants: Dict[str, str] = {}
     for item in values:
         if "=" not in item:
@@ -102,6 +104,7 @@ def main() -> None:
         ensure_dir(config_path.parent)
         dump_json(item.config.to_dict(), config_path)
 
+        # manifest 的作用是给 run_field_plan.py 和后续服务器批量调度器做唯一事实来源。
         row = item.manifest_row()
         row["config_path"] = str(config_path)
         row["split_file"] = args.split_file

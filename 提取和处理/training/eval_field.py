@@ -14,6 +14,7 @@ from .utils import dump_json, ensure_dir, resolve_device, set_seed
 
 
 def resolve_cases(split: SplitSpec, subset: str):
+    # 评估和预测都只允许显式指定 train/val/test，避免误传任意字符串。
     mapping = {
         "train": split.train_cases,
         "val": split.val_cases,
@@ -85,6 +86,7 @@ def main() -> None:
         device=device,
         loss_weights=torch.tensor(config.optim.target_weights, dtype=torch.float32),
         grad_clip_norm=config.optim.grad_clip_norm,
+        physics_config=config.physics,
     )
     metrics = trainer.evaluate(loader, checkpoint_path=Path(args.checkpoint))
 

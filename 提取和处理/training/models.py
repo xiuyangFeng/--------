@@ -11,6 +11,8 @@ from pipeline.config import GLOBAL_COND_DIM, MODEL_INPUT_DIM, NODE_FEATURE_DIM, 
 
 
 def expand_global_cond(data) -> torch.Tensor:
+    # 所有模型都统一走“节点特征 + 广播后的图级条件”输入范式。
+    # 这样后续无论是 MLP 还是图模型，特征定义始终一致，方便做公平对照。
     if not hasattr(data, "global_cond") or data.global_cond is None:
         # MLP 和 GNN 统一走“节点特征 + 广播后的图级条件”输入格式。
         return torch.zeros(
@@ -26,6 +28,7 @@ def expand_global_cond(data) -> torch.Tensor:
 
 
 def build_model(model_name: str, hidden_dim: int, num_layers: int, dropout: float, heads: int):
+    # 这里用一个极小的 registry，而不是复杂工厂类，方便后续直接插入新 backbone。
     registry: Dict[str, nn.Module] = {
         "mlp": FieldMLP(
             in_dim=MODEL_INPUT_DIM,
@@ -58,6 +61,7 @@ def build_model(model_name: str, hidden_dim: int, num_layers: int, dropout: floa
 class FieldMLP(nn.Module):
     def __init__(self, in_dim: int, hidden_dim: int, num_layers: int, dropout: float, out_dim: int):
         super().__init__()
+        # MLP 是任务 A 的“无图结构下限”，目的是回答图建模本身有没有价值。
         layers = [nn.Linear(in_dim, hidden_dim), nn.ReLU(), nn.Dropout(dropout)]
         for _ in range(max(0, num_layers - 1)):
             layers.extend([nn.Linear(hidden_dim, hidden_dim), nn.ReLU(), nn.Dropout(dropout)])
@@ -74,6 +78,7 @@ class FieldGraphSAGE(nn.Module):
     def __init__(self, in_dim: int, hidden_dim: int, num_layers: int, dropout: float, out_dim: int):
         super().__init__()
         self.in_proj = nn.Linear(in_dim, hidden_dim)
+        # 这里固定用同宽隐藏层，目的是让 GraphSAGE 和 Transformer 的参数量级别接近。
         self.layers = nn.ModuleList(
             [SAGEConv(hidden_dim, hidden_dim) for _ in range(max(1, num_layers))]
         )
@@ -105,6 +110,7 @@ class FieldTransformer(nn.Module):
     ):
         super().__init__()
         self.in_proj = nn.Linear(in_dim, hidden_dim)
+        # TransformerConv 这里主要承担“更强消息传递”基线，不在第一版里引入额外分支和注意力花活。
         self.layers = nn.ModuleList(
             [
                 TransformerConv(

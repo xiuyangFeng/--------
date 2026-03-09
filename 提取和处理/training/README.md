@@ -18,6 +18,8 @@
 - `make_field_plan.py`：根据任务 A 实验清单批量生成配置
 - `run_field_plan.py`：按 manifest 顺序批量执行训练
 - `plan.py`：任务 A baseline / ablation 计划模板
+- `hemo.py`：任务 B 指标计算骨架
+- `export_hemo.py`：任务 B 指标导出入口
 - `io.py`：checkpoint 与实验索引落盘
 - `configs/field/`：第一批基线实验模板
 - `configs/field/ablations/`：第一批消融模板
@@ -29,6 +31,11 @@
 2. 所有特征消融通过“特征掩码”实现，不改图文件结构。
 3. 第一阶段只服务任务 A，先把 `MLP / GraphSAGE / Transformer` 跑通。
 4. 后续加 physics loss、任务 B、任务 C 时直接扩展这套骨架。
+
+当前已经补到：
+
+- 可插拔 physics loss 接口
+- 任务 B 指标计算与导出骨架
 
 ## 使用方式
 
@@ -58,6 +65,16 @@ python -m training.run_field_plan \
 ```
 
 先验证命令而不实际执行，可加 `--dry-run`。
+
+任务 B 指标导出骨架可直接接 `predict_field.py` 的输出：
+
+```bash
+python -m training.export_hemo \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json \
+  --source AI
+```
+
+如果要用同一批导出里的 CFD 真值场做对照，只需要把 `--source` 改成 `CFD`。
 
 如果本机没有数据、只是在本地准备脚手架，可以先在服务器上根据病例名单生成 split：
 
@@ -121,6 +138,13 @@ pip install -r training/requirements.txt
 
 其中 `run_manifest.json` 会附带 `exp_id / study_group / feature_set / enabled_features` 等元数据，便于后续按 `docs/实验记录填写规范.md` 追踪实验。
 
+如果启用了 physics 配置，`history.csv` 还会额外记录：
+
+- `train_data_loss / val_data_loss`
+- `train_continuity_loss / val_continuity_loss`
+- `train_momentum_loss / val_momentum_loss`
+- `train_no_slip_loss / val_no_slip_loss`
+
 ## 第一批模板配置
 
 - `mlp_baseline.json`
@@ -133,3 +157,4 @@ pip install -r training/requirements.txt
 - `ablations/transformer_coords_t_bc.json`
 - `ablations/transformer_no_bc.json`
 - `ablations/transformer_no_is_wall.json`
+- `ablations/transformer_physics_full.json`

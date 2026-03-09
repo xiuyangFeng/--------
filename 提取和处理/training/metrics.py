@@ -10,6 +10,7 @@ from pipeline.config import TARGET_NAMES
 
 @dataclass
 class RegressionMeter:
+    # 这里按整轮累计全部节点预测，再统一算指标，避免 batch 粒度平均带来偏差。
     preds: List[torch.Tensor] = field(default_factory=list)
     targets: List[torch.Tensor] = field(default_factory=list)
     total_loss: float = 0.0
@@ -45,6 +46,7 @@ class RegressionMeter:
 
         velocity_pred = pred[:, :3].norm(dim=1)
         velocity_target = target[:, :3].norm(dim=1)
+        # 速度模长误差经常比单个分量更贴近血流场重建的实际使用场景。
         metrics["rmse_vel_mag"] = torch.sqrt(((velocity_pred - velocity_target) ** 2).mean()).item()
         metrics["mae_vel_mag"] = (velocity_pred - velocity_target).abs().mean().item()
         return metrics

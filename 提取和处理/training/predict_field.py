@@ -11,6 +11,7 @@ from .io import load_checkpoint, sanitize_batch_metadata
 from .models import build_model
 from .splits import SplitSpec
 from .utils import dump_json, ensure_dir, resolve_device, set_seed
+from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES
 
 
 def resolve_cases(split: SplitSpec, subset: str):
@@ -22,6 +23,15 @@ def resolve_cases(split: SplitSpec, subset: str):
     if subset not in mapping:
         raise ValueError(f"未知 subset: {subset}")
     return mapping[subset]
+
+
+def extract_time_value(global_cond: torch.Tensor) -> torch.Tensor:
+    # global_cond 在单图和 batch 后的形状可能不同，这里统一抽成标量时间值。
+    if global_cond.ndim == 1:
+        return global_cond[0:1].clone()
+    if global_cond.ndim == 2:
+        return global_cond[0, 0:1].clone()
+    return global_cond.reshape(-1)[:1].clone()
 
 
 @torch.no_grad()
@@ -108,7 +118,12 @@ def main() -> None:
                     "sample_id": sample_id,
                     "case_name": case_name,
                     "graph_path": graph_path,
-                    # 保留输入与真值，方便后续任务 B 直接读取并做指标恢复。
+                    "node_feature_names": NODE_FEATURE_NAMES,
+                    "target_names": TARGET_NAMES,
+                    "wall_mask": data.x[:, NODE_FEATURE_NAMES.index("is_wall")].bool(),
+                    "time_value": extract_time_value(data.global_cond),
+                    # 这里故意把输入、真值和预测一起保存。
+                    # 这样任务 B 做 CFD vs AI 对照时，不需要再额外回原始图目录找数据。
                     "x": data.x,
                     "global_cond": data.global_cond,
                     "edge_index": data.edge_index,
@@ -123,6 +138,7 @@ def main() -> None:
                     "case_name": case_name,
                     "graph_path": graph_path,
                     "prediction_path": str(save_path),
+                    "wall_nodes": int(data.x[:, NODE_FEATURE_NAMES.index("is_wall")].sum().item()),
                 }
             )
 
@@ -130,6 +146,9 @@ def main() -> None:
         {
             "subset": args.subset,
             "checkpoint": str(Path(args.checkpoint).resolve()),
+            "config_path": str(Path(args.config).resolve()),
+            "model_name": config.model.name,
+            "split_version": split.split_version,
             "num_predictions": len(manifest),
             "items": manifest,
         },
