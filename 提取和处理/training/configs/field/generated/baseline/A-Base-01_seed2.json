@@ -1,0 +1,75 @@
+{
+  "run": {
+    "experiment_name": "field_mlp_coord_t_bc",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true
+  },
+  "data": {
+    "data_root": "data_new/AG/fast",
+    "split_file": "training/splits/split_example.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 2,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x",
+      "y",
+      "z"
+    ],
+    "enabled_global_features": [
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
+    ],
+    "augment": false,
+    "augment_config": {}
+  },
+  "model": {
+    "name": "mlp",
+    "hidden_dim": 128,
+    "num_layers": 3,
+    "dropout": 0.1,
+    "heads": 4
+  },
+  "optim": {
+    "epochs": 200,
+    "lr": 0.0005,
+    "weight_decay": 0.0001,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 10,
+    "early_stopping_patience": 30,
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "grad_clip_norm": 1.0
+  },
+  "system": {
+    "seed": 2,
+    "device": "auto",
+    "deterministic": true
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "A-Base-01",
+    "stage": "task_a",
+    "study_group": "baseline",
+    "question": "建立无图结构下限，验证图建模是否有收益。",
+    "feature_set": "coord_t_bc_point",
+    "ablation_axis": "baseline_model",
+    "tags": [
+      "baseline",
+      "mlp",
+      "coord+t+bc"
+    ],
+    "notes": "任务A基线1：Point-wise MLP。",
+    "generated_from": "training.make_field_plan"
+  }
+}

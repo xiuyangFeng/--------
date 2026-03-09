@@ -65,12 +65,27 @@ class SystemConfig:
 
 
 @dataclass
+class MetaConfig:
+    task: str = "field"
+    exp_id: str = ""
+    stage: str = "task_a"
+    study_group: str = ""
+    question: str = ""
+    feature_set: str = ""
+    ablation_axis: str = ""
+    tags: List[str] = field(default_factory=list)
+    notes: str = ""
+    generated_from: str = ""
+
+
+@dataclass
 class ExperimentConfig:
     run: RunConfig
     data: DataConfig
     model: ModelConfig
     optim: OptimConfig
     system: SystemConfig = field(default_factory=SystemConfig)
+    meta: MetaConfig = field(default_factory=MetaConfig)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ExperimentConfig":
@@ -80,6 +95,7 @@ class ExperimentConfig:
             model=ModelConfig(**data["model"]),
             optim=OptimConfig(**data["optim"]),
             system=SystemConfig(**data.get("system", {})),
+            meta=MetaConfig(**data.get("meta", {})),
         )
 
     @classmethod

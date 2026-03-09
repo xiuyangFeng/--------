@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from typing import Dict
 
 import torch
 
@@ -17,6 +18,69 @@ from .utils import dump_json, ensure_dir, resolve_device, set_seed, timestamp
 def build_run_dir(config: ExperimentConfig, split: SplitSpec) -> Path:
     run_name = f"{config.run.experiment_name}_{split.split_version}_seed{config.system.seed}_{timestamp()}"
     return ensure_dir(Path(config.run.output_root) / run_name)
+
+
+def build_run_manifest(
+    *,
+    config: ExperimentConfig,
+    split: SplitSpec,
+    device: torch.device,
+    run_dir: Path,
+    fit_result: Dict[str, object],
+    test_metrics: Dict[str, float],
+    dataset_sizes: Dict[str, int],
+) -> Dict[str, object]:
+    return {
+        "task": config.meta.task,
+        "exp_id": config.meta.exp_id,
+        "experiment_name": config.run.experiment_name,
+        "stage": config.meta.stage,
+        "study_group": config.meta.study_group,
+        "question": config.meta.question,
+        "feature_set": config.meta.feature_set,
+        "ablation_axis": config.meta.ablation_axis,
+        "tags": config.meta.tags,
+        "notes": config.meta.notes,
+        "generated_from": config.meta.generated_from,
+        "device": str(device),
+        "run_dir": str(run_dir),
+        "output_root": config.run.output_root,
+        "split_version": split.split_version,
+        "split_source": split.source,
+        "split_notes": split.notes,
+        "seed": config.system.seed,
+        "deterministic": config.system.deterministic,
+        "model": {
+            "name": config.model.name,
+            "hidden_dim": config.model.hidden_dim,
+            "num_layers": config.model.num_layers,
+            "dropout": config.model.dropout,
+            "heads": config.model.heads,
+        },
+        "data": {
+            "data_root": config.data.data_root,
+            "graphs_subdir": config.data.graphs_subdir,
+            "batch_size": config.data.batch_size,
+            "augment": config.data.augment,
+            "augment_config": config.data.augment_config,
+            "enabled_node_features": config.data.enabled_node_features,
+            "enabled_global_features": config.data.enabled_global_features,
+        },
+        "optim": {
+            "epochs": config.optim.epochs,
+            "lr": config.optim.lr,
+            "weight_decay": config.optim.weight_decay,
+            "scheduler_factor": config.optim.scheduler_factor,
+            "scheduler_patience": config.optim.scheduler_patience,
+            "early_stopping_patience": config.optim.early_stopping_patience,
+            "target_weights": config.optim.target_weights,
+            "grad_clip_norm": config.optim.grad_clip_norm,
+        },
+        "dataset_sizes": dataset_sizes,
+        "best_epoch": fit_result["best_epoch"],
+        "best_val_loss": fit_result["best_val_loss"],
+        "test_metrics": test_metrics,
+    }
 
 
 def main() -> None:
@@ -130,28 +194,54 @@ def main() -> None:
     )
     test_metrics = trainer.evaluate(test_loader, checkpoint_path=run_dir / "best_model.pt")
 
+    dataset_sizes = {
+        "num_train_graphs": len(train_dataset),
+        "num_val_graphs": len(val_dataset),
+        "num_test_graphs": len(test_dataset),
+    }
     summary = {
         "device": str(device),
+        "exp_id": config.meta.exp_id,
+        "study_group": config.meta.study_group,
+        "feature_set": config.meta.feature_set,
         "experiment_name": config.run.experiment_name,
         "split_version": split.split_version,
         "seed": config.system.seed,
         "model": config.model.name,
-        "num_train_graphs": len(train_dataset),
-        "num_val_graphs": len(val_dataset),
-        "num_test_graphs": len(test_dataset),
+        **dataset_sizes,
         "best_epoch": fit_result["best_epoch"],
         "best_val_loss": fit_result["best_val_loss"],
         "test_metrics": test_metrics,
     }
     dump_json(summary, run_dir / "summary.json")
+    dump_json(
+        build_run_manifest(
+            config=config,
+            split=split,
+            device=device,
+            run_dir=run_dir,
+            fit_result=fit_result,
+            test_metrics=test_metrics,
+            dataset_sizes=dataset_sizes,
+        ),
+        run_dir / "run_manifest.json",
+    )
     append_experiment_index(
         output_root=config.run.output_root,
         row={
+            "task": config.meta.task,
+            "exp_id": config.meta.exp_id,
             "experiment_name": config.run.experiment_name,
+            "study_group": config.meta.study_group,
+            "feature_set": config.meta.feature_set,
+            "ablation_axis": config.meta.ablation_axis,
             "run_dir": str(run_dir),
             "split_version": split.split_version,
             "seed": config.system.seed,
             "model": config.model.name,
+            "enabled_node_features": "|".join(config.data.enabled_node_features),
+            "enabled_global_features": "|".join(config.data.enabled_global_features),
+            "augment": config.data.augment,
             "best_epoch": fit_result["best_epoch"],
             "best_val_loss": fit_result["best_val_loss"],
             "test_rmse": test_metrics["rmse"],
@@ -159,11 +249,19 @@ def main() -> None:
             "test_r2_p": test_metrics["r2_p"],
         },
         fieldnames=[
+            "task",
+            "exp_id",
             "experiment_name",
+            "study_group",
+            "feature_set",
+            "ablation_axis",
             "run_dir",
             "split_version",
             "seed",
             "model",
+            "enabled_node_features",
+            "enabled_global_features",
+            "augment",
             "best_epoch",
             "best_val_loss",
             "test_rmse",

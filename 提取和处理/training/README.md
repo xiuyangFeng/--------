@@ -15,6 +15,9 @@
 - `eval_field.py`：独立评估入口
 - `predict_field.py`：批量预测导出入口
 - `make_split.py`：根据病例名单生成患者级 split
+- `make_field_plan.py`：根据任务 A 实验清单批量生成配置
+- `run_field_plan.py`：按 manifest 顺序批量执行训练
+- `plan.py`：任务 A baseline / ablation 计划模板
 - `io.py`：checkpoint 与实验索引落盘
 - `configs/field/`：第一批基线实验模板
 - `configs/field/ablations/`：第一批消融模板
@@ -34,6 +37,27 @@
 ```bash
 python -m training.train_field --config training/configs/field/transformer_geometry.json
 ```
+
+如果要按 `docs/任务A实验清单.md` 批量生成配置，可以先运行：
+
+```bash
+python -m training.make_field_plan \
+  --data-root data_new/AG/fast \
+  --split-file training/splits/split_example.json \
+  --output-dir training/configs/field/generated
+```
+
+默认会生成 baseline、输入特征消融、几何分量消融、增强策略消融，并为每个实验生成 `seed = [1, 2, 3]` 的配置文件。坐标归一化消融可额外通过 `--coord-variant name=subdir` 指定。
+
+如果要按生成顺序批量执行，可以继续使用：
+
+```bash
+python -m training.run_field_plan \
+  --manifest training/configs/field/generated/manifest.json \
+  --study-group baseline
+```
+
+先验证命令而不实际执行，可加 `--dry-run`。
 
 如果本机没有数据、只是在本地准备脚手架，可以先在服务器上根据病例名单生成 split：
 
@@ -82,6 +106,20 @@ pip install -r training/requirements.txt
 1. 当前仓库本机目录里没有实际训练数据，因此这里没有生成真实的患者划分文件。
 2. 真实 split 必须在服务器上根据实际病例名单生成或手工整理。
 3. `data_root` 需要改成服务器上与 `pipeline/README.md` 一致的数据路径。
+
+## 训练产物
+
+每次 `train_field.py` 训练结束后，默认会落盘：
+
+- `config.snapshot.json`
+- `split.snapshot.json`
+- `history.csv`
+- `summary.json`
+- `run_manifest.json`
+- `best_model.pt`
+- `outputs/field/experiment_index.csv`
+
+其中 `run_manifest.json` 会附带 `exp_id / study_group / feature_set / enabled_features` 等元数据，便于后续按 `docs/实验记录填写规范.md` 追踪实验。
 
 ## 第一批模板配置
 

@@ -80,6 +80,8 @@ class FieldTrainer:
                     "train_rmse_p",
                     "val_rmse_p",
                     "lr",
+                    "epoch_time_sec",
+                    "is_best",
                 ]
             )
 
@@ -90,6 +92,8 @@ class FieldTrainer:
 
                 self.scheduler.step(val_metrics["loss"])
                 current_lr = self.optimizer.param_groups[0]["lr"]
+                epoch_time_sec = time.time() - t0
+                is_best = val_metrics["loss"] < best_val
 
                 row = [
                     epoch,
@@ -100,6 +104,8 @@ class FieldTrainer:
                     train_metrics["rmse_p"],
                     val_metrics["rmse_p"],
                     current_lr,
+                    epoch_time_sec,
+                    int(is_best),
                 ]
                 writer.writerow(row)
                 history.append(
@@ -108,11 +114,12 @@ class FieldTrainer:
                         "train": train_metrics,
                         "val": val_metrics,
                         "lr": current_lr,
-                        "epoch_time_sec": time.time() - t0,
+                        "epoch_time_sec": epoch_time_sec,
+                        "is_best": is_best,
                     }
                 )
 
-                if val_metrics["loss"] < best_val:
+                if is_best:
                     best_val = val_metrics["loss"]
                     best_epoch = epoch
                     patience = 0
