@@ -46,6 +46,7 @@ if __package__ in {None, ""}:
         get_case_dirs,
     )
     from pipeline.utils.io import load_ascii_df, clean_cfd_data, save_csv
+    from pipeline.validation import build_batch_issue_report, inspect_case_inputs, save_batch_issue_report
 else:
     from .config import (
         DATA_ROOT,
@@ -57,6 +58,7 @@ else:
         get_case_dirs,
     )
     from .utils.io import load_ascii_df, clean_cfd_data, save_csv
+    from .validation import build_batch_issue_report, inspect_case_inputs, save_batch_issue_report
 
 
 def find_matching_files(case_dir: Path) -> dict:
@@ -242,12 +244,20 @@ def process_single_case(
     """
     case_dir = Path(case_dir)
     case_name = case_dir.name
+    input_check = inspect_case_inputs(case_dir)
 
     alignment = summarize_frame_alignment(case_dir)
     matched_files = find_matching_files(case_dir)
+
+    if input_check["issues"]:
+        print(f"\n📂 处理病例: {case_name}")
+        print("   🔎 输入检查:")
+        for issue in input_check["issues"]:
+            icon = "⚠️" if issue["severity"] == "warning" else "❌"
+            print(f"   {icon} {issue['message']}")
     
     if not matched_files:
-        print(f"  ⚠️ 跳过: 未找到匹配的壁面与内部点文件")
+        print(f"   ⚠️ 跳过: 未找到匹配的壁面与内部点文件")
         return False
     
     # 设置输出目录
@@ -384,6 +394,16 @@ def process_all_cases(
     print(f"📊 预算分配: 近壁层 {boundary_core_ratio[0]*100:.0f}% : 核心层 {boundary_core_ratio[1]*100:.0f}%")
     print(f"📊 处理模式: {mode}")
     print(f"📊 待处理病例数: {len(case_dirs)}")
+
+    audit_report = build_batch_issue_report(case_dirs)
+    audit_dir = data_root / "pipeline_reports"
+    report_name = "preprocess_input_audit" if target_case is None else f"preprocess_input_audit_{case_dirs[0].name}"
+    audit_json, audit_csv = save_batch_issue_report(audit_report, audit_dir, report_name)
+    print(f"📝 输入检查报告: {audit_json}")
+    print(f"📝 输入检查表格: {audit_csv}")
+    if audit_report["issue_case_count"]:
+        print(f"⚠️ 存在输入问题的病例: {audit_report['issue_case_count']} 个")
+        print(f"⚠️ 可直接跑步骤1的病例: {audit_report['preprocess_ready_count']} 个")
     
     total_start = time.time()
     ok = 0

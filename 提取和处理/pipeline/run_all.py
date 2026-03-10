@@ -46,6 +46,7 @@ if __package__ in {None, ""}:
         MODE,
         get_case_dirs,
     )
+    from pipeline.validation import build_batch_issue_report, save_batch_issue_report
 else:
     from .config import (
         DATA_ROOT,
@@ -59,6 +60,7 @@ else:
         MODE,
         get_case_dirs,
     )
+    from .validation import build_batch_issue_report, save_batch_issue_report
 
 
 def run_pipeline(
@@ -133,6 +135,20 @@ def run_pipeline(
         return
     
     print(f"📋 执行步骤: {start_step} → {end_step}")
+    audit_report = build_batch_issue_report(case_dirs)
+    audit_dir = data_root / "pipeline_reports"
+    report_name = (
+        f"pipeline_input_audit_step{start_step}_{end_step}"
+        if target_case is None
+        else f"pipeline_input_audit_{case_dirs[0].name}_step{start_step}_{end_step}"
+    )
+    audit_json, audit_csv = save_batch_issue_report(audit_report, audit_dir, report_name)
+    print(f"📝 输入检查报告: {audit_json}")
+    print(f"📝 输入检查表格: {audit_csv}")
+    if start_step <= 1:
+        print(f"📊 可直接跑步骤1的病例: {audit_report['preprocess_ready_count']}/{len(case_dirs)}")
+    if start_step <= 2 <= end_step:
+        print(f"📊 具备几何+BC输入的病例: {audit_report['feature_ready_count']}/{len(case_dirs)}")
     print()
     
     total_start = time.time()
