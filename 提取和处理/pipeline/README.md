@@ -97,7 +97,13 @@ pipeline/
 ### 1. 创建/激活 conda 环境
 
 ```bash
-conda activate rag_venv
+conda activate GNN
+```
+
+如需运行 `extract_features` 的中心线提取，另准备一个几何环境：
+
+```bash
+conda activate GNN_vmtk
 ```
 
 ### 2. 安装依赖
@@ -105,14 +111,24 @@ conda activate rag_venv
 ```bash
 pip install numpy pandas scipy scikit-learn tqdm
 pip install torch torch_geometric
-pip install vtk vmtk
+pip install vtk
 ```
+
+`vmtk` 建议安装在独立环境中，避免与训练环境里的 `torch/pyg/vtk` 栈冲突。
 
 ### 3. 验证安装
 
 ```bash
 cd <repo-root>
 python -m pipeline.config  # 测试配置文件
+
+# 主环境验证
+conda activate GNN
+python -c "import torch, torch_geometric, vtk; print(torch.__version__, torch_geometric.__version__, vtk.vtkVersion.GetVTKVersion())"
+
+# 几何环境验证
+conda activate GNN_vmtk
+python -c "from vmtk import vmtkscripts; print('vmtk ok')"
 ```
 
 ---
@@ -172,9 +188,47 @@ python -m pipeline.run_all --case ZHANG_CHUN
 # 生产模式：完整跑通后自动清理本次运行的上游中间目录
 python -m pipeline.run_all --case ZHANG_CHUN --mode production
 
+# 若步骤2需要在独立的 vmtk 环境中执行
+python -m pipeline.run_all --case ZHANG_CHUN \
+  --geometry-python /public/newhome/cy/.conda/envs/GNN_vmtk/bin/python
+
 # 处理所有启用的病例
 python -m pipeline.run_all
 ```
+
+### 方式零：先做原始输入审计（强烈建议）
+
+在批量处理或生成 split 之前，先批量检查病例是否具备：
+
+- `病例名.stl`
+- `ascii/`
+- `ascii_in/`
+- `Global_conditions/`
+
+同时扫描 `AAA / AG / ILO`：
+
+```bash
+cd <repo-root>
+python -m pipeline.audit_inputs \
+  --groups AAA AG ILO \
+  --report-name raw_input_audit_all
+```
+
+只检查某个具体数据源，例如 `AG/fast`：
+
+```bash
+python -m pipeline.audit_inputs \
+  --sources AG/fast \
+  --report-name raw_input_audit_ag_fast \
+  --ready-cases-output training/splits/case_names_ag_fast_ready.txt \
+  --require-named-stl
+```
+
+默认输出到 `data_new/pipeline_reports/`，包含：
+
+- `*.json`：完整结构化报告
+- `*.csv`：适合人工筛查和补数
+- `*.txt`：可选；当你按单一数据源扫描时，可直接作为 `training.make_split` 的病例名单
 
 ### 方式二：分步处理
 
@@ -195,6 +249,38 @@ python -m pipeline.normalize --case ZHANG_CHUN
 
 # 步骤5: 图数据转换
 python -m pipeline.convert_to_graph --case ZHANG_CHUN
+```
+
+### 双环境运行
+
+如果 `extract_features` 依赖的 `vtk/vmtk` 与训练环境分离，可以继续保持批量处理，只需让步骤2使用独立解释器：
+
+```bash
+# 在 GNN 环境中启动整条流水线，但步骤2切到 GNN_vmtk
+conda activate GNN
+python -m pipeline.run_all \
+  --case ZHANG_CHUN \
+  --geometry-python /public/newhome/cy/.conda/envs/GNN_vmtk/bin/python
+```
+
+批量处理所有病例时同样适用：
+
+```bash
+conda activate GNN
+python -m pipeline.run_all \
+  --geometry-python /public/newhome/cy/.conda/envs/GNN_vmtk/bin/python
+```
+
+如果你更想完全拆开执行，也可以：
+
+```bash
+# 几何步骤
+conda activate GNN_vmtk
+python -m pipeline.run_all --end-step 2
+
+# 图构建与训练前处理步骤
+conda activate GNN
+python -m pipeline.run_all --start-step 3
 ```
 
 ---
@@ -646,12 +732,45 @@ python -m pipeline.run_all --case ZHANG_CHUN --end-step 4 --mode production
 
 ## 常见问题
 
+### 0. 批处理前怎么一次性检查缺失的输入？
+
+运行：
+
+```bash
+python -m pipeline.audit_inputs --groups AAA AG ILO
+```
+
+生成的 CSV 中重点关注：
+
+- `has_named_surface_model`：是否存在同名 `病例名.stl`
+- `has_preprocess_inputs`：是否可进入步骤1 `preprocess`
+- `has_feature_inputs`：是否可进入步骤2 `extract_features`
+- `issue_codes / issue_messages`：缺失项和原因说明
+
+常见问题码：
+
+- `missing_named_stl`
+- `missing_ascii_dir`
+- `missing_ascii_in_dir`
+- `missing_global_conditions_dir`
+- `empty_ascii_dir`
+- `empty_ascii_in_dir`
+- `no_matched_ascii_frames`
+- `missing_inlet_bc`
+
 ### 1. 找不到 vmtk 模块
 
 ```bash
-pip install vmtk
-# 或
-conda install -c vmtk vmtk
+conda activate GNN_vmtk
+python -c "from vmtk import vmtkscripts; print('vmtk ok')"
+```
+
+如果你当前运行的是完整流程，优先使用：
+
+```bash
+conda activate GNN
+python -m pipeline.run_all \
+  --geometry-python /public/newhome/cy/.conda/envs/GNN_vmtk/bin/python
 ```
 
 ### 2. 内存不足 (FPS 采样)
@@ -671,6 +790,8 @@ python -m pipeline.preprocess --sampling-method random
 ```bash
 python -m pipeline.run_all --case ZHANG_CHUN --start-step 3  # 从步骤3（坐标系归一化）开始
 ```
+
+如果步骤2已经在 `GNN_vmtk` 中单独跑完，后续在 `GNN` 中继续时就直接从步骤3开始。
 
 ### 3.1 如何跳过坐标系归一化？
 

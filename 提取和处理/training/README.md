@@ -41,6 +41,26 @@
 
 先准备一个患者级 split JSON，再选择一个配置模板：
 
+如果你还没有整理好“哪些病例完整可用”，建议先从原始数据导出一份病例名单：
+
+```bash
+python -m pipeline.audit_inputs \
+  --sources AG/fast \
+  --report-name raw_input_audit_ag_fast \
+  --ready-cases-output training/splits/case_names_ag_fast_ready.txt \
+  --require-named-stl
+```
+
+然后用这份名单生成患者级 split：
+
+```bash
+python -m training.make_split \
+  --cases-file training/splits/case_names_ag_fast_ready.txt \
+  --output training/splits/split_v1.json \
+  --split-version split_v1 \
+  --source AG/fast
+```
+
 ```bash
 python -m training.train_field --config training/configs/field/transformer_geometry.json
 ```

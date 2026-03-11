@@ -1,0 +1,18 @@
+# pipeline 预处理与图构建依赖
+# 说明：
+# 1. 这个文件覆盖 preprocess -> extract_features -> coord_normalize
+#    -> normalize -> convert_to_graph 这条主链路的 Python 包依赖。
+# 2. torch / torch_geometric 在 GPU 服务器上建议按 CUDA 版本单独安装匹配轮子。
+# 3. vmtk / vtk 在不同平台安装方式差异较大，必要时可优先使用 conda 安装。
+
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+scikit-learn>=1.3
+tqdm>=4.66
+
+torch>=2.1
+torch_geometric>=2.5
+
+vtk>=9.2
+vmtk

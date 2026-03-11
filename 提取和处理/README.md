@@ -10,17 +10,37 @@
 - `data_new/`、`stl_data/`：原始与处理中数据，未重排
 
 ## 推荐入口
+批量处理前建议先做一次输入审计：
+
+```bash
+conda activate GNN
+python -m pipeline.audit_inputs --groups AAA AG ILO
+```
+
 完整流程：
 
 ```bash
+conda activate GNN
 python -m pipeline.run_all --case ZHANG_CHUN
+```
+
+若几何步骤依赖 `vmtk` 的独立环境，推荐这样运行：
+
+```bash
+conda activate GNN
+python -m pipeline.run_all \
+  --case ZHANG_CHUN \
+  --geometry-python /public/newhome/cy/.conda/envs/GNN_vmtk/bin/python
 ```
 
 单步运行：
 
 ```bash
+conda activate GNN
 python -m pipeline.preprocess --case ZHANG_CHUN
+conda activate GNN_vmtk
 python -m pipeline.extract_features --case ZHANG_CHUN
+conda activate GNN
 python -m pipeline.coord_normalize --case ZHANG_CHUN
 python -m pipeline.normalize --case ZHANG_CHUN
 python -m pipeline.convert_to_graph --case ZHANG_CHUN

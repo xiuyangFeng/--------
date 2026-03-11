@@ -44,6 +44,11 @@ echo "批量提交作业"
 echo "=============================================="
 echo "模式: $([ "$USE_ARRAY" = true ] && echo 'Array Job (推荐)' || echo '独立作业')"
 echo "病例总数: $CASE_COUNT"
+echo "主环境: ${PIPELINE_ENV:-GNN}"
+echo "几何环境: ${GEOMETRY_ENV:-GNN_vmtk}"
+if [ -n "$GEOMETRY_PYTHON" ]; then
+    echo "geometry-python: $GEOMETRY_PYTHON"
+fi
 echo ""
 echo "病例列表:"
 for case in $CASES; do

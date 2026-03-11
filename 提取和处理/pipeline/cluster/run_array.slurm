@@ -30,8 +30,14 @@
 
 # 环境配置
 module purge
+PIPELINE_ENV=${PIPELINE_ENV:-GNN}
+GEOMETRY_ENV=${GEOMETRY_ENV:-GNN_vmtk}
+DEFAULT_GEOMETRY_PYTHON="$HOME/.conda/envs/$GEOMETRY_ENV/bin/python"
+if [ -z "$GEOMETRY_PYTHON" ] && [ -x "$DEFAULT_GEOMETRY_PYTHON" ]; then
+    GEOMETRY_PYTHON="$DEFAULT_GEOMETRY_PYTHON"
+fi
 source ~/.bashrc
-conda activate rag_venv
+conda activate "$PIPELINE_ENV"
 
 cd $SLURM_SUBMIT_DIR
 
@@ -53,6 +59,7 @@ fi
 # 获取当前任务对应的病例名
 CASE_NAME=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" "$CASE_LIST_FILE")
 ALLOW_NEAREST_BC=${ALLOW_NEAREST_BC:-0}
+GEOMETRY_PYTHON=${GEOMETRY_PYTHON:-""}
 
 if [ -z "$CASE_NAME" ]; then
     echo "错误: 无法获取任务 $SLURM_ARRAY_TASK_ID 对应的病例名"
@@ -67,6 +74,11 @@ echo "Array Task ID: $SLURM_ARRAY_TASK_ID"
 echo "病例名称: $CASE_NAME"
 echo "节点: $SLURM_NODELIST"
 echo "CPU核数: $SLURM_NTASKS_PER_NODE"
+echo "主环境: $PIPELINE_ENV"
+echo "几何环境: $GEOMETRY_ENV"
+if [ -n "$GEOMETRY_PYTHON" ]; then
+    echo "geometry-python: $GEOMETRY_PYTHON"
+fi
 echo "开始时间: $(date)"
 echo "=============================================="
 echo ""
@@ -75,6 +87,9 @@ echo ""
 CMD="python -m pipeline.run_all --case $CASE_NAME"
 if [ "$ALLOW_NEAREST_BC" = "1" ]; then
     CMD="$CMD --allow-nearest-bc"
+fi
+if [ -n "$GEOMETRY_PYTHON" ]; then
+    CMD="$CMD --geometry-python $GEOMETRY_PYTHON"
 fi
 echo "执行: $CMD"
 $CMD

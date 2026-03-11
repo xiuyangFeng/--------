@@ -26,6 +26,7 @@ Pipeline 一键运行脚本
 
 import argparse
 import shutil
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -74,6 +75,7 @@ def run_pipeline(
     mode: str = None,
     k_neighbors: int = None,
     strict_bc_match: bool = True,
+    geometry_python: Optional[str] = None,
 ) -> None:
     """
     运行完整的数据处理流程。
@@ -153,25 +155,17 @@ def run_pipeline(
     
     total_start = time.time()
 
-    if __package__ in {None, ""}:
-        from pipeline.preprocess import process_all_cases as preprocess
-        from pipeline.extract_features import process_all_cases as extract_features
-        from pipeline.coord_normalize import process_all_cases as coord_normalize
-        from pipeline.normalize import process_all_cases as normalize
-        from pipeline.convert_to_graph import process_all_cases as convert_to_graph
-    else:
-        from .preprocess import process_all_cases as preprocess
-        from .extract_features import process_all_cases as extract_features
-        from .coord_normalize import process_all_cases as coord_normalize
-        from .normalize import process_all_cases as normalize
-        from .convert_to_graph import process_all_cases as convert_to_graph
-    
     # 步骤1: 数据预处理
     if start_step <= 1 <= end_step:
         print("\n" + "=" * 60)
         print("📌 步骤1/5: 数据预处理（清洗 + 合并 + 降采样）")
         print("=" * 60)
-        
+
+        if __package__ in {None, ""}:
+            from pipeline.preprocess import process_all_cases as preprocess
+        else:
+            from .preprocess import process_all_cases as preprocess
+
         preprocess(
             data_root=data_root,
             target_case=target_case,
@@ -189,21 +183,52 @@ def run_pipeline(
         print("\n" + "=" * 60)
         print("📌 步骤2/5: 几何特征提取 + 边界条件")
         print("=" * 60)
-        
-        extract_features(
-            data_root=data_root,
-            target_case=target_case,
-            input_subdir=MERGED_DIR,
-            output_subdir=FEATURES_DIR,
-            strict_bc_match=strict_bc_match,
-        )
+
+        if geometry_python:
+            cmd = [
+                geometry_python,
+                "-m",
+                "pipeline.extract_features",
+                "--data-root",
+                str(data_root),
+                "--input-subdir",
+                MERGED_DIR,
+                "--output-subdir",
+                FEATURES_DIR,
+            ]
+            if target_case:
+                cmd.extend(["--case", target_case])
+            if not strict_bc_match:
+                cmd.append("--allow-nearest-bc")
+
+            print(f"🐍 使用外部解释器执行步骤2: {geometry_python}")
+            print(f"🧾 命令: {' '.join(cmd)}")
+            subprocess.run(cmd, check=True)
+        else:
+            if __package__ in {None, ""}:
+                from pipeline.extract_features import process_all_cases as extract_features
+            else:
+                from .extract_features import process_all_cases as extract_features
+
+            extract_features(
+                data_root=data_root,
+                target_case=target_case,
+                input_subdir=MERGED_DIR,
+                output_subdir=FEATURES_DIR,
+                strict_bc_match=strict_bc_match,
+            )
     
     # 步骤3: 坐标系归一化【新增】
     if start_step <= 3 <= end_step:
         print("\n" + "=" * 60)
         print("📌 步骤3/5: 坐标系归一化（中心化 + PCA对齐 + 缩放）")
         print("=" * 60)
-        
+
+        if __package__ in {None, ""}:
+            from pipeline.coord_normalize import process_all_cases as coord_normalize
+        else:
+            from .coord_normalize import process_all_cases as coord_normalize
+
         coord_normalize(
             data_root=data_root,
             target_case=target_case,
@@ -216,7 +241,12 @@ def run_pipeline(
         print("\n" + "=" * 60)
         print("📌 步骤4/5: 特征归一化")
         print("=" * 60)
-        
+
+        if __package__ in {None, ""}:
+            from pipeline.normalize import process_all_cases as normalize
+        else:
+            from .normalize import process_all_cases as normalize
+
         normalize(
             data_root=data_root,
             target_case=target_case,
@@ -229,7 +259,12 @@ def run_pipeline(
         print("\n" + "=" * 60)
         print("📌 步骤5/5: 图数据转换")
         print("=" * 60)
-        
+
+        if __package__ in {None, ""}:
+            from pipeline.convert_to_graph import process_all_cases as convert_to_graph
+        else:
+            from .convert_to_graph import process_all_cases as convert_to_graph
+
         convert_to_graph(
             data_root=data_root,
             target_case=target_case,
@@ -433,6 +468,12 @@ def main():
         action="store_true",
         help="允许使用最近时间步 BC 作为兜底；默认严格匹配",
     )
+    parser.add_argument(
+        "--geometry-python",
+        type=str,
+        default=None,
+        help="步骤2使用的外部 Python 解释器路径，用于在独立 vmtk 环境中执行 extract_features",
+    )
     
     args = parser.parse_args()
     
@@ -451,6 +492,7 @@ def main():
         mode=args.mode,
         k_neighbors=args.k,
         strict_bc_match=not args.allow_nearest_bc,
+        geometry_python=args.geometry_python,
     )
 
 

@@ -18,7 +18,8 @@ cluster/
 当前配置基于以下集群环境：
 - **分区**: CPU
 - **每节点核心数**: 192
-- **Conda 环境**: rag_venv
+- **主 Conda 环境**: `GNN`
+- **几何 Conda 环境**: `GNN_vmtk`
 
 ## 快速开始
 
@@ -31,6 +32,14 @@ chmod +x *.sh
 
 ### 2. 提交作业
 
+正式提交前，建议先在登录节点做一次输入审计，避免把缺 `stl` / `ascii` / `ascii_in` / `Global_conditions` 的病例直接送进队列：
+
+```bash
+cd <repo-root>
+conda activate GNN
+python -m pipeline.audit_inputs --groups AAA AG ILO
+```
+
 #### 方式一：Array Job（推荐，并行处理多个病例）
 
 ```bash
@@ -39,6 +48,9 @@ chmod +x *.sh
 
 # 指定病例
 ./batch_submit.sh --array ZHANG_CHUN LI_MING WANG_WEI
+
+# 显式指定双环境
+PIPELINE_ENV=GNN GEOMETRY_ENV=GNN_vmtk ./batch_submit.sh --array
 ```
 
 **Array Job 优势**：
@@ -55,6 +67,22 @@ sbatch run_pipeline.slurm ZHANG_CHUN
 # 批量提交（每个病例一个独立作业）
 ./batch_submit.sh
 ./batch_submit.sh ZHANG_CHUN LI_MING
+
+# 显式指定 geometry-python
+GEOMETRY_PYTHON=/public/newhome/cy/.conda/envs/GNN_vmtk/bin/python \
+./batch_submit.sh ZHANG_CHUN
+```
+
+默认行为：
+- `run_pipeline.slurm` / `run_array.slurm` 在 `GNN` 环境中启动
+- 若检测到 `$HOME/.conda/envs/GNN_vmtk/bin/python`，会自动把步骤2 `extract_features` 切到该解释器执行
+- 如需覆盖，可在提交前设置 `PIPELINE_ENV`、`GEOMETRY_ENV` 或 `GEOMETRY_PYTHON`
+
+示例：
+
+```bash
+GEOMETRY_PYTHON=/public/newhome/cy/.conda/envs/GNN_vmtk/bin/python \
+sbatch run_pipeline.slurm ZHANG_CHUN
 ```
 
 ### 3. 单步骤运行
@@ -75,6 +103,10 @@ sbatch run_single_step.slurm normalize ZHANG_CHUN
 # 步骤5: 图数据转换
 sbatch run_single_step.slurm convert_to_graph ZHANG_CHUN
 ```
+
+`run_single_step.slurm` 会自动选择环境：
+- `extract_features` 使用 `GNN_vmtk`
+- 其他步骤使用 `GNN`
 
 ### 4. 从指定步骤开始
 
@@ -156,10 +188,10 @@ module load vtk  # 如果需要
 
 ### 3. VMTK 报错
 
-确保 conda 环境中安装了 vmtk：
+确保 `GNN_vmtk` 环境已创建且可导入 `vmtk`：
 ```bash
-conda activate rag_venv
-pip install vmtk
+conda activate GNN_vmtk
+python -c "from vmtk import vmtkscripts; print('vmtk ok')"
 ```
 
 ### 4. Array Job 任务失败

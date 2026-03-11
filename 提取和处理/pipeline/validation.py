@@ -11,6 +11,7 @@
 
 import csv
 import json
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
@@ -55,6 +56,16 @@ def _find_surface_file(case_dir: Path) -> Optional[Path]:
 
     surface_files = sorted(list(case_dir.glob("*.stl")) + list(case_dir.glob("*.vtp")))
     return surface_files[0] if surface_files else None
+
+
+def _infer_source_name(case_dir: Path) -> str:
+    parent = case_dir.parent
+    grandparent = parent.parent
+    if grandparent.name.upper() in {"AAA", "AG", "ILO"}:
+        return f"{grandparent.name}/{parent.name}"
+    if parent.name.upper() in {"AAA", "AG", "ILO"}:
+        return parent.name
+    return parent.name
 
 
 def _add_issue(issues: List[Dict[str, object]], code: str, message: str, severity: str = "error") -> None:
@@ -117,9 +128,18 @@ def inspect_case_inputs(case_dir: Path) -> Dict[str, object]:
     if surface_dir.is_dir() and inner_dir.is_dir() and not matched_steps:
         _add_issue(issues, "no_matched_ascii_frames", "ascii 与 ascii_in 没有任何可配对时间步")
 
+    named_surface_model = case_dir / f"{case_dir.name}.stl"
+    has_named_surface_model = named_surface_model.exists()
     surface_model = _find_surface_file(case_dir)
     if surface_model is None:
         _add_issue(issues, "missing_surface_model", "缺少 STL/VTP 表面模型，无法提取几何特征")
+    elif not has_named_surface_model:
+        _add_issue(
+            issues,
+            "missing_named_stl",
+            f"缺少同名 STL 文件: {case_dir.name}.stl",
+            severity="warning",
+        )
 
     bc_files_complete = False
     if not bc_dir.is_dir():
@@ -153,10 +173,12 @@ def inspect_case_inputs(case_dir: Path) -> Dict[str, object]:
     return {
         "case_name": case_dir.name,
         "case_path": str(case_dir),
+        "source": _infer_source_name(case_dir),
         "surface_dir_exists": surface_dir.is_dir(),
         "inner_dir_exists": inner_dir.is_dir(),
         "bc_dir_exists": bc_dir.is_dir(),
         "bc_files_complete": bc_files_complete,
+        "has_named_surface_model": has_named_surface_model,
         "surface_model_path": str(surface_model) if surface_model else None,
         "surface_frame_count": len(surface_files),
         "inner_frame_count": len(inner_files),
@@ -177,9 +199,19 @@ def build_batch_issue_report(case_dirs: Iterable[Path]) -> Dict[str, object]:
     cases_with_issues = [report for report in case_reports if report["issues"]]
     preprocess_ready = sum(1 for report in case_reports if report["has_preprocess_inputs"])
     feature_ready = sum(1 for report in case_reports if report["has_feature_inputs"])
+    named_stl_ready = sum(1 for report in case_reports if report["has_named_surface_model"])
 
     issue_type_counts: Dict[str, int] = {}
+    source_counts: Dict[str, int] = defaultdict(int)
+    source_feature_ready: Dict[str, int] = defaultdict(int)
+    source_preprocess_ready: Dict[str, int] = defaultdict(int)
     for report in case_reports:
+        source = str(report["source"])
+        source_counts[source] += 1
+        if report["has_preprocess_inputs"]:
+            source_preprocess_ready[source] += 1
+        if report["has_feature_inputs"]:
+            source_feature_ready[source] += 1
         for issue in report["issues"]:
             code = str(issue["code"])
             issue_type_counts[code] = issue_type_counts.get(code, 0) + 1
@@ -188,8 +220,12 @@ def build_batch_issue_report(case_dirs: Iterable[Path]) -> Dict[str, object]:
         "case_count": len(case_reports),
         "preprocess_ready_count": preprocess_ready,
         "feature_ready_count": feature_ready,
+        "named_stl_ready_count": named_stl_ready,
         "issue_case_count": len(cases_with_issues),
         "issue_type_counts": issue_type_counts,
+        "source_case_counts": dict(sorted(source_counts.items())),
+        "source_preprocess_ready_counts": dict(sorted(source_preprocess_ready.items())),
+        "source_feature_ready_counts": dict(sorted(source_feature_ready.items())),
         "cases": case_reports,
     }
 
@@ -211,8 +247,10 @@ def save_batch_issue_report(report: Dict[str, object], output_dir: Path, report_
             f,
             fieldnames=[
                 "case_name",
+                "source",
                 "has_preprocess_inputs",
                 "has_feature_inputs",
+                "has_named_surface_model",
                 "bc_files_complete",
                 "surface_frame_count",
                 "inner_frame_count",
@@ -229,8 +267,10 @@ def save_batch_issue_report(report: Dict[str, object], output_dir: Path, report_
             writer.writerow(
                 {
                     "case_name": case_report["case_name"],
+                    "source": case_report["source"],
                     "has_preprocess_inputs": case_report["has_preprocess_inputs"],
                     "has_feature_inputs": case_report["has_feature_inputs"],
+                    "has_named_surface_model": case_report["has_named_surface_model"],
                     "bc_files_complete": case_report["bc_files_complete"],
                     "surface_frame_count": case_report["surface_frame_count"],
                     "inner_frame_count": case_report["inner_frame_count"],

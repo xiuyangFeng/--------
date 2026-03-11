@@ -26,6 +26,7 @@ END_STEP=${3:-5}             # 结束步骤（默认5）
 SAMPLING_METHOD=${4:-"hybrid"}  # 采样方法（默认hybrid）
 FPS_RATIO=${5:-"0.2"}        # hybrid 模式下 FPS 占比
 ALLOW_NEAREST_BC=${ALLOW_NEAREST_BC:-0}
+GEOMETRY_PYTHON=${GEOMETRY_PYTHON:-""}
 
 # ============================================================================
 # 环境配置 - 根据你的集群环境修改
@@ -37,8 +38,15 @@ module purge
 # module load vtk
 
 # 激活 conda 环境
+PIPELINE_ENV=${PIPELINE_ENV:-GNN}
+GEOMETRY_ENV=${GEOMETRY_ENV:-GNN_vmtk}
+DEFAULT_GEOMETRY_PYTHON="$HOME/.conda/envs/$GEOMETRY_ENV/bin/python"
+if [ -z "$GEOMETRY_PYTHON" ] && [ -x "$DEFAULT_GEOMETRY_PYTHON" ]; then
+    GEOMETRY_PYTHON="$DEFAULT_GEOMETRY_PYTHON"
+fi
+
 source ~/.bashrc
-conda activate rag_venv
+conda activate "$PIPELINE_ENV"
 
 # 切换到提交目录
 cd $SLURM_SUBMIT_DIR
@@ -71,6 +79,11 @@ echo "参数:"
 echo "  病例: ${CASE_NAME:-所有病例}"
 echo "  步骤范围: $START_STEP → $END_STEP"
 echo "  采样方法: $SAMPLING_METHOD"
+echo "  主环境: $PIPELINE_ENV"
+echo "  几何环境: $GEOMETRY_ENV"
+if [ -n "$GEOMETRY_PYTHON" ]; then
+    echo "  geometry-python: $GEOMETRY_PYTHON"
+fi
 echo "=============================================="
 echo ""
 
@@ -91,6 +104,9 @@ fi
 
 if [ "$ALLOW_NEAREST_BC" = "1" ]; then
     CMD="$CMD --allow-nearest-bc"
+fi
+if [ -n "$GEOMETRY_PYTHON" ]; then
+    CMD="$CMD --geometry-python $GEOMETRY_PYTHON"
 fi
 
 # 执行

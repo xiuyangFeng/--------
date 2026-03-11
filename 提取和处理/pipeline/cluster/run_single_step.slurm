@@ -25,11 +25,17 @@
 STEP_NAME=${1:-"preprocess"}
 CASE_NAME=${2:-""}
 ALLOW_NEAREST_BC=${ALLOW_NEAREST_BC:-0}
+PIPELINE_ENV=${PIPELINE_ENV:-GNN}
+GEOMETRY_ENV=${GEOMETRY_ENV:-GNN_vmtk}
 
 # 环境配置
 module purge
+TARGET_ENV="$PIPELINE_ENV"
+if [ "$STEP_NAME" = "extract_features" ]; then
+    TARGET_ENV="$GEOMETRY_ENV"
+fi
 source ~/.bashrc
-conda activate rag_venv
+conda activate "$TARGET_ENV"
 
 cd $SLURM_SUBMIT_DIR
 
@@ -43,6 +49,7 @@ mkdir -p "$SCRIPT_DIR/logs"
 echo "=============================================="
 echo "运行步骤: $STEP_NAME"
 echo "病例: ${CASE_NAME:-所有病例}"
+echo "环境: $TARGET_ENV"
 echo "开始时间: $(date)"
 echo "=============================================="
 
