@@ -62,6 +62,31 @@ def load_graph_data(path: Path) -> Data:
     return torch.load(path, weights_only=False)
 
 
+def _discover_case_dirs(root: Path) -> List[Path]:
+    """
+    枚举 root 下所有病例目录。
+
+    标准二层数据源直接返回 root 的一级子目录；
+    ILO 这类三层嵌套会返回 <患者>-<0|1>/<before|after> 叶级目录。
+    """
+    case_dirs: List[Path] = []
+    for child in sorted(root.iterdir()):
+        if not child.is_dir() or child.name.startswith("."):
+            continue
+
+        phase_dirs = [
+            leaf for leaf in sorted(child.iterdir())
+            if leaf.is_dir() and not leaf.name.startswith(".") and leaf.name in {"before", "after"}
+        ]
+        if phase_dirs:
+            case_dirs.extend(phase_dirs)
+            continue
+
+        case_dirs.append(child)
+
+    return case_dirs
+
+
 class CFDGraphDataset(Dataset):
     """
     CFD 图数据集
@@ -88,12 +113,10 @@ class CFDGraphDataset(Dataset):
         
         # 收集所有 .pt 文件
         self.data_files = []
-        self.case_indices = {}  # 记录每个病例的数据索引范围
+        self.case_indices = {}  # case_id -> (start, end)
         
         if case_names is None:
-            # 加载所有病例
-            case_dirs = [d for d in self.root.iterdir() 
-                        if d.is_dir() and not d.name.startswith('.')]
+            case_dirs = _discover_case_dirs(self.root)
         else:
             case_dirs = [self.root / name for name in case_names]
         
@@ -110,7 +133,8 @@ class CFDGraphDataset(Dataset):
                 start_idx = len(self.data_files)
                 self.data_files.extend(pt_files)
                 end_idx = len(self.data_files)
-                self.case_indices[case_dir.name] = (start_idx, end_idx)
+                case_id = str(case_dir.relative_to(self.root))
+                self.case_indices[case_id] = (start_idx, end_idx)
         
         if not self.data_files:
             raise ValueError(f"未找到任何 .pt 文件: {self.root}")
@@ -184,8 +208,7 @@ class CFDAugmentedDataset(Dataset):
         self.case_indices = {}
         
         if case_names is None:
-            case_dirs = [d for d in self.root.iterdir() 
-                        if d.is_dir() and not d.name.startswith('.')]
+            case_dirs = _discover_case_dirs(self.root)
         else:
             case_dirs = [self.root / name for name in case_names]
         
@@ -202,7 +225,8 @@ class CFDAugmentedDataset(Dataset):
                 start_idx = len(self.data_files)
                 self.data_files.extend(pt_files)
                 end_idx = len(self.data_files)
-                self.case_indices[case_dir.name] = (start_idx, end_idx)
+                case_id = str(case_dir.relative_to(self.root))
+                self.case_indices[case_id] = (start_idx, end_idx)
         
         if not self.data_files:
             raise ValueError(f"未找到任何 .pt 文件: {self.root}")

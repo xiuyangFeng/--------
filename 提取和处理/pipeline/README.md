@@ -68,15 +68,17 @@
 ```
 pipeline/
 ├── __init__.py             # 模块初始化
-├── config.py               # 配置文件
+├── config.py               # 配置文件（含数据源定义、嵌套标记）
+├── validation.py           # 单病例输入完备性检查（支持 ILO 三层嵌套）
+├── audit_inputs.py         # 批量审计入口（目录发现 + 报告生成）
 ├── preprocess.py           # 步骤1: 数据预处理
 ├── extract_features.py     # 步骤2: 几何特征提取
-├── coord_normalize.py      # 步骤3: 坐标系归一化【新增】
+├── coord_normalize.py      # 步骤3: 坐标系归一化
 ├── normalize.py            # 步骤4: 特征归一化
 ├── convert_to_graph.py     # 步骤5: 图数据转换
 ├── run_all.py              # 一键运行全流程
-├── augmentation.py         # 数据增强函数【新增】
-├── dataset.py              # 数据集类（含在线增强）【新增】
+├── augmentation.py         # 数据增强函数
+├── dataset.py              # 数据集类（含在线增强）
 ├── utils/                  # 工具模块
 │   ├── __init__.py
 │   ├── io.py               # 数据读写
@@ -137,29 +139,67 @@ python -c "from vmtk import vmtkscripts; print('vmtk ok')"
 
 ### 输入数据目录结构
 
+`data_new/` 下有三个数据源大类，各自的目录层级不同：
+
 ```
 data_new/
-└── AG/
-    └── fast/
-        └── 病例名/                    # 如 ZHANG_CHUN
-            ├── 病例名.stl             # STL 表面模型（必需）
-            ├── ascii/                 # 壁面数据目录（必需）
-            │   ├── 病例名-1120        # 时间步 1120
-            │   ├── 病例名-1122        # 时间步 1122（必须与 ascii_in 对齐）
-            │   └── ...
-            ├── ascii_in/              # 内部数据目录（必需）
-            │   ├── 病例名-1120        # 时间步 1120
-            │   ├── 病例名-1122        # 时间步 1122
-            │   └── ...
-            └── Global_conditions/     # 边界条件目录（必需）
-                ├── vf-in-rfile.out    # 入口体积流量
-                ├── p-outle-rfile.out  # 左外髂支出口压力
-                ├── p-outli-rfile.out  # 左内髂支出口压力
-                ├── p-outre-rfile.out  # 右外髂支出口压力
-                └── p-outri-rfile.out  # 右内髂支出口压力
+├── AAA/                         # 腹主动脉瘤 (Abdominal Aortic Aneurysm)
+│   ├── ruputer/                 # 破裂组（注意实际拼写 ruputer）
+│   │   └── <患者名>/            # 如 CHEN_FU
+│   │       └── (叶级目录)
+│   └── unruputer/               # 未破裂组（注意实际拼写 unruputer）
+│       └── <患者名>/
+│           └── (叶级目录)
+│
+├── AG/                          # 动脉移植物 (Arterial Graft)
+│   ├── fast/                    # 快速增长
+│   │   └── <患者名>/            # 如 ZHANG_CHUN
+│   │       └── (叶级目录)
+│   └── slow/                    # 慢速增长
+│       └── <患者名>/
+│           └── (叶级目录)
+│
+└── ILO/                         # 髂支闭塞 (Iliac Limb Occlusion) —— 三层嵌套
+    ├── <患者名>-0/              # 0 = 未破裂
+    │   ├── before/              # 术前 → 叶级目录
+    │   └── after/               # 术后 → 叶级目录
+    └── <患者名>-1/              # 1 = 破裂
+        ├── before/
+        └── after/
+```
+
+**叶级目录**（即 pipeline 实际处理的最小单元）内部结构统一如下：
+
+```
+<叶级目录>/
+├── *.stl                    # STL 表面模型（必需）
+├── ascii/                   # 壁面数据目录（必需）
+│   ├── <名称>-1120          # 时间步 1120
+│   ├── <名称>-1122          # 时间步 1122（须与 ascii_in 对齐）
+│   └── ...
+├── ascii_in/                # 内部数据目录（必需）
+│   ├── <名称>-1120
+│   ├── <名称>-1122
+│   └── ...
+└── Global_conditions/       # 边界条件目录（必需）
+    ├── vf-in-rfile.out      # 入口体积流量
+    ├── p-outle-rfile.out    # 左外髂支出口压力
+    ├── p-outli-rfile.out    # 左内髂支出口压力
+    ├── p-outre-rfile.out    # 右外髂支出口压力
+    └── p-outri-rfile.out    # 右内髂支出口压力
 ```
 
 > **重要**: `ascii/` 和 `ascii_in/` 目录中的文件必须**一一对应**。Pipeline 只会处理两个目录中**同时存在**的时间步文件。如果文件不对齐，多余的文件会被跳过。建议在处理前先清理数据，确保两个目录的文件编号完全一致。
+
+### 三种数据源差异对比
+
+| 数据源 | 层级 | 分类标签 | STL 命名 | 病例标识 (case_id) |
+|--------|------|----------|----------|---------------------|
+| **AG** | 二层 `AG/<fast\|slow>/<患者>/` | 增长速度 | `<患者名>.stl` | `<患者名>` |
+| **AAA** | 二层 `AAA/<ruputer\|unruputer>/<患者>/` | 破裂/未破裂 | `<患者名>.stl` | `<患者名>` |
+| **ILO** | 三层 `ILO/<患者>-<0\|1>/<before\|after>/` | 破裂状态 (0/1) + 术前/术后 | `*-sq.stl` (术前) / `*_SH_FINAL.stl` (术后) 等 | `<患者>-<0\|1>/<before\|after>` |
+
+ILO 的 `case_id` 包含子路径，例如 `DONG_JIA_JU-1/after`。在 split 文件和训练脚本中，可以直接使用此 case_id 作为相对路径。
 
 ### 数据格式说明
 
@@ -198,12 +238,7 @@ python -m pipeline.run_all
 
 ### 方式零：先做原始输入审计（强烈建议）
 
-在批量处理或生成 split 之前，先批量检查病例是否具备：
-
-- `病例名.stl`
-- `ascii/`
-- `ascii_in/`
-- `Global_conditions/`
+在批量处理或生成 split 之前，先批量检查所有数据源的病例是否具备所需输入文件。审计工具能正确处理 ILO 三层嵌套结构。
 
 同时扫描 `AAA / AG / ILO`：
 
@@ -224,11 +259,19 @@ python -m pipeline.audit_inputs \
   --require-named-stl
 ```
 
+只检查 ILO：
+
+```bash
+python -m pipeline.audit_inputs \
+  --sources ILO \
+  --report-name raw_input_audit_ilo
+```
+
 默认输出到 `data_new/pipeline_reports/`，包含：
 
-- `*.json`：完整结构化报告
-- `*.csv`：适合人工筛查和补数
-- `*.txt`：可选；当你按单一数据源扫描时，可直接作为 `training.make_split` 的病例名单
+- `*.json`：完整结构化报告（含 `issue_summary` 按问题类型聚合受影响 case_id）
+- `*.csv`：按数据源、患者名排序，包含 `case_id`、`patient_name`、`data_source`、`rupture_status`、`surgery_phase` 等列，适合筛查和补数
+- `*.txt`：可选；当你按单一数据源扫描时，可直接作为 `training.make_split` 的病例名单（ILO 病例名含子路径如 `DONG_JIA_JU-1/after`）
 
 ### 方式二：分步处理
 
@@ -625,9 +668,11 @@ squeue -u $USER
 ```python
 # 数据源配置
 DATA_SOURCES = {
-    "AG/fast": {"enabled": True},   # 当前启用
-    "AG/slow": {"enabled": False},  # 待放入数据后启用
-    ...
+    "AG/fast":       {"enabled": True,  "description": "动脉移植物-快速增长"},
+    "AG/slow":       {"enabled": False, "description": "动脉移植物-慢速增长"},
+    "AAA/ruputer":   {"enabled": False, "description": "腹主动脉瘤-破裂"},
+    "AAA/unruputer": {"enabled": False, "description": "腹主动脉瘤-未破裂"},
+    "ILO":           {"enabled": False, "description": "髂支闭塞", "nested": True},
 }
 
 # 降采样配置
@@ -742,13 +787,18 @@ python -m pipeline.audit_inputs --groups AAA AG ILO
 
 生成的 CSV 中重点关注：
 
-- `has_named_surface_model`：是否存在同名 `病例名.stl`
+- `case_id`：病例唯一标识（ILO 为 `患者-0|1/before|after`，AAA/AG 为患者名）
+- `data_source`：所属数据源
+- `rupture_status` / `surgery_phase`：ILO 特有的破裂状态和术前/术后标记
 - `has_preprocess_inputs`：是否可进入步骤1 `preprocess`
 - `has_feature_inputs`：是否可进入步骤2 `extract_features`
 - `issue_codes / issue_messages`：缺失项和原因说明
 
+JSON 报告中的 `issue_summary` 按问题类型聚合了受影响的 case_id 列表，方便快速定位。
+
 常见问题码：
 
+- `missing_surface_model`
 - `missing_named_stl`
 - `missing_ascii_dir`
 - `missing_ascii_in_dir`
@@ -805,8 +855,10 @@ python -m pipeline.normalize --input-subdir processed/features
 1. 在 `config.py` 中添加数据源：
 ```python
 DATA_SOURCES = {
-    "AG/fast": {"enabled": True},
-    "新路径/子目录": {"enabled": True},  # 添加这行
+    "AG/fast": {"enabled": True, "description": "..."},
+    "新路径/子目录": {"enabled": True, "description": "..."},  # 标准二层
+    # 若为 ILO 式三层嵌套，需标记 nested:
+    # "ILO_NEW": {"enabled": True, "description": "...", "nested": True},
 }
 ```
 

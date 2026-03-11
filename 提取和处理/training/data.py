@@ -56,6 +56,7 @@ class FieldGraphDataset(Dataset):
         self.root = Path(root)
         self.case_names = case_names
         self.graphs_subdir = graphs_subdir
+        self._subdir_depth = len(Path(graphs_subdir).parts)
         self.augment = augment
         self.augment_config = (augment_config or DEFAULT_AUGMENT_CONFIG.copy()).copy()
         self.preload = preload
@@ -100,8 +101,12 @@ class FieldGraphDataset(Dataset):
             data.global_cond = data.global_cond * global_mask.unsqueeze(0)
 
         # 保留样本级元信息，便于后续回溯和导出预测结果。
+        # 从 data_path 逆推 case 相对路径，兼容 ILO 嵌套 (case_name 含 '/')。
+        case_path = data_path
+        for _ in range(self._subdir_depth + 1):
+            case_path = case_path.parent
         data.sample_id = data_path.stem
-        data.case_name = data_path.parent.parent.name
+        data.case_name = str(case_path.relative_to(self.root))
         data.graph_path = str(data_path)
 
         return data

@@ -32,13 +32,19 @@ else:
 # 数据源配置
 # ============================================================================
 
+# 数据源结构说明：
+#   AAA / AG  —— 标准二层：  <group>/<subgroup>/<患者>/
+#   ILO       —— 三层嵌套：  ILO/<患者>-<0|1>/<before|after>/
+#                            0 = 未破裂, 1 = 破裂; before = 术前, after = 术后
+#
+# 带有 "nested": True 的数据源，get_case_dirs() 会额外向下探一层。
+
 DATA_SOURCES = {
-    "AG/fast": {"enabled": True, "description": "动脉移植物-快速增长"},
-    "AG/slow": {"enabled": False, "description": "动脉移植物-慢速增长"},
-    "AAA/rupture": {"enabled": False, "description": "腹主动脉瘤-破裂"},
-    "AAA/unrupture": {"enabled": False, "description": "腹主动脉瘤-未破裂"},
-    "ILO/sq": {"enabled": False, "description": "髂支闭塞-SQ"},
-    "ILO/sh": {"enabled": False, "description": "髂支闭塞-SH"},
+    "AG/fast":       {"enabled": True,  "description": "动脉移植物-快速增长"},
+    "AG/slow":       {"enabled": False, "description": "动脉移植物-慢速增长"},
+    "AAA/ruputer":   {"enabled": False, "description": "腹主动脉瘤-破裂"},
+    "AAA/unruputer": {"enabled": False, "description": "腹主动脉瘤-未破裂"},
+    "ILO":           {"enabled": False, "description": "髂支闭塞（三层嵌套）", "nested": True},
 }
 
 # ============================================================================
@@ -235,14 +241,23 @@ def get_enabled_sources():
     return [source for source, config in DATA_SOURCES.items() if config["enabled"]]
 
 
+def _is_nested_source(source: str) -> bool:
+    """判断数据源是否为三层嵌套结构（如 ILO）。"""
+    cfg = DATA_SOURCES.get(source, {})
+    return cfg.get("nested", False)
+
+
 def get_case_dirs(data_root=None, sources=None):
     """
-    获取所有病例目录
-    
+    获取所有病例目录。
+
+    对于标准二层数据源 (AG/fast, AAA/ruputer …)，直接返回子目录。
+    对于嵌套数据源 (ILO)，向下多探一层：<患者>-<0|1>/<before|after>。
+
     参数:
         data_root: 数据根目录，默认使用 DATA_ROOT
         sources: 数据源列表，默认使用已启用的数据源
-    
+
     返回:
         病例目录路径列表
     """
@@ -250,21 +265,30 @@ def get_case_dirs(data_root=None, sources=None):
         data_root = DATA_ROOT
     else:
         data_root = Path(data_root)
-    
+
     if sources is None:
         sources = get_enabled_sources()
-    
+
     case_dirs = []
     for source in sources:
         source_path = data_root / source
         if not source_path.exists():
             continue
-        
-        for case_dir in source_path.iterdir():
-            if case_dir.is_dir() and not case_dir.name.startswith('.'):
-                case_dirs.append(case_dir)
-    
-    return sorted(case_dirs, key=lambda p: p.name)
+
+        nested = _is_nested_source(source)
+
+        for child in sorted(source_path.iterdir()):
+            if not child.is_dir() or child.name.startswith("."):
+                continue
+
+            if nested:
+                for leaf in sorted(child.iterdir()):
+                    if leaf.is_dir() and not leaf.name.startswith("."):
+                        case_dirs.append(leaf)
+            else:
+                case_dirs.append(child)
+
+    return sorted(case_dirs, key=lambda p: (str(p.parent), p.name))
 
 
 if __name__ == "__main__":

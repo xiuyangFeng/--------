@@ -24,11 +24,11 @@ Pipeline - 新数据格式完整处理流程
 - 支持: 随机旋转、随机平移（矢量特征同步变换）
 
 数据源: data_new/
-- AG/fast: 动脉移植物快速增长
-- AG/slow: 动脉移植物慢速增长 (待放入)
-- AAA/rupture: 腹主动脉瘤破裂 (待放入)
-- AAA/unrupture: 腹主动脉瘤未破裂 (待放入)
-- ILO/sq, ILO/sh: 髂支闭塞 (待放入)
+- AG/fast:       动脉移植物-快速增长
+- AG/slow:       动脉移植物-慢速增长
+- AAA/ruputer:   腹主动脉瘤-破裂
+- AAA/unruputer: 腹主动脉瘤-未破裂
+- ILO:           髂支闭塞（三层嵌套: ILO/<患者>-<0|1>/<before|after>/）
 """
 
-__version__ = "2.0.0"  # 新增坐标系归一化和数据增强
+__version__ = "2.1.0"
