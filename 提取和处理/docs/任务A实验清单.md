@@ -36,7 +36,8 @@
 - **目标预测 (`data.y`, 4维):**
   - `[0:3]`: `u, v, w` (速度)
   - `[3]`: `p` (压力)
-  - 初期目标函数推荐用 `L_total = α*MSE(pred_u, u) + α*MSE(pred_v, v) + α*MSE(pred_w, w) + β*MSE(pred_p, p)`，（建议 α=1.0, β=0.1）。
+  - 主线先使用 CFD 监督损失：`L_data = α*MSE(pred_u, u) + α*MSE(pred_v, v) + α*MSE(pred_w, w) + β*MSE(pred_p, p)`，建议 `α=1.0, β=0.1~0.5`。
+  - 物理项不与第一版 baseline 同时耦合，而是在主线稳定后按 `continuity -> no-slip -> momentum` 递进引入。
 
 ### 2.3 目标
 
@@ -49,6 +50,7 @@
 5. 物理约束是否带来额外收益。
 6. 在 4 万点大图场景下，多尺度层次化建模是否比单尺度消息传递更优。
 7. 精度提升究竟来自 backbone 更强，还是来自层次化表示与更合理的图结构设计。
+8. 在大量 CFD 标签存在时，混合监督是否比直接 full PINN 更稳。
 
 ---
 
@@ -562,18 +564,21 @@
 
 1. 数据损失 only
 2. 数据 + continuity
-3. 数据 + continuity + momentum
-4. 数据 + continuity + momentum + no-slip
+3. 数据 + continuity + no-slip
+4. 数据 + continuity + no-slip + momentum
 
 ### 额外记录
 
 - 训练稳定性
 - 收敛速度
 - 残差分布
+- `val_data_loss` 与物理残差是否同步改善
 
 ### 执行建议
 
 physics loss 只在单尺度主线已经稳定后再做。否则你会同时面对“模型不稳”和“物理项不稳”，很难排查。
+
+这里默认路线不是纯 PINN，而是“CFD 监督为主、物理项为辅”。若 `continuity` 还没带来稳定收益，不要急着上完整动量残差。
 
 ## 7.6 A-Abl-06：层次深度消融
 

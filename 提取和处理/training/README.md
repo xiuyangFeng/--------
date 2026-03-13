@@ -30,12 +30,19 @@
 1. 不修改现有 `pipeline/` 数据处理流程。
 2. 所有特征消融通过“特征掩码”实现，不改图文件结构。
 3. 第一阶段只服务任务 A，先把 `MLP / GraphSAGE / Transformer` 跑通。
-4. 后续加 physics loss、任务 B、任务 C 时直接扩展这套骨架。
+4. 后续加 physics loss、任务 B、任务 C 时直接扩展这套骨架，但 physics 默认走“CFD 监督主干 + 分阶段物理正则”，不走纯 PINN 起步。
 
 当前已经补到：
 
 - 可插拔 physics loss 接口
 - 任务 B 指标计算与导出骨架
+
+physics 使用建议：
+
+1. 先跑稳定的 `data-only` baseline。
+2. 再开 `continuity_loss`，确认不会拖垮验证集数据误差。
+3. 再加 `no_slip_loss` 这类边界正则。
+4. `momentum_loss` 最后上，并始终配合 warmup 与分项监控。
 
 ## 使用方式
 
@@ -164,6 +171,13 @@ pip install -r training/requirements.txt
 - `train_continuity_loss / val_continuity_loss`
 - `train_momentum_loss / val_momentum_loss`
 - `train_no_slip_loss / val_no_slip_loss`
+
+实践上更推荐这样解读这些字段：
+
+- `data_loss` 决定模型是否真的更接近 CFD 真值。
+- `continuity_loss` 适合做第一层物理一致性筛查。
+- `no_slip_loss` 适合检查壁面条件是否被破坏。
+- `momentum_loss` 只有在前面几项稳定后才值得比较，否则很容易成为噪声源。
 
 ## 第一批模板配置
 
