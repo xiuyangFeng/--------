@@ -12,6 +12,8 @@ __all__ = [
     "farthest_point_sampling",
     "random_sampling",
     "stratified_sampling_by_distance",
+    "case_progress_logging",
+    "batch_progress_logging",
 ]
 
 
@@ -34,5 +36,10 @@ def __getattr__(name):
         from . import sampling as _sampling
 
         return getattr(_sampling, name)
+
+    if name in {"case_progress_logging", "batch_progress_logging"}:
+        from . import progress as _progress
+
+        return getattr(_progress, name)
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

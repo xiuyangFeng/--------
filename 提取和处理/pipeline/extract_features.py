@@ -59,6 +59,8 @@ if __package__ in {None, ""}:
         resolve_bc_for_step,
         summarize_bc_coverage,
     )
+    from pipeline.utils.progress import batch_progress_logging
+    from pipeline.utils.progress import case_progress_logging
 else:
     from .config import (
         DATA_ROOT,
@@ -72,6 +74,8 @@ else:
         resolve_bc_for_step,
         summarize_bc_coverage,
     )
+    from .utils.progress import batch_progress_logging
+    from .utils.progress import case_progress_logging
 
 from legacy.preprocess import vmtk_core
 
@@ -191,7 +195,9 @@ def prepare_geometry_data(stl_path: str) -> dict:
     print(f"  🔧 预处理几何数据: {Path(stl_path).name}")
     
     # 读取表面并提取中心线
+    print("    - 读取表面模型...")
     surface = vmtk_core.read_surface(stl_path)
+    print("    - 提取中心线与几何属性...")
     centerline = vmtk_core.extract_rich_centerline(surface)
     
     # 获取中心线数据
@@ -209,6 +215,7 @@ def prepare_geometry_data(stl_path: str) -> dict:
     }
     
     # 创建 KDTree 定位器
+    print("    - 构建中心线最近邻定位器...")
     locator = vtk.vtkKdTreePointLocator()
     locator.SetDataSet(centerline)
     locator.BuildLocator()
@@ -221,6 +228,7 @@ def process_single_cloud(
     geo_data: dict,
     cloud_path: str,
     output_path: str,
+    file_label: str = "",
 ) -> None:
     """
     使用预处理好的几何数据处理单个点云文件。
@@ -232,6 +240,8 @@ def process_single_cloud(
         cloud_path: 点云文件路径
         output_path: 输出文件路径
     """
+    prefix = f"    {file_label} " if file_label else "    "
+
     # 解包几何数据
     cl_points = geo_data["cl_points"]
     arr_abscissa = geo_data["arr_abscissa"]
@@ -241,17 +251,28 @@ def process_single_cloud(
     locator = geo_data["locator"]
     
     # 加载点云数据
+    print(f"{prefix}读取点云: {Path(cloud_path).name}")
     df_in = pd.read_csv(cloud_path)
     cloud_xyz = df_in[['x', 'y', 'z']].values
     cloud_others_df = df_in.drop(columns=['x', 'y', 'z'])
     
     n_pts = cloud_xyz.shape[0]
+    print(f"{prefix}点数: {n_pts}")
     
     # 映射几何特征
+    print(f"{prefix}映射几何特征到点云...")
     geo_abscissa = np.zeros(n_pts)
     geo_norm_dist = np.zeros(n_pts)
     geo_curv = np.zeros(n_pts)
     geo_tangent = np.zeros((n_pts, 3))
+    progress_marks = set()
+    if n_pts >= 4:
+        progress_marks = {
+            max(1, int(n_pts * 0.25)),
+            max(1, int(n_pts * 0.50)),
+            max(1, int(n_pts * 0.75)),
+            n_pts,
+        }
     
     for i in range(n_pts):
         pt = cloud_xyz[i]
@@ -266,6 +287,9 @@ def process_single_cloud(
         
         safe_r = local_r if local_r > 1e-6 else 1.0
         geo_norm_dist[i] = dist / safe_r
+        point_idx = i + 1
+        if point_idx in progress_marks:
+            print(f"{prefix}几何映射进度: {point_idx}/{n_pts}")
     
     # 归一化 Abscissa 到 [0, 1]
     ab_min, ab_max = np.nanmin(geo_abscissa), np.nanmax(geo_abscissa)
@@ -302,6 +326,7 @@ def process_single_cloud(
     # 保存输出
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"{prefix}保存特征文件: {output_path.name}")
     df_out.to_csv(output_path, index=False)
 
 
@@ -326,179 +351,175 @@ def process_case(
     """
     case_dir = Path(case_dir)
     case_name = case_dir.name
-    
-    if input_subdir is None:
-        input_subdir = MERGED_DIR
-    if output_subdir is None:
-        output_subdir = FEATURES_DIR
-    
-    # 1. 查找表面模型
-    surface_path = find_surface_file(case_dir)
-    if not surface_path:
-        print(f"  ❌ 跳过: 缺少表面模型")
-        return False
-    
-    # 2. 查找点云文件
-    cloud_files = find_cloud_files(case_dir, input_subdir)
-    if not cloud_files:
-        print(f"  ❌ 跳过: 缺少点云数据 ({input_subdir})")
-        return False
-    
-    print(f"  📁 找到 {len(cloud_files)} 个点云文件")
-    
-    # 3. 准备输出目录
-    output_dir = case_dir / output_subdir
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # 4. 预处理几何数据（只做一次）
-    try:
-        geo_data = prepare_geometry_data(str(surface_path))
-    except Exception as e:
-        print(f"  ❌ 几何预处理失败: {e}")
-        traceback.print_exc()
-        return False
-    
-    # 5. 保存中心线文件（VTP 可视化 + CSV 点云数据）
-    if save_centerline:
-        try:
-            centerline_dir = case_dir / "centerline"
-            vtp_path = centerline_dir / "centerline.vtp"
-            csv_path = centerline_dir / "centerline_points.csv"
-            export_centerline(geo_data["centerline"], vtp_path, csv_path)
-            print(f"  📍 中心线已保存: {centerline_dir.name}/")
-        except Exception as e:
-            print(f"  ⚠️ 中心线保存失败: {e}")
-    
-    # 6. 加载边界条件（固定使用 Global_conditions 目录）
-    bc_dir = case_dir / BC_DIR
-    global_bcs_map = load_boundary_conditions(bc_dir)
-    cloud_steps = []
-    for cloud_path in cloud_files:
-        match = re.search(r'-(\d+)$', cloud_path.stem)
-        if match:
-            cloud_steps.append(int(match.group(1)))
-    bc_coverage = summarize_bc_coverage(global_bcs_map, cloud_steps) if cloud_steps else None
-    
-    if not global_bcs_map:
-        print(f"  ⚠️ 未加载到边界条件数据，将跳过边界条件特征")
-    elif bc_coverage is not None:
-        print(
-            f"  📋 BC 覆盖: 目标 {bc_coverage['target_count']} / 匹配 {bc_coverage['matched_count']} / "
-            f"缺失 {bc_coverage['missing_count']}"
-        )
-        if bc_coverage["missing_count"]:
-            print("  ⚠️ 存在未覆盖时间步；默认严格匹配，不使用最近邻兜底")
-    
-    # 7. 处理每个点云文件，同时收集边界条件元数据
-    success_count = 0
-    start_time = time.time()
-    bc_metadata = {}  # {文件stem: [Inlet, O1, O2, O3, O4]}
-    bc_match_summary = {"exact": 0, "nearest": 0, "missing": 0}
-    fallback_matches = []
-    
-    for i, cloud_path in enumerate(cloud_files, 1):
-        cloud_filename = cloud_path.name
-        output_filename = f"result_features_{cloud_path.stem}.csv"
-        output_path = output_dir / output_filename
-        
-        try:
-            # 提取时间步
-            time_step = None
-            match = re.search(r'-(\d+)\.', cloud_filename)
-            if not match:
-                match = re.search(r'-(\d+)$', cloud_path.stem)
-            if match:
-                time_step = int(match.group(1))
-            
-            # 获取对应的边界条件
-            current_bcs = None
-            if time_step is not None:
-                current_bcs, matched_step, match_mode = resolve_bc_for_step(
-                    global_bcs_map,
-                    time_step,
-                    allow_nearest=not strict_bc_match,
-                )
-                bc_match_summary[match_mode] += 1
-                if match_mode == "nearest":
-                    fallback_matches.append(
-                        {
-                            "cloud_step": time_step,
-                            "matched_bc_step": matched_step,
-                        }
-                    )
-            
-            # 处理点云（不再传入 BC，BC 单独保存）
-            process_single_cloud(geo_data, str(cloud_path), str(output_path))
-            success_count += 1
-            
-            # 收集边界条件到元数据（统一格式为 5 个值）
-            if current_bcs is not None:
-                if len(current_bcs) == 5:
-                    bc_metadata[cloud_path.stem] = [float(v) for v in current_bcs]
-                elif len(current_bcs) == 6:
-                    # 旧格式: 跳过 BC_Flag，只保留后 5 个值
-                    bc_metadata[cloud_path.stem] = [float(v) for v in current_bcs[1:]]
-                else:
-                    print(f"  ⚠️ 边界条件格式错误: 期望 5 或 6 个值，实际 {len(current_bcs)} 个")
-            elif time_step is not None:
-                print(f"  ⚠️ 时间步 {time_step} 缺少精确匹配 BC，已跳过 BC 元数据写入")
-            
-            # 进度显示
-            if i % 10 == 0 or i == len(cloud_files):
-                elapsed = time.time() - start_time
-                avg_time = elapsed / i
-                remaining = avg_time * (len(cloud_files) - i)
-                print(f"  📈 进度: {i}/{len(cloud_files)} "
-                      f"({success_count} 成功, 剩余约 {remaining:.1f}s)")
-            
-        except Exception as e:
-            print(f"  ❌ 处理 {cloud_filename} 失败: {e}")
-    
-    total_time = time.time() - start_time
-    
-    # 8. 保存边界条件元数据（全局条件，不再逐行存入 CSV）
-    if bc_metadata:
-        bc_meta_path = output_dir / "bc_metadata.json"
-        bc_meta_content = {
-            "description": "边界条件元数据（全局条件，每个时间步共享）",
-            "fields": ["BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"],
-            "matching_policy": "exact_only" if strict_bc_match else "allow_nearest",
-            "match_summary": bc_match_summary,
-            "fallback_matches": fallback_matches,
-            "units": {
-                "BC_Inlet": "m³/s (入口体积流量)",
-                "BC_O1": "Pa (左外髂支出口压力)",
-                "BC_O2": "Pa (左内髂支出口压力)",
-                "BC_O3": "Pa (右外髂支出口压力)",
-                "BC_O4": "Pa (右内髂支出口压力)",
-            },
-            "data": bc_metadata,
-        }
-        with open(bc_meta_path, 'w', encoding='utf-8') as f:
-            json.dump(bc_meta_content, f, indent=2, ensure_ascii=False)
-        print(f"  📋 边界条件元数据已保存: {bc_meta_path.name} ({len(bc_metadata)} 个时间步)")
-    else:
-        print(f"  ⚠️ 未保存边界条件元数据（无有效数据）")
+    with case_progress_logging(case_dir, "step2_extract_features") as log_path:
+        print(f"📝 进度日志: {log_path}")
 
-    report_path = output_dir / "feature_extraction_report.json"
-    report = {
-        "case_name": case_name,
-        "cloud_file_count": len(cloud_files),
-        "success_count": success_count,
-        "bc_matching_policy": "exact_only" if strict_bc_match else "allow_nearest",
-        "bc_match_summary": bc_match_summary,
-        "bc_coverage": bc_coverage,
-        "fallback_matches": fallback_matches,
-    }
-    with open(report_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2, ensure_ascii=False)
-    
-    if success_count > 0:
-        print(f"  ✅ 完成: {success_count}/{len(cloud_files)} 个文件, 耗时 {total_time:.1f}s")
-        print(f"  📂 输出目录: {output_dir}")
-        print(f"  📄 报告: {report_path.name}")
-        return True
-    else:
+        if input_subdir is None:
+            input_subdir = MERGED_DIR
+        if output_subdir is None:
+            output_subdir = FEATURES_DIR
+
+        surface_path = find_surface_file(case_dir)
+        if not surface_path:
+            print(f"  ❌ 跳过: 缺少表面模型")
+            return False
+
+        cloud_files = find_cloud_files(case_dir, input_subdir)
+        if not cloud_files:
+            print(f"  ❌ 跳过: 缺少点云数据 ({input_subdir})")
+            return False
+
+        print(f"  📁 找到 {len(cloud_files)} 个点云文件")
+        output_dir = case_dir / output_subdir
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            geo_data = prepare_geometry_data(str(surface_path))
+        except Exception as e:
+            print(f"  ❌ 几何预处理失败: {e}")
+            traceback.print_exc()
+            return False
+
+        if save_centerline:
+            try:
+                centerline_dir = case_dir / "centerline"
+                vtp_path = centerline_dir / "centerline.vtp"
+                csv_path = centerline_dir / "centerline_points.csv"
+                export_centerline(geo_data["centerline"], vtp_path, csv_path)
+                print(f"  📍 中心线已保存: {centerline_dir.name}/")
+            except Exception as e:
+                print(f"  ⚠️ 中心线保存失败: {e}")
+
+        bc_dir = case_dir / BC_DIR
+        global_bcs_map = load_boundary_conditions(bc_dir)
+        cloud_steps = []
+        for cloud_path in cloud_files:
+            match = re.search(r'-(\d+)$', cloud_path.stem)
+            if match:
+                cloud_steps.append(int(match.group(1)))
+        bc_coverage = summarize_bc_coverage(global_bcs_map, cloud_steps) if cloud_steps else None
+
+        if not global_bcs_map:
+            print(f"  ⚠️ 未加载到边界条件数据，将跳过边界条件特征")
+        elif bc_coverage is not None:
+            print(
+                f"  📋 BC 覆盖: 目标 {bc_coverage['target_count']} / 匹配 {bc_coverage['matched_count']} / "
+                f"缺失 {bc_coverage['missing_count']}"
+            )
+            if bc_coverage["missing_count"]:
+                print("  ⚠️ 存在未覆盖时间步；默认严格匹配，不使用最近邻兜底")
+
+        success_count = 0
+        start_time = time.time()
+        bc_metadata = {}
+        bc_match_summary = {"exact": 0, "nearest": 0, "missing": 0}
+        fallback_matches = []
+
+        for i, cloud_path in enumerate(cloud_files, 1):
+            cloud_filename = cloud_path.name
+            output_filename = f"result_features_{cloud_path.stem}.csv"
+            output_path = output_dir / output_filename
+
+            try:
+                print(f"  🔄 [{i}/{len(cloud_files)}] 文件: {cloud_filename}")
+                time_step = None
+                match = re.search(r'-(\d+)\.', cloud_filename)
+                if not match:
+                    match = re.search(r'-(\d+)$', cloud_path.stem)
+                if match:
+                    time_step = int(match.group(1))
+
+                current_bcs = None
+                if time_step is not None:
+                    current_bcs, matched_step, match_mode = resolve_bc_for_step(
+                        global_bcs_map,
+                        time_step,
+                        allow_nearest=not strict_bc_match,
+                    )
+                    bc_match_summary[match_mode] += 1
+                    if match_mode == "nearest":
+                        fallback_matches.append(
+                            {"cloud_step": time_step, "matched_bc_step": matched_step}
+                        )
+                    if matched_step is not None:
+                        print(
+                            f"    BC 匹配: cloud_step={time_step}, bc_step={matched_step}, mode={match_mode}"
+                        )
+                    else:
+                        print(f"    BC 匹配: cloud_step={time_step}, mode={match_mode}")
+
+                process_single_cloud(
+                    geo_data,
+                    str(cloud_path),
+                    str(output_path),
+                    file_label=f"[{i}/{len(cloud_files)}]",
+                )
+                success_count += 1
+
+                if current_bcs is not None:
+                    if len(current_bcs) == 5:
+                        bc_metadata[cloud_path.stem] = [float(v) for v in current_bcs]
+                    elif len(current_bcs) == 6:
+                        bc_metadata[cloud_path.stem] = [float(v) for v in current_bcs[1:]]
+                    else:
+                        print(f"  ⚠️ 边界条件格式错误: 期望 5 或 6 个值，实际 {len(current_bcs)} 个")
+                elif time_step is not None:
+                    print(f"  ⚠️ 时间步 {time_step} 缺少精确匹配 BC，已跳过 BC 元数据写入")
+
+                print(f"  ✅ 文件完成: {output_filename}")
+
+                if i % 10 == 0 or i == len(cloud_files):
+                    elapsed = time.time() - start_time
+                    avg_time = elapsed / i
+                    remaining = avg_time * (len(cloud_files) - i)
+                    print(f"  📈 进度: {i}/{len(cloud_files)} ({success_count} 成功, 剩余约 {remaining:.1f}s)")
+            except Exception as e:
+                print(f"  ❌ 处理 {cloud_filename} 失败: {e}")
+
+        total_time = time.time() - start_time
+
+        if bc_metadata:
+            bc_meta_path = output_dir / "bc_metadata.json"
+            bc_meta_content = {
+                "description": "边界条件元数据（全局条件，每个时间步共享）",
+                "fields": ["BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"],
+                "matching_policy": "exact_only" if strict_bc_match else "allow_nearest",
+                "match_summary": bc_match_summary,
+                "fallback_matches": fallback_matches,
+                "units": {
+                    "BC_Inlet": "m³/s (入口体积流量)",
+                    "BC_O1": "Pa (左外髂支出口压力)",
+                    "BC_O2": "Pa (左内髂支出口压力)",
+                    "BC_O3": "Pa (右外髂支出口压力)",
+                    "BC_O4": "Pa (右内髂支出口压力)",
+                },
+                "data": bc_metadata,
+            }
+            with open(bc_meta_path, 'w', encoding='utf-8') as f:
+                json.dump(bc_meta_content, f, indent=2, ensure_ascii=False)
+            print(f"  📋 边界条件元数据已保存: {bc_meta_path.name} ({len(bc_metadata)} 个时间步)")
+        else:
+            print(f"  ⚠️ 未保存边界条件元数据（无有效数据）")
+
+        report_path = output_dir / "feature_extraction_report.json"
+        report = {
+            "case_name": case_name,
+            "cloud_file_count": len(cloud_files),
+            "success_count": success_count,
+            "bc_matching_policy": "exact_only" if strict_bc_match else "allow_nearest",
+            "bc_match_summary": bc_match_summary,
+            "bc_coverage": bc_coverage,
+            "fallback_matches": fallback_matches,
+        }
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2, ensure_ascii=False)
+
+        if success_count > 0:
+            print(f"  ✅ 完成: {success_count}/{len(cloud_files)} 个文件, 耗时 {total_time:.1f}s")
+            print(f"  📂 输出目录: {output_dir}")
+            print(f"  📄 报告: {report_path.name}")
+            return True
+
         print(f"  ❌ 失败: 没有文件被成功处理")
         return False
 
@@ -544,38 +565,40 @@ def process_all_cases(
             print(f"❌ 未找到任何病例")
         return
     
-    print("🚀 几何特征提取 + 边界条件")
-    print("=" * 50)
-    print(f"📁 数据根目录: {data_root}")
-    print(f"📂 输入子目录: {input_subdir or MERGED_DIR}")
-    print(f"📂 输出子目录: {output_subdir or FEATURES_DIR}")
-    print(f"📂 边界条件目录: {BC_DIR}")
-    print(f"📍 保存中心线: {'是' if save_centerline else '否'}")
-    print(f"📍 BC 严格匹配: {'是' if strict_bc_match else '否'}")
-    print(f"📊 待处理病例数: {len(case_dirs)}")
-    
-    total_start = time.time()
-    ok = 0
-    
-    for idx, case_dir in enumerate(case_dirs, 1):
-        try:
-            rel_path = case_dir.relative_to(data_root)
-        except ValueError:
-            rel_path = case_dir.name
+    with batch_progress_logging(data_root, "step2_extract_features_batch.log", "step2_extract_features_batch") as log_path:
+        print(f"📝 批量日志: {log_path}")
+        print("🚀 几何特征提取 + 边界条件")
+        print("=" * 50)
+        print(f"📁 数据根目录: {data_root}")
+        print(f"📂 输入子目录: {input_subdir or MERGED_DIR}")
+        print(f"📂 输出子目录: {output_subdir or FEATURES_DIR}")
+        print(f"📂 边界条件目录: {BC_DIR}")
+        print(f"📍 保存中心线: {'是' if save_centerline else '否'}")
+        print(f"📍 BC 严格匹配: {'是' if strict_bc_match else '否'}")
+        print(f"📊 待处理病例数: {len(case_dirs)}")
+        
+        total_start = time.time()
+        ok = 0
+        
+        for idx, case_dir in enumerate(case_dirs, 1):
+            try:
+                rel_path = case_dir.relative_to(data_root)
+            except ValueError:
+                rel_path = case_dir.name
+            
+            print(f"\n\n{'=' * 50}")
+            print(f"[{idx}/{len(case_dirs)}] {rel_path}")
+            print("=" * 50)
+            
+            if process_case(case_dir, input_subdir, output_subdir, save_centerline, strict_bc_match):
+                ok += 1
+        
+        total_time = time.time() - total_start
         
         print(f"\n\n{'=' * 50}")
-        print(f"[{idx}/{len(case_dirs)}] {rel_path}")
-        print("=" * 50)
-        
-        if process_case(case_dir, input_subdir, output_subdir, save_centerline, strict_bc_match):
-            ok += 1
-    
-    total_time = time.time() - total_start
-    
-    print(f"\n\n{'=' * 50}")
-    print("🎉 批量特征提取完成!")
-    print(f"⏱️  总耗时: {total_time:.1f}s")
-    print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
+        print("🎉 批量特征提取完成!")
+        print(f"⏱️  总耗时: {total_time:.1f}s")
+        print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
 
 
 def main():

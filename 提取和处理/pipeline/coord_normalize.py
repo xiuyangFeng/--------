@@ -44,6 +44,8 @@ if __package__ in {None, ""}:
         COORD_NORMALIZATION_CONFIG,
         get_case_dirs,
     )
+    from pipeline.utils.progress import batch_progress_logging
+    from pipeline.utils.progress import case_progress_logging
 else:
     from .config import (
         DATA_ROOT,
@@ -51,6 +53,8 @@ else:
         COORD_NORMALIZATION_CONFIG,
         get_case_dirs,
     )
+    from .utils.progress import batch_progress_logging
+    from .utils.progress import case_progress_logging
 
 # 输出目录（在 features 和 normalized 之间）
 COORD_NORMALIZED_DIR = "processed/coord_normalized"
@@ -265,117 +269,110 @@ def process_case(
     """
     case_dir = Path(case_dir)
     case_name = case_dir.name
-    
-    if input_subdir is None:
-        input_subdir = FEATURES_DIR
-    if output_subdir is None:
-        output_subdir = COORD_NORMALIZED_DIR
-    
-    input_dir = case_dir / input_subdir
-    output_dir = case_dir / output_subdir
-    
-    if not input_dir.exists():
-        print(f"  ❌ 输入目录不存在: {input_subdir}")
-        return False
-    
-    csv_files = sorted(list(input_dir.glob("result_features_*.csv")))
-    if not csv_files:
-        print(f"  ❌ 未找到特征文件")
-        return False
-    
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    print(f"  📁 找到 {len(csv_files)} 个文件")
-    
-    # 使用第一个文件计算变换参数（确保同一病例使用相同的坐标系）
-    print(f"  🔧 计算坐标系变换参数...")
-    first_df = pd.read_csv(csv_files[0])
-    
-    # 只用坐标计算变换参数
-    coords = first_df[['x', 'y', 'z']].values
-    _, _, _, _, transform_params = normalize_coordinate_system(
-        coords,
-        principal_axis_target=COORD_NORMALIZATION_CONFIG["principal_axis_target"],
-    )
-    
-    # 保存变换参数
-    params_path = output_dir / "transform_params.json"
-    with open(params_path, 'w', encoding='utf-8') as f:
-        json.dump(transform_params, f, indent=2, ensure_ascii=False)
-    print(f"  💾 变换参数已保存: {params_path.name}")
-    
-    # 复制边界条件元数据（BC 是标量，不受坐标系变换影响）
-    bc_meta_src = input_dir / "bc_metadata.json"
-    if bc_meta_src.exists():
-        shutil.copy2(bc_meta_src, output_dir / "bc_metadata.json")
-        print(f"  📋 已复制边界条件元数据: bc_metadata.json")
-    else:
-        print(f"  ⚠️ 未找到边界条件元数据: {bc_meta_src}")
-    
-    # 显示变换信息
-    print(f"  📊 质心: [{transform_params['centroid'][0]:.2f}, "
-          f"{transform_params['centroid'][1]:.2f}, "
-          f"{transform_params['centroid'][2]:.2f}]")
-    print(f"  📊 缩放因子: {transform_params['scale_factor']:.4f}")
-    print(f"  📊 主轴目标轴: {transform_params['principal_axis_target']}")
-    print(f"  📊 PCA方差比: {[f'{r:.2%}' for r in transform_params['pca_explained_variance_ratio']]}")
-    
-    # 提取旋转矩阵用于后续处理
-    R = np.array(transform_params["rotation_matrix"])
-    centroid = np.array(transform_params["centroid"])
-    scale_factor = transform_params["scale_factor"]
-    
-    # 处理所有文件
-    success_count = 0
-    for csv_file in tqdm(csv_files, desc=f"处理 {case_name}", leave=False):
-        try:
-            df = pd.read_csv(csv_file)
-            
-            # 提取并变换坐标
-            coords = df[['x', 'y', 'z']].values
-            coords_centered = coords - centroid
-            coords_aligned = coords_centered @ R
-            coords_scaled = coords_aligned / scale_factor
-            
-            # 更新坐标
-            df['x'] = coords_scaled[:, 0]
-            df['y'] = coords_scaled[:, 1]
-            df['z'] = coords_scaled[:, 2]
-            
-            # 变换速度（如果存在）
-            if all(col in df.columns for col in ['u', 'v', 'w']):
-                velocity = df[['u', 'v', 'w']].values
-                velocity_rot = velocity @ R
-                df['u'] = velocity_rot[:, 0]
-                df['v'] = velocity_rot[:, 1]
-                df['w'] = velocity_rot[:, 2]
-            
-            # 变换切线（如果存在）
-            if all(col in df.columns for col in ['Tangent_X', 'Tangent_Y', 'Tangent_Z']):
-                tangent = df[['Tangent_X', 'Tangent_Y', 'Tangent_Z']].values
-                tangent_rot = tangent @ R
-                df['Tangent_X'] = tangent_rot[:, 0]
-                df['Tangent_Y'] = tangent_rot[:, 1]
-                df['Tangent_Z'] = tangent_rot[:, 2]
-            
-            # 变换 WSS 矢量（如果存在）
-            if all(col in df.columns for col in ['wss_x', 'wss_y', 'wss_z']):
-                wss_vec = df[['wss_x', 'wss_y', 'wss_z']].values
-                wss_vec_rot = wss_vec @ R
-                df['wss_x'] = wss_vec_rot[:, 0]
-                df['wss_y'] = wss_vec_rot[:, 1]
-                df['wss_z'] = wss_vec_rot[:, 2]
-            
-            # 保存
-            output_path = output_dir / csv_file.name
-            df.to_csv(output_path, index=False)
-            success_count += 1
-            
-        except Exception as e:
-            print(f"  ❌ 处理 {csv_file.name} 失败: {e}")
-    
-    print(f"  ✅ 完成: {success_count}/{len(csv_files)} 个文件")
-    return success_count > 0
+    with case_progress_logging(case_dir, "step3_coord_normalize") as log_path:
+        print(f"📝 进度日志: {log_path}")
+
+        if input_subdir is None:
+            input_subdir = FEATURES_DIR
+        if output_subdir is None:
+            output_subdir = COORD_NORMALIZED_DIR
+
+        input_dir = case_dir / input_subdir
+        output_dir = case_dir / output_subdir
+
+        if not input_dir.exists():
+            print(f"  ❌ 输入目录不存在: {input_subdir}")
+            return False
+
+        csv_files = sorted(list(input_dir.glob("result_features_*.csv")))
+        if not csv_files:
+            print(f"  ❌ 未找到特征文件")
+            return False
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        print(f"  📁 找到 {len(csv_files)} 个文件")
+
+        print(f"  🔧 计算坐标系变换参数...")
+        first_df = pd.read_csv(csv_files[0])
+        coords = first_df[['x', 'y', 'z']].values
+        _, _, _, _, transform_params = normalize_coordinate_system(
+            coords,
+            principal_axis_target=COORD_NORMALIZATION_CONFIG["principal_axis_target"],
+        )
+
+        params_path = output_dir / "transform_params.json"
+        with open(params_path, 'w', encoding='utf-8') as f:
+            json.dump(transform_params, f, indent=2, ensure_ascii=False)
+        print(f"  💾 变换参数已保存: {params_path.name}")
+
+        bc_meta_src = input_dir / "bc_metadata.json"
+        if bc_meta_src.exists():
+            shutil.copy2(bc_meta_src, output_dir / "bc_metadata.json")
+            print(f"  📋 已复制边界条件元数据: bc_metadata.json")
+        else:
+            print(f"  ⚠️ 未找到边界条件元数据: {bc_meta_src}")
+
+        print(f"  📊 质心: [{transform_params['centroid'][0]:.2f}, "
+              f"{transform_params['centroid'][1]:.2f}, "
+              f"{transform_params['centroid'][2]:.2f}]")
+        print(f"  📊 缩放因子: {transform_params['scale_factor']:.4f}")
+        print(f"  📊 主轴目标轴: {transform_params['principal_axis_target']}")
+        print(f"  📊 PCA方差比: {[f'{r:.2%}' for r in transform_params['pca_explained_variance_ratio']]}")
+
+        R = np.array(transform_params["rotation_matrix"])
+        centroid = np.array(transform_params["centroid"])
+        scale_factor = transform_params["scale_factor"]
+
+        success_count = 0
+        for i, csv_file in enumerate(tqdm(csv_files, desc=f"处理 {case_name}", leave=False), 1):
+            try:
+                print(f"  🔄 [{i}/{len(csv_files)}] 文件: {csv_file.name}")
+                df = pd.read_csv(csv_file)
+
+                print("    读取并变换坐标...")
+                coords = df[['x', 'y', 'z']].values
+                coords_centered = coords - centroid
+                coords_aligned = coords_centered @ R
+                coords_scaled = coords_aligned / scale_factor
+
+                df['x'] = coords_scaled[:, 0]
+                df['y'] = coords_scaled[:, 1]
+                df['z'] = coords_scaled[:, 2]
+
+                if all(col in df.columns for col in ['u', 'v', 'w']):
+                    print("    同步旋转速度向量...")
+                    velocity = df[['u', 'v', 'w']].values
+                    velocity_rot = velocity @ R
+                    df['u'] = velocity_rot[:, 0]
+                    df['v'] = velocity_rot[:, 1]
+                    df['w'] = velocity_rot[:, 2]
+
+                if all(col in df.columns for col in ['Tangent_X', 'Tangent_Y', 'Tangent_Z']):
+                    print("    同步旋转切线向量...")
+                    tangent = df[['Tangent_X', 'Tangent_Y', 'Tangent_Z']].values
+                    tangent_rot = tangent @ R
+                    df['Tangent_X'] = tangent_rot[:, 0]
+                    df['Tangent_Y'] = tangent_rot[:, 1]
+                    df['Tangent_Z'] = tangent_rot[:, 2]
+
+                if all(col in df.columns for col in ['wss_x', 'wss_y', 'wss_z']):
+                    print("    同步旋转 WSS 向量...")
+                    wss_vec = df[['wss_x', 'wss_y', 'wss_z']].values
+                    wss_vec_rot = wss_vec @ R
+                    df['wss_x'] = wss_vec_rot[:, 0]
+                    df['wss_y'] = wss_vec_rot[:, 1]
+                    df['wss_z'] = wss_vec_rot[:, 2]
+
+                output_path = output_dir / csv_file.name
+                print(f"    保存结果: {output_path.name}")
+                df.to_csv(output_path, index=False)
+                success_count += 1
+                print(f"  ✅ 文件完成: {csv_file.name}")
+            except Exception as e:
+                print(f"  ❌ 处理 {csv_file.name} 失败: {e}")
+
+        print(f"  ✅ 完成: {success_count}/{len(csv_files)} 个文件")
+        return success_count > 0
 
 
 def process_all_cases(
@@ -413,40 +410,42 @@ def process_all_cases(
             print(f"❌ 未找到任何病例")
         return
     
-    print("🚀 坐标系归一化")
-    print("=" * 50)
-    print(f"📁 数据根目录: {data_root}")
-    print(f"📂 输入子目录: {input_subdir}")
-    print(f"📂 输出子目录: {output_subdir}")
-    print(f"📊 待处理病例数: {len(case_dirs)}")
-    print("\n处理步骤:")
-    print("  1. 中心化：点云几何中心移到原点")
-    print("  2. PCA对齐：血管主轴旋转到Z轴")
-    print("  3. 缩放：坐标归一化到 [-1, 1]")
-    print("  4. 同步旋转：速度、切线、WSS矢量")
-    
-    total_start = time.time()
-    ok = 0
-    
-    for idx, case_dir in enumerate(case_dirs, 1):
-        try:
-            rel_path = case_dir.relative_to(data_root)
-        except ValueError:
-            rel_path = case_dir.name
+    with batch_progress_logging(data_root, "step3_coord_normalize_batch.log", "step3_coord_normalize_batch") as log_path:
+        print(f"📝 批量日志: {log_path}")
+        print("🚀 坐标系归一化")
+        print("=" * 50)
+        print(f"📁 数据根目录: {data_root}")
+        print(f"📂 输入子目录: {input_subdir}")
+        print(f"📂 输出子目录: {output_subdir}")
+        print(f"📊 待处理病例数: {len(case_dirs)}")
+        print("\n处理步骤:")
+        print("  1. 中心化：点云几何中心移到原点")
+        print("  2. PCA对齐：血管主轴旋转到Z轴")
+        print("  3. 缩放：坐标归一化到 [-1, 1]")
+        print("  4. 同步旋转：速度、切线、WSS矢量")
         
-        print(f"\n[{idx}/{len(case_dirs)}] {rel_path}")
+        total_start = time.time()
+        ok = 0
         
-        if process_case(case_dir, input_subdir, output_subdir):
-            ok += 1
-    
-    total_time = time.time() - total_start
-    
-    print(f"\n{'=' * 50}")
-    print("🎉 坐标系归一化完成!")
-    print(f"⏱️  总耗时: {total_time:.1f}s")
-    print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
-    print(f"\n📋 变换参数已保存到各病例的 {output_subdir}/transform_params.json")
-    print("   推理时可使用 inverse_transform() 函数还原到原始坐标系")
+        for idx, case_dir in enumerate(case_dirs, 1):
+            try:
+                rel_path = case_dir.relative_to(data_root)
+            except ValueError:
+                rel_path = case_dir.name
+            
+            print(f"\n[{idx}/{len(case_dirs)}] {rel_path}")
+            
+            if process_case(case_dir, input_subdir, output_subdir):
+                ok += 1
+        
+        total_time = time.time() - total_start
+        
+        print(f"\n{'=' * 50}")
+        print("🎉 坐标系归一化完成!")
+        print(f"⏱️  总耗时: {total_time:.1f}s")
+        print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
+        print(f"\n📋 变换参数已保存到各病例的 {output_subdir}/transform_params.json")
+        print("   推理时可使用 inverse_transform() 函数还原到原始坐标系")
 
 
 def main():

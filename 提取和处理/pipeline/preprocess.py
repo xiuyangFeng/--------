@@ -46,6 +46,8 @@ if __package__ in {None, ""}:
         get_case_dirs,
     )
     from pipeline.utils.io import load_ascii_df, clean_cfd_data, save_csv
+    from pipeline.utils.progress import batch_progress_logging
+    from pipeline.utils.progress import case_progress_logging
     from pipeline.validation import build_batch_issue_report, inspect_case_inputs, save_batch_issue_report
 else:
     from .config import (
@@ -58,6 +60,8 @@ else:
         get_case_dirs,
     )
     from .utils.io import load_ascii_df, clean_cfd_data, save_csv
+    from .utils.progress import batch_progress_logging
+    from .utils.progress import case_progress_logging
     from .validation import build_batch_issue_report, inspect_case_inputs, save_batch_issue_report
 
 
@@ -148,6 +152,7 @@ def process_single_frame(
     surface_file: Path,
     inner_file: Path,
     output_path: Path,
+    frame_label: str = "",
     target_total: int = 40000,
     boundary_threshold: float = 2.0,
     boundary_core_ratio: tuple = (0.7, 0.3),
@@ -180,17 +185,24 @@ def process_single_frame(
         from .utils.sampling import stratified_sampling_by_distance
 
     try:
+        prefix = f"   {frame_label} " if frame_label else "   "
+
         # 1. 读取数据
+        print(f"{prefix}读取壁面文件: {surface_file.name}")
         surface_raw_df = load_ascii_df(surface_file)
+        print(f"{prefix}读取内部文件: {inner_file.name}")
         inner_raw_df = load_ascii_df(inner_file)
         
         # 2. 清洗数据
         # surface_file (ascii) 为壁面数据，is_wall=True
         # inner_file (ascii_in) 为内部数据，is_wall=False
+        print(f"{prefix}清洗壁面数据...")
         surface_df = clean_cfd_data(surface_raw_df, convert_to_mm=convert_to_mm, is_wall=True)
+        print(f"{prefix}清洗内部数据...")
         inner_df = clean_cfd_data(inner_raw_df, convert_to_mm=convert_to_mm, is_wall=False)
         
         # 3. 分层降采样合并
+        print(f"{prefix}分层降采样与合并...")
         merged_df, _ = stratified_sampling_by_distance(
             surface_df,
             inner_df,
@@ -203,6 +215,7 @@ def process_single_frame(
         )
         
         # 4. 保存结果
+        print(f"{prefix}保存输出: {output_path.name}")
         save_csv(merged_df, output_path)
         
         return True
@@ -244,94 +257,97 @@ def process_single_case(
     """
     case_dir = Path(case_dir)
     case_name = case_dir.name
-    input_check = inspect_case_inputs(case_dir)
+    with case_progress_logging(case_dir, "step1_preprocess") as log_path:
+        print(f"📝 进度日志: {log_path}")
+        input_check = inspect_case_inputs(case_dir)
 
-    alignment = summarize_frame_alignment(case_dir)
-    matched_files = find_matching_files(case_dir)
+        alignment = summarize_frame_alignment(case_dir)
+        matched_files = find_matching_files(case_dir)
 
-    if input_check["issues"]:
+        if input_check["issues"]:
+            print(f"\n📂 处理病例: {case_name}")
+            print("   🔎 输入检查:")
+            for issue in input_check["issues"]:
+                icon = "⚠️" if issue["severity"] == "warning" else "❌"
+                print(f"   {icon} {issue['message']}")
+        
+        if not matched_files:
+            print(f"   ⚠️ 跳过: 未找到匹配的壁面与内部点文件")
+            return False
+        
+        # 设置输出目录
+        if output_subdir is None:
+            output_subdir = MERGED_DIR
+        output_dir = case_dir / output_subdir
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
         print(f"\n📂 处理病例: {case_name}")
-        print("   🔎 输入检查:")
-        for issue in input_check["issues"]:
-            icon = "⚠️" if issue["severity"] == "warning" else "❌"
-            print(f"   {icon} {issue['message']}")
-    
-    if not matched_files:
-        print(f"   ⚠️ 跳过: 未找到匹配的壁面与内部点文件")
-        return False
-    
-    # 设置输出目录
-    if output_subdir is None:
-        output_subdir = MERGED_DIR
-    output_dir = case_dir / output_subdir
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    print(f"\n📂 处理病例: {case_name}")
-    print(
-        f"   时间帧: 壁面 {alignment['surface_count']} / 内部 {alignment['inner_count']} / "
-        f"匹配 {alignment['matched_count']}"
-    )
-    if alignment["surface_only_count"] or alignment["inner_only_count"]:
         print(
-            f"   ⚠️ 未配对帧: 仅壁面 {alignment['surface_only_count']} / "
-            f"仅内部 {alignment['inner_only_count']}"
+            f"   时间帧: 壁面 {alignment['surface_count']} / 内部 {alignment['inner_count']} / "
+            f"匹配 {alignment['matched_count']}"
         )
-    print(f"   目标点数: {target_total}")
-    print(f"   采样方法: {sampling_method}")
-    print(f"   处理模式: {mode}")
-    
-    # 处理每个时间帧
-    success_count = 0
-    start_time = time.time()
-    
-    for i, (key, (surface_file, inner_file)) in enumerate(matched_files.items(), 1):
-        # 构造输出文件名
-        output_name = f"merged-{key}.csv"
-        output_path = output_dir / output_name
+        if alignment["surface_only_count"] or alignment["inner_only_count"]:
+            print(
+                f"   ⚠️ 未配对帧: 仅壁面 {alignment['surface_only_count']} / "
+                f"仅内部 {alignment['inner_only_count']}"
+            )
+        print(f"   目标点数: {target_total}")
+        print(f"   采样方法: {sampling_method}")
+        print(f"   处理模式: {mode}")
         
-        print(f"\n🔄 [{i}/{len(matched_files)}] 处理编号 {key}...")
+        # 处理每个时间帧
+        success_count = 0
+        start_time = time.time()
         
-        if process_single_frame(
-            surface_file,
-            inner_file,
-            output_path,
-            target_total=target_total,
-            boundary_threshold=boundary_threshold,
-            boundary_core_ratio=boundary_core_ratio,
-            sampling_method=sampling_method,
-            fps_ratio=fps_ratio,
-            seed=seed,
-        ):
-            success_count += 1
-            print(f"   ✅ 已保存: {output_path.name}")
-    
-    total_time = time.time() - start_time
+        for i, (key, (surface_file, inner_file)) in enumerate(matched_files.items(), 1):
+            # 构造输出文件名
+            output_name = f"merged-{key}.csv"
+            output_path = output_dir / output_name
+            
+            print(f"\n🔄 [{i}/{len(matched_files)}] 处理编号 {key}...")
+            
+            if process_single_frame(
+                surface_file,
+                inner_file,
+                output_path,
+                frame_label=f"[{i}/{len(matched_files)}|{key}]",
+                target_total=target_total,
+                boundary_threshold=boundary_threshold,
+                boundary_core_ratio=boundary_core_ratio,
+                sampling_method=sampling_method,
+                fps_ratio=fps_ratio,
+                seed=seed,
+            ):
+                success_count += 1
+                print(f"   ✅ 已保存: {output_path.name}")
+        
+        total_time = time.time() - start_time
 
-    report_path = output_dir / "preprocess_report.json"
-    report = {
-        "case_name": case_name,
-        "surface_count": alignment["surface_count"],
-        "inner_count": alignment["inner_count"],
-        "matched_count": alignment["matched_count"],
-        "surface_only_count": alignment["surface_only_count"],
-        "inner_only_count": alignment["inner_only_count"],
-        "surface_only_steps": alignment["surface_only_steps"],
-        "inner_only_steps": alignment["inner_only_steps"],
-        "target_total": target_total,
-        "sampling_method": sampling_method,
-        "fps_ratio": fps_ratio if sampling_method == "hybrid" else None,
-        "success_count": success_count,
-    }
-    with open(report_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2, ensure_ascii=False)
+        report_path = output_dir / "preprocess_report.json"
+        report = {
+            "case_name": case_name,
+            "surface_count": alignment["surface_count"],
+            "inner_count": alignment["inner_count"],
+            "matched_count": alignment["matched_count"],
+            "surface_only_count": alignment["surface_only_count"],
+            "inner_only_count": alignment["inner_only_count"],
+            "surface_only_steps": alignment["surface_only_steps"],
+            "inner_only_steps": alignment["inner_only_steps"],
+            "target_total": target_total,
+            "sampling_method": sampling_method,
+            "fps_ratio": fps_ratio if sampling_method == "hybrid" else None,
+            "success_count": success_count,
+        }
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2, ensure_ascii=False)
 
-    print(f"\n🎉 {case_name} 处理完成!")
-    print(f"   成功: {success_count}/{len(matched_files)} 个时间帧")
-    print(f"   耗时: {total_time:.1f}s")
-    print(f"   输出: {output_dir}")
-    print(f"   报告: {report_path.name}")
-    
-    return success_count > 0
+        print(f"\n🎉 {case_name} 处理完成!")
+        print(f"   成功: {success_count}/{len(matched_files)} 个时间帧")
+        print(f"   耗时: {total_time:.1f}s")
+        print(f"   输出: {output_dir}")
+        print(f"   报告: {report_path.name}")
+        
+        return success_count > 0
 
 
 def process_all_cases(
@@ -382,60 +398,62 @@ def process_all_cases(
             print(f"❌ 未找到任何病例")
         return
     
-    print("🚀 数据预处理 - 清洗+合并+降采样")
-    print("=" * 50)
-    print(f"📁 数据根目录: {data_root}")
-    print(f"📊 目标点数: {target_total}")
-    if sampling_method.lower() == "hybrid":
-        print(f"📊 采样方法: {sampling_method} (FPS {fps_ratio*100:.0f}%)")
-    else:
-        print(f"📊 采样方法: {sampling_method}")
-    print(f"📊 近壁区阈值: {boundary_threshold}mm")
-    print(f"📊 预算分配: 近壁层 {boundary_core_ratio[0]*100:.0f}% : 核心层 {boundary_core_ratio[1]*100:.0f}%")
-    print(f"📊 处理模式: {mode}")
-    print(f"📊 待处理病例数: {len(case_dirs)}")
+    with batch_progress_logging(data_root, "step1_preprocess_batch.log", "step1_preprocess_batch") as log_path:
+        print(f"📝 批量日志: {log_path}")
+        print("🚀 数据预处理 - 清洗+合并+降采样")
+        print("=" * 50)
+        print(f"📁 数据根目录: {data_root}")
+        print(f"📊 目标点数: {target_total}")
+        if sampling_method.lower() == "hybrid":
+            print(f"📊 采样方法: {sampling_method} (FPS {fps_ratio*100:.0f}%)")
+        else:
+            print(f"📊 采样方法: {sampling_method}")
+        print(f"📊 近壁区阈值: {boundary_threshold}mm")
+        print(f"📊 预算分配: 近壁层 {boundary_core_ratio[0]*100:.0f}% : 核心层 {boundary_core_ratio[1]*100:.0f}%")
+        print(f"📊 处理模式: {mode}")
+        print(f"📊 待处理病例数: {len(case_dirs)}")
 
-    audit_report = build_batch_issue_report(case_dirs)
-    audit_dir = data_root / "pipeline_reports"
-    report_name = "preprocess_input_audit" if target_case is None else f"preprocess_input_audit_{case_dirs[0].name}"
-    audit_json, audit_csv = save_batch_issue_report(audit_report, audit_dir, report_name)
-    print(f"📝 输入检查报告: {audit_json}")
-    print(f"📝 输入检查表格: {audit_csv}")
-    if audit_report["issue_case_count"]:
-        print(f"⚠️ 存在输入问题的病例: {audit_report['issue_case_count']} 个")
-        print(f"⚠️ 可直接跑步骤1的病例: {audit_report['preprocess_ready_count']} 个")
-    
-    total_start = time.time()
-    ok = 0
-    
-    for idx, case_dir in enumerate(case_dirs, 1):
-        try:
-            rel_path = case_dir.relative_to(data_root)
-        except ValueError:
-            rel_path = case_dir.name
+        audit_report = build_batch_issue_report(case_dirs)
+        audit_dir = data_root / "pipeline_reports"
+        report_name = "preprocess_input_audit" if target_case is None else f"preprocess_input_audit_{case_dirs[0].name}"
+        audit_json, audit_csv = save_batch_issue_report(audit_report, audit_dir, report_name)
+        print(f"📝 输入检查报告: {audit_json}")
+        print(f"📝 输入检查表格: {audit_csv}")
+        if audit_report["issue_case_count"]:
+            print(f"⚠️ 存在输入问题的病例: {audit_report['issue_case_count']} 个")
+            print(f"⚠️ 可直接跑步骤1的病例: {audit_report['preprocess_ready_count']} 个")
+        
+        total_start = time.time()
+        ok = 0
+        
+        for idx, case_dir in enumerate(case_dirs, 1):
+            try:
+                rel_path = case_dir.relative_to(data_root)
+            except ValueError:
+                rel_path = case_dir.name
+            
+            print(f"\n\n{'=' * 50}")
+            print(f"[{idx}/{len(case_dirs)}] {rel_path}")
+            print("=" * 50)
+            
+            if process_single_case(
+                case_dir,
+                target_total=target_total,
+                boundary_threshold=boundary_threshold,
+                boundary_core_ratio=boundary_core_ratio,
+                sampling_method=sampling_method,
+                fps_ratio=fps_ratio,
+                seed=seed,
+                mode=mode,
+            ):
+                ok += 1
+        
+        total_time = time.time() - total_start
         
         print(f"\n\n{'=' * 50}")
-        print(f"[{idx}/{len(case_dirs)}] {rel_path}")
-        print("=" * 50)
-        
-        if process_single_case(
-            case_dir,
-            target_total=target_total,
-            boundary_threshold=boundary_threshold,
-            boundary_core_ratio=boundary_core_ratio,
-            sampling_method=sampling_method,
-            fps_ratio=fps_ratio,
-            seed=seed,
-            mode=mode,
-        ):
-            ok += 1
-    
-    total_time = time.time() - total_start
-    
-    print(f"\n\n{'=' * 50}")
-    print("🎉 批量预处理完成!")
-    print(f"⏱️  总耗时: {total_time:.1f}s")
-    print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
+        print("🎉 批量预处理完成!")
+        print(f"⏱️  总耗时: {total_time:.1f}s")
+        print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
 
 
 def main():

@@ -47,6 +47,8 @@ try:
         NORMALIZATION_CONFIG,
         get_case_dirs,
     )
+    from .utils.progress import case_progress_logging
+    from .utils.progress import batch_progress_logging
 except ImportError:
     from config import (
         DATA_ROOT,
@@ -56,6 +58,8 @@ except ImportError:
         NORMALIZATION_CONFIG,
         get_case_dirs,
     )
+    from pipeline.utils.progress import case_progress_logging
+    from pipeline.utils.progress import batch_progress_logging
 
 
 # 特征分组配置
@@ -338,55 +342,62 @@ def process_case(
     """
     处理单个病例的所有文件
     """
-    input_dir = case_dir / input_subdir
-    output_dir = case_dir / output_subdir
-    
-    if not input_dir.exists():
-        print(f"  ❌ 输入目录不存在: {input_subdir}")
-        return False
-    
-    csv_files = list(input_dir.glob("result_features_*.csv"))
-    if not csv_files:
-        print(f"  ❌ 未找到特征文件")
-        return False
-    
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # 处理每个 CSV 文件（逐点特征归一化）
-    success_count = 0
-    for csv_file in tqdm(csv_files, desc=f"处理 {case_dir.name}", leave=False):
-        try:
-            df = pd.read_csv(csv_file)
-            df_norm = normalize_dataframe(df, global_stats)
-            
-            output_path = output_dir / csv_file.name
-            df_norm.to_csv(output_path, index=False)
-            success_count += 1
-            
-        except Exception as e:
-            print(f"  ❌ 处理 {csv_file.name} 失败: {e}")
-    
-    # 处理边界条件元数据（全局条件归一化）
-    bc_meta_path = input_dir / "bc_metadata.json"
-    if bc_meta_path.exists():
-        try:
-            with open(bc_meta_path, 'r', encoding='utf-8') as f:
-                bc_meta = json.load(f)
-            
-            bc_meta_norm = normalize_bc_metadata(bc_meta, global_stats)
-            
-            bc_norm_path = output_dir / "bc_metadata_normalized.json"
-            with open(bc_norm_path, 'w', encoding='utf-8') as f:
-                json.dump(bc_meta_norm, f, indent=2, ensure_ascii=False)
-            
-            print(f"  📋 边界条件归一化完成: {len(bc_meta_norm['data'])} 个时间步")
-        except Exception as e:
-            print(f"  ⚠️ 边界条件归一化失败: {e}")
-    else:
-        print(f"  ⚠️ 未找到边界条件元数据: {bc_meta_path}")
-    
-    print(f"  ✅ 完成: {success_count}/{len(csv_files)} 个文件")
-    return success_count > 0
+    with case_progress_logging(case_dir, "step4_normalize") as log_path:
+        print(f"📝 进度日志: {log_path}")
+        input_dir = case_dir / input_subdir
+        output_dir = case_dir / output_subdir
+        
+        if not input_dir.exists():
+            print(f"  ❌ 输入目录不存在: {input_subdir}")
+            return False
+        
+        csv_files = list(input_dir.glob("result_features_*.csv"))
+        if not csv_files:
+            print(f"  ❌ 未找到特征文件")
+            return False
+        
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 处理每个 CSV 文件（逐点特征归一化）
+        success_count = 0
+        for i, csv_file in enumerate(tqdm(csv_files, desc=f"处理 {case_dir.name}", leave=False), 1):
+            try:
+                print(f"  🔄 [{i}/{len(csv_files)}] 文件: {csv_file.name}")
+                df = pd.read_csv(csv_file)
+                print("    应用逐点特征归一化...")
+                df_norm = normalize_dataframe(df, global_stats)
+                
+                output_path = output_dir / csv_file.name
+                print(f"    保存结果: {output_path.name}")
+                df_norm.to_csv(output_path, index=False)
+                success_count += 1
+                print(f"  ✅ 文件完成: {csv_file.name}")
+                
+            except Exception as e:
+                print(f"  ❌ 处理 {csv_file.name} 失败: {e}")
+        
+        # 处理边界条件元数据（全局条件归一化）
+        bc_meta_path = input_dir / "bc_metadata.json"
+        if bc_meta_path.exists():
+            try:
+                print("  🔄 归一化边界条件元数据...")
+                with open(bc_meta_path, 'r', encoding='utf-8') as f:
+                    bc_meta = json.load(f)
+                
+                bc_meta_norm = normalize_bc_metadata(bc_meta, global_stats)
+                
+                bc_norm_path = output_dir / "bc_metadata_normalized.json"
+                with open(bc_norm_path, 'w', encoding='utf-8') as f:
+                    json.dump(bc_meta_norm, f, indent=2, ensure_ascii=False)
+                
+                print(f"  📋 边界条件归一化完成: {len(bc_meta_norm['data'])} 个时间步")
+            except Exception as e:
+                print(f"  ⚠️ 边界条件归一化失败: {e}")
+        else:
+            print(f"  ⚠️ 未找到边界条件元数据: {bc_meta_path}")
+        
+        print(f"  ✅ 完成: {success_count}/{len(csv_files)} 个文件")
+        return success_count > 0
 
 
 def save_normalization_params(global_stats: Dict, output_path: str) -> None:
@@ -449,47 +460,46 @@ def process_all_cases(
             print(f"❌ 未找到任何病例")
         return
     
-    print("🚀 特征归一化")
-    print("=" * 50)
-    print(f"📁 数据根目录: {data_root}")
-    print(f"📂 输入子目录: {input_subdir}")
-    print(f"📂 输出子目录: {output_subdir}")
-    print(f"📊 待处理病例数: {len(case_dirs)}")
-    
-    # 第一阶段：收集全局统计量
-    global_stats = collect_global_statistics(case_dirs, input_subdir)
-    
-    if not global_stats:
-        print("❌ 未能收集到统计量，请检查数据")
-        return
-    
-    # 保存归一化参数
-    params_path = data_root / "normalization_params_global.json"
-    save_normalization_params(global_stats, str(params_path))
-    
-    # 第二阶段：应用归一化
-    print("\n🔄 应用归一化...")
-    total_start = time.time()
-    ok = 0
-    
-    for idx, case_dir in enumerate(case_dirs, 1):
-        try:
-            rel_path = case_dir.relative_to(data_root)
-        except ValueError:
-            rel_path = case_dir.name
+    with batch_progress_logging(data_root, "step4_normalize_batch.log", "step4_normalize_batch") as log_path:
+        print(f"📝 批量日志: {log_path}")
+        print("🚀 特征归一化")
+        print("=" * 50)
+        print(f"📁 数据根目录: {data_root}")
+        print(f"📂 输入子目录: {input_subdir}")
+        print(f"📂 输出子目录: {output_subdir}")
+        print(f"📊 待处理病例数: {len(case_dirs)}")
         
-        print(f"\n[{idx}/{len(case_dirs)}] {rel_path}")
+        global_stats = collect_global_statistics(case_dirs, input_subdir)
         
-        if process_case(case_dir, input_subdir, output_subdir, global_stats):
-            ok += 1
-    
-    total_time = time.time() - total_start
-    
-    print(f"\n{'=' * 50}")
-    print("🎉 归一化完成!")
-    print(f"⏱️  总耗时: {total_time:.1f}s")
-    print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
-    print(f"📁 归一化参数: {params_path}")
+        if not global_stats:
+            print("❌ 未能收集到统计量，请检查数据")
+            return
+        
+        params_path = data_root / "normalization_params_global.json"
+        save_normalization_params(global_stats, str(params_path))
+        
+        print("\n🔄 应用归一化...")
+        total_start = time.time()
+        ok = 0
+        
+        for idx, case_dir in enumerate(case_dirs, 1):
+            try:
+                rel_path = case_dir.relative_to(data_root)
+            except ValueError:
+                rel_path = case_dir.name
+            
+            print(f"\n[{idx}/{len(case_dirs)}] {rel_path}")
+            
+            if process_case(case_dir, input_subdir, output_subdir, global_stats):
+                ok += 1
+        
+        total_time = time.time() - total_start
+        
+        print(f"\n{'=' * 50}")
+        print("🎉 归一化完成!")
+        print(f"⏱️  总耗时: {total_time:.1f}s")
+        print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
+        print(f"📁 归一化参数: {params_path}")
 
 
 def main():

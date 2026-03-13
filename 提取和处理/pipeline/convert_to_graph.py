@@ -58,6 +58,8 @@ try:
         GRAPH_CONFIG,
         get_case_dirs,
     )
+    from .utils.progress import case_progress_logging
+    from .utils.progress import batch_progress_logging
 except ImportError:
     from config import (
         DATA_ROOT,
@@ -67,6 +69,8 @@ except ImportError:
         GRAPH_CONFIG,
         get_case_dirs,
     )
+    from pipeline.utils.progress import case_progress_logging
+    from pipeline.utils.progress import batch_progress_logging
 
 
 def extract_time_step(filename: str) -> Optional[int]:
@@ -166,123 +170,119 @@ def process_case(
     """
     case_dir = Path(case_dir)
     case_name = case_dir.name
-    
-    if input_subdir is None:
-        input_subdir = NORMALIZED_DIR
-    if output_subdir is None:
-        output_subdir = GRAPHS_DIR
-    
-    input_dir = case_dir / input_subdir
-    output_dir = case_dir / output_subdir
-    
-    if not input_dir.exists():
-        print(f"  ❌ 输入目录不存在: {input_subdir}")
-        return False
-    
-    csv_files = sorted(list(input_dir.glob("result_features_*.csv")))
-    if not csv_files:
-        print(f"  ❌ 未找到特征文件")
-        return False
-    
-    # 提取时间步信息
-    file_step_pairs = []
-    steps = []
-    for f in csv_files:
-        step = extract_time_step(f.name)
-        if step is not None:
-            steps.append(step)
-            file_step_pairs.append((f, step))
-    
-    if not steps:
-        print(f"  ❌ 无法从文件名解析时间步信息")
-        return False
-    
-    # 计算时间归一化范围
-    min_step, max_step = min(steps), max(steps)
-    total_range = max_step - min_step
-    if total_range == 0:
-        total_range = 1  # 防止除以0
-    
-    # 创建输出目录
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # 复制坐标系变换参数（用于推理时逆变换）
-    coord_norm_dir = case_dir / COORD_NORMALIZED_DIR
-    transform_params_src = coord_norm_dir / "transform_params.json"
-    if transform_params_src.exists():
-        transform_params_dst = output_dir / "transform_params.json"
-        shutil.copy2(transform_params_src, transform_params_dst)
-        print(f"  📋 已复制坐标系变换参数")
-    else:
-        print(f"  ⚠️ 未找到坐标系变换参数: {transform_params_src}")
-    
-    # 加载归一化后的边界条件元数据
-    bc_meta_path = input_dir / "bc_metadata_normalized.json"
-    bc_data_map = {}
-    if bc_meta_path.exists():
-        try:
-            with open(bc_meta_path, 'r', encoding='utf-8') as f:
-                bc_meta = json.load(f)
-            bc_data_map = bc_meta.get("data", {})
-            print(f"  📋 已加载边界条件: {len(bc_data_map)} 个时间步")
-        except Exception as e:
-            print(f"  ⚠️ 读取边界条件失败: {e}")
-    else:
-        print(f"  ⚠️ 未找到边界条件元数据: {bc_meta_path}")
-    
-    # 复制边界条件元数据到 graphs 目录（用于追溯）
-    if bc_meta_path.exists():
-        shutil.copy2(bc_meta_path, output_dir / "bc_metadata_normalized.json")
-    
-    print(f"  📁 找到 {len(file_step_pairs)} 个时间步")
-    print(f"  🔗 KNN 邻居数: {k}")
-    
-    # 处理每个时间步
-    success_count = 0
-    missing_bc_count = 0
-    for csv_file, step in tqdm(file_step_pairs, desc=f"处理 {case_name}", leave=False):
-        try:
-            t_norm = (step - min_step) / total_range
-            
-            # 查找对应的边界条件
-            # CSV 文件名格式: result_features_merged-{step}.csv
-            # bc_data_map 的 key 格式: merged-{step}
-            bc_values = None
-            csv_stem = csv_file.stem  # result_features_merged-1120
-            # 去掉 "result_features_" 前缀得到原始文件 stem
-            original_stem = csv_stem.replace("result_features_", "")
-            if original_stem in bc_data_map:
-                bc_values = bc_data_map[original_stem]
-            else:
-                missing_bc_count += 1
-            
-            data = build_graph_from_csv(csv_file, t_norm, bc_values=bc_values, k=k)
-            
-            # 保存为 .pt 文件
-            out_name = csv_file.stem + ".pt"
-            torch.save(data, output_dir / out_name)
-            success_count += 1
-            
-        except Exception as e:
-            print(f"  ❌ 处理 {csv_file.name} 失败: {e}")
+    with case_progress_logging(case_dir, "step5_convert_to_graph") as log_path:
+        print(f"📝 进度日志: {log_path}")
 
-    report_path = output_dir / "graph_conversion_report.json"
-    report = {
-        "case_name": case_name,
-        "time_step_count": len(file_step_pairs),
-        "success_count": success_count,
-        "missing_bc_count": missing_bc_count,
-        "k_neighbors": k,
-        "edge_direction": "bidirectional_knn",
-    }
-    with open(report_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2, ensure_ascii=False)
-    
-    print(f"  ✅ 完成: {success_count}/{len(file_step_pairs)} 个文件")
-    if missing_bc_count:
-        print(f"  ⚠️ 缺少 BC 的时间步: {missing_bc_count}")
-    print(f"  📄 报告: {report_path.name}")
-    return success_count > 0
+        if input_subdir is None:
+            input_subdir = NORMALIZED_DIR
+        if output_subdir is None:
+            output_subdir = GRAPHS_DIR
+
+        input_dir = case_dir / input_subdir
+        output_dir = case_dir / output_subdir
+
+        if not input_dir.exists():
+            print(f"  ❌ 输入目录不存在: {input_subdir}")
+            return False
+
+        csv_files = sorted(list(input_dir.glob("result_features_*.csv")))
+        if not csv_files:
+            print(f"  ❌ 未找到特征文件")
+            return False
+
+        file_step_pairs = []
+        steps = []
+        for f in csv_files:
+            step = extract_time_step(f.name)
+            if step is not None:
+                steps.append(step)
+                file_step_pairs.append((f, step))
+
+        if not steps:
+            print(f"  ❌ 无法从文件名解析时间步信息")
+            return False
+
+        min_step, max_step = min(steps), max(steps)
+        total_range = max_step - min_step
+        if total_range == 0:
+            total_range = 1
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        coord_norm_dir = case_dir / COORD_NORMALIZED_DIR
+        transform_params_src = coord_norm_dir / "transform_params.json"
+        if transform_params_src.exists():
+            transform_params_dst = output_dir / "transform_params.json"
+            shutil.copy2(transform_params_src, transform_params_dst)
+            print(f"  📋 已复制坐标系变换参数")
+        else:
+            print(f"  ⚠️ 未找到坐标系变换参数: {transform_params_src}")
+
+        bc_meta_path = input_dir / "bc_metadata_normalized.json"
+        bc_data_map = {}
+        if bc_meta_path.exists():
+            try:
+                with open(bc_meta_path, 'r', encoding='utf-8') as f:
+                    bc_meta = json.load(f)
+                bc_data_map = bc_meta.get("data", {})
+                print(f"  📋 已加载边界条件: {len(bc_data_map)} 个时间步")
+            except Exception as e:
+                print(f"  ⚠️ 读取边界条件失败: {e}")
+        else:
+            print(f"  ⚠️ 未找到边界条件元数据: {bc_meta_path}")
+
+        if bc_meta_path.exists():
+            shutil.copy2(bc_meta_path, output_dir / "bc_metadata_normalized.json")
+
+        print(f"  📁 找到 {len(file_step_pairs)} 个时间步")
+        print(f"  🔗 KNN 邻居数: {k}")
+
+        success_count = 0
+        missing_bc_count = 0
+        for i, (csv_file, step) in enumerate(tqdm(file_step_pairs, desc=f"处理 {case_name}", leave=False), 1):
+            try:
+                print(f"  🔄 [{i}/{len(file_step_pairs)}] 文件: {csv_file.name} (step={step})")
+                t_norm = (step - min_step) / total_range
+                print(f"    时间归一化: t_norm={t_norm:.4f}")
+
+                bc_values = None
+                csv_stem = csv_file.stem
+                original_stem = csv_stem.replace("result_features_", "")
+                if original_stem in bc_data_map:
+                    bc_values = bc_data_map[original_stem]
+                    print("    已加载对应 BC 元数据")
+                else:
+                    missing_bc_count += 1
+                    print("    ⚠️ 未找到对应 BC 元数据，将使用 0 填充")
+
+                print("    构建图结构...")
+                data = build_graph_from_csv(csv_file, t_norm, bc_values=bc_values, k=k)
+
+                out_name = csv_file.stem + ".pt"
+                print(f"    保存图文件: {out_name}")
+                torch.save(data, output_dir / out_name)
+                success_count += 1
+                print(f"  ✅ 文件完成: {out_name}")
+            except Exception as e:
+                print(f"  ❌ 处理 {csv_file.name} 失败: {e}")
+
+        report_path = output_dir / "graph_conversion_report.json"
+        report = {
+            "case_name": case_name,
+            "time_step_count": len(file_step_pairs),
+            "success_count": success_count,
+            "missing_bc_count": missing_bc_count,
+            "k_neighbors": k,
+            "edge_direction": "bidirectional_knn",
+        }
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2, ensure_ascii=False)
+
+        print(f"  ✅ 完成: {success_count}/{len(file_step_pairs)} 个文件")
+        if missing_bc_count:
+            print(f"  ⚠️ 缺少 BC 的时间步: {missing_bc_count}")
+        print(f"  📄 报告: {report_path.name}")
+        return success_count > 0
 
 
 def process_all_cases(
@@ -323,47 +323,48 @@ def process_all_cases(
             print(f"❌ 未找到任何病例")
         return
     
-    print("🚀 图数据转换")
-    print("=" * 50)
-    print(f"📁 数据根目录: {data_root}")
-    print(f"📂 输入子目录: {input_subdir}")
-    print(f"📂 输出子目录: {output_subdir}")
-    print(f"🔗 KNN 邻居数: {k}")
-    print(f"📊 待处理病例数: {len(case_dirs)}")
-    
-    total_start = time.time()
-    ok = 0
-    
-    for idx, case_dir in enumerate(case_dirs, 1):
-        try:
-            rel_path = case_dir.relative_to(data_root)
-        except ValueError:
-            rel_path = case_dir.name
+    with batch_progress_logging(data_root, "step5_convert_to_graph_batch.log", "step5_convert_to_graph_batch") as log_path:
+        print(f"📝 批量日志: {log_path}")
+        print("🚀 图数据转换")
+        print("=" * 50)
+        print(f"📁 数据根目录: {data_root}")
+        print(f"📂 输入子目录: {input_subdir}")
+        print(f"📂 输出子目录: {output_subdir}")
+        print(f"🔗 KNN 邻居数: {k}")
+        print(f"📊 待处理病例数: {len(case_dirs)}")
         
-        print(f"\n[{idx}/{len(case_dirs)}] {rel_path}")
+        total_start = time.time()
+        ok = 0
         
-        if process_case(case_dir, input_subdir, output_subdir, k):
-            ok += 1
-    
-    total_time = time.time() - total_start
-    
-    print(f"\n{'=' * 50}")
-    print("🎉 图数据转换完成!")
-    print(f"⏱️  总耗时: {total_time:.1f}s")
-    print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
-    
-    # 显示输入特征说明
-    print("\n📋 图数据格式说明:")
-    print("  节点特征 x (10维):")
-    print("    [0:3]   坐标: x, y, z")
-    print("    [3:9]   几何: Abscissa, NormRadius, Curvature, Tangent_X/Y/Z")
-    print("    [9]     边界标志: is_wall")
-    print("  全局条件 global_cond (1x6):")
-    print("    [0]     时间: t_norm")
-    print("    [1:6]   边界条件: BC_Inlet, BC_O1~O4")
-    print("  目标输出 y (4维):")
-    print("    [0:3]   速度: u, v, w")
-    print("    [3]     压力: p")
+        for idx, case_dir in enumerate(case_dirs, 1):
+            try:
+                rel_path = case_dir.relative_to(data_root)
+            except ValueError:
+                rel_path = case_dir.name
+            
+            print(f"\n[{idx}/{len(case_dirs)}] {rel_path}")
+            
+            if process_case(case_dir, input_subdir, output_subdir, k):
+                ok += 1
+        
+        total_time = time.time() - total_start
+        
+        print(f"\n{'=' * 50}")
+        print("🎉 图数据转换完成!")
+        print(f"⏱️  总耗时: {total_time:.1f}s")
+        print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
+        
+        print("\n📋 图数据格式说明:")
+        print("  节点特征 x (10维):")
+        print("    [0:3]   坐标: x, y, z")
+        print("    [3:9]   几何: Abscissa, NormRadius, Curvature, Tangent_X/Y/Z")
+        print("    [9]     边界标志: is_wall")
+        print("  全局条件 global_cond (1x6):")
+        print("    [0]     时间: t_norm")
+        print("    [1:6]   边界条件: BC_Inlet, BC_O1~O4")
+        print("  目标输出 y (4维):")
+        print("    [0:3]   速度: u, v, w")
+        print("    [3]     压力: p")
 
 
 def main():

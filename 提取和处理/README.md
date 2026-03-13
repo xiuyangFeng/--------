@@ -24,6 +24,23 @@ conda activate GNN
 python -m pipeline.run_all --case ZHANG_CHUN
 ```
 
+日志查看：
+
+- 单病例步骤日志：`data_new/<病例路径>/processed/logs/progress.log`
+- 批量/总流程日志：`data_new/pipeline_reports/logs/run_all.log`
+- 如果直接执行单步骤批量入口，还会生成：
+  - `data_new/pipeline_reports/logs/step1_preprocess_batch.log`
+  - `data_new/pipeline_reports/logs/step2_extract_features_batch.log`
+  - `data_new/pipeline_reports/logs/step3_coord_normalize_batch.log`
+  - `data_new/pipeline_reports/logs/step4_normalize_batch.log`
+  - `data_new/pipeline_reports/logs/step5_convert_to_graph_batch.log`
+
+可直接实时查看：
+
+```bash
+tail -f data_new/pipeline_reports/logs/run_all.log
+```
+
 若几何步骤依赖 `vmtk` 的独立环境，推荐这样运行：
 
 ```bash

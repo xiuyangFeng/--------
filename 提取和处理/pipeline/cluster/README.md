@@ -131,6 +131,10 @@ squeue -u $USER
 tail -f logs/gnn_pipeline_<JOB_ID>.out
 tail -f logs/gnn_array_<JOB_ID>_<TASK_ID>.out  # Array Job
 
+# 查看 pipeline 自己写入的数据目录日志
+tail -f ../data_new/pipeline_reports/logs/run_all.log
+tail -f ../data_new/AG/fast/ZHANG_CHUN/processed/logs/progress.log
+
 # 取消作业
 scancel <JOB_ID>
 
@@ -140,6 +144,12 @@ scancel <ARRAY_JOB_ID>
 # 查看作业详情
 scontrol show job <JOB_ID>
 ```
+
+说明：
+
+- `logs/gnn_pipeline_<JOB_ID>.out` / `logs/gnn_array_<JOB_ID>_<TASK_ID>.out` 是 SLURM stdout/stderr
+- `data_new/pipeline_reports/logs/*.log` 是 pipeline 的批量/总流程日志
+- `<case_dir>/processed/logs/progress.log` 是病例级步骤日志，适合定位某个病例卡在哪个文件、哪个子步骤
 
 ## 时间估算（单病例，约80帧数据）
 

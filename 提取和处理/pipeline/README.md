@@ -236,6 +236,31 @@ python -m pipeline.run_all --case ZHANG_CHUN \
 python -m pipeline.run_all
 ```
 
+### 日志与进度查看
+
+现在 pipeline 默认同时输出终端日志和落盘日志：
+
+- 病例级步骤日志：`<case_dir>/processed/logs/progress.log`
+- 总流程日志：`data_new/pipeline_reports/logs/run_all.log`
+- 单步骤批量入口日志：
+  - `data_new/pipeline_reports/logs/step1_preprocess_batch.log`
+  - `data_new/pipeline_reports/logs/step2_extract_features_batch.log`
+  - `data_new/pipeline_reports/logs/step3_coord_normalize_batch.log`
+  - `data_new/pipeline_reports/logs/step4_normalize_batch.log`
+  - `data_new/pipeline_reports/logs/step5_convert_to_graph_batch.log`
+
+实时查看总流程：
+
+```bash
+tail -f data_new/pipeline_reports/logs/run_all.log
+```
+
+实时查看单病例：
+
+```bash
+tail -f data_new/AG/fast/ZHANG_CHUN/processed/logs/progress.log
+```
+
 ### 方式零：先做原始输入审计（强烈建议）
 
 在批量处理或生成 split 之前，先批量检查所有数据源的病例是否具备所需输入文件。审计工具能正确处理 ILO 三层嵌套结构。
@@ -928,6 +953,9 @@ ls ../data_new/AG/fast/ZHANG_CHUN/processed/coord_normalized/transform_params.js
 
 # 4. 确认无误后，处理所有病例
 python -m pipeline.run_all
+
+# 4.1 实时查看总流程日志
+tail -f data_new/pipeline_reports/logs/run_all.log
 
 # 5. 完成后，图数据可用于 GNN 训练
 # 图数据位于: data_new/AG/fast/*/processed/graphs/*.pt

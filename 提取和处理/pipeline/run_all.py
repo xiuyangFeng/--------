@@ -47,6 +47,7 @@ if __package__ in {None, ""}:
         MODE,
         get_case_dirs,
     )
+    from pipeline.utils.progress import batch_progress_logging
     from pipeline.validation import build_batch_issue_report, save_batch_issue_report
 else:
     from .config import (
@@ -61,6 +62,7 @@ else:
         MODE,
         get_case_dirs,
     )
+    from .utils.progress import batch_progress_logging
     from .validation import build_batch_issue_report, save_batch_issue_report
 
 
@@ -106,204 +108,207 @@ def run_pipeline(
     if k_neighbors is None:
         k_neighbors = GRAPH_CONFIG["k_neighbors"]
     
-    print("=" * 60)
-    print("🚀 Pipeline - 完整处理流程（含坐标系归一化）")
-    print("=" * 60)
-    print(f"📁 数据根目录: {data_root}")
-    print(f"📊 目标点数: {target_points}")
-    print(f"📊 采样方法: {sampling_method}")
-    if sampling_method == "hybrid":
-        print(f"📊 FPS 占比: {fps_ratio}")
-    print(f"📊 处理模式: {mode}")
-    print(f"📊 KNN 邻居数: {k_neighbors}")
-    print(f"📊 BC 严格匹配: {'是' if strict_bc_match else '否'}")
-    
-    case_dirs = get_case_dirs(data_root)
-    if target_case:
-        target_std = target_case.replace(' ', '_').replace('-', '_').upper()
-        case_dirs = [
-            d for d in case_dirs
-            if d.name.replace(' ', '_').replace('-', '_').upper() == target_std
-        ]
-        print(f"🎯 指定病例: {target_case}")
-    else:
-        print(f"📊 待处理病例数: {len(case_dirs)}")
-
-    if not case_dirs:
+    with batch_progress_logging(data_root, "run_all.log", "run_all") as log_path:
+        print(f"📝 总流程日志: {log_path}")
+        print("=" * 60)
+        print("🚀 Pipeline - 完整处理流程（含坐标系归一化）")
+        print("=" * 60)
+        print(f"📁 数据根目录: {data_root}")
+        print(f"📊 目标点数: {target_points}")
+        print(f"📊 采样方法: {sampling_method}")
+        if sampling_method == "hybrid":
+            print(f"📊 FPS 占比: {fps_ratio}")
+        print(f"📊 处理模式: {mode}")
+        print(f"📊 KNN 邻居数: {k_neighbors}")
+        print(f"📊 BC 严格匹配: {'是' if strict_bc_match else '否'}")
+        
+        case_dirs = get_case_dirs(data_root)
         if target_case:
-            print(f"❌ 未找到病例: {target_case}")
-        else:
-            print("❌ 未找到任何病例")
-        return
-    
-    print(f"📋 执行步骤: {start_step} → {end_step}")
-    audit_report = build_batch_issue_report(case_dirs)
-    audit_dir = data_root / "pipeline_reports"
-    report_name = (
-        f"pipeline_input_audit_step{start_step}_{end_step}"
-        if target_case is None
-        else f"pipeline_input_audit_{case_dirs[0].name}_step{start_step}_{end_step}"
-    )
-    audit_json, audit_csv = save_batch_issue_report(audit_report, audit_dir, report_name)
-    print(f"📝 输入检查报告: {audit_json}")
-    print(f"📝 输入检查表格: {audit_csv}")
-    if start_step <= 1:
-        print(f"📊 可直接跑步骤1的病例: {audit_report['preprocess_ready_count']}/{len(case_dirs)}")
-    if start_step <= 2 <= end_step:
-        print(f"📊 具备几何+BC输入的病例: {audit_report['feature_ready_count']}/{len(case_dirs)}")
-    print()
-    
-    total_start = time.time()
-
-    # 步骤1: 数据预处理
-    if start_step <= 1 <= end_step:
-        print("\n" + "=" * 60)
-        print("📌 步骤1/5: 数据预处理（清洗 + 合并 + 降采样）")
-        print("=" * 60)
-
-        if __package__ in {None, ""}:
-            from pipeline.preprocess import process_all_cases as preprocess
-        else:
-            from .preprocess import process_all_cases as preprocess
-
-        preprocess(
-            data_root=data_root,
-            target_case=target_case,
-            target_total=target_points,
-            sampling_method=sampling_method,
-            boundary_threshold=SAMPLING_CONFIG["boundary_threshold"],
-            boundary_core_ratio=SAMPLING_CONFIG["boundary_core_ratio"],
-            seed=SAMPLING_CONFIG["seed"],
-            fps_ratio=fps_ratio,
-            mode=mode,
-        )
-    
-    # 步骤2: 几何特征提取
-    if start_step <= 2 <= end_step:
-        print("\n" + "=" * 60)
-        print("📌 步骤2/5: 几何特征提取 + 边界条件")
-        print("=" * 60)
-
-        if geometry_python:
-            cmd = [
-                geometry_python,
-                "-m",
-                "pipeline.extract_features",
-                "--data-root",
-                str(data_root),
-                "--input-subdir",
-                MERGED_DIR,
-                "--output-subdir",
-                FEATURES_DIR,
+            target_std = target_case.replace(' ', '_').replace('-', '_').upper()
+            case_dirs = [
+                d for d in case_dirs
+                if d.name.replace(' ', '_').replace('-', '_').upper() == target_std
             ]
-            if target_case:
-                cmd.extend(["--case", target_case])
-            if not strict_bc_match:
-                cmd.append("--allow-nearest-bc")
-
-            print(f"🐍 使用外部解释器执行步骤2: {geometry_python}")
-            print(f"🧾 命令: {' '.join(cmd)}")
-            subprocess.run(cmd, check=True)
+            print(f"🎯 指定病例: {target_case}")
         else:
-            if __package__ in {None, ""}:
-                from pipeline.extract_features import process_all_cases as extract_features
-            else:
-                from .extract_features import process_all_cases as extract_features
+            print(f"📊 待处理病例数: {len(case_dirs)}")
 
-            extract_features(
+        if not case_dirs:
+            if target_case:
+                print(f"❌ 未找到病例: {target_case}")
+            else:
+                print("❌ 未找到任何病例")
+            return
+        
+        print(f"📋 执行步骤: {start_step} → {end_step}")
+        audit_report = build_batch_issue_report(case_dirs)
+        audit_dir = data_root / "pipeline_reports"
+        report_name = (
+            f"pipeline_input_audit_step{start_step}_{end_step}"
+            if target_case is None
+            else f"pipeline_input_audit_{case_dirs[0].name}_step{start_step}_{end_step}"
+        )
+        audit_json, audit_csv = save_batch_issue_report(audit_report, audit_dir, report_name)
+        print(f"📝 输入检查报告: {audit_json}")
+        print(f"📝 输入检查表格: {audit_csv}")
+        if start_step <= 1:
+            print(f"📊 可直接跑步骤1的病例: {audit_report['preprocess_ready_count']}/{len(case_dirs)}")
+        if start_step <= 2 <= end_step:
+            print(f"📊 具备几何+BC输入的病例: {audit_report['feature_ready_count']}/{len(case_dirs)}")
+        print()
+        
+        total_start = time.time()
+
+        # 步骤1: 数据预处理
+        if start_step <= 1 <= end_step:
+            print("\n" + "=" * 60)
+            print("📌 步骤1/5: 数据预处理（清洗 + 合并 + 降采样）")
+            print("=" * 60)
+
+            if __package__ in {None, ""}:
+                from pipeline.preprocess import process_all_cases as preprocess
+            else:
+                from .preprocess import process_all_cases as preprocess
+
+            preprocess(
                 data_root=data_root,
                 target_case=target_case,
-                input_subdir=MERGED_DIR,
-                output_subdir=FEATURES_DIR,
-                strict_bc_match=strict_bc_match,
+                target_total=target_points,
+                sampling_method=sampling_method,
+                boundary_threshold=SAMPLING_CONFIG["boundary_threshold"],
+                boundary_core_ratio=SAMPLING_CONFIG["boundary_core_ratio"],
+                seed=SAMPLING_CONFIG["seed"],
+                fps_ratio=fps_ratio,
+                mode=mode,
             )
-    
-    # 步骤3: 坐标系归一化【新增】
-    if start_step <= 3 <= end_step:
+        
+        # 步骤2: 几何特征提取
+        if start_step <= 2 <= end_step:
+            print("\n" + "=" * 60)
+            print("📌 步骤2/5: 几何特征提取 + 边界条件")
+            print("=" * 60)
+
+            if geometry_python:
+                cmd = [
+                    geometry_python,
+                    "-m",
+                    "pipeline.extract_features",
+                    "--data-root",
+                    str(data_root),
+                    "--input-subdir",
+                    MERGED_DIR,
+                    "--output-subdir",
+                    FEATURES_DIR,
+                ]
+                if target_case:
+                    cmd.extend(["--case", target_case])
+                if not strict_bc_match:
+                    cmd.append("--allow-nearest-bc")
+
+                print(f"🐍 使用外部解释器执行步骤2: {geometry_python}")
+                print(f"🧾 命令: {' '.join(cmd)}")
+                subprocess.run(cmd, check=True)
+            else:
+                if __package__ in {None, ""}:
+                    from pipeline.extract_features import process_all_cases as extract_features
+                else:
+                    from .extract_features import process_all_cases as extract_features
+
+                extract_features(
+                    data_root=data_root,
+                    target_case=target_case,
+                    input_subdir=MERGED_DIR,
+                    output_subdir=FEATURES_DIR,
+                    strict_bc_match=strict_bc_match,
+                )
+        
+        # 步骤3: 坐标系归一化【新增】
+        if start_step <= 3 <= end_step:
+            print("\n" + "=" * 60)
+            print("📌 步骤3/5: 坐标系归一化（中心化 + PCA对齐 + 缩放）")
+            print("=" * 60)
+
+            if __package__ in {None, ""}:
+                from pipeline.coord_normalize import process_all_cases as coord_normalize
+            else:
+                from .coord_normalize import process_all_cases as coord_normalize
+
+            coord_normalize(
+                data_root=data_root,
+                target_case=target_case,
+                input_subdir=FEATURES_DIR,
+                output_subdir=COORD_NORMALIZED_DIR,
+            )
+        
+        # 步骤4: 特征归一化
+        if start_step <= 4 <= end_step:
+            print("\n" + "=" * 60)
+            print("📌 步骤4/5: 特征归一化")
+            print("=" * 60)
+
+            if __package__ in {None, ""}:
+                from pipeline.normalize import process_all_cases as normalize
+            else:
+                from .normalize import process_all_cases as normalize
+
+            normalize(
+                data_root=data_root,
+                target_case=target_case,
+                input_subdir=COORD_NORMALIZED_DIR,
+                output_subdir=NORMALIZED_DIR,
+            )
+        
+        # 步骤5: 图数据转换
+        if start_step <= 5 <= end_step:
+            print("\n" + "=" * 60)
+            print("📌 步骤5/5: 图数据转换")
+            print("=" * 60)
+
+            if __package__ in {None, ""}:
+                from pipeline.convert_to_graph import process_all_cases as convert_to_graph
+            else:
+                from .convert_to_graph import process_all_cases as convert_to_graph
+
+            convert_to_graph(
+                data_root=data_root,
+                target_case=target_case,
+                input_subdir=NORMALIZED_DIR,
+                output_subdir=GRAPHS_DIR,
+                k=k_neighbors,
+            )
+
+        if mode == "production":
+            cleanup_intermediate_outputs(
+                case_dirs=case_dirs,
+                start_step=start_step,
+                end_step=end_step,
+            )
+        
+        total_time = time.time() - total_start
+        
         print("\n" + "=" * 60)
-        print("📌 步骤3/5: 坐标系归一化（中心化 + PCA对齐 + 缩放）")
+        print("🎉 Pipeline 执行完成!")
         print("=" * 60)
-
-        if __package__ in {None, ""}:
-            from pipeline.coord_normalize import process_all_cases as coord_normalize
-        else:
-            from .coord_normalize import process_all_cases as coord_normalize
-
-        coord_normalize(
-            data_root=data_root,
-            target_case=target_case,
-            input_subdir=FEATURES_DIR,
-            output_subdir=COORD_NORMALIZED_DIR,
-        )
-    
-    # 步骤4: 特征归一化
-    if start_step <= 4 <= end_step:
-        print("\n" + "=" * 60)
-        print("📌 步骤4/5: 特征归一化")
-        print("=" * 60)
-
-        if __package__ in {None, ""}:
-            from pipeline.normalize import process_all_cases as normalize
-        else:
-            from .normalize import process_all_cases as normalize
-
-        normalize(
-            data_root=data_root,
-            target_case=target_case,
-            input_subdir=COORD_NORMALIZED_DIR,
-            output_subdir=NORMALIZED_DIR,
-        )
-    
-    # 步骤5: 图数据转换
-    if start_step <= 5 <= end_step:
-        print("\n" + "=" * 60)
-        print("📌 步骤5/5: 图数据转换")
-        print("=" * 60)
-
-        if __package__ in {None, ""}:
-            from pipeline.convert_to_graph import process_all_cases as convert_to_graph
-        else:
-            from .convert_to_graph import process_all_cases as convert_to_graph
-
-        convert_to_graph(
-            data_root=data_root,
-            target_case=target_case,
-            input_subdir=NORMALIZED_DIR,
-            output_subdir=GRAPHS_DIR,
-            k=k_neighbors,
-        )
-
-    if mode == "production":
-        cleanup_intermediate_outputs(
-            case_dirs=case_dirs,
-            start_step=start_step,
-            end_step=end_step,
-        )
-    
-    total_time = time.time() - total_start
-    
-    print("\n" + "=" * 60)
-    print("🎉 Pipeline 执行完成!")
-    print("=" * 60)
-    print(f"⏱️  总耗时: {total_time:.1f}s ({total_time/60:.1f} 分钟)")
-    
-    print("\n📂 输出目录结构:")
-    print(f"  病例目录/")
-    print(f"  └── processed/")
-    print(f"      ├── merged/           # 步骤1: 合并降采样后的数据")
-    print(f"      ├── features/         # 步骤2: 添加几何特征和边界条件")
-    print(f"      ├── coord_normalized/ # 步骤3: 坐标系归一化后的数据")
-    print(f"      │   └── transform_params.json  # 变换参数（用于逆变换）")
-    print(f"      ├── normalized/       # 步骤4: 特征归一化后的数据")
-    print(f"      └── graphs/           # 步骤5: PyG 图数据 (.pt)")
-    print(f"          └── transform_params.json  # 变换参数副本")
-    
-    print("\n💡 提示:")
-    print("  - 训练时使用 pipeline.dataset.CFDAugmentedDataset 加载数据")
-    print("  - 启用 augment=True 进行在线数据增强（旋转、平移）")
-    print("  - 推理时可使用 transform_params.json 还原到原始坐标系")
-    if mode == "production":
-        print("  - production 模式已自动清理本次运行上游步骤的中间目录")
+        print(f"⏱️  总耗时: {total_time:.1f}s ({total_time/60:.1f} 分钟)")
+        
+        print("\n📂 输出目录结构:")
+        print(f"  病例目录/")
+        print(f"  └── processed/")
+        print(f"      ├── merged/           # 步骤1: 合并降采样后的数据")
+        print(f"      ├── features/         # 步骤2: 添加几何特征和边界条件")
+        print(f"      ├── coord_normalized/ # 步骤3: 坐标系归一化后的数据")
+        print(f"      │   └── transform_params.json  # 变换参数（用于逆变换）")
+        print(f"      ├── normalized/       # 步骤4: 特征归一化后的数据")
+        print(f"      └── graphs/           # 步骤5: PyG 图数据 (.pt)")
+        print(f"          └── transform_params.json  # 变换参数副本")
+        
+        print("\n💡 提示:")
+        print("  - 训练时使用 pipeline.dataset.CFDAugmentedDataset 加载数据")
+        print("  - 启用 augment=True 进行在线数据增强（旋转、平移）")
+        print("  - 推理时可使用 transform_params.json 还原到原始坐标系")
+        print(f"  - 总流程日志: {log_path}")
+        if mode == "production":
+            print("  - production 模式已自动清理本次运行上游步骤的中间目录")
 
 
 def _step_output_dir(case_dir: Path, step: int) -> Path:
