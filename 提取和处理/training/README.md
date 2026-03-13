@@ -139,6 +139,13 @@ pip install -r training/requirements.txt
 
 如果服务器使用 GPU，请按实际 CUDA 版本单独安装匹配的 `torch` 和 `torch_geometric` 轮子，不要机械照搬 CPU 默认安装。
 
+如果需要在集群上批量提交训练，可直接参考：
+
+- `training/cluster/README.md`
+- `training/cluster/run_train_field.slurm`
+- `training/cluster/run_plan.slurm`
+- `training/cluster/run_array.slurm`
+
 ## split 文件示例
 
 见：
