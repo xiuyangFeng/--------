@@ -4,7 +4,7 @@
 
 ## 当前推荐结构
 - `pipeline/`：正式维护的数据处理主线
-- `legacy/preprocess/`：旧版预处理、中心线与特征映射脚本
+- `legacy/preprocess/`：旧版预处理、映射与整理脚本；主线几何核心已迁入 `pipeline/`
 - `legacy/min-road/`：历史训练与旧链路实验代码
 - `docs/`：补充说明、研究草稿、归档文档
 
@@ -13,7 +13,7 @@
 | --- | --- |
 | `Script_Scenario_A_Surface.py` | `legacy/preprocess/Script_Scenario_A_Surface.py` |
 | `Script_Scenario_B_Volumetric.py` | `legacy/preprocess/Script_Scenario_B_Volumetric.py` |
-| `vmtk_core.py` | `legacy/preprocess/vmtk_core.py` |
+| `vmtk_core.py` | `pipeline/vmtk_core.py` |
 | `batch_process.py` | `legacy/preprocess/batch_process.py` |
 | `clean_fluent_data.py` | `legacy/preprocess/clean_fluent_data.py` |
 | `merge_ascii_points.py` | `legacy/preprocess/merge_ascii_points.py` |
@@ -65,5 +65,6 @@ python -m legacy.preprocess.integrated_preprocessing
 ## 兼容性说明
 - `data_new/`、`stl_data/`、现有病例目录结构未移动
 - `pipeline` 内部导入已改为包导入优先，支持 `python -m pipeline.xxx`
-- `legacy/preprocess` 内部已改为归档后可用的导入方式
-- `legacy/min-road/pre_data` 对旧预处理脚本的依赖已切换到 `legacy.preprocess`
+- `pipeline.extract_features` 对几何核心的依赖已收口到 `pipeline.vmtk_core`
+- `legacy/preprocess` 内部已改为归档后可用的导入方式，并优先复用 `pipeline.vmtk_core`
+- `legacy/min-road/pre_data` 对中心线几何核心的依赖已切换到 `pipeline.vmtk_core`

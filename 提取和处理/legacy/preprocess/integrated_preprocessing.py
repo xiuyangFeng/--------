@@ -501,9 +501,9 @@ def extract_centerlines(overwrite=False, save_csv=True):
     try:
         import vtk
         try:
-            from legacy.preprocess import vmtk_core
+            from pipeline import vmtk_core
         except ImportError:
-            import vmtk_core
+            from legacy.preprocess import vmtk_core
     except ImportError as e:
         print(f"❌ 无法导入所需的库: {e}")
         print("   请运行以下命令安装依赖:")

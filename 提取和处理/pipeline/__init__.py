@@ -5,6 +5,7 @@ Pipeline - 新数据格式完整处理流程
 - config: 配置参数
 - preprocess: 数据清洗+合并+降采样
 - extract_features: 几何特征提取+边界条件
+- vmtk_core: 主线几何中心线提取与特征计算核心
 - coord_normalize: 坐标系归一化（中心化+PCA对齐+缩放）【新增】
 - normalize: 特征归一化
 - convert_to_graph: 转换为图数据

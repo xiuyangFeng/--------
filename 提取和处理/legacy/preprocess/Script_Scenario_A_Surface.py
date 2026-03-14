@@ -8,9 +8,9 @@ def _load_geometry_dependencies():
     from vtkmodules.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 
     try:
-        from . import vmtk_core  # type: ignore
+        from pipeline import vmtk_core  # type: ignore
     except ImportError:
-        import vmtk_core  # type: ignore
+        from . import vmtk_core  # type: ignore
 
     return vtk, vtk_to_numpy, numpy_to_vtk, vmtk_core
 

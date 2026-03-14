@@ -77,7 +77,13 @@ else:
     from .utils.progress import batch_progress_logging
     from .utils.progress import case_progress_logging
 
-from legacy.preprocess import vmtk_core
+if __package__ in {None, ""}:
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from pipeline import vmtk_core
+else:
+    from . import vmtk_core
 
 
 def find_surface_file(case_dir: Path) -> Optional[Path]:

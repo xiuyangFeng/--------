@@ -4,6 +4,7 @@
 
 ## 目录导航
 - [`pipeline/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline)：正式处理流程，推荐入口
+- [`pipeline/vmtk_core.py`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/vmtk_core.py)：主线几何中心线提取与特征计算核心
 - [`legacy/preprocess/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/legacy/preprocess)：旧版几何预处理、映射与整理脚本
 - [`legacy/min-road/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/legacy/min-road)：历史训练与预处理链路
 - [`docs/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs)：迁移说明、旧文档、研究思路
@@ -76,6 +77,11 @@ from pipeline.dataset import CFDAugmentedDataset
 python -m legacy.preprocess.batch_process --help
 python -m legacy.preprocess.normalize_features --help
 ```
+
+说明：
+
+- `pipeline.extract_features` 现在直接依赖 [`pipeline/vmtk_core.py`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/vmtk_core.py)，不再把主线几何核心挂在 `legacy/` 下。
+- `legacy/preprocess/vmtk_core.py` 仅保留兼容层，避免旧脚本立即失效。
 
 ## 迁移说明
 - 路径映射见 [`docs/MIGRATION.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/MIGRATION.md)
