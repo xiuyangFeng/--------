@@ -106,6 +106,14 @@ def main() -> None:
     config.validate()
     split = SplitSpec.from_json(config.data.split_file)
 
+    # physics 尺度必须在构建 trainer 前解析完成，否则 loss 会退回默认 1.0。
+    train_case_dirs = [Path(config.data.data_root) / case_name for case_name in split.train_cases]
+    config.physics.resolve_scales_from_data(
+        data_root=config.data.data_root,
+        graphs_subdir=config.data.graphs_subdir,
+        case_dirs=train_case_dirs,
+    )
+
     set_seed(config.system.seed, deterministic=config.system.deterministic)
     device = resolve_device(config.system.device)
 

@@ -86,7 +86,6 @@ class MetaConfig:
 
 @dataclass
 class PhysicsConfig:
-    # 物理项独立成一个配置块，目的是让 physics ablation 只改配置，不改训练主逻辑。
     enabled: bool = False
     warmup_epochs: int = 0
     density: float = 1060.0
@@ -96,6 +95,53 @@ class PhysicsConfig:
     continuity_weight: float = 0.0
     momentum_weight: float = 0.0
     no_slip_weight: float = 0.0
+    auto_load_scales: bool = True
+
+    def resolve_scales_from_data(self, data_root: str, graphs_subdir: str, case_dirs: list) -> None:
+        """从 pipeline 产物自动加载物理损失所需的坐标/时间尺度。
+
+        coord_normalize 会为每个病例保存 ``transform_params.json``，其中
+        含有该病例的 ``scale_factor``。物理损失在归一化坐标上求导后，
+        需要用这些尺度还原回原始物理空间，否则 continuity / momentum
+        的量纲会失真。这里读取可用病例的尺度，并用中位数作为稳健代表值。
+        """
+        if not self.auto_load_scales or not self.enabled:
+            return
+
+        import json
+        from pathlib import Path
+
+        scale_factors: List[float] = []
+        for case_dir in case_dirs:
+            params_path = Path(case_dir) / "processed" / "coord_normalized" / "transform_params.json"
+            if not params_path.exists():
+                continue
+            try:
+                with open(params_path, "r", encoding="utf-8") as f:
+                    params = json.load(f)
+                sf = params.get("scale_factor", 1.0)
+                if sf > 1e-6:
+                    scale_factors.append(sf)
+            except (json.JSONDecodeError, KeyError):
+                continue
+
+        if scale_factors:
+            import statistics
+            median_sf = statistics.median(scale_factors)
+            self.coord_scales = [median_sf, median_sf, median_sf]
+
+        # t_norm 的标准差保存在全局归一化参数里，用于把 dt 还原回原始时间尺度。
+        norm_params_path = Path(data_root) / "normalization_params_global.json"
+        if norm_params_path.exists():
+            try:
+                with open(norm_params_path, "r", encoding="utf-8") as f:
+                    norm_params = json.load(f)
+                stats = norm_params.get("statistics", {})
+                t_stats = stats.get("t_norm")
+                if t_stats and t_stats.get("std", 0) > 1e-10:
+                    self.time_scale = t_stats["std"]
+            except (json.JSONDecodeError, KeyError):
+                pass
 
 
 @dataclass
@@ -141,7 +187,7 @@ class ExperimentConfig:
             raise ValueError(f"未知节点特征: {unknown_node}")
         if unknown_global:
             raise ValueError(f"未知全局特征: {unknown_global}")
-        if self.model.name not in {"mlp", "graphsage", "transformer"}:
+        if self.model.name not in {"mlp", "graphsage", "transformer", "meshgraphnet", "pointnetpp"}:
             raise ValueError(f"不支持的模型: {self.model.name}")
         if len(self.optim.target_weights) != len(TARGET_NAMES):
             raise ValueError("target_weights 维度必须与目标输出一致")

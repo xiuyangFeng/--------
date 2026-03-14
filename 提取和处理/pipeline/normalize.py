@@ -122,13 +122,34 @@ def min_max_normalize(values: np.ndarray, min_val: float, max_val: float) -> np.
 
 
 def collect_global_statistics(
-    case_dirs: List[Path], 
-    input_subdir: str
+    case_dirs: List[Path],
+    input_subdir: str,
+    train_cases: Optional[List[str]] = None,
 ) -> Dict:
     """
-    收集所有病例的全局统计量
+    收集全局统计量。
+
+    当 ``train_cases`` 非空时，**仅**使用训练集病例计算统计量，
+    以避免验证/测试集信息泄漏到归一化参数中。归一化后所有病例
+    （包括验证/测试）使用同一套参数变换。
+
+    参数:
+        case_dirs: 全部病例目录
+        input_subdir: 输入子目录
+        train_cases: 训练集病例名列表。为 None 时使用全部病例（向后兼容，
+                     但会在日志中打印警告）。
     """
-    print("\n📊 收集全局统计量...")
+    if train_cases is not None:
+        train_set = {name.replace(' ', '_').replace('-', '_').upper() for name in train_cases}
+        stats_dirs = [
+            d for d in case_dirs
+            if d.name.replace(' ', '_').replace('-', '_').upper() in train_set
+        ]
+        print(f"\n📊 收集全局统计量（仅训练集 {len(stats_dirs)}/{len(case_dirs)} 病例）...")
+    else:
+        stats_dirs = list(case_dirs)
+        print("\n⚠️  未指定 train_cases，将使用全部病例计算统计量（可能导致数据泄漏）")
+        print("📊 收集全局统计量...")
     
     # 初始化累积数据
     feature_values = {
@@ -142,7 +163,7 @@ def collect_global_statistics(
     
     total_files = 0
     
-    for case_dir in tqdm(case_dirs, desc="扫描病例"):
+    for case_dir in tqdm(stats_dirs, desc="扫描病例"):
         input_dir = case_dir / input_subdir
         if not input_dir.exists():
             continue
@@ -430,22 +451,26 @@ def process_all_cases(
     target_case: Optional[str] = None,
     input_subdir: str = None,
     output_subdir: str = None,
+    train_cases: Optional[List[str]] = None,
 ) -> None:
-    """批量处理所有病例"""
+    """批量处理所有病例。
+
+    参数:
+        train_cases: 训练集病例名列表。传入后归一化统计量仅基于这些病例
+                     计算，防止验证/测试集数据泄漏。
+    """
     if data_root is None:
         data_root = DATA_ROOT
     else:
         data_root = Path(data_root)
     
     if input_subdir is None:
-        input_subdir = COORD_NORMALIZED_DIR  # 从坐标系归一化后的数据读取
+        input_subdir = COORD_NORMALIZED_DIR
     if output_subdir is None:
         output_subdir = NORMALIZED_DIR
     
-    # 获取病例目录
     case_dirs = get_case_dirs(data_root)
     
-    # 过滤指定病例
     if target_case:
         target_std = target_case.replace(' ', '_').replace('-', '_').upper()
         case_dirs = [
@@ -469,7 +494,7 @@ def process_all_cases(
         print(f"📂 输出子目录: {output_subdir}")
         print(f"📊 待处理病例数: {len(case_dirs)}")
         
-        global_stats = collect_global_statistics(case_dirs, input_subdir)
+        global_stats = collect_global_statistics(case_dirs, input_subdir, train_cases=train_cases)
         
         if not global_stats:
             print("❌ 未能收集到统计量，请检查数据")
@@ -545,14 +570,31 @@ def main():
         default=None,
         help=f"输出子目录，默认 {NORMALIZED_DIR}",
     )
+    parser.add_argument(
+        "--train-split",
+        type=str,
+        default=None,
+        help="训练集 split JSON 文件路径（包含 train 病例列表），"
+             "指定后归一化统计量仅基于训练集计算以避免数据泄漏",
+    )
     
     args = parser.parse_args()
+    
+    train_cases = None
+    if args.train_split:
+        import json as _json
+        with open(args.train_split, "r", encoding="utf-8") as _f:
+            _split = _json.load(_f)
+        train_cases = _split.get("train", _split.get("cases", []))
+        if not train_cases:
+            print(f"⚠️  split 文件中未找到 'train' 字段: {args.train_split}")
     
     process_all_cases(
         data_root=args.data_root,
         target_case=args.case,
         input_subdir=args.input_subdir,
         output_subdir=args.output_subdir,
+        train_cases=train_cases,
     )
 
 

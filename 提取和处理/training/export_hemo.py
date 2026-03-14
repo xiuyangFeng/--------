@@ -32,6 +32,10 @@ def load_samples(manifest_path: str | Path, source_field: str) -> List[HemoSampl
         prediction = torch.load(item["prediction_path"], map_location="cpu")
         patient_id, phase, time_step = parse_sample_id(prediction["sample_id"])
         y_field = prediction["y_pred"] if source_field == "AI" else prediction["y_true"]
+        x = prediction.get("x")
+        positions = None
+        if x is not None:
+            positions = x[:, :3]
         samples.append(
             HemoSample(
                 sample_id=prediction["sample_id"],
@@ -43,6 +47,8 @@ def load_samples(manifest_path: str | Path, source_field: str) -> List[HemoSampl
                 split_version=manifest.get("split_version", "unknown"),
                 wall_mask=prediction["wall_mask"].bool(),
                 y_field=y_field,
+                positions=positions,
+                edge_index=prediction.get("edge_index"),
             )
         )
     return samples
@@ -119,9 +125,9 @@ def main() -> None:
                     "risk_features": str(output_dir / "risk_features.csv"),
                 },
                 "notes": [
-                    # 这里明确把当前骨架的限制写进产物 manifest，避免后面误把 proxy 版本当最终结果。
-                    "当前版本是任务B骨架，WSS 采用 wall velocity magnitude proxy。",
-                    "后续接入壁面法向、区域划分和精确 WSS 实现后，需要替换 training.hemo 中的 proxy 逻辑。",
+                    "当前版本优先使用基于壁面法向和邻近内部点速度梯度的 WSS 计算。",
+                    "若预测产物缺少坐标或边信息，会自动回退到 velocity magnitude proxy 以保持兼容。",
+                    "区域划分仍为骨架版，后续可继续细化 wall / bifurcation / near-wall 等区域规则。",
                 ],
             },
             f,

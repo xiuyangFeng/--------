@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import torch
+
+BLOOD_VISCOSITY = 0.0035  # Pa·s
 
 
 @dataclass(frozen=True)
 class HemoSample:
-    # HemoSample 是任务 B 的最小统一输入单元：
-    # 一条样本 = 一个病例在一个时间步上的壁面相关场数据。
     sample_id: str
     patient_id: str
     phase: str
@@ -19,11 +19,11 @@ class HemoSample:
     split_version: str
     wall_mask: torch.Tensor
     y_field: torch.Tensor
+    positions: Optional[torch.Tensor] = None
+    edge_index: Optional[torch.Tensor] = None
 
 
 def parse_sample_id(sample_id: str) -> Tuple[str, str, int]:
-    # 当前先约定 sample_id 中编码 patient / phase / time_step。
-    # 如果后续 predict_field 输出更正式的 metadata，这里应该优先改成读取显式字段。
     parts = sample_id.split("__")
     patient_id = parts[0]
     phase = "unknown"
@@ -42,23 +42,140 @@ def parse_sample_id(sample_id: str) -> Tuple[str, str, int]:
     return patient_id, phase, time_step
 
 
-def compute_wss_proxy(y_field: torch.Tensor, wall_mask: torch.Tensor, epsilon: float = 1e-8) -> Dict[str, torch.Tensor]:
-    # 这里不是论文最终版 WSS。
-    # 目前只是用壁面速度模长构造一个 proxy，把任务 B 的输入输出链路先打通。
+def _estimate_wall_normals(
+    positions: torch.Tensor,
+    wall_mask: torch.Tensor,
+    edge_index: torch.Tensor,
+    k_internal: int = 5,
+) -> torch.Tensor:
+    """基于局部 wall-internal 几何关系估计壁面外法向。
+
+    对每个壁面点，先沿图边寻找邻近内部点，再用“内部点均值指向壁面点”
+    的方向作为近似外法向。如果当前壁面点周围找不到内部邻居，则回退到
+    固定方向，保证后续 WSS 计算链路不中断。
+    """
+    wall_idx = torch.nonzero(wall_mask, as_tuple=False).flatten()
+    internal_mask = ~wall_mask
+    n_wall = wall_idx.size(0)
+    normals = torch.zeros(n_wall, 3, device=positions.device, dtype=positions.dtype)
+
+    src, dst = edge_index[0], edge_index[1]
+
+    for local_i, wi in enumerate(wall_idx.tolist()):
+        neighbours = dst[src == wi]
+        internal_neighbours = neighbours[internal_mask[neighbours]]
+        if internal_neighbours.numel() == 0:
+            neighbours_rev = src[dst == wi]
+            internal_neighbours = neighbours_rev[internal_mask[neighbours_rev]]
+
+        if internal_neighbours.numel() == 0:
+            normals[local_i] = torch.tensor([0.0, 0.0, 1.0], device=positions.device)
+            continue
+
+        if internal_neighbours.numel() > k_internal:
+            dists = (positions[internal_neighbours] - positions[wi]).norm(dim=1)
+            _, topk = dists.topk(k_internal, largest=False)
+            internal_neighbours = internal_neighbours[topk]
+
+        direction = positions[wi] - positions[internal_neighbours].mean(dim=0)
+        norm = direction.norm()
+        if norm > 1e-10:
+            normals[local_i] = direction / norm
+        else:
+            normals[local_i] = torch.tensor([0.0, 0.0, 1.0], device=positions.device)
+
+    return normals
+
+
+def compute_wss(
+    y_field: torch.Tensor,
+    wall_mask: torch.Tensor,
+    positions: Optional[torch.Tensor] = None,
+    edge_index: Optional[torch.Tensor] = None,
+    mu: float = BLOOD_VISCOSITY,
+    epsilon: float = 1e-8,
+) -> Dict[str, torch.Tensor]:
+    """沿壁面法向的速度梯度计算 WSS。
+
+    计算公式：
+    ``WSS_vector = mu * (du/dn - (du/dn · n) * n)``
+    即先求法向方向上的速度梯度，再投影到切向平面。
+
+    当预测产物没有保存坐标或边信息时，自动回退到旧版 proxy，
+    以兼容历史导出结果。
+    """
+    wall_mask_bool = wall_mask.bool() if wall_mask.dtype != torch.bool else wall_mask
+    wall_velocity = y_field[:, :3][wall_mask_bool]
+
+    if wall_velocity.numel() == 0:
+        empty = y_field.new_zeros((0,))
+        empty_vec = y_field.new_zeros((0, 3))
+        return {"wss": empty, "wss_vector": empty_vec, "method": "empty"}
+
+    if positions is None or edge_index is None:
+        return _compute_wss_proxy(y_field, wall_mask_bool, epsilon)
+
+    wall_idx = torch.nonzero(wall_mask_bool, as_tuple=False).flatten()
+    internal_mask = ~wall_mask_bool
+    src, dst = edge_index[0], edge_index[1]
+
+    normals = _estimate_wall_normals(positions, wall_mask_bool, edge_index)
+
+    n_wall = wall_idx.size(0)
+    wss_vectors = torch.zeros(n_wall, 3, device=y_field.device, dtype=y_field.dtype)
+
+    for local_i, wi in enumerate(wall_idx.tolist()):
+        neighbours = dst[src == wi]
+        internal_neighbours = neighbours[internal_mask[neighbours]]
+        if internal_neighbours.numel() == 0:
+            neighbours_rev = src[dst == wi]
+            internal_neighbours = neighbours_rev[internal_mask[neighbours_rev]]
+
+        if internal_neighbours.numel() == 0:
+            wss_vectors[local_i] = mu * wall_velocity[local_i]
+            continue
+
+        dists = (positions[internal_neighbours] - positions[wi]).norm(dim=1)
+        closest_idx = internal_neighbours[dists.argmin()]
+        dn = dists.min().clamp_min(epsilon)
+
+        vel_wall = y_field[wi, :3]
+        vel_internal = y_field[closest_idx, :3]
+        du_dn = (vel_internal - vel_wall) / dn
+
+        n = normals[local_i]
+        du_dn_tangent = du_dn - (du_dn @ n) * n
+        wss_vectors[local_i] = mu * du_dn_tangent
+
+    wss_mag = wss_vectors.norm(dim=1)
+    return {"wss": wss_mag, "wss_vector": wss_vectors, "method": "gradient"}
+
+
+def _compute_wss_proxy(
+    y_field: torch.Tensor,
+    wall_mask: torch.Tensor,
+    epsilon: float = 1e-8,
+) -> Dict[str, torch.Tensor]:
+    """WSS 的旧版 proxy，保留给历史结果和缺字段样本使用。"""
     wall_velocity = y_field[:, :3][wall_mask]
     if wall_velocity.numel() == 0:
         empty = y_field.new_zeros((0,))
         empty_vec = y_field.new_zeros((0, 3))
-        return {"wss": empty, "wss_vector": empty_vec}
+        return {"wss": empty, "wss_vector": empty_vec, "method": "proxy"}
     wss = wall_velocity.norm(dim=1)
     denom = wss.unsqueeze(1).clamp_min(epsilon)
     return {
         "wss": wss,
         "wss_vector": wall_velocity / denom * wss.unsqueeze(1),
+        "method": "proxy",
     }
 
 
-def compute_cycle_metrics(samples: Sequence[HemoSample], epsilon: float = 1e-8) -> Dict[str, torch.Tensor]:
+def compute_cycle_metrics(
+    samples: Sequence[HemoSample],
+    mu: float = BLOOD_VISCOSITY,
+    epsilon: float = 1e-8,
+) -> Dict[str, torch.Tensor]:
     if not samples:
         raise ValueError("样本序列不能为空")
 
@@ -66,9 +183,16 @@ def compute_cycle_metrics(samples: Sequence[HemoSample], epsilon: float = 1e-8) 
     wss_stack: List[torch.Tensor] = []
     wss_vector_stack: List[torch.Tensor] = []
     for sample in sorted(samples, key=lambda item: item.time_step):
-        proxy = compute_wss_proxy(sample.y_field, wall_mask=sample.wall_mask.bool(), epsilon=epsilon)
-        wss_stack.append(proxy["wss"])
-        wss_vector_stack.append(proxy["wss_vector"])
+        result = compute_wss(
+            sample.y_field,
+            wall_mask=sample.wall_mask.bool(),
+            positions=sample.positions,
+            edge_index=sample.edge_index,
+            mu=mu,
+            epsilon=epsilon,
+        )
+        wss_stack.append(result["wss"])
+        wss_vector_stack.append(result["wss_vector"])
 
     wss_t = torch.stack(wss_stack, dim=0)
     wss_vec_t = torch.stack(wss_vector_stack, dim=0)
@@ -191,7 +315,12 @@ def build_per_node_rows(
         wall_indices = torch.nonzero(ordered_samples[0].wall_mask.bool(), as_tuple=False).flatten()
 
         for time_index, sample in enumerate(ordered_samples):
-            proxy = compute_wss_proxy(sample.y_field, sample.wall_mask.bool())
+            proxy = compute_wss(
+                sample.y_field,
+                sample.wall_mask.bool(),
+                positions=sample.positions,
+                edge_index=sample.edge_index,
+            )
             for local_idx, node_idx in enumerate(wall_indices.tolist()):
                 rows.append(
                     {

@@ -52,6 +52,20 @@ def build_model(model_name: str, hidden_dim: int, num_layers: int, dropout: floa
             out_dim=TARGET_DIM,
             heads=heads,
         ),
+        "meshgraphnet": FieldMeshGraphNet(
+            in_dim=MODEL_INPUT_DIM,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+            dropout=dropout,
+            out_dim=TARGET_DIM,
+        ),
+        "pointnetpp": FieldPointNetPP(
+            in_dim=MODEL_INPUT_DIM,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+            dropout=dropout,
+            out_dim=TARGET_DIM,
+        ),
     }
     if model_name not in registry:
         raise ValueError(f"未知模型: {model_name}")
@@ -131,10 +145,154 @@ class FieldTransformer(nn.Module):
         x = self.in_proj(x)
         for conv, linear in zip(self.layers, self.post_layers):
             residual = x
-            # 这里故意不把几何特征拆成多个分支，先保持主干简单，便于后续做 feature ablation。
             x = conv(x, data.edge_index)
             x = F.elu(x)
             x = linear(x)
             x = F.dropout(x, p=self.dropout, training=self.training)
             x = x + residual
+        return self.out_proj(x)
+
+
+# ---------------------------------------------------------------------------
+# Literature baselines
+# ---------------------------------------------------------------------------
+
+
+class _EdgeModel(nn.Module):
+    """MeshGraphNet 的边更新 MLP。"""
+
+    def __init__(self, in_dim: int, hidden_dim: int, out_dim: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, out_dim),
+            nn.LayerNorm(out_dim),
+        )
+
+    def forward(self, src, dst, edge_attr):
+        inp = torch.cat([src, dst, edge_attr], dim=-1)
+        return self.net(inp)
+
+
+class _NodeModel(nn.Module):
+    """MeshGraphNet 的节点更新 MLP。"""
+
+    def __init__(self, in_dim: int, hidden_dim: int, out_dim: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, out_dim),
+            nn.LayerNorm(out_dim),
+        )
+
+    def forward(self, x, agg_edge):
+        inp = torch.cat([x, agg_edge], dim=-1)
+        return self.net(inp)
+
+
+class FieldMeshGraphNet(nn.Module):
+    """Pfaff et al. (ICLR 2021) 的 Encode-Process-Decode 基线。
+
+    边特征采用相对位移加欧氏距离，保持与物理仿真代理模型常见写法一致。
+    """
+
+    def __init__(self, in_dim: int, hidden_dim: int, num_layers: int, dropout: float, out_dim: int):
+        super().__init__()
+        edge_feat_dim = 4  # dx, dy, dz, ||d||
+        self.node_encoder = nn.Sequential(nn.Linear(in_dim, hidden_dim), nn.ReLU())
+        self.edge_encoder = nn.Sequential(nn.Linear(edge_feat_dim, hidden_dim), nn.ReLU())
+
+        self.edge_models = nn.ModuleList()
+        self.node_models = nn.ModuleList()
+        for _ in range(max(1, num_layers)):
+            self.edge_models.append(
+                _EdgeModel(hidden_dim * 3, hidden_dim, hidden_dim)
+            )
+            self.node_models.append(
+                _NodeModel(hidden_dim * 2, hidden_dim, hidden_dim)
+            )
+
+        self.dropout = dropout
+        self.decoder = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, out_dim),
+        )
+
+    def _build_edge_attr(self, pos, edge_index):
+        row, col = edge_index
+        diff = pos[col] - pos[row]
+        dist = diff.norm(dim=1, keepdim=True).clamp_min(1e-8)
+        return torch.cat([diff, dist], dim=-1)
+
+    def forward(self, data):
+        x_in = torch.cat([data.x, expand_global_cond(data)], dim=-1)
+        pos = data.x[:, :3]
+        edge_index = data.edge_index
+        edge_attr = self._build_edge_attr(pos, edge_index)
+
+        x = self.node_encoder(x_in)
+        e = self.edge_encoder(edge_attr)
+
+        row, col = edge_index
+        for edge_model, node_model in zip(self.edge_models, self.node_models):
+            x_res = x
+            e = edge_model(x[row], x[col], e)
+            agg = torch.zeros_like(x)
+            agg.scatter_add_(0, row.unsqueeze(1).expand_as(e), e)
+            x = node_model(x, agg)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = x + x_res
+
+        return self.decoder(x)
+
+
+class FieldPointNetPP(nn.Module):
+    """简化版 PointNet++ 风格基线。
+
+    这里不复现完整的 set abstraction / feature propagation，而是用图邻域
+    定义局部点集，再做 max-pooling 聚合，用来回答“简单邻域聚合是否足以
+    接近显式消息传递”的问题。
+    """
+
+    def __init__(self, in_dim: int, hidden_dim: int, num_layers: int, dropout: float, out_dim: int):
+        super().__init__()
+        self.in_proj = nn.Linear(in_dim, hidden_dim)
+
+        self.local_mlps = nn.ModuleList()
+        for _ in range(max(1, num_layers)):
+            self.local_mlps.append(
+                nn.Sequential(
+                    nn.Linear(hidden_dim * 2, hidden_dim),
+                    nn.ReLU(),
+                    nn.Linear(hidden_dim, hidden_dim),
+                )
+            )
+
+        self.dropout = dropout
+        self.out_proj = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, out_dim),
+        )
+
+    def forward(self, data):
+        x_in = torch.cat([data.x, expand_global_cond(data)], dim=-1)
+        x = self.in_proj(x_in)
+        edge_index = data.edge_index
+        row, col = edge_index
+
+        for mlp in self.local_mlps:
+            x_res = x
+            neighbour_feats = x[col]
+            max_pool = torch.full_like(x, float("-inf"))
+            max_pool.scatter_reduce_(0, row.unsqueeze(1).expand_as(neighbour_feats), neighbour_feats, reduce="amax")
+            max_pool = max_pool.clamp_min(0)
+            x = mlp(torch.cat([x, max_pool], dim=-1))
+            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = x + x_res
+
         return self.out_proj(x)

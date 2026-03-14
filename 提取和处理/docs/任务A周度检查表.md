@@ -222,8 +222,8 @@
 | `A-Abl-04-04` | 旋转 + 平移 + 小尺度扰动 | `[]` | `[]` | |
 | `A-Abl-05-01` | 数据损失 only | `[]` | `[]` | |
 | `A-Abl-05-02` | 数据 + continuity | `[]` | `[]` | |
-| `A-Abl-05-03` | 数据 + continuity + momentum | `[]` | `[]` | |
-| `A-Abl-05-04` | 数据 + continuity + momentum + no-slip | `[]` | `[]` | |
+| `A-Abl-05-03` | 数据 + continuity + no-slip | `[]` | `[]` | |
+| `A-Abl-05-04` | 数据 + continuity + no-slip + momentum | `[]` | `[]` | |
 
 ### 本周必填总结
 

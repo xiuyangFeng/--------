@@ -60,6 +60,20 @@ else:
 COORD_NORMALIZED_DIR = "processed/coord_normalized"
 
 
+def _svd_flip(components: np.ndarray, data: np.ndarray) -> np.ndarray:
+    """Deterministic sign convention for PCA components.
+
+    For each principal component, choose the sign such that the component
+    with the largest absolute projection on the data points is positive.
+    This mirrors sklearn.utils.extmath.svd_flip and removes sign ambiguity
+    that otherwise makes the rotation matrix non-reproducible across runs.
+    """
+    max_abs_idx = np.argmax(np.abs(data @ components.T), axis=0)
+    signs = np.sign(np.array([data[max_abs_idx[i], :] @ components[i] for i in range(components.shape[0])]))
+    signs[signs == 0] = 1
+    return components * signs[:, np.newaxis]
+
+
 def normalize_coordinate_system(
     coords: np.ndarray,
     velocity: np.ndarray = None,
@@ -88,13 +102,14 @@ def normalize_coordinate_system(
     coords_centered = coords - centroid
     
     # 步骤2：PCA主轴对齐
-    # 将血管主轴（最大方差方向）旋转到 Z 轴
     pca = PCA(n_components=3)
     pca.fit(coords_centered)
-    
-    # PCA components 的行是主成分方向，按方差从大到小排列。
-    # coords_centered @ pca.components_.T 会把 PC1, PC2, PC3 依次映射到 X, Y, Z。
-    # 为了显式控制目标轴，这里重排主成分顺序。
+
+    # svd_flip: scikit-learn 内部已做 sign flip，但 PCA 的 sign
+    # convention 取决于 SVD 实现。这里显式应用一致的 sign flip
+    # 规则，保证同一几何形状不同运行得到相同的旋转矩阵。
+    components = _svd_flip(pca.components_, coords_centered)
+
     axis_orders = {
         "x": [0, 1, 2],
         "y": [1, 0, 2],
@@ -103,11 +118,10 @@ def normalize_coordinate_system(
     if principal_axis_target not in axis_orders:
         raise ValueError(f"不支持的 principal_axis_target: {principal_axis_target}")
     axis_order = axis_orders[principal_axis_target]
-    R = pca.components_[axis_order].T  # 旋转矩阵 [3, 3]
-    
-    # 确保旋转矩阵是右手系（行列式为正）
+    R = components[axis_order].T
+
     if np.linalg.det(R) < 0:
-        R[:, 2] *= -1  # 翻转第三列
+        R[:, 2] *= -1
     
     coords_aligned = coords_centered @ R
     
