@@ -26,7 +26,15 @@ module purge
 TRAINING_ENV=${TRAINING_ENV:-GNN}
 TRAINING_PYTHON=${TRAINING_PYTHON:-""}
 
-source ~/.bashrc
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+fi
+if command -v conda >/dev/null 2>&1; then
+    CONDA_BASE="$(conda info --base)"
+    source "$CONDA_BASE/etc/profile.d/conda.sh"
+elif [ -f "/public/newapps/anaconda3/etc/profile.d/conda.sh" ]; then
+    source "/public/newapps/anaconda3/etc/profile.d/conda.sh"
+fi
 if [ -n "$TRAINING_PYTHON" ]; then
     PYTHON_BIN="$TRAINING_PYTHON"
 else
@@ -34,9 +42,19 @@ else
     PYTHON_BIN="$(command -v python)"
 fi
 
-cd "$SLURM_SUBMIT_DIR"
+SCRIPT_PATH="${SLURM_JOB_SCRIPT:-}"
+if [ -z "$SCRIPT_PATH" ] && command -v scontrol >/dev/null 2>&1; then
+    SCRIPT_PATH="$(scontrol show job "$SLURM_JOB_ID" | tr ' ' '\n' | awk -F= '/^Command=/{print $2; exit}')"
+fi
+if [ -z "$SCRIPT_PATH" ]; then
+    SCRIPT_PATH="$0"
+fi
+case "$SCRIPT_PATH" in
+    /*) ;;
+    *) SCRIPT_PATH="$SLURM_SUBMIT_DIR/$SCRIPT_PATH" ;;
+esac
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 TRAINING_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_DIR="$(dirname "$TRAINING_DIR")"
 cd "$PROJECT_DIR"

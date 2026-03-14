@@ -19,6 +19,8 @@
 #   sbatch run_pipeline.slurm ZHANG_CHUN 2       # 从步骤2开始
 # ============================================================================
 
+set -euo pipefail
+
 # 获取命令行参数
 CASE_NAME=${1:-""}           # 病例名称（可选）
 START_STEP=${2:-1}           # 开始步骤（默认1）
@@ -45,14 +47,34 @@ if [ -z "$GEOMETRY_PYTHON" ] && [ -x "$DEFAULT_GEOMETRY_PYTHON" ]; then
     GEOMETRY_PYTHON="$DEFAULT_GEOMETRY_PYTHON"
 fi
 
-source ~/.bashrc
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+fi
+if command -v conda >/dev/null 2>&1; then
+    CONDA_BASE="$(conda info --base)"
+    source "$CONDA_BASE/etc/profile.d/conda.sh"
+elif [ -f "/public/newapps/anaconda3/etc/profile.d/conda.sh" ]; then
+    source "/public/newapps/anaconda3/etc/profile.d/conda.sh"
+else
+    echo "错误: 找不到 conda 初始化脚本，请设置 PATH 或在脚本中指定 module load anaconda3"
+    exit 1
+fi
 conda activate "$PIPELINE_ENV"
 
-# 切换到提交目录
-cd $SLURM_SUBMIT_DIR
+SCRIPT_PATH="${SLURM_JOB_SCRIPT:-}"
+if [ -z "$SCRIPT_PATH" ] && command -v scontrol >/dev/null 2>&1; then
+    SCRIPT_PATH="$(scontrol show job "$SLURM_JOB_ID" | tr ' ' '\n' | awk -F= '/^Command=/{print $2; exit}')"
+fi
+if [ -z "$SCRIPT_PATH" ]; then
+    SCRIPT_PATH="$0"
+fi
+case "$SCRIPT_PATH" in
+    /*) ;;
+    *) SCRIPT_PATH="$SLURM_SUBMIT_DIR/$SCRIPT_PATH" ;;
+esac
 
 # 设置工作目录
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_DIR="$(dirname "$PIPELINE_DIR")"
 
@@ -92,28 +114,28 @@ echo ""
 # ============================================================================
 
 # 构建命令
-CMD="python -m pipeline.run_all"
-CMD="$CMD --start-step $START_STEP"
-CMD="$CMD --end-step $END_STEP"
-CMD="$CMD --sampling-method $SAMPLING_METHOD"
-CMD="$CMD --fps-ratio $FPS_RATIO"
+CMD=(python -m pipeline.run_all)
+CMD+=(--start-step "$START_STEP")
+CMD+=(--end-step "$END_STEP")
+CMD+=(--sampling-method "$SAMPLING_METHOD")
+CMD+=(--fps-ratio "$FPS_RATIO")
 
 if [ -n "$CASE_NAME" ]; then
-    CMD="$CMD --case $CASE_NAME"
+    CMD+=(--case "$CASE_NAME")
 fi
 
 if [ "$ALLOW_NEAREST_BC" = "1" ]; then
-    CMD="$CMD --allow-nearest-bc"
+    CMD+=(--allow-nearest-bc)
 fi
 if [ -n "$GEOMETRY_PYTHON" ]; then
-    CMD="$CMD --geometry-python $GEOMETRY_PYTHON"
+    CMD+=(--geometry-python "$GEOMETRY_PYTHON")
 fi
 
 # 执行
-echo "执行命令: $CMD"
+echo "执行命令: ${CMD[*]}"
 echo ""
 
-$CMD
+"${CMD[@]}"
 
 EXIT_CODE=$?
 

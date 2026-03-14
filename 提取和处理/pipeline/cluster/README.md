@@ -49,6 +49,12 @@ python -m pipeline.audit_inputs --groups AAA AG ILO
 # 指定病例
 ./batch_submit.sh --array ZHANG_CHUN LI_MING WANG_WEI
 
+# 只从步骤 2 跑到步骤 5，并行度改成 4
+./batch_submit.sh --array --start-step 2 --max-parallel 4
+
+# Array Job 下切换采样策略
+./batch_submit.sh --array --sampling-method fps
+
 # 显式指定双环境
 PIPELINE_ENV=GNN GEOMETRY_ENV=GNN_vmtk ./batch_submit.sh --array
 ```
@@ -68,6 +74,9 @@ sbatch run_pipeline.slurm ZHANG_CHUN
 ./batch_submit.sh
 ./batch_submit.sh ZHANG_CHUN LI_MING
 
+# 独立作业模式同样支持步骤范围和采样参数
+./batch_submit.sh --start-step 2 --end-step 5 --sampling-method hybrid --fps-ratio 0.3 ZHANG_CHUN
+
 # 显式指定 geometry-python
 GEOMETRY_PYTHON=/public/newhome/cy/.conda/envs/GNN_vmtk/bin/python \
 ./batch_submit.sh ZHANG_CHUN
@@ -77,6 +86,7 @@ GEOMETRY_PYTHON=/public/newhome/cy/.conda/envs/GNN_vmtk/bin/python \
 - `run_pipeline.slurm` / `run_array.slurm` 在 `GNN` 环境中启动
 - 若检测到 `$HOME/.conda/envs/GNN_vmtk/bin/python`，会自动把步骤2 `extract_features` 切到该解释器执行
 - 如需覆盖，可在提交前设置 `PIPELINE_ENV`、`GEOMETRY_ENV` 或 `GEOMETRY_PYTHON`
+- `batch_submit.sh` 会把 `--start-step`、`--end-step`、`--sampling-method`、`--fps-ratio`、`--allow-nearest-bc` 同时透传给独立作业和 Array Job
 
 示例：
 
@@ -119,6 +129,13 @@ sbatch run_pipeline.slurm ZHANG_CHUN 1 2
 
 # 允许 extract_features 在 BC 缺失时使用最近时间步兜底
 ALLOW_NEAREST_BC=1 sbatch run_pipeline.slurm ZHANG_CHUN
+```
+
+批量入口也支持同样的控制项：
+
+```bash
+./batch_submit.sh --array --start-step 2 --allow-nearest-bc
+./batch_submit.sh --end-step 3 --sampling-method random ZHANG_CHUN
 ```
 
 ## 监控作业

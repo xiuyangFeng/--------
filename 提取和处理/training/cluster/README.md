@@ -61,6 +61,8 @@ TRAINING_PYTHON=/public/newhome/cy/.conda/envs/GNN/bin/python \
 sbatch run_train_field.slurm training/configs/field/transformer_geometry.json
 ```
 
+`generate_manifest_list.sh` 和 `batch_submit.sh` 现在也会复用同一套 `TRAINING_ENV` / `TRAINING_PYTHON`，避免登录节点和计算节点解释器不一致。
+
 ### 3. 顺序跑一整份 manifest
 
 ```bash
@@ -117,6 +119,10 @@ Array Job 模式：
 ```bash
 ./batch_submit.sh --array
 MAX_PARALLEL=6 ./batch_submit.sh --array --study-group baseline
+
+# 让 manifest 生成和训练作业都使用同一个解释器
+TRAINING_PYTHON=/public/newhome/cy/.conda/envs/GNN/bin/python \
+./batch_submit.sh --array --study-group baseline
 ```
 
 ## 常用环境变量

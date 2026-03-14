@@ -22,6 +22,8 @@ EXP_ID=${3:-""}
 SEED=${4:-""}
 LIMIT=${5:-"0"}
 OUTPUT_FILE=${MANIFEST_LIST_FILE:-"$SCRIPT_DIR/manifest_list.tsv"}
+TRAINING_ENV=${TRAINING_ENV:-GNN}
+TRAINING_PYTHON=${TRAINING_PYTHON:-""}
 
 MANIFEST_ABS="$PROJECT_DIR/$MANIFEST_PATH"
 if [ ! -f "$MANIFEST_ABS" ]; then
@@ -35,7 +37,26 @@ fi
 
 mkdir -p "$SCRIPT_DIR/logs"
 
-python -c '
+if [ -n "$TRAINING_PYTHON" ]; then
+    PYTHON_BIN="$TRAINING_PYTHON"
+else
+    if [ -f "$HOME/.bashrc" ]; then
+        source "$HOME/.bashrc"
+    fi
+    if command -v conda >/dev/null 2>&1; then
+        CONDA_BASE="$(conda info --base)"
+        source "$CONDA_BASE/etc/profile.d/conda.sh"
+    elif [ -f "/public/newapps/anaconda3/etc/profile.d/conda.sh" ]; then
+        source "/public/newapps/anaconda3/etc/profile.d/conda.sh"
+    else
+        echo "错误: 找不到 conda 初始化脚本，请设置 TRAINING_PYTHON 或补充 module load anaconda3"
+        exit 1
+    fi
+    conda activate "$TRAINING_ENV"
+    PYTHON_BIN="$(command -v python)"
+fi
+
+"$PYTHON_BIN" -c '
 import json
 import sys
 from pathlib import Path

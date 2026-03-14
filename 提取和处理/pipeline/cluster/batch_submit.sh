@@ -10,34 +10,70 @@
 #   ./batch_submit.sh --array CASE1 CASE2   # Array Job 指定病例
 # ============================================================================
 
+set -euo pipefail
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 创建日志目录
 mkdir -p logs
 
-# 检查是否使用 Array Job 模式
 USE_ARRAY=false
-if [ "$1" = "--array" ] || [ "$1" = "-a" ]; then
-    USE_ARRAY=true
-    shift  # 移除 --array 参数
-fi
+START_STEP=${START_STEP:-1}
+END_STEP=${END_STEP:-5}
+SAMPLING_METHOD=${SAMPLING_METHOD:-hybrid}
+FPS_RATIO=${FPS_RATIO:-0.2}
+MAX_PARALLEL=${MAX_PARALLEL:-6}
+CASES=()
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --array|-a)
+            USE_ARRAY=true
+            ;;
+        --start-step)
+            shift
+            START_STEP="${1:-}"
+            ;;
+        --end-step)
+            shift
+            END_STEP="${1:-}"
+            ;;
+        --sampling-method)
+            shift
+            SAMPLING_METHOD="${1:-}"
+            ;;
+        --fps-ratio)
+            shift
+            FPS_RATIO="${1:-}"
+            ;;
+        --max-parallel)
+            shift
+            MAX_PARALLEL="${1:-}"
+            ;;
+        --allow-nearest-bc)
+            ALLOW_NEAREST_BC=1
+            ;;
+        *)
+            CASES+=("$1")
+            ;;
+    esac
+    shift
+done
 
 # 如果没有指定病例，获取所有病例
-if [ $# -eq 0 ]; then
+if [ ${#CASES[@]} -eq 0 ]; then
     DATA_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")/data_new/AG/fast"
     if [ -d "$DATA_DIR" ]; then
-        CASES=$(ls -d "$DATA_DIR"/*/ 2>/dev/null | xargs -n1 basename)
+        mapfile -t CASES < <(find "$DATA_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort)
     else
         echo "错误: 数据目录不存在: $DATA_DIR"
         exit 1
     fi
-else
-    CASES="$@"
 fi
 
 # 统计病例数
-CASE_COUNT=$(echo "$CASES" | wc -w | tr -d ' ')
+CASE_COUNT=${#CASES[@]}
 
 echo "=============================================="
 echo "批量提交作业"
@@ -46,25 +82,41 @@ echo "模式: $([ "$USE_ARRAY" = true ] && echo 'Array Job (推荐)' || echo '�
 echo "病例总数: $CASE_COUNT"
 echo "主环境: ${PIPELINE_ENV:-GNN}"
 echo "几何环境: ${GEOMETRY_ENV:-GNN_vmtk}"
+echo "步骤范围: $START_STEP -> $END_STEP"
+echo "采样方法: $SAMPLING_METHOD"
+echo "FPS 占比: $FPS_RATIO"
+echo "最大并发: $MAX_PARALLEL"
+echo "允许最近 BC 兜底: ${ALLOW_NEAREST_BC:-0}"
 if [ -n "$GEOMETRY_PYTHON" ]; then
     echo "geometry-python: $GEOMETRY_PYTHON"
 fi
 echo ""
 echo "病例列表:"
-for case in $CASES; do
+for case in "${CASES[@]}"; do
     echo "  - $case"
 done
 echo ""
 
+SBATCH_ENV=(
+    START_STEP="$START_STEP"
+    END_STEP="$END_STEP"
+    SAMPLING_METHOD="$SAMPLING_METHOD"
+    FPS_RATIO="$FPS_RATIO"
+    ALLOW_NEAREST_BC="${ALLOW_NEAREST_BC:-0}"
+)
+if [ -n "${GEOMETRY_PYTHON:-}" ]; then
+    SBATCH_ENV+=(GEOMETRY_PYTHON="$GEOMETRY_PYTHON")
+fi
+
 if [ "$USE_ARRAY" = true ]; then
     # Array Job 模式
     echo "生成病例列表文件..."
-    ./generate_case_list.sh $CASES
+    ./generate_case_list.sh "${CASES[@]}"
     
     echo ""
     echo "提交 Array Job..."
-    ARRAY_RANGE="0-$((CASE_COUNT-1))%6"  # 同时最多运行6个
-    JOB_ID=$(sbatch --parsable --array=$ARRAY_RANGE run_array.slurm)
+    ARRAY_RANGE="0-$((CASE_COUNT-1))%${MAX_PARALLEL}"
+    JOB_ID=$(env "${SBATCH_ENV[@]}" sbatch --parsable --array=$ARRAY_RANGE run_array.slurm)
     
     echo ""
     echo "=============================================="
@@ -72,7 +124,7 @@ if [ "$USE_ARRAY" = true ]; then
     echo "=============================================="
     echo "作业ID: $JOB_ID"
     echo "Array 范围: $ARRAY_RANGE"
-    echo "同时运行: 最多6个任务"
+    echo "同时运行: 最多${MAX_PARALLEL}个任务"
     echo ""
     echo "查看作业状态: squeue -u $USER"
     echo "查看单个任务输出: tail -f logs/gnn_array_${JOB_ID}_<TASK_ID>.out"
@@ -81,9 +133,9 @@ if [ "$USE_ARRAY" = true ]; then
 else
     # 独立作业模式
     JOB_IDS=""
-    for case in $CASES; do
+    for case in "${CASES[@]}"; do
         echo "提交: $case"
-        JOB_ID=$(sbatch --parsable run_pipeline.slurm "$case")
+        JOB_ID=$(env "${SBATCH_ENV[@]}" sbatch --parsable run_pipeline.slurm "$case" "$START_STEP" "$END_STEP" "$SAMPLING_METHOD" "$FPS_RATIO")
         echo "  作业ID: $JOB_ID"
         JOB_IDS="$JOB_IDS $JOB_ID"
     done

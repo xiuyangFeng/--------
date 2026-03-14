@@ -28,6 +28,8 @@
 #   #SBATCH --array=0-9%6
 # ============================================================================
 
+set -euo pipefail
+
 # 环境配置
 module purge
 PIPELINE_ENV=${PIPELINE_ENV:-GNN}
@@ -36,12 +38,33 @@ DEFAULT_GEOMETRY_PYTHON="$HOME/.conda/envs/$GEOMETRY_ENV/bin/python"
 if [ -z "$GEOMETRY_PYTHON" ] && [ -x "$DEFAULT_GEOMETRY_PYTHON" ]; then
     GEOMETRY_PYTHON="$DEFAULT_GEOMETRY_PYTHON"
 fi
-source ~/.bashrc
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+fi
+if command -v conda >/dev/null 2>&1; then
+    CONDA_BASE="$(conda info --base)"
+    source "$CONDA_BASE/etc/profile.d/conda.sh"
+elif [ -f "/public/newapps/anaconda3/etc/profile.d/conda.sh" ]; then
+    source "/public/newapps/anaconda3/etc/profile.d/conda.sh"
+else
+    echo "错误: 找不到 conda 初始化脚本，请设置 PATH 或在脚本中指定 module load anaconda3"
+    exit 1
+fi
 conda activate "$PIPELINE_ENV"
 
-cd $SLURM_SUBMIT_DIR
+SCRIPT_PATH="${SLURM_JOB_SCRIPT:-}"
+if [ -z "$SCRIPT_PATH" ] && command -v scontrol >/dev/null 2>&1; then
+    SCRIPT_PATH="$(scontrol show job "$SLURM_JOB_ID" | tr ' ' '\n' | awk -F= '/^Command=/{print $2; exit}')"
+fi
+if [ -z "$SCRIPT_PATH" ]; then
+    SCRIPT_PATH="$0"
+fi
+case "$SCRIPT_PATH" in
+    /*) ;;
+    *) SCRIPT_PATH="$SLURM_SUBMIT_DIR/$SCRIPT_PATH" ;;
+esac
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_DIR="$(dirname "$PIPELINE_DIR")"
 cd "$PROJECT_DIR"
@@ -60,6 +83,10 @@ fi
 CASE_NAME=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" "$CASE_LIST_FILE")
 ALLOW_NEAREST_BC=${ALLOW_NEAREST_BC:-0}
 GEOMETRY_PYTHON=${GEOMETRY_PYTHON:-""}
+START_STEP=${START_STEP:-1}
+END_STEP=${END_STEP:-5}
+SAMPLING_METHOD=${SAMPLING_METHOD:-hybrid}
+FPS_RATIO=${FPS_RATIO:-0.2}
 
 if [ -z "$CASE_NAME" ]; then
     echo "错误: 无法获取任务 $SLURM_ARRAY_TASK_ID 对应的病例名"
@@ -76,6 +103,10 @@ echo "节点: $SLURM_NODELIST"
 echo "CPU核数: $SLURM_NTASKS_PER_NODE"
 echo "主环境: $PIPELINE_ENV"
 echo "几何环境: $GEOMETRY_ENV"
+echo "步骤范围: $START_STEP -> $END_STEP"
+echo "采样方法: $SAMPLING_METHOD"
+echo "FPS 占比: $FPS_RATIO"
+echo "允许最近 BC 兜底: $ALLOW_NEAREST_BC"
 if [ -n "$GEOMETRY_PYTHON" ]; then
     echo "geometry-python: $GEOMETRY_PYTHON"
 fi
@@ -84,15 +115,19 @@ echo "=============================================="
 echo ""
 
 # 运行 pipeline
-CMD="python -m pipeline.run_all --case $CASE_NAME"
+CMD=(python -m pipeline.run_all --case "$CASE_NAME")
+CMD+=(--start-step "$START_STEP")
+CMD+=(--end-step "$END_STEP")
+CMD+=(--sampling-method "$SAMPLING_METHOD")
+CMD+=(--fps-ratio "$FPS_RATIO")
 if [ "$ALLOW_NEAREST_BC" = "1" ]; then
-    CMD="$CMD --allow-nearest-bc"
+    CMD+=(--allow-nearest-bc)
 fi
 if [ -n "$GEOMETRY_PYTHON" ]; then
-    CMD="$CMD --geometry-python $GEOMETRY_PYTHON"
+    CMD+=(--geometry-python "$GEOMETRY_PYTHON")
 fi
-echo "执行: $CMD"
-$CMD
+echo "执行: ${CMD[*]}"
+"${CMD[@]}"
 
 EXIT_CODE=$?
 
