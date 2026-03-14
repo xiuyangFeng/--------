@@ -54,11 +54,13 @@ class OptimConfig:
     epochs: int = 200
     lr: float = 5e-4
     weight_decay: float = 1e-4
+    warmup_epochs: int = 0
     scheduler_factor: float = 0.5
     scheduler_patience: int = 10
     early_stopping_patience: int = 30
     target_weights: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0])
     grad_clip_norm: Optional[float] = 1.0
+    accumulate_grad_batches: int = 1
 
 
 @dataclass
@@ -67,6 +69,7 @@ class SystemConfig:
     seed: int = 1
     device: str = "auto"
     deterministic: bool = True
+    amp: bool = False
 
 
 @dataclass
@@ -191,6 +194,13 @@ class ExperimentConfig:
             raise ValueError(f"不支持的模型: {self.model.name}")
         if len(self.optim.target_weights) != len(TARGET_NAMES):
             raise ValueError("target_weights 维度必须与目标输出一致")
-        # physics 残差里默认只对 x/y/z 三个坐标方向求导，因此这里强约束长度为 3。
         if len(self.physics.coord_scales) != 3:
             raise ValueError("physics.coord_scales 必须包含 3 个坐标尺度")
+        if self.data.batch_size < 1:
+            raise ValueError("batch_size 必须 >= 1")
+        if self.optim.lr <= 0:
+            raise ValueError("lr 必须 > 0")
+        if self.model.hidden_dim < 1:
+            raise ValueError("hidden_dim 必须 >= 1")
+        if self.optim.accumulate_grad_batches < 1:
+            raise ValueError("accumulate_grad_batches 必须 >= 1")

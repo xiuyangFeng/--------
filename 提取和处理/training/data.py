@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import numpy as np
 import torch
 from torch.utils.data import Dataset
 from torch_geometric.loader import DataLoader
@@ -112,17 +113,32 @@ class FieldGraphDataset(Dataset):
         return data
 
 
+def _worker_init_fn(worker_id: int):
+    """Seed each DataLoader worker for reproducibility."""
+    worker_seed = torch.initial_seed() % (2**32)
+    np.random.seed(worker_seed + worker_id)
+    import random
+    random.seed(worker_seed + worker_id)
+
+
 def build_dataloader(
     dataset: Dataset,
     batch_size: int,
     shuffle: bool,
     num_workers: int = 0,
     pin_memory: bool = False,
+    seed: Optional[int] = None,
 ):
+    generator = None
+    if seed is not None:
+        generator = torch.Generator()
+        generator.manual_seed(seed)
     return DataLoader(
         dataset,
         batch_size=batch_size,
         shuffle=shuffle,
         num_workers=num_workers,
         pin_memory=pin_memory,
+        generator=generator,
+        worker_init_fn=_worker_init_fn if num_workers > 0 else None,
     )

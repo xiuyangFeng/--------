@@ -2,19 +2,21 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from typing import Dict
 
 import torch
 
 from .config import ExperimentConfig
 from .data import FieldGraphDataset, build_dataloader, build_feature_mask
+from .io import load_checkpoint
+from .losses import build_loss_plugin
+from .metrics import RegressionMeter
 from .models import build_model
 from .splits import SplitSpec
-from .trainer import FieldTrainer
 from .utils import dump_json, ensure_dir, resolve_device, set_seed
 
 
 def resolve_cases(split: SplitSpec, subset: str):
-    # 评估和预测都只允许显式指定 train/val/test，避免误传任意字符串。
     mapping = {
         "train": split.train_cases,
         "val": split.val_cases,
@@ -23,6 +25,49 @@ def resolve_cases(split: SplitSpec, subset: str):
     if subset not in mapping:
         raise ValueError(f"未知 subset: {subset}")
     return mapping[subset]
+
+
+def evaluate_checkpoint(
+    model: torch.nn.Module,
+    loader,
+    device: torch.device,
+    loss_weights: torch.Tensor,
+    physics_config=None,
+    eval_epoch: int = 10**9,
+    checkpoint_path: Path | str | None = None,
+) -> Dict[str, float]:
+    """Standalone evaluation that matches training-time metric semantics."""
+    if checkpoint_path is not None:
+        load_checkpoint(model, checkpoint_path, device)
+    model.eval()
+    meter = RegressionMeter()
+    weights = loss_weights.to(device)
+    loss_plugin = build_loss_plugin(physics_config)
+    extra_totals: Dict[str, float] = {}
+    num_batches = 0
+
+    for batch in loader:
+        batch = batch.to(device)
+        pred = model(batch)
+        breakdown = loss_plugin.build_loss(
+            model=model,
+            batch=batch,
+            pred=pred,
+            target=batch.y,
+            data_weights=weights,
+            epoch=eval_epoch,
+            train=False,
+        )
+        meter.update(pred, batch.y, breakdown.total_loss.item())
+        for key, value in breakdown.scalar_dict().items():
+            extra_totals[key] = extra_totals.get(key, 0.0) + value
+        num_batches += 1
+
+    metrics = meter.compute()
+    for key, total in extra_totals.items():
+        metrics[key] = total / max(1, num_batches)
+    metrics["physics_enabled"] = float(loss_plugin.is_enabled(eval_epoch))
+    return metrics
 
 
 def main() -> None:
@@ -76,26 +121,21 @@ def main() -> None:
         dropout=config.model.dropout,
         heads=config.model.heads,
     ).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.optim.lr)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min")
 
-    trainer = FieldTrainer(
+    metrics = evaluate_checkpoint(
         model=model,
-        optimizer=optimizer,
-        scheduler=scheduler,
+        loader=loader,
         device=device,
         loss_weights=torch.tensor(config.optim.target_weights, dtype=torch.float32),
-        grad_clip_norm=config.optim.grad_clip_norm,
         physics_config=config.physics,
+        checkpoint_path=Path(args.checkpoint),
     )
-    metrics = trainer.evaluate(loader, checkpoint_path=Path(args.checkpoint))
 
     output_dir = (
         ensure_dir(args.output)
         if args.output
         else ensure_dir(Path(args.checkpoint).resolve().parent / f"eval_{args.subset}")
     )
-    # 评估结果单独导出，避免后续重新训练才能拿到测试指标。
     dump_json(
         {
             "subset": args.subset,

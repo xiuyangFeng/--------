@@ -27,51 +27,6 @@ def expand_global_cond(data) -> torch.Tensor:
     return data.global_cond.expand(data.x.size(0), -1)
 
 
-def build_model(model_name: str, hidden_dim: int, num_layers: int, dropout: float, heads: int):
-    # 这里用一个极小的 registry，而不是复杂工厂类，方便后续直接插入新 backbone。
-    registry: Dict[str, nn.Module] = {
-        "mlp": FieldMLP(
-            in_dim=MODEL_INPUT_DIM,
-            hidden_dim=hidden_dim,
-            num_layers=num_layers,
-            dropout=dropout,
-            out_dim=TARGET_DIM,
-        ),
-        "graphsage": FieldGraphSAGE(
-            in_dim=MODEL_INPUT_DIM,
-            hidden_dim=hidden_dim,
-            num_layers=num_layers,
-            dropout=dropout,
-            out_dim=TARGET_DIM,
-        ),
-        "transformer": FieldTransformer(
-            in_dim=MODEL_INPUT_DIM,
-            hidden_dim=hidden_dim,
-            num_layers=num_layers,
-            dropout=dropout,
-            out_dim=TARGET_DIM,
-            heads=heads,
-        ),
-        "meshgraphnet": FieldMeshGraphNet(
-            in_dim=MODEL_INPUT_DIM,
-            hidden_dim=hidden_dim,
-            num_layers=num_layers,
-            dropout=dropout,
-            out_dim=TARGET_DIM,
-        ),
-        "pointnetpp": FieldPointNetPP(
-            in_dim=MODEL_INPUT_DIM,
-            hidden_dim=hidden_dim,
-            num_layers=num_layers,
-            dropout=dropout,
-            out_dim=TARGET_DIM,
-        ),
-    }
-    if model_name not in registry:
-        raise ValueError(f"未知模型: {model_name}")
-    return registry[model_name]
-
-
 class FieldMLP(nn.Module):
     def __init__(self, in_dim: int, hidden_dim: int, num_layers: int, dropout: float, out_dim: int):
         super().__init__()
@@ -296,3 +251,32 @@ class FieldPointNetPP(nn.Module):
             x = x + x_res
 
         return self.out_proj(x)
+
+
+# ---------------------------------------------------------------------------
+# Model registry & factory
+# ---------------------------------------------------------------------------
+
+MODEL_REGISTRY: Dict[str, type] = {
+    "mlp": FieldMLP,
+    "graphsage": FieldGraphSAGE,
+    "transformer": FieldTransformer,
+    "meshgraphnet": FieldMeshGraphNet,
+    "pointnetpp": FieldPointNetPP,
+}
+
+
+def build_model(model_name: str, hidden_dim: int, num_layers: int, dropout: float, heads: int):
+    if model_name not in MODEL_REGISTRY:
+        raise ValueError(f"未知模型: {model_name}, 可选: {list(MODEL_REGISTRY)}")
+    cls = MODEL_REGISTRY[model_name]
+    kwargs = dict(
+        in_dim=MODEL_INPUT_DIM,
+        hidden_dim=hidden_dim,
+        num_layers=num_layers,
+        dropout=dropout,
+        out_dim=TARGET_DIM,
+    )
+    if model_name == "transformer":
+        kwargs["heads"] = heads
+    return cls(**kwargs)

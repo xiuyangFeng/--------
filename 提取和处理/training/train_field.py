@@ -155,6 +155,7 @@ def main() -> None:
         shuffle=True,
         num_workers=config.data.num_workers,
         pin_memory=config.data.pin_memory,
+        seed=config.system.seed,
     )
     val_loader = build_dataloader(
         val_dataset,
@@ -179,17 +180,29 @@ def main() -> None:
         heads=config.model.heads,
     ).to(device)
 
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"模型: {config.model.name} | 总参数: {total_params:,} | 可训练: {trainable_params:,}")
+
     optimizer = torch.optim.Adam(
         model.parameters(),
         lr=config.optim.lr,
         weight_decay=config.optim.weight_decay,
     )
+
+    warmup_epochs = config.optim.warmup_epochs
+    warmup_scheduler = None
+    if warmup_epochs > 0:
+        warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
+            optimizer, start_factor=0.1, total_iters=warmup_epochs,
+        )
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        mode="min",
+        optimizer, mode="min",
         factor=config.optim.scheduler_factor,
         patience=config.optim.scheduler_patience,
     )
+
+    run_dir = build_run_dir(config, split)
 
     trainer = FieldTrainer(
         model=model,
@@ -199,9 +212,12 @@ def main() -> None:
         loss_weights=torch.tensor(config.optim.target_weights, dtype=torch.float32),
         grad_clip_norm=config.optim.grad_clip_norm,
         physics_config=config.physics,
+        accumulate_grad_batches=config.optim.accumulate_grad_batches,
+        log_dir=run_dir / "tb_logs",
+        use_amp=config.system.amp,
+        warmup_scheduler=warmup_scheduler,
+        warmup_epochs=warmup_epochs,
     )
-
-    run_dir = build_run_dir(config, split)
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")
     dump_json(split.to_dict(), run_dir / "split.snapshot.json")
 

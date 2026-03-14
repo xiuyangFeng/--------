@@ -182,3 +182,131 @@ def bland_altman(
         fig.savefig(save_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
     return fig
+
+
+# ---------------------------------------------------------------------------
+# Additional plots for paper
+# ---------------------------------------------------------------------------
+
+
+def plot_error_distribution(
+    pred: np.ndarray,
+    target: np.ndarray,
+    target_names: List[str] = None,
+    save_path: Optional[str] = None,
+    title: str = "Error Distribution",
+):
+    """Histogram of per-variable errors."""
+    _require_mpl()
+    if target_names is None:
+        target_names = TARGET_NAMES
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    for idx, (ax, name) in enumerate(zip(axes.flat, target_names)):
+        err = pred[:, idx] - target[:, idx]
+        ax.hist(err, bins=100, density=True, alpha=0.7)
+        ax.axvline(0, color="r", linestyle="--", linewidth=0.8)
+        ax.set_xlabel(f"Error ({name})")
+        ax.set_ylabel("Density")
+        ax.set_title(f"{name}: mean={err.mean():.4f}, std={err.std():.4f}")
+    fig.suptitle(title, fontsize=14)
+    fig.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return fig
+
+
+def plot_error_cdf(
+    pred: np.ndarray,
+    target: np.ndarray,
+    target_names: List[str] = None,
+    save_path: Optional[str] = None,
+    title: str = "Error CDF",
+):
+    """Cumulative distribution of absolute errors per variable."""
+    _require_mpl()
+    if target_names is None:
+        target_names = TARGET_NAMES
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for idx, name in enumerate(target_names):
+        abs_err = np.abs(pred[:, idx] - target[:, idx])
+        sorted_err = np.sort(abs_err)
+        cdf = np.arange(1, len(sorted_err) + 1) / len(sorted_err)
+        ax.plot(sorted_err, cdf, label=name)
+
+    vel_err = np.linalg.norm(pred[:, :3] - target[:, :3], axis=1)
+    sorted_vel = np.sort(vel_err)
+    ax.plot(sorted_vel, np.arange(1, len(sorted_vel) + 1) / len(sorted_vel),
+            label="|v|", linestyle="--")
+
+    ax.set_xlabel("Absolute Error")
+    ax.set_ylabel("CDF")
+    ax.set_title(title)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return fig
+
+
+def plot_per_case_boxplot(
+    per_case_metrics: Dict[str, Dict[str, float]],
+    metric_keys: List[str] = None,
+    save_path: Optional[str] = None,
+    title: str = "Per-Case Metric Distribution",
+):
+    """Boxplot showing metric distribution across cases."""
+    _require_mpl()
+    if metric_keys is None:
+        metric_keys = ["rmse_vel_mag", "rmse_p", "rmse"]
+
+    n_metrics = len(metric_keys)
+    fig, axes = plt.subplots(1, n_metrics, figsize=(5 * n_metrics, 5))
+    if n_metrics == 1:
+        axes = [axes]
+
+    for ax, key in zip(axes, metric_keys):
+        values = [m[key] for m in per_case_metrics.values() if key in m]
+        ax.boxplot(values, vert=True)
+        ax.set_ylabel(key)
+        ax.set_title(f"{key} (n={len(values)} cases)")
+        ax.grid(True, alpha=0.3)
+
+    fig.suptitle(title, fontsize=14)
+    fig.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return fig
+
+
+def plot_multi_model_curves(
+    model_histories: Dict[str, Dict[str, List[float]]],
+    metric_key: str = "val_loss",
+    save_path: Optional[str] = None,
+    title: str = "Model Comparison",
+    log_scale: bool = True,
+):
+    """Overlay training curves from multiple models on a single plot."""
+    _require_mpl()
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for model_name, history in model_histories.items():
+        if metric_key in history:
+            ax.plot(history[metric_key], label=model_name)
+
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel(metric_key)
+    ax.set_title(title)
+    if log_scale:
+        ax.set_yscale("log")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return fig
