@@ -1,6 +1,6 @@
 # 任务A配置与启动说明
 
-> 配套文档：[任务A实验清单](任务A实验清单.md) / [任务A本周实验启动清单](任务A本周实验启动清单.md) / [training/README.md](../training/README.md)
+> 配套文档：[任务A实验清单](任务A实验清单.md) / [任务A本周实验启动清单](任务A本周实验启动清单.md) / [training/README.md](../../../training/README.md)
 
 这份文档只回答 3 件事：
 

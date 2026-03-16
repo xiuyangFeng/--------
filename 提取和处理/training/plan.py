@@ -228,7 +228,7 @@ def build_task_a_baselines(
     output_root: str,
     seed: int,
 ) -> List[FieldPlanItem]:
-    # 这 4 组直接对应 docs/任务A实验清单.md 里的第一批必须跑通实验。
+    # 这 4 组直接对应 docs/01-任务/任务A/任务A实验清单.md 里的第一批必须跑通实验。
     main_augment = main_aug_presets()["rotate_translate"]
     return [
         make_plan_item(

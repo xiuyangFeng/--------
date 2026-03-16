@@ -7,8 +7,8 @@
 #SBATCH --output=logs/%x_%j.out          # 标准输出
 #SBATCH --error=logs/%x_%j.err           # 错误输出
 #SBATCH --time=04:00:00                  # 最大运行时间（单病例约1-2小时）
-# 可选：指定节点
-# #SBATCH -w node01
+# 指定节点
+#SBATCH -w node03
 
 # ============================================================================
 # GNN Pipeline - 集群运行脚本
@@ -91,7 +91,7 @@ echo "GNN Pipeline - 集群运行"
 echo "=============================================="
 echo "作业ID: $SLURM_JOB_ID"
 echo "节点: $SLURM_NODELIST"
-echo "CPU核数: $SLURM_CPUS_PER_TASK"
+echo "CPU核数: ${SLURM_CPUS_PER_TASK:-未指定}"
 echo "开始时间: $(date)"
 echo ""
 echo "工作目录: $PROJECT_DIR"

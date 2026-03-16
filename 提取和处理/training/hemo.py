@@ -198,7 +198,7 @@ def compute_cycle_metrics(
     wss_vec_t = torch.stack(wss_vector_stack, dim=0)
 
     tawss = wss_t.mean(dim=0)
-    # OSI / RRT 的写法严格遵循 docs/任务B指标计算规范.md 里的离散公式形式。
+    # OSI / RRT 的写法严格遵循 docs/01-任务/任务B/任务B指标计算规范.md 里的离散公式形式。
     osi_num = wss_vec_t.sum(dim=0).norm(dim=1)
     osi_den = wss_t.sum(dim=0).clamp_min(epsilon)
     osi = 0.5 * (1.0 - osi_num / osi_den)

@@ -72,7 +72,7 @@ python -m training.make_split \
 python -m training.train_field --config training/configs/field/transformer_geometry.json
 ```
 
-如果要按 `docs/任务A实验清单.md` 批量生成配置，可以先运行：
+如果要按 `docs/01-任务/任务A/任务A实验清单.md` 批量生成配置，可以先运行：
 
 ```bash
 python -m training.make_field_plan \
@@ -170,7 +170,7 @@ pip install -r training/requirements.txt
 - `best_model.pt`
 - `outputs/field/experiment_index.csv`
 
-其中 `run_manifest.json` 会附带 `exp_id / study_group / feature_set / enabled_features` 等元数据，便于后续按 `docs/实验记录填写规范.md` 追踪实验。
+其中 `run_manifest.json` 会附带 `exp_id / study_group / feature_set / enabled_features` 等元数据，便于后续按 `docs/00-规范与记录/实验记录填写规范.md` 追踪实验。
 
 如果启用了 physics 配置，`history.csv` 还会额外记录：
 
