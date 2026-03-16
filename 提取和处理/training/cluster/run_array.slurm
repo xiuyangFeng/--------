@@ -105,7 +105,7 @@ echo "开始时间: $(date)"
 echo "=============================================="
 echo ""
 
-CMD=("$PYTHON_BIN" -m training.train_field --config "$CONFIG_ABS")
+CMD=("$PYTHON_BIN" -m training.scripts.train_field --config "$CONFIG_ABS")
 echo "执行命令: ${CMD[*]}"
 echo ""
 "${CMD[@]}"

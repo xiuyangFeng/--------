@@ -296,7 +296,7 @@ python -m pipeline.audit_inputs \
 
 - `*.json`：完整结构化报告（含 `issue_summary` 按问题类型聚合受影响 case_id）
 - `*.csv`：按数据源、患者名排序，包含 `case_id`、`patient_name`、`data_source`、`rupture_status`、`surgery_phase` 等列，适合筛查和补数
-- `*.txt`：可选；当你按单一数据源扫描时，可直接作为 `training.make_split` 的病例名单（ILO 病例名含子路径如 `DONG_JIA_JU-1/after`）
+- `*.txt`：可选；当你按单一数据源扫描时，可直接作为 `training.scripts.make_split` 的病例名单（ILO 病例名含子路径如 `DONG_JIA_JU-1/after`）
 
 ### 方式二：分步处理
 

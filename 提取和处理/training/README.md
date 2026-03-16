@@ -2,35 +2,58 @@
 
 这个目录是独立于 `pipeline/` 的训练脚手架，优先服务任务 A 的场重建实验。
 
-## 目录说明
+## 目录结构
 
-- `config.py`：实验配置 dataclass
-- `splits.py`：患者级数据划分读取
-- `data.py`：图数据集、增强和特征掩码
-- `models.py`：`MLP / GraphSAGE / Transformer` 模型注册
-- `losses.py`：训练损失
-- `metrics.py`：回归指标
-- `trainer.py`：训练循环和早停
-- `train_field.py`：任务 A 训练入口
-- `eval_field.py`：独立评估入口
-- `predict_field.py`：批量预测导出入口
-- `make_split.py`：根据病例名单生成患者级 split
-- `make_field_plan.py`：根据任务 A 实验清单批量生成配置
-- `run_field_plan.py`：按 manifest 顺序批量执行训练
-- `plan.py`：任务 A baseline / ablation 计划模板
-- `hemo.py`：任务 B 指标计算骨架
-- `export_hemo.py`：任务 B 指标导出入口
-- `io.py`：checkpoint 与实验索引落盘
-- `configs/field/`：第一批基线实验模板
-- `configs/field/ablations/`：第一批消融模板
-- `splits/`：split 样例模板
+```text
+training/
+├── core/                    核心训练组件
+│   ├── config.py            实验配置 dataclass
+│   ├── data.py              图数据集、增强和特征掩码
+│   ├── models.py            MLP / GraphSAGE / Transformer 模型注册
+│   ├── losses.py            训练损失（加权 MSE、物理约束）
+│   ├── metrics.py           回归指标
+│   ├── trainer.py           训练循环和早停
+│   ├── splits.py            患者级数据划分读取
+│   ├── io.py                checkpoint 与实验索引落盘
+│   └── utils.py             通用工具函数
+│
+├── scripts/                 可执行入口脚本
+│   ├── train_field.py       任务 A 训练入口
+│   ├── eval_field.py        独立评估入口
+│   ├── predict_field.py     批量预测导出入口
+│   ├── export_hemo.py       任务 B 指标导出入口
+│   ├── make_field_plan.py   根据任务 A 实验清单批量生成配置
+│   ├── run_field_plan.py    按 manifest 顺序批量执行训练
+│   └── make_split.py        根据病例名单生成患者级 split
+│
+├── analysis/                分析评估与可视化
+│   ├── hemo.py              任务 B 血流动力学指标计算
+│   ├── plan.py              任务 A baseline / ablation 计划模板
+│   ├── regional_eval.py     区域级评估
+│   ├── stats.py             统计检验（配对 t/Wilcoxon/Bootstrap CI）
+│   ├── benchmark.py         推理性能基准
+│   ├── sensitivity.py       敏感性分析配置
+│   └── visualization.py     可视化工具
+│
+├── configs/field/           实验配置 JSON 模板
+│   ├── ablations/           消融模板
+│   └── generated/           批量生成的配置
+│
+├── splits/                  split 样例模板
+│
+└── cluster/                 集群提交脚本
+    ├── run_train_field.slurm
+    ├── run_plan.slurm
+    ├── run_array.slurm
+    └── README.md
+```
 
 ## 设计原则
 
 1. 不修改现有 `pipeline/` 数据处理流程。
-2. 所有特征消融通过“特征掩码”实现，不改图文件结构。
+2. 所有特征消融通过"特征掩码"实现，不改图文件结构。
 3. 第一阶段只服务任务 A，先把 `MLP / GraphSAGE / Transformer` 跑通。
-4. 后续加 physics loss、任务 B、任务 C 时直接扩展这套骨架，但 physics 默认走“CFD 监督主干 + 分阶段物理正则”，不走纯 PINN 起步。
+4. 后续加 physics loss、任务 B、任务 C 时直接扩展这套骨架，但 physics 默认走"CFD 监督主干 + 分阶段物理正则"，不走纯 PINN 起步。
 
 当前已经补到：
 
@@ -48,7 +71,7 @@ physics 使用建议：
 
 先准备一个患者级 split JSON，再选择一个配置模板：
 
-如果你还没有整理好“哪些病例完整可用”，建议先从原始数据导出一份病例名单：
+如果你还没有整理好"哪些病例完整可用"，建议先从原始数据导出一份病例名单：
 
 ```bash
 python -m pipeline.audit_inputs \
@@ -61,7 +84,7 @@ python -m pipeline.audit_inputs \
 然后用这份名单生成患者级 split：
 
 ```bash
-python -m training.make_split \
+python -m training.scripts.make_split \
   --cases-file training/splits/case_names_ag_fast_ready.txt \
   --output training/splits/split_v1.json \
   --split-version split_v1 \
@@ -69,13 +92,13 @@ python -m training.make_split \
 ```
 
 ```bash
-python -m training.train_field --config training/configs/field/transformer_geometry.json
+python -m training.scripts.train_field --config training/configs/field/transformer_geometry.json
 ```
 
 如果要按 `docs/01-任务/任务A/任务A实验清单.md` 批量生成配置，可以先运行：
 
 ```bash
-python -m training.make_field_plan \
+python -m training.scripts.make_field_plan \
   --data-root data_new/AG/fast \
   --split-file training/splits/split_example.json \
   --output-dir training/configs/field/generated
@@ -86,7 +109,7 @@ python -m training.make_field_plan \
 如果要按生成顺序批量执行，可以继续使用：
 
 ```bash
-python -m training.run_field_plan \
+python -m training.scripts.run_field_plan \
   --manifest training/configs/field/generated/manifest.json \
   --study-group baseline
 ```
@@ -96,7 +119,7 @@ python -m training.run_field_plan \
 任务 B 指标导出骨架可直接接 `predict_field.py` 的输出：
 
 ```bash
-python -m training.export_hemo \
+python -m training.scripts.export_hemo \
   --manifest outputs/field/<run_dir>/predictions_test/manifest.json \
   --source AI
 ```
@@ -106,7 +129,7 @@ python -m training.export_hemo \
 如果本机没有数据、只是在本地准备脚手架，可以先在服务器上根据病例名单生成 split：
 
 ```bash
-python -m training.make_split \
+python -m training.scripts.make_split \
   --cases-file /path/to/case_names.txt \
   --output training/splits/split_v1.json \
   --split-version split_v1 \
@@ -116,7 +139,7 @@ python -m training.make_split \
 独立评估：
 
 ```bash
-python -m training.eval_field \
+python -m training.scripts.eval_field \
   --config training/configs/field/transformer_geometry.json \
   --checkpoint outputs/field/<run_dir>/best_model.pt \
   --subset test
@@ -125,7 +148,7 @@ python -m training.eval_field \
 批量导出预测结果：
 
 ```bash
-python -m training.predict_field \
+python -m training.scripts.predict_field \
   --config training/configs/field/transformer_geometry.json \
   --checkpoint outputs/field/<run_dir>/best_model.pt \
   --subset test

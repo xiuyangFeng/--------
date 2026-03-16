@@ -252,7 +252,7 @@ def main() -> None:
     parser.add_argument(
         "--ready-cases-output",
         default=None,
-        help="可选：导出通过审计的病例名单 txt，建议在单一数据源审计时供 training.make_split 使用",
+        help="可选：导出通过审计的病例名单 txt，建议在单一数据源审计时供 training.scripts.make_split 使用",
     )
     parser.add_argument(
         "--require-named-stl",

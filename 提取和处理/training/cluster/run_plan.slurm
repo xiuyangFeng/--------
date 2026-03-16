@@ -94,7 +94,7 @@ echo "dry_run: $DRY_RUN"
 echo "=============================================="
 echo ""
 
-CMD=("$PYTHON_BIN" -m training.run_field_plan --manifest "$MANIFEST_ABS" --python "$PYTHON_BIN")
+CMD=("$PYTHON_BIN" -m training.scripts.run_field_plan --manifest "$MANIFEST_ABS" --python "$PYTHON_BIN")
 if [ -n "$STUDY_GROUP" ]; then
     CMD+=(--study-group "$STUDY_GROUP")
 fi

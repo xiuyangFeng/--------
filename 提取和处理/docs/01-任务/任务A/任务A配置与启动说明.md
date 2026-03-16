@@ -233,7 +233,7 @@
 直接跑：
 
 ```bash
-python -m training.train_field --config training/configs/field/transformer_geometry.json
+python -m training.scripts.train_field --config training/configs/field/transformer_geometry.json
 ```
 
 这种方式适合先验证环境、依赖和单实验训练闭环。
@@ -243,7 +243,7 @@ python -m training.train_field --config training/configs/field/transformer_geome
 先生成一批任务 A 配置：
 
 ```bash
-python -m training.make_field_plan \
+python -m training.scripts.make_field_plan \
   --data-root <你的数据根目录> \
   --split-file <你的split.json> \
   --output-dir training/configs/field/generated
@@ -252,7 +252,7 @@ python -m training.make_field_plan \
 如果你这周只想先做 baseline，可以显式限制组别：
 
 ```bash
-python -m training.make_field_plan \
+python -m training.scripts.make_field_plan \
   --data-root <你的数据根目录> \
   --split-file <你的split.json> \
   --groups baseline \
@@ -262,7 +262,7 @@ python -m training.make_field_plan \
 如果 baseline 跑通后要接着做输入特征消融：
 
 ```bash
-python -m training.make_field_plan \
+python -m training.scripts.make_field_plan \
   --data-root <你的数据根目录> \
   --split-file <你的split.json> \
   --groups baseline,input \
@@ -282,7 +282,7 @@ python -m training.make_field_plan \
 先 dry run 看命令：
 
 ```bash
-python -m training.run_field_plan \
+python -m training.scripts.run_field_plan \
   --manifest training/configs/field/generated/manifest.json \
   --study-group baseline \
   --dry-run
@@ -291,7 +291,7 @@ python -m training.run_field_plan \
 确认没问题后再正式跑：
 
 ```bash
-python -m training.run_field_plan \
+python -m training.scripts.run_field_plan \
   --manifest training/configs/field/generated/manifest.json \
   --study-group baseline
 ```
@@ -301,7 +301,7 @@ python -m training.run_field_plan \
 例如只跑 `A-Main-01`：
 
 ```bash
-python -m training.run_field_plan \
+python -m training.scripts.run_field_plan \
   --manifest training/configs/field/generated/manifest.json \
   --exp-id A-Main-01
 ```
@@ -309,7 +309,7 @@ python -m training.run_field_plan \
 如果只跑一个 seed：
 
 ```bash
-python -m training.run_field_plan \
+python -m training.scripts.run_field_plan \
   --manifest training/configs/field/generated/manifest.json \
   --exp-id A-Main-01 \
   --seed 1
@@ -330,7 +330,7 @@ python -m training.run_field_plan \
 对应命令顺序可以固定成：
 
 ```bash
-python -m training.make_field_plan \
+python -m training.scripts.make_field_plan \
   --data-root <你的数据根目录> \
   --split-file <你的split.json> \
   --groups baseline \
@@ -338,14 +338,14 @@ python -m training.make_field_plan \
 ```
 
 ```bash
-python -m training.run_field_plan \
+python -m training.scripts.run_field_plan \
   --manifest training/configs/field/generated/manifest.json \
   --study-group baseline \
   --dry-run
 ```
 
 ```bash
-python -m training.run_field_plan \
+python -m training.scripts.run_field_plan \
   --manifest training/configs/field/generated/manifest.json \
   --study-group baseline
 ```

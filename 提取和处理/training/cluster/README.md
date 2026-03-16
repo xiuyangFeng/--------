@@ -15,8 +15,8 @@ cluster/
 
 ## 适用入口
 
-- 单个配置训练：`python -m training.train_field`
-- 按 manifest 顺序批量执行：`python -m training.run_field_plan`
+- 单个配置训练：`python -m training.scripts.train_field`
+- 按 manifest 顺序批量执行：`python -m training.scripts.run_field_plan`
 
 这套集群脚本只负责调度，不复制训练逻辑。
 
@@ -157,7 +157,7 @@ exp_id    study_group    seed    config_path
 `run_array.slurm` 逐行读取它，并对每一行执行：
 
 ```bash
-python -m training.train_field --config <config_path>
+python -m training.scripts.train_field --config <config_path>
 ```
 
 ## 常见问题
@@ -167,7 +167,7 @@ python -m training.train_field --config <config_path>
 先在仓库根目录生成：
 
 ```bash
-python -m training.make_field_plan \
+python -m training.scripts.make_field_plan \
   --data-root /path/to/data_root \
   --split-file training/splits/split_v1.json \
   --output-dir training/configs/field/generated

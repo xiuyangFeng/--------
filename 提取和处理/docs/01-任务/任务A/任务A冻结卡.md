@@ -112,10 +112,10 @@ outputs/field/
 - [ ] slow 组全部处理完成（集群作业 1177 结束）
 - [ ] 排查 slow 剩余 19 个病例是否全部生成 pt 文件
 - [ ] 生成病例清单文件 `training/splits/cases_AG_v1.txt`
-- [ ] 执行 `python -m training.make_split` 生成 `split_AG_v1.json`
+- [ ] 执行 `python -m training.scripts.make_split` 生成 `split_AG_v1.json`
 - [ ] 核对 split 中 train/val/test 病例数比例
 - [ ] 核对 `data.x`、`data.global_cond`、`data.y` 维度
-- [ ] 执行 `python -m training.make_field_plan --groups baseline` 生成配置
+- [ ] 执行 `python -m training.scripts.make_field_plan --groups baseline` 生成配置
 - [ ] 跑通 A-Base-01 smoke test（1 epoch，seed=1）
 - [ ] 跑通 A-Main-01 smoke test（1 epoch，seed=1）
 - [ ] 确认冻结卡 split_version 字段已填写
@@ -153,7 +153,7 @@ for c in cases:
 ### Step 2：生成患者级 split 文件
 
 ```bash
-python -m training.make_split \
+python -m training.scripts.make_split \
   --cases-file training/splits/cases_AG_v1.txt \
   --output training/splits/split_AG_v1.json \
   --split-version split_AG_v1 \
@@ -167,7 +167,7 @@ python -m training.make_split \
 ### Step 3：生成实验配置
 
 ```bash
-python -m training.make_field_plan \
+python -m training.scripts.make_field_plan \
   --data-root data_new/AG \
   --split-file training/splits/split_AG_v1.json \
   --groups baseline \
@@ -177,7 +177,7 @@ python -m training.make_field_plan \
 ### Step 4：Dry-run 确认配置无误
 
 ```bash
-python -m training.run_field_plan \
+python -m training.scripts.run_field_plan \
   --manifest training/configs/field/generated/manifest.json \
   --study-group baseline \
   --dry-run
