@@ -153,11 +153,12 @@ def process_single_frame(
     inner_file: Path,
     output_path: Path,
     frame_label: str = "",
-    target_total: int = 40000,
+    target_total: int = 15000,
+    wall_max_points: int = 10000,
     boundary_threshold: float = 2.0,
     boundary_core_ratio: tuple = (0.7, 0.3),
     sampling_method: str = "hybrid",
-    fps_ratio: float = 0.2,
+    fps_ratio: float = 0.5,
     seed: Optional[int] = 1234,
     convert_to_mm: bool = True,
 ) -> bool:
@@ -169,10 +170,11 @@ def process_single_frame(
         inner_file: 内部数据文件
         output_path: 输出文件路径
         target_total: 目标总点数
+        wall_max_points: 壁面点上限，超出时降采样
         boundary_threshold: 近壁区阈值（mm）
         boundary_core_ratio: 预算分配比例
         sampling_method: 采样方法，"fps", "random" 或 "hybrid"
-        fps_ratio: 混合采样时 FPS 的占比（默认 0.2），仅当 method="hybrid" 时生效
+        fps_ratio: 混合采样时 FPS 的占比（默认 0.5），仅当 method="hybrid" 时生效
         seed: 随机种子
         convert_to_mm: 是否转换坐标单位
     
@@ -194,8 +196,6 @@ def process_single_frame(
         inner_raw_df = load_ascii_df(inner_file)
         
         # 2. 清洗数据
-        # surface_file (ascii) 为壁面数据，is_wall=True
-        # inner_file (ascii_in) 为内部数据，is_wall=False
         print(f"{prefix}清洗壁面数据...")
         surface_df = clean_cfd_data(surface_raw_df, convert_to_mm=convert_to_mm, is_wall=True)
         print(f"{prefix}清洗内部数据...")
@@ -209,6 +209,7 @@ def process_single_frame(
             boundary_threshold=boundary_threshold,
             boundary_core_ratio=boundary_core_ratio,
             target_total=target_total,
+            wall_max_points=wall_max_points,
             sampling_method=sampling_method,
             fps_ratio=fps_ratio,
             seed=seed,
@@ -230,11 +231,12 @@ def process_single_frame(
 def process_single_case(
     case_dir: Path,
     output_subdir: str = None,
-    target_total: int = 40000,
+    target_total: int = 15000,
+    wall_max_points: int = 10000,
     boundary_threshold: float = 2.0,
     boundary_core_ratio: tuple = (0.7, 0.3),
     sampling_method: str = "hybrid",
-    fps_ratio: float = 0.2,
+    fps_ratio: float = 0.5,
     seed: Optional[int] = 1234,
     mode: str = "debug",
 ) -> bool:
@@ -245,10 +247,11 @@ def process_single_case(
         case_dir: 病例目录
         output_subdir: 输出子目录（默认使用配置）
         target_total: 目标总点数
+        wall_max_points: 壁面点上限，超出时降采样
         boundary_threshold: 近壁区阈值
         boundary_core_ratio: 预算分配比例
         sampling_method: 采样方法，"fps", "random" 或 "hybrid"
-        fps_ratio: 混合采样时 FPS 的占比（默认 0.2），仅当 method="hybrid" 时生效
+        fps_ratio: 混合采样时 FPS 的占比（默认 0.5），仅当 method="hybrid" 时生效
         seed: 随机种子
         mode: 处理模式 (debug/production)
     
@@ -291,7 +294,7 @@ def process_single_case(
                 f"   ⚠️ 未配对帧: 仅壁面 {alignment['surface_only_count']} / "
                 f"仅内部 {alignment['inner_only_count']}"
             )
-        print(f"   目标点数: {target_total}")
+        print(f"   目标点数: {target_total} (壁面上限: {wall_max_points})")
         print(f"   采样方法: {sampling_method}")
         print(f"   处理模式: {mode}")
         
@@ -312,6 +315,7 @@ def process_single_case(
                 output_path,
                 frame_label=f"[{i}/{len(matched_files)}|{key}]",
                 target_total=target_total,
+                wall_max_points=wall_max_points,
                 boundary_threshold=boundary_threshold,
                 boundary_core_ratio=boundary_core_ratio,
                 sampling_method=sampling_method,
@@ -334,6 +338,7 @@ def process_single_case(
             "surface_only_steps": alignment["surface_only_steps"],
             "inner_only_steps": alignment["inner_only_steps"],
             "target_total": target_total,
+            "wall_max_points": wall_max_points,
             "sampling_method": sampling_method,
             "fps_ratio": fps_ratio if sampling_method == "hybrid" else None,
             "success_count": success_count,
@@ -353,11 +358,12 @@ def process_single_case(
 def process_all_cases(
     data_root: Path = None,
     target_case: Optional[str] = None,
-    target_total: int = 40000,
+    target_total: int = 15000,
+    wall_max_points: int = 10000,
     boundary_threshold: float = 2.0,
     boundary_core_ratio: tuple = (0.7, 0.3),
     sampling_method: str = "hybrid",
-    fps_ratio: float = 0.2,
+    fps_ratio: float = 0.5,
     seed: Optional[int] = 1234,
     mode: str = "debug",
 ) -> None:
@@ -368,10 +374,11 @@ def process_all_cases(
         data_root: 数据根目录
         target_case: 指定处理的病例名称
         target_total: 目标总点数
+        wall_max_points: 壁面点上限，超出时降采样
         boundary_threshold: 近壁区阈值
         boundary_core_ratio: 预算分配比例
         sampling_method: 采样方法，"fps", "random" 或 "hybrid"
-        fps_ratio: 混合采样时 FPS 的占比（默认 0.2），仅当 method="hybrid" 时生效
+        fps_ratio: 混合采样时 FPS 的占比（默认 0.5），仅当 method="hybrid" 时生效
         seed: 随机种子
         mode: 处理模式
     """
@@ -403,13 +410,13 @@ def process_all_cases(
         print("🚀 数据预处理 - 清洗+合并+降采样")
         print("=" * 50)
         print(f"📁 数据根目录: {data_root}")
-        print(f"📊 目标点数: {target_total}")
+        print(f"📊 目标点数: {target_total} (壁面上限: {wall_max_points})")
         if sampling_method.lower() == "hybrid":
             print(f"📊 采样方法: {sampling_method} (FPS {fps_ratio*100:.0f}%)")
         else:
             print(f"📊 采样方法: {sampling_method}")
         print(f"📊 近壁区阈值: {boundary_threshold}mm")
-        print(f"📊 预算分配: 近壁层 {boundary_core_ratio[0]*100:.0f}% : 核心层 {boundary_core_ratio[1]*100:.0f}%")
+        print(f"📊 内部点分配: 近壁层 {boundary_core_ratio[0]*100:.0f}% : 核心层 {boundary_core_ratio[1]*100:.0f}%")
         print(f"📊 处理模式: {mode}")
         print(f"📊 待处理病例数: {len(case_dirs)}")
 
@@ -439,6 +446,7 @@ def process_all_cases(
             if process_single_case(
                 case_dir,
                 target_total=target_total,
+                wall_max_points=wall_max_points,
                 boundary_threshold=boundary_threshold,
                 boundary_core_ratio=boundary_core_ratio,
                 sampling_method=sampling_method,
@@ -503,6 +511,12 @@ def main():
         help=f"目标总点数，默认 {SAMPLING_CONFIG['target_total_points']}",
     )
     parser.add_argument(
+        "--wall-max-points",
+        type=int,
+        default=SAMPLING_CONFIG["wall_max_points"],
+        help=f"壁面点上限，超出时降采样，默认 {SAMPLING_CONFIG['wall_max_points']}",
+    )
+    parser.add_argument(
         "--sampling-method",
         type=str,
         choices=["fps", "random", "hybrid"],
@@ -561,6 +575,7 @@ def main():
         data_root=args.data_root,
         target_case=args.case,
         target_total=args.target_points,
+        wall_max_points=args.wall_max_points,
         boundary_threshold=args.boundary_threshold,
         boundary_core_ratio=(args.boundary_ratio, args.core_ratio),
         sampling_method=args.sampling_method,

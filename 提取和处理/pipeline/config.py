@@ -88,23 +88,26 @@ GRAPHS_DIR = f"{OUTPUT_BASE}/graphs"
 
 SAMPLING_CONFIG = {
     # 目标总点数
-    "target_total_points": 40000,
-    
-    # 壁面点保留比例（1.0 = 全保留）
-    "wall_ratio": 1.0,
-    
-    # 近壁区阈值（mm）
+    "target_total_points": 15000,
+
+    # 壁面点上限：超过此值时对壁面点也进行采样
+    # 实际壁面点数 = min(原始壁面点数, wall_max_points)
+    # 内部点预算 = target_total_points - 实际壁面点数（动态分配）
+    "wall_max_points": 10000,
+
+    # 近壁区阈值（mm）——仅用于内部点的近壁层/核心层分层
     "boundary_threshold": 2.0,
     
-    # 预算分配比例 (近壁层, 核心层)
+    # 内部点预算分配比例 (近壁层, 核心层)
     "boundary_core_ratio": (0.7, 0.3),
     
     # 采样方法: "fps" (最远点采样), "random" (随机采样), 或 "hybrid" (混合采样)
+    # 壁面和内部点均使用此方法
     "sampling_method": "hybrid",
     
     # 混合采样参数（仅当 sampling_method="hybrid" 时生效）
-    # FPS 占比: 0.2 = 20%（推荐），可调整为 0.3 或 0.4 以增强空间覆盖
-    "hybrid_fps_ratio": 0.2,
+    # FPS 占比: 0.5 = 50%，较高比例保证血管几何特征的空间覆盖
+    "hybrid_fps_ratio": 0.5,
     
     # 随机种子
     "seed": 1234,

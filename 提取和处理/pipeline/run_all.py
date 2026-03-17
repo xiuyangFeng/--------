@@ -174,6 +174,7 @@ def run_pipeline(
                 data_root=data_root,
                 target_case=target_case,
                 target_total=target_points,
+                wall_max_points=SAMPLING_CONFIG["wall_max_points"],
                 sampling_method=sampling_method,
                 boundary_threshold=SAMPLING_CONFIG["boundary_threshold"],
                 boundary_core_ratio=SAMPLING_CONFIG["boundary_core_ratio"],

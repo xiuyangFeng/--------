@@ -156,125 +156,129 @@ def hybrid_sampling(
         return fps_indices
 
 
+def _build_sampling_func(sampling_method: str, fps_ratio: float):
+    """根据采样方法名构建采样函数和显示名。"""
+    method = sampling_method.lower()
+    if method == "fps":
+        return farthest_point_sampling, "FPS"
+    elif method == "random":
+        return random_sampling, "随机"
+    elif method == "hybrid":
+        func = lambda pts, n, s: hybrid_sampling(pts, n, fps_ratio, s)
+        return func, f"混合(FPS {fps_ratio*100:.0f}%)"
+    else:
+        raise ValueError(f"不支持的采样方法: {sampling_method}，请使用 'fps', 'random' 或 'hybrid'")
+
+
 def stratified_sampling_by_distance(
     surface_df: pd.DataFrame,
     inner_df: pd.DataFrame,
     boundary_threshold: float = 2.0,
     boundary_core_ratio: Tuple[float, float] = (0.7, 0.3),
-    target_total: int = 40000,
+    target_total: int = 15000,
+    wall_max_points: int = 10000,
     sampling_method: str = "hybrid",
-    fps_ratio: float = 0.2,
+    fps_ratio: float = 0.5,
     seed: Optional[int] = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     基于距离的分层降采样合并。
-    
-    采样策略：
-    1. 优先级1：无条件保留所有壁面点
-    2. 优先级2：内部点分层
-       - 近壁层 (< boundary_threshold mm)：按指定比例优先分配预算
-       - 核心层 (>= boundary_threshold mm)：次优先
-    3. 动态补位：如果某层点数不足配额，将多余配额转给另一层
-    4. 采样方法：
-       - FPS：最远点采样，空间均匀，防止截断（推荐，但较慢）
-       - Random：随机采样，速度快，但可能分布不均
-       - Hybrid：混合采样，先 FPS 确保空间覆盖，再随机采样增加多样性
-    
+
+    采样策略（三层）：
+    1. 壁面层：保留 min(原始壁面点数, wall_max_points) 个点，
+       超出上限时用指定采样方法降采样。
+    2. 内部-近壁层 (< boundary_threshold mm)：占内部预算的 boundary_core_ratio[0]
+    3. 内部-核心层 (>= boundary_threshold mm)：占内部预算的 boundary_core_ratio[1]
+    内部预算 = target_total - 实际壁面点数（动态分配）。
+    各层若点数不足配额，多余配额自动转给其他层。
+
     参数:
         surface_df: 壁面点数据
         inner_df: 内部点数据
         boundary_threshold: 近壁区阈值（mm）
-        boundary_core_ratio: (近壁层比例, 核心层比例)，默认 (0.7, 0.3)
+        boundary_core_ratio: 内部点 (近壁层比例, 核心层比例)，默认 (0.7, 0.3)
         target_total: 目标总点数
+        wall_max_points: 壁面点上限，超出时降采样
         sampling_method: 采样方法，"fps", "random" 或 "hybrid"
-        fps_ratio: 混合采样时 FPS 的占比（默认 0.2），仅当 method="hybrid" 时生效
+        fps_ratio: 混合采样时 FPS 的占比（默认 0.5），仅当 method="hybrid" 时生效
         seed: 随机种子
-    
+
     返回:
         (merged_df, sampled_inner_df): 合并后的完整数据 和 降采样后的内部点数据
     """
     coord_cols = ['x', 'y', 'z']
-    
+
     surface_coords = surface_df[coord_cols].values
     inner_coords = inner_df[coord_cols].values
-    
-    print(f"  壁面点数: {len(surface_df)}, 内部点数: {len(inner_df)}")
-    
-    # 优先级1：无条件保留所有壁面点
-    n_surface = len(surface_df)
+    n_surface_raw = len(surface_df)
+
+    print(f"  壁面点数: {n_surface_raw}, 内部点数: {len(inner_df)}")
+
+    sampling_func, method_name = _build_sampling_func(sampling_method, fps_ratio)
+
+    # ── 第 1 层：壁面点 ──
+    if n_surface_raw > wall_max_points:
+        print(f"  壁面点 {n_surface_raw} 超过上限 {wall_max_points}，执行壁面{method_name}采样...")
+        sampled_wall_idx = sampling_func(surface_coords, wall_max_points, seed)
+        sampled_surface_df = surface_df.iloc[sampled_wall_idx].copy()
+        surface_coords_used = sampled_surface_df[coord_cols].values
+        n_surface = wall_max_points
+    else:
+        sampled_surface_df = surface_df.copy()
+        surface_coords_used = surface_coords
+        n_surface = n_surface_raw
+
     remaining_budget = target_total - n_surface
-    
+    print(f"  实际壁面点: {n_surface}, 内部点预算: {remaining_budget}")
+
     if remaining_budget <= 0:
-        print(f"  ⚠️ 壁面点已达 {n_surface}，超过目标点数 {target_total}，仅保留壁面点")
-        return surface_df.copy(), pd.DataFrame()
-    
-    print(f"  剩余预算: {remaining_budget} 个点")
-    
-    # 优先级2：使用 KDTree 计算内部点到壁面的距离
-    tree = cKDTree(surface_coords)
+        print(f"  ⚠️ 壁面点已占满总预算，无内部点预算")
+        merged = sampled_surface_df.sample(frac=1, random_state=seed).reset_index(drop=True)
+        return merged, pd.DataFrame()
+
+    # ── 第 2、3 层：内部点分层 ──
+    tree = cKDTree(surface_coords_used)
     distances, _ = tree.query(inner_coords, k=1)
-    
-    # 分层：近壁层 vs 核心层
+
     boundary_mask = distances < boundary_threshold
     boundary_indices = np.where(boundary_mask)[0]
     core_indices = np.where(~boundary_mask)[0]
-    
+
     n_boundary_available = len(boundary_indices)
     n_core_available = len(core_indices)
-    
+
     print(f"  近壁层点数: {n_boundary_available}, 核心层点数: {n_core_available}")
-    
-    # 动态配额分配
+
     boundary_ratio, core_ratio = boundary_core_ratio
     n_boundary_quota = int(remaining_budget * boundary_ratio)
-    n_core_quota = int(remaining_budget * core_ratio)
-    
-    # 动态补位逻辑
+    n_core_quota = remaining_budget - n_boundary_quota
+
     if n_boundary_available < n_boundary_quota:
-        # 近壁层不足，将多余配额转给核心层
         surplus = n_boundary_quota - n_boundary_available
         n_boundary_final = n_boundary_available
         n_core_final = min(n_core_available, n_core_quota + surplus)
         print(f"  ⚠️ 近壁层不足配额，转移 {surplus} 个配额到核心层")
     elif n_core_available < n_core_quota:
-        # 核心层不足，将多余配额转给近壁层
         surplus = n_core_quota - n_core_available
         n_core_final = n_core_available
         n_boundary_final = min(n_boundary_available, n_boundary_quota + surplus)
         print(f"  ⚠️ 核心层不足配额，转移 {surplus} 个配额到近壁层")
     else:
-        # 两层都充足
         n_boundary_final = n_boundary_quota
         n_core_final = n_core_quota
-    
-    # 确保不超过总预算
+
     total_allocated = n_boundary_final + n_core_final
     if total_allocated > remaining_budget:
         scale = remaining_budget / total_allocated
         n_boundary_final = int(n_boundary_final * scale)
         n_core_final = remaining_budget - n_boundary_final
-    
-    print(f"  最终分配: 近壁层 {n_boundary_final}/{n_boundary_available}, "
+
+    print(f"  最终分配: 壁面 {n_surface}, "
+          f"近壁层 {n_boundary_final}/{n_boundary_available}, "
           f"核心层 {n_core_final}/{n_core_available}")
-    
-    # 选择采样函数
-    if sampling_method.lower() == "fps":
-        sampling_func = farthest_point_sampling
-        method_name = "FPS"
-    elif sampling_method.lower() == "random":
-        sampling_func = random_sampling
-        method_name = "随机"
-    elif sampling_method.lower() == "hybrid":
-        # 使用 lambda 包装以支持 fps_ratio 参数
-        sampling_func = lambda pts, n, s: hybrid_sampling(pts, n, fps_ratio, s)
-        method_name = f"混合(FPS {fps_ratio*100:.0f}%)"
-    else:
-        raise ValueError(f"不支持的采样方法: {sampling_method}，请使用 'fps', 'random' 或 'hybrid'")
-    
-    # 进行采样
+
     sampled_indices = []
-    
-    # 采样近壁层
+
     if n_boundary_final > 0 and n_boundary_available > 0:
         boundary_coords = inner_coords[boundary_indices]
         if n_boundary_final < n_boundary_available:
@@ -284,8 +288,7 @@ def stratified_sampling_by_distance(
         else:
             sampled_boundary = boundary_indices
         sampled_indices.append(sampled_boundary)
-    
-    # 采样核心层
+
     if n_core_final > 0 and n_core_available > 0:
         core_coords = inner_coords[core_indices]
         if n_core_final < n_core_available:
@@ -295,33 +298,30 @@ def stratified_sampling_by_distance(
         else:
             sampled_core = core_indices
         sampled_indices.append(sampled_core)
-    
-    # 合并采样的内部点索引
+
     if sampled_indices:
         sampled_inner_indices = np.concatenate(sampled_indices)
         sampled_inner_df = inner_df.iloc[sampled_inner_indices].copy()
     else:
         sampled_inner_df = pd.DataFrame()
-    
-    # 对齐列
-    all_cols = list(surface_df.columns)
+
+    all_cols = list(sampled_surface_df.columns)
     for col in sampled_inner_df.columns:
         if col not in all_cols:
             all_cols.append(col)
-    
-    surface_df_aligned = surface_df.reindex(columns=all_cols)
+
+    surface_df_aligned = sampled_surface_df.reindex(columns=all_cols)
     sampled_inner_df_aligned = sampled_inner_df.reindex(columns=all_cols)
-    
-    # 合并并打乱
+
     merged = pd.concat([surface_df_aligned, sampled_inner_df_aligned], ignore_index=True)
     if seed is not None:
         merged = merged.sample(frac=1, random_state=seed).reset_index(drop=True)
     else:
         merged = merged.sample(frac=1).reset_index(drop=True)
-    
+
     print(f"  ✅ 合并后总点数: {len(merged)} (目标: {target_total})")
     print(f"  预算利用率: {len(merged)/target_total*100:.1f}%")
-    
+
     return merged, sampled_inner_df
 
 
