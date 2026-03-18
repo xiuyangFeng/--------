@@ -7,6 +7,7 @@ from typing import Dict, Optional
 
 import torch
 from torch.optim.lr_scheduler import LRScheduler, ReduceLROnPlateau
+from tqdm.auto import tqdm
 
 from .io import load_checkpoint, save_checkpoint
 from .losses import build_loss_plugin
@@ -81,16 +82,27 @@ class FieldTrainer:
             self.scheduler.step()
         return self.optimizer.param_groups[0]["lr"]
 
+    @staticmethod
+    def _format_metric(value: float) -> str:
+        return f"{value:.6f}"
+
     def run_epoch(self, loader, train: bool, epoch: int) -> Dict[str, float]:
         meter = RegressionMeter()
         self.model.train(mode=train)
         extra_totals: Dict[str, float] = {}
         num_batches = 0
+        phase = "train" if train else "val"
+        progress = tqdm(
+            loader,
+            desc=f"Epoch {epoch} [{phase}]",
+            leave=False,
+            dynamic_ncols=True,
+        )
 
         if train:
             self.optimizer.zero_grad()
 
-        for batch_idx, batch in enumerate(loader):
+        for batch_idx, batch in enumerate(progress):
             batch = batch.to(self.device)
 
             with torch.amp.autocast("cuda", enabled=self.use_amp):
@@ -121,9 +133,12 @@ class FieldTrainer:
             for key, val in scalar_breakdown.items():
                 extra_totals[key] = extra_totals.get(key, 0.0) + val
             num_batches += 1
+            progress.set_postfix_str(f"loss={self._format_metric(breakdown.total_loss.item())}")
 
         if train and num_batches % self.accumulate_grad_batches != 0:
             self._step_optimizer()
+
+        progress.close()
 
         metrics = meter.compute()
         for key, total in extra_totals.items():
@@ -179,6 +194,17 @@ class FieldTrainer:
                 self._log_scalars(val_metrics, "val", epoch)
                 self._log_scalars({"lr": current_lr}, "optim", epoch)
 
+                next_patience = 0 if is_best else patience + 1
+                summary = (
+                    f"[Epoch {epoch}/{epochs}] "
+                    f"train_loss={self._format_metric(train_metrics['loss'])} | "
+                    f"val_loss={self._format_metric(val_metrics['loss'])} | "
+                    f"lr={current_lr:.6e} | "
+                    f"best_val={self._format_metric(min(best_val, val_metrics['loss']))} | "
+                    f"patience={next_patience}/{early_stopping_patience}"
+                )
+                print(summary)
+
                 history.append(
                     {
                         "epoch": epoch,
@@ -195,8 +221,11 @@ class FieldTrainer:
                     best_epoch = epoch
                     patience = 0
                     save_checkpoint(self.model, run_dir / "best_model.pt")
+                    print("已保存 best_model.pt")
                 else:
                     patience += 1
+
+                save_checkpoint(self.model, run_dir / "last_model.pt")
 
                 if not save_best_only and epoch % save_every == 0:
                     save_checkpoint(self.model, run_dir / f"checkpoint_epoch_{epoch}.pt")

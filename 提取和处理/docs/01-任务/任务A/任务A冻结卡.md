@@ -100,6 +100,7 @@ outputs/field/
     ├── history.csv             # 训练曲线
     ├── summary.json            # 最优指标
     ├── best_model.pt           # 最优权重
+    ├── last_model.pt           # 末轮权重
     ├── predictions.parquet     # 测试集预测结果
     ├── fig_loss.png            # 损失曲线图
     └── fig_scatter.png         # 散点图

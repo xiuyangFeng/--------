@@ -191,9 +191,18 @@ pip install -r training/requirements.txt
 - `summary.json`
 - `run_manifest.json`
 - `best_model.pt`
+- `last_model.pt`
 - `outputs/field/experiment_index.csv`
 
 其中 `run_manifest.json` 会附带 `exp_id / study_group / feature_set / enabled_features` 等元数据，便于后续按 `docs/00-规范与记录/实验记录填写规范.md` 追踪实验。
+
+训练过程中，控制台会额外显示：
+
+- 训练和验证阶段的 batch 级 `tqdm` 进度条，包含当前 epoch、batch 进度和最近一个 batch 的 loss
+- 每个 epoch 结束后的摘要行：`train_loss / val_loss / lr / best_val / patience`
+- 当验证集出现新的最优结果时，会明确打印 `已保存 best_model.pt`
+
+如果 `save_best_only=false`，仍会继续按 `save_every` 生成周期 checkpoint；这不会影响 `best_model.pt` 和 `last_model.pt` 的保存。
 
 如果启用了 physics 配置，`history.csv` 还会额外记录：
 
