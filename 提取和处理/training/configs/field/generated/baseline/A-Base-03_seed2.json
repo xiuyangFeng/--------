@@ -6,8 +6,8 @@
     "save_best_only": true
   },
   "data": {
-    "data_root": "data_new/AG/fast",
-    "split_file": "training/splits/split_example.json",
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
     "graphs_subdir": "processed/graphs",
     "preload": false,
     "batch_size": 2,
@@ -48,6 +48,7 @@
     "epochs": 200,
     "lr": 0.0005,
     "weight_decay": 0.0001,
+    "warmup_epochs": 0,
     "scheduler_factor": 0.5,
     "scheduler_patience": 10,
     "early_stopping_patience": 30,
@@ -57,12 +58,14 @@
       1.0,
       1.0
     ],
-    "grad_clip_norm": 1.0
+    "grad_clip_norm": 1.0,
+    "accumulate_grad_batches": 1
   },
   "system": {
     "seed": 2,
     "device": "auto",
-    "deterministic": true
+    "deterministic": true,
+    "amp": false
   },
   "meta": {
     "task": "field",
@@ -78,6 +81,22 @@
       "coord+t+bc+wall"
     ],
     "notes": "任务A基线3：Transformer without geometry。",
-    "generated_from": "training.make_field_plan"
+    "generated_from": "training.scripts.make_field_plan"
+  },
+  "physics": {
+    "enabled": false,
+    "warmup_epochs": 0,
+    "density": 1060.0,
+    "viscosity": 0.0035,
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "time_scale": 1.0,
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "auto_load_scales": true
   }
 }

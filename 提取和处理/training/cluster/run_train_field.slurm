@@ -1,8 +1,11 @@
 #!/bin/bash
 #Author: XY
-#SBATCH --partition=CPU
+#SBATCH --partition=GPU
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=8
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=64G
+#SBATCH --gres=gpu:1
 #SBATCH --job-name=field_train
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err

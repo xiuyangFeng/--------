@@ -1,8 +1,11 @@
 #!/bin/bash
 #Author: XY
-#SBATCH --partition=CPU
+#SBATCH --partition=GPU
+#SBATCH --gres=gpu:1
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=8
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=64G
 #SBATCH --job-name=field_array
 #SBATCH --output=logs/%x_%A_%a.out
 #SBATCH --error=logs/%x_%A_%a.err

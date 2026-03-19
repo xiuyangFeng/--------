@@ -17,9 +17,9 @@ def _compute_metrics(pred: torch.Tensor, target: torch.Tensor) -> Dict[str, floa
         "mae": diff.abs().mean().item(),
     }
 
-    pred_mean = target.mean(dim=0, keepdim=True)
+    target_mean = target.mean(dim=0, keepdim=True)
     ss_res = ((target - pred) ** 2).sum(dim=0)
-    ss_tot = ((target - pred_mean) ** 2).sum(dim=0).clamp_min(1e-12)
+    ss_tot = ((target - target_mean) ** 2).sum(dim=0).clamp_min(1e-12)
     r2 = 1.0 - ss_res / ss_tot
 
     for idx, name in enumerate(TARGET_NAMES):
@@ -36,27 +36,97 @@ def _compute_metrics(pred: torch.Tensor, target: torch.Tensor) -> Dict[str, floa
 
 @dataclass
 class RegressionMeter:
-    """Accumulates predictions across batches for epoch-level metrics."""
-    preds: List[torch.Tensor] = field(default_factory=list)
-    targets: List[torch.Tensor] = field(default_factory=list)
-    total_loss: float = 0.0
-    total_nodes: int = 0
-    num_batches: int = 0
+    """Incremental metric accumulator that avoids storing all predictions.
+
+    Original approach appended every batch's pred/target tensors into lists and
+    concatenated them at epoch end.  For a dataset with thousands of batches and
+    tens-of-thousands of nodes per graph this can consume tens of GBs of CPU
+    memory per epoch.
+
+    This version keeps only O(n_dims) running scalars using the parallel Welford
+    algorithm for online variance (needed for R²), so memory cost is constant
+    regardless of dataset size.
+    """
+
+    # All fields are internal; callers only use update() / compute().
+    _n: int = field(default=0, init=False, repr=False)
+    _total_loss_sum: float = field(default=0.0, init=False, repr=False)
+    num_batches: int = field(default=0, init=False)
+
+    # Running sums of squared / absolute errors, shape [n_dims]
+    _sum_sq_err: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
+    _sum_abs_err: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
+
+    # Parallel Welford state for target variance (SS_tot), shape [n_dims]
+    _target_mean: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
+    _target_M2: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
+
+    # Velocity-magnitude tracking (scalar accumulators)
+    _sum_sq_vel_err: float = field(default=0.0, init=False, repr=False)
+    _sum_abs_vel_err: float = field(default=0.0, init=False, repr=False)
 
     def update(self, pred: torch.Tensor, target: torch.Tensor, loss: float) -> None:
-        n = pred.size(0)
-        self.preds.append(pred.detach().cpu())
-        self.targets.append(target.detach().cpu())
-        self.total_loss += loss * n
-        self.total_nodes += n
+        pred_c = pred.detach().cpu().float()
+        target_c = target.detach().cpu().float()
+        n = pred_c.size(0)
+
+        diff = pred_c - target_c
+        sq_err = (diff ** 2).sum(dim=0)   # [n_dims]
+        abs_err = diff.abs().sum(dim=0)   # [n_dims]
+
+        vel_diff = pred_c[:, :3].norm(dim=1) - target_c[:, :3].norm(dim=1)
+        self._sum_sq_vel_err += (vel_diff ** 2).sum().item()
+        self._sum_abs_vel_err += vel_diff.abs().sum().item()
+
+        if self._sum_sq_err is None:
+            self._sum_sq_err = sq_err
+            self._sum_abs_err = abs_err
+            batch_mean = target_c.mean(dim=0)
+            self._target_mean = batch_mean
+            self._target_M2 = ((target_c - batch_mean) ** 2).sum(dim=0)
+            self._n = n
+        else:
+            self._sum_sq_err += sq_err
+            self._sum_abs_err += abs_err
+            # Parallel Welford merge: combine existing state (n_old nodes) with
+            # this batch (n new nodes).
+            n_old = self._n
+            n_new = n_old + n
+            batch_mean = target_c.mean(dim=0)
+            batch_M2 = ((target_c - batch_mean) ** 2).sum(dim=0)
+            delta = batch_mean - self._target_mean
+            self._target_mean = self._target_mean + delta * (n / n_new)
+            self._target_M2 = (
+                self._target_M2 + batch_M2 + delta ** 2 * (n_old * n / n_new)
+            )
+            self._n = n_new
+
+        self._total_loss_sum += loss * n
         self.num_batches += 1
 
     def compute(self) -> Dict[str, float]:
-        pred = torch.cat(self.preds, dim=0)
-        target = torch.cat(self.targets, dim=0)
+        if self._n == 0 or self._sum_sq_err is None:
+            return {}
 
-        metrics = _compute_metrics(pred, target)
-        metrics["loss"] = self.total_loss / max(1, self.total_nodes)
+        n = self._n
+        n_dims = self._sum_sq_err.size(0)
+        metrics: Dict[str, float] = {}
+
+        # Overall RMSE / MAE (mean over all nodes × all dims, matching original)
+        metrics["rmse"] = (self._sum_sq_err.sum().item() / (n * n_dims)) ** 0.5
+        metrics["mae"] = self._sum_abs_err.sum().item() / (n * n_dims)
+
+        # Per-dim metrics
+        ss_tot = self._target_M2.clamp_min(1e-12)  # [n_dims]
+        r2 = 1.0 - self._sum_sq_err / ss_tot
+        for idx, name in enumerate(TARGET_NAMES):
+            metrics[f"rmse_{name}"] = (self._sum_sq_err[idx].item() / n) ** 0.5
+            metrics[f"mae_{name}"] = self._sum_abs_err[idx].item() / n
+            metrics[f"r2_{name}"] = r2[idx].item()
+
+        metrics["rmse_vel_mag"] = (self._sum_sq_vel_err / n) ** 0.5
+        metrics["mae_vel_mag"] = self._sum_abs_vel_err / n
+        metrics["loss"] = self._total_loss_sum / n
         return metrics
 
 
