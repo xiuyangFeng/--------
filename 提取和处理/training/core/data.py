@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 import numpy as np
 import torch
@@ -41,6 +41,14 @@ def build_feature_mask(
     return FeatureMask(node_mask=node_mask, global_mask=global_mask)
 
 
+def build_required_data_keys(model_name: str) -> Set[str]:
+    # 训练时只保留前向与 loss 真正会访问的字段，避免把图文件里的冗余属性反复搬运。
+    required_keys: Set[str] = {"x", "y", "global_cond"}
+    if model_name in {"graphsage", "transformer", "meshgraphnet", "pointnetpp"}:
+        required_keys.add("edge_index")
+    return required_keys
+
+
 class FieldGraphDataset(Dataset):
     def __init__(
         self,
@@ -51,6 +59,7 @@ class FieldGraphDataset(Dataset):
         augment_config: Optional[Dict] = None,
         preload: bool = False,
         feature_mask: Optional[FeatureMask] = None,
+        required_keys: Optional[Set[str]] = None,
     ):
         # root/case_names/graphs_subdir 共同决定这次实验读取哪些图。
         # 这里约定“患者级 split -> 病例目录 -> 图快照文件”三层路径关系。
@@ -62,6 +71,7 @@ class FieldGraphDataset(Dataset):
         self.augment_config = (augment_config or DEFAULT_AUGMENT_CONFIG.copy()).copy()
         self.preload = preload
         self.feature_mask = feature_mask
+        self.required_keys = set(required_keys) if required_keys is not None else None
 
         self.data_files: List[Path] = []
         for case_name in case_names:
@@ -78,17 +88,25 @@ class FieldGraphDataset(Dataset):
         self.cached_data = None
         if preload:
             # preload 适合数据量不大、I/O 较慢的场景；服务器显存/内存紧张时不要开。
-            self.cached_data = [load_graph_data(path) for path in self.data_files]
+            self.cached_data = [self._prepare_static_data(load_graph_data(path)) for path in self.data_files]
 
     def __len__(self) -> int:
         return len(self.data_files)
+
+    def _prepare_static_data(self, data):
+        if self.required_keys is None:
+            return data
+        drop_keys = [key for key in data.keys() if key not in self.required_keys]
+        for key in drop_keys:
+            del data[key]
+        return data
 
     def __getitem__(self, idx: int):
         data_path = self.data_files[idx]
         if self.cached_data is not None:
             data = self.cached_data[idx].clone()
         else:
-            data = load_graph_data(data_path)
+            data = self._prepare_static_data(load_graph_data(data_path))
 
         if self.augment:
             # 数据增强只在训练集启用；验证/测试必须使用原始图，避免评估口径漂移。
@@ -98,8 +116,8 @@ class FieldGraphDataset(Dataset):
             node_mask = self.feature_mask.node_mask.to(data.x.device)
             global_mask = self.feature_mask.global_mask.to(data.global_cond.device)
             # 使用乘法 mask 保留原始张量形状，便于和现有模型、checkpoint、导出逻辑兼容。
-            data.x = data.x * node_mask.unsqueeze(0)
-            data.global_cond = data.global_cond * global_mask.unsqueeze(0)
+            data.x.mul_(node_mask.unsqueeze(0))
+            data.global_cond.mul_(global_mask.unsqueeze(0))
 
         # 保留样本级元信息，便于后续回溯和导出预测结果。
         # 从 data_path 逆推 case 相对路径，兼容 ILO 嵌套 (case_name 含 '/')。

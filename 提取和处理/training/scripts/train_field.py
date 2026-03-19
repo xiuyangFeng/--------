@@ -7,7 +7,12 @@ from typing import Dict
 import torch
 
 from ..core.config import ExperimentConfig
-from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask
+from ..core.data import (
+    FieldGraphDataset,
+    build_dataloader,
+    build_feature_mask,
+    build_required_data_keys,
+)
 from ..core.io import append_experiment_index
 from ..core.models import build_model
 from ..core.splits import SplitSpec
@@ -121,6 +126,7 @@ def main() -> None:
         enabled_node_features=config.data.enabled_node_features,
         enabled_global_features=config.data.enabled_global_features,
     )
+    required_data_keys = build_required_data_keys(config.model.name)
 
     # 训练/验证/测试共用同一套 split 文件，保证后续任务 B、C 可以回溯到统一划分。
     train_dataset = FieldGraphDataset(
@@ -131,6 +137,7 @@ def main() -> None:
         augment_config=config.data.augment_config,
         preload=config.data.preload,
         feature_mask=feature_mask,
+        required_keys=required_data_keys,
     )
     val_dataset = FieldGraphDataset(
         root=config.data.data_root,
@@ -139,6 +146,7 @@ def main() -> None:
         augment=False,
         preload=config.data.preload,
         feature_mask=feature_mask,
+        required_keys=required_data_keys,
     )
     test_dataset = FieldGraphDataset(
         root=config.data.data_root,
@@ -147,6 +155,7 @@ def main() -> None:
         augment=False,
         preload=config.data.preload,
         feature_mask=feature_mask,
+        required_keys=required_data_keys,
     )
 
     train_loader = build_dataloader(

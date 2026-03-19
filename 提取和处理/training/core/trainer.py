@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import csv
+import gc
 import time
 from pathlib import Path
 from typing import Dict, Optional
@@ -71,7 +73,7 @@ class FieldTrainer:
             if self.grad_clip_norm is not None:
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_clip_norm)
             self.optimizer.step()
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
 
     def _step_scheduler(self, val_loss: float, epoch: int) -> float:
         if self.warmup_scheduler is not None and epoch <= self.warmup_epochs:
@@ -97,43 +99,50 @@ class FieldTrainer:
             desc=f"Epoch {epoch} [{phase}]",
             leave=False,
             dynamic_ncols=True,
+            mininterval=1.0,
         )
 
         if train:
-            self.optimizer.zero_grad()
+            self.optimizer.zero_grad(set_to_none=True)
 
-        for batch_idx, batch in enumerate(progress):
-            batch = batch.to(self.device)
+        # Disable gradient computation during validation to avoid storing
+        # intermediate activations, which can double GPU memory usage.
+        grad_ctx = contextlib.nullcontext() if train else torch.no_grad()
+        with grad_ctx:
+            for batch_idx, batch in enumerate(progress):
+                batch = batch.to(self.device)
 
-            with torch.amp.autocast("cuda", enabled=self.use_amp):
-                pred = self.model(batch)
-            # Physics loss uses autograd.grad which needs float32;
-            # build_loss is called outside autocast so gradients stay precise.
-            breakdown = self.loss_plugin.build_loss(
-                model=self.model,
-                batch=batch,
-                pred=pred,
-                target=batch.y,
-                data_weights=self.loss_weights,
-                epoch=epoch,
-                train=train,
-            )
+                with torch.amp.autocast("cuda", enabled=self.use_amp):
+                    pred = self.model(batch)
+                # Physics loss uses autograd.grad which needs float32;
+                # build_loss is called outside autocast so gradients stay precise.
+                breakdown = self.loss_plugin.build_loss(
+                    model=self.model,
+                    batch=batch,
+                    pred=pred,
+                    target=batch.y,
+                    data_weights=self.loss_weights,
+                    epoch=epoch,
+                    train=train,
+                )
+                loss_value = breakdown.total_loss.item()
 
-            if train:
-                scaled_loss = breakdown.total_loss / self.accumulate_grad_batches
-                if self.scaler is not None:
-                    self.scaler.scale(scaled_loss).backward()
-                else:
-                    scaled_loss.backward()
-                if (batch_idx + 1) % self.accumulate_grad_batches == 0:
-                    self._step_optimizer()
+                if train:
+                    scaled_loss = breakdown.total_loss / self.accumulate_grad_batches
+                    if self.scaler is not None:
+                        self.scaler.scale(scaled_loss).backward()
+                    else:
+                        scaled_loss.backward()
+                    if (batch_idx + 1) % self.accumulate_grad_batches == 0:
+                        self._step_optimizer()
 
-            meter.update(pred, batch.y, breakdown.total_loss.item())
-            scalar_breakdown = breakdown.scalar_dict()
-            for key, val in scalar_breakdown.items():
-                extra_totals[key] = extra_totals.get(key, 0.0) + val
-            num_batches += 1
-            progress.set_postfix_str(f"loss={self._format_metric(breakdown.total_loss.item())}")
+                meter.update(pred, batch.y, loss_value)
+                scalar_breakdown = breakdown.scalar_dict()
+                for key, val in scalar_breakdown.items():
+                    extra_totals[key] = extra_totals.get(key, 0.0) + val
+                num_batches += 1
+                progress.set_postfix_str(f"loss={self._format_metric(loss_value)}")
+                del scalar_breakdown, breakdown, pred, batch
 
         if train and num_batches % self.accumulate_grad_batches != 0:
             self._step_optimizer()
@@ -232,6 +241,10 @@ class FieldTrainer:
 
                 if patience >= early_stopping_patience:
                     break
+
+                gc.collect()
+                if self.device.type == "cuda":
+                    torch.cuda.empty_cache()
         finally:
             csv_file.close()
             if self.writer is not None:

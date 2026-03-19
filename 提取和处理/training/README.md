@@ -59,6 +59,7 @@ training/
 
 - 可插拔 physics loss 接口
 - 任务 B 指标计算与导出骨架
+- 运行时最小字段装载：训练时只保留模型和 loss 真正会访问的 `Data` 字段，减少大图 `.pt` 文件带来的无效内存占用
 
 physics 使用建议：
 
@@ -161,6 +162,13 @@ pip install -r training/requirements.txt
 ```
 
 如果服务器使用 GPU，请按实际 CUDA 版本单独安装匹配的 `torch` 和 `torch_geometric` 轮子，不要机械照搬 CPU 默认安装。
+
+如果在集群上出现“进程被系统直接 kill，而不是 Python 抛 CUDA OOM”的情况，优先检查主机 RAM 压力。当前训练入口已经会按模型自动裁掉运行时不需要的图字段：
+
+- `MLP` 默认只保留 `x / y / global_cond`
+- 图模型默认保留 `x / y / global_cond / edge_index`
+
+这类裁剪不会改变实验定义，只是避免把 `.pt` 图中的冗余属性反复读入、拼 batch 和搬到设备。
 
 如果需要在集群上批量提交训练，可直接参考：
 
