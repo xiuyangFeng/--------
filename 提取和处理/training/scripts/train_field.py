@@ -22,7 +22,9 @@ from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed, timest
 
 def build_run_dir(config: ExperimentConfig, split: SplitSpec) -> Path:
     # run_dir 把 experiment_name / split / seed / timestamp 全部带上，方便后续追溯单次实验。
+    # 按“实验名_划分版本_seedX_时间戳”生成本次运行目录名。
     run_name = f"{config.run.experiment_name}_{split.split_version}_seed{config.system.seed}_{timestamp()}"
+    # 真正创建目录并返回。
     return ensure_dir(Path(config.run.output_root) / run_name)
 
 
@@ -38,6 +40,7 @@ def build_run_manifest(
 ) -> Dict[str, object]:
     # run_manifest 是给“训练结束后的世界”看的，而不是给训练过程看的。
     # 后面做任务 B/C、实验记录汇总、论文表格回溯时，都尽量读这个文件。
+    # 返回结构化运行清单，尽可能把复现实验所需的信息放全。
     return {
         "task": config.meta.task,
         "exp_id": config.meta.exp_id,
@@ -103,15 +106,22 @@ def build_run_manifest(
 
 
 def main() -> None:
+    # 构造命令行解析器。
     parser = argparse.ArgumentParser(description="任务A场重建训练入口")
+    # 本脚本只要求一个 JSON 配置路径。
     parser.add_argument("--config", required=True, help="JSON 配置文件路径")
+    # 解析命令行参数。
     args = parser.parse_args()
 
+    # 从 JSON 读取实验配置。
     config = ExperimentConfig.from_json(args.config)
+    # 对配置做显式校验。
     config.validate()
+    # 读取训练/验证/测试划分。
     split = SplitSpec.from_json(config.data.split_file)
 
     # physics 尺度必须在构建 trainer 前解析完成，否则 loss 会退回默认 1.0。
+    # 先把训练病例目录路径组织出来，供 physics 自动读取尺度。
     train_case_dirs = [Path(config.data.data_root) / case_name for case_name in split.train_cases]
     config.physics.resolve_scales_from_data(
         data_root=config.data.data_root,
@@ -119,16 +129,21 @@ def main() -> None:
         case_dirs=train_case_dirs,
     )
 
+    # 固定随机种子。
     set_seed(config.system.seed, deterministic=config.system.deterministic)
+    # 解析运行设备。
     device = resolve_device(config.system.device)
 
+    # 根据配置生成节点特征与全局特征的屏蔽 mask。
     feature_mask = build_feature_mask(
         enabled_node_features=config.data.enabled_node_features,
         enabled_global_features=config.data.enabled_global_features,
     )
+    # 根据模型类型确定图数据里必须保留哪些字段。
     required_data_keys = build_required_data_keys(config.model.name)
 
     # 训练/验证/测试共用同一套 split 文件，保证后续任务 B、C 可以回溯到统一划分。
+    # 构建训练集数据对象。
     train_dataset = FieldGraphDataset(
         root=config.data.data_root,
         case_names=split.train_cases,
@@ -139,6 +154,7 @@ def main() -> None:
         feature_mask=feature_mask,
         required_keys=required_data_keys,
     )
+    # 构建验证集数据对象；验证集不做增强。
     val_dataset = FieldGraphDataset(
         root=config.data.data_root,
         case_names=split.val_cases,
@@ -148,6 +164,7 @@ def main() -> None:
         feature_mask=feature_mask,
         required_keys=required_data_keys,
     )
+    # 构建测试集数据对象；测试集同样不做增强。
     test_dataset = FieldGraphDataset(
         root=config.data.data_root,
         case_names=split.test_cases,
@@ -158,6 +175,7 @@ def main() -> None:
         required_keys=required_data_keys,
     )
 
+    # 训练 DataLoader 需要打乱顺序。
     train_loader = build_dataloader(
         train_dataset,
         batch_size=config.data.batch_size,
@@ -166,6 +184,7 @@ def main() -> None:
         pin_memory=config.data.pin_memory,
         seed=config.system.seed,
     )
+    # 验证 DataLoader 不打乱顺序。
     val_loader = build_dataloader(
         val_dataset,
         batch_size=config.data.batch_size,
@@ -173,6 +192,7 @@ def main() -> None:
         num_workers=config.data.num_workers,
         pin_memory=config.data.pin_memory,
     )
+    # 测试 DataLoader 也不打乱顺序。
     test_loader = build_dataloader(
         test_dataset,
         batch_size=config.data.batch_size,
@@ -181,6 +201,7 @@ def main() -> None:
         pin_memory=config.data.pin_memory,
     )
 
+    # 根据配置实例化模型并搬到目标设备。
     model = build_model(
         model_name=config.model.name,
         hidden_dim=config.model.hidden_dim,
@@ -189,30 +210,39 @@ def main() -> None:
         heads=config.model.heads,
     ).to(device)
 
+    # 统计模型总参数量。
     total_params = sum(p.numel() for p in model.parameters())
+    # 统计可训练参数量。
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"模型: {config.model.name} | 总参数: {total_params:,} | 可训练: {trainable_params:,}")
 
+    # 优化器使用 Adam。
     optimizer = torch.optim.Adam(
         model.parameters(),
         lr=config.optim.lr,
         weight_decay=config.optim.weight_decay,
     )
 
+    # 先读出 warmup epoch 数。
     warmup_epochs = config.optim.warmup_epochs
+    # 默认不启用 warmup 调度器。
     warmup_scheduler = None
+    # 只有 warmup_epochs > 0 时才创建线性 warmup。
     if warmup_epochs > 0:
         warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
             optimizer, start_factor=0.1, total_iters=warmup_epochs,
         )
+    # 主调度器使用按验证损失自适应降学习率的 Plateau。
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="min",
         factor=config.optim.scheduler_factor,
         patience=config.optim.scheduler_patience,
     )
 
+    # 创建本次训练的输出目录。
     run_dir = build_run_dir(config, split)
 
+    # 构造训练器，封装训练、验证、测试逻辑。
     trainer = FieldTrainer(
         model=model,
         optimizer=optimizer,
@@ -227,10 +257,13 @@ def main() -> None:
         warmup_scheduler=warmup_scheduler,
         warmup_epochs=warmup_epochs,
     )
+    # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")
+    # 保存当前 split 快照，保证结果可回溯。
     dump_json(split.to_dict(), run_dir / "split.snapshot.json")
 
     # 训练快照和 split 快照一起落盘，后续迁移到服务器或复现实验时不依赖外部状态。
+    # 开始训练。
     fit_result = trainer.fit(
         train_loader=train_loader,
         val_loader=val_loader,
@@ -240,14 +273,17 @@ def main() -> None:
         save_every=config.run.save_every,
         save_best_only=config.run.save_best_only,
     )
+    # 用最佳模型在测试集上做最终评估。
     test_metrics = trainer.evaluate(test_loader, checkpoint_path=run_dir / "best_model.pt")
 
+    # 记录三个数据子集对应的图数量。
     dataset_sizes = {
         "num_train_graphs": len(train_dataset),
         "num_val_graphs": len(val_dataset),
         "num_test_graphs": len(test_dataset),
     }
     # summary 维持轻量，适合快速查看；完整信息放在 run_manifest。
+    # 汇总最常看的关键信息。
     summary = {
         "device": str(device),
         "exp_id": config.meta.exp_id,
@@ -263,7 +299,9 @@ def main() -> None:
         "best_val_loss": fit_result["best_val_loss"],
         "test_metrics": test_metrics,
     }
+    # 写 summary.json。
     dump_json(summary, run_dir / "summary.json")
+    # 写更完整的 run_manifest.json。
     dump_json(
         build_run_manifest(
             config=config,
@@ -276,6 +314,7 @@ def main() -> None:
         ),
         run_dir / "run_manifest.json",
     )
+    # 同时把关键信息追加入总实验索引 CSV。
     append_experiment_index(
         output_root=config.run.output_root,
         row={
@@ -328,9 +367,12 @@ def main() -> None:
         ],
     )
 
+    # 终端打印训练输出目录。
     print(f"训练完成，结果保存在: {run_dir}")
+    # 终端打印 summary 便于快速查看。
     print(summary)
 
 
 if __name__ == "__main__":
+    # 作为脚本直接运行时，进入主函数。
     main()

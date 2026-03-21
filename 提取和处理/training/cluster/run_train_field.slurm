@@ -3,8 +3,7 @@
 #SBATCH --partition=GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
-#SBATCH --mem=64G
+#SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:1
 #SBATCH --job-name=field_train
 #SBATCH --output=logs/%x_%j.out
@@ -94,11 +93,16 @@ echo "配置文件: $CONFIG_ABS"
 echo "=============================================="
 echo ""
 
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
+export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
+export NUMEXPR_MAX_THREADS=${SLURM_CPUS_PER_TASK:-8}
+export OPENBLAS_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
+
 CMD=("$PYTHON_BIN" -m training.scripts.train_field --config "$CONFIG_ABS")
 echo "执行命令: ${CMD[*]}"
+echo "线程限制: OMP=$OMP_NUM_THREADS  MKL=$MKL_NUM_THREADS"
 echo ""
 "${CMD[@]}"
-
 EXIT_CODE=$?
 
 echo ""

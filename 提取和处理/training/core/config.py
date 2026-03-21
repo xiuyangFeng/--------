@@ -108,26 +108,35 @@ class PhysicsConfig:
         需要用这些尺度还原回原始物理空间，否则 continuity / momentum
         的量纲会失真。这里读取可用病例的尺度，并用中位数作为稳健代表值。
         """
+        # 如果没启用自动读取或物理损失本身关闭，就直接返回。
         if not self.auto_load_scales or not self.enabled:
             return
 
+        # 函数内部局部导入，避免配置模块在普通场景下引入额外依赖。
         import json
         from pathlib import Path
 
+        # 收集训练病例里可用的坐标缩放因子。
         scale_factors: List[float] = []
         for case_dir in case_dirs:
+            # 每个病例的坐标归一化参数都保存在固定位置。
             params_path = Path(case_dir) / "processed" / "coord_normalized" / "transform_params.json"
+            # 缺文件就跳过，不阻塞整个实验。
             if not params_path.exists():
                 continue
             try:
                 with open(params_path, "r", encoding="utf-8") as f:
                     params = json.load(f)
+                # 读出当前病例的空间尺度因子。
                 sf = params.get("scale_factor", 1.0)
+                # 过滤掉明显非法的非正尺度。
                 if sf > 1e-6:
                     scale_factors.append(sf)
             except (json.JSONDecodeError, KeyError):
+                # 单个病例参数损坏时忽略，尽量让训练继续。
                 continue
 
+        # 如果收集到了有效尺度，就用中位数作为三轴共同尺度。
         if scale_factors:
             import statistics
             median_sf = statistics.median(scale_factors)
@@ -135,15 +144,18 @@ class PhysicsConfig:
 
         # t_norm 的标准差保存在全局归一化参数里，用于把 dt 还原回原始时间尺度。
         norm_params_path = Path(data_root) / "normalization_params_global.json"
+        # 全局归一化参数存在时，再尝试恢复时间尺度。
         if norm_params_path.exists():
             try:
                 with open(norm_params_path, "r", encoding="utf-8") as f:
                     norm_params = json.load(f)
                 stats = norm_params.get("statistics", {})
                 t_stats = stats.get("t_norm")
+                # 如果能读到 t_norm 的标准差，就把它当作时间缩放尺度。
                 if t_stats and t_stats.get("std", 0) > 1e-10:
                     self.time_scale = t_stats["std"]
             except (json.JSONDecodeError, KeyError):
+                # 时间归一化参数读失败时保持默认值 1.0。
                 pass
 
 
@@ -173,16 +185,21 @@ class ExperimentConfig:
 
     @classmethod
     def from_json(cls, path: str | Path) -> "ExperimentConfig":
+        # 从 JSON 文件读取原始配置字典。
         with open(path, "r", encoding="utf-8") as f:
             raw = json.load(f)
+        # 再委托给 from_dict 构造强类型配置对象。
         return cls.from_dict(raw)
 
     def to_dict(self) -> Dict[str, Any]:
+        # dataclass 原生转字典，便于快照和导出。
         return asdict(self)
 
     def validate(self) -> None:
         # 训练阶段只做“特征屏蔽”，因此这里必须保证名字和 pipeline 导出的 schema 一致。
+        # 检查节点特征名是否都在 schema 中。
         unknown_node = sorted(set(self.data.enabled_node_features) - set(NODE_FEATURE_NAMES))
+        # 检查全局特征名是否都在 schema 中。
         unknown_global = sorted(
             set(self.data.enabled_global_features) - set(GLOBAL_COND_NAMES)
         )
@@ -190,17 +207,24 @@ class ExperimentConfig:
             raise ValueError(f"未知节点特征: {unknown_node}")
         if unknown_global:
             raise ValueError(f"未知全局特征: {unknown_global}")
+        # 模型名必须属于注册表里支持的骨干网络。
         if self.model.name not in {"mlp", "graphsage", "transformer", "meshgraphnet", "pointnetpp"}:
             raise ValueError(f"不支持的模型: {self.model.name}")
+        # 监督损失权重维度必须与目标维度一致。
         if len(self.optim.target_weights) != len(TARGET_NAMES):
             raise ValueError("target_weights 维度必须与目标输出一致")
+        # 物理坐标尺度必须提供 3 个值，对应 x/y/z。
         if len(self.physics.coord_scales) != 3:
             raise ValueError("physics.coord_scales 必须包含 3 个坐标尺度")
+        # batch_size 至少为 1。
         if self.data.batch_size < 1:
             raise ValueError("batch_size 必须 >= 1")
+        # 学习率必须为正。
         if self.optim.lr <= 0:
             raise ValueError("lr 必须 > 0")
+        # 隐藏维度必须为正整数。
         if self.model.hidden_dim < 1:
             raise ValueError("hidden_dim 必须 >= 1")
+        # 梯度累积步数至少为 1。
         if self.optim.accumulate_grad_batches < 1:
             raise ValueError("accumulate_grad_batches 必须 >= 1")
