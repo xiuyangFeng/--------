@@ -155,6 +155,65 @@ python -m training.scripts.predict_field \
   --subset test
 ```
 
+如果已经导出了 `predictions_test/manifest.json`，可以继续直接生成误差分析图：
+
+```bash
+python -m training.scripts.plot_error_analysis \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json
+```
+
+默认会在 `predictions_test/error_analysis/` 下生成：
+
+- `fig_scatter_pred_vs_true.png`
+- `fig_error_distribution.png`
+- `fig_error_cdf.png`
+- `fig_per_case_boxplot.png`
+- `per_case_metrics.csv`
+- `summary.json`
+
+如果你想按任务 A 论文图的命名拆开生成，也可以直接用这些脚本：
+
+```bash
+python -m training.scripts.plot_taskA_scatter \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json
+
+python -m training.scripts.plot_taskA_per_case_boxplot \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json
+
+python -m training.scripts.plot_taskA_regional_bar \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json
+
+python -m training.scripts.plot_taskA_main_table \
+  --runs-root outputs/field
+
+python -m training.scripts.plot_taskA_ablation_summary \
+  --runs-root outputs/field \
+  --metric-key rmse_vel_mag
+```
+
+如果你已经把旧训练结果拷回本地 `outputs/field/`，可以直接基于 `history.csv` 出训练曲线和对比图：
+
+```bash
+python -m training.scripts.plot_training_history \
+  --runs-root outputs/field
+```
+
+默认行为：
+
+- 为每个 run 目录生成 `fig_training_curves.png`
+- 在 `outputs/field/plots/` 下生成 `best_metrics.csv`
+- 如果匹配到 2 个及以上 run，还会额外生成 `compare_val_loss.png`
+
+如果只想画部分实验，可用 `--pattern` 或 `--run-dir`：
+
+```bash
+python -m training.scripts.plot_training_history \
+  --runs-root outputs/field \
+  --pattern 'field_transformer*/history.csv' \
+  --pattern 'field_graphsage*/history.csv' \
+  --compare-metric val_rmse
+```
+
 安装依赖可参考：
 
 ```bash
@@ -225,6 +284,15 @@ pip install -r training/requirements.txt
 - `continuity_loss` 适合做第一层物理一致性筛查。
 - `no_slip_loss` 适合检查壁面条件是否被破坏。
 - `momentum_loss` 只有在前面几项稳定后才值得比较，否则很容易成为噪声源。
+
+配合 `training.scripts.plot_training_history` 时，通常优先观察：
+
+- `val_loss`：总体验证收敛情况
+- `val_rmse`：整体回归误差
+- `val_rmse_vel_mag`：速度模长误差
+- `val_rmse_p`：压力误差
+- `lr`：学习率是否进入衰减阶段
+- `is_best`：最佳 epoch 是否稳定出现，而不是偶然抖动
 
 ## 第一批模板配置
 

@@ -45,6 +45,9 @@
   - per-case 指标箱线图
 - `plot_multi_model_curves()`
   - 多模型训练曲线对比
+- `training.scripts.plot_training_history`
+  - 直接读取 `outputs/field/*/history.csv`
+  - 批量生成单 run 训练曲线、多 run 对比图和 best 指标汇总表
 
 说明：
 
@@ -463,7 +466,7 @@ outputs/field/<run_dir>/
 
 当前缺口：
 
-- 需要一个统一聚合多个 run 的导表脚本
+- 当前已经有 `training.scripts.plot_taskA_main_table`
 
 ### 7.3 Figure A2 典型病例图脚本
 
@@ -530,7 +533,7 @@ outputs/field/<run_dir>/
 
 当前缺口：
 
-- 只缺一个把 `*.pt` 聚合起来的薄脚本
+- 当前已经有 `training.scripts.plot_taskA_scatter`
 
 优先级：
 
@@ -565,7 +568,7 @@ outputs/field/<run_dir>/
 
 当前缺口：
 
-- 需要一个直接读取预测导出并喂给 `PerCaseMeter` 的脚本
+- 当前已经有 `training.scripts.plot_taskA_per_case_boxplot`
 
 ### 7.6 Figure A5 分区域误差图脚本
 
@@ -598,8 +601,8 @@ outputs/field/<run_dir>/
 
 当前缺口：
 
-- 需要定义“跨 sample 聚合”的口径
-- 建议第一版先做 test subset 全部节点汇总
+- 第一版已按“test subset 全部节点汇总”实现
+- 当前已经有 `training.scripts.plot_taskA_regional_bar`
 
 ### 7.7 Figure A6 消融总结图脚本
 
@@ -633,7 +636,8 @@ outputs/field/<run_dir>/
 
 当前缺口：
 
-- 需要统一实验命名规则到脚本里
+- 当前已经有 `training.scripts.plot_taskA_ablation_summary`
+- 仍建议后续继续收紧实验命名规则，避免不同 study_group 下出现同名实验
 
 ### 7.8 Figure A7 训练曲线与误差分布脚本
 
@@ -641,6 +645,11 @@ outputs/field/<run_dir>/
 
 - `training/scripts/plot_taskA_training_curves.py`
 - `training/scripts/plot_taskA_error_analysis.py`
+
+当前仓库中的对应可用入口：
+
+- `training.scripts.plot_training_history`
+- `training.scripts.plot_error_analysis`
 
 输入：
 
@@ -671,7 +680,8 @@ outputs/field/<run_dir>/
 
 当前缺口：
 
-- 只缺 `history.csv` 到 dict 的转换和 `*.pt` 聚合脚本
+- 训练曲线部分已经补齐脚本入口，不再缺 `history.csv` 到 dict 的转换脚本
+- 误差分析部分已经补齐 `predictions_test/*.pt` 聚合脚本
 
 ### 7.9 Figure A8 精度-速度-显存脚本
 

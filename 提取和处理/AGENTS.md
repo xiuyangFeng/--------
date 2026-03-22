@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## 环境
+
+- **测试环境**：Conda，环境名为 `rag_venv`。运行脚本、安装依赖或执行测试前请先激活：`conda activate rag_venv`。
+
 ## 项目规则
 
 - **本项目不允许使用任何软件开发类 skills**：Agent 在本项目中不得调用或依赖任何与软件开发相关的 skill（如 brainstorming、TDD、code review、writing-plans、executing-plans、git worktrees、finishing-a-development-branch 等），仅使用基础工具与代码库上下文完成任务。
