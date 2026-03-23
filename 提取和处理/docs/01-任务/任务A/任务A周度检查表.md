@@ -40,11 +40,11 @@
 
 | 里程碑 | 目标                                                | 建议截止时间     | 状态               | 备注  |
 | --- | ------------------------------------------------- | ---------- | ---------------- | --- |
-| M1  | 跑通 4 个现有基线：`A-Base-01` 到 `A-Main-01`              | 2026-03-16 | `未开始 / 进行中 / 完成` | 进行中 |
-| M2  | 完成单尺度核心消融：`A-Abl-01` 到 `A-Abl-05`                 | 2026-04-06 | `未开始 / 进行中 / 完成` |     |
-| M3  | 跑通 `A-Base-04` Hierarchical GNN 最小版               | 2026-04-13 | `未开始 / 进行中 / 完成` |     |
-| M4  | 完成 hierarchy 关键消融：`A-Abl-06` 到 `A-Abl-09` 的核心两组以上 | 2026-04-20 | `未开始 / 进行中 / 完成` |     |
-| M5  | 整理任务 A 主结果表、消融表、Pareto 图                          | 2026-04-27 | `未开始 / 进行中 / 完成` |     |
+| M1  | 跑通 4 个现有基线：`A-Base-01` 到 `A-Main-01`              | 2026-03-23 | ✅ 完成 | 3 seed 全部完成于 2026-03-22/23 |
+| M2  | 完成单尺度核心消融：`A-Abl-01` 到 `A-Abl-05`                 | 2026-04-06 | 未开始 |     |
+| M3  | 跑通 `A-Base-04` Hierarchical GNN 最小版               | 2026-04-13 | 未开始 |     |
+| M4  | 完成 hierarchy 关键消融：`A-Abl-06` 到 `A-Abl-09` 的核心两组以上 | 2026-04-20 | 未开始 |     |
+| M5  | 整理任务 A 主结果表、消融表、Pareto 图                          | 2026-04-27 | 未开始 |     |
 
 
 ---
@@ -65,44 +65,42 @@
 
 ### 本周开跑前核对
 
-- 已落盘正式 split 文件，并保存训练/验证/测试病例名单
-- 已确认归一化统计量仅使用训练集
-- 已完成图数据生成，并核对 `x / global_cond / y / case_name`
-- 已确定正式结果目录与命名规范
-- 已生成至少 1 份 smoke test 配置
+- [x] 已落盘正式 split 文件，并保存训练/验证/测试病例名单
+- [x] 已确认归一化统计量仅使用训练集
+- [x] 已完成图数据生成，并核对 `x / global_cond / y / case_name`
+- [x] 已确定正式结果目录与命名规范（`outputs/field/{exp_name}_split_AG_v1_seed{seed}_{timestamp}/`）
+- [x] 已生成至少 1 份 smoke test 配置
 
 ### 本周建议输出物
 
-- 一份任务 A 冻结卡
-- 一份正式 split 清单
-- 一份数据处理命令清单
-- 一份 smoke test 结果
+- [x] 一份任务 A 冻结卡（见 [任务A冻结卡.md](任务A冻结卡.md)）
+- [x] 一份正式 split 清单（`training/splits/split_AG_v1.json`）
+- [x] 一份数据处理命令清单
+- [x] 一份 smoke test 结果
 
 ### 本周实验勾选
 
-
 | Exp ID      | 实验名                       | split 已固定 | 数据已处理 | Smoke Test | 一句话结论 |
 | ----------- | ------------------------- | --------- | ----- | ---------- | ----- |
-| `A-Base-01` | Point-wise MLP            | `[]`      | `[]`  | `[]`       |       |
-| `A-Main-01` | Transformer with geometry | `[]`      | `[]`  | `[]`       |       |
-
+| `A-Base-01` | Point-wise MLP            | [x]      | [x]  | [x]       | 数据管线闭环正常，MLP 能稳定收敛 |
+| `A-Main-01` | Transformer with geometry | [x]      | [x]  | [x]       | 几何特征注入路径验证正确 |
 
 ### 本周必填总结
 
-- 本周固定版本：
-- 本周新完成实验：
-- 当前最优主线：
-- 当前最重要的结论：
-- 与预期相反的结果：
-- 当前最大阻塞：
-- 下周只做哪 1 到 2 件事：
+- 本周固定版本：`data_version=AG_v1`，`split_version=split_AG_v1`，`preprocess_version=pipeline当前版本（混合FPS20%，kNN图）`
+- 本周新完成实验：smoke test 验证 A-Base-01 和 A-Main-01 训练-评估-落盘闭环
+- 当前最优主线：A-Main-01（Transformer + geometry）
+- 当前最重要的结论：数据维度对齐正确，`data.x / data.global_cond / data.y` 格式已验证
+- 与预期相反的结果：无
+- 当前最大阻塞：slow 组集群作业 1177 仍有 19 个病例处理中
+- 下周只做哪 1 到 2 件事：1. 启动 A-Base-01 ~ A-Main-01 正式训练（seed=1）；2. 补 seed=2,3
 
 ### 是否达到本周门槛
 
-- 正式 split 已冻结
-- 数据处理闭环已完成
-- 至少 1 个 baseline 已跑通 smoke test
-- 已具备进入 Week 1 的条件
+- [x] 正式 split 已冻结
+- [x] 数据处理闭环已完成
+- [x] 至少 1 个 baseline 已跑通 smoke test
+- [x] 已具备进入 Week 1 的条件
 
 ---
 
@@ -116,47 +114,47 @@
 
 ### 本周开跑前核对
 
-- 已锁定唯一数据目录，且不混用旧版中间文件
-- 已固定患者级 `train / val / test`
-- 已核对 `data.x / data.global_cond / data.y` 的维度和索引
-- 已确认 `global_cond` 广播方式无误
-- 已确认评估脚本可独立读取 checkpoint
-- 已跑通至少 1 组 baseline 的 smoke test
+- [x] 已锁定唯一数据目录，且不混用旧版中间文件
+- [x] 已固定患者级 `train / val / test`
+- [x] 已核对 `data.x / data.global_cond / data.y` 的维度和索引
+- [x] 已确认 `global_cond` 广播方式无误
+- [x] 已确认评估脚本可独立读取 checkpoint
+- [x] 已跑通至少 1 组 baseline 的 smoke test
 
 ### 本周建议输出物
 
-- 4 个 baseline 的配置文件
-- 第一版主结果表
-- 至少一张壁面/内部点分层结果表
-- 至少一个典型病例可视化
+- [x] 4 个 baseline 的配置文件（已通过 `make_field_plan.py` 生成）
+- [x] 第一版主结果表（见 `experiment_index.csv` + `任务A实验状态表.md`）
+- [ ] 至少一张壁面/内部点分层结果表（待 predict_field.py 运行后补充）
+- [ ] 至少一个典型病例可视化（待 predict_field.py 运行后补充）
 
 ### 本周实验勾选
 
+| Exp ID      | 实验名                          | Smoke Test | `seed=1` 完成 | `seed=2,3` 完成 | 结果已写入实验表 | 一句话结论 |
+| ----------- | ---------------------------- | ---------- | ----------- | ------------ | -------- | ----- |
+| `A-Base-01` | Point-wise MLP               | [x]       | [x]        | [x]         | [x]     | MLP 仅压力预测有效（R2_p=0.920），速度场 R2<0.11，确立任务 A 无图下限 |
+| `A-Base-02` | GraphSAGE                    | [x]       | [x]        | [x]         | [x]     | 图结构使 RMSE_\|v\| 从 1.600→1.361（-14.9%），w 分量收益最大 |
+| `A-Base-03` | Transformer without geometry | [x]       | [x]        | [x]         | [x]     | 与 GraphSAGE 性能几乎持平，说明瓶颈不在架构而在特征 |
+| `A-Main-01` | Transformer with geometry    | [x]       | [x]        | [x]         | [x]     | 几何特征使 RMSE_\|v\| 降至 1.161，w 分量 R2 从 0.325→0.545，几何贡献显著 |
 
-| Exp ID      | 实验名                          | Smoke Test | `seed=1` 完成 | 结果已写入实验表 | 一句话结论 |
-| ----------- | ---------------------------- | ---------- | ----------- | -------- | ----- |
-| `A-Base-01` | Point-wise MLP               | `[]`       | `[]`        | `[]`     |       |
-| `A-Base-02` | GraphSAGE 或 GCN              | `[]`       | `[]`        | `[]`     |       |
-| `A-Base-03` | Transformer without geometry | `[]`       | `[]`        | `[]`     |       |
-| `A-Main-01` | Transformer with geometry    | `[]`       | `[]`        | `[]`     |       |
-
+> **注**：本周超额完成目标，seed=1/2/3 全部在 2026-03-22/23 期间完成。
 
 ### 本周必填总结
 
-- 本周固定版本：
-- 本周新完成实验：
-- 当前最优主线：
-- 当前最重要的结论：
-- 与预期相反的结果：
-- 当前最大阻塞：
-- 下周只做哪 1 到 2 件事：
+- **本周固定版本**：`split_AG_v1`，`exp_id=A-Base-01/02/03 + A-Main-01`，物理约束全部关闭
+- **本周新完成实验**：A-Base-01、A-Base-02、A-Base-03、A-Main-01（3 seed 均完成）
+- **当前最优主线**：A-Main-01（Transformer + 全几何特征，RMSE_|v|=1.161±0.038）
+- **当前最重要的结论**：显式几何特征（Abscissa/NormRadius/Curvature/Tangent）是速度场精度提升的关键来源，尤其对 w（轴向）分量贡献最大（R2: 0.325→0.545）；架构差异（Transformer vs GraphSAGE）在无几何特征时几乎无影响
+- **与预期相反的结果**：MLP 压力预测（R2_p=0.920）不弱于 GraphSAGE（0.901），说明压力场与坐标关系更直接，图结构对压力帮助有限
+- **当前最大阻塞**：predict_field.py 尚未运行，无法得到分区域误差（壁面/内部点/高曲率区域）；推理时间和显存未测
+- **下周只做哪 1 到 2 件事**：1. 运行 predict_field.py 生成测试集预测文件，补全散点图/箱线图/分区域评估；2. 启动 A-Abl-01（输入特征层级消融）
 
 ### 是否达到本周门槛
 
-- 4 个 baseline 都有可读结果
-- 已有第一版主结果表
-- 已有至少 1 张分层评估结果表
-- 已确认下周是补 seed 还是进入 `A-Abl-01`
+- [x] 4 个 baseline 都有可读结果（3 seed mean ± std）
+- [x] 已有第一版主结果表（见实验状态表）
+- [ ] 已有至少 1 张分层评估结果表（待 predict_field.py 后补充）
+- [x] 已确认下周进入 A-Abl-01（输入特征消融）
 
 ---
 

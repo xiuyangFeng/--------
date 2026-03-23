@@ -14,8 +14,8 @@
 | `data_root` | `data_new/AG` | ✅ 已确定 |
 | `case_name_format` | `{group}/{patient_id}`，如 `fast/HAN_JIAN_JUN` | ✅ 已确定 |
 | `graphs_subdir` | `processed/graphs` | ✅ 已确定 |
-| `split_version` | `split_AG_v1` | ⏳ 待生成（数据处理完成后） |
-| `split_file` | `training/splits/split_AG_v1.json` | ⏳ 待生成 |
+| `split_version` | `split_AG_v1` | ✅ 已确定 |
+| `split_file` | `training/splits/split_AG_v1.json` | ✅ 已生成并用于全部基线训练 |
 | `split_protocol` | `single_split` | ✅ 已确定 |
 | `preprocess_version` | pipeline 当前版本（采样混合FPS20%，kNN图） | ✅ 已确定 |
 | `normalize_source` | 仅训练集统计量 | ✅ 已确定 |
@@ -110,16 +110,17 @@ outputs/field/
 
 ## 6. 执行检查清单（数据就绪后按序执行）
 
-- [ ] slow 组全部处理完成（集群作业 1177 结束）
-- [ ] 排查 slow 剩余 19 个病例是否全部生成 pt 文件
-- [ ] 生成病例清单文件 `training/splits/cases_AG_v1.txt`
-- [ ] 执行 `python -m training.scripts.make_split` 生成 `split_AG_v1.json`
-- [ ] 核对 split 中 train/val/test 病例数比例
-- [ ] 核对 `data.x`、`data.global_cond`、`data.y` 维度
-- [ ] 执行 `python -m training.scripts.make_field_plan --groups baseline` 生成配置
-- [ ] 跑通 A-Base-01 smoke test（1 epoch，seed=1）
-- [ ] 跑通 A-Main-01 smoke test（1 epoch，seed=1）
-- [ ] 确认冻结卡 split_version 字段已填写
+- [x] slow 组全部处理完成（集群作业 1177 结束）
+- [x] 排查 slow 剩余 19 个病例是否全部生成 pt 文件
+- [x] 生成病例清单文件 `training/splits/cases_AG_v1.txt`
+- [x] 执行 `python -m training.scripts.make_split` 生成 `split_AG_v1.json`
+- [x] 核对 split 中 train/val/test 病例数比例（4860 / 648 / 1458 graphs）
+- [x] 核对 `data.x`、`data.global_cond`、`data.y` 维度
+- [x] 执行 `python -m training.scripts.make_field_plan --groups baseline` 生成配置
+- [x] 跑通 A-Base-01 smoke test（1 epoch，seed=1）
+- [x] 跑通 A-Main-01 smoke test（1 epoch，seed=1）
+- [x] 确认冻结卡 split_version 字段已填写
+- [x] **A-Base-01 / A-Base-02 / A-Base-03 / A-Main-01 全部 3 seed 训练完成**（2026-03-22/23）
 
 ---
 
@@ -190,3 +191,8 @@ python -m training.scripts.run_field_plan \
 
 **2026-03-16**：等待 slow 组集群作业 1177 完成（19 个病例处理中/排队中）。  
 冻结卡字段除 `split_version` 和 `split_file` 外均已确定，数据就绪后立即执行第 6 节检查清单。
+
+**2026-03-23（更新）**：所有冻结字段已全部确定，第 6 节执行清单已全部完成。  
+第一批基线实验（A-Base-01 ~ A-Main-01）全部 3 seed 训练完成，结果已归档至 `outputs/field/`，实验状态详见 [任务A实验状态表](任务A实验状态表.md)。  
+当前数据集规模：训练 4860 graphs / 验证 648 graphs / 测试 1458 graphs。  
+下一步：运行 `predict_field.py` 生成测试集预测文件，再运行散点图、per-case 箱线图和分区域误差图；同时启动 A-Abl-01（输入特征消融）。

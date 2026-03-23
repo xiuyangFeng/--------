@@ -4,9 +4,39 @@ import argparse
 import csv
 import json
 from pathlib import Path
-from typing import Dict, List, Sequence
+from typing import Dict, List, Optional, Sequence
 
 from ..analysis.visualization import plot_multi_model_curves, plot_training_curves
+
+# ── Short display names for known experiment configurations ───────────────────
+# Ordered longest-first so prefix matching is unambiguous.
+_MODEL_SHORT: Dict[str, str] = {
+    "field_transformer_coord_t_bc_geom_wall": "Transformer+Geom",
+    "field_transformer_coord_t_bc_wall":      "Transformer",
+    "field_graphsage_coord_t_bc_wall":        "GraphSAGE",
+    "field_mlp_coord_t_bc":                   "MLP",
+}
+
+
+def _shorten_label(label: str) -> str:
+    """Convert a full experiment label to a concise display string.
+
+    e.g. 'field_transformer_coord_t_bc_geom_wall_seed1' → 'Transformer+Geom seed1'
+    """
+    for prefix, short in _MODEL_SHORT.items():
+        if label.startswith(prefix):
+            rest = label[len(prefix):].lstrip("_")  # e.g. 'seed1' or ''
+            return f"{short} {rest}" if rest else short
+    return label
+
+
+def _label_to_group(short_label: str) -> str:
+    """Extract the model-family group name from a short label.
+
+    e.g. 'Transformer+Geom seed1' → 'Transformer+Geom'
+    """
+    parts = short_label.rsplit(" ", 1)
+    return parts[0] if len(parts) == 2 else short_label
 
 
 def ensure_dir(path: Path | str) -> Path:
@@ -143,26 +173,30 @@ def main() -> None:
     output_dir = ensure_dir(args.output_dir) if args.output_dir else ensure_dir(runs_root / "plots")
 
     compare_histories: Dict[str, Dict[str, List[float]]] = {}
+    group_map: Dict[str, str] = {}
     best_rows: List[Dict[str, object]] = []
 
     try:
         for run_dir in run_dirs:
             history_path = run_dir / "history.csv"
             history = _read_history_csv(history_path)
-            label = _resolve_label(run_dir)
+            full_label = _resolve_label(run_dir)
+            short_label = _shorten_label(full_label)
 
+            # Per-run training curve uses the short label as title
             plot_training_curves(
                 history,
                 save_path=run_dir / args.single_plot_name,
-                title=label,
+                title=short_label,
             )
-            compare_histories[label] = history
+            compare_histories[short_label] = history
+            group_map[short_label] = _label_to_group(short_label)
 
             best_row = _pick_best_row(history, args.best_metric)
             best_rows.append(
                 {
                     "run_dir": str(run_dir),
-                    "label": label,
+                    "label": full_label,
                     "best_epoch": int(round(best_row.get("epoch", 0.0))),
                     args.best_metric: best_row.get(args.best_metric, ""),
                     "val_rmse": best_row.get("val_rmse", ""),
@@ -179,6 +213,7 @@ def main() -> None:
                 metric_key=args.compare_metric,
                 save_path=compare_path,
                 title=args.compare_title,
+                group_map=group_map,
             )
             print(f"已生成多实验对比图: {compare_path}")
     except ImportError as exc:
