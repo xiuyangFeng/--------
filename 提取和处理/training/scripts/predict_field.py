@@ -117,6 +117,7 @@ def main() -> None:
                 {
                     "sample_id": sample_id,
                     "case_name": case_name,
+                    # regional_eval 优先从 graph_path 读未 mask 的完整节点特征，区域口径与模型输入开关无关。
                     "graph_path": graph_path,
                     "node_feature_names": NODE_FEATURE_NAMES,
                     "target_names": TARGET_NAMES,

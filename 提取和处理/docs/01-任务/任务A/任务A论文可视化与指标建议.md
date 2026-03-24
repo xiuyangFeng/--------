@@ -322,15 +322,15 @@
 
 当前代码支撑：
 
-- `training.analysis.regional_eval.compute_regional_metrics()`
+- `training.analysis.regional_eval.compute_regional_metrics()`（区域 mask 优先使用预测文件中的 `graph_path` 读回完整节点特征，见 `load_node_features_for_region_masks()`）
 - `training.analysis.visualization.plot_regional_bar()`
-- `training/scripts/plot_taskA_regional_bar.py` 已完成并已生成 `fig_A5_regional_bar_rmse_vel_mag.png` 与 `fig_A5_regional_bar_rmse_p.png`
+- `training/scripts/plot_taskA_regional_bar.py` 已完成并已生成各 run 的 `fig_A5_regional_bar_rmse_vel_mag.png` 与 `fig_A5_regional_bar_rmse_p.png`
+- `training/scripts/plot_taskA_multimodel_regional_bar.py` 汇总 `outputs/field/plots/fig_A5_multimodel_regional_bar_*.png`
 
 写作提醒：
 
-- 当前 `A-Main-01` 已具备 `wall / interior / high_curvature / low_curvature / near_wall / core_flow / bifurcation / trunk` 全套区域评估
-- `A-Base-02` 与 `A-Base-03` 当前仅稳定具备 `all / wall / interior`，`A-Base-01` 当前仅稳定具备 `all / interior`
-- 因此，现阶段可以稳定写“总体 / 壁面 / 内部点”结论；复杂区域横向比较需要先统一重导出 baseline 的区域标签口径
+- **四组 baseline（A-Base-01 ~ A-Main-01）** 在 **`wall / interior / high_curvature / low_curvature / near_wall / core_flow / bifurcation / trunk` 等预定义区域**上均可出齐指标：区域划分与模型输入是否含几何**解耦**，统一依赖图数据资产。
+- 跨模型对比请引用 **`outputs/field/plots/fig_A5_multimodel_regional_bar_*.png`**（及 geo_only 变体），并在正文注明区域定义与 `regional_eval` 中的阈值（如曲率分位数、Abscissa 分叉区间等）。
 
 ### 6.6 Figure A6：消融总结图
 

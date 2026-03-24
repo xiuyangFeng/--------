@@ -994,3 +994,95 @@ def plot_multimodel_scatter(
             fig.savefig(save_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
     return fig
+
+
+def plot_case_field_panel(
+    pos: np.ndarray,
+    cfd: np.ndarray,
+    pred: np.ndarray,
+    masks: Sequence[np.ndarray],
+    row_titles: Sequence[str],
+    *,
+    variable_name: str = "|v| (m/s)",
+    save_path: Optional[str] = None,
+    title: str = "Figure A2 Case Panel",
+    max_points: int = 12_000,
+    seed: int = 42,
+    axes_plane: Tuple[int, int] = (0, 1),
+    col_labels: Tuple[str, str, str] = ("CFD", "Prediction", "|Error|"),
+):
+    """典型病例 3×3 空间面板：行为子区域，列为 CFD / 预测 / 绝对误差。
+
+    使用节点平面投影散点（默认 XY），同一列 CFD 与 Prediction 共用色条范围。
+    """
+    _require_mpl()
+    if pos.shape[0] != len(cfd) or len(cfd) != len(pred):
+        raise ValueError("pos / cfd / pred 长度不一致")
+    if len(masks) != len(row_titles):
+        raise ValueError("masks 与 row_titles 数量不一致")
+
+    abs_err = np.abs(pred - cfd)
+    vmin = float(np.nanmin(np.concatenate([cfd, pred])))
+    vmax = float(np.nanmax(np.concatenate([cfd, pred])))
+    if not np.isfinite(vmin) or not np.isfinite(vmax) or vmax <= vmin:
+        vmin, vmax = 0.0, 1.0
+    err_vmax = float(np.percentile(abs_err, 99.0))
+    if err_vmax <= 0:
+        err_vmax = float(np.max(abs_err)) if len(abs_err) else 1.0
+
+    ia, ib = axes_plane
+    rng = np.random.default_rng(seed)
+    nrows = len(masks)
+    axis_names = ("x", "y", "z")
+
+    with _paper_style():
+        fig, axes = plt.subplots(nrows, 3, figsize=(14, 4.2 * nrows), squeeze=False)
+        for r, (mask, rtitle) in enumerate(zip(masks, row_titles)):
+            mask = np.asarray(mask, dtype=bool)
+            idx_all = np.where(mask)[0]
+            if len(idx_all) > max_points:
+                idx = rng.choice(idx_all, size=max_points, replace=False)
+            else:
+                idx = idx_all
+
+            ax0, ax1, ax2 = axes[r]
+            if len(idx) == 0:
+                for ax in (ax0, ax1, ax2):
+                    ax.text(0.5, 0.5, "no points", ha="center", va="center", transform=ax.transAxes)
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+                ax0.set_ylabel(rtitle, fontsize=11)
+                continue
+
+            sc0 = ax0.scatter(
+                pos[idx, ia], pos[idx, ib], c=cfd[idx], cmap="viridis",
+                s=3, alpha=0.75, vmin=vmin, vmax=vmax, rasterized=True,
+            )
+            sc1 = ax1.scatter(
+                pos[idx, ia], pos[idx, ib], c=pred[idx], cmap="viridis",
+                s=3, alpha=0.75, vmin=vmin, vmax=vmax, rasterized=True,
+            )
+            sc2 = ax2.scatter(
+                pos[idx, ia], pos[idx, ib], c=abs_err[idx], cmap="magma",
+                s=3, alpha=0.75, vmin=0.0, vmax=err_vmax, rasterized=True,
+            )
+            fig.colorbar(sc0, ax=ax0, fraction=0.046, pad=0.02, label=variable_name)
+            fig.colorbar(sc1, ax=ax1, fraction=0.046, pad=0.02, label=variable_name)
+            fig.colorbar(sc2, ax=ax2, fraction=0.046, pad=0.02, label=variable_name)
+
+            for ax in (ax0, ax1, ax2):
+                ax.set_aspect("equal", adjustable="box")
+                ax.set_xlabel(f"{axis_names[ia]} (m)")
+            ax0.set_ylabel(f"{rtitle}\n{axis_names[ib]} (m)")
+            ax1.tick_params(labelleft=False)
+            ax2.tick_params(labelleft=False)
+
+        for c, lab in enumerate(col_labels):
+            axes[0, c].set_title(lab, fontsize=12, fontweight="bold")
+
+        fig.suptitle(f"{title} — {variable_name}", fontsize=14, y=1.01)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig

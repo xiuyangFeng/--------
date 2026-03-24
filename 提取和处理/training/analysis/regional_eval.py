@@ -12,17 +12,57 @@ any results table.
 """
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import torch
 
 from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES
+from pipeline.dataset import load_graph_data
 
 IS_WALL_IDX = NODE_FEATURE_NAMES.index("is_wall")
 CURVATURE_IDX = NODE_FEATURE_NAMES.index("Curvature")
 NORM_RADIUS_IDX = NODE_FEATURE_NAMES.index("NormRadius")
 ABSCISSA_IDX = NODE_FEATURE_NAMES.index("Abscissa")
+
+_WARNED_REGION_GEOMETRY_FALLBACK = False
+
+
+def load_node_features_for_region_masks(payload: Dict[str, Any]) -> torch.Tensor:
+    """供分区域评估使用的节点特征：优先从图资产读取未 mask 的完整 ``x``。
+
+    训练时 ``FieldGraphDataset`` 会对 ``data.x`` 按列乘 ``feature_mask``，
+    被关闭的几何列在导出预测里为 0，会导致 ``high_curvature`` / ``near_wall`` /
+    ``bifurcation`` / ``trunk`` 等 mask 与模型无关地错误。区域口径应依赖
+    ``graph_path`` 指向的固定图文件，与模型是否使用几何输入无关。
+    """
+    global _WARNED_REGION_GEOMETRY_FALLBACK
+    y_true = payload["y_true"]
+    if not isinstance(y_true, torch.Tensor):
+        raise TypeError("payload['y_true'] 必须为 torch.Tensor")
+    n = int(y_true.shape[0])
+    graph_path = payload.get("graph_path")
+    if graph_path:
+        path = Path(str(graph_path))
+        if path.is_file():
+            data = load_graph_data(path)
+            x = data.x.detach().cpu()
+            if x.shape[0] == n and x.shape[1] == len(NODE_FEATURE_NAMES):
+                return x
+    if not _WARNED_REGION_GEOMETRY_FALLBACK:
+        warnings.warn(
+            "无法从 graph_path 加载与预测对齐的完整节点特征，回退使用导出文件中的 x；"
+            "若该 run 关闭了几何列，分区域指标可能不可靠。",
+            UserWarning,
+            stacklevel=2,
+        )
+        _WARNED_REGION_GEOMETRY_FALLBACK = True
+    x_fb = payload["x"]
+    if not isinstance(x_fb, torch.Tensor):
+        raise TypeError("payload['x'] 必须为 torch.Tensor")
+    return x_fb.detach().cpu()
 
 
 @dataclass

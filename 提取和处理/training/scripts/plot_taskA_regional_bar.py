@@ -9,7 +9,10 @@ from ._figure_utils import ensure_dir, load_manifest, load_prediction_payload, s
 
 def compute_aggregate_regional_metrics(items):
     torch = __import__("torch")
-    from ..analysis.regional_eval import compute_regional_metrics
+    from ..analysis.regional_eval import (
+        compute_regional_metrics,
+        load_node_features_for_region_masks,
+    )
 
     preds = []
     targets = []
@@ -18,7 +21,7 @@ def compute_aggregate_regional_metrics(items):
         payload = load_prediction_payload(Path(str(item["prediction_path"])).resolve())
         preds.append(payload["y_pred"].detach().cpu())
         targets.append(payload["y_true"].detach().cpu())
-        features.append(payload["x"].detach().cpu())
+        features.append(load_node_features_for_region_masks(payload))
 
     if not preds:
         raise ValueError("manifest 中没有可用预测项")

@@ -204,7 +204,7 @@ python -m training.scripts.run_field_plan \
 - `fig_error_distribution.png`
 - `fig_error_cdf.png`
 
-其中，`A-Main-01` 已具备 `wall / interior / high_curvature / low_curvature / near_wall / core_flow / bifurcation / trunk` 全套区域标签；`A-Base-02`、`A-Base-03` 当前稳定具备 `all / wall / interior`，`A-Base-01` 当前仅稳定具备 `all / interior`。这意味着现阶段可以写“总体 / 壁面 / 内部点”结论，但高曲率、近壁和分叉区域的横向对比仍需统一重导出预测资产后再做。  
+**（2026-03-24 更新）分区域评估口径已统一**：`plot_taskA_regional_bar` 在聚合指标时从各样本 `graph_path` 读回**未按训练配置 mask 的完整节点特征**生成区域 mask，因此 `A-Base-01` / `A-Base-02` / `A-Base-03` / `A-Main-01` 在 **`high_curvature / near_wall / bifurcation / trunk` 等全部预定义区域**上均为**同一几何定义**，可与模型是否启用几何输入解耦。各 run 已重算 `predictions_test/regional_eval/fig_A5_regional_metrics.json`，汇总层 `outputs/field/plots/fig_A5_multimodel_regional_bar_*.png` 已按该口径更新（集群批处理见 `training/cluster/run_regional_a5.slurm`）。  
 效率 benchmark 已补齐，当前 `outputs/field/plots/` 下已新增：
 
 - `fig_A7_efficiency_benchmark.json`
@@ -227,4 +227,4 @@ python -m training.scripts.run_field_plan \
 - `fig_A7_pareto_per_seed_points.png`
 - `fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png`
 
-下一步：先统一区域标签评估口径，再启动 A-Abl-01（输入特征消融）；效率证据层面当前已经具备 3-seed 版本，后续若还要继续加固，可再补多病例 benchmark 或给出 CFD 时间基线以填写 `speedup_vs_CFD`。
+下一步：**区域标签评估口径已统一**，可启动 **A-Abl-01**（输入特征消融）；效率证据层面当前已经具备 3-seed 版本，后续若还要继续加固，可再补多病例 benchmark 或给出 CFD 时间基线以填写 `speedup_vs_CFD`。
