@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections import defaultdict
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -739,6 +739,256 @@ def plot_pareto_per_seed_points(
         ax.set_ylabel(f"{rmse_key} (test)")
         ax.set_title(title)
         ax.grid(True, alpha=0.25)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+# ── Multi-model comparison plots ──────────────────────────────────────────────
+
+def plot_multimodel_per_case_boxplot(
+    models_data: Dict[str, Dict[str, Dict[str, float]]],
+    metric_keys: List[str] = None,
+    save_path: Optional[str] = None,
+    title: str = "Per-Case Metric Comparison",
+):
+    """Side-by-side boxplots comparing per-case metrics across multiple models.
+
+    Parameters
+    ----------
+    models_data : dict
+        ``{model_label: {case_name: {metric_key: value}}}``
+        Values should be per-case metrics already averaged across seeds.
+    """
+    if metric_keys is None:
+        metric_keys = ["rmse_vel_mag", "rmse_p"]
+
+    model_names = list(models_data.keys())
+    n_models = len(model_names)
+    n_metrics = len(metric_keys)
+
+    auto_palette = plt.rcParams["axes.prop_cycle"].by_key()["color"] if plt else []
+    colors = [
+        _MODEL_COLORS.get(m, auto_palette[i % len(auto_palette)] if auto_palette else "#9ecae1")
+        for i, m in enumerate(model_names)
+    ]
+
+    with _paper_style():
+        fig, axes = plt.subplots(1, n_metrics, figsize=(max(6, 2.5 * n_models) * n_metrics, 5))
+        if n_metrics == 1:
+            axes = [axes]
+
+        for ax, mkey in zip(axes, metric_keys):
+            data_per_model = [
+                [v[mkey] for v in models_data[mname].values() if mkey in v]
+                for mname in model_names
+            ]
+            positions = list(range(1, n_models + 1))
+            bp = ax.boxplot(
+                data_per_model, positions=positions, vert=True,
+                patch_artist=True, widths=0.55,
+                medianprops=dict(color="black", linewidth=2),
+                whiskerprops=dict(linewidth=1.2),
+                capprops=dict(linewidth=1.2),
+                flierprops=dict(marker="o", markersize=3, alpha=0.4),
+            )
+            for patch, color in zip(bp["boxes"], colors):
+                patch.set_facecolor(color)
+                patch.set_alpha(0.78)
+
+            ax.set_xticks(positions)
+            ax.set_xticklabels(model_names, rotation=15, ha="right")
+            ax.set_ylabel(mkey)
+            n_cases = max((len(models_data[m]) for m in model_names), default=0)
+            ax.set_title(f"{mkey}  (n={n_cases} cases)")
+
+        fig.suptitle(title, fontsize=14, y=1.02)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+def plot_multimodel_regional_bar(
+    models_regional: Dict[str, Dict[str, Dict[str, float]]],
+    metric_key: str = "rmse_vel_mag",
+    regions: List[str] = None,
+    save_path: Optional[str] = None,
+    title: str = "Regional Error Comparison",
+):
+    """Grouped bar chart: x-axis = regions, one bar-group per model.
+
+    Parameters
+    ----------
+    models_regional : dict
+        ``{model_label: {region: {metric_key: value}}}``
+        Values should be averaged across seeds.
+    regions : list, optional
+        Subset and order of regions to display.  Defaults to a canonical
+        ordering that includes all available regions.
+    """
+    _preferred_order = [
+        "all", "wall", "interior", "high_curvature",
+        "near_wall", "bifurcation", "trunk", "low_curvature", "core_flow",
+    ]
+    model_names = list(models_regional.keys())
+    n_models = len(model_names)
+
+    if regions is None:
+        all_regions: set = set()
+        for rd in models_regional.values():
+            all_regions.update(rd.keys())
+        regions = [r for r in _preferred_order if r in all_regions]
+        regions += sorted(all_regions - set(regions))
+
+    n_regions = len(regions)
+    x = np.arange(n_regions)
+    width = 0.8 / max(n_models, 1)
+    offsets = np.linspace(
+        -(n_models - 1) / 2 * width,
+        (n_models - 1) / 2 * width,
+        n_models,
+    )
+
+    auto_palette = plt.rcParams["axes.prop_cycle"].by_key()["color"] if plt else []
+    colors = [
+        _MODEL_COLORS.get(m, auto_palette[i % len(auto_palette)] if auto_palette else "#9ecae1")
+        for i, m in enumerate(model_names)
+    ]
+
+    with _paper_style():
+        fig, ax = plt.subplots(figsize=(max(10, 2.2 * n_regions), 5.5))
+
+        for i, (mname, color) in enumerate(zip(model_names, colors)):
+            regional = models_regional[mname]
+            vals = [
+                regional.get(r, {}).get(metric_key, float("nan"))
+                for r in regions
+            ]
+            bars = ax.bar(
+                x + offsets[i], vals, width * 0.90,
+                label=mname, color=color, alpha=0.82,
+                edgecolor="white", linewidth=0.8,
+            )
+            for bar, v in zip(bars, vals):
+                if not np.isnan(v):
+                    ax.text(
+                        bar.get_x() + bar.get_width() / 2,
+                        bar.get_height() * 1.012,
+                        f"{v:.3f}",
+                        ha="center", va="bottom", fontsize=7, rotation=0,
+                    )
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(regions, rotation=30, ha="right")
+        ax.set_ylabel(metric_key)
+        ax.set_title(title)
+        ax.legend(loc="upper right")
+        finite_vals = [
+            v
+            for rd in models_regional.values()
+            for r in regions
+            for v in [rd.get(r, {}).get(metric_key, float("nan"))]
+            if not np.isnan(v)
+        ]
+        if finite_vals:
+            ax.set_ylim(0, max(finite_vals) * 1.22)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+def plot_multimodel_scatter(
+    models_predictions: Dict[str, Tuple[np.ndarray, np.ndarray]],
+    variable: str = "vel_mag",
+    max_points: int = 100_000,
+    seed: int = 42,
+    save_path: Optional[str] = None,
+    title: str = "Scatter Comparison",
+):
+    """Grid of scatter/hexbin plots comparing multiple models on one variable.
+
+    Parameters
+    ----------
+    models_predictions : dict
+        ``{model_label: (pred, true)}`` where each array has shape ``(N, 4)``
+        with columns ``[u, v, w, p]``.
+    variable : str
+        One of ``"u"``, ``"v"``, ``"w"``, ``"p"``, or ``"vel_mag"``.
+    """
+    _VAR_IDX = {"u": 0, "v": 1, "w": 2, "p": 3}
+    _VAR_LABEL = {
+        "u": "u (m/s)", "v": "v (m/s)", "w": "w (m/s)",
+        "p": "p (Pa)", "vel_mag": "|v| (m/s)",
+    }
+
+    model_names = list(models_predictions.keys())
+    n_models = len(model_names)
+    ncols = min(n_models, 4)
+    nrows = (n_models + ncols - 1) // ncols
+    rng = np.random.default_rng(seed)
+    var_label = _VAR_LABEL.get(variable, variable)
+
+    with _paper_style():
+        fig, axes = plt.subplots(
+            nrows, ncols,
+            figsize=(5 * ncols, 5 * nrows),
+            squeeze=False,
+        )
+        for idx, (mname, (pred, true)) in enumerate(models_predictions.items()):
+            ax = axes[idx // ncols][idx % ncols]
+
+            if variable == "vel_mag":
+                t_vals = np.linalg.norm(true[:, :3], axis=1)
+                p_vals = np.linalg.norm(pred[:, :3], axis=1)
+            elif variable in _VAR_IDX:
+                col = _VAR_IDX[variable]
+                t_vals = true[:, col]
+                p_vals = pred[:, col]
+            else:
+                raise ValueError(f"Unknown variable: {variable!r}")
+
+            if max_points > 0 and len(t_vals) > max_points:
+                chosen = rng.choice(len(t_vals), max_points, replace=False)
+                t_vals, p_vals = t_vals[chosen], p_vals[chosen]
+
+            lo = min(float(t_vals.min()), float(p_vals.min()))
+            hi = max(float(t_vals.max()), float(p_vals.max()))
+            pad = (hi - lo) * 0.04
+
+            hb = ax.hexbin(t_vals, p_vals, gridsize=60, cmap="Blues",
+                            linewidths=0.1, mincnt=1)
+            fig.colorbar(hb, ax=ax, label="count", fraction=0.046, pad=0.04)
+            ax.plot([lo - pad, hi + pad], [lo - pad, hi + pad],
+                    "r--", linewidth=1.2, zorder=5)
+            ax.set_xlim(lo - pad, hi + pad)
+            ax.set_ylim(lo - pad, hi + pad)
+            ax.set_xlabel(f"CFD {var_label}")
+            ax.set_ylabel(f"Predicted {var_label}")
+            ax.set_title(mname)
+            ax.set_aspect("equal")
+
+            ss_res = float(np.sum((t_vals - p_vals) ** 2))
+            ss_tot = float(np.sum((t_vals - t_vals.mean()) ** 2))
+            r2 = 1.0 - ss_res / max(ss_tot, 1e-12)
+            rmse = float(np.sqrt(np.mean((t_vals - p_vals) ** 2)))
+            ax.text(
+                0.05, 0.95,
+                f"$R^2$={r2:.3f}\nRMSE={rmse:.3f}",
+                transform=ax.transAxes, va="top", fontsize=9,
+                bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
+                          edgecolor="0.7", alpha=0.85),
+            )
+
+        for idx in range(n_models, nrows * ncols):
+            axes[idx // ncols][idx % ncols].set_visible(False)
+
+        fig.suptitle(f"{title} — {var_label}", fontsize=14)
         fig.tight_layout()
         if save_path:
             fig.savefig(save_path, dpi=300, bbox_inches="tight")
