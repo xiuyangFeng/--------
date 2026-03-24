@@ -195,4 +195,36 @@ python -m training.scripts.run_field_plan \
 **2026-03-23（更新）**：所有冻结字段已全部确定，第 6 节执行清单已全部完成。  
 第一批基线实验（A-Base-01 ~ A-Main-01）全部 3 seed 训练完成，结果已归档至 `outputs/field/`，实验状态详见 [任务A实验状态表](任务A实验状态表.md)。  
 当前数据集规模：训练 4860 graphs / 验证 648 graphs / 测试 1458 graphs。  
-下一步：运行 `predict_field.py` 生成测试集预测文件，再运行散点图、per-case 箱线图和分区域误差图；同时启动 A-Abl-01（输入特征消融）。
+测试集预测与后处理图已补齐，当前已生成：
+
+- `fig_A3_scatter.png`
+- `fig_A4_per_case_boxplot.png`
+- `fig_A5_regional_bar_rmse_vel_mag.png`
+- `fig_A5_regional_bar_rmse_p.png`
+- `fig_error_distribution.png`
+- `fig_error_cdf.png`
+
+其中，`A-Main-01` 已具备 `wall / interior / high_curvature / low_curvature / near_wall / core_flow / bifurcation / trunk` 全套区域标签；`A-Base-02`、`A-Base-03` 当前稳定具备 `all / wall / interior`，`A-Base-01` 当前仅稳定具备 `all / interior`。这意味着现阶段可以写“总体 / 壁面 / 内部点”结论，但高曲率、近壁和分叉区域的横向对比仍需统一重导出预测资产后再做。  
+效率 benchmark 已补齐，当前 `outputs/field/plots/` 下已新增：
+
+- `fig_A7_efficiency_benchmark.json`
+- `fig_A7_efficiency_bars.png`
+- `fig_A7_pareto_rmse_vel_mag_vs_latency.png`
+
+当前 benchmark 口径已升级为：4 个 baseline 的 **seed 1/2/3 共 12 个 run**，测试病例 `slow/GUO_XI_JIANG`（81 snapshots），`n_warmup=5`，`n_runs=20`。当前效率图既包含 `aggregated` 的 `mean±std`，也包含 `rows_per_seed` 的分 seed 结果。结果显示：
+
+- `A-Base-01` 最快：`0.54 ± 0.27 ms / snapshot`，`127.34 ± 0.00 MB`
+- `A-Base-02` 提供较好的折中：`2.35 ± 0.23 ms / snapshot`，`529.69 ± 0.47 MB`
+- `A-Base-03` 与 `A-Main-01` 时延和显存几乎相同：`6.95 ± 0.09` vs `6.88 ± 0.02 ms / snapshot`，显存约 `2.18 GB`
+- `A-Main-01` 在几乎不增加部署开销的前提下，相比 `A-Base-03` 显著降低了 `RMSE_|v|`
+
+新增的效率图现已不止主柱图和主 Pareto 图，还包括：
+
+- `fig_A7_efficiency_bars_mean_std.png`
+- `fig_A7_latency_per_seed.png`
+- `fig_A7_peak_memory_per_seed.png`
+- `fig_A7_fullcase_peak_memory_per_seed.png`
+- `fig_A7_pareto_per_seed_points.png`
+- `fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png`
+
+下一步：先统一区域标签评估口径，再启动 A-Abl-01（输入特征消融）；效率证据层面当前已经具备 3-seed 版本，后续若还要继续加固，可再补多病例 benchmark 或给出 CFD 时间基线以填写 `speedup_vs_CFD`。

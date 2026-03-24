@@ -53,6 +53,7 @@
 
 - 文件头注释里提到“误差热图”，但当前模块中还没有真正落地的 surface heatmap 绘图函数。
 - 因此目前属于“主结果图已具备一半以上，病例表面热图和切片对比图仍需后续补上”。
+- 截至 2026-03-24，第一批 4 组基线实验的 `A1 / A3 / A4 / A5 / A6` 已实际生成，效率图也已补到 3-seed 版本；当前论文主文仍待补的核心资产主要是 `A2` 典型病例空间可视化。
 
 ---
 
@@ -212,7 +213,8 @@
 当前代码支撑：
 
 - 指标统计已具备
-- 表格需要人工汇总或后续补统一导表脚本
+- `training/scripts/plot_taskA_main_table.py` 已可自动导出
+- 当前产物已生成：`outputs/field/plots/fig_A1_main_table.md`
 
 ### 6.2 Figure A2：典型病例主可视化图组
 
@@ -269,6 +271,7 @@
 当前代码支撑：
 
 - `training.analysis.visualization.scatter_pred_vs_true()`
+- `training/scripts/plot_taskA_scatter.py` 已完成并已对 4 组 baseline 全部生成 `fig_A3_scatter.png`
 
 ### 6.4 Figure A4：病例级分布与稳健性图
 
@@ -290,6 +293,7 @@
 当前代码支撑：
 
 - `training.analysis.visualization.plot_per_case_boxplot()`
+- `training/scripts/plot_taskA_per_case_boxplot.py` 已完成并已对 4 组 baseline 全部生成 `fig_A4_per_case_boxplot.png`
 
 ### 6.5 Figure A5：分区域误差图
 
@@ -320,6 +324,13 @@
 
 - `training.analysis.regional_eval.compute_regional_metrics()`
 - `training.analysis.visualization.plot_regional_bar()`
+- `training/scripts/plot_taskA_regional_bar.py` 已完成并已生成 `fig_A5_regional_bar_rmse_vel_mag.png` 与 `fig_A5_regional_bar_rmse_p.png`
+
+写作提醒：
+
+- 当前 `A-Main-01` 已具备 `wall / interior / high_curvature / low_curvature / near_wall / core_flow / bifurcation / trunk` 全套区域评估
+- `A-Base-02` 与 `A-Base-03` 当前仅稳定具备 `all / wall / interior`，`A-Base-01` 当前仅稳定具备 `all / interior`
+- 因此，现阶段可以稳定写“总体 / 壁面 / 内部点”结论；复杂区域横向比较需要先统一重导出 baseline 的区域标签口径
 
 ### 6.6 Figure A6：消融总结图
 
@@ -344,6 +355,13 @@
 
 - `training.analysis.visualization.plot_ablation_summary()`
 - `training.analysis.stats.*`
+- `training/scripts/plot_taskA_ablation_summary.py` 已完成并已生成 `outputs/field/plots/fig_A6_ablation_summary.png`
+
+写作提醒：
+
+- 当前文件名虽为 `Figure A6 ablation summary`，但其内容实际上还是 4 组 baseline 主结果汇总，不是真正的消融实验汇总
+- 统计上，`A-Main-01` 相比 `A-Base-02` 的 `RMSE_|v|` 均值改善为 `-0.1998`，paired t-test `p = 0.0337`
+- `A-Base-02` 与 `A-Base-03` 的差异极小（`delta_mean = +0.0034`, `p = 0.5404`），这条证据很适合支撑“主要增益来自显式几何特征，而不是 backbone 更换”
 
 ### 6.7 Figure A7：训练曲线与误差分布图
 
@@ -388,8 +406,26 @@
 
 当前代码支撑：
 
-- 数值统计可从实验结果汇总
-- 正式出图脚本仍需补
+- 当前效率结果已通过 benchmark 落盘至 `outputs/field/plots/fig_A7_efficiency_benchmark.json`
+- 当前图像产物已生成：
+  - `outputs/field/plots/fig_A7_efficiency_bars.png`
+  - `outputs/field/plots/fig_A7_efficiency_bars_mean_std.png`
+  - `outputs/field/plots/fig_A7_latency_per_seed.png`
+  - `outputs/field/plots/fig_A7_peak_memory_per_seed.png`
+  - `outputs/field/plots/fig_A7_fullcase_peak_memory_per_seed.png`
+  - `outputs/field/plots/fig_A7_pareto_per_seed_points.png`
+  - `outputs/field/plots/fig_A7_pareto_rmse_vel_mag_vs_latency.png`
+  - `outputs/field/plots/fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png`
+
+写作提醒：
+
+- 当前效率 benchmark 已包含 `rows_per_seed` 与 `aggregated` 两层：
+  - 分 seed 图适合放补充材料，用来看稳定性
+  - `mean±std` 汇总图适合放主文，用来看总体 trade-off
+- 建议在图注中明确点大小或柱状图所编码的是 `full_case_peak_memory_mb`，横轴时延使用 `full_case_per_snapshot_ms`
+- 当前结果最适合支撑两条结论：
+  - `A-Base-02` 是四组 baseline 中较好的精度-速度折中点
+  - `A-Main-01` 与 `A-Base-03` 在时延和显存几乎相同的情况下取得明显更低的 `RMSE_|v|`
 
 ### 6.9 Supplementary A：建议放附录的图
 
@@ -407,33 +443,40 @@
 
 ### 7.1 建议的输出目录结构
 
-建议统一输出到单个 run 目录下，避免图表四处散落：
+当前项目的实际图表产物已经形成“跨 run 汇总目录 + 单 run 目录”两层结构，建议后续继续沿用：
 
 ```text
-outputs/field/<run_dir>/
-├── eval_test/
-│   └── metrics.json
-├── predictions_test/
-│   ├── manifest.json
-│   └── *.pt
-├── figures_taskA/
+outputs/field/
+├── plots/
 │   ├── fig_A1_main_table.csv
-│   ├── fig_A3_scatter.png
-│   ├── fig_A4_per_case_boxplot.png
-│   ├── fig_A5_regional_bar.png
+│   ├── fig_A1_main_table.md
 │   ├── fig_A6_ablation_summary.png
-│   ├── fig_A7_training_curves.png
-│   ├── fig_A7_error_distribution.png
-│   ├── fig_A7_error_cdf.png
-│   ├── fig_A8_pareto.csv
-│   └── manifest_taskA_figures.json
-└── ...
+│   ├── fig_A6_ablation_summary_stats.json
+│   ├── fig_A7_efficiency_benchmark.json
+│   ├── fig_A7_efficiency_bars.png
+│   ├── fig_A7_efficiency_bars_mean_std.png
+│   ├── fig_A7_latency_per_seed.png
+│   ├── fig_A7_peak_memory_per_seed.png
+│   ├── fig_A7_fullcase_peak_memory_per_seed.png
+│   ├── fig_A7_pareto_per_seed_points.png
+│   ├── fig_A7_pareto_rmse_vel_mag_vs_latency.png
+│   └── fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png
+└── <run_dir>/
+    ├── fig_training_curves.png
+    ├── summary.json
+    └── predictions_test/
+        ├── manifest.json
+        ├── fig_A3_scatter.png
+        ├── fig_A4_per_case_boxplot.png
+        ├── regional_eval/
+        └── error_analysis/
 ```
 
-建议统一再保存一份：
+当前建议保留的约定是：
 
-- `manifest_taskA_figures.json`
-  - 记录这次出图使用了哪个 checkpoint、哪个 split、哪个 subset、哪个病例、哪些图已经生成
+- 跨 run 汇总图继续放在 `outputs/field/plots/`
+- 与单次运行强绑定的图继续放在各 run 的 `predictions_test/` 下
+- 如果后续补 A2 典型病例图，再视需要决定是否新增统一的 `figures_taskA/` 汇总层
 
 ### 7.2 Figure A1 主结果总表脚本
 
@@ -710,8 +753,8 @@ outputs/field/<run_dir>/
 
 当前缺口：
 
-- 当前项目里还没有统一的 peak memory 汇总产物
-- 这部分需要先约定显存记录口径
+- 第一版效率 benchmark、`mean±std` 汇总图和分 seed 稳定性图都已落盘，不再缺“是否能出图”
+- 当前仍需补的是多病例效率汇总，避免正式论文只依赖单病例 benchmark
 
 ### 7.10 建议的执行顺序
 
