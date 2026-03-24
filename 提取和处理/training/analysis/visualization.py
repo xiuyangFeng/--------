@@ -1086,3 +1086,211 @@ def plot_case_field_panel(
             fig.savefig(save_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
     return fig
+
+
+def _case_panel_pick_indices(mask: np.ndarray, max_points: int, rng: np.random.Generator) -> np.ndarray:
+    idx_all = np.where(np.asarray(mask, dtype=bool))[0]
+    if len(idx_all) > max_points:
+        return rng.choice(idx_all, size=max_points, replace=False)
+    return idx_all
+
+
+_PLANE_VELOCITY_COMPONENTS: Dict[Tuple[int, int], Tuple[int, int]] = {
+    (0, 1): (0, 1),
+    (0, 2): (0, 2),
+    (1, 2): (1, 2),
+}
+
+
+def plot_case_vel_mag_pressure_panel(
+    pos: np.ndarray,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    masks: Sequence[np.ndarray],
+    row_titles: Sequence[str],
+    *,
+    save_path: Optional[str] = None,
+    title: str = "Figure A2 — |v| and pressure",
+    max_points: int = 12_000,
+    seed: int = 42,
+    axes_plane: Tuple[int, int] = (0, 1),
+    col_labels: Tuple[str, str, str] = ("CFD", "Prediction", "|Error|"),
+):
+    """6×3 面板：前三行 |v|，后三行 p；行为子区域，列为 CFD / 预测 / 绝对误差。"""
+    _require_mpl()
+    if pos.shape[0] != y_true.shape[0] or y_true.shape != y_pred.shape:
+        raise ValueError("pos / y_true / y_pred 形状不一致")
+    if len(masks) != len(row_titles):
+        raise ValueError("masks 与 row_titles 数量不一致")
+
+    cfd_vm = np.linalg.norm(y_true[:, :3], axis=1)
+    pred_vm = np.linalg.norm(y_pred[:, :3], axis=1)
+    cfd_p = y_true[:, 3]
+    pred_p = y_pred[:, 3]
+
+    blocks = [
+        (cfd_vm, pred_vm, "|v| (m/s)"),
+        (cfd_p, pred_p, "p (Pa)"),
+    ]
+
+    ia, ib = axes_plane
+    rng = np.random.default_rng(seed)
+    nmask = len(masks)
+    axis_names = ("x", "y", "z")
+    nrows = nmask * len(blocks)
+
+    with _paper_style():
+        fig, axes = plt.subplots(nrows, 3, figsize=(14, 3.5 * nrows), squeeze=False)
+        for b, (cfd, pred, vname) in enumerate(blocks):
+            abs_err = np.abs(pred - cfd)
+            vmin = float(np.nanmin(np.concatenate([cfd, pred])))
+            vmax = float(np.nanmax(np.concatenate([cfd, pred])))
+            if not np.isfinite(vmin) or not np.isfinite(vmax) or vmax <= vmin:
+                vmin, vmax = 0.0, 1.0
+            err_vmax = float(np.percentile(abs_err, 99.0))
+            if err_vmax <= 0:
+                err_vmax = float(np.max(abs_err)) if len(abs_err) else 1.0
+
+            for r, (mask, rtitle) in enumerate(zip(masks, row_titles)):
+                row = b * nmask + r
+                idx = _case_panel_pick_indices(mask, max_points, rng)
+                ax0, ax1, ax2 = axes[row]
+
+                if len(idx) == 0:
+                    for ax in (ax0, ax1, ax2):
+                        ax.text(0.5, 0.5, "no points", ha="center", va="center", transform=ax.transAxes)
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                    ax0.set_ylabel(f"{vname}\n{rtitle}", fontsize=10)
+                    continue
+
+                sc0 = ax0.scatter(
+                    pos[idx, ia], pos[idx, ib], c=cfd[idx], cmap="viridis",
+                    s=3, alpha=0.75, vmin=vmin, vmax=vmax, rasterized=True,
+                )
+                sc1 = ax1.scatter(
+                    pos[idx, ia], pos[idx, ib], c=pred[idx], cmap="viridis",
+                    s=3, alpha=0.75, vmin=vmin, vmax=vmax, rasterized=True,
+                )
+                sc2 = ax2.scatter(
+                    pos[idx, ia], pos[idx, ib], c=abs_err[idx], cmap="magma",
+                    s=3, alpha=0.75, vmin=0.0, vmax=err_vmax, rasterized=True,
+                )
+                fig.colorbar(sc0, ax=ax0, fraction=0.046, pad=0.02, label=vname)
+                fig.colorbar(sc1, ax=ax1, fraction=0.046, pad=0.02, label=vname)
+                fig.colorbar(sc2, ax=ax2, fraction=0.046, pad=0.02, label=f"|Δ{vname}|")
+
+                for ax in (ax0, ax1, ax2):
+                    ax.set_aspect("equal", adjustable="box")
+                    ax.set_xlabel(f"{axis_names[ia]} (m)")
+                ax0.set_ylabel(f"{vname}\n{rtitle}", fontsize=10)
+                ax1.tick_params(labelleft=False)
+                ax2.tick_params(labelleft=False)
+
+        for c, lab in enumerate(col_labels):
+            axes[0, c].set_title(lab, fontsize=12, fontweight="bold")
+
+        fig.suptitle(title, fontsize=14, y=1.005)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+def plot_case_velocity_quiver_panel(
+    pos: np.ndarray,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    masks: Sequence[np.ndarray],
+    row_titles: Sequence[str],
+    *,
+    save_path: Optional[str] = None,
+    title: str = "Velocity quiver (in-plane u,v,w components)",
+    max_points: int = 4000,
+    seed: int = 42,
+    axes_plane: Tuple[int, int] = (0, 1),
+    col_labels: Tuple[str, str, str] = ("CFD", "Prediction", "|Δv|₂ (in-plane)"),
+):
+    """3×3 速度矢量：投影平面内取 (u,v)/(u,w)/(v,w) 两分量画 quiver；第三列为面内矢量模误差。"""
+    _require_mpl()
+    if pos.shape[0] != y_true.shape[0] or y_true.shape != y_pred.shape:
+        raise ValueError("pos / y_true / y_pred 形状不一致")
+    if len(masks) != len(row_titles):
+        raise ValueError("masks 与 row_titles 数量不一致")
+    ia, ib = axes_plane
+    if axes_plane not in _PLANE_VELOCITY_COMPONENTS:
+        raise ValueError(f"unsupported axes_plane {axes_plane}")
+    iu, iv = _PLANE_VELOCITY_COMPONENTS[axes_plane]
+
+    rng = np.random.default_rng(seed)
+    axis_names = ("x", "y", "z")
+    nrows = len(masks)
+
+    with _paper_style():
+        fig, axes = plt.subplots(nrows, 3, figsize=(14, 4.2 * nrows), squeeze=False)
+        for r, (mask, rtitle) in enumerate(zip(masks, row_titles)):
+            idx = _case_panel_pick_indices(mask, max_points, rng)
+            ax0, ax1, ax2 = axes[r]
+
+            if len(idx) == 0:
+                for ax in (ax0, ax1, ax2):
+                    ax.text(0.5, 0.5, "no points", ha="center", va="center", transform=ax.transAxes)
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+                ax0.set_ylabel(rtitle, fontsize=11)
+                continue
+
+            X = pos[idx, ia]
+            Y = pos[idx, ib]
+            Ut, Vt = y_true[idx, iu], y_true[idx, iv]
+            Up, Vp = y_pred[idx, iu], y_pred[idx, iv]
+            dU, dV = Up - Ut, Vp - Vt
+            err_in = np.sqrt(dU * dU + dV * dV)
+
+            span = max(float(np.ptp(X)), float(np.ptp(Y)), 1e-12)
+            hmax = max(
+                float(np.percentile(np.hypot(Ut, Vt), 98)),
+                float(np.percentile(np.hypot(Up, Vp), 98)),
+                1e-9,
+            )
+            scale = hmax / (0.06 * span)
+
+            for ax, U, V in ((ax0, Ut, Vt), (ax1, Up, Vp)):
+                ax.quiver(
+                    X, Y, U, V, angles="xy", scale_units="xy", scale=scale,
+                    width=0.0022, headwidth=3.2, headlength=4, alpha=0.85,
+                )
+                ax.set_aspect("equal", adjustable="box")
+                ax.set_xlabel(f"{axis_names[ia]} (m)")
+
+            err_vmax = float(np.percentile(err_in, 99.0))
+            if err_vmax <= 0:
+                err_vmax = float(np.max(err_in)) if len(err_in) else 1.0
+            sc2 = ax2.scatter(
+                X, Y, c=err_in, cmap="magma", s=4, alpha=0.85,
+                vmin=0.0, vmax=err_vmax, rasterized=True,
+            )
+            fig.colorbar(
+                sc2, ax=ax2, fraction=0.046, pad=0.02,
+                label=f"|Δv|₂ ({axis_names[iu]},{axis_names[iv]}) (m/s)",
+            )
+            ax2.set_aspect("equal", adjustable="box")
+            ax2.set_xlabel(f"{axis_names[ia]} (m)")
+
+            ax0.set_ylabel(f"{rtitle}\n{axis_names[ib]} (m)")
+            ax1.tick_params(labelleft=False)
+            ax2.tick_params(labelleft=False)
+
+        comp_a, comp_b = axis_names[iu], axis_names[iv]
+        for c, lab in enumerate(col_labels):
+            axes[0, c].set_title(lab, fontsize=12, fontweight="bold")
+        fig.suptitle(
+            f"{title} — plane ({comp_a},{comp_b}), components v_{comp_a}, v_{comp_b}",
+            fontsize=13, y=1.01,
+        )
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
