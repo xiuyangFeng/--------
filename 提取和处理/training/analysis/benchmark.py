@@ -57,12 +57,15 @@ def benchmark_inference(
 
     import numpy as np
     arr = np.array(times)
+    n_edges = 0
+    if getattr(data, "edge_index", None) is not None:
+        n_edges = int(data.edge_index.size(1))
     return {
         "mean_ms": float(arr.mean()),
         "std_ms": float(arr.std()),
         "peak_memory_mb": peak_mem,
         "n_nodes": int(data.x.size(0)),
-        "n_edges": int(data.edge_index.size(1)),
+        "n_edges": n_edges,
     }
 
 
@@ -104,10 +107,14 @@ def build_efficiency_table(
     sample_data: Data,
     device: torch.device,
     cfd_time_hours: Optional[float] = None,
+    n_warmup: int = 5,
+    n_runs: int = 20,
 ) -> Dict[str, object]:
     """生成单个模型的一行效率评估结果。"""
     params = count_parameters(model)
-    latency = benchmark_inference(model, sample_data, device)
+    latency = benchmark_inference(
+        model, sample_data, device, n_warmup=n_warmup, n_runs=n_runs,
+    )
 
     result = {**params, **latency}
     if cfd_time_hours is not None:

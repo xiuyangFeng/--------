@@ -518,3 +518,229 @@ def plot_multi_model_curves(
             fig.savefig(save_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
     return fig
+
+
+def plot_efficiency_bars(
+    rows: List[Dict[str, object]],
+    save_path: Optional[str] = None,
+    title: str = "Inference Efficiency (single snapshot)",
+):
+    """Grouped metrics: parameters, mean latency (ms), peak GPU memory (MB).
+
+    Each row should include keys: ``label``, ``total_params``, ``mean_ms``,
+    ``peak_memory_mb`` (all numeric except ``label``).
+
+    若行内含有 ``mean_ms_std`` / ``peak_memory_mb_std``（例如跨 seed 汇总），
+    则对应子图显示误差棒；参数量一般无波动，不画误差棒。
+    """
+    if not rows:
+        raise ValueError("rows 不能为空")
+    labels = [str(r["label"]) for r in rows]
+    params_m = [float(r["total_params"]) / 1e6 for r in rows]
+    mean_ms = [float(r["mean_ms"]) for r in rows]
+    peak_mb = [float(r["peak_memory_mb"]) for r in rows]
+    err_ms = [float(r.get("mean_ms_std") or 0) for r in rows]
+    err_peak = [float(r.get("peak_memory_mb_std") or 0) for r in rows]
+    use_err = any(v > 0 for v in err_ms) or any(v > 0 for v in err_peak)
+
+    with _paper_style():
+        fig, axes = plt.subplots(1, 3, figsize=(13, 4.5))
+        x = np.arange(len(labels))
+        w = 0.65
+        err_kw = dict(ecolor="0.35", capsize=3, linewidth=1.0)
+
+        ax = axes[0]
+        ax.bar(x, params_m, width=w, color="#3182bd", edgecolor="white", linewidth=0.8)
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=28, ha="right")
+        ax.set_ylabel("Parameters (M)")
+        ax.set_title("Model size")
+
+        ax2 = axes[1]
+        ax2.bar(
+            x, mean_ms, width=w, color="#e6550d", edgecolor="white", linewidth=0.8,
+            yerr=err_ms if use_err else None,
+            error_kw=err_kw if use_err else None,
+        )
+        ax2.set_xticks(x)
+        ax2.set_xticklabels(labels, rotation=28, ha="right")
+        ax2.set_ylabel("Time (ms)")
+        ax2.set_title("Latency / snapshot")
+
+        ax3 = axes[2]
+        ax3.bar(
+            x, peak_mb, width=w, color="#31a354", edgecolor="white", linewidth=0.8,
+            yerr=err_peak if use_err else None,
+            error_kw=err_kw if use_err else None,
+        )
+        ax3.set_xticks(x)
+        ax3.set_xticklabels(labels, rotation=28, ha="right")
+        ax3.set_ylabel("Memory (MB)")
+        ax3.set_title("Peak GPU memory")
+
+        fig.suptitle(title, fontsize=13, fontweight="bold")
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+def plot_efficiency_bars_per_seed(
+    grouped: List[List[Dict[str, object]]],
+    save_path: Optional[str] = None,
+    title: str = "Latency per seed (single snapshot)",
+    metric_key: str = "mean_ms",
+    ylabel: str = "Time (ms)",
+):
+    """分组柱状图：每个实验一组，组内为各 seed 并列柱。
+
+    ``grouped`` 为按实验分组的行列表，每组内行须含 ``seed`` 与 ``metric_key``。
+    """
+    if not grouped:
+        raise ValueError("grouped 不能为空")
+    _require_mpl()
+    n_exp = len(grouped)
+    seeds_sets = [sorted({int(r["seed"]) for r in g}) for g in grouped]
+    all_seeds = sorted(set(s for ss in seeds_sets for s in ss))
+    n_s = len(all_seeds)
+    colors = ["#6baed6", "#fd8d3c", "#74c476", "#9e9ac8", "#fdae6b"][:max(3, n_s)]
+
+    with _paper_style():
+        fig, ax = plt.subplots(figsize=(max(10, n_exp * 2.2), 5))
+        width = 0.8 / max(1, n_s)
+        x0 = np.arange(n_exp)
+
+        for si, seed in enumerate(all_seeds):
+            vals = []
+            for g in grouped:
+                row = next((r for r in g if int(r["seed"]) == seed), None)
+                if row is None:
+                    vals.append(float("nan"))
+                else:
+                    vals.append(float(row[metric_key]))
+            offset = (si - (n_s - 1) / 2) * width
+            ax.bar(
+                x0 + offset,
+                vals,
+                width=width * 0.95,
+                label=f"seed {seed}",
+                color=colors[si % len(colors)],
+                edgecolor="white",
+                linewidth=0.6,
+            )
+
+        exp_labels = []
+        for g in grouped:
+            if not g:
+                exp_labels.append("?")
+            else:
+                exp_labels.append(str(g[0].get("short_label", g[0]["label"])).replace("\n", " "))
+
+        ax.set_xticks(x0)
+        ax.set_xticklabels(exp_labels, rotation=22, ha="right")
+        ax.set_ylabel(ylabel)
+        ax.set_title(title)
+        ax.legend(loc="upper left", fontsize=9)
+        ax.grid(True, axis="y", alpha=0.25)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+def plot_pareto_accuracy_latency(
+    rows: List[Dict[str, object]],
+    save_path: Optional[str] = None,
+    title: str = "Accuracy vs inference speed (Pareto)",
+    rmse_key: str = "rmse_vel_mag",
+    latency_key: str = "mean_ms",
+):
+    """Scatter: x = latency (ms), y = RMSE |v| (lower-left is better).
+
+    若行内含 ``mean_ms_std`` / ``rmse_vel_mag_std``，则绘制水平/垂直误差棒。
+    """
+    if not rows:
+        raise ValueError("rows 不能为空")
+    with _paper_style():
+        fig, ax = plt.subplots(figsize=(8, 5.5))
+        for r in rows:
+            lx = float(r[latency_key])
+            ry = float(r[rmse_key])
+            xe = float(r.get("mean_ms_std") or 0)
+            ye = float(r.get(f"{rmse_key}_std") or r.get("rmse_vel_mag_std") or 0)
+            use_err = xe > 0 or ye > 0
+            if use_err:
+                ax.errorbar(
+                    lx, ry,
+                    xerr=xe, yerr=ye,
+                    fmt="o",
+                    ms=7,
+                    capsize=3,
+                    color="#3182bd",
+                    ecolor="0.35",
+                    elinewidth=1.0,
+                )
+            else:
+                ax.scatter(lx, ry, s=120, alpha=0.85, edgecolors="white", linewidths=0.8)
+            ax.annotate(
+                str(r["label"]).split("\n")[0],
+                (lx, ry),
+                textcoords="offset points",
+                xytext=(6, 4),
+                fontsize=9,
+            )
+        ax.set_xlabel("Inference time per snapshot (ms)")
+        ax.set_ylabel(f"{rmse_key} (test)")
+        ax.set_title(title)
+        ax.grid(True, alpha=0.25)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+def plot_pareto_per_seed_points(
+    grouped: List[List[Dict[str, object]]],
+    save_path: Optional[str] = None,
+    title: str = "RMSE |v| vs latency — all seeds",
+    rmse_key: str = "rmse_vel_mag",
+    latency_key: str = "mean_ms",
+):
+    """同一实验用同色，各 seed 为散点，便于观察重复性。"""
+    if not grouped:
+        raise ValueError("grouped 不能为空")
+    auto = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+    with _paper_style():
+        fig, ax = plt.subplots(figsize=(9, 5.5))
+        for gi, g in enumerate(grouped):
+            color = auto[gi % len(auto)]
+            lab = str(g[0].get("short_label", g[0]["label"])).replace("\n", " ") if g else f"g{gi}"
+            for j, r in enumerate(sorted(g, key=lambda x: int(x["seed"]))):
+                lx = float(r[latency_key])
+                ry = float(r[rmse_key])
+                ax.scatter(
+                    lx, ry, s=90, alpha=0.88, c=color, edgecolors="white",
+                    linewidths=0.6, label=lab if j == 0 else "_nolegend_",
+                )
+                ax.annotate(
+                    f"s{int(r['seed'])}",
+                    (lx, ry),
+                    textcoords="offset points",
+                    xytext=(4, 3),
+                    fontsize=7,
+                    color="0.2",
+                )
+        ax.legend(loc="best", fontsize=8)
+
+        ax.set_xlabel("Inference time per snapshot (ms)")
+        ax.set_ylabel(f"{rmse_key} (test)")
+        ax.set_title(title)
+        ax.grid(True, alpha=0.25)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig

@@ -31,6 +31,22 @@ class RegionSpec:
     description: str = ""
 
 
+def _curvature_quantile_threshold(
+    curvature: torch.Tensor,
+    q: float,
+    subsample_max: int = 1_000_000,
+) -> torch.Tensor:
+    """torch.quantile 对超长一维张量会报错；大样本时用步进子样本估计分位数（确定性、省内存）。"""
+    n = curvature.numel()
+    if n == 0:
+        return torch.zeros((), device=curvature.device, dtype=curvature.dtype)
+    if n <= subsample_max:
+        return torch.quantile(curvature, q)
+    step = max(1, n // subsample_max)
+    idx = torch.arange(0, n, step, device=curvature.device)
+    return torch.quantile(curvature[idx], q)
+
+
 DEFAULT_REGIONS = {
     "all": RegionSpec("all", "All nodes"),
     "wall": RegionSpec("wall", "Wall nodes (is_wall == 1)"),
@@ -73,7 +89,7 @@ def build_region_masks(
     norm_radius = node_features[:, NORM_RADIUS_IDX]
     abscissa = node_features[:, ABSCISSA_IDX]
 
-    curv_thresh = torch.quantile(curvature, curvature_quantile)
+    curv_thresh = _curvature_quantile_threshold(curvature, curvature_quantile)
 
     masks: Dict[str, torch.Tensor] = {
         "all": torch.ones(n, dtype=torch.bool, device=node_features.device),
