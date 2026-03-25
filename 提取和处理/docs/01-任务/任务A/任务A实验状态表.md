@@ -56,6 +56,27 @@
 
 ---
 
+## 第三批：近期优化线
+
+> 说明：本区用于承接 baseline 完成后的“先拿更好结果，再补最小必要解释实验”路线。  
+> 当前优先级以 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md) 为准。  
+> 推荐执行顺序：`A-Opt-01 -> A-Opt-02 -> A-Opt-03 -> A-Opt-04 -> A-Opt-05`。  
+> 推进门槛：只有当上一组同时改善全局 `RMSE_|v|`、内部区 `RMSE_|v|`，且至少一个速度分量 `R²` 明显改善时，才进入下一组容量扩展。
+
+| Exp ID | 研究问题 | 唯一变化项 | split_version | seeds | 当前状态 | 备注 |
+|---|---|---|---|---|---|---|
+| A-Opt-01 | 速度权重是否能改善内部流场 | `target_weights = [2,2,2,0.5]` | split_AG_v1 | [1] | 🔒 未开始 | 第一优先级，纯配置改动 |
+| A-Opt-02 | LayerNorm 是否提升单尺度 Transformer 表达 | `FieldTransformer` 改为 Pre-Norm 残差块 | split_AG_v1 | [1] | 🔒 未开始 | 需修改 `training/core/models.py` |
+| A-Opt-03 | 损失重加权与 LayerNorm 是否互补 | `A-Opt-01 + A-Opt-02` | split_AG_v1 | [1] | 🔒 未开始 | 若二者均有正信号，优先执行 |
+| A-Opt-03w | Warmup 是否进一步稳定优化版主线 | `A-Opt-03 + warmup_epochs=5` | split_AG_v1 | [1] | 🔒 未开始 | 仅在 `A-Opt-03` 正向时进入 |
+| A-Opt-04 | 容量扩大是否继续有效 | `hidden_dim = 256` | split_AG_v1 | [1] | 🔒 未开始 | 仅在 `A-Opt-01/02/03` 达到推进门槛时进入 |
+| A-Opt-05 | 适度加深是否继续有效 | `hidden_dim = 256, num_layers = 4` | split_AG_v1 | [1] | 🔒 未开始 | 仅在 `A-Opt-04` 正向时进入 |
+| A-Opt-06 | 单尺度进一步加深是否还值得 | `hidden_dim = 256, num_layers = 6` | split_AG_v1 | [1] | 🔒 未开始 | 若 `A-Opt-05` 收益很小，建议停止 |
+| A-Opt-07 | 内部点区域加权是否进一步改善瓶颈 | region-weighted loss | split_AG_v1 | [1] | 🔒 未开始 | 放在容量扩展之后评估 |
+| A-Opt-08 | 多尺度结构是否带来本质提升 | graph U-Net / hierarchical GNN | split_AG_v1 | [1] | 🔒 未开始 | 单尺度优化见顶后再立项 |
+
+---
+
 ## 主结果表（3 seed mean ± std，已完成）
 
 > 数据来源：`experiment_index.csv` + 各 run 的 `summary.json` + `predictions_test/error_analysis/summary.json` + `predictions_test/regional_eval/fig_A5_regional_metrics.json` + `outputs/field/plots/fig_A7_efficiency_benchmark.json`。  

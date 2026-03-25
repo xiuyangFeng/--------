@@ -1,0 +1,611 @@
+# 任务A优化路径与近期实验建议
+
+> 上位文档：[任务A实验清单](任务A实验清单.md) | 相关文档：[任务A实验状态表](任务A实验状态表.md) / [任务A冻结卡](任务A冻结卡.md)
+
+---
+
+## 1. 文档目的
+
+本文件用于回答任务 A 基线完成后的两个现实问题：
+
+1. 下一步应该先做消融，还是先做优化。
+2. 当前主模型是否应该继续单纯加深加宽。
+
+这里不追求一次列出所有可能改法，而是给出一条兼顾以下两个目标的执行路径：
+
+- **短期目标**：尽快拿出一轮比当前 baseline 更好的结果，便于向老师汇报。
+- **中期目标**：后续实验还能自然接到论文叙事，不把变量搅乱。
+
+---
+
+## 2. 当前基线结论的工作判断
+
+基于 `A-Base-01/02/03` 与 `A-Main-01` 当前结果，可以先做三个判断：
+
+### 2.1 当前主瓶颈不在壁面，而在内部流场
+
+- `A-Main-01` 已经把壁面区域 `RMSE_|v|` 压到很低水平。
+- 但内部区域 `RMSE_|v|` 仍显著偏高，速度分量 `R²_u / R²_v / R²_w` 也没有达到“结构已学清楚”的程度。
+- 这说明模型已经学到边界条件、几何先验和局部趋势，但对内部复杂流动结构的表达仍不足。
+
+### 2.2 当前阶段不应把“backbone 名字”当作首要矛盾
+
+- 无 geometry 的 `Transformer` 与 `GraphSAGE` 几乎持平。
+- 加入 geometry 后才出现明显增益。
+- 因此，下一步的主问题不是“换一个更花的 backbone 名字”，而是：
+  - 优化目标是否把学习能力放到了速度场上；
+  - 当前单尺度表达是否足以覆盖内部复杂流场；
+  - 模型深度增加后是否真的换来了有效感受野和有效表达。
+
+### 2.3 当前阶段适合先做“小步优化”，不适合直接做“大改架构”
+
+- 你已经有一组完整 baseline，可以支撑“现状诊断”。
+- 但消融主线尚未完整展开，如果现在直接跳到多尺度 U-Net / 完整 PointNet++ / physics 组合，很容易失去归因。
+- 所以最合理的路径是：先做一轮低耦合优化，看能否尽快压低内部速度误差；如果单尺度优化很快见顶，再进入多尺度升级。
+
+---
+
+## 3. 关于“是否继续加深网络”的明确判断
+
+### 3.1 可以继续加深，但不能把“加深”当作默认主解
+
+可以继续加深，但我不建议把“层数继续堆高”作为下一阶段主线。
+
+原因有三点：
+
+- **第一，当前 `FieldTransformer` 仍是单尺度局部消息传递。**
+  即使层数增加，感受野扩大也仍然依赖局部邻域层层传播，捕获大尺度分叉结构的效率有限。
+
+- **第二，深层收益需要训练结构先跟上。**
+  如果没有更规范的归一化和残差组织，直接从 3 层加到 6 层甚至更高，未必能稳定转化成有效表达。
+
+- **第三，256 维不是问题核心，“只有 256 维表达不了复杂流场”这个判断不能直接成立。**
+  真正要看的不是隐藏维本身，而是：
+  - 深度上去后验证误差是否继续下降；
+  - 内部区域指标是否改善；
+  - 速度分量 `R²` 是否同步改善；
+  - 改善是否值得额外显存和时间成本。
+
+### 3.2 对“继续加深”的建议顺序
+
+不建议直接跳到很深。建议按下面顺序试：
+
+1. 先在当前 Transformer 残差块中补 `LayerNorm`，采用 Pre-Norm 风格。
+2. 再把 `hidden_dim` 从 `128` 提到 `256`。
+3. 再试 `num_layers = 4`。
+4. 如果 `4` 层仍有稳定收益，再试 `6` 层。
+
+不建议一开始直接做：
+
+- `hidden_dim = 256` 且 `num_layers = 6`
+- 同时叠加新损失、新调度器、新增强
+
+这样做的风险是：一旦结果变化，你无法判断收益来自哪里。
+
+### 3.3 怎样判断“继续加深还值不值”
+
+若出现下面任一情况，就说明单纯加深的边际收益已经接近上限：
+
+- `val_loss` 和内部区域 `RMSE_|v|` 基本不再下降。
+- 速度分量 `R²_u / R²_v / R²_w` 没有明显改善。
+- 训练时间和显存增长明显，但全局 `RMSE_|v|` 只改善很小。
+- 壁面区继续改善，但内部区几乎不动。
+
+一旦出现这些信号，就不应该继续在线数上死磕，而应转向多尺度结构。
+
+---
+
+## 4. 先做消融还是先做优化
+
+### 4.1 当前建议：先做一轮“主线优化”，再回到消融
+
+如果老师近期更需要看到“结果继续变好”，那就不建议你现在立刻把所有时间先投入完整消融。
+
+更合适的顺序是：
+
+1. **先做一轮小规模、低耦合优化**，目标是尽快拿到比 `A-Main-01` 更好的结果。
+2. **优化出一个更强的单尺度主线后**，再围绕这个主线组织“原因解释型实验”。
+3. **正式论文写作时**，baseline 负责交代起点，优化线负责交代怎么提高，消融负责交代为什么提高。
+
+### 4.2 为什么不建议现在只做消融
+
+如果现在直接进入完整消融，短期内你会回答很多“为什么”，但不一定能很快把主结果继续推高。  
+这对论文必要，但对阶段汇报未必最优。
+
+### 4.3 为什么也不建议现在只做大规模优化
+
+如果只顾堆优化，不安排后续最少必要的解释实验，后面文章会出现两个问题：
+
+- 结果变好了，但无法说清楚究竟是哪一类设计起了作用。
+- 优化实验之间变量耦合过多，论文审稿时很难讲清公平性。
+
+所以最合理的方案不是“消融 vs 优化 二选一”，而是：
+
+- **近期先做 1 轮主线优化拿结果；**
+- **随后做最小必要消融把结果解释清楚。**
+
+---
+
+## 5. 推荐的优化主线
+
+下面的优化顺序按“预期收益 / 实现成本 / 归因清晰度”综合排序。
+
+### 5.1 P0：先做低成本主线优化
+
+这是最应该先做的一层，目标是尽快拿到一版明显优于 `A-Main-01` 的结果。
+
+#### P0-1 调整目标损失权重
+
+建议先试：
+
+- `target_weights = [2.0, 2.0, 2.0, 0.5]`
+
+理由：
+
+- 当前压力已经不差，速度才是主瓶颈。
+- 这类改动实现最简单，归因最清楚。
+- 即使效果一般，也能快速判断“问题是否主要来自优化目标分配失衡”。
+
+建议暂时不要第一轮就上特别激进的 `[3, 3, 3, 0.5]`，先看保守权重是否已经能带来稳定收益。
+
+**具体操作方法：** 不需要改任何代码。以 `A-Main-01` 的 `config.snapshot.json` 为模板复制一份，仅修改以下字段：
+
+```json
+"optim": {
+  "target_weights": [2.0, 2.0, 2.0, 0.5]
+},
+"meta": {
+  "exp_id": "A-Opt-01",
+  "study_group": "optimization",
+  "question": "速度权重加大是否改善内部流场",
+  "ablation_axis": "target_weights"
+}
+```
+
+保存为 `training/configs/field/generated/optimization/A-Opt-01_seed1.json`，运行：
+
+```bash
+conda activate rag_venv
+python -m training.scripts.train_field \
+  --config training/configs/field/generated/optimization/A-Opt-01_seed1.json
+```
+
+#### P0-2 给 Transformer 残差块补 LayerNorm
+
+建议把当前主线 Transformer 调整为 Pre-Norm 风格残差块，再观察：
+
+- 是否更稳定；
+- 在增加深度时是否更能释放收益；
+- 内部区域误差是否下降。
+
+这一项适合作为结构层面的最小增强。
+
+**具体操作方法：** 需修改 `training/core/models.py` 中的 `FieldTransformer` 类，改动约 10 行。
+
+1. 在 `__init__` 中新增 `LayerNorm` 列表（在 `self.post_layers` 之后添加）：
+
+```python
+self.norms = nn.ModuleList([nn.LayerNorm(hidden_dim) for _ in self.layers])
+```
+
+2. 将 `forward` 中的消息传递循环改为 Pre-Norm 风格：
+
+```python
+# 改前（当前代码）：
+for conv, linear in zip(self.layers, self.post_layers):
+    residual = x
+    x = conv(x, data.edge_index)
+    x = F.elu(x)
+    x = linear(x)
+    x = F.dropout(x, p=self.dropout, training=self.training)
+    x = x + residual
+
+# 改后（Pre-Norm 风格）：
+for conv, linear, norm in zip(self.layers, self.post_layers, self.norms):
+    residual = x
+    x = norm(x)
+    x = conv(x, data.edge_index)
+    x = F.elu(x)
+    x = linear(x)
+    x = F.dropout(x, p=self.dropout, training=self.training)
+    x = x + residual
+```
+
+Pre-Norm 的关键在于：先归一化再做注意力计算，残差加在未归一化的原始表示上。这一设计在标准 Transformer 文献中已被证明对深层网络的训练稳定性有显著帮助。
+
+配置 JSON 与 `A-Main-01` 完全相同，仅修改 `meta.exp_id` 为 `A-Opt-02`。因为是代码变更而非配置变更，需在 `meta.notes` 中注明 `"models.py: FieldTransformer Pre-Norm LayerNorm"`。
+
+> **注意：** 该修改会改变模型参数结构，旧的 `best_model.pt` 不兼容。新实验从头训练即可，已完成的 baseline 结果不受影响。
+
+#### P0-3 学习率 Warmup
+
+当前所有实验 `warmup_epochs = 0`，训练从第一个 epoch 就使用完整学习率 5e-4。从 `A-Main-01` 的训练曲线看，前几个 epoch loss 下降很快，但也伴随着明显的震荡。5~10 epoch 的线性 warmup 能让模型在初期以低学习率找到稳定优化方向，再逐步加速，代价几乎为零。
+
+**这是纯配置改动，不需要任何代码修改**（`train_field.py` 已内置 `LinearLR` warmup 支持）。
+
+**具体操作方法：** 在 JSON 配置中添加一个字段即可：
+
+```json
+"optim": {
+  "warmup_epochs": 5
+}
+```
+
+当前 `ReduceLROnPlateau` 调度器已与 warmup 兼容（见 `trainer.py` 的 `_step_scheduler`：warmup 阶段走 `LinearLR`，结束后自动切回 Plateau）。
+
+#### P0-4 组合实验优先级
+
+第一批建议只跑下面几组（均 seed=1 先做 smoke test）：
+
+1. `A-Main-01` 当前基线（已完成，直接比较）
+2. `A-Opt-01`：仅 `+ target_weights [2,2,2,0.5]`
+3. `A-Opt-02`：仅 `+ LayerNorm`
+4. `A-Opt-03`：`target_weights + LayerNorm`
+5. `A-Opt-03w`：`target_weights + LayerNorm + warmup=5`（如果前三组有正向信号）
+
+这样能非常清楚地回答：
+
+- 主要收益来自损失重分配，还是来自网络表达稳定性；
+- 两者是互补，还是其中一项基本无效；
+- warmup 在更好的基础配置上是否进一步稳定训练。
+
+> **评估要点：** 每组实验完成后，不要只看全局 `RMSE_|v|`，必须同时运行预测和区域评估：
+>
+> ```bash
+> python -m training.scripts.predict_field --run-dir <outputs/field/xxx>
+> python -m training.scripts.plot_taskA_regional_bar --run-dir <outputs/field/xxx>
+> ```
+>
+> 重点对比 `interior.rmse_vel_mag` 和 `R²_u / R²_v / R²_w`。
+
+#### P0-5 推进门槛
+
+为了避免一边跑一边反复改主意，建议在进入下一阶段前使用统一推进门槛：
+
+- **从 `A-Opt-01/02/03` 进入 `A-Opt-04` 的条件：**
+  - 全局 `RMSE_|v|` 相对 `A-Main-01` 下降；
+  - `interior.rmse_vel_mag` 同步下降；
+  - `R²_u / R²_v / R²_w` 中至少 1 项出现明确改善；
+  - 若只看到压力更好、壁面更好，而内部区不动，则不进入容量扩展。
+
+- **从 `A-Opt-04` 进入 `A-Opt-05/06` 的条件：**
+  - `hidden_dim = 256` 后，全局与内部主指标仍继续改善；
+  - 训练时间和显存上涨仍在可接受范围内；
+  - 改善不是仅来自壁面区，而是内部区也同步变好。
+
+- **停止继续堆深度并转向多尺度的条件：**
+  - `A-Opt-04/05` 相对前一组只带来很小改善；
+  - `val_loss`、`RMSE_|v|` 与 `interior.rmse_vel_mag` 已接近平台；
+  - 速度分量 `R²` 基本不再提升；
+  - 额外深度主要带来训练成本上涨，而不是有效精度收益。
+
+### 5.2 P1：在 P0 有正收益后，做容量扩展和区域加权
+
+P1 包含两个独立方向，分别解决不同层面的问题。
+
+#### P1-1 容量扩展
+
+如果 P0 的结果是正向的，再考虑增大模型容量。
+
+注意：
+
+- 这里推荐“先加宽，再适度加深”，不是反过来。
+- 每次只改一个核心维度，不要同时改很多项。
+
+建议的顺序：
+
+1. `128 x 3` + P0 最优配置
+2. `256 x 3`
+3. `256 x 4`
+4. 若仍有收益，再试 `256 x 6`
+
+**具体操作方法：** 纯配置改动，修改 JSON 中的 `model` 部分：
+
+```json
+"model": {
+  "name": "transformer",
+  "hidden_dim": 256,
+  "num_layers": 3,
+  "dropout": 0.1,
+  "heads": 4
+}
+```
+
+`hidden_dim=256` 时 `heads=4` 仍然合理（每头 64 维）。参数量变化：`128 x 3` 约 130K，`256 x 3` 约 500K，`256 x 6` 约 1M。若单卡显存紧张，可将 `accumulate_grad_batches` 从 1 提到 2。
+
+#### P1-2 内部点区域加权损失
+
+区域加权直接针对当前最大瓶颈（内部流场速度误差高），改动集中在 `losses.py` 一个文件，归因清晰。
+
+核心思路：利用已有的 `is_wall` 标记，让内部点（`is_wall=0`）的损失权重大于壁面点（`is_wall=1`）。
+
+> **为什么从原 P2 提升到 P1：** 当前内部点 `RMSE_|v|` = 2.07 vs 壁面 = 0.038，差距超过 50 倍。全局均匀 MSE 被大量低误差壁面点稀释，优化器在内部高误差区投入的梯度信号不足。区域加权是对此最直接的干预，且与容量扩展可独立验证。
+
+**具体操作方法：** 需修改 `training/core/losses.py`。
+
+1. 新增区域加权 MSE 函数（在 `weighted_mse_loss` 后面添加）：
+
+```python
+def region_weighted_mse_loss(
+    pred: torch.Tensor,
+    target: torch.Tensor,
+    weights: torch.Tensor,
+    is_wall: torch.Tensor,
+    interior_boost: float = 3.0,
+) -> torch.Tensor:
+    mse_per_node = F.mse_loss(pred, target, reduction="none")  # [N, 4]
+    node_weight = torch.where(
+        is_wall.squeeze(-1).bool(),
+        torch.ones(pred.size(0), device=pred.device),
+        torch.full((pred.size(0),), interior_boost, device=pred.device),
+    )
+    weighted = (mse_per_node * weights.unsqueeze(0)) * node_weight.unsqueeze(-1)
+    return weighted.mean()
+```
+
+2. 在 `NullPhysicsLoss.build_loss` 和 `PhysicsConstraintLoss.build_loss` 中，需要从 `batch` 取 `is_wall` 列传入。`is_wall` 在节点特征 `data.x` 的第 9 列（即 `NODE_FEATURE_NAMES.index("is_wall")`）。当 `interior_boost > 1.0` 时启用区域加权，否则退化为原有的均匀加权。
+
+3. 建议在 `OptimConfig` 新增一个字段 `interior_loss_boost: float = 1.0`（默认不加权），通过 JSON 配置对比不同权重值（如 2.0、3.0、5.0），而不需要反复改代码。
+
+### 5.3 P2：训练策略精调与物理约束
+
+P2 的项在 P0/P1 效果确认后再逐步叠加，每项改动都很小但需要验证交叉效果。
+
+#### P2-1 增大有效 batch
+
+当前 `batch_size=2`，有效梯度估计噪声较大。
+
+**具体操作方法：** 纯配置改动，在 JSON 中设置：
+
+```json
+"optim": {
+  "accumulate_grad_batches": 4
+}
+```
+
+等效 `batch_size=8`，不增加显存峰值，但每 4 步才更新一次参数，梯度估计更稳定。
+
+#### P2-2 启用连续性物理约束
+
+代码中已完整实现 Navier-Stokes 物理约束（`losses.py` 中的 `PhysicsConstraintLoss`），当前全部关闭。建议先只开连续性方程（不可压条件 `div(v)=0`），它是零阶 PDE 约束，计算最稳定。
+
+**具体操作方法：** 纯配置改动，在 JSON 中设置：
+
+```json
+"physics": {
+  "enabled": true,
+  "warmup_epochs": 20,
+  "continuity_weight": 0.01,
+  "momentum_weight": 0.0,
+  "no_slip_weight": 0.0,
+  "auto_load_scales": true
+}
+```
+
+`warmup_epochs=20` 让模型先学到基本场分布再引入 PDE 约束。`continuity_weight` 从 0.01 起步。
+
+> **注意：** 物理约束需要对输入坐标做 autograd，训练速度降低约 2~3 倍。只在 P0/P1 的最优配置上试。
+
+#### P2-3 数据增强强化
+
+当前增强只有旋转+平移。可以启用微小缩放扰动。
+
+**具体操作方法：** 修改 JSON 的 `augment_config`，加入 `"scale_prob": 0.3`。
+
+### 5.4 P3：单尺度见顶后，再做多尺度架构升级
+
+如果前面步骤都做了，内部区域速度仍是硬瓶颈，就可以把多尺度结构正式立项为下一阶段主线。
+
+推荐优先考虑 **图 U-Net / 层次化池化-上采样结构**，而不是单纯更深的单尺度 Transformer。
+
+理由：当前问题更像"缺少大尺度结构感知"，而不是"少几层非线性"。
+
+**设计思路与具体操作方法：**
+
+图 U-Net 的核心是在图数据上构造编码器-解码器结构：
+
+```
+编码器：细图 → (GNN + Pool) → 中图 → (GNN + Pool) → 粗图
+解码器：粗图 → (Unpool + GNN + Skip) → 中图 → (Unpool + GNN + Skip) → 细图
+```
+
+关键技术选型：
+
+1. **图池化（Encoder 下采样）**：推荐 PyG 的 `TopKPooling`（按节点得分保留 top-k 比例节点）或 `voxel_grid`（按空间栅格合并）。建议保留比例 0.5，即每层减半。
+2. **图反池化（Decoder 上采样）**：使用 `knn_interpolate` 将粗图特征插值回细图节点位置。
+3. **Skip Connection**：编码器每一层的输出与解码器对应层做 `torch.cat` 后再过一层 GNN，保留细粒度几何细节。
+4. **每层 GNN 模块**：可复用已有的 `TransformerConv` 或 `SAGEConv` 残差块。
+
+实现规模约 200~300 行（新增一个 `FieldGraphUNet` 类），需要在 `MODEL_REGISTRY` 中注册。建议以独立文件 `training/core/models_unet.py` 实现，避免打乱现有模型代码。
+
+> **PyG 已有 `GraphUNet` 参考实现**（`torch_geometric.nn.models.GraphUNet`），可以作为起点，但它默认用 `TopKPooling`，需要根据血管网格的特性调优池化比例和层数。
+
+---
+
+## 6. 近期给老师汇报的建议路径
+
+如果目标是尽快拿出更好的效果，建议按下面顺序推进：
+
+### 第 1 周：快速结果轮
+
+只围绕当前 `A-Main-01` 做 5 组小实验（均 seed=1）：
+
+| # | Exp ID | 变化项 |
+|---|---|---|
+| 1 | A-Main-01 | 当前基线（已完成，直接比较） |
+| 2 | A-Opt-01 | `target_weights=[2,2,2,0.5]` |
+| 3 | A-Opt-02 | `+ LayerNorm`（Pre-Norm） |
+| 4 | A-Opt-03 | `target_weights + LayerNorm` |
+| 5 | A-Opt-03w | `target_weights + LayerNorm + warmup=5` |
+
+**具体执行流程：**
+
+```bash
+# 1. 准备配置目录
+mkdir -p training/configs/field/generated/optimization
+
+# 2. 以 A-Main-01 的 config 为模板生成各组 JSON（手动修改对应字段）
+
+# 3. 对每组先做 smoke test（只跑 2 epoch 验证无报错）
+python -m training.scripts.train_field \
+  --config training/configs/field/generated/optimization/A-Opt-01_seed1.json
+# 确认无报错后 Ctrl+C 中断，再正式跑
+
+# 4. 正式训练（建议用 nohup 或 tmux 后台运行）
+nohup python -m training.scripts.train_field \
+  --config training/configs/field/generated/optimization/A-Opt-01_seed1.json \
+  > logs/A-Opt-01_seed1.log 2>&1 &
+
+# 5. 训练完成后运行预测和区域评估
+python -m training.scripts.predict_field --run-dir outputs/field/<run_dir>
+python -m training.scripts.plot_taskA_regional_bar --run-dir outputs/field/<run_dir>
+
+# 6. 对比结果：重点看 interior.rmse_vel_mag 和 R²_u/v/w
+```
+
+只要其中有 1 组相对 baseline 在内部区域和全局 `RMSE_|v|` 上都有稳定改善，就足够形成一次阶段汇报。
+
+### 第 2 周：确认主线候选
+
+在第 1 周最优配置基础上，开始试容量扩展和区域加权：
+
+1. `A-Opt-04`：`hidden_dim = 256`（基于第 1 周最优配置）
+2. `A-Opt-05`：`hidden_dim = 256, num_layers = 4`
+3. `A-Opt-07`：区域加权 `interior_boost = 3.0`（需先完成代码改动）
+
+如果容量扩展提升很小，就停止在宽度和深度上继续堆，转向区域加权或多尺度。
+
+### 第 3 周：补最小必要解释实验
+
+围绕“最佳优化版主线”补做最少量解释实验：
+
+- 是否主要收益来自损失权重；
+- 是否主要收益来自 LayerNorm；
+- 是否主要收益来自容量扩大。
+
+这一步不等于把完整消融全部做完，而是优先补最能支撑汇报和论文叙事的那几组。
+
+---
+
+## 7. 评估与停机标准
+
+近期所有优化实验，不建议只盯一个全局指标。建议统一看四类指标：
+
+### 7.1 主指标
+
+- `RMSE_|v|`
+- 内部区域 `RMSE_|v|`
+
+### 7.2 辅指标
+
+- `RMSE_p`
+- `R2_p`
+
+### 7.3 关键解释指标
+
+- `R²_u`
+- `R²_v`
+- `R²_w`
+
+### 7.4 效率约束
+
+- 单次训练耗时
+- 推理时间
+- 峰值显存
+
+若一个改动满足下面三条，可判定为“值得继续”：
+
+1. 全局 `RMSE_|v|` 下降；
+2. 内部区域 `RMSE_|v|` 同步下降；
+3. 速度分量 `R²` 至少有一项明显改善，而不是仅压力继续变好。
+
+若只出现下面情况，则不建议进入主线：
+
+- 压力更好了，但内部速度几乎不动；
+- 壁面进一步变好，但内部区无改善；
+- 计算成本明显上升，但主指标改善很小。
+
+---
+
+## 8. 当前建议结论
+
+### 8.1 关于“是否继续加深”
+
+- **可以试，但不建议盲目继续堆深度。**
+- 当前更合理的路径是：先补 `LayerNorm`，再试 `256` 宽度和 `4` 层，最后才考虑更深。
+- 如果这些改动后内部区仍明显卡住，就说明应把主要精力转向多尺度，而不是继续在线数上硬推。
+
+### 8.2 关于“先做消融还是优化”
+
+- **近期优先做一轮低耦合优化，争取先拿到更好的效果。**
+- **优化出主线候选后，再补最小必要消融解释原因。**
+- 不建议现在直接做完整大消融，也不建议直接跳到多尺度大改。
+
+### 8.3 最推荐的近期执行顺序
+
+1. `A-Opt-01`：`target_weights [2,2,2,0.5]`
+2. `A-Opt-02`：`LayerNorm`（Pre-Norm）
+3. `A-Opt-03`：`target_weights + LayerNorm`
+4. `A-Opt-03w`：叠加 `warmup=5`
+5. `A-Opt-04`：`hidden_dim = 256`
+6. `A-Opt-05`：`hidden_dim = 256, num_layers = 4`
+7. `A-Opt-07`：区域加权 `interior_boost = 3.0`
+8. 若单尺度收益趋缓，再立项多尺度结构（A-Opt-09）
+
+---
+
+## 9. 建议新增的优化实验编号
+
+为避免和现有 baseline / ablation 混淆，建议单独开一条"优化线"：
+
+| Exp ID | 研究问题 | 唯一变化项 | 改动类型 | 建议优先级 |
+| --- | --- | --- | --- | --- |
+| A-Opt-01 | 速度权重是否能改善内部流场 | `target_weights=[2,2,2,0.5]` | 仅配置 | P0 |
+| A-Opt-02 | LayerNorm 是否提升 Transformer 表达 | Pre-Norm 残差块 | 代码 ~10行 | P0 |
+| A-Opt-03 | 损失重加权与 LayerNorm 是否互补 | `A-Opt-01 + A-Opt-02` | 仅配置 | P0 |
+| A-Opt-03w | 叠加 warmup 是否进一步稳定训练 | `+ warmup_epochs=5` | 仅配置 | P0 |
+| A-Opt-04 | 容量扩大是否继续有效 | `hidden_dim=256` | 仅配置 | P1 |
+| A-Opt-05 | 适度加深是否继续有效 | `hidden_dim=256, num_layers=4` | 仅配置 | P1 |
+| A-Opt-06 | 单尺度进一步加深是否还值得 | `hidden_dim=256, num_layers=6` | 仅配置 | P1 |
+| A-Opt-07 | 内部点区域加权是否改善瓶颈 | `interior_boost=3.0` | 代码 ~30行 | P1 |
+| A-Opt-08 | 梯度累积是否稳定训练 | `accumulate_grad_batches=4` | 仅配置 | P2 |
+| A-Opt-09 | 连续性物理约束是否有效 | `continuity_weight=0.01` | 仅配置 | P2 |
+| A-Opt-10 | 多尺度结构是否带来本质提升 | graph U-Net | 代码 ~250行 | P3 |
+
+建议先把 `A-Opt-01 ~ A-Opt-07` 作为近期主线，其余根据结果再决定是否进入正式执行。
+
+---
+
+## 10. 需要的代码改动清单
+
+以下汇总所有优化实验涉及的代码修改。**仅配置改动的实验不在此列**。
+
+### 10.1 P0-2 LayerNorm（A-Opt-02 起生效）
+
+**文件：** `training/core/models.py`
+**范围：** `FieldTransformer.__init__` 和 `FieldTransformer.forward`
+**改动量：** ~10 行
+
+- `__init__`：在 `self.post_layers` 后新增 `self.norms = nn.ModuleList([nn.LayerNorm(hidden_dim) for _ in self.layers])`
+- `forward`：循环签名从 `for conv, linear in zip(...)` 改为 `for conv, linear, norm in zip(...)`，循环体首行加 `x = norm(x)`
+
+### 10.2 P1-2 区域加权损失（A-Opt-07 起生效）
+
+**文件：** `training/core/losses.py`、`training/core/config.py`
+**改动量：** ~30 行
+
+1. `losses.py`：新增 `region_weighted_mse_loss` 函数
+2. `losses.py`：`NullPhysicsLoss.build_loss` 和 `PhysicsConstraintLoss.build_loss` 中把 `weighted_mse_loss` 替换为条件调用
+3. `config.py`：`OptimConfig` 新增 `interior_loss_boost: float = 1.0` 字段
+4. `train_field.py`：把 `interior_loss_boost` 传入 `FieldTrainer`
+
+### 10.3 P3 图 U-Net（A-Opt-10 起生效）
+
+**文件：** 新建 `training/core/models_unet.py`
+**改动量：** ~250 行
+
+1. 实现 `FieldGraphUNet` 类（编码器-池化-解码器-skip connection）
+2. 在 `training/core/models.py` 的 `MODEL_REGISTRY` 中注册 `"graph_unet": FieldGraphUNet`
+3. `config.py` 的 `validate()` 中补充合法模型名
+
+> 注意：所有代码改动都应保持向后兼容——现有 baseline 的配置文件和 checkpoint 不应受到影响。新增字段使用默认值退化为原有行为。
