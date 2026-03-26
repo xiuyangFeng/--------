@@ -330,7 +330,7 @@
 写作提醒：
 
 - **四组 baseline（A-Base-01 ~ A-Main-01）** 在 **`wall / interior / high_curvature / low_curvature / near_wall / core_flow / bifurcation / trunk` 等预定义区域**上均可出齐指标：区域划分与模型输入是否含几何**解耦**，统一依赖图数据资产。
-- 跨模型对比请引用 **`outputs/field/plots/fig_A5_multimodel_regional_bar_*.png`**（及 geo_only 变体），并在正文注明区域定义与 `regional_eval` 中的阈值（如曲率分位数、Abscissa 分叉区间等）。
+- 跨模型对比请引用 **`outputs/field/plots/fig_A5_multimodel_regional_bar_*.png`**（及 geo_only 变体）。**区域名称、区间与默认阈值的权威表述**见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)；正文若修改阈值须与代码 `build_region_masks` 的 `mask_kwargs` 一致并写明。
 
 ### 6.6 Figure A6：消融总结图
 

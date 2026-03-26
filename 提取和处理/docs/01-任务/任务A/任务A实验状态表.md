@@ -8,51 +8,57 @@
 
 ## 状态说明
 
-| 状态标记 | 含义 |
-|---|---|
-| 🔒 未开始 | 尚未生成配置或提交 |
-| 🔬 待 smoke test | 配置已就绪，等待最小闭环验证 |
-| 🚀 进行中 | 至少一个 seed 已启动 |
-| 🌱 待补 seed | seed=1 已通过，等待补 seed=2,3 |
-| 📋 待汇总 | 训练完成，等待写入记录表 |
-| ✅ 已完成 | 结果、图表、实验记录均已归档 |
-| ❌ 失败待重跑 | 出现错误或配置问题，需修复后重跑 |
+
+| 状态标记            | 含义                      |
+| --------------- | ----------------------- |
+| 🔒 未开始          | 尚未生成配置或提交               |
+| 🔬 待 smoke test | 配置已就绪，等待最小闭环验证          |
+| 🚀 进行中          | 至少一个 seed 已启动           |
+| 🌱 待补 seed      | seed=1 已通过，等待补 seed=2,3 |
+| 📋 待汇总          | 训练完成，等待写入记录表            |
+| ✅ 已完成           | 结果、图表、实验记录均已归档          |
+| ❌ 失败待重跑         | 出现错误或配置问题，需修复后重跑        |
+
 
 ---
 
 ## 第一批：基线实验
 
-| Exp ID | 研究问题 | split_version | seeds | 当前状态 | 输出目录 | 备注 |
-|---|---|---|---|---|---|---|
-| A-Base-01 | 点模型下限（无图结构） | split_AG_v1 | [1,2,3] | ✅ 已完成 | outputs/field/field_mlp_coord_t_bc_split_AG_v1_seed{seed}_*/ | 3 seed 均已完成，2026-03-22 |
-| A-Base-02 | 图结构是否必要 | split_AG_v1 | [1,2,3] | ✅ 已完成 | outputs/field/field_graphsage_coord_t_bc_wall_split_AG_v1_seed{seed}_*/ | 3 seed 均已完成，2026-03-22/23 |
-| A-Base-03 | Transformer 无 geometry 对照 | split_AG_v1 | [1,2,3] | ✅ 已完成 | outputs/field/field_transformer_coord_t_bc_wall_split_AG_v1_seed{seed}_*/ | 3 seed 均已完成，2026-03-22/23 |
-| A-Main-01 | Transformer + geometry 主模型 | split_AG_v1 | [1,2,3] | ✅ 已完成 | outputs/field/field_transformer_coord_t_bc_geom_wall_split_AG_v1_seed{seed}_*/ | 3 seed 均已完成，2026-03-22/23 |
+
+| Exp ID    | 研究问题                       | split_version | seeds   | 当前状态  | 输出目录                                                                           | 备注                        |
+| --------- | -------------------------- | ------------- | ------- | ----- | ------------------------------------------------------------------------------ | ------------------------- |
+| A-Base-01 | 点模型下限（无图结构）                | split_AG_v1   | [1,2,3] | ✅ 已完成 | outputs/field/field_mlp_coord_t_bc_split_AG_v1_seed{seed}_*/                   | 3 seed 均已完成，2026-03-22    |
+| A-Base-02 | 图结构是否必要                    | split_AG_v1   | [1,2,3] | ✅ 已完成 | outputs/field/field_graphsage_coord_t_bc_wall_split_AG_v1_seed{seed}_*/        | 3 seed 均已完成，2026-03-22/23 |
+| A-Base-03 | Transformer 无 geometry 对照  | split_AG_v1   | [1,2,3] | ✅ 已完成 | outputs/field/field_transformer_coord_t_bc_wall_split_AG_v1_seed{seed}_*/      | 3 seed 均已完成，2026-03-22/23 |
+| A-Main-01 | Transformer + geometry 主模型 | split_AG_v1   | [1,2,3] | ✅ 已完成 | outputs/field/field_transformer_coord_t_bc_geom_wall_split_AG_v1_seed{seed}_*/ | 3 seed 均已完成，2026-03-22/23 |
+
 
 ---
 
 ## 第二批：必做消融
 
-| Exp ID | 研究问题 | 唯一变化项 | split_version | seeds | 当前状态 | 备注 |
-|---|---|---|---|---|---|---|
-| A-Abl-01-01 | 输入特征消融 | coords + t 仅坐标+时间 | split_AG_v1 | [1] | 🔒 未开始 | 依赖 A-Main-01 完成 ✅ 已可开始 |
-| A-Abl-01-02 | 输入特征消融 | + BC | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-01-03 | 输入特征消融 | + is_wall | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-01-04 | 输入特征消融 | + geometry（无 wall） | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-02-01 | 几何分量消融 | 去掉 Abscissa | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-02-02 | 几何分量消融 | 去掉 NormRadius | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-02-03 | 几何分量消融 | 去掉 Curvature | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-02-04 | 几何分量消融 | 去掉 Tangent | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-03-01 | 坐标归一化消融 | 原始坐标 | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-03-02 | 坐标归一化消融 | 仅中心化 | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-03-03 | 坐标归一化消融 | 中心化+PCA对齐 | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-03-04 | 坐标归一化消融 | 中心化+PCA+缩放（当前版本） | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-04-01 | 增强消融 | 无增强 | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-04-02 | 增强消融 | 仅旋转 | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-04-03 | 增强消融 | 旋转+平移（默认） | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-04-04 | 增强消融 | 旋转+平移+微扰 | split_AG_v1 | [1] | 🔒 未开始 | |
-| A-Abl-05-01 | 物理约束消融 | 仅数据损失 | split_AG_v1 | [1] | 🔒 未开始 | 依赖主线稳定后 |
-| A-Abl-05-02 | 物理约束消融 | + continuity | split_AG_v1 | [1] | 🔒 未开始 | |
+
+| Exp ID      | 研究问题    | 唯一变化项              | split_version | seeds | 当前状态   | 备注                     |
+| ----------- | ------- | ------------------ | ------------- | ----- | ------ | ---------------------- |
+| A-Abl-01-01 | 输入特征消融  | coords + t 仅坐标+时间  | split_AG_v1   | [1]   | 🔒 未开始 | 依赖 A-Main-01 完成 ✅ 已可开始 |
+| A-Abl-01-02 | 输入特征消融  | + BC               | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-01-03 | 输入特征消融  | + is_wall          | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-01-04 | 输入特征消融  | + geometry（无 wall） | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-02-01 | 几何分量消融  | 去掉 Abscissa        | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-02-02 | 几何分量消融  | 去掉 NormRadius      | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-02-03 | 几何分量消融  | 去掉 Curvature       | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-02-04 | 几何分量消融  | 去掉 Tangent         | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-03-01 | 坐标归一化消融 | 原始坐标               | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-03-02 | 坐标归一化消融 | 仅中心化               | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-03-03 | 坐标归一化消融 | 中心化+PCA对齐          | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-03-04 | 坐标归一化消融 | 中心化+PCA+缩放（当前版本）   | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-04-01 | 增强消融    | 无增强                | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-04-02 | 增强消融    | 仅旋转                | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-04-03 | 增强消融    | 旋转+平移（默认）          | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-04-04 | 增强消融    | 旋转+平移+微扰           | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-05-01 | 物理约束消融  | 仅数据损失              | split_AG_v1   | [1]   | 🔒 未开始 | 依赖主线稳定后                |
+| A-Abl-05-02 | 物理约束消融  | + continuity       | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+
 
 ---
 
@@ -63,32 +69,73 @@
 > 推荐执行顺序：`A-Opt-01 -> A-Opt-02 -> A-Opt-03 -> A-Opt-04 -> A-Opt-05`。  
 > 推进门槛：只有当上一组同时改善全局 `RMSE_|v|`、内部区 `RMSE_|v|`，且至少一个速度分量 `R²` 明显改善时，才进入下一组容量扩展。
 
-| Exp ID | 研究问题 | 唯一变化项 | split_version | seeds | 当前状态 | 备注 |
-|---|---|---|---|---|---|---|
-| A-Opt-01 | 速度权重是否能改善内部流场 | `target_weights = [2,2,2,0.5]` | split_AG_v1 | [1] | 🔒 未开始 | 第一优先级，纯配置改动 |
-| A-Opt-02 | LayerNorm 是否提升单尺度 Transformer 表达 | `FieldTransformer` 改为 Pre-Norm 残差块 | split_AG_v1 | [1] | 🔒 未开始 | 需修改 `training/core/models.py` |
-| A-Opt-03 | 损失重加权与 LayerNorm 是否互补 | `A-Opt-01 + A-Opt-02` | split_AG_v1 | [1] | 🔒 未开始 | 若二者均有正信号，优先执行 |
-| A-Opt-03w | Warmup 是否进一步稳定优化版主线 | `A-Opt-03 + warmup_epochs=5` | split_AG_v1 | [1] | 🔒 未开始 | 仅在 `A-Opt-03` 正向时进入 |
-| A-Opt-04 | 容量扩大是否继续有效 | `hidden_dim = 256` | split_AG_v1 | [1] | 🔒 未开始 | 仅在 `A-Opt-01/02/03` 达到推进门槛时进入 |
-| A-Opt-05 | 适度加深是否继续有效 | `hidden_dim = 256, num_layers = 4` | split_AG_v1 | [1] | 🔒 未开始 | 仅在 `A-Opt-04` 正向时进入 |
-| A-Opt-06 | 单尺度进一步加深是否还值得 | `hidden_dim = 256, num_layers = 6` | split_AG_v1 | [1] | 🔒 未开始 | 若 `A-Opt-05` 收益很小，建议停止 |
-| A-Opt-07 | 内部点区域加权是否进一步改善瓶颈 | region-weighted loss | split_AG_v1 | [1] | 🔒 未开始 | 放在容量扩展之后评估 |
-| A-Opt-08 | 多尺度结构是否带来本质提升 | graph U-Net / hierarchical GNN | split_AG_v1 | [1] | 🔒 未开始 | 单尺度优化见顶后再立项 |
+
+| Exp ID    | 研究问题                             | 唯一变化项                              | split_version | seeds   | 当前状态            | 备注                                                                                                                                                                                                                                                                  |
+| --------- | -------------------------------- | ---------------------------------- | ------------- | ------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A-Opt-01  | 速度权重是否能改善内部流场                    | `target_weights = [2,2,2,0.5]`     | split_AG_v1   | [1,2,3] | 🔬 待 smoke test | 配置已就绪：`training/configs/field/generated/optimization/A-Opt-01_seed{1,2,3}.json`；`manifest.json` 已登记 `study_group=optimization`。训练输出目录：`outputs/field/field_transformer_coord_t_bc_geom_wall_tw22205_split_AG_v1_seed{1,2,3}_*/`。建议先单卡 smoke 1 epoch，再并行或顺序跑满三 seed。 |
+| A-Opt-02  | LayerNorm 是否提升单尺度 Transformer 表达 | `FieldTransformer` 改为 Pre-Norm 残差块 | split_AG_v1   | [1]     | 🔒 未开始          | 需修改 `training/core/models.py`                                                                                                                                                                                                                                       |
+| A-Opt-03  | 损失重加权与 LayerNorm 是否互补            | `A-Opt-01 + A-Opt-02`              | split_AG_v1   | [1]     | 🔒 未开始          | 若二者均有正信号，优先执行                                                                                                                                                                                                                                                       |
+| A-Opt-03w | Warmup 是否进一步稳定优化版主线              | `A-Opt-03 + warmup_epochs=5`       | split_AG_v1   | [1]     | 🔒 未开始          | 仅在 `A-Opt-03` 正向时进入                                                                                                                                                                                                                                                 |
+| A-Opt-04  | 容量扩大是否继续有效                       | `hidden_dim = 256`                 | split_AG_v1   | [1]     | 🔒 未开始          | 仅在 `A-Opt-01/02/03` 达到推进门槛时进入                                                                                                                                                                                                                                       |
+| A-Opt-05  | 适度加深是否继续有效                       | `hidden_dim = 256, num_layers = 4` | split_AG_v1   | [1]     | 🔒 未开始          | 仅在 `A-Opt-04` 正向时进入                                                                                                                                                                                                                                                 |
+| A-Opt-06  | 单尺度进一步加深是否还值得                    | `hidden_dim = 256, num_layers = 6` | split_AG_v1   | [1]     | 🔒 未开始          | 若 `A-Opt-05` 收益很小，建议停止                                                                                                                                                                                                                                              |
+| A-Opt-07  | 内部点区域加权是否进一步改善瓶颈                 | region-weighted loss               | split_AG_v1   | [1]     | 🔒 未开始          | 放在容量扩展之后评估                                                                                                                                                                                                                                                          |
+| A-Opt-08  | 多尺度结构是否带来本质提升                    | graph U-Net / hierarchical GNN     | split_AG_v1   | [1]     | 🔒 未开始          | 单尺度优化见顶后再立项                                                                                                                                                                                                                                                         |
+
 
 ---
+
+## 第四批：显式几何增强线 Line G（2026-03-26 新增）
+
+> 说明：Line G 用于在现有 geometry 已被证明有效的前提下，继续小步增加新的显式几何/拓扑先验。
+> 前置条件：优先完成 `A-Abl-02`，确认现有几何分量贡献，再进入 Line G。
+> 推荐执行顺序：`A-Opt-G01 -> A-Opt-G02 -> (A-Opt-G03 / A-Opt-G04) -> A-Opt-G05`。
+> 推进门槛：新增特征必须至少改善一个复杂区域（`near_wall / bifurcation / high_curvature`），且验证/测试不能退化。
+
+
+| Exp ID    | 研究问题                     | 唯一变化项                                      | split_version | seeds | 当前状态   | 备注 |
+| --------- | ------------------------ | ------------------------------------------ | ------------- | ----- | ------ | --- |
+| A-Opt-G01 | 显式分叉拓扑先验是否改善复杂转折区建模 | `distance_to_bifurcation + branch_flag`    | split_AG_v1   | [1]   | 🔒 未开始 | Line G 首个实验；优先看 `bifurcation` |
+| A-Opt-G02 | 局部尺度变化信息是否优于单纯半径值     | `radius_change_rate / area_change_rate`    | split_AG_v1   | [1]   | 🔒 未开始 | 关注扩张/收缩区与瘤腔过渡段 |
+| A-Opt-G03 | 扭率能否补足曲率缺失的三维弯扭信息   | `torsion`                                  | split_AG_v1   | [1]   | 🔒 未开始 | 与 `Curvature` 形成互补验证 |
+| A-Opt-G04 | 显式壁面距离是否改善近壁速度剖面学习  | `distance_to_wall / normalized_wall_distance` | split_AG_v1 | [1]   | 🔒 未开始 | 与 Line W 有接口关系 |
+| A-Opt-G05 | 中心线方向变化率是否提升转折区表达    | `d_tangent/ds` 或等价方向变化量                   | split_AG_v1   | [1]   | 🔒 未开始 | 放在前四组信号明确后再尝试 |
+
+
+---
+
+## 第五批：壁面导向优化线 Line W（2026-03-25 新增）
+
+> 说明：Line W 直接面向端到端链路质量（WSS/OSI/RRT → 髂支闭塞风险预测）。与第三批（Line A 内部精度优化）并行推进、独立归因。
+> 基座：P0 最优结果（`A-Opt-03` 或 `A-Opt-03w` 中最优者）。
+> 评估标准差异：Line W 必须额外运行 WSS 后处理对比，以壁面衍生指标质量为核心判定。
+> 详见 [任务A优化路径](任务A优化路径与近期实验建议.md) 第 2.4 节和第 5.5 节。
+
+
+| Exp ID    | 研究问题                  | 唯一变化项                                      | split_version | seeds | 当前状态   | 备注                                    |
+| --------- | --------------------- | ------------------------------------------ | ------------- | ----- | ------ | ------------------------------------- |
+| A-Opt-W01 | 近壁区域加权是否改善 WSS 梯度质量   | `near_wall_boost=3.0, interior_weight=0.5` | split_AG_v1   | [1]   | 🔒 未开始 | 需修改 `losses.py` + 近壁区 mask；依赖 P0 最优基座 |
+| A-Opt-W02 | 壁面法向梯度监督是否提升 WSS 精度   | `wall_grad_weight=0.01`                    | split_AG_v1   | [1]   | 🔒 未开始 | 需修改 `losses.py`；依赖 W01 有正向信号或独立启动     |
+| A-Opt-W03 | 直接 WSS 监督是否最大化端到端质量   | `wss_loss_weight=0.1`                      | split_AG_v1   | [1]   | 🔒 未开始 | 需 WSS 真值数据 + 数据管线改动；依赖任务 B WSS 管线就绪   |
+| A-Opt-W04 | 两阶段训练是否优于一开始就加权       | 阶段1:均匀MSE → 阶段2:壁面精调                       | split_AG_v1   | [1]   | 🔒 未开始 | 可与 W01/W02 叠加                         |
+| A-Opt-W05 | OSI 敏感区域加权是否改善 OSI 恢复 | 分叉/高曲率区 boost                              | split_AG_v1   | [1]   | 🔒 未开始 | 可与 W01 叠加                             |
+
 
 ## 主结果表（3 seed mean ± std，已完成）
 
 > 数据来源：`experiment_index.csv` + 各 run 的 `summary.json` + `predictions_test/error_analysis/summary.json` + `predictions_test/regional_eval/fig_A5_regional_metrics.json` + `outputs/field/plots/fig_A7_efficiency_benchmark.json`。  
-> **分区域指标（2026-03-24 起）**：`fig_A5_regional_metrics.json` 由 `plot_taskA_regional_bar` 生成，区域 mask 基于各预测文件中的 **`graph_path` 图资产**（完整 `x`），与训练时 `enabled_node_features` 无关，四模型横向可比。  
+> **分区域指标（2026-03-24 起）**：`fig_A5_regional_metrics.json` 由 `plot_taskA_regional_bar` 生成，区域 mask 基于各预测文件中的 `graph_path` 图资产（完整 `x`），与训练时 `enabled_node_features` 无关，四模型横向可比。  
+> **区域定义（2026-03-26）**：默认 key / 区间 / 阈值见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)。  
 > 当前效率口径为：测试病例 `slow/GUO_XI_JIANG`（81 snapshots）、`n_warmup=5`、`n_runs=20`，并已汇总 3 个 seed；主结果表中的 `Infer(ms)` 与 `Mem(MB)` 使用 `full_case_per_snapshot_ms` 和 `full_case_peak_memory_mb` 的 `mean ± std`。
 
-| Exp ID | Model | Geom | BC | is_wall | Physics | RMSE_u | RMSE_v | RMSE_w | RMSE_\|v\| | RMSE_p | R2_p | Infer(ms) | Mem(MB) |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| A-Base-01 | MLP | ✗ | ✓ | ✗ | ✗ | 0.9739±0.0009 | 0.9755±0.0012 | 0.9743±0.0008 | 1.5999±0.0015 | 0.6581±0.0185 | 0.9201±0.0045 | **0.54±0.27** | **127.34±0.00** |
-| A-Base-02 | GraphSAGE | ✗ | ✓ | ✓ | ✗ | 0.9309±0.0013 | 0.9165±0.0049 | 0.8503±0.0031 | 1.3611±0.0159 | 0.7341±0.0136 | 0.9007±0.0037 | **2.35±0.23** | **529.69±0.47** |
-| A-Base-03 | Transformer | ✗ | ✓ | ✓ | ✗ | 0.9337±0.0011 | 0.9170±0.0043 | 0.8482±0.0047 | 1.3645±0.0101 | 0.7061±0.0349 | 0.9079±0.0092 | 6.95±0.09 | 2182.74±1.08 |
-| A-Main-01 | Transformer | ✓ | ✓ | ✓ | ✗ | **0.8977±0.0073** | **0.8518±0.0113** | **0.6957±0.0290** | **1.1612±0.0383** | **0.6536±0.0423** | **0.9209±0.0103** | **6.88±0.02** | **2182.12±0.00** |
+
+| Exp ID    | Model       | Geom | BC  | is_wall | Physics | RMSE_u            | RMSE_v            | RMSE_w            | RMSE_|v|          | RMSE_p            | R2_p              | Infer(ms)     | Mem(MB)          |
+| --------- | ----------- | ---- | --- | ------- | ------- | ----------------- | ----------------- | ----------------- | ----------------- | ----------------- | ----------------- | ------------- | ---------------- |
+| A-Base-01 | MLP         | ✗    | ✓   | ✗       | ✗       | 0.9739±0.0009     | 0.9755±0.0012     | 0.9743±0.0008     | 1.5999±0.0015     | 0.6581±0.0185     | 0.9201±0.0045     | **0.54±0.27** | **127.34±0.00**  |
+| A-Base-02 | GraphSAGE   | ✗    | ✓   | ✓       | ✗       | 0.9309±0.0013     | 0.9165±0.0049     | 0.8503±0.0031     | 1.3611±0.0159     | 0.7341±0.0136     | 0.9007±0.0037     | **2.35±0.23** | **529.69±0.47**  |
+| A-Base-03 | Transformer | ✗    | ✓   | ✓       | ✗       | 0.9337±0.0011     | 0.9170±0.0043     | 0.8482±0.0047     | 1.3645±0.0101     | 0.7061±0.0349     | 0.9079±0.0092     | 6.95±0.09     | 2182.74±1.08     |
+| A-Main-01 | Transformer | ✓    | ✓   | ✓       | ✗       | **0.8977±0.0073** | **0.8518±0.0113** | **0.6957±0.0290** | **1.1612±0.0383** | **0.6536±0.0423** | **0.9209±0.0103** | **6.88±0.02** | **2182.12±0.00** |
+
 
 > **注**：效率图现已包含 `mean±std` 汇总图、分 seed 延迟图、分 seed 显存图、全病例峰值显存图和分 seed Pareto 图；`speedup_vs_CFD` 仍无法填写，因为 `cfd_time_hours` 为空。
 
@@ -110,7 +157,7 @@
 - **推理时间**：`0.54 ± 0.27 ms / snapshot`（seed1/2/3：`0.85 / 0.38 / 0.39`）
 - **峰值显存**：`127.34 ± 0.00 MB`
 - **一句话结论**：MLP 仅凭坐标+BC 能准确预测压力（R2_p=0.920），但**内部点**区域速度误差仍高（约 `2.69`），与 GraphSAGE 等「壁面低、内部高」的分层形态一致；只能作为无图结构下限，不能承担可靠速度场重建。
-- **下一步动作**：作为固定下限基准，不再调参；效率上可作为“最快但精度最差”的参考点；与高曲率/近壁/分叉等复杂区域的跨模型对比已具备统一口径（见 `regional_eval` 与 `outputs/field/plots/fig_A5_multimodel_*`）。
+- **下一步动作**：作为固定下限基准，不再调参；效率上可作为“最快但精度最差”的参考点；与高曲率/近壁/分叉等复杂区域的跨模型对比已具备统一口径（见 `regional_eval` 与 `outputs/field/plots/fig_A5_multimodel_`*）。
 
 ---
 
@@ -127,7 +174,7 @@
 - **推理时间**：`2.35 ± 0.23 ms / snapshot`（seed1/2/3：`2.09 / 2.46 / 2.50`）
 - **峰值显存**：`529.69 ± 0.47 MB`
 - **一句话结论**：GraphSAGE 引入图结构后，全局节点级 `RMSE_|v|` 降至 `1.3397 ± 0.0266`，壁面区误差被压到 `0.0952 ± 0.0124`，但内部主流区仍高达 `2.3165 ± 0.0452`，说明图结构首先修复的是边界与局部一致性，而不是完全解决内部流场。
-- **下一步动作**：已完成图结构对照组角色；在当前 4 组 baseline 中，它提供了较好的精度-速度折中点；与主模型在复杂区域的对比见统一口径下的 `fig_A5` / `fig_A5_multimodel_*`。
+- **下一步动作**：已完成图结构对照组角色；在当前 4 组 baseline 中，它提供了较好的精度-速度折中点；与主模型在复杂区域的对比见统一口径下的 `fig_A5` / `fig_A5_multimodel_`*。
 
 ---
 

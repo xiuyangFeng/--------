@@ -205,6 +205,7 @@ python -m training.scripts.run_field_plan \
 - `fig_error_cdf.png`
 
 **（2026-03-24 更新）分区域评估口径已统一**：`plot_taskA_regional_bar` 在聚合指标时从各样本 `graph_path` 读回**未按训练配置 mask 的完整节点特征**生成区域 mask，因此 `A-Base-01` / `A-Base-02` / `A-Base-03` / `A-Main-01` 在 **`high_curvature / near_wall / bifurcation / trunk` 等全部预定义区域**上均为**同一几何定义**，可与模型是否启用几何输入解耦。各 run 已重算 `predictions_test/regional_eval/fig_A5_regional_metrics.json`，汇总层 `outputs/field/plots/fig_A5_multimodel_regional_bar_*.png` 已按该口径更新（集群批处理见 `training/cluster/run_regional_a5.slurm`）。  
+**（2026-03-26 补充）** 各区域的默认名称、区间与易混点（采样 2 mm 阈值 vs 评估 `NormRadius` 等）已整理为 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)。  
 效率 benchmark 已补齐，当前 `outputs/field/plots/` 下已新增：
 
 - `fig_A7_efficiency_benchmark.json`

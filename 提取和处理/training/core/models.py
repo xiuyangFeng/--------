@@ -114,6 +114,8 @@ class FieldTransformer(nn.Module):
         )
         # 每个 TransformerConv 后面接一个线性层，补偿多头输出后的特征变换。
         self.post_layers = nn.ModuleList([nn.Linear(hidden_dim, hidden_dim) for _ in self.layers])
+        # Pre-Norm：每层消息传递前先 LayerNorm，利于深层稳定（A-Opt-02 / P0-2）。
+        self.norms = nn.ModuleList([nn.LayerNorm(hidden_dim) for _ in self.layers])
         # 保存 dropout 概率。
         self.dropout = dropout
         # 最终输出头。
@@ -124,9 +126,10 @@ class FieldTransformer(nn.Module):
         x = torch.cat([data.x, expand_global_cond(data)], dim=-1)
         # 输入投影。
         x = self.in_proj(x)
-        for conv, linear in zip(self.layers, self.post_layers):
+        for conv, linear, norm in zip(self.layers, self.post_layers, self.norms):
             # 残差分支。
             residual = x
+            x = norm(x)
             # 图 Transformer 消息传递。
             x = conv(x, data.edge_index)
             # 用 ELU 做激活。
