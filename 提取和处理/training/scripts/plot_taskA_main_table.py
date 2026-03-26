@@ -5,10 +5,16 @@ import csv
 from pathlib import Path
 from typing import Dict, List
 
-from ._figure_utils import load_json, resolve_run_dirs
+from ._figure_utils import load_json, read_regional_metrics_dict, resolve_run_dirs
+
+_REGION_PREFIX = {
+    "all": "all_",
+    "interior": "",
+    "wall": "wall_",
+}
 
 
-def extract_row(run_dir: Path) -> Dict[str, object]:
+def extract_row(run_dir: Path, primary_region: str = "interior") -> Dict[str, object]:
     summary = load_json(run_dir / "summary.json")
     manifest = load_json(run_dir / "run_manifest.json") if (run_dir / "run_manifest.json").exists() else {}
     test_metrics = summary.get("test_metrics", {})
@@ -21,7 +27,7 @@ def extract_row(run_dir: Path) -> Dict[str, object]:
     num_layers = model_info.get("num_layers", "")
     params = ""
 
-    return {
+    row: Dict[str, object] = {
         "run_dir": str(run_dir),
         "experiment_name": summary.get("experiment_name", run_dir.name),
         "study_group": summary.get("study_group", manifest.get("study_group", "")),
@@ -32,16 +38,30 @@ def extract_row(run_dir: Path) -> Dict[str, object]:
         "num_layers": num_layers,
         "best_epoch": summary.get("best_epoch", manifest.get("best_epoch", "")),
         "best_val_loss": summary.get("best_val_loss", manifest.get("best_val_loss", "")),
-        "rmse_u": test_metrics.get("rmse_u", ""),
-        "rmse_v": test_metrics.get("rmse_v", ""),
-        "rmse_w": test_metrics.get("rmse_w", ""),
-        "rmse_p": test_metrics.get("rmse_p", ""),
-        "rmse_vel_mag": test_metrics.get("rmse_vel_mag", ""),
-        "r2_p": test_metrics.get("r2_p", ""),
+    }
+
+    pri_metrics = read_regional_metrics_dict(run_dir, primary_region)
+    if pri_metrics is None and primary_region != "all":
+        pri_metrics = read_regional_metrics_dict(run_dir, "all")
+    if pri_metrics is None:
+        pri_metrics = {k: float(v) for k, v in test_metrics.items() if isinstance(v, (int, float))}
+
+    for key in ("rmse_u", "rmse_v", "rmse_w", "rmse_p", "rmse_vel_mag", "r2_p"):
+        row[key] = pri_metrics.get(key, test_metrics.get(key, ""))
+
+    if primary_region != "all":
+        all_metrics = read_regional_metrics_dict(run_dir, "all")
+        if all_metrics is None:
+            all_metrics = {k: float(v) for k, v in test_metrics.items() if isinstance(v, (int, float))}
+        row["all_rmse_vel_mag"] = all_metrics.get("rmse_vel_mag", test_metrics.get("rmse_vel_mag", ""))
+
+    row.update({
         "physics_enabled": summary.get("physics_enabled", manifest.get("physics", {}).get("enabled", "")),
         "num_test_graphs": summary.get("num_test_graphs", manifest.get("dataset_sizes", {}).get("num_test_graphs", "")),
         "params": params,
-    }
+        "metric_scope": primary_region,
+    })
+    return row
 
 
 def write_markdown(rows: List[Dict[str, object]], save_path: Path) -> None:
@@ -62,6 +82,11 @@ def main() -> None:
     parser.add_argument("--runs-root", default="outputs/field", help="run 根目录")
     parser.add_argument("--pattern", action="append", default=[], help="相对 runs-root 的匹配模式，可重复传入；默认 */summary.json")
     parser.add_argument("--run-dir", action="append", default=[], help="显式指定 run 目录，可重复传入")
+    parser.add_argument(
+        "--region", default="interior",
+        choices=["all", "interior", "wall"],
+        help="主指标来源区域（默认 interior；同时保留 all 作为参考列）",
+    )
     parser.add_argument("--output-csv", default="", help="CSV 输出路径，默认 <runs-root>/plots/fig_A1_main_table.csv")
     parser.add_argument("--output-md", default="", help="Markdown 输出路径，可选")
     args = parser.parse_args()
@@ -73,7 +98,7 @@ def main() -> None:
     if not run_dirs:
         raise SystemExit("未找到任何包含 summary.json 的 run 目录")
 
-    rows = [extract_row(run_dir) for run_dir in run_dirs]
+    rows = [extract_row(run_dir, primary_region=args.region) for run_dir in run_dirs]
     rows.sort(key=lambda row: (str(row["study_group"]), str(row["experiment_name"]), str(row["seed"])))
 
     default_dir = runs_root / "plots"

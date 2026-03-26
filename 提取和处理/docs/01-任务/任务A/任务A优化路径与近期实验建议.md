@@ -208,7 +208,24 @@ python -m training.scripts.train_field \
   --config training/configs/field/generated/optimization/A-Opt-01_seed1.json
 ```
 
+> **结果摘要（2026-03-26，三 seed）**：`A-Opt-01` 相对 `A-Main-01` 在测试集上 **`RMSE_|v|` 与分区域 `interior / high_curvature / bifurcation / trunk` 的 `rmse_vel_mag` 均一致下降**，`near_wall` 基本持平；`RMSE p` 未退化。单 run 与多模型汇总图见各 run 下 `predictions_test/regional_eval/` 与 `outputs/field/plots/fig_A5_multimodel_regional_bar_*.png`。台账与数值见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-01」。
+
+训练结束后请在本机或集群 **`GNN` 环境**下补全与 baseline 相同的后处理链路（与 `A-Main-01` 一致）：
+
+```bash
+python -m training.scripts.predict_field \
+  --config outputs/field/<run_dir>/config.snapshot.json \
+  --checkpoint outputs/field/<run_dir>/best_model.pt \
+  --subset test
+python -m training.scripts.plot_taskA_regional_bar \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json
+```
+
+> **权重兼容性（重要）**：若在 `FieldTransformer` 中引入了 Pre-Norm 的 `LayerNorm` 参数，则**旧 checkpoint（无对应 state_dict 键）无法加载**。当前仓库已用配置项 **`model.use_transformer_prenorm`**（默认 `false`，与 `A-Main-01` / `A-Opt-01` 对齐）/（`A-Opt-02` 配置中为 `true`）区分两种结构；导出预测前请确认 `config.snapshot.json` 与 checkpoint 训练时一致。
+
 #### P0-2 给 Transformer 残差块补 LayerNorm
+
+**实现状态（2026-03-26）**：代码侧已支持 **`use_transformer_prenorm`**，不再依赖手工改 `forward` 注释；下列步骤保留为 **Pre-Norm 设计动机与结构说明**。
 
 建议把当前主线 Transformer 调整为 Pre-Norm 风格残差块，再观察：
 

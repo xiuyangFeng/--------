@@ -224,6 +224,7 @@ def benchmark_one_run(
         num_layers=config.model.num_layers,
         dropout=config.model.dropout,
         heads=config.model.heads,
+        use_transformer_prenorm=config.model.use_transformer_prenorm,
     ).to(device)
     load_checkpoint(model, ckpt, device)
 
@@ -239,7 +240,15 @@ def benchmark_one_run(
     full_case = benchmark_full_case(model, case_graphs, device)
 
     rmse_vel_mag = None
-    if summary_path.exists():
+    regional_json = run_dir / "predictions_test" / "regional_eval" / "fig_A5_regional_metrics.json"
+    if regional_json.exists():
+        with open(regional_json, "r", encoding="utf-8") as f:
+            regional = json.load(f)
+        interior_data = regional.get("interior", {})
+        rmse_vel_mag = interior_data.get("rmse_vel_mag")
+        if rmse_vel_mag is not None:
+            rmse_vel_mag = float(rmse_vel_mag)
+    if rmse_vel_mag is None and summary_path.exists():
         with open(summary_path, "r", encoding="utf-8") as f:
             summ = json.load(f)
         rmse_vel_mag = float(summ.get("test_metrics", {}).get("rmse_vel_mag", float("nan")))
@@ -366,7 +375,7 @@ def main() -> None:
     plot_pareto_accuracy_latency(
         aggregated,
         save_path=str(out_dir / "fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png"),
-        title="RMSE |v| vs latency (mean ± std over seeds)",
+        title="RMSE |v| (interior) vs latency (mean ± std over seeds)",
     )
     print(f"已写入: {out_dir / 'fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png'}")
 
@@ -402,7 +411,7 @@ def main() -> None:
         plot_pareto_per_seed_points(
             grouped_for_plots,
             save_path=str(out_dir / "fig_A7_pareto_per_seed_points.png"),
-            title="RMSE |v| vs latency — each seed",
+            title="RMSE |v| (interior) vs latency — each seed",
         )
         print(f"已写入: {out_dir / 'fig_A7_pareto_per_seed_points.png'}")
 
@@ -425,7 +434,7 @@ def main() -> None:
     plot_pareto_accuracy_latency(
         aggregated,
         save_path=str(out_dir / "fig_A7_pareto_rmse_vel_mag_vs_latency.png"),
-        title="RMSE |v| vs inference latency (mean ± std over seeds)",
+        title="RMSE |v| (interior) vs inference latency (mean ± std over seeds)",
     )
     print(f"已写入: {out_dir / 'fig_A7_pareto_rmse_vel_mag_vs_latency.png'}")
 

@@ -90,6 +90,7 @@ def main() -> None:
         num_layers=config.model.num_layers,
         dropout=config.model.dropout,
         heads=config.model.heads,
+        use_transformer_prenorm=config.model.use_transformer_prenorm,
     ).to(device)
     load_checkpoint(model, args.checkpoint, device)
     model.eval()

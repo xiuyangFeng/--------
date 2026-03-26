@@ -5,7 +5,7 @@ import csv
 from pathlib import Path
 
 from ..analysis.visualization import plot_per_case_boxplot
-from ._figure_utils import aggregate_predictions, ensure_dir, load_manifest
+from ._figure_utils import VALID_REGIONS, aggregate_predictions, ensure_dir, load_manifest
 
 
 def save_metrics_csv(save_path: Path, per_case_metrics: dict) -> None:
@@ -33,7 +33,12 @@ def main() -> None:
         default=[],
         help="箱线图指标，可重复传入；默认 rmse_vel_mag、rmse_p、rmse",
     )
-    parser.add_argument("--title", default="Figure A4 Per-Case Boxplot", help="图标题")
+    parser.add_argument(
+        "--region", default="interior",
+        choices=list(VALID_REGIONS),
+        help="节点过滤区域（默认 interior，仅内部节点）",
+    )
+    parser.add_argument("--title", default="", help="图标题（为空则自动生成）")
     args = parser.parse_args()
 
     manifest_path = Path(args.manifest).resolve()
@@ -42,21 +47,27 @@ def main() -> None:
     if not isinstance(items, list):
         raise SystemExit("manifest.json 缺少合法的 items 列表")
 
-    _y_true_all, _y_pred_all, per_case_metrics = aggregate_predictions(items)
-    output_path = Path(args.output).resolve() if args.output else ensure_dir(manifest_path.parent) / "fig_A4_per_case_boxplot.png"
+    _y_true_all, _y_pred_all, per_case_metrics = aggregate_predictions(items, region=args.region)
+
+    region_tag = "" if args.region == "all" else f"_{args.region}"
+    output_path = (
+        Path(args.output).resolve() if args.output
+        else ensure_dir(manifest_path.parent) / f"fig_A4_per_case_boxplot{region_tag}.png"
+    )
     metrics_output = (
         Path(args.metrics_output).resolve()
         if args.metrics_output
-        else ensure_dir(manifest_path.parent) / "fig_A4_per_case_metrics.csv"
+        else ensure_dir(manifest_path.parent) / f"fig_A4_per_case_metrics{region_tag}.csv"
     )
     metric_keys = args.metric_key or ["rmse_vel_mag", "rmse_p", "rmse"]
+    title = args.title or f"Figure A4 Per-Case Boxplot ({args.region} nodes)"
 
     try:
         plot_per_case_boxplot(
             per_case_metrics,
             metric_keys=metric_keys,
             save_path=output_path,
-            title=args.title,
+            title=title,
         )
     except ImportError as exc:
         raise SystemExit(

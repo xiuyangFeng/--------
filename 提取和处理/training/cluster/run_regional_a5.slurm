@@ -86,7 +86,7 @@ for m in "${MANIFESTS[@]}"; do
 done
 
 echo ""
-echo ">>> plot_taskA_multimodel_regional_bar (四模型全量)"
+echo ">>> plot_taskA_multimodel_regional_bar (所有已在 outputs/field 下具备 regional_eval 的 exp_id)"
 "$PYTHON_BIN" -m training.scripts.plot_taskA_multimodel_regional_bar \
     --runs-root outputs/field \
     --output-dir outputs/field/plots

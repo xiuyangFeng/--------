@@ -5,10 +5,12 @@ import csv
 from pathlib import Path
 from typing import Dict, List
 
-from ._figure_utils import load_json, resolve_run_dirs, save_json
+from ._figure_utils import load_json, read_regional_metric, resolve_run_dirs, save_json
 
 
-def load_run_metric(run_dir: Path, metric_key: str) -> Dict[str, object]:
+def load_run_metric(
+    run_dir: Path, metric_key: str, region: str = "all",
+) -> Dict[str, object]:
     summary = load_json(run_dir / "summary.json")
     manifest = load_json(run_dir / "run_manifest.json") if (run_dir / "run_manifest.json").exists() else {}
     test_metrics = summary.get("test_metrics", {})
@@ -17,9 +19,14 @@ def load_run_metric(run_dir: Path, metric_key: str) -> Dict[str, object]:
 
     experiment_name = str(summary.get("experiment_name", manifest.get("experiment_name", run_dir.name)))
     seed = int(summary.get("seed", manifest.get("seed", 0)))
-    metric_value = test_metrics.get(metric_key)
+
+    metric_value = None
+    if region != "all":
+        metric_value = read_regional_metric(run_dir, region, metric_key)
     if metric_value is None:
-        raise ValueError(f"{run_dir} 中缺少指标 {metric_key}")
+        metric_value = test_metrics.get(metric_key)
+    if metric_value is None:
+        raise ValueError(f"{run_dir} 中缺少指标 {metric_key} (region={region})")
     return {
         "experiment_name": experiment_name,
         "seed": seed,
@@ -34,9 +41,14 @@ def main() -> None:
     parser.add_argument("--pattern", action="append", default=[], help="相对 runs-root 的匹配模式，可重复传入；默认 */summary.json")
     parser.add_argument("--run-dir", action="append", default=[], help="显式指定 run 目录，可重复传入")
     parser.add_argument("--metric-key", default="rmse_vel_mag", help="用于比较的 test_metrics 指标")
+    parser.add_argument(
+        "--region", default="interior",
+        choices=["all", "interior", "wall"],
+        help="指标来源区域（默认 interior；优先读 regional_eval，回退 summary.json）",
+    )
     parser.add_argument("--baseline", default="", help="基线实验名；默认取第一组")
     parser.add_argument("--output-dir", default="", help="输出目录，默认 <runs-root>/plots")
-    parser.add_argument("--title", default="Figure A6 Ablation Summary", help="图标题")
+    parser.add_argument("--title", default="", help="图标题（为空则自动生成）")
     args = parser.parse_args()
 
     runs_root = Path(args.runs_root).resolve()
@@ -61,7 +73,7 @@ def main() -> None:
 
     grouped: Dict[str, Dict[int, float]] = {}
     for run_dir in run_dirs:
-        record = load_run_metric(run_dir, args.metric_key)
+        record = load_run_metric(run_dir, args.metric_key, region=args.region)
         grouped.setdefault(str(record["experiment_name"]), {})[int(record["seed"])] = float(record["metric_value"])
 
     experiment_names = sorted(grouped)
@@ -89,18 +101,21 @@ def main() -> None:
     output_dir = Path(args.output_dir).resolve() if args.output_dir else (runs_root / "plots")
     output_dir.mkdir(parents=True, exist_ok=True)
     highlight_idx = experiment_names.index(baseline_name) if baseline_name in experiment_names else None
-    figure_path = output_dir / "fig_A6_ablation_summary.png"
-    csv_path = output_dir / "fig_A6_ablation_summary.csv"
-    stats_path = output_dir / "fig_A6_ablation_summary_stats.json"
 
+    region_tag = "" if args.region == "all" else f"_{args.region}"
+    figure_path = output_dir / f"fig_A6_ablation_summary{region_tag}.png"
+    csv_path = output_dir / f"fig_A6_ablation_summary{region_tag}.csv"
+    stats_path = output_dir / f"fig_A6_ablation_summary_stats{region_tag}.json"
+
+    title = args.title or f"Figure A6 Ablation Summary ({args.region} nodes)"
     plot_ablation_summary(
         experiment_names=experiment_names,
         metric_means=means,
         metric_stds=stds,
-        metric_name=args.metric_key,
+        metric_name=f"{args.metric_key} ({args.region})",
         highlight_idx=highlight_idx,
         save_path=figure_path,
-        title=args.title,
+        title=title,
     )
 
     with csv_path.open("w", encoding="utf-8", newline="") as f:

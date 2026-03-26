@@ -82,8 +82,13 @@ def main() -> None:
         default=[],
         help="箱线图指标，可重复传入；默认 rmse_vel_mag、rmse_p",
     )
+    parser.add_argument(
+        "--region", default="interior",
+        choices=["all", "interior", "wall"],
+        help="节点过滤区域（默认 interior）；对应读取 fig_A4_per_case_metrics_<region>.csv",
+    )
     parser.add_argument("--output-dir", default="", help="输出目录，默认 <runs-root>/plots")
-    parser.add_argument("--title", default="Figure A4 Per-Case Comparison (all models)", help="图标题")
+    parser.add_argument("--title", default="", help="图标题（为空则自动生成）")
     args = parser.parse_args()
 
     runs_root = Path(args.runs_root).resolve()
@@ -91,13 +96,18 @@ def main() -> None:
     output_dir = Path(args.output_dir).resolve() if args.output_dir else (runs_root / "plots")
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    region_tag = "" if args.region == "all" else f"_{args.region}"
+    csv_filename = f"fig_A4_per_case_metrics{region_tag}.csv"
+
     # 收集：exp_id → {case_name → {metric → [values across seeds]}}
     raw: Dict[str, Dict[str, Dict[str, List[float]]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(list))
     )
 
     for run_dir in _discover_runs(runs_root):
-        csv_path = run_dir / "predictions_test" / "fig_A4_per_case_metrics.csv"
+        csv_path = run_dir / "predictions_test" / csv_filename
+        if not csv_path.exists():
+            csv_path = run_dir / "predictions_test" / "fig_A4_per_case_metrics.csv"
         if not csv_path.exists():
             continue
         exp_id = _read_exp_id(run_dir)
@@ -130,12 +140,13 @@ def main() -> None:
             "生成图像失败：当前环境缺少 matplotlib。请先安装可视化依赖。"
         ) from exc
 
-    output_path = output_dir / "fig_A4_multimodel_per_case_boxplot.png"
+    title = args.title or f"Figure A4 Per-Case Comparison ({args.region} nodes, all models)"
+    output_path = output_dir / f"fig_A4_multimodel_per_case_boxplot{region_tag}.png"
     plot_multimodel_per_case_boxplot(
         models_data,
         metric_keys=metric_keys,
         save_path=output_path,
-        title=args.title,
+        title=title,
     )
     print(output_path)
 

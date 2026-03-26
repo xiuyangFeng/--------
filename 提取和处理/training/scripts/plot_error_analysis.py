@@ -12,6 +12,7 @@ from ..analysis.visualization import (
     scatter_pred_vs_true,
 )
 from ._figure_utils import (
+    VALID_REGIONS,
     aggregate_predictions,
     compute_case_metrics,
     ensure_dir,
@@ -60,9 +61,14 @@ def main() -> None:
         help="散点抽样随机种子，默认 42",
     )
     parser.add_argument(
+        "--region", default="interior",
+        choices=list(VALID_REGIONS),
+        help="节点过滤区域（默认 interior，仅内部节点）",
+    )
+    parser.add_argument(
         "--title",
-        default="Prediction Error Analysis",
-        help="图标题前缀",
+        default="",
+        help="图标题前缀（为空则自动生成）",
     )
     args = parser.parse_args()
 
@@ -72,13 +78,15 @@ def main() -> None:
     if not isinstance(items, list):
         raise SystemExit("manifest.json 缺少合法的 items 列表")
 
+    region_tag = "" if args.region == "all" else f"_{args.region}"
     output_dir = (
         ensure_dir(args.output_dir)
         if args.output_dir
-        else ensure_dir(manifest_path.parent / "error_analysis")
+        else ensure_dir(manifest_path.parent / f"error_analysis{region_tag}")
     )
+    title_prefix = args.title or f"Prediction Error Analysis ({args.region} nodes)"
 
-    y_true_all, y_pred_all, per_case_metrics = aggregate_predictions(items)
+    y_true_all, y_pred_all, per_case_metrics = aggregate_predictions(items, region=args.region)
     scatter_true, scatter_pred = maybe_subsample(
         y_true_all,
         y_pred_all,
@@ -91,24 +99,24 @@ def main() -> None:
             scatter_pred,
             scatter_true,
             save_path=output_dir / "fig_scatter_pred_vs_true.png",
-            title=f"{args.title}: Scatter",
+            title=f"{title_prefix}: Scatter",
         )
         plot_error_distribution(
             y_pred_all,
             y_true_all,
             save_path=output_dir / "fig_error_distribution.png",
-            title=f"{args.title}: Error Distribution",
+            title=f"{title_prefix}: Error Distribution",
         )
         plot_error_cdf(
             y_pred_all,
             y_true_all,
             save_path=output_dir / "fig_error_cdf.png",
-            title=f"{args.title}: Error CDF",
+            title=f"{title_prefix}: Error CDF",
         )
         plot_per_case_boxplot(
             per_case_metrics,
             save_path=output_dir / "fig_per_case_boxplot.png",
-            title=f"{args.title}: Per-Case Metrics",
+            title=f"{title_prefix}: Per-Case Metrics",
         )
     except ImportError as exc:
         raise SystemExit(
@@ -122,6 +130,7 @@ def main() -> None:
         output_dir / "summary.json",
         {
             "manifest_path": str(manifest_path),
+            "region": args.region,
             "num_cases": len(per_case_metrics),
             "num_nodes_total": int(y_true_all.shape[0]),
             "scatter_nodes_used": int(scatter_true.shape[0]),

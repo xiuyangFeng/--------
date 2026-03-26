@@ -218,7 +218,7 @@ multi(sl, Inches(1.5), Inches(4.3), Inches(6), Inches(1.6), [
 rect(sl, Inches(9.2), Inches(4.5), Inches(3.5), Inches(2.2), RGBColor(0x14,0x3D,0x59))
 txt(sl, Inches(9.4), Inches(4.6), Inches(3), Inches(0.4), "核心发现", 14, C_PRIMARY, True)
 txt(sl, Inches(9.4), Inches(5.1), Inches(3), Inches(0.6), "1.161", 48, C_WHITE, True)
-txt(sl, Inches(9.4), Inches(5.75), Inches(3), Inches(0.3), "RMSE_|v| 最优", 14, C_PRIMARY)
+txt(sl, Inches(9.4), Inches(5.75), Inches(3), Inches(0.3), "RMSE_|v| (all nodes) 最优", 14, C_PRIMARY)
 txt(sl, Inches(9.4), Inches(6.1), Inches(3), Inches(0.3), "vs MLP −27%  vs GS −15%", 13, RGBColor(0xBD,0xC3,0xC7))
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -378,7 +378,7 @@ sl = prs.slides.add_slide(prs.slide_layouts[6]); bg(sl)
 title_bar(sl, "主结果总表", "3 seeds mean±std · 测试集 1,458 graphs"); page_num(sl, 5)
 
 main_data = [
-    ["", "RMSE_u↓", "RMSE_v↓", "RMSE_w↓", "RMSE_|v|↓", "RMSE_p↓", "R²_p↑", "时延(ms)", "显存(MB)"],
+    ["", "RMSE_u↓", "RMSE_v↓", "RMSE_w↓", "RMSE_|v|↓\n(all nodes)", "RMSE_p↓", "R²_p↑", "时延(ms)", "显存(MB)"],
     ["MLP",         "0.974", "0.976", "0.974", "1.600", "0.658", "0.920", "0.54", "127"],
     ["GraphSAGE",   "0.931", "0.917", "0.850", "1.361", "0.734", "0.901", "2.35", "530"],
     ["Transformer", "0.934", "0.917", "0.848", "1.364", "0.706", "0.908", "6.95", "2183"],
@@ -535,7 +535,7 @@ img(sl, os.path.join(PLOTS, "fig_A7_fullcase_peak_memory_per_seed.png"),
     Inches(9.7), Inches(1.3), width=Inches(3.4))
 
 eff_data = [
-    ["", "参数量", "时延(ms)", "显存(MB)", "RMSE_|v|"],
+    ["", "参数量", "时延(ms)", "显存(MB)", "RMSE_|v|\n(all nodes)"],
     ["MLP", "35.7K", "0.54", "127", "1.600"],
     ["GraphSAGE", "101K", "2.35", "530", "1.361"],
     ["Transformer", "250K", "6.95", "2,183", "1.364"],

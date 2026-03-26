@@ -31,8 +31,9 @@ _EXP_LABELS: Dict[str, str] = {
     "A-Base-02": "GraphSAGE",
     "A-Base-03": "Transformer",
     "A-Main-01": "Transformer+Geom",
+    "A-Opt-01": "Transformer+Geom (tw22205)",
 }
-_EXP_ORDER: List[str] = ["A-Base-01", "A-Base-02", "A-Base-03", "A-Main-01"]
+_EXP_ORDER: List[str] = ["A-Base-01", "A-Base-02", "A-Base-03", "A-Main-01", "A-Opt-01"]
 
 
 def _discover_runs(runs_root: Path) -> List[Path]:

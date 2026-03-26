@@ -66,8 +66,16 @@ def _load_manifest(manifest_path: Path) -> Dict[str, object]:
         return json.load(f)
 
 
-def _aggregate_from_manifest(manifest_path: Path) -> tuple[np.ndarray, np.ndarray]:
-    """从 manifest 中聚合所有 .pt 文件，返回 (y_true, y_pred)，shape (N, 4)。"""
+def _aggregate_from_manifest(
+    manifest_path: Path,
+    region: str = "all",
+) -> tuple[np.ndarray, np.ndarray]:
+    """从 manifest 中聚合所有 .pt 文件，返回 (y_true, y_pred)，shape (N, 4)。
+
+    当 ``region`` 不为 ``"all"`` 时，仅保留对应区域的节点。
+    """
+    from ._figure_utils import _resolve_wall_mask_from_payload, build_region_mask
+
     try:
         import torch
     except ImportError as exc:
@@ -85,8 +93,15 @@ def _aggregate_from_manifest(manifest_path: Path) -> tuple[np.ndarray, np.ndarra
     for item in items:
         pred_path = Path(str(item["prediction_path"]))
         payload = torch.load(pred_path, map_location="cpu")
-        y_trues.append(payload["y_true"].detach().cpu().numpy())
-        y_preds.append(payload["y_pred"].detach().cpu().numpy())
+        yt = payload["y_true"].detach().cpu().numpy()
+        yp = payload["y_pred"].detach().cpu().numpy()
+        if region != "all":
+            wall_mask = _resolve_wall_mask_from_payload(payload)
+            node_mask = build_region_mask(wall_mask, region)
+            yt = yt[node_mask]
+            yp = yp[node_mask]
+        y_trues.append(yt)
+        y_preds.append(yp)
 
     return np.concatenate(y_trues, axis=0), np.concatenate(y_preds, axis=0)
 
@@ -114,8 +129,13 @@ def main() -> None:
         "--max-points", type=int, default=100_000,
         help="每个模型最多采样的节点数（散点图减速），默认 100000",
     )
+    parser.add_argument(
+        "--region", default="interior",
+        choices=["all", "interior", "wall"],
+        help="节点过滤区域（默认 interior，仅内部节点）",
+    )
     parser.add_argument("--output-dir", default="", help="输出目录，默认 <runs-root>/plots")
-    parser.add_argument("--title", default="Figure A3 Scatter Comparison", help="图标题")
+    parser.add_argument("--title", default="", help="图标题（为空则自动生成）")
     args = parser.parse_args()
 
     runs_root = Path(args.runs_root).resolve()
@@ -152,7 +172,7 @@ def main() -> None:
     for exp_id in exp_ids_sorted:
         label = _EXP_LABELS.get(exp_id, exp_id)
         print(f"  加载 {exp_id} ({label}) ...")
-        y_true, y_pred = _aggregate_from_manifest(candidates[exp_id])
+        y_true, y_pred = _aggregate_from_manifest(candidates[exp_id], region=args.region)
         models_predictions[label] = (y_pred, y_true)
 
     try:
@@ -162,16 +182,18 @@ def main() -> None:
             "生成图像失败：当前环境缺少 matplotlib。请先安装可视化依赖。"
         ) from exc
 
-    suffix = f"_{args.variable}"
+    region_tag = "" if args.region == "all" else f"_{args.region}"
+    suffix = f"_{args.variable}{region_tag}"
     if exp_filter:
         suffix += "_geo_only"
+    title = args.title or f"Figure A3 Scatter Comparison ({args.region} nodes)"
     output_path = output_dir / f"fig_A3_multimodel_scatter{suffix}.png"
     plot_multimodel_scatter(
         models_predictions,
         variable=args.variable,
         max_points=args.max_points,
         save_path=output_path,
-        title=args.title,
+        title=title,
     )
     print(output_path)
 

@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import json
+import warnings
 from pathlib import Path
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
+
+VALID_REGIONS = ("all", "interior", "wall")
+_IS_WALL_FEATURE_IDX = 9  # pipeline.config.NODE_FEATURE_NAMES.index("is_wall")
 
 
 def ensure_dir(path: Path | str) -> Path:
@@ -57,6 +61,95 @@ def load_prediction_arrays(prediction_path: Path) -> Tuple[np.ndarray, np.ndarra
     return y_true, y_pred, x, case_name
 
 
+# ---------------------------------------------------------------------------
+# Region filtering utilities
+# ---------------------------------------------------------------------------
+
+def _resolve_wall_mask_from_payload(payload: Dict[str, object]) -> np.ndarray:
+    """Return boolean array (True = wall node) from a prediction payload.
+
+    Prefers ``graph_path`` for accurate ``is_wall`` even when the training
+    ``feature_mask`` zeroed out that column (e.g. MLP baseline).
+    """
+    torch = lazy_import_torch()
+    y_true = payload["y_true"]
+    n = int(y_true.shape[0])
+
+    graph_path = payload.get("graph_path")
+    if graph_path:
+        path = Path(str(graph_path))
+        if path.is_file():
+            try:
+                from pipeline.dataset import load_graph_data
+                data = load_graph_data(path)
+                x_full = data.x.detach().cpu().numpy()
+                if x_full.shape[0] == n and x_full.shape[1] > _IS_WALL_FEATURE_IDX:
+                    return x_full[:, _IS_WALL_FEATURE_IDX] > 0.5
+            except Exception:
+                pass
+
+    x = payload["x"]
+    if hasattr(x, "detach"):
+        x = x.detach().cpu().numpy()
+    if x.shape[1] <= _IS_WALL_FEATURE_IDX:
+        warnings.warn(
+            "payload['x'] 列数不足，无法提取 is_wall；默认全部标记为 interior",
+            stacklevel=2,
+        )
+        return np.zeros(n, dtype=bool)
+    wall = x[:, _IS_WALL_FEATURE_IDX] > 0.5
+    if not wall.any():
+        warnings.warn(
+            "is_wall 全为 0（可能被 feature_mask 屏蔽），区域过滤结果可能不可靠",
+            stacklevel=2,
+        )
+    return wall
+
+
+def build_region_mask(wall_mask: np.ndarray, region: str) -> np.ndarray:
+    """Return boolean selection mask for the given region."""
+    if region == "all":
+        return np.ones(len(wall_mask), dtype=bool)
+    if region == "interior":
+        return ~wall_mask
+    if region == "wall":
+        return wall_mask
+    raise ValueError(f"Unsupported region: {region!r}; choose from {VALID_REGIONS}")
+
+
+def read_regional_metric(
+    run_dir: Path, region: str, metric_key: str,
+) -> Optional[float]:
+    """Read a single metric value from the regional eval JSON of a run."""
+    regional_json = run_dir / "predictions_test" / "regional_eval" / "fig_A5_regional_metrics.json"
+    if not regional_json.exists():
+        return None
+    data = load_json(regional_json)
+    region_data = data.get(region)
+    if not isinstance(region_data, dict):
+        return None
+    val = region_data.get(metric_key)
+    return float(val) if val is not None else None
+
+
+def read_regional_metrics_dict(
+    run_dir: Path, region: str,
+) -> Optional[Dict[str, float]]:
+    """Read all metrics for a region from the regional eval JSON."""
+    regional_json = run_dir / "predictions_test" / "regional_eval" / "fig_A5_regional_metrics.json"
+    if not regional_json.exists():
+        return None
+    data = load_json(regional_json)
+    region_data = data.get(region)
+    if not isinstance(region_data, dict):
+        return None
+    return {k: float(v) for k, v in region_data.items() if isinstance(v, (int, float))}
+
+
+# ---------------------------------------------------------------------------
+# Metrics & aggregation
+# ---------------------------------------------------------------------------
+
 def compute_case_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
     err = y_pred - y_true
     rmse = float(np.sqrt(np.mean(np.square(err))))
@@ -89,14 +182,37 @@ def maybe_subsample(
 
 def aggregate_predictions(
     manifest_items: Sequence[Dict[str, object]],
+    region: str = "all",
 ) -> Tuple[np.ndarray, np.ndarray, Dict[str, Dict[str, float]]]:
+    """Aggregate predictions across cases, optionally filtering by region.
+
+    Parameters
+    ----------
+    region : str
+        ``"all"`` (default / legacy), ``"interior"``, or ``"wall"``.
+    """
+    if region not in VALID_REGIONS:
+        raise ValueError(f"region={region!r} 非法；可选: {VALID_REGIONS}")
+
     y_true_all: List[np.ndarray] = []
     y_pred_all: List[np.ndarray] = []
     per_case_metrics: Dict[str, Dict[str, float]] = {}
 
     for item in manifest_items:
         prediction_path = Path(str(item["prediction_path"])).resolve()
-        y_true, y_pred, _x, fallback_case_name = load_prediction_arrays(prediction_path)
+
+        if region == "all":
+            y_true, y_pred, _x, fallback_case_name = load_prediction_arrays(prediction_path)
+        else:
+            payload = load_prediction_payload(prediction_path)
+            y_true = payload["y_true"].detach().cpu().numpy()
+            y_pred = payload["y_pred"].detach().cpu().numpy()
+            fallback_case_name = str(payload.get("case_name", prediction_path.stem))
+            wall_mask = _resolve_wall_mask_from_payload(payload)
+            node_mask = build_region_mask(wall_mask, region)
+            y_true = y_true[node_mask]
+            y_pred = y_pred[node_mask]
+
         case_name = str(item.get("case_name", fallback_case_name))
         y_true_all.append(y_true)
         y_pred_all.append(y_pred)

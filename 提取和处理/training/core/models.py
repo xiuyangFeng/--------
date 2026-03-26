@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Optional
 
 import torch
 import torch.nn as nn
@@ -96,6 +96,7 @@ class FieldTransformer(nn.Module):
         dropout: float,
         out_dim: int,
         heads: int,
+        use_prenorm: bool = True,
     ):
         super().__init__()
         # 输入先投影到统一隐藏维度。
@@ -114,8 +115,13 @@ class FieldTransformer(nn.Module):
         )
         # 每个 TransformerConv 后面接一个线性层，补偿多头输出后的特征变换。
         self.post_layers = nn.ModuleList([nn.Linear(hidden_dim, hidden_dim) for _ in self.layers])
-        # Pre-Norm：每层消息传递前先 LayerNorm，利于深层稳定（A-Opt-02 / P0-2）。
-        self.norms = nn.ModuleList([nn.LayerNorm(hidden_dim) for _ in self.layers])
+        self.use_prenorm = use_prenorm
+        # Pre-Norm：每层消息传递前先 LayerNorm，利于深层稳定（A-Opt-02 / P0-2）。旧权重需 use_prenorm=False。
+        self.norms: Optional[nn.ModuleList]
+        if use_prenorm:
+            self.norms = nn.ModuleList([nn.LayerNorm(hidden_dim) for _ in self.layers])
+        else:
+            self.norms = None
         # 保存 dropout 概率。
         self.dropout = dropout
         # 最终输出头。
@@ -126,21 +132,23 @@ class FieldTransformer(nn.Module):
         x = torch.cat([data.x, expand_global_cond(data)], dim=-1)
         # 输入投影。
         x = self.in_proj(x)
-        for conv, linear, norm in zip(self.layers, self.post_layers, self.norms):
-            # 残差分支。
-            residual = x
-            x = norm(x)
-            # 图 Transformer 消息传递。
-            x = conv(x, data.edge_index)
-            # 用 ELU 做激活。
-            x = F.elu(x)
-            # 后接线性层整理特征。
-            x = linear(x)
-            # dropout 只在训练时启用。
-            x = F.dropout(x, p=self.dropout, training=self.training)
-            # 残差回加。
-            x = x + residual
-        # 输出逐节点预测。
+        if self.use_prenorm and self.norms is not None:
+            for conv, linear, norm in zip(self.layers, self.post_layers, self.norms):
+                residual = x
+                x = norm(x)
+                x = conv(x, data.edge_index)
+                x = F.elu(x)
+                x = linear(x)
+                x = F.dropout(x, p=self.dropout, training=self.training)
+                x = x + residual
+        else:
+            for conv, linear in zip(self.layers, self.post_layers):
+                residual = x
+                x = conv(x, data.edge_index)
+                x = F.elu(x)
+                x = linear(x)
+                x = F.dropout(x, p=self.dropout, training=self.training)
+                x = x + residual
         return self.out_proj(x)
 
 
@@ -348,7 +356,15 @@ MODEL_REGISTRY: Dict[str, type] = {
 }
 
 
-def build_model(model_name: str, hidden_dim: int, num_layers: int, dropout: float, heads: int):
+def build_model(
+    model_name: str,
+    hidden_dim: int,
+    num_layers: int,
+    dropout: float,
+    heads: int,
+    *,
+    use_transformer_prenorm: bool = False,
+):
     # 先检查模型名是否合法。
     if model_name not in MODEL_REGISTRY:
         raise ValueError(f"未知模型: {model_name}, 可选: {list(MODEL_REGISTRY)}")
@@ -365,5 +381,6 @@ def build_model(model_name: str, hidden_dim: int, num_layers: int, dropout: floa
     # 只有 transformer 额外需要 heads 参数。
     if model_name == "transformer":
         kwargs["heads"] = heads
+        kwargs["use_prenorm"] = use_transformer_prenorm
     # 实例化具体模型并返回。
     return cls(**kwargs)

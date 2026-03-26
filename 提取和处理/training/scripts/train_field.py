@@ -208,6 +208,7 @@ def main() -> None:
         num_layers=config.model.num_layers,
         dropout=config.model.dropout,
         heads=config.model.heads,
+        use_transformer_prenorm=config.model.use_transformer_prenorm,
     ).to(device)
 
     # 统计模型总参数量。

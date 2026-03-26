@@ -20,7 +20,7 @@
 | `preprocess_version` | pipeline 当前版本（采样混合FPS20%，kNN图） | ✅ 已确定 |
 | `normalize_source` | 仅训练集统计量 | ✅ 已确定 |
 | `seed_plan` | smoke test: seed=1；正式结果: [1, 2, 3] | ✅ 已确定 |
-| `primary_metric` | `RMSE_|v|`（速度模长误差） | ✅ 已确定 |
+| `primary_metric` | `interior.RMSE_|v|`（内部节点速度模长误差；`all.RMSE_|v|` 仅作补充） | ✅ 已确定（2026-03-26 更新为 interior 口径） |
 | `result_root` | `outputs/field/` | ✅ 已确定 |
 
 ---
@@ -229,3 +229,15 @@ python -m training.scripts.run_field_plan \
 - `fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png`
 
 下一步：**区域标签评估口径已统一**，可启动 **A-Abl-01**（输入特征消融）；效率证据层面当前已经具备 3-seed 版本，后续若还要继续加固，可再补多病例 benchmark 或给出 CFD 时间基线以填写 `speedup_vs_CFD`。
+
+**（2026-03-26 补充）P0-1 / `A-Opt-01`**：`target_weights=[2,2,2,0.5]` 三 seed 已完成训练；测试集预测与 **`predictions_test/regional_eval/`** 已补全，多模型 Fig A5 汇总图已包含该 `exp_id`。模型结构仍与主线 `A-Main-01` 一致（无 Pre-Norm 时的 `FieldTransformer`）；若启用 Pre-Norm（`A-Opt-02`），须使用配置 **`use_transformer_prenorm: true`** 并**从头训练**，不得与旧 `best_model.pt` 混用。
+
+**（2026-03-26 重要更新）主指标口径统一为 interior-only**：
+- 此前主表、消融图、效率 Pareto 图等均使用 `summary.json.test_metrics.rmse_vel_mag`（all 节点），wall 节点的近零误差会系统性拉低 RMSE，导致主结论偏乐观。
+- 自本次起，所有出图脚本的默认 `--region` 改为 `interior`：
+  - **Fig A1 主表**：主指标列读取 `regional_eval` 的 `interior` 区，同时保留 `all_rmse_vel_mag` 作参考
+  - **Fig A3 散点图**、**Fig A4 箱线图**、**误差分析**：默认只聚合内部节点
+  - **Fig A6 消融/汇总图**：默认读取 `interior.rmse_vel_mag`
+  - **Fig A7 效率 Pareto**：accuracy 轴改为 `interior.rmse_vel_mag`
+  - **Fig A5 分区域图**本身已为 region-aware，不受影响
+- 论文口径固定为：**主速度指标 = `interior.rmse_vel_mag`**；`all.rmse_vel_mag` 仅作为补充报告。

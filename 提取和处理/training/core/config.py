@@ -46,6 +46,8 @@ class ModelConfig:
     num_layers: int = 3
     dropout: float = 0.1
     heads: int = 4
+    # FieldTransformer 每层的 Pre-Norm（LayerNorm）。旧 checkpoint（如 A-Main-01 / A-Opt-01）训练时无此项，须在配置中保持默认 False 才能加载。
+    use_transformer_prenorm: bool = False
 
 
 @dataclass
