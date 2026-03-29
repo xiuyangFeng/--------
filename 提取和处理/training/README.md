@@ -15,6 +15,7 @@ training/
 │   ├── trainer.py           训练循环和早停
 │   ├── splits.py            患者级数据划分读取
 │   ├── io.py                checkpoint 与实验索引落盘
+│   ├── field_plot_paths.py  任务 A 汇总图目录约定（plots/summary、multimodel_baseline 等）
 │   └── utils.py             通用工具函数
 │
 ├── scripts/                 可执行入口脚本
@@ -185,11 +186,17 @@ python -m training.scripts.plot_taskA_regional_bar \
 
 python -m training.scripts.plot_taskA_main_table \
   --runs-root outputs/field
+```
 
+默认 CSV 会优先以 interior（或 `--region` 指定区）作为主列，导出该区域的 `rmse_u/v/w/p/vel_mag` 与 `r2_u/v/w/p/r2_vel_mag`；同时保留 `all_rmse_vel_mag`、`all_r2_vel_mag` 参考列，并从各 run 的 `predictions_test/regional_eval/fig_A5_regional_metrics.json` 读取 **`near_wall` 近壁区** 的 `rmse_u/v/w/p/vel_mag` 与 `r2_u/v/w/p/r2_vel_mag` 写入 `near_wall_*` 列。无 regional 文件时，主列按脚本回退到 `summary.json`，`near_wall_*` 为空。重新汇总前对各 run 执行 `plot_taskA_regional_bar` 可更新 JSON（含 `r2_vel_mag`）。
+
+```bash
 python -m training.scripts.plot_taskA_ablation_summary \
   --runs-root outputs/field \
   --metric-key rmse_vel_mag
 ```
+
+跨 run 汇总图默认落在 `outputs/field/plots/<category>/`（如 `summary`、`multimodel_baseline`、`ablation`、`efficiency`、`training_curves`、`case_panels`、`optimization/<课题名>/`），由 `core/field_plot_paths.py` 约定；各脚本可用 `--output-dir` 覆盖。
 
 如果你已经把旧训练结果拷回本地 `outputs/field/`，可以直接基于 `history.csv` 出训练曲线和对比图：
 
@@ -201,7 +208,7 @@ python -m training.scripts.plot_training_history \
 默认行为：
 
 - 为每个 run 目录生成 `fig_training_curves.png`
-- 在 `outputs/field/plots/` 下生成 `best_metrics.csv`
+- 在 `outputs/field/plots/training_curves/` 下生成 `best_metrics.csv` 与（若多 run）`compare_*.png`
 - 如果匹配到 2 个及以上 run，还会额外生成 `compare_val_loss.png`
 
 如果只想画部分实验，可用 `--pattern` 或 `--run-dir`：

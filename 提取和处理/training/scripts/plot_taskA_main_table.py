@@ -5,6 +5,7 @@ import csv
 from pathlib import Path
 from typing import Dict, List
 
+from ..core.field_plot_paths import CAT_SUMMARY, category_dir
 from ._figure_utils import load_json, read_regional_metrics_dict, resolve_run_dirs
 
 _REGION_PREFIX = {
@@ -46,7 +47,10 @@ def extract_row(run_dir: Path, primary_region: str = "interior") -> Dict[str, ob
     if pri_metrics is None:
         pri_metrics = {k: float(v) for k, v in test_metrics.items() if isinstance(v, (int, float))}
 
-    for key in ("rmse_u", "rmse_v", "rmse_w", "rmse_p", "rmse_vel_mag", "r2_p"):
+    for key in (
+        "rmse_u", "rmse_v", "rmse_w", "rmse_p", "rmse_vel_mag",
+        "r2_u", "r2_v", "r2_w", "r2_p", "r2_vel_mag",
+    ):
         row[key] = pri_metrics.get(key, test_metrics.get(key, ""))
 
     if primary_region != "all":
@@ -54,6 +58,19 @@ def extract_row(run_dir: Path, primary_region: str = "interior") -> Dict[str, ob
         if all_metrics is None:
             all_metrics = {k: float(v) for k, v in test_metrics.items() if isinstance(v, (int, float))}
         row["all_rmse_vel_mag"] = all_metrics.get("rmse_vel_mag", test_metrics.get("rmse_vel_mag", ""))
+        row["all_r2_vel_mag"] = all_metrics.get("r2_vel_mag", test_metrics.get("r2_vel_mag", ""))
+
+    nw = read_regional_metrics_dict(run_dir, "near_wall")
+    _nw_metric_keys = (
+        "rmse_u", "rmse_v", "rmse_w", "rmse_p", "rmse_vel_mag",
+        "r2_u", "r2_v", "r2_w", "r2_p", "r2_vel_mag",
+    )
+    if nw:
+        for k in _nw_metric_keys:
+            row[f"near_wall_{k}"] = nw.get(k, "")
+    else:
+        for k in _nw_metric_keys:
+            row[f"near_wall_{k}"] = ""
 
     row.update({
         "physics_enabled": summary.get("physics_enabled", manifest.get("physics", {}).get("enabled", "")),
@@ -78,16 +95,22 @@ def write_markdown(rows: List[Dict[str, object]], save_path: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="聚合多个 run 的主结果表")
+    parser = argparse.ArgumentParser(
+        description="聚合多个 run 的主结果表；主区域列输出 RMSE/R²，并附加 near_wall_* 与 all_* 参考列",
+    )
     parser.add_argument("--runs-root", default="outputs/field", help="run 根目录")
     parser.add_argument("--pattern", action="append", default=[], help="相对 runs-root 的匹配模式，可重复传入；默认 */summary.json")
     parser.add_argument("--run-dir", action="append", default=[], help="显式指定 run 目录，可重复传入")
     parser.add_argument(
         "--region", default="interior",
         choices=["all", "interior", "wall"],
-        help="主指标来源区域（默认 interior；同时保留 all 作为参考列）",
+        help="主指标来源区域（默认 interior；同时保留 all 的 |v| RMSE/R² 作为参考列）",
     )
-    parser.add_argument("--output-csv", default="", help="CSV 输出路径，默认 <runs-root>/plots/fig_A1_main_table.csv")
+    parser.add_argument(
+        "--output-csv",
+        default="",
+        help="CSV 输出路径，默认 <runs-root>/plots/summary/fig_A1_main_table.csv",
+    )
     parser.add_argument("--output-md", default="", help="Markdown 输出路径，可选")
     args = parser.parse_args()
 
@@ -101,8 +124,7 @@ def main() -> None:
     rows = [extract_row(run_dir, primary_region=args.region) for run_dir in run_dirs]
     rows.sort(key=lambda row: (str(row["study_group"]), str(row["experiment_name"]), str(row["seed"])))
 
-    default_dir = runs_root / "plots"
-    default_dir.mkdir(parents=True, exist_ok=True)
+    default_dir = category_dir(runs_root, CAT_SUMMARY)
     output_csv = Path(args.output_csv).resolve() if args.output_csv else default_dir / "fig_A1_main_table.csv"
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     with output_csv.open("w", encoding="utf-8", newline="") as f:

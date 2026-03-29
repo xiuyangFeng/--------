@@ -339,8 +339,13 @@ def main() -> None:
             "best_epoch": fit_result["best_epoch"],
             "best_val_loss": fit_result["best_val_loss"],
             "test_rmse": test_metrics["rmse"],
+            "test_rmse_vel_mag": test_metrics["rmse_vel_mag"],
             "test_rmse_p": test_metrics["rmse_p"],
+            "test_r2_u": test_metrics["r2_u"],
+            "test_r2_v": test_metrics["r2_v"],
+            "test_r2_w": test_metrics["r2_w"],
             "test_r2_p": test_metrics["r2_p"],
+            "test_r2_vel_mag": test_metrics["r2_vel_mag"],
         },
         fieldnames=[
             "task",
@@ -363,8 +368,13 @@ def main() -> None:
             "best_epoch",
             "best_val_loss",
             "test_rmse",
+            "test_rmse_vel_mag",
             "test_rmse_p",
+            "test_r2_u",
+            "test_r2_v",
+            "test_r2_w",
             "test_r2_p",
+            "test_r2_vel_mag",
         ],
     )
 

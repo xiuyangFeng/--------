@@ -108,7 +108,9 @@
 
 ### 4.1 主精度指标
 
-> **（2026-03-26 重要更新）指标口径**：论文主速度指标统一为 **`interior.RMSE_vel_mag`**（仅内部节点），辅以 `near_wall.RMSE_vel_mag`；`all.RMSE_vel_mag` 仅作补充，不再作为主结论依据。原因：wall 节点速度真值接近零，大量 wall 点的低误差会系统性拉低全节点 RMSE，导致主结果偏乐观。所有出图脚本默认 `--region interior`。
+> **（2026-03-26 重要更新）指标口径**：论文主速度指标统一为 **`interior.RMSE_vel_mag`**（仅内部节点），辅以 **`near_wall`** 上的速度与压力误差与拟合度；`all.RMSE_vel_mag` 仅作补充，不再作为主结论依据。原因：wall 节点速度真值接近零，大量 wall 点的低误差会系统性拉低全节点 RMSE，导致主结果偏乐观。所有出图脚本默认 `--region interior`。
+
+> **（2026-03-29 补充）近壁区 `near_wall`（内部、NormRadius > 0.8）**：除 RMSE 外，正式汇报与 **`plot_taskA_main_table.py` 导出的 `fig_A1_main_table.csv`** 同步纳入 **`near_wall_rmse_*` 与 `near_wall_r2_*`**（含 `u, v, w, p` 分量与 **`vel_mag` 的 R²**，字段 `r2_vel_mag`）。数值来自各 run 的 `predictions_test/regional_eval/fig_A5_regional_metrics.json`；若该 JSON 为旧版不含 `r2_vel_mag`，需重新运行 `plot_taskA_regional_bar` 聚合。
 
 - `RMSE`
 - `MAE`
@@ -119,13 +121,14 @@
 - `RMSE_p`
 - `RMSE_vel_mag`（**主口径：interior**）
 - `MAE_vel_mag`
+- **`R²_vel_mag`**（速度模长，分区域 JSON 与主表 `near_wall_r2_vel_mag` / 重算后各区域均有）
 
 ### 4.2 分层指标
 
 不能只报全局平均，建议至少同时报告：
 
 - **内部节点（primary）**
-- 近壁区域
+- **近壁区域（`near_wall`）：建议同时给出该区 `RMSE` 与 `R²`（u, v, w, p, |v|）**，作为边界层/WSS 前置质量的主关注项之一
 - 壁面节点
 - 高曲率区域
 - 分叉区域
@@ -210,13 +213,13 @@
 
 - 主速度指标：`predictions_test/regional_eval/fig_A5_regional_metrics.json` → `interior.*`
 - 补充列（all 口径）：`summary.json` → `test_metrics.*`
-- 效率指标：`outputs/field/plots/fig_A7_efficiency_benchmark.json`
+- 效率指标：`outputs/field/plots/efficiency/fig_A7_efficiency_benchmark.json`
 
 当前代码支撑：
 
 - 指标统计已具备
 - `training/scripts/plot_taskA_main_table.py` 已可自动导出，**默认 `--region interior`**
-- 当前产物已生成：`outputs/field/plots/fig_A1_main_table.csv`（需用新版脚本重新生成以获取 interior 口径）
+- 当前产物已生成：`outputs/field/plots/summary/fig_A1_main_table.csv`（需用新版脚本重新生成以获取 interior 口径，以及 **`near_wall_*` 近壁 RMSE/R² 列**、`r2_vel_mag` 需重跑 `plot_taskA_regional_bar` 后汇总）
 
 ### 6.2 Figure A2：典型病例主可视化图组
 
@@ -327,13 +330,14 @@
 - `training.analysis.regional_eval.compute_regional_metrics()`（区域 mask 优先使用预测文件中的 `graph_path` 读回完整节点特征，见 `load_node_features_for_region_masks()`）
 - `training.analysis.visualization.plot_regional_bar()`
 - `training/scripts/plot_taskA_regional_bar.py` 已完成并已生成各 run 的 `fig_A5_regional_bar_rmse_vel_mag.png` 与 `fig_A5_regional_bar_rmse_p.png`
-- `training/scripts/plot_taskA_multimodel_regional_bar.py` 汇总 `outputs/field/plots/fig_A5_multimodel_regional_bar_*.png`
+- `training/scripts/plot_taskA_multimodel_regional_bar.py` 汇总 `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`
 
 写作提醒：
 
 - **四组 baseline（A-Base-01 ~ A-Main-01）** 在 **`wall / interior / high_curvature / low_curvature / near_wall / core_flow / bifurcation / trunk` 等预定义区域**上均可出齐指标：区域划分与模型输入是否含几何**解耦**，统一依赖图数据资产。
 - **（2026-03-26）**：若仓库中已存在 **`A-Opt-01`** 的 `regional_eval`，默认生成的 **`fig_A5_multimodel_regional_bar_*.png` 会为 5 组柱状系列**（baseline 四组 + P0-1）；论文若只写「四模型基线对比」，请使用 **`--exp-filter`** 限定 `exp_id` 或单独导出旧版图文件，避免误读。
-- 跨模型对比请引用 **`outputs/field/plots/fig_A5_multimodel_regional_bar_*.png`**（及 geo_only 变体）。**区域名称、区间与默认阈值的权威表述**见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)；正文若修改阈值须与代码 `build_region_masks` 的 `mask_kwargs` 一致并写明。
+- **（2026-03-27）**：**`A-Opt-02`** 三 run 已各含 **`regional_eval`**；全目录扫描时 Fig A5 多模型柱状图会再纳入该 `exp_id`（与「5 组」或「四基线」图并列时须自检图例）。**`A-Main-01` vs `A-Opt-02` 内部节点 |v|/p** 的并排散点已单独落在 **`outputs/field/plots/optimization/prenorm_A_Opt02_vs_Main01/`**（`plot_taskA_multimodel_scatter`，`--exp-filter A-Main-01 A-Opt-02`，`--tag seed*`）。**（2026-03-27）**：**`A-Opt-02_warmup`** 后处理已对齐 **`A-Opt-02`**；**Main / P0-2 / P0-3** 三模型 **Fig A3 / A5 / A4** 汇总在 **`outputs/field/plots/optimization/prenorm_Main_P02_P02w/`**（`python -m training.scripts.regenerate_p02_warmup_comparison_figures`）。
+- 跨模型对比请引用 **`outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`**（及 geo_only 变体）。**区域名称、区间与默认阈值的权威表述**见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)；正文若修改阈值须与代码 `build_region_masks` 的 `mask_kwargs` 一致并写明。
 
 ### 6.6 Figure A6：消融总结图
 
@@ -358,7 +362,7 @@
 
 - `training.analysis.visualization.plot_ablation_summary()`
 - `training.analysis.stats.*`
-- `training/scripts/plot_taskA_ablation_summary.py` 已完成并已生成 `outputs/field/plots/fig_A6_ablation_summary.png`
+- `training/scripts/plot_taskA_ablation_summary.py` 已完成并已生成 `outputs/field/plots/ablation/fig_A6_ablation_summary.png`
 
 写作提醒：
 
@@ -409,16 +413,16 @@
 
 当前代码支撑：
 
-- 当前效率结果已通过 benchmark 落盘至 `outputs/field/plots/fig_A7_efficiency_benchmark.json`
+- 当前效率结果已通过 benchmark 落盘至 `outputs/field/plots/efficiency/fig_A7_efficiency_benchmark.json`
 - 当前图像产物已生成：
-  - `outputs/field/plots/fig_A7_efficiency_bars.png`
-  - `outputs/field/plots/fig_A7_efficiency_bars_mean_std.png`
-  - `outputs/field/plots/fig_A7_latency_per_seed.png`
-  - `outputs/field/plots/fig_A7_peak_memory_per_seed.png`
-  - `outputs/field/plots/fig_A7_fullcase_peak_memory_per_seed.png`
-  - `outputs/field/plots/fig_A7_pareto_per_seed_points.png`
-  - `outputs/field/plots/fig_A7_pareto_rmse_vel_mag_vs_latency.png`
-  - `outputs/field/plots/fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png`
+  - `outputs/field/plots/efficiency/fig_A7_efficiency_bars.png`
+  - `outputs/field/plots/efficiency/fig_A7_efficiency_bars_mean_std.png`
+  - `outputs/field/plots/efficiency/fig_A7_latency_per_seed.png`
+  - `outputs/field/plots/efficiency/fig_A7_peak_memory_per_seed.png`
+  - `outputs/field/plots/efficiency/fig_A7_fullcase_peak_memory_per_seed.png`
+  - `outputs/field/plots/efficiency/fig_A7_pareto_per_seed_points.png`
+  - `outputs/field/plots/efficiency/fig_A7_pareto_rmse_vel_mag_vs_latency.png`
+  - `outputs/field/plots/efficiency/fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png`
 
 写作提醒：
 
@@ -451,19 +455,16 @@
 ```text
 outputs/field/
 ├── plots/
-│   ├── fig_A1_main_table.csv
-│   ├── fig_A1_main_table.md
-│   ├── fig_A6_ablation_summary.png
-│   ├── fig_A6_ablation_summary_stats.json
-│   ├── fig_A7_efficiency_benchmark.json
-│   ├── fig_A7_efficiency_bars.png
-│   ├── fig_A7_efficiency_bars_mean_std.png
-│   ├── fig_A7_latency_per_seed.png
-│   ├── fig_A7_peak_memory_per_seed.png
-│   ├── fig_A7_fullcase_peak_memory_per_seed.png
-│   ├── fig_A7_pareto_per_seed_points.png
-│   ├── fig_A7_pareto_rmse_vel_mag_vs_latency.png
-│   └── fig_A7_pareto_rmse_vel_mag_vs_latency_mean_std.png
+│   ├── summary/                    # Fig A1 主表
+│   ├── case_panels/                # Fig A2
+│   ├── multimodel_baseline/        # Fig A3/A4/A5 多模型（默认扫描 outputs/field）
+│   ├── ablation/                   # Fig A6
+│   ├── efficiency/                 # Fig A7 + benchmark JSON
+│   ├── training_curves/            # best_metrics.csv、compare_*.png
+│   └── optimization/               # 优化/消融子课题（如 P0-1、Pre-Norm vs Main）
+│       ├── P0-1_A-Opt01_vs_Main01/
+│       ├── prenorm_A_Opt02_vs_Main01/
+│       └── prenorm_Main_P02_P02w/    # Main + A-Opt-02 + A-Opt-02_warmup（P0-3）
 └── <run_dir>/
     ├── fig_training_curves.png
     ├── summary.json
@@ -477,9 +478,8 @@ outputs/field/
 
 当前建议保留的约定是：
 
-- 跨 run 汇总图继续放在 `outputs/field/plots/`
+- 跨 run 汇总图按上表**分类子目录**放在 `outputs/field/plots/<category>/`；默认路径由 `training/core/field_plot_paths.py` 统一，命令行可用 `--output-dir` 覆盖（优化线建议放在 `plots/optimization/<课题名>/`）
 - 与单次运行强绑定的图继续放在各 run 的 `predictions_test/` 下
-- 如果后续补 A2 典型病例图，再视需要决定是否新增统一的 `figures_taskA/` 汇总层
 
 ### 7.2 Figure A1 主结果总表脚本
 
@@ -489,24 +489,21 @@ outputs/field/
 
 输入：
 
-- 一个或多个 `eval_test/metrics.json`
-- 对应 run 目录中的 `summary.json`
+- 一个或多个 run 目录中的 `summary.json`
+- 可选 `predictions_test/regional_eval/fig_A5_regional_metrics.json`
 - 可选 `run_manifest.json`
 
 输出：
 
-- `fig_A1_main_table.csv`
+- `fig_A1_main_table.csv`（含默认 `--region interior` 主列的 `rmse_* / r2_*`、`all_rmse_vel_mag`、`all_r2_vel_mag`、`near_wall_rmse_*`、`near_wall_r2_*`）
 - 可选 `fig_A1_main_table.md`
-
-复用现有代码：
-
-- `training/scripts/eval_field.py` 负责产生 `metrics.json`
 
 脚本核心步骤：
 
-1. 读取多个 run 的 `metrics.json`
-2. 提取 `rmse_u / rmse_v / rmse_w / rmse_vel_mag / rmse_p / r2_p`
-3. 从 `summary.json` 或其他产物中读取 runtime、参数量等字段
+1. 读取多个 run 的 `summary.json`
+2. 优先从 `regional_eval` 提取主区域 `rmse_u/v/w/p/vel_mag` 与 `r2_u/v/w/p/vel_mag`
+3. 同步读取 `all_rmse_vel_mag / all_r2_vel_mag` 参考列与 `near_wall_rmse_* / near_wall_r2_*`
+4. 从 `summary.json` 或其他产物中读取 runtime、参数量等字段
 4. 统一整理成单表
 5. 按论文主表顺序输出 CSV
 

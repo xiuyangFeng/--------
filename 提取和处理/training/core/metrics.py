@@ -36,6 +36,9 @@ def _compute_metrics(pred: torch.Tensor, target: torch.Tensor) -> Dict[str, floa
     velocity_target = target[:, :3].norm(dim=1)
     metrics["rmse_vel_mag"] = torch.sqrt(((velocity_pred - velocity_target) ** 2).mean()).item()
     metrics["mae_vel_mag"] = (velocity_pred - velocity_target).abs().mean().item()
+    ss_res_vm = ((velocity_target - velocity_pred) ** 2).sum()
+    ss_tot_vm = ((velocity_target - velocity_target.mean()) ** 2).sum().clamp_min(1e-12)
+    metrics["r2_vel_mag"] = (1.0 - ss_res_vm / ss_tot_vm).item()
     return metrics
 
 
@@ -69,6 +72,8 @@ class RegressionMeter:
     # Velocity-magnitude tracking (scalar accumulators)
     _sum_sq_vel_err: float = field(default=0.0, init=False, repr=False)
     _sum_abs_vel_err: float = field(default=0.0, init=False, repr=False)
+    _vel_target_mean: float = field(default=0.0, init=False, repr=False)
+    _vel_target_M2: float = field(default=0.0, init=False, repr=False)
 
     def update(self, pred: torch.Tensor, target: torch.Tensor, loss: float) -> None:
         # 把预测和真值都 detach 到 CPU，并转成 float，避免累计时占 GPU 显存。
@@ -85,9 +90,12 @@ class RegressionMeter:
         abs_err = diff.abs().sum(dim=0)   # [n_dims]
 
         # 速度模长误差单独累计。
-        vel_diff = pred_c[:, :3].norm(dim=1) - target_c[:, :3].norm(dim=1)
+        vel_target = target_c[:, :3].norm(dim=1)
+        vel_diff = pred_c[:, :3].norm(dim=1) - vel_target
         self._sum_sq_vel_err += (vel_diff ** 2).sum().item()
         self._sum_abs_vel_err += vel_diff.abs().sum().item()
+        vel_batch_mean = vel_target.mean().item()
+        vel_batch_M2 = ((vel_target - vel_batch_mean) ** 2).sum().item()
 
         # 第一个 batch 直接初始化累计器。
         if self._sum_sq_err is None:
@@ -96,6 +104,8 @@ class RegressionMeter:
             batch_mean = target_c.mean(dim=0)
             self._target_mean = batch_mean
             self._target_M2 = ((target_c - batch_mean) ** 2).sum(dim=0)
+            self._vel_target_mean = vel_batch_mean
+            self._vel_target_M2 = vel_batch_M2
             self._n = n
         else:
             # 后续 batch 继续累加平方误差与绝对误差。
@@ -111,6 +121,11 @@ class RegressionMeter:
             self._target_mean = self._target_mean + delta * (n / n_new)
             self._target_M2 = (
                 self._target_M2 + batch_M2 + delta ** 2 * (n_old * n / n_new)
+            )
+            vel_delta = vel_batch_mean - self._vel_target_mean
+            self._vel_target_mean = self._vel_target_mean + vel_delta * (n / n_new)
+            self._vel_target_M2 = (
+                self._vel_target_M2 + vel_batch_M2 + vel_delta ** 2 * (n_old * n / n_new)
             )
             self._n = n_new
 
@@ -144,6 +159,7 @@ class RegressionMeter:
 
         metrics["rmse_vel_mag"] = (self._sum_sq_vel_err / n) ** 0.5
         metrics["mae_vel_mag"] = self._sum_abs_vel_err / n
+        metrics["r2_vel_mag"] = 1.0 - self._sum_sq_vel_err / max(self._vel_target_M2, 1e-12)
         metrics["loss"] = self._total_loss_sum / n
         return metrics
 

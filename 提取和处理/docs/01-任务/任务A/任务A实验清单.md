@@ -509,10 +509,10 @@
 
 ## 6. 第一批主结果表
 
-主结果表建议固定为：
+主结果表建议固定为（**速度/压力 RMSE 与 R² 的主列为 interior 口径**；全图 `all` 的 `|v|` 参考列与 **近壁内部 `near_wall` 的 RMSE/R² 分量** 可由 `outputs/field/plots/summary/fig_A1_main_table.csv` 中 `all_rmse_vel_mag`、`all_r2_vel_mag`、`near_wall_rmse_*`、`near_wall_r2_*` 一并汇总）：
 
-| Exp ID | Model | Hierarchy | Graph | Geometry | BC | is_wall | Physics | RMSE_u | RMSE_v | RMSE_w | RMSE_|v| | RMSE_p | R2_p | Inference Time | Peak Memory | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Exp ID | Model | Hierarchy | Graph | Geometry | BC | is_wall | Physics | RMSE_u | RMSE_v | RMSE_w | RMSE_|v| | RMSE_p | R2_u | R2_v | R2_w | R2_p | R2_|v| | Inference Time | Peak Memory | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 补充要求：
 

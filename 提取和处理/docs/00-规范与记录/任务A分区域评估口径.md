@@ -43,8 +43,17 @@
 3. **Pipeline 采样 vs 本表**：`pipeline/config.SAMPLING_CONFIG` 中 `**boundary_threshold = 2.0` mm** 仅用于**降采样时**内部点「近壁层 / 核心层」**预算分配**，**不是**上表中 `near_wall` 的 `NormRadius > 0.8`。
 4. **修改阈值**：在调用 `compute_regional_metrics(..., **mask_kwargs)` 时传入 `curvature_quantile`、`near_wall_threshold`、`core_flow_threshold`、`bifurcation_range` 等；若正文或图表换了阈值，须在论文/汇报中**同步写明**。
 
-## 5. 相关脚本
+## 5. 区域级指标字段（RMSE / MAE / R²）
+
+`training/analysis/regional_eval.py` 中 `compute_regional_metrics` 对每个非空区域输出（在样本点集上聚合）：
+
+- 各目标分量：`rmse_u/v/w/p`、`mae_*`、`r2_*`（与 `TARGET_NAMES` 一致）
+- 速度模长：`rmse_vel_mag`、`mae_vel_mag`、**`r2_vel_mag`**（|v| 的一元 R²，2026-03-29 起写入 JSON）
+
+旧版仅含 RMSE/MAE 的 `fig_A5_regional_metrics.json` 需重新跑一次 `plot_taskA_regional_bar` 以补齐 `r2_vel_mag`。
+
+## 6. 相关脚本
 
 - 单 run：`training/scripts/plot_taskA_regional_bar.py` → `predictions_test/regional_eval/fig_A5_regional_metrics.json`
-- 多模型汇总：`training/scripts/plot_taskA_multimodel_regional_bar.py` → `outputs/field/plots/fig_A5_multimodel_regional_bar_*.png`
-
+- 多模型汇总：`training/scripts/plot_taskA_multimodel_regional_bar.py` → `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`
+- 主结果表 CSV：`training/scripts/plot_taskA_main_table.py` → `plots/summary/fig_A1_main_table.csv`，主区域列可直接导出 **`rmse_u/v/w/p/vel_mag` + `r2_u/v/w/p/vel_mag`**；同时附加 **`all_rmse_vel_mag` / `all_r2_vel_mag`** 参考列，以及 **`near_wall_rmse_*` / `near_wall_r2_*`**（含 `r2_vel_mag`）。若某 run 尚未生成 regional JSON，对应区域列按脚本回退逻辑留空或回退到 `summary.json`。
