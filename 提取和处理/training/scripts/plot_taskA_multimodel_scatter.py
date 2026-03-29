@@ -7,27 +7,27 @@
 
 用法示例
 --------
-# 默认：对 runs-root 下所有 seed=1 的 run，绘制 vel_mag 散点对比图
+# 默认：对 runs-root 下所有 seed=1 的 run，绘制 vel_mag 散点对比图（写入 plots/multimodel_baseline）
 python -m training.scripts.plot_taskA_multimodel_scatter \\
     --runs-root outputs/field \\
     --seed-filter 1 \\
-    --variable vel_mag \\
-    --output-dir outputs/field/plots
+    --variable vel_mag
 
 # 绘制压力场（p）的对比图
 python -m training.scripts.plot_taskA_multimodel_scatter \\
     --runs-root outputs/field \\
     --seed-filter 1 \\
-    --variable p \\
-    --output-dir outputs/field/plots
+    --variable p
 
 # 只对比 Transformer 无几何 vs 有几何
 python -m training.scripts.plot_taskA_multimodel_scatter \\
     --runs-root outputs/field \\
     --seed-filter 1 \\
     --exp-filter A-Base-03 --exp-filter A-Main-01 \\
-    --variable vel_mag \\
-    --output-dir outputs/field/plots
+    --variable vel_mag
+
+# 优化线子目录示例（Pre-Norm vs Main）
+#   --output-dir outputs/field/plots/optimization/prenorm_A_Opt02_vs_Main01 --tag seed1
 """
 from __future__ import annotations
 
@@ -37,6 +37,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from ..core.field_plot_paths import CAT_MULTIMODEL_BASELINE, category_dir
+
 import numpy as np
 
 _EXP_LABELS: Dict[str, str] = {
@@ -44,8 +46,17 @@ _EXP_LABELS: Dict[str, str] = {
     "A-Base-02": "GraphSAGE",
     "A-Base-03": "Transformer",
     "A-Main-01": "Transformer+Geom",
+    "A-Opt-02": "Transformer+Geom (Pre-Norm)",
+    "A-Opt-02_warmup": "Transformer+Geom (Pre-Norm+Warmup5)",
 }
-_EXP_ORDER: List[str] = ["A-Base-01", "A-Base-02", "A-Base-03", "A-Main-01"]
+_EXP_ORDER: List[str] = [
+    "A-Base-01",
+    "A-Base-02",
+    "A-Base-03",
+    "A-Main-01",
+    "A-Opt-02",
+    "A-Opt-02_warmup",
+]
 _VALID_VARIABLES = {"u", "v", "w", "p", "vel_mag"}
 
 
@@ -134,13 +145,26 @@ def main() -> None:
         choices=["all", "interior", "wall"],
         help="节点过滤区域（默认 interior，仅内部节点）",
     )
-    parser.add_argument("--output-dir", default="", help="输出目录，默认 <runs-root>/plots")
+    parser.add_argument(
+        "--output-dir",
+        default="",
+        help="输出目录，默认 <runs-root>/plots/multimodel_baseline；优化线对照可指向 plots/optimization/<课题名>/",
+    )
     parser.add_argument("--title", default="", help="图标题（为空则自动生成）")
+    parser.add_argument(
+        "--tag",
+        default="",
+        help='输出文件名附加段（如 seed1 → …_geo_only_seed1.png），避免多 seed 互相覆盖',
+    )
     args = parser.parse_args()
 
     runs_root = Path(args.runs_root).resolve()
     exp_filter: Optional[List[str]] = args.exp_filter or None
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else (runs_root / "plots")
+    output_dir = (
+        Path(args.output_dir).resolve()
+        if args.output_dir
+        else category_dir(runs_root, CAT_MULTIMODEL_BASELINE)
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # 按 exp_id 收集符合 seed-filter 的 manifest 路径
@@ -186,6 +210,8 @@ def main() -> None:
     suffix = f"_{args.variable}{region_tag}"
     if exp_filter:
         suffix += "_geo_only"
+    if args.tag:
+        suffix += f"_{args.tag}"
     title = args.title or f"Figure A3 Scatter Comparison ({args.region} nodes)"
     output_path = output_dir / f"fig_A3_multimodel_scatter{suffix}.png"
     plot_multimodel_scatter(

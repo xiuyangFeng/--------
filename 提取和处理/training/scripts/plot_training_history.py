@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
 from ..analysis.visualization import plot_multi_model_curves, plot_training_curves
+from ..core.field_plot_paths import CAT_TRAINING_CURVES, category_dir
 
 # ── Short display names for known experiment configurations ───────────────────
 # Ordered longest-first so prefix matching is unambiguous.
@@ -140,7 +141,7 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         default="",
-        help="汇总图和汇总表输出目录，默认为 <runs-root>/plots",
+        help="汇总图和汇总表输出目录，默认为 <runs-root>/plots/training_curves",
     )
     parser.add_argument(
         "--compare-metric",
@@ -170,7 +171,11 @@ def main() -> None:
     if not run_dirs:
         raise SystemExit("未找到任何包含 history.csv 的 run 目录")
 
-    output_dir = ensure_dir(args.output_dir) if args.output_dir else ensure_dir(runs_root / "plots")
+    output_dir = (
+        ensure_dir(args.output_dir)
+        if args.output_dir
+        else ensure_dir(category_dir(runs_root, CAT_TRAINING_CURVES))
+    )
 
     compare_histories: Dict[str, Dict[str, List[float]]] = {}
     group_map: Dict[str, str] = {}

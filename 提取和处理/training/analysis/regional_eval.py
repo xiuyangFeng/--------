@@ -1,6 +1,6 @@
 """Regional evaluation for Task A field predictions.
 
-Computes metrics (RMSE, MAE, R²) per spatial region so that the paper
+Computes metrics (RMSE, MAE, R², plus r2_vel_mag on |v|) per spatial region so that the paper
 can report performance broken down by:
   - wall vs interior nodes
   - high-curvature vs low-curvature regions
@@ -185,6 +185,9 @@ def compute_regional_metrics(
         vel_t = t[:, :3].norm(dim=1)
         metrics["rmse_vel_mag"] = torch.sqrt(((vel_p - vel_t) ** 2).mean()).item()
         metrics["mae_vel_mag"] = (vel_p - vel_t).abs().mean().item()
+        ss_res_vm = ((vel_t - vel_p) ** 2).sum()
+        ss_tot_vm = ((vel_t - vel_t.mean()) ** 2).sum().clamp_min(1e-12)
+        metrics["r2_vel_mag"] = (1.0 - ss_res_vm / ss_tot_vm).item()
 
         results[region_name] = metrics
 

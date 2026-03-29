@@ -7,7 +7,7 @@
 
   cd GNN
   conda run -n GNN python -m training.scripts.run_efficiency_benchmark \\
-      --output-dir outputs/field/plots
+      --output-dir outputs/field/plots/efficiency
 
 依赖：各 run 的 ``config.snapshot.json``、``best_model.pt``、``summary.json``。
 """
@@ -24,6 +24,7 @@ import numpy as np
 import torch
 
 from ..analysis.benchmark import benchmark_full_case, build_efficiency_table
+from ..core.field_plot_paths import CAT_EFFICIENCY
 from ..analysis.visualization import (
     plot_efficiency_bars,
     plot_efficiency_bars_per_seed,
@@ -281,8 +282,8 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         type=str,
-        default="outputs/field/plots",
-        help="JSON 与图的输出目录",
+        default=f"outputs/field/plots/{CAT_EFFICIENCY}",
+        help="JSON 与图的输出目录（默认 plots/efficiency）",
     )
     parser.add_argument(
         "--runs-root",

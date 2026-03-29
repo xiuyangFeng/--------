@@ -8,13 +8,11 @@
 用法示例
 --------
 python -m training.scripts.plot_taskA_multimodel_per_case_boxplot \\
-    --runs-root outputs/field \\
-    --output-dir outputs/field/plots
+    --runs-root outputs/field
 
 python -m training.scripts.plot_taskA_multimodel_per_case_boxplot \\
     --runs-root outputs/field \\
-    --metric-key rmse_vel_mag --metric-key rmse_p \\
-    --output-dir outputs/field/plots
+    --metric-key rmse_vel_mag --metric-key rmse_p
 """
 from __future__ import annotations
 
@@ -23,7 +21,9 @@ import csv
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
+
+from ..core.field_plot_paths import CAT_MULTIMODEL_BASELINE, category_dir
 
 # exp_id → 论文显示标签，未在表中的 exp_id 直接原样显示
 _EXP_LABELS: Dict[str, str] = {
@@ -31,10 +31,19 @@ _EXP_LABELS: Dict[str, str] = {
     "A-Base-02": "GraphSAGE",
     "A-Base-03": "Transformer",
     "A-Main-01": "Transformer+Geom",
+    "A-Opt-02": "Transformer+Geom (Pre-Norm)",
+    "A-Opt-02_warmup": "Transformer+Geom (Pre-Norm+Warmup5)",
 }
 
 # 控制多模型在图中的显示顺序
-_EXP_ORDER: List[str] = ["A-Base-01", "A-Base-02", "A-Base-03", "A-Main-01"]
+_EXP_ORDER: List[str] = [
+    "A-Base-01",
+    "A-Base-02",
+    "A-Base-03",
+    "A-Main-01",
+    "A-Opt-02",
+    "A-Opt-02_warmup",
+]
 
 
 def _load_per_case_csv(csv_path: Path) -> Dict[str, Dict[str, float]]:
@@ -83,17 +92,32 @@ def main() -> None:
         help="箱线图指标，可重复传入；默认 rmse_vel_mag、rmse_p",
     )
     parser.add_argument(
+        "--exp-filter",
+        action="append",
+        default=[],
+        help="只包含指定 exp_id，可重复传入；默认包含全部",
+    )
+    parser.add_argument(
         "--region", default="interior",
         choices=["all", "interior", "wall"],
         help="节点过滤区域（默认 interior）；对应读取 fig_A4_per_case_metrics_<region>.csv",
     )
-    parser.add_argument("--output-dir", default="", help="输出目录，默认 <runs-root>/plots")
+    parser.add_argument(
+        "--output-dir",
+        default="",
+        help="输出目录，默认 <runs-root>/plots/multimodel_baseline",
+    )
     parser.add_argument("--title", default="", help="图标题（为空则自动生成）")
     args = parser.parse_args()
 
     runs_root = Path(args.runs_root).resolve()
     metric_keys = args.metric_key or ["rmse_vel_mag", "rmse_p"]
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else (runs_root / "plots")
+    exp_filter: Optional[List[str]] = args.exp_filter or None
+    output_dir = (
+        Path(args.output_dir).resolve()
+        if args.output_dir
+        else category_dir(runs_root, CAT_MULTIMODEL_BASELINE)
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     region_tag = "" if args.region == "all" else f"_{args.region}"
@@ -105,12 +129,20 @@ def main() -> None:
     )
 
     for run_dir in _discover_runs(runs_root):
-        csv_path = run_dir / "predictions_test" / csv_filename
-        if not csv_path.exists():
-            csv_path = run_dir / "predictions_test" / "fig_A4_per_case_metrics.csv"
-        if not csv_path.exists():
-            continue
         exp_id = _read_exp_id(run_dir)
+        if exp_filter and exp_id not in exp_filter:
+            continue
+        search_paths = [
+            run_dir / "predictions_test" / csv_filename,
+            run_dir / "predictions_test" / "fig_A4_per_case_metrics.csv",
+        ]
+        if args.region == "interior":
+            search_paths.append(
+                run_dir / "predictions_test" / "error_analysis_interior" / "per_case_metrics.csv"
+            )
+        csv_path = next((p for p in search_paths if p.exists()), None)
+        if csv_path is None:
+            continue
         per_case = _load_per_case_csv(csv_path)
         for case_name, metrics in per_case.items():
             for metric_key, value in metrics.items():
@@ -141,7 +173,8 @@ def main() -> None:
         ) from exc
 
     title = args.title or f"Figure A4 Per-Case Comparison ({args.region} nodes, all models)"
-    output_path = output_dir / f"fig_A4_multimodel_per_case_boxplot{region_tag}.png"
+    suffix_f = "_exp_subset" if exp_filter else ""
+    output_path = output_dir / f"fig_A4_multimodel_per_case_boxplot{region_tag}{suffix_f}.png"
     plot_multimodel_per_case_boxplot(
         models_data,
         metric_keys=metric_keys,

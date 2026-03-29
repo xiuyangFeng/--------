@@ -204,9 +204,9 @@ python -m training.scripts.run_field_plan \
 - `fig_error_distribution.png`
 - `fig_error_cdf.png`
 
-**（2026-03-24 更新）分区域评估口径已统一**：`plot_taskA_regional_bar` 在聚合指标时从各样本 `graph_path` 读回**未按训练配置 mask 的完整节点特征**生成区域 mask，因此 `A-Base-01` / `A-Base-02` / `A-Base-03` / `A-Main-01` 在 **`high_curvature / near_wall / bifurcation / trunk` 等全部预定义区域**上均为**同一几何定义**，可与模型是否启用几何输入解耦。各 run 已重算 `predictions_test/regional_eval/fig_A5_regional_metrics.json`，汇总层 `outputs/field/plots/fig_A5_multimodel_regional_bar_*.png` 已按该口径更新（集群批处理见 `training/cluster/run_regional_a5.slurm`）。  
+**（2026-03-24 更新）分区域评估口径已统一**：`plot_taskA_regional_bar` 在聚合指标时从各样本 `graph_path` 读回**未按训练配置 mask 的完整节点特征**生成区域 mask，因此 `A-Base-01` / `A-Base-02` / `A-Base-03` / `A-Main-01` 在 **`high_curvature / near_wall / bifurcation / trunk` 等全部预定义区域**上均为**同一几何定义**，可与模型是否启用几何输入解耦。各 run 已重算 `predictions_test/regional_eval/fig_A5_regional_metrics.json`，汇总层 `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png` 已按该口径更新（集群批处理见 `training/cluster/run_regional_a5.slurm`）。  
 **（2026-03-26 补充）** 各区域的默认名称、区间与易混点（采样 2 mm 阈值 vs 评估 `NormRadius` 等）已整理为 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)。  
-效率 benchmark 已补齐，当前 `outputs/field/plots/` 下已新增：
+效率 benchmark 已补齐，当前 `outputs/field/plots/efficiency/` 下已新增：
 
 - `fig_A7_efficiency_benchmark.json`
 - `fig_A7_efficiency_bars.png`
@@ -219,7 +219,7 @@ python -m training.scripts.run_field_plan \
 - `A-Base-03` 与 `A-Main-01` 时延和显存几乎相同：`6.95 ± 0.09` vs `6.88 ± 0.02 ms / snapshot`，显存约 `2.18 GB`
 - `A-Main-01` 在几乎不增加部署开销的前提下，相比 `A-Base-03` 显著降低了 `RMSE_|v|`
 
-新增的效率图现已不止主柱图和主 Pareto 图，还包括：
+新增的效率图现已不止主柱图和主 Pareto 图，还包括（均在 **`plots/efficiency/`**）：
 
 - `fig_A7_efficiency_bars_mean_std.png`
 - `fig_A7_latency_per_seed.png`
@@ -230,7 +230,11 @@ python -m training.scripts.run_field_plan \
 
 下一步：**区域标签评估口径已统一**，可启动 **A-Abl-01**（输入特征消融）；效率证据层面当前已经具备 3-seed 版本，后续若还要继续加固，可再补多病例 benchmark 或给出 CFD 时间基线以填写 `speedup_vs_CFD`。
 
-**（2026-03-26 补充）P0-1 / `A-Opt-01`**：`target_weights=[2,2,2,0.5]` 三 seed 已完成训练；测试集预测与 **`predictions_test/regional_eval/`** 已补全，多模型 Fig A5 汇总图已包含该 `exp_id`。模型结构仍与主线 `A-Main-01` 一致（无 Pre-Norm 时的 `FieldTransformer`）；若启用 Pre-Norm（`A-Opt-02`），须使用配置 **`use_transformer_prenorm: true`** 并**从头训练**，不得与旧 `best_model.pt` 混用。
+**（2026-03-26 补充）P0-1 / `A-Opt-01`**：`target_weights=[2,2,2,0.5]` 三 seed 已完成训练；测试集预测与 **`predictions_test/regional_eval/`** 已补全，多模型 Fig A5 汇总图已包含该 `exp_id`。模型结构仍与主线 `A-Main-01` 一致（无 Pre-Norm 时的 `FieldTransformer`）；若启用 Pre-Norm（`A-Opt-02`），须使用配置 **`use_transformer_prenorm: true`** 并**从头训练**，不得与旧 `best_model.pt` 混用。  
+**（2026-03-27 补充）P0-2 / `A-Opt-02`**：Pre-Norm **`FieldTransformer`** 三 seed 已完成（`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_split_AG_v1_seed{1,2,3}_20260327_*`）；已补 **`predictions_test/`**、**`error_analysis_interior/`**、**`regional_eval/`**；与 **`A-Main-01`** 同 seed 的内部节点 |v|/p 对照散点见 **`outputs/field/plots/optimization/prenorm_A_Opt02_vs_Main01/`**。数值摘要见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-02」与 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md) P0-2 节。  
+**（2026-03-27 更新）P0-3 / `A-Opt-02_warmup` 已归档**：三 seed run 位于 `outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_warmup5_split_AG_v1_seed{1,2,3}_20260327_*`；已具备 **`predictions_test/`**、**`error_analysis_interior/`**、**`regional_eval/`**。与 **`A-Main-01` / `A-Opt-02`** 同 seed 的 **内部节点** |v|/p 散点、Fig A5 区域柱、Fig A4 per-case 箱线见 **`outputs/field/plots/optimization/prenorm_Main_P02_P02w/`**（一键重生成：`python -m training.scripts.regenerate_p02_warmup_comparison_figures`）。数值与叙事见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-02_warmup」与 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md) P0-3 节。  
+**（2026-03-28 同步）P0 组合线已归档**：**`A-Opt-03`**（`A-Opt-01` 损失权重 + Pre-Norm）与 **`A-Opt-03w`**（再叠 `warmup_epochs=5`）均 **三 seed** 完成；**默认基座为 `A-Opt-03`**（**03w 未更好**）。数值与 trade-off 见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-03 / A-Opt-03w」与 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md) P0-4 节；训练期汇总 CSV：`outputs/field/plots/optimization/prenorm_A_Opt03_vs_Opt03w/best_metrics.csv`。  
+**P0 下一里程碑**：**`A-Opt-04`**（`hidden_dim=256`，以 **`A-Opt-03`** 配置为起点）。
 
 **（2026-03-26 重要更新）主指标口径统一为 interior-only**：
 - 此前主表、消融图、效率 Pareto 图等均使用 `summary.json.test_metrics.rmse_vel_mag`（all 节点），wall 节点的近零误差会系统性拉低 RMSE，导致主结论偏乐观。

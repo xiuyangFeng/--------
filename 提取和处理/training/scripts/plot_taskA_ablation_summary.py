@@ -5,6 +5,7 @@ import csv
 from pathlib import Path
 from typing import Dict, List
 
+from ..core.field_plot_paths import CAT_ABLATION, category_dir
 from ._figure_utils import load_json, read_regional_metric, resolve_run_dirs, save_json
 
 
@@ -47,7 +48,11 @@ def main() -> None:
         help="指标来源区域（默认 interior；优先读 regional_eval，回退 summary.json）",
     )
     parser.add_argument("--baseline", default="", help="基线实验名；默认取第一组")
-    parser.add_argument("--output-dir", default="", help="输出目录，默认 <runs-root>/plots")
+    parser.add_argument(
+        "--output-dir",
+        default="",
+        help="输出目录，默认 <runs-root>/plots/ablation",
+    )
     parser.add_argument("--title", default="", help="图标题（为空则自动生成）")
     args = parser.parse_args()
 
@@ -98,7 +103,11 @@ def main() -> None:
             lower_is_better=True,
         )
 
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else (runs_root / "plots")
+    output_dir = (
+        Path(args.output_dir).resolve()
+        if args.output_dir
+        else category_dir(runs_root, CAT_ABLATION)
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
     highlight_idx = experiment_names.index(baseline_name) if baseline_name in experiment_names else None
 

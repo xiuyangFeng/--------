@@ -9,8 +9,11 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from ..core.field_plot_paths import SUBDIR_P0_1_OPT01_VS_MAIN01, optimization_campaign_dir
+
 ROOT = Path(__file__).resolve().parents[2]
-OUT_DIR = ROOT / "outputs" / "field" / "plots"
+RUNS_ROOT = ROOT / "outputs" / "field"
+OUT_DIR = optimization_campaign_dir(RUNS_ROOT, SUBDIR_P0_1_OPT01_VS_MAIN01)
 
 MAIN_RUNS = [
     ROOT / "outputs/field/field_transformer_coord_t_bc_geom_wall_split_AG_v1_seed1_20260322_064925/summary.json",

@@ -8,15 +8,13 @@
 用法示例
 --------
 python -m training.scripts.plot_taskA_multimodel_regional_bar \\
-    --runs-root outputs/field \\
-    --output-dir outputs/field/plots
+    --runs-root outputs/field
 
 # 只对比 Transformer 无几何 vs 有几何（聚焦几何贡献）
 python -m training.scripts.plot_taskA_multimodel_regional_bar \\
     --runs-root outputs/field \\
     --exp-filter A-Base-03 --exp-filter A-Main-01 \\
-    --metric-key rmse_vel_mag \\
-    --output-dir outputs/field/plots
+    --metric-key rmse_vel_mag
 """
 from __future__ import annotations
 
@@ -26,14 +24,26 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from ..core.field_plot_paths import CAT_MULTIMODEL_BASELINE, category_dir
+
 _EXP_LABELS: Dict[str, str] = {
     "A-Base-01": "MLP",
     "A-Base-02": "GraphSAGE",
     "A-Base-03": "Transformer",
     "A-Main-01": "Transformer+Geom",
     "A-Opt-01": "Transformer+Geom (tw22205)",
+    "A-Opt-02": "Transformer+Geom (Pre-Norm)",
+    "A-Opt-02_warmup": "Transformer+Geom (Pre-Norm+Warmup5)",
 }
-_EXP_ORDER: List[str] = ["A-Base-01", "A-Base-02", "A-Base-03", "A-Main-01", "A-Opt-01"]
+_EXP_ORDER: List[str] = [
+    "A-Base-01",
+    "A-Base-02",
+    "A-Base-03",
+    "A-Main-01",
+    "A-Opt-01",
+    "A-Opt-02",
+    "A-Opt-02_warmup",
+]
 
 
 def _discover_runs(runs_root: Path) -> List[Path]:
@@ -83,7 +93,11 @@ def main() -> None:
         default=[],
         help="只显示指定区域，可重复传入；默认显示全部",
     )
-    parser.add_argument("--output-dir", default="", help="输出目录，默认 <runs-root>/plots")
+    parser.add_argument(
+        "--output-dir",
+        default="",
+        help="输出目录，默认 <runs-root>/plots/multimodel_baseline",
+    )
     parser.add_argument("--title-prefix", default="Figure A5 Regional Error", help="图标题前缀")
     args = parser.parse_args()
 
@@ -91,7 +105,11 @@ def main() -> None:
     metric_keys = args.metric_key or ["rmse_vel_mag", "rmse_p"]
     exp_filter: Optional[List[str]] = args.exp_filter or None
     region_filter: Optional[List[str]] = args.region or None
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else (runs_root / "plots")
+    output_dir = (
+        Path(args.output_dir).resolve()
+        if args.output_dir
+        else category_dir(runs_root, CAT_MULTIMODEL_BASELINE)
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # 收集：exp_id → {region → {metric → [values across seeds]}}

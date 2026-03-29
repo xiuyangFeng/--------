@@ -151,3 +151,9 @@
 - [ ] `A-Abl-01` 已启动
 
 如果这 5 项还没齐，不建议下周直接进入 hierarchy。
+
+---
+
+## 7. 优化线（P0）进度指针（非本周唯一主线）
+
+Baseline 与 `A-Abl-01` 完成后，**内部精度优化线**见 [任务A实验状态表](任务A实验状态表.md) 第三批与 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md)。**（2026-03-27）** **`A-Opt-01`、`A-Opt-02`、`A-Opt-02_warmup`（P0-3）均已三 seed 归档**（含 `predictions_test`、`regional_eval`、`error_analysis_interior` 及 `plots/optimization/prenorm_Main_P02_P02w`）。**（2026-03-28）** **`A-Opt-03`、`A-Opt-03w`（P0-4）已三 seed 归档**（同上后处理链；`plots/optimization/prenorm_A_Opt03_vs_Opt03w/best_metrics.csv`）。**P0 默认基座：`A-Opt-03`**。**下一组：`A-Opt-04`**（`hidden_dim=256`，以 **`A-Opt-03`** 配置为模板）。

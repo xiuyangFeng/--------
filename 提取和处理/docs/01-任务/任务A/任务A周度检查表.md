@@ -146,7 +146,7 @@
 - **当前最优主线**：A-Main-01（Transformer + 全几何特征，RMSE_|v|=1.161±0.038）
 - **当前最重要的结论**：显式几何特征（Abscissa/NormRadius/Curvature/Tangent）是速度场精度提升的关键来源，尤其对 w（轴向）分量贡献最大（R2: 0.325→0.545）；架构差异（Transformer vs GraphSAGE）在无几何特征时几乎无影响
 - **与预期相反的结果**：MLP 压力预测（R2_p=0.920）不弱于 GraphSAGE（0.901），说明压力场与坐标关系更直接，图结构对压力帮助有限
-- **当前最大阻塞**：~~区域标签横比口径~~（**2026-03-24 已解除**：评估阶段从 `graph_path` 读完整几何，四模型区域 mask 一致，各 run `regional_eval` 与 `plots/fig_A5_multimodel_*` 已重算）
+- **当前最大阻塞**：~~区域标签横比口径~~（**2026-03-24 已解除**：评估阶段从 `graph_path` 读完整几何，四模型区域 mask 一致，各 run `regional_eval` 与 `plots/multimodel_baseline/fig_A5_multimodel_*` 已重算）
 - **下周只做哪 1 到 2 件事**：1. 启动 **A-Abl-01**（输入特征层级消融）；2. 按需在论文/汇报中固化「复杂区域」跨模型对比表述（数据已就绪）
 
 ### 是否达到本周门槛
@@ -200,13 +200,17 @@
 | `A-Abl-01-04` | `coords + t + BC + geometry`           | `[]`   | `[]`     | `[]`     |       |
 | `A-Abl-01-05` | `coords + t + BC + geometry + is_wall` | `[]`   | `[]`     | `[]`     |       |
 | `A-Opt-01`    | P0-1：`target_weights` 速度加权           | [x]   | [x]     | [x]     | 内部/高曲率/分叉/主干 `RMSE_|v|` 较 Main 下降，近壁基本持平；regional 已归档 |
+| `A-Opt-02`    | P0-2：Pre-Norm `FieldTransformer`         | [x]   | [x]     | [x]     | 相对 Main 内部/多区域 `RMSE_|v|` 均值降，壁面略差；`plots/optimization/prenorm_A_Opt02_vs_Main01` 对照图；2026-03-27 |
+| `A-Opt-02_warmup` | P0-3：`A-Opt-02` + `optim.warmup_epochs=5` | [x]  | [x]     | [x]     | 三 seed + 后处理已闭环（2026-03-27）；`plots/optimization/prenorm_Main_P02_P02w`；**救 seed3 / `best_epoch` 分布改善**，**`rmse_p` 均值相对无 warmup 变差** |
+| `A-Opt-03` | P0-4：`A-Opt-01` + `A-Opt-02`（`target_weights` + Pre-Norm） | [x]  | [x]     | [x]     | 三 seed + 后处理已闭环（2026-03-28）；**速度主指标 P0 线最优**；**`summary.rmse_p` 相对 Opt-01/02 变差**（trade-off）；汇总 `plots/optimization/prenorm_A_Opt03_vs_Opt03w/best_metrics.csv` |
+| `A-Opt-03w` | P0-4：`A-Opt-03` + `warmup_epochs=5` | [x]  | [x]     | [x]     | 三 seed（2026-03-28）；**未优于 `A-Opt-03`**；默认基座仍取 03 |
 
 
 ### 本周必填总结
 
 - 本周固定版本：
-- 本周新完成实验：**`A-Opt-01`**（三 seed + `predict_field` + `plot_taskA_regional_bar` + 多模型 Fig A5 更新，2026-03-26）
-- 当前最优主线：**单尺度流场重建优先损失配置**可汇报为 `A-Opt-01`（全局与复杂区域指标优于 `A-Main-01`）；结构线仍待 `A-Opt-02`（Pre-Norm）
+- 本周新完成实验：**`A-Opt-01`**（三 seed + `predict_field` + `plot_taskA_regional_bar` + 多模型 Fig A5 更新，2026-03-26）；**`A-Opt-02`**（三 seed + 导出 + `error_analysis_interior` + `regional_eval` + 与 Main 多模型散点，2026-03-27）；**`A-Opt-02_warmup`**（P0-3，同上后处理链 + `prenorm_Main_P02_P02w`，2026-03-27）；**`A-Opt-03` / `A-Opt-03w`**（P0-4，2026-03-28，见状态表与 `prenorm_A_Opt03_vs_Opt03w`）
+- 当前最优主线：**P0 组合默认基座为 `A-Opt-03`**（`target_weights` + Pre-Norm）：**速度**（全局 / 内部 / 壁面 `RMSE_|v|` 与内 **`R²_u/v/w`**）**相对 Main、`A-Opt-01`、`A-Opt-02` 为当前最优**；**`summary` 口径 `RMSE p` 相对 `A-Opt-01`/`A-Opt-02` 略差**，须在叙事中并列 **trade-off**。**`A-Opt-03w` 未优于 03**。按 [优化路径](任务A优化路径与近期实验建议.md) **下一组为 `A-Opt-04`（`hidden_dim=256`）**
 - 当前最重要的结论：
 - 与预期相反的结果：
 - 当前最大阻塞：
@@ -221,7 +225,10 @@
 ### Week 2 后补（2026-03-26）
 
 - 在 Week 2 模板表中补登记 **`A-Opt-01`**（P0-1）完成项与前一周「本周必填总结」摘要；完整数值与区域对照见 [任务A实验状态表](任务A实验状态表.md)。
-- **`A-Abl-01` 仍为未完成**：本周门槛勾选应以实际周进度为准；优化线进度已单独在状态表「第三批」更新为 **`A-Opt-01` ✅**。
+- **`（2026-03-27）`** 同表补登记 **`A-Opt-02`**（P0-2）；状态表「第三批」现为 **`A-Opt-01` ✅**、**`A-Opt-02` ✅**。  
+- **`（2026-03-27）`** **`A-Opt-02_warmup`（P0-3）✅**。  
+- **`（2026-03-28）`** **`A-Opt-03` / `A-Opt-03w`（P0-4）✅**；下一步 **`A-Opt-04`**。
+- **`A-Abl-01` 仍为未完成**：本周门槛勾选应以实际周进度为准。
 
 ---
 

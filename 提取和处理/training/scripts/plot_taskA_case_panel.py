@@ -20,7 +20,7 @@ python -m training.scripts.plot_taskA_case_panel \\
     --sample-id result_features_merged-1120 \\
     --case-name slow/GUO_XI_JIANG \\
     --variable vel_mag \\
-    --output outputs/field/plots/fig_A2_vel_mag.png
+    --output outputs/field/plots/case_panels/fig_A2_vel_mag.png
 
 # |v|+p 与矢量图一次出齐
 python -m training.scripts.plot_taskA_case_panel \\
@@ -28,11 +28,13 @@ python -m training.scripts.plot_taskA_case_panel \\
     --sample-id result_features_merged-1120 \\
     --case-name slow/GUO_XI_JIANG \\
     --mode both \\
-    --output outputs/field/plots/fig_A2_case_GUO_1120.png
+    --output outputs/field/plots/case_panels/fig_A2_case_GUO_1120.png
 """
 from __future__ import annotations
 
 import argparse
+
+from ..core.field_plot_paths import CAT_CASE_PANELS
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -158,7 +160,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         default="",
-        help="输出 PNG 路径，默认 <manifest 父目录>/../../plots/fig_A2_case_panel_<sample_id>.png",
+        help="输出 PNG 路径，默认 <runs-root>/plots/case_panels/fig_A2_case_panel_<sample_id>.png",
     )
     parser.add_argument("--title", default="Figure A2 Case Panel", help="总标题")
     parser.add_argument("--max-points", type=int, default=12_000, help="每个子图最多绘制的点数")
@@ -207,7 +209,7 @@ def main() -> None:
     plane_map = {"xy": (0, 1), "xz": (0, 2), "yz": (1, 2)}
     axes_plane = plane_map[args.plane]
 
-    plots_dir = manifest_path.parent.parent.parent / "plots"
+    plots_dir = manifest_path.parent.parent.parent / "plots" / CAT_CASE_PANELS
     plots_dir.mkdir(parents=True, exist_ok=True)
 
     def default_scalar_path() -> Path:
