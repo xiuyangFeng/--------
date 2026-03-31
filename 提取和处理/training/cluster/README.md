@@ -4,12 +4,14 @@
 
 ```text
 cluster/
-├── run_train_field.slurm    # 单配置训练
-├── run_plan.slurm           # 顺序执行 manifest
-├── run_array.slurm          # Array Job 并行执行多个配置
-├── batch_submit.sh          # 批量提交脚本
-├── generate_manifest_list.sh # 从 manifest 生成配置列表
-├── logs/                    # 日志目录（自动创建）
+├── run_train_field.slurm       # 单配置训练
+├── run_plan.slurm              # 顺序执行 manifest
+├── run_array.slurm             # Array Job 并行执行多个配置
+├── run_compare_hemo_wss.slurm   # 多 run WSS 对比（compare_hemo_wss_runs）
+├── hemo_wss_runs_A_Opt03_04_05_seed1.tsv  # 示例：A-Opt-03/04/05 seed1 的 manifest 列表
+├── batch_submit.sh             # 批量提交脚本
+├── generate_manifest_list.sh   # 从 manifest 生成配置列表
+├── logs/                       # 日志目录（自动创建）
 └── README.md
 ```
 
@@ -17,6 +19,7 @@ cluster/
 
 - 单个配置训练：`python -m training.scripts.train_field`
 - 按 manifest 顺序批量执行：`python -m training.scripts.run_field_plan`
+- 多 run 壁面 WSS 对比（需已跑过 `predict_field`）：`python -m training.scripts.compare_hemo_wss_runs`
 
 这套集群脚本只负责调度，不复制训练逻辑。
 
@@ -104,7 +107,53 @@ sbatch --array=0-11%4 run_array.slurm
 - `%4` 表示最多同时跑 4 个任务
 - 配置列表默认写到 `training/cluster/manifest_list.tsv`
 
-### 5. 一键批量提交
+### 5. 多 run WSS 对比（任务 A / Line W）
+
+在 **计算节点** 上跑 `compare_hemo_wss_runs`，避免登录节点长时间占核。依赖各实验目录下已有 `predictions_test/manifest.json`（或你改为 `predictions_val` 则在 TSV 里写对应路径）。
+
+**Run 列表**：TSV 两列，制表符分隔——**第 1 列**为对比用标签（如 `A-Opt-03`），**第 2 列**为 `manifest.json` 的**相对仓库根目录**路径。以 `#` 开头的行视为注释。可参考 `training/cluster/hemo_wss_runs_A_Opt03_04_05_seed1.tsv` 复制修改为其它实验。
+
+```bash
+cd /path/to/GNN
+
+# 默认使用示例 TSV（A-Opt-03/04/05 seed1）
+sbatch training/cluster/run_compare_hemo_wss.slurm
+
+# 指定自有 TSV
+sbatch training/cluster/run_compare_hemo_wss.slurm training/cluster/my_wss_runs.tsv
+```
+
+日志路径与 **提交时当前目录** 有关：`#SBATCH --output=logs/%x_%j.out` 写在仓库根执行时，一般为 **`GNN/logs/field_hemo_wss_<JOBID>.out`**；若在 `training/cluster` 下执行 `sbatch run_compare_hemo_wss.slurm`，则落在 **`training/cluster/logs/`**。
+
+**环境变量**（`VAR=value sbatch ...` 或在脚本内 export）：
+
+| 变量 | 含义 |
+|------|------|
+| `HEMO_OUTPUT_DIR` | 输出目录（相对仓库根）；默认 `outputs/field/plots/optimization/wss_compare_<JOBID>` |
+| `HEMO_MAX_ITEMS` | 只处理每个 manifest 前 N 条（试跑）；不设或 `0` 为全量 |
+| `HEMO_NO_EXPORT=1` | 不执行 `export_hemo`（仅用已有 `hemo_ai`/`hemo_cfd` 做汇总） |
+| `TRAINING_ENV` / `TRAINING_PYTHON` | 与训练脚本相同 |
+
+**示例**（试跑 20 条 + 固定输出目录名）：
+
+```bash
+HEMO_MAX_ITEMS=20 HEMO_OUTPUT_DIR=outputs/field/plots/optimization/wss_A_Opt03_04_05_seed1_n20 \
+  sbatch training/cluster/run_compare_hemo_wss.slurm
+```
+
+**查看日志与结果**：
+
+```bash
+squeue -u $USER
+# 若在仓库根 sbatch：
+tail -f logs/field_hemo_wss_<JOBID>.out
+# 完成后（HEMO_OUTPUT_DIR 未改时，默认带作业号子目录）
+cat outputs/field/plots/optimization/wss_compare_<JOBID>/wss_compare_summary.json
+```
+
+说明：作业默认 `#SBATCH -w node03`、`--partition=CPU`、`--cpus-per-task=8`、 walltime `12:00:00`。**全量 test + export_hemo 可能极慢**，可加大 `--time` 或先用 `HEMO_MAX_ITEMS` 试通；正式论文表建议全量且 `--export` 重导 hemo。`export_hemo` 已带 **tqdm** 进度（加载 `.pt`、病例循环、时间步）；纯日志环境可加 `--no-progress`。
+
+### 6. 一键批量提交
 
 独立作业模式：
 
@@ -141,6 +190,7 @@ squeue -u $USER
 tail -f logs/field_train_<JOB_ID>.out
 tail -f logs/field_plan_<JOB_ID>.out
 tail -f logs/field_array_<JOB_ID>_<TASK_ID>.out
+tail -f logs/field_hemo_wss_<JOB_ID>.out
 
 scancel <JOB_ID>
 scancel <ARRAY_JOB_ID>

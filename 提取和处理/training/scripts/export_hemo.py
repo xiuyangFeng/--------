@@ -8,6 +8,11 @@ from typing import Dict, List
 
 import torch
 
+try:
+    from tqdm import tqdm
+except ImportError:  # pragma: no cover
+    tqdm = None  # type: ignore[misc, assignment]
+
 from ..analysis.hemo import (
     HemoSample,
     build_per_case_region_rows,
@@ -23,12 +28,23 @@ def load_prediction_manifest(path: str | Path) -> Dict[str, object]:
         return json.load(f)
 
 
-def load_samples(manifest_path: str | Path, source_field: str) -> List[HemoSample]:
+def load_samples(
+    manifest_path: str | Path,
+    source_field: str,
+    max_items: int = 0,
+    progress: bool = True,
+) -> List[HemoSample]:
     # source=AI 时取 y_pred；source=CFD 时取同一文件里的 y_true。
     # 这样一套导出结果就能同时支撑“预测指标”和“真值指标”两条链路。
     manifest = load_prediction_manifest(manifest_path)
+    items = manifest["items"]
+    if max_items and max_items > 0:
+        items = items[:max_items]
     samples: List[HemoSample] = []
-    for item in manifest["items"]:
+    item_iter = items
+    if progress and tqdm is not None:
+        item_iter = tqdm(items, desc="hemo 加载预测 .pt", unit="file")
+    for item in item_iter:
         prediction = torch.load(item["prediction_path"], map_location="cpu")
         patient_id, phase, time_step = parse_sample_id(prediction["sample_id"])
         y_field = prediction["y_pred"] if source_field == "AI" else prediction["y_true"]
@@ -77,6 +93,17 @@ def main() -> None:
         default="",
         help="输出目录，默认保存到 manifest 同级 hemo_<source>",
     )
+    parser.add_argument(
+        "--max-items",
+        type=int,
+        default=0,
+        help="仅处理 manifest 中前 N 条样本（调试用）；0 表示全部。正式报告请用全量。",
+    )
+    parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="关闭 tqdm 进度条（纯日志环境可略减输出）。",
+    )
     args = parser.parse_args()
 
     output_dir = (
@@ -85,7 +112,13 @@ def main() -> None:
         else ensure_dir(Path(args.manifest).resolve().parent / f"hemo_{args.source.lower()}")
     )
 
-    samples = load_samples(args.manifest, args.source)
+    show_progress = not args.no_progress
+    samples = load_samples(
+        args.manifest,
+        args.source,
+        max_items=args.max_items,
+        progress=show_progress,
+    )
     if not samples:
         raise ValueError("manifest 中没有可用预测样本")
 
@@ -97,12 +130,14 @@ def main() -> None:
         source=args.source,
         model_name=model_name,
         split_version=split_version,
+        progress=show_progress,
     )
     per_case_rows = build_per_case_region_rows(
         samples=samples,
         source=args.source,
         model_name=model_name,
         split_version=split_version,
+        progress=show_progress,
     )
     risk_rows = build_risk_feature_rows(per_case_rows)
 
@@ -119,6 +154,7 @@ def main() -> None:
                 "model_name": model_name,
                 "split_version": split_version,
                 "num_samples": len(samples),
+                "max_items_cap": args.max_items,
                 "files": {
                     "per_node_metrics": str(output_dir / "per_node_metrics.csv"),
                     "per_case_region_metrics": str(output_dir / "per_case_region_metrics.csv"),

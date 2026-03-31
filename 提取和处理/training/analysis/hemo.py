@@ -1,9 +1,23 @@
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, TypeVar
 
 import torch
+
+try:
+    from tqdm import tqdm as _tqdm_bar
+except ImportError:  # pragma: no cover
+    _tqdm_bar = None  # type: ignore[misc, assignment]
+
+T = TypeVar("T")
+
+
+def _tqdm(iterable: Iterable[T], *, enable: bool, **kwargs: Any) -> Iterable[T]:
+    if not enable or _tqdm_bar is None:
+        return iterable
+    return _tqdm_bar(iterable, **kwargs)
 
 BLOOD_VISCOSITY = 0.0035  # Pa·s
 
@@ -156,7 +170,22 @@ def _compute_wss_proxy(
     wall_mask: torch.Tensor,
     epsilon: float = 1e-8,
 ) -> Dict[str, torch.Tensor]:
-    """WSS 的旧版 proxy，保留给历史结果和缺字段样本使用。"""
+    """WSS 的旧版 proxy，保留给历史结果和缺字段样本使用。
+
+    警告：此 proxy 用壁面速度幅值 |v_wall| 近似 WSS，**物理上不正确**。
+    正确的 WSS 应由速度法向梯度 μ·|∂v/∂n_tangential| 计算。
+    无滑移边界条件下壁面速度应接近零，此 proxy 仅作为兼容性回退，
+    不应用于论文指标或定量分析。
+
+    触发条件：预测产物缺少 ``positions`` 或 ``edge_index``。
+    解决方法：确保 ``predict_field`` 导出时包含坐标和边，或检查 ``.pt`` 文件内容。
+    """
+    warnings.warn(
+        "WSS 计算回退到 proxy 模式（壁面速度幅值代替速度梯度）。"
+        "物理含义不正确，请确认预测产物包含 positions 和 edge_index。"
+        "若用于论文指标，结果不可信。",
+        stacklevel=3,
+    )
     wall_velocity = y_field[:, :3][wall_mask]
     if wall_velocity.numel() == 0:
         empty = y_field.new_zeros((0,))
@@ -238,6 +267,7 @@ def build_per_case_region_rows(
     model_name: str,
     split_version: str,
     region_name: str = "wall",
+    progress: bool = True,
 ) -> List[Dict[str, object]]:
     # 当前默认 region_name="wall"，相当于“全壁面区域”。
     # 等区域划分规则补齐后，这里可以按多个 region mask 输出多行。
@@ -246,7 +276,13 @@ def build_per_case_region_rows(
         by_case.setdefault((sample.patient_id, sample.phase), []).append(sample)
 
     rows: List[Dict[str, object]] = []
-    for (patient_id, phase), case_samples in sorted(by_case.items()):
+    case_iter = _tqdm(
+        sorted(by_case.items()),
+        enable=progress,
+        desc="hemo 病例级指标",
+        unit="case",
+    )
+    for (patient_id, phase), case_samples in case_iter:
         metrics = compute_cycle_metrics(case_samples)
         tawss_summary = summarize_region(metrics["tawss"])
         osi_summary = summarize_region(metrics["osi"])
@@ -302,6 +338,7 @@ def build_per_node_rows(
     source: str,
     model_name: str,
     split_version: str,
+    progress: bool = True,
 ) -> List[Dict[str, object]]:
     # per-node 表主要服务点级一致性分析、热图和后续 Bland-Altman / scatter 等可视化。
     rows: List[Dict[str, object]] = []
@@ -309,12 +346,25 @@ def build_per_node_rows(
     for sample in samples:
         grouped.setdefault((sample.patient_id, sample.phase), []).append(sample)
 
-    for (patient_id, phase), case_samples in sorted(grouped.items()):
+    case_iter = _tqdm(
+        sorted(grouped.items()),
+        enable=progress,
+        desc="hemo 点级表（按病例）",
+        unit="case",
+    )
+    for (patient_id, phase), case_samples in case_iter:
         metrics = compute_cycle_metrics(case_samples)
         ordered_samples = sorted(case_samples, key=lambda item: item.time_step)
         wall_indices = torch.nonzero(ordered_samples[0].wall_mask.bool(), as_tuple=False).flatten()
 
-        for time_index, sample in enumerate(ordered_samples):
+        time_it = _tqdm(
+            ordered_samples,
+            enable=progress,
+            desc=f"WSS 时间步 {patient_id}",
+            leave=False,
+            unit="t",
+        )
+        for time_index, sample in enumerate(time_it):
             proxy = compute_wss(
                 sample.y_field,
                 sample.wall_mask.bool(),

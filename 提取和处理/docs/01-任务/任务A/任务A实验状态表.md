@@ -4,6 +4,48 @@
 > 每次启动、完成或失败一组实验，**必须更新此表**。  
 > 上位文档：[任务A实验清单](任务A实验清单.md) / [任务A冻结卡](任务A冻结卡.md)
 
+> **路线说明（2026-04-01）**：
+> - 现有 `A-Base-* / A-Opt-* / Line G / Line W` 统一视为 **`Route-KNN-GNN-V1`** 历史结果
+> - 新增修正路线 **`Route-PhysicsAware-V2`** 的执行矩阵见：[任务A V2修正路线实验矩阵](任务A_V2修正路线实验矩阵.md)
+> - V2 Gate-0 的具体执行细节见：[任务A V2准备执行清单](任务A_V2准备执行清单.md)
+> - V2 首轮 5 组训练实验的统一判定口径见：[任务A V2首轮判定与汇报模板](任务A_V2首轮判定与汇报模板.md)
+> - 本状态表自今日起同时追踪 **V1 历史结果** 与 **V2 新实验**
+
+---
+
+## V2：阶段 0 准备与首轮路线对照（2026-04-01 新增）
+
+> 说明：本区只追踪 **`Route-PhysicsAware-V2`**。  
+> 命名规则：
+> - `V2-Ref-*`：V2 数据口径下的公共参考实验
+> - `V2G-*`：`Route-MeshGNN-V2`
+> - `V2P-*`：`Route-PointCloud-V2`
+> 执行细节见：[任务A V2修正路线实验矩阵](任务A_V2修正路线实验矩阵.md)。
+
+| Exp ID | 类型 | 研究问题 / 任务 | split_version | seeds | 当前状态 | 备注 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `V2-Prep-01` | 数据准备 | `.cas/.msh` 是否能稳定导出 mesh 邻接与壁面区域 | `split_AG_v2` | - | 🔒 未开始 | Gate-0，未通过则 `V2G-*` 不得开跑 |
+| `V2-Prep-02` | 数据准备 | 采样点能否回溯到原始 mesh 或可信局部邻域 | `split_AG_v2` | - | 🔒 未开始 | 与 V2 采样策略绑定 |
+| `V2-Prep-03` | 数据准备 | WSS 真值/壁面节点能否稳定对齐 | `split_AG_v2` | - | 🔒 未开始 | Gate-0，未通过则 WSS 主评估延后 |
+| `V2-Prep-04` | 数据准备 | V2 数据生成与评估链路 smoke test | `split_AG_v2` | - | 🔒 未开始 | 2~3 病例最小闭环 |
+| `V2-Ref-Base-01` | 训练实验 | V2 数据口径下的点级统一下限 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | 建议 `coords + t + BC` |
+| `V2G-Base-01` | 训练实验 | mesh-aware GNN 在无 geometry 下的基线能力 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | `coords + t + BC + is_wall` |
+| `V2G-Main-01` | 训练实验 | geometry 在 MeshGNN 上是否成立 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | `coords + t + BC + geometry + is_wall` |
+| `V2P-Base-01` | 训练实验 | point-cloud 主干在无 geometry 下的基线能力 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | PointNet++/Point Transformer 二选一 |
+| `V2P-Main-01` | 训练实验 | geometry 在 point-cloud 主干上是否成立 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | 与 `V2P-Base-01` 同 backbone |
+
+---
+
+## 战略锚点（2026-03-31）
+
+> **作用域说明（2026-04-01）**：本节锚点仅适用于 **`Route-KNN-GNN-V1`** 的历史延展实验，不自动外推到 V2。
+
+后续**消融实验（第二批及以后的新开跑）**、**Line G（显式几何增强）**与 **Line W（壁面导向）**的主线，统一以 **`A-Opt-05`** 为**配置母版**（`hidden_dim=256`，`num_layers=4`，`target_weights=[2,2,2,0.5]` + Pre-Norm `FieldTransformer`；目录见第三批 **`A-Opt-05`**）。
+
+- **为何从 03 切到 05**：在 **`interior.rmse_vel_mag`** 三 seed 均值上 05 略优于 03；在 **`near_wall` 等紧邻壁面的内部区域**上 05 略优于 03，更贴合端到端链路对梯度/WSS 前置质量的需求（详见各 run `regional_eval/fig_A5_regional_metrics.json` 及「实验记录摘要 · A-Opt-05」）。
+- **仍保留 03 的角色**：**`A-Opt-03`（`hidden_dim=128`）**作为 **P0-4 历史锚点**与 **轻量、方差较小、部署成本更低**的对照线；汇报 Pareto/效率时建议 **03 与 05 并列**，避免读者误以为只有一条 P0 线。
+- **操作约定**：生成新消融 JSON 时，以 **`A-Opt-05`** 某 seed 的 **`config.snapshot.json`** 为复制基准，仅改「消融项」对应字段；与四组 **baseline**（`A-Base-*` / `A-Main-01`）的叙事对比不变，**控制变量母版**改为 05。
+
 ---
 
 ## 状态说明
@@ -40,7 +82,7 @@
 
 | Exp ID      | 研究问题    | 唯一变化项              | split_version | seeds | 当前状态   | 备注                     |
 | ----------- | ------- | ------------------ | ------------- | ----- | ------ | ---------------------- |
-| A-Abl-01-01 | 输入特征消融  | coords + t 仅坐标+时间  | split_AG_v1   | [1]   | 🔒 未开始 | 依赖 A-Main-01 完成 ✅ 已可开始 |
+| A-Abl-01-01 | 输入特征消融  | coords + t 仅坐标+时间  | split_AG_v1   | [1]   | 🔒 未开始 | baseline ✅；**新开跑母版 `A-Opt-05`**（见上「战略锚点」） |
 | A-Abl-01-02 | 输入特征消融  | + BC               | split_AG_v1   | [1]   | 🔒 未开始 |                        |
 | A-Abl-01-03 | 输入特征消融  | + is_wall          | split_AG_v1   | [1]   | 🔒 未开始 |                        |
 | A-Abl-01-04 | 输入特征消融  | + geometry（无 wall） | split_AG_v1   | [1]   | 🔒 未开始 |                        |
@@ -66,8 +108,9 @@
 
 > 说明：本区用于承接 baseline 完成后的“先拿更好结果，再补最小必要解释实验”路线。  
 > 当前优先级以 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md) 为准。  
-> 推荐执行顺序：`A-Opt-01 -> A-Opt-02 -> A-Opt-02_warmup (P0-3，✅ 2026-03-27) -> A-Opt-03 (✅ 2026-03-28) -> A-Opt-03w (✅ 2026-03-28) -> A-Opt-04 -> A-Opt-05`。  
-> 推进门槛：只有当上一组同时改善全局 `RMSE_|v|`、内部区 `RMSE_|v|`，且至少一个速度分量 `R²` 明显改善时，才进入下一组容量扩展。
+> 推荐执行顺序：`A-Opt-01 -> A-Opt-02 -> A-Opt-02_warmup (P0-3，✅ 2026-03-27) -> A-Opt-03 (✅ 2026-03-28) -> A-Opt-03w (✅ 2026-03-28) -> A-Opt-04 (✅ 2026-03-29) -> A-Opt-05 (✅ 2026-03-29)`。  
+> 推进门槛：只有当上一组同时改善全局 `RMSE_|v|`、内部区 `RMSE_|v|`，且至少一个速度分量 `R²` 明显改善时，才进入下一组容量扩展。  
+> **（2026-03-31）** 容量线执行到此为止；**新开跑优化/消融/Line G** 以 **`A-Opt-05`** 为母版（见篇首「战略锚点」），**`A-Opt-03`** 保留为轻量对照。
 
 
 | Exp ID          | 研究问题                             | 唯一变化项                              | split_version | seeds   | 当前状态   | 备注                                                                                                                                                                                                                                                                 |
@@ -75,10 +118,14 @@
 | A-Opt-01        | 速度权重是否能改善内部流场                    | `target_weights = [2,2,2,0.5]`     | split_AG_v1   | [1,2,3] | ✅ 已完成  | 三 seed 训练与 `**predict_field` + `plot_taskA_regional_bar`** 已完成（2026-03-26）。目录：`outputs/field/field_transformer_coord_t_bc_geom_wall_tw22205_split_AG_v1_seed{1,2,3}_*/`；见下文「实验记录摘要 · A-Opt-01」与主结果表增行。                                                             |
 | A-Opt-02        | LayerNorm 是否提升单尺度 Transformer 表达 | `FieldTransformer` 改为 Pre-Norm 残差块 | split_AG_v1   | [1,2,3] | ✅ 已完成  | 三 seed：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_split_AG_v1_seed{1,2,3}_20260327_*`；`predict_field` + `error_analysis_interior` + `regional_eval` + 与 Main 对照 `**plots/prenorm_A_Opt02_vs_Main01/**`（2026-03-27）。见「实验记录摘要 · A-Opt-02」与主结果表增行。 |
 | A-Opt-02_warmup | 学习率 Warmup 是否稳定 Pre-Norm 训练并改善指标 | `A-Opt-02 + optim.warmup_epochs=5` | split_AG_v1   | [1,2,3] | ✅ 已完成  | **P0-3**（2026-03-27）：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_warmup5_split_AG_v1_seed{1,2,3}_20260327_*`；已补 **`predictions_test`**、**`error_analysis_interior`**、**`regional_eval`**；与 Main / P0-2 三模型对照图 **`outputs/field/plots/optimization/prenorm_Main_P02_P02w/`**；一键重汇总结图：`python -m training.scripts.regenerate_p02_warmup_comparison_figures`。见「实验记录摘要 · A-Opt-02_warmup」与主结果表增列。 |
-| A-Opt-03        | 损失重加权与 LayerNorm 是否互补            | `A-Opt-01 + A-Opt-02`              | split_AG_v1   | [1,2,3] | ✅ 已完成  | **P0-4（2026-03-28）**：三 seed 已训练并归档；`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_split_AG_v1_seed{1,2,3}_20260327_*`；已含 **`predictions_test`**、**`error_analysis_interior`**、**`regional_eval`**；训练期 **best_epoch** 约 **64 / 83 / 89**。汇总对比 CSV：`outputs/field/plots/optimization/prenorm_A_Opt03_vs_Opt03w/best_metrics.csv`。**速度侧**：相对 **`A-Opt-01` / `A-Opt-02` / `A-Main-01`**，`interior.rmse_vel_mag` 与 **`summary.test_metrics.rmse_vel_mag`** 三 seed 均值均为当前 P0 线最优；**内部点 `R²_u/v/w`** 均值亦优于单独 P0-1 与 P0-2。**压力侧 trade-off**：**`summary.test_metrics.rmse_p`** 三 seed 均值 **差于 `A-Opt-01`（~0.620）与 `A-Opt-02`（~0.610）**；**`regional_eval` · `all.rmse_p`** 与 **`A-Opt-02`** 持平（~0.398），**`interior.rmse_p`** 略差于 **`A-Opt-02`**。见「实验记录摘要 · A-Opt-03」与 [优化路径](任务A优化路径与近期实验建议.md) P0-4 节。 |
-| A-Opt-03w       | Warmup 是否进一步稳定组合线                  | `A-Opt-03 + warmup_epochs=5`       | split_AG_v1   | [1,2,3] | ✅ 已完成  | **（2026-03-28）** 三 seed：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_warmup5_split_AG_v1_seed{1,2,3}_20260328_*`；后处理链同 **`A-Opt-03`**；**`best_epoch`** 约 **100 / 70 / 64**。**相对 `A-Opt-03`**：**`summary` / `regional_eval` 速度主指标未更好**，**`rmse_p` 未收复**——与 P0-3 类似，**非组合线必选项**。叙事上 **P0 默认基座取 `A-Opt-03`（非 03w）**。见「实验记录摘要 · A-Opt-03w」。                                                                                                                                                                                                                                                                  |
-| A-Opt-04        | 容量扩大是否继续有效                       | `hidden_dim = 256`                 | split_AG_v1   | [1]     | 🔒 未开始 | **`A-Opt-03` 已在速度主指标上满足 [优化路径](任务A优化路径与近期实验建议.md) P0-5 推进门槛**（全局与内部 **`RMSE_|v|`** 改善 + 内 **`R²_u/v/w`** 相对 Main 与 P0-2 提升）；可按 **smoke → 补 seed** 启动，汇报需并列 **压力 trade-off**                                                                                                                                        |
-| A-Opt-05        | 适度加深是否继续有效                       | `hidden_dim = 256, num_layers = 4` | split_AG_v1   | [1]     | 🔒 未开始 | 仅在 `A-Opt-04` 正向时进入                                                                                                                                                                                                                                                |
+| A-Opt-03        | 损失重加权与 LayerNorm 是否互补            | `A-Opt-01 + A-Opt-02`              | split_AG_v1   | [1,2,3] | ✅ 已完成  | **P0-4（2026-03-28）**：三 seed 已训练并归档；`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_split_AG_v1_seed{1,2,3}_20260327_*`；已含 **`predictions_test`**、**`error_analysis_interior`**、**`regional_eval`**；训练期 **best_epoch** 约 **64 / 83 / 89**。汇总对比 CSV：`outputs/field/plots/optimization/prenorm_A_Opt03_vs_Opt03w/best_metrics.csv`。**速度侧**：相对 **`A-Opt-01` / `A-Opt-02` / `A-Main-01`**，`interior.rmse_vel_mag` 与 **`summary.test_metrics.rmse_vel_mag`** 三 seed 均值在 **h128 P0 线**上最优；**内部点 `R²_u/v/w`** 均值亦优于单独 P0-1 与 P0-2。**压力侧 trade-off**：**`summary.test_metrics.rmse_p`** 三 seed 均值 **差于 `A-Opt-01`（~0.620）与 `A-Opt-02`（~0.610）**；**`regional_eval` · `all.rmse_p`** 与 **`A-Opt-02`** 持平（~0.398），**`interior.rmse_p`** 略差于 **`A-Opt-02`**。**（2026-03-31）** **轻量/效率对照**；**新开跑母版见 `A-Opt-05`**（篇首「战略锚点」）。见「实验记录摘要 · A-Opt-03」与 [优化路径](任务A优化路径与近期实验建议.md) P0-4 节。 |
+| A-Opt-03w       | Warmup 是否进一步稳定组合线                  | `A-Opt-03 + warmup_epochs=5`       | split_AG_v1   | [1,2,3] | ✅ 已完成  | **（2026-03-28）** 三 seed：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_warmup5_split_AG_v1_seed{1,2,3}_20260328_*`；后处理链同 **`A-Opt-03`**；**`best_epoch`** 约 **100 / 70 / 64**。**相对 `A-Opt-03`**：**`summary` / `regional_eval` 速度主指标未更好**，**`rmse_p` 未收复**——与 P0-3 类似，**非组合线必选项**。**（2026-03-31）** 后续新开跑**不以 03w 为母版**；轻量对照见 **`A-Opt-03`**，主母版见 **`A-Opt-05`**。见「实验记录摘要 · A-Opt-03w」。                                                                                                                                                                                                                                                                  |
+| A-Opt-04        | 容量扩大是否继续有效                       | `hidden_dim = 256`                 | split_AG_v1   | [1,2,3] | ✅ 已完成 | **（2026-03-29）** 三 seed：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_h256_split_AG_v1_seed{1,2,3}_20260328_*`；已含 **`predictions_test`**、**`error_analysis_interior`**、**`regional_eval`**；**`best_epoch`** 约 **80 / 70 / 82**。相对 **`A-Opt-03`**：**`interior.rmse_vel_mag`** 三 seed 均值 **变差**（约 **1.822 → 1.849**）；**`summary.test_metrics.rmse_p`** 略优。**角色**：**`A-Opt-05` 的中间态**（仅加宽）；**不作为**后续消融母版——母版取 **`A-Opt-05`（加宽+4L）**。 |
+| A-Opt-05        | 适度加深是否继续有效                       | `hidden_dim = 256, num_layers = 4` | split_AG_v1   | [1,2,3] | ✅ 已完成 | **（2026-03-29）** 三 seed：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_h256_l4_split_AG_v1_seed{1,2,3}_20260328_*`；后处理链同 **`A-Opt-04`**。**相对 `A-Opt-04`**：**`interior.rmse_vel_mag` 均值回落**（约 **1.849 → 1.816**），**略优于 `A-Opt-03` 的 1.822**。**近壁等区域**相对 03 **略优**（见各 run **`regional_eval`**）。**（2026-03-31）** 定为 **后续消融 / Line G / Line W 的配置母版**；**trade-off**：显存/时延/跨 seed 方差高于 03。**不启动 `A-Opt-06`** 见优化路径。 |
+| A-Opt-05t_wu10  | 10ep warmup 是否稳定 A-Opt-05 训练      | `A-Opt-05 + warmup_epochs=10`      | split_AG_v1   | [1,2]   | ✅ 已完成 | **（2026-03-29）** seed1/2：`*_h256_l4_wu10_split_AG_v1_seed{1,2}_20260329_*`。seed1：RMSE_\|v\|=1.0485，interior=1.8512；**全图与内部均略差于 A-Opt-05 seed1（1.0477/1.8028）**，warmup 在 05 上无明显收益，不作为默认配置。 |
+| A-Opt-05t_lr3e4 | lr=3e-4 是否改善 A-Opt-05 精度         | `A-Opt-05_wu10 + lr=3e-4`          | split_AG_v1   | [1]     | ✅ 已完成 | **（2026-03-29）** seed1：`*_h256_l4_wu10_lr3e4_split_AG_v1_seed1_20260329_222839`。RMSE_\|v\|=1.0433，interior=1.8990，RMSE_p=**0.6364**，R2_p=**0.9254**（本组压力最优）。内部速度不如 A-Opt-05 均值；**压力端有潜力，建议补 seed2/3 再确认**。 |
+| A-Opt-05t_wd2e4 | wd=2e-4 是否改善正则化效果               | `A-Opt-05_wu10 + wd=2e-4`          | split_AG_v1   | [1]     | ✅ 已完成 | **（2026-03-29）** seed1：`*_h256_l4_wu10_wd2e4_split_AG_v1_seed1_20260329_222849`。RMSE_\|v\|=1.1871，interior=2.0648，RMSE_p=0.7711——**明显变差，不可取**。 |
+| A-Opt-05t_sch15 | schedpat=15 是否优于默认调度             | `A-Opt-05_wu10 + scheduler_patience=15` | split_AG_v1 | [1] | ✅ 已完成 | **（2026-03-30）** seed1：`*_h256_l4_wu10_schpat15_split_AG_v1_seed1_20260330_134411`。RMSE_\|v\|=1.0549，interior=1.8464，RMSE_p=0.6640——**未形成主指标稳定优势**；母版仍为 A-Opt-05 骨架，调参分支单独归因。 |
 | A-Opt-06        | 单尺度进一步加深是否还值得                    | `hidden_dim = 256, num_layers = 6` | split_AG_v1   | [1]     | 🔒 未开始 | 若 `A-Opt-05` 收益很小，建议停止                                                                                                                                                                                                                                             |
 | A-Opt-07        | 内部点区域加权是否进一步改善瓶颈                 | region-weighted loss               | split_AG_v1   | [1]     | 🔒 未开始 | 放在容量扩展之后评估                                                                                                                                                                                                                                                         |
 | A-Opt-08        | 多尺度结构是否带来本质提升                    | graph U-Net / hierarchical GNN     | split_AG_v1   | [1]     | 🔒 未开始 | 单尺度优化见顶后再立项                                                                                                                                                                                                                                                        |
@@ -89,7 +136,7 @@
 ## 第四批：显式几何增强线 Line G（2026-03-26 新增）
 
 > 说明：Line G 用于在现有 geometry 已被证明有效的前提下，继续小步增加新的显式几何/拓扑先验。
-> 前置条件：优先完成 `A-Abl-02`，确认现有几何分量贡献，再进入 Line G。
+> 前置条件：优先完成 `A-Abl-02`，确认现有几何分量贡献，再进入 Line G。**新开跑一律以 `A-Opt-05` 为母版**（篇首「战略锚点」）。
 > 推荐执行顺序：`A-Opt-G01 -> A-Opt-G02 -> (A-Opt-G03 / A-Opt-G04) -> A-Opt-G05`。
 > 推进门槛：新增特征必须至少改善一个复杂区域（`near_wall / bifurcation / high_curvature`），且验证/测试不能退化。
 
@@ -108,7 +155,7 @@
 ## 第五批：壁面导向优化线 Line W（2026-03-25 新增）
 
 > 说明：Line W 直接面向端到端链路质量（WSS/OSI/RRT → 髂支闭塞风险预测）。与第三批（Line A 内部精度优化）并行推进、独立归因。
-> 基座：**P0 组合线以 `A-Opt-03` 为当前默认最优**（`A-Opt-03w` 未优于 `A-Opt-03`；详见第三批 **`A-Opt-03w`** 备注）。Line W 可在 `A-Opt-03` 上起跑。
+> 基座：**（2026-03-31）Line W 与 Line A 后续实验统一以 `A-Opt-05` 为默认起跑配置**（见篇首「战略锚点」：近壁等区域略优、更贴近 WSS 前置质量）。**`A-Opt-03`** 仍可作为 **低开销对照分支**（显存/时延/方差）与高显存线并列汇报；**`A-Opt-03w` 不作为母版**。
 > 评估标准差异：Line W 必须额外运行 WSS 后处理对比，以壁面衍生指标质量为核心判定。
 > 详见 [任务A优化路径](任务A优化路径与近期实验建议.md) 第 2.4 节和第 5.5 节。
 
@@ -130,10 +177,15 @@
 > **区域定义（2026-03-26）**：默认 key / 区间 / 阈值见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)。  
 > 当前效率口径为：测试病例 `slow/GUO_XI_JIANG`（81 snapshots）、`n_warmup=5`、`n_runs=20`，并已汇总 3 个 seed；主结果表中的 `Infer(ms)` 与 `Mem(MB)` 使用 `full_case_per_snapshot_ms` 和 `full_case_peak_memory_mb` 的 `mean ± std`。  
 > **（2026-03-26 重要）主指标口径更新**：下表 `RMSE_|v|` 列**保留原 all-node 口径**以便纵向对比；自本次起所有出图脚本默认 `--region interior`，论文主结论应以 `interior.RMSE_|v|`（见各 run 实验记录摘要中「内部点误差」）为准；`all.RMSE_|v|` 仅作补充。  
-> **（2026-03-29）主表 / 近壁汇报列**：`plots/summary/fig_A1_main_table.csv` 默认以 `interior` 导出主区域 **`rmse_* / r2_*`**，并附带 **`all_rmse_vel_mag / all_r2_vel_mag`** 与 **`near_wall_rmse_* / near_wall_r2_*`**（含 |v| 的 **`r2_vel_mag`**）；各 run 需已生成 `predictions_test/regional_eval/fig_A5_regional_metrics.json`（必要时重跑 `plot_taskA_regional_bar`），详见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md) 第 5–6 节。
+> **（2026-03-29）主表 / 近壁汇报列**：`plots/summary/fig_A1_main_table.csv` 默认以 `interior` 导出主区域 **`rmse_* / r2_*`**，并附带 **`all_rmse_vel_mag / all_r2_vel_mag`** 与 **`near_wall_rmse_* / near_wall_r2_*`**（含 |v| 的 **`r2_vel_mag`**）；各 run 需已生成 `predictions_test/regional_eval/fig_A5_regional_metrics.json`（必要时重跑 `plot_taskA_regional_bar`），详见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md) 第 5–6 节。  
+> **（2026-03-29）** 已归档 **`A-Opt-04`**（`hidden_dim=256`）；下表已增 **`A-Opt-04`** 列（3 seed mean ± std）。  
+> **（2026-03-31）** 已归档 **`A-Opt-05`**（`hidden_dim=256, num_layers=4`）并补入 ③ 容量线子表；同时入账 **`A-Opt-05_tune`** 四组小步超参实验（`warmup10` / `lr3e-4` / `wd2e-4` / `schedpat15`，均 seed=1）——详见第三批跟踪表与「实验记录摘要 · A-Opt-05_tune」。
 
-<!-- 转置 + 紧凑：列为各 Exp，行为指标，避免 15 列宽表在预览中撑出水平滚动 -->
-<table border="1" cellspacing="0" cellpadding="1" style="border-collapse: collapse; font-size: 0.76em; line-height: 1.15; width: 100%; table-layout: fixed;">
+<!-- 拆为三张子表：① Baseline 组  ② P0 优化前半（Opt-01～03）  ③ P0 容量线（Opt-03w/04） -->
+
+**① Baseline 组**
+
+<table border="1" cellspacing="0" cellpadding="1" style="border-collapse: collapse; font-size: 0.78em; line-height: 1.15; width: 100%; table-layout: fixed;">
 <thead>
 <tr>
 <th style="width: 9em;">指标</th>
@@ -141,11 +193,6 @@
 <th>A-Base-02</th>
 <th>A-Base-03</th>
 <th>A-Main-01</th>
-<th>A-Opt-01</th>
-<th>A-Opt-02</th>
-<th>A-Opt-02_warmup</th>
-<th>A-Opt-03</th>
-<th>A-Opt-03w</th>
 </tr>
 </thead>
 <tbody>
@@ -155,11 +202,6 @@
 <td>GraphSAGE</td>
 <td>Transformer</td>
 <td>Transformer</td>
-<td>Transformer</td>
-<td>Transformer</td>
-<td>Transformer</td>
-<td>Transformer</td>
-<td>Transformer</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">Geom</th>
@@ -167,19 +209,9 @@
 <td>✗</td>
 <td>✗</td>
 <td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">BC</th>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
 <td>✓</td>
 <td>✓</td>
 <td>✓</td>
@@ -191,19 +223,9 @@
 <td>✓</td>
 <td>✓</td>
 <td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
-<td>✓</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">Physics</th>
-<td>✗</td>
-<td>✗</td>
-<td>✗</td>
-<td>✗</td>
-<td>✗</td>
 <td>✗</td>
 <td>✗</td>
 <td>✗</td>
@@ -215,11 +237,6 @@
 <td>0.9309±0.0013</td>
 <td>0.9337±0.0011</td>
 <td><strong>0.8977±0.0073</strong></td>
-<td>0.8737±0.0056</td>
-<td>0.8839±0.0084</td>
-<td>0.8843±0.0095</td>
-<td>0.8675±0.0011</td>
-<td>0.8705±0.0018</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">RMSE_v</th>
@@ -227,11 +244,6 @@
 <td>0.9165±0.0049</td>
 <td>0.9170±0.0043</td>
 <td><strong>0.8518±0.0113</strong></td>
-<td>0.8231±0.0023</td>
-<td>0.8383±0.0150</td>
-<td>0.8353±0.0130</td>
-<td>0.8097±0.0015</td>
-<td>0.8176±0.0032</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">RMSE_w</th>
@@ -239,11 +251,6 @@
 <td>0.8503±0.0031</td>
 <td>0.8482±0.0047</td>
 <td><strong>0.6957±0.0290</strong></td>
-<td>0.6502±0.0011</td>
-<td>0.6781±0.0351</td>
-<td>0.6729±0.0387</td>
-<td>0.6459±0.0019</td>
-<td>0.6449±0.0016</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">RMSE_|v| (all)</th>
@@ -251,11 +258,6 @@
 <td>1.3611±0.0159</td>
 <td>1.3645±0.0101</td>
 <td><strong>1.1612±0.0383</strong></td>
-<td>1.0811±0.0090</td>
-<td>1.1132±0.0621</td>
-<td>1.1096±0.0351</td>
-<td>1.0310±0.0051</td>
-<td>1.0665±0.0133</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">Interior RMSE_|v|</th>
@@ -263,11 +265,6 @@
 <td><strong>2.3165±0.0452</strong></td>
 <td><strong>2.3330±0.0148</strong></td>
 <td><strong>2.0668±0.0492</strong></td>
-<td><strong>1.9187±0.0172</strong></td>
-<td><strong>1.9727±0.0758</strong></td>
-<td><strong>1.9648±0.0682</strong></td>
-<td><strong>1.8222±0.0072</strong></td>
-<td><strong>1.8883±0.0064</strong></td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">RMSE_p</th>
@@ -275,11 +272,6 @@
 <td>0.7341±0.0136</td>
 <td>0.7061±0.0349</td>
 <td><strong>0.6536±0.0423</strong></td>
-<td>0.6200±0.0362</td>
-<td>0.6100±0.0219</td>
-<td>0.6419±0.0349</td>
-<td>0.6418±0.0385</td>
-<td>0.6539±0.0202</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">R2_p</th>
@@ -287,11 +279,6 @@
 <td>0.9007±0.0037</td>
 <td>0.9079±0.0092</td>
 <td><strong>0.9209±0.0103</strong></td>
-<td>0.9290±0.0082</td>
-<td>0.9313±0.0049</td>
-<td>0.9239±0.0083</td>
-<td>0.9238±0.0093</td>
-<td>0.9211±0.0048</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">Infer (ms)</th>
@@ -299,11 +286,6 @@
 <td><strong>2.35±0.23</strong></td>
 <td>6.95±0.09</td>
 <td><strong>6.88±0.02</strong></td>
-<td>—</td>
-<td>—</td>
-<td>—</td>
-<td>—</td>
-<td>—</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">Mem (MB)</th>
@@ -311,17 +293,195 @@
 <td><strong>529.69±0.47</strong></td>
 <td>2182.74±1.08</td>
 <td><strong>2182.12±0.00</strong></td>
-<td>—</td>
-<td>—</td>
-<td>—</td>
-<td>—</td>
-<td>—</td>
+</tr>
+</tbody>
+</table>
+
+**② P0 优化前半（A-Main-01★ 为对照基准；全部 Transformer + Geom + BC + is_wall）**
+
+<table border="1" cellspacing="0" cellpadding="1" style="border-collapse: collapse; font-size: 0.78em; line-height: 1.15; width: 100%; table-layout: fixed;">
+<thead>
+<tr>
+<th style="width: 9em;">指标</th>
+<th>A-Main-01 ★</th>
+<th>A-Opt-01</th>
+<th>A-Opt-02</th>
+<th>A-Opt-02_warmup</th>
+<th>A-Opt-03</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">PreNorm</th>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">TW[2,2,2,.5]</th>
+<td>✗</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">Warmup</th>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>5ep</td>
+<td>✗</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_u</th>
+<td>0.8977±0.0073</td>
+<td>0.8737±0.0056</td>
+<td>0.8839±0.0084</td>
+<td>0.8843±0.0095</td>
+<td><strong>0.8675±0.0011</strong></td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_v</th>
+<td>0.8518±0.0113</td>
+<td>0.8231±0.0023</td>
+<td>0.8383±0.0150</td>
+<td>0.8353±0.0130</td>
+<td><strong>0.8097±0.0015</strong></td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_w</th>
+<td>0.6957±0.0290</td>
+<td>0.6502±0.0011</td>
+<td>0.6781±0.0351</td>
+<td>0.6729±0.0387</td>
+<td><strong>0.6459±0.0019</strong></td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_|v| (all)</th>
+<td>1.1612±0.0383</td>
+<td>1.0811±0.0090</td>
+<td>1.1132±0.0621</td>
+<td>1.1096±0.0351</td>
+<td><strong>1.0310±0.0051</strong></td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">Interior RMSE_|v|</th>
+<td>2.0668±0.0492</td>
+<td><strong>1.9187±0.0172</strong></td>
+<td>1.9727±0.0758</td>
+<td>1.9648±0.0682</td>
+<td>1.8222±0.0072</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_p</th>
+<td>0.6536±0.0423</td>
+<td>0.6200±0.0362</td>
+<td><strong>0.6100±0.0219</strong></td>
+<td>0.6419±0.0349</td>
+<td>0.6418±0.0385</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">R2_p</th>
+<td>0.9209±0.0103</td>
+<td>0.9290±0.0082</td>
+<td><strong>0.9313±0.0049</strong></td>
+<td>0.9239±0.0083</td>
+<td>0.9238±0.0093</td>
+</tr>
+</tbody>
+</table>
+
+**③ P0 容量线（A-Opt-03★ 为对照基准；全部 PreNorm + TW[2,2,2,.5]）**
+
+<table border="1" cellspacing="0" cellpadding="1" style="border-collapse: collapse; font-size: 0.78em; line-height: 1.15; width: 100%; table-layout: fixed;">
+<thead>
+<tr>
+<th style="width: 9em;">指标</th>
+<th>A-Opt-03 ★</th>
+<th>A-Opt-03w</th>
+<th>A-Opt-04</th>
+<th>A-Opt-05</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">hidden_dim</th>
+<td>128</td>
+<td>128</td>
+<td>256</td>
+<td>256</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">num_layers</th>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">Warmup</th>
+<td>✗</td>
+<td>5ep</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_u</th>
+<td><strong>0.8675±0.0011</strong></td>
+<td>0.8705±0.0018</td>
+<td>0.8723±0.0058</td>
+<td>0.8697±0.0061</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_v</th>
+<td><strong>0.8097±0.0015</strong></td>
+<td>0.8176±0.0032</td>
+<td>0.8182±0.0072</td>
+<td>0.8119±0.0039</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_w</th>
+<td>0.6459±0.0019</td>
+<td>0.6449±0.0016</td>
+<td><strong>0.6416±0.0010</strong></td>
+<td>0.6449±0.0045</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_|v| (all)</th>
+<td><strong>1.0310±0.0051</strong></td>
+<td>1.0665±0.0133</td>
+<td>1.0519±0.0099</td>
+<td>1.0399±0.0082</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">Interior RMSE_|v|</th>
+<td>1.8222±0.0072</td>
+<td>1.8883±0.0064</td>
+<td>1.8493±0.0121</td>
+<td><strong>1.8162±0.0275</strong></td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">RMSE_p</th>
+<td>0.6418±0.0385</td>
+<td>0.6539±0.0202</td>
+<td><strong>0.6386±0.0114</strong></td>
+<td>0.6449±0.0022</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">R2_p</th>
+<td>0.9238±0.0093</td>
+<td>0.9211±0.0048</td>
+<td><strong>0.9248±0.0030</strong></td>
+<td>0.9234±0.0005</td>
 </tr>
 </tbody>
 </table>
 
 > **注**：效率图现已包含 `mean±std` 汇总图、分 seed 延迟图、分 seed 显存图、全病例峰值显存图和分 seed Pareto 图；`speedup_vs_CFD` 仍无法填写，因为 `cfd_time_hours` 为空。  
-> `**A-Opt-01` / `A-Opt-02` / `A-Opt-02_warmup` / `A-Opt-03` / `A-Opt-03w` 效率列**：与 `A-Main-01` 同 backbone 量级（结构均为 `FieldTransformer` + geom；`A-Opt-02` 及以后为 Pre-Norm；`A-Opt-03` 叠 `target_weights`；`*_warmup` 为调度差异），本次未重跑 `run_efficiency_benchmark`；部署开销可按主模型同款数量级引用，若论文需要独立条请再补测。  
+> `**A-Opt-01` / `A-Opt-02` / `A-Opt-02_warmup` / `A-Opt-03` / `A-Opt-03w` / `A-Opt-04` / `A-Opt-05` 效率列**：与 `A-Main-01` 相比，**`A-Opt-04`/`05`（`hidden_dim=256`，05 另 `num_layers=4`）显存与时延更高**；其余与同 backbone 量级叙述类似（**`A-Opt-02` 及以后为 Pre-Norm；`A-Opt-03` 叠 `target_weights`；`*_warmup` 为调度差异**）。**本次仍未重跑 `run_efficiency_benchmark`**；部署开销若需进主文，建议对 **`A-Opt-03` vs `A-Opt-05` 各补 1～3 seed 的独立条**。  
 > **Interior RMSE_|v| 数据来源**：各实验记录摘要中的「内部点误差」，均来自 `regional_eval/fig_A5_regional_metrics.json` 的 `interior.rmse_vel_mag`。
 
 ---
@@ -415,7 +575,7 @@
   - **主干**：0.8795±0.0092 → **0.8249±0.0237**
   - **regional `all*`*：1.1937±0.0284 → **1.1082±0.0100**
 - **一句话结论**：在仅调整损失权重的条件下，**内部点与多个复杂区域的速度模长误差明显下降**，近壁区基本持平，符合「把优化压力让给速度分量」的设计预期；可作为当前单尺度主线的优先损失配置候选。
-- **下一步动作**：**`A-Opt-03` / `A-Opt-03w` 已归档（2026-03-28）**；P0 默认基座见该两组摘要；容量扩展见 **`A-Opt-04`**。
+- **下一步动作**：**`A-Opt-03` / `A-Opt-03w`、`A-Opt-04` / `A-Opt-05` 已依次归档（至 2026-03-29）**；**（2026-03-31）** 后续消融与几何增强线以 **`A-Opt-05`** 为母版；**`A-Opt-03`** 作轻量对照，见篇首「战略锚点」。
 
 ---
 
@@ -464,7 +624,7 @@
 - **内部点 `R²_u/v/w`（`interior`，3 seed 均值）**：**0.317 / 0.376 / 0.464**，相对 **`A-Opt-01`**（~**0.290 / 0.350 / 0.441**）与 **`A-Opt-02`**（~**0.274 / 0.301 / 0.409**）均提升。
 - **后处理**：各 run 已具备 `predictions_test/`、`error_analysis_interior/`、`regional_eval/`。
 - **一句话结论**：**P0-1 与 P0-2 在速度主指标上呈互补**：组合后 **全局与内部 `RMSE_|v|` 为当前 P0 线最优**，**壁面 `rmse_vel_mag` 相对两条单改线一并改善**，**内部速度分量 R² 同步提升**。**代价**：**`summary` 口径 `RMSE p` 三 seed 均值不及单独 `A-Opt-01` / `A-Opt-02`**，须在论文/汇报中写成 **trade-off**。
-- **下一步动作**：推进 **`A-Opt-04`**（`hidden_dim=256`，以 **`A-Opt-03`** 为配置模板）；**`A-Opt-03w` 可不作为默认分支**。
+- **下一步动作**：**`A-Opt-04` / `A-Opt-05` 已跑完（2026-03-29）**；**（2026-03-31）** 以 **`A-Opt-05`** 为后续实验母版（近壁略优、内部均值略优；方差/成本高于 03）；**`A-Opt-03`** 作 P0-4 轻量对照。容量线细节见 **`A-Opt-04` / `A-Opt-05`** 摘要。**`A-Opt-03w` 可不作为默认分支**。
 
 ---
 
@@ -474,5 +634,57 @@
 - **seed**：1, 2, 3（`best_epoch` 分别约 **100、70、64**）
 - **输出目录**：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_warmup5_split_AG_v1_seed{1,2,3}_20260328_*`
 - **相对 `A-Opt-03`（同口径）**：**`summary.test_metrics.rmse_vel_mag`** **1.031 → 1.067**；**`interior.rmse_vel_mag`（`regional_eval`）** **1.822 → 1.888**；**`rmse_p`** **0.642 → 0.654**。
-- **一句话结论**：在 **已叠 `target_weights` 的 Pre-Norm 主线** 上，**5 epoch warmup 未带来相对 `A-Opt-03` 的速度收益**，压力侧仍偏弱——**默认基座选 `A-Opt-03` 即可**。
+- **一句话结论**：在 **已叠 `target_weights` 的 Pre-Norm 主线** 上，**5 epoch warmup 未带来相对 `A-Opt-03` 的速度收益**，压力侧仍偏弱——**03 仅作轻量对照；母版见 `A-Opt-05`**（2026-03-31）。
 - **下一步动作**：同 **`A-Opt-03`**；归档已完成。
+
+---
+
+### A-Opt-04（P0-5 容量①，`A-Opt-03` + `hidden_dim = 256`）
+
+- **完成日期**：2026-03-28～03-29（训练三 seed；与仓库根目录维护的 **`outputs/field/experiment_index.csv`** 对齐）
+- **seed**：1, 2, 3（`best_epoch` 分别约 **80、70、82**）
+- **输出目录**：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_h256_split_AG_v1_seed{1,2,3}_20260328_*`
+- **相对 `A-Opt-03`（`summary.json` · `test_metrics`，3 seed mean ± std）**：**`rmse_vel_mag`（全图节点）** **1.031 → 1.052**；**`rmse_p`** **0.642 → 0.639**（略优）；**`R²_p`** **~0.925**（与 03 基本持平略好）。
+- **`regional_eval`**：**`interior.rmse_vel_mag`** **1.822 → 1.849**（**变差**；各 seed 约 **1.858 / 1.856 / 1.834**）；**`all.rmse_vel_mag`** **~1.052 → ~1.068**。**内部点 `R²_u/v/w`（3 seed 均值）**：约 **0.325 / 0.356 / 0.470**，其中 **`R²_v` 较 `A-Opt-03`（0.376）回落**。**`wall.rmse_vel_mag`** 三 seed 约 **0.027 / 0.034 / 0.049**，均值 **差于 `A-Opt-03` ~0.032**。
+- **后处理**：各 run 已具备 `predictions_test/`、`error_analysis_interior/`、`regional_eval/`。
+- **一句话结论**：**仅放大 hidden width 在未同步正则/训练预算调整时，未继续改善论文主口径内部速度误差**；**压力 `summary.rmse_p` 有轻微收复**。本组为 **`A-Opt-05` 的中间态**，**不作为母版**。
+- **下一步动作**：**`A-Opt-05`（h256+4L）** 已定母版；否则 **转向消融 / Line G**，见 [优化路径](任务A优化路径与近期实验建议.md)。
+
+---
+
+### A-Opt-05（P0-5 容量②，`A-Opt-04` + `num_layers = 4`）
+
+- **完成日期**：2026-03-28～03-29（训练三 seed）
+- **seed**：1, 2, 3（`best_epoch` 分别为 **79、97、82**）
+- **输出目录**：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_h256_l4_split_AG_v1_seed{1,2,3}_20260328_*`（seed3 时间戳 `20260329_*`）
+- **RMSE_u**：0.8697 ± 0.0061（各 seed：0.8776 / 0.8626 / 0.8689）
+- **RMSE_v**：0.8119 ± 0.0039（各 seed：0.8131 / 0.8160 / 0.8067）
+- **RMSE_w**：0.6449 ± 0.0045（各 seed：0.6485 / 0.6477 / 0.6385）
+- **RMSE_|v|**：1.0399 ± 0.0082（各 seed：1.0477 / 1.0433 / 1.0286）
+- **RMSE_p**：0.6449 ± 0.0022（各 seed：0.6477 / 0.6447 / 0.6423）
+- **R2_p**：0.9234 ± 0.0005（各 seed：0.9227 / 0.9234 / 0.9240）
+- **R2_u/v/w**：0.243 / 0.368 / 0.610（3 seed 均值）
+- **分区域 `rmse_vel_mag`（`fig_A5_regional_metrics.json`，3 seed mean ± std）**：
+  - **壁面**：0.0420 ± 0.0041（各 seed：0.0439 / 0.0363 / 0.0458）
+  - **内部点**：**1.8162 ± 0.0275**（各 seed：1.8028 / 1.8545 / 1.7914）
+  - **近壁**：1.4535 ± 0.0309（各 seed：1.4163 / 1.4919 / 1.4522）
+  - **高曲率**：0.9970 ± 0.0095（各 seed：0.9836 / 1.0045 / 1.0029）
+  - **分叉**：0.9879 ± 0.0139（各 seed：0.9772 / 1.0076 / 0.9790）
+  - **主干**：0.7589 ± 0.0210（各 seed：0.7295 / 0.7769 / 0.7703）
+  - **regional `all`**：1.0492 ± 0.0157（各 seed：1.0415 / 1.0711 / 1.0350）
+- **相对 `A-Opt-04`**：`interior.rmse_vel_mag` **1.849 → 1.816**（回补了加宽带来的内部速度退化）；`summary.rmse_vel_mag` **1.052 → 1.040**。**相对 `A-Opt-03`**：`interior.rmse_vel_mag` 均值略优（1.822 → 1.816），但差距小于跨 seed 方差，不宜单独宣称新 SOTA；`near_wall` 均值明显优于 03（~1.573 → 1.454），更贴近端到端梯度质量需求；`summary.rmse_p` 三 seed 均值 ~0.645，弱于 `A-Opt-01`/`A-Opt-02` 的压力最优区间。
+- **后处理**：各 run 已具备 `predictions_test/`、`error_analysis_interior/`、`regional_eval/`。
+- **一句话结论**：**加深一层主要「修复」了加宽带来的内部速度回退**，`near_wall` 区域相对 `A-Opt-03` 明显改善（1.573 → 1.454），更利于端到端 WSS 梯度质量叙事；**Trade-off**：显存/时延/跨 seed 方差均高于 03。
+- **下一步动作**：**（2026-03-31）** 本组为 **消融 / Line G / Line W 的统一母版**；按 P0-5 **停止条件**不继续 `A-Opt-06`；**`A-Opt-05_tune`** 见下节；优先 **`A-Abl-02` / Line G**（**WSS 全量对比暂缓**）。
+
+---
+
+### `A-Opt-05_tune`（P0-5 后小步超参，`A-Opt-05` 骨架上的试跑）
+
+> **配置目录**：`training/configs/field/generated/optimization/A-Opt-05_tune/`。批量 manifest 示例：`training/cluster/manifest_list_A-Opt-05_tune.tsv`。
+
+- **（2026-03-31）本仓库已入账（`outputs/field/experiment_index.csv`）**：**`A-Opt-05t_warmup10`**（seed **1、2**）、**`A-Opt-05t_warmup10_lr3e-4`**（seed **1**）、**`A-Opt-05t_warmup10_wd2e-4`**（seed **1**）、**`A-Opt-05t_warmup10_schedpat15`**（seed **1**，run：`..._wu10_schpat15_..._20260330_134411`）。上述 run 已具备 **`predictions_test/`**、**`error_analysis_interior/`**、**`regional_eval/`**（与 **`A-Opt-05`** 后处理链一致）。
+- **清单与目录差**：`manifest_list_A-Opt-05_tune.tsv` 中含 **`A-Opt-05t_warmup5`（三 seed）** 与 **`lr3e-4` seed2/3**；**当前 `outputs/field/` 无同名实验目录**——若已在其他机器跑完，需拷回并登记 `experiment_index.csv` 后再算「闭环」。
+- **数值倾向（seed1 主表，摘要）**：**`lr3e-4`** 在 **`interior.rmse_vel_mag`** 上相对基线 **`A-Opt-05`** **略优**，**内部 `R²` 分量略好**；**`wd2e-4`** **明显变差**；**`schedpat15`** **未稳定优于** **`warmup10` 默认调度**（详见各 run **`summary.json`** 与 **`regional_eval/fig_A5_regional_metrics.json`**）。
+- **多模型横向图（文件夹名含 `Opt03`，seed=1 子集）**：`outputs/field/plots/optimization/A_Opt05_tune_vs_Opt03_seed1/`（Fig A3 / A5 / A4；**解读时**以 **母版 `A-Opt-05`** 为主视角，`A-Opt-03` 为对照）。
+- **WSS**：**未做** `compare_hemo_wss_runs` **全量导出**；后续可用 **`training/cluster/wss_runs_A_Opt03_vs_Opt05tune_seed1.tsv`** 在集群提交。

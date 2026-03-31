@@ -38,13 +38,13 @@
 ## 2. 总里程碑
 
 
-| 里程碑 | 目标                                                | 建议截止时间     | 状态               | 备注  |
-| --- | ------------------------------------------------- | ---------- | ---------------- | --- |
+| 里程碑 | 目标                                                | 建议截止时间     | 状态   | 备注                         |
+| --- | ------------------------------------------------- | ---------- | ---- | -------------------------- |
 | M1  | 跑通 4 个现有基线：`A-Base-01` 到 `A-Main-01`              | 2026-03-23 | ✅ 完成 | 3 seed 全部完成于 2026-03-22/23 |
-| M2  | 完成单尺度核心消融：`A-Abl-01` 到 `A-Abl-05`                 | 2026-04-06 | 未开始 |     |
-| M3  | 跑通 `A-Base-04` Hierarchical GNN 最小版               | 2026-04-13 | 未开始 |     |
-| M4  | 完成 hierarchy 关键消融：`A-Abl-06` 到 `A-Abl-09` 的核心两组以上 | 2026-04-20 | 未开始 |     |
-| M5  | 整理任务 A 主结果表、消融表、Pareto 图                          | 2026-04-27 | 进行中 | 第一版效率柱状图与 Pareto 图已生成 |
+| M2  | 完成单尺度核心消融：`A-Abl-01` 到 `A-Abl-05`                 | 2026-04-06 | 未开始  |                            |
+| M3  | 跑通 `A-Base-04` Hierarchical GNN 最小版               | 2026-04-13 | 未开始  |                            |
+| M4  | 完成 hierarchy 关键消融：`A-Abl-06` 到 `A-Abl-09` 的核心两组以上 | 2026-04-20 | 未开始  |                            |
+| M5  | 整理任务 A 主结果表、消融表、Pareto 图                          | 2026-04-27 | 进行中  | 第一版效率柱状图与 Pareto 图已生成      |
 
 
 ---
@@ -65,25 +65,27 @@
 
 ### 本周开跑前核对
 
-- [x] 已落盘正式 split 文件，并保存训练/验证/测试病例名单
-- [x] 已确认归一化统计量仅使用训练集
-- [x] 已完成图数据生成，并核对 `x / global_cond / y / case_name`
-- [x] 已确定正式结果目录与命名规范（`outputs/field/{exp_name}_split_AG_v1_seed{seed}_{timestamp}/`）
-- [x] 已生成至少 1 份 smoke test 配置
+- 已落盘正式 split 文件，并保存训练/验证/测试病例名单
+- 已确认归一化统计量仅使用训练集
+- 已完成图数据生成，并核对 `x / global_cond / y / case_name`
+- 已确定正式结果目录与命名规范（`outputs/field/{exp_name}_split_AG_v1_seed{seed}_{timestamp}/`）
+- 已生成至少 1 份 smoke test 配置
 
 ### 本周建议输出物
 
-- [x] 一份任务 A 冻结卡（见 [任务A冻结卡.md](任务A冻结卡.md)）
-- [x] 一份正式 split 清单（`training/splits/split_AG_v1.json`）
-- [x] 一份数据处理命令清单
-- [x] 一份 smoke test 结果
+- 一份任务 A 冻结卡（见 [任务A冻结卡.md](任务A冻结卡.md)）
+- 一份正式 split 清单（`training/splits/split_AG_v1.json`）
+- 一份数据处理命令清单
+- 一份 smoke test 结果
 
 ### 本周实验勾选
 
-| Exp ID      | 实验名                       | split 已固定 | 数据已处理 | Smoke Test | 一句话结论 |
-| ----------- | ------------------------- | --------- | ----- | ---------- | ----- |
-| `A-Base-01` | Point-wise MLP            | [x]      | [x]  | [x]       | 数据管线闭环正常，MLP 能稳定收敛 |
-| `A-Main-01` | Transformer with geometry | [x]      | [x]  | [x]       | 几何特征注入路径验证正确 |
+
+| Exp ID      | 实验名                       | split 已固定 | 数据已处理 | Smoke Test | 一句话结论              |
+| ----------- | ------------------------- | --------- | ----- | ---------- | ------------------ |
+| `A-Base-01` | Point-wise MLP            | [x]       | [x]   | [x]        | 数据管线闭环正常，MLP 能稳定收敛 |
+| `A-Main-01` | Transformer with geometry | [x]       | [x]   | [x]        | 几何特征注入路径验证正确       |
+
 
 ### 本周必填总结
 
@@ -97,10 +99,10 @@
 
 ### 是否达到本周门槛
 
-- [x] 正式 split 已冻结
-- [x] 数据处理闭环已完成
-- [x] 至少 1 个 baseline 已跑通 smoke test
-- [x] 已具备进入 Week 1 的条件
+- 正式 split 已冻结
+- 数据处理闭环已完成
+- 至少 1 个 baseline 已跑通 smoke test
+- 已具备进入 Week 1 的条件
 
 ---
 
@@ -114,28 +116,30 @@
 
 ### 本周开跑前核对
 
-- [x] 已锁定唯一数据目录，且不混用旧版中间文件
-- [x] 已固定患者级 `train / val / test`
-- [x] 已核对 `data.x / data.global_cond / data.y` 的维度和索引
-- [x] 已确认 `global_cond` 广播方式无误
-- [x] 已确认评估脚本可独立读取 checkpoint
-- [x] 已跑通至少 1 组 baseline 的 smoke test
+- 已锁定唯一数据目录，且不混用旧版中间文件
+- 已固定患者级 `train / val / test`
+- 已核对 `data.x / data.global_cond / data.y` 的维度和索引
+- 已确认 `global_cond` 广播方式无误
+- 已确认评估脚本可独立读取 checkpoint
+- 已跑通至少 1 组 baseline 的 smoke test
 
 ### 本周建议输出物
 
-- [x] 4 个 baseline 的配置文件（已通过 `make_field_plan.py` 生成）
-- [x] 第一版主结果表（见 `experiment_index.csv` + `任务A实验状态表.md`）
-- [x] 壁面/内部点分层结果表（`predictions_test/regional_eval/fig_A5_regional_metrics.json`）
-- [x] 散点图、per-case 箱线图、误差分布图、CDF 与区域误差图
+- 4 个 baseline 的配置文件（已通过 `make_field_plan.py` 生成）
+- 第一版主结果表（见 `experiment_index.csv` + `任务A实验状态表.md`）
+- 壁面/内部点分层结果表（`predictions_test/regional_eval/fig_A5_regional_metrics.json`）
+- 散点图、per-case 箱线图、误差分布图、CDF 与区域误差图
 
 ### 本周实验勾选
 
-| Exp ID      | 实验名                          | Smoke Test | `seed=1` 完成 | `seed=2,3` 完成 | 结果已写入实验表 | 一句话结论 |
-| ----------- | ---------------------------- | ---------- | ----------- | ------------ | -------- | ----- |
-| `A-Base-01` | Point-wise MLP               | [x]       | [x]        | [x]         | [x]     | MLP 仅压力预测有效（R2_p=0.920），速度场 R2<0.11，确立任务 A 无图下限 |
-| `A-Base-02` | GraphSAGE                    | [x]       | [x]        | [x]         | [x]     | 图结构使 RMSE_\|v\| 从 1.600→1.361（-14.9%），w 分量收益最大 |
-| `A-Base-03` | Transformer without geometry | [x]       | [x]        | [x]         | [x]     | 与 GraphSAGE 性能几乎持平，说明瓶颈不在架构而在特征 |
-| `A-Main-01` | Transformer with geometry    | [x]       | [x]        | [x]         | [x]     | 几何特征使 RMSE_\|v\| 降至 1.161，w 分量 R2 从 0.325→0.545，几何贡献显著 |
+
+| Exp ID      | 实验名                          | Smoke Test | `seed=1` 完成 | `seed=2,3` 完成 | 结果已写入实验表 | 一句话结论                                                |
+| ----------- | ---------------------------- | ---------- | ----------- | ------------- | -------- | ---------------------------------------------------- |
+| `A-Base-01` | Point-wise MLP               | [x]        | [x]         | [x]           | [x]      | MLP 仅压力预测有效（R2_p=0.920），速度场 R2<0.11，确立任务 A 无图下限      |
+| `A-Base-02` | GraphSAGE                    | [x]        | [x]         | [x]           | [x]      | 图结构使 RMSE_|v| 从 1.600→1.361（-14.9%），w 分量收益最大         |
+| `A-Base-03` | Transformer without geometry | [x]        | [x]         | [x]           | [x]      | 与 GraphSAGE 性能几乎持平，说明瓶颈不在架构而在特征                      |
+| `A-Main-01` | Transformer with geometry    | [x]        | [x]         | [x]           | [x]      | 几何特征使 RMSE_|v| 降至 1.161，w 分量 R2 从 0.325→0.545，几何贡献显著 |
+
 
 > **注**：本周超额完成目标，seed=1/2/3 全部在 2026-03-22/23 期间完成。
 
@@ -151,10 +155,10 @@
 
 ### 是否达到本周门槛
 
-- [x] 4 个 baseline 都有可读结果（3 seed mean ± std）
-- [x] 已有第一版主结果表（见实验状态表）
-- [x] 已有至少 1 张分层评估结果表
-- [x] 已确认下周进入 A-Abl-01（输入特征消融）
+- 4 个 baseline 都有可读结果（3 seed mean ± std）
+- 已有第一版主结果表（见实验状态表）
+- 已有至少 1 张分层评估结果表
+- 已确认下周进入 A-Abl-01（输入特征消融）
 
 ### Week 1 后补更新（2026-03-23 晚）
 
@@ -188,29 +192,32 @@
 ### 本周实验勾选
 
 
-| Exp ID        | 实验名                                    | 本周是否完成 | 已补多 seed | 结果已写入实验表 | 一句话结论 |
-| ------------- | -------------------------------------- | ------ | -------- | -------- | ----- |
-| `A-Base-01`   | baseline 补 seed                        | `[]`   | `[]`     | `[]`     |       |
-| `A-Base-02`   | baseline 补 seed                        | `[]`   | `[]`     | `[]`     |       |
-| `A-Base-03`   | baseline 补 seed                        | `[]`   | `[]`     | `[]`     |       |
-| `A-Main-01`   | baseline 补 seed                        | `[]`   | `[]`     | `[]`     |       |
-| `A-Abl-01-01` | `coords + t`                           | `[]`   | `[]`     | `[]`     |       |
-| `A-Abl-01-02` | `coords + t + BC`                      | `[]`   | `[]`     | `[]`     |       |
-| `A-Abl-01-03` | `coords + t + BC + is_wall`            | `[]`   | `[]`     | `[]`     |       |
-| `A-Abl-01-04` | `coords + t + BC + geometry`           | `[]`   | `[]`     | `[]`     |       |
-| `A-Abl-01-05` | `coords + t + BC + geometry + is_wall` | `[]`   | `[]`     | `[]`     |       |
-| `A-Opt-01`    | P0-1：`target_weights` 速度加权           | [x]   | [x]     | [x]     | 内部/高曲率/分叉/主干 `RMSE_|v|` 较 Main 下降，近壁基本持平；regional 已归档 |
-| `A-Opt-02`    | P0-2：Pre-Norm `FieldTransformer`         | [x]   | [x]     | [x]     | 相对 Main 内部/多区域 `RMSE_|v|` 均值降，壁面略差；`plots/optimization/prenorm_A_Opt02_vs_Main01` 对照图；2026-03-27 |
-| `A-Opt-02_warmup` | P0-3：`A-Opt-02` + `optim.warmup_epochs=5` | [x]  | [x]     | [x]     | 三 seed + 后处理已闭环（2026-03-27）；`plots/optimization/prenorm_Main_P02_P02w`；**救 seed3 / `best_epoch` 分布改善**，**`rmse_p` 均值相对无 warmup 变差** |
-| `A-Opt-03` | P0-4：`A-Opt-01` + `A-Opt-02`（`target_weights` + Pre-Norm） | [x]  | [x]     | [x]     | 三 seed + 后处理已闭环（2026-03-28）；**速度主指标 P0 线最优**；**`summary.rmse_p` 相对 Opt-01/02 变差**（trade-off）；汇总 `plots/optimization/prenorm_A_Opt03_vs_Opt03w/best_metrics.csv` |
-| `A-Opt-03w` | P0-4：`A-Opt-03` + `warmup_epochs=5` | [x]  | [x]     | [x]     | 三 seed（2026-03-28）；**未优于 `A-Opt-03`**；默认基座仍取 03 |
+| Exp ID            | 实验名                                                       | 本周是否完成 | 已补多 seed | 结果已写入实验表 | 一句话结论                                                                                                                                                           |
+| ----------------- | --------------------------------------------------------- | ------ | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `A-Base-01`       | baseline 补 seed                                           | `[]`   | `[]`     | `[]`     |                                                                                                                                                                 |
+| `A-Base-02`       | baseline 补 seed                                           | `[]`   | `[]`     | `[]`     |                                                                                                                                                                 |
+| `A-Base-03`       | baseline 补 seed                                           | `[]`   | `[]`     | `[]`     |                                                                                                                                                                 |
+| `A-Main-01`       | baseline 补 seed                                           | `[]`   | `[]`     | `[]`     |                                                                                                                                                                 |
+| `A-Abl-01-01`     | `coords + t`                                              | `[]`   | `[]`     | `[]`     |                                                                                                                                                                 |
+| `A-Abl-01-02`     | `coords + t + BC`                                         | `[]`   | `[]`     | `[]`     |                                                                                                                                                                 |
+| `A-Abl-01-03`     | `coords + t + BC + is_wall`                               | `[]`   | `[]`     | `[]`     |                                                                                                                                                                 |
+| `A-Abl-01-04`     | `coords + t + BC + geometry`                              | `[]`   | `[]`     | `[]`     |                                                                                                                                                                 |
+| `A-Abl-01-05`     | `coords + t + BC + geometry + is_wall`                    | `[]`   | `[]`     | `[]`     |                                                                                                                                                                 |
+| `A-Opt-01`        | P0-1：`target_weights` 速度加权                                | [x]    | [x]      | [x]      | 内部/高曲率/分叉/主干 `RMSE_                                                                                                                                             |
+| `A-Opt-02`        | P0-2：Pre-Norm `FieldTransformer`                          | [x]    | [x]      | [x]      | 相对 Main 内部/多区域 `RMSE_                                                                                                                                           |
+| `A-Opt-02_warmup` | P0-3：`A-Opt-02` + `optim.warmup_epochs=5`                 | [x]    | [x]      | [x]      | 三 seed + 后处理已闭环（2026-03-27）；`plots/optimization/prenorm_Main_P02_P02w`；**救 seed3 / `best_epoch` 分布改善**，`**rmse_p` 均值相对无 warmup 变差**                             |
+| `A-Opt-03`        | P0-4：`A-Opt-01` + `A-Opt-02`（`target_weights` + Pre-Norm） | [x]    | [x]      | [x]      | 三 seed + 后处理已闭环（2026-03-28）；**h128 P0 线**；`**summary.rmse_p` trade-off**；**（2026-03-31）轻量对照**；汇总 `plots/optimization/prenorm_A_Opt03_vs_Opt03w/best_metrics.csv` |
+| `A-Opt-03w`       | P0-4：`A-Opt-03` + `warmup_epochs=5`                       | [x]    | [x]      | [x]      | 三 seed（2026-03-28）；**未优于 `A-Opt-03`**；**不作为母版**                                                                                                                 |
+| `A-Opt-04`        | P0-5：`A-Opt-03` + `hidden_dim=256`                        | [x]    | [x]      | [x]      | 三 seed + 后处理（2026-03-29）；**`A-Opt-05` 中间态**；非母版                                                                                                                            |
+| `A-Opt-05`        | P0-5：`A-Opt-04` + `num_layers=4`                          | [x]    | [x]      | [x]      | 三 seed + 后处理（2026-03-29）；**均值略优 03**，**`near_wall` 等略优**；**（2026-03-31）消融/Line G/W 母版**；方差与成本高于 03                                                                                                     |
+| `A-Opt-05_tune`   | P0-5 后：05 上 warmup/lr/wd/sched 等小步试跑                         | 部分   | 部分     | 部分     | **（2026-03-31）** 见 **`experiment_index.csv`** 与 [任务A实验状态表](任务A实验状态表.md)；已入账 run 后处理齐；**Fig** `plots/optimization/A_Opt05_tune_vs_Opt03_seed1`；**WSS 全量对比暂缓**；`manifest_list` 中无目录项待核对 |
 
 
 ### 本周必填总结
 
 - 本周固定版本：
-- 本周新完成实验：**`A-Opt-01`**（三 seed + `predict_field` + `plot_taskA_regional_bar` + 多模型 Fig A5 更新，2026-03-26）；**`A-Opt-02`**（三 seed + 导出 + `error_analysis_interior` + `regional_eval` + 与 Main 多模型散点，2026-03-27）；**`A-Opt-02_warmup`**（P0-3，同上后处理链 + `prenorm_Main_P02_P02w`，2026-03-27）；**`A-Opt-03` / `A-Opt-03w`**（P0-4，2026-03-28，见状态表与 `prenorm_A_Opt03_vs_Opt03w`）
-- 当前最优主线：**P0 组合默认基座为 `A-Opt-03`**（`target_weights` + Pre-Norm）：**速度**（全局 / 内部 / 壁面 `RMSE_|v|` 与内 **`R²_u/v/w`**）**相对 Main、`A-Opt-01`、`A-Opt-02` 为当前最优**；**`summary` 口径 `RMSE p` 相对 `A-Opt-01`/`A-Opt-02` 略差**，须在叙事中并列 **trade-off**。**`A-Opt-03w` 未优于 03**。按 [优化路径](任务A优化路径与近期实验建议.md) **下一组为 `A-Opt-04`（`hidden_dim=256`）**
+- 本周新完成实验：`**A-Opt-01`**（三 seed + `predict_field` + `plot_taskA_regional_bar` + 多模型 Fig A5 更新，2026-03-26）；`**A-Opt-02**`（三 seed + 导出 + `error_analysis_interior` + `regional_eval` + 与 Main 多模型散点，2026-03-27）；`**A-Opt-02_warmup**`（P0-3，同上后处理链 + `prenorm_Main_P02_P02w`，2026-03-27）；`**A-Opt-03` / `A-Opt-03w**`（P0-4，2026-03-28，见状态表与 `prenorm_A_Opt03_vs_Opt03w`）；`**A-Opt-04` / `A-Opt-05**`（P0-5 容量，2026-03-29，见状态表「实验记录摘要」）
+- 当前最优主线：**（2026-03-31）** 以 **`A-Opt-05`**（`h256×4L`，P0-4 组合）为 **后续实验母版**：**`interior` 与 `near_wall` 等略优于 `A-Opt-03`**，更利于端到端梯度质量叙事；**trade-off** 为更高显存/时延与更大跨 seed 方差。**`A-Opt-03`**（h128）保留 **轻量对照** 与 P0-4 历史锚点。**`summary.rmse_p`** 相对单独 P0-1/P0-2 仍偏弱，须在文中写清 **trade-off**。**下一优先**：**不堆 6L**，推进 **`A-Abl-02` / Line G**，按需 **05 vs 03 效率 benchmark**。
 - 当前最重要的结论：
 - 与预期相反的结果：
 - 当前最大阻塞：
@@ -224,11 +231,11 @@
 
 ### Week 2 后补（2026-03-26）
 
-- 在 Week 2 模板表中补登记 **`A-Opt-01`**（P0-1）完成项与前一周「本周必填总结」摘要；完整数值与区域对照见 [任务A实验状态表](任务A实验状态表.md)。
-- **`（2026-03-27）`** 同表补登记 **`A-Opt-02`**（P0-2）；状态表「第三批」现为 **`A-Opt-01` ✅**、**`A-Opt-02` ✅**。  
-- **`（2026-03-27）`** **`A-Opt-02_warmup`（P0-3）✅**。  
-- **`（2026-03-28）`** **`A-Opt-03` / `A-Opt-03w`（P0-4）✅**；下一步 **`A-Opt-04`**。
-- **`A-Abl-01` 仍为未完成**：本周门槛勾选应以实际周进度为准。
+- 在 Week 2 模板表中补登记 `**A-Opt-01`**（P0-1）完成项与前一周「本周必填总结」摘要；完整数值与区域对照见 [任务A实验状态表](任务A实验状态表.md)。
+- `**（2026-03-27）**` 同表补登记 `**A-Opt-02**`（P0-2）；状态表「第三批」现为 `**A-Opt-01` ✅**、`**A-Opt-02` ✅**。  
+- `**（2026-03-27）`** `**A-Opt-02_warmup`（P0-3）✅**。  
+- `**（2026-03-28）`** `**A-Opt-03` / `A-Opt-03w`（P0-4）✅**；`**（2026-03-29）`** `**A-Opt-04` / `A-Opt-05`（P0-5 容量）✅**；**（2026-03-31）** 战略母版已切换为 `**A-Opt-05**`，见 [任务A实验状态表](任务A实验状态表.md)「战略锚点」。
+- `**A-Abl-01` 仍为未完成**：本周门槛勾选应以实际周进度为准。
 
 ---
 
@@ -265,8 +272,8 @@
 ### 本周必填总结
 
 - 本周固定版本：
-- 本周新完成实验：
-- 当前最优主线：
+- 本周新完成实验：**（2026-03-31）** **`A-Opt-05_tune`** 已入账 run：**测试集 predict + 任务 A 图**；**`plots/optimization/A_Opt05_tune_vs_Opt03_seed1/`**；**WSS** `compare_hemo_wss_runs` **全量未跑**
+- 当前最优主线：**`A-Opt-05` 为消融/Line G/W 母版**；**`A-Opt-03`** 轻量对照——见 [任务A实验状态表](任务A实验状态表.md)「战略锚点」。
 - 当前最重要的结论：
 - 与预期相反的结果：
 - 当前最大阻塞：
@@ -481,7 +488,7 @@
 
 ### 是否达到本周门槛
 
--
+- 
 
 ---
 
@@ -513,3 +520,4 @@
 - `A-Main-01` 不能稳定优于 `A-Base-03`
 - physics loss 明显拖垮训练稳定性
 - hierarchy 提速但精度明显崩坏
+
