@@ -108,7 +108,7 @@
 
 > 说明：本区用于承接 baseline 完成后的“先拿更好结果，再补最小必要解释实验”路线。  
 > 当前优先级以 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md) 为准。  
-> 推荐执行顺序：`A-Opt-01 -> A-Opt-02 -> A-Opt-02_warmup (P0-3，✅ 2026-03-27) -> A-Opt-03 (✅ 2026-03-28) -> A-Opt-03w (✅ 2026-03-28) -> A-Opt-04 (✅ 2026-03-29) -> A-Opt-05 (✅ 2026-03-29)`。  
+> 推荐执行顺序：`A-Opt-01 -> A-Opt-02 -> A-Opt-02_warmup (P0-3，✅ 2026-03-27) -> A-Opt-03 (✅ 2026-03-28) -> A-Opt-03w (✅ 2026-03-28) -> A-Opt-04 (✅ 2026-03-29) -> A-Opt-05 (✅ 2026-03-29) -> A-Opt-07 (✅ 2026-04-02，**负结果**)`。  
 > 推进门槛：只有当上一组同时改善全局 `RMSE_|v|`、内部区 `RMSE_|v|`，且至少一个速度分量 `R²` 明显改善时，才进入下一组容量扩展。  
 > **（2026-03-31）** 容量线执行到此为止；**新开跑优化/消融/Line G** 以 **`A-Opt-05`** 为母版（见篇首「战略锚点」），**`A-Opt-03`** 保留为轻量对照。
 
@@ -127,7 +127,7 @@
 | A-Opt-05t_wd2e4 | wd=2e-4 是否改善正则化效果               | `A-Opt-05_wu10 + wd=2e-4`          | split_AG_v1   | [1]     | ✅ 已完成 | **（2026-03-29）** seed1：`*_h256_l4_wu10_wd2e4_split_AG_v1_seed1_20260329_222849`。RMSE_\|v\|=1.1871，interior=2.0648，RMSE_p=0.7711——**明显变差，不可取**。 |
 | A-Opt-05t_sch15 | schedpat=15 是否优于默认调度             | `A-Opt-05_wu10 + scheduler_patience=15` | split_AG_v1 | [1] | ✅ 已完成 | **（2026-03-30）** seed1：`*_h256_l4_wu10_schpat15_split_AG_v1_seed1_20260330_134411`。RMSE_\|v\|=1.0549，interior=1.8464，RMSE_p=0.6640——**未形成主指标稳定优势**；母版仍为 A-Opt-05 骨架，调参分支单独归因。 |
 | A-Opt-06        | 单尺度进一步加深是否还值得                    | `hidden_dim = 256, num_layers = 6` | split_AG_v1   | [1]     | 🔒 未开始 | 若 `A-Opt-05` 收益很小，建议停止                                                                                                                                                                                                                                             |
-| A-Opt-07        | 内部点区域加权是否进一步改善瓶颈                 | region-weighted loss               | split_AG_v1   | [1]     | 🔒 未开始 | 放在容量扩展之后评估                                                                                                                                                                                                                                                         |
+| A-Opt-07        | 内部点区域加权是否进一步改善瓶颈                 | `optim.interior_loss_boost = 3.0`（余同 **A-Opt-05**） | split_AG_v1   | [1,2,3] | ✅ 已完成 | **（2026-04-02）** 三 seed：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_h256_l4_iboost3_split_AG_v1_seed{1,2,3}_20260331_175619`；已 **`predictions_test`** + **`regional_eval`**；与 **`A-Main-01` / `A-Opt-05`** 对照图：`plots/optimization/A_Opt07_vs_Opt05_Main01/`（`python -m training.scripts.regenerate_opt07_vs_opt05_main_figures`）。**相对母版 `A-Opt-05`**：全图 **`rmse_vel_mag`** 与 **`interior.rmse_vel_mag`** 均未更好，**`near_wall` / `wall`** 变差；**`rmse_p`** 略差——**负结果**，母版仍为 **`A-Opt-05`**。见「实验记录摘要 · A-Opt-07」。 |
 | A-Opt-08        | 多尺度结构是否带来本质提升                    | graph U-Net / hierarchical GNN     | split_AG_v1   | [1]     | 🔒 未开始 | 单尺度优化见顶后再立项                                                                                                                                                                                                                                                        |
 
 
@@ -179,7 +179,7 @@
 > **（2026-03-26 重要）主指标口径更新**：下表 `RMSE_|v|` 列**保留原 all-node 口径**以便纵向对比；自本次起所有出图脚本默认 `--region interior`，论文主结论应以 `interior.RMSE_|v|`（见各 run 实验记录摘要中「内部点误差」）为准；`all.RMSE_|v|` 仅作补充。  
 > **（2026-03-29）主表 / 近壁汇报列**：`plots/summary/fig_A1_main_table.csv` 默认以 `interior` 导出主区域 **`rmse_* / r2_*`**，并附带 **`all_rmse_vel_mag / all_r2_vel_mag`** 与 **`near_wall_rmse_* / near_wall_r2_*`**（含 |v| 的 **`r2_vel_mag`**）；各 run 需已生成 `predictions_test/regional_eval/fig_A5_regional_metrics.json`（必要时重跑 `plot_taskA_regional_bar`），详见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md) 第 5–6 节。  
 > **（2026-03-29）** 已归档 **`A-Opt-04`**（`hidden_dim=256`）；下表已增 **`A-Opt-04`** 列（3 seed mean ± std）。  
-> **（2026-03-31）** 已归档 **`A-Opt-05`**（`hidden_dim=256, num_layers=4`）并补入 ③ 容量线子表；同时入账 **`A-Opt-05_tune`** 四组小步超参实验（`warmup10` / `lr3e-4` / `wd2e-4` / `schedpat15`，均 seed=1）——详见第三批跟踪表与「实验记录摘要 · A-Opt-05_tune」。
+> **（2026-03-31）** 已归档 **`A-Opt-05`**（`hidden_dim=256, num_layers=4`）并补入 ③ 容量线子表；同时入账 **`A-Opt-05_tune`** 四组小步超参实验（`warmup10` / `lr3e-4` / `wd2e-4` / `schedpat15`，均 seed=1）——详见第三批跟踪表与「实验记录摘要 · A-Opt-05_tune」。**（2026-04-02）** 已归档 **`A-Opt-07`**（`interior_loss_boost=3`，三 seed）并增列 ③ 子表；见「实验记录摘要 · A-Opt-07」。
 
 <!-- 拆为三张子表：① Baseline 组  ② P0 优化前半（Opt-01～03）  ③ P0 容量线（Opt-03w/04） -->
 
@@ -394,7 +394,7 @@
 </tbody>
 </table>
 
-**③ P0 容量线（A-Opt-03★ 为对照基准；全部 PreNorm + TW[2,2,2,.5]）**
+**③ P0 容量线（A-Opt-03★ 为对照基准；全部 PreNorm + TW[2,2,2,.5]；A-Opt-07 叠内部监督加权）**
 
 <table border="1" cellspacing="0" cellpadding="1" style="border-collapse: collapse; font-size: 0.78em; line-height: 1.15; width: 100%; table-layout: fixed;">
 <thead>
@@ -404,6 +404,7 @@
 <th>A-Opt-03w</th>
 <th>A-Opt-04</th>
 <th>A-Opt-05</th>
+<th>A-Opt-07</th>
 </tr>
 </thead>
 <tbody>
@@ -413,12 +414,14 @@
 <td>128</td>
 <td>256</td>
 <td>256</td>
+<td>256</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">num_layers</th>
 <td>3</td>
 <td>3</td>
 <td>3</td>
+<td>4</td>
 <td>4</td>
 </tr>
 <tr>
@@ -427,6 +430,15 @@
 <td>5ep</td>
 <td>✗</td>
 <td>✗</td>
+<td>✗</td>
+</tr>
+<tr>
+<th scope="row" style="text-align: left; font-weight: normal;">interior_loss_boost</th>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td><strong>3</strong></td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">RMSE_u</th>
@@ -434,6 +446,7 @@
 <td>0.8705±0.0018</td>
 <td>0.8723±0.0058</td>
 <td>0.8697±0.0061</td>
+<td>0.8709±0.0056</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">RMSE_v</th>
@@ -441,6 +454,7 @@
 <td>0.8176±0.0032</td>
 <td>0.8182±0.0072</td>
 <td>0.8119±0.0039</td>
+<td>0.8149±0.0051</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">RMSE_w</th>
@@ -448,6 +462,7 @@
 <td>0.6449±0.0016</td>
 <td><strong>0.6416±0.0010</strong></td>
 <td>0.6449±0.0045</td>
+<td>0.6470±0.0029</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">RMSE_|v| (all)</th>
@@ -455,6 +470,7 @@
 <td>1.0665±0.0133</td>
 <td>1.0519±0.0099</td>
 <td>1.0399±0.0082</td>
+<td>1.0433±0.0120</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">Interior RMSE_|v|</th>
@@ -462,6 +478,7 @@
 <td>1.8883±0.0064</td>
 <td>1.8493±0.0121</td>
 <td><strong>1.8162±0.0275</strong></td>
+<td>1.8207±0.0211</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">RMSE_p</th>
@@ -469,6 +486,7 @@
 <td>0.6539±0.0202</td>
 <td><strong>0.6386±0.0114</strong></td>
 <td>0.6449±0.0022</td>
+<td>0.6489±0.0143</td>
 </tr>
 <tr>
 <th scope="row" style="text-align: left; font-weight: normal;">R2_p</th>
@@ -476,6 +494,7 @@
 <td>0.9211±0.0048</td>
 <td><strong>0.9248±0.0030</strong></td>
 <td>0.9234±0.0005</td>
+<td>0.9224±0.0035</td>
 </tr>
 </tbody>
 </table>
@@ -676,6 +695,33 @@
 - **后处理**：各 run 已具备 `predictions_test/`、`error_analysis_interior/`、`regional_eval/`。
 - **一句话结论**：**加深一层主要「修复」了加宽带来的内部速度回退**，`near_wall` 区域相对 `A-Opt-03` 明显改善（1.573 → 1.454），更利于端到端 WSS 梯度质量叙事；**Trade-off**：显存/时延/跨 seed 方差均高于 03。
 - **下一步动作**：**（2026-03-31）** 本组为 **消融 / Line G / Line W 的统一母版**；按 P0-5 **停止条件**不继续 `A-Opt-06`；**`A-Opt-05_tune`** 见下节；优先 **`A-Abl-02` / Line G**（**WSS 全量对比暂缓**）。
+
+---
+
+### A-Opt-07（P1-2 内部监督加权，`A-Opt-05` + `interior_loss_boost = 3`）
+
+- **完成日期**：2026-03-31～04-01（训练三 seed）；**（2026-04-02）** 测试集预测与区域评估闭环
+- **seed**：1, 2, 3（`best_epoch` 分别为 **106、55、72**）
+- **配置**：`training/configs/field/generated/optimization/A-Opt-07_seed{1,2,3}.json`；`run.experiment_name` 后缀 **`_iboost3`**
+- **输出目录**：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_h256_l4_iboost3_split_AG_v1_seed{1,2,3}_20260331_175619`
+- **RMSE_u**：0.8709 ± 0.0056（各 seed：0.8662 / 0.8794 / 0.8670）
+- **RMSE_v**：0.8149 ± 0.0051（各 seed：0.8143 / 0.8214 / 0.8091）
+- **RMSE_w**：0.6470 ± 0.0029（各 seed：0.6466 / 0.6507 / 0.6437）
+- **RMSE_|v|**：1.0433 ± 0.0120（各 seed：1.0517 / 1.0500 / 1.0283）
+- **RMSE_p**：0.6489 ± 0.0143（各 seed：0.6350 / 0.6684 / 0.6432）
+- **R2_p**：0.9224 ± 0.0035（各 seed：0.9257 / 0.9177 / 0.9237）
+- **R2_u/v/w**：0.241 / 0.364 / 0.607（3 seed 均值，`summary.json`）
+- **分区域 `rmse_vel_mag`（`fig_A5_regional_metrics.json`，3 seed mean ± std）**：
+  - **壁面**：0.0669 ± 0.0079（各 seed：0.0584 / 0.0774 / 0.0651）— **差于 `A-Opt-05` 的 ~0.042**
+  - **内部点**：1.8207 ± 0.0211（各 seed：1.8450 / 1.8067 / 1.8104）— **略差于 `A-Opt-05` 的 1.8162**
+  - **近壁**：1.4888 ± 0.0424（各 seed：1.4584 / 1.5417 / 1.4662）— **差于 `A-Opt-05` 的 ~1.454**
+  - **高曲率**：0.9982 ± 0.0092（各 seed：1.0026 / 1.0071 / 0.9850）
+  - **regional `all`**：1.0527 ± 0.0098（各 seed：1.0663 / 1.0450 / 1.0466）
+- **相对 `A-Opt-05`**：**未满足**优化路径「全局 + 内部 `RMSE_|v|` 同步改善」门槛；提高非壁面节点损失权重在本实现下**更偏向拉内部，但损害壁面/近壁恢复**，全图速度略变差。
+- **后处理**：各 run 已具备 `predictions_test/`、`regional_eval/`；seed2/3 已生成 `fig_A4_per_case_metrics_interior.csv` 与 `fig_A3_scatter_interior.png`。**建议对 seed1 再执行** `plot_taskA_per_case_boxplot` 与 `plot_taskA_scatter`（与同 seed 的 05/Main 对照箱线/散点时需各 exp 均已具备 `fig_A4_*`）。
+- **多模型对照图（Main / 05 / 07）**：`outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/` — `python -m training.scripts.regenerate_opt07_vs_opt05_main_figures`
+- **一句话结论**：**内部 `interior_loss_boost=3` 未带来相对母版 `A-Opt-05` 的主指标收益**，属**清晰负结果**；后续主线仍取 **`A-Opt-05`**，优先 **`A-Abl-02` / Line G**。
+- **下一步动作**：不必追加深或再扫 `interior_boost`；将本组作为「仅加权内部监督不够」写入正文/附录即可。
 
 ---
 

@@ -31,8 +31,16 @@ _EXP_LABELS: Dict[str, str] = {
     "A-Base-02": "GraphSAGE",
     "A-Base-03": "Transformer",
     "A-Main-01": "Transformer+Geom",
+    "A-Opt-01": "Transformer+Geom (tw22205)",
     "A-Opt-02": "Transformer+Geom (Pre-Norm)",
     "A-Opt-02_warmup": "Transformer+Geom (Pre-Norm+Warmup5)",
+    "A-Opt-03": "Transformer+Geom (P0-4 h128)",
+    "A-Opt-05": "Transformer+Geom (Opt-05 256×4L)",
+    "A-Opt-07": "Transformer+Geom (Opt-07 interior boost×3)",
+    "A-Abl-02-01": "Opt-05 w/o Abscissa",
+    "A-Abl-02-02": "Opt-05 w/o NormRadius",
+    "A-Abl-02-03": "Opt-05 w/o Curvature",
+    "A-Abl-02-04": "Opt-05 w/o Tangent",
 }
 
 # 控制多模型在图中的显示顺序
@@ -41,8 +49,16 @@ _EXP_ORDER: List[str] = [
     "A-Base-02",
     "A-Base-03",
     "A-Main-01",
+    "A-Opt-01",
     "A-Opt-02",
     "A-Opt-02_warmup",
+    "A-Opt-03",
+    "A-Opt-05",
+    "A-Abl-02-01",
+    "A-Abl-02-02",
+    "A-Abl-02-03",
+    "A-Abl-02-04",
+    "A-Opt-07",
 ]
 
 
@@ -74,10 +90,12 @@ def _discover_runs(runs_root: Path) -> List[Path]:
     )
 
 
-def _read_exp_id(run_dir: Path) -> str:
+def _read_exp_id_and_seed(run_dir: Path) -> tuple[str, int]:
     with (run_dir / "summary.json").open("r", encoding="utf-8") as f:
         d = json.load(f)
-    return str(d.get("exp_id", run_dir.name))
+    exp_id = str(d.get("exp_id", run_dir.name))
+    seed = int(d.get("seed", -1))
+    return exp_id, seed
 
 
 def main() -> None:
@@ -108,6 +126,12 @@ def main() -> None:
         help="输出目录，默认 <runs-root>/plots/multimodel_baseline",
     )
     parser.add_argument("--title", default="", help="图标题（为空则自动生成）")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="若指定则只纳入 summary.json 中该 seed 的 run（用于与单 seed 消融公平对比）",
+    )
     args = parser.parse_args()
 
     runs_root = Path(args.runs_root).resolve()
@@ -129,7 +153,9 @@ def main() -> None:
     )
 
     for run_dir in _discover_runs(runs_root):
-        exp_id = _read_exp_id(run_dir)
+        exp_id, run_seed = _read_exp_id_and_seed(run_dir)
+        if args.seed is not None and run_seed != args.seed:
+            continue
         if exp_filter and exp_id not in exp_filter:
             continue
         search_paths = [
@@ -173,7 +199,8 @@ def main() -> None:
         ) from exc
 
     title = args.title or f"Figure A4 Per-Case Comparison ({args.region} nodes, all models)"
-    suffix_f = "_exp_subset" if exp_filter else ""
+    seed_tag = f"_seed{args.seed}" if args.seed is not None else ""
+    suffix_f = ("_exp_subset" if exp_filter else "") + seed_tag
     output_path = output_dir / f"fig_A4_multimodel_per_case_boxplot{region_tag}{suffix_f}.png"
     plot_multimodel_per_case_boxplot(
         models_data,

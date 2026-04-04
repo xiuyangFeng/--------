@@ -8,7 +8,7 @@
 2. 配置命名和输出命名分别是什么意思。
 3. 本周应该用哪些命令先跑起来。
 
-**（2026-03-31）母版约定**：后续 **`A-Abl-*` / Line G / Line W** 的新 JSON，以 **`A-Opt-05`** 已归档 run 的 **`config.snapshot.json`** 为复制基准（仅改消融项或 Line 专用字段）；**`A-Opt-03`** 用于低开销对照。详见 [任务A实验状态表](任务A实验状态表.md)「战略锚点」。
+**（2026-03-31）母版约定**：后续 **`A-Abl-*` / Line G / Line W** 的新 JSON，以 **`A-Opt-05`** 已归档 run 的 **`config.snapshot.json`** 为复制基准（仅改消融项或 Line 专用字段）；**`A-Opt-03`** 用于低开销对照。详见 [任务A实验状态表](任务A实验状态表.md)「战略锚点」。**（2026-04-02）** **`A-Opt-07`**（`optim.interior_loss_boost=3`）配置位于 **`training/configs/field/generated/optimization/A-Opt-07_seed*.json`**；结果已归档，**不构成新母版**（相对 05 负结果），对照图见 **`outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/`**（`regenerate_opt07_vs_opt05_main_figures`）。
 
 ---
 

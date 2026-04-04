@@ -33,6 +33,7 @@ def evaluate_checkpoint(
     device: torch.device,
     loss_weights: torch.Tensor,
     physics_config=None,
+    interior_loss_boost: float = 1.0,
     eval_epoch: int = 10**9,
     checkpoint_path: Path | str | None = None,
 ) -> Dict[str, float]:
@@ -42,7 +43,9 @@ def evaluate_checkpoint(
     model.eval()
     meter = RegressionMeter()
     weights = loss_weights.to(device)
-    loss_plugin = build_loss_plugin(physics_config)
+    loss_plugin = build_loss_plugin(
+        physics_config, interior_loss_boost=interior_loss_boost
+    )
     extra_totals: Dict[str, float] = {}
     num_batches = 0
 
@@ -129,6 +132,7 @@ def main() -> None:
         device=device,
         loss_weights=torch.tensor(config.optim.target_weights, dtype=torch.float32),
         physics_config=config.physics,
+        interior_loss_boost=config.optim.interior_loss_boost,
         checkpoint_path=Path(args.checkpoint),
     )
 

@@ -46,16 +46,24 @@ _EXP_LABELS: Dict[str, str] = {
     "A-Base-02": "GraphSAGE",
     "A-Base-03": "Transformer",
     "A-Main-01": "Transformer+Geom",
+    "A-Opt-01": "Transformer+Geom (tw22205)",
     "A-Opt-02": "Transformer+Geom (Pre-Norm)",
     "A-Opt-02_warmup": "Transformer+Geom (Pre-Norm+Warmup5)",
+    "A-Opt-03": "Transformer+Geom (P0-4 h128)",
+    "A-Opt-05": "Transformer+Geom (Opt-05 256×4L)",
+    "A-Opt-07": "Transformer+Geom (Opt-07 interior boost×3)",
 }
 _EXP_ORDER: List[str] = [
     "A-Base-01",
     "A-Base-02",
     "A-Base-03",
     "A-Main-01",
+    "A-Opt-01",
     "A-Opt-02",
     "A-Opt-02_warmup",
+    "A-Opt-03",
+    "A-Opt-05",
+    "A-Opt-07",
 ]
 _VALID_VARIABLES = {"u", "v", "w", "p", "vel_mag"}
 

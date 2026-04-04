@@ -57,7 +57,13 @@ def main() -> None:
     args = parser.parse_args()
 
     runs_root = Path(args.runs_root).resolve()
-    patterns = args.pattern or ["*/summary.json"]
+    # 显式传入 --run-dir 时，除非同时指定 --pattern，否则不再全盘 glob，避免混入其它 run。
+    if args.pattern:
+        patterns = args.pattern
+    elif args.run_dir:
+        patterns = []
+    else:
+        patterns = ["*/summary.json"]
     run_dirs = resolve_run_dirs(runs_root, patterns, args.run_dir)
     run_dirs = [p for p in run_dirs if (p / "summary.json").exists()]
     if not run_dirs:

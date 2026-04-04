@@ -18,6 +18,7 @@ CAT_OPTIMIZATION = "optimization"
 # 优化/消融子课题（optimization 下），供脚本或文档引用
 SUBDIR_P0_1_OPT01_VS_MAIN01 = "P0-1_A-Opt01_vs_Main01"
 SUBDIR_P0_2_PRENORM_VS_MAIN01 = "prenorm_A_Opt02_vs_Main01"
+SUBDIR_A_OPT07_VS_05_MAIN01 = "A_Opt07_vs_Opt05_Main01"
 
 
 def plots_root(runs_root: str | Path) -> Path:

@@ -31,6 +31,7 @@ class FieldTrainer:
         loss_weights: torch.Tensor,
         grad_clip_norm: Optional[float] = None,
         physics_config=None,
+        interior_loss_boost: float = 1.0,
         accumulate_grad_batches: int = 1,
         log_dir: Optional[Path] = None,
         use_amp: bool = False,
@@ -51,7 +52,9 @@ class FieldTrainer:
         # 梯度裁剪阈值。
         self.grad_clip_norm = grad_clip_norm
         # 根据 physics 配置构建具体损失插件。
-        self.loss_plugin = build_loss_plugin(physics_config)
+        self.loss_plugin = build_loss_plugin(
+            physics_config, interior_loss_boost=interior_loss_boost
+        )
         # 梯度累积步数至少为 1。
         self.accumulate_grad_batches = max(1, accumulate_grad_batches)
 

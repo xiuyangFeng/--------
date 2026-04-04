@@ -85,6 +85,7 @@ def build_run_manifest(
             "scheduler_patience": config.optim.scheduler_patience,
             "early_stopping_patience": config.optim.early_stopping_patience,
             "target_weights": config.optim.target_weights,
+            "interior_loss_boost": config.optim.interior_loss_boost,
             "grad_clip_norm": config.optim.grad_clip_norm,
         },
         "physics": {
@@ -252,6 +253,7 @@ def main() -> None:
         loss_weights=torch.tensor(config.optim.target_weights, dtype=torch.float32),
         grad_clip_norm=config.optim.grad_clip_norm,
         physics_config=config.physics,
+        interior_loss_boost=config.optim.interior_loss_boost,
         accumulate_grad_batches=config.optim.accumulate_grad_batches,
         log_dir=run_dir / "tb_logs",
         use_amp=config.system.amp,

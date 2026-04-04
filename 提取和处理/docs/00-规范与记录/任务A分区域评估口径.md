@@ -42,6 +42,7 @@
 2. **Abscissa 空隙**：默认下 `**Abscissa > 0.9`** 的节点既不属于 `trunk` 也不属于 `bifurcation`，仍参与 `all`、`wall`、`interior` 及曲率类等区域。
 3. **Pipeline 采样 vs 本表**：`pipeline/config.SAMPLING_CONFIG` 中 `**boundary_threshold = 2.0` mm** 仅用于**降采样时**内部点「近壁层 / 核心层」**预算分配**，**不是**上表中 `near_wall` 的 `NormRadius > 0.8`。
 4. **修改阈值**：在调用 `compute_regional_metrics(..., **mask_kwargs)` 时传入 `curvature_quantile`、`near_wall_threshold`、`core_flow_threshold`、`bifurcation_range` 等；若正文或图表换了阈值，须在论文/汇报中**同步写明**。
+5. **训练损失中的 `interior_loss_boost`**（如 **`A-Opt-07`**）：仅改变**非壁面节点**上的监督 MSE 权重，**不改变**上表任一区域的 mask 定义或几何阈值；评估仍按 §3 从 `graph_path` 读完整 `x` 后计算。
 
 ## 5. 区域级指标字段（RMSE / MAE / R²）
 
@@ -55,5 +56,6 @@
 ## 6. 相关脚本
 
 - 单 run：`training/scripts/plot_taskA_regional_bar.py` → `predictions_test/regional_eval/fig_A5_regional_metrics.json`
-- 多模型汇总：`training/scripts/plot_taskA_multimodel_regional_bar.py` → `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`
+- 多模型汇总：`training/scripts/plot_taskA_multimodel_regional_bar.py` → `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`（或用 `--exp-filter` / `--output-dir` 写入 `plots/optimization/<子课题>/`）
+- **P1-2 对照（`A-Main-01` / `A-Opt-05` / `A-Opt-07`）**：`training/scripts/regenerate_opt07_vs_opt05_main_figures.py` → `outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/`（Fig A3 / A5 / A4 + `compare_val_loss.png`，依赖各 run 已具备 `predictions_test` 与 `regional_eval`）
 - 主结果表 CSV：`training/scripts/plot_taskA_main_table.py` → `plots/summary/fig_A1_main_table.csv`，主区域列可直接导出 **`rmse_u/v/w/p/vel_mag` + `r2_u/v/w/p/vel_mag`**；同时附加 **`all_rmse_vel_mag` / `all_r2_vel_mag`** 参考列，以及 **`near_wall_rmse_*` / `near_wall_r2_*`**（含 `r2_vel_mag`）。若某 run 尚未生成 regional JSON，对应区域列按脚本回退逻辑留空或回退到 `summary.json`。

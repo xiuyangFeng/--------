@@ -19,6 +19,37 @@ def weighted_mse_loss(pred: torch.Tensor, target: torch.Tensor, weights: torch.T
     return (mse_per_dim * weights).sum()
 
 
+def region_weighted_mse_loss(
+    pred: torch.Tensor,
+    target: torch.Tensor,
+    weights: torch.Tensor,
+    is_wall: torch.Tensor,
+    interior_boost: float,
+) -> torch.Tensor:
+    # 与 weighted_mse_loss 在 interior_boost=1 且 is_wall 全 0/1 时数值等价（均匀节点权重）。
+    # is_wall: [N, 1]，非壁面节点（内部点）乘以 interior_boost。
+    sq = F.mse_loss(pred, target, reduction="none")
+    node_w = torch.where(
+        is_wall.squeeze(-1).bool(),
+        pred.new_ones(pred.size(0)),
+        pred.new_full((pred.size(0),), float(interior_boost)),
+    )
+    return (sq * weights.unsqueeze(0) * node_w.unsqueeze(-1)).mean()
+
+
+def _data_mse_loss(
+    pred: torch.Tensor,
+    target: torch.Tensor,
+    data_weights: torch.Tensor,
+    batch,
+    interior_loss_boost: float,
+) -> torch.Tensor:
+    # interior_loss_boost=1 时全体节点权重为 1，与 weighted_mse_loss 一致。
+    idx = NODE_FEATURE_NAMES.index("is_wall")
+    is_wall = batch.x[:, idx : idx + 1]
+    return region_weighted_mse_loss(pred, target, data_weights, is_wall, interior_loss_boost)
+
+
 @dataclass
 class LossBreakdown:
     # 训练循环统一拿这个结构读数，避免后面加新物理项时接口反复变化。
@@ -40,6 +71,9 @@ class LossBreakdown:
 
 class NullPhysicsLoss:
     # 当 physics 关闭时，trainer 不需要知道任何条件分支，直接走同一套调用路径。
+    def __init__(self, interior_loss_boost: float = 1.0):
+        self.interior_loss_boost = float(interior_loss_boost)
+
     def is_enabled(self, epoch: int) -> bool:
         # 空物理损失永远视为关闭。
         return False
@@ -55,7 +89,9 @@ class NullPhysicsLoss:
         train: bool,
     ) -> LossBreakdown:
         # 只计算纯数据监督损失。
-        data_loss = weighted_mse_loss(pred, target, data_weights)
+        data_loss = _data_mse_loss(
+            pred, target, data_weights, batch, self.interior_loss_boost
+        )
         # 构造标量零张量占位。
         zero = data_loss.new_zeros(())
         return LossBreakdown(
@@ -68,9 +104,10 @@ class NullPhysicsLoss:
 
 
 class PhysicsConstraintLoss:
-    def __init__(self, config: PhysicsConfig):
+    def __init__(self, config: PhysicsConfig, interior_loss_boost: float = 1.0):
         # 保存物理损失配置。
         self.config = config
+        self.interior_loss_boost = float(interior_loss_boost)
         # 记录 x/y/z 在节点特征中的列索引。
         self.coord_indices = [NODE_FEATURE_NAMES.index(name) for name in ("x", "y", "z")]
         # 记录 wall 节点标记所在列。
@@ -107,7 +144,9 @@ class PhysicsConstraintLoss:
         train: bool,
     ) -> LossBreakdown:
         # 无论 physics 是否启用，数据监督损失都始终计算。
-        data_loss = weighted_mse_loss(pred, target, data_weights)
+        data_loss = _data_mse_loss(
+            pred, target, data_weights, batch, self.interior_loss_boost
+        )
         # 统一准备零值占位。
         zero = data_loss.new_zeros(())
         # 如果当前 epoch 不启用 physics，就直接返回纯监督损失。
@@ -251,11 +290,13 @@ class PhysicsConstraintLoss:
         return grad
 
 
-def build_loss_plugin(config: Optional[PhysicsConfig]):
+def build_loss_plugin(
+    config: Optional[PhysicsConfig], interior_loss_boost: float = 1.0
+):
     # trainer 只依赖 build_loss_plugin，不直接依赖具体 physics 实现。
     # 后面如果要试更复杂的 PINN / weak form / curriculum，只需要替换这里的返回对象。
     # 没有 physics 配置或 physics 未启用时，返回空实现。
     if config is None or not config.enabled:
-        return NullPhysicsLoss()
+        return NullPhysicsLoss(interior_loss_boost=interior_loss_boost)
     # 否则返回真正的物理约束损失对象。
-    return PhysicsConstraintLoss(config)
+    return PhysicsConstraintLoss(config, interior_loss_boost=interior_loss_boost)

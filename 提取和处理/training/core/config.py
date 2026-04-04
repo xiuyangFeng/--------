@@ -61,6 +61,8 @@ class OptimConfig:
     scheduler_patience: int = 10
     early_stopping_patience: int = 30
     target_weights: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0])
+    # >1 时提高非壁面节点（is_wall=0）的监督权重，缓解内部流场误差被壁面低误差稀释。
+    interior_loss_boost: float = 1.0
     grad_clip_norm: Optional[float] = 1.0
     accumulate_grad_batches: int = 1
 
@@ -230,3 +232,5 @@ class ExperimentConfig:
         # 梯度累积步数至少为 1。
         if self.optim.accumulate_grad_batches < 1:
             raise ValueError("accumulate_grad_batches 必须 >= 1")
+        if self.optim.interior_loss_boost <= 0:
+            raise ValueError("interior_loss_boost 必须 > 0")

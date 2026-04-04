@@ -211,6 +211,7 @@
 | `A-Opt-04`        | P0-5：`A-Opt-03` + `hidden_dim=256`                        | [x]    | [x]      | [x]      | 三 seed + 后处理（2026-03-29）；**`A-Opt-05` 中间态**；非母版                                                                                                                            |
 | `A-Opt-05`        | P0-5：`A-Opt-04` + `num_layers=4`                          | [x]    | [x]      | [x]      | 三 seed + 后处理（2026-03-29）；**均值略优 03**，**`near_wall` 等略优**；**（2026-03-31）消融/Line G/W 母版**；方差与成本高于 03                                                                                                     |
 | `A-Opt-05_tune`   | P0-5 后：05 上 warmup/lr/wd/sched 等小步试跑                         | 部分   | 部分     | 部分     | **（2026-03-31）** 见 **`experiment_index.csv`** 与 [任务A实验状态表](任务A实验状态表.md)；已入账 run 后处理齐；**Fig** `plots/optimization/A_Opt05_tune_vs_Opt03_seed1`；**WSS 全量对比暂缓**；`manifest_list` 中无目录项待核对 |
+| `A-Opt-07`        | P1-2：`A-Opt-05` + `interior_loss_boost=3`                         | [x]    | [x]      | [x]      | **（2026-04-02）** 三 seed + **`predictions_test`** + **`regional_eval`**；**相对 05 负结果**；对照图 `plots/optimization/A_Opt07_vs_Opt05_Main01`；见状态表「A-Opt-07」 |
 
 
 ### 本周必填总结
@@ -272,7 +273,7 @@
 ### 本周必填总结
 
 - 本周固定版本：
-- 本周新完成实验：**（2026-03-31）** **`A-Opt-05_tune`** 已入账 run：**测试集 predict + 任务 A 图**；**`plots/optimization/A_Opt05_tune_vs_Opt03_seed1/`**；**WSS** `compare_hemo_wss_runs` **全量未跑**
+- 本周新完成实验：**（2026-03-31）** **`A-Opt-05_tune`** 已入账 run：**测试集 predict + 任务 A 图**；**`plots/optimization/A_Opt05_tune_vs_Opt03_seed1/`**；**WSS** `compare_hemo_wss_runs` **全量未跑**。**（2026-04-02）** **`A-Opt-07`**（三 seed + 预测/分区 + **`A_Opt07_vs_Opt05_Main01`** 对照图脚本；结论：**相对 `A-Opt-05` 无收益**）。
 - 当前最优主线：**`A-Opt-05` 为消融/Line G/W 母版**；**`A-Opt-03`** 轻量对照——见 [任务A实验状态表](任务A实验状态表.md)「战略锚点」。
 - 当前最重要的结论：
 - 与预期相反的结果：
@@ -340,7 +341,7 @@
 
 - 跑通 `A-Base-04`
 - 只做 hierarchy 最小可运行版本
-- 与 `A-Main-01` 做首轮精度-速度-显存对比
+- 与 `A-Main-01` 做首轮精度-速度-显存对比（**说明**：**`A-Opt-07`** 已于 2026-04-02 闭环，V1 单尺度近期增量见 [任务A实验状态表](任务A实验状态表.md)；本节模板仍保留作历史周次结构）
 
 ### 本周建议输出物
 
