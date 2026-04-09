@@ -37,25 +37,23 @@ class FieldTrainer:
         use_amp: bool = False,
         warmup_scheduler: Optional[LRScheduler] = None,
         warmup_epochs: int = 0,
+        wss_loss_weight: float = 0.0,
+        wss_weights: Optional[torch.Tensor] = None,
     ):
-        # 训练核心组件：模型、优化器、调度器。
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.warmup_scheduler = warmup_scheduler
-        # warmup 轮数至少为 0。
         self.warmup_epochs = max(0, warmup_epochs)
-        # 训练设备。
         self.device = device
-        # 输出维度的监督损失权重，需要先搬到目标设备。
         self.loss_weights = loss_weights.to(device)
-        # 梯度裁剪阈值。
         self.grad_clip_norm = grad_clip_norm
-        # 根据 physics 配置构建具体损失插件。
         self.loss_plugin = build_loss_plugin(
-            physics_config, interior_loss_boost=interior_loss_boost
+            physics_config,
+            interior_loss_boost=interior_loss_boost,
+            wss_loss_weight=wss_loss_weight,
+            wss_weights=wss_weights,
         )
-        # 梯度累积步数至少为 1。
         self.accumulate_grad_batches = max(1, accumulate_grad_batches)
 
         # 只有 CUDA 上才真正启用 AMP。
@@ -148,12 +146,12 @@ class FieldTrainer:
                 # 把当前 batch 搬到训练设备。
                 batch = batch.to(self.device)
 
-                # 前向阶段可以在 AMP 自动混合精度下执行。
                 with torch.amp.autocast("cuda", enabled=self.use_amp):
-                    pred = self.model(batch)
-                # Physics loss uses autograd.grad which needs float32;
-                # build_loss is called outside autocast so gradients stay precise.
-                # 损失在 autocast 外部计算，保证 physics 自动微分更稳定。
+                    model_output = self.model(batch)
+                if isinstance(model_output, tuple):
+                    pred, wss_pred = model_output
+                else:
+                    pred, wss_pred = model_output, None
                 breakdown = self.loss_plugin.build_loss(
                     model=self.model,
                     batch=batch,
@@ -162,8 +160,8 @@ class FieldTrainer:
                     data_weights=self.loss_weights,
                     epoch=epoch,
                     train=train,
+                    wss_pred=wss_pred,
                 )
-                # 取出总损失的 Python 标量版本，供日志显示。
                 loss_value = breakdown.total_loss.item()
 
                 if train:
@@ -189,8 +187,7 @@ class FieldTrainer:
                 num_batches += 1
                 # 在进度条后缀显示当前 batch loss。
                 progress.set_postfix_str(f"loss={self._format_metric(loss_value)}")
-                # 显式删除大张量引用，减少显存峰值。
-                del scalar_breakdown, breakdown, pred, batch
+                del scalar_breakdown, breakdown, pred, wss_pred, batch
 
         # 如果最后一个累积周期不足 accumulate_grad_batches，也要补做一次参数更新。
         if train and num_batches % self.accumulate_grad_batches != 0:

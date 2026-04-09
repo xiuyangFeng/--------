@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 
 import torch
 
-from pipeline.config import TARGET_NAMES
+from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES, WSS_TARGET_NAMES
 
 
 def _compute_metrics(pred: torch.Tensor, target: torch.Tensor) -> Dict[str, float]:
@@ -161,6 +161,60 @@ class RegressionMeter:
         metrics["mae_vel_mag"] = self._sum_abs_vel_err / n
         metrics["r2_vel_mag"] = 1.0 - self._sum_sq_vel_err / max(self._vel_target_M2, 1e-12)
         metrics["loss"] = self._total_loss_sum / n
+        return metrics
+
+
+@dataclass
+class WSSMeter:
+    """Tracks WSS prediction metrics on wall nodes only."""
+
+    _n: int = field(default=0, init=False, repr=False)
+    _sum_sq_err: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
+    _sum_abs_err: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
+    _target_mean: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
+    _target_M2: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
+
+    def update(self, wss_pred: torch.Tensor, wss_target: torch.Tensor, is_wall: torch.Tensor) -> None:
+        wall_mask = is_wall.squeeze(-1).bool()
+        if wall_mask.sum() == 0:
+            return
+        pred_w = wss_pred[wall_mask].detach().cpu().float()
+        target_w = wss_target[wall_mask].detach().cpu().float()
+        n = pred_w.size(0)
+        diff = pred_w - target_w
+        sq_err = (diff ** 2).sum(dim=0)
+        abs_err = diff.abs().sum(dim=0)
+
+        if self._sum_sq_err is None:
+            self._sum_sq_err = sq_err
+            self._sum_abs_err = abs_err
+            batch_mean = target_w.mean(dim=0)
+            self._target_mean = batch_mean
+            self._target_M2 = ((target_w - batch_mean) ** 2).sum(dim=0)
+            self._n = n
+        else:
+            self._sum_sq_err += sq_err
+            self._sum_abs_err += abs_err
+            n_old = self._n
+            n_new = n_old + n
+            batch_mean = target_w.mean(dim=0)
+            batch_M2 = ((target_w - batch_mean) ** 2).sum(dim=0)
+            delta = batch_mean - self._target_mean
+            self._target_mean = self._target_mean + delta * (n / n_new)
+            self._target_M2 = self._target_M2 + batch_M2 + delta ** 2 * (n_old * n / n_new)
+            self._n = n_new
+
+    def compute(self) -> Dict[str, float]:
+        if self._n == 0 or self._sum_sq_err is None:
+            return {}
+        n = self._n
+        metrics: Dict[str, float] = {}
+        ss_tot = self._target_M2.clamp_min(1e-12)
+        r2 = 1.0 - self._sum_sq_err / ss_tot
+        for idx, name in enumerate(WSS_TARGET_NAMES):
+            metrics[f"wss_rmse_{name}"] = (self._sum_sq_err[idx].item() / n) ** 0.5
+            metrics[f"wss_r2_{name}"] = r2[idx].item()
+        metrics["wss_rmse"] = (self._sum_sq_err.sum().item() / (n * len(WSS_TARGET_NAMES))) ** 0.5
         return metrics
 
 

@@ -86,10 +86,10 @@
 | A-Abl-01-02 | 输入特征消融  | + BC               | split_AG_v1   | [1]   | 🔒 未开始 |                        |
 | A-Abl-01-03 | 输入特征消融  | + is_wall          | split_AG_v1   | [1]   | 🔒 未开始 |                        |
 | A-Abl-01-04 | 输入特征消融  | + geometry（无 wall） | split_AG_v1   | [1]   | 🔒 未开始 |                        |
-| A-Abl-02-01 | 几何分量消融  | 去掉 Abscissa        | split_AG_v1   | [1]   | 🔒 未开始 |                        |
-| A-Abl-02-02 | 几何分量消融  | 去掉 NormRadius      | split_AG_v1   | [1]   | 🔒 未开始 |                        |
-| A-Abl-02-03 | 几何分量消融  | 去掉 Curvature       | split_AG_v1   | [1]   | 🔒 未开始 |                        |
-| A-Abl-02-04 | 几何分量消融  | 去掉 Tangent         | split_AG_v1   | [1]   | 🔒 未开始 |                        |
+| A-Abl-02-01 | 几何分量消融  | 去掉 Abscissa        | split_AG_v1   | [1,2,3] | ✅ 已完成 | **（2026-04-09）** 母版 **`A-Opt-05`**；`outputs/field/field_transformer_*_abl02_no_abscissa_split_AG_v1_seed{1,2,3}_*`；**`interior.rmse_vel_mag`** 三 seed 均值 **1.868±0.026**（相对 05 **+0.052**，paired *t* **p≈0.26**）。见「实验记录摘要 · A-Abl-02」。 |
+| A-Abl-02-02 | 几何分量消融  | 去掉 NormRadius      | split_AG_v1   | [1,2,3] | ✅ 已完成 | 同上；`*_abl02_no_normradius_*`；均值 **2.043±0.020**（**+0.227**，**p≈0.0015**）— **NormRadius 最关键**。 |
+| A-Abl-02-03 | 几何分量消融  | 去掉 Curvature       | split_AG_v1   | [1,2,3] | ✅ 已完成 | 同上；`*_abl02_no_curvature_*`；均值 **1.851±0.030**（**+0.035**，**p≈0.26**）— **影响最弱**。 |
+| A-Abl-02-04 | 几何分量消融  | 去掉 Tangent         | split_AG_v1   | [1,2,3] | ✅ 已完成 | 同上；`*_abl02_no_tangent_*`；均值 **1.933±0.038**（**+0.117**，**p≈0.073**）— **Tangent 次之**。 |
 | A-Abl-03-01 | 坐标归一化消融 | 原始坐标               | split_AG_v1   | [1]   | 🔒 未开始 |                        |
 | A-Abl-03-02 | 坐标归一化消融 | 仅中心化               | split_AG_v1   | [1]   | 🔒 未开始 |                        |
 | A-Abl-03-03 | 坐标归一化消融 | 中心化+PCA对齐          | split_AG_v1   | [1]   | 🔒 未开始 |                        |
@@ -136,7 +136,7 @@
 ## 第四批：显式几何增强线 Line G（2026-03-26 新增）
 
 > 说明：Line G 用于在现有 geometry 已被证明有效的前提下，继续小步增加新的显式几何/拓扑先验。
-> 前置条件：优先完成 `A-Abl-02`，确认现有几何分量贡献，再进入 Line G。**新开跑一律以 `A-Opt-05` 为母版**（篇首「战略锚点」）。
+> 前置条件：**`A-Abl-02` 已于 2026-04-09 三 seed 归档**（见「实验记录摘要 · A-Abl-02」）；可进入 Line G 小步验证。**新开跑一律以 `A-Opt-05` 为母版**（篇首「战略锚点」）。
 > 推荐执行顺序：`A-Opt-G01 -> A-Opt-G02 -> (A-Opt-G03 / A-Opt-G04) -> A-Opt-G05`。
 > 推进门槛：新增特征必须至少改善一个复杂区域（`near_wall / bifurcation / high_curvature`），且验证/测试不能退化。
 
@@ -694,7 +694,7 @@
 - **相对 `A-Opt-04`**：`interior.rmse_vel_mag` **1.849 → 1.816**（回补了加宽带来的内部速度退化）；`summary.rmse_vel_mag` **1.052 → 1.040**。**相对 `A-Opt-03`**：`interior.rmse_vel_mag` 均值略优（1.822 → 1.816），但差距小于跨 seed 方差，不宜单独宣称新 SOTA；`near_wall` 均值明显优于 03（~1.573 → 1.454），更贴近端到端梯度质量需求；`summary.rmse_p` 三 seed 均值 ~0.645，弱于 `A-Opt-01`/`A-Opt-02` 的压力最优区间。
 - **后处理**：各 run 已具备 `predictions_test/`、`error_analysis_interior/`、`regional_eval/`。
 - **一句话结论**：**加深一层主要「修复」了加宽带来的内部速度回退**，`near_wall` 区域相对 `A-Opt-03` 明显改善（1.573 → 1.454），更利于端到端 WSS 梯度质量叙事；**Trade-off**：显存/时延/跨 seed 方差均高于 03。
-- **下一步动作**：**（2026-03-31）** 本组为 **消融 / Line G / Line W 的统一母版**；按 P0-5 **停止条件**不继续 `A-Opt-06`；**`A-Opt-05_tune`** 见下节；优先 **`A-Abl-02` / Line G**（**WSS 全量对比暂缓**）。
+- **下一步动作**：**（2026-03-31）** 本组为 **消融 / Line G / Line W 的统一母版**；按 P0-5 **停止条件**不继续 `A-Opt-06`；**`A-Opt-05_tune`** 见下节；**`A-Abl-02` 已完成（2026-04-09）** → 优先 **`A-Abl-01` / Line G**（**WSS 全量对比暂缓**）。
 
 ---
 
@@ -720,8 +720,28 @@
 - **相对 `A-Opt-05`**：**未满足**优化路径「全局 + 内部 `RMSE_|v|` 同步改善」门槛；提高非壁面节点损失权重在本实现下**更偏向拉内部，但损害壁面/近壁恢复**，全图速度略变差。
 - **后处理**：各 run 已具备 `predictions_test/`、`regional_eval/`；seed2/3 已生成 `fig_A4_per_case_metrics_interior.csv` 与 `fig_A3_scatter_interior.png`。**建议对 seed1 再执行** `plot_taskA_per_case_boxplot` 与 `plot_taskA_scatter`（与同 seed 的 05/Main 对照箱线/散点时需各 exp 均已具备 `fig_A4_*`）。
 - **多模型对照图（Main / 05 / 07）**：`outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/` — `python -m training.scripts.regenerate_opt07_vs_opt05_main_figures`
-- **一句话结论**：**内部 `interior_loss_boost=3` 未带来相对母版 `A-Opt-05` 的主指标收益**，属**清晰负结果**；后续主线仍取 **`A-Opt-05`**，优先 **`A-Abl-02` / Line G**。
+- **一句话结论**：**内部 `interior_loss_boost=3` 未带来相对母版 `A-Opt-05` 的主指标收益**，属**清晰负结果**；后续主线仍取 **`A-Opt-05`**；**`A-Abl-02` 已闭环**，优先 **`A-Abl-01` / Line G**。
 - **下一步动作**：不必追加深或再扫 `interior_boost`；将本组作为「仅加权内部监督不够」写入正文/附录即可。
+
+---
+
+### A-Abl-02（显式几何分量消融，母版 `A-Opt-05`）
+
+- **完成日期**：2026-04-02～04-07（各子组训练）；**（2026-04-09）** 三 seed 汇总与文档归档
+- **对照母版**：**`A-Opt-05`**（`interior.rmse_vel_mag` 三 seed 均值 **1.816±0.034**）
+- **指标口径**：**`regional_eval` · `interior` · `rmse_vel_mag`**；统计汇总见 **`outputs/field/plots/ablation/geometry_opt05_mean3seed/fig_A6_ablation_summary_stats_interior.json`**（paired *t* 相对母版，*n*=3 seed）
+- **输出目录模式**：`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_h256_l4_abl02_no_{abscissa|normradius|curvature|tangent}_split_AG_v1_seed{1,2,3}_*`（已登记 **`outputs/field/experiment_index.csv`**）
+- **Fig A6（五组合计）**：`outputs/field/plots/ablation/geometry_opt05_mean3seed/fig_A6_ablation_summary_interior.{png,csv}`（复现命令见 **`docs/02-推进与变更/代码修改与实验推进记录.md`** 2026-04-07 条目）
+
+| 子组 | 去掉的分量 | interior `rmse_vel_mag`（mean±std） | 相对 05 Δmean | paired *t* *p* | 解读 |
+| --- | --- | --- | --- | --- | --- |
+| `A-Abl-02-01` | Abscissa | 1.868±0.026 | +0.052 | ~0.26 | 有退化趋势，**三 seed 不足以宣称显著** |
+| `A-Abl-02-02` | NormRadius | 2.043±0.020 | +0.227 | ~**0.0015** | **影响最大**，与母版差异**统计显著** |
+| `A-Abl-02-03` | Curvature | 1.851±0.030 | +0.035 | ~0.26 | **与母版最接近**，单项贡献**最弱** |
+| `A-Abl-02-04` | Tangent（3 维） | 1.933±0.038 | +0.117 | ~0.073 | **次之**，接近常见显著性阈值 |
+
+- **一句话结论**：在 **`A-Opt-05` 母版**上，**归一化半径 NormRadius 是显式几何通道中的主贡献项**；**切向 Tangent** 次之；**弧长 Abscissa** 与 **曲率 Curvature** 的边际更大但 **3 seed 下相对母版未达常规显著**——叙事上可写「半径与局部方向框架最关键，曲率单项可视为弱贡献」。
+- **下一步动作**：推进 **`A-Abl-01`**（输入层级消融）或 **Line G01**（分叉拓扑先验）；复杂区域对比可继续用各 run 的 **`regional_eval`** 补充正文。
 
 ---
 

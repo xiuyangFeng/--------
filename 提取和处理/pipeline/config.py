@@ -144,14 +144,22 @@ NORMALIZATION_CONFIG = {
         "Tangent_Y",
         "Tangent_Z",
         "is_wall",       # 二值标记
+        "branch_id",     # G01: 分叉拓扑标记（离散 0/1）
     ],
     
     # 使用 min-max 归一化的特征
-    "min_max": ["NormRadius"],
+    "min_max": [
+        "NormRadius",
+        "dist_to_bifurcation",  # G01: 距分叉点弧长距离 [0, max_arc]
+        "dist_to_wall",         # G04: 到最近壁面点距离 >= 0
+    ],
     
     # 使用 Z-score 标准化的特征
     "z_score": [
         "Curvature",
+        "dR_ds",         # G02: 半径变化率（可正可负）
+        "torsion",       # G03: 扭率（可正可负）
+        "d_tangent_ds",  # G05: 切向变化率（>= 0，但分布有长尾）
         "u", "v", "w",
         "p",
         "vel_mag",
@@ -200,8 +208,15 @@ NODE_FEATURE_NAMES = [
     "Abscissa", "NormRadius", "Curvature",              # 几何标量 (3)
     "Tangent_X", "Tangent_Y", "Tangent_Z",              # 切线向量 (3)
     "is_wall",                                          # 壁面标记 (1)
+    # --- Line G 新增几何先验（一次性全部预计算，训练时按需开关） ---
+    "dist_to_bifurcation",                              # G01: 距分叉点弧长距离 (1)
+    "branch_id",                                        # G01: 分叉拓扑标记 (1)
+    "dR_ds",                                            # G02: 半径变化率 (1)
+    "torsion",                                          # G03: Frenet 扭率 (1)
+    "d_tangent_ds",                                     # G05: 切向变化率 (1)
+    "dist_to_wall",                                     # G04: 到壁面距离 (1)
 ]
-NODE_FEATURE_DIM = len(NODE_FEATURE_NAMES)  # = 10
+NODE_FEATURE_DIM = len(NODE_FEATURE_NAMES)  # = 16
 
 # 全局条件名称（存储在 data.global_cond 中，整个图共享）
 GLOBAL_COND_NAMES = [
@@ -215,15 +230,24 @@ GLOBAL_COND_DIM = len(GLOBAL_COND_NAMES)  # = 6
 TARGET_NAMES = ["u", "v", "w", "p"]
 TARGET_DIM = len(TARGET_NAMES)  # = 4
 
+# WSS 目标（壁面节点专用，存储在 data.y_wss 中）
+WSS_TARGET_NAMES = ["wss", "wss_x", "wss_y", "wss_z"]
+WSS_TARGET_DIM = len(WSS_TARGET_NAMES)  # = 4
+
 # 模型输入维度（节点特征 + 全局条件拼接后）
-MODEL_INPUT_DIM = NODE_FEATURE_DIM + GLOBAL_COND_DIM  # = 16
+MODEL_INPUT_DIM = NODE_FEATURE_DIM + GLOBAL_COND_DIM  # = 22
 
 # 节点特征中各组的索引范围
 FEATURE_INDICES = {
-    "coords": (0, 3),       # x, y, z
-    "geom_scalar": (3, 6),  # Abscissa, NormRadius, Curvature
-    "tangent": (6, 9),      # Tangent_X, Tangent_Y, Tangent_Z
-    "is_wall": (9, 10),     # is_wall
+    "coords": (0, 3),        # x, y, z
+    "geom_scalar": (3, 6),   # Abscissa, NormRadius, Curvature
+    "tangent": (6, 9),       # Tangent_X, Tangent_Y, Tangent_Z
+    "is_wall": (9, 10),      # is_wall
+    "geom_g01": (10, 12),    # dist_to_bifurcation, branch_id
+    "geom_g02": (12, 13),    # dR_ds
+    "geom_g03": (13, 14),    # torsion
+    "geom_g05": (14, 15),    # d_tangent_ds
+    "geom_g04": (15, 16),    # dist_to_wall
 }
 
 # ============================================================================

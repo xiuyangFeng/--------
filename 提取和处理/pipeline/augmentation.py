@@ -189,6 +189,11 @@ def random_rotation(
         velocity = data.y[:, velocity_indices[0]:velocity_indices[1]]
         data.y[:, velocity_indices[0]:velocity_indices[1]] = velocity @ R.T
     
+    # 旋转 WSS 矢量标签（y_wss 的后三维: wss_x, wss_y, wss_z）
+    if hasattr(data, 'y_wss') and data.y_wss is not None and data.y_wss.shape[1] >= 4:
+        wss_vec = data.y_wss[:, 1:4]
+        data.y_wss[:, 1:4] = wss_vec @ R.T
+    
     return data
 
 
@@ -299,6 +304,10 @@ def mirror_augmentation(
     # 翻转速度的对应分量
     if data.y is not None and velocity_indices[1] <= data.y.shape[1]:
         data.y[:, velocity_indices[0] + axis_idx] *= -1
+    
+    # 翻转 WSS 矢量对应分量（y_wss[:, 1:4] = wss_x, wss_y, wss_z）
+    if hasattr(data, 'y_wss') and data.y_wss is not None and data.y_wss.shape[1] >= 4:
+        data.y_wss[:, 1 + axis_idx] *= -1
     
     return data
 

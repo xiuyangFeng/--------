@@ -44,13 +44,12 @@ def build_feature_mask(
     return FeatureMask(node_mask=node_mask, global_mask=global_mask)
 
 
-def build_required_data_keys(model_name: str) -> Set[str]:
-    # 训练时只保留前向与 loss 真正会访问的字段，避免把图文件里的冗余属性反复搬运。
-    # 所有模型都至少需要节点输入、监督目标和图级条件。
+def build_required_data_keys(model_name: str, wss_dim: int = 0) -> Set[str]:
     required_keys: Set[str] = {"x", "y", "global_cond"}
-    # 图模型额外需要 edge_index 来做消息传递。
     if model_name in {"graphsage", "transformer", "meshgraphnet", "pointnetpp"}:
         required_keys.add("edge_index")
+    if wss_dim > 0:
+        required_keys.add("y_wss")
     return required_keys
 
 

@@ -8,10 +8,10 @@ import torch
 from ..core.config import ExperimentConfig
 from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask
 from ..core.io import load_checkpoint, sanitize_batch_metadata
-from ..core.models import build_model
+from ..core.models import build_model, split_model_output
 from ..core.splits import SplitSpec
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed
-from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES
+from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES, WSS_TARGET_NAMES
 
 
 def resolve_cases(split: SplitSpec, subset: str):
@@ -91,6 +91,7 @@ def main() -> None:
         dropout=config.model.dropout,
         heads=config.model.heads,
         use_transformer_prenorm=config.model.use_transformer_prenorm,
+        wss_dim=config.model.wss_dim,
     ).to(device)
     load_checkpoint(model, args.checkpoint, device)
     model.eval()
@@ -98,9 +99,10 @@ def main() -> None:
     manifest = []
     for batch in loader:
         batch = batch.to(device)
-        pred = model(batch)
+        pred, wss_pred = split_model_output(model(batch))
         batch_cpu = batch.cpu()
         pred_cpu = pred.cpu()
+        wss_pred_cpu = wss_pred.cpu() if wss_pred is not None else None
 
         sample_ids = sanitize_batch_metadata(batch.sample_id)
         case_names = sanitize_batch_metadata(batch.case_name)
@@ -109,31 +111,39 @@ def main() -> None:
         data_list = batch_cpu.to_data_list()
         # DataLoader batch 后预测会拼接到一起，这里按单图节点数切回逐图结果。
         pred_list = pred_cpu.split([data.y.size(0) for data in data_list], dim=0)
+        wss_pred_list = (
+            wss_pred_cpu.split([data.y.size(0) for data in data_list], dim=0)
+            if wss_pred_cpu is not None
+            else [None] * len(data_list)
+        )
 
-        for data, pred_item, sample_id, case_name, graph_path in zip(
-            data_list, pred_list, sample_ids, case_names, graph_paths
+        for data, pred_item, wss_pred_item, sample_id, case_name, graph_path in zip(
+            data_list, pred_list, wss_pred_list, sample_ids, case_names, graph_paths
         ):
             save_path = output_dir / f"{sample_id}.pt"
-            torch.save(
-                {
-                    "sample_id": sample_id,
-                    "case_name": case_name,
-                    # regional_eval 优先从 graph_path 读未 mask 的完整节点特征，区域口径与模型输入开关无关。
-                    "graph_path": graph_path,
-                    "node_feature_names": NODE_FEATURE_NAMES,
-                    "target_names": TARGET_NAMES,
-                    "wall_mask": data.x[:, NODE_FEATURE_NAMES.index("is_wall")].bool(),
-                    "time_value": extract_time_value(data.global_cond),
-                    # 这里故意把输入、真值和预测一起保存。
-                    # 这样任务 B 做 CFD vs AI 对照时，不需要再额外回原始图目录找数据。
-                    "x": data.x,
-                    "global_cond": data.global_cond,
-                    "edge_index": data.edge_index,
-                    "y_true": data.y,
-                    "y_pred": pred_item,
-                },
-                save_path,
-            )
+            payload = {
+                "sample_id": sample_id,
+                "case_name": case_name,
+                # regional_eval 优先从 graph_path 读未 mask 的完整节点特征，区域口径与模型输入开关无关。
+                "graph_path": graph_path,
+                "node_feature_names": NODE_FEATURE_NAMES,
+                "target_names": TARGET_NAMES,
+                "wall_mask": data.x[:, NODE_FEATURE_NAMES.index("is_wall")].bool(),
+                "time_value": extract_time_value(data.global_cond),
+                # 这里故意把输入、真值和预测一起保存。
+                # 这样任务 B 做 CFD vs AI 对照时，不需要再额外回原始图目录找数据。
+                "x": data.x,
+                "global_cond": data.global_cond,
+                "edge_index": data.edge_index,
+                "y_true": data.y,
+                "y_pred": pred_item,
+            }
+            if wss_pred_item is not None:
+                payload["wss_target_names"] = WSS_TARGET_NAMES
+                payload["y_wss_pred"] = wss_pred_item
+                if hasattr(data, "y_wss") and data.y_wss is not None:
+                    payload["y_wss_true"] = data.y_wss
+            torch.save(payload, save_path)
             manifest.append(
                 {
                     "sample_id": sample_id,

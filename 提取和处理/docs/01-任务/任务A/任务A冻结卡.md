@@ -237,7 +237,7 @@ python -m training.scripts.run_field_plan \
 **（2026-03-29 同步）P0-5 容量线已归档**：**`A-Opt-04`**（`hidden_dim=256`）与 **`A-Opt-05`**（`num_layers=4`）均 **三 seed** 完成；**`A-Opt-05` 在 `interior` 与 `near_wall` 等略优于 `A-Opt-03`，方差与成本更高**。**（2026-03-31）** **新开跑母版统一为 `A-Opt-05`**（见状态表「战略锚点」）。明细见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-04 / A-Opt-05」。  
 **（2026-03-31 同步）`A-Opt-05_tune`**：在 **`A-Opt-05`** 骨架上的 **warmup / lr / wd / scheduler_patience** 等试跑，**已入账部分**已补 **`predictions_test` 全链**；**多模型对照（对 `A-Opt-03`，seed1）** 在 **`outputs/field/plots/optimization/A_Opt05_tune_vs_Opt03_seed1/`**。**`compare_hemo_wss_runs` 全量 WSS 对比暂缓**。清单与 **`outputs/field/`** 目录不一致处见状态表「`A-Opt-05_tune`」。  
 **（2026-04-02 同步）P1-2 / `A-Opt-07`**：**`interior_loss_boost=3`** 三 seed 已完成（`*_iboost3_*_20260331_175619`）；已 **`predictions_test`** + **`regional_eval`**；与 **`A-Main-01` / `A-Opt-05`** 对照 **`plots/optimization/A_Opt07_vs_Opt05_Main01/`**（`python -m training.scripts.regenerate_opt07_vs_opt05_main_figures`）。**相对母版 `A-Opt-05`**：内部与全图 **`RMSE_|v|`** 未更好，**壁面/近壁变差**——**负结果**，见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-07」。  
-**P0 下一里程碑（叙事收敛）**：优先 **补齐 `A-Abl-02` / Line G 小步验证** 或对 **`A-Opt-05` vs `A-Opt-03` 补效率 benchmark**；**不默认启动 `A-Opt-06`（6L）**，除非明确要写「容量极限」附录。
+**P0 下一里程碑（叙事收敛）**：**`A-Abl-02` ✅（2026-04-09）** → 优先 **`A-Abl-01` / Line G 小步验证** 或对 **`A-Opt-05` vs `A-Opt-03` 补效率 benchmark**；**不默认启动 `A-Opt-06`（6L）**，除非明确要写「容量极限」附录。
 
 **（2026-03-26 重要更新）主指标口径统一为 interior-only**：
 - 此前主表、消融图、效率 Pareto 图等均使用 `summary.json.test_metrics.rmse_vel_mag`（all 节点），wall 节点的近零误差会系统性拉低 RMSE，导致主结论偏乐观。

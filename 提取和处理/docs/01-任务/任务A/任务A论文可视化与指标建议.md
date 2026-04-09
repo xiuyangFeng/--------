@@ -365,12 +365,14 @@
 - `training.analysis.visualization.plot_ablation_summary()`
 - `training.analysis.stats.*`
 - `training/scripts/plot_taskA_ablation_summary.py` 已完成并已生成 `outputs/field/plots/ablation/fig_A6_ablation_summary.png`
+- **（2026-04-09）** 几何分量消融（**`A-Opt-05` vs `A-Abl-02-01`～`04`**，**三 seed 按 `exp_id` 聚合**）已落盘：**`outputs/field/plots/ablation/geometry_opt05_mean3seed/fig_A6_ablation_summary_interior.{png,csv}`** 与 **`fig_A6_ablation_summary_stats_interior.json`**（指标 **`interior` · `rmse_vel_mag`**）。复现见 [代码修改与实验推进记录](../../02-推进与变更/代码修改与实验推进记录.md) 2026-04-07 条目。
 
 写作提醒：
 
-- 当前文件名虽为 `Figure A6 ablation summary`，但其内容实际上还是 4 组 baseline 主结果汇总，不是真正的消融实验汇总
-- 统计上，`A-Main-01` 相比 `A-Base-02` 的 `RMSE_|v|` 均值改善为 `-0.1998`，paired t-test `p = 0.0337`
-- `A-Base-02` 与 `A-Base-03` 的差异极小（`delta_mean = +0.0034`, `p = 0.5404`），这条证据很适合支撑“主要增益来自显式几何特征，而不是 backbone 更换”
+- 仓库中 **`fig_A6_ablation_summary.png`（早期路径）** 仍可能对应 **baseline 四组**汇总；论文若写「几何通道内归因」，请改用 **`geometry_opt05_mean3seed/`** 或与正文一致的 **`exp_id`** 子集重跑 `plot_taskA_ablation_summary`。
+- 统计上，`A-Main-01` 相比 `A-Base-02` 的 `RMSE_|v|` 均值改善为 `-0.1998`，paired t-test `p = 0.0337`（**架构 vs 几何**叙事仍可用）。
+- `A-Base-02` 与 `A-Base-03` 的差异极小（`delta_mean = +0.0034`, `p = 0.5404`），这条证据很适合支撑“主要增益来自显式几何特征，而不是 backbone 更换”。
+- **几何分量内排序（母版 `A-Opt-05`，*n*=3）**：去掉 **NormRadius** 退化最大（**p≈0.0015**），去掉 **Tangent** 次之（**p≈0.073**）；**Abscissa / Curvature** 在 *n*=3 下与母版差异未达常规显著——详见 [任务A实验状态表](../任务A/任务A实验状态表.md)「实验记录摘要 · A-Abl-02」。
 
 ### 6.7 Figure A7：训练曲线与误差分布图
 

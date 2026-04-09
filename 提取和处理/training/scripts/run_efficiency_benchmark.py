@@ -205,7 +205,7 @@ def benchmark_one_run(
         enabled_node_features=config.data.enabled_node_features,
         enabled_global_features=config.data.enabled_global_features,
     )
-    required_keys = build_required_data_keys(config.model.name)
+    required_keys = build_required_data_keys(config.model.name, wss_dim=config.model.wss_dim)
     dataset = FieldGraphDataset(
         root=config.data.data_root,
         case_names=resolve_cases(split, subset),
@@ -226,6 +226,7 @@ def benchmark_one_run(
         dropout=config.model.dropout,
         heads=config.model.heads,
         use_transformer_prenorm=config.model.use_transformer_prenorm,
+        wss_dim=config.model.wss_dim,
     ).to(device)
     load_checkpoint(model, ckpt, device)
 

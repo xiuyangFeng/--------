@@ -71,14 +71,22 @@ FEATURE_GROUPS = {
         "Tangent_Y",
         "Tangent_Z",
         "is_wall",       # 二值标记
+        "branch_id",     # G01: 分叉拓扑标记（离散 0/1）
     ],
     
     # 使用 min-max 归一化的特征
-    "min_max": ["NormRadius"],
+    "min_max": [
+        "NormRadius",
+        "dist_to_bifurcation",  # G01: 距分叉点弧长距离
+        "dist_to_wall",         # G04: 到最近壁面点距离
+    ],
     
     # 使用 Z-score 标准化的特征
     "z_score": [
         "Curvature",
+        "dR_ds",         # G02: 半径变化率
+        "torsion",       # G03: 扭率
+        "d_tangent_ds",  # G05: 切向变化率
         "u", "v", "w",
         "p",
         "vel_mag",

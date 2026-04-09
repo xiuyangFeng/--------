@@ -50,11 +50,28 @@ def _data_mse_loss(
     return region_weighted_mse_loss(pred, target, data_weights, is_wall, interior_loss_boost)
 
 
+def wss_mse_loss(
+    wss_pred: torch.Tensor,
+    wss_target: torch.Tensor,
+    is_wall: torch.Tensor,
+    wss_weights: torch.Tensor,
+) -> torch.Tensor:
+    """仅在壁面节点 (is_wall=1) 上计算 WSS 监督损失。"""
+    wall_mask = is_wall.squeeze(-1).bool()
+    n_wall = wall_mask.sum()
+    if n_wall == 0:
+        return wss_pred.new_zeros(())
+    pred_wall = wss_pred[wall_mask]
+    target_wall = wss_target[wall_mask]
+    per_dim = (pred_wall - target_wall).square().mean(dim=0)
+    return (per_dim * wss_weights).sum()
+
+
 @dataclass
 class LossBreakdown:
-    # 训练循环统一拿这个结构读数，避免后面加新物理项时接口反复变化。
     total_loss: torch.Tensor
     data_loss: torch.Tensor
+    wss_loss: torch.Tensor
     continuity_loss: torch.Tensor
     momentum_loss: torch.Tensor
     no_slip_loss: torch.Tensor
@@ -63,6 +80,7 @@ class LossBreakdown:
         return {
             "loss": self.total_loss.detach().item(),
             "data_loss": self.data_loss.detach().item(),
+            "wss_loss": self.wss_loss.detach().item(),
             "physics_continuity_loss": self.continuity_loss.detach().item(),
             "physics_momentum_loss": self.momentum_loss.detach().item(),
             "physics_no_slip_loss": self.no_slip_loss.detach().item(),
@@ -70,12 +88,13 @@ class LossBreakdown:
 
 
 class NullPhysicsLoss:
-    # 当 physics 关闭时，trainer 不需要知道任何条件分支，直接走同一套调用路径。
-    def __init__(self, interior_loss_boost: float = 1.0):
+    def __init__(self, interior_loss_boost: float = 1.0,
+                 wss_loss_weight: float = 0.0, wss_weights: Optional[torch.Tensor] = None):
         self.interior_loss_boost = float(interior_loss_boost)
+        self.wss_loss_weight = float(wss_loss_weight)
+        self.wss_weights = wss_weights
 
     def is_enabled(self, epoch: int) -> bool:
-        # 空物理损失永远视为关闭。
         return False
 
     def build_loss(
@@ -87,16 +106,26 @@ class NullPhysicsLoss:
         data_weights: torch.Tensor,
         epoch: int,
         train: bool,
+        wss_pred: Optional[torch.Tensor] = None,
     ) -> LossBreakdown:
-        # 只计算纯数据监督损失。
         data_loss = _data_mse_loss(
             pred, target, data_weights, batch, self.interior_loss_boost
         )
-        # 构造标量零张量占位。
         zero = data_loss.new_zeros(())
+
+        wss_l = zero
+        if wss_pred is not None and self.wss_loss_weight > 0 and self.wss_weights is not None:
+            idx = NODE_FEATURE_NAMES.index("is_wall")
+            is_wall = batch.x[:, idx : idx + 1]
+            wss_target = batch.y_wss if hasattr(batch, "y_wss") and batch.y_wss is not None else None
+            if wss_target is not None:
+                wss_l = wss_mse_loss(wss_pred, wss_target, is_wall, self.wss_weights.to(pred.device))
+
+        total = data_loss + self.wss_loss_weight * wss_l
         return LossBreakdown(
-            total_loss=data_loss,
+            total_loss=total,
             data_loss=data_loss,
+            wss_loss=wss_l,
             continuity_loss=zero,
             momentum_loss=zero,
             no_slip_loss=zero,
@@ -104,15 +133,14 @@ class NullPhysicsLoss:
 
 
 class PhysicsConstraintLoss:
-    def __init__(self, config: PhysicsConfig, interior_loss_boost: float = 1.0):
-        # 保存物理损失配置。
+    def __init__(self, config: PhysicsConfig, interior_loss_boost: float = 1.0,
+                 wss_loss_weight: float = 0.0, wss_weights: Optional[torch.Tensor] = None):
         self.config = config
         self.interior_loss_boost = float(interior_loss_boost)
-        # 记录 x/y/z 在节点特征中的列索引。
+        self.wss_loss_weight = float(wss_loss_weight)
+        self.wss_weights = wss_weights
         self.coord_indices = [NODE_FEATURE_NAMES.index(name) for name in ("x", "y", "z")]
-        # 记录 wall 节点标记所在列。
         self.is_wall_idx = NODE_FEATURE_NAMES.index("is_wall")
-        # 记录归一化时间在全局条件中的列索引。
         self.time_idx = GLOBAL_COND_NAMES.index("t_norm")
 
     def is_enabled(self, epoch: int) -> bool:
@@ -142,18 +170,26 @@ class PhysicsConstraintLoss:
         data_weights: torch.Tensor,
         epoch: int,
         train: bool,
+        wss_pred: Optional[torch.Tensor] = None,
     ) -> LossBreakdown:
-        # 无论 physics 是否启用，数据监督损失都始终计算。
         data_loss = _data_mse_loss(
             pred, target, data_weights, batch, self.interior_loss_boost
         )
-        # 统一准备零值占位。
         zero = data_loss.new_zeros(())
-        # 如果当前 epoch 不启用 physics，就直接返回纯监督损失。
+
+        wss_l = zero
+        if wss_pred is not None and self.wss_loss_weight > 0 and self.wss_weights is not None:
+            is_wall = batch.x[:, self.is_wall_idx : self.is_wall_idx + 1]
+            wss_target = batch.y_wss if hasattr(batch, "y_wss") and batch.y_wss is not None else None
+            if wss_target is not None:
+                wss_l = wss_mse_loss(wss_pred, wss_target, is_wall, self.wss_weights.to(pred.device))
+
         if not self.is_enabled(epoch):
+            total = data_loss + self.wss_loss_weight * wss_l
             return LossBreakdown(
-                total_loss=data_loss,
+                total_loss=total,
                 data_loss=data_loss,
+                wss_loss=wss_l,
                 continuity_loss=zero,
                 momentum_loss=zero,
                 no_slip_loss=zero,
@@ -168,10 +204,9 @@ class PhysicsConstraintLoss:
         if hasattr(batch, "global_cond") and batch.global_cond is not None:
             physics_batch.global_cond = batch.global_cond.detach().clone().requires_grad_(True)
 
-        # 用带梯度的输入重新跑一次前向，供自动微分计算 PDE 残差。
-        physics_pred = model(physics_batch)
+        physics_output = model(physics_batch)
+        physics_pred = physics_output[0] if isinstance(physics_output, tuple) else physics_output
 
-        # 分别取出速度三分量和压力。
         u = physics_pred[:, 0:1]
         v = physics_pred[:, 1:2]
         w = physics_pred[:, 2:3]
@@ -247,9 +282,9 @@ class PhysicsConstraintLoss:
         # 壁面节点速度应接近 0。
         no_slip_loss = (wall_mask * (u.square() + v.square() + w.square())).mean()
 
-        # 总损失 = 数据监督项 + 各物理约束加权和。
         total_loss = (
             data_loss
+            + self.wss_loss_weight * wss_l
             + self.config.continuity_weight * continuity_loss
             + self.config.momentum_weight * momentum_loss
             + self.config.no_slip_weight * no_slip_loss
@@ -257,6 +292,7 @@ class PhysicsConstraintLoss:
         return LossBreakdown(
             total_loss=total_loss,
             data_loss=data_loss,
+            wss_loss=wss_l,
             continuity_loss=continuity_loss,
             momentum_loss=momentum_loss,
             no_slip_loss=no_slip_loss,
@@ -291,12 +327,16 @@ class PhysicsConstraintLoss:
 
 
 def build_loss_plugin(
-    config: Optional[PhysicsConfig], interior_loss_boost: float = 1.0
+    config: Optional[PhysicsConfig],
+    interior_loss_boost: float = 1.0,
+    wss_loss_weight: float = 0.0,
+    wss_weights: Optional[torch.Tensor] = None,
 ):
-    # trainer 只依赖 build_loss_plugin，不直接依赖具体 physics 实现。
-    # 后面如果要试更复杂的 PINN / weak form / curriculum，只需要替换这里的返回对象。
-    # 没有 physics 配置或 physics 未启用时，返回空实现。
+    kwargs = dict(
+        interior_loss_boost=interior_loss_boost,
+        wss_loss_weight=wss_loss_weight,
+        wss_weights=wss_weights,
+    )
     if config is None or not config.enabled:
-        return NullPhysicsLoss(interior_loss_boost=interior_loss_boost)
-    # 否则返回真正的物理约束损失对象。
-    return PhysicsConstraintLoss(config, interior_loss_boost=interior_loss_boost)
+        return NullPhysicsLoss(**kwargs)
+    return PhysicsConstraintLoss(config, **kwargs)

@@ -140,8 +140,7 @@ def main() -> None:
         enabled_node_features=config.data.enabled_node_features,
         enabled_global_features=config.data.enabled_global_features,
     )
-    # 根据模型类型确定图数据里必须保留哪些字段。
-    required_data_keys = build_required_data_keys(config.model.name)
+    required_data_keys = build_required_data_keys(config.model.name, wss_dim=config.model.wss_dim)
 
     # 训练/验证/测试共用同一套 split 文件，保证后续任务 B、C 可以回溯到统一划分。
     # 构建训练集数据对象。
@@ -202,7 +201,6 @@ def main() -> None:
         pin_memory=config.data.pin_memory,
     )
 
-    # 根据配置实例化模型并搬到目标设备。
     model = build_model(
         model_name=config.model.name,
         hidden_dim=config.model.hidden_dim,
@@ -210,6 +208,7 @@ def main() -> None:
         dropout=config.model.dropout,
         heads=config.model.heads,
         use_transformer_prenorm=config.model.use_transformer_prenorm,
+        wss_dim=config.model.wss_dim,
     ).to(device)
 
     # 统计模型总参数量。
@@ -244,7 +243,7 @@ def main() -> None:
     # 创建本次训练的输出目录。
     run_dir = build_run_dir(config, split)
 
-    # 构造训练器，封装训练、验证、测试逻辑。
+    wss_weights_tensor = torch.tensor(config.optim.wss_weights, dtype=torch.float32) if config.model.wss_dim > 0 else None
     trainer = FieldTrainer(
         model=model,
         optimizer=optimizer,
@@ -259,6 +258,8 @@ def main() -> None:
         use_amp=config.system.amp,
         warmup_scheduler=warmup_scheduler,
         warmup_epochs=warmup_epochs,
+        wss_loss_weight=config.optim.wss_loss_weight,
+        wss_weights=wss_weights_tensor,
     )
     # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")

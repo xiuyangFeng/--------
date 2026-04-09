@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pipeline.config import GLOBAL_COND_NAMES, NODE_FEATURE_NAMES, TARGET_NAMES
+from pipeline.config import GLOBAL_COND_NAMES, NODE_FEATURE_NAMES, TARGET_NAMES, WSS_TARGET_NAMES
 
 
 @dataclass
@@ -40,14 +40,14 @@ class DataConfig:
 
 @dataclass
 class ModelConfig:
-    # 这里故意只暴露最小一组 backbone 超参数，避免第一阶段实验维度失控。
     name: str = "transformer"
     hidden_dim: int = 128
     num_layers: int = 3
     dropout: float = 0.1
     heads: int = 4
-    # FieldTransformer 每层的 Pre-Norm（LayerNorm）。旧 checkpoint（如 A-Main-01 / A-Opt-01）训练时无此项，须在配置中保持默认 False 才能加载。
     use_transformer_prenorm: bool = False
+    # WSS 预测头输出维度。0 = 不启用 WSS 头，4 = [wss, wss_x, wss_y, wss_z]。
+    wss_dim: int = 0
 
 
 @dataclass
@@ -61,10 +61,13 @@ class OptimConfig:
     scheduler_patience: int = 10
     early_stopping_patience: int = 30
     target_weights: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0])
-    # >1 时提高非壁面节点（is_wall=0）的监督权重，缓解内部流场误差被壁面低误差稀释。
     interior_loss_boost: float = 1.0
     grad_clip_norm: Optional[float] = 1.0
     accumulate_grad_batches: int = 1
+    # WSS 多任务损失：L_total = field_loss + wss_loss_weight * wss_loss
+    # wss_weights 对应 [wss, wss_x, wss_y, wss_z] 四个维度的损失权重。
+    wss_loss_weight: float = 0.0
+    wss_weights: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0])
 
 
 @dataclass
@@ -217,6 +220,10 @@ class ExperimentConfig:
         # 监督损失权重维度必须与目标维度一致。
         if len(self.optim.target_weights) != len(TARGET_NAMES):
             raise ValueError("target_weights 维度必须与目标输出一致")
+        if len(self.optim.wss_weights) != len(WSS_TARGET_NAMES):
+            raise ValueError("wss_weights 维度必须与 WSS 目标输出一致")
+        if self.model.wss_dim > 0 and self.model.wss_dim != len(WSS_TARGET_NAMES):
+            raise ValueError(f"wss_dim 必须为 0 或 {len(WSS_TARGET_NAMES)}")
         # 物理坐标尺度必须提供 3 个值，对应 x/y/z。
         if len(self.physics.coord_scales) != 3:
             raise ValueError("physics.coord_scales 必须包含 3 个坐标尺度")

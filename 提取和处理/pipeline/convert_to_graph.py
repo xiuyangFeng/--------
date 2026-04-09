@@ -12,10 +12,15 @@
 4. 加载全局条件（边界条件 + 时间）作为图级属性
 5. 保存为 .pt 文件
 
-节点特征 data.x (10维):
+节点特征 data.x (16维):
 - 坐标: x, y, z (3)
 - 几何特征: Abscissa, NormRadius, Curvature, Tangent_X/Y/Z (6)
 - 边界标志: is_wall (1)
+- G01: dist_to_bifurcation, branch_id (2)
+- G02: dR_ds (1)
+- G03: torsion (1)
+- G05: d_tangent_ds (1)
+- G04: dist_to_wall (1)
 
 全局条件 data.global_cond (1x6):
 - 时间: t_norm (1)
@@ -24,6 +29,9 @@
 目标输出 data.y (4维):
 - 速度: u, v, w (3)
 - 压力: p (1)
+
+WSS 目标 data.y_wss (4维, 仅壁面有效):
+- wss, wss_x, wss_y, wss_z (4)
 
 使用示例:
   # 处理单个病例
@@ -110,13 +118,21 @@ def build_graph_from_csv(
     # 1. 提取坐标
     coords = df[['x', 'y', 'z']].values
     
-    # 2. 构建节点特征 (10维): 坐标(3) + 几何(6) + is_wall(1)
+    # 2. 构建节点特征 (16维): 坐标(3) + 几何(6) + is_wall(1) + G01(2) + G02(1) + G03(1) + G05(1) + G04(1)
     geom_feats = df[['Abscissa', 'NormRadius', 'Curvature', 
                      'Tangent_X', 'Tangent_Y', 'Tangent_Z']].values
     is_wall = df[['is_wall']].values
     
-    # 拼接节点特征: [x, y, z, Abscissa, NormRadius, Curvature, Tx, Ty, Tz, is_wall]
-    x = np.hstack([coords, geom_feats, is_wall])
+    def _col_or_zero(name):
+        return df[name].values.reshape(-1, 1) if name in df.columns else np.zeros((len(df), 1))
+    
+    geom_g01 = np.hstack([_col_or_zero('dist_to_bifurcation'), _col_or_zero('branch_id')])
+    geom_g02 = _col_or_zero('dR_ds')
+    geom_g03 = _col_or_zero('torsion')
+    geom_g05 = _col_or_zero('d_tangent_ds')
+    geom_g04 = _col_or_zero('dist_to_wall')
+    
+    x = np.hstack([coords, geom_feats, is_wall, geom_g01, geom_g02, geom_g03, geom_g05, geom_g04])
     x = torch.from_numpy(x).float()
     
     # 3. 构建全局条件 (6维): t_norm(1) + BC(5)
@@ -129,6 +145,17 @@ def build_graph_from_csv(
     # 4. 提取目标输出 (4维: u, v, w, p)
     y = df[['u', 'v', 'w', 'p']].values
     y = torch.from_numpy(y).float()
+    
+    # 5-extra. 提取 WSS 目标 (4维: wss, wss_x, wss_y, wss_z)
+    wss_cols = ['wss', 'wss_x', 'wss_y', 'wss_z']
+    missing_wss_cols = [col for col in wss_cols if col not in df.columns]
+    if missing_wss_cols:
+        raise ValueError(
+            f"WSS 标签列缺失: {missing_wss_cols}。"
+            "请先使用包含 WSS 导出的新版特征文件重跑预处理，再执行 convert_to_graph。"
+        )
+    y_wss = df[wss_cols].values
+    y_wss = torch.from_numpy(y_wss).float()
     
     # 5. 构建边索引 (使用 KNN)
     effective_k = min(k, max(1, coords.shape[0] - 1))
@@ -145,7 +172,7 @@ def build_graph_from_csv(
     edge_index = torch.from_numpy(np.concatenate([edges, reverse_edges], axis=1)).long()
     
     # 创建 PyG Data 对象（global_cond 作为图级属性）
-    data = Data(x=x, edge_index=edge_index, y=y, global_cond=global_cond)
+    data = Data(x=x, edge_index=edge_index, y=y, y_wss=y_wss, global_cond=global_cond)
     
     return data
 
@@ -355,16 +382,23 @@ def process_all_cases(
         print(f"✅ 成功: {ok}/{len(case_dirs)} 个病例")
         
         print("\n📋 图数据格式说明:")
-        print("  节点特征 x (10维):")
+        print("  节点特征 x (16维):")
         print("    [0:3]   坐标: x, y, z")
         print("    [3:9]   几何: Abscissa, NormRadius, Curvature, Tangent_X/Y/Z")
         print("    [9]     边界标志: is_wall")
+        print("    [10:12] G01: dist_to_bifurcation, branch_id")
+        print("    [12]    G02: dR_ds")
+        print("    [13]    G03: torsion")
+        print("    [14]    G05: d_tangent_ds")
+        print("    [15]    G04: dist_to_wall")
         print("  全局条件 global_cond (1x6):")
         print("    [0]     时间: t_norm")
         print("    [1:6]   边界条件: BC_Inlet, BC_O1~O4")
         print("  目标输出 y (4维):")
         print("    [0:3]   速度: u, v, w")
         print("    [3]     压力: p")
+        print("  WSS目标 y_wss (4维):")
+        print("    [0:4]   wss, wss_x, wss_y, wss_z")
 
 
 def main():

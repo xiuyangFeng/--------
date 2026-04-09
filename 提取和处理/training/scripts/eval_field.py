@@ -11,7 +11,7 @@ from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask
 from ..core.io import load_checkpoint
 from ..core.losses import build_loss_plugin
 from ..core.metrics import RegressionMeter
-from ..core.models import build_model
+from ..core.models import build_model, split_model_output
 from ..core.splits import SplitSpec
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed
 
@@ -34,6 +34,8 @@ def evaluate_checkpoint(
     loss_weights: torch.Tensor,
     physics_config=None,
     interior_loss_boost: float = 1.0,
+    wss_loss_weight: float = 0.0,
+    wss_weights: torch.Tensor | None = None,
     eval_epoch: int = 10**9,
     checkpoint_path: Path | str | None = None,
 ) -> Dict[str, float]:
@@ -44,14 +46,17 @@ def evaluate_checkpoint(
     meter = RegressionMeter()
     weights = loss_weights.to(device)
     loss_plugin = build_loss_plugin(
-        physics_config, interior_loss_boost=interior_loss_boost
+        physics_config,
+        interior_loss_boost=interior_loss_boost,
+        wss_loss_weight=wss_loss_weight,
+        wss_weights=wss_weights,
     )
     extra_totals: Dict[str, float] = {}
     num_batches = 0
 
     for batch in loader:
         batch = batch.to(device)
-        pred = model(batch)
+        pred, wss_pred = split_model_output(model(batch))
         breakdown = loss_plugin.build_loss(
             model=model,
             batch=batch,
@@ -60,6 +65,7 @@ def evaluate_checkpoint(
             data_weights=weights,
             epoch=eval_epoch,
             train=False,
+            wss_pred=wss_pred,
         )
         meter.update(pred, batch.y, breakdown.total_loss.item())
         for key, value in breakdown.scalar_dict().items():
@@ -124,6 +130,7 @@ def main() -> None:
         dropout=config.model.dropout,
         heads=config.model.heads,
         use_transformer_prenorm=config.model.use_transformer_prenorm,
+        wss_dim=config.model.wss_dim,
     ).to(device)
 
     metrics = evaluate_checkpoint(
@@ -133,6 +140,12 @@ def main() -> None:
         loss_weights=torch.tensor(config.optim.target_weights, dtype=torch.float32),
         physics_config=config.physics,
         interior_loss_boost=config.optim.interior_loss_boost,
+        wss_loss_weight=config.optim.wss_loss_weight,
+        wss_weights=(
+            torch.tensor(config.optim.wss_weights, dtype=torch.float32)
+            if config.model.wss_dim > 0
+            else None
+        ),
         checkpoint_path=Path(args.checkpoint),
     )
 

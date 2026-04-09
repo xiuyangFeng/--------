@@ -210,13 +210,22 @@ def prepare_geometry_data(stl_path: str) -> dict:
     cl_points = vtk_to_numpy(centerline.GetPoints().GetData())
     cl_pd = centerline.GetPointData()
     
+    def _safe_vtk_array(name):
+        arr = cl_pd.GetArray(name)
+        return vtk_to_numpy(arr) if arr is not None else np.zeros(cl_points.shape[0])
+
     geo_data = {
-        "centerline": centerline,  # 保留原始中心线对象，用于导出
+        "centerline": centerline,
         "cl_points": cl_points,
         "arr_abscissa": vtk_to_numpy(cl_pd.GetArray("Abscissas")),
         "arr_radius": vtk_to_numpy(cl_pd.GetArray("MaximumInscribedSphereRadius")),
         "arr_curv": vtk_to_numpy(cl_pd.GetArray("Curvature")),
         "arr_tangent": vtk_to_numpy(cl_pd.GetArray("FrenetTangent")),
+        "arr_dist_to_bif": _safe_vtk_array("DistToBifurcation"),
+        "arr_branch_id": _safe_vtk_array("BranchId"),
+        "arr_dR_ds": _safe_vtk_array("dR_ds"),
+        "arr_torsion": _safe_vtk_array("Torsion"),
+        "arr_dtds": _safe_vtk_array("TangentChangeRate"),
         "locator": None,
     }
     
@@ -254,6 +263,11 @@ def process_single_cloud(
     arr_radius = geo_data["arr_radius"]
     arr_curv = geo_data["arr_curv"]
     arr_tangent = geo_data["arr_tangent"]
+    arr_dist_to_bif = geo_data["arr_dist_to_bif"]
+    arr_branch_id = geo_data["arr_branch_id"]
+    arr_dR_ds = geo_data["arr_dR_ds"]
+    arr_torsion = geo_data["arr_torsion"]
+    arr_dtds = geo_data["arr_dtds"]
     locator = geo_data["locator"]
     
     # 加载点云数据
@@ -271,6 +285,11 @@ def process_single_cloud(
     geo_norm_dist = np.zeros(n_pts)
     geo_curv = np.zeros(n_pts)
     geo_tangent = np.zeros((n_pts, 3))
+    geo_dist_to_bif = np.zeros(n_pts)
+    geo_branch_id = np.zeros(n_pts)
+    geo_dR_ds = np.zeros(n_pts)
+    geo_torsion = np.zeros(n_pts)
+    geo_dtds = np.zeros(n_pts)
     progress_marks = set()
     if n_pts >= 4:
         progress_marks = {
@@ -290,12 +309,32 @@ def process_single_cloud(
         geo_abscissa[i] = arr_abscissa[closest_id]
         geo_curv[i] = arr_curv[closest_id]
         geo_tangent[i] = arr_tangent[closest_id]
+        geo_dist_to_bif[i] = arr_dist_to_bif[closest_id]
+        geo_branch_id[i] = arr_branch_id[closest_id]
+        geo_dR_ds[i] = arr_dR_ds[closest_id]
+        geo_torsion[i] = arr_torsion[closest_id]
+        geo_dtds[i] = arr_dtds[closest_id]
         
         safe_r = local_r if local_r > 1e-6 else 1.0
         geo_norm_dist[i] = dist / safe_r
         point_idx = i + 1
         if point_idx in progress_marks:
             print(f"{prefix}几何映射进度: {point_idx}/{n_pts}")
+    
+    # G04: 计算到壁面的距离
+    print(f"{prefix}计算 G04 壁面距离...")
+    is_wall_col = cloud_others_df.get("is_wall")
+    geo_dist_to_wall = np.zeros(n_pts)
+    if is_wall_col is not None:
+        wall_mask = is_wall_col.values.astype(bool)
+        wall_pts = cloud_xyz[wall_mask]
+        if wall_pts.shape[0] > 0:
+            from sklearn.neighbors import KDTree
+            wall_tree = KDTree(wall_pts)
+            interior_mask = ~wall_mask
+            if interior_mask.any():
+                dists, _ = wall_tree.query(cloud_xyz[interior_mask], k=1)
+                geo_dist_to_wall[interior_mask] = dists.ravel()
     
     # 归一化 Abscissa 到 [0, 1]
     ab_min, ab_max = np.nanmin(geo_abscissa), np.nanmax(geo_abscissa)
@@ -310,6 +349,12 @@ def process_single_cloud(
     geo_norm_dist = np.nan_to_num(geo_norm_dist)
     geo_curv = np.nan_to_num(geo_curv)
     geo_tangent = np.nan_to_num(geo_tangent)
+    geo_dist_to_bif = np.nan_to_num(geo_dist_to_bif)
+    geo_branch_id = np.nan_to_num(geo_branch_id)
+    geo_dR_ds = np.nan_to_num(geo_dR_ds)
+    geo_torsion = np.nan_to_num(geo_torsion)
+    geo_dtds = np.nan_to_num(geo_dtds)
+    geo_dist_to_wall = np.nan_to_num(geo_dist_to_wall)
     
     # 构建输出 DataFrame
     df_out = pd.DataFrame({
@@ -322,6 +367,12 @@ def process_single_cloud(
         "Tangent_X": geo_tangent[:, 0],
         "Tangent_Y": geo_tangent[:, 1],
         "Tangent_Z": geo_tangent[:, 2],
+        "dist_to_bifurcation": geo_dist_to_bif,
+        "branch_id": geo_branch_id,
+        "dR_ds": geo_dR_ds,
+        "torsion": geo_torsion,
+        "d_tangent_ds": geo_dtds,
+        "dist_to_wall": geo_dist_to_wall,
     })
     
     # 添加原始点云的其他特征
