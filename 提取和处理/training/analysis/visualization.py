@@ -886,7 +886,18 @@ def plot_multimodel_regional_bar(
         ax.set_xticklabels(regions, rotation=30, ha="right")
         ax.set_ylabel(metric_key)
         ax.set_title(title)
-        ax.legend(loc="upper right")
+        # 多模型时右上角图例易与柱顶数值、最高柱重叠，改为图下方多列
+        ncol = min(3, max(2, n_models))
+        ax.legend(
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.34),
+            ncol=ncol,
+            fontsize=8.5,
+            frameon=True,
+            framealpha=0.95,
+            columnspacing=1.1,
+            handlelength=1.4,
+        )
         finite_vals = [
             v
             for rd in models_regional.values()
@@ -895,8 +906,8 @@ def plot_multimodel_regional_bar(
             if not np.isnan(v)
         ]
         if finite_vals:
-            ax.set_ylim(0, max(finite_vals) * 1.22)
-        fig.tight_layout()
+            ax.set_ylim(0, max(finite_vals) * 1.28)
+        fig.tight_layout(rect=[0, 0.14, 1, 1])
         if save_path:
             fig.savefig(save_path, dpi=300, bbox_inches="tight")
         plt.close(fig)

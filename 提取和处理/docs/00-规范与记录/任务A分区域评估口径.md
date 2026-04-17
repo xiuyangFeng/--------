@@ -56,6 +56,8 @@
 ## 6. 相关脚本
 
 - 单 run：`training/scripts/plot_taskA_regional_bar.py` → `predictions_test/regional_eval/fig_A5_regional_metrics.json`
-- 多模型汇总：`training/scripts/plot_taskA_multimodel_regional_bar.py` → `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`（或用 `--exp-filter` / `--output-dir` 写入 `plots/optimization/<子课题>/`）
+- 多模型汇总：`training/scripts/plot_taskA_multimodel_regional_bar.py` → `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`（或用 `--exp-filter` / `--output-dir` 写入 `plots/optimization/<子课题>/` 或 `plots/ablation/<子目录>/`）
+- **跨 seed 均值**：同一脚本在 **不传 `--seed`** 时，对每个 `exp_id` 在 `runs-root` 下扫描到的多个 run（不同 `summary.json` 中的 `seed`）先收集各区域 `rmse_*` / `r2_*`，再 **按区域对数值取算术平均** 后作图；传 `--seed k` 则只纳入该 seed，输出文件名带 `_seed{k}`。**几何消融（`A-Opt-05` + `A-Abl-02-*`）三 seed 均值横比** 的定稿图见 `outputs/field/plots/ablation/geometry_opt05_multimodel_mean3seed/`。
+- **Fig A6 消融条带图（单指标汇总 + 可选相对母版的 paired 统计）**：`training/scripts/plot_taskA_ablation_summary.py`；`A-Abl-02` 相对 `A-Opt-05` 的 **interior `rmse_vel_mag` 三 seed 汇总** 见 `outputs/field/plots/ablation/geometry_opt05_mean3seed/`，run 清单示例：`training/cluster/run_list_figA6_geometry_opt05_mean3seed.txt`。
 - **P1-2 对照（`A-Main-01` / `A-Opt-05` / `A-Opt-07`）**：`training/scripts/regenerate_opt07_vs_opt05_main_figures.py` → `outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/`（Fig A3 / A5 / A4 + `compare_val_loss.png`，依赖各 run 已具备 `predictions_test` 与 `regional_eval`）
 - 主结果表 CSV：`training/scripts/plot_taskA_main_table.py` → `plots/summary/fig_A1_main_table.csv`，主区域列可直接导出 **`rmse_u/v/w/p/vel_mag` + `r2_u/v/w/p/vel_mag`**；同时附加 **`all_rmse_vel_mag` / `all_r2_vel_mag`** 参考列，以及 **`near_wall_rmse_*` / `near_wall_r2_*`**（含 `r2_vel_mag`）。若某 run 尚未生成 regional JSON，对应区域列按脚本回退逻辑留空或回退到 `summary.json`。

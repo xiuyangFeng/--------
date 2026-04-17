@@ -460,6 +460,7 @@ def process_all_cases(
     input_subdir: str = None,
     output_subdir: str = None,
     train_cases: Optional[List[str]] = None,
+    sources: Optional[List[str]] = None,
 ) -> None:
     """批量处理所有病例。
 
@@ -477,7 +478,7 @@ def process_all_cases(
     if output_subdir is None:
         output_subdir = NORMALIZED_DIR
     
-    case_dirs = get_case_dirs(data_root)
+    case_dirs = get_case_dirs(data_root, sources=sources)
     
     if target_case:
         target_std = target_case.replace(' ', '_').replace('-', '_').upper()
@@ -585,6 +586,13 @@ def main():
         help="训练集 split JSON 文件路径（包含 train 病例列表），"
              "指定后归一化统计量仅基于训练集计算以避免数据泄漏",
     )
+    parser.add_argument(
+        "--sources",
+        nargs="+",
+        default=None,
+        metavar="SOURCE",
+        help="数据源子路径（如 AG/fast AG/slow）；默认使用 config 已启用数据源",
+    )
     
     args = parser.parse_args()
     
@@ -603,6 +611,7 @@ def main():
         input_subdir=args.input_subdir,
         output_subdir=args.output_subdir,
         train_cases=train_cases,
+        sources=args.sources,
     )
 
 

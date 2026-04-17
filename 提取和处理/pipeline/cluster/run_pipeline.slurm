@@ -130,6 +130,12 @@ fi
 if [ -n "$GEOMETRY_PYTHON" ]; then
     CMD+=(--geometry-python "$GEOMETRY_PYTHON")
 fi
+if [ -n "${PIPELINE_SOURCES:-}" ]; then
+    CMD+=(--sources)
+    for s in $PIPELINE_SOURCES; do
+        CMD+=("$s")
+    done
+fi
 
 # 执行
 echo "执行命令: ${CMD[*]}"

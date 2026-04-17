@@ -78,6 +78,7 @@ def run_pipeline(
     k_neighbors: int = None,
     strict_bc_match: bool = True,
     geometry_python: Optional[str] = None,
+    sources: Optional[List[str]] = None,
 ) -> None:
     """
     运行完整的数据处理流程。
@@ -91,6 +92,7 @@ def run_pipeline(
         sampling_method: 采样方法
         mode: 处理模式
         k_neighbors: KNN 邻居数
+        sources: 数据源子路径列表（如 AG/fast AG/slow）；默认使用 config 已启用数据源
     """
     if data_root is None:
         data_root = DATA_ROOT
@@ -122,7 +124,7 @@ def run_pipeline(
         print(f"📊 KNN 邻居数: {k_neighbors}")
         print(f"📊 BC 严格匹配: {'是' if strict_bc_match else '否'}")
         
-        case_dirs = get_case_dirs(data_root)
+        case_dirs = get_case_dirs(data_root, sources=sources)
         if target_case:
             target_std = target_case.replace(' ', '_').replace('-', '_').upper()
             case_dirs = [
@@ -181,6 +183,7 @@ def run_pipeline(
                 seed=SAMPLING_CONFIG["seed"],
                 fps_ratio=fps_ratio,
                 mode=mode,
+                sources=sources,
             )
         
         # 步骤2: 几何特征提取
@@ -206,6 +209,10 @@ def run_pipeline(
                 if not strict_bc_match:
                     cmd.append("--allow-nearest-bc")
 
+                if sources:
+                    cmd.append("--sources")
+                    cmd.extend(sources)
+
                 print(f"🐍 使用外部解释器执行步骤2: {geometry_python}")
                 print(f"🧾 命令: {' '.join(cmd)}")
                 subprocess.run(cmd, check=True)
@@ -221,6 +228,7 @@ def run_pipeline(
                     input_subdir=MERGED_DIR,
                     output_subdir=FEATURES_DIR,
                     strict_bc_match=strict_bc_match,
+                    sources=sources,
                 )
         
         # 步骤3: 坐标系归一化【新增】
@@ -239,6 +247,7 @@ def run_pipeline(
                 target_case=target_case,
                 input_subdir=FEATURES_DIR,
                 output_subdir=COORD_NORMALIZED_DIR,
+                sources=sources,
             )
         
         # 步骤4: 特征归一化
@@ -257,6 +266,7 @@ def run_pipeline(
                 target_case=target_case,
                 input_subdir=COORD_NORMALIZED_DIR,
                 output_subdir=NORMALIZED_DIR,
+                sources=sources,
             )
         
         # 步骤5: 图数据转换
@@ -276,6 +286,7 @@ def run_pipeline(
                 input_subdir=NORMALIZED_DIR,
                 output_subdir=GRAPHS_DIR,
                 k=k_neighbors,
+                sources=sources,
             )
 
         if mode == "production":
@@ -480,6 +491,13 @@ def main():
         default=None,
         help="步骤2使用的外部 Python 解释器路径，用于在独立 vmtk 环境中执行 extract_features",
     )
+    parser.add_argument(
+        "--sources",
+        nargs="+",
+        default=None,
+        metavar="SOURCE",
+        help="扫描病例时使用的数据源子路径（如 AG/fast AG/slow）；默认使用 config 中 enabled 的数据源",
+    )
     
     args = parser.parse_args()
     
@@ -499,6 +517,7 @@ def main():
         k_neighbors=args.k,
         strict_bc_match=not args.allow_nearest_bc,
         geometry_python=args.geometry_python,
+        sources=args.sources,
     )
 
 

@@ -366,6 +366,7 @@ def process_all_cases(
     fps_ratio: float = 0.5,
     seed: Optional[int] = 1234,
     mode: str = "debug",
+    sources: Optional[List[str]] = None,
 ) -> None:
     """
     批量处理所有病例。
@@ -388,7 +389,7 @@ def process_all_cases(
         data_root = Path(data_root)
     
     # 获取病例目录
-    case_dirs = get_case_dirs(data_root)
+    case_dirs = get_case_dirs(data_root, sources=sources)
     
     # 过滤指定病例
     if target_case:
@@ -560,6 +561,13 @@ def main():
         default=MODE,
         help=f"处理模式，默认 {MODE}",
     )
+    parser.add_argument(
+        "--sources",
+        nargs="+",
+        default=None,
+        metavar="SOURCE",
+        help="数据源子路径（如 AG/fast AG/slow）；默认使用 config 已启用数据源",
+    )
     
     args = parser.parse_args()
     
@@ -582,6 +590,7 @@ def main():
         fps_ratio=args.fps_ratio,
         seed=args.seed,
         mode=args.mode,
+        sources=args.sources,
     )
 
 

@@ -41,7 +41,7 @@ else:
 
 DATA_SOURCES = {
     "AG/fast":       {"enabled": True,  "description": "动脉移植物-快速增长"},
-    "AG/slow":       {"enabled": False, "description": "动脉移植物-慢速增长"},
+    "AG/slow":       {"enabled": True,  "description": "动脉移植物-慢速增长"},
     "AAA/ruputer":   {"enabled": False, "description": "腹主动脉瘤-破裂"},
     "AAA/unruputer": {"enabled": False, "description": "腹主动脉瘤-未破裂"},
     "ILO":           {"enabled": False, "description": "髂支闭塞（三层嵌套）", "nested": True},

@@ -394,6 +394,7 @@ def process_all_cases(
     target_case: Optional[str] = None,
     input_subdir: str = None,
     output_subdir: str = None,
+    sources: Optional[List[str]] = None,
 ) -> None:
     """批量处理所有病例"""
     if data_root is None:
@@ -407,7 +408,7 @@ def process_all_cases(
         output_subdir = COORD_NORMALIZED_DIR
     
     # 获取病例目录
-    case_dirs = get_case_dirs(data_root)
+    case_dirs = get_case_dirs(data_root, sources=sources)
     
     # 过滤指定病例
     if target_case:
@@ -508,6 +509,13 @@ def main():
         default=None,
         help=f"输出子目录，默认 {COORD_NORMALIZED_DIR}",
     )
+    parser.add_argument(
+        "--sources",
+        nargs="+",
+        default=None,
+        metavar="SOURCE",
+        help="数据源子路径（如 AG/fast AG/slow）；默认使用 config 已启用数据源",
+    )
     
     args = parser.parse_args()
     
@@ -516,6 +524,7 @@ def main():
         target_case=args.case,
         input_subdir=args.input_subdir,
         output_subdir=args.output_subdir,
+        sources=args.sources,
     )
 
 

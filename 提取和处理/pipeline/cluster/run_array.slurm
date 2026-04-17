@@ -15,13 +15,16 @@
 #SBATCH --time=04:00:00                  # 单个任务最大运行时间
 # Array Job 配置：处理 0-N 个病例，同时运行最多6个
 # 使用前需要修改 --array 参数，例如: --array=0-9%6 表示10个病例，同时最多运行6个
+# 大规模 CPU 任务指定 node03（与 pipeline/cluster 规范一致）
+#SBATCH -w node03
 #SBATCH --array=0-0%6
 
 # ============================================================================
 # 使用方法:
-#   1. 先运行 ./generate_case_list.sh 生成病例列表
+#   1. 先运行 ./generate_case_list.sh 生成病例列表（AG/slow: ./generate_case_list.sh --slow）
 #   2. 修改上面的 --array=0-N%M，其中 N=病例数-1, M=同时运行数
-#   3. sbatch run_array.slurm
+#   3. AG/slow: export PIPELINE_SOURCES=AG/slow 或  ./batch_submit.sh --array --slow
+#   4. sbatch run_array.slurm
 #
 # 示例:
 #   假设有10个病例，同时最多运行6个:
@@ -34,6 +37,8 @@ set -euo pipefail
 module purge
 PIPELINE_ENV=${PIPELINE_ENV:-GNN}
 GEOMETRY_ENV=${GEOMETRY_ENV:-GNN_vmtk}
+# set -u 下须先定义，再参与下述检测（与 run_pipeline.slurm 一致）
+GEOMETRY_PYTHON=${GEOMETRY_PYTHON:-""}
 DEFAULT_GEOMETRY_PYTHON="$HOME/.conda/envs/$GEOMETRY_ENV/bin/python"
 if [ -z "$GEOMETRY_PYTHON" ] && [ -x "$DEFAULT_GEOMETRY_PYTHON" ]; then
     GEOMETRY_PYTHON="$DEFAULT_GEOMETRY_PYTHON"
@@ -82,7 +87,6 @@ fi
 # 获取当前任务对应的病例名
 CASE_NAME=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" "$CASE_LIST_FILE")
 ALLOW_NEAREST_BC=${ALLOW_NEAREST_BC:-0}
-GEOMETRY_PYTHON=${GEOMETRY_PYTHON:-""}
 START_STEP=${START_STEP:-1}
 END_STEP=${END_STEP:-5}
 SAMPLING_METHOD=${SAMPLING_METHOD:-hybrid}
@@ -125,6 +129,12 @@ if [ "$ALLOW_NEAREST_BC" = "1" ]; then
 fi
 if [ -n "$GEOMETRY_PYTHON" ]; then
     CMD+=(--geometry-python "$GEOMETRY_PYTHON")
+fi
+if [ -n "${PIPELINE_SOURCES:-}" ]; then
+    CMD+=(--sources)
+    for s in $PIPELINE_SOURCES; do
+        CMD+=("$s")
+    done
 fi
 echo "执行: ${CMD[*]}"
 "${CMD[@]}"

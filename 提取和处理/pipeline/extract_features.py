@@ -588,6 +588,7 @@ def process_all_cases(
     output_subdir: str = None,
     save_centerline: bool = True,
     strict_bc_match: bool = True,
+    sources: Optional[List[str]] = None,
 ) -> None:
     """
     批量处理所有病例。
@@ -605,7 +606,7 @@ def process_all_cases(
         data_root = Path(data_root)
     
     # 获取病例目录
-    case_dirs = get_case_dirs(data_root)
+    case_dirs = get_case_dirs(data_root, sources=sources)
     
     # 过滤指定病例
     if target_case:
@@ -728,6 +729,13 @@ def main():
         default=False,
         help="允许使用最近时间步 BC 作为兜底；默认只接受精确匹配",
     )
+    parser.add_argument(
+        "--sources",
+        nargs="+",
+        default=None,
+        metavar="SOURCE",
+        help="数据源子路径（如 AG/fast AG/slow）；默认使用 config 已启用数据源",
+    )
     
     args = parser.parse_args()
     
@@ -738,6 +746,7 @@ def main():
         output_subdir=args.output_subdir,
         save_centerline=not args.no_centerline,
         strict_bc_match=not args.allow_nearest_bc,
+        sources=args.sources,
     )
 
 
