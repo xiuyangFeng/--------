@@ -52,12 +52,18 @@ _EXP_LABELS: Dict[str, str] = {
     "A-Opt-03": "Transformer+Geom (P0-4 h128)",
     "A-Opt-05": "Transformer+Geom (Opt-05 256×4L)",
     "A-Opt-07": "Transformer+Geom (Opt-07 interior boost×3)",
+    "A-Opt-G01": "Opt-05 + G01 (bifurcation)",
+    "A-Opt-G04": "Opt-05 + G04 (wall distance)",
+    "A-Opt-G05": "Opt-05 + G05 (d tangent/ds)",
 }
 _EXP_ORDER: List[str] = [
     "A-Base-01",
     "A-Base-02",
     "A-Base-03",
     "A-Main-01",
+    "A-Opt-G01",
+    "A-Opt-G04",
+    "A-Opt-G05",
     "A-Opt-01",
     "A-Opt-02",
     "A-Opt-02_warmup",

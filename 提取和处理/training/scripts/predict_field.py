@@ -34,6 +34,13 @@ def extract_time_value(global_cond: torch.Tensor) -> torch.Tensor:
     return global_cond.reshape(-1)[:1].clone()
 
 
+def _prediction_pt_filename(case_name: str, sample_id: str) -> str:
+    """导出文件名在测试集上必须全局唯一（不同病例常有相同图 stem / sample_id）。"""
+    safe_case = str(case_name).replace("/", "__").replace(" ", "_")
+    safe_sid = str(sample_id).replace("/", "_")
+    return f"{safe_case}__{safe_sid}.pt"
+
+
 @torch.no_grad()
 def main() -> None:
     parser = argparse.ArgumentParser(description="任务A预测导出脚本")
@@ -120,7 +127,7 @@ def main() -> None:
         for data, pred_item, wss_pred_item, sample_id, case_name, graph_path in zip(
             data_list, pred_list, wss_pred_list, sample_ids, case_names, graph_paths
         ):
-            save_path = output_dir / f"{sample_id}.pt"
+            save_path = output_dir / _prediction_pt_filename(case_name, sample_id)
             payload = {
                 "sample_id": sample_id,
                 "case_name": case_name,

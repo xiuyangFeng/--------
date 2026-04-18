@@ -8,6 +8,8 @@ cluster/
 ├── run_plan.slurm              # 顺序执行 manifest
 ├── run_array.slurm             # Array Job 并行执行多个配置
 ├── run_compare_hemo_wss.slurm   # 多 run WSS 对比（compare_hemo_wss_runs）
+├── run_wss_multitask_predict_figs_array.slurm  # WSS 多任务 15 run：删旧 predictions_test → predict → A3/A4/误差/A5
+├── manifest_list_wss_multitask_predict.tsv     # 上述 array 的 run 目录清单（每行一条，相对仓库根）
 ├── hemo_wss_runs_A_Opt03_04_05_seed1.tsv  # 示例：A-Opt-03/04/05 seed1 的 manifest 列表
 ├── batch_submit.sh             # 批量提交脚本
 ├── generate_manifest_list.sh   # 从 manifest 生成配置列表
@@ -152,6 +154,18 @@ cat outputs/field/plots/optimization/wss_compare_<JOBID>/wss_compare_summary.jso
 ```
 
 说明：作业默认 `#SBATCH -w node03`、`--partition=CPU`、`--cpus-per-task=8`、 walltime `12:00:00`。**全量 test + export_hemo 可能极慢**，可加大 `--time` 或先用 `HEMO_MAX_ITEMS` 试通；正式论文表建议全量且 `--export` 重导 hemo。`export_hemo` 已带 **tqdm** 进度（加载 `.pt`、病例循环、时间步）；纯日志环境可加 `--no-progress`。
+
+### 5b. WSS 多任务 15 run：`predict_field` + A3/A4/误差分析/Fig A5
+
+针对 `experiment_index` 中 **A-Base-01/02/03、A-Main-01、A-Opt-05** 的 **wss-multi** 共 **15** 个 `run_dir`：**先删除** 各 run 下已有 `predictions_test`（避免不完整导出残留），再导出测试集预测，并对该 `manifest.json` 串联 `plot_taskA_scatter`、`plot_taskA_per_case_boxplot`、`plot_error_analysis`、`plot_taskA_regional_bar`；脚本内校验 `.pt` 数量与 `num_predictions` 一致。
+
+```bash
+cd /path/to/GNN
+sbatch training/cluster/run_wss_multitask_predict_figs_array.slurm
+# 自定义清单：MANIFEST_LIST_FILE=training/cluster/my_runs.tsv sbatch --array=0-9%4 training/cluster/run_wss_multitask_predict_figs_array.slurm
+```
+
+默认 `#SBATCH --array=0-14%4`、**GPU 分区**、`logs/wss_mt_pred_fig_<ARRAY_JOB_ID>_<TASK_ID>.out`。全仓库多模型汇总图未包含在内；需要时可另交 `run_taskA_interior_figs.slurm`。
 
 ### 6. 一键批量提交
 

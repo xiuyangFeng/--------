@@ -41,6 +41,9 @@ _EXP_LABELS: Dict[str, str] = {
     "A-Abl-02-02": "Opt-05 w/o NormRadius",
     "A-Abl-02-03": "Opt-05 w/o Curvature",
     "A-Abl-02-04": "Opt-05 w/o Tangent",
+    "A-Opt-G01": "Opt-05 + G01 (bifurcation)",
+    "A-Opt-G04": "Opt-05 + G04 (wall distance)",
+    "A-Opt-G05": "Opt-05 + G05 (d tangent/ds)",
 }
 
 # 控制多模型在图中的显示顺序
@@ -49,6 +52,9 @@ _EXP_ORDER: List[str] = [
     "A-Base-02",
     "A-Base-03",
     "A-Main-01",
+    "A-Opt-G01",
+    "A-Opt-G04",
+    "A-Opt-G05",
     "A-Opt-01",
     "A-Opt-02",
     "A-Opt-02_warmup",

@@ -41,12 +41,23 @@ _EXP_LABELS: Dict[str, str] = {
     "A-Abl-02-02": "Opt-05 w/o NormRadius",
     "A-Abl-02-03": "Opt-05 w/o Curvature",
     "A-Abl-02-04": "Opt-05 w/o Tangent",
+    "A-Opt-G01": "Opt-05 + G01 (bifurcation)",
+    "A-Opt-G04": "Opt-05 + G04 (wall distance)",
+    "A-Opt-G05": "Opt-05 + G05 (d tangent/ds)",
+    "A-Base-01-wss-multi": "MLP + WSS multitask",
+    "A-Base-02-wss-multi": "GraphSAGE + WSS multitask",
+    "A-Base-03-wss-multi": "Transformer + WSS multitask",
+    "A-Main-01-wss-multi": "Transformer+Geom + WSS multitask",
+    "A-Opt-05-wss-multi": "Opt-05 + WSS multitask",
 }
 _EXP_ORDER: List[str] = [
     "A-Base-01",
     "A-Base-02",
     "A-Base-03",
     "A-Main-01",
+    "A-Opt-G01",
+    "A-Opt-G04",
+    "A-Opt-G05",
     "A-Opt-01",
     "A-Opt-02",
     "A-Opt-02_warmup",
@@ -57,6 +68,11 @@ _EXP_ORDER: List[str] = [
     "A-Abl-02-03",
     "A-Abl-02-04",
     "A-Opt-07",
+    "A-Base-01-wss-multi",
+    "A-Base-02-wss-multi",
+    "A-Base-03-wss-multi",
+    "A-Main-01-wss-multi",
+    "A-Opt-05-wss-multi",
 ]
 
 

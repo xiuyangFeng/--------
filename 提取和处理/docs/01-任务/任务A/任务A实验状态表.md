@@ -59,6 +59,7 @@
 | 🌱 待补 seed      | seed=1 已通过，等待补 seed=2,3 |
 | 📋 待汇总          | 训练完成，等待写入记录表            |
 | ✅ 已完成           | 结果、图表、实验记录均已归档          |
+| ⏹ 已结案           | 仅完成计划内 seed；判定无需补种，作弱/负向结果归档 |
 | ❌ 失败待重跑         | 出现错误或配置问题，需修复后重跑        |
 
 
@@ -143,11 +144,11 @@
 
 | Exp ID    | 研究问题                | 唯一变化项                                         | split_version | seeds | 当前状态   | 备注                            |
 | --------- | ------------------- | --------------------------------------------- | ------------- | ----- | ------ | ----------------------------- |
-| A-Opt-G01 | 显式分叉拓扑先验是否改善复杂转折区建模 | `distance_to_bifurcation + branch_flag`       | split_AG_v1   | [1]   | 🔒 未开始 | Line G 首个实验；优先看 `bifurcation` |
-| A-Opt-G02 | 局部尺度变化信息是否优于单纯半径值   | `radius_change_rate / area_change_rate`       | split_AG_v1   | [1]   | 🔒 未开始 | 关注扩张/收缩区与瘤腔过渡段                |
-| A-Opt-G03 | 扭率能否补足曲率缺失的三维弯扭信息   | `torsion`                                     | split_AG_v1   | [1]   | 🔒 未开始 | 与 `Curvature` 形成互补验证          |
-| A-Opt-G04 | 显式壁面距离是否改善近壁速度剖面学习  | `distance_to_wall / normalized_wall_distance` | split_AG_v1   | [1]   | 🔒 未开始 | 与 Line W 有接口关系                |
-| A-Opt-G05 | 中心线方向变化率是否提升转折区表达   | `d_tangent/ds` 或等价方向变化量                       | split_AG_v1   | [1]   | 🔒 未开始 | 放在前四组信号明确后再尝试                 |
+| A-Opt-G01 | 显式分叉拓扑先验是否改善复杂转折区建模 | `dist_to_bifurcation + branch_id`（与 JSON 一致） | split_AG_v1   | [1,2,3] | ✅ 已完成 | **（2026-04-12～04-13）** 三 seed：`outputs/field/field_transformer_opt05_g01_bifurcation_split_AG_v1_seed*_20260412_*` / `*_20260413_113440`；`predictions_test` + 标准后处理齐。配置：`training/configs/field/generated/line_g/A-Opt-G01_seed*.json`。详见「实验记录摘要 · Line G」。 |
+| A-Opt-G02 | 局部尺度变化信息是否优于单纯半径值   | `dR_ds`                                         | split_AG_v1   | [1]     | ⏹ 已结案 | **（2026-04-12）** seed1：`outputs/field/field_transformer_opt05_g02_dRds_split_AG_v1_seed1_20260412_231304`。**（2026-04-17）** 单 seed 相对 **`A-Opt-05`** 无收益，**不补 seed2/3**。配置：`training/configs/field/generated/line_g/A-Opt-G02_seed1.json`。详见「实验记录摘要 · Line G」。 |
+| A-Opt-G03 | 扭率能否补足曲率缺失的三维弯扭信息   | `torsion`                                       | split_AG_v1   | [1]     | ⏹ 已结案 | **（2026-04-12）** seed1：`outputs/field/field_transformer_opt05_g03_torsion_split_AG_v1_seed1_20260412_231304`。**（2026-04-17）** 单 seed 相对 **`A-Opt-05`** 无收益，**不补 seed2/3**。配置：`training/configs/field/generated/line_g/A-Opt-G03_seed1.json`。详见「实验记录摘要 · Line G」。 |
+| A-Opt-G04 | 显式壁面距离是否改善近壁速度剖面学习  | `dist_to_wall` 等                               | split_AG_v1   | [1,2,3] | ✅ 已完成 | **（2026-04-13）** 三 seed：`outputs/field/field_transformer_opt05_g04_wall_distance_split_AG_v1_seed*_20260413_*`。配置：`training/configs/field/generated/line_g/A-Opt-G04_seed*.json`。详见「实验记录摘要 · Line G」。 |
+| A-Opt-G05 | 中心线方向变化率是否提升转折区表达   | `d_tangent_ds`                                  | split_AG_v1   | [1,2,3] | ✅ 已完成 | **（2026-04-13）** 三 seed：`outputs/field/field_transformer_opt05_g05_tangent_change_rate_split_AG_v1_seed*_20260413_*`。配置：`training/configs/field/generated/line_g/A-Opt-G05_seed*.json`。详见「实验记录摘要 · Line G」。 |
 
 
 ---
@@ -164,9 +165,23 @@
 | --------- | --------------------- | ------------------------------------------ | ------------- | ----- | ------ | ------------------------------------- |
 | A-Opt-W01 | 近壁区域加权是否改善 WSS 梯度质量   | `near_wall_boost=3.0, interior_weight=0.5` | split_AG_v1   | [1]   | 🔒 未开始 | 需修改 `losses.py` + 近壁区 mask；依赖 P0 最优基座 |
 | A-Opt-W02 | 壁面法向梯度监督是否提升 WSS 精度   | `wall_grad_weight=0.01`                    | split_AG_v1   | [1]   | 🔒 未开始 | 需修改 `losses.py`；依赖 W01 有正向信号或独立启动     |
-| A-Opt-W03 | 直接 WSS 监督是否最大化端到端质量   | `wss_loss_weight=0.1`                      | split_AG_v1   | [1]   | 🔒 未开始 | 需 WSS 真值数据 + 数据管线改动；依赖任务 B WSS 管线就绪   |
+| A-Opt-W03 | 直接 WSS 监督是否最大化端到端质量   | **纯 WSS**：`target_weights=0` + `wss_loss_weight=1`（草案 `A-Opt-W03-wss-only`） | split_AG_v1   | [1]   | 🔒 未开始 | **先行批已归档**：场 + WSS 联合见 **`A-*-wss-multi`**（`wss_loss_weight=0.1`，第五批附表），**不等同**于本行「仅 WSS」 |
 | A-Opt-W04 | 两阶段训练是否优于一开始就加权       | 阶段1:均匀MSE → 阶段2:壁面精调                       | split_AG_v1   | [1]   | 🔒 未开始 | 可与 W01/W02 叠加                         |
 | A-Opt-W05 | OSI 敏感区域加权是否改善 OSI 恢复 | 分叉/高曲率区 boost                              | split_AG_v1   | [1]   | 🔒 未开始 | 可与 W01 叠加                             |
+
+### 第五批附：WSS 多任务辅助监督（`wss_multitask`，2026-04-14～04-17）
+
+> **说明**：在 **`A-Base-*` / `A-Main-01` / `A-Opt-05`** 各自输入与场损失权重不变的前提下，增加 **`model.wss_dim=4`** 与 **`optim.wss_loss_weight=0.1`**。配置：**`training/configs/field/generated/baseline_wss_multitask/`**。登记：**`outputs/field/experiment_index.csv`**；测试集壁面 WSS 指标：**`outputs/field/wss_multitask_test_wall_wss_metrics.tsv`**；场 **R² \|v\|**、**R²_p** 见各 run **`summary.json`**。**R² 汇报主表**见本节下方「**实验记录摘要 · WSS 多任务**」。若以 **`line_g`** 为配置入口：本批跑批与 **`training/configs/field/generated/line_g/`** 无关；**`A-Opt-G02` / `G03`** 为 **⏹ 已结案**（仅 seed1，不补种），见第四批表。
+
+| Exp ID | 研究问题 | 唯一变化项 | split_version | seeds | 当前状态 | 备注 |
+| --- | --- | --- | --- | --- | --- | --- |
+| A-Base-01-wss-multi | MLP 基线 + WSS 头 | 同 `A-Base-01` + WSS 多任务 | split_AG_v1 | [1,2,3] | ✅ 训练已完成 | `field_mlp_coord_t_bc_wss_multitask_split_AG_v1_seed{1,2,3}_20260415_*` / `20260416_*` |
+| A-Base-02-wss-multi | GraphSAGE + wall + WSS 头 | 同 `A-Base-02` + WSS 多任务 | split_AG_v1 | [1,2,3] | ✅ 训练已完成 | `field_graphsage_coord_t_bc_wall_wss_multitask_split_AG_v1_seed{1,2,3}_20260416_*` |
+| A-Base-03-wss-multi | Transformer + wall + WSS 头 | 同 `A-Base-03` + WSS 多任务 | split_AG_v1 | [1,2,3] | ✅ 训练已完成 | `field_transformer_coord_t_bc_wall_wss_multitask_split_AG_v1_seed{1,2,3}_20260416_*` |
+| A-Main-01-wss-multi | 全几何 Transformer + WSS 头 | 同 `A-Main-01` + WSS 多任务 | split_AG_v1 | [1,2,3] | ✅ 训练已完成 | `field_transformer_coord_t_bc_geom_wall_wss_multitask_split_AG_v1_seed{1,2,3}_20260416_*` / `20260417_*` |
+| A-Opt-05-wss-multi | **05 母版** + WSS 头 | 同 `A-Opt-05` + WSS 多任务 | split_AG_v1 | [1,2,3] | ✅ 训练已完成 | seed1：`..._seed1_20260415_232824`；seed2/3：`..._seed{2,3}_20260414_204752` |
+
+详见「**实验记录摘要 · WSS 多任务**」。**`predictions_test` / Fig A3–A5 全链**已于 **2026-04-17** 闭环（阵列 **Job 2704**、补点 **Job 2715**，见 **`docs/02-推进与变更/代码修改与实验推进记录.md`** 文首条目）。
 
 
 ## 主结果表（3 seed mean ± std，已完成）
@@ -179,7 +194,7 @@
 > **（2026-03-26 重要）主指标口径更新**：下表 `RMSE_|v|` 列**保留原 all-node 口径**以便纵向对比；自本次起所有出图脚本默认 `--region interior`，论文主结论应以 `interior.RMSE_|v|`（见各 run 实验记录摘要中「内部点误差」）为准；`all.RMSE_|v|` 仅作补充。  
 > **（2026-03-29）主表 / 近壁汇报列**：`plots/summary/fig_A1_main_table.csv` 默认以 `interior` 导出主区域 **`rmse_* / r2_*`**，并附带 **`all_rmse_vel_mag / all_r2_vel_mag`** 与 **`near_wall_rmse_* / near_wall_r2_*`**（含 |v| 的 **`r2_vel_mag`**）；各 run 需已生成 `predictions_test/regional_eval/fig_A5_regional_metrics.json`（必要时重跑 `plot_taskA_regional_bar`），详见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md) 第 5–6 节。  
 > **（2026-03-29）** 已归档 **`A-Opt-04`**（`hidden_dim=256`）；下表已增 **`A-Opt-04`** 列（3 seed mean ± std）。  
-> **（2026-03-31）** 已归档 **`A-Opt-05`**（`hidden_dim=256, num_layers=4`）并补入 ③ 容量线子表；同时入账 **`A-Opt-05_tune`** 四组小步超参实验（`warmup10` / `lr3e-4` / `wd2e-4` / `schedpat15`，均 seed=1）——详见第三批跟踪表与「实验记录摘要 · A-Opt-05_tune」。**（2026-04-02）** 已归档 **`A-Opt-07`**（`interior_loss_boost=3`，三 seed）并增列 ③ 子表；见「实验记录摘要 · A-Opt-07」。
+> **（2026-03-31）** 已归档 **`A-Opt-05`**（`hidden_dim=256, num_layers=4`）并补入 ③ 容量线子表；同时入账 **`A-Opt-05_tune`** 四组小步超参实验（`warmup10` / `lr3e-4` / `wd2e-4` / `schedpat15`，均 seed=1）——详见第三批跟踪表与「实验记录摘要 · A-Opt-05_tune」。**（2026-04-02）** 已归档 **`A-Opt-07`**（`interior_loss_boost=3`，三 seed）并增列 ③ 子表；见「实验记录摘要 · A-Opt-07」。**（2026-04-14）** **Line G**：**`A-Opt-G01` / `G04` / `G05` 三 seed** 已具备 `summary.json` 与 `predictions_test`；主表增列若纳入 Line G，请以状态表「实验记录摘要 · Line G」数值为准。**（2026-04-17）** **`A-*-wss-multi`**（场 + WSS 多任务）三 seed 已入账 `experiment_index.csv`，壁面 WSS 汇总见 **`wss_multitask_test_wall_wss_metrics.tsv`**（第五批附表与「实验记录摘要 · WSS 多任务」）。
 
 <!-- 拆为三张子表：① Baseline 组  ② P0 优化前半（Opt-01～03）  ③ P0 容量线（Opt-03w/04） -->
 
@@ -667,7 +682,7 @@
 - **`regional_eval`**：**`interior.rmse_vel_mag`** **1.822 → 1.849**（**变差**；各 seed 约 **1.858 / 1.856 / 1.834**）；**`all.rmse_vel_mag`** **~1.052 → ~1.068**。**内部点 `R²_u/v/w`（3 seed 均值）**：约 **0.325 / 0.356 / 0.470**，其中 **`R²_v` 较 `A-Opt-03`（0.376）回落**。**`wall.rmse_vel_mag`** 三 seed 约 **0.027 / 0.034 / 0.049**，均值 **差于 `A-Opt-03` ~0.032**。
 - **后处理**：各 run 已具备 `predictions_test/`、`error_analysis_interior/`、`regional_eval/`。
 - **一句话结论**：**仅放大 hidden width 在未同步正则/训练预算调整时，未继续改善论文主口径内部速度误差**；**压力 `summary.rmse_p` 有轻微收复**。本组为 **`A-Opt-05` 的中间态**，**不作为母版**。
-- **下一步动作**：**`A-Opt-05`（h256+4L）** 已定母版；否则 **转向消融 / Line G**，见 [优化路径](任务A优化路径与近期实验建议.md)。
+- **下一步动作**：**`A-Opt-05`（h256+4L）** 已定母版；**Line G 子组 G01/G04/G05 已三 seed 归档**（见下「实验记录摘要 · Line G」）；其余见 [优化路径](任务A优化路径与近期实验建议.md)。
 
 ---
 
@@ -694,7 +709,7 @@
 - **相对 `A-Opt-04`**：`interior.rmse_vel_mag` **1.849 → 1.816**（回补了加宽带来的内部速度退化）；`summary.rmse_vel_mag` **1.052 → 1.040**。**相对 `A-Opt-03`**：`interior.rmse_vel_mag` 均值略优（1.822 → 1.816），但差距小于跨 seed 方差，不宜单独宣称新 SOTA；`near_wall` 均值明显优于 03（~1.573 → 1.454），更贴近端到端梯度质量需求；`summary.rmse_p` 三 seed 均值 ~0.645，弱于 `A-Opt-01`/`A-Opt-02` 的压力最优区间。
 - **后处理**：各 run 已具备 `predictions_test/`、`error_analysis_interior/`、`regional_eval/`。
 - **一句话结论**：**加深一层主要「修复」了加宽带来的内部速度回退**，`near_wall` 区域相对 `A-Opt-03` 明显改善（1.573 → 1.454），更利于端到端 WSS 梯度质量叙事；**Trade-off**：显存/时延/跨 seed 方差均高于 03。
-- **下一步动作**：**（2026-03-31）** 本组为 **消融 / Line G / Line W 的统一母版**；按 P0-5 **停止条件**不继续 `A-Opt-06`；**`A-Opt-05_tune`** 见下节；**`A-Abl-02` 已完成（2026-04-09）** → 优先 **`A-Abl-01` / Line G**（**WSS 全量对比暂缓**）。
+- **下一步动作**：**（2026-03-31）** 本组为 **消融 / Line G / Line W 的统一母版**；按 P0-5 **停止条件**不继续 `A-Opt-06`；**`A-Opt-05_tune`** 见下节；**`A-Abl-02` 已完成（2026-04-09）**；**`A-Opt-G01 / G04 / G05` 已三 seed 归档（2026-04-12～04-14）**；**`G02` / `G03` 已结案（仅 seed1）** → 优先 **`A-Abl-01`** 或 **Line W**（**WSS 全量对比暂缓**）。
 
 ---
 
@@ -720,8 +735,48 @@
 - **相对 `A-Opt-05`**：**未满足**优化路径「全局 + 内部 `RMSE_|v|` 同步改善」门槛；提高非壁面节点损失权重在本实现下**更偏向拉内部，但损害壁面/近壁恢复**，全图速度略变差。
 - **后处理**：各 run 已具备 `predictions_test/`、`regional_eval/`；seed2/3 已生成 `fig_A4_per_case_metrics_interior.csv` 与 `fig_A3_scatter_interior.png`。**建议对 seed1 再执行** `plot_taskA_per_case_boxplot` 与 `plot_taskA_scatter`（与同 seed 的 05/Main 对照箱线/散点时需各 exp 均已具备 `fig_A4_*`）。
 - **多模型对照图（Main / 05 / 07）**：`outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/` — `python -m training.scripts.regenerate_opt07_vs_opt05_main_figures`
-- **一句话结论**：**内部 `interior_loss_boost=3` 未带来相对母版 `A-Opt-05` 的主指标收益**，属**清晰负结果**；后续主线仍取 **`A-Opt-05`**；**`A-Abl-02` 已闭环**，优先 **`A-Abl-01` / Line G**。
+- **一句话结论**：**内部 `interior_loss_boost=3` 未带来相对母版 `A-Opt-05` 的主指标收益**，属**清晰负结果**；后续主线仍取 **`A-Opt-05`**；**`A-Abl-02` 已闭环**；**Line G 之 G01/G04/G05 已三 seed 归档（2026-04-14）**。
 - **下一步动作**：不必追加深或再扫 `interior_boost`；将本组作为「仅加权内部监督不够」写入正文/附录即可。
+
+---
+
+### Line G（显式几何增强，母版 `A-Opt-05`）
+
+> **（2026-04-14）** 摘要：**`A-Opt-G01` / `G04` / `G05`** 已 **三 seed** 训练、`predictions_test` 与 Fig A3–A5 多模型对比就绪。**（2026-04-17）** **`G02` / `G03`** 仅 **seed=1**，单 seed 上相对 **`A-Opt-05`** 无收益，**已决定不补 seed2/3**，记 **⏹ 已结案**。
+
+- **配置目录**：`training/configs/field/generated/line_g/`（`A-Opt-G0*_seed*.json`）。
+- **与母版 `A-Opt-05`（`summary.json` · `test_metrics`，三 seed 均值）对照（速览）**：
+  - **`rmse_vel_mag`**：05 约 **1.040**；**G04 / G05** 约 **1.038**（略优）；**G01** 约 **1.045**（略差）。
+  - **`rmse`（合成）**：G01 约 **0.543** 略优于 05 约 **0.562**；G04 / G05 与 05 接近。
+  - **分通道 `R²`**：G01 的 **`R²_u` / `R²_p`** 略优于 05；**`R²_vel_mag`** 三组 Line G 约在 **0.58～0.59**（05 的 `summary` 未统一写入 `r2_vel_mag`，不宜直接并列）。
+- **多模型对比图（G01/G04/G05 × 三 seed 均值 vs baseline / Main / 05）**：`outputs/field/plots/line_g/G01_G04_G05_vs_baselines_mean3seed/`（详见 `docs/02-推进与变更/代码修改与实验推进记录.md` 2026-04-14 条目）。
+- **一句话结论**：在 **05 母版**上叠加 **壁面距离（G04）** 或 **切向变化率（G05）** 对 **`summary.rmse_vel_mag` 三 seed 均值** 有 **小幅正向**；**分叉拓扑（G01）** 在 **合成 `rmse` 与压力/分速度 R²** 上有信号，但 **速度模**略差于 05；均 **未形成大幅碾压**，适合作为正文「几何先验小步扩展」而非新母版。**`G02`（`dR_ds`）/ `G03`（`torsion`）** 在 **seed=1** 上相对05 **未见收益**，**不再补种**。
+- **下一步动作**：转入 **`A-Abl-01`** / **Line W**；汇报时与 **`A-Base-*` / `A-Main-01`** 对照保留叙事完整性。
+
+---
+
+### WSS 多任务（场监督 + `wss_loss_weight=0.1`，2026-04-14～04-17）
+
+- **完成日期**：训练三 seed 已登记 **`outputs/field/experiment_index.csv`**（2026-04-14～04-17）；测试集**壁面节点** WSS RMSE/R² 见 **`outputs/field/wss_multitask_test_wall_wss_metrics.tsv`**；**（2026-04-17）** **`predictions_test` + Fig A3/A4/误差/Fig A5** 已按推进记录闭环（阵列 2704、补点 2715）。
+- **配置**：**`training/configs/field/generated/baseline_wss_multitask/`**（`A-Base-01-wss-multi`～`A-Opt-05-wss-multi`）
+- **与 Line W `A-Opt-W03` 草案的区别**：本批为 **速度场/压力 + WSS 联合**（`target_weights` 与各自无 WSS 母版一致）；**`A-Opt-W03-wss-only`** 为 **关闭场监督、仅 WSS**（`training/configs/field/generated/wss_multitask/`，**未跑**）
+
+**汇报用 R² 主表（多任务各 `exp_id`，三 seed 均值 ± 总体标准差）**
+
+| Exp ID | **R² 壁面 WSS**（`wss_r2_wss`，TSV） | **R² \|v\|**（`summary.test_metrics.r2_vel_mag`） | **R²_p**（`summary.test_metrics.r2_p`） |
+| --- | --- | --- | --- |
+| A-Base-01-wss-multi | −0.052 ± 0.008 | 0.016 ± 0.002 | 0.923 ± 0.004 |
+| A-Base-02-wss-multi | 0.383 ± 0.006 | 0.289 ± 0.009 | 0.902 ± 0.003 |
+| A-Base-03-wss-multi | 0.384 ± 0.006 | 0.288 ± 0.001 | 0.912 ± 0.009 |
+| A-Main-01-wss-multi | 0.460 ± 0.004 | 0.468 ± 0.007 | 0.928 ± 0.007 |
+| A-Opt-05-wss-multi | 0.463 ± 0.004 | 0.584 ± 0.013 | 0.922 ± 0.003 |
+
+> **口径**：**R² 壁面 WSS** 为测试集 **壁面节点**、WSS **向量（4 维合成）** 的 R²，与 `training/scripts/_eval_wss_metrics_once.py` / **`WSSMeter`** 一致。**R² \|v\|**、**R²_p** 来自各 run **`summary.json`** 的 **`test_metrics`**（训练结束全图 eval；多任务 run 均含 `r2_vel_mag` 字段）。
+
+- **`summary.test_metrics` 其它速览（三 seed 均值）**：**`A-Opt-05-wss-multi`** — `rmse_vel_mag` **约 1.043**，合成 **`rmse`** **约 0.752**；**`A-Main-01-wss-multi`** — `rmse_vel_mag` **约 1.179**，合成 **`rmse`** **约 0.784**（与上表 **R²_p** 同源）。
+- **壁面 WSS RMSE（TSV · `wss_rmse`，三 seed 均值）**：Base-01-wss-multi **约 1.262**；Base-02/03-wss-multi **约 1.13**；Main-01-wss-multi **约 1.084**；Opt-05-wss-multi **约 1.077**（相对 Main-wss-multi **略优**）。
+- **一句话结论**：多任务头下，**壁面 WSS R²** 在 **MLP** 上为**负**；在 **GraphSAGE / Transformer-wall** 上约 **0.38**；在 **Main / Opt-05 母版** 上约 **0.46～0.46**，**Opt-05-wss-multi** 与 **Main-wss-multi** 基本持平、壁面 RMSE 略优。**速度模 R²**（`r2_vel_mag`）随骨干由 MLP →05 **单调抬升**（约 **0.02 → 0.58**），**压力 R²** 在 **Main-wss-multi** 上最高（**约 0.928**），**Opt-05-wss-multi** 略低但仍与 **0.92** 档对齐。与无 WSS 同配置的 **逐对 trade-off** 仍以各 **`summary.json`** / **区域 Fig A5** 为准。
+- **下一步动作**：按需运行 **`plot_taskA_multimodel_regional_bar`** 做多模型柱图；或接 **Line W** 加权 / **纯 WSS（`A-Opt-W03-wss-only`）** 分支。
 
 ---
 
@@ -741,7 +796,7 @@
 | `A-Abl-02-04` | Tangent（3 维） | 1.933±0.038 | +0.117 | ~0.073 | **次之**，接近常见显著性阈值 |
 
 - **一句话结论**：在 **`A-Opt-05` 母版**上，**归一化半径 NormRadius 是显式几何通道中的主贡献项**；**切向 Tangent** 次之；**弧长 Abscissa** 与 **曲率 Curvature** 的边际更大但 **3 seed 下相对母版未达常规显著**——叙事上可写「半径与局部方向框架最关键，曲率单项可视为弱贡献」。
-- **下一步动作**：推进 **`A-Abl-01`**（输入层级消融）或 **Line G01**（分叉拓扑先验）；复杂区域对比可继续用各 run 的 **`regional_eval`** 补充正文。
+- **下一步动作**：推进 **`A-Abl-01`**（输入层级消融）；**Line G 侧** **`G01/G04/G05` 已闭环**，**`G02`/`G03` 已结案（不补种）**；可接 **Line W**；复杂区域对比可继续用各 run 的 **`regional_eval`** 补充正文。
 
 ---
 
