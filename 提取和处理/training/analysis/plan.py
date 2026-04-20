@@ -100,13 +100,18 @@ def build_run_config(experiment_name: str, output_root: str) -> RunConfig:
 
 
 def build_model_config(model_name: str) -> ModelConfig:
-    return ModelConfig(
+    config = ModelConfig(
         name=model_name,
         hidden_dim=128,
         num_layers=3,
         dropout=0.1,
         heads=4,
     )
+    if model_name == "pointnext":
+        config.hidden_dim = 256
+        config.num_layers = 4
+        config.dropout = 0.1
+    return config
 
 
 def make_plan_item(
@@ -327,6 +332,63 @@ def build_task_a_baselines(
             output_root=output_root,
             notes="任务A主模型：Transformer with geometry。",
             tags=["main", "transformer", "coord+t+bc+geom+wall"],
+        ),
+    ]
+
+
+def build_v2_pointcloud_plan(
+    *,
+    data_root: str,
+    split_file: str,
+    graphs_subdir: str,
+    output_root: str,
+    seed: int,
+    backbone_name: str = "pointnext",
+) -> List[FieldPlanItem]:
+    # V2 点云首轮只生成最小闭环：without geometry / with geometry。
+    main_augment = main_aug_presets()["rotate_translate"]
+    backbone_suffix = "pointnext" if backbone_name == "pointnext" else "pointnetpp"
+    backbone_label = "PointNeXt" if backbone_name == "pointnext" else "PointNet++"
+    return [
+        make_plan_item(
+            exp_id="V2P-Base-01",
+            experiment_name=f"field_v2_{backbone_suffix}_base01_coord_t_bc_wall",
+            study_group="v2_pointcloud",
+            feature_set="coord_t_bc_wall",
+            question="V2 数据口径下的点云主干在无 geometry 条件下能达到什么下限。",
+            ablation_axis="v2_pointcloud_baseline",
+            model_name=backbone_name,
+            data_root=data_root,
+            split_file=split_file,
+            graphs_subdir=graphs_subdir,
+            enabled_node_features=COORD_FEATURES + IS_WALL_FEATURE,
+            enabled_global_features=TIME_FEATURES + BC_FEATURES,
+            augment=True,
+            augment_config=main_augment,
+            seed=seed,
+            output_root=output_root,
+            notes=f"V2 点云首轮基线：{backbone_label} without geometry。",
+            tags=["v2", "pointcloud", backbone_suffix, "coord+t+bc+wall"],
+        ),
+        make_plan_item(
+            exp_id="V2P-Main-01",
+            experiment_name=f"field_v2_{backbone_suffix}_main01_coord_t_bc_geom_wall",
+            study_group="v2_pointcloud",
+            feature_set="coord_t_bc_geom_wall",
+            question="显式几何先验在 V2 点云主干上是否仍有稳定增益。",
+            ablation_axis="v2_pointcloud_geometry",
+            model_name=backbone_name,
+            data_root=data_root,
+            split_file=split_file,
+            graphs_subdir=graphs_subdir,
+            enabled_node_features=COORD_FEATURES + GEOMETRY_FEATURES + IS_WALL_FEATURE,
+            enabled_global_features=TIME_FEATURES + BC_FEATURES,
+            augment=True,
+            augment_config=main_augment,
+            seed=seed,
+            output_root=output_root,
+            notes=f"V2 点云首轮主模型：{backbone_label} with geometry。",
+            tags=["v2", "pointcloud", backbone_suffix, "coord+t+bc+geom+wall"],
         ),
     ]
 
@@ -579,6 +641,7 @@ def build_task_a_plan(
     seeds: Iterable[int],
     groups: Iterable[str],
     coord_variants: Mapping[str, str] | None = None,
+    v2_pointcloud_backbone: str = "pointnext",
 ) -> List[FieldPlanItem]:
     # groups 控制这次批量生成哪些实验块；seeds 控制每个实验块重复多少随机种子。
     group_set = set(groups)
@@ -632,6 +695,17 @@ def build_task_a_plan(
                     output_root=output_root,
                     seed=seed,
                     coord_variants=coord_variants,
+                )
+            )
+        if "v2_pointcloud" in group_set:
+            items.extend(
+                build_v2_pointcloud_plan(
+                    data_root=data_root,
+                    split_file=split_file,
+                    graphs_subdir=graphs_subdir,
+                    output_root=output_root,
+                    seed=seed,
+                    backbone_name=v2_pointcloud_backbone,
                 )
             )
     return items

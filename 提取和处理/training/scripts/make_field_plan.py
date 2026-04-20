@@ -27,7 +27,7 @@ def timestamp() -> str:
 def parse_groups(value: str) -> List[str]:
     # 生成器只接受有限的实验组名字，防止拼写错误时默默生成空结果。
     groups = [item.strip() for item in value.split(",") if item.strip()]
-    valid = {"baseline", "input", "geometry", "augment", "coord"}
+    valid = {"baseline", "input", "geometry", "augment", "coord", "v2_pointcloud"}
     unknown = sorted(set(groups) - valid)
     if unknown:
         raise ValueError(f"未知实验组: {unknown}")
@@ -67,7 +67,7 @@ def main() -> None:
     parser.add_argument(
         "--groups",
         default="baseline,input,geometry,augment",
-        help="生成哪些实验组，逗号分隔，可选 baseline,input,geometry,augment,coord",
+        help="生成哪些实验组，逗号分隔，可选 baseline,input,geometry,augment,coord,v2_pointcloud",
     )
     parser.add_argument(
         "--seeds",
@@ -81,6 +81,12 @@ def main() -> None:
         action="append",
         default=[],
         help="坐标归一化变体，格式 name=subdir，可重复传入",
+    )
+    parser.add_argument(
+        "--v2-pointcloud-backbone",
+        default="pointnext",
+        choices=["pointnext", "pointnetpp"],
+        help="生成 v2_pointcloud 组时使用的主干",
     )
     args = parser.parse_args()
 
@@ -96,6 +102,7 @@ def main() -> None:
         seeds=args.seeds,
         groups=groups,
         coord_variants=coord_variants,
+        v2_pointcloud_backbone=args.v2_pointcloud_backbone,
     )
 
     manifest_items = []

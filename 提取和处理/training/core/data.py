@@ -46,7 +46,7 @@ def build_feature_mask(
 
 def build_required_data_keys(model_name: str, wss_dim: int = 0) -> Set[str]:
     required_keys: Set[str] = {"x", "y", "global_cond"}
-    if model_name in {"graphsage", "transformer", "meshgraphnet", "pointnetpp"}:
+    if model_name in {"graphsage", "transformer", "meshgraphnet", "pointnetpp", "pointnext"}:
         required_keys.add("edge_index")
     if wss_dim > 0:
         required_keys.add("y_wss")

@@ -31,7 +31,7 @@
 | `V2-Ref-Base-01` | 训练实验 | V2 数据口径下的点级统一下限 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | 建议 `coords + t + BC` |
 | `V2G-Base-01` | 训练实验 | mesh-aware GNN 在无 geometry 下的基线能力 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | `coords + t + BC + is_wall` |
 | `V2G-Main-01` | 训练实验 | geometry 在 MeshGNN 上是否成立 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | `coords + t + BC + geometry + is_wall` |
-| `V2P-Base-01` | 训练实验 | point-cloud 主干在无 geometry 下的基线能力 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | PointNet++/Point Transformer 二选一 |
+| `V2P-Base-01` | 训练实验 | point-cloud 主干在无 geometry 下的基线能力 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | **PointNeXt 优先**；PointNet++ 作为轻量对照 |
 | `V2P-Main-01` | 训练实验 | geometry 在 point-cloud 主干上是否成立 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | 与 `V2P-Base-01` 同 backbone |
 
 ---

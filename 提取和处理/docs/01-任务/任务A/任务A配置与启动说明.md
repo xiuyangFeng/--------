@@ -59,6 +59,7 @@
 - `ablation_input/`
 - `ablation_geometry/`
 - `ablation_augment/`
+- `v2_pointcloud/`
 
 每个 JSON 文件基本遵循：
 
@@ -69,6 +70,32 @@
 - `A-Base-01_seed1.json`
 - `A-Main-01_seed3.json`
 - `A-Abl-01-04_seed2.json`
+- `V2P-Base-01_seed1.json`
+- `V2P-Main-01_seed1.json`
+
+### 2.3 V2 点云 bootstrap 配置
+
+由于当前仓库里**还没有**正式的 `split_AG_v2.json`，为了先把点云主干训练链路跑通，现已新增一组 **bootstrap 配置**：
+
+- [V2P-Base-01_seed1.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/generated/v2_pointcloud/V2P-Base-01_seed1.json)
+- [V2P-Main-01_seed1.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/generated/v2_pointcloud/V2P-Main-01_seed1.json)
+- [manifest_bootstrap_split_AG_v1.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/generated/v2_pointcloud/manifest_bootstrap_split_AG_v1.json)
+
+这组配置的定位是：
+
+- 主干按 **V2 点云路线**执行（当前为 **PointNeXt**）
+- 特征对照按 `V2P-Base-01` / `V2P-Main-01` 执行
+- `split_file` 暂时使用现有 `training/splits/split_AG_v1.json`
+- 只用于 **smoke test / 首轮框架验证 / geometry 对照**
+- **不直接作为正式 V2 结果入账**
+
+额外做的稳定性收口：
+
+- `batch_size = 1`
+- `accumulate_grad_batches = 2`
+- `target_weights = [2, 2, 2, 0.5]`
+
+这样做的目的是尽量向当前强主线 `A-Opt-05` 的速度监督倾向靠拢，同时降低第一次点云开跑时因显存或损失口径差异导致的误判。
 
 ---
 

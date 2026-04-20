@@ -215,7 +215,7 @@ class ExperimentConfig:
         if unknown_global:
             raise ValueError(f"未知全局特征: {unknown_global}")
         # 模型名必须属于注册表里支持的骨干网络。
-        if self.model.name not in {"mlp", "graphsage", "transformer", "meshgraphnet", "pointnetpp"}:
+        if self.model.name not in {"mlp", "graphsage", "transformer", "meshgraphnet", "pointnetpp", "pointnext"}:
             raise ValueError(f"不支持的模型: {self.model.name}")
         # 监督损失权重维度必须与目标维度一致。
         if len(self.optim.target_weights) != len(TARGET_NAMES):

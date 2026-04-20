@@ -9,7 +9,7 @@ training/
 ├── core/                    核心训练组件
 │   ├── config.py            实验配置 dataclass
 │   ├── data.py              图数据集、增强和特征掩码
-│   ├── models.py            MLP / GraphSAGE / Transformer 模型注册
+│   ├── models.py            MLP / GraphSAGE / Transformer / PointNet++ / PointNeXt 模型注册
 │   ├── losses.py            训练损失（加权 MSE、物理约束）
 │   ├── metrics.py           回归指标
 │   ├── trainer.py           训练循环和早停
@@ -53,7 +53,7 @@ training/
 
 1. 不修改现有 `pipeline/` 数据处理流程。
 2. 所有特征消融通过"特征掩码"实现，不改图文件结构。
-3. 第一阶段只服务任务 A，先把 `MLP / GraphSAGE / Transformer` 跑通。
+3. 第一阶段只服务任务 A，先把 `MLP / GraphSAGE / Transformer` 跑通；V2 点云路线优先使用 `PointNeXt`，保留 `PointNet++` 作为更轻的对照骨架。
 4. 后续加 physics loss、任务 B、任务 C 时直接扩展这套骨架，但 physics 默认走"CFD 监督主干 + 分阶段物理正则"，不走纯 PINN 起步。
 
 当前已经补到：
@@ -107,6 +107,27 @@ python -m training.scripts.make_field_plan \
 ```
 
 默认会生成 baseline、输入特征消融、几何分量消融、增强策略消融，并为每个实验生成 `seed = [1, 2, 3]` 的配置文件。坐标归一化消融可额外通过 `--coord-variant name=subdir` 指定。
+
+如果要生成 V2 点云首轮最小闭环，可使用：
+
+```bash
+python -m training.scripts.make_field_plan \
+  --data-root data_new/AG/fast \
+  --split-file training/splits/split_example.json \
+  --groups v2_pointcloud \
+  --v2-pointcloud-backbone pointnext \
+  --output-dir training/configs/field/generated
+```
+
+默认会生成：
+
+- `V2P-Base-01`
+- `V2P-Main-01`
+
+当前实现里：
+
+- `pointnext` 是仓库内置的 PointNeXt-style 残差点云骨架，适合作为 V2 首发主干
+- `pointnetpp` 保留为更轻的 PointNet++ 风格对照
 
 如果要按生成顺序批量执行，可以继续使用：
 

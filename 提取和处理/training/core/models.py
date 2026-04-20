@@ -285,6 +285,77 @@ class FieldPointNetPP(nn.Module):
         return _pack_model_output(field_pred, wss_pred)
 
 
+class FieldPointNeXt(nn.Module):
+    """PointNeXt-style residual point backbone built on local neighbourhood pooling."""
+
+    def __init__(self, in_dim: int, hidden_dim: int, num_layers: int, dropout: float, out_dim: int, wss_dim: int = 0):
+        super().__init__()
+        self.in_proj = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),
+            nn.GELU(),
+        )
+        self.blocks = nn.ModuleList()
+        for _ in range(max(1, num_layers)):
+            self.blocks.append(
+                nn.ModuleDict(
+                    {
+                        "norm": nn.LayerNorm(hidden_dim),
+                        "mlp": nn.Sequential(
+                            nn.Linear(hidden_dim * 3, hidden_dim * 2),
+                            nn.GELU(),
+                            nn.Dropout(dropout),
+                            nn.Linear(hidden_dim * 2, hidden_dim),
+                        ),
+                    }
+                )
+            )
+
+        self.dropout = dropout
+        self.shared_decoder = nn.Sequential(
+            nn.LayerNorm(hidden_dim),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+        )
+        self.field_head = nn.Linear(hidden_dim, out_dim)
+        self.wss_head = nn.Linear(hidden_dim, wss_dim) if wss_dim > 0 else None
+
+    def forward(self, data) -> ModelOutput:
+        x_in = torch.cat([data.x, expand_global_cond(data)], dim=-1)
+        x = self.in_proj(x_in)
+        row, col = data.edge_index
+
+        for block in self.blocks:
+            residual = x
+            x_norm = block["norm"](x)
+            neighbour_feats = x_norm[col]
+
+            max_pool = torch.full_like(x_norm, float("-inf"))
+            max_pool.scatter_reduce_(
+                0,
+                row.unsqueeze(1).expand_as(neighbour_feats),
+                neighbour_feats,
+                reduce="amax",
+            )
+            max_pool = torch.where(torch.isfinite(max_pool), max_pool, torch.zeros_like(max_pool))
+
+            mean_pool = torch.zeros_like(x_norm)
+            mean_pool.scatter_add_(0, row.unsqueeze(1).expand_as(neighbour_feats), neighbour_feats)
+            degree = torch.zeros(x_norm.size(0), 1, device=x_norm.device, dtype=x_norm.dtype)
+            degree.scatter_add_(0, row.unsqueeze(1), torch.ones_like(row, dtype=x_norm.dtype).unsqueeze(1))
+            mean_pool = mean_pool / degree.clamp_min(1.0)
+
+            x = block["mlp"](torch.cat([x_norm, mean_pool, max_pool], dim=-1))
+            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = x + residual
+
+        h = self.shared_decoder(x)
+        field_pred = self.field_head(h)
+        wss_pred = self.wss_head(h) if self.wss_head is not None else None
+        return _pack_model_output(field_pred, wss_pred)
+
+
 # ---------------------------------------------------------------------------
 # Model registry & factory
 # ---------------------------------------------------------------------------
@@ -295,6 +366,7 @@ MODEL_REGISTRY: Dict[str, type] = {
     "transformer": FieldTransformer,
     "meshgraphnet": FieldMeshGraphNet,
     "pointnetpp": FieldPointNetPP,
+    "pointnext": FieldPointNeXt,
 }
 
 
