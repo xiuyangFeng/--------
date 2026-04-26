@@ -150,6 +150,22 @@ def read_regional_metrics_dict(
 # Metrics & aggregation
 # ---------------------------------------------------------------------------
 
+def compute_wss_case_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+    err = y_pred - y_true
+    out: Dict[str, float] = {
+        "rmse_wss_all": float(np.sqrt(np.mean(np.square(err)))),
+        "mae_wss_all": float(np.mean(np.abs(err))),
+        "num_nodes": int(y_true.shape[0]),
+    }
+    for i, name in enumerate(["wss", "wss_x", "wss_y", "wss_z"]):
+        if i >= err.shape[1]:
+            break
+        d = err[:, i]
+        out[f"rmse_{name}"] = float(np.sqrt(np.mean(np.square(d))))
+        out[f"mae_{name}"] = float(np.mean(np.abs(d)))
+    return out
+
+
 def compute_case_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
     err = y_pred - y_true
     rmse = float(np.sqrt(np.mean(np.square(err))))
@@ -222,6 +238,48 @@ def aggregate_predictions(
         raise ValueError("manifest 中没有可用预测项")
 
     return np.concatenate(y_true_all, axis=0), np.concatenate(y_pred_all, axis=0), per_case_metrics
+
+
+def aggregate_wss_predictions(
+    manifest_items: Sequence[Dict[str, object]],
+    region: str = "wall",
+) -> Tuple[np.ndarray, np.ndarray, Dict[str, Dict[str, float]]]:
+    """聚合 manifest 中的 ``y_wss_true`` / ``y_wss_pred``（需先 ``predict_field`` 导出）。"""
+    if region not in VALID_REGIONS:
+        raise ValueError(f"region={region!r} 非法；可选: {VALID_REGIONS}")
+
+    y_true_all: List[np.ndarray] = []
+    y_pred_all: List[np.ndarray] = []
+    per_case: Dict[str, Dict[str, float]] = {}
+
+    for item in manifest_items:
+        prediction_path = Path(str(item["prediction_path"])).resolve()
+        payload = load_prediction_payload(prediction_path)
+        if "y_wss_true" not in payload or "y_wss_pred" not in payload:
+            raise ValueError(
+                f"缺少 WSS 真值/预测: {prediction_path}；请确认模型 wss_dim>0 且图数据含 y_wss"
+            )
+        yt = payload["y_wss_true"].detach().cpu().numpy()
+        yp = payload["y_wss_pred"].detach().cpu().numpy()
+        fallback_case = str(payload.get("case_name", prediction_path.stem))
+
+        if region == "all":
+            node_mask = np.ones(yt.shape[0], dtype=bool)
+        else:
+            wall_mask = _resolve_wall_mask_from_payload(payload)
+            node_mask = build_region_mask(wall_mask, region)
+
+        yt_r = yt[node_mask]
+        yp_r = yp[node_mask]
+        case_name = str(item.get("case_name", fallback_case))
+        y_true_all.append(yt_r)
+        y_pred_all.append(yp_r)
+        per_case[case_name] = compute_wss_case_metrics(yt_r, yp_r)
+
+    if not y_true_all:
+        raise ValueError("manifest 中没有可用 WSS 预测项")
+
+    return np.concatenate(y_true_all, axis=0), np.concatenate(y_pred_all, axis=0), per_case
 
 
 def resolve_run_dirs(runs_root: Path, patterns: Sequence[str], run_dirs: Sequence[str]) -> List[Path]:

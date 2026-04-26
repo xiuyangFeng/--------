@@ -31,6 +31,8 @@
 
 - `scatter_pred_vs_true()`
   - 预测 vs 真值散点图，适合 `u / v / w / p`
+- `scatter_wss_pred_vs_true()`（**2026-04-24**）
+  - WSS 四维（`wss, wss_x, wss_y, wss_z`）散点图；**须配合** `predict_field` 导出的 `y_wss_true` / `y_wss_pred`
 - `plot_training_curves()`
   - 训练/验证损失与验证指标曲线
 - `plot_regional_bar()`
@@ -40,7 +42,7 @@
 - `plot_error_distribution()`
   - 误差分布直方图
 - `plot_error_cdf()`
-  - 绝对误差 CDF
+  - 绝对误差 CDF；支持 **`include_velocity_mag_line`**：对 **WSS 四维** 作图时应 **`False`**，避免误画「|v|」参考线
 - `plot_per_case_boxplot()`
   - per-case 指标箱线图
 - `plot_multi_model_curves()`
@@ -48,6 +50,7 @@
 - `training.scripts.plot_training_history`
   - 直接读取 `outputs/field/*/history.csv`
   - 批量生成单 run 训练曲线、多 run 对比图和 best 指标汇总表
+  - **（2026-04-24）** 仅指定 **`--run-dir`** 时**不再默认**对整棵 `outputs/field` 做 `*/history.csv` 全量扫描（避免目录极大时长时间卡住）；多 run 对比仍需显式 **`--pattern`** 或多次 **`--run-dir`**
 
 说明：
 
@@ -110,6 +113,12 @@
 
 > **（2026-03-26 重要更新）指标口径**：论文主速度指标统一为 **`interior.RMSE_vel_mag`**（仅内部节点），辅以 **`near_wall`** 上的速度与压力误差与拟合度；`all.RMSE_vel_mag` 仅作补充，不再作为主结论依据。原因：wall 节点速度真值接近零，大量 wall 点的低误差会系统性拉低全节点 RMSE，导致主结果偏乐观。所有出图脚本默认 `--region interior`。
 
+> **（2026-04-24）p + WSS 专线 / 速度未监督实验**：若配置中 **`target_weights` 对 u/v/w 为 0**（如 **`V2P-WSSP-01`**），则 **`interior` 上 u/v/w 散点、RMSE、R² 无叙事意义**；论文与内部分析应 **以 `rmse_p`、`wall` 区 WSS 指标** 为主。WSS 聚合 JSON：**`regional_eval/fig_A5_regional_wss_metrics.json`**（由 **`plot_taskA_regional_bar --wss`** 生成）；**`interior` 区 WSS 分项常极差**，勿与 **`wall`** 混读。
+
+> **（2026-04-25）全场监督 + WSS 头（`V2P-WSSP-02`）**：**流场/速度** 可沿用 **§4.1 默认 `interior` 主口径**（A3、A4、误差、场区域柱图与 **`summary.test_metrics` 的 `r2_vel_mag` 等** 可作主 readout）。**WSS 结论** 仍以 **`fig_A5_regional_wss_metrics.json` 的 `wall` / `all` 与 `error_analysis/.../wss/` 为主**；**`interior` 的 WSS R² 勿单独写结论**。与 **`V2P-WSSP-01`** 对照时须 **明写监督目标与采样差异**（见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」）。
+
+> **（2026-04-25）压力 + WSS 主线（`V2P-WSSP-04` 起）**：导师沟通后，若速度场相关系数难以提升，WSSP 后续图表的主读数改为 **`summary.test_metrics.r2_p / rmse_p`** 与 **`regional_eval/fig_A5_regional_wss_metrics.json` 的 `wall.r2_wss / wall.rmse_wss`**。速度相关 A3/A4/A5 图仍可生成，但只作为弱速度辅助监督的诊断材料，不进入主结论排序。
+
 > **（2026-03-29 补充）近壁区 `near_wall`（内部、NormRadius > 0.8）**：除 RMSE 外，正式汇报与 **`plot_taskA_main_table.py` 导出的 `fig_A1_main_table.csv`** 同步纳入 **`near_wall_rmse_*` 与 `near_wall_r2_*`**（含 `u, v, w, p` 分量与 **`vel_mag` 的 R²**，字段 `r2_vel_mag`）。数值来自各 run 的 `predictions_test/regional_eval/fig_A5_regional_metrics.json`；若该 JSON 为旧版不含 `r2_vel_mag`，需重新运行 `plot_taskA_regional_bar` 聚合。
 
 - `RMSE`
@@ -122,6 +131,11 @@
 - `RMSE_vel_mag`（**主口径：interior**）
 - `MAE_vel_mag`
 - **`R²_vel_mag`**（速度模长，分区域 JSON 与主表 `near_wall_r2_vel_mag` / 重算后各区域均有）
+
+**WSS 直接监督或多任务 WSS 头（补充）**
+
+- 壁面节点：**`rmse_wss`、`r2_wss`**（及 `wss_x/y/z` 分量，与 `regional_eval` / `WSSMeter` 口径一致）
+- 汇总工具：测试集壁面聚合可参考 **`training/scripts/_eval_wss_metrics_once.py`**、`outputs/field/wss_multitask_test_wall_wss_metrics.tsv`（多任务批）
 
 ### 4.2 分层指标
 
@@ -328,8 +342,9 @@
 当前代码支撑：
 
 - `training.analysis.regional_eval.compute_regional_metrics()`（区域 mask 优先使用预测文件中的 `graph_path` 读回完整节点特征，见 `load_node_features_for_region_masks()`）
+- **`training.analysis.regional_eval.compute_regional_wss_metrics()`**（**2026-04-24**，与流场分区口径一致，对 **`y_wss_pred` / `y_wss_true`** 聚合）
 - `training.analysis.visualization.plot_regional_bar()`
-- `training/scripts/plot_taskA_regional_bar.py` 已完成并已生成各 run 的 `fig_A5_regional_bar_rmse_vel_mag.png` 与 `fig_A5_regional_bar_rmse_p.png`
+- `training/scripts/plot_taskA_regional_bar.py` 已完成并已生成各 run 的 `fig_A5_regional_bar_rmse_vel_mag.png` 与 `fig_A5_regional_bar_rmse_p.png`；**新增 `--wss`** → **`fig_A5_regional_wss_metrics.json`** 与 **`fig_A5_regional_wss_bar_*.png`**
 - `training/scripts/plot_taskA_multimodel_regional_bar.py` 汇总 `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`
 
 写作提醒：
@@ -341,6 +356,9 @@
 - **（2026-04-02）**：**`A-Main-01` vs `A-Opt-05` vs `A-Opt-07`（P1-2 内部监督加权，三 seed）** 的 **Fig A3 / A5 / A4 / 训练曲线** 由 **`python -m training.scripts.regenerate_opt07_vs_opt05_main_figures`** 写入 **`outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/`**。叙事上 **`A-Opt-07` 相对 05 为负结果**，出图时注意图例已含 **`A-Opt-05` / `A-Opt-07` 人类可读标签**（见 `plot_taskA_multimodel_*` 内 `_EXP_LABELS`）。各 run 须先具备 **`predictions_test/manifest.json`** 与 **`regional_eval/fig_A5_regional_metrics.json`**。
 - **（2026-04-14）**：**Line G（`A-Opt-G01` / `G04` / `G05`）× 三 seed 均值** 与 **baseline / `A-Main-01` / `A-Opt-05`** 的多模型 **Fig A3 / A4 / A5** 汇总目录：**`outputs/field/plots/line_g/G01_G04_G05_vs_baselines_mean3seed/`**（与 [任务A实验状态表](任务A实验状态表.md)「实验记录摘要 · Line G」一致）。
 - **（2026-04-17）**：**WSS 多任务（`A-*-wss-multi`）** 的测试集 **壁面节点** WSS RMSE/R² 汇总表：**`outputs/field/wss_multitask_test_wall_wss_metrics.tsv`**（由 `training/scripts/_eval_wss_metrics_once.py` 生成；与 **`line_g`** 无关）。**场 `R² \|v\|`（`r2_vel_mag`）与 `R²_p`** 见各 run **`summary.json` · `test_metrics`**；**三指标 R² 汇报主表**见 [任务A实验状态表](任务A实验状态表.md)「实验记录摘要 · WSS 多任务」。**Fig A3–A5 + `predictions_test` 全链**已于 **2026-04-17** 闭环（推进记录 **Job 2704 / 2715**）。
+- **（2026-04-24）**：**`V2P-WSSP-01`**（PointNeXt，**仅 p + WSS 监督**）后处理：**`python -m training.scripts.plot_error_analysis --manifest .../predictions_test/manifest.json --region interior --wss --wss-region wall`**；**`python -m training.scripts.plot_taskA_regional_bar --manifest ... --metric-key rmse_p --metric-key rmse --wss`**。须在 **`conda` 环境 `rag_venv`** 下执行。
+- **（2026-04-25）**：**`V2P-WSSP-02`**（**全场 + WSS 头**）后处理除上表 **§4.1** 外，建议补 **`plot_taskA_scatter`**、**`plot_taskA_per_case_boxplot`**；命令模板见 [任务A配置与启动说明](任务A配置与启动说明.md) §10 **示例 B**。
+- **（2026-04-25）**：**`V2P-WSSP-04`**（**压力 + WSS 主线，速度弱辅助**）后处理优先执行 **`plot_taskA_regional_bar --metric-key rmse_p --metric-key rmse --wss`** 与 **`plot_error_analysis --wss --wss-region wall`**；主表只汇报压力与 `wall` WSS，速度图作为附录/诊断。命令模板见 [任务A配置与启动说明](任务A配置与启动说明.md) §10 **示例 C**。
 - 跨模型对比请引用 **`outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`**（及 geo_only 变体）。**区域名称、区间与默认阈值的权威表述**见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)；正文若修改阈值须与代码 `build_region_masks` 的 `mask_kwargs` 一致并写明。
 
 ### 6.6 Figure A6：消融总结图
@@ -726,6 +744,7 @@ outputs/field/
 - 误差分析脚本：
   1. 聚合 `y_true / y_pred`
   2. 调误差分布和 CDF 两个函数
+  3. **（2026-04-24）** 若 manifest 中预测含 **`y_wss_*`**：可加 **`--wss`**，在子目录 **`wss/`** 下生成 WSS 散点/分布/CDF/箱线（**默认建议 `--wss-region wall`**）
 
 当前缺口：
 

@@ -179,6 +179,7 @@ def stratified_sampling_by_distance(
     wall_max_points: int = 10000,
     sampling_method: str = "hybrid",
     fps_ratio: float = 0.5,
+    allow_core_fallback: bool = True,
     seed: Optional[int] = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -190,7 +191,8 @@ def stratified_sampling_by_distance(
     2. 内部-近壁层 (< boundary_threshold mm)：占内部预算的 boundary_core_ratio[0]
     3. 内部-核心层 (>= boundary_threshold mm)：占内部预算的 boundary_core_ratio[1]
     内部预算 = target_total - 实际壁面点数（动态分配）。
-    各层若点数不足配额，多余配额自动转给其他层。
+    默认各层若点数不足配额，多余配额自动转给其他层。
+    allow_core_fallback=False 时，近壁层不足不会用核心层补齐。
 
     参数:
         surface_df: 壁面点数据
@@ -201,6 +203,7 @@ def stratified_sampling_by_distance(
         wall_max_points: 壁面点上限，超出时降采样
         sampling_method: 采样方法，"fps", "random" 或 "hybrid"
         fps_ratio: 混合采样时 FPS 的占比（默认 0.5），仅当 method="hybrid" 时生效
+        allow_core_fallback: 近壁层不足时是否允许核心层补齐预算
         seed: 随机种子
 
     返回:
@@ -256,8 +259,12 @@ def stratified_sampling_by_distance(
     if n_boundary_available < n_boundary_quota:
         surplus = n_boundary_quota - n_boundary_available
         n_boundary_final = n_boundary_available
-        n_core_final = min(n_core_available, n_core_quota + surplus)
-        print(f"  ⚠️ 近壁层不足配额，转移 {surplus} 个配额到核心层")
+        if allow_core_fallback:
+            n_core_final = min(n_core_available, n_core_quota + surplus)
+            print(f"  ⚠️ 近壁层不足配额，转移 {surplus} 个配额到核心层")
+        else:
+            n_core_final = min(n_core_available, n_core_quota)
+            print(f"  ⚠️ 近壁层不足配额，未启用核心层回填，空余 {surplus} 个配额")
     elif n_core_available < n_core_quota:
         surplus = n_core_quota - n_core_available
         n_core_final = n_core_available

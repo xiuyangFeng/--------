@@ -248,3 +248,7 @@ python -m training.scripts.run_field_plan \
   - **Fig A7 效率 Pareto**：accuracy 轴改为 `interior.rmse_vel_mag`
   - **Fig A5 分区域图**本身已为 region-aware，不受影响
 - 论文口径固定为：**主速度指标 = `interior.rmse_vel_mag`**；`all.rmse_vel_mag` 仅作为补充报告。
+
+**（2026-04-24）`V2P-WSSP-01` / 仅 p+WSS 监督 run**：`primary_metric` **不适用** `interior.rmse_vel_mag` 叙事；应改用 **`summary.test_metrics` 的 `rmse_p` / `r2_p`** 与 **`regional_eval/fig_A5_regional_wss_metrics.json` 的 `wall.*`**。后处理命令见 [任务A配置与启动说明](任务A配置与启动说明.md) §10。
+
+**（2026-04-25）`V2P-WSSP-02` / 全场+WSS 头**：流场主指标可恢复 **interior `rmse_vel_mag` / `r2_vel_mag`** 叙事；**WSS 仍以 `wall`（及 `summary` 的 `wss_*`）为主**，勿单独用 **interior WSS R²**。归档见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」。

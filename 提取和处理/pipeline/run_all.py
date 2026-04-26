@@ -180,6 +180,7 @@ def run_pipeline(
                 sampling_method=sampling_method,
                 boundary_threshold=SAMPLING_CONFIG["boundary_threshold"],
                 boundary_core_ratio=SAMPLING_CONFIG["boundary_core_ratio"],
+                allow_core_fallback=SAMPLING_CONFIG.get("allow_core_fallback", True),
                 seed=SAMPLING_CONFIG["seed"],
                 fps_ratio=fps_ratio,
                 mode=mode,

@@ -93,13 +93,17 @@ SAMPLING_CONFIG = {
     # 壁面点上限：超过此值时对壁面点也进行采样
     # 实际壁面点数 = min(原始壁面点数, wall_max_points)
     # 内部点预算 = target_total_points - 实际壁面点数（动态分配）
-    "wall_max_points": 10000,
+    "wall_max_points": 13000,
 
     # 近壁区阈值（mm）——仅用于内部点的近壁层/核心层分层
     "boundary_threshold": 2.0,
     
     # 内部点预算分配比例 (近壁层, 核心层)
-    "boundary_core_ratio": (0.7, 0.3),
+    "boundary_core_ratio": (1.0, 0.0),
+
+    # 近壁层不足时是否用核心内部点补齐内部预算。
+    # WSS/压力专线要求“只保留壁面 + 近壁内部点”时应保持 False。
+    "allow_core_fallback": False,
     
     # 采样方法: "fps" (最远点采样), "random" (随机采样), 或 "hybrid" (混合采样)
     # 壁面和内部点均使用此方法

@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 
 import torch
 
-from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES
+from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES, WSS_TARGET_NAMES
 from pipeline.dataset import load_graph_data
 
 IS_WALL_IDX = NODE_FEATURE_NAMES.index("is_wall")
@@ -188,6 +188,44 @@ def compute_regional_metrics(
         ss_res_vm = ((vel_t - vel_p) ** 2).sum()
         ss_tot_vm = ((vel_t - vel_t.mean()) ** 2).sum().clamp_min(1e-12)
         metrics["r2_vel_mag"] = (1.0 - ss_res_vm / ss_tot_vm).item()
+
+        results[region_name] = metrics
+
+    return results
+
+
+def compute_regional_wss_metrics(
+    pred_wss: torch.Tensor,
+    target_wss: torch.Tensor,
+    node_features: torch.Tensor,
+    **mask_kwargs,
+) -> Dict[str, Dict[str, float]]:
+    """与 :func:`compute_regional_metrics` 相同分区口径，对 WSS 四维目标逐区统计。"""
+    masks = build_region_masks(node_features, **mask_kwargs)
+    results: Dict[str, Dict[str, float]] = {}
+
+    for region_name, mask in masks.items():
+        if mask.sum() == 0:
+            results[region_name] = {"n_nodes": 0}
+            continue
+
+        p = pred_wss[mask]
+        t = target_wss[mask]
+        diff = p - t
+        metrics: Dict[str, float] = {"n_nodes": int(mask.sum().item())}
+
+        metrics["rmse"] = torch.sqrt((diff ** 2).mean()).item()
+        metrics["mae"] = diff.abs().mean().item()
+
+        ss_res = ((t - p) ** 2).sum(dim=0)
+        ss_tot = ((t - t.mean(dim=0, keepdim=True)) ** 2).sum(dim=0).clamp_min(1e-12)
+        r2 = 1.0 - ss_res / ss_tot
+
+        for idx, name in enumerate(WSS_TARGET_NAMES):
+            d = diff[:, idx]
+            metrics[f"rmse_{name}"] = torch.sqrt((d ** 2).mean()).item()
+            metrics[f"mae_{name}"] = d.abs().mean().item()
+            metrics[f"r2_{name}"] = r2[idx].item()
 
         results[region_name] = metrics
 

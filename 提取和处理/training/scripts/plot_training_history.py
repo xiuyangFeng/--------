@@ -166,7 +166,12 @@ def main() -> None:
     args = parser.parse_args()
 
     runs_root = Path(args.runs_root).resolve()
-    patterns = args.pattern or ["*/history.csv"]
+    # 显式指定 run 时不要默认再 glob 整个 runs-root（大目录下极慢）。
+    patterns = (
+        args.pattern
+        if args.pattern
+        else ([] if args.run_dir else ["*/history.csv"])
+    )
     run_dirs = _resolve_run_dirs(runs_root, patterns=patterns, run_dirs=args.run_dir)
     if not run_dirs:
         raise SystemExit("未找到任何包含 history.csv 的 run 目录")

@@ -188,10 +188,21 @@ def collect_global_statistics(
                 df = pd.read_csv(csv_file)
                 total_files += 1
                 
-                # 收集常规特征值（不再包含 BC 列，BC 在侧文件中）
+                # WSS 统计量仅使用壁面节点，避免内部点的无效 WSS 值
+                # （通常为 0 或占位）拉偏 mean/std。
+                _WSS_FEATURES = {"wss", "wss_x", "wss_y", "wss_z"}
+                has_wall_col = "is_wall" in df.columns
+                if has_wall_col:
+                    wall_rows = df["is_wall"] == 1
+                
                 for feat in feature_values.keys():
                     if feat in df.columns:
-                        feature_values[feat].extend(df[feat].values.tolist())
+                        if feat in _WSS_FEATURES and has_wall_col:
+                            feature_values[feat].extend(
+                                df.loc[wall_rows, feat].values.tolist()
+                            )
+                        else:
+                            feature_values[feat].extend(df[feat].values.tolist())
                         
             except Exception as e:
                 print(f"  ⚠️ 读取 {csv_file.name} 失败: {e}")

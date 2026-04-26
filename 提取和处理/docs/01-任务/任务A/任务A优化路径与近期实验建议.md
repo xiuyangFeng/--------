@@ -16,6 +16,14 @@
 - **短期目标**：尽快拿出一轮比当前 baseline 更好的结果，便于向老师汇报。
 - **中期目标**：后续实验还能自然接到论文叙事，不把变量搅乱。
 
+> **2026-04-24 补充说明**：**`V2P-WSSP-01`**（PointNeXt，**Line W 向壁面专线**：**仅 p + WSS 监督**，壁面-heavy 采样）seed=1 已归档。`summary` 上 **压力拟合正常**（`r2_p≈0.91`），**速度 R²≈0 属预期**（未监督）；**WSS 以 `wall` 区 JSON 为主**（`wall.r2_wss` 约 0.44，bootstrap）。与 **`A-*-wss-multi`**（场全监督 + 小权重 WSS）**不可混表**。详见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-01」。
+
+> **2026-04-25 补充**：**`V2P-WSSP-02`**（**全场监督 + WSS 头 + 混合早停**，标准采样，seed=1）已归档。**`r2_vel_mag` 明显优于 WSSP-01**；**`wss_r2_wss` 在 `summary` 上仍略负**，**未**在测试集上超过 WSSP-01 的 **`wall.r2_wss`**（且两者采样与损失不同）。详见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」。
+
+> **2026-04-25 导师沟通后修正**：后续若速度场相关系数难以提升，任务 A 的 WSSP 线优先关注 **压力场与壁面 WSS 的快速预测**。主指标固定为 **`r2_p / rmse_p`** 与 **`wall.r2_wss / wall.rmse_wss`**；速度场只作为近壁上下文的弱辅助监督和诊断项。新增配置 **`V2P-WSSP-04`**（`target_weights=[0.1,0.1,0.1,1.0]`，`wss_loss_weight=0.5`）用于执行该口径。
+
+> **2026-04-22 补充说明**：**V2P Bootstrap 首轮 seed=1 已完成**。`V2P-Base-01`（无 geometry）`r2_vel_mag=0.354`，`V2P-Main-01`（有 geometry）`r2_vel_mag=0.609`；geometry 增益显著（+72%），V2P-Main-01 已在全局 `r2_vel_mag` 口径上超过 V1 锚点 `A-Opt-05`。当前使用 `split_AG_v1`（bootstrap），正式结论等 Gate-0 通过后在 `split_AG_v2` 复现。详见 [任务A实验状态表](任务A实验状态表.md)「V2P Bootstrap」与 [代码修改与实验推进记录](../../02-推进与变更/代码修改与实验推进记录.md) 2026-04-22 条目。
+
 > **2026-04-18 补充说明**：关于“是否从旧 V1 单尺度 GNN 主线切到 PointCloud / MeshGNN”的详细执行路线，已单独写入 [任务A V2修正路线实验矩阵](任务A_V2修正路线实验矩阵.md) 第 **5.4 节**。当前建议是：**停止继续扩展旧 `kNN + GNN` 主线，先完成 V2 Gate-0，再以 PointCloud 作为首个可训练主线，MeshGNN 作为 Gate-0 通过后的受控对照线。**
 
 ---
@@ -82,6 +90,15 @@ $$\text{WSS} = \mu \left|\frac{\partial \mathbf{u}}{\partial n}\right|_{\text{wa
 - **Line W（新增）**：壁面导向优化（A-Opt-W01~W05），直接服务于端到端链路质量，以 WSS/TAWSS/OSI 恢复精度为评判标准。
 
 两条线共享同一套 **P0 组合训练配方**（`target_weights` + Pre-Norm；**`A-Opt-03w` 未更好**）。**（2026-03-31）默认起跑配置（母版 backbone）统一为 `A-Opt-05`**（`hidden_dim=256`，`num_layers=4`）：**`interior` / `near_wall` 等略优于 `A-Opt-03`**，更贴近 WSS 前置质量；**`A-Opt-03`（h128）** 作 **轻量/效率对照**。详见 [任务A实验状态表](任务A实验状态表.md)「战略锚点」。各自独立归因不变。
+
+#### 2.4.4 2026-04-25 后的 WSSP 主线取舍
+
+`V2P-WSSP-01` 已证明 **p + WSS 直接监督**在壁面 WSS 上有正信号；`V2P-WSSP-02` 证明**全速度监督并不会自动提升 WSS**，且在当前权重下会牺牲压力。因此后续 WSSP 线按以下原则推进：
+
+- 不再用全局速度相关系数作为主线成败标准。
+- 压力和壁面 WSS 作为主 readout，优先服务后续 WSS/TAWSS/OSI/RRT 计算。
+- 速度只作为小权重辅助监督，重点解释近壁上下文是否帮助 WSS，而不是追求完整内部速度场。
+- 若需要扩大内部点预算，优先增加 **near-wall**，不优先补核心内部点。
 
 ---
 

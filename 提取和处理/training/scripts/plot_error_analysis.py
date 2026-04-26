@@ -10,16 +10,19 @@ from ..analysis.visualization import (
     plot_error_distribution,
     plot_per_case_boxplot,
     scatter_pred_vs_true,
+    scatter_wss_pred_vs_true,
 )
 from ._figure_utils import (
     VALID_REGIONS,
     aggregate_predictions,
+    aggregate_wss_predictions,
     compute_case_metrics,
     ensure_dir,
     load_manifest,
     maybe_subsample,
     save_json,
 )
+from pipeline.config import WSS_TARGET_NAMES
 
 
 def save_per_case_csv(per_case_metrics: Dict[str, Dict[str, float]], save_path: Path) -> None:
@@ -69,6 +72,17 @@ def main() -> None:
         "--title",
         default="",
         help="图标题前缀（为空则自动生成）",
+    )
+    parser.add_argument(
+        "--wss",
+        action="store_true",
+        help="额外生成壁面 WSS 误差图（需预测文件含 y_wss_true/y_wss_pred）",
+    )
+    parser.add_argument(
+        "--wss-region",
+        default="wall",
+        choices=list(VALID_REGIONS),
+        help="WSS 聚合区域（默认 wall，与 WSS 监督口径一致）",
     )
     args = parser.parse_args()
 
@@ -145,6 +159,51 @@ def main() -> None:
     print(output_dir / "fig_per_case_boxplot.png")
     print(output_dir / "per_case_metrics.csv")
     print(output_dir / "summary.json")
+
+    if args.wss:
+        wss_dir = ensure_dir(output_dir / "wss")
+        w_true, w_pred, w_per_case = aggregate_wss_predictions(items, region=args.wss_region)
+        w_scatter_t, w_scatter_p = maybe_subsample(
+            w_true, w_pred, max_points=args.max_scatter_points, seed=args.seed
+        )
+        scatter_wss_pred_vs_true(
+            w_scatter_p,
+            w_scatter_t,
+            save_path=wss_dir / "fig_wss_scatter_pred_vs_true.png",
+            title=f"{title_prefix}: WSS ({args.wss_region})",
+        )
+        plot_error_distribution(
+            w_pred,
+            w_true,
+            target_names=list(WSS_TARGET_NAMES),
+            save_path=wss_dir / "fig_wss_error_distribution.png",
+            title=f"{title_prefix}: WSS Error Distribution ({args.wss_region})",
+        )
+        plot_error_cdf(
+            w_pred,
+            w_true,
+            target_names=list(WSS_TARGET_NAMES),
+            save_path=wss_dir / "fig_wss_error_cdf.png",
+            title=f"{title_prefix}: WSS Error CDF ({args.wss_region})",
+            include_velocity_mag_line=False,
+        )
+        plot_per_case_boxplot(
+            w_per_case,
+            metric_keys=["rmse_wss_all", "rmse_wss", "rmse_wss_x", "rmse_wss_y", "rmse_wss_z"],
+            save_path=wss_dir / "fig_wss_per_case_boxplot.png",
+            title=f"{title_prefix}: WSS Per-Case ({args.wss_region})",
+        )
+        save_per_case_csv(w_per_case, wss_dir / "wss_per_case_metrics.csv")
+        save_json(
+            wss_dir / "wss_summary.json",
+            {
+                "manifest_path": str(manifest_path),
+                "wss_region": args.wss_region,
+                "num_cases": len(w_per_case),
+                "num_nodes_total": int(w_true.shape[0]),
+            },
+        )
+        print(wss_dir / "fig_wss_scatter_pred_vs_true.png")
 
 
 if __name__ == "__main__":

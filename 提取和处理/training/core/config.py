@@ -68,6 +68,9 @@ class OptimConfig:
     # wss_weights 对应 [wss, wss_x, wss_y, wss_z] 四个维度的损失权重。
     wss_loss_weight: float = 0.0
     wss_weights: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0])
+    # 早停/模型选择的混合指标权重。> 0 时验证分数为
+    # data_loss + early_stop_wss_weight * wss_loss，取代默认的 total loss。
+    early_stop_wss_weight: float = 0.0
 
 
 @dataclass

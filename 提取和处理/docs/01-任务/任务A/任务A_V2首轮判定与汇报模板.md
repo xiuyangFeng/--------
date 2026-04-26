@@ -276,5 +276,29 @@ workspace/v2/reports/round1/
 
 ## 10. 当前执行建议
 
-在 `V2-Prep-01 ~ 04` 完成前，本文件只作为判定模板存在。  
-在 `V2-Ref-Base-01 / V2G-Base-01 / V2G-Main-01 / V2P-Base-01 / V2P-Main-01` 全部完成后，必须按本文件生成首轮结论，不允许跳过。
+> **（2026-04-22）Bootstrap 阶段更新**：`V2P-Base-01` 与 `V2P-Main-01` **seed=1** 已在 `split_AG_v1`（bootstrap 口径）上完成训练。Geometry 增益显著（`rmse_vel_mag` -22%，`r2_vel_mag` +72%），`V2P-Main-01` 全局 `r2_vel_mag=0.609` 已超过 V1 锚点 `A-Opt-05`（~0.576）。但当前**仍缺 near_wall / interior 分区域评估**、仅 seed=1、使用 bootstrap 口径，**不满足本文件"首轮完成"条件**。正式首轮结论须等待 Gate-0 通过后在 `split_AG_v2` 上重跑并补全分区域评估。
+
+### 当前阶段判定状态
+
+| 前置条件 | 状态 | 备注 |
+|---|---|---|
+| Gate-0（`V2-Prep-01~04`） | 🔒 未完成 | 正式 V2P 与 V2G 的依赖项 |
+| `V2P-Base-01` seed=1 | ✅ Bootstrap 完成 | `split_AG_v1`，r2_vel_mag=0.354 |
+| `V2P-Main-01` seed=1 | ✅ Bootstrap 完成 | `split_AG_v1`，r2_vel_mag=0.609 |
+| `V2P-*` 分区域评估 | ❌ 缺失 | 需运行 regional_eval 脚本 |
+| `V2P-*` 多 seed 验证 | ⏳ 等正式口径 | bootstrap 阶段暂不补种 |
+| `V2G-Base-01 / V2G-Main-01` | 🔒 等 Gate-0 | 需 mesh 拓扑稳定后启动 |
+| `V2-Ref-Base-01` | 🔒 等 Gate-0 | — |
+
+### 下一步优先动作
+
+1. **立即可做**：对已有 bootstrap 结果运行分区域评估（`predict_field + plot_taskA_regional_bar`），补全 `near_wall / interior` 指标
+2. **近期**：推进 Gate-0，完成 `split_AG_v2` 数据准备
+3. **Gate-0 通过后**：在 `split_AG_v2` 上重跑正式 `V2P-Base-01 / V2P-Main-01`，此时可正式触发本文件的首轮判定流程
+4. **MeshGNN 路线（`V2G-*`）**：Gate-0 通过后启动，作为受控对照；不与 PointCloud 并发抢跑
+
+在正式首轮 5 组实验（`V2-Ref-Base-01 / V2G-Base-01 / V2G-Main-01 / V2P-Base-01 / V2P-Main-01`，`split_AG_v2` 口径）全部完成后，必须按本文件生成首轮结论，不允许跳过。
+
+**（2026-04-24）补充**：**`V2P-WSSP-01`**（bootstrap、`split_AG_v1`，**仅 p + WSS 监督**）已完成 seed=1，用于 **壁面/WSS 导向** 与 PointNeXt 的联合验证；**不替代**上述 5 组的首轮判定，也不得用其 **`rmse_vel_mag`** 与全速度监督实验比主表。数值与作图口径见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-01」。
+
+**（2026-04-25）补充**：**`V2P-WSSP-02`**（**全场 u/v/w/p + WSS 头 + 混合早停**，标准采样）已完成 seed=1，用于与 **WSSP-01** 对照 **场监督对速度与 WSS 的影响**；同样**不替代**首轮 5 组。**WSS 测试 R² 仍未转正**，与 WSSP-01 的 **壁面 WSS 可解释性**不可无注释并列。见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」。

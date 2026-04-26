@@ -15,17 +15,21 @@
 
 如果这四步没有完成，后面的 `V2G-* / V2P-*` 都不应启动。
 
+> **（2026-04-25）与 bootstrap 线关系**：仓库内在 **`split_AG_v1`** 上已归档 **`V2P-WSSP-01` / `V2P-WSSP-02`** 等**探索性**壁面/WSS 实验，用于对照监督目标与作图链；**不替代** Gate-0 通过后的 **正式** `V2P-*` 首轮结论。详见 [任务A实验状态表](任务A实验状态表.md) 篇首 V2 表。
+
 ---
 
 ## 2. 环境与总目录
 
 ### 2.1 环境
 
-本项目默认环境仍然是：
+训练与任务 A 评估脚本以 **`conda` 环境 `GNN`** 为准（与仓库 `.cursor/rules/conda.mdc` 一致）：
 
 ```bash
-conda activate rag_venv
+conda activate GNN
 ```
+
+（若你本地仍使用旧名 `rag_venv`，请自行对齐到实际装有 `torch_geometric` 的环境。）
 
 ### 2.2 V2 建议目录
 

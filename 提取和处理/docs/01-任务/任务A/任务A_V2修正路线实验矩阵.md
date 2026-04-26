@@ -162,6 +162,25 @@ V2 首轮只回答两个问题：
 | `V2P-Base-01` | PointNeXt（默认）/ PointNet++（轻量对照） | `coords + t + BC + is_wall` | 点云主干在 V2 数据口径下的基线能力 | `1 -> [1,2,3]` |
 | `V2P-Main-01` | 与 `V2P-Base-01` 同主干 | `coords + t + BC + geometry + is_wall` | geometry 在 PointCloud 上是否成立 | `1 -> [1,2,3]` |
 
+#### 5.2.1 Bootstrap 扩展实验（**不计入**首轮 5 组）
+
+> 用于在 Gate-0 / 正式 `split_AG_v2` 之前探索 **壁面血流动力学 / WSS** 与 **点云主干** 的耦合；归因时须与上表 5 组区分。
+
+| Exp ID | 主干 | 监督 / 特征要点 | 状态 |
+| --- | --- | --- | --- |
+| `V2P-WSSP-01` | PointNeXt | **仅 p + WSS**（`target_weights` u/v/w=0，`wss_loss_weight=1`）；壁面 13000 + 近壁 2000 点采样；全几何 + `is_wall` | seed=1 已完成（2026-04-24，`split_AG_v1` bootstrap）；见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-01」 |
+| `V2P-WSSP-02` | PointNeXt | **全场 u/v/w/p + WSS 头**（`target_weights=[2,2,2,0.5]`，`wss_loss_weight=0.5`，`early_stop_wss_weight=1.0`）；**标准采样**；全几何 + `is_wall` | seed=1 已完成（2026-04-25）；训练+预测+图已归档；见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」 |
+| `V2P-WSSP-03` | PointNeXt | **全场 + 轻量 WSS 辅助头**（`target_weights=[2,2,2,0.5]`，`wss_loss_weight=0.01`，`early_stop_wss_weight=0`）；用于修复 WSSP-02 梯度失衡 | 配置已生成（2026-04-25）；主要验证轻量 WSS 是否不破坏场质量 |
+| `V2P-WSSP-04` | PointNeXt | **压力 + WSS 主线，速度弱辅助**（`target_weights=[0.1,0.1,0.1,1.0]`，`wss_loss_weight=0.5`，`early_stop_wss_weight=0`）；建议配合 wall-rich + near-wall 图资产 | 配置已生成（2026-04-25）；后续主指标为 `r2_p/rmse_p` 与 `wall.r2_wss/wall.rmse_wss`，速度仅作诊断 |
+
+#### 5.2.2 V2P-WSSP 后续主指标口径（2026-04-25）
+
+与导师沟通后，若速度场相关系数难以继续提高，V2P-WSSP 不再以完整速度场重建为主门槛，而转为服务后续血流动力学分析的 **压力场 + 壁面 WSS 快速预测**路线：
+
+- **主指标**：`r2_p`、`rmse_p`、`wall.r2_wss`、`wall.rmse_wss`。
+- **诊断指标**：`near_wall.r2_vel_mag`、`near_wall.rmse_vel_mag`、全局 `r2_vel_mag`；这些指标用于解释近壁上下文是否有帮助，不作为本线成败判据。
+- **训练原则**：壁面点与 WSS 监督优先；近壁内部速度可以给小权重辅助，核心内部速度不作为优先优化对象。
+
 ### 5.3 首轮的最小结论要求
 
 这 5 组跑完后，必须回答下面 4 个问题：
@@ -273,6 +292,9 @@ V2 首轮只回答两个问题：
 - 不再争论“MeshGNN 是否更优”，因为真实拓扑前提尚未成立
 
 ##### 阶段 C：PointCloud 首轮最小闭环
+
+> **（2026-04-22）阶段 C 执行状态**：`V2P-Base-01`（无 geometry）与 `V2P-Main-01`（有 geometry）seed=1 **已在 `split_AG_v1`（bootstrap 口径）完成训练**。Geometry 增益显著（`rmse_vel_mag` -22%，`r2_vel_mag` +72%）；`V2P-Main-01` 全局 `r2_vel_mag=0.609` 已超过 V1 锚点 `A-Opt-05`（~0.576）。**当前限制**：仅 seed=1、缺分区域评估、使用 bootstrap split，不作为正式结论。Gate-0 通过后在 `split_AG_v2` 上补跑正式版。  
+> **（2026-04-24～04-25）** 同阶段已增跑 **`V2P-WSSP-01`**（**p + WSS 专线**）与 **`V2P-WSSP-02`**（**全场 + WSS 头 + 混合早停**），均 **不计首轮 5 组**：见 **§5.2.1** 与 [任务A实验状态表](任务A实验状态表.md)。
 
 本阶段是当前推荐主线。
 

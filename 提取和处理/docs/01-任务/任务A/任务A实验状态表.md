@@ -31,8 +31,12 @@
 | `V2-Ref-Base-01` | 训练实验 | V2 数据口径下的点级统一下限 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | 建议 `coords + t + BC` |
 | `V2G-Base-01` | 训练实验 | mesh-aware GNN 在无 geometry 下的基线能力 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | `coords + t + BC + is_wall` |
 | `V2G-Main-01` | 训练实验 | geometry 在 MeshGNN 上是否成立 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | `coords + t + BC + geometry + is_wall` |
-| `V2P-Base-01` | 训练实验 | point-cloud 主干在无 geometry 下的基线能力 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | **PointNeXt 优先**；PointNet++ 作为轻量对照 |
-| `V2P-Main-01` | 训练实验 | geometry 在 point-cloud 主干上是否成立 | `split_AG_v2` | [1,2,3] | 🔒 未开始 | 与 `V2P-Base-01` 同 backbone |
+| `V2P-Base-01` | 训练实验 | point-cloud 主干在无 geometry 下的基线能力 | `split_AG_v1`（bootstrap） | [1] | 🌱 待补 seed | seed=1 已完成（bootstrap）；r2_vel_mag=0.354，best_epoch=87；**暂不补 seed**，等正式 split_AG_v2 后重跑 |
+| `V2P-Main-01` | 训练实验 | geometry 在 point-cloud 主干上是否成立 | `split_AG_v1`（bootstrap） | [1] | 🌱 待补 seed | seed=1 已完成（bootstrap）；r2_vel_mag=0.609，best_epoch=68；**geometry 增益显著，已满足首轮通过条件**；暂不补 seed，等 split_AG_v2 |
+| `V2P-WSSP-01` | 训练实验 | PointNeXt + **壁面血流动力学专线**：13000 壁面点 + 2000 近壁内部点；**速度 loss=0**，直接监督 **p + WSS**（`wss_loss_weight=1`） | `split_AG_v1`（bootstrap，同 V2P） | [1] | ✅ 已完成（seed=1） | **（2026-04-24）** 配置 `training/configs/field/generated/v2_pointcloud/V2P-WSSP-01_seed1.json`；run：`outputs/field/field_v2_pointnext_wssp01_geom_wall13000_near2000_split_AG_v1_seed1_20260424_164609/`；已登记 **`experiment_index.csv`**；**`predictions_test` + `error_analysis_interior`（含 `wss/`）+ `regional_eval`（含 `fig_A5_regional_wss_metrics.json`）** 已闭环。数值摘要见下「实验记录摘要 · V2P-WSSP-01」。 |
+| `V2P-WSSP-02` | 训练实验 | PointNeXt + **全场监督 + WSS 辅助头**：恢复 u/v/w/p 完整监督（`target_weights=[2,2,2,0.5]`）+WSS 头（`wss_loss_weight=0.5`）+ **混合验证指标早停**（`early_stop_wss_weight=1.0`）；标准采样 | `split_AG_v1`（bootstrap，同 V2P） | [1] | ✅ 已完成（seed=1）— **负结果** | **（2026-04-25）** 配置 `training/configs/field/generated/v2_pointcloud/V2P-WSSP-02_seed1.json`；run：`outputs/field/field_v2_pointnext_wssp02_geom_full_supervision_wss_split_AG_v1_seed1_20260425_093041/`；**负结果**：`r2_p=0.004`（崩溃）、`wss_r2_wss=-0.018`。根因：`wss_loss≈19.5 × 0.5=9.77` 是 `data_loss≈1.95` 的 5 倍，梯度被 WSS 劫持；混合早停被不可降的 WSS loss 主导，epoch 58 过早终止。结论：`wss_loss_weight=0.5` 过高。 |
+| `V2P-WSSP-03` | 训练实验 | PointNeXt + **全场监督 + 轻量 WSS 辅助头**：同 Main-01 配方 + WSS 头（`wss_loss_weight=0.01`），场主导早停（`early_stop_wss_weight=0`） | `split_AG_v1`（bootstrap，同 V2P） | [1] | 🔒 未开始 | **（2026-04-25）** 配置 `training/configs/field/generated/v2_pointcloud/V2P-WSSP-03_seed1.json`；修复 WSSP-02 梯度失衡：WSS 权重降至 0.01（贡献 ~15%），早停回归场 loss；预期恢复 Main-01 水平的 r2_p/r2_vel_mag。 |
+| `V2P-WSSP-04` | 训练实验 | PointNeXt + **压力/WSS 主线，速度弱辅助**：`target_weights=[0.1,0.1,0.1,1.0]`，`wss_loss_weight=0.5`，`early_stop_wss_weight=0`；主指标为压力与壁面 WSS | `split_AG_v1`（bootstrap，同 V2P） | [1] | 🔒 未开始 | **（2026-04-25）** 配置 `training/configs/field/generated/v2_pointcloud/V2P-WSSP-04_seed1.json`；manifest `training/configs/field/generated/v2_pointcloud/manifest_wssp_pressure_wss_primary.json`。导师沟通后新增：若速度相关系数上不去，则主读 `r2_p/rmse_p` 与 `wall.r2_wss/wall.rmse_wss`，速度仅作弱辅助和诊断。 |
 
 ---
 
@@ -165,7 +169,7 @@
 | --------- | --------------------- | ------------------------------------------ | ------------- | ----- | ------ | ------------------------------------- |
 | A-Opt-W01 | 近壁区域加权是否改善 WSS 梯度质量   | `near_wall_boost=3.0, interior_weight=0.5` | split_AG_v1   | [1]   | 🔒 未开始 | 需修改 `losses.py` + 近壁区 mask；依赖 P0 最优基座 |
 | A-Opt-W02 | 壁面法向梯度监督是否提升 WSS 精度   | `wall_grad_weight=0.01`                    | split_AG_v1   | [1]   | 🔒 未开始 | 需修改 `losses.py`；依赖 W01 有正向信号或独立启动     |
-| A-Opt-W03 | 直接 WSS 监督是否最大化端到端质量   | **纯 WSS**：`target_weights=0` + `wss_loss_weight=1`（草案 `A-Opt-W03-wss-only`） | split_AG_v1   | [1]   | 🔒 未开始 | **先行批已归档**：场 + WSS 联合见 **`A-*-wss-multi`**（`wss_loss_weight=0.1`，第五批附表），**不等同**于本行「仅 WSS」 |
+| A-Opt-W03 | 直接 WSS 监督是否最大化端到端质量   | **纯 WSS**：`target_weights=0` + `wss_loss_weight=1`（草案 `A-Opt-W03-wss-only`） | split_AG_v1   | [1]   | 🔒 未开始 | **先行批已归档**：场 + WSS 联合见 **`A-*-wss-multi`**（`wss_loss_weight=0.1`，第五批附表），**不等同**于本行「仅 WSS」。**（2026-04-24）** **V2P-WSSP-01** 为 PointNeXt 上 **p + WSS**（`target_weights=[0,0,0,1]`），**亦非**「纯 WSS」草案，见篇首 V2 表 |
 | A-Opt-W04 | 两阶段训练是否优于一开始就加权       | 阶段1:均匀MSE → 阶段2:壁面精调                       | split_AG_v1   | [1]   | 🔒 未开始 | 可与 W01/W02 叠加                         |
 | A-Opt-W05 | OSI 敏感区域加权是否改善 OSI 恢复 | 分叉/高曲率区 boost                              | split_AG_v1   | [1]   | 🔒 未开始 | 可与 W01 叠加                             |
 
@@ -194,7 +198,7 @@
 > **（2026-03-26 重要）主指标口径更新**：下表 `RMSE_|v|` 列**保留原 all-node 口径**以便纵向对比；自本次起所有出图脚本默认 `--region interior`，论文主结论应以 `interior.RMSE_|v|`（见各 run 实验记录摘要中「内部点误差」）为准；`all.RMSE_|v|` 仅作补充。  
 > **（2026-03-29）主表 / 近壁汇报列**：`plots/summary/fig_A1_main_table.csv` 默认以 `interior` 导出主区域 **`rmse_* / r2_*`**，并附带 **`all_rmse_vel_mag / all_r2_vel_mag`** 与 **`near_wall_rmse_* / near_wall_r2_*`**（含 |v| 的 **`r2_vel_mag`**）；各 run 需已生成 `predictions_test/regional_eval/fig_A5_regional_metrics.json`（必要时重跑 `plot_taskA_regional_bar`），详见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md) 第 5–6 节。  
 > **（2026-03-29）** 已归档 **`A-Opt-04`**（`hidden_dim=256`）；下表已增 **`A-Opt-04`** 列（3 seed mean ± std）。  
-> **（2026-03-31）** 已归档 **`A-Opt-05`**（`hidden_dim=256, num_layers=4`）并补入 ③ 容量线子表；同时入账 **`A-Opt-05_tune`** 四组小步超参实验（`warmup10` / `lr3e-4` / `wd2e-4` / `schedpat15`，均 seed=1）——详见第三批跟踪表与「实验记录摘要 · A-Opt-05_tune」。**（2026-04-02）** 已归档 **`A-Opt-07`**（`interior_loss_boost=3`，三 seed）并增列 ③ 子表；见「实验记录摘要 · A-Opt-07」。**（2026-04-14）** **Line G**：**`A-Opt-G01` / `G04` / `G05` 三 seed** 已具备 `summary.json` 与 `predictions_test`；主表增列若纳入 Line G，请以状态表「实验记录摘要 · Line G」数值为准。**（2026-04-17）** **`A-*-wss-multi`**（场 + WSS 多任务）三 seed 已入账 `experiment_index.csv`，壁面 WSS 汇总见 **`wss_multitask_test_wall_wss_metrics.tsv`**（第五批附表与「实验记录摘要 · WSS 多任务」）。
+> **（2026-03-31）** 已归档 **`A-Opt-05`**（`hidden_dim=256, num_layers=4`）并补入 ③ 容量线子表；同时入账 **`A-Opt-05_tune`** 四组小步超参实验（`warmup10` / `lr3e-4` / `wd2e-4` / `schedpat15`，均 seed=1）——详见第三批跟踪表与「实验记录摘要 · A-Opt-05_tune」。**（2026-04-02）** 已归档 **`A-Opt-07`**（`interior_loss_boost=3`，三 seed）并增列 ③ 子表；见「实验记录摘要 · A-Opt-07」。**（2026-04-14）** **Line G**：**`A-Opt-G01` / `G04` / `G05` 三 seed** 已具备 `summary.json` 与 `predictions_test`；主表增列若纳入 Line G，请以状态表「实验记录摘要 · Line G」数值为准。**（2026-04-17）** **`A-*-wss-multi`**（场 + WSS 多任务）三 seed 已入账 `experiment_index.csv`，壁面 WSS 汇总见 **`wss_multitask_test_wall_wss_metrics.tsv`**（第五批附表与「实验记录摘要 · WSS 多任务」）。**（2026-04-24）** **V2 点云壁面专线 `V2P-WSSP-01`**（seed=1，bootstrap）：见篇首 V2 表与「实验记录摘要 · V2P-WSSP-01」。**（2026-04-25）** **`V2P-WSSP-02`**（全场+WSS 头，seed=1）已归档，**流场可用 `interior`，WSS 仍以 `wall` 为主**——见「实验记录摘要 · V2P-WSSP-02」。**后处理约定**：若 **`target_weights` 中 u/v/w 为 0**，流场散点/误差的 u/v/w **不得作主结论**；WSS 须用 **`plot_error_analysis --wss --wss-region wall`**、**`plot_taskA_regional_bar --wss`**，**WSS 指标以 `wall` 为主**（`interior` 常不可靠）。**`plot_taskA_regional_bar`** 对此类实验请显式 **`--metric-key rmse_p`** 等，避免默认 **`rmse_vel_mag`** 误读。**`plot_training_history`**：仅画单 run 时用 **`--run-dir`**（已避免默认扫全 `outputs/field`）；若需自定义 glob 再传 **`--pattern`**。
 
 <!-- 拆为三张子表：① Baseline 组  ② P0 优化前半（Opt-01～03）  ③ P0 容量线（Opt-03w/04） -->
 
@@ -809,3 +813,128 @@
 - **数值倾向（seed1 主表，摘要）**：**`lr3e-4`** 在 **`interior.rmse_vel_mag`** 上相对基线 **`A-Opt-05`** **略优**，**内部 `R²` 分量略好**；**`wd2e-4`** **明显变差**；**`schedpat15`** **未稳定优于** **`warmup10` 默认调度**（详见各 run **`summary.json`** 与 **`regional_eval/fig_A5_regional_metrics.json`**）。
 - **多模型横向图（文件夹名含 `Opt03`，seed=1 子集）**：`outputs/field/plots/optimization/A_Opt05_tune_vs_Opt03_seed1/`（Fig A3 / A5 / A4；**解读时**以 **母版 `A-Opt-05`** 为主视角，`A-Opt-03` 为对照）。
 - **WSS**：**未做** `compare_hemo_wss_runs` **全量导出**；后续可用 **`training/cluster/wss_runs_A_Opt03_vs_Opt05tune_seed1.tsv`** 在集群提交。
+
+---
+
+### V2P Bootstrap（PointNeXt，split_AG_v1，2026-04-20～04-21）
+
+> **口径说明**：本节为 **bootstrap 结果**，使用 `split_AG_v1` 而非正式 `split_AG_v2`；结论仅用于回答"PointNeXt 主干能否稳定训练"与"geometry 在 V2P 上是否仍有正信号"，**不作为正式 V2 结论入账**。
+
+- **完成日期**：`V2P-Base-01` seed=1（2026-04-20）；`V2P-Main-01` seed=1（2026-04-21）
+- **配置**：`training/configs/field/generated/v2_pointcloud/V2P-Base-01_seed1.json` / `V2P-Main-01_seed1.json`
+- **manifest**：`training/configs/field/generated/v2_pointcloud/manifest_bootstrap_split_AG_v1.json`
+- **输出目录**：
+  - `outputs/field/field_v2_pointnext_base01_coord_t_bc_wall_bootstrap_split_AG_v1_seed1_20260420_202710/`
+  - `outputs/field/field_v2_pointnext_main01_coord_t_bc_geom_wall_bootstrap_split_AG_v1_seed1_20260421_034607/`
+
+**全局测试指标对比（seed=1，`summary.json · test_metrics`）**
+
+| 指标 | **V2P-Base-01**（无 geom） | **V2P-Main-01**（有 geom） | A-Opt-05 V1 锚点（3 seed 均值） |
+|---|---|---|---|
+| `best_epoch` | 87 | **68** | 79 |
+| `rmse`（全局合成） | 0.836 | **0.746** | 0.754 |
+| `rmse_vel_mag` | 1.300 | **1.011** | 1.048 |
+| `r2_vel_mag` | 0.354 | **0.609** | ~0.576（regional/all） |
+| `rmse_u` | 0.927 | **0.864** | 0.878 |
+| `rmse_v` | 0.897 | **0.810** | 0.813 |
+| `rmse_w` | 0.829 | **0.648** | 0.649 |
+| `rmse_p` | 0.666 | **0.634** | 0.648 |
+| `r2_u` | 0.139 | **0.253** | 0.229 |
+| `r2_v` | 0.228 | **0.371** | 0.366 |
+| `r2_w` | 0.355 | **0.606** | 0.605 |
+| `r2_p` | 0.918 | **0.926** | 0.923 |
+
+> A-Opt-05 的 `r2_vel_mag`（~0.576）取自 `regional_eval/all`；V2P 实验暂无分区域评估文件。
+
+- **Geometry 增益（Main-01 vs Base-01）**：`rmse_vel_mag` 下降 **22.2%**（1.300→1.011）；`r2_vel_mag` 提升 **+0.255**（0.354→0.609，相对+72%）；速度分量 R²（u/v/w）全线大幅改善，信号清晰。
+- **V2P-Main-01 vs V1 锚点 A-Opt-05**：`rmse_vel_mag` -3.5%，`r2_vel_mag` +5.7%；满足文档规定的首轮通过条件（`r2_vel_mag` 口径）。
+- **短板**：仅 seed=1；无分区域评估（near_wall/interior 缺失）；bootstrap 口径（split_AG_v1）。
+- **一句话结论**：**PointNeXt 主干可稳定训练；显式 geometry 增益显著（rmse_vel_mag -22%，r2_vel_mag +72%）；V2P-Main-01 seed=1 已在全局 r2_vel_mag 口径上超过 V1 锚点 A-Opt-05。**
+- **下一步动作**：① 运行分区域评估补全 near_wall/interior 指标；② 推进 Gate-0（split_AG_v2）；③ Gate-0 通过后重跑正式 V2P-Base-01/V2P-Main-01；④ 结果稳定后开放 V2P-Opt-01 与 V2P-Abl-02-*。
+
+---
+
+### V2P-WSSP-01（PointNeXt，p + WSS 直接监督，bootstrap `split_AG_v1`，2026-04-24）
+
+> **定位**：**不计入** V2「首轮 5 组」最小集合；属于 **V2 点云路线**上、与 **Line W / 壁面血流动力学**对齐的 **bootstrap** 实验（采样：`wall_max_points=13000`、近壁内部 2000，总 15000 点；详见配置 `meta.notes`）。**正式结论**仍待 `split_AG_v2` 与多 seed。
+
+- **完成日期**：2026-04-24（seed=1）；**best_epoch**：68（`summary.json`）
+- **配置**：`training/configs/field/generated/v2_pointcloud/V2P-WSSP-01_seed1.json`；manifest 登记：`training/configs/field/generated/v2_pointcloud/manifest_wssp_wall13000_near2000.json`
+- **输出目录**：`outputs/field/field_v2_pointnext_wssp01_geom_wall13000_near2000_split_AG_v1_seed1_20260424_164609/`
+- **监督口径**：`optim.target_weights = [0,0,0,1]`（**仅 p**，u/v/w 无数据项）；`optim.wss_loss_weight = 1.0`，`model.wss_dim = 4`
+
+**`summary.json` · `test_metrics`（全图 eval，seed=1）**
+
+| 键 | 值 | 解读 |
+| --- | --- | --- |
+| `rmse_p` | ~0.691 | 压力可拟合 |
+| `r2_p` | ~0.911 | 与 p 监督一致 |
+| `r2_u`, `r2_v`, `r2_w` | ~0 | **未监督速度，不得据此否定主干** |
+| `rmse_vel_mag` / `r2_vel_mag` | 差 / 负 | 同上 |
+| `wss_loss` | ~4.10 | 验证 batch 内 WSS 项占主导 |
+| `data_loss` | ~0.12 | 主要来自 p |
+
+**WSS 分区域（`predictions_test/regional_eval/fig_A5_regional_wss_metrics.json`，测试集全节点聚合）**
+
+- **`wall`**（主汇报）：`rmse`（四维合成均方根）~**1.01**；**`r2_wss`（标量通道）** ~**0.44**；`rmse_wss_x/y/z`、分项 `r2_*` 见 JSON。
+- **`interior`**：`r2_wss` 等**大幅为负**——与 **WSS 真值/监督主要在壁面**一致，**勿与 wall 混读**。
+
+**已生成产物（相对 run 目录）**
+
+- `predictions_test/manifest.json`、`*.pt`
+- `predictions_test/error_analysis_interior/`（流场；**u/v/w 面板仅作对照**）
+- `predictions_test/error_analysis_interior/wss/`（**`plot_error_analysis --wss --wss-region wall`**）
+- `predictions_test/regional_eval/`（**`plot_taskA_regional_bar --metric-key rmse_p --metric-key rmse --wss`**）
+- `fig_training_curves.png`（`plot_training_history --run-dir <run>`）
+- `fig_A3_scatter_interior.png`（标题建议英文，避免中文字体警告）
+
+- **一句话结论**：在 **bootstrap 口径**下，**p 监督有效**；**WSS 直接监督下壁面区标量 WSS 有一定可解释拟合（`wall.r2_wss` ~0.44）**，分量与 interior WSS 仍弱；速度场未训练，**不能**与 `A-Opt-05` 等全速度监督实验直接比 `rmse_vel_mag`。
+- **下一步动作**：Gate-0 / `split_AG_v2` 后 **复跑 seed 1～3**；与 **`A-Opt-05-wss-multi`** 等对照时 **分列「场监督 / WSS 权重 / 采样」**，避免混表。
+
+### V2P-WSSP-02（PointNeXt，全场 u/v/w/p + WSS 辅助头 + 混合早停，bootstrap `split_AG_v1`，2026-04-25）
+
+> **定位**：与 **`V2P-WSSP-01`** 对照——同 PointNeXt + WSS 头，但恢复 **全速度+压力** 场监督（`target_weights=[2,2,2,0.5]`）、**`wss_loss_weight=0.5`**、**`early_stop_wss_weight=1.0`**，**标准采样**（非 13000/2000 壁面专线）。**不计入** V2 首轮 5 组；结论仍为 bootstrap。
+
+- **完成日期**：2026-04-25（seed=1）；**`best_epoch`**：58；**`best_val_loss`（混合）**：~0.742（`summary.json`）
+- **配置**：`training/configs/field/generated/v2_pointcloud/V2P-WSSP-02_seed1.json`
+- **输出目录**：`outputs/field/field_v2_pointnext_wssp02_geom_full_supervision_wss_split_AG_v1_seed1_20260425_093041/`
+- **监督口径**：`target_weights=[2,2,2,0.5]`；`wss_loss_weight=0.5`；`early_stop_wss_weight=1.0`；`model.wss_dim=4`
+
+**`summary.json` · `test_metrics`（全图 eval，seed=1，节选）**
+
+| 键 | 值 | 解读 |
+| --- | --- | --- |
+| `r2_vel_mag` | **~0.635** | 相对 **WSSP-01**（速度未训、`r2_vel_mag` 为负）**场量主指标大幅改善**；可与 **`V2P-Main-01` / 全速度监督**线对照 |
+| `r2_p` | ~0.004 | 与 **`target_weights` 压低 p 权重** 一致，压力可解释方差近零 |
+| `r2_u/v/w` | 正但中等 | 场监督下速度分量有信号 |
+| `wss_r2_wss` | **~−0.018** | 测试集壁面 WSS 向量 R² 仍为**略负**；**未**实现「加全场监督即转正 WSS」 |
+| `wss_rmse` / `wss_loss` | ~2.31 / ~19.5 | WSS 误差项仍大；与 **WSSP-01** 的 WSS 口径不可仅比绝对值（损失权重与主任务不同） |
+
+**`regional_eval/fig_A5_regional_wss_metrics.json`（测试集聚合）**
+
+- **`wall`（主汇报 WSS）**：`r2_wss` **~−0.018**，`rmse` ~2.31（与 `summary` 中 `wss_*` 同量级）
+- **`interior`**：WSS 的 R² 常因方差近零**数值爆炸**，**勿作主结论**；**以 `wall` / `all` 为准**（同 WSSP-01 约定）
+
+**已生成产物（相对 run 目录）**
+
+- `predictions_test/manifest.json`、**1458** 个 `*.pt`
+- `fig_A3_scatter_interior.png`、`fig_A4_per_case_boxplot_interior.png`、`fig_A4_per_case_metrics_interior.csv`
+- `predictions_test/error_analysis_interior/`（流场；**interior** 散点/箱线口径与全速度监督实验一致，**可作主 readout**）
+- `predictions_test/error_analysis_interior/wss/`（**`plot_error_analysis --wss`**）
+- `predictions_test/regional_eval/`（**`plot_taskA_regional_bar --wss`**，含场与 WSS 柱图及 JSON）
+- 训练曲线：`plot_training_history --run-dir <run_dir>`
+
+- **与 V2P-WSSP-01 的粗对比（同 seed、bootstrap）**：**WSSP-02** 在 **`r2_vel_mag`** 上 **明显更好**；**WSSP-01** 在 **`r2_p`** 与 **壁面 WSS 可解释性（`wall.r2_wss` ~0.44，regional）** 上 **更好**——两者 **监督目标与采样均不同**，归因须分列。**WSSP-02** 未在 **WSS R²** 上超过 **WSSP-01 壁面指标**。
+- **一句话结论**：**全速度场监督**显著改善 **速度模** 测试表现，但 **WSS 头测试 R² 仍未转正**；不支持「仅加当前配方的辅助头+混合早停即可解决 WSS」的强结论。
+- **下一步动作**：Gate-0 后 `split_AG_v2` 上 **补 seed 2/3**；与 **`A-Opt-05-wss-multi`** 对照时明列 **backbone 与 `wss_loss_weight` / 采样**；若重跑 WSS 归一化需同步 **preprocess 版本** 标签。
+
+### V2P-WSSP-04（计划：压力 + WSS 主线，速度弱辅助，2026-04-25）
+
+> **定位**：导师沟通后，若速度场相关系数难以提升，后续任务 A 的 WSSP 线优先关注 **压力场与壁面 WSS 的快速预测**。本组不再以完整速度场重建为主门槛，而是把 `u/v/w` 保留为小权重辅助监督，服务近壁流动上下文。
+
+- **配置**：`training/configs/field/generated/v2_pointcloud/V2P-WSSP-04_seed1.json`
+- **Manifest**：`training/configs/field/generated/v2_pointcloud/manifest_wssp_pressure_wss_primary.json`
+- **监督口径**：`target_weights=[0.1,0.1,0.1,1.0]`；`wss_loss_weight=0.5`；`early_stop_wss_weight=0.0`；`model.wss_dim=4`
+- **主指标**：`r2_p`、`rmse_p`、`wall.r2_wss`、`wall.rmse_wss`
+- **诊断指标**：`near_wall.r2_vel_mag`、`near_wall.rmse_vel_mag`、全局 `r2_vel_mag`；这些指标只解释弱速度辅助是否有帮助，不作为本组成败判据。
+- **当前状态判断**：配置已生成，建议配合 wall-rich + near-wall 图资产运行；若后续重跑采样，可优先比较 `wall 13000 + near 2000` 与 `wall 10000~12000 + near 3000~5000`，核心内部点不作为首要预算。

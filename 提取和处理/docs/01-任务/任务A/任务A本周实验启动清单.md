@@ -1,5 +1,13 @@
 # 任务A本周实验启动清单
 
+> **（2026-04-25 导师沟通后修正）**：后续 WSSP 线若速度场相关系数难以上升，则主目标调整为 **压力场 + 壁面 WSS 快速预测**。主指标固定为 **`r2_p / rmse_p`** 与 **`wall.r2_wss / wall.rmse_wss`**；速度仅作近壁上下文的弱辅助监督和诊断项。新增配置：**`training/configs/field/generated/v2_pointcloud/V2P-WSSP-04_seed1.json`**，manifest：**`training/configs/field/generated/v2_pointcloud/manifest_wssp_pressure_wss_primary.json`**。
+
+> **（2026-04-25）进度注记**：**`V2P-WSSP-02`**（PointNeXt，**全场 u/v/w/p + WSS 辅助头 + 混合早停**，**标准采样**）seed=1 **已完成**（bootstrap `split_AG_v1`）：**`predictions_test`、Fig A3/A4、`error_analysis_interior`（含 `wss/`）、`regional_eval`（场+WSS）** 已闭环；**流场可读 `interior`，WSS 主读 `wall`**。数值与 **WSSP-01 对照结论**见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」、[任务A配置与启动说明](任务A配置与启动说明.md) §10 示例 B。
+
+> **（2026-04-24）进度注记**：**`V2P-WSSP-01`**（PointNeXt，**壁面 13000 + 近壁 2000** 采样，**仅监督 p + WSS**）seed=1 **已完成**（bootstrap `split_AG_v1`）：`predictions_test`、`error_analysis_interior/wss`、`regional_eval`（含 **`fig_A5_regional_wss_metrics.json`**）已闭环；**勿用 u/v/w 散点作主结论**。详见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-01」、[任务A配置与启动说明](任务A配置与启动说明.md) §10。
+
+> **（2026-04-22）进度注记**：**V2P Bootstrap** — `V2P-Base-01`（PointNeXt，无 geometry）与 `V2P-Main-01`（PointNeXt，有 geometry）seed=1 **已在 `split_AG_v1` 上完成训练（bootstrap 口径）**。关键结果：geometry 增益显著（`rmse_vel_mag` -22%，`r2_vel_mag` +72%）；`V2P-Main-01` seed=1 全局 `r2_vel_mag=0.609`，已在该口径上超过 V1 锚点 `A-Opt-05`（~0.576）。当前状态：仅 seed=1、无分区域评估、使用 bootstrap split，不作为正式 V2 结论；等待 Gate-0 通过后在 `split_AG_v2` 上复现正式版。详见 [任务A实验状态表](任务A实验状态表.md)「V2P Bootstrap」。
+
 > **（2026-04-17）进度注记**：**WSS 多任务**（`A-*-wss-multi`，配置 **`baseline_wss_multitask/`**）训练 **三 seed** 已入账 **`outputs/field/experiment_index.csv`**；壁面 WSS RMSE/R² 见 **`outputs/field/wss_multitask_test_wall_wss_metrics.tsv`**；**`predictions_test` + Fig A3–A5 全链**已闭环（推进记录文首 **Job 2704 / 2715**）。**多任务 R² 主表**（壁面 WSS / **R² \|v\|** / **R²_p**）见 [任务A实验状态表](任务A实验状态表.md)「实验记录摘要 · WSS 多任务」。**与 `line_g`（Line G）无冲突**：**`G02`/`G03`** 为 **⏹ 已结案**（仅 seed1，不补种）。
 > **（2026-04-14）进度注记**：**Line G** 之 **`A-Opt-G01` / `G04` / `G05`** 已 **三 seed** 归档（`predictions_test` + Fig A3–A5 多模型对比：`outputs/field/plots/line_g/G01_G04_G05_vs_baselines_mean3seed/`）；**`G02` / `G03`** 仅 **seed1**，**（2026-04-17）** 已决定 **不补 seed2/3**，记 **⏹ 已结案**。详见 [任务A实验状态表](任务A实验状态表.md)「实验记录摘要 · Line G」。
 > **（2026-04-09）进度注记**：**`A-Abl-02`（几何分量消融）** 已在 **`A-Opt-05` 母版**上 **三 seed 闭环**，汇总图 **`outputs/field/plots/ablation/geometry_opt05_mean3seed/`** ——见 [任务A实验状态表](任务A实验状态表.md)「实验记录摘要 · A-Abl-02」。下列「本周 baseline」清单仍为 **2026-03 首周模板**；当前 V1 主线母版为 **`A-Opt-05`**，**`A-Opt-07`（内部监督加权）** 已闭环且结论为负。

@@ -11,9 +11,11 @@ import torch
 from torch.optim.lr_scheduler import LRScheduler, ReduceLROnPlateau
 from tqdm.auto import tqdm
 
+from pipeline.config import NODE_FEATURE_NAMES
+
 from .io import load_checkpoint, save_checkpoint
 from .losses import build_loss_plugin
-from .metrics import RegressionMeter
+from .metrics import RegressionMeter, WSSMeter
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -39,6 +41,7 @@ class FieldTrainer:
         warmup_epochs: int = 0,
         wss_loss_weight: float = 0.0,
         wss_weights: Optional[torch.Tensor] = None,
+        early_stop_wss_weight: float = 0.0,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -47,7 +50,9 @@ class FieldTrainer:
         self.warmup_epochs = max(0, warmup_epochs)
         self.device = device
         self.loss_weights = loss_weights.to(device)
+        self.early_stop_wss_weight = float(early_stop_wss_weight)
         self.grad_clip_norm = grad_clip_norm
+        self.wss_loss_weight = float(wss_loss_weight)
         self.loss_plugin = build_loss_plugin(
             physics_config,
             interior_loss_boost=interior_loss_boost,
@@ -117,6 +122,8 @@ class FieldTrainer:
     def run_epoch(self, loader, train: bool, epoch: int) -> Dict[str, float]:
         # meter 负责在线累计回归指标。
         meter = RegressionMeter()
+        # WSS 指标在线累计（仅壁面节点）。
+        wss_meter = WSSMeter() if self.wss_loss_weight > 0 else None
         # train=True 时启用训练模式；否则启用评估模式。
         self.model.train(mode=train)
         # 额外损失分项的累计器。
@@ -133,6 +140,8 @@ class FieldTrainer:
             dynamic_ncols=True,
             mininterval=1.0,
         )
+
+        _is_wall_idx = NODE_FEATURE_NAMES.index("is_wall")
 
         # 训练阶段在 epoch 开头先清零梯度。
         if train:
@@ -179,6 +188,14 @@ class FieldTrainer:
 
                 # 把当前 batch 的预测、真值和 loss 送入指标累计器。
                 meter.update(pred, batch.y, loss_value)
+
+                # WSS 指标累计（壁面子集）。
+                if wss_meter is not None and wss_pred is not None:
+                    wss_target = getattr(batch, "y_wss", None)
+                    if wss_target is not None:
+                        is_wall = batch.x[:, _is_wall_idx : _is_wall_idx + 1]
+                        wss_meter.update(wss_pred, wss_target, is_wall)
+
                 # 读取各个损失分项的标量版本。
                 scalar_breakdown = breakdown.scalar_dict()
                 # 逐项累计，后面会除以 batch 数取平均。
@@ -201,6 +218,9 @@ class FieldTrainer:
         # 再把各个损失分项换算成按 batch 平均的标量。
         for key, total in extra_totals.items():
             metrics[key] = total / max(1, num_batches)
+        # 合并壁面 WSS 指标（wss_rmse_*, wss_r2_*）。
+        if wss_meter is not None:
+            metrics.update(wss_meter.compute())
         # 标记当前 epoch 是否启用 physics。
         metrics["physics_enabled"] = float(self.loss_plugin.is_enabled(epoch))
         return metrics
@@ -240,12 +260,22 @@ class FieldTrainer:
                 # 跑一轮验证集。
                 val_metrics = self.run_epoch(val_loader, train=False, epoch=epoch)
 
-                # 用验证损失推进学习率调度器。
-                current_lr = self._step_scheduler(val_metrics["loss"], epoch)
+                # 混合验证指标：当 early_stop_wss_weight > 0 时用
+                # data_loss + w * wss_loss 取代默认 total loss 做早停与调度。
+                if self.early_stop_wss_weight > 0 and "wss_loss" in val_metrics:
+                    val_score = (
+                        val_metrics["data_loss"]
+                        + self.early_stop_wss_weight * val_metrics["wss_loss"]
+                    )
+                else:
+                    val_score = val_metrics["loss"]
+
+                # 用验证分数推进学习率调度器。
+                current_lr = self._step_scheduler(val_score, epoch)
                 # 统计本轮耗时。
                 epoch_time_sec = time.time() - t0
-                # 当前验证损失是否刷新最优。
-                is_best = val_metrics["loss"] < best_val
+                # 当前验证分数是否刷新最优。
+                is_best = val_score < best_val
 
                 # 准备写入 CSV 的这一行。
                 row: Dict[str, object] = {
@@ -282,8 +312,9 @@ class FieldTrainer:
                     f"[Epoch {epoch}/{epochs}] "
                     f"train_loss={self._format_metric(train_metrics['loss'])} | "
                     f"val_loss={self._format_metric(val_metrics['loss'])} | "
+                    f"val_score={self._format_metric(val_score)} | "
                     f"lr={current_lr:.6e} | "
-                    f"best_val={self._format_metric(min(best_val, val_metrics['loss']))} | "
+                    f"best_val={self._format_metric(min(best_val, val_score))} | "
                     f"patience={next_patience}/{early_stopping_patience}"
                 )
                 print(summary)
@@ -301,8 +332,8 @@ class FieldTrainer:
                 )
 
                 if is_best:
-                    # 刷新最佳验证损失。
-                    best_val = val_metrics["loss"]
+                    # 刷新最佳验证分数。
+                    best_val = val_score
                     # 记录最佳 epoch。
                     best_epoch = epoch
                     # 最优刷新时重置早停计数。

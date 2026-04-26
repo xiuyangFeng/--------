@@ -159,6 +159,7 @@ def process_single_frame(
     boundary_core_ratio: tuple = (0.7, 0.3),
     sampling_method: str = "hybrid",
     fps_ratio: float = 0.5,
+    allow_core_fallback: bool = True,
     seed: Optional[int] = 1234,
     convert_to_mm: bool = True,
 ) -> bool:
@@ -175,6 +176,7 @@ def process_single_frame(
         boundary_core_ratio: 预算分配比例
         sampling_method: 采样方法，"fps", "random" 或 "hybrid"
         fps_ratio: 混合采样时 FPS 的占比（默认 0.5），仅当 method="hybrid" 时生效
+        allow_core_fallback: 近壁内部点不足时是否允许核心内部点补齐
         seed: 随机种子
         convert_to_mm: 是否转换坐标单位
     
@@ -212,6 +214,7 @@ def process_single_frame(
             wall_max_points=wall_max_points,
             sampling_method=sampling_method,
             fps_ratio=fps_ratio,
+            allow_core_fallback=allow_core_fallback,
             seed=seed,
         )
         
@@ -237,6 +240,7 @@ def process_single_case(
     boundary_core_ratio: tuple = (0.7, 0.3),
     sampling_method: str = "hybrid",
     fps_ratio: float = 0.5,
+    allow_core_fallback: bool = True,
     seed: Optional[int] = 1234,
     mode: str = "debug",
 ) -> bool:
@@ -252,6 +256,7 @@ def process_single_case(
         boundary_core_ratio: 预算分配比例
         sampling_method: 采样方法，"fps", "random" 或 "hybrid"
         fps_ratio: 混合采样时 FPS 的占比（默认 0.5），仅当 method="hybrid" 时生效
+        allow_core_fallback: 近壁内部点不足时是否允许核心内部点补齐
         seed: 随机种子
         mode: 处理模式 (debug/production)
     
@@ -320,6 +325,7 @@ def process_single_case(
                 boundary_core_ratio=boundary_core_ratio,
                 sampling_method=sampling_method,
                 fps_ratio=fps_ratio,
+                allow_core_fallback=allow_core_fallback,
                 seed=seed,
             ):
                 success_count += 1
@@ -341,6 +347,7 @@ def process_single_case(
             "wall_max_points": wall_max_points,
             "sampling_method": sampling_method,
             "fps_ratio": fps_ratio if sampling_method == "hybrid" else None,
+            "allow_core_fallback": allow_core_fallback,
             "success_count": success_count,
         }
         with open(report_path, "w", encoding="utf-8") as f:
@@ -364,6 +371,7 @@ def process_all_cases(
     boundary_core_ratio: tuple = (0.7, 0.3),
     sampling_method: str = "hybrid",
     fps_ratio: float = 0.5,
+    allow_core_fallback: bool = True,
     seed: Optional[int] = 1234,
     mode: str = "debug",
     sources: Optional[List[str]] = None,
@@ -380,6 +388,7 @@ def process_all_cases(
         boundary_core_ratio: 预算分配比例
         sampling_method: 采样方法，"fps", "random" 或 "hybrid"
         fps_ratio: 混合采样时 FPS 的占比（默认 0.5），仅当 method="hybrid" 时生效
+        allow_core_fallback: 近壁内部点不足时是否允许核心内部点补齐
         seed: 随机种子
         mode: 处理模式
     """
@@ -418,6 +427,7 @@ def process_all_cases(
             print(f"📊 采样方法: {sampling_method}")
         print(f"📊 近壁区阈值: {boundary_threshold}mm")
         print(f"📊 内部点分配: 近壁层 {boundary_core_ratio[0]*100:.0f}% : 核心层 {boundary_core_ratio[1]*100:.0f}%")
+        print(f"📊 核心层回填: {'开启' if allow_core_fallback else '关闭'}")
         print(f"📊 处理模式: {mode}")
         print(f"📊 待处理病例数: {len(case_dirs)}")
 
@@ -452,6 +462,7 @@ def process_all_cases(
                 boundary_core_ratio=boundary_core_ratio,
                 sampling_method=sampling_method,
                 fps_ratio=fps_ratio,
+                allow_core_fallback=allow_core_fallback,
                 seed=seed,
                 mode=mode,
             ):
@@ -549,6 +560,18 @@ def main():
         help=f"核心层预算比例，默认 {SAMPLING_CONFIG['boundary_core_ratio'][1]}",
     )
     parser.add_argument(
+        "--allow-core-fallback",
+        action="store_true",
+        default=SAMPLING_CONFIG.get("allow_core_fallback", True),
+        help="近壁内部点不足时允许核心内部点补齐预算",
+    )
+    parser.add_argument(
+        "--no-core-fallback",
+        action="store_false",
+        dest="allow_core_fallback",
+        help="近壁内部点不足时不使用核心内部点补齐预算",
+    )
+    parser.add_argument(
         "--seed",
         type=int,
         default=SAMPLING_CONFIG["seed"],
@@ -588,6 +611,7 @@ def main():
         boundary_core_ratio=(args.boundary_ratio, args.core_ratio),
         sampling_method=args.sampling_method,
         fps_ratio=args.fps_ratio,
+        allow_core_fallback=args.allow_core_fallback,
         seed=args.seed,
         mode=args.mode,
         sources=args.sources,

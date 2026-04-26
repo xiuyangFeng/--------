@@ -32,6 +32,35 @@ def compute_aggregate_regional_metrics(items):
     return compute_regional_metrics(pred, target, x)
 
 
+def compute_aggregate_regional_wss_metrics(items):
+    torch = __import__("torch")
+    from ..analysis.regional_eval import (
+        compute_regional_wss_metrics,
+        load_node_features_for_region_masks,
+    )
+
+    preds = []
+    targets = []
+    features = []
+    for item in items:
+        payload = load_prediction_payload(Path(str(item["prediction_path"])).resolve())
+        if "y_wss_true" not in payload or "y_wss_pred" not in payload:
+            raise ValueError(
+                "manifest 中样本缺少 y_wss_true/y_wss_pred；请先使用带 WSS 头的模型跑 predict_field"
+            )
+        preds.append(payload["y_wss_pred"].detach().cpu())
+        targets.append(payload["y_wss_true"].detach().cpu())
+        features.append(load_node_features_for_region_masks(payload))
+
+    if not preds:
+        raise ValueError("manifest 中没有可用预测项")
+
+    pred = torch.cat(preds, dim=0)
+    target = torch.cat(targets, dim=0)
+    x = torch.cat(features, dim=0)
+    return compute_regional_wss_metrics(pred, target, x)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="根据 predictions manifest 生成任务A分区域误差图")
     parser.add_argument("--manifest", required=True, help="predict_field.py 导出的 manifest.json 路径")
@@ -43,6 +72,11 @@ def main() -> None:
         help="要绘制的区域指标，可重复传入；默认 rmse_vel_mag 和 rmse_p",
     )
     parser.add_argument("--title-prefix", default="Figure A5 Regional Error", help="图标题前缀")
+    parser.add_argument(
+        "--wss",
+        action="store_true",
+        help="额外计算 WSS 分区域指标并写入 fig_A5_regional_wss_metrics.json",
+    )
     args = parser.parse_args()
 
     manifest_path = Path(args.manifest).resolve()
@@ -77,6 +111,19 @@ def main() -> None:
     for metric_key in metric_keys:
         print(output_dir / f"fig_A5_regional_bar_{metric_key}.png")
     print(output_dir / "fig_A5_regional_metrics.json")
+
+    if args.wss:
+        wss_metrics = compute_aggregate_regional_wss_metrics(items)
+        save_json(output_dir / "fig_A5_regional_wss_metrics.json", wss_metrics)
+        for metric_key in ["rmse", "rmse_wss_x", "rmse_wss_y", "rmse_wss_z"]:
+            plot_regional_bar(
+                wss_metrics,
+                metric_key=metric_key,
+                save_path=output_dir / f"fig_A5_regional_wss_bar_{metric_key}.png",
+                title=f"{args.title_prefix} (WSS): {metric_key}",
+            )
+            print(output_dir / f"fig_A5_regional_wss_bar_{metric_key}.png")
+        print(output_dir / "fig_A5_regional_wss_metrics.json")
 
 
 if __name__ == "__main__":

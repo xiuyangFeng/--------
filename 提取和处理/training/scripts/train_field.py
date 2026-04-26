@@ -260,6 +260,7 @@ def main() -> None:
         warmup_epochs=warmup_epochs,
         wss_loss_weight=config.optim.wss_loss_weight,
         wss_weights=wss_weights_tensor,
+        early_stop_wss_weight=config.optim.early_stop_wss_weight,
     )
     # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")

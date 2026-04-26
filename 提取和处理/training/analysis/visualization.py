@@ -26,7 +26,7 @@ except ImportError:
     plt = None
     mticker = None
 
-from pipeline.config import TARGET_NAMES
+from pipeline.config import TARGET_NAMES, WSS_TARGET_NAMES
 
 # ── Publication-ready style ───────────────────────────────────────────────────
 _PAPER_RC: dict = {
@@ -63,6 +63,7 @@ _SEED_LINESTYLES: List[str] = ["-", "--", ":"]
 
 # Target variable display names (u, v, w, p)
 _TARGET_DISPLAY = ["u (m/s)", "v (m/s)", "w (m/s)", "p (Pa)"]
+_WSS_DISPLAY = ["wss", "wss_x", "wss_y", "wss_z"]
 
 
 def _require_mpl():
@@ -123,6 +124,69 @@ def scatter_pred_vs_true(
             ax.set_aspect("equal")
 
             # R² and RMSE annotation
+            ss_res = float(np.sum((t_vals - p_vals) ** 2))
+            ss_tot = float(np.sum((t_vals - t_vals.mean()) ** 2))
+            r2 = 1.0 - ss_res / max(ss_tot, 1e-12)
+            rmse = float(np.sqrt(np.mean((t_vals - p_vals) ** 2)))
+            ax.text(
+                0.05, 0.95,
+                f"$R^2$={r2:.3f}\nRMSE={rmse:.3f}",
+                transform=ax.transAxes,
+                va="top",
+                fontsize=9,
+                bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
+                          edgecolor="0.7", alpha=0.85),
+            )
+
+        fig.suptitle(title, fontsize=14, y=1.01)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
+
+
+def scatter_wss_pred_vs_true(
+    pred: np.ndarray,
+    target: np.ndarray,
+    target_names: List[str] = None,
+    save_path: Optional[str] = None,
+    title: str = "WSS: Predicted vs Ground Truth",
+):
+    """2×2 hexbin 散点：WSS 四维与 :func:`scatter_pred_vs_true` 同款版式。"""
+    if target_names is None:
+        target_names = list(WSS_TARGET_NAMES)
+
+    display_names = _WSS_DISPLAY if len(target_names) == 4 else target_names
+
+    with _paper_style():
+        fig, axes = plt.subplots(2, 2, figsize=(10, 10))
+        for idx, (ax, name) in enumerate(zip(axes.flat, display_names)):
+            p_vals = pred[:, idx]
+            t_vals = target[:, idx]
+
+            lo = min(t_vals.min(), p_vals.min())
+            hi = max(t_vals.max(), p_vals.max())
+            pad = (hi - lo) * 0.04 if hi > lo else 1.0
+
+            hb = ax.hexbin(
+                t_vals, p_vals,
+                gridsize=70,
+                cmap="Blues",
+                linewidths=0.1,
+                mincnt=1,
+            )
+            fig.colorbar(hb, ax=ax, label="count", fraction=0.046, pad=0.04)
+
+            ax.plot([lo - pad, hi + pad], [lo - pad, hi + pad],
+                    "r--", linewidth=1.2, zorder=5, label="ideal")
+            ax.set_xlim(lo - pad, hi + pad)
+            ax.set_ylim(lo - pad, hi + pad)
+            ax.set_xlabel(f"CFD {name}")
+            ax.set_ylabel(f"Predicted {name}")
+            ax.set_title(name)
+            ax.set_aspect("equal")
+
             ss_res = float(np.sum((t_vals - p_vals) ** 2))
             ss_tot = float(np.sum((t_vals - t_vals.mean()) ** 2))
             r2 = 1.0 - ss_res / max(ss_tot, 1e-12)
@@ -377,6 +441,7 @@ def plot_error_cdf(
     target_names: List[str] = None,
     save_path: Optional[str] = None,
     title: str = "Error CDF",
+    include_velocity_mag_line: bool = True,
 ):
     """Cumulative distribution of absolute errors per variable."""
     if target_names is None:
@@ -394,10 +459,11 @@ def plot_error_cdf(
             ax.plot(sorted_err, cdf, label=name, color=_colors[idx % len(_colors)],
                     linewidth=1.8)
 
-        vel_err = np.linalg.norm(pred[:, :3] - target[:, :3], axis=1)
-        sorted_vel = np.sort(vel_err)
-        ax.plot(sorted_vel, np.arange(1, len(sorted_vel) + 1) / len(sorted_vel),
-                label="|v| (mag)", linestyle="--", color="purple", linewidth=1.8)
+        if include_velocity_mag_line and pred.shape[1] >= 3 and target.shape[1] >= 3:
+            vel_err = np.linalg.norm(pred[:, :3] - target[:, :3], axis=1)
+            sorted_vel = np.sort(vel_err)
+            ax.plot(sorted_vel, np.arange(1, len(sorted_vel) + 1) / len(sorted_vel),
+                    label="|v| (mag)", linestyle="--", color="purple", linewidth=1.8)
 
         ax.set_xlabel("Absolute Error")
         ax.set_ylabel("Cumulative Fraction")

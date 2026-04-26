@@ -8,7 +8,7 @@
 2. 配置命名和输出命名分别是什么意思。
 3. 本周应该用哪些命令先跑起来。
 
-**（2026-03-31）母版约定**：后续 **`A-Abl-*` / Line G / Line W** 的新 JSON，以 **`A-Opt-05`** 已归档 run 的 **`config.snapshot.json`** 为复制基准（仅改消融项或 Line 专用字段）；**`A-Opt-03`** 用于低开销对照。详见 [任务A实验状态表](任务A实验状态表.md)「战略锚点」。**（2026-04-02）** **`A-Opt-07`**（`optim.interior_loss_boost=3`）配置位于 **`training/configs/field/generated/optimization/A-Opt-07_seed*.json`**；结果已归档，**不构成新母版**（相对 05 负结果），对照图见 **`outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/`**（`regenerate_opt07_vs_opt05_main_figures`）。**（2026-04-09）** **`A-Abl-02`（`ablation_geometry`）** 四子组 × 三 seed 已归档，配置位于 **`training/configs/field/generated/ablation_geometry/`**（`A-Abl-02-0*_seed*.json`），汇总见状态表「实验记录摘要 · A-Abl-02」。**（2026-04-14）** **Line G**：**`training/configs/field/generated/line_g/`**（`A-Opt-G01`～`G05` 等）；**`G01`/`G04`/`G05` 三 seed 已跑通**，详见状态表「第四批 / 实验记录摘要 · Line G」。**（2026-04-17）** **WSS 多任务（场 + `wss_loss_weight=0.1`）**：**`training/configs/field/generated/baseline_wss_multitask/`**（`A-Base-*-wss-multi`、`A-Main-01-wss-multi`、`A-Opt-05-wss-multi`）；结果与壁面 WSS 汇总见状态表「第五批附 / 实验记录摘要 · WSS 多任务」及 **`outputs/field/wss_multitask_test_wall_wss_metrics.tsv`**。
+**（2026-03-31）母版约定**：后续 **`A-Abl-*` / Line G / Line W** 的新 JSON，以 **`A-Opt-05`** 已归档 run 的 **`config.snapshot.json`** 为复制基准（仅改消融项或 Line 专用字段）；**`A-Opt-03`** 用于低开销对照。详见 [任务A实验状态表](任务A实验状态表.md)「战略锚点」。**（2026-04-02）** **`A-Opt-07`**（`optim.interior_loss_boost=3`）配置位于 **`training/configs/field/generated/optimization/A-Opt-07_seed*.json`**；结果已归档，**不构成新母版**（相对 05 负结果），对照图见 **`outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/`**（`regenerate_opt07_vs_opt05_main_figures`）。**（2026-04-09）** **`A-Abl-02`（`ablation_geometry`）** 四子组 × 三 seed 已归档，配置位于 **`training/configs/field/generated/ablation_geometry/`**（`A-Abl-02-0*_seed*.json`），汇总见状态表「实验记录摘要 · A-Abl-02」。**（2026-04-14）** **Line G**：**`training/configs/field/generated/line_g/`**（`A-Opt-G01`～`G05` 等）；**`G01`/`G04`/`G05` 三 seed 已跑通**，详见状态表「第四批 / 实验记录摘要 · Line G」。**（2026-04-17）** **WSS 多任务（场 + `wss_loss_weight=0.1`）**：**`training/configs/field/generated/baseline_wss_multitask/`**（`A-Base-*-wss-multi`、`A-Main-01-wss-multi`、`A-Opt-05-wss-multi`）；结果与壁面 WSS 汇总见状态表「第五批附 / 实验记录摘要 · WSS 多任务」及 **`outputs/field/wss_multitask_test_wall_wss_metrics.tsv`**。**（2026-04-24）** **V2 点云壁面专线 `V2P-WSSP-01`**：**`training/configs/field/generated/v2_pointcloud/V2P-WSSP-01_seed1.json`**，manifest **`manifest_wssp_wall13000_near2000.json`**；**不等同**于 Line W 表 **`A-Opt-W03`**（多任务场+WSS），而是 **速度场 loss 关闭、仅 p + 全量 WSS loss**。**（2026-04-25）** 导师沟通后，WSSP 后续主线改为 **压力 + 壁面 WSS 快速预测**，速度只作弱辅助监督和诊断；新增 **`V2P-WSSP-04_seed1.json`** 与 manifest **`manifest_wssp_pressure_wss_primary.json`**。训练与评估须在 **`conda activate rag_venv`**（或等价）下进行。
 
 ---
 
@@ -38,20 +38,18 @@
 
 ### 2.1 手写模板
 
-这几份是基础模板：
+这几份是基础模板（路径相对于**仓库根目录**）：
 
-- [mlp_baseline.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/mlp_baseline.json)
-- [graphsage_baseline.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/graphsage_baseline.json)
-- [transformer_no_geometry.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/transformer_no_geometry.json)
-- [transformer_geometry.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/transformer_geometry.json)
+- `training/configs/field/mlp_baseline.json`
+- `training/configs/field/graphsage_baseline.json`
+- `training/configs/field/transformer_no_geometry.json`
+- `training/configs/field/transformer_geometry.json`
 
 如果你只想先单独验证一个实验，可直接从这些模板起跑。
 
 ### 2.2 批量生成后的配置
 
-批量生成后的配置在这里：
-
-- [training/configs/field/generated](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/generated)
+批量生成后的配置在这里：`training/configs/field/generated/`
 
 当前目录结构是按实验组分的：
 
@@ -77,9 +75,12 @@
 
 由于当前仓库里**还没有**正式的 `split_AG_v2.json`，为了先把点云主干训练链路跑通，现已新增一组 **bootstrap 配置**：
 
-- [V2P-Base-01_seed1.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/generated/v2_pointcloud/V2P-Base-01_seed1.json)
-- [V2P-Main-01_seed1.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/generated/v2_pointcloud/V2P-Main-01_seed1.json)
-- [manifest_bootstrap_split_AG_v1.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/generated/v2_pointcloud/manifest_bootstrap_split_AG_v1.json)
+- `training/configs/field/generated/v2_pointcloud/V2P-Base-01_seed1.json`
+- `training/configs/field/generated/v2_pointcloud/V2P-Main-01_seed1.json`
+- `training/configs/field/generated/v2_pointcloud/manifest_bootstrap_split_AG_v1.json`
+- `training/configs/field/generated/v2_pointcloud/V2P-WSSP-01_seed1.json`（**壁面专线：p + WSS**，见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-01」）
+- `training/configs/field/generated/v2_pointcloud/V2P-WSSP-02_seed1.json`（**全场 + WSS 头 + 混合早停，标准采样**，见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」）
+- `training/configs/field/generated/v2_pointcloud/V2P-WSSP-04_seed1.json`（**压力 + WSS 主线，速度弱辅助**；主指标为 `r2_p/rmse_p` 与 `wall.r2_wss/wall.rmse_wss`）
 
 这组配置的定位是：
 
@@ -217,6 +218,7 @@
 - `mlp`
 - `graphsage`
 - `transformer`
+- `pointnext` / `pointnetpp` / `meshgraphnet`（**V2 点云与其它扩展**）
 
 建议本周不要同时改：
 
@@ -307,9 +309,7 @@ python -m training.scripts.make_field_plan \
 
 ### 5.3 如果你要先看生成了哪些实验
 
-先看 manifest：
-
-- [manifest.json](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training/configs/field/generated/manifest.json)
+先看 manifest：`training/configs/field/generated/manifest.json`（或以各子目录 manifest 为准）
 
 这个文件是当前批量实验的唯一事实来源。后续批量训练、筛选和对表，都建议以它为准。
 
@@ -436,3 +436,85 @@ python -m training.scripts.run_field_plan \
 5. 结果写表时混用 `experiment_name` 和 `exp_id`。
 
 如果你本周先把这 5 个坑避开，推进会顺很多。
+
+---
+
+## 10. 单次 run 后处理（预测与图，2026-04-24 补充；2026-04-25 增补 WSSP-02）
+
+在仓库根目录、**`conda activate rag_venv`** 下，对已完成训练的 run；**`predict_field`** 的 `--config` 可使用 **run 内 `config.snapshot.json`** 或 **原始 `training/configs/.../V2P-*.json`**（与训练一致即可）。
+
+**示例 A — 仅 p + WSS、速度未训（`V2P-WSSP-01`）**：
+
+```bash
+python -m training.scripts.predict_field \
+  --config outputs/field/<run_dir>/config.snapshot.json \
+  --checkpoint outputs/field/<run_dir>/best_model.pt \
+  --subset test
+
+python -m training.scripts.plot_error_analysis \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json \
+  --region interior --wss --wss-region wall
+
+python -m training.scripts.plot_taskA_regional_bar \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json \
+  --metric-key rmse_p --metric-key rmse --wss
+
+python -m training.scripts.plot_training_history \
+  --runs-root outputs/field \
+  --run-dir outputs/field/<run_dir>
+```
+
+**注意 A**：**仅 p + WSS 监督**时，勿用 **`rmse_vel_mag` / 内部 u/v/w 散点** 作主结论；WSS 图与 **`fig_A5_regional_wss_metrics.json`** 以 **`wall`** 区为主。
+
+**示例 B — 全速度+压力+WSS 头（`V2P-WSSP-02`）**：
+
+- 在 **`plot_error_analysis`**、**`plot_taskA_scatter` / `plot_taskA_per_case_boxplot`** 上可采用 **默认 `interior`** 作流场主 readout；**WSS 仍以 `regional_eval` 的 `wall` / `all` 与 `error_analysis/.../wss/` 为准**（`interior` 上 WSS 的 R² 常不可靠）。
+
+```bash
+python -m training.scripts.predict_field \
+  --config training/configs/field/generated/v2_pointcloud/V2P-WSSP-02_seed1.json \
+  --checkpoint outputs/field/<run_dir>/best_model.pt \
+  --subset test
+
+python -m training.scripts.plot_taskA_scatter \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json
+
+python -m training.scripts.plot_taskA_per_case_boxplot \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json
+
+python -m training.scripts.plot_error_analysis \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json \
+  --wss --title "V2P-WSSP-02"
+
+python -m training.scripts.plot_taskA_regional_bar \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json \
+  --wss --title-prefix "V2P-WSSP-02"
+```
+
+**归档参考目录（seed=1，2026-04-25）**：`outputs/field/field_v2_pointnext_wssp02_geom_full_supervision_wss_split_AG_v1_seed1_20260425_093041/`。
+
+**示例 C — 压力 + WSS 主线、速度弱辅助（`V2P-WSSP-04`，2026-04-25 新增）**：
+
+- 本组不以完整速度场相关系数作为主线门槛；`u/v/w` 的 `target_weights=0.1` 仅用于提供近壁流动上下文。
+- 主 readout 固定为 **`r2_p / rmse_p`** 与 **`regional_eval/fig_A5_regional_wss_metrics.json` 的 `wall.r2_wss / wall.rmse_wss`**。
+- 速度相关图可以保留，但只作为诊断项，优先解释 `near_wall`，不得用全局 `r2_vel_mag` 判定本组失败。
+
+```bash
+python -m training.scripts.train_field \
+  --config training/configs/field/generated/v2_pointcloud/V2P-WSSP-04_seed1.json
+
+python -m training.scripts.predict_field \
+  --config outputs/field/<run_dir>/config.snapshot.json \
+  --checkpoint outputs/field/<run_dir>/best_model.pt \
+  --subset test
+
+python -m training.scripts.plot_error_analysis \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json \
+  --region interior --wss --wss-region wall \
+  --title "V2P-WSSP-04"
+
+python -m training.scripts.plot_taskA_regional_bar \
+  --manifest outputs/field/<run_dir>/predictions_test/manifest.json \
+  --metric-key rmse_p --metric-key rmse --wss \
+  --title-prefix "V2P-WSSP-04"
+```

@@ -1,0 +1,28 @@
+{
+  "manifest_name": "v2_pointcloud_wssp_pressure_wss_primary",
+  "description": "V2P-WSSP follow-up after advisor discussion: pressure and wall WSS are primary metrics; velocity is only weak auxiliary supervision / diagnostic context.",
+  "data_root": "data_new/AG",
+  "split_file": "training/splits/split_AG_v1.json",
+  "graphs_subdir": "processed/graphs",
+  "notes": "Use with wall-rich + near-wall processed graphs. Main metrics: r2_p/rmse_p and wall.r2_wss/wall.rmse_wss. Do not use r2_vel_mag as the success gate for this manifest.",
+  "items": [
+    {
+      "exp_id": "V2P-WSSP-04",
+      "seed": 1,
+      "output_relpath": "v2_pointcloud/V2P-WSSP-04_seed1.json",
+      "config_path": "training/configs/field/generated/v2_pointcloud/V2P-WSSP-04_seed1.json",
+      "purpose": "Pressure + wall WSS primary objective with weak u/v/w auxiliary supervision.",
+      "primary_metrics": [
+        "r2_p",
+        "rmse_p",
+        "wall.r2_wss",
+        "wall.rmse_wss"
+      ],
+      "diagnostic_metrics": [
+        "near_wall.r2_vel_mag",
+        "near_wall.rmse_vel_mag",
+        "r2_vel_mag"
+      ]
+    }
+  ]
+}
