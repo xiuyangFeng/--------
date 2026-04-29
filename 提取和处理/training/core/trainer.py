@@ -42,6 +42,8 @@ class FieldTrainer:
         wss_loss_weight: float = 0.0,
         wss_weights: Optional[torch.Tensor] = None,
         early_stop_wss_weight: float = 0.0,
+        wss_loss_type: str = "mse",
+        wss_huber_beta: float = 1.0,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -58,6 +60,8 @@ class FieldTrainer:
             interior_loss_boost=interior_loss_boost,
             wss_loss_weight=wss_loss_weight,
             wss_weights=wss_weights,
+            wss_loss_type=wss_loss_type,
+            wss_huber_beta=wss_huber_beta,
         )
         self.accumulate_grad_batches = max(1, accumulate_grad_batches)
 

@@ -1,8 +1,8 @@
 # 任务A 实验冻结卡
 
-> 本文件记录任务 A 正式实验阶段的不可变配置。  
-> 一旦填写完毕并开始正式训练，以下字段**不得中途修改**。  
-> 上位文档：[任务A实验清单](任务A实验清单.md) / [任务A配置与启动说明](任务A配置与启动说明.md)
+> 本文件记录任务 A 正式实验阶段的不可变配置。
+> 一旦填写完毕并开始正式训练，以下字段**不得中途修改**。
+> 上位文档：[任务A实验清单](任务A_V1实验清单.md) / [任务A配置与启动说明](../03-共享执行与状态/任务A配置与启动说明.md)
 
 ---
 
@@ -189,12 +189,12 @@ python -m training.scripts.run_field_plan \
 
 ## 8. 当前状态
 
-**2026-03-16**：等待 slow 组集群作业 1177 完成（19 个病例处理中/排队中）。  
+**2026-03-16**：等待 slow 组集群作业 1177 完成（19 个病例处理中/排队中）。
 冻结卡字段除 `split_version` 和 `split_file` 外均已确定，数据就绪后立即执行第 6 节检查清单。
 
-**2026-03-23（更新）**：所有冻结字段已全部确定，第 6 节执行清单已全部完成。  
-第一批基线实验（A-Base-01 ~ A-Main-01）全部 3 seed 训练完成，结果已归档至 `outputs/field/`，实验状态详见 [任务A实验状态表](任务A实验状态表.md)。  
-当前数据集规模：训练 4860 graphs / 验证 648 graphs / 测试 1458 graphs。  
+**2026-03-23（更新）**：所有冻结字段已全部确定，第 6 节执行清单已全部完成。
+第一批基线实验（A-Base-01 ~ A-Main-01）全部 3 seed 训练完成，结果已归档至 `outputs/field/`，实验状态详见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)。
+当前数据集规模：训练 4860 graphs / 验证 648 graphs / 测试 1458 graphs。
 测试集预测与后处理图已补齐，当前已生成：
 
 - `fig_A3_scatter.png`
@@ -204,8 +204,8 @@ python -m training.scripts.run_field_plan \
 - `fig_error_distribution.png`
 - `fig_error_cdf.png`
 
-**（2026-03-24 更新）分区域评估口径已统一**：`plot_taskA_regional_bar` 在聚合指标时从各样本 `graph_path` 读回**未按训练配置 mask 的完整节点特征**生成区域 mask，因此 `A-Base-01` / `A-Base-02` / `A-Base-03` / `A-Main-01` 在 **`high_curvature / near_wall / bifurcation / trunk` 等全部预定义区域**上均为**同一几何定义**，可与模型是否启用几何输入解耦。各 run 已重算 `predictions_test/regional_eval/fig_A5_regional_metrics.json`，汇总层 `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png` 已按该口径更新（集群批处理见 `training/cluster/run_regional_a5.slurm`）。  
-**（2026-03-26 补充）** 各区域的默认名称、区间与易混点（采样 2 mm 阈值 vs 评估 `NormRadius` 等）已整理为 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)。  
+**（2026-03-24 更新）分区域评估口径已统一**：`plot_taskA_regional_bar` 在聚合指标时从各样本 `graph_path` 读回**未按训练配置 mask 的完整节点特征**生成区域 mask，因此 `A-Base-01` / `A-Base-02` / `A-Base-03` / `A-Main-01` 在 **`high_curvature / near_wall / bifurcation / trunk` 等全部预定义区域**上均为**同一几何定义**，可与模型是否启用几何输入解耦。各 run 已重算 `predictions_test/regional_eval/fig_A5_regional_metrics.json`，汇总层 `outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png` 已按该口径更新（集群批处理见 `training/cluster/run_regional_a5.slurm`）。
+**（2026-03-26 补充）** 各区域的默认名称、区间与易混点（采样 2 mm 阈值 vs 评估 `NormRadius` 等）已整理为 [任务A分区域评估口径](../../../00-规范与记录/任务A分区域评估口径.md)。
 效率 benchmark 已补齐，当前 `outputs/field/plots/efficiency/` 下已新增：
 
 - `fig_A7_efficiency_benchmark.json`
@@ -230,14 +230,14 @@ python -m training.scripts.run_field_plan \
 
 下一步：**区域标签评估口径已统一**，可启动 **A-Abl-01**（输入特征消融）；效率证据层面当前已经具备 3-seed 版本，后续若还要继续加固，可再补多病例 benchmark 或给出 CFD 时间基线以填写 `speedup_vs_CFD`。
 
-**（2026-03-26 补充）P0-1 / `A-Opt-01`**：`target_weights=[2,2,2,0.5]` 三 seed 已完成训练；测试集预测与 **`predictions_test/regional_eval/`** 已补全，多模型 Fig A5 汇总图已包含该 `exp_id`。模型结构仍与主线 `A-Main-01` 一致（无 Pre-Norm 时的 `FieldTransformer`）；若启用 Pre-Norm（`A-Opt-02`），须使用配置 **`use_transformer_prenorm: true`** 并**从头训练**，不得与旧 `best_model.pt` 混用。  
-**（2026-03-27 补充）P0-2 / `A-Opt-02`**：Pre-Norm **`FieldTransformer`** 三 seed 已完成（`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_split_AG_v1_seed{1,2,3}_20260327_*`）；已补 **`predictions_test/`**、**`error_analysis_interior/`**、**`regional_eval/`**；与 **`A-Main-01`** 同 seed 的内部节点 |v|/p 对照散点见 **`outputs/field/plots/optimization/prenorm_A_Opt02_vs_Main01/`**。数值摘要见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-02」与 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md) P0-2 节。  
-**（2026-03-27 更新）P0-3 / `A-Opt-02_warmup` 已归档**：三 seed run 位于 `outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_warmup5_split_AG_v1_seed{1,2,3}_20260327_*`；已具备 **`predictions_test/`**、**`error_analysis_interior/`**、**`regional_eval/`**。与 **`A-Main-01` / `A-Opt-02`** 同 seed 的 **内部节点** |v|/p 散点、Fig A5 区域柱、Fig A4 per-case 箱线见 **`outputs/field/plots/optimization/prenorm_Main_P02_P02w/`**（一键重生成：`python -m training.scripts.regenerate_p02_warmup_comparison_figures`）。数值与叙事见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-02_warmup」与 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md) P0-3 节。  
-**（2026-03-28 同步）P0 组合线已归档**：**`A-Opt-03`**（`A-Opt-01` 损失权重 + Pre-Norm）与 **`A-Opt-03w`**（再叠 `warmup_epochs=5`）均 **三 seed** 完成（**03w 未更好**）。**`A-Opt-03`** 现为 **h128 轻量对照 / P0-4 锚点**。数值与 trade-off 见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-03 / A-Opt-03w」与 [任务A优化路径与近期实验建议](任务A优化路径与近期实验建议.md) P0-4 节；训练期汇总 CSV：`outputs/field/plots/optimization/prenorm_A_Opt03_vs_Opt03w/best_metrics.csv`。  
-**（2026-03-29 同步）P0-5 容量线已归档**：**`A-Opt-04`**（`hidden_dim=256`）与 **`A-Opt-05`**（`num_layers=4`）均 **三 seed** 完成；**`A-Opt-05` 在 `interior` 与 `near_wall` 等略优于 `A-Opt-03`，方差与成本更高**。**（2026-03-31）** **新开跑母版统一为 `A-Opt-05`**（见状态表「战略锚点」）。明细见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-04 / A-Opt-05」。  
-**（2026-03-31 同步）`A-Opt-05_tune`**：在 **`A-Opt-05`** 骨架上的 **warmup / lr / wd / scheduler_patience** 等试跑，**已入账部分**已补 **`predictions_test` 全链**；**多模型对照（对 `A-Opt-03`，seed1）** 在 **`outputs/field/plots/optimization/A_Opt05_tune_vs_Opt03_seed1/`**。**`compare_hemo_wss_runs` 全量 WSS 对比暂缓**。清单与 **`outputs/field/`** 目录不一致处见状态表「`A-Opt-05_tune`」。  
-**（2026-04-02 同步）P1-2 / `A-Opt-07`**：**`interior_loss_boost=3`** 三 seed 已完成（`*_iboost3_*_20260331_175619`）；已 **`predictions_test`** + **`regional_eval`**；与 **`A-Main-01` / `A-Opt-05`** 对照 **`plots/optimization/A_Opt07_vs_Opt05_Main01/`**（`python -m training.scripts.regenerate_opt07_vs_opt05_main_figures`）。**相对母版 `A-Opt-05`**：内部与全图 **`RMSE_|v|`** 未更好，**壁面/近壁变差**——**负结果**，见 [任务A实验状态表](任务A实验状态表.md)「A-Opt-07」。  
-**P0 下一里程碑（叙事收敛）**：**`A-Abl-02` ✅（2026-04-09）**；**Line G：`A-Opt-G01` / `G04` / `G05` ✅ 三 seed（2026-04-14）**，**`G02` / `G03` ⏹ 已结案**（仅 seed1，不补种） ——见 [任务A实验状态表](任务A实验状态表.md)「实验记录摘要 · Line G」。**（2026-04-17）** **`A-*-wss-multi`**（WSS 多任务）训练 ✅、壁面 WSS 指标表 ✅、**`predictions_test` / Fig A3–A5 全链 ✅**（Job **2704** / **2715**）；**R² 汇报表**（壁面 WSS / **R² \|v\|** / **R²_p**）见状态表「实验记录摘要 · WSS 多任务」。**下一优先**：**`A-Abl-01`**、**Line W**（含 W01+）或 **`A-Opt-05` vs `A-Opt-03` 效率 benchmark**；**不默认启动 `A-Opt-06`（6L）**，除非明确要写「容量极限」附录。
+**（2026-03-26 补充）P0-1 / `A-Opt-01`**：`target_weights=[2,2,2,0.5]` 三 seed 已完成训练；测试集预测与 **`predictions_test/regional_eval/`** 已补全，多模型 Fig A5 汇总图已包含该 `exp_id`。模型结构仍与主线 `A-Main-01` 一致（无 Pre-Norm 时的 `FieldTransformer`）；若启用 Pre-Norm（`A-Opt-02`），须使用配置 **`use_transformer_prenorm: true`** 并**从头训练**，不得与旧 `best_model.pt` 混用。
+**（2026-03-27 补充）P0-2 / `A-Opt-02`**：Pre-Norm **`FieldTransformer`** 三 seed 已完成（`outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_split_AG_v1_seed{1,2,3}_20260327_*`）；已补 **`predictions_test/`**、**`error_analysis_interior/`**、**`regional_eval/`**；与 **`A-Main-01`** 同 seed 的内部节点 |v|/p 对照散点见 **`outputs/field/plots/optimization/prenorm_A_Opt02_vs_Main01/`**。数值摘要见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「A-Opt-02」与 [任务A优化路径与近期实验建议](任务A_V1优化路径与近期实验建议.md) P0-2 节。
+**（2026-03-27 更新）P0-3 / `A-Opt-02_warmup` 已归档**：三 seed run 位于 `outputs/field/field_transformer_coord_t_bc_geom_wall_prenorm_warmup5_split_AG_v1_seed{1,2,3}_20260327_*`；已具备 **`predictions_test/`**、**`error_analysis_interior/`**、**`regional_eval/`**。与 **`A-Main-01` / `A-Opt-02`** 同 seed 的 **内部节点** |v|/p 散点、Fig A5 区域柱、Fig A4 per-case 箱线见 **`outputs/field/plots/optimization/prenorm_Main_P02_P02w/`**（一键重生成：`python -m training.scripts.regenerate_p02_warmup_comparison_figures`）。数值与叙事见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「A-Opt-02_warmup」与 [任务A优化路径与近期实验建议](任务A_V1优化路径与近期实验建议.md) P0-3 节。
+**（2026-03-28 同步）P0 组合线已归档**：**`A-Opt-03`**（`A-Opt-01` 损失权重 + Pre-Norm）与 **`A-Opt-03w`**（再叠 `warmup_epochs=5`）均 **三 seed** 完成（**03w 未更好**）。**`A-Opt-03`** 现为 **h128 轻量对照 / P0-4 锚点**。数值与 trade-off 见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「A-Opt-03 / A-Opt-03w」与 [任务A优化路径与近期实验建议](任务A_V1优化路径与近期实验建议.md) P0-4 节；训练期汇总 CSV：`outputs/field/plots/optimization/prenorm_A_Opt03_vs_Opt03w/best_metrics.csv`。
+**（2026-03-29 同步）P0-5 容量线已归档**：**`A-Opt-04`**（`hidden_dim=256`）与 **`A-Opt-05`**（`num_layers=4`）均 **三 seed** 完成；**`A-Opt-05` 在 `interior` 与 `near_wall` 等略优于 `A-Opt-03`，方差与成本更高**。**（2026-03-31）** **新开跑母版统一为 `A-Opt-05`**（见状态表「战略锚点」）。明细见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「A-Opt-04 / A-Opt-05」。
+**（2026-03-31 同步）`A-Opt-05_tune`**：在 **`A-Opt-05`** 骨架上的 **warmup / lr / wd / scheduler_patience** 等试跑，**已入账部分**已补 **`predictions_test` 全链**；**多模型对照（对 `A-Opt-03`，seed1）** 在 **`outputs/field/plots/optimization/A_Opt05_tune_vs_Opt03_seed1/`**。**`compare_hemo_wss_runs` 全量 WSS 对比暂缓**。清单与 **`outputs/field/`** 目录不一致处见状态表「`A-Opt-05_tune`」。
+**（2026-04-02 同步）P1-2 / `A-Opt-07`**：**`interior_loss_boost=3`** 三 seed 已完成（`*_iboost3_*_20260331_175619`）；已 **`predictions_test`** + **`regional_eval`**；与 **`A-Main-01` / `A-Opt-05`** 对照 **`plots/optimization/A_Opt07_vs_Opt05_Main01/`**（`python -m training.scripts.regenerate_opt07_vs_opt05_main_figures`）。**相对母版 `A-Opt-05`**：内部与全图 **`RMSE_|v|`** 未更好，**壁面/近壁变差**——**负结果**，见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「A-Opt-07」。
+**P0 下一里程碑（叙事收敛）**：**`A-Abl-02` ✅（2026-04-09）**；**Line G：`A-Opt-G01` / `G04` / `G05` ✅ 三 seed（2026-04-14）**，**`G02` / `G03` ⏹ 已结案**（仅 seed1，不补种） ——见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「实验记录摘要 · Line G」。**（2026-04-17）** **`A-*-wss-multi`**（WSS 多任务）训练 ✅、壁面 WSS 指标表 ✅、**`predictions_test` / Fig A3–A5 全链 ✅**（Job **2704** / **2715**）；**R² 汇报表**（壁面 WSS / **R² \|v\|** / **R²_p**）见状态表「实验记录摘要 · WSS 多任务」。**下一优先**：**`A-Abl-01`**、**Line W**（含 W01+）或 **`A-Opt-05` vs `A-Opt-03` 效率 benchmark**；**不默认启动 `A-Opt-06`（6L）**，除非明确要写「容量极限」附录。
 
 **（2026-03-26 重要更新）主指标口径统一为 interior-only**：
 - 此前主表、消融图、效率 Pareto 图等均使用 `summary.json.test_metrics.rmse_vel_mag`（all 节点），wall 节点的近零误差会系统性拉低 RMSE，导致主结论偏乐观。
@@ -249,6 +249,6 @@ python -m training.scripts.run_field_plan \
   - **Fig A5 分区域图**本身已为 region-aware，不受影响
 - 论文口径固定为：**主速度指标 = `interior.rmse_vel_mag`**；`all.rmse_vel_mag` 仅作为补充报告。
 
-**（2026-04-24）`V2P-WSSP-01` / 仅 p+WSS 监督 run**：`primary_metric` **不适用** `interior.rmse_vel_mag` 叙事；应改用 **`summary.test_metrics` 的 `rmse_p` / `r2_p`** 与 **`regional_eval/fig_A5_regional_wss_metrics.json` 的 `wall.*`**。后处理命令见 [任务A配置与启动说明](任务A配置与启动说明.md) §10。
+**（2026-04-24）`V2P-WSSP-01` / 仅 p+WSS 监督 run**：`primary_metric` **不适用** `interior.rmse_vel_mag` 叙事；应改用 **`summary.test_metrics` 的 `rmse_p` / `r2_p`** 与 **`regional_eval/fig_A5_regional_wss_metrics.json` 的 `wall.*`**。后处理命令见 [任务A配置与启动说明](../03-共享执行与状态/任务A配置与启动说明.md) §10。
 
-**（2026-04-25）`V2P-WSSP-02` / 全场+WSS 头**：流场主指标可恢复 **interior `rmse_vel_mag` / `r2_vel_mag`** 叙事；**WSS 仍以 `wall`（及 `summary` 的 `wss_*`）为主**，勿单独用 **interior WSS R²**。归档见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」。
+**（2026-04-25）`V2P-WSSP-02` / 全场+WSS 头**：流场主指标可恢复 **interior `rmse_vel_mag` / `r2_vel_mag`** 叙事；**WSS 仍以 `wall`（及 `summary` 的 `wss_*`）为主**，勿单独用 **interior WSS R²**。归档见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「V2P-WSSP-02」。

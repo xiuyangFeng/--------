@@ -1,12 +1,12 @@
 # 任务A V2修正路线实验矩阵
 
-> 上位文档：[实验设计总纲](../../实验设计总纲.md) | [任务A实验清单](任务A实验清单.md) | [任务A实验状态表](任务A实验状态表.md) | [任务A V2准备执行清单](任务A_V2准备执行清单.md) | [任务A V2首轮判定与汇报模板](任务A_V2首轮判定与汇报模板.md) | [项目缺陷分析与修正路径](../../02-推进与变更/项目缺陷分析与修正路径.md)
+> 上位文档：[实验设计总纲](../../../实验设计总纲.md) | [任务A实验清单](../01-V1路线/任务A_V1实验清单.md) | [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md) | [任务A V2准备执行清单](任务A_V2准备执行清单.md) | [任务A V2首轮判定与汇报模板](任务A_V2首轮判定与汇报模板.md) | [项目缺陷分析与修正路径](../../../02-推进与变更/项目缺陷分析与修正路径.md)
 
 ## 1. 文档定位
 
 本文件只服务于 **`Route-PhysicsAware-V2`**。
 
-它的目的不是覆盖已有的 `A-Base-* / A-Opt-*` 工作，而是把**新增修正路线**写成一份可执行、可命名、可追踪的实验矩阵。  
+它的目的不是覆盖已有的 `A-Base-* / A-Opt-*` 工作，而是把**新增修正路线**写成一份可执行、可命名、可追踪的实验矩阵。
 原有 `kNN + GNN` 工作统一记为 **`Route-KNN-GNN-V1`**，继续保留：
 
 - 历史基线
@@ -168,10 +168,12 @@ V2 首轮只回答两个问题：
 
 | Exp ID | 主干 | 监督 / 特征要点 | 状态 |
 | --- | --- | --- | --- |
-| `V2P-WSSP-01` | PointNeXt | **仅 p + WSS**（`target_weights` u/v/w=0，`wss_loss_weight=1`）；壁面 13000 + 近壁 2000 点采样；全几何 + `is_wall` | seed=1 已完成（2026-04-24，`split_AG_v1` bootstrap）；见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-01」 |
-| `V2P-WSSP-02` | PointNeXt | **全场 u/v/w/p + WSS 头**（`target_weights=[2,2,2,0.5]`，`wss_loss_weight=0.5`，`early_stop_wss_weight=1.0`）；**标准采样**；全几何 + `is_wall` | seed=1 已完成（2026-04-25）；训练+预测+图已归档；见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」 |
-| `V2P-WSSP-03` | PointNeXt | **全场 + 轻量 WSS 辅助头**（`target_weights=[2,2,2,0.5]`，`wss_loss_weight=0.01`，`early_stop_wss_weight=0`）；用于修复 WSSP-02 梯度失衡 | 配置已生成（2026-04-25）；主要验证轻量 WSS 是否不破坏场质量 |
-| `V2P-WSSP-04` | PointNeXt | **压力 + WSS 主线，速度弱辅助**（`target_weights=[0.1,0.1,0.1,1.0]`，`wss_loss_weight=0.5`，`early_stop_wss_weight=0`）；建议配合 wall-rich + near-wall 图资产 | 配置已生成（2026-04-25）；后续主指标为 `r2_p/rmse_p` 与 `wall.r2_wss/wall.rmse_wss`，速度仅作诊断 |
+| `V2P-WSSP-01` | PointNeXt | **仅 p + WSS**（`target_weights` u/v/w=0，`wss_loss_weight=1`）；壁面 13000 + 近壁 2000 点采样；全几何 + `is_wall` | seed=1 已完成（2026-04-24，`split_AG_v1` bootstrap）；见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「V2P-WSSP-01」 |
+| `V2P-WSSP-02` | PointNeXt | **全场 u/v/w/p + WSS 头**（`target_weights=[2,2,2,0.5]`，`wss_loss_weight=0.5`，`early_stop_wss_weight=1.0`）；**标准采样**；全几何 + `is_wall` | seed=1 已完成（2026-04-25）；训练+预测+图已归档；见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「V2P-WSSP-02」 |
+| `V2P-WSSP-03` | PointNeXt | **全场 + 轻量 WSS 辅助头**（`target_weights=[2,2,2,0.5]`，`wss_loss_weight=0.01`，`early_stop_wss_weight=0`）；用于修复 WSSP-02 梯度失衡 | seed=1 已完成（2026-04-26 后处理归档）；**`r2_p` 相对 WSSP-02 恢复**；**WSS R² 仍略负**；见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「V2P-WSSP-03」 |
+| `V2P-WSSP-04` | PointNeXt | **压力 + WSS 主线，速度弱辅助**（`target_weights=[0.1,0.1,0.1,1.0]`，`wss_loss_weight=0.5`，`early_stop_wss_weight=0`）；建议配合 wall-rich + near-wall 图资产 | seed=1 已完成；**2026-04-27** 集群重训 run **`…/20260427_103849/`** 已 **`predict_field`+分区域+与 Line W 三实验多模型**；`regional_eval` 的 **`r2_p`** 与 V1 **Transformer+WSS 多任务** **不在同档**（**勿无注释与 `A-Opt-W03-*` 混表**）；总览 **`outputs/field/plots/wssp04_w03_line_seed1_20260427/`**；**03 vs 04** 对照仍见 `outputs/field/plots/v2p_wssp03_vs_04_seed1/`；见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「V2P-WSSP-04」与「**Line W：A-Opt-W03 权重复扫**」 |
+| `V2P-WSSP-05` | PointNeXt | 复刻 **WSSP-01**：**仅 p+WSS**，**MSE WSS**；wall13000+near2000 | **（2026-04-28）** seed **1～3** 已训练 + 主后处理；三 seed **`wss_r2_wss`** 仍略负、**`r2_p`** 方差大；详见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「V2P-WSSP-05」 |
+| `V2P-WSSP-06` | PointNeXt | 同 **05**，唯一变更 **`wss_loss_type=huber`**（Smooth L1） | **（2026-04-28）** seed **1～3** 训练完成；seed **1～2** 已有 **`predictions_test`**，**seed3 尚缺导出**；**Huber 未稳定优于 MSE**；详见 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)「V2P-WSSP-06」 |
 
 #### 5.2.2 V2P-WSSP 后续主指标口径（2026-04-25）
 
@@ -293,8 +295,8 @@ V2 首轮只回答两个问题：
 
 ##### 阶段 C：PointCloud 首轮最小闭环
 
-> **（2026-04-22）阶段 C 执行状态**：`V2P-Base-01`（无 geometry）与 `V2P-Main-01`（有 geometry）seed=1 **已在 `split_AG_v1`（bootstrap 口径）完成训练**。Geometry 增益显著（`rmse_vel_mag` -22%，`r2_vel_mag` +72%）；`V2P-Main-01` 全局 `r2_vel_mag=0.609` 已超过 V1 锚点 `A-Opt-05`（~0.576）。**当前限制**：仅 seed=1、缺分区域评估、使用 bootstrap split，不作为正式结论。Gate-0 通过后在 `split_AG_v2` 上补跑正式版。  
-> **（2026-04-24～04-25）** 同阶段已增跑 **`V2P-WSSP-01`**（**p + WSS 专线**）与 **`V2P-WSSP-02`**（**全场 + WSS 头 + 混合早停**），均 **不计首轮 5 组**：见 **§5.2.1** 与 [任务A实验状态表](任务A实验状态表.md)。
+> **（2026-04-22）阶段 C 执行状态**：`V2P-Base-01`（无 geometry）与 `V2P-Main-01`（有 geometry）seed=1 **已在 `split_AG_v1`（bootstrap 口径）完成训练**。Geometry 增益显著（`rmse_vel_mag` -22%，`r2_vel_mag` +72%）；`V2P-Main-01` 全局 `r2_vel_mag=0.609` 已超过 V1 锚点 `A-Opt-05`（~0.576）。**当前限制**：仅 seed=1、缺分区域评估、使用 bootstrap split，不作为正式结论。Gate-0 通过后在 `split_AG_v2` 上补跑正式版。
+> **（2026-04-24～04-25）** 同阶段已增跑 **`V2P-WSSP-01`**（**p + WSS 专线**）与 **`V2P-WSSP-02`**（**全场 + WSS 头 + 混合早停**），均 **不计首轮 5 组**：见 **§5.2.1** 与 [任务A实验状态表](../03-共享执行与状态/任务A实验状态表.md)。
 
 本阶段是当前推荐主线。
 

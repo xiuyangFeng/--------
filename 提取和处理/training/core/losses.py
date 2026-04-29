@@ -50,20 +50,30 @@ def _data_mse_loss(
     return region_weighted_mse_loss(pred, target, data_weights, is_wall, interior_loss_boost)
 
 
-def wss_mse_loss(
+def wss_supervision_loss(
     wss_pred: torch.Tensor,
     wss_target: torch.Tensor,
     is_wall: torch.Tensor,
     wss_weights: torch.Tensor,
+    loss_type: str = "mse",
+    huber_beta: float = 1.0,
 ) -> torch.Tensor:
-    """仅在壁面节点 (is_wall=1) 上计算 WSS 监督损失。"""
+    """仅在壁面节点 (is_wall=1) 上计算 WSS 监督。loss_type='mse' 为逐维 MSE 再加权；'huber'/'smooth_l1' 为 Smooth L1。"""
     wall_mask = is_wall.squeeze(-1).bool()
     n_wall = wall_mask.sum()
     if n_wall == 0:
         return wss_pred.new_zeros(())
     pred_wall = wss_pred[wall_mask]
     target_wall = wss_target[wall_mask]
-    per_dim = (pred_wall - target_wall).square().mean(dim=0)
+    lt = (loss_type or "mse").lower()
+    if lt == "mse":
+        per_dim = (pred_wall - target_wall).square().mean(dim=0)
+    elif lt in ("huber", "smooth_l1"):
+        per_dim = F.smooth_l1_loss(
+            pred_wall, target_wall, reduction="none", beta=float(huber_beta)
+        ).mean(dim=0)
+    else:
+        raise ValueError(f"未知 wss_loss_type: {loss_type}")
     return (per_dim * wss_weights).sum()
 
 
@@ -88,11 +98,19 @@ class LossBreakdown:
 
 
 class NullPhysicsLoss:
-    def __init__(self, interior_loss_boost: float = 1.0,
-                 wss_loss_weight: float = 0.0, wss_weights: Optional[torch.Tensor] = None):
+    def __init__(
+        self,
+        interior_loss_boost: float = 1.0,
+        wss_loss_weight: float = 0.0,
+        wss_weights: Optional[torch.Tensor] = None,
+        wss_loss_type: str = "mse",
+        wss_huber_beta: float = 1.0,
+    ):
         self.interior_loss_boost = float(interior_loss_boost)
         self.wss_loss_weight = float(wss_loss_weight)
         self.wss_weights = wss_weights
+        self.wss_loss_type = wss_loss_type
+        self.wss_huber_beta = float(wss_huber_beta)
 
     def is_enabled(self, epoch: int) -> bool:
         return False
@@ -119,7 +137,14 @@ class NullPhysicsLoss:
             is_wall = batch.x[:, idx : idx + 1]
             wss_target = batch.y_wss if hasattr(batch, "y_wss") and batch.y_wss is not None else None
             if wss_target is not None:
-                wss_l = wss_mse_loss(wss_pred, wss_target, is_wall, self.wss_weights.to(pred.device))
+                wss_l = wss_supervision_loss(
+                    wss_pred,
+                    wss_target,
+                    is_wall,
+                    self.wss_weights.to(pred.device),
+                    loss_type=self.wss_loss_type,
+                    huber_beta=self.wss_huber_beta,
+                )
 
         total = data_loss + self.wss_loss_weight * wss_l
         return LossBreakdown(
@@ -133,12 +158,21 @@ class NullPhysicsLoss:
 
 
 class PhysicsConstraintLoss:
-    def __init__(self, config: PhysicsConfig, interior_loss_boost: float = 1.0,
-                 wss_loss_weight: float = 0.0, wss_weights: Optional[torch.Tensor] = None):
+    def __init__(
+        self,
+        config: PhysicsConfig,
+        interior_loss_boost: float = 1.0,
+        wss_loss_weight: float = 0.0,
+        wss_weights: Optional[torch.Tensor] = None,
+        wss_loss_type: str = "mse",
+        wss_huber_beta: float = 1.0,
+    ):
         self.config = config
         self.interior_loss_boost = float(interior_loss_boost)
         self.wss_loss_weight = float(wss_loss_weight)
         self.wss_weights = wss_weights
+        self.wss_loss_type = wss_loss_type
+        self.wss_huber_beta = float(wss_huber_beta)
         self.coord_indices = [NODE_FEATURE_NAMES.index(name) for name in ("x", "y", "z")]
         self.is_wall_idx = NODE_FEATURE_NAMES.index("is_wall")
         self.time_idx = GLOBAL_COND_NAMES.index("t_norm")
@@ -182,7 +216,14 @@ class PhysicsConstraintLoss:
             is_wall = batch.x[:, self.is_wall_idx : self.is_wall_idx + 1]
             wss_target = batch.y_wss if hasattr(batch, "y_wss") and batch.y_wss is not None else None
             if wss_target is not None:
-                wss_l = wss_mse_loss(wss_pred, wss_target, is_wall, self.wss_weights.to(pred.device))
+                wss_l = wss_supervision_loss(
+                    wss_pred,
+                    wss_target,
+                    is_wall,
+                    self.wss_weights.to(pred.device),
+                    loss_type=self.wss_loss_type,
+                    huber_beta=self.wss_huber_beta,
+                )
 
         if not self.is_enabled(epoch):
             total = data_loss + self.wss_loss_weight * wss_l
@@ -331,11 +372,15 @@ def build_loss_plugin(
     interior_loss_boost: float = 1.0,
     wss_loss_weight: float = 0.0,
     wss_weights: Optional[torch.Tensor] = None,
+    wss_loss_type: str = "mse",
+    wss_huber_beta: float = 1.0,
 ):
     kwargs = dict(
         interior_loss_boost=interior_loss_boost,
         wss_loss_weight=wss_loss_weight,
         wss_weights=wss_weights,
+        wss_loss_type=wss_loss_type,
+        wss_huber_beta=wss_huber_beta,
     )
     if config is None or not config.enabled:
         return NullPhysicsLoss(**kwargs)

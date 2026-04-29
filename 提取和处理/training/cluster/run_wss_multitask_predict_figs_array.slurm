@@ -135,8 +135,8 @@ echo ">>> plot_taskA_scatter"
 echo ">>> plot_taskA_per_case_boxplot"
 "$PYTHON_BIN" -m training.scripts.plot_taskA_per_case_boxplot --manifest "$MAN"
 
-echo ">>> plot_error_analysis"
-"$PYTHON_BIN" -m training.scripts.plot_error_analysis --manifest "$MAN"
+echo ">>> plot_error_analysis (含壁面 WSS 子目录，与 WSSP/多任务口径一致)"
+"$PYTHON_BIN" -m training.scripts.plot_error_analysis --manifest "$MAN" --wss
 
 echo ">>> plot_taskA_regional_bar (Fig A5)"
 "$PYTHON_BIN" -m training.scripts.plot_taskA_regional_bar --manifest "$MAN"

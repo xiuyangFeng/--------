@@ -1,0 +1,90 @@
+{
+  "run": {
+    "experiment_name": "field_transformer_opt05_wss_multitask_stage2",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true,
+    "init_checkpoint": "outputs/field/field_transformer_opt05_wss_multitask_split_AG_v1_seed1_20260415_232824/best_model.pt"
+  },
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 2,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x", "y", "z",
+      "Abscissa", "NormRadius", "Curvature",
+      "Tangent_X", "Tangent_Y", "Tangent_Z",
+      "is_wall"
+    ],
+    "enabled_global_features": [
+      "t_norm", "BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"
+    ],
+    "augment": true,
+    "augment_config": {
+      "rotation_prob": 0.5,
+      "rotation_axes": "xyz",
+      "translation_prob": 0.5,
+      "translation_range": 0.1,
+      "scale_prob": 0.0,
+      "mirror_prob": 0.0
+    }
+  },
+  "model": {
+    "name": "transformer",
+    "hidden_dim": 256,
+    "num_layers": 4,
+    "dropout": 0.1,
+    "heads": 4,
+    "use_transformer_prenorm": true,
+    "wss_dim": 4
+  },
+  "optim": {
+    "epochs": 80,
+    "lr": 0.0001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 0,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 8,
+    "early_stopping_patience": 20,
+    "target_weights": [2.0, 2.0, 2.0, 0.5],
+    "interior_loss_boost": 1.0,
+    "grad_clip_norm": 1.0,
+    "accumulate_grad_batches": 1,
+    "wss_loss_weight": 0.2,
+    "wss_weights": [1.0, 1.0, 1.0, 1.0]
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true,
+    "amp": false
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "A-Opt-W04-stage2",
+    "stage": "task_a",
+    "study_group": "wss_multitask",
+    "question": "从已训练的 A-Opt-W03-multi checkpoint 继续训练，以较低学习率和更高 WSS 权重进行 WSS 导向精调，检验两阶段训练是否优于从头重加权。",
+    "feature_set": "full_geom_wss_multitask",
+    "ablation_axis": "stage2_finetune_wss_weight_0p2_lr1e-4",
+    "tags": ["line_w", "w04", "wss_multitask", "stage2", "finetune", "parent_A-Opt-W03-multi", "split_AG_v1"],
+    "notes": "从 A-Opt-W03-multi seed1 best_model.pt 初始化；保持场监督 [2,2,2,0.5]，将 wss_loss_weight 提到 0.2，lr 降到 1e-4。主指标为 wall.wss_r2_wss，压力保底线为 r2_p >= 0.90。",
+    "generated_from": "A-Opt-W03-multi_seed1"
+  },
+  "physics": {
+    "enabled": false,
+    "warmup_epochs": 0,
+    "density": 1060.0,
+    "viscosity": 0.0035,
+    "coord_scales": [1.0, 1.0, 1.0],
+    "time_scale": 1.0,
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "auto_load_scales": true
+  }
+}

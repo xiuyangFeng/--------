@@ -15,6 +15,7 @@ class RunConfig:
     output_root: str = "outputs/field"
     save_every: int = 10
     save_best_only: bool = True
+    init_checkpoint: Optional[str] = None
 
 
 @dataclass
@@ -71,6 +72,9 @@ class OptimConfig:
     # 早停/模型选择的混合指标权重。> 0 时验证分数为
     # data_loss + early_stop_wss_weight * wss_loss，取代默认的 total loss。
     early_stop_wss_weight: float = 0.0
+    # WSS 监督项形式：mse（默认）或 huber / smooth_l1（PyTorch Smooth L1，beta 见下）。
+    wss_loss_type: str = "mse"
+    wss_huber_beta: float = 1.0
 
 
 @dataclass
@@ -244,3 +248,9 @@ class ExperimentConfig:
             raise ValueError("accumulate_grad_batches 必须 >= 1")
         if self.optim.interior_loss_boost <= 0:
             raise ValueError("interior_loss_boost 必须 > 0")
+        if self.model.wss_dim > 0 and self.optim.wss_loss_weight > 0:
+            lt = (self.optim.wss_loss_type or "mse").lower()
+            if lt not in ("mse", "huber", "smooth_l1"):
+                raise ValueError("wss_loss_type 须为 mse、huber 或 smooth_l1")
+        if self.optim.wss_huber_beta <= 0:
+            raise ValueError("wss_huber_beta 必须 > 0")

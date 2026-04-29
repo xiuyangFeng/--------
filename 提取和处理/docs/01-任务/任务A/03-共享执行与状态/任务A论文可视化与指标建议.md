@@ -1,6 +1,6 @@
 # 任务A论文可视化与指标建议
 
-> 上位文档：[实验设计总纲](../../实验设计总纲.md) / [任务A实验清单](./任务A实验清单.md) / [项目思路](../../paper_idea/项目思路.md)
+> 上位文档：[实验设计总纲](../../../实验设计总纲.md) / [任务A实验清单](../01-V1路线/任务A_V1实验清单.md) / [项目思路](../../../paper_idea/项目思路.md)
 
 ## 1. 文档定位
 
@@ -118,6 +118,10 @@
 > **（2026-04-25）全场监督 + WSS 头（`V2P-WSSP-02`）**：**流场/速度** 可沿用 **§4.1 默认 `interior` 主口径**（A3、A4、误差、场区域柱图与 **`summary.test_metrics` 的 `r2_vel_mag` 等** 可作主 readout）。**WSS 结论** 仍以 **`fig_A5_regional_wss_metrics.json` 的 `wall` / `all` 与 `error_analysis/.../wss/` 为主**；**`interior` 的 WSS R² 勿单独写结论**。与 **`V2P-WSSP-01`** 对照时须 **明写监督目标与采样差异**（见 [任务A实验状态表](任务A实验状态表.md)「V2P-WSSP-02」）。
 
 > **（2026-04-25）压力 + WSS 主线（`V2P-WSSP-04` 起）**：导师沟通后，若速度场相关系数难以提升，WSSP 后续图表的主读数改为 **`summary.test_metrics.r2_p / rmse_p`** 与 **`regional_eval/fig_A5_regional_wss_metrics.json` 的 `wall.r2_wss / wall.rmse_wss`**。速度相关 A3/A4/A5 图仍可生成，但只作为弱速度辅助监督的诊断材料，不进入主结论排序。
+
+> **（2026-04-27）V2P-WSSP-04 vs Line W（`A-Opt-W03-p025-w02` / `w02` / `w05`）同批多模型**：四组 **`plot_taskA_multimodel_*`** 已落盘 **`outputs/field/plots/wssp04_w03_line_seed1_20260427/`**（`--exp-filter` 四 `exp_id`，`--seed 1`）。**主读数**仍以各 run **`regional_eval`** 为准；**`V2P-WSSP-04` 与 Transformer+场全监督的 `interior` `r2_p` 不可无注释并排解读**。
+
+> **（2026-04-28）V2P-WSSP-05 / V2P-WSSP-06（仅 p+WSS，MSE vs Huber WSS）**：与 **WSSP-01** 同属 **未监督速度** 读数约束；**主表**以 **`summary.test_metrics.r2_p`、`wss_r2_wss`、`wss_rmse_wss`** 与 **`regional_eval`（若已跑 `plot_taskA_regional_bar --wss`）** 为准；**勿**用未监督的 **`r2_vel_mag`** 作主成功指标。数值与结论摘要见 [任务A实验状态表](任务A实验状态表.md)「实验记录摘要 · V2P-WSSP-05 / V2P-WSSP-06」。
 
 > **（2026-03-29 补充）近壁区 `near_wall`（内部、NormRadius > 0.8）**：除 RMSE 外，正式汇报与 **`plot_taskA_main_table.py` 导出的 `fig_A1_main_table.csv`** 同步纳入 **`near_wall_rmse_*` 与 `near_wall_r2_*`**（含 `u, v, w, p` 分量与 **`vel_mag` 的 R²**，字段 `r2_vel_mag`）。数值来自各 run 的 `predictions_test/regional_eval/fig_A5_regional_metrics.json`；若该 JSON 为旧版不含 `r2_vel_mag`，需重新运行 `plot_taskA_regional_bar` 聚合。
 
@@ -359,7 +363,7 @@
 - **（2026-04-24）**：**`V2P-WSSP-01`**（PointNeXt，**仅 p + WSS 监督**）后处理：**`python -m training.scripts.plot_error_analysis --manifest .../predictions_test/manifest.json --region interior --wss --wss-region wall`**；**`python -m training.scripts.plot_taskA_regional_bar --manifest ... --metric-key rmse_p --metric-key rmse --wss`**。须在 **`conda` 环境 `rag_venv`** 下执行。
 - **（2026-04-25）**：**`V2P-WSSP-02`**（**全场 + WSS 头**）后处理除上表 **§4.1** 外，建议补 **`plot_taskA_scatter`**、**`plot_taskA_per_case_boxplot`**；命令模板见 [任务A配置与启动说明](任务A配置与启动说明.md) §10 **示例 B**。
 - **（2026-04-25）**：**`V2P-WSSP-04`**（**压力 + WSS 主线，速度弱辅助**）后处理优先执行 **`plot_taskA_regional_bar --metric-key rmse_p --metric-key rmse --wss`** 与 **`plot_error_analysis --wss --wss-region wall`**；主表只汇报压力与 `wall` WSS，速度图作为附录/诊断。命令模板见 [任务A配置与启动说明](任务A配置与启动说明.md) §10 **示例 C**。
-- 跨模型对比请引用 **`outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`**（及 geo_only 变体）。**区域名称、区间与默认阈值的权威表述**见 [任务A分区域评估口径](../../00-规范与记录/任务A分区域评估口径.md)；正文若修改阈值须与代码 `build_region_masks` 的 `mask_kwargs` 一致并写明。
+- 跨模型对比请引用 **`outputs/field/plots/multimodel_baseline/fig_A5_multimodel_regional_bar_*.png`**（及 geo_only 变体）。**区域名称、区间与默认阈值的权威表述**见 [任务A分区域评估口径](../../../00-规范与记录/任务A分区域评估口径.md)；正文若修改阈值须与代码 `build_region_masks` 的 `mask_kwargs` 一致并写明。
 
 ### 6.6 Figure A6：消融总结图
 
@@ -385,14 +389,14 @@
 - `training.analysis.visualization.plot_ablation_summary()`
 - `training.analysis.stats.*`
 - `training/scripts/plot_taskA_ablation_summary.py` 已完成并已生成 `outputs/field/plots/ablation/fig_A6_ablation_summary.png`
-- **（2026-04-09）** 几何分量消融（**`A-Opt-05` vs `A-Abl-02-01`～`04`**，**三 seed 按 `exp_id` 聚合**）已落盘：**`outputs/field/plots/ablation/geometry_opt05_mean3seed/fig_A6_ablation_summary_interior.{png,csv}`** 与 **`fig_A6_ablation_summary_stats_interior.json`**（指标 **`interior` · `rmse_vel_mag`**）。复现见 [代码修改与实验推进记录](../../02-推进与变更/代码修改与实验推进记录.md) 2026-04-07 条目。
+- **（2026-04-09）** 几何分量消融（**`A-Opt-05` vs `A-Abl-02-01`～`04`**，**三 seed 按 `exp_id` 聚合**）已落盘：**`outputs/field/plots/ablation/geometry_opt05_mean3seed/fig_A6_ablation_summary_interior.{png,csv}`** 与 **`fig_A6_ablation_summary_stats_interior.json`**（指标 **`interior` · `rmse_vel_mag`**）。复现见 [代码修改与实验推进记录](../../../02-推进与变更/代码修改与实验推进记录.md) 2026-04-07 条目。
 
 写作提醒：
 
 - 仓库中 **`fig_A6_ablation_summary.png`（早期路径）** 仍可能对应 **baseline 四组**汇总；论文若写「几何通道内归因」，请改用 **`geometry_opt05_mean3seed/`** 或与正文一致的 **`exp_id`** 子集重跑 `plot_taskA_ablation_summary`。
 - 统计上，`A-Main-01` 相比 `A-Base-02` 的 `RMSE_|v|` 均值改善为 `-0.1998`，paired t-test `p = 0.0337`（**架构 vs 几何**叙事仍可用）。
 - `A-Base-02` 与 `A-Base-03` 的差异极小（`delta_mean = +0.0034`, `p = 0.5404`），这条证据很适合支撑“主要增益来自显式几何特征，而不是 backbone 更换”。
-- **几何分量内排序（母版 `A-Opt-05`，*n*=3）**：去掉 **NormRadius** 退化最大（**p≈0.0015**），去掉 **Tangent** 次之（**p≈0.073**）；**Abscissa / Curvature** 在 *n*=3 下与母版差异未达常规显著——详见 [任务A实验状态表](../任务A/任务A实验状态表.md)「实验记录摘要 · A-Abl-02」。
+- **几何分量内排序（母版 `A-Opt-05`，*n*=3）**：去掉 **NormRadius** 退化最大（**p≈0.0015**），去掉 **Tangent** 次之（**p≈0.073**）；**Abscissa / Curvature** 在 *n*=3 下与母版差异未达常规显著——详见 [任务A实验状态表](任务A实验状态表.md)「实验记录摘要 · A-Abl-02」。
 
 ### 6.7 Figure A7：训练曲线与误差分布图
 

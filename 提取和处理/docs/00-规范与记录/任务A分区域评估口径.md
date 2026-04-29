@@ -1,6 +1,6 @@
 # 任务 A 分区域评估口径（复杂区域定义）
 
-> 上位文档：[实验设计总纲](../实验设计总纲.md) | [任务A论文可视化与指标建议](../01-任务/任务A/任务A论文可视化与指标建议.md)  
+> 上位文档：[实验设计总纲](../实验设计总纲.md) | [任务A论文可视化与指标建议](../01-任务/任务A/03-共享执行与状态/任务A论文可视化与指标建议.md)
 > 实现代码：`training/analysis/regional_eval.py`（`DEFAULT_REGIONS`、`build_region_masks`、`load_node_features_for_region_masks`）
 
 ## 1. 文档定位

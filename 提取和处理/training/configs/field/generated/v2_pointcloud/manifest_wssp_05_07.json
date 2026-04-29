@@ -1,0 +1,18 @@
+{
+  "manifest_name": "v2_pointcloud_wssp_05_07_matrix",
+  "description": "计划讨论.md 实验矩阵 WSSP-05→07：固定 wall13000+nearwall2000；05 复核 p+WSS 三 seed；06 仅换 WSS 为 Huber；07 在 06 上两档速度辅助 × 三 seed。WSSP-08（两阶段/解耦）未生成 JSON，见任务文档。",
+  "sampling": {
+    "target_total_points": 15000,
+    "wall_max_points": 13000,
+    "boundary_core_ratio": [1.0, 0.0],
+    "allow_core_fallback": false
+  },
+  "items": [
+    { "exp_id": "V2P-WSSP-05", "config_path": "training/configs/field/generated/v2_pointcloud/V2P-WSSP-05_seed1.json", "seeds": [1, 2, 3], "role": "baseline_p_wss_mse" },
+    { "exp_id": "V2P-WSSP-06", "config_path": "training/configs/field/generated/v2_pointcloud/V2P-WSSP-06_seed1.json", "seeds": [1, 2, 3], "role": "wss_huber_only" },
+    { "exp_id": "V2P-WSSP-07-vel01", "config_path": "training/configs/field/generated/v2_pointcloud/V2P-WSSP-07_vel01_seed1.json", "seeds": [1, 2, 3], "role": "huber_plus_vel_aux_0.1" },
+    { "exp_id": "V2P-WSSP-07-vel05", "config_path": "training/configs/field/generated/v2_pointcloud/V2P-WSSP-07_vel05_seed1.json", "seeds": [1, 2, 3], "role": "huber_plus_vel_aux_0.5" }
+  ],
+  "primary_metrics": ["r2_p", "wall.r2_wss", "wall.rmse_wss"],
+  "notes": "执行顺序建议 05 → 06 → 07。Go/No-Go 以状态表与计划讨论.md 为准（对照 A-Opt-05-wss-multi ~0.46）。"
+}

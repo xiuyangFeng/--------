@@ -36,6 +36,8 @@ def evaluate_checkpoint(
     interior_loss_boost: float = 1.0,
     wss_loss_weight: float = 0.0,
     wss_weights: torch.Tensor | None = None,
+    wss_loss_type: str = "mse",
+    wss_huber_beta: float = 1.0,
     eval_epoch: int = 10**9,
     checkpoint_path: Path | str | None = None,
 ) -> Dict[str, float]:
@@ -50,6 +52,8 @@ def evaluate_checkpoint(
         interior_loss_boost=interior_loss_boost,
         wss_loss_weight=wss_loss_weight,
         wss_weights=wss_weights,
+        wss_loss_type=wss_loss_type,
+        wss_huber_beta=wss_huber_beta,
     )
     extra_totals: Dict[str, float] = {}
     num_batches = 0
@@ -146,6 +150,8 @@ def main() -> None:
             if config.model.wss_dim > 0
             else None
         ),
+        wss_loss_type=config.optim.wss_loss_type,
+        wss_huber_beta=config.optim.wss_huber_beta,
         checkpoint_path=Path(args.checkpoint),
     )
 

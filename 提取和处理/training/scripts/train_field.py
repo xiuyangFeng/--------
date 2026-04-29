@@ -13,7 +13,7 @@ from ..core.data import (
     build_feature_mask,
     build_required_data_keys,
 )
-from ..core.io import append_experiment_index
+from ..core.io import append_experiment_index, load_checkpoint
 from ..core.models import build_model
 from ..core.splits import SplitSpec
 from ..core.trainer import FieldTrainer
@@ -56,6 +56,7 @@ def build_run_manifest(
         "device": str(device),
         "run_dir": str(run_dir),
         "output_root": config.run.output_root,
+        "init_checkpoint": config.run.init_checkpoint,
         "split_version": split.split_version,
         "split_source": split.source,
         "split_notes": split.notes,
@@ -87,6 +88,11 @@ def build_run_manifest(
             "target_weights": config.optim.target_weights,
             "interior_loss_boost": config.optim.interior_loss_boost,
             "grad_clip_norm": config.optim.grad_clip_norm,
+            "wss_loss_weight": config.optim.wss_loss_weight,
+            "wss_weights": config.optim.wss_weights,
+            "wss_loss_type": config.optim.wss_loss_type,
+            "wss_huber_beta": config.optim.wss_huber_beta,
+            "early_stop_wss_weight": config.optim.early_stop_wss_weight,
         },
         "physics": {
             "enabled": config.physics.enabled,
@@ -211,6 +217,10 @@ def main() -> None:
         wss_dim=config.model.wss_dim,
     ).to(device)
 
+    if config.run.init_checkpoint:
+        load_checkpoint(model, config.run.init_checkpoint, device)
+        print(f"已加载初始 checkpoint: {config.run.init_checkpoint}")
+
     # 统计模型总参数量。
     total_params = sum(p.numel() for p in model.parameters())
     # 统计可训练参数量。
@@ -261,6 +271,8 @@ def main() -> None:
         wss_loss_weight=config.optim.wss_loss_weight,
         wss_weights=wss_weights_tensor,
         early_stop_wss_weight=config.optim.early_stop_wss_weight,
+        wss_loss_type=config.optim.wss_loss_type,
+        wss_huber_beta=config.optim.wss_huber_beta,
     )
     # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")
