@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 from pipeline.config import GLOBAL_COND_NAMES, NODE_FEATURE_NAMES
 
-from .config import PhysicsConfig
+from .config import DomainLossConfig, PhysicsConfig
 
 
 def weighted_mse_loss(pred: torch.Tensor, target: torch.Tensor, weights: torch.Tensor) -> torch.Tensor:
@@ -367,6 +367,141 @@ class PhysicsConstraintLoss:
         return grad
 
 
+@dataclass
+class DualDomainLossBreakdown:
+    """V3 双域 mask loss 的分项记录。"""
+    total_loss: torch.Tensor
+    loss_interior_velocity: torch.Tensor
+    loss_noslip_velocity: torch.Tensor
+    loss_interior_pressure: torch.Tensor
+    loss_wall_pressure: torch.Tensor
+    loss_wall_wss: torch.Tensor
+    weighted_loss_interior_velocity: torch.Tensor
+    weighted_loss_noslip_velocity: torch.Tensor
+    weighted_loss_interior_pressure: torch.Tensor
+    weighted_loss_wall_pressure: torch.Tensor
+    weighted_loss_wall_wss: torch.Tensor
+
+    def scalar_dict(self) -> Dict[str, float]:
+        return {
+            "loss": self.total_loss.detach().item(),
+            "loss_interior_velocity": self.loss_interior_velocity.detach().item(),
+            "loss_noslip_velocity": self.loss_noslip_velocity.detach().item(),
+            "loss_interior_pressure": self.loss_interior_pressure.detach().item(),
+            "loss_wall_pressure": self.loss_wall_pressure.detach().item(),
+            "loss_wall_wss": self.loss_wall_wss.detach().item(),
+            "weighted_loss_interior_velocity": self.weighted_loss_interior_velocity.detach().item(),
+            "weighted_loss_noslip_velocity": self.weighted_loss_noslip_velocity.detach().item(),
+            "weighted_loss_interior_pressure": self.weighted_loss_interior_pressure.detach().item(),
+            "weighted_loss_wall_pressure": self.weighted_loss_wall_pressure.detach().item(),
+            "weighted_loss_wall_wss": self.weighted_loss_wall_wss.detach().item(),
+        }
+
+
+class DualDomainLoss:
+    """V3 双域 mask loss：壁面与内部分开计算，各项独立求均值再加权。
+
+    硬约束：WSS loss 只在 is_wall==1 节点上计算（§8.2 WSS 伪值陷阱）。
+    """
+
+    def __init__(
+        self,
+        domain_loss_config: DomainLossConfig,
+        wss_loss_type: str = "mse",
+        wss_huber_beta: float = 1.0,
+        wss_weights: Optional[torch.Tensor] = None,
+    ):
+        self.cfg = domain_loss_config
+        self.wss_loss_type = wss_loss_type
+        self.wss_huber_beta = float(wss_huber_beta)
+        self.wss_weights = wss_weights
+        self._is_wall_idx = NODE_FEATURE_NAMES.index("is_wall")
+
+    def is_enabled(self, epoch: int) -> bool:
+        return False
+
+    def build_loss(
+        self,
+        model: torch.nn.Module,
+        batch,
+        pred: torch.Tensor,
+        target: torch.Tensor,
+        data_weights: torch.Tensor,
+        epoch: int,
+        train: bool,
+        wss_pred: Optional[torch.Tensor] = None,
+    ) -> DualDomainLossBreakdown:
+        is_wall = batch.x[:, self._is_wall_idx]
+        wall_mask = is_wall.bool()
+        interior_mask = ~wall_mask
+        n_wall = wall_mask.sum().clamp_min(1)
+        n_interior = interior_mask.sum().clamp_min(1)
+
+        zero = pred.new_zeros(())
+
+        # 内部速度 MSE（均值分母 = 内部点数）
+        if self.cfg.lambda_vel_int > 0 and interior_mask.any():
+            vel_int = (pred[interior_mask, :3] - target[interior_mask, :3]).square().mean()
+        else:
+            vel_int = zero
+
+        # 壁面无滑移速度 MSE（均值分母 = 壁面点数，target 取 CFD 真值）
+        if self.cfg.lambda_vel_noslip > 0 and wall_mask.any():
+            vel_noslip = (pred[wall_mask, :3] - target[wall_mask, :3]).square().mean()
+        else:
+            vel_noslip = zero
+
+        # 内部压力 MSE
+        if self.cfg.lambda_p_int > 0 and interior_mask.any():
+            p_int = (pred[interior_mask, 3] - target[interior_mask, 3]).square().mean()
+        else:
+            p_int = zero
+
+        # 壁面压力 MSE
+        if self.cfg.lambda_p_wall > 0 and wall_mask.any():
+            p_wall = (pred[wall_mask, 3] - target[wall_mask, 3]).square().mean()
+        else:
+            p_wall = zero
+
+        # 壁面 WSS MSE（严格 wall_mask，禁止全节点计算）
+        if self.cfg.lambda_wss > 0 and wss_pred is not None and self.wss_weights is not None:
+            wss_target = getattr(batch, "y_wss", None)
+            if wss_target is not None:
+                wss_l = wss_supervision_loss(
+                    wss_pred, wss_target,
+                    is_wall.unsqueeze(-1),
+                    self.wss_weights.to(pred.device),
+                    loss_type=self.wss_loss_type,
+                    huber_beta=self.wss_huber_beta,
+                )
+            else:
+                wss_l = zero
+        else:
+            wss_l = zero
+
+        w_vel_int = self.cfg.lambda_vel_int * vel_int
+        w_vel_noslip = self.cfg.lambda_vel_noslip * vel_noslip
+        w_p_int = self.cfg.lambda_p_int * p_int
+        w_p_wall = self.cfg.lambda_p_wall * p_wall
+        w_wss = self.cfg.lambda_wss * wss_l
+
+        total = w_vel_int + w_vel_noslip + w_p_int + w_p_wall + w_wss
+
+        return DualDomainLossBreakdown(
+            total_loss=total,
+            loss_interior_velocity=vel_int,
+            loss_noslip_velocity=vel_noslip,
+            loss_interior_pressure=p_int,
+            loss_wall_pressure=p_wall,
+            loss_wall_wss=wss_l,
+            weighted_loss_interior_velocity=w_vel_int,
+            weighted_loss_noslip_velocity=w_vel_noslip,
+            weighted_loss_interior_pressure=w_p_int,
+            weighted_loss_wall_pressure=w_p_wall,
+            weighted_loss_wall_wss=w_wss,
+        )
+
+
 def build_loss_plugin(
     config: Optional[PhysicsConfig],
     interior_loss_boost: float = 1.0,
@@ -374,7 +509,16 @@ def build_loss_plugin(
     wss_weights: Optional[torch.Tensor] = None,
     wss_loss_type: str = "mse",
     wss_huber_beta: float = 1.0,
+    domain_loss_config: Optional[DomainLossConfig] = None,
 ):
+    # V3 双域 mask loss 优先级最高：启用后不走旧路径。
+    if domain_loss_config is not None and domain_loss_config.enabled:
+        return DualDomainLoss(
+            domain_loss_config=domain_loss_config,
+            wss_loss_type=wss_loss_type,
+            wss_huber_beta=wss_huber_beta,
+            wss_weights=wss_weights,
+        )
     kwargs = dict(
         interior_loss_boost=interior_loss_boost,
         wss_loss_weight=wss_loss_weight,

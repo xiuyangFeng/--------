@@ -68,6 +68,7 @@ def build_run_manifest(
             "num_layers": config.model.num_layers,
             "dropout": config.model.dropout,
             "heads": config.model.heads,
+            "head_layout": config.model.head_layout,
         },
         "data": {
             "data_root": config.data.data_root,
@@ -93,6 +94,7 @@ def build_run_manifest(
             "wss_loss_type": config.optim.wss_loss_type,
             "wss_huber_beta": config.optim.wss_huber_beta,
             "early_stop_wss_weight": config.optim.early_stop_wss_weight,
+            "domain_loss_enabled": config.optim.domain_loss.enabled,
         },
         "physics": {
             "enabled": config.physics.enabled,
@@ -215,6 +217,7 @@ def main() -> None:
         heads=config.model.heads,
         use_transformer_prenorm=config.model.use_transformer_prenorm,
         wss_dim=config.model.wss_dim,
+        head_layout=config.model.head_layout,
     ).to(device)
 
     if config.run.init_checkpoint:
@@ -254,6 +257,10 @@ def main() -> None:
     run_dir = build_run_dir(config, split)
 
     wss_weights_tensor = torch.tensor(config.optim.wss_weights, dtype=torch.float32) if config.model.wss_dim > 0 else None
+
+    # V3: normalization_params_global.json 路径推导。
+    norm_params_path = str(Path(config.data.data_root) / "normalization_params_global.json")
+
     trainer = FieldTrainer(
         model=model,
         optimizer=optimizer,
@@ -273,6 +280,8 @@ def main() -> None:
         early_stop_wss_weight=config.optim.early_stop_wss_weight,
         wss_loss_type=config.optim.wss_loss_type,
         wss_huber_beta=config.optim.wss_huber_beta,
+        domain_loss_config=config.optim.domain_loss,
+        norm_params_path=norm_params_path,
     )
     # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")
@@ -362,6 +371,9 @@ def main() -> None:
             "test_r2_w": test_metrics["r2_w"],
             "test_r2_p": test_metrics["r2_p"],
             "test_r2_vel_mag": test_metrics["r2_vel_mag"],
+            "head_layout": config.model.head_layout,
+            "domain_loss_enabled": config.optim.domain_loss.enabled,
+            "sampling_profile": "wall13000_near2000" if config.optim.domain_loss.enabled else "default",
         },
         fieldnames=[
             "task",
@@ -391,6 +403,9 @@ def main() -> None:
             "test_r2_w",
             "test_r2_p",
             "test_r2_vel_mag",
+            "head_layout",
+            "domain_loss_enabled",
+            "sampling_profile",
         ],
     )
 

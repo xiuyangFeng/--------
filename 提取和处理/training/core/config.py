@@ -49,6 +49,23 @@ class ModelConfig:
     use_transformer_prenorm: bool = False
     # WSS 预测头输出维度。0 = 不启用 WSS 头，4 = [wss, wss_x, wss_y, wss_z]。
     wss_dim: int = 0
+    # V3: 输出头结构。"single_linear" = 单层 nn.Linear（默认，与旧 checkpoint 兼容）；
+    # "mlp2" = 2 层 MLP（含 LayerNorm + GELU），仅对 FieldPointNeXt 生效。
+    head_layout: str = "single_linear"
+
+
+@dataclass
+class DomainLossConfig:
+    """V3 双域 mask loss 配置。enabled=False 时完全不影响旧训练路径。"""
+    enabled: bool = False
+    lambda_vel_int: float = 0.3
+    lambda_vel_noslip: float = 0.1
+    lambda_p_int: float = 0.5
+    lambda_p_wall: float = 1.0
+    lambda_wss: float = 0.1
+    normalize_by_target_std: bool = False
+    norm_consts: Dict[str, float] = field(default_factory=dict)
+    weight_calibration: str = ""
 
 
 @dataclass
@@ -75,6 +92,8 @@ class OptimConfig:
     # WSS 监督项形式：mse（默认）或 huber / smooth_l1（PyTorch Smooth L1，beta 见下）。
     wss_loss_type: str = "mse"
     wss_huber_beta: float = 1.0
+    # V3 双域 mask loss（默认关闭，旧配置不受影响）。
+    domain_loss: DomainLossConfig = field(default_factory=DomainLossConfig)
 
 
 @dataclass
@@ -187,11 +206,17 @@ class ExperimentConfig:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ExperimentConfig":
         # 这里显式展开每个子配置，便于后续新增字段时保持类型边界清晰。
+        # OptimConfig 内含嵌套的 DomainLossConfig，需要先 pop 出来单独构造。
+        optim_raw = dict(data["optim"])
+        domain_loss_raw = optim_raw.pop("domain_loss", None)
+        optim_obj = OptimConfig(**optim_raw)
+        if domain_loss_raw is not None:
+            optim_obj.domain_loss = DomainLossConfig(**domain_loss_raw)
         return cls(
             run=RunConfig(**data["run"]),
             data=DataConfig(**data["data"]),
             model=ModelConfig(**data["model"]),
-            optim=OptimConfig(**data["optim"]),
+            optim=optim_obj,
             system=SystemConfig(**data.get("system", {})),
             meta=MetaConfig(**data.get("meta", {})),
             physics=PhysicsConfig(**data.get("physics", {})),
@@ -254,3 +279,10 @@ class ExperimentConfig:
                 raise ValueError("wss_loss_type 须为 mse、huber 或 smooth_l1")
         if self.optim.wss_huber_beta <= 0:
             raise ValueError("wss_huber_beta 必须 > 0")
+        if self.model.head_layout not in ("single_linear", "mlp2"):
+            raise ValueError(f"head_layout 须为 single_linear 或 mlp2，收到: {self.model.head_layout}")
+        dl = self.optim.domain_loss
+        if dl.enabled:
+            for attr in ("lambda_vel_int", "lambda_vel_noslip", "lambda_p_int", "lambda_p_wall", "lambda_wss"):
+                if getattr(dl, attr) < 0:
+                    raise ValueError(f"domain_loss.{attr} 不得为负")

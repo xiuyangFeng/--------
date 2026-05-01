@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import csv
 import gc
+import json
 import time
 from pathlib import Path
 from typing import Dict, Optional
@@ -13,8 +14,9 @@ from tqdm.auto import tqdm
 
 from pipeline.config import NODE_FEATURE_NAMES
 
+from .config import DomainLossConfig
 from .io import load_checkpoint, save_checkpoint
-from .losses import build_loss_plugin
+from .losses import DualDomainLossBreakdown, build_loss_plugin
 from .metrics import RegressionMeter, WSSMeter
 
 try:
@@ -44,6 +46,8 @@ class FieldTrainer:
         early_stop_wss_weight: float = 0.0,
         wss_loss_type: str = "mse",
         wss_huber_beta: float = 1.0,
+        domain_loss_config: Optional[DomainLossConfig] = None,
+        norm_params_path: Optional[str] = None,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -55,6 +59,7 @@ class FieldTrainer:
         self.early_stop_wss_weight = float(early_stop_wss_weight)
         self.grad_clip_norm = grad_clip_norm
         self.wss_loss_weight = float(wss_loss_weight)
+        self.domain_loss_config = domain_loss_config
         self.loss_plugin = build_loss_plugin(
             physics_config,
             interior_loss_boost=interior_loss_boost,
@@ -62,8 +67,29 @@ class FieldTrainer:
             wss_weights=wss_weights,
             wss_loss_type=wss_loss_type,
             wss_huber_beta=wss_huber_beta,
+            domain_loss_config=domain_loss_config,
         )
         self.accumulate_grad_batches = max(1, accumulate_grad_batches)
+
+        # P0-B: 读取 normalization_params_global.json 中的 per-channel std。
+        self.norm_stds: Dict[str, float] = {}
+        self._use_domain_loss = domain_loss_config is not None and domain_loss_config.enabled
+        if self._use_domain_loss and domain_loss_config.normalize_by_target_std:
+            if domain_loss_config.norm_consts:
+                self.norm_stds = dict(domain_loss_config.norm_consts)
+            elif norm_params_path and Path(norm_params_path).exists():
+                with open(norm_params_path, "r", encoding="utf-8") as f:
+                    stats = json.load(f).get("statistics", {})
+                for ch in ("u", "v", "w", "p", "wss", "wss_x", "wss_y", "wss_z"):
+                    ch_stats = stats.get(ch, {})
+                    if "std" in ch_stats and ch_stats["std"] > 1e-10:
+                        self.norm_stds[ch] = ch_stats["std"]
+
+        # P0-A: mask 等价关系首 batch 校验标记。
+        self._domain_mask_verified = False
+        self._track_wss_metrics = self.wss_loss_weight > 0
+        if self._use_domain_loss and domain_loss_config.lambda_wss > 0:
+            self._track_wss_metrics = True
 
         # 只有 CUDA 上才真正启用 AMP。
         self.use_amp = use_amp and device.type == "cuda"
@@ -127,7 +153,7 @@ class FieldTrainer:
         # meter 负责在线累计回归指标。
         meter = RegressionMeter()
         # WSS 指标在线累计（仅壁面节点）。
-        wss_meter = WSSMeter() if self.wss_loss_weight > 0 else None
+        wss_meter = WSSMeter() if self._track_wss_metrics else None
         # train=True 时启用训练模式；否则启用评估模式。
         self.model.train(mode=train)
         # 额外损失分项的累计器。
@@ -176,6 +202,18 @@ class FieldTrainer:
                     wss_pred=wss_pred,
                 )
                 loss_value = breakdown.total_loss.item()
+
+                # P0-A: 首 batch 校验 wall_mask / interior_mask 非空。
+                if self._use_domain_loss and not self._domain_mask_verified:
+                    is_wall_col = batch.x[:, _is_wall_idx]
+                    n_wall_check = is_wall_col.bool().sum().item()
+                    n_int_check = (~is_wall_col.bool()).sum().item()
+                    if n_wall_check == 0 or n_int_check == 0:
+                        raise RuntimeError(
+                            f"双域 mask 校验失败: wall={n_wall_check}, interior={n_int_check}。"
+                            "请检查图资产的 is_wall 列。"
+                        )
+                    self._domain_mask_verified = True
 
                 if train:
                     # 梯度累积时，先按累积步数缩小 loss。
@@ -264,9 +302,28 @@ class FieldTrainer:
                 # 跑一轮验证集。
                 val_metrics = self.run_epoch(val_loader, train=False, epoch=epoch)
 
-                # 混合验证指标：当 early_stop_wss_weight > 0 时用
-                # data_loss + w * wss_loss 取代默认 total loss 做早停与调度。
-                if self.early_stop_wss_weight > 0 and "wss_loss" in val_metrics:
+                # V3 双域 loss 路径：用归一化 RMSE 加权和作为验证分数。
+                if self._use_domain_loss and self.norm_stds:
+                    wss_std = self.norm_stds.get("wss", 1.0)
+                    p_std = self.norm_stds.get("p", 1.0)
+                    vel_std = max(
+                        (self.norm_stds.get("u", 1.0) + self.norm_stds.get("v", 1.0) + self.norm_stds.get("w", 1.0)) / 3.0,
+                        1e-10,
+                    )
+                    wss_rmse = val_metrics.get("wss_rmse")
+                    if wss_rmse is None:
+                        wss_rmse = val_metrics.get("loss_wall_wss", 0.0) ** 0.5
+                    wall_p_rmse = val_metrics.get("loss_wall_pressure", 0.0) ** 0.5 if "loss_wall_pressure" in val_metrics else val_metrics.get("rmse_p", 0.0)
+                    vel_rmse = val_metrics.get("rmse_vel_mag", 0.0)
+                    val_score = (
+                        wss_rmse / wss_std
+                        + wall_p_rmse / p_std
+                        + 0.3 * vel_rmse / vel_std
+                    )
+                elif self._use_domain_loss:
+                    val_score = val_metrics["loss"]
+                # 旧路径：混合验证指标。
+                elif self.early_stop_wss_weight > 0 and "wss_loss" in val_metrics:
                     val_score = (
                         val_metrics["data_loss"]
                         + self.early_stop_wss_weight * val_metrics["wss_loss"]
@@ -295,6 +352,10 @@ class FieldTrainer:
                 row["epoch_time_sec"] = round(epoch_time_sec, 2)
                 # 是否为最佳模型，写成 0/1。
                 row["is_best"] = int(is_best)
+                # P0-B: 写入归一化 std 元信息列，便于事后审计。
+                if self.norm_stds:
+                    for ch, std_val in sorted(self.norm_stds.items()):
+                        row[f"norm_std_{ch}"] = std_val
 
                 # 第一个 epoch 时初始化 CSV 表头。
                 if dict_writer is None:
