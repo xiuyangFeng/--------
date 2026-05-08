@@ -5,6 +5,8 @@
 ```text
 cluster/
 ├── run_train_field.slurm       # 单配置训练
+├── run_v3_diag00.slurm         # V3P-Diag-00：run_v3_diag00.py（诊断产出 §9.1.1）
+├── run_v3_diag00_train_chain.slurm  # 诊断脚本 → train_field 同一 JSON（推荐首开链路）
 ├── run_plan.slurm              # 顺序执行 manifest
 ├── run_array.slurm             # Array Job 并行执行多个配置
 ├── run_compare_hemo_wss.slurm   # 多 run WSS 对比（compare_hemo_wss_runs）
@@ -56,6 +58,32 @@ chmod +x *.sh
 cd training/cluster
 sbatch run_train_field.slurm training/configs/field/transformer_geometry.json
 ```
+
+### 2b. V3P-Diag-00（诊断脚本 + 可选紧随 train）
+
+先在 GPU 节点产出 `outputs/field/diagnostics/v3p_diag00_seed*/`，再跑与诊断相同的 JSON（默认 Diag-00 为 1 epoch）：
+
+```bash
+cd /path/to/GNN
+
+# 推荐：诊断（含前向）→ train_field 一单串联
+sbatch training/cluster/run_v3_diag00_train_chain.slurm \
+  training/configs/field/generated/v3_pointcloud/V3P-Diag-00_seed1.json
+
+# 只要诊断、不训练
+RUN_TRAIN=0 sbatch training/cluster/run_v3_diag00_train_chain.slurm \
+  training/configs/field/generated/v3_pointcloud/V3P-Diag-00_seed1.json
+
+# 只要诊断脚本（与 chain 的第一步等价）
+sbatch training/cluster/run_v3_diag00.slurm \
+  training/configs/field/generated/v3_pointcloud/V3P-Diag-00_seed1.json
+
+# 诊断阶段仅 CPU 统计、跳过模型前向
+SKIP_DIAG_FORWARD=1 sbatch training/cluster/run_v3_diag00_train_chain.slurm ...
+SKIP_FORWARD=1 sbatch training/cluster/run_v3_diag00.slurm ...
+```
+
+日志：`logs/v3_diag00_<JOBID>.out` / `logs/v3_diag00_train_<JOBID>.out`（若在仓库根提交）。
 
 如需显式指定环境或 Python：
 

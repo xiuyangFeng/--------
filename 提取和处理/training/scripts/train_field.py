@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 import torch
 
@@ -37,11 +37,12 @@ def build_run_manifest(
     fit_result: Dict[str, object],
     test_metrics: Dict[str, float],
     dataset_sizes: Dict[str, int],
+    test_metrics_best_wss: Optional[Dict[str, float]] = None,
 ) -> Dict[str, object]:
     # run_manifest 是给“训练结束后的世界”看的，而不是给训练过程看的。
     # 后面做任务 B/C、实验记录汇总、论文表格回溯时，都尽量读这个文件。
     # 返回结构化运行清单，尽可能把复现实验所需的信息放全。
-    return {
+    manifest: Dict[str, object] = {
         "task": config.meta.task,
         "exp_id": config.meta.exp_id,
         "experiment_name": config.run.experiment_name,
@@ -83,9 +84,12 @@ def build_run_manifest(
             "epochs": config.optim.epochs,
             "lr": config.optim.lr,
             "weight_decay": config.optim.weight_decay,
+            "warmup_epochs": config.optim.warmup_epochs,
             "scheduler_factor": config.optim.scheduler_factor,
             "scheduler_patience": config.optim.scheduler_patience,
             "early_stopping_patience": config.optim.early_stopping_patience,
+            "early_stop_min_delta": config.optim.early_stop_min_delta,
+            "val_score_ema_alpha": config.optim.val_score_ema_alpha,
             "target_weights": config.optim.target_weights,
             "interior_loss_boost": config.optim.interior_loss_boost,
             "grad_clip_norm": config.optim.grad_clip_norm,
@@ -109,9 +113,15 @@ def build_run_manifest(
         },
         "dataset_sizes": dataset_sizes,
         "best_epoch": fit_result["best_epoch"],
+        "best_val_score": fit_result["best_val_score"],
         "best_val_loss": fit_result["best_val_loss"],
+        "best_wss_epoch": fit_result.get("best_wss_epoch", 0),
+        "best_val_wss_r2": fit_result.get("best_val_wss_r2"),
         "test_metrics": test_metrics,
     }
+    if test_metrics_best_wss is not None:
+        manifest["test_metrics_best_wss"] = test_metrics_best_wss
+    return manifest
 
 
 def main() -> None:
@@ -282,6 +292,8 @@ def main() -> None:
         wss_huber_beta=config.optim.wss_huber_beta,
         domain_loss_config=config.optim.domain_loss,
         norm_params_path=norm_params_path,
+        early_stop_min_delta=config.optim.early_stop_min_delta,
+        val_score_ema_alpha=config.optim.val_score_ema_alpha,
     )
     # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")
@@ -301,6 +313,10 @@ def main() -> None:
     )
     # 用最佳模型在测试集上做最终评估。
     test_metrics = trainer.evaluate(test_loader, checkpoint_path=run_dir / "best_model.pt")
+    ckpt_wss = run_dir / "best_wss_model.pt"
+    test_metrics_best_wss: Optional[Dict[str, float]] = None
+    if ckpt_wss.is_file():
+        test_metrics_best_wss = trainer.evaluate(test_loader, checkpoint_path=ckpt_wss)
 
     # 记录三个数据子集对应的图数量。
     dataset_sizes = {
@@ -322,9 +338,14 @@ def main() -> None:
         "physics_enabled": config.physics.enabled,
         **dataset_sizes,
         "best_epoch": fit_result["best_epoch"],
+        "best_val_score": fit_result["best_val_score"],
         "best_val_loss": fit_result["best_val_loss"],
+        "best_wss_epoch": fit_result.get("best_wss_epoch", 0),
+        "best_val_wss_r2": fit_result.get("best_val_wss_r2"),
         "test_metrics": test_metrics,
     }
+    if test_metrics_best_wss is not None:
+        summary["test_metrics_best_wss"] = test_metrics_best_wss
     # 写 summary.json。
     dump_json(summary, run_dir / "summary.json")
     # 写更完整的 run_manifest.json。
@@ -337,6 +358,7 @@ def main() -> None:
             fit_result=fit_result,
             test_metrics=test_metrics,
             dataset_sizes=dataset_sizes,
+            test_metrics_best_wss=test_metrics_best_wss,
         ),
         run_dir / "run_manifest.json",
     )
@@ -362,7 +384,10 @@ def main() -> None:
             "physics_momentum_weight": config.physics.momentum_weight,
             "physics_no_slip_weight": config.physics.no_slip_weight,
             "best_epoch": fit_result["best_epoch"],
+            "best_val_score": fit_result["best_val_score"],
             "best_val_loss": fit_result["best_val_loss"],
+            "best_wss_epoch": fit_result.get("best_wss_epoch", 0),
+            "best_val_wss_r2": fit_result.get("best_val_wss_r2", ""),
             "test_rmse": test_metrics["rmse"],
             "test_rmse_vel_mag": test_metrics["rmse_vel_mag"],
             "test_rmse_p": test_metrics["rmse_p"],
@@ -394,7 +419,10 @@ def main() -> None:
             "physics_momentum_weight",
             "physics_no_slip_weight",
             "best_epoch",
+            "best_val_score",
             "best_val_loss",
+            "best_wss_epoch",
+            "best_val_wss_r2",
             "test_rmse",
             "test_rmse_vel_mag",
             "test_rmse_p",
@@ -408,6 +436,27 @@ def main() -> None:
             "sampling_profile",
         ],
     )
+
+    if test_metrics_best_wss is not None:
+        keys_p_wss = (
+            "rmse_p",
+            "mae_p",
+            "r2_p",
+            "loss_wall_pressure",
+            "loss_wall_wss",
+            "wss_rmse_wss",
+            "wss_r2_wss",
+            "wss_rmse",
+        )
+
+        def _pick(m: Dict[str, float], ks: tuple[str, ...]) -> Dict[str, float]:
+            return {k: float(m[k]) for k in ks if k in m}
+
+        print("\n[test 对比] best_model.pt vs best_wss_model.pt（压力 + 壁面 WSS）")
+        print("  best_model:     ", _pick(test_metrics, keys_p_wss))
+        print("  best_wss_model: ", _pick(test_metrics_best_wss, keys_p_wss))
+    elif not ckpt_wss.is_file():
+        print("\n[test] 未找到 best_wss_model.pt，无二次评估。")
 
     # 终端打印训练输出目录。
     print(f"训练完成，结果保存在: {run_dir}")

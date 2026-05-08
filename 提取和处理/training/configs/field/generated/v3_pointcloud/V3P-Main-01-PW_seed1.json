@@ -1,6 +1,6 @@
 {
   "run": {
-    "experiment_name": "field_v3_pointnext_localpool_probe_vwss01_geom_wall13000_near2000",
+    "experiment_name": "field_v3_pointnext_localpool_main01_geom_pw_wall13000_near2000",
     "output_root": "outputs/field",
     "save_every": 10,
     "save_best_only": true
@@ -82,14 +82,14 @@
     "early_stop_wss_weight": 0.0,
     "domain_loss": {
       "enabled": true,
-      "lambda_vel_int": 0.15,
+      "lambda_vel_int": 0.0,
       "lambda_vel_noslip": 0.0,
-      "lambda_p_int": 0.0,
-      "lambda_p_wall": 0.0,
+      "lambda_p_int": 0.5,
+      "lambda_p_wall": 1.0,
       "lambda_wss": 0.1,
       "normalize_by_target_std": true,
       "norm_consts": {},
-      "weight_calibration": "diag00: lambda_vel_int 0.3->0.15 (§4.2.1 interior_vel >5x)"
+      "weight_calibration": "VWSS-01负结果(2026-05-06)：速度监督压低WSS R²(0.397→0.343)，主线配方改为纯P+WSS。lambda_vel_int/noslip设为0。p校准：diag00 lambda_p_int=0.5, lambda_p_wall=1.0保留。"
     },
     "early_stop_min_delta": 0.0001,
     "val_score_ema_alpha": 0.4
@@ -102,23 +102,25 @@
   },
   "meta": {
     "task": "field",
-    "exp_id": "V3P-Probe-VWSS-01",
+    "exp_id": "V3P-Main-01-PW",
     "stage": "task_a",
     "study_group": "v3_pointcloud_phase1",
-    "question": "近壁速度上下文是否帮助 WSS：只监督内部速度 + 壁面 WSS，压力关闭。lambda_wss 从低档 0.1 开始。",
+    "question": "几何 PointNeXt 主线（纯 P+WSS，不含速度监督）：Base + Abscissa + NormRadius + Curvature + Tangent，双域 mask loss。基于 VWSS-01 负结果确立的 V3 正式主线配方。",
     "feature_set": "coord_t_bc_geom_wall",
-    "ablation_axis": "v3p_probe_velocity_wss",
+    "ablation_axis": "v3p_main_geometry_pw",
     "tags": [
       "v3",
       "pointcloud",
       "pointnext",
       "localpool",
-      "probe",
-      "vel+wss",
+      "main",
+      "geometry",
+      "p+wss",
+      "no-velocity",
       "wall13000_near2000"
     ],
-    "notes": "关键双目标 probe（优先级最高），先跑 seed=1。若速度上下文帮助 WSS，V3 正式主线保留弱速度监督。",
-    "generated_from": "V3 路线计划 §6.0 + §6.0.1"
+    "notes": "VWSS-01 负结果（2026-05-06）确立：V3 主线为 P+WSS 纯双目标，不含速度监督。与 V3P-Main-01（含弱速度）形成对照。先跑 seed=1，正信号后补 seed=[1,2,3]。",
+    "generated_from": "VWSS-01 负结果(2026-05-06)：基于V3路线计划§6.1，去除弱速度监督"
   },
   "physics": {
     "enabled": false,

@@ -78,6 +78,10 @@ class OptimConfig:
     scheduler_factor: float = 0.5
     scheduler_patience: int = 10
     early_stopping_patience: int = 30
+    # 复合 val_score 早停：仅当新分数低于历史最佳超过该阈值才算刷新（0=任意下降）。
+    early_stop_min_delta: float = 0.0
+    # 双域 val_score 的 EMA 系数；0=关闭，早停与 best 模型完全基于原始 val_score。
+    val_score_ema_alpha: float = 0.0
     target_weights: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0])
     interior_loss_boost: float = 1.0
     grad_clip_norm: Optional[float] = 1.0
@@ -279,6 +283,10 @@ class ExperimentConfig:
                 raise ValueError("wss_loss_type 须为 mse、huber 或 smooth_l1")
         if self.optim.wss_huber_beta <= 0:
             raise ValueError("wss_huber_beta 必须 > 0")
+        if self.optim.early_stop_min_delta < 0:
+            raise ValueError("early_stop_min_delta 不得为负")
+        if not 0.0 <= self.optim.val_score_ema_alpha <= 1.0:
+            raise ValueError("val_score_ema_alpha 须在 [0, 1] 内")
         if self.model.head_layout not in ("single_linear", "mlp2"):
             raise ValueError(f"head_layout 须为 single_linear 或 mlp2，收到: {self.model.head_layout}")
         dl = self.optim.domain_loss

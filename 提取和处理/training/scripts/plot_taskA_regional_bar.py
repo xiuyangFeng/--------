@@ -115,7 +115,7 @@ def main() -> None:
     if args.wss:
         wss_metrics = compute_aggregate_regional_wss_metrics(items)
         save_json(output_dir / "fig_A5_regional_wss_metrics.json", wss_metrics)
-        for metric_key in ["rmse", "rmse_wss_x", "rmse_wss_y", "rmse_wss_z"]:
+        for metric_key in ["r2_wss", "rmse_wss", "mae_wss", "r2_wss_z", "r2_wss_x", "r2_wss_y"]:
             plot_regional_bar(
                 wss_metrics,
                 metric_key=metric_key,

@@ -81,7 +81,6 @@
     "slow/LV_FU_LONG",
     "fast/LIU_FENG_MING",
     "slow/WANG_DENG_FENG",
-    "fast/PENG_JI_MING",
     "slow/BAI_WEN_JIE",
     "slow/LU_ZHEN_QING",
     "slow/TE_JIN_WANG",
@@ -93,5 +92,9 @@
     "slow/XI_CHENG_JIANG",
     "fast/WANG_YONG_FAN"
   ],
-  "notes": "由 training/make_split.py 自动生成。请确认患者级划分满足项目要求。"
+  "excluded_cases": [
+    "fast/PENG_JI_MING"
+  ],
+  "excluded_reason": "CFD 原始数据异常：inlet_velocity=1.48e-11（正常~1.5e-5），WSS 275× 超常，出口压力 5000-45000 Pa 剧烈波动。详见 docs/01-任务/任务A/03-V3路线/V3_数据质量与OOD诊断记录.md。待原始 CFD 数据修复后可重新纳入。",
+  "notes": "由 training/make_split.py 自动生成。2026-05-05：移除 fast/PENG_JI_MING（CFD 数据异常）。"
 }

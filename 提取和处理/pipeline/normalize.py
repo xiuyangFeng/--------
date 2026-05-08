@@ -148,10 +148,15 @@ def collect_global_statistics(
                      但会在日志中打印警告）。
     """
     if train_cases is not None:
-        train_set = {name.replace(' ', '_').replace('-', '_').upper() for name in train_cases}
+        train_set_full = {name.replace(' ', '_').replace('-', '_').upper() for name in train_cases}
+        train_set_name_only = {
+            name.split('/')[-1].replace(' ', '_').replace('-', '_').upper()
+            for name in train_cases
+        }
         stats_dirs = [
             d for d in case_dirs
-            if d.name.replace(' ', '_').replace('-', '_').upper() in train_set
+            if (d.name.replace(' ', '_').replace('-', '_').upper() in train_set_name_only
+                or f"{d.parent.name}/{d.name}".replace(' ', '_').replace('-', '_').upper() in train_set_full)
         ]
         print(f"\n📊 收集全局统计量（仅训练集 {len(stats_dirs)}/{len(case_dirs)} 病例）...")
     else:
@@ -612,9 +617,9 @@ def main():
         import json as _json
         with open(args.train_split, "r", encoding="utf-8") as _f:
             _split = _json.load(_f)
-        train_cases = _split.get("train", _split.get("cases", []))
+        train_cases = _split.get("train_cases", _split.get("train", _split.get("cases", [])))
         if not train_cases:
-            print(f"⚠️  split 文件中未找到 'train' 字段: {args.train_split}")
+            print(f"⚠️  split 文件中未找到 'train_cases'/'train' 字段: {args.train_split}")
     
     process_all_cases(
         data_root=args.data_root,

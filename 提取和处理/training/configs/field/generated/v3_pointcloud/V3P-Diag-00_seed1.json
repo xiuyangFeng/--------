@@ -14,13 +14,24 @@
     "num_workers": 0,
     "pin_memory": false,
     "enabled_node_features": [
-      "x", "y", "z",
-      "Abscissa", "NormRadius", "Curvature",
-      "Tangent_X", "Tangent_Y", "Tangent_Z",
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
       "is_wall"
     ],
     "enabled_global_features": [
-      "t_norm", "BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
     ],
     "augment": true,
     "augment_config": {
@@ -46,16 +57,26 @@
     "epochs": 1,
     "lr": 0.0005,
     "weight_decay": 0.0001,
-    "warmup_epochs": 0,
+    "warmup_epochs": 5,
     "scheduler_factor": 0.5,
     "scheduler_patience": 10,
-    "early_stopping_patience": 30,
-    "target_weights": [1.0, 1.0, 1.0, 1.0],
+    "early_stopping_patience": 60,
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
     "interior_loss_boost": 1.0,
     "grad_clip_norm": 1.0,
     "accumulate_grad_batches": 2,
     "wss_loss_weight": 0.0,
-    "wss_weights": [1.0, 1.0, 1.0, 1.0],
+    "wss_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
     "wss_loss_type": "mse",
     "wss_huber_beta": 1.0,
     "early_stop_wss_weight": 0.0,
@@ -69,7 +90,9 @@
       "normalize_by_target_std": false,
       "norm_consts": {},
       "weight_calibration": ""
-    }
+    },
+    "early_stop_min_delta": 0.0001,
+    "val_score_ema_alpha": 0.4
   },
   "system": {
     "seed": 1,
@@ -85,7 +108,14 @@
     "question": "V3 诊断层：验证双域 mask、loss 尺度、壁面真值统计、WSS 分布、归一化基准与 mask 等价关系。仅跑 1 epoch，输出 §9.1.1 全部诊断字段。",
     "feature_set": "coord_t_bc_geom_wall",
     "ablation_axis": "v3p_diag",
-    "tags": ["v3", "pointcloud", "pointnext", "localpool", "diag", "wall13000_near2000"],
+    "tags": [
+      "v3",
+      "pointcloud",
+      "pointnext",
+      "localpool",
+      "diag",
+      "wall13000_near2000"
+    ],
     "notes": "head_layout=single_linear（与 V2P 对齐），epochs=1 诊断模式。输出用于确定后续实验的默认权重档位。",
     "generated_from": "V3 路线计划 §6.1 + §9.1.1"
   },
@@ -94,7 +124,11 @@
     "warmup_epochs": 0,
     "density": 1060.0,
     "viscosity": 0.0035,
-    "coord_scales": [1.0, 1.0, 1.0],
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
     "time_scale": 1.0,
     "continuity_weight": 0.0,
     "momentum_weight": 0.0,

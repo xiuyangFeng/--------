@@ -14,13 +14,24 @@
     "num_workers": 0,
     "pin_memory": false,
     "enabled_node_features": [
-      "x", "y", "z",
-      "Abscissa", "NormRadius", "Curvature",
-      "Tangent_X", "Tangent_Y", "Tangent_Z",
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
       "is_wall"
     ],
     "enabled_global_features": [
-      "t_norm", "BC_Inlet", "BC_O1", "BC_O2", "BC_O3", "BC_O4"
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
     ],
     "augment": true,
     "augment_config": {
@@ -46,30 +57,42 @@
     "epochs": 200,
     "lr": 0.0005,
     "weight_decay": 0.0001,
-    "warmup_epochs": 0,
+    "warmup_epochs": 5,
     "scheduler_factor": 0.5,
     "scheduler_patience": 10,
-    "early_stopping_patience": 30,
-    "target_weights": [1.0, 1.0, 1.0, 1.0],
+    "early_stopping_patience": 60,
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
     "interior_loss_boost": 1.0,
     "grad_clip_norm": 1.0,
     "accumulate_grad_batches": 2,
     "wss_loss_weight": 0.0,
-    "wss_weights": [1.0, 1.0, 1.0, 1.0],
+    "wss_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
     "wss_loss_type": "mse",
     "wss_huber_beta": 1.0,
     "early_stop_wss_weight": 0.0,
     "domain_loss": {
       "enabled": true,
-      "lambda_vel_int": 0.3,
-      "lambda_vel_noslip": 0.1,
+      "lambda_vel_int": 0.15,
+      "lambda_vel_noslip": 1.0,
       "lambda_p_int": 0.5,
       "lambda_p_wall": 1.0,
       "lambda_wss": 0.05,
       "normalize_by_target_std": true,
       "norm_consts": {},
-      "weight_calibration": ""
-    }
+      "weight_calibration": "diag00: lambda_vel_int 0.3->0.15 (§4.2.1), lambda_vel_noslip 0.1->1.0 (§4.1.1 raw_truth)"
+    },
+    "early_stop_min_delta": 0.0001,
+    "val_score_ema_alpha": 0.4
   },
   "system": {
     "seed": 1,
@@ -85,7 +108,15 @@
     "question": "WSS 权重轻量穷扫（低档）：lambda_wss=0.05，其余同 V3P-Main-01。",
     "feature_set": "coord_t_bc_geom_wall",
     "ablation_axis": "v3p_wss_weight_0.05",
-    "tags": ["v3", "pointcloud", "pointnext", "localpool", "wss-sweep", "lambda0.05", "wall13000_near2000"],
+    "tags": [
+      "v3",
+      "pointcloud",
+      "pointnext",
+      "localpool",
+      "wss-sweep",
+      "lambda0.05",
+      "wall13000_near2000"
+    ],
     "notes": "三档同时入队，构成完整 ablation。先跑 seed=1。",
     "generated_from": "V3 路线计划 §6.1 V3P-WSS-01-a"
   },
@@ -94,7 +125,11 @@
     "warmup_epochs": 0,
     "density": 1060.0,
     "viscosity": 0.0035,
-    "coord_scales": [1.0, 1.0, 1.0],
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
     "time_scale": 1.0,
     "continuity_weight": 0.0,
     "momentum_weight": 0.0,

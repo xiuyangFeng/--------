@@ -99,6 +99,7 @@ def main() -> None:
         heads=config.model.heads,
         use_transformer_prenorm=config.model.use_transformer_prenorm,
         wss_dim=config.model.wss_dim,
+        head_layout=config.model.head_layout,
     ).to(device)
     load_checkpoint(model, args.checkpoint, device)
     model.eval()

@@ -14,6 +14,33 @@
 
 ---
 
+## V3：Route-DualDomain-PointNeXt-V3（2026-05-04 新增）
+
+> 说明：本区追踪 `**Route-DualDomain-PointNeXt-V3**`。
+> 路线计划文档：[V3 PointNeXt 双域 WSS 优先路线计划](../03-V3路线/任务A_V3_PointNeXt双域WSS优先路线计划.md)
+> 实验跟踪日志：[V3 实验执行跟踪日志](../03-V3路线/V3_实验执行跟踪日志.md)
+> 执行顺序：`Diag-00 → Probe-P/V/WSS → Probe-PWSS/VP/VWSS → Anchor/Base/Main → WSS-*`，严格按层推进。
+
+| Exp ID | 类型 | 研究问题 / 任务 | split | seeds | 当前状态 | 备注 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `V3P-Diag-00` | 诊断 | mask/loss 尺度/壁面真值/WSS 分布/归一化基准 | `split_AG_v1` | 1 | ✅ 已完成 | 作业 3415；产出 `outputs/field/diagnostics/v3p_diag00_seed1/`；校准决策：`lambda_vel_int 0.3→0.15`（§4.2.1）、`lambda_vel_noslip 0.1→1.0`（§4.1.1 raw_truth）、augment.rotation 关闭 |
+| `V3P-Probe-P-01` | 单目标 probe | 压力单目标上限（只 p） | `split_AG_v1` | 1 | ✅ 已完成 | 作业 **3472**（新数据重跑）；**r2_p=0.962** ✅；best_epoch=100；17 test cases（PENG 已移除）；旧作业 3418 已作废 |
+| `V3P-Probe-V-01` | 单目标 probe | 速度单目标上限（只 vel） | `split_AG_v1` | 1 | ✅ 已完成 | 作业 **3473**（新数据重跑）；**r2_vel_mag=0.294**（较旧版下降，新数据归一化变化所致）；best_epoch=41；旧作业 3419 已作废 |
+| `V3P-Probe-WSS-01` | 单目标 probe | WSS 单目标上限（只 WSS） | `split_AG_v1` | 1 | ✅ 已完成 | 作业 **3474**（新数据重跑）；**wss_r2_wss=0.397** ✅；best_epoch=2（极早收敛）；旧作业 3420 已作废 |
+| `V3P-Probe-PWSS-01` | 双目标 probe | p + WSS 干扰诊断 | `split_AG_v1` | 1 | ✅ 已完成 | 作业 **3476**；**r2_p=0.929, wss_r2_wss=0.366**；P+WSS 可共存（各下降~3%）；wss_y 意外改善（0.011→0.067） |
+| `V3P-Probe-VP-01` | 双目标 probe | 速度 + 压力 field 诊断 | `split_AG_v1` | 1 | ⏸️ 降级（可选） | VWSS-01 负结果已确认速度监督有害；VP-01 诊断价值降低，暂不排队 |
+| `V3P-Probe-VWSS-01` | 双目标 probe | 速度上下文是否帮助 WSS | `split_AG_v1` | 1 | ✅ 已完成 | 作业 **3475**；**wss_r2_wss=0.343**（低于单目标0.397），**r2_vel_mag=0.074**（低于单目标0.294）；**负结果**：速度监督同时压低两目标，主线不含速度监督 |
+| `V3P-Anchor-01` | 锚点 | 同采样 V1 Transformer 锚点 | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3537**；`wss_r2_wss=0.367`，`r2_p=0.898`；**3623**：predict+图件；目录 `…/anchor01_…_20260506_134310/` |
+| `V3P-Base-01` | 主线对照 | 无几何 PointNeXt（含弱速度） | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3538**；`wss_r2_wss=0.331`，`r2_p=0.936`；**3623**；`…/base01_nogeom_…_20260506_134310/` |
+| `V3P-Base-01-PW` | 正式主线 | 无几何 PointNeXt（纯 P+WSS） | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3543**；`wss_r2_wss=0.343`，`r2_p=0.916`；**3623**；`…/base01_nogeom_pw_…_20260506_230830/` |
+| `V3P-Main-01` | 主线对照 | 几何 PointNeXt（含弱速度） | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3539**；`wss_r2_wss=0.336`，`r2_vel_mag=0.679`；**3623**；`…/main01_geom_…_20260506_134310/` |
+| `V3P-Main-01-PW` | **V3 核心主线** | 几何 PointNeXt（纯 P+WSS） | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 **trainer 修复后**已重训+出图；待补 seed2/3 | **3544**（旧）：`best_epoch=11`，`wss_r2_wss=0.367`，`r2_p=0.920`，`…20260506_230831/`（旧 `val_score` bug）。**3634+3643**（新）：run `…20260508_001936/`；`best_epoch=104`；`test_metrics`：`wss_r2_wss=0.344`，`r2_p=0.936`；`test_metrics_best_wss`：`wss_r2_wss=**0.365**`，`r2_p=0.935`；**3643** 已闭环 predict + Task A 图件。跟踪见 [V3_实验执行跟踪日志](../03-V3路线/V3_实验执行跟踪日志.md) |
+| `V3P-WSS-01-a/b/c` | WSS 穷扫（含速度） | lambda_wss = 0.05/0.10/0.20 | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3540/3541/3542**；WSS **0.368 / 0.338 / 0.358**；**3623** |
+| `V3P-WSS-01-a/b/c-PW` | WSS 穷扫（纯 P+WSS） | lambda_wss = 0.05/0.10/0.20 | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3545/3546/3547**；WSS **0.395 / 0.390 / 0.376**（**a-PW 超锚点**）；**3623** |
+| `V3P-WSS-02` | 条件实验 | 速度上下文增强 | `split_AG_v1` | 1→[1,2,3] | ❌ 取消 | VWSS-01 负结果：速度监督不帮助 WSS，条件不触发 |
+
+---
+
 ## V2：阶段 0 准备与首轮路线对照（2026-04-01 新增）
 
 > 说明：本区只追踪 `**Route-PhysicsAware-V2**`。

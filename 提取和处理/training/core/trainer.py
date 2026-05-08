@@ -48,6 +48,8 @@ class FieldTrainer:
         wss_huber_beta: float = 1.0,
         domain_loss_config: Optional[DomainLossConfig] = None,
         norm_params_path: Optional[str] = None,
+        early_stop_min_delta: float = 0.0,
+        val_score_ema_alpha: float = 0.0,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -70,6 +72,8 @@ class FieldTrainer:
             domain_loss_config=domain_loss_config,
         )
         self.accumulate_grad_batches = max(1, accumulate_grad_batches)
+        self.early_stop_min_delta = float(early_stop_min_delta)
+        self.val_score_ema_alpha = float(val_score_ema_alpha)
 
         # P0-B: 读取 normalization_params_global.json 中的 per-channel std。
         self.norm_stds: Dict[str, float] = {}
@@ -277,14 +281,19 @@ class FieldTrainer:
         save_every: int = 10,
         save_best_only: bool = True,
     ) -> Dict[str, object]:
-        # best_val 用来跟踪最佳验证损失。
+        # best_val 用来跟踪用于选模型/早停的验证分数（可能与 val_loss 不同）。
         best_val = float("inf")
+        # best WSS R²（独立选优，保存 best_wss_model.pt）
+        best_wss_r2: Optional[float] = None
+        best_wss_epoch = 0
         # 记录最佳 epoch。
         best_epoch = 0
         # 早停计数器。
         patience = 0
         # 保存每个 epoch 的历史记录。
         history = []
+        # val_score EMA；在 fit() 内每轮更新，不得跨多次 fit 复用。
+        ema_val_score: Optional[float] = None
 
         # 训练曲线 CSV 的输出路径。
         csv_path = run_dir / "history.csv"
@@ -305,7 +314,6 @@ class FieldTrainer:
                 # V3 双域 loss 路径：用归一化 RMSE 加权和作为验证分数。
                 if self._use_domain_loss and self.norm_stds:
                     wss_std = self.norm_stds.get("wss", 1.0)
-                    p_std = self.norm_stds.get("p", 1.0)
                     vel_std = max(
                         (self.norm_stds.get("u", 1.0) + self.norm_stds.get("v", 1.0) + self.norm_stds.get("w", 1.0)) / 3.0,
                         1e-10,
@@ -313,13 +321,23 @@ class FieldTrainer:
                     wss_rmse = val_metrics.get("wss_rmse")
                     if wss_rmse is None:
                         wss_rmse = val_metrics.get("loss_wall_wss", 0.0) ** 0.5
-                    wall_p_rmse = val_metrics.get("loss_wall_pressure", 0.0) ** 0.5 if "loss_wall_pressure" in val_metrics else val_metrics.get("rmse_p", 0.0)
-                    vel_rmse = val_metrics.get("rmse_vel_mag", 0.0)
-                    val_score = (
-                        wss_rmse / wss_std
-                        + wall_p_rmse / p_std
-                        + 0.3 * vel_rmse / vel_std
+                    # 压力 RMSE 已在归一化空间；勿再除以物理单位 p_std。
+                    wall_p_rmse = (
+                        val_metrics.get("loss_wall_pressure", 0.0) ** 0.5
+                        if "loss_wall_pressure" in val_metrics
+                        else val_metrics.get("rmse_p", 0.0)
                     )
+                    _P_SCALE = 3.0
+                    _vel_supervised = (
+                        self.domain_loss_config is not None
+                        and getattr(self.domain_loss_config, "lambda_vel_int", 0.0) > 0.0
+                    )
+                    if _vel_supervised:
+                        vel_rmse = val_metrics.get("rmse_vel_mag", 0.0)
+                        vel_term = 0.3 * vel_rmse / vel_std
+                    else:
+                        vel_term = 0.0
+                    val_score = wss_rmse / wss_std + _P_SCALE * wall_p_rmse + vel_term
                 elif self._use_domain_loss:
                     val_score = val_metrics["loss"]
                 # 旧路径：混合验证指标。
@@ -331,12 +349,33 @@ class FieldTrainer:
                 else:
                     val_score = val_metrics["loss"]
 
-                # 用验证分数推进学习率调度器。
+                # 用原始 val_score 推进学习率调度器（勿用 EMA，避免拖慢 LR 衰减）。
                 current_lr = self._step_scheduler(val_score, epoch)
                 # 统计本轮耗时。
                 epoch_time_sec = time.time() - t0
-                # 当前验证分数是否刷新最优。
-                is_best = val_score < best_val
+
+                in_warmup = self.warmup_epochs > 0 and epoch <= self.warmup_epochs
+                if not in_warmup and self.val_score_ema_alpha > 0.0:
+                    a = self.val_score_ema_alpha
+                    ema_val_score = val_score if ema_val_score is None else (
+                        a * val_score + (1.0 - a) * ema_val_score
+                    )
+                    score_for_es = ema_val_score
+                else:
+                    score_for_es = val_score
+
+                # Warmup 内不参与早停 / best_model；避免前几轮噪声锁死 checkpoint。
+                if in_warmup:
+                    is_best = False
+                else:
+                    is_best = score_for_es < (best_val - self.early_stop_min_delta)
+
+                if "wss_r2_wss" in val_metrics:
+                    val_wss_r2 = float(val_metrics["wss_r2_wss"])
+                    if best_wss_r2 is None or val_wss_r2 > best_wss_r2:
+                        best_wss_r2 = val_wss_r2
+                        best_wss_epoch = epoch
+                        save_checkpoint(self.model, run_dir / "best_wss_model.pt")
 
                 # 准备写入 CSV 的这一行。
                 row: Dict[str, object] = {
@@ -352,6 +391,9 @@ class FieldTrainer:
                 row["epoch_time_sec"] = round(epoch_time_sec, 2)
                 # 是否为最佳模型，写成 0/1。
                 row["is_best"] = int(is_best)
+                row["val_score"] = val_score
+                row["val_score_ema"] = ema_val_score if ema_val_score is not None else val_score
+                row["early_stop_score"] = score_for_es
                 # P0-B: 写入归一化 std 元信息列，便于事后审计。
                 if self.norm_stds:
                     for ch, std_val in sorted(self.norm_stds.items()):
@@ -371,16 +413,22 @@ class FieldTrainer:
                 self._log_scalars(val_metrics, "val", epoch)
                 self._log_scalars({"lr": current_lr}, "optim", epoch)
 
-                # 计算打印时将要显示的 patience 值。
-                next_patience = 0 if is_best else patience + 1
+                # 计算打印时将要显示的 patience 值（warmup 内始终视为 0）。
+                if in_warmup:
+                    next_patience = 0
+                else:
+                    next_patience = 0 if is_best else patience + 1
+                eff_best = min(best_val, score_for_es) if best_val < float("inf") else score_for_es
                 summary = (
                     f"[Epoch {epoch}/{epochs}] "
                     f"train_loss={self._format_metric(train_metrics['loss'])} | "
                     f"val_loss={self._format_metric(val_metrics['loss'])} | "
                     f"val_score={self._format_metric(val_score)} | "
+                    f"es_score={self._format_metric(score_for_es)} | "
                     f"lr={current_lr:.6e} | "
-                    f"best_val={self._format_metric(min(best_val, val_score))} | "
+                    f"best_es={self._format_metric(eff_best)} | "
                     f"patience={next_patience}/{early_stopping_patience}"
+                    + (" | warmup" if in_warmup else "")
                 )
                 print(summary)
 
@@ -393,12 +441,14 @@ class FieldTrainer:
                         "lr": current_lr,
                         "epoch_time_sec": epoch_time_sec,
                         "is_best": is_best,
+                        "val_score": val_score,
+                        "early_stop_score": score_for_es,
                     }
                 )
 
                 if is_best:
-                    # 刷新最佳验证分数。
-                    best_val = val_score
+                    # 刷新最佳验证分数（与早停判定一致：EMA 或原始）。
+                    best_val = score_for_es
                     # 记录最佳 epoch。
                     best_epoch = epoch
                     # 最优刷新时重置早停计数。
@@ -406,7 +456,7 @@ class FieldTrainer:
                     # 保存 best checkpoint。
                     save_checkpoint(self.model, run_dir / "best_model.pt")
                     print("已保存 best_model.pt")
-                else:
+                elif not in_warmup:
                     # 没有刷新最优时，patience 加一。
                     patience += 1
 
@@ -417,8 +467,8 @@ class FieldTrainer:
                 if not save_best_only and epoch % save_every == 0:
                     save_checkpoint(self.model, run_dir / f"checkpoint_epoch_{epoch}.pt")
 
-                # 达到早停阈值就提前结束训练。
-                if patience >= early_stopping_patience:
+                # 达到早停阈值就提前结束训练（warmup 内永不触发）。
+                if not in_warmup and patience >= early_stopping_patience:
                     break
 
                 # 主动做一次 Python 垃圾回收。
@@ -433,10 +483,26 @@ class FieldTrainer:
             if self.writer is not None:
                 self.writer.close()
 
+        if best_epoch == 0 and history:
+            last_entry = history[-1]
+            best_epoch = int(last_entry["epoch"])
+            best_val = float(last_entry["early_stop_score"])
+            save_checkpoint(self.model, run_dir / "best_model.pt")
+            print("警告: warmup 占满或未产生有效选优，已用最后一轮作为 best_model.pt")
+
+        best_true_val_loss = float("nan")
+        if best_epoch > 0 and history:
+            best_true_val_loss = float(history[best_epoch - 1]["val"]["loss"])
+        elif history:
+            best_true_val_loss = float(history[-1]["val"]["loss"])
+
         # 返回训练阶段的核心摘要结果。
         return {
             "best_epoch": best_epoch,
-            "best_val_loss": best_val,
+            "best_val_score": best_val,
+            "best_val_loss": best_true_val_loss,
+            "best_wss_epoch": best_wss_epoch,
+            "best_val_wss_r2": best_wss_r2,
             "history": history,
         }
 
