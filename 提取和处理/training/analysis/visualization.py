@@ -216,34 +216,73 @@ def plot_regional_bar(
     title: str = "Regional Error Comparison",
 ):
     """Bar chart of a single metric across regions with value labels."""
-    regions, values = [], []
+    regions: List[str] = []
+    values: List[float] = []
     for region, metrics in regional_metrics.items():
-        if metric_key in metrics:
-            regions.append(region)
-            values.append(metrics[metric_key])
+        if metric_key not in metrics:
+            continue
+        raw = metrics[metric_key]
+        try:
+            val = float(np.asarray(raw, dtype=np.float64).reshape(-1)[0])
+        except (TypeError, ValueError):
+            continue
+        if not np.isfinite(val):
+            continue
+        regions.append(str(region))
+        values.append(val)
 
     with _paper_style():
         fig, ax = plt.subplots(figsize=(10, 5))
-        colors = ["#3182bd" if v == min(values) else "#e6550d" if v == max(values) else "#9ecae1"
-                  for v in values]
+
+        if not regions:
+            ax.text(0.5, 0.5, f"无有限数值可绘: {metric_key}", ha="center", va="center")
+            ax.axis("off")
+            fig.suptitle(title)
+            fig.subplots_adjust(left=0.08, right=0.96, bottom=0.12, top=0.88)
+            if save_path:
+                fig.savefig(save_path, dpi=300)
+            plt.close(fig)
+            return fig
+
+        vals_np = np.asarray(values, dtype=np.float64)
+        vmin_f = float(np.min(vals_np))
+        vmax_f = float(np.max(vals_np))
+        y_top = max(vmax_f * 1.18, vmax_f + 1e-6)
+        colors = []
+        for v in values:
+            if v == vmin_f:
+                colors.append("#3182bd")
+            elif v == vmax_f:
+                colors.append("#e6550d")
+            else:
+                colors.append("#9ecae1")
         bars = ax.bar(regions, values, color=colors, edgecolor="white", linewidth=0.8)
 
-        # Value labels on bars
+        label_pad = max(vmax_f * 0.02, y_top * 0.015, 1e-9)
         for bar, val in zip(bars, values):
             ax.text(
                 bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + max(values) * 0.01,
+                min(bar.get_height() + label_pad, y_top * 0.995),
                 f"{val:.3f}",
-                ha="center", va="bottom", fontsize=9,
+                ha="center",
+                va="bottom",
+                fontsize=9,
             )
 
         ax.set_ylabel(metric_key, fontsize=12)
         ax.set_title(title)
         ax.tick_params(axis="x", rotation=35)
-        ax.set_ylim(0, max(values) * 1.18)
-        fig.tight_layout()
+        ax.set_ylim(0.0, y_top)
+        plt.setp(ax.get_xticklabels(), ha="right", rotation_mode="anchor")
+        # 勿在此使用 tight_layout：与旋转类目轴组合时易产生「边距无解」告警，
+        # 进而使 bbox_inches="tight" 计算出非法画布高度（RendererAgg 报错）。
+        fig.subplots_adjust(left=0.08, right=0.98, bottom=0.28, top=0.90)
+
         if save_path:
-            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+            try:
+                fig.savefig(save_path, dpi=300, bbox_inches="tight", pad_inches=0.35)
+            except (TypeError, ValueError, RuntimeError):
+                fig.savefig(save_path, dpi=300)
         plt.close(fig)
     return fig
 
