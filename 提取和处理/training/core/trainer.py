@@ -6,7 +6,7 @@ import gc
 import json
 import time
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Sequence
 
 import torch
 from torch.optim.lr_scheduler import LRScheduler, ReduceLROnPlateau
@@ -17,7 +17,7 @@ from pipeline.config import NODE_FEATURE_NAMES
 from .config import DomainLossConfig
 from .io import load_checkpoint, save_checkpoint
 from .losses import DualDomainLossBreakdown, build_loss_plugin
-from .metrics import RegressionMeter, WSSMeter
+from .metrics import RegressionMeter, WSSMeter, compute_weighted_wss_val_term
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -50,6 +50,7 @@ class FieldTrainer:
         norm_params_path: Optional[str] = None,
         early_stop_min_delta: float = 0.0,
         val_score_ema_alpha: float = 0.0,
+        val_score_wss_weights: Optional[Sequence[float]] = None,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -74,6 +75,10 @@ class FieldTrainer:
         self.accumulate_grad_batches = max(1, accumulate_grad_batches)
         self.early_stop_min_delta = float(early_stop_min_delta)
         self.val_score_ema_alpha = float(val_score_ema_alpha)
+        if val_score_wss_weights is None:
+            self._val_score_wss_weights: List[float] = [1.0, 1.0, 1.0, 1.0]
+        else:
+            self._val_score_wss_weights = [float(w) for w in val_score_wss_weights]
 
         # P0-B: 读取 normalization_params_global.json 中的 per-channel std。
         self.norm_stds: Dict[str, float] = {}
@@ -313,14 +318,15 @@ class FieldTrainer:
 
                 # V3 双域 loss 路径：用归一化 RMSE 加权和作为验证分数。
                 if self._use_domain_loss and self.norm_stds:
-                    wss_std = self.norm_stds.get("wss", 1.0)
                     vel_std = max(
                         (self.norm_stds.get("u", 1.0) + self.norm_stds.get("v", 1.0) + self.norm_stds.get("w", 1.0)) / 3.0,
                         1e-10,
                     )
-                    wss_rmse = val_metrics.get("wss_rmse")
-                    if wss_rmse is None:
-                        wss_rmse = val_metrics.get("loss_wall_wss", 0.0) ** 0.5
+                    wss_term = compute_weighted_wss_val_term(
+                        val_metrics,
+                        self._val_score_wss_weights,
+                        self.norm_stds,
+                    )
                     # 压力 RMSE 已在归一化空间；勿再除以物理单位 p_std。
                     wall_p_rmse = (
                         val_metrics.get("loss_wall_pressure", 0.0) ** 0.5
@@ -337,7 +343,7 @@ class FieldTrainer:
                         vel_term = 0.3 * vel_rmse / vel_std
                     else:
                         vel_term = 0.0
-                    val_score = wss_rmse / wss_std + _P_SCALE * wall_p_rmse + vel_term
+                    val_score = wss_term + _P_SCALE * wall_p_rmse + vel_term
                 elif self._use_domain_loss:
                     val_score = val_metrics["loss"]
                 # 旧路径：混合验证指标。
@@ -393,6 +399,8 @@ class FieldTrainer:
                 row["is_best"] = int(is_best)
                 row["val_score"] = val_score
                 row["val_score_ema"] = ema_val_score if ema_val_score is not None else val_score
+                if self._use_domain_loss and self.norm_stds:
+                    row["val_wss_term"] = wss_term
                 row["early_stop_score"] = score_for_es
                 # P0-B: 写入归一化 std 元信息列，便于事后审计。
                 if self.norm_stds:

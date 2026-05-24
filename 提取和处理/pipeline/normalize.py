@@ -29,9 +29,10 @@
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -49,6 +50,7 @@ try:
     )
     from .utils.progress import case_progress_logging
     from .utils.progress import batch_progress_logging
+    from .case_match import case_dir_matches_query
 except ImportError:
     from config import (
         DATA_ROOT,
@@ -60,6 +62,7 @@ except ImportError:
     )
     from pipeline.utils.progress import case_progress_logging
     from pipeline.utils.progress import batch_progress_logging
+    from pipeline.case_match import case_dir_matches_query
 
 
 # 特征分组配置
@@ -104,6 +107,75 @@ FEATURE_GROUPS = {
 BC_SCALING = NORMALIZATION_CONFIG["bc_scaling"]
 
 
+def normalize_case_rel_path(rel: str) -> str:
+    """与 split / ``case_match`` 全路径语义一致（空格→下划线，忽略大小写）。"""
+    return rel.replace(" ", "_").strip().upper()
+
+
+def case_dir_rel_key(case_dir: Path, data_root: Path) -> str:
+    """病例目录相对 ``data_root`` 的匹配键。"""
+    dr = data_root.resolve()
+    cd = case_dir.resolve()
+    try:
+        rel = cd.relative_to(dr).as_posix()
+    except ValueError:
+        rel = cd.as_posix()
+    return normalize_case_rel_path(rel)
+
+
+def select_train_stats_dirs(
+    case_dirs: List[Path],
+    data_root: Path,
+    train_cases: List[str],
+    *,
+    strict: bool = True,
+) -> Tuple[List[Path], Set[str], Set[str]]:
+    """
+    从 ``case_dirs`` 中筛出用于全局统计的训练集目录（完整相对路径匹配）。
+
+    返回:
+        (stats_dirs, extra_keys, missing_keys)
+        extra_keys: 入选统计但不在 train_cases 的路径键（修复后应为空）
+        missing_keys: train_cases 中在 case_dirs 未找到的键
+    """
+    train_set = {normalize_case_rel_path(c) for c in train_cases}
+    stats_dirs: List[Path] = []
+    stats_rels: Set[str] = set()
+
+    for case_dir in case_dirs:
+        key = case_dir_rel_key(case_dir, data_root)
+        if key in train_set:
+            stats_dirs.append(case_dir)
+            stats_rels.add(key)
+
+    extra = stats_rels - train_set
+    missing = train_set - stats_rels
+
+    if strict and train_cases:
+        ok = (
+            len(stats_dirs) == len(train_cases)
+            and not extra
+            and not missing
+        )
+        if not ok:
+            print(
+                f"\n❌ train-only 统计目录校验失败: "
+                f"stats_dirs={len(stats_dirs)}, train_cases={len(train_cases)}, "
+                f"extra={len(extra)}, missing={len(missing)}"
+            )
+            if extra:
+                print("  extra（误纳入，不应参与统计）:")
+                for k in sorted(extra):
+                    print(f"    {k}")
+            if missing:
+                print("  missing（train 名单在磁盘上未找到）:")
+                for k in sorted(missing):
+                    print(f"    {k}")
+            sys.exit(1)
+
+    return stats_dirs, extra, missing
+
+
 def compute_statistics(values: np.ndarray) -> Dict:
     """计算数组的统计量"""
     return {
@@ -133,6 +205,7 @@ def collect_global_statistics(
     case_dirs: List[Path],
     input_subdir: str,
     train_cases: Optional[List[str]] = None,
+    data_root: Optional[Path] = None,
 ) -> Dict:
     """
     收集全局统计量。
@@ -146,19 +219,19 @@ def collect_global_statistics(
         input_subdir: 输入子目录
         train_cases: 训练集病例名列表。为 None 时使用全部病例（向后兼容，
                      但会在日志中打印警告）。
+        data_root: 数据根目录；指定 ``train_cases`` 时必填，用于完整相对路径匹配。
     """
     if train_cases is not None:
-        train_set_full = {name.replace(' ', '_').replace('-', '_').upper() for name in train_cases}
-        train_set_name_only = {
-            name.split('/')[-1].replace(' ', '_').replace('-', '_').upper()
-            for name in train_cases
-        }
-        stats_dirs = [
-            d for d in case_dirs
-            if (d.name.replace(' ', '_').replace('-', '_').upper() in train_set_name_only
-                or f"{d.parent.name}/{d.name}".replace(' ', '_').replace('-', '_').upper() in train_set_full)
-        ]
-        print(f"\n📊 收集全局统计量（仅训练集 {len(stats_dirs)}/{len(case_dirs)} 病例）...")
+        if data_root is None:
+            print("❌ 指定 train_cases 时必须提供 data_root")
+            sys.exit(1)
+        stats_dirs, extra, missing = select_train_stats_dirs(
+            case_dirs, data_root, train_cases, strict=True
+        )
+        print(
+            f"\n📊 收集全局统计量（仅训练集 {len(stats_dirs)}/{len(case_dirs)} 病例，"
+            f"train-only 校验通过 extra=0 missing=0）..."
+        )
     else:
         stats_dirs = list(case_dirs)
         print("\n⚠️  未指定 train_cases，将使用全部病例计算统计量（可能导致数据泄漏）")
@@ -497,11 +570,7 @@ def process_all_cases(
     case_dirs = get_case_dirs(data_root, sources=sources)
     
     if target_case:
-        target_std = target_case.replace(' ', '_').replace('-', '_').upper()
-        case_dirs = [
-            d for d in case_dirs 
-            if d.name.replace(' ', '_').replace('-', '_').upper() == target_std
-        ]
+        case_dirs = [d for d in case_dirs if case_dir_matches_query(d, data_root, target_case)]
     
     if not case_dirs:
         if target_case:
@@ -519,7 +588,12 @@ def process_all_cases(
         print(f"📂 输出子目录: {output_subdir}")
         print(f"📊 待处理病例数: {len(case_dirs)}")
         
-        global_stats = collect_global_statistics(case_dirs, input_subdir, train_cases=train_cases)
+        global_stats = collect_global_statistics(
+            case_dirs,
+            input_subdir,
+            train_cases=train_cases,
+            data_root=data_root,
+        )
         
         if not global_stats:
             print("❌ 未能收集到统计量，请检查数据")

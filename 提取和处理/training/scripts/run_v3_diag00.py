@@ -410,6 +410,7 @@ def _loss_calibration_batches(
         use_transformer_prenorm=config.model.use_transformer_prenorm,
         wss_dim=config.model.wss_dim,
         head_layout=config.model.head_layout,
+        wss_head_dropout=config.model.wss_head_dropout,
     ).to(device)
     init_sd = copy.deepcopy(template.state_dict())
     del template
@@ -446,6 +447,7 @@ def _loss_calibration_batches(
             use_transformer_prenorm=config.model.use_transformer_prenorm,
             wss_dim=config.model.wss_dim,
             head_layout=config.model.head_layout,
+            wss_head_dropout=config.model.wss_head_dropout,
         ).to(device)
         model.load_state_dict(state)
         wss_tensor = (
@@ -576,6 +578,7 @@ def _wss_magnitude_consistency_test(
         use_transformer_prenorm=config.model.use_transformer_prenorm,
         wss_dim=config.model.wss_dim,
         head_layout=config.model.head_layout,
+        wss_head_dropout=config.model.wss_head_dropout,
     ).to(device)
     model.eval()
     is_i = NODE_FEATURE_NAMES.index("is_wall")

@@ -1,0 +1,34 @@
+{
+  "manifest_name": "v3d_tri_domain_phase1_dual_domain_wss",
+  "description": "V3D 三域（AAA+AG+ILO）第一阶段实验配置清单。split_data_new_v3（181 train / 25 val / 53 test）。按诊断→单目标 probe→正式锚点+基线的逻辑分层排队。与 V3P (AG-only) 同配方、不同数据集，用于对比数据量扩充后指标变化。",
+  "route": "Route-DualDomain-PointNeXt-V3",
+  "split": "split_data_new_v3",
+  "data_root": "data_new",
+  "sampling_profile": "wall13000_near2000",
+  "backbone_default": "pointnext-localpool",
+  "head_layout_default": "mlp2",
+  "generated_from": "V3D 三域计划，模板来自 v3_pointcloud/manifest_v3_phase1.json",
+  "execution_order": [
+    {
+      "layer": "诊断层",
+      "items": [
+        {"config": "V3D-Diag-00_seed1.json", "exp_id": "V3D-Diag-00", "priority": 1, "notes": "必须先于所有正式训练执行，1 epoch 诊断"}
+      ]
+    },
+    {
+      "layer": "单目标上限层",
+      "items": [
+        {"config": "V3D-Probe-P-01_seed1.json", "exp_id": "V3D-Probe-P-01", "priority": 2},
+        {"config": "V3D-Probe-V-01_seed1.json", "exp_id": "V3D-Probe-V-01", "priority": 2},
+        {"config": "V3D-Probe-WSS-01_seed1.json", "exp_id": "V3D-Probe-WSS-01", "priority": 2}
+      ]
+    },
+    {
+      "layer": "正式锚点与基线层",
+      "items": [
+        {"config": "V3D-Anchor-01_seed1.json", "exp_id": "V3D-Anchor-01", "priority": 3},
+        {"config": "V3D-Base-01_seed1.json", "exp_id": "V3D-Base-01", "priority": 3}
+      ]
+    }
+  ]
+}

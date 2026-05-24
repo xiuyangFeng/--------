@@ -46,6 +46,7 @@ if __package__ in {None, ""}:
     )
     from pipeline.utils.progress import batch_progress_logging
     from pipeline.utils.progress import case_progress_logging
+    from pipeline.case_match import case_dir_matches_query
 else:
     from .config import (
         DATA_ROOT,
@@ -55,6 +56,7 @@ else:
     )
     from .utils.progress import batch_progress_logging
     from .utils.progress import case_progress_logging
+    from .case_match import case_dir_matches_query
 
 # 输出目录（在 features 和 normalized 之间）
 COORD_NORMALIZED_DIR = "processed/coord_normalized"
@@ -412,11 +414,7 @@ def process_all_cases(
     
     # 过滤指定病例
     if target_case:
-        target_std = target_case.replace(' ', '_').replace('-', '_').upper()
-        case_dirs = [
-            d for d in case_dirs 
-            if d.name.replace(' ', '_').replace('-', '_').upper() == target_std
-        ]
+        case_dirs = [d for d in case_dirs if case_dir_matches_query(d, data_root, target_case)]
     
     if not case_dirs:
         if target_case:

@@ -285,23 +285,41 @@ class FieldPointNetPP(nn.Module):
         return _pack_model_output(field_pred, wss_pred)
 
 
-def _build_head(hidden_dim: int, out_dim: int, layout: str = "single_linear") -> nn.Module:
+def _build_head(
+    hidden_dim: int,
+    out_dim: int,
+    layout: str = "single_linear",
+    head_dropout: float = 0.0,
+) -> nn.Module:
     """构造输出头。single_linear 返回 nn.Linear（与旧 checkpoint 参数名兼容），
     mlp2 返回 2 层 MLP（参数名带 .0. / .2. 前缀，新 checkpoint 命名空间）。"""
     if layout == "mlp2":
-        return nn.Sequential(
+        layers: list[nn.Module] = [
             nn.Linear(hidden_dim, hidden_dim),
             nn.LayerNorm(hidden_dim),
             nn.GELU(),
-            nn.Linear(hidden_dim, out_dim),
-        )
+        ]
+        if head_dropout > 0:
+            layers.append(nn.Dropout(p=head_dropout))
+        layers.append(nn.Linear(hidden_dim, out_dim))
+        return nn.Sequential(*layers)
     return nn.Linear(hidden_dim, out_dim)
 
 
 class FieldPointNeXt(nn.Module):
     """PointNeXt-style residual point backbone built on local neighbourhood pooling."""
 
-    def __init__(self, in_dim: int, hidden_dim: int, num_layers: int, dropout: float, out_dim: int, wss_dim: int = 0, head_layout: str = "single_linear"):
+    def __init__(
+        self,
+        in_dim: int,
+        hidden_dim: int,
+        num_layers: int,
+        dropout: float,
+        out_dim: int,
+        wss_dim: int = 0,
+        head_layout: str = "single_linear",
+        wss_head_dropout: float = 0.0,
+    ):
         super().__init__()
         self.in_proj = nn.Sequential(
             nn.Linear(in_dim, hidden_dim),
@@ -332,7 +350,11 @@ class FieldPointNeXt(nn.Module):
             nn.Dropout(dropout),
         )
         self.field_head = _build_head(hidden_dim, out_dim, head_layout)
-        self.wss_head = _build_head(hidden_dim, wss_dim, head_layout) if wss_dim > 0 else None
+        self.wss_head = (
+            _build_head(hidden_dim, wss_dim, head_layout, head_dropout=wss_head_dropout)
+            if wss_dim > 0
+            else None
+        )
 
     def forward(self, data) -> ModelOutput:
         x_in = torch.cat([data.x, expand_global_cond(data)], dim=-1)
@@ -393,6 +415,7 @@ def build_model(
     use_transformer_prenorm: bool = False,
     wss_dim: int = 0,
     head_layout: str = "single_linear",
+    wss_head_dropout: float = 0.0,
 ):
     if model_name not in MODEL_REGISTRY:
         raise ValueError(f"未知模型: {model_name}, 可选: {list(MODEL_REGISTRY)}")
@@ -410,4 +433,5 @@ def build_model(
         kwargs["use_prenorm"] = use_transformer_prenorm
     if model_name == "pointnext":
         kwargs["head_layout"] = head_layout
+        kwargs["wss_head_dropout"] = wss_head_dropout
     return cls(**kwargs)

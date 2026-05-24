@@ -76,6 +76,7 @@ def _rebuild_trainer_and_test_loader(
         use_transformer_prenorm=config.model.use_transformer_prenorm,
         wss_dim=config.model.wss_dim,
         head_layout=config.model.head_layout,
+        wss_head_dropout=config.model.wss_head_dropout,
     ).to(device)
 
     optimizer = torch.optim.Adam(

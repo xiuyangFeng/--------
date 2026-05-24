@@ -59,7 +59,9 @@ case "$SCRIPT_PATH" in
 esac
 
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-TRAINING_DIR="$(dirname "$SCRIPT_DIR")"
+ARCHIVE_DIR="$(dirname "$SCRIPT_DIR")"
+CLUSTER_DIR="$(dirname "$ARCHIVE_DIR")"
+TRAINING_DIR="$(dirname "$CLUSTER_DIR")"
 PROJECT_DIR="$(dirname "$TRAINING_DIR")"
 cd "$PROJECT_DIR"
 

@@ -10,7 +10,9 @@ from ..core.config import ExperimentConfig
 from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask
 from ..core.io import load_checkpoint
 from ..core.losses import build_loss_plugin
-from ..core.metrics import RegressionMeter
+from pipeline.config import NODE_FEATURE_NAMES
+
+from ..core.metrics import RegressionMeter, WSSMeter
 from ..core.models import build_model, split_model_output
 from ..core.splits import SplitSpec
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed
@@ -46,6 +48,8 @@ def evaluate_checkpoint(
         load_checkpoint(model, checkpoint_path, device)
     model.eval()
     meter = RegressionMeter()
+    wss_meter = WSSMeter()
+    is_wall_idx = NODE_FEATURE_NAMES.index("is_wall")
     weights = loss_weights.to(device)
     loss_plugin = build_loss_plugin(
         physics_config,
@@ -72,11 +76,17 @@ def evaluate_checkpoint(
             wss_pred=wss_pred,
         )
         meter.update(pred, batch.y, breakdown.total_loss.item())
+        if wss_pred is not None:
+            wss_target = getattr(batch, "y_wss", None)
+            if wss_target is not None:
+                is_wall = batch.x[:, is_wall_idx : is_wall_idx + 1]
+                wss_meter.update(wss_pred, wss_target, is_wall)
         for key, value in breakdown.scalar_dict().items():
             extra_totals[key] = extra_totals.get(key, 0.0) + value
         num_batches += 1
 
     metrics = meter.compute()
+    metrics.update(wss_meter.compute())
     for key, total in extra_totals.items():
         metrics[key] = total / max(1, num_batches)
     metrics["physics_enabled"] = float(loss_plugin.is_enabled(eval_epoch))
@@ -135,6 +145,8 @@ def main() -> None:
         heads=config.model.heads,
         use_transformer_prenorm=config.model.use_transformer_prenorm,
         wss_dim=config.model.wss_dim,
+        head_layout=config.model.head_layout,
+        wss_head_dropout=config.model.wss_head_dropout,
     ).to(device)
 
     metrics = evaluate_checkpoint(

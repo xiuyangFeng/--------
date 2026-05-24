@@ -15,8 +15,7 @@
 #SBATCH --time=04:00:00                  # 单个任务最大运行时间
 # Array Job 配置：处理 0-N 个病例，同时运行最多6个
 # 使用前需要修改 --array 参数，例如: --array=0-9%6 表示10个病例，同时最多运行6个
-# 大规模 CPU 任务指定 node03（与 pipeline/cluster 规范一致）
-#SBATCH -w node03
+# 节点：默认不钉死节点（由分区调度）。若需仅在 node03 跑：sbatch -w node03 … run_array.slurm
 #SBATCH --array=0-0%6
 
 # ============================================================================
@@ -76,8 +75,8 @@ cd "$PROJECT_DIR"
 
 mkdir -p "$SCRIPT_DIR/logs"
 
-# 读取病例列表
-CASE_LIST_FILE="$SCRIPT_DIR/case_list.txt"
+# 读取病例列表（可通过 CASE_LIST_FILE 覆盖默认 case_list.txt，避免与其它队列共用列表时被改写）
+CASE_LIST_FILE="${CASE_LIST_FILE:-$SCRIPT_DIR/case_list.txt}"
 if [ ! -f "$CASE_LIST_FILE" ]; then
     echo "错误: 病例列表文件不存在: $CASE_LIST_FILE"
     echo "请先运行: ./generate_case_list.sh"

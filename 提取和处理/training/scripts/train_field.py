@@ -70,6 +70,7 @@ def build_run_manifest(
             "dropout": config.model.dropout,
             "heads": config.model.heads,
             "head_layout": config.model.head_layout,
+            "wss_head_dropout": config.model.wss_head_dropout,
         },
         "data": {
             "data_root": config.data.data_root,
@@ -95,6 +96,7 @@ def build_run_manifest(
             "grad_clip_norm": config.optim.grad_clip_norm,
             "wss_loss_weight": config.optim.wss_loss_weight,
             "wss_weights": config.optim.wss_weights,
+            "val_score_wss_weights": config.optim.val_score_wss_weights,
             "wss_loss_type": config.optim.wss_loss_type,
             "wss_huber_beta": config.optim.wss_huber_beta,
             "early_stop_wss_weight": config.optim.early_stop_wss_weight,
@@ -228,6 +230,7 @@ def main() -> None:
         use_transformer_prenorm=config.model.use_transformer_prenorm,
         wss_dim=config.model.wss_dim,
         head_layout=config.model.head_layout,
+        wss_head_dropout=config.model.wss_head_dropout,
     ).to(device)
 
     if config.run.init_checkpoint:
@@ -294,6 +297,7 @@ def main() -> None:
         norm_params_path=norm_params_path,
         early_stop_min_delta=config.optim.early_stop_min_delta,
         val_score_ema_alpha=config.optim.val_score_ema_alpha,
+        val_score_wss_weights=config.optim.val_score_wss_weights,
     )
     # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")

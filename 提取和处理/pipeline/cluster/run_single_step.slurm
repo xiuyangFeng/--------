@@ -20,6 +20,7 @@
 #   sbatch run_single_step.slurm normalize                     # 步骤4
 #   sbatch run_single_step.slurm convert_to_graph              # 步骤5
 #   sbatch run_single_step.slurm preprocess ZHANG_CHUN         # 指定病例
+#   PIPELINE_SOURCES=ILO sbatch run_single_step.slurm preprocess ILO/Patient-0/after
 # ============================================================================
 
 set -euo pipefail
@@ -86,7 +87,15 @@ fi
 if [ "$STEP_NAME" = "extract_features" ] && [ "$ALLOW_NEAREST_BC" = "1" ]; then
     CMD+=(--allow-nearest-bc)
 fi
+if [ -n "${PIPELINE_SOURCES:-}" ]; then
+    CMD+=(--sources)
+    for s in $PIPELINE_SOURCES; do
+        CMD+=("$s")
+    done
+fi
 
+echo "PIPELINE_DATA_ROOT: ${PIPELINE_DATA_ROOT:-<default data_new>}"
+echo "PIPELINE_SOURCES: ${PIPELINE_SOURCES:-<config enabled only>}"
 echo "执行: ${CMD[*]}"
 "${CMD[@]}"
 

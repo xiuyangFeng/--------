@@ -100,6 +100,7 @@ def main() -> None:
         use_transformer_prenorm=config.model.use_transformer_prenorm,
         wss_dim=config.model.wss_dim,
         head_layout=config.model.head_layout,
+        wss_head_dropout=config.model.wss_head_dropout,
     ).to(device)
     load_checkpoint(model, args.checkpoint, device)
     model.eval()

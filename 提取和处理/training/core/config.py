@@ -52,6 +52,8 @@ class ModelConfig:
     # V3: 输出头结构。"single_linear" = 单层 nn.Linear（默认，与旧 checkpoint 兼容）；
     # "mlp2" = 2 层 MLP（含 LayerNorm + GELU），仅对 FieldPointNeXt 生效。
     head_layout: str = "single_linear"
+    # V3: 仅 wss_head 在 mlp2 中间层使用的 Dropout 概率；0 = 不插入（与旧 checkpoint 兼容）。
+    wss_head_dropout: float = 0.0
 
 
 @dataclass
@@ -90,6 +92,9 @@ class OptimConfig:
     # wss_weights 对应 [wss, wss_x, wss_y, wss_z] 四个维度的损失权重。
     wss_loss_weight: float = 0.0
     wss_weights: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0])
+    # val_score 中 WSS 分项的加权系数，顺序同 WSS_TARGET_NAMES。
+    # 默认 [1,1,1,1] 保持与历史均匀聚合等价；非对称实验可与 wss_weights 同步设置。
+    val_score_wss_weights: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0])
     # 早停/模型选择的混合指标权重。> 0 时验证分数为
     # data_loss + early_stop_wss_weight * wss_loss，取代默认的 total loss。
     early_stop_wss_weight: float = 0.0
@@ -258,6 +263,12 @@ class ExperimentConfig:
             raise ValueError("target_weights 维度必须与目标输出一致")
         if len(self.optim.wss_weights) != len(WSS_TARGET_NAMES):
             raise ValueError("wss_weights 维度必须与 WSS 目标输出一致")
+        if len(self.optim.val_score_wss_weights) != len(WSS_TARGET_NAMES):
+            raise ValueError("val_score_wss_weights 维度必须与 WSS 目标输出一致")
+        if any(w < 0 for w in self.optim.val_score_wss_weights):
+            raise ValueError("val_score_wss_weights 不得为负")
+        if sum(self.optim.val_score_wss_weights) <= 0:
+            raise ValueError("val_score_wss_weights 权重之和须 > 0")
         if self.model.wss_dim > 0 and self.model.wss_dim != len(WSS_TARGET_NAMES):
             raise ValueError(f"wss_dim 必须为 0 或 {len(WSS_TARGET_NAMES)}")
         # 物理坐标尺度必须提供 3 个值，对应 x/y/z。
@@ -289,6 +300,10 @@ class ExperimentConfig:
             raise ValueError("val_score_ema_alpha 须在 [0, 1] 内")
         if self.model.head_layout not in ("single_linear", "mlp2"):
             raise ValueError(f"head_layout 须为 single_linear 或 mlp2，收到: {self.model.head_layout}")
+        if not 0.0 <= self.model.wss_head_dropout < 1.0:
+            raise ValueError("wss_head_dropout 须在 [0, 1) 内")
+        if self.model.wss_head_dropout > 0 and self.model.head_layout != "mlp2":
+            raise ValueError("wss_head_dropout > 0 时 head_layout 须为 mlp2")
         dl = self.optim.domain_loss
         if dl.enabled:
             for attr in ("lambda_vel_int", "lambda_vel_noslip", "lambda_p_int", "lambda_p_wall", "lambda_wss"):

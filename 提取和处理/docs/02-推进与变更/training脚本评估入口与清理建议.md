@@ -126,27 +126,20 @@ python -m training.scripts.evaluate_wss_credibility \
 - `run_efficiency_benchmark.py`：效率实验可保留。
 - `plot_taskA_case_panel.py`：病例可视化仍有论文图潜力，但不属于每次 run 必跑。
 
-### 3.5 cluster 脚本建议
+### 3.5 cluster 脚本建议（2026-05-22 已落地）
 
-保留通用入口：
+**`training/cluster/` 活跃入口**：
 
-- `run_train_field.slurm`
-- `run_field_predict_test_array.slurm`
-- `run_wss_multitask_predict_figs_array.slurm`
-- `run_recompute_dual_test_metrics.slurm`
-- `run_compare_hemo_wss.slurm`
-- `run_plan.slurm`
-- `run_array.slurm`
+- `run_train_field.slurm` / `run_plan.slurm` / `run_array.slurm`
+- `run_evaluate_field_run_full.slurm` / `run_eval_field_by_domain.slurm` / `submit_eval_by_domain.sh`
 
-建议归档历史清单与专用脚本：
+**已迁入 `training/cluster/archive/`**：
 
-- `manifest_list_v3_*_predict.tsv`
-- `manifest_list_v2p_wssp05_06_predict.tsv`
-- `manifest_list_A-Opt-05-*`
-- `wss_runs_A_Opt03_vs_Opt05tune_seed1.tsv`
-- `run_train_field_gpu013.slurm`
-- `run_v3_diag00*.slurm`
-- `run_v3_ood_diag.slurm`
+- `onetime_slurm/`：`run_field_predict_test_array.slurm`、`run_wss_multitask_predict_figs_array.slurm`、`run_compare_hemo_wss.slurm`、`run_v3_diag00*.slurm` 等
+- `manifests/`：各 `manifest_list_*.tsv`、`wss_runs_*.tsv`
+- `lists/`：`run_list_figA6_*.txt`
+
+详见 `training/cluster/archive/README.md`。
 
 ---
 

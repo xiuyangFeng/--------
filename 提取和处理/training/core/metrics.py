@@ -2,11 +2,35 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence
 
 import torch
 
 from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES, WSS_TARGET_NAMES
+
+
+def compute_weighted_wss_val_term(
+    val_metrics: Dict[str, float],
+    weights: Sequence[float],
+    norm_stds: Dict[str, float],
+) -> float:
+    """Return sum(w_i * rmse_i / std_i) / sum(w_i) for val_score WSS term."""
+    w_sum = float(sum(weights))
+    if w_sum <= 0:
+        raise ValueError("val_score_wss_weights 权重之和须 > 0")
+
+    terms: List[float] = []
+    for w, name in zip(weights, WSS_TARGET_NAMES):
+        rmse = val_metrics.get(f"wss_rmse_{name}")
+        if rmse is None:
+            wss_rmse = val_metrics.get("wss_rmse")
+            if wss_rmse is None:
+                wss_rmse = val_metrics.get("loss_wall_wss", 0.0) ** 0.5
+            wss_std = norm_stds.get("wss", 1.0)
+            return wss_rmse / max(wss_std, 1e-10)
+        std = norm_stds.get(name, norm_stds.get("wss", 1.0))
+        terms.append(float(w) * rmse / max(std, 1e-10))
+    return sum(terms) / w_sum
 
 
 def _compute_metrics(pred: torch.Tensor, target: torch.Tensor) -> Dict[str, float]:

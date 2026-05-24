@@ -49,6 +49,7 @@ if __package__ in {None, ""}:
     from pipeline.utils.progress import batch_progress_logging
     from pipeline.utils.progress import case_progress_logging
     from pipeline.validation import build_batch_issue_report, inspect_case_inputs, save_batch_issue_report
+    from pipeline.case_match import case_dir_matches_query
 else:
     from .config import (
         DATA_ROOT,
@@ -63,6 +64,7 @@ else:
     from .utils.progress import batch_progress_logging
     from .utils.progress import case_progress_logging
     from .validation import build_batch_issue_report, inspect_case_inputs, save_batch_issue_report
+    from .case_match import case_dir_matches_query
 
 
 def find_matching_files(case_dir: Path) -> dict:
@@ -400,13 +402,9 @@ def process_all_cases(
     # 获取病例目录
     case_dirs = get_case_dirs(data_root, sources=sources)
     
-    # 过滤指定病例
+    # 过滤指定病例（支持相对路径，如 ILO/Patient-1/after）
     if target_case:
-        target_std = target_case.replace(' ', '_').replace('-', '_').upper()
-        case_dirs = [
-            d for d in case_dirs 
-            if d.name.replace(' ', '_').replace('-', '_').upper() == target_std
-        ]
+        case_dirs = [d for d in case_dirs if case_dir_matches_query(d, data_root, target_case)]
     
     if not case_dirs:
         if target_case:

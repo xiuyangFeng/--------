@@ -96,5 +96,5 @@
     "fast/PENG_JI_MING"
   ],
   "excluded_reason": "CFD 原始数据异常：inlet_velocity=1.48e-11（正常~1.5e-5），WSS 275× 超常，出口压力 5000-45000 Pa 剧烈波动。详见 docs/01-任务/任务A/03-V3路线/V3_数据质量与OOD诊断记录.md。待原始 CFD 数据修复后可重新纳入。",
-  "notes": "由 training/make_split.py 自动生成。2026-05-05：移除 fast/PENG_JI_MING（CFD 数据异常）。"
+  "notes": "由 training/make_split.py 自动生成。2026-05-05：移除 fast/PENG_JI_MING（CFD 数据异常）。2026-05-17：`AG/fast/PENG_JI_MING` 已与 `pipeline.export_gap_preprocess_queue.PREPROCESS_DENYLIST` 同步（全库 manifest 共用）。"
 }

@@ -17,8 +17,7 @@
 ## V3：Route-DualDomain-PointNeXt-V3（2026-05-04 新增）
 
 > 说明：本区追踪 `**Route-DualDomain-PointNeXt-V3**`。
-> 路线计划文档：[V3 PointNeXt 双域 WSS 优先路线计划](../03-V3路线/任务A_V3_PointNeXt双域WSS优先路线计划.md)
-> 实验跟踪日志：[V3 实验执行跟踪日志](../03-V3路线/V3_实验执行跟踪日志.md)
+> V3 文档索引：[README](../03-V3路线/README.md) · 路线计划：[V3 PointNeXt 双域 WSS 优先路线计划](../03-V3路线/任务A_V3_PointNeXt双域WSS优先路线计划.md) · 实验跟踪：[V3 实验执行跟踪日志](../03-V3路线/V3_实验执行跟踪日志.md)
 > 执行顺序：`Diag-00 → Probe-P/V/WSS → Probe-PWSS/VP/VWSS → Anchor/Base/Main → WSS-*`，严格按层推进。
 
 | Exp ID | 类型 | 研究问题 / 任务 | split | seeds | 当前状态 | 备注 |
@@ -35,6 +34,9 @@
 | `V3P-Base-01-PW` | 正式主线 | 无几何 PointNeXt（纯 P+WSS） | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3543**；`wss_r2_wss=0.343`，`r2_p=0.916`；**3623**；`…/base01_nogeom_pw_…_20260506_230830/` |
 | `V3P-Main-01` | 主线对照 | 几何 PointNeXt（含弱速度） | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3539**；`wss_r2_wss=0.336`，`r2_vel_mag=0.679`；**3623**；`…/main01_geom_…_20260506_134310/` |
 | `V3P-Main-01-PW` | **V3 核心主线** | 几何 PointNeXt（纯 P+WSS） | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 **trainer 修复后**已重训+出图；待补 seed2/3 | **3544**（旧）：`best_epoch=11`，`wss_r2_wss=0.367`，`r2_p=0.920`，`…20260506_230831/`（旧 `val_score` bug）。**3634+3643**（新）：run `…20260508_001936/`；`best_epoch=104`；`test_metrics`：`wss_r2_wss=0.344`，`r2_p=0.936`；`test_metrics_best_wss`：`wss_r2_wss=**0.365**`，`r2_p=0.935`；**3643** 已闭环 predict + Task A 图件。跟踪见 [V3_实验执行跟踪日志](../03-V3路线/V3_实验执行跟踪日志.md) |
+| `V3P-Main-01-PW-AsymW-a` | 优化（TODO-6） | 非对称 WSS 权重 `[1,0.05,0.05,0.90]` | `split_AG_v1` | 1→[1,2,3] | ✅ 三 seed 完成 | **4957/4999/5000**：**0.394±0.005**（0.399/0.389/0.395）；**建议升 PW 母版** |
+| `V3P-Main-01-PW-WssDO-a` | 优化（TODO-7） | WSS head Dropout 0.15 | `split_AG_v1` | 1 | ⏸️ seed=1 边际；暂不补 seed | **4958**：`wss_r2_wss=0.379` |
+| `V3P-Main-01-PW-AsymW-WssDO-a` | 优化（TODO-6+7） | AsymW 权重 + Dropout 0.15 | `split_AG_v1` | 1 | ✅ seed=1 完成 | **5001**：`wss_r2_wss=0.398`；≈纯 AsymW，优于单 WssDO |
 | `V3P-WSS-01-a/b/c` | WSS 穷扫（含速度） | lambda_wss = 0.05/0.10/0.20 | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3540/3541/3542**；WSS **0.368 / 0.338 / 0.358**；**3623** |
 | `V3P-WSS-01-a/b/c-PW` | WSS 穷扫（纯 P+WSS） | lambda_wss = 0.05/0.10/0.20 | `split_AG_v1` | 1→[1,2,3] | 📋 seed=1 完成，待补 seed | 作业 **3545/3546/3547**；WSS **0.395 / 0.390 / 0.376**（**a-PW 超锚点**）；**3623** |
 | `V3P-WSS-02` | 条件实验 | 速度上下文增强 | `split_AG_v1` | 1→[1,2,3] | ❌ 取消 | VWSS-01 负结果：速度监督不帮助 WSS，条件不触发 |

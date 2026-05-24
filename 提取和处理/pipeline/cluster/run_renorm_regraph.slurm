@@ -20,7 +20,10 @@
 set -euo pipefail
 
 PIPELINE_ENV=${PIPELINE_ENV:-GNN}
-TRAIN_SPLIT=${TRAIN_SPLIT:-"training/splits/split_AG_v1.json"}
+DATA_ROOT=${DATA_ROOT:-data_new}
+# V3D 三域默认 v3（train=179，已剔除 SU_KAI_LI + ILO/GUO_AI_JUN-0/after）；AG-only 可覆盖 split_AG_v1.json
+TRAIN_SPLIT=${TRAIN_SPLIT:-"training/splits/split_data_new_v3.json"}
+V3_SOURCES=(AAA/ruputer AAA/unruputer AG/fast AG/slow ILO)
 
 module purge
 
@@ -35,14 +38,13 @@ elif [ -f "/public/newapps/anaconda3/etc/profile.d/conda.sh" ]; then
 fi
 conda activate "$PIPELINE_ENV"
 
-SCRIPT_PATH="${SLURM_JOB_SCRIPT:-$0}"
-case "$SCRIPT_PATH" in
-    /*) ;;
-    *) SCRIPT_PATH="$SLURM_SUBMIT_DIR/$SCRIPT_PATH" ;;
-esac
-SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
-PROJECT_DIR="$(dirname "$PIPELINE_DIR")"
+if [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+  PROJECT_DIR="$(cd "${SLURM_SUBMIT_DIR}" && pwd)"
+else
+  SCRIPT_PATH="${SLURM_JOB_SCRIPT:-$0}"
+  SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+  PROJECT_DIR="$(cd "$(dirname "$(dirname "$SCRIPT_DIR")")" && pwd)"
+fi
 cd "$PROJECT_DIR"
 
 mkdir -p logs
@@ -53,17 +55,37 @@ echo "=============================================="
 echo "Job ID: $SLURM_JOB_ID"
 echo "Node: $SLURM_NODELIST"
 echo "Time: $(date)"
+echo "DATA_ROOT: $DATA_ROOT"
 echo "Train split: $TRAIN_SPLIT"
+echo "SOURCES: ${V3_SOURCES[*]}"
 echo "Python: $(which python)"
 echo "=============================================="
 
+TRAIN_SPLIT_ABS="${PROJECT_DIR}/${TRAIN_SPLIT}"
+if [ ! -f "${TRAIN_SPLIT_ABS}" ]; then
+  echo "ERROR: TRAIN_SPLIT 不存在: ${TRAIN_SPLIT_ABS}"
+  exit 1
+fi
+
 echo ""
-echo ">>> 步骤 4/5: 重新归一化（使用 --train-split 排除异常病例）"
-python -m pipeline.normalize --train-split "$TRAIN_SPLIT"
+echo ">>> Gate-0 校验（train-only 目录数）"
+python -m pipeline.verify_train_stats_dirs \
+  --data-root "${DATA_ROOT}" \
+  --train-split "${TRAIN_SPLIT_ABS}" \
+  --sources "${V3_SOURCES[@]}"
+
+echo ""
+echo ">>> 步骤 4/5: 重新归一化（train-only via --train-split）"
+python -m pipeline.normalize \
+  --data-root "${DATA_ROOT}" \
+  --train-split "${TRAIN_SPLIT_ABS}" \
+  --sources "${V3_SOURCES[@]}"
 
 echo ""
 echo ">>> 步骤 5/5: 重建图资产"
-python -m pipeline.convert_to_graph
+python -m pipeline.convert_to_graph \
+  --data-root "${DATA_ROOT}" \
+  --sources "${V3_SOURCES[@]}"
 
 echo ""
 echo "=============================================="

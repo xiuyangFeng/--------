@@ -59,7 +59,9 @@ case "$SCRIPT_PATH" in
 esac
 
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-TRAINING_DIR="$(dirname "$SCRIPT_DIR")"
+ARCHIVE_DIR="$(dirname "$SCRIPT_DIR")"
+CLUSTER_DIR="$(dirname "$ARCHIVE_DIR")"
+TRAINING_DIR="$(dirname "$CLUSTER_DIR")"
 PROJECT_DIR="$(dirname "$TRAINING_DIR")"
 cd "$PROJECT_DIR"
 
@@ -70,7 +72,7 @@ export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
 export NUMEXPR_MAX_THREADS=${SLURM_CPUS_PER_TASK:-8}
 export OPENBLAS_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
 
-MANIFEST_LIST_FILE="${MANIFEST_LIST_FILE:-$SCRIPT_DIR/manifest_list_wss_multitask_predict.tsv}"
+MANIFEST_LIST_FILE="${MANIFEST_LIST_FILE:-$ARCHIVE_DIR/manifests/manifest_list_A-Opt-05-wss-multi_wall13000_near2000.tsv}"
 if [ ! -f "$MANIFEST_LIST_FILE" ]; then
     echo "错误: 清单不存在: $MANIFEST_LIST_FILE"
     exit 1
