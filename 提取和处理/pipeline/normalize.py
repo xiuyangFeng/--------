@@ -75,6 +75,8 @@ FEATURE_GROUPS = {
         "Tangent_Z",
         "is_wall",       # 二值标记
         "branch_id",     # G01: 分叉拓扑标记（离散 0/1）
+        "wss_normal_valid",
+        "wss_basis_valid",
     ],
     
     # 使用 min-max 归一化的特征
@@ -94,6 +96,7 @@ FEATURE_GROUPS = {
         "p",
         "vel_mag",
         "wss", "wss_x", "wss_y", "wss_z",
+        "wss_axial", "wss_circ", "wss_rad",
     ],
     
     # 边界条件特征
@@ -269,6 +272,7 @@ def collect_global_statistics(
                 # WSS 统计量仅使用壁面节点，避免内部点的无效 WSS 值
                 # （通常为 0 或占位）拉偏 mean/std。
                 _WSS_FEATURES = {"wss", "wss_x", "wss_y", "wss_z"}
+                _WSS_LOCAL_FEATURES = {"wss_axial", "wss_circ", "wss_rad"}
                 has_wall_col = "is_wall" in df.columns
                 if has_wall_col:
                     wall_rows = df["is_wall"] == 1
@@ -279,6 +283,15 @@ def collect_global_statistics(
                             feature_values[feat].extend(
                                 df.loc[wall_rows, feat].values.tolist()
                             )
+                        elif feat in _WSS_LOCAL_FEATURES and has_wall_col:
+                            rows = wall_rows.copy()
+                            if "wss_normal_valid" in df.columns:
+                                rows &= df["wss_normal_valid"] > 0.5
+                            if feat in ("wss_circ", "wss_rad") and "wss_basis_valid" in df.columns:
+                                rows &= df["wss_basis_valid"] > 0.5
+                            vals = df.loc[rows, feat].values
+                            vals = vals[np.isfinite(vals)]
+                            feature_values[feat].extend(vals.tolist())
                         else:
                             feature_values[feat].extend(df[feat].values.tolist())
                         
@@ -520,11 +533,20 @@ def process_case(
 
 def save_normalization_params(global_stats: Dict, output_path: str) -> None:
     """保存归一化参数到 JSON 文件"""
+    wss_local = {}
+    for comp, key in (("axial", "wss_axial"), ("circ", "wss_circ"), ("rad", "wss_rad")):
+        if key in global_stats:
+            wss_local[comp] = {
+                "mean": global_stats[key]["mean"],
+                "std": global_stats[key]["std"],
+            }
+
     params = {
         "description": "特征归一化参数",
         "feature_groups": FEATURE_GROUPS,
         "bc_scaling": BC_SCALING,
         "statistics": {k: v for k, v in global_stats.items() if k != "bc_scaling"},
+        "wss_local": wss_local,
         "restore_formulas": {
             "z_score": "original = normalized * std + mean",
             "min_max": "original = normalized * (max - min) + min",

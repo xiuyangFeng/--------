@@ -72,6 +72,11 @@ def main() -> None:
         action="store_true",
         help="额外运行 export_hemo 的 AI/CFD 派生血流指标；注意这评估的是速度场导出的 WSS",
     )
+    parser.add_argument(
+        "--clinical-pa",
+        action="store_true",
+        help="额外运行 Pa 量纲临床指标（eval_wss_clinical_metrics，纯后处理）",
+    )
     parser.add_argument("--max-scatter-points", type=int, default=200000)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
@@ -213,6 +218,33 @@ def main() -> None:
             ]
         )
         outputs["wss_direct"] = str(wss_summary_path)
+
+    if args.clinical_pa:
+        cfg = _load_json(cfg_path)
+        data_root = Path(str(cfg.get("data", {}).get("data_root", "data_new/AG")))
+        norm_path = data_root / "normalization_params_global.json"
+        if not norm_path.is_file():
+            raise SystemExit(f"缺少归一化参数: {norm_path}")
+        frame_tag = str(cfg.get("data", {}).get("wss_target_frame", "global"))
+        if frame_tag == "local":
+            frame_tag = "local_v1"
+        pa_dir = eval_dir / "wss_clinical_pa"
+        _run(
+            [
+                sys.executable,
+                "-m",
+                "training.scripts.eval_wss_clinical_metrics",
+                "--manifest",
+                str(manifest_path),
+                "--norm-params",
+                str(norm_path),
+                "--output-dir",
+                str(pa_dir),
+                "--frame-tag",
+                frame_tag,
+            ]
+        )
+        outputs["wss_clinical_pa"] = str(pa_dir / "wss_pa_summary.json")
 
     if args.run_derived_hemo:
         hemo_ai = eval_dir / "hemo_derived_ai"

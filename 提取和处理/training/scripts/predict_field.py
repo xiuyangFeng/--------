@@ -5,13 +5,13 @@ from pathlib import Path
 
 import torch
 
-from ..core.config import ExperimentConfig
-from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask
+from ..core.config import ExperimentConfig, resolve_wss_target_names
+from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask, build_required_data_keys
 from ..core.io import load_checkpoint, sanitize_batch_metadata
 from ..core.models import build_model, split_model_output
 from ..core.splits import SplitSpec
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed
-from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES, WSS_TARGET_NAMES
+from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES
 
 
 def resolve_cases(split: SplitSpec, subset: str):
@@ -75,6 +75,16 @@ def main() -> None:
         enabled_node_features=config.data.enabled_node_features,
         enabled_global_features=config.data.enabled_global_features,
     )
+    wss_target_names = (
+        resolve_wss_target_names(config.data.wss_target_frame, config.model.wss_dim)
+        if config.model.wss_dim > 0
+        else []
+    )
+    required_data_keys = build_required_data_keys(
+        config.model.name,
+        wss_dim=config.model.wss_dim,
+        wss_target_frame=config.data.wss_target_frame,
+    )
     dataset = FieldGraphDataset(
         root=config.data.data_root,
         case_names=resolve_cases(split, args.subset),
@@ -82,6 +92,8 @@ def main() -> None:
         augment=False,
         preload=config.data.preload,
         feature_mask=feature_mask,
+        required_keys=required_data_keys,
+        wss_target_frame=config.data.wss_target_frame,
     )
     loader = build_dataloader(
         dataset,
@@ -101,6 +113,9 @@ def main() -> None:
         wss_dim=config.model.wss_dim,
         head_layout=config.model.head_layout,
         wss_head_dropout=config.model.wss_head_dropout,
+        wss_vel_context=config.model.wss_vel_context,
+        wss_vel_context_dim=config.model.wss_vel_context_dim,
+        pool_k_tiers=config.model.pool_k_tiers or None,
     ).to(device)
     load_checkpoint(model, args.checkpoint, device)
     model.eval()
@@ -148,10 +163,13 @@ def main() -> None:
                 "y_pred": pred_item,
             }
             if wss_pred_item is not None:
-                payload["wss_target_names"] = WSS_TARGET_NAMES
+                payload["wss_target_names"] = wss_target_names
+                payload["wss_target_frame"] = config.data.wss_target_frame
                 payload["y_wss_pred"] = wss_pred_item
                 if hasattr(data, "y_wss") and data.y_wss is not None:
                     payload["y_wss_true"] = data.y_wss
+                if hasattr(data, "y_wss_global") and data.y_wss_global is not None:
+                    payload["y_wss_global_true"] = data.y_wss_global
             torch.save(payload, save_path)
             manifest.append(
                 {

@@ -60,21 +60,51 @@ def wss_supervision_loss(
 ) -> torch.Tensor:
     """仅在壁面节点 (is_wall=1) 上计算 WSS 监督。loss_type='mse' 为逐维 MSE 再加权；'huber'/'smooth_l1' 为 Smooth L1。"""
     wall_mask = is_wall.squeeze(-1).bool()
-    n_wall = wall_mask.sum()
-    if n_wall == 0:
+    finite_rows = torch.isfinite(wss_target).all(dim=1)
+    valid = wall_mask & finite_rows
+    n_valid = valid.sum()
+    if n_valid == 0:
         return wss_pred.new_zeros(())
-    pred_wall = wss_pred[wall_mask]
-    target_wall = wss_target[wall_mask]
+    pred_wall = wss_pred[valid]
+    target_wall = wss_target[valid]
     lt = (loss_type or "mse").lower()
-    if lt == "mse":
-        per_dim = (pred_wall - target_wall).square().mean(dim=0)
-    elif lt in ("huber", "smooth_l1"):
-        per_dim = F.smooth_l1_loss(
-            pred_wall, target_wall, reduction="none", beta=float(huber_beta)
-        ).mean(dim=0)
-    else:
-        raise ValueError(f"未知 wss_loss_type: {loss_type}")
-    return (per_dim * wss_weights).sum()
+    n_dims = pred_wall.shape[1]
+    per_dim = []
+    for d in range(n_dims):
+        t_d = target_wall[:, d]
+        p_d = pred_wall[:, d]
+        dim_valid = torch.isfinite(t_d)
+        if dim_valid.sum() == 0:
+            per_dim.append(wss_pred.new_zeros(()))
+            continue
+        if lt == "mse":
+            per_dim.append((p_d[dim_valid] - t_d[dim_valid]).square().mean())
+        elif lt in ("huber", "smooth_l1"):
+            per_dim.append(
+                F.smooth_l1_loss(
+                    p_d[dim_valid], t_d[dim_valid], reduction="mean", beta=float(huber_beta)
+                )
+            )
+        else:
+            raise ValueError(f"未知 wss_loss_type: {loss_type}")
+    per_dim_t = torch.stack(per_dim)
+    return (per_dim_t * wss_weights[:n_dims]).sum()
+
+
+def wss_magnitude_consistency_loss(
+    wss_pred: torch.Tensor,
+    is_wall: torch.Tensor,
+) -> torch.Tensor:
+    """壁面点：|pred[wss] − √(wss_x²+wss_y²+wss_z²)|² 的均值（TODO-9 / WSS-04）。"""
+    if wss_pred.size(1) < 4:
+        return wss_pred.new_zeros(())
+    wall_mask = is_wall.squeeze(-1).bool()
+    if not wall_mask.any():
+        return wss_pred.new_zeros(())
+    wp = wss_pred[wall_mask]
+    mag = wp[:, 0]
+    recomputed = torch.sqrt(torch.clamp((wp[:, 1:4] ** 2).sum(dim=1), min=0.0))
+    return (mag - recomputed).square().mean()
 
 
 @dataclass
@@ -376,11 +406,13 @@ class DualDomainLossBreakdown:
     loss_interior_pressure: torch.Tensor
     loss_wall_pressure: torch.Tensor
     loss_wall_wss: torch.Tensor
+    loss_wss_mag_consist: torch.Tensor
     weighted_loss_interior_velocity: torch.Tensor
     weighted_loss_noslip_velocity: torch.Tensor
     weighted_loss_interior_pressure: torch.Tensor
     weighted_loss_wall_pressure: torch.Tensor
     weighted_loss_wall_wss: torch.Tensor
+    weighted_loss_wss_mag_consist: torch.Tensor
 
     def scalar_dict(self) -> Dict[str, float]:
         return {
@@ -390,11 +422,13 @@ class DualDomainLossBreakdown:
             "loss_interior_pressure": self.loss_interior_pressure.detach().item(),
             "loss_wall_pressure": self.loss_wall_pressure.detach().item(),
             "loss_wall_wss": self.loss_wall_wss.detach().item(),
+            "loss_wss_mag_consist": self.loss_wss_mag_consist.detach().item(),
             "weighted_loss_interior_velocity": self.weighted_loss_interior_velocity.detach().item(),
             "weighted_loss_noslip_velocity": self.weighted_loss_noslip_velocity.detach().item(),
             "weighted_loss_interior_pressure": self.weighted_loss_interior_pressure.detach().item(),
             "weighted_loss_wall_pressure": self.weighted_loss_wall_pressure.detach().item(),
             "weighted_loss_wall_wss": self.weighted_loss_wall_wss.detach().item(),
+            "weighted_loss_wss_mag_consist": self.weighted_loss_wss_mag_consist.detach().item(),
         }
 
 
@@ -479,13 +513,23 @@ class DualDomainLoss:
         else:
             wss_l = zero
 
+        if (
+            self.cfg.lambda_wss_mag_consist > 0
+            and wss_pred is not None
+            and wss_pred.size(1) >= 4
+        ):
+            mag_consist = wss_magnitude_consistency_loss(wss_pred, is_wall.unsqueeze(-1))
+        else:
+            mag_consist = zero
+
         w_vel_int = self.cfg.lambda_vel_int * vel_int
         w_vel_noslip = self.cfg.lambda_vel_noslip * vel_noslip
         w_p_int = self.cfg.lambda_p_int * p_int
         w_p_wall = self.cfg.lambda_p_wall * p_wall
         w_wss = self.cfg.lambda_wss * wss_l
+        w_mag_consist = self.cfg.lambda_wss_mag_consist * mag_consist
 
-        total = w_vel_int + w_vel_noslip + w_p_int + w_p_wall + w_wss
+        total = w_vel_int + w_vel_noslip + w_p_int + w_p_wall + w_wss + w_mag_consist
 
         return DualDomainLossBreakdown(
             total_loss=total,
@@ -494,11 +538,13 @@ class DualDomainLoss:
             loss_interior_pressure=p_int,
             loss_wall_pressure=p_wall,
             loss_wall_wss=wss_l,
+            loss_wss_mag_consist=mag_consist,
             weighted_loss_interior_velocity=w_vel_int,
             weighted_loss_noslip_velocity=w_vel_noslip,
             weighted_loss_interior_pressure=w_p_int,
             weighted_loss_wall_pressure=w_p_wall,
             weighted_loss_wall_wss=w_wss,
+            weighted_loss_wss_mag_consist=w_mag_consist,
         )
 
 

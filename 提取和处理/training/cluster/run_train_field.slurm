@@ -93,6 +93,9 @@ echo "配置文件: $CONFIG_ABS"
 echo "=============================================="
 echo ""
 
+if [ -n "${CUDA_VISIBLE_DEVICES:-}" ]; then
+    export CUDA_VISIBLE_DEVICES
+fi
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
 export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
 export NUMEXPR_MAX_THREADS=${SLURM_CPUS_PER_TASK:-8}

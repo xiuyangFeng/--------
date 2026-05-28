@@ -73,9 +73,15 @@
     "wss_loss_weight": 0.0,
     "wss_weights": [
       1.0,
+      0.05,
+      0.05,
+      0.90
+    ],
+    "val_score_wss_weights": [
       1.0,
-      1.0,
-      1.0
+      0.05,
+      0.05,
+      0.90
     ],
     "wss_loss_type": "mse",
     "wss_huber_beta": 1.0,
@@ -119,8 +125,8 @@
       "no-velocity",
       "wall13000_near2000"
     ],
-    "notes": "VWSS-01 负结果（2026-05-06）确立：V3 主线为 P+WSS 纯双目标，不含速度监督。与 V3P-Main-01（含弱速度）形成对照。先跑 seed=1，正信号后补 seed=[1,2,3]。",
-    "generated_from": "VWSS-01 负结果(2026-05-06)：基于V3路线计划§6.1，去除弱速度监督"
+    "notes": "全局坐标过渡方案（AsymW 权重 [1,0.05,0.05,0.90]），local frame 验证前对照；待 Track 6 Go 后由 V3P-Main-01-PW-Local 替换，AsymW-a 降为 global 对照母版。VWSS-01 负结果确立 P+WSS 纯双目标。",
+    "generated_from": "V3P-Main-01-PW-AsymW-a_seed1.json（2026-05-25 Track2 母版升级）"
   },
   "physics": {
     "enabled": false,

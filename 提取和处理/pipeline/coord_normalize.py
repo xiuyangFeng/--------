@@ -260,6 +260,8 @@ def process_dataframe(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
         df_norm['wss_x'] = wss_vec_rot[:, 0]
         df_norm['wss_y'] = wss_vec_rot[:, 1]
         df_norm['wss_z'] = wss_vec_rot[:, 2]
+
+    # local 标量分量与 mask 列不参与 PCA 旋转（rotation-invariant）
     
     return df_norm, transform_params
 

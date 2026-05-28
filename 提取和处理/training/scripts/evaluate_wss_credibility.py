@@ -317,8 +317,12 @@ def main() -> None:
     for item, payload in _iter_prediction_payloads(items, manifest_path.parent):
         if "y_wss_true" not in payload or "y_wss_pred" not in payload:
             raise SystemExit("预测文件缺少 y_wss_true/y_wss_pred；请确认该 run 使用 WSS head 并重新 predict_field。")
-        y_true = payload["y_wss_true"].detach().cpu().numpy()[:, 0].astype(np.float64)
-        y_pred = payload["y_wss_pred"].detach().cpu().numpy()[:, 0].astype(np.float64)
+        y_true = payload["y_wss_true"].detach().cpu().numpy()
+        y_pred = payload["y_wss_pred"].detach().cpu().numpy()
+        target_names = list(payload.get("wss_target_names") or ["wss", "wss_x", "wss_y", "wss_z"])
+        mag_idx = target_names.index("wss") if "wss" in target_names else 0
+        y_true = y_true[:, mag_idx].astype(np.float64)
+        y_pred = y_pred[:, mag_idx].astype(np.float64)
 
         features = load_node_features_for_region_masks(payload)
         masks = build_region_masks(features)

@@ -158,6 +158,18 @@ def build_graph_from_csv(
         )
     y_wss = df[wss_cols].values
     y_wss = torch.from_numpy(y_wss).float()
+
+    # 5b. WSS 局部坐标目标（local_v1，可选）
+    y_wss_local = None
+    wss_local_mask = None
+    local_cols = ["wss", "wss_axial", "wss_circ", "wss_rad"]
+    if all(col in df.columns for col in local_cols):
+        local_arr = df[local_cols].values.astype(np.float32)
+        y_wss_local = torch.from_numpy(local_arr).float()
+        if "wss_normal_valid" in df.columns:
+            nv = df["wss_normal_valid"].values.astype(np.float32)
+            bv = df.get("wss_basis_valid", pd.Series(np.ones(len(df)))).values.astype(np.float32)
+            wss_local_mask = torch.from_numpy(np.stack([nv, bv], axis=1)).float()
     
     # 5. 构建边索引 (使用 KNN)
     effective_k = min(k, max(1, coords.shape[0] - 1))
@@ -175,6 +187,10 @@ def build_graph_from_csv(
     
     # 创建 PyG Data 对象（global_cond 作为图级属性）
     data = Data(x=x, edge_index=edge_index, y=y, y_wss=y_wss, global_cond=global_cond)
+    if y_wss_local is not None:
+        data.y_wss_local = y_wss_local
+    if wss_local_mask is not None:
+        data.wss_local_mask = wss_local_mask
     
     return data
 

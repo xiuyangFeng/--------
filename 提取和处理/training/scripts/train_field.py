@@ -6,7 +6,7 @@ from typing import Dict, Optional
 
 import torch
 
-from ..core.config import ExperimentConfig
+from ..core.config import ExperimentConfig, resolve_wss_target_names
 from ..core.data import (
     FieldGraphDataset,
     build_dataloader,
@@ -160,7 +160,16 @@ def main() -> None:
         enabled_node_features=config.data.enabled_node_features,
         enabled_global_features=config.data.enabled_global_features,
     )
-    required_data_keys = build_required_data_keys(config.model.name, wss_dim=config.model.wss_dim)
+    required_data_keys = build_required_data_keys(
+        config.model.name,
+        wss_dim=config.model.wss_dim,
+        wss_target_frame=config.data.wss_target_frame,
+    )
+    wss_target_names = (
+        resolve_wss_target_names(config.data.wss_target_frame, config.model.wss_dim)
+        if config.model.wss_dim > 0
+        else []
+    )
 
     # 训练/验证/测试共用同一套 split 文件，保证后续任务 B、C 可以回溯到统一划分。
     # 构建训练集数据对象。
@@ -173,6 +182,7 @@ def main() -> None:
         preload=config.data.preload,
         feature_mask=feature_mask,
         required_keys=required_data_keys,
+        wss_target_frame=config.data.wss_target_frame,
     )
     # 构建验证集数据对象；验证集不做增强。
     val_dataset = FieldGraphDataset(
@@ -183,6 +193,7 @@ def main() -> None:
         preload=config.data.preload,
         feature_mask=feature_mask,
         required_keys=required_data_keys,
+        wss_target_frame=config.data.wss_target_frame,
     )
     # 构建测试集数据对象；测试集同样不做增强。
     test_dataset = FieldGraphDataset(
@@ -193,6 +204,7 @@ def main() -> None:
         preload=config.data.preload,
         feature_mask=feature_mask,
         required_keys=required_data_keys,
+        wss_target_frame=config.data.wss_target_frame,
     )
 
     # 训练 DataLoader 需要打乱顺序。
@@ -231,9 +243,16 @@ def main() -> None:
         wss_dim=config.model.wss_dim,
         head_layout=config.model.head_layout,
         wss_head_dropout=config.model.wss_head_dropout,
+        wss_vel_context=config.model.wss_vel_context,
+        wss_vel_context_dim=config.model.wss_vel_context_dim,
+        pool_k_tiers=config.model.pool_k_tiers or None,
     ).to(device)
 
     if config.run.init_checkpoint:
+        if config.data.wss_target_frame == "local":
+            raise ValueError(
+                "local frame 训练禁止 warm-start（wss_head 形状与 global ckpt 不兼容）"
+            )
         load_checkpoint(model, config.run.init_checkpoint, device)
         print(f"已加载初始 checkpoint: {config.run.init_checkpoint}")
 
@@ -298,6 +317,8 @@ def main() -> None:
         early_stop_min_delta=config.optim.early_stop_min_delta,
         val_score_ema_alpha=config.optim.val_score_ema_alpha,
         val_score_wss_weights=config.optim.val_score_wss_weights,
+        wss_target_names=wss_target_names,
+        wss_target_frame=config.data.wss_target_frame,
     )
     # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")

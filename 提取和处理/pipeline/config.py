@@ -81,6 +81,7 @@ NORMALIZED_DIR = f"{OUTPUT_BASE}/normalized"
 
 # 图数据目录
 GRAPHS_DIR = f"{OUTPUT_BASE}/graphs"
+GRAPHS_LOCAL_V1_DIR = f"{OUTPUT_BASE}/graphs_local_v1"
 
 # ============================================================================
 # 降采样配置
@@ -237,6 +238,12 @@ TARGET_DIM = len(TARGET_NAMES)  # = 4
 # WSS 目标（壁面节点专用，存储在 data.y_wss 中）
 WSS_TARGET_NAMES = ["wss", "wss_x", "wss_y", "wss_z"]
 WSS_TARGET_DIM = len(WSS_TARGET_NAMES)  # = 4
+
+# WSS 局部坐标系（local_v1）：标量投影，rotation-invariant
+WSS_LOCAL_COMPONENT_NAMES = ["wss_axial", "wss_circ", "wss_rad"]
+WSS_LOCAL_TARGET_NAMES = ["wss", "wss_axial", "wss_circ", "wss_rad"]
+WSS_LOCAL_MASK_NAMES = ("wss_normal_valid", "wss_basis_valid")
+WSS_LOCAL_TARGET_DIM = len(WSS_LOCAL_TARGET_NAMES)  # = 4
 
 # 模型输入维度（节点特征 + 全局条件拼接后）
 MODEL_INPUT_DIM = NODE_FEATURE_DIM + GLOBAL_COND_DIM  # = 22

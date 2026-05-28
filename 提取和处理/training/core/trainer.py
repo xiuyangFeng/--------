@@ -12,7 +12,7 @@ import torch
 from torch.optim.lr_scheduler import LRScheduler, ReduceLROnPlateau
 from tqdm.auto import tqdm
 
-from pipeline.config import NODE_FEATURE_NAMES
+from pipeline.config import NODE_FEATURE_NAMES, WSS_LOCAL_TARGET_NAMES, WSS_TARGET_NAMES
 
 from .config import DomainLossConfig
 from .io import load_checkpoint, save_checkpoint
@@ -51,6 +51,8 @@ class FieldTrainer:
         early_stop_min_delta: float = 0.0,
         val_score_ema_alpha: float = 0.0,
         val_score_wss_weights: Optional[Sequence[float]] = None,
+        wss_target_names: Optional[Sequence[str]] = None,
+        wss_target_frame: str = "global",
     ):
         self.model = model
         self.optimizer = optimizer
@@ -79,6 +81,9 @@ class FieldTrainer:
             self._val_score_wss_weights: List[float] = [1.0, 1.0, 1.0, 1.0]
         else:
             self._val_score_wss_weights = [float(w) for w in val_score_wss_weights]
+        self._wss_target_names = list(wss_target_names or WSS_TARGET_NAMES)
+        self._wss_target_frame = wss_target_frame
+        self._wss_best_metric_key = "wss_r2_mag" if wss_target_frame == "local" else "wss_r2_wss"
 
         # P0-B: 读取 normalization_params_global.json 中的 per-channel std。
         self.norm_stds: Dict[str, float] = {}
@@ -88,11 +93,19 @@ class FieldTrainer:
                 self.norm_stds = dict(domain_loss_config.norm_consts)
             elif norm_params_path and Path(norm_params_path).exists():
                 with open(norm_params_path, "r", encoding="utf-8") as f:
-                    stats = json.load(f).get("statistics", {})
-                for ch in ("u", "v", "w", "p", "wss", "wss_x", "wss_y", "wss_z"):
+                    norm_payload = json.load(f)
+                stats = norm_payload.get("statistics", {})
+                for ch in ("u", "v", "w", "p", "wss", "wss_x", "wss_y", "wss_z", "wss_axial", "wss_circ", "wss_rad"):
                     ch_stats = stats.get(ch, {})
                     if "std" in ch_stats and ch_stats["std"] > 1e-10:
                         self.norm_stds[ch] = ch_stats["std"]
+                wss_local = norm_payload.get("wss_local", {})
+                if isinstance(wss_local, dict):
+                    for comp in ("axial", "circ", "rad"):
+                        comp_stats = wss_local.get(comp, {})
+                        if comp_stats.get("std", 0) > 1e-10:
+                            self.norm_stds[f"wss_local_{comp}"] = comp_stats["std"]
+                            self.norm_stds[f"wss_{comp}"] = comp_stats["std"]
 
         # P0-A: mask 等价关系首 batch 校验标记。
         self._domain_mask_verified = False
@@ -110,6 +123,14 @@ class FieldTrainer:
         # 同时满足“给了 log_dir”且“环境里安装了 TensorBoard”时才创建 writer。
         if log_dir is not None and SummaryWriter is not None:
             self.writer = SummaryWriter(log_dir=str(log_dir))
+
+    def _align_wss_target(self, wss_target: torch.Tensor, wss_pred: torch.Tensor) -> torch.Tensor:
+        """将图数据全维 y_wss 对齐到当前 head 输出维度（如 magnitude-only wss_dim=1）。"""
+        if wss_target.shape[1] == wss_pred.shape[1]:
+            return wss_target
+        base_names = WSS_LOCAL_TARGET_NAMES if self._wss_target_frame == "local" else WSS_TARGET_NAMES
+        indices = [base_names.index(n) for n in self._wss_target_names]
+        return wss_target[:, indices]
 
     def _log_scalars(self, metrics: Dict[str, float], prefix: str, step: int) -> None:
         # 没有 writer 时直接跳过日志记录。
@@ -162,7 +183,7 @@ class FieldTrainer:
         # meter 负责在线累计回归指标。
         meter = RegressionMeter()
         # WSS 指标在线累计（仅壁面节点）。
-        wss_meter = WSSMeter() if self._track_wss_metrics else None
+        wss_meter = WSSMeter(target_names=self._wss_target_names) if self._track_wss_metrics else None
         # train=True 时启用训练模式；否则启用评估模式。
         self.model.train(mode=train)
         # 额外损失分项的累计器。
@@ -245,7 +266,11 @@ class FieldTrainer:
                     wss_target = getattr(batch, "y_wss", None)
                     if wss_target is not None:
                         is_wall = batch.x[:, _is_wall_idx : _is_wall_idx + 1]
-                        wss_meter.update(wss_pred, wss_target, is_wall)
+                        wss_meter.update(
+                            wss_pred,
+                            self._align_wss_target(wss_target, wss_pred),
+                            is_wall,
+                        )
 
                 # 读取各个损失分项的标量版本。
                 scalar_breakdown = breakdown.scalar_dict()
@@ -326,6 +351,7 @@ class FieldTrainer:
                         val_metrics,
                         self._val_score_wss_weights,
                         self.norm_stds,
+                        target_names=self._wss_target_names,
                     )
                     # 压力 RMSE 已在归一化空间；勿再除以物理单位 p_std。
                     wall_p_rmse = (
@@ -376,7 +402,13 @@ class FieldTrainer:
                 else:
                     is_best = score_for_es < (best_val - self.early_stop_min_delta)
 
-                if "wss_r2_wss" in val_metrics:
+                if self._wss_best_metric_key in val_metrics:
+                    val_wss_r2 = float(val_metrics[self._wss_best_metric_key])
+                    if best_wss_r2 is None or val_wss_r2 > best_wss_r2:
+                        best_wss_r2 = val_wss_r2
+                        best_wss_epoch = epoch
+                        save_checkpoint(self.model, run_dir / "best_wss_model.pt")
+                elif "wss_r2_wss" in val_metrics:
                     val_wss_r2 = float(val_metrics["wss_r2_wss"])
                     if best_wss_r2 is None or val_wss_r2 > best_wss_r2:
                         best_wss_r2 = val_wss_r2

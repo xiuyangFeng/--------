@@ -13,14 +13,16 @@ def compute_weighted_wss_val_term(
     val_metrics: Dict[str, float],
     weights: Sequence[float],
     norm_stds: Dict[str, float],
+    target_names: Optional[Sequence[str]] = None,
 ) -> float:
     """Return sum(w_i * rmse_i / std_i) / sum(w_i) for val_score WSS term."""
     w_sum = float(sum(weights))
     if w_sum <= 0:
         raise ValueError("val_score_wss_weights 权重之和须 > 0")
 
+    names = list(target_names or WSS_TARGET_NAMES)
     terms: List[float] = []
-    for w, name in zip(weights, WSS_TARGET_NAMES):
+    for w, name in zip(weights, names):
         rmse = val_metrics.get(f"wss_rmse_{name}")
         if rmse is None:
             wss_rmse = val_metrics.get("wss_rmse")
@@ -28,7 +30,15 @@ def compute_weighted_wss_val_term(
                 wss_rmse = val_metrics.get("loss_wall_wss", 0.0) ** 0.5
             wss_std = norm_stds.get("wss", 1.0)
             return wss_rmse / max(wss_std, 1e-10)
-        std = norm_stds.get(name, norm_stds.get("wss", 1.0))
+        std_key = name
+        if name in ("wss_axial", "wss_circ", "wss_rad"):
+            local_stats = norm_stds.get(f"wss_local_{name.replace('wss_', '')}")
+            if local_stats is not None:
+                std = local_stats
+            else:
+                std = norm_stds.get(name, norm_stds.get("wss", 1.0))
+        else:
+            std = norm_stds.get(std_key, norm_stds.get("wss", 1.0))
         terms.append(float(w) * rmse / max(std, 1e-10))
     return sum(terms) / w_sum
 
@@ -192,18 +202,24 @@ class RegressionMeter:
 class WSSMeter:
     """Tracks WSS prediction metrics on wall nodes only."""
 
+    target_names: List[str] = field(default_factory=lambda: list(WSS_TARGET_NAMES))
     _n: int = field(default=0, init=False, repr=False)
     _sum_sq_err: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
     _sum_abs_err: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
     _target_mean: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
     _target_M2: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
+    _mag_sum_sq_err: float = field(default=0.0, init=False, repr=False)
+    _mag_target_M2: float = field(default=0.0, init=False, repr=False)
+    _mag_n: int = field(default=0, init=False, repr=False)
 
     def update(self, wss_pred: torch.Tensor, wss_target: torch.Tensor, is_wall: torch.Tensor) -> None:
         wall_mask = is_wall.squeeze(-1).bool()
-        if wall_mask.sum() == 0:
+        finite_rows = torch.isfinite(wss_target).all(dim=1)
+        valid = wall_mask & finite_rows
+        if valid.sum() == 0:
             return
-        pred_w = wss_pred[wall_mask].detach().cpu().float()
-        target_w = wss_target[wall_mask].detach().cpu().float()
+        pred_w = wss_pred[valid].detach().cpu().float()
+        target_w = wss_target[valid].detach().cpu().float()
         n = pred_w.size(0)
         diff = pred_w - target_w
         sq_err = (diff ** 2).sum(dim=0)
@@ -228,6 +244,24 @@ class WSSMeter:
             self._target_M2 = self._target_M2 + batch_M2 + delta ** 2 * (n_old * n / n_new)
             self._n = n_new
 
+        # frame-invariant magnitude R²（跨 global/local 可比）
+        mag_idx = None
+        for i, name in enumerate(self.target_names):
+            if name == "wss":
+                mag_idx = i
+                break
+        if mag_idx is not None:
+            yt = target_w[:, mag_idx]
+            yp = pred_w[:, mag_idx]
+        else:
+            yt = target_w.norm(dim=1)
+            yp = pred_w.norm(dim=1)
+        mag_diff = yp - yt
+        self._mag_sum_sq_err += float((mag_diff ** 2).sum().item())
+        mag_mean = float(yt.mean().item())
+        self._mag_target_M2 += float(((yt - mag_mean) ** 2).sum().item())
+        self._mag_n += int(yt.numel())
+
     def compute(self) -> Dict[str, float]:
         if self._n == 0 or self._sum_sq_err is None:
             return {}
@@ -235,10 +269,14 @@ class WSSMeter:
         metrics: Dict[str, float] = {}
         ss_tot = self._target_M2.clamp_min(1e-12)
         r2 = 1.0 - self._sum_sq_err / ss_tot
-        for idx, name in enumerate(WSS_TARGET_NAMES):
+        for idx, name in enumerate(self.target_names):
+            if idx >= len(r2):
+                break
             metrics[f"wss_rmse_{name}"] = (self._sum_sq_err[idx].item() / n) ** 0.5
             metrics[f"wss_r2_{name}"] = r2[idx].item()
-        metrics["wss_rmse"] = (self._sum_sq_err.sum().item() / (n * len(WSS_TARGET_NAMES))) ** 0.5
+        metrics["wss_rmse"] = (self._sum_sq_err.sum().item() / (n * len(self.target_names))) ** 0.5
+        if self._mag_n > 0 and self._mag_target_M2 > 1e-12:
+            metrics["wss_r2_mag"] = 1.0 - self._mag_sum_sq_err / self._mag_target_M2
         return metrics
 
 

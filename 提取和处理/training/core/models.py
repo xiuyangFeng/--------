@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import SAGEConv, TransformerConv
+from torch_geometric.nn import SAGEConv, TransformerConv, knn_graph
 
-from pipeline.config import GLOBAL_COND_DIM, MODEL_INPUT_DIM, TARGET_DIM
+from pipeline.config import GLOBAL_COND_DIM, MODEL_INPUT_DIM, NODE_FEATURE_NAMES, TARGET_DIM
+
+_IS_WALL_IDX = NODE_FEATURE_NAMES.index("is_wall")
 
 ModelOutput = Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]
 
@@ -285,6 +287,91 @@ class FieldPointNetPP(nn.Module):
         return _pack_model_output(field_pred, wss_pred)
 
 
+def _local_pool_mean_max(
+    x_norm: torch.Tensor,
+    edge_index: torch.Tensor,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """沿 edge_index 对邻居做 mean / max pool（row 聚合 col）。"""
+    row, col = edge_index
+    neighbour_feats = x_norm[col]
+
+    max_pool = torch.full_like(x_norm, float("-inf"))
+    max_pool.scatter_reduce_(
+        0,
+        row.unsqueeze(1).expand_as(neighbour_feats),
+        neighbour_feats,
+        reduce="amax",
+    )
+    max_pool = torch.where(torch.isfinite(max_pool), max_pool, torch.zeros_like(max_pool))
+
+    mean_pool = torch.zeros_like(x_norm)
+    mean_pool.scatter_add_(0, row.unsqueeze(1).expand_as(neighbour_feats), neighbour_feats)
+    degree = torch.zeros(x_norm.size(0), 1, device=x_norm.device, dtype=x_norm.dtype)
+    degree.scatter_add_(0, row.unsqueeze(1), torch.ones_like(row, dtype=x_norm.dtype).unsqueeze(1))
+    mean_pool = mean_pool / degree.clamp_min(1.0)
+    return mean_pool, max_pool
+
+
+def _build_pool_edge_indices(
+    data,
+    pool_k_tiers: List[int],
+) -> List[torch.Tensor]:
+    """多档 k：首档 k=6 复用预构建 edge_index，其余档运行时 knn_graph。"""
+    pos = data.x[:, :3]
+    batch = getattr(data, "batch", None)
+    edge_list: List[torch.Tensor] = []
+    for k in pool_k_tiers:
+        if k == 6:
+            edge_list.append(data.edge_index)
+        else:
+            effective_k = min(k, max(1, pos.size(0) - 1))
+            edge_list.append(
+                knn_graph(pos, k=effective_k, batch=batch, loop=False, flow="source_to_target")
+            )
+    return edge_list
+
+
+def compute_wall_vel_grad_context(
+    x: torch.Tensor,
+    edge_index: torch.Tensor,
+    vel: torch.Tensor,
+    context_dim: int = 4,
+) -> torch.Tensor:
+    """近壁速度梯度上下文（TODO-17）：沿 edge_index 壁面→内部邻点估计 dv/dn。"""
+    n_nodes = vel.size(0)
+    ctx = torch.zeros(n_nodes, context_dim, device=vel.device, dtype=vel.dtype)
+    wall_mask = x[:, _IS_WALL_IDX].bool()
+    if not wall_mask.any():
+        return ctx
+
+    interior_mask = ~wall_mask
+    row, col = edge_index
+    wall_to_int = wall_mask[row] & interior_mask[col]
+    if not wall_to_int.any():
+        return ctx
+
+    r = row[wall_to_int]
+    c = col[wall_to_int]
+    diff = x[c, :3] - x[r, :3]
+    dist = diff.norm(dim=-1).clamp_min(1e-8)
+    dv = vel[c] - vel[r]
+    grad_vec = dv / dist.unsqueeze(-1)
+    grad_mag = dv.norm(dim=-1) / dist
+
+    n_feat = min(3, context_dim)
+    for k in range(n_feat):
+        ctx[:, k].index_add_(0, r, grad_vec[:, k])
+    if context_dim > 3:
+        ctx[:, 3].index_add_(0, r, grad_mag)
+
+    counts = torch.zeros(n_nodes, device=vel.device, dtype=vel.dtype)
+    ones = torch.ones(r.size(0), device=vel.device, dtype=vel.dtype)
+    counts.index_add_(0, r, ones)
+    valid = counts > 0
+    ctx[valid] = ctx[valid] / counts[valid].unsqueeze(-1)
+    return ctx * wall_mask.unsqueeze(-1).to(ctx.dtype)
+
+
 def _build_head(
     hidden_dim: int,
     out_dim: int,
@@ -319,8 +406,16 @@ class FieldPointNeXt(nn.Module):
         wss_dim: int = 0,
         head_layout: str = "single_linear",
         wss_head_dropout: float = 0.0,
+        wss_vel_context: bool = False,
+        wss_vel_context_dim: int = 4,
+        pool_k_tiers: Optional[List[int]] = None,
     ):
         super().__init__()
+        self.wss_vel_context = wss_vel_context
+        self.wss_vel_context_dim = wss_vel_context_dim if wss_vel_context else 0
+        self.pool_k_tiers: List[int] = list(pool_k_tiers or [])
+        self.num_pool_tiers = len(self.pool_k_tiers) if self.pool_k_tiers else 1
+        block_in_dim = hidden_dim * (1 + 2 * self.num_pool_tiers)
         self.in_proj = nn.Sequential(
             nn.Linear(in_dim, hidden_dim),
             nn.LayerNorm(hidden_dim),
@@ -333,7 +428,7 @@ class FieldPointNeXt(nn.Module):
                     {
                         "norm": nn.LayerNorm(hidden_dim),
                         "mlp": nn.Sequential(
-                            nn.Linear(hidden_dim * 3, hidden_dim * 2),
+                            nn.Linear(block_in_dim, hidden_dim * 2),
                             nn.GELU(),
                             nn.Dropout(dropout),
                             nn.Linear(hidden_dim * 2, hidden_dim),
@@ -350,44 +445,45 @@ class FieldPointNeXt(nn.Module):
             nn.Dropout(dropout),
         )
         self.field_head = _build_head(hidden_dim, out_dim, head_layout)
+        wss_in_dim = hidden_dim + self.wss_vel_context_dim
         self.wss_head = (
-            _build_head(hidden_dim, wss_dim, head_layout, head_dropout=wss_head_dropout)
+            _build_head(wss_in_dim, wss_dim, head_layout, head_dropout=wss_head_dropout)
             if wss_dim > 0
             else None
         )
 
+    def _wss_head_input(self, h: torch.Tensor, data, field_pred: torch.Tensor) -> torch.Tensor:
+        if not self.wss_vel_context or self.wss_head is None:
+            return h
+        vel = data.y[:, :3] if self.training else field_pred[:, :3]
+        ctx = compute_wall_vel_grad_context(
+            data.x, data.edge_index, vel, context_dim=self.wss_vel_context_dim
+        )
+        return torch.cat([h, ctx], dim=-1)
+
     def forward(self, data) -> ModelOutput:
         x_in = torch.cat([data.x, expand_global_cond(data)], dim=-1)
         x = self.in_proj(x_in)
-        row, col = data.edge_index
+        if self.pool_k_tiers:
+            pool_edges = _build_pool_edge_indices(data, self.pool_k_tiers)
+        else:
+            pool_edges = [data.edge_index]
 
         for block in self.blocks:
             residual = x
             x_norm = block["norm"](x)
-            neighbour_feats = x_norm[col]
-
-            max_pool = torch.full_like(x_norm, float("-inf"))
-            max_pool.scatter_reduce_(
-                0,
-                row.unsqueeze(1).expand_as(neighbour_feats),
-                neighbour_feats,
-                reduce="amax",
-            )
-            max_pool = torch.where(torch.isfinite(max_pool), max_pool, torch.zeros_like(max_pool))
-
-            mean_pool = torch.zeros_like(x_norm)
-            mean_pool.scatter_add_(0, row.unsqueeze(1).expand_as(neighbour_feats), neighbour_feats)
-            degree = torch.zeros(x_norm.size(0), 1, device=x_norm.device, dtype=x_norm.dtype)
-            degree.scatter_add_(0, row.unsqueeze(1), torch.ones_like(row, dtype=x_norm.dtype).unsqueeze(1))
-            mean_pool = mean_pool / degree.clamp_min(1.0)
-
-            x = block["mlp"](torch.cat([x_norm, mean_pool, max_pool], dim=-1))
+            pool_feats = [x_norm]
+            for edge_index in pool_edges:
+                mean_pool, max_pool = _local_pool_mean_max(x_norm, edge_index)
+                pool_feats.extend([mean_pool, max_pool])
+            x = block["mlp"](torch.cat(pool_feats, dim=-1))
             x = F.dropout(x, p=self.dropout, training=self.training)
             x = x + residual
 
         h = self.shared_decoder(x)
         field_pred = self.field_head(h)
-        wss_pred = self.wss_head(h) if self.wss_head is not None else None
+        h_wss = self._wss_head_input(h, data, field_pred)
+        wss_pred = self.wss_head(h_wss) if self.wss_head is not None else None
         return _pack_model_output(field_pred, wss_pred)
 
 
@@ -416,6 +512,9 @@ def build_model(
     wss_dim: int = 0,
     head_layout: str = "single_linear",
     wss_head_dropout: float = 0.0,
+    wss_vel_context: bool = False,
+    wss_vel_context_dim: int = 4,
+    pool_k_tiers: Optional[List[int]] = None,
 ):
     if model_name not in MODEL_REGISTRY:
         raise ValueError(f"未知模型: {model_name}, 可选: {list(MODEL_REGISTRY)}")
@@ -434,4 +533,7 @@ def build_model(
     if model_name == "pointnext":
         kwargs["head_layout"] = head_layout
         kwargs["wss_head_dropout"] = wss_head_dropout
+        kwargs["wss_vel_context"] = wss_vel_context
+        kwargs["wss_vel_context_dim"] = wss_vel_context_dim
+        kwargs["pool_k_tiers"] = pool_k_tiers
     return cls(**kwargs)

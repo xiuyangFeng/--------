@@ -6,6 +6,33 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from pipeline.config import GLOBAL_COND_NAMES, NODE_FEATURE_NAMES, TARGET_NAMES, WSS_TARGET_NAMES
+from pipeline.config import WSS_LOCAL_COMPONENT_NAMES, WSS_LOCAL_TARGET_NAMES
+
+
+def resolve_wss_target_names(wss_target_frame: str, wss_dim: int) -> List[str]:
+    """按 frame 与 wss_dim 解析 WSS 监督/指标名列表。"""
+    if wss_target_frame == "local":
+        if wss_dim == 3:
+            return list(WSS_LOCAL_COMPONENT_NAMES)
+        if wss_dim == 4:
+            return list(WSS_LOCAL_TARGET_NAMES)
+        raise ValueError(f"local frame 下 wss_dim 须为 3 或 4，收到 {wss_dim}")
+    if wss_dim == 1:
+        return ["wss"]
+    if wss_dim != len(WSS_TARGET_NAMES):
+        raise ValueError(
+            f"global frame 下 wss_dim 须为 1（magnitude-only）或 {len(WSS_TARGET_NAMES)}，收到 {wss_dim}"
+        )
+    return list(WSS_TARGET_NAMES)
+
+
+def resolve_wss_target_column_indices(wss_target_frame: str, wss_dim: int) -> List[int]:
+    """从图数据 y_wss 全列中选取与 wss_dim / frame 对应的列索引。"""
+    names = resolve_wss_target_names(wss_target_frame, wss_dim)
+    if wss_target_frame == "local":
+        local_names = list(WSS_LOCAL_TARGET_NAMES)
+        return [local_names.index(n) for n in names]
+    return [WSS_TARGET_NAMES.index(n) for n in names]
 
 
 @dataclass
@@ -37,6 +64,8 @@ class DataConfig:
     )
     augment: bool = True
     augment_config: Dict[str, Any] = field(default_factory=dict)
+    # WSS 监督坐标系：global（默认，向后兼容）或 local（local_v1 口径）。
+    wss_target_frame: str = "global"
 
 
 @dataclass
@@ -54,6 +83,11 @@ class ModelConfig:
     head_layout: str = "single_linear"
     # V3: 仅 wss_head 在 mlp2 中间层使用的 Dropout 概率；0 = 不插入（与旧 checkpoint 兼容）。
     wss_head_dropout: float = 0.0
+    # TODO-17: 近壁速度梯度上下文，仅拼接进 wss_head 输入（不改 field_head）。
+    wss_vel_context: bool = False
+    wss_vel_context_dim: int = 4
+    # TODO-18: 多档 k 邻域 mean+max pool；空列表=仅用 data.edge_index（与旧 checkpoint 兼容）。
+    pool_k_tiers: List[int] = field(default_factory=list)
 
 
 @dataclass
@@ -65,6 +99,8 @@ class DomainLossConfig:
     lambda_p_int: float = 0.5
     lambda_p_wall: float = 1.0
     lambda_wss: float = 0.1
+    # TODO-9：4 维 head 模长一致性 |pred[wss] − √(x²+y²+z²)|；0=关闭（母版默认）。
+    lambda_wss_mag_consist: float = 0.0
     normalize_by_target_std: bool = False
     norm_consts: Dict[str, float] = field(default_factory=dict)
     weight_calibration: str = ""
@@ -261,16 +297,31 @@ class ExperimentConfig:
         # 监督损失权重维度必须与目标维度一致。
         if len(self.optim.target_weights) != len(TARGET_NAMES):
             raise ValueError("target_weights 维度必须与目标输出一致")
-        if len(self.optim.wss_weights) != len(WSS_TARGET_NAMES):
-            raise ValueError("wss_weights 维度必须与 WSS 目标输出一致")
-        if len(self.optim.val_score_wss_weights) != len(WSS_TARGET_NAMES):
-            raise ValueError("val_score_wss_weights 维度必须与 WSS 目标输出一致")
+        wss_names = resolve_wss_target_names(self.data.wss_target_frame, self.model.wss_dim) if self.model.wss_dim > 0 else []
+        if self.model.wss_dim > 0:
+            if len(self.optim.wss_weights) != len(wss_names):
+                raise ValueError(
+                    f"wss_weights 维度 ({len(self.optim.wss_weights)}) 须与 "
+                    f"{self.data.wss_target_frame} frame 目标 ({len(wss_names)}) 一致"
+                )
+            if len(self.optim.val_score_wss_weights) != len(wss_names):
+                raise ValueError(
+                    f"val_score_wss_weights 维度须与 {self.data.wss_target_frame} frame 目标一致"
+                )
+        if self.data.wss_target_frame not in ("global", "local"):
+            raise ValueError("data.wss_target_frame 须为 global 或 local")
         if any(w < 0 for w in self.optim.val_score_wss_weights):
             raise ValueError("val_score_wss_weights 不得为负")
         if sum(self.optim.val_score_wss_weights) <= 0:
             raise ValueError("val_score_wss_weights 权重之和须 > 0")
-        if self.model.wss_dim > 0 and self.model.wss_dim != len(WSS_TARGET_NAMES):
-            raise ValueError(f"wss_dim 必须为 0 或 {len(WSS_TARGET_NAMES)}")
+        if self.model.wss_dim > 0 and self.data.wss_target_frame == "global":
+            if self.model.wss_dim not in (1, len(WSS_TARGET_NAMES)):
+                raise ValueError(
+                    f"global frame 下 wss_dim 须为 0、1（magnitude-only）或 {len(WSS_TARGET_NAMES)}"
+                )
+        if self.model.wss_dim > 0 and self.data.wss_target_frame == "local":
+            if self.model.wss_dim not in (3, 4):
+                raise ValueError("local frame 下 wss_dim 须为 3 或 4")
         # 物理坐标尺度必须提供 3 个值，对应 x/y/z。
         if len(self.physics.coord_scales) != 3:
             raise ValueError("physics.coord_scales 必须包含 3 个坐标尺度")
@@ -304,8 +355,49 @@ class ExperimentConfig:
             raise ValueError("wss_head_dropout 须在 [0, 1) 内")
         if self.model.wss_head_dropout > 0 and self.model.head_layout != "mlp2":
             raise ValueError("wss_head_dropout > 0 时 head_layout 须为 mlp2")
+        if self.model.wss_vel_context:
+            if self.model.name != "pointnext":
+                raise ValueError("wss_vel_context 仅支持 pointnext")
+            if self.model.wss_dim <= 0:
+                raise ValueError("wss_vel_context 须 wss_dim > 0")
+            if self.model.wss_vel_context_dim < 1:
+                raise ValueError("wss_vel_context_dim 须 >= 1")
+        if self.model.wss_vel_context and self.run.init_checkpoint:
+            raise ValueError(
+                "wss_vel_context 训练禁止 warm-start（wss_head 输入维与 global ckpt 不兼容）"
+            )
+        tiers = self.model.pool_k_tiers
+        if tiers:
+            if self.model.name != "pointnext":
+                raise ValueError("pool_k_tiers 仅支持 pointnext")
+            if len(tiers) < 2:
+                raise ValueError("pool_k_tiers 须至少 2 档（如 [6, 18, 36]）")
+            if any(k < 1 for k in tiers):
+                raise ValueError("pool_k_tiers 各档 k 须 >= 1")
+            if tiers != sorted(set(tiers)):
+                raise ValueError("pool_k_tiers 须为严格递增且无重复")
+            if tiers[0] != 6:
+                raise ValueError("pool_k_tiers 首档须为 6（与 pipeline GRAPH_CONFIG k_neighbors 一致）")
+        if tiers and len(tiers) >= 2 and self.run.init_checkpoint:
+            raise ValueError(
+                "pool_k_tiers 多档训练禁止 warm-start（backbone block MLP 输入维与旧 ckpt 不兼容）"
+            )
         dl = self.optim.domain_loss
         if dl.enabled:
-            for attr in ("lambda_vel_int", "lambda_vel_noslip", "lambda_p_int", "lambda_p_wall", "lambda_wss"):
+            for attr in (
+                "lambda_vel_int",
+                "lambda_vel_noslip",
+                "lambda_p_int",
+                "lambda_p_wall",
+                "lambda_wss",
+                "lambda_wss_mag_consist",
+            ):
                 if getattr(dl, attr) < 0:
                     raise ValueError(f"domain_loss.{attr} 不得为负")
+            if dl.lambda_wss_mag_consist > 0:
+                if self.model.wss_dim != 4:
+                    raise ValueError("lambda_wss_mag_consist 须 wss_dim=4（global 四分量 head）")
+                if self.run.init_checkpoint:
+                    raise ValueError(
+                        "lambda_wss_mag_consist 训练禁止 warm-start（loss 项与旧 ckpt 训练轨迹不兼容）"
+                    )

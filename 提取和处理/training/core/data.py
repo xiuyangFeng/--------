@@ -44,13 +44,28 @@ def build_feature_mask(
     return FeatureMask(node_mask=node_mask, global_mask=global_mask)
 
 
-def build_required_data_keys(model_name: str, wss_dim: int = 0) -> Set[str]:
+def build_required_data_keys(model_name: str, wss_dim: int = 0, wss_target_frame: str = "global") -> Set[str]:
     required_keys: Set[str] = {"x", "y", "global_cond"}
     if model_name in {"graphsage", "transformer", "meshgraphnet", "pointnetpp", "pointnext"}:
         required_keys.add("edge_index")
     if wss_dim > 0:
-        required_keys.add("y_wss")
+        if wss_target_frame == "local":
+            required_keys.add("y_wss_local")
+        else:
+            required_keys.add("y_wss")
     return required_keys
+
+
+def _apply_wss_target_frame(data, wss_target_frame: str):
+    """按 frame 将 y_wss_local 映射为训练用 y_wss，保留 global 真值于 y_wss_global。"""
+    if wss_target_frame != "local":
+        return data
+    if not hasattr(data, "y_wss_local") or data.y_wss_local is None:
+        raise ValueError("local frame 训练需要图数据含 y_wss_local")
+    if hasattr(data, "y_wss") and data.y_wss is not None:
+        data.y_wss_global = data.y_wss.clone()
+    data.y_wss = data.y_wss_local.clone()
+    return data
 
 
 class FieldGraphDataset(Dataset):
@@ -64,6 +79,7 @@ class FieldGraphDataset(Dataset):
         preload: bool = False,
         feature_mask: Optional[FeatureMask] = None,
         required_keys: Optional[Set[str]] = None,
+        wss_target_frame: str = "global",
     ):
         # root/case_names/graphs_subdir 共同决定这次实验读取哪些图。
         # 这里约定“患者级 split -> 病例目录 -> 图快照文件”三层路径关系。
@@ -85,6 +101,7 @@ class FieldGraphDataset(Dataset):
         self.feature_mask = feature_mask
         # 需要保留的数据字段集合；None 表示不裁剪。
         self.required_keys = set(required_keys) if required_keys is not None else None
+        self.wss_target_frame = wss_target_frame
 
         # 保存当前数据集对应的全部图文件路径。
         self.data_files: List[Path] = []
@@ -138,6 +155,8 @@ class FieldGraphDataset(Dataset):
         if self.augment:
             # 数据增强只在训练集启用；验证/测试必须使用原始图，避免评估口径漂移。
             data = apply_augmentations(data, self.augment_config)
+
+        data = _apply_wss_target_frame(data, self.wss_target_frame)
 
         if self.feature_mask is not None:
             # 把节点特征 mask 挪到样本当前设备。
