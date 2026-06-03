@@ -13,6 +13,7 @@ CAT_MULTIMODEL_BASELINE = "multimodel_baseline"
 CAT_ABLATION = "ablation"
 CAT_EFFICIENCY = "efficiency"
 CAT_TRAINING_CURVES = "training_curves"
+CAT_ANALYSIS_COMPARE = "analysis_compare"  # 单次实验分析：精度柱图 + 损失曲线对比
 CAT_OPTIMIZATION = "optimization"
 
 # 优化/消融子课题（optimization 下），供脚本或文档引用

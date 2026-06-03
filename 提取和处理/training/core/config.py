@@ -35,6 +35,30 @@ def resolve_wss_target_column_indices(wss_target_frame: str, wss_dim: int) -> Li
     return [WSS_TARGET_NAMES.index(n) for n in names]
 
 
+def resolve_wss_effective_dim(
+    wss_dim: int,
+    wss_output_mode: str = "head",
+    wss_metric_dim: int = 1,
+) -> int:
+    """训练/评估时 WSS 指标与 y_wss 对齐的有效维度（vel_diff 模式无 wss_head）。"""
+    if wss_output_mode == "vel_diff":
+        return wss_metric_dim
+    return wss_dim
+
+
+def resolve_wss_runtime_names(
+    wss_target_frame: str,
+    wss_dim: int,
+    wss_output_mode: str = "head",
+    wss_metric_dim: int = 1,
+) -> List[str]:
+    """按 model 配置解析 WSS 监督/指标名；vel_diff 时用 wss_metric_dim。"""
+    eff = resolve_wss_effective_dim(wss_dim, wss_output_mode, wss_metric_dim)
+    if eff <= 0:
+        return []
+    return resolve_wss_target_names(wss_target_frame, eff)
+
+
 @dataclass
 class RunConfig:
     # 训练 run 的名字会进入输出目录名，因此这里最好保持“任务-模型-特征集”可读。
@@ -66,6 +90,10 @@ class DataConfig:
     augment_config: Dict[str, Any] = field(default_factory=dict)
     # WSS 监督坐标系：global（默认，向后兼容）或 local（local_v1 口径）。
     wss_target_frame: str = "global"
+    # TODO-19: WSS 目标按数据域重新标准化。none=关闭；per_domain=按 AAA/AG/ILO 统计。
+    wss_domain_norm: str = "none"
+    # 形如 {"AAA": {"mean": [...], "std": [...]}, ...}，维度与当前 y_wss 列一致。
+    wss_domain_norm_stats: Dict[str, Dict[str, List[float]]] = field(default_factory=dict)
 
 
 @dataclass
@@ -86,6 +114,12 @@ class ModelConfig:
     # TODO-17: 近壁速度梯度上下文，仅拼接进 wss_head 输入（不改 field_head）。
     wss_vel_context: bool = False
     wss_vel_context_dim: int = 4
+    # 思路2 输入侧：壁面 |∇p| 仅拼接进 wss_head 输入（非 loss）；默认关闭。
+    wss_pgrad_context: bool = False
+    # TODO-30 结构版：WSS 输出方式。"head"=wss_head（默认）；"vel_diff"=近壁速度差分推 |WSS|。
+    wss_output_mode: str = "head"
+    # vel_diff 模式下 WSS 指标/合成输出维度（通常 1=magnitude-only）；head 模式忽略。
+    wss_metric_dim: int = 1
     # TODO-18: 多档 k 邻域 mean+max pool；空列表=仅用 data.edge_index（与旧 checkpoint 兼容）。
     pool_k_tiers: List[int] = field(default_factory=list)
 
@@ -101,6 +135,19 @@ class DomainLossConfig:
     lambda_wss: float = 0.1
     # TODO-9：4 维 head 模长一致性 |pred[wss] − √(x²+y²+z²)|；0=关闭（母版默认）。
     lambda_wss_mag_consist: float = 0.0
+    # TODO-42：高 WSS top-k ListNet 排序辅助 loss；0=关闭。
+    lambda_wss_rank: float = 0.0
+    wss_rank_top_frac: float = 0.10
+    wss_rank_max_nodes: int = 512
+    # TODO-30：预测 WSS 模长 ↔ 近壁预测速度差分代理 的逐图标准化模式一致性；0=关闭。
+    #          需要速度被监督（lambda_vel_int/noslip>0）才有意义。
+    lambda_wss_vel_consist: float = 0.0
+    # TODO-33：近壁预测速度差分代理 ↔ GT |WSS| 的逐图标准化模式监督；0=关闭。
+    #          直接塑造预测速度场的近壁梯度，使其差分出正确 WSS 模式。
+    lambda_wss_slope: float = 0.0
+    # 思路 2：预测 WSS 模长 ↔ 壁面预测 |∇p| 的逐图标准化模式一致性；0=关闭。
+    #          仅依赖压力（已 R²≈0.96），不需要速度监督。
+    lambda_wss_pgrad_consist: float = 0.0
     normalize_by_target_std: bool = False
     norm_consts: Dict[str, float] = field(default_factory=dict)
     weight_calibration: str = ""
@@ -297,8 +344,22 @@ class ExperimentConfig:
         # 监督损失权重维度必须与目标维度一致。
         if len(self.optim.target_weights) != len(TARGET_NAMES):
             raise ValueError("target_weights 维度必须与目标输出一致")
-        wss_names = resolve_wss_target_names(self.data.wss_target_frame, self.model.wss_dim) if self.model.wss_dim > 0 else []
-        if self.model.wss_dim > 0:
+        eff_wss_dim = resolve_wss_effective_dim(
+            self.model.wss_dim,
+            self.model.wss_output_mode,
+            self.model.wss_metric_dim,
+        )
+        wss_names = (
+            resolve_wss_runtime_names(
+                self.data.wss_target_frame,
+                self.model.wss_dim,
+                self.model.wss_output_mode,
+                self.model.wss_metric_dim,
+            )
+            if eff_wss_dim > 0
+            else []
+        )
+        if eff_wss_dim > 0:
             if len(self.optim.wss_weights) != len(wss_names):
                 raise ValueError(
                     f"wss_weights 维度 ({len(self.optim.wss_weights)}) 须与 "
@@ -310,6 +371,20 @@ class ExperimentConfig:
                 )
         if self.data.wss_target_frame not in ("global", "local"):
             raise ValueError("data.wss_target_frame 须为 global 或 local")
+        if self.data.wss_domain_norm not in ("none", "per_domain"):
+            raise ValueError("data.wss_domain_norm 须为 none 或 per_domain")
+        if self.data.wss_domain_norm == "per_domain":
+            if self.data.wss_target_frame != "global":
+                raise ValueError("data.wss_domain_norm=per_domain 当前仅支持 global WSS 目标")
+            if not self.data.wss_domain_norm_stats:
+                raise ValueError("data.wss_domain_norm=per_domain 时必须提供 wss_domain_norm_stats")
+            for domain, stats in self.data.wss_domain_norm_stats.items():
+                if "mean" not in stats or "std" not in stats:
+                    raise ValueError(f"{domain} 缺少 mean/std")
+                if len(stats["mean"]) != len(WSS_TARGET_NAMES) or len(stats["std"]) != len(WSS_TARGET_NAMES):
+                    raise ValueError(f"{domain} mean/std 维度须为 {len(WSS_TARGET_NAMES)}")
+                if any(float(v) <= 1e-10 for v in stats["std"]):
+                    raise ValueError(f"{domain} std 必须为正")
         if any(w < 0 for w in self.optim.val_score_wss_weights):
             raise ValueError("val_score_wss_weights 不得为负")
         if sum(self.optim.val_score_wss_weights) <= 0:
@@ -366,6 +441,36 @@ class ExperimentConfig:
             raise ValueError(
                 "wss_vel_context 训练禁止 warm-start（wss_head 输入维与 global ckpt 不兼容）"
             )
+        if self.model.wss_pgrad_context:
+            if self.model.name != "pointnext":
+                raise ValueError("wss_pgrad_context 仅支持 pointnext")
+            if self.model.wss_dim <= 0:
+                raise ValueError("wss_pgrad_context 须 wss_dim > 0")
+            if self.model.wss_output_mode != "head":
+                raise ValueError("wss_pgrad_context 仅适用于 wss_output_mode=head")
+        if self.model.wss_pgrad_context and self.run.init_checkpoint:
+            raise ValueError(
+                "wss_pgrad_context 训练禁止 warm-start（wss_head 输入维与 global ckpt 不兼容）"
+            )
+        if self.model.wss_output_mode not in ("head", "vel_diff"):
+            raise ValueError(
+                f"wss_output_mode 须为 head 或 vel_diff，收到: {self.model.wss_output_mode}"
+            )
+        if self.model.wss_output_mode == "vel_diff":
+            if self.model.name != "pointnext":
+                raise ValueError("wss_output_mode=vel_diff 仅支持 pointnext")
+            if self.model.wss_dim > 0:
+                raise ValueError("vel_diff 模式须 wss_dim=0（不使用 wss_head）")
+            if self.data.wss_target_frame != "global":
+                raise ValueError("vel_diff 模式当前仅支持 global WSS 目标")
+            if self.model.wss_metric_dim not in (1, len(WSS_TARGET_NAMES)):
+                raise ValueError(
+                    f"vel_diff 模式 wss_metric_dim 须为 1 或 {len(WSS_TARGET_NAMES)}"
+                )
+            if self.model.wss_vel_context or self.model.wss_pgrad_context:
+                raise ValueError("vel_diff 模式与 wss_vel_context / wss_pgrad_context 互斥")
+            if self.run.init_checkpoint:
+                raise ValueError("vel_diff 模式禁止 warm-start（无 wss_head 参数）")
         tiers = self.model.pool_k_tiers
         if tiers:
             if self.model.name != "pointnext":
@@ -383,6 +488,11 @@ class ExperimentConfig:
                 "pool_k_tiers 多档训练禁止 warm-start（backbone block MLP 输入维与旧 ckpt 不兼容）"
             )
         dl = self.optim.domain_loss
+        eff_wss_dim = resolve_wss_effective_dim(
+            self.model.wss_dim,
+            self.model.wss_output_mode,
+            self.model.wss_metric_dim,
+        )
         if dl.enabled:
             for attr in (
                 "lambda_vel_int",
@@ -391,9 +501,22 @@ class ExperimentConfig:
                 "lambda_p_wall",
                 "lambda_wss",
                 "lambda_wss_mag_consist",
+                "lambda_wss_rank",
+                "lambda_wss_vel_consist",
+                "lambda_wss_slope",
+                "lambda_wss_pgrad_consist",
             ):
                 if getattr(dl, attr) < 0:
                     raise ValueError(f"domain_loss.{attr} 不得为负")
+            if (dl.lambda_wss_vel_consist > 0 or dl.lambda_wss_pgrad_consist > 0) and eff_wss_dim < 1:
+                raise ValueError(
+                    "lambda_wss_vel_consist / lambda_wss_pgrad_consist 须有效 WSS 输出维 >=1"
+                )
+            if dl.lambda_wss_rank > 0:
+                if not 0.0 < dl.wss_rank_top_frac <= 1.0:
+                    raise ValueError("wss_rank_top_frac 须在 (0, 1] 内")
+                if dl.wss_rank_max_nodes < 2:
+                    raise ValueError("wss_rank_max_nodes 须 >= 2")
             if dl.lambda_wss_mag_consist > 0:
                 if self.model.wss_dim != 4:
                     raise ValueError("lambda_wss_mag_consist 须 wss_dim=4（global 四分量 head）")

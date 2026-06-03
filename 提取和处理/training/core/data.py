@@ -68,6 +68,28 @@ def _apply_wss_target_frame(data, wss_target_frame: str):
     return data
 
 
+def _case_domain(case_name: str) -> str:
+    return case_name.split("/", 1)[0]
+
+
+def _apply_wss_domain_norm(data, case_name: str, mode: str, stats: Dict[str, Dict[str, List[float]]]):
+    """TODO-19: 按 AAA/AG/ILO 对 WSS 目标做训练期标准化，避免重建图资产。"""
+    if mode == "none":
+        return data
+    if mode != "per_domain":
+        raise ValueError(f"未知 WSS domain norm 模式: {mode}")
+    if not hasattr(data, "y_wss") or data.y_wss is None:
+        return data
+    domain = _case_domain(case_name)
+    if domain not in stats:
+        raise KeyError(f"缺少 {domain} 的 WSS domain norm 统计")
+    domain_stats = stats[domain]
+    mean = torch.as_tensor(domain_stats["mean"], dtype=data.y_wss.dtype, device=data.y_wss.device)
+    std = torch.as_tensor(domain_stats["std"], dtype=data.y_wss.dtype, device=data.y_wss.device).clamp_min(1e-10)
+    data.y_wss = (data.y_wss - mean.unsqueeze(0)) / std.unsqueeze(0)
+    return data
+
+
 class FieldGraphDataset(Dataset):
     def __init__(
         self,
@@ -80,6 +102,8 @@ class FieldGraphDataset(Dataset):
         feature_mask: Optional[FeatureMask] = None,
         required_keys: Optional[Set[str]] = None,
         wss_target_frame: str = "global",
+        wss_domain_norm: str = "none",
+        wss_domain_norm_stats: Optional[Dict[str, Dict[str, List[float]]]] = None,
     ):
         # root/case_names/graphs_subdir 共同决定这次实验读取哪些图。
         # 这里约定“患者级 split -> 病例目录 -> 图快照文件”三层路径关系。
@@ -102,6 +126,8 @@ class FieldGraphDataset(Dataset):
         # 需要保留的数据字段集合；None 表示不裁剪。
         self.required_keys = set(required_keys) if required_keys is not None else None
         self.wss_target_frame = wss_target_frame
+        self.wss_domain_norm = wss_domain_norm
+        self.wss_domain_norm_stats = wss_domain_norm_stats or {}
 
         # 保存当前数据集对应的全部图文件路径。
         self.data_files: List[Path] = []
@@ -178,7 +204,14 @@ class FieldGraphDataset(Dataset):
         # sample_id 用图文件名（不含后缀）表示当前快照。
         data.sample_id = data_path.stem
         # case_name 是相对于数据根目录的病例路径。
-        data.case_name = str(case_path.relative_to(self.root))
+        case_name = str(case_path.relative_to(self.root))
+        data.case_name = case_name
+        data = _apply_wss_domain_norm(
+            data,
+            case_name=case_name,
+            mode=self.wss_domain_norm,
+            stats=self.wss_domain_norm_stats,
+        )
         # graph_path 保存原始图文件完整路径，便于追溯。
         data.graph_path = str(data_path)
 

@@ -6,7 +6,7 @@ from typing import Dict, Optional
 
 import torch
 
-from ..core.config import ExperimentConfig, resolve_wss_target_names
+from ..core.config import ExperimentConfig, resolve_wss_effective_dim, resolve_wss_runtime_names
 from ..core.data import (
     FieldGraphDataset,
     build_dataloader,
@@ -14,7 +14,7 @@ from ..core.data import (
     build_required_data_keys,
 )
 from ..core.io import append_experiment_index, load_checkpoint
-from ..core.models import build_model
+from ..core.models import build_field_model_from_config
 from ..core.splits import SplitSpec
 from ..core.trainer import FieldTrainer
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed, timestamp
@@ -160,15 +160,21 @@ def main() -> None:
         enabled_node_features=config.data.enabled_node_features,
         enabled_global_features=config.data.enabled_global_features,
     )
+    eff_wss_dim = resolve_wss_effective_dim(
+        config.model.wss_dim,
+        config.model.wss_output_mode,
+        config.model.wss_metric_dim,
+    )
     required_data_keys = build_required_data_keys(
         config.model.name,
-        wss_dim=config.model.wss_dim,
+        wss_dim=eff_wss_dim,
         wss_target_frame=config.data.wss_target_frame,
     )
-    wss_target_names = (
-        resolve_wss_target_names(config.data.wss_target_frame, config.model.wss_dim)
-        if config.model.wss_dim > 0
-        else []
+    wss_target_names = resolve_wss_runtime_names(
+        config.data.wss_target_frame,
+        config.model.wss_dim,
+        config.model.wss_output_mode,
+        config.model.wss_metric_dim,
     )
 
     # 训练/验证/测试共用同一套 split 文件，保证后续任务 B、C 可以回溯到统一划分。
@@ -183,6 +189,8 @@ def main() -> None:
         feature_mask=feature_mask,
         required_keys=required_data_keys,
         wss_target_frame=config.data.wss_target_frame,
+        wss_domain_norm=config.data.wss_domain_norm,
+        wss_domain_norm_stats=config.data.wss_domain_norm_stats,
     )
     # 构建验证集数据对象；验证集不做增强。
     val_dataset = FieldGraphDataset(
@@ -194,6 +202,8 @@ def main() -> None:
         feature_mask=feature_mask,
         required_keys=required_data_keys,
         wss_target_frame=config.data.wss_target_frame,
+        wss_domain_norm=config.data.wss_domain_norm,
+        wss_domain_norm_stats=config.data.wss_domain_norm_stats,
     )
     # 构建测试集数据对象；测试集同样不做增强。
     test_dataset = FieldGraphDataset(
@@ -205,6 +215,8 @@ def main() -> None:
         feature_mask=feature_mask,
         required_keys=required_data_keys,
         wss_target_frame=config.data.wss_target_frame,
+        wss_domain_norm=config.data.wss_domain_norm,
+        wss_domain_norm_stats=config.data.wss_domain_norm_stats,
     )
 
     # 训练 DataLoader 需要打乱顺序。
@@ -233,20 +245,7 @@ def main() -> None:
         pin_memory=config.data.pin_memory,
     )
 
-    model = build_model(
-        model_name=config.model.name,
-        hidden_dim=config.model.hidden_dim,
-        num_layers=config.model.num_layers,
-        dropout=config.model.dropout,
-        heads=config.model.heads,
-        use_transformer_prenorm=config.model.use_transformer_prenorm,
-        wss_dim=config.model.wss_dim,
-        head_layout=config.model.head_layout,
-        wss_head_dropout=config.model.wss_head_dropout,
-        wss_vel_context=config.model.wss_vel_context,
-        wss_vel_context_dim=config.model.wss_vel_context_dim,
-        pool_k_tiers=config.model.pool_k_tiers or None,
-    ).to(device)
+    model = build_field_model_from_config(config).to(device)
 
     if config.run.init_checkpoint:
         if config.data.wss_target_frame == "local":
@@ -288,7 +287,9 @@ def main() -> None:
     # 创建本次训练的输出目录。
     run_dir = build_run_dir(config, split)
 
-    wss_weights_tensor = torch.tensor(config.optim.wss_weights, dtype=torch.float32) if config.model.wss_dim > 0 else None
+    wss_weights_tensor = (
+        torch.tensor(config.optim.wss_weights, dtype=torch.float32) if eff_wss_dim > 0 else None
+    )
 
     # V3: normalization_params_global.json 路径推导。
     norm_params_path = str(Path(config.data.data_root) / "normalization_params_global.json")
@@ -319,6 +320,8 @@ def main() -> None:
         val_score_wss_weights=config.optim.val_score_wss_weights,
         wss_target_names=wss_target_names,
         wss_target_frame=config.data.wss_target_frame,
+        wss_output_mode=config.model.wss_output_mode,
+        wss_metric_dim=config.model.wss_metric_dim if config.model.wss_output_mode == "vel_diff" else 0,
     )
     # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")

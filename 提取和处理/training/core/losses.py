@@ -91,6 +91,45 @@ def wss_supervision_loss(
     return (per_dim_t * wss_weights[:n_dims]).sum()
 
 
+def wss_topk_ranking_loss(
+    wss_pred: torch.Tensor,
+    wss_target: torch.Tensor,
+    is_wall: torch.Tensor,
+    batch_index: Optional[torch.Tensor] = None,
+    top_frac: float = 0.10,
+    max_nodes: int = 512,
+) -> torch.Tensor:
+    """ListNet 风格 top-fraction 壁面 |WSS| 排序 loss（TODO-42）。"""
+    wall = is_wall.squeeze(-1).bool()
+    finite = torch.isfinite(wss_target[:, 0])
+    valid = wall & finite
+    if valid.sum() < 2:
+        return wss_pred.new_zeros(())
+
+    if batch_index is None:
+        batch_index = torch.zeros(wss_pred.size(0), dtype=torch.long, device=wss_pred.device)
+
+    total = wss_pred.new_zeros(())
+    n_graphs = 0
+    eps = 1e-8
+    for graph_id in batch_index[valid].unique():
+        mask = valid & (batch_index == graph_id)
+        pred = wss_pred[mask, 0]
+        target = wss_target[mask, 0]
+        n = int(pred.numel())
+        k = max(2, min(int(round(n * top_frac)), int(max_nodes), n))
+        _, idx = torch.topk(target, k, largest=True)
+        pred_k = pred[idx]
+        target_k = target[idx]
+        pl_true = F.softmax(target_k, dim=0)
+        pl_pred = F.softmax(pred_k, dim=0)
+        total = total - (pl_true * (pl_pred + eps).log()).sum()
+        n_graphs += 1
+    if n_graphs == 0:
+        return wss_pred.new_zeros(())
+    return total / n_graphs
+
+
 def wss_magnitude_consistency_loss(
     wss_pred: torch.Tensor,
     is_wall: torch.Tensor,
@@ -105,6 +144,106 @@ def wss_magnitude_consistency_loss(
     mag = wp[:, 0]
     recomputed = torch.sqrt(torch.clamp((wp[:, 1:4] ** 2).sum(dim=1), min=0.0))
     return (mag - recomputed).square().mean()
+
+
+def nearwall_velocity_diff_estimate(
+    pred: torch.Tensor,
+    coords: torch.Tensor,
+    wall_mask: torch.Tensor,
+    batch_index: torch.Tensor,
+) -> torch.Tensor:
+    """每壁面点：|预测速度(最近内部点) − 预测速度(壁面)| / 距离（近壁差分推 |WSS| 代理）。
+
+    返回 [N]，仅壁面点非零；可微，梯度回流到预测速度（TODO-30/33）。
+    最近内部点配对是几何量（平移/缩放无关），故 no_grad 计算配对与距离。
+    """
+    est_full = pred.new_zeros(pred.size(0))
+    interior_mask = ~wall_mask
+    for gid in batch_index.unique():
+        gsel = batch_index == gid
+        w = gsel & wall_mask
+        it = gsel & interior_mask
+        if int(w.sum()) == 0 or int(it.sum()) == 0:
+            continue
+        cw = coords[w]
+        ci = coords[it]
+        with torch.no_grad():
+            d = torch.cdist(cw, ci)
+            dmin, jmin = d.min(dim=1)
+        vel_w = pred[w, :3]
+        vel_i = pred[it][jmin, :3]
+        est_w = (vel_i - vel_w).norm(dim=1) / dmin.clamp_min(1e-6)
+        idx = w.nonzero(as_tuple=True)[0]
+        est_full = est_full.index_copy(0, idx, est_w)
+    return est_full
+
+
+def wall_pressure_grad_mag(
+    pred: torch.Tensor,
+    coords: torch.Tensor,
+    wall_mask: torch.Tensor,
+    edge_index: torch.Tensor,
+) -> torch.Tensor:
+    """每壁面点：用图边邻域有限差分估 |∇p| 的方向均方根（思路 2 压力→WSS 耦合）。
+
+    返回 [N]，仅壁面点非零；可微，梯度回流到预测压力 pred[:,3]。
+    """
+    p = pred[:, 3]
+    src = edge_index[0]
+    dst = edge_index[1]
+    dist = (coords[src] - coords[dst]).norm(dim=1).clamp_min(1e-6)
+    diff2 = ((p[src] - p[dst]) / dist) ** 2
+    num = pred.new_zeros(pred.size(0)).index_add(0, dst, diff2)
+    cnt = pred.new_zeros(pred.size(0)).index_add(0, dst, torch.ones_like(diff2))
+    gmag = torch.sqrt(num / cnt.clamp_min(1.0) + 1e-12)
+    return gmag * wall_mask.to(gmag.dtype)
+
+
+def standardized_pattern_mse(
+    a: torch.Tensor,
+    b: torch.Tensor,
+    wall_mask: torch.Tensor,
+    batch_index: torch.Tensor,
+    min_nodes: int = 8,
+) -> torch.Tensor:
+    """逐图在壁面点上把 a、b 各自标准化后取 MSE（尺度无关，聚焦空间模式）。
+
+    a、b 均归一化（z-score）但量纲不同，故对比模式而非绝对值；与 oracle 的相关口径一致。
+    """
+    total = a.new_zeros(())
+    n = 0
+    for gid in batch_index.unique():
+        m = wall_mask & (batch_index == gid)
+        if int(m.sum()) < min_nodes:
+            continue
+        av = a[m]
+        bv = b[m]
+        av = (av - av.mean()) / (av.std() + 1e-6)
+        bv = (bv - bv.mean()) / (bv.std() + 1e-6)
+        total = total + (av - bv).square().mean()
+        n += 1
+    if n == 0:
+        return a.new_zeros(())
+    return total / n
+
+
+def infer_wss_from_vel_diff(
+    field_pred: torch.Tensor,
+    coords: torch.Tensor,
+    wall_mask: torch.Tensor,
+    batch_index: torch.Tensor,
+    out_dim: int = 1,
+) -> torch.Tensor:
+    """结构版 TODO-30：由预测近壁速度差分合成 WSS 张量（可微，梯度回流到速度）。
+
+    out_dim=1 时仅输出 |WSS| 模长；out_dim=4 时 col0=模长、分量列为 0（兼容 AsymW 四列指标口径）。
+    """
+    mag = nearwall_velocity_diff_estimate(field_pred, coords, wall_mask, batch_index)
+    if out_dim <= 1:
+        return mag.unsqueeze(-1)
+    out = field_pred.new_zeros(field_pred.size(0), out_dim)
+    out[:, 0] = mag
+    return out
 
 
 @dataclass
@@ -407,12 +546,20 @@ class DualDomainLossBreakdown:
     loss_wall_pressure: torch.Tensor
     loss_wall_wss: torch.Tensor
     loss_wss_mag_consist: torch.Tensor
+    loss_wss_rank: torch.Tensor
+    loss_wss_vel_consist: torch.Tensor
+    loss_wss_slope: torch.Tensor
+    loss_wss_pgrad_consist: torch.Tensor
     weighted_loss_interior_velocity: torch.Tensor
     weighted_loss_noslip_velocity: torch.Tensor
     weighted_loss_interior_pressure: torch.Tensor
     weighted_loss_wall_pressure: torch.Tensor
     weighted_loss_wall_wss: torch.Tensor
     weighted_loss_wss_mag_consist: torch.Tensor
+    weighted_loss_wss_rank: torch.Tensor
+    weighted_loss_wss_vel_consist: torch.Tensor
+    weighted_loss_wss_slope: torch.Tensor
+    weighted_loss_wss_pgrad_consist: torch.Tensor
 
     def scalar_dict(self) -> Dict[str, float]:
         return {
@@ -423,12 +570,20 @@ class DualDomainLossBreakdown:
             "loss_wall_pressure": self.loss_wall_pressure.detach().item(),
             "loss_wall_wss": self.loss_wall_wss.detach().item(),
             "loss_wss_mag_consist": self.loss_wss_mag_consist.detach().item(),
+            "loss_wss_rank": self.loss_wss_rank.detach().item(),
+            "loss_wss_vel_consist": self.loss_wss_vel_consist.detach().item(),
+            "loss_wss_slope": self.loss_wss_slope.detach().item(),
+            "loss_wss_pgrad_consist": self.loss_wss_pgrad_consist.detach().item(),
             "weighted_loss_interior_velocity": self.weighted_loss_interior_velocity.detach().item(),
             "weighted_loss_noslip_velocity": self.weighted_loss_noslip_velocity.detach().item(),
             "weighted_loss_interior_pressure": self.weighted_loss_interior_pressure.detach().item(),
             "weighted_loss_wall_pressure": self.weighted_loss_wall_pressure.detach().item(),
             "weighted_loss_wall_wss": self.weighted_loss_wall_wss.detach().item(),
             "weighted_loss_wss_mag_consist": self.weighted_loss_wss_mag_consist.detach().item(),
+            "weighted_loss_wss_rank": self.weighted_loss_wss_rank.detach().item(),
+            "weighted_loss_wss_vel_consist": self.weighted_loss_wss_vel_consist.detach().item(),
+            "weighted_loss_wss_slope": self.weighted_loss_wss_slope.detach().item(),
+            "weighted_loss_wss_pgrad_consist": self.weighted_loss_wss_pgrad_consist.detach().item(),
         }
 
 
@@ -522,14 +677,74 @@ class DualDomainLoss:
         else:
             mag_consist = zero
 
+        wss_target = getattr(batch, "y_wss", None)
+        if (
+            self.cfg.lambda_wss_rank > 0
+            and wss_pred is not None
+            and wss_target is not None
+            and wss_pred.size(1) >= 1
+        ):
+            batch_index = getattr(batch, "batch", None)
+            rank_l = wss_topk_ranking_loss(
+                wss_pred,
+                wss_target,
+                is_wall.unsqueeze(-1),
+                batch_index=batch_index,
+                top_frac=self.cfg.wss_rank_top_frac,
+                max_nodes=self.cfg.wss_rank_max_nodes,
+            )
+        else:
+            rank_l = zero
+
+        # --- 近壁速度差分 / 压力梯度耦合（TODO-30/33 + 思路2）---
+        # 三项默认 lambda=0，旧配置完全不触发；仅在需要时构造几何量。
+        vel_consist = zero
+        slope_l = zero
+        pgrad_consist = zero
+        need_vel_diff = self.cfg.lambda_wss_vel_consist > 0 or self.cfg.lambda_wss_slope > 0
+        need_pgrad = self.cfg.lambda_wss_pgrad_consist > 0
+        if need_vel_diff or need_pgrad:
+            coords = batch.x[:, :3]
+            batch_index = getattr(batch, "batch", None)
+            if batch_index is None:
+                batch_index = torch.zeros(pred.size(0), dtype=torch.long, device=pred.device)
+
+        if need_vel_diff:
+            vel_diff = nearwall_velocity_diff_estimate(pred, coords, wall_mask, batch_index)
+            # TODO-30：预测 WSS 模长 ↔ 差分代理（自洽，双向拉近）
+            if self.cfg.lambda_wss_vel_consist > 0 and wss_pred is not None and wss_pred.size(1) >= 1:
+                vel_consist = standardized_pattern_mse(
+                    wss_pred[:, 0], vel_diff, wall_mask, batch_index
+                )
+            # TODO-33：差分代理 ↔ GT |WSS|（监督，塑造速度场近壁梯度；GT 侧 detach）
+            if self.cfg.lambda_wss_slope > 0 and wss_target is not None:
+                slope_l = standardized_pattern_mse(
+                    vel_diff, wss_target[:, 0].detach(), wall_mask, batch_index
+                )
+
+        if need_pgrad and wss_pred is not None and wss_pred.size(1) >= 1:
+            edge_index = getattr(batch, "edge_index", None)
+            if edge_index is not None:
+                pgrad_mag = wall_pressure_grad_mag(pred, coords, wall_mask, edge_index)
+                pgrad_consist = standardized_pattern_mse(
+                    wss_pred[:, 0], pgrad_mag, wall_mask, batch_index
+                )
+
         w_vel_int = self.cfg.lambda_vel_int * vel_int
         w_vel_noslip = self.cfg.lambda_vel_noslip * vel_noslip
         w_p_int = self.cfg.lambda_p_int * p_int
         w_p_wall = self.cfg.lambda_p_wall * p_wall
         w_wss = self.cfg.lambda_wss * wss_l
         w_mag_consist = self.cfg.lambda_wss_mag_consist * mag_consist
+        w_rank = self.cfg.lambda_wss_rank * rank_l
+        w_vel_consist = self.cfg.lambda_wss_vel_consist * vel_consist
+        w_slope = self.cfg.lambda_wss_slope * slope_l
+        w_pgrad = self.cfg.lambda_wss_pgrad_consist * pgrad_consist
 
-        total = w_vel_int + w_vel_noslip + w_p_int + w_p_wall + w_wss + w_mag_consist
+        total = (
+            w_vel_int + w_vel_noslip + w_p_int + w_p_wall + w_wss
+            + w_mag_consist + w_rank + w_vel_consist + w_slope + w_pgrad
+        )
 
         return DualDomainLossBreakdown(
             total_loss=total,
@@ -539,12 +754,20 @@ class DualDomainLoss:
             loss_wall_pressure=p_wall,
             loss_wall_wss=wss_l,
             loss_wss_mag_consist=mag_consist,
+            loss_wss_rank=rank_l,
+            loss_wss_vel_consist=vel_consist,
+            loss_wss_slope=slope_l,
+            loss_wss_pgrad_consist=pgrad_consist,
             weighted_loss_interior_velocity=w_vel_int,
             weighted_loss_noslip_velocity=w_vel_noslip,
             weighted_loss_interior_pressure=w_p_int,
             weighted_loss_wall_pressure=w_p_wall,
             weighted_loss_wall_wss=w_wss,
             weighted_loss_wss_mag_consist=w_mag_consist,
+            weighted_loss_wss_rank=w_rank,
+            weighted_loss_wss_vel_consist=w_vel_consist,
+            weighted_loss_wss_slope=w_slope,
+            weighted_loss_wss_pgrad_consist=w_pgrad,
         )
 
 

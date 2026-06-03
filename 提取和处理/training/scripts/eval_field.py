@@ -6,14 +6,14 @@ from typing import Dict
 
 import torch
 
-from ..core.config import ExperimentConfig
-from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask
+from ..core.config import ExperimentConfig, resolve_wss_effective_dim, resolve_wss_runtime_names
+from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask, build_required_data_keys
 from ..core.io import load_checkpoint
 from ..core.losses import build_loss_plugin
-from pipeline.config import NODE_FEATURE_NAMES
+from pipeline.config import NODE_FEATURE_NAMES, WSS_LOCAL_TARGET_NAMES, WSS_TARGET_NAMES
 
 from ..core.metrics import RegressionMeter, WSSMeter
-from ..core.models import build_model, split_model_output
+from ..core.models import build_field_model_from_config, split_model_output
 from ..core.splits import SplitSpec
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed
 
@@ -42,13 +42,15 @@ def evaluate_checkpoint(
     wss_huber_beta: float = 1.0,
     eval_epoch: int = 10**9,
     checkpoint_path: Path | str | None = None,
+    wss_target_names: list[str] | None = None,
+    wss_target_frame: str = "global",
 ) -> Dict[str, float]:
     """Standalone evaluation that matches training-time metric semantics."""
     if checkpoint_path is not None:
         load_checkpoint(model, checkpoint_path, device)
     model.eval()
     meter = RegressionMeter()
-    wss_meter = WSSMeter()
+    wss_meter = WSSMeter(target_names=wss_target_names) if wss_target_names else WSSMeter()
     is_wall_idx = NODE_FEATURE_NAMES.index("is_wall")
     weights = loss_weights.to(device)
     loss_plugin = build_loss_plugin(
@@ -80,6 +82,10 @@ def evaluate_checkpoint(
             wss_target = getattr(batch, "y_wss", None)
             if wss_target is not None:
                 is_wall = batch.x[:, is_wall_idx : is_wall_idx + 1]
+                if wss_target.shape[1] != wss_pred.shape[1] and wss_target_names:
+                    base = WSS_LOCAL_TARGET_NAMES if wss_target_frame == "local" else WSS_TARGET_NAMES
+                    indices = [base.index(n) for n in wss_target_names]
+                    wss_target = wss_target[:, indices]
                 wss_meter.update(wss_pred, wss_target, is_wall)
         for key, value in breakdown.scalar_dict().items():
             extra_totals[key] = extra_totals.get(key, 0.0) + value
@@ -121,6 +127,22 @@ def main() -> None:
         enabled_node_features=config.data.enabled_node_features,
         enabled_global_features=config.data.enabled_global_features,
     )
+    eff_wss_dim = resolve_wss_effective_dim(
+        config.model.wss_dim,
+        config.model.wss_output_mode,
+        config.model.wss_metric_dim,
+    )
+    wss_target_names = resolve_wss_runtime_names(
+        config.data.wss_target_frame,
+        config.model.wss_dim,
+        config.model.wss_output_mode,
+        config.model.wss_metric_dim,
+    )
+    required_data_keys = build_required_data_keys(
+        config.model.name,
+        wss_dim=eff_wss_dim,
+        wss_target_frame=config.data.wss_target_frame,
+    )
     dataset = FieldGraphDataset(
         root=config.data.data_root,
         case_names=resolve_cases(split, args.subset),
@@ -128,6 +150,10 @@ def main() -> None:
         augment=False,
         preload=config.data.preload,
         feature_mask=feature_mask,
+        required_keys=required_data_keys,
+        wss_target_frame=config.data.wss_target_frame,
+        wss_domain_norm=config.data.wss_domain_norm,
+        wss_domain_norm_stats=config.data.wss_domain_norm_stats,
     )
     loader = build_dataloader(
         dataset,
@@ -137,20 +163,7 @@ def main() -> None:
         pin_memory=config.data.pin_memory,
     )
 
-    model = build_model(
-        model_name=config.model.name,
-        hidden_dim=config.model.hidden_dim,
-        num_layers=config.model.num_layers,
-        dropout=config.model.dropout,
-        heads=config.model.heads,
-        use_transformer_prenorm=config.model.use_transformer_prenorm,
-        wss_dim=config.model.wss_dim,
-        head_layout=config.model.head_layout,
-        wss_head_dropout=config.model.wss_head_dropout,
-        wss_vel_context=config.model.wss_vel_context,
-        wss_vel_context_dim=config.model.wss_vel_context_dim,
-        pool_k_tiers=config.model.pool_k_tiers or None,
-    ).to(device)
+    model = build_field_model_from_config(config).to(device)
 
     metrics = evaluate_checkpoint(
         model=model,
@@ -162,12 +175,14 @@ def main() -> None:
         wss_loss_weight=config.optim.wss_loss_weight,
         wss_weights=(
             torch.tensor(config.optim.wss_weights, dtype=torch.float32)
-            if config.model.wss_dim > 0
+            if eff_wss_dim > 0
             else None
         ),
         wss_loss_type=config.optim.wss_loss_type,
         wss_huber_beta=config.optim.wss_huber_beta,
         checkpoint_path=Path(args.checkpoint),
+        wss_target_names=wss_target_names or None,
+        wss_target_frame=config.data.wss_target_frame,
     )
 
     output_dir = (

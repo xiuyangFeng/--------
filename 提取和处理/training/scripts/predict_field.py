@@ -5,10 +5,10 @@ from pathlib import Path
 
 import torch
 
-from ..core.config import ExperimentConfig, resolve_wss_target_names
+from ..core.config import ExperimentConfig, resolve_wss_effective_dim, resolve_wss_runtime_names
 from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask, build_required_data_keys
 from ..core.io import load_checkpoint, sanitize_batch_metadata
-from ..core.models import build_model, split_model_output
+from ..core.models import build_field_model_from_config, split_model_output
 from ..core.splits import SplitSpec
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed
 from pipeline.config import NODE_FEATURE_NAMES, TARGET_NAMES
@@ -75,14 +75,20 @@ def main() -> None:
         enabled_node_features=config.data.enabled_node_features,
         enabled_global_features=config.data.enabled_global_features,
     )
-    wss_target_names = (
-        resolve_wss_target_names(config.data.wss_target_frame, config.model.wss_dim)
-        if config.model.wss_dim > 0
-        else []
+    eff_wss_dim = resolve_wss_effective_dim(
+        config.model.wss_dim,
+        config.model.wss_output_mode,
+        config.model.wss_metric_dim,
+    )
+    wss_target_names = resolve_wss_runtime_names(
+        config.data.wss_target_frame,
+        config.model.wss_dim,
+        config.model.wss_output_mode,
+        config.model.wss_metric_dim,
     )
     required_data_keys = build_required_data_keys(
         config.model.name,
-        wss_dim=config.model.wss_dim,
+        wss_dim=eff_wss_dim,
         wss_target_frame=config.data.wss_target_frame,
     )
     dataset = FieldGraphDataset(
@@ -103,20 +109,7 @@ def main() -> None:
         pin_memory=config.data.pin_memory,
     )
 
-    model = build_model(
-        model_name=config.model.name,
-        hidden_dim=config.model.hidden_dim,
-        num_layers=config.model.num_layers,
-        dropout=config.model.dropout,
-        heads=config.model.heads,
-        use_transformer_prenorm=config.model.use_transformer_prenorm,
-        wss_dim=config.model.wss_dim,
-        head_layout=config.model.head_layout,
-        wss_head_dropout=config.model.wss_head_dropout,
-        wss_vel_context=config.model.wss_vel_context,
-        wss_vel_context_dim=config.model.wss_vel_context_dim,
-        pool_k_tiers=config.model.pool_k_tiers or None,
-    ).to(device)
+    model = build_field_model_from_config(config).to(device)
     load_checkpoint(model, args.checkpoint, device)
     model.eval()
 

@@ -18,9 +18,9 @@ from typing import Dict, List
 
 import torch
 
-from ..core.config import ExperimentConfig
+from ..core.config import ExperimentConfig, resolve_wss_effective_dim, resolve_wss_runtime_names
 from ..core.data import FieldGraphDataset, build_dataloader, build_feature_mask
-from ..core.models import build_model
+from ..core.models import build_field_model_from_config
 from ..core.splits import SplitSpec
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed
 from .eval_field import evaluate_checkpoint, resolve_cases
@@ -76,26 +76,24 @@ def main() -> None:
         enabled_global_features=config.data.enabled_global_features,
     )
 
-    model = build_model(
-        model_name=config.model.name,
-        hidden_dim=config.model.hidden_dim,
-        num_layers=config.model.num_layers,
-        dropout=config.model.dropout,
-        heads=config.model.heads,
-        use_transformer_prenorm=config.model.use_transformer_prenorm,
-        wss_dim=config.model.wss_dim,
-        head_layout=config.model.head_layout,
-        wss_head_dropout=config.model.wss_head_dropout,
-        wss_vel_context=config.model.wss_vel_context,
-        wss_vel_context_dim=config.model.wss_vel_context_dim,
-        pool_k_tiers=config.model.pool_k_tiers or None,
-    ).to(device)
+    wss_target_names = resolve_wss_runtime_names(
+        config.data.wss_target_frame,
+        config.model.wss_dim,
+        config.model.wss_output_mode,
+        config.model.wss_metric_dim,
+    )
+    eff_wss_dim = resolve_wss_effective_dim(
+        config.model.wss_dim,
+        config.model.wss_output_mode,
+        config.model.wss_metric_dim,
+    )
+    model = build_field_model_from_config(config).to(device)
 
     ckpt = Path(args.checkpoint).resolve()
     loss_weights = torch.tensor(config.optim.target_weights, dtype=torch.float32)
     wss_weights = (
         torch.tensor(config.optim.wss_weights, dtype=torch.float32)
-        if config.model.wss_dim > 0
+        if eff_wss_dim > 0
         else None
     )
 
@@ -110,6 +108,9 @@ def main() -> None:
         augment=False,
         preload=config.data.preload,
         feature_mask=feature_mask,
+        wss_target_frame=config.data.wss_target_frame,
+        wss_domain_norm=config.data.wss_domain_norm,
+        wss_domain_norm_stats=config.data.wss_domain_norm_stats,
     )
     full_loader = build_dataloader(
         full_ds,
@@ -130,6 +131,8 @@ def main() -> None:
         wss_loss_type=config.optim.wss_loss_type,
         wss_huber_beta=config.optim.wss_huber_beta,
         checkpoint_path=ckpt,
+        wss_target_names=wss_target_names or None,
+        wss_target_frame=config.data.wss_target_frame,
     )
 
     for domain, cases in by_domain.items():
@@ -140,6 +143,9 @@ def main() -> None:
             augment=False,
             preload=config.data.preload,
             feature_mask=feature_mask,
+            wss_target_frame=config.data.wss_target_frame,
+            wss_domain_norm=config.data.wss_domain_norm,
+            wss_domain_norm_stats=config.data.wss_domain_norm_stats,
         )
         if len(ds) == 0:
             domain_results[domain] = {"num_graphs": 0, "num_cases": len(cases), "metrics": {}}
@@ -163,6 +169,8 @@ def main() -> None:
             wss_loss_type=config.optim.wss_loss_type,
             wss_huber_beta=config.optim.wss_huber_beta,
             checkpoint_path=ckpt,
+            wss_target_names=wss_target_names or None,
+            wss_target_frame=config.data.wss_target_frame,
         )
         domain_results[domain] = {
             "num_cases": len(cases),

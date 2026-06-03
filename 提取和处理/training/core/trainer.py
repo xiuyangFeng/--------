@@ -53,6 +53,8 @@ class FieldTrainer:
         val_score_wss_weights: Optional[Sequence[float]] = None,
         wss_target_names: Optional[Sequence[str]] = None,
         wss_target_frame: str = "global",
+        wss_output_mode: str = "head",
+        wss_metric_dim: int = 0,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -83,6 +85,8 @@ class FieldTrainer:
             self._val_score_wss_weights = [float(w) for w in val_score_wss_weights]
         self._wss_target_names = list(wss_target_names or WSS_TARGET_NAMES)
         self._wss_target_frame = wss_target_frame
+        self._wss_output_mode = wss_output_mode
+        self._wss_metric_dim = wss_metric_dim
         self._wss_best_metric_key = "wss_r2_mag" if wss_target_frame == "local" else "wss_r2_wss"
 
         # P0-B: 读取 normalization_params_global.json 中的 per-channel std。
@@ -111,6 +115,14 @@ class FieldTrainer:
         self._domain_mask_verified = False
         self._track_wss_metrics = self.wss_loss_weight > 0
         if self._use_domain_loss and domain_loss_config.lambda_wss > 0:
+            self._track_wss_metrics = True
+        if self._wss_output_mode == "vel_diff" and self._wss_metric_dim > 0:
+            self._track_wss_metrics = True
+        if (
+            self._use_domain_loss
+            and domain_loss_config is not None
+            and domain_loss_config.lambda_wss_slope > 0
+        ):
             self._track_wss_metrics = True
 
         # 只有 CUDA 上才真正启用 AMP。

@@ -1,0 +1,187 @@
+{
+  "run": {
+    "experiment_name": "field_v3d_pointnext_localpool_probe_wss_domainnorm_wall13000_near2000",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true
+  },
+  "data": {
+    "data_root": "data_new",
+    "split_file": "training/splits/split_data_new_v3.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 1,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
+      "is_wall"
+    ],
+    "enabled_global_features": [
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
+    ],
+    "augment": true,
+    "augment_config": {
+      "rotation_prob": 0.0,
+      "rotation_axes": "xyz",
+      "translation_prob": 0.5,
+      "translation_range": 0.1,
+      "scale_prob": 0.0,
+      "mirror_prob": 0.0
+    },
+    "wss_domain_norm": "per_domain",
+    "wss_domain_norm_stats": {
+      "AAA": {
+        "mean": [
+          -0.016405285026135207,
+          -0.003363135649955416,
+          -0.02529247008624199,
+          -0.02283016320376178
+        ],
+        "std": [
+          1.104443713285491,
+          1.1250462502672232,
+          1.1323546765040455,
+          1.0278597848829278
+        ]
+      },
+      "AG": {
+        "mean": [
+          0.06798524414314389,
+          0.00886952499689885,
+          -0.002406393578413247,
+          0.03295927467228059
+        ],
+        "std": [
+          0.984175270089345,
+          0.9922586487394054,
+          0.9636943179901584,
+          1.0504800775413254
+        ]
+      },
+      "ILO": {
+        "mean": [
+          -0.05691489488834934,
+          0.0005476634093507503,
+          0.017542343285822146,
+          -0.030961354570161772
+        ],
+        "std": [
+          0.9680113874640249,
+          0.9198587319860357,
+          0.9378375353738111,
+          0.9881071538885485
+        ]
+      }
+    }
+  },
+  "model": {
+    "name": "pointnext",
+    "hidden_dim": 256,
+    "num_layers": 4,
+    "dropout": 0.1,
+    "heads": 4,
+    "use_transformer_prenorm": false,
+    "wss_dim": 4,
+    "head_layout": "mlp2"
+  },
+  "optim": {
+    "epochs": 200,
+    "lr": 0.0005,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 5,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 10,
+    "early_stopping_patience": 60,
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "interior_loss_boost": 1.0,
+    "grad_clip_norm": 1.0,
+    "accumulate_grad_batches": 2,
+    "wss_loss_weight": 0.0,
+    "wss_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "wss_loss_type": "mse",
+    "wss_huber_beta": 1.0,
+    "early_stop_wss_weight": 0.0,
+    "domain_loss": {
+      "enabled": true,
+      "lambda_vel_int": 0.0,
+      "lambda_vel_noslip": 0.0,
+      "lambda_p_int": 0.0,
+      "lambda_p_wall": 0.0,
+      "lambda_wss": 1.0,
+      "normalize_by_target_std": true,
+      "norm_consts": {},
+      "weight_calibration": ""
+    },
+    "early_stop_min_delta": 0.0001,
+    "val_score_ema_alpha": 0.4
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true,
+    "amp": false
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "V3D-Probe-WSS-DomainNorm",
+    "stage": "task_a",
+    "study_group": "v3d_tri_domain_phase1",
+    "question": "TODO-19 C2a: V3D WSS-only probe with train-only AAA/AG/ILO per-domain WSS z-score targets.",
+    "feature_set": "coord_t_bc_geom_wall",
+    "ablation_axis": "v3d_wss_domain_norm",
+    "tags": [
+      "domain-norm",
+      "localpool",
+      "pointcloud",
+      "pointnext",
+      "probe",
+      "todo19",
+      "tri-domain",
+      "v3d",
+      "wall13000_near2000",
+      "wss-only"
+    ],
+    "notes": "单变量相对 V3D-Probe-WSS-01：仅将 y_wss 按 train split 内 AAA/AG/ILO 分域 mean/std 在线标准化；模型、split、loss、图资产不变。Go: 全局/分域 WSS 明确改善，尤其 ILO 向 AG 靠近。",
+    "generated_from": "training/configs/field/generated/v3_data_new_tri_domain/V3D-Probe-WSS-01_seed1.json"
+  },
+  "physics": {
+    "enabled": false,
+    "warmup_epochs": 0,
+    "density": 1060.0,
+    "viscosity": 0.0035,
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "time_scale": 1.0,
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "auto_load_scales": true
+  }
+}
