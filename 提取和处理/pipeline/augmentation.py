@@ -30,6 +30,8 @@ import numpy as np
 import torch
 from torch_geometric.data import Data
 
+from pipeline.debug_audit import agent_debug_log
+
 
 # ============================================================================
 # 旋转矩阵生成函数
@@ -227,6 +229,22 @@ def random_translation(
     
     # 平移坐标
     data.x[:, coord_indices[0]:coord_indices[1]] += shift
+
+    # region agent log
+    agent_debug_log(
+        run_id="code-audit",
+        hypothesis_id="H5_translation_static_edges",
+        location="pipeline/augmentation.py:random_translation",
+        message="translation_applied_without_edge_rebuild",
+        data={
+            "max_shift": float(max_shift),
+            "shift_norm": float(shift.norm().detach().cpu()),
+            "has_edge_index": bool(hasattr(data, "edge_index") and data.edge_index is not None),
+            "num_nodes": int(data.x.size(0)),
+        },
+        max_count=10,
+    )
+    # endregion
     
     return data
 
