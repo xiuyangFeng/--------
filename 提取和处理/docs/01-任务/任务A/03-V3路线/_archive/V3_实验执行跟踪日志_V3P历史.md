@@ -1,7 +1,7 @@
 # V3 实验执行跟踪日志 · V3P 历史（AG-only）
 
-> **归档说明**：`split_AG_v1` 上 V3P 探针 / 锚点 / 主线 / WSS 扫描等逐实验记录（2026-05-03 ～ 2026-05-08）。  
-> **活跃日志**（三域 V3D、数据口径修复）见 [../V3_实验执行跟踪日志.md](../V3_实验执行跟踪日志.md)。  
+> **归档说明**：`split_AG_v1` 上 V3P 探针 / 锚点 / 主线 / WSS 扫描等逐实验记录（2026-05-03 ～ 2026-05-08）。
+> **活跃日志**（三域 V3D、数据口径修复）见 [../V3_实验执行跟踪日志.md](../01-执行与待办/V3_实验执行跟踪日志.md)。
 > **维护**：V3P 新实验若重启，在活跃日志新建块或回迁本节顶部，勿与 V3D 混表。
 
 ---
@@ -28,7 +28,7 @@
 
 ## 探针 Probe-WSS-01：修复后重训（3645，2026-05-08）
 
-> **结论**：单目标壁面 WSS 探针在 **trainer / 全局配置修复后**（warmup、patience、EMA、双 checkpoint、`v3_pointcloud` 生成 json 等）重跑，**测试集标量 `wss_r2_wss` 未较历史对照显著提升**，仍在 **Anchor / 主线 ~0.367** 一带；与历史单次探针 **~0.397** 同属 **~0.36–0.40** 量级（差值可归因 checkpoint 选取、训练轨迹与 **单 seed**）。详细判读见 [V3_代码问题诊断与修复计划](../V3_代码问题诊断与修复计划.md) §10.6、[推进记录](../../../../02-推进与变更/代码修改与实验推进记录.md)。
+> **结论**：单目标壁面 WSS 探针在 **trainer / 全局配置修复后**（warmup、patience、EMA、双 checkpoint、`v3_pointcloud` 生成 json 等）重跑，**测试集标量 `wss_r2_wss` 未较历史对照显著提升**，仍在 **Anchor / 主线 ~0.367** 一带；与历史单次探针 **~0.397** 同属 **~0.36–0.40** 量级（差值可归因 checkpoint 选取、训练轨迹与 **单 seed**）。详细判读见 [V3_代码问题诊断与修复计划](../04-代码诊断/V3_代码问题诊断与修复计划.md) §10.6、[推进记录](../../../../02-推进与变更/代码修改与实验推进记录.md)。
 
 ### 作业与产出
 
@@ -49,7 +49,7 @@
 | 条目 | 说明 |
 | --- | --- |
 | **3841（集群）** | `evaluate_field_run_full` 在 **`plot_taskA_regional_bar --wss`** 处因 `plot_regional_bar` 非法画布崩溃中断；已完成 **predict**、A3/A4、误差分析及部分 regional JSON。 |
-| **修复** | `training/analysis/visualization.py`：`plot_regional_bar` **去掉不可靠的 `tight_layout`**，改为 **`subplots_adjust` + 有限值过滤**；详见 [V3_代码问题诊断与修复计划](../V3_代码问题诊断与修复计划.md)「变更历史」最新一行。 |
+| **修复** | `training/analysis/visualization.py`：`plot_regional_bar` **去掉不可靠的 `tight_layout`**，改为 **`subplots_adjust` + 有限值过滤**；详见 [V3_代码问题诊断与修复计划](../04-代码诊断/V3_代码问题诊断与修复计划.md)「变更历史」最新一行。 |
 | **补跑（本地，`--skip-predict --force`）** | 复用 `predictions_test_best_wss/`，重写 `evaluation/test_best_wss_model/`，产出 **`evaluation_summary.json`**、`regional_eval/fig_A5_regional_wss_metrics.json`（含 **`wall.r2_wss≈0.364`**）、`wss_direct/wss_credibility_summary.json` 等全集。 |
 
 **`wss_credibility_summary.json` 摘要（direct WSS head，壁面点）**
@@ -63,7 +63,7 @@
 
 ## val_score / 早停修复验证：V3P-Main-01-PW 重训 + 单 run 预测图件（2026-05-08）
 
-> **背景**：见 [V3_代码问题诊断与修复计划](../V3_代码问题诊断与修复计划.md) 与 [推进记录](../../../../02-推进与变更/代码修改与实验推进记录.md)。代码与 `v3_pointcloud` 配置已更新（warmup=5、patience=60、EMA、双 checkpoint 等）。
+> **背景**：见 [V3_代码问题诊断与修复计划](../04-代码诊断/V3_代码问题诊断与修复计划.md) 与 [推进记录](../../../../02-推进与变更/代码修改与实验推进记录.md)。代码与 `v3_pointcloud` 配置已更新（warmup=5、patience=60、EMA、双 checkpoint 等）。
 
 ### 作业与清单
 
@@ -134,8 +134,8 @@
 ### 判读（seed=1）
 
 1. **同采样锚点（Anchor）**：`wss_r2_wss≈0.367`，`r2_p≈0.90`。仍为后续 Go/No-Go 的 **WSS 对标均值**（正式口径需三 seed）。
-2. **含弱速度（vel+P+WSS）**：`V3P-Main-01` 相对 `Base-01` **速度大幅更好**（0.68 vs 0.48）、WSS 略好（0.336 vs 0.331），但 **WSS 仍低于 Anchor**（0.336 vs 0.367）。`lambda_wss` 穷扫中 **0.05 档（WSS-01-a）WSS 最高**（0.368），与锚点基本持平；**0.10 档压力最优**（`r2_p≈0.95`）但 WSS 降至 0.338。  
-3. **纯 P+WSS（-PW）**：整体 **抬升 `wss_r2_wss`**：`WSS-01-a-PW` 达 **0.395**，为全表最高并 **超过 Anchor**；`Main-01-PW`（0.367）与 Anchor **WSS 持平**，显著优于 `Main-01` 含速度（0.336）。**几何在 PW 配方下仍带来 WSS 增益**（Main-PW vs Base-PW：0.367 vs 0.343）。  
+2. **含弱速度（vel+P+WSS）**：`V3P-Main-01` 相对 `Base-01` **速度大幅更好**（0.68 vs 0.48）、WSS 略好（0.336 vs 0.331），但 **WSS 仍低于 Anchor**（0.336 vs 0.367）。`lambda_wss` 穷扫中 **0.05 档（WSS-01-a）WSS 最高**（0.368），与锚点基本持平；**0.10 档压力最优**（`r2_p≈0.95`）但 WSS 降至 0.338。
+3. **纯 P+WSS（-PW）**：整体 **抬升 `wss_r2_wss`**：`WSS-01-a-PW` 达 **0.395**，为全表最高并 **超过 Anchor**；`Main-01-PW`（0.367）与 Anchor **WSS 持平**，显著优于 `Main-01` 含速度（0.336）。**几何在 PW 配方下仍带来 WSS 增益**（Main-PW vs Base-PW：0.367 vs 0.343）。
 4. **与 Probe 一致性**：结果支持 **弃用速度监督、采用 P+WSS** 的主线决策；`-PW` 与 `WSS-01-*-PW` 可作为下一阶段 **补 seed** 与 **区域性 / 壁面子图** 的主力配置。
 
 ---

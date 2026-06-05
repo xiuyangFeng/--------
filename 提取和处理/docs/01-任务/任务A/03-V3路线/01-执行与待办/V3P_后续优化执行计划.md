@@ -1,9 +1,9 @@
 # V3P 后续优化执行计划（可并行版）
 
-> **状态**：Track 5 **No-Go** · Track 6 **No-Go（TODO-12/10/17）** · **2026-05-28 复审：本文转为历史执行计划，后续新训练以路径 F 门禁为准**  
-> **日期**：2026-05-25（初版） · 2026-05-26（Track 5 收尾） · **2026-05-27（TODO-12/10/17 收尾 + GeomB1 eval 5169）** · **2026-05-28（复审补充）**  
-> **范围**：仅 V3P（`split_AG_v1` + `data_new/AG`）；**V3D 全部暂缓**  
-> **索引**：[README](./README.md) · [精度突破路径](./V3_精度突破路径与发散方案.md) · [后续优化待办](./V3_后续优化待办.md) · [实验跟踪](./V3_实验执行跟踪日志.md)  
+> **状态**：Track 5 **No-Go** · Track 6 **No-Go（TODO-12/10/17）** · **2026-05-28 复审：本文转为历史执行计划，后续新训练以路径 F 门禁为准**
+> **日期**：2026-05-25（初版） · 2026-05-26（Track 5 收尾） · **2026-05-27（TODO-12/10/17 收尾 + GeomB1 eval 5169）** · **2026-05-28（复审补充）**
+> **范围**：仅 V3P（`split_AG_v1` + `data_new/AG`）；**V3D 全部暂缓**
+> **索引**：[README](../README.md) · [精度突破路径](../02-历史路线/V3_精度突破路径与发散方案.md) · [后续优化待办](V3_后续优化待办.md) · [实验跟踪](V3_实验执行跟踪日志.md)
 > **修订摘要**：§1.1/§6.1 法向描述与 fallback 策略明确；§6.2 归一化 JSON 改为单文件扩展段；§6.3 加 core/config 向后兼容与 warm-start 禁令；§6.5 fallback 阈值与回滚动作；§7 Pa 脚本纯后处理 + 单位前提；§8 双 frame 双量纲对比模板；§5/§9.1 母版替换路径；§11 GPU 规范分模式
 
 ---
@@ -16,7 +16,7 @@
 
 本计划的 Track 1–6 已完成核心 Go/No-Go 闭环，结论是 **local frame / MagOnly / GeomB1 / VelGradB1 / MagCons 均未突破 `~0.40` 带宽**。后续不要再按本文直接派生新的 V3P 训练；本文仅保留为 A/B 路径执行与判定记录。
 
-新的训练必须转到 [V3_发散优化探索路线.md](./V3_发散优化探索路线.md) 的路径 F 门禁：**TODO-18 MultiK1（5202）已 No-Go**；完成 **TODO-27a + TODO-53 + TODO-32 + oracle** 的 0 重训诊断，再由证据触发 **TODO-31 / 37 / 42 / 29** 中的一条。
+新的训练必须转到 [V3_发散优化探索路线.md](../02-历史路线/V3_发散优化探索路线.md) 的路径 F 门禁：**TODO-18 MultiK1（5202）已 No-Go**；完成 **TODO-27a + TODO-53 + TODO-32 + oracle** 的 0 重训诊断，再由证据触发 **TODO-31 / 37 / 42 / 29** 中的一条。
 
 ### 1.1 已确认的设计决策
 
@@ -32,7 +32,7 @@
 > 审查结论见 §12；本节标记每项审查结论与对应修订位置。
 
 - [x] **范围**：V3D 冻结合理（瓶颈异质，单独立项）；V3P 单线覆盖当前 ~0.40 带宽瓶颈 ✅
-- [x] **前提事实**：与 [精度突破路径](./V3_精度突破路径与发散方案.md) §1.1/§2.1 完全一致 ✅
+- [x] **前提事实**：与 [精度突破路径](../02-历史路线/V3_精度突破路径与发散方案.md) §1.1/§2.1 完全一致 ✅
 - [x] **并行性**：依赖关系正确；§3 mermaid 图已含 Track 1/4 → AsymW Pa 基线、Track 3 → renorm → Track 5 串行门禁 ✅
 - [x] **Track 3 技术方案**：§6.1 改用 KDTree kNN（不直接迁移 hemo）；§6.2 数据流注明 local 标量旋转不变；§6.3 coord_normalize / augmentation 处理策略明确 ✅
 - [x] **口径隔离**：§6.2 改为单文件扩展段（与精度突破路径 §A1 统一）；`local_v1` 标签适用范围已限定 ✅
@@ -121,9 +121,9 @@ flowchart TB
 
 ## 4. Track 1 · 评估闭环（立即可做，零代码）
 
-**现状**：4957/4999/5000/5001 仅有 checkpoint + `summary.json`。Probe 3645 已验证 [`evaluate_field_run_full`](../../../training/scripts/evaluate_field_run_full.py) 全链路。
+**现状**：4957/4999/5000/5001 仅有 checkpoint + `summary.json`。Probe 3645 已验证 `training/scripts/evaluate_field_run_full.py` 全链路（历史脚本路径；当前仓库未保留该脚本）。
 
-**动作**：并行提交 4 个 [`run_evaluate_field_run_full.slurm`](../../../training/cluster/run_evaluate_field_run_full.slurm)：
+**动作**：并行提交 4 个 [`run_evaluate_field_run_full.slurm`](../../../../../training/cluster/run_evaluate_field_run_full.slurm)：
 
 ```bash
 cd /public/newhome/cy/Digital_twin/GNN
@@ -140,7 +140,7 @@ done
 **产出**（每 run）：
 
 - 点级 / 区域级 Task A 图件
-- [`evaluate_wss_credibility.py`](../../../training/scripts/evaluate_wss_credibility.py)：`wss_case_metrics.csv`、`high_wss_overlap.json` 等
+- `training/scripts/evaluate_wss_credibility.py`（历史脚本路径；当前仓库未保留该脚本）：`wss_case_metrics.csv`、`high_wss_overlap.json` 等
 - 索引：`evaluation/test_best_wss_model/evaluation_summary.json`
 
 **对照基线**（Probe 3645，归一化空间）：
@@ -159,10 +159,10 @@ done
 
 **动作**：
 
-1. 以 [`V3P-Main-01-PW-AsymW-a_seed1.json`](../../../training/configs/field/generated/v3_pointcloud/V3P-Main-01-PW-AsymW-a_seed1.json) 为 V3P PW 新母版
+1. 以 [`V3P-Main-01-PW-AsymW-a_seed1.json`](../../../../../training/configs/field/generated/v3_pointcloud/V3P-Main-01-PW-AsymW-a_seed1.json) 为 V3P PW 新母版
 2. 默认 `wss_weights` / `val_score_wss_weights` = `[1, 0.05, 0.05, 0.90]`
 3. `meta.notes` 标注：**「全局坐标过渡方案，local frame 验证前对照；待 Track 6 Go 后由 `V3P-Main-01-PW-Local` 替换，AsymW-a 降为 global 对照母版」**
-4. 同步 [V3_后续优化待办.md](./V3_后续优化待办.md) TODO-8 为「基础设施 ✅ / AsymW 批跑 ⏳」
+4. 同步 [V3_后续优化待办.md](V3_后续优化待办.md) TODO-8 为「基础设施 ✅ / AsymW 批跑 ⏳」
 
 **生命周期**：本次升级为**过渡母版**——若 Track 6 Go，AsymW-a 母版地位被 Main-PW-Local 替换；若 Track 6 No-Go，AsymW-a 保留为 V3P PW 主线母版。
 
@@ -174,11 +174,11 @@ done
 
 ### 6.1 设计规格
 
-- **法向 n̂**：**KDTree kNN（CSV 坐标 + `is_wall`，新实现）**几何估计——对每个壁面点，用 KDTree 在内部点（`is_wall=0`）中找 `k_internal=5` 近邻，取「内部均值 → 壁面点」方向作为外法向；逻辑参考 [`hemo._estimate_wall_normals`](../../../training/analysis/hemo.py)，但**不直接迁移**（hemo 用 `edge_index` 沿图边找邻居，本步在 `convert_to_graph` 之前尚无图）。
+- **法向 n̂**：**KDTree kNN（CSV 坐标 + `is_wall`，新实现）**几何估计——对每个壁面点，用 KDTree 在内部点（`is_wall=0`）中找 `k_internal=5` 近邻，取「内部均值 → 壁面点」方向作为外法向；逻辑参考 [`hemo._estimate_wall_normals`](../../../../../training/analysis/hemo.py)，但**不直接迁移**（hemo 用 `edge_index` 沿图边找邻居，本步在 `convert_to_graph` 之前尚无图）。
 - **Fallback 策略**：无内部邻居时**不**回退到固定方向（避免与 global z 耦合，见 §6.5），改为打 `wss_normal_valid=0` 掩码，下游 loss / metric 跳过该点。
-- **切向 t̂**：已有 `Tangent_X/Y/Z`（[`pipeline/extract_features.py`](../../../pipeline/extract_features.py)）。
+- **切向 t̂**：已有 `Tangent_X/Y/Z`（[`pipeline/extract_features.py`](../../../../../pipeline/extract_features.py)）。
 - **第二切向基 b̂**：`b̂ = n̂ × t̂`，再正交化 `b̂ ← b̂ / ‖b̂‖`；`t̂` 与 `b̂` 不正交时（分叉处）记 `wss_basis_valid=0`。
-- **投影定义**（与 [精度突破路径 §A1](./V3_精度突破路径与发散方案.md) 一致）：
+- **投影定义**（与 [精度突破路径 §A1](../02-历史路线/V3_精度突破路径与发散方案.md) 一致）：
   - `wss_axial = WSS_vec · t̂`（轴向，主流方向）
   - `wss_circ = WSS_vec · b̂`（环向）
   - `wss_rad = WSS_vec · n̂`（径向，理论上 ≈ 0，作为质检通道）
@@ -204,7 +204,7 @@ flowchart LR
 | 配置文件 `run.experiment_name` / `meta.exp_id` 后缀 | normalization JSON 内键名 |
 | `evaluation_summary.json` 顶层 `frame_tag` 字段 | 训练 ckpt 文件名（依 experiment_name 已隐含） |
 
-**归一化 JSON 策略（与 [精度突破路径 §A1](./V3_精度突破路径与发散方案.md) 统一）**：**单文件扩展段**，沿用 `normalization_params_global.json`，新增 `wss_local` 顶层键：
+**归一化 JSON 策略（与 [精度突破路径 §A1](../02-历史路线/V3_精度突破路径与发散方案.md) 统一）**：**单文件扩展段**，沿用 `normalization_params_global.json`，新增 `wss_local` 顶层键：
 
 ```json
 {
@@ -250,7 +250,7 @@ flowchart LR
 
 - 范围：AG + `split_AG_v1` train 集统计
 - 入口：现有 `run_renorm_regraph.slurm` 或等价单域脚本
-- 文档：在 [V3_实验执行跟踪日志.md](./V3_实验执行跟踪日志.md) 新开块
+- 文档：在 [V3_实验执行跟踪日志.md](V3_实验执行跟踪日志.md) 新开块
 
 ### 6.5 预验证（renorm 前，2–3 case，CPU）
 
@@ -322,7 +322,7 @@ flowchart LR
 
 **前置**：Track 3 renorm/regraph 完成。
 
-**配置**：fork [`V3P-Probe-WSS-01_seed1.json`](../../../training/configs/field/generated/v3_pointcloud/V3P-Probe-WSS-01_seed1.json) → `V3P-Probe-WSS-Local-01_seed1.json`
+**配置**：fork [`V3P-Probe-WSS-01_seed1.json`](../../../../../training/configs/field/generated/v3_pointcloud/V3P-Probe-WSS-01_seed1.json) → `V3P-Probe-WSS-Local-01_seed1.json`
 
 | 字段 | 值 |
 | --- | --- |
@@ -395,7 +395,7 @@ flowchart LR
 
 ## 10. 文档与记录
 
-每完成一 Track，在 [代码修改与实验推进记录.md](../../02-推进与变更/代码修改与实验推进记录.md) **开头**追加：
+每完成一 Track，在 [代码修改与实验推进记录.md](../../../../02-推进与变更/代码修改与实验推进记录.md) **开头**追加：
 
 - 日期 / 实验 ID / 作业号
 - 口径标签（`global` vs `local_v1`）
@@ -403,8 +403,8 @@ flowchart LR
 
 同步更新：
 
-- [V3_后续优化待办.md](./V3_后续优化待办.md)
-- [V3_实验执行跟踪日志.md](./V3_实验执行跟踪日志.md)
+- [V3_后续优化待办.md](V3_后续优化待办.md)
+- [V3_实验执行跟踪日志.md](V3_实验执行跟踪日志.md)
 
 ---
 
@@ -434,7 +434,7 @@ eval slurm 单 job 申请 `--gres=gpu:1`，4 job 同时排队即可并行；reno
 | 字段 | 内容 |
 | --- | --- |
 | 审查日期 | 2026-05-25 |
-| 审查者 | Cursor Agent（Claude Opus 4.7），对照 [V3_精度突破路径与发散方案.md](./V3_精度突破路径与发散方案.md) + 现有代码 (`hemo._estimate_wall_normals` / `pipeline/{extract_features,coord_normalize,normalize,augmentation,convert_to_graph}.py` / `evaluate_wss_credibility.py` / `run_evaluate_field_run_full.slurm` / `run_renorm_regraph.slurm` / `V3P-Main-01-PW-AsymW-a_seed1.json` / `V3P-Probe-WSS-01_seed1.json`) |
+| 审查者 | Cursor Agent（Claude Opus 4.7），对照 [V3_精度突破路径与发散方案.md](../02-历史路线/V3_精度突破路径与发散方案.md) + 现有代码 (`hemo._estimate_wall_normals` / `pipeline/{extract_features,coord_normalize,normalize,augmentation,convert_to_graph}.py` / `evaluate_wss_credibility.py` / `run_evaluate_field_run_full.slurm` / `run_renorm_regraph.slurm` / `V3P-Main-01-PW-AsymW-a_seed1.json` / `V3P-Probe-WSS-01_seed1.json`) |
 | 结论 | ☐ 通过　**☑ 有条件通过 → 修订完成（2026-05-25 v2）**　☐ 需修订 |
 | 主要意见 | 1. **范围与并行性合理**：V3D 冻结、Track 1/2/4 立即并行、Track 3→5→6 串行门禁清晰，与精度突破路径 §3 ROI 排序一致。<br>2. **技术方向与精度突破路径 §4·A1 一致**：local frame 投影定义、Probe→Main 两步走、Go 判据（axial R²>0.5 / 标量>0.45）均吻合。<br>3. **AsymW 升 PW 母版（Track 2）时机得当**：三 seed 0.394±0.005 已收敛，全局路线信号到顶，作为过渡母版合理。<br>4. **口径隔离机制正确**：新口径标签 + 分表 + 「禁止与 AsymW 0.399 / Probe 0.364 混表」反复强调；但**归一化 JSON 命名与精度突破路径 §A1 不一致**（见需修订项 §2）。<br>5. **法向来源描述偏简化**：`hemo._estimate_wall_normals` 实际依赖 `edge_index + wall_mask`（图边 kNN），不是纯坐标 kNN；离线 pipeline 阶段尚无 edge_index，需 KDTree 重新实现，不能直接"迁移"（见需修订项 §1）。<br>6. **Fallback 法向 `[0,0,1]` 风险未量化**：会让该点 axial 退化为 global z；AsymW 增益正好来自 z 分量，可能导致 axial R² 信号被 fallback 泄漏污染（见需修订项 §3）。<br>7. **Go/No-Go 跨 frame 比较口径需收紧**：axial 与历史标量 `wss_r2_wss` 不可直接比；magnitude 是 frame 不变量，应作为跨 frame 对比的主指标（见需修订项 §4）。<br>8. **Track 1 与 Track 4 时序缺口**：Track 1 slurm 不含 `--clinical-pa`，Track 4 落地后需对 4957/4999/5000/5001 单独补 Pa；建议 `eval_wss_clinical_metrics.py` 设计为纯后处理（读 `predictions_*.npz` + normalization JSON），无需重跑 predict_field（见需修订项 §5）。<br>9. **缺 AsymW 病例级 vs Local 病例级对照表**：Track 5 Go 判据只与 Probe 3645 比，可能掩盖"axial R² 升、临床指标退"的风险（见需修订项 §6）。<br>10. **`core/config.py` 向后兼容未明示**：新增 `wss_target_frame` 字段须 `default="global"` 且字段缺失时回退，否则 Track 2 母版升级后会与 Track 3 改动冲突（见需修订项 §7）。 |
 | 需修订项 | **以下 7 项均已落地（2026-05-25 v2 修订）**：<br>**§1（必改）✅**：§1.1 表格"法向来源"行 + §6.1 已改为「KDTree kNN（CSV 坐标 + is_wall，新实现），参考 hemo 逻辑但不直接迁移」。<br>**§2（必改）✅**：§6.2 已统一为**单文件扩展段** `normalization_params_global.json → wss_local`；`local_v1` 标签适用范围以表格限定。<br>**§3（必改）✅**：§6.1 fallback 改为打 mask 不回退固定方向；§6.5 加 QA 检查清单、fallback / basis 失效阈值（5% / 10%）、回滚动作。<br>**§4（必改）✅**：§8 加跨 frame 比较口径约定（magnitude 可比 / 单分量仅 local 内部比）+ 报告模板（双 frame 双量纲）。<br>**§5（建议）✅**：§7 加"前置确认"（Pa 量纲纯 z-score）+ 明确 `eval_wss_clinical_metrics.py` 纯后处理（无 GPU、无重跑 predict）；Track 1 §4 末尾同步说明。<br>**§6（建议）✅**：§8 Go 判据新增第 4 条「Pa 病例 p95 Pearson 不显著低于 AsymW-a 4957（Δ ≥ −0.05）」。<br>**§7（必改）✅**：§6.3 `core/config.py` 改动加"向后兼容硬性约束"；`core/models.py` 改动加"wss_head 形状变、禁止 warm-start"。<br>**§8（建议）✅**：§5 Track 2 + §9.1 已注明母版替换生命周期。<br>**§9（建议）✅**：§11 重写为"slurm / 直接 python / CPU"三场景表格。 |
