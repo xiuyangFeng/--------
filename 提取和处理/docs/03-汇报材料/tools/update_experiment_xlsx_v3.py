@@ -118,7 +118,23 @@ def main():
             "run": "outputs/field/field_v3_pointnext_localpool_main01_geom_pw_asymw_a_wall13000_near2000_split_AG_v1_seed1_20260522_124946",
             "job_id": 4957,
             "goal": "V3P 非对称 WSS 权重 [1,0.05,0.05,0.90]（TODO-6）",
-            "notes": "best_wss test wss_r2_wss=0.399；+0.034 vs Main-PW；x/y仍≈0",
+            "notes": "best_wss test wss_r2_wss=0.399；三 seed 均值 0.394±0.005；+0.029 vs Main-PW",
+        },
+        {
+            "exp_id": "V3P-Main-01-PW-AsymW-a",
+            "seed": 2,
+            "run": "outputs/field/field_v3_pointnext_localpool_main01_geom_pw_asymw_a_wall13000_near2000_split_AG_v1_seed2_20260523_124511",
+            "job_id": 4999,
+            "goal": "V3P 非对称 WSS 权重 [1,0.05,0.05,0.90]（TODO-6 seed2）",
+            "notes": "best_wss test wss_r2_wss=0.389；三 seed 均值 0.394±0.005",
+        },
+        {
+            "exp_id": "V3P-Main-01-PW-AsymW-a",
+            "seed": 3,
+            "run": "outputs/field/field_v3_pointnext_localpool_main01_geom_pw_asymw_a_wall13000_near2000_split_AG_v1_seed3_20260523_124511",
+            "job_id": 5000,
+            "goal": "V3P 非对称 WSS 权重 [1,0.05,0.05,0.90]（TODO-6 seed3）",
+            "notes": "best_wss test wss_r2_wss=0.395；三 seed 均值 0.394±0.005",
         },
         {
             "exp_id": "V3P-Main-01-PW-WssDO-a",
@@ -128,16 +144,13 @@ def main():
             "goal": "V3P WSS head Dropout=0.15（TODO-7）",
             "notes": "best_wss test wss_r2_wss=0.379；弱于 AsymW",
         },
-    ]
-
-    pending = [
-        {"exp_id": "V3P-Main-01-PW-AsymW-a", "seed": 2, "job_id": 4999, "goal": "AsymW-a seed2（TODO-6）"},
-        {"exp_id": "V3P-Main-01-PW-AsymW-a", "seed": 3, "job_id": 5000, "goal": "AsymW-a seed3（TODO-6）"},
         {
             "exp_id": "V3P-Main-01-PW-AsymW-WssDO-a",
             "seed": 1,
+            "run": "outputs/field/field_v3_pointnext_localpool_main01_geom_pw_asymw_wssdo_a_wall13000_near2000_split_AG_v1_seed1_20260523_124511",
             "job_id": 5001,
-            "goal": "AsymW 权重 + wss_head_dropout=0.15 组合",
+            "goal": "AsymW 权重 + wss_head_dropout=0.15 组合（TODO-6+7）",
+            "notes": "best_wss test wss_r2_wss=0.398；≈纯 AsymW 0.399，优于单 WssDO 0.379",
         },
     ]
 
@@ -227,40 +240,6 @@ def main():
             },
         )
         updated_rows.append(f"experiment_master {item['exp_id']} seed{item['seed']} row {er}")
-
-    for item in pending:
-        run_glob = ROOT / "outputs/field"
-        pattern = item["exp_id"].lower().replace("v3p-", "field_v3_pointnext_localpool_").replace("-", "_")
-        # leave output_path empty until summary exists
-        row = upsert_taskA_field(
-            tf,
-            th,
-            item["exp_id"],
-            item["seed"],
-            {
-                "split_version": "split_AG_v1",
-                "notes": f"作业 {item['job_id']} 训练中；指标待 summary.json 回填",
-            },
-        )
-        updated_rows.append(f"taskA_field {item['exp_id']} seed{item['seed']} row {row} (pending)")
-
-        er = upsert_experiment_master(
-            em,
-            eh,
-            item["exp_id"],
-            item["seed"],
-            {
-                "status": "running",
-                "goal": item["goal"],
-                "data_version": "AG_v1",
-                "split_version": "split_AG_v1",
-                "model": "pointnext",
-                "feature_set": "coord_t_bc_geom_wall",
-                "primary_metric": "wss_r2_wss",
-                "notes": f"作业 {item['job_id']} 训练中",
-            },
-        )
-        updated_rows.append(f"experiment_master {item['exp_id']} seed{item['seed']} row {er} (pending)")
 
     for item in v3d_probes:
         s = load_summary(item["run"])

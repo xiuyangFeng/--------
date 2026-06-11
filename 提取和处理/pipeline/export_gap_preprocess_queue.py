@@ -25,7 +25,7 @@ else:
     from .validation import inspect_case_inputs
 
 # 预处理 + 全流程队列 + 后续 data_new 三域（AAA+AG+ILO）实验：禁止入队 / 勿进 split 候选（路径相对 data_root）
-# 当前共 17 条；摘名后须重跑相关步骤/审计再纳入。
+# 当前共 21 条；摘名后须重跑相关步骤/审计再纳入。
 PREPROCESS_DENYLIST: Set[str] = {
     # ---- 历史：无法 preprocess（或明确不入队）----
     "AAA/ruputer/FU_GUO_JUN",
@@ -38,6 +38,11 @@ PREPROCESS_DENYLIST: Set[str] = {
     "ILO/SUN_CHUN_PU-0/after",  # 缺表面模型 STL/VTP
     # ---- V3 · AG：OOD / split 已排除（与 `split_AG_v1.excluded_cases` 同步）----
     "AG/fast/PENG_JI_MING",  # 见 `docs/01-任务/任务A/03-V3路线/V3_数据质量与OOD诊断记录.md`
+    # ---- V3P · AG：2026-06-06 路径 G S0 QA（Job 5409）不可修复标签 ----
+    "AG/slow/LIU_XI_QUAN",  # features 壁面 WSS 100% 为零（Fluent 导出/仿真）
+    "AG/slow/WEI_JUN_WEN",  # 同上
+    "AG/slow/TE_JIN_WANG",  # 同上（原 test）
+    "AG/slow/LIN_SHU_TIAN",  # local frame rad_frac_p95=0.451；CFD 法向分量过大
     # ---- V3D · 三域 Tier 0（2026-05-19）：训练离群，污染全局归一化 ----
     "AAA/ruputer/SU_KAI_LI",  # 壁面 p_mean≈1.46e5 Pa；见 V3_三域数据修复计划 §5.1
     # ---- V3D · ILO 壁面近零（2026-05-20）：Fluent 重导未完成，暂剔出 train/候选池 ----

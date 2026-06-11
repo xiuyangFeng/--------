@@ -118,6 +118,67 @@ def find_surface_file(case_dir: Path) -> Optional[Path]:
     return surface_files[0]
 
 
+def _read_stl_vertex_bounds(stl_path: Path) -> np.ndarray:
+    """返回 STL 顶点 (N,3)。"""
+    reader = vtk.vtkSTLReader()
+    reader.SetFileName(str(stl_path))
+    reader.Update()
+    poly = reader.GetOutput()
+    pts = poly.GetPoints()
+    if pts is None or pts.GetNumberOfPoints() == 0:
+        raise ValueError(f"STL 无顶点: {stl_path}")
+    return vtk_to_numpy(pts.GetData()).astype(np.float64)
+
+
+def audit_stl_cloud_scale(
+    stl_path: Path,
+    cloud_path: Path,
+    *,
+    max_ratio: float = 20.0,
+    use_wall_only: bool = True,
+) -> dict:
+    """STL↔CFD 点云坐标量级一致性检查（防 HOU 类 ×1000 尺度错误）。
+
+    比较壁面点（或全点）与 STL 顶点包围盒特征尺度；比值超阈则抛错。
+    """
+    stl_xyz = _read_stl_vertex_bounds(stl_path)
+    df = pd.read_csv(cloud_path, usecols=lambda c: c in ("x", "y", "z", "is_wall"))
+    if use_wall_only and "is_wall" in df.columns:
+        mask = df["is_wall"].values.astype(bool)
+        cloud_xyz = df.loc[mask, ["x", "y", "z"]].values.astype(np.float64)
+        if cloud_xyz.shape[0] < 10:
+            cloud_xyz = df[["x", "y", "z"]].values.astype(np.float64)
+    else:
+        cloud_xyz = df[["x", "y", "z"]].values.astype(np.float64)
+
+    def _span(xyz: np.ndarray) -> float:
+        lo = np.nanmin(xyz, axis=0)
+        hi = np.nanmax(xyz, axis=0)
+        return float(np.max(hi - lo))
+
+    stl_span = _span(stl_xyz)
+    cloud_span = _span(cloud_xyz)
+    ratio = max(stl_span, cloud_span) / max(min(stl_span, cloud_span), 1e-12)
+    out = {
+        "stl_path": str(stl_path),
+        "cloud_path": str(cloud_path),
+        "stl_span": stl_span,
+        "cloud_span": cloud_span,
+        "span_ratio": ratio,
+    }
+    if ratio > max_ratio:
+        hint = ""
+        for factor in (1000.0, 0.001):
+            if abs(ratio - factor) / factor < 0.05:
+                hint = f"（疑似 ×{factor:.0g} 单位错误，参考 HOU_SHEN_QIAN 修复）"
+                break
+        raise ValueError(
+            f"STL↔点云尺度不一致 span_ratio={ratio:.1f} > {max_ratio}{hint}; "
+            f"stl_span={stl_span:.4g} cloud_span={cloud_span:.4g}"
+        )
+    return out
+
+
 def find_cloud_files(case_dir: Path, cloud_subdir: str) -> List[Path]:
     """
     在病例目录中查找所有点云文件。
@@ -431,6 +492,16 @@ def process_case(
         print(f"  📁 找到 {len(cloud_files)} 个点云文件")
         output_dir = case_dir / output_subdir
         output_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            scale_info = audit_stl_cloud_scale(surface_path, cloud_files[0])
+            print(
+                f"  ✓ STL↔点云尺度: ratio={scale_info['span_ratio']:.2f} "
+                f"(stl={scale_info['stl_span']:.3g} cloud={scale_info['cloud_span']:.3g})"
+            )
+        except ValueError as e:
+            print(f"  ❌ {e}")
+            return False
 
         try:
             geo_data = prepare_geometry_data(str(surface_path))

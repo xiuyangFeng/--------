@@ -1410,3 +1410,142 @@ def plot_case_velocity_quiver_panel(
             fig.savefig(save_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
     return fig
+
+
+def _slice_r2(true: np.ndarray, pred: np.ndarray) -> float:
+    if len(true) < 2:
+        return float("nan")
+    ss_res = float(np.sum((true - pred) ** 2))
+    ss_tot = float(np.sum((true - np.mean(true)) ** 2))
+    if ss_tot <= 0:
+        return float("nan")
+    return 1.0 - ss_res / ss_tot
+
+
+def _draw_cross_section_field(
+    ax,
+    coords_2d: np.ndarray,
+    values: np.ndarray,
+    *,
+    cmap: str,
+    vmin: float,
+    vmax: float,
+    render_mode: str = "scatter",
+    point_size: float = 10.0,
+):
+    if render_mode == "scatter":
+        return ax.scatter(
+            coords_2d[:, 0], coords_2d[:, 1], c=values, cmap=cmap,
+            s=point_size, alpha=0.85, vmin=vmin, vmax=vmax, rasterized=True,
+        )
+    if render_mode == "contour":
+        if len(values) < 4:
+            return ax.scatter(
+                coords_2d[:, 0], coords_2d[:, 1], c=values, cmap=cmap,
+                s=point_size, alpha=0.85, vmin=vmin, vmax=vmax, rasterized=True,
+            )
+        levels = np.linspace(vmin, vmax, 21)
+        cf = ax.tricontourf(
+            coords_2d[:, 0], coords_2d[:, 1], values,
+            levels=levels, cmap=cmap, vmin=vmin, vmax=vmax, extend="both",
+        )
+        ax.tricontour(
+            coords_2d[:, 0], coords_2d[:, 1], values,
+            levels=levels[::2], colors="0.35", linewidths=0.35, alpha=0.55,
+        )
+        return cf
+    raise ValueError(f"unsupported render_mode: {render_mode!r}")
+
+
+def plot_case_cross_section_panel(
+    pos: np.ndarray,
+    interior_mask: np.ndarray,
+    wall_mask: np.ndarray,
+    cfd_p: np.ndarray,
+    pred_p: np.ndarray,
+    cfd_wss: np.ndarray,
+    pred_wss: np.ndarray,
+    slice_mask: np.ndarray,
+    *,
+    slice_label: str,
+    save_path: Optional[str] = None,
+    title: str = "Cross-section: pressure & WSS",
+    axes_plane: Tuple[int, int] = (0, 1),
+    axis_labels: Optional[Tuple[str, str]] = None,
+    coords_2d: Optional[np.ndarray] = None,
+    render_mode: str = "scatter",
+    col_labels: Tuple[str, str, str] = ("CFD", "Prediction", "|Error|"),
+    row_labels: Tuple[str, str] = ("Interior pressure", "Wall shear stress"),
+):
+    """2×3 截面面板：上行腔内压力、下行壁面 WSS；列为 CFD / 预测 / 绝对误差。"""
+    _require_mpl()
+    ia, ib = axes_plane
+    default_axis_names = ("x", "y", "z")
+    xlab, ylab = axis_labels or (f"{default_axis_names[ia]} (m)", f"{default_axis_names[ib]} (m)")
+    if coords_2d is not None:
+        if coords_2d.shape != (pos.shape[0], 2):
+            raise ValueError("coords_2d 须为 (N, 2) 且与 pos 行数一致")
+        coords_full = coords_2d
+    else:
+        coords_full = np.column_stack([pos[:, ia], pos[:, ib]])
+
+    rows = [
+        (interior_mask & slice_mask, cfd_p, pred_p, "p (Pa)", 8.0),
+        (wall_mask & slice_mask, cfd_wss, pred_wss, "WSS (Pa)", 10.0),
+    ]
+
+    with _paper_style():
+        fig, axes = plt.subplots(2, 3, figsize=(14, 8.5), squeeze=False)
+        for r, (mask, cfd, pred, vname, psize) in enumerate(rows):
+            mask = np.asarray(mask, dtype=bool)
+            idx = np.where(mask)[0]
+            abs_err = np.abs(pred - cfd)
+            r2 = _slice_r2(cfd[idx], pred[idx]) if len(idx) >= 2 else float("nan")
+            mae = float(np.mean(abs_err[idx])) if len(idx) else float("nan")
+
+            if len(idx) == 0:
+                for ax in axes[r]:
+                    ax.text(0.5, 0.5, "no points", ha="center", va="center", transform=ax.transAxes)
+                continue
+
+            coords = coords_full[idx]
+            vmin = float(np.nanmin(np.concatenate([cfd[idx], pred[idx]])))
+            vmax = float(np.nanmax(np.concatenate([cfd[idx], pred[idx]])))
+            if not np.isfinite(vmin) or not np.isfinite(vmax) or vmax <= vmin:
+                vmin, vmax = 0.0, 1.0
+            err_vmax = float(np.percentile(abs_err[idx], 99.0))
+            if err_vmax <= 0:
+                err_vmax = float(np.max(abs_err[idx])) if len(idx) else 1.0
+
+            panels = [
+                (cfd[idx], "viridis", vmin, vmax, vname),
+                (pred[idx], "viridis", vmin, vmax, vname),
+                (abs_err[idx], "magma", 0.0, err_vmax, f"|Δ{vname}|"),
+            ]
+            for c, (vals, cmap, lo, hi, clab) in enumerate(panels):
+                ax = axes[r, c]
+                artist = _draw_cross_section_field(
+                    ax, coords, vals, cmap=cmap, vmin=lo, vmax=hi,
+                    render_mode=render_mode, point_size=psize,
+                )
+                fig.colorbar(artist, ax=ax, fraction=0.046, pad=0.02, label=clab)
+                ax.set_aspect("equal", adjustable="box")
+                ax.set_xlabel(xlab)
+                if c == 0:
+                    stat_txt = f"MAE={mae:.2f}" if np.isfinite(mae) else "MAE=n/a"
+                    if np.isfinite(r2) and r2 > -5:
+                        stat_txt = f"R²={r2:.3f}, {stat_txt}"
+                    ax.set_ylabel(f"{row_labels[r]}\n{ylab}\n({stat_txt})")
+                else:
+                    ax.tick_params(labelleft=False)
+
+        for c, lab in enumerate(col_labels):
+            axes[0, c].set_title(lab, fontsize=12, fontweight="bold")
+
+        mode_note = "contour fill" if render_mode == "contour" else "scatter"
+        fig.suptitle(f"{title}\n{slice_label} · {mode_note}", fontsize=14, y=1.02)
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+    return fig
