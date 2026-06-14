@@ -28,7 +28,7 @@ cluster/
 
 ## 默认配置
 
-- 分区：脚本默认 **CPU**；GPU 训练提交时覆盖：  
+- 分区：脚本默认 **CPU**；GPU 训练提交时覆盖：
   `sbatch -p GPU --gres=gpu:1 run_train_field.slurm <config.json>`
 - Conda：**GNN**（`TRAINING_ENV` / `TRAINING_PYTHON` 可覆盖）
 
@@ -40,6 +40,15 @@ cluster/
 cd <repo-root>
 sbatch training/cluster/run_train_field.slurm \
   training/configs/field/generated/v3_pointcloud/V3P-Main-01_seed1.json
+```
+
+### V1 PINN 阶梯消融（2026-06）
+
+```bash
+cd <repo-root>
+bash training/cluster/submit_v1_pinn_ladder.sh   # seed1：cont / cont+noslip / full 三作业
+squeue -u $USER
+tail -f logs/v1pinn_cont_<JOB_ID>.out            # 日志在仓库根 logs/
 ```
 
 ### manifest 顺序 / Array

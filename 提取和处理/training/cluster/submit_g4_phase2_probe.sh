@@ -22,7 +22,7 @@ export G4_LR="${G4_LR:-1e-3}"
 export G4_BATCH="${G4_BATCH:-32}"
 export G4_EXP_ID="V3P-G-60-2DUnwrap"
 
-JID=$(sbatch --job-name="g4_probe_s${SEED}" \
+JID=$(sbatch --chdir="$ROOT" --job-name="g4_probe_s${SEED}" \
     training/cluster/run_g4_2d_unwrap.slurm \
     probe "-" "$SEED" \
     | awk '{print $NF}')
@@ -32,5 +32,6 @@ echo ""
 echo "监控:"
 echo "  squeue -u \$USER"
 echo "  tail -f training/cluster/logs/g4_probe_s${SEED}_${JID}.out"
+echo "  tail -f training/cluster/logs/g4_probe_s${SEED}_${JID}.err"
 echo ""
 echo "对照 band: 5466/5468/5478 wss 0.425±0.012 · checkpoint 按 val_r2_wss_grid_phys 选优"

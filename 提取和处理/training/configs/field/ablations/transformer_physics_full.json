@@ -57,7 +57,12 @@
     "scheduler_factor": 0.5,
     "scheduler_patience": 10,
     "early_stopping_patience": 30,
-    "target_weights": [1.0, 1.0, 1.0, 1.0],
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
     "grad_clip_norm": 1.0
   },
   "system": {
@@ -88,10 +93,15 @@
     "warmup_epochs": 20,
     "density": 1060.0,
     "viscosity": 0.0035,
-    "coord_scales": [1.0, 1.0, 1.0],
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
     "time_scale": 1.0,
     "continuity_weight": 0.1,
     "momentum_weight": 0.01,
-    "no_slip_weight": 1.0
+    "no_slip_weight": 1.0,
+    "eval_physics_on_val": false
   }
 }

@@ -138,11 +138,23 @@
 | A-Abl-04-02 | 增强消融    | 仅旋转                | split_AG_v1   | [1]     | 🔒 未开始 |                                                                                                                                                                                                                                        |
 | A-Abl-04-03 | 增强消融    | 旋转+平移（默认）          | split_AG_v1   | [1]     | 🔒 未开始 |                                                                                                                                                                                                                                        |
 | A-Abl-04-04 | 增强消融    | 旋转+平移+微扰           | split_AG_v1   | [1]     | 🔒 未开始 |                                                                                                                                                                                                                                        |
-| A-Abl-05-01 | 物理约束消融  | 仅数据损失              | split_AG_v1   | [1]     | 🔒 未开始 | 依赖主线稳定后                                                                                                                                                                                                                                |
-| A-Abl-05-02 | 物理约束消融  | + continuity       | split_AG_v1   | [1]     | 🔒 未开始 |                                                                                                                                                                                                                                        |
+| A-Abl-05-01 | 物理约束消融  | 仅数据损失              | split_AG_v1   | [1,2,3] | ✅ 已完成  | 对照 **`A-Opt-05`**（`physics.enabled=false`），三 seed 已归档；见「实验记录摘要 · A-Opt-05」 |
+| A-Abl-05-02 | 物理约束消融  | + continuity       | split_AG_v1   | [1]     | 🔧 代码已修待重跑  | **（2026-06-13）** Job **5540** ep21 崩溃 → `_subsample_physics_batch` 已改节点级子图、`build_loss` base_x 取子采样后 x（`losses.py`）；待集群重提 |
+| A-Abl-05-03 | 物理约束消融  | + continuity + no-slip | split_AG_v1   | [1]     | ❌ OOM 中断  | **（2026-06-13）** Job **5537** 同上 |
+| A-Abl-05-04 | 物理约束消融  | + continuity + no-slip + momentum | split_AG_v1   | [1]     | ❌ OOM 中断  | **（2026-06-13）** Job **5538** 同上 · physics 反传显存峰值 |
 
+### PINN 场重建线（2026-06，论文式损失 · 与 V3 隔离）
 
----
+> 母版 **`A-Opt-05`** + `PhysicsConstraintLoss`（SI 反归一化 · 定常 N-S · `physical_zero` no-slip · 动态 omega）· 只预测 `u/v/w/p` · 配置目录 `training/configs/field/generated/v1_pinn/` · 提交 `bash training/cluster/submit_v1_pinn_ladder.sh`
+
+| Exp ID | 研究问题 | 骨干 | seeds | 当前状态 | 备注 |
+| --- | --- | --- | --- | --- | --- |
+| `A-PINN-01-cont` | 阶梯 step1：仅 continuity | transformer | [1] | 🔧 代码已修待重跑 | Job **5540** ep21 崩溃（physics 子采样 `batch[sel]` bug）→ `losses.py` 已改节点级子图 + `build_loss` base_x 修正（见推进记录 2026-06-13 文首）；mock 单测 `training/tests/test_physics_subsample.py`；待集群验证后重提 |
+| `A-PINN-01-contnoslip` | 阶梯 step2：+ 物理 no-slip | transformer | [1] | ❌ OOM 中断 | Job **5537** |
+| `A-PINN-01` | 阶梯 step3：全量 PINN | transformer | [1] | ❌ OOM 中断 | Job **5538** · seed2/3 待阶梯完成 |
+| `A-PINN-02` | PointNet 风格对照 | pointnext | [1,2,3] | 🔒 未开始 | 待 `A-PINN-01` seed1 阶梯 Go 后提交 |
+| `A-PINN-01-unsteady` | 非定常 N-S 占位 | transformer | [1] | 🔒 未开始 | 默认不跑；需 `batch_size=1` |
+
 
 ## 第三批：近期优化线
 
@@ -302,6 +314,18 @@
 ---
 
 ## 实验记录摘要（每完成一组填写）
+
+### A-PINN 阶梯（2026-06-12 提交 · **2026-06-13 OOM 中断**）
+
+- **提交日期**：2026-06-12
+- **口径**：V1 · `split_AG_v1` post-denylist · 只预测 `u/v/w/p` · 无 WSS / 无 `DualDomainLoss`
+- **Slurm**：5536/5537/5538 · **ep21 CUDA OOM**（三档并行 + 同节点 G4 · 各 ~23 GiB）
+- **部分产物**：`field_transformer_opt05_pinn_steady_*_20260612_230248/history.csv`（20 ep · 无 test · 无 `summary.json`）
+- **对照基线**：`A-Opt-05` 三 seed（无 physics，已完成）
+- **判读**：**未完成** · 不可判阶梯 Go/No-Go
+- **下一步**：顺序重提（或减 batch）· 勿与 G4 同批占满四卡
+
+---
 
 ### A-Base-01
 

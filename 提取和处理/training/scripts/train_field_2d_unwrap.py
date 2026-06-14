@@ -17,8 +17,9 @@ from torch.utils.data import DataLoader, Dataset
 from pipeline.wall_unwrap.grid import (
     UnwrapGridConfig,
     collect_graph_paths,
-    graph_to_2d_sample,
+    graph_to_2d_samples,
     load_norm_stats,
+    merged_branch_points_r2,
     r2_score,
     remap_grid_to_wall_points,
 )
@@ -46,14 +47,21 @@ class TrainConfig:
 
 
 class Unwrap2DDataset(Dataset):
-    def __init__(self, graph_paths: List[Path], cfg: UnwrapGridConfig, stats: Dict, pad_square: bool = True) -> None:
+    def __init__(
+        self,
+        graph_paths: List[Path],
+        cfg: UnwrapGridConfig,
+        stats: Dict,
+        pad_square: bool = True,
+        unwrap_mode: str = "global",
+    ) -> None:
         self.samples: List[Dict[str, Any]] = []
         self.cfg = cfg
         self.stats = stats
         self.pad_square = pad_square
+        self.unwrap_mode = unwrap_mode
         for gp in graph_paths:
-            s = graph_to_2d_sample(gp, cfg=cfg, norm_stats=stats)
-            if s is not None:
+            for s in graph_to_2d_samples(gp, cfg=cfg, norm_stats=stats, unwrap_mode=unwrap_mode):
                 self.samples.append(s)
 
     def __len__(self) -> int:
@@ -105,6 +113,7 @@ def _eval_loader(
     device: torch.device,
     stats: Dict,
     samples_raw: List[Dict[str, Any]],
+    unwrap_mode: str = "global",
 ) -> Dict[str, float]:
     model.eval()
     wss_std = float(stats.get("wss", {}).get("std", 1.0))
@@ -114,6 +123,8 @@ def _eval_loader(
     pt_preds: List[np.ndarray] = []
     pt_gts_phys: List[np.ndarray] = []
     offset = 0
+    graph_segment_preds: Dict[str, List[np.ndarray]] = {}
+    graph_segment_samples: Dict[str, List[Dict[str, Any]]] = {}
     with torch.no_grad():
         for batch in loader:
             x = batch["x"].to(device)
@@ -127,22 +138,43 @@ def _eval_loader(
                 pred_phys = pred[i, 0, :h, :w] * wss_std + wss_mean
                 grid_preds.append(pred_phys)
                 grid_gts_phys.append(y_phys[i, 0, :h, :w])
-                if i < len(batch_raw):
-                    pp, _ = remap_grid_to_wall_points(pred[i, 0, :h, :w], batch_raw[i]["remap"], stats=stats)
-                    pt_preds.append(pp * wss_std + wss_mean)
-                    pt_gts_phys.append(batch_raw[i]["remap"]["wss_phys"])
+                pp, _ = remap_grid_to_wall_points(pred[i, 0, :h, :w], batch_raw[i]["remap"], stats=stats)
+                pt_preds.append(pp * wss_std + wss_mean)
+                pt_gts_phys.append(batch_raw[i]["remap"]["wss_phys"])
+                if unwrap_mode == "branch":
+                    gp = batch_raw[i]["graph_path"]
+                    graph_segment_preds.setdefault(gp, []).append(pred[i, 0, :h, :w])
+                    graph_segment_samples.setdefault(gp, []).append(batch_raw[i])
     gp = np.concatenate([g.ravel() for g in grid_preds])
     gg = np.concatenate([g.ravel() for g in grid_gts_phys])
     pp_arr = np.concatenate(pt_preds) if pt_preds else gp
     pg = np.concatenate(pt_gts_phys) if pt_gts_phys else gg
-    return {
+    out = {
         "r2_wss_grid_phys": r2_score(gg, gp),
         "r2_wss_points_phys": r2_score(pg, pp_arr),
     }
+    if unwrap_mode == "branch" and graph_segment_preds:
+        merged = [
+            merged_branch_points_r2(graph_segment_preds[g], graph_segment_samples[g], stats)
+            for g in graph_segment_preds
+            if graph_segment_samples.get(g)
+        ]
+        merged = [m for m in merged if np.isfinite(m)]
+        if merged:
+            out["r2_wss_merged_graph_phys"] = float(np.mean(merged))
+            out["remap_gap_grid_minus_merged"] = out["r2_wss_grid_phys"] - out["r2_wss_merged_graph_phys"]
+    return out
 
 
-def _build_loader(paths: List[Path], cfg: UnwrapGridConfig, stats: Dict, batch_size: int, shuffle: bool) -> Tuple[DataLoader, List[Dict[str, Any]]]:
-    ds = Unwrap2DDataset(paths, cfg, stats)
+def _build_loader(
+    paths: List[Path],
+    cfg: UnwrapGridConfig,
+    stats: Dict,
+    batch_size: int,
+    shuffle: bool,
+    unwrap_mode: str = "global",
+) -> Tuple[DataLoader, List[Dict[str, Any]]]:
+    ds = Unwrap2DDataset(paths, cfg, stats, unwrap_mode=unwrap_mode)
     if len(ds) == 0:
         raise RuntimeError("无可用 2D 样本")
     return DataLoader(ds, batch_size=batch_size, shuffle=shuffle, drop_last=False), ds.samples
@@ -162,8 +194,10 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--device", default="auto")
     ap.add_argument("--exp-id", default="V3P-G-60-2DUnwrap")
+    ap.add_argument("--unwrap-mode", choices=["global", "branch"], default="global", help="G4-a global / G4-b branch_id 切段")
     ap.add_argument("--output-root", type=Path, default=REPO_ROOT / "outputs/field")
     ap.add_argument("--go-r2", type=float, default=0.95)
+    ap.add_argument("--go-remap-gap", type=float, default=0.02, help="G4-b：grid 与 merged 3D R² 最大允许差")
     args = ap.parse_args()
 
     set_seed(args.seed)
@@ -178,14 +212,21 @@ def main() -> None:
     val_paths = collect_graph_paths(val_cases, data_root) if val_cases else []
     test_paths = collect_graph_paths(test_cases, data_root) if test_cases else []
 
-    run_name = f"g4_2d_unwrap_{args.mode}_s{cfg.n_sectors}_seed{args.seed}_{timestamp()}"
+    run_prefix = "g4b" if args.unwrap_mode == "branch" else "g4"
+    run_name = f"{run_prefix}_2d_unwrap_{args.mode}_s{cfg.n_sectors}_seed{args.seed}_{timestamp()}"
     run_dir = ensure_dir(args.output_root / run_name)
 
-    train_loader, train_raw = _build_loader(train_paths, cfg, stats, args.batch_size, shuffle=True)
-    train_eval_loader, _ = _build_loader(train_paths, cfg, stats, args.batch_size, shuffle=False)
+    train_loader, train_raw = _build_loader(
+        train_paths, cfg, stats, args.batch_size, shuffle=True, unwrap_mode=args.unwrap_mode
+    )
+    train_eval_loader, _ = _build_loader(
+        train_paths, cfg, stats, args.batch_size, shuffle=False, unwrap_mode=args.unwrap_mode
+    )
     val_loader, val_raw = (None, [])
     if val_paths:
-        val_loader, val_raw = _build_loader(val_paths, cfg, stats, args.batch_size, shuffle=False)
+        val_loader, val_raw = _build_loader(
+            val_paths, cfg, stats, args.batch_size, shuffle=False, unwrap_mode=args.unwrap_mode
+        )
 
     model = UNet2DWSS(in_channels=4, base_channels=32, out_channels=1).to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-5)
@@ -211,11 +252,15 @@ def main() -> None:
             train_loss += float(loss.item())
             n_batches += 1
 
-        metrics = _eval_loader(model, train_eval_loader, device, stats, train_raw)
+        metrics = _eval_loader(
+            model, train_eval_loader, device, stats, train_raw, unwrap_mode=args.unwrap_mode
+        )
         row = {"epoch": epoch, "train_loss": train_loss / max(n_batches, 1), **metrics}
         val_metrics: Dict[str, float] = {}
         if val_loader is not None:
-            val_metrics = _eval_loader(model, val_loader, device, stats, val_raw)
+            val_metrics = _eval_loader(
+                model, val_loader, device, stats, val_raw, unwrap_mode=args.unwrap_mode
+            )
             row.update({f"val_{k}": v for k, v in val_metrics.items()})
         history.append(row)
 
@@ -227,15 +272,26 @@ def main() -> None:
             torch.save({"model": model.state_dict(), "epoch": epoch, "cfg": asdict(cfg)}, run_dir / "best_model.pt")
 
         if args.mode == "overfit1c" and row["r2_wss_grid_phys"] >= args.go_r2:
-            go_overfit = True
-            break
+            gap_ok = True
+            if args.unwrap_mode == "branch":
+                gap = row.get("remap_gap_grid_minus_merged", 0.0)
+                gap_ok = gap < args.go_remap_gap
+            if gap_ok:
+                go_overfit = True
+                break
 
         if epoch % 10 == 0 or epoch == 1:
             val_s = f" val_r2 {row.get('val_r2_wss_grid_phys', float('nan')):.4f}" if val_metrics else ""
+            merge_s = ""
+            if args.unwrap_mode == "branch":
+                merge_s = (
+                    f" merged {row.get('r2_wss_merged_graph_phys', float('nan')):.4f}"
+                    f" gap {row.get('remap_gap_grid_minus_merged', float('nan')):.4f}"
+                )
             print(
                 f"ep {epoch:3d} loss {row['train_loss']:.5f} "
                 f"train_r2 {row['r2_wss_grid_phys']:.4f}{val_s} "
-                f"pt_r2 {row['r2_wss_points_phys']:.4f}"
+                f"pt_r2 {row['r2_wss_points_phys']:.4f}{merge_s}"
             )
 
     # test eval for probe mode
@@ -243,22 +299,29 @@ def main() -> None:
     if test_paths and args.mode == "probe":
         ckpt = torch.load(run_dir / "best_model.pt", map_location=device, weights_only=False)
         model.load_state_dict(ckpt["model"])
-        test_loader, test_raw = _build_loader(test_paths, cfg, stats, args.batch_size, shuffle=False)
-        test_metrics = _eval_loader(model, test_loader, device, stats, test_raw)
+        test_loader, test_raw = _build_loader(
+            test_paths, cfg, stats, args.batch_size, shuffle=False, unwrap_mode=args.unwrap_mode
+        )
+        test_metrics = _eval_loader(
+            model, test_loader, device, stats, test_raw, unwrap_mode=args.unwrap_mode
+        )
 
     summary = {
         "exp_id": args.exp_id,
         "mode": args.mode,
+        "unwrap_mode": args.unwrap_mode,
         "device": str(device),
         "grid_s": cfg.grid_s,
         "n_sectors": cfg.n_sectors,
         "train_cases": train_cases,
         "n_train_graphs": len(train_paths),
+        "n_train_samples": len(train_raw),
         "best_epoch": best_epoch,
         "best_score_key": "val_r2_wss_grid_phys" if val_paths else "r2_wss_grid_phys",
         "best_r2_wss_grid_phys": best_r2,
         "go_overfit": go_overfit,
         "go_threshold": args.go_r2,
+        "go_remap_gap": args.go_remap_gap if args.unwrap_mode == "branch" else None,
         "test_metrics": test_metrics,
         "run_dir": str(run_dir),
     }

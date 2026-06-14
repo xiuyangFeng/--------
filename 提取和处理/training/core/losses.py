@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from typing import Dict, Optional
 
@@ -408,9 +409,11 @@ class LossBreakdown:
     continuity_loss: torch.Tensor
     momentum_loss: torch.Tensor
     no_slip_loss: torch.Tensor
+    # 动态权重 omega（论文式）；None 表示该路径不使用动态权重。
+    physics_omega: Optional[float] = None
 
     def scalar_dict(self) -> Dict[str, float]:
-        return {
+        out = {
             "loss": self.total_loss.detach().item(),
             "data_loss": self.data_loss.detach().item(),
             "wss_loss": self.wss_loss.detach().item(),
@@ -418,6 +421,9 @@ class LossBreakdown:
             "physics_momentum_loss": self.momentum_loss.detach().item(),
             "physics_no_slip_loss": self.no_slip_loss.detach().item(),
         }
+        if self.physics_omega is not None:
+            out["physics_omega"] = float(self.physics_omega)
+        return out
 
 
 class NullPhysicsLoss:
@@ -480,6 +486,78 @@ class NullPhysicsLoss:
         )
 
 
+def _node_subgraph(batch, sel: torch.Tensor, num_nodes: int):
+    """对单图 Data/Batch 取**节点诱导子图**。
+
+    必须做节点级子图（而非 ``batch[sel]``）：在 PyG ``Batch`` / ``Data`` 上，
+    整数张量索引 ``batch[idx]`` 被解释为“选第几张图（graph index）”，而非节点
+    index。本任务 ``data.batch_size=1`` 但单图节点数常 >2048，``sel`` 里的节点号
+    （如 7、500）会被当成图号 → ``IndexError``。
+
+    节点级子图会：
+    - 子采样所有“首维 == num_nodes”的节点级张量（x/y/y_wss/pos/batch 等）；
+    - 重映射 ``edge_index``，仅保留两端都在 ``sel`` 内的边；
+    - 单图场景把 ``batch`` 索引重置为全 0。
+    """
+    # 优先用 PyG 原生 Data.subgraph（自动处理 edge_index 重映射与节点级属性）。
+    subgraph_fn = getattr(batch, "subgraph", None)
+    if callable(subgraph_fn):
+        sub = subgraph_fn(sel)
+    else:
+        sub = _manual_node_subgraph(batch, sel, num_nodes)
+    # 单图：batch 索引应为全 0，避免下游 expand_global_cond 误按多图广播。
+    if hasattr(sub, "batch") and sub.batch is not None:
+        sub.batch = torch.zeros(int(sub.x.size(0)), dtype=torch.long, device=sub.x.device)
+    return sub
+
+
+def _manual_node_subgraph(batch, sel: torch.Tensor, num_nodes: int):
+    """无 Data.subgraph 时的回退实现：手动子采样节点级张量并重映射 edge_index。"""
+    from torch_geometric.utils import subgraph as _pyg_subgraph
+
+    device = batch.x.device
+    sub = batch.clone()
+    # 子采样所有首维等于节点数的张量（x/y/y_wss/pos/batch 等节点级属性）。
+    for key, value in batch:
+        if torch.is_tensor(value) and value.dim() >= 1 and value.size(0) == num_nodes:
+            sub[key] = value[sel]
+    # 重映射 edge_index：仅保留两端都在子集内的边，并把节点号重标号到 [0, |sel|)。
+    edge_index = getattr(batch, "edge_index", None)
+    if edge_index is not None:
+        new_edge_index, _ = _pyg_subgraph(
+            sel.to(device), edge_index, relabel_nodes=True, num_nodes=num_nodes
+        )
+        sub.edge_index = new_edge_index
+    return sub
+
+
+def _subsample_physics_batch(batch, max_nodes: int, is_wall_idx: int):
+    """physics 分支随机子采样节点，优先保留壁面点（no-slip）。"""
+    if max_nodes <= 0:
+        return batch
+    n = int(batch.x.size(0))
+    if n <= max_nodes:
+        return batch
+    device = batch.x.device
+    wall = batch.x[:, is_wall_idx] > 0.5
+    wall_idx = torch.where(wall)[0]
+    interior_idx = torch.where(~wall)[0]
+    n_wall = int(wall_idx.numel())
+    if n_wall >= max_nodes:
+        perm = torch.randperm(n_wall, device=device)[:max_nodes]
+        sel = wall_idx[perm]
+    else:
+        n_int = max_nodes - n_wall
+        if int(interior_idx.numel()) > n_int:
+            perm = torch.randperm(int(interior_idx.numel()), device=device)[:n_int]
+            int_sel = interior_idx[perm]
+        else:
+            int_sel = interior_idx
+        sel = torch.cat([wall_idx, int_sel])
+    sel = sel.sort().values
+    return _node_subgraph(batch, sel, n)
+
+
 class PhysicsConstraintLoss:
     def __init__(
         self,
@@ -491,6 +569,7 @@ class PhysicsConstraintLoss:
         wss_huber_beta: float = 1.0,
     ):
         self.config = config
+        self._max_physics_nodes = int(getattr(config, "max_physics_nodes", 0) or 0)
         self.interior_loss_boost = float(interior_loss_boost)
         self.wss_loss_weight = float(wss_loss_weight)
         self.wss_weights = wss_weights
@@ -499,6 +578,45 @@ class PhysicsConstraintLoss:
         self.coord_indices = [NODE_FEATURE_NAMES.index(name) for name in ("x", "y", "z")]
         self.is_wall_idx = NODE_FEATURE_NAMES.index("is_wall")
         self.time_idx = GLOBAL_COND_NAMES.index("t_norm")
+        # --- V1 PINN：反归一化 / 方程形式 / 动态权重 omega 状态 ---
+        self._steady = (getattr(config, "equation", "unsteady") == "steady")
+        self._denorm = bool(getattr(config, "denormalize_fields", False))
+        self._field_stats = dict(getattr(config, "field_norm_stats", {}) or {})
+        self._len2m = float(getattr(config, "length_unit_to_meter", 1.0))
+        self._no_slip_mode = getattr(config, "no_slip_mode", "normalized_zero")
+        self._dynamic = bool(getattr(config, "dynamic_weight", False))
+        self._update_every = int(getattr(config, "dynamic_weight_update_every", 10))
+        self._omega = float(getattr(config, "omega_init", 1.0))
+        # 动态权重窗口累计（仅训练阶段、physics 启用时累计）。
+        self._cur_epoch: Optional[int] = None
+        self._window_start_epoch = int(config.warmup_epochs) + 1
+        self._accum_data = 0.0
+        self._accum_phys = 0.0
+        self._accum_n = 0
+        self._eval_physics_on_val = bool(getattr(config, "eval_physics_on_val", False))
+
+    def _field_mean_std(self, name: str) -> tuple[float, float]:
+        """取通道 z-score mean/std；缺失时回退恒等 (0, 1)（即不反归一化）。"""
+        s = self._field_stats.get(name)
+        if not s:
+            return 0.0, 1.0
+        return float(s.get("mean", 0.0)), float(s.get("std", 1.0))
+
+    def _maybe_update_omega(self, epoch: int) -> None:
+        """每 update_every 个 physics-启用 epoch，按上一窗口 data/physics 比例刷新 omega。"""
+        if not self._dynamic or epoch == self._cur_epoch:
+            return
+        self._cur_epoch = epoch
+        if (
+            epoch - self._window_start_epoch >= self._update_every
+            and self._accum_n > 0
+            and self._accum_phys > 1e-12
+        ):
+            self._omega = self._accum_data / self._accum_phys
+            self._accum_data = 0.0
+            self._accum_phys = 0.0
+            self._accum_n = 0
+            self._window_start_epoch = epoch
 
     def is_enabled(self, epoch: int) -> bool:
         # warmup 的目的是先让模型学到基本场分布，再逐步加入 PDE 约束，降低早期发散概率。
@@ -549,81 +667,176 @@ class PhysicsConstraintLoss:
                 )
 
         if not self.is_enabled(epoch):
-            total = data_loss + self.wss_loss_weight * wss_l
-            return LossBreakdown(
-                total_loss=total,
-                data_loss=data_loss,
-                wss_loss=wss_l,
-                continuity_loss=zero,
-                momentum_loss=zero,
-                no_slip_loss=zero,
+            return self._data_only_breakdown(
+                data_loss, wss_l, zero, wss_loss_weight=self.wss_loss_weight
             )
 
+        # 验证默认跳过 physics：trainer val 在 no_grad 下跑，坐标 autograd 会崩。
+        # V3P 走 DualDomainLoss 不受影响；PINN 实验通过 physics.eval_physics_on_val 显式开启。
+        if not train and not self._eval_physics_on_val:
+            return self._data_only_breakdown(
+                data_loss, wss_l, zero, wss_loss_weight=self.wss_loss_weight
+            )
+
+        grad_ctx = (
+            torch.enable_grad()
+            if (not train and self._eval_physics_on_val)
+            else contextlib.nullcontext()
+        )
+        with grad_ctx:
+            return self._compute_physics_enabled_loss(
+                model=model,
+                batch=batch,
+                data_loss=data_loss,
+                wss_l=wss_l,
+                epoch=epoch,
+                train=train,
+            )
+
+    @staticmethod
+    def _data_only_breakdown(
+        data_loss: torch.Tensor,
+        wss_l: torch.Tensor,
+        zero: torch.Tensor,
+        wss_loss_weight: float = 0.0,
+    ) -> LossBreakdown:
+        total = data_loss + wss_loss_weight * wss_l
+        return LossBreakdown(
+            total_loss=total,
+            data_loss=data_loss,
+            wss_loss=wss_l,
+            continuity_loss=zero,
+            momentum_loss=zero,
+            no_slip_loss=zero,
+        )
+
+    def _compute_physics_enabled_loss(
+        self,
+        model: torch.nn.Module,
+        batch,
+        data_loss: torch.Tensor,
+        wss_l: torch.Tensor,
+        epoch: int,
+        train: bool,
+    ) -> LossBreakdown:
         # 为 physics 分支复制一份 batch，避免污染训练主分支里的张量。
         physics_batch = batch.clone()
-        # physics 残差需要对输入坐标和时间自动微分，因此这里必须重新构造 requires_grad 图。
-        # 节点特征重新 clone 并开启梯度。
-        physics_batch.x = batch.x.detach().clone().requires_grad_(True)
-        # 全局条件存在时也要重新开启梯度，时间导数会用到。
-        if hasattr(batch, "global_cond") and batch.global_cond is not None:
-            physics_batch.global_cond = batch.global_cond.detach().clone().requires_grad_(True)
+        physics_batch = _subsample_physics_batch(
+            physics_batch, self._max_physics_nodes, self.is_wall_idx
+        )
+        # PINN 残差需要对“模型真正消费的输入坐标”求导。模型在 forward 入口
+        # 直接 torch.cat([data.x, expand_global_cond(data)])，因此必须把坐标列
+        # 本身构造成 requires_grad 的叶子张量，并据此重建 physics_batch.x；
+        # 否则对 x 的切片求导会与输出同级（非祖先），梯度恒为 0。
+        # 必须取**子采样后**的 physics_batch.x（节点数 ≤ max_physics_nodes），
+        # 否则坐标叶子/前向仍按全图节点数构造，子采样省显存形同虚设。
+        base_x = physics_batch.x.detach()
+        n_feat = base_x.size(1)
+        coord_leaf = {
+            i: base_x[:, i : i + 1].clone().requires_grad_(True) for i in self.coord_indices
+        }
+        cols = [
+            coord_leaf[i] if i in coord_leaf else base_x[:, i : i + 1]
+            for i in range(n_feat)
+        ]
+        physics_batch.x = torch.cat(cols, dim=1)
+        x = coord_leaf[self.coord_indices[0]]
+        y = coord_leaf[self.coord_indices[1]]
+        z = coord_leaf[self.coord_indices[2]]
+
+        # 时间叶子（仅非定常需要逐节点 ∂/∂t）。
+        t_node = None
+        if self._steady:
+            # 定常：全局条件作为常量条件，不需要梯度。
+            if hasattr(batch, "global_cond") and batch.global_cond is not None:
+                physics_batch.global_cond = batch.global_cond.detach().clone()
+        else:
+            bidx = getattr(batch, "batch", None)
+            if bidx is not None and int(bidx.max().item()) > 0:
+                raise ValueError(
+                    "physics.equation=unsteady 当前仅支持单图 batch（请设 data.batch_size=1）"
+                )
+            gc = getattr(physics_batch, "global_cond", None)
+            if gc is not None:
+                # 子采样后的逐节点全局条件，行数须与 physics_batch 节点数一致。
+                gc_node = self._node_global_cond(physics_batch).detach()  # [N_sub, G]
+                t_node = gc_node[:, self.time_idx : self.time_idx + 1].clone().requires_grad_(True)
+                g_cols = [
+                    t_node if j == self.time_idx else gc_node[:, j : j + 1]
+                    for j in range(gc_node.size(1))
+                ]
+                # 改为逐节点全局条件，并关闭 batch 索引（单图），使 expand 原样返回。
+                physics_batch.global_cond = torch.cat(g_cols, dim=1)
+                physics_batch.batch = None
 
         physics_output = model(physics_batch)
         physics_pred = physics_output[0] if isinstance(physics_output, tuple) else physics_output
 
-        u = physics_pred[:, 0:1]
-        v = physics_pred[:, 1:2]
-        w = physics_pred[:, 2:3]
-        p = physics_pred[:, 3:4]
+        # 原始（归一化空间）预测列。
+        raw_u = physics_pred[:, 0:1]
+        raw_v = physics_pred[:, 1:2]
+        raw_w = physics_pred[:, 2:3]
+        raw_p = physics_pred[:, 3:4]
 
-        # 取出坐标列。
-        x = physics_batch.x[:, self.coord_indices[0] : self.coord_indices[0] + 1]
-        y = physics_batch.x[:, self.coord_indices[1] : self.coord_indices[1] + 1]
-        z = physics_batch.x[:, self.coord_indices[2] : self.coord_indices[2] + 1]
-        # 把图级时间条件广播回每个节点。
-        t = self._expand_time(physics_batch)
+        # V1 PINN：把预测反归一化回物理量（SI），使连续性/动量量纲闭合；
+        # mean 为常数、std 为常数缩放，autograd 会自动把 std 传入导数。
+        if self._denorm:
+            mu_, su_ = self._field_mean_std("u")
+            mv_, sv_ = self._field_mean_std("v")
+            mw_, sw_ = self._field_mean_std("w")
+            mp_, sp_ = self._field_mean_std("p")
+            u = raw_u * su_ + mu_
+            v = raw_v * sv_ + mv_
+            w = raw_w * sw_ + mw_
+            p = raw_p * sp_ + mp_
+            # 坐标导数换算到 SI：inv = 1/(coord_scale * 单位换算到米)。
+            inv_sx = 1.0 / (self.config.coord_scales[0] * self._len2m)
+            inv_sy = 1.0 / (self.config.coord_scales[1] * self._len2m)
+            inv_sz = 1.0 / (self.config.coord_scales[2] * self._len2m)
+        else:
+            u, v, w, p = raw_u, raw_v, raw_w, raw_p
+            # 旧行为：coord_scales 直接作为归一化→物理映射尺度。
+            inv_sx = 1.0 / self.config.coord_scales[0]
+            inv_sy = 1.0 / self.config.coord_scales[1]
+            inv_sz = 1.0 / self.config.coord_scales[2]
 
-        # coord_scales/time_scale 用于把“对归一化输入求导”的结果映射回物理尺度。
-        # 当前默认值是 1.0，后续如果 pipeline 明确输出真实尺度，应优先改这里。
-        inv_sx = 1.0 / self.config.coord_scales[0]
-        inv_sy = 1.0 / self.config.coord_scales[1]
-        inv_sz = 1.0 / self.config.coord_scales[2]
         inv_st = 1.0 / self.config.time_scale
 
-        # 一阶速度导数。
         du_dx = self._grad(u, x) * inv_sx
         du_dy = self._grad(u, y) * inv_sy
         du_dz = self._grad(u, z) * inv_sz
-        du_dt = self._grad(u, t) * inv_st
 
         dv_dx = self._grad(v, x) * inv_sx
         dv_dy = self._grad(v, y) * inv_sy
         dv_dz = self._grad(v, z) * inv_sz
-        dv_dt = self._grad(v, t) * inv_st
 
         dw_dx = self._grad(w, x) * inv_sx
         dw_dy = self._grad(w, y) * inv_sy
         dw_dz = self._grad(w, z) * inv_sz
-        dw_dt = self._grad(w, t) * inv_st
+
+        # 定常方程跳过时间项（按帧当稳态）；非定常对逐节点时间叶子求 ∂/∂t。
+        if self._steady or t_node is None:
+            du_dt = torch.zeros_like(u)
+            dv_dt = torch.zeros_like(v)
+            dw_dt = torch.zeros_like(w)
+        else:
+            du_dt = self._grad(u, t_node) * inv_st
+            dv_dt = self._grad(v, t_node) * inv_st
+            dw_dt = self._grad(w, t_node) * inv_st
 
         dp_dx = self._grad(p, x) * inv_sx
         dp_dy = self._grad(p, y) * inv_sy
         dp_dz = self._grad(p, z) * inv_sz
 
-        # 连续性方程残差。
         continuity = du_dx + dv_dy + dw_dz
-        # 连续性残差平方均值。
-        continuity_loss = (continuity.square()).mean()
+        continuity_loss = continuity.square().mean()
 
-        # 二阶导对应动量方程里的黏性扩散项。
         d2u_dx2 = self._grad(self._grad(u, x), x) * (inv_sx ** 2)
         d2u_dy2 = self._grad(self._grad(u, y), y) * (inv_sy ** 2)
         d2u_dz2 = self._grad(self._grad(u, z), z) * (inv_sz ** 2)
-
         d2v_dx2 = self._grad(self._grad(v, x), x) * (inv_sx ** 2)
         d2v_dy2 = self._grad(self._grad(v, y), y) * (inv_sy ** 2)
         d2v_dz2 = self._grad(self._grad(v, z), z) * (inv_sz ** 2)
-
         d2w_dx2 = self._grad(self._grad(w, x), x) * (inv_sx ** 2)
         d2w_dy2 = self._grad(self._grad(w, y), y) * (inv_sy ** 2)
         d2w_dz2 = self._grad(self._grad(w, z), z) * (inv_sz ** 2)
@@ -632,27 +845,51 @@ class PhysicsConstraintLoss:
         lap_v = d2v_dx2 + d2v_dy2 + d2v_dz2
         lap_w = d2w_dx2 + d2w_dy2 + d2w_dz2
 
-        # 三个方向的不可压 Navier-Stokes 动量残差。
-        mom_x = self.config.density * (du_dt + u * du_dx + v * du_dy + w * du_dz) + dp_dx - self.config.viscosity * lap_u
-        mom_y = self.config.density * (dv_dt + u * dv_dx + v * dv_dy + w * dv_dz) + dp_dy - self.config.viscosity * lap_v
-        mom_z = self.config.density * (dw_dt + u * dw_dx + v * dw_dy + w * dw_dz) + dp_dz - self.config.viscosity * lap_w
-        # 三个方向残差平方和的均值作为动量损失。
+        mom_x = (
+            self.config.density * (du_dt + u * du_dx + v * du_dy + w * du_dz)
+            + dp_dx
+            - self.config.viscosity * lap_u
+        )
+        mom_y = (
+            self.config.density * (dv_dt + u * dv_dx + v * dv_dy + w * dv_dz)
+            + dp_dy
+            - self.config.viscosity * lap_v
+        )
+        mom_z = (
+            self.config.density * (dw_dt + u * dw_dx + v * dw_dy + w * dw_dz)
+            + dp_dz
+            - self.config.viscosity * lap_w
+        )
         momentum_loss = mom_x.square().mean() + mom_y.square().mean() + mom_z.square().mean()
 
-        # 取出壁面节点掩码。
         wall_mask = physics_batch.x[:, self.is_wall_idx : self.is_wall_idx + 1]
-        # no-slip 目前使用显式 is_wall 节点标记。
-        # 如果后续要做更精确的边界条件处理，这里会是首要替换点。
-        # 壁面节点速度应接近 0。
-        no_slip_loss = (wall_mask * (u.square() + v.square() + w.square())).mean()
+        # no-slip：physical_zero 把反归一化壁面速度逼向物理 0；normalized_zero 为旧行为。
+        if self._no_slip_mode == "physical_zero":
+            mu_, su_ = self._field_mean_std("u")
+            mv_, sv_ = self._field_mean_std("v")
+            mw_, sw_ = self._field_mean_std("w")
+            ns_u = raw_u * su_ + mu_
+            ns_v = raw_v * sv_ + mv_
+            ns_w = raw_w * sw_ + mw_
+        else:
+            ns_u, ns_v, ns_w = raw_u, raw_v, raw_w
+        no_slip_loss = (wall_mask * (ns_u.square() + ns_v.square() + ns_w.square())).mean()
 
-        total_loss = (
-            data_loss
-            + self.wss_loss_weight * wss_l
-            + self.config.continuity_weight * continuity_loss
+        # 物理项（含各自子权重）；动态 omega 控制整体 physics vs data 平衡。
+        physics_raw = (
+            self.config.continuity_weight * continuity_loss
             + self.config.momentum_weight * momentum_loss
             + self.config.no_slip_weight * no_slip_loss
         )
+        if self._dynamic and train:
+            self._maybe_update_omega(epoch)
+        eff_omega = self._omega if self._dynamic else 1.0
+        if self._dynamic and train:
+            self._accum_data += float(data_loss.detach().item())
+            self._accum_phys += float(physics_raw.detach().item())
+            self._accum_n += 1
+
+        total_loss = data_loss + self.wss_loss_weight * wss_l + eff_omega * physics_raw
         return LossBreakdown(
             total_loss=total_loss,
             data_loss=data_loss,
@@ -660,7 +897,15 @@ class PhysicsConstraintLoss:
             continuity_loss=continuity_loss,
             momentum_loss=momentum_loss,
             no_slip_loss=no_slip_loss,
+            physics_omega=(eff_omega if self._dynamic else None),
         )
+
+    def _node_global_cond(self, batch) -> torch.Tensor:
+        """把图级 global_cond 展开到逐节点 [N, G]（与模型 expand_global_cond 同口径）。"""
+        gc = batch.global_cond
+        if hasattr(batch, "batch") and batch.batch is not None:
+            return gc[batch.batch]
+        return gc.expand(batch.x.size(0), -1)
 
     def _expand_time(self, batch) -> torch.Tensor:
         # t_norm 来自图级条件，需要按 batch 广播回每个节点后才能参与自动微分。

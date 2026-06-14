@@ -205,6 +205,9 @@ class OptimConfig:
     domain_loss: DomainLossConfig = field(default_factory=DomainLossConfig)
     # G3 SSL 微调：encoder backbone 学习率 = lr × encoder_lr_ratio（head 仍用 lr）。
     encoder_lr_ratio: float = 1.0
+    # V1 PINN：True 时 best/早停按 val data_loss 选优（physics 仅作训练正则，不污染选模型）。
+    # 仅在非双域路径生效；默认 False 保持旧行为（按 total loss 选优）。
+    select_best_on_data_loss: bool = False
 
 
 @dataclass
@@ -243,14 +246,41 @@ class PhysicsConfig:
     momentum_weight: float = 0.0
     no_slip_weight: float = 0.0
     auto_load_scales: bool = True
+    # --- V1 PINN 扩展（默认值=旧行为，对现有 V1/V3 路径零影响）---
+    # N-S 方程形式："unsteady"（旧默认，含 ∂/∂t）或 "steady"（去掉时间项，按帧当稳态）。
+    equation: str = "unsteady"
+    # True 时在算残差前把预测 u/v/w/p 反归一化到物理单位（SI），使连续性/动量量纲闭合。
+    denormalize_fields: bool = False
+    # 形如 {"u": {"mean":..,"std":..}, "v":..., "w":..., "p":...}；
+    # auto_load_scales 时由 normalization_params_global.json 自动填充。
+    field_norm_stats: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    # 坐标物理单位换算到米的系数。坐标以 mm 存储时设 0.001，使导数落在 SI（1/m）。
+    length_unit_to_meter: float = 1.0
+    # no-slip 目标："normalized_zero"（旧，逼归一化速度→0）或
+    # "physical_zero"（逼反归一化壁面速度→物理 0，需 field_norm_stats）。
+    no_slip_mode: str = "normalized_zero"
+    # 动态权重 omega（论文式）：True 时每 N 轮按 data/physics loss 比例刷新总物理项权重。
+    dynamic_weight: bool = False
+    dynamic_weight_update_every: int = 10
+    omega_init: float = 1.0
+    # physics 分支最大节点数；0=全图。>0 时随机子采样以控 PINN 反传显存。
+    max_physics_nodes: int = 0
+    # 验证阶段是否计算 physics 残差（需坐标 autograd）。
+    # false（默认）：val 仅 data+wss，与 trainer 的 no_grad 验证路径及
+    # optim.select_best_on_data_loss 兼容；true 时在内层 enable_grad 下算 physics（监控用）。
+    eval_physics_on_val: bool = False
 
     def resolve_scales_from_data(self, data_root: str, graphs_subdir: str, case_dirs: list) -> None:
-        """从 pipeline 产物自动加载物理损失所需的坐标/时间尺度。
+        """从 pipeline 产物自动加载物理损失所需的坐标/时间尺度与场归一化统计。
 
         coord_normalize 会为每个病例保存 ``transform_params.json``，其中
         含有该病例的 ``scale_factor``。物理损失在归一化坐标上求导后，
         需要用这些尺度还原回原始物理空间，否则 continuity / momentum
         的量纲会失真。这里读取可用病例的尺度，并用中位数作为稳健代表值。
+
+        当 ``denormalize_fields`` 开启且 ``field_norm_stats`` 为空时，
+        从 ``normalization_params_global.json`` 读取 u/v/w/p 的 z-score
+        mean/std，供把预测反归一化回物理单位。
         """
         # 如果没启用自动读取或物理损失本身关闭，就直接返回。
         if not self.auto_load_scales or not self.enabled:
@@ -288,7 +318,7 @@ class PhysicsConfig:
 
         # t_norm 的标准差保存在全局归一化参数里，用于把 dt 还原回原始时间尺度。
         norm_params_path = Path(data_root) / "normalization_params_global.json"
-        # 全局归一化参数存在时，再尝试恢复时间尺度。
+        # 全局归一化参数存在时，再尝试恢复时间尺度（以及场归一化统计）。
         if norm_params_path.exists():
             try:
                 with open(norm_params_path, "r", encoding="utf-8") as f:
@@ -298,6 +328,15 @@ class PhysicsConfig:
                 # 如果能读到 t_norm 的标准差，就把它当作时间缩放尺度。
                 if t_stats and t_stats.get("std", 0) > 1e-10:
                     self.time_scale = t_stats["std"]
+                # 反归一化所需的场统计；仅在需要且未显式提供时自动填充。
+                if self.denormalize_fields and not self.field_norm_stats:
+                    loaded: Dict[str, Dict[str, float]] = {}
+                    for name in ("u", "v", "w", "p"):
+                        s = stats.get(name)
+                        if s and "mean" in s and "std" in s:
+                            loaded[name] = {"mean": float(s["mean"]), "std": float(s["std"])}
+                    if loaded:
+                        self.field_norm_stats = loaded
             except (json.JSONDecodeError, KeyError):
                 # 时间归一化参数读失败时保持默认值 1.0。
                 pass
@@ -419,6 +458,20 @@ class ExperimentConfig:
         # 物理坐标尺度必须提供 3 个值，对应 x/y/z。
         if len(self.physics.coord_scales) != 3:
             raise ValueError("physics.coord_scales 必须包含 3 个坐标尺度")
+        if self.physics.equation not in ("steady", "unsteady"):
+            raise ValueError("physics.equation 须为 steady 或 unsteady")
+        if self.physics.no_slip_mode not in ("normalized_zero", "physical_zero"):
+            raise ValueError("physics.no_slip_mode 须为 normalized_zero 或 physical_zero")
+        if self.physics.length_unit_to_meter <= 0:
+            raise ValueError("physics.length_unit_to_meter 必须 > 0")
+        if self.physics.dynamic_weight and self.physics.dynamic_weight_update_every < 1:
+            raise ValueError("physics.dynamic_weight_update_every 必须 >= 1")
+        if self.physics.max_physics_nodes < 0:
+            raise ValueError("physics.max_physics_nodes 必须 >= 0")
+        # field_norm_stats 若显式提供，须含 mean/std；为空时由 resolve_scales_from_data 自动加载。
+        for ch, st in self.physics.field_norm_stats.items():
+            if "mean" not in st or "std" not in st:
+                raise ValueError(f"physics.field_norm_stats[{ch}] 缺少 mean/std")
         # batch_size 至少为 1。
         if self.data.batch_size < 1:
             raise ValueError("batch_size 必须 >= 1")

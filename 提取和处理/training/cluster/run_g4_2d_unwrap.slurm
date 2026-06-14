@@ -20,6 +20,7 @@ EPOCHS=${G4_EPOCHS:-150}
 LR=${G4_LR:-1e-3}
 BATCH=${G4_BATCH:-32}
 EXP_ID=${G4_EXP_ID:-V3P-G-60-2DUnwrap}
+UNWRAP_MODE=${G4_UNWRAP_MODE:-global}
 
 module purge
 
@@ -33,12 +34,34 @@ fi
 conda activate "$TRAINING_ENV"
 PYTHON_BIN="$(command -v python)"
 
-PROJECT_DIR="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+# 与 run_train_field.slurm 一致：从作业脚本路径解析仓库根，避免 SLURM 工作目录漂移
+SCRIPT_PATH="${SLURM_JOB_SCRIPT:-}"
+if [ -z "$SCRIPT_PATH" ] && command -v scontrol >/dev/null 2>&1 && [ -n "${SLURM_JOB_ID:-}" ]; then
+    SCRIPT_PATH="$(scontrol show job "$SLURM_JOB_ID" | tr ' ' '\n' | awk -F= '/^Command=/{print $2; exit}')"
+fi
+if [ -z "$SCRIPT_PATH" ]; then
+    SCRIPT_PATH="$0"
+fi
+case "$SCRIPT_PATH" in
+    /*) ;;
+    *) SCRIPT_PATH="${SLURM_SUBMIT_DIR:-.}/$SCRIPT_PATH" ;;
+esac
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+TRAINING_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(dirname "$TRAINING_DIR")"
 cd "$PROJECT_DIR"
 mkdir -p "$PROJECT_DIR/training/cluster/logs"
 
+export PYTHONPATH="$PROJECT_DIR${PYTHONPATH:+:$PYTHONPATH}"
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
 export MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
+export NUMEXPR_MAX_THREADS=${SLURM_CPUS_PER_TASK:-8}
+export OPENBLAS_NUM_THREADS=${SLURM_CPUS_PER_TASK:-8}
+
+if ! "$PYTHON_BIN" -c "import training" 2>/dev/null; then
+    echo "错误: 无法 import training · cwd=$PWD · PYTHONPATH=$PYTHONPATH"
+    exit 1
+fi
 
 CMD=(
     "$PYTHON_BIN" -m training.scripts.train_field_2d_unwrap
@@ -48,6 +71,7 @@ CMD=(
     --batch-size "$BATCH"
     --seed "$SEED"
     --exp-id "$EXP_ID"
+    --unwrap-mode "$UNWRAP_MODE"
 )
 if [ -n "$CASE" ] && [ "$CASE" != "-" ]; then
     CMD+=(--case "$CASE")
@@ -56,7 +80,7 @@ fi
 echo "=============================================="
 echo "G4 2D Unwrap Training"
 echo "Job: $SLURM_JOB_ID  Node: $SLURM_NODELIST"
-echo "Mode: $MODE  Seed: $SEED  Epochs: $EPOCHS"
+echo "Mode: $MODE  Seed: $SEED  Epochs: $EPOCHS  Unwrap: $UNWRAP_MODE"
 echo "Workdir: $PROJECT_DIR"
 echo "Start: $(date)"
 echo "Cmd: ${CMD[*]}"

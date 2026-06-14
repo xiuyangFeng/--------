@@ -109,7 +109,12 @@ class RegressionMeter:
     _vel_target_mean: float = field(default=0.0, init=False, repr=False)
     _vel_target_M2: float = field(default=0.0, init=False, repr=False)
 
-    def update(self, pred: torch.Tensor, target: torch.Tensor, loss: float) -> None:
+    def update(
+        self,
+        pred: torch.Tensor,
+        target: torch.Tensor,
+        loss: float,
+    ) -> None:
         # 把预测和真值都 detach 到 CPU，并转成 float，避免累计时占 GPU 显存。
         pred_c = pred.detach().cpu().float()
         target_c = target.detach().cpu().float()

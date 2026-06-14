@@ -11,6 +11,7 @@
 | **01-任务/** | 按任务拆分的执行文档总目录，包含 `任务A/`、`任务B/`、`任务C/`、`任务D/` 四个子目录 |
 | **02-推进与变更/** | 代码修改与实验推进记录、训练脚手架续写记录 |
 | **paper_idea/** | 项目思路、迁移说明及论文相关素材 |
+| **paper_reproduction/** | 外部论文 baseline 复现库，记录公开模型、私有数据适配口径与后处理映射方法 |
 
 ## 快速跳转
 
@@ -26,3 +27,4 @@
 - 推进日志：[02-推进与变更/代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md)
 - 项目思路：[paper_idea/项目思路](paper_idea/项目思路.md)
 - 基准模型推荐：[paper_idea/基准模型推荐与引用参考](paper_idea/基准模型推荐与引用参考.md)
+- 外部 baseline 复现：[paper_reproduction/README](paper_reproduction/README.md) | [文献筛选总表](paper_reproduction/00-文献筛选总表.md) | [后处理可视化与插值方法](paper_reproduction/03-后处理可视化与插值方法.md)

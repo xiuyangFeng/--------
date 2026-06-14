@@ -26,6 +26,29 @@ except ImportError:
     SummaryWriter = None
 
 
+def _history_csv_fieldnames(rows: Sequence[Dict[str, object]]) -> List[str]:
+    """按行顺序合并 CSV 列名；后续 epoch 新增字段追加在末尾（如 PINN physics_omega）。"""
+    seen: set[str] = set()
+    fieldnames: List[str] = []
+    for row in rows:
+        for key in row:
+            if key not in seen:
+                fieldnames.append(key)
+                seen.add(key)
+    return fieldnames
+
+
+def _write_history_csv(path: Path, rows: Sequence[Dict[str, object]]) -> None:
+    """重写 history.csv；允许训练中途 schema 扩展，旧行缺失列留空。"""
+    if not rows:
+        return
+    fieldnames = _history_csv_fieldnames(rows)
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 class FieldTrainer:
     def __init__(
         self,
@@ -57,6 +80,7 @@ class FieldTrainer:
         wss_output_mode: str = "head",
         wss_metric_dim: int = 0,
         vel_diff_variant: str = "naive",
+        select_best_on_data_loss: bool = False,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -67,6 +91,8 @@ class FieldTrainer:
         self.loss_weights = loss_weights.to(device)
         self.early_stop_wss_weight = float(early_stop_wss_weight)
         self.grad_clip_norm = grad_clip_norm
+        # V1 PINN：True 时 best/早停按 val data_loss 选优（physics 仅作训练正则）。
+        self.select_best_on_data_loss = bool(select_best_on_data_loss)
         self.wss_loss_weight = float(wss_loss_weight)
         self.domain_loss_config = domain_loss_config
         self.loss_plugin = build_loss_plugin(
@@ -340,12 +366,9 @@ class FieldTrainer:
         # val_score EMA；在 fit() 内每轮更新，不得跨多次 fit 复用。
         ema_val_score: Optional[float] = None
 
-        # 训练曲线 CSV 的输出路径。
+        # 训练曲线 CSV：按 epoch 缓冲并重写，允许中途新增列（如 physics_omega）。
         csv_path = run_dir / "history.csv"
-        # 直接打开 CSV 文件准备持续写入。
-        csv_file = open(csv_path, "w", encoding="utf-8", newline="")
-        # 第一行字段名要等拿到首个 epoch 的 row 后才能确定。
-        dict_writer: Optional[csv.DictWriter] = None
+        csv_rows: List[Dict[str, object]] = []
 
         try:
             for epoch in range(1, epochs + 1):
@@ -406,6 +429,9 @@ class FieldTrainer:
                     # endregion
                 elif self._use_domain_loss:
                     val_score = val_metrics["loss"]
+                # V1 PINN：按纯场数据拟合选 best/早停，physics 正则不计入选模型分数。
+                elif self.select_best_on_data_loss and "data_loss" in val_metrics:
+                    val_score = val_metrics["data_loss"]
                 # 旧路径：混合验证指标。
                 elif self.early_stop_wss_weight > 0 and "wss_loss" in val_metrics:
                     val_score = (
@@ -473,14 +499,9 @@ class FieldTrainer:
                     for ch, std_val in sorted(self.norm_stds.items()):
                         row[f"norm_std_{ch}"] = std_val
 
-                # 第一个 epoch 时初始化 CSV 表头。
-                if dict_writer is None:
-                    dict_writer = csv.DictWriter(csv_file, fieldnames=list(row.keys()))
-                    dict_writer.writeheader()
-                # 追加当前 epoch 记录。
-                dict_writer.writerow(row)
-                # 立刻 flush，避免中断时丢历史。
-                csv_file.flush()
+                # 追加当前 epoch 记录（schema 扩展时整表重写，兼容 PINN 等中途新增列）。
+                csv_rows.append(row)
+                _write_history_csv(csv_path, csv_rows)
 
                 # 训练、验证、优化器指标同时写 TensorBoard。
                 self._log_scalars(train_metrics, "train", epoch)
@@ -551,9 +572,7 @@ class FieldTrainer:
                 if self.device.type == "cuda":
                     torch.cuda.empty_cache()
         finally:
-            # 不管训练是否异常退出，都要关闭 CSV 文件。
-            csv_file.close()
-            # 同样关闭 TensorBoard writer。
+            # 关闭 TensorBoard writer。
             if self.writer is not None:
                 self.writer.close()
 
