@@ -106,6 +106,6 @@ python -m legacy.preprocess.normalize_features --help
 - `legacy/preprocess/vmtk_core.py` 仅保留兼容层，避免旧脚本立即失效。
 
 ## 迁移说明
-- 路径映射见 [`docs/MIGRATION.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/MIGRATION.md)
-- 原一体化说明见 [`docs/README_integrated_preprocessing.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/README_integrated_preprocessing.md)
+- 历史文档迁移说明见 [`docs/paper_idea/MIGRATION.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/paper_idea/MIGRATION.md)
+- 旧一体化预处理说明已由 [`pipeline/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/README.md) 与 [`docs/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/README.md) 接替
 - `pipeline` 详细说明见 [`pipeline/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/README.md)
