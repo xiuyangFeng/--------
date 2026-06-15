@@ -1,0 +1,1 @@
+"""PointNetCFD-style external baseline."""

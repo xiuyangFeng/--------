@@ -21,6 +21,7 @@ docs/paper_reproduction/
 ├── 01-复现优先级与适配策略.md
 ├── 02-私有数据适配统一口径.md
 ├── 03-后处理可视化与插值方法.md
+├── visualization_pipeline/
 └── papers/
     ├── meshgraphnet/
     ├── meshmask/
@@ -41,7 +42,8 @@ docs/paper_reproduction/
 2. [01-复现优先级与适配策略](01-复现优先级与适配策略.md)：看 P0/P1/P2 的执行顺序。
 3. [02-私有数据适配统一口径](02-私有数据适配统一口径.md)：所有外部代码适配本项目数据前必须遵守的输入、输出、split、指标口径。
 4. [03-后处理可视化与插值方法](03-后处理可视化与插值方法.md)：预测点云如何回映射到面片/体网格，以及如何避免插值平滑造成误判。
-5. `papers/<paper_id>/README.md`：逐篇论文的复现记录。
+5. [visualization_pipeline](visualization_pipeline/README.md)：集中管理点云预测结果回到 surface、Fluent/CFD-Post/ParaView 的交付格式、工具证据和后续可视化脚本入口。
+6. `papers/<paper_id>/README.md`：逐篇论文的复现记录。
 
 ## 4. 当前推荐的第一批 baseline
 
@@ -64,4 +66,5 @@ docs/paper_reproduction/
 - 每篇论文一个文件夹，至少包含 `README.md`。
 - 不在本目录内粘贴大段论文原文，只保留复现相关事实、链接和适配判断。
 - 若后续真正修改外部代码或新增适配脚本，应另建 `external_baselines/` 或等价代码目录，本目录只记录设计与复现日志。
+- 与预测结果回构、CFD-Post/Fluent/ParaView 交付相关的流程、格式和文献依据，统一放入 `visualization_pipeline/`；后续脚本先放该目录 `scripts/`，成熟后再决定是否迁移为项目级工具。
 - 每次新增或修改本目录内容后，按项目规则同步更新 `docs/02-推进与变更/代码修改与实验推进记录.md`。

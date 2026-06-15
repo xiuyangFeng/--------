@@ -4,11 +4,33 @@
 
 ## 目录导航
 - [`pipeline/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline)：正式处理流程，推荐入口
+- [`training/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training)：任务 A V1/V2/V3 内部训练、评估与集群脚本
+- [`external_baselines/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/external_baselines)：外部论文 baseline 复现代码，当前包含 PointNetCFD
 - [`pipeline/vmtk_core.py`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/vmtk_core.py)：主线几何中心线提取与特征计算核心
 - [`legacy/preprocess/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/legacy/preprocess)：旧版几何预处理、映射与整理脚本
 - [`legacy/min-road/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/legacy/min-road)：历史训练与预处理链路
-- [`docs/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs)：迁移说明、旧文档、研究思路
+- [`docs/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs)：实验总纲、路线文档、推进记录、论文复现记录
 - `data_new/`、`stl_data/`：原始与处理中数据，未重排
+
+## 外部 baseline 复现
+
+PointNetCFD 第一轮复现入口：
+
+```bash
+conda activate rag_venv
+python -m external_baselines.pointnetcfd.train \
+  --config external_baselines/pointnetcfd/configs/pointnetcfd_original_vp.json \
+  --dry-run
+```
+
+集群提交模板：
+
+```bash
+bash external_baselines/pointnetcfd/cluster/submit_pointnetcfd.sh \
+  external_baselines/pointnetcfd/configs/pointnetcfd_original_vp.json
+```
+
+详细说明见 [`external_baselines/pointnetcfd/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/external_baselines/pointnetcfd/README.md) 与 [`docs/paper_reproduction/papers/pointnetcfd/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/paper_reproduction/papers/pointnetcfd/README.md)。
 
 ## 推荐入口
 批量处理前建议先做一次输入审计：
