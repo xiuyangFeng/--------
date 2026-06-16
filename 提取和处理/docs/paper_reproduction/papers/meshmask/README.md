@@ -26,3 +26,9 @@ MeshMask 对 CFD mesh 节点做 masked pretraining，随机掩掉部分节点，
 
 - 如果没有真实 mesh，大部分优势无法发挥。
 - 不应把 masked pretraining 的收益与 backbone 变更混在同一张表里。
+
+## 梳理记录
+
+- **状态**：待首轮计划实验矩阵完成
+- **文档**：矩阵跑齐后填写 [`梳理记录.md`](梳理记录.md)（模板 [`_template/梳理记录.md`](../_template/梳理记录.md)）
+- **规范**：[04-梳理记录规范](../../04-梳理记录规范.md)

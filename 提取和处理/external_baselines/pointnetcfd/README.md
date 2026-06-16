@@ -18,23 +18,23 @@
 
 ## 2. 第一轮实验矩阵
 
-| 配置 | 输入 | 输出 | 用途 |
+| 配置（`configs/local/`） | 输入 | 输出 | 用途 |
 | --- | --- | --- | --- |
-| `pointnetcfd_original_vp.json` | `x,y,z + t,BC` | `u,v,w,p` | 最接近 paper-original 的速度/压力点云 baseline |
-| `pointnetcfd_wall_vp.json` | `x,y,z,is_wall + t,BC` | `u,v,w,p` | 加壁面标记，检查 wall mask 是否改善近壁质量 |
-| `pointnetcfd_geom_vp.json` | `x,y,z,is_wall,Abscissa,NormRadius,Curvature,Tangent + t,BC` | `u,v,w,p` | 验证显式几何特征对速度/压力的增益 |
-| `pointnetcfd_geom_pwss.json` | `x,y,z,is_wall,Abscissa,NormRadius,Curvature,Tangent + t,BC` | wall-only `p,wss_x,wss_y,wss_z` | 验证压力 + WSS 直接预测路线 |
+| `pointnetcfd_original_vp_split_AG_v1_seed1.json` | `x,y,z + t,BC` | `u,v,w,p` | 最接近 paper-original 的速度/压力点云 baseline |
+| `pointnetcfd_wall_vp_split_AG_v1_seed1.json` | `x,y,z,is_wall + t,BC` | `u,v,w,p` | 加壁面标记，检查 wall mask 是否改善近壁质量 |
+| `pointnetcfd_geom_vp_split_AG_v1_seed1.json` | `x,y,z,is_wall,Abscissa,NormRadius,Curvature,Tangent + t,BC` | `u,v,w,p` | 验证显式几何特征对速度/压力的增益 |
+| `pointnetcfd_geom_pwss_split_AG_v1_seed1.json` | `x,y,z,is_wall,Abscissa,NormRadius,Curvature,Tangent + t,BC` | wall-only `p,wss_x,wss_y,wss_z` | 验证压力 + WSS 直接预测路线 |
 
 ## 3. 本地 smoke test
 
 ```bash
 conda activate rag_venv
 python -m external_baselines.pointnetcfd.train \
-  --config external_baselines/pointnetcfd/configs/pointnetcfd_original_vp.json \
+  --config external_baselines/pointnetcfd/configs/local/pointnetcfd_original_vp_split_AG_v1_seed1.json \
   --dry-run
 ```
 
-`--dry-run` 只读取配置并检查维度，不读取私有数据。真正训练需要把配置中的 `data_root` 和 `split_file` 改成集群上的真实路径。
+`--dry-run` 只读取配置并检查维度，不读取私有数据。集群路径已写入 `configs/local/`；若环境不同，复制一份到 `configs/local/` 后修改 `data_root` / `split_file`。
 
 ## 4. 数据审计
 
@@ -42,7 +42,7 @@ python -m external_baselines.pointnetcfd.train \
 
 ```bash
 python -m external_baselines.pointnetcfd.audit_dataset \
-  --config external_baselines/pointnetcfd/configs/pointnetcfd_geom_pwss.json \
+  --config external_baselines/pointnetcfd/configs/local/pointnetcfd_geom_pwss_split_AG_v1_seed1.json \
   --out outputs/external_baselines/pointnetcfd/audit_geom_pwss.json
 ```
 
@@ -53,12 +53,12 @@ python -m external_baselines.pointnetcfd.audit_dataset \
 ```bash
 cd /path/to/提取和处理
 bash external_baselines/pointnetcfd/cluster/submit_pointnetcfd.sh \
-  external_baselines/pointnetcfd/configs/pointnetcfd_original_vp.json
+  external_baselines/pointnetcfd/configs/local/pointnetcfd_original_vp_split_AG_v1_seed1.json
 ```
 
-如果集群数据路径不同，优先复制一份配置到 `configs/local/` 或实验记录目录中修改，不要覆盖这四个模板。
+如果集群数据路径不同，复制 `configs/local/` 中对应配置后修改，勿直接改已提交 run 使用的文件。
 
-批量提交四组模板：
+批量提交四组 baseline（默认读 `configs/local/`）：
 
 ```bash
 bash external_baselines/pointnetcfd/cluster/submit_all_pointnetcfd.sh
@@ -98,7 +98,20 @@ outputs/external_baselines/pointnetcfd/<experiment_name>_<split>_seed<seed>_<tim
 - `metrics_test.json`：测试集 loss、RMSE、MAE、R2；
 - `metrics_test_by_case.csv`：病例级指标；
 - `metrics_test_by_sample.csv`：快照级指标；
-- `manifest.json`：运行摘要。
+- `manifest.json`：运行摘要；
+- **`analysis_report.md`**：当次 run 指标快照（`train.py` 结束自动生成）。
+
+### 7.1 实验族分析记录（项目根目录回填）
+
+与 `configs/local/` 四组配置一一对应，完整分析与判读写在：
+
+```text
+external_baselines/pointnetcfd/experiments/<experiment_name>/实验分析记录.md
+```
+
+索引见 [`experiments/README.md`](experiments/README.md)。**Job 5610–5613** 四组已回填（2026-06-16）。
+
+**一轮矩阵完成后的梳理**（非每 run）：[`docs/paper_reproduction/papers/pointnetcfd/梳理记录.md`](../../docs/paper_reproduction/papers/pointnetcfd/梳理记录.md) · 规范 [`04-梳理记录规范`](../../docs/paper_reproduction/04-梳理记录规范.md)
 
 ## 8. 代码结构
 
@@ -107,10 +120,11 @@ outputs/external_baselines/pointnetcfd/<experiment_name>_<split>_seed<seed>_<tim
 | `data.py` | 读取本项目 PyG `.pt` 图快照，按配置选择输入特征与目标，pWSS 自动过滤 wall 节点 |
 | `model.py` | PointNetCFD-style shared MLP + global max pooling + decoder |
 | `metrics.py` | 整体、按病例、按 sample 的回归指标 |
+| `reporting.py` | 训练结束后写 `analysis_report.md` 并同步 `experiments/` |
 | `train.py` | 训练、早停、checkpoint、manifest 输出 |
 | `evaluate.py` | 独立 checkpoint 评估与预测导出 |
 | `audit_dataset.py` | 训练前数据/配置兼容性审计 |
-| `configs/*.json` | 四组第一轮实验模板 |
+| `configs/local/*.json` | 四组 V3P 对齐实验配置（`split_AG_v1` · seed1） |
 | `cluster/*.sh/slurm` | 单配置与批量 Slurm 提交模板 |
 
 ## 9. 注意事项

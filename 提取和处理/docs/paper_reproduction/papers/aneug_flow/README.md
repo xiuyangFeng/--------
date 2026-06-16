@@ -29,3 +29,9 @@ AneuG-Flow 提供颅内动脉瘤几何和 CFD/hemodynamics 数据，可用于测
 - [ ] 对齐 velocity / pressure / WSS 命名和单位
 - [ ] 记录 IA 与 AAA 几何、BC、mesh 差异
 - [ ] 若用于模型预训练，必须严格避免本项目 test leakage
+
+## 梳理记录
+
+- **状态**：待首轮计划实验矩阵完成
+- **文档**：矩阵跑齐后填写 [`梳理记录.md`](梳理记录.md)（模板 [`_template/梳理记录.md`](../_template/梳理记录.md)）
+- **规范**：[04-梳理记录规范](../../04-梳理记录规范.md)

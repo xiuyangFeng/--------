@@ -27,6 +27,14 @@
 
 ## 适配清单
 
-- [ ] 若无官方代码，先只复现结构性思路
+- [x] 已拿到 CROWN/Beihang 源码，位置：`external_baselines/CROWN_Beihang/`
+- [x] 已完成源码初步审计与私有数据适配计划：[`CROWN_Beihang私有数据适配计划.md`](CROWN_Beihang私有数据适配计划.md)
 - [ ] 本项目若借鉴 PINN，必须区分连续 PointNet 映射与 GNN autograd residual
 - [ ] 任何 WSS 结论必须走完整后处理链
+- [ ] 第一轮先跑 `u,v,w,p` 的 paper-original 非 PINN / PINN 对照，再做显式几何特征消融
+
+## 梳理记录
+
+- **状态**：待首轮计划实验矩阵完成
+- **文档**：矩阵跑齐后填写 [`梳理记录.md`](梳理记录.md)（模板 [`_template/梳理记录.md`](../_template/梳理记录.md)）
+- **规范**：[04-梳理记录规范](../../04-梳理记录规范.md)

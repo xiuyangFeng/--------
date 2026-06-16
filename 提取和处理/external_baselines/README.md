@@ -6,7 +6,20 @@
 
 | baseline | 目录 | 状态 |
 | --- | --- | --- |
-| PointNetCFD | `pointnetcfd/` | 已建立 PyG 图快照读取、PointNetCFD-style 训练入口、四组初始配置和 Slurm 模板 |
+| PointNetCFD | `pointnetcfd/` | 四组矩阵已完成；[梳理记录](../docs/paper_reproduction/papers/pointnetcfd/梳理记录.md) · [experiments/](pointnetcfd/experiments/README.md) |
+| CROWN/Beihang PointNet-PINN | `CROWN_Beihang/` | 已拿到源码；已建私有数据预处理结果目录；[适配计划](../docs/paper_reproduction/papers/hemodynamics_pointcloud_pinn/CROWN_Beihang私有数据适配计划.md) |
+
+## 实验记录与回填（2026-06-16 起）
+
+| 粒度 | 做什么 |
+| --- | --- |
+| **每个 Job** | `experiments/<name>/实验分析记录.md` + `outputs/.../analysis_report.md`（训练自动） |
+| **一轮矩阵跑齐** | `docs/paper_reproduction/papers/<id>/梳理记录.md`（批次总结，**非每 run**） |
+| **总账** | `docs/02-推进与变更/代码修改与实验推进记录.md` 文首 1 条 |
+
+- 实验族 / run 规范：[`外部baseline实验记录规范`](../docs/00-规范与记录/外部baseline实验记录规范.md)
+- 梳理规范：[`04-梳理记录规范`](../docs/paper_reproduction/04-梳理记录规范.md)
+- PointNetCFD 首轮梳理示例：[`papers/pointnetcfd/梳理记录.md`](../docs/paper_reproduction/papers/pointnetcfd/梳理记录.md)
 
 ## 使用原则
 

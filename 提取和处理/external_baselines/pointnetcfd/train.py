@@ -16,6 +16,7 @@ from .data import TARGET_MODES, PointCloudBatch, build_datasets, collate_pointcl
 from .evaluate import evaluate_checkpoint
 from .metrics import regression_metrics
 from .model import PointNetCFD
+from .reporting import write_run_reports
 from .utils import dump_json, load_config, move_batch, resolve_device, set_seed, timestamp
 
 
@@ -169,24 +170,23 @@ def main() -> None:
                 break
 
     test_metrics = evaluate_checkpoint(run_dir / "best_model.pt", split_name="test", output_dir=run_dir)
-    dump_json(
-        run_dir / "manifest.json",
-        {
-            "baseline": "PointNetCFD",
-            "experiment_name": config["run"]["experiment_name"],
-            "split_version": split.split_version,
-            "seed": config["system"]["seed"],
-            "device": str(device),
-            "target_mode": config["target"]["mode"],
-            "output_names": output_names,
-            "node_features": config["data"]["node_features"],
-            "global_features": config["data"]["global_features"],
-            "dataset_sizes": {name: len(dataset) for name, dataset in datasets.items()},
-            "best_epoch": best_epoch,
-            "best_val_loss": best_val,
-            "test_metrics": test_metrics,
-        },
-    )
+    manifest = {
+        "baseline": "PointNetCFD",
+        "experiment_name": config["run"]["experiment_name"],
+        "split_version": split.split_version,
+        "seed": config["system"]["seed"],
+        "device": str(device),
+        "target_mode": config["target"]["mode"],
+        "output_names": output_names,
+        "node_features": config["data"]["node_features"],
+        "global_features": config["data"]["global_features"],
+        "dataset_sizes": {name: len(dataset) for name, dataset in datasets.items()},
+        "best_epoch": best_epoch,
+        "best_val_loss": best_val,
+        "test_metrics": test_metrics,
+    }
+    dump_json(run_dir / "manifest.json", manifest)
+    write_run_reports(run_dir, manifest)
     print(f"run_dir={run_dir}")
 
 

@@ -31,3 +31,9 @@ LaB-GATr 使用 geometric algebra transformer 处理 biomedical mesh / point tok
 
 - 依赖较重，训练成本可能高。
 - 如果 AAA WSS 目标仓库后续补齐代码，应优先复现 paper-specific repo，再用 LaB-GATr 作底座解释。
+
+## 梳理记录
+
+- **状态**：待首轮计划实验矩阵完成
+- **文档**：矩阵跑齐后填写 [`梳理记录.md`](梳理记录.md)（模板 [`_template/梳理记录.md`](../_template/梳理记录.md)）
+- **规范**：[04-梳理记录规范](../../04-梳理记录规范.md)
