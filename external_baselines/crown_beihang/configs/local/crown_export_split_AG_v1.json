@@ -1,0 +1,17 @@
+{
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "features_subdir": "processed/features",
+    "output_root": "external_baselines/CROWN_Beihang/private_preprocessed_raw_ascii_v1"
+  },
+  "export": {
+    "source": "raw_ascii",
+    "point_filters": ["volume", "all"],
+    "voxel_size_mm": 0.05,
+    "max_raw_points": null
+  },
+  "system": {
+    "seed": 1
+  }
+}

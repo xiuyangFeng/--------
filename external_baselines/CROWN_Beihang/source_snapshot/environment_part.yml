@@ -1,0 +1,56 @@
+name: pointnet_torch
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+
+dependencies:
+  # -------------------------
+  # Core Python + system libs
+  # -------------------------
+  - python=3.8
+  - pip
+  - numpy
+  - pandas
+  - scipy
+  - setuptools
+  - wheel
+
+  # -------------------------
+  # Geometry & STL processing
+  # -------------------------
+  - trimesh=4.4.0
+  - vtk=9.3.0
+  - python-utils
+  - pyquaternion
+  - numpy-stl=3.1.1
+
+  # -------------------------
+  # CUDA + PyTorch stack
+  # -------------------------
+  - cudatoolkit=11.3.1
+  - pytorch=2.2.0
+  - torchvision=0.17.0
+  - torchaudio=2.2.0
+  - pytorch-mutex=1.0
+
+  # -------------------------
+  # Open3D (optional, you used it earlier)
+  # -------------------------
+  - open3d=0.18.0
+
+  # -------------------------
+  # PyVista (required for mesh handling)
+  # -------------------------
+  - pip:
+      - pyvista>=0.42
+
+  # -------------------------
+  # Additional pip libs used in your code
+  # -------------------------
+      - addict==2.4.0
+      - tqdm==4.66.4
+      - stl==0.0.3
+      - requests==2.31.0
+
+prefix: /home/liao/anaconda3/envs/pointnet_torch

@@ -1,0 +1,112 @@
+{
+  "run": {
+    "experiment_name": "field_transformer_coord_t_bc_geom_wall_prenorm_tw22205_h256",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true
+  },
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 2,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
+      "is_wall"
+    ],
+    "enabled_global_features": [
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
+    ],
+    "augment": true,
+    "augment_config": {
+      "rotation_prob": 0.5,
+      "rotation_axes": "xyz",
+      "translation_prob": 0.5,
+      "translation_range": 0.1,
+      "scale_prob": 0.0,
+      "mirror_prob": 0.0
+    }
+  },
+  "model": {
+    "name": "transformer",
+    "hidden_dim": 256,
+    "num_layers": 3,
+    "dropout": 0.1,
+    "heads": 4,
+    "use_transformer_prenorm": true
+  },
+  "optim": {
+    "epochs": 200,
+    "lr": 0.0005,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 0,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 10,
+    "early_stopping_patience": 30,
+    "target_weights": [
+      2.0,
+      2.0,
+      2.0,
+      0.5
+    ],
+    "grad_clip_norm": 1.0,
+    "accumulate_grad_batches": 1
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true,
+    "amp": false
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "A-Opt-04",
+    "stage": "task_a",
+    "study_group": "optimization",
+    "question": "P1：在 A-Opt-03 基座上将 FieldTransformer hidden_dim 128→256 是否继续提升主指标。",
+    "feature_set": "coord_t_bc_geom_wall",
+    "ablation_axis": "hidden_dim_256",
+    "tags": [
+      "optimization",
+      "p1",
+      "transformer",
+      "pre_norm",
+      "target_weights_22205",
+      "hidden_dim_256"
+    ],
+    "notes": "基座同 A-Opt-03（target_weights + Pre-Norm）；唯一结构改动 model.hidden_dim=256。若 OOM 可先将 data.batch_size 降为 1。",
+    "generated_from": "A-Opt-03_seed1 + hidden_dim=256"
+  },
+  "physics": {
+    "enabled": false,
+    "warmup_epochs": 0,
+    "density": 1060.0,
+    "viscosity": 0.0035,
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "time_scale": 1.0,
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "auto_load_scales": true
+  }
+}

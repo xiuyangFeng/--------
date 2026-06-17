@@ -1,0 +1,51 @@
+{
+  "manifest_name": "v3_pointcloud_phase1_dual_domain_wss",
+  "description": "V3 第一阶段全部实验配置清单。按诊断→单目标 probe→双目标 probe→正式主线→WSS 穷扫的逻辑分层排队。",
+  "route": "Route-DualDomain-PointNeXt-V3",
+  "split": "split_AG_v1",
+  "sampling_profile": "wall13000_near2000",
+  "backbone_default": "pointnext-localpool",
+  "head_layout_default": "mlp2",
+  "generated_from": "V3 路线计划 §6.0 + §6.1",
+  "execution_order": [
+    {
+      "layer": "诊断层",
+      "items": [
+        {"config": "V3P-Diag-00_seed1.json", "exp_id": "V3P-Diag-00", "priority": 1, "notes": "必须先于所有正式训练执行"}
+      ]
+    },
+    {
+      "layer": "单目标上限层",
+      "items": [
+        {"config": "V3P-Probe-P-01_seed1.json", "exp_id": "V3P-Probe-P-01", "priority": 2},
+        {"config": "V3P-Probe-V-01_seed1.json", "exp_id": "V3P-Probe-V-01", "priority": 2},
+        {"config": "V3P-Probe-WSS-01_seed1.json", "exp_id": "V3P-Probe-WSS-01", "priority": 2}
+      ]
+    },
+    {
+      "layer": "关键双目标层",
+      "items": [
+        {"config": "V3P-Probe-VWSS-01_seed1.json", "exp_id": "V3P-Probe-VWSS-01", "priority": 3, "notes": "最高优先"},
+        {"config": "V3P-Probe-PWSS-01_seed1.json", "exp_id": "V3P-Probe-PWSS-01", "priority": 4},
+        {"config": "V3P-Probe-VP-01_seed1.json", "exp_id": "V3P-Probe-VP-01", "priority": 5}
+      ]
+    },
+    {
+      "layer": "正式主线层",
+      "items": [
+        {"config": "V3P-Anchor-01_seed1.json", "exp_id": "V3P-Anchor-01", "priority": 6},
+        {"config": "V3P-Base-01_seed1.json", "exp_id": "V3P-Base-01", "priority": 6},
+        {"config": "V3P-Main-01_seed1.json", "exp_id": "V3P-Main-01", "priority": 6}
+      ]
+    },
+    {
+      "layer": "WSS 权重穷扫",
+      "items": [
+        {"config": "V3P-WSS-01-a_seed1.json", "exp_id": "V3P-WSS-01-a", "priority": 7},
+        {"config": "V3P-WSS-01-b_seed1.json", "exp_id": "V3P-WSS-01-b", "priority": 7},
+        {"config": "V3P-WSS-01-c_seed1.json", "exp_id": "V3P-WSS-01-c", "priority": 7},
+        {"config": "V3P-WSS-02_seed1.json", "exp_id": "V3P-WSS-02", "priority": 8, "notes": "条件执行，依赖 WSS-01 结果"}
+      ]
+    }
+  ]
+}

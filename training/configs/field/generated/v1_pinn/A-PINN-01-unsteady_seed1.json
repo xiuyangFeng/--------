@@ -1,0 +1,122 @@
+{
+  "run": {
+    "experiment_name": "field_transformer_opt05_pinn_unsteady",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true
+  },
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 2,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
+      "is_wall"
+    ],
+    "enabled_global_features": [
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
+    ],
+    "augment": true,
+    "augment_config": {
+      "rotation_prob": 0.5,
+      "rotation_axes": "xyz",
+      "translation_prob": 0.5,
+      "translation_range": 0.1,
+      "scale_prob": 0.0,
+      "mirror_prob": 0.0
+    }
+  },
+  "model": {
+    "name": "transformer",
+    "hidden_dim": 256,
+    "num_layers": 4,
+    "dropout": 0.1,
+    "heads": 4,
+    "use_transformer_prenorm": true
+  },
+  "optim": {
+    "epochs": 200,
+    "lr": 0.0005,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 0,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 10,
+    "early_stopping_patience": 30,
+    "target_weights": [
+      2.0,
+      2.0,
+      2.0,
+      0.5
+    ],
+    "grad_clip_norm": 1.0,
+    "accumulate_grad_batches": 1,
+    "select_best_on_data_loss": true
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true,
+    "amp": false
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "A-PINN-01-unsteady",
+    "stage": "task_a",
+    "study_group": "pinn_field",
+    "question": "PINN 非定常变体（保留 ∂/∂t 时间项）占位；默认不跑，需要时直接提交。",
+    "feature_set": "coord_t_bc_geom_wall_pinn",
+    "ablation_axis": "pinn_unsteady_full",
+    "tags": [
+      "v1",
+      "pinn",
+      "transformer",
+      "unsteady",
+      "velocity_pressure",
+      "no_wss",
+      "placeholder"
+    ],
+    "notes": "与 A-PINN-01 唯一差异：physics.equation=unsteady（含时间项）。我们按时间帧训练，定常为默认；本配置作为非定常对照占位。",
+    "generated_from": "A-PINN-01_seed1.json + equation=unsteady"
+  },
+  "physics": {
+    "enabled": true,
+    "warmup_epochs": 20,
+    "density": 1060.0,
+    "viscosity": 0.0035,
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "time_scale": 1.0,
+    "continuity_weight": 0.1,
+    "momentum_weight": 0.01,
+    "no_slip_weight": 1.0,
+    "auto_load_scales": true,
+    "equation": "unsteady",
+    "denormalize_fields": true,
+    "length_unit_to_meter": 0.001,
+    "no_slip_mode": "physical_zero",
+    "dynamic_weight": true,
+    "dynamic_weight_update_every": 10,
+    "omega_init": 1.0,
+    "eval_physics_on_val": false
+  }
+}

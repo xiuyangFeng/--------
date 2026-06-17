@@ -1,0 +1,15 @@
+---
+description: 所有实验均在conda环境中运行，明确环境用途后再执行
+alwaysApply: true
+---
+
+# Conda 环境规范
+
+所有实验和脚本必须在 conda 环境中运行，运行前须确认使用哪个环境：
+
+- **GNN**：用于模型训练与验证（train、validate 相关脚本）
+- **GNN_vmtk**：用于数据预处理（preprocessing、vmtk 相关脚本）
+
+在执行任何代码前，先询问用户：
+1. 是否需要启动 conda 环境
+2. 应使用 `GNN` 还是 `GNN_vmtk` 环境

@@ -1,0 +1,89 @@
+{
+  "run": {
+    "experiment_name": "field_transformer_aug_rotate_translate",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true
+  },
+  "data": {
+    "data_root": "data_new/AG/fast",
+    "split_file": "training/splits/split_example.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 2,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
+      "is_wall"
+    ],
+    "enabled_global_features": [
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
+    ],
+    "augment": true,
+    "augment_config": {
+      "rotation_prob": 0.5,
+      "rotation_axes": "xyz",
+      "translation_prob": 0.5,
+      "translation_range": 0.1,
+      "scale_prob": 0.0,
+      "mirror_prob": 0.0
+    }
+  },
+  "model": {
+    "name": "transformer",
+    "hidden_dim": 128,
+    "num_layers": 3,
+    "dropout": 0.1,
+    "heads": 4
+  },
+  "optim": {
+    "epochs": 200,
+    "lr": 0.0005,
+    "weight_decay": 0.0001,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 10,
+    "early_stopping_patience": 30,
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "grad_clip_norm": 1.0
+  },
+  "system": {
+    "seed": 2,
+    "device": "auto",
+    "deterministic": true
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "A-Abl-04-03",
+    "stage": "task_a",
+    "study_group": "ablation_augment",
+    "question": "在线增强是否提升患者级泛化。",
+    "feature_set": "rotate_translate",
+    "ablation_axis": "augmentation",
+    "tags": [
+      "ablation",
+      "augmentation",
+      "rotate_translate"
+    ],
+    "notes": "增强策略消融：rotate_translate。",
+    "generated_from": "training.make_field_plan"
+  }
+}

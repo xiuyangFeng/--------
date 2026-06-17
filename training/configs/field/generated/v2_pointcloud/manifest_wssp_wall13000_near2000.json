@@ -1,0 +1,38 @@
+{
+  "generated_at": "20260422_v2p_wssp_wall13000_near2000",
+  "data_root": "data_new/AG",
+  "split_file": "training/splits/split_AG_v1.json",
+  "groups": [
+    "v2_pointcloud_wssp"
+  ],
+  "seeds": [
+    1
+  ],
+  "sampling": {
+    "target_total_points": 15000,
+    "wall_max_points": 13000,
+    "boundary_core_ratio": [
+      1.0,
+      0.0
+    ],
+    "allow_core_fallback": false,
+    "expected_wall_points": 13000,
+    "expected_near_wall_inner_points": 2000
+  },
+  "notes": "V2P-WSSP manifest for direct pressure + wall WSS supervision. Re-run pipeline before training so processed/graphs reflects 13000 wall + 2000 near-wall inner sampling.",
+  "items": [
+    {
+      "exp_id": "V2P-WSSP-01",
+      "experiment_name": "field_v2_pointnext_wssp01_geom_wall13000_near2000",
+      "output_relpath": "v2_pointcloud/V2P-WSSP-01_seed1.json",
+      "model": "pointnext",
+      "feature_set": "coord_t_bc_geom_wall",
+      "study_group": "v2_pointcloud_wssp",
+      "ablation_axis": "wss_pressure_direct_supervision",
+      "seed": 1,
+      "config_path": "training/configs/field/generated/v2_pointcloud/V2P-WSSP-01_seed1.json",
+      "split_file": "training/splits/split_AG_v1.json",
+      "graphs_subdir": "processed/graphs"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "generated_at": "20260420_bootstrap_v2_pointcloud",
+  "data_root": "data_new/AG",
+  "split_file": "training/splits/split_AG_v1.json",
+  "groups": [
+    "v2_pointcloud"
+  ],
+  "seeds": [
+    1
+  ],
+  "notes": "Bootstrap manifest for V2 point-cloud route on split_AG_v1. Use for smoke test and first framework comparison only; replace split_file with split_AG_v2 when Gate-0 is ready.",
+  "items": [
+    {
+      "exp_id": "V2P-Base-01",
+      "experiment_name": "field_v2_pointnext_base01_coord_t_bc_wall_bootstrap",
+      "output_relpath": "v2_pointcloud/V2P-Base-01_seed1.json",
+      "model": "pointnext",
+      "feature_set": "coord_t_bc_wall",
+      "study_group": "v2_pointcloud",
+      "ablation_axis": "v2_pointcloud_baseline_bootstrap",
+      "seed": 1,
+      "config_path": "training/configs/field/generated/v2_pointcloud/V2P-Base-01_seed1.json",
+      "split_file": "training/splits/split_AG_v1.json",
+      "graphs_subdir": "processed/graphs"
+    },
+    {
+      "exp_id": "V2P-Main-01",
+      "experiment_name": "field_v2_pointnext_main01_coord_t_bc_geom_wall_bootstrap",
+      "output_relpath": "v2_pointcloud/V2P-Main-01_seed1.json",
+      "model": "pointnext",
+      "feature_set": "coord_t_bc_geom_wall",
+      "study_group": "v2_pointcloud",
+      "ablation_axis": "v2_pointcloud_geometry_bootstrap",
+      "seed": 1,
+      "config_path": "training/configs/field/generated/v2_pointcloud/V2P-Main-01_seed1.json",
+      "split_file": "training/splits/split_AG_v1.json",
+      "graphs_subdir": "processed/graphs"
+    }
+  ]
+}

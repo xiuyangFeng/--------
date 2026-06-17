@@ -1,0 +1,139 @@
+{
+  "run": {
+    "experiment_name": "field_v3_pointnext_localpool_wss02_geom_wall13000_near2000",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true
+  },
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 1,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
+      "is_wall"
+    ],
+    "enabled_global_features": [
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
+    ],
+    "augment": true,
+    "augment_config": {
+      "rotation_prob": 0.0,
+      "rotation_axes": "xyz",
+      "translation_prob": 0.5,
+      "translation_range": 0.1,
+      "scale_prob": 0.0,
+      "mirror_prob": 0.0
+    }
+  },
+  "model": {
+    "name": "pointnext",
+    "hidden_dim": 256,
+    "num_layers": 4,
+    "dropout": 0.1,
+    "heads": 4,
+    "use_transformer_prenorm": false,
+    "wss_dim": 4,
+    "head_layout": "mlp2"
+  },
+  "optim": {
+    "epochs": 200,
+    "lr": 0.0005,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 5,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 10,
+    "early_stopping_patience": 60,
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "interior_loss_boost": 1.0,
+    "grad_clip_norm": 1.0,
+    "accumulate_grad_batches": 2,
+    "wss_loss_weight": 0.0,
+    "wss_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "wss_loss_type": "mse",
+    "wss_huber_beta": 1.0,
+    "early_stop_wss_weight": 0.0,
+    "domain_loss": {
+      "enabled": true,
+      "lambda_vel_int": 0.25,
+      "lambda_vel_noslip": 1.0,
+      "lambda_p_int": 0.5,
+      "lambda_p_wall": 1.0,
+      "lambda_wss": 0.1,
+      "normalize_by_target_std": true,
+      "norm_consts": {},
+      "weight_calibration": "diag00: lambda_vel_int 0.5->0.25 (§4.2.1 proportional), lambda_vel_noslip 0.1->1.0 (§4.1.1 raw_truth)"
+    },
+    "early_stop_min_delta": 0.0001,
+    "val_score_ema_alpha": 0.4
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true,
+    "amp": false
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "V3P-WSS-02",
+    "stage": "task_a",
+    "study_group": "v3_pointcloud_phase1",
+    "question": "速度上下文增强：lambda_vel_int=0.5（上调自 Main-01 的 0.3），其余同 V3P-Main-01。只有 V3P-WSS-01-* 至少一档同时满足'压力不崩 + WSS 有正信号'时才补本组。",
+    "feature_set": "coord_t_bc_geom_wall",
+    "ablation_axis": "v3p_wss02_vel_boost",
+    "tags": [
+      "v3",
+      "pointcloud",
+      "pointnext",
+      "localpool",
+      "wss-sweep",
+      "vel-boost",
+      "wall13000_near2000"
+    ],
+    "notes": "条件执行：依赖 V3P-WSS-01-* 结果。先跑 seed=1。",
+    "generated_from": "V3 路线计划 §6.1 V3P-WSS-02"
+  },
+  "physics": {
+    "enabled": false,
+    "warmup_epochs": 0,
+    "density": 1060.0,
+    "viscosity": 0.0035,
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "time_scale": 1.0,
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "auto_load_scales": true
+  }
+}

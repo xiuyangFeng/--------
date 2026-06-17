@@ -1,0 +1,31 @@
+{
+  "run": {
+    "experiment_name": "crown_original_vp",
+    "output_root": "outputs/external_baselines/crown_beihang"
+  },
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "preprocessed_root": "external_baselines/CROWN_Beihang/private_preprocessed_raw_ascii_v1",
+    "point_filter": "volume",
+    "input_features": ["x", "y", "z"],
+    "sample_points": 10000,
+    "batch_size": 16,
+    "num_workers": 4,
+    "pin_memory": true
+  },
+  "physics": {
+    "enabled": false
+  },
+  "optim": {
+    "epochs": 20000,
+    "lr": 0.003,
+    "log_every": 10,
+    "early_stopping_patience": null
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true
+  }
+}

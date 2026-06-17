@@ -1,0 +1,49 @@
+{
+  "manifest_name": "line_w_wss_priority_seed1",
+  "description": "Line W WSS-priority seed=1 screening configs derived from A-Opt-W03-multi / A-Opt-05-wss-multi.",
+  "data_root": "data_new/AG",
+  "split_file": "training/splits/split_AG_v1.json",
+  "graphs_subdir": "processed/graphs",
+  "notes": "Primary metrics: wall.wss_r2_wss / wall.wss_rmse_wss. Pressure is a guardrail with r2_p >= 0.90. Velocity metrics are diagnostics unless WSS and pressure both hold.",
+  "recommended_first_batch": [
+    "A-Opt-W03-w02",
+    "A-Opt-W03-vel1-w02"
+  ],
+  "items": [
+    {
+      "exp_id": "A-Opt-W03-w02",
+      "seed": 1,
+      "config_path": "training/configs/field/generated/wss_multitask/A-Opt-W03-w02_seed1.json",
+      "purpose": "Increase WSS loss weight from 0.1 to 0.2 while keeping field target weights unchanged.",
+      "priority": 1
+    },
+    {
+      "exp_id": "A-Opt-W03-vel1-w02",
+      "seed": 1,
+      "config_path": "training/configs/field/generated/wss_multitask/A-Opt-W03-vel1-w02_seed1.json",
+      "purpose": "Reduce velocity supervision from 2 to 1 and use WSS loss weight 0.2 to test whether velocity supervision competes with WSS.",
+      "priority": 1
+    },
+    {
+      "exp_id": "A-Opt-W03-p025-w02",
+      "seed": 1,
+      "config_path": "training/configs/field/generated/wss_multitask/A-Opt-W03-p025-w02_seed1.json",
+      "purpose": "Relax pressure weight from 0.5 to 0.25 and use WSS loss weight 0.2.",
+      "priority": 2
+    },
+    {
+      "exp_id": "A-Opt-W03-w05",
+      "seed": 1,
+      "config_path": "training/configs/field/generated/wss_multitask/A-Opt-W03-w05_seed1.json",
+      "purpose": "Aggressive WSS-loss upper-bound probe with WSS loss weight 0.5.",
+      "priority": 2
+    },
+    {
+      "exp_id": "A-Opt-W04-stage2",
+      "seed": 1,
+      "config_path": "training/configs/field/generated/wss_multitask/A-Opt-W04-stage2_seed1.json",
+      "purpose": "Stage-2 fine-tuning from A-Opt-W03-multi seed1 checkpoint with lower lr and WSS loss weight 0.2.",
+      "priority": 3
+    }
+  ]
+}

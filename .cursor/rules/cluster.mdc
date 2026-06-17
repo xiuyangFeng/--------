@@ -1,0 +1,48 @@
+---
+description: 大规模测试和代码运行须在集群上提交，CPU任务指定节点3
+alwaysApply: true
+---
+
+# 集群运行规范
+
+大规模测试、批量数据处理、模型训练等耗时任务**必须在集群上提交运行**，不得在登录节点直接执行。
+
+## 节点选择
+
+- **需要 CPU 资源时**：必须指定节点3（`node03`）提交作业
+  ```bash
+  #SBATCH -w node03
+  ```
+  或提交时追加参数：
+  ```bash
+  sbatch --nodelist=node03 run_pipeline.slurm <CASE_NAME>
+  ```
+
+## 提交方式
+
+详细说明见 `pipeline/cluster/README.md`，常用命令如下：
+
+```bash
+# 推荐：Array Job 并行处理多病例
+./pipeline/cluster/batch_submit.sh --array
+
+# 单病例完整流程
+sbatch pipeline/cluster/run_pipeline.slurm <CASE_NAME>
+
+# 单步骤运行
+sbatch pipeline/cluster/run_single_step.slurm <STEP> <CASE_NAME>
+```
+
+## 环境对应
+
+- `extract_features` 步骤自动使用 `GNN_vmtk` 环境
+- 其他步骤使用 `GNN` 环境
+
+## 作业监控
+
+```bash
+squeue -u $USER
+tail -f pipeline/cluster/logs/gnn_pipeline_<JOB_ID>.out
+```
+
+提交大规模任务前，先在登录节点用 `python -m pipeline.audit_inputs` 检查输入数据完整性。
