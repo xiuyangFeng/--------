@@ -55,6 +55,7 @@ if [ ! -f "$CASES_ABS" ]; then
 fi
 
 export PYTHONPATH="$PROJECT_DIR:${PYTHONPATH:-}"
+export PYTHONUNBUFFERED=1
 python -m external_baselines.crown_beihang.export_pkl \
     --config "$CONFIG_ABS" \
     --cases-file "$CASES_ABS" \

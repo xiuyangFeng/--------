@@ -7,7 +7,7 @@ import re
 import statistics
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Sequence
+from typing import Any, Callable, Dict, List, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
@@ -68,10 +68,16 @@ def _voxelize_record(
     features: np.ndarray,
     targets: np.ndarray,
     voxel_size_mm: float,
+    progress: Callable[[str], None] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     dummy_wall = np.zeros(len(points), dtype=np.float32)
-    centers, voxel_features, _ = voxelize_and_average(points, features, dummy_wall, voxel_size_mm)
-    _, voxel_targets, _ = voxelize_and_average(points, targets, dummy_wall, voxel_size_mm)
+    n_feat = features.shape[1]
+    combined = np.concatenate([features, targets], axis=1)
+    centers, voxel_combined, _ = voxelize_and_average(
+        points, combined, dummy_wall, voxel_size_mm, progress=progress
+    )
+    voxel_features = voxel_combined[:, :n_feat]
+    voxel_targets = voxel_combined[:, n_feat:]
     return centers, voxel_features, voxel_targets
 
 
@@ -97,10 +103,15 @@ def process_raw_frame(
         log_lines.append(line)
 
     try:
+        t_load = time.time()
+        log(f"loading ascii point_filter={pf} ...")
         points, targets = load_raw_frame(case_dir, frame_key, pf)
         n_raw = int(points.shape[0])
         span = coord_span_mm(points)
-        log(f"source=raw_ascii point_filter={pf} n_raw={n_raw} coord_span_mm={span}")
+        log(
+            f"loaded n_raw={n_raw} load_sec={time.time() - t_load:.1f} "
+            f"coord_span_mm={span}"
+        )
 
         if max_raw_points is not None and n_raw > max_raw_points:
             rng = np.random.default_rng(seed)
@@ -113,14 +124,15 @@ def process_raw_frame(
         features = points.copy()
         feature_names = ["x", "y", "z"]
         centers, voxel_features, voxel_targets = _voxelize_record(
-            points, features, targets, voxel_size_mm
+            points, features, targets, voxel_size_mm, progress=log
         )
         n_voxel = int(centers.shape[0])
         n_wall_voxel = _velocity_wall_count(voxel_targets)
         n_interior_voxel = n_voxel - n_wall_voxel
         log(
-            f"voxel_size_mm={voxel_size_mm} n_voxel={n_voxel} "
-            f"n_wall_vel={n_wall_voxel} n_interior_vel={n_interior_voxel}"
+            f"DONE voxel_size_mm={voxel_size_mm} n_voxel={n_voxel} "
+            f"n_wall_vel={n_wall_voxel} n_interior_vel={n_interior_voxel} "
+            f"frame_total_sec={time.time() - start:.1f}"
         )
 
         sample_id = f"{case_name}/{frame_key}"
@@ -403,7 +415,18 @@ def export_single_case(
                     append_jsonl(jsonl_path, row)
                 case_result["failures"].append(row)
                 continue
-            for frame_key in sorted(frames):
+            frame_keys = sorted(frames)
+            n_frames = len(frame_keys)
+            print(
+                f"[{case_name}] point_filter={point_filter} start n_frames={n_frames}",
+                flush=True,
+            )
+            for frame_idx, frame_key in enumerate(frame_keys, start=1):
+                print(
+                    f"[{case_name}] point_filter={point_filter} "
+                    f"frame {frame_idx}/{n_frames} {frame_key} ...",
+                    flush=True,
+                )
                 result = process_raw_frame(
                     case_dir, frame_key, case_name, split_name, point_filter,
                     voxel_size_mm, max_raw_points, seed, bc_map, case_log,
@@ -413,10 +436,22 @@ def export_single_case(
                 if jsonl_path is not None:
                     append_jsonl(jsonl_path, row)
                 frame_rows.append(row)
+                print(
+                    f"[{case_name}] point_filter={point_filter} "
+                    f"frame {frame_idx}/{n_frames} {frame_key} "
+                    f"status={result['status']} n_raw={result['n_raw']} "
+                    f"n_voxel={result['n_voxel']} sec={result['duration_sec']}",
+                    flush=True,
+                )
                 if result["status"] != "ok":
                     case_result["failures"].append(row)
                 elif result["record"] is not None:
                     records.append(result["record"])
+            print(
+                f"[{case_name}] point_filter={point_filter} finished "
+                f"ok={len(records)}/{n_frames}",
+                flush=True,
+            )
         else:
             csvs = sorted((case_dir / features_subdir).glob("result_features_*.csv"))
             if not csvs:
@@ -596,7 +631,6 @@ def run_export(
     }
 
     audit_dir = output_root / "audit"
-    jsonl_path = audit_dir / "preprocess_cases.jsonl"
 
     if dry_run:
         print(f"CROWN export dry-run source={export_source}")

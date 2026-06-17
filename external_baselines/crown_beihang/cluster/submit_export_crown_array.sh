@@ -18,10 +18,11 @@ python -m external_baselines.crown_beihang.export_pkl \
     --config "$CONFIG_PATH" \
     --write-all-cases-file "$CASES_FILE"
 
-N_CASES=$(grep -cve '^\s*$' "$CASES_FILE" || true)
-N_CASES=$(grep -cve '^\s*#' "$CASES_FILE" || echo "$N_CASES")
-# 排除注释行
 N_CASES=$(grep -v '^\s*#' "$CASES_FILE" | grep -cve '^\s*$' || true)
+if [ "$N_CASES" -lt 1 ]; then
+    echo "ERROR: no cases in $CASES_FILE" >&2
+    exit 1
+fi
 LAST_IDX=$((N_CASES - 1))
 
 echo "Cases: ${N_CASES} · array 0-${LAST_IDX}%${MAX_PARALLEL} · time=${TASK_TIME}"
