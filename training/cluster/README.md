@@ -31,6 +31,7 @@ cluster/
 - 分区：脚本默认 **CPU**；GPU 训练提交时覆盖：  
   `sbatch -p GPU --gres=gpu:1 run_train_field.slurm <config.json>`
 - Conda：**GNN**（`TRAINING_ENV` / `TRAINING_PYTHON` 可覆盖）
+- GPU 提交策略：先检查 `nvidia-smi` / `squeue -u $USER`；只要 GPU 有空闲即可直接提交使用，若没有空闲则按实验计划顺序提交排队，以后不需要为“是否提交/是否排队”单独确认。
 
 ## 快速开始
 
@@ -85,10 +86,12 @@ tail -f logs/field_train_<JOB_ID>.out    # 仓库根提交时
 tail -f training/cluster/logs/field_train_<JOB_ID>.out
 ```
 
+模型训练侧的集群脚本也必须保留细粒度日志。涉及按病例加载、评估、预测、后处理或数据准备的流程，至少逐病例记录开始、完成、跳过和失败状态；训练主循环需持续输出 epoch/step 进度，避免长时间无输出导致无法判断是否仍在实验。
+
 ## 常见问题
 
 1. **manifest 不存在**：在仓库根生成 field plan / manifest 后再 `generate_manifest_list.sh`。
-2. **GPU**：配置里 `device=auto` 且提交时申请 `--gres=gpu:1` 即可。
+2. **GPU**：配置里 `device=auto` 且提交时申请 `--gres=gpu:1` 即可；有空闲就提交使用，没有空闲就按顺序排队。
 3. **WSS 批量对比 / hemo**：归档脚本 `archive/onetime_slurm/run_compare_hemo_wss.slurm`；**须明确要求后再跑**。
 
 详细历史用法（V3 Diag 链、15-run 图件阵列等）见 **`archive/README.md`** 与各归档脚本头部注释。

@@ -487,6 +487,14 @@ def export_single_case(
     return case_result
 
 
+def _human_bytes(n: int) -> str:
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if n < 1024 or unit == "TB":
+            return f"{n:.1f}{unit}" if unit != "B" else f"{n}B"
+        n /= 1024
+    return f"{n:.1f}TB"
+
+
 def merge_partials(config: Dict[str, Any]) -> Dict[str, Any]:
     data_cfg = config["data"]
     export_cfg = config.get("export", {})
@@ -506,6 +514,18 @@ def merge_partials(config: Dict[str, Any]) -> Dict[str, Any]:
     audit_dir = output_root / "audit"
     jsonl_dir = audit_dir / "jsonl"
     jsonl_path = audit_dir / "preprocess_cases.jsonl"
+    merge_log_path = audit_dir / "logs" / "merge.log"
+
+    def log(msg: str) -> None:
+        line = f"[merge] {msg}"
+        print(line, flush=True)
+        merge_log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(merge_log_path, "a", encoding="utf-8") as lf:
+            lf.write(line + "\n")
+
+    merge_t0 = time.time()
+    if merge_log_path.exists():
+        merge_log_path.unlink()
 
     all_records_by_filter: Dict[str, Dict[str, List[Dict[str, Any]]]] = {
         pf: {sn: [] for sn in split_names} for pf in point_filters
@@ -515,47 +535,100 @@ def merge_partials(config: Dict[str, Any]) -> Dict[str, Any]:
     if not partial_dir.is_dir():
         raise FileNotFoundError(f"partial 目录不存在: {partial_dir}")
 
-    for partial_path in sorted(partial_dir.glob("*.pkl")):
+    partial_paths = sorted(partial_dir.glob("*.pkl"))
+    n_partial = len(partial_paths)
+    log(f"start output_root={output_root} n_partial={n_partial} point_filters={point_filters}")
+
+    load_t0 = time.time()
+    for idx, partial_path in enumerate(partial_paths, start=1):
+        psize = partial_path.stat().st_size
+        t0 = time.time()
+        log(f"load partial {idx}/{n_partial} {_human_bytes(psize)} {partial_path.name} ...")
         with open(partial_path, "rb") as f:
             records = pickle.load(f)
+        elapsed = time.time() - t0
         if not records:
+            log(f"  skip empty partial elapsed_sec={elapsed:.1f}")
             continue
         pf = _normalize_point_filter(str(records[0].get("point_filter", "volume")))
+        n_added = 0
         for rec in records:
             sn = rec.get("split", "train")
             if pf in all_records_by_filter and sn in all_records_by_filter[pf]:
                 all_records_by_filter[pf][sn].append(rec)
+                n_added += 1
+        log(
+            f"  loaded n_records={len(records)} point_filter={pf} "
+            f"bucketed={n_added} elapsed_sec={elapsed:.1f}"
+        )
+
+    log(
+        f"partial load done elapsed_sec={time.time() - load_t0:.1f} "
+        f"counts={{{', '.join(f'{pf}:{sum(len(all_records_by_filter[pf][sn]) for sn in split_names)}' for pf in point_filters)}}}"
+    )
 
     if jsonl_dir.is_dir():
-        merged_lines: List[str] = []
-        for jl in sorted(jsonl_dir.glob("*.jsonl")):
-            merged_lines.extend(jl.read_text(encoding="utf-8").splitlines())
+        jsonl_files = sorted(jsonl_dir.glob("*.jsonl"))
+        n_jl = len(jsonl_files)
+        log(f"merge jsonl n_files={n_jl} -> {jsonl_path.name}")
+        jsonl_t0 = time.time()
         jsonl_path.parent.mkdir(parents=True, exist_ok=True)
-        jsonl_path.write_text(
-            "\n".join(ln for ln in merged_lines if ln.strip()) + ("\n" if merged_lines else ""),
-            encoding="utf-8",
-        )
-        for jl in jsonl_dir.glob("*.jsonl"):
-            for line in jl.read_text(encoding="utf-8").splitlines():
-                if not line.strip():
-                    continue
-                row = json.loads(line)
-                if row.get("status") in ("error", "missing"):
-                    failures.append(row)
+        n_lines = 0
+        with open(jsonl_path, "w", encoding="utf-8") as out_f:
+            for jidx, jl in enumerate(jsonl_files, start=1):
+                t0 = time.time()
+                text = jl.read_text(encoding="utf-8")
+                lines = [ln for ln in text.splitlines() if ln.strip()]
+                for line in lines:
+                    out_f.write(line + "\n")
+                    row = json.loads(line)
+                    if row.get("status") in ("error", "missing"):
+                        failures.append(row)
+                    n_lines += 1
+                log(
+                    f"  jsonl {jidx}/{n_jl} {jl.name} lines={len(lines)} "
+                    f"elapsed_sec={time.time() - t0:.1f}"
+                )
+        log(f"jsonl merge done n_lines={n_lines} elapsed_sec={time.time() - jsonl_t0:.1f}")
 
-    for point_filter in point_filters:
+    write_t0 = time.time()
+    written: Dict[str, Dict[str, Any]] = {}
+    for pf_idx, point_filter in enumerate(point_filters, start=1):
         for split_name in split_names:
             recs = all_records_by_filter[point_filter][split_name]
             recs.sort(key=lambda r: (r["case_name"], r.get("time_index", 0)))
             pkl_path = output_root / "pkl" / f"crown_{point_filter}_{split_name}.pkl"
+            log(
+                f"write pkl [{pf_idx}/{len(point_filters)}] "
+                f"crown_{point_filter}_{split_name} n_samples={len(recs)} ..."
+            )
+            t0 = time.time()
             export_split_pkl(recs, pkl_path)
-            print(f"Merged {pkl_path} ({len(recs)} samples)", flush=True)
+            fsize = pkl_path.stat().st_size if pkl_path.exists() else 0
+            log(
+                f"  saved {_human_bytes(fsize)} {pkl_path.name} "
+                f"elapsed_sec={time.time() - t0:.1f}"
+            )
+            written.setdefault(point_filter, {})[split_name] = {
+                "path": str(pkl_path),
+                "n_samples": len(recs),
+                "bytes": fsize,
+            }
+
+    log(f"pkl write done elapsed_sec={time.time() - write_t0:.1f}")
 
     train_stats: Dict[str, Any] = {}
     for point_filter in point_filters:
         train_recs = all_records_by_filter[point_filter]["train"]
         if train_recs:
+            log(f"compute train_stats point_filter={point_filter} n_train={len(train_recs)} ...")
+            t0 = time.time()
             train_stats[point_filter] = compute_p_stats(train_recs)
+            log(
+                f"  p_min={train_stats[point_filter]['p_min']:.2f} "
+                f"p_max={train_stats[point_filter]['p_max']:.2f} "
+                f"elapsed_sec={time.time() - t0:.1f}"
+            )
 
     data_root = Path(data_cfg["data_root"])
     if not data_root.is_absolute():
@@ -589,6 +662,17 @@ def merge_partials(config: Dict[str, Any]) -> Dict[str, Any]:
     }
     dump_json(audit_dir / "preprocess_audit.json", audit)
     dump_json(output_root / "manifests" / "export_manifest.json", manifest)
+
+    total_sec = time.time() - merge_t0
+    merge_timing = {
+        "elapsed_sec": round(total_sec, 3),
+        "n_partial": n_partial,
+        "written_pkls": written,
+        "failure_count": len(failures),
+    }
+    dump_json(audit_dir / "merge_timing.json", merge_timing)
+    log(f"DONE total_sec={total_sec:.1f} failures={len(failures)}")
+    log(f"timing -> {audit_dir / 'merge_timing.json'}")
     return audit
 
 

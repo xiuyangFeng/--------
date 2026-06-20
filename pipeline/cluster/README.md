@@ -81,6 +81,8 @@ squeue -u $USER
 tail -f pipeline/cluster/logs/gnn_array_<JOB_ID>_<TASK>.out
 ```
 
+数据侧集群脚本必须保留细粒度进度日志，至少逐病例记录开始、完成、跳过和失败状态；批量任务不能只输出总进度，否则数据量过大时无法判断作业是否仍在有效推进。
+
 作业日志目录已加入 `.gitignore`（`pipeline/cluster/logs/`），勿将 `*.out` / `*.err` 提交进 Git。
 
 ## 时间估算（单病例）

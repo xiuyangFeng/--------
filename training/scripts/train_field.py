@@ -368,6 +368,8 @@ def main() -> None:
         wss_metric_dim=config.model.wss_metric_dim if config.model.wss_output_mode == "vel_diff" else 0,
         vel_diff_variant=config.model.vel_diff_variant,
         select_best_on_data_loss=config.optim.select_best_on_data_loss,
+        i6_grad_probe=config.optim.i6_grad_probe,
+        i6_grad_probe_interval=config.optim.i6_grad_probe_interval,
     )
     # 保存本次训练用到的完整配置快照。
     dump_json(config.to_dict(), run_dir / "config.snapshot.json")

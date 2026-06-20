@@ -5,8 +5,8 @@
 #SBATCH --partition=GPU
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
-#SBATCH --time=24:00:00
+#SBATCH --mem=96G
+#SBATCH --time=72:00:00
 
 set -euo pipefail
 
@@ -25,24 +25,16 @@ elif [ -f "/public/newapps/anaconda3/etc/profile.d/conda.sh" ]; then
 fi
 conda activate GNN
 
-SCRIPT_PATH="${SLURM_JOB_SCRIPT:-}"
-if [ -z "$SCRIPT_PATH" ] && command -v scontrol >/dev/null 2>&1; then
-    SCRIPT_PATH="$(scontrol show job "$SLURM_JOB_ID" | tr ' ' '\n' | awk -F= '/^Command=/{print $2; exit}')"
+PROJECT_DIR="${SLURM_SUBMIT_DIR:-}"
+if [ -z "$PROJECT_DIR" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    BASELINE_DIR="$(dirname "$SCRIPT_DIR")"
+    EXTERNAL_DIR="$(dirname "$BASELINE_DIR")"
+    PROJECT_DIR="$(dirname "$EXTERNAL_DIR")"
 fi
-if [ -z "$SCRIPT_PATH" ]; then
-    SCRIPT_PATH="$0"
-fi
-case "$SCRIPT_PATH" in
-    /*) ;;
-    *) SCRIPT_PATH="$SLURM_SUBMIT_DIR/$SCRIPT_PATH" ;;
-esac
-
-SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-BASELINE_DIR="$(dirname "$SCRIPT_DIR")"
-EXTERNAL_DIR="$(dirname "$BASELINE_DIR")"
-PROJECT_DIR="$(dirname "$EXTERNAL_DIR")"
 cd "$PROJECT_DIR"
 
+SCRIPT_DIR="$PROJECT_DIR/external_baselines/crown_beihang/cluster"
 mkdir -p "$SCRIPT_DIR/logs"
 
 CONFIG_ABS="$PROJECT_DIR/$CONFIG_PATH"

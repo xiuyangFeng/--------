@@ -1,6 +1,6 @@
 # 项目文档索引
 
-> 更新时间：2026-06-14
+> 更新时间：2026-06-20
 > 主入口：[实验设计总纲](实验设计总纲.md)
 
 本目录存放实验设计、任务规范、路线文档、推进日志、汇报材料和外部论文 baseline 复现记录。当前项目已经不再按“单一 GNN 优化线”推进，而是分成：
@@ -19,6 +19,14 @@
 3. [V3 实验执行跟踪日志](01-任务/任务A/03-V3路线/01-执行与待办/V3_实验执行跟踪日志.md)
 4. [V3 后续优化待办](01-任务/任务A/03-V3路线/01-执行与待办/V3_后续优化待办.md)
 5. [代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md)
+
+### 当前复现与 V3P 状态速读
+
+| 主题 | 先看 | 只记录什么 |
+| --- | --- | --- |
+| V3P / Path I 诊断 | [V3 路线 README](01-任务/任务A/03-V3路线/README.md) + [V3 实验执行跟踪日志](01-任务/任务A/03-V3路线/01-执行与待办/V3_实验执行跟踪日志.md) | I2-PC、I6、完整 I7、TODO-20 等内部路线事实 |
+| 外部 CROWN/Beihang 复现 | [CROWN 代码 README](../external_baselines/crown_beihang/README.md) + [hemodynamics_pointcloud_pinn](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | `u,v,w,p` 速度/压力 paper-original 复现，不写成 WSS baseline |
+| 外部 baseline 批次总结 | [paper_reproduction/README](paper_reproduction/README.md) + [梳理记录规范](paper_reproduction/04-梳理记录规范.md) | 一轮矩阵跑齐后的批次结论，单个 Job 只放 `external_baselines/<name>/experiments/` |
 
 ### 查当前总设计
 
@@ -43,12 +51,12 @@
 
 ## 2. 当前路线状态
 
-| 路线 | 当前定位 | 最近状态 |
+| 路线 | 当前定位 | 状态摘要 |
 | --- | --- | --- |
 | `Route-KNN-GNN-V1` | 历史基线与消融证据 | A-Base / A-Main / A-Opt / Line G / Line W 保留为历史对照；新增 V1 PINN 阶梯用于回答物理损失问题 |
 | `Route-PhysicsAware-V2` | V2 修正路线历史框架 | V2P-WSSP 已形成一批 p+WSS / WSS loss 对照结果，当前不再作为日常主攻 |
-| `Route-DualDomain-PointNeXt-V3` | 当前任务 A 主攻 | V3P post5463 band 约 `wss_r2_wss=0.425±0.012`；G1/G2/G3/G4-a/G4-b 多轮 No-Go 后进入 Q0/I 诊断与后续路线裁决 |
-| 外部论文 baseline | 下一阶段论文必需对照 | 已建立 `docs/paper_reproduction/`；第一批优先 MultiViewUNet、coronary mesh convolution、LaB-GATr、E(3)-equivariant AAA WSS、PointNetCFD |
+| `Route-DualDomain-PointNeXt-V3` | 当前任务 A 主攻 | V3P post5463 band 约 `wss_r2_wss=0.425±0.012`；I2-PC seed1 Job 5741 弱 No-Go；I6 诊断 run 与完整 I7/TODO-20 离线判读是当前收口链 |
+| 外部论文 baseline | 下一阶段论文必需对照 | PointNetCFD 首轮矩阵已完成；CROWN/Beihang raw_ascii v1 已进入 lazy 非 PINN 重训 Job 5751，PINN 5740 已判 No-Go |
 | 后处理可视化 | 论文与答辩支撑链 | 已明确同点指标优先、插值只作展示、WSS 后处理必须先做 CFD velocity oracle；新增 `paper_reproduction/visualization_pipeline/` 管理点云回面片与 CFD-Post/Fluent 交付流程 |
 
 ## 3. 目录结构
@@ -88,5 +96,7 @@
 
 - 任务 A 新实验事实优先写入 V3 实验日志或对应路线状态表，再同步推进记录。
 - 代码、脚本、配置或实验文档变更后，必须在 [代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md) 文首新增记录。
+- 数据侧或模型训练侧的集群运行代码必须提供详细进度日志，日志粒度至少细到每一个病例，确保大规模任务可判断是否仍在有效实验/推进，避免因总数据量过大造成无效等待。
+- GPU 训练/评估任务只要资源有空闲即可提交使用；若暂无空闲 GPU，则按实验计划顺序提交排队，不再为是否提交或是否排队单独确认。
 - 仅修改 PPT/PPTX 等汇报文件时，不需要更新推进记录；若同时修改实验文档或脚本，则仍需更新。
 - 外部 baseline 复现相关内容统一写入 `paper_reproduction/`，不要混进 V3 内部优化路线。

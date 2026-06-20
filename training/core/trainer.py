@@ -81,6 +81,8 @@ class FieldTrainer:
         wss_metric_dim: int = 0,
         vel_diff_variant: str = "naive",
         select_best_on_data_loss: bool = False,
+        i6_grad_probe: bool = False,
+        i6_grad_probe_interval: int = 50,
     ):
         self.model = model
         self.optimizer = optimizer
@@ -108,6 +110,12 @@ class FieldTrainer:
         self.accumulate_grad_batches = max(1, accumulate_grad_batches)
         self.early_stop_min_delta = float(early_stop_min_delta)
         self.val_score_ema_alpha = float(val_score_ema_alpha)
+        # I6 梯度冲突诊断（默认关）：仅在共享 backbone 参数上比较 p/wss 任务梯度方向与范数。
+        self.i6_grad_probe = bool(i6_grad_probe)
+        self.i6_grad_probe_interval = max(1, int(i6_grad_probe_interval))
+        self._i6_shared_params: Optional[List[torch.nn.Parameter]] = None
+        self._i6_epoch_records: List[Dict[str, float]] = []
+        self._i6_warned = False
         if val_score_wss_weights is None:
             self._val_score_wss_weights: List[float] = [1.0, 1.0, 1.0, 1.0]
         else:
@@ -220,6 +228,92 @@ class FieldTrainer:
         # 统一把浮点指标格式化成 6 位小数。
         return f"{value:.6f}"
 
+    def _i6_collect_shared_params(self) -> List[torch.nn.Parameter]:
+        """共享 backbone 参数：排除两个任务专属 head（field_head / wss_head 及其变体）。"""
+        if self._i6_shared_params is not None:
+            return self._i6_shared_params
+        head_prefixes = ("field_head", "wss_head", "wss_kernel_attn")
+        shared = [
+            p
+            for n, p in self.model.named_parameters()
+            if p.requires_grad and not n.startswith(head_prefixes)
+        ]
+        self._i6_shared_params = shared
+        return shared
+
+    def _i6_probe_step(self, breakdown) -> None:
+        """记录共享 backbone 上 cos(∇L_p, ∇L_wss) 与梯度范数比；失败只警告一次。
+
+        L_p = 内部压力 + 壁面压力（加权）；L_wss = 壁面 WSS（加权）。
+        用 autograd.grad（不写入 .grad），随后主反向照常进行。
+        """
+        L_p = getattr(breakdown, "weighted_loss_interior_pressure", None)
+        L_wp = getattr(breakdown, "weighted_loss_wall_pressure", None)
+        L_wss = getattr(breakdown, "weighted_loss_wall_wss", None)
+        if L_wss is None or (L_p is None and L_wp is None):
+            return
+        loss_p = L_p if L_wp is None else (L_wp if L_p is None else L_p + L_wp)
+        if not (loss_p.requires_grad and L_wss.requires_grad):
+            return
+        shared = self._i6_collect_shared_params()
+        if not shared:
+            return
+        try:
+            g_p = torch.autograd.grad(loss_p, shared, retain_graph=True, allow_unused=True)
+            g_w = torch.autograd.grad(L_wss, shared, retain_graph=True, allow_unused=True)
+            flat_p = torch.cat(
+                [
+                    (g if g is not None else torch.zeros_like(p)).reshape(-1).float()
+                    for g, p in zip(g_p, shared)
+                ]
+            )
+            flat_w = torch.cat(
+                [
+                    (g if g is not None else torch.zeros_like(p)).reshape(-1).float()
+                    for g, p in zip(g_w, shared)
+                ]
+            )
+            norm_p = float(flat_p.norm().item())
+            norm_w = float(flat_w.norm().item())
+            if norm_p < 1e-12 or norm_w < 1e-12:
+                return
+            cos = float((flat_p @ flat_w).item() / (norm_p * norm_w))
+            self._i6_epoch_records.append(
+                {
+                    "cos": cos,
+                    "norm_p": norm_p,
+                    "norm_wss": norm_w,
+                    "norm_ratio": norm_p / norm_w,
+                }
+            )
+        except RuntimeError as exc:  # pragma: no cover - 诊断分支，失败不应中断训练
+            if not self._i6_warned:
+                print(f"[I6] 梯度探针失败，已禁用本次诊断: {exc}")
+                self._i6_warned = True
+            self.i6_grad_probe = False
+
+    @staticmethod
+    def _i6_aggregate(records: Sequence[Dict[str, float]]) -> Dict[str, float]:
+        """把一个 epoch 内的逐 step 探针记录聚合成中位数/均值标量。"""
+        if not records:
+            return {}
+        cos_vals = sorted(r["cos"] for r in records)
+        ratio_vals = sorted(r["norm_ratio"] for r in records)
+        n = len(cos_vals)
+        cos_median = cos_vals[n // 2] if n % 2 == 1 else 0.5 * (cos_vals[n // 2 - 1] + cos_vals[n // 2])
+        ratio_median = (
+            ratio_vals[n // 2] if n % 2 == 1 else 0.5 * (ratio_vals[n // 2 - 1] + ratio_vals[n // 2])
+        )
+        return {
+            "i6_grad_cos_median": float(cos_median),
+            "i6_grad_cos_mean": float(sum(r["cos"] for r in records) / n),
+            "i6_grad_cos_neg_frac": float(sum(1 for r in records if r["cos"] < 0) / n),
+            "i6_grad_norm_ratio_median": float(ratio_median),
+            "i6_grad_norm_p_mean": float(sum(r["norm_p"] for r in records) / n),
+            "i6_grad_norm_wss_mean": float(sum(r["norm_wss"] for r in records) / n),
+            "i6_grad_probe_steps": float(n),
+        }
+
     def run_epoch(self, loader, train: bool, epoch: int) -> Dict[str, float]:
         # meter 负责在线累计回归指标。
         meter = RegressionMeter()
@@ -247,6 +341,9 @@ class FieldTrainer:
         # 训练阶段在 epoch 开头先清零梯度。
         if train:
             self.optimizer.zero_grad(set_to_none=True)
+            # I6 诊断：每个训练 epoch 重置逐 step 探针记录。
+            if self.i6_grad_probe:
+                self._i6_epoch_records = []
 
         # Disable gradient computation during validation to avoid storing
         # intermediate activations, which can double GPU memory usage.
@@ -287,6 +384,9 @@ class FieldTrainer:
                     self._domain_mask_verified = True
 
                 if train:
+                    # I6 诊断：主反向前用 autograd.grad 比较 p/wss 任务梯度（不写入 .grad）。
+                    if self.i6_grad_probe and (batch_idx % self.i6_grad_probe_interval == 0):
+                        self._i6_probe_step(breakdown)
                     # 梯度累积时，先按累积步数缩小 loss。
                     scaled_loss = breakdown.total_loss / self.accumulate_grad_batches
                     # AMP 路径用 scaler.backward。
@@ -340,6 +440,9 @@ class FieldTrainer:
             metrics.update(wss_meter.compute())
         # 标记当前 epoch 是否启用 physics。
         metrics["physics_enabled"] = float(self.loss_plugin.is_enabled(epoch))
+        # I6 诊断：把本 epoch 的梯度冲突探针聚合写入指标（train 阶段才有记录）。
+        if train and self.i6_grad_probe:
+            metrics.update(self._i6_aggregate(self._i6_epoch_records))
         return metrics
 
     def fit(

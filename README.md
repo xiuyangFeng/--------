@@ -49,6 +49,7 @@ python -m pipeline.run_all --case ZHANG_CHUN
 
 日志查看：
 
+- 未来无论是数据侧预处理/批处理，还是模型训练侧的集群运行，都必须输出足够详细的进度日志；日志粒度至少细到每一个病例，避免因整体数据量过大而看不到任务是否仍在有效推进，只能无效等待。
 - 单病例步骤日志：`data_new/<病例路径>/processed/logs/progress.log`
 - 批量/总流程日志：`data_new/pipeline_reports/logs/run_all.log`
 - 如果直接执行单步骤批量入口，还会生成：

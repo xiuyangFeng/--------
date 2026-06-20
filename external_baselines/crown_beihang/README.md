@@ -49,4 +49,37 @@ python -m external_baselines.crown_beihang.train \
 
 第一轮矩阵：`crown_original_vp`（非 PINN）· `crown_original_vp_pinn`（PINN）· 默认 `point_filter=volume`。
 
-评估含论文 MAE/RMSE/MSE 与 **点级 R²**（`u/v/w/p_r2`、`vel_mag_r2`）。
+评估含论文 MAE/RMSE/MSE、**NMAE**（按评估 split 全局 target range 归一化）与 **点级 R²**（`u/v/w/p_r2`、`vel_mag_r2`）。
+
+## 当前状态（2026-06-20）
+
+| 链路 | 状态 | 口径 |
+| --- | --- | --- |
+| raw_ascii v1 export | ✅ 完成 | Array 5630 + 补跑 5734_80 + merge 5738；`private_preprocessed_raw_ascii_v1/` |
+| `crown_original_vp` 非 PINN | 🏃 Job **5751** lazy 重训运行中 | 5739 仅 4 epoch 后 OOM，保留为“截断 checkpoint No-Go”，不代表充分训练上限 |
+| `crown_original_vp_pinn` | ❌ 5740 evaluate 后 No-Go | 24h TIMEOUT checkpoint：PINN 未改善压力且速度 R2 退化；不扩 seed |
+| 指标口径 | ✅ 已补齐 | `metrics_{split}.json` 同时报告 NMAE 与点级 R² |
+
+5751 完成前，不用覆盖 5739 的 OOM 截断判读；完成后以新 run 的 `manifest.json`、`analysis_report.md`、`metrics_test.json` 重新判断非 PINN raw_ascii 路线。
+
+## 数据加载与评估（2026-06-19 · 已审核）
+
+raw_ascii v1 merged pkl（train **~100GB**）全量驻内存会导致训练 OOM、evaluate 极慢。默认已切换 **lazy partial 加载**：
+
+| 配置项 | 默认 | 说明 |
+| --- | --- | --- |
+| `lazy_load` | `true` | 读 `pkl/partial/` + `preprocess_cases.jsonl` 索引 |
+| `partial_cache_cases` | `2` | 同时缓存的病例 shard 数 |
+| `eval_batch_size` | 8（非 PINN） | evaluate 批量 GPU forward |
+
+```bash
+# 默认 lazy（仅加载 test split）
+python -m external_baselines.crown_beihang.evaluate \
+  --checkpoint outputs/.../best_model.pt --split test
+
+# 强制 merged pkl（回归对照）
+python -m external_baselines.crown_beihang.evaluate \
+  --checkpoint outputs/.../best_model.pt --split test --eager-load
+```
+
+详见 [`docs/数据加载与评估加速说明.md`](docs/数据加载与评估加速说明.md)（含审核清单）。

@@ -1,0 +1,27 @@
+{
+  "split_version": "split_AG_v1",
+  "data_root": "/public/newhome/cy/Digital_twin/GNN/data_new/AG",
+  "export_source": "raw_ascii",
+  "features_subdir": "processed/features",
+  "point_filters": [
+    "volume",
+    "all"
+  ],
+  "voxel_size_mm": 0.05,
+  "max_raw_points": null,
+  "wall_detection": "velocity_threshold_0.01_at_train",
+  "target_columns": [
+    "u",
+    "v",
+    "w",
+    "p"
+  ],
+  "global_cond_names": [
+    "t_norm",
+    "BC_Inlet",
+    "BC_O1",
+    "BC_O2",
+    "BC_O3",
+    "BC_O4"
+  ]
+}

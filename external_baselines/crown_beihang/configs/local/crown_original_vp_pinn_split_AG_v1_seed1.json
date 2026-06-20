@@ -11,7 +11,10 @@
     "input_features": ["x", "y", "z"],
     "sample_points": 10000,
     "batch_size": 2,
-    "num_workers": 4,
+    "eval_batch_size": 2,
+    "lazy_load": true,
+    "partial_cache_cases": 2,
+    "num_workers": 0,
     "pin_memory": true
   },
   "physics": {

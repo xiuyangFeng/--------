@@ -11,17 +11,20 @@
     "input_features": ["x", "y", "z"],
     "sample_points": 10000,
     "batch_size": 16,
-    "num_workers": 4,
+    "eval_batch_size": 8,
+    "lazy_load": true,
+    "partial_cache_cases": 4,
+    "num_workers": 0,
     "pin_memory": true
   },
   "physics": {
     "enabled": false
   },
   "optim": {
-    "epochs": 20000,
+    "epochs": 300,
     "lr": 0.003,
     "log_every": 10,
-    "early_stopping_patience": null
+    "early_stopping_patience": 50
   },
   "system": {
     "seed": 1,

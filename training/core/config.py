@@ -184,6 +184,10 @@ class OptimConfig:
     early_stop_min_delta: float = 0.0
     # 双域 val_score 的 EMA 系数；0=关闭，早停与 best 模型完全基于原始 val_score。
     val_score_ema_alpha: float = 0.0
+    # I6 诊断：每 N 个训练 step 记录共享 backbone 上 cos(∇L_p, ∇L_wss) 与梯度范数比；
+    # 默认关闭（仅诊断 run 打开，额外 2 次反向传播，常规训练不受影响）。
+    i6_grad_probe: bool = False
+    i6_grad_probe_interval: int = 50
     target_weights: List[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0])
     interior_loss_boost: float = 1.0
     grad_clip_norm: Optional[float] = 1.0

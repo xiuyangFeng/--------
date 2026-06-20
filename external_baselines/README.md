@@ -7,7 +7,7 @@
 | baseline | 目录 | 状态 |
 | --- | --- | --- |
 | PointNetCFD | `pointnetcfd/` | 四组矩阵已完成；[梳理记录](../docs/paper_reproduction/papers/pointnetcfd/梳理记录.md) · [experiments/](pointnetcfd/experiments/README.md) |
-| CROWN/Beihang | `crown_beihang/` | 第一轮 `crown_original_vp` / `crown_original_vp_pinn`；产物 `CROWN_Beihang/private_preprocessed_raw_ascii_v1/`（raw_ascii 体素化 · Array 导出）· [README](crown_beihang/README.md) |
+| CROWN/Beihang | `crown_beihang/` | raw_ascii v1 已完成；5739 为 OOM 截断 No-Go，5740 PINN evaluate No-Go，5751 非 PINN lazy 重训运行中；[README](crown_beihang/README.md) |
 
 ## 实验记录与回填（2026-06-16 起）
 
@@ -27,4 +27,3 @@
 - 第一轮先跑 paper-original 或最接近 paper-original 的输入输出，再做显式几何特征增强。
 - 输出表必须和 V3 主线分开记录，避免把外部模型适配写成 V3 内部优化。
 - 若外部论文只预测速度/压力，不应直接写成 WSS baseline，除非完整走通 WSS 后处理或直接 WSS head。
-

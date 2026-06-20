@@ -49,13 +49,29 @@ def render_run_snapshot(manifest: Mapping[str, Any], run_dir: Path) -> str:
         f"| loss_mse | {_fmt(float(tm.get('loss_mse', 0)))} |",
         f"| RMSE | {_fmt(float(tm.get('rmse', 0)))} |",
         f"| MAE | {_fmt(float(tm.get('mae', 0)))} |",
+        f"| NMAE | {_fmt(float(tm.get('nmae', 0)))} |",
         f"| n_points | {int(tm.get('n_points', 0))} |",
         "",
-        "## 点级 R²",
+        "## NMAE",
         "",
         "| 指标 | 值 |",
         "| --- | ---: |",
     ]
+    for name in outputs:
+        key = f"{name}_nmae"
+        if key in tm:
+            lines.append(f"| {key} | {_fmt(float(tm[key]))} |")
+    if "vel_mag_nmae" in tm:
+        lines.append(f"| vel_mag_nmae | {_fmt(float(tm['vel_mag_nmae']))} |")
+    lines.extend(
+        [
+            "",
+            "## 点级 R²",
+            "",
+            "| 指标 | 值 |",
+            "| --- | ---: |",
+        ]
+    )
     for name in outputs:
         key = f"{name}_r2"
         if key in tm:
@@ -65,19 +81,21 @@ def render_run_snapshot(manifest: Mapping[str, Any], run_dir: Path) -> str:
     lines.extend(
         [
             "",
-            "## 分场 MAE / RMSE",
+            "## 分场 MAE / RMSE / NMAE",
             "",
             "| 指标 | 值 |",
             "| --- | ---: |",
         ]
     )
     for name in outputs:
-        for suffix in ("mae", "rmse", "r2"):
+        for suffix in ("mae", "rmse", "nmae", "r2"):
             key = f"{name}_{suffix}"
             if key in tm:
                 lines.append(f"| {key} | {_fmt(float(tm[key]))} |")
     if "vel_mag_r2" in tm:
         lines.append(f"| vel_mag_r2 | {_fmt(float(tm['vel_mag_r2']))} |")
+    if "vel_mag_nmae" in tm:
+        lines.append(f"| vel_mag_nmae | {_fmt(float(tm['vel_mag_nmae']))} |")
 
     lines.extend(
         [
@@ -110,6 +128,7 @@ def _render_latest_run_block(manifest: Mapping[str, Any], run_dir: Path) -> str:
         "| --- | ---: |",
         f"| test MSE | {_fmt(float(tm.get('loss_mse', 0)))} |",
         f"| test RMSE | {_fmt(float(tm.get('rmse', 0)))} |",
+        f"| test NMAE | {_fmt(float(tm.get('nmae', 0)))} |",
         "",
         f"完整快照：`outputs/external_baselines/crown_beihang/{run_name}/analysis_report.md`",
         "",

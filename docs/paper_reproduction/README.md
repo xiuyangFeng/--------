@@ -60,7 +60,7 @@ docs/paper_reproduction/
 | P1 | AneuG-Flow / IA WSS benchmark | 颅内动脉瘤合成 CFD / WSS benchmark | 数据和任务有价值，但 IA 与 AAA 需分开叙事 |
 | P1 | Lannelongue et al. PC-GNN | 颅内动脉瘤 transient hemodynamics | 数据集公开，代码待进一步确认 |
 | P2 | MeshMask | masked GNN pretraining | SOTA 思路强，但先作为策略复现或二阶段增强 |
-| P2 | cerebrovascular PointNet PINN | 小样本点云 + PINN v/p | 对 WSS 不能直接照搬，适合物理约束讨论 |
+| P2 | cerebrovascular PointNet PINN / CROWN-Beihang | 小样本点云 + PINN v/p | CROWN raw_ascii v1 适配进行中；仅作为 `u,v,w,p` 速度/压力复现线，不能直接写成 WSS baseline |
 
 ## 5. 记录规则
 
