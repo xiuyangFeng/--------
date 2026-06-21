@@ -1,0 +1,55 @@
+---
+description: 大规模测试和代码运行须在集群上提交，CPU任务指定节点3
+alwaysApply: true
+---
+
+# 集群运行规范
+
+大规模测试、批量数据处理、模型训练等耗时任务**必须在集群上提交运行**，不得在登录节点直接执行。
+
+## 节点选择
+
+- **需要 CPU 资源时**：必须指定节点3（`node03`）提交作业
+  ```bash
+  #SBATCH -w node03
+  ```
+  或提交时追加参数：
+  ```bash
+  sbatch --nodelist=node03 run_pipeline.slurm <CASE_NAME>
+  ```
+- **需要 GPU 资源时**：先检查 `nvidia-smi` / `squeue -u $USER`；只要 GPU 有空闲即可直接提交使用，若没有空闲则按实验计划顺序提交排队，以后不再为是否使用 GPU 或是否排队单独询问用户。
+
+## 提交方式
+
+详细说明见 `pipeline/cluster/README.md`，常用命令如下：
+
+```bash
+# 推荐：Array Job 并行处理多病例
+./pipeline/cluster/batch_submit.sh --array
+
+# 单病例完整流程
+sbatch pipeline/cluster/run_pipeline.slurm <CASE_NAME>
+
+# 单步骤运行
+sbatch pipeline/cluster/run_single_step.slurm <STEP> <CASE_NAME>
+```
+
+## 环境对应
+
+- `extract_features` 步骤自动使用 `GNN_vmtk` 环境
+- 其他步骤使用 `GNN` 环境
+
+## 作业监控
+
+```bash
+squeue -u $USER
+tail -f pipeline/cluster/logs/gnn_pipeline_<JOB_ID>.out
+```
+
+## 日志粒度
+
+- 未来无论进行数据侧预处理/批处理，还是模型训练侧训练、评估、预测、后处理，只要通过集群运行代码，都必须加上详细进度日志。
+- 涉及病例级数据的流程，日志粒度至少细到每一个病例：记录开始、完成、跳过、失败及关键耗时/计数信息。
+- 批量任务不得只输出整体进度；当整体数据量很大时，必须能通过日志判断作业是否仍在有效实验或推进，避免无效等待。
+
+提交大规模任务前，先在登录节点用 `python -m pipeline.audit_inputs` 检查输入数据完整性。

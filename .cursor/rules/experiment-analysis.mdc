@@ -1,0 +1,19 @@
+---
+description: 分析实验结果时走 V3 优先流程；分层读 V3 文档，避免加载 V1/V2 等无关上下文
+alwaysApply: true
+---
+
+# 实验结果分析
+
+当用户要求**分析、解读、对比、复盘**实验结果时：
+
+1. **默认 V3 口径**：先判别 `V3P-` / `V3D-` 及路径前缀 `G`/`F`（见 [v3-context.mdc](v3-context.mdc)），再读 `.cursor/skills/analyze-experiment/SKILL.md` + [v3-docs.md](../skills/analyze-experiment/v3-docs.md) 的 **L0/L1** 清单。
+2. **控制阅读量**：推进记录/跟踪日志/发散 §10 **只读顶部**；不打开 V1 实验清单、任务 B/C/D、`_archive`，除非用户明确历史路线或对照需求。
+3. **真实产物**：`summary.json`、`history.csv`；V3P 对照 **AsymW-a 4957**（`best_wss` · `wss_r2_wss`）；V3D 对照 **WSS-01 0.243**；**禁止与 V3P 混表**。
+4. **Go/No-Go**：`V3P-G-*` → 路径 G §10；`V3P-F-*` → 发散路线 §6。
+5. **对比图**：`outputs/field/plots/analysis_compare/<slug>/`（`plot_experiment_analysis_compare` + `plot_training_history`）。
+6. **回填**：推进记录文首 → `01-执行与待办/V3_实验执行跟踪日志` 顶 →（`V3P-F-*`）发散 §10 → 待办行；下一步**仅来自 V3 待办/README 当前状态**；可有 ≤2 条「新方案提议」。
+
+非 V3 实验仅当 `exp_id` 或用户说明属于 V1/V2 时，改用技能文末附录。
+
+未明确要求时：不训练、不 Slurm、不批量 WSS。

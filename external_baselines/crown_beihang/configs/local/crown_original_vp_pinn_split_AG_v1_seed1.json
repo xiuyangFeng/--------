@@ -1,0 +1,38 @@
+{
+  "run": {
+    "experiment_name": "crown_original_vp_pinn",
+    "output_root": "outputs/external_baselines/crown_beihang"
+  },
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "preprocessed_root": "external_baselines/CROWN_Beihang/private_preprocessed_raw_ascii_v1",
+    "point_filter": "volume",
+    "input_features": ["x", "y", "z"],
+    "sample_points": 10000,
+    "batch_size": 2,
+    "eval_batch_size": 2,
+    "lazy_load": true,
+    "partial_cache_cases": 2,
+    "num_workers": 0,
+    "pin_memory": true
+  },
+  "physics": {
+    "enabled": true,
+    "reynolds": 300,
+    "coord_scale": 1000,
+    "lphy_init": 1.0,
+    "wall_velocity_threshold": 0.01
+  },
+  "optim": {
+    "epochs": 20000,
+    "lr": 0.003,
+    "log_every": 10,
+    "early_stopping_patience": null
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true
+  }
+}
