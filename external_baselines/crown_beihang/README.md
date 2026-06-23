@@ -56,11 +56,11 @@ python -m external_baselines.crown_beihang.train \
 | 链路 | 状态 | 口径 |
 | --- | --- | --- |
 | raw_ascii v1 export | ✅ 完成 | Array 5630 + 补跑 5734_80 + merge 5738；`private_preprocessed_raw_ascii_v1/` |
-| `crown_original_vp` 非 PINN | 🏃 Job **5751** lazy 重训运行中 | 5739 仅 4 epoch 后 OOM，保留为“截断 checkpoint No-Go”，不代表充分训练上限 |
+| `crown_original_vp` 非 PINN | ❌ Job **5751** evaluate 后 **No-Go** | best_ep=55 · `p_r2=-5.28` · `nmae=0.077`；5739 保留 OOM 截断记录 |
 | `crown_original_vp_pinn` | ❌ 5740 evaluate 后 No-Go | 24h TIMEOUT checkpoint：PINN 未改善压力且速度 R2 退化；不扩 seed |
 | 指标口径 | ✅ 已补齐 | `metrics_{split}.json` 同时报告 NMAE 与点级 R² |
 
-5751 完成前，不用覆盖 5739 的 OOM 截断判读；完成后以新 run 的 `manifest.json`、`analysis_report.md`、`metrics_test.json` 重新判断非 PINN raw_ascii 路线。
+5751 已完成充分训练 + NMAE evaluate；非 PINN raw_ascii 路线 **No-Go**（压力不可学）。5739 仍作 OOM 工程记录。
 
 ## 数据加载与评估（2026-06-19 · 已审核）
 

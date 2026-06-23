@@ -412,6 +412,8 @@ def main() -> None:
         output_dir=run_dir,
         p_min=p_min,
         p_max=p_max,
+        eval_mode="paper",
+        log_every=20,
     )
     manifest = {
         "baseline": "CROWN_Beihang",

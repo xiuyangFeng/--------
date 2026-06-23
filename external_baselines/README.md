@@ -7,7 +7,7 @@
 | baseline | 目录 | 状态 |
 | --- | --- | --- |
 | PointNetCFD | `pointnetcfd/` | 四组矩阵已完成；[梳理记录](../docs/paper_reproduction/papers/pointnetcfd/梳理记录.md) · [experiments/](pointnetcfd/experiments/README.md) |
-| CROWN/Beihang | `crown_beihang/` | raw_ascii v1 已完成；5739 为 OOM 截断 No-Go，5740 PINN evaluate No-Go，5751 非 PINN lazy 重训运行中；[README](crown_beihang/README.md) |
+| CROWN/Beihang | `crown_beihang/` | raw_ascii v1 已完成；5739 OOM 截断 No-Go，5740/5751 evaluate **No-Go**（非 PINN best_ep=55 · `p_r2=-5.28`）；[README](crown_beihang/README.md) |
 
 ## 实验记录与回填（2026-06-16 起）
 

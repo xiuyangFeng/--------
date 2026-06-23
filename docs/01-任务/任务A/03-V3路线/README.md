@@ -5,7 +5,7 @@
 
 ## 0. 当前状态（一句话）
 
-- **V3P（AG-only，`split_AG_v1`）**：post5463 基线 band **0.425±0.012**；**G4-a / G4-b Phase 2/1 均 No-Go**；**Q0→I2-PC seed1（5741）弱 No-Go**（best_wss **0.417**，不扩 seed）；下一跳 **I6 插桩 / TODO-20 选优低成本验证 / G5 叙事收口**。
+- **V3P（AG-only，`split_AG_v1`）**：post5463 band **0.425±0.012**；**G4-a/b No-Go**；**I2-PC 5741 弱 No-Go ✅**（0.417）；**I6-diag 🏃 ep~82**（interim：§7 冲突假设暂不支持）；下一跳 **I6 跑完 → 完整 I7 + TODO-20 → G5 收口或选优验证**。
 - **V3D（三域）**：5275 norm No-Go；**5331 val15 强 No-Go**；**TODO-3 关闭**；下一跳 **TODO-1 数据扩池**（用户暂搁置）。
 - **路径 G**：G1/G2/G3 No-Go 已封口；**G4-a 全局展开 Probe No-Go**；G5 eval ✅。
 

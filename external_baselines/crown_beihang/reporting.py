@@ -37,10 +37,12 @@ def render_run_snapshot(manifest: Mapping[str, Any], run_dir: Path) -> str:
         f"- **point_filter**：`{manifest.get('point_filter', 'all')}`",
         f"- **best_epoch**：{best_ep}"
         + (f" · best_val_loss={_fmt(float(best_val))}" if best_val is not None else ""),
+        f"- **eval_mode**：`{tm.get('eval_mode', 'unknown')}`",
         "",
         "## 指标口径",
         "",
         "速度 `u,v,w` 为物理量；`p` 经 train-only min-max 训练，test 指标已反归一化到物理压力。",
+        "默认 **paper** 评估：全点推理 + test 全集 GT global min/max 作 NMAE 分母（对齐 `model_test.py` / `model_error_analysis.py`）。",
         "",
         "## Test 集整体指标",
         "",
@@ -63,6 +65,20 @@ def render_run_snapshot(manifest: Mapping[str, Any], run_dir: Path) -> str:
             lines.append(f"| {key} | {_fmt(float(tm[key]))} |")
     if "vel_mag_nmae" in tm:
         lines.append(f"| vel_mag_nmae | {_fmt(float(tm['vel_mag_nmae']))} |")
+    if "paper_velocity_nmae_mean" in tm:
+        lines.extend(
+            [
+                "",
+                "## 论文口径 NMAE（逐样本 mean±std）",
+                "",
+                "| 指标 | 值 |",
+                "| --- | ---: |",
+                f"| velocity_nmae_mean | {_fmt(float(tm['paper_velocity_nmae_mean']))} |",
+                f"| velocity_nmae_std | {_fmt(float(tm.get('paper_velocity_nmae_std', 0)))} |",
+                f"| pressure_nmae_mean | {_fmt(float(tm['paper_pressure_nmae_mean']))} |",
+                f"| pressure_nmae_std | {_fmt(float(tm.get('paper_pressure_nmae_std', 0)))} |",
+            ]
+        )
     lines.extend(
         [
             "",
