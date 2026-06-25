@@ -1,0 +1,156 @@
+{
+  "run": {
+    "experiment_name": "field_v3_pointnext_i6a_localpool_main01_geom_pw_asymw_a_wall13000_near2000",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true,
+    "init_checkpoint": "outputs/field/field_v3_pointnext_i6diag_localpool_main01_geom_pw_asymw_a_wall13000_near2000_split_AG_v1_seed1_20260619_174001/checkpoint_epoch_10.pt"
+  },
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 1,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
+      "is_wall"
+    ],
+    "enabled_global_features": [
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
+    ],
+    "augment": true,
+    "augment_config": {
+      "rotation_prob": 0.0,
+      "rotation_axes": "xyz",
+      "translation_prob": 0.5,
+      "translation_range": 0.1,
+      "scale_prob": 0.0,
+      "mirror_prob": 0.0
+    }
+  },
+  "model": {
+    "name": "pointnext",
+    "hidden_dim": 256,
+    "num_layers": 4,
+    "dropout": 0.1,
+    "heads": 4,
+    "use_transformer_prenorm": false,
+    "wss_dim": 4,
+    "head_layout": "mlp2"
+  },
+  "optim": {
+    "epochs": 150,
+    "lr": 0.0001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 0,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 10,
+    "early_stopping_patience": 60,
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "interior_loss_boost": 1.0,
+    "grad_clip_norm": 1.0,
+    "accumulate_grad_batches": 2,
+    "wss_loss_weight": 0.0,
+    "wss_weights": [
+      1.0,
+      0.05,
+      0.05,
+      0.9
+    ],
+    "val_score_wss_weights": [
+      1.0,
+      0.05,
+      0.05,
+      0.9
+    ],
+    "wss_loss_type": "mse",
+    "wss_huber_beta": 1.0,
+    "early_stop_wss_weight": 0.0,
+    "domain_loss": {
+      "enabled": true,
+      "lambda_vel_int": 0.0,
+      "lambda_vel_noslip": 0.0,
+      "lambda_p_int": 0.5,
+      "lambda_p_wall": 1.0,
+      "lambda_wss": 0.1,
+      "normalize_by_target_std": true,
+      "norm_consts": {},
+      "weight_calibration": "I6-a 阶段2：自 I6-diag ep10 ckpt warm-start；冻结 backbone+field_head，仅 wss_head 低 lr 续训；配方同 post5463 AsymW-a。"
+    },
+    "early_stop_min_delta": 0.0001,
+    "val_score_ema_alpha": 0.4,
+    "freeze_backbone": true,
+    "freeze_field_head": true
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true,
+    "amp": false
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "V3P-I6-a-AsymW-a-post5463",
+    "stage": "task_a",
+    "study_group": "v3_pointcloud_path_i",
+    "question": "路径 I / M-E O6 探针：I6-diag val_wss 峰邻域（ep10）warm-start → 冻结 backbone+field_head → 仅 wss_head 低 lr 续训，验证 feature_decay 是否可缓解；Go Δ≥+0.02 vs I6-diag best_wss 0.429。",
+    "feature_set": "coord_t_bc_geom_wall",
+    "ablation_axis": "v3p_i6a_two_stage_wss_head_only",
+    "tags": [
+      "v3",
+      "pointcloud",
+      "pointnext",
+      "localpool",
+      "main",
+      "geometry",
+      "p+wss",
+      "no-velocity",
+      "wall13000_near2000",
+      "asymw",
+      "path-i",
+      "i6-a",
+      "m-e-o6",
+      "post-5463-renorm",
+      "freeze-backbone"
+    ],
+    "notes": "单变量 vs post5463：仅增加 init_checkpoint+freeze；lr 1e-4（原 5e-4）；对照 I6-diag ep6 best_wss 0.429 / ep10 ckpt 起点。",
+    "generated_from": "V3P-G-Baseline-AsymW-a-post5463_seed1.json + I6-diag checkpoint_epoch_10.pt"
+  },
+  "physics": {
+    "enabled": false,
+    "warmup_epochs": 0,
+    "density": 1060.0,
+    "viscosity": 0.0035,
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "time_scale": 1.0,
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "auto_load_scales": true
+  }
+}

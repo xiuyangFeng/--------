@@ -41,7 +41,8 @@
 3. [复现优先级与适配策略](paper_reproduction/01-复现优先级与适配策略.md)
 4. [私有数据适配统一口径](paper_reproduction/02-私有数据适配统一口径.md)
 5. [后处理可视化与插值方法](paper_reproduction/03-后处理可视化与插值方法.md)
-6. [点云预测结果回构与 CFD 后处理可视化流程](paper_reproduction/visualization_pipeline/README.md)
+6. [点云预测值与真值回插到面片方法](paper_reproduction/05-点云预测值与真值回插到面片方法.md)
+7. [点云预测结果回构与 CFD 后处理可视化流程](paper_reproduction/visualization_pipeline/README.md)
 
 ### 准备论文图和汇报
 
@@ -64,7 +65,7 @@
 | 目录 | 用途 |
 | --- | --- |
 | **根目录** | [实验设计总纲](实验设计总纲.md)：当前论文实验设计、路线状态与任务拆分 |
-| **00-规范与记录/** | 实验记录填写规范、区域评估口径、实验记录表 |
+| **00-规范与记录/** | 实验记录填写规范、区域评估口径、分析对比图与 postview 可视化目录说明 |
 | **01-任务/** | 任务 A/B/C/D/E 的执行文档总目录 |
 | **02-推进与变更/** | 代码修改与实验推进记录、缺陷分析、训练脚手架记录和归档交接材料 |
 | **03-汇报材料/** | PPT、汇报思路、图件生成脚本和汇报图 |
@@ -78,6 +79,7 @@
 | --- | --- |
 | 总纲 | [实验设计总纲](实验设计总纲.md) |
 | 项目管理规范 | [项目知识库整理规范](00-规范与记录/项目知识库整理规范.md) · [本轮整理审计](02-推进与变更/项目知识库整理审计_2026-06-15.md) · [实验记录填写规范](00-规范与记录/实验记录填写规范.md) |
+| 可视化落盘 | [实验分析对比图目录说明](00-规范与记录/实验分析对比图目录说明.md)（run 精度） · [点云回插面片可视化目录说明](00-规范与记录/点云回插面片可视化目录说明.md)（postview 面片云图） |
 | 任务 A 总入口 | [01-任务/任务A/README](01-任务/任务A/README.md) |
 | 任务 A V1 | [V1 README](01-任务/任务A/01-V1路线/README.md) · [V1 实验清单](01-任务/任务A/01-V1路线/任务A_V1实验清单.md) |
 | 任务 A V2 | [V2 README](01-任务/任务A/02-V2路线/README.md) · [V2 修正路线实验矩阵](01-任务/任务A/02-V2路线/任务A_V2修正路线实验矩阵.md) |
@@ -89,7 +91,7 @@
 | 任务 E | [任务E执行清单](01-任务/任务E/任务E血流动力学三维可视化执行清单.md) · [任务E论文可视化规范](01-任务/任务E/任务E论文可视化规范.md) |
 | 推进记录 | [代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md) |
 | 项目思路 | [项目思路](paper_idea/项目思路.md) · [基准模型推荐](paper_idea/基准模型推荐与引用参考.md) |
-| 外部 baseline | [paper_reproduction/README](paper_reproduction/README.md) · [文献筛选总表](paper_reproduction/00-文献筛选总表.md) · [后处理插值方法](paper_reproduction/03-后处理可视化与插值方法.md) · [点云回构可视化流程](paper_reproduction/visualization_pipeline/README.md) |
+| 外部 baseline | [paper_reproduction/README](paper_reproduction/README.md) · [文献筛选总表](paper_reproduction/00-文献筛选总表.md) · [后处理插值方法](paper_reproduction/03-后处理可视化与插值方法.md) · [点云回插面片方法](paper_reproduction/05-点云预测值与真值回插到面片方法.md) · [点云回构可视化流程](paper_reproduction/visualization_pipeline/README.md) |
 | 外部 baseline 代码 | [PointNetCFD 复现代码](../external_baselines/pointnetcfd/README.md) |
 
 ## 5. 维护规则

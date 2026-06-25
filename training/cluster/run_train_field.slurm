@@ -65,7 +65,12 @@ esac
 
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 TRAINING_DIR="$(dirname "$SCRIPT_DIR")"
-PROJECT_DIR="$(dirname "$TRAINING_DIR")"
+# 部分集群会把作业脚本复制到 /var/spool/slurmd/…，此时须用提交目录作仓库根。
+if [ -n "${SLURM_SUBMIT_DIR:-}" ] && [ -f "${SLURM_SUBMIT_DIR}/training/scripts/train_field.py" ]; then
+    PROJECT_DIR="$SLURM_SUBMIT_DIR"
+else
+    PROJECT_DIR="$(dirname "$TRAINING_DIR")"
+fi
 cd "$PROJECT_DIR"
 
 mkdir -p "$SCRIPT_DIR/logs"

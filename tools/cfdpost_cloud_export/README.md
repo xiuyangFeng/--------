@@ -107,3 +107,17 @@ tools/cfdpost_cloud_export/
 - **三条路线总览**：[三条对比路线.md](./三条对比路线.md)
 - CFD-Post 逐步点击：[CFDPOST_操作指南.md](./CFDPOST_操作指南.md)
 - 坐标逆变换：`pipeline/coord_normalize.py`
+
+## CROWN baseline 可视化
+
+```bash
+# 三病例 merged-1146：推理 + 压力/速度 STL 三联图 + ParaView 包
+bash tools/cfdpost_cloud_export/run_crown_surface_batch.sh
+
+# 已有 _export CSV 时，仅重映射 + 补图
+bash tools/cfdpost_cloud_export/refresh_crown_surface_plots.sh
+```
+
+产物：`outputs/field/postview/crown_vp_t016_report/` · 对照 [`V3P_vs_CROWN_对照表_1146.md`](../../outputs/field/postview/V3P_vs_CROWN_对照表_1146.md)
+
+三联图变量：`plot_stl_mapped_triptych.py --variable wss|p|vel_mag`

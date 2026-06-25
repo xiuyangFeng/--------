@@ -212,6 +212,10 @@ class OptimConfig:
     # V1 PINN：True 时 best/早停按 val data_loss 选优（physics 仅作训练正则，不污染选模型）。
     # 仅在非双域路径生效；默认 False 保持旧行为（按 total loss 选优）。
     select_best_on_data_loss: bool = False
+    # I6-a 两阶段：warm-start 后冻结 backbone（in_proj/blocks/shared_decoder）。
+    freeze_backbone: bool = False
+    # I6-a 两阶段：冻结 field_head，仅续训 wss_head（须 init_checkpoint）。
+    freeze_field_head: bool = False
 
 
 @dataclass
@@ -486,6 +490,10 @@ class ExperimentConfig:
             raise ValueError("encoder_lr_ratio 必须 > 0")
         if self.run.pretrained_encoder and self.run.init_checkpoint:
             raise ValueError("pretrained_encoder 与 init_checkpoint 互斥")
+        if (self.optim.freeze_backbone or self.optim.freeze_field_head) and not self.run.init_checkpoint:
+            raise ValueError("freeze_backbone/freeze_field_head 须配合 init_checkpoint")
+        if self.optim.freeze_field_head and self.model.wss_dim <= 0:
+            raise ValueError("freeze_field_head 须 wss_dim > 0")
         if self.run.pretrained_encoder:
             if self.model.name != "pointnext":
                 raise ValueError("pretrained_encoder 仅支持 pointnext")

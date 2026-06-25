@@ -1,0 +1,151 @@
+{
+  "run": {
+    "experiment_name": "field_v3_pointnext_mewssonly_localpool_main01_geom_asymw_a_wall13000_near2000",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true
+  },
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 1,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
+      "is_wall"
+    ],
+    "enabled_global_features": [
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
+    ],
+    "augment": true,
+    "augment_config": {
+      "rotation_prob": 0.0,
+      "rotation_axes": "xyz",
+      "translation_prob": 0.5,
+      "translation_range": 0.1,
+      "scale_prob": 0.0,
+      "mirror_prob": 0.0
+    }
+  },
+  "model": {
+    "name": "pointnext",
+    "hidden_dim": 256,
+    "num_layers": 4,
+    "dropout": 0.1,
+    "heads": 4,
+    "use_transformer_prenorm": false,
+    "wss_dim": 4,
+    "head_layout": "mlp2"
+  },
+  "optim": {
+    "epochs": 200,
+    "lr": 0.0005,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 5,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 10,
+    "early_stopping_patience": 60,
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "interior_loss_boost": 1.0,
+    "grad_clip_norm": 1.0,
+    "accumulate_grad_batches": 2,
+    "wss_loss_weight": 0.0,
+    "wss_weights": [
+      1.0,
+      0.05,
+      0.05,
+      0.9
+    ],
+    "val_score_wss_weights": [
+      1.0,
+      0.05,
+      0.05,
+      0.9
+    ],
+    "wss_loss_type": "mse",
+    "wss_huber_beta": 1.0,
+    "early_stop_wss_weight": 0.0,
+    "domain_loss": {
+      "enabled": true,
+      "lambda_vel_int": 0.0,
+      "lambda_vel_noslip": 0.0,
+      "lambda_p_int": 0.0,
+      "lambda_p_wall": 0.0,
+      "lambda_wss": 1.0,
+      "normalize_by_target_std": true,
+      "norm_consts": {},
+      "weight_calibration": "M-E 探针：WSS-only + AsymW 分量权重；post5463 图/norm；对照 I7 feature_decay（压力覆写假设）。"
+    },
+    "early_stop_min_delta": 0.0001,
+    "val_score_ema_alpha": 0.4
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true,
+    "amp": false
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "V3P-M-E-WSSOnly-AsymW-a-post5463",
+    "stage": "task_a",
+    "study_group": "v3_pointcloud_m_e",
+    "question": "M-E 探针（I7 互补）：post5463 数据上 WSS-only + AsymW，测无压力任务时 WSS 上限；若 best_wss > I6-diag 0.429 → 压力覆写是主因；与 I6-a（冻 backbone）正交。",
+    "feature_set": "coord_t_bc_geom_wall",
+    "ablation_axis": "v3p_me_wss_only_post5463",
+    "tags": [
+      "v3",
+      "pointcloud",
+      "pointnext",
+      "localpool",
+      "main",
+      "geometry",
+      "wss-only",
+      "no-pressure",
+      "wall13000_near2000",
+      "asymw",
+      "m-e",
+      "post-5463-renorm",
+      "feature-decay-probe"
+    ],
+    "notes": "单变量 vs post5463 P+WSS：仅 domain_loss 改为 WSS-only；其余配方同 AsymW-a post5463。旧 Probe-WSS-01（0.397）为旧图/norm，禁止混表。",
+    "generated_from": "V3P-G-Baseline-AsymW-a-post5463_seed1.json + WSS-only domain_loss"
+  },
+  "physics": {
+    "enabled": false,
+    "warmup_epochs": 0,
+    "density": 1060.0,
+    "viscosity": 0.0035,
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "time_scale": 1.0,
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "auto_load_scales": true
+  }
+}

@@ -21,6 +21,23 @@ from ..core.trainer import FieldTrainer
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed, timestamp
 
 
+_BACKBONE_PREFIXES = ("in_proj.", "blocks.", "shared_decoder.")
+
+
+def apply_training_freeze(model: torch.nn.Module, *, freeze_backbone: bool, freeze_field_head: bool) -> None:
+    """I6-a 两阶段：按前缀冻结参数；默认全 False 时无操作（向后兼容）。"""
+    frozen = 0
+    for name, param in model.named_parameters():
+        if freeze_backbone and name.startswith(_BACKBONE_PREFIXES):
+            param.requires_grad = False
+            frozen += param.numel()
+        elif freeze_field_head and name.startswith("field_head."):
+            param.requires_grad = False
+            frozen += param.numel()
+    if frozen:
+        print(f"已冻结参数: {frozen:,}（backbone={freeze_backbone}, field_head={freeze_field_head}）")
+
+
 def build_run_dir(config: ExperimentConfig, split: SplitSpec) -> Path:
     # run_dir 把 experiment_name / split / seed / timestamp 全部带上，方便后续追溯单次实验。
     # 按“实验名_划分版本_seedX_时间戳”生成本次运行目录名。
@@ -279,35 +296,44 @@ def main() -> None:
             f"(loaded={stats['loaded']}, skipped={stats['skipped']})"
         )
 
+    if config.optim.freeze_backbone or config.optim.freeze_field_head:
+        apply_training_freeze(
+            model,
+            freeze_backbone=config.optim.freeze_backbone,
+            freeze_field_head=config.optim.freeze_field_head,
+        )
+
     # 统计模型总参数量。
     total_params = sum(p.numel() for p in model.parameters())
     # 统计可训练参数量。
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"模型: {config.model.name} | 总参数: {total_params:,} | 可训练: {trainable_params:,}")
 
+    trainable_params_list = [p for p in model.parameters() if p.requires_grad]
+    if not trainable_params_list:
+        raise ValueError("无可训练参数：请检查 freeze_backbone/freeze_field_head 配置")
+
     # 优化器使用 Adam；G3 SSL 微调时对 backbone 使用较低学习率。
-    encoder_prefixes = ("in_proj.", "blocks.", "shared_decoder.")
     if config.run.pretrained_encoder and config.optim.encoder_lr_ratio != 1.0:
         encoder_params = [
             p for n, p in model.named_parameters()
-            if n.startswith(encoder_prefixes)
+            if n.startswith(_BACKBONE_PREFIXES) and p.requires_grad
         ]
         head_params = [
             p for n, p in model.named_parameters()
-            if not n.startswith(encoder_prefixes)
+            if not n.startswith(_BACKBONE_PREFIXES) and p.requires_grad
         ]
         encoder_lr = config.optim.lr * config.optim.encoder_lr_ratio
-        optimizer = torch.optim.Adam(
-            [
-                {"params": encoder_params, "lr": encoder_lr},
-                {"params": head_params, "lr": config.optim.lr},
-            ],
-            weight_decay=config.optim.weight_decay,
-        )
+        param_groups = []
+        if encoder_params:
+            param_groups.append({"params": encoder_params, "lr": encoder_lr})
+        if head_params:
+            param_groups.append({"params": head_params, "lr": config.optim.lr})
+        optimizer = torch.optim.Adam(param_groups, weight_decay=config.optim.weight_decay)
         print(f"discriminative LR: encoder={encoder_lr:g}, head={config.optim.lr:g}")
     else:
         optimizer = torch.optim.Adam(
-            model.parameters(),
+            trainable_params_list,
             lr=config.optim.lr,
             weight_decay=config.optim.weight_decay,
         )
