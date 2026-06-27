@@ -1,0 +1,96 @@
+{
+  "label": "V3P-M-E-oracle-to-gpu-registry",
+  "version": "2026-06-26",
+  "note": "oracle Go 后才提交对应 GPU config；config 为 null 表示尚未建模板，仅记录方向",
+  "baseline_wss_r2_wss": 0.42863863706588745,
+  "reference_run_dir": "outputs/field/field_v3_pointnext_i6diag_localpool_main01_geom_pw_asymw_a_wall13000_near2000_split_AG_v1_seed1_20260619_174001",
+  "oracles": {
+    "O1": {
+      "direction": "E-G",
+      "name": "量纲解耦·模式+S_case",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EG-ScaleDecouple-post5463",
+      "go_required": true
+    },
+    "O2": {
+      "direction": "E-H",
+      "name": "解析先验+残差",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EH-AnalyticResidual-post5463",
+      "go_required": true
+    },
+    "O3": {
+      "direction": "E-I/E-C",
+      "name": "低秩/POD/LB 表示",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EI-PODCoeff-post5463",
+      "go_required": true
+    },
+    "O4": {
+      "direction": "E-J",
+      "name": "压力梯度一致性",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EJ-PGradFeat-post5463",
+      "go_required": true
+    },
+    "O5": {
+      "direction": "E-K",
+      "name": "频带 coarse-to-fine",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EK-FreqBand-post5463",
+      "go_required": true
+    },
+    "O6": {
+      "direction": "E-L",
+      "name": "两阶段冻结·I6-a",
+      "gpu_config": "training/configs/field/generated/v3_pointcloud/V3P-I6-a-AsymW-a-post5463_seed1.json",
+      "exp_id_stub": "V3P-I6-a-AsymW-a-post5463",
+      "go_required": false,
+      "status": "completed_weak_no_go"
+    },
+    "O7": {
+      "direction": "E-M",
+      "name": "分支级 S_branch",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EM-BranchScale-post5463",
+      "go_required": true
+    },
+    "O8": {
+      "direction": "E-N",
+      "name": "circuit latent",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EN-CircuitLatent-post5463",
+      "go_required": true
+    },
+    "O9": {
+      "direction": "E-O",
+      "name": "时间相位系数",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EO-TemporalCoeff-post5463",
+      "go_required": true
+    },
+    "O10": {
+      "direction": "E-P",
+      "name": "hotspot 检测+残差",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EP-HotspotRoute-post5463",
+      "go_required": true
+    },
+    "O11": {
+      "direction": "E-Q",
+      "name": "单调校准诊断",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-EQ-MonotonicCal-post5463",
+      "go_required": true,
+      "note": "多为后处理/诊断；Go 后优先 E-G 而非单独 GPU"
+    },
+    "O12": {
+      "direction": "E-R",
+      "name": "target 重参数化",
+      "gpu_config": null,
+      "exp_id_stub": "V3P-M-E-ER-TargetTransform-post5463",
+      "go_required": true
+    }
+  },
+  "priority_after_oracle": ["O1", "O7", "O3", "O2", "O4", "O10", "O11", "O12", "O5", "O8", "O9"]
+}
