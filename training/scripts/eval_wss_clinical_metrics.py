@@ -71,6 +71,71 @@ def _corr(y_true: np.ndarray, y_pred: np.ndarray, *, rank: bool = False) -> floa
     return float(np.sum(yt * yp) / denom)
 
 
+def _bootstrap_corr_ci(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    *,
+    rank: bool,
+    n_boot: int,
+    seed: int,
+) -> Dict[str, float]:
+    if y_true.size < 3 or n_boot <= 0:
+        return {"lo": float("nan"), "hi": float("nan"), "n_boot": 0}
+    rng = np.random.default_rng(seed)
+    vals: List[float] = []
+    n = y_true.size
+    for _ in range(n_boot):
+        idx = rng.integers(0, n, size=n)
+        v = _corr(y_true[idx], y_pred[idx], rank=rank)
+        if np.isfinite(v):
+            vals.append(v)
+    if not vals:
+        return {"lo": float("nan"), "hi": float("nan"), "n_boot": 0}
+    arr = np.asarray(vals, dtype=np.float64)
+    return {
+        "lo": float(np.quantile(arr, 0.025)),
+        "hi": float(np.quantile(arr, 0.975)),
+        "n_boot": int(arr.size),
+    }
+
+
+def _loo_corr_summary(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    *,
+    rank: bool,
+    labels: Sequence[str],
+) -> Dict[str, object]:
+    if y_true.size < 4:
+        return {
+            "min": float("nan"),
+            "max": float("nan"),
+            "most_negative_case": None,
+            "most_positive_case": None,
+        }
+    vals: List[Tuple[str, float]] = []
+    for i, label in enumerate(labels):
+        keep = np.ones(y_true.size, dtype=bool)
+        keep[i] = False
+        v = _corr(y_true[keep], y_pred[keep], rank=rank)
+        if np.isfinite(v):
+            vals.append((label, v))
+    if not vals:
+        return {
+            "min": float("nan"),
+            "max": float("nan"),
+            "most_negative_case": None,
+            "most_positive_case": None,
+        }
+    vals_sorted = sorted(vals, key=lambda x: x[1])
+    return {
+        "min": float(vals_sorted[0][1]),
+        "max": float(vals_sorted[-1][1]),
+        "most_negative_case": vals_sorted[0][0],
+        "most_positive_case": vals_sorted[-1][0],
+    }
+
+
 def _denorm_wss_payload(
     payload: Dict,
     norm: Dict,
@@ -158,6 +223,8 @@ def run_clinical_eval(
     norm_params_path: Path,
     output_dir: Path,
     frame_tag: str = "global",
+    n_bootstrap: int = 2000,
+    seed: int = 2026,
 ) -> Dict:
     manifest = load_manifest(manifest_path)
     norm = _load_norm_params(norm_params_path)
@@ -210,11 +277,34 @@ def run_clinical_eval(
     ):
         xt = np.asarray([float(r[true_key]) for r in case_rows], dtype=np.float64)
         yp = np.asarray([float(r[pred_key]) for r in case_rows], dtype=np.float64)
+        labels = [str(r["case_name"]) for r in case_rows]
+        pearson = _corr(xt, yp)
+        spearman = _corr(xt, yp, rank=True)
+        pearson_ci = _bootstrap_corr_ci(
+            xt, yp, rank=False, n_boot=n_bootstrap, seed=seed + 17 * len(summary_rows)
+        )
+        spearman_ci = _bootstrap_corr_ci(
+            xt, yp, rank=True, n_boot=n_bootstrap, seed=seed + 17 * len(summary_rows) + 1
+        )
+        pearson_loo = _loo_corr_summary(xt, yp, rank=False, labels=labels)
+        spearman_loo = _loo_corr_summary(xt, yp, rank=True, labels=labels)
         summary_rows.append({
             "metric": metric_key,
             "n_cases": len(case_rows),
-            "pearson": _corr(xt, yp),
-            "spearman": _corr(xt, yp, rank=True),
+            "pearson": pearson,
+            "pearson_ci95_lo": pearson_ci["lo"],
+            "pearson_ci95_hi": pearson_ci["hi"],
+            "pearson_loo_min": pearson_loo["min"],
+            "pearson_loo_max": pearson_loo["max"],
+            "pearson_loo_min_case": pearson_loo["most_negative_case"],
+            "pearson_loo_max_case": pearson_loo["most_positive_case"],
+            "spearman": spearman,
+            "spearman_ci95_lo": spearman_ci["lo"],
+            "spearman_ci95_hi": spearman_ci["hi"],
+            "spearman_loo_min": spearman_loo["min"],
+            "spearman_loo_max": spearman_loo["max"],
+            "spearman_loo_min_case": spearman_loo["most_negative_case"],
+            "spearman_loo_max_case": spearman_loo["most_positive_case"],
         })
 
     _write_csv(output_dir / "wss_pa_case_metrics.csv", case_rows)
@@ -229,6 +319,12 @@ def run_clinical_eval(
         "manifest": str(manifest_path),
         "n_cases": len(case_rows),
         "case_level": summary_rows,
+        "bootstrap": {
+            "n": int(n_bootstrap),
+            "seed": int(seed),
+            "ci": "case bootstrap percentile 2.5%-97.5%",
+        },
+        "loo": "leave-one-case-out correlation sensitivity",
         "note": "inverse z-score: x_pa = x_norm * std + mean（wss 段为 Pa 量纲纯 z-score）",
     }
     save_json(output_dir / "wss_pa_summary.json", summary)
@@ -241,6 +337,8 @@ def main() -> None:
     parser.add_argument("--norm-params", required=True, type=Path, help="normalization_params_global.json")
     parser.add_argument("--output-dir", default="", type=Path)
     parser.add_argument("--frame-tag", default="global", choices=["global", "local_v1"])
+    parser.add_argument("--bootstrap", type=int, default=2000, help="病例 bootstrap 次数；0=关闭 CI")
+    parser.add_argument("--seed", type=int, default=2026, help="bootstrap 随机种子")
     args = parser.parse_args()
 
     manifest_path = args.manifest.resolve()
@@ -254,6 +352,8 @@ def main() -> None:
         args.norm_params.resolve(),
         output_dir,
         frame_tag=args.frame_tag,
+        n_bootstrap=args.bootstrap,
+        seed=args.seed,
     )
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 

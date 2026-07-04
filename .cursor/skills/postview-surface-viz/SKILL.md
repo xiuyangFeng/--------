@@ -1,16 +1,17 @@
 ---
 name: postview-surface-viz
 description: >-
-  GNN/CROWN 点云标量回插 STL 面片并生成病例级可视化（postview 交付包、三联图、ParaView 包）。
-  在用户要求后处理可视化、面片云图、点云插值到 STL、postview、merged-1146 汇报图、
-  CFD|Pred|Error 三联图时使用。遵循 docs/paper_reproduction/05-点云预测值与真值回插到面片方法.md。
+  GNN/CROWN 点云标量回插 STL 面片并生成病例级可视化（postview 交付包、三联图、ParaView 包），
+  以及把体点云转成可在 ParaView Slice 出连续填充截面的 .vtu 体网格。
+  在用户要求后处理可视化、面片云图、点云插值到 STL、点云转 VTU/VTP、做截面/切片、postview、
+  merged-1146 汇报图、CFD|Pred|Error 三联图时使用。遵循 docs/paper_reproduction/05-点云预测值与真值回插到面片方法.md。
 ---
 
 # 点云 → 面片后处理可视化（postview）
 
 ## 触发
 
-「后处理可视化」「面片云图」「回插 STL」「postview」「merged-1146 图」「三联图」「ParaView 包」等；或给出 `manifest.json` / CROWN checkpoint + 病例名。
+「后处理可视化」「面片云图」「回插 STL」「点云转 VTU/VTP」「做截面/切片/Slice」「postview」「merged-1146 图」「三联图」「ParaView 包」等；或给出 `manifest.json` / CROWN checkpoint + 病例名。
 
 **默认假定**：V3P/GNN 场重建；CROWN baseline 走专用分支。**禁止**把插值面片指标当作正式 R²。
 
@@ -27,6 +28,17 @@ description: >-
 图注必写：`merged-1146 · t_norm≈0.16 · 收缩期上升段（近似）· Gaussian r=3 mm, sharpness=2`；若报数字须注明 **81 帧 pooled**。
 
 方法细节与 QC 清单 → [reference.md](reference.md) · 交付索引 → `outputs/field/postview/README.md` · 方法论文档 → `docs/paper_reproduction/05-点云预测值与真值回插到面片方法.md`
+
+---
+
+## 0.5 两条产物路线（先判别需求）
+
+| 需求 | 产物 | 几何 | 标量挂载 | 脚本 | 节点用途 |
+| --- | --- | --- | --- | --- | --- |
+| **只看壁面**（WSS/压力面片云图、三联图） | **VTP 面片**（三角面） | STL 三角网格 | 壁面点云 → 插值到 STL 顶点 | `map_to_stl_surface.py`（§3.1/§3.4） | 旋转看面 |
+| **要做截面/切片**（腔内压力、速度切面） | **VTU 体网格** | Fluent `.cas` 四面体单元 | 体点云 → 插值到网格节点 | `build_sliceable_volume.py`（§3.5） | ParaView Slice 出连续填充截面 |
+
+判别关键：**ParaView/CFD-Post 对纯点云做 Slice 只会切到平面附近的稀疏散点**，要得到连续填充截面，标量必须挂在**带体单元连接**的网格上（即 `.vtu`，与文件后缀 `.cas/.dat` 无关）。仅看壁面则无需体网格，VTP 面片即可。
 
 ---
 
@@ -173,6 +185,40 @@ python tools/cfdpost_cloud_export/plot_stl_mapped_triptych.py \
   --report-json <out>/fig_<var>_triptych_report.json
 ```
 
+### 3.5 ★ 体点云 → 可切面 .vtu（做截面用）
+
+**前提**：已有 `<CASE>__volume_merged-1146.vtp`（§3.1 的交付包里已含；它是体点云=Fluent 单元中心点 + 合并 pred/cfd 标量）。
+
+**环境**：`conda activate GNN_vmtk`（`.cas` 模式需 `vtkFLUENTReader`，比纯 GNN 环境更稳）。
+
+**默认 `.cas` 模式（推荐，最严谨）**——从 Fluent `.cas` 读体单元，再把体点云标量高斯插值到网格节点：
+
+```bash
+conda activate GNN_vmtk
+
+CASEDIR=outputs/field/postview/v3p_i6diag_t016_report/GUO_XI_JIANG__result_features_merged-1146
+python tools/cfdpost_cloud_export/build_sliceable_volume.py \
+  --cas data_new/AG/slow/GUO_XI_JIANG/GUO_XI_JIANG.cas.gz \
+  --source $CASEDIR/GUO_XI_JIANG__volume_merged-1146.vtp \
+  --output $CASEDIR/GUO_XI_JIANG__volume_merged-1146.vtu \
+  --cas-scale 1000 --radius 2.0 --sharpness 2.0 --fallback nearest
+```
+
+- `--cas-scale 1000`：Fluent `.cas` 多为米，点云为 mm，必须 ×1000 对齐（默认即 1000）。
+- 验证：日志打印 `单元数 > 0`；节点数应等于 `.cas` 网格节点（≠ 来源点数，说明确实挂到了体单元）。
+- `--interior-only`：仅用 `is_wall==0` 的点，去壁面只看腔内场（可选）。
+
+**无 `.cas` 兜底**——直接对体点云 Delaunay3D 四面体化（凸包会在凹陷/分叉外侧补料，精度不如 `.cas`）：
+
+```bash
+python tools/cfdpost_cloud_export/build_sliceable_volume.py \
+  --delaunay --alpha 4.0 \
+  --source $CASEDIR/_export/*__all.csv \
+  --output $CASEDIR/GUO_volume_delaunay.vtu
+```
+
+**ParaView**：Open `.vtu` → Filters → **Slice**（选法向/原点）→ Coloring 选 `p_cfd`/`p_pred`/`err_p`/`vel_mag_cfd` → 即得连续填充截面。多切面用 Slice 的 Plane 偏移或 Filters → Clip。
+
 ---
 
 ## 4. 出图规范
@@ -218,6 +264,8 @@ outputs/field/postview/<RUN_TAG>/
 - [ ] 图注含帧号 + 插值参数 +「指标为 pooled CSV」
 - [ ] 正式 R² 仍来自 run `summary.json`，非面片 VTP
 
+**截面出图关键坑**：单截面内变量跨度（几十 Pa）远小于全腔全局范围（压力 ~3000 Pa），若色标用全局范围，截面会几乎一个颜色。出截面图时务必把色标 **Rescale 到该截面的局部/可见范围**（ParaView: Rescale to Visible Data Range），才能复现 Fluent 那种丰富的截面云图。（另注：某些 run 的 `vel_mag_pred` 可能退化为常数；压力单位为 Pa，转 mmHg 需 ÷133.322。）
+
 ---
 
 ## 6. 任务完成检查
@@ -244,6 +292,9 @@ outputs/field/postview/<RUN_TAG>/
 | 资源 | 路径 |
 | --- | --- |
 | 工具包 README | `tools/cfdpost_cloud_export/README.md` |
+| 壁面点云 → STL 面片 VTP | `tools/cfdpost_cloud_export/map_to_stl_surface.py` |
+| 体点云 → 可切面 .vtu | `tools/cfdpost_cloud_export/build_sliceable_volume.py` |
+| 体点云合并 pred/cfd → VTP | `tools/cfdpost_cloud_export/export_volume_merged_vtp.py` |
 | 三条路线 A/B/C | `tools/cfdpost_cloud_export/三条对比路线.md` |
 | postview 索引 | `outputs/field/postview/README.md` |
 | **落盘目录规范** | `docs/00-规范与记录/点云回插面片可视化目录说明.md` |

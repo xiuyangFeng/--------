@@ -214,6 +214,7 @@ class WSSMeter:
     _target_mean: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
     _target_M2: Optional[torch.Tensor] = field(default=None, init=False, repr=False)
     _mag_sum_sq_err: float = field(default=0.0, init=False, repr=False)
+    _mag_target_mean: float = field(default=0.0, init=False, repr=False)
     _mag_target_M2: float = field(default=0.0, init=False, repr=False)
     _mag_n: int = field(default=0, init=False, repr=False)
 
@@ -264,8 +265,21 @@ class WSSMeter:
         mag_diff = yp - yt
         self._mag_sum_sq_err += float((mag_diff ** 2).sum().item())
         mag_mean = float(yt.mean().item())
-        self._mag_target_M2 += float(((yt - mag_mean) ** 2).sum().item())
-        self._mag_n += int(yt.numel())
+        mag_M2 = float(((yt - mag_mean) ** 2).sum().item())
+        n_mag = int(yt.numel())
+        if self._mag_n == 0:
+            self._mag_target_mean = mag_mean
+            self._mag_target_M2 = mag_M2
+            self._mag_n = n_mag
+        else:
+            n_old = self._mag_n
+            n_new = n_old + n_mag
+            delta = mag_mean - self._mag_target_mean
+            self._mag_target_mean = self._mag_target_mean + delta * (n_mag / n_new)
+            self._mag_target_M2 = (
+                self._mag_target_M2 + mag_M2 + delta ** 2 * (n_old * n_mag / n_new)
+            )
+            self._mag_n = n_new
 
     def compute(self) -> Dict[str, float]:
         if self._n == 0 or self._sum_sq_err is None:

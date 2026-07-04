@@ -17,6 +17,7 @@ from .losses import (
     wall_pressure_grad_mag,
 )
 from .wss_kernel_attention import WallPressureKernelAttention
+from .wss_profile_head import DifferentiableWSSHead
 from .wss_vn_head import EquivariantWSSHeadPlain
 
 _IS_WALL_IDX = NODE_FEATURE_NAMES.index("is_wall")
@@ -431,6 +432,8 @@ class FieldPointNeXt(nn.Module):
         wss_output_mode: str = "head",
         wss_metric_dim: int = 1,
         vel_diff_variant: str = "naive",
+        wss_profile_n_basis: int = 3,
+        wss_profile_mu: float = 1.0,
         pool_k_tiers: Optional[List[int]] = None,
     ):
         super().__init__()
@@ -510,13 +513,22 @@ class FieldPointNeXt(nn.Module):
                 if use_wss_head
                 else None
             )
+        # 前沿方向 §3：两阶段可微剖面 WSS 头（wss_output_mode="profile"）
+        self.wss_profile_head: Optional[DifferentiableWSSHead] = None
+        if wss_dim > 0 and wss_output_mode == "profile":
+            self.wss_profile_head = DifferentiableWSSHead(
+                hidden_dim=hidden_dim,
+                n_basis=wss_profile_n_basis,
+                mu=wss_profile_mu,
+                head_dropout=wss_head_dropout,
+            )
 
     def _wss_head_input(self, h: torch.Tensor, data, field_pred: torch.Tensor) -> torch.Tensor:
         if self.wss_head is None:
             return h
         extras: List[torch.Tensor] = []
         if self.wss_vel_context:
-            vel = data.y[:, :3] if self.training else field_pred[:, :3]
+            vel = field_pred[:, :3]
             ctx = compute_wall_vel_grad_context(
                 data.x, data.edge_index, vel, context_dim=self.wss_vel_context_dim
             )
@@ -528,7 +540,7 @@ class FieldPointNeXt(nn.Module):
                 message="wss_vel_context_source",
                 data={
                     "training": bool(self.training),
-                    "source": "target_y" if self.training else "field_pred",
+                    "source": "field_pred",
                     "context_dim": int(ctx.size(1)),
                     "context_abs_mean": float(ctx.detach().abs().mean().cpu()),
                     "field_target_mse": float(
@@ -652,6 +664,9 @@ class FieldPointNeXt(nn.Module):
         field_pred = self.field_head(h)
         if self.wss_output_mode == "vel_diff":
             wss_pred = self._infer_wss_from_field(field_pred, data)
+        elif self.wss_output_mode == "profile" and self.wss_profile_head is not None:
+            tangent = data.x[:, 6:9]  # Tangent_XYZ
+            wss_pred = self.wss_profile_head(h, tangent)
         else:
             h_wss = self._wss_head_input(h, data, field_pred)
             if self.wss_head is not None:
@@ -705,6 +720,8 @@ def build_model(
     wss_output_mode: str = "head",
     wss_metric_dim: int = 1,
     vel_diff_variant: str = "naive",
+    wss_profile_n_basis: int = 3,
+    wss_profile_mu: float = 1.0,
     pool_k_tiers: Optional[List[int]] = None,
 ):
     if model_name not in MODEL_REGISTRY:
@@ -739,6 +756,8 @@ def build_model(
         kwargs["wss_output_mode"] = wss_output_mode
         kwargs["wss_metric_dim"] = wss_metric_dim
         kwargs["vel_diff_variant"] = vel_diff_variant
+        kwargs["wss_profile_n_basis"] = wss_profile_n_basis
+        kwargs["wss_profile_mu"] = wss_profile_mu
         kwargs["pool_k_tiers"] = pool_k_tiers
     return cls(**kwargs)
 
@@ -771,5 +790,7 @@ def build_field_model_from_config(config) -> nn.Module:
         wss_output_mode=m.wss_output_mode,
         wss_metric_dim=m.wss_metric_dim,
         vel_diff_variant=m.vel_diff_variant,
+        wss_profile_n_basis=m.wss_profile_n_basis,
+        wss_profile_mu=m.wss_profile_mu,
         pool_k_tiers=m.pool_k_tiers or None,
     )

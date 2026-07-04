@@ -301,7 +301,11 @@ def mirror_augmentation(
         增强后的 Data 对象（原对象的副本）
     
     注意:
-        镜像翻转时，垂直于镜面的矢量分量需要取反
+        镜像翻转（improper，det=-1）时：
+        - 垂直于镜面的矢量分量取反（坐标/切线/速度/global WSS 矢量）；
+        - 赝标量 torsion 变号（Frenet 扭率随手性翻转）；
+        - local frame WSS 的 wss_circ（周向分量，由右手系叉积定义）变号。
+        以上由 training/scripts/check_augmentation_equivariance.py 自检覆盖。
     """
     # 克隆数据
     data = data.clone()
@@ -326,6 +330,17 @@ def mirror_augmentation(
     # 翻转 WSS 矢量对应分量（y_wss[:, 1:4] = wss_x, wss_y, wss_z）
     if hasattr(data, 'y_wss') and data.y_wss is not None and data.y_wss.shape[1] >= 4:
         data.y_wss[:, 1 + axis_idx] *= -1
+
+    # 赝标量 torsion 变号（索引取自 NODE_FEATURE_NAMES，16 维布局下为 13）
+    from pipeline.config import NODE_FEATURE_NAMES
+    if 'torsion' in NODE_FEATURE_NAMES:
+        torsion_idx = NODE_FEATURE_NAMES.index('torsion')
+        if data.x.shape[1] > torsion_idx:
+            data.x[:, torsion_idx] *= -1
+
+    # local frame WSS：wss_circ（列 2，右手系 t×r 定义）在反射下变号
+    if hasattr(data, 'y_wss_local') and data.y_wss_local is not None and data.y_wss_local.shape[1] >= 3:
+        data.y_wss_local[:, 2] *= -1
     
     return data
 
@@ -390,6 +405,108 @@ def translate_dataframe(
 
 
 # ============================================================================
+# 归一化感知的刚体增强（旋转/反射 · 前沿方向 §10.1）
+# ============================================================================
+#
+# 图数据中 y(u,v,w) 与 y_wss(wss_x/y/z) 是**各向异性 z-score**（u/v/w std ≈
+# 0.047/0.045/0.072），直接对归一化分量乘 R 会扭曲矢量方向与模长。
+# 正确路径：反归一化 → 物理系旋转/反射 → 重新归一化。
+# 坐标与切向未做 z-score（坐标为病例级 rigid+scale 系、切向单位向量），可直接变换。
+
+_NORM_STATS_CACHE = {}
+
+
+def _load_vec_stats(norm_params_file: str):
+    """加载并缓存 (mean, std) 3 维张量：velocity(u,v,w) 与 wss(wss_x/y/z)。"""
+    import json
+    from pathlib import Path
+    key = str(norm_params_file)
+    if key not in _NORM_STATS_CACHE:
+        stats = json.loads(Path(norm_params_file).read_text()).get("statistics", {})
+
+        def _vec3(names):
+            mean = torch.tensor([float(stats.get(n, {}).get("mean", 0.0)) for n in names])
+            std = torch.tensor([max(float(stats.get(n, {}).get("std", 1.0)), 1e-12) for n in names])
+            return mean, std
+
+        _NORM_STATS_CACHE[key] = {
+            "vel": _vec3(("u", "v", "w")),
+            "wss": _vec3(("wss_x", "wss_y", "wss_z")),
+        }
+    return _NORM_STATS_CACHE[key]
+
+
+def _transform_normalized_vec(t: torch.Tensor, R: torch.Tensor, mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:
+    """z-score 分量矢量的正确刚体变换：denorm → @R.T → renorm。"""
+    mean = mean.to(dtype=t.dtype, device=t.device)
+    std = std.to(dtype=t.dtype, device=t.device)
+    phys = t * std + mean
+    phys = phys @ R.T
+    return (phys - mean) / std
+
+
+def rigid_transform_augment(
+    data: Data,
+    R: torch.Tensor,
+    norm_params_file: str,
+    coord_indices: Tuple[int, int] = (0, 3),
+    tangent_indices: Tuple[int, int] = (6, 9),
+) -> Data:
+    """对 PyG Data 施加正交变换 R（旋转 det=+1 或反射 det=-1），归一化感知。
+
+    处理：
+      - 坐标 / 切向：直接 @R.T（未 z-score）
+      - 速度 y[:, :3] / global WSS y_wss[:, 1:4]：denorm → R → renorm
+      - det<0 时：赝标量 torsion 变号；y_wss_local 的 wss_circ 变号
+      - 标量（p、wss 幅值、几何标量、BC）不动；KNN 边在等距变换下不变
+    """
+    data = data.clone()
+    R = R.to(dtype=data.x.dtype, device=data.x.device)
+    det = float(torch.det(R))
+    vec_stats = _load_vec_stats(norm_params_file)
+
+    coords = data.x[:, coord_indices[0]:coord_indices[1]]
+    data.x[:, coord_indices[0]:coord_indices[1]] = coords @ R.T
+    if tangent_indices[1] <= data.x.shape[1]:
+        tangent = data.x[:, tangent_indices[0]:tangent_indices[1]]
+        data.x[:, tangent_indices[0]:tangent_indices[1]] = tangent @ R.T
+
+    if data.y is not None and data.y.shape[1] >= 3:
+        mean, std = vec_stats["vel"]
+        data.y[:, 0:3] = _transform_normalized_vec(data.y[:, 0:3], R, mean, std)
+
+    if hasattr(data, "y_wss") and data.y_wss is not None and data.y_wss.shape[1] >= 4:
+        mean, std = vec_stats["wss"]
+        data.y_wss[:, 1:4] = _transform_normalized_vec(data.y_wss[:, 1:4], R, mean, std)
+
+    if det < 0:
+        from pipeline.config import NODE_FEATURE_NAMES
+        if "torsion" in NODE_FEATURE_NAMES:
+            ti = NODE_FEATURE_NAMES.index("torsion")
+            if data.x.shape[1] > ti:
+                data.x[:, ti] *= -1
+        if hasattr(data, "y_wss_local") and data.y_wss_local is not None and data.y_wss_local.shape[1] >= 3:
+            data.y_wss_local[:, 2] *= -1
+
+    return data
+
+
+def random_rigid_rotation_normaware(data: Data, norm_params_file: str, axes: str = "xyz") -> Data:
+    """归一化感知随机旋转（proper，det=+1）。"""
+    R = torch.tensor(random_rotation_matrix_np(axes), dtype=torch.float32)
+    return rigid_transform_augment(data, R, norm_params_file)
+
+
+def random_reflection_normaware(data: Data, norm_params_file: str) -> Data:
+    """归一化感知随机反射（improper，det=-1）：随机轴镜像 + 随机旋转组合。"""
+    axis_idx = random.randint(0, 2)
+    M = np.eye(3, dtype=np.float32)
+    M[axis_idx, axis_idx] = -1.0
+    R = torch.tensor(random_rotation_matrix_np("xyz") @ M, dtype=torch.float32)
+    return rigid_transform_augment(data, R, norm_params_file)
+
+
+# ============================================================================
 # 增强配置和组合函数
 # ============================================================================
 
@@ -401,6 +518,10 @@ DEFAULT_AUGMENT_CONFIG = {
     "scale_prob": 0.0,  # 默认不使用缩放
     "scale_range": (0.98, 1.02),
     "mirror_prob": 0.0,  # 默认不使用镜像
+    # 归一化感知刚体增强（推荐路径；启用需同时给 norm_params_file）
+    "rigid_rotation_prob": 0.0,
+    "rigid_reflection_prob": 0.0,
+    "norm_params_file": None,
 }
 
 
@@ -420,7 +541,15 @@ def apply_augmentations(
     """
     if config is None:
         config = DEFAULT_AUGMENT_CONFIG
-    
+
+    # 归一化感知刚体旋转/反射（优先于旧 rotation：矢量在物理系变换后重新归一化）
+    norm_file = config.get("norm_params_file")
+    if norm_file:
+        if random.random() < config.get("rigid_rotation_prob", 0.0):
+            data = random_rigid_rotation_normaware(data, norm_file, config.get("rotation_axes", "xyz"))
+        if random.random() < config.get("rigid_reflection_prob", 0.0):
+            data = random_reflection_normaware(data, norm_file)
+
     # 随机旋转
     if random.random() < config.get("rotation_prob", 0.5):
         axes = config.get("rotation_axes", "xyz")

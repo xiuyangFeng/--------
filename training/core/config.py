@@ -131,8 +131,13 @@ class ModelConfig:
     # 近壁速度差分代理作为 direct WSS head 侧带输入；比 vel_diff 直接输出更柔性，默认关闭。
     wss_boundary_layer_context: bool = False
     wss_boundary_layer_variant: str = "tang_normal"
-    # TODO-30 结构版：WSS 输出方式。"head"=wss_head（默认）；"vel_diff"=近壁速度差分推 |WSS|。
+    # TODO-30 结构版：WSS 输出方式。"head"=wss_head（默认）；"vel_diff"=近壁速度差分推 |WSS|；
+    # "profile"=前沿方向 §3 两阶段可微剖面头（WSS = mu * a1 * t_hat，Gate-0 oracle Go）。
     wss_output_mode: str = "head"
+    # 前沿方向 §3：两阶段可微剖面 WSS 头；须与 wss_output_mode="profile" 同开。
+    wss_profile_head: bool = False
+    wss_profile_n_basis: int = 3
+    wss_profile_mu: float = 1.0
     # vel_diff 模式下 WSS 指标/合成输出维度（通常 1=magnitude-only）；head 模式忽略。
     wss_metric_dim: int = 1
     # vel_diff 差分变体："naive"=|Δvel|/欧氏距（5276 旧口径）；"tang_normal"=切向速度/法向距（oracle v2）。
@@ -611,10 +616,40 @@ class ExperimentConfig:
             raise ValueError(
                 "wss_boundary_layer_context 训练禁止 warm-start（wss_head 输入维与 global ckpt 不兼容）"
             )
-        if self.model.wss_output_mode not in ("head", "vel_diff"):
+        if self.model.wss_output_mode not in ("head", "vel_diff", "profile"):
             raise ValueError(
-                f"wss_output_mode 须为 head 或 vel_diff，收到: {self.model.wss_output_mode}"
+                f"wss_output_mode 须为 head / vel_diff / profile，收到: {self.model.wss_output_mode}"
             )
+        if self.model.wss_profile_head != (self.model.wss_output_mode == "profile"):
+            raise ValueError(
+                "wss_profile_head 须与 wss_output_mode='profile' 同开同关（单变量口径）"
+            )
+        if self.model.wss_output_mode == "profile":
+            if self.model.name != "pointnext":
+                raise ValueError("wss_output_mode=profile 仅支持 pointnext")
+            if self.model.wss_dim != 4:
+                raise ValueError("profile 模式须 wss_dim=4（[wss, wss_x, wss_y, wss_z]）")
+            if self.data.wss_target_frame != "global":
+                raise ValueError("profile 模式当前仅支持 global WSS 目标")
+            if self.model.wss_profile_n_basis < 1:
+                raise ValueError("wss_profile_n_basis 须 >= 1")
+            if self.model.wss_profile_mu <= 0:
+                raise ValueError("wss_profile_mu 须 > 0")
+            if (
+                self.model.wss_vel_context
+                or self.model.wss_pgrad_context
+                or self.model.wss_kernel_attention
+                or self.model.wss_vn_head
+                or self.model.wss_boundary_layer_context
+            ):
+                raise ValueError(
+                    "profile 模式与 wss_vel_context / wss_pgrad_context / "
+                    "wss_kernel_attention / wss_vn_head / wss_boundary_layer_context 互斥"
+                )
+            if self.run.init_checkpoint:
+                raise ValueError(
+                    "wss_profile_head 训练禁止 warm-start（head 结构与旧 ckpt 不兼容）"
+                )
         if self.model.wss_output_mode == "vel_diff":
             if self.model.name != "pointnext":
                 raise ValueError("wss_output_mode=vel_diff 仅支持 pointnext")

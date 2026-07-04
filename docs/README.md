@@ -1,6 +1,6 @@
 # 项目文档索引
 
-> 更新时间：2026-06-20
+> 更新时间：2026-07-01
 > 主入口：[实验设计总纲](实验设计总纲.md)
 
 本目录存放实验设计、任务规范、路线文档、推进日志、汇报材料和外部论文 baseline 复现记录。当前项目已经不再按“单一 GNN 优化线”推进，而是分成：
@@ -24,7 +24,7 @@
 
 | 主题 | 先看 | 只记录什么 |
 | --- | --- | --- |
-| V3P / Path I 诊断 | [V3 路线 README](01-任务/任务A/03-V3路线/README.md) + [V3 实验执行跟踪日志](01-任务/任务A/03-V3路线/01-执行与待办/V3_实验执行跟踪日志.md) | I2-PC、I6、完整 I7、TODO-20 等内部路线事实 |
+| V3P / 后平台期精度优化 | [V3 路线 README](01-任务/任务A/03-V3路线/README.md) + [V3P 后平台期结构与训练优化路线](01-任务/任务A/03-V3路线/01-执行与待办/V3P_后平台期结构与训练优化路线_2026-07-01.md) + [V3P 精度平台期复盘](01-任务/任务A/03-V3路线/01-执行与待办/V3P_精度平台期复盘与下一轮想法_2026-06-30.md) | 对照既有 No-Go 证据后，只保留 K1-lite 5886 作为当前内部 GPU 判断；K3/K5 已 No-Go |
 | 外部 CROWN/Beihang 复现 | [CROWN 代码 README](../external_baselines/crown_beihang/README.md) + [hemodynamics_pointcloud_pinn](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | `u,v,w,p` 速度/压力 paper-original 复现，不写成 WSS baseline |
 | 外部 baseline 批次总结 | [paper_reproduction/README](paper_reproduction/README.md) + [梳理记录规范](paper_reproduction/04-梳理记录规范.md) | 一轮矩阵跑齐后的批次结论，单个 Job 只放 `external_baselines/<name>/experiments/` |
 
@@ -56,7 +56,7 @@
 | --- | --- | --- |
 | `Route-KNN-GNN-V1` | 历史基线与消融证据 | A-Base / A-Main / A-Opt / Line G / Line W 保留为历史对照；新增 V1 PINN 阶梯用于回答物理损失问题 |
 | `Route-PhysicsAware-V2` | V2 修正路线历史框架 | V2P-WSSP 已形成一批 p+WSS / WSS loss 对照结果，当前不再作为日常主攻 |
-| `Route-DualDomain-PointNeXt-V3` | 当前任务 A 主攻 | V3P post5463 band 约 `wss_r2_wss=0.425±0.012`；I2-PC seed1 Job 5741 弱 No-Go；I6 诊断 run 与完整 I7/TODO-20 离线判读是当前收口链 |
+| `Route-DualDomain-PointNeXt-V3` | 当前任务 A 主攻 | V3P post5463 / I6-diag 平台约 `wss_r2_wss=0.425±0.012`，I6-diag **0.429**；E-J、G4-c、J4/J5、K3/K5 均已封口或 No-Go；M-N/G5 叙事可收口，M-E 当前只等 K1-lite BranchFeat Job **5886** 判读 |
 | 外部论文 baseline | 下一阶段论文必需对照 | PointNetCFD 首轮矩阵已完成；CROWN/Beihang raw_ascii v1 已进入 lazy 非 PINN 重训 Job 5751，PINN 5740 已判 No-Go |
 | 后处理可视化 | 论文与答辩支撑链 | 已明确同点指标优先、插值只作展示、WSS 后处理必须先做 CFD velocity oracle；新增 `paper_reproduction/visualization_pipeline/` 管理点云回面片与 CFD-Post/Fluent 交付流程 |
 
@@ -84,6 +84,7 @@
 | 任务 A V1 | [V1 README](01-任务/任务A/01-V1路线/README.md) · [V1 实验清单](01-任务/任务A/01-V1路线/任务A_V1实验清单.md) |
 | 任务 A V2 | [V2 README](01-任务/任务A/02-V2路线/README.md) · [V2 修正路线实验矩阵](01-任务/任务A/02-V2路线/任务A_V2修正路线实验矩阵.md) |
 | 任务 A V3 | [V3 README](01-任务/任务A/03-V3路线/README.md) · [V3 实验日志](01-任务/任务A/03-V3路线/01-执行与待办/V3_实验执行跟踪日志.md) · [V3 待办](01-任务/任务A/03-V3路线/01-执行与待办/V3_后续优化待办.md) |
+| V3P 后平台期优化 | [V3P 后平台期结构与训练优化路线](01-任务/任务A/03-V3路线/01-执行与待办/V3P_后平台期结构与训练优化路线_2026-07-01.md) · [V3P 精度平台期复盘](01-任务/任务A/03-V3路线/01-执行与待办/V3P_精度平台期复盘与下一轮想法_2026-06-30.md) |
 | 任务 A 状态 | [任务A实验状态表](01-任务/任务A/03-共享执行与状态/任务A实验状态表.md) · [任务A配置与启动说明](01-任务/任务A/03-共享执行与状态/任务A配置与启动说明.md) |
 | 任务 B | [任务B指标计算规范](01-任务/任务B/任务B指标计算规范.md) |
 | 任务 C | [任务C风险建模规范](01-任务/任务C/任务C风险建模规范.md) |

@@ -1,0 +1,36 @@
+{
+  "label": "V3P-M-E-G4c-PatchPhase1-post5463",
+  "exp_id": "V3P-M-E-G4c-PatchPhase1-post5463",
+  "phase": "G4-c Phase 1 · single-case overfit",
+  "phase0_ref": "outputs/field/f0_decision/v3p_g4c_patch_sweep_summary_20260630.json",
+  "patch": {
+    "patch_h": 12,
+    "patch_w": 12,
+    "geodesic_radius_mm": 3.0,
+    "knn_k": 20,
+    "max_seeds_per_graph": 40
+  },
+  "training": {
+    "mode": "overfit1c",
+    "epochs": 200,
+    "lr": 0.001,
+    "batch_size": 32,
+    "seed": 1,
+    "model": "PatchConvWSS",
+    "in_channels": 4,
+    "base_channels": 16
+  },
+  "cases": [
+    "fast/CHEN_SHI_MING",
+    "slow/GUO_XI_JIANG"
+  ],
+  "go_thresholds": {
+    "r2_wss_grid_phys": 0.95,
+    "delta_vs_i6_diag_merged_r2": 0.05
+  },
+  "i6_diag_case_r2_ref": {
+    "fast/CHEN_SHI_MING": 0.363,
+    "slow/GUO_XI_JIANG": 0.5703
+  },
+  "submit": "bash training/cluster/submit_v3_g4c_phase1_overfit.sh"
+}

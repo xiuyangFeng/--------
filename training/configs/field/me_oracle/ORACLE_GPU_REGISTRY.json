@@ -29,9 +29,12 @@
     "O4": {
       "direction": "E-J",
       "name": "压力梯度一致性",
-      "gpu_config": null,
-      "exp_id_stub": "V3P-M-E-EJ-PGradFeat-post5463",
-      "go_required": true
+      "gpu_config": "training/configs/field/generated/v3_pointcloud/V3P-M-E-EJ-PGradBridge-post5463_seed1.json",
+      "exp_id_stub": "V3P-M-E-EJ-PGradBridge-post5463",
+      "go_required": true,
+      "weak_go_accept": true,
+      "oracle_json": "outputs/field/f0_decision/v3p_me_ej_oracle_20260629.json",
+      "note": "E-J 专用 oracle weak_go 可提交；dp/ds 闭合弱但 |∇p| GBDT test≈0.70"
     },
     "O5": {
       "direction": "E-K",

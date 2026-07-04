@@ -161,6 +161,7 @@ training/
 | G4-a 单 case 过拟合 | ✅ `g4_2d_unwrap_overfit1c_s4_seed1_20260611_151301` · grid R² **0.954** |
 | G4-a 全量 Probe | ✅ Job **5539** · seed1 · **No-Go**（test 3D **0.373** · gap **0.16**） |
 | G4-b 分支展开 | Phase 0 ✅ · Phase 1 Job **5542** **No-Go**（grid **0.940** · merged **0.429** · gap **0.511**） |
+| **G4-c Patch** | Phase 0 ✅（5856–5864 · p12/r3/k20 script_go）· Phase 1 **5870/5871 双 case No-Go**（GUO Go · CHEN No-Go）→ **封口** |
 
 ---
 
@@ -168,5 +169,6 @@ training/
 
 | 日期 | 内容 |
 | --- | --- |
+| 2026-06-30 | G4-c Phase 1 5870/5871 双 case No-Go（CHEN merged Δi6 +0.043）；G4-c 全量封口 |
 | 2026-06-13 | G4-b Phase 1 5542 No-Go（grid 0.940 · gap 0.511）；不进 G4-b P2 |
 | 2026-06-13 | 5539 Phase 2 分析 No-Go（3D 0.373 · gap 0.16）；下一跳 G4-b |

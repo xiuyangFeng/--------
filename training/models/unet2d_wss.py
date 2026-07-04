@@ -47,3 +47,26 @@ class UNet2DWSS(nn.Module):
         d2 = self.dec2(torch.cat([self.up2(d3), e2], dim=1))
         d1 = self.dec1(torch.cat([self.up1(d2), e1], dim=1))
         return self.head(d1)
+
+
+class PatchConvWSS(nn.Module):
+    """G4-c · 小 patch（如 12×12）用浅层 CNN，避免 U-Net 奇数尺寸 skip 失配。"""
+
+    def __init__(self, in_channels: int = 4, base_channels: int = 32, out_channels: int = 1) -> None:
+        super().__init__()
+        c = base_channels
+        self.net = nn.Sequential(
+            nn.Conv2d(in_channels, c, 3, padding=1),
+            nn.BatchNorm2d(c),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(c, c, 3, padding=1),
+            nn.BatchNorm2d(c),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(c, c, 3, padding=1),
+            nn.BatchNorm2d(c),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(c, out_channels, 1),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x)

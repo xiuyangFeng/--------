@@ -5,4 +5,4 @@
 `from training.core.config import ExperimentConfig`
 """
 
-__all__: list[str] = []
+__all__ = []

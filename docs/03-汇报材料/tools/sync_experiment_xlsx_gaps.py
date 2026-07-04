@@ -38,6 +38,20 @@ GOALS: dict[str, str] = {
     "V3P-F-PC-PGradFeat": "V3P 路径 F：|∇p| 拼 wss_head 特征（思路2 输入版）",
     "V3P-F-Audit-PCv2-BLContext": "V3P 路径 F：PC-v2+BLContext 审计短训（debug 路径）",
     "V3P-F-PCv2-BLContext": "V3P 路径 F：PC-v2 rich ∇p + naive BL context 正式 Probe",
+    "V3P-G-54a-VNHeadPlain": "V3P 路径 G：G1 向量归一化 head 纯结构 Probe",
+    "V3P-G-57-PGradKernelAttn": "V3P 路径 G：G2-b 壁面 ∇p kernel attention head",
+    "V3P-G-58-SSL-Finetune": "V3P 路径 G：G3 SSL 预训练 encoder 微调",
+    "V3P-G-Baseline-AsymW-a": "V3P 路径 G：post-denylist AsymW-a 同 split 基线",
+    "V3P-G-Baseline-AsymW-a-post5463": "V3P 路径 G/I：post5463 graphs 无 SSL 基线 band",
+    "V3P-I2-PC-Intrinsic": "V3P 路径 I：I2-PC 本征坐标 WSS 4 维 local frame",
+    "V3P-I6-a-AsymW-a-post5463": "V3P 路径 I/M-E：I6-a 两阶段冻结 best_wss 探针",
+    "V3P-I6-diag-AsymW-a-post5463": "V3P 路径 I：I6 梯度/训练动力学诊断（200ep）",
+    "V3P-J4-V3Dlite-MixedProbe-post5463": "V3P 平台期：V3D-lite +1 病例 MixedProbe",
+    "V3P-J5-ActiveData-MixedProbe-post5463": "V3P 平台期：主动选数 +6 AAA MixedProbe",
+    "V3P-K1-BranchFeat-MixedProbe-post5463": "V3P 后平台期：K1 branch 拓扑特征 GPU 短训",
+    "V3P-M-E-EJ-PGradBridge-post5463": "V3P M-E：E-J 压力梯度桥接 rich pgrad GPU probe",
+    "V3P-M-E-PWeak-AsymW-a-post5463": "V3P M-E：压力 λ 降 5× 弱压力探针",
+    "V3P-M-E-WSSOnly-AsymW-a-post5463": "V3P M-E：WSS-only（λ_p=0）上限探针",
 }
 
 NOTES: dict[str, str] = {
@@ -61,6 +75,20 @@ NOTES: dict[str, str] = {
     "V3P-F-PC-PGradFeat": "三 seed 0.399±0.010（5277/5300/5301）；未升母版；病例 p95 Spearman 0.551 vs 4957 0.294",
     "V3P-F-Audit-PCv2-BLContext": "审计 job 5303；短训 debug 路径打通；非正式结论",
     "V3P-F-PCv2-BLContext": "弱 No-Go job 5311；best_wss wss=0.399≈4957；未超 PGradFeat 0.406",
+    "V3P-G-54a-VNHeadPlain": "No-Go job 5425；best_wss wss=0.427≈基线 band",
+    "V3P-G-57-PGradKernelAttn": "No-Go jobs 5410/5437/5438；三 seed 0.392–0.420；未超 AsymW-a 4957",
+    "V3P-G-58-SSL-Finetune": "No-Go jobs 5474/5475；wss 0.435–0.440；未达 Go +0.03 vs post5463 band",
+    "V3P-G-Baseline-AsymW-a": "基线 job 5439；best_wss wss=0.434（post-denylist 对照）",
+    "V3P-G-Baseline-AsymW-a-post5463": "三 seed 5466/5468/5478；band 0.409–0.437（均值 ~0.425）",
+    "V3P-I2-PC-Intrinsic": "No-Go job 5741；best_wss wss=0.417；local frame 4D 未破 band",
+    "V3P-I6-a-AsymW-a-post5463": "Go job 5810；best_wss wss=0.446（+0.017 vs I6-diag）；未扩 seed",
+    "V3P-I6-diag-AsymW-a-post5463": "平台期带宽参考 job 5463/I6-diag；best_wss wss=0.429 · r2_p=0.930",
+    "V3P-J4-V3Dlite-MixedProbe-post5463": "No-Go job 5872；+1 ZHAO；best_wss wss=0.423（Δi6 −0.006）",
+    "V3P-J5-ActiveData-MixedProbe-post5463": "弱 No-Go jobs 5881–5883；+6 AAA；wss=0.433（Δi6 +0.004）；Go 0.459 未过",
+    "V3P-K1-BranchFeat-MixedProbe-post5463": "No-Go job 5886；branch 特征短训；best_wss wss=0.400（低于 I6-diag）",
+    "V3P-M-E-EJ-PGradBridge-post5463": "No-Go job 5854；rich pgrad context；best_wss wss=0.401",
+    "V3P-M-E-PWeak-AsymW-a-post5463": "No-Go job 5812；弱压力 λ；best_wss wss=0.411",
+    "V3P-M-E-WSSOnly-AsymW-a-post5463": "No-Go job 5811；WSS-only；wss=0.411 但 r2_p≈−0.41",
 }
 
 # Not in experiment_index.csv yet, or no summary.json
