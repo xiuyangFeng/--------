@@ -148,6 +148,8 @@ def main() -> None:
         wss_target_frame=config.data.wss_target_frame,
         wss_domain_norm=config.data.wss_domain_norm,
         wss_domain_norm_stats=config.data.wss_domain_norm_stats,
+        ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+        ray_target_scale=config.data.ray_target_scale,
     )
     loader = build_dataloader(
         dataset,

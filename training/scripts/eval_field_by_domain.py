@@ -111,6 +111,8 @@ def main() -> None:
         wss_target_frame=config.data.wss_target_frame,
         wss_domain_norm=config.data.wss_domain_norm,
         wss_domain_norm_stats=config.data.wss_domain_norm_stats,
+        ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+        ray_target_scale=config.data.ray_target_scale,
     )
     full_loader = build_dataloader(
         full_ds,
@@ -146,6 +148,8 @@ def main() -> None:
             wss_target_frame=config.data.wss_target_frame,
             wss_domain_norm=config.data.wss_domain_norm,
             wss_domain_norm_stats=config.data.wss_domain_norm_stats,
+            ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+            ray_target_scale=config.data.ray_target_scale,
         )
         if len(ds) == 0:
             domain_results[domain] = {"num_graphs": 0, "num_cases": len(cases), "metrics": {}}

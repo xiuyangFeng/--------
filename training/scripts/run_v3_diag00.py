@@ -429,6 +429,8 @@ def _loss_calibration_batches(
             preload=config.data.preload,
             feature_mask=feature_mask,
             required_keys=req,
+            ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+            ray_target_scale=config.data.ray_target_scale,
         )
         loader = build_dataloader(
             ds,
@@ -561,6 +563,8 @@ def _wss_magnitude_consistency_test(
         preload=config.data.preload,
         feature_mask=feature_mask,
         required_keys=req,
+        ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+        ray_target_scale=config.data.ray_target_scale,
     )
     loader = build_dataloader(
         ds,

@@ -4,6 +4,7 @@
 
 ## 目录导航
 - [`pipeline/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline)：正式处理流程，推荐入口
+- `pipeline_wss_min/`：WSS-only 最小化预处理流程，默认输入 `x,y,z`、标签 `wss`，使用分叉原点版解剖刚性配准与壁面稀疏采样
 - [`training/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training)：任务 A V1/V2/V3 内部训练、评估与集群脚本
 - [`external_baselines/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/external_baselines)：外部论文 baseline 复现代码，当前包含 PointNetCFD
 - [`pipeline/vmtk_core.py`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/vmtk_core.py)：主线几何中心线提取与特征计算核心
@@ -33,6 +34,18 @@ bash external_baselines/pointnetcfd/cluster/submit_pointnetcfd.sh \
 详细说明见 [`external_baselines/pointnetcfd/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/external_baselines/pointnetcfd/README.md) 与 [`docs/paper_reproduction/papers/pointnetcfd/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/paper_reproduction/papers/pointnetcfd/README.md)。
 
 ## 推荐入口
+WSS-only 最小化路线（独立产物 `data_wss_min/`，不改旧 `pipeline/` 数据）：
+
+```bash
+conda activate GNN
+python -m pipeline_wss_min.visualize_alignment --split split_AG_wss_min_v1
+python -m pipeline_wss_min.coord_check --split split_AG_wss_min_v1
+python -m pipeline_wss_min.visualize_stl_point_overlap --split split_AG_wss_min_v1 --n 10 --seed 20260707
+python -m pipeline_wss_min.run --stage all
+```
+
+说明见 `pipeline_wss_min/README.md`、`docs/02-推进与变更/WSS最小化预处理流程_搭建与交接记录_2026-07-07.md` 与 `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`。
+
 批量处理前建议先做一次输入审计：
 
 ```bash

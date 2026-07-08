@@ -208,6 +208,8 @@ def _build_eval_context(run_dir: Path):
             wss_target_frame=config.data.wss_target_frame,
             wss_domain_norm=config.data.wss_domain_norm,
             wss_domain_norm_stats=config.data.wss_domain_norm_stats,
+            ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+            ray_target_scale=config.data.ray_target_scale,
         )
         return build_dataloader(
             ds,

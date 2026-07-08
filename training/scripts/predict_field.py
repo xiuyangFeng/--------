@@ -94,6 +94,8 @@ def main() -> None:
         feature_mask=feature_mask,
         required_keys=required_data_keys,
         wss_target_frame=config.data.wss_target_frame,
+        ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+        ray_target_scale=config.data.ray_target_scale,
     )
     loader = build_dataloader(
         dataset,

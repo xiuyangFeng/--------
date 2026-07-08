@@ -949,6 +949,7 @@ class DualDomainLossBreakdown:
     loss_wss_vel_consist: torch.Tensor
     loss_wss_slope: torch.Tensor
     loss_wss_pgrad_consist: torch.Tensor
+    loss_wss_ray: torch.Tensor
     weighted_loss_interior_velocity: torch.Tensor
     weighted_loss_noslip_velocity: torch.Tensor
     weighted_loss_interior_pressure: torch.Tensor
@@ -959,6 +960,7 @@ class DualDomainLossBreakdown:
     weighted_loss_wss_vel_consist: torch.Tensor
     weighted_loss_wss_slope: torch.Tensor
     weighted_loss_wss_pgrad_consist: torch.Tensor
+    weighted_loss_wss_ray: torch.Tensor
 
     def scalar_dict(self) -> Dict[str, float]:
         return {
@@ -973,6 +975,7 @@ class DualDomainLossBreakdown:
             "loss_wss_vel_consist": self.loss_wss_vel_consist.detach().item(),
             "loss_wss_slope": self.loss_wss_slope.detach().item(),
             "loss_wss_pgrad_consist": self.loss_wss_pgrad_consist.detach().item(),
+            "loss_wss_ray": self.loss_wss_ray.detach().item(),
             "weighted_loss_interior_velocity": self.weighted_loss_interior_velocity.detach().item(),
             "weighted_loss_noslip_velocity": self.weighted_loss_noslip_velocity.detach().item(),
             "weighted_loss_interior_pressure": self.weighted_loss_interior_pressure.detach().item(),
@@ -983,6 +986,7 @@ class DualDomainLossBreakdown:
             "weighted_loss_wss_vel_consist": self.weighted_loss_wss_vel_consist.detach().item(),
             "weighted_loss_wss_slope": self.weighted_loss_wss_slope.detach().item(),
             "weighted_loss_wss_pgrad_consist": self.weighted_loss_wss_pgrad_consist.detach().item(),
+            "weighted_loss_wss_ray": self.weighted_loss_wss_ray.detach().item(),
         }
 
 
@@ -1133,6 +1137,19 @@ class DualDomainLoss:
                     wss_pred[:, 0], pgrad_mag, wall_mask, batch_index
                 )
 
+        # §15.2 K9：L_ray = MSE(pred (a1_s, a1_c), sidecar 目标)（壁面 ∩ ray_valid）。
+        # pred 系数从 DualProfileWSSHead.last_a1 读取（本 batch forward 刚写入，带梯度）。
+        ray_l = zero
+        if self.cfg.lambda_wss_ray > 0:
+            head = getattr(model, "wss_profile_head", None)
+            a1_pred = getattr(head, "last_a1", None) if head is not None else None
+            ray_tgt = getattr(batch, "ray_a1", None)
+            ray_valid = getattr(batch, "ray_valid", None)
+            if a1_pred is not None and ray_tgt is not None and ray_valid is not None:
+                ray_mask = wall_mask & ray_valid.bool()
+                if ray_mask.any():
+                    ray_l = (a1_pred[ray_mask] - ray_tgt[ray_mask]).square().mean()
+
         w_vel_int = self.cfg.lambda_vel_int * vel_int
         w_vel_noslip = self.cfg.lambda_vel_noslip * vel_noslip
         w_p_int = self.cfg.lambda_p_int * p_int
@@ -1143,10 +1160,11 @@ class DualDomainLoss:
         w_vel_consist = self.cfg.lambda_wss_vel_consist * vel_consist
         w_slope = self.cfg.lambda_wss_slope * slope_l
         w_pgrad = self.cfg.lambda_wss_pgrad_consist * pgrad_consist
+        w_ray = self.cfg.lambda_wss_ray * ray_l
 
         total = (
             w_vel_int + w_vel_noslip + w_p_int + w_p_wall + w_wss
-            + w_mag_consist + w_rank + w_vel_consist + w_slope + w_pgrad
+            + w_mag_consist + w_rank + w_vel_consist + w_slope + w_pgrad + w_ray
         )
 
         return DualDomainLossBreakdown(
@@ -1161,6 +1179,7 @@ class DualDomainLoss:
             loss_wss_vel_consist=vel_consist,
             loss_wss_slope=slope_l,
             loss_wss_pgrad_consist=pgrad_consist,
+            loss_wss_ray=ray_l,
             weighted_loss_interior_velocity=w_vel_int,
             weighted_loss_noslip_velocity=w_vel_noslip,
             weighted_loss_interior_pressure=w_p_int,
@@ -1171,6 +1190,7 @@ class DualDomainLoss:
             weighted_loss_wss_vel_consist=w_vel_consist,
             weighted_loss_wss_slope=w_slope,
             weighted_loss_wss_pgrad_consist=w_pgrad,
+            weighted_loss_wss_ray=w_ray,
         )
 
 

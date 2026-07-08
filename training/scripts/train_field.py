@@ -226,6 +226,8 @@ def main() -> None:
         wss_target_frame=config.data.wss_target_frame,
         wss_domain_norm=config.data.wss_domain_norm,
         wss_domain_norm_stats=config.data.wss_domain_norm_stats,
+        ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+        ray_target_scale=config.data.ray_target_scale,
     )
     # 构建验证集数据对象；验证集不做增强。
     val_dataset = FieldGraphDataset(
@@ -239,6 +241,8 @@ def main() -> None:
         wss_target_frame=config.data.wss_target_frame,
         wss_domain_norm=config.data.wss_domain_norm,
         wss_domain_norm_stats=config.data.wss_domain_norm_stats,
+        ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+        ray_target_scale=config.data.ray_target_scale,
     )
     # 构建测试集数据对象；测试集同样不做增强。
     test_dataset = FieldGraphDataset(
@@ -252,6 +256,8 @@ def main() -> None:
         wss_target_frame=config.data.wss_target_frame,
         wss_domain_norm=config.data.wss_domain_norm,
         wss_domain_norm_stats=config.data.wss_domain_norm_stats,
+        ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+        ray_target_scale=config.data.ray_target_scale,
     )
 
     # 训练 DataLoader 需要打乱顺序。

@@ -105,6 +105,8 @@ class FieldGraphDataset(Dataset):
         wss_target_frame: str = "global",
         wss_domain_norm: str = "none",
         wss_domain_norm_stats: Optional[Dict[str, Dict[str, List[float]]]] = None,
+        ray_sidecar_subdir: str = "",
+        ray_target_scale: float = 1.0,
     ):
         # root/case_names/graphs_subdir 共同决定这次实验读取哪些图。
         # 这里约定“患者级 split -> 病例目录 -> 图快照文件”三层路径关系。
@@ -129,6 +131,9 @@ class FieldGraphDataset(Dataset):
         self.wss_target_frame = wss_target_frame
         self.wss_domain_norm = wss_domain_norm
         self.wss_domain_norm_stats = wss_domain_norm_stats or {}
+        # K8/K9（§15.1/15.2）：逐图射线目标 sidecar（局部 frame + GT a1），空=不加载。
+        self.ray_sidecar_subdir = ray_sidecar_subdir
+        self.ray_target_scale = float(ray_target_scale)
 
         # 保存当前数据集对应的全部图文件路径。
         self.data_files: List[Path] = []
@@ -237,6 +242,25 @@ class FieldGraphDataset(Dataset):
         )
         # graph_path 保存原始图文件完整路径，便于追溯。
         data.graph_path = str(data_path)
+
+        if self.ray_sidecar_subdir:
+            # K8/K9：附加节点对齐的射线目标 sidecar。缺失/错位直接报错（禁止静默降级）。
+            # 注意：仅平移增强与 frame/a1 兼容（config 校验已禁旋转/反射/缩放组合）。
+            side_path = case_path / self.ray_sidecar_subdir / f"{data_path.stem}.pt"
+            if not side_path.exists():
+                raise FileNotFoundError(
+                    f"ray sidecar 缺失: {side_path}（先跑 run_v3p_k9_ray_sidecar_gen）"
+                )
+            side = torch.load(side_path, map_location="cpu", weights_only=True)
+            if side["ray_ts"].size(0) != data.x.size(0):
+                raise ValueError(
+                    f"ray sidecar 节点数不对齐: {side_path} "
+                    f"({side['ray_ts'].size(0)} vs {data.x.size(0)})"
+                )
+            data.ray_ts = side["ray_ts"]
+            data.ray_tc = side["ray_tc"]
+            data.ray_a1 = side["ray_a1"] / self.ray_target_scale
+            data.ray_valid = side["ray_valid"]
 
         return data
 

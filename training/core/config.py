@@ -92,6 +92,12 @@ class DataConfig:
     augment_config: Dict[str, Any] = field(default_factory=dict)
     # WSS 监督坐标系：global（默认，向后兼容）或 local（local_v1 口径）。
     wss_target_frame: str = "global"
+    # K8/K9（§15.1/15.2）：逐图射线目标 sidecar 相对病例目录的子路径
+    # （如 "processed/ray_targets_k16"）；空=不加载（旧配置不受影响）。
+    ray_sidecar_subdir: str = ""
+    # L_ray 目标共享尺度（Pa）：取 sidecar 汇总 JSON 的 train_a1_stats_Pa.a1_scale_pooled_std。
+    # 两通道共享除以同一尺度，保 (a1_s, a1_c) 方向组成不被扭曲。
+    ray_target_scale: float = 1.0
     # TODO-19: WSS 目标按数据域重新标准化。none=关闭；per_domain=按 AAA/AG/ILO 统计。
     wss_domain_norm: str = "none"
     # 形如 {"AAA": {"mean": [...], "std": [...]}, ...}，维度与当前 y_wss 列一致。
@@ -138,6 +144,9 @@ class ModelConfig:
     wss_profile_head: bool = False
     wss_profile_n_basis: int = 3
     wss_profile_mu: float = 1.0
+    # §15.1 K8："scalar"=K7 单标量 a1×t_hat（默认，向后兼容）；
+    # "dual"=双分量局部系（a1_s·t̂_s + a1_c·t̂_c，需 data.ray_sidecar_subdir 提供 frame）。
+    wss_profile_variant: str = "scalar"
     # vel_diff 模式下 WSS 指标/合成输出维度（通常 1=magnitude-only）；head 模式忽略。
     wss_metric_dim: int = 1
     # vel_diff 差分变体："naive"=|Δvel|/欧氏距（5276 旧口径）；"tang_normal"=切向速度/法向距（oracle v2）。
@@ -170,6 +179,9 @@ class DomainLossConfig:
     # 思路 2：预测 WSS 模长 ↔ 壁面预测 |∇p| 的逐图标准化模式一致性；0=关闭。
     #          仅依赖压力（已 R²≈0.96），不需要速度监督。
     lambda_wss_pgrad_consist: float = 0.0
+    # §15.2 K9：剖面射线直接监督 L_ray = MSE(pred_a1, sidecar a1 / ray_target_scale)，
+    # 仅壁面且 ray_valid 点；0=关闭。需 wss_profile_variant="dual" + ray sidecar。
+    lambda_wss_ray: float = 0.0
     normalize_by_target_std: bool = False
     norm_consts: Dict[str, float] = field(default_factory=dict)
     weight_calibration: str = ""
@@ -650,6 +662,33 @@ class ExperimentConfig:
                 raise ValueError(
                     "wss_profile_head 训练禁止 warm-start（head 结构与旧 ckpt 不兼容）"
                 )
+            if self.model.wss_profile_variant not in ("scalar", "dual"):
+                raise ValueError(
+                    f"wss_profile_variant 须为 scalar 或 dual，收到: {self.model.wss_profile_variant}"
+                )
+            if self.model.wss_profile_variant == "dual" and not self.data.ray_sidecar_subdir:
+                raise ValueError(
+                    "wss_profile_variant=dual 需要 data.ray_sidecar_subdir（K9 sidecar 提供局部 frame）"
+                )
+        if self.model.wss_profile_variant == "dual" and self.model.wss_output_mode != "profile":
+            raise ValueError("wss_profile_variant=dual 仅在 wss_output_mode=profile 下有意义")
+        if self.data.ray_sidecar_subdir:
+            if self.data.ray_target_scale <= 0:
+                raise ValueError("ray_target_scale 须 > 0")
+            if self.data.augment:
+                aug = self.data.augment_config or {}
+                bad = [
+                    k for k in (
+                        "rotation_prob", "mirror_prob", "scale_prob",
+                        "rigid_rotation_prob", "rigid_reflection_prob",
+                    )
+                    if float(aug.get(k, 0.0)) > 0
+                ]
+                if bad:
+                    raise ValueError(
+                        "ray sidecar（frame/a1 目标）不随旋转/反射/缩放增强变换，仅允许平移；"
+                        f"请关闭: {bad}"
+                    )
         if self.model.wss_output_mode == "vel_diff":
             if self.model.name != "pointnext":
                 raise ValueError("wss_output_mode=vel_diff 仅支持 pointnext")
@@ -712,9 +751,17 @@ class ExperimentConfig:
                 "lambda_wss_vel_consist",
                 "lambda_wss_slope",
                 "lambda_wss_pgrad_consist",
+                "lambda_wss_ray",
             ):
                 if getattr(dl, attr) < 0:
                     raise ValueError(f"domain_loss.{attr} 不得为负")
+            if dl.lambda_wss_ray > 0:
+                if self.model.wss_profile_variant != "dual":
+                    raise ValueError(
+                        "lambda_wss_ray 需要 wss_profile_variant=dual（L_ray 监督双分量系数）"
+                    )
+                if not self.data.ray_sidecar_subdir:
+                    raise ValueError("lambda_wss_ray 需要 data.ray_sidecar_subdir 提供 a1 目标")
             if (dl.lambda_wss_vel_consist > 0 or dl.lambda_wss_pgrad_consist > 0) and eff_wss_dim < 1:
                 raise ValueError(
                     "lambda_wss_vel_consist / lambda_wss_pgrad_consist 须有效 WSS 输出维 >=1"

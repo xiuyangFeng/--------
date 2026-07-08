@@ -1,6 +1,6 @@
 # 项目文档索引
 
-> 更新时间：2026-07-01
+> 更新时间：2026-07-07
 > 主入口：[实验设计总纲](实验设计总纲.md)
 
 本目录存放实验设计、任务规范、路线文档、推进日志、汇报材料和外部论文 baseline 复现记录。当前项目已经不再按“单一 GNN 优化线”推进，而是分成：
@@ -9,6 +9,7 @@
 - **V1 补充验证**：PINN / physics loss 阶梯消融，用于回答早期速度压力场与物理损失问题
 - **外部 baseline 复现**：公开医学血管点云、mesh、等变网络、2D 展开方法在私有 AAA/WSS 数据上的对照
 - **后处理与可视化**：预测点云到 CFD 面片/体网格的公平映射和论文图件规范
+- **WSS-only 最小化新线**：`pipeline_wss_min/`，仅输入 `x,y,z`、标签 `wss`，先验证解剖配准 + 壁面稀疏采样的可学习上限
 
 ## 1. 现在先看什么
 
@@ -27,6 +28,7 @@
 | V3P / 后平台期精度优化 | [V3 路线 README](01-任务/任务A/03-V3路线/README.md) + [V3P 后平台期结构与训练优化路线](01-任务/任务A/03-V3路线/01-执行与待办/V3P_后平台期结构与训练优化路线_2026-07-01.md) + [V3P 精度平台期复盘](01-任务/任务A/03-V3路线/01-执行与待办/V3P_精度平台期复盘与下一轮想法_2026-06-30.md) | 对照既有 No-Go 证据后，只保留 K1-lite 5886 作为当前内部 GPU 判断；K3/K5 已 No-Go |
 | 外部 CROWN/Beihang 复现 | [CROWN 代码 README](../external_baselines/crown_beihang/README.md) + [hemodynamics_pointcloud_pinn](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | `u,v,w,p` 速度/压力 paper-original 复现，不写成 WSS baseline |
 | 外部 baseline 批次总结 | [paper_reproduction/README](paper_reproduction/README.md) + [梳理记录规范](paper_reproduction/04-梳理记录规范.md) | 一轮矩阵跑齐后的批次结论，单个 Job 只放 `external_baselines/<name>/experiments/` |
+| WSS-only 最小化预处理 | [WSS 最小化预处理交接记录](02-推进与变更/WSS最小化预处理流程_搭建与交接记录_2026-07-07.md) + [WSS 最小化推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) + `../pipeline_wss_min/README.md` | `x,y,z -> wss` 单头数据线；分叉原点版解剖配准、坐标 QA 图、STL-点云同框 QA、壁面稀疏点数扫描入口 |
 
 ### 查当前总设计
 
@@ -72,6 +74,7 @@
 | **paper_idea/** | 项目思路、老师给定论文阅读材料、基准模型推荐与论文素材 |
 | **paper_reproduction/** | 外部论文 baseline 复现库，记录公开模型、私有数据适配口径与后处理映射方法 |
 | **../external_baselines/** | 外部论文 baseline 复现代码，当前包含 PointNetCFD 独立训练入口 |
+| **../pipeline_wss_min/** | WSS-only 最小化预处理代码，独立输出到 `data_wss_min/` |
 
 ## 4. 快速跳转
 
@@ -90,7 +93,8 @@
 | 任务 C | [任务C风险建模规范](01-任务/任务C/任务C风险建模规范.md) |
 | 任务 D | [任务D端到端验证清单](01-任务/任务D/任务D端到端验证清单.md) |
 | 任务 E | [任务E执行清单](01-任务/任务E/任务E血流动力学三维可视化执行清单.md) · [任务E论文可视化规范](01-任务/任务E/任务E论文可视化规范.md) |
-| 推进记录 | [代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md) |
+| 推进记录 | [V3P/主线代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md) · [WSS 最小化代码修改与实验推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) |
+| WSS-only 最小化 | [WSS 最小化预处理交接记录](02-推进与变更/WSS最小化预处理流程_搭建与交接记录_2026-07-07.md) · [WSS 最小化推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) |
 | 项目思路 | [项目思路](paper_idea/项目思路.md) · [基准模型推荐](paper_idea/基准模型推荐与引用参考.md) |
 | 外部 baseline | [paper_reproduction/README](paper_reproduction/README.md) · [文献筛选总表](paper_reproduction/00-文献筛选总表.md) · [后处理插值方法](paper_reproduction/03-后处理可视化与插值方法.md) · [点云回插面片方法](paper_reproduction/05-点云预测值与真值回插到面片方法.md) · [点云回构可视化流程](paper_reproduction/visualization_pipeline/README.md) |
 | 外部 baseline 代码 | [PointNetCFD 复现代码](../external_baselines/pointnetcfd/README.md) |
@@ -98,7 +102,7 @@
 ## 5. 维护规则
 
 - 任务 A 新实验事实优先写入 V3 实验日志或对应路线状态表，再同步推进记录。
-- 代码、脚本、配置或实验文档变更后，必须在 [代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md) 文首新增记录。
+- V3P / 训练主线 / 通用代码变更后，在 [代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md) 文首新增记录；`pipeline_wss_min/` 相关变更写入 [WSS 最小化代码修改与实验推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md)。
 - 数据侧或模型训练侧的集群运行代码必须提供详细进度日志，日志粒度至少细到每一个病例，确保大规模任务可判断是否仍在有效实验/推进，避免因总数据量过大造成无效等待。
 - GPU 训练/评估任务只要资源有空闲即可提交使用；若暂无空闲 GPU，则按实验计划顺序提交排队，不再为是否提交或是否排队单独确认。
 - 仅修改 PPT/PPTX 等汇报文件时，不需要更新推进记录；若同时修改实验文档或脚本，则仍需更新。

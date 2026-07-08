@@ -17,7 +17,7 @@ from .losses import (
     wall_pressure_grad_mag,
 )
 from .wss_kernel_attention import WallPressureKernelAttention
-from .wss_profile_head import DifferentiableWSSHead
+from .wss_profile_head import DifferentiableWSSHead, DualProfileWSSHead
 from .wss_vn_head import EquivariantWSSHeadPlain
 
 _IS_WALL_IDX = NODE_FEATURE_NAMES.index("is_wall")
@@ -434,6 +434,7 @@ class FieldPointNeXt(nn.Module):
         vel_diff_variant: str = "naive",
         wss_profile_n_basis: int = 3,
         wss_profile_mu: float = 1.0,
+        wss_profile_variant: str = "scalar",
         pool_k_tiers: Optional[List[int]] = None,
     ):
         super().__init__()
@@ -513,10 +514,13 @@ class FieldPointNeXt(nn.Module):
                 if use_wss_head
                 else None
             )
-        # 前沿方向 §3：两阶段可微剖面 WSS 头（wss_output_mode="profile"）
-        self.wss_profile_head: Optional[DifferentiableWSSHead] = None
+        # 前沿方向 §3/§15.1：两阶段可微剖面 WSS 头（wss_output_mode="profile"）。
+        # variant="scalar"=K7 单标量 a1×t_hat；"dual"=K8 双分量局部系（需 ray sidecar frame）。
+        self.wss_profile_variant = wss_profile_variant
+        self.wss_profile_head: Optional[nn.Module] = None
         if wss_dim > 0 and wss_output_mode == "profile":
-            self.wss_profile_head = DifferentiableWSSHead(
+            head_cls = DualProfileWSSHead if wss_profile_variant == "dual" else DifferentiableWSSHead
+            self.wss_profile_head = head_cls(
                 hidden_dim=hidden_dim,
                 n_basis=wss_profile_n_basis,
                 mu=wss_profile_mu,
@@ -665,8 +669,12 @@ class FieldPointNeXt(nn.Module):
         if self.wss_output_mode == "vel_diff":
             wss_pred = self._infer_wss_from_field(field_pred, data)
         elif self.wss_output_mode == "profile" and self.wss_profile_head is not None:
-            tangent = data.x[:, 6:9]  # Tangent_XYZ
-            wss_pred = self.wss_profile_head(h, tangent)
+            if self.wss_profile_variant == "dual":
+                # K8：局部 frame 来自 K9 sidecar（dataset 校验存在性与节点对齐）
+                wss_pred = self.wss_profile_head(h, data.ray_ts, data.ray_tc)
+            else:
+                tangent = data.x[:, 6:9]  # Tangent_XYZ
+                wss_pred = self.wss_profile_head(h, tangent)
         else:
             h_wss = self._wss_head_input(h, data, field_pred)
             if self.wss_head is not None:
@@ -722,6 +730,7 @@ def build_model(
     vel_diff_variant: str = "naive",
     wss_profile_n_basis: int = 3,
     wss_profile_mu: float = 1.0,
+    wss_profile_variant: str = "scalar",
     pool_k_tiers: Optional[List[int]] = None,
 ):
     if model_name not in MODEL_REGISTRY:
@@ -758,6 +767,7 @@ def build_model(
         kwargs["vel_diff_variant"] = vel_diff_variant
         kwargs["wss_profile_n_basis"] = wss_profile_n_basis
         kwargs["wss_profile_mu"] = wss_profile_mu
+        kwargs["wss_profile_variant"] = wss_profile_variant
         kwargs["pool_k_tiers"] = pool_k_tiers
     return cls(**kwargs)
 
@@ -792,5 +802,6 @@ def build_field_model_from_config(config) -> nn.Module:
         vel_diff_variant=m.vel_diff_variant,
         wss_profile_n_basis=m.wss_profile_n_basis,
         wss_profile_mu=m.wss_profile_mu,
+        wss_profile_variant=m.wss_profile_variant,
         pool_k_tiers=m.pool_k_tiers or None,
     )

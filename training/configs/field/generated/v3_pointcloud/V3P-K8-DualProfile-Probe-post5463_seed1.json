@@ -1,0 +1,160 @@
+{
+  "run": {
+    "experiment_name": "field_v3_pointnext_k8dualprofile_localpool_main01_geom_pw_asymw_a_wall13000_near2000",
+    "output_root": "outputs/field",
+    "save_every": 10,
+    "save_best_only": true
+  },
+  "data": {
+    "data_root": "data_new/AG",
+    "split_file": "training/splits/split_AG_v1.json",
+    "graphs_subdir": "processed/graphs",
+    "preload": false,
+    "batch_size": 1,
+    "num_workers": 0,
+    "pin_memory": false,
+    "enabled_node_features": [
+      "x",
+      "y",
+      "z",
+      "Abscissa",
+      "NormRadius",
+      "Curvature",
+      "Tangent_X",
+      "Tangent_Y",
+      "Tangent_Z",
+      "is_wall"
+    ],
+    "enabled_global_features": [
+      "t_norm",
+      "BC_Inlet",
+      "BC_O1",
+      "BC_O2",
+      "BC_O3",
+      "BC_O4"
+    ],
+    "augment": true,
+    "augment_config": {
+      "rotation_prob": 0.0,
+      "rotation_axes": "xyz",
+      "translation_prob": 0.5,
+      "translation_range": 0.1,
+      "scale_prob": 0.0,
+      "mirror_prob": 0.0
+    },
+    "ray_sidecar_subdir": "processed/ray_targets_k16",
+    "ray_target_scale": 78.71712669138381
+  },
+  "model": {
+    "name": "pointnext",
+    "hidden_dim": 256,
+    "num_layers": 4,
+    "dropout": 0.1,
+    "heads": 4,
+    "use_transformer_prenorm": false,
+    "wss_dim": 4,
+    "head_layout": "mlp2",
+    "wss_output_mode": "profile",
+    "wss_profile_head": true,
+    "wss_profile_n_basis": 3,
+    "wss_profile_mu": 1.0,
+    "wss_profile_variant": "dual"
+  },
+  "optim": {
+    "epochs": 40,
+    "lr": 0.0005,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 5,
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 10,
+    "early_stopping_patience": 60,
+    "target_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "interior_loss_boost": 1.0,
+    "grad_clip_norm": 1.0,
+    "accumulate_grad_batches": 2,
+    "wss_loss_weight": 0.0,
+    "wss_weights": [
+      1.0,
+      0.05,
+      0.05,
+      0.9
+    ],
+    "val_score_wss_weights": [
+      1.0,
+      0.05,
+      0.05,
+      0.9
+    ],
+    "wss_loss_type": "mse",
+    "wss_huber_beta": 1.0,
+    "early_stop_wss_weight": 0.0,
+    "domain_loss": {
+      "enabled": true,
+      "lambda_vel_int": 0.0,
+      "lambda_vel_noslip": 0.0,
+      "lambda_p_int": 0.5,
+      "lambda_p_wall": 1.0,
+      "lambda_wss": 0.1,
+      "normalize_by_target_std": true,
+      "norm_consts": {},
+      "weight_calibration": "配方同 post5463 AsymW-a / I6-diag / K7-probe；仅替换剖面头为 K8 双分量局部系（单变量）。frame/a1 目标来自 K9 sidecar（ray_targets_k16，Gate-0 5935_v2 全项 Go）。"
+    },
+    "early_stop_min_delta": 0.0001,
+    "val_score_ema_alpha": 0.4
+  },
+  "system": {
+    "seed": 1,
+    "device": "auto",
+    "deterministic": true,
+    "amp": false
+  },
+  "meta": {
+    "task": "field",
+    "exp_id": "V3P-K8-DualProfile-Probe-post5463",
+    "stage": "task_a",
+    "study_group": "v3_pointcloud_path_k8",
+    "question": "前沿方向 §15.1 K8：双分量局部系剖面头（coef head 出 2×n_basis，WSS_vec = a1_s·t̂_s + a1_c·t̂_c，frame 来自 K9 sidecar 预计算、推理期可得）——横向第一次拥有结构专属输出通道 a1_c，仅换头（无 L_ray）能否解锁横向分量？（K8-only 档，与 K8+L_ray 档配对归因）",
+    "feature_set": "coord_t_bc_geom_wall",
+    "ablation_axis": "v3p_k8_dual_profile_head",
+    "tags": [
+      "v3",
+      "pointcloud",
+      "pointnext",
+      "localpool",
+      "main",
+      "geometry",
+      "p+wss",
+      "no-velocity",
+      "wall13000_near2000",
+      "asymw",
+      "probe-40ep",
+      "post-5463-renorm",
+      "path-k8",
+      "dual-profile-head",
+      "ray-sidecar-frame"
+    ],
+    "notes": "Gate-1（同 §3.4）：Go = 40ep test wss_r2_wss ≥ 0.429 且 r2_p > 0.90；**Gate-2 为本方向主判据**：wss_x 或 wss_y R² > 0.10。No-Go = ≤0.409 或 r2_p ≤ 0.90。禁止 warm-start。5933 教训：val 尾段上升不作延长训依据，判读以 40ep test 为准。参数量与 K7 完全一致（2,310,162），单变量对照干净。",
+    "generated_from": "V3P-K7-ProfileWSS-Probe-post5463_seed1.json + wss_profile_variant=dual"
+  },
+  "physics": {
+    "enabled": false,
+    "warmup_epochs": 0,
+    "density": 1060.0,
+    "viscosity": 0.0035,
+    "coord_scales": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "time_scale": 1.0,
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "auto_load_scales": true
+  }
+}

@@ -34,7 +34,7 @@ from ..analysis.visualization import (
 from ..core.config import ExperimentConfig
 from ..core.data import FieldGraphDataset, build_required_data_keys, build_feature_mask
 from ..core.io import load_checkpoint
-from ..core.models import build_model
+from ..core.models import build_field_model_from_config
 from ..core.splits import SplitSpec
 from ..core.denylist import resolve_split_subset
 from ..core.utils import dump_json, ensure_dir, resolve_device, set_seed
@@ -208,20 +208,16 @@ def benchmark_one_run(
         preload=config.data.preload,
         feature_mask=feature_mask,
         required_keys=required_keys,
+        ray_sidecar_subdir=config.data.ray_sidecar_subdir,
+        ray_target_scale=config.data.ray_target_scale,
     )
 
     sample_data = dataset[0]
     case_name, case_graphs = collect_graphs_first_case(dataset)
 
-    model = build_model(
-        model_name=config.model.name,
-        hidden_dim=config.model.hidden_dim,
-        num_layers=config.model.num_layers,
-        dropout=config.model.dropout,
-        heads=config.model.heads,
-        use_transformer_prenorm=config.model.use_transformer_prenorm,
-        wss_dim=config.model.wss_dim,
-    ).to(device)
+    # 统一走 config 工厂：head_layout / wss_output_mode / profile variant 等特性
+    # 随 config 生效（此前手拼 kwargs 对新式 head 的 checkpoint 会结构不齐加载失败）。
+    model = build_field_model_from_config(config).to(device)
     load_checkpoint(model, ckpt, device)
 
     eff = build_efficiency_table(
