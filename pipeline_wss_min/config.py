@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -18,6 +19,7 @@ from typing import Dict, List, Tuple
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RAW_ROOT = PROJECT_ROOT / "data_new"           # 原始 CFD 根目录（只读）
 OUT_ROOT = PROJECT_ROOT / "data_wss_min"       # 新流程产物（独立目录，不动旧数据）
+DEFAULT_SPLIT_NAME = "split_AG_wss_min_v1"
 
 # 本版数据范围：AG 队列的 fast + slow
 # 每个条目 = (队列相对路径, 该子集下的病例目录名列表 / None 表示全部)
@@ -71,14 +73,23 @@ class UnitConfig:
     fixed_factor: float = 1000.0    # mode='fixed' 时使用
     # |log10(factor) - 3| 超过该阈值 -> 标记单位异常（正常米->毫米 factor≈1000）
     anomaly_log10_tol: float = 0.5
+    # --- 覆盖范围不一致鲁棒兜底 ---
+    # 比值法 factor = cl_diag / wall_diag 只在“壁面与中心线覆盖同一段血管”时成立。
+    # 个别病例中心线只描远端一段、壁面网格却含整条近端主动脉，比值法会把 factor
+    # 压到真实值的一半，坐标缩放/配准全线偏移。此时改用“米制整十次幂”兜底：
+    # 选使壁面对角线最接近生理尺度的 10^k 作 factor，并标记 extent_mismatch 待复核。
+    phys_diag_mm: float = 250.0     # 主动脉-髂动脉包围盒对角线的典型量级
+    # 比值法结果与整十次幂偏离超过该倍数 -> 判定覆盖范围不一致，改用整十次幂
+    ratio_trust: float = 1.5
 
 
 @dataclass
 class RegistrationConfig:
     """解剖学刚性配准（中心线主导）。"""
-    # 平移原点：优先使用 VMTK centerline.vtp 的 DistToBifurcation≈0 分叉区域。
+    # 平移原点：默认使用 flow_divider（三臂等权三叉连接点）作为解剖原点。
+    # 可切回 bifurcation 使用 VMTK DistToBifurcation≈0 分叉区域普通均值。
     # 若缺 VTP 拓扑或分叉数组，自动退回 wall/all/centerline 几何中心。
-    center_on: str = "bifurcation"          # 'bifurcation' | 'wall' | 'all' | 'centerline'
+    center_on: str = "flow_divider"         # 'bifurcation' | 'flow_divider' | 'wall' | 'all' | 'centerline'
     # 主轴目标：中心线 inlet->outlet 方向对齐到该轴
     principal_axis_target: str = "z"        # 'x' | 'y' | 'z'
     # 主轴定义：bifurcation 原点下优先用入口端 -> 分叉点的 trunk 方向；
@@ -109,12 +120,36 @@ class RegistrationConfig:
     roll_sign_min_cos: float = 0.2
     # DistToBifurcation <= 此阈值的中心线点用于估计分叉原点。
     bifurcation_distance_mm: float = 2.0
+    # flow_divider 原点：将 DistToBifurcation≈0 附近点聚成三臂（主干端 + 左右髂支端），
+    # 对三臂中心等权平均，减少采样密度/单侧分支对普通均值的拉偏。
+    flow_divider_distance_mm: float = 2.0
+    flow_divider_n_clusters: int = 3
+    flow_divider_min_cluster_sep_mm: float = 5.0
     # 分支远端候选：在分叉后点中取 DistToBifurcation 的高分位（'branches' 回退路径用）。
     branch_endpoint_quantile: float = 0.85
     # roll 符号锚定到原始世界坐标某一轴（'world_axis' 模式 / 兜底用）。
     roll_sign_world_axis: str = "x"         # 'x' | 'y' | 'z'
     # 主轴方向由 abscissa 最小(入口)->最大(出口) 锚定符号
     orient_by_abscissa: bool = True
+    # 配准后横向二次居中：刚性旋转后，若主干低位段在横断面内仍明显偏离中心轴，
+    # 只做 X/Y（或非主轴两个方向）平移，把主干低位段压回共同视角中心。
+    trunk_centering: bool = True
+    trunk_centering_quantile: float = 0.20
+    trunk_centering_min_offset_frac: float = 0.08
+    trunk_centering_stat: str = "median"     # 'median' | 'mean'
+    # 未描主动脉尾巴裁剪：个别病例壁面网格含一段中心线没描到的近端主动脉，
+    # 破坏跨病例尺度一致性。配准后（基于中心线，不受尾巴影响）、归一化前，
+    # 按中心线入口端轴向覆盖裁掉壁面/内部点里明显超出的那段。
+    # 只裁“入口(主动脉)侧”，不动“出口(髂支)侧”（髂支双支自然外展，属正常）；
+    # 仅当入口侧超出量 > crop_trigger_overshoot_frac × 中心线轴向跨度 才触发，
+    # 对覆盖一致的正常病例是零剪裁的 no-op。
+    crop_untraced_inlet: bool = True
+    # 入口裁剪采用中心线入口端局部切平面，而不是全局主轴一刀切；弯曲主干下更稳。
+    crop_use_inlet_tangent: bool = True
+    crop_axial_margin_frac: float = 0.12
+    crop_trigger_overshoot_frac: float = 0.20
+    # 保险：擦边小裁剪通常是正常解剖/中心线端点误差，不作为未描入口段处理。
+    crop_min_wall_frac: float = 0.08
 
 
 @dataclass
@@ -123,6 +158,10 @@ class NormalizationConfig:
     # 坐标：逐病例各向同性缩放到 [-1, 1]（保形，视角一致）
     coord_scope: str = "per_case"           # 'per_case' | 'global'
     coord_method: str = "max_abs"           # 'max_abs' -> [-1,1] | 'std'
+    # 缩放参照：'wall' 只按壁面范围（默认，跨病例视角一致，不受内部 CFD 流动延伸段
+    # 长度影响）；'all' 按壁面+内部（旧口径，会被内部延伸段带偏，壁面只填约半框）。
+    # 注：'wall' 下内部点归一化坐标可能超出 ±1（WSS 任务不以内部为输入，无影响）。
+    coord_scale_on: str = "wall"            # 'wall' | 'all'
     # WSS 标量目标：全局标准化（保留跨病例物理量级）
     wss_scope: str = "global"               # 'global' | 'per_case'
     wss_method: str = "log_z"               # 'z' | 'log_z'（WSS 近似对数正态）
@@ -196,12 +235,51 @@ REGISTRATION_CASE_OVERRIDES: Dict[str, Dict] = {
     "fast/LI_SHI_QIANG": {"roll_sign_mode": "world_axis"},
     "fast/LI_ZHEN_SHAN": {"roll_sign_mode": "world_axis"},
     "fast/ZHANG_HAO": {"roll_sign_mode": "world_axis"},
+    "slow/YIN_YU_RONG": {"roll_sign_mode": "world_axis"},
+    "slow/ZANG_YU_SHU": {"roll_sign_mode": "world_axis"},
+    "slow/LI_CHONG_ZENG": {"roll_sign_mode": "world_axis"},
+    "slow/XU_YI_CAI": {"roll_sign_mode": "world_axis"},
+    "slow/QIN_SI_FU": {"roll_sign_mode": "world_axis"},
 }
 
 
 def case_rel_path(cohort_rel: str, case_name: str) -> str:
     """split / override 统一键：fast/XXX 或 slow/XXX。"""
     return f"{cohort_rel.split('/', 1)[1]}/{case_name}"
+
+
+def split_path(split_name: str = DEFAULT_SPLIT_NAME) -> Path:
+    return PROJECT_ROOT / "training" / "splits" / f"{split_name}.json"
+
+
+def load_split(split_name: str = DEFAULT_SPLIT_NAME) -> Dict:
+    return json.loads(split_path(split_name).read_text())
+
+
+def split_case_labels(
+    split_name: str = DEFAULT_SPLIT_NAME,
+    partitions: Tuple[str, ...] = ("train", "val", "test"),
+) -> List[str]:
+    """返回 split 中的相对病例标签，如 fast/XXX 或 slow/XXX。"""
+    sp = load_split(split_name)
+    labels: List[str] = []
+    for part in partitions:
+        key = part if part.endswith("_cases") else f"{part}_cases"
+        labels.extend(sp.get(key, []))
+    return labels
+
+
+def list_split_cases(
+    cohort_rel: str,
+    split_name: str = DEFAULT_SPLIT_NAME,
+    partitions: Tuple[str, ...] = ("train", "val", "test"),
+) -> List[str]:
+    """按 split 白名单列出某 cohort 的病例名；不会返回 excluded/pending。"""
+    subset = cohort_rel.split("/", 1)[1]
+    prefix = f"{subset}/"
+    return [label.split("/", 1)[1]
+            for label in split_case_labels(split_name, partitions)
+            if label.startswith(prefix)]
 
 
 def registration_for_case(cohort_rel: str, case_name: str,

@@ -5,7 +5,9 @@
 本脚本不做 ICP 或额外刚性拟合。流程与 preprocess 保持一致：
 1. 壁面/内部 ascii -> mesh 单位换算；
 2. 读取中心线并计算同一个分叉原点刚性配准；
-3. STL 只按 ascii/STL 原始单位比例换到同一 pipeline 坐标尺度；
+3. STL 按 ascii/STL 原始单位比例换到同一 pipeline 坐标尺度；若 wall/centerline
+   覆盖范围不一致，则在 bbox-ratio、STL 已是 mm、STL 为原生单位三种假设中选最匹配
+   centerline 尺度的一种，避免未描入口尾巴把 STL 过度放大；
 4. 点云与 STL 套用同一个 transform、同一个 per-case 归一化尺度；
 5. 画叠加图并输出 overlap 距离，核查 x,y,z 输入空间是否规整。
 """
@@ -48,6 +50,8 @@ from .registration import compute_transform
 
 OUT_DIR = C.PROJECT_ROOT / "outputs" / "wss_min" / "stl_point_overlap_20260707"
 STL_ROOT = C.PROJECT_ROOT / "stl_data"
+RUN_LABEL = "随机 10 例"
+OUT_STEM = "random10"
 PLOT_POINTS = 3500
 PLOT_STL_VERTS = 4500
 PLOT_FACES = 2200
@@ -69,6 +73,47 @@ def _clean_stem(path: Path) -> str:
 
 def _bbox_diag(pts: np.ndarray) -> float:
     return float(np.linalg.norm(pts.max(axis=0) - pts.min(axis=0)))
+
+
+def _stl_scale_to_pipeline(
+    wall_native: np.ndarray,
+    wall_mm: np.ndarray,
+    centerline: Dict[str, np.ndarray],
+    stl_raw: np.ndarray,
+    unit_factor: float,
+    unit_extent_mismatch: bool = False,
+) -> Tuple[float, float, str]:
+    """Infer STL raw-unit -> pipeline-mm scale.
+
+    Most STL files share the wall mesh's raw coordinate frame up to a constant
+    scale, so the bbox-ratio path is exact.  For extent-mismatch cases the wall
+    mesh may include an untraced inlet tail while the STL/centerline cover only
+    the traced segment; in that case matching the full wall bbox can over-scale
+    the STL.  Score a few plausible unit hypotheses against the appropriate
+    reference extent and keep the best one.
+    """
+    native_diag = _bbox_diag(wall_native)
+    stl_diag = _bbox_diag(stl_raw)
+    native_to_stl = stl_diag / native_diag if native_diag > 1e-12 else 1000.0
+    ratio_scale = unit_factor / native_to_stl if native_to_stl > 1e-12 else 1.0
+
+    ref = centerline["coords"] if unit_extent_mismatch else wall_mm
+    ref_diag = _bbox_diag(ref)
+    if ref_diag <= 1e-12:
+        ref_diag = _bbox_diag(wall_mm)
+
+    candidates = [
+        ("bbox_ratio", ratio_scale),
+        ("stl_mm", 1.0),
+        ("stl_native", unit_factor),
+    ]
+
+    def _score(scale: float) -> float:
+        diag = max(stl_diag * scale, 1e-12)
+        return abs(float(np.log(diag / max(ref_diag, 1e-12))))
+
+    scale_kind, stl_to_pipeline = min(candidates, key=lambda item: _score(item[1]))
+    return float(native_to_stl), float(stl_to_pipeline), scale_kind
 
 
 def _load_included(split_name: str) -> List[Tuple[str, str, str]]:
@@ -183,7 +228,8 @@ def _load_case_overlay(
     int_native = raw_io.read_interior_geometry(case_dir, case_name, ref)
     centerline = raw_io.read_centerline(case_dir)
 
-    unit_factor, unit_anomaly = _resolve_unit_factor(wall_native, centerline, cfg.unit)
+    unit_factor, unit_anomaly, unit_extent_mismatch = _resolve_unit_factor(
+        wall_native, centerline, cfg.unit)
     wall_pts = wall_native * unit_factor
     int_pts = int_native * unit_factor
 
@@ -195,10 +241,8 @@ def _load_case_overlay(
     wall_norm = wall_aligned / coord_scale
 
     stl_raw, stl_faces = _read_stl(stl_path)
-    native_diag = _bbox_diag(wall_native)
-    stl_diag = _bbox_diag(stl_raw)
-    native_to_stl = stl_diag / native_diag if native_diag > 1e-12 else 1000.0
-    stl_to_pipeline = unit_factor / native_to_stl if native_to_stl > 1e-12 else 1.0
+    native_to_stl, stl_to_pipeline, stl_scale_kind = _stl_scale_to_pipeline(
+        wall_native, wall_pts, centerline, stl_raw, unit_factor, unit_extent_mismatch)
     stl_pts = stl_raw * stl_to_pipeline
     stl_aligned = transform.apply_points(stl_pts)
     stl_norm = stl_aligned / coord_scale
@@ -220,12 +264,21 @@ def _load_case_overlay(
         "stl_faces": stl_faces,
         "unit_factor": float(unit_factor),
         "unit_anomaly": bool(unit_anomaly),
+        "unit_extent_mismatch": bool(unit_extent_mismatch),
         "native_to_stl": float(native_to_stl),
         "stl_to_pipeline": float(stl_to_pipeline),
+        "stl_scale_kind": stl_scale_kind,
         "coord_scale": float(coord_scale),
         "origin_kind": transform.origin_kind,
         "main_axis_mode": transform.main_axis_mode,
+        "main_axis_source": transform.main_axis_source,
         "roll_source": transform.roll_source,
+        "roll_sign_source": transform.roll_sign_source,
+        "roll_sign_reliable": bool(transform.roll_sign_reliable),
+        "roll_sign_cos": float(transform.roll_sign_cos),
+        "trunk_centering_applied": bool(transform.trunk_centering_applied),
+        "trunk_centering_offset_frac": float(transform.trunk_centering_offset_frac),
+        "trunk_centering_offset_mm": transform.trunk_centering_offset_mm.astype(np.float64),
         "stl_to_wall_p50_mm": float(np.median(d_stl_to_wall)),
         "stl_to_wall_p95_mm": float(np.quantile(d_stl_to_wall, 0.95)),
         "wall_to_stl_p50_mm": float(np.median(d_wall_to_stl)),
@@ -267,10 +320,10 @@ def _draw_3d_grid(items: List[dict], seed: int):
         ax.set_box_aspect((1, 1, 1))
         title = f"{item['label']}\nSTL→点云 p95={item['stl_to_wall_p95_mm']:.3g} mm"
         ax.set_title(title, fontsize=8, pad=2)
-    fig.suptitle("随机 10 例：壁面点云(橙) 与 STL(蓝灰半透明) 在同一解剖归一化框架内叠加",
+    fig.suptitle(f"{RUN_LABEL}：壁面点云(橙) 与 STL(蓝灰半透明) 在同一解剖归一化框架内叠加",
                  fontsize=13, y=0.985)
     fig.tight_layout(rect=[0, 0, 1, 0.955])
-    fig.savefig(OUT_DIR / "01_random10_stl_point_overlap_3d.png", dpi=145)
+    fig.savefig(OUT_DIR / f"01_{OUT_STEM}_stl_point_overlap_3d.png", dpi=145)
     plt.close(fig)
 
 
@@ -299,10 +352,10 @@ def _draw_projection_grid(items: List[dict], seed: int):
             if c == 0:
                 ax.set_ylabel(f"{item['label']}\np95={item['stl_to_wall_p95_mm']:.3g}mm",
                               fontsize=7, rotation=0, ha="right", va="center", labelpad=34)
-    fig.suptitle("随机 10 例 STL 顶点(蓝灰) 与壁面点云(橙) 三投影叠加：同一坐标轴范围 [-1,1]",
+    fig.suptitle(f"{RUN_LABEL} STL 顶点(蓝灰) 与壁面点云(橙) 三投影叠加：同一坐标轴范围 [-1,1]",
                  fontsize=13, y=0.998)
     fig.tight_layout(rect=[0, 0, 1, 0.985], h_pad=0.35, w_pad=0.15)
-    fig.savefig(OUT_DIR / "02_random10_stl_point_overlap_projections.png", dpi=155)
+    fig.savefig(OUT_DIR / f"02_{OUT_STEM}_stl_point_overlap_projections.png", dpi=155)
     plt.close(fig)
 
 
@@ -337,10 +390,10 @@ def _draw_zoomed_projection_grid(items: List[dict], seed: int):
             if c == 0:
                 ax.set_ylabel(f"{item['label']}\np95={item['stl_to_wall_p95_mm']:.3g}mm",
                               fontsize=7, rotation=0, ha="right", va="center", labelpad=34)
-    fig.suptitle("随机 10 例 STL 顶点(蓝) 与壁面点云(橙) 三投影局部放大：检查是否逐点贴合",
+    fig.suptitle(f"{RUN_LABEL} STL 顶点(蓝) 与壁面点云(橙) 三投影局部放大：检查是否逐点贴合",
                  fontsize=13, y=0.998)
     fig.tight_layout(rect=[0, 0, 1, 0.985], h_pad=0.35, w_pad=0.15)
-    fig.savefig(OUT_DIR / "03_random10_stl_point_overlap_zoomed_projections.png", dpi=155)
+    fig.savefig(OUT_DIR / f"03_{OUT_STEM}_stl_point_overlap_zoomed_projections.png", dpi=155)
     plt.close(fig)
 
 
@@ -348,9 +401,9 @@ def _draw_same_frame_overlay(items: List[dict], source: str, seed: int):
     is_wall = source == "wall"
     title_source = "壁面点云" if is_wall else "STL 顶点/面片"
     out_name = (
-        "04_random10_same_frame_pointcloud_overlay.png"
+        f"04_{OUT_STEM}_same_frame_pointcloud_overlay.png"
         if is_wall else
-        "05_random10_same_frame_stl_overlay.png"
+        f"05_{OUT_STEM}_same_frame_stl_overlay.png"
     )
     colors = _case_colors(len(items))
     planes = [(0, 2, "X-Z 主轴视图"), (1, 2, "Y-Z 主轴视图"), (0, 1, "X-Y 横截面视图")]
@@ -396,7 +449,7 @@ def _draw_same_frame_overlay(items: List[dict], source: str, seed: int):
             ax.set_title(plane_title, fontsize=11)
 
     _set_3d_frame(ax3d)
-    ax3d.set_title(f"{title_source} 10 例同框 3D 视角", fontsize=11, pad=8)
+    ax3d.set_title(f"{title_source} 同框 3D 视角", fontsize=11, pad=8)
     for ax in proj_axes:
         _set_2d_frame(ax)
 
@@ -410,7 +463,7 @@ def _draw_same_frame_overlay(items: List[dict], source: str, seed: int):
         ncol=5, fontsize=8, frameon=False,
     )
     fig.suptitle(
-        f"随机 10 例 {title_source} 同一坐标框架叠加：同一原点、同一坐标范围、同一相机视角",
+        f"{RUN_LABEL} {title_source} 同一坐标框架叠加：同一原点、同一坐标范围、同一相机视角",
         fontsize=14, y=0.985,
     )
     fig.tight_layout(rect=[0, 0.055, 1, 0.955])
@@ -419,36 +472,58 @@ def _draw_same_frame_overlay(items: List[dict], source: str, seed: int):
 
 
 def _write_summary(items: List[dict]):
-    with open(OUT_DIR / "random10_stl_point_overlap_summary.csv", "w", newline="") as fh:
+    with open(OUT_DIR / f"{OUT_STEM}_stl_point_overlap_summary.csv", "w", newline="") as fh:
         writer = csv.writer(fh)
         writer.writerow([
             "case", "cohort", "stl_path", "n_wall", "n_stl_vertices", "n_stl_faces",
-            "unit_factor", "unit_anomaly", "native_to_stl", "stl_to_pipeline",
-            "coord_scale", "origin_kind", "main_axis_mode", "roll_source",
+            "unit_factor", "unit_anomaly", "unit_extent_mismatch",
+            "native_to_stl", "stl_to_pipeline", "stl_scale_kind",
+            "coord_scale", "origin_kind", "main_axis_mode", "main_axis_source",
+            "roll_source", "roll_sign_source", "roll_sign_reliable", "roll_sign_cos",
+            "trunk_centering_applied", "trunk_centering_offset_frac",
+            "trunk_centering_offset_x_mm", "trunk_centering_offset_y_mm",
+            "trunk_centering_offset_z_mm",
             "stl_to_wall_p50_mm", "stl_to_wall_p95_mm",
             "wall_to_stl_p50_mm", "wall_to_stl_p95_mm",
         ])
         for item in items:
+            off = item["trunk_centering_offset_mm"]
             writer.writerow([
                 item["label"], item["cohort"], item["stl_path"],
                 item["n_wall"], item["n_stl_vertices"], item["n_stl_faces"],
-                f"{item['unit_factor']:.8g}", item["unit_anomaly"],
-                f"{item['native_to_stl']:.8g}", f"{item['stl_to_pipeline']:.8g}",
+                f"{item['unit_factor']:.8g}", item["unit_anomaly"], item["unit_extent_mismatch"],
+                f"{item['native_to_stl']:.8g}", f"{item['stl_to_pipeline']:.8g}", item["stl_scale_kind"],
                 f"{item['coord_scale']:.8g}", item["origin_kind"],
-                item["main_axis_mode"], item["roll_source"],
+                item["main_axis_mode"], item["main_axis_source"],
+                item["roll_source"], item["roll_sign_source"],
+                item["roll_sign_reliable"], f"{item['roll_sign_cos']:.8g}",
+                item["trunk_centering_applied"], f"{item['trunk_centering_offset_frac']:.8g}",
+                f"{off[0]:.8g}", f"{off[1]:.8g}", f"{off[2]:.8g}",
                 f"{item['stl_to_wall_p50_mm']:.8g}", f"{item['stl_to_wall_p95_mm']:.8g}",
                 f"{item['wall_to_stl_p50_mm']:.8g}", f"{item['wall_to_stl_p95_mm']:.8g}",
             ])
 
 
 def run(split_name: str = "split_AG_wss_min_v1", n_cases: int = 10, seed: int = 20260707,
-        tag: str | None = None):
-    global OUT_DIR
+        tag: str | None = None, cases_keep: List[str] | None = None):
+    global OUT_DIR, RUN_LABEL, OUT_STEM
     if tag:
         OUT_DIR = C.PROJECT_ROOT / "outputs" / "wss_min" / f"stl_point_overlap_{tag}"
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    if cases_keep:
+        RUN_LABEL = f"指定 {len(cases_keep)} 例"
+        OUT_STEM = f"selected{len(cases_keep)}"
+    else:
+        RUN_LABEL = f"随机 {n_cases} 例"
+        OUT_STEM = f"random{n_cases}"
     index = _stl_index()
-    cases = _load_included(split_name)
+    if cases_keep:
+        cases = []
+        for label in cases_keep:
+            subset, case_name = label.split("/", 1)
+            cases.append(("AG/" + subset, case_name, label))
+    else:
+        cases = _load_included(split_name)
     available = []
     missing = []
     for cohort_rel, case_name, label in cases:
@@ -457,11 +532,16 @@ def run(split_name: str = "split_AG_wss_min_v1", n_cases: int = 10, seed: int = 
             missing.append(label)
         else:
             available.append((cohort_rel, case_name, label, stl_path))
-    if len(available) < n_cases:
-        raise RuntimeError(f"可匹配 STL 的病例不足：available={len(available)} requested={n_cases}")
 
-    rng = random.Random(seed)
-    selected = rng.sample(available, n_cases)
+    if cases_keep:
+        if missing:
+            raise RuntimeError(f"指定病例未匹配到 STL 或 raw 目录异常：{missing}")
+        selected = available
+    else:
+        if len(available) < n_cases:
+            raise RuntimeError(f"可匹配 STL 的病例不足：available={len(available)} requested={n_cases}")
+        rng = random.Random(seed)
+        selected = rng.sample(available, n_cases)
     print(f"[stl_overlap] split={split_name} available={len(available)} missing_stl={len(missing)}")
     print("[stl_overlap] selected:")
     for _, _, label, stl_path in selected:
@@ -490,5 +570,8 @@ if __name__ == "__main__":
     ap.add_argument("--seed", type=int, default=20260707)
     ap.add_argument("--tag", default=None,
                     help="输出目录后缀：outputs/wss_min/stl_point_overlap_<tag>；缺省覆盖 20260707 原目录")
+    ap.add_argument("--cases", default="",
+                    help="逗号分隔指定病例，如 fast/A,slow/B；为空则随机抽样")
     args = ap.parse_args()
-    run(args.split, args.n, args.seed, args.tag)
+    cases_keep = [c.strip() for c in args.cases.split(",") if c.strip()]
+    run(args.split, args.n, args.seed, args.tag, cases_keep=cases_keep or None)

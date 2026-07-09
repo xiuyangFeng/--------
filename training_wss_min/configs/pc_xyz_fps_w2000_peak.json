@@ -1,0 +1,73 @@
+{
+  "name": "pc_xyz_fps_w2000_peak",
+  "notes": "point-count sweep n=2000, xyz, fps, peak, scalar",
+  "data": {
+    "split_path": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_wss_min_v1.json",
+    "wall_n_points": 2000,
+    "sampling": "fps",
+    "geom_weight_curv": 1.0,
+    "geom_weight_invradius": 1.0,
+    "geom_weight_bifurcation": 0.0,
+    "resample_each_epoch": true,
+    "input_features": [
+      "x",
+      "y",
+      "z"
+    ],
+    "timesteps": "peak",
+    "target": "wss",
+    "num_workers": 4
+  },
+  "model": {
+    "name": "pointnext_s",
+    "width": 32,
+    "sa_ratios": [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+    ],
+    "sa_radius": [
+      0.05,
+      0.1,
+      0.2,
+      0.4
+    ],
+    "sa_nsample": [
+      16,
+      16,
+      16,
+      16
+    ],
+    "sa_blocks": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "invres_radius_scale": 1.0,
+    "fp_knn": 3,
+    "head_hidden": 64,
+    "out_dim": 1,
+    "dropout": 0.0
+  },
+  "train": {
+    "epochs": 400,
+    "batch_cases": 8,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 10,
+    "min_lr": 1e-05,
+    "grad_clip": 1.0,
+    "seed": 1234,
+    "loss": "mse",
+    "huber_delta": 1.0,
+    "loss_geom_weight": false,
+    "loss_weight_curv": 1.0,
+    "loss_weight_invradius": 1.0,
+    "amp": true,
+    "eval_every": 20,
+    "ckpt_metric": "val_r2_casemean",
+    "log_every_steps": 0
+  }
+}

@@ -26,9 +26,11 @@ AUDIT_FIELDS = [
     "cohort", "case", "status", "reason",
     "n_wall", "n_interior", "n_near_wall", "near_wall_capped",
     "n_steps", "step_min", "step_max", "peak_step",
-    "unit_factor", "unit_anomaly", "coord_scale_mm", "rotation_det",
+    "unit_factor", "unit_anomaly", "unit_extent_mismatch",
+    "wall_crop_applied", "wall_crop_frac", "coord_scale_mm", "coord_scale_on", "rotation_det",
     "origin_kind", "main_axis_mode", "main_axis_source", "main_axis_wall_sep_delta", "roll_source",
     "roll_sign_source", "roll_sign_cos", "roll_sign_reliable",
+    "trunk_centering_applied", "trunk_centering_offset_frac",
     "wss_raw_min", "wss_raw_max",
     "wall_delimiter", "interior_delimiter",
     "bundle_mb", "elapsed_s",
@@ -95,6 +97,12 @@ def write_batch_audit(rows: List[Dict], stage: str) -> Dict:
                         for r in rows if r["status"] == "error"],
         "unit_anomaly_cases": [f"{r['cohort']}/{r['case']}: factor={r.get('unit_factor','')}"
                                for r in rows if r.get("unit_anomaly")],
+        "unit_extent_mismatch_cases": [
+            f"{r['cohort']}/{r['case']}: factor={r.get('unit_factor','')}（中心线覆盖不全，待复核）"
+            for r in rows if r.get("unit_extent_mismatch")],
+        "wall_crop_cases": [
+            f"{r['cohort']}/{r['case']}: 裁掉未描主动脉尾巴 {float(r.get('wall_crop_frac',0) or 0)*100:.1f}%"
+            for r in rows if r.get("wall_crop_applied")],
         "roll_sign_unreliable_cases": [
             f"{r['cohort']}/{r['case']}: roll_source={r.get('roll_source','')} "
             f"sign_source={r.get('roll_sign_source','')} |cos|={r.get('roll_sign_cos','')}"
@@ -104,6 +112,10 @@ def write_batch_audit(rows: List[Dict], stage: str) -> Dict:
             f"sep_delta={r.get('main_axis_wall_sep_delta','')}"
             for r in rows if r.get("status") == "ok"
             and r.get("main_axis_source") not in ("", "centerline_chord")],
+        "trunk_centering_cases": [
+            f"{r['cohort']}/{r['case']}: offset_frac={r.get('trunk_centering_offset_frac','')}"
+            for r in rows if r.get("status") == "ok"
+            and r.get("trunk_centering_applied") is True],
     }
     json_path = REPORT_DIR / f"{stage}_audit_{ts}.json"
     json_path.write_text(json.dumps({"summary": summary, "rows": rows},

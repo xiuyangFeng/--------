@@ -24,7 +24,9 @@ from sklearn.neighbors import NearestNeighbors
 from . import config as C
 from . import raw_io
 from . import reporting
-from .registration import compute_transform, RigidTransform
+from .registration import (
+    compute_transform, RigidTransform, untraced_inlet_crop_masks, AXIS_INDEX,
+)
 
 
 # 点类型编码
@@ -76,20 +78,42 @@ def _bbox_diag(pts: np.ndarray) -> float:
 
 
 def _resolve_unit_factor(wall_native: np.ndarray, cl: Dict[str, np.ndarray], ucfg):
-    """反推 mesh 原生坐标 -> 毫米 的缩放因子。
+    """反推 mesh 原生坐标 -> 毫米 的缩放因子（鲁棒版）。
 
-    中心线始终为毫米，且与网格取自同一几何，故壁面包围盒对角线 × factor ≈ 中心线包围盒对角线。
-    （壁面比中心线略大 ~1 个半径，几个百分点误差不影响单位判定，也不影响后续逐病例归一化。）
-    返回 (factor, is_anomaly)。
+    正常情况下网格与中心线取自同一段几何、范围一致，壁面包围盒对角线 × factor ≈
+    中心线对角线，用比值 factor_ratio = cl_diag / mesh_diag 即可（壁面比中心线略大
+    ~1 个半径，几个百分点误差不影响判定）。
+
+    但个别病例中心线只描了远端一段、壁面网格却含整条近端主动脉（覆盖范围不一致），
+    比值法会把 factor 压到真实值的一半，导致坐标缩放/配准全线偏移。此时改用
+    “米制整十次幂”兜底：Fluent ascii 基本为 SI 米，选使壁面对角线落到生理尺度
+    (~phys_diag_mm) 的最近 10^k 作为 factor，并标记 extent_mismatch 待人工复核。
+    返回 (factor, is_anomaly, extent_mismatch)。
     """
     if ucfg.mode == "fixed":
         f = ucfg.fixed_factor
-    else:
-        mesh_diag = _bbox_diag(wall_native)
-        cl_diag = _bbox_diag(cl["coords"])
-        f = (cl_diag / mesh_diag) if mesh_diag > 1e-12 else ucfg.fixed_factor
-    anomaly = abs(np.log10(f) - 3.0) > ucfg.anomaly_log10_tol if f > 0 else True
-    return f, anomaly
+        anomaly = abs(np.log10(f) - 3.0) > ucfg.anomaly_log10_tol if f > 0 else True
+        return f, anomaly, False
+
+    mesh_diag = _bbox_diag(wall_native)
+    cl_diag = _bbox_diag(cl["coords"])
+    if mesh_diag <= 1e-12:
+        return ucfg.fixed_factor, True, False
+
+    f_ratio = cl_diag / mesh_diag
+    # 整十次幂兜底：让壁面对角线最接近生理尺度（对米制/异常单位都自适应）
+    k = int(round(np.log10(ucfg.phys_diag_mm / mesh_diag)))
+    f_snap = 10.0 ** k
+
+    # 覆盖范围一致时（正常病例）比值≈整十次幂，采用精细比值；两者偏离超过
+    # ratio_trust 倍则判定壁面/中心线覆盖不一致，比值法不可信 -> 采用整十次幂。
+    ratio_to_snap = (f_ratio / f_snap) if f_snap > 0 else np.inf
+    extent_mismatch = not (1.0 / ucfg.ratio_trust <= ratio_to_snap <= ucfg.ratio_trust)
+    f = f_snap if extent_mismatch else f_ratio
+
+    anomaly = bool(extent_mismatch or (
+        abs(np.log10(f) - 3.0) > ucfg.anomaly_log10_tol if f > 0 else True))
+    return f, anomaly, extent_mismatch
 
 
 def _nearest_centerline_feats(pts: np.ndarray, cl: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
@@ -134,8 +158,12 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
     cl = raw_io.read_centerline(case_dir)
 
     # ---- 单位统一 -> 毫米（逐病例，用中心线包围盒反推，鲁棒处理异常单位病例） ----
-    unit_factor, unit_anomaly = _resolve_unit_factor(wall_native, cl, cfg.unit)
-    if unit_anomaly:
+    unit_factor, unit_anomaly, unit_extent_mismatch = _resolve_unit_factor(wall_native, cl, cfg.unit)
+    if unit_extent_mismatch:
+        log.warning("  壁面/中心线覆盖范围不一致 %s/%s: 比值法不可信，已用整十次幂兜底 "
+                    "factor=%.4g（中心线可能只描了远端一段），朝向/配准请人工复核",
+                    cohort_rel, case_name, unit_factor)
+    elif unit_anomaly:
         log.warning("  单位异常 %s/%s: mesh->mm factor=%.4g（正常≈1000），已按中心线校正，"
                     "WSS 物理量级请人工复核", cohort_rel, case_name, unit_factor)
     wall_pts = wall_native * unit_factor
@@ -148,15 +176,35 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         log.warning("  左右轴符号不可靠 %s/%s: roll_source=%s sign_source=%s |cos|=%.3f，"
                     "已回退世界轴锚，朝向可能左右翻转，建议人工复核",
                     cohort_rel, case_name, T.roll_source, T.roll_sign_source, T.roll_sign_cos)
+    if T.trunk_centering_applied:
+        log.info("  主干横向二次居中 %s/%s: offset_frac=%.3f offset_mm=%s",
+                 cohort_rel, case_name, T.trunk_centering_offset_frac,
+                 np.round(T.trunk_centering_offset_mm, 3).tolist())
     wall_aln = T.apply_points(wall_pts)
     int_aln = T.apply_points(int_pts)
 
+    # ---- 2b. 未描主动脉尾巴裁剪（配准后、归一化前；对覆盖一致病例为 no-op） ----
+    cl_aln = T.apply_points(cl["coords"])
+    tgt = AXIS_INDEX[T.principal_axis_target]
+    wall_keep, int_keep, crop_frac, crop_applied = untraced_inlet_crop_masks(
+        wall_aln, int_aln, cl_aln, cl["abscissa"], tgt, reg_cfg)
+    if crop_applied:
+        log.info("  未描主动脉尾巴裁剪 %s/%s: 裁掉壁面 %.1f%%（%d->%d 点）",
+                 cohort_rel, case_name, 100.0 * crop_frac, len(wall_pts), int(wall_keep.sum()))
+        wall_pts = wall_pts[wall_keep]
+        int_pts = int_pts[int_keep]
+        wall_aln = wall_aln[wall_keep]
+        int_aln = int_aln[int_keep]
+
     # ---- 3. 坐标逐病例标准化 ----
     if cfg.normalization.coord_scope == "per_case":
+        # 缩放参照：默认只按壁面范围（视角一致，不受内部 CFD 流动延伸段长度影响）
+        ref = wall_aln if cfg.normalization.coord_scale_on == "wall" \
+            else np.vstack([wall_aln, int_aln])
         if cfg.normalization.coord_method == "std":
-            scale = float(np.concatenate([wall_aln, int_aln]).std())
+            scale = float(ref.std())
         else:  # max_abs -> [-1,1]
-            scale = float(np.abs(np.vstack([wall_aln, int_aln])).max())
+            scale = float(np.abs(ref).max())
         scale = scale if scale > 1e-9 else 1.0
     else:
         scale = 1.0  # 全局缩放在 build_samples 阶段处理
@@ -189,10 +237,12 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
     wvec_ts = np.empty((len(steps), n_wall, 3), dtype=np.float32) if cfg.tagging.store_wall_wss_vector else None
     for i, s in enumerate(steps):
         wf = raw_io.read_wall_fields(case_dir, case_name, s)
-        wss_ts[i] = wf["wss"]
-        wp_ts[i] = wf["pressure"]
+        # 壁面场按裁剪 mask 过滤，和 wall_pts 保持同序同长
+        wss_ts[i] = wf["wss"][wall_keep] if crop_applied else wf["wss"]
+        wp_ts[i] = wf["pressure"][wall_keep] if crop_applied else wf["pressure"]
         if wvec_ts is not None:
-            wvec_ts[i] = T.apply_vectors(wf["wss_vec"])  # 矢量同步旋转
+            vec = wf["wss_vec"][wall_keep] if crop_applied else wf["wss_vec"]
+            wvec_ts[i] = T.apply_vectors(vec)  # 矢量同步旋转
 
     # 近壁速度时间序列（第二条路径，可选）
     nw_idx = np.where(int_type == NEAR_WALL)[0]
@@ -216,7 +266,11 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         steps=np.asarray(steps, dtype=np.int32),
         peak_step=np.int32(peak),
         coord_scale=np.float32(scale),
+        coord_scale_on=np.asarray(cfg.normalization.coord_scale_on),
         unit_factor=np.float64(unit_factor),
+        unit_extent_mismatch=np.bool_(unit_extent_mismatch),
+        wall_crop_applied=np.bool_(crop_applied),
+        wall_crop_frac=np.float64(crop_frac),
         transform_centroid=T.centroid.astype(np.float64),
         transform_rotation=T.rotation.astype(np.float64),
         principal_axis_target=T.principal_axis_target,
@@ -228,6 +282,9 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         transform_roll_sign_source=T.roll_sign_source,
         transform_roll_sign_cos=np.float64(T.roll_sign_cos),
         transform_roll_sign_reliable=np.bool_(T.roll_sign_reliable),
+        transform_trunk_centering_applied=np.bool_(T.trunk_centering_applied),
+        transform_trunk_centering_offset_mm=T.trunk_centering_offset_mm.astype(np.float64),
+        transform_trunk_centering_offset_frac=np.float64(T.trunk_centering_offset_frac),
         # 壁面（静态几何）
         wall_coords_norm=wall_norm,
         wall_coords_raw=wall_pts.astype(np.float32),
@@ -270,8 +327,12 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         "n_steps": len(steps), "step_min": int(steps[0]), "step_max": int(steps[-1]),
         "peak_step": int(peak), "peak_from_waveform": bool(cfg.timestep.peak_from_waveform),
         "unit_factor": round(float(unit_factor), 4), "unit_anomaly": bool(unit_anomaly),
+        "unit_extent_mismatch": bool(unit_extent_mismatch),
+        "wall_crop_applied": bool(crop_applied),
+        "wall_crop_frac": round(float(crop_frac), 4),
         "coord_scale_mm": round(scale, 4), "coord_scope": cfg.normalization.coord_scope,
         "coord_method": cfg.normalization.coord_method,
+        "coord_scale_on": cfg.normalization.coord_scale_on,
         "wss_scope": cfg.normalization.wss_scope, "wss_method": cfg.normalization.wss_method,
         "rotation_det": round(rot_det, 6),
         "principal_axis_target": T.principal_axis_target,
@@ -283,6 +344,11 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         "roll_sign_source": T.roll_sign_source,
         "roll_sign_cos": round(float(T.roll_sign_cos), 4),
         "roll_sign_reliable": bool(T.roll_sign_reliable),
+        "trunk_centering_applied": bool(T.trunk_centering_applied),
+        "trunk_centering_offset_frac": round(float(T.trunk_centering_offset_frac), 4),
+        "trunk_centering_offset_mm": [
+            round(float(x), 4) for x in T.trunk_centering_offset_mm
+        ],
         "centroid_mm": [round(float(x), 4) for x in T.centroid],
         "wss_raw_min": float(wss_ts.min()), "wss_raw_max": float(wss_ts.max()),
         "wall_delimiter": probe["wall_delimiter"],

@@ -41,6 +41,9 @@ class RigidTransform:
     roll_sign_source: str = "none"   # 'trunk_bending' | 'world_axis' | 'branches_internal' | 'curvature_internal' | 'none'
     roll_sign_cos: float = 0.0       # 符号置信 |cos|（trunk_bending 模式下有意义）
     roll_sign_reliable: bool = True  # 低于阈值/无参照 -> False，待人工复核
+    trunk_centering_applied: bool = False
+    trunk_centering_offset_mm: np.ndarray | None = None   # 新坐标系下被减掉的横向平移量
+    trunk_centering_offset_frac: float = 0.0
 
     def apply_points(self, pts: np.ndarray) -> np.ndarray:
         return (pts - self.centroid) @ self.rotation
@@ -65,6 +68,12 @@ class RigidTransform:
             "roll_sign_source": self.roll_sign_source,
             "roll_sign_cos": self.roll_sign_cos,
             "roll_sign_reliable": self.roll_sign_reliable,
+            "trunk_centering_applied": self.trunk_centering_applied,
+            "trunk_centering_offset_mm": (
+                None if self.trunk_centering_offset_mm is None
+                else self.trunk_centering_offset_mm.tolist()
+            ),
+            "trunk_centering_offset_frac": self.trunk_centering_offset_frac,
         }
 
 
@@ -113,6 +122,75 @@ def _bifurcation_origin(centerline: Dict[str, np.ndarray], cfg: RegistrationConf
     if mask.sum() == 0:
         return None
     return coords[mask].mean(axis=0)
+
+
+def _kmeans_points(points: np.ndarray, n_clusters: int, n_iter: int = 25) -> Tuple[np.ndarray, np.ndarray]:
+    """Small deterministic k-means for bifurcation near-zero centerline points."""
+    n = len(points)
+    k = max(1, min(int(n_clusters), n))
+    centers = [points.mean(axis=0)]
+    while len(centers) < k:
+        c = np.asarray(centers)
+        dist2 = ((points[:, None, :] - c[None, :, :]) ** 2).sum(axis=2).min(axis=1)
+        centers.append(points[int(np.argmax(dist2))])
+    centers = np.asarray(centers, dtype=float)
+
+    labels = np.zeros(n, dtype=int)
+    for _ in range(n_iter):
+        dist2 = ((points[:, None, :] - centers[None, :, :]) ** 2).sum(axis=2)
+        new_labels = np.argmin(dist2, axis=1)
+        new_centers = centers.copy()
+        for i in range(k):
+            mask = new_labels == i
+            if mask.any():
+                new_centers[i] = points[mask].mean(axis=0)
+        if np.array_equal(new_labels, labels) and np.allclose(new_centers, centers):
+            labels = new_labels
+            centers = new_centers
+            break
+        labels = new_labels
+        centers = new_centers
+    return centers, labels
+
+
+def _flow_divider_origin(centerline: Dict[str, np.ndarray], cfg: RegistrationConfig):
+    """Three-arm bifurcation origin: equal-weight center of trunk + two iliac branch starts.
+
+    VMTK's DistToBifurcation≈0 usually marks several points around the branch
+    junction. A plain mean can be biased by uneven sampling along one arm. Here
+    we cluster the near-zero points into anatomical arms and average the arm
+    centers equally, which matches the visual "left/right iliac branches connect
+    to the middle aorta" landmark.
+    """
+    d = centerline.get("dist_to_bifurcation")
+    coords = centerline["coords"]
+    if d is None or len(d) != len(coords):
+        return None
+    d = np.asarray(d, dtype=float)
+    finite = np.isfinite(d)
+    if not finite.any():
+        return None
+
+    threshold = max(float(cfg.flow_divider_distance_mm), float(np.nanquantile(d[finite], 0.01)))
+    mask = finite & (d <= threshold)
+    if mask.sum() < int(cfg.flow_divider_n_clusters):
+        mask = finite & (d <= max(float(cfg.bifurcation_distance_mm), float(np.nanquantile(d[finite], 0.03))))
+    pts = coords[mask]
+    if len(pts) < int(cfg.flow_divider_n_clusters):
+        return None
+
+    centers, labels = _kmeans_points(pts, int(cfg.flow_divider_n_clusters))
+    counts = np.bincount(labels, minlength=len(centers))
+    valid = counts > 0
+    centers = centers[valid]
+    if len(centers) < int(cfg.flow_divider_n_clusters):
+        return None
+
+    sep = np.linalg.norm(centers[:, None, :] - centers[None, :, :], axis=2)
+    min_sep = float(sep[np.triu_indices(len(centers), 1)].min())
+    if min_sep < float(cfg.flow_divider_min_cluster_sep_mm):
+        return None
+    return centers.mean(axis=0)
 
 
 def _endpoint_mean_by_abscissa(cl_centered: np.ndarray, absc: np.ndarray, low: bool) -> np.ndarray:
@@ -289,10 +367,12 @@ def _wall_pca_main_axis_fallback(
     if wall_delta <= chord_delta:
         return chord_axis, "centerline_chord_ambiguous", chord_delta
 
-    # best['side'] 是双髂支侧所在方向；主轴定义为 trunk -> bifurcation/branches，
-    # 因此让双髂支侧落在 +main_axis。
-    axis = _unit(wall_axis * float(best["side"]))
-    # 避免极端情况下壁面 PCA 与 chord 完全反向但仍等价；这里保留由双髂支侧决定的符号。
+    # Wall PCA is used for the axis direction, but its sign is arbitrary.  The
+    # side-score can be fooled when a curved trunk has stronger transverse
+    # spread than the iliac side (for example fast/ZHANG_HAO), so preserve the
+    # centerline trunk->bifurcation sign and only replace the axis direction.
+    sign = 1.0 if float(np.dot(wall_axis, chord_axis)) >= 0 else -1.0
+    axis = _unit(wall_axis * sign)
     return axis, "wall_pca_fallback", chord_delta
 
 
@@ -384,6 +464,163 @@ def _sign_lr_axis(
     return roll, source, cos_bend, bool(reliable)
 
 
+def _trunk_centering_shift(
+    wall_pts: np.ndarray,
+    interior_pts: np.ndarray,
+    centroid: np.ndarray,
+    rotation: np.ndarray,
+    target_axis: int,
+    cfg: RegistrationConfig,
+) -> Tuple[bool, np.ndarray, float]:
+    """配准后主干横向二次居中，返回 (是否应用, 新坐标系平移量, 归一化偏移量)。
+
+    主轴已经被放到 target_axis；主干在低 axial 分位。若低位主干段的横向中心明显偏离
+    新坐标系中心轴，则将这个横向偏移折算进 centroid，相当于刚性平移，不改变旋转。
+    """
+    shift_new = np.zeros(3, dtype=float)
+    if not getattr(cfg, "trunk_centering", False) or len(wall_pts) < 20:
+        return False, shift_new, 0.0
+
+    wall_aligned = (wall_pts - centroid) @ rotation
+    int_aligned = (interior_pts - centroid) @ rotation if len(interior_pts) else np.empty((0, 3))
+    all_aligned = wall_aligned if len(int_aligned) == 0 else np.vstack([wall_aligned, int_aligned])
+    scale = float(np.abs(all_aligned).max()) or 1.0
+
+    axial = wall_aligned[:, target_axis]
+    q = np.clip(float(cfg.trunk_centering_quantile), 0.02, 0.45)
+    cutoff = float(np.nanquantile(axial, q))
+    trunk = wall_aligned[axial <= cutoff]
+    if len(trunk) < 10:
+        return False, shift_new, 0.0
+
+    transverse = [i for i in range(3) if i != target_axis]
+    if getattr(cfg, "trunk_centering_stat", "median") == "mean":
+        offset = trunk[:, transverse].mean(axis=0)
+    else:
+        offset = np.median(trunk[:, transverse], axis=0)
+
+    offset_frac = float(np.linalg.norm(offset) / scale)
+    if offset_frac < float(cfg.trunk_centering_min_offset_frac):
+        return False, shift_new, offset_frac
+
+    shift_new[transverse] = offset
+    return True, shift_new, offset_frac
+
+
+def _inlet_tangent_crop_reference(
+    centerline_aln: np.ndarray,
+    abscissa: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray, float] | None:
+    """入口端局部中心线参考：返回 (入口点, 朝向血管内部的切向, 曲线跨度)。"""
+    if len(centerline_aln) < 2 or len(abscissa) != len(centerline_aln):
+        return None
+
+    absc = np.asarray(abscissa, dtype=float)
+    finite = np.isfinite(absc)
+    if finite.sum() < 2:
+        return None
+
+    order = np.argsort(absc[finite])
+    pts = centerline_aln[finite][order]
+    s = absc[finite][order]
+    span = float(s[-1] - s[0])
+    if span <= 1e-9:
+        return None
+
+    n = len(pts)
+    n0 = max(1, min(n - 1, int(np.ceil(0.05 * n))))
+    n1 = max(n0 + 1, min(n, int(np.ceil(0.20 * n))))
+    inlet = pts[0]
+    near = pts[:n0].mean(axis=0)
+    downstream = pts[n0:n1].mean(axis=0) if n1 > n0 else pts[-1]
+    tangent = _unit(downstream - near)
+    if np.linalg.norm(tangent) <= 1e-9:
+        return None
+    return inlet, tangent, span
+
+
+def untraced_inlet_crop_masks(
+    wall_aln: np.ndarray,
+    interior_aln: np.ndarray,
+    centerline_aln: np.ndarray,
+    abscissa: np.ndarray,
+    target_axis: int,
+    cfg: RegistrationConfig,
+) -> Tuple[np.ndarray, np.ndarray, float, bool]:
+    """配准后（对齐坐标系）裁掉中心线入口端外侧“未描主动脉尾巴”。
+
+    只处理入口(主动脉)侧：优先用中心线入口端局部切平面判断壁面是否延伸到
+    中心线覆盖外；若局部切向不可用，再退回主轴方向。对覆盖一致或只擦边超出的
+    病例为 no-op。返回 (wall_keep, int_keep, crop_frac, applied)。
+    """
+    n_wall = len(wall_aln)
+    wall_keep = np.ones(n_wall, dtype=bool)
+    int_keep = np.ones(len(interior_aln), dtype=bool)
+    if not getattr(cfg, "crop_untraced_inlet", False) or n_wall == 0 or len(centerline_aln) < 2:
+        return wall_keep, int_keep, 0.0, False
+
+    margin = trigger = None
+    if getattr(cfg, "crop_use_inlet_tangent", True):
+        ref = _inlet_tangent_crop_reference(centerline_aln, abscissa)
+        if ref is not None:
+            inlet, tangent, span = ref
+            margin = float(cfg.crop_axial_margin_frac) * span
+            trigger = float(cfg.crop_trigger_overshoot_frac) * span
+            w_signed = (wall_aln - inlet) @ tangent
+            overshoot = -float(w_signed.min())
+            if overshoot <= trigger:
+                return wall_keep, int_keep, 0.0, False
+            cut = -margin
+            wall_keep = w_signed >= cut
+            int_keep = ((interior_aln - inlet) @ tangent) >= cut
+            crop_frac = 1.0 - float(wall_keep.mean())
+            min_frac = float(getattr(cfg, "crop_min_wall_frac", 0.0))
+            if crop_frac < min_frac:
+                return np.ones(n_wall, dtype=bool), np.ones(len(interior_aln), dtype=bool), 0.0, False
+            if wall_keep.sum() < max(50, int(0.2 * n_wall)):
+                return np.ones(n_wall, dtype=bool), np.ones(len(interior_aln), dtype=bool), 0.0, False
+            return wall_keep, int_keep, crop_frac, bool(crop_frac > 0.0)
+
+    ax = int(target_axis)
+    cl_ax = centerline_aln[:, ax]
+    lo, hi = float(cl_ax.min()), float(cl_ax.max())
+    span = hi - lo
+    if span <= 1e-9:
+        return wall_keep, int_keep, 0.0, False
+
+    # 入口端在中心线轴向的哪一侧：由 abscissa 最小点（入口）判定
+    inlet_axial = float(centerline_aln[int(np.argmin(abscissa)), ax])
+    inlet_low = abs(inlet_axial - lo) <= abs(inlet_axial - hi)
+
+    w_ax = wall_aln[:, ax]
+    margin = float(cfg.crop_axial_margin_frac) * span
+    trigger = float(cfg.crop_trigger_overshoot_frac) * span
+
+    if inlet_low:
+        overshoot = lo - float(w_ax.min())
+        if overshoot <= trigger:
+            return wall_keep, int_keep, 0.0, False
+        cut = lo - margin
+        wall_keep = w_ax >= cut
+        int_keep = interior_aln[:, ax] >= cut
+    else:
+        overshoot = float(w_ax.max()) - hi
+        if overshoot <= trigger:
+            return wall_keep, int_keep, 0.0, False
+        cut = hi + margin
+        wall_keep = w_ax <= cut
+        int_keep = interior_aln[:, ax] <= cut
+
+    crop_frac = 1.0 - float(wall_keep.mean())
+    min_frac = float(getattr(cfg, "crop_min_wall_frac", 0.0))
+    if crop_frac < min_frac:
+        return np.ones(n_wall, dtype=bool), np.ones(len(interior_aln), dtype=bool), 0.0, False
+    # 兜底：极端情况下别把壁面裁没了
+    if wall_keep.sum() < max(50, int(0.2 * n_wall)):
+        return np.ones(n_wall, dtype=bool), np.ones(len(interior_aln), dtype=bool), 0.0, False
+    return wall_keep, int_keep, crop_frac, bool(crop_frac > 0.0)
+
+
 def compute_transform(
     wall_pts: np.ndarray,
     interior_pts: np.ndarray,
@@ -392,7 +629,17 @@ def compute_transform(
 ) -> RigidTransform:
     # ---- 1. 重心 ----
     origin_kind = cfg.center_on
-    if cfg.center_on == "bifurcation":
+    if cfg.center_on == "flow_divider":
+        centroid = _flow_divider_origin(centerline, cfg)
+        if centroid is None:
+            centroid = _bifurcation_origin(centerline, cfg)
+            origin_kind = "bifurcation_fallback"
+        else:
+            origin_kind = "flow_divider"
+        if centroid is None:
+            centroid = wall_pts.mean(axis=0)
+            origin_kind = "wall_fallback"
+    elif cfg.center_on == "bifurcation":
         centroid = _bifurcation_origin(centerline, cfg)
         if centroid is None:
             centroid = wall_pts.mean(axis=0)
@@ -413,7 +660,7 @@ def compute_transform(
     # 端点把主轴拉偏；缺分叉原点时退回完整中心线首尾弦向。
     inlet = _endpoint_mean_by_abscissa(cl, absc, low=True)
     outlet = _endpoint_mean_by_abscissa(cl, absc, low=False)
-    if cfg.main_axis_mode == "inlet_to_bifurcation" and origin_kind == "bifurcation":
+    if cfg.main_axis_mode == "inlet_to_bifurcation" and origin_kind in ("bifurcation", "flow_divider", "bifurcation_fallback"):
         chord = -inlet
         main_axis_mode = "inlet_to_bifurcation"
     else:
@@ -482,6 +729,11 @@ def compute_transform(
         basis_world[order[1]] = -e_third
         R = np.column_stack(basis_world)
 
+    trunk_centering_applied, trunk_centering_offset, trunk_centering_offset_frac = _trunk_centering_shift(
+        wall_pts, interior_pts, centroid, R, tgt, cfg)
+    if trunk_centering_applied:
+        centroid = centroid + trunk_centering_offset @ R.T
+
     return RigidTransform(
         centroid=centroid,
         rotation=R,
@@ -494,4 +746,7 @@ def compute_transform(
         roll_sign_source=roll_sign_source,
         roll_sign_cos=float(roll_sign_cos),
         roll_sign_reliable=bool(roll_sign_reliable),
+        trunk_centering_applied=bool(trunk_centering_applied),
+        trunk_centering_offset_mm=trunk_centering_offset.astype(float),
+        trunk_centering_offset_frac=float(trunk_centering_offset_frac),
     )

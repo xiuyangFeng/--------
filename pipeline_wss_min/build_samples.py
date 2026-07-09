@@ -123,7 +123,12 @@ def build_case_samples(cohort_rel: str, case_name: str, stats: Dict,
     return written
 
 
-def build_all(cohorts: List[str] | None = None, cfg: C.PipelineConfig | None = None) -> None:
+def build_all(
+    cohorts: List[str] | None = None,
+    cfg: C.PipelineConfig | None = None,
+    split_name: str | None = C.DEFAULT_SPLIT_NAME,
+    partitions: tuple[str, ...] = ("train", "val", "test"),
+) -> None:
     cfg = cfg or C.DEFAULT
     cohorts = cohorts or list(C.COHORTS.values())
     stats = GS.load_global_wss_stats(cfg)
@@ -132,7 +137,11 @@ def build_all(cohorts: List[str] | None = None, cfg: C.PipelineConfig | None = N
     manifest = []
     n_cases = 0
     for cohort in cohorts:
-        for case in C.list_cases(cohort):
+        cases = (
+            C.list_split_cases(cohort, split_name, partitions)
+            if split_name else C.list_cases(cohort)
+        )
+        for case in cases:
             bp = C.out_case_dir(cohort, case) / "bundle.npz"
             if not bp.is_file():
                 continue
@@ -148,10 +157,13 @@ def build_all(cohorts: List[str] | None = None, cfg: C.PipelineConfig | None = N
         "timesteps": cfg.sample.timesteps,
         "input_features": list(cfg.sample.input_features),
         "target": cfg.sample.target,
+        "split_name": split_name,
+        "partitions": list(partitions),
         "n_cases": n_cases,
         "n_samples": len(manifest),
         "samples": manifest,
     }, indent=2))
-    log.info("[build_samples] set=%s wall_n=%d timesteps=%s -> %d samples from %d cases -> %s",
-             cfg.sample.name, cfg.sample.wall_n_points, cfg.sample.timesteps,
-             len(manifest), n_cases, man_dir)
+    log.info("[build_samples] split=%s partitions=%s set=%s wall_n=%d timesteps=%s "
+             "-> %d samples from %d cases -> %s",
+             split_name or "ALL_RAW", ",".join(partitions), cfg.sample.name,
+             cfg.sample.wall_n_points, cfg.sample.timesteps, len(manifest), n_cases, man_dir)

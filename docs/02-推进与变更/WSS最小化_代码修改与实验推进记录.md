@@ -4,6 +4,338 @@
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
 > 上位文档：[WSS 最小化预处理交接记录](WSS最小化预处理流程_搭建与交接记录_2026-07-07.md) / [pipeline_wss_min README](../../pipeline_wss_min/README.md)。
 
+## 2026-07-08｜training_wss_min：PointNeXt 残差 baseline 训练/评估框架 + 第一/二轮 sweep 🚧进行中
+
+> 训练侧实验跟踪主文档：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md)（逐轮 sweep 设计、完整指标表、结论、待办）。
+
+**背景与目标**：flow-divider 预处理口径落地后推进到训练侧。目标：把
+`几何点云 (x,y,z[+几何]) → 壁面 WSS 标量`（全局 log_z 归一化，单头）的 baseline 搭起来并集群并行提交；
+最终服务工程部署（**A 路**：部署有完整几何、缺 CFD 标签，故训练用稀疏子采样、**评估恒在完整壁面点云上**）。
+要求与既有 V3P `training/` **完全独立**。
+
+**本次主要修改（新建独立包 `training_wss_min/`）**：
+- `pointnext.py`：PointNeXt-S **残差版**（InvResMLP 残差块 + **ball-query** 分组，密度鲁棒 → 训练稀疏点、推理整条血管可迁移）；`out_dim=3` 即切矢量（二期）。
+- `dataset.py`：直读 `data_wss_min/**/bundle.npz`（不经 build_samples）；采样 fps/random/几何加权；特征标准化；训练期随机旋转增广（第二轮加）；完整点云评估接口。
+- `metrics.py`：R²/NRMSE/MAE + 分区（分叉/狭窄/高WSS）。
+- `train.py`：AdamW+cosine+AMP；日志 `train.log`+`history.jsonl`；best/last ckpt；loss 支持 MSE/Huber + 几何加权 + 目标幅值加权（第二轮加）。
+- `evaluate.py`：加载 best，**完整点云**推理 → 指标 + 逐病例 CSV + 真值/预测/误差热力图。
+- `make_configs.py` / `make_configs_round2.py`：两轮 sweep 配置生成。
+- `cluster/run_train.slurm` + `submit_baseline_sweep.sh`：GPU 分区(master 4×4090) 训练+评估一条龙，多 config 自动排队并行。
+- `summarize.py`：聚合 `runs/*/eval/metrics.json` → 对比表 + 点数曲线 + 分区柱状。
+
+**数据口径**：split `split_AG_wss_min_v1`（train54/val8/test16）；坐标逐病例各向同性归一化 [-1,1]；WSS 全局 log_z（train-only 统计，std≈5.6）；评估在原始 WSS 空间。
+
+**第一轮 sweep（9 config，Slurm 5945–5953）✅完成**（详见跟踪文档）：
+- 几何特征是压倒性杠杆：xyz+几何(test R²_field=0.200) ≈ 纯几何(0.191) ≫ 纯 xyz@2000(0.053)。纯几何≈xyz+几何 → **标量任务里绝对坐标/配准框架几乎不值分**（正面印证前期讨论口径）。
+- 几何特征更省点：2000 点几何 > 6000 点纯 xyz。几何加权采样(0.108) > random(0.084) > fps(0.053)。
+- **所有配置狭窄区/高 WSS 区 R² 全负**（最好也 sten −0.20 / hiW −1.63），为主瓶颈。
+
+**第二轮 sweep（9 config，Slurm 5961–5969）🚧进行中**：以 xyz+几何为默认，专打尾部崩溃；新增旋转增广 + 目标幅值加权 loss。早期结果：目标加权 loss 把 test R²_field 提到 **0.246**，且 sten −0.19→−0.07、hiW −1.63→−1.38，尾部攻击方向已验证有效。完整结论见跟踪文档。
+
+**对应代码/文档**：
+- 代码：`training_wss_min/`（整目录，独立于 `training/`）。
+- 文档：新增 `docs/02-推进与变更/WSS最小化_训练实验跟踪.md`（实验跟踪主文档）、`training_wss_min/README.md`。
+
+**推进到实验步骤**：从预处理/坐标 QA 正式推进到 `x,y,z → wss` 训练与评估；建立点数-精度、特征消融、采样、loss 加权、旋转增广的可复现 sweep 与完整点云评估基线。
+
+**当前状态判断**：baseline 已跑通、可复现、集群并行；最优 test R²_field 目前 **0.246**（第二轮目标加权 loss，仍在跑完最后几例）。主攻方向明确——几何特征 >> 坐标 >> 点数；尾部（狭窄/高 WSS）靠目标/几何加权可回拉但仍为负，需继续。矢量三分量为二期（幅值 + 内在系方向）。
+
+## 2026-07-08｜flow-divider 解剖基点算法化：三叉连接点最终口径 + 78例对照报告 ✅已采纳
+
+**用户新想法**：不再只取 `DistToBifurcation≈0` 区域普通均值，而是取“左右髂支连接到中间主动脉的三叉连接点”作为解剖基点；希望所有血管在同一框架下更规整，方便后续数据增强和训练。
+
+**本次算法化实现**：
+- `RegistrationConfig.center_on` 已切换为默认 `flow_divider`，作为当前最终预处理口径。
+- `registration.py` 新增 `_flow_divider_origin()`：
+  1. 读取 VMTK `centerline.vtp` 中的 `DistToBifurcation`。
+  2. 取 `DistToBifurcation≈0` 的分叉近邻中心线点。
+  3. 对近邻点做确定性 K-means，聚成 3 臂：主干端 + 左髂支起始端 + 右髂支起始端。
+  4. 对 3 个臂中心做**等权平均**作为 flow-divider 原点，避免某一臂采样点更多时把普通均值拉偏。
+  5. 若三臂分离不足或数据不完整，自动回退到原 `bifurcation` 原点，并写 `origin_kind=bifurcation_fallback`。
+- `visualize_final_case_pages.py` 默认输出到 `outputs/wss_min/flow_divider_origin_QA_78例/`，可用 `--center-on` 做旧口径对照。
+- 新增 `compare_flow_divider_origin.py`，批量比较旧 `bifurcation` 原点与当前 `flow_divider` 原点。
+
+**对照报告（当前 included=78）**：
+- 报告目录：`outputs/wss_min/flow_divider_origin_compare/`
+- CSV：`outputs/wss_min/flow_divider_origin_compare/flow_divider_origin_compare_78cases.csv`
+- 汇总图：`outputs/wss_min/flow_divider_origin_compare/flow_divider_origin_summary.png`
+- 说明：`outputs/wss_min/flow_divider_origin_compare/说明.md`
+- 原点位移 median/mean/p95/max：`4.78 / 5.21 / 10.23 / 20.08 mm`。
+- 当前原点 |COM| mean/median：`0.2140 / 0.2228`。
+- flow-divider |COM| mean/median：`0.2029 / 0.2133`。
+- |COM| 改善/变差：`61 / 16`；其中明确改善（delta≤-0.005）`50` 例，轻微变化（|delta|<0.005）`17` 例，明确变差（delta≥0.005）`11` 例。
+- flow-divider 直接成功 `77/78`，仅 `fast/LI_SHI_QIANG` 回退到 `bifurcation_fallback`。
+
+**最终 QA 图**：
+- 输出目录：`outputs/wss_min/flow_divider_origin_QA_78例/`
+- 汇总表：`outputs/wss_min/flow_divider_origin_QA_78例/当前78例_坐标QA汇总.csv`
+- 关键结果：
+  - `center_on=flow_divider`：78/78。
+  - `origin_kind=flow_divider`：77/78；`bifurcation_fallback`：1/78。
+  - `roll_sign_reliable=True`：75/78；弱置信 3 例仍为 `fast/ZHANG_XIU_WEN`、`slow/CHENG_GUANG_SEN`、`fast/CHEN_SHI_MING`。
+  - `wall_crop_applied=True`：1/78，仍仅为既有裁剪病例。
+
+**17:47 人工复核后追加修正**：
+- 发现 `fast/ZHANG_HAO` 在 flow-divider 口径下触发 `wall_pca_fallback` 后整例翻转。
+- 根因：`wall_pca_fallback` 原本用壁面双峰分离度判断“哪侧是髂支侧”，但该例主干弯曲/截面展布更强，导致主干侧被误判成髂支侧，主轴正负号翻转。
+- 修正：fallback 仍用壁面 PCA 修正主轴倾斜，但主轴**正负号继承中心线 trunk→bifurcation 方向**；即壁面 PCA 只替换方向，不再单独决定符号。
+- 重扫 5 个 `wall_pca_fallback` 病例，只有 `fast/ZHANG_HAO` 存在“PCA 符号与中心线方向冲突且侧判误导”的情况；其他 fallback 病例不受影响。
+- 已重画 `outputs/wss_min/flow_divider_origin_QA_78例/` 并重算 `flow_divider_origin_compare/`；总体统计不变，`fast/ZHANG_HAO` 已回到正常朝向。
+
+**STL page03 复核后追加修正**：
+- 发现 `02_STL同框_每20例/page03` 中浅橙色 STL 大幅偏离，经颜色/顺序定位为 `slow/ZHANG_HUAN_LI`。
+- 该例 CFD wall 点云本身在 `01_点云同框` 和逐病例 X-Z 图中未飞出；异常只发生在 STL 可视化。
+- 根因：该例 `unit_extent_mismatch=True`，wall 原始网格含未描入口尾巴，bbox 比例法会把 STL 过度放大。其 STL 原始坐标实际已接近 mm 尺度并与 centerline 覆盖段匹配。
+- 修正：`visualize_stl_point_overlap.py` 新增 `_stl_scale_to_pipeline()`，在 `bbox_ratio`、`stl_mm`、`stl_native` 三种尺度假设中打分选择；覆盖不一致病例优先匹配 centerline 尺度。
+- `visualize_final_case_pages.py` 复用该函数，并在最终 QA 汇总表新增 `stl_scale_kind` 字段。
+- 修正后 `slow/ZHANG_HUAN_LI` 的 STL/wall 重心偏差从 `1.65` 降至 `0.025`，STL 顶点出框比例从 `71.8%` 降至 `0%`；该例使用 `stl_scale_kind=stl_mm`，其余有 STL 的 76 例仍为 `bbox_ratio`。
+- 已重画 `outputs/wss_min/flow_divider_origin_QA_78例/`；新增单例复核图：
+  `outputs/wss_min/flow_divider_origin_QA_78例/单例复核_slow_ZHANG_HUAN_LI_STL尺度修正.png`。
+
+**最终图件归档与默认口径确认**：
+- 当前最终 QA 入口：`outputs/wss_min/flow_divider_origin_QA_78例/`。
+- 当前新旧原点对照报告：`outputs/wss_min/flow_divider_origin_compare/`。
+- `RegistrationConfig.center_on` 默认已切到 `flow_divider`；`visualize_final_case_pages.py` 默认输出目录也已切到 `flow_divider_origin_QA_78例`。
+- 旧的 `当前_78例坐标QA/`、`单位修复前后对比_点云同框/`、`stl_point_overlap_20260708_trunk_centering_cases/` 已归档到：
+  `outputs/wss_min/归档_旧口径_20260708/flow_divider定稿前旧图_20260708/`。
+
+**集群 preprocess 重跑（21:48）**：
+- 已通过 Slurm 提交到 `node03`：`/public/slurm/bin/sbatch --parsable pipeline_wss_min/cluster/run_preprocess.slurm preprocess`，作业号 `5941`，状态 `COMPLETED`，退出码 `0:0`，耗时 `00:06:39`。
+- 运行日志：`logs/wss_min_preprocess_20260708_214835.log`；Slurm 日志：`pipeline_wss_min/cluster/logs/wss_min_pre_5941.out` / `.err`。
+- 新审计：`data_wss_min/pipeline_reports/preprocess_audit_20260708_215512.csv` / `.json`。
+- 结果核对：split 为 train 54 / val 8 / test 16，included=78；78 个 included bundle 均在本次作业时间窗内更新，`missing=0`、`bad_load=0`、`stale=0`。
+- 审计结果：`ok=78`、`skipped=0`、`error=0`；`origin_kind=flow_divider` 77 例，`bifurcation_fallback` 1 例；`coord_scale_on=wall` 78 例。
+- `excluded_cases` 和 `pending_cases` 即便磁盘上存在历史 `bundle.npz`，本次作业没有更新，默认 `preprocess/global-stats/build-samples` 也不会读取它们。
+- `pending=1` 的 `slow/ZHAO_XIU_XUAN` 含义：原始目录中存在该病例，但不在继承的 `split_AG_v1` train/val/test/excluded 任一名单中，因此暂挂起，不纳入当前 78 例训练口径，待后续单独评估后再决定是否补入。
+
+**当前判断**：
+- 这个口径更符合“解剖锚点”表述：把三叉连接点作为同一坐标框架的原点，比普通分叉近邻均值更不受局部采样密度影响。
+- 数值上多数病例重心更接近统一框架，但仍有 16 例 |COM| 变差，且 1 例回退；经人工复核后采用该口径作为当前最终 QA 和后续预处理口径。
+- `preprocess` 已按该口径在集群完成并生成 78 例新 bundle；后续还需继续跑 `global-stats -> build-samples`，保证 WSS 统计和训练样本也与当前 QA 图同口径。
+
+## 2026-07-08｜人工复核再剔除 2 例：最终 included=78 + 重出 QA ✅
+
+**用户复核意见**：`当前_80例坐标QA/page02` 同框与逐病例 XZ 中仍有 2 例肉眼偏差较大，第一版 baseline 先保守剔除。
+
+**本次 split 修改**：
+- 从 `train_cases` 移入 `excluded_cases`：
+  - `slow/WANG_BAO_SHAN`：虽经单位兜底与未描入口段裁剪后回到统计正常簇，但 page02 同框/逐病例视图仍呈明显形态与朝向离群。
+  - `slow/SUN_WEN_QING`：`coord_scale≈93.24mm`，为当前 80 例最小，归一化后视觉占比/上下位置离群。
+- split 计数更新：train 54 / val 8 / test 16 / excluded 8 / pending 1 / total_found 87，当前 included=78。
+
+**图件刷新**：
+- 旧 80 例最终图归档到：
+  `outputs/wss_min/归档_旧口径_20260708/旧版_最终80例坐标QA_剔除WANG和SUN前/`
+- 新 78 例最终图：
+  `outputs/wss_min/当前_78例坐标QA/`
+- 汇总表：
+  `outputs/wss_min/当前_78例坐标QA/当前78例_坐标QA汇总.csv`
+
+**刷新后 QA 摘要**：
+- included rows=78；`WANG_BAO_SHAN`、`SUN_WEN_QING` 不在 included，已在 excluded。
+- `coord_scale` min/median/max = `128.30 / 192.16 / 266.18`，最低尺度离群被移除。
+- 当前只剩 `slow/ZHANG_HUAN_LI` 触发入口裁剪（32.40%）和主干二次居中。
+
+**关于“有的偏上/偏下”**：
+- 当前坐标原点固定在分叉点，缩放用壁面 `max_abs`；入口端最低点常被压到接近 -1，但分叉上方能到多高取决于髂支/出口截断长度、分叉角度、主干弯曲和真实血管大小。
+- 因此剩余轻微上下差异主要是解剖/截断范围差异，不是单纯归一化失败；只有像 `SUN_WEN_QING` 这种尺度极端小、归一化后视觉占比明显离群的病例才进入剔除。
+
+## 2026-07-08｜最终 QA 收口：旧图归档 + 入口切平面裁剪保险 + 壁面归一化最终图 ✅
+
+**本次收口动作**：
+- 归档两个容易误读的旧图目录：
+  - `outputs/wss_min/归档_旧口径_20260708/旧版_80例坐标QA_旧单位未裁剪all归一化/`
+  - `outputs/wss_min/归档_旧口径_20260708/旧版_新口径QA_轴向裁剪壁面归一化_保险前/`
+- `RegistrationConfig` 新增：
+  - `crop_use_inlet_tangent=True`：入口裁剪改用中心线入口端局部切平面，避免单纯主轴一刀切。
+  - `crop_min_wall_frac=0.08`：裁剪比例低于 8% 视为端点/正常解剖擦边，不执行裁剪。
+- `untraced_inlet_crop_masks()`：优先用入口端局部中心线切向判断“中心线覆盖外”的未描入口段；切向不可用时回退旧主轴逻辑。
+- `visualize_final_case_pages.py`：最终 QA 汇总 CSV 新增 `unit_extent_mismatch`、`wall_crop_applied/wall_crop_frac`、`coord_scale_on`；STL 视图也按同一入口裁剪口径过滤显示。
+- `preprocess.py` / `reporting.py`：bundle/report/audit 补写 `coord_scale_on`。
+
+**最终验证（当前代码直接复算 80 例）**：
+- `coord_scale_on=wall`：80/80。
+- 只裁剪 2 例：`slow/WANG_BAO_SHAN` 裁 `30.21%`，`slow/ZHANG_HUAN_LI` 裁 `32.40%`。
+- 旧版擦边触发的 `fast/LI_ZHEN_SHAN` 不再裁剪（保留完整壁面）。
+- |COM| 分布：mean `0.213` / median `0.220` / max `0.362`；两例回到正常簇。
+- 主干二次居中仅 `slow/ZHANG_HUAN_LI` 触发；`slow/WANG_BAO_SHAN` 裁剪后无需二次居中。
+
+**最终图件**：
+- 主入口：`outputs/wss_min/当前_80例坐标QA/`
+- 汇总表：`outputs/wss_min/当前_80例坐标QA/当前80例_坐标QA汇总.csv`
+- 重点看：
+  - `01_点云同框_每20例/page02_点云同框_病例21-40.png`
+  - `01_点云同框_每20例/page03_点云同框_病例41-60.png`
+  - `03_逐病例XZ主轴视图_每20例/page02_逐病例XZ_病例21-40.png`
+  - `03_逐病例XZ主轴视图_每20例/page03_逐病例XZ_病例41-60.png`
+
+**注意**：
+- `slow/WANG_BAO_SHAN` / `slow/ZHANG_HUAN_LI` 只能匹配到 `stl_data/name_data` 中的 STL，STL 与 CFD wall 点云不是逐点同源；专项 STL 图只看形状方向，不作为剔除依据。
+- 正式训练前仍需全量重跑 `preprocess -> global-stats -> build-samples`，让 bundle 与样本完全落到最终口径。
+
+## 2026-07-08｜同框偏位三段式收口：单位因子 + 未描主动脉尾巴裁剪 + 壁面归一化 ⏳待全量重跑
+
+问题同下（少数病例同框整体偏位）。逐层定位后确认需要三段修复叠加，缺一不可：
+
+**① 单位因子鲁棒兜底**（详见本条下半部分）：3 例 `unit_factor` 被“壁面/中心线覆盖不一致”压到约 1/2 → 改 `_resolve_unit_factor` 整十次幂兜底，factor→1000。修复后 |COM| 0.50/0.66→0.32，但仍偏。
+
+**② 未描主动脉尾巴裁剪**：实测分叉点其实已在原点（bif_norm≈0），偏位真因是这 2 例壁面网格含一段中心线没描到的近端主动脉（占 31–34% 壁面点），在 per-case 归一化里撑大尺度。
+- `config.py`：`RegistrationConfig` 新增 `crop_untraced_inlet=True / crop_axial_margin_frac=0.12 / crop_trigger_overshoot_frac=0.20`。
+- `registration.py`：新增 `untraced_inlet_crop_masks()`——配准后（基于中心线，不受尾巴影响）、归一化前，只裁“入口(主动脉)侧”超出中心线轴向覆盖且超出量>触发阈值的壁面/内部点；对覆盖一致的正常病例是零剪裁 no-op。
+- `preprocess.py`：配准后应用裁剪 mask，壁面时间步场（WSS/压力/矢量）按同 mask 过滤；新增审计 `wall_crop_applied/wall_crop_frac`（report/bundle/批量审计/日志）。
+- 裁剪后 aorta/transv 比 1.13–1.14 ≈ 正常例 1.07–1.15；但发现残余仍在。
+
+**③ 坐标改按壁面归一化**：残余真因是尺度 `max_abs(壁面+内部)` 被内部点带偏——正常例内部含 CFD 流动延伸段（≈2.2×壁面），壁面只填约 0.46 框；这 2 例无延伸段，壁面填满。
+- `config.py`：`NormalizationConfig` 新增 `coord_scale_on='wall'`（默认；旧口径 `'all'`）。
+- `preprocess.py` / `visualize_final_case_pages.py`：缩放参照改为只按壁面 `max_abs`。
+
+**三段叠加后验证（GNN_vmtk 已实跑这 2 例 + 正常例）**：
+- 壁面归一化下全 80 例 |COM| 分布 mean 0.213 / median 0.220；`ZHANG_HUAN_LI` 0.226（**rank 38/80，正好中位**）、`WANG_BAO_SHAN` 0.190（**rank 57/80，中位偏下**）——两例彻底回到正常簇、不再离群。最大偏位反而是普通例（SUN_ZONG_GE 0.36）。
+- 同框叠加图目视：两例落进灰色主簇、同轴同心同尺度。
+- 裁剪对正常例（如 LI_HUAN_GE）为 no-op（0% 裁剪）。
+- 对比图/机制图：`outputs/wss_min/单位修复前后对比_点云同框/`。
+
+**决策记录**：用户拍板“裁掉未描主动脉尾巴 + 改壁面归一化”，不删这 2 例。
+
+**待办**：
+- 壁面归一化改动**波及全部 80 例**，需在 GNN_vmtk 全量重跑 `--stage preprocess`（80 例）后再 `global-stats`。
+- 用户要求**先审查预处理再做训练样本**，故 `build-samples` 暂缓；先重出点云类 QA（`outputs/wss_min/新口径QA_裁剪加壁面归一化/`）供人工复核。
+- STL 同框页需 `trimesh`（GNN 环境未装），本轮 QA 跳过 STL，只出点云/主轴/WSS 视图。
+- `NIE_QUAN_ZHONG`（已 excluded）根因同属①②，如需可一并重跑评估是否回纳。
+- 代码尚未 `git commit`，待用户审完 QA 一起提。
+
+---
+以下为 ① 单位因子修复的原始定位与验证细节（保留）：
+
+## 2026-07-08｜单位因子鲁棒兜底：修复“中心线覆盖不全”导致的整体偏位（①，详情） ⏳待重跑
+
+**问题定位（坐标 QA）**：
+- 同框图中少数病例整体偏位，根因不是居中策略，而是 **单位因子 `mesh->mm` 反推被壁面/中心线覆盖范围不一致带偏**。
+- 逐病例扫描 `unit_factor`：80 例正常（932–984≈米制）、`PENG_JI_MING` 967789（已知异常，自动处理），
+  仅 3 例落在 492–622（≈真实值一半）：`slow/WANG_BAO_SHAN`、`slow/ZHANG_HUAN_LI`、`slow/NIE_QUAN_ZHONG`。
+- 复核这 3 例原始几何：中心线只描了远端一段（含分叉），壁面网格却含整条近端主动脉，
+  只有约 55–65% 壁面点落在中心线包围盒内；`cl_diag/wall_diag` 因此把 factor 压到约 1/2，
+  坐标缩放/配准/二次居中全线偏移（居中偏移量高达 73–77mm），即同框图所见的“整体偏位”。
+
+**本次主要修改**：
+- `pipeline_wss_min/config.py`：`UnitConfig` 新增 `phys_diag_mm=250.0`、`ratio_trust=1.5`。
+- `pipeline_wss_min/preprocess.py`：`_resolve_unit_factor` 改鲁棒版——比值法结果与
+  “米制整十次幂（使壁面对角线≈生理尺度的 10^k）”偏离超过 `ratio_trust` 倍时，
+  判定壁面/中心线覆盖不一致，改用整十次幂并返回 `extent_mismatch=True`；正常 81 例比值≈整十次幂，行为不变。
+- 新增审计字段 `unit_extent_mismatch`（report.json / bundle / 批量审计 / run 日志）。
+- `pipeline_wss_min/reporting.py`、`run.py`：批量审计与日志新增 `unit_extent_mismatch_cases` 待复核清单。
+
+**验证（未跑 sklearn 依赖步骤，仅几何/配准层）**：
+- 全量重算 `_resolve_unit_factor`：**只有** 上述 3 例被标记 `extent_mismatch`，factor→1000；其余 84 例（含 PENG_JI_MING 967789）变化<1%。
+- 用 `compute_transform` 模拟 factor→1000 后归一化重心 |COM|：`WANG_BAO_SHAN` 0.50→0.14、`NIE_QUAN_ZHONG` 0.52→0.14（回到正常簇 ≈0.13），
+  `ZHANG_HUAN_LI` 0.66→0.27（残余为其未被中心线覆盖的近端主动脉横向弯曲）。`center_on` 由 bifurcation 改 wall 无差异；改 `all` 反而把正常例推离原点，不采用。
+
+**对应代码/文档**：`pipeline_wss_min/{config,preprocess,reporting,run}.py`。
+
+**当前状态判断 / 待办**：
+- 代码改完并通过语法/几何层验证，但 **未重跑** `preprocess`（本会话环境缺 sklearn）。需在原环境执行
+  `python -m pipeline_wss_min.run --stage all`（或先 `--stage preprocess --cohort AG/slow --case ZHANG_HUAN_LI/WANG_BAO_SHAN` 冒烟），再重出 `当前_80例坐标QA`。
+- 训练集内两例 `ZHANG_HUAN_LI`、`WANG_BAO_SHAN` 预计随重跑自动回正，无需剔除。
+- `NIE_QUAN_ZHONG` 当初因“整体偏位”被 excluded；根因已修，可评估是否重新纳入（决策待定，本次未改 split）。
+- `ZHANG_HUAN_LI` 残余 0.27 与 3 例中心线覆盖不全是更深层问题；如需完全同口径，可选：裁剪近端主动脉至中心线段 / 重抽全长中心线（VMTK），二选一待定。
+
+## 2026-07-08｜当前 80 例最终 QA 分页图 + 旧口径图件归档 ✅
+
+**本次主要修改**：
+- 新增 `pipeline_wss_min.visualize_final_case_pages`，基于当前 `split_AG_wss_min_v1` included=80 直接生成最终人工复核图。
+- 新增中文输出目录 `outputs/wss_min/当前_80例坐标QA/`，子目录按图件用途命名：
+  - `01_点云同框_每20例/`
+  - `02_STL同框_每20例/`
+  - `03_逐病例XZ主轴视图_每20例/`
+  - `04_峰值WSS正视图YZ_每20例/`
+  - `05_峰值WSS俯视图XY_每20例/`
+  - `06_LR左右轴复核/`
+- 每类分页图按 20 例一页输出，共 4 页；同时写出 `当前80例_坐标QA汇总.csv` 和 `说明.md`。
+- 将 `outputs/wss_min/` 下旧口径英文目录归档到 `outputs/wss_min/归档_旧口径_20260708/`，并把归档子目录改成中文描述名，保留旧图不删除。
+
+**对应代码/文档/图件**：
+- 代码：`pipeline_wss_min/visualize_final_case_pages.py`
+- 文档：`pipeline_wss_min/README.md`、`outputs/wss_min/当前_80例坐标QA/说明.md`、`outputs/wss_min/归档_旧口径_20260708/说明.md`
+- 当前主看目录：`outputs/wss_min/当前_80例坐标QA/`
+- 旧图归档目录：`outputs/wss_min/归档_旧口径_20260708/`
+
+**推进到实验步骤**：
+- 推进到 WSS-only 最小化数据线的最终坐标 QA 阶段：当前 80 例已能按点云/STL 同框、逐病例主轴视图、峰值 WSS 正/俯视图成套人工复核。
+
+**当前状态判断**：
+- 当前输出顶层只保留两个入口：`当前_80例坐标QA/` 与 `归档_旧口径_20260708/`，降低误读旧图风险。
+- 汇总 CSV 显示：STL 缺失 1 例（`slow/ZHANG_JUN_HUA`）；LR 符号继续观察 2 例（`fast/ZHANG_XIU_WEN`、`fast/CHEN_SHI_MING`）；非默认主轴来源 4 例（其中 `ZHANG_XIU_WEN` 为 `centerline_chord_ambiguous`）。
+- 图件已生成但未重跑 `preprocess/global-stats/build-samples`；正式训练前仍需基于当前 split 执行 `python -m pipeline_wss_min.run --stage all`。
+
+## 2026-07-08｜P3：剔除 `slow/NIE_QUAN_ZHONG` + split-aware 流程过滤 ✅
+
+**本次主要修改**：
+- 按人工复核决策，将 `slow/NIE_QUAN_ZHONG` 从 `training/splits/split_AG_wss_min_v1.json` 的 `train_cases` 移入 `excluded_cases`。
+- split 计数更新为：train 56 / val 8 / test 16 / excluded 6 / pending 1 / total_found 87，当前 included=80。
+- `pipeline_wss_min/config.py` 新增 split 读取工具：`load_split()`、`split_case_labels()`、`list_split_cases()`。
+- `run.py` 默认按 `split_AG_wss_min_v1` 的 train/val/test included 病例运行；新增 `--all-raw` 仅用于原始目录排查。
+- `global_stats.py` 默认只用 `train_cases` 计算 WSS 全局统计，避免 val/test/excluded 旧 bundle 混入。
+- `build_samples.py` 默认只装配 split included 病例；manifest 写入 `split_name` 与 `partitions`。
+- `visualize_stl_point_overlap.py --cases` 改为可指定 split 外病例做 QA，便于后续复核 excluded 个案。
+
+**剔除原因**：
+- `NIE_QUAN_ZHONG` 的主轴需要 `wall_pca_fallback`，STL→壁面点云 p95 约 `0.155 mm`，同框图显示整体偏位；这类问题更接近几何域/中心线质量异常，不适合第一版 `x,y,z -> wss` baseline 训练集。
+
+**验证记录**：
+- split 检查：included 80、train 56，`slow/NIE_QUAN_ZHONG` 不在 included/train，已在 excluded。
+- `/public/newhome/cy/.conda/envs/GNN/bin/python -m compileall pipeline_wss_min`
+- `/public/newhome/cy/.conda/envs/GNN/bin/python -m pipeline_wss_min.visualize_alignment --split split_AG_wss_min_v1 --tag p3_exclude_nie`
+- `/public/newhome/cy/.conda/envs/GNN/bin/python -m pipeline_wss_min.visualize_lr_check --split split_AG_wss_min_v1 --n 80 --tag p3_exclude_nie`
+
+**图件**：
+- `outputs/wss_min/alignment_viz_p3_exclude_nie/`
+- `outputs/wss_min/lr_check/lr_side_grid_p3_exclude_nie.png`
+
+**当前状态判断**：
+- `NIE_QUAN_ZHONG` 已不会进入后续默认 preprocess/global-stats/build-samples；若旧 bundle 留在磁盘，也不会被默认统计和样本装配读取。
+- 当前 split included=80；LR QA 剩余 `unreliable=2`，对应继续观察的 `fast/ZHANG_XIU_WEN` 与 `fast/CHEN_SHI_MING`。
+- 正式训练前建议重新执行 `python -m pipeline_wss_min.run --stage all`，用新 split 与 split-aware 代码刷新 bundle、train-only WSS stats 和样本 manifest。
+
+## 2026-07-08｜保留 3 例 STL/点云指定病例 QA 图 ✅
+
+**本次主要修改**：
+- `pipeline_wss_min.visualize_stl_point_overlap` 新增 `--cases` 参数，可直接指定病例列表出图，不再只能随机抽样。
+- 对 P2 后保留继续复核的 3 例生成 STL/点云对比图：
+  `fast/ZHANG_XIU_WEN`、`slow/NIE_QUAN_ZHONG`、`fast/CHEN_SHI_MING`。
+
+**图件与审计**：
+- 输出目录：`outputs/wss_min/stl_point_overlap_p2_keep3/`
+- 逐例 3D 叠加：`01_selected3_stl_point_overlap_3d.png`
+- 三投影叠加：`02_selected3_stl_point_overlap_projections.png`
+- 局部放大：`03_selected3_stl_point_overlap_zoomed_projections.png`
+- 同框点云：`04_selected3_same_frame_pointcloud_overlay.png`
+- 同框 STL：`05_selected3_same_frame_stl_overlay.png`
+- CSV：`selected3_stl_point_overlap_summary.csv`
+
+**当前状态判断**：
+- `fast/ZHANG_XIU_WEN` 与 `fast/CHEN_SHI_MING` 的 STL/壁面点云几乎逐点贴合，STL→点云 p95 分别约 `8.01e-05 mm`、`3.23e-05 mm`。
+- `slow/NIE_QUAN_ZHONG` 的中位距离很小，但 STL→点云 p95 约 `0.155 mm`，明显高于另外两例；结合其 `main_axis_source=wall_pca_fallback` 与同框图中的整体偏位，继续保留复核是合理的。
+
+## 2026-07-08｜P2：5 例 LR 符号加入 override，保留 3 例继续复核 ✅
+
+**本次主要修改**：
+- 按人工复核决策，将剩余 `roll_sign_unreliable` 中除 `ZHANG_XIU_WEN`、`CHEN_SHI_MING`、`NIE_QUAN_ZHONG` 以外的 5 例加入 `REGISTRATION_CASE_OVERRIDES`，统一使用 `roll_sign_mode="world_axis"`。
+- 新增 override 病例：
+  `slow/YIN_YU_RONG`、`slow/ZANG_YU_SHU`、`slow/LI_CHONG_ZENG`、`slow/XU_YI_CAI`、`slow/QIN_SI_FU`。
+- 当前 override 总数为 9 例：此前 4 例 + 本次 5 例。
+
+**验证结果**：
+- 全量 81 例 LR QA：`unreliable=3`，输出图：
+  `outputs/wss_min/lr_check/lr_side_grid_p2_override_keep3.png`
+- 只读 transform 诊断确认剩余 3 例为：
+  `fast/ZHANG_XIU_WEN`（`centerline_chord_ambiguous`）、
+  `slow/NIE_QUAN_ZHONG`（`wall_pca_fallback`）、
+  `fast/CHEN_SHI_MING`（`centerline_chord`）。
+
+**当前状态判断**：
+- 这 5 例不再作为待复核阻塞项；后续全量 preprocess 时会直接按 override 生效。
+- 剩余 3 例继续保守保留，建议后续单独看 STL/点云同框与 LR 细图后再决定是否剔除、override 或保留审计标记。
+
 ## 2026-07-08｜P0/P1：LR 复核口径统一 + 主轴壁面 PCA 兜底 ✅
 
 **本次主要修改**：
@@ -92,6 +424,44 @@
 **当前状态判断**：
 - 4 例 `roll_sign_reliable=True`、`roll_sign_source=world_axis`，bundle 旋转矩阵与 override 前 weakbend 结果逐元素一致。
 - 剩余 9 例仍待同类处理或人工 LR 复核（含 val `XU_YI_CAI`、test `CHEN_SHI_MING` 等）。
+
+## 2026-07-08｜P4 主干横向二次居中 + 当前 80 例 QA 刷新 ✅
+
+**背景问题**：
+- 用户复核 `当前_80例坐标QA/01_点云同框_每20例/page02/page03` 时发现两例整体偏离中心轴。
+- 量化排查确认不是已剔除的 `slow/NIE_QUAN_ZHONG`，而是当前 split 内的两例 train 病例：
+  - `slow/WANG_BAO_SHAN`：page02 第 24 例，低位主干横向 offset_frac≈`0.278`。
+  - `slow/ZHANG_HUAN_LI`：page03 第 46 例，低位主干横向 offset_frac≈`0.236`。
+
+**本次主要修改**：
+- `RegistrationConfig` 新增 `trunk_centering=True`、`trunk_centering_quantile=0.20`、`trunk_centering_min_offset_frac=0.08`、`trunk_centering_stat="median"`。
+- `registration.py` 在主轴/roll 旋转确定后，检测低位 20% 主干壁面点的横向中心；若 normalized offset 超阈值，则只做非主轴两个方向的刚性平移，并折算进 `RigidTransform.centroid`。
+- 新增审计字段：
+  - `transform_trunk_centering_applied`
+  - `transform_trunk_centering_offset_mm`
+  - `transform_trunk_centering_offset_frac`
+- `preprocess.py`、`reporting.py`、`coord_check.py`、`visualize_stl_point_overlap.py`、`visualize_final_case_pages.py` 同步写入/展示该字段。
+- `visualize_final_case_pages.py` 新增 `07_二次居中病例复核/二次居中病例_STL点云三视图.png`。
+
+**验证结果**：
+- 全 80 例复测中，仅 `slow/WANG_BAO_SHAN` 和 `slow/ZHANG_HUAN_LI` 触发二次居中。
+- 修正后两例低位主干残余横向偏移接近 0：
+  - `WANG_BAO_SHAN`：mean_r≈`0.0016`，median_r≈`0.0000`。
+  - `ZHANG_HUAN_LI`：mean_r≈`0.0004`，median_r≈`0.0000`。
+- 已重跑两例 bundle：
+  - `data_wss_min/AG/slow/WANG_BAO_SHAN/bundle.npz`
+  - `data_wss_min/AG/slow/ZHANG_HUAN_LI/bundle.npz`
+- 已刷新当前 80 例 QA：
+  - `outputs/wss_min/当前_80例坐标QA/01_点云同框_每20例/page02_点云同框_病例21-40.png`
+  - `outputs/wss_min/当前_80例坐标QA/01_点云同框_每20例/page03_点云同框_病例41-60.png`
+  - `outputs/wss_min/当前_80例坐标QA/07_二次居中病例复核/二次居中病例_STL点云三视图.png`
+  - `outputs/wss_min/当前_80例坐标QA/当前80例_坐标QA汇总.csv`
+- 二次居中前的旧 QA 图已归档到：
+  - `outputs/wss_min/归档_旧口径_20260708/旧版_80例坐标QA_二次居中前/`
+
+**注意事项**：
+- 两例只能匹配到 `stl_data/name_data/` 中的 STL，STL 与 CFD wall 点云不是逐点贴合口径；专项图中 STL-点云距离较大，不能作为本轮剔除依据。
+- 当前仓库没有 `data_wss_min/wss_global_stats.json` 与默认 samples 目录，因此本轮未强行生成训练样本；正式训练前仍需按当前配准口径全量跑 `preprocess -> global-stats -> build-samples`。
 
 ## 2026-07-07｜随机 10 例点云/STL 同框叠加图 + 推进记录拆分 ✅
 

@@ -50,7 +50,7 @@ def _aligned_wall(case: str, reg_cfg, use_case_overrides: bool = True) -> Tuple[
     wall_native = raw_io.read_wall_geometry(case_dir, name, steps[0])
     int_native = raw_io.read_interior_geometry(case_dir, name, steps[0])
     cl = raw_io.read_centerline(case_dir)
-    factor, _ = _resolve_unit_factor(wall_native, cl, C.DEFAULT.unit)
+    factor, _, _ = _resolve_unit_factor(wall_native, cl, C.DEFAULT.unit)
     wall_pts = wall_native * factor
     int_pts = int_native * factor
     if use_case_overrides:

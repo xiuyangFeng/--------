@@ -59,7 +59,7 @@ def _aligned_wall(cohort_rel: str, case_name: str, cfg: C.PipelineConfig):
     ref = steps[0]
     wall_native = raw_io.read_wall_geometry(case_dir, case_name, ref)
     cl = raw_io.read_centerline(case_dir)
-    factor, anomaly = _resolve_unit_factor(wall_native, cl, cfg.unit)
+    factor, anomaly, _ = _resolve_unit_factor(wall_native, cl, cfg.unit)
     wall = wall_native * factor
 
     reg_cfg = C.registration_for_case(cohort_rel, case_name, cfg.registration)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """WSS 全局标准化统计（第二遍）。
 
-坐标逐病例、WSS 全局 —— 这里在所有 bundle 上流式累积壁面 WSS 的统计量：
+坐标逐病例、WSS 全局 —— 这里在 split 的 train bundle 上流式累积壁面 WSS 的统计量：
 - 线性 z：mean/std of wss
 - 对数 z：mean/std of log(wss + eps)（WSS 近似对数正态，更稳）
 统计覆盖全部时间步的壁面点（与后续可能预测全相位一致）。
@@ -21,16 +21,26 @@ from . import config as C
 EPS = 1e-6
 
 
-def _iter_bundles(cohorts: List[str]):
+def _iter_bundles(
+    cohorts: List[str],
+    split_name: str | None,
+    partitions: tuple[str, ...],
+):
     for cohort in cohorts:
-        for case in C.list_cases(cohort):
+        cases = (
+            C.list_split_cases(cohort, split_name, partitions)
+            if split_name else C.list_cases(cohort)
+        )
+        for case in cases:
             p = C.out_case_dir(cohort, case) / "bundle.npz"
             if p.is_file():
                 yield cohort, case, p
 
 
 def compute_global_wss_stats(cohorts: List[str] | None = None,
-                             cfg: C.PipelineConfig | None = None) -> Dict:
+                             cfg: C.PipelineConfig | None = None,
+                             split_name: str | None = C.DEFAULT_SPLIT_NAME,
+                             partitions: tuple[str, ...] = ("train",)) -> Dict:
     cfg = cfg or C.DEFAULT
     cohorts = cohorts or list(C.COHORTS.values())
 
@@ -39,7 +49,7 @@ def compute_global_wss_stats(cohorts: List[str] | None = None,
     s_log = ss_log = 0.0
     vmin, vmax = np.inf, -np.inf
     cases = 0
-    for cohort, case, p in _iter_bundles(cohorts):
+    for cohort, case, p in _iter_bundles(cohorts, split_name, partitions):
         with np.load(p, allow_pickle=True) as d:
             wss = d["wall_wss"].astype(np.float64).ravel()
         wss = wss[np.isfinite(wss)]
@@ -69,14 +79,18 @@ def compute_global_wss_stats(cohorts: List[str] | None = None,
         "log": {"mean": mean_log, "std": std_log},
         "raw_min": vmin, "raw_max": vmax,
         "cohorts": cohorts,
+        "split_name": split_name,
+        "partitions": list(partitions),
     }
     out = C.OUT_ROOT / cfg.normalization.global_stats_name
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(stats, indent=2))
     from . import reporting
     reporting.get_logger().info(
-        "[global_stats] %d cases, %d wall-pts, method=%s log(mean=%.4f std=%.4f) -> %s",
-        cases, n, stats["method"], mean_log, std_log, out)
+        "[global_stats] split=%s partitions=%s %d cases, %d wall-pts, method=%s "
+        "log(mean=%.4f std=%.4f) -> %s",
+        split_name or "ALL_RAW", ",".join(partitions), cases, n, stats["method"],
+        mean_log, std_log, out)
     return stats
 
 

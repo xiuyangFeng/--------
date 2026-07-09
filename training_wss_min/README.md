@@ -1,0 +1,69 @@
+# training_wss_min — WSS-min baseline 训练/评估（PointNeXt 残差版）
+
+与既有 `training/`（V3P 图/变换器栈）**完全独立**，不共享任何代码，只读
+`pipeline_wss_min` 产出的 `data_wss_min/**/bundle.npz` 与 `wss_global_stats.json`。
+
+## 任务与设计（第一版 baseline）
+- **任务**：几何点云 `(x,y,z[+几何])` → 壁面 **WSS 标量**（`log_z` 全局归一化），单头。
+- **模型**：`PointNeXt-S` 残差版（`InvResMLP` 残差块 + **ball-query** 分组）。
+  ball-query 半径固定、物理尺度不随点密度变 → **训练用稀疏点、推理整条血管**能迁移。
+- **A 路**（部署有完整几何、缺的是 CFD 标签）：训练用稀疏子采样（可扫点数），
+  **评估恒在完整壁面点云上**。稀疏是训练/科研选择，不是部署约束。
+- **矢量二期预留**：`out_dim=3` 即切矢量；建议届时走"幅值(复用标量) + 内在系方向"。
+
+## 文件
+| 文件 | 作用 |
+|---|---|
+| `config.py` | `ExpConfig` 数据类 + JSON 读写；一个实验=一个 JSON |
+| `dataset.py` | 直读 bundle；采样(fps/random/geom_weighted)、特征标准化、完整点云评估接口 |
+| `pointnext.py` | PointNeXt-S 残差主干（SA + InvResMLP + FP 解码） |
+| `metrics.py` | R²/NRMSE/MAE + 分区(分叉/狭窄/高WSS) |
+| `train.py` | 训练循环：AdamW+cosine、AMP、日志、best/last ckpt、曲线 |
+| `evaluate.py` | 加载 best，**完整点云**推理 → 指标 + 逐病例 CSV + 误差热力图 |
+| `make_configs.py` | 生成第一版 sweep 配置 |
+| `cluster/` | GPU Slurm 脚本与提交驱动 |
+
+## 用法
+```bash
+PY=/public/newhome/cy/.conda/envs/GNN/bin/python
+
+# 1) 生成 sweep 配置（写入 configs/，清单 sweep_baseline_v1.txt）
+$PY -m training_wss_min.make_configs
+
+# 2) 提交全部作业到 GPU 队列（4×4090，自动并行 4 个）
+bash training_wss_min/cluster/submit_baseline_sweep.sh
+
+# 单个 config 本地/单卡跑
+$PY -m training_wss_min.train    --config training_wss_min/configs/pc_xyz_fps_w2000_peak.json
+$PY -m training_wss_min.evaluate --config training_wss_min/configs/pc_xyz_fps_w2000_peak.json
+```
+
+## 第一版 sweep（3 条正交问题，均为标量 WSS + 峰值收缩期）
+- **点数-精度曲线**：`pc_xyz_fps_w{1000,1500,2000,3000,6000}_peak`（训练点数，评估恒全场）。
+- **特征消融**：`w2000`(xyz) vs `feat_xyzgeom_*` vs `feat_geomonly_*`。
+  纯几何(旋转不变)一组能量出"配准坐标框架值多少分"。
+- **采样策略**：`w2000`(fps) vs `samp_random_*` vs `samp_geomw_*`（狭窄+高曲率更密）。
+共 9 个 config；`pc_xyz_fps_w2000_peak` 是三条曲线共用锚点。
+
+## 日志与产物（便于复查）
+每个实验落在 `runs/<name>/`：
+- `train.log` 全程日志（控制台同步）；`history.jsonl` 每 epoch 一行(loss/lr/val 指标)；
+- `ckpt_best.pt`(按 `val_r2_casemean` 选) / `ckpt_last.pt`；`history.png` 训练曲线；
+- `config.json` / `feature_stats.json` 完整配置与特征标准化统计；
+- `eval/metrics.json`、`eval/per_case_metrics.csv`、`eval/heatmaps/<case>.png`（test 逐病例真值/预测/误差三联图）。
+
+集群作业日志在 `cluster/logs/wssmin_<name>_<jobid>.{out,err}`；
+每次提交的作业号清单在 `cluster/logs/submitted_<ts>.txt`。
+
+## 检查进度
+```bash
+/public/slurm/bin/squeue -u cy                       # 队列状态
+tail -f training_wss_min/cluster/logs/wssmin_*.out   # 某作业实时日志
+grep val_r2 training_wss_min/runs/*/history.jsonl     # 各实验 val 曲线
+column -s, -t training_wss_min/runs/*/eval/per_case_metrics.csv | less  # 逐病例指标
+```
+
+## 数据口径（继承 pipeline_wss_min）
+- split：`training/splits/split_AG_wss_min_v1.json`（train 54 / val 8 / test 16）。
+- 坐标：逐病例各向同性归一化到 [-1,1]（flow-divider 原点、刚性配准）。
+- WSS：全局 `log_z`（train-only 统计，覆盖全 81 步）。评估在**原始 WSS 空间**算指标。

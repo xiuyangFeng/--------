@@ -58,7 +58,7 @@ def _case_data(coh, cn, cfg):
     ref = steps[0]
     wall_native = raw_io.read_wall_geometry(cd, cn, ref)
     cl = raw_io.read_centerline(cd)
-    factor, anomaly = _resolve_unit_factor(wall_native, cl, cfg.unit)
+    factor, anomaly, _ = _resolve_unit_factor(wall_native, cl, cfg.unit)
     wall = wall_native * factor
     reg_cfg = C.registration_for_case(coh, cn, cfg.registration)
     T = compute_transform(wall, wall, cl, reg_cfg)
@@ -78,6 +78,8 @@ def _case_data(coh, cn, cfg):
         main_axis_mode=T.main_axis_mode,
         main_axis_source=T.main_axis_source,
         roll_source=T.roll_source,
+        trunk_centering_applied=bool(T.trunk_centering_applied),
+        trunk_centering_offset_frac=float(T.trunk_centering_offset_frac),
         origin=T.centroid,
     )
 
@@ -185,7 +187,7 @@ def run(split_name="split_AG_wss_min_v1", tag=None):
         cd = C.raw_case_dir(coh, cn); steps = raw_io.list_timesteps(cd)
         wall_native = raw_io.read_wall_geometry(cd, cn, steps[0])
         cl = raw_io.read_centerline(cd)
-        f, _ = _resolve_unit_factor(wall_native, cl, cfg.unit)
+        f, _, _ = _resolve_unit_factor(wall_native, cl, cfg.unit)
         wall = wall_native * f
         d = _case_data(coh, cn, cfg)
         idx = _subsample(len(wall), 0)
@@ -197,6 +199,7 @@ def run(split_name="split_AG_wss_min_v1", tag=None):
         w = csv.writer(fcsv)
         w.writerow(["case", "unit_factor", "unit_anomaly", "scale_mm", "rot_det",
                     "rot_orth_err", "origin_kind", "main_axis_mode", "main_axis_source", "roll_source",
+                    "trunk_centering_applied", "trunk_centering_offset_frac",
                     "origin_x", "origin_y", "origin_z",
                     "n_wall", "peak_step", "coord_min", "coord_max",
                     "wss_min", "wss_max"])
@@ -204,6 +207,7 @@ def run(split_name="split_AG_wss_min_v1", tag=None):
             w.writerow([label, f"{d['factor']:.4g}", d["anomaly"], f"{d['scale']:.3f}",
                         f"{d['rot_det']:.6f}", f"{d['orth_err']:.2e}",
                         d["origin_kind"], d["main_axis_mode"], d["main_axis_source"], d["roll_source"],
+                        d["trunk_centering_applied"], f"{d['trunk_centering_offset_frac']:.4f}",
                         f"{d['origin'][0]:.4f}", f"{d['origin'][1]:.4f}", f"{d['origin'][2]:.4f}",
                         d["n_wall"], d["peak"],
                         f"{d['norm'].min():.4f}", f"{d['norm'].max():.4f}",
