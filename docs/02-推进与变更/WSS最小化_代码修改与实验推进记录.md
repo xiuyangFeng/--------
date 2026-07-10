@@ -2,9 +2,144 @@
 
 > 用途：单独记录 `pipeline_wss_min/` 这条 WSS-only 最小化数据线的代码、坐标 QA、图件和实验推进。
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
-> 上位文档：[WSS 最小化预处理交接记录](WSS最小化预处理流程_搭建与交接记录_2026-07-07.md) / [pipeline_wss_min README](../../pipeline_wss_min/README.md)。
+> 当前执行入口：[WSS 最小化训练实验跟踪](WSS最小化_训练实验跟踪.md) / [pipeline_wss_min README](../../pipeline_wss_min/README.md) / [training_wss_min README](../../training_wss_min/README.md)。
 
-## 2026-07-08｜training_wss_min：PointNeXt 残差 baseline 训练/评估框架 + 第一/二轮 sweep 🚧进行中
+## 2026-07-10｜第三轮 clean-data 完训判读 + WSS 文档收口归档 ✅已完成
+
+**本次主要修改**：
+- 读取 Slurm 6953–6958 的 6 份完整 `eval/metrics.json`、训练曲线、逐病例指标与代表性热力图，完成 MSE/target-weight 各 3 seed 的均值、样本标准差、区域指标和 high-WSS 校准分析。
+- 第三轮 target-weight 相对 MSE 的三 seed 均值：test `R²_field 0.225±0.034 vs 0.191±0.018`，`R²_casemean 0.212±0.027 vs 0.176±0.021`，MAE `2.788±0.040 vs 2.847±0.038`；但 seed 7 未稳定获益。
+- 第三轮 clean-data 组合将 target-weight 的 top10 预测/真值均值由第二轮约 23.4% 提高到 35.7%，p99 比由约 35.1% 提高到 43.4%；整体 `R²_field` 却与第二轮 tgtw 均值 0.222 基本持平，说明数据修复改善幅值校准但未突破 geometry-only 信息/选模上限。两轮还同时改变 split、curvature transform 和训练时长，因此不把差异归因于 stats 单一变量。
+- 将已执行完的预处理交接、工程建议和两版问题诊断移入 `_archive/WSS最小化/`；当前目录只保留 WSS 训练跟踪与推进记录两个活跃事实源，并新增归档索引。
+
+**对应代码/文档**：
+- 回填：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md)、本文、`training_wss_min/README.md`、`docs/README.md`、根 `README.md`。
+- 归档：`docs/02-推进与变更/_archive/WSS最小化/`，其中原诊断结论与交接历史保留，不删除失败证据。
+- 实验依据：`training_wss_min/runs/r3_clean_xyzgeom_{mse,tgtw}_s*/eval/{metrics.json,per_case_metrics.csv,heatmaps/}` 与对应 `history.jsonl`、Slurm 6953–6958 日志。
+- 汇总产物：已重跑 `training_wss_min.summarize`，`training_wss_min/runs/_summary/` 当前聚合 27 个实验并刷新 `summary.csv`、点数曲线与区域柱状图。
+- 本轮未修改训练、评估或预处理代码，也未重新训练模型。
+
+**推进到实验步骤**：
+- 第三轮 clean-data 已从“产物待分析”推进到“完训、完整评估、三 seed 判读完成”。
+- 下一轮优先级固定为：P0 复合/平滑选模与 early stopping；P1 `coord_scale` 和入口流量/可部署边界条件信息上限探针；P2 稳健尾部 loss；P3 重复 split/病例 bootstrap 置信区间。
+
+**当前状态判断**：
+- target-weight 是均值正收益方向，但目前仅 2/3 seed 明显获益，不能宣称稳定突破；单 run 最高 test `R²_field=0.251` 只作结果描述，不作为按 test 选出的最终模型。
+- high-WSS 仍 No-Go：target-weight 三 seed high-WSS `R²=-1.531±0.167`、top10 比 `0.357±0.037`，热点大致定位但幅值过度平滑。继续只调 α 或堆模型的优先级低于补边界条件/尺度信息和修 checkpoint 选择。
+
+## 2026-07-10｜第三轮 clean-data 口径落地 + bundle 重跑 + 训练矩阵提交 ✅已提交
+
+**背景与目标**：用户确认第三轮不能只改 split，必须在移除污染病例后重跑 included bundle，并保证 pending/excluded 历史 bundle 不进入 stats/training；预处理阶段需要等待完成，训练阶段只提交 Slurm job，结果后续再分析。
+
+**本次主要修改**：
+- split 修正：`slow/ZHANG_HUAN_LI` 已从 `train_cases` 移入 `excluded_cases`，理由写明 WSS 近全零、`n_wall` 极端和多重审计异常；当前 split 为 train 53 / val 8 / test 16 / excluded 9 / pending 1，`slow/ZHAO_XIU_XUAN` 保持 pending。
+- 数据守卫：`raw_io.read_wall_fields` 补读 ID 与坐标；预处理按首步 `nodenumber/cellnumber` 对齐每个时间步 WSS/pressure/vector，集合或长度异常即失败；兼容少数壁面文件把 ID 列命名为 `cellnumber` 的历史导出口径。
+- QA gate：新增 split included QA，excluded/pending 只报告为 not participating；WSS 零值、极端点数、单位/覆盖/裁剪、非有限值、nodenumber/坐标错位为 fatal，单独 `trunk_centering_offset_frac>0.05` 按最终诊断作为 warning 复核项，不默认剔除。
+- scope guard：`--all-raw` 仅允许诊断性 `preprocess`；正式 `qa-gate/global-stats/build-samples/all` 在 CLI 和函数入口均拒绝 all-raw，防止 pending/excluded 历史 bundle 被读入正式口径。
+- stats 与训练：`global-stats` 默认支持 train peak-only；训练 run 保存 `wss_global_stats.json` 快照；dataset 支持 `coord_scale` 输入，curvature 新 run 默认 `signed_log1p` robust 统计；eval/summarize 固化 top10/p95/p99/max 校准指标。
+- 第三轮实验：新增 template mean/voxel/KNN 基线脚本，新增 `make_configs_round3_clean.py` 生成 clean `mse/tgtw` 各 3 seed；提交训练 Job 6953–6958。
+
+**对应代码/文档**：
+- 更新：`training/splits/split_AG_wss_min_v1.json`、`pipeline_wss_min/{raw_io.py,preprocess.py,qa_gate.py,global_stats.py,run.py,reporting.py,config.py}`、`training_wss_min/{config.py,dataset.py,train.py,evaluate.py,metrics.py,summarize.py,template_baseline.py,make_configs_round3_clean.py}`、`training_wss_min/cluster/submit_baseline_sweep.sh`。
+- 新增/生成：`training_wss_min/configs/r3_clean_xyzgeom_{mse,tgtw}_s*.json`、`training_wss_min/configs/sweep_round3_clean_v1.txt`、`training_wss_min/runs/template_{mean,voxel,knn}_clean/`。
+- 文档同步：`pipeline_wss_min/README.md`、`training_wss_min/README.md`、[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md)、[WSS最小化_数据与训练问题最终诊断_2026-07-10.md](_archive/WSS最小化/WSS最小化_数据与训练问题最终诊断_2026-07-10.md)。
+
+**推进到实验步骤**：
+- 预处理：Slurm Job **6952** 完成，`ok=77 / skipped=0 / error=0`；`nodenumber_reordered_cases=0`，`wall_coord_mismatch_cases=0`。
+- QA gate：fatal=0，warning=3（`fast/ZHANG_QING_WANG`、`slow/GUAN_TONG_XIANG`、`fast/RAN_QING_BO`，均为 trunk offset 复核项）。
+- clean stats：train peak-only 53 cases / 711412 wall points，zero_frac=0，log mean/std=`1.1595 / 1.0907`，raw p90/p99/max=`12.8847 / 32.6039 / 220.7968`。
+- 模板基线（test）：mean R²_field=-0.114 / top10=0.172；voxel R²_field=0.035 / top10=0.260；KNN R²_field=-0.039 / top10=0.289。
+- GPU 训练：`r3_clean_xyzgeom_mse_s{1234,7,2025}` 与 `r3_clean_xyzgeom_tgtw_s{1234,7,2025}` 已提交 Job **6953–6958**；终检时 6 个 run 均已写出 `eval/metrics.json`，本轮只记录产物入口，不做结果判读。
+
+**当前状态判断**：第三轮 clean-data 已从“计划”推进到“训练产物已生成、结果待分析”阶段。数据污染源已移除，旧 stats 的 `std≈5.58` 已被 clean peak stats 替代；下一步不再改口径，按三 seed 均值/方差和 high-WSS 校准指标判读。
+
+## 2026-07-10｜WSS 数据与训练问题最终诊断文档合并 ✅已完成
+
+**背景与目标**：用户已进入第二轮实验，但第三轮是否需要重跑、怎么改，需要先把 `WSS最小化_训练结果差诊断_Claude与Codex联合审查_2026-07-09.md` 与本文 2026-07-09 数据 QA 复盘中的数据问题、训练症状和修改清单合并为一个后续智能体可直接执行的问题源。
+
+**本次主要修改（文档合并，不改代码）**：
+- 新增最终问题文档：[WSS最小化_数据与训练问题最终诊断_2026-07-10.md](_archive/WSS最小化/WSS最小化_数据与训练问题最终诊断_2026-07-10.md)（2026-07-10 执行完成后归档）。
+- 明确第三轮前的最终判断：`AG/slow/ZHANG_HUAN_LI` 是当前 included 中唯一必须立即从 train 统计移除的重大污染源；`AG/slow/WANG_BAO_SHAN` 已 excluded，但必须防止直接 glob 历史 bundle 时误纳入。
+- 合并训练问题链条：旧 all-time log stats 被坏病例和全时序共同压扁、high-WSS 系统性低估、peak 单步样本少、FPS 无有效重采样、val 选模噪声大、`nodenumber` 行序对齐仍需作为 P0 完整性守卫。
+- 合并下一轮修改要求：修 split/denylist、增加 QA gate、重算 clean peak WSS stats、重算 feature stats、补 `nodenumber` 对齐、补 KNN/voxel/template 基线、clean-data `mse` 与 `target-weight loss` 多 seed 复跑，并记录 high-WSS 分位校准指标。
+- 明确不要误删真实高 WSS 长尾病例：`LI_ZHI_LIN`、`MA_TIAN_YI`、`SUN_ZONG_GE`、`LIU_ZONG_YANG`、`SHEN_ZHI_GANG` 等只作为长尾样本保留，不按高值剔除。
+
+**对应代码/文档**：
+- 新增：原 `docs/02-推进与变更/WSS最小化_数据与训练问题最终诊断_2026-07-10.md`，执行完成后移至 `docs/02-推进与变更/_archive/WSS最小化/`。
+- 更新：本文档顶部推进记录；`docs/README.md` 的 WSS-only 入口增加最终诊断文档链接。
+- 本次未修改 `training_wss_min/`、`pipeline_wss_min/`、`training/splits/` 或任何实验配置。
+
+**推进到实验步骤**：第二轮实验可以继续作为旧 stats 口径下的方向性证据；第三轮 clean-data 实验启动前，应以最终诊断文档为准完成数据口径修复与重新统计。
+
+**当前状态判断**：问题源已合并完成；后续智能体无需再从两份源文档交叉抽取结论，可直接按最终诊断文档的 P0/P1/P2 顺序实施修改。
+
+## 2026-07-09｜第二轮 sweep 收官汇总 + 高 WSS 分位校准复核 ✅已完成
+
+**背景与目标**：第二轮 9 个 config（Slurm 5961–5969）全部跑完并完成 eval。本次做收官汇总（`summarize` 重跑聚合全部 18 run）、补做高 WSS 分位校准探针（与 2026-07-09 数据 QA 复盘中第一轮探针同口径），并回填跟踪文档与最终诊断文档。不改训练代码。
+
+**第二轮最终结果（test 完整点云）**：
+- 最优：`geomw_tgtw` R²_field **0.249** / `tgtwloss` **0.246**（R²_casemean 0.233、sten −0.068、hiW −1.377 均为全场最优）。tgtw 家族(0.235–0.249)全面领先 mse 参考(0.189)、huber(0.203)、rotaug(0.186，全场最差)。
+- **seed 方差**：`tgtwloss` 三种子(1234/7/2025) R²_field = 0.246/0.217/0.203，极差 0.043，吞掉家族内配置排序；只有"tgtw 家族 > 非加权"这档结论可信。
+- **分位校准探针（新证据，test 全场 pool）**：真值 top10% 均值 18.51 / p99 26.98 / max 126.74。mse 预测 top10% 比 21.1%；tgtwloss 仅 22.1%（几乎没动）；geomw_tgtw 26.2% 但 max 溢出至 138%；geomwsamp_tgtw 52.7% 但 max 爆到 2849(22 倍)。**结论：目标加权的尾部 R² 回拉主要来自中段，真峰值在旧 stats(log std≈5.58)下修不回来，clean-data 重算 stats 是第三轮前置硬条件。**
+- best epoch 集中在 59–159（400 epoch 过长）；val(8例)→test R²_field 落差约 0.05–0.11，选模噪声大。
+
+**对应代码/文档**：
+- 更新：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md)（第二轮完整表 + 分位校准表 + 5 条结论 + 待办改为第三轮 clean-data）、[WSS最小化_数据与训练问题最终诊断_2026-07-10.md](_archive/WSS最小化/WSS最小化_数据与训练问题最终诊断_2026-07-10.md)（第二轮收官证据回填 §0/§1/§3/§5/§6；执行完成后归档）。
+- 产物：`training_wss_min/runs/_summary/{summary.csv,pointcount_curve.png,regional_bar.png}`（已含全部 18 run）。
+- 本次未修改 `training_wss_min/` 代码与 split。
+
+**推进到实验步骤**：第一/二轮（旧 stats 口径）到此收官，全部结论已固化为方向性证据；下一步严格按最终诊断文档 §7 启动第三轮 clean-data。
+
+**当前状态判断**：loss 方向（目标幅值加权）已验证、数据问题已定位、旧口径上限已探明（R²_field≈0.25 / top10% 校准≈22%）。继续在旧 stats 上调参没有收益，第三轮必须先完成 split 修正 + QA gate + stats 重算。
+
+## 2026-07-09｜第一/二轮训练后数据 QA 复盘：确认 ZHANG_HUAN_LI 为训练统计污染源 + 第三轮修改清单 ⚠️待执行
+
+**背景与目标**：第一轮 `training_wss_min` baseline 暴露出系统性问题：整体 R² 已有弱信号，但 high-WSS / stenosis 区域 R² 全负，最佳模型在 test 高 WSS 区明显低估。为避免继续在被污染数据统计上做二轮/三轮调参，本次只做**数据侧复查与后续修改清单记录**，不改训练代码、不停止已进入第二轮的作业。
+
+**本次主要修改（文档记录 + 数据 QA 结论）**：
+- 复查范围：`training/splits/split_AG_wss_min_v1.json` 当前 included=78（train54/val8/test16）、2026-07-08 21:55:12 预处理审计 `data_wss_min/pipeline_reports/preprocess_audit_20260708_215512.csv`、以及 `data_wss_min/AG/*/*/bundle.npz` 中的全时序 WSS、peak WSS、曲率、局部半径、坐标范围和审计字段。
+- **必须处理的训练污染病例：`AG/slow/ZHANG_HUAN_LI`**。
+  - 当前仍在 `train_cases`，但 peak/all-time WSS 零值比例均为 `0.9166`，peak `p90=0`、peak mean `0.45`。
+  - 壁面点数 `209299`，而剔除该例后的 included 正常范围约为 `9338-21452`，该例大约是正常最大值的 9.8 倍。
+  - 审计字段同时触发 `unit_anomaly=True`、`unit_extent_mismatch=True`、`wall_crop_frac=0.324`、`trunk_centering_offset_frac=0.0999`。
+  - 曲率 99 分位约 `3.13e6`，显著高于其它训练病例；它把第一轮几何特征标准化中的 curvature clip 拉到 `3.13e6`。
+  - 结论：该例“坐标视觉回正”不等于“WSS 标签/几何统计可用”；继续留在 train 会污染 WSS global stats、feature stats 和训练 loss。
+- **已排除但需防误读的同类风险：`AG/slow/WANG_BAO_SHAN`**。
+  - 该例已在 `excluded_cases`，磁盘上仍有历史 bundle，peak/all-time WSS 零值比例同样约 `0.9166`，`n_wall=238116`。
+  - 后续脚本必须严格按 split 读取 train/val/test，不允许直接 glob 全部 bundle 参与统计或训练。
+- **未发现第二个 included 的同等级 WSS 标签污染病例**。
+  - 除 `ZHANG_HUAN_LI` 外，train/val/test 的 peak_zero_frac 与 all_zero_frac 均为 0，未见 peak `p90=0`、非有限值、坐标超界或半径非正等致命问题。
+  - `LI_ZHI_LIN`、`MA_TIAN_YI`、`SUN_ZONG_GE`、`LIU_ZONG_YANG`、`SHEN_ZHI_GANG` 等 peak 高值属于长尾高 WSS 样本，不能当作坏数据剔除。
+- **需要复核/robust 处理但暂不建议剔除的病例**：
+  - 曲率 per-case p99 较高：train `CHENG_GUANG_SEN`(`~7.99e5`)、`ZHANG_SONG_TIAN`(`~7.88e5`)；val `XU_YI_CAI`(`~6.45e5`)；test `WANG_YONG_FAN`(`~6.41e5`)、`GUO_XI_JIANG`(`~6.23e5`)、`QIN_SI_FU`(`~5.23e5`)。
+  - 这些病例没有 WSS 零值污染或预处理致命审计字段；建议进入人工图件复核和 curvature robust clip，不作为第三轮默认剔除名单。
+  - 坐标/方向复核清单：`LI_SHI_QIANG` 为 `bifurcation_fallback`；`ZHANG_HAO`、`ZHANG_QING_WANG`、`RAN_QING_BO`、`CHENG_LU_LI`、`GUAN_TONG_XIANG` 为 `wall_pca_fallback`；`ZHANG_XIU_WEN`、`CHENG_GUANG_SEN`、`CHEN_SHI_MING` 的 roll sign 置信较弱。当前只作为复核项，不直接判坏。
+- **WSS global stats 被污染的量级**：
+  - 当前 `wss_global_stats.json`：log mean/std = `-3.161 / 5.582`，train all-time zero_frac = `0.208`。
+  - 若从 train 中排除 `ZHANG_HUAN_LI`：all-time log mean/std 约 `-0.353 / 1.270`，zero_frac 变为 0；若只用 clean train peak 统计：log mean/std 约 `1.159 / 1.091`。
+  - 当前 stats 会把 raw WSS `20-200` 压到 log_z 约 `1.10-1.52`，峰值差异被严重压扁；这解释了 high-WSS 系统性低估。
+- **第一轮模型低估证据**：
+  - `feat_xyzgeom_fps_w2000_peak` 在 test：真值 p99/max = `26.98 / 126.74`，预测 p99/max = `9.37 / 16.71`；top10% 高 WSS 均值真值/预测 = `18.51 / 4.08`，只到 `22%`。
+  - `feat_geomonly_fps_w2000_peak` 同样只到约 `23%`。因此 high-WSS R² 大负主要是峰值被系统压低，不是单个热力图显示问题。
+
+**第三轮前必须安排的修改清单（给后续智能体）**：
+1. **修 split / denylist**：将 `slow/ZHANG_HUAN_LI` 从 `train_cases` 移入 `excluded_cases`，理由写清楚为“WSS 标签近全零 + n_wall 极端 + unit/coverage/crop/trunk 多重异常，污染训练统计”。保持 `WANG_BAO_SHAN`、`SUN_WEN_QING`、`NIE_QUAN_ZHONG` 等既有 excluded 不自动回纳。
+2. **增加数据 QA gate**：在 global-stats / build-samples / training 入口加入 split 内病例检查；遇到以下任一条件应 hard fail 或进入 denylist：`peak_zero_frac>0.01`、`all_zero_frac>0.01`、`peak_p90<=0`、`n_wall>50000`、`unit_anomaly=True`、`unit_extent_mismatch=True`、`wall_crop_frac>0.05`、`trunk_centering_offset_frac>0.05`、非有限值。曲率 p99 `>5e5` 先 warning + 图件复核，不默认剔除。
+3. **重算 WSS stats**：排除 `ZHANG_HUAN_LI` 后重跑 `global-stats`；第三轮 peak 单步任务优先使用 clean train peak 的 log stats，至少不能继续使用当前 `std≈5.58` 的 all-time stats。训练与评估必须使用同一份新 stats。
+4. **重算 feature stats**：所有 run 的 `feature_stats.json` 都不能复用旧值。排除 `ZHANG_HUAN_LI` 后 curvature 的全训练集 99% clip 会从 `~3.13e6` 降到约 `~1.0e5`；同时考虑对 curvature 做 `sign(x)*log1p(abs(x))` 或分位裁剪后 z-score。
+5. **第三轮最小实验矩阵**：以 `xyz+geom / fps2000` 为主，重跑 `mse` 与 `target-weight loss`，各至少 3 个 seed；第二轮已跑结果只作为“loss 方向有效”的旁证，不作为 clean-data 最终指标。
+6. **补高 WSS 监控指标**：每个 eval 除 R²/NRMSE/MAE 外，记录 test top10% high-WSS 的 `mean_pred/mean_true`、p99 预测/真值比、max 预测/真值比；checkpoint 选择可用 `val_r2_casemean + high_wss/stenosis` 的组合指标，避免只优化平滑低值背景。
+7. **复核但不阻塞的病例清单**：对上述曲率尖峰和方向 fallback 病例补一页 QA 图；只有出现形态/方向明显错误或标签异常，才进入下一版 excluded。
+
+**对应代码/文档**：
+- 本次只修改本文档。
+- 复查依据：`training/splits/split_AG_wss_min_v1.json`、`data_wss_min/pipeline_reports/preprocess_audit_20260708_215512.csv`、`data_wss_min/AG/*/*/bundle.npz`、`training_wss_min/runs/_summary/summary.csv`、第一轮 best checkpoint 完整 test 推理统计。
+
+**推进到实验步骤**：第二轮实验可继续跑完，用于验证 loss/采样/增广方向；但第三轮 clean-data 实验启动前，必须先完成 split 修正、QA gate、WSS stats 和 feature stats 重算。
+
+**当前状态判断**：当前 included 数据中，`ZHANG_HUAN_LI` 是唯一需要立即从训练统计中移除的重大污染源；其余 included 病例没有发现同等级 WSS 标签坏例。第三轮应视作“数据口径修正版”重新起跑，不能把第一/二轮在旧 stats 上得到的指标作为最终可发表结论。
+
+## 2026-07-08｜training_wss_min：PointNeXt 残差 baseline 训练/评估框架 + 第一/二轮 sweep ✅完成
 
 > 训练侧实验跟踪主文档：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md)（逐轮 sweep 设计、完整指标表、结论、待办）。
 
@@ -30,7 +165,7 @@
 - 几何特征更省点：2000 点几何 > 6000 点纯 xyz。几何加权采样(0.108) > random(0.084) > fps(0.053)。
 - **所有配置狭窄区/高 WSS 区 R² 全负**（最好也 sten −0.20 / hiW −1.63），为主瓶颈。
 
-**第二轮 sweep（9 config，Slurm 5961–5969）🚧进行中**：以 xyz+几何为默认，专打尾部崩溃；新增旋转增广 + 目标幅值加权 loss。早期结果：目标加权 loss 把 test R²_field 提到 **0.246**，且 sten −0.19→−0.07、hiW −1.63→−1.38，尾部攻击方向已验证有效。完整结论见跟踪文档。
+**第二轮 sweep（9 config，Slurm 5961–5969）✅完成**（收官汇总见 2026-07-09 条目与跟踪文档）：以 xyz+几何为默认，专打尾部崩溃；新增旋转增广 + 目标幅值加权 loss。最终：tgtw 家族 R²_field 0.235–0.249 全面领先（最优 geomw_tgtw 0.249 / tgtwloss 0.246，sten −0.19→−0.07、hiW −1.63→−1.38）；但分位校准显示真峰值仅恢复 21%→22~26%，旧 stats 是硬上限；huber/rotaug 无收益；tgtw 三种子极差 0.043。
 
 **对应代码/文档**：
 - 代码：`training_wss_min/`（整目录，独立于 `training/`）。
@@ -474,7 +609,7 @@
 
 **对应代码/文档**：
 - 代码：`pipeline_wss_min/visualize_stl_point_overlap.py`
-- 文档：`README.md`、`pipeline_wss_min/README.md`、`docs/README.md`、`docs/02-推进与变更/WSS最小化预处理流程_搭建与交接记录_2026-07-07.md`、`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`、`docs/02-推进与变更/代码修改与实验推进记录.md`
+- 文档：`README.md`、`pipeline_wss_min/README.md`、`docs/README.md`、`docs/02-推进与变更/_archive/WSS最小化/WSS最小化预处理流程_搭建与交接记录_2026-07-07.md`、`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`、`docs/02-推进与变更/代码修改与实验推进记录.md`
 - 图件：
   - `outputs/wss_min/stl_point_overlap_20260707/04_random10_same_frame_pointcloud_overlay.png`
   - `outputs/wss_min/stl_point_overlap_20260707/05_random10_same_frame_stl_overlay.png`
@@ -517,7 +652,7 @@
 
 **对应代码/文档**：
 - 代码：`pipeline_wss_min/config.py`、`raw_io.py`、`registration.py`、`preprocess.py`、`reporting.py`、`visualize_alignment.py`、`coord_check.py`
-- 文档：`pipeline_wss_min/README.md`、`docs/02-推进与变更/WSS最小化预处理流程_搭建与交接记录_2026-07-07.md`、`README.md`、`docs/README.md`
+- 文档：`pipeline_wss_min/README.md`、`docs/02-推进与变更/_archive/WSS最小化/WSS最小化预处理流程_搭建与交接记录_2026-07-07.md`、`README.md`、`docs/README.md`
 - 图件：`outputs/wss_min/alignment_viz_anatomical_v2/*.png`、`outputs/wss_min/coord_check_20260707_anatomical_v2/*.png`
 
 **推进到实验步骤**：

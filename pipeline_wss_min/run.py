@@ -4,8 +4,9 @@
 
 阶段:
   1 preprocess    每病例：配准 + 正交化/标准化 + 掩码 + 堆叠时间步 -> bundle.npz
-  2 global-stats  全局 WSS 统计（第二遍）
-  3 build-samples 稀疏化 + 样本装配（配置驱动，最后一步）
+  2 qa-gate       split included 病例硬 QA（excluded/pending 不参与）
+  3 global-stats  全局 WSS 统计（第二遍，默认 peak-only train）
+  4 build-samples 稀疏化 + 样本装配（配置驱动，最后一步）
 
 示例:
   # 单病例跑通(冒烟)
@@ -23,7 +24,7 @@ import time
 from typing import List
 
 from . import config as C
-from . import preprocess, global_stats, build_samples, reporting
+from . import preprocess, global_stats, build_samples, qa_gate, reporting
 
 
 def _cohorts(args) -> List[str]:
@@ -78,7 +79,7 @@ def run_preprocess(
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", choices=["preprocess", "global-stats", "build-samples", "all"],
+    ap.add_argument("--stage", choices=["preprocess", "qa-gate", "global-stats", "build-samples", "all"],
                     default="all")
     ap.add_argument("--cohort", default=None, help="如 AG/fast；默认全部 COHORTS")
     ap.add_argument("--case", default=None, help="单病例名（配合 --cohort）")
@@ -88,8 +89,14 @@ def main():
                     help="忽略 split，扫描原始 cohort 目录；仅建议数据排查时使用")
     ap.add_argument("--wall-n", type=int, default=None, help="覆盖壁面稀疏点数")
     ap.add_argument("--timesteps", default=None, choices=["peak", "all"], help="覆盖时间步选择")
+    ap.add_argument("--stats-timesteps", default="peak", choices=["peak", "all"],
+                    help="global-stats 使用的时间步范围；第三轮 clean-data 默认 peak")
     ap.add_argument("--sample-name", default=None, help="覆盖样本集名")
     args = ap.parse_args()
+    if args.all_raw and args.stage != "preprocess":
+        raise SystemExit(
+            "--all-raw 只允许用于诊断性 preprocess；正式 qa-gate/global-stats/build-samples/all 必须按 split 运行"
+        )
 
     cfg = C.DEFAULT
     if args.wall_n is not None:
@@ -110,8 +117,14 @@ def main():
 
     if args.stage in ("preprocess", "all"):
         run_preprocess(cfg, cohorts, args.case, split_name)
+    if args.stage in ("qa-gate", "all"):
+        if split_name is None:
+            raise SystemExit("qa-gate 只允许按 split 运行，不能配合 --all-raw")
+        qa_gate.audit_split(split_name=split_name)
     if args.stage in ("global-stats", "all"):
-        global_stats.compute_global_wss_stats(cohorts, cfg, split_name=split_name)
+        global_stats.compute_global_wss_stats(
+            cohorts, cfg, split_name=split_name, timesteps_scope=args.stats_timesteps
+        )
     if args.stage in ("build-samples", "all"):
         build_samples.build_all(cohorts, cfg, split_name=split_name)
 

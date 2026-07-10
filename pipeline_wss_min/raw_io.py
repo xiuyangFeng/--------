@@ -50,6 +50,18 @@ def header_columns(path: Path) -> List[str]:
     return [c.strip() for c in _header_line(path).replace(",", " ").split()]
 
 
+def wall_id_column(columns: List[str]) -> str | None:
+    """返回壁面节点 ID 列名。
+
+    多数壁面 ascii 使用 `nodenumber`，少数历史导出误命名为 `cellnumber`。
+    二者都可作为跨时间步对齐键；真正缺 ID 才应视为不可做行序守卫。
+    """
+    for name in (C.WALL_COLUMNS["id"], C.INTERIOR_COLUMNS["id"]):
+        if name in columns:
+            return name
+    return None
+
+
 def list_timesteps(case_dir: Path) -> List[int]:
     """从壁面 ascii 文件名解析导出时间步（升序）。"""
     wall_dir = case_dir / C.RAW_LAYOUT["wall_ascii_dir"]
@@ -89,10 +101,19 @@ def read_interior_geometry(case_dir: Path, case_name: str, step: int) -> np.ndar
 
 
 def read_wall_fields(case_dir: Path, case_name: str, step: int) -> Dict[str, np.ndarray]:
-    """壁面场：wss 标量 (N,)、wss 矢量 (N,3)、pressure (N,)。"""
+    """壁面场：nodenumber/坐标 + wss 标量 (N,)、wss 矢量 (N,3)、pressure (N,)。
+
+    `nodenumber`/`cellnumber` 是跨时间步静默错位的 P0 守卫键：预处理会先按首个
+    时间步的节点顺序对齐，再堆叠 WSS/pressure。
+    """
     col = C.WALL_COLUMNS
     df = _read_ascii(_step_file(case_dir, C.RAW_LAYOUT["wall_ascii_dir"], case_name, step))
+    id_col = wall_id_column(list(df.columns))
+    if id_col is None:
+        raise KeyError("壁面导出缺少 nodenumber/cellnumber ID 列")
     return {
+        "nodenumber": df[id_col].to_numpy(dtype=np.int64),
+        "coords": df[[col["x"], col["y"], col["z"]]].to_numpy(dtype=np.float64),
         "wss": df[col["wss"]].to_numpy(dtype=np.float64),
         "wss_vec": df[[col["wss_x"], col["wss_y"], col["wss_z"]]].to_numpy(dtype=np.float64),
         "pressure": df[col["pressure"]].to_numpy(dtype=np.float64),

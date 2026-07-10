@@ -8,9 +8,9 @@
 - **任务**：几何点云 `(x,y,z[+几何]) → 壁面 WSS 标量`，全局 `log_z` 归一化，单头。矢量三分量为二期。
 - **路线 A（部署导向）**：部署有完整几何、缺 CFD 标签 → 训练用稀疏子采样，**评估恒在完整壁面点云上**。
 - **模型**：PointNeXt-S 残差版（InvResMLP + ball-query，密度鲁棒）。约 4.4M 参数。
-- **数据**：split `split_AG_wss_min_v1`（train 54 / val 8 / test 16）；坐标逐病例 [-1,1]；WSS 全局 log_z（train-only，std≈5.6）。
-- **训练**：AdamW + cosine（warmup 10）+ AMP，400 epoch，batch 8 病例，eval_every 20；best 按 `val_r2_casemean`。
-- **集群**：GPU 分区 `master`（4×RTX4090），`submit_baseline_sweep.sh` 提交，自动排队 4 并行；每 config 约 10–15 min。
+- **当前数据口径**：split `split_AG_wss_min_v1`（train 53 / val 8 / test 16 / excluded 9 / pending 1）；坐标逐病例 [-1,1]；WSS 为 train-only、peak-only 全局 `log_z`（std=1.0907）。第一/二轮旧 stats 仅作历史对照。
+- **第三轮训练**：AdamW + cosine（warmup 10）+ AMP，240 epoch，batch 8 病例，eval_every 10；best 按 `val_r2_casemean`。第一/二轮 400 epoch 设置见各轮记录。
+- **集群**：GPU 分区 `master`（4×RTX4090），`submit_baseline_sweep.sh` 提交，自动排队 4 并行；第三轮每 config 实测约 3–4 min 训练，随后做完整点云评估。
 - **产物**：`training_wss_min/runs/<name>/`（`train.log`、`history.jsonl`、`ckpt_best/last.pt`、`config.json`、`feature_stats.json`、`eval/metrics.json`、`eval/per_case_metrics.csv`、`eval/heatmaps/`）。
 - **汇总**：`python -m training_wss_min.summarize` → `runs/_summary/{summary.csv,pointcount_curve.png,regional_bar.png}`（聚合全部轮次）。
 
@@ -20,6 +20,60 @@
 - 分区：`bifurcation`(距原点≤0.25) / `stenosis`(local_radius 最小 20%) / `high_wss`(原始 WSS 前 10%)。
 
 ---
+
+## 第三轮 clean-data ✅完训并完成判读（2026-07-10，Slurm 6952–6958）
+
+**目的**：移除污染病例、重算 peak-only 统计后，以相同 `xyz+geom / FPS 2000 / PointNeXt-S` 配方比较 MSE 与 target-weight（α=2），各跑 3 个 seed，判断数据清理和尾部加权是否真正改善完整点云预测。
+
+**数据侧已完成**：
+- split 已更新为 train 53 / val 8 / test 16 / excluded 9 / pending 1；`slow/ZHANG_HUAN_LI` 已移入 excluded，`slow/ZHAO_XIU_XUAN` 保持 pending，excluded/pending 不参与正式数据集。
+- scope guard 已加硬：`--all-raw` 仅允许诊断性 `preprocess`，正式 `qa-gate/global-stats/build-samples/all` 均按 split，pending/excluded 历史 bundle 不会进入 stats、训练或评估口径。
+- `preprocess` 已重跑 77 个 included bundle：Slurm Job **6952**，`ok=77 / skipped=0 / error=0`；`nodenumber/cellnumber` 对齐守卫落盘，`nodenumber_reordered_cases=0`，`wall_coord_mismatch_cases=0`。
+- QA gate：fatal=0，warning=3（`fast/ZHANG_QING_WANG`、`slow/GUAN_TONG_XIANG`、`fast/RAN_QING_BO` 仅 `trunk_centering_offset_frac>0.05`，按最终诊断 P2 作为复核项，不默认剔除）。
+- 新 stats：train peak-only，53 cases / 711412 wall points，zero_frac=0，log mean/std=`1.1595 / 1.0907`，raw p90/p99/max=`12.8847 / 32.6039 / 220.7968`。
+
+**模板基线（test，完整点云）**：
+
+| 配置 | R²_field | R²_casemean | high_wss R² | top10 pred/true | p99 比 |
+|---|---:|---:|---:|---:|---:|
+| template_mean_clean | -0.114 | -0.139 | -2.533 | 0.172 | 0.118 |
+| template_voxel_clean | 0.035 | -0.023 | -2.058 | 0.260 | 0.392 |
+| template_knn_clean | -0.039 | -0.225 | -1.994 | 0.289 | 0.576 |
+
+**单 run 结果（test，完整点云；best 仍由 val `R²_casemean` 选择）**：
+
+| Job / 配置 | R²_field | R²_casemean | bif | stenosis | high_wss | top10 比 | p99 比 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 6953 / `mse_s1234` | 0.210 | 0.200 | 0.040 | -0.186 | -1.591 | 0.359 | 0.437 |
+| 6954 / `mse_s7` | 0.187 | 0.163 | 0.012 | -0.168 | -1.669 | 0.332 | 0.425 |
+| 6955 / `mse_s2025` | 0.175 | 0.165 | -0.003 | -0.255 | -1.673 | 0.319 | 0.421 |
+| 6956 / `tgtw_s1234` | **0.251** | 0.220 | **0.097** | -0.129 | **-1.366** | **0.393** | **0.486** |
+| 6957 / `tgtw_s7` | 0.186 | 0.182 | 0.002 | -0.273 | -1.699 | 0.320 | 0.410 |
+| 6958 / `tgtw_s2025` | 0.239 | **0.234** | 0.064 | **-0.097** | -1.528 | 0.357 | 0.406 |
+
+**三 seed 汇总（mean ± sample std）**：
+
+| loss | R²_field | R²_casemean | bif | stenosis | high_wss | top10 比 | p99 比 | MAE |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| MSE | 0.191±0.018 | 0.176±0.021 | 0.016±0.022 | -0.203±0.046 | -1.644±0.046 | 0.337±0.020 | 0.428±0.008 | 2.847±0.038 |
+| target-weight α=2 | **0.225±0.034** | **0.212±0.027** | **0.055±0.048** | **-0.166±0.094** | **-1.531±0.167** | **0.357±0.037** | **0.434±0.045** | **2.788±0.040** |
+
+**结果判读**：
+
+1. **target-weight 方向仍成立，但不是稳定获胜。** 三 seed 均值相对 MSE：`R²_field +0.035`、`R²_casemean +0.036`、MAE `-0.059`，区域指标也平均回升；但 seed 7 的 field 持平、stenosis/high-WSS 反而退化。当前只能下“2/3 seed 有效、均值正收益”的结论，不能把单 seed 最优 0.251 当作稳定水平。
+2. **第三轮 clean-data 组合改善了幅值刻度，但没有突破整体 R² 平台。** 第二轮旧口径 tgtw 三 seed `R²_field=0.222±0.022`，第三轮为 `0.225±0.034`，几乎持平；但 top10 预测/真值均值约从 `23.4%` 提高到 `35.7%`，p99 比约从 `35.1%` 提高到 `43.4%`。这说明清理数据/peak stats 是必要修复，主要收益是减少峰值压扁，而非自动提高空间拟合上限。注意两轮还同时改变了 split、curvature transform、epoch/eval 设置，故该跨轮比较不是“只改 stats”的严格因果消融。
+3. **高 WSS 仍是明确 No-Go 项。** 6 个 run 的 high-WSS R² 全为负，tgtw 均值仍为 `-1.531`；top10 真值只恢复约 36%，max 比均值仅约 13%。典型热力图显示模型大致知道热点在分叉/髂支附近，但输出过度平滑、峰值幅值系统性偏低。
+4. **checkpoint 选择噪声仍大。** tgtw 三个 best epoch 为 39/19/19，MSE 为 149/59/99；240 epoch 对 tgtw 明显冗余。val 只有 8 例，单一 `val_r2_casemean` 会偏向很早的偶然峰值，也无法约束 high-WSS 校准。
+5. **病例级失败不是单个坏例造成。** tgtw 三 seed 平均最差病例为 `WANG_DENG_FENG`、`LU_ZHEN_QING`、`LV_FU_LONG`、`QIN_SI_FU`；fast/slow 两组病例均值接近，没有证据把问题归因于某一个 cohort。QA warning 3 例都在训练集，也不能解释 test 的系统性尾部低估。
+
+**汇总产物**：已重跑 `python -m training_wss_min.summarize`，`training_wss_min/runs/_summary/` 现聚合 27 个实验（含第三轮 6 个深度模型与 3 个 clean 模板基线）。
+
+**下一轮优化优先级**：
+
+- **P0｜先修选模，不先换大模型**：只用 val 构造复合/平滑选模（case R² + field R² + top10 校准，至少跨 2–3 次 eval 平滑），加 early stopping；test 保持只做最终报告，避免按 test 选 seed/epoch。
+- **P1｜补信息上限探针**：当前输入没有入口流量/边界条件，且逐病例归一化可能弱化真实尺度；先做 `coord_scale`（代码已支持但第三轮未启用）和 peak inlet-flow/可部署 BC 标量的单变量消融。若严格坚持 geometry-only，应把当前结果视作几何先验基线，而不是期待仅靠 loss 恢复个体峰值。
+- **P2｜稳健尾部目标**：在固定选模后扫 α=1/2/4，并尝试“log-space 主损失 + 小权重 raw-space/分位辅助损失”；暂不重启已出现极端爆值的几何加权采样 + 强 target-weight 组合。
+- **P3｜统计可信度**：至少再做重复 split 或 5-fold/重复 holdout，并报告病例 bootstrap CI；53/8/16 的单 split 不足以支持配置间 0.02–0.04 的细排序。
 
 ## 第一轮 sweep ✅完成（2026-07-08，Slurm 5945–5953）
 **目的**：三条正交问题——点数-精度曲线、特征消融、采样策略。均标量 WSS + 峰值收缩期 + 400 epoch。
@@ -46,7 +100,7 @@
 
 ---
 
-## 第二轮 sweep 🚧进行中（2026-07-08，Slurm 5961–5969）
+## 第二轮 sweep ✅完成（2026-07-08 提交，Slurm 5961–5969；2026-07-09 收官汇总）
 **目的**：以第一轮最优方向为默认（**xyz+几何 / fps2000**），专打尾部（狭窄/高 WSS）崩溃，并稳方差、缩小 gap。
 
 **新增代码能力（配置驱动，向后兼容）**：
@@ -56,30 +110,48 @@
 
 **配置矩阵（9）**：`mse`(参考) / `huber` / `geomwloss`(几何加权 loss) / `tgtwloss`(目标加权 loss) / `geomw_tgtw`(双加权) / `geomwsamp_tgtw`(几何加权采样+目标加权) / `rotaug`(旋转增广) / `tgtw_s2025` `tgtw_s7`(目标加权多种子)。
 
-**已完成部分结果（test，完整点云）**：
+**最终结果（test，完整点云，按 R²_field 降序；best epoch 为 `val_r2_casemean` 选中的 ckpt）**：
 
-| 配置 | R²_field | bif | stenosis | high_wss | 状态 |
-|---|---|---|---|---|---|
-| r2_xyzgeom_tgtwloss | **0.246** | 0.074 | **−0.068** | **−1.377** | ✅ |
-| r2_xyzgeom_geomwloss | 0.229 | 0.049 | −0.154 | −1.398 | ✅ |
-| r2_xyzgeom_huber | 0.203 | 0.017 | −0.169 | −1.574 | ✅ |
-| r2_xyzgeom_mse | 0.189 | −0.005 | −0.191 | −1.634 | ✅ (参考) |
-| r2_xyzgeom_geomw_tgtw | — | — | — | — | 🚧 |
-| r2_xyzgeom_geomwsamp_tgtw | — | — | — | — | 🚧 |
-| r2_xyzgeom_rotaug | — | — | — | — | 🚧 |
-| r2_xyzgeom_tgtw_s2025 / _s7 | — | — | — | — | 🚧 |
+| 配置 | R²_field | R²_casemean | bif | stenosis | high_wss | best epoch |
+|---|---|---|---|---|---|---|
+| r2_xyzgeom_geomw_tgtw | **0.249** | 0.222 | **0.086** | −0.111 | −1.401 | 119 |
+| r2_xyzgeom_tgtwloss (s1234) | 0.246 | **0.233** | 0.074 | **−0.068** | **−1.377** | 79 |
+| r2_xyzgeom_geomwsamp_tgtw | 0.235 | 0.226 | 0.064 | −0.128 | −1.524 | 59 |
+| r2_xyzgeom_geomwloss | 0.229 | 0.196 | 0.049 | −0.154 | −1.398 | 279 |
+| r2_xyzgeom_tgtw_s7 | 0.217 | 0.220 | 0.040 | −0.139 | −1.587 | 99 |
+| r2_xyzgeom_tgtw_s2025 | 0.203 | 0.165 | 0.048 | −0.209 | −1.460 | 59 |
+| r2_xyzgeom_huber | 0.203 | 0.180 | 0.017 | −0.169 | −1.574 | 339 |
+| r2_xyzgeom_mse (参考) | 0.189 | 0.156 | −0.005 | −0.191 | −1.634 | 159 |
+| r2_xyzgeom_rotaug | 0.186 | 0.173 | −0.015 | −0.094 | −1.577 | 59 |
 
-**早期结论（待全部跑完后补全）**：
-- **目标加权 loss 是当前最优**：R²_field 0.246（超第一轮 0.200），并把 stenosis −0.19→−0.07、high_wss −1.63→−1.38 明显回拉 → **尾部攻击方向验证有效**。
-- 相同配置 `r2_xyzgeom_mse`(0.189) vs 第一轮 `feat_xyzgeom`(0.200) 差 0.011，印证**单种子方差**问题（多种子结果待收）。
+**高 WSS 分位校准探针（test 全场 pool，ckpt_best 完整推理；真值 top10% 均值 18.51，p99 26.98，max 126.74）**：
 
-**待回填**：`geomw_tgtw` / `geomwsamp_tgtw` / `rotaug` / 多种子跑完后更新上表、补 `summarize` 图、定第三轮方向。
+| 配置 | top10% pred/true | p99 比 | max 比 |
+|---|---|---|---|
+| r2_xyzgeom_mse | 3.90/18.51 = **21.1%** | 34.4% | 33.5% |
+| r2_xyzgeom_tgtwloss | 4.10/18.51 = 22.1% | 34.3% | 31.1% |
+| r2_xyzgeom_tgtw_s2025 / _s7 | 22.0% / 26.0% | 31.2% / 39.9% | 41.9% / 34.4% |
+| r2_xyzgeom_geomw_tgtw | 4.86/18.51 = 26.2% | 40.4% | **138%**（max 溢出） |
+| r2_xyzgeom_geomwsamp_tgtw | 9.76/18.51 = **52.7%** | 78.5% | **2248%**（max 2849，爆炸） |
+
+**结论**：
+1. **目标幅值加权方向确认有效，且是唯一稳定正收益**：tgtw 家族（tgtwloss/geomw_tgtw/geomwsamp_tgtw）R²_field 0.235–0.249 全面领先 mse 参考(0.189)/huber(0.203)/rotaug(0.186)，stenosis 从 −0.19 回拉到 −0.07~−0.13、high_wss 从 −1.63 回拉到 −1.38~−1.52。
+2. **但分位校准揭示：R² 回拉主要来自中段，真峰值几乎没恢复**。top10% 高 WSS 校准 mse 21.1% → tgtwloss 仅 22.1%（p99/max 比甚至持平或更低）；`geomwsamp_tgtw` 可推到 52.7% 但 max 溢出 22 倍，不可用。**印证最终诊断的 P1 判断：旧 all-time stats（log std≈5.58）把峰值压扁是硬上限，loss 加权修不了，必须 clean-data 重算 stats。**
+3. **seed 方差大到吞掉多数配置间差异**：tgtwloss 三种子 R²_field = 0.246/0.217/0.203（均值 0.222，极差 0.043）。除"tgtw 家族 > 非加权"这一档间隔外，家族内部排序（如 geomw_tgtw 0.249 vs tgtwloss 0.246）不可作数；第三轮必须多 seed。
+4. **Huber 无收益**（0.203，在 seed 噪声内）；**rotaug 全场最差**（0.186）且与 canonical flow-divider 坐标框架假设冲突——第三轮 `xyz+geom` 主线不启用（与最终诊断 6.2 一致）。
+5. **400 epoch 明显过长**：best epoch 集中在 59–159（仅 huber 339 / geomwloss 279 例外），后期都是过拟合区；val(8例)→test 落差 R²_field 约 0.05–0.11。支持最终诊断 5.1/5.2：缩短训练/early stopping + 复合选模指标。
+
+**产物**：`runs/_summary/{summary.csv,pointcount_curve.png,regional_bar.png}`（已含全部 18 run）；分位探针脚本口径见最终诊断文档 §9 交付物要求（top10%/p95/p99/max 比值）。
 
 ---
 
 ## 待办 / 下一轮候选
-- [ ] 回填第二轮剩余 5 例结果，定最优组合。
-- [ ] 若目标加权仍不足以救 high_wss（仍负）：加大 α 扫描、或改 robust target（分位裁剪/分段标准化）。
-- [ ] 多种子确认方差量级，必要时加 EMA / 正则。
+- [x] **第三轮 clean-data 重启已提交**：`ZHANG_HUAN_LI` 移 excluded、QA gate、`nodenumber/cellnumber` 对齐守卫、clean peak stats、模板基线、`mse/tgtw` 各 3 seed 已完成或提交。
+- [x] eval 固化高 WSS 校准指标（top10% mean 比、p95/p99/max 比、分位校准斜率），并入 `metrics.json` 与 summarize。
+- [x] 第三轮 Job 6953–6958 完训并完成三 seed、区域指标、high-WSS 校准和典型热力图判读。
+- [ ] **P0**：复合/平滑选模 + early stopping，固定在 val 上决策，不用 test 反选 checkpoint。
+- [ ] **P1**：`coord_scale` 与 peak inlet-flow/可部署边界条件标量的单变量信息上限探针。
+- [ ] **P2**：α=1/2/4 + 小权重 raw-space/分位辅助 loss；暂不组合激进几何加权采样。
+- [ ] **P3**：重复 split / 5-fold 或病例 bootstrap CI，确认 0.02–0.04 级差异是否超出抽样噪声。
 - [ ] 二期：WSS 矢量三分量（幅值复用标量 + 内在系方向，避开全局配准符号一致性问题）。
 - [ ] 全相位（TAWSS/OSI 衍生量）与近壁速度第二条路径。

@@ -124,23 +124,37 @@ def sample_indices(case: Dict, cfg: C.DataConfig, seed: int) -> np.ndarray:
 # ---------------------------------------------------------------------------
 # 特征标准化（几何输入列用 train 统计 z-score；x,y,z 保持归一化坐标）
 # ---------------------------------------------------------------------------
-GEOM_FEATURE_KEYS = ("dist_to_wall", "abscissa_norm", "local_radius", "curvature")
+GEOM_FEATURE_KEYS = ("dist_to_wall", "abscissa_norm", "local_radius", "curvature", "coord_scale")
 
 
-def compute_feature_stats(cases: List[Dict], input_features: Tuple[str, ...]) -> Dict:
+def _transform_feature_values(name: str, vals: np.ndarray, transform: str | None) -> np.ndarray:
+    vals = np.asarray(vals, dtype=np.float64)
+    if name == "curvature" and transform == "signed_log1p":
+        return np.sign(vals) * np.log1p(np.abs(vals))
+    return vals
+
+
+def compute_feature_stats(
+    cases: List[Dict],
+    input_features: Tuple[str, ...],
+    curvature_transform: str = "signed_log1p",
+) -> Dict:
     stats: Dict[str, Dict[str, float]] = {}
     for f in input_features:
         if f in ("x", "y", "z"):
             continue
         vals = np.concatenate([np.asarray(c[f], dtype=np.float64).ravel() for c in cases])
+        transform = curvature_transform if f == "curvature" else "none"
+        vals = _transform_feature_values(f, vals, transform)
         vals = vals[np.isfinite(vals)]
         if f == "curvature":  # 端点数值尖峰，先 clip 再统计
             hi = np.percentile(np.abs(vals), 99)
             vals = np.clip(vals, -hi, hi)
             stats[f] = {"mean": float(vals.mean()), "std": float(vals.std() + 1e-6),
-                        "clip": float(hi)}
+                        "clip": float(hi), "transform": transform}
         else:
-            stats[f] = {"mean": float(vals.mean()), "std": float(vals.std() + 1e-6)}
+            stats[f] = {"mean": float(vals.mean()), "std": float(vals.std() + 1e-6),
+                        "transform": transform}
     return stats
 
 
@@ -166,8 +180,9 @@ def build_features(case: Dict, idx: np.ndarray, input_features: Tuple[str, ...],
         elif f == "z":
             cols.append(pos[:, 2])
         else:
-            v = np.asarray(case[f], dtype=np.float64)[idx]
             st = feat_stats[f]
+            v = np.asarray(case[f], dtype=np.float64)[idx]
+            v = _transform_feature_values(f, v, st.get("transform"))
             if "clip" in st:
                 v = np.clip(v, -st["clip"], st["clip"])
             v = (v - st["mean"]) / st["std"]
@@ -195,8 +210,9 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict) -> Dict:
             abscissa_norm=d["wall_abscissa_norm"].astype(np.float32),
             local_radius=d["wall_local_radius"].astype(np.float32),
             curvature=d["wall_curvature"].astype(np.float32),
+            coord_scale=np.full(len(pos), float(d["coord_scale"]), dtype=np.float32),
             peak_step=peak,
-            coord_scale=float(d["coord_scale"]),
+            coord_scale_scalar=float(d["coord_scale"]),
         )
     return case
 

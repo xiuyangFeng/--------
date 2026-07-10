@@ -21,6 +21,8 @@
 | `train.py` | 训练循环：AdamW+cosine、AMP、日志、best/last ckpt、曲线 |
 | `evaluate.py` | 加载 best，**完整点云**推理 → 指标 + 逐病例 CSV + 误差热力图 |
 | `make_configs.py` | 生成第一版 sweep 配置 |
+| `make_configs_round3_clean.py` | 生成第三轮 clean-data 主矩阵（mse/tgtw 各 3 seed） |
+| `template_baseline.py` | mean / voxel / KNN-log-template 模板基线 |
 | `cluster/` | GPU Slurm 脚本与提交驱动 |
 
 ## 用法
@@ -36,6 +38,22 @@ bash training_wss_min/cluster/submit_baseline_sweep.sh
 # 单个 config 本地/单卡跑
 $PY -m training_wss_min.train    --config training_wss_min/configs/pc_xyz_fps_w2000_peak.json
 $PY -m training_wss_min.evaluate --config training_wss_min/configs/pc_xyz_fps_w2000_peak.json
+```
+
+第三轮 clean-data 入口（前置：`pipeline_wss_min` 已重跑 included bundle，`qa-gate` 通过，`wss_global_stats.json` 为 train peak-only clean stats）：
+
+```bash
+PY=/public/newhome/cy/.conda/envs/GNN/bin/python
+
+# 1) 模板基线（不占 GPU）
+$PY -m training_wss_min.template_baseline --methods mean,voxel,knn --partitions val,test
+
+# 2) 生成 clean 主矩阵：mse / target-weight loss 各 3 seed
+$PY -m training_wss_min.make_configs_round3_clean
+
+# 3) 提交 GPU 训练 + 完整点云评估；提交成功记录 job id 后即可等待后续结果分析
+WSSMIN_MANIFEST=training_wss_min/configs/sweep_round3_clean_v1.txt \
+  bash training_wss_min/cluster/submit_baseline_sweep.sh
 ```
 
 ## 第一版 sweep（3 条正交问题，均为标量 WSS + 峰值收缩期）
@@ -64,6 +82,23 @@ column -s, -t training_wss_min/runs/*/eval/per_case_metrics.csv | less  # 逐病
 ```
 
 ## 数据口径（继承 pipeline_wss_min）
-- split：`training/splits/split_AG_wss_min_v1.json`（train 54 / val 8 / test 16）。
+- split：`training/splits/split_AG_wss_min_v1.json`（第三轮 clean-data 为 train 53 / val 8 / test 16 / excluded 9 / pending 1）。
 - 坐标：逐病例各向同性归一化到 [-1,1]（flow-divider 原点、刚性配准）。
-- WSS：全局 `log_z`（train-only 统计，覆盖全 81 步）。评估在**原始 WSS 空间**算指标。
+- WSS：第三轮 clean-data 使用全局 `log_z`（train-only、peak-only 统计）。评估在**原始 WSS 空间**算指标。
+- excluded/pending 即使磁盘上有历史 bundle，也不得进入训练、stats 或 eval；训练入口只从 split 的 train/val/test 读取病例。
+- 每个 run 会保存 `wss_global_stats.json` 快照，后续复评优先使用 run 内 stats，避免全局 stats 重算后混口径。
+
+## 第三轮 clean-data 主矩阵
+- 模板基线：`template_mean_clean`、`template_voxel_clean`、`template_knn_clean`，输出与深度模型一致的 `eval/metrics.json`。
+- 深度模型：`xyz + abscissa_norm + local_radius + curvature`，不含壁面常数列 `dist_to_wall`，不启用 `rot_aug`。
+- 配置：`r3_clean_xyzgeom_mse_s{1234,7,2025}` 与 `r3_clean_xyzgeom_tgtw_s{1234,7,2025}`。
+- 训练：240 epoch，eval_every=10，best 仍按 `val_r2_casemean` 以便和旧轮次可比，同时记录 top10/p95/p99/max 校准指标。
+
+### 第三轮结果（2026-07-10）
+
+- 6 个 run（Slurm 6953–6958）均已完训并完成完整点云评估。
+- test 三 seed：MSE `R²_field=0.191±0.018`、`R²_casemean=0.176±0.021`；target-weight α=2 为 `0.225±0.034`、`0.212±0.027`。
+- target-weight 的 high-WSS `R²=-1.531±0.167`、top10 预测/真值比 `0.357±0.037`，仍存在明显峰值低估；seed 7 未稳定优于 MSE。
+- 第三轮 clean-data 组合主要改善了幅值校准，没有显著抬高第二轮 target-weight 的整体 R² 均值；跨轮还同时改变 split、curvature transform 和训练时长，不能视为 stats 单变量消融。下一步先做 val 复合/平滑选模与 early stopping，再做 `coord_scale`、入口流量/边界条件标量和稳健尾部 loss 的单变量实验。
+- `runs/_summary/` 已刷新为 27 个实验的聚合结果（含第三轮深度模型和 clean 模板基线）。
+- 完整表、逐病例失败清单与下一轮优先级见 [`WSS最小化_训练实验跟踪.md`](../docs/02-推进与变更/WSS最小化_训练实验跟踪.md)。

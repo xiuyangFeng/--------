@@ -25,10 +25,10 @@ def load_all():
         cfg = json.loads((d / "config.json").read_text())
         row = {
             "name": d.name,
-            "wall_n": cfg["data"]["wall_n_points"],
-            "sampling": cfg["data"]["sampling"],
-            "features": "+".join(cfg["data"]["input_features"]),
-            "nfeat": len(cfg["data"]["input_features"]),
+            "wall_n": cfg.get("data", {}).get("wall_n_points", 0),
+            "sampling": cfg.get("data", {}).get("sampling", cfg.get("method", "")),
+            "features": "+".join(cfg.get("data", {}).get("input_features", [])),
+            "nfeat": len(cfg.get("data", {}).get("input_features", [])),
         }
         for part in ("val", "test"):
             if part not in m:
@@ -38,6 +38,11 @@ def load_all():
             row[f"{part}_r2_field"] = f["r2"]
             row[f"{part}_nrmse_field"] = f["nrmse_range"]
             row[f"{part}_mae"] = f["mae"]
+            cal = m[part].get("calibration", {})
+            for ck in ("top10_pred_true_ratio", "p95_pred_true_ratio",
+                       "p99_pred_true_ratio", "max_pred_true_ratio",
+                       "calibration_slope"):
+                row[f"{part}_{ck}"] = cal.get(ck, float("nan"))
             for reg in ("bifurcation", "stenosis", "high_wss"):
                 row[f"{part}_{reg}_r2"] = rf.get(reg, {}).get("r2", float("nan"))
         rows.append(row)
@@ -51,11 +56,14 @@ def _fmt(v):
 def print_table(rows):
     cols = ["name", "wall_n", "sampling", "features",
             "test_r2_field", "test_r2_casemean", "test_nrmse_field", "test_mae",
-            "test_bifurcation_r2", "test_stenosis_r2", "test_high_wss_r2"]
+            "test_bifurcation_r2", "test_stenosis_r2", "test_high_wss_r2",
+            "test_top10_pred_true_ratio", "test_p99_pred_true_ratio"]
     short = {"test_r2_field": "te_R2f", "test_r2_casemean": "te_R2cm",
              "test_nrmse_field": "te_NRMSE", "test_mae": "te_MAE",
              "test_bifurcation_r2": "te_bif", "test_stenosis_r2": "te_sten",
-             "test_high_wss_r2": "te_hiW"}
+             "test_high_wss_r2": "te_hiW",
+             "test_top10_pred_true_ratio": "te_top10",
+             "test_p99_pred_true_ratio": "te_p99"}
     hdr = [short.get(c, c) for c in cols]
     print("  ".join(f"{h:>28s}" if h == "name" else f"{h:>10s}" for h in hdr))
     for r in sorted(rows, key=lambda x: -(x.get("test_r2_field") or -9)):

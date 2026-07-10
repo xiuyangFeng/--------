@@ -131,6 +131,8 @@ def build_all(
 ) -> None:
     cfg = cfg or C.DEFAULT
     cohorts = cohorts or list(C.COHORTS.values())
+    if split_name is None:
+        raise RuntimeError("build-samples 必须按 split 运行，禁止读取 all-raw bundle")
     stats = GS.load_global_wss_stats(cfg)
 
     log = reporting.get_logger()

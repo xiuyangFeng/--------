@@ -32,7 +32,9 @@ AUDIT_FIELDS = [
     "roll_sign_source", "roll_sign_cos", "roll_sign_reliable",
     "trunk_centering_applied", "trunk_centering_offset_frac",
     "wss_raw_min", "wss_raw_max",
-    "wall_delimiter", "interior_delimiter",
+    "nodenumber_alignment_ok", "nodenumber_reordered_n_steps",
+    "wall_coord_mismatch_n_steps", "wall_coord_max_abs_delta",
+    "wall_delimiter", "wall_id_column", "interior_delimiter",
     "bundle_mb", "elapsed_s",
 ]
 
@@ -116,6 +118,15 @@ def write_batch_audit(rows: List[Dict], stage: str) -> Dict:
             f"{r['cohort']}/{r['case']}: offset_frac={r.get('trunk_centering_offset_frac','')}"
             for r in rows if r.get("status") == "ok"
             and r.get("trunk_centering_applied") is True],
+        "nodenumber_reordered_cases": [
+            f"{r['cohort']}/{r['case']}: reordered_steps={r.get('nodenumber_reordered_n_steps','')}"
+            for r in rows if r.get("status") == "ok"
+            and int(r.get("nodenumber_reordered_n_steps", 0) or 0) > 0],
+        "wall_coord_mismatch_cases": [
+            f"{r['cohort']}/{r['case']}: mismatch_steps={r.get('wall_coord_mismatch_n_steps','')} "
+            f"max_delta={r.get('wall_coord_max_abs_delta','')}"
+            for r in rows if r.get("status") == "ok"
+            and int(r.get("wall_coord_mismatch_n_steps", 0) or 0) > 0],
     }
     json_path = REPORT_DIR / f"{stage}_audit_{ts}.json"
     json_path.write_text(json.dumps({"summary": summary, "rows": rows},

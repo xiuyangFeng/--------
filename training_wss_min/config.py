@@ -24,7 +24,10 @@ RUNS_ROOT = Path(__file__).resolve().parent / "runs"
 
 
 # 可用的逐点输入特征（bundle 里都在，除 x,y,z 外均为旋转不变几何量）
-FEATURE_KEYS = ("x", "y", "z", "dist_to_wall", "abscissa_norm", "local_radius", "curvature")
+FEATURE_KEYS = (
+    "x", "y", "z", "dist_to_wall", "abscissa_norm",
+    "local_radius", "curvature", "coord_scale",
+)
 
 
 @dataclass
@@ -44,6 +47,8 @@ class DataConfig:
     rot_aug: bool = False
     # 输入特征（网络实际吃的列）
     input_features: Tuple[str, ...] = ("x", "y", "z")
+    # curvature 输入的鲁棒变换；旧 run 的 feature_stats 不含 transform 时仍按旧口径评估
+    curvature_transform: str = "signed_log1p"  # 'signed_log1p' | 'none'
     # 时间步：baseline 用峰值收缩期单步
     timesteps: str = "peak"               # 'peak'（其余暂不支持，占位）
     target: str = "wss"                   # 'wss'(标量) —— 矢量留待二期

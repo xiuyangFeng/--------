@@ -32,7 +32,7 @@ from .registration import (
 # 点类型编码
 WALL, NEAR_WALL, INTERIOR = 2, 1, 0
 
-# 壁面必须列（否则无法提供 WSS 目标）
+# 壁面必须列（否则无法提供 WSS 目标；ID 列用 nodenumber/cellnumber 单独校验）
 _REQUIRED_WALL_COLS = ["x-coordinate", "y-coordinate", "z-coordinate", "wall-shear"]
 _REQUIRED_INT_COLS = ["x-coordinate", "y-coordinate", "z-coordinate"]
 
@@ -60,6 +60,9 @@ def _validate_case(case_dir: Path, case_name: str, steps, cfg) -> Dict:
 
     wall_cols = raw_io.header_columns(wall_f)
     int_cols = raw_io.header_columns(int_f)
+    wall_id_col = raw_io.wall_id_column(wall_cols)
+    if wall_id_col is None:
+        raise SkipCase("壁面导出缺少 nodenumber/cellnumber ID 列")
     miss_w = [c for c in _REQUIRED_WALL_COLS if c not in wall_cols]
     if miss_w:
         raise SkipCase(f"壁面导出缺列: {miss_w}")
@@ -69,6 +72,7 @@ def _validate_case(case_dir: Path, case_name: str, steps, cfg) -> Dict:
 
     return {
         "wall_delimiter": raw_io.delimiter_of(wall_f),
+        "wall_id_column": wall_id_col,
         "interior_delimiter": raw_io.delimiter_of(int_f),
     }
 
@@ -130,6 +134,46 @@ def _nearest_centerline_feats(pts: np.ndarray, cl: Dict[str, np.ndarray]) -> Dic
     }
 
 
+def _align_wall_fields_to_reference(
+    fields: Dict[str, np.ndarray],
+    ref_ids: np.ndarray,
+    step: int,
+) -> tuple[Dict[str, np.ndarray], bool]:
+    """按首步 nodenumber 顺序对齐单个时间步壁面场。
+
+    返回 (aligned_fields, reordered)。若节点集合/长度/重复节点异常，直接报错；
+    这是防止 WSS 标签与几何静默错位的硬守卫。
+    """
+    ids = np.asarray(fields["nodenumber"], dtype=np.int64)
+    ref_ids = np.asarray(ref_ids, dtype=np.int64)
+    if len(ids) != len(ref_ids):
+        raise RuntimeError(
+            f"step {step} nodenumber 长度不一致: got={len(ids)} ref={len(ref_ids)}"
+        )
+    if len(np.unique(ids)) != len(ids):
+        raise RuntimeError(f"step {step} nodenumber 存在重复值")
+    if np.array_equal(ids, ref_ids):
+        return fields, False
+
+    order = np.argsort(ids)
+    ids_sorted = ids[order]
+    ref_sorted = np.sort(ref_ids)
+    if not np.array_equal(ids_sorted, ref_sorted):
+        missing = np.setdiff1d(ref_ids, ids, assume_unique=False)[:5].tolist()
+        extra = np.setdiff1d(ids, ref_ids, assume_unique=False)[:5].tolist()
+        raise RuntimeError(
+            f"step {step} nodenumber 集合不一致: missing={missing} extra={extra}"
+        )
+
+    pos = np.searchsorted(ids_sorted, ref_ids)
+    aligned_idx = order[pos]
+    out: Dict[str, np.ndarray] = {}
+    for key, val in fields.items():
+        arr = np.asarray(val)
+        out[key] = arr[aligned_idx] if len(arr) == len(ids) else val
+    return out, True
+
+
 def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | None = None,
                     verbose: bool = True) -> Dict:
     """处理单病例。成功返回 report(dict, status=ok)；原始数据不完整抛 SkipCase。"""
@@ -154,6 +198,16 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
 
     # ---- 几何（静态，只读一次；原生单位） ----
     wall_native = raw_io.read_wall_geometry(case_dir, case_name, ref)
+    ref_wall_fields = raw_io.read_wall_fields(case_dir, case_name, ref)
+    ref_node_ids = ref_wall_fields["nodenumber"].astype(np.int64)
+    if len(np.unique(ref_node_ids)) != len(ref_node_ids):
+        raise RuntimeError(f"首步 nodenumber 存在重复值: {cohort_rel}/{case_name}")
+    ref_coord_delta = float(np.max(np.abs(ref_wall_fields["coords"] - wall_native))) \
+        if len(wall_native) else 0.0
+    if ref_coord_delta > 1e-8:
+        raise RuntimeError(
+            f"首步 read_wall_geometry/read_wall_fields 坐标不一致: max_delta={ref_coord_delta:.3e}"
+        )
     int_native = raw_io.read_interior_geometry(case_dir, case_name, ref)
     cl = raw_io.read_centerline(case_dir)
 
@@ -235,8 +289,18 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
     wss_ts = np.empty((len(steps), n_wall), dtype=np.float32)
     wp_ts = np.empty((len(steps), n_wall), dtype=np.float32)
     wvec_ts = np.empty((len(steps), n_wall, 3), dtype=np.float32) if cfg.tagging.store_wall_wss_vector else None
+    nodenumber_reordered_steps = []
+    wall_coord_mismatch_steps = []
+    wall_coord_max_abs_delta = 0.0
     for i, s in enumerate(steps):
         wf = raw_io.read_wall_fields(case_dir, case_name, s)
+        wf, reordered = _align_wall_fields_to_reference(wf, ref_node_ids, s)
+        if reordered:
+            nodenumber_reordered_steps.append(int(s))
+        coord_delta = float(np.max(np.abs(wf["coords"] - wall_native))) if len(wall_native) else 0.0
+        wall_coord_max_abs_delta = max(wall_coord_max_abs_delta, coord_delta)
+        if coord_delta > 1e-8:
+            wall_coord_mismatch_steps.append(int(s))
         # 壁面场按裁剪 mask 过滤，和 wall_pts 保持同序同长
         wss_ts[i] = wf["wss"][wall_keep] if crop_applied else wf["wss"]
         wp_ts[i] = wf["pressure"][wall_keep] if crop_applied else wf["pressure"]
@@ -288,6 +352,7 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         # 壁面（静态几何）
         wall_coords_norm=wall_norm,
         wall_coords_raw=wall_pts.astype(np.float32),
+        wall_nodenumber=ref_node_ids[wall_keep].astype(np.int64) if crop_applied else ref_node_ids.astype(np.int64),
         wall_dist_to_wall=wall_dist,
         wall_abscissa_norm=wall_geom["abscissa_norm"].astype(np.float32),
         wall_local_radius=wall_geom["local_radius"].astype(np.float32),
@@ -351,7 +416,14 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         ],
         "centroid_mm": [round(float(x), 4) for x in T.centroid],
         "wss_raw_min": float(wss_ts.min()), "wss_raw_max": float(wss_ts.max()),
+        "nodenumber_alignment_ok": True,
+        "nodenumber_reordered_n_steps": len(nodenumber_reordered_steps),
+        "nodenumber_reordered_steps": nodenumber_reordered_steps[:10],
+        "wall_coord_mismatch_n_steps": len(wall_coord_mismatch_steps),
+        "wall_coord_mismatch_steps": wall_coord_mismatch_steps[:10],
+        "wall_coord_max_abs_delta": float(wall_coord_max_abs_delta),
         "wall_delimiter": probe["wall_delimiter"],
+        "wall_id_column": probe["wall_id_column"],
         "interior_delimiter": probe["interior_delimiter"],
         "bundle_path": str(out_path), "bundle_mb": round(bundle_mb, 2),
         "elapsed_s": round(time.time() - t0, 2),

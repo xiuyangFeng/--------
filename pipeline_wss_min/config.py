@@ -162,7 +162,8 @@ class NormalizationConfig:
     # 长度影响）；'all' 按壁面+内部（旧口径，会被内部延伸段带偏，壁面只填约半框）。
     # 注：'wall' 下内部点归一化坐标可能超出 ±1（WSS 任务不以内部为输入，无影响）。
     coord_scale_on: str = "wall"            # 'wall' | 'all'
-    # WSS 标量目标：全局标准化（保留跨病例物理量级）
+    # WSS 标量目标：全局标准化（保留跨病例物理量级）；
+    # 第三轮 clean-data 主线用 train peak-only stats，all-phase 需显式切换。
     wss_scope: str = "global"               # 'global' | 'per_case'
     wss_method: str = "log_z"               # 'z' | 'log_z'（WSS 近似对数正态）
     # 全局统计存放

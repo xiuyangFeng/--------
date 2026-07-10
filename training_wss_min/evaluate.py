@@ -56,6 +56,7 @@ def evaluate_partition(model, cases: List[Dict], cfg: C.ExpConfig, feat_stats: D
         y_pred_raw = np.clip(D.denormalize_wss(y_pred_norm, wss_stats), 0, None)
         y_true_raw = case["y_raw"].astype(np.float64)
         reg = M.regional_metrics(case["pos"], case["local_radius"], y_true_raw, y_pred_raw)
+        reg["calibration"] = M.calibration_metrics(y_true_raw, y_pred_raw)
         per_case[f"{case['cohort']}/{case['case']}"] = reg
         pooled_true.append(y_true_raw)
         pooled_pred.append(y_pred_raw)
@@ -67,6 +68,7 @@ def evaluate_partition(model, cases: List[Dict], cfg: C.ExpConfig, feat_stats: D
     result = {
         "aggregate": M.aggregate_case_metrics(per_case),
         "field": M.basic_metrics(pt, pp),
+        "calibration": M.calibration_metrics(pt, pp),
         "regional_field": _regional_field(cases, pooled_true, pooled_pred),
         "per_case": per_case,
     }
@@ -126,6 +128,12 @@ def write_reports(result_by_part: Dict[str, Dict], eval_dir: Path):
         for case, reg in res["per_case"].items():
             row = {"partition": part, "case": case}
             for rname, rm in reg.items():
+                if rname == "calibration":
+                    for k in ("top10_pred_true_ratio", "p95_pred_true_ratio",
+                              "p99_pred_true_ratio", "max_pred_true_ratio",
+                              "calibration_slope"):
+                        row[f"cal_{k}"] = round(rm.get(k, float("nan")), 4)
+                    continue
                 row[f"{rname}_r2"] = round(rm.get("r2", float("nan")), 4)
                 row[f"{rname}_nrmse"] = round(rm.get("nrmse_range", float("nan")), 4) \
                     if "nrmse_range" in rm else float("nan")
@@ -148,6 +156,11 @@ def load_model_from_run(run_dir: Path, device: str):
     return cfg, feat_stats, model, ckpt
 
 
+def load_wss_stats_for_run(run_dir: Path) -> Dict:
+    stats_path = run_dir / "wss_global_stats.json"
+    return D.load_wss_stats(stats_path if stats_path.is_file() else C.GLOBAL_STATS)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-dir", type=str, default=None)
@@ -165,7 +178,7 @@ def main():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     cfg, feat_stats, model, ckpt = load_model_from_run(run_dir, device)
-    wss_stats = D.load_wss_stats()
+    wss_stats = load_wss_stats_for_run(run_dir)
     eval_dir = run_dir / "eval"
 
     result_by_part = {}

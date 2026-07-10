@@ -125,13 +125,18 @@ def main():
     wss_stats = D.load_wss_stats()
     tr_cases = D.load_partition(cfg.data.split_path, "train", wss_stats)
     va_cases = D.load_partition(cfg.data.split_path, "val", wss_stats)
-    feat_stats = D.compute_feature_stats(tr_cases, cfg.data.input_features)
+    feat_stats = D.compute_feature_stats(
+        tr_cases, cfg.data.input_features, cfg.data.curvature_transform
+    )
     log.info("train cases=%d val cases=%d  feat_stats=%s",
              len(tr_cases), len(va_cases), list(feat_stats.keys()))
 
     # 保存配置与特征统计（评估复用）
     cfg.to_json(run_dir / "config.json")
     (run_dir / "feature_stats.json").write_text(json.dumps(feat_stats, indent=2))
+    (run_dir / "wss_global_stats.json").write_text(
+        json.dumps(wss_stats, indent=2, ensure_ascii=False)
+    )
 
     train_ds = D.WSSMinDataset(tr_cases, cfg.data, feat_stats, training=True,
                                base_seed=cfg.train.seed)
@@ -182,12 +187,14 @@ def main():
         if do_eval and va_cases:
             res = evaluate_partition(model, va_cases, cfg, feat_stats, wss_stats, device,
                                      make_plots=False)
-            agg, fld = res["aggregate"], res["field"]
+            agg, fld, cal = res["aggregate"], res["field"], res.get("calibration", {})
             rec.update({
                 "val_r2_casemean": agg["r2_casemean"],
                 "val_r2_field": fld["r2"],
                 "val_nrmse_field": fld["nrmse_range"],
                 "val_mae_field": fld["mae"],
+                "val_top10_pred_true_ratio": cal.get("top10_pred_true_ratio", float("nan")),
+                "val_p99_pred_true_ratio": cal.get("p99_pred_true_ratio", float("nan")),
             })
             metric_key = cfg.train.ckpt_metric.replace("val_r2_casemean", "r2_casemean")
             cur = agg.get("r2_casemean", -math.inf) if "casemean" in cfg.train.ckpt_metric \

@@ -44,7 +44,7 @@ python -m pipeline_wss_min.visualize_stl_point_overlap --split split_AG_wss_min_
 python -m pipeline_wss_min.run --stage all
 ```
 
-说明见 `pipeline_wss_min/README.md`、`docs/02-推进与变更/WSS最小化预处理流程_搭建与交接记录_2026-07-07.md` 与 `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`。
+说明见 `pipeline_wss_min/README.md`、`training_wss_min/README.md`、`docs/02-推进与变更/WSS最小化_训练实验跟踪.md` 与 `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`；已完成的诊断与交接材料统一放在 `docs/02-推进与变更/_archive/WSS最小化/`。
 
 批量处理前建议先做一次输入审计：
 

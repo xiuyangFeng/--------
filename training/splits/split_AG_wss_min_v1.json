@@ -49,7 +49,6 @@
     "slow/HE_SHU_ZHEN",
     "slow/DING_LIAN_ZHONG",
     "slow/CHENG_GUANG_SEN",
-    "slow/ZHANG_HUAN_LI",
     "fast/SUN_ZHI_YU",
     "slow/GUAN_TONG_XIANG",
     "slow/YANG_YOU_SHENG",
@@ -97,7 +96,8 @@
     "slow/TE_JIN_WANG",
     "slow/NIE_QUAN_ZHONG",
     "slow/WANG_BAO_SHAN",
-    "slow/SUN_WEN_QING"
+    "slow/SUN_WEN_QING",
+    "slow/ZHANG_HUAN_LI"
   ],
   "excluded_reasons": {
     "fast/PENG_JI_MING": "CFD 根本性异常：入口流速≈0(1.48e-11)、壁面WSS 275×异常、出口压力发散；见 V3 OOD 诊断记录 §3-4。pipeline_wss_min 亦自动标记 unit_anomaly(factor≈9.7e5)。",
@@ -107,19 +107,20 @@
     "slow/LIN_SHU_TIAN": "local frame 几何离群 rad_frac_p95=0.451（S0 QA, Job 5409）。",
     "slow/NIE_QUAN_ZHONG": "WSS-min 坐标 QA 异常：中心线主轴需 wall_pca_fallback，STL→壁面点云 p95≈0.155mm，且同框图显示整体偏位；2026-07-08 决定从第一版 baseline 训练集中剔除。",
     "slow/WANG_BAO_SHAN": "WSS-min 最终坐标 QA 人工复核剔除：虽经单位兜底与未描入口段裁剪后回到统计正常簇，但 page02 同框/逐病例视图仍呈明显形态与朝向离群，第一版 baseline 保守排除。",
-    "slow/SUN_WEN_QING": "WSS-min 最终坐标 QA 人工复核剔除：壁面归一化尺度 coord_scale≈93.24mm，为当前 included 最小值，归一化后同框图视觉占比/上下位置离群，第一版 baseline 保守排除。"
+    "slow/SUN_WEN_QING": "WSS-min 最终坐标 QA 人工复核剔除：壁面归一化尺度 coord_scale≈93.24mm，为当前 included 最小值，归一化后同框图视觉占比/上下位置离群，第一版 baseline 保守排除。",
+    "slow/ZHANG_HUAN_LI": "WSS-min 第三轮 clean-data 前剔除：WSS 标签近全零（peak/all-time zero_frac≈0.9166，peak p90=0）+ n_wall=209299 极端 + unit/coverage/crop/trunk 多重异常，污染训练统计。"
   },
   "pending_cases": [
     "slow/ZHAO_XIU_XUAN"
   ],
   "pending_reason": "不在 split_AG_v1 任一名单中（未分配）；暂不纳入训练，待评估后再决定是否加入。",
   "counts": {
-    "train": 54,
+    "train": 53,
     "val": 8,
     "test": 16,
-    "excluded": 8,
+    "excluded": 9,
     "pending": 1,
     "total_found": 87
   },
-  "notes": "2026-07-07：为 pipeline_wss_min 新建；初始划分沿用 split_AG_v1。2026-07-08：因 WSS-min 坐标/STL QA 异常，将 slow/NIE_QUAN_ZHONG 从 train 移入 excluded；最终坐标 QA 人工复核后，将 slow/WANG_BAO_SHAN、slow/SUN_WEN_QING 从 train 移入 excluded。"
+  "notes": "2026-07-07：为 pipeline_wss_min 新建；初始划分沿用 split_AG_v1。2026-07-08：因 WSS-min 坐标/STL QA 异常，将 slow/NIE_QUAN_ZHONG 从 train 移入 excluded；最终坐标 QA 人工复核后，将 slow/WANG_BAO_SHAN、slow/SUN_WEN_QING 从 train 移入 excluded。2026-07-10：第三轮 clean-data 前将 slow/ZHANG_HUAN_LI 从 train 移入 excluded，原因是 WSS 标签近全零、n_wall 极端且多重预处理审计异常，污染训练统计；slow/ZHAO_XIU_XUAN 保持 pending，不进入正式数据集。"
 }

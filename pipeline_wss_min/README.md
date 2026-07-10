@@ -16,9 +16,9 @@
 |---|---|
 | 解剖配准 | **分叉原点版中心线/壁面联合刚性配准 v3.2**：`DistToBifurcation≈0` 分叉区域→原点，入口端→分叉 trunk 主轴对齐 +Z；若中心线 trunk 弦向无法清楚区分单主干侧/双髂支侧，则用壁面点云 PCA 长轴兜底并按双髂支侧定号；**左右轴(roll)从分叉下游"壁面点"双峰求真实 L-R**（中心线常只描一条髂支），符号用"主干弯曲(A-P)×主轴"内在手性 + 世界轴两锚交叉校验；配准后若主干低位段在横断面仍整体偏离中心轴，则触发主干横向二次居中；缺数据按 `wall_branches→branches→curvature` 逐级回退，`det(R)=+1` |
 | 坐标标准化 | **逐病例**各向同性缩放到 [-1,1]（保形，视角一致） |
-| WSS 标准化 | **全局** `log_z`（近似对数正态），覆盖全部时间步 |
+| WSS 标准化 | **全局** `log_z`（近似对数正态）；第三轮 clean-data 主线默认使用 train-only peak 单步统计 |
 | 数据范围 | `AG/fast` (25) + `AG/slow` (62) |
-| 权威 split | `split_AG_wss_min_v1`：train 54 / val 8 / test 16 / excluded 8 / pending 1；默认流程只用 split included，WSS 全局统计只用 train |
+| 权威 split | `split_AG_wss_min_v1`：train 53 / val 8 / test 16 / excluded 9 / pending 1；默认流程只用 split included，WSS 全局统计只用 train |
 | 单位 | **逐病例自动**从中心线包围盒反推 mesh→mm 因子（正常≈1000）；异常病例标记待复核 |
 
 > 2026-07-07 更新：旧版 `center_on="wall"` 曾升级为 `center_on="bifurcation"`。2026-07-08 最终口径已继续升级为
@@ -36,11 +36,12 @@
 > 造成入口端→分叉弦向不可信的病例。审计中新增 `main_axis_source` 与 `main_axis_wall_sep_delta`。
 >
 > 2026-07-08 P3 更新：`slow/NIE_QUAN_ZHONG` 因中心线/STL/点云 QA 异常从 train 移入 excluded。
-> `run.py`、`global_stats.py`、`build_samples.py` 默认遵守 `split_AG_wss_min_v1`；只有显式 `--all-raw` 才扫描原始目录。
+> `run.py`、`global_stats.py`、`build_samples.py` 默认遵守 `split_AG_wss_min_v1`；第三轮起 `--all-raw` 仅允许诊断性
+> `preprocess`，正式 `qa-gate/global-stats/build-samples/all` 均拒绝 all-raw，避免 pending/excluded 历史 bundle 进入口径。
 >
 > 2026-07-08 最终 QA 收口：未描入口段裁剪改为入口中心线局部切平面口径，并加
 > `crop_min_wall_frac=0.08` 防止正常病例擦边小裁剪；坐标缩放默认 `coord_scale_on="wall"`。
-> 人工复核后将 `slow/WANG_BAO_SHAN`、`slow/SUN_WEN_QING` 从 train 移入 excluded；当前最终 QA 为 included=78，
+> 人工复核后将 `slow/WANG_BAO_SHAN`、`slow/SUN_WEN_QING` 从 train 移入 excluded；当时最终 QA 为 included=78，
 > 只裁剪 `slow/ZHANG_HUAN_LI`（32.40%），`fast/LI_ZHEN_SHAN` 不再被擦边裁剪。该阶段图件入口为
 > `outputs/wss_min/当前_78例坐标QA/`；后续 flow-divider 最终口径见下一条。
 >
@@ -51,15 +52,22 @@
 > `outputs/wss_min/flow_divider_origin_QA_78例/`。旧 `当前_78例坐标QA/` 已归档，不再作为当前口径。
 >
 > 2026-07-08 21:48 已在集群 `node03` 重跑 `preprocess`，Slurm 作业 `5941` 完成，退出码 `0:0`。
-> 当前 78 个 included bundle 已按 flow-divider 口径刷新；审计为
+> 当时 78 个 included bundle 已按 flow-divider 口径刷新；审计为
 > `data_wss_min/pipeline_reports/preprocess_audit_20260708_215512.csv`（`ok=78, skipped=0, error=0`）。
-> `pending=1` 的 `slow/ZHAO_XIU_XUAN` 是原始目录中存在但未分配到继承 split 的病例，暂不进入当前 78 例口径。
+> `pending=1` 的 `slow/ZHAO_XIU_XUAN` 是原始目录中存在但未分配到继承 split 的病例，第三轮仍不进入 included=77 口径。
+>
+> 2026-07-10 第三轮 clean-data 口径：`slow/ZHANG_HUAN_LI` 因 WSS 标签近全零、
+> `n_wall` 极端且多重预处理审计异常，从 train 移入 excluded；当前 included=77。
+> 后续必须重跑 included bundle，使 `nodenumber` 对齐守卫和新审计字段真实落盘。
+> `excluded_cases` 和 `pending_cases` 即使磁盘上仍有历史 `bundle.npz`，也不得参与
+> preprocess/stats/training/eval 的正式数据集。
 
-## 三个阶段
+## 四个阶段
 1. **preprocess**（默认 split included 病例，重，一次）：读原始 CFD → 中心线配准 → 坐标正交化/标准化 →
    壁面/近壁/内部掩码（KNN 到壁面距离）→ 保留几何 → 堆叠全时间步 WSS → `bundle.npz`
-2. **global-stats**（第二遍，默认 train-only）：流式累积壁面 WSS → `data_wss_min/wss_global_stats.json`
-3. **build-samples**（默认 split included，轻，可反复扫）：**归一化之后**稀疏化（FPS/random）→
+2. **qa-gate**（第三轮新增，默认 split included）：检查 WSS 零值、极端点数、单位/覆盖/裁剪/主干偏移、非有限值与 `nodenumber` 对齐字段；失败则不进入训练
+3. **global-stats**（第二遍，默认 train-only + peak-only）：流式累积壁面 WSS → `data_wss_min/wss_global_stats.json`
+4. **build-samples**（默认 split included，轻，可反复扫）：**归一化之后**稀疏化（FPS/random）→
    选时间步（peak/all）→ 全局标准化 WSS → 每样本 `.npz`
 
 ## 用法
@@ -71,11 +79,16 @@ $PY -m pipeline_wss_min.run --stage preprocess --cohort AG/fast --case CHEN_SHI_
 
 # 全流程（默认按 split_AG_wss_min_v1；train-only stats，included samples）
 $PY -m pipeline_wss_min.run --stage all
-# 原始目录排查才用：忽略 split，扫描全部 raw 病例
+# 第三轮 clean-data 推荐分步：preprocess 完成后先过 QA，再重算 peak-only stats
+$PY -m pipeline_wss_min.run --stage preprocess
+$PY -m pipeline_wss_min.run --stage qa-gate
+$PY -m pipeline_wss_min.run --stage global-stats --stats-timesteps peak
+# 原始目录排查才用：忽略 split，扫描全部 raw 病例；不得接 stats/build-samples
 $PY -m pipeline_wss_min.run --stage preprocess --all-raw
 
 # 集群提交（CPU/node03；脚本名沿用 preprocess，但可传 stage）
 /public/slurm/bin/sbatch --parsable pipeline_wss_min/cluster/run_preprocess.slurm preprocess
+/public/slurm/bin/sbatch --parsable pipeline_wss_min/cluster/run_preprocess.slurm qa-gate
 /public/slurm/bin/sbatch --parsable pipeline_wss_min/cluster/run_preprocess.slurm global-stats
 /public/slurm/bin/sbatch --parsable pipeline_wss_min/cluster/run_preprocess.slurm build-samples
 
@@ -90,7 +103,7 @@ $PY -m pipeline_wss_min.run --stage build-samples --timesteps all --sample-name 
 $PY -m pipeline_wss_min.visualize_alignment --split split_AG_wss_min_v1
 $PY -m pipeline_wss_min.coord_check --split split_AG_wss_min_v1
 $PY -m pipeline_wss_min.visualize_stl_point_overlap --split split_AG_wss_min_v1 --n 10 --seed 20260707
-# 当前 78 例最终 QA：点云/STL 同框每20例 + 逐病例视图 + WSS正/俯视图
+# flow-divider QA：点云/STL 同框每20例 + 逐病例视图 + WSS正/俯视图
 $PY -m pipeline_wss_min.visualize_final_case_pages --split split_AG_wss_min_v1
 # flow-divider 解剖基点新旧原点量化对照
 $PY -m pipeline_wss_min.compare_flow_divider_origin --split split_AG_wss_min_v1
@@ -155,7 +168,7 @@ $PY -m pipeline_wss_min.visualize_lr_check --roll-source branches --roll-sign-mo
   `outputs/wss_min/coord_check_20260707_anatomical_v2/`，用于检查分叉原点、trunk 方向和分支横轴是否一致。
 - **P0/P1 QA 图**：`outputs/wss_min/alignment_viz_p0p1_main_axis/` 与
   `outputs/wss_min/lr_check/lr_side_grid_p0p1_all81_full.png`，用于核对主轴 fallback 后的统一视角和全量 LR 符号状态。
-- **当前 78 例最终 QA 图**：`outputs/wss_min/flow_divider_origin_QA_78例/`，包含点云同框、STL 同框、逐病例 X-Z、
+- **2026-07-08 的 78 例 flow-divider QA 图**：`outputs/wss_min/flow_divider_origin_QA_78例/`，包含点云同框、STL 同框、逐病例 X-Z、
   峰值 WSS 正/俯视图、LR 复核图和二次居中病例复核图；每类分页图按每 20 例一页组织。
 - **flow-divider 原点对照**：`outputs/wss_min/flow_divider_origin_compare/`，包含新旧原点位移、
   |COM| 改善/变差、最大变化病例和汇总图；最终 QA 图为
@@ -174,13 +187,14 @@ $PY -m pipeline_wss_min.visualize_lr_check --roll-source branches --roll-sign-mo
 - **文件名前缀 ≠ 目录名**（如目录 `HOU_SHEN_QIAN`、文件 `HOU_SHEN_QIAN3-*`）→ 已按 `-<step>` 后缀回退匹配。
 - **单位异常病例**（如 `AG/fast/PENG_JI_MING`，原生尺度 ~1e-4，factor≈9.7e5）→ 坐标已按中心线自动校正，
   但其 **CFD 的 WSS 物理量级可能同样异常，纳入全局统计/训练前请人工复核**（审计中 `unit_anomaly=true`）。
-- **几何/配准 QA 剔除病例**：当前 `excluded_cases=8`（`fast/PENG_JI_MING`、`slow/LIU_XI_QUAN`、`slow/WEI_JUN_WEN`、
-  `slow/LIN_SHU_TIAN`、`slow/TE_JIN_WANG`、`slow/NIE_QUAN_ZHONG`、`slow/WANG_BAO_SHAN`、`slow/SUN_WEN_QING`）；
+- **几何/配准/标签 QA 剔除病例**：第三轮 `excluded_cases=9`（`fast/PENG_JI_MING`、`slow/LIU_XI_QUAN`、`slow/WEI_JUN_WEN`、
+  `slow/LIN_SHU_TIAN`、`slow/TE_JIN_WANG`、`slow/NIE_QUAN_ZHONG`、`slow/WANG_BAO_SHAN`、`slow/SUN_WEN_QING`、
+  `slow/ZHANG_HUAN_LI`）；
   旧 bundle 若存在也不会被默认 `preprocess` / `global-stats` / `build-samples` 使用。
 - **pending 病例**：`slow/ZHAO_XIU_XUAN` 存在于原始目录，但未分配到继承 split 的 train/val/test/excluded 任一名单，
-  因此暂不纳入当前 78 例；需单独 QA 后再决定是否补入。
+  因此暂不纳入第三轮 included=77；需单独 QA 后再决定是否补入。
 
 ## 注意
-- 全局 WSS 统计覆盖**全部时间步**，因此峰值样本的归一化均值为正（峰值 WSS 高于全相位均值），符合预期。
-  若只训练峰值，可在 `NormalizationConfig` 另建仅峰值统计。
+- 第三轮 clean-data 的全局 WSS 统计覆盖**train peak 单步**。若后续切全相位任务，需显式用
+  `--stats-timesteps all` 重算 stats，并给网络增加 `phase` / `inlet_flow` 等时间或边界条件特征。
 - `curvature` 端点附近有数值尖峰（原始中心线量），默认被掩码；如启用建议先 clip/log。

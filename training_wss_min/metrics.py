@@ -53,6 +53,41 @@ def basic_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
     }
 
 
+def calibration_metrics(y_true: np.ndarray, y_pred: np.ndarray,
+                        high_pctl: float = 90.0) -> Dict[str, float]:
+    """幅值校准指标：专门追踪 high-WSS 系统性低估/爆峰。"""
+    yt = np.asarray(y_true, dtype=np.float64)
+    yp = np.asarray(y_pred, dtype=np.float64)
+    m = np.isfinite(yt) & np.isfinite(yp)
+    yt, yp = yt[m], yp[m]
+    if yt.size == 0:
+        return {}
+    thr = np.percentile(yt, high_pctl)
+    high = yt >= thr
+    top_true = float(np.mean(yt[high])) if high.any() else float("nan")
+    top_pred = float(np.mean(yp[high])) if high.any() else float("nan")
+    denom = float(np.var(yt))
+    slope = float(np.mean((yt - yt.mean()) * (yp - yp.mean())) / denom) if denom > 1e-12 else float("nan")
+
+    def _ratio(q: float) -> float:
+        tv = float(np.percentile(yt, q))
+        pv = float(np.percentile(yp, q))
+        return pv / tv if abs(tv) > 1e-12 else float("nan")
+
+    ymax = float(np.max(yt))
+    pmax = float(np.max(yp))
+    return {
+        "top10_mean_true": top_true,
+        "top10_mean_pred": top_pred,
+        "top10_pred_true_ratio": top_pred / top_true if abs(top_true) > 1e-12 else float("nan"),
+        "p95_pred_true_ratio": _ratio(95.0),
+        "p99_pred_true_ratio": _ratio(99.0),
+        "max_pred_true_ratio": pmax / ymax if abs(ymax) > 1e-12 else float("nan"),
+        "calibration_slope": slope,
+        "n": int(yt.size),
+    }
+
+
 # ---------------------------------------------------------------------------
 # 分区 mask（在完整点云上算，不依赖采样）
 # ---------------------------------------------------------------------------
