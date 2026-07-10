@@ -15,7 +15,7 @@
 set -euo pipefail
 
 CONFIG="${1:?需要 config json 路径}"
-EVAL_PARTS="${2:-val,test}"
+EVAL_PARTS="${2:-val}"
 
 if [ -f "$HOME/.bashrc" ]; then source "$HOME/.bashrc"; fi
 if command -v conda >/dev/null 2>&1; then
@@ -33,6 +33,7 @@ PY="${CONDA_PREFIX}/bin/python"
 
 echo "=============================================="
 echo "wss_min train  config=${CONFIG}"
+echo "eval_partitions=${EVAL_PARTS}  (开发默认 val-only；legacy test 需显式传入)"
 echo "开始: $(date)   节点: $(hostname)   GPU: ${CUDA_VISIBLE_DEVICES:-NA}"
 echo "=============================================="
 

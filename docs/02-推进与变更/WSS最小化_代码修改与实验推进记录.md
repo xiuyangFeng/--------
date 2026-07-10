@@ -4,6 +4,219 @@
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
 > 当前执行入口：[WSS 最小化训练实验跟踪](WSS最小化_训练实验跟踪.md) / [pipeline_wss_min README](../../pipeline_wss_min/README.md) / [training_wss_min README](../../training_wss_min/README.md)。
 
+## 2026-07-10｜第五轮优化计划 v0.1：冻结 AG 单队列、WSS 标量与 field-R² 主目标 ⏳待交叉审查
+
+**本次主要修改**：
+- 新建第五轮优化计划讨论稿，明确状态为“待其他智能体交叉审查、未授权执行”；本次未修改训练代码、split、数据 manifest，未提交任何实验。
+- 冻结第五轮边界：AG 为唯一主实验队列；AAA/ILO 分队列治理且异常单元先隔离；任务保持峰值收缩期 WSS 单标量、单输出头；完整壁面 `R²_field` 为主指标。
+- 把第五轮执行顺序收敛为：三队列清单治理 → AG train-fit/density 诊断 → AG 13/26/40/53 learning curve → 条件性单任务结构优化 → 医工交叉审计。
+- 纳入新队列讨论中发现的待隔离项：`ILO/LIU_BAO_JUN-0/after` 近零 WSS、7 个 `vf-in` 数量级/口径异常单元、方向 watch 和跨队列病人分组风险。
+
+**对应代码/文档**：
+- 新计划：[WSS最小化_第五轮优化计划_待交叉审查.md](WSS最小化_第五轮优化计划_待交叉审查.md)
+- 证据：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md) / [新队列数据可用性审计_AAA_ILO_2026-07-10.md](新队列数据可用性审计_AAA_ILO_2026-07-10.md)
+
+**推进到实验步骤**：仅推进到第五轮 v0.1 计划冻结与交叉审查入口；未进入 Stage A，未授权执行。
+
+**当前状态判断**：第五轮的首要目标不是扩大模型或混入新队列，而是先在 AG 上区分病例数、训练/推理密度、局部表示和 CFD 标签上限。交叉审查完成并经用户批准前，本文只作为讨论基线。
+
+## 2026-07-10｜第四轮执行计划归档 ✅已完成
+
+**本次主要修改**：
+- 核对第四轮实际产物后确认：Stage A–C 与 §14 点数首轮曲线已完成；Stage D 的多 seed、重复 dev split 和最终 legacy test 尚未执行。
+- 将计划从当前目录移入 `_archive/WSS最小化/`，更名为 `WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md`，并在文首明确归档边界，避免将“计划阶段完成”误写成“最终模型确认完成”。
+- 同步更新 `docs/README.md`、`training_wss_min/README.md`、WSS 训练跟踪和归档索引；实验数据、run 目录与 Slurm 日志未移动。
+
+**对应代码/文档**：
+- 归档：[WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md](_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)
+- 当前状态源：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md) / 本记录
+
+**推进到实验步骤**：第四轮计划执行阶段结案；如继续推进，从 Stage D 的 1000/2000 多 seed确认开始，不再回到已判 No-Go 的单 seed配置。
+
+**当前状态判断**：第四轮基础几何、协议修复和点数首轮探索基本完成；尚未形成跨 split、跨 seed、legacy test 的最终确认性结论。
+
+## 2026-07-10｜点数曲线多 seed 确认完训（1000 vs 2000）✅已分析
+
+**本次主要修改**：
+- Jobs 6976–6979 完训；与 seed1234（6969/6960）合并为三 seed 对照。
+- 产出 `runs/_summary_round4_pointcount/pointcount_multiseed_{1000_vs_2000.csv,summary.csv,1000_vs_2000.png,verdict.json}`。
+
+**三 seed 均值 ± sample std（val）**：
+
+| n | R²_field | R²_casemean | top10 | IoU | score |
+|---:|---|---|---|---|---|
+| 1000 | 0.337±0.017 | **0.221±0.019** | 0.413±0.032 | 0.327±0.011 | 0.276±0.025 |
+| 2000 | 0.339±0.020 | 0.188±0.025 | 0.416±0.025 | 0.324±0.016 | 0.259±0.026 |
+
+**判读**：
+- 仅 **R²_casemean** 三 seed 一致且幅度超过 seed 噪声（均值Δ=+0.033）偏向 1000。
+- R²_field / top10 / IoU / score：**方向不一致或持平** → 不能把默认点数改为 1000。
+- **协议锚点维持 2000**；1000 保留为更稀采样候选（病例均衡更好）。稳健「最佳点数」若需要，再上 dev2/dev3。
+
+**对应代码/文档**：计划 §14.5；训练跟踪文首；`training_wss_min/README`；方案快照完成定义；本记录。
+
+**推进到实验步骤**：§14 第二阶段完成；第三阶段（dev2/dev3）按需，非必须。
+
+**当前状态判断**：单 seed「1000 全面领先」已证伪；点数选择上 1000≈2000（field），1000 略优（casemean）。
+
+## 2026-07-10｜点数曲线多 seed 确认已提交（1000 vs 2000）✅已完训
+
+**本次主要修改**：
+- 生成 `r4_dev1_pc_xyzgeom_fps1000_s{7,2025}`；2000 复用已有 B1 `s7/s2025` 配置。
+- 提交 Jobs **6976–6979**（val-only）：1000×{7,2025} + 2000×{7,2025}；seed1234 已有 6969/6960。
+
+**对应代码/文档**：`make_configs_round4_pointcount.py`（multiseed manifest）；`configs/sweep_round4_pointcount_multiseed.txt`；计划 §14.5；训练跟踪。
+
+**推进到实验步骤**：已完训并转入上一条分析。
+
+**当前状态判断**：见上一条。
+
+## 2026-07-10｜第四轮 xyz+geom 点数—精度曲线完训汇总 ✅已分析
+
+**本次主要修改**：
+- Jobs 6969–6972 完训；与 B1-2000 / B3-4000 合并为 6 点曲线；覆盖审计 Job 6968 落盘。
+- 新增汇总脚本 `summarize_round4_pointcount.py`，产出 `runs/_summary_round4_pointcount/`（metrics CSV、R²/尾部图、density audit、verdict JSON）。
+
+**关键数字（val / seed1234 / B1 配方）**：
+
+| n | R²_f | R²_c | top10 | IoU | score |
+|---:|---:|---:|---:|---:|---:|
+| **1000** | 0.351 | **0.241** | **0.448** | 0.330 | **0.301** |
+| 1500 | 0.327 | 0.208 | 0.408 | 0.296 | 0.262 |
+| 2000 | 0.351 | 0.214 | 0.436 | 0.330 | 0.283 |
+| 3000 | 0.298 | 0.150 | 0.365 | 0.315 | 0.205 |
+| 4000 | 0.259 | 0.207 | 0.346 | 0.296 | 0.227 |
+| 6000 | 0.335 | 0.207 | 0.412 | 0.343 | 0.268 |
+
+**判读**：
+- 精度峰值（composite）= **1000**；近似平台仅含 1000。2000 与 1000 的 R²_field 持平，但 casemean/top10/score 更低。
+- 曲线**非单调**：3000/4000 下凹，6000 回升仍不及 1000/2000 → 「堆点数」在本配方下无稳定收益。
+- 覆盖随 n 升（fixed high-hit 约 5%→25%），精度峰值却在最稀端 → 更像密度/邻域错配，而非单纯标签覆盖不足。
+- **单 seed 边界**：不得写成「1000 已是最优」；下一步对 1000 vs 2000 补 seed7/2025。
+
+**对应代码/文档**：`summarize_round4_pointcount.py`；`runs/_summary_round4_pointcount/`；`runs/_audit/coverage_audit_v2_dev1.*`；计划 §14.3–14.4；训练跟踪文首；`training_wss_min/README.md`。
+
+**推进到实验步骤**：§14 第一阶段（单 seed 完整曲线）完成；进入多 seed 确认（峰值 1000 × 锚点 2000）。
+
+**当前状态判断**：已回答「geom 下是否越多点越好」——至少在 dev1/seed1234 上**不是**；2000 仍是历史协议锚点，但单 seed 峰值在 1000。
+
+## 2026-07-10｜第四轮点数—精度曲线最小矩阵已提交 ✅已完训
+
+**本次主要修改**：
+- 生成 B1 配方点数横扫配置：`r4_dev1_pc_xyzgeom_fps{1000,1500,3000,6000}_s1234`（仅改 `wall_n_points`）。
+- 提交 GPU Jobs **6969–6972**（val-only）；复用 B1-2000 Job 6960、B3-4000 Job 6962。
+- 提交 node03 覆盖审计 Job **6968**：`v2_dev1 + fold stats`，k=`1000…6000` → `runs/_audit/coverage_audit_v2_dev1.*`。
+
+**对应代码/文档**：
+- `training_wss_min/make_configs_round4_pointcount.py`
+- `training_wss_min/configs/sweep_round4_pointcount_s1234.txt` / `sweep_round4_pointcount_map_s1234.txt`
+- `training_wss_min/cluster/run_coverage_audit_dev1.slurm`
+- 计划 §14.3、训练跟踪文首、本记录。
+
+**推进到实验步骤**：已完训并转入上一条汇总分析。
+
+**当前状态判断**：见上一条。
+
+## 2026-07-10｜第四轮点数—精度曲线补充方案归档 + 审计边界修正 ✅已转执行
+
+**本次主要修改**：
+- 将导师复核后的问题收敛为一个单变量补充实验：固定第四轮 B1 单头 `xyz+基础几何` 配方，横扫 `1000/1500/2000/3000/4000/6000` 点，画 `R²_field/R²_casemean`—点数曲线。
+- 修正原计划的结论边界：B3 只证明 4000 在 dev1/seed1234 下不如 2000，不证明 2000 已是最佳点数；原“4000 No-Go 则不开 6000”只是算力 Gate。
+- 明确本组不加辅助头、新几何特征、新 loss 或新采样器；先建立简单单头模型的点数平台。
+- 记录覆盖审计的实际口径缺口：旧审计使用 v1 split/全局 stats，补充曲线执行前必须按 `v2_dev1 + fold stats` 重跑。
+
+**对应代码/文档**：
+- 归档新增：[`_archive/WSS最小化/WSS最小化_第四轮补充实验_点数精度曲线方案快照_2026-07-10.md`](_archive/WSS最小化/WSS最小化_第四轮补充实验_点数精度曲线方案快照_2026-07-10.md)。
+- 更新：[第四轮执行总结与归档](_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)（新增 §14 的执行结果）、归档 README、本记录。
+- 后续已生成 config 并提交作业（见上一条）。
+
+**推进到实验步骤**：方案归档后已转入 §14.3 执行。
+
+**当前状态判断**：见上一条「最小矩阵已提交」。
+
+## 2026-07-10｜第四轮 Stage A→B→C 执行：协议落地 + 单 seed 矩阵 ✅已完成
+
+**本次主要修改**：
+- **Stage A**：审计脚本参数化；`load_partition` 缺失 bundle 报错；移除 `dist_to_wall`；`persistent_workers=False` + DataLoader `generator`/`worker_init_fn`；`fps_multistart` pool；hotspot 定位指标 + `r4_composite_v1` 选模/top-3/early-stop；3× `v2_dev` split + fold stats；A3 Gate-0 残差校准；A5 补 raw top10 与邻域 cap。
+- **Stage B（val-only，Jobs 6959–6962）**：B0 batch-quantile 锚点 → B1 固定阈值（持平）→ B2 multi-start / B3 FPS4000。相对 B1：B2/B3 均 **Gate-1 No-Go**（B3 `ΔR²_field≈-0.09` 明确退化，不开 6000）。
+- **Stage C（Jobs 6963–6964）**：C1 raw-Huber、C4 `coord_scale` 均为 Gate-1 No-Go。按条件 **跳过** C2（B1 未达增益 Go）、C3（A3 smearing 未通过）、C5（CPU Ridge 增量≈0）。
+- 开发默认 `EVAL_PARTS=val`；未跑 legacy test（Stage D 未做）。
+
+**对应代码/文档**：
+- 训练侧：`training_wss_min/{config,dataset,train,metrics,evaluate}.py`、`make_configs_round4.py`、`make_v2_dev_splits.py`、`coverage_audit.py`、`a3_residual_calibration.py`、`c5_feature_probe.py`、`gate1_compare.py`、`tests/test_round4_protocol.py`、`cluster/run_train.slurm`。
+- 资产：`assets_第四轮/{audit_bundles.py,a5_density_probe.py,a3_residual_calibration.json,c5_radius_gradient_probe.json,a5_density_probe_cap.csv}`；`training/splits/split_AG_wss_min_v2_dev{1,2,3}.json`；`data_wss_min/fold_stats/wss_stats_v2_dev*.json`；`runs/r4_dev1_*`。
+- 单测 8/8 通过。
+
+**关键数字（dev1 val）**：
+
+| run | Job | R²_c | R²_f | top10 | IoU | Gate-1 |
+|---|---:|---:|---:|---:|---:|---|
+| B0 batchq | 6959 | 0.213 | 0.351 | 0.429 | 0.328 | 锚点 |
+| B1 fixedq | 6960 | 0.214 | 0.351 | 0.436 | 0.330 | 持平（协议胜者） |
+| B2 fpsms | 6961 | 0.211 | 0.352 | 0.425 | 0.341 | No-Go |
+| B3 fps4000 | 6962 | 0.207 | 0.259 | 0.346 | 0.296 | No-Go |
+| C1 rawhuber | 6963 | 0.200 | 0.329 | 0.413 | 0.362 | No-Go |
+| C4 coordscale | 6964 | 0.215 | 0.313 | 0.396 | 0.325 | No-Go |
+
+**其他闸门**：覆盖审计 fixed2000 high-WSS hit 均值仅 ~10%（worst ~5%），multi-start 40ep union ~34%；A5 全量推理邻域 cap 均值 ~0.97 vs 子采样 ~0.37；A3 smearing 三 seed 均使 top10 变差 → 不支持 NLL。
+
+**推进到实验步骤**：第四轮单 seed 主矩阵已跑完；无配置达到 Gate-1 增益阈值，故不扩 3 seed / 不开 6000 / 不进 Stage D。后续若继续，应围绕密度错配（cap/train-eval 密度）或信息上限另立假设，而非重复采样/点数/简单辅助损失。
+
+**当前状态判断**：协议与可复现性已修好；在新协议下，固定阈值≈原 batch 分位，multi-start/4000/raw-Huber/coord_scale 均无稳定收益。当前最优开发锚点为 **B1**（`r4_dev1_b1_tgtw_fixedq_s1234`）。
+
+## 2026-07-10｜第四轮计划终审 v2.3：A5 复现落盘 + rot_aug 证据修正 ✅已完成
+
+**本次主要修改**：
+- 终审对 v2.2 的两个可检验事实主张做独立验证。A5 预检数字此前只存在于文档、无落盘脚本/CSV（不符合计划 §2.4 自定证据标准）；终审编写复现脚本并运行，`r3_clean_xyzgeom_tgtw_s1234` 的 MAE/RMSE/Pearson=`0.1645/0.2278/0.9381` **逐位复现**，并补齐 s7（`0.1413/0.1884/0.9605`）与 s2025（`0.1191/0.1638/0.9717`）两个 seed。
+- 三 seed 新结论：24 个病例-seed 对中 20 个 mean-shift 为负，即**全量推理系统性高于训练密度推理约 0.03–0.07σ**；点数最多的病例（17682 点）在三 seed 中漂移均最大，支持漂移随密度差增大。A5 标准化口径至此完成，剩余 raw top10 差与邻域 cap 比例两项。
+- rot_aug 历史证据核实：`r2_xyzgeom_rotaug` test `R²_field=0.186` 确为第二轮最低，但与 mse 控制组仅差 0.004（在 seed 噪声内），且 val `R²_field=0.281` 反而高于控制组 0.236。No-Go 决定维持，但依据由“历史证据最低”改写为“无正收益证据 + 单 seed 不可判 + 优先级”。
+- 计划升版 v2.3：新增 §13 终审结论（含对 v2.2 各项裁决的逐项判定表和 Stage A 前遗留清单），文档冻结为第四轮执行基线，后续改动只能以新增小节/附录记录。
+
+**对应代码/文档**：
+- 新增证据资产：`docs/02-推进与变更/assets_第四轮/a5_density_probe.py`（复现脚本，FPS seed 与训练完全一致 `train.seed+7919*i`）、`a5_density_probe.csv`（24 行逐病例）、`a5_density_probe_meta.json`。
+- 更新：[WSS最小化_第四轮优化计划_执行总结与归档](_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)（v2.3，§12.2-1/§12.3-3/§12.6/§11 修订 + 新增 §13）、[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md)、`training_wss_min/README.md`、本文。
+- 复核依据：`training_wss_min/runs/_summary/summary.csv`（rot_aug 数字）、`training_wss_min/runs/r3_clean_xyzgeom_tgtw_s{1234,7,2025}/` checkpoint（只读推理）。
+- 本轮仅审核、复现诊断与文档修订；未改训练/评估代码、未生成第四轮配置、未提交训练。
+
+**推进到实验步骤**：第四轮计划审核链闭合（v1 提案 → v2 交叉审核 → v2.2 裁决 → v2.3 终审），进入 Stage A 执行：A0/A0+（审计脚本参数化、split 严格化、常量列防护）、A1/A1+（worker-safe 采样与单测）、A2–A4，以及 A5 剩余两项。
+
+**当前状态判断**：密度敏感性已由三 seed 落盘证据确立为第四轮最强新线索——方向为全量推理整体偏高，恰与尾部欠估方向相反，说明"下采样+插值"不是修复而只是诊断基线；主控制仍是 raw B0，一切结构/特征改动按预注册条件走独立 Go/No-Go。
+
+## 2026-07-10｜第四轮计划第三轮代码/实测交叉审核 v2.2 ✅已完成
+
+**本次主要修改**：
+- 在既有逐行核对基础上，使用 `r3_clean_xyzgeom_tgtw_s1234` 完成 A5 首个只读诊断：8 个 val 病例、同一批 FPS-2000 点上，子采样推理与全量推理取同索引的标准化输出平均 MAE=`0.1645`、RMSE=`0.2278`、Pearson=`0.9381`。密度会实质改变输出，但不能由此宣称全量评估错误或直接替换为“下采样+插值”。
+- 收紧新增建议的证据等级：保留缺失 bundle 报错、固定 train-only 分位、显式 DataLoader RNG、常量列防护、A5 三 seed 和邻域 cap 审计；取消“radius 一定返回先找到的邻居”“rel 未归一化必为 bug”等过度断言。
+- 将 EMA/SWA 从 B0 默认搭载降为 B0 稳定后的预注册候选；将 `rot_aug` 保持为历史 No-Go（r2 field R²=0.186），不再列为 C8 probe。
+- 修正 multi-start FPS 方案：预计算多个 FPS-2000 子集而非全 FPS order，且 pool 不能自动解决 persistent-worker 的 epoch 同步；`dist_to_throat` / `stenosis_ratio` 因缺少 branch-aware 定义和病例级 QA，撤出 C5 首批特征训练。
+
+**对应代码/文档**：
+- 更新：[WSS最小化_第四轮优化计划_执行总结与归档](_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)（v2.2；重写 §12，Stage A 新增 A5 正式口径）。
+- 复核依据：`training_wss_min/{dataset,train,pointnext,evaluate,metrics,config}.py`、`training_wss_min/cluster/run_train.slurm`、`training_wss_min/runs/r3_clean_*/`、`pipeline_wss_min/preprocess.py`；A5 使用既有 checkpoint，仅推理、未产生训练产物。
+- 本轮仅审核/修改文档，未实现计划代码、未生成第四轮配置、未提交训练。
+
+**推进到实验步骤**：下一步仍是 Stage A：先让 split/worker/weight/RNG 口径可验证，再补齐 A5 其余两个 seed、A3 残差校准和 A4 重复开发划分；不得先开 NLL、法向或大点数矩阵。
+
+**当前状态判断**：最强的新线索是密度敏感性，但它还是诊断结果，不是修复结论。第四轮的主控制仍应是 raw B0；任何 EMA、结构改动或新特征都必须在预注册条件和独立 Go/No-Go 下进入。
+
+## 2026-07-10｜第四轮优化计划交叉审核定稿 v2 ✅已完成
+
+**本次主要修改**：
+- 交叉核对 77 例 bundle 审计、第三轮 6 个 run、`dataset/train/evaluate/metrics/pointnext` 与 Slurm 提交链，重写第四轮计划的因果判断、执行顺序、实验矩阵和 Go/No-Go。
+- 将“log-MSE 是唯一第一性根因、NLL+Jensen 为最高优先级”降级为需先过残差/病例留一校准 Gate-0 的假设；raw-space Huber 辅助改为默认目标函数 probe，NLL 改为条件触发项。
+- 新确认 persistent worker 下 epoch 状态同步风险：`resample_each_epoch` 不仅对 FPS 无效，random/geom-weighted 也可能复用 epoch 0 子集；同时固定 batch 分位 target-weight、val-only 开发评估和 fold-specific WSS stats 被提升为 P0/P1。
+- 实测 `vf-in` 77/77 可读但 train peak-flow 变异系数仅约 0.02%，与 mean/p99 WSS 相关约 0.13/0.05，因此入口流量从当前第四轮主矩阵移除。
+
+**对应代码/文档**：
+- 重写：[WSS最小化_第四轮优化计划_执行总结与归档](_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)。
+- 同步：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md)、`docs/README.md`、`training_wss_min/README.md`、本文和全项目推进记录。
+- 复核依据：`docs/02-推进与变更/assets_第四轮/{audit_bundles.py,audit_bundles.csv}`、`data_new/AG/*/*/Global_conditions/vf-in-rfile.out` 和 `training_wss_min/` 当前实现。
+- 本轮仅审核/修改文档，未实现计划代码、未生成第四轮配置、未提交训练。
+
+**推进到实验步骤**：第四轮从“单方建议、待交叉验证”推进到“Stage A–D 可执行计划已定稿”；下一步从审计脚本可复现化、sampler 单测、hotspot 指标和 v2 dev split/fold stats 开始。
+
+**当前状态判断**：当前最高优先级是实验正确性和开发协议，不是直接扩模型或启动 NLL/法向/6000 点矩阵。legacy test16 已被前三轮反复使用，第四轮开发阶段必须停止逐配置查看 test。
+
 ## 2026-07-10｜第三轮 clean-data 完训判读 + WSS 文档收口归档 ✅已完成
 
 **本次主要修改**：

@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_ROOT = PROJECT_ROOT / "data_wss_min"
@@ -23,27 +23,31 @@ DEFAULT_SPLIT = PROJECT_ROOT / "training" / "splits" / "split_AG_wss_min_v1.json
 RUNS_ROOT = Path(__file__).resolve().parent / "runs"
 
 
-# 可用的逐点输入特征（bundle 里都在，除 x,y,z 外均为旋转不变几何量）
+# 可用的逐点输入特征（壁面 dist_to_wall 恒为 0，已从可选列表移除）
 FEATURE_KEYS = (
-    "x", "y", "z", "dist_to_wall", "abscissa_norm",
-    "local_radius", "curvature", "coord_scale",
+    "x", "y", "z", "abscissa_norm",
+    "local_radius", "curvature", "coord_scale", "radius_gradient",
 )
+
+# 禁止作为输入的常量/废弃列
+FORBIDDEN_FEATURE_KEYS = ("dist_to_wall",)
 
 
 @dataclass
 class DataConfig:
     split_path: str = str(DEFAULT_SPLIT)
+    wss_stats_path: str = str(GLOBAL_STATS)
     # 训练稀疏化：每例采样多少壁面点；<=0 或 >=全量 表示用全部点
     wall_n_points: int = 2000
-    sampling: str = "fps"                 # 'fps' | 'random' | 'geom_weighted'
+    sampling: str = "fps"                 # 'fps' | 'fps_multistart' | 'random' | 'geom_weighted'
+    fps_pool_size: int = 8                # fps_multistart 预计算子集数
     # geom_weighted 采样权重：w = 1 + a*curv_norm + b*(1/local_radius)_norm + c*near_bifurcation
     geom_weight_curv: float = 1.0
     geom_weight_invradius: float = 1.0
     geom_weight_bifurcation: float = 0.0  # 近原点(=分叉)加权；0 关闭
     # 每个 epoch 重新采样（增广，仅训练集）。val/test 恒用完整点云评估。
     resample_each_epoch: bool = True
-    # 训练期随机 3D 旋转增广：只影响 xyz 输入列（几何特征旋转不变、标量 WSS 标签旋转不变，
-    # ball-query 分组本就用相对坐标故图结构不变）。逼模型别依赖绝对朝向，缩小 val/test gap。
+    # 训练期随机 3D 旋转增广
     rot_aug: bool = False
     # 输入特征（网络实际吃的列）
     input_features: Tuple[str, ...] = ("x", "y", "z")
@@ -53,6 +57,8 @@ class DataConfig:
     timesteps: str = "peak"               # 'peak'（其余暂不支持，占位）
     target: str = "wss"                   # 'wss'(标量) —— 矢量留待二期
     num_workers: int = 4
+    # 第四轮默认 False：避免 persistent worker 持有过期 epoch 状态
+    persistent_workers: bool = False
 
 
 @dataclass
@@ -67,13 +73,13 @@ class ModelConfig:
     invres_radius_scale: float = 1.0      # InvResMLP 分组半径 = sa_radius * scale
     fp_knn: int = 3                       # FP 插值近邻数
     head_hidden: int = 64
-    out_dim: int = 1                      # 标量=1；矢量=3（二期）
+    out_dim: int = 1                      # 标量=1；矢量=3（二期）；NLL=2
     dropout: float = 0.0
 
 
 @dataclass
 class TrainConfig:
-    epochs: int = 400
+    epochs: int = 160
     batch_cases: int = 8                  # 每步几个病例（点云）
     lr: float = 1e-3
     weight_decay: float = 1e-4
@@ -82,18 +88,36 @@ class TrainConfig:
     grad_clip: float = 1.0
     seed: int = 1234
     # loss：标准化空间 MSE；可几何加权（更看重狭窄/分叉/高梯度处）
-    loss: str = "mse"                     # 'mse' | 'huber'
+    loss: str = "mse"                     # 'mse' | 'huber' | 'gaussian_nll'
     huber_delta: float = 1.0
     loss_geom_weight: bool = False        # True 则按几何量加权 loss
     loss_weight_curv: float = 1.0
     loss_weight_invradius: float = 1.0
-    # 按目标幅值加权 loss：直接补"高 WSS 区 R² 崩溃"（peak 处欠拟合）。
-    # 权重 += alpha * clamp01(y_norm 分位)，用训练标签本身，非泄漏。
+    # 按目标幅值加权 loss
     loss_weight_target: bool = False
     loss_weight_target_alpha: float = 2.0
+    # 固定 train-only 分位阈值；None 表示回退 batch 分位（仅 B0 行为对照）
+    loss_weight_fixed_quantiles: bool = True
+    y_norm_q02: Optional[float] = None
+    y_norm_q98: Optional[float] = None
+    curv_q02: Optional[float] = None
+    curv_q98: Optional[float] = None
+    invr_q02: Optional[float] = None
+    invr_q98: Optional[float] = None
+    # C1：log 主损失 + raw-space Huber 辅助；0=关闭
+    loss_raw_huber_lambda: float = 0.0
+    raw_huber_delta: float = 1.0
+    # NLL（C3）
+    nll_logvar_min: float = -6.0
+    nll_logvar_max: float = 2.0
+    nll_logvar_reg: float = 1e-4
     amp: bool = True
     eval_every: int = 10                  # 每多少 epoch 在 val 完整点云上评估一次
-    ckpt_metric: str = "val_r2_casemean"  # 选 best 的指标（越大越好）
+    ckpt_metric: str = "val_selection_score"  # 兼容旧名；实际用 selection_rule
+    selection_rule: str = "r4_composite_v1"
+    ckpt_top_k: int = 3
+    early_stop_patience: int = 6          # 按 eval 次数计
+    min_epoch: int = 40
     log_every_steps: int = 0              # >0 时按 step 打点；0 只按 epoch
 
 
@@ -128,18 +152,34 @@ class ExpConfig:
             for k, v in list(sub.items()):
                 if isinstance(v, list):
                     sub[k] = tuple(v)
+            # 忽略未知字段（向前兼容旧 config）
+            known = {f.name for f in cls.__dataclass_fields__.values()}  # type: ignore
+            sub = {k: v for k, v in sub.items() if k in known}
             return cls(**sub)
-        return ExpConfig(
+        cfg = ExpConfig(
             name=d.get("name", "unnamed"),
             notes=d.get("notes", ""),
             data=_mk(DataConfig, d.get("data")),
             model=_mk(ModelConfig, d.get("model")),
             train=_mk(TrainConfig, d.get("train")),
         )
+        validate_features(cfg)
+        return cfg
 
     @staticmethod
     def from_json(path: str | Path) -> "ExpConfig":
         return ExpConfig.from_dict(json.loads(Path(path).read_text()))
+
+
+def validate_features(cfg: ExpConfig) -> None:
+    for f in cfg.data.input_features:
+        if f in FORBIDDEN_FEATURE_KEYS:
+            raise ValueError(
+                f"feature {f!r} is forbidden (constant on wall points); "
+                f"remove it from input_features"
+            )
+        if f not in FEATURE_KEYS:
+            raise ValueError(f"unknown feature {f!r}; allowed={FEATURE_KEYS}")
 
 
 def input_dim(cfg: ExpConfig) -> int:

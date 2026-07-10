@@ -57,6 +57,7 @@ def evaluate_partition(model, cases: List[Dict], cfg: C.ExpConfig, feat_stats: D
         y_true_raw = case["y_raw"].astype(np.float64)
         reg = M.regional_metrics(case["pos"], case["local_radius"], y_true_raw, y_pred_raw)
         reg["calibration"] = M.calibration_metrics(y_true_raw, y_pred_raw)
+        reg["hotspot"] = M.hotspot_localization_metrics(y_true_raw, y_pred_raw, case["pos"])
         per_case[f"{case['cohort']}/{case['case']}"] = reg
         pooled_true.append(y_true_raw)
         pooled_pred.append(y_pred_raw)
@@ -65,10 +66,14 @@ def evaluate_partition(model, cases: List[Dict], cfg: C.ExpConfig, feat_stats: D
 
     pt = np.concatenate(pooled_true)
     pp = np.concatenate(pooled_pred)
+    # pooled hotspot：用拼接点云近似 field 级定位（病例级已在 per_case）
+    pos_all = np.concatenate([c["pos"] for c in cases], axis=0)
+    hotspot = M.hotspot_localization_metrics(pt, pp, pos_all)
     result = {
         "aggregate": M.aggregate_case_metrics(per_case),
         "field": M.basic_metrics(pt, pp),
         "calibration": M.calibration_metrics(pt, pp),
+        "hotspot": hotspot,
         "regional_field": _regional_field(cases, pooled_true, pooled_pred),
         "per_case": per_case,
     }
@@ -134,6 +139,12 @@ def write_reports(result_by_part: Dict[str, Dict], eval_dir: Path):
                               "calibration_slope"):
                         row[f"cal_{k}"] = round(rm.get(k, float("nan")), 4)
                     continue
+                if rname == "hotspot":
+                    for k in ("high_wss_mae", "top10_iou", "top10_precision",
+                              "top10_recall", "spearman_all", "spearman_high_wss",
+                              "peak_point_dist"):
+                        row[f"hot_{k}"] = round(rm.get(k, float("nan")), 4)
+                    continue
                 row[f"{rname}_r2"] = round(rm.get("r2", float("nan")), 4)
                 row[f"{rname}_nrmse"] = round(rm.get("nrmse_range", float("nan")), 4) \
                     if "nrmse_range" in rm else float("nan")
@@ -165,7 +176,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-dir", type=str, default=None)
     ap.add_argument("--config", type=str, default=None)
-    ap.add_argument("--partitions", type=str, default="val,test")
+    ap.add_argument("--partitions", type=str, default="val",
+                    help="开发默认 val-only；legacy test 需显式传入 val,test 或 test")
     ap.add_argument("--no-plots", action="store_true")
     args = ap.parse_args()
 

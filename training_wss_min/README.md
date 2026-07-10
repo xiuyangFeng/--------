@@ -6,7 +6,7 @@
 ## 任务与设计（第一版 baseline）
 - **任务**：几何点云 `(x,y,z[+几何])` → 壁面 **WSS 标量**（`log_z` 全局归一化），单头。
 - **模型**：`PointNeXt-S` 残差版（`InvResMLP` 残差块 + **ball-query** 分组）。
-  ball-query 半径固定、物理尺度不随点密度变 → **训练用稀疏点、推理整条血管**能迁移。
+  ball-query 半径固定、物理尺度不随点密度变，为**训练用稀疏点、推理整条血管**提供结构基础；两种密度的输出仍可能不同，第四轮以 A5 显式诊断而非假定完全等价。
 - **A 路**（部署有完整几何、缺的是 CFD 标签）：训练用稀疏子采样（可扫点数），
   **评估恒在完整壁面点云上**。稀疏是训练/科研选择，不是部署约束。
 - **矢量二期预留**：`out_dim=3` 即切矢量；建议届时走"幅值(复用标量) + 内在系方向"。
@@ -22,8 +22,14 @@
 | `evaluate.py` | 加载 best，**完整点云**推理 → 指标 + 逐病例 CSV + 误差热力图 |
 | `make_configs.py` | 生成第一版 sweep 配置 |
 | `make_configs_round3_clean.py` | 生成第三轮 clean-data 主矩阵（mse/tgtw 各 3 seed） |
+| `make_configs_round4.py` | 第四轮 B/C 配置（v2_dev1 + 固定阈值/选模协议） |
+| `make_configs_round4_pointcount.py` | §14 点数曲线新增配置（1000/1500/3000/6000） |
+| `summarize_round4_pointcount.py` | 合并 6 点曲线 → `_summary_round4_pointcount/` |
+| `make_v2_dev_splits.py` | 生成 3× repeated-holdout 开发划分与 fold stats |
+| `gate1_compare.py` | Gate-1 相对 control 判读 |
+| `tests/test_round4_protocol.py` | sampler / hotspot / 固定权重单测 |
 | `template_baseline.py` | mean / voxel / KNN-log-template 模板基线 |
-| `cluster/` | GPU Slurm 脚本与提交驱动 |
+| `cluster/` | GPU Slurm 脚本与提交驱动（开发默认 `EVAL_PARTS=val`） |
 
 ## 用法
 ```bash
@@ -99,6 +105,19 @@ column -s, -t training_wss_min/runs/*/eval/per_case_metrics.csv | less  # 逐病
 - 6 个 run（Slurm 6953–6958）均已完训并完成完整点云评估。
 - test 三 seed：MSE `R²_field=0.191±0.018`、`R²_casemean=0.176±0.021`；target-weight α=2 为 `0.225±0.034`、`0.212±0.027`。
 - target-weight 的 high-WSS `R²=-1.531±0.167`、top10 预测/真值比 `0.357±0.037`，仍存在明显峰值低估；seed 7 未稳定优于 MSE。
-- 第三轮 clean-data 组合主要改善了幅值校准，没有显著抬高第二轮 target-weight 的整体 R² 均值；跨轮还同时改变 split、curvature transform 和训练时长，不能视为 stats 单变量消融。下一步先做 val 复合/平滑选模与 early stopping，再做 `coord_scale`、入口流量/边界条件标量和稳健尾部 loss 的单变量实验。
+- A5 只读诊断（三 seed，终审已独立复现）：8 个 val 病例、同一 FPS-2000 点上，子采样/全量推理输出的标准化 RMSE 为 `0.164–0.228`、Pearson `0.938–0.972`，三 seed 均为全量推理系统性偏高 `0.03–0.07σ`；脚本与逐病例 CSV 见 `docs/02-推进与变更/assets_第四轮/a5_density_probe.{py,csv}`。这表明密度敏感，尚不构成替换全量评估协议的依据。
+- 第三轮 clean-data 组合主要改善了幅值校准，没有显著抬高第二轮 target-weight 的整体 R² 均值；跨轮还同时改变 split、curvature transform 和训练时长，不能视为 stats 单变量消融。第四轮先修 worker-safe 重采样、train-global 固定 target-weight 阈值、val-only 开发评估和 fold-specific stats，再按闸门验证 raw-space 辅助 loss 与内在局部几何。
 - `runs/_summary/` 已刷新为 27 个实验的聚合结果（含第三轮深度模型和 clean 模板基线）。
-- 完整表、逐病例失败清单与下一轮优先级见 [`WSS最小化_训练实验跟踪.md`](../docs/02-推进与变更/WSS最小化_训练实验跟踪.md)。
+- 完整表与逐病例失败清单见 [`WSS最小化_训练实验跟踪.md`](../docs/02-推进与变更/WSS最小化_训练实验跟踪.md)；第四轮已完成阶段的执行顺序和 Go/No-Go 见 [`WSS最小化_第四轮执行总结与归档`](../docs/02-推进与变更/_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)。
+
+## 第四轮（2026-07-10，Stage A→B→C 单 seed）
+
+- 配置：`python -m training_wss_min.make_configs_round4`；开发划分 `split_AG_wss_min_v2_dev{1,2,3}`。
+- 提交示例：`WSSMIN_MANIFEST=training_wss_min/configs/sweep_round4_b0_s1234.txt bash training_wss_min/cluster/submit_baseline_sweep.sh`（默认只评 val）。
+- 单 seed 结论：B1 固定阈值与 B0 持平（作协议锚点）；B2/B3/C1/C4 均 Gate-1 No-Go；C2/C3/C5 条件跳过。当前锚点 `r4_dev1_b1_tgtw_fixedq_s1234`。
+
+### §14 点数—精度曲线补充（xyz+geom，dev1）
+
+- 单 seed 6 点曲线：`runs/_summary_round4_pointcount/`；峰值曾在 1000，曲线非单调。
+- **多 seed（1000 vs 2000 × 3）**：R²_field 持平（0.337±0.017 vs 0.339±0.020）；仅 R²_casemean 稳定偏向 1000（0.221±0.019 vs 0.188±0.025）。**默认锚点仍为 2000**；1000 为更稀采样候选。
+- 详见计划 §14.5 / 训练跟踪文首。

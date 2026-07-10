@@ -4,6 +4,48 @@
 > 设计、完整指标表、结论、待办。**每完成一轮/一次任务，回填本文档。**
 > 上位：[WSS最小化_代码修改与实验推进记录](WSS最小化_代码修改与实验推进记录.md) / [training_wss_min/README](../../training_wss_min/README.md)。
 
+## 第四轮补充｜点数—精度曲线（§14，2026-07-10 ✅单 seed + 多 seed）
+
+- **单 seed 曲线**：见下表；峰值曾在 1000，但属单点。
+- **多 seed 确认（1000 vs 2000 × {1234,7,2025}）**：
+
+| n | R²_field | R²_casemean | top10 | IoU | score |
+|---:|---|---|---|---|---|
+| 1000 | 0.337±0.017 | **0.221±0.019** | 0.413±0.032 | 0.327±0.011 | 0.276±0.025 |
+| 2000 | 0.339±0.020 | 0.188±0.025 | 0.416±0.025 | 0.324±0.016 | 0.259±0.026 |
+
+- **裁决**：仅 R²_casemean 三 seed 一致偏向 1000；R²_field/top10/IoU/score 持平或不一致 → **默认锚点仍为 2000**；1000 为更稀采样候选。Jobs 6976–6979 + 既有 6969/6960。
+- **产物**：`runs/_summary_round4_pointcount/`（含 `pointcount_multiseed_*`）。
+- 归档计划：[第四轮执行总结与归档 §14.5](../02-推进与变更/_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)。
+
+### 单 seed 6 点曲线（历史，seed1234）
+
+| n | R²_field | R²_casemean | top10 | IoU | score | 来源 |
+|---:|---:|---:|---:|---:|---:|---|
+| 1000 | **0.351** | **0.241** | **0.448** | 0.330 | **0.301** | Job 6969 |
+| 1500 | 0.327 | 0.208 | 0.408 | 0.296 | 0.262 | 6970 |
+| 2000 | **0.351** | 0.214 | 0.436 | 0.330 | 0.283 | B1 6960 |
+| 3000 | 0.298 | 0.150 | 0.365 | 0.315 | 0.205 | 6971 |
+| 4000 | 0.259 | 0.207 | 0.346 | 0.296 | 0.227 | B3 6962 |
+| 6000 | 0.335 | 0.207 | 0.412 | **0.343** | 0.268 | 6972 |
+
+## 第四轮状态（Stage A→B→C 单 seed 已执行，2026-07-10）
+
+- **协议**：v2_dev1 开发划分 + fold stats；val-only；`persistent_workers=False`；固定 train 分位权重；复合选模 + early stop（160 / patience=6）。
+- **B 组**：B0/B1 持平（B1 为协议胜者）；B2 multi-start、B3 FPS4000 均 Gate-1 No-Go（B3 `R²_field` 大跌；§14 后改为补全曲线而非永久不开 6000）。
+- **C 组**：C1 raw-Huber、C4 coord_scale No-Go；C2/C3/C5 按条件跳过（A3 smearing 失败；C5 Ridge 增量≈0）。
+- **A5 补齐**：raw top10 差 + 邻域 cap（全量 cap≈0.97，子采样≈0.37）。
+- **覆盖**：旧 v1 审计 fixed2000 high-WSS hit ~10%、multi-start 40ep union ~34%；dev1 对齐审计见 Job 6968。
+- **当前锚点**：`r4_dev1_b1_tgtw_fixedq_s1234`（val R²_c=0.214 / R²_f=0.351 / top10=0.436）。未扩 3 seed、未跑 legacy test。
+- 归档计划：[WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md](../02-推进与变更/_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)。
+
+## 第四轮状态（计划 v2.3 终审通过，历史快照）
+
+- 开发阶段仍须 val-only；`test16` 仅保留为最后一次的 legacy benchmark。
+- A5 只读诊断已完成**三 seed 标准化口径**（终审独立复现，seed1234 与原引用逐位一致）：8 个 val 病例、同一 FPS-2000 点上比较子采样/全量推理同索引输出，MAE/RMSE/Pearson/mean-shift：s1234 `0.1645/0.2278/0.9381/-0.050`、s7 `0.1413/0.1884/0.9605/-0.033`、s2025 `0.1191/0.1638/0.9717/-0.066`。三 seed 方向一致：全量推理系统性偏高 `0.03–0.07σ`，且点数最多的病例漂移最大。证据：`docs/02-推进与变更/assets_第四轮/a5_density_probe.{py,csv}`。这证明推理密度敏感，尚不能推出全量评估不正确或采用下采样插值作为修复。
+- 下一步固定为 Stage A：split/bundle 完整性、worker-safe sampler、固定 train-only loss 阈值、A5 剩余项（同索引 raw top10 差 + 邻域 cap 审计）、残差校准、repeated-holdout；不直接启动 NLL、法向、rot_aug 或 6000 点训练。
+- 现行状态入口：本跟踪文档与 [WSS最小化代码修改与实验推进记录](WSS最小化_代码修改与实验推进记录.md)；第四轮计划已归档为[执行总结](../02-推进与变更/_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)。
+
 ## 任务定义与通用设置
 - **任务**：几何点云 `(x,y,z[+几何]) → 壁面 WSS 标量`，全局 `log_z` 归一化，单头。矢量三分量为二期。
 - **路线 A（部署导向）**：部署有完整几何、缺 CFD 标签 → 训练用稀疏子采样，**评估恒在完整壁面点云上**。
@@ -68,12 +110,13 @@
 
 **汇总产物**：已重跑 `python -m training_wss_min.summarize`，`training_wss_min/runs/_summary/` 现聚合 27 个实验（含第三轮 6 个深度模型与 3 个 clean 模板基线）。
 
-**下一轮优化优先级**：
+**下一轮优化优先级**（详见已归档的 [第四轮执行总结与归档 v2](../02-推进与变更/_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)）：
 
-- **P0｜先修选模，不先换大模型**：只用 val 构造复合/平滑选模（case R² + field R² + top10 校准，至少跨 2–3 次 eval 平滑），加 early stopping；test 保持只做最终报告，避免按 test 选 seed/epoch。
-- **P1｜补信息上限探针**：当前输入没有入口流量/边界条件，且逐病例归一化可能弱化真实尺度；先做 `coord_scale`（代码已支持但第三轮未启用）和 peak inlet-flow/可部署 BC 标量的单变量消融。若严格坚持 geometry-only，应把当前结果视作几何先验基线，而不是期待仅靠 loss 恢复个体峰值。
-- **P2｜稳健尾部目标**：在固定选模后扫 α=1/2/4，并尝试“log-space 主损失 + 小权重 raw-space/分位辅助损失”；暂不重启已出现极端爆值的几何加权采样 + 强 target-weight 组合。
-- **P3｜统计可信度**：至少再做重复 split 或 5-fold/重复 holdout，并报告病例 bootstrap CI；53/8/16 的单 split 不足以支持配置间 0.02–0.04 的细排序。
+- **P0｜协议与正确性**：修复 persistent worker 下 epoch 采样状态、train-global 固定 target-weight 阈值、val-only 开发评估、top-k checkpoint 与 early stopping；不采用跨 checkpoint 指标滑窗直接选当前权重。
+- **P1｜采样覆盖**：先做 train-only 覆盖审计，再依次比较 fixed FPS 2000、multi-start FPS 2000、fixed FPS 4000；4000 Go 后才开 6000。
+- **P2｜尾部目标假设**：先做 3 seed 残差分位与病例留一校准 Gate-0；raw-space Huber 辅助为主 probe，高斯 NLL 仅在 Gate-0 支持时探索，expectile/quantile 不进入默认均值回归矩阵。
+- **P3｜内在局部几何**：先 `radius_gradient`，再 radial/surface rotation-invariant 特征；不直接输入未经符号/局部 frame QA 的全局法向。
+- **P4｜统计固化**：train+val 61 例做版本化 repeated holdout 与 fold-specific stats；legacy test16 停止逐配置查看，最终锁定后只运行一次，并做病例级 bootstrap。
 
 ## 第一轮 sweep ✅完成（2026-07-08，Slurm 5945–5953）
 **目的**：三条正交问题——点数-精度曲线、特征消融、采样策略。均标量 WSS + 峰值收缩期 + 400 epoch。

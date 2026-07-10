@@ -14,9 +14,8 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -50,15 +49,30 @@ def denormalize_wss(y: np.ndarray, stats: Dict) -> np.ndarray:
 # ---------------------------------------------------------------------------
 # split
 # ---------------------------------------------------------------------------
+def load_split(split_path: str | Path) -> Dict:
+    return json.loads(Path(split_path).read_text())
+
+
 def load_split_cases(split_path: str | Path, partition: str) -> List[Tuple[str, str]]:
     """返回 [(cohort_rel, case_name)]，cohort_rel 形如 'AG/fast'。"""
-    sp = json.loads(Path(split_path).read_text())
+    sp = load_split(split_path)
     key = partition if partition.endswith("_cases") else f"{partition}_cases"
     out: List[Tuple[str, str]] = []
     for label in sp.get(key, []):
         subset, case = label.split("/", 1)          # 'fast/XXX'
         out.append((f"AG/{subset}", case))
     return out
+
+
+def expected_partition_count(split_path: str | Path, partition: str) -> Optional[int]:
+    """若 split 写入 expected_counts，返回该分区期望病例数。"""
+    sp = load_split(split_path)
+    ec = sp.get("expected_counts") or {}
+    key = partition if not partition.endswith("_cases") else partition.replace("_cases", "")
+    if key in ec:
+        return int(ec[key])
+    cases = sp.get(f"{key}_cases", sp.get(partition, []))
+    return len(cases) if cases is not None else None
 
 
 # ---------------------------------------------------------------------------
@@ -76,6 +90,16 @@ def farthest_point_sample(pts: np.ndarray, k: int, seed: int) -> np.ndarray:
         sel[i] = int(np.argmax(d))
         d = np.minimum(d, np.linalg.norm(pts - pts[sel[i]], axis=1))
     return sel
+
+
+def build_fps_pool(pts: np.ndarray, k: int, pool_size: int, base_seed: int) -> np.ndarray:
+    """预计算 S 个不同起点的 FPS-k 子集，形状 (S, k)。"""
+    n = len(pts)
+    k_eff = min(n, max(k, 1))
+    pool = np.empty((pool_size, k_eff), dtype=np.int64)
+    for s in range(pool_size):
+        pool[s] = farthest_point_sample(pts, k_eff, base_seed + 104729 * s + 17)
+    return pool
 
 
 def _norm01(a: np.ndarray) -> np.ndarray:
@@ -102,7 +126,9 @@ def geom_sampling_weights(case: Dict, cfg: C.DataConfig) -> np.ndarray:
     return w / w.sum()
 
 
-def sample_indices(case: Dict, cfg: C.DataConfig, seed: int) -> np.ndarray:
+def sample_indices(case: Dict, cfg: C.DataConfig, seed: int,
+                   epoch: int = 0, case_index: int = 0,
+                   run_seed: int = 0) -> np.ndarray:
     n = len(case["pos"])
     k = cfg.wall_n_points
     if k <= 0 or k >= n:
@@ -112,19 +138,30 @@ def sample_indices(case: Dict, cfg: C.DataConfig, seed: int) -> np.ndarray:
     if cfg.sampling == "geom_weighted":
         w = geom_sampling_weights(case, cfg)
         return np.random.default_rng(seed).choice(n, size=k, replace=False, p=w)
-    # fps（确定性）：缓存全序，取前 k
-    if "_fps_order" not in case:
-        case["_fps_order"] = farthest_point_sample(case["pos"], min(n, max(k, 1)), seed)
-    order = case["_fps_order"]
-    if len(order) >= k:
-        return order[:k]
-    return order  # 理论不会走到
+    if cfg.sampling == "fps_multistart":
+        pool_size = max(1, int(cfg.fps_pool_size))
+        if "_fps_pool" not in case or case.get("_fps_pool_k") != min(n, k):
+            case["_fps_pool"] = build_fps_pool(
+                case["pos"], k, pool_size, case.get("geom_seed", run_seed)
+            )
+            case["_fps_pool_k"] = min(n, k)
+            case["_fps_pool_size"] = pool_size
+        pool = case["_fps_pool"]
+        pool_id = int((run_seed + 100003 * epoch + 7919 * case_index) % len(pool))
+        return pool[pool_id].copy()
+    # fps（确定性）：缓存长度-k 子集（非全序）
+    cache_key = "_fps_subset"
+    if cache_key not in case or case.get("_fps_subset_k") != min(n, k):
+        case[cache_key] = farthest_point_sample(case["pos"], min(n, max(k, 1)), seed)
+        case["_fps_subset_k"] = min(n, k)
+    return case[cache_key].copy()
 
 
 # ---------------------------------------------------------------------------
 # 特征标准化（几何输入列用 train 统计 z-score；x,y,z 保持归一化坐标）
 # ---------------------------------------------------------------------------
-GEOM_FEATURE_KEYS = ("dist_to_wall", "abscissa_norm", "local_radius", "curvature", "coord_scale")
+GEOM_FEATURE_KEYS = ("abscissa_norm", "local_radius", "curvature", "coord_scale",
+                     "radius_gradient")
 
 
 def _transform_feature_values(name: str, vals: np.ndarray, transform: str | None) -> np.ndarray:
@@ -143,6 +180,8 @@ def compute_feature_stats(
     for f in input_features:
         if f in ("x", "y", "z"):
             continue
+        if f not in cases[0]:
+            raise KeyError(f"feature {f!r} missing from case bundle fields")
         vals = np.concatenate([np.asarray(c[f], dtype=np.float64).ravel() for c in cases])
         transform = curvature_transform if f == "curvature" else "none"
         vals = _transform_feature_values(f, vals, transform)
@@ -156,6 +195,26 @@ def compute_feature_stats(
             stats[f] = {"mean": float(vals.mean()), "std": float(vals.std() + 1e-6),
                         "transform": transform}
     return stats
+
+
+def compute_train_weight_quantiles(cases: List[Dict]) -> Dict[str, float]:
+    """train-only 固定分位，供 target/geom loss 权重使用。"""
+    y = np.concatenate([c["y_norm"].ravel() for c in cases]).astype(np.float64)
+    curv = np.concatenate([np.abs(c["curvature"]).ravel() for c in cases]).astype(np.float64)
+    invr = np.concatenate([
+        (1.0 / np.clip(c["local_radius"], 1e-6, None)).ravel() for c in cases
+    ]).astype(np.float64)
+    return {
+        "y_norm_q02": float(np.quantile(y, 0.02)),
+        "y_norm_q98": float(np.quantile(y, 0.98)),
+        "curv_q02": float(np.quantile(curv, 0.02)),
+        "curv_q98": float(np.quantile(curv, 0.98)),
+        "invr_q02": float(np.quantile(invr, 0.02)),
+        "invr_q98": float(np.quantile(invr, 0.98)),
+        "raw_p90": float(np.quantile(
+            np.concatenate([c["y_raw"].ravel() for c in cases]).astype(np.float64), 0.90
+        )),
+    }
 
 
 def random_rotation(seed: int) -> np.ndarray:
@@ -193,6 +252,36 @@ def build_features(case: Dict, idx: np.ndarray, input_features: Tuple[str, ...],
 # ---------------------------------------------------------------------------
 # 加载
 # ---------------------------------------------------------------------------
+def _radius_gradient_from_bundle(d) -> np.ndarray:
+    """若 bundle 已有 radius_gradient 则用；否则用 abscissa 排序后的稳健差分。"""
+    if "wall_radius_gradient" in d.files:
+        return d["wall_radius_gradient"].astype(np.float32)
+    absc = d["wall_abscissa_norm"].astype(np.float64)
+    lr = d["wall_local_radius"].astype(np.float64)
+    order = np.argsort(absc, kind="mergesort")
+    inv = np.empty_like(order)
+    inv[order] = np.arange(len(order))
+    absc_s = absc[order]
+    lr_s = lr[order]
+    # 避免重复 abscissa 导致 np.gradient 除零：用前向差分 + 零填充
+    dx = np.diff(absc_s)
+    dy = np.diff(lr_s)
+    g = np.zeros_like(lr_s)
+    valid = np.abs(dx) > 1e-12
+    g_mid = np.zeros_like(dx)
+    g_mid[valid] = dy[valid] / dx[valid]
+    if len(g) > 1:
+        g[0] = g_mid[0] if valid[0] else 0.0
+        g[-1] = g_mid[-1] if valid[-1] else 0.0
+        if len(g) > 2:
+            g[1:-1] = 0.5 * (g_mid[:-1] + g_mid[1:])
+            # 无效段置 0
+            bad = ~(valid[:-1] & valid[1:])
+            g[1:-1][bad] = 0.0
+    g = np.nan_to_num(g, nan=0.0, posinf=0.0, neginf=0.0)
+    return g[inv].astype(np.float32)
+
+
 def load_case(cohort_rel: str, case_name: str, wss_stats: Dict) -> Dict:
     p = C.DATA_ROOT / cohort_rel / case_name / "bundle.npz"
     with np.load(p, allow_pickle=True) as d:
@@ -206,24 +295,40 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict) -> Dict:
             pos=pos,
             y_raw=wss_raw,
             y_norm=normalize_wss(wss_raw, wss_stats).astype(np.float32),
-            dist_to_wall=d["wall_dist_to_wall"].astype(np.float32),
             abscissa_norm=d["wall_abscissa_norm"].astype(np.float32),
             local_radius=d["wall_local_radius"].astype(np.float32),
             curvature=d["wall_curvature"].astype(np.float32),
             coord_scale=np.full(len(pos), float(d["coord_scale"]), dtype=np.float32),
+            radius_gradient=_radius_gradient_from_bundle(d),
             peak_step=peak,
             coord_scale_scalar=float(d["coord_scale"]),
+            bundle_path=str(p),
         )
     return case
 
 
-def load_partition(split_path: str, partition: str, wss_stats: Dict) -> List[Dict]:
+def load_partition(split_path: str, partition: str, wss_stats: Dict,
+                   strict: bool = True) -> List[Dict]:
+    labels = load_split_cases(split_path, partition)
     cases = []
-    for cohort_rel, case_name in load_split_cases(split_path, partition):
+    missing = []
+    for cohort_rel, case_name in labels:
         p = C.DATA_ROOT / cohort_rel / case_name / "bundle.npz"
         if not p.is_file():
+            missing.append(f"{cohort_rel}/{case_name}")
             continue
         cases.append(load_case(cohort_rel, case_name, wss_stats))
+    if missing:
+        msg = (f"missing {len(missing)} bundle(s) in partition={partition!r}: "
+               + ", ".join(missing[:5]) + ("..." if len(missing) > 5 else ""))
+        if strict:
+            raise FileNotFoundError(msg)
+    expected = expected_partition_count(split_path, partition)
+    if strict and expected is not None and len(cases) != expected:
+        raise RuntimeError(
+            f"partition={partition!r} loaded {len(cases)} cases, "
+            f"expected {expected} (split={split_path})"
+        )
     return cases
 
 
@@ -244,6 +349,11 @@ class WSSMinDataset(Dataset):
         # 给每个 case 一个稳定的 fps seed
         for i, c in enumerate(cases):
             c["geom_seed"] = base_seed + 7919 * i
+        # 预热 fps_multistart pool，避免首个 epoch 在 worker 内重复计算
+        if training and cfg.sampling == "fps_multistart":
+            for i, c in enumerate(cases):
+                sample_indices(c, cfg, c["geom_seed"], epoch=0, case_index=i,
+                               run_seed=base_seed)
 
     def set_epoch(self, epoch: int):
         self.epoch = epoch
@@ -253,11 +363,19 @@ class WSSMinDataset(Dataset):
 
     def __getitem__(self, i: int):
         case = self.cases[i]
-        if self.training and self.cfg.resample_each_epoch and self.cfg.sampling != "fps":
+        sampling = self.cfg.sampling
+        if self.training and self.cfg.resample_each_epoch and sampling in (
+            "random", "geom_weighted", "fps_multistart"
+        ):
             seed = self.base_seed + 100003 * self.epoch + 7919 * i
         else:
             seed = case["geom_seed"]
-        idx = sample_indices(case, self.cfg, seed)
+        idx = sample_indices(
+            case, self.cfg, seed,
+            epoch=self.epoch if self.training else 0,
+            case_index=i,
+            run_seed=self.base_seed,
+        )
         pos_sel = case["pos"][idx]
         if self.training and getattr(self.cfg, "rot_aug", False):
             pos_sel = (pos_sel @ random_rotation(seed + 31)).astype(np.float32)
@@ -267,6 +385,7 @@ class WSSMinDataset(Dataset):
             "pos": torch.from_numpy(np.ascontiguousarray(pos_sel)),
             "x": torch.from_numpy(feat),
             "y": torch.from_numpy(case["y_norm"][idx]),
+            "y_raw": torch.from_numpy(case["y_raw"][idx]),
             # 供几何加权 loss 用（曲率、1/局部半径）
             "curv": torch.from_numpy(np.abs(case["curvature"][idx]).astype(np.float32)),
             "invr": torch.from_numpy((1.0 / np.clip(case["local_radius"][idx], 1e-6, None)).astype(np.float32)),
@@ -279,13 +398,14 @@ def collate(batch: List[Dict]) -> Dict:
     pos = torch.cat([b["pos"] for b in batch], dim=0)
     x = torch.cat([b["x"] for b in batch], dim=0)
     y = torch.cat([b["y"] for b in batch], dim=0)
+    y_raw = torch.cat([b["y_raw"] for b in batch], dim=0)
     batch_idx = torch.cat([
         torch.full((len(b["pos"]),), i, dtype=torch.long) for i, b in enumerate(batch)
     ])
     curv = torch.cat([b["curv"] for b in batch], dim=0)
     invr = torch.cat([b["invr"] for b in batch], dim=0)
-    return {"pos": pos, "x": x, "y": y, "batch": batch_idx, "curv": curv, "invr": invr,
-            "cases": [b["case"] for b in batch]}
+    return {"pos": pos, "x": x, "y": y, "y_raw": y_raw, "batch": batch_idx,
+            "curv": curv, "invr": invr, "cases": [b["case"] for b in batch]}
 
 
 def case_to_batch(case: Dict, input_features: Tuple[str, ...], feat_stats: Dict,
@@ -303,12 +423,23 @@ def case_to_batch(case: Dict, input_features: Tuple[str, ...], feat_stats: Dict,
     }
 
 
+def worker_init_fn(worker_id: int):
+    """DataLoader worker 初始化：派生独立 numpy/torch RNG。"""
+    worker_info = torch.utils.data.get_worker_info()
+    if worker_info is None:
+        return
+    base = int(worker_info.dataset.base_seed)  # type: ignore[attr-defined]
+    seed = base + 10007 * (worker_id + 1)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+
 if __name__ == "__main__":
     stats = load_wss_stats()
     tr = load_partition(str(C.DEFAULT_SPLIT), "train", stats)
     print(f"train cases: {len(tr)}  例点数 min/max:",
           min(len(c['pos']) for c in tr), max(len(c['pos']) for c in tr))
-    fs = compute_feature_stats(tr, ("x", "y", "z", "dist_to_wall", "curvature"))
+    fs = compute_feature_stats(tr, ("x", "y", "z", "curvature"))
     print("feat_stats keys:", list(fs.keys()))
     ds = WSSMinDataset(tr, C.DataConfig(wall_n_points=2000, input_features=("x", "y", "z")),
                        fs, training=True)
