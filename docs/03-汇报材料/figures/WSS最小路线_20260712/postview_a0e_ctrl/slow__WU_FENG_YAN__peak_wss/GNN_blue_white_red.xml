@@ -1,0 +1,19 @@
+<!--
+  ParaView 自定义色标：深蓝 → 白 → 深红
+  导入：ParaView → Edit → Settings → Color Map → Import → 选本文件
+  或在 Color Map Editor 中 Load preset
+-->
+<ColorMaps>
+  <ColorMap name="GNN_BlueWhiteRed" space="RGB" interpolation="Linear">
+    <Point x="0.0" r="0.12" g="0.35" b="0.75"/>
+    <Point x="0.5" r="1.00" g="1.00" b="1.00"/>
+    <Point x="1.0" r="0.85" g="0.12" b="0.15"/>
+  </ColorMap>
+  <ColorMap name="GNN_BlueWhiteRed_Error" space="RGB" interpolation="Linear">
+    <!-- 误差专用：零误差=蓝，大误差=红 -->
+    <Point x="0.0" r="0.90" g="0.95" b="1.00"/>
+    <Point x="0.35" r="0.12" g="0.35" b="0.75"/>
+    <Point x="0.65" r="1.00" g="1.00" b="1.00"/>
+    <Point x="1.0" r="0.85" g="0.12" b="0.15"/>
+  </ColorMap>
+</ColorMaps>

@@ -17,7 +17,7 @@
 | `config.py` | `ExpConfig` 数据类 + JSON 读写；一个实验=一个 JSON |
 | `dataset.py` | 直读 bundle；采样(fps/random/geom_weighted)、特征标准化、完整点云评估接口 |
 | `pointnext.py` | PointNeXt-S 残差主干（SA + InvResMLP + FP 解码） |
-| `metrics.py` | R²/NRMSE/MAE + 分区(分叉/狭窄/高WSS) |
+| `metrics.py` | pooled / case-mean / case-balanced R²、NRMSE/MAE + 分区(分叉/狭窄/高WSS) |
 | `train.py` | 训练循环：AdamW+cosine、AMP、日志、best/last ckpt、曲线 |
 | `evaluate.py` | 加载 best，**完整点云**推理 → 指标 + 逐病例 CSV + 误差热力图 |
 | `make_configs.py` | 生成第一版 sweep 配置 |
@@ -25,8 +25,15 @@
 | `make_configs_round4.py` | 第四轮 B/C 配置（v2_dev1 + 固定阈值/选模协议） |
 | `make_configs_round4_pointcount.py` | §14 点数曲线新增配置（1000/1500/3000/6000） |
 | `summarize_round4_pointcount.py` | 合并 6 点曲线 → `_summary_round4_pointcount/` |
+| `make_configs_round6_scale.py` | 第六轮 A/B/D XYZ 尺度诊断（3 组×3 seed） |
 | `make_v2_dev_splits.py` | 生成 3× repeated-holdout 开发划分与 fold stats |
 | `gate1_compare.py` | Gate-1 相对 control 判读 |
+| `a0_micro_overfit.py` | 第五轮四病例 train-only micro-overfit（Slurm-only 训练） |
+| `a1_density_surface.py` | 第五轮 density/cap/STL mapping/真值回插 oracle 审计 |
+| `brep_mlp.py` / `point_mlp.py` | B-REP/M1 逐点 MLP 串行 micro/dev1 对照 |
+| `brep_c1_radius_norm.py` / `pointnext_radius_norm.py` | B-REP/C1 相对位置 radius 归一化 |
+| `brep_c2_global_context.py` / `pointnext_global_context.py` | B-REP/C2 病例内 global mean/max 单输出模型 |
+| `a0d_simple_overfit.py` / `a0d_target_weight_only.py` | A0D 按 optimizer-step 的单病例/四病例拟合链与 target-weight 单变量恢复 |
 | `tests/test_round4_protocol.py` | sampler / hotspot / 固定权重单测 |
 | `template_baseline.py` | mean / voxel / KNN-log-template 模板基线 |
 | `cluster/` | GPU Slurm 脚本与提交驱动（开发默认 `EVAL_PARTS=val`） |
@@ -45,6 +52,9 @@ bash training_wss_min/cluster/submit_baseline_sweep.sh
 $PY -m training_wss_min.train    --config training_wss_min/configs/pc_xyz_fps_w2000_peak.json
 $PY -m training_wss_min.evaluate --config training_wss_min/configs/pc_xyz_fps_w2000_peak.json
 ```
+
+开发评估默认且通常只允许 `val`。`test` 被显式守卫，仅在完成 OOF 且获批执行
+legacy test16 一次弱确认时使用 `--partitions test --allow-test`；不得用 test 结果返回选模。
 
 第三轮 clean-data 入口（前置：`pipeline_wss_min` 已重跑 included bundle，`qa-gate` 通过，`wss_global_stats.json` 为 train peak-only clean stats）：
 
@@ -121,3 +131,31 @@ column -s, -t training_wss_min/runs/*/eval/per_case_metrics.csv | less  # 逐病
 - 单 seed 6 点曲线：`runs/_summary_round4_pointcount/`；峰值曾在 1000，曲线非单调。
 - **多 seed（1000 vs 2000 × 3）**：R²_field 持平（0.337±0.017 vs 0.339±0.020）；仅 R²_casemean 稳定偏向 1000（0.221±0.019 vs 0.188±0.025）。**默认锚点仍为 2000**；1000 为更稀采样候选。
 - 详见计划 §14.5 / 训练跟踪文首。
+
+## 第五轮结案（2026-07-12）
+
+- P0、A0R/A0D/A0E、A1、B-REP、LC、BC 资产审计和 CFD 可信性审计均完成；科学问题已结案，工程 `R²=0.70` 未达标，未访问 legacy test16。
+- A0D 证明四个已见病例可拟合到 field/casemean `0.994/0.992`；当前困难不是基础拟合能力。
+- LC（3 链×3 seed）在 13–53 例范围内为 field `0.258→0.297→0.312→0.310`；40→53 无可辨识增益，但该结论不外推几百/几千个高质量独立病例的上限。
+- 完整证据见 `runs/_round5/`与 [`WSS最小化_训练实验跟踪.md`](../docs/02-推进与变更/WSS最小化_训练实验跟踪.md)。
+
+## 第六轮 A/B/D XYZ 尺度诊断（2026-07-12，运行中）
+
+目的是判断逐病例坐标归一化丢失物理尺度，是否造成旧纯 XYZ 不公平：
+
+- A：`x,y,z`。
+- B：`x,y,z,coord_scale`。
+- D：`x,y,z,abscissa_norm,local_radius,curvature`。
+- 共同协议：dev1 / fixed FPS-2000 / B1 fixed target-weight / val-only / `seed={1234,7,2025}`。
+- Jobs `7029–7037`；提交记录 `cluster/logs/submitted_20260712_120420.txt`。
+
+生成和提交：
+
+```bash
+PY=/public/newhome/cy/.conda/envs/GNN/bin/python
+$PY -m training_wss_min.make_configs_round6_scale
+WSSMIN_MANIFEST=training_wss_min/configs/sweep_round6_scale_abd.txt \
+  bash training_wss_min/cluster/submit_baseline_sweep.sh
+```
+
+B 是尺度机制诊断，不是保留物理尺度的严格纯 XYZ 终审。详细预注册、判读规则和 Job 表见 [`第六轮 XYZ 尺度诊断计划与执行`](../docs/02-推进与变更/WSS最小化_第六轮XYZ尺度诊断计划与执行.md)。

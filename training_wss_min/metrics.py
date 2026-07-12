@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Sequence
 
 import numpy as np
 
@@ -50,6 +50,48 @@ def basic_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
         "mae": mae(y_true, y_pred),
         "rmse": float(np.sqrt(np.mean((y_true - y_pred) ** 2))),
         "n": int(len(y_true)),
+    }
+
+
+def casebalanced_field_metrics(
+    y_true_by_case: Sequence[np.ndarray],
+    y_pred_by_case: Sequence[np.ndarray],
+) -> Dict[str, float]:
+    """病例等权的全场指标。
+
+    每个病例先获得总权重 1，再在病例内对点等权。R² 使用所有病例的
+    等权全局真值均值作为中心，因此不同于逐病例 R² 的算术平均。
+    """
+    if len(y_true_by_case) != len(y_pred_by_case):
+        raise ValueError("y_true_by_case and y_pred_by_case must have the same length")
+    pairs = []
+    for yt0, yp0 in zip(y_true_by_case, y_pred_by_case):
+        yt = np.asarray(yt0, dtype=np.float64).reshape(-1)
+        yp = np.asarray(yp0, dtype=np.float64).reshape(-1)
+        if yt.shape != yp.shape:
+            raise ValueError("true/pred shape mismatch within a case")
+        finite = np.isfinite(yt) & np.isfinite(yp)
+        if finite.any():
+            pairs.append((yt[finite], yp[finite]))
+    if not pairs:
+        return {"r2": float("nan"), "mae": float("nan"), "rmse": float("nan"),
+                "n": 0, "n_cases": 0}
+
+    case_true_means = np.asarray([yt.mean() for yt, _ in pairs], dtype=np.float64)
+    global_true_mean = float(case_true_means.mean())
+    mse_cases = np.asarray([np.mean((yt - yp) ** 2) for yt, yp in pairs], dtype=np.float64)
+    mae_cases = np.asarray([np.mean(np.abs(yt - yp)) for yt, yp in pairs], dtype=np.float64)
+    var_cases = np.asarray(
+        [np.mean((yt - global_true_mean) ** 2) for yt, _ in pairs], dtype=np.float64
+    )
+    ss_res = float(mse_cases.mean())
+    ss_tot = float(var_cases.mean())
+    return {
+        "r2": 1.0 - ss_res / ss_tot if ss_tot > 1e-12 else float("nan"),
+        "mae": float(mae_cases.mean()),
+        "rmse": float(np.sqrt(ss_res)),
+        "n": int(sum(len(yt) for yt, _ in pairs)),
+        "n_cases": int(len(pairs)),
     }
 
 
@@ -210,6 +252,9 @@ def aggregate_case_metrics(per_case: Dict[str, Dict]) -> Dict[str, float]:
     return {
         "r2_casemean": float(np.mean(r2s)) if r2s else float("nan"),
         "r2_casemed": float(np.median(r2s)) if r2s else float("nan"),
+        "r2_casep10": float(np.percentile(r2s, 10.0)) if r2s else float("nan"),
+        "r2_negative_cases": int(np.sum(np.asarray(r2s) < 0.0)) if r2s else 0,
+        "r2_failure_rate": float(np.mean(np.asarray(r2s) < 0.0)) if r2s else float("nan"),
         "nrmse_casemean": float(np.mean(nrmses)) if nrmses else float("nan"),
         "mae_casemean": float(np.mean(maes)) if maes else float("nan"),
         "n_cases": len(r2s),

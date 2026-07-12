@@ -17,6 +17,8 @@ sys.path.insert(0, str(REPO))
 from training_wss_min import config as C
 from training_wss_min import dataset as D
 from training_wss_min import metrics as M
+from training_wss_min.evaluate import parse_and_guard_partitions
+from training_wss_min.gate1_compare import gate1
 from training_wss_min.train import compute_loss
 
 
@@ -97,6 +99,76 @@ class TestHotspotMetrics(unittest.TestCase):
         yp = np.zeros(n); yp[0] = 10
         h = M.hotspot_localization_metrics(yt, yp, pos, high_pctl=90.0)
         self.assertGreater(h["peak_point_dist"], 50)
+
+
+class TestRound5Metrics(unittest.TestCase):
+    def test_casebalanced_matches_manual_example(self):
+        yt = [np.array([0.0, 2.0]), np.array([10.0, 10.0, 10.0, 10.0])]
+        yp = [np.array([0.0, 1.0]), np.array([8.0, 8.0, 8.0, 8.0])]
+        got = M.casebalanced_field_metrics(yt, yp)
+        mean = (1.0 + 10.0) / 2.0
+        mse = (np.mean((yt[0] - yp[0]) ** 2) + np.mean((yt[1] - yp[1]) ** 2)) / 2.0
+        var = (np.mean((yt[0] - mean) ** 2) + np.mean((yt[1] - mean) ** 2)) / 2.0
+        self.assertAlmostEqual(got["r2"], 1.0 - mse / var)
+        self.assertEqual(got["n_cases"], 2)
+
+    def test_casebalanced_not_dominated_by_case_point_count(self):
+        short_t = np.array([0.0, 1.0])
+        short_p = np.array([0.0, 0.0])
+        long_t = np.full(1000, 10.0)
+        long_p = np.full(1000, 9.0)
+        a = M.casebalanced_field_metrics([short_t, long_t], [short_p, long_p])
+        b = M.casebalanced_field_metrics(
+            [short_t, long_t[:10]], [short_p, long_p[:10]]
+        )
+        self.assertAlmostEqual(a["r2"], b["r2"], places=12)
+
+    def test_constant_single_case_is_nan(self):
+        got = M.casebalanced_field_metrics([np.ones(4)], [np.zeros(4)])
+        self.assertTrue(np.isnan(got["r2"]))
+
+    def test_single_nonconstant_case_matches_standard_r2(self):
+        yt = np.array([0.0, 1.0, 3.0])
+        yp = np.array([0.5, 1.0, 2.5])
+        got = M.casebalanced_field_metrics([yt], [yp])
+        self.assertAlmostEqual(got["r2"], M.r2_score(yt, yp))
+
+
+class TestRound5Gate(unittest.TestCase):
+    @staticmethod
+    def _metrics(field=0.3, case=0.2, mae=3.0, top10=0.4, iou=0.3):
+        return {"r2_field": field, "r2_casemean": case, "mae": mae,
+                "top10": top10, "iou": iou, "max_ratio": 0.8}
+
+    def test_both_primary_metrics_must_exceed_band(self):
+        ctrl = self._metrics()
+        cand = self._metrics(field=0.321, case=0.221)
+        self.assertTrue(gate1(ctrl, cand)["go"])
+        cand_one_only = self._metrics(field=0.34, case=0.219)
+        self.assertFalse(gate1(ctrl, cand_one_only)["go"])
+
+    def test_high_wss_degradation_blocks_go(self):
+        ctrl = self._metrics()
+        cand = self._metrics(field=0.34, case=0.24, top10=0.34)
+        got = gate1(ctrl, cand)
+        self.assertFalse(got["go"])
+        self.assertIn("top10_ratio_degraded", got["guard_reasons"])
+
+
+class TestPartitionGuard(unittest.TestCase):
+    def test_val_is_default_safe_partition(self):
+        self.assertEqual(parse_and_guard_partitions("val"), ["val"])
+
+    def test_test_requires_explicit_unlock(self):
+        with self.assertRaises(PermissionError):
+            parse_and_guard_partitions("val,test")
+        self.assertEqual(parse_and_guard_partitions("test", allow_test=True), ["test"])
+
+    def test_duplicate_and_unknown_partitions_rejected(self):
+        with self.assertRaises(ValueError):
+            parse_and_guard_partitions("val,val")
+        with self.assertRaises(ValueError):
+            parse_and_guard_partitions("validation")
 
 
 class TestFixedWeight(unittest.TestCase):

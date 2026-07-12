@@ -1,0 +1,35 @@
+{
+  "name": "r5_brep_m1_mlp_dev1_s1234",
+  "notes": "B-REP/M1 Gate-1: only PointNeXt is replaced by a point-wise MLP; B1 dev1 protocol frozen",
+  "data": {
+    "split_path": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_wss_min_v2_dev1.json",
+    "wss_stats_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/wss_stats_v2_dev1.json",
+    "wall_n_points": 2000, "sampling": "fps", "fps_pool_size": 8,
+    "geom_weight_curv": 1.0, "geom_weight_invradius": 1.0,
+    "geom_weight_bifurcation": 0.0, "resample_each_epoch": true,
+    "rot_aug": false,
+    "input_features": ["x", "y", "z", "abscissa_norm", "local_radius", "curvature"],
+    "curvature_transform": "signed_log1p", "timesteps": "peak", "target": "wss",
+    "num_workers": 4, "persistent_workers": false
+  },
+  "model": {
+    "name": "point_mlp", "width": 32,
+    "sa_ratios": [0.25, 0.25, 0.25, 0.25], "sa_radius": [0.05, 0.1, 0.2, 0.4],
+    "sa_nsample": [16, 16, 16, 16], "sa_blocks": [1, 1, 1, 1],
+    "invres_radius_scale": 1.0, "fp_knn": 3, "head_hidden": 64,
+    "out_dim": 1, "dropout": 0.0
+  },
+  "train": {
+    "epochs": 160, "batch_cases": 8, "lr": 0.001, "weight_decay": 0.0001,
+    "warmup_epochs": 10, "min_lr": 0.00001, "grad_clip": 1.0, "seed": 1234,
+    "loss": "mse", "huber_delta": 1.0, "loss_geom_weight": false,
+    "loss_weight_curv": 1.0, "loss_weight_invradius": 1.0,
+    "loss_weight_target": true, "loss_weight_target_alpha": 2.0,
+    "loss_weight_fixed_quantiles": true, "loss_raw_huber_lambda": 0.0,
+    "raw_huber_delta": 1.0, "nll_logvar_min": -6.0, "nll_logvar_max": 2.0,
+    "nll_logvar_reg": 0.0001, "amp": true, "eval_every": 10,
+    "ckpt_metric": "val_selection_score", "selection_rule": "r4_composite_v1",
+    "ckpt_top_k": 3, "early_stop_patience": 6, "min_epoch": 40,
+    "log_every_steps": 0
+  }
+}

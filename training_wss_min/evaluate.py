@@ -64,6 +64,8 @@ def evaluate_partition(model, cases: List[Dict], cfg: C.ExpConfig, feat_stats: D
         if make_plots and save_dir is not None:
             _plot_case(case, y_true_raw, y_pred_raw, save_dir / "heatmaps")
 
+    if not pooled_true:
+        raise ValueError("evaluate_partition received no cases")
     pt = np.concatenate(pooled_true)
     pp = np.concatenate(pooled_pred)
     # pooled hotspot：用拼接点云近似 field 级定位（病例级已在 per_case）
@@ -72,6 +74,7 @@ def evaluate_partition(model, cases: List[Dict], cfg: C.ExpConfig, feat_stats: D
     result = {
         "aggregate": M.aggregate_case_metrics(per_case),
         "field": M.basic_metrics(pt, pp),
+        "field_casebalanced": M.casebalanced_field_metrics(pooled_true, pooled_pred),
         "calibration": M.calibration_metrics(pt, pp),
         "hotspot": hotspot,
         "regional_field": _regional_field(cases, pooled_true, pooled_pred),
@@ -172,12 +175,32 @@ def load_wss_stats_for_run(run_dir: Path) -> Dict:
     return D.load_wss_stats(stats_path if stats_path.is_file() else C.GLOBAL_STATS)
 
 
+def parse_and_guard_partitions(value: str, allow_test: bool = False) -> List[str]:
+    """Parse CLI partitions and require an explicit unlock before reading test."""
+    parts = [part.strip() for part in value.split(",") if part.strip()]
+    if not parts:
+        raise ValueError("at least one partition is required")
+    unknown = sorted(set(parts) - {"train", "val", "test"})
+    if unknown:
+        raise ValueError(f"unknown partitions: {', '.join(unknown)}")
+    if len(parts) != len(set(parts)):
+        raise ValueError("duplicate partitions are not allowed")
+    if "test" in parts and not allow_test:
+        raise PermissionError(
+            "test access is locked during development; pass --allow-test only for the "
+            "pre-authorized legacy test16 evaluation"
+        )
+    return parts
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-dir", type=str, default=None)
     ap.add_argument("--config", type=str, default=None)
     ap.add_argument("--partitions", type=str, default="val",
-                    help="开发默认 val-only；legacy test 需显式传入 val,test 或 test")
+                    help="开发默认 val-only；test 还需 --allow-test 显式解锁")
+    ap.add_argument("--allow-test", action="store_true",
+                    help="仅用于获批的 legacy test16 一次评估")
     ap.add_argument("--no-plots", action="store_true")
     args = ap.parse_args()
 
@@ -193,15 +216,22 @@ def main():
     wss_stats = load_wss_stats_for_run(run_dir)
     eval_dir = run_dir / "eval"
 
+    try:
+        partitions = parse_and_guard_partitions(args.partitions, allow_test=args.allow_test)
+    except (ValueError, PermissionError) as exc:
+        ap.error(str(exc))
+
     result_by_part = {}
-    for part in args.partitions.split(","):
+    for part in partitions:
         cases = D.load_partition(cfg.data.split_path, part, wss_stats)
         res = evaluate_partition(model, cases, cfg, feat_stats, wss_stats, device,
                                  save_dir=eval_dir, make_plots=(not args.no_plots and part == "test"))
         result_by_part[part] = res
         agg, fld = res["aggregate"], res["field"]
+        cb = res["field_casebalanced"]
         print(f"[{part}] cases={agg['n_cases']}  R2_casemean={agg['r2_casemean']:.4f}  "
-              f"R2_field={fld['r2']:.4f}  NRMSE_field={fld['nrmse_range']:.4f}  "
+              f"R2_field_raw={fld['r2']:.4f}  R2_field_casebalanced={cb['r2']:.4f}  "
+              f"NRMSE_field={fld['nrmse_range']:.4f}  "
               f"MAE={fld['mae']:.4f}")
         for rname, rm in res["regional_field"].items():
             print(f"    {rname:12s} R2={rm['r2']:.4f} NRMSE={rm['nrmse_range']:.4f} n={rm['n']}")

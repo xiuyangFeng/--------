@@ -2,7 +2,298 @@
 
 > 用途：单独记录 `pipeline_wss_min/` 这条 WSS-only 最小化数据线的代码、坐标 QA、图件和实验推进。
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
-> 当前执行入口：[WSS 最小化训练实验跟踪](WSS最小化_训练实验跟踪.md) / [pipeline_wss_min README](../../pipeline_wss_min/README.md) / [training_wss_min README](../../training_wss_min/README.md)。
+> 当前执行入口：[第六轮 XYZ 尺度诊断](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [WSS 最小化训练实验跟踪](WSS最小化_训练实验跟踪.md) / [pipeline_wss_min README](../../pipeline_wss_min/README.md) / [training_wss_min README](../../training_wss_min/README.md)。第五轮已结案，其[执行计划](WSS最小化_第五轮执行计划.md)保留为历史证据。
+
+## 2026-07-12｜A0E-ctrl 两例 postview 面片包（CFD|Pred|Error） ✅DONE
+
+**本次主要修改**：
+- 按 `postview-surface-viz` 默认口径，用第五轮最新最佳锚点 `r5_a0e_b1_ctrl_s1234` 对 `slow/WU_FENG_YAN`、`fast/RAN_QING_BO` 做完整壁面推理与 STL 回插。
+- 新增导出脚本 `training_wss_min/export_wss_postview.py`（wall CSV → Gaussian r=3/sharpness=2 → `*__surface_wall.vtp` + 三联图）。
+
+**对应代码/文档**：
+- `training_wss_min/export_wss_postview.py`
+- `training_wss_min/cluster/run_postview_a0e_ctrl.slurm`
+- `docs/03-汇报材料/figures/WSS最小路线_20260712/postview_a0e_ctrl/`
+- [图表说明与汇报口径](../03-汇报材料/figures/WSS最小路线_20260712/图表说明与汇报口径.md)
+
+**推进到实验步骤**：汇报可视化交付；映射覆盖率两例均为 100%；同点 wall R²：`WU_FENG_YAN=0.3225`、`RAN_QING_BO=0.4959`（均为 train，不作泛化结论）。
+
+**当前状态判断**：ParaView 主入口为各例 `*__surface_wall.vtp`（含 `wss_cfd/wss_pred/err_wss/abs_err_wss`）；正式指标只读 `_export/*__wall.csv`。
+
+## 2026-07-12｜第六轮 A/B/D XYZ 尺度诊断已预注册并提交 ⏳RUNNING
+
+**本次主要修改**：
+- 新增第六轮配置生成器和机器可读预注册；A=`xyz`、B=`xyz+coord_scale`、D=`xyz+abscissa/local_radius/curvature`。
+- 9 个配置逐字段继承 B1/dev1/FPS-2000 协议，除输入特征和 `seed={1234,7,2025}` 外无其他变量。
+- 同步修正 LC 外推口径：当前证据只支持“61 例范围内 40→53 无可辨识 field 增益”，不支持“几百/几千例数据无用”。
+
+**对应代码/文档**：
+- `training_wss_min/make_configs_round6_scale.py`
+- `training_wss_min/configs/round6/` / `configs/sweep_round6_scale_abd.txt`
+- [第六轮 XYZ 尺度诊断计划与执行](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md) / [training README](../../training_wss_min/README.md)
+
+**推进到实验步骤**：配置不变量审计和 B 组特征构造通过；Jobs `7029–7037` 已提交，提交记录 `submitted_20260712_120420.txt`；默认 val-only，未访问 test16。
+
+**当前状态判断**：本轮只允许判断 B−A 的尺度信号和 D−B 的显式几何增量；B 不是严格物理尺度纯 XYZ 终审。待 9 个 run 完成后按三 seed 均值±sample std 裁决是否实现 C 组。
+
+## 2026-07-12｜第五轮 CFD 审计 + F0 结案 ✅DONE
+
+**本次主要修改**：
+- 子智能体完成 §6 CFD 可信性审计（read-only，dev61）；据全轮证据写 F0 结案报告。
+
+**对应代码/文档**：
+- `training_wss_min/runs/_round5/cfd_audit/{cfd_audit.py,cfd_per_case.csv,cfd_summary.json,cfd_audit_report.md}`
+- `training_wss_min/runs/_round5/final_report/round5_final_report.md`（F0）、`round5_status_synthesis.md`（SUPERSEDED）
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：CFD 审计——peak 相位固定步统一、近壁 QA 全清、高 WSS 为真实几何热点、复现 floor ~2%（R²_cap ~0.92–0.96）；独立证实 `HOU_SHEN_QIAN=KANG_XI_MING` 同一几何且均 dev1 train。
+
+**当前状态判断**：当前 61 例、当前几何-only 输入与 PointNeXt 协议下的 ~0.31 平台主要不是 CFD 标签噪声。§8.1 机制问题全部有可复核裁决 → **第五轮科学结案**；dev1 ~0.31/0.21 ≪ 0.70 → **未达内部工程目标**（§8.2），未跑 OOF。该结论不外推到几百/几千个高质量独立病例的极限。
+
+## 2026-07-12｜第五轮 B-BC 资产审计：可部署 BC 杠杆关闭 ✅DONE
+
+**本次主要修改**：
+- 子智能体完成 read-only BC 资产审计（未训练、未改 data_new）：解析 61 dev 病例的 udf-inlet.c、vf-in、5 路压力监测、RCR。
+
+**对应代码/文档**：
+- `training_wss_min/runs/_round5/bc_audit/{audit_ag_bc.py,bc_per_case.csv,bc_summary.json,bc_audit_report.md}`
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [G2 裁决](../../training_wss_min/runs/_round5/branch_experiments/branch_decision_g2.md)
+
+**推进到实验步骤**：61/61 dev 覆盖完整；Fourier 入口模板跨病例逐字节相同、`Q` 与面积无关（入口流量 CoV≈1.85e-4）；top-3 方差全为 oracle RCR（CoV 0.55–0.67）。
+
+**当前状态判断**：**入口流量是共享人群模板、非病人特异；唯一 per-case 变化的 BC（出口 RCR/压力/流量分配）全部 `oracle_non_deployable`。可部署 B-BC 杠杆关闭**——无可部署有信息量的 BC 输入可加。跨病例 WSS 差异由出口 RCR（oracle）驱动。剩余选项：oracle RCR 增量探针（量化上限、非部署、需全局输入代码）、P2 loss 探针（末条可部署杠杆），否则按 §8.1 走"未达工程目标"的科学结案。
+
+## 2026-07-12｜第五轮 LC 收口：当前 61 例范围内暂时平台 ✅DONE
+
+**本次主要修改**：
+- 完成 LC stage-2（seed 7/2025）并用 `summarize_round5_lc.py` 汇总 30 个 run，产出曲线/方差分解/图/verdict。
+- 新增 LC 汇总器 `training_wss_min/summarize_round5_lc.py` 与报告 `learning_curve_report.md`。
+
+**对应代码/文档**：
+- `training_wss_min/summarize_round5_lc.py`
+- `training_wss_min/runs/_round5/learning_curve/{learning_curve_report.md,lc_points.csv,lc_curve.png,lc_verdict.json}`
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：field R² 均值曲线 `13→0.258 / 26→0.297 / 40→0.312 / 53→0.310`；配对增量 `13→26 +0.039`、`26→40 +0.014`、`40→53 −0.002±0.049`。端点 53 逐 seed `0.359/0.252/0.319`（std 0.044）。
+
+**当前状态判断**：**field R² 在当前观测范围内约 40 例后进入 ~0.31 暂时平台，40→53 增量与 0 不可分**。stage-1 单 seed"仍在上升"被证明是 s1234 端点偏高伪影（多 seed 纠正）。该 LC 只覆盖 13–53 例，不能用于否定几百/几千例高质量数据的潜在收益；它仅支持在现有 61 例池中不再继续小步扩展同配方 LC。
+
+## 2026-07-12｜第五轮 A0E 重锚 + G1 裁决 + LC 启动 ✅DONE / ⏳LC 运行中
+
+**本次主要修改**：
+- 新增 A0E dev1 control 重锚：两支 val-only 训练（`ctrl` B1 逐字 min_lr=1e-5、`nsl` 仅抬 LR 下限到 2e-4），判定历史 `0.34` 是否为训练预算伪影。
+- 完成 G1 第二次分支裁决：合并 A0D/A0E/A0R/A1 证据，批准 LC、关闭 B-REP、维持 B-DEN/B-BC BLOCKED。
+- 新增确定性 LC 生成器 `make_configs_round5_lc.py`：3 链嵌套分层子集 + per-subset 划分/WSS stats + B1 配方 config；提交 stage-1 seed1234 的 9 个子集训练。
+
+**对应代码/文档**：
+- `training_wss_min/make_configs_round5_lc.py`、`training_wss_min/configs/round5/a0e_b1_{ctrl,nsl}_s1234.json`、`training_wss_min/configs/round5/lc/`
+- `training/splits/split_AG_wss_min_v2_dev1_lc_*.json`、`data_wss_min/fold_stats/wss_stats_v2_dev1_lc_*.json`
+- `training_wss_min/runs/_round5/a0e_control/a0e_control_report.md`、`training_wss_min/runs/_round5/branch_experiments/branch_decision_g1.md`
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：A0E `ctrl` Job `6992` field/casemean `0.3587/0.2300`（复现 anchor），`nsl` Job `6993` `0.3419/0.2125`（更差、2 例负 R²）；G1 `DONE`；LC stage-1 Job `6994–7002` 运行中，LC53 端点复用 ctrl。
+
+**当前状态判断**：`0.34/0.23` 经 A0E 确认为真实泛化上限、非预算伪影；非饿死 LR 假设被证据推翻，LC 改用标准 B1 schedule（`如果结果不合理则修改` 的一次实际更正）。瓶颈定性维持"泛化受限 + 目标函数与 raw-R² 错位"。下一步等 LC 曲线判读增加同分布 AG 数据的边际收益。
+
+## 2026-07-12｜第五轮 A0D 基础拟合链分解 ✅GO
+
+**本次主要修改**：
+- 并行完成 normalization/loss、点—标签对齐/可辨识性、optimizer/AMP/BatchNorm 三路只读审计。
+- 新增 A0D cluster-only 简化 overfit runner/config/Slurm，按四个 single-case→four-case shared→target-weight-only 串行执行。
+- 将训练预算从易受病例数影响的 epoch 口径明确为 optimizer steps，识别旧 micro 仅 160 updates 的口径缺陷。
+
+**对应代码/文档**：
+- `training_wss_min/{a0d_simple_overfit.py,a0d_target_weight_only.py}`
+- `training_wss_min/configs/round5/a0d_*.json`
+- `training_wss_min/cluster/run_round5_a0d_*.slurm`
+- `training_wss_min/runs/_round5/a0d_fit_chain/`
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：Jobs `6986/6990/6991` 均完成。single-case R² `0.991–0.999`，four-case shared plain MSE field/casemean `0.979526/0.982533`，target-weight-only `0.993723/0.992423`。
+
+**当前状态判断**：A0D `GO`。旧 `R²_casemean=0.844` 不是拟合上限；target-weight 单独不是缺口原因。下一步应冻结 optimizer-step 预算后做一个 dev1 val-only 候选，不启动 LC/B-DEN/test16。
+
+## 2026-07-11｜第五轮 B-REP/C2 global context ⛔NO_GO / 已列候选止损
+
+**本次主要修改**：
+- 新增 B1 PointNeXt 解码特征的病例内 mean+max global context，广播拼接后仍由单输出 head 预测 WSS。
+- 新增 C2 cluster-only 串行 runner/config/Slurm，以及前后向和病例隔离 smoke test。
+
+**对应代码/文档**：
+- `training_wss_min/{pointnext_global_context.py,brep_c2_global_context.py}`
+- `training_wss_min/configs/round5/brep_c2_global_context_*.json`
+- `training_wss_min/cluster/run_round5_brep_c2_global_context_{micro,dev1}.slurm`
+- `training_wss_min/runs/_round5/branch_experiments/global_context/`
+
+**推进到实验步骤**：Job `6984` `COMPLETED (0:0)`，last field/casemean `0.740682/0.695389`，未达 `0.95/0.95`，dev1 未提交。
+
+**当前状态判断**：C2 `NO_GO`；M1/C1/C2 均未过 micro Gate，STL 特征又被 A1 mapping 阻塞。暂停 B-REP 训练扩展、LC 和 B-DEN，下一步返回 normalization/loss/标签对齐与几何可辨识性审计。
+
+## 2026-07-11｜第五轮 B-REP/C1 radius-normalized relative position ⛔NO_GO
+
+**本次主要修改**：
+- 新增与 B1 同拓扑/同初始权重的 PointNeXt C1 候选，唯一改动是 SA/InvRes 局部 MLP 中的相对 xyz 除以对应层 radius。
+- 新增 cluster-only 串行 micro/dev1 runner、config、Slurm 和唯一变量/前后向预检。
+
+**对应代码/文档**：
+- `training_wss_min/{pointnext_radius_norm.py,brep_c1_radius_norm.py}`
+- `training_wss_min/configs/round5/brep_c1_radius_norm_*.json`
+- `training_wss_min/cluster/run_round5_brep_c1_radius_norm_{micro,dev1}.slurm`
+- `training_wss_min/runs/_round5/branch_experiments/radius_norm/`
+
+**推进到实验步骤**：Job `6983` `COMPLETED (0:0)`，last epoch 159 的 field/casemean 为 `0.803401/0.760602`，均未达 `0.95`，dev1 未提交。
+
+**当前状态判断**：C1 `NO_GO`。B-REP 进入正式计划中最后一个已列候选 C2 单输出 global context，仍先跑四病例 micro。
+
+## 2026-07-11｜第五轮 B-REP/M1 逐点 MLP micro ⛔NO_GO
+
+**本次主要修改**：
+- 新增不读取 `pos/batch` 的逐点 MLP 对照、cluster-only 串行 runner、micro/dev1 config 与 Slurm 脚本。
+- 先执行锁定四病例 micro；预注册规则要求两项 train R² 均 `>=0.95` 才允许 dev1。
+
+**对应代码/文档**：
+- `training_wss_min/{point_mlp.py,brep_mlp.py}`
+- `training_wss_min/configs/round5/brep_m1_mlp_*.json`
+- `training_wss_min/cluster/run_round5_brep_m1_mlp_{micro,dev1}.slurm`
+- `training_wss_min/runs/_round5/branch_experiments/mlp/`
+
+**推进到实验步骤**：Job `6982` `COMPLETED (0:0)`，last epoch 159 的 field/casemean 为 `0.880817/0.844018`，均未达 `0.95`，dev1 未提交。
+
+**当前状态判断**：M1 `NO_GO`。候选 2 STL/表面特征受 A1 mapping `0/8` 阻塞；B-REP 按顺序进入 C1 相对位置 radius 归一化的四病例 micro。
+
+## 2026-07-11｜第五轮 A1 + G0 密度/映射证据与首次分支裁决 ✅DONE
+
+**本次主要修改**：
+- 新增 A1 可复跑审计入口，完成三 seed 同索引 density probe、逐层邻域 cap、8 例 STL mapping、FPS-2000 真值 IDW3 oracle 与推理重复性检查。
+- G0 合并 A0R/A0M/A1 证据，只批准 B-REP 的第一个单变量候选（逐点 MLP），拒绝当前 B-DEN/LC/B-BC。
+
+**对应代码/文档**：
+- `training_wss_min/a1_density_surface.py`
+- `training_wss_min/runs/_round5/a1_density_surface/`
+- `training_wss_min/runs/_round5/branch_experiments/branch_decision.md`
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：A1 `NO_GO`、G0 `DONE`；IDW3 oracle 通过，但 mapping 总 Gate `0/8`，因此 D1/D2 被硬阻断。
+
+**当前状态判断**：基础拟合不足是首要可执行问题；密度敏感同时存在，但映射协议未过，不能先做回插/ensemble。B-REP MLP 候选先跑四病例 micro sanity，未过则不进入 dev1 Gate-1。
+
+## 2026-07-11｜第五轮 A0R B1 多 checkpoint 只读诊断 ✅DONE
+
+**本次主要修改**：
+- 新增 A0R 可复跑脚本，对 B1 三 seed 的 best/last/已有 candidate 共 15 个 checkpoint 执行 train/val × canonical-2000/full 四象限只读评估。
+- 产出 60 行汇总、1830 行逐病例、42 行对比和机器可读摘要；未训练、未访问 test16。
+
+**对应代码/文档**：
+- `training_wss_min/runs/_round5/a0_readonly/{run_a0_readonly.py,rerun.sh,*.csv,summary.json,a0_readonly_report.md}`
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：A0R 已完成。best canonical train field/casemean 仅 `0.538–0.573 / 0.494–0.528`；last 将 train field 平均提升 `0.070` 时，canonical val field 平均下降 `0.061`。
+
+**当前状态判断**：继续训练不能同时修复 train-fit 与 val 泛化；full 相对 canonical 在三 seed 中一致劣化，但密度分支是否可行仍需 A1 oracle/mapping 裁决。
+
+## 2026-07-11｜第五轮 A0M 四病例 micro-overfit ⛔NO_GO
+
+**本次主要修改**：
+- 新增 train-only 四病例锁定/验证/训练入口、独立 config/协议与 Slurm 脚本；正式训练只能在 Slurm 环境中启动。
+- 从 dev1 正式 train 内按 fast/slow × WSS 均值最低/最高锁定 `SUN_ZHI_YU`、`WANG_DAO_CHUN`、`ZANG_YU_SHU`、`MA_TIAN_YI`；不允许看结果后更换。
+- Job `6981` 用 B1 / fixed FPS-2000 / seed1234 训练 160 epoch，仅使用 last checkpoint 计算 train-fit，未加载 val/test。
+
+**对应代码/文档**：
+- `training_wss_min/a0_micro_overfit.py`
+- `training_wss_min/configs/round5/a0_micro_{protocol,b1_s1234}.json`
+- `training_wss_min/cluster/run_round5_a0_micro.slurm`
+- `training_wss_min/runs/_round5/a0_micro/`
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：A0M 已完成；Job `6981` `COMPLETED (0:0)`，`R²_field_raw=0.76548`、`R²_casemean=0.72381`，均低于 `0.95`。
+
+**当前状态判断**：A0M `NO_GO`；按硬停止条件暂停 LC 和大规模 sweep，待 A0R/A1 完成后由 G0 裁决是否进入 B-REP。
+
+## 2026-07-11｜第五轮 P0 评价协议与 Gate 实现 ✅DONE
+
+**本次主要修改**：
+- 新增病例等权全场 `R²_field_casebalanced`，并补充逐病例 R² median/P10/负 R² 数/失败率。
+- 将第五轮 Gate 固化为 field/casemean 两项主 R² 同时超过 `0.02` 才可 Go，取消旧高 WSS 单路径 Go；top10 ratio/IoU 下降超过 `0.05` 会阻断 Go。
+- 对评估 CLI 增加 test guard；开发默认 val-only，读取 test 必须显式传入 `--allow-test`。
+- 新增 case-balanced 手算、常数标签、单病例、点数悬殊、共同 Gate 和 test guard 回归测试。
+
+**对应代码/文档**：
+- `training_wss_min/{metrics.py,evaluate.py,gate1_compare.py,tests/test_round4_protocol.py,README.md}`
+- `training_wss_min/runs/_round5/protocol/{protocol_report.md,protocol_regression.json}`
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：P0 Gate-0 已通过；17 项聚焦测试通过，旧 B1 seed1234 val-only best checkpoint 回归的 field/casemean/MAE 最大偏差 `3.24e-9 < 1e-8`。
+
+**当前状态判断**：P0 `DONE`，未访问 test16，未提交新训练。A0R/A0M/A1 可按任务卡并行；G0 仍被三者联合产物阻塞。
+
+## 2026-07-11｜第五轮优化计划收敛为正式版 ✅已定稿
+
+**本次主要修改**：
+- 将 1088 行终审与历轮交叉审查轨迹收敛为正式优化计划，删除审查者过程、重复提案、已被覆盖口径和过度详细的实现草案。
+- 保留最终科学边界、当前基线、共同主指标、容量/密度/learning curve/BC 分支、CFD 可信性审计、全 61 例 OOF 和完成标准。
+- 明确文档分工：正式优化计划负责科学与技术口径，独立执行计划负责智能体任务 ID、依赖和产物。
+- 同步修复执行计划中指向旧 §18 的链接和文档索引。本次未修改训练代码、split、stats 或 manifest，未提交作业。
+
+**对应代码/文档**：
+- [WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)
+- [WSS最小化_第五轮执行计划.md](WSS最小化_第五轮执行计划.md)
+- [docs/README.md](../README.md)
+
+**推进到实验步骤**：优化计划已正式定稿；执行状态仍从 P0 `NOT_STARTED` 开始。
+
+**当前状态判断**：项目现在有一份简洁的正式方案和一份独立的智能体执行计划，两者职责分离，后续不需要从历轮审查文本中重新解释最终口径。
+
+## 2026-07-11｜第五轮终审稿转为智能体执行计划 ✅已定稿 / 未启动
+
+**本次主要修改**：
+- 保留第五轮优化计划为决策与审查轨迹，新建第五轮执行计划作为后续智能体的唯一交接入口。
+- 将终审 §18.9 拆为 P0、A0R、A0M、A1、G0、B-REP/B-DEN/B-BC、LC、L0、OOF、T16 和 F0 任务卡，为每张卡固定依赖、允许改动、产物、Gate 和停止条件。
+- 增加共享工作区的领取/回填规则、统一 `_round5/` 证据目录、最小报告模板和并行边界，避免多智能体同时改动同一文件或跳过裁决。
+- 同步更新文档索引和终审稿状态指针。本次未修改训练代码、split、stats 或 manifest，未提交作业。
+
+**对应代码/文档**：
+- [WSS最小化_第五轮执行计划.md](WSS最小化_第五轮执行计划.md)
+- [WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)
+- [docs/README.md](../README.md)
+
+**推进到实验步骤**：第五轮已从终审阶段转为可分派任务卡；第一个可领取任务为 P0，本次未开始 P0。
+
+**当前状态判断**：文档已具备多智能体顺序交接条件。P0 通过后可分派 A0R/A0M/A1；G0 之前不允许启动条件性模型分支或 learning curve。
+
+## 2026-07-11｜第五轮计划 v1.0：Codex 最终审定 ✅有条件通过 / 待执行批准
+
+**本次主要修改**：
+- 完成第五轮最终审定，新增 §18 作为唯一执行入口；旧 §0–§17 保留审查轨迹，但执行时不得自行择取冲突口径。
+- 发现 dev1/dev2/dev3 的 val 并集仅 20 个独立病例、41/61 从未作 val；终审否决用该并集声明 0.70，改为配置锁定后的全 61 例 5-fold OOF ×3 seeds 内部工程评估。
+- A0 增加 best/last/top-k train-fit 对照与 4 病例 micro-overfit sanity，避免把早停/选模问题误判为模型容量不足。
+- A0.5 BC probe 降为条件候选：入口 UDF 抽查发现固定分母，与 §17 的逐病例 `Q/A_inlet` 表述不一致；RCR/流量分配统计需先补可复跑脚本、CSV 和元数据；`B3−A` 只解释为预测增量，不作因果/全部方差表述。
+- 区分第五轮科学结案、内部工程达标和未来前瞻性确认；R² 未达 0.70 可科学结案，但不得标记工程达标。
+- 本次仅更新计划与推进记录，未修改训练代码、split、manifest，未提交作业。
+
+**对应代码/文档**：
+- [WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)（当时终审结论现已并入正式版）
+- 当前训练证据：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：终审有条件通过，仍处于 No-Run；等待用户明确批准后从 §18.9 第 1 步开始。
+
+**当前状态判断**：计划已从多轮审查草案收敛为唯一执行顺序。当前首要任务仍是能力边界诊断而非扩大 sweep；工程 0.70 需全 61 例 OOF 内部评估，未来临床/生产声明仍需新 AG 前瞻性确认。
+
+## 2026-07-11｜第五轮计划 v0.2：第二轮交叉审查 + 工程精度目标裁决 ⏳待执行批准
+
+**本次主要修改**：
+- 对第五轮 v0.1 与第一轮外部审查做第二轮代码/统计/密度/医工交叉核对；纠正“第四轮 B1 为纯 casemean 选模”的误读，实际为 `r4_composite_v1` 复合规则。
+- 根据用户工程目标冻结：第五轮只做 AG 生长队列、peak-WSS 单标量；AAA 破裂队列独立；不要求每例 R²≥0.7，但工程目标要求逐病例完整壁面 `R²_casemean` 与 pooled `R²_field_raw` 向 0.70 验收。
+- 将 A0 train-fit 提升为最高优先级；当前 B1/v2_dev1 重做 density probe 后才允许 D1/D2；全部 STL 用于表面连接/插值前 QA。
+- learning curve 改为三条独立嵌套链，显式估计病例选择、模型 seed 和 dev split 三类噪声；不自动触发 AAA/ILO 混入 AG。
+- AG 科学结案与 AAA/ILO 数据治理解耦；第五轮仍为 No-Run，未修改训练代码、split、manifest，未提交作业。
+
+**对应代码/文档**：
+- [WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)（历史审查口径现已并入正式版）
+- [WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md) / [新队列数据可用性审计_AAA_ILO_2026-07-10.md](新队列数据可用性审计_AAA_ILO_2026-07-10.md)
+
+**推进到实验步骤**：推进到 v0.2 审查裁决与工程验收定义；未进入 A0/A1，等待用户明确批准执行。
+
+**当前状态判断**：目标 `R²≈0.70` 相对当前 field≈0.34 / casemean≈0.19 属结构性提升，必须先用 train-fit 与当前 B1 density 四象限判断能力边界，再决定 learning curve 或模型修复；不适合直接扩大 sweep。
 
 ## 2026-07-10｜第五轮优化计划 v0.1：冻结 AG 单队列、WSS 标量与 field-R² 主目标 ⏳待交叉审查
 
@@ -13,7 +304,7 @@
 - 纳入新队列讨论中发现的待隔离项：`ILO/LIU_BAO_JUN-0/after` 近零 WSS、7 个 `vf-in` 数量级/口径异常单元、方向 watch 和跨队列病人分组风险。
 
 **对应代码/文档**：
-- 新计划：[WSS最小化_第五轮优化计划_待交叉审查.md](WSS最小化_第五轮优化计划_待交叉审查.md)
+- 新计划：[WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)（后续收敛为正式版）
 - 证据：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md) / [新队列数据可用性审计_AAA_ILO_2026-07-10.md](新队列数据可用性审计_AAA_ILO_2026-07-10.md)
 
 **推进到实验步骤**：仅推进到第五轮 v0.1 计划冻结与交叉审查入口；未进入 Stage A，未授权执行。

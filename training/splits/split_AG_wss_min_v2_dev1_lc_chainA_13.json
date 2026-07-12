@@ -1,0 +1,55 @@
+{
+  "split_version": "split_AG_wss_min_v2_dev1_lc_chainA_13",
+  "source": "AG train+val from split_AG_wss_min_v1 (61 cases); test excluded",
+  "pipeline": "pipeline_wss_min",
+  "data_root": "data_wss_min/AG",
+  "parent_split": "split_AG_wss_min_v2_dev1",
+  "holdout_seed": 101,
+  "generated_at": "2026-07-10 14:28:26",
+  "expected_counts": {
+    "train": 13,
+    "val": 8,
+    "test": 0
+  },
+  "train_cases": [
+    "slow/MA_TIAN_YI",
+    "slow/YANG_YOU_SHENG",
+    "slow/ZANG_YU_SHU",
+    "fast/ZHANG_XIU_ZHEN",
+    "fast/LI_SHI_QIANG",
+    "slow/NI_YAN_BIN",
+    "fast/WANG_DAO_CHUN",
+    "slow/QU_HE_PING",
+    "slow/CHENG_LU_LI",
+    "slow/SUN_ZONG_GE",
+    "fast/ZHANG_XIU_WEN",
+    "slow/ZHANG_QING_SHUI",
+    "slow/ZHANG_SONG_TIAN"
+  ],
+  "val_cases": [
+    "fast/LIU_JUN_FENG",
+    "fast/ZHANG_LIANG",
+    "slow/CAO_FENG_CHI",
+    "slow/CHENG_GUANG_SEN",
+    "slow/LIU_ZONG_YANG",
+    "slow/LI_HUAN_GE",
+    "slow/MI_DE_XI",
+    "slow/XU_YI_CAI"
+  ],
+  "test_cases": [],
+  "excluded_cases": [
+    "fast/PENG_JI_MING",
+    "slow/LIU_XI_QUAN",
+    "slow/WEI_JUN_WEN",
+    "slow/LIN_SHU_TIAN",
+    "slow/TE_JIN_WANG",
+    "slow/NIE_QUAN_ZHONG",
+    "slow/WANG_BAO_SHAN",
+    "slow/SUN_WEN_QING",
+    "slow/ZHANG_HUAN_LI"
+  ],
+  "pending_cases": [
+    "slow/ZHAO_XIU_XUAN"
+  ],
+  "notes": "第五轮 LC 子集；train=分层嵌套子集，val=dev1 固定 8 例；WSS stats 用本子集 train 重算；不读 test/legacy。"
+}

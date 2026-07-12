@@ -4,6 +4,124 @@
 > 设计、完整指标表、结论、待办。**每完成一轮/一次任务，回填本文档。**
 > 上位：[WSS最小化_代码修改与实验推进记录](WSS最小化_代码修改与实验推进记录.md) / [training_wss_min/README](../../training_wss_min/README.md)。
 
+## 第六轮｜A/B/D XYZ 尺度诊断（2026-07-12 ⏳RUNNING）
+
+- 目的：判断旧纯 XYZ 较差是否主要由“坐标逐病例归一化到 `[-1,1]`”丢失物理尺度造成。
+- A=`xyz`；B=`xyz+coord_scale`；D=`xyz+abscissa_norm+local_radius+curvature`。三组均为 dev1 / fixed FPS-2000 / B1 fixed target-weight / val-only / `seed={1234,7,2025}`。
+- 9 个配置唯一变量审计和 B 组特征构造通过；Jobs `7029–7037` 已提交，记录 `training_wss_min/cluster/logs/submitted_20260712_120420.txt`。
+- 预注册：B−A 的三 seed 均值在 field/casemean 均 `>0.02` 才判为可辨识尺度信号；D−B 报告显式几何增量和 seed 方差。
+- 范围声明：B 是尺度诊断，不是严格物理尺度纯 XYZ 终审；本轮不读 test16，不外推几百/几千例数据上限。
+- 详细协议与 Job 表：[WSS最小化_第六轮XYZ尺度诊断计划与执行](WSS最小化_第六轮XYZ尺度诊断计划与执行.md)。
+
+## 汇报｜A0E-ctrl 两例 postview（2026-07-12 ✅DONE）
+
+- 模型 `r5_a0e_b1_ctrl_s1234`；病例 `slow/WU_FENG_YAN`、`fast/RAN_QING_BO`（均为 train）。
+- 产物：`docs/03-汇报材料/figures/WSS最小路线_20260712/postview_a0e_ctrl/`（`*__surface_wall.vtp` 含 CFD/Pred/Error；映射覆盖率 100%）。
+- 同点 wall R²：`0.3225` / `0.4959`；脚本 `training_wss_min/export_wss_postview.py`。
+
+## 第五轮｜F0 结案（2026-07-12 ✅DONE / 科学结案·工程未达标）
+
+- 全部 §8.1 机制问题均有可复核裁决 → **第五轮科学结案**；dev1 field/casemean ~0.31/0.21 ≪ 0.70 → **未达内部工程目标**（§8.2），未跑 OOF（无达标候选）。
+- 机制链：拟合足（A0D）→ 当前协议泛化锚点 ~0.34（A0E）→ 现有 61 例范围内 ~0.31 暂时平台（LC）→ 可部署 BC 无新杠杆（B-BC）→ 标签噪声小（CFD，R²_cap ~0.92–0.96）。该结论限于当前数据池、输入和模型协议，不外推数千个高质量独立病例的上限。
+- 报告：`training_wss_min/runs/_round5/final_report/round5_final_report.md`。可选后续（非部署路径、待用户定）：oracle RCR 增量探针 / P2 loss 探针。
+
+## 第五轮｜CFD 可信性审计 §6（2026-07-12 ✅DONE）
+
+- read-only；dev61。产物 `training_wss_min/runs/_round5/cfd_audit/{cfd_audit.py,cfd_per_case.csv,cfd_summary.json,cfd_audit_report.md}`。
+- peak 相位按**固定步**（1162/idx21）统一取，结构上无跨病例相位错配；仅 3/61 真峰晚 ≥12 步（含 2 val：`LIU_JUN_FENG` +13.8%、`CHENG_GUANG_SEN` +12.2%）→ n=8 val 数值脆弱。
+- 近壁 QA 全清（normal_invalid=0、basis≤0.066、radial≤0.066、mesh≥786k）；高 WSS 尖峰为真实几何热点（不与 QA 旗标共现），但单节点 max 受尖峰主导，报告以 p95/p99 为准。
+- **重复几何**：独立证实 `HOU_SHEN_QIAN`=`KANG_XI_MING` 同一几何（且均 dev1 train）→ OOF 须整组；`LIU_XI_QUAN`（excluded）peak 全零损坏。
+- **裁决：~0.31 上限主要不是 CFD 标签噪声**——复现 floor ~2% → R²_cap ~0.999；即便 10–15% per-case 噪声也仅 cap 到 0.92–0.96，远高于 0.31 → 真实模型/信息上限。
+
+## 第五轮｜B-BC 资产审计（2026-07-12 ✅DONE / 可部署 B-BC 关闭）
+
+- read-only 审计 61/61 dev 病例 BC 完整（udf-inlet.c + vf-in + 5 压力监测）。产物 `training_wss_min/runs/_round5/bc_audit/{audit_ag_bc.py,bc_per_case.csv,bc_summary.json,bc_audit_report.md}`。
+- **决定性发现：入口流量不是病人特异的。** Fourier 流量模板（a0..b8,w,T,A1/B/D/E/n）在所有病例逐字节相同；入口 BC 为平速 `v=1e-6·template/area`，故 `Q=v·area=1e-6·template` 与面积无关 → 各病例入口流量本质相同（dev CoV≈1.85e-4，Fourier↔实测比 0.999–1.000）。唯一 per-case 入口标量是入口**面积**（几何可得）。
+- **可部署 vs oracle**：可部署 = 入口面积/速度/流量（但零方差或与几何冗余，非信息量）；**唯一有跨病例方差的是出口 RCR（CoV 0.55–0.67）与出口压力/流量分配，全部 `oracle_non_deployable`**（CFD 设定/解产物，新病人不可知）。
+- 数据质量旗标：两对拷贝 BC（`HOU_SHEN_QIAN=KANG_XI_MING` 均 dev1 train、`LIU_XI_QUAN=LI_BING_YI`）→ 其面积/RCR 不独立；`vf-outri` 20 例退化（15 在 dev1）；两例异常入口监测均已 excluded。
+- **裁决：可部署 B-BC 关闭**——无可部署、有信息量、病人特异的 BC 输入可加。跨病例 WSS 差异由出口 RCR（oracle）驱动，可部署几何模型无法在部署期获取。剩余仅两条：oracle RCR 增量探针（仅量化上限，非部署，需全局输入代码）、P2 loss 探针（末条可部署杠杆）。
+
+## 第五轮｜LC 三链 learning curve（2026-07-12 ✅DONE）
+
+- G1 批准后启动；A0E-ctrl（标准 B1，min_lr=1e-5）配方，val 恒为 dev1 固定 8 例；3 链嵌套 `LC13⊂26⊂40⊂53`，硬分层 cohort×train-only WSS 三分位；case-drop（chain salt）与 model seed 分离。生成器 `make_configs_round5_lc.py`，per-subset 划分/WSS stats，feature stats 与 loss 分位运行时重算。
+- 30 个 run（3 链×3 seed×{13,26,40} + 3 端点）Job `6994–7002`/`7003–7022` 全部 `COMPLETED`。
+- **field R² 均值±std：13 `0.258±0.023` / 26 `0.297±0.025` / 40 `0.312±0.033` / 53 `0.310±0.044`**；casemean `0.087/0.158/0.177/0.208`。
+- **配对 field 增量：13→26 +0.039±0.037、26→40 +0.014±0.027、40→53 −0.002±0.049**——**field 在当前 13–53 例范围内约 40 例后出现 ~0.31 暂时平台**，40→53 增量与 0 不可分。
+- 端点 53 逐 seed field `0.359/0.252/0.319`（std 0.044，超过 26→53 整段增量）；stage-1 单 seed 的"53 仍在上升"是 s1234 偏高伪影，补 seed 后纠正——多 seed 必要性再次印证。
+- **裁决（修正后口径）：现有 61 例池内的小步扩展没有显示可将 field R² 从 ~0.31 推到 0.70 的证据**。剩余差距与输入信息、坐标/尺度表示和 loss 目标错位有关；13–53 例 LC 不能否定几百/几千例高质量独立数据的潜在收益。高 WSS 护栏全程未改善（端点 top10 ratio 0.466 / IoU 0.302）。
+- 产物：`training_wss_min/runs/_round5/learning_curve/{learning_curve_report.md,lc_points.csv,lc_curve.png,lc_verdict.json}`。下一步见 G2 路由：B-BC 输入信息（首选，先 read-only 审计）+ P2 loss 探针（并行）；不启动 L0/OOF（当前配置远低于 0.70）。
+
+## 第五轮｜A0E dev1 control 重锚（2026-07-12 ✅DONE）
+
+- 目的：判定历史 `0.34` 是真实泛化上限还是训练预算伪影，并冻结 LC 训练协议。control=历史 B1 anchor（field/casemean `0.3511/0.2138`）。
+- `ctrl`（B1 逐字，min_lr=1e-5）Job `6992`：field/casemean **`0.3587/0.2300`**，best epoch 29，负 R² 病例 0——复现 anchor（±0.02 内），确认 `0.34/0.23` 是真实泛化上限。
+- `nsl`（仅抬 LR 下限到 2e-4）Job `6993`：field/casemean `0.3419/0.2125`，2 例负 R²（失败率 0.25）——非饿死 LR 对 dev1 无益且略有害。
+- 裁决：LC 用标准 B1 schedule（min_lr=1e-5，即 ctrl）；更正预注册时"dev1 需非饿死 LR"的假设。A0D"按 optimizer step 计预算"规则仍成立，但 dev1（batch8、约 1120 step、best-val 时 LR 健康）本就满足。产物 `training_wss_min/runs/_round5/a0e_control/a0e_control_report.md`。
+
+## 第五轮｜G1 第二次分支裁决（2026-07-12 ✅DONE）
+
+- 合并 A0D（拟合能力 GO）+ A0E（`0.34` 真实泛化上限）+ A0R（53 例即过拟合）+ A1（密度受 mapping 阻断）证据。
+- 裁决：**批准 LC**（泛化/病例数主导）；**关闭 B-REP**（表示坏了前提被证伪）；维持 B-DEN/B-BC `BLOCKED`；normalized-MSE↔raw-R² 目标错位（79.75×）列 P2 并行探针。
+- 产物：`training_wss_min/runs/_round5/branch_experiments/branch_decision_g1.md`。
+
+## 第五轮｜A0D 基础拟合链（2026-07-12 ✅GO）
+
+- 只读审计：stats/逐点对齐无异常；AMP 首步跳过不足以解释缺口；旧四病例 micro 只有 160 次 optimizer updates。
+- Job `6986`：四个单病例简化 MLP 全部达 R² `0.991–0.999`。
+- Job `6990`：four-case shared plain MSE，field/casemean `0.979526/0.982533`，逐例最低 `0.975705`。
+- Job `6991`：只恢复 fixed target-weight alpha2，field/casemean `0.993723/0.992423`，相对 6990 `+0.014197/+0.009890`。
+- 结论：`0.844` 不是四个已见病例的拟合上限，target-weight 单独不是原缺口的充分原因。这些仍是 train-only/canonical-2000 结果，不代表新病例精度。
+- 产物：`training_wss_min/runs/_round5/a0d_fit_chain/`。下一步为预注册的 dev1 val-only 单变量候选。
+
+## 第五轮｜B-REP/C2 global context（2026-07-11 ⛔NO_GO）
+
+- Job `6984`：四病例 train-only、fixed FPS-2000、seed1234、last checkpoint，`COMPLETED (0:0)`，未读 val/test16。
+- train `R²_field_raw=0.740682`、`R²_casemean=0.695389`，未达 `0.95/0.95`，dev1 未提交。
+- C2 `NO_GO`；已列 B-REP 候选均未通过 micro Gate，暂停新候选训练、LC 和 B-DEN，转入 normalization/loss/标签对齐与几何可辨识性审计。
+
+## 第五轮｜B-REP/C1 radius normalization（2026-07-11 ⛔NO_GO）
+
+- Job `6983`：四病例 train-only、fixed FPS-2000、seed1234、last checkpoint，`COMPLETED (0:0)`，未读 val/test16。
+- train `R²_field_raw=0.803401`、`R²_casemean=0.760602`，未达 `0.95/0.95`，dev1 未提交。
+- C1 `NO_GO`；下一个仅执行 C2 单输出 global context 的四病例 micro。
+
+## 第五轮｜B-REP/M1 逐点 MLP（2026-07-11 ⛔NO_GO）
+
+- Job `6982`：四病例 train-only、fixed FPS-2000、seed1234、last checkpoint，`COMPLETED (0:0)`，未读 val/test16。
+- train `R²_field_raw=0.880817`、`R²_casemean=0.844018`，虽高于 B1 micro，仍未达 `0.95/0.95`，所以 dev1 未提交。
+- M1 `NO_GO`；STL 表面特征受 mapping Gate 阻塞，下一个只执行 C1 radius-normalized relative position 的四病例 micro。
+
+## 第五轮｜A1 与 G0（2026-07-11 ✅已裁决）
+
+- density probe 确认同索引预测会随 canonical/full 密度变化（三 seed 预测间 R² `0.865–0.882`），但相对真值的两项主指标方向不跨 seed 一致。
+- full density 的 SA L1–L4 query cap 截断率约 `0.9998/1/1/1`，密度敏感有明确结构证据。
+- 真值 IDW3 oracle 通过：field `0.9293`、casemean `0.9174`、top10 ratio `0.9353`、IoU `0.8003`。
+- 但预注册 STL mapping 总 Gate 为 `0/8`；失败集中在连续三角面采样到离散 CFD wall 节点的 1 mm 覆盖门槛，因此 A1 `NO_GO`并阻断 D1/D2。
+- G0 只批准 B-REP 的逐点 MLP 候选；先用已锁定四病例重跑 micro-overfit，通过后才能提交 dev1 Gate-1。
+
+## 第五轮｜A0R 多 checkpoint 只读诊断（2026-07-11 ✅DONE）
+
+- 范围：B1 `s{1234,7,2025}` 的 15 个 best/last/candidate checkpoint，train/val × canonical-2000/full；无训练、无 test16。
+- best canonical train `R²_field_raw=0.538–0.573`、`R²_casemean=0.494–0.528`；容量/基础拟合不足信号明确。
+- last 相对 best 的 canonical train field 平均 `+0.070`，canonical val field 平均 `-0.061`，继续训练不是同时修复拟合与泛化的答案。
+- best full-canonical：train field/casemean 平均 `-0.159/-0.171`，val 平均 `-0.055/-0.080`，top10 ratio/IoU 也在三 seed 中全部下降；密度迁移方向一致。
+- 最集中的 val 失败病例是 `slow/XU_YI_CAI`，其次为部分 seed/checkpoint 的 `slow/CHENG_GUANG_SEN`。产物见 `training_wss_min/runs/_round5/a0_readonly/`。
+
+## 第五轮｜A0M 四病例 micro-overfit（2026-07-11 ⛔NO_GO）
+
+- 四例固定为 fast/low `SUN_ZHI_YU`、fast/high `WANG_DAO_CHUN`、slow/low `ZANG_YU_SHU`、slow/high `MA_TIAN_YI`；全部来自 dev1 正式 train。
+- Slurm Job `6981`：B1 配方、seed1234、fixed canonical FPS-2000、160 epoch、last checkpoint、无 val 选模、未读 test16；状态 `COMPLETED (0:0)`。
+- train `R²_field_raw=0.76548`、`R²_casemean=0.72381`，未达同时 `>=0.95` 的 Go 阈值，因此 A0M `NO_GO`。
+- 产物：`training_wss_min/runs/_round5/a0_micro/`；按停止规则暂停 LC/大规模 sweep，待 A0R/A1 后进入 G0。
+
+## 第五轮｜P0 评价协议（2026-07-11 ✅DONE）
+
+- 评价现同时输出 pooled `R²_field_raw`、逐病例等权 `R²_casemean` 与病例总权重相等的 `R²_field_casebalanced`，并固化 median/P10/负 R² 数/失败率。
+- Gate-1 仅在 field/casemean 相对 control 都改善 `>0.02` 且 top10 ratio/IoU 均未下降 `>0.05` 时为 Go；不再允许高 WSS 单指标旁路 Go。
+- `evaluate` 默认 val-only；test 必须额外显式 `--allow-test`。P0 未访问 legacy test16。
+- 旧 control `r4_dev1_b1_tgtw_fixedq_s1234` / best epoch 49 的 val-only 复评：`R²_field_raw=0.3510821344`、`R²_casemean=0.2138313493`、`MAE=3.0635919684`，与历史值最大偏差 `3.24e-9`；新 `R²_field_casebalanced=0.3451643087`。
+- 产物：`training_wss_min/runs/_round5/protocol/protocol_report.md`、`protocol_regression.json`。下一步可并行 A0R/A0M/A1。
+
 ## 第四轮补充｜点数—精度曲线（§14，2026-07-10 ✅单 seed + 多 seed）
 
 - **单 seed 曲线**：见下表；峰值曾在 1000，但属单点。
