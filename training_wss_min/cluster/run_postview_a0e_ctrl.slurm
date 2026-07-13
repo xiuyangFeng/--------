@@ -30,7 +30,7 @@ echo "wss_min postview export"
 echo "开始: $(date)  节点: $(hostname)  GPU: ${CUDA_VISIBLE_DEVICES:-NA}"
 echo "=============================================="
 
-"${PY}" -m training_wss_min.export_wss_postview \
+"${PY}" -m training_wss_min.tools.export_wss_postview \
   --run-dir training_wss_min/runs/r5_a0e_b1_ctrl_s1234 \
   --cases slow/WU_FENG_YAN,fast/RAN_QING_BO \
   --output-dir "docs/03-汇报材料/figures/WSS最小路线_20260712/postview_a0e_ctrl" \

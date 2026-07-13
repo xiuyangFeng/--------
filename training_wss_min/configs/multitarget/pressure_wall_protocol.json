@@ -1,0 +1,81 @@
+{
+  "protocol_id": "multitarget_pressure_wall_v1",
+  "status": "PRE_REGISTERED",
+  "purpose": "Track A of round-6 §14: predict wall gauge pressure under the frozen minimal protocol, xyz vs xyz+geom.",
+  "target": "pressure",
+  "target_definition": "per-case demeaned wall_pressure at peak step (gauge, Pa)",
+  "stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/pressure_gauge_stats_v2_dev1.json",
+  "groups": {
+    "press_wall_xyz": {
+      "features": [
+        "x",
+        "y",
+        "z"
+      ],
+      "description": "pressure(wall gauge); per-case normalized xyz only"
+    },
+    "press_wall_xyzgeom": {
+      "features": [
+        "x",
+        "y",
+        "z",
+        "abscissa_norm",
+        "local_radius",
+        "curvature"
+      ],
+      "description": "pressure(wall gauge); xyz plus engineered geometry"
+    }
+  },
+  "seeds": [
+    1234,
+    7,
+    2025
+  ],
+  "control_config": "training_wss_min/configs/protocol_gates/b1_tgtw_fixedq_s1234.json",
+  "invariants": {
+    "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_wss_min_v2_dev1.json",
+    "partition": "val",
+    "wall_n_points": 2000,
+    "sampling": "fps",
+    "timesteps": "peak",
+    "model": {
+      "name": "pointnext_s",
+      "width": 32,
+      "sa_ratios": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "sa_radius": [
+        0.05,
+        0.1,
+        0.2,
+        0.4
+      ],
+      "sa_nsample": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "sa_blocks": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "invres_radius_scale": 1.0,
+      "fp_knn": 3,
+      "head_hidden": 64,
+      "out_dim": 1,
+      "dropout": 0.0
+    },
+    "loss": "mse (loss_weight_target=false)"
+  },
+  "primary_metrics": [
+    "r2_field_raw",
+    "r2_casemean"
+  ],
+  "notes": "gauge pressure can be negative; eval does not clip. WSS tail-weighting off. Compare xyz vs xyz+geom like scale A/D."
+}

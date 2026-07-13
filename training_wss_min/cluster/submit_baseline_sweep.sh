@@ -5,14 +5,14 @@
 # 用法:
 #   bash training_wss_min/cluster/submit_baseline_sweep.sh            # 提交全部
 #   bash training_wss_min/cluster/submit_baseline_sweep.sh a.json b.json  # 只提交指定 config
-#   WSSMIN_MANIFEST=training_wss_min/configs/sweep_round3_clean_v1.txt \
+#   WSSMIN_MANIFEST=training_wss_min/configs/sweeps/clean_data_v1.txt \
 #     bash training_wss_min/cluster/submit_baseline_sweep.sh
 
 set -euo pipefail
 PROJECT_DIR="/public/newhome/cy/Digital_twin/GNN"
 cd "$PROJECT_DIR"
 SBATCH=/public/slurm/bin/sbatch
-MANIFEST="${WSSMIN_MANIFEST:-training_wss_min/configs/sweep_baseline_v1.txt}"
+MANIFEST="${WSSMIN_MANIFEST:-training_wss_min/configs/sweeps/baseline_v1.txt}"
 LOGDIR="training_wss_min/cluster/logs"
 mkdir -p "$LOGDIR"
 STAMP=$(date +%Y%m%d_%H%M%S)

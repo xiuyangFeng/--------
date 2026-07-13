@@ -63,8 +63,12 @@ class DataConfig:
 
 @dataclass
 class ModelConfig:
+    # ``pointnext_s`` is retained for historical runs.  The minimal 2x3
+    # baseline uses ``mlp``, ``pointnet`` and ``pointnetpp``.
     name: str = "pointnext_s"
     width: int = 32                       # stem 通道
+    # 逐点 MLP 的隐藏层宽度；仅 ``name='mlp'`` 使用。
+    mlp_hidden: Tuple[int, ...] = (64, 64, 64)
     # 4 个 SA stage 的下采样比、ball 半径（归一化坐标下）、每组邻居上限、残差块数
     sa_ratios: Tuple[float, ...] = (0.25, 0.25, 0.25, 0.25)
     sa_radius: Tuple[float, ...] = (0.05, 0.10, 0.20, 0.40)

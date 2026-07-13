@@ -1,0 +1,32 @@
+{
+  "protocol_id": "loss_l1_rawhuber_v1",
+  "status": "PRE_REGISTERED",
+  "purpose": "W2 L1: does a raw-space scaled Huber auxiliary on top of log-z MSE improve high-WSS amplitude/localization without hurting field/casemean R2?",
+  "fixed_input": "D (xyz + abscissa_norm + local_radius + curvature)",
+  "loss_control_L0": "training_wss_min/configs/xyz_scale_diag/scale_D_xyzgeom_s1234.json",
+  "lambdas": [
+    0.1,
+    0.3,
+    1.0
+  ],
+  "seed_gate": 1234,
+  "raw_huber_delta": 1.0,
+  "primary_metrics": [
+    "r2_field_casebalanced",
+    "r2_casemean",
+    "r2_field_raw"
+  ],
+  "guardrails": [
+    "top10_pred_true_ratio",
+    "p99_pred_true_ratio",
+    "top10_iou",
+    "high_wss_mae",
+    "negative_r2_count"
+  ],
+  "decision_rules": {
+    "gate": "single-seed screening only; pick the lambda interval where high-WSS amplitude/IoU improve and field/casemean R2 do not regress > seed noise vs L0",
+    "confirm": "add three seeds for at most one selected lambda in a separate submission; never promote from single seed",
+    "no_go": "if every lambda hurts field/casemean R2 or peaks (max_pred_true_ratio) without improving hotspot, stop L1",
+    "test_policy": "No legacy test16 access during this diagnostic"
+  }
+}

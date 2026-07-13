@@ -1,6 +1,6 @@
 # 项目文档索引
 
-> 更新时间：2026-07-11
+> 更新时间：2026-07-13
 > 主入口：[实验设计总纲](实验设计总纲.md)
 
 本目录存放实验设计、任务规范、路线文档、推进日志、汇报材料和外部论文 baseline 复现记录。当前项目已经不再按“单一 GNN 优化线”推进，而是分成：
@@ -9,7 +9,7 @@
 - **V1 补充验证**：PINN / physics loss 阶梯消融，用于回答早期速度压力场与物理损失问题
 - **外部 baseline 复现**：公开医学血管点云、mesh、等变网络、2D 展开方法在私有 AAA/WSS 数据上的对照
 - **后处理与可视化**：预测点云到 CFD 面片/体网格的公平映射和论文图件规范
-- **WSS-only 最小化线**：`pipeline_wss_min/` + `training_wss_min/`；第五轮已形成可交接执行计划，当前锚点仍为 B1 / 2000 点
+- **WSS-only 最小化线**：`pipeline_wss_min/` + `training_wss_min/`；第六轮以 WSS W0–W3 为 P0 主线，压力/速度改为最小机制诊断矩阵，不再要求 36 runs 补齐后才继续 WSS
 
 ## 1. 现在先看什么
 
@@ -28,7 +28,7 @@
 | V3P / 后平台期精度优化 | [V3 路线 README](01-任务/任务A/03-V3路线/README.md) + [V3P 后平台期结构与训练优化路线](01-任务/任务A/03-V3路线/01-执行与待办/V3P_后平台期结构与训练优化路线_2026-07-01.md) + [V3P 精度平台期复盘](01-任务/任务A/03-V3路线/01-执行与待办/V3P_精度平台期复盘与下一轮想法_2026-06-30.md) | 对照既有 No-Go 证据后，只保留 K1-lite 5886 作为当前内部 GPU 判断；K3/K5 已 No-Go |
 | 外部 CROWN/Beihang 复现 | [CROWN 代码 README](../external_baselines/crown_beihang/README.md) + [hemodynamics_pointcloud_pinn](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | `u,v,w,p` 速度/压力 paper-original 复现，不写成 WSS baseline |
 | 外部 baseline 批次总结 | [paper_reproduction/README](paper_reproduction/README.md) + [梳理记录规范](paper_reproduction/04-梳理记录规范.md) | 一轮矩阵跑齐后的批次结论，单个 Job 只放 `external_baselines/<name>/experiments/` |
-| WSS-only 最小化预处理/训练 | [第五轮正式优化计划](02-推进与变更/WSS最小化_第五轮优化计划_正式版.md) + [第五轮执行计划](02-推进与变更/WSS最小化_第五轮执行计划.md) + [训练实验跟踪](02-推进与变更/WSS最小化_训练实验跟踪.md) + [推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) | 正式方案和任务卡已定稿；从 P0 开始，开发期 val-only，最终为全 61 例 OOF |
+| WSS-only 最小化预处理/训练 | [第六轮总入口](02-推进与变更/WSS最小化_第六轮XYZ尺度诊断计划与执行.md) + [WSS 精度突破](02-推进与变更/WSS最小化_第六轮_WSS精度突破计划与执行.md) + [横向多目标对比](02-推进与变更/WSS最小化_第六轮_横向多目标对比计划与执行.md) + [BC/速度条件路线](02-推进与变更/WSS最小化_第六轮_边界条件与速度路线.md) + [跨路线指标口径](00-规范与记录/WSS跨路线评估与横向对比口径.md) | 当前主攻 WSS W0–W3；横向仅按 Gate 触发，V3P 只作 B 级协议化参考，test16 保持锁定 |
 ### 查当前总设计
 
 1. [实验设计总纲](实验设计总纲.md)
@@ -43,7 +43,7 @@
 4. [私有数据适配统一口径](paper_reproduction/02-私有数据适配统一口径.md)
 5. [后处理可视化与插值方法](paper_reproduction/03-后处理可视化与插值方法.md)
 6. [点云预测值与真值回插到面片方法](paper_reproduction/05-点云预测值与真值回插到面片方法.md)
-7. [点云预测结果回构与 CFD 后处理可视化流程](paper_reproduction/visualization_pipeline/README.md)
+7. [CFD-Post 云图导出与交付工具](../tools/cfdpost_cloud_export/README.md)
 
 ### 准备论文图和汇报
 
@@ -80,7 +80,7 @@
 | 类别 | 链接 |
 | --- | --- |
 | 总纲 | [实验设计总纲](实验设计总纲.md) |
-| 项目管理规范 | [项目知识库整理规范](00-规范与记录/项目知识库整理规范.md) · [本轮整理审计](02-推进与变更/项目知识库整理审计_2026-06-15.md) · [实验记录填写规范](00-规范与记录/实验记录填写规范.md) |
+| 项目管理规范 | [项目知识库整理规范](00-规范与记录/项目知识库整理规范.md) · [本轮整理审计](02-推进与变更/项目知识库整理审计_2026-06-15.md) · [实验记录填写规范](00-规范与记录/实验记录填写规范.md) · [WSS 跨路线指标口径](00-规范与记录/WSS跨路线评估与横向对比口径.md) |
 | 可视化落盘 | [实验分析对比图目录说明](00-规范与记录/实验分析对比图目录说明.md)（run 精度） · [点云回插面片可视化目录说明](00-规范与记录/点云回插面片可视化目录说明.md)（postview 面片云图） |
 | 任务 A 总入口 | [01-任务/任务A/README](01-任务/任务A/README.md) |
 | 任务 A V1 | [V1 README](01-任务/任务A/01-V1路线/README.md) · [V1 实验清单](01-任务/任务A/01-V1路线/任务A_V1实验清单.md) |
@@ -93,9 +93,9 @@
 | 任务 D | [任务D端到端验证清单](01-任务/任务D/任务D端到端验证清单.md) |
 | 任务 E | [任务E执行清单](01-任务/任务E/任务E血流动力学三维可视化执行清单.md) · [任务E论文可视化规范](01-任务/任务E/任务E论文可视化规范.md) |
 | 推进记录 | [V3P/主线代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md) · [WSS 最小化代码修改与实验推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) |
-| WSS-only 最小化 | [第六轮 XYZ 尺度诊断（当前）](02-推进与变更/WSS最小化_第六轮XYZ尺度诊断计划与执行.md) · [训练实验跟踪](02-推进与变更/WSS最小化_训练实验跟踪.md) · [代码修改与实验推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) · [第五轮正式计划](02-推进与变更/WSS最小化_第五轮优化计划_正式版.md) · [第五轮执行计划（已结案）](02-推进与变更/WSS最小化_第五轮执行计划.md) · [历史诊断与交接归档](02-推进与变更/_archive/WSS最小化/README.md) |
+| WSS-only 最小化 | [第六轮总入口](02-推进与变更/WSS最小化_第六轮XYZ尺度诊断计划与执行.md) · [横向多目标对比](02-推进与变更/WSS最小化_第六轮_横向多目标对比计划与执行.md) · [WSS 精度突破](02-推进与变更/WSS最小化_第六轮_WSS精度突破计划与执行.md) · [BC/速度条件路线](02-推进与变更/WSS最小化_第六轮_边界条件与速度路线.md) · [训练实验跟踪](02-推进与变更/WSS最小化_训练实验跟踪.md) · [推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) · [第五轮结案与归档说明](02-推进与变更/_archive/WSS最小化/WSS最小化_第五轮结案与归档说明_2026-07-12.md) |
 | 项目思路 | [项目思路](paper_idea/项目思路.md) · [基准模型推荐](paper_idea/基准模型推荐与引用参考.md) |
-| 外部 baseline | [paper_reproduction/README](paper_reproduction/README.md) · [文献筛选总表](paper_reproduction/00-文献筛选总表.md) · [后处理插值方法](paper_reproduction/03-后处理可视化与插值方法.md) · [点云回插面片方法](paper_reproduction/05-点云预测值与真值回插到面片方法.md) · [点云回构可视化流程](paper_reproduction/visualization_pipeline/README.md) |
+| 外部 baseline | [paper_reproduction/README](paper_reproduction/README.md) · [文献筛选总表](paper_reproduction/00-文献筛选总表.md) · [后处理插值方法](paper_reproduction/03-后处理可视化与插值方法.md) · [点云回插面片方法](paper_reproduction/05-点云预测值与真值回插到面片方法.md) · [CFD-Post 云图导出工具](../tools/cfdpost_cloud_export/README.md) |
 | 外部 baseline 代码 | [PointNetCFD 复现代码](../external_baselines/pointnetcfd/README.md) |
 
 ## 5. 维护规则

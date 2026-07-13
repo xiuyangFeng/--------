@@ -1,0 +1,23 @@
+{
+  "task": "A0M",
+  "status": "PRE_REGISTERED",
+  "purpose": "Verify that the B1 forward/label/normalization/loss/optimizer chain can fit four fixed formal-train cases.",
+  "case_selection": "For each of fast and slow, select the minimum and maximum peak-WSS case mean from dev1 formal train. Once locked_cases.json is written, replacement is forbidden.",
+  "density": "canonical fixed FPS-2000",
+  "checkpoint_rule": "Use the last epoch only; validation selection and early stopping are disabled.",
+  "train_fit_eval_every": 10,
+  "thresholds": {
+    "r2_field_raw": 0.95,
+    "r2_casemean": 0.95
+  },
+  "stop_rule": "GO only if both thresholds pass. Otherwise report NO_GO and do not launch LC or sweeps; numerical debugging requires a separately recorded minimal change.",
+  "forbidden_scope": ["val", "test", "legacy test16"],
+  "paths": {
+    "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/fit_lc_diagnosis/a0_micro_b1_s1234.json",
+    "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_wss_min_v2_dev1.json",
+    "stats_snapshot": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/r4_dev1_b1_tgtw_fixedq_s1234/wss_global_stats.json",
+    "feature_stats_snapshot": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/r4_dev1_b1_tgtw_fixedq_s1234/feature_stats.json",
+    "weight_quantiles_snapshot": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/r4_dev1_b1_tgtw_fixedq_s1234/weight_quantiles.json",
+    "output_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/_round5/a0_micro"
+  }
+}

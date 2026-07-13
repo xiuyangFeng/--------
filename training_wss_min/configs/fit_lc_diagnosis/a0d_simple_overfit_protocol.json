@@ -1,0 +1,40 @@
+{
+  "task": "A0D_SIMPLE_OVERFIT",
+  "status": "PRE_REGISTERED",
+  "purpose": "Separate per-case capacity from four-case shared-map fit using a stripped optimizer/loss chain.",
+  "scope": "four A0M locked train cases only",
+  "forbidden_scope": ["val", "test", "legacy test16"],
+  "serial_rule": "Submit four-case shared training only when all four independent single-case gates are GO.",
+  "recipe": {
+    "model": "point_mlp",
+    "density": "fixed canonical FPS-2000",
+    "target": "plain normalized MSE",
+    "amp": false,
+    "target_weight": false,
+    "weight_decay": 0.0,
+    "scheduler": "none",
+    "grad_clip": 0.0,
+    "optimizer": "AdamW",
+    "constant_lr": 0.001,
+    "max_optimizer_steps": 1000,
+    "eval_every_steps": 50,
+    "checkpoint": "last step only; train-only; no selection"
+  },
+  "gates": {
+    "single_case": {"r2_field_raw": 0.95},
+    "four_case": {"r2_field_raw": 0.95, "r2_casemean": 0.95}
+  },
+  "paths": {
+    "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/fit_lc_diagnosis/a0d_simple_mlp_s1234.json",
+    "locked_cases": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/_round5/a0_micro/locked_cases.json",
+    "stats_snapshot": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/r4_dev1_b1_tgtw_fixedq_s1234/wss_global_stats.json",
+    "feature_stats_snapshot": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/r4_dev1_b1_tgtw_fixedq_s1234/feature_stats.json",
+    "output_root": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/_round5/a0d_fit_chain/simple_overfit"
+  },
+  "sha256": {
+    "config": "72dce0131ffb786615fa0c2f5e2784a30bcd67f7e7292db62857b933f9d5b2e7",
+    "locked_cases": "d9199320abe2b07accf184b93b9c37919ae0f3a5151eac1c0cc78bdba24303c3",
+    "stats_snapshot": "6a5b0834af2a41794252df05f061eec75a8b3006c115712c23b9ec61b3b86b48",
+    "feature_stats_snapshot": "1a4df961b9beb7578a848866ebcec71e5646e7b696c250b74942b6152d3da538"
+  }
+}

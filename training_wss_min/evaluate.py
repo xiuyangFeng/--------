@@ -53,7 +53,10 @@ def evaluate_partition(model, cases: List[Dict], cfg: C.ExpConfig, feat_stats: D
     pooled_true, pooled_pred = [], []
     for case in cases:
         y_pred_norm = predict_case_norm(model, case, cfg.data.input_features, feat_stats, device)
-        y_pred_raw = np.clip(D.denormalize_wss(y_pred_norm, wss_stats), 0, None)
+        y_pred_raw = D.denormalize_wss(y_pred_norm, wss_stats)
+        # WSS 非负可裁剪；gauge 压力等线性目标可为负，不裁剪。
+        if wss_stats.get("method") == "log_z":
+            y_pred_raw = np.clip(y_pred_raw, 0, None)
         y_true_raw = case["y_raw"].astype(np.float64)
         reg = M.regional_metrics(case["pos"], case["local_radius"], y_true_raw, y_pred_raw)
         reg["calibration"] = M.calibration_metrics(y_true_raw, y_pred_raw)
@@ -223,7 +226,7 @@ def main():
 
     result_by_part = {}
     for part in partitions:
-        cases = D.load_partition(cfg.data.split_path, part, wss_stats)
+        cases = D.load_partition(cfg.data.split_path, part, wss_stats, target=cfg.data.target)
         res = evaluate_partition(model, cases, cfg, feat_stats, wss_stats, device,
                                  save_dir=eval_dir, make_plots=(not args.no_plots and part == "test"))
         result_by_part[part] = res

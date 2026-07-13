@@ -158,8 +158,16 @@ class PointNeXtSeg(nn.Module):
         return out.squeeze(-1) if out.size(-1) == 1 else out
 
 
-def build_model(model_cfg, in_dim: int) -> PointNeXtSeg:
+def build_model(model_cfg, in_dim: int) -> nn.Module:
+    """统一模型工厂；保留历史 PointNeXt，并接入最小 2×3 baseline。"""
     m = model_cfg
+    if m.name in {"mlp", "pointnet", "pointnetpp"}:
+        from .baseline_models import build_baseline_model
+        return build_baseline_model(m, in_dim)
+    if m.name != "pointnext_s":
+        raise ValueError(
+            f"unknown model.name={m.name!r}; expected pointnext_s/mlp/pointnet/pointnetpp"
+        )
     return PointNeXtSeg(
         in_dim=in_dim, width=m.width,
         sa_ratios=tuple(m.sa_ratios), sa_radius=tuple(m.sa_radius),

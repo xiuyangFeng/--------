@@ -282,19 +282,28 @@ def _radius_gradient_from_bundle(d) -> np.ndarray:
     return g[inv].astype(np.float32)
 
 
-def load_case(cohort_rel: str, case_name: str, wss_stats: Dict) -> Dict:
+def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
+              target: str = "wss") -> Dict:
     p = C.DATA_ROOT / cohort_rel / case_name / "bundle.npz"
     with np.load(p, allow_pickle=True) as d:
         steps = d["steps"].tolist()
         peak = int(d["peak_step"])
         si = steps.index(peak)
         pos = d["wall_coords_norm"].astype(np.float32)
-        wss_raw = d["wall_wss"][si].astype(np.float32)
+        if target == "wss":
+            y_raw = d["wall_wss"][si].astype(np.float32)
+        elif target == "pressure":
+            # 壁面压力 gauge：逐例去均值（相对压力），隔离跨例 DC 偏置，
+            # 使指标聚焦于几何可预测的空间压力型态（可为负）。
+            p_raw = d["wall_pressure"][si].astype(np.float32)
+            y_raw = (p_raw - np.float32(p_raw.mean())).astype(np.float32)
+        else:
+            raise ValueError(f"unsupported target={target!r} (expect 'wss'|'pressure')")
         case = dict(
             cohort=cohort_rel, case=case_name,
             pos=pos,
-            y_raw=wss_raw,
-            y_norm=normalize_wss(wss_raw, wss_stats).astype(np.float32),
+            y_raw=y_raw,
+            y_norm=normalize_wss(y_raw, wss_stats).astype(np.float32),
             abscissa_norm=d["wall_abscissa_norm"].astype(np.float32),
             local_radius=d["wall_local_radius"].astype(np.float32),
             curvature=d["wall_curvature"].astype(np.float32),
@@ -308,7 +317,7 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict) -> Dict:
 
 
 def load_partition(split_path: str, partition: str, wss_stats: Dict,
-                   strict: bool = True) -> List[Dict]:
+                   strict: bool = True, target: str = "wss") -> List[Dict]:
     labels = load_split_cases(split_path, partition)
     cases = []
     missing = []
@@ -317,7 +326,7 @@ def load_partition(split_path: str, partition: str, wss_stats: Dict,
         if not p.is_file():
             missing.append(f"{cohort_rel}/{case_name}")
             continue
-        cases.append(load_case(cohort_rel, case_name, wss_stats))
+        cases.append(load_case(cohort_rel, case_name, wss_stats, target=target))
     if missing:
         msg = (f"missing {len(missing)} bundle(s) in partition={partition!r}: "
                + ", ".join(missing[:5]) + ("..." if len(missing) > 5 else ""))

@@ -136,9 +136,15 @@ def compute_loss(pred, batch, tcfg: C.TrainConfig, device, wss_stats: dict | Non
     return loss
 
 
-def compute_selection_score(tcfg: C.TrainConfig, agg, field, cal, hotspot) -> float:
+def compute_selection_score(tcfg: C.TrainConfig, agg, field, field_casebalanced, cal, hotspot) -> float:
     if tcfg.selection_rule == "r4_composite_v1":
         return M.selection_score_r4_composite_v1(agg, field, cal, hotspot)
+    if tcfg.selection_rule == "field_casebalanced":
+        return float(field_casebalanced.get("r2", float("-inf")))
+    if tcfg.selection_rule == "field_raw":
+        return float(field.get("r2", float("-inf")))
+    if tcfg.selection_rule == "casemean":
+        return float(agg.get("r2_casemean", float("-inf")))
     # 兼容旧 ckpt_metric
     if "casemean" in tcfg.ckpt_metric:
         return float(agg.get("r2_casemean", float("-inf")))
@@ -206,8 +212,10 @@ def main():
     if not stats_path.is_file():
         stats_path = C.GLOBAL_STATS
     wss_stats = D.load_wss_stats(stats_path)
-    tr_cases = D.load_partition(cfg.data.split_path, "train", wss_stats, strict=True)
-    va_cases = D.load_partition(cfg.data.split_path, "val", wss_stats, strict=True)
+    tr_cases = D.load_partition(cfg.data.split_path, "train", wss_stats,
+                                strict=True, target=cfg.data.target)
+    va_cases = D.load_partition(cfg.data.split_path, "val", wss_stats,
+                                strict=True, target=cfg.data.target)
     feat_stats = D.compute_feature_stats(
         tr_cases, cfg.data.input_features, cfg.data.curvature_transform
     )
@@ -292,12 +300,15 @@ def main():
         if do_eval and va_cases:
             res = evaluate_partition(model, va_cases, cfg, feat_stats, wss_stats, device,
                                      make_plots=False)
-            agg, fld, cal = res["aggregate"], res["field"], res.get("calibration", {})
+            agg, fld = res["aggregate"], res["field"]
+            fld_cb = res["field_casebalanced"]
+            cal = res.get("calibration", {})
             hotspot = res.get("hotspot", {})
-            score = compute_selection_score(cfg.train, agg, fld, cal, hotspot)
+            score = compute_selection_score(cfg.train, agg, fld, fld_cb, cal, hotspot)
             rec.update({
                 "val_r2_casemean": agg["r2_casemean"],
                 "val_r2_field": fld["r2"],
+                "val_r2_field_casebalanced": fld_cb["r2"],
                 "val_nrmse_field": fld["nrmse_range"],
                 "val_mae_field": fld["mae"],
                 "val_top10_pred_true_ratio": cal.get("top10_pred_true_ratio", float("nan")),

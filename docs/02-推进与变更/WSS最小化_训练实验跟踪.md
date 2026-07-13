@@ -4,34 +4,212 @@
 > 设计、完整指标表、结论、待办。**每完成一轮/一次任务，回填本文档。**
 > 上位：[WSS最小化_代码修改与实验推进记录](WSS最小化_代码修改与实验推进记录.md) / [training_wss_min/README](../../training_wss_min/README.md)。
 
-## 第六轮｜A/B/D XYZ 尺度诊断（2026-07-12 ⏳RUNNING）
+## 最小 2×3 baseline 矩阵（2026-07-13 ⏳已提交｜Job `8700[0-5]`）
+
+- 重新从最基础形式起步：`MLP / PointNet / PointNet++` × `xyz / xyz+geom`，共 6 个单 seed（1234）作业；`xyz+geom=xyz+abscissa_norm+local_radius+curvature`。
+- 统一使用 `split_AG_wss_min_v1` 的 AG 划分（train/val/test=`53/8/16`），只训练和选择 `val`，暂不读取 test；峰值收缩期、WSS 单标量、FPS-2000、完整壁面 val 推理。
+- 训练仅用未加权标准化空间 MSE，关闭旋转增强、采样/几何/目标加权、多任务和 raw-space 辅助项；PointNet++ 为经典 SA+FP，无 PointNeXt 残差/倒置瓶颈。
+- 实验包位于 `training_wss_min/runs/baseline_2x3_simple/`：`make_configs.py` 固化 6 份配置，`submit.sh` 提交最多 4 并发的 Slurm array，所有产物落在同目录 `outputs/`。2026-07-13 已提交 `8700[0-5]`（初始为排队）；完成后只报告 `R²_field_casebalanced`、raw-space RMSE/MAE 及逐病例摘要，再决定后续扩展。
+
+## 第六轮指标/调度修订（2026-07-13 ✅DONE｜覆盖下方旧的 36-run 默认调度）
+
+- WSS W0–W3 恢复为 P0 主线；横向 36 runs 仅为理论上限，不再是必做表。
+- H-PW 已完成并收口。Track B 先完成 adapter/QA，默认只执行 `|v|+geom` 和联合 `u,v,w+geom` 单 seed sanity；其他目标/三 seed 按 Gate 触发。
+- WSS 首要点级指标改为 `R²_field_casebalanced` + 物理单位 RMSE/MAE，并强制同报逐病例中位数/P10/失败数和热点护栏。`R²_field_raw` 与 `R²_casemean` 保留为历史衔接。
+- V3P 0.429 与 wss_min 0.31–0.36 只作 B 级协议化参考，不报精确 gap。具体见[跨路线评估口径](../00-规范与记录/WSS跨路线评估与横向对比口径.md)。
+## 第六轮对抗性审查回写（2026-07-13 ✅DONE｜覆盖旧版 F3 调度）
+
+- **P0 先修指标合同**：现有 `R²_casemean` 是逐病例 spatial R² 的平均，不是病例 mean-WSS 的跨病例 R²。新合同拆成 A 病例 level、B 病例内 pattern、C hotspot，以及病例等权 Pa 误差；文档、`evaluate/train/gate/checkpoint` 完全一致并补单元测试前，不启动新训练。
+- **E 结论降级**：E−D `field_cb +0.021` 只是在 dev1-val8/旧选模合同下通过开发筛选；在新版指标只读重评和 duplicate-grouped repeated validation 前，E 是临时候选，不称为已确认最佳可部署输入。
+- **P0 密度修复前置**：`nsample=16`/完整点云评估的密度错配先做同 seed 单变量实验，形成新的冻结 control；旧版受混杂的 `~0.54` train-fit 不直接进入信息天花板裁决。
+- **F3 改为 2×2**：架构 `{冻结 control/高容量或无下采样}` × 输入 `{geometry/geometry+RCR}`，加入 shuffled-RCR、RCR-only/随机病例特征负对照，同时报告 train-fit 与病例外 validation。信息效应和架构效应允许并存；取消单一 `train R²≥0.85` 二分。
+- **当前顺序**：`P0-Metric → P0-Density → 2×2 F3 → 分支优化 → repeated validation`。oracle 特征继续强制 `oracle_non_deployable=true`；压力/速度保持条件路线。
+
+## 全链路基础检查（2026-07-12 ✅DONE｜当前标量主线无致命错位，下一轮先补 3 项基础 Gate）
+
+- 已从预处理、配准/正交旋转、逐病例缩放、节点 ID 对齐、FPS 稀疏化、训练特征/标签索引、模型/激活/loss/选模和完整点云评估逐项检查。
+- 77/77 included bundle 齐全；`det(R)≈1`、最大正交误差 `4.44e-16`、逆变换最大误差约 `7.17e-05 mm`；数组同长，跨时间步 `nodenumber`/坐标守卫全过；FPS-2000 后坐标与标签同索引误差为 0；train-only peak stats 与 split 无泄漏。
+- 结论：既有 `R²≈0.31` 不能归因于“基础坐标/标签整体错位”。优先风险是 3 个 included 病例 roll-sign 不可靠但 QA gate 未告警、ball-query 半径固定在逐病例归一化尺度而非毫米尺度、预留速度路径尚缺 cell ID/裁剪同步守卫。
+- 激活函数 GELU + 线性输出合理，不是当前首要提分项；下一轮优先级为严格尺度进入 FPS/ball-query、log+raw/case-balanced loss、密度鲁棒邻域，再做 global-local 和网络宽度/激活微调。
+- 完整报告：[WSS最小化_全链路基础检查报告_2026-07-12](WSS最小化_全链路基础检查报告_2026-07-12.md)。本轮不读新 test16、不改代码/配置、不启动新训练。
+
+## 第六轮｜A/B/D XYZ 尺度诊断（2026-07-12 ✅DONE｜尺度信号 B−A 成立，几何仍是主杠杆）
 
 - 目的：判断旧纯 XYZ 较差是否主要由“坐标逐病例归一化到 `[-1,1]`”丢失物理尺度造成。
 - A=`xyz`；B=`xyz+coord_scale`；D=`xyz+abscissa_norm+local_radius+curvature`。三组均为 dev1 / fixed FPS-2000 / B1 fixed target-weight / val-only / `seed={1234,7,2025}`。
-- 9 个配置唯一变量审计和 B 组特征构造通过；Jobs `7029–7037` 已提交，记录 `training_wss_min/cluster/logs/submitted_20260712_120420.txt`。
 - 预注册：B−A 的三 seed 均值在 field/casemean 均 `>0.02` 才判为可辨识尺度信号；D−B 报告显式几何增量和 seed 方差。
 - 范围声明：B 是尺度诊断，不是严格物理尺度纯 XYZ 终审；本轮不读 test16，不外推几百/几千例数据上限。
 - 详细协议与 Job 表：[WSS最小化_第六轮XYZ尺度诊断计划与执行](WSS最小化_第六轮XYZ尺度诊断计划与执行.md)。
+
+### ⚠ 首批提交（7029–7037）5/9 因 config 路径失效而失败，已重跑补齐
+
+- 首批提交记录 `submitted_20260712_120420.txt` 用的是**旧目录名** `configs/round6/r6_scale_*.json`；但同日“目录规整”已把这批 config 迁到 `configs/xyz_scale_diag/scale_*.json` 并删除 `round6/`。
+- 早启动的 `7029–7031`(A×3) 与 `7032`(B_s1234) 赶在删除前解析成功；`7033`(B_s7) 训练成功但评估阶段目录已删 → 崩溃；`7034`(B_s2025)、`7035–7037`(D×3) 载 config 即 `FileNotFoundError`，**从未训练**。根因为提交清单路径与实际目录不一致，与协议/数据/模型无关，未污染任何已完成 run。
+- 修复：按正确 manifest `configs/sweeps/xyz_scale_abd.txt` 重跑——`7039`(B_s2025)、`7040–7042`(D×3) 完整 train+eval，`7043`(B_s7) 复用 ckpt 仅重评（新增 `cluster/run_eval_only.slurm`）。记录 `cluster/logs/resubmit_20260712_001011.txt`。**5 个重跑均 `COMPLETED (0:0)`，9/9 eval 齐全。**
+
+### 完整结果（val 完整壁面点云；MAE 单位 Pa）
+
+| 组·seed | Job | `R²_field` | `R²_casemean` | `R²_casemed` | 负例 | top10 比 | IoU | MAE |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| A·1234 | 7029 | +0.089 | −0.032 | +0.042 | 3/8 | 0.236 | 0.226 | 3.591 |
+| A·7 | 7030 | +0.178 | −0.083 | +0.063 | 2/8 | 0.287 | 0.156 | 3.519 |
+| A·2025 | 7031 | +0.227 | −0.141 | +0.024 | 4/8 | 0.333 | 0.241 | 3.497 |
+| **A `xyz` 三 seed** | | **+0.164±0.070** | **−0.085±0.055** | | | 0.285±0.048 | 0.208±0.045 | 3.536 |
+| B·1234 | 7032 | +0.173 | −0.010 | +0.068 | 3/8 | 0.309 | 0.148 | 3.710 |
+| B·7 | 7043 | +0.204 | −0.080 | +0.147 | 2/8 | 0.335 | 0.159 | 3.563 |
+| B·2025 | 7039 | +0.248 | +0.115 | +0.114 | 1/8 | 0.352 | 0.230 | 3.342 |
+| **B `xyz+coord_scale` 三 seed** | | **+0.208±0.038** | **+0.008±0.099** | | | 0.332±0.022 | 0.179±0.044 | 3.538 |
+| D·1234 | 7040 | +0.326 | +0.208 | +0.242 | 1/8 | 0.406 | 0.286 | 3.113 |
+| D·7 | 7041 | +0.308 | +0.208 | +0.206 | 1/8 | 0.385 | 0.302 | 3.087 |
+| D·2025 | 7042 | +0.298 | +0.174 | +0.143 | 1/8 | 0.362 | 0.375 | 3.129 |
+| **D `xyz+geom` 三 seed** | | **+0.311±0.014** | **+0.197±0.020** | | | 0.384±0.022 | 0.321±0.048 | 3.110 |
+
+**对照（三 seed 均值差）**：B−A field `+0.044` / casemean `+0.093`；D−B field `+0.103` / casemean `+0.189`；D−A field `+0.146` / casemean `+0.282`。
+
+### 判读（终裁）
+
+1. **尺度信号 B−A 成立。** B−A field `+0.044`、casemean `+0.093`，两项三 seed 均值均过预注册 `+0.02` 门槛；且**逐 seed 方向一致**（matched-seed field 增量 +0.084/+0.026/+0.021，casemean +0.022/+0.003/+0.256，3/3 seed 为正）。**结论：逐病例 `[-1,1]` 归一化确实丢失了对 WSS 有用的病例物理尺度，补回 `coord_scale` 标量能稳定回收一部分——主要体现在跨病例可辨识性（casemean 由 −0.085 转正到 +0.008）。**
+1. **旧开发口径下尺度信号 B−A 成立。** B−A field `+0.044`、旧 per-case mean R² `+0.093`，三 seed 方向一致。该结果说明 `coord_scale` 提供了可用上下文，但旧 `casemean` 不是病例 level R²，不能据此宣称“跨病例整体水平被恢复”；病例 level 结论等待新版指标只读重评。
+2. **但尺度标量只补回约三成缺口，几何仍是压倒性主杠杆。** 从 A(0.164)→B(0.208)→D(0.311)：coord_scale 把 field 抬 `+0.044`，而显式几何（D）再抬 `+0.103`（D−B）、相对 A 共 `+0.146`。与第一轮“纯几何≈xyz+几何≫纯 xyz”的结论一致。
+3. **与第四轮 C4「coord_scale No-Go」不矛盾，反而互补澄清。** C4 是在 `xyz+geom` 之上再加 coord_scale（`local_radius` 已带尺度 → 冗余无增量）；本轮 B 是在**无 geom 的裸 xyz** 上加 coord_scale（非冗余 → 有增量）。两者一起说明：**尺度信息本身有用，但一旦有 `local_radius` 等局部几何，标量尺度基本被覆盖**。这提示 C（严格物理 mm-XYZ）要想跑赢 D，必须靠“物理尺度同时进 FPS/ball-query 邻域”带来的、局部几何特征无法替代的增量，而非仅把 mm 尺度塞进 feature。
+4. **绝对精度和稳健性仍不足。** 本轮最好的 D（`xyz+geom`，三 seed field `0.311±0.014`、casemean `0.197±0.020`）的高 WSS 护栏（top10 比 0.384 / IoU 0.321）延续“定位有信号、幅值系统性低估”。尺度诊断解释了旧纯 XYZ 差的一部分成因，但未证明当前协议的绝对信息上限；`0.70` 仅作长期理想参考。
+
+### 交叉验证与下一步（详见[第六轮总路线](WSS最小化_第六轮XYZ尺度诊断计划与执行.md)与其拆分文档）
+
+- 已对第六轮各新思路做证据交叉核对；内容随文档重构分入[WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md)与[边界条件与速度路线](WSS最小化_第六轮_边界条件与速度路线.md)。
+- **用户批准的下一步优先级（2026-07-12）**：`L1/L2 loss` 与 `C/E 严格尺度` **并列第一**；架构 `M1/M2/M3` 次之；速度→WSS 只做 `V0/V1` oracle 复核 0.632 天花板，**oracle 未过门前不建 data_new adapter、不训速度 surrogate**。
+- **多目标扩展（2026-07-13 修订）**：原 36 runs 保留为理论上限，不再是必做主表。压力-壁面 H-PW 已完成；Track B 的 data_new adapter 完成 QA 后，默认只跑近壁 `|v|+geom` 和联合 `u,v,w+geom` 单 seed sanity，其余实验按机制/论文需要触发。近壁速度与速度→WSS oracle 复用同一 adapter。完整方案与结果见[横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md)。
+
+### 结果返回后的预注册后续（待用户批准）
+
+- 当前 A/B/D 九个作业的 config、Gate 和评估不变；不在运行中修改协议。
+- 尺度补充：C=严格 mm-XYZ（输入/FPS/ball-query 同时使用物理尺度）；E=`XYZ+coord_scale+geom`，与 A/B/D 构成嵌套因子对照。
+- 输入信息：先做残差↔RCR/压力/分流只读诊断和 oracle-BC 上限；临床实测、估计与 CFD oracle 强制分开。
+- 架构：global-local/FiLM、density-robust neighborhood、解析尺度 residual 和小模型对照；不先扩大参数量。
+- loss：当前 B1 vs `log + raw scaled-Huber` vs case-balanced raw robust 的三 seed 小矩阵。
+- 速度→WSS：先做 CFD-velocity oracle 和降采样上限；当前光滑剖面 oracle 约 `R²=0.632`，未过 `0.70`，不直接训全速度 surrogate。
+- 详细 Gate、数据边界和分阶段顺序见[第六轮总路线与执行入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md)。
+
+## 第六轮｜W0 审计 + W1 因子(E) + C 邻域预审计 + W2-L1 + W3 组合（2026-07-12 ✅DONE｜E 险胜、尺度/几何冗余、raw-Huber seed 脆弱、W3 组合阴性）
+
+> 承接上节 A/B/D，本节补 **W0 只读审计**、**E 组**（补齐 A/B/D/E 2×2 嵌套因子）、**C 邻域预审计** 与 **W2-L1 raw-Huber λ Gate**。协议全程冻结 B1/dev1/FPS-2000/val-only，seed=1234/7/2025。作业 `7557–7562`。产物：`runs/_audits/{w0_coord_scale,w1_c_neighborhood,round6_w1w2_summary}/report.md`。
+
+### W0｜coord_scale 只读审计（`runs/_audits/w0_coord_scale/report.md`）
+
+- **val 无尺度外插**：val `coord_scale ∈ [147, 214]` 全落在 train `[128, 262]` 内；dev1 **无任何壁面裁剪**（`wall_crop_applied` 全 False）。
+- **coord_scale 是血管尺寸代理，但与 WSS 幅值无关**：Spearman(coord_scale, bbox 对角线)=+0.74、(z 向 extent)=+0.79、(入口面积代理)=+0.61、(local_radius 中位)=+0.65；而 (WSS case mean)=−0.15、(p95)=−0.03、(p99)=+0.02。**结论：B 组 coord_scale 的增益来自跨病例可辨识性/归一化上下文，不是幅值定标**——这与下面 casemean 的抬升方向一致，也解释了为何 B 组抬 casemean 多于 field。
+- **coord_scale 是血管尺寸代理，但与 WSS 幅值无关**：Spearman(coord_scale, bbox 对角线)=+0.74、(z 向 extent)=+0.79、(入口面积代理)=+0.61、(local_radius 中位)=+0.65；而与 WSS case mean/p95/p99 的相关约为 −0.15/−0.03/+0.02。结论仅限于“它提供尺寸/归一化上下文”，不再用旧 `casemean` 推导病例 level 机制。
+
+### W1｜A/B/D/E 2×2 因子（E 补齐，三 seed 均值；MAE 单位 Pa）
+
+| 组 | 输入 | R²_field | R²_field_cb | R²_casemean | R²_casemed | 负例(∑/24) | top10 比 | IoU | MAE |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| A | xyz | +0.164±0.057 | +0.164±0.050 | −0.085±0.044 | +0.043 | 9 | 0.285 | 0.208 | 3.536 |
+| B | xyz+scale | +0.208±0.031 | +0.213±0.036 | +0.008±0.081 | +0.110 | 6 | 0.332 | 0.179 | 3.538 |
+| D | xyz+geom | +0.311±0.012 | +0.309±0.016 | +0.197±0.016 | +0.197 | 3 | 0.384 | 0.321 | 3.110 |
+| **E** | **xyz+scale+geom** | **+0.331±0.014** | **+0.330±0.014** | **+0.199±0.018** | **+0.204** | **2** | **0.404** | **0.341** | **3.094** |
+
+**严格归因（逐 seed 配对差，mean±std）**：
+
+| 对比 | 含义 | ΔR²_field | ΔR²_field_cb | ΔR²_casemean |
+|---|---|---:|---:|---:|
+| B−A | 尺度主效应 | +0.044±0.028 | +0.049±0.019 | +0.093±0.115 |
+| D−A | 几何主效应 | +0.146±0.069 | +0.145±0.066 | +0.282±0.031 |
+| E−B | 几何｜有尺度 | +0.123±0.044 | +0.118±0.049 | +0.191±0.098 |
+| E−D | 尺度｜有几何 | +0.020±0.009 | +0.021±0.012 | +0.002±0.011 |
+| E−D−B+A | 尺度×几何交互 | −0.023±0.033 | −0.027±0.031 | −0.091±0.115 |
+
+**判读**：
+
+1. **E 是当前最佳可部署输入，但仅险胜 D。** E 三 seed field `0.331`、field_cb `0.330`、casemean `0.199`、**负例仅 2/24（全组最少）**、top10/IoU 均最高。E−D 在 field_cb `+0.021`（过预注册 Gate-1 `+0.02`），负例不增、top10/IoU 反升，**E 干净通过 Gate-1，取代 D 成为最佳输入**。
+2. **尺度与几何冗余、非协同（关键新结论）。** 交互项 E−D−B+A 三项**全为负**（field −0.023 / casemean −0.091）；尺度的边际价值从"无几何"的 B−A(+0.044 field/+0.093 casemean) 坍缩到"有几何"的 E−D(+0.020 field/**+0.002 casemean**)。**一旦有 `local_radius` 等局部几何，coord_scale 标量的贡献基本被吸收**——量化印证上节 §判读3 与 C4 No-Go 的猜想。W0 也从另一侧印证：coord_scale 编码的是尺寸而非幅值，几何特征已覆盖其可用信息。
+3. **E 的增益虽小但一致**：E−D field 逐 seed +0.009~+0.031 全正，主要抬 field/pooled 与热点护栏，对 casemean 无增量。
+
+1. **E 是 dev1 旧口径下的临时候选。** E 三 seed field `0.331`、field_cb `0.330`、旧 per-case mean R² `0.199`、负例 2/24；E−D field_cb `+0.021` 通过旧开发筛选，但尚未通过新版指标与 grouped repeated validation，不再称为最佳可部署输入。
+2. **尺度与几何无协同证据。** 交互项 E−D−B+A 为负；在已有 `local_radius` 等显式几何时，`coord_scale` 的边际收益很小。该结论限于 dev1/旧指标，不外推为普遍机制。
+3. **E 的增益虽小但一致**：E−D field 逐 seed +0.009~+0.031 全正，主要抬 field/pooled 与热点护栏，对 casemean 无增量。
+
+> ⚠ **2026-07-13 代码核验更正**：上文"E 干净通过 Gate-1、取代 D 成为最佳输入"依据的是文档 `field_cb` 口径；但提交的 `gate1_compare.py` 判 GO 需 `Δr2_field>0.02 且 Δr2_casemean>0.02`，`field_cb` 被加载却不参与判定。E−D 的 `Δr2_casemean=+0.002` 使 `common_improvement=False` → 代码实际判为 **INDIFFERENT/NO_GO**；且产出 E 的 checkpoint 由 composite（`0.6·casemean+0.4·field`）选出。故"E>D"仅为探索性，**不作冻结 control/最佳输入结论**；须先统一"文档 Gate=代码 gate1=选模 rule"口径。详见 [WSS 精度突破 §2026-07-13（第二轮·本地代码核验）](WSS最小化_第六轮_WSS精度突破计划与执行.md)。
+
+### W1｜C 组邻域预审计（`runs/_audits/w1_c_neighborhood/report.md`，只读未训练）
+
+- C 定义：train 拟合全局共享常数 `s_global=max(train coord_scale)=261.9` 缩放所有病例，固定物理半径。复现 PointNeXt-S 的 SA 级联对比 A/C 每层邻居。
+- **Gate 结论**：① **C 不产生退化邻域**（A/C 所有层孤立率=0.000，无空邻域）→ 邻域结构上可训；② **C 更密而非更稀**（训练分辨率邻居中位约 A 的 1.5–1.9×）；③ **`nsample=16` 截断已主导**（评估分辨率 A/C 截断率≈1.00，训练细层≈0.93–1.00），把 C"物理尺度进邻域"的预期收益大部分抹平，真正分化只存活到最粗层。④ 结合 W1 已证尺度/几何冗余，**C 先验跑赢 D 的理由弱，判为低优先级（低于 E/L1）**；若仍训 C 需先调 radius 协议（提高 nsample 或改 median 参考的 s_global）。
+
+### W2-L1｜raw-Huber λ Gate（固定 D 输入，单 seed 1234，`7560–7562`）
+
+log-z MSE 主损失 + raw-space scaled Huber 辅助。L0=`r6_scale_D_xyzgeom_s1234`（λ=0）。
+
+| run | λ | R²_field | R²_field_cb | R²_casemean | top10 比 | p99 比 | IoU | high_wss_MAE | max 比 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| L0 | 0.0 | +0.326 | +0.331 | +0.208 | 0.406 | 0.369 | 0.286 | 13.85 | 0.14 |
+| L1 | 0.1 | +0.374 | +0.376 | +0.245 | 0.447 | 0.478 | 0.347 | 13.03 | 0.17 |
+| L1 | 0.3 | +0.362 | +0.362 | +0.235 | 0.421 | 0.370 | 0.330 | 13.48 | 0.14 |
+| **L1** | **1.0** | **+0.385** | **+0.384** | **+0.253** | **0.463** | 0.450 | **0.360** | **12.61** | 0.16 |
+
+**判读**：**三个 λ 全面优于 L0**（field/casemean/top10/IoU/high_wss_MAE 无一退化），且**无爆峰**（max 比 0.14–0.17，远低于 1.5 阈值）。λ=1.0 最佳（vs L0 同 seed：field +0.059、casemean +0.045、top10 +0.057、high_wss_MAE 13.85→12.61）。单 seed 仅筛选，**选中 λ=1.0 补三 seed 确认**。注意 high_wss_MAE 只降 ~9%、max 比仍 ~0.16——raw-Huber 抬中高段与整体 R²/定位，但**极端峰值坍缩仍未解决**（延续第二轮"峰值压扁是硬上限"判断）。
+
+### W2-L1 λ=1.0 三 seed 确认（`7563–7564`+s1234）+ W3 唯一组合（`7565–7567`，2026-07-12 ✅DONE）
+
+**L1 λ=1.0 三 seed（D 输入，loss-control）**：单 seed s1234 的 field 0.385 属"幸运高 seed"，三 seed 均值回落：
+
+| 配置 | 输入 | λ | R²_field | R²_field_cb | R²_casemean | 负例(∑) | top10 比 | IoU | high_wss_MAE |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| D (baseline) | xyz+geom | 0.0 | +0.311±0.012 | +0.309±0.016 | +0.197±0.016 | 3 | 0.384 | 0.321 | 14.36 |
+| D+rawHuber | xyz+geom | 1.0 | +0.347±0.033 | +0.346±0.035 | +0.199±0.054 | 4 | **0.429** | 0.310 | **13.37** |
+| E (input-control) | xyz+scale+geom | 0.0 | +0.331±0.014 | +0.330±0.014 | +0.199±0.018 | **2** | 0.404 | 0.341 | 13.90 |
+| **W3 = E+rawHuber** | xyz+scale+geom | 1.0 | +0.316±0.037 | +0.315±0.036 | +0.189±0.009 | **2** | 0.400 | **0.351** | 14.08 |
+
+**W3 Gate（配对 seed 差）**：W3−E field `−0.015±0.032` / top10 `−0.004`；W3−(D+rawHuber) field `−0.030±0.022` / top10 `−0.029`；两侧仅 IoU 微升（+0.011 / +0.042）。
+
+**判读（W3 = 阴性，按 §6 停止组合）**：
+
+1. **W3 未通过组合 Gate。** 逐 seed 看，W3 在**全部 3 seed 低于 D+rawHuber**（field_cb 0.366/0.294/0.286 vs 0.384/0.300/0.353），在 **2/3 seed 低于 E**（仅幸运 seed s1234 反超）。W3 在主指标（field/field_cb/casemean/top10）不优于任一控制，只在热点 IoU 微升。**按 §6："组合未同时优于两个 control → 不再扩展交互组合"，正式停止 scale-feature × raw-Huber 的组合线。**
+2. **机制：尺度特征与 raw-space Huber 冗余/轻微互斥。** 两者都在推高 WSS/物理尺度表示，叠加不增益反而略降——与 W1 尺度×几何交互为负一致。
+3. **L1 raw-Huber 收益真实但 seed 脆弱。** D+rawHuber 三 seed 抬 field +0.036、top10 +0.045、high_wss_MAE −7%（幅值定向有效），但 casemean 持平、+1 负例、方差大（field_cb ±0.035，主要靠 s1234）。**单 seed 0.385 不可外推**——印证 §5 W2"单 seed 只用于廉价筛选"。
+4. **两条互斥候选，均未跨越稳健性瓶颈。** E（最稳、负例最少、IoU 最高）与 D+rawHuber（field/top10 幅值最好但脆弱）**不可叠加**，且都未改善 casemean/负例。**下一步交由用户裁决 W5 确认候选（E vs D+rawHuber），或启动尚未尝试的 L2 case-balanced robust loss 直击病例稳健性**。汇总真源：`runs/_audits/round6_w1w2_summary/report.md`。
+4. **两条互斥候选，均未跨越稳健性瓶颈。** E（最稳、负例最少、IoU 最高）与 D+rawHuber（field/top10 幅值最好但脆弱）**不可叠加**，且都未改善旧 per-case mean R²/负例。最终审查后两者均冻结，不再直接进入 W5 或 L2；先完成 P0-Metric、P0-Density 与 2×2 F3。汇总真源：`runs/_audits/round6_w1w2_summary/report.md`。
+
+## 第六轮 横向对比 H-PW Track A｜压力-壁面（2026-07-12 ✅DONE｜压力空间型态比 WSS 易学）
+
+- 目标：同最小协议（FPS-2000/PointNeXt-S/dev1/B1 schedule）预测壁面 **gauge 压力**（peak-step `wall_pressure` 逐例去均值，隔离 ~1.5e4 Pa 的 DC 偏置），`xyz` vs `xyz+geom` 矩阵，纯 MSE（关掉 WSS 长尾加权）。
+- 数据/代码：管线支持 `target` 切换（原硬编码 `wall_wss`）；gauge stats `pressure_gauge_stats_v2_dev1.json`（53 例/707705 点，std=529.2 Pa，gauge∈[-1880,1164]）；配置 `configs/multitarget/press_wall_{xyz,xyzgeom}_s{1234,7,2025}.json`（6 个）。
+- Jobs `7551–7556` 全部 `COMPLETED (0:0)`（记录 `submitted_20260712_050410.txt`）；CPU 冒烟先行通过。
+
+| 组·seed | Job | `R²_field` | `R²_casemean` | 负例 | top10 比 | IoU | MAE(Pa) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| press·xyz·{1234,7,2025} | 7551–3 | +0.406/+0.424/+0.448 | +0.286/+0.207/+0.271 | 1/2/3 | — | — | ~261 |
+| **press `xyz` 三 seed** | | **+0.426±0.021** | **+0.254±0.042** | | 0.601±0.058 | 0.298±0.021 | 261 |
+| press·xyzgeom·{1234,7,2025} | 7554–6 | +0.506/+0.495/+0.592 | +0.493/+0.522/+0.513 | 0/0/0 | — | — | ~225 |
+| **press `xyz+geom` 三 seed** | | **+0.531±0.053** | **+0.509±0.015** | | 0.575±0.046 | 0.389±0.097 | 225 |
+
+- **判读**：同协议下 gauge pressure 空间型态比 WSS 易学——`xyz+geom` 压力 `0.531/0.509` vs WSS `0.311/0.197`；`xyz` 压力 `0.426/0.254` vs WSS `0.164/−0.085`。压力 casemean 全程为正、`xyz+geom` 下 **0/8 失败例**（WSS 每 seed 都有负例）。几何增益 field `+0.105`/casemean `+0.255`。该结果不使用跨目标通用 `0.70` 门槛，不外推其他目标。
+- **选模**：沿用 WSS 复合选模，列为**探索性**；只读复核显示复合最优 epoch 与压力 R² 最优 epoch 一致，数值应接近压力专用选模；正式复选待用户批准（预计不改数值）。
+- 完整表与读法：[横向多目标对比 §8](WSS最小化_第六轮_横向多目标对比计划与执行.md#8-h-pw-结果壁面-gauge-pressure2026-07-12-done探索性选模)。Track B（压力-内部 + 近壁速度）待 data_new adapter。
+- **选模**：沿用 WSS 复合选模，列为**探索性**；只读复核显示复合最优 epoch 与压力 R² 最优 epoch 一致。仅在需要对外确认 H-PW 时，按压力专用指标做 val-only 只读重评；Track B 保持暂停。
+- 完整表与当前读法：[横向多目标对比 §3](WSS最小化_第六轮_横向多目标对比计划与执行.md#3-已完成-h-pw-结果)。
 
 ## 汇报｜A0E-ctrl 两例 postview（2026-07-12 ✅DONE）
 
 - 模型 `r5_a0e_b1_ctrl_s1234`；病例 `slow/WU_FENG_YAN`、`fast/RAN_QING_BO`（均为 train）。
 - 产物：`docs/03-汇报材料/figures/WSS最小路线_20260712/postview_a0e_ctrl/`（`*__surface_wall.vtp` 含 CFD/Pred/Error；映射覆盖率 100%）。
-- 同点 wall R²：`0.3225` / `0.4959`；脚本 `training_wss_min/export_wss_postview.py`。
+- 同点 wall R²：`0.3225` / `0.4959`；脚本 `training_wss_min/tools/export_wss_postview.py`。
 
 ## 第五轮｜F0 结案（2026-07-12 ✅DONE / 科学结案·工程未达标）
 
 - 全部 §8.1 机制问题均有可复核裁决 → **第五轮科学结案**；dev1 field/casemean ~0.31/0.21 ≪ 0.70 → **未达内部工程目标**（§8.2），未跑 OOF（无达标候选）。
 - 机制链：拟合足（A0D）→ 当前协议泛化锚点 ~0.34（A0E）→ 现有 61 例范围内 ~0.31 暂时平台（LC）→ 可部署 BC 无新杠杆（B-BC）→ 标签噪声小（CFD，R²_cap ~0.92–0.96）。该结论限于当前数据池、输入和模型协议，不外推数千个高质量独立病例的上限。
 - 报告：`training_wss_min/runs/_round5/final_report/round5_final_report.md`。可选后续（非部署路径、待用户定）：oracle RCR 增量探针 / P2 loss 探针。
+- 归档口径：用户确认无达标候选时不强行运行 15-run OOF；L0/OOF/T16 经记录未触发，`test16` 保持未读；P2 转交第六轮 loss 小矩阵。见[第五轮归档说明](_archive/WSS最小化/WSS最小化_第五轮结案与归档说明_2026-07-12.md)。
 
 ## 第五轮｜CFD 可信性审计 §6（2026-07-12 ✅DONE）
 
 - read-only；dev61。产物 `training_wss_min/runs/_round5/cfd_audit/{cfd_audit.py,cfd_per_case.csv,cfd_summary.json,cfd_audit_report.md}`。
 - peak 相位按**固定步**（1162/idx21）统一取，结构上无跨病例相位错配；仅 3/61 真峰晚 ≥12 步（含 2 val：`LIU_JUN_FENG` +13.8%、`CHENG_GUANG_SEN` +12.2%）→ n=8 val 数值脆弱。
+  - ⚠ **2026-07-13 与固定 peak 的交互**：这 2 个 val 病例（占 dev1-val8 的 25%）在固定步与真峰之间有约 12–14% 的幅值差；`CHENG_GUANG_SEN` 又是 A0R 常见失败例。固定 peak 协议保持不变，但新版病例级 level 报告必须把两例的真峰敏感性单列，不得据 val 结果重新选择时相。见 [WSS 精度突破计划](WSS最小化_第六轮_WSS精度突破计划与执行.md)。
 - 近壁 QA 全清（normal_invalid=0、basis≤0.066、radial≤0.066、mesh≥786k）；高 WSS 尖峰为真实几何热点（不与 QA 旗标共现），但单节点 max 受尖峰主导，报告以 p95/p99 为准。
 - **重复几何**：独立证实 `HOU_SHEN_QIAN`=`KANG_XI_MING` 同一几何（且均 dev1 train）→ OOF 须整组；`LIU_XI_QUAN`（excluded）peak 全零损坏。
-- **裁决：~0.31 上限主要不是 CFD 标签噪声**——复现 floor ~2% → R²_cap ~0.999；即便 10–15% per-case 噪声也仅 cap 到 0.92–0.96，远高于 0.31 → 真实模型/信息上限。
+- **裁决：~0.31 平台主要不能由简单 CFD 复现噪声解释。** 复现 floor ~2%，即便按 10–15% per-case 噪声估算，理论 cap 仍约 0.92–0.96；但该审计不能区分模型容量、密度协议、缺失条件信息和目标定义，不再写成“信息上限已确认”。
 
 ## 第五轮｜B-BC 资产审计（2026-07-12 ✅DONE / 可部署 B-BC 关闭）
 
@@ -39,7 +217,7 @@
 - **决定性发现：入口流量不是病人特异的。** Fourier 流量模板（a0..b8,w,T,A1/B/D/E/n）在所有病例逐字节相同；入口 BC 为平速 `v=1e-6·template/area`，故 `Q=v·area=1e-6·template` 与面积无关 → 各病例入口流量本质相同（dev CoV≈1.85e-4，Fourier↔实测比 0.999–1.000）。唯一 per-case 入口标量是入口**面积**（几何可得）。
 - **可部署 vs oracle**：可部署 = 入口面积/速度/流量（但零方差或与几何冗余，非信息量）；**唯一有跨病例方差的是出口 RCR（CoV 0.55–0.67）与出口压力/流量分配，全部 `oracle_non_deployable`**（CFD 设定/解产物，新病人不可知）。
 - 数据质量旗标：两对拷贝 BC（`HOU_SHEN_QIAN=KANG_XI_MING` 均 dev1 train、`LIU_XI_QUAN=LI_BING_YI`）→ 其面积/RCR 不独立；`vf-outri` 20 例退化（15 在 dev1）；两例异常入口监测均已 excluded。
-- **裁决：可部署 B-BC 关闭**——无可部署、有信息量、病人特异的 BC 输入可加。跨病例 WSS 差异由出口 RCR（oracle）驱动，可部署几何模型无法在部署期获取。剩余仅两条：oracle RCR 增量探针（仅量化上限，非部署，需全局输入代码）、P2 loss 探针（末条可部署杠杆）。
+- **裁决：可部署 B-BC 关闭**——现有资产中没有可部署、有信息量且病人特异的 BC 输入。出口 RCR 只有方差证据，尚未证明能在病例外解释 WSS 残差；最终审查后仅允许把它放入带 shuffled/RCR-only 负对照的 2×2 oracle 探针，不能写成已确认根因。
 
 ## 第五轮｜LC 三链 learning curve（2026-07-12 ✅DONE）
 
@@ -176,7 +354,7 @@
 
 ## 指标口径
 - 均在**原始 WSS 空间**（denormalize 后）计算。
-- `R²_field`：所有点 pool 起来算（受高 WSS 病例主导）；`R²_casemean`：逐病例算再平均（跨病例更平衡）。
+- `R²_field`：所有点 pool 起来算（受高 WSS 病例主导）；旧 `R²_casemean`：逐病例分别计算 spatial R² 后再平均，虽为病例等权，但不是病例 mean-WSS 的跨病例 level R²。
 - 分区：`bifurcation`(距原点≤0.25) / `stenosis`(local_radius 最小 20%) / `high_wss`(原始 WSS 前 10%)。
 
 ---
@@ -306,13 +484,4 @@
 
 ---
 
-## 待办 / 下一轮候选
-- [x] **第三轮 clean-data 重启已提交**：`ZHANG_HUAN_LI` 移 excluded、QA gate、`nodenumber/cellnumber` 对齐守卫、clean peak stats、模板基线、`mse/tgtw` 各 3 seed 已完成或提交。
-- [x] eval 固化高 WSS 校准指标（top10% mean 比、p95/p99/max 比、分位校准斜率），并入 `metrics.json` 与 summarize。
-- [x] 第三轮 Job 6953–6958 完训并完成三 seed、区域指标、high-WSS 校准和典型热力图判读。
-- [ ] **P0**：复合/平滑选模 + early stopping，固定在 val 上决策，不用 test 反选 checkpoint。
-- [ ] **P1**：`coord_scale` 与 peak inlet-flow/可部署边界条件标量的单变量信息上限探针。
-- [ ] **P2**：α=1/2/4 + 小权重 raw-space/分位辅助 loss；暂不组合激进几何加权采样。
-- [ ] **P3**：重复 split / 5-fold 或病例 bootstrap CI，确认 0.02–0.04 级差异是否超出抽样噪声。
-- [ ] 二期：WSS 矢量三分量（幅值复用标量 + 内在系方向，避开全局配准符号一致性问题）。
-- [ ] 全相位（TAWSS/OSI 衍生量）与近壁速度第二条路径。
+历史轮次到此结束。当前待办不在历史段落重复维护，以文首最终审查回写和[WSS 精度突破计划](WSS最小化_第六轮_WSS精度突破计划与执行.md)为唯一准绳。

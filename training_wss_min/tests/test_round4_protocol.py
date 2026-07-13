@@ -18,7 +18,7 @@ from training_wss_min import config as C
 from training_wss_min import dataset as D
 from training_wss_min import metrics as M
 from training_wss_min.evaluate import parse_and_guard_partitions
-from training_wss_min.gate1_compare import gate1
+from training_wss_min.tools.gate1_compare import gate1
 from training_wss_min.train import compute_loss
 
 

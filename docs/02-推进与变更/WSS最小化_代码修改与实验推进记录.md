@@ -2,7 +2,210 @@
 
 > 用途：单独记录 `pipeline_wss_min/` 这条 WSS-only 最小化数据线的代码、坐标 QA、图件和实验推进。
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
-> 当前执行入口：[第六轮 XYZ 尺度诊断](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [WSS 最小化训练实验跟踪](WSS最小化_训练实验跟踪.md) / [pipeline_wss_min README](../../pipeline_wss_min/README.md) / [training_wss_min README](../../training_wss_min/README.md)。第五轮已结案，其[执行计划](WSS最小化_第五轮执行计划.md)保留为历史证据。
+> 当前执行入口：[第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md) / [BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+
+## 2026-07-14｜合并 `main` 最新推进与变更文档 ✅
+
+**本次主要修改**：将 GitHub `main` 最新提交 `9254c11`（2026-07-13）中 `docs/02-推进与变更` 的路线计划、审计报告、训练跟踪、历史归档和 CSV 证据合并到本分支；保留本分支已有的 2×3 baseline 等补充记录。
+
+**对应代码/文档**：仅修改 `docs/02-推进与变更/**`；未修改训练代码、配置、数据及其他目录。
+
+**推进到实验步骤**：文档路线统一到 WSS 主线、横向最小诊断矩阵与条件路线的最新状态；新增/更新文件路径已逐项核对，未启动新实验。
+
+**当前状态判断**：文档内容以 `main` 最新审计口径为基线，同时保留本分支实验事实；当前等待既有作业结果，`test16` 仍保持未读。
+
+## 2026-07-13｜最小 2×3 基线（MLP / PointNet / PointNet++ × xyz / xyz+geom）⏳已提交 `8700[0-5]`
+
+**本次主要修改**：训练统一模型工厂新增最基础的逐点 `MLP`、全局 max-pool `PointNet` 和经典 SA+FP `PointNet++`；后者不含 PointNeXt 的残差或倒置瓶颈。新增冻结的 2×3 配置生成器与 Slurm array：统一 AG v1 `53/8/16`、peak WSS 单标量、FPS-2000、seed=1234、未加权 MSE、val-only；禁用旋转增强、采样/几何/目标加权、多任务和 raw-space 辅助项。
+
+**对应代码/文档**：`training_wss_min/{config.py,baseline_models.py,pointnext.py,train.py}`、`training_wss_min/runs/baseline_2x3_simple/{README.md,make_configs.py,train_array.slurm,submit.sh}`、[训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+
+**推进到实验步骤**：6 份配置已生成并通过 JSON 解析；MLP、PointNet、PointNet++ 均完成合成双病例点云的 forward/backward 冒烟，Python 编译与 Slurm shell 语法检查通过。已通过 `submit.sh` 提交 Slurm array `8700[0-5]`（最多并发 4）；每格训练后只做完整壁面 val 评估，产物固定写入该 runs 子目录。
+
+**当前状态判断**：矩阵只改变模型与输入（`xyz` 或 `xyz+abscissa_norm+local_radius+curvature`），可作为后续复杂模型/模块的可解释下限；`test16` 保持未读。当前等待队列调度和六格完成，完成后回填指标。
+
+## 2026-07-12｜第六轮 W0 审计 + W1 因子补全(E) + C 邻域预审计 + W2-L1 loss Gate + W3 组合 ✅DONE
+## 2026-07-13｜第六轮最终审查后文档收敛整理 ✅DONE（文档）
+
+**本次主要修改**：
+- 将四份第六轮执行文档改写为当前状态页，删除旧版 F3、旧优先级、已完成 W0–W3 的重复计划和 36-run 理论矩阵。
+- 冻结唯一口径：固定 peak/WSS-only；`P0-Metric → P0-Density → 2×2 F3 → 分支优化 → repeated validation`。
+- 统一指标语义：level、pattern、hotspot、病例等权 Pa 误差分列；旧 `R²_casemean` 不再解释为病例 level R²。
+- 保留实验证据在训练跟踪、变更历史在本记录；当前计划只保留有效结论、Gate、暂停项和待办。
+- 在 `docs/README.md` 增加 WSS-only 当前入口，避免从 V3P 文档误入本路线。
+
+**对应代码/文档**：[第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md)、[WSS 精度突破计划](WSS最小化_第六轮_WSS精度突破计划与执行.md)、[横向多目标计划](WSS最小化_第六轮_横向多目标对比计划与执行.md)、[BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)、[文档索引](../README.md)与本记录。
+
+**推进到实验步骤**：文档已收敛，下一项唯一 P0 是指标/选模合同代码闭环与已有 checkpoint 的只读重评；本次未修改代码、配置或数据，未启动作业。
+
+**当前状态判断**：没有通过新版指标和病例划分确认的最终候选；E/D+raw-Huber 保持冻结，E×raw-Huber No-Go，test16 未读。
+
+## 2026-07-12｜第六轮 W0 审计 + W1 因子补全(E) + C 邻域预审计 + W2-L1 loss Gate + W3 组合 ✅DONE（历史实验裁决；E 排名已由上文降级）
+
+**本次主要修改（代码/配置/审计工具）**：
+- `training_wss_min/tools/make_configs_xyz_scale.py`：`GROUPS` 增 **E 组**（`xyz+coord_scale+geom`），补齐 A/B/D/E 2×2 嵌套因子；协议 JSON 升级为 `xyz_scale_abde_v1`，写入 `factor_design`（B−A/E−D/D−A/E−B/交互 E−D−B+A）；新增增量 manifest `configs/sweeps/xyz_scale_e.txt`（只列 E，避免重跑 A/B/D）。
+- `training_wss_min/tools/make_configs_loss_l1.py`（新增）：W2-L1 raw-Huber λ∈{0.1,0.3,1.0} 单 seed 配置，基于 `r6_scale_D_xyzgeom_s1234`（固定 D 输入），只改 `loss_raw_huber_lambda`；预注册协议 `loss_l1_rawhuber_v1`。
+- `training_wss_min/tools/make_configs_round6_w3.py`（新增）：W3 确认阶段——L1 λ=1.0 补 s7/s2025、W3 组合 E×raw-Huber λ=1.0 三 seed。
+- `training_wss_min/tools/config_paths.py`：新增路由 `r6_l1_`→`loss_aug_ablation/`、`r6_w3_`→`round6_w3/`。
+- `training_wss_min/tools/audit_coord_scale_w0.py`（新增）：W0 只读尺度审计（coord_scale 范围/OOD、与几何/WSS 的 Spearman、fast-slow 与裁剪分层）。
+- `training_wss_min/tools/audit_c_neighborhood.py`（新增）：W1 C 邻域预审计，复现 SA 级联对比 A/C 每层邻居中位/孤立率/截断率；限线程、探测上限 64。
+- `training_wss_min/tools/summarize_round6_w1w2.py`（新增）：只读汇总 A/B/D/E 因子（配对 seed 差+交互项）、L1 λ Gate、W3 组合 Gate。
+
+**作业与结果**：`7557–7559`(E×3)、`7560–7562`(L1 λ-gate)、`7563–7567`(L1 λ1 confirm s7/s2025 + W3×3) 全部 `sbatch`，**11/11 COMPLETED**。产物 `runs/_audits/{w0_coord_scale,w1_c_neighborhood,round6_w1w2_summary}/report.md`。
+
+**核心结论**：① **E 成为最佳可部署输入**（E−D field_cb +0.021 过 Gate-1，负例最少）但**尺度/几何冗余**（交互 E−D−B+A<0，E−D casemean≈0）；② W0 印证 coord_scale 编码尺寸非幅值；③ C 邻域不退化但被 nsample=16 截断抹平预期收益，判低优先级；④ **L1 raw-Huber 单 seed 全面正、λ=1.0 最佳、无爆峰**，但**三 seed 确认后收益缩水**（单 seed field 0.385→三 seed 0.347±0.033）、seed 脆弱；⑤ **W3 组合阴性**——E×raw-Huber 未过 §6 组合 Gate（全 3 seed 低于 D+rawHuber、2/3 seed 低于 E），尺度特征与 raw-space Huber 冗余互斥，**正式停止组合线**。待用户裁决 W5 候选（E vs D+rawHuber）或启动 L2。详见[训练实验跟踪：第六轮 W0–W3 节](WSS最小化_训练实验跟踪.md)。
+
+## 2026-07-13｜横向指标与 V3P 可比性重构，WSS 恢复为 P0 主线 ✅DONE（文档/决策）
+
+**本次主要修改**：
+- 新增跨路线共享指标口径，将对比分为 A（直接对比）/B（协议化参考）/C（叙事背景）三级，并冻结 WSS 的病例等权点级、逐病例稳健性、热点和下游四层指标。
+- 修正原“V3P vs wss_min 是公平 WSS 对比、gap 约 0.1、已证明共同信息上限”的过强结论：压力定为 C 级，WSS 定为 B 级；只有统一 split/时相/点集/输入/选模的 Bridge 协议才能给精确 gap。
+- 将第六轮调度从“先补齐 36-run 压力/速度横向表”改为“WSS W0–W3 是 P0，横向是最小诊断矩阵”。Track B 先做 adapter/QA，默认只跑 `|v|` 和联合 `u,v,w` 单 seed sanity；内部压力、独立速度分量与三 seed 按 Gate 触发。
+- 将 `R²_field_casebalanced` + 物理单位误差提为 WSS 首要点级指标；`R²_field_raw` 保留为历史衔接，`R²_casemean` 不再单独作部署主指标。`0.70` 保留为长期理想目标，不作跨物理目标通用工程门槛。
+
+**对应代码/文档**：[跨路线评估与横向对比口径](../00-规范与记录/WSS跨路线评估与横向对比口径.md)、[第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md)、[横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md)、[WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md)、[BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md)、`docs/README.md`、`实验设计总纲.md`。本轮未改训练代码/配置，未启动新作业。
+
+**推进到实验步骤**：第六轮路线重排完成；WSS W0–W3 可独立推进，Track B 仍等 adapter/QA，V3P Bridge 仅完成协议定义。
+
+**当前状态判断**：原路线的主要风险是“不同协议的头条 R² 直接相减”和“为横向补表延误 WSS 主线”，而不是 gauge pressure 或 WSS-only 目标本身选错。当前 WSS 结果只能证明学到部分信号且稳健性/热点仍不足，不证明绝对信息上限已锁定。`test16` 保持未读。
+
+## 2026-07-12｜V3P vs 最小路线：压力/WSS 数值可比性分析落档（已由 2026-07-13 口径修订取代）
+
+> 历史记录保留；其中“WSS 公平对比、gap 约 0.1、已锁定信息上限”不再作当前结论，以本日志顶部 2026-07-13 条目和共享指标口径为准。
+
+**本次主要修改**：向[横向多目标对比 §9](WSS最小化_第六轮_横向多目标对比计划与执行.md) 写入 V3P 数值可比性分析（§9.1 压力·重点、§9.2 WSS·公平对比、§9.3 部署指标口径），并在 §4.1 加交叉引用。
+
+**核查与直算结论**：
+- **压力方差分解**：本仓直算，壁面 bundle 与 `data_new` 全场 `y[:,3]` 一致——单峰帧 95.9% 是病例间"水平"、仅 4.1% 空间型态（跨全周期口径 ~90% 水平、其中 96.7% 是心动时间波）。"只预测每例均值"pooled R²=**0.959**，V3P R²_p 0.92–0.96 卡在此送分基线上。
+- **BC = 压力水平**：V3P `global_cond={t_norm,BC_Inlet,BC_O1..O4}`，出口压力 BC 均值/方差≈压力目标本身；OLS 仅 BC→场均压力 R²=0.925，no-geom V3P 压力仍 0.936。出口 BC 是第五轮判定的 `oracle_non_deployable`。**故压力 0.92 与本路线 gauge 0.53 不可直接比。**
+- **WSS 方差分解**：**11.5% 病例间 / 88.5% 空间型态**（与压力相反），"只预测每例均值"pooled R²=0.115——无水平可白送。V3P 最好 WSS ~**0.43**（平台 0.40–0.45，Go 线 0.459 未过），本路线纯几何 field **0.31–0.36**，**差距仅 ~0.1、都远低于 0.70**。V3P WSS 模型参数 0.25–1.3M（比本路线 4.4M 还小）→ 瓶颈是信息/表示上限，非模型容量。
+- **§9.3 工程验收口径扩写**：明确"能不能用"要看物理单位误差（MAE/RMSE/分位 + NRMSE + 逐病例 casemean），不用 pooled 绝对 R²；附工程可用性小表——压力 gauge `xyz+geom` MAE **225 Pa**/RMSE 374 Pa（≈空间信号 531 Pa 的 0.42/0.70），WSS `xyz+geom` MAE **3.11 Pa**/RMSE 6.13 Pa（≈信号 6.2 Pa 的 0.50/0.99）；两者逐点误差都约为空间信号一半量级，趋势可见但离直接工程可用仍有距离。
+
+**对应代码/文档**：[横向多目标对比 §9](WSS最小化_第六轮_横向多目标对比计划与执行.md)；证据源 `training/core/{models,metrics,losses}.py`、`pipeline/config.py`、`data_new/normalization_params_global.json`、V3 路线文档与 `任务A实验状态表.md`。
+
+**当前状态判断**：分析性结论，未训练/未改训练代码。部署主指标口径确定为**逐病例 casemean**（压力用 gauge，WSS 用 raw+hotspot 护栏）；绝对压力/oracle BC 仅作上限探针。`test16` 保持未读。
+**核心结论（当时口径）**：① E 在旧 dev1/Gate 下暂列最佳输入（E−D field_cb `+0.021`，负例最少），但已被顶部对抗性审查降级为临时候选；② W0 印证 coord_scale 编码尺寸非幅值；③ C 邻域不退化但被 `nsample=16` 截断抹平预期收益；④ L1 raw-Huber 单 seed 全面正、λ=1.0 最佳、无爆峰，但三 seed 确认后收益缩水、seed 脆弱；⑤ W3 组合阴性并停止组合线。历史数值详见[训练实验跟踪：第六轮 W0–W3 节](WSS最小化_训练实验跟踪.md)。
+
+## 2026-07-12｜WSS 最小化预处理—训练全链路基础检查 ✅DONE
+
+**本次主要修改**：
+- 新增全链路基础检查报告，从原始读取、单位、配准/正交旋转、`[-1,1]` 各向同性缩放、节点 ID 对齐、无损压缩/FPS、训练特征/标签同索引、PointNeXt/激活/loss/超参数、完整点云评估逐项审计。
+- 对 77 个 included bundle 做实际数值复核；同步在训练实验跟踪顶部加入结论入口。
+- 本轮仅修改文档，不改预处理/训练代码与配置，不启动新训练，不读取新的 test16 指标。
+
+**对应代码/文档**：
+- 检查对象：`pipeline_wss_min/`、`training_wss_min/`、`data_wss_min/`、`training/splits/split_AG_wss_min_v1.json`
+- 新报告：[WSS最小化_全链路基础检查报告_2026-07-12](WSS最小化_全链路基础检查报告_2026-07-12.md)
+- 状态摘要：[训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：完成下一轮 C/E 严格尺度与 L1/L2 loss 前的基础审计 Gate；17 个现有单元测试通过，`compileall` 通过。
+
+**当前状态判断**：当前 WSS 标量主线无致命坐标—标签错位；77/77 bundle 的正交旋转、逆变换、数组同长、ID/坐标守卫和采样同索引均通过。下一轮前必须优先处理/加固：3 个 included roll-sign 不可靠病例、毫米尺度真正进入 FPS/ball-query、速度路径 cell ID/裁剪同步守卫。GELU + 线性输出合理，不把激活替换作为首要提分项。
+
+## 2026-07-12｜第六轮文档拆分与优先级重排（优先级已由 2026-07-13 再修订）
+
+**本次主要修改**：
+- 将原单篇“XYZ 尺度诊断+后续所有路线”重构为第六轮总入口和三份独立执行文档，分开横向多目标对比、WSS 精度突破、BC/速度条件路线。
+- 冻结新优先级：先补齐壁面/内部压力与近壁 `u/v/w/|v|` 横向主表，再集中执行 WSS C/E、L1/L2、M1/M2；空余 GPU 可并行已预注册且互不依赖的 run。
+- 保留 BC I0/I1/I2、入口裁剪分层和速度→WSS V0/V1/V2；明确横向速度基线不受 V0 oracle Gate 阻断，但 V2 仍必须过门。
+- 吸收计划审核结论：C 改为 train-only 全局共享尺度及邻域 QA；L1/L2 固定 D 输入；压力/速度不再以 WSS top10 惩罚作通用选模规则；候选增加 grouped repeated validation。
+
+**对应代码/文档**：
+- [第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md)
+- [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md) / [BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md)
+- `docs/README.md`、`training_wss_min/README.md`、`training_wss_min/configs/README.md`
+
+**推进到实验步骤**：文档和执行调度重构；未修改代码/配置，未提交新作业，不中止已提交 Jobs `7551–7556`。
+
+**当前状态判断**：横向 Track A 继续运行；Track B 必须先通过 adapter/坐标帧/指标 QA；WSS 训练主矩阵排在横向主表之后。test16 保持未读。
+
+## 2026-07-12｜第六轮 横向对比 H-PW 压力-壁面：目标可切换 + 6 run 完训回填 ✅DONE
+
+**本次主要修改**：
+- 训练/评估管线支持 `target` 切换（此前 `target` 字段是摆设、硬编码 `wall_wss`）：
+  - `dataset.load_case`/`load_partition` 增 `target` 形参；`target='pressure'` 读 `wall_pressure[peak]` 并**逐例去均值**（gauge/相对压力，可为负），复用 `normalize_wss`/`denormalize_wss` 的 `linear` 分支。
+  - `train.py` 两处 `load_partition` 透传 `cfg.data.target`。
+  - `evaluate.py`：`load_partition` 透传 target；**去掉对非 WSS 目标的 `clip(…,0,None)`**（gauge 压力可为负，仅 `method==log_z` 时裁剪）。
+  - `tools/config_paths.py` 增 `r6_press_*` → `configs/multitarget/`。
+- 新增 gauge-pressure 归一化 stats 生成器 `tools/make_pressure_stats.py` → `data_wss_min/fold_stats/pressure_gauge_stats_v2_dev1.json`（train-only/peak-only；53 例/707705 点；`method=linear`，mean≈0、std=529.2 Pa，gauge∈[-1880,1164]）。
+- 新增配置生成器 `tools/make_configs_pressure.py` → `configs/multitarget/press_wall_{xyz,xyzgeom}_s{1234,7,2025}.json`（共 6）+ manifest `configs/sweeps/pressure_wall.txt` + protocol；相对 B1 control 仅改 `target=pressure`、stats 路径、`input_features`、`loss_weight_target=false`（纯 MSE，关掉 WSS 长尾加权）、name/seed。
+- CPU 冒烟通过：gauge 目标逐例均值≈0、~40% 负值；normalize/denormalize 往返误差 6e-5；clip-gate 保留负值；负值下 metrics 不崩且可 JSON 序列化（`nrmse_mean` 因均值≈0 而巨大，属预期次要指标伪影，主指标 R² 正常）。
+
+**对应代码/文档**：
+- `training_wss_min/{dataset.py,train.py,evaluate.py}`、`tools/{config_paths.py,make_pressure_stats.py,make_configs_pressure.py}`
+- `training_wss_min/configs/multitarget/`、`configs/sweeps/pressure_wall.txt`、`data_wss_min/fold_stats/pressure_gauge_stats_v2_dev1.json`
+- [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md)、[训练实验跟踪·第六轮](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：Track A 压力-壁面 6 个作业 `7551–7556` 全部 `COMPLETED (0:0)`，val-only 评估齐全。三 seed 均值——压力 `xyz` field/casemean `0.426±0.021 / 0.254±0.042`；压力 `xyz+geom` `0.531±0.053 / 0.509±0.015`（xyz+geom 下 0/8 失败例）。
+
+**当前状态判断**：**同最小协议下压力比 WSS 好学得多**（xyz+geom 压力 0.531/0.509 vs WSS 0.311/0.197；xyz 压力 0.426/0.254 vs WSS 0.164/−0.085），压力 casemean 全程为正、xyz+geom 无失败例——空间压力型态比近壁剪切更由几何决定。但仍 `<0.70`，不外推其他目标。选模沿用 WSS 复合规则→列**探索性**；只读复核显示复合最优 epoch 与压力 R² 最优一致，数值应接近压力专用选模，正式复选待用户批准（预计不改数值）。Track B（压力-内部 + 近壁速度）待 data_new adapter。`test16` 保持未读。
+
+## 2026-07-12｜第六轮 §14 多目标扩展（压力/速度）方案落地 ✅DONE（方案+口径已定，未执行）
+
+**本次主要修改**：
+- 按与老师讨论，向第六轮计划新增 §14：同最小协议（FPS-2000/PointNeXt-S/dev1/B1）下把目标从 WSS 换成压力+速度，做 `xyz`/`xyz+geom` 矩阵。
+- 核对数据事实并写入方案：`wall_pressure` 已在 wss_min bundle（壁面即刻可跑，仅需 `load_case` 加 `target='pressure'` 分支）；**速度不在壁面（无滑移≈0）、wss_min bundle 无速度标签**，须走 `data_new/AG/**/result_features_merged-1162.pt` 的 `y=[u,v,w,p]`（15000 节点，已核对覆盖全部 84 个 AG 例）。
+- **老师确认口径（已回填 §14）**：压力做**壁面+内部**；速度**只做近壁**；速度目标 = `u,v,w` 三分量 + `|v|` 幅值旋转不变对照。→ 6 目标 × 2 输入 × 3 seed = **36 runs**，分 Track A（压力-壁面，即刻可跑，6）+ Track B（data_new adapter：压力-内部 6 + 近壁速度 24）。
+- 预注册逐目标归一化（压力不 log、建议逐例去均值；速度线性 z-norm + `|v|` 旋转不变对照）、target-weight 默认关、adapter 双采样域（内部全场 / 近壁带）要求与执行 Gate；**近壁速度与 §11 速度→WSS oracle 复用同一 adapter**。
+
+**对应代码/文档**：
+- [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md)、[训练实验跟踪·第六轮](WSS最小化_训练实验跟踪.md)
+- 关联既有：`training_wss_min/dataset.py:load_case`（现 `target` 字段未启用、硬编码 `wall_wss`）；`data_new/AG/**/result_features_merged-1162.pt`（`y=[u,v,w,p]`）
+
+**推进到实验步骤**：仅方案落地，未提交作业。Track A（压力-壁面）无新数据即可实现；Track B 前置 data_new adapter（双采样域）。
+
+**当前状态判断**：口径已定，等指令开工。建议先实现 Track A 压力-壁面（`target='pressure'` 分支 + 逐例去均值归一化）跑单 seed gate，再落地 adapter。`test16` 保持未读。
+**当前状态判断**：**同最小协议下压力比 WSS 好学得多**（xyz+geom 压力 0.531/0.509 vs WSS 0.311/0.197；xyz 压力 0.426/0.254 vs WSS 0.164/−0.085），但不能外推其他目标。该批次沿用 WSS 复合选模，仅列为探索性历史基线；如需对外确认，只做压力专用 val-only 只读重评。Track B 已在最终审查后暂停，`test16` 保持未读。
+
+## 2026-07-12｜第六轮 A/B/D 尺度诊断收口 + 新思路交叉验证 ✅DONE
+
+**本次主要修改**：
+- 复核首批 Jobs `7029–7037`：`7029–7032`(A×3+B_s1234) eval 完整；`7033`(B_s7) 训练成功但 eval 崩溃；`7034–7037`(B_s2025+D×3) 训练即失败。
+- 定位根因：首批提交清单引用旧目录 `configs/round6/r6_scale_*.json`，而同日“目录规整”已把 config 迁至 `configs/xyz_scale_diag/scale_*.json` 并删 `round6/`；早启动作业赶在删除前解析成功，晚启动作业 `FileNotFoundError`。与训练协议/数据/模型无关，未污染已完成 run。
+- 新增 `training_wss_min/cluster/run_eval_only.slurm`（仅对已有 `ckpt_best.pt` 的 run 重评，不重训）。
+- 按正确 manifest `configs/sweeps/xyz_scale_abd.txt` 重跑 `7039–7043`，5 个均 `COMPLETED (0:0)`，**A/B/D 9/9 eval 齐全**，回填完整三 seed 结果与终裁。
+- 对第六轮 §6–§12 各新思路做证据交叉核对，写入第六轮计划新增 §13（含已核实引用表与需重新掂量的 7 条先验/张力）。
+
+**对应代码/文档**：
+- `training_wss_min/cluster/run_eval_only.slurm`、`cluster/logs/resubmit_20260712_001011.txt`
+- [第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md)（尺度结论 + 后续优化路由）
+- [训练实验跟踪·第六轮](WSS最小化_训练实验跟踪.md)（完整 A/B/D 结果表 + 终裁）
+
+**推进到实验步骤**：三 seed 均值——A(`xyz`) field/casemean `0.164±0.070 / −0.085±0.055`；B(`xyz+coord_scale`) `0.208±0.038 / +0.008±0.099`；D(`xyz+geom`) `0.311±0.014 / +0.197±0.020`。B−A field `+0.044`/casemean `+0.093` 均过 `+0.02` 门槛且逐 seed 方向一致（3/3）。
+
+**当前状态判断**：**尺度信号 B−A 成立**——逐病例归一化确丢失有用物理尺度，`coord_scale` 稳定回收一部分（casemean 由负转正）；但只补回约三成缺口，**几何仍是压倒性主杠杆**（D−B field +0.103）。与第四轮 C4「coord_scale No-Go」不矛盾（C4 是在已含 `local_radius` 的 geom 上加、冗余）。绝对精度仍全面未达 0.70。用户批准下一步：`L1/L2 loss` 与 `C/E 严格尺度`并列先行，`M1/M2/M3` 次之，速度路线仅做 V0/V1 oracle。`test16` 保持未读。
+**当前状态判断**：旧开发口径下 B−A 的尺度信号成立，但旧 `casemean` 不是病例 level R²；几何仍是主要增量（D−B field +0.103）。本条只保留当轮实验裁决，后续顺序已由 2026-07-13 顶部最终审查覆盖；`test16` 保持未读。
+
+## 2026-07-12｜第五轮止损归档 + 第六轮后续路线预注册 ✅DONE
+
+**本次主要修改**：
+- 将第五轮口径冻结为“诊断性科学结案 / 内部工程 No-Go”；用户确认无达标候选时不强行运行 L0/15-run OOF/T16，临床/生产验证后置。
+- 新增第五轮归档说明，明确原正式计划与实际止损的偏差；保留原文档/产物路径作审计证据。
+- 扩展第六轮计划：补 C 严格物理 XYZ、E 嵌套因子组、BC 可辨识性、global-local/density-robust/残差/小模型矩阵、raw/case-balanced loss 矩阵、生成模型边界和速度→WSS oracle Gate。
+
+**对应代码/文档**：
+- [第五轮正式计划](WSS最小化_第五轮优化计划_正式版.md) / [历史执行计划](WSS最小化_第五轮执行计划.md) / [结案归档说明](_archive/WSS最小化/WSS最小化_第五轮结案与归档说明_2026-07-12.md)
+- [第六轮 XYZ 尺度诊断计划与执行](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md) / [文档索引](../README.md)
+
+**推进到实验步骤**：文档归档与后续预注册；不改当前 A/B/D Jobs `7029–7037` 的任何 config/Gate，不提交 C/E/架构/loss 新作业。
+
+**当前状态判断**：第五轮已按止损口径归档，`test16` 保持未读；第六轮先等 A/B/D 九个 run 完整返回并交叉审查，再由用户批准下一阶段。
+
+## 2026-07-12｜training_wss_min 目录规整（语义 configs + tools/experiments） ✅DONE
+
+**本次主要修改**：
+- `configs/` 按主题分目录：`baseline_sweep` / `loss_aug_ablation` / `clean_data` / `protocol_gates` / `pointcount_curve` / `fit_lc_diagnosis` / `xyz_scale_diag` / `sweeps`；去掉 `round5`/`round6` 目录名与文件名前缀。
+- JSON 内 `name` 与既有 `runs/<name>/` **未改**（含 `r5_*`/`r6_*`），保证在跑/历史实验可复评。
+- 根目录脚本分层：`tools/`（生成器/汇总/导出）与 `experiments/`（诊断）；旧 `-m` 入口保留兼容 shim；历史 `run_round5_*.slurm` 移入 `cluster/archive/`。
+
+**对应代码/文档**：
+- `training_wss_min/configs/README.md`、`training_wss_min/README.md`
+- `training_wss_min/tools/`、`training_wss_min/experiments/`、`training_wss_min/tools/config_paths.py`
+- [第六轮计划](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md) 活跃路径已同步
+
+**推进到实验步骤**：工程整理；不改训练协议、不重跑作业。
+
+**当前状态判断**：活跃入口为 `configs/sweeps/xyz_scale_abd.txt` 与 `python -m training_wss_min.tools.make_configs_xyz_scale`；验收：锚点 `name` 与 `runs/` 一致，`python -m training_wss_min.config` 通过。
 
 ## 2026-07-12｜A0E-ctrl 两例 postview 面片包（CFD|Pred|Error） ✅DONE
 
@@ -57,11 +260,11 @@
 
 **对应代码/文档**：
 - `training_wss_min/runs/_round5/bc_audit/{audit_ag_bc.py,bc_per_case.csv,bc_summary.json,bc_audit_report.md}`
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [G2 裁决](../../training_wss_min/runs/_round5/branch_experiments/branch_decision_g2.md)
+- [第五轮执行计划](WSS最小化_第五轮执行计划.md)；G2 产物原记录路径为 `training_wss_min/runs/_round5/branch_experiments/branch_decision_g2.md`，当前工作区未保留该文件。
 
 **推进到实验步骤**：61/61 dev 覆盖完整；Fourier 入口模板跨病例逐字节相同、`Q` 与面积无关（入口流量 CoV≈1.85e-4）；top-3 方差全为 oracle RCR（CoV 0.55–0.67）。
 
-**当前状态判断**：**入口流量是共享人群模板、非病人特异；唯一 per-case 变化的 BC（出口 RCR/压力/流量分配）全部 `oracle_non_deployable`。可部署 B-BC 杠杆关闭**——无可部署有信息量的 BC 输入可加。跨病例 WSS 差异由出口 RCR（oracle）驱动。剩余选项：oracle RCR 增量探针（量化上限、非部署、需全局输入代码）、P2 loss 探针（末条可部署杠杆），否则按 §8.1 走"未达工程目标"的科学结案。
+**当前状态判断**：**入口流量是共享人群模板、非病人特异；唯一 per-case 变化的 BC（出口 RCR/压力/流量分配）全部 `oracle_non_deployable`。可部署 B-BC 杠杆关闭。** RCR 仅是尚待病例外负对照验证的信息候选，不能从资产方差直接推断为跨病例 WSS 差异的根因；后续只允许按顶部最终审查的 2×2 oracle 探针量化。
 
 ## 2026-07-12｜第五轮 LC 收口：当前 61 例范围内暂时平台 ✅DONE
 
