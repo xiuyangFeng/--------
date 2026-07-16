@@ -1,0 +1,40 @@
+{
+  "name": "pointnetpp_sa_foundation/sa3_xyzgeom",
+  "notes": "PointNet++ three-SA visualization foundation only; not approved for training; deterministic eval trace uses FPS2000 input and 2000->500->125->32 centers",
+  "data": {
+    "split_path": "training/splits/split_AG_wss_min_v1_traintest.json",
+    "wss_stats_path": "data_wss_min/fold_stats/wss_stats_v1_traintest.json",
+    "wall_n_points": 2000,
+    "sampling": "fps",
+    "fps_pool_size": 8,
+    "resample_each_epoch": false,
+    "rot_aug": false,
+    "input_features": ["x", "y", "z", "abscissa_norm", "local_radius", "curvature"],
+    "curvature_transform": "signed_log1p",
+    "timesteps": "peak",
+    "target": "wss",
+    "target_normalization": "global_stats",
+    "num_workers": 0,
+    "persistent_workers": false
+  },
+  "model": {
+    "name": "pointnetpp",
+    "width": 32,
+    "sa_ratios": [0.25, 0.25, 0.25],
+    "sa_radius": [0.05, 0.10, 0.20],
+    "sa_nsample": [16, 16, 16],
+    "sa_blocks": [0, 0, 0],
+    "fp_knn": 3,
+    "head_hidden": 64,
+    "out_dim": 1,
+    "dropout": 0.0
+  },
+  "train": {
+    "epochs": 0,
+    "batch_cases": 1,
+    "seed": 1234,
+    "amp": false,
+    "selection_rule": "train_loss",
+    "early_stop_patience": 0
+  }
+}

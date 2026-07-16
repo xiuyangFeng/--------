@@ -8,7 +8,10 @@
 - config.json / feature_stats.json / weight_quantiles.json
 - train.log / history.jsonl / history.png
 - ckpt_best.pt / ckpt_top{k}.pt / ckpt_last.pt
-训练用稀疏子采样，val 监控恒在**完整点云**上（evaluate.evaluate_partition）。
+
+默认：训练用稀疏子采样，val 监控恒在**完整点云**上。
+若 ``selection_rule='train_loss'``（或 split 无 val）：不加载/不评估 val，
+按 epoch 训练损失选 best（score=-train_loss），``early_stop_patience<=0`` 关闭早停。
 """
 
 from __future__ import annotations
@@ -16,7 +19,6 @@ from __future__ import annotations
 import argparse
 import heapq
 import json
-import logging
 import math
 import time
 from pathlib import Path
@@ -27,128 +29,10 @@ from torch.utils.data import DataLoader
 
 from . import config as C
 from . import dataset as D
-from . import metrics as M
-from .pointnext import build_model
 from .evaluate import evaluate_partition
-
-
-def setup_logger(run_dir: Path) -> logging.Logger:
-    run_dir.mkdir(parents=True, exist_ok=True)
-    logger = logging.getLogger(f"wssmin.{run_dir.name}")
-    logger.setLevel(logging.INFO)
-    logger.handlers.clear()
-    fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s", "%H:%M:%S")
-    fh = logging.FileHandler(run_dir / "train.log")
-    fh.setFormatter(fmt); logger.addHandler(fh)
-    sh = logging.StreamHandler()
-    sh.setFormatter(fmt); logger.addHandler(sh)
-    return logger
-
-
-def seed_all(seed: int):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-
-
-def lr_lambda_factory(cfg: C.TrainConfig):
-    def f(epoch: int) -> float:
-        if epoch < cfg.warmup_epochs:
-            return (epoch + 1) / max(1, cfg.warmup_epochs)
-        prog = (epoch - cfg.warmup_epochs) / max(1, cfg.epochs - cfg.warmup_epochs)
-        cos = 0.5 * (1 + math.cos(math.pi * min(1.0, prog)))
-        return (cfg.min_lr + (cfg.lr - cfg.min_lr) * cos) / cfg.lr
-    return f
-
-
-def _fixed01(a: torch.Tensor, lo: float, hi: float) -> torch.Tensor:
-    return torch.clamp((a - lo) / (hi - lo + 1e-9), 0, 1)
-
-
-def _batch01(a: torch.Tensor) -> torch.Tensor:
-    lo, hi = torch.quantile(a, 0.02), torch.quantile(a, 0.98)
-    return torch.clamp((a - lo) / (hi - lo + 1e-9), 0, 1)
-
-
-def compute_loss(pred, batch, tcfg: C.TrainConfig, device, wss_stats: dict | None = None):
-    """标量回归损失；支持固定阈值加权与 raw-space Huber 辅助（C1）。"""
-    y = batch["y"].to(device)
-    # NLL: pred 为 (N,2) = [mu, logvar]
-    if tcfg.loss == "gaussian_nll":
-        if pred.ndim != 2 or pred.shape[-1] != 2:
-            raise ValueError("gaussian_nll requires model out_dim=2")
-        mu = pred[:, 0]
-        logvar = torch.clamp(pred[:, 1], tcfg.nll_logvar_min, tcfg.nll_logvar_max)
-        per = 0.5 * (logvar + (y - mu) ** 2 / torch.exp(logvar))
-        per = per + tcfg.nll_logvar_reg * (logvar ** 2)
-        pred_for_weight = mu
-    else:
-        if pred.ndim == 2 and pred.shape[-1] == 1:
-            pred = pred.squeeze(-1)
-        if tcfg.loss == "huber":
-            per = torch.nn.functional.huber_loss(pred, y, delta=tcfg.huber_delta, reduction="none")
-        else:
-            per = (pred - y) ** 2
-        pred_for_weight = pred
-
-    weighted = tcfg.loss_geom_weight or tcfg.loss_weight_target
-    if weighted:
-        w = torch.ones_like(per)
-        use_fixed = bool(tcfg.loss_weight_fixed_quantiles)
-        if tcfg.loss_geom_weight:
-            curv = batch["curv"].to(device)
-            invr = batch["invr"].to(device)
-            if use_fixed and tcfg.curv_q02 is not None and tcfg.curv_q98 is not None:
-                cq = _fixed01(curv, tcfg.curv_q02, tcfg.curv_q98)
-            else:
-                cq = _batch01(curv)
-            if use_fixed and tcfg.invr_q02 is not None and tcfg.invr_q98 is not None:
-                iq = _fixed01(invr, tcfg.invr_q02, tcfg.invr_q98)
-            else:
-                iq = _batch01(invr)
-            w = w + tcfg.loss_weight_curv * cq + tcfg.loss_weight_invradius * iq
-        if tcfg.loss_weight_target:
-            if use_fixed and tcfg.y_norm_q02 is not None and tcfg.y_norm_q98 is not None:
-                yq = _fixed01(y, tcfg.y_norm_q02, tcfg.y_norm_q98)
-            else:
-                yq = _batch01(y)
-            w = w + tcfg.loss_weight_target_alpha * yq
-        loss = (per * w).sum() / w.sum()
-    else:
-        loss = per.mean()
-
-    # C1: raw-space Huber 辅助
-    lam = float(tcfg.loss_raw_huber_lambda or 0.0)
-    if lam > 0 and wss_stats is not None and tcfg.loss != "gaussian_nll":
-        y_raw = batch["y_raw"].to(device).float()
-        # FP32 denorm
-        mu = torch.as_tensor(wss_stats["log"]["mean"], device=device, dtype=torch.float32)
-        sd = torch.as_tensor(wss_stats["log"]["std"], device=device, dtype=torch.float32)
-        eps = torch.as_tensor(wss_stats["eps"], device=device, dtype=torch.float32)
-        pred_raw = torch.exp(pred_for_weight.float() * sd + mu) - eps
-        # 记录裁剪（不静默掩盖）：仅用于监控，不改梯度路径上的值过多
-        p90 = float(getattr(tcfg, "_raw_p90", None) or wss_stats.get("raw_percentiles", {}).get("p90", 1.0))
-        scale = max(p90, 1e-3)
-        h = torch.nn.functional.huber_loss(
-            pred_raw / scale, y_raw / scale, delta=tcfg.raw_huber_delta, reduction="mean"
-        )
-        loss = loss + lam * h
-    return loss
-
-
-def compute_selection_score(tcfg: C.TrainConfig, agg, field, field_casebalanced, cal, hotspot) -> float:
-    if tcfg.selection_rule == "r4_composite_v1":
-        return M.selection_score_r4_composite_v1(agg, field, cal, hotspot)
-    if tcfg.selection_rule == "field_casebalanced":
-        return float(field_casebalanced.get("r2", float("-inf")))
-    if tcfg.selection_rule == "field_raw":
-        return float(field.get("r2", float("-inf")))
-    if tcfg.selection_rule == "casemean":
-        return float(agg.get("r2_casemean", float("-inf")))
-    # 兼容旧 ckpt_metric
-    if "casemean" in tcfg.ckpt_metric:
-        return float(agg.get("r2_casemean", float("-inf")))
-    return float(field.get("r2", float("-inf")))
+from .models import build_model
+from .objectives import compute_loss, compute_selection_score
+from .runtime import lr_lambda_factory, seed_all, setup_logger
 
 
 def plot_history(history, path: Path):
@@ -212,10 +96,23 @@ def main():
     if not stats_path.is_file():
         stats_path = C.GLOBAL_STATS
     wss_stats = D.load_wss_stats(stats_path)
-    tr_cases = D.load_partition(cfg.data.split_path, "train", wss_stats,
-                                strict=True, target=cfg.data.target)
-    va_cases = D.load_partition(cfg.data.split_path, "val", wss_stats,
-                                strict=True, target=cfg.data.target)
+    tr_cases = D.load_partition(
+        cfg.data.split_path, "train", wss_stats, strict=True, target=cfg.data.target,
+        target_normalization=cfg.data.target_normalization,
+        data_root=cfg.data.data_root,
+        required_frame_version=cfg.data.required_frame_version,
+    )
+    select_by_train_loss = cfg.train.selection_rule == "train_loss"
+    val_labels = D.load_split_cases(cfg.data.split_path, "val")
+    if select_by_train_loss or not val_labels:
+        va_cases = []
+    else:
+        va_cases = D.load_partition(
+            cfg.data.split_path, "val", wss_stats, strict=True, target=cfg.data.target,
+            target_normalization=cfg.data.target_normalization,
+            data_root=cfg.data.data_root,
+            required_frame_version=cfg.data.required_frame_version,
+        )
     feat_stats = D.compute_feature_stats(
         tr_cases, cfg.data.input_features, cfg.data.curvature_transform
     )
@@ -228,9 +125,9 @@ def main():
         cfg.train.invr_q02 = wq["invr_q02"]
         cfg.train.invr_q98 = wq["invr_q98"]
     cfg.train._raw_p90 = wq["raw_p90"]  # type: ignore[attr-defined]
-    log.info("train cases=%d val cases=%d  feat_stats=%s  fixed_q=%s",
-             len(tr_cases), len(va_cases), list(feat_stats.keys()),
-             cfg.train.loss_weight_fixed_quantiles)
+    log.info("train cases=%d val cases=%d  selection=%s  feat_stats=%s  fixed_q=%s",
+             len(tr_cases), len(va_cases), cfg.train.selection_rule,
+             list(feat_stats.keys()), cfg.train.loss_weight_fixed_quantiles)
 
     cfg.to_json(run_dir / "config.json")
     (run_dir / "feature_stats.json").write_text(json.dumps(feat_stats, indent=2))
@@ -240,6 +137,14 @@ def main():
     (run_dir / "weight_quantiles.json").write_text(
         json.dumps(wq, indent=2, ensure_ascii=False)
     )
+    (run_dir / "target_normalization.json").write_text(json.dumps({
+        "mode": cfg.data.target_normalization,
+        "physical_recovery_enabled": cfg.data.target_normalization == "global_stats",
+        "case_metadata": {
+            f"{c['cohort']}/{c['case']}": c.get("target_normalization_meta", {})
+            for c in tr_cases
+        },
+    }, indent=2, ensure_ascii=False))
 
     train_ds = D.WSSMinDataset(tr_cases, cfg.data, feat_stats, training=True,
                                base_seed=cfg.train.seed)
@@ -277,6 +182,7 @@ def main():
         model.train()
         train_ds.set_epoch(epoch)
         ep_loss, nb = 0.0, 0
+        ep_sqerr, ep_abserr, ep_points = 0.0, 0.0, 0
         for batch in train_loader:
             pos = batch["pos"].to(device)
             x = batch["x"].to(device)
@@ -284,6 +190,12 @@ def main():
             with torch.amp.autocast("cuda", enabled=(cfg.train.amp and device == "cuda")):
                 pred = model(pos, x, batch["batch"].to(device))
                 loss = compute_loss(pred, batch, cfg.train, device, wss_stats)
+            pred_metric = pred[:, 0] if pred.ndim == 2 else pred
+            target_metric = batch["y"].to(device)
+            diff = (pred_metric.detach().float() - target_metric.float())
+            ep_sqerr += float(diff.square().sum().item())
+            ep_abserr += float(diff.abs().sum().item())
+            ep_points += int(diff.numel())
             scaler.scale(loss).backward()
             if cfg.train.grad_clip > 0:
                 scaler.unscale_(opt)
@@ -293,11 +205,39 @@ def main():
         sched.step()
         ep_loss /= max(1, nb)
 
-        rec = {"epoch": epoch, "train_loss": ep_loss, "lr": opt.param_groups[0]["lr"],
+        train_mse_norm = ep_sqerr / max(1, ep_points)
+        train_mae_norm = ep_abserr / max(1, ep_points)
+        rec = {"epoch": epoch, "train_loss": ep_loss,
+               "train_mse_norm": train_mse_norm,
+               "train_mae_norm": train_mae_norm,
+               "train_rmse_norm": math.sqrt(train_mse_norm),
+               "train_sampled_points": ep_points,
+               "lr": opt.param_groups[0]["lr"],
                "elapsed_s": round(time.time() - t0, 1)}
 
         do_eval = ((epoch + 1) % cfg.train.eval_every == 0) or (epoch == cfg.train.epochs - 1)
-        if do_eval and va_cases:
+        if select_by_train_loss:
+            # Maximize -train_loss so existing top-k / best machinery stays max-based.
+            score = -float(ep_loss)
+            rec["selection_score"] = score
+            improved = np.isfinite(score) and score > best_metric + 1e-12
+            if improved:
+                best_metric = score
+                rec["is_best"] = True
+            # Avoid writing a checkpoint every epoch; only when it can enter top-k.
+            if (cfg.train.ckpt_top_k > 0 and np.isfinite(score)
+                    and (len(topk) < cfg.train.ckpt_top_k or score > topk[0][0])):
+                _save_topk(run_dir, topk, model, epoch, score, cfg.name, cfg.train.ckpt_top_k)
+            if epoch % 10 == 0 or rec.get("is_best") or epoch + 1 == cfg.train.epochs:
+                log.info(
+                    "epoch %d/%d loss=%.4f norm_mae=%.4f norm_rmse=%.4f lr=%.2e "
+                    "| select=train_loss best_loss=%.4f %s",
+                    epoch, cfg.train.epochs, ep_loss, train_mae_norm,
+                    math.sqrt(train_mse_norm), opt.param_groups[0]["lr"],
+                    -best_metric if np.isfinite(best_metric) else float("nan"),
+                    "[best]" if rec.get("is_best") else "",
+                )
+        elif do_eval and va_cases:
             res = evaluate_partition(model, va_cases, cfg, feat_stats, wss_stats, device,
                                      make_plots=False)
             agg, fld = res["aggregate"], res["field"]
@@ -334,8 +274,9 @@ def main():
                 hotspot.get("top10_iou", float("nan")), score,
                 "[best]" if rec.get("is_best") else "",
             )
-            if (epoch + 1) >= cfg.train.min_epoch and \
-               evals_without_improve >= cfg.train.early_stop_patience:
+            if (cfg.train.early_stop_patience > 0
+                    and (epoch + 1) >= cfg.train.min_epoch
+                    and evals_without_improve >= cfg.train.early_stop_patience):
                 log.info("early stop at epoch %d (patience=%d evals)",
                          epoch, cfg.train.early_stop_patience)
                 stopped_early = True

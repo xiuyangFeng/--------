@@ -3,7 +3,7 @@
 """training_wss_min 实验配置（配置驱动 baseline）。
 
 一个实验 = 一个 JSON 配置。用 `ExpConfig.from_json` 读、`to_json` 写；
-`make_configs.py` 批量生成 sweep 配置。训练/评估都只吃 config 路径。
+训练/评估只读取已登记的 config 路径，不在运行时生成或改写源配置。
 
 约定：所有相对路径都相对仓库根 `PROJECT_ROOT`；产物落在 `runs/<name>/`。
 """
@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_ROOT = PROJECT_ROOT / "data_wss_min"
@@ -35,6 +35,10 @@ FORBIDDEN_FEATURE_KEYS = ("dist_to_wall",)
 
 @dataclass
 class DataConfig:
+    # 显式数据根；默认值保持历史 run 行为。v4 配置必须显式写入该字段。
+    data_root: str = str(DATA_ROOT)
+    # None 保持旧 bundle 兼容；v4 配置强制 stl_landmarks_v4。
+    required_frame_version: Optional[str] = None
     split_path: str = str(DEFAULT_SPLIT)
     wss_stats_path: str = str(GLOBAL_STATS)
     # 训练稀疏化：每例采样多少壁面点；<=0 或 >=全量 表示用全部点
@@ -55,7 +59,9 @@ class DataConfig:
     curvature_transform: str = "signed_log1p"  # 'signed_log1p' | 'none'
     # 时间步：baseline 用峰值收缩期单步
     timesteps: str = "peak"               # 'peak'（其余暂不支持，占位）
-    target: str = "wss"                   # 'wss'(标量) —— 矢量留待二期
+    target: str = "wss"                   # 'wss' | 'pressure'（均为标量）
+    # 目标标准化；global_stats 保持历史行为，case_max 用逐病例完整壁面 WSS 最大值。
+    target_normalization: str = "global_stats"  # 'global_stats' | 'case_max'
     num_workers: int = 4
     # 第四轮默认 False：避免 persistent worker 持有过期 epoch 状态
     persistent_workers: bool = False
@@ -77,6 +83,9 @@ class ModelConfig:
     invres_radius_scale: float = 1.0      # InvResMLP 分组半径 = sa_radius * scale
     fp_knn: int = 3                       # FP 插值近邻数
     head_hidden: int = 64
+    # PointNet 可显式指定通道以复现导师网络；空 tuple 保持 width 推导的历史结构。
+    pointnet_local_channels: Tuple[int, ...] = ()
+    pointnet_decoder_channels: Tuple[int, ...] = ()
     out_dim: int = 1                      # 标量=1；矢量=3（二期）；NLL=2
     dropout: float = 0.0
 
@@ -120,7 +129,7 @@ class TrainConfig:
     ckpt_metric: str = "val_selection_score"  # 兼容旧名；实际用 selection_rule
     selection_rule: str = "r4_composite_v1"
     ckpt_top_k: int = 3
-    early_stop_patience: int = 6          # 按 eval 次数计
+    early_stop_patience: int = 6          # 按 eval 次数计；<=0 关闭早停
     min_epoch: int = 40
     log_every_steps: int = 0              # >0 时按 step 打点；0 只按 epoch
 
@@ -184,6 +193,21 @@ def validate_features(cfg: ExpConfig) -> None:
             )
         if f not in FEATURE_KEYS:
             raise ValueError(f"unknown feature {f!r}; allowed={FEATURE_KEYS}")
+    if cfg.data.target_normalization not in {"global_stats", "case_max"}:
+        raise ValueError(
+            "target_normalization must be 'global_stats' or 'case_max', got "
+            f"{cfg.data.target_normalization!r}"
+        )
+    if cfg.data.target_normalization == "case_max" and cfg.data.target != "wss":
+        raise ValueError("target_normalization='case_max' is only supported for target='wss'")
+    local = tuple(cfg.model.pointnet_local_channels)
+    decoder = tuple(cfg.model.pointnet_decoder_channels)
+    if bool(local) != bool(decoder):
+        raise ValueError(
+            "pointnet_local_channels and pointnet_decoder_channels must both be set or both be empty"
+        )
+    if any(int(ch) <= 0 for ch in (*local, *decoder)):
+        raise ValueError("explicit PointNet channels must all be positive")
 
 
 def input_dim(cfg: ExpConfig) -> int:

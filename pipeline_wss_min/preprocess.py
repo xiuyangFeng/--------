@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import os
 import time
 from pathlib import Path
 from typing import Dict
@@ -24,6 +25,7 @@ from sklearn.neighbors import NearestNeighbors
 from . import config as C
 from . import raw_io
 from . import reporting
+from . import surface_io
 from .registration import (
     compute_transform, RigidTransform, untraced_inlet_crop_masks, AXIS_INDEX,
 )
@@ -110,7 +112,7 @@ def _resolve_unit_factor(wall_native: np.ndarray, cl: Dict[str, np.ndarray], ucf
     f_snap = 10.0 ** k
 
     # 覆盖范围一致时（正常病例）比值≈整十次幂，采用精细比值；两者偏离超过
-    # ratio_trust 倍则判定壁面/中心线覆盖不一致，比值法不可信 -> 采用整十次幂。
+    # 偏离超过可信倍数时判定壁面与中心线覆盖不一致，改用整十次幂因子。
     ratio_to_snap = (f_ratio / f_snap) if f_snap > 0 else np.inf
     extent_mismatch = not (1.0 / ucfg.ratio_trust <= ratio_to_snap <= ucfg.ratio_trust)
     f = f_snap if extent_mismatch else f_ratio
@@ -134,35 +136,94 @@ def _nearest_centerline_feats(pts: np.ndarray, cl: Dict[str, np.ndarray]) -> Dic
     }
 
 
+def _same_id_set(a: np.ndarray, b: np.ndarray) -> bool:
+    a = np.asarray(a, dtype=np.int64)
+    b = np.asarray(b, dtype=np.int64)
+    return len(a) == len(b) and np.array_equal(np.sort(a), np.sort(b))
+
+
+def _select_stable_wall_reference(case_dir: Path, case_name: str, steps, peak: int):
+    """由首步/峰值步/末步的共识节点集合选择静态壁面参考。"""
+    # 同等共识下优先峰值步，确保正式单步目标与几何严格同点；首/末步只作稳定性佐证。
+    candidate_steps = list(dict.fromkeys((int(peak), int(steps[0]), int(steps[-1]))))
+    candidates = [(step, raw_io.read_wall_fields(case_dir, case_name, step))
+                  for step in candidate_steps]
+    agreement = []
+    for _, fields in candidates:
+        ids = fields["nodenumber"]
+        agreement.append(sum(_same_id_set(ids, other["nodenumber"])
+                             for _, other in candidates))
+    best = int(np.argmax(agreement))
+    if len(candidates) >= 3 and agreement[best] < 2:
+        detail = [(step, len(fields["nodenumber"])) for step, fields in candidates]
+        raise RuntimeError(f"壁面参考节点集合无跨时间步共识: {detail}")
+    return candidates[best]
+
+
+def _spatially_align_wall_fields_to_reference(
+    fields: Dict[str, np.ndarray],
+    ref_coords: np.ndarray,
+    ref_ids: np.ndarray,
+    step: int,
+    tol: float = 1e-9,
+) -> tuple[Dict[str, np.ndarray], bool, float]:
+    """修复极少量 nodenumber↔坐标循环错配，但不接受真实移动网格。
+
+    只有当前步与参考步的坐标集合一一完全匹配时才按坐标重排字段；若点集本身变化，
+    保持原样交给 QA 拒绝。这样可处理 Fluent 少量节点 ID 循环置换而不掩盖移动壁面。
+    """
+    coords = np.asarray(fields["coords"], dtype=np.float64)
+    ref_coords = np.asarray(ref_coords, dtype=np.float64)
+    if len(coords) != len(ref_coords):
+        return fields, False, float("inf")
+    nn = NearestNeighbors(n_neighbors=1, algorithm="auto").fit(coords)
+    distances, indices = nn.kneighbors(ref_coords)
+    distances = distances[:, 0]
+    indices = indices[:, 0]
+    max_distance = float(distances.max()) if len(distances) else 0.0
+    if max_distance > tol or len(np.unique(indices)) != len(indices):
+        return fields, False, max_distance
+    if np.array_equal(indices, np.arange(len(indices))):
+        return fields, False, max_distance
+    out: Dict[str, np.ndarray] = {}
+    for key, val in fields.items():
+        arr = np.asarray(val)
+        out[key] = arr[indices] if len(arr) == len(coords) else val
+    out["nodenumber"] = np.asarray(ref_ids, dtype=np.int64).copy()
+    out["coords"] = ref_coords.copy()
+    return out, True, max_distance
+
+
 def _align_wall_fields_to_reference(
     fields: Dict[str, np.ndarray],
     ref_ids: np.ndarray,
     step: int,
-) -> tuple[Dict[str, np.ndarray], bool]:
-    """按首步 nodenumber 顺序对齐单个时间步壁面场。
+) -> tuple[Dict[str, np.ndarray], bool, int]:
+    """按稳定参考 nodenumber 对齐，允许丢弃极少量非稳定额外节点。
 
-    返回 (aligned_fields, reordered)。若节点集合/长度/重复节点异常，直接报错；
-    这是防止 WSS 标签与几何静默错位的硬守卫。
+    稳定节点缺失、重复或额外比例过大仍直接报错，防止标签与几何静默错位。
     """
     ids = np.asarray(fields["nodenumber"], dtype=np.int64)
     ref_ids = np.asarray(ref_ids, dtype=np.int64)
-    if len(ids) != len(ref_ids):
-        raise RuntimeError(
-            f"step {step} nodenumber 长度不一致: got={len(ids)} ref={len(ref_ids)}"
-        )
     if len(np.unique(ids)) != len(ids):
         raise RuntimeError(f"step {step} nodenumber 存在重复值")
     if np.array_equal(ids, ref_ids):
-        return fields, False
+        return fields, False, 0
 
     order = np.argsort(ids)
     ids_sorted = ids[order]
-    ref_sorted = np.sort(ref_ids)
-    if not np.array_equal(ids_sorted, ref_sorted):
-        missing = np.setdiff1d(ref_ids, ids, assume_unique=False)[:5].tolist()
-        extra = np.setdiff1d(ids, ref_ids, assume_unique=False)[:5].tolist()
+    missing_all = np.setdiff1d(ref_ids, ids, assume_unique=False)
+    extra_all = np.setdiff1d(ids, ref_ids, assume_unique=False)
+    if len(missing_all):
         raise RuntimeError(
-            f"step {step} nodenumber 集合不一致: missing={missing} extra={extra}"
+            f"step {step} 缺稳定壁面节点: missing={missing_all[:5].tolist()} "
+            f"extra={extra_all[:5].tolist()}"
+        )
+    max_extra = max(1, min(8, int(np.ceil(len(ref_ids) * 1e-4))))
+    if len(extra_all) > max_extra:
+        raise RuntimeError(
+            f"step {step} 额外壁面节点过多: n_extra={len(extra_all)} "
+            f"max={max_extra} examples={extra_all[:5].tolist()}"
         )
 
     pos = np.searchsorted(ids_sorted, ref_ids)
@@ -171,11 +232,16 @@ def _align_wall_fields_to_reference(
     for key, val in fields.items():
         arr = np.asarray(val)
         out[key] = arr[aligned_idx] if len(arr) == len(ids) else val
-    return out, True
+    return out, True, int(len(extra_all))
 
 
-def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | None = None,
-                    verbose: bool = True) -> Dict:
+def preprocess_case(
+    cohort_rel: str,
+    case_name: str,
+    cfg: C.PipelineConfig | None = None,
+    verbose: bool = True,
+    out_root: str | Path | None = None,
+) -> Dict:
     """处理单病例。成功返回 report(dict, status=ok)；原始数据不完整抛 SkipCase。"""
     cfg = cfg or C.DEFAULT
     log = reporting.get_logger()
@@ -194,21 +260,15 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
     probe = _validate_case(case_dir, case_name, steps, cfg)
 
     peak = raw_io.peak_systole_step(case_dir, steps) if cfg.timestep.peak_from_waveform else steps[len(steps)//2]
-    ref = steps[0]
 
-    # ---- 几何（静态，只读一次；原生单位） ----
-    wall_native = raw_io.read_wall_geometry(case_dir, case_name, ref)
-    ref_wall_fields = raw_io.read_wall_fields(case_dir, case_name, ref)
+    # ---- 几何（静态；首步/峰值步/末步按节点集合共识选参考） ----
+    wall_ref_step, ref_wall_fields = _select_stable_wall_reference(
+        case_dir, case_name, steps, peak)
+    wall_native = np.asarray(ref_wall_fields["coords"], dtype=np.float64)
     ref_node_ids = ref_wall_fields["nodenumber"].astype(np.int64)
     if len(np.unique(ref_node_ids)) != len(ref_node_ids):
-        raise RuntimeError(f"首步 nodenumber 存在重复值: {cohort_rel}/{case_name}")
-    ref_coord_delta = float(np.max(np.abs(ref_wall_fields["coords"] - wall_native))) \
-        if len(wall_native) else 0.0
-    if ref_coord_delta > 1e-8:
-        raise RuntimeError(
-            f"首步 read_wall_geometry/read_wall_fields 坐标不一致: max_delta={ref_coord_delta:.3e}"
-        )
-    int_native = raw_io.read_interior_geometry(case_dir, case_name, ref)
+        raise RuntimeError(f"参考步 nodenumber 存在重复值: {cohort_rel}/{case_name}")
+    int_native = raw_io.read_interior_geometry(case_dir, case_name, wall_ref_step)
     cl = raw_io.read_centerline(case_dir)
 
     # ---- 单位统一 -> 毫米（逐病例，用中心线包围盒反推，鲁棒处理异常单位病例） ----
@@ -223,9 +283,43 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
     wall_pts = wall_native * unit_factor
     int_pts = int_native * unit_factor
 
+    # 原始 STL 是 v4 坐标架的权威几何与左右世界方向来源。多 STL 病例按与 CFD 壁面
+    # 的原始包围盒匹配度自动选版本；缺失/不可读时保守退回壁面并写入审计。
+    anatomy_pts = None
+    anatomy_source = "wall_fallback"
+    stl_path = ""
+    stl_scale_to_mm = np.nan
+    stl_match_score = np.nan
+    stl_n_candidates = 0
+    try:
+        selected = surface_io.select_case_surface(case_dir, wall_pts, unit_factor)
+        anatomy_pts = selected.points_mm
+        anatomy_source = "original_stl"
+        stl_path = str(selected.path)
+        stl_scale_to_mm = float(selected.scale_to_mm)
+        stl_match_score = float(selected.match_score)
+        stl_n_candidates = int(selected.n_candidates)
+        log.info("  原始 STL 选择 %s/%s: %s scale=%.4g score=%.4f candidates=%d",
+                 cohort_rel, case_name, selected.path.name, selected.scale_to_mm,
+                 selected.match_score, selected.n_candidates)
+    except Exception as exc:  # noqa: BLE001 - AG 历史病例允许壁面回退，新队列由 QA 拒绝
+        log.warning("  原始 STL 不可用 %s/%s: %s；本例配准退回 CFD 壁面几何",
+                    cohort_rel, case_name, exc)
+
     # ---- 2. 刚性配准 ----
     reg_cfg = C.registration_for_case(cohort_rel, case_name, cfg.registration)
-    T: RigidTransform = compute_transform(wall_pts, int_pts, cl, reg_cfg)
+    T: RigidTransform = compute_transform(
+        wall_pts, int_pts, cl, reg_cfg,
+        anatomy_pts=anatomy_pts, anatomy_source=anatomy_source,
+    )
+    cl_effective = dict(cl)
+    if T.centerline_translation_applied:
+        cl_effective["coords"] = cl["coords"] + T.centerline_translation_mm
+        log.warning("  centerline 纯平移修复 %s/%s: offset_frac=%.3f shift_mm=%s "
+                    "NN(p50/p90)=%.2f/%.2fmm",
+                    cohort_rel, case_name, T.centerline_offset_diag_frac,
+                    np.round(T.centerline_translation_mm, 3).tolist(),
+                    T.centerline_repair_p50_mm, T.centerline_repair_p90_mm)
     if not T.roll_sign_reliable:
         log.warning("  左右轴符号不可靠 %s/%s: roll_source=%s sign_source=%s |cos|=%.3f，"
                     "已回退世界轴锚，朝向可能左右翻转，建议人工复核",
@@ -237,11 +331,11 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
     wall_aln = T.apply_points(wall_pts)
     int_aln = T.apply_points(int_pts)
 
-    # ---- 2b. 未描主动脉尾巴裁剪（配准后、归一化前；对覆盖一致病例为 no-op） ----
-    cl_aln = T.apply_points(cl["coords"])
+    # ---- 2b. 未描主动脉尾巴裁剪（配准后、归一化前；覆盖一致时不裁剪） ----
+    cl_aln = T.apply_points(cl_effective["coords"])
     tgt = AXIS_INDEX[T.principal_axis_target]
     wall_keep, int_keep, crop_frac, crop_applied = untraced_inlet_crop_masks(
-        wall_aln, int_aln, cl_aln, cl["abscissa"], tgt, reg_cfg)
+        wall_aln, int_aln, cl_aln, cl_effective["abscissa"], tgt, reg_cfg)
     if crop_applied:
         log.info("  未描主动脉尾巴裁剪 %s/%s: 裁掉壁面 %.1f%%（%d->%d 点）",
                  cohort_rel, case_name, 100.0 * crop_frac, len(wall_pts), int(wall_keep.sum()))
@@ -253,12 +347,12 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
     # ---- 3. 坐标逐病例标准化 ----
     if cfg.normalization.coord_scope == "per_case":
         # 缩放参照：默认只按壁面范围（视角一致，不受内部 CFD 流动延伸段长度影响）
-        ref = wall_aln if cfg.normalization.coord_scale_on == "wall" \
+        scale_ref = wall_aln if cfg.normalization.coord_scale_on == "wall" \
             else np.vstack([wall_aln, int_aln])
         if cfg.normalization.coord_method == "std":
-            scale = float(ref.std())
+            scale = float(scale_ref.std())
         else:  # max_abs -> [-1,1]
-            scale = float(np.abs(ref).max())
+            scale = float(np.abs(scale_ref).max())
         scale = scale if scale > 1e-9 else 1.0
     else:
         scale = 1.0  # 全局缩放在 build_samples 阶段处理
@@ -279,10 +373,10 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         is_near = is_near & mask
     int_type = np.where(is_near, NEAR_WALL, INTERIOR).astype(np.int8)
 
-    # ---- 5. 几何特征（保留供后续 mask） ----
-    wall_geom = _nearest_centerline_feats(wall_pts, cl)
+    # ---- 5. 几何特征（完整保留，后续由特征掩码选择） ----
+    wall_geom = _nearest_centerline_feats(wall_pts, cl_effective)
     wall_dist = np.zeros(len(wall_pts), dtype=np.float32)  # 壁面点 dist_to_wall=0
-    int_geom = _nearest_centerline_feats(int_pts, cl)
+    int_geom = _nearest_centerline_feats(int_pts, cl_effective)
 
     # ---- 6. 堆叠时间步场 ----
     n_wall = len(wall_pts)
@@ -290,14 +384,32 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
     wp_ts = np.empty((len(steps), n_wall), dtype=np.float32)
     wvec_ts = np.empty((len(steps), n_wall, 3), dtype=np.float32) if cfg.tagging.store_wall_wss_vector else None
     nodenumber_reordered_steps = []
+    nodenumber_extra_dropped_steps = []
+    nodenumber_extra_dropped_n = 0
+    wall_coord_spatial_remap_steps = []
     wall_coord_mismatch_steps = []
     wall_coord_max_abs_delta = 0.0
     for i, s in enumerate(steps):
         wf = raw_io.read_wall_fields(case_dir, case_name, s)
-        wf, reordered = _align_wall_fields_to_reference(wf, ref_node_ids, s)
+        wf, reordered, n_extra_dropped = _align_wall_fields_to_reference(
+            wf, ref_node_ids, s)
         if reordered:
             nodenumber_reordered_steps.append(int(s))
+        if n_extra_dropped:
+            nodenumber_extra_dropped_steps.append(int(s))
+            nodenumber_extra_dropped_n += int(n_extra_dropped)
         coord_delta = float(np.max(np.abs(wf["coords"] - wall_native))) if len(wall_native) else 0.0
+        if coord_delta > 1e-8:
+            wf, spatial_remapped, spatial_max_distance = _spatially_align_wall_fields_to_reference(
+                wf, wall_native, ref_node_ids, s,
+            )
+            if spatial_remapped:
+                wall_coord_spatial_remap_steps.append(int(s))
+                coord_delta = float(np.max(np.abs(wf["coords"] - wall_native)))
+                log.warning(
+                    "  step %d 少量节点 ID/坐标错配，已按完全一致坐标集合重排 "
+                    "max_nn_distance=%.3e", s, spatial_max_distance,
+                )
         wall_coord_max_abs_delta = max(wall_coord_max_abs_delta, coord_delta)
         if coord_delta > 1e-8:
             wall_coord_mismatch_steps.append(int(s))
@@ -320,15 +432,24 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
             nw_vmag_ts[i] = f["vel_mag"][nw_idx]
 
     # ---- 7. 保存 bundle ----
-    out_dir = C.out_case_dir(cohort_rel, case_name)
+    out_dir = C.out_case_dir(cohort_rel, case_name, out_root=out_root)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "bundle.npz"
+
+    def _vec3_or_nan(value):
+        return np.full(3, np.nan, dtype=np.float64) if value is None else np.asarray(value, dtype=np.float64)
+
+    landmark_trunk = _vec3_or_nan(T.landmark_trunk_point)
+    landmark_left = _vec3_or_nan(T.landmark_left_point)
+    landmark_right = _vec3_or_nan(T.landmark_right_point)
+    centerline_shift = _vec3_or_nan(T.centerline_translation_mm)
 
     payload = dict(
         # 元信息
         case=case_name, cohort=cohort_rel,
         steps=np.asarray(steps, dtype=np.int32),
         peak_step=np.int32(peak),
+        wall_reference_step=np.int32(wall_ref_step),
         coord_scale=np.float32(scale),
         coord_scale_on=np.asarray(cfg.normalization.coord_scale_on),
         unit_factor=np.float64(unit_factor),
@@ -349,6 +470,24 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         transform_trunk_centering_applied=np.bool_(T.trunk_centering_applied),
         transform_trunk_centering_offset_mm=T.trunk_centering_offset_mm.astype(np.float64),
         transform_trunk_centering_offset_frac=np.float64(T.trunk_centering_offset_frac),
+        transform_frame_version=np.asarray(T.frame_version),
+        transform_landmark_source=np.asarray(T.landmark_source),
+        transform_superior_direction=np.asarray(T.superior_direction),
+        transform_landmark_trunk_point=landmark_trunk,
+        transform_landmark_left_point=landmark_left,
+        transform_landmark_right_point=landmark_right,
+        transform_fork_spread_ratio=np.float64(T.fork_spread_ratio),
+        transform_lr_separation=np.float64(T.lr_separation),
+        transform_centerline_translation_applied=np.bool_(T.centerline_translation_applied),
+        transform_centerline_translation_candidate=np.bool_(T.centerline_translation_candidate),
+        transform_centerline_translation_mm=centerline_shift,
+        transform_centerline_offset_diag_frac=np.float64(T.centerline_offset_diag_frac),
+        transform_centerline_repair_p50_mm=np.float64(T.centerline_repair_p50_mm),
+        transform_centerline_repair_p90_mm=np.float64(T.centerline_repair_p90_mm),
+        original_stl_path=np.asarray(stl_path),
+        original_stl_scale_to_mm=np.float64(stl_scale_to_mm),
+        original_stl_match_score=np.float64(stl_match_score),
+        original_stl_n_candidates=np.int32(stl_n_candidates),
         # 壁面（静态几何）
         wall_coords_norm=wall_norm,
         wall_coords_raw=wall_pts.astype(np.float32),
@@ -377,7 +516,13 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         payload.update(near_wall_idx=nw_idx.astype(np.int32),
                        near_wall_vel=nw_vel_ts, near_wall_vel_mag=nw_vmag_ts)
 
-    np.savez_compressed(out_path, **payload)
+    # 同目录临时文件完成后再原子替换，避免中断留下半个 bundle。
+    tmp_path = out_dir / f".bundle.{os.getpid()}.tmp.npz"
+    try:
+        np.savez_compressed(tmp_path, **payload)
+        os.replace(tmp_path, out_path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
 
     bundle_mb = out_path.stat().st_size / 1e6
     rot_det = float(np.linalg.det(T.rotation))
@@ -400,6 +545,24 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         "coord_scale_on": cfg.normalization.coord_scale_on,
         "wss_scope": cfg.normalization.wss_scope, "wss_method": cfg.normalization.wss_method,
         "rotation_det": round(rot_det, 6),
+        "frame_version": T.frame_version,
+        "landmark_source": T.landmark_source,
+        "superior_direction": T.superior_direction,
+        "fork_spread_ratio": round(float(T.fork_spread_ratio), 4),
+        "lr_separation": round(float(T.lr_separation), 4),
+        "landmark_trunk_point_mm": [round(float(x), 4) for x in landmark_trunk],
+        "landmark_left_point_mm": [round(float(x), 4) for x in landmark_left],
+        "landmark_right_point_mm": [round(float(x), 4) for x in landmark_right],
+        "centerline_translation_candidate": bool(T.centerline_translation_candidate),
+        "centerline_translation_applied": bool(T.centerline_translation_applied),
+        "centerline_translation_mm": [round(float(x), 4) for x in centerline_shift],
+        "centerline_offset_diag_frac": round(float(T.centerline_offset_diag_frac), 4),
+        "centerline_repair_p50_mm": round(float(T.centerline_repair_p50_mm), 4),
+        "centerline_repair_p90_mm": round(float(T.centerline_repair_p90_mm), 4),
+        "original_stl_path": stl_path,
+        "original_stl_scale_to_mm": None if not np.isfinite(stl_scale_to_mm) else float(stl_scale_to_mm),
+        "original_stl_match_score": None if not np.isfinite(stl_match_score) else float(stl_match_score),
+        "original_stl_n_candidates": stl_n_candidates,
         "principal_axis_target": T.principal_axis_target,
         "origin_kind": T.origin_kind,
         "main_axis_mode": T.main_axis_mode,
@@ -417,8 +580,13 @@ def preprocess_case(cohort_rel: str, case_name: str, cfg: C.PipelineConfig | Non
         "centroid_mm": [round(float(x), 4) for x in T.centroid],
         "wss_raw_min": float(wss_ts.min()), "wss_raw_max": float(wss_ts.max()),
         "nodenumber_alignment_ok": True,
+        "wall_reference_step": int(wall_ref_step),
         "nodenumber_reordered_n_steps": len(nodenumber_reordered_steps),
         "nodenumber_reordered_steps": nodenumber_reordered_steps[:10],
+        "nodenumber_extra_dropped_n": nodenumber_extra_dropped_n,
+        "nodenumber_extra_dropped_steps": nodenumber_extra_dropped_steps[:10],
+        "wall_coord_spatial_remap_n_steps": len(wall_coord_spatial_remap_steps),
+        "wall_coord_spatial_remap_steps": wall_coord_spatial_remap_steps[:10],
         "wall_coord_mismatch_n_steps": len(wall_coord_mismatch_steps),
         "wall_coord_mismatch_steps": wall_coord_mismatch_steps[:10],
         "wall_coord_max_abs_delta": float(wall_coord_max_abs_delta),

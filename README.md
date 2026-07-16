@@ -4,7 +4,7 @@
 
 ## 目录导航
 - [`pipeline/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline)：正式处理流程，推荐入口
-- `pipeline_wss_min/`：WSS-only 最小化预处理流程，默认输入 `x,y,z`、标签 `wss`，使用分叉原点版解剖刚性配准与壁面稀疏采样
+- `pipeline_wss_min/`：WSS-only 最小化预处理流程，默认输入 `x,y,z`、标签 `wss`，使用原始 STL landmark v4 解剖坐标架与归一化后壁面采样
 - [`training/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training)：任务 A V1/V2/V3 内部训练、评估与集群脚本
 - [`external_baselines/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/external_baselines)：外部论文 baseline 复现代码，当前包含 PointNetCFD
 - [`pipeline/vmtk_core.py`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/vmtk_core.py)：主线几何中心线提取与特征计算核心
@@ -36,15 +36,17 @@ bash external_baselines/pointnetcfd/cluster/submit_pointnetcfd.sh \
 ## 推荐入口
 WSS-only 最小化路线（独立产物 `data_wss_min/`，不改旧 `pipeline/` 数据）：
 
+当前 v4 活动口径：AG76；AAA 几何签核63、训练质量白名单57；AG split `61/0/15`，AG+AAA trainpool `118/0/15`。GPU Jobs `9138` / `9140` 已完训完评：AG-v4 未追平旧 E2 common-test15 锚点；混合相对 AG-v4 小幅提升整体 R²/排序/热点定位，但高 WSS 幅值压缩更重。ILO 本轮未处理。
+
 ```bash
 conda activate GNN
-python -m pipeline_wss_min.visualize_alignment --split split_AG_wss_min_v1
-python -m pipeline_wss_min.coord_check --split split_AG_wss_min_v1
-python -m pipeline_wss_min.visualize_stl_point_overlap --split split_AG_wss_min_v1 --n 10 --seed 20260707
-python -m pipeline_wss_min.run --stage all
+python -m pipeline_wss_min.run --stage preprocess
+python -m pipeline_wss_min.run --stage qa-gate
+python -m pipeline_wss_min.run --stage global-stats --stats-timesteps peak
+python -m pipeline_wss_min.run --stage build-samples
 ```
 
-说明见 `pipeline_wss_min/README.md`、`training_wss_min/README.md`、`docs/02-推进与变更/WSS最小化_训练实验跟踪.md` 与 `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`；已完成的诊断与交接材料统一放在 `docs/02-推进与变更/_archive/WSS最小化/`。
+说明见 `pipeline_wss_min/README.md`、`training_wss_min/README.md`、`docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md`、`docs/02-推进与变更/WSS最小化_训练实验跟踪.md` 与 `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`；已完成的诊断与交接材料统一放在 `docs/02-推进与变更/_archive/WSS最小化/`。
 
 批量处理前建议先做一次输入审计：
 

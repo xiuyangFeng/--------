@@ -44,6 +44,20 @@ class RigidTransform:
     trunk_centering_applied: bool = False
     trunk_centering_offset_mm: np.ndarray | None = None   # 新坐标系下被减掉的横向平移量
     trunk_centering_offset_frac: float = 0.0
+    frame_version: str = "legacy_centerline_v3"
+    landmark_source: str = "wall"
+    superior_direction: str = "unknown"
+    landmark_trunk_point: np.ndarray | None = None
+    landmark_left_point: np.ndarray | None = None
+    landmark_right_point: np.ndarray | None = None
+    fork_spread_ratio: float = 0.0
+    lr_separation: float = 0.0
+    centerline_translation_applied: bool = False
+    centerline_translation_candidate: bool = False
+    centerline_translation_mm: np.ndarray | None = None
+    centerline_offset_diag_frac: float = 0.0
+    centerline_repair_p50_mm: float = 0.0
+    centerline_repair_p90_mm: float = 0.0
 
     def apply_points(self, pts: np.ndarray) -> np.ndarray:
         return (pts - self.centroid) @ self.rotation
@@ -74,6 +88,29 @@ class RigidTransform:
                 else self.trunk_centering_offset_mm.tolist()
             ),
             "trunk_centering_offset_frac": self.trunk_centering_offset_frac,
+            "frame_version": self.frame_version,
+            "landmark_source": self.landmark_source,
+            "superior_direction": self.superior_direction,
+            "landmark_trunk_point": (
+                None if self.landmark_trunk_point is None else self.landmark_trunk_point.tolist()
+            ),
+            "landmark_left_point": (
+                None if self.landmark_left_point is None else self.landmark_left_point.tolist()
+            ),
+            "landmark_right_point": (
+                None if self.landmark_right_point is None else self.landmark_right_point.tolist()
+            ),
+            "fork_spread_ratio": self.fork_spread_ratio,
+            "lr_separation": self.lr_separation,
+            "centerline_translation_applied": self.centerline_translation_applied,
+            "centerline_translation_candidate": self.centerline_translation_candidate,
+            "centerline_translation_mm": (
+                None if self.centerline_translation_mm is None
+                else self.centerline_translation_mm.tolist()
+            ),
+            "centerline_offset_diag_frac": self.centerline_offset_diag_frac,
+            "centerline_repair_p50_mm": self.centerline_repair_p50_mm,
+            "centerline_repair_p90_mm": self.centerline_repair_p90_mm,
         }
 
 
@@ -125,7 +162,7 @@ def _bifurcation_origin(centerline: Dict[str, np.ndarray], cfg: RegistrationConf
 
 
 def _kmeans_points(points: np.ndarray, n_clusters: int, n_iter: int = 25) -> Tuple[np.ndarray, np.ndarray]:
-    """Small deterministic k-means for bifurcation near-zero centerline points."""
+    """对分叉附近中心线点执行小规模、确定性的 k-means 聚类。"""
     n = len(points)
     k = max(1, min(int(n_clusters), n))
     centers = [points.mean(axis=0)]
@@ -154,13 +191,11 @@ def _kmeans_points(points: np.ndarray, n_clusters: int, n_iter: int = 25) -> Tup
 
 
 def _flow_divider_origin(centerline: Dict[str, np.ndarray], cfg: RegistrationConfig):
-    """Three-arm bifurcation origin: equal-weight center of trunk + two iliac branch starts.
+    """三臂分叉原点：主干与左右髂支起点的等权中心。
 
-    VMTK's DistToBifurcation≈0 usually marks several points around the branch
-    junction. A plain mean can be biased by uneven sampling along one arm. Here
-    we cluster the near-zero points into anatomical arms and average the arm
-    centers equally, which matches the visual "left/right iliac branches connect
-    to the middle aorta" landmark.
+    VMTK 的 ``DistToBifurcation≈0`` 通常覆盖分支连接处的多个点。直接求均值会
+    被某一支的不均匀采样拉偏，因此先把近零点聚成三条解剖臂，再对三臂中心等权
+    求均值，使原点对应“左右髂支连接主动脉中部”的直观解剖标志。
     """
     d = centerline.get("dist_to_bifurcation")
     coords = centerline["coords"]
@@ -229,8 +264,7 @@ def _branch_roll_direction(
         return None
     roll = _principal_direction(proj)
 
-    # Sign anchor: use a stable world axis projected into the transverse plane.
-    # This keeps repeated runs deterministic and avoids arbitrary PCA sign flips.
+    # 符号锚：把稳定世界轴投影到横断面，保证重复运行确定并避免 PCA 任意翻号。
     anchor = _axis_vector(cfg.roll_sign_world_axis)
     anchor = anchor - (anchor @ main_axis) * main_axis
     if np.linalg.norm(anchor) > 1e-9 and np.dot(roll, anchor) < 0:
@@ -367,10 +401,9 @@ def _wall_pca_main_axis_fallback(
     if wall_delta <= chord_delta:
         return chord_axis, "centerline_chord_ambiguous", chord_delta
 
-    # Wall PCA is used for the axis direction, but its sign is arbitrary.  The
-    # side-score can be fooled when a curved trunk has stronger transverse
-    # spread than the iliac side (for example fast/ZHANG_HAO), so preserve the
-    # centerline trunk->bifurcation sign and only replace the axis direction.
+    # 壁面 PCA 只提供轴方向，其正负号本身不确定。弯曲主干的横向展开度有时会
+    # 超过髂支侧（如 fast/ZHANG_HAO），使侧别评分误判；因此保留中心线“主干→分叉”
+    # 的符号，只替换轴的方向估计。
     sign = 1.0 if float(np.dot(wall_axis, chord_axis)) >= 0 else -1.0
     axis = _unit(wall_axis * sign)
     return axis, "wall_pca_fallback", chord_delta
@@ -539,6 +572,33 @@ def _inlet_tangent_crop_reference(
     return inlet, tangent, span
 
 
+def _superior_inlet_crop_reference(
+    centerline_aln: np.ndarray,
+    target_axis: int,
+) -> Tuple[np.ndarray, np.ndarray, float] | None:
+    """v4 不信任 Abscissas 端点号，直接取 +Z 近端主干并估计向管内的局部切向。"""
+    if len(centerline_aln) < 5:
+        return None
+    axial = centerline_aln[:, int(target_axis)]
+    lo, hi = float(np.min(axial)), float(np.max(axial))
+    span = hi - lo
+    if span <= 1e-9:
+        return None
+    q95 = float(np.quantile(axial, 0.95))
+    q70 = float(np.quantile(axial, 0.70))
+    q90 = float(np.quantile(axial, 0.90))
+    tip_pts = centerline_aln[axial >= q95]
+    inner_pts = centerline_aln[(axial >= q70) & (axial <= q90)]
+    if len(tip_pts) == 0 or len(inner_pts) == 0:
+        return None
+    inlet = np.mean(tip_pts, axis=0)
+    inner = np.mean(inner_pts, axis=0)
+    tangent = _unit(inner - inlet)
+    if np.linalg.norm(tangent) <= 1e-9:
+        return None
+    return inlet, tangent, span
+
+
 def untraced_inlet_crop_masks(
     wall_aln: np.ndarray,
     interior_aln: np.ndarray,
@@ -561,7 +621,10 @@ def untraced_inlet_crop_masks(
 
     margin = trigger = None
     if getattr(cfg, "crop_use_inlet_tangent", True):
-        ref = _inlet_tangent_crop_reference(centerline_aln, abscissa)
+        if getattr(cfg, "frame_mode", "legacy_centerline") == "stl_landmarks":
+            ref = _superior_inlet_crop_reference(centerline_aln, target_axis)
+        else:
+            ref = _inlet_tangent_crop_reference(centerline_aln, abscissa)
         if ref is not None:
             inlet, tangent, span = ref
             margin = float(cfg.crop_axial_margin_frac) * span
@@ -621,12 +684,359 @@ def untraced_inlet_crop_masks(
     return wall_keep, int_keep, crop_frac, bool(crop_frac > 0.0)
 
 
+def _bbox_center_diag(points: np.ndarray) -> Tuple[np.ndarray, float]:
+    lo = np.min(points, axis=0)
+    hi = np.max(points, axis=0)
+    return (lo + hi) * 0.5, float(np.linalg.norm(hi - lo))
+
+
+def _nearest_surface_quantiles(
+    centerline_pts: np.ndarray,
+    surface_pts: np.ndarray,
+) -> Tuple[float, float]:
+    """中心线到表面的最近距离；表面确定性限流以控制 171 例批处理开销。"""
+    from scipy.spatial import cKDTree
+
+    surf = surface_pts
+    if len(surf) > 30000:
+        idx = np.linspace(0, len(surf) - 1, 30000, dtype=np.int64)
+        surf = surf[idx]
+    dist, _ = cKDTree(surf).query(centerline_pts, k=1, workers=1)
+    return float(np.quantile(dist, 0.50)), float(np.quantile(dist, 0.90))
+
+
+def _repair_centerline_translation(
+    centerline: Dict[str, np.ndarray],
+    surface_pts: np.ndarray,
+    cfg: RegistrationConfig,
+) -> Tuple[Dict[str, np.ndarray], Dict[str, object]]:
+    """只在“大偏移 + 平移后形状吻合”同时成立时修复 centerline 纯平移错位。"""
+    out = dict(centerline)
+    cl = np.asarray(centerline["coords"], dtype=float)
+    surf_center, surf_diag = _bbox_center_diag(surface_pts)
+    cl_center, _ = _bbox_center_diag(cl)
+    shift = surf_center - cl_center
+    frac = float(np.linalg.norm(shift) / max(surf_diag, 1e-9))
+    candidate = bool(
+        getattr(cfg, "centerline_translation_repair", False)
+        and frac >= float(cfg.centerline_translation_trigger_diag_frac)
+    )
+    applied = False
+    p50 = p90 = 0.0
+    if candidate:
+        shifted = cl + shift
+        p50, p90 = _nearest_surface_quantiles(shifted, surface_pts)
+        applied = bool(
+            p50 / max(surf_diag, 1e-9) <= float(cfg.centerline_translation_max_p50_diag_frac)
+            and p90 / max(surf_diag, 1e-9) <= float(cfg.centerline_translation_max_p90_diag_frac)
+        )
+        if applied:
+            out["coords"] = shifted
+    return out, {
+        "candidate": candidate,
+        "applied": applied,
+        "shift": shift if applied else np.zeros(3, dtype=float),
+        "offset_frac": frac,
+        "p50": p50,
+        "p90": p90,
+    }
+
+
+def _transverse_spread(points_centered: np.ndarray, axis: np.ndarray) -> float:
+    proj = points_centered - np.outer(points_centered @ axis, axis)
+    if len(proj) < 5:
+        return 0.0
+    direction = _principal_direction(proj)
+    t = proj @ direction
+    return float(np.quantile(t, 0.95) - np.quantile(t, 0.05))
+
+
+def _terminal_slices(
+    points_centered: np.ndarray,
+    axis: np.ndarray,
+    q: float,
+) -> Tuple[np.ndarray, np.ndarray]:
+    t = points_centered @ axis
+    lo = points_centered[t <= np.quantile(t, q)]
+    hi = points_centered[t >= np.quantile(t, 1.0 - q)]
+    return lo, hi
+
+
+def _bbox_center(points: np.ndarray) -> np.ndarray:
+    return (np.min(points, axis=0) + np.max(points, axis=0)) * 0.5
+
+
+def _two_branch_landmarks(
+    fork_points_centered: np.ndarray,
+    main_axis: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float]:
+    """末端髂支切片聚成两支，返回未定号轴、两支中心与分离置信度。"""
+    proj = fork_points_centered - np.outer(fork_points_centered @ main_axis, main_axis)
+    centers, labels = _kmeans_points(proj, 2, n_iter=40)
+    if len(centers) != 2 or np.any(np.bincount(labels, minlength=2) < 5):
+        axis = _principal_direction(proj)
+        center = np.mean(fork_points_centered, axis=0)
+        return axis, center - axis, center + axis, 0.0
+
+    # 中心取各团原始三维点的包围盒中心，降低 STL 三角片密度不均的影响。
+    c0 = _bbox_center(fork_points_centered[labels == 0])
+    c1 = _bbox_center(fork_points_centered[labels == 1])
+    conn = c1 - c0
+    conn = conn - (conn @ main_axis) * main_axis
+    axis = _unit(conn)
+    within = []
+    for i, center in enumerate(centers):
+        d = proj[labels == i] - center
+        within.append(float(np.sqrt(np.mean(np.sum(d * d, axis=1)))))
+    separation = float(np.linalg.norm(conn) / max(np.mean(within), 1e-9))
+    return axis, c0, c1, separation
+
+
+def _geometry_bifurcation_origin(
+    surface_pts: np.ndarray,
+    superior_axis: np.ndarray,
+    terminal_q: float,
+) -> Tuple[np.ndarray, float]:
+    """从 STL 由髂支向主干扫描，找“双管变单管”的首个稳定横断面。
+
+    返回几何分叉中心和扫描置信度（末端双支分离度 / 合流后分离度）。该结果主要
+    是 centerline flow-divider 的守卫：当中心线覆盖不完整把原点落到髂支外侧时，
+    自动改用 STL 分叉点，保证双髂支严格位于 -Z。
+    """
+    axis = _unit(superior_axis)
+    axial = surface_pts @ axis
+    z_lo, z_hi = np.quantile(axial, [0.01, 0.99])
+    span = float(z_hi - z_lo)
+    if span <= 1e-6:
+        return np.mean(surface_pts, axis=0), 0.0
+
+    fork_terminal = surface_pts[axial <= np.quantile(axial, terminal_q)]
+    _, _, _, terminal_sep = _two_branch_landmarks(fork_terminal, axis)
+    centers = np.linspace(z_lo + 0.08 * span, z_lo + 0.62 * span, 28)
+    half_width = 0.032 * span
+    rows = []
+    for zc in centers:
+        slab = surface_pts[np.abs(axial - zc) <= half_width]
+        if len(slab) < 30:
+            continue
+        _, c0, c1, sep = _two_branch_landmarks(slab, axis)
+        mid = 0.5 * (c0 + c1)
+        mid = mid + (zc - float(mid @ axis)) * axis
+        rows.append((float(zc), float(sep), mid))
+
+    if not rows:
+        fallback_z = z_lo + 0.28 * span
+        mid = np.mean(surface_pts[np.abs(axial - fallback_z) <= 0.06 * span], axis=0)
+        return mid, 0.0
+
+    seps = np.asarray([r[1] for r in rows], dtype=float)
+    if len(seps) >= 3:
+        smooth = np.asarray([
+            np.median(seps[max(0, i - 1):min(len(seps), i + 2)])
+            for i in range(len(seps))
+        ])
+    else:
+        smooth = seps
+    threshold = max(2.2, 0.65 * max(terminal_sep, 1e-9))
+    chosen = None
+    for i in range(len(rows)):
+        stable = smooth[i] <= threshold
+        if i + 1 < len(rows):
+            stable = stable and smooth[i + 1] <= threshold
+        if stable:
+            chosen = i
+            break
+    if chosen is None:
+        chosen = int(np.argmin(smooth))
+    origin = np.asarray(rows[chosen][2], dtype=float)
+    confidence = float(terminal_sep / max(smooth[chosen], 1e-9))
+    return origin, confidence
+
+
+def _compute_stl_landmark_transform(
+    wall_pts: np.ndarray,
+    interior_pts: np.ndarray,
+    centerline: Dict[str, np.ndarray],
+    cfg: RegistrationConfig,
+    anatomy_pts: np.ndarray | None,
+    anatomy_source: str,
+) -> RigidTransform:
+    """v4 有符号解剖坐标架：分叉原点、主干 +Z、髂支 -Z、STL 世界 +X 定左右。"""
+    has_stl = anatomy_pts is not None and len(anatomy_pts) >= 30
+    surface = wall_pts if not has_stl else np.asarray(anatomy_pts, dtype=float)
+    source = "wall_fallback" if not has_stl else anatomy_source
+    # 错位病例中 centerline 与原始 STL 同处 VMTK 局部系，真正保留扫描床平移的是
+    # Fluent 壁面。故偏移必须相对 wall 检测；一旦确认纯平移，STL 与 centerline
+    # 作为同一解剖刚体整体平移，绝不改变 STL 的原始旋转/左右世界方向。
+    cl_fixed, repair = _repair_centerline_translation(centerline, wall_pts, cfg)
+    if bool(repair["applied"]) and has_stl:
+        # STL 与 centerline 同属局部系但覆盖范围/表面半径不同，二者 bbox 中心并不
+        # 必然完全相同；分别做 translation-only bbox 对齐，旋转与尺度仍保持原样。
+        wall_box_center, _ = _bbox_center_diag(wall_pts)
+        stl_box_center, _ = _bbox_center_diag(surface)
+        surface = surface + (wall_box_center - stl_box_center)
+
+    cl_origin = _flow_divider_origin(cl_fixed, cfg)
+    cl_origin_kind = "flow_divider"
+    if cl_origin is None:
+        cl_origin = _bifurcation_origin(cl_fixed, cfg)
+        cl_origin_kind = "bifurcation_fallback"
+
+    # 先完全不依赖中心线符号，仅由 STL 两端横向展开度识别髂支端与近端主干端。
+    surface_center = _bbox_center(surface)
+    geom0 = np.asarray(surface, dtype=float) - surface_center
+    axis0 = _principal_direction(geom0)
+    q = float(np.clip(cfg.landmark_terminal_quantile, 0.04, 0.25))
+    lo, hi = _terminal_slices(geom0, axis0, q)
+    if min(len(lo), len(hi)) < int(cfg.landmark_min_side_points):
+        raise ValueError("原始 STL 末端点不足，无法建立解剖坐标架")
+    lo_spread = _transverse_spread(lo, axis0)
+    hi_spread = _transverse_spread(hi, axis0)
+    _, _, _, lo_branch_sep = _two_branch_landmarks(lo, axis0)
+    _, _, _, hi_branch_sep = _two_branch_landmarks(hi, axis0)
+    spread_ratio0 = max(lo_spread, hi_spread) / max(min(lo_spread, hi_spread), 1e-9)
+    # 宽度差明显时用宽端；AAA 近端本身也可能很宽，宽度接近时改用“双管/单管”
+    # 聚类分离度判端，避免把宽主动脉入口误认成双髂支。
+    if spread_ratio0 >= float(cfg.landmark_min_fork_ratio):
+        fork_is_hi = hi_spread >= lo_spread
+    else:
+        fork_is_hi = hi_branch_sep >= lo_branch_sep
+    _, trunk0 = (hi, lo) if fork_is_hi else (lo, hi)
+    fork_spread = max(lo_spread, hi_spread)
+    trunk_spread = min(lo_spread, hi_spread)
+    fork_ratio = float(fork_spread / max(trunk_spread, 1e-9))
+
+    main_axis = -axis0 if fork_is_hi else axis0
+    geom_origin, geom_origin_conf = _geometry_bifurcation_origin(surface, main_axis, q)
+    _, trunk_abs = _terminal_slices(surface, main_axis, q)
+    trunk_point = _bbox_center(trunk_abs)
+    refined = _unit(trunk_point - geom_origin)
+    if np.linalg.norm(refined) > 1e-9:
+        main_axis = refined
+        geom_origin, geom_origin_conf = _geometry_bifurcation_origin(surface, main_axis, q)
+
+    # 优先保留精确的 VMTK flow-divider；若其不能把“主干/髂支”分到原点两侧，
+    # 或与 STL 合流点相距过大，则启用 STL 分叉守卫。
+    centroid = geom_origin if cl_origin is None else np.asarray(cl_origin, dtype=float)
+    origin_kind = "stl_bifurcation" if cl_origin is None else cl_origin_kind
+    _, surface_diag = _bbox_center_diag(surface)
+    fork_abs, trunk_abs = _terminal_slices(surface, main_axis, q)
+    branch_mid = _bbox_center(fork_abs)
+    trunk_point = _bbox_center(trunk_abs)
+    cl_valid = bool(
+        cl_origin is not None
+        and float((trunk_point - centroid) @ main_axis) > 0.0
+        and float((branch_mid - centroid) @ main_axis) < 0.0
+        and np.linalg.norm(centroid - geom_origin) / max(surface_diag, 1e-9) <= 0.35
+    )
+    if not cl_valid:
+        centroid = geom_origin
+        origin_kind = "stl_bifurcation_guard"
+
+    main_axis = _unit(trunk_point - centroid)
+    geom = np.asarray(surface, dtype=float) - centroid
+    # 用最终原点和已定号主轴重新取末端切片；负端必须为双髂支，正端为单主干。
+    fork_pts, trunk_pts = _terminal_slices(geom, main_axis, q)
+    neg_spread = _transverse_spread(fork_pts, main_axis)
+    pos_spread = _transverse_spread(trunk_pts, main_axis)
+    if neg_spread < pos_spread:
+        # 初次 PCA 在极端弯曲病例上可能把两端身份判反；以末端展开度作最终守卫。
+        main_axis = -main_axis
+        fork_pts, trunk_pts = _terminal_slices(geom, main_axis, q)
+        neg_spread, pos_spread = pos_spread, neg_spread
+        trunk_point = _bbox_center(trunk_pts) + centroid
+    else:
+        trunk_point = _bbox_center(trunk_pts) + centroid
+    fork_ratio = float(neg_spread / max(pos_spread, 1e-9))
+
+    roll, c0, c1, lr_sep = _two_branch_landmarks(fork_pts, main_axis)
+    _, _, _, trunk_lr_sep = _two_branch_landmarks(trunk_pts, main_axis)
+    fork_ratio = max(
+        float(neg_spread / max(pos_spread, 1e-9)),
+        float(lr_sep / max(trunk_lr_sep, 1e-9)),
+    )
+    world_anchor = _axis_vector(getattr(cfg, "lr_world_axis", "x"))
+    world_anchor = world_anchor - (world_anchor @ main_axis) * main_axis
+    if np.linalg.norm(world_anchor) <= 1e-9:
+        world_anchor = _axis_vector("y")
+        world_anchor = world_anchor - (world_anchor @ main_axis) * main_axis
+    world_anchor = _unit(world_anchor)
+
+    # +X 沿原始 STL 世界 +X；在 DICOM/LPS 来源中即患者左侧。只定旋转，不修改 STL。
+    if np.dot(roll, world_anchor) < 0:
+        roll = -roll
+        c0, c1 = c1, c0
+    roll = _unit(roll - (roll @ main_axis) * main_axis)
+    left_point = c1 + centroid
+    right_point = c0 + centroid
+
+    # 最终硬守卫：两个自动选出的髂支端点必须都在原点下方。仅沿主轴微调原点，
+    # 不改变任何旋转或左右关系；同时确保近端主干仍留在 +Z。
+    branch_z_max = max(
+        float((left_point - centroid) @ main_axis),
+        float((right_point - centroid) @ main_axis),
+    )
+    axial_margin = 0.01 * max(surface_diag, 1e-9)
+    shift_axial = branch_z_max + axial_margin
+    trunk_z = float((trunk_point - centroid) @ main_axis)
+    if shift_axial > 0.0 and trunk_z - shift_axial > axial_margin:
+        centroid = centroid + shift_axial * main_axis
+        origin_kind = f"{origin_kind}_axial_guard"
+
+    e_x = roll
+    e_z = main_axis
+    e_y = _unit(np.cross(e_z, e_x))
+    e_x = _unit(np.cross(e_y, e_z))
+    R = np.column_stack([e_x, e_y, e_z])
+    if np.linalg.det(R) < 0:
+        e_y = -e_y
+        R = np.column_stack([e_x, e_y, e_z])
+
+    fork_ok = fork_ratio >= float(cfg.landmark_min_fork_ratio)
+    lr_ok = lr_sep >= float(cfg.landmark_min_lr_sep)
+    return RigidTransform(
+        centroid=np.asarray(centroid, dtype=float),
+        rotation=R,
+        principal_axis_target="z",
+        origin_kind=origin_kind,
+        main_axis_mode="bifurcation_to_proximal_trunk",
+        main_axis_source="stl_landmarks" if fork_ok else "stl_landmarks_fork_ambiguous",
+        main_axis_wall_sep_delta=float(fork_ratio - 1.0),
+        roll_source="stl_branch_endpoints",
+        roll_sign_source="stl_world_x",
+        roll_sign_cos=abs(float(np.dot(roll, world_anchor))),
+        roll_sign_reliable=bool(fork_ok and lr_ok),
+        trunk_centering_applied=False,
+        trunk_centering_offset_mm=np.zeros(3, dtype=float),
+        trunk_centering_offset_frac=0.0,
+        frame_version="stl_landmarks_v4",
+        landmark_source=source,
+        superior_direction="proximal_trunk_+z__iliac_-z",
+        landmark_trunk_point=np.asarray(trunk_point, dtype=float),
+        landmark_left_point=np.asarray(left_point, dtype=float),
+        landmark_right_point=np.asarray(right_point, dtype=float),
+        fork_spread_ratio=float(fork_ratio),
+        lr_separation=float(lr_sep),
+        centerline_translation_applied=bool(repair["applied"]),
+        centerline_translation_candidate=bool(repair["candidate"]),
+        centerline_translation_mm=np.asarray(repair["shift"], dtype=float),
+        centerline_offset_diag_frac=float(repair["offset_frac"]),
+        centerline_repair_p50_mm=float(repair["p50"]),
+        centerline_repair_p90_mm=float(repair["p90"]),
+    )
+
+
 def compute_transform(
     wall_pts: np.ndarray,
     interior_pts: np.ndarray,
     centerline: Dict[str, np.ndarray],
     cfg: RegistrationConfig,
+    anatomy_pts: np.ndarray | None = None,
+    anatomy_source: str = "wall",
 ) -> RigidTransform:
+    if getattr(cfg, "frame_mode", "legacy_centerline") == "stl_landmarks":
+        return _compute_stl_landmark_transform(
+            wall_pts, interior_pts, centerline, cfg, anatomy_pts, anatomy_source)
     # ---- 1. 重心 ----
     origin_kind = cfg.center_on
     if cfg.center_on == "flow_divider":

@@ -25,7 +25,7 @@ from training_wss_min import config as C
 from training_wss_min import dataset as D
 from training_wss_min import metrics as M
 from .point_mlp import build_point_mlp
-from training_wss_min.train import seed_all
+from training_wss_min.runtime import seed_all
 
 
 ROOT = Path(__file__).resolve().parent.parent

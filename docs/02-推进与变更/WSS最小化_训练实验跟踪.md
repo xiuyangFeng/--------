@@ -4,12 +4,93 @@
 > 设计、完整指标表、结论、待办。**每完成一轮/一次任务，回填本文档。**
 > 上位：[WSS最小化_代码修改与实验推进记录](WSS最小化_代码修改与实验推进记录.md) / [training_wss_min/README](../../training_wss_min/README.md)。
 
-## 最小 2×3 baseline 矩阵（2026-07-13 ⏳已提交｜Job `8700[0-5]`）
+## PointNet E4 deeper 追加探针与三层 SA foundation（2026-07-15 ✅完训完评｜No-Go）
+
+- `E4-DEEP-GLOBAL` 严格复用 E2-GLOBAL 的 train61 / 固定 FPS-2000 / global log-z / 400 epoch / train-loss 选模协议，仅将网络改为 `6→64→128→256→512；1024→512→256→128→64→1`；参数量 `874,561`，相对 E2 增加 10.3%。
+- Job `8999` 已 `COMPLETED (0:0)`，用时 `01:37:11`；400 epoch 完整，best=第 379 epoch / train loss `0.121590`，比 E2 的 `0.172548` 降低 29.5%。best/last train61+test16 全点评估齐全，best 的 16/16 PostView 包完整，mapping coverage 100%，无 Traceback/OOM/NaN。
+- PointNet++ fine-tune 本轮未启动。前置三层 SA 结构审计已完成：FPS-2000 后中心数 `500/125/32`，radius `0.05/0.10/0.20`，nsample=16；`fast/RAN_QING_BO` 的覆盖率 `99.90%/100%/100%`。完整 PNG、VTP、assignment CSV 与 manifest 位于 `例子/06_PointNet++_SA三层采样与分组/`。
+
+| best 配对指标 | E2 | E4 | E4−E2 |
+| --- | ---: | ---: | ---: |
+| train / test 物理 `R²_cb` | 0.6124 / **0.2140** | **0.6966** / 0.1629 | +0.0841 / **−0.0511** |
+| 物理 train−test gap | 0.3985 | 0.5337 | +0.1352（变差） |
+| train / test 归一化 `R²_cb` | 0.7717 / **0.4606** | **0.8375** / 0.4476 | +0.0658 / −0.0130 |
+| test 物理 MAE / RMSE | **2.8005 / 5.1141** | 2.8510 / 5.2778 | +0.0505 / +0.1637 |
+| test high-WSS R² / top10 幅值比 | **−1.486 / 0.378** | −1.680 / 0.333 | 均变差 |
+| test Spearman / top10 IoU | **0.661** / 0.146 | 0.657 / **0.153** | −0.004 / +0.007 |
+| test 双 self-max `R²_cb` / 负例 | −4.857 / 16 | **−4.208** / 16 | 小幅改善，仍 No-Go |
+
+**结论**：E4 把 train-fit 做得更好，却使物理/归一化 test R² 下降、gap 扩大、MAE/RMSE 和 high-WSS 幅值恢复变差；16 例中物理 R² 仅 6 例改善、10 例退化。top10 IoU 和 self-max 的小幅好转不足以抵消整体泛化恶化，因此导师追加深度探针判为 **No-Go**，保留 E2 为 PointNet 锚点，不继续纯深度扫描。`ckpt_last` 的 test 物理/归一化 R²=`0.1618/0.4451`，与 best 同结论。test16 已被反复使用，本结果只作为导师驱动的同协议配对证据，不表述为无偏最终测试。完整表见[PointNet 矩阵 §4.4](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md#44-导师追加深度探针-e4-deep-global2026-07-15-完训完评no-go)。
+
+## PointNet baseline 新矩阵（2026-07-15 ✅五组完训+完评）
+
+- 当前只保留 `PointNet+xyzgeom`；共同协议为无 val/无早停/400 epoch。
+- 正式父实验分为导师通道对齐的容量组和 5000 点 random 不放回/每 epoch 重采样组；两组各做全局与逐病例归一化配对。
+- 该矩阵的公式讨论、Job 状态、high-risk 评价与每例可视化产物统一转到[PointNet baseline 实验矩阵与进度跟踪](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)；本文仅保留已完成的原 baseline 数值与其他路线证据。
+- **2026-07-14 实现回填**：`N-CASE` 冻结为 `WSS/WSSmax`；E2/E3 的 GLOBAL/CASE 四份主配置、`E23-GLOBAL`（精确导师宽网 + random-5000）交互配置、random-5000 协议校验、best/last 隔离评估和 test16 STL/VTP 流水线均已写入。
+- 训练阶段新增 sampled normalized MSE/MAE/RMSE；完整点云 R²、Spearman、top10 与热点位置仍由训练后的 eval 计算。`ckpt_best(train_loss)` 为主报告和 PostView，`ckpt_last` 只作指标审计。
+- **Slurm 结案（2026-07-15）**：`8976–8980` 五个 Job 均 `COMPLETED (0:0)`；5/5 run 的 best/last train61+test16 全点评估齐全，best 共导出 80/80 个 test case PostView 包，surface mapping coverage 为 100%。
+
+| Run | 变量 | test 主空间 `R²_cb` | Spearman | top10 IoU | 结论 |
+| --- | --- | ---: | ---: | ---: | --- |
+| `E0-GLOBAL` | 原 PointNet + FPS-2000 | 物理 0.1414 / norm 0.3964 | 0.635 | 0.128 | 共同对照 |
+| **`E2-GLOBAL`** | **导师宽网** | **物理 0.2140 / norm 0.4606** | 0.661 | 0.146 | 本轮最强；容量有效，但热点仍 No-Go |
+| `E3-GLOBAL` | random-5000 | 物理 0.1637 / norm 0.4218 | 0.645 | 0.124 | 点数/重采样单独增益弱 |
+| `E23-GLOBAL` | 宽网 + random-5000 | 物理 0.1988 / norm 0.4598 | **0.674** | 0.148 | 未超过 E2，无明确协同 |
+| `E2-CASE` | E2 + `WSS/WSSmax` | norm 0.1724 | 0.574 | 0.140 | **No-Go** |
+| `E3-CASE` | E3 + `WSS/WSSmax` | norm 0.1551 | 0.559 | **0.159** | 局部 IoU 改善但整体分布 **No-Go** |
+
+**本轮结论**：导师宽通道是主要有效因素；random-5000 不是稳定主增量，且与加宽没有明确协同。逐病例 `WSS/WSSmax` 使 R²、Spearman、p99 与动态范围明显退化，虽在 E3 上出现局部 hotspot IoU 改善，仍不足以支持替换全局 log-z。E2 的 physical high-WSS R² 仍为 −1.486、top10 幅值比仅 0.378，所以只判为相对改进，不判为可部署 Go。完整配对、best/last 审计和失败病例可视化见[独立矩阵文档 §4.2](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md#42-正式矩阵结果2026-07-15)。
+
+**导师 self-max 补充（2026-07-15）**：五组 80 个既有 test PostView 已无推理回填 `WSScfd/WSScfd,max` 与 `WSSpred/WSSpred,max`。五组的 16/16 逐病例 self-max R² 均为负；相对较好的 E2-GLOBAL pooled/case-balanced R² 仍为 −4.802/−4.857，说明去掉绝对幅值后空间型态仍未学准。CASE 线性输出还产生负点：E2/E3-CASE 病例平均占 7.34%/6.03%。定义、完整表、负值解释和 VTP/图件路径见[独立矩阵文档 §4.3](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md#43-导师补充指标cfdcfdmax-对-predpredmax2026-07-15)。
+
+**下一轮暂不自动执行**：以 E2-GLOBAL 为锚点，讨论顺序冻结为开发协议（train61 内 group-dev/repeated holdout）→ 推理期可得 BC/病例级信息审计 → shape/scale 拆分与热点 loss → 局部拓扑表示 → 几何分层采样。random-5000、原样 `WSS/WSSmax` 和继续盲目加宽不列为优先项；详见[独立矩阵文档 §9](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md#9-下一阶段优化方向待讨论不自动开跑)。
+
+## PointNet 无 val / train_loss 选模 / 400 epoch（2026-07-14 ✅完训+完评｜`8968` / eval `8974`/`8975`）
+
+- 协议：`split_AG_wss_min_v1_traintest`（61/0/16）、train_loss 选模、400 epoch、FPS-2000、seed=1234。
+- **主结果 `R²_field_cb`**：
+
+| 臂 | train61 | test16 | gap | test 负例 | test high-WSS R² |
+|---|---:|---:|---:|---|---:|
+| xyz | 0.5704 | 0.0825 | 0.488 | 5/16 | −1.88 |
+| **xyz+geom** | 0.5303 | **0.1414** | 0.389 | 5/16 | −1.76 |
+
+- **结论**：No-Go（泛化）；几何臂 test 略好，保留 xyz+geom；train-fit 有容量信号但选模协议不适合作精度主线。产物：`runs/pointnet_trainloss_e400/outputs/*/eval/metrics.json`。
+
+## PointNet 加宽容量探针（2026-07-14 ✅完训｜Job `8970`｜No-Go）
+
+- 相对 2×3 最佳格只改容量：`PointNet + xyz+geom`，`width=128` / `head_hidden=256`，其余同冻结 val 协议。
+- **val8 `R²_field_cb=0.3071`** vs 锚点 **0.3015**（Δ≈+0.006）；RMSE/MAE/热点几乎持平。
+- **结论**：单变量加宽无实质增益；下一步按矩阵做老师通道对齐与 5k random，不再扩宽本结构。
+
+## 最小 2×3 baseline 矩阵（2026-07-14 ✅DONE｜Job `8700[0-5]` 全部 `0:0`）
 
 - 重新从最基础形式起步：`MLP / PointNet / PointNet++` × `xyz / xyz+geom`，共 6 个单 seed（1234）作业；`xyz+geom=xyz+abscissa_norm+local_radius+curvature`。
 - 统一使用 `split_AG_wss_min_v1` 的 AG 划分（train/val/test=`53/8/16`），只训练和选择 `val`，暂不读取 test；峰值收缩期、WSS 单标量、FPS-2000、完整壁面 val 推理。
 - 训练仅用未加权标准化空间 MSE，关闭旋转增强、采样/几何/目标加权、多任务和 raw-space 辅助项；PointNet++ 为经典 SA+FP，无 PointNeXt 残差/倒置瓶颈。
-- 实验包位于 `training_wss_min/runs/baseline_2x3_simple/`：`make_configs.py` 固化 6 份配置，`submit.sh` 提交最多 4 并发的 Slurm array，所有产物落在同目录 `outputs/`。2026-07-13 已提交 `8700[0-5]`（初始为排队）；完成后只报告 `R²_field_casebalanced`、raw-space RMSE/MAE 及逐病例摘要，再决定后续扩展。
+- 实验包位于 `training_wss_min/runs/baseline_2x3_simple/`：`make_configs.py` 固化 6 份配置，`submit.sh` 提交最多 4 并发的 Slurm array，所有产物落在同目录 `outputs/`。`8700[0-5]` 于 2026-07-14 依次完成，6/6 均 `COMPLETED (0:0)`；全程只做 val，`test16` 未读。
+
+| 模型·输入 | `R²_field_cb` | `R²_field_raw` | case mean / median / P10 R² | 负例 | RMSE / MAE (Pa) | high-WSS R² | top10 比 / IoU |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| MLP · xyz | 0.1980 | 0.2043 | 0.0080 / 0.1114 / −0.3414 | 1/8 | 4.424 / 2.615 | −1.3788 | 0.361 / 0.189 |
+| MLP · xyz+geom | 0.2442 | 0.2632 | 0.0669 / 0.0496 / −0.2142 | 3/8 | 4.257 / 2.476 | −1.0972 | 0.447 / 0.182 |
+| PointNet · xyz | 0.1727 | 0.1704 | 0.1194 / 0.0699 / −0.0554 | 2/8 | 4.517 / 2.454 | −1.6736 | 0.313 / 0.150 |
+| **PointNet · xyz+geom** | **0.3015** | **0.3122** | **0.1842 / 0.1404 / +0.0143** | **1/8** | 4.113 / 2.291 | −1.1690 | 0.457 / 0.235 |
+| PointNet++ · xyz | 0.2169 | 0.2367 | 0.0156 / 0.0694 / −0.3146 | 2/8 | 4.333 / 2.583 | −1.0329 | 0.461 / 0.207 |
+| PointNet++ · xyz+geom | 0.2587 | 0.2668 | 0.1287 / 0.1427 / −0.0950 | 1/8 | **4.247 / 2.281** | −1.4213 | 0.387 / 0.226 |
+
+**判读**：几何特征对三种架构的 `R²_field_cb` 均有增益（MLP `+0.046`、PointNet `+0.129`、PointNet++ `+0.042`）。本矩阵的最强且最稳单格是 **PointNet + xyz+geom**：主指标/pooled R² 最高，逐病例 P10 唯一为正，且只 1/8 负例。PointNet++ 的 `xyz+geom` MAE 最低但主 R² 较 PointNet 低 `0.043`；在纯 xyz 条件下 PointNet++ 的主指标最好（0.217），但仍明显低于加入几何后的 PointNet。六格 high-WSS R² 全为负、top10 幅值比仅 `0.313–0.461`，说明基础网络能学到中低 WSS 空间趋势，却仍严重低估高 WSS，不能把单 seed 结果视为最终结论或架构终裁。
+
+**后续边界**：这轮完成“最简单形式”的单 seed baseline，不扩展模块、不访问 test；若要把 PointNet+xyz+geom 作为正式比较锚点，需要另行决定是否补多 seed。
+
+### baseline 壁面 ParaView 包（2026-07-14 ✅DONE｜`8966` / `8967` 均 `0:0`）
+
+- 原 `8961[0-5]` 的全量 6×8 导出在用户收窄范围后已取消，已生成的全量/冒烟产物已清理；不产生腔内切片，不读取 test。
+- 当前范围只保留当前最佳 baseline `PointNet+xyz+geom` 的两个 val 病例，按同点逐病例 R² 排序：最佳 `slow/CHENG_LU_LI=0.3959`，最差 `slow/XU_YI_CAI=-0.0577`。单作业 `8966` 与依赖汇总 `8967` 均 `COMPLETED (0:0)`。
+- 每个 `surface_wall.vtp` 同时挂载 `wss_cfd`、`wss_pred`、`err_wss`、`abs_err_wss`（Pa），以及四个 `*_over_cfd_max` 字段。归一化的分母固定为**同一病例 CFD 壁面最大 WSS**，所以 CFD、预测与误差可在 ParaView 中用同一 0–1 标尺比较。
+- CFD 和预测同用 Gaussian `r=3 mm, sharpness=2, max_dist=3 mm` 回插到同一经配准变换的 STL；另写 `map_dist` / `map_valid`、mapping report、同点 wall CSV、CFD/Pred/signed-error 三联预览。正式 R² 始终只读同点 CSV。
+- 两个最终 VTP 均验证 10 个字段齐全、mapping coverage=100%。`CHENG_LU_LI` 的 CFD max=48.595 Pa、同点 R²=0.3959；`XU_YI_CAI` 的 CFD max=36.417 Pa、同点 R²=−0.0577。最终批次输出与打开说明见 `training_wss_min/runs/baseline_2x3_simple/postview/README.md`；`comparison.csv` 与 `comparison_by_run.csv` 已生成。
 
 ## 第六轮指标/调度修订（2026-07-13 ✅DONE｜覆盖下方旧的 36-run 默认调度）
 

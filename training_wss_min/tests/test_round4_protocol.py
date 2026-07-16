@@ -19,7 +19,7 @@ from training_wss_min import dataset as D
 from training_wss_min import metrics as M
 from training_wss_min.evaluate import parse_and_guard_partitions
 from training_wss_min.tools.gate1_compare import gate1
-from training_wss_min.train import compute_loss
+from training_wss_min.objectives import compute_loss, fixed_quantile_scale
 
 
 def _synth_case(n=200, seed=0):
@@ -188,9 +188,8 @@ class TestFixedWeight(unittest.TestCase):
         b2 = {"y": y2, "curv": torch.ones_like(y2), "invr": torch.ones_like(y2),
               "y_raw": torch.ones_like(y2)}
         # weight for y=0.5 should be identical: 1 + 2*((0.5-0)/(1-0))=2
-        from training_wss_min.train import _fixed01
-        w1 = 1 + 2 * _fixed01(torch.tensor([0.5]), 0.0, 1.0)
-        w2 = 1 + 2 * _fixed01(torch.tensor([0.5]), 0.0, 1.0)
+        w1 = 1 + 2 * fixed_quantile_scale(torch.tensor([0.5]), 0.0, 1.0)
+        w2 = 1 + 2 * fixed_quantile_scale(torch.tensor([0.5]), 0.0, 1.0)
         self.assertEqual(float(w1), float(w2))
         # losses finite
         self.assertTrue(torch.isfinite(compute_loss(pred, b1, tcfg, "cpu")))

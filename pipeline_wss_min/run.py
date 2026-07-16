@@ -21,6 +21,8 @@ from __future__ import annotations
 
 import argparse
 import time
+from dataclasses import replace
+from pathlib import Path
 from typing import List
 
 from . import config as C
@@ -33,11 +35,26 @@ def _cohorts(args) -> List[str]:
     return list(C.COHORTS.values())
 
 
+def _config_from_args(args) -> C.PipelineConfig:
+    """根据命令行覆盖项构造新配置，不修改全局默认配置对象。"""
+    sample = replace(
+        C.DEFAULT.sample,
+        wall_n_points=(args.wall_n if args.wall_n is not None
+                       else C.DEFAULT.sample.wall_n_points),
+        timesteps=(args.timesteps if args.timesteps is not None
+                   else C.DEFAULT.sample.timesteps),
+        name=(args.sample_name if args.sample_name is not None
+              else C.DEFAULT.sample.name),
+    )
+    return replace(C.DEFAULT, sample=sample)
+
+
 def run_preprocess(
     cfg: C.PipelineConfig,
     cohorts: List[str],
     case: str | None,
     split_name: str | None,
+    out_root: Path,
 ):
     """逐病例处理，产出批量审计（ok/skipped/error 分类清晰）。"""
     import traceback
@@ -53,7 +70,9 @@ def run_preprocess(
             cases = sorted({p.name for p in raw_dir.iterdir() if p.is_dir()}) if raw_dir.is_dir() else []
         for cn in cases:
             try:
-                rows.append(preprocess.preprocess_case(cohort, cn, cfg))
+                rows.append(preprocess.preprocess_case(
+                    cohort, cn, cfg, out_root=out_root,
+                ))
             except preprocess.SkipCase as e:
                 log.warning("  SKIP %s/%s: %s", cohort, cn, e)
                 rows.append({"cohort": cohort, "case": cn, "status": "skipped", "reason": str(e)})
@@ -62,7 +81,9 @@ def run_preprocess(
                 log.debug(traceback.format_exc())
                 rows.append({"cohort": cohort, "case": cn, "status": "error", "reason": str(e)})
 
-    summary = reporting.write_batch_audit(rows, "preprocess")
+    summary = reporting.write_batch_audit(
+        rows, "preprocess", report_dir=out_root / "pipeline_reports",
+    )
     log.info("[preprocess] done: ok=%d skipped=%d error=%d / total=%d",
              summary["ok"], summary["skipped"], summary["error"], summary["total"])
     for c in summary["skipped_cases"]:
@@ -92,19 +113,22 @@ def main():
     ap.add_argument("--stats-timesteps", default="peak", choices=["peak", "all"],
                     help="global-stats 使用的时间步范围；第三轮 clean-data 默认 peak")
     ap.add_argument("--sample-name", default=None, help="覆盖样本集名")
+    ap.add_argument(
+        "--out-root", default=str(C.OUT_ROOT),
+        help="病例与审计产物根目录；v4 staging 应显式指定隔离目录",
+    )
     args = ap.parse_args()
     if args.all_raw and args.stage != "preprocess":
         raise SystemExit(
             "--all-raw 只允许用于诊断性 preprocess；正式 qa-gate/global-stats/build-samples/all 必须按 split 运行"
         )
 
-    cfg = C.DEFAULT
-    if args.wall_n is not None:
-        cfg.sample.wall_n_points = args.wall_n
-    if args.timesteps is not None:
-        cfg.sample.timesteps = args.timesteps
-    if args.sample_name is not None:
-        cfg.sample.name = args.sample_name
+    cfg = _config_from_args(args)
+    out_root = Path(args.out_root).expanduser().resolve()
+    if args.stage in ("global-stats", "build-samples", "all") and out_root != C.OUT_ROOT.resolve():
+        raise SystemExit(
+            "非默认 --out-root 当前只支持 preprocess/qa-gate；禁止其它阶段静默读取活动数据根"
+        )
 
     cohorts = _cohorts(args)
     split_name = None if args.all_raw else args.split
@@ -116,11 +140,11 @@ def main():
     t0 = time.time()
 
     if args.stage in ("preprocess", "all"):
-        run_preprocess(cfg, cohorts, args.case, split_name)
+        run_preprocess(cfg, cohorts, args.case, split_name, out_root)
     if args.stage in ("qa-gate", "all"):
         if split_name is None:
             raise SystemExit("qa-gate 只允许按 split 运行，不能配合 --all-raw")
-        qa_gate.audit_split(split_name=split_name)
+        qa_gate.audit_split(split_name=split_name, out_root=out_root)
     if args.stage in ("global-stats", "all"):
         global_stats.compute_global_wss_stats(
             cohorts, cfg, split_name=split_name, timesteps_scope=args.stats_timesteps

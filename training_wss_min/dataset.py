@@ -46,11 +46,56 @@ def denormalize_wss(y: np.ndarray, stats: Dict) -> np.ndarray:
     return y * stats["linear"]["std"] + stats["linear"]["mean"]
 
 
+def normalize_target(wss: np.ndarray, stats: Dict, mode: str = "global_stats") -> Tuple[np.ndarray, Dict]:
+    """Normalize a complete case target and return auditable per-case metadata."""
+    wss = np.asarray(wss)
+    if mode == "global_stats":
+        return normalize_wss(wss, stats), {
+            "mode": mode,
+            "stats_source": "train-only global statistics",
+        }
+    if mode != "case_max":
+        raise ValueError(f"unsupported target normalization mode: {mode!r}")
+    case_max = float(np.nanmax(wss)) if wss.size else float("nan")
+    if not np.isfinite(case_max) or case_max <= 1e-12:
+        raise ValueError(f"case_max normalization requires finite WSSmax > 1e-12, got {case_max}")
+    return wss / case_max, {
+        "mode": mode,
+        "case_wss_max": case_max,
+        "stats_source": "this case's complete peak-step ground-truth wall field",
+        "used_as_model_input": False,
+        "physical_recovery_enabled": False,
+    }
+
+
 # ---------------------------------------------------------------------------
 # split
 # ---------------------------------------------------------------------------
 def load_split(split_path: str | Path) -> Dict:
-    return json.loads(Path(split_path).read_text())
+    sp = json.loads(Path(split_path).read_text())
+    seen: Dict[str, str] = {}
+    for part in ("train", "val", "test"):
+        for label in sp.get(f"{part}_cases", []):
+            canonical = canonical_unit_id(label)
+            if canonical in seen:
+                raise ValueError(
+                    f"split partition leakage/duplicate: {canonical} in {seen[canonical]} and {part}"
+                )
+            seen[canonical] = part
+    return sp
+
+
+def canonical_unit_id(label: str) -> str:
+    parts = str(label).strip().split("/")
+    if len(parts) == 2 and parts[0] in {"fast", "slow"} and parts[1]:
+        return f"AG/{parts[0]}/{parts[1]}"
+    if len(parts) == 3 and parts[0] in {"AG", "AAA"} and parts[1] and parts[2]:
+        if parts[0] == "AG" and parts[1] not in {"fast", "slow"}:
+            raise ValueError(f"invalid AG subset in split ID: {label!r}")
+        if parts[0] == "AAA" and parts[1] not in {"ruputer", "unruputer"}:
+            raise ValueError(f"invalid AAA subset in split ID: {label!r}")
+        return "/".join(parts)
+    raise ValueError(f"invalid split case ID (expect legacy AG or canonical AG/AAA): {label!r}")
 
 
 def load_split_cases(split_path: str | Path, partition: str) -> List[Tuple[str, str]]:
@@ -59,8 +104,9 @@ def load_split_cases(split_path: str | Path, partition: str) -> List[Tuple[str, 
     key = partition if partition.endswith("_cases") else f"{partition}_cases"
     out: List[Tuple[str, str]] = []
     for label in sp.get(key, []):
-        subset, case = label.split("/", 1)          # 'fast/XXX'
-        out.append((f"AG/{subset}", case))
+        canonical = canonical_unit_id(label)
+        cohort, subset, case = canonical.split("/", 2)
+        out.append((f"{cohort}/{subset}", case))
     return out
 
 
@@ -283,9 +329,20 @@ def _radius_gradient_from_bundle(d) -> np.ndarray:
 
 
 def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
-              target: str = "wss") -> Dict:
-    p = C.DATA_ROOT / cohort_rel / case_name / "bundle.npz"
+              target: str = "wss", target_normalization: str = "global_stats",
+              data_root: str | Path = C.DATA_ROOT,
+              required_frame_version: str | None = None) -> Dict:
+    p = Path(data_root) / cohort_rel / case_name / "bundle.npz"
     with np.load(p, allow_pickle=True) as d:
+        if required_frame_version is not None:
+            if "transform_frame_version" not in d.files:
+                raise ValueError(f"missing transform_frame_version: {p}")
+            actual_frame = str(np.asarray(d["transform_frame_version"]).item())
+            if actual_frame != required_frame_version:
+                raise ValueError(
+                    f"wrong frame_version for {cohort_rel}/{case_name}: "
+                    f"{actual_frame!r} != {required_frame_version!r}"
+                )
         steps = d["steps"].tolist()
         peak = int(d["peak_step"])
         si = steps.index(peak)
@@ -299,11 +356,14 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
             y_raw = (p_raw - np.float32(p_raw.mean())).astype(np.float32)
         else:
             raise ValueError(f"unsupported target={target!r} (expect 'wss'|'pressure')")
+        y_norm, target_norm_meta = normalize_target(y_raw, wss_stats, target_normalization)
         case = dict(
             cohort=cohort_rel, case=case_name,
             pos=pos,
             y_raw=y_raw,
-            y_norm=normalize_wss(y_raw, wss_stats).astype(np.float32),
+            y_norm=y_norm.astype(np.float32),
+            target_normalization=target_normalization,
+            target_normalization_meta=target_norm_meta,
             abscissa_norm=d["wall_abscissa_norm"].astype(np.float32),
             local_radius=d["wall_local_radius"].astype(np.float32),
             curvature=d["wall_curvature"].astype(np.float32),
@@ -317,16 +377,23 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
 
 
 def load_partition(split_path: str, partition: str, wss_stats: Dict,
-                   strict: bool = True, target: str = "wss") -> List[Dict]:
+                   strict: bool = True, target: str = "wss",
+                   target_normalization: str = "global_stats",
+                   data_root: str | Path = C.DATA_ROOT,
+                   required_frame_version: str | None = None) -> List[Dict]:
     labels = load_split_cases(split_path, partition)
     cases = []
     missing = []
     for cohort_rel, case_name in labels:
-        p = C.DATA_ROOT / cohort_rel / case_name / "bundle.npz"
+        p = Path(data_root) / cohort_rel / case_name / "bundle.npz"
         if not p.is_file():
             missing.append(f"{cohort_rel}/{case_name}")
             continue
-        cases.append(load_case(cohort_rel, case_name, wss_stats, target=target))
+        cases.append(load_case(
+            cohort_rel, case_name, wss_stats, target=target,
+            target_normalization=target_normalization,
+            data_root=data_root, required_frame_version=required_frame_version,
+        ))
     if missing:
         msg = (f"missing {len(missing)} bundle(s) in partition={partition!r}: "
                + ", ".join(missing[:5]) + ("..." if len(missing) > 5 else ""))
@@ -355,6 +422,16 @@ class WSSMinDataset(Dataset):
         self.training = training
         self.base_seed = base_seed
         self.epoch = 0
+        if training and cfg.sampling == "random" and cfg.wall_n_points > 0:
+            too_small = [
+                f"{c['cohort']}/{c['case']}({len(c['pos'])})"
+                for c in cases if len(c["pos"]) < cfg.wall_n_points
+            ]
+            if too_small:
+                raise ValueError(
+                    "random sampling protocol requires the same number of points per case; "
+                    f"requested {cfg.wall_n_points}, too-small cases: {', '.join(too_small[:5])}"
+                )
         # 给每个 case 一个稳定的 fps seed
         for i, c in enumerate(cases):
             c["geom_seed"] = base_seed + 7919 * i

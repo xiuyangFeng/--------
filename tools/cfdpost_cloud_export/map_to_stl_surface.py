@@ -257,6 +257,8 @@ def map_csv_to_stl(
         "err_p": ("p_pred", "p_cfd"),
         "abs_err_wss": ("wss_pred", "wss_cfd"),
         "abs_err_p": ("p_pred", "p_cfd"),
+        "err_wss_over_cfd_max": ("wss_pred_over_cfd_max", "wss_cfd_over_cfd_max"),
+        "abs_err_wss_over_cfd_max": ("wss_pred_over_cfd_max", "wss_cfd_over_cfd_max"),
     }
     base_cols = [c for c in avail if c not in derived_err]
 
@@ -285,6 +287,15 @@ def map_csv_to_stl(
             mapped["err_p"] = mapped["p_pred"] - mapped["p_cfd"]
         if "abs_err_p" in avail:
             mapped["abs_err_p"] = np.abs(mapped["p_pred"] - mapped["p_cfd"])
+    if "wss_pred_over_cfd_max" in mapped and "wss_cfd_over_cfd_max" in mapped:
+        if "err_wss_over_cfd_max" in avail:
+            mapped["err_wss_over_cfd_max"] = (
+                mapped["wss_pred_over_cfd_max"] - mapped["wss_cfd_over_cfd_max"]
+            )
+        if "abs_err_wss_over_cfd_max" in avail:
+            mapped["abs_err_wss_over_cfd_max"] = np.abs(
+                mapped["wss_pred_over_cfd_max"] - mapped["wss_cfd_over_cfd_max"]
+            )
 
     assert map_dist is not None and valid is not None
     n_bad = int((~valid.astype(bool)).sum())

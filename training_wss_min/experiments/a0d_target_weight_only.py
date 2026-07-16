@@ -18,7 +18,8 @@ from training_wss_min import dataset as D
 from .a0d_simple_overfit import evaluate, load_cases, read_json, sha256
 from .brep_mlp import _set_quantiles
 from .point_mlp import build_point_mlp
-from training_wss_min.train import compute_loss, seed_all
+from training_wss_min.objectives import compute_loss
+from training_wss_min.runtime import seed_all
 
 
 ROOT = Path(__file__).resolve().parent.parent

@@ -148,12 +148,11 @@ def read_centerline(case_dir: Path) -> Dict[str, np.ndarray]:
 
 
 def _read_centerline_vtp_optional(case_dir: Path, expected_n: int) -> Dict[str, np.ndarray]:
-    """Read optional VMTK centerline topology arrays from centerline.vtp.
+    """从 ``centerline.vtp`` 读取可选的 VMTK 中心线拓扑数组。
 
-    The CSV export carries the ordered path used by older code.  The VTP keeps
-    richer VMTK point arrays such as DistToBifurcation and BranchId, which are
-    needed for the stricter anatomical frame.  Missing VTK/VTP or point-count
-    mismatch is treated as a soft fallback to the CSV-only path.
+    CSV 保存旧代码所需的有序路径；VTP 还保存 ``DistToBifurcation``、
+    ``BranchId`` 等严格解剖坐标架所需的点数组。缺少 VTK/VTP 或点数不匹配时，
+    软回退到仅使用 CSV 的路径。
     """
     vtp_path = case_dir / C.RAW_LAYOUT["centerline_vtp"]
     if not vtp_path.is_file():

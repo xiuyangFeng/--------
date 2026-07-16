@@ -27,7 +27,7 @@ import torch
 from . import config as C
 from . import dataset as D
 from . import metrics as M
-from .pointnext import build_model
+from .models import build_model
 
 
 @torch.no_grad()
@@ -49,41 +49,74 @@ def evaluate_partition(model, cases: List[Dict], cfg: C.ExpConfig, feat_stats: D
                        wss_stats: Dict, device: str,
                        save_dir: Path | None = None, make_plots: bool = False) -> Dict:
     model.eval()
-    per_case: Dict[str, Dict] = {}
-    pooled_true, pooled_pred = [], []
+    pred_norm_by_case = []
     for case in cases:
         y_pred_norm = predict_case_norm(model, case, cfg.data.input_features, feat_stats, device)
-        y_pred_raw = D.denormalize_wss(y_pred_norm, wss_stats)
-        # WSS 非负可裁剪；gauge 压力等线性目标可为负，不裁剪。
-        if wss_stats.get("method") == "log_z":
-            y_pred_raw = np.clip(y_pred_raw, 0, None)
-        y_true_raw = case["y_raw"].astype(np.float64)
-        reg = M.regional_metrics(case["pos"], case["local_radius"], y_true_raw, y_pred_raw)
-        reg["calibration"] = M.calibration_metrics(y_true_raw, y_pred_raw)
-        reg["hotspot"] = M.hotspot_localization_metrics(y_true_raw, y_pred_raw, case["pos"])
-        per_case[f"{case['cohort']}/{case['case']}"] = reg
-        pooled_true.append(y_true_raw)
-        pooled_pred.append(y_pred_raw)
-        if make_plots and save_dir is not None:
-            _plot_case(case, y_true_raw, y_pred_raw, save_dir / "heatmaps")
+        pred_norm_by_case.append(np.asarray(y_pred_norm, dtype=np.float64))
 
-    if not pooled_true:
+    true_norm_by_case = [np.asarray(c["y_norm"], dtype=np.float64) for c in cases]
+    normalized = _evaluate_space(
+        cases, true_norm_by_case, pred_norm_by_case,
+        save_dir=save_dir, make_plots=make_plots, plot_space="normalized target",
+    )
+    normalized["normalization"] = {
+        "mode": cfg.data.target_normalization,
+        "case_metadata": {
+            f"{c['cohort']}/{c['case']}": c.get("target_normalization_meta", {})
+            for c in cases
+        },
+        "predictions_clipped_for_metrics": False,
+    }
+
+    if cfg.data.target_normalization == "case_max":
+        result = dict(normalized)
+        result["metric_space"] = "normalized_target"
+        result["normalized"] = normalized
+        return result
+
+    pred_raw_by_case = []
+    for pred_norm in pred_norm_by_case:
+        pred_raw = D.denormalize_wss(pred_norm, wss_stats)
+        if wss_stats.get("method") == "log_z":
+            pred_raw = np.clip(pred_raw, 0, None)
+        pred_raw_by_case.append(np.asarray(pred_raw, dtype=np.float64))
+    true_raw_by_case = [np.asarray(c["y_raw"], dtype=np.float64) for c in cases]
+    physical = _evaluate_space(
+        cases, true_raw_by_case, pred_raw_by_case,
+        save_dir=None, make_plots=False, plot_space="physical target",
+    )
+    physical["metric_space"] = "physical_target"
+    physical["normalized"] = normalized
+    return physical
+
+
+def _evaluate_space(cases: List[Dict], true_by_case: List[np.ndarray],
+                    pred_by_case: List[np.ndarray], *, save_dir: Path | None,
+                    make_plots: bool, plot_space: str) -> Dict:
+    per_case: Dict[str, Dict] = {}
+    for case, y_true, y_pred in zip(cases, true_by_case, pred_by_case):
+        reg = M.regional_metrics(case["pos"], case["local_radius"], y_true, y_pred)
+        reg["calibration"] = M.calibration_metrics(y_true, y_pred)
+        reg["distribution"] = M.distribution_metrics(y_true, y_pred)
+        reg["hotspot"] = M.hotspot_localization_metrics(y_true, y_pred, case["pos"])
+        per_case[f"{case['cohort']}/{case['case']}"] = reg
+        if make_plots and save_dir is not None:
+            _plot_case(case, y_true, y_pred, save_dir / "heatmaps", plot_space)
+
+    if not true_by_case:
         raise ValueError("evaluate_partition received no cases")
-    pt = np.concatenate(pooled_true)
-    pp = np.concatenate(pooled_pred)
-    # pooled hotspot：用拼接点云近似 field 级定位（病例级已在 per_case）
-    pos_all = np.concatenate([c["pos"] for c in cases], axis=0)
-    hotspot = M.hotspot_localization_metrics(pt, pp, pos_all)
-    result = {
+    pt = np.concatenate(true_by_case)
+    pp = np.concatenate(pred_by_case)
+    return {
         "aggregate": M.aggregate_case_metrics(per_case),
         "field": M.basic_metrics(pt, pp),
-        "field_casebalanced": M.casebalanced_field_metrics(pooled_true, pooled_pred),
+        "field_casebalanced": M.casebalanced_field_metrics(true_by_case, pred_by_case),
         "calibration": M.calibration_metrics(pt, pp),
-        "hotspot": hotspot,
-        "regional_field": _regional_field(cases, pooled_true, pooled_pred),
+        "distribution": M.distribution_metrics(pt, pp),
+        "hotspot": M.aggregate_hotspot_metrics(per_case),
+        "regional_field": _regional_field(cases, true_by_case, pred_by_case),
         "per_case": per_case,
     }
-    return result
 
 
 def _regional_field(cases, pooled_true, pooled_pred) -> Dict:
@@ -101,7 +134,8 @@ def _regional_field(cases, pooled_true, pooled_pred) -> Dict:
     return out
 
 
-def _plot_case(case: Dict, y_true: np.ndarray, y_pred: np.ndarray, out_dir: Path):
+def _plot_case(case: Dict, y_true: np.ndarray, y_pred: np.ndarray, out_dir: Path,
+               plot_space: str = "target"):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -111,17 +145,20 @@ def _plot_case(case: Dict, y_true: np.ndarray, y_pred: np.ndarray, out_dir: Path
     # 投影到主轴(z) - x 平面看整条血管；点大小随点数自适应
     px, pz = pos[:, 0], pos[:, 2]
     err = np.abs(y_true - y_pred)
+    vmin = float(np.percentile(y_true, 1))
     vmax = float(np.percentile(y_true, 99))
+    if vmax - vmin < 1e-12:
+        vmax = vmin + 1.0
     emax = float(np.percentile(err, 99)) or 1.0
     s = max(1.0, 4000.0 / len(pos))
 
     fig, axes = plt.subplots(1, 3, figsize=(15, 6), constrained_layout=True)
-    for ax, val, title, vm, cmap in [
-        (axes[0], y_true, "true WSS", vmax, "viridis"),
-        (axes[1], y_pred, "pred WSS", vmax, "viridis"),
-        (axes[2], err, "|err|", emax, "magma"),
+    for ax, val, title, lo, hi, cmap in [
+        (axes[0], y_true, f"true ({plot_space})", vmin, vmax, "viridis"),
+        (axes[1], y_pred, f"pred ({plot_space})", vmin, vmax, "viridis"),
+        (axes[2], err, "|err|", 0.0, emax, "magma"),
     ]:
-        sc = ax.scatter(pz, px, c=np.clip(val, 0, vm), s=s, cmap=cmap, vmin=0, vmax=vm)
+        sc = ax.scatter(pz, px, c=val, s=s, cmap=cmap, vmin=lo, vmax=hi)
         ax.set_title(title); ax.set_aspect("equal"); ax.set_xlabel("z"); ax.set_ylabel("x")
         fig.colorbar(sc, ax=ax, shrink=0.7)
     r2 = M.r2_score(y_true, y_pred)
@@ -136,7 +173,8 @@ def write_reports(result_by_part: Dict[str, Dict], eval_dir: Path):
     (eval_dir / "metrics.json").write_text(json.dumps(result_by_part, indent=2, ensure_ascii=False))
     rows = []
     for part, res in result_by_part.items():
-        for case, reg in res["per_case"].items():
+        norm_res = res.get("normalized", res)
+        for case, reg in norm_res["per_case"].items():
             row = {"partition": part, "case": case}
             for rname, rm in reg.items():
                 if rname == "calibration":
@@ -148,10 +186,17 @@ def write_reports(result_by_part: Dict[str, Dict], eval_dir: Path):
                 if rname == "hotspot":
                     for k in ("high_wss_mae", "top10_iou", "top10_precision",
                               "top10_recall", "spearman_all", "spearman_high_wss",
-                              "peak_point_dist"):
+                              "peak_point_dist", "peak_point_dist_over_bbox",
+                              "hotspot_centroid_dist", "hotspot_centroid_dist_over_bbox"):
                         row[f"hot_{k}"] = round(rm.get(k, float("nan")), 4)
                     continue
+                if rname == "distribution":
+                    for k, v in rm.items():
+                        row[f"dist_{k}"] = round(v, 6) if isinstance(v, float) else v
+                    continue
                 row[f"{rname}_r2"] = round(rm.get("r2", float("nan")), 4)
+                row[f"{rname}_mae"] = round(rm.get("mae", float("nan")), 6)
+                row[f"{rname}_rmse"] = round(rm.get("rmse", float("nan")), 6)
                 row[f"{rname}_nrmse"] = round(rm.get("nrmse_range", float("nan")), 4) \
                     if "nrmse_range" in rm else float("nan")
                 row[f"{rname}_n"] = rm.get("n", 0)
@@ -164,11 +209,22 @@ def write_reports(result_by_part: Dict[str, Dict], eval_dir: Path):
             w.writerows(rows)
 
 
-def load_model_from_run(run_dir: Path, device: str):
+def checkpoint_filename(checkpoint: str) -> str:
+    value = checkpoint.removesuffix(".pt")
+    if value in {"best", "ckpt_best"}:
+        return "ckpt_best.pt"
+    if value in {"last", "ckpt_last"}:
+        return "ckpt_last.pt"
+    raise ValueError("checkpoint must be 'best' or 'last'")
+
+
+def load_model_from_run(run_dir: Path, device: str, checkpoint: str = "best"):
     cfg = C.ExpConfig.from_json(run_dir / "config.json")
     feat_stats = json.loads((run_dir / "feature_stats.json").read_text())
     model = build_model(cfg.model, C.input_dim(cfg)).to(device)
-    ckpt = torch.load(run_dir / "ckpt_best.pt", map_location=device, weights_only=False)
+    ckpt = torch.load(
+        run_dir / checkpoint_filename(checkpoint), map_location=device, weights_only=False
+    )
     model.load_state_dict(ckpt["model"])
     return cfg, feat_stats, model, ckpt
 
@@ -203,8 +259,11 @@ def main():
     ap.add_argument("--partitions", type=str, default="val",
                     help="开发默认 val-only；test 还需 --allow-test 显式解锁")
     ap.add_argument("--allow-test", action="store_true",
-                    help="仅用于获批的 legacy test16 一次评估")
+                    help="显式解锁配置中已获批且锁定的 test partition")
     ap.add_argument("--no-plots", action="store_true")
+    ap.add_argument("--checkpoint", choices=("best", "last"), default="best")
+    ap.add_argument("--output-dir", type=str, default=None,
+                    help="默认 run_dir/eval/ckpt_<best|last>，用于隔离 checkpoint 结果")
     args = ap.parse_args()
 
     if args.run_dir:
@@ -215,9 +274,9 @@ def main():
         raise SystemExit("需要 --run-dir 或 --config")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    cfg, feat_stats, model, ckpt = load_model_from_run(run_dir, device)
+    cfg, feat_stats, model, ckpt = load_model_from_run(run_dir, device, args.checkpoint)
     wss_stats = load_wss_stats_for_run(run_dir)
-    eval_dir = run_dir / "eval"
+    eval_dir = Path(args.output_dir) if args.output_dir else run_dir / "eval" / f"ckpt_{args.checkpoint}"
 
     try:
         partitions = parse_and_guard_partitions(args.partitions, allow_test=args.allow_test)
@@ -226,17 +285,23 @@ def main():
 
     result_by_part = {}
     for part in partitions:
-        cases = D.load_partition(cfg.data.split_path, part, wss_stats, target=cfg.data.target)
+        cases = D.load_partition(
+            cfg.data.split_path, part, wss_stats, target=cfg.data.target,
+            target_normalization=cfg.data.target_normalization,
+            data_root=cfg.data.data_root,
+            required_frame_version=cfg.data.required_frame_version,
+        )
         res = evaluate_partition(model, cases, cfg, feat_stats, wss_stats, device,
                                  save_dir=eval_dir, make_plots=(not args.no_plots and part == "test"))
         result_by_part[part] = res
-        agg, fld = res["aggregate"], res["field"]
-        cb = res["field_casebalanced"]
+        report = res.get("normalized", res)
+        agg, fld = report["aggregate"], report["field"]
+        cb = report["field_casebalanced"]
         print(f"[{part}] cases={agg['n_cases']}  R2_casemean={agg['r2_casemean']:.4f}  "
               f"R2_field_raw={fld['r2']:.4f}  R2_field_casebalanced={cb['r2']:.4f}  "
               f"NRMSE_field={fld['nrmse_range']:.4f}  "
               f"MAE={fld['mae']:.4f}")
-        for rname, rm in res["regional_field"].items():
+        for rname, rm in report["regional_field"].items():
             print(f"    {rname:12s} R2={rm['r2']:.4f} NRMSE={rm['nrmse_range']:.4f} n={rm['n']}")
 
     write_reports(result_by_part, eval_dir)

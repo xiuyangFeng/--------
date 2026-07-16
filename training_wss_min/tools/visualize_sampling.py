@@ -3,7 +3,7 @@
 """导出训练壁面采样的 ParaView 诊断包。
 
 示例：
-  python -m training_wss_min.visualize_sampling \
+  python -m training_wss_min.tools.visualize_sampling \
     --run-dir training_wss_min/runs/r4_dev1_b0_tgtw_batchq_s1234 \
     --case slow/WU_FENG_YAN
 

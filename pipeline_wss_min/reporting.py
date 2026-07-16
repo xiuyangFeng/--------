@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import json
 import logging
+import os
 import time
 from pathlib import Path
 from typing import Dict, List
@@ -21,18 +22,23 @@ from . import config as C
 LOG_DIR = C.PROJECT_ROOT / "logs"
 REPORT_DIR = C.OUT_ROOT / "pipeline_reports"
 
-# 审计列（顺序固定，便于 diff）
+# 审计列顺序固定，便于版本间比较。
 AUDIT_FIELDS = [
     "cohort", "case", "status", "reason",
     "n_wall", "n_interior", "n_near_wall", "near_wall_capped",
     "n_steps", "step_min", "step_max", "peak_step",
     "unit_factor", "unit_anomaly", "unit_extent_mismatch",
     "wall_crop_applied", "wall_crop_frac", "coord_scale_mm", "coord_scale_on", "rotation_det",
+    "frame_version", "landmark_source", "superior_direction", "fork_spread_ratio", "lr_separation",
+    "centerline_translation_candidate", "centerline_translation_applied",
+    "centerline_offset_diag_frac", "centerline_repair_p50_mm", "centerline_repair_p90_mm",
+    "original_stl_path", "original_stl_match_score",
     "origin_kind", "main_axis_mode", "main_axis_source", "main_axis_wall_sep_delta", "roll_source",
     "roll_sign_source", "roll_sign_cos", "roll_sign_reliable",
     "trunk_centering_applied", "trunk_centering_offset_frac",
     "wss_raw_min", "wss_raw_max",
     "nodenumber_alignment_ok", "nodenumber_reordered_n_steps",
+    "wall_coord_spatial_remap_n_steps",
     "wall_coord_mismatch_n_steps", "wall_coord_max_abs_delta",
     "wall_delimiter", "wall_id_column", "interior_delimiter",
     "bundle_mb", "elapsed_s",
@@ -40,7 +46,7 @@ AUDIT_FIELDS = [
 
 
 def setup_logging(stage: str) -> Path:
-    """配置根 logger -> 控制台 + logs/wss_min_<stage>_<ts>.log。返回日志文件路径。"""
+    """配置项目日志器，同时输出到控制台和带时间戳的文件。"""
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     ts = time.strftime("%Y%m%d_%H%M%S", time.localtime())
     log_path = LOG_DIR / f"wss_min_{stage}_{ts}.log"
@@ -69,17 +75,29 @@ def get_logger() -> logging.Logger:
 
 def write_case_report(out_dir: Path, report: Dict) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "report.json").write_text(
-        json.dumps(report, indent=2, ensure_ascii=False, default=_json_default)
-    )
+    target = out_dir / "report.json"
+    tmp = out_dir / f".report.{os.getpid()}.tmp.json"
+    try:
+        tmp.write_text(
+            json.dumps(report, indent=2, ensure_ascii=False, default=_json_default),
+            encoding="utf-8",
+        )
+        os.replace(tmp, target)
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
-def write_batch_audit(rows: List[Dict], stage: str) -> Dict:
+def write_batch_audit(
+    rows: List[Dict],
+    stage: str,
+    report_dir: str | Path | None = None,
+) -> Dict:
     """写批量审计 CSV + JSON，返回汇总统计。"""
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    report_root = Path(report_dir).resolve() if report_dir is not None else REPORT_DIR
+    report_root.mkdir(parents=True, exist_ok=True)
     ts = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 
-    csv_path = REPORT_DIR / f"{stage}_audit_{ts}.csv"
+    csv_path = report_root / f"{stage}_audit_{ts}.csv"
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=AUDIT_FIELDS)
         w.writeheader()
@@ -128,11 +146,11 @@ def write_batch_audit(rows: List[Dict], stage: str) -> Dict:
             for r in rows if r.get("status") == "ok"
             and int(r.get("wall_coord_mismatch_n_steps", 0) or 0) > 0],
     }
-    json_path = REPORT_DIR / f"{stage}_audit_{ts}.json"
+    json_path = report_root / f"{stage}_audit_{ts}.json"
     json_path.write_text(json.dumps({"summary": summary, "rows": rows},
                                     indent=2, ensure_ascii=False, default=_json_default))
-    # 同时写一份不带时间戳的 latest，便于脚本读取
-    (REPORT_DIR / f"{stage}_audit_latest.json").write_text(
+    # 同时写一份不带时间戳的最新结果，便于其他脚本稳定读取。
+    (report_root / f"{stage}_audit_latest.json").write_text(
         json.dumps({"summary": summary, "rows": rows},
                    indent=2, ensure_ascii=False, default=_json_default))
     return summary

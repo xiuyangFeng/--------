@@ -51,13 +51,18 @@ class PointNetRegressor(nn.Module):
     """经典 PointNet 分割式逐点回归：局部编码 + per-case global max。"""
 
     def __init__(self, in_dim: int, width: int, head_hidden: int, out_dim: int = 1,
-                 dropout: float = 0.0):
+                 dropout: float = 0.0, local_channels: Tuple[int, ...] = (),
+                 decoder_channels: Tuple[int, ...] = ()):
         super().__init__()
-        local_dim = width * 4
-        self.local = _mlp([in_dim, width, width * 2, local_dim])
-        self.decoder = _mlp([local_dim * 2, width * 4, head_hidden])
+        local_spec = tuple(local_channels) or (width, width * 2, width * 4)
+        decoder_spec = tuple(decoder_channels) or (width * 4, head_hidden)
+        if not local_spec or not decoder_spec:
+            raise ValueError("PointNet local and decoder channel lists must be non-empty")
+        local_dim = local_spec[-1]
+        self.local = _mlp([in_dim, *local_spec])
+        self.decoder = _mlp([local_dim * 2, *decoder_spec])
         self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
-        self.out = nn.Linear(head_hidden, out_dim)
+        self.out = nn.Linear(decoder_spec[-1], out_dim)
 
     def forward(self, pos: torch.Tensor, x: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
         del pos
@@ -74,6 +79,21 @@ def _group(pos_src, batch_src, pos_query, batch_query, radius_value: float, nsam
     return assign[0], assign[1]  # query indices, source indices
 
 
+def sample_and_group(pos: torch.Tensor, batch: torch.Tensor, *, ratio: float,
+                     radius_value: float, nsample: int, random_start: bool):
+    """Run the exact FPS + ball-query path used by PointNet++ SA.
+
+    The returned ``row``/``col`` tensors are an auditable assignment table:
+    ``row`` indexes query centers and ``col`` indexes source points.  Keeping
+    this operation shared prevents the diagnostic visualizer from drifting
+    away from the model's actual grouping semantics.
+    """
+    idx = fps(pos, batch, ratio=ratio, random_start=random_start)
+    pos_q, batch_q = pos[idx], batch[idx]
+    row, col = _group(pos, batch, pos_q, batch_q, radius_value, nsample)
+    return idx, pos_q, batch_q, row, col
+
+
 class PointNetSetAbstraction(nn.Module):
     """PointNet++ 单尺度 set-abstraction；无残差、无倒置瓶颈。"""
 
@@ -86,9 +106,10 @@ class PointNetSetAbstraction(nn.Module):
         self.local = _mlp([in_ch + 3, out_ch, out_ch])
 
     def forward(self, pos, x, batch):
-        idx = fps(pos, batch, ratio=self.ratio, random_start=self.training)
-        pos_q, batch_q = pos[idx], batch[idx]
-        row, col = _group(pos, batch, pos_q, batch_q, self.radius_value, self.nsample)
+        _, pos_q, batch_q, row, col = sample_and_group(
+            pos, batch, ratio=self.ratio, radius_value=self.radius_value,
+            nsample=self.nsample, random_start=self.training,
+        )
         grouped = torch.cat([pos[col] - pos_q[row], x[col]], dim=-1)
         h = self.local(grouped)
         x_q = scatter(h, row, dim=0, dim_size=pos_q.size(0), reduce="max")
@@ -158,7 +179,9 @@ def build_baseline_model(model_cfg, in_dim: int) -> nn.Module:
         return MLPRegressor(in_dim, tuple(model_cfg.mlp_hidden), model_cfg.out_dim)
     if name == "pointnet":
         return PointNetRegressor(in_dim, model_cfg.width, model_cfg.head_hidden,
-                                 model_cfg.out_dim, model_cfg.dropout)
+                                 model_cfg.out_dim, model_cfg.dropout,
+                                 tuple(model_cfg.pointnet_local_channels),
+                                 tuple(model_cfg.pointnet_decoder_channels))
     if name == "pointnetpp":
         return PointNetPlusPlusRegressor(
             in_dim, model_cfg.width, tuple(model_cfg.sa_ratios),

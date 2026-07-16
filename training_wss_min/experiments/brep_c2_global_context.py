@@ -22,8 +22,8 @@ from .brep_mlp import (_loader, _set_quantiles, eval_canonical, protocol_paths,
 from training_wss_min.evaluate import evaluate_partition, write_reports
 from training_wss_min.tools.gate1_compare import gate1, load_val
 from .pointnext_global_context import build_global_context_model
-from training_wss_min.train import (compute_loss, compute_selection_score, lr_lambda_factory,
-                    seed_all, setup_logger)
+from training_wss_min.objectives import compute_loss, compute_selection_score
+from training_wss_min.runtime import lr_lambda_factory, seed_all, setup_logger
 
 
 ROOT = Path(__file__).resolve().parent.parent

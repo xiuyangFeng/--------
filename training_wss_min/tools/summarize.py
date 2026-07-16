@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """汇总 runs/*/eval/metrics.json：跨配置对比表 + 点数-精度曲线。
 
-  python -m training_wss_min.summarize
+  python -m training_wss_min.tools.summarize
 产出 training_wss_min/runs/_summary/：summary.csv、pointcount_curve.png、regional_bar.png
 并在控制台打印对比表。
 """

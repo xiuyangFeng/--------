@@ -2,7 +2,356 @@
 
 > 用途：单独记录 `pipeline_wss_min/` 这条 WSS-only 最小化数据线的代码、坐标 QA、图件和实验推进。
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
-> 当前执行入口：[第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md) / [BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+> 当前执行入口：[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) / [第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md) / [BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+
+## 2026-07-16｜AG/AAA v4 E2-GLOBAL 完训公平评估 ✅DONE｜v4 No-Go｜AAA 小幅增益但高尾未解
+
+**本次主要修改**：只读收敛 Job `9138` / `9140` 的400 epoch、best/last 全云 train+test15 评估和 best PostView；用预注册的 `ckpt_best(train_loss)` 作主结果，`last` 仅作敏感性。公平对照仅使用旧 E2 已保存预测纯后处得到的 common-test15，没有重训、重推理或用 test 反选 checkpoint。
+
+**对应产物**：`training_wss_min/runs/pointnet_v4/outputs/{ag_v4_e2_global_fps2000,ag_aaa_v4_e2_global_fps2000}/`；结果真源 `data_wss_min/pipeline_reports/v4_cutover_20260715_1921/v4_e2_global_result_analysis.json`；旧锚点为 `training_wss_min/runs/pointnet_distribution_matrix/outputs/e2_global/eval/ckpt_best/common_test15_from_saved_predictions/` 。
+
+**推进到实验步骤**：Job `9138` / `9140` / 延迟监控 `9141` 均 `COMPLETED (0:0)`；AG 用时 `01:18:25`、best epoch `364`、loss `0.1703`，混合用时 `06:14:49`、best epoch `395`、loss `0.1353`。两套 best/last 评估齐全，PostView 均为15/15病例、15/15 manifest bundle、60份 VTP，mapping coverage 最小100%；日志无 NaN/OOM/Traceback/路径或 frame 失败。
+
+**当前状态判断**：旧 v3 E2 common-test15 锚点为 field/case-mean `R²=0.2597/0.1928`、MAE/RMSE `2.754/4.902 Pa`；AG-v4 best 为 `0.1852/0.1465`、`2.847/5.143 Pa`，同病例口径明显回退，v4 单独重跑判 **No-Go**。混合 best 为 `0.2086/0.1572`、`2.772/5.068 Pa`，相对 AG-v4 的 field/case-mean R² 增加 `+0.0234/+0.0106`，15例中8例改善，Spearman `0.6788→0.7041`、top10 IoU `0.1314→0.1575`；但 high-WSS R² `-1.8279→-1.8473`，p99 幅值比 `0.4873→0.4263`、动态范围比 `0.2147→0.1540`，且仍未追平旧锚点。AAA 密网格还贡献了混合 target stats 约 `78.8%` 的全云点，使 log-WSS 统计从 `1.122±1.096` 变为 `0.553±1.373`，这是高幅值压缩的一个待单变量验证混杂因素。结论是 AAA 带来小幅整体/排序/热点定位增益，但高 WSS 幅值压缩更重；`LI_SHU_KUN` 在混合后病例 R² 下降约 `0.293`，下一步优先做病例/域平衡统计、高尾加权与困难病例诊断，不因 last 的小幅 test 改善改变主结论，也不优先切 random-5000。ILO 未处理；旧快照/staging 仍保留，待用户验收并指定归档位置后再清理。
+
+## 2026-07-16｜AG/AAA v4 发布、数值门禁与 E2-GLOBAL GPU 提交 ✅DONE｜后续状态见上条
+
+**数据发布**：发布前复核旧活动 AG 84 bundle + 84 report 共168个 SHA-256 全部匹配终签清单；事务切换后活动 AG 为76例且全部 `stl_landmarks_v4`，`WANG_DENG_FENG` 缺席、`LI_ZHEN_SHAN` 存在。旧84例完整保存在 `data_wss_min/_snapshots/AG_legacy_v3_20260716_signedoff/`，原77例 staging 未删除，`promotion_record.json` 已提交。`AAA/unruputer/HAN_JIAN_FU` 的旧 bundle/report 已做病例级 SHA-256 快照，修正版已原子换入；从原始81个时间步复核 82417 节点，step1120 精确坐标重映射后节点ID、坐标、WSS、pressure 逐点误差均为0。
+
+**训练门禁与协议**：几何终签真源仍为 AG76/AAA63。对139个签核候选扫描 frame、shape、节点、NaN/Inf、负值、全零、非正比例、peak/all 分位数、时间突峰、入口波形、压力和哈希，hard failure=0。派生训练白名单额外排除 AAA 六例：既有 denylist `CHEN_FU`、`SU_KAI_LI`、`ZHANG_GUI_HUA`，以及入口波形量级异常 `ZHANG_ZAO_SHUAN`、`GUO_YU_YING`、`WANG_SHUN_WEN`；AAA 入训57。高 WSS 稀疏尾部病例保留观察，pressure gauge offset 只记录不自动排除。新 split 为 AG `61/0/15`、混合 `118/0/15`（AG61+AAA57），统计只写 `data_wss_min/fold_stats/v4/`。旧 E2 best 已从保存的逐点预测纯后处理重汇总 common-test15，没有重新推理/训练。
+
+**代码/验证**：`DataConfig` 新增向后兼容的显式 `data_root`/`required_frame_version`，split loader 同时支持旧 AG 短 ID 与 canonical AG/AAA ID，并拒绝非法 ID、重复和 partition 泄漏；train/evaluate/PostView 传递显式路径与 frame。AG promotion 增加切换后验证/记录失败自动回滚测试。base pytest 的 cutover 11/11 通过；base 环境因没有 `torch_geometric` 不能收集训练测试，GNN 环境 direct unittest 42/42 通过；Python 编译、Slurm `bash -n`、全量加载、统计病例哈希与 RTX4090 AMP 前后向通过。
+
+**GPU 作业**：两份 E2-GLOBAL/FPS-2000 配置已独立提交：AG-v4 Job `9138` 已连续监控10.18分钟，日志确认 train61、RTX4090、推进至 epoch50，当前/期间最优 loss=`0.3539/0.3333`，无 NaN/OOM/Traceback/path/frame 错误；AG+AAA-v4 Job `9140` 已提交，等待 GPU 资源，Slurm 自行调度。初次 pending Job `9139` 在观察名单路径勘误后、尚未启动前安全取消并由重新预检通过的 `9140` 替代。由于 `9140` 尚未得到 GPU，另挂只读监控 Job `9141`（`after:9140+10`），在其实际启动10分钟后自动核对 CUDA、train118、epoch推进与异常关键字。正式作业均配置训练后自动运行 best/last 全云 train+test15 评估及 best PostView。本轮已启动训练但未等待最终结果，也未分析临时指标；ILO 未处理。
+
+**保留/清理边界**：本轮保留旧 AG84 快照、AG77 staging、AAA/HAN 病例快照与 fixes staging。只有次日结果验收并指定归档位置后，才允许按保留清单打包、复核归档 SHA 再删除旧路径。
+
+## 2026-07-16｜AG/AAA v4 人工终签、最终白名单与发布合同 ✅READY｜未切换
+
+**本次主要修改**：固化用户逐图审核结论：排除 `AAA/unruputer/CAO_DIAN_HE`、`AAA/ruputer/LIU_YU_MING`、`AG/slow/WANG_DENG_FENG`；`AG/fast/LI_ZHEN_SHAN` 的 `CROP` 明确放行，其余软标记病例全部放行。新增 `finalize-review` 将人工决定合并到最终 manifest/白名单/排除清单；发布命令改为从原 77 例 staging 按终签白名单物化 76 例 AG 候选目录，避免误发布 `WANG_DENG_FENG`。新增终签图，只把 3 个排除病例标红，所有已放行病例标黑。
+
+**对应代码/产物**：`pipeline_wss_min/{v4_cutover.py,visualize_v4_cutover.py,tests/test_v4_cutover.py}`；`data_wss_min/pipeline_reports/v4_cutover_20260715_1921/{manual_review_decisions_20260716.json,v4_final_dataset_manifest.*,v4_final_whitelist.json,v4_final_exclusions.json,v4_manual_review_summary.json,v4_soft_flag_definitions.md}`；`assets_新队列审计/alignment_v4_cutover_signedoff_20260716/`。
+
+**推进到实验步骤**：最终 AG=`76`、AAA=`63`，待审=`0`，硬 QA 失败=`0`，`ready_for_promotion=true`。10 项 v4 cutover 回归测试、Python 编译和终签图检查通过；其中已在临时目录完整演练“旧 84 例快照 + 原 staging 77 例保留 + 白名单 76 例原子提升”。
+
+**当前状态判断**：人工终签已完成，但活动 `data_wss_min/AG` 仍为旧 84 例，`promotion_authorized=false`，本条未执行原子切换。`WANG_DENG_FENG` 原属历史 test16；排除后 v4 为 train61/test15，配对比较必须把旧 E2 也重汇总到 common-test15。
+
+## 2026-07-15｜v4 人工审核图按 20 例分组与红黑姓名标记 ✅DONE
+
+**本次主要修改**：在 bundle 直读的 cutover 可视化中新增 AAA/AG 每 20 例分组审核。每组同时生成固定毫米坐标的 X–Z 逐例小图和仿 `05_AG_AAA_v4_common_mm_ortho_overlay.png` 的 X–Z/Y–Z/X–Y 三视图叠加图。按用户反馈，待审与过审病例改为按组容量分层随机混排，固定 seed 保证可复现；待审姓名标红，过审姓名标黑，三视图图例保留逐例颜色与软标记。
+
+**对应代码/产物**：`pipeline_wss_min/visualize_v4_cutover.py`；`assets_新队列审计/alignment_v4_cutover_review_20260715_1921/{grouped20_AAA,grouped20_AG}/` 共 16 张图，`grouped20_review_index.csv` 记录 142 例的分组、顺序、审核状态和图件路径。
+
+**推进到实验步骤**：AAA 65 例分 4 组（20/20/20/5），21 个红名待审病例按容量比例分散到各组，再与 44 个黑名过审病例组内随机交错；AG 77 例同样分层随机混排为 4 组。逐图检查红黑标色、姓名、共同坐标范围和图例均正常。
+
+**当前状态判断**：仅扩充人工审核材料，未修改 bundle、QA 结论或发布状态；`promotion_authorized=false`，仍等待用户逐组签核。
+
+## 2026-07-15｜E4 deeper PointNet Job 8999 结果审核与配对回填 ✅DONE｜No-Go
+
+**本次主要修改**：只读审核 Job `8999` 的 Slurm 状态、训练日志、checkpoint、best/last 全点评估和 best test16 PostView；将 `E4-DEEP-GLOBAL` 与同协议 `E2-GLOBAL` 做单变量配对，回填物理/归一化 R²、train−test gap、MAE/RMSE、high-WSS、top10 幅值比/IoU、Spearman 和双 self-max。本条同时保留前置实现事实：E4 结构为 `6→64→128→256→512；1024→512→256→128→64→1`，PointNet++ 三层 SA foundation 为 `500/125/32`、radius `0.05/0.10/0.20`、nsample=16。本次未修改训练/评估代码，未提交新作业，未启动 PointNet++ fine-tune。
+
+**对应代码/文档**：`training_wss_min/{baseline_models.py,tools/visualize_pointnetpp_sa.py}`、`training_wss_min/configs/{pointnet_deeper/,pointnetpp_sa_foundation/,sweeps/pointnet_deeper_e4.txt}`、`training_wss_min/cluster/pointnet_deeper/`、`training_wss_min/tests/test_pointnet_deeper_sa.py`、`例子/06_PointNet++_SA三层采样与分组/`；[PointNet baseline 实验矩阵 §4.4](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md#44-导师追加深度探针-e4-deep-global2026-07-15-完训完评no-go)、[WSS 训练实验跟踪](WSS最小化_训练实验跟踪.md)、`training_wss_min/configs/README.md`、`docs/README.md`；结果位于 `training_wss_min/runs/pointnet_deeper/outputs/e4_deep_global/`，日志为 `training_wss_min/cluster/logs/wsspn_e4_deep_8999.{out,err}`。
+
+**推进到实验步骤**：Job `8999` 已 `COMPLETED (0:0)`，用时 `01:37:11`；400 epoch 齐全，best=第 379 epoch / train loss `0.121590`。`ckpt_best/last`、best/last train61+test16 评估均齐全，best PostView 16/16 病例 manifest 引用文件无缺失，mapping coverage 全为 100%，self-max/top10 图均为 16/16；日志无 Traceback/OOM/NaN。
+
+**当前状态判断**：E4 相对 E2 将 best train loss 降低 29.5%，train 物理 `R²_cb` 从 0.6124 升至 0.6966；但 test 物理 `R²_cb` 从 0.2140 降至 0.1629，gap 从 0.3985 扩至 0.5337。test 归一化 `R²_cb` 从 0.4606 降至 0.4476，物理 MAE/RMSE 从 `2.8005/5.1141` 升至 `2.8510/5.2778`，high-WSS R² 从 −1.486 降至 −1.680，top10 幅值比从 0.378 降至 0.333。16 例物理 R² 为 6 例改善、10 例退化。虽然 top10 IoU `0.146→0.153` 和双 self-max `R²_cb −4.857→−4.208` 小幅好转，self-max 仍 16/16 负例，不足以抵消整体泛化恶化。结论为 **深度探针 No-Go**：保留 E2 锚点，停止纯 PointNet 深度扫描。best/last 同结论；test16 已被反复使用，只作导师驱动配对证据，不表述为无偏最终测试。
+
+## 2026-07-15｜AG/AAA v4 staging、硬 QA 与可视化签核包 ⏳等待人工签核
+
+**本次主要修改**：在预处理、批量报告、QA 和可视化入口增加显式 `--out-root`，bundle/report 改为临时文件后原子替换；新增 `v4_cutover.py` 的 staging 重建、bundle 硬门、旧版 SHA-256 清单和签核后原子提升命令，以及直接读 bundle 的 v4 对齐审核图。为处理 AAA `HAN_JIAN_FU` 唯一时间步的节点顺序循环错位，增加严格的坐标集一对一重映射；只有坐标集完全一致时才启用，真正移动网格仍会拒绝。
+
+**对应代码/文档**：`pipeline_wss_min/{config.py,preprocess.py,reporting.py,run.py,qa_gate.py,v4_cutover.py,visualize_v4_cutover.py}`、`pipeline_wss_min/cluster/run_ag_v4_{staging,finalize}.slurm`、`pipeline_wss_min/tests/test_v4_cutover.py`、[pipeline README](../../pipeline_wss_min/README.md)、[新队列审计](新队列数据可用性审计_AAA_ILO_2026-07-10.md)、[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。数据与审核产物位于 `data_wss_min/_staging/ag_v4_20260715_cutover/`、`data_wss_min/_staging/aaa_v4_20260715_fixes/`、`data_wss_min/pipeline_reports/v4_cutover_20260715_1921/` 和 `assets_新队列审计/alignment_v4_cutover_review_20260715_1921/`。
+
+**推进到实验步骤**：Slurm `9007` 完成 AG 正式 77 例 v4 staging 重建，`9085` 完成 AG+AAA 终检与图件。AG `77/77`、AAA `65/65` 通过 bundle 硬门；旧 AG 84 例共 168 个 bundle/report 已生成路径、大小和 SHA-256 快照清单。可视化包含新旧 AG 对照、AG/AAA 共同毫米坐标与归一化三视图、`07_frame_metrics.csv/json` 以及所有软标记专项页。本轮没有训练、没有生成 v4 统计。
+
+**当前状态判断**：已到达可视化人工签核门，不是已发布状态。硬 QA 零失败，但仍有 AG 1 例（`LI_ZHEN_SHAN`）和 AAA 21 例需人工确认软标记；`HAN_JIAN_FU` 修正 bundle 仍仅在 AAA fix staging。活动 `data_wss_min/AG` 仍为旧 84 例，`promotion_authorized=false`；未获用户明确签核前禁止执行 `promote`。签核后才能切换为 AG 77 例 v4，随后用独立 v4 实验 ID 配对复跑 `AG-v4 E2-GLOBAL`。
+
+## 2026-07-15｜PointNet self-max 指标回填与下一轮优化讨论清单 ✅DONE
+
+**本次主要修改**：按导师补充口径新增 `WSScfd/WSScfd,max`、`WSSpred/WSSpred,max` 及二者误差字段；扩展 PostView 的 CSV/VTP/manifest 和共享色标三联图。利用既有完整壁面 true/pred 对五组共 80 个 test case 做纯后处理回填，没有重新训练或运行模型前向。同步把 self-max 完整指标、负 R²/负预测点解释和下一阶段 P0–P5 优化方向写入 PointNet 矩阵状态真源。
+
+**对应代码/文档**：`training_wss_min/tools/export_wss_postview.py`、`training_wss_min/tools/backfill_postview_selfmax.py`、`training_wss_min/tests/test_pointnet_distribution_matrix.py`；[PointNet baseline 实验矩阵 §4.3/§9](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)。汇总产物：`training_wss_min/runs/pointnet_distribution_matrix/outputs/selfmax_test_summary.json`；每例图：`postview/ckpt_best/test/<case>/plots/fig_wss_selfmax_triptych.png`。
+
+**推进到实验步骤**：五组 80/80 图、80/80 manifest、240 个 CSV 和 320 个 VTP 字段校验通过；14 项 PointNet 矩阵单元测试通过。当前完成结果归档与下一轮讨论预备，未生成新配置、未提交新 Slurm 作业。
+
+**当前状态判断**：五组 self-max 的 16/16 逐病例 R² 均为负；E2-GLOBAL pooled R² 相对最好但仍为 −4.802，说明主要瓶颈不只是绝对幅值低估，病例内空间型态也明显失配。CASE 的线性输出产生负点（E2/E3 病例平均 7.34%/6.03%），应保留负值比例作为物理有效性护栏。下一轮先冻结 train61 内开发协议并审计推理期可得 BC/病例级信息，再讨论 shape/scale 双头、热点 loss 和局部拓扑表示；不自动重跑 random-5000 或原样 case-max。
+
+## 2026-07-15｜给老师补齐 NMAE 表 + R² regression 图 ✅DONE
+
+**本次主要修改**：原汇总 xlsx 只有 MAE/RMSE、无 NMAE，也无 true–pred 回归图。新增脚本 `docs/03-汇报材料/tools/build_pointnet_matrix_nmae_r2_report.py`，按 `NMAE=MAE/(max−min)` 汇总正式矩阵 6 组（物理 Pa + 归一化），并生成 hexbin 回归图；回填 `WSS_PointNet实验矩阵与结果汇总.xlsx`（新工作表 `NMAE与R2`，主表插入 NMAE 列）。E0 无 PostView，用 `model.eval()` 重推理补齐。
+
+**对应代码/文档**：图与 CSV → `docs/03-汇报材料/figures/WSS_PointNet矩阵_NMAE与R2_20260715/`；xlsx 同上。
+
+**推进到实验步骤**：汇报材料可直接发给老师（表 + 单 run 图 + 汇总网格）。
+
+**当前状态判断**：物理 NMAE（range）因高峰点分母大而数值偏小，须与 R²/热点图一起看；CASE 的 NMAE≈MAE（分母≈1），不可与 GLOBAL log-z 的 NMAE 横比。
+
+## 2026-07-15｜PointNet 分布矩阵五组结果、PostView 与归一化结论回填 ✅DONE
+
+**本次主要修改**：只读核验 Slurm Jobs `8976–8980`、训练日志、checkpoint、best/last 全点评估和全部 test16 PostView 后，完成 E2/E3/E23 与 GLOBAL/CASE 的配对分析。五个 Job 均 `COMPLETED (0:0)`，无 traceback/OOM；5/5 run 均有 best/last train61+test16 指标，best 共 80/80 个病例包完整，VTP surface mapping coverage 100%。抽查 `WANG_DENG_FENG` 与 `GONG_HUI_XIA` 的 top10 overlay，确认定量热点结论与空间图一致。
+
+**对应代码/文档**：[PointNet baseline 实验矩阵与进度跟踪 §4.2](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md#42-正式矩阵结果2026-07-15)、[WSS 训练实验跟踪](WSS最小化_训练实验跟踪.md)、`training_wss_min/configs/README.md`、`docs/README.md`；产物位于 `training_wss_min/runs/pointnet_distribution_matrix/outputs/`。本次未修改训练/评估代码，未提交新作业。
+
+**推进到实验步骤**：E2-GLOBAL、E3-GLOBAL、E23-GLOBAL、E2-CASE、E3-CASE 全部完成训练 → best/last eval → best test16 可视化。预注册主模型仍为 `ckpt_best(train_loss)`，没有根据 test 指标反选 last。
+
+**当前状态判断**：导师宽网 E2 是本轮最强相对改进，test 物理 `R²_cb=0.2140`，比 E0 的 0.1414 增加 0.0725；random-5000 单独增益弱，E23 没有超过 E2，说明容量是主要因素且未见点数协同。`WSS/WSSmax` 在 E2/E3 下将 normalized `R²_cb` 分别从 0.4606/0.4218 降至 0.1724/0.1551；E3-CASE 虽提高 top10 IoU，但整体 R²、Spearman 和动态范围退化，CASE 主结论为 **No-Go**。E2 的 high-WSS R² 仍为 −1.486、top10 幅值比仅 0.378，因此本矩阵不判为可部署 Go；test16 已被连续用于探索性比较，后续也不能把它表述为无偏最终泛化估计。
+
+## 2026-07-14｜PointNet baseline 矩阵文档同步 `E0`/`8970` 结案 ✅DONE
+
+**本次主要修改**：更新 [PointNet baseline 实验矩阵与进度跟踪](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)：`E0-GLOBAL` 标为完训+完评并写入 §4.1 指标表；`8970` 标为补充 No-Go；进度表/执行顺序去掉「排队/运行中」；注明 §6 完整可视化合同从 `E2/E3` 起补齐。
+
+**推进到实验步骤**：矩阵真源已与实测一致；下一跳仍是实现/提交 `E2-GLOBAL`。
+
+**当前状态判断**：文档状态与推进记录文首分析对齐。
+
+## 2026-07-14｜`8968` train+test16 与 `8970` wide128 结果分析 ✅DONE
+
+**本次主要修改**：只读复盘完训/完评：`8968` 事后 eval `8974`/`8975`（`train,test`），以及宽网探针 `8970`（val-only）。产物：`runs/pointnet_trainloss_e400/outputs/{pointnet_xyz,pointnet_xyzgeom}/eval/`、`runs/pointnet_wide128/outputs/pointnet_xyzgeom/eval/`。
+
+**关键指标**（主指标 `R²_field_cb`；**禁止**把 test16 与 2×3 的 val8 当成同一列比）：
+
+| Run | 分区 | R²_cb | R²_raw | case mean/med/P10 | 负例 | RMSE/MAE | high-WSS R² | top10 比/IoU |
+|---|---|---:|---:|---|---|---:|---:|---|
+| 8968 PN·xyz | train61 | 0.5704 | 0.5677 | 0.505/0.522/0.388 | 0/61 | 4.32/2.09 | −0.04 | 0.635/0.435 |
+| 8968 PN·xyz | **test16** | **0.0825** | 0.0832 | 0.071/0.033/−0.143 | **5/16** | 5.60/3.10 | **−1.88** | 0.284/0.095 |
+| 8968 PN·xyz+geom | train61 | 0.5303 | 0.5277 | 0.454/0.462/0.326 | 0/61 | 4.51/2.19 | −0.20 | 0.581/0.415 |
+| 8968 PN·xyz+geom | **test16** | **0.1414** | 0.1433 | 0.106/0.074/−0.062 | **5/16** | 5.42/2.95 | **−1.76** | 0.328/0.174 |
+| 8970 wide128·xyz+geom | val8 | 0.3071 | 0.3167 | 0.173/0.169/−0.007 | 1/8 | 4.10/2.30 | −1.17 | 0.406/0.224 |
+| 2×3 PN·xyz+geom（锚） | val8 | 0.3015 | 0.3122 | 0.184/0.140/+0.014 | 1/8 | 4.11/2.29 | −1.17 | 0.457/0.235 |
+
+**判读**：
+1. **`8968` 过拟合**：train≈0.53–0.57，test16 仅 0.08–0.14（gap≈0.39–0.49）；无 val + train_loss 选模不适合作精度主线。
+2. **几何略优泛化**：test 上 xyz+geom 比纯 xyz **+0.059**；后续保留 xyz+geom。
+3. **高 WSS 仍崩**：test high-WSS R²≈−1.8，top10 比~0.3。
+4. **`8970` 加宽 No-Go**：val 0.3071 vs 锚点 0.3015（Δ≈+0.006），容量单变量无实质增益。
+
+**Go-NoGo**：`8968` 作可部署精度 **No-Go**（test 过低）；作 train-fit 容量信号有。`8970` 相对锚点 **No-Go**。
+
+**下一步**：按 PointNet baseline 矩阵推老师通道 / 5k random；不把 8968 test16 当新追分基线。
+
+**推进到实验步骤**：8968/8970 数值已结案；正式 `E2/E3` 尚未提交。
+
+**当前状态判断**：瓶颈在泛化与高 WSS，不在能否压低 train loss。
+
+## 2026-07-14｜PointNet baseline 实验矩阵与归一化讨论跟踪建立 📄
+
+**本次主要修改**：新建 PointNet baseline 独立跟踪文档，冻结后续只跑 `PointNet+xyzgeom`、无 val/无早停、5000 点 random 不放回且每 epoch 重采样；将容量/采样两条父实验各自拆成全局 log-z 与逐病例归一化配对。记录逐病例 `WSS/WSSmax` 与逐例 log-z 的待冻结差异，并定义归一化空间分布、top10 high-risk 定位和逐 test case 产物口径。
+
+**对应代码/文档**：[PointNet baseline 实验矩阵与进度跟踪](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、[WSS 训练实验跟踪](WSS最小化_训练实验跟踪.md)、`docs/README.md`、根 `README.md`及本记录。本次未改训练代码或配置。
+
+**推进到实验步骤**：`8968`/`8970`/`8974`/`8975` 数值已出（见文首）；正式 `E2-GLOBAL` / `E3-GLOBAL` 尚未实现或提交。
+
+**当前状态判断**：实验矩阵合同已建立；旧探针结案后进入矩阵正式父实验。逐病例公式未冻结前不启动 `E2-CASE` / `E3-CASE`。
+
+## 2026-07-14｜`8968` train+test16 事后 eval 已提交 `8974`/`8975` ✅COMPLETED
+
+**本次主要修改**：取消仅 train 的 `8972`/`8973`；改为一次评 `train,test` 并解锁 `--allow-test`。作业 `8974`/`8975` 均 `COMPLETED (0:0)`；数值见文首分析条。
+
+**当前状态判断**：eval 产物齐全（`metrics.json` 含 train+test）。
+
+## 2026-07-14｜`8968` train-fit 事后 eval 已提交 `8972`/`8973` ↪已取消，改 `8974`/`8975`
+
+**本次主要修改**：对 `pointnet_trainloss_e400` 两臂提交完整壁面 **train** 分区评估（不读 val/test）。后因需保留指标并做 test16，已 `scancel`，由上条 `train,test` 作业替代。
+
+**当前状态判断**：已取消，不作为有效产物。
+
+## 2026-07-14｜PointNet train_loss×400 完训分析 `8968[0-1]` ✅完训｜待 eval
+
+**本次主要修改**：只读复盘作业 `8968[0-1]`（无 val / `selection_rule=train_loss` / 400 epoch / split `61/0/16`）。两枪均 `COMPLETED`：`pointnet_xyz` ~84.1 min，`pointnet_xyzgeom` ~85.6 min；均跑满 400 epoch，无早停。产物：`training_wss_min/runs/pointnet_trainloss_e400/outputs/{pointnet_xyz,pointnet_xyzgeom}/`（`ckpt_best.pt`、`history.jsonl`、`history.png`）。
+
+**关键指标**（仅 train_loss；本协议训练期不写 R²，test16 未读）：
+
+| 臂 | best train_loss | best epoch | last loss | late50 mean±std |
+|---|---:|---:|---:|---|
+| PointNet · xyz | 0.2164 | 379 | 0.2242 | 0.2261±0.0060 |
+| PointNet · xyz+geom | **0.2105** | 383 | 0.2167 | 0.2206±0.0051 |
+
+- 几何臂在 400 epoch 中 **91.75%** 步 train_loss 低于纯 xyz；全程均值差约 `+0.010`（xyz−geom），末 100 epoch 约 `+0.006`。
+- 曲线：两臂均前 ~20 epoch 陡降，其后缓慢下行至 ~0.21–0.23；末段仍有小幅下降与 batch 抖动，未完全平台。
+- 对照冻结 2×3（**不可直接比 R²**）：同架构 baseline 在 val 选模下 `xyz` best train_loss≈0.257（150 ep）、`xyz+geom` 早停 70 ep 且 best val 落在 e9（当时 train_loss≈0.43）。8968 把原 val8 并入 train 并强制训满 400，train fit 更深属协议预期，不构成泛化 Go。
+
+**Go-NoGo**：待定 — 缺泛化指标。本枪只能证明「无 val + train_loss 选模 + 400 ep」可稳定完训，且几何输入在 train fit 上仍略优；**不能**相对 baseline `R²_field_cb=0.3015` 裁决升降。
+
+**下一步**：
+1. 开发侧：`evaluate --partitions train` 报 train-fit 天花板（不碰 test）。
+2. 获批后再 `--partitions test --allow-test` 做一次 test16 终评。
+3. 勿用原 val8 当 held-out（已并入 train61）。
+
+**对应代码/文档**：本条；[训练实验跟踪](WSS最小化_训练实验跟踪.md)；日志 `training_wss_min/cluster/logs/wss_pn_tl_8968_{0,1}.{out,err}`。
+
+**推进到实验步骤**：训练完成；正式 R² / 物理误差尚未写出。
+
+**当前状态判断**：完训健康；结论卡在事后 eval。
+
+## 2026-07-14｜导师建库脚本改为读 bundle.npz（去掉 ascii 全流程） ✅DONE
+
+**本次主要修改**：`teacher/build_wss_dataset.py` 改为老师式「读数据→pkl」：从 `data_wss_min/AG/*/bundle.npz` 取 xyz+几何与峰值 WSS，按正式 split 写出 pkl；不再包含 ascii/ascii_in/STL 预处理。交付说明同步。
+
+**对应代码/文档**：`teacher/{build_wss_dataset.py,交付说明_WSS最小化适配老师接口.md}` 及本记录。
+
+**推进到实验步骤**：建库脚本可直接在有 bundle 的环境运行；原始 Fluent 预处理仍走 `pipeline_wss_min`。
+
+**当前状态判断**：与老师「读已有点云再打 pkl」的职责更一致。
+
+## 2026-07-14｜导师交付脚本按老师源码风格重写 ✅DONE
+
+**本次主要修改**：按用户澄清「外形跟老师、内容用我们项目」，重写 `teacher/build_wss_dataset.py` / `model_train_wss.py`：函数骨架与老师 `sampling_buid_dataset` / `model_train_1` 对齐（process_*、get_model/train_step/my_collate、Adam+Plateau、train-loss 存 best）；内容改为 WSS-min 全流程建库、6 维 xyz+几何、log_z WSS、FPS-2000。去掉 argparse 工程壳。交付说明改为「风格对齐」表述。
+
+**对应代码/文档**：`teacher/{build_wss_dataset.py,model_train_wss.py,交付说明_WSS最小化适配老师接口.md}` 及本记录。
+
+**推进到实验步骤**：可与老师原版并排审阅；尚未实跑建库/训练。
+
+**当前状态判断**：交付形态符合「老师风格模板 + 本项目适配」。
+
+## 2026-07-14｜PointNet 加宽容量探针（width=128，xyz+geom）⏳已提交 `8970`
+
+**本次主要修改**：相对冻结 2×3 最佳格 `PointNet+xyz+geom`，仅加宽通道（`width=32→128`、`head_hidden=64→256`，局部 `in→128→256→512`，相对老师 `256→512` 多一层 128 过渡；`dropout=0`），其余协议不变（FPS-2000、val-only、seed=1234、未加权 MSE）。不重跑 preprocess。后续计划：代码严格对齐老师通道表后再提交两枪——(A) 老师对齐 + FPS-2000；(B) 老师对齐 + 5k random / 每 epoch 重采。
+
+**对应代码/文档**：`training_wss_min/configs/pointnet_wide128/pointnet_xyzgeom.json`、`training_wss_min/configs/sweeps/pointnet_wide128.txt`、`training_wss_min/cluster/pointnet_wide128/`、`training_wss_min/configs/README.md` 及本记录。
+
+**推进到实验步骤**：作业 `8970` 已提交；产物将写入 `training_wss_min/runs/pointnet_wide128/outputs/pointnet_xyzgeom/`；对照基线 `baseline_2x3_simple/outputs/pointnet_xyzgeom`（`R²_field_cb=0.3015`）。
+
+**当前状态判断**：第一枪只隔离「加宽」杠杆；老师严格对齐与 5k 随机采留待第二批，避免与容量效应混杂。
+
+## 2026-07-14｜导师两文件交付代码落地（建库全流程 + PointNet 读 pkl） ✅DONE
+
+**本次主要修改**：用户确认交付口径后，在 `teacher/` 落地 `build_wss_dataset.py`（Fluent/STL/中心线全流程 → `wss_{train,val,test}.pkl` + log-z 统计，特征 6 维 xyz+几何）与 `model_train_wss.py`（老师式 get_model/collate/采点循环；FPS-2000；AdamW+warmup+cosine；完整壁面 val；case-balanced R² 或 train_loss 选模）。同步更新交付说明为已实现状态。`py_compile` 通过。未跑全量建库/训练（需集群与 conda）。
+
+**对应代码/文档**：`teacher/{build_wss_dataset.py,model_train_wss.py,交付说明_WSS最小化适配老师接口.md}` 及本记录。
+
+**推进到实验步骤**：交付脚本可发给老师审阅；试跑可用 `--limit 1`（建库需 `GNN_vmtk`/vtk，训练需 `GNN`）。
+
+**当前状态判断**：两文件接口与文档口径一致；全量 77 例建库应走集群，勿在登录节点直接跑。
+
+## 2026-07-14｜导师两文件交付口径说明（pkl 建库 + 训练）已定稿 📄待实现代码
+
+**本次主要修改**：在 `teacher/` 写清发给导师的交付说明：保留老师「建库脚本 + 训练脚本」两文件形态；建库须 WSS-min **全流程**（原始 Fluent/STL/中心线 → 配准/归一化/几何/QA → pkl）；特征为 **xyz+几何（6 维）**，标签为峰值壁面 WSS；训练脚本模仿老师单文件读 pkl / PointNet / 采点循环，协议采用本项目 log-z、FPS-2000、case-balanced R² 等。老师原版 `sampling_buid_dataset.py` / `model_train_1.py` 保留对照；适配代码 `build_wss_dataset.py` / `model_train_wss.py` 标为待实现。
+
+**对应代码/文档**：`teacher/交付说明_WSS最小化适配老师接口.md`、`teacher/{sampling_buid_dataset.py,model_train_1.py}` 及本记录。
+
+**推进到实验步骤**：交付口径与 pkl 协议已文档化，可直接发给老师确认；尚未落地两份适配脚本、未重跑 preprocess/训练。
+
+**当前状态判断**：用户确认输入 xyz+几何、建库全流程、训练内容用本项目协议后，下一步是在 `teacher/` 实现上述两脚本。↪ 已由上条落地代码替代。
+
+## 2026-07-14｜导师展示 train / pipeline 改为真正自包含单文件 ✅DONE
+
+**本次主要修改**：按导师“全部功能压缩到一个文件”的要求，重写两份展示代码并删除对项目内部模块的调用。PointNet 文件内直接实现 JSON 配置解析、bundle/split 读取、train-only 几何统计、log-z、确定性 FPS、DataLoader、PointNet、AMP、MSE/AdamW、warmup+cosine、梯度裁剪、完整壁面验证、case-balanced R²、早停和 best/last checkpoint。预处理文件内直接实现 Fluent ASCII/中心线/STL 读取、入口峰值选择、节点 ID 对齐、单位换算、中心线平移修复、STL 解剖坐标架、未描入口裁剪、坐标归一化、近壁标注、中心线几何特征、全时间步 WSS/压力/矢量堆叠、QA、冻结 log-z 与 FPS 峰值样本；展示产物只写 `outputs/`，不覆盖正式 bundle。两份代码的说明性注释均使用中文。
+
+**对应代码/文档**：`training_wss_min/examples/pointnet_baseline_train.py`、`pipeline_wss_min/examples/preprocess_pipeline.py`、两侧相关测试与 README，以及本记录。
+
+**推进到实验步骤**：训练文件 224/250 行，使用冻结 baseline JSON 完成 1 epoch 的 53 例训练和 8 例完整壁面 val 实跑，成功写出 loss、指标和 best/last checkpoint；预处理文件 248/250 行，使用 included 病例 `AG/fast/ZHANG_HAO` 从 81 个原始时间步实跑，生成 12,521 壁面点、770,914 内部点的 bundle、QA 报告和 FPS-64 峰值样本。训练/预处理共 29 项单元测试、v4 配准合成测试、编译、CLI、内部 import 禁止项和 PointNet 冻结实现输出一致性均通过；临时产物已清理，未改正式数据、未访问 test16。
+
+**当前状态判断**：两份文件现在都可脱离仓库内部 Python 包独立审阅和执行，只依赖通用第三方库、JSON 配置/split/stats 与原始/预处理数据。生产级模块化入口继续保留用于正式实验，但老师看到的文件不再把核心逻辑藏在调用后面。
+
+## 2026-07-14｜`pipeline_wss_min` 目录重构、历史归档与中文注释收口 ✅DONE
+
+**本次主要修改**：将根目录收敛为 10 个正式核心模块；AAA/ILO v4 的白名单、预处理、只读几何审计、bundle 终检、AG 回归和共同坐标可视化统一迁入 `new_cohorts/`，并把重复的白名单常量与 `unit_id` 解析合并到 `common.py`。2026-07-07 至 2026-07-08 的 AG flow-divider/LR/STL/居中 QA 脚本迁入 `archive/alignment_v3/`，统一冻结为 `legacy_centerline` 且不保留旧根模块兼容层。`run.py` 改为基于 dataclass 复制构造命令行配置，避免采样覆盖项原地污染全局 `DEFAULT`；保留源码的说明性注释/docstring 和用户可见提示统一为中文，技术字段名与文件格式名保持不变。删除 494 个已完成 Slurm `.out/.err`、275 个已完成本地 WSS-min 日志和全部 Python 缓存；所有 bundle、JSON/CSV 审计、图件、split 和训练产物均保留。
+
+**对应代码/文档**：`pipeline_wss_min/{README.md,run.py,config.py,registration.py,raw_io.py,preprocess.py,reporting.py,examples/,tests/}`、`pipeline_wss_min/new_cohorts/`、`pipeline_wss_min/archive/`、`pipeline_wss_min/cluster/`、根 `README.md`、`.gitignore`、归档交接记录及本记录。
+
+**推进到实验步骤**：工程重构与回归验证完成；`compileall` 通过，7 个 WSS-min 单元测试和 5 个 v4 配准合成回归测试通过，3 份 Slurm 脚本通过 `bash -n`，新队列入口仍解析出 171 个双白名单单元。当次展示入口以复用正式模块方式验证；其后已由本文首条记录中的 248 行自包含实现替代。未改写正式 bundle，也未访问 test16。
+
+**当前状态判断**：当前入口、目录职责和代码事实已经一致；AG 正式四阶段继续使用 `pipeline_wss_min.run`，AAA/ILO 使用 `pipeline_wss_min.new_cohorts.*`，历史 AG 坐标 QA 只从归档路径复核。旧命令会直接失败，避免调用者误以为仍在执行当前 v4 口径。
+
+## 2026-07-14｜导师展示用单文件 WSS-min 预处理旧实现 ↪ 已由自包含版替代
+
+**本次主要修改**：新增 229 行的单文件预处理展示入口。默认直接调用正式 `preprocess_case`，完整保留原始 CFD 校验、稳定节点对齐、单位换算、解剖坐标架/配准、裁剪、坐标归一化、壁面标记、几何特征及全时间步 WSS/压力/矢量堆叠；随后在同一文件中显式展示病例 QA、冻结的 train-only peak WSS log-z 统计校验、归一化坐标 FPS 和峰值训练样本构建。入口只接受当前 split 中 included 的 AG train/val/test 病例，并提供 `--skip-preprocess` 安全复用既有 bundle；展示产物仅写入 `outputs/wss_min/teacher_preprocess/`。
+
+**对应代码/文档**：`pipeline_wss_min/examples/{preprocess_pipeline.py,__init__.py}`、`pipeline_wss_min/tests/{test_preprocess_example.py,__init__.py}`、`pipeline_wss_min/README.md` 及本记录。
+
+**推进到实验步骤**：展示代码实现与验证完成；行数门限为 229/250，4 个展示入口单元测试、CLI/编译检查通过。使用既有 included 病例 `AG/fast/ZHANG_HAO` 以 `--skip-preprocess --wall-n 128` 跑通 QA、53 例冻结统计加载和样本构建；v4 配准合成回归测试通过。未重跑正式病例预处理、未重算全局统计、未改写正式 bundle，也未访问 test16。
+
+**当前状态判断**：本条记录的是最初“紧凑入口调用正式模块”的版本，已不符合导师对自包含文件的要求；当前事实以本文首条 248 行自包含实现为准，且展示运行不会更新正式 bundle。
+
+## 2026-07-14｜展示用预处理示例注释改为中文 ✅DONE
+
+**本次主要修改**：将 `pipeline_wss_min/examples/preprocess_pipeline.py` 的模块说明、函数 docstring 与 argparse help 改为中文；逻辑与对外行为不变。
+
+**对应代码/文档**：`pipeline_wss_min/examples/preprocess_pipeline.py` 及本记录。
+
+**推进到实验步骤**：文档可读性调整完成；行数仍 ≤250，相关单元测试通过。
+
+**当前状态判断**：仅注释语言变更，不影响正式 preprocess 路径与训练作业。
+
+## 2026-07-14｜PointNet 无 val / train_loss 选模 / 400 epoch ✅完训 `8968[0-1]`（分析见文首）
+
+**本次主要修改**：新增 train/test-only 划分（原 val8 并入 train→61/0/16），按新 train 重算 WSS 全局统计（不覆盖默认 `wss_global_stats.json`）；`train.py` 支持 `selection_rule=train_loss`（按 epoch 训练损失选 best，`early_stop_patience<=0` 关早停，不加载 val）；冻结 PointNet `xyz` / `xyz+geom` 两份 400-epoch 配置与 Slurm 入口。未重跑 preprocess，未访问 test16。作业 `8968` 已提交（array 0–1）并完训。
+
+**对应代码/文档**：`training/splits/split_AG_wss_min_v1_traintest.json`、`data_wss_min/fold_stats/wss_stats_v1_traintest.json`、`training_wss_min/{train.py,config.py,objectives.py}`、`training_wss_min/configs/pointnet_trainloss_e400/`、`training_wss_min/configs/sweeps/pointnet_trainloss_e400.txt`、`training_wss_min/cluster/pointnet_trainloss_e400/`、`training_wss_min/configs/README.md` 及本记录。
+
+**推进到实验步骤**：训练完成；复盘见文首分析条。
+
+**当前状态判断**：协议与冻结 2×3（val-only）隔离；待 train-fit / 获批 test16 事后 eval。
+
+## 2026-07-14｜导师展示用单文件 PointNet baseline 训练旧实现 ↪ 已由自包含版替代
+
+**本次主要修改**：新增 245 行的单文件 PointNet WSS 训练入口，默认复现 2×3 baseline 中 `PointNet + xyz+geom` 配置，也可通过 `--config` 切换冻结的 `PointNet + xyz`。文件内完整展示 PointNet shared MLP、病例级 max-pool、WSS decoder、FPS-2000 数据加载、MSE/AdamW、warmup+cosine、AMP、梯度裁剪、完整壁面 val、case-balanced R² 选模、早停和 best/last checkpoint；只复用已审计的数据解析与指标公式，明确不读取 test16。
+
+**对应代码/文档**：`training_wss_min/examples/pointnet_baseline_train.py`、`training_wss_min/examples/__init__.py`、`training_wss_min/tests/test_core_refactor.py`、`training_wss_min/README.md` 及本记录。
+
+**推进到实验步骤**：展示代码实现与等价性验证完成；行数门限为 245/250，模型可直接加载正式 `PointNetRegressor` state dict，固定随机输入下输出逐值一致；全套 22 个单元测试与 CLI/编译检查通过。未启动训练、未重评、未访问 test16。
+
+**当前状态判断**：本条记录的是最初仍复用项目数据/指标模块的版本，已不符合导师对自包含文件的要求；当前事实以本文首条 224 行自包含实现为准。冻结 JSON 协议和正式模块化训练入口继续保留。
+
+## 2026-07-14｜`training_wss_min` 核心代码重构与历史入口清理 ✅DONE
+
+**本次主要修改**：按用户确认的保留边界清理训练库：删除全部配置生成器和根目录旧命令兼容 shim，删除 Python 缓存与已完成 Slurm 的原始 `.out/.err`，保留所有 run checkpoint、指标、训练日志、可视化结果、JSON 配置和 manifest。将模型工厂、loss/选模、日志/随机种子从 `train.py` 拆到独立核心模块；训练协议、指标口径和 test 锁未改变。2×3 baseline 的 6 份 JSON 从被忽略的 `runs/` 迁到正式配置目录并新增冻结 manifest/Slurm 入口，不再依赖生成器。
+
+**对应代码/文档**：`training_wss_min/{models.py,objectives.py,runtime.py,train.py,evaluate.py,pointnext.py,README.md}`、`training_wss_min/configs/{README.md,baseline_2x3/,sweeps/baseline_2x3_simple.txt}`、`training_wss_min/cluster/baseline_2x3/`、`training_wss_min/{tools,experiments,tests}/` 及本记录。历史 `dist_to_wall` 配置在 `configs/README.md` 明确标为仅审计保留。
+
+**推进到实验步骤**：工程清理与等价性验证完成；20 个单元测试通过，四种模型合成点云前向/反向通过，17 份 manifest 的 98 个 JSON 引用全部存在。未重训、未重评、未访问 test16。
+
+**当前状态判断**：核心根目录只保留 11 个正式 Python 模块；2×3 baseline、历史 JSON 和现有实验结果均可追溯。后续新增实验需直接提交审查后的 JSON/manifest，不再恢复一次性配置生成脚本或旧入口兼容层。
+
+## 2026-07-14｜2×3 baseline 后处理收窄为最佳/最差两例 ✅DONE，`8966/8967` 均 `0:0`
+
+**本次主要修改**：按用户要求取消全量 `8961[0-5]`（及其依赖汇总 `8962`），清理全量/冒烟输出；postview 作业改为只导出最佳 baseline `PointNet+xyz+geom` 的最佳与最差 val 病例。排序依据是同点 `metrics.json` 的逐病例 R²：`slow/CHENG_LU_LI=0.3959`、`slow/XU_YI_CAI=-0.0577`。同步更新 `postview-surface-viz` skill：已完成 baseline 默认只做 best/worst；全量必须由用户明确要求；`wss/wss(max)` 的 CFD、预测和误差强制共用 CFD max 分母。
+
+**对应代码/文档**：`.cursor/skills/postview-surface-viz/SKILL.md`、`training_wss_min/runs/baseline_2x3_simple/postview/{README.md,run_dirs.txt,val_cases.txt,export_array.slurm,submit.sh}`、[训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+
+**推进到实验步骤**：单例端到端 VTP/mapping QC 冒烟已通过；两例最终导出 `8966` 与自动汇总 `8967` 均完成。两个 VTP 均含 10 个规定数组，Gaussian mapping coverage 均为 100%；`comparison.csv` / `comparison_by_run.csv` / `batch_manifest.json` 已写入。未访问 test16。
+
+**当前状态判断**：最终交付只含两例和 PointNet+xyz+geom 一个模型，避免无意生成 48 个病例包；最佳例 `CHENG_LU_LI` 同点 R²=0.3959，最差例 `XU_YI_CAI`=−0.0577。VTP 标量及同点指标口径保持不变。
+
+## 2026-07-14｜2×3 baseline 壁面 ParaView 可视化与比较 ⏳已提交 `8961[0-5]`
+
+**本次主要修改**：扩展 WSS-min 后处理器，使同一 STL 面片 VTP 同时包含 CFD 真值、预测、signed/absolute error 与 `wss÷wss_max` 归一化显示字段；归一化一律使用同一病例 CFD 壁面最大值。面片回插器同步改为由归一化后的 CFD/Pred 字段重算误差，避免误差被独立二次插值。新增 baseline 6 run × val8 的 array 导出、mapping/QC 汇总器和交付说明。
+
+**对应代码/文档**：`training_wss_min/tools/export_wss_postview.py`、`tools/cfdpost_cloud_export/map_to_stl_surface.py`、`training_wss_min/runs/baseline_2x3_simple/postview/{README.md,export_array.slurm,summarize.py,summarize.slurm,submit.sh}`、[训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+
+**推进到实验步骤**：一例 CPU 端到端冒烟已通过：面片 VTP 含 10 个必须数组，Gaussian mapping coverage=100%。完整导出 array `8961[0-5]` 已提交（最多并发 4），依赖汇总 job `8962` 会在 48 个 VTP 都成功后写入比较 CSV；只读取既有 val run 和其 bundle，未访问 test16。
+
+**当前状态判断**：可视化结果严格用于病例云图和软件检查；R²/Pa 误差继续以同点 `_export/*__wall.csv` 与既有 `eval/metrics.json` 为唯一口径，不在插值 STL 上重算。
+
+## 2026-07-14｜最小 2×3 baseline 全部完成 ✅（Job `8700[0-5]`，6/6 `0:0`）
+
+**本次主要修改**：无新增训练代码；完成并汇总既有 `MLP / PointNet / PointNet++` × `xyz / xyz+geom` 六格的完整壁面 val 评估。模型、输入、AG v1 split、FPS-2000、seed、MSE 和 val-only 协议均保持冻结。
+
+**对应代码/文档**：作业与产物 `training_wss_min/runs/baseline_2x3_simple/`；完整指标、逐病例 CSV、checkpoint 和日志均在各 `outputs/<run>/`；结果表与判读写入[训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+
+**推进到实验步骤**：Slurm array `8700[0-5]` 全部 `COMPLETED (0:0)`，每格完成训练与完整壁面 val 评估；未访问 test16。
+
+**当前状态判断**：PointNet+xyz+geom 为本单 seed 最佳单格（`R²_field_cb=0.3015`，逐病例 P10=+0.014，1/8 负例）；所有 xyz+geom 组都优于相应的 xyz 组。六格 high-WSS R² 均为负且 top10 幅值明显偏低，故它是“最简单形式”的下限基线，非最终模型或可推广的架构排名。
+
+## 2026-07-14｜AAA/ILO 原始 STL 自动解剖坐标架 v4 与 centerline 错位修复 ✅
+
+**本次主要修改**：从第一性原理重建有符号解剖坐标架：由原始 STL 自动选取近端主干、分叉中心和双髂支端点，固定近端主干为 `+Z`、髂支为 `-Z`，用原始 STL 世界 `+X` 对左右轴定号，并保持 `det(R)=+1`。新增 centerline↔壁面纯平移守卫：只在偏移跨过一条血管尺度且平移后最近邻残差通过时修复。壁面拓扑参考改为首步/峰值步/末步三点共识；只允许丢弃极少量非稳定额外节点，稳定节点缺失仍硬失败。
+
+**对应代码/文档**：`pipeline_wss_min/{surface_io.py,registration.py,config.py,preprocess.py,reporting.py,audit_new_cohort_frame.py,audit_ag_frame_v4.py,preprocess_new_cohorts.py,qa_new_cohorts_v4.py,visualize_new_cohort_frame_v4.py}`、`pipeline_wss_min/cluster/{run_new_cohorts_preprocess.slurm,run_new_cohorts_finalize.slurm}`、`tests/test_wss_min_registration_v4.py`、[新队列数据审计](新队列数据可用性审计_AAA_ILO_2026-07-10.md)、`assets_新队列审计/alignment_v4/`。
+
+**推进到实验步骤**：AAA/ILO 数据层干净的 171 单元全量几何门 `171/171` 通过；用户指定的 6 个平移错位单元已修复，并额外发现/修复同类 `ILO/YU_XIANG_SHENG-1/after`，共 7 个。AG included=77 只读回归 `77/77` 通过且无误修复。已修复 ILO 单段 cohort 路径兼容；`ILO/ZHAO_JIAN_PING-0/after` 确认为首步多 1 个瞬态节点，稳定参考选择峰值步 `1162`，只从 `1120` 丢弃 node `111167`。最终作业 `8956` 与终检 `8957` 均 `COMPLETED (0:0)`；汇总 `n_ok=171, n_missing=0, n_other=0`，bundle QA `n_qa_pass=171, n_failed=0`，7 个修复单元与几何审计名单完全一致。
+
+**当前状态判断**：新队列 171 个 bundle/report 已全部入库，仅写 `data_wss_min/AAA/**` 和 `data_wss_min/ILO/**`；未重跑 AG preprocess/global-stats/build-samples，`data_wss_min/AG/**` 当日改写数为 0。已提交的 AG 2×3 实验不受影响。如后续要混合 AG+AAA/ILO，须将 AG 整体重建为 v4，禁止混用 v3/v4 bundle。
+
+## 2026-07-14｜第五轮正式计划与执行计划归档 ✅
+
+**本次主要修改**：确认第五轮已完成诊断性科学结案，但未达到内部工程目标；将正式计划与历史执行计划集中移入 `_archive/WSS最小化/`，不再占用当前推进目录。
+
+**对应代码/文档**：[第五轮正式计划](_archive/WSS最小化/WSS最小化_第五轮优化计划_正式版.md)、[第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md)、[第五轮结案说明](_archive/WSS最小化/WSS最小化_第五轮结案与归档说明_2026-07-12.md)、归档 README。
+
+**推进到实验步骤**：第五轮停止新增任务；L0/OOF/T16 按止损决策保持未触发，后续优化统一进入第六轮。
+
+**当前状态判断**：第五轮历史证据和产物路径保留，当前状态、指标和待办以第六轮文档及训练跟踪为准；同步修复了归档后相互引用的相对链接。
 
 ## 2026-07-14｜合并 `main` 最新推进与变更文档 ✅
 
@@ -184,7 +533,7 @@
 - 扩展第六轮计划：补 C 严格物理 XYZ、E 嵌套因子组、BC 可辨识性、global-local/density-robust/残差/小模型矩阵、raw/case-balanced loss 矩阵、生成模型边界和速度→WSS oracle Gate。
 
 **对应代码/文档**：
-- [第五轮正式计划](WSS最小化_第五轮优化计划_正式版.md) / [历史执行计划](WSS最小化_第五轮执行计划.md) / [结案归档说明](_archive/WSS最小化/WSS最小化_第五轮结案与归档说明_2026-07-12.md)
+- [第五轮正式计划](_archive/WSS最小化/WSS最小化_第五轮优化计划_正式版.md) / [历史执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md) / [结案归档说明](_archive/WSS最小化/WSS最小化_第五轮结案与归档说明_2026-07-12.md)
 - [第六轮 XYZ 尺度诊断计划与执行](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md) / [文档索引](../README.md)
 
 **推进到实验步骤**：文档归档与后续预注册；不改当前 A/B/D Jobs `7029–7037` 的任何 config/Gate，不提交 C/E/架构/loss 新作业。
@@ -247,7 +596,7 @@
 **对应代码/文档**：
 - `training_wss_min/runs/_round5/cfd_audit/{cfd_audit.py,cfd_per_case.csv,cfd_summary.json,cfd_audit_report.md}`
 - `training_wss_min/runs/_round5/final_report/round5_final_report.md`（F0）、`round5_status_synthesis.md`（SUPERSEDED）
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+- [第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：CFD 审计——peak 相位固定步统一、近壁 QA 全清、高 WSS 为真实几何热点、复现 floor ~2%（R²_cap ~0.92–0.96）；独立证实 `HOU_SHEN_QIAN=KANG_XI_MING` 同一几何且均 dev1 train。
 
@@ -260,7 +609,7 @@
 
 **对应代码/文档**：
 - `training_wss_min/runs/_round5/bc_audit/{audit_ag_bc.py,bc_per_case.csv,bc_summary.json,bc_audit_report.md}`
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md)；G2 产物原记录路径为 `training_wss_min/runs/_round5/branch_experiments/branch_decision_g2.md`，当前工作区未保留该文件。
+- [第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md)；G2 产物原记录路径为 `training_wss_min/runs/_round5/branch_experiments/branch_decision_g2.md`，当前工作区未保留该文件。
 
 **推进到实验步骤**：61/61 dev 覆盖完整；Fourier 入口模板跨病例逐字节相同、`Q` 与面积无关（入口流量 CoV≈1.85e-4）；top-3 方差全为 oracle RCR（CoV 0.55–0.67）。
 
@@ -275,7 +624,7 @@
 **对应代码/文档**：
 - `training_wss_min/summarize_round5_lc.py`
 - `training_wss_min/runs/_round5/learning_curve/{learning_curve_report.md,lc_points.csv,lc_curve.png,lc_verdict.json}`
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+- [第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：field R² 均值曲线 `13→0.258 / 26→0.297 / 40→0.312 / 53→0.310`；配对增量 `13→26 +0.039`、`26→40 +0.014`、`40→53 −0.002±0.049`。端点 53 逐 seed `0.359/0.252/0.319`（std 0.044）。
 
@@ -292,7 +641,7 @@
 - `training_wss_min/make_configs_round5_lc.py`、`training_wss_min/configs/round5/a0e_b1_{ctrl,nsl}_s1234.json`、`training_wss_min/configs/round5/lc/`
 - `training/splits/split_AG_wss_min_v2_dev1_lc_*.json`、`data_wss_min/fold_stats/wss_stats_v2_dev1_lc_*.json`
 - `training_wss_min/runs/_round5/a0e_control/a0e_control_report.md`、`training_wss_min/runs/_round5/branch_experiments/branch_decision_g1.md`
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+- [第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：A0E `ctrl` Job `6992` field/casemean `0.3587/0.2300`（复现 anchor），`nsl` Job `6993` `0.3419/0.2125`（更差、2 例负 R²）；G1 `DONE`；LC stage-1 Job `6994–7002` 运行中，LC53 端点复用 ctrl。
 
@@ -310,7 +659,7 @@
 - `training_wss_min/configs/round5/a0d_*.json`
 - `training_wss_min/cluster/run_round5_a0d_*.slurm`
 - `training_wss_min/runs/_round5/a0d_fit_chain/`
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+- [第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：Jobs `6986/6990/6991` 均完成。single-case R² `0.991–0.999`，four-case shared plain MSE field/casemean `0.979526/0.982533`，target-weight-only `0.993723/0.992423`。
 
@@ -374,7 +723,7 @@
 - `training_wss_min/a1_density_surface.py`
 - `training_wss_min/runs/_round5/a1_density_surface/`
 - `training_wss_min/runs/_round5/branch_experiments/branch_decision.md`
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+- [第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：A1 `NO_GO`、G0 `DONE`；IDW3 oracle 通过，但 mapping 总 Gate `0/8`，因此 D1/D2 被硬阻断。
 
@@ -388,7 +737,7 @@
 
 **对应代码/文档**：
 - `training_wss_min/runs/_round5/a0_readonly/{run_a0_readonly.py,rerun.sh,*.csv,summary.json,a0_readonly_report.md}`
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+- [第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：A0R 已完成。best canonical train field/casemean 仅 `0.538–0.573 / 0.494–0.528`；last 将 train field 平均提升 `0.070` 时，canonical val field 平均下降 `0.061`。
 
@@ -406,7 +755,7 @@
 - `training_wss_min/configs/round5/a0_micro_{protocol,b1_s1234}.json`
 - `training_wss_min/cluster/run_round5_a0_micro.slurm`
 - `training_wss_min/runs/_round5/a0_micro/`
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+- [第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：A0M 已完成；Job `6981` `COMPLETED (0:0)`，`R²_field_raw=0.76548`、`R²_casemean=0.72381`，均低于 `0.95`。
 
@@ -423,7 +772,7 @@
 **对应代码/文档**：
 - `training_wss_min/{metrics.py,evaluate.py,gate1_compare.py,tests/test_round4_protocol.py,README.md}`
 - `training_wss_min/runs/_round5/protocol/{protocol_report.md,protocol_regression.json}`
-- [第五轮执行计划](WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+- [第五轮执行计划](_archive/WSS最小化/WSS最小化_第五轮执行计划.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：P0 Gate-0 已通过；17 项聚焦测试通过，旧 B1 seed1234 val-only best checkpoint 回归的 field/casemean/MAE 最大偏差 `3.24e-9 < 1e-8`。
 
@@ -438,8 +787,8 @@
 - 同步修复执行计划中指向旧 §18 的链接和文档索引。本次未修改训练代码、split、stats 或 manifest，未提交作业。
 
 **对应代码/文档**：
-- [WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)
-- [WSS最小化_第五轮执行计划.md](WSS最小化_第五轮执行计划.md)
+- [WSS最小化_第五轮优化计划_正式版.md](_archive/WSS最小化/WSS最小化_第五轮优化计划_正式版.md)
+- [WSS最小化_第五轮执行计划.md](_archive/WSS最小化/WSS最小化_第五轮执行计划.md)
 - [docs/README.md](../README.md)
 
 **推进到实验步骤**：优化计划已正式定稿；执行状态仍从 P0 `NOT_STARTED` 开始。
@@ -455,8 +804,8 @@
 - 同步更新文档索引和终审稿状态指针。本次未修改训练代码、split、stats 或 manifest，未提交作业。
 
 **对应代码/文档**：
-- [WSS最小化_第五轮执行计划.md](WSS最小化_第五轮执行计划.md)
-- [WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)
+- [WSS最小化_第五轮执行计划.md](_archive/WSS最小化/WSS最小化_第五轮执行计划.md)
+- [WSS最小化_第五轮优化计划_正式版.md](_archive/WSS最小化/WSS最小化_第五轮优化计划_正式版.md)
 - [docs/README.md](../README.md)
 
 **推进到实验步骤**：第五轮已从终审阶段转为可分派任务卡；第一个可领取任务为 P0，本次未开始 P0。
@@ -474,7 +823,7 @@
 - 本次仅更新计划与推进记录，未修改训练代码、split、manifest，未提交作业。
 
 **对应代码/文档**：
-- [WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)（当时终审结论现已并入正式版）
+- [WSS最小化_第五轮优化计划_正式版.md](_archive/WSS最小化/WSS最小化_第五轮优化计划_正式版.md)（当时终审结论现已并入正式版）
 - 当前训练证据：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：终审有条件通过，仍处于 No-Run；等待用户明确批准后从 §18.9 第 1 步开始。
@@ -491,7 +840,7 @@
 - AG 科学结案与 AAA/ILO 数据治理解耦；第五轮仍为 No-Run，未修改训练代码、split、manifest，未提交作业。
 
 **对应代码/文档**：
-- [WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)（历史审查口径现已并入正式版）
+- [WSS最小化_第五轮优化计划_正式版.md](_archive/WSS最小化/WSS最小化_第五轮优化计划_正式版.md)（历史审查口径现已并入正式版）
 - [WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md) / [新队列数据可用性审计_AAA_ILO_2026-07-10.md](新队列数据可用性审计_AAA_ILO_2026-07-10.md)
 
 **推进到实验步骤**：推进到 v0.2 审查裁决与工程验收定义；未进入 A0/A1，等待用户明确批准执行。
@@ -507,7 +856,7 @@
 - 纳入新队列讨论中发现的待隔离项：`ILO/LIU_BAO_JUN-0/after` 近零 WSS、7 个 `vf-in` 数量级/口径异常单元、方向 watch 和跨队列病人分组风险。
 
 **对应代码/文档**：
-- 新计划：[WSS最小化_第五轮优化计划_正式版.md](WSS最小化_第五轮优化计划_正式版.md)（后续收敛为正式版）
+- 新计划：[WSS最小化_第五轮优化计划_正式版.md](_archive/WSS最小化/WSS最小化_第五轮优化计划_正式版.md)（后续收敛为正式版）
 - 证据：[WSS最小化_训练实验跟踪.md](WSS最小化_训练实验跟踪.md) / [新队列数据可用性审计_AAA_ILO_2026-07-10.md](新队列数据可用性审计_AAA_ILO_2026-07-10.md)
 
 **推进到实验步骤**：仅推进到第五轮 v0.1 计划冻结与交叉审查入口；未进入 Stage A，未授权执行。

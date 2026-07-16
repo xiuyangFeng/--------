@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""WSS-min split scope 与 included 病例 QA gate。
+"""WSS-min 数据划分范围与正式纳入病例质量门。
 
-正式第三轮只允许 split 的 train/val/test 进入 preprocess/stats/training。
-excluded/pending 即使磁盘上有历史 bundle，也只报告为 not_participating。
+正式流程只允许划分中的训练、验证和测试病例进入预处理、统计与训练。已排除或
+待定病例即使磁盘上存在历史 bundle，也只记录为“不参与正式流程”。
 """
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import time
@@ -30,8 +31,8 @@ LIMITS = {
 }
 
 
-def _load_report(cohort: str, case: str) -> Dict:
-    path = C.out_case_dir(cohort, case) / "report.json"
+def _load_report(cohort: str, case: str, out_root: str | Path | None = None) -> Dict:
+    path = C.out_case_dir(cohort, case, out_root=out_root) / "report.json"
     return json.loads(path.read_text()) if path.is_file() else {}
 
 
@@ -50,6 +51,7 @@ def audit_split(
     split_name: str = C.DEFAULT_SPLIT_NAME,
     partitions: tuple[str, ...] = ("train", "val", "test"),
     strict: bool = True,
+    out_root: str | Path | None = None,
 ) -> Dict:
     log = reporting.get_logger()
     rows: List[Dict] = []
@@ -58,8 +60,8 @@ def audit_split(
 
     for part, cohort, case in _iter_partition_cases(split_name, partitions):
         label = _case_label(cohort, case)
-        bundle_path = C.out_case_dir(cohort, case) / "bundle.npz"
-        report = _load_report(cohort, case)
+        bundle_path = C.out_case_dir(cohort, case, out_root=out_root) / "bundle.npz"
+        report = _load_report(cohort, case, out_root=out_root)
         row: Dict = {
             "partition": part,
             "cohort": cohort,
@@ -156,7 +158,8 @@ def audit_split(
         "not_participating": sorted(sp.get("excluded_cases", []) + sp.get("pending_cases", [])),
     }
 
-    out_dir = C.OUT_ROOT / "pipeline_reports"
+    root = Path(out_root).resolve() if out_root is not None else C.OUT_ROOT
+    out_dir = root / "pipeline_reports"
     out_dir.mkdir(parents=True, exist_ok=True)
     ts = time.strftime("%Y%m%d_%H%M%S")
     csv_path = out_dir / f"qa_gate_{ts}.csv"
@@ -182,8 +185,12 @@ def audit_split(
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--split", default=C.DEFAULT_SPLIT_NAME)
+    ap.add_argument("--out-root", default=str(C.OUT_ROOT))
+    args = ap.parse_args()
     reporting.setup_logging("qa_gate")
-    audit_split()
+    audit_split(split_name=args.split, out_root=Path(args.out_root))
 
 
 if __name__ == "__main__":

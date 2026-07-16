@@ -1,0 +1,104 @@
+{
+  "name": "baseline_2x3_simple/outputs/mlp_xyzgeom",
+  "notes": "minimal 2x3 baseline; model=mlp input=xyzgeom; AG v1 53/8/16; peak WSS scalar; FPS2000; seed=1234; val-only",
+  "data": {
+    "split_path": "training/splits/split_AG_wss_min_v1.json",
+    "wss_stats_path": "data_wss_min/wss_global_stats.json",
+    "wall_n_points": 2000,
+    "sampling": "fps",
+    "fps_pool_size": 8,
+    "geom_weight_curv": 1.0,
+    "geom_weight_invradius": 1.0,
+    "geom_weight_bifurcation": 0.0,
+    "resample_each_epoch": false,
+    "rot_aug": false,
+    "input_features": [
+      "x",
+      "y",
+      "z",
+      "abscissa_norm",
+      "local_radius",
+      "curvature"
+    ],
+    "curvature_transform": "signed_log1p",
+    "timesteps": "peak",
+    "target": "wss",
+    "num_workers": 4,
+    "persistent_workers": false
+  },
+  "model": {
+    "name": "mlp",
+    "width": 32,
+    "mlp_hidden": [
+      64,
+      64,
+      64
+    ],
+    "sa_ratios": [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+    ],
+    "sa_radius": [
+      0.05,
+      0.1,
+      0.2,
+      0.4
+    ],
+    "sa_nsample": [
+      16,
+      16,
+      16,
+      16
+    ],
+    "sa_blocks": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "invres_radius_scale": 1.0,
+    "fp_knn": 3,
+    "head_hidden": 64,
+    "out_dim": 1,
+    "dropout": 0.0
+  },
+  "train": {
+    "epochs": 160,
+    "batch_cases": 8,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 10,
+    "min_lr": 1e-05,
+    "grad_clip": 1.0,
+    "seed": 1234,
+    "loss": "mse",
+    "huber_delta": 1.0,
+    "loss_geom_weight": false,
+    "loss_weight_curv": 1.0,
+    "loss_weight_invradius": 1.0,
+    "loss_weight_target": false,
+    "loss_weight_target_alpha": 2.0,
+    "loss_weight_fixed_quantiles": true,
+    "y_norm_q02": null,
+    "y_norm_q98": null,
+    "curv_q02": null,
+    "curv_q98": null,
+    "invr_q02": null,
+    "invr_q98": null,
+    "loss_raw_huber_lambda": 0.0,
+    "raw_huber_delta": 1.0,
+    "nll_logvar_min": -6.0,
+    "nll_logvar_max": 2.0,
+    "nll_logvar_reg": 0.0001,
+    "amp": true,
+    "eval_every": 10,
+    "ckpt_metric": "val_r2_field_casebalanced",
+    "selection_rule": "field_casebalanced",
+    "ckpt_top_k": 3,
+    "early_stop_patience": 6,
+    "min_epoch": 40,
+    "log_every_steps": 0
+  }
+}

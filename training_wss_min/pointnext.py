@@ -158,25 +158,6 @@ class PointNeXtSeg(nn.Module):
         return out.squeeze(-1) if out.size(-1) == 1 else out
 
 
-def build_model(model_cfg, in_dim: int) -> nn.Module:
-    """统一模型工厂；保留历史 PointNeXt，并接入最小 2×3 baseline。"""
-    m = model_cfg
-    if m.name in {"mlp", "pointnet", "pointnetpp"}:
-        from .baseline_models import build_baseline_model
-        return build_baseline_model(m, in_dim)
-    if m.name != "pointnext_s":
-        raise ValueError(
-            f"unknown model.name={m.name!r}; expected pointnext_s/mlp/pointnet/pointnetpp"
-        )
-    return PointNeXtSeg(
-        in_dim=in_dim, width=m.width,
-        sa_ratios=tuple(m.sa_ratios), sa_radius=tuple(m.sa_radius),
-        sa_nsample=tuple(m.sa_nsample), sa_blocks=tuple(m.sa_blocks),
-        invres_radius_scale=m.invres_radius_scale, fp_knn=m.fp_knn,
-        head_hidden=m.head_hidden, out_dim=m.out_dim, dropout=m.dropout,
-    )
-
-
 if __name__ == "__main__":
     torch.manual_seed(0)
     # 合成两团点云做前反向冒烟

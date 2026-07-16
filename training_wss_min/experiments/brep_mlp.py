@@ -23,7 +23,8 @@ from training_wss_min import metrics as M
 from training_wss_min.evaluate import evaluate_partition, write_reports
 from training_wss_min.tools.gate1_compare import gate1, load_val
 from .point_mlp import build_point_mlp
-from training_wss_min.train import compute_loss, compute_selection_score, lr_lambda_factory, seed_all, setup_logger
+from training_wss_min.objectives import compute_loss, compute_selection_score
+from training_wss_min.runtime import lr_lambda_factory, seed_all, setup_logger
 
 
 ROOT = Path(__file__).resolve().parent.parent

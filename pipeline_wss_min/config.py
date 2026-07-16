@@ -21,17 +21,16 @@ RAW_ROOT = PROJECT_ROOT / "data_new"           # 原始 CFD 根目录（只读�
 OUT_ROOT = PROJECT_ROOT / "data_wss_min"       # 新流程产物（独立目录，不动旧数据）
 DEFAULT_SPLIT_NAME = "split_AG_wss_min_v1"
 
-# 本版数据范围：AG 队列的 fast + slow
-# 每个条目 = (队列相对路径, 该子集下的病例目录名列表 / None 表示全部)
+# 默认数据范围：AG 队列的 fast 与 slow 子集。
 COHORTS: Dict[str, str] = {
     "AG/fast": "AG/fast",
     "AG/slow": "AG/slow",
 }
 
-# 网格坐标单位统一：Fluent ascii 多为 SI 米、centerline 为毫米，但个别病例网格单位异常
-# （如 PENG_JI_MING 原生尺度 ~1e-4）。默认按“中心线包围盒”自动逐病例反推 mesh->mm 因子，
-# 使 near_wall 阈值、dist_to_wall、local_radius 同量纲；异常因子会在审计中标记待人工复核。
-MESH_COORD_TO_MM = 1000.0  # 'fixed' 模式下的回退因子
+# 网格坐标单位统一：Fluent ASCII 多为 SI 米，中心线为毫米，但个别病例网格单位异常。
+# 默认按中心线包围盒逐病例反推“网格坐标→毫米”因子，使近壁阈值、壁面距离和
+# 局部半径同量纲；异常因子会在审计中标记待人工复核。
+MESH_COORD_TO_MM = 1000.0  # 固定单位模式下的回退因子
 
 # 原始 CFD 子文件（相对每个病例目录）
 RAW_LAYOUT = {
@@ -86,6 +85,22 @@ class UnitConfig:
 @dataclass
 class RegistrationConfig:
     """解剖学刚性配准（中心线主导）。"""
+    # v4：由原始 STL 自动选取分叉中心、近端主干和双髂支端点建立有符号坐标架。
+    # +Z 恒指向近端主动脉（故髂支在 -Z，下方）；+X 用原始 STL 世界 +X 定号。
+    frame_mode: str = "stl_landmarks"       # 'stl_landmarks' | 'legacy_centerline'
+    superior_axis_sign: str = "trunk_positive"
+    lr_world_axis: str = "x"
+    # STL 末端切片：分别在无符号主轴两端取最外侧比例，比较横向双支展开度。
+    landmark_terminal_quantile: float = 0.12
+    landmark_min_side_points: int = 30
+    landmark_min_fork_ratio: float = 1.10
+    landmark_min_lr_sep: float = 1.25
+    # 中心线与 STL/壁面明显只差纯平移时自动修复。只有偏移超过一条血管尺度
+    # 且平移后中心线确实落回管腔附近才接受，避免正常弯曲病例被误校正。
+    centerline_translation_repair: bool = True
+    centerline_translation_trigger_diag_frac: float = 0.80
+    centerline_translation_max_p50_diag_frac: float = 0.08
+    centerline_translation_max_p90_diag_frac: float = 0.16
     # 平移原点：默认使用 flow_divider（三臂等权三叉连接点）作为解剖原点。
     # 可切回 bifurcation 使用 VMTK DistToBifurcation≈0 分叉区域普通均值。
     # 若缺 VTP 拓扑或分叉数组，自动退回 wall/all/centerline 几何中心。
@@ -142,7 +157,7 @@ class RegistrationConfig:
     # 按中心线入口端轴向覆盖裁掉壁面/内部点里明显超出的那段。
     # 只裁“入口(主动脉)侧”，不动“出口(髂支)侧”（髂支双支自然外展，属正常）；
     # 仅当入口侧超出量 > crop_trigger_overshoot_frac × 中心线轴向跨度 才触发，
-    # 对覆盖一致的正常病例是零剪裁的 no-op。
+    # 对覆盖一致的正常病例不产生任何裁剪。
     crop_untraced_inlet: bool = True
     # 入口裁剪采用中心线入口端局部切平面，而不是全局主轴一刀切；弯曲主干下更稳。
     crop_use_inlet_tangent: bool = True
@@ -229,7 +244,7 @@ class PipelineConfig:
 
 DEFAULT = PipelineConfig()
 
-# 逐病例配准 override（相对路径 fast/XXX 或 slow/XXX）。
+# 逐病例配准覆盖项（相对路径 fast/XXX 或 slow/XXX）。
 # 用于 trunk_bending 与世界轴冲突、但 wall_branches 左右轴仍可信的个案。
 REGISTRATION_CASE_OVERRIDES: Dict[str, Dict] = {
     "fast/FAN_JIAN_MING": {"roll_sign_mode": "world_axis"},
@@ -245,8 +260,17 @@ REGISTRATION_CASE_OVERRIDES: Dict[str, Dict] = {
 
 
 def case_rel_path(cohort_rel: str, case_name: str) -> str:
-    """split / override 统一键：fast/XXX 或 slow/XXX。"""
-    return f"{cohort_rel.split('/', 1)[1]}/{case_name}"
+    """逐病例 override 键。
+
+    AG 保持历史 ``fast/XXX`` / ``slow/XXX``；AAA 使用 ``ruputer/XXX``；
+    单段 cohort（ILO）则使用 ``ILO/<patient>/<phase>``。不能假定 cohort 必含
+    ``/``，否则新队列会在尚未查询 override 前就异常退出。
+    """
+    cohort = str(cohort_rel).strip("/")
+    if not cohort:
+        raise ValueError("cohort_rel 不能为空")
+    subset = cohort.rsplit("/", 1)[-1]
+    return f"{subset}/{case_name}"
 
 
 def split_path(split_name: str = DEFAULT_SPLIT_NAME) -> Path:
@@ -291,8 +315,14 @@ def registration_for_case(cohort_rel: str, case_name: str,
     return replace(reg, **over) if over else reg
 
 
-def out_case_dir(cohort_rel: str, case_name: str) -> Path:
-    return OUT_ROOT / cohort_rel / case_name
+def out_case_dir(
+    cohort_rel: str,
+    case_name: str,
+    out_root: str | Path | None = None,
+) -> Path:
+    """返回病例产物目录；``out_root`` 用于隔离 staging 重建。"""
+    root = Path(out_root).resolve() if out_root is not None else OUT_ROOT
+    return root / cohort_rel / case_name
 
 
 def raw_case_dir(cohort_rel: str, case_name: str) -> Path:

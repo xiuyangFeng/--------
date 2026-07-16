@@ -32,7 +32,7 @@ OUT="training_wss_min/runs/_audit/coverage_audit_v2_dev1.csv"
 
 echo "coverage audit split=${SPLIT} stats=${STATS}"
 echo "开始: $(date)"
-"${PY}" -m training_wss_min.coverage_audit \
+"${PY}" -m training_wss_min.tools.coverage_audit \
   --split "${SPLIT}" \
   --stats "${STATS}" \
   --k 1000 1500 2000 3000 4000 6000 \

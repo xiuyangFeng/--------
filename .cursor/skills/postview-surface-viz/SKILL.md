@@ -40,6 +40,12 @@ description: >-
 
 判别关键：**ParaView/CFD-Post 对纯点云做 Slice 只会切到平面附近的稀疏散点**，要得到连续填充截面，标量必须挂在**带体单元连接**的网格上（即 `.vtu`，与文件后缀 `.cas/.dat` 无关）。仅看壁面则无需体网格，VTP 面片即可。
 
+### 0.6 先锁定病例范围，避免无意全量导出
+
+- 对已完成的 baseline，默认只导出**一个最佳与一个最差**的开发集病例；以正式同点 `per_case_metrics.csv` / `metrics.json` 的逐病例 R² 排序，并在批次 README 记录模型、分区、排序指标与数值。
+- 仅当用户明确要求“全部病例 / 全 val / 全 test / 批量”时，才提交全病例后处理作业；test 仍遵守原实验访问门禁。
+- 用户要求 `wss / wss(max)` 时，CFD、预测、signed error 与 absolute error 必须都除以**同一病例 CFD 壁面最大 WSS**；在 VTP 使用明确后缀（如 `*_over_cfd_max`），并在 manifest 写入分母（Pa）。不得各自按预测最大值归一化。
+
 ---
 
 ## 1. 锁定输入
@@ -79,7 +85,10 @@ ERR_CMAP=GNN_BWR
 **一次性回插标量**（GNN 壁面）：
 
 ```text
-wss_cfd,wss_pred,err_wss,abs_err_wss,p_cfd,p_pred,err_p,abs_err_p
+wss_cfd,wss_pred,err_wss,abs_err_wss,
+wss_cfd_over_cfd_max,wss_pred_over_cfd_max,
+err_wss_over_cfd_max,abs_err_wss_over_cfd_max,
+p_cfd,p_pred,err_p,abs_err_p
 ```
 
 debug 坐标对齐可用 `--method nearest`；汇报主图用 **gaussian**。

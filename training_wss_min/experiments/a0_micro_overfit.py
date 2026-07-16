@@ -28,8 +28,9 @@ from torch.utils.data import DataLoader
 from training_wss_min import config as C
 from training_wss_min import dataset as D
 from training_wss_min import metrics as M
-from training_wss_min.pointnext import build_model
-from training_wss_min.train import compute_loss, lr_lambda_factory, seed_all, setup_logger
+from training_wss_min.models import build_model
+from training_wss_min.objectives import compute_loss
+from training_wss_min.runtime import lr_lambda_factory, seed_all, setup_logger
 
 
 ROOT = Path(__file__).resolve().parent.parent

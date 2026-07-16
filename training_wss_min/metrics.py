@@ -53,6 +53,32 @@ def basic_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
     }
 
 
+def distribution_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+    """Distribution summary in the model target space (never display-clipped)."""
+    yt = np.asarray(y_true, dtype=np.float64)
+    yp = np.asarray(y_pred, dtype=np.float64)
+    finite = np.isfinite(yt) & np.isfinite(yp)
+    yt, yp = yt[finite], yp[finite]
+    if yt.size == 0:
+        return {}
+    out: Dict[str, float] = {}
+    for q in (50, 90, 95, 99):
+        out[f"true_p{q}"] = float(np.percentile(yt, q))
+        out[f"pred_p{q}"] = float(np.percentile(yp, q))
+    out.update({
+        "true_dynamic_range": float(yt.max() - yt.min()),
+        "pred_dynamic_range": float(yp.max() - yp.min()),
+        "pred_below_zero_fraction": float(np.mean(yp < 0.0)),
+        "pred_above_one_fraction": float(np.mean(yp > 1.0)),
+        "n": int(yt.size),
+    })
+    out["pred_true_dynamic_range_ratio"] = (
+        out["pred_dynamic_range"] / out["true_dynamic_range"]
+        if out["true_dynamic_range"] > 1e-12 else float("nan")
+    )
+    return out
+
+
 def casebalanced_field_metrics(
     y_true_by_case: Sequence[np.ndarray],
     y_pred_by_case: Sequence[np.ndarray],
@@ -170,6 +196,10 @@ def hotspot_localization_metrics(y_true: np.ndarray, y_pred: np.ndarray,
     peak_t = int(np.argmax(yt))
     peak_p = int(np.argmax(yp))
     peak_dist = float(np.linalg.norm(pos[peak_t] - pos[peak_p]))
+    bbox_diag = float(np.linalg.norm(pos.max(axis=0) - pos.min(axis=0)))
+    true_centroid = pos[true_mask].mean(axis=0) if n_true > 0 else np.full(3, np.nan)
+    pred_centroid = pos[pred_mask].mean(axis=0) if n_pred > 0 else np.full(3, np.nan)
+    centroid_dist = float(np.linalg.norm(true_centroid - pred_centroid))
     return {
         "high_wss_mae": high_mae,
         "high_wss_nrmse_mean": high_nrmse_mean,
@@ -179,9 +209,37 @@ def hotspot_localization_metrics(y_true: np.ndarray, y_pred: np.ndarray,
         "spearman_all": _spearman(yt, yp),
         "spearman_high_wss": _spearman(yt[true_mask], yp[true_mask]) if n_true >= 3 else float("nan"),
         "peak_point_dist": peak_dist,
+        "bbox_diag": bbox_diag,
+        "peak_point_dist_over_bbox": peak_dist / bbox_diag if bbox_diag > 1e-12 else float("nan"),
+        "hotspot_centroid_dist": centroid_dist,
+        "hotspot_centroid_dist_over_bbox": (
+            centroid_dist / bbox_diag if bbox_diag > 1e-12 else float("nan")
+        ),
         "n_high_true": int(n_true),
         "n_high_pred": int(n_pred),
     }
+
+
+def aggregate_hotspot_metrics(per_case: Dict[str, Dict]) -> Dict[str, float]:
+    """Aggregate only per-case hotspot metrics; never concatenate case coordinates."""
+    keys = (
+        "top10_iou", "top10_precision", "top10_recall", "spearman_all",
+        "spearman_high_wss", "peak_point_dist_over_bbox",
+        "hotspot_centroid_dist_over_bbox",
+    )
+    out: Dict[str, float] = {"n_cases": int(len(per_case))}
+    for key in keys:
+        vals = np.asarray([
+            reg.get("hotspot", {}).get(key, np.nan) for reg in per_case.values()
+        ], dtype=np.float64)
+        vals = vals[np.isfinite(vals)]
+        out[f"{key}_casemean"] = float(vals.mean()) if vals.size else float("nan")
+        out[f"{key}_casemed"] = float(np.median(vals)) if vals.size else float("nan")
+    # Selection code historically reads the un-suffixed top10 value.
+    out["top10_iou"] = out["top10_iou_casemean"]
+    out["top10_precision"] = out["top10_precision_casemean"]
+    out["top10_recall"] = out["top10_recall_casemean"]
+    return out
 
 
 def selection_score_r4_composite_v1(agg: Dict, field: Dict, cal: Dict,
@@ -249,6 +307,8 @@ def aggregate_case_metrics(per_case: Dict[str, Dict]) -> Dict[str, float]:
               if np.isfinite(v["overall"].get("nrmse_range", np.nan))]
     maes = [v["overall"]["mae"] for v in per_case.values()
             if np.isfinite(v["overall"].get("mae", np.nan))]
+    rmses = [v["overall"]["rmse"] for v in per_case.values()
+             if np.isfinite(v["overall"].get("rmse", np.nan))]
     return {
         "r2_casemean": float(np.mean(r2s)) if r2s else float("nan"),
         "r2_casemed": float(np.median(r2s)) if r2s else float("nan"),
@@ -257,5 +317,6 @@ def aggregate_case_metrics(per_case: Dict[str, Dict]) -> Dict[str, float]:
         "r2_failure_rate": float(np.mean(np.asarray(r2s) < 0.0)) if r2s else float("nan"),
         "nrmse_casemean": float(np.mean(nrmses)) if nrmses else float("nan"),
         "mae_casemean": float(np.mean(maes)) if maes else float("nan"),
+        "rmse_casemean": float(np.mean(rmses)) if rmses else float("nan"),
         "n_cases": len(r2s),
     }

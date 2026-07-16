@@ -1,0 +1,53 @@
+{
+  "name": "pointnet_distribution_matrix/outputs/e3_global",
+  "notes": "E3-GLOBAL: baseline PointNet; random5000 without replacement, resampled each epoch; train61 global log-z; no val/early stop; 400 epochs",
+  "data": {
+    "split_path": "training/splits/split_AG_wss_min_v1_traintest.json",
+    "wss_stats_path": "data_wss_min/fold_stats/wss_stats_v1_traintest.json",
+    "wall_n_points": 5000,
+    "sampling": "random",
+    "fps_pool_size": 8,
+    "resample_each_epoch": true,
+    "rot_aug": false,
+    "input_features": ["x", "y", "z", "abscissa_norm", "local_radius", "curvature"],
+    "curvature_transform": "signed_log1p",
+    "timesteps": "peak",
+    "target": "wss",
+    "target_normalization": "global_stats",
+    "num_workers": 4,
+    "persistent_workers": false
+  },
+  "model": {
+    "name": "pointnet",
+    "width": 32,
+    "head_hidden": 64,
+    "pointnet_local_channels": [],
+    "pointnet_decoder_channels": [],
+    "out_dim": 1,
+    "dropout": 0.0
+  },
+  "train": {
+    "epochs": 400,
+    "batch_cases": 8,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 10,
+    "min_lr": 0.00001,
+    "grad_clip": 1.0,
+    "seed": 1234,
+    "loss": "mse",
+    "huber_delta": 1.0,
+    "loss_geom_weight": false,
+    "loss_weight_target": false,
+    "loss_weight_fixed_quantiles": true,
+    "loss_raw_huber_lambda": 0.0,
+    "amp": true,
+    "eval_every": 400,
+    "ckpt_metric": "train_loss",
+    "selection_rule": "train_loss",
+    "ckpt_top_k": 3,
+    "early_stop_patience": 0,
+    "min_epoch": 400,
+    "log_every_steps": 0
+  }
+}
