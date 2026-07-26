@@ -277,6 +277,8 @@ def _matched_before_after(legacy_root: Path, ag_root: Path, units: list[str], pa
     ]
     selected = []
     for unit in must + units[::max(1, len(units) // 10)]:
+        if unit not in units:
+            continue
         if unit not in selected and bundle_path(legacy_root, unit).is_file():
             selected.append(unit)
         if len(selected) == 12:
@@ -338,6 +340,13 @@ def _flagged_page(item: dict, path: Path) -> None:
     stl = surface_io.read_stl_points(stl_path) * item["stl_scale"]
     stl = _sample(stl, 5000)
     wall_raw = item["raw"]
+    repair_display = bool(item.get("report", {}).get("centerline_translation_applied"))
+    if repair_display:
+        # 与 registration v4 的 translation-only STL/centerline 修复保持一致；这里只
+        # 重建有效 STL 的平移供审查显示，不改 bundle、原始 STL 或旋转/尺度。
+        wall_center = 0.5 * (np.min(wall_raw, axis=0) + np.max(wall_raw, axis=0))
+        stl_center = 0.5 * (np.min(stl, axis=0) + np.max(stl, axis=0))
+        stl = stl + (wall_center - stl_center)
     centroid, rotation = item["centroid"], item["rotation"]
     stl_aln = (stl - centroid) @ rotation
     lm = item["landmarks_mm"]
@@ -345,7 +354,11 @@ def _flagged_page(item: dict, path: Path) -> None:
     fig, axes = plt.subplots(1, 5, figsize=(20, 4.4))
     axes[0].scatter(stl[:, 0], stl[:, 2], s=0.35, c="#1f77b4", alpha=0.35, label="selected STL")
     axes[0].scatter(wall_raw[:, 0], wall_raw[:, 2], s=0.5, c="#d62728", alpha=0.35, label="CFD wall")
-    axes[0].set_title("raw world X-Z\nSTL vs CFD wall"); axes[0].legend(fontsize=7)
+    raw_title = (
+        "effective world X-Z\ntranslated STL vs CFD wall"
+        if repair_display else "raw world X-Z\nSTL vs CFD wall"
+    )
+    axes[0].set_title(raw_title); axes[0].legend(fontsize=7)
     for ax, (a, b, title) in zip(axes[1:4], ((0, 2, "aligned X-Z front"),
                                               (1, 2, "aligned Y-Z side"),
                                               (0, 1, "aligned X-Y top"))):
@@ -376,11 +389,11 @@ def generate(
     out_dir: Path,
     aaa_fallback_root: Path | None = None,
     review_manifest: Path | None = None,
+    final_eligible_only: bool = False,
+    training_whitelist: Path | None = None,
 ) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     ag_ids, aaa_ids = ag_units(), aaa_units()
-    ag = [_bundle_item(ag_root, unit) for unit in ag_ids]
-    aaa = [_bundle_item(aaa_root, unit, aaa_fallback_root) for unit in aaa_ids]
     final_status = {}
     if review_manifest is not None:
         review_payload = json.loads(review_manifest.read_text(encoding="utf-8"))
@@ -388,6 +401,29 @@ def generate(
         missing_status = (set(ag_ids) | set(aaa_ids)) - set(final_status)
         if missing_status:
             raise RuntimeError(f"review manifest 缺病例: {sorted(missing_status)}")
+    if final_eligible_only:
+        if review_manifest is None:
+            raise ValueError("--final-eligible-only 必须同时提供 --review-manifest")
+        ag_ids = [unit for unit in ag_ids if final_status[unit].get("final_eligible")]
+        aaa_ids = [unit for unit in aaa_ids if final_status[unit].get("final_eligible")]
+    if training_whitelist is not None:
+        training_payload = json.loads(training_whitelist.read_text(encoding="utf-8"))
+        training_ag = set(training_payload.get("AG", []))
+        training_aaa = set(training_payload.get("AAA", []))
+        selected = training_ag | training_aaa
+        available = set(ag_ids) | set(aaa_ids)
+        unexpected = selected - available
+        if unexpected:
+            raise RuntimeError(
+                "training whitelist 含不在当前候选范围内的病例: "
+                f"{sorted(unexpected)}"
+            )
+        ag_ids = [unit for unit in ag_ids if unit in training_ag]
+        aaa_ids = [unit for unit in aaa_ids if unit in training_aaa]
+
+    ag = [_bundle_item(ag_root, unit) for unit in ag_ids]
+    aaa = [_bundle_item(aaa_root, unit, aaa_fallback_root) for unit in aaa_ids]
+    if final_status:
         for item in ag + aaa:
             row = final_status[item["unit_id"]]
             item["final_status"] = row.get("final_status")
@@ -396,12 +432,18 @@ def generate(
     aaa_u = [item for item in aaa if "/unruputer/" in item["unit_id"]]
     xy_lim, z_lim = _limits(ag + aaa)
 
+    if training_whitelist is not None:
+        eligibility_scope = "training eligible only · "
+    elif final_eligible_only:
+        eligibility_scope = "final geometry eligible only · "
+    else:
+        eligibility_scope = ""
     _matched_before_after(legacy_root, ag_root, ag_ids, out_dir / "01_AG_v3_vs_v4_front_matched.png")
-    _small_multiples(ag, "AG v4 staged bundles · common physical frame (mm) · front X-Z",
+    _small_multiples(ag, f"AG v4 {eligibility_scope}n={len(ag)} · common physical frame (mm) · front X-Z",
                      out_dir / "02_AG_v4_all_common_mm_xz.png", xy_lim, z_lim)
-    _small_multiples(aaa_r, "AAA rupture v4 bundles · common physical frame (mm) · front X-Z",
+    _small_multiples(aaa_r, f"AAA rupture v4 {eligibility_scope}n={len(aaa_r)} · common physical frame (mm) · front X-Z",
                      out_dir / "03_AAA_ruputer_v4_common_mm_xz.png", xy_lim, z_lim)
-    _small_multiples(aaa_u, "AAA unruptured v4 bundles · common physical frame (mm) · front X-Z",
+    _small_multiples(aaa_u, f"AAA unruptured v4 {eligibility_scope}n={len(aaa_u)} · common physical frame (mm) · front X-Z",
                      out_dir / "04_AAA_unruputer_v4_common_mm_xz.png", xy_lim, z_lim)
     _overlay(ag, aaa, out_dir / "05_AG_AAA_v4_common_mm_ortho_overlay.png",
              xy_lim, z_lim, normalized=False)
@@ -445,6 +487,8 @@ def generate(
         "aaa_fallback_root": str(aaa_fallback_root) if aaa_fallback_root else None,
         "legacy_root": str(legacy_root), "out_dir": str(out_dir),
         "n_ag": len(ag), "n_aaa": len(aaa),
+        "final_eligible_only": final_eligible_only,
+        "training_whitelist": str(training_whitelist) if training_whitelist else None,
         "n_aaa_ruputer": len(aaa_r), "n_aaa_unruputer": len(aaa_u),
         "n_flagged_aaa_pages": len(flagged_aaa),
         "flagged_aaa_units": [item["unit_id"] for item in flagged_aaa],
@@ -480,6 +524,10 @@ def main() -> None:
     ap.add_argument("--aaa-fallback-root", type=Path, default=None)
     ap.add_argument("--legacy-root", type=Path, default=C.OUT_ROOT)
     ap.add_argument("--review-manifest", type=Path, default=None)
+    ap.add_argument("--final-eligible-only", action="store_true",
+                    help="仅绘制最终 manifest 中 final_eligible=true 的病例")
+    ap.add_argument("--training-whitelist", type=Path, default=None,
+                    help="在当前候选范围内进一步仅绘制训练白名单病例")
     ap.add_argument("--out-dir", type=Path, required=True)
     args = ap.parse_args()
     summary = generate(
@@ -487,6 +535,8 @@ def main() -> None:
         args.legacy_root.resolve(), args.out_dir.resolve(),
         args.aaa_fallback_root.resolve() if args.aaa_fallback_root else None,
         args.review_manifest.resolve() if args.review_manifest else None,
+        args.final_eligible_only,
+        args.training_whitelist.resolve() if args.training_whitelist else None,
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 

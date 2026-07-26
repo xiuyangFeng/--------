@@ -121,6 +121,14 @@ class TestCaseMaxProtocol(unittest.TestCase):
 
 
 class TestNormalizedMetrics(unittest.TestCase):
+    def test_nmae_is_distinct_from_range_nrmse_and_uses_same_range(self):
+        true = np.array([0.0, 1.0, 4.0, 8.0])
+        pred = np.array([0.0, 2.0, 2.0, 7.0])
+        got = M.basic_metrics(true, pred)
+        self.assertAlmostEqual(got["nmae_range"], got["mae"] / 8.0)
+        self.assertAlmostEqual(got["nrmse_range"], got["rmse"] / 8.0)
+        self.assertLess(got["nmae_range"], got["nrmse_range"])
+
     def test_hotspot_distances_are_bbox_normalized(self):
         pos = np.zeros((100, 3)); pos[:, 0] = np.linspace(0, 10, 100)
         true = np.linspace(0, 1, 100)

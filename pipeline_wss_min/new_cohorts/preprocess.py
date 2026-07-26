@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""按数据层白名单正式预处理 AAA/ILO 新队列。
+"""按活动白名单正式预处理 AAA 与 ILO-before 新队列。
 
-默认候选严格来自 audit_classified.csv 的 F_clean_pass / E_dense_clean：缺文件、WSS
-全零、百万点混合区均不会进入。支持 Slurm array 通过 SLURM_ARRAY_TASK_ID 每任务一例。
+AAA 沿用历史数据层+坐标架候选；ILO 严格来自 before-only 终审白名单，after 和
+AAA 重名 ILO 病例不会进入。支持 Slurm array 通过 SLURM_ARRAY_TASK_ID 每任务一例。
 """
 
 from __future__ import annotations
@@ -17,6 +17,21 @@ import pandas as pd
 
 from pipeline_wss_min import config as C, preprocess, reporting
 from pipeline_wss_min.new_cohorts.common import candidate_units, split_unit
+from pipeline_wss_min.new_cohorts.ilo_before import (
+    DEFAULT_WHITELIST as ILO_BEFORE_WHITELIST,
+    load_ilo_before_whitelist,
+    validate_active_preprocess_unit,
+)
+
+
+def active_candidate_units() -> list[str]:
+    """活动预处理清单：AAA 沿用历史候选，ILO 严格来自 before-only 白名单。"""
+    aaa = [unit for unit in candidate_units() if unit.startswith("AAA/")]
+    ilo = load_ilo_before_whitelist(ILO_BEFORE_WHITELIST)
+    units = aaa + ilo
+    for unit in units:
+        validate_active_preprocess_unit(unit)
+    return units
 
 
 def summarize(units):
@@ -56,7 +71,7 @@ def main():
     ap.add_argument("--summarize", action="store_true")
     ap.add_argument("--list", action="store_true")
     args = ap.parse_args()
-    units = candidate_units()
+    units = active_candidate_units()
 
     if args.list:
         for i, unit in enumerate(units):
@@ -79,8 +94,9 @@ def main():
         selected = units
 
     for unit in selected:
+        validate_active_preprocess_unit(unit)
         if unit not in units:
-            raise SystemExit(f"unit 不在数据层+坐标架双白名单中: {unit}")
+            raise SystemExit(f"unit 不在活动 AAA/ILO-before 白名单中: {unit}")
         cohort, case_name = split_unit(unit)
         stage = "new_" + "_".join(unit.split("/")[-2:]).replace("-", "_")
         reporting.setup_logging(stage)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""AAA/ILO 新队列 bundle 的 STL 关键点 v4 终检门。
+"""活动 AAA/ILO-before bundle 的 STL 关键点 v4 终检门。
 
-只检查 ``preprocess_new_cohorts`` 白名单内的 171 个单元，不读取或修改 AG 产物。
+AAA 沿用历史候选，ILO 只检查 before-only 终审白名单，不读取或修改 AG 产物。
 逐例核对 report/bundle 完整性、原始 STL 来源、右手刚性旋转，以及关键点在落盘
 坐标架中的 +Z 主干 / -Z 双髂支 / +X 原始 STL 世界方向语义。
 """
@@ -17,6 +17,7 @@ import pandas as pd
 
 from pipeline_wss_min import config as C
 from pipeline_wss_min.new_cohorts.common import candidate_units, split_unit
+from pipeline_wss_min.new_cohorts.ilo_before import load_ilo_before_whitelist
 
 
 OUT_DIR = C.OUT_ROOT / "pipeline_reports"
@@ -25,12 +26,12 @@ OUT_JSON = OUT_DIR / "new_cohorts_v4_bundle_qa.json"
 EXPECTED_REPAIRS = {
     "AAA/ruputer/ZHOU_KE_XUN",
     "AAA/unruputer/LIU_WEN_QI",
-    "ILO/WANG_LI_MIN-0/before",
-    "ILO/WANG_LI_MIN-0/after",
-    "ILO/YU_XIANG_SHENG-1/after",
-    "ILO/ZHANG_MAO_JIN-0/before",
-    "ILO/ZHANG_MAO_JIN-0/after",
 }
+
+
+def active_units() -> list[str]:
+    aaa = [unit for unit in candidate_units() if unit.startswith("AAA/")]
+    return aaa + load_ilo_before_whitelist()
 
 
 def _scalar(z, key: str):
@@ -139,7 +140,7 @@ def main():
                     help="批处理运行中可先写汇总，不因缺包退出非零")
     args = ap.parse_args()
 
-    units = candidate_units()
+    units = active_units()
     rows = [check_unit(unit_id) for unit_id in units]
     df = pd.DataFrame(rows)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -153,7 +154,7 @@ def main():
         "unit_id"
     ].tolist()
     summary = {
-        "scope": "AAA/ILO data-layer-clean + v4-frame-pass whitelist; AG excluded",
+        "scope": "active AAA + ILO-before final whitelist; AG and ILO-after excluded",
         "n_expected": len(units),
         "n_qa_pass": int((df["qa_pass"] == True).sum()),
         "n_missing": len(missing),

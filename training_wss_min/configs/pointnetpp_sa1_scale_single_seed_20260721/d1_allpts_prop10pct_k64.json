@@ -1,0 +1,105 @@
+{
+  "name": "pointnetpp_sa1_scale_single_seed/outputs/d1_allpts_prop10pct_k64",
+  "notes": "2026-07-21 SA1-scale matrix; one seed only (1234); exact split 106/0/27. D1-prop: all wall points; proportional centers ratios 0.1/0.25/0.25 (all SA stages); SA1 knn_cover k=64; batch_cases=2 for worst-batch memory (smoke: 23.3GB at batch4).",
+  "data": {
+    "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_min",
+    "required_frame_version": "stl_landmarks_v4",
+    "split_path": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_AAA_wss_min_v4_stratified_seed1234.json",
+    "wss_stats_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/v4/AG_AAA_v4_stratified_train106_global_stats.json",
+    "wall_n_points": 0,
+    "sampling": "random",
+    "support_n_points": 0,
+    "support_sampling": "random",
+    "query_mode": "same",
+    "query_n_points": 0,
+    "query_sampling": "random",
+    "resample_each_epoch": false,
+    "rot_aug": false,
+    "input_features": [
+      "x",
+      "y",
+      "z",
+      "abscissa_norm",
+      "local_radius",
+      "curvature"
+    ],
+    "curvature_transform": "signed_log1p",
+    "timesteps": "peak",
+    "target": "wss",
+    "target_normalization": "global_stats",
+    "num_workers": 4,
+    "persistent_workers": false
+  },
+  "model": {
+    "name": "pointnetpp",
+    "width": 32,
+    "sa_ratios": [
+      0.1,
+      0.25,
+      0.25
+    ],
+    "sa_radius": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "sa_nsample": [
+      64,
+      16,
+      16
+    ],
+    "sa_blocks": [
+      0,
+      0,
+      0
+    ],
+    "sa_center_sampling": "fps",
+    "sa_center_counts": [],
+    "fp_knn": 3,
+    "head_hidden": 64,
+    "out_dim": 1,
+    "dropout": 0,
+    "sa_grouping": [
+      "knn_cover",
+      "ball",
+      "ball"
+    ]
+  },
+  "train": {
+    "epochs": 400,
+    "batch_cases": 2,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 10,
+    "min_lr": 1e-05,
+    "grad_clip": 1,
+    "seed": 1234,
+    "loss": "mse",
+    "loss_geom_weight": false,
+    "loss_weight_target": false,
+    "loss_weight_fixed_quantiles": true,
+    "loss_raw_huber_lambda": 0,
+    "amp": true,
+    "eval_every": 400,
+    "ckpt_metric": "train_loss",
+    "selection_rule": "train_loss",
+    "ckpt_top_k": 3,
+    "early_stop_patience": 0,
+    "min_epoch": 400,
+    "log_every_steps": 0
+  },
+  "eval": {
+    "fixed_support": true,
+    "full_cloud_query": true,
+    "query_chunk_size": 16384,
+    "support_seed": 1234,
+    "surface_metric_mode": "legacy_vertex",
+    "stability_seeds": [
+      1234,
+      2025,
+      3407,
+      7919,
+      104729
+    ]
+  }
+}

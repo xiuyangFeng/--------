@@ -36,7 +36,7 @@ bash external_baselines/pointnetcfd/cluster/submit_pointnetcfd.sh \
 ## 推荐入口
 WSS-only 最小化路线（独立产物 `data_wss_min/`，不改旧 `pipeline/` 数据）：
 
-当前 v4 活动口径：AG76；AAA 几何签核63、训练质量白名单57；AG split `61/0/15`，AG+AAA trainpool `118/0/15`。GPU Jobs `9138` / `9140` 已完训完评：AG-v4 未追平旧 E2 common-test15 锚点；混合相对 AG-v4 小幅提升整体 R²/排序/热点定位，但高 WSS 幅值压缩更重。ILO 本轮未处理。
+当前 v4 活动口径：AG76；AAA 几何签核63、训练质量白名单57；ILO 术前最终人工审核通过41例、总排除20例、活动术后bundle为0。ILO 已在专用协议中使用：fixed test27 的 41 例只入训练，pool2025 mixed 协议为 train138/test36；原 AG/AAA Phase-V split 不变。D2 c125×k64 的 ILO 两协议与结构矩阵 Jobs `10837/10838/10843/10844` 已 9/9 完成；单种子筛选显示 ILO 直接增训无总体收益，`PointNeXt-R + LocalGeoPE` 的 S3 为当前 mixed test36 强候选（physical `R²_cb=0.2924`），下一步补 M1/S2/S3 三种子配对。Support/Query 的 vertex/FPS 六组 `10473–10478` 已完成训练与 best/last 定量评估；面积六组仍因严格映射仅127/133通过而冻结待修。
 
 ```bash
 conda activate GNN

@@ -204,9 +204,8 @@ def _read_centerline_vtp_optional(case_dir: Path, expected_n: int) -> Dict[str, 
         return {"vtp_available": np.array(False)}
 
 
-def read_inlet_waveform(case_dir: Path) -> Dict[int, float]:
-    """解析 vf-in-rfile.out -> {timestep: inlet_flow}。峰值收缩期 = 该值最大处。"""
-    path = case_dir / C.RAW_LAYOUT["inlet_waveform"]
+def _parse_inlet_waveform(path: Path) -> Dict[int, float]:
+    """解析单个 Fluent 入口波形文件。"""
     out: Dict[int, float] = {}
     if not path.is_file():
         return out
@@ -222,6 +221,26 @@ def read_inlet_waveform(case_dir: Path) -> Dict[int, float]:
             continue
         out[step] = vf
     return out
+
+
+def read_inlet_waveform(case_dir: Path) -> Dict[int, float]:
+    """解析入口波形，并优先使用时间步覆盖最完整的 Fluent 续写文件。
+
+    个别病例同时存在被截断的 ``vf-in-rfile.out`` 与完整的
+    ``vf-in-rfile_*.out``。若只读取固定文件名，会把导出区间误判为缺波形；
+    因此对同名前缀候选逐一解析，以有效时间步最多者为准，平局时保留标准文件。
+    """
+    primary = case_dir / C.RAW_LAYOUT["inlet_waveform"]
+    candidates = [primary]
+    if primary.parent.is_dir():
+        candidates.extend(
+            path for path in sorted(primary.parent.glob(f"{primary.stem}_*{primary.suffix}"))
+            if path != primary
+        )
+    parsed = [(path, _parse_inlet_waveform(path)) for path in candidates]
+    if not parsed:
+        return {}
+    return max(parsed, key=lambda item: len(item[1]))[1]
 
 
 def peak_systole_step(case_dir: Path, exported_steps: List[int]) -> int:

@@ -8,6 +8,7 @@
 - 活动 AG：76例 `stl_landmarks_v4`；旧84例位于 `_snapshots/AG_legacy_v3_20260716_signedoff/`。
 - v4 AG 权威划分：`training/splits/split_AG_wss_min_v4_traintest.json`（61/0/15）。
 - v4 混合池：`split_AG_AAA_wss_min_v4_trainpool.json`（AG61+AAA57 train，锁定 AG test15）。
+- v4 独立混合重划：`split_AG_AAA_wss_min_v4_stratified_seed1234.json`（106/0/27；按 AG/AAA rupture/AAA unrupture 分层，旧 AG test15 不锁定）。
 - AG 正式范围：train 53 / val 8 / test 16 / excluded 9 / pending 1。
 - 全局 WSS 统计：只读取 train、只取峰值步、使用 `log_z`，写入
   `data_wss_min/wss_global_stats.json`。
@@ -15,6 +16,7 @@
 - v4 坐标架：原始 STL 自动识别近端主干、分叉和双髂支；`+Z` 指向近端主干，
   `-Z` 指向髂支，原始 STL 世界 `+X` 固定左右符号，旋转矩阵保持 `det(R)=+1`。
 - AAA/ILO 只通过独立双白名单入口处理，不与 AG 扫描或产物混写。
+- ILO 当前唯一活动口径为最终人工审核通过的 before41；after 活动产物为0，且 ILO 尚未进入任何 split或训练统计。
 
 ## 正式四阶段
 
@@ -140,6 +142,9 @@ AAA/ILO 的候选清单同时受数据层审计和 v4 坐标架审计约束。�
 PY=/public/newhome/cy/.conda/envs/GNN/bin/python
 
 $PY -m pipeline_wss_min.new_cohorts.audit_frame --workers 4
+$PY -m pipeline_wss_min.new_cohorts.ilo_before --stage inventory
+$PY -m pipeline_wss_min.new_cohorts.ilo_before --stage qa
+$PY -m pipeline_wss_min.new_cohorts.visualize_ilo_before
 $PY -m pipeline_wss_min.new_cohorts.preprocess --list
 $PY -m pipeline_wss_min.new_cohorts.preprocess --unit-id AAA/ruputer/CHEN_FU
 $PY -m pipeline_wss_min.new_cohorts.preprocess --summarize

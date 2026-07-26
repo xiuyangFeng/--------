@@ -32,6 +32,7 @@ import torch
 from training_wss_min import config as C
 from training_wss_min import dataset as D
 from training_wss_min import metrics as M
+from training_wss_min import surface as S
 from training_wss_min.evaluate import load_model_from_run, load_wss_stats_for_run, predict_case_norm
 
 REPO = C.PROJECT_ROOT
@@ -94,6 +95,69 @@ def selfmax_scalar_data(
     }
 
 
+def build_postview_hotspot_payload(
+    case: Dict,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    surface_metric_mode: str,
+) -> Dict:
+    """Build PostView masks without making vertex-only exports consume STL area.
+
+    ``legacy_vertex`` keeps the historical top-10%-by-point masks.  Only
+    ``both_strict`` loads mapped surface-area weights and emits area-labelled
+    metrics.  The generic ``true_highrisk``/``pred_highrisk`` scalar names are
+    retained for old ParaView readers, while the manifest records their basis.
+    """
+    if surface_metric_mode not in {"legacy_vertex", "both_strict"}:
+        raise ValueError(f"unsupported surface_metric_mode={surface_metric_mode!r}")
+
+    yt = np.asarray(y_true, dtype=np.float64)
+    yp = np.asarray(y_pred, dtype=np.float64)
+    legacy_true_thr = float(np.percentile(yt, 90.0))
+    legacy_pred_thr = float(np.percentile(yp, 90.0))
+    legacy_true = yt >= legacy_true_thr
+    legacy_pred = yp >= legacy_pred_thr
+    legacy_hotspot = M.hotspot_localization_metrics(yt, yp, case["pos"])
+
+    area_hotspot = None
+    area_report = None
+    if surface_metric_mode == "both_strict":
+        if "surface_area_weights" not in case:
+            case["surface_area_weights"], case["surface_area_report"] = \
+                S.area_weights_for_case(case, strict=True)
+        weights = case["surface_area_weights"]
+        selected_true = M.area_top_fraction_mask(yt, weights)
+        selected_pred = M.area_top_fraction_mask(yp, weights)
+        area_hotspot = M.area_hotspot_metrics(yt, yp, case["pos"], weights)
+        area_report = case.get("surface_area_report")
+        basis = "surface_area"
+    else:
+        selected_true = legacy_true
+        selected_pred = legacy_pred
+        basis = "legacy_vertex"
+
+    selected_overlap = selected_true & selected_pred
+    scalars = {
+        "true_highrisk": selected_true.astype(np.float32),
+        "pred_highrisk": selected_pred.astype(np.float32),
+        "highrisk_overlap": selected_overlap.astype(np.float32),
+        "highrisk_missed": (selected_true & ~selected_pred).astype(np.float32),
+        "highrisk_false_positive": (selected_pred & ~selected_true).astype(np.float32),
+        "legacy_vertex_true_highrisk": legacy_true.astype(np.float32),
+        "legacy_vertex_pred_highrisk": legacy_pred.astype(np.float32),
+        "legacy_vertex_highrisk_overlap": (legacy_true & legacy_pred).astype(np.float32),
+    }
+    return {
+        "basis": basis,
+        "scalars": scalars,
+        "selected_true": selected_true,
+        "selected_pred": selected_pred,
+        "legacy_hotspot": legacy_hotspot,
+        "area_hotspot": area_hotspot,
+        "surface_area_report": area_report,
+    }
+
+
 def _bbox_diag(xyz: np.ndarray) -> float:
     extents = xyz.max(axis=0) - xyz.min(axis=0)
     return float(np.linalg.norm(extents))
@@ -138,6 +202,30 @@ def _write_stl(verts: np.ndarray, tris: np.ndarray, out_file: Path) -> None:
         raise RuntimeError(f"STL 写入失败: {out_file}")
 
 
+def _crop_stl_to_wall(verts: np.ndarray, tris: np.ndarray, wall_xyz: np.ndarray,
+                      max_dist: float = 3.0) -> Tuple[np.ndarray, np.ndarray, Dict]:
+    """Remove original-STL tail triangles outside an explicitly cropped CFD wall."""
+    from scipy.spatial import cKDTree
+
+    dist = cKDTree(wall_xyz).query(verts, k=1)[0]
+    keep_tri = np.all(dist[tris] <= max_dist, axis=1)
+    kept = tris[keep_tri]
+    if not len(kept):
+        raise RuntimeError("STL crop removed every triangle; frame/path mapping is invalid")
+    used = np.unique(kept)
+    remap = np.full(len(verts), -1, dtype=np.int64)
+    remap[used] = np.arange(len(used), dtype=np.int64)
+    report = {
+        "applied": True,
+        "max_dist_mm": float(max_dist),
+        "vertices_before": int(len(verts)),
+        "vertices_after": int(len(used)),
+        "triangles_before": int(len(tris)),
+        "triangles_after": int(len(kept)),
+    }
+    return verts[used], remap[kept], report
+
+
 def _write_pointcloud_vtp(xyz: np.ndarray, scalars: Dict[str, np.ndarray], out_file: Path) -> None:
     import vtk
     from vtk.util.numpy_support import numpy_to_vtk
@@ -164,7 +252,42 @@ def _write_pointcloud_vtp(xyz: np.ndarray, scalars: Dict[str, np.ndarray], out_f
 
 
 def _case_label(case: Dict) -> str:
-    return f"{case['cohort'].removeprefix('AG/')}/{case['case']}"
+    return D.canonical_unit_id(case.get("unit_id", f"{case['cohort']}/{case['case']}"))
+
+
+def _resolve_bundle_path(data_root: str | Path, label: str) -> Tuple[str, Path]:
+    """Resolve legacy AG and canonical AG/AAA IDs without injecting a cohort prefix."""
+    canonical = D.canonical_unit_id(label)
+    cohort, subset, case_name = canonical.split("/", 2)
+    return canonical, Path(data_root) / cohort / subset / case_name / "bundle.npz"
+
+
+def _existing_complete_manifest(
+    out_root: Path,
+    canonical: str,
+    surface_metric_mode: str | None = None,
+) -> Tuple[Dict, Path] | None:
+    tags = [canonical.replace("/", "__")]
+    if canonical.startswith("AG/"):
+        tags.append(canonical.removeprefix("AG/").replace("/", "__"))
+    for tag in tags:
+        case_dir = out_root / f"{tag}__peak_wss"
+        manifest_path = case_dir / "manifest_bundle.json"
+        if not manifest_path.is_file():
+            continue
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if (surface_metric_mode is not None
+                and manifest.get("surface_metric_mode") != surface_metric_mode):
+            # A partial package written before the metric-mode split may contain
+            # area-labelled masks even for a vertex-only run.  Do not resume it.
+            continue
+        required = [case_dir / value for value in manifest.get("files", {}).values()]
+        coverage = (manifest.get("mapping_coverage") or {}).get("valid_ratio")
+        if (required and all(path.is_file() for path in required)
+                and coverage is not None and float(coverage) >= 0.999999):
+            manifest["case"] = canonical
+            return manifest, case_dir
+    return None
 
 
 def _find_partition(split_file: Path, label: str) -> str:
@@ -182,7 +305,8 @@ def _find_partition(split_file: Path, label: str) -> str:
 
 
 def _readme(case_label: str, run_name: str, peak_step: int, partition: str,
-            checkpoint: str, normalization_mode: str) -> str:
+            checkpoint: str, normalization_mode: str,
+            surface_metric_mode: str) -> str:
     short = case_label.split("/")[-1]
     return f"""# 后处理软件打开说明（WSS-min · ParaView）
 
@@ -191,6 +315,7 @@ def _readme(case_label: str, run_name: str, peak_step: int, partition: str,
 - 病例：`{case_label}`（split 分区：**{partition}**）
 - 模型：`{run_name}` · `ckpt_{checkpoint}.pt`
 - 目标空间：`{normalization_mode}`；正式指标使用同点 `true_norm/pred_norm`
+- high-risk 口径：`{surface_metric_mode}`；`legacy_vertex` 不读取或伪造面积权重
 - 帧口径：WSS-min **peak 收缩期**（`peak_step={peak_step}`），非 V3P merged-1146
 - 插值：Gaussian `r=3 mm, sharpness=2, max_dist=3 mm`
 - 坐标系：bundle 刚性配准帧（mm）；STL 已变换到同一帧
@@ -273,30 +398,24 @@ def export_case(
         d.mkdir(parents=True, exist_ok=True)
 
     pred_norm = np.asarray(
-        predict_case_norm(model, case, cfg.data.input_features, feat_stats, device),
+        predict_case_norm(model, case, cfg.data.input_features, feat_stats, device, cfg=cfg),
         dtype=np.float64,
     )
     true_norm = np.asarray(case["y_norm"], dtype=np.float64)
     err_norm = pred_norm - true_norm
     abs_err_norm = np.abs(err_norm)
-    true_thr = float(np.percentile(true_norm, 90.0))
-    pred_thr = float(np.percentile(pred_norm, 90.0))
-    true_highrisk = true_norm >= true_thr
-    pred_highrisk = pred_norm >= pred_thr
-    highrisk_overlap = true_highrisk & pred_highrisk
-    highrisk_missed = true_highrisk & ~pred_highrisk
-    highrisk_false_positive = pred_highrisk & ~true_highrisk
+    hotspot_payload = build_postview_hotspot_payload(
+        case, true_norm, pred_norm, cfg.eval.surface_metric_mode,
+    )
+    true_highrisk = hotspot_payload["selected_true"]
+    pred_highrisk = hotspot_payload["selected_pred"]
 
     scalar_data: Dict[str, np.ndarray] = {
         "true_norm": true_norm,
         "pred_norm": pred_norm,
         "err_norm": err_norm,
         "abs_err_norm": abs_err_norm,
-        "true_highrisk": true_highrisk.astype(np.float32),
-        "pred_highrisk": pred_highrisk.astype(np.float32),
-        "highrisk_overlap": highrisk_overlap.astype(np.float32),
-        "highrisk_missed": highrisk_missed.astype(np.float32),
-        "highrisk_false_positive": highrisk_false_positive.astype(np.float32),
+        **hotspot_payload["scalars"],
     }
     if cfg.data.target_normalization == "global_stats":
         y_true = case["y_raw"].astype(np.float64)
@@ -349,12 +468,21 @@ def export_case(
     )
     shutil.copy2(pc_dir / f"{short}__wall.vtp", case_dir / f"{short}__pointcloud_wall.vtp")
 
-    stl_src = REPO / "data_new" / case["cohort"] / case["case"] / f"{case['case']}.stl"
+    stl_src = Path(case.get("original_stl_path", ""))
+    if not stl_src.is_file():
+        stl_src = REPO / "data_new" / case["cohort"] / case["case"] / f"{case['case']}.stl"
     if not stl_src.is_file():
         raise FileNotFoundError(stl_src)
     stl_raw, stl_tris = _load_stl(stl_src)
-    stl_scale = _bbox_diag(wall_raw) / max(_bbox_diag(stl_raw), 1e-12)
+    stl_scale = float(case.get("original_stl_scale_to_mm", float("nan")))
+    if not np.isfinite(stl_scale) or stl_scale <= 0:
+        stl_scale = _bbox_diag(wall_raw) / max(_bbox_diag(stl_raw), 1e-12)
     stl_xyz = (stl_raw * stl_scale - centroid) @ rotation
+    crop_report = {"applied": False}
+    if case.get("wall_crop_applied", False):
+        stl_xyz, stl_tris, crop_report = _crop_stl_to_wall(
+            stl_xyz, stl_tris, wall_xyz, max_dist=3.0,
+        )
     stl_aligned = case_dir / f"{short}.stl"
     _write_stl(stl_xyz, stl_tris, stl_aligned)
 
@@ -417,7 +545,8 @@ def export_case(
     )
     _plot_top10_overlay(
         case["pos"], true_highrisk, pred_highrisk,
-        plots_dir / "fig_top10_overlay.png", f"{label} · normalized top10%",
+        plots_dir / "fig_top10_overlay.png",
+        f"{label} · {hotspot_payload['basis']} top10%",
     )
 
     pc_metrics = M.basic_metrics(true_norm, pred_norm)
@@ -425,14 +554,42 @@ def export_case(
         selfmax_scalars["wss_cfd_over_cfd_max"],
         selfmax_scalars["wss_pred_over_pred_max"],
     )
-    hotspot = M.hotspot_localization_metrics(true_norm, pred_norm, case["pos"])
+    hotspot = hotspot_payload["legacy_hotspot"]
+    area_hotspot = hotspot_payload["area_hotspot"]
     mapping_report = json.loads(mapping_json.read_text(encoding="utf-8"))
     (case_dir / "README_后处理打开说明.md").write_text(
         _readme(
             label, run_name, int(case["peak_step"]), partition, checkpoint,
-            cfg.data.target_normalization,
+            cfg.data.target_normalization, cfg.eval.surface_metric_mode,
         ), encoding="utf-8",
     )
+    pointcloud_metrics = {
+        "r2": float(pc_metrics["r2"]),
+        "mae": float(pc_metrics["mae"]),
+        "rmse": float(pc_metrics.get("rmse", float("nan"))),
+        "top10_iou": float(hotspot.get("top10_iou", float("nan"))),
+        "legacy_vertex_top10_iou": float(hotspot.get("top10_iou", float("nan"))),
+        "peak_point_dist_over_bbox": float(
+            hotspot.get("peak_point_dist_over_bbox", float("nan"))
+        ),
+        "hotspot_centroid_dist_over_bbox": float(
+            hotspot.get("hotspot_centroid_dist_over_bbox", float("nan"))
+        ),
+        "metric_basis": "same-point wall CSV only; not STL-mapped surface",
+    }
+    if area_hotspot is not None:
+        pointcloud_metrics.update({
+            "area_top10_iou": float(area_hotspot.get("area_top10_iou", float("nan"))),
+            "area_top10_precision": float(
+                area_hotspot.get("area_top10_precision", float("nan"))
+            ),
+            "area_top10_recall": float(
+                area_hotspot.get("area_top10_recall", float("nan"))
+            ),
+            "area_hotspot_centroid_dist": float(
+                area_hotspot.get("area_hotspot_centroid_dist", float("nan"))
+            ),
+        })
     manifest = {
         "purpose": "WSS-min normalized target postview package (truth | pred | error on STL)",
         "skill": "postview-surface-viz",
@@ -442,6 +599,11 @@ def export_case(
         "partition": partition,
         "peak_step": int(case["peak_step"]),
         "n_wall_points": int(len(true_norm)),
+        "surface_metric_mode": cfg.eval.surface_metric_mode,
+        "highrisk_mask_basis": hotspot_payload["basis"],
+        "surface_area_metrics_status": (
+            "complete_strict" if area_hotspot is not None else "not_requested"
+        ),
         "interpolation": {
             "method": "gaussian",
             "radius_mm": 3.0,
@@ -452,6 +614,7 @@ def export_case(
             "bundle registration frame in mm; STL bbox-scaled then rigid-transformed"
         ),
         "stl_to_pipeline_scale": float(stl_scale),
+        "stl_crop_to_cfd_wall": crop_report,
         "unit_extent_mismatch": extent_mismatch,
         "scalars": list(scalar_data),
         "normalization": {
@@ -464,19 +627,7 @@ def export_case(
                 else "disabled; would require an externally supplied or separately predicted case scale"
             ),
         },
-        "pointcloud_metrics": {
-            "r2": float(pc_metrics["r2"]),
-            "mae": float(pc_metrics["mae"]),
-            "rmse": float(pc_metrics.get("rmse", float("nan"))),
-            "top10_iou": float(hotspot.get("top10_iou", float("nan"))),
-            "peak_point_dist_over_bbox": float(
-                hotspot.get("peak_point_dist_over_bbox", float("nan"))
-            ),
-            "hotspot_centroid_dist_over_bbox": float(
-                hotspot.get("hotspot_centroid_dist_over_bbox", float("nan"))
-            ),
-            "metric_basis": "same-point wall CSV only; not STL-mapped surface",
-        },
+        "pointcloud_metrics": pointcloud_metrics,
         "selfmax_metrics": {
             "definition": "WSS_CFD/WSS_CFD,max vs WSS_Pred/WSS_Pred,max",
             "r2": float(selfmax_metrics["r2"]),
@@ -497,6 +648,8 @@ def export_case(
             "mapping_report": f"{short}__mapping_report.json",
         },
     }
+    if hotspot_payload["surface_area_report"] is not None:
+        manifest["surface_area_mapping"] = hotspot_payload["surface_area_report"]
     (case_dir / "manifest_bundle.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8",
     )
@@ -527,6 +680,8 @@ def main() -> None:
     ap.add_argument("--checkpoint", choices=("best", "last"), default="best")
     ap.add_argument("--output-dir", required=True, type=str)
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    ap.add_argument("--resume", action="store_true",
+                    help="reuse complete existing case packages and export only missing cases")
     args = ap.parse_args()
 
     run_dir = Path(args.run_dir)
@@ -548,7 +703,7 @@ def main() -> None:
         split_file = REPO / split_file
     if args.partition:
         labels = [
-            f"{cohort.removeprefix('AG/')}/{case}"
+            f"{cohort}/{case}"
             for cohort, case in D.load_split_cases(split_file, args.partition)
         ]
     else:
@@ -558,21 +713,30 @@ def main() -> None:
 
     manifests: List[Dict] = []
     for label in labels:
-        subset, case_name = label.split("/", 1)
-        cohort_rel = f"AG/{subset}"
-        bundle = Path(cfg.data.data_root) / cohort_rel / case_name / "bundle.npz"
+        canonical, bundle = _resolve_bundle_path(cfg.data.data_root, label)
+        cohort, subset, case_name = canonical.split("/", 2)
+        cohort_rel = f"{cohort}/{subset}"
         if not bundle.is_file():
             raise FileNotFoundError(f"missing bundle: {bundle}")
-        part = _find_partition(split_file, f"{subset}/{case_name}")
+        part = _find_partition(split_file, canonical)
         if part == "test" and not args.allow_test:
             raise PermissionError("test export requires --allow-test")
+        if args.resume:
+            existing = _existing_complete_manifest(
+                out_root, canonical, surface_metric_mode=cfg.eval.surface_metric_mode
+            )
+            if existing is not None:
+                manifest, case_dir = existing
+                manifests.append(manifest)
+                print(f"[resume] {canonical} -> {case_dir}")
+                continue
         case = D.load_case(
             cohort_rel, case_name, wss_stats, target=cfg.data.target,
             target_normalization=cfg.data.target_normalization,
             data_root=cfg.data.data_root,
             required_frame_version=cfg.data.required_frame_version,
         )
-        print(f"[load] {subset}/{case_name}  partition={part}  device={device}")
+        print(f"[load] {canonical}  partition={part}  device={device}")
         manifests.append(
             export_case(
                 case,
@@ -593,6 +757,7 @@ def main() -> None:
         "checkpoint": f"ckpt_{args.checkpoint}.pt",
         "best_epoch": int(ckpt.get("epoch", -1)) if isinstance(ckpt, dict) else -1,
         "output_dir": str(out_root),
+        "surface_metric_mode": cfg.eval.surface_metric_mode,
         "cases": manifests,
         "notes": (
             "Surface VTP is for visualization only. Formal R2 is in each package "
