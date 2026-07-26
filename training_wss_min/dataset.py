@@ -14,6 +14,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -22,6 +24,7 @@ import torch
 from torch.utils.data import Dataset
 
 from . import config as C
+from . import surface as S
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +98,16 @@ def canonical_unit_id(label: str) -> str:
         if parts[0] == "AAA" and parts[1] not in {"ruputer", "unruputer"}:
             raise ValueError(f"invalid AAA subset in split ID: {label!r}")
         return "/".join(parts)
-    raise ValueError(f"invalid split case ID (expect legacy AG or canonical AG/AAA): {label!r}")
+    if len(parts) == 3 and parts[0] == "ILO" and parts[1] and parts[2]:
+        if not re.fullmatch(r".+-(?:0|1)", parts[1]):
+            raise ValueError(f"invalid ILO patient suffix in split ID: {label!r}")
+        if parts[2] != "before":
+            raise ValueError(f"active ILO split only permits before, got: {label!r}")
+        return "/".join(parts)
+    raise ValueError(
+        "invalid split case ID (expect legacy AG or canonical AG/AAA/ILO-before): "
+        f"{label!r}"
+    )
 
 
 def load_split_cases(split_path: str | Path, partition: str) -> List[Tuple[str, str]]:
@@ -148,6 +160,56 @@ def build_fps_pool(pts: np.ndarray, k: int, pool_size: int, base_seed: int) -> n
     return pool
 
 
+def fps_cache_path(case: Dict, cfg: C.DataConfig, k: int) -> Path | None:
+    if not cfg.fps_cache_dir:
+        return None
+    unit_id = str(case.get("unit_id") or f"{case.get('cohort')}/{case.get('case')}")
+    return Path(cfg.fps_cache_dir) / unit_id / f"fps_k{int(k)}_pool{int(cfg.fps_pool_size)}.npz"
+
+
+def _coords_sha256(pos: np.ndarray) -> str:
+    arr = np.ascontiguousarray(pos, dtype=np.float32)
+    return hashlib.sha256(arr.view(np.uint8)).hexdigest()
+
+
+def load_fps_cache(case: Dict, cfg: C.DataConfig, k: int) -> Dict[str, np.ndarray] | None:
+    """Load and validate one persistent FPS cache once per in-memory case."""
+    path = fps_cache_path(case, cfg, k)
+    if path is None:
+        return None
+    memory_key = f"_fps_disk_cache_{int(k)}_{int(cfg.fps_pool_size)}"
+    if memory_key in case:
+        return case[memory_key]
+    if not path.is_file():
+        if cfg.fps_cache_required:
+            raise FileNotFoundError(f"required FPS cache is missing: {path}")
+        return None
+    with np.load(path, allow_pickle=False) as payload:
+        required = {"fixed", "pool", "n_total", "k", "pool_size", "coords_sha256"}
+        missing = sorted(required - set(payload.files))
+        if missing:
+            raise ValueError(f"FPS cache missing fields {missing}: {path}")
+        expected_hash = _coords_sha256(case["pos"])
+        actual_hash = str(np.asarray(payload["coords_sha256"]).item())
+        if actual_hash != expected_hash:
+            raise ValueError(f"FPS cache coordinate hash mismatch: {path}")
+        n_total = int(np.asarray(payload["n_total"]).item())
+        stored_k = int(np.asarray(payload["k"]).item())
+        pool_size = int(np.asarray(payload["pool_size"]).item())
+        if (n_total, stored_k, pool_size) != (len(case["pos"]), min(len(case["pos"]), int(k)), int(cfg.fps_pool_size)):
+            raise ValueError(
+                f"FPS cache contract mismatch: {path}; got {(n_total, stored_k, pool_size)}"
+            )
+        cached = {
+            "fixed": payload["fixed"].astype(np.int64, copy=True),
+            "pool": payload["pool"].astype(np.int64, copy=True),
+        }
+    if cached["fixed"].shape != (stored_k,) or cached["pool"].shape != (pool_size, stored_k):
+        raise ValueError(f"FPS cache array shape mismatch: {path}")
+    case[memory_key] = cached
+    return cached
+
+
 def _norm01(a: np.ndarray) -> np.ndarray:
     a = np.asarray(a, dtype=np.float64)
     finite = a[np.isfinite(a)]
@@ -174,29 +236,51 @@ def geom_sampling_weights(case: Dict, cfg: C.DataConfig) -> np.ndarray:
 
 def sample_indices(case: Dict, cfg: C.DataConfig, seed: int,
                    epoch: int = 0, case_index: int = 0,
-                   run_seed: int = 0) -> np.ndarray:
+                   run_seed: int = 0, *, stream: str = "default", n_points: int | None = None,
+                   sampling: str | None = None) -> np.ndarray:
     n = len(case["pos"])
-    k = cfg.wall_n_points
+    k = cfg.wall_n_points if n_points is None else int(n_points)
+    sampling = cfg.sampling if sampling is None else sampling
     if k <= 0 or k >= n:
         return np.arange(n)
-    if cfg.sampling == "random":
+    if sampling == "random":
         return np.random.default_rng(seed).choice(n, size=k, replace=False)
-    if cfg.sampling == "geom_weighted":
+    if sampling == "area_random":
+        if "surface_area_weights" not in case:
+            case["surface_area_weights"], case["surface_area_report"] = S.area_weights_for_case(case)
+        return np.random.default_rng(seed).choice(
+            n, size=k, replace=False, p=case["surface_area_weights"]
+        )
+    if sampling == "geom_weighted":
         w = geom_sampling_weights(case, cfg)
         return np.random.default_rng(seed).choice(n, size=k, replace=False, p=w)
-    if cfg.sampling == "fps_multistart":
+    if sampling == "fps_multistart":
         pool_size = max(1, int(cfg.fps_pool_size))
-        if "_fps_pool" not in case or case.get("_fps_pool_k") != min(n, k):
+        disk = load_fps_cache(case, cfg, k)
+        if disk is not None:
+            pool = disk["pool"]
+        elif "_fps_pool" not in case or case.get("_fps_pool_k") != min(n, k):
             case["_fps_pool"] = build_fps_pool(
                 case["pos"], k, pool_size, case.get("geom_seed", run_seed)
             )
             case["_fps_pool_k"] = min(n, k)
             case["_fps_pool_size"] = pool_size
-        pool = case["_fps_pool"]
-        pool_id = int((run_seed + 100003 * epoch + 7919 * case_index) % len(pool))
+        if disk is None:
+            pool = case["_fps_pool"]
+        # Make the multistart choice explicit rather than relying on a hash
+        # modulo collision.  With pool_size>1 this guarantees a distinct
+        # support/query candidate and an epoch-varying candidate (the epoch
+        # stride is deliberately coprime to the standard pool size 8).
+        role_offset = {"default": 0, "support": 0, "query": 1, "eval_support": 0}.get(stream)
+        if role_offset is None:
+            raise ValueError(f"unsupported FPS-multistart stream {stream!r}")
+        pool_id = int((run_seed + 100003 * epoch + 7919 * case_index + role_offset) % len(pool))
         return pool[pool_id].copy()
     # fps（确定性）：缓存长度-k 子集（非全序）
-    cache_key = "_fps_subset"
+    disk = load_fps_cache(case, cfg, k)
+    if disk is not None:
+        return disk["fixed"].copy()
+    cache_key = f"_fps_subset_{k}"
     if cache_key not in case or case.get("_fps_subset_k") != min(n, k):
         case[cache_key] = farthest_point_sample(case["pos"], min(n, max(k, 1)), seed)
         case["_fps_subset_k"] = min(n, k)
@@ -208,6 +292,15 @@ def sample_indices(case: Dict, cfg: C.DataConfig, seed: int,
 # ---------------------------------------------------------------------------
 GEOM_FEATURE_KEYS = ("abscissa_norm", "local_radius", "curvature", "coord_scale",
                      "radius_gradient")
+
+# cohort one-hot（逐病例常量）：从 case["cohort"] 的父系（AG/AAA/ILO）派生 0/1，
+# 不做 z-score，也不进入 feature_stats。仅当出现在 input_features 时才启用。
+COHORT_FEATURE_KEYS = {"cohort_ag": "AG", "cohort_aaa": "AAA", "cohort_ilo": "ILO"}
+
+
+def cohort_family(cohort_rel: str) -> str:
+    """canonical cohort_rel（如 'AG/fast'、'AAA/ruputer'、'ILO/<patient>'）取父系。"""
+    return str(cohort_rel).split("/", 1)[0]
 
 
 def _transform_feature_values(name: str, vals: np.ndarray, transform: str | None) -> np.ndarray:
@@ -225,6 +318,8 @@ def compute_feature_stats(
     stats: Dict[str, Dict[str, float]] = {}
     for f in input_features:
         if f in ("x", "y", "z"):
+            continue
+        if f in COHORT_FEATURE_KEYS:  # cohort one-hot：0/1 常量，不做 z-score
             continue
         if f not in cases[0]:
             raise KeyError(f"feature {f!r} missing from case bundle fields")
@@ -284,6 +379,9 @@ def build_features(case: Dict, idx: np.ndarray, input_features: Tuple[str, ...],
             cols.append(pos[:, 1])
         elif f == "z":
             cols.append(pos[:, 2])
+        elif f in COHORT_FEATURE_KEYS:
+            hit = cohort_family(case["cohort"]) == COHORT_FEATURE_KEYS[f]
+            cols.append(np.full(pos.shape[0], 1.0 if hit else 0.0, dtype=np.float64))
         else:
             st = feat_stats[f]
             v = np.asarray(case[f], dtype=np.float64)[idx]
@@ -359,7 +457,19 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
         y_norm, target_norm_meta = normalize_target(y_raw, wss_stats, target_normalization)
         case = dict(
             cohort=cohort_rel, case=case_name,
+            unit_id=f"{cohort_rel}/{case_name}",
             pos=pos,
+            wall_coords_raw=d["wall_coords_raw"].astype(np.float64),
+            original_stl_path=(str(np.asarray(d["original_stl_path"]).item())
+                               if "original_stl_path" in d.files else ""),
+            original_stl_scale_to_mm=(float(d["original_stl_scale_to_mm"])
+                                      if "original_stl_scale_to_mm" in d.files else float("nan")),
+            original_stl_match_score=(float(d["original_stl_match_score"])
+                                      if "original_stl_match_score" in d.files else float("nan")),
+            wall_crop_applied=(bool(d["wall_crop_applied"])
+                               if "wall_crop_applied" in d.files else False),
+            wall_crop_frac=(float(d["wall_crop_frac"])
+                            if "wall_crop_frac" in d.files else 0.0),
             y_raw=y_raw,
             y_norm=y_norm.astype(np.float32),
             target_normalization=target_normalization,
@@ -422,21 +532,34 @@ class WSSMinDataset(Dataset):
         self.training = training
         self.base_seed = base_seed
         self.epoch = 0
-        if training and cfg.sampling == "random" and cfg.wall_n_points > 0:
+        support_n = int(cfg.support_n_points or cfg.wall_n_points)
+        support_sampling = cfg.support_sampling or cfg.sampling
+        query_n = int(cfg.query_n_points or support_n)
+        if (training and support_sampling in {"random", "area_random"} and support_n > 0
+                and not getattr(cfg, "support_allow_undersized", False)):
             too_small = [
                 f"{c['cohort']}/{c['case']}({len(c['pos'])})"
-                for c in cases if len(c["pos"]) < cfg.wall_n_points
+                for c in cases if len(c["pos"]) < support_n
             ]
             if too_small:
                 raise ValueError(
                     "random sampling protocol requires the same number of points per case; "
-                    f"requested {cfg.wall_n_points}, too-small cases: {', '.join(too_small[:5])}"
+                    f"requested {support_n}, too-small cases: {', '.join(too_small[:5])}"
                 )
+        if cfg.query_mode == "independent" and any(len(c["pos"]) < query_n for c in cases):
+            raise ValueError(f"independent query requires at least {query_n} wall points per case")
         # 给每个 case 一个稳定的 fps seed
         for i, c in enumerate(cases):
+            c.setdefault("unit_id", f"{c.get('cohort', 'AG/unknown')}/{c.get('case', i)}")
             c["geom_seed"] = base_seed + 7919 * i
+            area_query_used = (
+                cfg.query_mode == "independent" and cfg.query_sampling == "area_random"
+            )
+            if ((support_sampling == "area_random" or area_query_used)
+                    and "surface_area_weights" not in c):
+                c["surface_area_weights"], c["surface_area_report"] = S.area_weights_for_case(c)
         # 预热 fps_multistart pool，避免首个 epoch 在 worker 内重复计算
-        if training and cfg.sampling == "fps_multistart":
+        if training and support_sampling == "fps_multistart":
             for i, c in enumerate(cases):
                 sample_indices(c, cfg, c["geom_seed"], epoch=0, case_index=i,
                                run_seed=base_seed)
@@ -449,33 +572,50 @@ class WSSMinDataset(Dataset):
 
     def __getitem__(self, i: int):
         case = self.cases[i]
-        sampling = self.cfg.sampling
-        if self.training and self.cfg.resample_each_epoch and sampling in (
-            "random", "geom_weighted", "fps_multistart"
-        ):
-            seed = self.base_seed + 100003 * self.epoch + 7919 * i
-        else:
-            seed = case["geom_seed"]
-        idx = sample_indices(
-            case, self.cfg, seed,
+        support_n = int(self.cfg.support_n_points or self.cfg.wall_n_points)
+        support_sampling = self.cfg.support_sampling or self.cfg.sampling
+        query_n = int(self.cfg.query_n_points or support_n)
+        query_sampling = self.cfg.query_sampling or support_sampling
+        epoch = self.epoch if self.training and self.cfg.resample_each_epoch else 0
+        support_seed = S.stable_seed(self.base_seed, epoch, case["unit_id"], "support")
+        support_idx = sample_indices(
+            case, self.cfg, support_seed,
             epoch=self.epoch if self.training else 0,
             case_index=i,
-            run_seed=self.base_seed,
+            run_seed=self.base_seed, stream="support", n_points=support_n, sampling=support_sampling,
         )
-        pos_sel = case["pos"][idx]
+        if self.cfg.query_mode == "same":
+            query_idx = support_idx
+        else:
+            query_seed = S.stable_seed(self.base_seed, epoch, case["unit_id"], "query")
+            query_idx = sample_indices(
+                case, self.cfg, query_seed, epoch=epoch, case_index=i,
+                run_seed=self.base_seed, stream="query", n_points=query_n, sampling=query_sampling,
+            ).copy()
+        support_pos = case["pos"][support_idx]
+        query_pos = case["pos"][query_idx]
         if self.training and getattr(self.cfg, "rot_aug", False):
-            pos_sel = (pos_sel @ random_rotation(seed + 31)).astype(np.float32)
-        feat = build_features(case, idx, self.cfg.input_features, self.feat_stats,
-                              pos_override=pos_sel)
+            rot = random_rotation(int(support_seed % (2**32)) + 31)
+            support_pos = (support_pos @ rot).astype(np.float32)
+            query_pos = (query_pos @ rot).astype(np.float32)
+        support_feat = build_features(case, support_idx, self.cfg.input_features, self.feat_stats,
+                                      pos_override=support_pos)
+        query_feat = (support_feat if query_idx is support_idx else
+                      build_features(case, query_idx, self.cfg.input_features, self.feat_stats,
+                                     pos_override=query_pos))
         return {
-            "pos": torch.from_numpy(np.ascontiguousarray(pos_sel)),
-            "x": torch.from_numpy(feat),
-            "y": torch.from_numpy(case["y_norm"][idx]),
-            "y_raw": torch.from_numpy(case["y_raw"][idx]),
+            "support_pos": torch.from_numpy(np.ascontiguousarray(support_pos)),
+            "support_x": torch.from_numpy(support_feat),
+            "support_idx": torch.from_numpy(np.ascontiguousarray(support_idx)),
+            "pos": torch.from_numpy(np.ascontiguousarray(query_pos)),
+            "x": torch.from_numpy(query_feat),
+            "query_idx": torch.from_numpy(np.ascontiguousarray(query_idx)),
+            "y": torch.from_numpy(case["y_norm"][query_idx]),
+            "y_raw": torch.from_numpy(case["y_raw"][query_idx]),
             # 供几何加权 loss 用（曲率、1/局部半径）
-            "curv": torch.from_numpy(np.abs(case["curvature"][idx]).astype(np.float32)),
-            "invr": torch.from_numpy((1.0 / np.clip(case["local_radius"][idx], 1e-6, None)).astype(np.float32)),
-            "case": case["case"], "cohort": case["cohort"],
+            "curv": torch.from_numpy(np.abs(case["curvature"][query_idx]).astype(np.float32)),
+            "invr": torch.from_numpy((1.0 / np.clip(case["local_radius"][query_idx], 1e-6, None)).astype(np.float32)),
+            "case": case["case"], "cohort": case["cohort"], "unit_id": case["unit_id"],
         }
 
 
@@ -488,10 +628,20 @@ def collate(batch: List[Dict]) -> Dict:
     batch_idx = torch.cat([
         torch.full((len(b["pos"]),), i, dtype=torch.long) for i, b in enumerate(batch)
     ])
+    support_pos = torch.cat([b["support_pos"] for b in batch], dim=0)
+    support_x = torch.cat([b["support_x"] for b in batch], dim=0)
+    support_batch = torch.cat([
+        torch.full((len(b["support_pos"]),), i, dtype=torch.long) for i, b in enumerate(batch)
+    ])
     curv = torch.cat([b["curv"] for b in batch], dim=0)
     invr = torch.cat([b["invr"] for b in batch], dim=0)
     return {"pos": pos, "x": x, "y": y, "y_raw": y_raw, "batch": batch_idx,
-            "curv": curv, "invr": invr, "cases": [b["case"] for b in batch]}
+            "support_pos": support_pos, "support_x": support_x,
+            "support_batch": support_batch,
+            "support_indices": [b["support_idx"] for b in batch],
+            "query_indices": [b["query_idx"] for b in batch],
+            "curv": curv, "invr": invr, "cases": [b["case"] for b in batch],
+            "unit_ids": [b["unit_id"] for b in batch]}
 
 
 def case_to_batch(case: Dict, input_features: Tuple[str, ...], feat_stats: Dict,

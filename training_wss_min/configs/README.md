@@ -4,6 +4,8 @@
 
 **兼容约定**：JSON 文件名可语义化；文件内 `name` 字段与历史 `runs/<name>/` **保持原样**（含 `r2_`/`r3_`/`r4_`/`r5_`/`r6_`），便于复评与追溯。新实验生成器应直接写语义 `name`。
 
+**test27采样/指标语义**：`random`=训练壁面顶点均匀无放回，`area_random`=三角面面积映射后的表面积采样；两者不可混名。`eval.surface_metric_mode=legacy_vertex`不消费面积映射且不生成area字段，`both_strict`才启用面积指标并逐例执行硬门。当前Phase-V六组为前者，Phase-A六组为后者。
+
 | 目录 | 主题（核心问题） | 历史对照 | 状态 |
 |---|---|---|---|
 | `baseline_sweep/` | 点数 / 特征 / 采样正交扫 | 第 1 版 baseline | 归档 |
@@ -11,9 +13,13 @@
 | `pointnet_trainloss_e400/` | PointNet × xyz / xyz+geom；train/test-only；按 train_loss 选模；400 epoch | 2026-07-14 | **完训+完评 `8968` / `8974–8975`** |
 | `pointnet_wide128/` | PointNet+xyz+geom 容量探针：`width=128`/`head_hidden=256`（相对老师多一层 128 过渡）；FPS-2000；val-only | 2026-07-14 | **完训 `8970`｜补充 No-Go** |
 | `pointnet_distribution_matrix/` | E2 精确导师通道 / E3 random-5000 × GLOBAL/CASE；另含 E23 宽网+5000 点交互对照 | 2026-07-14/15 | **五组完训+完评 `8976–8980`；E2 最强，CASE No-Go** |
-| `pointnet_v4/` | AG-v4 61/15 与 AG61+AAA57 混合训练池的 E2-GLOBAL/FPS-2000 公平复跑 | 2026-07-16 | **Jobs `9138` / `9140` 完训完评；AG-v4 No-Go，AAA 有小幅整体增益但高尾退化** |
+| `pointnet_v4/` | AG-v4/混合 E2；test27 Support/Query 的 vertex `random` 与 `area_random` SAME/SEP | 2026-07-16/17 | **9170模型资产完成；P1V/P2V=`10473/10474`已提交；P1/P2面积组待修** |
+| `pointnetpp_v4/` | 三层 SA；test27 fixed center、fixed-support/full-query、采样与 SAME/SEP | 2026-07-16/17 | **9167–9169已有；Q0/Q1V/Q2V/Q3V=`10475–10478`已提交；Q1–Q4面积组待修** |
 | `pointnet_deeper/` | E4 导师追加深度探针：`6→64→128→256→512；1024→512→256→128→64→1`，其余严格对齐 E2 | 2026-07-15 | **Job `8999` 完训+完评｜test 退化｜No-Go** |
-| `pointnetpp_sa_foundation/` | PointNet++ 三层 SA 结构审计：FPS-2000，中心 `500→125→32` | 2026-07-15 | **仅可视化 foundation；未批准训练** |
+| `pointnetpp_sa_foundation/` | PointNet++ 三层 SA 结构审计：FPS-2000，中心 `500→125→32` | 2026-07-15 | **foundation 已审计；正式待提交配置已独立固化到 `pointnetpp_v4/`** |
+| `pointnetpp_d2_k64_ilo_structure_20260723/` | D2 c125×k64 的 ILO 两协议与 PointNeXt-R/LocalGeoPE/Attention/SEP 单变量矩阵 | 2026-07-23 | **9/9 完训；S3-GEOPE 三种子通过** |
+| `pointnetpp_s3_regularization_20260724/` | S3-GEOPE 的 head dropout / DropPath / 保覆盖 NeighborDrop 单变量矩阵 | 2026-07-24 | **12 配置静态审计通过；`10871→10872` 已提交** |
+| `pointnetpp_regp10_transformer_20260726/` | REG-P10 上的 7 个局部 stage 非空子集与复用 SA3 coarse global attention 对照 | 2026-07-26 | **8/8 静态/GPU 门禁通过；`10968_[0-7]%4` 训练中** |
 | `loss_aug_ablation/` | loss / 采样加权 / 旋转增强 | 原 `r2_*` | 归档 |
 | `clean_data/` | clean-data 主矩阵（mse / tgtw × seed） | 原 `r3_*` | 归档 |
 | `protocol_gates/` | 固定阈值、Gate-1、B/C 协议锚点 | 原 `r4_dev1_b*`/`c*` | 归档；锚点 `b1_tgtw_fixedq_*` |
@@ -53,6 +59,21 @@ bash training_wss_min/cluster/pointnet_deeper/submit.sh
 
 # PointNet++ 三层 SA 中心点与 ball-query 分组（只读结构审计，不训练）
 python -m training_wss_min.tools.visualize_pointnetpp_sa
+
+# v4 PointNet++ 三协议 + 新 split PointNet E2 对照：仅准备清单，禁止直接批量提交
+training_wss_min/configs/sweeps/pointnetpp_v4_prepare_only.txt
+
+# 新 test27 采样语义：random=vertex-uniform；area_random=triangle-area mapped。
+# vertex/FPS六组已单独通过门禁并提交；面积六组保持both_strict backlog，禁止降级冒名。
+python training_wss_min/cluster/submit_v4_support_query_matrix.py --help
+
+# 正式提交前只读门禁（全量加载、哈希、双病例 CPU、RTX4090 AMP）
+python -m training_wss_min.tools.preflight_v4_jobs --configs \
+  training_wss_min/configs/pointnetpp_v4/ag_v4_sa3_e2_global_fps2000.json \
+  training_wss_min/configs/pointnetpp_v4/ag_aaa_v4_locked_sa3_e2_global_fps2000.json \
+  training_wss_min/configs/pointnetpp_v4/ag_aaa_v4_stratified_sa3_e2_global_fps2000.json \
+  training_wss_min/configs/pointnet_v4/ag_aaa_v4_stratified_e2_global_fps2000.json \
+  --output data_wss_min/pipeline_reports/v4_cutover_20260715_1921/v4_pointnetpp_matrix_preflight.json
 
 # 协议锚点（B1 fixed target-weight）
 training_wss_min/configs/protocol_gates/b1_tgtw_fixedq_s1234.json

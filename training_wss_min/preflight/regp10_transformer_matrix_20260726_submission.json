@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-26T07:36:01.391012+00:00",
+  "status": "submitted",
+  "manifest": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/preflight/regp10_transformer_matrix_20260726_prepared.json",
+  "manifest_sha256": "4535a7476951848f488c10b06ddc4f125fbdbf232d7bd5a6714bf9810856bf34",
+  "static_audit": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/preflight/regp10_transformer_matrix_20260726_static_audit.json",
+  "static_audit_sha256": "53be060a771c2e1e03bf14ce675d6893fec13fe9f125104132543806ff14b5fc",
+  "policy": "REG-P10 seed1234; seven local SA-stage subsets plus one existing SA3 coarse-global control; GPU gate then array 0-7%4",
+  "tasks": 8,
+  "array": "0-7%4",
+  "jobs": [
+    {
+      "role": "formal_gate",
+      "job_id": "10967"
+    },
+    {
+      "role": "training_and_best_last_eval",
+      "job_id": "10968",
+      "array": "0-7%4",
+      "dependency": "afterok:10967"
+    }
+  ],
+  "submitted_at": "2026-07-26T07:36:01.407312+00:00"
+}

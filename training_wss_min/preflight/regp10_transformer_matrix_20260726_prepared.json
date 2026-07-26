@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-26T07:35:01.136085+00:00",
+  "status": "prepared",
+  "protocol": "regp10_complete_local_stage_factorial_plus_global_control",
+  "scope": "REG-P10 seed1234; all seven non-empty local SA-stage subsets plus the existing SA3 coarse-center global-attention control",
+  "parent": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json",
+  "parent_sha256": "777e78b19d374a5b8d5d3e3e8358f48c3c2e6a800e9c233e47a4648342bb4761",
+  "seeds": [
+    1234
+  ],
+  "evaluation_support_seed": 1234,
+  "local_stage_subsets": [
+    [
+      1
+    ],
+    [
+      2
+    ],
+    [
+      3
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      1,
+      2,
+      3
+    ]
+  ],
+  "global_control": "coarse_attention=true; local stages empty",
+  "configs": [
+    {
+      "experiment_id": "localtf_sa1_s1234",
+      "variant": "local",
+      "local_transformer_stages": [
+        1
+      ],
+      "coarse_attention": false,
+      "seed": 1234,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa1_s1234.json",
+      "sha256": "c5142c3b2e4d81efdf4e5e28c484a2dbed7bf310a34851206650fbdc16d3f3f4",
+      "parent_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json",
+      "parent_config_sha256": "777e78b19d374a5b8d5d3e3e8358f48c3c2e6a800e9c233e47a4648342bb4761",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/pointnetpp_regp10_transformer/outputs/localtf_sa1_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_AAA_ILO_q2v_pool2025_train138_test36.json",
+      "split_sha256": "d16fc4978b82661e45e7863b19ae5ae5407528f7000c9aeeb9be01b904bdd8f1",
+      "target_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_global_stats.json",
+      "target_stats_sha256": "f3d631c57b9e09de5e07cbb7e061de0d03073d005f4a236003ac049e8f5239cb",
+      "feature_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_feature_stats.json",
+      "feature_stats_sha256": "b12221f7a45ff50640f2c394ecd780f4dbdf13d7eb4c53c86cb8ee17e33c73e3",
+      "only_allowed_differences": [
+        "name",
+        "notes",
+        "model.local_transformer_stages"
+      ]
+    },
+    {
+      "experiment_id": "localtf_sa2_s1234",
+      "variant": "local",
+      "local_transformer_stages": [
+        2
+      ],
+      "coarse_attention": false,
+      "seed": 1234,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa2_s1234.json",
+      "sha256": "50c9475e4f164fab2f211df77c9cb3739d43e58e623c780f8b3c2de5a7b9a7c1",
+      "parent_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json",
+      "parent_config_sha256": "777e78b19d374a5b8d5d3e3e8358f48c3c2e6a800e9c233e47a4648342bb4761",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/pointnetpp_regp10_transformer/outputs/localtf_sa2_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_AAA_ILO_q2v_pool2025_train138_test36.json",
+      "split_sha256": "d16fc4978b82661e45e7863b19ae5ae5407528f7000c9aeeb9be01b904bdd8f1",
+      "target_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_global_stats.json",
+      "target_stats_sha256": "f3d631c57b9e09de5e07cbb7e061de0d03073d005f4a236003ac049e8f5239cb",
+      "feature_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_feature_stats.json",
+      "feature_stats_sha256": "b12221f7a45ff50640f2c394ecd780f4dbdf13d7eb4c53c86cb8ee17e33c73e3",
+      "only_allowed_differences": [
+        "name",
+        "notes",
+        "model.local_transformer_stages"
+      ]
+    },
+    {
+      "experiment_id": "localtf_sa3_s1234",
+      "variant": "local",
+      "local_transformer_stages": [
+        3
+      ],
+      "coarse_attention": false,
+      "seed": 1234,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa3_s1234.json",
+      "sha256": "8f851ec83e93c28951b971958e84d5b2349e48577a88d6447a66d1293178ca9e",
+      "parent_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json",
+      "parent_config_sha256": "777e78b19d374a5b8d5d3e3e8358f48c3c2e6a800e9c233e47a4648342bb4761",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/pointnetpp_regp10_transformer/outputs/localtf_sa3_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_AAA_ILO_q2v_pool2025_train138_test36.json",
+      "split_sha256": "d16fc4978b82661e45e7863b19ae5ae5407528f7000c9aeeb9be01b904bdd8f1",
+      "target_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_global_stats.json",
+      "target_stats_sha256": "f3d631c57b9e09de5e07cbb7e061de0d03073d005f4a236003ac049e8f5239cb",
+      "feature_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_feature_stats.json",
+      "feature_stats_sha256": "b12221f7a45ff50640f2c394ecd780f4dbdf13d7eb4c53c86cb8ee17e33c73e3",
+      "only_allowed_differences": [
+        "name",
+        "notes",
+        "model.local_transformer_stages"
+      ]
+    },
+    {
+      "experiment_id": "localtf_sa12_s1234",
+      "variant": "local",
+      "local_transformer_stages": [
+        1,
+        2
+      ],
+      "coarse_attention": false,
+      "seed": 1234,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa12_s1234.json",
+      "sha256": "1e1a28398abc143ec63d20a1cbf430f70065969f69bd6b2d16cf050d00db6fe2",
+      "parent_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json",
+      "parent_config_sha256": "777e78b19d374a5b8d5d3e3e8358f48c3c2e6a800e9c233e47a4648342bb4761",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/pointnetpp_regp10_transformer/outputs/localtf_sa12_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_AAA_ILO_q2v_pool2025_train138_test36.json",
+      "split_sha256": "d16fc4978b82661e45e7863b19ae5ae5407528f7000c9aeeb9be01b904bdd8f1",
+      "target_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_global_stats.json",
+      "target_stats_sha256": "f3d631c57b9e09de5e07cbb7e061de0d03073d005f4a236003ac049e8f5239cb",
+      "feature_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_feature_stats.json",
+      "feature_stats_sha256": "b12221f7a45ff50640f2c394ecd780f4dbdf13d7eb4c53c86cb8ee17e33c73e3",
+      "only_allowed_differences": [
+        "name",
+        "notes",
+        "model.local_transformer_stages"
+      ]
+    },
+    {
+      "experiment_id": "localtf_sa13_s1234",
+      "variant": "local",
+      "local_transformer_stages": [
+        1,
+        3
+      ],
+      "coarse_attention": false,
+      "seed": 1234,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa13_s1234.json",
+      "sha256": "444c5f875b556f1776694fe944374c6a14484c1d44373921093f14f2dd3d8406",
+      "parent_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json",
+      "parent_config_sha256": "777e78b19d374a5b8d5d3e3e8358f48c3c2e6a800e9c233e47a4648342bb4761",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/pointnetpp_regp10_transformer/outputs/localtf_sa13_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_AAA_ILO_q2v_pool2025_train138_test36.json",
+      "split_sha256": "d16fc4978b82661e45e7863b19ae5ae5407528f7000c9aeeb9be01b904bdd8f1",
+      "target_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_global_stats.json",
+      "target_stats_sha256": "f3d631c57b9e09de5e07cbb7e061de0d03073d005f4a236003ac049e8f5239cb",
+      "feature_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_feature_stats.json",
+      "feature_stats_sha256": "b12221f7a45ff50640f2c394ecd780f4dbdf13d7eb4c53c86cb8ee17e33c73e3",
+      "only_allowed_differences": [
+        "name",
+        "notes",
+        "model.local_transformer_stages"
+      ]
+    },
+    {
+      "experiment_id": "localtf_sa23_s1234",
+      "variant": "local",
+      "local_transformer_stages": [
+        2,
+        3
+      ],
+      "coarse_attention": false,
+      "seed": 1234,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa23_s1234.json",
+      "sha256": "070f2c9f89b814355d3c871efffa272cf68b40a35d0f18db8ba3c36a9cb06bfe",
+      "parent_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json",
+      "parent_config_sha256": "777e78b19d374a5b8d5d3e3e8358f48c3c2e6a800e9c233e47a4648342bb4761",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/pointnetpp_regp10_transformer/outputs/localtf_sa23_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_AAA_ILO_q2v_pool2025_train138_test36.json",
+      "split_sha256": "d16fc4978b82661e45e7863b19ae5ae5407528f7000c9aeeb9be01b904bdd8f1",
+      "target_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_global_stats.json",
+      "target_stats_sha256": "f3d631c57b9e09de5e07cbb7e061de0d03073d005f4a236003ac049e8f5239cb",
+      "feature_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_feature_stats.json",
+      "feature_stats_sha256": "b12221f7a45ff50640f2c394ecd780f4dbdf13d7eb4c53c86cb8ee17e33c73e3",
+      "only_allowed_differences": [
+        "name",
+        "notes",
+        "model.local_transformer_stages"
+      ]
+    },
+    {
+      "experiment_id": "localtf_sa123_s1234",
+      "variant": "local",
+      "local_transformer_stages": [
+        1,
+        2,
+        3
+      ],
+      "coarse_attention": false,
+      "seed": 1234,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa123_s1234.json",
+      "sha256": "d1e36d12ba3504212716a3838686b69f20c68138987df53d41e42c0241a5601e",
+      "parent_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json",
+      "parent_config_sha256": "777e78b19d374a5b8d5d3e3e8358f48c3c2e6a800e9c233e47a4648342bb4761",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/pointnetpp_regp10_transformer/outputs/localtf_sa123_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_AAA_ILO_q2v_pool2025_train138_test36.json",
+      "split_sha256": "d16fc4978b82661e45e7863b19ae5ae5407528f7000c9aeeb9be01b904bdd8f1",
+      "target_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_global_stats.json",
+      "target_stats_sha256": "f3d631c57b9e09de5e07cbb7e061de0d03073d005f4a236003ac049e8f5239cb",
+      "feature_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_feature_stats.json",
+      "feature_stats_sha256": "b12221f7a45ff50640f2c394ecd780f4dbdf13d7eb4c53c86cb8ee17e33c73e3",
+      "only_allowed_differences": [
+        "name",
+        "notes",
+        "model.local_transformer_stages"
+      ]
+    },
+    {
+      "experiment_id": "globaltf_sa3_s1234",
+      "variant": "global",
+      "local_transformer_stages": [],
+      "coarse_attention": true,
+      "seed": 1234,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_globaltf_sa3_s1234.json",
+      "sha256": "f0384da45c1d969253708a2863ead2364985cb752752ea820a85a087a56f9c11",
+      "parent_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json",
+      "parent_config_sha256": "777e78b19d374a5b8d5d3e3e8358f48c3c2e6a800e9c233e47a4648342bb4761",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/pointnetpp_regp10_transformer/outputs/globaltf_sa3_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/training/splits/split_AG_AAA_ILO_q2v_pool2025_train138_test36.json",
+      "split_sha256": "d16fc4978b82661e45e7863b19ae5ae5407528f7000c9aeeb9be01b904bdd8f1",
+      "target_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_global_stats.json",
+      "target_stats_sha256": "f3d631c57b9e09de5e07cbb7e061de0d03073d005f4a236003ac049e8f5239cb",
+      "feature_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/fold_stats/q2v_ilo_20260718/q2v_pool2025_control106_feature_stats.json",
+      "feature_stats_sha256": "b12221f7a45ff50640f2c394ecd780f4dbdf13d7eb4c53c86cb8ee17e33c73e3",
+      "only_allowed_differences": [
+        "name",
+        "notes",
+        "model.coarse_attention"
+      ]
+    }
+  ],
+  "expected_new_jobs": 8
+}

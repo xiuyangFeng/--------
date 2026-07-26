@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import heapq
 import json
 import math
@@ -90,6 +91,13 @@ def main():
     log.info("data: wall_n=%s sampling=%s features=%s target=%s persistent_workers=%s",
              cfg.data.wall_n_points, cfg.data.sampling, cfg.data.input_features,
              cfg.data.target, cfg.data.persistent_workers)
+    log.info("support/query: support_n=%s support_sampling=%s query_mode=%s query_n=%s "
+             "query_sampling=%s fixed_support_eval=%s",
+             cfg.data.support_n_points or cfg.data.wall_n_points,
+             cfg.data.support_sampling or cfg.data.sampling, cfg.data.query_mode,
+             cfg.data.query_n_points or cfg.data.support_n_points or cfg.data.wall_n_points,
+             cfg.data.query_sampling or cfg.data.support_sampling or cfg.data.sampling,
+             cfg.eval.fixed_support)
 
     # ---- 数据 ----
     stats_path = Path(cfg.data.wss_stats_path)
@@ -113,9 +121,26 @@ def main():
             data_root=cfg.data.data_root,
             required_frame_version=cfg.data.required_frame_version,
         )
-    feat_stats = D.compute_feature_stats(
-        tr_cases, cfg.data.input_features, cfg.data.curvature_transform
-    )
+    feature_stats_source = None
+    if cfg.data.feature_stats_path:
+        feature_stats_source = Path(cfg.data.feature_stats_path)
+        if not feature_stats_source.is_file():
+            raise FileNotFoundError(
+                f"configured feature_stats_path does not exist: {feature_stats_source}"
+            )
+        feat_stats = json.loads(feature_stats_source.read_text(encoding="utf-8"))
+        required = (set(cfg.data.input_features) - {"x", "y", "z"}
+                    - set(D.COHORT_FEATURE_KEYS))
+        missing = sorted(required - set(feat_stats))
+        if missing:
+            raise KeyError(
+                f"frozen feature stats missing required features {missing}: "
+                f"{feature_stats_source}"
+            )
+    else:
+        feat_stats = D.compute_feature_stats(
+            tr_cases, cfg.data.input_features, cfg.data.curvature_transform
+        )
     wq = D.compute_train_weight_quantiles(tr_cases)
     if cfg.train.loss_weight_fixed_quantiles:
         cfg.train.y_norm_q02 = wq["y_norm_q02"]
@@ -131,6 +156,15 @@ def main():
 
     cfg.to_json(run_dir / "config.json")
     (run_dir / "feature_stats.json").write_text(json.dumps(feat_stats, indent=2))
+    (run_dir / "feature_stats_source.json").write_text(json.dumps({
+        "mode": "frozen" if feature_stats_source is not None else "train_recomputed",
+        "source_path": str(feature_stats_source.resolve()) if feature_stats_source else None,
+        "source_sha256": (
+            hashlib.sha256(feature_stats_source.read_bytes()).hexdigest()
+            if feature_stats_source is not None else None
+        ),
+        "train_split_path": str(Path(cfg.data.split_path).resolve()),
+    }, indent=2, ensure_ascii=False))
     (run_dir / "wss_global_stats.json").write_text(
         json.dumps(wss_stats, indent=2, ensure_ascii=False)
     )
@@ -160,6 +194,31 @@ def main():
 
     # ---- 模型/优化器 ----
     model = build_model(cfg.model, C.input_dim(cfg)).to(device)
+    initialization = {"mode": "random_initialization"}
+    if cfg.train.init_checkpoint_path:
+        init_path = Path(cfg.train.init_checkpoint_path)
+        if not init_path.is_file():
+            raise FileNotFoundError(f"init checkpoint does not exist: {init_path}")
+        payload = torch.load(init_path, map_location="cpu", weights_only=False)
+        state = payload.get("model", payload)
+        result = model.load_state_dict(state, strict=cfg.train.init_checkpoint_strict)
+        if not cfg.train.init_checkpoint_strict and (result.missing_keys or result.unexpected_keys):
+            log.warning("non-strict initialization missing=%s unexpected=%s",
+                        result.missing_keys, result.unexpected_keys)
+        initialization = {
+            "mode": "warm_start_weights_only",
+            "checkpoint_path": str(init_path.resolve()),
+            "checkpoint_sha256": hashlib.sha256(init_path.read_bytes()).hexdigest(),
+            "checkpoint_epoch": payload.get("epoch"),
+            "checkpoint_metric": payload.get("metric"),
+            "strict": bool(cfg.train.init_checkpoint_strict),
+            "optimizer_scheduler_reset": True,
+        }
+        log.info("initialized model weights from %s (epoch=%s metric=%s; optimizer reset)",
+                 init_path, payload.get("epoch"), payload.get("metric"))
+    (run_dir / "initialization.json").write_text(
+        json.dumps(initialization, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     n_par = sum(p.numel() for p in model.parameters())
     log.info("model=%s params=%.2fM selection=%s top_k=%d patience=%d",
              cfg.model.name, n_par / 1e6, cfg.train.selection_rule,
@@ -188,7 +247,15 @@ def main():
             x = batch["x"].to(device)
             opt.zero_grad(set_to_none=True)
             with torch.amp.autocast("cuda", enabled=(cfg.train.amp and device == "cuda")):
-                pred = model(pos, x, batch["batch"].to(device))
+                if cfg.data.support_n_points is not None or cfg.model.sa_center_counts:
+                    pred = model.forward_support_query(
+                        batch["support_pos"].to(device), batch["support_x"].to(device),
+                        batch["support_batch"].to(device), pos, x,
+                        batch["batch"].to(device), unit_ids=batch["unit_ids"], epoch=epoch,
+                        global_seed=cfg.train.seed, evaluation=False,
+                    )
+                else:
+                    pred = model(pos, x, batch["batch"].to(device))
                 loss = compute_loss(pred, batch, cfg.train, device, wss_stats)
             pred_metric = pred[:, 0] if pred.ndim == 2 else pred
             target_metric = batch["y"].to(device)

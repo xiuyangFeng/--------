@@ -42,15 +42,112 @@ def mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(np.mean(np.abs(np.asarray(y_true, np.float64) - np.asarray(y_pred, np.float64))))
 
 
+def nmae(y_true: np.ndarray, y_pred: np.ndarray, norm: str = "range") -> float:
+    """Normalized MAE using the same denominator choices as :func:`nrmse`."""
+    y_true = np.asarray(y_true, dtype=np.float64)
+    value = mae(y_true, y_pred)
+    if norm == "mean":
+        denom = abs(float(y_true.mean()))
+    elif norm == "std":
+        denom = float(y_true.std())
+    else:
+        denom = float(y_true.max() - y_true.min())
+    return value / denom if denom > 1e-12 else float("nan")
+
+
 def basic_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
     return {
         "r2": r2_score(y_true, y_pred),
         "nrmse_range": nrmse(y_true, y_pred, "range"),
         "nrmse_mean": nrmse(y_true, y_pred, "mean"),
         "mae": mae(y_true, y_pred),
+        "nmae_range": nmae(y_true, y_pred, "range"),
         "rmse": float(np.sqrt(np.mean((y_true - y_pred) ** 2))),
         "n": int(len(y_true)),
     }
+
+
+def weighted_basic_metrics(y_true: np.ndarray, y_pred: np.ndarray,
+                           weights: np.ndarray) -> Dict[str, float]:
+    yt = np.asarray(y_true, dtype=np.float64)
+    yp = np.asarray(y_pred, dtype=np.float64)
+    w = np.asarray(weights, dtype=np.float64)
+    valid = np.isfinite(yt) & np.isfinite(yp) & np.isfinite(w) & (w >= 0)
+    yt, yp, w = yt[valid], yp[valid], w[valid]
+    w = w / w.sum()
+    mean = float(np.sum(w * yt))
+    mse = float(np.sum(w * (yt - yp) ** 2))
+    mae_value = float(np.sum(w * np.abs(yt - yp)))
+    var = float(np.sum(w * (yt - mean) ** 2))
+    true_range = float(yt.max() - yt.min())
+    return {"r2": 1.0 - mse / var if var > 1e-12 else float("nan"),
+            "mae": mae_value, "rmse": float(np.sqrt(mse)),
+            "nmae_range": mae_value / true_range if true_range > 1e-12 else float("nan"),
+            "n": int(len(yt)), "weight_sum": float(weights.sum())}
+
+
+def area_top_fraction_mask(values: np.ndarray, weights: np.ndarray,
+                           fraction: float = 0.10) -> np.ndarray:
+    values = np.asarray(values, dtype=np.float64)
+    weights = np.asarray(weights, dtype=np.float64)
+    order = np.argsort(values, kind="mergesort")[::-1]
+    cumulative = np.cumsum(weights[order] / weights.sum())
+    take = cumulative <= fraction
+    if len(take):
+        take[0] = True
+        boundary = int(np.searchsorted(cumulative, fraction, side="left"))
+        take[:min(boundary + 1, len(take))] = True
+    mask = np.zeros(len(values), dtype=bool)
+    mask[order[take]] = True
+    return mask
+
+
+def area_hotspot_metrics(y_true: np.ndarray, y_pred: np.ndarray, pos: np.ndarray,
+                         weights: np.ndarray) -> Dict[str, float]:
+    yt = np.asarray(y_true, dtype=np.float64)
+    yp = np.asarray(y_pred, dtype=np.float64)
+    xyz = np.asarray(pos, dtype=np.float64)
+    w = np.asarray(weights, dtype=np.float64)
+    true_mask = area_top_fraction_mask(yt, w)
+    pred_mask = area_top_fraction_mask(yp, w)
+    inter = true_mask & pred_mask
+    union = true_mask | pred_mask
+    inter_area = float(w[inter].sum())
+    union_area = float(w[union].sum())
+    pred_area = float(w[pred_mask].sum())
+    true_area = float(w[true_mask].sum())
+    wt = w[true_mask] / w[true_mask].sum()
+    wp = w[pred_mask] / w[pred_mask].sum()
+    ct = np.sum(xyz[true_mask] * wt[:, None], axis=0)
+    cp = np.sum(xyz[pred_mask] * wp[:, None], axis=0)
+    high = weighted_basic_metrics(yt[true_mask], yp[true_mask], w[true_mask])
+    return {
+        "area_top10_iou": inter_area / union_area if union_area else float("nan"),
+        "area_top10_precision": inter_area / pred_area if pred_area else float("nan"),
+        "area_top10_recall": inter_area / true_area if true_area else float("nan"),
+        "area_hotspot_centroid_dist": float(np.linalg.norm(ct - cp)),
+        "high_wss_area_mae": high["mae"], "high_wss_area_rmse": high["rmse"],
+        "high_wss_area_r2": high["r2"],
+    }
+
+
+def casebalanced_area_metrics(y_true_by_case: Sequence[np.ndarray],
+                              y_pred_by_case: Sequence[np.ndarray],
+                              weights_by_case: Sequence[np.ndarray]) -> Dict[str, float]:
+    means = [float(np.sum(np.asarray(w) / np.sum(w) * np.asarray(y)))
+             for y, w in zip(y_true_by_case, weights_by_case)]
+    global_mean = float(np.mean(means))
+    mse, mae_values, variance = [], [], []
+    for yt, yp, w in zip(y_true_by_case, y_pred_by_case, weights_by_case):
+        yt, yp, w = map(lambda x: np.asarray(x, dtype=np.float64), (yt, yp, w))
+        w = w / w.sum()
+        mse.append(np.sum(w * (yt - yp) ** 2))
+        mae_values.append(np.sum(w * np.abs(yt - yp)))
+        variance.append(np.sum(w * (yt - global_mean) ** 2))
+    mse_mean, var_mean = float(np.mean(mse)), float(np.mean(variance))
+    return {"r2": 1.0 - mse_mean / var_mean if var_mean > 1e-12 else float("nan"),
+            "mae": float(np.mean(mae_values)), "rmse": float(np.sqrt(mse_mean)),
+            "n_cases": len(mse)}
 
 
 def distribution_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
@@ -148,6 +245,7 @@ def calibration_metrics(y_true: np.ndarray, y_pred: np.ndarray,
         "top10_mean_true": top_true,
         "top10_mean_pred": top_pred,
         "top10_pred_true_ratio": top_pred / top_true if abs(top_true) > 1e-12 else float("nan"),
+        "p90_pred_true_ratio": _ratio(90.0),
         "p95_pred_true_ratio": _ratio(95.0),
         "p99_pred_true_ratio": _ratio(99.0),
         "max_pred_true_ratio": pmax / ymax if abs(ymax) > 1e-12 else float("nan"),
@@ -305,6 +403,8 @@ def aggregate_case_metrics(per_case: Dict[str, Dict]) -> Dict[str, float]:
            if np.isfinite(v["overall"].get("r2", np.nan))]
     nrmses = [v["overall"]["nrmse_range"] for v in per_case.values()
               if np.isfinite(v["overall"].get("nrmse_range", np.nan))]
+    nmaes = [v["overall"]["nmae_range"] for v in per_case.values()
+             if np.isfinite(v["overall"].get("nmae_range", np.nan))]
     maes = [v["overall"]["mae"] for v in per_case.values()
             if np.isfinite(v["overall"].get("mae", np.nan))]
     rmses = [v["overall"]["rmse"] for v in per_case.values()
@@ -316,6 +416,7 @@ def aggregate_case_metrics(per_case: Dict[str, Dict]) -> Dict[str, float]:
         "r2_negative_cases": int(np.sum(np.asarray(r2s) < 0.0)) if r2s else 0,
         "r2_failure_rate": float(np.mean(np.asarray(r2s) < 0.0)) if r2s else float("nan"),
         "nrmse_casemean": float(np.mean(nrmses)) if nrmses else float("nan"),
+        "nmae_casemean": float(np.mean(nmaes)) if nmaes else float("nan"),
         "mae_casemean": float(np.mean(maes)) if maes else float("nan"),
         "rmse_casemean": float(np.mean(rmses)) if rmses else float("nan"),
         "n_cases": len(r2s),

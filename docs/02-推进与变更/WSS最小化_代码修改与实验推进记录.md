@@ -4,6 +4,426 @@
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
 > 当前执行入口：[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) / [第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md) / [BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)。
 
+## 2026-07-26｜REG-P10 局部 SA Transformer 完整矩阵已提交
+
+**本次主要修改**：
+- 新增 `LocalNeighborhoodTransformer`：在单个 SA center 的邻域内部，对逐边 MLP+LocalGeoPE token 执行 pre-norm 多头自注意力与 FFN，再做 max 聚合；通过 group mask 保证不跨 center、不跨病例。
+- `ModelConfig` 新增前后兼容字段 `local_transformer_stages/heads/ffn_ratio/dropout`。stage 为 1-based；默认 `()` 时不实例化模块、不增加 state_dict key，旧 JSON/checkpoint 保持兼容。
+- 明确 SA3 不再新增第二套 Transformer：既有 `CoarseGlobalBlock/coarse_attention` 已经完成 32 个 coarse centers 间的全局 self-attention、相对几何 bias 与 FFN。
+- 以 `S3+DropPath0.10, seed1234`（REG-P10）为父配置完成局部 stage 的全部 7 个非空子集：`SA1/SA2/SA3/SA12/SA13/SA23/SA123`，另加复用旧模块的 `SA3-global` 对照，共 8 臂。
+- 修正既有未跟踪 SA-grouping 测试夹具的层数声明：三层 SA 参数显式补 `sa_blocks=[1,1,1]`；生产配置校验未放宽。
+
+**对应代码/文档**：
+- `training_wss_min/{baseline_models.py,config.py}`
+- `training_wss_min/tests/test_local_sa_transformer.py`
+- `training_wss_min/tests/test_sa_grouping_matrix.py`
+- `training_wss_min/configs/pointnetpp_regp10_transformer_20260726/*.json`
+- `training_wss_min/configs/sweeps/pointnetpp_regp10_transformer_20260726.txt`
+- `training_wss_min/tools/{prepare_regp10_transformer_matrix.py,smoke_regp10_transformer_matrix.py}`
+- `training_wss_min/cluster/{preflight_regp10_transformer_matrix.slurm,run_regp10_transformer_matrix.slurm,submit_regp10_transformer_matrix.py}`
+- `training_wss_min/preflight/regp10_transformer_matrix_20260726_{prepared,static_audit,submission}.json`
+- [PointNet baseline 矩阵 §0K](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) 与 [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：
+- `GNN` 环境下 compileall、Slurm shell syntax、8 份配置读取、逐字段静态审计 `8/8` 与提交 dry-run 均通过；默认关闭路径对旧 REG-P10 checkpoint 严格重载通过。
+- 全测试集 `102/102` 通过。此前报告的 `101/102` 中唯一失败，原因是测试夹具自身将三层 SA 列表与默认四层 `sa_blocks` 混用，不代表训练代码回归。
+- 正式 GPU 门禁 Job `10967` 已 `COMPLETED (0:0)`；8 臂 CUDA 前后向、模块执行、严格 checkpoint 重载与 full/chunk 一致性全部通过。训练、best/last checkpoint 与 test36 全云评估数组 Job `10968_[0-7]%4` 已按 `afterok:10967` 启动。
+
+**当前状态判断**：
+- “SA3 centers 之间加 Transformer”与已做的 coarse attention 是同一结构问题；local-SA3 则发生在每个 SA3 邻域的聚合前，两者不是同一机制。
+- 8 臂已进入训练，但当前尚无精度结果。test36 仍是 seed1234 工程筛选，优胜臂需补 seeds `7/2025` 后才能形成稳定结论。
+
+## 2026-07-26｜D2 c125×k64 固定 split 的 PointNeXt-R + LocalGeoPE 对照已提交
+
+- 新增 `prepare_d2_c125_k64_pnxr_geope.py`：从 `d2_rand5000_c125_k64` 克隆，严格保留 AG/AAA `106/0/27`、train106 stats、6D xyz+geom、random5000/SAME、`125/125/32`、`64/16/16`、seed1234 和 400 epoch；仅开启 `model.sa_blocks=[1,1,0]` 与 `model.local_geope=true`。
+- LocalGeoPE 沿用完整输入的 7D 公式 `Δxyz/r + distance + Δ(abscissa,radius,curvature)`，不复用纯 XYZ 的 4D 分支；未修改既有 D2 配置或已完成 run。
+- 新增独立 Slurm 门禁、训练/评估与提交脚本。`py_compile`、shell syntax、配置读取、逐字段静态审计 `1/1` 和提交 dry-run 均通过。首轮 `10956→10957` 因 smoke harness 将 D2 合法的空 `feature_stats_path` 当作路径而在模型执行前失败，已取消不会启动的 `10957`；烟测改为复用训练时的 train106 统计重算逻辑后，恢复链 `10958→10959`（`afterok`）均 `COMPLETED (0:0)`。
+- 新增可复跑分析器与安全写表器 `analyze_d2_c125_k64_pnxr_geope.py` / `update_d2_c125_k64_pnxr_geope_xlsx.py`。相对原 D2 的 best/test27，PNXR+7D LocalGeoPE 的 `R²_cb +0.0347`（`0.2628→0.2975`）、MAE/RMSE `-0.1313/-0.1537 Pa`、high-WSS `+0.0805`、top10 IoU `+0.0273`，AG/AAA `+0.0526/+0.0181`；病例 R² 19/8、均差 95% CI `[+0.0134,+0.0837]`。工作簿仅在既有「实验矩阵总览」「汇总对比」追加该行和严格配对区块，37 列指标映射回读与 LibreOffice 渲染均通过，未新增页签。
+- manifest/审计/分析/提交记录位于 `training_wss_min/preflight/d2_c125_k64_pnxr_geope_20260726_*`。
+
+## 2026-07-25｜纯 XYZ LocalGeoPE 公式兼容、训练完成与结果回填
+
+- LocalGeoPE 由固定 7 维边特征扩展为兼容模式：保留三项语义属性时仍是 `Δxyz/r + distance + Δ(abscissa,radius,curvature)`；`local_geope_feature_indices=[]` 时切换为纯 XYZ 的 `Δxyz/r + distance` 四维边特征。既有六维 config/checkpoint 的结构不变。
+- 新增 XYZ 专用单测，并以 `S2 PointNeXt-R + xyz` 为父配置生成一条严格对照；只开启 LocalGeoPE 与空属性索引，不混入其它模块。
+- 静态差分 `1/1`、新增四维 GeoPE 单测和既有模块测试通过；GPU 门禁 `10929`、训练/评估 `10930` 均 `COMPLETED (0:0)`，完成 400 epoch 与 best/last test36 全云评估。
+- 新增可复跑分析器 `analyze_xyz_local_geope.py`。best checkpoint 相对 S2-PNXR 纯 XYZ：`R²_cb +0.0671`（`0.1798→0.2469`）、MAE/RMSE `-0.2833/-0.2853 Pa`，病例 R² 27/9、95% CI `[+0.1062,+0.5750]`；相对 S2 的 xyz+geom 仍为 `-0.0059`，病例 CI 跨零。因此 4D LocalGeoPE 证明相对坐标信息可以弥补大部分纯 XYZ 缺口，但不替换原 7D GeoPE/xyz+geom 主线。
+- 原六维输入 GeoPE 路径的 7D 边编码与 MLP 输入维度保持不变；本次只是为 `indices=[]` 增加独立 4D 分支，已提交的历史 7D GeoPE 配置、checkpoint 与训练结果均不受影响。
+
+## 2026-07-25｜S3 正则化补齐矩阵：20 个 seed1234 配置完成、分析与回填
+
+- 新增 `prepare_s3_regularization_completion_matrix.py`：基于 S3-GEOPE seed1234，仅补未跑的 8 个单变量强度（head=`.05/.15/.20`、DropPath=`.15/.20`、NeighborDrop=`.10/.15/.20`），不重复 `.05/.10` 已完成臂。
+- 新增 12 个两两组合，三对正则器均执行 `{.05,.10}×{.05,.10}` 完整交叉；没有加入第三项正则，也不与 attention/loss/归一化组合。
+- 新增独立静态审计、GPU 门禁、训练与提交脚本。静态逐字段差分 `20/20` 通过；门禁 `10923` 与训练/评估数组 `10924_[0-19]` 均 `COMPLETED (0:0)`，每臂保留 400 epoch、best/last 与全云评估产物。
+- 新增 `analyze_s3_regularization_completion.py` 与 `update_s3_completion_xyzgeope_xlsx.py`。单变量最强为 HeadDrop=.15（`R²_cb=0.2983`，对 S3 `+0.0059`），DropPath=.05/.10 为温和正信号（`+0.0017/+0.0034`），DropPath=.15 和全部 NeighborDrop 为负。两两组合没有超过最优单变量；仅 DP=.05+ND=.10（`+0.0031`）和 HD=.10+DP=.10（`+0.0007`）为小正数，不构成可执行协同。
+- 本轮只使用 seed1234、且 test36 为历史工程筛选集，故不改变 S3 锚定，也不将小差异提升为正式 Go；如果继续，只把 HeadDrop=.15 与 DropPath=.10 分开补 seeds `7/2025`。
+- 工作簿仅更新现有「实验矩阵总览」「汇总对比」：追加 20 条补齐配置和 1 条 xyz+LocalGeoPE 配置，按既有 37 列字段映射写入并完成 LibreOffice 渲染回读；未新增工作表。
+
+## 2026-07-25｜7 月 24 日三批训练完成：分析、文档与工作簿回填
+
+- `10871→10872_[0-11]`：S3 正则化 12/12 完成。新增/运行 `analyze_s3_regularization_results.py`，逐 run 核验配置 SHA、400 epoch、best/last、有限值与同 seed S3 配对；DropPath `0.05/0.10` 均 3/3 正但平均 `ΔR²_cb=+0.0089/+0.0076`，未达到正式 Go `+0.015`，只记录 Weak-Go；NeighborDrop 0.05 为 No-Go。
+- `10882→10883`：S3+SA3 32-center/4-head attention 完成。新增 `analyze_s3_coarse_attention_single.py`；相对 seed1234 S3 的 `R²_cb +0.00835`、high-WSS `+0.0353`，但病例 CI 跨零、MAE 与 AG 小退，因此仅为单种子 Weak-Go，待 `7/2025` 才能确认。
+- `10903→10904_[0-2]`：纯 XYZ 三对照完成。新增 `analyze_xyz_input_ablation.py`；D2/M1/S2 相对各自 xyz+geom 父模型的 R²_cb 均退 `-0.0581/-0.0958/-0.0730`，M1/S2 的病例 CI 均完全为负，关闭纯 XYZ 扩展。
+- 工作簿已运行 `update_s3_regularization_xlsx.py`，在「实验矩阵总览」「教师汇报视图」「汇总对比」加入 12 条正则化结果；`update_xyz_attention_results_xlsx.py` 将纯 XYZ 三臂与 SA3 attention 单臂严格按「实验矩阵总览」既有 37 列指标映射写入，并在「汇总对比」追加对应严格配对区块。此前新增的两个专用页已删除；保存已回读并经 LibreOffice 渲染验证。
+
+## 2026-07-24｜D2-K64 三锚点纯 XYZ 输入对照已提交（`10903→10904_[0-2]%3`）
+
+- 新增 `prepare_xyz_input_ablation.py` 与 `audit_xyz_input_ablation.py`：从 `D2 c125×k64`、`M1/S0 D2-K64 mixed138/test36`、`S2 D2-K64 + PointNeXt-R mixed138/test36` 各复制一臂；逐字段合同仅允许 `name`、`notes` 和 `data.input_features=[x,y,z]` 不同。三条锚的 split、统计文件、采样/SAME、SA、残差块、训练种子与预算均冻结。
+- 新增 3 份配置于 `training_wss_min/configs/pointnetpp_xyz_input_ablation_20260724/`，以及 Slurm GPU 门禁、依赖训练数组和提交记录。`py_compile`、`bash -n`、配置读取、静态差分 `3/3` 和提交前 dry-run 均通过。
+- 正式 GPU 门禁 Job `10903` 已排队（当前 4 张 4090 被 `10872` 占用）；训练/评估数组 `10904_[0-2]%3` 以 `afterok:10903` 等待。所有任务由 Slurm 自动等待可用 GPU，不会绕过队列或抢占运行作业。
+
+## 2026-07-24｜S3 + SA3 coarse attention 单种子实验已提交
+
+**本次主要修改**：
+- 新增单配置生成器与静态硬门禁，从 S3-GEOPE seed1234 克隆并严格只改变 `name/model.coarse_attention`。
+- 新增独立 Slurm GPU 门禁、训练/评估和幂等提交脚本；门禁覆盖输入 SHA、运行目录、SA1 几何、CUDA 前后向/optimizer step 与 checkpoint/full-chunk smoke。
+- 明确 attention 只作用于 SA3 的 32 个 coarse centers、4 heads；LocalGeoPE 保持开启，三类 Drop 全部关闭。本轮仅做 seed1234，不追加多种子。
+
+**对应代码/文档**：
+- `training_wss_min/tools/{prepare_s3_coarse_attention_single.py,audit_s3_coarse_attention_static.py}`
+- `training_wss_min/cluster/{preflight_s3_coarse_attention_single.slurm,run_s3_coarse_attention_single.slurm,submit_s3_coarse_attention_single.py}`
+- `training_wss_min/configs/pointnetpp_s3_architecture_20260724/s3arch_sa3_coarse_attention_s1234.json`
+- `training_wss_min/preflight/s3_sa3_coarse_attention_single_{prepared,submission}.json`
+- [S3-GEOPE 当前优化执行计划](WSS最小化_S3-GEOPE锚定_正则化与架构优化执行计划_2026-07-24.md) 与 [训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+
+**推进到实验步骤**：本地 compile、shell syntax、严格单变量审计与模块测试 10/10 均通过。正式门禁 Job `10882` → 训练和 best/last test36 评估 Job `10883`（`afterok:10882`）已提交。
+
+**当前状态判断**：当前 4 张 GPU 正运行正则化数组首波，`10882` 等待 GPU，`10883` 等待门禁依赖。结果只用于单种子架构筛选；相对同 seed S3 达到 `ΔR²_cb≥+0.012` 且 high-WSS/分域无实质退化才记正信号，不作跨种子结论。
+
+## 2026-07-24｜S3-GEOPE 锚定正则化首波 · 门禁通过 · 12 配置训练中
+
+**本次主要修改**：
+- `ModelConfig` 新增前后兼容的 `drop_path_rate` 与 `neighbor_drop_rate`（默认均为 0）；PointNeXt-R block 使用病例图级 DropPath，最大率沿 block 深度线性递增。
+- SA 与 InvRes 邻域新增保覆盖 NeighborDrop：训练时随机丢消息边，每个 center 永远保留最近边；评估时关闭。
+- 新增 4 变体 × 3 seeds 的严格单变量配置生成、静态差分、正式 GPU 门禁、数组训练与提交脚本。
+- 新建 [S3-GEOPE 当前优化执行计划](WSS最小化_S3-GEOPE锚定_正则化与架构优化执行计划_2026-07-24.md)，并将已完成的 D2-K64 两协议终审与 PointNet++ 路线讨论稿移入 `_archive/WSS最小化/`。
+
+**对应代码/文档**：
+- `training_wss_min/{config.py,baseline_models.py}`
+- `training_wss_min/tests/test_d2_k64_wave2_modules.py`
+- `training_wss_min/tools/prepare_s3_regularization_matrix.py`
+- `training_wss_min/cluster/{preflight_s3_regularization_matrix.slurm,run_s3_regularization_matrix.slurm,submit_s3_regularization_matrix.py}`
+- `training_wss_min/configs/pointnetpp_s3_regularization_20260724/`
+- `training_wss_min/preflight/s3_regularization_matrix_{prepared,submission}.json`
+- 本文、训练实验跟踪、PointNet baseline 矩阵、`docs/README.md`、归档 README。
+
+**推进到实验步骤**：S3 absolute `R²_cb=0.2924/0.2743/0.2713`，相对 M1 三种子 `Δ=+0.0310/+0.0059/+0.0303`，据此冻结 S3 为工程锚点。12 个子配置与同 seed 父配置仅差 `name` 和一个正则化字段，静态审计 12/12 passed；正式提交 Job `10871`（门禁）→ `10872_[0-11]%4`（400 epoch + best/last test36 eval）。
+
+**当前状态判断**：代码编译通过；新增正则化定向测试 3/3、模块全套测试 10/10 通过。4 张 RTX4090 提交前均空闲。Job `10871` 已 `COMPLETED (0:0)`，静态、几何与 12 个 CUDA smoke 全部 passed；`10872_0–3` 已进入第一波训练，其余任务由 `%4` 并发上限自动续跑。test36 仍是历史工程筛选集，本轮只能决定下一工程锚点，不能形成独立泛化结论。
+
+## 2026-07-24｜S3-GEOPE 根因矩阵 12 配置 ✅12/12 完训、分析与回填｜整体No-Go、机制证实根因#1
+
+**完训与分析**：门禁 `10857` 与 array `10858_[0-11]%6` 全部 `COMPLETED (0:0)`；新增可复跑分析器 `training_wss_min/tools/analyze_s3_rootcause_results.py`（复用上一轮 flatten/20,000 次配对 bootstrap 口径，导入其函数保证一致），核验 12 臂 + S3 父三种子的完整性并算每臂 vs S3 父（同种子）分域配对差与三种子聚合；新增 `update_s3_rootcause_xlsx.py` 安全追加 12 行到「实验矩阵总览/教师汇报视图」并在「汇总对比」加分域判读段（temp 复制→保公式→回读校验→覆盖）。
+
+**终裁**：S3 父 R²_cb 基线 `0.2924/0.2743/0.2713`。**无任何臂跨种子稳定超过 S3**——casebal 三种子均值 `+0.0040`（seed1234 `-0.0166`）、cohortbal `-0.0018`（seed1234 case CI `[-0.056,-0.002]`）、cohort_onehot `-0.0084`；单种子 pooled138 `-0.0139`、rawHuber02 `-0.0086`、组合 `-0.0268`（最差）。稳健信号在**分域**：平衡口径/域条件把被 ILO 压掉的 **AAA 抬回**（cohortbal 三种子 `+0.0255/+0.0362/+0.0249`），但 **ILO 相应回落**、AG 持平——是 AAA↔ILO 容量**再分配**（原负迁移的镜像），故总体持平。含义：**LocalGeoPE(S3) 已吸收归一化口径在无几何 Q2V 基座上的净收益（A1b 曾 `+0.0295`），S3 骨干上两杠杆不叠加**；high-WSS R² 全部仍为负，尾部（rawHuber02）未改善。S3-GEOPE 仍为参考模型。下一步转向尾部感知/域感知损失加权或分域容量，不再试全局归一化变体；DropPath/NeighborDrop 待主干实现后单独 Gate。
+
+**对应代码/文档**：分析/写表脚本见上；真源 `training_wss_min/preflight/s3_rootcause_results_{analysis.json,summary.csv,paired_case_stats.csv}`；12 run 位于 `training_wss_min/runs/pointnetpp_s3_rootcause/outputs/`；同步回填 [训练实验跟踪](WSS最小化_训练实验跟踪.md)、[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) 与 `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`。
+
+<details><summary>提交记录（2026-07-23 晚）</summary>
+
+**背景/动机**：承接"加入 ILO 数据反而更差"的负迁移归因（见 [训练实验跟踪](WSS最小化_训练实验跟踪.md) §数据扩容负迁移归因）。三种子已确认 **S3-GEOPE** 为当前最优且唯一三域同升的臂，因此以它为父模板，针对三个根因各开**单变量**臂过夜跑，供明日总结分析。DropPath/NeighborDrop 需改主干（当前仅 head dropout 已实现），本批**不含**，按"元工具/主干改动不混入数据对照"原则推迟到单独实现。
+
+**本次主要修改（纯新增，未改主干/既有配置/判定）**：
+- 新增 `training_wss_min/tools/prepare_s3_rootcause_matrix.py`：克隆三种子确认过的 S3-GEOPE seed1234 配置，逐臂只改单一字段，产出 12 个子配置 + `preflight/s3_rootcause_matrix_prepared.json`（记录父配置、split/stats/feature SHA、`only_allowed_differences`、input_dim）。
+- 新增 `training_wss_min/tools/audit_s3_rootcause_static.py`：纯 JSON 静态单变量审计，校验每个子配置对父配置只在声明字段差异、SHA 一致、run_dir 不存在（本地已跑通 12/12 passed）。
+- 新增集群三件套 `cluster/{preflight_s3_rootcause_matrix.slurm,run_s3_rootcause_matrix.slurm,submit_s3_rootcause_matrix.py}`：门禁复用通用几何审计 `audit_sa1_scale_matrix` 与 GPU module/checkpoint/full-chunk smoke `smoke_d2_k64_three_seed_confirmation`；array 以 `afterok` 依赖门禁，逐任务复核 SHA/run_dir/smoke 覆盖，训练后自动 best/last 全云评估 + `compare_best_last`。
+
+**矩阵（父模板 = `s3_d2k64_pnxr_geope_mixed`，D2-K64 mixed `138/0/36`；均 400ep / train-loss 选模 / 冻结 split 与 support-query 协议）**：
+
+| 方向（根因） | 臂 | 唯一变化 | 种子 |
+|---|---|---|---|
+| 归一化口径（#1） | `caliber_pooled138` | 目标统计→mixed train138 pooled 重算（μ 0.5718→0.6456） | 1234 |
+| 归一化口径（#1） | `caliber_casebal` | →逐病例等权 A1（μ 0.8166） | 1234/7/2025 |
+| 归一化口径（#1，**主**） | `caliber_cohortbal` | →逐父系等权 A1b（μ 0.7798） | 1234/7/2025 |
+| 域条件（#2） | `cohort_onehot` | +cohort one-hot（input_dim 6→9） | 1234/7/2025 |
+| 尾部损失（#3） | `rawhuber02` | +物理 raw-Huber λ=0.2（探针） | 1234 |
+| 探索组合（#1+#2） | `cohortbal_onehot` | cohortbal + one-hot（非归因） | 1234 |
+
+口径三档 μ 递增（0.5718 control106-pooled → 0.6456 train138-pooled → 0.7798 cohortbal / 0.8166 casebal）验证根因 #1"pooled 被高密度队列拉低"，`pooled138→casebal/cohortbal` 可分离"含 ILO 重算"与"跨域平衡"两效应。
+
+**对应代码/文档**：新增脚本见上；配置 `training_wss_min/configs/pointnetpp_s3_rootcause_20260723/`；真源 `training_wss_min/preflight/s3_rootcause_matrix_{prepared,submission}.json`。集群作业：门禁 `10857`、训练 array `10858_[0-11]%6`（`afterok:10857`）。
+
+**提交时状态**：仅已提交，未等待结果（结果与终裁见本节顶部 2026-07-24 完训回填）。
+
+</details>
+
+## 2026-07-23｜D2-K64 M1/S2/S3 三种子确认 ✅6/6 完训、审计与回填
+
+新增配置克隆、静态/几何/GPU module/checkpoint/full-chunk gate、6-task array 与三种子分析器；子配置逐项只允许 `name/train.seed` 差异，manifest 记录父配置、split/stats SHA。`10848` 与 `10849[0-5]` 全部 `COMPLETED (0:0)`；S3−M1 三种子 ΔR²_cb=`+0.0310/+0.0059/+0.0303`（mean `+0.0224`，3/3正），S3−S2 mean `+0.0138`、2/3正且 MAE 3/3下降。因此只提出 `DropPath 0.05/0.10`、`NeighborDrop 0.05` 单变量计划，本批不混入 Drop。
+
+## 2026-07-23｜D2-K64 ILO 两协议与结构模块矩阵 ✅9/9 完训并回填｜S3-GEOPE 晋级单种子候选
+
+**本次主要修改**：完成第一批 `10838_[0-4]`（F1/M0/M1/S1/S2）与第二批 `10844_[0-3]`（S3/S4/S5C/S5）的统一结果审计；新增可复跑分析器，核验 9 个 run 的 400 epoch、best/last checkpoint、best/last 全云指标、逐病例 CSV、配置 SHA、有限数值与 Slurm `COMPLETED 0:0`，并计算 7 组严格同协议差、20,000 次病例配对 bootstrap 及病例胜负数。新增安全写表脚本，把 9 个新 run 追加到 Excel「实验矩阵总览/教师汇报视图」，把严格配对表追加到「汇总对比」，保存后重新打开回读校验。
+
+**对应代码/文档**：`training_wss_min/tools/{analyze_d2_k64_ilo_structure_results.py,update_d2_k64_ilo_structure_xlsx.py}`；结构化结果 `training_wss_min/preflight/d2_k64_ilo_structure_{results_analysis.json,results_summary.csv,paired_case_stats.csv}`；9 个 run 位于 `training_wss_min/runs/pointnetpp_d2_k64_ilo_structure/outputs/`；同步回填 [终审与执行计划](_archive/WSS最小化/WSS最小化_D2-c125-k64_ILO两协议对照_终审与执行计划_2026-07-23.md)、[前沿算法路线讨论稿](_archive/WSS最小化/WSS最小化_PointNet++下一轮算法优化路线_第一性原理与前沿研究讨论稿_2026-07-22.md)、[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md) 与 `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`。
+
+**推进到实验步骤**：门禁 `10837/10843` 与训练评估 `10838_[0-4]/10844_[0-3]` 全部完成。F0/F1 仅在固定 AG/AAA test27 配对；M0/M1 与 S1–S5 仅在相同 mixed test36 配对；SEP 只允许 S5−S5C，因为两臂共同使用 independent query。结果固定取预注册 `ckpt_best(train_loss)`；last 只作敏感性检查。
+
+**当前状态判断**：F1−F0 `ΔR²_cb=-0.0169`，判为 ILO41 对 AG/AAA 的负迁移 No-Go 信号；M1−M0 `ΔR²_cb=-0.0059`，ILO 分域 `+0.0109` 但 AAA `-0.0331`、IoU `-0.0173`，属于域间权衡，不支持总体晋级。S1 增益仅 `+0.0018`，不超单种子噪声；S2 单独 `-0.0086`，PointNeXt-R core 本身不成立。S3 相对 S2 为 `ΔR²_cb=+0.0396`、MAE `-0.1708 Pa`、RMSE `-0.1750 Pa`、high-WSS R² `+0.0548`、IoU `+0.0157`，逐病例 R² 29胜7负、均值差95% CI `[+0.0600,+0.1259]`，是本轮唯一强晋级候选；绝对 `R²_cb=0.2924` 也是 mixed test36 八臂最高。S4 为较弱正信号；S5−S5C 虽 `R²_cb +0.0235`，但 case-mean R² `-0.0047`、负例 `3→7` 且病例 CI 跨零，只保留条件候选。下一步优先用 seeds `7/2025` 补 M1/S2/S3 的配对确认；Drop 不与本轮结论混合，待 S3 确认后再以单变量小强度正则臂测试。全部新结果仍只有 seed1234，且 test27/test36 均为历史工程筛选集，不写成稳定泛化结论。
+
+## 2026-07-22｜D2 c125×k64 中位数病例 PostView 导出 ✅完成
+
+**本次主要修改**：为 `d2_rand5000_c125_k64` 补导出归一化空间 R² 中位数病例 `AG/fast/LI_ZHI_LIN`（`normalized_overall_r2=0.4896`，与 Excel `case med` 一致）的 PostView 包；新增 `training_wss_min/cluster/run_d2_c125_k64_postview_median.slurm`。
+
+**对应代码/文档**：Job `10803` COMPLETED；产出目录 `training_wss_min/runs/pointnetpp_sa1_scale_single_seed/outputs/d2_rand5000_c125_k64/postview/ckpt_best/test/AG__fast__LI_ZHI_LIN__peak_wss/`（含 `plots/fig_wss_triptych.png` 等；映射覆盖率 100%）。
+
+**推进到实验步骤**：单例 export-only（未跑 test27 全量 verify）；未改权重/评估指标。
+
+**当前状态判断**：D2 中位数病例可视化已齐，可与 P1V（`GAO_FENG_SHAN`）/ Q1V（`WANG_DAO_CHUN`）并排整理。若需 D2 全 test27 PostView，另提作业。
+
+## 2026-07-22｜bridge random5000+500c+k64 的 SEP 对照臂 ✅完成｜No-Go
+
+**背景/动机**：SA1-scale 矩阵（2026-07-21）的 `bridge_rand5000_fixed500_k64`（random5000、固定 center 500/125/32、SA1 knn_cover k=64）沿用 Q1V/SAME 支路，未验证该 bridge 配置在 SEP（query 与 support 独立重采样）下是否同向。按用户要求补一个唯一变量为 SAME→SEP 的对照臂，其余保存配置一律不变。
+
+**本次新增**：
+- 新配置 `training_wss_min/configs/pointnetpp_sa1_scale_bridge_sep_followup_20260722/bridge_rand5000_fixed500_k64_sep.json`：以 `bridge_rand5000_fixed500_k64.json` 为唯一模板，逐字段 diff 确认仅 `data.query_mode` 由 `"same"` 改为 `"independent"`（即 Q1V→Q2V 同款 SAME→SEP 写法），其余 data/model/train/eval 字段（`support_n_points=5000`、`sa_center_counts=[500,125,32]`、`sa_nsample=[64,16,16]`、`sa_grouping=["knn_cover","ball","ball"]`、`width=32`、`batch_cases=8`、`seed=1234`、400 epoch、train-loss 选模等）逐项相同。
+- 单臂人工 manifest `training_wss_min/preflight/bridge_sep_followup_prepared.json`（记录 parent/single_change/sha256），供 SA1 geometry audit 复用；新增 `training_wss_min/cluster/{run_bridge_sep_followup_preflight.slurm,run_bridge_sep_followup.slurm,submit_bridge_sep_followup.py}`，结构对齐既有单臂追加先例 `submit_q1v_radius_r60_same.py`：门禁作业先跑 `audit_sa1_scale_matrix`（knn_cover 覆盖率硬门）与 `preflight_v4_jobs`，训练作业按 `afterok` 依赖并在启动前二次校验配置 sha256、拒绝已存在的 run_dir。
+- 新增 `training_wss_min/tools/analyze_bridge_sep_followup_results.py`：复核配置哈希、`runtime_preserves_frozen_config`（除 `query_mode` 外逐字段一致）、seed/split/epochs/选模规则、400 行 history、best/last 27 例 CSV 与全量有限数值，读取已冻结的 `pointnetpp_sa1_scale_results_analysis.json` 中的父实验（`bridge_rand5000_fixed500_k64`）指标作对照锚点、不重算，输出 `bridge_sep_followup_results_{analysis.json,results_summary.csv}`。
+
+**验证与提交**：本地 `py_compile`/`bash -n` 通过；`ExpConfig.from_json` 加载新配置确认 `query_mode=independent`、`sa_nsample=(64,16,16)`、`sa_grouping=('knn_cover','ball','ball')`、`sa_center_counts=(500,125,32)`，run_dir 未存在；`--dry-run` 通过全部哈希/存在性前置检查后正式提交：门禁 Job `10804`→训练 Job `10805`（`afterok:10804`）均 `COMPLETED (0:0)`。提交记录：`training_wss_min/preflight/bridge_sep_followup_submission.json`。
+
+**当前状态判断**：400 epoch、best/last 27 例评估、配置哈希与逐字段一致性审计全部通过，无 NaN/Inf。物理 `R²_cb` `0.2439→0.2329`（`-0.0111`）、归一化 `R²_cb` `0.6139→0.6065`（`-0.0074`）、病例均值 R² `-0.0222`、MAE `+0.0348 Pa`、RMSE `+0.0476 Pa`、Spearman `-0.0116`、high-WSS R² `-0.0368`；仅负例（`2→1`）、top10 IoU（`+0.0082`）与 p99 比（`+0.0086`）小幅改善，改善幅度均小于回退幅度。判定 **bridge 家族下 SAME→SEP 为 No-Go**，不并入后续候选；主线仍以 SAME（`bridge_rand5000_fixed500_k64`）代表该点数标度对照臂。结果已回填 [训练实验跟踪](WSS最小化_训练实验跟踪.md) 与 [PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)，`WSS_PointNet实验矩阵与结果汇总last.xlsx` 同步新增：「实验矩阵总览」第109行、「教师汇报视图」第109行、「汇总对比」新增 bridge_sep_followup 对比区块（第140–143行），均已回读校验。新增 `training_wss_min/tools/update_bridge_sep_followup_xlsx.py` 完成该次性追加，样式/数值均与父行一致。仍是历史 test27 同协议工程比较，非独立确认。
+
+## 2026-07-21｜实验矩阵汇总 PPT 与图件交付 ✅完成（汇报材料，不改变任何实验判定）
+
+**背景/动机**：导师要求把 `WSS_PointNet实验矩阵与结果汇总last.xlsx` 的指标汇总为一个 PPT，判定哪些指标/实验必要、哪些可删并给出原因，同时用图示记录网络结构与 width/nsample/knn/ball 等调参含义，以及 CFD mesh、模型设置、数据前后处理口径。
+
+**本次交付**：
+- 新增 `docs/03-汇报材料/tools/build_wss_matrix_summary_ppt.py`，组装 22 页 PPT → `docs/03-汇报材料/WSS_PointNet实验矩阵汇总_组会汇报_20260721.pptx`（python-pptx；LibreOffice 渲染逐页抽查通过）。
+- 复用当日图件 `figures/WSS_PointNet矩阵汇总_20260721/{f1..f10,s1..s6}.png`（生成脚本 `build_wss_matrix_summary_figures.py` / `build_wss_matrix_schematics.py`，此前未回填记录，一并登记）。
+- PPT 结构：一页结论 → 数据/CFD 网格与四阶段预处理链路 → 归一化·训练协议·PostView → PointNet(E2) 与 PointNet++ SA3 结构图（标注 width/nsample/radius/SA1 分组/中心采样五类旋钮）→ 采样与 SA1 分组机制示意 → 指标四句话体系 → 11 阶段 79 行实验总览 → 六组结果图 → 指标取舍 → 实验线取舍 → 开放问题 → 附录指标速查。
+- 指标取舍建议（30 列→12 列，附全矩阵相关性证据）：保留 物理 R²_cb/case mean/负例/RMSE/NMAE(pooled+case-mean)/high-WSS R²/top10 幅值比/p99 比/top10 IoU + 归一化 R²_cb/Spearman；删除 R²_raw（与 R²_cb r=0.845 共线）、case med/P10（r=0.89/0.73）、range-NRMSE 族（与 NMAE r=0.98/0.89）、物理 MAE、归一化误差 6 列、high-WSS Spearman（全矩阵≈0 从未参与判定）、归一化 top10 幅值比。
+- 实验线取舍建议：8 条归档（容量/深度扫描、case-max 归一化、AG-v4 重跑、Q3V、半径 5 臂、QAD 全系、SA1 17 臂、扩容+NormLoss A1/A2/A3/A4）；4 条保留待独立确认（Q1V/Q2V/P2V、Q1V 半径 1.2×、n32_w64、A1b）。
+- 口径声明：PPT 只汇报、不改变 xlsx 数据与既有 Go/No-Go 判定；"删除"仅指从汇报口径移出，「实验矩阵总览」sheet 与 runs/ 产物全部保留归档。
+
+## 2026-07-20｜归一化口径×尾部损失 Q2V-pool2025 5-arm 矩阵 ✅完成｜A1b 晋级候选
+
+**背景/动机**：数据审查确认 AG/AAA/ILO 混训收益有限、ILO 甚至掉点，根因是 (1) 全局 log-z 目标统计为 **point-pooled**，被高点密度队列（AAA/ILO 每例 5–7 万点 vs AG ~1.3 万点）主导，稀疏 AG 在归一化空间被错误居中；(2) 缺少疾病域条件，ILO 相对 AG/AAA 属负迁移；(3) log-MSE 天然轻视高 WSS 尾部，与"准确预测高 WSS 区"目标冲突。锚点定为 Q2V-10477（pool2025 train138/test36 通用集，含 ILO）。
+
+**本次主要修改（前后兼容）**：
+- `config.py` 新增 cohort one-hot 特征键 `cohort_ag/cohort_aaa/cohort_ilo`（并入 `FEATURE_KEYS`）；旧配置不含即不启用，`input_dim=len(input_features)` 自动派生。
+- `dataset.py` 新增 `COHORT_FEATURE_KEYS`/`cohort_family()`；`build_features` 对 cohort 键按病例父系产出 0/1 常量列（**不 z-score**），`compute_feature_stats` 跳过 cohort 键。
+- `train.py` 冻结特征统计的必需集减去 cohort 键（防御性，避免未来冻结路径误判缺列）。
+- 新增 `training_wss_min/tools/prepare_norm_loss_matrix.py`：从 pool2025 train138 逐病例读峰值 WSS，产出 **逐病例等权**（case-balanced）与 **逐父系等权**（cohort-balanced）两份 log-z 目标统计，并克隆 Q2V 基座写 5 个 arm 配置 + manifest。
+- 新增 `cluster/{prepare_norm_loss_matrix_cpu.slurm(node03),run_norm_loss_matrix.slurm(GPU array),submit_norm_loss_matrix.py}`。
+
+**对应代码/配置**：`training_wss_min/{config.py,dataset.py,train.py}`；`training_wss_min/tools/prepare_norm_loss_matrix.py`；`training_wss_min/configs/pointnetpp_norm_loss_20260720/`；`data_wss_min/fold_stats/norm_loss_20260720/`；`training_wss_min/cluster/{prepare_norm_loss_matrix_cpu.slurm,run_norm_loss_matrix.slurm,submit_norm_loss_matrix.py}`；真源 `training_wss_min/preflight/norm_loss_matrix_{prepared,submission}.json`。
+
+**矩阵（单一自变量，均 seed1234 / 400ep / train-loss / legacy-vertex）**：A0=复用已训练 `q2v_ilo_d3_pool2025_refit`（point-pooled 统计，不重跑）。A1=改逐病例等权统计；A1b=改逐父系等权统计；A2=A1+cohort one-hot（input_dim 6→9）；A3=A1+物理空间 raw-Huber 尾部项 λ=0.2；A4=A1+cohort+raw-Huber。对比链：A1↔A0(口径 point-pooled→逐病例)、A1b↔A1(病例→父系)、A2↔A1(加 cohort 特征)、A3↔A1(加尾部损失)、A4↔A1(交互)。
+
+**验证、提交与完训**：本地已验证代码前后兼容——cohort 键通过 `validate_features`，one-hot 列 AG=[1,0,0]/ILO=[0,0,1] 且不进入 feature_stats，旧 6 特征配置 `input_dim` 仍为 6；stats 平衡口径数学与配置克隆单测通过。node03 prepare 作业 `10710` 已 `passed`：138 例统计 casebal log(μ=0.8166,σ=1.2647) / cohortbal(μ=0.7798,σ=1.2737)，均较 pooled(μ=0.6456,σ=1.3021) 上移（证实 pooled 被高密度队列拉低）。GPU array `10711_[0-4]%4` 已全部 `COMPLETED`；5 个 arm 均完成400 epoch，`ckpt_best(train_loss)` 与 `ckpt_last` 的 test36 `legacy_vertex` 评估、36例 CSV 和配置哈希均齐全，无 NaN/Inf、OOM 或提前停止。主表固定使用 best，不按 test 结果改选 last。
+
+**结果与判断（physical test36，A0 为复用的 point-pooled `10487_5`）**：A1b（逐父系等权）最完整：`R²_cb 0.2459→0.2753`（+0.0295）、pooled `0.2176→0.2411`、case mean `0.1974→0.2119`、RMSE `7.058→6.951 Pa`、high-WSS `-0.523→-0.457`、p99 比 `0.334→0.381`；负例 `4→5`、MAE `+0.005 Pa` 是保留代价。A1（逐病例等权）主 R² 近乎持平且负例增至7，只在 high-WSS/p99 有小幅改善。A2（加 cohort one-hot）未优于 A1；A3（raw-Huber λ=0.2）相对 A1 主 R²、误差及高尾均退化；A4 交互也未补回，case mean 与 IoU 最差。故本轮只将 **A1b 归一化口径**列为后续独立确认候选；不以本次单 seed/historical test36 结果宣布泛化提升，cohort 特征、raw-Huber 及其交互不进入组合扩展。结构化真源为各 run 的 `eval/ckpt_best/metrics.json`，汇总已同步至 `WSS_PointNet实验矩阵与结果汇总last.xlsx`。
+
+## 2026-07-20｜SA1全覆盖/低重叠分组 + 单种子完整矩阵 🚧已提交
+
+**本次主要修改**：PointNet++ 新增逐层 `sa_grouping`，支持原始 ball、raw KNN、KNN+coverage repair 和 coverage-first `adaptive_cover`。adaptive先做每点最近center主归属，再做受半径、目标group大小与center-pair重叠预算约束的至多一个次归属，因而硬保证SA1 support覆盖100%、任意组对重叠率不超过1/3。该改动不增加模型参数，旧checkpoint `state_dict` 的102个key保持一致。数据层新增fixed/pool8 FPS5000持久化缓存、坐标hash与shape强验证，避免worker重复FPS。
+
+**对应代码/配置**：`training_wss_min/{baseline_models.py,config.py,dataset.py}`；`training_wss_min/tools/{prepare_sa_grouping_single_seed_matrix.py,build_fps_support_cache.py,audit_sa1_grouping_matrix.py}`；`training_wss_min/tests/test_sa_grouping_matrix.py`；`training_wss_min/configs/pointnetpp_sa_grouping_single_seed_20260720/`；`training_wss_min/cluster/{build_sa_grouping_fps_cache.slurm,preflight_sa_grouping_single_seed.slurm,run_sa_grouping_single_seed.slurm,submit_sa_grouping_single_seed_matrix.py}`。
+
+**验证与提交**：6个新单元测试全部通过；ball/KNN/KNN-repair/adaptive均通过同一PointNet++ support-query CUDA反传；adaptive的完整Q1V配置通过CPU反传、RTX4090 batch8 AMP反传、center计数和full/chunk query一致性预检。实测首例FPS缓存为5000个无重复索引，fixed跨epoch不变、multistart跨epoch切换。冻结17个新配置，全部是 `seed=1234` 和精确 `106/0/27`；10个随机support任务由 `10557→10558_[0-9]%4`门控，7个FPS support任务由 `10559_[0-132]%7→10560→10561_[0-6]%4`门控。提交时两个前置任务已运行，训练数组按`afterok`等待；不在本记录预写训练结果。
+
+**当前状态判断**：Q1V/SAME是主基准；Q2V/SEP只补齐support方法的配套矩阵。raw KNN-8/10是允许未覆盖点的负对照，只有repair/adaptive受100%覆盖硬门禁。本轮仍是已多次使用的历史test27上的工程比较，不到做3-seed确认的阶段。冻结和提交真源为 `training_wss_min/preflight/sa_grouping_single_seed_{prepared,submission}.json`。
+
+## 2026-07-19｜Q2V SA 重叠审计汇总包 + xlsx ✅无训练几何复核
+
+**本次主要修改**：新建 `例子/06_PointNet++_SA三层采样与分组/汇总_重叠审计_Q2V-10477_2026-07-19/`，统一输出 `SA_group重叠统计汇总.xlsx`、SA1/SA2/SA3 最近 center 局部图、ball 半径 `0.6×/0.8×/1.0×/1.2×/1.5×` 全部分布与同一最近邻 pair 图、KNN `k=6/8/10/16` 全部分布与同一全局最近 pair 图。新增 `09–10`：SA2/SA3 的“左侧完整源点云 + 右侧局部放大”图（SA2 背景严格为500个 SA1 center，SA3 严格为125个 SA2 center）；新增 `11–15`：固定同一 SA1 最近 center pair 的五种 ball 半径完整点云定位 + 局部放大图，便于逐半径看圈和共享点如何变化。xlsx 新增“半径×SA分层”sheet，完整列出五种半径下 SA1/SA2/SA3 的15行统计；xlsx 同时记录每种方法的中位重叠、P10、`≤1/4`/`≤1/3`/`≤1/2` 比例、100%重叠比例/个数和逐 pair 明细；同时清理未被文档引用的旧顶层 PNG/CSV/说明（`00–04`、`08–09`），保留原始 case trace、VTP/CSV 和 Q1V 专项半径历史图。
+
+**对应代码/文档**：`training_wss_min/tools/{build_q2v_sa_overlap_audit_package.py,plot_q2v_full_vessel_group_topology.py,plot_q2v_pointcloud_global_local_pair.py,plot_q2v_stage_radius_pointcloud_views.py,visualize_pointnetpp_sa_q2v.py}`；`例子/06_PointNet++_SA三层采样与分组/README_ParaView.md`；上述汇总目录；本页。
+
+**推进到实验步骤**：五种 ball 半径均在 `Q2V-10477 / AG/fast/RAN_QING_BO` 上以原模型的固定 eval support、deterministic FPS 和 `torch_cluster.radius(..., max_num_neighbors=16)` 重新导出 trace；脚本断言五份反事实在 SA1/SA2/SA3 的 FPS centre 坐标均完全一致。KNN 对照仅用这些已固定的 SA1 source/centre 坐标重算最近 `k` 个点，不加载 checkpoint、不训练。完整血管图选择最近邻关系中 `5/16=31.25%` 的 pair `283/488`，再把成员映射到三角网格，使用表面测地/欧氏距离比 `≥2.5` 作风险筛查；新半径全局/局部系列固定另一条真实最近邻 pair `99/332`（距离 `7.286 mm`），因此只改变半径，不改变对照对象。xlsx 已以 `openpyxl` 复开，验证5个 sheet、“半径×SA分层”15行、图件索引含 `09–15` 和所有图件文件存在。
+
+**当前状态判断**：Q2V SA1 的 ball 中位重叠随半径为 `25.0% (0.6×) / 31.25% (0.8×) / 12.5% (1.0×) / 0% (1.2×) / 0% (1.5×)`；因每层只保留最多16个半径候选，成员截断集合会变化，不能按“半径越大重叠越高”的直觉解读。KNN-6/8/10/16 的中位数为 `0%/12.5%/20.0%/31.25%`，且均无100% pair。完整血管示例中有 `2/32` 个中心—成员边触发测地/欧氏比风险标记（最大 `2.62`），证明纯欧氏 ball query 存在拓扑捷径风险，但该筛查不是已确认的跨支解剖标签；该几何指标用于筛选候选 grouping，不构成训练性能结论，任何正式 grouping 改写仍须独立训练验证。
+
+## 2026-07-19｜QAD 精确Q2V协议三种子历史test27对照 ✅完成｜No-Go
+
+**本次主要修改**：按用户要求，把QAD比较从 `85/21/27 + n32 + train85 stats` 切到与 `Q2V-10477` 精确匹配的 `106/0/27 + n16_w32 + train106 stats`。复用Q2V/seed1234/interpolate历史锚点，新增R0/interpolate seeds `{7,2025}` 和R1/QAD seeds `{1234,7,2025}`，共5个新任务。每个seed内R0/R1只改decoder；采样、SA中心、radius、nsample、width、loss、400 epoch、train-loss选模与评估support seed均冻结。
+
+**对应代码/文档**：`training_wss_min/configs/pointnetpp_qad_q2v_test27_20260719/`；`training_wss_min/tools/{prepare_pointnetpp_qad_q2v_test27_matrix.py,analyze_pointnetpp_qad_q2v_test27_results.py,update_pointnetpp_qad_q2v_test27_xlsx_uno.py}`；`training_wss_min/cluster/{run_pointnetpp_qad_q2v_test27_preflight.slurm,run_pointnetpp_qad_q2v_test27_matrix.slurm,submit_pointnetpp_qad_q2v_test27_matrix.py}`；`training_wss_min/preflight/pointnetpp_qad_q2v_test27_{prepared,gpu_preflight,submission,results_analysis}.json`及三份结果CSV；本页/训练跟踪/PointNet矩阵/架构执行稿；`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`。
+
+**推进到实验步骤**：Python compile、cluster shell语法、Support/Query+PointNet distribution回归 `32/32` 通过；准备门确认5份配置、run dir、hash、Q2V `106/0/27`、n16/w32、SEP和train106 stats未漂移，QAD参数仅`+2,625`。正式GPU预检Job `10549` 在`00:01:54`内 `COMPLETED (0:0)` 且5/5 passed；训练数组 `10550_[0-4]` 全5项均 `COMPLETED (0:0)`，用时`00:09:50–00:10:53`。五个新run的400 epoch、best/last checkpoint、test27 legacy-vertex指标和27例CSV完整，配置哈希无漂移、无NaN/Inf。分析器生成JSON+三份CSV；Excel通过LibreOffice UNO原生写入，总览新5条run+2条均值、教师视图新2条均值，并完成回读和版式验证。
+
+**当前状态判断**：同seed配对中QAD的normalized `R²_cb` 差为 `-0.02225/+0.00743/+0.00055`，三种子均值由 `0.60487` 降至 `0.60012`（`-0.00476`）；物理 `R²_cb` 均值由 `0.27149` 降至 `0.25380`（`-0.01769`）。IoU均值改善 `+0.01204`，但RMSE、p99与high-WSS护栏不支持晋级；逐例normalized p99差95% CI为 `[-0.03672,-0.00333]`，Wilcoxon `p=0.00102`。QAD虽把normalized R²种子标准差从`0.01187`压到`0.00112`，却稳定在更低均值，属偏差—方差交换而非准确性提升。因此精确Q2V协议判定 **No-Go**：Q2V-10477仍是历史test27 normalized `R²_cb` 最高锚点`0.62097`，停止QAD-REG与以QAD为父实验的R2-DUAL。该test27已多次参与历史决策，本结论只是同协议工程排除证据，不写成新的独立确认。
+
+## 2026-07-19｜Q2V SA1 ball-query 与 KNN-16 局部重叠审计 ✅无训练反事实可视化
+
+**本次主要修改**：新增同一 `Q2V-10477 / AG/fast/RAN_QING_BO` SA1 的四联局部放大图：历史高重叠 ball-query 示例、满足教师 `5/16=31.25%` 参考的附近但非最小距离 pair、500 个 FPS centre 的全局最近 pair 的原始 ball-query，以及该完全相同 centre pair 的 KNN-16 反事实。按唯一原始 source-point ID 计数共同成员，避免 padding/重复边被错误当作重叠；没有训练、模型推理或配置改写。
+
+**对应代码/文档**：`training_wss_min/tools/plot_q2v_sa1_ball_knn_overlap.py`；`例子/06_PointNet++_SA三层采样与分组/Q2V-10477_vertex-random5000_FPS-center_fast_RAN_QING_BO_ParaView/08_SA1_ball与KNN_最近center及局部重叠对比.{png,csv,json}`；本页。
+
+**推进到实验步骤**：复核旧 `07_SA相邻group重叠示例.png` 的生成器后，明确其 pair 按最大 Jaccard 选取，是“强重叠示例”而非“全局最近 center”。新图固定真实 trace 的 center、support、ball-query 半径及上限 `nsample=16`；KNN 只替换成员选择规则为同一 support 中欧氏距离最近的 16 个点。脚本编译、绘图、CSV/JSON 输出及四个 panel 的成员计数已复核。
+
+**当前状态判断**：旧示例 `292/482` 的 ball group 确为 `16/16=100%`，但距离最近 pair 实为 `126/499`（`5.76 mm`），其 traced ball group 为 `0/16=0%`；同一 pair 的 KNN-16 为 `3/16=18.75%`。故不能将旧图的 100% 误写为“所有最近 group 都 100%”；它说明现有 `radius(..., max_num_neighbors=16)` 在局部候选截断下可出现高冗余样本。KNN 图仅用于无训练几何反事实，若要替换训练 grouping，必须以独立训练/验证评估其性能与跨支风险。
+
+## 2026-07-19｜Q1V SA1 半径 0.8× / 1.2× / 1.5× 相邻 group 重叠图 ✅无训练几何审计
+
+**本次主要修改**：以 Q1V-10476 的 `vertex-random5000 + SAME + FPS centre` 配置，对 `AG/fast/RAN_QING_BO` 重放固定评估support，导出三份仅改 SA radius 的SA trace：`0.04/0.08/0.16`、`0.06/0.12/0.24`、`0.075/0.15/0.30`。新增固定同一邻近 center pair 的三栏图和全最近邻对统计；图中不改变support、500个SA1 center、病例或模型权重。
+
+**对应代码/文档**：`training_wss_min/tools/{visualize_pointnetpp_sa_q2v.py,plot_q1v_radius_overlap.py}`；`例子/06_PointNet++_SA三层采样与分组/Q1V-10476_{r80,r120,r150}_vertex-random5000_SAME_fast_RAN_QING_BO_ParaView/`；`例子/06_PointNet++_SA三层采样与分组/10_Q1V_SA1_半径0.8x_1.2x_1.5x_同一相邻group重叠对比.{png,csv,json}`；本页。
+
+**推进到实验步骤**：三个trace均用同一Q1V配置、同一support seed和 deterministic FPS；脚本逐一断言三份SA1中心坐标完全一致。展示pair为center `39/484`，在所有半径下均有共同成员且三半径均值最接近教师的1/3参考，不能替代整体分布；另对全部376个最近邻pair计算平均/中位/p90/≤1/3比例。Python编译和图像渲染已通过。
+
+**当前状态判断**：展示pair的共享率随半径为`37.5% → 31.25% → 31.25%`，前者略高于1/3、后两者低于阈值；全pair平均为`30.0% → 25.6% → 25.1%`。由于每个ball group的 `nsample=16` 上限保持不变，扩大半径会改变最多16个候选成员的截断集合，不能假设“半径增大=交叠单调增大”。这是采样/分组几何审计，不是训练性能结论。
+
+## 2026-07-19｜PointNet++ R1 QAD-Lite 三种子配对 ✅5/5完成｜不直接晋级R2
+
+**本次主要修改**：实现向后兼容的 `query_decoder=qad_lite`：保留原 3-NN support context 和预测 head，在其上用 query 与插值 support 的 `Δ输入特征、Δxyz、距离` 构造轻量局部分支，并由 support context gate 调制后输出 zero-init residual。默认 `interpolate` 不改变历史行为；QAD 仅新增 `2,625` 参数。新增严格配对的五个 val21 配置：复用已有 R0/seed1234，新增 R1 seeds `{1234,7,2025}` 与 R0 seeds `{7,2025}`；每对除 decoder 和 run 元数据外完全一致。
+
+**对应代码/文档**：`training_wss_min/{baseline_models.py,config.py,tests/test_support_query_v4.py}`；`training_wss_min/configs/pointnetpp_qad_20260719/`；`training_wss_min/cluster/{run_pointnetpp_qad_matrix.slurm,submit_pointnetpp_qad_matrix.py}`；`training_wss_min/tools/{analyze_pointnetpp_qad_results.py,update_pointnetpp_qad_xlsx_uno.py}`；`training_wss_min/preflight/pointnetpp_qad_{matrix_submission,results_analysis}.json`；`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`；本页/训练跟踪/PointNet矩阵/架构方案。
+
+**推进到实验步骤**：GNN 环境 Python compile 和 Support/Query 回归 `17/17` 通过后提交数组 `10540_[0-4]%3`。现五个新任务全部 `COMPLETED (0:0)`；连同复用的R0/seed1234，六个run均有400 epoch、best/last checkpoint、val21 metrics与21例CSV，配置哈希无漂移、无NaN/Inf，test27未访问。新分析工具输出三种子配对、逐例bootstrap/Wilcoxon、预注册门判定及可重跑CSV/JSON；xlsx总览回填6条原始结果+2条均值，教师视图回填2条三种子均值。
+
+**当前状态判断**：QAD的normalized `R²_cb` 三种子均值 `0.53800→0.55226`，`+0.01426`且2/3 seed为正，低于 `+0.015` 主门；物理 `R²_cb` `0.26490→0.26432`，无稳定增益。Spearman、物理RMSE与normalized p99高尾护栏均有seed级回退，只有IoU非劣门通过。三种子平均的逐例normalized R²差 `+0.01107`，95% CI `[-0.00176,+0.02516]`仍跨零。因此判 **No-Go for direct R2**：保留QAD机制，先做residual幅度审计与正则化单变量诊断；R2-DUAL、R3-AXIAL和test27继续冻结。
+
+## 2026-07-18｜PointNet 实验汇总 xlsx 教师视图重排 ✅展示列收敛
+
+**本次主要修改**：按教师汇报阅读路径，删除 `教师汇报视图` 的 P:U 执行/溯源说明列和 `实验矩阵总览` 的 AK:AP 对应列；后续Q2V结果回填器同步改为只写保留指标列，避免再次添加这些列。教师视图改为“设置→核心物理/归一化/热点指标”的摘要计分表，矩阵总览保留完整数值并按实验行交替底色、候选高亮、统一数值精度、分组标题和横向打印版式。另将指标单元格由 LibreOffice 导出的 `[$-409]` locale 标记改为无货币符号的纯数值格式，避免部分查看器显示前导 `$`；NMAE 与 range-NRMSE 的物理/归一化列已统一按百分数显示并在列标题标注 `(%)`。
+
+**对应代码/文档**：`training_wss_min/tools/{style_pointnet_results_xlsx_uno.py,update_q2v_sampling_radius_test27_xlsx_uno.py}`；`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`；本页。
+
+**推进到实验步骤**：格式化在独立临时副本中执行，xlsx容器完整性、两张表的列范围（教师 A:O；总览 A:AJ）、4个新Q2V探索行的ID与物理 R²_cb 数值均已复核；PDF渲染检查了教师页两页续表重复标题/表头，完整矩阵拆为3个横向指标页以保证印刷可读性。不改动训练结果、公式口径或原始run产物。
+
+**当前状态判断**：教师展示页不再承载Slurm状态、协议描述和文件路径，这些审计信息保留在训练跟踪与结构化 JSON；主表更适合当场比较，完整矩阵仍可用于追溯所有指标。颜色只强调当前候选与warm-start参考，不将单seed test27结果包装为确认性结论。
+
+## 2026-07-18｜Q2V/test27 半径与采样探索矩阵 + Q1V-SAME warm-start ✅4/4完成并回填
+
+**本次主要修改**：按用户授权，以 `Q2V-10477` 的历史 `test27` 为探索性锚点新增四组 PointNet++ 配置：Q2V-SEP 的半径 `r80=(0.04,0.08,0.16)` 与 `r60=(0.03,0.06,0.12)`；以 Q1V-SAME 为匹配控制的 `fps_multistart5000` 采样；以及加载 Q2V `ckpt_best`、改用完整 Q1V-10476 `random5000 + SAME + FPS 500→125→32` 协议的 400-epoch warm-start。warm-start 仅加载模型权重，优化器、学习率日程与 checkpoint 选择全部重新开始，并写入初始化 checkpoint SHA。`test27` 在此矩阵只作历史锚定探索，不能表述为独立确认。
+
+**对应代码/文档**：`training_wss_min/{config.py,dataset.py,train.py,evaluate.py,tools/preflight_v4_jobs.py}`；`training_wss_min/tools/{prepare_q2v_sampling_radius_test27_matrix.py,analyze_q2v_sampling_radius_test27_results.py,update_q2v_sampling_radius_test27_xlsx_uno.py}`；`training_wss_min/configs/pointnetpp_q2v_sampling_radius_test27_20260718/`；`training_wss_min/cluster/{run_q2v_sampling_radius_test27_preflight.slurm,run_q2v_sampling_radius_test27_matrix.slurm,submit_q2v_sampling_radius_test27_matrix.py}`；`training_wss_min/preflight/q2v_sampling_radius_test27_results_{analysis.json,summary.csv}`；`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`；本页/训练跟踪/PointNet矩阵。
+
+**推进到实验步骤**：GPU formal preflight `10505` 4/4通过；数组 `10506_[0–3]` 均完成400 epoch、`ckpt_best/last` 评估和 PostView `27/27`。结果审计复核了history精确400行、best/last checkpoint、数值有限、提交配置哈希未漂移、随机初始化/strict warm-start元数据和全27例可视化验证；`last-best R²_cb` 在 `-0.0041～+0.0016`，不改变预注册的 train-loss best 选模。xlsx 使用 LibreOffice 写入后重新以 xlsx 容器和单行ID/指标一致性复核。
+
+**当前状态判断**：新四组均未超过历史 Q1V 的物理 `R²_cb=0.2763`。相对 Q2V，r80/r60 分别为 `0.2433/0.2406`（`Δ=-0.0291/-0.0319`）；相对严格匹配Q1V-SAME，`fps_multistart5000` 为`0.2297`（`Δ=-0.0466`）；Q2V→Q1V SAME warm-start为`0.2670`（相对Q1V `-0.0093`）。所以缩小ball radius、以fps_multistart替换vertex-random、以及该权重初始化均不晋级；Q1V继续是下一步独立复核候选。全部是用户授权的历史test27探索，不能写成确认性比较；AreaRandom继续冻结。
+
+## 2026-07-18｜PointNet++ 架构精度方案清理定稿 ✅文档完成｜No-Run
+
+**本次主要修改**：将 PointNet++ 第一性原理工作稿收敛为单一最终执行版；删除跨智能体审查日志、逐题答复、作者/版本流水和重复优先级。有效结论已合并到唯一的架构路线、实验矩阵、Go/No-Go 门和启动清单中。
+
+**对应代码/文档**：[`WSS最小化_PointNet++架构精度优化_第一性原理方案与交叉论证工作稿_2026-07-18.md`](WSS最小化_PointNet++架构精度优化_第一性原理方案与交叉论证工作稿_2026-07-18.md)；本页。
+
+**推进到实验步骤**：已冻结最小顺序 `Stage-0 审计 → R1-QAD → R2-DUAL → R3-AXIAL → 条件触发 R4-RES/R5-MSG → 三 seed 确认`。根据既有第四轮 A3 三 seed smearing 变差证据，将“回变校正/NLL 前置”纠正为历史 No-Go/条件触发支线。本轮未改代码、配置或实验产物，未提交作业。
+
+**当前状态判断**：最终文档可直接用于实现和提交实验；val21 继续使用 `n32_w32` 效率锚点，test27 只在结构与三 seed 结论冻结后做一次确认。AreaRandom 继续受 `133/133` 严格面积映射门禁阻塞。
+
+## 2026-07-18｜Excel 第19–21行 SA 容量纠错与 Q2V 重复行清理 ✅已回填
+
+**本次主要修改**：逐格复核“实验矩阵总览”第20行 Q2V-10477、第21行 Q3V-10478，并追查到第19行 Q1V-10476 有同一模板遗留：三行的每例点数和采样列已正确写为 random5000，但容量结构仍误沿用 Q0 的 `2000→500→125→32`。现按运行时配置统一修正为 `5000→500→125→32；nsample=16；width=32`；Q0第18行继续保留真实的 `2000→500→125→32`。同时清除上轮追加的 `Q2V-10477-reference-test27` 重复行，以第20行原 Q2V 结果作为唯一 test27 历史锚点。
+
+**对应代码/文档**：`training_wss_min/tools/update_q2v_results_xlsx_uno.py`；`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`；[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)；本页。
+
+**推进到实验步骤**：运行时 config 与提交 config 双重核对 Q1V/Q2V/Q3V 的 `support_n_points=5000`、`sa_center_counts=[500,125,32]`；Q2V 为 SEP+FPS center，Q3V 为 SAME+Random center。Excel 更新器改为13个新增结果行并幂等清理旧重复锚点；本轮没有训练、评估或集群提交。
+
+**当前状态判断**：Excel 只保留一个 Q2V-10477 test27 主行，不再通过重复实验行表达对照关系；D1仍以该唯一行作为同test27控制。Q1V/Q2V/Q3V 的真实完整链均为 `5000 support→500→125→32`，此前第19–21行的 `2000` 只是展示错误，不影响已完成模型或指标。
+
+## 2026-07-18｜Q2V 对照、SA 链与归一化排名展示修正 ✅已回填
+
+**本次主要修改**：修正“Q2V-10477 是否缺少对照”和“`2000→500→125→32` 与 `500→125→32` 是否为不同 SA 下采样”的展示歧义。Q2V/本轮数据与架构配置的完整链均写为 `5000 support→500→125→32`；其中 `500/125/32` 是三层 SA center 数，不是输入 support 数。旧 B1/9169 与 Q0/10475 是 `2000 support→500→125→32`，因此中心数相同不代表第一层输入点集、邻域或推理路径相同。Excel 新结果区补一行 `Q2V-10477-reference-test27`，只读重复原 test27 历史锚点，并将 `q2v_arch_dev_n16_w32` 明确标为 `Q2V-structure dev control`。
+
+**对应代码/文档**：`training_wss_min/tools/update_q2v_results_xlsx_uno.py`；`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`；[训练实验跟踪](WSS最小化_训练实验跟踪.md)；[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)；本页。
+
+**推进到实验步骤**：仅做结果展示和口径修正，没有新增训练、评估或 Slurm 提交。原 Q2V checkpoint 不在架构 val21 上补评：dev split 的 `train85∪val21` 恰好等于 Q2V 原 train106，val21 的21例全部曾参与原 Q2V 训练，直接计算会是 `21/21` 数据泄漏。架构可比控制因此是按 dev85 重训、只改 split/train-only stats 的 `n16_w32`，不是原10477 checkpoint。
+
+**当前状态判断**：Q2V 仍是同 test27 归一化空间的历史锚点，normalized `R²_cb=0.6210`；D1 frozen/refit 分别为 `0.5961/0.6092`，未超过 Q2V。架构 val21 的预注册主指标是物理 `R²_cb`，数值第一仍为 `n32_w64=0.2603`；normalized val21 数值第一是 `n16_w64=0.5709`，两者排名不同但不构成冲突，不事后更换主指标。Q2V test27 的 `0.6210` 与架构 val21 不同 split/stats，明确不参与 val21 排名。
+
+<!-- Q2V_ILO_20260718_START -->
+## 2026-07-18｜Q2V/ILO 6组 + Point++ 架构6组结果回填｜定量12/12完成
+
+**集群结果**：CPU准备 `10484`、GPU preflight `10485`（12/12 smoke passed）、架构数组 `10488_0–5`、Q2V PostView export-only `10489` 和扩展test36零样本评估 `10490` 均完成；当前用户队列为空。数据数组 `10487_0–2` 全流程完成，`10487_3–5` 虽被 Slurm 标为 `FAILED`，但三者均已完成400 epoch、best/last定量评估和36例导出，退出点是共同病例 `ILO/YU_XIANG_SHENG-1/before` 的 PostView Gaussian 映射覆盖仅 `7193/26942=26.70%`，因此应记为“定量完成、PostView 35/36未闭环”，不重训也不伪写为全流程通过。其余35例覆盖均为100%。
+
+**结果审计与回填修改**：新增 `training_wss_min/tools/analyze_q2v_ilo_arch_results.py`，复核12个run均有400行history、best/last checkpoint与metrics，数值无NaN/Inf，提交配置哈希未漂移；生成 `training_wss_min/preflight/q2v_ilo_arch_matrix_results_{analysis.json,summary.csv}`。新增 `training_wss_min/tools/update_q2v_results_xlsx_uno.py`，以临时副本+有效xlsx容器检查的方式幂等回填14行（12个训练结果+Q2V zero-shot36+Q2V原test27历史锚点），并同步三份WSS跟踪文档。
+
+**主要判读**：D1在同test27冻结统计下加入ILO41训练，物理 `R²_cb 0.2724→0.2516`；D2在同test36下加入ILO32训练相对Q2V零样本 `0.2646→0.2493`；D3加入ILO32训练相对控制 `0.2981→0.2915`，且D3重算统计再降至 `0.2459`。三条协议都没有一致的整体扩容增益，只有负例数或局部IoU/ILO-0等分项改善，不能写成数据扩容有效。架构val21两种width都以 `nsample=32` 最好；`n32_w64` 的 `R²_cb=0.2603` 数值第一，但仅比 `n32_w32=0.2589` 高 `0.0014`、参数量为 `0.880M vs 0.224M`，只登记为开发候选，原test27仍未访问。
+
+**流程异常**：finalizer `10486` 在成功提交全部训练后，因node03系统Python缺少 `uno` 而 `FAILED (1:0)`；该错误没有影响GPU提交或训练，仅阻断自动文档/xlsx回填，本次已在登录环境完成回填。Q2V export-only `10489` 已补齐并验证27/27。AreaRandom六组继续冻结；下一步先审计 `YU_XIANG_SHENG` 的STL/CFD坐标域与裁剪血缘，再决定是否只做PostView修复，不得用放宽阈值掩盖映射问题。
+<!-- Q2V_ILO_20260718_END -->
+
+## 2026-07-18｜Phase-V 六组完训结果、状态真源与汇总表回填 ✅定量完成｜五组 PostView 待补
+
+**本次主要修改**：只读核对 Jobs `10473–10478` 的400 epoch history、运行时 config、best/last checkpoint、test27 legacy-vertex metrics、best/last 比较文件及 PostView 输出；将定量结果回填到 PointNet 矩阵、训练跟踪和 `WSS_PointNet实验矩阵与结果汇总last.xlsx`。本次未修改训练/评估代码、未重训、未提交 export-only 或面积阶段作业。
+
+**对应代码/文档**：`training_wss_min/runs/{pointnet_v4,pointnetpp_v4}/outputs/ag_aaa_v4_stratified_{e2_global_random5000_{same,sep},sa3_fps2000_fixed_same,sa3_random5000_fpscenter_{same,sep},sa3_random5000_randomcenter_same}/`；`training_wss_min/cluster/logs/v4sq_{p1v_10473,p2v_10474,q0_10475,q1v_10476,q2v_10477,q3v_10478}.{out,err}`；[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)、`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`。
+
+**推进到实验步骤**：六组的 best/last test27 legacy-vertex 指标均已生成；Q0=`10475` 于 `2026-07-17 22:53:55+08:00` 完成并通过 PostView `27/27`。另五组在旧 exporter 处理 `AAA/ruputer/SHI_YUN_XI` 时触发不应属于 legacy-vertex 路线的面积硬门，训练与评估均已完成但 PostView 仅留下20个病例目录、没有 batch verification。P2V 的 best 物理 R²_cb=`0.2193`，Q1V为`0.2763`；Q2V=`0.2724`但IoU/负例/高尾未同步改善，Q3V=`0.2521`整体回退。所有主结果仍使用 train-loss best，未根据 test27 切换到 last。
+
+**当前状态判断**：P2V 与 Q1V 仅作为下一轮独立重复/确认的优先候选，不构成发布或架构终裁；六组 high-WSS R² 仍为负，最高Q1V也仅`-0.513`。P1V/P2V/Q1V/Q2V/Q3V 必须先 export-only 补齐并逐批验证27/27；Phase-A 六组继续停在严格面积映射`127/133`，不得由本轮 vertex 指标放行。
+
+## 2026-07-17｜Phase-V PostView 隐式面积依赖修复 ✅代码/测试完成｜五组无需重训
+
+**本次主要修改**：复核面积门禁、Support/Query 数据集和 PostView 全链路，发现旧 PostView 即使运行配置为 `legacy_vertex` 也会无条件加载严格 STL 面积，造成点口径作业在训练和 best/last eval 完成后被误判失败。现按 `surface_metric_mode` 分流 high-risk mask/manifest：legacy 只输出 vertex 指标且不读/伪造面积，strict 才输出 area 指标；resume 拒绝复用缺少模式或模式不一致的旧半成品。另修复 `query_mode=same` 时未使用的 `query_sampling=area_random` 误触面积加载，以及 FPS pool 按有效 support sampler 预热的边界。
+
+**对应代码/文档**：`training_wss_min/{dataset.py,tools/export_wss_postview.py,tests/test_support_query_v4.py,README.md}`；[PointNet baseline 矩阵 §0A–0B](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md#0a-test27-supportquery-与采样矩阵2026-07-17phase-v-运行中phase-a-待修)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+
+**推进到实验步骤**：GNN 环境运行 Support/Query 与 PointNet distribution 两组回归共28项全部通过。只读核对 Slurm 与日志：Jobs `10473/10474/10476/10477/10478` 均400 epoch训练完成，best/last legacy vertex eval完成，只在 test `AAA/ruputer/SHI_YUN_XI` 的旧 PostView 严格面积调用处退出；`10478` 的导出进程在代码修复前已经载入旧模块，运行中不会热更新。`10475/Q0` 在19:47仍运行。本轮未重提、取消或补交任何作业。
+
+**当前状态判断**：上述五组的 checkpoint 与已有 vertex 指标有效，不需要重训；后续仅用修复后的 exporter 做 export-only 补齐。Phase-A 六组仍因面积映射127/133冻结，不能借本修复绕过严格门。Gaussian 可视化 `mapping coverage=100%` 与原始 STL 面积严格转移是两个独立合同；四个 crop 例不能据此推翻既有中心线特征，`ZHOU_KE_XUN` 需审计坐标变换，`LIU_WEN_QI` 需核查 STL/CFD 数据血缘，确认原始几何错误后才重提中心线与几何特征。
+
+## 2026-07-17｜ILO 术前最终签核完成 ✅41/41 PASS｜旧轮次已归档
+
+**本次主要修改**：在已有人工排除6例基础上，再排除 `WANG_LI_MIN-0`、`YANG_QING_REN-1`；固化人工排除8例、AAA 优先重名策略和 before-only 入口。最终白名单、排除清单、人工决定、增量指纹和 QA 报告集中到唯一活动目录；49/43 例两轮旧报告、旧图包和说明移入 `_archive` 追溯。
+
+**对应代码文档**：`pipeline_wss_min/new_cohorts/{ilo_before.py,visualize_ilo_before.py,qa.py,README.md}`；`pipeline_wss_min/tests/test_ilo_before.py`；[ILO 术前最终审核通过](ILO术前队列最终审核通过_2026-07-17.md)；`data_wss_min/pipeline_reports/ilo_before_final_approved_20260717/`；`assets_新队列审计/ilo_before_final_approved_20260717/`。
+
+**推进到数据步骤**：原始 before61、最终通过41、总排除20；41/41 WSS/节点/peak/原始 STL v4/坐标与归一化硬门通过，WSS watch=0、软旗标=0、ILO 平移修复=0。统一活动 bundle 复验 AAA65+ILO41=106/106 PASS；可视化按 AG76+AAA63+ILO41、固定 X/Y±75mm、Z±275mm、归一化±1、WSS log1p 0–300Pa 重建，分组为20/20/1。8项 unittest 与 Python 编译通过。
+
+**当前状态判断**：人工几何审核已通过，活动 after bundle/report=0，61个原始 after 目录继续保留。本轮未创建 split、全局 WSS 统计或训练，也未修改 AG/AAA 白名单与训练产物。
+
+## 2026-07-17｜test27 两阶段采样协议落地｜vertex/FPS 6组 Jobs `10473–10478` 已提交 🚀
+
+**本次主要修改**：把原本被面积映射共同阻塞的矩阵显式拆成 Phase-V 与 Phase-A。旧配置/旧run缺省为 `legacy_vertex`，只计算既有vertex指标且不读取STL面积、不伪造area字段；只有显式`both_strict`的面积采样/面积评估才触发133例严格mapping。新增Q3V（PointNet++、vertex-random5000、SAME、Random center 500→125→32），并用配置等价测试约束其相对Q1V只改变center FPS→Random。preflight复用同一冻结协议的一次全量bundle/hash审计，六个模型的CPU/CUDA门禁仍逐项执行；提交器冻结为六组vertex/FPS，六组area保持独立backlog。
+
+**对应代码/文档**：`training_wss_min/{config.py,evaluate.py}`；`training_wss_min/tools/{preflight_v4_jobs.py,compare_best_last.py}`；`training_wss_min/cluster/submit_v4_support_query_matrix.py`；Q3V配置及其余11份显式评估模式配置；`training_wss_min/tests/test_support_query_v4.py`；`training_wss_min/preflight/{ag_aaa_v4_vertex_phase_6_preflight.json,ag_aaa_v4_vertex_phase_submission_manifest.json,ag_aaa_v4_area_phase_backlog.json}`；本页、[PointNet baseline矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)、根/docs/训练/config README。
+
+**推进到实验步骤**：相关Python编译、Support/Query回归11项、既有v4协议回归5项、两个Slurm脚本`bash -n`通过。正式Phase-V preflight为6/6 passed：split精确106/0/27、strata与排除/统计/133 bundle SHA/frame均通过；双病例CPU、batch8 RTX4090 AMP均通过且无OOM，PointNet峰值约559 MiB、PointNet++约127–181 MiB；SA中心逐病例精确500/125/32，full-query与chunk最大差`7.45e-8`。Jobs为P1V `10473`、P2V `10474`、Q0 `10475`、Q1V `10476`、Q2V `10477`、Q3V `10478`；提交后首项RUNNING，其余因Resources/Priority正常排队。`9169/9170`均未重复提交或重训。
+
+**当前状态判断**：适合让六个vertex/FPS作业继续排队/训练；它们不消费失败的面积映射，且运行时快照明确记录`surface_metric_mode=legacy_vertex`。Phase-A的P1/P2/Q1/Q2/Q3/Q4仍不适合提交：严格审计仅127/133，通过/失败清单、六例可视化manifest及哈希均保存在`ag_aaa_v4_area_phase_backlog.json`，后续修复后必须重新跑面积门禁，不得把本次vertex结果冒充area结论。ILO、xlsx、Git commit/push均未处理。
+
+## 2026-07-17｜Job `9170` 400 epoch 结果回填 ✅CHECKPOINT VALID｜正式面积评估未闭环｜6例映射可视化
+
+**本次主要修改**：以 `sacct`、Slurm 日志、运行时 config、history 和 checkpoint 为真源验收 Job `9170`。确认训练完整结束后，新增不放宽正式面积门禁的诊断评估入口：全27例只报告 legacy vertex 指标，面积指标只报告通过冻结映射门的26例子集。将 `9170` 与同 split/stats 的 `9169` 做严格配对，回填 PointNet 矩阵、训练跟踪和 `WSS_PointNet实验矩阵与结果汇总-new.xlsx`；同时为133例面积审计的6个失败病例生成原始坐标叠加、仅平移诊断和距离热图。
+
+**对应代码/文档**：`training_wss_min/tools/{evaluate_mapping_blocked_run.py,visualize_area_mapping_failures.py}`；`training_wss_min/runs/pointnet_v4/outputs/ag_aaa_v4_stratified_e2_global_fps2000/eval_diagnostic/`；`docs/02-推进与变更/assets_新队列审计/area_mapping_failures_20260717/`；本页、[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)、`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总-new.xlsx`、根/训练/docs README。
+
+**推进到实验步骤**：`9170` 的 Slurm 最终状态为 `FAILED (1:0)`、用时 `06:45:54`，但400/400 history、`ckpt_best(epoch397, train loss=0.139726)` 与 `ckpt_last(epoch399)` 完整；失败点是训练结束后正式 evaluate 首次处理 train 例 `AG/fast/LI_ZHEN_SHAN` 时被新增面积映射硬门正确阻断。best/last 均已对 test27 诊断补算：best 的全27 legacy vertex 物理/归一化 `R²_cb=0.0530/0.4569`、pooled物理 `R²=0.0831`、病例 R² mean/median=`0.0405/0.0221`、负例12/27、MAE/RMSE=`2.919/6.957 Pa`、Spearman=`0.6512`、top10 IoU=`0.1727`、high-WSS R²=`-0.8620`。同口径 `9169` 分别为 `0.1331/0.5307`、`0.1371`、`0.0861/0.0785`、6/27、`2.736/6.749`、`0.6959`、`0.1846`、`-0.8004`；9170 逐例10例改善、17例退化。9170 last 与 best 的物理 `R²_cb` 只差 `+0.0009`，不改变 train-loss 选出的 best 主结论。面积有效子集26/27的 physical/normalized area `R²_cb=0.1559/0.5243`、area top10 IoU=`0.2564`，因排除 `SHI_YUN_XI` 且9169没有同口径结果，未用于架构判优。xlsx 已经 LibreOffice 两页渲染 QA；新增 Python 文件编译通过。
+
+**当前状态判断**：同一独立 test27 上，可以判定“当前冻结配置的0.22M SA3 优于0.79M E2”，但不能写成容量配平后的 PointNet++ 架构终裁；9170 仅峰值点距离/bbox 更小（`0.1399 vs 0.1725`），热点质心、IoU、排序和高尾总体仍由9169更好。四个失败图明确是完整 STL 尾段超过裁剪 CFD 壁面；`ZHOU_KE_XUN` 主要是世界坐标原点大偏移，`LIU_WEN_QI` 在仅平移后仍存在几何差异。正式 test27 面积指标、9170 标准 `eval/` 和 PostView 仍未闭环；11组 AreaRandom/vertex-random 训练继续保持0/11提交，不能据26例诊断子集放行。
+
+## 2026-07-17｜test27 Support/Query + Area/Vertex Random 实现 ⚠️训练提交被面积映射硬门阻断｜9169 PostView 修复重跑
+
+**本次主要修改**：实现向后兼容的 Support/Query 配置、PointNet/PointNet++ 分离编码、固定 SA `500→125→32`、FPS/确定性 Random center、vertex-uniform `random` 与独立 `area_random`、fixed-support/full-query 分块推理、面积加权风险区/病例等权物理指标、11 份冻结配置及提交/manifest 工具。PostView 路径统一以 canonical ID 解析；对 pipeline 已裁剪壁面使用 bundle 冻结 STL 尺度并同步裁剪 STL 尾段。Job `9169` 只跑 export，不重训、不重写 best/last 指标。
+
+**对应代码/文档**：`training_wss_min/{config.py,dataset.py,baseline_models.py,evaluate.py,metrics.py,surface.py}`；`training_wss_min/tools/{export_wss_postview.py,verify_postview_batch.py,audit_surface_area_v4.py,preflight_v4_jobs.py,compare_best_last.py}`；`training_wss_min/configs/{pointnet_v4,pointnetpp_v4}/` 的 P1V/P2V/P1/P2/Q0/Q1V/Q2V/Q1/Q2/Q3/Q4；`training_wss_min/cluster/{run_v4_support_query.slurm,submit_v4_support_query_matrix.py,run_9169_postview_export_only.slurm}`；本页、[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+
+**推进到实验步骤**：Python compile、GNN unittest `55/55`、全部 cluster shell `bash -n` 通过；11 个 config/run/job/log 路径互不冲突。用8个已通过面积映射的真实 train 病例做非正式 RTX4090 batch8 诊断，11/11 AMP forward/backward 通过、无 OOM，PointNet 峰值0.546 GiB、PointNet++ 0.123–0.177 GiB，SA中心逐例精确500/125/32；PointNet、PointNet++ FPS/Random center 的10887点 full-query vs chunk1024 最大差分别 `5.22e-8/1.49e-8/2.98e-8`，每次完整预测 support encoder 仅调用一次。133/133 bundle/frame 可加载，但严格面积审计仅 `127/133` 通过：四例因 pipeline 裁剪壁面而与完整 STL 尾段不一致，`ZHOU_KE_XUN/LIU_WEN_QI` 的 STL/CFD 原始世界坐标明显失配；因此正式 11-config preflight 为 failed，11 个训练作业均未提交，未生成伪 submission manifest，也未重复提交 Job `9170`。9169 export-only 首次 Job `9817` 正确拒绝 `SHI_YUN_XI` 的 6.2% mapping；修正冻结尺度/裁剪后 Job `9818` `COMPLETED (0:0)`，27/27病例均为4 VTP/3 PNG/3 CSV、mapping 100%，且 checkpoint/best-last metrics/per-case CSV 前后 SHA 完全一致。
+
+**当前状态判断**：代码和配置已准备，但不适合启动11组训练；协议明确要求任一病例双向 mapping p95>bbox 2% 或 max>10% 即硬失败，当前不得放宽阈值、不得把 AreaRandom 静默替换为 vertex random，也不得只提交矩阵子集。冻结面积审计见 `training_wss_min/preflight/ag_aaa_v4_surface_area_mapping_133.json`；需先决定并完成可审计的“裁剪后有效 STL 子面”与两例跨坐标系 STL 的数据修复/重发布，再重跑11组正式 CPU/CUDA/显存 preflight 和提交。ILO、xlsx、数据删除、Git commit/push 均未处理。
+
+## 2026-07-16｜PointNet++ Jobs `9167–9169` 结果回填 ⚠️SA3 No-Go｜分层对照未闭环
+
+**本次主要修改**：只读核对三组 PointNet++ 的400 epoch history、best/last checkpoint、train/test 全云 metrics 与 PostView 完整性；将结果回填到 PointNet 状态真源、训练跟踪、根/ docs 入口与 `WSS_PointNet实验矩阵与结果汇总-new.xlsx`。本次未修改训练/评估代码，未启动新作业。
+
+**对应代码/文档**：`training_wss_min/runs/pointnetpp_v4/outputs/{ag_v4_sa3_e2_global_fps2000,ag_aaa_v4_locked_sa3_e2_global_fps2000,ag_aaa_v4_stratified_sa3_e2_global_fps2000}/`；`training_wss_min/cluster/logs/pnpp_*_916{7,8,9}.{out,err}`；[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)、`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总-new.xlsx`、`README.md`、`docs/README.md`。
+
+**推进到实验步骤**：Jobs `9167/9168` 已完成训练、best/last 全云评估与 test15 PostView `15/15`；Job `9169` 已完成训练及 best/last test27 评估，但 PostView 在第一个 AAA 病例因 bundle 路径错解停止，当前 `15/27`；同 split PointNet E2 Job `9170` 仍在训练。
+
+**当前状态判断**：当前 0.22M SA3 配置在 AG-only 与锁定 AG test15 混合两个协议上，物理 `R²_cb` 分别为 `0.1500/0.1490`，均低于 0.79M PointNet E2 的 `0.1866/0.2054`；只有 top10 IoU 轻微改善，整体判当前配置 **No-Go**。由于参数量未配平且 sampled-train/full-cloud 可能存在密度落差，不写成 PointNet++ 架构终裁。分层 `9169` 的物理/归一化 `R²_cb=0.1331/0.5307`，但在 `9170` 与 27/27 PostView 完成前只能作独立基线，不作架构胜负结论。
+
+## 2026-07-16｜v4 PointNet++ 三协议 + PointNet 同 split 对照提交 🚀RUNNING/QUEUED
+
+四份已验收配置在提交前再次核对 SHA-256、配置解析、Slurm `bash -n` 和正式 run 目录不存在，随后使用统一的 train→best/last 全云 train+test eval→best test PostView 流水线提交：PointNet++ AG `61/0/15` = Job `9167`，PointNet++ 锁定 AG test15 混合 `118/0/15` = `9168`，PointNet++ 新分层混合 `106/0/27` = `9169`，PointNet E2 新分层同 split 对照 = `9170`。提交后 `9167/9168` 已在 `master` 启动，`9169/9170` 分别因 Resources/Priority 正常排队；`9167` 已确认 CUDA、train61 并推进至 epoch1，`9168` 已确认 CUDA、train118 和正确模型构建。启动日志未见 NaN/Inf、OOM、Traceback、frame/path 错误。本条只记录正式提交与早期启动核查，不把临时 loss 当结果，也未修改实验汇总 xlsx。
+
+## 2026-07-16｜v4 正式验收、混合重划与 PointNet++ 四组预检 ✅READY｜未提交新训练
+
+**正式验收**：新增 `training_wss_min/tools/accept_v4_pointnet_results.py`，以 `sacct`、运行时 `config.json`、run 路径和实际产物为真源重新验收 Jobs `9138/9140`。两项均 `COMPLETED (0:0)`；配置冻结为 seed1234、FPS-2000、400 epoch、`stl_landmarks_v4`，split 精确为 `61/0/15` 与 `118/0/15`。best/last checkpoint 元数据、train+test 全云指标、per-case CSV、best PostView 15/15、每例4个 VTP（各60个）和 mapping coverage 100% 全部通过；统计 manifest 中所有 bundle SHA-256 与现文件一致。日志未发现 NaN/Inf、OOM、Traceback、frame/path 或病例数错误；九个质量/人工排除病例均未进入任何 partition、train-only stats 或特征统计。
+
+**common-test15 公平重算**：三组均直接读取已保存的逐点预测，且真值数组逐点一致；没有重训旧 E2、没有用 test 反选 checkpoint。统一指标真源为 `data_wss_min/pipeline_reports/v4_cutover_20260715_1921/{v4_e2_global_result_analysis.json,v4_e2_common_test15_per_case_comparison.csv}`。旧 v3 / AG-v4 / AG+AAA-v4 的 pooled `R²` 为 `0.2597/0.1852/0.2086`，MAE 为 `2.754/2.847/2.772 Pa`，RMSE 为 `4.902/5.143/5.068 Pa`，NMAE 为 `0.02431/0.02513/0.02447`；病例等权 `R²` 为 `0.2554/0.1866/0.2054`。混合相对 AG-only 改善整体误差、Spearman（`0.6788→0.7041`）和 top10 IoU（`0.1314→0.1575`），但 high-WSS MAE `10.919→11.195 Pa`、high-WSS R² `-1.8279→-1.8473`，仍有高尾幅值压缩。
+
+**病例证据与判读边界**：混合相对 AG-only 退化最大为 `LI_SHU_KUN`（病例 R² `-0.2932`）、`GUO_XI_JIANG`（`-0.1492`）；混合 MAE 最高为 `ZHANG_JUN_HUA 4.5599 Pa`、`LU_ZHEN_QING 3.9195 Pa`、`QIN_SI_FU 3.6872 Pa`。最低峰值幅值比分别为 `GUO_XI_JIANG 0.1027`、`LIU_FENG_MING 0.1057`、`LI_SHU_KUN 0.1213`；热点峰值距离/bbox 最大为 `LU_ZHEN_QING 0.3625`、`LIU_FENG_MING 0.3168`。证据更符合模型高尾压缩叠加 AG/AAA 密度与统计权重变化，不构成自动删病例依据。高 WSS 尾部观察病例 `ZHOU_KE_XUN`、`WU_GUANG_CUN`、`DING_JUN_FENG`、`ZHANG_YONG_ZHI`、`LI_ZHI_LIN` 已在结构化分析中单列训练侧整体/高尾/热点证据，全部继续保留；pressure gauge offset 也不触发自动排除。
+
+**第三 split 与统计**：新增 `split_AG_AAA_wss_min_v4_stratified_seed1234.json`，从合格池 AG76+AAA57 按固定 strata 顺序、canonical ID 排序和 seed1234 确定性分层为 train106/test27：train=`AG61 + AAA rupture21 + AAA unrupture24`，test=`AG15 + 6 + 6`，无 val。旧 AG test15 不锁定，新 test27 只重合 `GUO_XI_JIANG`、`ZHANG_JUN_HUA` 两例，禁止与 common-test15 总指标直接横比。`HOU_SHEN_QIAN/KANG_XI_MING` 作为相关几何同组分配，未发现其他精确重复几何跨 partition。新统计只读取 train106；AG/AAA 分别贡献 `778,189/2,360,613` 点，即 `24.79%/75.21%`。
+
+**PointNet++/PointNet 准备**：新增三份固定三层 SA PointNet++ 配置（`2000→500→125→32`、radius `0.05/0.10/0.20`、nsample16、FP k=3、width32、head64），覆盖 AG-v4、锁定 AG test15 的混合、以及新混合重划；另新增同 split 的 PointNet E2 对照。四组均为 xyzgeom、GLOBAL log-z、FPS-2000、MSE、seed1234、400 epoch、无旋转/重采样、train-loss 选模。全量病例加载、frame/排除/泄漏/统计哈希、双病例 CPU 前后向、RTX4090 CUDA AMP 前后向均通过；正式 run 目录尚不存在。当前结论为 **可提交但等待用户确认**，本轮没有执行 `sbatch`。
+
+**空间清理边界**：新增只读清单工具 `build_v4_archive_inventory.py`，为旧 AG 快照、staging、HAN 修复快照、活动数据、fold stats、历史 WSS run 和日志生成逐文件 SHA-256 manifest、逻辑/独占空间与保留理由。旧 AG v3 快照可释放 `2.685 GB`，AG staging 因硬链接仅约 `30.3 MB`，HAN 旧快照约 `135.8 MB`、修复 staging 约0；历史 run 归档候选约 `7.248 GB`，日志约 `1.46 MB`，合计 `10,100,359,168 B`（`10.10 GB / 9.41 GiB`）。建议归档根为 `/data/user_data/cy/Digital_twin/GNN_archive/wss_min/20260716_v4_pointnet_acceptance/`；本轮只盘点，不打包、不删除。活动 AG/AAA、v4 stats、当前 v4 runs 与 common-test15 锚点继续禁止删除。
+
 ## 2026-07-16｜AG/AAA v4 E2-GLOBAL 完训公平评估 ✅DONE｜v4 No-Go｜AAA 小幅增益但高尾未解
 
 **本次主要修改**：只读收敛 Job `9138` / `9140` 的400 epoch、best/last 全云 train+test15 评估和 best PostView；用预注册的 `ckpt_best(train_loss)` 作主结果，`last` 仅作敏感性。公平对照仅使用旧 E2 已保存预测纯后处得到的 common-test15，没有重训、重推理或用 test 反选 checkpoint。
@@ -1717,3 +2137,132 @@
 **当前状态判断**：
 - 新版坐标系比旧壁面重心原点更符合“同一视角 / 同一框架 / 基本朝向一致”：分叉原点固定，主干统一位于 `z<0`，分叉/出口统一位于 `z≈0` 到正值区域。
 - 注意旧 `data_wss_min/*/bundle.npz` 若在本次前生成，仍是旧坐标，正式训练前必须全量重跑 `pipeline_wss_min.run --stage preprocess`。
+## 2026-07-16｜v4 终签合规病例对齐图重绘 ✅DONE
+
+**本次主要修改**：为 `visualize_v4_cutover.py` 增加 `--final-eligible-only` 与 `--training-whitelist`。前者强制读取终签 manifest，只渲染 `final_eligible=true` 的病例；后者再按正式训练白名单过滤。小图标题同步实际分母；新旧 AG 对照也不会再把已排除的 `WANG_DENG_FENG` 回填进图。
+
+**对应代码/产物**：`pipeline_wss_min/visualize_v4_cutover.py`；`docs/02-推进与变更/assets_新队列审计/alignment_v4_cutover_{final_eligible,training_eligible}_20260716/`；终签真源 `data_wss_min/pipeline_reports/v4_cutover_20260715_1921/{v4_final_dataset_manifest.json,v4_training_whitelist.json}`。
+
+**推进到实验步骤**：已导出两套只读复核图：几何终签版 AG 76、AAA 63（ruptured 31、unruptured 32），共139例；正式训练可用版 AG 76、AAA 57，共133例。后者额外排除 6 个已有入口/标签质量排除的 AAA。两套中对应排除病例均不在任何小图、叠加图、分组图、数值 CSV/JSON 或专项页中。
+
+**当前状态判断**：这是展示与复核材料的只读再导出，不修改 bundle、白名单、split、统计、训练结果或发布状态；对老师展示优先使用133例训练可用版，139例几何终签版保留用于区分“几何签核”与“训练质量”的两个口径。
+## 2026-07-20｜PointNet++ SA1 覆盖/重叠矩阵（single seed=1234；historical test27）
+
+**状态**：17/17 新 run 已完成且审计通过。Q1V-10476（vertex-random5000、SAME、FPS center 500/125/32、106/0/27、seed=1234、width32、ball16）为主基准；Q2V-10477 仅为 SEP 配套敏感性基准。全部结论都基于 historical test27 的同协议工程比较，**不是独立确认结论**；本轮没有 3-seed，也未按 test27 重选 checkpoint（主结果均取 `ckpt_best(train_loss)`）。
+
+审计：冻结 manifest SHA、seed、split、400 epoch、best/last checkpoint、best/last test27、27 个病例、有限数值与冻结 SA 协议均逐项检查。几何真源 `sa_grouping_*_geometry_audit.json` 均为 passed。adaptive_cover 在所有对应 contract 上 coverage=100%、最大 pair overlap≤1/3；实际 group size 为 1–84（random）、1–24（fixed-FPS）、1–26（FPS-multistart），故 `nsample=16` 是补充目标而不是硬上限。KNN-cover 同为100%覆盖，但最大重叠仍为0.875/0.900；raw KNN-8/10 覆盖率仅 0.511/0.684 与 0.575/0.782（min/median）。ball16/ball32 覆盖率分别为 0.201/0.303 与 0.382/0.550（random）；ball32 的更高覆盖来自更大且更重复的邻域（最大重叠均为1）。
+
+### 1) nsample × width（统一对照：Q1V n16/w32）
+
+| 配置 | 物理R²_cb（Δ） | 归一化R²_cb（Δ） | 病例均值R²（Δ） | 负例 | MAE（Δ） | Spearman（Δ） | top10 IoU（Δ） | high-WSS R²（Δ） |
+|---|---|---|---|---|---|---|---|---|
+| Q1V random5000 + ball16（复用） | 0.2763 (0.0000) | 0.5982 (0.0000) | 0.2114 (0.0000) | 1 | 2.8844 (0.0000) | 0.7222 (0.0000) | 0.1803 (0.0000) | -0.5134 (0.0000) |
+| Q1V n32 / w32 | 0.2438 (-0.0325) | 0.5996 (0.0014) | 0.1750 (-0.0365) | 2 | 2.9384 (0.0540) | 0.7199 (-0.0023) | 0.1663 (-0.0140) | -0.5975 (-0.0840) |
+| Q1V n16 / w64 | 0.2600 (-0.0163) | 0.5932 (-0.0050) | 0.1891 (-0.0223) | 3 | 2.9517 (0.0673) | 0.7258 (0.0036) | 0.1812 (0.0009) | -0.5276 (-0.0142) |
+| Q1V n32 / w64 | 0.2364 (-0.0399) | 0.5835 (-0.0147) | 0.1697 (-0.0417) | 2 | 2.9747 (0.0903) | 0.7246 (0.0024) | 0.1695 (-0.0108) | -0.5450 (-0.0316) |
+
+### 2) SA1 grouping（统一对照：Q1V ball16）
+
+| 配置 | 物理R²_cb（Δ） | 归一化R²_cb（Δ） | 病例均值R²（Δ） | 负例 | MAE（Δ） | Spearman（Δ） | top10 IoU（Δ） | high-WSS R²（Δ） | 覆盖率 min/median | 最大重叠 | 组大小 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Q1V random5000 + ball16（复用） | 0.2763 (0.0000) | 0.5982 (0.0000) | 0.2114 (0.0000) | 1 | 2.8844 (0.0000) | 0.7222 (0.0000) | 0.1803 (0.0000) | -0.5134 (0.0000) | 0.2006/0.3025 | 1.0000 | 2–16 |
+| Q1V ball32 | 0.2504 (-0.0259) | 0.5880 (-0.0103) | 0.1858 (-0.0256) | 2 | 2.9519 (0.0675) | 0.7150 (-0.0072) | 0.1703 (-0.0100) | -0.5632 (-0.0498) | 0.3816/0.5504 | 1.0000 | 2–32 |
+| Q1V raw KNN-8 | 0.2712 (-0.0051) | 0.5970 (-0.0012) | 0.2066 (-0.0048) | 1 | 2.9147 (0.0303) | 0.7199 (-0.0023) | 0.1709 (-0.0094) | -0.4954 (0.0180) | 0.5110/0.6840 | 0.8750 | 8–8 |
+| Q1V raw KNN-10 | 0.2568 (-0.0195) | 0.5955 (-0.0028) | 0.1959 (-0.0155) | 2 | 2.9320 (0.0476) | 0.7227 (0.0005) | 0.1739 (-0.0064) | -0.5396 (-0.0262) | 0.5752/0.7818 | 0.9000 | 10–10 |
+| Q1V KNN-8-cover | 0.2589 (-0.0174) | 0.6042 (0.0059) | 0.1917 (-0.0197) | 1 | 2.9443 (0.0599) | 0.7232 (0.0010) | 0.1717 (-0.0086) | -0.5181 (-0.0046) | 1.0000/1.0000 | 0.8750 | 8–84 |
+| Q1V KNN-10-cover | 0.2425 (-0.0338) | 0.5952 (-0.0031) | 0.1739 (-0.0375) | 1 | 2.9511 (0.0667) | 0.7276 (0.0055) | 0.1903 (0.0100) | -0.5438 (-0.0304) | 1.0000/1.0000 | 0.9000 | 10–84 |
+| Q1V adaptive_cover | 0.2233 (-0.0530) | 0.5885 (-0.0098) | 0.1764 (-0.0351) | 2 | 2.9812 (0.0968) | 0.7134 (-0.0088) | 0.1715 (-0.0088) | -0.6008 (-0.0874) | 1.0000/1.0000 | 0.3333 | 1–84 |
+
+### 3) Q1V/SAME support（每列 grouping 与 random 同 grouping 对照）
+
+| 配置 | 物理R²_cb（Δ） | 归一化R²_cb（Δ） | 病例均值R²（Δ） | 负例 | MAE（Δ） | Spearman（Δ） | top10 IoU（Δ） | high-WSS R²（Δ） |
+|---|---|---|---|---|---|---|---|---|
+| Q1V random5000 + ball16（复用） | 0.2763 (0.0000) | 0.5982 (0.0000) | 0.2114 (0.0000) | 1 | 2.8844 (0.0000) | 0.7222 (0.0000) | 0.1803 (0.0000) | -0.5134 (0.0000) |
+| Q1V adaptive_cover | 0.2233 (0.0000) | 0.5885 (0.0000) | 0.1764 (0.0000) | 2 | 2.9812 (0.0000) | 0.7134 (0.0000) | 0.1715 (0.0000) | -0.6008 (0.0000) |
+| Q1V fixed-FPS + ball16 | 0.2298 (-0.0465) | 0.5931 (-0.0051) | 0.1853 (-0.0261) | 2 | 2.9388 (0.0544) | 0.7193 (-0.0029) | 0.1876 (0.0073) | -0.6103 (-0.0968) |
+| Q1V fixed-FPS + adaptive | 0.2440 (0.0206) | 0.5875 (-0.0010) | 0.1869 (0.0106) | 3 | 2.9321 (-0.0491) | 0.7136 (0.0002) | 0.1623 (-0.0091) | -0.5502 (0.0506) |
+| Q1V FPS-multistart5000 + ball16（历史复用） | 0.2297 (-0.0466) | 0.5880 (-0.0102) | 0.1752 (-0.0362) | 2 | 2.9582 (0.0738) | 0.7128 (-0.0094) | 0.1760 (-0.0043) | -0.6009 (-0.0875) |
+| Q1V FPS-multistart + adaptive | 0.2163 (-0.0070) | 0.5829 (-0.0055) | 0.1662 (-0.0101) | 1 | 2.9796 (-0.0015) | 0.7191 (0.0057) | 0.1695 (-0.0020) | -0.6451 (-0.0443) |
+
+### 4) Q2V/SEP support（每列 grouping 与 random 同 grouping 对照）
+
+| 配置 | 物理R²_cb（Δ） | 归一化R²_cb（Δ） | 病例均值R²（Δ） | 负例 | MAE（Δ） | Spearman（Δ） | top10 IoU（Δ） | high-WSS R²（Δ） |
+|---|---|---|---|---|---|---|---|---|
+| Q2V random5000 + ball16（复用） | 0.2724 (0.0000) | 0.6210 (0.0000) | 0.2157 (0.0000) | 2 | 2.8783 (0.0000) | 0.7358 (0.0000) | 0.1568 (0.0000) | -0.5207 (0.0000) |
+| Q2V random + adaptive | 0.2358 (0.0000) | 0.5820 (0.0000) | 0.1620 (0.0000) | 2 | 2.9833 (0.0000) | 0.7143 (0.0000) | 0.1768 (0.0000) | -0.5951 (0.0000) |
+| Q2V fixed-FPS + ball16 | 0.2601 (-0.0123) | 0.5955 (-0.0255) | 0.1719 (-0.0438) | 5 | 2.9611 (0.0828) | 0.7175 (-0.0184) | 0.1732 (0.0164) | -0.5077 (0.0130) |
+| Q2V fixed-FPS + adaptive | 0.2436 (0.0078) | 0.5896 (0.0076) | 0.1804 (0.0184) | 2 | 2.9424 (-0.0409) | 0.7132 (-0.0011) | 0.1784 (0.0016) | -0.5756 (0.0195) |
+| Q2V FPS-multistart + ball16 | 0.2418 (-0.0306) | 0.5869 (-0.0341) | 0.1811 (-0.0346) | 1 | 2.9683 (0.0900) | 0.7105 (-0.0253) | 0.1600 (0.0032) | -0.5639 (-0.0432) |
+| Q2V FPS-multistart + adaptive | 0.2314 (-0.0045) | 0.5829 (0.0009) | 0.1702 (0.0082) | 2 | 2.9818 (-0.0015) | 0.7119 (-0.0023) | 0.1775 (0.0007) | -0.6240 (-0.0289) |
+
+**判读与下一步**：容量×邻域未显示一个跨 width 的稳定 nsample 增益；ball32 不构成 Go。raw KNN 的不完全覆盖伴随总体表现回退，KNN-cover 虽100%覆盖但高重叠下也没有稳定收益。adaptive 同时通过几何门禁，但在 Q1V/SAME 与 Q2V/SEP 的性能效应需结合全场、high-WSS、hotspot、负例及 best/last 敏感性审慎解读，单 seed/test27 不足以宣布最终 Go。fixed-FPS 与 FPS-multistart 的结论均只限本协议探索；尤其历史 Q1V FPS-multistart+ball16 仍须作为工程对照，不可写作新独立确认。
+
+真源：`training_wss_min/preflight/sa_grouping_single_seed_results_analysis.json`、`sa_grouping_single_seed_results_summary.csv`、`sa_grouping_single_seed_per_case_deltas.csv`。
+
+## 2026-07-21｜SA1-scale 矩阵：全点/10k/降center×大k/宽度/Stem 17 臂落地与提交 🚀
+
+**背景**：以 SA1 分组矩阵（Q1V ball16=0.2763、raw KNN-8=0.2712 且唯一改善 high-WSS、KNN-8-cover 归一化最高 0.6042）为锚，按导师意见开五个方向：①全点支撑 + SA1 knn_cover k∈{64,128,256}（center 固定 500/125/32 与三层比例 0.1/0.25/0.25 两套）；②KNN-8-cover 基准下降 SA1 center {250,125} × 升 k {64,128} 全 2×2；③random10000 × 同一 k 网格（AG 欠 1w 点病例回退全点）；④knn{8,10}_cover 的 width=64 对照；⑤w64 KNN-8-cover 锚点上的 Stem 6→32→64 变种（6→256→512→64 条件触发）。另加 bridge（random5000+500center+k64）分离"加点数"与"加 k"。
+
+**代码修改**（`training_wss_min/`）：
+- `config.py`：新增 `ModelConfig.stem_channels`（空=历史 `(width,width)`；末元素必须==width，仅 pointnetpp）与 `DataConfig.support_allow_undersized`（仅 random 族；欠点病例回退全点），`validate_features` 同步加校验。
+- `baseline_models.py`：Stem 构造支持显式通道序列（默认路径与历史 state_dict 逐 key 兼容，102 key 实测一致）；**新增 `_knn_group_chunked`**：torch_cluster 的 CUDA knn 核存在 `k<=100` 内部断言（`knn_cuda.cu:98`，CPU 无此限制，故此前未暴露），k>100 时走分块 cdist+topk 精确 KNN（每块 ~2^27 距离项，fp32、no_grad、禁 autocast），k≤100 保持 torch_cluster 原路径与既有 knn8/knn10 矩阵逐位一致。CPU/CUDA 边集合等价性、k>n 钳位、cover 100% 覆盖均单测通过。
+- `dataset.py`：`support_allow_undersized` 门控原"每例点数≥support_n"硬断言；欠点病例落入 `sample_indices` 的 `k>=n→arange(n)` 全点分支。
+- `tools/preflight_v4_jobs.py`：epoch 重采样门禁改为寻找第一个真正被下采样的病例做探针（全点/关闭 resample 记 `not_applicable`，否则 D1/D3 会误报）；新增 `--probe-batch largest` 用 train 最大的 batch_cases 个病例做 CUDA 冒烟（原首序探测取小 AG 例，低估峰值显存 >20×）。
+- 新增 `tools/audit_sa1_scale_matrix.py`（兼容空 `sa_center_counts` 的比例制 center，eval 口径 `random_start=False`；全点/比例合同按 `--max-cases-large 4` 抽样含最小/最大例）、`tools/prepare_pointnetpp_sa1_scale_matrix.py`（17 配置 + manifest + `--variant-b` 物化 D5-B）、`cluster/{preflight,run}_pointnetpp_sa1_scale.slurm`、`cluster/submit_pointnetpp_sa1_scale_matrix.py`。
+
+**提交前验证**：单元冒烟 10 项全过（state_dict 回溯兼容、stemA/B 前向与参数量 877.7k/1.043M、比例 center=ceil(0.1N) 且 cover 覆盖 100%、wall=0 全点恒定、D3 回退/护栏）；2-epoch GPU 干跑 5 臂全过（d2_c125_k128 83s/1.6GB、d3_k256 14s/2.4GB、d1_fixed_k256 17s/4.8GB@batch8、d1_prop_k256 44s/**23.3GB@batch4**、d5_stemA 45s/1.8GB；`train_sampled_points=3,138,802` 确认全点支撑生效）；**按预注册门槛（>19GB）d1_prop 族整体降 batch_cases=2**（判读时注意与 batch8 臂的混杂）。两种全点变体的 eval 冒烟（test27 全点云分块解码）通过后删除全部 smoke run。首轮干跑正是被 torch_cluster k≤100 断言击穿（4/5 臂失败），回退实现后重跑全过——冒烟拦截了一次必然的整矩阵集群失败。
+
+**提交记录**：prepare manifest `training_wss_min/preflight/pointnetpp_sa1_scale_prepared.json`（17 配置，audit 冒烟 16 唯一分组合同）；门禁 Job `10746`（新 audit + `preflight_v4_jobs --probe-batch largest`）→ 训练 array `10747_[0-16]%4`（`afterok`，48h/64G/1GPU，训完自动 eval best+last test27 + compare_best_last）。提交清单 `preflight/pointnetpp_sa1_scale_submission.json`。跑完后用 `tools/analyze_pointnetpp_sa1_scale_results.py`（待写）汇总并判读 D5-B 触发。
+
+## 2026-07-21｜PointNet++ SA1-scale 矩阵结果（全点/10k/降center×大k/宽度/Stem；single seed=1234；historical test27）
+
+**状态**：17/17 新 run 完成且 17/17 审计通过。锚点 Q1V random5000+ball16（0.2763）；导师标准 KNN-8-cover w32（0.2589）。协议同 SA1 分组矩阵（106/0/27、seed1234、400ep、train-loss 选模、train106 global log-z、legacy_vertex、物理 R²_cb 主指标）。**test27 为多轮复用的工程比较集，本轮全部是同协议筛查，非独立确认**；D1-prop 族 batch=2（其余 batch=8）存在优化混杂，跨家族比较需声明。审计逐项检查冻结 SHA、seed、split、400 epoch、best/last eval、27 例 CSV、有限数值与 knn_cover 覆盖硬门（全部 100%）。
+
+### 1) 点数标度（固定 500/125/32 center；Δ 相对 Q1V 锚点）
+
+| 配置 | 物理R²_cb（Δ） | 归一化R²_cb（Δ） | 病例均值R²（Δ） | 负例 | MAE（Δ） | Spearman（Δ） | top10 IoU（Δ） | high-WSS R²（Δ） | p99比（Δ） |
+|---|---|---|---|---|---|---|---|---|---|
+| Q1V random5000 + ball16（复用锚点） | 0.2763 (0.0000) | 0.5982 (0.0000) | 0.2114 (0.0000) | 1 | 2.8844 (0.0000) | 0.7222 (0.0000) | 0.1803 (0.0000) | -0.5134 (0.0000) | 0.6912 (0.0000) |
+| bridge random5000 + 500c + k64 | 0.2439 (-0.0324) | 0.6139 (0.0157) | 0.1910 (-0.0204) | 2 | 2.9345 (0.0501) | 0.7351 (0.0129) | 0.1694 (-0.0109) | -0.5651 (-0.0517) | 0.6688 (-0.0224) |
+| D3 random10000 + k64 | 0.2262 (-0.0502) | 0.5882 (-0.0100) | 0.1710 (-0.0404) | 1 | 2.9642 (0.0798) | 0.7201 (-0.0021) | 0.1523 (-0.0280) | -0.6347 (-0.1213) | 0.6745 (-0.0167) |
+| D3 random10000 + k128 | 0.2240 (-0.0523) | 0.5926 (-0.0056) | 0.1665 (-0.0449) | 1 | 2.9527 (0.0683) | 0.7217 (-0.0004) | 0.1580 (-0.0223) | -0.6443 (-0.1308) | 0.6680 (-0.0232) |
+| D3 random10000 + k256 | 0.2608 (-0.0155) | 0.6060 (0.0077) | 0.2085 (-0.0029) | 1 | 2.9103 (0.0259) | 0.7310 (0.0089) | 0.1772 (-0.0031) | -0.5510 (-0.0376) | 0.6945 (0.0033) |
+| D1-fixed 全点 + k64 | 0.2459 (-0.0304) | 0.5954 (-0.0028) | 0.1830 (-0.0284) | 2 | 2.9566 (0.0722) | 0.7177 (-0.0045) | 0.1779 (-0.0024) | -0.5342 (-0.0208) | 0.6859 (-0.0053) |
+| D1-fixed 全点 + k128 | 0.2227 (-0.0536) | 0.5899 (-0.0083) | 0.1742 (-0.0372) | 1 | 2.9830 (0.0986) | 0.7192 (-0.0030) | 0.1600 (-0.0203) | -0.6377 (-0.1243) | 0.6370 (-0.0542) |
+| D1-fixed 全点 + k256 | 0.2472 (-0.0291) | 0.5964 (-0.0018) | 0.1791 (-0.0323) | 3 | 2.9759 (0.0915) | 0.7158 (-0.0064) | 0.1706 (-0.0097) | -0.5651 (-0.0516) | 0.6728 (-0.0184) |
+
+### 2) 比例 center vs 固定 center（全点；Δ 相对同 k 的 D1-fixed；batch 2 vs 8 混杂）
+
+| 配置 | 物理R²_cb（Δ） | 归一化R²_cb（Δ） | 病例均值R²（Δ） | 负例 | MAE（Δ） | Spearman（Δ） | top10 IoU（Δ） | high-WSS R²（Δ） | p99比（Δ） | 覆盖率 min | 最大重叠 | 组大小 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| D1-prop 全点比例center + k64（batch2） | 0.2132 (-0.0328) | 0.5886 (-0.0068) | 0.1602 (-0.0228) | 3 | 3.0144 (0.0579) | 0.7172 (-0.0005) | 0.1679 (-0.0101) | -0.6284 (-0.0942) | 0.6351 (-0.0508) | 1.0000 | 0.9062 | 64–64 |
+| D1-prop 全点比例center + k128（batch2） | 0.2054 (-0.0173) | 0.5825 (-0.0074) | 0.1707 (-0.0035) | 5 | 2.9941 (0.0111) | 0.7163 (-0.0029) | 0.1795 (0.0194) | -0.6318 (0.0059) | 0.6600 (0.0229) | 1.0000 | 0.9844 | 128–128 |
+| D1-prop 全点比例center + k256（batch2） | 0.2024 (-0.0448) | 0.5841 (-0.0123) | 0.1418 (-0.0373) | 2 | 3.0215 (0.0456) | 0.7180 (0.0022) | 0.1716 (0.0010) | -0.6240 (-0.0590) | 0.6386 (-0.0342) | 1.0000 | 1.0000 | 256–256 |
+
+### 3) 降 center × 大邻域（random5000；Δ 相对 KNN-8-cover w32）
+
+| 配置 | 物理R²_cb（Δ） | 归一化R²_cb（Δ） | 病例均值R²（Δ） | 负例 | MAE（Δ） | Spearman（Δ） | top10 IoU（Δ） | high-WSS R²（Δ） | p99比（Δ） | 覆盖率 min | 最大重叠 | 组大小 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Q1V KNN-8-cover w32（复用） | 0.2589 (0.0000) | 0.6042 (0.0000) | 0.1917 (0.0000) | 1 | 2.9443 (0.0000) | 0.7232 (0.0000) | 0.1717 (0.0000) | -0.5181 (0.0000) | 0.7302 (0.0000) | 1.0000 | 0.8750 | 8–84 |
+| bridge random5000 + 500c + k64 | 0.2439 (-0.0150) | 0.6139 (0.0097) | 0.1910 (-0.0007) | 2 | 2.9345 (-0.0098) | 0.7351 (0.0118) | 0.1694 (-0.0023) | -0.5651 (-0.0470) | 0.6688 (-0.0614) | 1.0000 | 1.0000 | 64–82 |
+| D2 c250 × k64 | 0.2474 (-0.0116) | 0.6099 (0.0057) | 0.1983 (0.0066) | 1 | 2.9169 (-0.0275) | 0.7310 (0.0078) | 0.1722 (0.0004) | -0.5675 (-0.0494) | 0.6834 (-0.0467) | 1.0000 | 0.9688 | 64–136 |
+| D2 c125 × k64 | 0.2628 (0.0039) | 0.6114 (0.0073) | 0.1907 (-0.0010) | 1 | 2.9260 (-0.0183) | 0.7287 (0.0055) | 0.1634 (-0.0083) | -0.5266 (-0.0085) | 0.6900 (-0.0401) | 1.0000 | 0.7969 | 64–251 |
+| D2 c250 × k128 | 0.2599 (0.0010) | 0.5991 (-0.0051) | 0.1904 (-0.0013) | 1 | 2.9304 (-0.0139) | 0.7199 (-0.0033) | 0.1749 (0.0032) | -0.5290 (-0.0109) | 0.7101 (-0.0201) | 1.0000 | 1.0000 | 128–138 |
+| D2 c125 × k128 | 0.2765 (0.0176) | 0.6042 (0.0001) | 0.2145 (0.0228) | 2 | 2.8961 (-0.0482) | 0.7339 (0.0107) | 0.1756 (0.0039) | -0.5040 (0.0141) | 0.7088 (-0.0213) | 1.0000 | 0.9922 | 128–251 |
+
+### 4) width=64 与 Stem 变种（Δ 相对各自父配置）
+
+| 配置 | 物理R²_cb（Δ） | 归一化R²_cb（Δ） | 病例均值R²（Δ） | 负例 | MAE（Δ） | Spearman（Δ） | top10 IoU（Δ） | high-WSS R²（Δ） | p99比（Δ） |
+|---|---|---|---|---|---|---|---|---|---|
+| Q1V ball16 w64（复用） | 0.2600 (0.0000) | 0.5932 (0.0000) | 0.1891 (0.0000) | 3 | 2.9517 (0.0000) | 0.7258 (0.0000) | 0.1812 (0.0000) | -0.5276 (0.0000) | 0.6939 (0.0000) |
+| Q1V KNN-8-cover w32（复用） | 0.2589 (0.0000) | 0.6042 (0.0000) | 0.1917 (0.0000) | 1 | 2.9443 (0.0000) | 0.7232 (0.0000) | 0.1717 (0.0000) | -0.5181 (0.0000) | 0.7302 (0.0000) |
+| Q1V KNN-10-cover w32（复用） | 0.2425 (0.0000) | 0.5952 (0.0000) | 0.1739 (0.0000) | 1 | 2.9511 (0.0000) | 0.7276 (0.0000) | 0.1903 (0.0000) | -0.5438 (0.0000) | 0.6911 (0.0000) |
+| D4 KNN-8-cover w64 | 0.2183 (-0.0406) | 0.5760 (-0.0281) | 0.1646 (-0.0271) | 3 | 2.9998 (0.0555) | 0.7070 (-0.0162) | 0.1709 (-0.0008) | -0.6143 (-0.0963) | 0.6500 (-0.0801) |
+| D4 KNN-10-cover w64 | 0.2172 (-0.0253) | 0.5791 (-0.0161) | 0.1567 (-0.0172) | 4 | 3.0033 (0.0521) | 0.7085 (-0.0192) | 0.1744 (-0.0159) | -0.5919 (-0.0482) | 0.6814 (-0.0097) |
+| D5-A stem 6→32→64（w64 KNN-8-cover） | 0.2316 (0.0133) | 0.5941 (0.0181) | 0.1739 (0.0093) | 3 | 2.9704 (-0.0294) | 0.7167 (0.0096) | 0.1791 (0.0082) | -0.5622 (0.0521) | 0.6586 (0.0086) |
+
+**D5-B 触发判定**：D5-A 物理 R²_cb=0.2316 vs 父 d4_knn8_cover_w64 0.2183（Δ=+0.0133）；final train_loss 0.1605 vs 0.1613。满足主指标不劣条件，若判读认为仍有欠拟合余量，可用 prepare/submit --variant-b 提交 D5-B（stem 6→256→512→64）。
+
+**判读与下一步**：①点数标度全线未超锚点——全点/10k + 大 k 的 8 个臂全部低于 random5000+ball16（0.2763），bridge 表明 5000 点下 k64 本身就 -0.0324，点数放大到 10k/全点没有补回该损失；"用全部原始 CFD 点"在当前 500/125/32 center 协议下不成立。家族内 k256 一致优于 k64/k128（D3、D1-fixed 同趋势），但都不及小邻域基线。②比例 center 全败：三个 k 全部低于同 k 的固定 center（k64/k128/k256 分别 -0.0328/-0.0173/-0.0448），负例也更多（含 batch2 混杂），不支持"跨队列 center 密度一致"假设，方向关闭。③**降 center × 大邻域是本轮唯一正向家族**：c125×k128=0.2765（+0.0176 vs KNN-8-cover），与 Q1V 锚点打平（+0.0002），high-WSS R²=-0.504 为全轮最好，且趋势单调——同 k 下 center 500→250→125 递增、同 center 下 k64→k128 递增；等预算对角（250×64 vs 125×128）由"更少 center + 更大邻域"一侧胜出。建议下一轮沿此方向延伸（c125×k256、c64×k128/k256）并将 c125×k128 列为 3-seed/独立确认候选。④w64 在 cover 分组下显著回退（KNN-8/10-cover 从 0.2589/0.2425 掉到 0.2183/0.2172），比 ball16 的 w64 效应（-0.016）严重得多；D5-A 瓶颈 Stem 相对标准 w64 Stem +0.0133、high-WSS +0.052，但绝对值仍低于一切 w32 基线，且两者 final train_loss 几乎相同——"容量不足"证据弱，**建议不自动提交 D5-B**，与导师确认后再定。另注意 bridge 的归一化 R²_cb=0.6139 为本轮最高，物理/归一化排名分裂的既有模式延续，主指标仍按预注册的物理 R²_cb。
+
+真源：`training_wss_min/preflight/pointnetpp_sa1_scale_results_analysis.json`、`pointnetpp_sa1_scale_results_summary.csv`、`pointnetpp_sa1_scale_per_case_deltas.csv`。
