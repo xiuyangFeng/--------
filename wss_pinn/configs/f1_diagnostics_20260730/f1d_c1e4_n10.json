@@ -1,0 +1,54 @@
+{
+  "experiment": {
+    "id": "PINN-F1D-C1e4-N10-overfit3-s1234-20260730",
+    "stage": "f1",
+    "diagnostic_only": true,
+    "control_run_dir": "outputs/wss_pinn/runs/PINN-F0UP-overfit3-v2ext-s1234-20260730",
+    "scientific_gate": "F0-UP v2 extended completed; joint low-continuity/high-noslip arm"
+  },
+  "data": {
+    "split_path": "wss_pinn/configs/pilot_cases.json",
+    "split_label": "reused_development_screen",
+    "cohorts": ["AG", "AAA", "ILO"],
+    "timesteps": ["peak"]
+  },
+  "sampling": {
+    "wall_points": 5000,
+    "near_wall_points": 8000,
+    "core_points": 8000,
+    "seed": 1234,
+    "manifest_path": "data_wss_pinn/pilot_v1/sampling_manifest.json"
+  },
+  "model": {
+    "predict_direct_wss": true,
+    "predict_velocity": true,
+    "predict_pressure": true,
+    "geometry_hidden": 128,
+    "geometry_latent": 64,
+    "field_hidden": 256,
+    "field_layers": 5,
+    "fourier_frequencies": 8,
+    "architecture_version": "split_v2"
+  },
+  "loss": {
+    "direct_wss_weight": 1.0,
+    "velocity_data_weight": 10.0,
+    "pressure_data_weight": 1.0,
+    "continuity_weight": 0.0001,
+    "no_slip_weight": 10.0,
+    "wss_physics_weight": 0.0,
+    "momentum_weight": 0.0
+  },
+  "train": {
+    "seed": 1234,
+    "epochs": 20000,
+    "learning_rate": 0.001,
+    "device": "cuda",
+    "batch_wall": 2048,
+    "batch_near_wall": 2048,
+    "batch_core": 2048,
+    "checkpoint_every": 100,
+    "log_every": 20,
+    "run_dir": "outputs/wss_pinn/runs/PINN-F1D-C1e4-N10-overfit3-s1234-20260730"
+  }
+}

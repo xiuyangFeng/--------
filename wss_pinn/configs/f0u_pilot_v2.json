@@ -1,0 +1,66 @@
+{
+  "experiment": {
+    "id": "PINN-F0U-overfit3-v2-s1234-20260730",
+    "stage": "f0u",
+    "control_run_dir": null,
+    "scientific_gate": "P0-A/P0-C/P1 pass; v1 velocity overfit No-Go"
+  },
+  "data": {
+    "split_path": "wss_pinn/configs/pilot_cases.json",
+    "split_label": "reused_development_screen",
+    "cohorts": ["AG", "AAA", "ILO"],
+    "timesteps": ["peak"]
+  },
+  "sampling": {
+    "wall_points": 5000,
+    "near_wall_points": 8000,
+    "core_points": 8000,
+    "seed": 1234,
+    "manifest_path": "data_wss_pinn/pilot_v1/sampling_manifest.json"
+  },
+  "model": {
+    "predict_direct_wss": true,
+    "predict_velocity": true,
+    "predict_pressure": false,
+    "geometry_hidden": 128,
+    "geometry_latent": 64,
+    "field_hidden": 256,
+    "field_layers": 5,
+    "fourier_frequencies": 8,
+    "architecture_version": "split_v2"
+  },
+  "loss": {
+    "direct_wss_weight": 1.0,
+    "velocity_data_weight": 10.0,
+    "pressure_data_weight": 0.0,
+    "continuity_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "wss_physics_weight": 0.0,
+    "momentum_weight": 0.0
+  },
+  "train": {
+    "seed": 1234,
+    "epochs": 8000,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0,
+    "precision": "float32",
+    "device": "cuda",
+    "batch_wall": 2048,
+    "batch_near_wall": 2048,
+    "batch_core": 2048,
+    "checkpoint_every": 100,
+    "log_every": 20,
+    "resume": null,
+    "run_dir": "outputs/wss_pinn/runs/PINN-F0U-overfit3-v2-s1234-20260730"
+  },
+  "cluster": {
+    "partition": "GPU",
+    "qos": "",
+    "time": "24:00:00",
+    "memory": "32G",
+    "cpus": 8,
+    "gpus": 1,
+    "python": "/public/newhome/cy/.conda/envs/GNN/bin/python"
+  }
+}
+

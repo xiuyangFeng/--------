@@ -27,10 +27,19 @@ RUNS_ROOT = Path(__file__).resolve().parent / "runs"
 # cohort_ag/cohort_aaa/cohort_ilo 为逐病例 cohort one-hot（同一病例内恒定），
 # 供通用模型按疾病域条件化；不参与几何 z-score 统计，直接以 0/1 入网络。
 COHORT_FEATURE_KEYS = ("cohort_ag", "cohort_aaa", "cohort_ilo")
+RCR_OUTLETS = ("outle", "outli", "outri", "outre")
+RCR_PARAMETERS = ("r1", "r2", "c")
+CASE_FEATURE_KEYS = tuple(
+    f"log_rcr_{outlet}_{parameter}"
+    for outlet in RCR_OUTLETS
+    for parameter in RCR_PARAMETERS
+)
 FEATURE_KEYS = (
     "x", "y", "z", "abscissa_norm",
-    "local_radius", "curvature", "coord_scale", "radius_gradient",
+    "local_radius", "log_local_radius", "curvature", "coord_scale",
+    "radius_gradient",
     *COHORT_FEATURE_KEYS,
+    *CASE_FEATURE_KEYS,
 )
 
 # 禁止作为输入的常量/废弃列
@@ -48,6 +57,9 @@ class DataConfig:
     # 可选冻结几何特征统计。None 表示严格从当前 train partition 重算；
     # 数据扩容归因实验可显式引用控制组的 feature_stats.json。
     feature_stats_path: Optional[str] = None
+    # 可选逐病例常量特征表。当前用于 RCR oracle；只有 input_features 中
+    # 显式列出的 CASE_FEATURE_KEYS 会从该表读取并广播到病例内所有壁面点。
+    case_features_path: Optional[str] = None
     # 训练稀疏化：每例采样多少壁面点；<=0 或 >=全量 表示用全部点
     wall_n_points: int = 2000
     sampling: str = "fps"                 # 'fps' | 'fps_multistart' | 'random' | 'geom_weighted'
@@ -139,6 +151,10 @@ class ModelConfig:
     local_transformer_heads: int = 4
     local_transformer_ffn_ratio: int = 2
     local_transformer_dropout: float = 0.0
+    # 几何分组内的静态 EdgeConv 残差消息：1-based stage 编号；空 tuple
+    # 完全关闭且不增加 state_dict key。邻域仍由既有 SA grouping 决定，
+    # 只检验 [x_i, x_j-x_i, Δp_ij] 消息是否补充局部关系建模。
+    edgeconv_stages: Tuple[int, ...] = ()
     # 只在最后一级 SA（D2 为 32 centers）使用一个相对几何 bias 全局块。
     # 该模块已经等价承担“SA3 全局 Transformer”，不要再叠加同义开关。
     coarse_attention: bool = False
@@ -187,6 +203,12 @@ class TrainConfig:
     nll_logvar_min: float = -6.0
     nll_logvar_max: float = 2.0
     nll_logvar_reg: float = 1e-4
+    # O0 高值优化：保持标准化空间 MSE 为主损失，只增加一个可归因的辅助项。
+    # hotspot BCE 使用第二输出通道作为逐点 logit；pinball 仍使用第一回归通道。
+    loss_hotspot_bce_lambda: float = 0.0
+    hotspot_quantile: float = 0.90
+    loss_pinball_lambda: float = 0.0
+    pinball_quantile: float = 0.90
     amp: bool = True
     eval_every: int = 10                  # 每多少 epoch 在 val 完整点云上评估一次
     ckpt_metric: str = "val_selection_score"  # 兼容旧名；实际用 selection_rule
@@ -275,6 +297,12 @@ def validate_features(cfg: ExpConfig) -> None:
             )
         if f not in FEATURE_KEYS:
             raise ValueError(f"unknown feature {f!r}; allowed={FEATURE_KEYS}")
+    requested_case_features = set(cfg.data.input_features) & set(CASE_FEATURE_KEYS)
+    if requested_case_features and not cfg.data.case_features_path:
+        raise ValueError(
+            "case-level input features require data.case_features_path; "
+            f"requested={sorted(requested_case_features)}"
+        )
     if cfg.data.target_normalization not in {"global_stats", "case_max"}:
         raise ValueError(
             "target_normalization must be 'global_stats' or 'case_max', got "
@@ -385,6 +413,16 @@ def validate_features(cfg: ExpConfig) -> None:
                 raise ValueError(
                     f"SA{stage} channels must be divisible by local_transformer_heads"
                 )
+        edgeconv_stages = tuple(int(stage) for stage in cfg.model.edgeconv_stages)
+        if len(set(edgeconv_stages)) != len(edgeconv_stages):
+            raise ValueError("edgeconv_stages must not contain duplicates")
+        if any(
+            stage < 1 or stage > len(cfg.model.sa_radius)
+            for stage in edgeconv_stages
+        ):
+            raise ValueError(
+                "edgeconv_stages must use 1-based SA stage numbers"
+            )
         if int(cfg.model.coarse_attention_heads) <= 0:
             raise ValueError("coarse_attention_heads must be positive")
         coarse_channels = int(cfg.model.width) * (2 ** len(cfg.model.sa_radius))
@@ -398,9 +436,11 @@ def validate_features(cfg: ExpConfig) -> None:
         cfg.model.local_geope
         or cfg.model.coarse_attention
         or cfg.model.local_transformer_stages
+        or cfg.model.edgeconv_stages
     ):
         raise ValueError(
-            "LocalGeoPE and local/global attention require model.name='pointnetpp'"
+            "LocalGeoPE, EdgeConv, and local/global attention require "
+            "model.name='pointnetpp'"
         )
     grouping = tuple(cfg.model.sa_grouping)
     if grouping:
@@ -428,6 +468,31 @@ def validate_features(cfg: ExpConfig) -> None:
     if cfg.eval.surface_metric_mode not in {"legacy_vertex", "both_strict"}:
         raise ValueError(
             "surface_metric_mode must be 'legacy_vertex' or 'both_strict'"
+        )
+    if float(cfg.train.loss_hotspot_bce_lambda) < 0:
+        raise ValueError("loss_hotspot_bce_lambda must be non-negative")
+    if float(cfg.train.loss_pinball_lambda) < 0:
+        raise ValueError("loss_pinball_lambda must be non-negative")
+    if not (0.0 < float(cfg.train.hotspot_quantile) < 1.0):
+        raise ValueError("hotspot_quantile must be in (0, 1)")
+    if not (0.0 < float(cfg.train.pinball_quantile) < 1.0):
+        raise ValueError("pinball_quantile must be in (0, 1)")
+    if cfg.train.loss == "gaussian_nll" and (
+        float(cfg.train.loss_hotspot_bce_lambda) > 0
+        or float(cfg.train.loss_pinball_lambda) > 0
+    ):
+        raise ValueError(
+            "hotspot/pinball auxiliaries are not supported with gaussian_nll"
+        )
+    if float(cfg.train.loss_hotspot_bce_lambda) > 0 and int(cfg.model.out_dim) != 2:
+        raise ValueError("hotspot BCE requires model.out_dim=2")
+    if (
+        float(cfg.train.loss_hotspot_bce_lambda) == 0
+        and cfg.train.loss != "gaussian_nll"
+        and int(cfg.model.out_dim) != 1
+    ):
+        raise ValueError(
+            "non-NLL scalar regression without hotspot BCE requires model.out_dim=1"
         )
 
 

@@ -1,0 +1,24 @@
+{
+  "experiment": {
+    "id": "PINN-P1-full-train138-test36-v1",
+    "stage": "p1"
+  },
+  "paths": {
+    "sidecar_root": "data_wss_pinn/full_train138_test36_v1"
+  },
+  "data": {
+    "split_path": "training/splits/split_AG_AAA_ILO_q2v_pool2025_train138_test36.json",
+    "split_label": "reused_development_screen",
+    "cohorts": ["AG", "AAA", "ILO"],
+    "timesteps": ["peak"],
+    "train_roles": ["train"],
+    "eval_roles": ["train", "test"]
+  },
+  "sampling": {
+    "wall_points": 5000,
+    "near_wall_points": 8000,
+    "core_points": 8000,
+    "seed": 1234,
+    "manifest_path": "data_wss_pinn/full_train138_test36_v1/sampling_manifest.json"
+  }
+}

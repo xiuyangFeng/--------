@@ -484,8 +484,35 @@ class LocalNeighborhoodTransformer(nn.Module):
         return h.max(dim=1).values
 
 
+class StaticEdgeConvCorrection(nn.Module):
+    """Residual EdgeConv message on an existing geometry-constrained SA graph."""
+
+    def __init__(self, in_ch: int, out_ch: int, radius_value: float,
+                 residual_scale_init: float = 1e-3):
+        super().__init__()
+        self.radius_value = float(radius_value)
+        self.message = _mlp(
+            [2 * int(in_ch) + 3, out_ch, out_ch],
+            last_act=False,
+        )
+        self.gamma = nn.Parameter(
+            torch.tensor(float(residual_scale_init), dtype=torch.float32)
+        )
+        self.last_edges = 0
+
+    def forward(self, x, center_idx, row, col, relative_pos):
+        center_x = x[center_idx][row]
+        scale = max(abs(self.radius_value), 1e-6)
+        edge_input = torch.cat(
+            [center_x, x[col] - center_x, relative_pos / scale],
+            dim=-1,
+        )
+        self.last_edges = int(row.numel())
+        return self.gamma * self.message(edge_input)
+
+
 class PointNetSetAbstraction(nn.Module):
-    """PointNet++ 单尺度 SA，可选 LocalGeoPE、局部 Transformer 与残差块。"""
+    """PointNet++ 单尺度 SA，可选 LocalGeoPE、EdgeConv、Transformer 与残差块。"""
 
     def __init__(self, in_ch: int, out_ch: int, ratio: float, radius_value: float,
                  nsample: int, center_count: int | None = None,
@@ -500,7 +527,8 @@ class PointNetSetAbstraction(nn.Module):
                  local_transformer: bool = False,
                  local_transformer_heads: int = 4,
                  local_transformer_ffn_ratio: int = 2,
-                 local_transformer_dropout: float = 0.0):
+                 local_transformer_dropout: float = 0.0,
+                 edgeconv: bool = False):
         super().__init__()
         self.ratio = ratio
         self.radius_value = radius_value
@@ -534,6 +562,13 @@ class PointNetSetAbstraction(nn.Module):
                 residual_scale_init=residual_scale_init,
             )
             if local_transformer else None
+        )
+        self.edgeconv = (
+            StaticEdgeConvCorrection(
+                in_ch, out_ch, radius_value,
+                residual_scale_init=residual_scale_init,
+            )
+            if edgeconv else None
         )
         block_drop_rates = tuple(drop_path_rates) or (0.0,) * int(n_blocks)
         if len(block_drop_rates) != int(n_blocks):
@@ -602,6 +637,8 @@ class PointNetSetAbstraction(nn.Module):
         relative_pos = pos[col] - pos_q[row]
         grouped = torch.cat([relative_pos, x[col]], dim=-1)
         h = self.local(grouped)
+        if self.edgeconv is not None:
+            h = h + self.edgeconv(x, idx, row, col, relative_pos)
         if self.geo_pe is not None:
             if self.local_geope_attr_dim == 0:
                 if geo_attr is not None:
@@ -796,6 +833,7 @@ class PointNetPlusPlusRegressor(nn.Module):
                  local_transformer_heads: int = 4,
                  local_transformer_ffn_ratio: int = 2,
                  local_transformer_dropout: float = 0.0,
+                 edgeconv_stages=(),
                  coarse_attention: bool = False,
                  coarse_attention_heads: int = 4,
                  sep_hidden: int = 32, sep_beta_init: float = 2.0):
@@ -817,6 +855,9 @@ class PointNetPlusPlusRegressor(nn.Module):
         )
         self.local_transformer_stages = tuple(
             int(stage) for stage in local_transformer_stages
+        )
+        self.edgeconv_stages = tuple(
+            int(stage) for stage in edgeconv_stages
         )
         if self.local_geope and len(self.local_geope_feature_indices) not in {0, 3}:
             raise ValueError("LocalGeoPE requires zero (xyz-only) or three semantic feature indices")
@@ -853,7 +894,8 @@ class PointNetPlusPlusRegressor(nn.Module):
                                    i + 1 in self.local_transformer_stages,
                                    local_transformer_heads,
                                    local_transformer_ffn_ratio,
-                                   local_transformer_dropout)
+                                   local_transformer_dropout,
+                                   i + 1 in self.edgeconv_stages)
             for i in range(self.n_stages)
         )
         self.coarse_global = (
@@ -1010,6 +1052,7 @@ def build_baseline_model(model_cfg, in_dim: int) -> nn.Module:
             local_transformer_heads=model_cfg.local_transformer_heads,
             local_transformer_ffn_ratio=model_cfg.local_transformer_ffn_ratio,
             local_transformer_dropout=model_cfg.local_transformer_dropout,
+            edgeconv_stages=tuple(model_cfg.edgeconv_stages),
             coarse_attention=model_cfg.coarse_attention,
             coarse_attention_heads=model_cfg.coarse_attention_heads,
             sep_hidden=model_cfg.sep_hidden,

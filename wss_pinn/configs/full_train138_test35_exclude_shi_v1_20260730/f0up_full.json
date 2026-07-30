@@ -1,0 +1,88 @@
+{
+  "cluster": {
+    "cpus": 8,
+    "gpus": 1,
+    "memory": "32G",
+    "partition": "GPU",
+    "python": "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "qos": "",
+    "time": "24:00:00"
+  },
+  "data": {
+    "cohorts": [
+      "AG",
+      "AAA",
+      "ILO"
+    ],
+    "eval_roles": [
+      "train",
+      "test"
+    ],
+    "split_label": "reused_development_screen",
+    "split_path": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_q2v_pool2025_train138_test35_exclude_SHI_YUN_XI_v1.json",
+    "timesteps": [
+      "peak"
+    ],
+    "train_roles": [
+      "train"
+    ]
+  },
+  "experiment": {
+    "id": "PINN-F0UP-full-train138-test35-exclude-shi-v1-s1234-20260730",
+    "scientific_gate": "pilot F0-U velocity capability plus split-bound source and sidecar audits; full-data paired data-only control",
+    "scientific_gate_control_run_dir": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/runs/PINN-F0U-overfit3-v2ext-s1234-20260730",
+    "sidecar_audit_report": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/full_sidecars_train138_test35_exclude_shi_v1_20260730/report.json",
+    "source_data_audit_report": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/full_data_train138_test35_exclude_shi_v1_20260730/report.json",
+    "stage": "f0up"
+  },
+  "loss": {
+    "continuity_weight": 0.0,
+    "direct_wss_weight": 1.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0,
+    "pressure_data_weight": 1.0,
+    "velocity_data_weight": 10.0,
+    "wss_physics_weight": 0.0
+  },
+  "model": {
+    "architecture_version": "split_v2",
+    "field_hidden": 256,
+    "field_layers": 5,
+    "fourier_frequencies": 8,
+    "geometry_hidden": 128,
+    "geometry_latent": 64,
+    "predict_direct_wss": true,
+    "predict_pressure": true,
+    "predict_velocity": true
+  },
+  "paths": {
+    "output_root": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn",
+    "raw_root": "/public/newhome/cy/Digital_twin/GNN/data_new",
+    "sidecar_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_pinn/full_train138_test35_exclude_shi_v1",
+    "wss_bundle_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_min"
+  },
+  "sampling": {
+    "core_points": 8000,
+    "manifest_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_pinn/full_train138_test35_exclude_shi_v1/sampling_manifest.json",
+    "near_wall_points": 8000,
+    "seed": 1234,
+    "wall_points": 5000
+  },
+  "train": {
+    "batch_cases": 3,
+    "batch_core": 2048,
+    "batch_near_wall": 2048,
+    "batch_wall": 2048,
+    "checkpoint_every": 100,
+    "device": "cuda",
+    "epochs": 20000,
+    "init_checkpoint": null,
+    "learning_rate": 0.001,
+    "log_every": 20,
+    "precision": "float32",
+    "resume": null,
+    "run_dir": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/runs/PINN-F0UP-full-train138-test35-exclude-shi-v1-s1234-20260730",
+    "seed": 1234,
+    "weight_decay": 0.0
+  }
+}

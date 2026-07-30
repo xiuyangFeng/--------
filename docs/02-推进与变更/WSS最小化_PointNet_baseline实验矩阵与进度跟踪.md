@@ -2,7 +2,7 @@
 
 > 建立日期：2026-07-14
 >
-> 更新日期：2026-07-26（REG-P10 Transformer 完整 8 臂矩阵已提交：`10967→10968_[0-7]%4`）
+> 更新日期：2026-07-29（同 seed H2 control / +log(local_radius) 已完成；处理臂晋级新开发锚点）
 
 > 三种子：S2−M1 ΔR²_cb=`-0.0086/+0.0007/+0.0335`，均值`+0.0086`但不稳定；S3−S2=`+0.0396/+0.0052/-0.0033`，均值`+0.0138`、2/3正；S3−M1=`+0.0310/+0.0059/+0.0303`，均值`+0.0224`、3/3正。S3 MAE 3/3下降、ILO平均R²提升；AAA unrupture 与少数 high-WSS seed 仍是护栏。test36 仍为历史工程筛选集。
 >
@@ -12,7 +12,140 @@
 
 > **v4 当前状态（2026-07-18 回填）**：`10473–10478` 均已完成400 epoch和 `ckpt_best/last` 的 test27 legacy-vertex 评估；预注册主结果一律仍取 `ckpt_best(train_loss)`。PointNet 分支以 **P2V** 为本次单 seed 优先候选，PointNet++ 分支以 **Q1V** 为优先候选；Q2V 的 SEP 结果混合、Q3V 的随机 SA center 整体回退，均不进入下一步优先确认。`10475/Q0` 已通过 PostView 验证 `27/27`；另五组均在旧 exporter 的严格面积调用处止于 `AAA/ruputer/SHI_YUN_XI`，已有20个病例目录但未形成批次验证，故只需修复后 export-only 补齐，不得重训或误写成面积结果。面积六组 `P1/P2/Q1/Q2/Q3/Q4` 仍因严格映射仅127/133通过而冻结。没有重复提交 `9169/9170`；ILO-before41 未进入本段 Phase-V 原106 split，但已按下方 §0D 的独立 Q2V/ILO 数据矩阵协议完成扩容实验。
 
-## 0K. REG-P10 局部/全局 Transformer 完整矩阵（2026-07-26｜Jobs `10967→10968_[0-7]%4`｜已提交）
+## 0Q. SAME-H2 锚定后的 `log(local_radius)` 输入臂（2026-07-29｜Jobs `11032→11033_[0-1]`｜✅2/2 完成，处理臂 Go）
+
+用户明确暂不做多 seed，并以 §0P 的 `★ LSA2 SAME H2 q90 λ0.20 s1234` 为后续锚点。为避免把已观察到的 CUDA 轨迹漂移误判为特征收益，本轮保留精确同-seed并发 control：
+
+| Array | ID | 输入 | 其他协议 |
+|---:|---|---|---|
+| 0 | `lsa2_h2_same_repro_s1234` | 原6D `xyz + abscissa + radius + curvature` | 冻结 SAME-H2 全部设置 |
+| 1 | `lsa2_h2_logradius_s1234` | 原6D末尾新增 natural-log `log_local_radius` | 与 control 完全相同 |
+
+处理臂不替换原始 `local_radius`，LocalGeoPE 仍读取索引 `[3,4,5]`，因此唯一有效变量是输入维度 `6→7` 与对应冻结统计路径。新列按 control106 train-only 的3,208,800点计算，均值/标准差为 `2.116623/0.611423`；无 RCR、面积、H1 组合或新 seed。
+
+正式 Gate 只用 treatment − concurrent control：`Δphysical R²_cb≥+0.012` 或 `Δhigh-WSS nRMSE≤-0.002`，并要求 `Δnormalized R²_cb≥-0.01`、`ΔMAE_cb≤+0.05 Pa`、`ΔIoU≥-0.005`。Job `11032` 的 CUDA 前后向、严格 checkpoint 重载和 full/chunk 一致性门禁通过；`11033_0/1` 均完成400 epoch、best/last checkpoint、best/last test36 和 36 例逐病例导出。
+
+| 臂 | best epoch | R²_cb | ΔR² | normalized R²_cb | Δnormalized | MAE (Pa) | ΔMAE | high-WSS nRMSE | ΔnRMSE | top10 IoU | ΔIoU | AG / AAA / ILO R² | 判定 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|
+| H2 concurrent control | 378 | 0.3070 | — | 0.6397 | — | 2.5580 | — | 0.06906 | — | **0.1916** | — | 0.325 / 0.248 / 0.313 | 并发基准 |
+| **H2 + log(radius)** | 378 | **0.3506** | **+0.0436** | **0.6440** | **+0.0042** | **2.5238** | **-0.0342** | **0.06611** | **-0.00295** | 0.1887 | -0.0029 | **0.363 / 0.271 / 0.377** | **Go** |
+
+处理臂同时满足两条主门，normalized R²、MAE、top10 IoU 保护线全部通过，AG/AAA/ILO 均正向。相对历史 ★ H2 的 \(R^2_{cb}\) 仍高 `+0.0267`，但历史结果只作参考；正式判断以并发 control 为准。
+
+逐病例 R² 均值差为 `-0.0020`，95%CI `[-0.0326,+0.0281]`，16/20 改善/退化；病例 high-WSS R² 为23/13，95%CI仍跨零。因此结果足以按预注册规则晋级工程主线，但仍是单 seed、复用 test36、train-loss 选模的开发结论。
+
+**终裁**：`lsa2_h2_logradius_s1234` 晋级为新的正式开发锚点；下一轮保留 SAME-H2、L-SA2、原始半径和 LocalGeoPE，并默认加入 train-only 标准化 `log(local_radius)`。暂不补多 seed，不回到 RCR、面积、IND 或 H1+H2。结构化真源为 `training_wss_min/preflight/lsa2_h2_logradius_matrix_20260729_results_{analysis.json,summary.csv}` 与同前缀 `paired_case_stats.csv`。
+
+## 0P. REG-P10-LSA2 历史正式锚点：SAME/IND × MSE/H1/H2（2026-07-29｜Jobs `11019→11020_[0-5]%3`｜✅6/6 完成）
+
+O0 只是 RCR Oracle 的 geometry-only 配对基准，并非当前最优的非 RCR 模型。正式开发锚点改为 `REG-P10 + L-SA2 s1234`：S3 `PointNeXt-R + LocalGeoPE`、DropPath0.10，且只在 SA2 启用 4-head Local Transformer。历史 best epoch 378 的 test36 指标为 physical `R²_cb=0.3171`、normalized `R²_cb=0.6425`、MAE `2.5527 Pa`、high-WSS nRMSE `0.06808`、top10 IoU `0.1940`，是当前不含 RCR 的最高精度配置；其单 seed 和复用 test36 边界继续保留。
+
+本轮用并发 SAME MSE 重训消除历史运行时差异，并形成完整 2×3：
+
+| Array | ID | Query | 目标 | 主要比较 |
+|---:|---|---|---|---|
+| 0 | `lsa2_same_mse_s1234` | SAME | MSE | 并发锚点 |
+| 1 | `lsa2_same_h1_bce_q90_lam020_s1234` | SAME | H1 | − SAME MSE |
+| 2 | `lsa2_same_h2_pinball_q90_lam020_s1234` | SAME | H2 | − SAME MSE |
+| 3 | `lsa2_ind_mse_s1234` | IND | MSE | − SAME MSE |
+| 4 | `lsa2_ind_h1_bce_q90_lam020_s1234` | IND | H1 | − IND MSE；并补 IND−SAME H1 |
+| 5 | `lsa2_ind_h2_pinball_q90_lam020_s1234` | IND | H2 | − IND MSE；并补 IND−SAME H2 |
+
+除 `query_mode` 和目标相关字段外，六臂均冻结 mixed `138/0/36`、random5000、seed1234、400 epoch、train-loss 选模、`legacy_vertex` 及 REG-P10-LSA2 结构；`case_features_path=null`，不含 RCR、面积指标或多 seed。SAME 与 IND 都走常规 support→query 插值；二者差异是 SAME 重用 support 坐标/索引，IND 独立抽取 off-support query。
+
+Gate：H1 `Δtop10 IoU≥+0.020`；H2 `Δhigh-WSS nRMSE≤-0.002`；共同保护线 `Δnormalized R²_cb≥-0.01`、`ΔMAE_cb≤+0.05 Pa`。IND 主门 `Δphysical R²_cb≥+0.012`，并要求 normalized R²、MAE、high-WSS nRMSE 和 IoU 不越过预注册保护线。H1/H2 不组合。
+
+配置生成、静态/CUDA 审计和提交合同通过。Job `11019` 与数组 `11020_0–5` 均 `COMPLETED (0:0)`；六臂全部完成 400 epoch、best/last checkpoint、best/last test36 全云评估和 36 例 CSV。
+
+| 臂 | 对照 | R²_cb | ΔR² | normalized R²_cb | Δnormalized | MAE (Pa) | ΔMAE | high-WSS nRMSE | ΔnRMSE | top10 IoU | ΔIoU | 判定 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| SAME MSE | — | 0.2862 | — | 0.6390 | — | 2.5892 | — | 0.07040 | — | 0.1786 | — | 并发基准 |
+| SAME H1 | SAME MSE | 0.3050 | +0.0188 | 0.6401 | +0.0011 | 2.5589 | -0.0303 | 0.06866 | -0.00174 | 0.1962 | +0.0175 | H1 No-Go |
+| SAME H2 | SAME MSE | **0.3239** | **+0.0376** | **0.6453** | **+0.0063** | **2.5371** | **-0.0521** | 0.06835 | **-0.00205** | 0.1800 | +0.0014 | **H2 Go；候选锚点待复跑** |
+| IND MSE | SAME MSE | 0.2876 | +0.0014 | 0.6367 | -0.0024 | 2.5825 | -0.0067 | 0.06991 | -0.00049 | 0.1921 | +0.0135 | IND No-Go |
+| IND H1 | IND MSE | 0.3021 | +0.0145 | 0.6373 | +0.0007 | 2.5687 | -0.0138 | 0.06932 | -0.00059 | 0.1903 | -0.0018 | H1 No-Go |
+| IND H2 | IND MSE | 0.3198 | +0.0322 | 0.6390 | +0.0023 | 2.5709 | -0.0117 | **0.06784** | **-0.00207** | **0.2017** | +0.0096 | H2 Go；IND 不晋级 |
+
+SAME-H2 的 AG/AAA/ILO R² 分别比 SAME MSE 提高 `+0.0341/+0.0140/+0.0585`；病例 high-WSS R² 差的 95%CI 为 `[+0.0014,+0.5319]`，best/last 结论一致。IND-H2 相对 SAME-H2 虽提高 IoU `+0.0217`，但 R² `-0.0041`、normalized R² `-0.0063`、MAE `+0.0337 Pa`，不满足 IND 晋级条件。另有并发 SAME MSE 相对历史同配置 L-SA2 的 `ΔR²_cb=-0.0309`，因此不得跨运行拿历史锚点做 Gate。
+
+**终裁**：关闭 IND、H1 和 H1+H2 组合；SAME-H2 q90 pinball λ0.20 以“单 seed、复用 test36、主门仅多约 0.00005”的边界进入上方 §0Q 的同-seed H2 control / +`log(local_radius)` 单变量实验。该处理臂已过门并替代其成为新开发锚点。结构化真源为 `training_wss_min/preflight/regp10_lsa2_objective_ind_matrix_20260728_results_{analysis.json,summary.csv}` 与同前缀 `paired_case_stats.csv`；工作簿已回填并保持 5 张表、6 页。
+
+## 0O. O0 geometry-only 热点/高 WSS 单变量矩阵（2026-07-28 回填｜Jobs `11012→11013_[0-1]%2`｜✅2/2 完成）
+
+不继续 RCR 多种子或 RCR 架构；O0 geometry-only S3 `PointNeXt-R + LocalGeoPE` 重新成为执行父模型。为避免重复 target-weight/raw-Huber 历史路线，本轮只做两个新辅助目标：
+
+| ID | 相对 O0 的唯一变化 | 核心指标 | Gate |
+|---|---|---|---|
+| H1 | 第二输出通道 + 每病例 q90 top10 balanced BCE，λ=0.20 | top10 IoU | ΔIoU ≥ +0.02 |
+| H2 | MSE + q=0.90 pinball，λ=0.20 | high-WSS nRMSE | ΔnRMSE ≤ -0.002 |
+
+共同保护线为 `Δnormalized R²_cb ≥ -0.01`、`Δphysical MAE_cb ≤ +0.05 Pa`。mixed `138/0/36`、seed1234、random5000/SAME、400 epoch、train-loss 选模、骨干和 `legacy_vertex` 均冻结。H1 的辅助 logit 不替代 WSS 输出，所有正式指标仍读取第一回归通道。
+
+Jobs `11012`、`11013_0/1` 均 `COMPLETED (0:0)`；主结果固定取 `ckpt_best(train_loss)`，完整性审计 3/3 通过：
+
+| 臂 | best epoch | R²_cb | ΔR²_cb | normalized R²_cb | Δnormalized | MAE_cb (Pa) | ΔMAE | high-WSS nRMSE | ΔnRMSE | top10 IoU | ΔIoU | Gate |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| O0 | 350 | 0.2756 | — | 0.6300 | — | 2.5974 | — | 0.07068 | — | 0.1772 | — | 基准 |
+| H1 | 378 | **0.2990** | **+0.0234** | **0.6336** | +0.0035 | **2.5843** | -0.0131 | **0.06935** | -0.00133 | **0.1943** | **+0.0170** | **No-Go** |
+| H2 | 350 | 0.2947 | +0.0190 | 0.6274 | -0.0026 | 2.5917 | -0.0057 | 0.06996 | **-0.00072** | 0.1818 | +0.0046 | **No-Go** |
+
+H1/H2 的保护线和三域 R² 均未退化，但各自主终点没有达到预注册门槛；病例配对 ΔIoU 的 95%CI 均跨零，best/last 结论一致。**终裁：两臂不组合，H2 不补相邻 q/λ；O0 不再作为后续开发父模型，后续转入上方 §0P 的 REG-P10-LSA2 完整矩阵。**结构化真源：`training_wss_min/preflight/o0_hotspot_tail_matrix_20260728_results_{analysis.json,summary.csv}` 与同前缀 `paired_case_stats.csv`。
+
+## 0N. S3 RCR 边界条件信息上限 Oracle（2026-07-28 回填｜Jobs `11008→11009_[0-2]%3`｜✅3/3 完成）
+
+共同父模型为 S3 `D2-K64 + PointNeXt-R + LocalGeoPE`，协议冻结为 mixed `138/0/36`、seed1234、random5000/SAME、400 epoch、train-loss 选模和 `legacy_vertex`。唯一主变量是病例条件：O0 无额外条件，O1a 使用四出口真实 \(R_1/R_2/C\) 的 12 维 log 特征，O2 使用 train/test 内按分域分层打乱的同维 RCR。
+
+| 臂 | 输入 | R²_cb | ΔR²_cb | MAE (Pa) | high-WSS nRMSE | top10 IoU | p99 幅值比 | 判定 |
+|---|---|---:|---:|---:|---:|---:|---:|---|
+| O0 | geometry-only | 0.2756 | — | 2.5974 | 0.07068 | 0.1772 | 0.3429 | 配对基准 |
+| O1a | true RCR | **0.3561** | **+0.0805** | **2.4620** | **0.06728** | **0.2109** | **0.4356** | **Go-to-follow-up** |
+| O2 | shuffled RCR | 0.2723 | -0.0033 | 2.6053 | 0.07148 | 0.1840 | 0.3240 | 负对照≈O0 |
+
+O1a − O0 的病例均值 ΔR² 95%CI `[+0.0127,+0.1021]`，O2 − O0 为 `[-0.0622,+0.0356]`；O1a − O2 的 \(R^2_{cb}\) 差为 `+0.0838`。因此真实 RCR 的收益不是“多 12 个输入维度”或域标签伪增益。三域 R² 均改善（AG/AAA/ILO `+0.110/+0.028/+0.089`），但 high-WSS Spearman 不变，说明 RCR 主要补病例级幅值/条件信息，局部热点排序仍需另解。
+
+本组只授权条件信息方向进入多种子或新协议确认；单种子、复用 test36 和 train-loss 选模不支持最终泛化声称。详表与配置见 [训练实验跟踪](WSS最小化_训练实验跟踪.md) 和 [高值区域优化方案 §4.2](WSS高值区域预测优化方案.md)。
+
+## 0M. REG-P10 静态几何约束 EdgeConv 矩阵（2026-07-28 回填｜Jobs `10993→10994_[0-2]%3`｜✅3/3 完成）
+
+为检验 UDGCNN/DGCNN 的局部邻点差分是否能补充 LocalGeoPE，本组继续以 `s3reg_droppath010_s1234.json` 为唯一父模型 REG-P10，冻结 mixed `138/0/36`、random5000/SAME、`125/125/32` centers、`64/16/16` 邻域、PointNeXt-R `(1,1,0)`、7D LocalGeoPE、DropPath `0.10`、seed1234、400 epoch 和 train-loss 选模。新增模块只在既有 SA 几何邻域内计算残差消息 `[x_i, x_j-x_i, Δp_ij/r]`，不改变 center、邻接关系、解码器或损失；本轮**没有开启特征空间动态图重连**。
+
+| ID | 相对 REG-P10 的唯一变化 | 配置 | 状态 |
+|---|---|---|---|
+| `EC-SA1` | `edgeconv_stages=[1]` | `regp10_edgeconv_sa1_s1234.json` | ✅完成 |
+| `EC-SA2` | `edgeconv_stages=[2]` | `regp10_edgeconv_sa2_s1234.json` | ✅完成 |
+| `EC-SA12` | `edgeconv_stages=[1,2]` | `regp10_edgeconv_sa12_s1234.json` | ✅完成 |
+
+`edgeconv_stages` 使用 1-based 编号，默认空列表时不实例化模块、不增加 state_dict key。108 项回归测试全部通过；GPU 门禁验证了三个配置的目标层执行、有限梯度、严格 checkpoint 重载以及 full/chunk 推理一致性。Job `10993` 与数组 `10994_[0-2]` 均 `COMPLETED (0:0)`；三臂完成 400 epoch、best/last checkpoint、best/last test36 全云评估和 36 例逐病例 CSV。父模型加三臂的产物完整性审计 `4/4` 通过，预注册主结果固定取 `ckpt_best(train_loss)`（三臂 best epoch 均为 378）。
+
+| 处理臂 | R²_cb | ΔR²_cb | ΔMAE / ΔRMSE (Pa) | Δhigh-WSS / ΔIoU | ΔAG / ΔAAA / ΔILO | 病例均值 ΔR² 95%CI；胜/负 | 单种子判定 |
+|---|---:|---:|---:|---:|---:|---|---|
+| REG-P10 父模型 | 0.2957 | — | 2.5858 / 6.3283（绝对值） | -0.4127 / 0.1883（绝对值） | 0.2954 / 0.2366 / 0.3195（绝对值） | — | 锚点 |
+| `EC-SA1` | 0.2904 | -0.0053 | -0.0001 / +0.0237 | -0.0210 / -0.0014 | -0.0095 / +0.0172 / -0.0167 | -0.0013 `[-0.0264,+0.0222]`；17/19 | No-Go |
+| `EC-SA2` | 0.2935 | -0.0023 | **-0.0240** / +0.0102 | -0.0256 / **+0.0122** | +0.0143 / +0.0168 / **-0.0324** | +0.0083 `[-0.0170,+0.0332]`；21/15 | No-Go |
+| `EC-SA12` | 0.2619 | **-0.0338** | +0.0207 / +0.1502 | **-0.0925** / +0.0084 | -0.0108 / -0.0089 / **-0.0753** | +0.0059 `[-0.0185,+0.0312]`；18/18 | No-Go |
+
+**终裁**：沿用 REG-P10 Transformer 矩阵的预注册 Gate（`ΔR²_cb≥+0.012`、`ΔMAE≤+0.03 Pa`、high-WSS 不下降超过 `0.01`、任一域 R² 不下降超过 `0.02`），三臂均未晋级。`EC-SA2` 是三者中最接近父模型的一臂，MAE、top10 IoU、AG/AAA 和病例胜负方向为正，但主指标 `R²_cb=-0.0023`、high-WSS `-0.0256` 且 ILO `-0.0324`，不能因局部指标改善而事后晋级；`EC-SA12` 明显退化，说明两层同时叠加没有协同。当前静态 EdgeConv 设计判 No-Go，**不继续补特征空间动态图或多种子**。结构化真源为 `training_wss_min/preflight/regp10_edgeconv_matrix_20260727_results_{analysis.json,summary.csv}` 与同前缀 `paired_case_stats.csv`；工作簿已回填。
+
+## 0L. D2 c125×k64 PNXR+GeoPE 的 SA1/SA2 局部 Transformer 对照（2026-07-27 回填｜Jobs `10979→10980_[0-1]%2`｜✅2/2 完成）
+
+为让 REG-P10/mixed test36 的 SA2 信号能在原始 AG/AAA 固定协议上得到同结构对照，本组改用已完成的 `D2 c125×k64 + PointNeXt-R + LocalGeoPE` 作为唯一父模型。父配置为 `pointnetpp_d2_c125_k64_pnxr_geope_20260726/d2_c125_k64_pnxr_geope.json`，冻结 AG/AAA `106/0/27`、train106 统计、6D xyz+geom、7D LocalGeoPE、random5000/SAME、`125/125/32` centers、`64/16/16` 邻域、PointNeXt-R `(1,1,0)`、无 DropPath、seed1234、400 epoch 和 train-loss 选模。
+
+| ID | 相对固定 D2 PNXR+GeoPE 的唯一变化 | 配置 | 状态 |
+|---|---|---|---|
+| `D2-L-SA1` | `local_transformer_stages=[1]` | `d2_c125_k64_pnxr_geope_localtf_sa1_s1234.json` | ✅完成 |
+| `D2-L-SA2` | `local_transformer_stages=[2]` | `d2_c125_k64_pnxr_geope_localtf_sa2_s1234.json` | ✅完成 |
+
+两份配置的静态逐字段审计 `2/2` 通过，观察到的差异只有 `name/notes/model.local_transformer_stages`；SA1/SA2 模块只在目标层实例化，参数量分别为 `473,991/572,999`。正式 GPU 门禁 Job `10979` 与两条训练任务均 `COMPLETED (0:0)`；两臂均完成 400 epoch、best/last checkpoint、best/last test27 全云评估和 27 例逐病例 CSV，配置哈希、有限值和产物完整性审计全部通过。预注册主结果固定取 `ckpt_best(train_loss)`。
+
+| 处理臂 | 物理 R²_cb | Δ物理 R²_cb | 归一化 R²_cb | Δ归一化 | ΔMAE_cb / ΔRMSE_cb (Pa) | Δhigh-WSS / ΔIoU | ΔAG / ΔAAA | 病例均值 ΔR² 95%CI；胜/负 | 主结果判定 |
+|---|---:|---:|---:|---:|---:|---:|---:|---|---|
+| D2 PNXR+GeoPE 父模型 | 0.2975 | — | 0.6712 | — | — | — | — | — | 锚点 |
+| `D2-L-SA1` | 0.2683 | **-0.0293** | 0.6491 | -0.0222 | +0.0469 / +0.1298 | -0.0753 / -0.0158 | -0.0217 / -0.0369 | -0.0184 `[-0.0466,+0.0090]`；12/15 | **No-Go** |
+| `D2-L-SA2` | 0.2990 | +0.0015 | 0.6581 | **-0.0132** | -0.0160 / -0.0069 | -0.0105 / +0.0073 | -0.0012 / +0.0042 | -0.0045 `[-0.0437,+0.0291]`；17/10 | **持平，不晋级** |
+
+**终裁**：SA1 局部 Transformer 在 fixed test27 上各主要维度一致退化，明确 No-Go。SA2 的物理 `R²_cb` 仅 `+0.0015`，低于工程筛选量级；归一化 R² 与 high-WSS 同时回退、病例 CI 跨零，因此不构成可复现提升。SA2 `ckpt_last` 相对父模型 last 的物理 `R²_cb` 为 `+0.0198`，但 last 仅作敏感性检查，不能替换预注册的 train-loss-selected best；不据此事后晋级。该结果说明 REG-P10/mixed test36 的 SA2 单种子正信号没有在“无 DropPath、无 ILO、fixed test27”的 D2 协议中直接复现，可能涉及正则化/数据协议交互，当前不再扩展 D2 local Transformer。结构化真源为 `training_wss_min/preflight/d2_c125_k64_pnxr_geope_transformer_20260726_results_{analysis.json,summary.csv}` 与同前缀 `paired_case_stats.csv`；工作簿已回填。
+
+## 0K. REG-P10 局部/全局 Transformer 完整矩阵（2026-07-26｜Jobs `10967→10968_[0-7]%4`｜✅8/8 完成）
 
 当前按讨论将 `S3-GEOPE + DropPath 0.10, seed=1234` 固定为本轮工作锚点（简称 **REG-P10**），父配置为 `pointnetpp_s3_regularization_20260724/s3reg_droppath010_s1234.json`。split/stats、mixed `138/0/36`、random5000/SAME、`125/125/32` centers、`64/16/16` 邻域、PointNeXt-R `(1,1,0)`、7D LocalGeoPE、400 epoch 和 train-loss 选模全部冻结。
 
@@ -29,7 +162,21 @@
 | `L-SA123` | `local_transformer_stages=[1,2,3]` | 三层局部 Transformer 全开是否受益 | `regp10_localtf_sa123_s1234.json` |
 | `G-SA3` | `coarse_attention=true` | REG-P10 上是否复现/增强旧 SA3 全局信号 | `regp10_globaltf_sa3_s1234.json` |
 
-局部 stage 使用 **1-based** 编号；空列表完全关闭且不生成新参数/checkpoint key。7 个局部非空子集构成完整 `2³−1` 因子矩阵，另加 1 个旧机制的 SA3 全局对照；本轮不把 local 与 global 同时开启，避免混淆两类机制。配置读取与逐字段静态审计 `8/8` 通过，全测试集 `102/102` 通过；默认关闭时旧 REG-P10 checkpoint 严格重载无缺失/多余 key。正式 GPU 门禁 Job `10967` 已 `COMPLETED (0:0)`，8 臂 CUDA 前后向、模块执行、严格 checkpoint 重载与 full/chunk 一致性全部通过；训练及 best/last test36 全云评估数组 `10968_[0-7]%4` 已启动。当前尚无精度结果；test36 仍仅作 seed1234 工程筛选，单臂达到 `ΔR²_cb≥+0.012` 且通过 MAE、high-WSS 与分域护栏后，才补 seeds `7/2025`。
+局部 stage 使用 **1-based** 编号；空列表完全关闭且不生成新参数/checkpoint key。7 个局部非空子集构成完整 `2³−1` 因子矩阵，另加 1 个旧机制的 SA3 全局对照；本轮不把 local 与 global 同时开启，避免混淆两类机制。配置读取与逐字段静态审计 `8/8` 通过，全测试集 `102/102` 通过；默认关闭时旧 REG-P10 checkpoint 严格重载无缺失/多余 key。正式 GPU 门禁 Job `10967` 与训练/评估数组 `10968_[0-7]%4` 均 `COMPLETED (0:0)`；8 臂全部完成 400 epoch、best/last checkpoint、test36 全云指标和 36 例逐病例 CSV，配置哈希、有限值、best/last 产物完整性均通过。预注册结果固定取 `ckpt_best(train_loss)`。
+
+| 处理臂 | R²_cb | ΔR²_cb | ΔMAE / ΔRMSE (Pa) | Δhigh-WSS / ΔIoU | ΔAG / ΔAAA / ΔILO | 病例均值 ΔR² 95%CI；胜/负 | 单种子判定 |
+|---|---:|---:|---:|---:|---:|---|---|
+| REG-P10 父模型 | 0.2957 | — | 2.5858 / 6.3283（绝对值） | -0.4127 / 0.1883（绝对值） | 0.2954 / 0.2366 / 0.3195（绝对值） | — | 锚点 |
+| `L-SA1` | 0.2851 | -0.0106 | -0.0005 / +0.0474 | -0.0425 / +0.0027 | +0.0008 / +0.0205 / -0.0440 | -0.0101 `[-0.0404,+0.0181]`；20/16 | No-Go |
+| **`L-SA2`** | **0.3171** | **+0.0214** | **-0.0332 / -0.0968** | **+0.0453 / +0.0058** | **+0.0105 / +0.0198 / +0.0341** | +0.0114 `[-0.0101,+0.0324]`；19/17 | **唯一过 Gate；补 seeds 7/2025** |
+| `L-SA3` | 0.2798 | -0.0159 | +0.0000 / +0.0712 | -0.0523 / +0.0015 | +0.0014 / +0.0274 / -0.0641 | +0.0004 `[-0.0251,+0.0255]`；15/21 | No-Go |
+| `L-SA12` | 0.3021 | +0.0063 | -0.0101 / -0.0285 | -0.0088 / -0.0017 | +0.0222 / +0.0017 / -0.0065 | +0.0023 `[-0.0290,+0.0322]`；18/18 | 正向但未过主 Gate |
+| `L-SA13` | 0.2952 | -0.0005 | -0.0072 / +0.0024 | -0.0209 / +0.0071 | +0.0017 / +0.0094 / -0.0096 | +0.0088 `[-0.0122,+0.0306]`；19/17 | No-Go |
+| `L-SA23` | 0.2909 | -0.0049 | +0.0139 / +0.0218 | -0.0082 / +0.0012 | -0.0023 / +0.0206 / -0.0251 | -0.0208 `[-0.0664,+0.0162]`；18/18 | No-Go |
+| `L-SA123` | 0.2873 | -0.0084 | +0.0199 / +0.0376 | -0.0261 / +0.0028 | +0.0015 / +0.0041 / -0.0273 | -0.0181 `[-0.0474,+0.0090]`；17/19 | No-Go |
+| `G-SA3` | 0.2909 | -0.0048 | +0.0068 / +0.0215 | -0.0246 / -0.0110 | -0.0061 / +0.0184 / -0.0197 | -0.0026 `[-0.0316,+0.0249]`；20/16 | No-Go |
+
+**终裁**：按预注册 Gate（`ΔR²_cb≥+0.012`、`ΔMAE≤+0.03 Pa`、high-WSS 不下降超过 `0.01`、任一域 R² 不下降超过 `0.02`），只有 **`L-SA2`** 四项全部通过。它是本轮唯一进入 seeds `7/2025` 配对确认的臂，但病例均值 CI 仍跨零，当前只能写成“单种子强筛选信号”，不能写成稳定泛化提升。`L-SA12` 虽方向为正，但 `+0.0063` 未达到主门槛，不与 SA2 一起扩展。SA1/SA3 单层、全部含 SA3 的局部组合和三层全开均未受益，说明局部 Transformer 不是“层数越多越好”，收益集中在 **SA2 中尺度邻域**。`G-SA3` 在 REG-P10 上回退，也说明旧 coarse global attention 不能直接叠加到当前锚点。结构化真源为 `training_wss_min/preflight/regp10_transformer_matrix_20260726_results_{analysis.json,summary.csv}` 与同前缀 `paired_case_stats.csv`；工作簿已同步回填。
 
 ## 0J. D2-K64 ILO 两协议与结构模块矩阵（2026-07-23｜Jobs `10837/10838/10843/10844`｜9/9 完成）
 

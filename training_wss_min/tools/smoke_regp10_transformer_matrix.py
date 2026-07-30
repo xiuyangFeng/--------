@@ -70,9 +70,20 @@ def one(row: dict) -> dict:
         data_root=cfg.data.data_root,
         required_frame_version=cfg.data.required_frame_version,
     )
-    feature_stats = json.loads(
-        Path(cfg.data.feature_stats_path).read_text(encoding="utf-8")
-    )
+    # Newer mixed-split configs freeze a feature-stats file explicitly, while
+    # historical fixed D2 configs intentionally derive it from their frozen
+    # train partition.  Match the train-loop contract so this Transformer smoke
+    # remains usable for both configuration families.
+    if cfg.data.feature_stats_path:
+        feature_stats = json.loads(
+            Path(cfg.data.feature_stats_path).read_text(encoding="utf-8")
+        )
+    else:
+        feature_stats = D.compute_feature_stats(
+            train,
+            cfg.data.input_features,
+            cfg.data.curvature_transform,
+        )
     ds = D.WSSMinDataset(
         train, cfg.data, feature_stats, training=True, base_seed=cfg.train.seed
     )

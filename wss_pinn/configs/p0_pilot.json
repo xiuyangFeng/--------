@@ -1,0 +1,20 @@
+{
+  "experiment": {
+    "id": "PINN-P0-pilot-v1",
+    "stage": "p0a"
+  },
+  "data": {
+    "split_path": "wss_pinn/configs/pilot_cases.json",
+    "split_label": "reused_development_screen",
+    "cohorts": ["AG", "AAA", "ILO"],
+    "timesteps": ["peak_minus", "peak", "peak_plus"]
+  },
+  "sampling": {
+    "wall_points": 5000,
+    "near_wall_points": 8000,
+    "core_points": 8000,
+    "seed": 1234,
+    "manifest_path": "data_wss_pinn/pilot_v1/sampling_manifest.json"
+  }
+}
+

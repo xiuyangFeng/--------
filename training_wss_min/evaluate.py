@@ -59,7 +59,10 @@ def predict_case_norm(model, case: Dict, input_features, feat_stats, device: str
             x = torch.from_numpy(D.build_features(case, idx, input_features, feat_stats)).to(device)
             batch = torch.zeros(len(idx), dtype=torch.long, device=device)
             outputs.append(model.decode_query(encoded, pos, x, batch).detach().float().cpu())
-        return torch.cat(outputs).numpy()
+        output = torch.cat(outputs)
+        if output.ndim == 2:
+            output = output[:, 0]
+        return output.numpy()
     batch = D.case_to_batch(case, input_features, feat_stats, device=device)
     try:
         out = model(batch["pos"], batch["x"], batch["batch"])
@@ -69,7 +72,10 @@ def predict_case_norm(model, case: Dict, input_features, feat_stats, device: str
         batch = D.case_to_batch(case, input_features, feat_stats, device="cpu")
         out = model_cpu(batch["pos"], batch["x"], batch["batch"])
         model.to(device)
-    return out.detach().float().cpu().numpy()
+    out = out.detach().float().cpu()
+    if out.ndim == 2:
+        out = out[:, 0]
+    return out.numpy()
 
 
 def evaluate_partition(model, cases: List[Dict], cfg: C.ExpConfig, feat_stats: Dict,
@@ -449,6 +455,7 @@ def main():
             target_normalization=cfg.data.target_normalization,
             data_root=cfg.data.data_root,
             required_frame_version=cfg.data.required_frame_version,
+            case_features_path=cfg.data.case_features_path,
         )
         if device == "cuda":
             torch.cuda.reset_peak_memory_stats()

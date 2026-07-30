@@ -1,0 +1,24 @@
+{
+  "bindings": {
+    "manifest_sha256": "81a3206664e06436ede107d70ffe6eb532e02ab7ed3bae932067e59eb43b5e14",
+    "matrix_report_sha256": "3b1a51c3dd5431ff50ea82754a2bc40bc9b0b8f9c0a6a6f6b755b08a00761f72",
+    "selected_config": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/f1_diagnostics_20260730/f1d_c1e4_n10.json",
+    "selected_config_sha256": "ba304ff040fea56ba1b98ace1e39cef73e0218c4aebcffcc3e5ea8a7ee8c24fa",
+    "sidecar_report_sha256": "979f57939802397521e979589cdfd4983e6ac7e2b4aaf68975a8ca612288719c",
+    "source_report_sha256": "14a732ca90474d24dafdef8aa1de64a8b823467ea0ac10cbce2b9362a755eda3",
+    "split_sha256": "964d7021f2d12baadd630e7b936456a4e62294fa72c5ada4fc70abe4d9361f2b"
+  },
+  "created_at": "2026-07-30T08:04:25.474948+00:00",
+  "f0up_config": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/full_train138_test35_exclude_shi_v1_20260730/f0up_full.json",
+  "f0up_config_sha256": "d27c215c8d3e6c7771e288faecc20cb45b285b7079200ae08efc4a210412e073",
+  "f1_config": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/full_train138_test35_exclude_shi_v1_20260730/f1_full.json",
+  "f1_config_sha256": "c41cf992e4d9d1980341afd67ffce38205867865751d700570900d92d2d11273",
+  "p1_config": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/p1_full_train138_test35_exclude_shi_v1.json",
+  "p1_config_sha256": "c0892236987a26ec182938f2ba6154b4a3f495ef04b9afd288020b13014064a7",
+  "schema_version": 1,
+  "status": "code_ready",
+  "submission_order": [
+    "submit f0up_full.json and require completed evaluation Gate",
+    "submit f1_full.json only after the paired F0-UP Gate passes"
+  ]
+}

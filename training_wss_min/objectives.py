@@ -22,6 +22,40 @@ def _batch_quantile_scale(a: torch.Tensor) -> torch.Tensor:
     return torch.clamp((a - lo) / (hi - lo + 1e-9), 0, 1)
 
 
+def casebalanced_hotspot_bce(
+    logits: torch.Tensor,
+    target: torch.Tensor,
+    batch_index: torch.Tensor,
+    quantile: float,
+) -> torch.Tensor:
+    """Balanced per-case BCE for a case-relative high-WSS hotspot mask."""
+    losses = []
+    for case_index in torch.unique(batch_index, sorted=True):
+        mask = batch_index == case_index
+        case_target = target[mask].float()
+        case_logits = logits[mask].float()
+        threshold = torch.quantile(case_target.detach(), float(quantile))
+        positive = case_target >= threshold
+        negative = ~positive
+        if not positive.any() or not negative.any():
+            continue
+        positive_loss = torch.nn.functional.softplus(-case_logits[positive]).mean()
+        negative_loss = torch.nn.functional.softplus(case_logits[negative]).mean()
+        losses.append(0.5 * (positive_loss + negative_loss))
+    if not losses:
+        raise ValueError("hotspot BCE requires both hotspot and non-hotspot points")
+    return torch.stack(losses).mean()
+
+
+def pinball_loss(
+    prediction: torch.Tensor, target: torch.Tensor, quantile: float
+) -> torch.Tensor:
+    """Mean pinball loss for the requested upper conditional quantile."""
+    residual = target.float() - prediction.float()
+    q = float(quantile)
+    return torch.maximum(q * residual, (q - 1.0) * residual).mean()
+
+
 def compute_loss(
     pred: torch.Tensor,
     batch: dict,
@@ -31,6 +65,7 @@ def compute_loss(
 ) -> torch.Tensor:
     """Compute the configured scalar-regression objective."""
     y = batch["y"].to(device)
+    hotspot_logits = None
     if cfg.loss == "gaussian_nll":
         if pred.ndim != 2 or pred.shape[-1] != 2:
             raise ValueError("gaussian_nll requires model out_dim=2")
@@ -40,8 +75,20 @@ def compute_loss(
         per_point = per_point + cfg.nll_logvar_reg * logvar.square()
         pred_for_raw_loss = mu
     else:
-        if pred.ndim == 2 and pred.shape[-1] == 1:
-            pred = pred.squeeze(-1)
+        if pred.ndim == 2:
+            if pred.shape[-1] == 1:
+                pred = pred.squeeze(-1)
+            elif (
+                pred.shape[-1] == 2
+                and float(cfg.loss_hotspot_bce_lambda) > 0
+            ):
+                hotspot_logits = pred[:, 1]
+                pred = pred[:, 0]
+            else:
+                raise ValueError(
+                    "non-NLL prediction must have one regression channel, or "
+                    "regression+hotspot channels when hotspot BCE is enabled"
+                )
         if cfg.loss == "huber":
             per_point = torch.nn.functional.huber_loss(
                 pred, y, delta=cfg.huber_delta, reduction="none"
@@ -106,6 +153,23 @@ def compute_loss(
             reduction="mean",
         )
         loss = loss + raw_loss_weight * raw_huber
+
+    pinball_weight = float(cfg.loss_pinball_lambda or 0.0)
+    if pinball_weight > 0:
+        loss = loss + pinball_weight * pinball_loss(
+            pred_for_raw_loss, y, cfg.pinball_quantile
+        )
+
+    hotspot_weight = float(cfg.loss_hotspot_bce_lambda or 0.0)
+    if hotspot_weight > 0:
+        if hotspot_logits is None:
+            raise ValueError("hotspot BCE requires a second prediction channel")
+        loss = loss + hotspot_weight * casebalanced_hotspot_bce(
+            hotspot_logits,
+            y,
+            batch["batch"].to(device),
+            cfg.hotspot_quantile,
+        )
     return loss
 
 

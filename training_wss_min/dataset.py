@@ -290,8 +290,15 @@ def sample_indices(case: Dict, cfg: C.DataConfig, seed: int,
 # ---------------------------------------------------------------------------
 # 特征标准化（几何输入列用 train 统计 z-score；x,y,z 保持归一化坐标）
 # ---------------------------------------------------------------------------
-GEOM_FEATURE_KEYS = ("abscissa_norm", "local_radius", "curvature", "coord_scale",
-                     "radius_gradient")
+GEOM_FEATURE_KEYS = (
+    "abscissa_norm",
+    "local_radius",
+    "log_local_radius",
+    "curvature",
+    "coord_scale",
+    "radius_gradient",
+)
+CASE_FEATURE_KEYS = frozenset(C.CASE_FEATURE_KEYS)
 
 # cohort one-hot（逐病例常量）：从 case["cohort"] 的父系（AG/AAA/ILO）派生 0/1，
 # 不做 z-score，也不进入 feature_stats。仅当出现在 input_features 时才启用。
@@ -323,7 +330,12 @@ def compute_feature_stats(
             continue
         if f not in cases[0]:
             raise KeyError(f"feature {f!r} missing from case bundle fields")
-        vals = np.concatenate([np.asarray(c[f], dtype=np.float64).ravel() for c in cases])
+        if f in CASE_FEATURE_KEYS:
+            # 病例级条件每例只计一次；不能按壁面顶点数重复，否则统计会重新
+            # 引入网格密度权重。
+            vals = np.asarray([float(c[f]) for c in cases], dtype=np.float64)
+        else:
+            vals = np.concatenate([np.asarray(c[f], dtype=np.float64).ravel() for c in cases])
         transform = curvature_transform if f == "curvature" else "none"
         vals = _transform_feature_values(f, vals, transform)
         vals = vals[np.isfinite(vals)]
@@ -382,6 +394,10 @@ def build_features(case: Dict, idx: np.ndarray, input_features: Tuple[str, ...],
         elif f in COHORT_FEATURE_KEYS:
             hit = cohort_family(case["cohort"]) == COHORT_FEATURE_KEYS[f]
             cols.append(np.full(pos.shape[0], 1.0 if hit else 0.0, dtype=np.float64))
+        elif f in CASE_FEATURE_KEYS:
+            st = feat_stats[f]
+            value = (float(case[f]) - st["mean"]) / st["std"]
+            cols.append(np.full(pos.shape[0], value, dtype=np.float64))
         else:
             st = feat_stats[f]
             v = np.asarray(case[f], dtype=np.float64)[idx]
@@ -429,7 +445,8 @@ def _radius_gradient_from_bundle(d) -> np.ndarray:
 def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
               target: str = "wss", target_normalization: str = "global_stats",
               data_root: str | Path = C.DATA_ROOT,
-              required_frame_version: str | None = None) -> Dict:
+              required_frame_version: str | None = None,
+              case_features: Dict[str, float] | None = None) -> Dict:
     p = Path(data_root) / cohort_rel / case_name / "bundle.npz"
     with np.load(p, allow_pickle=True) as d:
         if required_frame_version is not None:
@@ -455,6 +472,10 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
         else:
             raise ValueError(f"unsupported target={target!r} (expect 'wss'|'pressure')")
         y_norm, target_norm_meta = normalize_target(y_raw, wss_stats, target_normalization)
+        local_radius = d["wall_local_radius"].astype(np.float32)
+        log_local_radius = np.log(
+            np.clip(local_radius.astype(np.float64), 1e-6, None)
+        ).astype(np.float32)
         case = dict(
             cohort=cohort_rel, case=case_name,
             unit_id=f"{cohort_rel}/{case_name}",
@@ -475,7 +496,8 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
             target_normalization=target_normalization,
             target_normalization_meta=target_norm_meta,
             abscissa_norm=d["wall_abscissa_norm"].astype(np.float32),
-            local_radius=d["wall_local_radius"].astype(np.float32),
+            local_radius=local_radius,
+            log_local_radius=log_local_radius,
             curvature=d["wall_curvature"].astype(np.float32),
             coord_scale=np.full(len(pos), float(d["coord_scale"]), dtype=np.float32),
             radius_gradient=_radius_gradient_from_bundle(d),
@@ -483,26 +505,74 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
             coord_scale_scalar=float(d["coord_scale"]),
             bundle_path=str(p),
         )
+        if case_features:
+            unknown = sorted(set(case_features) - CASE_FEATURE_KEYS)
+            if unknown:
+                raise KeyError(f"unknown case-level features for {case['unit_id']}: {unknown}")
+            for key, value in case_features.items():
+                value = float(value)
+                if not np.isfinite(value):
+                    raise ValueError(
+                        f"non-finite case-level feature {key!r} for {case['unit_id']}"
+                    )
+                case[key] = value
     return case
+
+
+def load_case_feature_table(path: str | Path) -> Dict[str, Dict[str, float]]:
+    """Load a strict unit_id -> case-level feature mapping."""
+    source = Path(path)
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    features = tuple(payload.get("feature_names", ()))
+    if not features or len(set(features)) != len(features):
+        raise ValueError(f"invalid feature_names in case feature table: {source}")
+    unknown = sorted(set(features) - CASE_FEATURE_KEYS)
+    if unknown:
+        raise KeyError(f"unknown case-level feature names {unknown}: {source}")
+    rows = payload.get("cases")
+    if not isinstance(rows, dict) or not rows:
+        raise ValueError(f"case feature table has no cases: {source}")
+    parsed: Dict[str, Dict[str, float]] = {}
+    expected = set(features)
+    for unit_id, row in rows.items():
+        if not isinstance(row, dict) or set(row) != expected:
+            raise ValueError(
+                f"case feature columns mismatch for {unit_id!r}: "
+                f"expected={sorted(expected)} actual={sorted(row) if isinstance(row, dict) else type(row)}"
+            )
+        parsed[str(unit_id)] = {key: float(row[key]) for key in features}
+    return parsed
 
 
 def load_partition(split_path: str, partition: str, wss_stats: Dict,
                    strict: bool = True, target: str = "wss",
                    target_normalization: str = "global_stats",
                    data_root: str | Path = C.DATA_ROOT,
-                   required_frame_version: str | None = None) -> List[Dict]:
+                   required_frame_version: str | None = None,
+                   case_features_path: str | Path | None = None) -> List[Dict]:
     labels = load_split_cases(split_path, partition)
+    case_feature_table = (
+        load_case_feature_table(case_features_path) if case_features_path else None
+    )
     cases = []
     missing = []
     for cohort_rel, case_name in labels:
+        unit_id = f"{cohort_rel}/{case_name}"
         p = Path(data_root) / cohort_rel / case_name / "bundle.npz"
         if not p.is_file():
-            missing.append(f"{cohort_rel}/{case_name}")
+            missing.append(unit_id)
             continue
+        if case_feature_table is not None and unit_id not in case_feature_table:
+            raise KeyError(
+                f"case-level features missing for {unit_id}: {case_features_path}"
+            )
         cases.append(load_case(
             cohort_rel, case_name, wss_stats, target=target,
             target_normalization=target_normalization,
             data_root=data_root, required_frame_version=required_frame_version,
+            case_features=(
+                case_feature_table[unit_id] if case_feature_table is not None else None
+            ),
         ))
     if missing:
         msg = (f"missing {len(missing)} bundle(s) in partition={partition!r}: "

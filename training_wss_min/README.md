@@ -32,9 +32,17 @@ training_wss_min/
 实验结论与逐轮表：[`WSS最小化_训练实验跟踪.md`](../docs/02-推进与变更/WSS最小化_训练实验跟踪.md)。
 第六轮总调度：[`WSS最小化_第六轮XYZ尺度诊断计划与执行.md`](../docs/02-推进与变更/WSS最小化_第六轮XYZ尺度诊断计划与执行.md)。
 
-当前结构筛选状态（2026-07-24）：S3 `D2-K64 + PointNeXt-R + LocalGeoPE` 相对 M1 的三种子 `ΔR²_cb=+0.0310/+0.0059/+0.0303`，作为当前工程锚点。归一化/域条件/尾部根因矩阵没有稳定叠加收益；首轮 4 种正则化 × 3 seeds 已提交 `10871→10872`。当前执行入口见 [`S3-GEOPE 正则化与架构优化计划`](../docs/02-推进与变更/WSS最小化_S3-GEOPE锚定_正则化与架构优化执行计划_2026-07-24.md)。
+当前结构与信息筛选状态（2026-07-29）：REG-P10-LSA2 SAME/IND × MSE/H1/H2 六臂已全部完成。IND MSE 相对 SAME MSE 的 `ΔR²_cb=+0.0014`，未过 `+0.012` 主门；H1 在 SAME/IND 下的 `ΔIoU=+0.0175/-0.0018`，均 No-Go。H2 在 SAME/IND 内的 `Δhigh-WSS nRMSE=-0.00205/-0.00207` 均过门，但 IND-H2 相对 SAME-H2 的 R²、normalized R² 和 MAE更差，因此不晋级 IND。随后完成同 seed H2 精确并发 control 与唯一新增 train-only 标准化 `log(local_radius)` 输入列的两臂 Jobs `11032→11033_[0-1]`：处理臂 physical `R²_cb=0.3506`、MAE `2.5238 Pa`、high-WSS nRMSE `0.06611`，相对并发 control 分别为 `ΔR²_cb=+0.0436`、`ΔMAE=-0.0342 Pa`、`ΔnRMSE=-0.00295`，top10 IoU 仅下降 `0.0029`，全部预注册保护线通过。**LSA2 SAME-H2 + `log(local_radius)`** 现晋级为新的单 seed 开发锚点；暂不做多 seed，病例全场 R² 均值差 CI 跨零的边界必须保留。当前入口见 [`PointNet baseline 矩阵 §0Q`](../docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。
 
-2026-07-26 新增配置化的 SA 邻域内 Transformer：`model.local_transformer_stages` 用 1-based stage 列表控制，空列表保持历史结构；SA3 全局 Transformer 继续复用既有 `coarse_attention`。REG-P10 的 7 个局部非空 stage 子集与 1 个 SA3-global 对照已提交：门禁 `10967` 已通过，训练/评估数组 `10968_[0-7]%4` 已启动。
+2026-07-26 新增配置化的 SA 邻域内 Transformer：`model.local_transformer_stages` 用 1-based stage 列表控制，空列表保持历史结构；SA3 全局 Transformer 继续复用既有 `coarse_attention`。REG-P10 的 7 个局部非空 stage 子集与 1 个 SA3-global 对照已 `8/8` 完训、审计和回填；仅 `local_transformer_stages=[2]` 过单种子 Gate。后续决议不补其 seeds `7/2025`，改在该结构上完成 SAME/IND × H1/H2 矩阵。
+
+fixed `106/0/27` 对照也已完成：以 `D2 c125×k64 + PointNeXt-R + LocalGeoPE` 为父模板，只开启 local-SA1 或 local-SA2。SA1 的物理 `ΔR²_cb=-0.0293`，No-Go；SA2 仅 `+0.0015` 且归一化/high-WSS 回退，判持平、不晋级。本组无 DropPath、无 ILO，只与同一 D2 父模型配对。
+
+2026-07-28 完成 REG-P10 静态几何约束 EdgeConv 矩阵：`model.edgeconv_stages` 用 1-based stage 列表控制，默认空列表保持旧结构和 checkpoint key；消息仅在既有 SA 邻域内使用 `[x_i,x_j-x_i,Δp/r]`，未启用动态 KNN。SA1、SA2、SA12 三臂均未超过父模型；SA2 虽改善 MAE/IoU，但 high-WSS 与 ILO 保护线失败，三臂统一判 No-Go。
+
+2026-07-28 完成 S3 RCR 信息上限 Oracle：O0 为 geometry-only，O1a 追加四出口真实 \(R_1/R_2/C\) 的 12 维 log 病例特征，O2 追加 train/test 内分域分层打乱的同维负对照。O1a 的 physical `R²_cb=0.3561`，相对 O0 `+0.0805`；O2 `0.2723`，相对 O0 `-0.0033`。真实 RCR 同时改善 MAE、high-WSS nRMSE、top10 IoU 和三域 R²；该信息上限证据保留，但当前不补多 seed、不做 RCR 架构。单种子、复用 test36 和 train-loss 选模仍限制其解释。
+
+2026-07-28 O0 热点/高值首轮完成：新增 `loss_hotspot_bce_lambda/hotspot_quantile` 与 `loss_pinball_lambda/pinball_quantile`，默认均关闭。H1 用第二输出通道训练病例相对 top10 balanced BCE，但正式 WSS 评估只读取第一回归通道；H2 在原 MSE 上加入 q90 pinball。H1/H2 的 physical `ΔR²_cb=+0.0234/+0.0190` 且保护线通过，但各自主 Gate 未达，按预注册规则不组合、不扩 H2 q/λ。
 
 ## 用法
 
@@ -129,8 +137,11 @@ WSSMIN_MANIFEST=training_wss_min/configs/sweeps/pressure_wall.txt \
 | `xyz_scale_diag/` | A/B/D XYZ 尺度诊断 | **当前主线承接：C/E 待执行** |
 | `multitarget/` | 壁面压力与条件触发的多目标诊断 | H-PW 已完成；Track B 等 adapter/QA |
 | `pointnetpp_d2_k64_ilo_structure_20260723/` | ILO 两协议与 PointNeXt/GeoPE/Attention/SEP | **9/9 完训；S3 三种子通过** |
-| `pointnetpp_s3_regularization_20260724/` | S3 的 head dropout / DropPath / NeighborDrop 严格单变量三种子矩阵 | **已提交 `10871→10872`** |
-| `pointnetpp_regp10_transformer_20260726/` | REG-P10 的 7 个 local-SA stage 子集与 SA3 global attention 对照 | **8/8 静态/GPU 门禁通过；`10968_[0-7]%4` 训练中** |
+| `pointnetpp_s3_regularization_20260724/` | S3 的 head dropout / DropPath / NeighborDrop 严格单变量三种子矩阵 | **首波 12/12 与强度/交叉补齐 20/20 均完成** |
+| `pointnetpp_regp10_transformer_20260726/` | REG-P10 的 7 个 local-SA stage 子集与 SA3 global attention 对照 | **8/8 完训；仅 L-SA2 过单种子 Gate，待补 seeds 7/2025** |
+| `pointnetpp_d2_c125_k64_pnxr_geope_transformer_20260726/` | fixed 106/0/27 D2 PNXR+GeoPE 上的 local-SA1 / local-SA2 对照 | **2/2 完训；SA1 No-Go，SA2 持平不晋级** |
+| `pointnetpp_rcr_oracle_20260728/` | S3 geometry / true RCR / shuffled RCR 信息上限对照 | **3/3 完训；O1a `ΔR²_cb=+0.0805`，O2 `-0.0033`，Go-to-follow-up** |
+| `pointnetpp_o0_hotspot_tail_20260728/` | O0 的 top10 hotspot BCE / q90 pinball 单变量目标 | **2/2 完训；保护线通过但主 Gate 均未达，No-Go、不组合** |
 
 所有已执行 JSON 和 manifest 都作为复现资产保留；配置生成器与根目录兼容入口已退役。
 正式命令只使用 `training_wss_min.train`、`training_wss_min.evaluate`、

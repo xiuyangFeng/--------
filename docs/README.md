@@ -1,6 +1,6 @@
 # 项目文档索引
 
-> 更新时间：2026-07-24
+> 更新时间：2026-07-30
 > 主入口：[实验设计总纲](实验设计总纲.md)
 
 本目录存放实验设计、任务规范、路线文档、推进日志、汇报材料和外部论文 baseline 复现记录。当前项目已经不再按“单一 GNN 优化线”推进，而是分成：
@@ -10,6 +10,7 @@
 - **外部 baseline 复现**：公开医学血管点云、mesh、等变网络、2D 展开方法在私有 AAA/WSS 数据上的对照
 - **后处理与可视化**：预测点云到 CFD 面片/体网格的公平映射和论文图件规范
 - **WSS-only 最小化线**：`pipeline_wss_min/` + `training_wss_min/`；第六轮以 WSS W0–W3 为 P0 主线，压力/速度改为最小机制诊断矩阵，不再要求 36 runs 补齐后才继续 WSS
+- **WSS-PINN 独立补充线**：`wss_pinn/`；F1 八臂诊断已选中 `continuity=1e-4`、`no-slip=10`；PINN 专用 `train138/test35` 与 173 例 sidecar 已冻结并通过数据 Gate，full F0-UP Jobs `11073→11074` completed / audited / No-Go，full F1 因配对 Gate 失败未提交；baseline split 未修改
 
 ## 1. 现在先看什么
 
@@ -28,7 +29,7 @@
 | V3P / 后平台期精度优化 | [V3 路线 README](01-任务/任务A/03-V3路线/README.md) + [V3P 后平台期结构与训练优化路线](01-任务/任务A/03-V3路线/01-执行与待办/V3P_后平台期结构与训练优化路线_2026-07-01.md) + [V3P 精度平台期复盘](01-任务/任务A/03-V3路线/01-执行与待办/V3P_精度平台期复盘与下一轮想法_2026-06-30.md) | 对照既有 No-Go 证据后，只保留 K1-lite 5886 作为当前内部 GPU 判断；K3/K5 已 No-Go |
 | 外部 CROWN/Beihang 复现 | [CROWN 代码 README](../external_baselines/crown_beihang/README.md) + [hemodynamics_pointcloud_pinn](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | `u,v,w,p` 速度/压力 paper-original 复现，不写成 WSS baseline |
 | 外部 baseline 批次总结 | [paper_reproduction/README](paper_reproduction/README.md) + [梳理记录规范](paper_reproduction/04-梳理记录规范.md) | 一轮矩阵跑齐后的批次结论，单个 Job 只放 `external_baselines/<name>/experiments/` |
-| WSS-only 最小化预处理/训练 | [S3-GEOPE 当前优化执行计划](02-推进与变更/WSS最小化_S3-GEOPE锚定_正则化与架构优化执行计划_2026-07-24.md) + [PointNet baseline 实验矩阵与进度](02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) + [训练实验跟踪](02-推进与变更/WSS最小化_训练实验跟踪.md) + [ILO 术前最终审核](02-推进与变更/ILO术前队列最终审核通过_2026-07-17.md) + [跨路线指标口径](00-规范与记录/WSS跨路线评估与横向对比口径.md) | S3 `PointNeXt-R + LocalGeoPE` 已通过三种子端到端确认；根因矩阵未找到可叠加的归一化/域条件/尾部收益；4×3 正则化矩阵已提交 `10871→10872` |
+| WSS-only 最小化预处理/训练 | [WSS-PINN 独立执行入口](02-推进与变更/WSS_PINN/README.md) + [体域物理约束与 PINN 路线](02-推进与变更/WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md) + [高值区域预测优化方案](02-推进与变更/WSS高值区域预测优化方案.md) + [PointNet baseline 实验矩阵与进度](02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) + [训练实验跟踪](02-推进与变更/WSS最小化_训练实验跟踪.md) + [ILO 术前最终审核](02-推进与变更/ILO术前队列最终审核通过_2026-07-17.md) + [跨路线指标口径](00-规范与记录/WSS跨路线评估与横向对比口径.md) | H2 + `log(local_radius)` 为单 seed 开发锚点；WSS-PINN full F0-UP No-Go，full F1 未提交 |
 ### 查当前总设计
 
 1. [实验设计总纲](实验设计总纲.md)
@@ -74,6 +75,7 @@
 | **paper_reproduction/** | 外部论文 baseline 复现库，记录公开模型、私有数据适配口径与后处理映射方法 |
 | **../external_baselines/** | 外部论文 baseline 复现代码，当前包含 PointNetCFD 独立训练入口 |
 | **../pipeline_wss_min/** | WSS-only 最小化预处理代码，独立输出到 `data_wss_min/` |
+| **../wss_pinn/** | WSS-PINN 独立代码入口；只读复用旧 WSS 资产，派生数据与结果单独落盘 |
 
 ## 4. 快速跳转
 
@@ -93,7 +95,7 @@
 | 任务 D | [任务D端到端验证清单](01-任务/任务D/任务D端到端验证清单.md) |
 | 任务 E | [任务E执行清单](01-任务/任务E/任务E血流动力学三维可视化执行清单.md) · [任务E论文可视化规范](01-任务/任务E/任务E论文可视化规范.md) |
 | 推进记录 | [V3P/主线代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md) · [WSS 最小化代码修改与实验推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) |
-| WSS-only 最小化 | [S3-GEOPE 当前优化执行计划](02-推进与变更/WSS最小化_S3-GEOPE锚定_正则化与架构优化执行计划_2026-07-24.md) · [PointNet baseline 矩阵](02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) · [训练实验跟踪](02-推进与变更/WSS最小化_训练实验跟踪.md) · [推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) · [历史路线归档](02-推进与变更/_archive/WSS最小化/README.md) |
+| WSS-only 最小化 / WSS-PINN | [WSS-PINN 独立执行入口](02-推进与变更/WSS_PINN/README.md) · [PINN 阶梯矩阵](02-推进与变更/WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md) · [体域物理约束与 PINN 路线](02-推进与变更/WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md) · [高值区域预测优化方案](02-推进与变更/WSS高值区域预测优化方案.md) · [PointNet baseline 矩阵](02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) · [训练实验跟踪](02-推进与变更/WSS最小化_训练实验跟踪.md) · [推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) · [历史路线归档](02-推进与变更/_archive/WSS最小化/README.md) |
 | 项目思路 | [项目思路](paper_idea/项目思路.md) · [基准模型推荐](paper_idea/基准模型推荐与引用参考.md) |
 | 外部 baseline | [paper_reproduction/README](paper_reproduction/README.md) · [文献筛选总表](paper_reproduction/00-文献筛选总表.md) · [后处理插值方法](paper_reproduction/03-后处理可视化与插值方法.md) · [点云回插面片方法](paper_reproduction/05-点云预测值与真值回插到面片方法.md) · [CFD-Post 云图导出工具](../tools/cfdpost_cloud_export/README.md) |
 | 外部 baseline 代码 | [PointNetCFD 复现代码](../external_baselines/pointnetcfd/README.md) |

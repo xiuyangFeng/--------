@@ -109,6 +109,7 @@ def main():
         target_normalization=cfg.data.target_normalization,
         data_root=cfg.data.data_root,
         required_frame_version=cfg.data.required_frame_version,
+        case_features_path=cfg.data.case_features_path,
     )
     select_by_train_loss = cfg.train.selection_rule == "train_loss"
     val_labels = D.load_split_cases(cfg.data.split_path, "val")
@@ -120,6 +121,7 @@ def main():
             target_normalization=cfg.data.target_normalization,
             data_root=cfg.data.data_root,
             required_frame_version=cfg.data.required_frame_version,
+            case_features_path=cfg.data.case_features_path,
         )
     feature_stats_source = None
     if cfg.data.feature_stats_path:

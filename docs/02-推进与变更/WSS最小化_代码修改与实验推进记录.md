@@ -4,7 +4,397 @@
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
 > 当前执行入口：[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) / [第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md) / [BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)。
 
-## 2026-07-26｜REG-P10 局部 SA Transformer 完整矩阵已提交
+## 2026-07-30｜WSS-PINN full F0-UP 完训审计并阻断 full F1
+
+**本次主要修改**：核验 full F0-UP Slurm、best/last checkpoint、完整
+train/test 评估与配对科学 Gate，并将工程完成状态和科学 No-Go 分开回填。
+复核 baseline 与 PINN 专用 split 哈希，未改动任何 baseline 数据划分。
+
+**对应代码/文档**：
+`outputs/wss_pinn/runs/PINN-F0UP-full-train138-test35-exclude-shi-v1-s1234-20260730/`、
+`outputs/wss_pinn/audits/full_f0up_to_f1_gate_train138_test35_exclude_shi_v1_20260730/report.json`、
+[WSS-PINN 总入口](WSS_PINN/README.md)、
+[阶梯矩阵](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)、
+`wss_pinn/README.md`。
+
+**推进到实验步骤**：Jobs `11073→11074` 均 `COMPLETED (0:0)`；
+train/eval 用时 `00:16:15`。best 的 train/test velocity mean R² 为
+`0.6568/0.1800`，last 为 `0.6591/0.1770`，两侧达到 aggregate
+velocity `R²≥0.95` 的病例数均为 0。Gate 报告 SHA256
+`daccfd1d…75cfed`。
+
+**当前状态判断**：full F0-UP 为 completed / audited / No-Go；full F1
+虽 code-ready，但因配对 control Gate 为 false 而 blocked / not submitted。
+20000 step 在 full train138 下每病例期望仅曝光约 435 次，约为三病例 pilot
+的 `1/46`，因此快速结束反映固定 step 预算不足，不代表全量学习充分。F1
+仍只允许 continuity + no-slip，WSS-physics/momentum 保持 0。
+
+## 2026-07-30｜PINN 专用 test35 冻结、全量 sidecar 通过并提交 full F0-UP
+
+**本次主要修改**：按用户授权仅在 `wss_pinn/configs/splits/` 派生
+`train138/test35`，只移除体域速度全零的 `AAA/ruputer/SHI_YUN_XI`，
+train 列表不变且不补位；新增可复核的 PINN split 派生工具与单测。完成
+173 例 source audit、sidecar 构建与完整性审查，生成严格配对的 full
+F0-UP/F1 配置并提交 full F0-UP。
+
+**对应代码/文档**：`wss_pinn/tools/derive_pinn_split.py`、
+`wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_q2v_pool2025_train138_test35_exclude_SHI_YUN_XI_v1.json`、
+`wss_pinn/configs/p1_full_train138_test35_exclude_shi_v1.json`、
+`wss_pinn/configs/full_train138_test35_exclude_shi_v1_20260730/`、
+`data_wss_pinn/full_train138_test35_exclude_shi_v1/`、
+`outputs/wss_pinn/audits/{full_data_train138_test35_exclude_shi_v1_20260730,full_sidecars_train138_test35_exclude_shi_v1_20260730}/`、
+[WSS-PINN 总入口](WSS_PINN/README.md)与
+[阶梯矩阵](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)。
+
+**推进到实验步骤**：baseline 原 split SHA256 保持
+`d16fc497…bdd8f1`；PINN 专用 split SHA256 `964d7021…9361f2b`。
+source Job `11070`、sidecar build/audit Jobs `11071/11072` 均 completed，
+173/173 pass；manifest SHA256 `81a32066…43b5e14`。full F0-UP preflight
+Job `11073` completed，train/eval Job `11074` running 并持续写出有限 loss。
+
+**当前状态判断**：完整可用 PINN 数据集已 frozen / audited。full F0-UP
+正式训练 running，不写成 completed；full F1 config 已 code-ready，但
+`evaluation_best.json` 尚未产生，所以 launcher 正确返回
+`would_submit=false`，不得越过配对科学 Gate。F1 仍只计划开启
+`continuity=1e-4`、`no-slip=10`，WSS-physics/momentum 为 0。
+
+## 2026-07-30｜WSS-PINN F1 内部八臂 Gate 通过；全量数据审查停在 split 门禁
+
+**本次主要修改**：完成 F1 continuity-only、no-slip-only 与 4 个联合权重臂，
+并以 best/last 双 checkpoint 统一 Gate 汇总；新增全量源数据、sidecar 完整性
+审查及 Slurm 入口，支持历史 `nodenumber` 和经冻结坐标变换后的唯一空间子集
+映射。对冻结 `train138/test36` 做 174 例深审计，不改旧 bundle 或既有 run。
+另将 full F0-UP 的阶段解锁证据与 full F1 的配对 control 分离，并强制审计报告
+绑定 split/manifest SHA256 和 F0-UP/F1 严格配置配对。
+
+**对应代码/文档**：`wss_pinn/{config.py,train.py,evaluate.py}`、
+`wss_pinn/data/{raw_io.py,sidecar.py,dataset.py}`、
+`wss_pinn/tools/{analyze_f1_matrix.py,audit_full_dataset.py,audit_sidecar_dataset.py,preflight.py}`、
+`wss_pinn/tools/prepare_full_training_configs.py`、
+`wss_pinn/cluster/`、`wss_pinn/configs/f1_diagnostics_20260730/`；
+`outputs/wss_pinn/matrices/f1_diagnostics_20260730/report.json`；
+`outputs/wss_pinn/audits/full_data_train138_test36_20260730_v2/report.json`；
+[WSS-PINN 总入口](WSS_PINN/README.md)与
+[阶梯矩阵](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)。
+
+**推进到实验步骤**：八个训练 Jobs
+`11049/11051/11053/11055/11057/11059/11061/11063` 与汇总 Job `11064`
+全部 `COMPLETED (0:0)`。唯一双 checkpoint 通过的联合臂为
+`continuity=1e-4`、`no-slip=10`；best/last continuity ratio
+`0.0769/0.0715`、no-slip ratio `0.1232/0.1465`，最低 velocity R²
+`0.9689/0.9697`。全量复审 Job `11067` 完整写出报告后按 Gate 合同以
+`FAILED (2:0)` 退出，结果为 `173/174` pass。
+
+**当前状态判断**：F1 pilot diagnostics completed / selected；full-data
+sidecar 与正式训练 blocked on split，未提交。唯一失败
+`AAA/ruputer/SHI_YUN_XI` 位于 test，其多个时相体域速度全零，不能用于
+PINN 速度监督/物理评估。推荐从 PINN 专用 test 只移除该例并冻结
+`train138/test35`，不从 train 补位；因这会改变冻结数据划分，等待用户确认。
+F2 继续 blocked，WSS-physics/momentum 未开启。正式链条已 code-ready，
+22/22 单测通过；确认 split 后仍必须依次通过 source audit、sidecar audit、
+full F0-UP 结果 Gate，才能提交 full F1。
+
+## 2026-07-30｜WSS-PINN F1 完训审计：continuity 有效但整体 No-Go
+
+**本次主要修改**：只读核验 F1 Jobs `11045→11046` 的 Slurm accounting、
+best/last checkpoint、训练摘要和配对评估；以 CPU 独立重算 best/last 各
+126 个数值字段。按 F1 预注册 Gate 回填路线矩阵、入口状态、总纲与进度日志，
+并解释 20000 step 仅耗时约 17 分钟的计算规模。
+
+**对应代码/文档**：
+`outputs/wss_pinn/runs/PINN-F1-cont-noslip-overfit3-v2ext-s1234-20260730/{evaluation_best.json,evaluation_last.json,training_summary.json,checkpoints/,slurm/}`；
+[WSS-PINN 总入口](WSS_PINN/README.md)；
+[阶梯矩阵 §7–§8](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；
+[历史执行合同](WSS_PINN/WSS_PINN_下一智能体目标提示词_推进至F1.md)；
+[体域物理约束路线](WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)；
+`wss_pinn/README.md`；根 `README.md`、`docs/README.md`、
+`docs/实验设计总纲.md`。
+
+**推进到实验步骤**：Jobs `11045/11046` 均 `COMPLETED (0:0)`；
+train/eval 用时 `00:16:48`。best 相对 F0-UP 的 mean continuity RMS
+`70.1526→0.3359`（`-99.52%`），但 mean no-slip RMS
+`0.12447→0.13396`（`+7.63%`），mean velocity R²
+`0.99502→0.82491`，严格最低 velocity R² `0.69678`。pressure mean R²
+仍为 `0.99824`；WSS `ΔR²=-0.00038`、`ΔMAE=+0.02446 Pa`、
+`Δhigh-WSS nRMSE=+0.00846`。last 给出相同方向，CPU 重算最大绝对差
+`1.88e-5/1.43e-5`。
+
+**当前状态判断**：F1 completed / audited / No-Go，F2 blocked。continuity
+确实被压低，但 no-slip 未改善且速度场数据护栏严重失守，不能写成“物理场整体
+改善”。训练快并非少跑：这是 3 病例、单时相、`613,829` 参数的过拟合 pilot，
+每 step 仅处理 `18,432` 个查询点，只含一阶 continuity 与简单 no-slip，
+没有 momentum 高阶导数、非牛顿黏度梯度、多时相或 WSS-physics；RTX 4090 上
+约 `50 ms/step` 合理。若继续应先做 F1 单项/权重/尺度或 curriculum 诊断，
+不得直接提交 F2。
+
+## 2026-07-30｜WSS-PINN F1 配置冻结并提交训练
+
+**本次主要修改**：复核并冻结已与 F0-UP 配对的
+`wss_pinn/configs/f1_pilot_v2.json`，不另建重复配置。该配置相对 F0-UP
+只把 continuity/no-slip 权重从 0 调为 0.1，WSS-physics/momentum 保持 0。
+完成 compile、12 项单测、CPU 单步 dry-run、launcher Gate dry-run 后，通过统一
+Slurm 提交器正式提交 GPU 预检与训练/评估依赖作业。
+
+**对应代码/文档**：`wss_pinn/configs/f1_pilot_v2.json`；
+`outputs/wss_pinn/runs/PINN-F1-cont-noslip-overfit3-v2ext-s1234-20260730/`；
+[WSS-PINN 总入口](WSS_PINN/README.md)；[阶梯矩阵 §7–§8](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；
+`wss_pinn/README.md`；根 `README.md`、`docs/README.md`、
+`docs/实验设计总纲.md`。
+
+**推进到实验步骤**：配置 source/resolved SHA256 分别为
+`85ecb2c1…49ff7a` / `8eae38dd…5ad1b1`，sampling manifest SHA256 为
+`c5bdd7b7…77678f8`。GPU preflight Job `11045` 已
+`COMPLETED (0:0)`，通过 12 项测试、F0-UP 科学 Gate 和 CUDA 单步 dry-run；
+train/eval Job `11046` 已在 GPU 节点运行并持续写出
+`training_progress.jsonl`、best/last checkpoint 和有限 loss。
+
+**当前状态判断**：F1 `running`，不是 completed；当前日志只有未设置
+`CUBLAS_WORKSPACE_CONFIG` 的 CuBLAS 确定性警告，无 NaN/Inf、路径或
+checkpoint 错误。必须等待 best/last 评估并与 F0-UP 配对检查 continuity、
+wall speed、velocity、pressure 与 WSS 护栏后再判 Gate；此前不得提交 F2。
+监控与恢复命令已写入阶梯矩阵和 run 的 `submission.json`。
+
+## 2026-07-30｜WSS-PINN F0-UP 完成、能力 Gate 通过并解锁 F1
+
+**本次主要修改**：只读核验 F0-UP Jobs `11043→11044` 的 Slurm accounting、best/last checkpoint、训练摘要、机器可读评估与父对照 F0-U v2ext；按逐病例 velocity 聚合、`u/v/w/speed`、gauge-pressure 和 WSS 护栏回填路线矩阵、入口状态、总纲和进度日志。另以 CPU 直接加载 best checkpoint 重算评估，不改写 run；126 个数值字段相对落盘 JSON 的最大绝对差 `2.29e-5`。
+
+**对应代码/文档**：`outputs/wss_pinn/runs/PINN-F0UP-overfit3-v2ext-s1234-20260730/{evaluation_best.json,evaluation_last.json,training_summary.json,checkpoints/,slurm/}`；[WSS-PINN 总入口](WSS_PINN/README.md)；[阶梯矩阵 §7–§8](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；`wss_pinn/README.md`；根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md`。
+
+**推进到实验步骤**：F0-UP preflight/train-eval Jobs `11043/11044` 均 `COMPLETED (0:0)`。best 的三病例 velocity 聚合 R² 为 `0.9957/0.9939/0.9954`，全部 velocity 聚合与 `u/v/w/speed` 的最低 R² `0.9872`；gauge-pressure R² `0.9987/0.9994/0.9998`。last 的最低 velocity/pressure R² `0.9876/0.9988`，结论不依赖 checkpoint。F1 launcher dry-run 已复核 `would_submit=true`，但本轮未提交。
+
+**当前状态判断**：F0-UP completed / Go，F1 code-ready / unlocked。该结论只证明三病例训练期速度与 gauge-pressure 可高拟合，不是独立测试泛化证据；F0-UP 未启用 physics loss，best 的 mean continuity/no-slip RMS 相对 F0-U 从 `66.99/0.1223` 变为 `70.15/0.1245`，不能写成物理 residual 改善。F1 仍严格只允许 continuity + no-slip，WSS-physics/momentum 为 0，并需单独审批后提交。
+
+## 2026-07-30｜WSS-PINN P0/P1、F0-U Gate 完成并进入 F0-UP
+
+**本次主要修改**：在独立 `wss_pinn/` 中实现配置驱动的 P0-A/B/C/D、P1 sidecar、统一 F0-U/F0-UP/F1 模型/损失/训练/评估入口、阶段门禁、写路径守卫、12 项单元测试和幂等 Slurm 提交器。真实审计选取 AG/AAA/ILO 各 1 例；生成 5k wall / 8k near-wall / 8k core 三槽 sidecar。F1 配置只启用 continuity + no-slip，WSS-physics 与 momentum 强制为 0。首次 P1 因误读冻结 `int_type`（实际 core=0、near-wall=1）在落盘前失败；修正后重跑。P0-C 首轮邻域差使用近零 divergence 作分母而病态，改用梯度范数归一化后重新跑完整 near-wall/core 诊断。
+
+**对应代码/文档**：`wss_pinn/{config.py,data/,models/,physics/,tools/,tests/,cluster/,train.py,evaluate.py}`；`wss_pinn/configs/{pilot_cases,p0_pilot,p1_pilot,f0u_pilot,f0u_pilot_v2,f0u_pilot_v2_extended,f0up_pilot_v2,f1_pilot_v2}.json`；`data_wss_pinn/pilot_v1/`；`outputs/wss_pinn/{audits,runs}/`；[WSS-PINN 总入口](WSS_PINN/README.md)；[阶梯矩阵](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)。
+
+**推进到实验步骤**：P0-A/B/C/D 与 P1 completed。P0-B 三病例最佳 velocity→WSS R² 为 `0.816/0.826/0.801`；P0-C 相对 divergence p95 为 `0.069/0.129/0.088`。P0-D 法向可用，但 exact zone/connectivity 缺失，hard flux/RCR residual blocked。P1 聚合 manifest SHA256 为 `c5bdd7b7ec89b43b16d8a1eccd664caf9490b39eb4aca6e1c4e8ec05177678f8`。F0-U v1 Jobs `11037→11038` 均 completed，速度 R² `0.654/0.586/0.567` 未过 0.95，No-Go。v2 Jobs `11039→11040` 也 completed；case-balanced WSS R² `0.9906`，但逐病例 `u/v/w/speed` 最低项仍为 `0.925–0.929`，严格 Gate No-Go。v2ext 从 v2 `last.pt` 显式恢复，只增加 12000 epoch；Jobs `11041→11042` completed，best/last 的严格速度 Gate 最低 R² 为 `0.9888/0.9896`，Go。F0-UP Jobs `11043→11044` 中 preflight completed、训练 running。F1 v2ext 已通过 CPU/launcher dry-run，但仍由 F0-UP Gate 锁定、未提交。
+
+**当前状态判断**：实现层已覆盖到 F1，执行层按 Gate 推进到 F0-UP running。F0-U v2ext 已证明三病例速度场可严格过拟合，且 case-balanced WSS R² 为 `0.99934`。只有 F0-UP 的逐病例 velocity 各项与 gauge-pressure R² 均过 0.95 后才允许提交 F1。GPU 日志存在未设置 `CUBLAS_WORKSPACE_CONFIG` 的确定性警告，但无 NaN/Inf、导入、CUDA、路径或 checkpoint 错误。
+
+## 2026-07-30｜P0→F1 下一智能体执行提示词与长作业交接合同（No-Run）
+
+**本次主要修改**：新增一份可直接交给下一智能体的执行型目标提示词，把本轮实现边界固定为 P0-A/P0-B/P0-C/P0-D→P1→F0-U→F0-UP→F1；要求实际修改独立路线代码、所有实验只通过配置字段切换、正式训练统一走 Slurm。明确“实现层必须完整做到 F1、执行层按科学 Gate 推进”的双层完成口径，以及长训练只需提交、检查首轮状态/日志并可靠记录，无需原地等待完训。
+
+**对应代码/文档**：[WSS-PINN 下一智能体目标提示词：实现并推进至 F1](WSS_PINN/WSS_PINN_下一智能体目标提示词_推进至F1.md)；[WSS-PINN 独立路线总入口](WSS_PINN/README.md)；`wss_pinn/README.md`。
+
+**推进到实验步骤**：仍为 S0/No-Run；本次只建立执行交接合同，未实现 P0/P1 或模型代码，未生成 sidecar，未提交 Slurm 作业。下一智能体应先完成 P0/P1 pilot，同时把 F0-U/F0-UP/F1 的共用代码、配置、测试和集群入口准备到 code-ready。
+
+**当前状态判断**：提示词已避免“长 F0-U 未完导致 F1 代码也不实现”和“只靠 Slurm `afterok` 越过科学 Gate”两类问题。F2 的 WSS 梯度一致性和 F3 momentum 明确不在本轮范围；若训练尚未完成，只能记录 `submitted/running/pending_review`，不得宣称 F1 实验已完成。
+
+## 2026-07-30｜WSS-PINN 独立目录、阶梯计划与记录合同建立（No-Run）
+
+**本次主要修改**：建立顶层 `wss_pinn/` 专用入口及硬隔离规则，冻结 `data_new/`、`data_wss_min/`、`pipeline_wss_min/`、`training_wss_min/` 为只读上游；PINN 派生数据、结果和执行记录分别固定到 `data_wss_pinn/`、`outputs/wss_pinn/`、`docs/02-推进与变更/WSS_PINN/`。新增 S0→P0→P1→F0-U→F0-UP→F1→F2→F3→C1/C2 阶梯、配对消融、运行落盘字段、状态词和 Go/No-Go 模板。
+
+**对应代码/文档**：`wss_pinn/{AGENTS.md,README.md}`；[WSS-PINN 独立路线总入口](WSS_PINN/README.md)；[WSS-PINN 阶梯实验矩阵与进度跟踪](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；[体域物理约束与 PINN 路线](WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)；根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md` 和 `.gitignore`。
+
+**推进到实验步骤**：完成 S0 目录隔离和预注册；P0-A/P0-B/P0-C/P0-D 均为 planned。未实现数据或训练代码，未生成 sidecar，未提交 GPU/Slurm 作业，未修改旧数据、配置、checkpoint 或 run。
+
+**当前状态判断**：独立目录方案可以保护原实验，且比在 `training_wss_min/` 内直接叠加 PINN 更容易做严格归因和失败回退。下一步只允许先实现 P0-A 体点身份/单位审计，再做 P0-B velocity→WSS Oracle；P0 未通过前，P1–C2 保持 blocked。
+
+## 2026-07-29｜非滑移壁面与体域分槽采样口径冻结（No-Run）
+
+**本次主要修改**：根据用户补充确认，将“刚性壁面”精确冻结为“非滑移刚性壁面”；明确现有 `random5000` 仅继续承担 W0 直接 WSS 锚点的壁面 support，PINN 训练必须另加近壁体点和核心体点，不能用全壁面 5k 点计算体域 Navier–Stokes 残差。
+
+**对应代码/文档**：[体域物理约束与 PINN 训练路线讨论稿 §0.5/§6.1/§10.1](WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)；体点候选源为只读的 `data_new/**/ascii_in/`，现有 WSS 锚点协议不变。
+
+**推进到实验步骤**：仍为 P0/No-Run，未改代码、数据、配置或作业。后续 sidecar/batch 合同预注册为 wall、near-wall、core 分槽；F0 使用体内 \(u,v,w,p\) 监督，F1/F3 在体域点计算 continuity/momentum，壁面点只承担 no-slip、直接 WSS 和梯度一致性。
+
+**当前状态判断**：体内点是完整 PINN 路线的必要条件，但不要求一次载入全部百万级体点，也不应破坏 `random5000` 基线。下一步仍先做 cell identity、velocity→WSS、CFD residual 与法向/边界可得性四类 P0 审计，再冻结 pilot 的每槽点数。
+
+## 2026-07-29｜非牛顿流变正式确认并冻结 PINN 物理口径（No-Run）
+
+**本次主要修改**：根据用户最终确认，将体域 PINN 路线中的流变状态从“UDF/`.cas.gz` 已证明、待口头确认”升级为正式决策：统一使用 UDF 定义的剪切率相关非牛顿流变；删除“可能本意为常黏度或误挂接”的待定表述。
+
+**对应代码/文档**：[体域物理约束与 PINN 训练路线讨论稿 §0.4/§1.2/§10.2](WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)；物理参数真源仍为 `data_new/**/udf-inlet4.c` 和对应 `.cas.gz`。
+
+**推进到实验步骤**：仍为 P0/No-Run，未改代码、数据或作业。后续 velocity→WSS Oracle、\(WSS_{\mathrm{phys}}\) 和 momentum residual 统一使用 UDF 的 \(\mu(\dot{\gamma})\)；constant-\(\mu\) 只允许作为命名明确的简化消融。
+
+**当前状态判断**：流变模型不再是阻塞项。第一阶段的目标、BC、数据划分、Fluent 导出边界和非牛顿物理方程族均已冻结；当前只等待 UDF/单位、cell identity、CFD velocity→WSS 和 CFD residual 四类 P0 闭环。
+
+## 2026-07-29｜PINN 五项边界确认与 UDF 流变/BC 只读审计（No-Run）
+
+**本次主要修改**：将用户确认的五项边界正式回填体域 PINN 路线：第一阶段只做峰值 WSS；沿用现有 `test36` 做 reused development screen；工程 BC 使用共享入口流量模型和几何分支面积；暂不新增 Fluent mesh/zone/connectivity 导出。只读核对 DING 病例 UDF、`.cas.gz`、Global_conditions 和全库 188 份 AAA/ILO 顶层 UDF，修正原“常黏度牛顿流体”假设。
+
+**对应代码/文档**：[体域物理约束与 PINN 训练路线讨论稿 §0.4/§1.2/§10](WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)；只读证据为 `data_new/AAA/ruputer/DING_JUN_FENG/{udf-inlet4.c,DING_JUN_FENG.cas.gz,2.jou,Global_conditions/}` 及 `data_new/**/udf-inlet4.c`。
+
+**推进到实验步骤**：仍处于 P0 设计与数据合同阶段，未改代码、数据或作业。新增正式前置审计：解析共享 \(Q(t)\)、病例入口/四出口面积、四组 RCR、流变参数和 `F_FLUX` 单位，并检验 RCR 是否可由出口面积/分支身份确定；P0-B velocity→WSS Oracle 改为使用实际的 variable \(\mu(\dot{\gamma})\)。
+
+**当前状态判断**：DING `.cas.gz` 明确挂接 `cell_viscosity::libudf`，密度为 \(1060\ \mathrm{kg/m^3}\)；188 份顶层 UDF 的波形与流变常数一致，入口面积除数有 180 个不同值。当前 CFD 真源应表述为非滑移刚性壁面、不可压缩、统一广义牛顿 Carreau–Yasuda 型流变，而非全场 \(\mu=0.0035\) 常数；该流变口径已由上方最新条目正式确认。第一阶段可在不新增 Fluent 导出的前提下推进 F0/F1/F2，但不做精确出口面 hard RCR residual 或 connectivity-based residual。
+
+## 2026-07-29｜体域物理约束/PINN 第一性原理路线留档（No-Run）
+
+**本次主要修改**：只读核对当前 WSS-only 锚点、`data_new/` 体内/壁面数据、v4 bundle 字段、旧 `pipeline/` 采样和 V1 physics loss 实现；新增体域物理约束讨论真源。方案明确不在现有壁面 WSS 单头上直接叠加 Navier–Stokes loss，而是保留冻结锚点，新增几何/边界条件条件化的平滑 \(u,p\) 神经场辅助分支，并按 data-only → continuity/no-slip → WSS 梯度一致性 → unsteady momentum 逐级验证。
+
+**对应代码/文档**：[体域物理约束与 PINN 训练路线讨论稿](WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)；只读证据包括 `pipeline_wss_min/{config.py,preprocess.py,raw_io.py}`、`pipeline/{config.py,utils/sampling.py}`、`training/core/losses.py`、`data_wss_min/**/{bundle.npz,report.json}` 和历史 V1 PINN 推进记录。
+
+**推进到实验步骤**：推进到 P0 数据/数值闭环预注册，尚未进入实现或训练。下一步依次审核全队列 `cellnumber/coords` 时相稳定性、CFD velocity→WSS Oracle、CFD 真值 PDE residual、壁面法向与入口/出口 zone；通过后才建立独立 physics sidecar，并先做 3–5 例 F0 data-only 过拟合。
+
+**当前状态判断**：现有 v4 bundle 已有全体点坐标、距离和 81 时相壁面 WSS/pressure，但默认没有体内速度/压力时间序列；旧 V1 physics batch 在壁面点超过 2048 时只选壁面，Jobs 5536–5538/5540/5600 也未形成完整可判读对照，不能作为 PINN No-Go。本条提出的五项待确认边界已由上方“PINN 五项边界确认与 UDF 流变/BC 只读审计”收敛；其中流变口径按 `.cas.gz` 实际挂接修正为 variable viscosity。本次未改代码/数据，未提交作业。
+
+## 2026-07-29｜SAME-H2 + `log(local_radius)` 两臂完训、分析与工作簿回填
+
+**本次主要修改**：
+- 在向后兼容的特征表中新增 `log_local_radius`，`load_case` 从正的物理 mm `local_radius` 计算自然对数；新增独立回归测试。
+- 以 ★ SAME-H2 为父配置生成精确同-seed并发 control 和唯一新增第7列 `log_local_radius` 的处理臂；原始半径、LocalGeoPE 索引、H2 损失和所有训练协议冻结。
+- 从父模型相同的 control106 train-only 来源生成扩展特征统计；新增静态审计、CUDA 前后向/checkpoint/full-chunk门禁与幂等 Slurm 提交合同。
+- 完成两臂 400 epoch、best/last test36、36 例配对 bootstrap 和预注册 Gate 复算；新增结果分析器及幂等工作簿更新器，在既有三张结果表回填两臂，不增加工作表。
+
+**对应代码/配置**：`training_wss_min/{config.py,dataset.py,tests/test_log_local_radius_feature.py}`；`training_wss_min/configs/pointnetpp_lsa2_h2_logradius_20260729/`；`training_wss_min/tools/{prepare_lsa2_h2_logradius_matrix.py,smoke_lsa2_h2_logradius_matrix.py,analyze_lsa2_h2_logradius_results.py,update_lsa2_h2_logradius_xlsx.py}`；`training_wss_min/cluster/{preflight_lsa2_h2_logradius_matrix.slurm,run_lsa2_h2_logradius_matrix.slurm,submit_lsa2_h2_logradius_matrix.py}`；`training_wss_min/preflight/lsa2_h2_logradius_matrix_20260729_{results_analysis.json,results_summary.csv,paired_case_stats.csv}`；`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`。
+
+**推进到实验步骤**：24项核心/Support-Query回归、5项 Local Transformer 回归、新特征2项测试、配置差异审计和提交 dry-run 通过。Jobs `11032`、`11033_0/1` 均 `COMPLETED (0:0)`；两臂 checkpoint、400 epoch、best/last test36、36 例 CSV、配置哈希和有限值完整性通过。结构化分析、文档和 `.xlsx` 已回填；工作簿保持5张表、6页，未恢复 `D2K64三种子确认`。
+
+**当前状态判断**：处理臂相对并发 H2 control 的 `ΔR²_cb=+0.0436`、`Δnormalized R²_cb=+0.0042`、`ΔMAE=-0.0342 Pa`、`Δhigh-WSS nRMSE=-0.00295`、`ΔIoU=-0.0029`，同时通过两个主门和全部保护线，晋级为新单 seed 开发锚点。病例全场 R² 均值差95%CI跨零，故不得写成稳健确认；暂不补多 seed，下一项可在新锚点上单变量验证解析锚残差参数化。
+
+## 2026-07-29｜REG-P10-LSA2 SAME/IND × H1/H2 六臂完训、分析与工作簿回填
+
+**本次主要修改**：
+- 完成 `SAME/IND × MSE/H1/H2` 六臂训练、best/last test36 评估、三域与 36 例配对 bootstrap；所有 Gate 只使用本轮并发控制。
+- 新增严格结果分析器，核验 Slurm、400 epoch、checkpoint、配置哈希、有限值、病例集合和 best/last；结构化输出 JSON 与两张 CSV。
+- 新增幂等工作簿更新器；向 `实验矩阵总览`、`教师汇报视图` 和 `汇总对比` 回填六臂，不增加 sheet，并把打印首页切换为本轮紧凑结论页。保持 5 张表、6 页，未恢复 `D2K64三种子确认`。
+
+**对应代码/文档**：
+- `training_wss_min/configs/pointnetpp_regp10_lsa2_objective_ind_20260728/*.json`
+- `training_wss_min/tools/{prepare_regp10_lsa2_objective_ind_matrix.py,smoke_regp10_lsa2_objective_ind_matrix.py}`
+- `training_wss_min/tools/{analyze_regp10_lsa2_objective_ind_results.py,update_regp10_lsa2_objective_ind_xlsx.py}`
+- `training_wss_min/cluster/{preflight_regp10_lsa2_objective_ind_matrix.slurm,run_regp10_lsa2_objective_ind_matrix.slurm,submit_regp10_lsa2_objective_ind_matrix.py}`
+- `training_wss_min/preflight/regp10_lsa2_objective_ind_matrix_20260728_{results_analysis.json,results_summary.csv,paired_case_stats.csv}`
+- `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`
+- [高值区域优化方案 §4.4](WSS高值区域预测优化方案.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)、[PointNet baseline 矩阵 §0P](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)
+
+**推进到实验步骤**：Jobs `11019`、`11020_0–5` 全部 `COMPLETED (0:0)`；六臂完整性 `6/6` 通过。结构化分析、文档和 `.xlsx` 已回填；工作簿保存回读和 LibreOffice 6 页 PDF 渲染通过。
+
+**当前状态判断**：IND 主效应 `ΔR²_cb=+0.0014`，No-Go；H1 在 SAME/IND 下 `ΔIoU=+0.0175/-0.0018`，均 No-Go。H2 在两种 query 模式内均过 high-WSS nRMSE Gate，但 IND-H2 相对 SAME-H2 的 R²/normalized R²/MAE 更差，IND 不晋级。SAME-H2 以 `R²_cb=0.3239`、`Δhigh-WSS nRMSE=-0.00205` 进入后续输入臂；H2 control / +`log(local_radius)` 已在上方完成并产生新锚点，不组合 H1/H2。
+
+## 2026-07-28｜O0 hotspot BCE / q90 pinball 2/2 完训、分析与工作簿回填
+
+**本次主要修改**：
+- 不补 RCR 多 seed、不做 RCR 架构；以 O0 geometry-only S3 `PointNeXt-R + LocalGeoPE` 为唯一父模型。
+- 在 `TrainConfig/objectives` 增加两个默认关闭的单变量辅助目标：病例相对 q90 balanced hotspot BCE，以及 q90 pinball；默认值保持历史模型行为不变。
+- H1 使用第二输出通道作为 hotspot logit，评估与 PostView 仍严格读取第一 WSS 回归通道；H2 保持单输出。新增配置差异审计、单元/梯度测试、CUDA smoke、Slurm 门禁/训练和幂等提交入口。
+- 完成 O0/H1/H2 的 best/last、分域和 36 例配对复算；新增独立结果分析器与幂等工作簿更新器，工作簿不新增 sheet，只向既有三张结果表追加两臂，保持 5 张表、6 页紧凑版式。
+
+**对应代码/文档**：
+- `training_wss_min/{config.py,objectives.py,evaluate.py}`
+- `training_wss_min/tests/test_hotspot_tail_objectives.py`
+- `training_wss_min/configs/pointnetpp_o0_hotspot_tail_20260728/*.json`
+- `training_wss_min/tools/{prepare_o0_hotspot_tail_matrix.py,smoke_o0_hotspot_tail_matrix.py}`
+- `training_wss_min/tools/{analyze_o0_hotspot_tail_results.py,update_o0_hotspot_tail_xlsx.py}`
+- `training_wss_min/cluster/{preflight_o0_hotspot_tail_matrix.slurm,run_o0_hotspot_tail_matrix.slurm,submit_o0_hotspot_tail_matrix.py}`
+- `training_wss_min/preflight/o0_hotspot_tail_matrix_20260728_results_{analysis.json,summary.csv}`
+- `training_wss_min/preflight/o0_hotspot_tail_matrix_20260728_paired_case_stats.csv`
+- `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`
+- [高值区域优化方案 §4.3](WSS高值区域预测优化方案.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)、[PointNet baseline 矩阵 §0O](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)
+
+**推进到实验步骤**：静态矩阵审计、目标函数有限值/梯度检查和 CUDA smoke 通过；Jobs `11012`、`11013_0`、`11013_1` 均 `COMPLETED (0:0)`。两臂均完成 400 epoch、best/last checkpoint、best/last test36 全云评估和 36 例逐病例 CSV；配置哈希、产物完整性、有限值与 Slurm 状态审计全部通过。工作簿回读、专门结果区域渲染和整本 6 页 PDF 渲染通过，`D2K64三种子确认` 未恢复。
+
+**当前状态判断**：H1 的 `Δtop10 IoU=+0.0170`，距主门 `0.0030`；H2 的 `Δhigh-WSS nRMSE=-0.00072`，仅达到门槛量级约 36%。两臂 normalized R²/physical MAE 保护线和三域 R² 均通过，但按预注册规则仍为 **2/2 No-Go**；best/last 结论一致，不组合、不补 H2 相邻 q/λ。当时提出的 O0 IND 单臂已由本日志上方的 REG-P10-LSA2 2×3 矩阵取代。
+
+## 2026-07-28｜S3 RCR Oracle 3/3 完训、配对复算与工作簿回填
+
+**本次主要修改**：
+- 基于 `data_new/**/Global_conditions` 对应 UDF 源文件提取 174/174 病例四出口 \(R_1/R_2/C\)，形成 12 维自然对数病例特征；train138 病例等权统计，O2 在 train/test 内按 AG、AAA subtype、ILO 0/1 分层做无固定点置换。
+- 固定 S3 `PointNeXt-R + LocalGeoPE`、mixed `138/0/36`、seed1234、400 epoch、train-loss 选模和 `legacy_vertex`，完成 O0 geometry、O1a true RCR、O2 shuffled RCR 三臂训练与 best/last 评估。
+- 新增结果审计与幂等工作簿回填工具；复算聚合指标、分域 R²、best/last 敏感性和逐病例 bootstrap，并在原工作簿增加 `RCR Oracle` 专页。
+
+**对应代码/文档**：
+- `training_wss_min/tools/{prepare_rcr_oracle_matrix.py,analyze_rcr_oracle_results.py,update_rcr_oracle_xlsx.py}`
+- `training_wss_min/configs/pointnetpp_rcr_oracle_20260728/*.json`
+- `training_wss_min/preflight/rcr_oracle_matrix_20260728_results_{analysis.json,summary.csv}`
+- `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`
+- [高值区域优化方案](WSS高值区域预测优化方案.md)、[训练实验跟踪](WSS最小化_训练实验跟踪.md)、[PointNet baseline 矩阵 §0N](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)
+
+**推进到实验步骤**：Jobs `11008→11009_[0-2]%3` 全部 `COMPLETED (0:0)`；三臂 checkpoint、best/last test36 指标、逐病例 CSV 与配置哈希完整性通过。工作簿已回填 `实验矩阵总览`、`教师汇报视图`、`汇总对比` 并新增 `RCR Oracle` 专页，LibreOffice 渲染验证通过。
+
+**当前状态判断**：O1a 相对 O0 的 physical `ΔR²_cb=+0.0805`、`ΔMAE=-0.1354 Pa`、`Δtop10 IoU=+0.0337`；O2 的 `ΔR²_cb=-0.0033`。真实 RCR 同时优于几何基准和等维负对照，判 **Go-to-follow-up**；下一步补 O1a/O0 多种子或新协议确认，并评估可部署代理。单种子、复用 test36、train-loss 选模仍是结论边界。
+
+## 2026-07-28｜REG-P10 静态 EdgeConv 3/3 完训、分析与工作簿回填
+
+**本次主要修改**：
+- 在 `PointNetSetAbstraction` 中新增几何约束的 `StaticEdgeConvCorrection`：只复用既有 SA 邻域，计算 `[x_i, x_j-x_i, Δp_ij/r]` 残差消息，不执行动态 KNN；`ModelConfig.edgeconv_stages` 为 1-based 开关，默认 `()` 不创建模块或 checkpoint key。
+- 以 REG-P10 `S3 + LocalGeoPE + DropPath0.10, seed1234` 为父配置生成 `SA1/SA2/SA12` 三个单变量臂，补齐配置生成、静态审计、GPU smoke、Slurm 门禁/训练/提交、单元测试、结果分析和幂等写表工具。
+- 新增可复跑分析产物，严格比较同一 REG-P10 父模型，核验 400 epoch、best/last、test36 全云指标、36 例逐病例 CSV、配置哈希和有限值，并复用已注册的 R²/MAE/high-WSS/分域 Gate。
+
+**对应代码/文档**：
+- `training_wss_min/{baseline_models.py,config.py}`
+- `training_wss_min/tests/test_static_edgeconv.py`
+- `training_wss_min/configs/pointnetpp_regp10_edgeconv_20260727/*.json`
+- `training_wss_min/tools/{prepare_regp10_edgeconv_matrix.py,smoke_regp10_edgeconv_matrix.py}`
+- `training_wss_min/tools/{analyze_regp10_edgeconv_results.py,update_regp10_edgeconv_xlsx.py}`
+- `training_wss_min/cluster/{preflight_regp10_edgeconv_matrix.slurm,run_regp10_edgeconv_matrix.slurm,submit_regp10_edgeconv_matrix.py}`
+- `training_wss_min/preflight/regp10_edgeconv_matrix_20260727_{prepared,static_audit,geometry_audit,gpu_smoke,submission,results_analysis}.json`
+- `training_wss_min/preflight/regp10_edgeconv_matrix_20260727_{results_summary,paired_case_stats}.csv`
+- `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`
+- [PointNet baseline 矩阵 §0M](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) 与 [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：
+- 108 项回归测试全部通过；三份配置的逐字段静态审计 `3/3`、138 个训练病例的 SA 几何合同、目标层 CUDA 执行、有限梯度、严格 checkpoint 重载和 full/chunk 推理一致性全部通过。
+- GPU 门禁 Job `10993` 与训练/评估数组 `10994_[0-2]%3` 全部 `COMPLETED (0:0)`；三臂均完成 400 epoch、best/last checkpoint、best/last test36 全云评估和 36 例逐病例 CSV，父模型加三臂完整性 `4/4` 通过。
+- 分析器产出 JSON/CSV；工作簿在既有「实验矩阵总览」第 `179–181` 行、「教师汇报视图」第 `153–155` 行和「汇总对比」第 `244` 行起追加 EdgeConv 结果，保存回读与 LibreOffice PDF 渲染通过。
+
+**当前状态判断**：
+- `EC-SA1/SA2/SA12` 的物理 `ΔR²_cb` 分别为 `-0.0053/-0.0023/-0.0338`，没有一臂超过 REG-P10。
+- `EC-SA2` 虽有 MAE `-0.0240 Pa`、top10 IoU `+0.0122`、AG/AAA 正向和 21/15 病例胜负，但 high-WSS `-0.0256`、ILO `-0.0324` 且病例 CI 跨零，未过主指标和保护线，不能事后晋级。
+- 本轮静态 EdgeConv 3/3 No-Go；不继续补动态特征图或多种子。该结论只覆盖当前 REG-P10 上的残差 EdgeConv 最小实现，不外推否定所有 UDGCNN/DGCNN 架构。
+
+## 2026-07-26｜《WSS 高值区域预测优化方案》第一性原理重估与对抗性审查 ✅只读诊断、方案回填
+
+**本次主要修改**：
+- 新增只读诊断脚本 `training_wss_min/tools/diagnose_high_wss_ceilings.py`：不训练、不改数据，逐位复现 `baseline_models.py` 解码器的 `knn_interpolate`（\(1/d^2\)、k 近邻归一化），在 **全库 192 个 bundle** 上产出四组量——(1) support→全点云的**协议天花板**（物理与标准化两个空间）、(2) **标签稳定性**（8 近邻平滑 / 相邻心动时相漂移）、(3) log WSS 的**病例间/病例内方差分解**、(4) 逐例 **Poiseuille 先验** \(\log\tau\sim b\log r\) 的指数与 \(R^2\)。支撑点抽样改用 `hashlib` 派生种子（内置 `hash()` 按进程加盐，会破坏跨运行复现）。
+- 在 `docs/02-推进与变更/WSS高值区域预测优化方案.md` 追加第二部分 §13–§17（约 480 行）：§13 第一性原理重估、§14 对抗性审查 D-01…D-13、§15 未覆盖优化空间 N-01…N-09、§16 修订优先级（取代原 §11/§12）、§17 复核方法与出处。文首加阅读提示，声明 §13–§17 推翻或修订原 §1/§2.1/§4/§5.4/§9.3/§10.2/§11/§12。
+- **未改动任何训练/评估代码，未提交任何作业。**
+
+**对应代码/文档**：
+- `training_wss_min/tools/diagnose_high_wss_ceilings.py`（新增）
+- `training_wss_min/preflight/high_wss_ceilings_20260726.json`（新增，192 例逐例明细 + 方差分解）
+- [WSS高值区域预测优化方案 §13–§17](WSS高值区域预测优化方案.md)
+- 数据源（只读）：`runs/pointnetpp_regp10_transformer/outputs/localtf_sa2_s1234/eval/ckpt_best/{metrics.json,per_case_metrics.csv}`、`preflight/regp10_transformer_matrix_20260726_results_summary.csv`、`preflight/d2_k64_ilo_structure_three_seed_confirmation_summary.csv`、`data_wss_min/**/bundle.npz`、`data_new/*/*/{Global_conditions/,*.cas.gz}`
+
+**推进到实验步骤**：
+- 全库 192 例诊断跑通（AG 76 / AAA 65 / ILO 51），产物落 preflight；结论量级与 24 例分层预跑一致。
+- 收缩恒等式 \(\hat y_q/y_q=\exp[\sigma(\hat z_q-z_q)\,]\) 逐例验证，\(\lambda=1\) 与落盘 `physical_calibration_p99_pred_true_ratio` 最大偏差 \(3\times10^{-6}\)。
+- 发现 `evaluate.py:write_reports` 的 `norm_res = res.get("normalized", res)` 使 `per_case_metrics.csv` 的**无前缀列**（`cal_*`/`dist_*`/`overall_*`/`high_wss_*`/`bifurcation_*`/`stenosis_*`/`legacy_vertex_*`）静默为**标准化空间**，与 `metrics.json` 同名的物理区块并存。已核对 `tools/analyze_regp10_transformer_results.py` 读 `metrics.json`，**已发布的 9 臂汇总表未受污染**；本轮不改代码，只在方案 D-01 登记为待修隐患。
+
+**当前状态判断**：
+- 五条量化结论：① 物理尾部亏欠是标准化亏欠经 \(\sigma=1.3669\) 的 \(\exp\) 放大，**不是独立故障**；② 网络已是 log 空间条件均值（pooled slope 0.6325 vs \(R^2\) 0.6181），收缩是 MSE 的定义；③ log 方差 **85% 在病例内**、仅 14.9% 在病例间——给 §4 oracle / §7.4 尺度头 / §7.5 分域容量**共同**设了 ~15% 上限；④ 协议天花板 IoU **0.813**（AG/AAA/ILO = 0.858/0.784/0.738）、标准化 \(R^2\) 0.976，**分辨率不是瓶颈**，full-resolution refiner 应后置；⑤ 泛化差距 ≥0.13 且 `selection_rule=train_loss` + `val_cases=0` 在 best epoch 378/400 选模。
+- 已识别但**尚未执行**的零训练动作：λ 方差重标定前沿（唯一待实测的是物理 \(R^2\)/MAE 两列）。
+- 新增未用监督清单（均已在 bundle 内）：81 心动时相、`wall_wss_vec(81,N,3)`、`wall_pressure(81,N)`；以及零代码的 `query_mode="independent"` 训练/评估解码口径对齐。
+- 下一步待用户裁定：是否按方案 §16 的 P0 七项启动（全部不训练）。
+
+## 2026-07-27｜固定 D2 PNXR+GeoPE 的 local-SA1 / local-SA2 对照 ✅完训、分析与工作簿回填
+
+**本次主要修改**：
+- 以已完成的 `D2 c125×k64 + PointNeXt-R + LocalGeoPE` 为唯一父配置，新增 `local_transformer_stages=[1]` 与 `[2]` 两个 seed1234 单变量臂；固定 AG/AAA `106/0/27`、train106 stats、random5000/SAME、`125/125/32`、`64/16/16`、6D 输入、7D GeoPE、无 DropPath、400 epoch 与 train-loss 选模。
+- 新增独立配置生成、门禁、训练数组与提交器；训练完成后自动执行 best/last test27 全云评估和 best/last 对比。
+- Transformer GPU smoke 补充历史 D2 兼容路径：配置未显式给出 `feature_stats_path` 时，严格复用训练循环从冻结 train partition 重算统计的合同；显式 stats 配置行为不变。
+- 新增可复跑结果分析器与幂等写表器：区分物理/归一化 R²，核验 Slurm、配置哈希、400 epoch、best/last、27 例 CSV 与有限值，计算同病例 bootstrap CI；Excel 只更新既有三张结果表并执行回读和 LibreOffice 渲染。
+
+**对应代码/文档**：
+- `training_wss_min/tools/prepare_d2_c125_k64_transformer_matrix.py`
+- `training_wss_min/tools/smoke_regp10_transformer_matrix.py`
+- `training_wss_min/tools/{analyze_d2_c125_k64_transformer_results.py,update_d2_c125_k64_transformer_xlsx.py}`
+- `training_wss_min/configs/pointnetpp_d2_c125_k64_pnxr_geope_transformer_20260726/*.json`
+- `training_wss_min/cluster/{preflight_d2_c125_k64_transformer.slurm,run_d2_c125_k64_transformer.slurm,submit_d2_c125_k64_transformer.py}`
+- `training_wss_min/preflight/d2_c125_k64_pnxr_geope_transformer_20260726_{prepared,static_audit,submission}.json`
+- `training_wss_min/preflight/d2_c125_k64_pnxr_geope_transformer_20260726_results_{analysis.json,summary.csv}`
+- `training_wss_min/preflight/d2_c125_k64_pnxr_geope_transformer_20260726_paired_case_stats.csv`
+- `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`
+- [PointNet baseline 矩阵 §0L](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) 与 [训练实验跟踪](WSS最小化_训练实验跟踪.md)
+
+**推进到实验步骤**：
+- 配置读取、逐字段静态审计 `2/2`、Python compile、Slurm shell syntax、5 项局部 Transformer unittest、目标层模块实例化与提交 dry-run 均通过；run_dir 均不存在。
+- GPU 门禁 Job `10979` 与两条训练任务全部 `COMPLETED (0:0)`；两臂均完成 400 epoch、best/last checkpoint、best/last test27 全云评估和 27 例逐病例 CSV，父模型加两臂的完整性审计 `3/3` 通过。
+- 分析器产出 JSON/CSV；写表器新增「实验矩阵总览」第 `177–178` 行、「教师汇报视图」第 `151–152` 行和「汇总对比」第 `240` 行起的区块，保存回读与 PDF 渲染通过。
+
+**当前状态判断**：
+- 本组是 fixed `106/0/27` D2 协议下的 SA1/SA2 对照，不含 REG-P10 的 DropPath0.10，也不含 ILO/mixed test36，故只与同一 D2 PNXR+GeoPE 父模型严格配对。
+- `D2-L-SA1` 物理 `R²_cb -0.0293`，MAE/RMSE、high-WSS、IoU、AG/AAA 全部退化，判 No-Go。
+- `D2-L-SA2` 物理 `R²_cb +0.0015` 近似持平，但归一化 `R²_cb -0.0132`、high-WSS `-0.0105`，病例 CI 跨零，判“持平、不晋级”。last checkpoint 的正向敏感性不用于事后改选。
+- REG-P10/mixed test36 的 SA2 信号未在无 DropPath、无 ILO的 fixed test27 D2 协议上直接复现，当前停止 D2 local Transformer 扩展。
+
+## 2026-07-26｜REG-P10 局部 SA Transformer 完整矩阵 ✅8/8 完训、分析与工作簿回填
 
 **本次主要修改**：
 - 新增 `LocalNeighborhoodTransformer`：在单个 SA center 的邻域内部，对逐边 MLP+LocalGeoPE token 执行 pre-norm 多头自注意力与 FFN，再做 max 聚合；通过 group mask 保证不跨 center、不跨病例。
@@ -12,6 +402,7 @@
 - 明确 SA3 不再新增第二套 Transformer：既有 `CoarseGlobalBlock/coarse_attention` 已经完成 32 个 coarse centers 间的全局 self-attention、相对几何 bias 与 FFN。
 - 以 `S3+DropPath0.10, seed1234`（REG-P10）为父配置完成局部 stage 的全部 7 个非空子集：`SA1/SA2/SA3/SA12/SA13/SA23/SA123`，另加复用旧模块的 `SA3-global` 对照，共 8 臂。
 - 修正既有未跟踪 SA-grouping 测试夹具的层数声明：三层 SA 参数显式补 `sa_blocks=[1,1,1]`；生产配置校验未放宽。
+- 新增可复跑结果审计器和安全写表器；统一核验配置哈希、400 epoch、best/last、全云/逐病例产物与有限数值，计算同病例 bootstrap CI，并按预注册四类 Gate 自动判定。工作簿只更新既有「实验矩阵总览」「教师汇报视图」「汇总对比」，保存后回读并经 LibreOffice 渲染。
 
 **对应代码/文档**：
 - `training_wss_min/{baseline_models.py,config.py}`
@@ -20,18 +411,23 @@
 - `training_wss_min/configs/pointnetpp_regp10_transformer_20260726/*.json`
 - `training_wss_min/configs/sweeps/pointnetpp_regp10_transformer_20260726.txt`
 - `training_wss_min/tools/{prepare_regp10_transformer_matrix.py,smoke_regp10_transformer_matrix.py}`
+- `training_wss_min/tools/{analyze_regp10_transformer_results.py,update_regp10_transformer_xlsx.py}`
 - `training_wss_min/cluster/{preflight_regp10_transformer_matrix.slurm,run_regp10_transformer_matrix.slurm,submit_regp10_transformer_matrix.py}`
-- `training_wss_min/preflight/regp10_transformer_matrix_20260726_{prepared,static_audit,submission}.json`
+- `training_wss_min/preflight/regp10_transformer_matrix_20260726_{prepared,static_audit,submission,results_analysis}.json`
+- `training_wss_min/preflight/regp10_transformer_matrix_20260726_{results_summary,paired_case_stats}.csv`
+- `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`
 - [PointNet baseline 矩阵 §0K](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) 与 [训练实验跟踪](WSS最小化_训练实验跟踪.md)
 
 **推进到实验步骤**：
 - `GNN` 环境下 compileall、Slurm shell syntax、8 份配置读取、逐字段静态审计 `8/8` 与提交 dry-run 均通过；默认关闭路径对旧 REG-P10 checkpoint 严格重载通过。
 - 全测试集 `102/102` 通过。此前报告的 `101/102` 中唯一失败，原因是测试夹具自身将三层 SA 列表与默认四层 `sa_blocks` 混用，不代表训练代码回归。
-- 正式 GPU 门禁 Job `10967` 已 `COMPLETED (0:0)`；8 臂 CUDA 前后向、模块执行、严格 checkpoint 重载与 full/chunk 一致性全部通过。训练、best/last checkpoint 与 test36 全云评估数组 Job `10968_[0-7]%4` 已按 `afterok:10967` 启动。
+- 正式 GPU 门禁 Job `10967` 与训练/评估数组 `10968_[0-7]%4` 均 `COMPLETED (0:0)`；8 个 run 均完成 400 epoch、best/last checkpoint、best/last test36 全云评估和 36 例逐病例 CSV，审计 `9/9`（含父模型）通过。
+- `analyze_regp10_transformer_results.py` 固定比较同一 REG-P10 父模型并产出 JSON/CSV；`update_regp10_transformer_xlsx.py` 新增总览第 `169–176` 行、教师视图第 `143–150` 行和汇总第 `230` 行起的严格对照区块，回读与 PDF 渲染均通过。
 
 **当前状态判断**：
 - “SA3 centers 之间加 Transformer”与已做的 coarse attention 是同一结构问题；local-SA3 则发生在每个 SA3 邻域的聚合前，两者不是同一机制。
-- 8 臂已进入训练，但当前尚无精度结果。test36 仍是 seed1234 工程筛选，优胜臂需补 seeds `7/2025` 后才能形成稳定结论。
+- **只有 `L-SA2` 过预注册 Gate**：`R²_cb 0.2957→0.3171`（`+0.0214`），MAE/RMSE `-0.0332/-0.0968 Pa`，high-WSS `+0.0453`，AG/AAA/ILO `+0.0105/+0.0198/+0.0341`；下一步只补 seeds `7/2025`。病例均值 CI `[-0.0101,+0.0324]` 跨零，所以仍只写单种子强筛选信号。
+- `L-SA12` 仅 `+0.0063`，未过主门槛；其余局部臂和 `G-SA3` 均不超过 REG-P10。多层全开退化说明收益集中于 SA2 中尺度邻域，不能把“加入更多 Transformer 层”作为默认方向。
 
 ## 2026-07-26｜D2 c125×k64 固定 split 的 PointNeXt-R + LocalGeoPE 对照已提交
 
