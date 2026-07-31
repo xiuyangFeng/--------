@@ -1,0 +1,21 @@
+{
+  "roles": "train,test",
+  "n_cases": 173,
+  "sample_count_per_case": 1200,
+  "baseline": {
+    "neighbor_mode": "fixed",
+    "neighbors": 64
+  },
+  "candidate": {
+    "neighbor_mode": "adaptive_cv",
+    "adaptive_neighbors": [16, 20, 24, 28, 32, 36, 40, 44, 48, 64],
+    "cv_tolerance": 1.25
+  },
+  "shared": {
+    "degree": 2,
+    "viscosity": "carreau",
+    "normals": "pca",
+    "seed": 0,
+    "prefer_peak": true
+  }
+}

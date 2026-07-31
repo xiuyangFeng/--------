@@ -1,13 +1,14 @@
 # 适配说明：用本项目 CFD 数据跑 velocity → WSS
 
 原仓库（`wss_mri_calculator`）面向 **4D Flow MRI 规则体素影像**。本项目 `data_new/`
-是 **Fluent 非结构化点云**，因此新增了三个文件，原有文件未改动：
+是 **Fluent 非结构化点云**，因此新增了 CFD 适配核心与可视化脚本，原有 MRI 文件未改动：
 
 | 文件 | 作用 |
 | --- | --- |
 | `src/data_loader_cfd.py` | 读 Fluent ASCII 导出（替代原 `data_loader.py` 的 HDF5 读取） |
 | `src/calculate_wss_cfd.py` | 单病例算 WSS 并与 CFD 真值对比（替代 `calculate_wss.py`） |
 | `src/batch_validate_cfd.py` | 跨队列批量验证 |
+| `viz/` | 诊断/审计可视化（pred–truth、法向、邻域锚定、采样诊断、postview 导出）；不放在 `src/` |
 
 ## 病例范围（必须先读）
 
@@ -40,7 +41,7 @@ $PY calculate_wss_cfd.py \
 # 扫参数（K × 阶数 × 粘度模型）
 $PY calculate_wss_cfd.py --case-dir <病例目录> --sweep
 
-# 正式批量：PINN 冻结 173 例（峰值步）
+# 正式批量：PINN 冻结 173 例（峰值步，默认 adaptive-CV）
 $PY batch_validate_cfd.py \
   --json-out ../../outputs/wss_pinn/audits/cfd_velocity_wss_explore/pinn173_peak.json
 
@@ -49,10 +50,33 @@ $PY batch_validate_cfd.py --limit-per-cohort 3
 
 # 仅 test35
 $PY batch_validate_cfd.py --roles test
+
+# 复现旧 baseline
+$PY batch_validate_cfd.py --neighbor-mode fixed --neighbors 64
 ```
 
 依赖：`numpy` / `scipy` / `matplotlib`（出图时）即可（**不需要 pyvista**）。
 `GNN` conda 环境已满足。
+
+## 探索审计图目录
+
+单病例深度图（全量 pred/truth、法向定向、邻域锚定、采样诊断）统一放在：
+
+`outputs/wss_pinn/audits/cfd_velocity_wss_explore/`
+
+阅读入口：[该目录 README](../outputs/wss_pinn/audits/cfd_velocity_wss_explore/README.md)
+（按 `01`–`06` 主题划分；旧 2000 点抽样散点在 `_legacy_root/`）。
+
+出图脚本在 `viz/`（从该目录运行，会自动找到 `src/` 里的算子）：
+
+```bash
+cd wss_mri_calculator/viz
+$PY plot_pred_truth_full.py --case-dir <病例目录> --sample-count 0
+$PY visualize_normal_orientation.py --case-dir <病例目录>
+$PY visualize_neighbor_anchor.py --case-dir <病例目录>
+$PY diagnose_wss_sampling.py --case-dir <病例目录>
+$PY export_velocity_wss_postview.py --case-dir <病例目录>
+```
 
 ## 数据格式
 
@@ -66,12 +90,12 @@ $PY batch_validate_cfd.py --roles test
 单位：坐标 **m**（加载后转 mm）、速度 m/s、WSS/压力 Pa。
 每病例 81 个时间步，壁面 ~1.1–1.4 万点，内部 ~74–80 万单元。
 
-## 相对原实现的四处修改
+## 相对原实现的五处修改
 
 ### 1. 网格构建：不再造体素网格
 
 原流程 `UniformGrid → threshold_percent(40) → extract_surface → smooth(500)` 全部去掉。
-壁面几何直接用 CFD 壁面节点，法向取最近 STL 面片法向。原流程的平滑迭代是为了消除
+壁面几何直接用 CFD 壁面节点，法向默认由壁面点云局部 PCA 估计。原流程的平滑迭代是为了消除
 体素阶梯伪影，而 CFD 壁面本身已光滑，做平滑只会收缩几何、引入偏差。
 
 ### 2. 采样：K 近邻 + 法向投影，替代固定三层等距点
@@ -80,12 +104,12 @@ $PY batch_validate_cfd.py --roles test
 **各向异性边界层网格**：内部单元间距 p50 仅 0.18mm，壁面点到最近内部单元 p50 0.60mm。
 固定 0.6mm 三层会跨过多层单元、抹平近壁曲率。
 
-改为：取壁面点的 K 近邻内部单元，算每个单元到壁面的**法向投影距离** eta，
+改为：取壁面点的候选 K 近邻内部单元，算每个单元到壁面的**法向投影距离** eta，
 用 `(eta_i, v_tangential_i)` 做最小二乘拟合 `v_t(eta) = a1·eta + a2·eta²`，
 解析求导得壁面梯度 `a1`。无滑移条件隐含在基函数里（无常数项 ⇒ v_t(0)=0），
 不需要原代码那个 `--no-slip` 开关。
 
-### 3. 粘度：Carreau-Yasuda 非牛顿，替代固定 4 cP ★
+### 3. 粘度：Carreau-Yasuda 非牛顿，替代固定高剪切粘度 ★
 
 **这是"参数怎么调才能对上"的最关键一项。** CFD 的 `udf-inlet.c` 用的是非牛顿血液模型：
 
@@ -98,14 +122,14 @@ $PY batch_validate_cfd.py --roles test
 viscosity = A1 + (B - A1) * pow(1+pow(D*eps, E), (n-1)/E);
 ```
 
-μ 在 0.0035–0.16 Pa·s 间随剪切率变化（**56 倍跨度**）。原代码默认 `--viscosity 4`
-（cP，即 0.0035 Pa·s）只等于**高剪切极限**，在低剪切区会系统性低估 WSS。
+μ 在 0.0035–0.16 Pa·s 间随剪切率变化（**46 倍跨度**）。原适配的固定值
+0.0035 Pa·s（**3.5 cP**）只等于高剪切极限，在低剪切区会系统性低估 WSS。
 
 实测同一病例、同一拟合配置，仅换粘度模型：
 
 | 粘度模型 | raw R² |
 | --- | --- |
-| 固定 4 cP（原默认） | 0.763 |
+| 固定 3.5 cP（高剪切极限） | 0.763 |
 | Carreau-Yasuda（对齐 CFD） | **0.893** |
 
 代码复用项目已有的 `wss_pinn/physics/rheology.py`，参数与 UDF 完全一致。
@@ -141,62 +165,73 @@ STL 正常时两者持平，STL 有问题时 PCA 显著更好，且少一个外�
 仍会计算 `wall_to_stl_distance_p95` 作为诊断（>3mm 触发 `geometry_warnings`），
 `--normals stl` 保留用于对照。
 
-## 验证结果
+### 5. 邻域：逐点 adaptive-CV，替代固定 K=64 ★
 
-### 正式口径（PINN 173 例 split）
+固定 K 在不同点云密度下代表完全不同的物理尺度。最终算法对
+`K={16,20,24,28,32,36,40,44,48,64}` 分别拟合归一化二次无滑移剖面，
+使用不读取 WSS 真值的 leave-one-out 速度重建误差选 K：
 
-批量脚本默认只跑冻结 split。重跑命令：
-
-```bash
-$PY batch_validate_cfd.py \
-  --json-out ../../outputs/wss_pinn/audits/cfd_velocity_wss_explore/pinn173_peak.json
+```text
+z = eta / median(eta)
+v_t(z) = b1*z + b2*z^2
+gradient_wall = b1 / median(eta)
 ```
 
-输出 JSON 会写入 `split.path` / `split.sha256`，便于核对是否真的绑在
-`964d7021…9361f2b` 上。未带该字段的旧结果（对 `data_new` 随机抽检）
-**不得**再当作正式结论。
+在 `score <= 1.25 * min(score)` 的候选中选择最小 K。`1.25` 及候选集合只在
+train138 上确定，随后冻结到 test35。病例级选中 K 的中位数显示：AG 多为 44，
+AAA/ILO 多为 24，证明固定 K=64 不具备跨网格合理性。
 
-### 历史抽检（36 例，每队列 12 例；非正式）
+## 验证结果
 
-以下为适配开发阶段的 `discover` 抽检存档，配置 K=64 / deg=2 / Carreau；
-**病例池不是 PINN 173 split**，仅作方法调试参考：
+### 正式口径（PINN split173，冻结配置）
 
-| 指标 | mean | p05 | p50 | p95 | min |
-| --- | --- | --- | --- | --- | --- |
-| **raw R²** | **0.871** | 0.821 | 0.871 | 0.921 | 0.652 |
-| scaled R² | 0.940 | 0.902 | 0.955 | 0.973 | 0.695 |
-| Spearman | 0.982 | 0.968 | 0.984 | 0.990 | 0.948 |
-| α | 1.240 | 1.136 | 1.240 | 1.346 | 1.103 |
-| 方向余弦 | 0.994 | 0.995 | 0.998 | 0.999 | 0.882 |
-| 有效点覆盖 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+最终实验：173 例全部完成、失败 0；每例用相同随机种子抽 1200 个壁面点，
+baseline 与 candidate 使用相同病例、时间步、壁面点、PCA 法向和流变模型。
 
-跨队列一致，无队列特异性失效：
+```bash
+$PY compare_pointcloud_methods.py \
+  --roles train,test --sample-count 1200 \
+  --fixed-neighbors 64 --cv-tolerances 1.25 \
+  --adaptive-neighbors 16,20,24,28,32,36,40,44,48,64 \
+  --json-out ../experiments/pointcloud_adaptive_v1/results/stage_c_split173_s1200.json
+```
 
-| 队列 | n | raw R² mean | p05 | min |
-| --- | --- | --- | --- | --- |
-| AG | 12 | 0.862 | 0.824 | 0.823 |
-| AAA | 12 | 0.873 | 0.767 | 0.652 |
-| ILO | 11 | 0.880 | 0.833 | 0.816 |
+| 指标 | fixed K=64 | adaptive-CV |
+| --- | ---: | ---: |
+| raw R² mean | 0.6943 | **0.8540** |
+| raw R² p05 | 0.5768 | **0.7618** |
+| raw R² min | 0.4722 | **0.6931** |
+| MAE (Pa) | 1.5006 | **1.0546** |
+| high-WSS NRMSE | 0.4963 | **0.3229** |
+| Spearman | 0.9720 | **0.9798** |
+| 方向余弦 p50 | 0.9957 | **0.9985** |
 
-（另有 1 例 ILO 因真值导出损坏被排除，见下文。）
+成对 raw R² 增益 mean `+0.1597`，**173/173 病例提升**。未参与调参的 test35：
+raw R² mean `0.6994 → 0.8586`、min `0.5736 → 0.7568`，35/35 提升。
+
+完整记录见 [`experiments/pointcloud_adaptive_v1/RESULTS.md`](experiments/pointcloud_adaptive_v1/RESULTS.md)。
+旧 discover 抽检只保留作历史调试，不再作为正式精度结论。
 
 ## 推荐参数
 
 ```
---neighbors 64 --degree 2 --viscosity carreau
+--neighbor-mode adaptive_cv \
+--adaptive-neighbors 16,20,24,28,32,36,40,44,48,64 \
+--cv-tolerance 1.25 --degree 2 --viscosity carreau --normals pca
 ```
 
-单病例扫参结果（`--sweep`，raw R²）：
+若目标是最低绝对误差，可选用只在 train138 上拟合并冻结的全局离散化尺度：
 
-| K | deg=1 | deg=2 | deg=3 |
-| --- | --- | --- | --- |
-| 32 | 0.783 | 0.832 | 0.580 |
-| 64 | 0.651 | **0.893** | 0.778 |
-| 128 | 0.548 | 0.819 | 0.750 |
+```bash
+--prediction-scale 1.2220224407405893
+```
+
+它在 blind test35 上把 raw R² mean 从 `0.8586` 提高到 `0.9153`，MAE 从
+`1.0754` 降到 `0.7530 Pa`。该结果含一个 train-supervised 全局常数，必须与
+`--prediction-scale 1.0` 的纯物理 raw 结果分开报告。
 
 - **deg=2 必需**：1 次拟合不出近壁曲率；3 次开始拟合网格噪声。
-- **K=64 最优**：K 太小样本不足，太大会外扩出边界层。K 自适应匹配局部网格密度，
-  比按物理距离截断（试过 0.5/1.0/1.5/2.0/3.0 mm）更好。
+- **固定 K=64 仅作为 baseline**；正式算法逐壁面点自适应选 K。
 - 近壁高斯加权（`--bandwidth-weight`）实测**略微降低**精度，默认关闭。
 
 ## 指标含义
@@ -217,17 +252,15 @@ $PY batch_validate_cfd.py \
 **有限差分离散化的固有低估** —— 多项式拟合在有限样本上略微低估真实壁面斜率。
 Fluent 自己算 `wall-shear` 用的是单元内的形函数梯度，与外部点云拟合不完全等价。
 
-**α 足够稳定，可以用单个全局常数校正**（35 例统计）：
-
-- α mean = 1.240，std = 0.074，**CV 仅 5.9%**
-- 用全局 α=1.240 替代逐例最优 α，相对偏差 p50 = 3.5%、p95 = 10.8%
-- 队列间差异很小：AG 1.284 / AAA 1.236 / ILO 1.196
+最终 173 例的逐病例 α mean = 1.239、std = 0.099；train138 mean = 1.240，
+test35 mean = 1.234。它可用于诊断残余幅值偏差，但当前 `scaled_r2` 使用逐病例真值
+计算 α，不能作为部署性能，也不能用于 test 病例校准。
 
 对下游用途的影响：
 - 作为**监督信号 / 物理一致性约束**：0.98 的 Spearman 和 0.998 的方向余弦已足够，
   幅值偏差被一个全局常数吸收即可。
-- 作为**绝对值预测**：乘 α=1.240。**务必用训练集拟合这个常数，不要逐病例校准**
-  —— 后者会泄漏测试集真值。
+- 作为**绝对值预测**：若要增加全局校正，必须只在 train138 上拟合并冻结；本轮正式
+  raw 结果没有使用任何真值校正。
 
 ## 真值损坏与运行期防护
 

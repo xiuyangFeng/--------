@@ -1,3 +1,22 @@
+"""Physics sidecar 构建：从只读上游抽出不可变的 PINN 训练切片。
+
+学习要点
+--------
+训练 **不直接** 扫整个 Fluent ASCII / 全量 WSS-min bundle，而是先构建
+「物理侧车」：每个病例固定采样 wall / near_wall / core，落盘为：
+
+- ``physics_static.npz``：坐标、法向、几何描述子、变换参数；
+- ``fields/step_peak.npz``：峰值时刻 WSS / 速度 / 压力；
+- ``physics_manifest.json``：单位、特征尺度、父文件 SHA256、对齐审计。
+
+构建原则：
+
+1. 只写 ``data_wss_pinn/``（经 ``guard_write_path``）；
+2. 已完成的病例可 resume 复用，不覆盖；
+3. raw 体点与 bundle 体点用坐标对齐（直接行或空间子集），并记录漂移；
+4. 壁面法向来自原始 STL 最近面，再乘 bundle 旋转对齐。
+"""
+
 from __future__ import annotations
 
 import json
@@ -15,6 +34,7 @@ from .sampling import build_three_slot_sampling
 
 
 def _atomic_savez(path: Path, **arrays: Any) -> None:
+    """原子写入压缩 npz：临时文件 → replace。"""
     target = guard_write_path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = target.with_name(f".{target.name}.{os.getpid()}.tmp.npz")
@@ -26,12 +46,17 @@ def _atomic_savez(path: Path, **arrays: Any) -> None:
 
 
 def _case_output_dir(sidecar_root: Path, case: dict) -> Path:
+    """``sidecar_root / cohort / case_id路径``。"""
     parts = [sidecar_root, case["cohort"]]
     relative = str(case["case_id"]).split("/")
     return Path(*parts, *relative)
 
 
 def _reuse_completed_case(case: dict, sidecar_root: str | Path) -> dict[str, Any] | None:
+    """若该病例 sidecar 已完成且 canonical/role 一致，则复用；否则返回 None。
+
+    目录存在但不完整时直接报错，避免静默用半成品。
+    """
     output_dir = _case_output_dir(Path(sidecar_root), case)
     manifest_path = output_dir / "physics_manifest.json"
     if not manifest_path.exists():
@@ -62,6 +87,10 @@ def _reuse_completed_case(case: dict, sidecar_root: str | Path) -> dict[str, Any
 
 
 def _geometry_descriptor(wall_coords_norm: np.ndarray) -> np.ndarray:
+    """从壁面点云统计出 15 维几何描述子，供 ``GeometryEncoder`` 条件化。
+
+    组成：mean(3) + std(3) + min(3) + max(3) + [log1p(N), |r|均值, |r|标准差]。
+    """
     xyz = np.asarray(wall_coords_norm, dtype=np.float32)
     return np.concatenate(
         [
@@ -84,6 +113,10 @@ def _geometry_descriptor(wall_coords_norm: np.ndarray) -> np.ndarray:
 def _transform_raw_interior(
     raw_coords: np.ndarray, bundle: dict[str, np.ndarray]
 ) -> np.ndarray:
+    """把 raw Fluent 坐标变到与 WSS-min bundle 相同的无量纲注册系。
+
+    流程：单位因子 → 减质心 → 乘旋转 → 除 coord_scale。
+    """
     coords_mm = raw_coords * float(bundle["unit_factor"])
     aligned = (coords_mm - bundle["transform_centroid"]) @ bundle["transform_rotation"]
     return aligned / float(bundle["coord_scale"])
@@ -95,6 +128,15 @@ def align_raw_interior_to_bundle(
     *,
     tolerance: float = 5e-5,
 ) -> tuple[np.ndarray, np.ndarray, str]:
+    """对齐 raw 体点行与 bundle 冻结体点。
+
+    优先「行数相同且坐标一一对应」的 ``direct_row``；
+    否则做唯一最近邻 ``spatial_subset``（bundle 是 raw 的空间子集）。
+
+    Returns
+    -------
+    raw_indices, coordinate_delta, alignment_mode
+    """
     raw_aligned_norm = _transform_raw_interior(interior["coords"], bundle)
     bundle_int_coords = np.asarray(bundle["int_coords_norm"], dtype=np.float64)
     if len(raw_aligned_norm) == len(bundle_int_coords):
@@ -133,6 +175,7 @@ def build_case_sidecar(
     core_points: int,
     seed: int,
 ) -> dict[str, Any]:
+    """为一个病例构建完整 sidecar（禁止覆盖已有 manifest）。"""
     raw_case_dir = Path(case["raw_case_dir"]).resolve()
     bundle_path = Path(case["bundle_path"]).resolve()
     output_dir = guard_write_path(_case_output_dir(Path(sidecar_root), case))
@@ -148,6 +191,7 @@ def build_case_sidecar(
         interior, bundle
     )
 
+    # 固定三槽索引（写入 sampling_manifest，训练可复现）
     sampled = build_three_slot_sampling(
         len(bundle["wall_coords_norm"]),
         bundle["int_type"],
@@ -159,6 +203,8 @@ def build_case_sidecar(
     wall_idx = sampled["wall"]
     near_idx = sampled["near_wall"]
     core_idx = sampled["core"]
+
+    # 壁面法向：STL 最近面 → 可选旋转到 bundle 坐标系
     stl_path = Path(str(bundle["original_stl_path"].item()))
     wall_normals, normal_map_distance = map_stl_normals_to_wall(
         np.asarray(bundle["wall_coords_raw"])[wall_idx],
@@ -189,6 +235,7 @@ def build_case_sidecar(
     }
     sampling_path = atomic_write_json(output_dir / "sampling_manifest.json", sampling_payload)
 
+    # —— 静态几何 ——
     static_path = output_dir / "physics_static.npz"
     _atomic_savez(
         static_path,
@@ -213,6 +260,7 @@ def build_case_sidecar(
         transform_rotation=np.asarray(bundle["transform_rotation"], dtype=np.float64),
     )
 
+    # —— 峰值场（WSS 来自 bundle；速度/压力来自对齐后的 raw）——
     step_index = int(np.flatnonzero(bundle["steps"] == peak_step)[0])
     fields_path = output_dir / "fields" / "step_peak.npz"
     _atomic_savez(
@@ -238,6 +286,8 @@ def build_case_sidecar(
             raw_indices[core_idx]
         ].astype(np.float32),
     )
+
+    # 速度特征尺度：近壁+核心速度模长的 P95（下限防零）
     all_velocity = np.vstack(
         [
             interior["velocity"][raw_indices[near_idx]],
@@ -332,6 +382,7 @@ def build_case_sidecar(
 
 
 def build_sidecars_from_config(config) -> dict[str, Any]:
+    """按配置对 split 内全部病例构建/复用 sidecar，并写汇总 ``sampling_manifest``。"""
     cases = load_cases(config["data"]["split_path"])
     sampling = config["sampling"]
     rows = []
@@ -351,6 +402,7 @@ def build_sidecars_from_config(config) -> dict[str, Any]:
             )
             event = "sidecar_completed"
         rows.append(row)
+        # 病例级进度日志，方便集群长作业判断是否仍在推进
         print(
             json.dumps(
                 {
@@ -379,6 +431,7 @@ def build_sidecars_from_config(config) -> dict[str, Any]:
 
 
 def load_sidecar_manifest(path: str | Path, verify: bool = True) -> dict[str, Any]:
+    """读取病例 manifest；``verify=True`` 时校验 parents/files 的 SHA256 未漂移。"""
     source = Path(path)
     payload = json.loads(source.read_text(encoding="utf-8"))
     if verify:

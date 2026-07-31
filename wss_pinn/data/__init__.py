@@ -1,2 +1,1 @@
-"""Raw CFD readers and immutable physics sidecar helpers."""
-
+"""原始 CFD 读取与不可变 physics sidecar 辅助。"""

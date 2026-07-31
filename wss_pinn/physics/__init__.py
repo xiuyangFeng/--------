@@ -1,2 +1,1 @@
-"""Audited rheology, differential residuals and wall-shear operators."""
-
+"""已审计的流变、微分残差与壁面剪切算子。"""

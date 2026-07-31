@@ -1,3 +1,19 @@
+"""评估入口：加载 checkpoint，按病例报告 WSS / 速度 / 压力 / 物理残差指标。
+
+学习要点
+--------
+评估与训练共用同一模型与 sidecar 数据，但：
+
+- 病例角色用 ``data.eval_roles``（常含 test）；
+- WSS 从网络的 ``log_wss_direct`` 用 ``expm1`` 还原到 Pa；
+- 速度/压力乘回病例特征尺度，再与真值比；
+- 可选读取 ``control_run_dir`` 的父评估报告，输出配对 Δ（F0-UP/F1 科学门禁用）。
+
+命令行示例::
+
+    python -m wss_pinn.evaluate --config path/to/config.json --checkpoint best
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -15,8 +31,10 @@ from .utils import atomic_write_json, sha256_file, utc_now
 
 
 def regression_metrics(truth: np.ndarray, prediction: np.ndarray) -> dict[str, float]:
+    """通用回归指标：R²、MAE、RMSE、相对 MAE 归一的 NRMSE。"""
     truth = np.asarray(truth, dtype=np.float64).reshape(-1)
     prediction = np.asarray(prediction, dtype=np.float64).reshape(-1)
+    # 总平方和；常数真值时分母用 1e-12 防止除零
     denominator = float(np.sum(np.square(truth - truth.mean())))
     rmse = float(np.sqrt(np.mean(np.square(truth - prediction))))
     return {
@@ -28,6 +46,11 @@ def regression_metrics(truth: np.ndarray, prediction: np.ndarray) -> dict[str, f
 
 
 def top10_metrics(truth: np.ndarray, prediction: np.ndarray) -> dict[str, float]:
+    """高 WSS 区域指标：真值/预测各自取 ≥P90 的掩膜。
+
+    - ``top10_iou``：两掩膜交并比，衡量「热点位置」是否对齐；
+    - ``high_wss_nrmse``：只在真值热点上算 RMSE，再除以该区 |WSS| 均值。
+    """
     threshold_true = np.quantile(truth, 0.9)
     threshold_pred = np.quantile(prediction, 0.9)
     true_mask = truth >= threshold_true
@@ -42,12 +65,14 @@ def top10_metrics(truth: np.ndarray, prediction: np.ndarray) -> dict[str, float]
 
 
 def evaluate(config: ExperimentConfig, checkpoint: Path, device_name: str | None) -> dict:
+    """对 eval 角色下所有病例跑一遍推理，组装评估报告 dict。"""
     device = resolve_device(config["train"]["device"], device_name)
     dtype = torch.float64 if config["train"]["precision"] == "float64" else torch.float32
     model = make_model(config, device, dtype)
     payload = torch.load(checkpoint, map_location=device, weights_only=False)
     model.load_state_dict(payload["model"], strict=True)
     model.eval()
+
     dataset = PhysicsDataset(
         config["sampling"]["manifest_path"],
         verify=True,
@@ -57,6 +82,8 @@ def evaluate(config: ExperimentConfig, checkpoint: Path, device_name: str | None
     for case in dataset.cases:
         descriptor = as_tensor(case.static["geometry_descriptor"], device, dtype)
         wall_coords = as_tensor(case.static["wall_coords"], device, dtype)
+
+        # 近壁 + 核心拼成体域评估点（与训练 interior 定义一致）
         interior_coords = np.concatenate(
             [case.static["near_wall_coords"], case.static["core_coords"]]
         )
@@ -66,19 +93,26 @@ def evaluate(config: ExperimentConfig, checkpoint: Path, device_name: str | None
         pressure_truth = np.concatenate(
             [case.fields["near_wall_pressure"], case.fields["core_pressure"]]
         )
+
         with torch.no_grad():
             wall_output = model(wall_coords, descriptor)
             velocity_output = model(
                 as_tensor(interior_coords, device, dtype), descriptor
             )
+
+        # log1p 训练 → expm1 还原；clamp 防止数值噪声出负 WSS
         wss_prediction = torch.expm1(wall_output["log_wss_direct"]).clamp_min(0)
         wss_prediction_np = wss_prediction.cpu().numpy()
         wss_truth = case.fields["wall_wss"]
+
+        # 网络输出是无量纲场，乘病例尺度回到 m/s、Pa
         velocity_prediction = velocity_output["velocity"].cpu().numpy() * case.velocity_scale
         pressure_prediction = velocity_output["pressure"].cpu().numpy() * case.pressure_scale
+        # 规范不变：两侧各自去均值再比
         pressure_prediction -= pressure_prediction.mean()
         pressure_truth = pressure_truth - pressure_truth.mean()
 
+        # 连续性残差只需子集（autograd 贵）；最多 1024 个体点
         derivative_count = min(1024, len(interior_coords))
         derivative_coords = as_tensor(
             interior_coords[:derivative_count], device, dtype
@@ -87,7 +121,9 @@ def evaluate(config: ExperimentConfig, checkpoint: Path, device_name: str | None
         divergence = continuity_residual(
             derivative_output["velocity"], derivative_coords, create_graph=False
         )
+
         velocity_metrics = regression_metrics(velocity_truth, velocity_prediction)
+        # 分量级与速度模长，便于诊断某一方向是否崩
         velocity_metrics["components"] = {
             name: regression_metrics(velocity_truth[:, index], velocity_prediction[:, index])
             for index, name in enumerate(("u", "v", "w"))
@@ -96,6 +132,7 @@ def evaluate(config: ExperimentConfig, checkpoint: Path, device_name: str | None
             np.linalg.norm(velocity_truth, axis=1),
             np.linalg.norm(velocity_prediction, axis=1),
         )
+
         case_report = {
             "case_id": case.case_id,
             "cohort": case.cohort,
@@ -108,6 +145,7 @@ def evaluate(config: ExperimentConfig, checkpoint: Path, device_name: str | None
             "pressure_gauge_invariant": regression_metrics(
                 pressure_truth, pressure_prediction
             ),
+            # 无量纲连续性 RMS、壁面速度 RMS（无滑移诊断）
             "continuity_rms_dimensionless": float(
                 torch.sqrt(torch.mean(torch.square(divergence))).detach().cpu()
             ),
@@ -116,6 +154,8 @@ def evaluate(config: ExperimentConfig, checkpoint: Path, device_name: str | None
             ),
         }
         cases.append(case_report)
+
+    # 病例均权汇总（不是按点数加权）
     report = {
         "schema_version": 1,
         "created_at": utc_now(),
@@ -130,6 +170,7 @@ def evaluate(config: ExperimentConfig, checkpoint: Path, device_name: str | None
             for metric in ("r2", "mae", "rmse", "high_wss_nrmse", "top10_iou")
         },
     }
+    # 按 train/test 角色再各算一份均值
     report["by_role"] = {
         role: {
             metric: float(
@@ -145,6 +186,8 @@ def evaluate(config: ExperimentConfig, checkpoint: Path, device_name: str | None
         }
         for role in sorted({case["role"] for case in cases})
     }
+
+    # 若配置了对照 run，按 case_id 对齐算 Δ（正负含义：本 run − 对照）
     control_dir = config["experiment"].get("control_run_dir")
     if control_dir:
         control_path = Path(control_dir)
@@ -203,6 +246,7 @@ def main() -> None:
     args = parser.parse_args()
     config = ExperimentConfig.from_json(args.config)
     checkpoint = Path(args.checkpoint)
+    # 允许传 best/last 别名，落到 run_dir/checkpoints/
     if args.checkpoint in {"best", "last"}:
         checkpoint = config.run_dir / "checkpoints" / f"{args.checkpoint}.pt"
     report = evaluate(config, checkpoint, args.device)

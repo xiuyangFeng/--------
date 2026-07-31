@@ -1,0 +1,38 @@
+{
+  "scope": "blind test35",
+  "sample_count_per_case": 1200,
+  "n_cases": 35,
+  "prediction_scale": 1.2220224407405893,
+  "adaptive_neighbors": [
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    64
+  ],
+  "cv_tolerance": 1.25,
+  "without_scalar": {
+    "n_points": 42000,
+    "pooled_raw_r2": 0.8689391983814236,
+    "pooled_mae_pa": 1.0754358312129093,
+    "pooled_nrmse": 0.5807926654846364,
+    "pooled_spearman": 0.9850188749197547,
+    "case_mean_raw_r2": 0.8586169556203549
+  },
+  "with_train_scalar": {
+    "n_points": 42000,
+    "pooled_raw_r2": 0.9251345166838268,
+    "pooled_mae_pa": 0.752969204919064,
+    "pooled_nrmse": 0.4389605886792559,
+    "pooled_spearman": 0.9850188749197547,
+    "case_mean_raw_r2": 0.9153086450428222
+  },
+  "display_points": 42000,
+  "axis_limit_pa": 59.686531442913235,
+  "figure": "fig_final_model_scatter_raw_vs_scaled.png"
+}

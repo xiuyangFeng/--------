@@ -4,6 +4,40 @@
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
 > 当前执行入口：[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) / [第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md) / [BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)。
 
+## 2026-07-30｜velocity→WSS 可视化脚本迁出 src → viz/
+
+**本次主要修改**：将诊断/审计可视化从 `wss_mri_calculator/src/` 迁到
+`wss_mri_calculator/viz/`，`src/` 只保留算子与批量入口；`viz/` 脚本自动把
+`../src` 加入 `sys.path`。同步更新 `README_CFD_ADAPTATION.md` 与
+`cfd_velocity_wss_explore/README.md` 复现命令路径。
+
+**对应代码/文档**：`wss_mri_calculator/viz/{plot_pred_truth_full,visualize_normal_orientation,visualize_neighbor_anchor,diagnose_wss_sampling,export_velocity_wss_postview}.py`；
+`wss_mri_calculator/README_CFD_ADAPTATION.md`；
+`outputs/wss_pinn/audits/cfd_velocity_wss_explore/README.md`。
+
+**推进到实验步骤**：代码目录整理（算子 / 可视化分离）。
+
+**当前状态判断**：`src/` 仅剩 CFD 适配 + 原 MRI 核心；出图从 `viz/` 运行。
+
+## 2026-07-30｜velocity→WSS 探索图归档：全量 pred/truth + 目录 README
+
+**本次主要修改**：对 `LIU_JIN_LIANG` peak 用**全部**壁面节点（n=13759）重算
+velocity→WSS，产出全量散点（points/hexbin）与六联分析图；将
+`outputs/wss_pinn/audits/cfd_velocity_wss_explore/` 按主题划分为
+01 pred/truth · 02 法向定向 · 03 邻域锚定 · 04 采样诊断 · 05 批量冒烟，
+并写根目录 README；旧 2000 点抽样散点移入 `_legacy_root/`。
+
+**对应代码/文档**：`wss_mri_calculator/viz/plot_pred_truth_full.py`、
+`visualize_normal_orientation.py` / `visualize_neighbor_anchor.py` /
+`diagnose_wss_sampling.py`（默认输出路径对齐新子目录）、
+`outputs/wss_pinn/audits/cfd_velocity_wss_explore/README.md`、
+`01_pred_vs_truth/LIU_JIN_LIANG/{scatter_full_*.png,analysis_panels.png,metrics.json}`。
+
+**推进到实验步骤**：velocity→WSS Oracle 单病例全量可视化与审计图目录工程化。
+
+**当前状态判断**：全量 raw R²≈0.742、scaled≈0.909、Spearman≈0.978、α≈1.37、
+方向余弦 p50≈0.994；与 2000 点抽样结论一致。图目录可直接交给老师按 README 阅读。
+
 ## 2026-07-30｜WSS-PINN full F0-UP 完训审计并阻断 full F1
 
 **本次主要修改**：核验 full F0-UP Slurm、best/last checkpoint、完整

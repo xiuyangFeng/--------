@@ -1,3 +1,17 @@
+"""三槽采样：wall / near_wall / core 互不重叠。
+
+学习要点
+--------
+PINN batch **必须**显式区分三类点：
+
+- **wall**：壁面点，才有直接 WSS 标签；
+- **near_wall**：靠近壁的体点（``int_type==1``）；
+- **core**：远离壁的体点（``int_type==0``）。
+
+编码约定来自冻结的 ``pipeline_wss_min``：``INTERIOR/core=0``, ``NEAR_WALL=1``。
+无 WSS 标签的体点不得进入 ``direct_wss`` loss。
+"""
+
 from __future__ import annotations
 
 from typing import Iterable
@@ -11,6 +25,7 @@ SLOTS = ("wall", "near_wall", "core")
 def sample_indices(
     candidates: Iterable[int] | np.ndarray, count: int, seed: int
 ) -> np.ndarray:
+    """无放回采样最多 ``count`` 个候选下标，排序后返回（稳定便于对照）。"""
     values = np.asarray(list(candidates) if not isinstance(candidates, np.ndarray) else candidates)
     values = values.astype(np.int64, copy=False).reshape(-1)
     if values.size == 0:
@@ -30,10 +45,12 @@ def build_three_slot_sampling(
     core_points: int,
     seed: int,
 ) -> dict[str, np.ndarray]:
+    """按三槽各自配额采样，并断言 near_wall ∩ core = ∅。"""
     int_type = np.asarray(int_type).reshape(-1)
     near_candidates = np.flatnonzero(int_type == 1)
-    # Frozen ``pipeline_wss_min`` encoding: INTERIOR/core=0, NEAR_WALL=1.
+    # 冻结 pipeline_wss_min 编码：INTERIOR/core=0，NEAR_WALL=1
     core_candidates = np.flatnonzero(int_type == 0)
+    # 不同槽用不同种子偏移，避免偶然相关
     result = {
         "wall": sample_indices(np.arange(int(n_wall)), wall_points, seed + 11),
         "near_wall": sample_indices(near_candidates, near_wall_points, seed + 23),

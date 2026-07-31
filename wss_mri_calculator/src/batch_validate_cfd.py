@@ -35,7 +35,12 @@ from pathlib import Path
 
 import numpy as np
 
-from calculate_wss_cfd import run_case
+from calculate_wss_cfd import (
+    DEFAULT_ADAPTIVE_NEIGHBORS,
+    DEFAULT_CV_TOLERANCE,
+    TRAIN_FROZEN_GLOBAL_SCALE,
+    run_case,
+)
 
 ROOT = Path("/public/newhome/cy/Digital_twin/GNN")
 DATA_ROOT = ROOT / "data_new"
@@ -169,6 +174,28 @@ def main() -> None:
     )
     parser.add_argument("--sample-count", type=int, default=1200)
     parser.add_argument("--neighbors", type=int, default=64)
+    parser.add_argument(
+        "--neighbor-mode",
+        choices=["fixed", "adaptive_cv"],
+        default="adaptive_cv",
+        help="fixed=固定K基线；adaptive_cv=无真值参与的逐点自适应K",
+    )
+    parser.add_argument(
+        "--adaptive-neighbors",
+        type=str,
+        default=",".join(str(value) for value in DEFAULT_ADAPTIVE_NEIGHBORS),
+        help="adaptive_cv 候选K，逗号分隔",
+    )
+    parser.add_argument("--cv-tolerance", type=float, default=DEFAULT_CV_TOLERANCE)
+    parser.add_argument(
+        "--prediction-scale",
+        type=float,
+        default=1.0,
+        help=(
+            "可选全局幅值校正；纯物理=1，train138冻结值="
+            f"{TRAIN_FROZEN_GLOBAL_SCALE:.15f}"
+        ),
+    )
     parser.add_argument("--degree", type=int, default=2)
     parser.add_argument("--viscosity", choices=["carreau", "newton"], default="carreau")
     parser.add_argument(
@@ -185,6 +212,9 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--json-out", type=str, default=None)
     args = parser.parse_args()
+    adaptive_neighbors = tuple(
+        int(value.strip()) for value in args.adaptive_neighbors.split(",") if value.strip()
+    )
 
     root = Path(args.data_root)
     roles = {item.strip() for item in args.roles.split(",") if item.strip()}
@@ -228,7 +258,9 @@ def main() -> None:
 
     print(
         f"病例来源={source}  n={len(cases)}  "
-        f"K={args.neighbors} deg={args.degree} visc={args.viscosity} "
+        f"neighbor_mode={args.neighbor_mode} K={args.neighbors} "
+        f"candidates={adaptive_neighbors} cv_tol={args.cv_tolerance} "
+        f"scale={args.prediction_scale} deg={args.degree} visc={args.viscosity} "
         f"peak={not args.no_peak}\n"
     )
     if split_meta:
@@ -254,6 +286,10 @@ def main() -> None:
                 args.seed,
                 args.normals,
                 prefer_peak=not args.no_peak,
+                neighbor_mode=args.neighbor_mode,
+                adaptive_neighbors=adaptive_neighbors,
+                cv_tolerance=args.cv_tolerance,
+                prediction_scale=args.prediction_scale,
             )
         except Exception as error:  # 单例失败不中断全批
             failures.append({"case": label, "error": f"{type(error).__name__}: {error}"})
@@ -320,6 +356,10 @@ def main() -> None:
                     "split": split_meta,
                     "config": {
                         "neighbors": args.neighbors,
+                        "neighbor_mode": args.neighbor_mode,
+                        "adaptive_neighbors": list(adaptive_neighbors),
+                        "cv_tolerance": args.cv_tolerance,
+                        "prediction_scale": args.prediction_scale,
                         "degree": args.degree,
                         "viscosity": args.viscosity,
                         "normals": args.normals,

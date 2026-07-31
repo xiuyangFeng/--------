@@ -1,3 +1,17 @@
+"""Fluent ASCII 导出与病例 split 清单的只读解析。
+
+学习要点
+--------
+上游 ``data_new`` 存的是 CFD 导出表（体域 ``ascii_in``、壁面等）。
+本模块只负责：
+
+- 识别表头是逗号还是空白分隔；
+- 兼容历史列名（``cellnumber`` / ``nodenumber``）；
+- 把 split JSON 归一成统一的病例字典列表（含 raw 目录与 WSS-min bundle 路径）。
+
+不在这里做任何写盘；写 PINN 产物走 ``sidecar.py``。
+"""
+
 from __future__ import annotations
 
 import re
@@ -10,6 +24,7 @@ import pandas as pd
 from ..utils import ROOT
 
 
+# Fluent 体域 ASCII 期望列
 INTERIOR_COLUMNS = {
     "id": "cellnumber",
     "id_candidates": ["cellnumber", "nodenumber"],
@@ -18,6 +33,7 @@ INTERIOR_COLUMNS = {
     "velocity": ["x-velocity", "y-velocity", "z-velocity"],
     "velocity_magnitude": "velocity-magnitude",
 }
+# 壁面 ASCII 期望列
 WALL_COLUMNS = {
     "id_candidates": ["nodenumber", "cellnumber"],
     "xyz": ["x-coordinate", "y-coordinate", "z-coordinate"],
@@ -28,6 +44,7 @@ WALL_COLUMNS = {
 
 
 def read_table(path: str | Path, usecols: Iterable[str] | None = None) -> pd.DataFrame:
+    """读一张 Fluent ASCII：根据首行是否含逗号选择 csv / 空白分隔。"""
     source = Path(path)
     with source.open(encoding="utf-8", errors="replace") as handle:
         header = handle.readline()
@@ -41,6 +58,7 @@ def read_table(path: str | Path, usecols: Iterable[str] | None = None) -> pd.Dat
 
 
 def list_steps(case_dir: str | Path, subdir: str = "ascii_in") -> list[int]:
+    """扫描病例目录下所有 ``*-{step}`` 文件名，返回排序后的时间步列表。"""
     steps: list[int] = []
     for path in Path(case_dir, subdir).iterdir():
         match = re.search(r"-(\d+)$", path.name)
@@ -52,6 +70,7 @@ def list_steps(case_dir: str | Path, subdir: str = "ascii_in") -> list[int]:
 def step_file(
     case_dir: str | Path, step: int, subdir: str = "ascii_in"
 ) -> Path:
+    """定位指定时间步的 ASCII 文件（若有多个匹配取排序后第一个）。"""
     candidates = sorted(Path(case_dir, subdir).glob(f"*-{int(step)}"))
     files = [path for path in candidates if path.is_file()]
     if not files:
@@ -60,6 +79,7 @@ def step_file(
 
 
 def read_interior(path: str | Path) -> dict[str, np.ndarray]:
+    """读取体域速度/压力；自动选择可用的 ID 列名。"""
     with Path(path).open(encoding="utf-8", errors="replace") as handle:
         header = handle.readline()
     columns_in_file = [
@@ -97,6 +117,7 @@ def read_interior(path: str | Path) -> dict[str, np.ndarray]:
 
 
 def read_wall(path: str | Path) -> dict[str, np.ndarray]:
+    """读取壁面 WSS 标量与向量、压力。"""
     frame = read_table(path)
     id_column = next(
         (name for name in WALL_COLUMNS["id_candidates"] if name in frame.columns),
@@ -114,6 +135,13 @@ def read_wall(path: str | Path) -> dict[str, np.ndarray]:
 
 
 def load_cases(path: str | Path) -> list[dict]:
+    """加载 split JSON，归一成病例列表。
+
+    支持两种格式：
+    1. ``{"cases": [...]}`` 已展开的病例条目；
+    2. ``{"train_cases": [...], "test_cases": [...]}`` canonical ID 列表
+       （``AG/...`` / ``AAA/...`` / ``ILO/...``），自动填 raw/bundle 路径。
+    """
     import json
 
     payload = json.loads(Path(path).read_text(encoding="utf-8"))

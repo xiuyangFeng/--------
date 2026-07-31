@@ -1,0 +1,13 @@
+{
+  "roles": "train",
+  "limit_per_cohort": 12,
+  "sample_count": 400,
+  "fixed_neighbors": [64, 16, 20, 24, 32, 40],
+  "adaptive_neighbors": [12, 16, 20, 24, 28, 32, 40, 48, 64],
+  "cv_tolerances": [1.0, 1.25, 1.5, 2.0],
+  "degree": 2,
+  "viscosity": "carreau",
+  "normals": "pca",
+  "seed": 0,
+  "prefer_peak": true
+}
