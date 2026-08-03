@@ -1,0 +1,18 @@
+{
+  "experiment": {
+    "id": "VF-PNPP-XYZ-PINN-s1234-v1",
+    "mode": "pinn",
+    "architecture": "pointnetpp",
+    "input_variant": "xyz",
+    "description": "Pure PointNet++ D2 c125-k128, xyz-only, all physics constraints active from step one"
+  },
+  "paths": {
+    "run_dir": "outputs/wss_pinn/volume_uvwp_peak_v1/runs/VF-PNPP-XYZ-PINN-s1234-v1"
+  },
+  "physics": {"enabled": true},
+  "loss": {
+    "continuity_weight": 1.0,
+    "momentum_weight": 1.0,
+    "no_slip_weight": 1.0
+  }
+}

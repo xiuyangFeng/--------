@@ -1,0 +1,18 @@
+{
+  "experiment": {
+    "id": "VF-PN-XYZG-DATA-s1234-v1",
+    "mode": "data_only",
+    "architecture": "pointnet",
+    "input_variant": "xyz_geom",
+    "description": "P2V-width PointNet with abscissa, radius and signed-log curvature support features"
+  },
+  "paths": {
+    "run_dir": "outputs/wss_pinn/volume_uvwp_peak_v1/runs/VF-PN-XYZG-DATA-s1234-v1"
+  },
+  "physics": {"enabled": false},
+  "loss": {
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0
+  }
+}

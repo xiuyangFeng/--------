@@ -1,0 +1,18 @@
+{
+  "experiment": {
+    "id": "VF-PN-XYZ-PINN-s1234-v1",
+    "mode": "pinn",
+    "architecture": "pointnet",
+    "input_variant": "xyz",
+    "description": "P2V-width PointNet, xyz-only, data plus continuity, Carreau-Yasuda momentum and no-slip from random initialization"
+  },
+  "paths": {
+    "run_dir": "outputs/wss_pinn/volume_uvwp_peak_v1/runs/VF-PN-XYZ-PINN-s1234-v1"
+  },
+  "physics": {"enabled": true},
+  "loss": {
+    "continuity_weight": 1.0,
+    "momentum_weight": 1.0,
+    "no_slip_weight": 1.0
+  }
+}

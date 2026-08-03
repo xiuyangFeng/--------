@@ -1,56 +1,80 @@
-# wss_pinn — Agent 指令
+# wss_pinn — 峰值体域 `u,v,w,p` PINN 指令
 
-本目录是 **WSS-PINN 独立实验线**。最终任务仍是峰值壁面 WSS 预测；
-\(u,v,w,p\) 只作为训练期的体域辅助场和物理约束变量。
+本目录当前只维护 `volume_uvwp_peak_v1`：用 PointNet / PointNet++ 从患者点云
+预测峰值时刻体域四通道 `u,v,w,p`，并比较 data-only 与从随机初始化直接训练的
+PINN。旧的“直接 WSS 输出 + 阶梯 F0/F1/F2”路线已经归档，不再作为活动口径。
 
 ## 隔离边界
 
-- `data_new/`、`data_wss_min/`、`pipeline_wss_min/`、`training_wss_min/`
-  和既有 checkpoint/config/run 一律视为只读上游。
-- 不在旧目录中添加 PINN 专用字段、loss、配置或作业脚本。
-- PINN 派生数据只写 `data_wss_pinn/`。
-- PINN 训练与评估结果只写 `outputs/wss_pinn/`。
-- PINN 代码、配置、测试和集群入口只写 `wss_pinn/`。
-- 任何复用旧模型的实现都必须经过本目录 adapter，并记录父配置、父 checkpoint、
-  代码版本和 SHA256；不得依赖含义不明的 `latest`。
+- `data_new/`、`data_wss_min/`、`pipeline_wss_min/`、`training_wss_min/` 是只读上游。
+- 新派生数据只写 `data_wss_pinn/volume_uvwp_peak_v1_train138_test35/`。
+- 新结果只写 `outputs/wss_pinn/volume_uvwp_peak_v1/` 与对应 audit 目录。
+- 活动代码、配置、测试和 Slurm 入口位于 `wss_pinn/volume_field/`、
+  `wss_pinn/configs/volume_uvwp_peak_v1/` 和 `wss_pinn/tests/test_volume_*.py`。
+- 不删除旧代码、旧数据或旧输出；历史源码以 Git commit
+  `bca002025d40b290d171570e6470f484fd4feec7` 为冻结快照。
 
-## 实验顺序
+## 冻结科学合同
 
-必须按以下 Gate 逐级推进：
+- 只做 peak 时刻，采用准稳态形式，不伪造 `du/dt`。
+- 输出固定为四通道 `u,v,w,p`；压力使用真值监督。
+- 压力标签是病例严格体域均值中心化后的相对压力 Pa，不按 mini-batch 重新定零。
+- 输入只允许 `xyz` 或 `xyz + abscissa_norm + local_radius + signed_log1p(curvature)`。
+- 架构只允许 PointNet 和纯 PointNet++；不接 PointNeXt、Transformer、LocalGeoPE
+  或旧 WSS checkpoint。
+- 数据划分固定为 train138/test35，split SHA256：
+  `964d7021f2d12baadd630e7b936456a4e62294fa72c5ada4fc70abe4d9361f2b`。
+- 采样是全体严格体域均匀随机；support/query 独立且每 epoch 重采样。
+- 壁面重复行不得进入 support、query 或 PDE；no-slip 使用独立壁面点云。
+- 速度向量必须与注册坐标使用同一 `transform_rotation`。
+- 非牛顿流变固定为 Carreau–Yasuda，`rho=1060 kg/m^3`，`U0=1 m/s`。
+- PINN 从第一个 step 同时启用 continuity、完整三分量动量残差和 no-slip。
+- 动量项保留 `div(2 mu D)` 的变黏度应力散度，禁止简化成 `mu laplacian(u)`。
 
-1. P0 数据身份、单位、velocity→WSS 和 CFD residual Oracle；
-2. P1 独立 physics sidecar；
-3. F0-U 速度场 data-only；
-4. F0-UP 压力场 data-only；
-5. F1 continuity + no-slip；
-6. F2 \(WSS_{\mathrm{phys}}\) 一致性；
-7. F3 非定常 momentum；
-8. C1 开发筛选与 C2 确认。
+## 八实验与初始化
 
-上一级未通过时，不得把后一级批量训练写成主路线。一次只新增一个信息源或物理项。
+矩阵是 `PointNet/PointNet++ × xyz/xyz+geom × data-only/PINN`，共 8 个实验。
+每一对 data-only/PINN 必须使用相同 seed、初始化哈希、support/query 采样协议和
+监督损失。PINN 不得加载 data-only 权重。
 
-## 记录责任
+`train.resume` 只允许同一个 run 目录内的断点续训；它不是热启动。任何跨 run
+checkpoint 初始化都视为热启动并拒绝。正式提交前必须保留初始化 checkpoint 与
+初始化 state SHA256。
 
-- 路线总入口：
-  `docs/02-推进与变更/WSS_PINN/README.md`
-- 实验族、单次运行和 Go/No-Go：
-  `docs/02-推进与变更/WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md`
-- 第一性原理与物理依据：
-  `docs/02-推进与变更/WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md`
-- WSS 专用推进记录：
-  `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`
+## 数据与提交 Gate
 
-修改本目录代码、配置、数据合同、QA、实验文档或作业脚本后，必须更新 WSS 专用推进记录。
-每条至少包含：**本次主要修改**、**对应代码/文档**、**推进到实验步骤**、**当前状态判断**。
+正式训练前必须全部满足：
 
-## 硬门禁
+1. 173 例 schema-v2 sidecar 构建完成；
+2. sidecar + deep-source audit 均通过；
+3. train138-only 严格体域统计与 split、病例 manifest hash 完整绑定；
+4. `test_volume_*.py`、八臂静态 preflight 和八臂 GPU dry-run 通过；
+5. 用户再次明确授权正式训练。
 
-- `random5000` 仍是 W0 的壁面 support，不是 PINN 的全部 collocation 点。
-- physics batch 必须显式区分 wall、near-wall 和 core；无 WSS 标签的体点不得进入直接 WSS loss。
-- 主物理口径固定为非滑移刚性壁面、不可压缩、\(\rho=1060\ \mathrm{kg/m^3}\)、
-  Carreau–Yasuda 型非牛顿流变。
-- constant-\(\mu\) 只能作为命名明确的消融。
-- 没有通过 velocity→WSS Oracle 时，不得把 \(WSS_{\mathrm{phys}}\) 误差归因于网络。
-- 没有通过 CFD residual Oracle 时，不得启用对应 momentum residual。
-- `test36` 必须标记为 `reused_development_screen`，不得写成新的独立测试确认。
-- 不提交训练作业，除非对应阶段的静态审计、数据 Gate 和单元测试已通过。
+没有新的 schema-v2 数据 Gate 时，不得提交训练。默认提交器只做 dry-run；
+`--submit` 是显式且受 Gate 保护的操作。
+
+## 日志与评估
+
+每个正式 run 至少写出：
+
+- `resolved_config.json`、`environment.json`、`checkpoints/initialization.pt`；
+- `training_progress.jsonl` 与 `history.csv`：逐 step 的 data/physics/total loss；
+- `epoch_progress.jsonl`：逐 epoch 的均值 data loss、continuity、三分量 momentum、
+  no-slip、physics total 和 total；
+- `best_data.pt`、`best_total.pt`、`last.pt`；
+- 三个 checkpoint 的物理单位评估 JSON。
+
+评估必须同时报告 `u/v/w/speed/p`、近壁/核心分区、压力 gauge 诊断、壁面速度、
+continuity 和 momentum residual。不得只看总 loss 宣称 PINN 收敛。
+
+## 文档责任
+
+- 代码入口：`wss_pinn/README.md`
+- 路线真源：`docs/02-推进与变更/WSS_PINN/README.md`
+- WSS 详细推进记录：`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`
+- 项目级短摘要：`docs/02-推进与变更/代码修改与实验推进记录.md`
+- 历史路线：`docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/`
+
+修改本路线代码、数据合同、配置、Gate、作业入口或科学口径后，必须同步更新活动
+README 和 WSS 专用推进记录；不得把旧路线结论复制成当前路线状态。

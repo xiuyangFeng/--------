@@ -1,0 +1,22 @@
+{
+  "experiment": {
+    "id": "VF-PNPP-XYZ-PINN-SAME5K-E7500-s1234-v2",
+    "mode": "pinn",
+    "architecture": "pointnetpp",
+    "input_variant": "xyz",
+    "description": "PointNet++ xyz PINN, random SAME 5k support/query, fixed 7500 epochs"
+  },
+  "paths": {
+    "output_root": "outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2",
+    "run_dir": "outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/runs/VF-PNPP-XYZ-PINN-SAME5K-E7500-s1234-v2"
+  },
+  "sampling": {"query_mode": "same"},
+  "physics": {"enabled": true},
+  "loss": {"continuity_weight": 1.0, "momentum_weight": 1.0, "no_slip_weight": 1.0},
+  "train": {
+    "epochs": 7500,
+    "checkpoint_every_epochs": 100,
+    "milestone_epochs": [400, 1000, 2500, 5000, 7500]
+  },
+  "cluster": {"time": "0"}
+}

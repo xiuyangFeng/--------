@@ -4,6 +4,125 @@
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
 > 当前执行入口：[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) / [第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md) / [BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)。
 
+## 2026-08-02｜峰值体域 SAME5K-E7500 v2 实现并提交
+
+**本次主要修改**：按用户确认的简单汇报口径新增独立八臂 v2：train138/val0/test35，
+严格体域 random5000，support/query 使用相同索引，每 epoch 重采样，固定 7500 epoch。
+扩展数据集和配置 Gate 以兼容 SAME，同时保留旧 SEP；新增 400/1000/2500/5000/7500
+里程碑 checkpoint；评估新增 SAME5K 与固定 5k support→full-volume 双协议，并补充
+case-balanced 的逐目标 R²/MAE/RMSE、三分量 momentum 与 wall P95/max。Slurm
+preflight/训练均设 `--time=0`，实查 GPU 分区 `MaxTime=UNLIMITED`。
+
+**对应代码/文档**：`wss_pinn/configs/volume_uvwp_peak_same5k_e7500_v2/`、
+`wss_pinn/volume_field/{config.py,data/dataset.py,train.py,evaluate.py}`、
+`wss_pinn/volume_field/cluster/`、[路线真源](WSS_PINN/README.md)、
+`outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/submission.json`。
+
+**推进到实验步骤**：`test_volume_*` 20/20 通过；新矩阵静态 preflight pass；正式提交
+GPU preflight `11137`，训练 array `11138_[0-7%4]` 以 `afterok:11137` 等待释放。
+
+**当前状态判断**：GPU preflight `11137` 8/8 completed；array `11138` running。首批
+四个 PointNet 臂连续观察 30:35，约 22,432 条已记录 step 全部 finite，四份 stderr
+均为空，无 NaN/Inf/OOM/Traceback/CUDA error/restart；400/1000 里程碑与定期
+checkpoint 写盘正常。梯度裁剪率 data-only 约 50%–54%、PINN 约 90%–95%，作为后续
+诊断保留。机器可读快照：
+`outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/monitor_30min.json`。
+
+## 2026-08-02｜峰值体域 uvwp 八臂完训、结果图与 15,000 epoch 候选协议
+
+**本次主要修改**：完成 array `11128_[0-7]` 的 8/8 run、checkpoint、日志与
+24 份 evaluation JSON 完整性审计；新增可复现结果汇总脚本，生成 `best_total` / test35
+配对 CSV/JSON、收敛统计和两张 PNG/SVG。将路线真源、代码 README、项目入口与总纲
+从 running/pending 更新为 completed/audited。按用户修正把下一轮预算记录为
+`max_epochs=15000`（约 1,035,000 step）的硬上限，并预注册 train138-only fixed
+monitor、data fidelity/Pareto 早停边界；当前仅为候选协议，未实现、未提交训练。
+
+**对应代码/文档**：
+`wss_pinn/volume_field/tools/summarize_results.py`、
+`outputs/wss_pinn/volume_uvwp_peak_v1/summary/`、
+[峰值体域 PINN 结果真源](WSS_PINN/README.md)、
+[`wss_pinn/README.md`](../../wss_pinn/README.md)、根 `README.md`、
+`docs/README.md`、`docs/实验设计总纲.md`。结果 manifest SHA256：
+`e58be163…3781de8`。
+
+**推进到实验步骤**：首轮八实验 8/8 completed；每臂 400 epoch、27,600 step，
+配对初始化哈希一致、`warm_start=false`，无 NaN/Inf/OOM/traceback。四个 PINN 配对的
+continuity/momentum/wall RMS 均下降，pressure R² 均提高；PointNet + `xyz+geom` 是
+唯一 `u/v/w/speed/p` 全部提高的配对。静态图与机器可读表已落盘。
+
+**当前状态判断**：首轮结果 completed / audited，但不能宣称 PINN 全面优于
+data-only，也不能宣称速度场已充分收敛。15,000 epoch 是下一轮硬上限，不是本轮已经
+执行的预算；早停工程实现和新配置仍 pending，正式长训练未提交。
+
+## 2026-08-01｜schema-v2 数据 Gate 通过并启动 4-GPU 八臂训练
+
+**本次主要修改**：按 4×RTX 4090 集群资源把训练数组并发上限改为
+`0-7%4`。提交 CPU 数据构建 Job `11122`、deep-source 审计 Job `11123` 和自动
+launcher `11124`；173/173 schema-v2 sidecar、注册速度、严格体域压力 gauge、
+壁面重复行、split/manifest/train-only stats hash 全部通过。首次 GPU preflight
+`11125` 发现 CuBLAS 确定性环境缺失后，在正式训练开始前主动取消 `11125/11126`，
+补充 `CUBLAS_WORKSPACE_CONFIG=:4096:8`，重跑 40/40 单测与静态 preflight 后提交
+GPU preflight `11127` 和正式 array `11128_[0-7%4]`。
+
+**对应代码/文档**：`wss_pinn/volume_field/cluster/{preflight,run_experiment}.slurm`、
+`wss_pinn/volume_field/{train.py,cluster/submit_matrix.py}`、
+`data_wss_pinn/volume_uvwp_peak_v1_train138_test35/`、
+`outputs/wss_pinn/audits/volume_uvwp_peak_v1_train138_test35/`、
+`outputs/wss_pinn/volume_uvwp_peak_v1/submission.json`、[当前路线](WSS_PINN/README.md)。
+
+**推进到实验步骤**：build `11122` 与 deep audit `11123` completed；aggregate
+manifest SHA256 `e425a657…54a1bf`，field stats SHA256 `9c15ab2b…905f46`，最终
+data Gate report SHA256 `d5a86b8a…386e78`。GPU preflight `11127` completed
+`0:0`；训练数组 `11128` 正在按最多 4 卡并发执行。
+
+**当前状态判断**：正式训练前 30 分钟监控通过。无 traceback、NaN、non-finite
+loss、OOM、任务重启或 GPU 过热；三条 data-only 已完成 400 epoch 与三 checkpoint
+评估，PointNet 两条 PINN、PointNet++ xyz PINN 和 PointNet++ xyz+geom data-only
+继续运行，最后一臂因 `%4` 上限正常等待。评估存在 mmap 只读数组转 tensor 的非致命
+warning；代码没有原地写入，数值安全，待本轮结束后统一消除以保持当前运行代码口径。
+
+## 2026-08-01｜WSS-PINN 重构为峰值体域 `u,v,w,p` 八实验
+
+**本次主要修改**：按用户重新确认的边界，停止旧“直接 WSS 目标 + 辅助体域分支”
+路线，新增独立 `volume_uvwp_peak_v1`：只做 peak 时刻，PointNet / 纯 PointNet++ ×
+xyz/xyz+3 几何特征 × data-only/PINN 共 8 个实验；四通道 `u,v,w,p` 全部真值监督，
+PINN 从随机初始化的第一个 step 同时加入 continuity、完整三分量 Carreau–Yasuda
+momentum 和壁面 no-slip，不从 data-only 热启动。实现可微 query-coordinate 路径、
+完整变黏度应力散度、逐 step/epoch data loss 与 physics loss 日志、物理单位评估和
+同 run resume 保护。
+
+数据合同升级为 schema v2：速度向量与坐标一起旋转；识别三个 bundle 的体表壁面重复
+行并从 support/query/PDE、压力 gauge 和归一化统计排除；压力按病例严格体域固定均值
+中心化；几何只保留 `abscissa_norm/local_radius/signed_log1p(curvature)`，曲率裁剪和
+统计只来自 train138 严格体域。补充 manifest/hash/split/train-membership 数据 Gate 和
+合成回归测试。旧 WSS-target 文档移入 `_archive/wss_target_v1_20260730/`，旧源码以
+Git commit `bca002025d40b290d171570e6470f484fd4feec7` 追溯，不删除旧数据或输出。
+
+**对应代码/文档**：`wss_pinn/volume_field/`、
+`wss_pinn/configs/volume_uvwp_peak_v1/`、`wss_pinn/tests/test_volume_*.py`、
+`wss_pinn/{AGENTS.md,README.md}`、[当前体域 PINN 路线](WSS_PINN/README.md)、
+[旧路线归档](WSS_PINN/_archive/wss_target_v1_20260730/README.md)、
+`outputs/wss_pinn/audits/volume_uvwp_peak_v1_preflight/report.json`。
+
+**推进到实验步骤**：`compileall` 通过，`wss_pinn/tests` 完整单元测试 40/40 通过，
+八臂静态配对 preflight 为 pass；默认提交器 dry-run 返回 `jobs=[]` 和
+`formal_training_submitted=false`。未构建全量 schema-v2 sidecar，未运行 GPU 八臂
+dry-run，未提交正式训练。
+
+**当前状态判断**：implementation ready / static preflight passed / new data Gate
+pending / formal training not submitted。下一步是 CPU 集群构建 173 例 schema-v2
+sidecar 并做 deep-source audit；数据 Gate 通过后仍需用户再次授权正式训练。
+
+## 2026-08-01｜根 README 改以 WSS-min + wss_mri_calculator 为主入口
+
+**本次主要修改**：重写仓库根 [`README.md`](../../README.md)：把当前主攻从旧 `pipeline/` 叙事改为 **WSS-min（预处理+训练）** 与 **`wss_mri_calculator`（CFD velocity→WSS）**；补上目录表、四阶段/训练/CFD 快速命令、v4 数据与 LSA2+H2+`log(local_radius)` 锚点、adaptive-CV v1 / multiscale v2 状态；去掉失效的本机绝对路径链接；旧 `pipeline/` / V3 / baseline 收为次级入口。
+
+**对应代码/文档**：[`README.md`](../../README.md)；本推进记录。
+
+**推进到实验步骤**：文档导航（无新训练/无新批量 WSS）。
+
+**当前状态判断**：新人从根 README 可直接落到 `pipeline_wss_min`、`training_wss_min`、`README_CFD_ADAPTATION.md` 与两条实验目录；细节仍以各子 README / 矩阵文档为准。
+
 ## 2026-07-30｜velocity→WSS 可视化脚本迁出 src → viz/
 
 **本次主要修改**：将诊断/审计可视化从 `wss_mri_calculator/src/` 迁到

@@ -1,128 +1,146 @@
-# 显式几何特征工程
+# AAA / WSS 数字孪生实验仓库
 
-当前仓库以 [`pipeline/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline) 为主线，历史脚本已归档到 [`legacy/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/legacy)，数据目录位置保持不变。
+本仓库包含血管几何预处理、WSS 场重建训练，以及 velocity→WSS 物理估算对照。
+**当前日常主攻**是 WSS-only 最小化线与 `wss_mri_calculator` CFD 适配；任务 A 的 V3 训练栈仍在 `training/` + `docs/01-任务/任务A/03-V3路线/`。
 
-## 目录导航
-- [`pipeline/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline)：正式处理流程，推荐入口
-- `pipeline_wss_min/`：WSS-only 最小化预处理流程，默认输入 `x,y,z`、标签 `wss`，使用原始 STL landmark v4 解剖坐标架与归一化后壁面采样
-- `wss_pinn/`：独立 WSS-PINN 实验线；F1 八臂诊断已选中 `continuity=1e-4`、`no-slip=10`；仅在 PINN 路线冻结 `train138/test35`，baseline 原 split 未修改；173 例 source/sidecar Gate 全通过，但 full F0-UP Jobs `11073→11074` 完成后因全量 velocity/pressure Gate 失败而 No-Go；full F1 未提交，F2 blocked，WSS-physics/momentum 始终未开启
-- [`training/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/training)：任务 A V1/V2/V3 内部训练、评估与集群脚本
-- [`external_baselines/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/external_baselines)：外部论文 baseline 复现代码，当前包含 PointNetCFD
-- [`pipeline/vmtk_core.py`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/vmtk_core.py)：主线几何中心线提取与特征计算核心
-- [`legacy/preprocess/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/legacy/preprocess)：旧版几何预处理、映射与整理脚本
-- [`legacy/min-road/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/legacy/min-road)：历史训练与预处理链路
-- [`docs/`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs)：实验总纲、路线文档、推进记录、论文复现记录
-- `data_new/`、`stl_data/`：原始与处理中数据，未重排
+## 当前主攻（先看这里）
 
-## 外部 baseline 复现
+| 路线 | 代码 | 数据 / 产物 | 说明入口 |
+| --- | --- | --- | --- |
+| **WSS-min 预处理** | [`pipeline_wss_min/`](pipeline_wss_min/) | `data_wss_min/` | [`pipeline_wss_min/README.md`](pipeline_wss_min/README.md) |
+| **WSS-min 训练** | [`training_wss_min/`](training_wss_min/) | `outputs/wss_min/`（及本目录 `runs/`） | [`training_wss_min/README.md`](training_wss_min/README.md) |
+| **velocity→WSS 估算** | [`wss_mri_calculator/`](wss_mri_calculator/) | `outputs/wss_pinn/audits/…`、本目录 `experiments/` | [`README_CFD_ADAPTATION.md`](wss_mri_calculator/README_CFD_ADAPTATION.md) |
+| 峰值体域 `u,v,w,p` PINN | [`wss_pinn/`](wss_pinn/) | `data_wss_pinn/volume_uvwp_peak_v1_*`、`outputs/wss_pinn/volume_uvwp_peak_v1/` | [`wss_pinn/README.md`](wss_pinn/README.md) · [`docs/.../WSS_PINN/`](docs/02-推进与变更/WSS_PINN/README.md) |
 
-PointNetCFD 第一轮复现入口：
+文档总索引：[`docs/README.md`](docs/README.md)。
+WSS-min 推进记录（专用，勿混入 V3 大日志）：[`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`](docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md)。
+
+### 状态速览（2026-08）
+
+- **WSS-min 数据**：v4 活动口径；AG76（`stl_landmarks_v4`）；AAA 几何签核 63 / 训练白名单 57；ILO 术前审核通过 41（未进正式 split）。产物独立于 `data_new/`。
+- **WSS-min 训练**：单 seed 开发锚点为 **LSA2 SAME-H2 + `log(local_radius)`**（`R²_cb≈0.3506`）；暂不做多 seed。矩阵真源见 [PointNet baseline 进度跟踪](docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。
+- **wss_mri_calculator**：原 MRI 仓库已做 CFD 点云适配；正式对比病例池绑定 WSS-PINN **train138/test35（173 例）**。adaptive-CV **v1** 已冻结；多尺度 **v2** 在 test35 上相对 v1 raw R² mean 约 `+0.009`。默认模式仍是 v1，v2 需显式指定。
+- **峰值体域 PINN**：首轮 SEP 8 臂 `11128` 已完成并审计；第二轮 random SAME5K、固定 7500 epoch / 517,500 step 的 GPU preflight `11137` 已完成，训练数组 `11138_[0-7%4]` 运行中；首批四臂30分钟健康监控通过，Slurm 时间限制为0（GPU 分区 `MaxTime=UNLIMITED`）。
+
+---
+
+## 1. WSS-only 最小化（`pipeline_wss_min` + `training_wss_min`）
+
+任务：几何点云 `x,y,z[+几何]` → 壁面 WSS；坐标架为原始 STL landmark **v4**；全局统计 train-only、峰值步、`log_z`。
 
 ```bash
-conda activate rag_venv
+PY=/public/newhome/cy/.conda/envs/GNN/bin/python
+
+# 预处理四阶段（写 data_wss_min/，不改 pipeline/ 与 data_new/）
+$PY -m pipeline_wss_min.run --stage preprocess
+$PY -m pipeline_wss_min.run --stage qa-gate
+$PY -m pipeline_wss_min.run --stage global-stats --stats-timesteps peak
+$PY -m pipeline_wss_min.run --stage build-samples
+
+# 训练 / 评估（只读 data_wss_min）
+$PY -m training_wss_min.train    --config <config.json>
+$PY -m training_wss_min.evaluate --config <config.json>
+```
+
+更多说明：
+
+- 预处理：[`pipeline_wss_min/README.md`](pipeline_wss_min/README.md) · Agent 约束：[`pipeline_wss_min/AGENTS.md`](pipeline_wss_min/AGENTS.md)
+- 训练：[`training_wss_min/README.md`](training_wss_min/README.md)
+- 进度：[PointNet baseline 矩阵](docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) · [训练实验跟踪](docs/02-推进与变更/WSS最小化_训练实验跟踪.md)
+- 历史诊断归档：[`docs/02-推进与变更/_archive/WSS最小化/`](docs/02-推进与变更/_archive/WSS最小化/)
+
+---
+
+## 2. velocity→WSS：`wss_mri_calculator`
+
+上游原项目面向 4D Flow MRI；本仓库在其上增加了 **Fluent 非结构化点云** 适配（`src/*_cfd.py`、`src/wss_multiscale.py`），原 MRI 入口未改。可视化在 `viz/`，算子在 `src/`。
+
+```bash
+PY=/public/newhome/cy/.conda/envs/GNN/bin/python
+cd wss_mri_calculator/src
+
+# 单病例（默认读 data_wss_min bundle 的 peak_step；默认 neighbor-mode=adaptive-CV v1）
+$PY calculate_wss_cfd.py --case-dir /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/LIU_JIN_LIANG
+
+# 多尺度 v2（需显式指定，避免改动已冻结 v1 口径）
+$PY calculate_wss_cfd.py --case-dir <病例目录> --neighbor-mode multiscale_v2
+
+# 正式批量：仅 PINN 冻结 173 例（勿对全库随机抽样当下结论）
+$PY batch_validate_cfd.py \
+  --json-out ../../outputs/wss_pinn/audits/cfd_velocity_wss_explore/pinn173_peak.json
+```
+
+| 文档 / 实验 | 内容 |
+| --- | --- |
+| [`wss_mri_calculator/README.md`](wss_mri_calculator/README.md) | 上游 MRI 原说明（clone / demo） |
+| [`README_CFD_ADAPTATION.md`](wss_mri_calculator/README_CFD_ADAPTATION.md) | **本仓库 CFD 适配与批量入口（必读）** |
+| [`experiments/pointcloud_adaptive_v1/`](wss_mri_calculator/experiments/pointcloud_adaptive_v1/) | adaptive-CV v1 冻结结果 |
+| [`experiments/pointcloud_multiscale_v2/`](wss_mri_calculator/experiments/pointcloud_multiscale_v2/) | 多尺度 v2 冻结结果 |
+
+依赖：`GNN` conda 环境即可（CFD 路径不强制 pyvista）。
+
+---
+
+## 3. 目录导航
+
+| 路径 | 职责 |
+| --- | --- |
+| [`pipeline_wss_min/`](pipeline_wss_min/) | WSS-only 最小化预处理（正式四阶段） |
+| [`training_wss_min/`](training_wss_min/) | WSS-min PointNet / PointNeXt 训练与评估 |
+| [`wss_mri_calculator/`](wss_mri_calculator/) | MRI WSS 计算器 + CFD 点云适配 / 实验 |
+| [`wss_pinn/`](wss_pinn/) | 峰值体域 `u,v,w,p` 的 PointNet / PointNet++ data-only 与非牛顿 PINN 活动实现；旧 WSS-target 路线已归档 |
+| [`pipeline/`](pipeline/) | 历史主线几何/图数据流程（`data_new/`） |
+| [`training/`](training/) | 任务 A V1/V2/V3 场重建训练 |
+| [`external_baselines/`](external_baselines/) | 外部论文复现（如 PointNetCFD、CROWN） |
+| [`docs/`](docs/) | 实验总纲、路线文档、推进记录 |
+| [`legacy/`](legacy/) | 归档脚本；非稳定入口 |
+| `data_new/` · `data_wss_min/` · `stl_data/` | 原始与处理数据（勿随意重排） |
+
+---
+
+## 4. 其他常用入口
+
+### 任务 A / V3
+
+见 [`docs/01-任务/任务A/03-V3路线/README.md`](docs/01-任务/任务A/03-V3路线/README.md) 与 [`docs/README.md`](docs/README.md)。推进记录：[`docs/02-推进与变更/代码修改与实验推进记录.md`](docs/02-推进与变更/代码修改与实验推进记录.md)。
+
+### 旧 `pipeline/` 完整流程
+
+```bash
+conda activate GNN
+python -m pipeline.audit_inputs --groups AAA AG ILO
+python -m pipeline.run_all --case ZHANG_CHUN \
+  --geometry-python /public/newhome/cy/.conda/envs/GNN_vmtk/bin/python
+```
+
+日志：`data_new/pipeline_reports/logs/run_all.log`；单病例步骤日志在
+`data_new/<病例路径>/processed/logs/progress.log`。
+几何步骤需要 `GNN_vmtk`；其余用 `GNN`。详见 [`pipeline/README.md`](pipeline/README.md)。
+
+### 外部 baseline（PointNetCFD 示例）
+
+```bash
+conda activate rag_venv   # 或文档指定环境
 python -m external_baselines.pointnetcfd.train \
   --config external_baselines/pointnetcfd/configs/pointnetcfd_original_vp.json \
   --dry-run
 ```
 
-集群提交模板：
+详见 [`external_baselines/pointnetcfd/README.md`](external_baselines/pointnetcfd/README.md)。
 
-```bash
-bash external_baselines/pointnetcfd/cluster/submit_pointnetcfd.sh \
-  external_baselines/pointnetcfd/configs/pointnetcfd_original_vp.json
-```
-
-详细说明见 [`external_baselines/pointnetcfd/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/external_baselines/pointnetcfd/README.md) 与 [`docs/paper_reproduction/papers/pointnetcfd/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/paper_reproduction/papers/pointnetcfd/README.md)。
-
-## 推荐入口
-WSS-only 最小化路线（独立产物 `data_wss_min/`，不改旧 `pipeline/` 数据）：
-
-当前 v4 活动口径：AG76；AAA 几何签核63、训练质量白名单57；ILO 术前最终人工审核通过41例、总排除20例、活动术后bundle为0。ILO 已在专用协议中使用：fixed test27 的 41 例只入训练，pool2025 mixed 协议为 train138/test36；原 AG/AAA Phase-V split 不变。D2 c125×k64 的 ILO 两协议与结构矩阵已完成；`PointNeXt-R + LocalGeoPE` 的 S3 已通过三种子配对。RCR Oracle 的信息上限证据保留但当前不扩展，静态 EdgeConv 与 O0 hotspot/pinball 首轮均 No-Go。REG-P10-LSA2 的 SAME/IND × MSE/H1/H2 六臂中，IND 主效应和 H1 均 No-Go，SAME-H2 q90 pinball λ0.20 过门。其精确同-seed并发复现与唯一新增 `log(local_radius)` 输入列的两臂 Jobs `11032→11033_[0-1]` 已全部完成；处理臂相对并发 H2 对照的 `ΔR²_cb=+0.0436`、`Δhigh-WSS nRMSE=-0.00295`，全部保护线通过，现晋级为新的单 seed 开发锚点（`R²_cb=0.3506`）。暂不做多 seed。
-
-```bash
-conda activate GNN
-python -m pipeline_wss_min.run --stage preprocess
-python -m pipeline_wss_min.run --stage qa-gate
-python -m pipeline_wss_min.run --stage global-stats --stats-timesteps peak
-python -m pipeline_wss_min.run --stage build-samples
-```
-
-说明见 `pipeline_wss_min/README.md`、`training_wss_min/README.md`、`docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md`、`docs/02-推进与变更/WSS最小化_训练实验跟踪.md` 与 `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`；已完成的诊断与交接材料统一放在 `docs/02-推进与变更/_archive/WSS最小化/`。
-
-批量处理前建议先做一次输入审计：
-
-```bash
-conda activate GNN
-python -m pipeline.audit_inputs --groups AAA AG ILO
-```
-
-完整流程：
-
-```bash
-conda activate GNN
-python -m pipeline.run_all --case ZHANG_CHUN
-```
-
-日志查看：
-
-- 未来无论是数据侧预处理/批处理，还是模型训练侧的集群运行，都必须输出足够详细的进度日志；日志粒度至少细到每一个病例，避免因整体数据量过大而看不到任务是否仍在有效推进，只能无效等待。
-- 单病例步骤日志：`data_new/<病例路径>/processed/logs/progress.log`
-- 批量/总流程日志：`data_new/pipeline_reports/logs/run_all.log`
-- 如果直接执行单步骤批量入口，还会生成：
-  - `data_new/pipeline_reports/logs/step1_preprocess_batch.log`
-  - `data_new/pipeline_reports/logs/step2_extract_features_batch.log`
-  - `data_new/pipeline_reports/logs/step3_coord_normalize_batch.log`
-  - `data_new/pipeline_reports/logs/step4_normalize_batch.log`
-  - `data_new/pipeline_reports/logs/step5_convert_to_graph_batch.log`
-
-可直接实时查看：
-
-```bash
-tail -f data_new/pipeline_reports/logs/run_all.log
-```
-
-若几何步骤依赖 `vmtk` 的独立环境，推荐这样运行：
-
-```bash
-conda activate GNN
-python -m pipeline.run_all \
-  --case ZHANG_CHUN \
-  --geometry-python /public/newhome/cy/.conda/envs/GNN_vmtk/bin/python
-```
-
-单步运行：
-
-```bash
-conda activate GNN
-python -m pipeline.preprocess --case ZHANG_CHUN
-conda activate GNN_vmtk
-python -m pipeline.extract_features --case ZHANG_CHUN
-conda activate GNN
-python -m pipeline.coord_normalize --case ZHANG_CHUN
-python -m pipeline.normalize --case ZHANG_CHUN
-python -m pipeline.convert_to_graph --case ZHANG_CHUN
-```
-
-数据集加载：
-
-```python
-from pipeline.dataset import CFDAugmentedDataset
-```
-
-## 历史脚本
-历史脚本不再作为稳定顶层接口，若仍需使用，请从归档目录运行，例如：
+### 历史脚本
 
 ```bash
 python -m legacy.preprocess.batch_process --help
-python -m legacy.preprocess.normalize_features --help
 ```
 
-说明：
+`pipeline.extract_features` 依赖 [`pipeline/vmtk_core.py`](pipeline/vmtk_core.py)；`legacy/preprocess/vmtk_core.py` 仅为兼容层。
 
-- `pipeline.extract_features` 现在直接依赖 [`pipeline/vmtk_core.py`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/vmtk_core.py)，不再把主线几何核心挂在 `legacy/` 下。
-- `legacy/preprocess/vmtk_core.py` 仅保留兼容层，避免旧脚本立即失效。
+---
 
-## 迁移说明
-- 历史文档迁移说明见 [`docs/paper_idea/MIGRATION.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/paper_idea/MIGRATION.md)
-- 旧一体化预处理说明已由 [`pipeline/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/README.md) 与 [`docs/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/docs/README.md) 接替
-- `pipeline` 详细说明见 [`pipeline/README.md`](/Users/xiuyang/研究生学习/GNN-代码/显示几何特征工程/提取和处理/pipeline/README.md)
+## 约定摘要
+
+- 集群批量任务按 `pipeline/cluster/` / 各子目录 `cluster/` 提交；登录节点不做大规模训练或批处理。
+- 日志至少细到病例级，便于判断作业是否仍在推进。
+- WSS **对比/批量评估**未明确要求时不代跑（见项目 `wss.mdc`）；文档与代码路径可照常维护。
+- 改 WSS-min / `wss_mri_calculator` 相关代码或文档后，在 [`WSS最小化_代码修改与实验推进记录.md`](docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md) **文首**追加记录。

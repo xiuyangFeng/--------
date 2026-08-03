@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "method": "pointcloud_multiscale_v2",
+  "frozen_at": "2026-08-03",
+  "immutable": true,
+  "note": "V3 is a new method. V2 source, frozen configurations and reported full-wall result remain immutable comparators.",
+  "artifacts": [
+    {
+      "path": "src/calculate_wss_cfd.py",
+      "sha256": "a5ee80aaadb02345eae38d97c69db92450d5c7470341745b4475a25b18b2b42d"
+    },
+    {
+      "path": "src/wss_multiscale.py",
+      "sha256": "ea85303c97e794c6a2c6baa98c37d4554ccafec4c63e2d08583f0fd99aeddda9"
+    },
+    {
+      "path": "src/compare_multiscale_v2.py",
+      "sha256": "3e77f7fa62a2cbd9f9f1e1bc38bd81a31871d9656b44885e574a0698e1bd65a3"
+    },
+    {
+      "path": "experiments/pointcloud_multiscale_v2/config_frozen_v2.json",
+      "sha256": "526d8ea0739ef4c45458790760433fb7338ee3a2767fd01e4d228f170a282fc3"
+    },
+    {
+      "path": "experiments/pointcloud_multiscale_v2/config_calibrated_fullwall_v2.json",
+      "sha256": "06b43cad1365a84c4248fadcfc83db84421cb0aea02a92f7c82722d99a5ffff4"
+    },
+    {
+      "path": "experiments/pointcloud_multiscale_v2/results/fullwall_test35_merged_both_calibrated.json",
+      "sha256": "6efb7e963e8dc48383bad8b7cc795ee27ee681615074d89b8d6dc19166347e2b"
+    }
+  ]
+}

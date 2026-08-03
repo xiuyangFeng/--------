@@ -10,6 +10,17 @@ alwaysApply: true
 - **GNN**：用于模型训练与验证（train、validate 相关脚本）
 - **GNN_vmtk**：用于数据预处理（preprocessing、vmtk 相关脚本）
 
+绝对路径（推荐，尤其在 **node04** 等默认 HOME/PATH 与 master 不一致的节点）：
+
+```bash
+source /public/newapps/anaconda3/etc/profile.d/conda.sh
+conda activate /public/newhome/cy/.conda/envs/GNN
+# 或
+conda activate /public/newhome/cy/.conda/envs/GNN_vmtk
+```
+
 在执行任何代码前，先询问用户：
 1. 是否需要启动 conda 环境
 2. 应使用 `GNN` 还是 `GNN_vmtk` 环境
+
+例外：用户已明确说「去 node04 跑…并用 GNN/GNN_vmtk」时，按指定环境直接激活，不必再问一遍。

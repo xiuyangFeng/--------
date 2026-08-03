@@ -1,152 +1,166 @@
-# WSS-PINN 独立实验线
+# 峰值体域 `u,v,w,p` PINN
 
-> 建立日期：2026-07-30
+> 路线：`volume_uvwp_peak_v1`
 >
-> 当前状态：**PINN 专用 train138/test35 与 173 例 sidecar 已冻结；full F0-UP completed / audited / No-Go；full F1 被配对科学 Gate 阻断且未提交；F2 blocked**
+> 当前状态（2026-08-02）：**schema-v2 173 例数据 Gate 通过；GPU preflight
+> Job `11127` 与 8 臂训练数组 `11128_[0-7%4]` 全部完成。每臂 400 epoch、
+> 27,600 optimizer step，日志与 24 份 checkpoint 评估完整；第二轮 SAME5K-E7500
+> GPU preflight `11137` 已完成，训练数组 `11138_[0-7%4]` 运行中，首批四臂30分钟
+> 健康监控通过。**
 
-本目录用于开发以峰值壁面 WSS 为最终目标、以体域
-\(u,v,w,p\) 神经场为训练期辅助变量的 physics-informed surrogate。
-它与现有 `pipeline_wss_min/`、`training_wss_min/` 隔离，现已提供可运行的
-P0/P1 工具、统一训练/评估入口、阶段配置校验、测试和 Slurm 提交器。
+这次重构不再直接预测 WSS，也不复用旧 WSS 最优网络或 checkpoint。当前目标是：
+给定峰值时刻的患者体域点云，用 PointNet 或 PointNet++ 输出四通道
+`u,v,w,p`，并在严格配对实验中比较纯数据监督与非牛顿 PINN。
 
-## 入口
+活动路线真源见
+[WSS_PINN/README.md](../docs/02-推进与变更/WSS_PINN/README.md)。旧的 WSS-target
+PINN 路线已冻结在
+[_archive/wss_target_v1_20260730](../docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/README.md)。
 
-- [路线总入口](../docs/02-推进与变更/WSS_PINN/README.md)
-- [阶梯实验矩阵与进度跟踪](../docs/02-推进与变更/WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)
-- [第一性原理与物理约束方案](../docs/02-推进与变更/WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)
-- [下一智能体目标提示词：实现并推进至 F1](../docs/02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_推进至F1.md)
+## 八个实验
 
-## 隔离原则
+| 架构 | 输入 | data-only | PINN |
+| --- | --- | --- | --- |
+| PointNet | `xyz` | `VF-PN-XYZ-DATA-s1234-v1` | `VF-PN-XYZ-PINN-s1234-v1` |
+| PointNet | `xyz+geom` | `VF-PN-XYZG-DATA-s1234-v1` | `VF-PN-XYZG-PINN-s1234-v1` |
+| PointNet++ | `xyz` | `VF-PNPP-XYZ-DATA-s1234-v1` | `VF-PNPP-XYZ-PINN-s1234-v1` |
+| PointNet++ | `xyz+geom` | `VF-PNPP-XYZG-DATA-s1234-v1` | `VF-PNPP-XYZG-PINN-s1234-v1` |
 
-| 层 | 路径 | 读写规则 |
-| --- | --- | --- |
-| 原始 CFD | `data_new/` | 只读 |
-| 已验收 WSS 几何母版 | `data_wss_min/` | 只读 |
-| 既有 WSS 预处理/训练 | `pipeline_wss_min/`、`training_wss_min/` | 只读复用 |
-| PINN 代码 | `wss_pinn/` | 本路线独占 |
-| PINN 派生数据 | `data_wss_pinn/` | 本路线独占，不反写旧 bundle |
-| PINN 结果 | `outputs/wss_pinn/` | 本路线独占 |
-| PINN 记录 | `docs/02-推进与变更/WSS_PINN/` | 本路线执行真源 |
+每对实验共享 seed、初始参数哈希、病例顺序与采样协议。PINN 从随机初始化直接同时
+优化 data loss、continuity、三个动量分量和 no-slip；不从 data-only 热启动。
 
-因此，新建本目录本身不会改变任何既有模型、数据或实验结果。后续即使需要复用
-PointNeXt-R/LocalGeoPE，也只通过 adapter 读取冻结 checkpoint，不直接修改旧训练入口。
+## 架构来源
 
-## 已实现的代码结构
+- PointNet：沿用历史 P2V 宽度，来源配置
+  `training_wss_min/configs/pointnet_v4/ag_aaa_v4_stratified_e2_global_random5000_sep.json`。
+- PointNet++：沿用纯 PointNet++ D2 `c125-k128`，来源配置
+  `training_wss_min/configs/pointnetpp_sa1_scale_single_seed_20260721/d2_rand5000_c125_k128.json`。
+- 选择证据：`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`。
+- 只继承架构和采样设计，不加载历史权重；PointNeXt 暂不进入本矩阵。
+
+为了让坐标一、二阶导数可用于 PINN，查询路径使用 SiLU、query-local LayerNorm 和
+可微逆距离 3NN 权重；PyG kNN 的离散邻居选择不求导，距离权重对查询坐标求导。
+
+## 数据合同
+
+- split：固定 train138/test35，SHA256
+  `964d7021f2d12baadd630e7b936456a4e62294fa72c5ada4fc70abe4d9361f2b`。
+- 时相：只读每例 `peak_step`。
+- 输出真值：注册坐标系中的 `u,v,w`（m/s）和相对压力 `p`（Pa）。
+- 压力：以每例严格体域均值为固定 gauge；训练仍对压力真值做第四通道监督。
+- 几何特征：`abscissa_norm`、`local_radius`、`signed_log1p(curvature)`；曲率裁剪和
+  均值/标准差只由 train138 严格体域统计。
+- 采样：每 epoch 从严格体域均匀随机抽取 5000 support + 独立 5000 query；PINN
+  从 query 中取 512 PDE 点，并从独立壁面云取 1024 no-slip 点。
+- 三个历史 bundle 含体表壁面重复行；schema v2 保存 `interior_is_wall`，这些行只作
+  审计来源，不进入 support/query/PDE，也不污染归一化统计。
+
+旧的 8k near-wall + 8k core sidecar 不符合本路线，不能复用。
+
+## PINN 物理项
+
+第一版是不可压缩、准稳态、广义牛顿非牛顿流：
+
+\[
+\nabla\cdot\mathbf u=0,
+\]
+
+\[
+\rho(\mathbf u\cdot\nabla)\mathbf u+\nabla p-
+\nabla\cdot\left(2\mu(\dot\gamma)\mathbf D\right)=0,
+\]
+
+\[
+\mathbf u|_{\Gamma_w}=0.
+\]
+
+其中 `rho=1060 kg/m^3`，`U0=1 m/s`，病例长度尺度来自已知
+`coord_scale_mm × 1e-3`，黏度使用 Carreau–Yasuda。动量残差保留变黏度应力的完整
+散度，不使用常黏度拉普拉斯近似。
+
+## 首轮结果入口
+
+- 完整数值、配对判读与下一轮候选协议：
+  [峰值体域 PINN 路线结果](../docs/02-推进与变更/WSS_PINN/README.md#9-首轮八实验结果2026-08-02)
+- 可复现汇总：`outputs/wss_pinn/volume_uvwp_peak_v1/summary/`
+- 8 个原始 run：`outputs/wss_pinn/volume_uvwp_peak_v1/runs/`
+
+按 `best_total` checkpoint 的 test35 case-balanced 口径，四个 PINN 配对均降低
+continuity、momentum 与壁面速度 RMS，压力 R² 也全部提高；速度泛化收益不一致，
+PointNet + `xyz+geom` 是唯一 `u/v/w/speed/p` 五项全部提高的配对。因此首轮结论是
+“物理一致性显著改善，但不能宣称 PINN 全面优于 data-only”。
+
+## 第二轮 SAME5K-E7500 v2
+
+- 配置：`wss_pinn/configs/volume_uvwp_peak_same5k_e7500_v2/`；
+- 输出：`outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/`；
+- 采样：严格体域 random5000，`support_idx == query_idx`，每 epoch 重采样；
+- split：train138 / val0 / test35；test35 不参与训练控制；
+- 预算：7500 epoch / 517,500 optimizer step；固定保存 400/1000/2500/5000/7500；
+- 主 checkpoint：`last@7500`；训练结束同时输出 SAME5K 与 full-volume 评估；
+- Slurm：preflight `11137` 8/8 completed，正式 array `11138` running，`--time=0`，
+  最多 4 卡并发；30分钟快照无 NaN/OOM/Traceback，见输出根 `monitor_30min.json`。
+
+## 代码结构
 
 ```text
 wss_pinn/
-├── AGENTS.md
-├── README.md
-├── config.py
-├── data/
-│   ├── raw_io.py
-│   ├── sidecar.py
-│   ├── sampling.py
-│   └── dataset.py
-├── models/
-│   ├── anchor_adapter.py
-│   ├── geometry_encoder.py
-│   └── field_decoder.py
-├── physics/
-│   ├── rheology.py
-│   ├── residuals.py
-│   ├── wall_shear.py
-│   └── nondimensionalize.py
-├── tools/
-│   ├── audit_interior_identity.py
-│   ├── audit_udf_units.py
-│   ├── velocity_to_wss_oracle.py
-│   ├── cfd_residual_oracle.py
-│   ├── audit_wall_normals_zones.py
-│   ├── build_physics_sidecar.py
-│   ├── audit_full_dataset.py
-│   ├── audit_sidecar_dataset.py
-│   ├── analyze_f1_matrix.py
-│   ├── prepare_full_training_configs.py
-│   └── preflight.py
-├── configs/
-├── tests/
-├── cluster/
-├── train.py
-└── evaluate.py
+├── configs/volume_uvwp_peak_v1/       # 8 configs + matrix
+├── configs/volume_uvwp_peak_same5k_e7500_v2/ # 第二轮 SAME5K 8 configs + matrix
+├── tests/test_volume_*.py              # 数据、模型、物理与训练 smoke
+└── volume_field/
+    ├── data/                            # schema-v2 builder/dataset/audit
+    ├── models/                          # PointNet / PointNet++ 连续查询场
+    ├── physics/                         # Carreau–Yasuda 与 PDE residual
+    ├── tools/                           # build/audit/preflight
+    ├── cluster/                         # Slurm 与默认 dry-run 提交器
+    ├── losses.py
+    ├── train.py
+    └── evaluate.py
 ```
 
-F0-U、F0-UP、F1 使用同一套 `train.py`、`evaluate.py` 和
-`cluster/{preflight.slurm,run_experiment.slurm,submit_experiment.py}`。阶段差异只在
-JSON 配置的输出头与 loss 权重中表达；配置预检拒绝 F1 中任何非零 momentum 或
-WSS-physics 权重。full-data 配置只在 source/sidecar/matrix 三个报告均通过且
-哈希绑定当前 split/manifest 后生成；full F1 还会逐项校验其 full F0-UP
-对照的数据、采样、模型、训练协议和共享 loss。
-
-## 快速验证
+## 当前允许执行的命令
 
 ```bash
-source /public/newapps/anaconda3/etc/profile.d/conda.sh
-conda activate GNN
-python -m unittest discover -s wss_pinn/tests -p 'test_*.py' -v
-python -m wss_pinn.train \
-  --config wss_pinn/configs/f1_pilot_v2.json \
-  --dry-run --device cpu
-python wss_pinn/cluster/submit_experiment.py \
-  --config wss_pinn/configs/f1_pilot_v2.json \
-  --dry-run
+PY=/public/newhome/cy/.conda/envs/GNN/bin/python
+
+# 单元测试与静态八臂预检
+$PY -m unittest discover -s wss_pinn/tests -p 'test_*.py' -v
+$PY -m wss_pinn.volume_field.tools.preflight
+
+# 只查看提交计划，不提交 Slurm
+$PY -m wss_pinn.volume_field.cluster.submit_matrix
+
+# 从已完成 run 重新生成 CSV/JSON 与 PNG/SVG
+$PY -m wss_pinn.volume_field.tools.summarize_results
 ```
 
-真实提交不加 `--dry-run`。提交器会检查前级科学 Gate。原 F1
-`0.1/0.1` Jobs `11045→11046` 的 No-Go 结果保留；后续八臂内部诊断
-Jobs `11049…11063→11064` 已选中 `continuity=1e-4`、`no-slip=10`，
-best/last 均通过 pilot Gate。PINN 专用 `train138/test35` 已冻结，
-173 例 source/sidecar Gate 已通过；full F0-UP Jobs `11073→11074`
-已完成，但全量能力 Gate 为 No-Go；full F1 未提交。
+173 例数据构建和 deep-source audit 已完成；以下命令用于按原合同复现：
 
-## 不允许的捷径
+```bash
+sbatch wss_pinn/volume_field/cluster/build_dataset.slurm
+sbatch --dependency=afterok:<build_job_id> \
+  wss_pinn/volume_field/cluster/audit_dataset.slurm
+```
 
-- 不把 PINN loss 直接塞进 `training_wss_min/train.py`。
-- 不原地扩写 `data_wss_min/**/bundle.npz`。
-- 不把 `random5000` 全壁面点当成完整 physics batch。
-- 不一次同时打开 continuity、no-slip、WSS consistency 和 momentum。
-- 不用 `test36` 选择 loss 权重后再把它称为独立测试集。
-- 不在未记录 parent/config/data SHA 的情况下启动正式训练。
+首轮正式训练已通过 Slurm array `0-7%4` 在最多 4 张 GPU 上完成。后续新 run 仍须
+先通过 schema-v2 数据 Gate 和 GPU preflight，且不得覆盖本轮 v1 目录。
 
-## 运行状态
+## 运行日志
 
-- P0-A/B/C/D：三个 pilot（AG/AAA/ILO 各一例）均 completed；P0-D 同时确认
-  exact face zone/connectivity 不可得，hard flux/RCR residual blocked。
-- P1：`data_wss_pinn/pilot_v1/sampling_manifest.json` completed，三病例均为
-  5k wall / 8k near-wall / 8k core，聚合 SHA256
-  `c5bdd7b7ec89b43b16d8a1eccd664caf9490b39eb4aca6e1c4e8ec05177678f8`。
-- F0-U v1：Jobs `11037→11038` completed，但速度 R² 为
-  AG/AAA/ILO `0.654/0.586/0.567`，未达到 0.95，No-Go。
-- F0-U v2：Jobs `11039→11040` completed；case-balanced WSS R² `0.9906`，
-  但严格逐病例 `u/v/w/speed` Gate 未全部达到 0.95，No-Go。
-- F0-U v2ext：从 v2 `last.pt` 显式恢复并只增加 12000 epoch；Jobs
-  `11041→11042` completed。逐病例全部 velocity 聚合、`u/v/w/speed`
-  的最小 R² `0.9888`，通过严格 Gate。
-- F0-UP v2ext：Jobs `11043→11044` completed。best 的逐病例全部 velocity
-  聚合、`u/v/w/speed` 最低 R² `0.9872`，pressure R² 最低 `0.9987`；
-  best/last 均通过严格 Gate。
-- F1 v2ext `0.1/0.1`：Jobs `11045→11046` 均 completed，best/last 已审计。best
-  mean continuity RMS `70.1526→0.3359`，但 mean no-slip RMS
-  `0.12447→0.13396`，mean velocity R² `0.99502→0.82491`；No-Go。
-  该失败证据保留。
-- F1 内部诊断：八个 no-slip-only、continuity-only 和联合权重臂全部
-  completed；唯一双 checkpoint 通过臂为 `continuity=1e-4`、
-  `no-slip=10`。best/last continuity ratio `0.0769/0.0715`，
-  no-slip ratio `0.1232/0.1465`，最低 velocity R² `0.9689/0.9697`。
-  汇总为 `outputs/wss_pinn/matrices/f1_diagnostics_20260730/report.json`。
-- PINN 专用 full split：用户确认只从 PINN test 移除
-  `AAA/ruputer/SHI_YUN_XI`，train138 不变、不补位；新 split SHA256
-  `964d7021…9361f2b`。baseline 原 split SHA256 仍为
-  `d16fc497…bdd8f1`，未修改。
-- 全量 source/sidecar：Job `11070` 为 173/173 source pass；
-  Jobs `11071→11072` 为 173/173 sidecar build/audit pass；manifest
-  SHA256 `81a32066…43b5e14`。
-- full F0-UP：GPU preflight `11073`、train/eval `11074` 均 completed；
-  best 的 train/test velocity mean R² 为 `0.6568/0.1800`，last 为
-  `0.6591/0.1770`，严格能力 Gate 失败，判为 audited / No-Go。
-  配置 SHA256 `d27c215c…12e073`。
-- full F1：配置 SHA256 `c41cf992…11273`，dry-run code-ready；
-  full F0-UP 的配对 Gate 报告 SHA256 `daccfd1d…75cfed` 为 false，
-  因此 blocked / not submitted。
-- F1 始终只含 continuity + no-slip，momentum/WSS-physics 均为 0；
-  F2 blocked。
+正式 run 会保留：
+
+- `training_progress.jsonl` / `history.csv`：逐 step 四通道 data loss、
+  continuity、momentum-x/y/z、no-slip、physics total、total、梯度范数；
+- `epoch_progress.jsonl`：逐 epoch 对上述 loss 取均值，用于看 data loss 与 phy loss
+  是否共同收敛；
+- `initialization.pt` 与初始化哈希、`best_data.pt`、`best_total.pt`、`last.pt`；
+- 三个 checkpoint 的物理单位全体域评估，包括 `u/v/w/speed/p`、壁面速度、
+  continuity、momentum 和压力 gauge 偏移诊断。
+
+同一 run 的 `resume` 只用于故障恢复；跨 run checkpoint 初始化会被代码拒绝，因而
+不会把断点续训误写成 data-only 热启动。
+
+第二轮已切换为固定 7500 epoch 的 SAME5K 协议，不划 inner validation、不早停；
+test35 仍不参与调度或 checkpoint 选择。配对主表统一使用 `last@7500`，完整结果待
+array `11138` 完训后分析回填。

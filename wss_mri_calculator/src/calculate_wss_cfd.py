@@ -57,12 +57,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import data_loader_cfd as dl
 from wss_pinn.physics.rheology import carreau_yasuda_numpy
 from wss_pinn.physics.wall_shear import stl_face_geometry
+from wss_multiscale import fit_wall_gradient_multiscale
 
 MM_TO_M = 1e-3
 MU_HIGH_SHEAR = 0.0035  # Pa·s = 3.5 cP，Carreau–Yasuda 高剪切极限
 DEFAULT_ADAPTIVE_NEIGHBORS = (16, 20, 24, 28, 32, 36, 40, 44, 48, 64)
 DEFAULT_CV_TOLERANCE = 1.25
 TRAIN_FROZEN_GLOBAL_SCALE = 1.2220224407405893
+TRAIN_FROZEN_MULTISCALE_V2_SCALE = 1.157066322432233
 
 
 def find_stl(case_dir: Path) -> Path:
@@ -517,19 +519,33 @@ def run_case(
     else:
         idx = np.arange(n_wall)
 
-    gradient, used, fit_diagnostics = fit_wall_gradient(
-        wall["coords_mm"][idx],
-        normals[idx],
-        interior["coords_mm"],
-        interior["velocity"],
-        tree,
-        neighbors=neighbors,
-        degree=degree,
-        bandwidth_weight=bandwidth_weight,
-        neighbor_mode=neighbor_mode,
-        adaptive_neighbors=adaptive_neighbors,
-        cv_tolerance=cv_tolerance,
-    )
+    if neighbor_mode == "multiscale_v2":
+        if bandwidth_weight:
+            raise ValueError("multiscale_v2 does not use bandwidth_weight")
+        gradient, used, fit_diagnostics = fit_wall_gradient_multiscale(
+            wall["coords_mm"][idx],
+            normals[idx],
+            interior["coords_mm"],
+            interior["velocity"],
+            tree,
+            adaptive_neighbors=adaptive_neighbors,
+            degree=degree,
+            base_cv_tolerance=cv_tolerance,
+        )
+    else:
+        gradient, used, fit_diagnostics = fit_wall_gradient(
+            wall["coords_mm"][idx],
+            normals[idx],
+            interior["coords_mm"],
+            interior["velocity"],
+            tree,
+            neighbors=neighbors,
+            degree=degree,
+            bandwidth_weight=bandwidth_weight,
+            neighbor_mode=neighbor_mode,
+            adaptive_neighbors=adaptive_neighbors,
+            cv_tolerance=cv_tolerance,
+        )
     if prediction_scale <= 0:
         raise ValueError("prediction_scale must be positive")
     pred = wss_from_gradient(gradient, viscosity_model) * float(prediction_scale)
@@ -588,6 +604,11 @@ def run_case(
             "fit_condition_p95": float(
                 np.nanquantile(fit_diagnostics["design_condition"], 0.95)
             ),
+            "multiscale_correction_p50": float(
+                np.nanmedian(fit_diagnostics["correction"])
+            )
+            if neighbor_mode == "multiscale_v2"
+            else 1.0,
             "wall_to_stl_distance_p95": stl_distance_p95,
             "data_warnings": data_warnings,
             "geometry_warnings": geometry_warnings,
@@ -622,9 +643,12 @@ def main() -> None:
     parser.add_argument("--neighbors", type=int, default=64, help="K 近邻个数")
     parser.add_argument(
         "--neighbor-mode",
-        choices=["fixed", "adaptive_cv"],
+        choices=["fixed", "adaptive_cv", "multiscale_v2"],
         default="adaptive_cv",
-        help="fixed=固定K基线；adaptive_cv=按局部速度剖面LOOCV自适应选K",
+        help=(
+            "fixed=固定K基线；adaptive_cv=v1局部LOOCV选K；"
+            "multiscale_v2=冻结的多尺度零带宽修正"
+        ),
     )
     parser.add_argument(
         "--adaptive-neighbors",
@@ -643,8 +667,9 @@ def main() -> None:
         type=float,
         default=1.0,
         help=(
-            "可选全局幅值校正；纯物理结果用1.0，train138冻结校准值为 "
-            f"{TRAIN_FROZEN_GLOBAL_SCALE:.15f}"
+            "可选全局幅值校正；纯物理结果用1.0；adaptive_cv v1 冻结值为 "
+            f"{TRAIN_FROZEN_GLOBAL_SCALE:.15f}；multiscale_v2 全壁面冻结值为 "
+            f"{TRAIN_FROZEN_MULTISCALE_V2_SCALE:.15f}"
         ),
     )
     parser.add_argument("--degree", type=int, default=2, help="剖面多项式阶数")

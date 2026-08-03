@@ -8,6 +8,8 @@
 | `src/data_loader_cfd.py` | 读 Fluent ASCII 导出（替代原 `data_loader.py` 的 HDF5 读取） |
 | `src/calculate_wss_cfd.py` | 单病例算 WSS 并与 CFD 真值对比（替代 `calculate_wss.py`） |
 | `src/batch_validate_cfd.py` | 跨队列批量验证 |
+| `src/wss_multiscale.py` | 纯点云多尺度零带宽修正候选 v2 |
+| `src/compare_multiscale_v2.py` | v1/v2 成对验证 |
 | `viz/` | 诊断/审计可视化（pred–truth、法向、邻域锚定、采样诊断、postview 导出）；不放在 `src/` |
 
 ## 病例范围（必须先读）
@@ -233,6 +235,32 @@ raw R² mean `0.6994 → 0.8586`、min `0.5736 → 0.7568`，35/35 提升。
 - **deg=2 必需**：1 次拟合不出近壁曲率；3 次开始拟合网格噪声。
 - **固定 K=64 仅作为 baseline**；正式算法逐壁面点自适应选 K。
 - 近壁高斯加权（`--bandwidth-weight`）实测**略微降低**精度，默认关闭。
+
+### 纯点云多尺度候选 v2
+
+若不使用任何 WSS 真值幅值标定，可显式启用多尺度零带宽修正：
+
+```bash
+--neighbor-mode multiscale_v2
+```
+
+它保留 adaptive-CV v1 的梯度方向，只在多个邻域呈现可信收敛趋势时对梯度幅值做
+正向、收缩后的局部修正。冻结配置在 blind test35 上把 raw R² mean 从 `0.8586`
+提高到 `0.8675`，p05 从 `0.7647` 提高到 `0.7836`，MAE 从 `1.0754` 降到
+`1.0372 Pa`，33/35 病例提升；方向余弦不变，Spearman `0.98122 → 0.98104`。
+
+完整记录见 [`experiments/pointcloud_multiscale_v2/RESULTS.md`](experiments/pointcloud_multiscale_v2/RESULTS.md)。
+v1 仍保持默认，以免改变已冻结复现口径；若允许 train-only 全局标量，v1 calibrated
+的平均 R² 仍略高于 v2 calibrated。
+
+v2 使用全部 train138 壁面点重新推导的冻结标量为：
+
+```bash
+--neighbor-mode multiscale_v2 --prediction-scale 1.157066322432233
+```
+
+该标量来自 5,436,791 个 train 壁面点；full-wall blind test35 共 1,328,017 点，
+得到 case-mean R² `0.9050`、MAE `0.7799 Pa`、high-WSS NRMSE `0.2553`。
 
 ## 指标含义
 

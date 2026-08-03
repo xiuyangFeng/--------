@@ -1,0 +1,18 @@
+{
+  "experiment": {
+    "id": "VF-PNPP-XYZ-DATA-s1234-v1",
+    "mode": "data_only",
+    "architecture": "pointnetpp",
+    "input_variant": "xyz",
+    "description": "Pure PointNet++ D2 c125-k128, xyz-only, four-channel peak uvwp data supervision"
+  },
+  "paths": {
+    "run_dir": "outputs/wss_pinn/volume_uvwp_peak_v1/runs/VF-PNPP-XYZ-DATA-s1234-v1"
+  },
+  "physics": {"enabled": false},
+  "loss": {
+    "continuity_weight": 0.0,
+    "momentum_weight": 0.0,
+    "no_slip_weight": 0.0
+  }
+}

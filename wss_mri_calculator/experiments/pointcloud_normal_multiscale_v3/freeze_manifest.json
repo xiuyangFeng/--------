@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "method": "pointcloud_normal_multiscale_v3",
+  "frozen_at": "2026-08-03",
+  "immutable": true,
+  "note": "Selected exclusively on train138. Any blind test configuration must match config_frozen_v3.json exactly.",
+  "artifacts": [
+    {
+      "path": "src/wss_normal_multiscale_v3.py",
+      "sha256": "37fe180cd5ee65d0d8c077edcc3b635e721ea3e987833cb573cb6a6d3fb72b73"
+    },
+    {
+      "path": "src/run_v3_experiment.py",
+      "sha256": "03d4ac22285706918c8ab29c8150d44487f1c84b9db2c0f5c5b7e9d7c7607e16"
+    },
+    {
+      "path": "experiments/pointcloud_normal_multiscale_v3/config_frozen_v3.json",
+      "sha256": "939394978113badeaecebbc2c1131df4dcf5e157b1ae236adaa211d742bdeaae"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_normal_multiscale_v3/stage_b1_multiscale_cap120_train138_s600.json",
+      "sha256": "f411a475e0915c7c676c3e557c5d94d0d4a07d0fe4fbaa063393c30962cf1452"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_normal_multiscale_v3/stage_c_blind_test35_s1200.json",
+      "sha256": "ab9568f5ba0c5db07c7e7e771c12c1a7de8ac2d03ddc09f1dabc48f9417a9db6"
+    }
+  ]
+}

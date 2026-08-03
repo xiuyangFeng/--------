@@ -18,6 +18,9 @@ alwaysApply: true
   sbatch --nodelist=node03 run_pipeline.slurm <CASE_NAME>
   ```
 - **需要 GPU 资源时**：先检查 `nvidia-smi` / `squeue -u $USER`；只要 GPU 有空闲即可直接提交使用，若没有空闲则按实验计划顺序提交排队，以后不再为是否使用 GPU 或是否排队单独询问用户。
+- **用户点名 node04**：按 `.cursor/skills/node04-experiments/SKILL.md` 与
+  `docs/00-规范与记录/集群node04使用要点.md` 执行（UID=`1006/1007`、项目目录用
+  `/public/newhome/cy/...`、conda 绝对路径、2×A100）。不要把 node03 CPU 规范套到 node04。
 
 ## 提交方式
 

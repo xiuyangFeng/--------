@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "route": "volume_uvwp_peak_v1",
+  "protocol_id": "same5k_e7500_v2",
+  "status": "code_ready_not_submitted",
+  "seed": 1234,
+  "warm_start": false,
+  "split_sha256": "964d7021f2d12baadd630e7b936456a4e62294fa72c5ada4fc70abe4d9361f2b",
+  "sampling_contract": {
+    "strategy": "uniform_volume_random",
+    "support_points": 5000,
+    "query_points": 5000,
+    "query_mode": "same",
+    "resample_each_epoch": true
+  },
+  "training_contract": {
+    "epochs": 7500,
+    "batch_cases": 2,
+    "optimizer_steps": 517500,
+    "milestone_epochs": [400, 1000, 2500, 5000, 7500],
+    "primary_checkpoint": "last@7500"
+  },
+  "evaluation_contract": {
+    "primary": "same_fixed_5k",
+    "secondary": "fixed_5k_to_full_volume",
+    "test_used_for_training_control": false
+  },
+  "architecture_provenance": {
+    "selection_workbook": {
+      "path": "docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx",
+      "sha256": "c0dd20e93249ea5e19627fc964ccef67ed7df37adeae025c357ec8faa9c8168e"
+    },
+    "pointnet": {
+      "selection": "P2V width anchor with global random5000 support",
+      "config": "training_wss_min/configs/pointnet_v4/ag_aaa_v4_stratified_e2_global_random5000_sep.json",
+      "sha256": "709e01df289a2e687d113278413088d9c3744b147a947967c8106ae7a3f0557b"
+    },
+    "pointnetpp": {
+      "selection": "pure PointNet++ D2 c125-k128 anchor with random5000 support",
+      "config": "training_wss_min/configs/pointnetpp_sa1_scale_single_seed_20260721/d2_rand5000_c125_k128.json",
+      "sha256": "9dd46247799a104f16dd8a72793f38abf3dab11f51920f55be0487d12a5c4a41"
+    },
+    "weights_reused": false
+  },
+  "pairs": [
+    ["pointnet_xyz_data_only.json", "pointnet_xyz_pinn.json"],
+    ["pointnet_xyz_geom_data_only.json", "pointnet_xyz_geom_pinn.json"],
+    ["pointnetpp_xyz_data_only.json", "pointnetpp_xyz_pinn.json"],
+    ["pointnetpp_xyz_geom_data_only.json", "pointnetpp_xyz_geom_pinn.json"]
+  ]
+}

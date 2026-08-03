@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "experiment_name": "pointcloud_normal_multiscale_v3_stage_a0_train36",
+  "status": "ready_not_submitted",
+  "description": "Train-only 36-case stability gate for normal-ray interpolation plus geometry-risk hybrid threshold 1.4; no V3 multiscale correction.",
+  "method_frozen": false,
+  "split": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_q2v_pool2025_train138_test35_exclude_SHI_YUN_XI_v1.json",
+    "expected_sha256": "964d7021f2d12baadd630e7b936456a4e62294fa72c5ada4fc70abe4d9361f2b",
+    "data_root": "/public/newhome/cy/Digital_twin/GNN/data_new",
+    "roles": ["train"]
+  },
+  "execution": {
+    "sample_count": 400,
+    "seed": 0,
+    "prefer_peak": true,
+    "limit_per_cohort": 12,
+    "num_shards": 1,
+    "shard_index": 0
+  },
+  "geometry": {
+    "radius_source": "bundle_then_wall",
+    "wall_radius_search_neighbors": 512,
+    "wall_radius_opposite_normal_cosine": -0.6
+  },
+  "comparators": [
+    {
+      "name": "adaptive_cv_v1",
+      "config": "../pointcloud_adaptive_v1/config_frozen_v1.json"
+    },
+    {
+      "name": "multiscale_v2",
+      "config": "../pointcloud_multiscale_v2/config_frozen_v2.json"
+    },
+    {
+      "name": "normal_multiscale_v3"
+    }
+  ],
+  "method": {
+    "sampling": {
+      "query_neighbors": 256,
+      "mode": "normal_ray_interpolation",
+      "depth_fractions": [0.35, 0.5, 0.7, 0.85, 1.0],
+      "depth_bins": 8,
+      "points_per_bin": 2,
+      "min_samples": 8,
+      "tube_wall_spacing_multiplier": 0.75,
+      "tube_depth_slope": 0.25,
+      "tube_min_radius_mm": 0.15,
+      "tube_max_radius_fraction": 0.35,
+      "fallback_tube_expand": 1.5,
+      "ray_stations": 12,
+      "ray_interpolation_neighbors": 16,
+      "ray_min_interpolation_neighbors": 4,
+      "ray_start_fractions": [0.35],
+      "ray_distance_floor_mm": 0.03
+    },
+    "ownership": {
+      "enabled": true,
+      "max_anchor_spacing_multiplier": 2.5,
+      "max_anchor_separation_mm": 2.0,
+      "min_normal_cosine": 0.5
+    },
+    "depth_prior": {
+      "density_kg_m3": 1060.0,
+      "viscosity_pa_s": 0.0035,
+      "re_depth_coefficient": 5.0,
+      "min_mm": 0.2,
+      "max_mm": 2.5,
+      "max_radius_fraction": 0.7,
+      "fallback_radius_mm": 5.0,
+      "edge_velocity_quantile": 0.8,
+      "edge_velocity_min_m_s": 0.02,
+      "pulsatile_frequency_hz": 0.0
+    },
+    "fit": {
+      "model": "normal_profile",
+      "cv_tolerance": 1.25,
+      "lateral_weight_power": 2.0
+    },
+    "multiscale": {
+      "enabled": false,
+      "cv_tolerance": 1.5,
+      "extrapolation_power": 1.0,
+      "correction_min": 1.0,
+      "correction_max": 1.35,
+      "correction_shrink": 0.5,
+      "max_trend_correlation": 0.0,
+      "min_direction_cosine": 0.98
+    },
+    "hybrid": {
+      "enabled": true,
+      "lateral_over_eta_min": 1.4,
+      "max_ownership_rejected": -1
+    }
+  },
+  "output": {
+    "json_path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_normal_multiscale_v3/stage_a0_train36_s400.json"
+  },
+  "runtime": {
+    "host": "node04",
+    "conda_python": "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "gpu": "auto",
+    "max_gpu_memory_used_mb_before_launch": 1024,
+    "poll_seconds": 60
+  }
+}

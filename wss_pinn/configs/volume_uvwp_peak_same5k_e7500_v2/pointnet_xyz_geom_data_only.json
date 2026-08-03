@@ -1,0 +1,22 @@
+{
+  "experiment": {
+    "id": "VF-PN-XYZG-DATA-SAME5K-E7500-s1234-v2",
+    "mode": "data_only",
+    "architecture": "pointnet",
+    "input_variant": "xyz_geom",
+    "description": "PointNet xyz+geom data-only, random SAME 5k support/query, fixed 7500 epochs"
+  },
+  "paths": {
+    "output_root": "outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2",
+    "run_dir": "outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/runs/VF-PN-XYZG-DATA-SAME5K-E7500-s1234-v2"
+  },
+  "sampling": {"query_mode": "same"},
+  "physics": {"enabled": false},
+  "loss": {"continuity_weight": 0.0, "momentum_weight": 0.0, "no_slip_weight": 0.0},
+  "train": {
+    "epochs": 7500,
+    "checkpoint_every_epochs": 100,
+    "milestone_epochs": [400, 1000, 2500, 5000, 7500]
+  },
+  "cluster": {"time": "0"}
+}

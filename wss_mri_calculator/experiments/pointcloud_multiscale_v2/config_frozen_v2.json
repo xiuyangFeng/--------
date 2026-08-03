@@ -1,0 +1,22 @@
+{
+  "selection_source": "stage_b2_train138_s600_gated_shrink05.json",
+  "base_method": "pointcloud_adaptive_v1",
+  "adaptive_neighbors": [16, 20, 24, 28, 32, 36, 40, 44, 48, 64],
+  "base_cv_tolerance": 1.25,
+  "degree": 2,
+  "extrapolation_cv_tolerance": 1.5,
+  "extrapolation_power": 1.0,
+  "smooth_neighbors": 24,
+  "global_blend": 0.0,
+  "correction_min": 1.0,
+  "correction_max": 1.35,
+  "correction_shrink": 0.5,
+  "max_trend_correlation": 0.0,
+  "min_direction_cosine": 0.98,
+  "viscosity": "carreau",
+  "normals": "pca",
+  "prediction_scale": 1.0,
+  "seed": 0,
+  "prefer_peak": true,
+  "test_tuned": false
+}

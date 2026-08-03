@@ -8,6 +8,10 @@
 2. 配置命名和输出命名分别是什么意思。
 3. 本周应该用哪些命令先跑起来。
 
+**node04**：若要在 04 节点跑实验/冒烟，先读
+[集群 node04 使用要点](../../../00-规范与记录/集群node04使用要点.md)
+（UID、`/public/newhome/cy` 路径、conda 绝对路径、2×A100）。
+
 **（2026-04-28）** **`V2P-WSSP-05`（MSE WSS）/ `V2P-WSSP-06`（Huber WSS）`** 各三 seed：`training/configs/field/generated/v2_pointcloud/V2P-WSSP-0{5,6}_seed{1,2,3}.json`；汇总 **`manifest_wssp_05_07.json`**；训练落盘与 **`summary.test_metrics` 节选**见 [任务A实验状态表](任务A实验状态表.md)「实验记录摘要 · V2P-WSSP-05 / V2P-WSSP-06」。后处理阵列与清单见 [代码修改与实验推进记录](../../../02-推进与变更/代码修改与实验推进记录.md) **2026-04-28**。
 
 **（2026-03-31）母版约定**：后续 **`A-Abl-*` / Line G / Line W** 的新 JSON，以 **`A-Opt-05`** 已归档 run 的 **`config.snapshot.json`** 为复制基准（仅改消融项或 Line 专用字段）；**`A-Opt-03`** 用于低开销对照。详见 [任务A实验状态表](任务A实验状态表.md)「战略锚点」。**（2026-04-02）** **`A-Opt-07`**（`optim.interior_loss_boost=3`）配置位于 **`training/configs/field/generated/optimization/A-Opt-07_seed*.json`**；结果已归档，**不构成新母版**（相对 05 负结果），对照图见 **`outputs/field/plots/optimization/A_Opt07_vs_Opt05_Main01/`**（`regenerate_opt07_vs_opt05_main_figures`）。**（2026-04-09）** **`A-Abl-02`（`ablation_geometry`）** 四子组 × 三 seed 已归档，配置位于 **`training/configs/field/generated/ablation_geometry/`**（`A-Abl-02-0*_seed*.json`），汇总见状态表「实验记录摘要 · A-Abl-02」。**（2026-04-14）** **Line G**：**`training/configs/field/generated/line_g/`**（`A-Opt-G01`～`G05` 等）；**`G01`/`G04`/`G05` 三 seed 已跑通**，详见状态表「第四批 / 实验记录摘要 · Line G」。**（2026-04-17）** **WSS 多任务（场 + `wss_loss_weight=0.1`）**：**`training/configs/field/generated/baseline_wss_multitask/`**（`A-Base-*-wss-multi`、`A-Main-01-wss-multi`、`A-Opt-05-wss-multi`）；结果与壁面 WSS 汇总见状态表「第五批附 / 实验记录摘要 · WSS 多任务」及 **`outputs/field/wss_multitask_test_wall_wss_metrics.tsv`**。**（2026-04-24）** **V2 点云壁面专线 `V2P-WSSP-01`**：**`training/configs/field/generated/v2_pointcloud/V2P-WSSP-01_seed1.json`**，manifest **`manifest_wssp_wall13000_near2000.json`**；**不等同**于 Line W 表 **`A-Opt-W03`**（多任务场+WSS），而是 **速度场 loss 关闭、仅 p + 全量 WSS loss**。**（2026-04-25）** 导师沟通后，WSSP 后续主线改为 **压力 + 壁面 WSS 快速预测**，速度只作弱辅助监督和诊断；新增 **`V2P-WSSP-04_seed1.json`** 与 manifest **`manifest_wssp_pressure_wss_primary.json`**。训练与评估须在 **`conda activate rag_venv`**（或等价）下进行。
