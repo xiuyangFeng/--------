@@ -4,9 +4,9 @@ import unittest
 
 import torch
 
-from wss_pinn.volume_field.config import VolumeExperimentConfig
-from wss_pinn.volume_field.models import build_volume_model
-from wss_pinn.volume_field.models.point_models import differentiable_knn_interpolate
+from wss_pinn.config import ExperimentConfig
+from wss_pinn.models import build_model
+from wss_pinn.models.point_models import differentiable_knn_interpolate
 
 
 def second_derivative_smoke(output: torch.Tensor, coords: torch.Tensor):
@@ -35,11 +35,11 @@ class VolumeModelTests(unittest.TestCase):
         self.assertTrue(torch.isfinite(second).all())
 
     def test_pointnet_query_is_smooth_and_pointwise_batch_invariant(self):
-        config = VolumeExperimentConfig.from_json(
+        config = ExperimentConfig.from_json(
             "wss_pinn/configs/volume_uvwp_peak_v1/pointnet_xyz_geom_pinn.json"
         )
         torch.manual_seed(1234)
-        model = build_volume_model(config).double().eval()
+        model = build_model(config).double().eval()
         support_pos = torch.rand(64, 3, dtype=torch.float64)
         support_features = torch.cat(
             [support_pos, torch.rand(64, 3, dtype=torch.float64)], dim=1
@@ -58,11 +58,11 @@ class VolumeModelTests(unittest.TestCase):
         torch.testing.assert_close(out_one.detach()[0], out_many.detach()[0], rtol=1e-10, atol=1e-10)
 
     def test_pointnetpp_query_has_finite_first_and_second_derivatives(self):
-        config = VolumeExperimentConfig.from_json(
+        config = ExperimentConfig.from_json(
             "wss_pinn/configs/volume_uvwp_peak_v1/pointnetpp_xyz_pinn.json"
         )
         torch.manual_seed(1234)
-        model = build_volume_model(config).double().eval()
+        model = build_model(config).double().eval()
         support = torch.rand(256, 3, dtype=torch.float64)
         encoded = model.encode_support(
             support,
@@ -84,6 +84,28 @@ class VolumeModelTests(unittest.TestCase):
         first, second = second_derivative_smoke(output[:, 0], query)
         self.assertTrue(torch.isfinite(first).all())
         self.assertTrue(torch.isfinite(second).all())
+
+    def test_v3_decoder_is_smooth_and_uses_geometry_only_in_support_branch(self):
+        config = ExperimentConfig.from_json(
+            "wss_pinn/configs/volume_uvwp_peak_qs_smooth_v3/"
+            "qsf_xyz_geom_bcpde.json"
+        )
+        torch.manual_seed(1234)
+        model = build_model(config).double().eval()
+        support = torch.randn(32, 3, dtype=torch.float64)
+        features = torch.randn(32, 6, dtype=torch.float64)
+        encoded = model.encode_support(
+            support, features, torch.zeros(32, dtype=torch.long)
+        )
+        query = torch.randn(8, 3, dtype=torch.float64, requires_grad=True)
+        output = model.decode_query(encoded, query, torch.zeros(8, dtype=torch.long))
+        first, second = second_derivative_smoke(output[:, 0], query)
+        self.assertTrue(torch.isfinite(first).all())
+        self.assertTrue(torch.isfinite(second).all())
+        self.assertEqual(model.branch[0].in_features, 6)
+        self.assertEqual(model.decoder[0].in_features, 3 + 256)
+        module_names = {type(module).__name__ for module in model.modules()}
+        self.assertFalse(module_names & {"BatchNorm1d", "LayerNorm", "Dropout"})
 
 
 if __name__ == "__main__":

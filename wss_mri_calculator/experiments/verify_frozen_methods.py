@@ -1,4 +1,4 @@
-"""Verify that frozen V1/V2 source/config/result artifacts are unchanged."""
+"""Verify that frozen V1-V4 source/config/result artifacts are unchanged."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ DEFAULT_MANIFESTS = (
     ROOT / "experiments/pointcloud_adaptive_v1/freeze_manifest.json",
     ROOT / "experiments/pointcloud_multiscale_v2/freeze_manifest.json",
     ROOT / "experiments/pointcloud_normal_multiscale_v3/freeze_manifest.json",
+    ROOT / "experiments/pointcloud_surface_mls_v4/freeze_manifest.json",
 )
 
 

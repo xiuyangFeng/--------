@@ -1,0 +1,18 @@
+{
+  "route": "volume_uvwp_peak_qs_smooth_v3",
+  "contracts": {"split_sha256": "c80cb65ad95f7d76fadaff82ea02c35c27ad24ab2474e1050bf981eff97493f9"},
+  "experiment": {"id": "QSF-XYZ-BC-s1234-v3", "mode": "data_bc", "architecture": "smooth_pointnet", "input_variant": "xyz", "description": "Conditional tanh field, xyz branch, DATA plus true peak BC"},
+  "paths": {
+    "split": "wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_qs_smooth_v3_train123_val15_test35_s1234.json",
+    "sidecar_manifest": "data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/manifest.json",
+    "field_stats": "data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/field_stats.json",
+    "output_root": "outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3",
+    "run_dir": "outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/runs/QSF-XYZ-BC-s1234-v3"
+  },
+  "data": {"train_roles": ["train"], "validation_roles": ["val"], "eval_roles": ["test"]},
+  "sampling": {"support_points": 5000, "query_points": 5000, "physics_points": 1024, "wall_points": 1024, "inlet_points": 512, "outlet_points": 512, "query_mode": "independent", "seed": 1234},
+  "model": {"activation": "tanh"},
+  "physics": {"enabled": false},
+  "loss": {"lambda_bc": 1.0, "lambda_pde": 0.0},
+  "train": {"seed": 1234, "epochs": 2500, "batch_cases": 2, "learning_rate": 0.001, "weight_decay": 0.0001, "warmup_epochs": 20, "min_learning_rate": 0.00001, "grad_clip_norm": 1.0, "precision": "float32", "checkpoint_every_epochs": 25, "validation_every_epochs": 1, "milestone_epochs": [100, 250, 500, 1000, 1500, 2000, 2500]}
+}

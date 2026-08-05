@@ -1,308 +1,159 @@
+"""Static preflight for the eight-arm matrix; never submits training."""
+
 from __future__ import annotations
 
 import argparse
 import json
 from pathlib import Path
 
-from wss_pinn.config import ExperimentConfig
-from wss_pinn.data.dataset import PhysicsDataset
+import torch
+
 from wss_pinn.utils import ROOT, atomic_write_json, sha256_file, utc_now
 
-
-def _json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _root_path(value: str | Path) -> Path:
-    path = Path(value)
-    return path if path.is_absolute() else ROOT / path
+from ..config import ExperimentConfig
+from ..models import build_model
+from ..volume_utils import tensor_state_sha256
 
 
-def _paired_f1_control_contract(
-    config: ExperimentConfig, control_dir: Path
-) -> dict:
-    resolved_path = control_dir / "resolved_config.json"
-    detail = {
-        "path": str(resolved_path.resolve()),
-        "exists": resolved_path.is_file(),
-        "passed": False,
-    }
-    if not resolved_path.is_file():
-        return detail
-    control = ExperimentConfig(_json(resolved_path)).as_dict()
-    current = config.as_dict()
-    checks = {
-        "control_stage_f0up": control.get("experiment", {}).get("stage") == "f0up",
-        "data_match": control.get("data") == current.get("data"),
-        "sampling_match": control.get("sampling") == current.get("sampling"),
-        "model_match": control.get("model") == current.get("model"),
-    }
-    train_fields = (
-        "seed",
-        "epochs",
-        "learning_rate",
-        "weight_decay",
-        "precision",
-        "batch_wall",
-        "batch_near_wall",
-        "batch_core",
-        "batch_cases",
-        "checkpoint_every",
-        "log_every",
-        "init_checkpoint",
-        "resume",
+CONFIG_ROOT = ROOT / "wss_pinn/configs/volume_uvwp_peak_v1"
+DEFAULT_OUTPUT = ROOT / "outputs/wss_pinn/audits/volume_uvwp_peak_v1_preflight/report.json"
+IMPLEMENTATION_FILES = (
+    ROOT / "wss_pinn/config.py",
+    ROOT / "wss_pinn/data/alignment.py",
+    ROOT / "wss_pinn/data/audit.py",
+    ROOT / "wss_pinn/data/builder.py",
+    ROOT / "wss_pinn/data/dataset.py",
+    ROOT / "wss_pinn/data/raw_io.py",
+    ROOT / "wss_pinn/models/point_models.py",
+    ROOT / "wss_pinn/physics/rheology.py",
+    ROOT / "wss_pinn/physics/residuals.py",
+    ROOT / "wss_pinn/losses.py",
+    ROOT / "wss_pinn/train.py",
+    ROOT / "wss_pinn/evaluate.py",
+    ROOT / "wss_pinn/volume_utils.py",
+    ROOT / "wss_pinn/cluster/preflight.slurm",
+    ROOT / "wss_pinn/cluster/run_experiment.slurm",
+    ROOT / "wss_pinn/cluster/submit_matrix.py",
+    ROOT / "wss_pinn/tools/preflight.py",
+    ROOT / "wss_pinn/tools/build_qs_smooth_v3.py",
+    ROOT / "wss_pinn/cluster/launch_node04_qs_smooth_v3.py",
+    ROOT / "wss_pinn/cluster/monitor_node04_qs_smooth_v3.py",
+)
+
+
+def _paired_protocol(config: ExperimentConfig) -> dict:
+    payload = config.as_dict()
+    payload["experiment"].pop("id", None)
+    payload["experiment"].pop("description", None)
+    payload["experiment"].pop("mode", None)
+    payload["paths"].pop("run_dir", None)
+    payload["physics"]["enabled"] = "paired_variable"
+    for key in ("continuity_weight", "momentum_weight", "no_slip_weight"):
+        payload["loss"][key] = "paired_variable"
+    for key in ("lambda_bc", "lambda_pde"):
+        payload["loss"][key] = "paired_variable"
+    return payload
+
+
+def run(config_root: Path = CONFIG_ROOT) -> dict:
+    matrix_path = config_root / "matrix.json"
+    matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
+    route = str(matrix.get("route", ""))
+    if route not in {"volume_uvwp_peak_v1", "volume_uvwp_peak_qs_smooth_v3"}:
+        raise ValueError("matrix route drift")
+    if matrix.get("warm_start") is not False:
+        raise ValueError("matrix must explicitly forbid warm-start")
+    submission = matrix.get("submission", {})
+    if not isinstance(submission.get("enabled"), bool) or any(
+        not submission.get(key) for key in ("preflight_report", "data_gate", "output")
+    ):
+        raise ValueError("matrix submission paths/enabled flag are required")
+    groups = matrix.get("pairs") if route == "volume_uvwp_peak_v1" else matrix.get("groups")
+    if not groups:
+        raise ValueError("matrix experiment groups are missing")
+    split_path = Path(
+        ExperimentConfig.from_json(config_root / groups[0][0])["paths"]["split"]
     )
-    checks["train_protocol_match"] = all(
-        control.get("train", {}).get(key) == current.get("train", {}).get(key)
-        for key in train_fields
-    )
-    shared_loss_fields = (
-        "direct_wss_weight",
-        "velocity_data_weight",
-        "pressure_data_weight",
-        "wss_physics_weight",
-        "momentum_weight",
-    )
-    checks["shared_loss_match"] = all(
-        control.get("loss", {}).get(key) == current.get("loss", {}).get(key)
-        for key in shared_loss_fields
-    )
-    checks["control_first_order_losses_zero"] = all(
-        float(control.get("loss", {}).get(key, 0.0)) == 0.0
-        for key in ("continuity_weight", "no_slip_weight")
-    )
-    detail.update({"checks": checks, "passed": all(checks.values())})
-    return detail
-
-
-def science_gate(config: ExperimentConfig) -> dict:
-    if config.stage == "f0u":
-        requirements = {
-            "p0a": ROOT / "outputs/wss_pinn/audits/p0a/summary.json",
-            "p0c": ROOT / "outputs/wss_pinn/audits/p0c/summary.json",
-            "p1": Path(config["sampling"]["manifest_path"]),
-        }
-        checks = {}
-        for name, path in requirements.items():
-            exists = path.exists()
-            passed = exists
-            if exists and name in {"p0a", "p0c"}:
-                passed = _json(path).get("gate_result") == "pass"
-            if exists and name == "p1":
-                passed = _json(path).get("status") == "completed"
-            checks[name] = {"path": str(path), "exists": exists, "passed": passed}
-        passed = all(item["passed"] for item in checks.values())
-        return {"passed": passed, "checks": checks, "rule": "P0-A/P0-C/P1 pass"}
-
-    control = config["experiment"].get(
-        "scientific_gate_control_run_dir"
-    ) or config["experiment"].get("control_run_dir")
-    if not control:
-        return {
-            "passed": False,
-            "checks": {},
-            "rule": "scientific gate control run is required",
-        }
-    control_dir = _root_path(control)
-    report_path = control_dir / "evaluation_best.json"
-    checks = {
-        "control_evaluation": {
-            "path": str(report_path.resolve()),
-            "exists": report_path.exists(),
-            "passed": False,
-        }
-    }
-    if report_path.exists():
-        report = _json(report_path)
-        velocity_pass = all(
-            row["velocity"]["r2"] >= 0.95
-            and all(
-                metric["r2"] >= 0.95
-                for metric in row["velocity"].get("components", {}).values()
-            )
-            for row in report["cases"]
-        )
-        pressure_pass = all(
-            row["pressure_gauge_invariant"]["r2"] >= 0.95 for row in report["cases"]
-        )
-        required = velocity_pass if config.stage == "f0up" else velocity_pass and pressure_pass
-        checks["control_evaluation"].update(
+    if sha256_file(split_path) != matrix.get("split_sha256"):
+        raise ValueError("matrix split hash drift")
+    flattened = [name for group in groups for name in group]
+    expected_count = 8 if route == "volume_uvwp_peak_v1" else 6
+    if len(flattened) != expected_count or len(set(flattened)) != expected_count:
+        raise ValueError(f"matrix must contain exactly {expected_count} unique configs")
+    if route == "volume_uvwp_peak_v1":
+        provenance = matrix.get("architecture_provenance", {})
+        workbook = provenance.get("selection_workbook", {})
+        workbook_path = ROOT / workbook.get("path", "")
+        if not workbook_path.is_file() or sha256_file(workbook_path) != workbook.get("sha256"):
+            raise ValueError("architecture-selection workbook provenance drift")
+        for architecture in ("pointnet", "pointnetpp"):
+            source = provenance.get(architecture, {})
+            source_path = ROOT / source.get("config", "")
+            if not source_path.is_file() or sha256_file(source_path) != source.get("sha256"):
+                raise ValueError(f"{architecture} anchor-config provenance drift")
+    pair_reports = []
+    all_config_hashes = {}
+    for group in groups:
+        configs = [ExperimentConfig.from_json(config_root / name) for name in group]
+        if any(config.route != route for config in configs):
+            raise ValueError("config route does not match matrix route")
+        reference_protocol = _paired_protocol(configs[0])
+        if any(_paired_protocol(config) != reference_protocol for config in configs[1:]):
+            raise ValueError(f"paired protocol drift: {group}")
+        hashes = []
+        parameter_counts = []
+        for config in configs:
+            torch.manual_seed(int(config["train"]["seed"]))
+            model = build_model(config)
+            hashes.append(tensor_state_sha256(model.state_dict()))
+            parameter_counts.append(sum(parameter.numel() for parameter in model.parameters()))
+            all_config_hashes[config.source.name] = {
+                "source_sha256": sha256_file(config.source),
+                "resolved_sha256": config.resolved_sha256,
+            }
+        if len(set(hashes)) != 1:
+            raise ValueError(f"paired initialization mismatch: {group}")
+        if len(set(parameter_counts)) != 1:
+            raise ValueError(f"paired parameter-count mismatch: {group}")
+        pair_reports.append(
             {
-                "passed": required,
-                "velocity_r2_ge_0_95": velocity_pass,
-                "pressure_r2_ge_0_95": pressure_pass,
+                "configs": group,
+                "modes": [config.mode for config in configs],
+                "architecture": configs[0].architecture,
+                "input_variant": configs[0].input_variant,
+                "initialization_state_sha256": hashes[0],
+                "parameters": parameter_counts[0],
+                "warm_start": False,
+                "protocol_match": True,
             }
         )
-    if config.stage == "f1":
-        paired_control_dir = _root_path(config["experiment"]["control_run_dir"])
-        checks["paired_f0up_contract"] = _paired_f1_control_contract(
-            config, paired_control_dir
-        )
-    split_path = Path(config["data"]["split_path"])
-    split_sha256 = sha256_file(split_path) if split_path.is_file() else None
-    manifest_path = Path(config["sampling"]["manifest_path"])
-    manifest_sha256 = (
-        sha256_file(manifest_path) if manifest_path.is_file() else None
-    )
-    extra_report_fields = (
-        ("source_data_audit_report", "source_data_audit"),
-        ("sidecar_audit_report", "sidecar_audit"),
-        ("scientific_gate_report", "f1_diagnostic_matrix"),
-    )
-    for field, name in extra_report_fields:
-        value = config["experiment"].get(field)
-        if not value:
-            continue
-        path = _root_path(value)
-        exists = path.is_file()
-        passed = False
-        detail = {}
-        if exists:
-            report = _json(path)
-            passed = report.get("gate_result") == "pass"
-            detail["gate_result"] = report.get("gate_result")
-            if name == "source_data_audit":
-                report_split_sha = report.get("split", {}).get("sha256")
-                split_match = (
-                    split_sha256 is not None
-                    and report_split_sha == split_sha256
-                )
-                detail.update(
-                    {
-                        "report_split_sha256": report_split_sha,
-                        "config_split_sha256": split_sha256,
-                        "split_binding_match": split_match,
-                    }
-                )
-                passed = passed and split_match
-            if name == "sidecar_audit":
-                report_split_sha = report.get("split", {}).get("sha256")
-                report_manifest_sha = report.get(
-                    "aggregate_manifest", {}
-                ).get("sha256")
-                split_match = (
-                    split_sha256 is not None
-                    and report_split_sha == split_sha256
-                )
-                manifest_match = (
-                    manifest_sha256 is not None
-                    and report_manifest_sha == manifest_sha256
-                )
-                detail.update(
-                    {
-                        "report_split_sha256": report_split_sha,
-                        "config_split_sha256": split_sha256,
-                        "split_binding_match": split_match,
-                        "report_manifest_sha256": report_manifest_sha,
-                        "config_manifest_sha256": manifest_sha256,
-                        "manifest_binding_match": manifest_match,
-                    }
-                )
-                passed = passed and split_match and manifest_match
-            if name == "f1_diagnostic_matrix" and passed:
-                selected_path = report.get("selected_config")
-                selected = _root_path(selected_path) if selected_path else None
-                selected_exists = bool(selected) and selected.is_file()
-                selected_hash = (
-                    sha256_file(selected) if selected_exists else None
-                )
-                selected_config = (
-                    ExperimentConfig.from_json(selected)
-                    if selected_exists
-                    else None
-                )
-                weights_match = bool(selected_config) and all(
-                    float(config["loss"][key])
-                    == float(selected_config["loss"][key])
-                    for key in ("continuity_weight", "no_slip_weight")
-                )
-                detail.update(
-                    {
-                        "selected_config": selected_path,
-                        "selected_config_exists": selected_exists,
-                        "selected_config_sha256": selected_hash,
-                        "selected_weights_match": weights_match,
-                    }
-                )
-                passed = passed and selected_exists and weights_match
-        checks[name] = {
-            "path": str(path.resolve()),
-            "exists": exists,
-            "passed": passed,
-            **detail,
-        }
-    passed = all(item["passed"] for item in checks.values())
     return {
-        "passed": passed,
-        "checks": checks,
-        "rule": (
-            "F0-U completed with velocity R2>=0.95"
-            if config.stage == "f0up"
-            else (
-                "F0-UP control plus every declared source/sidecar/F1 matrix Gate; "
-                "full F1 weights must match the selected diagnostic config"
-            )
-        ),
-    }
-
-
-def run_preflight(
-    config: ExperimentConfig, *, require_science_gate: bool, output: Path | None = None
-) -> dict:
-    dataset = PhysicsDataset(config["sampling"]["manifest_path"], verify=True)
-    counts = [
-        {
-            "case_id": case.case_id,
-            "wall": int(len(case.static["wall_coords"])),
-            "near_wall": int(len(case.static["near_wall_coords"])),
-            "core": int(len(case.static["core_coords"])),
-        }
-        for case in dataset.cases
-    ]
-    sampling = config["sampling"]
-    slot_pass = all(
-        row["wall"] >= min(int(sampling["wall_points"]), row["wall"])
-        and row["near_wall"] > 0
-        and row["core"] > 0
-        for row in counts
-    )
-    gate = science_gate(config)
-    passed = slot_pass and (gate["passed"] or not require_science_gate)
-    payload = {
         "schema_version": 1,
         "created_at": utc_now(),
-        "status": "passed" if passed else "failed",
-        "stage": config.stage,
-        "experiment_id": config.experiment_id,
-        "config_source": str(config.source),
-        "config_source_sha256": sha256_file(config.source) if config.source else None,
-        "resolved_config_sha256": config.resolved_sha256,
-        "sampling_manifest": config["sampling"]["manifest_path"],
-        "sampling_manifest_sha256": sha256_file(config["sampling"]["manifest_path"]),
-        "slot_counts": counts,
-        "slot_contract_passed": slot_pass,
-        "science_gate_required": require_science_gate,
-        "science_gate": gate,
+        "status": "completed",
+        "gate_result": "pass",
+        "route": route,
+        "matrix": {"path": str(matrix_path.resolve()), "sha256": sha256_file(matrix_path)},
+        "split_sha256": matrix["split_sha256"],
+        "submission": submission,
+        "pairs": pair_reports,
+        "configs": all_config_hashes,
+        "implementation": {
+            str(path.relative_to(ROOT)): sha256_file(path)
+            for path in IMPLEMENTATION_FILES
+        },
+        "formal_training_submitted": False,
     }
-    if output is not None:
-        atomic_write_json(output, payload)
-    if not passed:
-        raise RuntimeError(json.dumps(payload, ensure_ascii=False))
-    return payload
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", required=True)
-    parser.add_argument("--require-science-gate", action="store_true")
-    parser.add_argument("--output")
+    parser.add_argument("--config-root", default=str(CONFIG_ROOT))
+    parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
-    config = ExperimentConfig.from_json(args.config)
-    output = Path(args.output) if args.output else None
-    result = run_preflight(
-        config, require_science_gate=args.require_science_gate, output=output
-    )
-    print(json.dumps(result, ensure_ascii=False))
+    report = run(Path(args.config_root))
+    output = atomic_write_json(args.output, report)
+    print(json.dumps({"status": "completed", "output": str(output)}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

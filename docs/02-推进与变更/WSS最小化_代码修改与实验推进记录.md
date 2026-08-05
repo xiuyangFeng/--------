@@ -1,8 +1,266 @@
 # WSS 最小化路线代码修改与实验推进记录
 
-> 用途：单独记录 `pipeline_wss_min/` 这条 WSS-only 最小化数据线的代码、坐标 QA、图件和实验推进。
+> 用途：记录 WSS 相关独立路线，包括 `pipeline_wss_min/`、`training_wss_min/`、`wss_mri_calculator/` 与 `wss_pinn/` 的代码、数据、图件和实验推进。
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
-> 当前执行入口：[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) / [第六轮总入口](WSS最小化_第六轮XYZ尺度诊断计划与执行.md) / [横向多目标对比](WSS最小化_第六轮_横向多目标对比计划与执行.md) / [WSS 精度突破](WSS最小化_第六轮_WSS精度突破计划与执行.md) / [BC/速度条件路线](WSS最小化_第六轮_边界条件与速度路线.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md)。
+> 当前执行入口：[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md) / [WSS-PINN 当前入口](WSS_PINN/README.md) / [velocity→WSS V1–V4 总跟踪](../../wss_mri_calculator/experiments/README.md)。
+
+## 2026-08-05｜准稳态平滑场 V3 六臂完训、三 checkpoint 评估与结论回填
+
+**本次主要修改**：从 Fluent 二进制 case 恢复 173 例真实 wall/inlet/four-outlet
+边界，建立 train123/val15/test35 与 train-only 统计；实现无 3NN/IDW 的条件
+PointNet 平滑 query 场、DATA/BC/PDE 分组损失、统一 validation checkpoint、六臂配置、
+静态/GPU Gate、双节点提交和机器可读监控；补齐 pooled 回归指标、入口/出口边界、
+预测方差/塌缩诊断，并将旧八臂汇总器扩展为 V3 六臂主表、九组增量、逐病例和收敛
+汇总；新增可复跑的老师汇报损失绘图器，生成六臂 data/physics loss 总览、每臂全程与
+最后 10% 放大、BC/PDE 子项和 9 页 PDF；新增汇报工作簿生成器，把主指标、九组增量、
+checkpoint敏感性、loss收敛和210行逐病例结果整理为7张表并嵌入关键图。入口流量使用 exact peak
+`vf-in-rfile.out` 实测值除真实网格面积；6 例 UDF 陈旧分母保留 warning，不伪造成
+Gate 失败。wall 坐标审计改为 sidecar→全部 Fluent wall，并允许同表面重剖分。
+
+**对应代码/产物**：`wss_pinn/{config.py,train.py,evaluate.py,losses.py}`、
+`wss_pinn/{models,data,tools,cluster}/`、
+`wss_pinn/configs/volume_uvwp_peak_qs_smooth_v3/`、
+`data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/`、
+`outputs/wss_pinn/audits/volume_uvwp_peak_qs_smooth_v3_*/` 与
+`outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/`；损失绘图器为
+`wss_pinn/tools/plot_v3_loss_convergence.py`，图件位于
+`outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/loss_convergence/`；工作簿生成器为
+`wss_pinn/tools/build_v3_teacher_workbook.py`，结果为
+`outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/WSS_PINN_V3_六臂核心实验与指标汇报.xlsx`。
+
+**推进到实验步骤**：boundary Gate 173/173、25 项测试、三模式 CPU smoke、六臂静态
+preflight 和 master4+node04x2 CUDA dry-run 全通过；前 30 分钟 31/31 快照 healthy。
+master Slurm `11301_[0-3]` 与 node04 PID `1241185/1241335` 对应六臂均完成 2500
+epoch / 155000 step，三类 checkpoint 6/6 齐全；test35 全严格体域评估 18/18 完成，
+主 checkpoint 固定 `best_validation_data`，test35 未参与训练、选模或续训判断。
+
+**当前状态判断**：geom 是稳定正增量：E4−E1、E5−E2、E6−E3 的 speed R²_cb
+为 `+0.1919/+0.1977/+0.1942`。BC 对总体速度近中性（case-balanced 小幅正、pooled
+小幅负），但改善入口流量与出口压力。PDE 将 continuity/momentum residual 降低约
+89–90%/60–62%，却使 E3−E2、E6−E5 的 speed R²_cb 分别下降 `0.0502/0.0537`，判定
+为准稳态正则与瞬态 peak 标签竞争，而非训练不足。最后 10% validation 已小幅变差，
+不满足续到 5000 的条件；near-wall speed R² 六臂全负，不形成 WSS 结论。结果真源见
+[`summary/README.md`](../../outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/README.md)。
+
+## 2026-08-04｜Profile-Secant V3 35 例全壁面推理、采样与穿模审计
+
+**本次主要修改**：新增 Profile-Secant V3 全壁面可恢复执行链，按既有 test35
+原始壁面点数均衡成 8 个 CPU 分片，依次生成基础 V4 缓存、depth-3 剖面/secant
+诊断和冻结高尾校准结果。扩展纯模型导出器，新增 132.8 万点同点 hexbin 散点、
+最佳/最差高 WSS 空间图、单点内部支撑图、全病例壁面范围穿模风险图和全量 VTP。
+历史 `profile_secant_v3/` 明确降级为 test35 × 1200 预览，未覆盖原产物。
+
+**对应代码/文档**：
+`wss_mri_calculator/src/run_profile_secant_v3_fullwall.py`、
+`wss_mri_calculator/src/run_frozen_wss_compat.py`、
+`wss_mri_calculator/viz/export_profile_secant_v3_visualization.py`、
+`wss_mri_calculator/viz/visualize_v4_{single_target_sampling,penetration_risk}.py`、
+[全壁面结果与复现](../../outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/README.md)、
+[V1–V4 总跟踪](../../wss_mri_calculator/experiments/README.md)和
+[项目级推进摘要](代码修改与实验推进记录.md)。
+
+**推进到实验步骤**：Profile-Secant V3 模型 SHA256 保持
+`c1e53af5…3a02`；test35 35/35、`1,328,017` 点完成，0 failure。正式结果 JSON /
+predictions SHA256=`31a4bdca…d7e89` / `9aaa80ad…bdbf`；最佳/最差全量 VTP 源同点
+分别为 67,760 / 18,551，STL 顶点映射覆盖率均 100%。
+
+**当前状态判断**：full-wall overall R² 均值=`0.96037`、pooled overall
+R²=`0.96790`、pooled high-WSS R²=`0.94405`、逐病例 high-WSS R² 均值
+=`0.77355`。sampled 与 full-wall 的整体/平均高 WSS 结论稳定，但全壁面平均峰值
+低估=`15.81%`，sampled `9.31%` 不能再作为全量峰值结论。最佳病例穿模审计拦截
+2,450 个门控前跨壁风险候选，最差病例严格门控前风险为 0；两者门控后保留风险均为 0。
+
+## 2026-08-04｜体域 PINN 下一阶段准稳态平滑场六臂执行交接
+
+**本次主要修改**：将用户确认的下一阶段实验固化为可直接复制到新窗口的执行提示词。
+路线使用 Fluent 瞬态 peak `u,v,w,p` 标签和 Carreau–Yasuda 准稳态 PDE 正则，采用
+无 PointNet++/3NN/IDW 的条件 PointNet 平滑坐标场，并用
+`xyz/xyz+geom × DATA/DATA+BC/DATA+BC+PDE` 六臂拆分 BC、PDE 与几何特征增量。
+
+**对应代码/文档**：
+[准稳态平滑场六臂实验交接](WSS_PINN/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验.md)、
+[体域 PINN 路线真源](WSS_PINN/README.md)、
+[`wss_pinn` 代码入口](../../wss_pinn/README.md)、`docs/README.md` 和
+[项目级推进摘要](代码修改与实验推进记录.md)。
+
+**推进到实验步骤**：本次只冻结科学合同、边界资产 Gate、train123/val15/test35、
+六臂矩阵、loss 分组、2500→5000 同预算续训条件、统一 validation checkpoint、正式
+提交与监控要求；未修改训练代码、未构建新边界 sidecar、未提交 Slurm。
+
+**当前状态判断**：handoff ready / implementation pending。下一智能体必须先证明真实
+peak inlet/outlet 坐标与目标可恢复；Gate 通过后已获授权推进实现、测试、GPU
+preflight、正式六臂提交、完训评估和文档收口。若 Gate 失败，禁止伪造 BC 或把只有
+no-slip 的实验称为完整 DATA+BC。
+
+## 2026-08-04｜Profile-Secant V3 纯 quicklook 与最佳/最差病例 VTP
+
+**本次主要修改**：新增 Profile-Secant V3 专用可视化导出脚本和独立结果目录，图件
+只读取 `high_tail_wss_vec`，不混入 V4 final 预测。生成 test35 指标汇总、最佳/最差
+病例空间图、高 WSS 尾部图、总览联系表，以及与既有 `06_postview_vtp` 同结构的两份
+ParaView 面片包。通用三联图工具增加可选预测标签，默认行为保持不变。
+
+**对应代码/文档**：
+`wss_mri_calculator/viz/export_profile_secant_v3_visualization.py`、
+`tools/cfdpost_cloud_export/plot_stl_mapped_triptych.py`、
+[纯模型可视化入口](../../outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3/README.md)、
+[V4/Profile 方法说明](../../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/README.md)、
+[CFD 适配说明](../../wss_mri_calculator/README_CFD_ADAPTATION.md)。
+
+**推进到实验步骤**：未训练或调参；直接读取冻结的 test35 × 1200 Profile-Secant V3
+predictions。按逐病例 high-WSS R² 选择最佳 `ILO/LI_YOU_ZHI-0/before`
+（`0.9560`）和最差 `AG/slow/ZHANG_WEI_XIAN`（`0.2381`），将同点标量 Gaussian
+映射到病例 STL，并输出主 VTP、源 CSV、映射报告、预览图、色标和 manifest。
+
+**当前状态判断**：纯 quicklook 和两份 VTP 已可直接使用。最佳病例 VTP 映射覆盖率
+为 `99.51%`，最差病例为 `99.88%`；VTP 仅用于展示，正式 R² 仍以冻结同点 JSON/CSV
+为准。脚本与通用三联图工具 `py_compile` 通过。
+
+## 2026-08-04｜体域 PINN V2 零重训 residual 根因验证与老师论文对照
+
+**本次主要修改**：新增冻结 checkpoint 的物理诊断工具并完成三项只读审计：test35
+exact support / 独立体域 / jitter query residual；AG/AAA/ILO 各 1 例 CFD 真值的
+准稳态与加入 `du/dt` 后 residual；当前 V2 到 Liao 2025/老师源码 NMAE 口径的指标
+桥接。同步纠正路线文档中把 SAME5K 低 residual 当作连续场物理闭合证据的旧表述，
+并补齐老师论文和当前代码的设计差异。
+
+**对应代码/文档**：`wss_pinn/tools/diagnose_v2_physics.py`、
+[V2 路线真源](WSS_PINN/README.md)、[`wss_pinn` 代码入口](../../wss_pinn/README.md)、
+[老师论文与 V2 对照](../paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md)、
+`outputs/wss_pinn/audits/volume_uvwp_peak_same5k_e7500_v2_residual_diagnosis/`、
+根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md`。
+
+**推进到实验步骤**：未重新训练。固定使用
+`VF-PNPP-XYZG-PINN-SAME5K-E7500-s1234-v2/last.pt`；网络审计覆盖 35/35 test，
+每例 512 点；CFD 审计覆盖三域各 1 例、每例 256 个 strict-core 点，并用 `k=48/96`
+检查局部二次拟合敏感性。解析三例 Fluent journal，确认 solver dt=`0.005 s`、中心
+差分间隔=`0.02 s`；解析老师论文 PDF 和现有代码快照。
+
+**当前状态判断**：SAME-IDW 根因已确认：独立 query 的 continuity/momentum/速度
+梯度 RMS 约为 exact support 的 `453×/331×/187×`；`1e-4` 微扰下速度仅变化
+`1.84e-5 m/s`，动量却放大 `120×`。CFD `k=96` 加时间项后 residual 均值
+`1737→1494 Pa/m`，说明准稳态缺项真实但只解释部分误差，且绝对值受二阶导数邻域
+敏感性限制。按老师源码 global-range NMAE，V2 可得约 `2.18%` 而 speed R² 仍仅
+`0.2380`，确认原文 NMAE/FR-PD R² 不能直接证明逐点速度更准。下一轮训练前应先修
+独立 collocation/连续 query、可观测 inlet/outlet BC 与瞬态方程，不再追加 epoch。
+
+## 2026-08-04｜Profile-Secant V3 推荐模型口径纠正
+
+**本次主要修改**：根据用户明确的选择目标“病例总体和平均高 WSS 精度”，纠正此前
+把 V4 final 写成推荐版本的口径。现统一将 Profile-Secant V3 定为当前推荐结果模型，
+用于主结果、可视化和后续总体/平均高 WSS 分析；V4 final 改为冻结基线和消融对照。
+逐病例严格目标未达的限制保持不变。
+
+**对应代码/文档**：[V1–V4 总跟踪](../../wss_mri_calculator/experiments/README.md)、
+[CFD 适配说明](../../wss_mri_calculator/README_CFD_ADAPTATION.md)、
+[V4/Profile 方法说明](../../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/README.md)、
+[完整结果](../../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/RESULTS.md)、
+[Profile-Secant V3 推荐结果](../../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/PROFILE_SECANT_HIGH_TAIL_V3_RESULTS.md)、
+根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md`、
+[高值区域预测优化方案](WSS高值区域预测优化方案.md) 和 [体域 PINN 路线](WSS_PINN/README.md)。
+
+**推进到实验步骤**：只纠正文档中的模型选择与报告口径；未重新训练、未重新推理、
+未修改模型、预测、split 或哈希。选择依据仍为已落盘的 train138 grouped OOF、固定
+holdout65 和 test35 结果。
+
+**当前状态判断**：Profile-Secant V3 的 test35 整体/pooled high-WSS R² 为
+`0.9617/0.9415`，优于 V4 final 的 `0.9561/0.9282`，因此符合用户当前主目标并作为
+推荐结果模型。其严格双目标仅 4/35 病例达标，推荐使用不等于逐病例可靠保证。
+
+## 2026-08-04｜`wss_pinn` 当前主线根层化与旧 WSS-target 源码归档
+
+**本次主要修改**：将活动峰值体域 `u,v,w,p` 路线从
+`wss_pinn/volume_field/` 提升到 `wss_pinn/` 根包，统一训练、评估、数据、模型、
+物理、工具和 Slurm 入口；把已停止的直接 WSS/F0–F2 实现、配置和测试移入源码
+归档。保留当前路线仍复用的 raw CFD 读取、抽取后的坐标对齐和通用写盘/哈希工具，
+并将这些活动依赖纳入静态 preflight 的实现哈希。
+
+**对应代码/文档**：`wss_pinn/config.py`、`wss_pinn/train.py`、
+`wss_pinn/evaluate.py`、`wss_pinn/{data,models,physics,tools,cluster}/`、
+[`wss_pinn` 代码说明](../../wss_pinn/README.md)、
+[`wss_pinn` 归档索引](../../wss_pinn/archive/README.md)、
+[历史源码归档](../../wss_pinn/archive/wss_target_v1_20260730/README.md)、
+`wss_pinn/AGENTS.md`、[体域 PINN 路线真源](WSS_PINN/README.md)及其历史文档归档。
+
+**推进到实验步骤**：只做工程结构收敛和入口迁移；未启动训练、未改配置数值、
+未改数据 split、未改模型/loss/评估口径，也未移动既有数据和输出。
+
+**当前状态判断**：活动代码已直接位于 `wss_pinn` 根层；旧路线有可浏览源码归档，
+不再与当前入口混放。现有 v1/v2 实验结论和输出路径保持不变。
+
+## 2026-08-04｜高 WSS Profile-Secant V3、可辨识性上限与中文文档同步
+
+**本次主要修改**：将冻结 V4 final 之后的高 WSS 增量研究统一收口为中文；明确
+Profile-Secant V3 是面向总体和平均高 WSS 精度的当前推荐结果模型，V4 final 保留
+为冻结基线，并新增 2026-08-04 test35 高 WSS 对比图。把 pooled/平均达标与逐病例
+严格未达标分开报告，补充 oracle 上限、
+近壁采样深度相关性和已否决路线，避免把整体 R² 高误写成每个病例高 WSS 可靠。
+
+**对应代码/文档**：[V1–V4 总跟踪](../../wss_mri_calculator/experiments/README.md)、
+[V4 方法说明](../../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/README.md)、
+[V4 完整结果](../../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/RESULTS.md)、
+[Profile-Secant V3 结果](../../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/PROFILE_SECANT_HIGH_TAIL_V3_RESULTS.md)、
+[高 WSS quicklook](../../outputs/wss_mri_calculator/pointcloud_surface_mls_v4/00_quicklook/README.md)、
+根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md`、
+[高值区域预测优化方案](WSS高值区域预测优化方案.md) 和 [体域 PINN 路线](WSS_PINN/README.md)。
+
+**推进到实验步骤**：未重新训练、未做 test35 调参。直接读取已冻结的
+`calibrator_profile_secant_high_tail_anchor10_v3.joblib` 和 prediction archive，生成
+`15_profile_secant_high_tail_comparison.png/json`。相关 12 项单元/合同测试既有记录
+为通过，重复推理既有记录为逐字节一致。
+
+**当前状态判断**：test35 整体 R²=`0.9617`、pooled high-WSS R²=`0.9415`、
+逐病例 high-WSS R² 均值=`0.7721`、high-WSS NRMSE=`0.1583`、平均峰值低估
+=`9.31%`。但仅 6/35 病例 high-WSS R² `≥0.90`，仅 4/35 同时满足峰值低估
+`≤10%`。任意单调 oracle 仍有 13/35 不达标，现有输入上的后校准优化已接近信息上限；
+严格提升需要更靠近壁面的速度层或更高近壁分辨率。当前主结果使用
+Profile-Secant V3，V4 final 只作冻结对照。
+
+## 2026-08-03｜峰值体域 SAME5K-E7500 v2 8/8 完训与速度精度审计
+
+**本次主要修改**：完成第二轮峰值体域 `u,v,w,p` 八实验的 SAME5K 主协议、
+固定 5k support→full-volume 副协议、三 checkpoint 敏感性、逐病例和分区域审计；
+将路线真源、Agent 边界、代码 README、项目入口与实验总纲从 running 更新为
+completed，并明确整体速度精度、近壁短板和当前模型选择。
+
+**对应代码/文档**：[峰值体域 PINN 路线真源](WSS_PINN/README.md)、
+`wss_pinn/AGENTS.md`、[`wss_pinn/README.md`](../../wss_pinn/README.md)、
+根 [`README.md`](../../README.md)、
+`docs/README.md`、`docs/实验设计总纲.md`、
+`outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/runs/`。
+
+**推进到实验步骤**：GPU preflight `11137` 与训练 array `11138_[0-7%4]` 均
+8/8 completed；每臂 7500 epoch / 517,500 step，8 份 epoch 日志均为 7500 行，
+SAME5K/full-volume × `best_data/best_total/last` 共 48 份 evaluation JSON 完整。
+最低训练 loss 均位于 epoch 6815–7487，三 checkpoint 的 SAME5K speed R² 极差仅
+`0.0006–0.0230`，训练已基本平台。
+
+**当前状态判断**：V2 速度主锚点冻结为 PointNet++ + `xyz+geom` + PINN / `last@7500`；
+其 SAME5K/full-volume speed R²=`0.2380/0.1820`、MAE=`0.1764/0.1863 m/s`，
+30/35 病例 SAME5K speed R² 为正。PINN 四对聚合 `u/v/w/speed/p` R² 均提高，
+但 PointNet++ 两对 speed 增益仅 `+0.0705/+0.0317` 且逐病例约一半获益；near-wall
+speed R² 仍全部为负。下一步不再只延长 epoch，优先诊断 5 个负 R² 病例与近壁
+标记/采样/损失，并在独立确认集或多 seed 上复核。
+
+## 2026-08-03｜velocity→WSS V1–V4 总跟踪建立并同步 V4 冻结结论
+
+**本次主要修改**：为 `wss_mri_calculator` 建立 V1–V4 唯一实验总跟踪页，明确
+纯物理前向、train-only 全局标量和 V4 冻结诊断校准的监督边界；将 CFD 适配说明中
+`alpha≈1.2` 改为 V1/V2 历史诊断，并同步根 README、docs 索引和实验总纲的当前状态。
+
+**对应代码/文档**：
+`wss_mri_calculator/experiments/README.md`、
+`wss_mri_calculator/README_CFD_ADAPTATION.md`、根 `README.md`、
+`docs/README.md`、`docs/实验设计总纲.md`、V1–V4 各实验目录及冻结清单。
+
+**推进到实验步骤**：V1–V4 均为 frozen。统一 test35 × 1200 下，V4 physics
+raw/scaled R² mean=`0.90788/0.93612`；V4 final 为
+`0.95607/0.95844`，raw p05/min=`0.92391/0.90025`，35/35 病例优于 V3。
+train138 grouped OOF 与 development73→holdout65 的 raw R² mean 分别为
+`0.95493/0.95790`。
+
+**当前状态判断**：V4 final 是当前推荐 velocity→WSS 方法；V1/V2/V3 保留为冻结
+演进证据，禁止 post-test tuning。下一阶段应转向新外部队列、网格/时间步鲁棒性、
+分支感知归属和不确定性，不继续通过增加射线站点或多项式阶数追分。
 
 ## 2026-08-02｜峰值体域 SAME5K-E7500 v2 实现并提交
 
@@ -14,8 +272,8 @@ case-balanced 的逐目标 R²/MAE/RMSE、三分量 momentum 与 wall P95/max。
 preflight/训练均设 `--time=0`，实查 GPU 分区 `MaxTime=UNLIMITED`。
 
 **对应代码/文档**：`wss_pinn/configs/volume_uvwp_peak_same5k_e7500_v2/`、
-`wss_pinn/volume_field/{config.py,data/dataset.py,train.py,evaluate.py}`、
-`wss_pinn/volume_field/cluster/`、[路线真源](WSS_PINN/README.md)、
+`wss_pinn/{config.py,data/dataset.py,train.py,evaluate.py}`、
+`wss_pinn/cluster/`、[路线真源](WSS_PINN/README.md)、
 `outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/submission.json`。
 
 **推进到实验步骤**：`test_volume_*` 20/20 通过；新矩阵静态 preflight pass；正式提交
@@ -38,7 +296,7 @@ checkpoint 写盘正常。梯度裁剪率 data-only 约 50%–54%、PINN 约 90%
 monitor、data fidelity/Pareto 早停边界；当前仅为候选协议，未实现、未提交训练。
 
 **对应代码/文档**：
-`wss_pinn/volume_field/tools/summarize_results.py`、
+`wss_pinn/tools/summarize_results.py`、
 `outputs/wss_pinn/volume_uvwp_peak_v1/summary/`、
 [峰值体域 PINN 结果真源](WSS_PINN/README.md)、
 [`wss_pinn/README.md`](../../wss_pinn/README.md)、根 `README.md`、
@@ -64,8 +322,8 @@ launcher `11124`；173/173 schema-v2 sidecar、注册速度、严格体域压力
 补充 `CUBLAS_WORKSPACE_CONFIG=:4096:8`，重跑 40/40 单测与静态 preflight 后提交
 GPU preflight `11127` 和正式 array `11128_[0-7%4]`。
 
-**对应代码/文档**：`wss_pinn/volume_field/cluster/{preflight,run_experiment}.slurm`、
-`wss_pinn/volume_field/{train.py,cluster/submit_matrix.py}`、
+**对应代码/文档**：`wss_pinn/cluster/{preflight,run_experiment}.slurm`、
+`wss_pinn/{train.py,cluster/submit_matrix.py}`、
 `data_wss_pinn/volume_uvwp_peak_v1_train138_test35/`、
 `outputs/wss_pinn/audits/volume_uvwp_peak_v1_train138_test35/`、
 `outputs/wss_pinn/volume_uvwp_peak_v1/submission.json`、[当前路线](WSS_PINN/README.md)。
@@ -98,7 +356,7 @@ momentum 和壁面 no-slip，不从 data-only 热启动。实现可微 query-coo
 合成回归测试。旧 WSS-target 文档移入 `_archive/wss_target_v1_20260730/`，旧源码以
 Git commit `bca002025d40b290d171570e6470f484fd4feec7` 追溯，不删除旧数据或输出。
 
-**对应代码/文档**：`wss_pinn/volume_field/`、
+**对应代码/文档**：`wss_pinn/`、
 `wss_pinn/configs/volume_uvwp_peak_v1/`、`wss_pinn/tests/test_volume_*.py`、
 `wss_pinn/{AGENTS.md,README.md}`、[当前体域 PINN 路线](WSS_PINN/README.md)、
 [旧路线归档](WSS_PINN/_archive/wss_target_v1_20260730/README.md)、
@@ -167,7 +425,7 @@ train/test 评估与配对科学 Gate，并将工程完成状态和科学 No-Go 
 `outputs/wss_pinn/runs/PINN-F0UP-full-train138-test35-exclude-shi-v1-s1234-20260730/`、
 `outputs/wss_pinn/audits/full_f0up_to_f1_gate_train138_test35_exclude_shi_v1_20260730/report.json`、
 [WSS-PINN 总入口](WSS_PINN/README.md)、
-[阶梯矩阵](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)、
+[阶梯矩阵](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_阶梯实验矩阵与进度跟踪.md)、
 `wss_pinn/README.md`。
 
 **推进到实验步骤**：Jobs `11073→11074` 均 `COMPLETED (0:0)`；
@@ -197,7 +455,7 @@ F0-UP/F1 配置并提交 full F0-UP。
 `data_wss_pinn/full_train138_test35_exclude_shi_v1/`、
 `outputs/wss_pinn/audits/{full_data_train138_test35_exclude_shi_v1_20260730,full_sidecars_train138_test35_exclude_shi_v1_20260730}/`、
 [WSS-PINN 总入口](WSS_PINN/README.md)与
-[阶梯矩阵](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)。
+[阶梯矩阵](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_阶梯实验矩阵与进度跟踪.md)。
 
 **推进到实验步骤**：baseline 原 split SHA256 保持
 `d16fc497…bdd8f1`；PINN 专用 split SHA256 `964d7021…9361f2b`。
@@ -228,7 +486,7 @@ Job `11073` completed，train/eval Job `11074` running 并持续写出有限 los
 `outputs/wss_pinn/matrices/f1_diagnostics_20260730/report.json`；
 `outputs/wss_pinn/audits/full_data_train138_test36_20260730_v2/report.json`；
 [WSS-PINN 总入口](WSS_PINN/README.md)与
-[阶梯矩阵](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)。
+[阶梯矩阵](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_阶梯实验矩阵与进度跟踪.md)。
 
 **推进到实验步骤**：八个训练 Jobs
 `11049/11051/11053/11055/11057/11059/11061/11063` 与汇总 Job `11064`
@@ -257,8 +515,8 @@ best/last checkpoint、训练摘要和配对评估；以 CPU 独立重算 best/l
 **对应代码/文档**：
 `outputs/wss_pinn/runs/PINN-F1-cont-noslip-overfit3-v2ext-s1234-20260730/{evaluation_best.json,evaluation_last.json,training_summary.json,checkpoints/,slurm/}`；
 [WSS-PINN 总入口](WSS_PINN/README.md)；
-[阶梯矩阵 §7–§8](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；
-[历史执行合同](WSS_PINN/WSS_PINN_下一智能体目标提示词_推进至F1.md)；
+[阶梯矩阵 §7–§8](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；
+[历史执行合同](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_下一智能体目标提示词_推进至F1.md)；
 [体域物理约束路线](WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)；
 `wss_pinn/README.md`；根 `README.md`、`docs/README.md`、
 `docs/实验设计总纲.md`。
@@ -290,7 +548,7 @@ Slurm 提交器正式提交 GPU 预检与训练/评估依赖作业。
 
 **对应代码/文档**：`wss_pinn/configs/f1_pilot_v2.json`；
 `outputs/wss_pinn/runs/PINN-F1-cont-noslip-overfit3-v2ext-s1234-20260730/`；
-[WSS-PINN 总入口](WSS_PINN/README.md)；[阶梯矩阵 §7–§8](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；
+[WSS-PINN 总入口](WSS_PINN/README.md)；[阶梯矩阵 §7–§8](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；
 `wss_pinn/README.md`；根 `README.md`、`docs/README.md`、
 `docs/实验设计总纲.md`。
 
@@ -311,7 +569,7 @@ wall speed、velocity、pressure 与 WSS 护栏后再判 Gate；此前不得提�
 
 **本次主要修改**：只读核验 F0-UP Jobs `11043→11044` 的 Slurm accounting、best/last checkpoint、训练摘要、机器可读评估与父对照 F0-U v2ext；按逐病例 velocity 聚合、`u/v/w/speed`、gauge-pressure 和 WSS 护栏回填路线矩阵、入口状态、总纲和进度日志。另以 CPU 直接加载 best checkpoint 重算评估，不改写 run；126 个数值字段相对落盘 JSON 的最大绝对差 `2.29e-5`。
 
-**对应代码/文档**：`outputs/wss_pinn/runs/PINN-F0UP-overfit3-v2ext-s1234-20260730/{evaluation_best.json,evaluation_last.json,training_summary.json,checkpoints/,slurm/}`；[WSS-PINN 总入口](WSS_PINN/README.md)；[阶梯矩阵 §7–§8](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；`wss_pinn/README.md`；根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md`。
+**对应代码/文档**：`outputs/wss_pinn/runs/PINN-F0UP-overfit3-v2ext-s1234-20260730/{evaluation_best.json,evaluation_last.json,training_summary.json,checkpoints/,slurm/}`；[WSS-PINN 总入口](WSS_PINN/README.md)；[阶梯矩阵 §7–§8](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；`wss_pinn/README.md`；根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md`。
 
 **推进到实验步骤**：F0-UP preflight/train-eval Jobs `11043/11044` 均 `COMPLETED (0:0)`。best 的三病例 velocity 聚合 R² 为 `0.9957/0.9939/0.9954`，全部 velocity 聚合与 `u/v/w/speed` 的最低 R² `0.9872`；gauge-pressure R² `0.9987/0.9994/0.9998`。last 的最低 velocity/pressure R² `0.9876/0.9988`，结论不依赖 checkpoint。F1 launcher dry-run 已复核 `would_submit=true`，但本轮未提交。
 
@@ -321,7 +579,7 @@ wall speed、velocity、pressure 与 WSS 护栏后再判 Gate；此前不得提�
 
 **本次主要修改**：在独立 `wss_pinn/` 中实现配置驱动的 P0-A/B/C/D、P1 sidecar、统一 F0-U/F0-UP/F1 模型/损失/训练/评估入口、阶段门禁、写路径守卫、12 项单元测试和幂等 Slurm 提交器。真实审计选取 AG/AAA/ILO 各 1 例；生成 5k wall / 8k near-wall / 8k core 三槽 sidecar。F1 配置只启用 continuity + no-slip，WSS-physics 与 momentum 强制为 0。首次 P1 因误读冻结 `int_type`（实际 core=0、near-wall=1）在落盘前失败；修正后重跑。P0-C 首轮邻域差使用近零 divergence 作分母而病态，改用梯度范数归一化后重新跑完整 near-wall/core 诊断。
 
-**对应代码/文档**：`wss_pinn/{config.py,data/,models/,physics/,tools/,tests/,cluster/,train.py,evaluate.py}`；`wss_pinn/configs/{pilot_cases,p0_pilot,p1_pilot,f0u_pilot,f0u_pilot_v2,f0u_pilot_v2_extended,f0up_pilot_v2,f1_pilot_v2}.json`；`data_wss_pinn/pilot_v1/`；`outputs/wss_pinn/{audits,runs}/`；[WSS-PINN 总入口](WSS_PINN/README.md)；[阶梯矩阵](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)。
+**对应代码/文档**：`wss_pinn/{config.py,data/,models/,physics/,tools/,tests/,cluster/,train.py,evaluate.py}`；`wss_pinn/configs/{pilot_cases,p0_pilot,p1_pilot,f0u_pilot,f0u_pilot_v2,f0u_pilot_v2_extended,f0up_pilot_v2,f1_pilot_v2}.json`；`data_wss_pinn/pilot_v1/`；`outputs/wss_pinn/{audits,runs}/`；[WSS-PINN 总入口](WSS_PINN/README.md)；[阶梯矩阵](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_阶梯实验矩阵与进度跟踪.md)。
 
 **推进到实验步骤**：P0-A/B/C/D 与 P1 completed。P0-B 三病例最佳 velocity→WSS R² 为 `0.816/0.826/0.801`；P0-C 相对 divergence p95 为 `0.069/0.129/0.088`。P0-D 法向可用，但 exact zone/connectivity 缺失，hard flux/RCR residual blocked。P1 聚合 manifest SHA256 为 `c5bdd7b7ec89b43b16d8a1eccd664caf9490b39eb4aca6e1c4e8ec05177678f8`。F0-U v1 Jobs `11037→11038` 均 completed，速度 R² `0.654/0.586/0.567` 未过 0.95，No-Go。v2 Jobs `11039→11040` 也 completed；case-balanced WSS R² `0.9906`，但逐病例 `u/v/w/speed` 最低项仍为 `0.925–0.929`，严格 Gate No-Go。v2ext 从 v2 `last.pt` 显式恢复，只增加 12000 epoch；Jobs `11041→11042` completed，best/last 的严格速度 Gate 最低 R² 为 `0.9888/0.9896`，Go。F0-UP Jobs `11043→11044` 中 preflight completed、训练 running。F1 v2ext 已通过 CPU/launcher dry-run，但仍由 F0-UP Gate 锁定、未提交。
 
@@ -331,7 +589,7 @@ wall speed、velocity、pressure 与 WSS 护栏后再判 Gate；此前不得提�
 
 **本次主要修改**：新增一份可直接交给下一智能体的执行型目标提示词，把本轮实现边界固定为 P0-A/P0-B/P0-C/P0-D→P1→F0-U→F0-UP→F1；要求实际修改独立路线代码、所有实验只通过配置字段切换、正式训练统一走 Slurm。明确“实现层必须完整做到 F1、执行层按科学 Gate 推进”的双层完成口径，以及长训练只需提交、检查首轮状态/日志并可靠记录，无需原地等待完训。
 
-**对应代码/文档**：[WSS-PINN 下一智能体目标提示词：实现并推进至 F1](WSS_PINN/WSS_PINN_下一智能体目标提示词_推进至F1.md)；[WSS-PINN 独立路线总入口](WSS_PINN/README.md)；`wss_pinn/README.md`。
+**对应代码/文档**：[WSS-PINN 下一智能体目标提示词：实现并推进至 F1](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_下一智能体目标提示词_推进至F1.md)；[WSS-PINN 独立路线总入口](WSS_PINN/README.md)；`wss_pinn/README.md`。
 
 **推进到实验步骤**：仍为 S0/No-Run；本次只建立执行交接合同，未实现 P0/P1 或模型代码，未生成 sidecar，未提交 Slurm 作业。下一智能体应先完成 P0/P1 pilot，同时把 F0-U/F0-UP/F1 的共用代码、配置、测试和集群入口准备到 code-ready。
 
@@ -341,7 +599,7 @@ wall speed、velocity、pressure 与 WSS 护栏后再判 Gate；此前不得提�
 
 **本次主要修改**：建立顶层 `wss_pinn/` 专用入口及硬隔离规则，冻结 `data_new/`、`data_wss_min/`、`pipeline_wss_min/`、`training_wss_min/` 为只读上游；PINN 派生数据、结果和执行记录分别固定到 `data_wss_pinn/`、`outputs/wss_pinn/`、`docs/02-推进与变更/WSS_PINN/`。新增 S0→P0→P1→F0-U→F0-UP→F1→F2→F3→C1/C2 阶梯、配对消融、运行落盘字段、状态词和 Go/No-Go 模板。
 
-**对应代码/文档**：`wss_pinn/{AGENTS.md,README.md}`；[WSS-PINN 独立路线总入口](WSS_PINN/README.md)；[WSS-PINN 阶梯实验矩阵与进度跟踪](WSS_PINN/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；[体域物理约束与 PINN 路线](WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)；根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md` 和 `.gitignore`。
+**对应代码/文档**：`wss_pinn/{AGENTS.md,README.md}`；[WSS-PINN 独立路线总入口](WSS_PINN/README.md)；[WSS-PINN 阶梯实验矩阵与进度跟踪](WSS_PINN/_archive/wss_target_v1_20260730/WSS_PINN_阶梯实验矩阵与进度跟踪.md)；[体域物理约束与 PINN 路线](WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md)；根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md` 和 `.gitignore`。
 
 **推进到实验步骤**：完成 S0 目录隔离和预注册；P0-A/P0-B/P0-C/P0-D 均为 planned。未实现数据或训练代码，未生成 sidecar，未提交 GPU/Slurm 作业，未修改旧数据、配置、checkpoint 或 run。
 
@@ -2815,3 +3073,31 @@ wall speed、velocity、pressure 与 WSS 护栏后再判 Gate；此前不得提�
 **判读与下一步**：①点数标度全线未超锚点——全点/10k + 大 k 的 8 个臂全部低于 random5000+ball16（0.2763），bridge 表明 5000 点下 k64 本身就 -0.0324，点数放大到 10k/全点没有补回该损失；"用全部原始 CFD 点"在当前 500/125/32 center 协议下不成立。家族内 k256 一致优于 k64/k128（D3、D1-fixed 同趋势），但都不及小邻域基线。②比例 center 全败：三个 k 全部低于同 k 的固定 center（k64/k128/k256 分别 -0.0328/-0.0173/-0.0448），负例也更多（含 batch2 混杂），不支持"跨队列 center 密度一致"假设，方向关闭。③**降 center × 大邻域是本轮唯一正向家族**：c125×k128=0.2765（+0.0176 vs KNN-8-cover），与 Q1V 锚点打平（+0.0002），high-WSS R²=-0.504 为全轮最好，且趋势单调——同 k 下 center 500→250→125 递增、同 center 下 k64→k128 递增；等预算对角（250×64 vs 125×128）由"更少 center + 更大邻域"一侧胜出。建议下一轮沿此方向延伸（c125×k256、c64×k128/k256）并将 c125×k128 列为 3-seed/独立确认候选。④w64 在 cover 分组下显著回退（KNN-8/10-cover 从 0.2589/0.2425 掉到 0.2183/0.2172），比 ball16 的 w64 效应（-0.016）严重得多；D5-A 瓶颈 Stem 相对标准 w64 Stem +0.0133、high-WSS +0.052，但绝对值仍低于一切 w32 基线，且两者 final train_loss 几乎相同——"容量不足"证据弱，**建议不自动提交 D5-B**，与导师确认后再定。另注意 bridge 的归一化 R²_cb=0.6139 为本轮最高，物理/归一化排名分裂的既有模式延续，主指标仍按预注册的物理 R²_cb。
 
 真源：`training_wss_min/preflight/pointnetpp_sa1_scale_results_analysis.json`、`pointnetpp_sa1_scale_results_summary.csv`、`pointnetpp_sa1_scale_per_case_deltas.csv`。
+
+## 2026-08-05｜WSS-PINN 核心代码维护性精简
+
+**目标**：参考 `wss_pinn/PIPN-QN Code/` 的直接组织风格，减少当前体域 PINN 核心
+入口中的重复分支和过重测试，同时保留 JSON 配置、矩阵 preflight、数据 Gate、
+checkpoint/resume 与 Slurm 提交能力。
+
+**代码修改**：
+
+- `config.py`：新增推荐名 `ExperimentConfig`，用 route 合同表集中声明 mode、架构、
+  激活和冻结 split；`VolumeExperimentConfig` 继续作为兼容别名。
+- `models/point_models.py`：推荐构造入口改为 `build_model`，旧
+  `build_volume_model` 保留别名。
+- `losses.py`：统一 V1/V2/V3 的数据项与 PDE 计算，只在边界组合和注册权重上分 route；
+  `compute_losses` 从 `(losses, diagnostics)` 简化为直接返回 `losses`。
+- `train.py`：删除没有汇总脚本读取的逐 step 剪切率、黏度、残差 RMS 重复诊断；
+  继续保存逐 step/epoch loss、初始化证据、best/last/milestone checkpoint 和同 run resume。
+- `evaluate.py`：将重复的点云分块预测、near-wall/core 指标、V3 边界和物理 residual
+  拆为小函数，主病例循环保持线性可读；输出 schema 不变。
+- `cluster/submit_matrix.py`：默认从 `matrix.json` 解析并校验实验顺序，再生成 Slurm
+  使用的 config list；`--config-list` 仅保留为已完成实验兼容入口。
+- 测试由 7 文件缩为 `test_volume_{config,data,models,physics}.py` 四文件，共 18 项。
+  删除大型 synthetic data Gate 和多轮 resume 集成 fixture；真实数据审计与逐配置 GPU
+  dry-run 仍由 preflight 负责。
+
+**验证**：18/18 核心测试通过；V1/V3 静态 preflight 分别 4/4、2/2 配对组通过；
+V1 `pinn` 与 V3 `data_bc_pde` synthetic forward/backward 均得到有限 loss。没有提交
+新训练，也没有改写既有实验结果。

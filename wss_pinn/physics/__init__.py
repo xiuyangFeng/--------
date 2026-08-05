@@ -1,1 +1,5 @@
-"""已审计的流变、微分残差与壁面剪切算子。"""
+"""Generalized-Newtonian peak-flow residuals."""
+
+from .residuals import generalized_newtonian_residuals, no_slip_loss
+
+__all__ = ["generalized_newtonian_residuals", "no_slip_loss"]

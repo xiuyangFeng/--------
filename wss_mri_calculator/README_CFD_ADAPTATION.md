@@ -3,13 +3,34 @@
 原仓库（`wss_mri_calculator`）面向 **4D Flow MRI 规则体素影像**。本项目 `data_new/`
 是 **Fluent 非结构化点云**，因此新增了 CFD 适配核心与可视化脚本，原有 MRI 文件未改动：
 
+> **当前推荐结果模型**：Profile-Secant V3。面向病例总体和平均高 WSS 精度，
+> 统一 test35 × 1200 口径下 raw/scaled R² mean=`0.96170/0.96537`、
+> MAE=`0.48032 Pa`、pooled high-WSS R²=`0.94153`。Surface-MLS V4 final
+> 保留为冻结基线和消融对照，不再作为当前数值最优模型。两者都不提供逐病例严格
+> 高 WSS 保证。V1–V4 的状态、监督边界和结果入口统一见
+> [`experiments/README.md`](experiments/README.md)。
+>
+> **全壁面追加验证**：Profile-Secant V3 已在 test35 35 例的全部 `1,328,017`
+> 个壁面节点上完成 `sample_count=0` 推理；病例 overall R² 均值=`0.9604`、pooled
+> high-WSS R²=`0.9440`。全量图册、内部点采样、穿模审计和 VTP 见
+> [`profile_secant_v3_fullwall/`](../outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/README.md)。
+
 | 文件 | 作用 |
 | --- | --- |
 | `src/data_loader_cfd.py` | 读 Fluent ASCII 导出（替代原 `data_loader.py` 的 HDF5 读取） |
 | `src/calculate_wss_cfd.py` | 单病例算 WSS 并与 CFD 真值对比（替代 `calculate_wss.py`） |
 | `src/batch_validate_cfd.py` | 跨队列批量验证 |
-| `src/wss_multiscale.py` | 纯点云多尺度零带宽修正候选 v2 |
+| `src/wss_multiscale.py` | 纯点云多尺度零带宽修正 V2（历史冻结路线） |
 | `src/compare_multiscale_v2.py` | v1/v2 成对验证 |
+| `src/wss_normal_multiscale_v3.py` / `src/run_v3_experiment.py` | 法向多尺度 V3 与冻结实验入口 |
+| `src/wss_surface_mls_v4.py` / `src/run_v4_experiment.py` | 最近曲面鲁棒 MLS V4 物理核与缓存生成 |
+| `src/calibrate_v4_oof.py` / `src/validate_v4_calibrator_holdout.py` | V4 按病例 OOF 与固定 holdout 校准审计 |
+| `src/fit_v4_calibrator.py` / `src/apply_v4_calibrator.py` | V4 冻结诊断校准器拟合与推理 |
+| `src/v4_profile_features.py` / `src/fit_v4_high_tail_calibrator.py` | Profile-Secant 近壁剖面特征与高尾模型拟合 |
+| `src/apply_v4_high_tail_calibrator.py` | Profile-Secant V3 当前推荐结果模型推理 |
+| `src/run_profile_secant_v3_fullwall.py` | test35 全壁面分片、特征缓存、冻结校准和完整性审计 |
+| `viz/export_profile_secant_v3_visualization.py` | Profile-Secant V3 纯 quicklook 与最佳/最差病例 VTP 导出 |
+| `experiments/README.md` | V1–V4 路线总跟踪、报告口径和冻结入口 |
 | `viz/` | 诊断/审计可视化（pred–truth、法向、邻域锚定、采样诊断、postview 导出）；不放在 `src/` |
 
 ## 病例范围（必须先读）
@@ -236,7 +257,7 @@ raw R² mean `0.6994 → 0.8586`、min `0.5736 → 0.7568`，35/35 提升。
 - **固定 K=64 仅作为 baseline**；正式算法逐壁面点自适应选 K。
 - 近壁高斯加权（`--bandwidth-weight`）实测**略微降低**精度，默认关闭。
 
-### 纯点云多尺度候选 v2
+### 纯点云多尺度 V2（历史冻结路线）
 
 若不使用任何 WSS 真值幅值标定，可显式启用多尺度零带宽修正：
 
@@ -262,7 +283,42 @@ v2 使用全部 train138 壁面点重新推导的冻结标量为：
 该标量来自 5,436,791 个 train 壁面点；full-wall blind test35 共 1,328,017 点，
 得到 case-mean R² `0.9050`、MAE `0.7799 Pa`、high-WSS NRMSE `0.2553`。
 
-## 指标含义
+### 法向多尺度 V3
+
+V3 不再把三维 KNN 邻域直接当作同一条近壁速度剖面，而是在物理法向上建立插值
+站点，并加入非局部壁面归属过滤、局部 Reynolds 数深度先验和有界正向修正。冻结
+test35 × 1200 上，raw R² mean=`0.89570`、p05=`0.84137`、
+MAE=`0.88774 Pa`。
+
+完整方法、消融和冻结结果见
+[`experiments/pointcloud_normal_multiscale_v3/`](experiments/pointcloud_normal_multiscale_v3/)。
+
+### 最近曲面 Surface-MLS V4
+
+V4 从第一性原理上把主要误差定位为有限内部单元间距造成的壁面导数衰减。每个内部
+单元使用自己的最近壁面锚点和局部法向深度，直接拟合满足曲面无滑移条件的真实观测，
+避免法向射线 IDW 伪站点重复使用同一批单元。
+
+物理 V4 在 test35 × 1200 上达到 raw R² mean=`0.90788`。最终 V4 再使用仅由
+train138 拟合并冻结的诊断残差模型，在不使用推理病例真值、坐标或病例 ID 的条件下，
+达到 raw R² mean=`0.95607`、p05=`0.92391`、minimum=`0.90025`，并在
+`35/35` 病例上优于物理 V4。
+
+在 V4 final 冻结基线上增加近壁剖面与切线梯度诊断后，Profile-Secant V3 达到
+raw/scaled R² mean=`0.96170/0.96537`、MAE=`0.48032 Pa`、pooled high-WSS
+R²=`0.94153`。因此，面向病例总体和平均高 WSS 精度，Profile-Secant V3 是当前
+推荐结果模型；V4 final 保留为冻结基线。
+
+`sample_count=0` 全壁面追加推理覆盖 35 例、`1,328,017` 个壁面节点，Profile-Secant
+V3 的病例 overall R² 均值=`0.96037`、pooled overall R²=`0.96790`、pooled
+high-WSS R²=`0.94405`、逐病例 high-WSS R² 均值=`0.77355`。全量平均峰值低估
+为 `15.81%`，因此 1200 点协议的 `9.31%` 不应外推为全壁面峰值结论。
+
+完整方法与结果见
+[`experiments/pointcloud_surface_mls_v4/`](experiments/pointcloud_surface_mls_v4/)，
+V1–V4 横向状态见 [`experiments/README.md`](experiments/README.md)。
+
+## V1/V2 阶段指标含义
 
 - `raw_r2` — 纯物理前向，**无任何拟合真值的自由参数**。这是真正的"对得上吗"。
 - `scaled_r2` — 额外允许一个全局标量 α（pred → α·pred）。用于区分
@@ -270,7 +326,14 @@ v2 使用全部 train138 壁面点重新推导的冻结标量为：
 - `alpha` — 最优全局标量。实测 ≈1.2，即系统性低估约 20%（见下）。
 - `direction_cosine_p50` — 预测 WSS 矢量与真值矢量夹角余弦。实测 0.998。
 
-## 已知残留偏差：α ≈ 1.2
+## V1/V2 历史残留偏差：α ≈ 1.2
+
+本节描述的是 V1/V2 阶段的历史诊断，不是 V4 final 或 Profile-Secant V3 的当前
+剩余偏差。V4 physics
+在 test35 上仍有 `alpha=1.1422`，但冻结诊断校准后的 mean alpha 已降到
+`1.0062`。当前推荐结果和冻结基线状态以
+[`experiments/pointcloud_surface_mls_v4/RESULTS.md`](experiments/pointcloud_surface_mls_v4/RESULTS.md)
+为准。
 
 预测的 WSS 空间分布几乎完美（Spearman 0.98、方向余弦 0.998），但幅值系统性
 低估约 20%。诊断：按剪切率分箱看 `真值/预测` 比值，从低剪切区的 1.07 缓增到

@@ -1,2 +1,1 @@
-"""Command-line audits and immutable sidecar builders."""
-
+"""Command-line preparation and Gate tools."""

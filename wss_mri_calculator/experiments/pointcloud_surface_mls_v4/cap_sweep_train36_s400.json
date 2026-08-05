@@ -1,0 +1,20 @@
+{
+  "status": "train_only_parameter_screen",
+  "roles": ["train"],
+  "sample_count_per_case": 400,
+  "cases": 36,
+  "selection_rule": "Choose the smallest practical cap near the accuracy plateau; test35 was not accessed.",
+  "baseline": "frozen pointcloud_normal_multiscale_v3",
+  "rows": [
+    {"correction_max": 1.20, "raw_r2_mean": 0.9011898222, "mean_delta_vs_v3": 0.0081934132, "wins": 36, "min_delta": 0.0001777387, "mae_pa_mean": 0.7207710080},
+    {"correction_max": 1.25, "raw_r2_mean": 0.9019675700, "mean_delta_vs_v3": 0.0089711610, "wins": 36, "min_delta": 0.0008232185, "mae_pa_mean": 0.7166105456},
+    {"correction_max": 1.30, "raw_r2_mean": 0.9024737599, "mean_delta_vs_v3": 0.0094773509, "wins": 36, "min_delta": 0.0007727347, "mae_pa_mean": 0.7142417138},
+    {"correction_max": 1.35, "raw_r2_mean": 0.9027746905, "mean_delta_vs_v3": 0.0097782814, "wins": 36, "min_delta": 0.0006159987, "mae_pa_mean": 0.7131839611},
+    {"correction_max": 1.40, "raw_r2_mean": 0.9029697173, "mean_delta_vs_v3": 0.0099733083, "wins": 36, "min_delta": 0.0004720649, "mae_pa_mean": 0.7126747238},
+    {"correction_max": 1.50, "raw_r2_mean": 0.9032540307, "mean_delta_vs_v3": 0.0102576216, "wins": 36, "min_delta": 0.0003864070, "mae_pa_mean": 0.7123757354},
+    {"correction_max": 1.60, "raw_r2_mean": 0.9033558103, "mean_delta_vs_v3": 0.0103594013, "wins": 36, "min_delta": 0.0003430061, "mae_pa_mean": 0.7124472576},
+    {"correction_max": 2.00, "raw_r2_mean": 0.9034248672, "mean_delta_vs_v3": 0.0104284581, "wins": 36, "min_delta": 0.0003864070, "mae_pa_mean": 0.7132281867}
+  ],
+  "selected_correction_max": 1.5,
+  "selection_reason": "R2 gain is nearly saturated by 1.5; 1.6 and 2.0 add negligible R2 while MAE stops improving."
+}

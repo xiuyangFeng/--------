@@ -4,8 +4,8 @@ import unittest
 
 import torch
 
-from wss_pinn.volume_field.physics.residuals import generalized_newtonian_residuals
-from wss_pinn.volume_field.physics.rheology import carreau_yasuda
+from wss_pinn.physics.residuals import generalized_newtonian_residuals
+from wss_pinn.physics.rheology import carreau_yasuda
 
 
 FIELD_STATS = {

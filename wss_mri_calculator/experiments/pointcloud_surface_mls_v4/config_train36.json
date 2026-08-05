@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "experiment_name": "pointcloud_surface_mls_v4_train36",
+  "status": "train_candidate",
+  "split": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_q2v_pool2025_train138_test35_exclude_SHI_YUN_XI_v1.json",
+    "expected_sha256": "964d7021f2d12baadd630e7b936456a4e62294fa72c5ada4fc70abe4d9361f2b",
+    "data_root": "/public/newhome/cy/Digital_twin/GNN/data_new",
+    "roles": ["train"]
+  },
+  "frozen_v1_config": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_adaptive_v1/config_frozen_v1.json",
+  "frozen_v3_config": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_normal_multiscale_v3/config_frozen_v3.json",
+  "execution": {
+    "sample_count": 400,
+    "seed": 0,
+    "prefer_peak": true,
+    "limit_per_cohort": 12
+  },
+  "geometry": {
+    "radius_source": "bundle_then_wall",
+    "wall_radius_search_neighbors": 512,
+    "wall_radius_opposite_normal_cosine": -0.6
+  },
+  "method": {
+    "query_neighbors": 384,
+    "depth_fractions": [0.45, 0.65, 0.82, 1.0],
+    "min_samples": 16,
+    "min_anchor_groups": 6,
+    "surface_spacing_multiplier": 3.0,
+    "surface_depth_multiplier": 0.75,
+    "surface_min_radius_mm": 0.3,
+    "surface_max_radius_mm": 2.0,
+    "surface_max_radius_fraction": 0.5,
+    "ownership_min_normal_cosine": 0.5,
+    "support_depth_overshoot": 1.15,
+    "cv_tolerance": 1.25,
+    "huber_delta": 1.5,
+    "robust_iterations": 3,
+    "ridge": 1e-8,
+    "correction_min": 1.0,
+    "correction_max": 1.5,
+    "correction_shrink": 1.0,
+    "max_cv_score": 0.2,
+    "max_condition": 1000000.0
+  },
+  "output": {
+    "json_path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/train36_s400.json"
+  }
+}

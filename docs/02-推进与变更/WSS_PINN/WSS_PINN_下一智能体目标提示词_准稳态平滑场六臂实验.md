@@ -1,0 +1,376 @@
+# WSS-PINN 下一智能体目标提示词：准稳态平滑场六臂实验
+
+> 创建日期：2026-08-04
+>
+> 用途：将本文件全文复制到新的 Codex 窗口，作为下一阶段的执行目标。
+>
+> 当前状态（2026-08-05）：**代码、配置和 173/173 边界 Gate 已实现；六臂已按
+> master 4×4090 + node04 2×A100 完成 2500 epoch，前 30 分钟 31/31 快照健康通过；
+> 三类 checkpoint 的 test35 评估 18/18 完成。主结果为 geom 稳定正增量、BC 对总体
+> 速度近中性、PDE residual 显著下降但 speed R² 下降。详见
+> [路线真源](./README.md#0-v3-准稳态平滑场六臂2026-08-05-完训并评估)；下方正文保留为
+> 本轮预注册合同与实施追溯。**
+
+## 可直接复制的提示词
+
+```text
+你现在接手 `/public/newhome/cy/Digital_twin/GNN` 中的 `wss_pinn/` 下一阶段实验。
+
+我的目标不是复现老师论文，也不是继续旧 V1/V2 八臂，更不是预测 WSS。我要在我们
+自己的 173 例数据上，从尽可能简单、平滑、容易归因的 `(x,y,z) -> (u,v,w,p)` 条件场
+网络出发，检验加入真实病例 peak 边界条件和准稳态非牛顿 PDE 后，速度 R² 是否改善。
+
+本轮科学定位必须始终写成：
+
+`transient-peak labels + quasi-steady PINN regularization`
+
+中文统一写成：
+
+“Fluent 瞬态 peak 标签 + Carreau–Yasuda 准稳态 PINN 正则”
+
+它不是“稳态 CFD surrogate”。Fluent 导出的 peak `u,v,w,p` 继续作为监督真值；PDE
+暂时不包含 `du/dt`，只作为有模型误差的正则项。我们已经用零重训诊断确认：加入
+`rho·du/dt` 只能解释部分 CFD residual，因此这一轮可以合法地观察 R²，但必须把
+“准稳态正则可能与瞬态标签竞争、引入 bias”作为预注册风险，不能要求 physics
+residual 趋近于零，也不能用低 residual 单独证明模型正确。
+
+请先完整阅读并遵守：
+
+- `wss_pinn/AGENTS.md`
+- `wss_pinn/README.md`
+- `docs/02-推进与变更/WSS_PINN/README.md`
+- `docs/paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md`
+- `wss_pinn/tools/diagnose_v2_physics.py`
+- 当前 `config.py`、`train.py`、`evaluate.py`、`losses.py`、`models/`、`data/`、
+  `physics/`、`tools/preflight.py`、`cluster/submit_matrix.py` 和 Slurm 脚本
+
+必须保留已有 V1/V2 配置、输出、诊断和归档，不覆盖、不改写既有结论。上游
+`data_new/`、`data_wss_min/`、`pipeline_wss_min/`、`training_wss_min/` 只读。工作树可能
+很 dirty；保留所有用户改动，只修改本任务必要文件。
+
+一、禁止项与冻结边界
+
+1. 不复现老师论文；只借鉴“坐标直接进入平滑场函数、边界和 PDE 分组、报告 NMAE
+   与 R²”的设计思想。
+2. 不预测或监督 WSS，不加入 WSS loss，不用 WSS checkpoint。
+3. 不把训练病例数量作为变量；本轮不是再次证明 PINN 的低数据价值。
+4. 不用 PointNet++、3NN、IDW 或任何 support→query 空间插值。V2 已确认 exact
+   support 处 `1/d²` 3NN 导数退化，不能把它带入新路线。
+5. 不加入 `du/dt`，不把 peak 标签伪称稳态真值。
+6. 不照搬老师论文的固定入口 WSS=1.5 Pa 或出口面积平方律。
+7. 不伪造 inlet/outlet 坐标、zone mask、速度剖面、压力或 RCR 条件。
+8. 不从 data-only checkpoint 热启动 BC/PINN；每组三臂必须从相同随机初始化直接训练。
+9. 第一轮不使用动态 loss weighting、curriculum physics、dropout、BatchNorm、AMP、
+   Transformer、PointNeXt、LocalGeoPE 或复杂局部算子。
+10. test35 不得参与训练、调参、早停、checkpoint 选择或是否续训的判断。
+
+二、先做边界资产审计；这是正式训练的硬 Gate
+
+在改模型前，先机械审计 173 例中可以恢复的真实 peak 边界条件和来源。至少检查：
+
+- sidecar 当前有哪些 wall 点、法向、zone id、interior/wall mask；
+- 是否存在可靠的 inlet/outlet 表面坐标或可从原始网格、surface export、Fluent zone
+  文件中无歧义恢复；
+- `Global_conditions/vf-in-rfile.out`、`p-in-rfile.out`、各出口 `vf-*`/`p-*` 的含义、
+  单位、时相索引和病例覆盖率；
+- UDF 中 peak inlet、出口/RCR 参数与当前导出 `peak_step` 的对应关系；
+- 边界坐标与注册体域坐标是否使用同一 transform，速度是否应用同一
+  `transform_rotation`；
+- 压力是否能转换到当前“每例严格体域均值中心化 Pa”的固定 gauge；
+- 每例入口数、出口数、空 zone、重复点、点数下限和跨 AG/AAA/ILO 的差异。
+
+把审计做成可复现工具和 JSON/CSV 报告，不要只写人工观察。新报告必须包含病例级
+provenance、coverage、单位、坐标对齐误差、时相映射、zone 点数和 Gate 结论。
+
+边界合同优先级：
+
+- wall：真实壁面坐标上的 no-slip；
+- inlet：若有可靠的 peak 面速度，使用点级 `u,v,w`；若只有可靠的总流量和已知剖面
+  生成规则，只能实现与来源一致的积分流量/剖面约束，并明确公式；
+- outlet：若有可靠的 peak 出口压力，按 zone 使用相对压力或 zone-mean pressure；若
+  只有 RCR 参数而缺少恢复瞬时状态所需变量，不得把 RCR 参数冒充瞬时压力 BC。
+
+如果 173 例不能可靠恢复 inlet/outlet 点和目标，DATA+BC 与 DATA+BC+PDE 的正式提交
+必须被 Gate 阻断。此时不要降级成“只有 wall 也叫完整 BC”，不要提交伪六臂；应完成
+其余安全实现、输出缺失资产清单和最小补数合同，并在文档中明确 blocked 原因。只要
+Gate 通过，就继续后续全部步骤，不再向用户重复询问是否允许提交。
+
+三、新路线与独立落盘
+
+新路线建议固定为：
+
+- route：`volume_uvwp_peak_qs_smooth_v3`
+- configs：`wss_pinn/configs/volume_uvwp_peak_qs_smooth_v3/`
+- outputs：`outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/`
+- audits：`outputs/wss_pinn/audits/volume_uvwp_peak_qs_smooth_v3_*/`
+- 如需新派生边界 sidecar：放到
+  `data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/`
+
+不要复制全部旧 sidecar 制造冗余；可以用带 hash 的 manifest 引用已有只读体域资产，
+只新增确实需要的边界派生数据。所有新路径必须受写路径 guard 保护。
+
+现有冻结 split 是 train138/test35。必须只从原 train138 内确定性、分层地划出约 15 例
+validation，形成 train123/val15/test35；尽量保持 AG/AAA/ILO 和已有流型/队列比例。
+新 split 文件、生成脚本、seed、病例清单和 SHA256 必须冻结。test35 原样保留。
+
+四、模型：简单的条件 PointNet 平滑场
+
+只实现一个首轮架构，不再比较 PointNet 与 PointNet++：
+
+support `xyz` 或 `xyz+geom`
+        -> 逐点 MLP
+        -> 病例级对称池化
+        -> geometry/case latent `z_g`
+
+query `xyz` + `z_g`
+        -> 纯 Linear + tanh 平滑 decoder
+        -> `u,v,w,p`
+
+硬要求：
+
+- query decoder 只直接接收 query `xyz` 和广播后的病例 latent；不能使用 3NN/IDW、
+  kNN query interpolation 或 query 邻域离散选择；
+- PDE 只对独立 query `xyz` 求一、二阶导数；`z_g` 对该 query 视为病例条件；
+- `xyz+geom` 的 `abscissa_norm/local_radius/signed_log1p(curvature)` 只进入 support/
+  branch encoder，不作为 physics query 上与坐标割裂的独立常量输入；
+- decoder 使用 tanh，关闭 dropout、BatchNorm 和 AMP；不要在 query 点之间做归一化或
+  聚合；
+- 输出仍为四通道 `u,v,w,p`，压力使用 train-only 统计和固定病例 gauge；
+- 必须增加 autograd/有限差分测试，证明独立 query 上一、二阶导数有限且相符；移动
+  query 坐标时输出和导数应平滑变化；
+- 参数量、初始化 state SHA256 和每组三臂的采样协议必须写入 preflight。
+
+网络宽度不要临时做搜索。选择一套容量适中的冻结宽度，并在 config/matrix README 中
+记录参数量和选择理由；目标是干净归因，不是这一轮追求架构 SOTA。
+
+五、六臂配置矩阵
+
+固定 2×3：
+
+| 输入 | DATA | DATA+BC | DATA+BC+PDE |
+| --- | --- | --- | --- |
+| `xyz` | E1 | E2 | E3 |
+| `xyz+geom` | E4 | E5 | E6 |
+
+建议实验 ID：
+
+- `QSF-XYZ-DATA-s1234-v3`
+- `QSF-XYZ-BC-s1234-v3`
+- `QSF-XYZ-BCPDE-s1234-v3`
+- `QSF-XYZG-DATA-s1234-v3`
+- `QSF-XYZG-BC-s1234-v3`
+- `QSF-XYZG-BCPDE-s1234-v3`
+
+三种模式严格定义：
+
+- DATA：只有体域 `L_data`；
+- DATA+BC：`L_data + lambda_BC L_BC`；
+- DATA+BC+PDE：`L_data + lambda_BC L_BC + lambda_PDE L_PDE`。
+
+每个输入组三臂共享 seed、初始化哈希、train/val/test、病例顺序、support/data-query/BC
+采样和训练预算。差异只能是 BC/PDE 是否启用及对应权重。禁止 warm start。
+
+主要因果对照：
+
+- E2-E1、E5-E4：真实 peak BC 的增量；
+- E3-E2、E6-E5：准稳态 PDE 在已有 BC 上的增量；
+- E3-E1、E6-E4：完整 physics regularization 的总增量；
+- E4-E1、E5-E2、E6-E3：几何特征的增量。
+
+六、损失与无量纲化
+
+先把各物理量按 train123-only 统计和病例物理尺度正确无量纲化，再使用：
+
+L_data = (L_u + L_v + L_w + L_p) / 4
+L_BC   = (L_wall + L_inlet + L_outlet) / 3
+L_PDE  = (L_cont + (L_mx + L_my + L_mz) / 3) / 2
+L      = L_data + lambda_BC L_BC + lambda_PDE L_PDE
+
+第一轮固定 `lambda_BC=1`、`lambda_PDE=1`；不要动态调权。DATA 模式两者为 0，
+DATA+BC 只启用前者，DATA+BC+PDE 两者都启用。
+
+每个子项必须单独写日志：`u/v/w/p`、wall、inlet、outlet、continuity、mx/my/mz，
+同时记录三组归一化 group loss、加权贡献比例和物理单位诊断。不能再让 momentum
+三分量简单求和而隐式获得三倍权重，也不能让 wall/no-slip 长期吞掉整个 physics loss。
+
+PDE 使用不可压缩、准稳态、广义牛顿 Carreau–Yasuda：
+
+div(u) = 0
+
+rho (u·grad)u + grad(p) - div(2 mu(gamma_dot) D) = 0
+
+保留完整变黏度应力散度，不简化为 `mu laplacian(u)`。不要加入 `du/dt`。
+
+七、首轮训练协议
+
+固定起点：
+
+- optimizer：AdamW
+- learning rate：`1e-3`
+- weight decay：`1e-4`
+- batch cases：`2`
+- support：每例 `5000`
+- independent data query：每例 `5000`
+- independent physics query：每例 `1024`
+- wall：每例 `1024`
+- inlet/outlet：在边界审计后冻结为配置字段；建议先用每例 inlet 总计 512、outlet
+  总计 512，并按 zone 平衡。若点数不足则使用全部唯一点并记录 effective count，不能
+  静默重复少数点或漏掉小出口
+- activation：tanh
+- precision：float32；AMP off
+- grad clip：`1.0`
+- warmup：`20 epoch`
+- scheduler：cosine decay 到 `1e-5`
+- max epoch：首轮 `2500`
+- milestones：`100/250/500/1000/1500/2000/2500`
+- seed：首轮固定 `1234`
+
+训练 budget 必须六臂相同。2500 epoch 结束后，只使用 train/validation 日志做矩阵级
+续训判断：若最后 10% 的 validation data 或适用的独立 collocation physics group
+仍下降超过 1%，则六臂全部在各自同一 run 内 resume 到 5000，并保持同一 scheduler
+定义和里程碑；不能只延长表现较好的臂，也不能看 test35 决定续训。
+
+八、validation、checkpoint 与收敛判定
+
+统一保存：
+
+- `best_validation_data.pt`
+- `best_validation_total.pt`
+- `last.pt`
+- initialization checkpoint 和 state SHA256
+
+六臂主比较统一使用 `best_validation_data`，不能 data-only 用 data loss、PINN 用 total
+loss 后直接横比。`best_validation_total` 和 `last` 只作敏感性分析。validation 的
+physics/BC residual 必须在固定、独立、不会与 support 重合的 collocation/边界点上
+计算，不能复用训练点宣称收敛。
+
+收敛必须分别判断：
+
+1. validation `u/v/w/p` data loss 与 field metrics 是否平台；
+2. 固定独立 collocation 上 continuity、mx、my、mz 是否分别平台；
+3. wall、inlet、outlet 是否分别平台；
+4. 最后 10% 各项相对变化和 train-validation gap；
+5. late-stage gradient clipping 频率是否仍长期过高；
+6. 任一 physics/BC 子项是否长期占对应 group 的 90% 以上；
+7. 是否出现零速度、常压力、极低方差或病例间均值场塌缩。
+
+physics residual 不要求趋近零，因为标签来自瞬态 Fluent、方程缺少 `du/dt`。如果 PDE
+继续下降但 validation speed R² 下降，这不是“还没收敛”，而是准稳态正则与标签发生
+冲突，应作为 E3-E2/E6-E5 的负结果报告，不能继续加 epoch 掩盖。
+
+九、代码、配置和 Gate 改造
+
+当前 `config.py`、`tools/preflight.py`、`cluster/submit_matrix.py` 和 Slurm 入口对旧八臂/
+旧 route 有硬编码。请扩展成可由 matrix/config root 驱动的新六臂路线，同时保证
+`volume_uvwp_peak_v1` 和 `volume_uvwp_peak_same5k_e7500_v2` 仍能复现，不能为新路线
+删除旧合同。
+
+至少完成：
+
+- 新 model/config schema、三种 mode 和 loss group；
+- train123/val15/test35 冻结 split 与 hash；
+- inlet/outlet boundary schema、builder、dataset、audit；
+- 固定 validation data/physics/BC evaluator；
+- 三种 checkpoint 选择；
+- 六臂 matrix.json、6 个 JSON config、matrix_configs.txt；
+- 通用静态 preflight 和 GPU dry-run；
+- 提交器接受显式 config root/list、preflight report、data Gate、output；
+- run Slurm 根据 config/matrix 执行正确的 checkpoint 评估，不再假定 SAME5K v2；
+- summary 工具生成六臂主表、增量表、收敛曲线和逐病例结果。
+
+测试至少覆盖：
+
+- config 三模式合法/非法组合；
+- split 无 test 泄漏、hash 冻结；
+- `xyz`/`xyz+geom` shape 与 geom 只进 branch；
+- decoder 不含 3NN/IDW，独立 query 一、二阶导数 finite；
+- autograd 与有限差分一致性；
+- wall/inlet/outlet loss 与缺失 zone 的 Gate；
+- Carreau–Yasuda continuity/momentum residual；
+- 每组三臂初始化 hash、参数量和非物理协议相同；
+- checkpoint 统一按 validation 选择；
+- CPU train smoke 和 GPU preflight；
+- 旧 V1/V2 配置仍可解析和 preflight，不发生兼容性回归。
+
+十、正式提交与监控
+
+用户已经明确授权：新六臂在以下 Gate 全部通过后，使用配置文件和提交器执行正式
+`--submit`，不需要再次询问。
+
+提交前必须有：
+
+1. 173 例 boundary/data schema audit pass；
+2. train123-only stats、split/manifest/implementation hash 完整；
+3. 全部相关测试通过；
+4. 六臂 static preflight pass；
+5. 六臂 GPU preflight pass；
+6. dry-run submission.json 审计无误。
+
+用户后续澄清资源为 master 4 张 GPU + node04 2 张 GPU，因此正式提交使用 6 卡并发、
+一臂一卡。master 四臂通过 Slurm array 提交/排队；node04 未注册 GPU GRES 时，在完成
+UID、公共路径和两卡空闲 Gate 后直启两臂。输出必须写新 route，不得覆盖 V1/V2。
+提交后只持续监控启动后的前 30 分钟，不等待 2500 epoch 完训。监控至少检查：Slurm
+state、进程存活、epoch/step 进度、GPU 是否实际使用、日志是否持续增长、NaN/Inf、
+OOM/Traceback/CUDA error、梯度裁剪率、checkpoint 落盘、validation 与各 loss group
+趋势。保留机器可读 monitor snapshot、Job ID 和 node04 PID。
+
+如果遇到可恢复故障，在同一 run 内 resume；禁止跨 run 热启动。只有真实的边界数据
+Gate 失败或外部集群状态无法继续时才停止，并提供可复现证据。
+
+十一、最终评估：重点回答速度 R²（等待用户完训后另行发起）
+
+六臂完成后，统一在 test35 上评估 `best_validation_data`、
+`best_validation_total`、`last`；主结论使用 `best_validation_data`。至少报告：
+
+- `u/v/w/speed/p`：case-balanced 与 pooled R²、MAE、RMSE；
+- speed 的逐病例均值/中位数、正 R² 病例数、最差病例；
+- near-wall/core 的 speed R²、MAE、RMSE；
+- wall velocity RMS/P95/max；
+- inlet velocity/flow error；
+- 各 outlet pressure/flow error，按 zone 和病例汇总；
+- 固定独立 collocation 的 continuity、mx/my/mz、momentum RMS；
+- pressure gauge 与预测方差诊断；
+- validation/test 收敛和 checkpoint 敏感性。
+
+必须生成下列增量结论，而不是只报最优单臂：
+
+- BC 是否提升速度 R²：E2-E1、E5-E4；
+- PDE 在 BC 上是否继续提升速度 R²：E3-E2、E6-E5；
+- 准稳态 PDE 是否降低 residual 却伤害瞬态标签 R²；
+- 几何特征是否稳定提升：E4-E1、E5-E2、E6-E3；
+- R² 改善是否伴随 MAE/RMSE、近壁精度和病例覆盖改善，而不是病例间均值偏移造成；
+- 是否存在“低 NMAE 但低 R²”的指标错觉。
+
+不要把老师论文的 NMAE 或病例级 FR/PD R²与我们的点级 speed R²直接混表。可以用
+老师源码同口径 NMAE作为桥接指标，但主问题仍是我们的点级/病例均衡 speed R²。
+
+十二、同步文档和最终交付
+
+实现、提交、监控和结果完成后，按实际状态同步：
+
+- `wss_pinn/AGENTS.md`
+- `wss_pinn/README.md`
+- `docs/02-推进与变更/WSS_PINN/README.md`
+- `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`（文首）
+- `docs/02-推进与变更/代码修改与实验推进记录.md`（文首短摘要）
+- `docs/README.md`
+- 只有项目总状态发生变化时再更新根 `README.md` 和 `docs/实验设计总纲.md`
+
+配置、Gate、submission、monitor、summary、图表、逐病例 CSV/JSON 和 manifest 都要给出
+可点击路径或明确相对路径。运行 focused tests、Markdown/link 检查和
+`git diff --check`，保留用户无关改动。
+
+最后必须交付：改动文件、测试/Gate 证据、Job ID、六臂完成状态、主 checkpoint、
+速度 R²/MAE/RMSE 表、BC/PDE/geom 增量、loss 是否收敛、准稳态正则是否帮助或伤害
+瞬态 peak 标签，以及下一轮只基于证据提出的建议。
+
+不要只写计划。只要边界数据 Gate 通过，就必须推进到正式提交、持续监控、完整评估
+和最终文档审计。
+```
+
+## 交接说明
+
+这份提示词把首轮问题限制为三个干净变量：几何特征、真实 peak BC、准稳态 PDE。
+它允许用瞬态 Fluent peak 真值观察最终 R²，同时通过 DATA、DATA+BC、DATA+BC+PDE
+拆分“额外边界监督”和“方程正则”的作用。若 PDE residual 改善而 speed R² 下降，
+应解释为准稳态模型偏差的实验结果，而不是实验失败或训练不够久。

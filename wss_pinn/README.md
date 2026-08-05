@@ -1,14 +1,20 @@
 # 峰值体域 `u,v,w,p` PINN
 
-> 路线：`volume_uvwp_peak_v1`
+> 当前活动路线：`volume_uvwp_peak_qs_smooth_v3`；V1/V2 为已完成历史对照
 >
-> 当前状态（2026-08-02）：**schema-v2 173 例数据 Gate 通过；GPU preflight
+> 当前状态（2026-08-05）：**V3 真实 peak boundary Gate 173/173 passed；六臂均完成
+> 2500 epoch / 155000 step，三类 checkpoint 的 test35 全体域评估 18/18 完成。主
+> checkpoint `best_validation_data` 下，几何特征是稳定正增量（speed R²_cb
+> `+0.192–0.198`），BC 对总体速度近中性，PDE 虽将 continuity/momentum residual
+> 分别降低约 89–90%/60–62%，但 speed R²_cb 降低约 `0.05`，支持“准稳态正则与
+> 瞬态标签竞争”的解释。V1 schema-v2 173 例数据 Gate 通过；GPU preflight
 > Job `11127` 与 8 臂训练数组 `11128_[0-7%4]` 全部完成。每臂 400 epoch、
 > 27,600 optimizer step，日志与 24 份 checkpoint 评估完整；第二轮 SAME5K-E7500
-> GPU preflight `11137` 已完成，训练数组 `11138_[0-7%4]` 运行中，首批四臂30分钟
-> 健康监控通过。**
+> GPU preflight `11137` 与训练数组 `11138_[0-7%4]` 也已全部完成，每臂 7500 epoch /
+> 517,500 step，共 48 份双协议评估。历史 V2 速度锚点为 PointNet++ + `xyz+geom` + PINN：
+> SAME5K/full-volume speed R²=`0.2380/0.1820`。**
 
-这次重构不再直接预测 WSS，也不复用旧 WSS 最优网络或 checkpoint。当前目标是：
+历史 V1/V2 重构不直接预测 WSS，也不复用旧 WSS 最优网络或 checkpoint；其目标是：
 给定峰值时刻的患者体域点云，用 PointNet 或 PointNet++ 输出四通道
 `u,v,w,p`，并在严格配对实验中比较纯数据监督与非牛顿 PINN。
 
@@ -16,8 +22,56 @@
 [WSS_PINN/README.md](../docs/02-推进与变更/WSS_PINN/README.md)。旧的 WSS-target
 PINN 路线已冻结在
 [_archive/wss_target_v1_20260730](../docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/README.md)。
+对应历史源码位于
+[`archive/wss_target_v1_20260730/`](archive/wss_target_v1_20260730/README.md)。
 
-## 八个实验
+V3 已实现为“Fluent 瞬态 peak 标签 + Carreau–Yasuda 准稳态 PINN 正则”：使用无
+3NN/IDW 的条件 PointNet 平滑场，运行
+`xyz/xyz+geom × DATA/DATA+BC/DATA+BC+PDE` 六臂。完整预注册要求见
+[准稳态平滑场六臂实验提示词](../docs/02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验.md)。
+
+## V3 六臂（完训并完成 test35 评估）
+
+| 资源 | 实验 |
+| --- | --- |
+| master / Slurm `11301_0` | `QSF-XYZ-DATA-s1234-v3` |
+| master / Slurm `11301_1` | `QSF-XYZ-BC-s1234-v3` |
+| master / Slurm `11301_2` | `QSF-XYZ-BCPDE-s1234-v3` |
+| master / Slurm `11301_3` | `QSF-XYZG-DATA-s1234-v3` |
+| node04 / GPU0 / PID `1241185` | `QSF-XYZG-BC-s1234-v3` |
+| node04 / GPU1 / PID `1241335` | `QSF-XYZG-BCPDE-s1234-v3` |
+
+- split：train123/val15/test35，SHA256
+  `c80cb65ad95f7d76fadaff82ea02c35c27ad24ab2474e1050bf981eff97493f9`；
+- 边界 Gate：`outputs/wss_pinn/audits/volume_uvwp_peak_qs_smooth_v3_boundary/report.json`；
+- 静态/GPU Gate：`outputs/wss_pinn/audits/volume_uvwp_peak_qs_smooth_v3_{preflight,gpu_preflight}/report.json`；
+- 提交清单：`outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/submission_six_gpu.json`；
+- 健康快照：`outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/monitor_{latest,snapshots.jsonl}`。
+- 前 30 分钟摘要：`outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/monitor_30min_summary.json`，
+  `health_result=pass`、31/31 快照 healthy、6/6 全程 running、错误关键字 0。
+- 六臂训练摘要：每臂 `status=completed`、2500 epoch、155000 step；三类 checkpoint
+  6/6 齐全，node04 两个直启 PID 已退出。
+- 结果入口：
+  [`summary/README.md`](../outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/README.md)；
+  主表为 `six_arm_metrics_best_validation_data.csv`，逐病例表、增量表、收敛摘要与
+  图件位于同目录。
+- 老师汇报损失图：
+  [`loss_convergence/README.md`](../outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/loss_convergence/README.md)；
+  `teacher_loss_convergence.pdf` 汇总 data loss、physics loss、最后 10% 放大和 BC/PDE
+  子项。
+- Excel 汇报工作簿：
+  [`WSS_PINN_V3_六臂核心实验与指标汇报.xlsx`](../outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/WSS_PINN_V3_六臂核心实验与指标汇报.xlsx)；
+  包含“教师汇报、六臂主指标、增量分析、Checkpoint敏感性、收敛与损失、逐病例、
+  口径与文件”7张表，并嵌入核心指标图和loss总览。
+
+主 checkpoint `best_validation_data` 的 speed R²_cb / pooled：E1 `0.0344/0.2729`、
+E2 `0.0359/0.2658`、E3 `-0.0143/0.2420`、E4 `0.2263/0.3541`、
+E5 `0.2336/0.3523`、E6 `0.1799/0.3144`。BC 未稳定提升总体速度；PDE 显著降低
+独立 collocation residual，但伤害瞬态 peak 速度 R²；`xyz+geom` 在 DATA/BC/BCPDE
+三组均稳定提高 speed R²。near-wall speed R² 六臂仍全为负，因此本路线不支持 WSS
+可靠性结论。
+
+## 历史 V1/V2 八个实验
 
 | 架构 | 输入 | data-only | PINN |
 | --- | --- | --- | --- |
@@ -98,49 +152,88 @@ PointNet + `xyz+geom` 是唯一 `u/v/w/speed/p` 五项全部提高的配对。�
 - split：train138 / val0 / test35；test35 不参与训练控制；
 - 预算：7500 epoch / 517,500 optimizer step；固定保存 400/1000/2500/5000/7500；
 - 主 checkpoint：`last@7500`；训练结束同时输出 SAME5K 与 full-volume 评估；
-- Slurm：preflight `11137` 8/8 completed，正式 array `11138` running，`--time=0`，
-  最多 4 卡并发；30分钟快照无 NaN/OOM/Traceback，见输出根 `monitor_30min.json`。
+- Slurm：preflight `11137`、正式 array `11138` 均 8/8 completed，`--time=0`，
+  最多 4 卡并发；8 个 run 均为 7500 epoch / 517,500 step，训练与评估正常完成。
+
+主协议 `last@7500` 的 test35 case-balanced 结果：
+
+| 模型 | speed R² | speed MAE (m/s) | speed RMSE (m/s) | near-wall speed R² | p R² |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| PointNet++ / `xyz+geom` / data-only | 0.2063 | 0.1773 | 0.2672 | -2.0509 | 0.1729 |
+| **PointNet++ / `xyz+geom` / PINN** | **0.2380** | **0.1764** | **0.2668** | **-1.4770** | **0.3225** |
+
+完整体域协议下两者 speed R² 为 `0.1506/0.1820`，但 MAE/RMSE 几乎持平。PINN
+显著改善 physics residual 和压力，速度聚合 R² 小幅提高；近壁 speed R² 仍为负，
+因此当前结果不能直接支持可靠 velocity→WSS。完整八臂表、逐病例异常与下一步见
+[路线真源第 10 节](../docs/02-推进与变更/WSS_PINN/README.md#10-第二轮-same5k-e7500-v2)。
+
+### V2 零重训 residual 诊断
+
+2026-08-04 使用冻结 `last@7500` 对全部 test35 做了 exact support、独立体域 query
+和微扰 query 对照。独立点的 continuity/momentum/速度梯度病例均衡 RMS 分别是
+exact support 的约 `453×/331×/187×`；仅移动 `1e-4` 归一化长度，预测速度变化
+RMS 仅 `1.84e-5 m/s`，动量 residual 已放大约 `120×`。根因是 PointNet++ 查询头的
+`1/d²` 3NN 插值在 support 重合点发生 latent 坐标导数退化。因此既有 SAME5K 回归
+指标仍有效，但 SAME 点 physics residual 不能代表连续体域 PDE 满足度。
+
+另对 AG/AAA/ILO 各 1 例 CFD 真值做局部二次导数审计。`k=96` 下加入相邻时相的
+`rho·du/dt` 后，动量 residual 均值从 `1737` 降至 `1494 Pa/m`，说明 peak 并非严格
+稳态；但二阶导数对 `k=48/96` 仍敏感，绝对 residual 只作趋势诊断。完整结果和老师
+论文对照见[路线真源第 10.6–10.7 节](../docs/02-推进与变更/WSS_PINN/README.md)。
 
 ## 代码结构
 
 ```text
 wss_pinn/
-├── configs/volume_uvwp_peak_v1/       # 8 configs + matrix
-├── configs/volume_uvwp_peak_same5k_e7500_v2/ # 第二轮 SAME5K 8 configs + matrix
-├── tests/test_volume_*.py              # 数据、模型、物理与训练 smoke
-└── volume_field/
-    ├── data/                            # schema-v2 builder/dataset/audit
-    ├── models/                          # PointNet / PointNet++ 连续查询场
-    ├── physics/                         # Carreau–Yasuda 与 PDE residual
-    ├── tools/                           # build/audit/preflight
-    ├── cluster/                         # Slurm 与默认 dry-run 提交器
-    ├── losses.py
-    ├── train.py
-    └── evaluate.py
+├── config.py / train.py / evaluate.py  # 当前训练与评估主入口
+├── data/                               # schema-v2 builder/dataset/audit + 共享 raw I/O
+├── models/                             # PointNet / PointNet++ 连续查询场
+├── physics/                            # Carreau–Yasuda 与 PDE residual
+├── tools/                              # build/audit/preflight/结果汇总
+├── cluster/                            # Slurm 与默认 dry-run 提交器
+├── configs/volume_uvwp_peak_v1/        # 首轮 8 configs + matrix
+├── configs/volume_uvwp_peak_same5k_e7500_v2/ # 第二轮 8 configs + matrix
+├── configs/volume_uvwp_peak_qs_smooth_v3/ # 当前六臂 configs + matrix
+├── tests/test_volume_*.py              # 4 个核心合同测试文件
+└── archive/wss_target_v1_20260730/     # 旧直接 WSS/F0–F2 源码与配置
 ```
+
+2026-08-04 起，当前体域路线不再隔着 `volume_field/` 子包；训练、评估和工具命令
+统一从 `wss_pinn` 根包启动。归档代码仅用于追溯，不作为可执行入口。
+
+2026-08-05 的维护性精简没有修改科学合同或实验配置入口：配置类和模型构造器的推荐
+名称分别为 `ExperimentConfig`、`build_model`，历史名称仍保留兼容；`losses.py` 统一
+处理 V1/V2 与 V3 的数据、BC、PDE 组合，训练入口只记录优化所需 loss，物理场诊断
+集中在 `evaluate.py`。测试不再重复构造完整数据 Gate 和 resume 集成场景，真实提交
+仍由“静态 preflight → 数据 Gate → GPU dry-run → 配置矩阵提交”保护。标准提交器
+默认直接读取配置目录的 `matrix.json`，不再要求同时维护一份重复的 config 文本清单；
+历史清单仍可通过 `--config-list` 显式复用。
 
 ## 当前允许执行的命令
 
 ```bash
 PY=/public/newhome/cy/.conda/envs/GNN/bin/python
 
-# 单元测试与静态八臂预检
+# 核心合同测试与静态矩阵预检
 $PY -m unittest discover -s wss_pinn/tests -p 'test_*.py' -v
-$PY -m wss_pinn.volume_field.tools.preflight
+$PY -m wss_pinn.tools.preflight
 
 # 只查看提交计划，不提交 Slurm
-$PY -m wss_pinn.volume_field.cluster.submit_matrix
+$PY -m wss_pinn.cluster.submit_matrix
 
-# 从已完成 run 重新生成 CSV/JSON 与 PNG/SVG
-$PY -m wss_pinn.volume_field.tools.summarize_results
+# 从首轮 v1 已完成 run 重新生成 CSV/JSON 与 PNG/SVG
+$PY -m wss_pinn.tools.summarize_results
+
+# 不重训：复核 V2 SAME/独立 query、CFD 准稳态/瞬态 residual 和论文 NMAE 桥接
+$PY -m wss_pinn.tools.diagnose_v2_physics --section all --device cuda:0
 ```
 
 173 例数据构建和 deep-source audit 已完成；以下命令用于按原合同复现：
 
 ```bash
-sbatch wss_pinn/volume_field/cluster/build_dataset.slurm
+sbatch wss_pinn/cluster/build_dataset.slurm
 sbatch --dependency=afterok:<build_job_id> \
-  wss_pinn/volume_field/cluster/audit_dataset.slurm
+  wss_pinn/cluster/audit_dataset.slurm
 ```
 
 首轮正式训练已通过 Slurm array `0-7%4` 在最多 4 张 GPU 上完成。后续新 run 仍须
@@ -162,5 +255,5 @@ sbatch --dependency=afterok:<build_job_id> \
 不会把断点续训误写成 data-only 热启动。
 
 第二轮已切换为固定 7500 epoch 的 SAME5K 协议，不划 inner validation、不早停；
-test35 仍不参与调度或 checkpoint 选择。配对主表统一使用 `last@7500`，完整结果待
-array `11138` 完训后分析回填。
+test35 仍不参与调度或 checkpoint 选择。配对主表统一使用 `last@7500`；8/8 run 与
+SAME5K/full-volume × 三 checkpoint 的 48 份评估均已完成并审计。

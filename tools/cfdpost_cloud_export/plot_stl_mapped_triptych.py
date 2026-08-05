@@ -185,6 +185,7 @@ def plot_triptych(
     err_cmap: str = ERR_CMAP_NAME,
     max_points: int = 80_000,
     seed: int = 42,
+    pred_label: str = "GNN Pred",
 ) -> dict:
     try:
         import matplotlib.pyplot as plt
@@ -224,7 +225,7 @@ def plot_triptych(
     if err_vmax <= 0:
         err_vmax = float(np.max(err_abs[valid])) or 1.0
 
-    labels = (f"CFD ({unit})", f"GNN Pred ({unit})", f"|Error| ({unit})")
+    labels = (f"CFD ({unit})", f"{pred_label} ({unit})", f"|Error| ({unit})")
     arrays = (cfd, pred, err_abs)
     cmaps = (field_cmap, field_cmap, err_cmap)
     vmins = (vmin, vmin, 0.0)
@@ -288,6 +289,7 @@ def main() -> None:
     parser.add_argument("--err-cmap", default=ERR_CMAP_NAME, help="误差色标")
     parser.add_argument("--max-points", type=int, default=80_000, help="render=scatter 时子采样上限")
     parser.add_argument("--report-json", default="")
+    parser.add_argument("--pred-label", default="GNN Pred")
     args = parser.parse_args()
 
     csv_path = Path(args.csv) if args.csv else None
@@ -317,6 +319,7 @@ def main() -> None:
         field_cmap=args.field_cmap,
         err_cmap=args.err_cmap,
         max_points=args.max_points,
+        pred_label=args.pred_label,
     )
     print(json.dumps(report, indent=2, ensure_ascii=False))
     if args.report_json:

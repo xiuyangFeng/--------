@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "method": "pointcloud_surface_mls_v4",
+  "frozen_at": "2026-08-03",
+  "immutable": true,
+  "note": "物理超参数和诊断残差校准仅使用 train138 选择。序列化模型在 evaluation-only 应用 test35 前已经冻结；test35 是项目既有基准，不是新采集的前瞻性盲测队列。",
+  "artifacts": [
+    {
+      "path": "src/wss_surface_mls_v4.py",
+      "sha256": "dd317e94a6d48b6aedd6d6ea6aeb3d7f8022060b8b98733e3312cdfbb5f6d5c1"
+    },
+    {
+      "path": "src/run_v4_experiment.py",
+      "sha256": "9908dfc023b9fcf7dbc657f99a9825b3fe9c77c8a1030c8fd902676afc930c2e"
+    },
+    {
+      "path": "src/calibrate_v4_oof.py",
+      "sha256": "4ddc65fa84d8739e4137a1089813eca78de9b9d0a1b5a338c603ae72050d91c1"
+    },
+    {
+      "path": "src/validate_v4_calibrator_holdout.py",
+      "sha256": "24db9a37094239faeab2b50b728056393cb5a1d9a6c19de4bf3c0373820f37f2"
+    },
+    {
+      "path": "src/fit_v4_calibrator.py",
+      "sha256": "1e371c1f6308cd61674a444c59decddcb9da33390c7dff4a6d683853b5e2eb77"
+    },
+    {
+      "path": "src/apply_v4_calibrator.py",
+      "sha256": "73241ca81c23b2ab9b3456a26be88f193687ac2aca749d7b68e4b2c9bfd2cc2a"
+    },
+    {
+      "path": "src/test_wss_surface_mls_v4.py",
+      "sha256": "4855bdebaab6a8553092b5e0b279cd9c305ba8c66479875c70a85591b6c7d1e5"
+    },
+    {
+      "path": "src/test_v4_calibrator_contract.py",
+      "sha256": "fcde9fdd83d6a272d6c9af534a53844837545dedf758637c1493faf0825a2085"
+    },
+    {
+      "path": "experiments/pointcloud_surface_mls_v4/config_train36.json",
+      "sha256": "07f0a06e947e6a0dec95e8577f9d64db8cce889ab670f265a7801098e0b2df0e"
+    },
+    {
+      "path": "experiments/pointcloud_surface_mls_v4/config_train138.json",
+      "sha256": "217138e1ea1912bfad4576cfa83baa784101741af24f7e00d3e6f2682c1e700d"
+    },
+    {
+      "path": "experiments/pointcloud_surface_mls_v4/config_test35_cache.json",
+      "sha256": "2d8ceef714f30cf427fae2b4ae6528b5009fce164316f8d2501fafaaaf29ea52"
+    },
+    {
+      "path": "experiments/pointcloud_surface_mls_v4/cap_sweep_train36_s400.json",
+      "sha256": "e9f9fbcf8e6ae927c6dd9ae92849d8a2e686e281e821464d851a23219a906632"
+    },
+    {
+      "path": "experiments/pointcloud_surface_mls_v4/calibrator_frozen_v4.joblib",
+      "sha256": "c8dc4d577b8ee6084c036b0e56c6406bdf2a7b5e4bd5c4ac70de226018f9332c"
+    },
+    {
+      "path": "experiments/pointcloud_surface_mls_v4/calibrator_manifest_v4.json",
+      "sha256": "edb4881bc36d35018f0ad24288dd9d8a3eb1f230c58ce27a194e2880610925ab"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/train138_s600.json",
+      "sha256": "c9c7ec5f170e852cc7c150340c0810354fc4e7a878a7ab24018c7a0b5a8da4ed"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/calibration_oof_train138.json",
+      "sha256": "3f9d6af521b42bc67b1e174dcda3a1897f6fd49157454adcdde6293e3cf29922"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/calibrator_dev73_holdout65.json",
+      "sha256": "26cf232025e36862338955a684aaf049d0e3709603bdb8ddc502401c80d52445"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/test35_base_s1200.json",
+      "sha256": "b233a9b6084ba0fe0c19a48f869601a80a6a15bea91800d381b39fa94c842b17"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/test35_calibrated_s1200.json",
+      "sha256": "66e5ec120b6fae95e3a9298952b3045b4afabd76d11347499b6ebf5b842a33d0"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/test35_calibrated_predictions_s1200.npz",
+      "sha256": "e5bba64dc08ee95ecd24b606157cbe43e11bf4ebae6567929bc49bb551321366"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_q2v_pool2025_train138_test35_exclude_SHI_YUN_XI_v1.json",
+      "sha256": "964d7021f2d12baadd630e7b936456a4e62294fa72c5ada4fc70abe4d9361f2b"
+    }
+  ]
+}

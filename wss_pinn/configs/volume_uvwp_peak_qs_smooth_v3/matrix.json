@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "route": "volume_uvwp_peak_qs_smooth_v3",
+  "status": "completed_and_evaluated",
+  "training": {
+    "master_slurm_array": "11301_[0-3]",
+    "node04_pids": [1241185, 1241335],
+    "completed_arms": 6,
+    "epochs_per_arm": 2500,
+    "optimizer_steps_per_arm": 155000
+  },
+  "evaluation": {
+    "role": "test35",
+    "protocol": "fixed_5k_support_to_full_strict_volume",
+    "primary_checkpoint": "best_validation_data",
+    "sensitivity_checkpoints": ["best_validation_total", "last"],
+    "completed_reports": 18,
+    "summary": "outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/manifest.json"
+  },
+  "seed": 1234,
+  "warm_start": false,
+  "submission": {
+    "enabled": false,
+    "reason": "V3 is frozen to the completed master4 plus node04 two-host launcher",
+    "preflight_report": "outputs/wss_pinn/audits/volume_uvwp_peak_qs_smooth_v3_preflight/report.json",
+    "data_gate": "outputs/wss_pinn/audits/volume_uvwp_peak_qs_smooth_v3_boundary/report.json",
+    "output": "outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/submission_standard.json"
+  },
+  "split_sha256": "c80cb65ad95f7d76fadaff82ea02c35c27ad24ab2474e1050bf981eff97493f9",
+  "groups": [
+    ["qsf_xyz_data.json", "qsf_xyz_bc.json", "qsf_xyz_bcpde.json"],
+    ["qsf_xyz_geom_data.json", "qsf_xyz_geom_bc.json", "qsf_xyz_geom_bcpde.json"]
+  ]
+}

@@ -1,103 +1,145 @@
-"""微分残差：速度雅可比、连续性，以及 CFD 局部线性梯度 Oracle。
-
-学习要点
---------
-不可压缩连续性：
-
-    ∇·u = ∂u/∂x + ∂v/∂y + ∂w/∂z = 0
-
-PINN 用 ``torch.autograd.grad`` 对网络输出求坐标导数（``velocity_jacobian``），
-再取迹得到散度（``continuity_residual``）。这是 F1 的核心物理项。
-
-``local_linear_velocity_gradients`` 不依赖网络：在 CFD 点云上做加权局部线性
-拟合，得到「真值侧」梯度 Oracle，用于 P0 审计（网络误差 vs 数据/离散误差）。
-"""
+"""Autograd residuals for steady incompressible non-Newtonian flow."""
 
 from __future__ import annotations
 
-import numpy as np
+from typing import Any
+
 import torch
 
+from .rheology import carreau_yasuda
 
-def velocity_jacobian(
-    velocity: torch.Tensor, coords: torch.Tensor, create_graph: bool = True
-) -> torch.Tensor:
-    """返回 ``∂u_i / ∂x_j``，形状 ``[N, 3, 3]``。
 
-    对每个速度分量 ``velocity[:, i]`` 关于 ``coords`` 求梯度，堆成雅可比。
-    ``create_graph=True`` 时二次导数可继续反传到网络参数（训练用）；
-    评估残差时可 ``False`` 省显存。
-    """
+def _gradient(value: torch.Tensor, coords: torch.Tensor) -> torch.Tensor:
+    """Pointwise scalar gradient, returning exact zeros for constants."""
+    if not value.requires_grad:
+        return torch.zeros_like(coords)
+    gradient = torch.autograd.grad(
+        value.sum(),
+        coords,
+        create_graph=True,
+        retain_graph=True,
+        allow_unused=True,
+    )[0]
+    return torch.zeros_like(coords) if gradient is None else gradient
+
+
+def velocity_jacobian(velocity: torch.Tensor, coords: torch.Tensor) -> torch.Tensor:
     if velocity.ndim != 2 or velocity.shape[1] != 3:
-        raise ValueError("velocity must have shape [N, 3]")
-    rows = []
-    for component in range(3):
-        # sum() 后对标量反传，等价于对每个点的该分量求 ∂/∂x
-        grad = torch.autograd.grad(
-            velocity[:, component].sum(),
-            coords,
-            create_graph=create_graph,
-            retain_graph=True,  # 后续分量还要用同一张计算图
-            allow_unused=False,
-        )[0]
-        rows.append(grad)
-    return torch.stack(rows, dim=1)
+        raise ValueError("velocity must have shape [N,3]")
+    return torch.stack(
+        [_gradient(velocity[:, component], coords) for component in range(3)],
+        dim=1,
+    )
 
 
-def continuity_residual(
-    velocity: torch.Tensor, coords: torch.Tensor, create_graph: bool = True
-) -> torch.Tensor:
-    """连续性残差 ``∇·u``，形状 ``[N]``；理想不可压缩流应接近 0。"""
-    jacobian = velocity_jacobian(velocity, coords, create_graph=create_graph)
-    return jacobian[:, 0, 0] + jacobian[:, 1, 1] + jacobian[:, 2, 2]
+def _field_stat_tensors(
+    field_stats: dict[str, Any],
+    reference: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    velocity_mean = reference.new_tensor(field_stats["velocity_m_s"]["mean"])
+    velocity_std = reference.new_tensor(field_stats["velocity_m_s"]["std"])
+    pressure_mean = reference.new_tensor(field_stats["pressure_relative_pa"]["mean"][0])
+    pressure_std = reference.new_tensor(field_stats["pressure_relative_pa"]["std"][0])
+    return velocity_mean, velocity_std, pressure_mean, pressure_std
 
 
-def local_linear_velocity_gradients(
-    coords: np.ndarray,
-    velocity: np.ndarray,
-    query_indices: np.ndarray,
+def denormalize_fields(
+    prediction: torch.Tensor,
+    field_stats: dict[str, Any],
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Convert normalized network output to registered SI velocity and relative Pa."""
+    if prediction.ndim != 2 or prediction.shape[1] != 4:
+        raise ValueError("prediction must have shape [N,4]")
+    velocity_mean, velocity_std, pressure_mean, pressure_std = _field_stat_tensors(
+        field_stats, prediction
+    )
+    velocity = prediction[:, :3] * velocity_std + velocity_mean
+    pressure = prediction[:, 3] * pressure_std + pressure_mean
+    return velocity, pressure
+
+
+def generalized_newtonian_residuals(
+    prediction: torch.Tensor,
+    coords: torch.Tensor,
+    length_m: torch.Tensor,
     *,
-    neighbors: int = 32,
-) -> tuple[np.ndarray, np.ndarray]:
-    """加权局部线性 CFD 梯度 Oracle。
+    field_stats: dict[str, Any],
+    physics_config: dict[str, Any],
+) -> dict[str, torch.Tensor]:
+    """Return dimensionless residuals and SI diagnostics.
 
-    坐标与速度应已无量纲。返回：
-
-    - ``gradients``：``[Q, 3, 3]``，``∂u_i/∂x_j``；
-    - ``conditions``：设计矩阵 Gram 条件数，越大表示局部数值越不可信。
-
-    方法：对每个查询点取 k 近邻，拟合 ``Δv ≈ G · Δx``（带高斯权重）。
+    ``coords`` are registered dimensionless coordinates ``x_hat`` and must be
+    independent query leaves.  The first version is quasi-steady and therefore
+    intentionally omits ``du/dt``.
     """
-    from scipy.spatial import cKDTree
+    if not coords.requires_grad:
+        raise ValueError("physics query coordinates must require gradients")
+    length = length_m.reshape(-1).to(device=coords.device, dtype=coords.dtype)
+    if len(length) != len(coords) or bool(torch.any(length <= 0)):
+        raise ValueError("length_m must be positive and match physics queries")
+    density = float(physics_config["density_kg_m3"])
+    velocity_reference = float(physics_config["reference_velocity_m_s"])
+    pressure_reference = density * velocity_reference**2
+    velocity_phys, pressure_phys = denormalize_fields(prediction, field_stats)
+    velocity_hat = velocity_phys / velocity_reference
+    pressure_hat = pressure_phys / pressure_reference
 
-    xyz = np.asarray(coords, dtype=np.float64)
-    vel = np.asarray(velocity, dtype=np.float64)
-    query = np.asarray(query_indices, dtype=np.int64)
-    if len(xyz) != len(vel):
-        raise ValueError("coordinate/velocity length mismatch")
-    k = min(max(int(neighbors), 8), len(xyz))
-    tree = cKDTree(xyz)
-    distances, indices = tree.query(xyz[query], k=k)
-    gradients = np.full((len(query), 3, 3), np.nan, dtype=np.float64)
-    conditions = np.full(len(query), np.inf, dtype=np.float64)
-    for row, (center_index, dist, neighbor_index) in enumerate(
-        zip(query, distances, indices)
-    ):
-        dx = xyz[neighbor_index] - xyz[center_index]
-        dv = vel[neighbor_index] - vel[center_index]
-        # 带宽取邻域距离中位数，避免单点极近导致权重退化
-        scale = max(float(np.median(dist[1:])), 1e-12)
-        weights = np.exp(-np.square(dist / (2.0 * scale)))
-        # 设计矩阵 [1, Δx, Δy, Δz]；常数项吸收局部基值
-        design = np.column_stack([np.ones(len(dx)), dx])
-        weighted = design * np.sqrt(weights[:, None])
-        target = dv * np.sqrt(weights[:, None])
-        gram = weighted.T @ weighted
-        conditions[row] = np.linalg.cond(gram)
-        try:
-            coefficients, *_ = np.linalg.lstsq(weighted, target, rcond=1e-10)
-            # coefficients[0] 是截距；[1:] 才是梯度行 → 转置成 ∂u_i/∂x_j
-            gradients[row] = coefficients[1:].T
-        except np.linalg.LinAlgError:
-            continue
-    return gradients, conditions
+    gradient_hat = velocity_jacobian(velocity_hat, coords)
+    continuity_hat = torch.diagonal(gradient_hat, dim1=1, dim2=2).sum(dim=1)
+    strain_hat = 0.5 * (gradient_hat + gradient_hat.transpose(1, 2))
+    strain_phys = strain_hat * (velocity_reference / length)[:, None, None]
+    shear_eps = float(physics_config["shear_rate_epsilon_s_inv"])
+    shear_rate = torch.sqrt(
+        2.0 * torch.sum(strain_phys * strain_phys, dim=(1, 2)) + shear_eps**2
+    )
+    viscosity = carreau_yasuda(shear_rate, physics_config["rheology"])
+    stress_phys = 2.0 * viscosity[:, None, None] * strain_phys
+
+    convective_hat = torch.einsum("nj,nij->ni", velocity_hat, gradient_hat)
+    pressure_gradient_hat = _gradient(pressure_hat, coords)
+    stress_divergence_phys_components = []
+    for component in range(3):
+        divergence = torch.zeros_like(continuity_hat)
+        for direction in range(3):
+            derivative_hat = _gradient(stress_phys[:, component, direction], coords)
+            divergence = divergence + derivative_hat[:, direction] / length
+        stress_divergence_phys_components.append(divergence)
+    stress_divergence_phys = torch.stack(
+        stress_divergence_phys_components, dim=1
+    )
+    inertia_scale = density * velocity_reference**2 / length
+    viscous_hat = stress_divergence_phys / inertia_scale[:, None]
+    momentum_hat = convective_hat + pressure_gradient_hat - viscous_hat
+
+    return {
+        "velocity_phys_m_s": velocity_phys,
+        "pressure_relative_pa": pressure_phys,
+        "velocity_hat": velocity_hat,
+        "pressure_hat": pressure_hat,
+        "velocity_gradient_hat": gradient_hat,
+        "strain_rate_phys_s_inv": strain_phys,
+        "shear_rate_s_inv": shear_rate,
+        "viscosity_pa_s": viscosity,
+        "stress_phys_pa": stress_phys,
+        "continuity_hat": continuity_hat,
+        "continuity_phys_s_inv": continuity_hat * velocity_reference / length,
+        "momentum_convective_hat": convective_hat,
+        "momentum_pressure_hat": pressure_gradient_hat,
+        "momentum_viscous_hat": viscous_hat,
+        "momentum_hat": momentum_hat,
+        "momentum_phys_pa_per_m": momentum_hat * inertia_scale[:, None],
+    }
+
+
+def no_slip_loss(
+    prediction: torch.Tensor,
+    *,
+    field_stats: dict[str, Any],
+    reference_velocity_m_s: float,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return dimensionless no-slip MSE and physical wall speed."""
+    velocity, _ = denormalize_fields(prediction, field_stats)
+    velocity_hat = velocity / float(reference_velocity_m_s)
+    loss = torch.mean(torch.sum(velocity_hat * velocity_hat, dim=1))
+    speed = torch.linalg.vector_norm(velocity, dim=1)
+    return loss, speed

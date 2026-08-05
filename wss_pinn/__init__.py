@@ -1,14 +1,13 @@
-"""独立的 WSS-PINN 实验线包入口。
+"""峰值体域 ``(u, v, w, p)`` 物理信息神经网络（PINN）活动路线包。
 
-最终目标仍是预测峰值壁面剪切应力（WSS）；
-速度/压力场 (u,v,w,p) 只作为训练期的体域辅助量与物理约束变量。
+活动训练、评估、模型、数据与物理模块均直接位于 :mod:`wss_pinn` 根层。
+已被取代的「直接预测 WSS + F0/F1/F2 阶梯」路线冻结在
+``wss_pinn/archive/wss_target_v1_20260730``，仅供追溯，不可作为执行入口。
 
-隔离约定（重要）：
-- ``data_new`` / ``data_wss_min`` / ``pipeline_wss_min`` / ``training_wss_min``
-  视为只读上游，不得在此写入 PINN 专用产物。
-- PINN 派生数据 → ``data_wss_pinn/``
-- 训练与评估输出 → ``outputs/wss_pinn/``
-- 本包代码与配置 → ``wss_pinn/``
+对外导出简短的 :class:`ExperimentConfig`；旧名称继续保留以兼容历史脚本。
+拿到的是带科学合同护栏的解析后配置，而不是原始 JSON dict。
 """
 
-__version__ = "0.1.0"
+from .config import ExperimentConfig, VolumeExperimentConfig
+
+__all__ = ["ExperimentConfig", "VolumeExperimentConfig"]

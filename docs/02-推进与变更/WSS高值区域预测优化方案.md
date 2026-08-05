@@ -5,6 +5,17 @@
 > 当前任务：血管壁几何点云与几何特征 → 峰值时相壁面 WSS  
 > 核心目标：在不破坏中低 WSS 和全场性能的前提下，提高高 WSS 区域的幅值、局部排序和热点定位精度。
 
+> **路线边界与 2026-08-04 相关证据**：本文主体研究的是
+> `training_wss_min` 的“几何点云 → 直接预测壁面 WSS”，不能与
+> `wss_mri_calculator` 的“已知 CFD 速度场 → 后处理计算 WSS”混写。后者当前推荐的
+> [Profile-Secant V3 结果模型](../../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/PROFILE_SECANT_HIGH_TAIL_V3_RESULTS.md)
+> 已把 test35 pooled high-WSS R² 提高到 `0.9415`、平均峰值低估降到 `9.31%`，
+> 但逐病例 high-WSS R² 均值仅 `0.7721`，仅 4/35 病例同时满足
+> `R²≥0.90` 和峰值低估 `≤10%`。Oracle 审计表明当前剩余误差主要受近壁速度层
+> 过远限制，而不是峰值位置未找到。这个结果证明：即使上游速度真值可用，严格的
+> 病例级高 WSS 仍需要更靠壁的速度信息；它不代表 geometry-only 直接预测路线已经
+> 达到同样精度。该选择面向总体和平均高 WSS 指标；V4 final 仅作为冻结基线保留。
+
 > **⚠ 阅读提示（2026-07-26 追加）**：本文档 §1–§12 为初稿方案。§13–§17 是基于落盘数据与已存 run 产物的第一性原理重估与对抗性审查，**推翻或大幅修订了 §1、§2.1、§4、§5.4、§9.3、§10.2、§11、§12**。请先读 §13 的量化结论与 §16 的修订优先级，再回看 §1–§12 的原始论证。§14 逐条给出对 §1–§12 的判定。
 
 > **当前执行决议（2026-07-29，优先于下文旧建议）**：
@@ -52,9 +63,9 @@
 
 相关配置：
 
-- [`training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa2_s1234.json`](training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa2_s1234.json)
-- [`training_wss_min/objectives.py`](training_wss_min/objectives.py)
-- [`training_wss_min/baseline_models.py`](training_wss_min/baseline_models.py)
+- [`training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa2_s1234.json`](../../training_wss_min/configs/pointnetpp_regp10_transformer_20260726/regp10_localtf_sa2_s1234.json)
+- [`training_wss_min/objectives.py`](../../training_wss_min/objectives.py)
+- [`training_wss_min/baseline_models.py`](../../training_wss_min/baseline_models.py)
 
 ### 2.2 这不是单纯的全局幅值缩小
 

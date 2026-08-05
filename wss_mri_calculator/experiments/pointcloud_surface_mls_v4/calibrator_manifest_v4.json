@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "method_name": "surface_mls_v4_hist_calibrated",
+  "selection_roles": [
+    "train"
+  ],
+  "n_cases": 138,
+  "n_points": 82800,
+  "feature_names": [
+    "log_pred_v1",
+    "log_pred_v3",
+    "log_pred_v4",
+    "log_grad_v1",
+    "log_grad_v4",
+    "v3_correction",
+    "combined_correction",
+    "surface_ratio",
+    "ray_ratio",
+    "surface_valid",
+    "ray_valid",
+    "surface_minus_ray_ratio",
+    "ray_used",
+    "surface_applied",
+    "log_radius",
+    "v3_depth_over_radius",
+    "surface_depth_over_radius",
+    "eta_over_radius",
+    "lateral_over_eta",
+    "log_v3_re",
+    "log_surface_re",
+    "edge_velocity",
+    "v3_scale",
+    "surface_scale",
+    "log_v3_cv",
+    "log_surface_cv",
+    "log_surface_condition",
+    "surface_effective",
+    "surface_anchor_groups",
+    "surface_owner_rejected",
+    "v3_owner_rejected",
+    "v3_tube_rejected",
+    "cohort_AG",
+    "cohort_AAA",
+    "cohort_ILO",
+    "case_pred_p50",
+    "case_pred_p90",
+    "case_radius_p50",
+    "case_surface_ratio_p50",
+    "case_combined_correction_p50",
+    "case_re_p50",
+    "case_pred_rank",
+    "case_radius_rank",
+    "case_surface_ratio_rank",
+    "log_pred_over_case_p50"
+  ],
+  "raw_ratio_clip": [
+    0.7,
+    1.8
+  ],
+  "global_alpha": 1.1677302551657216,
+  "case_alpha_clip": [
+    1.0,
+    1.4
+  ],
+  "local_strength": {
+    "minimum": 0.25,
+    "full_at_case_alpha": 1.08,
+    "fallback_to_physics_at_lower_bound": true
+  },
+  "final_ratio_clip": [
+    0.85,
+    1.6
+  ],
+  "parameters": {
+    "loss": "squared_error",
+    "learning_rate": 0.05,
+    "max_iter": 350,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 120,
+    "l2_regularization": 5.0,
+    "random_state": 23
+  },
+  "cache_dir": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/point_cache_train138_s600",
+  "cache_file_count": 138,
+  "model_path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_surface_mls_v4/calibrator_frozen_v4.joblib",
+  "model_sha256": "c8dc4d577b8ee6084c036b0e56c6406bdf2a7b5e4bd5c4ac70de226018f9332c"
+}

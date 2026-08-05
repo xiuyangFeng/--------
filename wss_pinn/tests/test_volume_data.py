@@ -4,11 +4,11 @@ import unittest
 
 import numpy as np
 
-from wss_pinn.volume_field.data.builder import (
+from wss_pinn.data.builder import (
     _geometry,
     rotate_velocity_to_registered,
 )
-from wss_pinn.volume_field.data.dataset import VolumeFieldDataset, _take_strict_volume
+from wss_pinn.data.dataset import VolumeFieldDataset, _take_strict_volume
 
 
 class VolumeDataTests(unittest.TestCase):

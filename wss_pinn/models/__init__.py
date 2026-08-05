@@ -1,5 +1,5 @@
-"""模型导出：对外只暴露 ``WSSPINNModel``。"""
+"""Point-cloud model builders for continuous volume queries."""
 
-from .field_decoder import WSSPINNModel
+from .point_models import build_model, build_volume_model
 
-__all__ = ["WSSPINNModel"]
+__all__ = ["build_model", "build_volume_model"]
