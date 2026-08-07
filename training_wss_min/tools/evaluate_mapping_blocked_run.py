@@ -138,6 +138,7 @@ def main() -> None:
     cfg, feature_stats, model, checkpoint = E.load_model_from_run(
         args.run_dir, device, args.checkpoint
     )
+    model.eval()
     wss_stats = E.load_wss_stats_for_run(args.run_dir)
     cases = D.load_partition(
         cfg.data.split_path, "test", wss_stats, target=cfg.data.target,

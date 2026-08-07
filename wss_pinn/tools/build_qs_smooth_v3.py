@@ -169,6 +169,7 @@ def _read_fluent_boundaries(case_gz: Path) -> dict[str, Any]:
     nodes = None
     first_node = 1
     face_zones: dict[int, list[np.ndarray]] = {}
+    face_cells: dict[int, list[np.ndarray]] = {}
     zone_types: dict[int, int] = {}
     zone_names: dict[int, tuple[str, str]] = {}
     try:
@@ -202,6 +203,7 @@ def _read_fluent_boundaries(case_gz: Path) -> dict[str, Any]:
                         continue
                     _open_binary_payload(handle)
                     faces: list[np.ndarray] = []
+                    cells: list[np.ndarray] = []
                     # Fluent uses 32-bit integer connectivity here even in 3013.
                     if element_type == 0:
                         for _ in range(face_count):
@@ -225,6 +227,7 @@ def _read_fluent_boundaries(case_gz: Path) -> dict[str, Any]:
                                 count=node_count + 2,
                             )
                             faces.append(record[:node_count].astype(np.int64))
+                            cells.append(record[node_count : node_count + 2].astype(np.int64))
                     else:
                         node_count = {2: 2, 3: 3, 4: 4}.get(element_type)
                         if element_type == 5:
@@ -244,7 +247,11 @@ def _read_fluent_boundaries(case_gz: Path) -> dict[str, Any]:
                                     count=polygon_nodes + 2,
                                 )
                                 faces.append(record[:polygon_nodes].astype(np.int64))
+                                cells.append(
+                                    record[polygon_nodes : polygon_nodes + 2].astype(np.int64)
+                                )
                             face_zones[zone_id] = faces
+                            face_cells[zone_id] = cells
                             zone_types[zone_id] = zone_type
                             _finish_binary_section(handle, index)
                             continue
@@ -258,7 +265,9 @@ def _read_fluent_boundaries(case_gz: Path) -> dict[str, Any]:
                             face_count, record_width
                         )
                         faces = [row[:node_count].astype(np.int64) for row in records]
+                        cells = [row[node_count:].astype(np.int64) for row in records]
                     face_zones[zone_id] = faces
+                    face_cells[zone_id] = cells
                     zone_types[zone_id] = zone_type
                     _finish_binary_section(handle, index)
                 elif index == b"39":
@@ -276,6 +285,7 @@ def _read_fluent_boundaries(case_gz: Path) -> dict[str, Any]:
         "nodes": nodes,
         "first_node": int(first_node),
         "faces": face_zones,
+        "face_cells": face_cells,
         "zone_types": zone_types,
         "zone_names": zone_names,
     }

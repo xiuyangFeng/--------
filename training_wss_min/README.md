@@ -13,6 +13,7 @@
 - **采样命名**：`random` 是训练壁面顶点等概率无放回；`area_random` 是原始 STL 三角面积映射后的表面积采样。两者是不同物理口径，禁止用 `geom_weighted` 或彼此冒名替代。
 - **面积指标门禁**：旧配置缺省 `eval.surface_metric_mode=legacy_vertex`，不读取面积也不输出伪 area 字段；只有显式 `both_strict` 才计算面积指标并要求每例通过严格 mapping。
 - **PostView 口径**：`legacy_vertex` 的 high-risk mask 是逐壁面点 top10，导出器不会加载面积；`both_strict` 才使用 area top10。PostView Gaussian `mapping coverage=100%` 仅是可视化插值覆盖率，不代表原始 STL 三角面积严格转移已经通过。
+- **线性拟合补充指标**：评估同时拟合 `prediction = a × truth + b`，输出 pooled 与病例等权共享拟合线的 `r2_linear_fit / linear_fit_slope / linear_fit_intercept`。该 R² 等价于 Pearson `r²`，只能与 `a、b` 及原始 R² 同报，不能替代绝对误差或用于改写既有 checkpoint/Gate。
 
 ## 目录地图
 
@@ -110,7 +111,7 @@ WSSMIN_MANIFEST=training_wss_min/configs/sweeps/pressure_wall.txt \
 
 - `train.log` / `history.jsonl` / `history.png`
 - `ckpt_best.pt` / `ckpt_last.pt` / `config.json` / `feature_stats.json`
-- `eval/ckpt_best/`、`eval/ckpt_last/` 下的 `metrics.json`、`per_case_metrics.csv`
+- `eval/ckpt_best/`、`eval/ckpt_last/` 下的 `metrics.json`、`per_case_metrics.csv`、`linear_fit_metrics.csv`
 - `postview/ckpt_best/test/`：每例对齐 STL、带 normalized 标量的 VTP、同点 CSV 与预览图
 
 集群日志：`cluster/logs/wssmin_<name>_<jobid>.{out,err}`。

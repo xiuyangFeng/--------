@@ -1,9 +1,10 @@
 # wss_pinn — 峰值体域 `u,v,w,p` PINN 指令
 
-本目录当前活动实验是 `volume_uvwp_peak_qs_smooth_v3`：用 Fluent 瞬态 peak
-`u,v,w,p` 标签和 Carreau–Yasuda 准稳态 PINN 正则，比较无 3NN/IDW 的条件
-PointNet 平滑场六臂。`volume_uvwp_peak_v1` 与 SAME5K-E7500 v2 已完成并保留为历史
-对照；旧“直接 WSS 输出 + 阶梯 F0/F1/F2”路线已归档。
+本目录当前活动 route 是 `volume_uvwp_peak_field_v4`；Stage 0-a/0-b 与纯监督 Stage 1
+已完成。`volume_uvwp_peak_qs_smooth_v3` 是 Fluent 瞬态 peak `u,v,w,p` 标签 +
+Carreau–Yasuda 准稳态 PINN 正则的冻结历史基线。
+`volume_uvwp_peak_v1` 与 SAME5K-E7500 v2 保留为历史对照；旧“直接 WSS 输出 + 阶梯
+F0/F1/F2”路线已归档。
 
 ## 隔离边界
 
@@ -11,13 +12,18 @@ PointNet 平滑场六臂。`volume_uvwp_peak_v1` 与 SAME5K-E7500 v2 已完成�
 - 新派生数据只写 `data_wss_pinn/volume_uvwp_peak_v1_train138_test35/`。
 - V3 新派生边界只写
   `data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/`。
+- 冻结诊断后的下一轮派生合同只写
+  `data_wss_pinn/volume_uvwp_peak_field_v4_train123_val15/`；不得复制或覆盖 V3 sidecar。
 - 新结果只写 `outputs/wss_pinn/volume_uvwp_peak_v1/`、
   `outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/`、
-  `outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/` 与对应 audit 目录。
+  `outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/`、
+  `outputs/wss_pinn/volume_uvwp_peak_field_v4/` 与对应 audit 目录；V3 结果只读。
 - 活动训练、评估、数据、模型、物理、工具和 Slurm 入口直接位于 `wss_pinn/`
   根层；活动配置位于 `wss_pinn/configs/volume_uvwp_peak_v1/`、
   `wss_pinn/configs/volume_uvwp_peak_same5k_e7500_v2/` 和
-  `wss_pinn/configs/volume_uvwp_peak_qs_smooth_v3/`。测试只保留配置、采样、
+  `wss_pinn/configs/volume_uvwp_peak_qs_smooth_v3/`；下一轮新配置只写
+  `wss_pinn/configs/volume_uvwp_peak_field_v4/`；Stage 1 确认种子只写
+  `wss_pinn/configs/volume_uvwp_peak_field_v4_multiseed_top2/`。测试只保留配置、采样、
   模型可微性和物理公式四类核心合同，位于 `wss_pinn/tests/test_volume_*.py`；
   真实数据与 GPU 冒烟由 preflight 承担，不再复制大型 synthetic fixture。
 - 旧直接 WSS/F0–F2 源码与配置冻结在
@@ -32,6 +38,20 @@ PointNet 平滑场六臂。`volume_uvwp_peak_v1` 与 SAME5K-E7500 v2 已完成�
 
 - 科学定位固定为“Fluent 瞬态 peak 标签 + Carreau–Yasuda 准稳态 PINN 正则”，
   不含 `du/dt`，不得写成稳态 CFD surrogate。
+- 2026-08-06 起，下一轮唯一优化目标是 `u,v,w,p` 场重建。禁止恢复直接 WSS 输出、
+  新增 WSS loss/WSS 辅助监督，或用 WSS 指标参与训练、early stopping、checkpoint
+  选择、loss 调权和架构排序。`wss_mri_calculator` 的 Profile-Secant V3 冻结为下游
+  验证器；只允许在基于 validation 的 `u/v/w/speed/p`、区域、流量和压降指标确定主
+  checkpoint 后做一次 sanity check，不得在本路线继续调 WSS 算法。
+- 下一轮科学合同已冻结在
+  `docs/02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md`
+  的 `FROZEN FOR IMPLEMENTATION v1.0`。实现必须先完成 Stage 0-a 的病例等权
+  `S_field^cb`、validation 聚合、B0 atlas 与探针入库；任何 BC 实验前完成 Stage 0-b。
+  Stage 1 不输入病例 BC、不使用 PDE、不读取 test35，且不得覆盖现有 V3 配置/产物。
+- Stage 1 决策已冻结为：保留 G-Raw；G-PE 跨种子方向不稳定且触发 pressure/最差
+  ILO 队列护栏，禁止继续扫 PE；L-Raw 单 seed 无增量，禁止继续堆 local decoder。
+  Stage 2 尚未启动，任何 patient-specific conditioning / 可部署 BC 实验必须建立新的
+  独立配置、Gate 与 decision contract，不得把 Stage 1 结果扩写成已验证 BC 路线。
 - split 固定 train123/val15/test35，SHA256：
   `c80cb65ad95f7d76fadaff82ea02c35c27ad24ab2474e1050bf981eff97493f9`；
   test35 不参与训练、选模或续训判断。
@@ -39,8 +59,12 @@ PointNet 平滑场六臂。`volume_uvwp_peak_v1` 与 SAME5K-E7500 v2 已完成�
   seed、初始化、采样协议和 2500 epoch 预算，不 warm-start。
 - query decoder 只能直接接收 query xyz 与病例 latent；禁止 3NN、IDW、BatchNorm、
   LayerNorm、dropout、AMP 和 query 邻域离散选择。
-- BC 使用真实 Fluent wall、`vf-in-rfile.out` 的 exact peak 实测入口流量和四出口
-  exact peak 压力。UDF 分母只作 provenance 诊断；入口速度由实测流量除真实网格面积。
+- 已完成 V3 的 BC 历史合同使用 Fluent wall、`vf-in-rfile.out` 的 exact peak
+  实测入口流量，以及四个 exact-timestep, monitor-derived outlet pressure
+  proxy。UDF 分母只作 provenance 诊断；入口速度由实测流量除真实网格面积。
+  下一轮在恢复 pressure-outlet face 上的 RCR UDF profile 前，不得再把该
+  outlet proxy 写成已确认的 exact boundary-face pressure，也不得默认
+  把求解后 monitor 作为可部署输入。
 - 正式运行：master 四臂通过 Slurm GPU array `11301_[0-3]` 完成；node04 两臂因未
   注册 GPU GRES，按 UID/公共路径/GPU 空闲 Gate 后一臂一卡直启，原 PID
   `1241185/1241335` 已正常退出。六臂均为 2500 epoch / 155000 step completed，三类
@@ -107,6 +131,9 @@ V3 的对应命名为 `best_validation_data.pt`、`best_validation_total.pt`、`
 checkpoint 均使用固定 5k support→full strict-volume test35 协议；跨臂主比较只能用
 `best_validation_data`。
 
+已有 V1/V2/V3 和后续诊断已读取 test35 并用于新设计；因此下一轮可继续把
+test35 用作历史统一 screen，但不得再宣称它是新架构的未触碰确认集。
+
 评估必须同时报告 `u/v/w/speed/p`、近壁/核心分区、压力 gauge 诊断、壁面速度、
 continuity 和 momentum residual。PointNet++ SAME support 上的 residual 必须标注
 IDW 导数退化限制，并用独立 query 作连续场审计；不得只看总 loss 宣称 PINN 收敛。
@@ -115,6 +142,7 @@ IDW 导数退化限制，并用独立 query 作连续场审计；不得只看总
 
 - 代码入口：`wss_pinn/README.md`
 - 路线真源：`docs/02-推进与变更/WSS_PINN/README.md`
+- 当前执行提示词：`docs/02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md`
 - WSS 详细推进记录：`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`
 - 项目级短摘要：`docs/02-推进与变更/代码修改与实验推进记录.md`
 - 历史路线：`docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/`

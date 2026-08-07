@@ -3,6 +3,16 @@
 原仓库（`wss_mri_calculator`）面向 **4D Flow MRI 规则体素影像**。本项目 `data_new/`
 是 **Fluent 非结构化点云**，因此新增了 CFD 适配核心与可视化脚本，原有 MRI 文件未改动：
 
+> **2026-08-06 范围冻结**：Profile-Secant V3 已达到当前阶段足够高的 CFD 真速度
+> 后处理精度，本路线冻结为 `u,v,w,p` 上游模型的 downstream validator。当前开发重心
+> 转向 `u,v,w,p` 场重建，不继续调 velocity→WSS 算法，也不把 WSS 结果用于上游模型
+> 的训练、early stopping、checkpoint 选择或架构排序。只有上游主 checkpoint 已按
+> `u/v/w/speed/p`、区域、流量与压降指标冻结后，才运行一次本算法作 sanity check。
+>
+> 这一冻结不等于算子无误差：test35 全壁面逐病例 high-WSS R² 均值约 `0.7735`，
+> 平均峰值仍低估 `15.81%`。因此它适合验证误差是否被下游梯度计算异常放大，不适合
+> 反向主导 `u,v,w,p` 的优化方向。
+
 > **当前推荐结果模型**：Profile-Secant V3。面向病例总体和平均高 WSS 精度，
 > 统一 test35 × 1200 口径下 raw/scaled R² mean=`0.96170/0.96537`、
 > MAE=`0.48032 Pa`、pooled high-WSS R²=`0.94153`。Surface-MLS V4 final
@@ -382,6 +392,7 @@ baseline 原 `train138/test36` 只读、不修改。
 R² 才到 0.57，因此当时只能靠 `calibrated_r2` 判读。
 
 本适配把 raw R² 提到可用量级，两处修正各自的贡献已在上文第 3、4 节量化。
-如果要把增益回灌到 `wss_pinn`，需改的是：
+以下“回灌”说明仅保留为历史兼容记录，不属于当前 `u,v,w,p` 优化周期；本轮不修改
+冻结 WSS 算法或用其结果反向选模。历史上若要把早期算子修正回灌到旧入口，涉及：
 - `wss_pinn/physics/wall_shear.py:map_stl_normals_to_wall` — 加局部定向
 - `run_v3p_profile_wss_oracle.py` — 粘度换成 Carreau-Yasuda（当前 `MU_BLOOD` 是常数）

@@ -4,6 +4,149 @@
 > V3P / 训练主线 / 通用代码修改记录见：[代码修改与实验推进记录](代码修改与实验推进记录.md)。
 > 当前执行入口：[PointNet baseline 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) / [训练实验跟踪](WSS最小化_训练实验跟踪.md) / [WSS-PINN 当前入口](WSS_PINN/README.md) / [velocity→WSS V1–V4 总跟踪](../../wss_mri_calculator/experiments/README.md)。
 
+## 2026-08-07｜PointNet 全历史实验补充 `y=ax+b` 线性拟合 R²
+
+**本次主要修改**：在 WSS-min 评估链新增 `prediction=a×truth+b` 的一元线性拟合指标，物理/归一化空间均输出 pooled 与病例等权共享拟合线的 `R²_fit`、斜率 `a` 和截距 `b`；新增独立 `linear_fit_metrics.csv`。保留原始 R²、病例等权 R²、训练损失、checkpoint 与既有 Gate，不用拟合 R²替代绝对精度。同步修复面积映射诊断入口未调用 `model.eval()` 的问题；历史上由该旧入口生成的一行结果仍按原训练态预测精确复现并在回填器中显式隔离。
+
+**对应代码/文档**：`training_wss_min/{metrics.py,evaluate.py}`、`training_wss_min/tools/{backfill_linear_fit_r2_workbook.py,evaluate_mapping_blocked_run.py}`、`training_wss_min/tests/test_linear_fit_metrics.py`、`training_wss_min/README.md`、[跨路线评估口径](../00-规范与记录/WSS跨路线评估与横向对比口径.md)和 `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`。批量审计产物位于 `outputs/wss_min/linear_fit_r2_backfill_20260807/`。
+
+**推进到实验步骤**：从总览 180 个单实验行追溯并去重为 175 个 checkpoint，按原 split/checkpoint 重新推理；旧 test16 使用终签 legacy 快照恢复已移出活动目录的 `WANG_DENG_FENG`。175/175 个来源均通过历史 raw R²复现，最大绝对差 `1.42e-8`；另按原表规则计算 4 个三种子均值行，共回填 184 个实验行。工作簿总览新增物理/归一化 12 列，汇总对比、教师汇报视图、RCR Oracle 和指标说明已同步并经 LibreOffice 全量重算。
+
+**当前状态判断**：全历史回填完成，无缺失或估算值。`R²_fit` 仅表示允许统一线性缩放/偏移后的趋势一致性；汇报时必须同时查看 `a、b` 与 raw/case-balanced R²、MAE/RMSE。后续新评估会自动产出该指标，但现有实验排序和晋级结论不因本次补充自动改写。
+
+## 2026-08-06｜V2 SAME5K-E7500 补训练/物理 loss 收敛图
+
+**本次主要修改**：新增 `wss_pinn/tools/plot_v2_loss_convergence.py`，从八臂冻结
+`epoch_progress.jsonl` 生成老师汇报版 train data / physics loss 图（V2 无 val，
+仅 train；50-epoch 平滑；最后 10% 阴影）。
+
+**对应代码/文档**：`wss_pinn/tools/plot_v2_loss_convergence.py`；产物
+`outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/summary/loss_convergence/`
+（`teacher_loss_convergence.pdf`、总览、配对 `convergence_curves`、E1–E8 分臂、
+物理分量、summary csv/json）。
+
+**推进到实验步骤**：历史 V2 完训后补可视化；未改训练/评估口径，未读 test35。
+
+**当前状态判断**：八臂 last50 vs prior50 data 变化约 `-0.07%`–`+0.06%`，与 README
+平台结论一致；PINN 臂最后 10% physics 变化约 `-0.22%`–`+0.10%`。可直接把 PDF/总览
+发给老师。
+
+## 2026-08-06｜WSS_PINN field-v4 Stage 0–1 全链完成并冻结 G-Raw
+
+**本次主要修改**：实现独立 field-v4 数据合同与写路径护栏、病例等权
+`S_field^cb`、固定 val15×5000 query、B0 病例盲 atlas、global/local × raw/PE
+连续查询模型、outlet 双路径与 inlet-wall/wall-zone Gate、制造解/导数/support 探针、
+分阶段 Slurm 提交、单种子排名 Gate、补种子矩阵和多种子/full-volume 汇总。
+
+**对应代码/文档**：`wss_pinn/{config.py,train.py,evaluate.py,validation.py}`、
+`wss_pinn/data/dataset.py`、`wss_pinn/models/point_models.py`、
+`wss_pinn/tools/{build_field_v4,b0_atlas_v4,diagnose_field_v4,audit_boundary_field_v4,gate_stage0a_field_v4,gate_stage1_raw_field_v4,gate_stage1_single_seed_field_v4,finalize_stage1_field_v4,smoke_field_v4}.py`、
+`wss_pinn/cluster/{preflight,run_experiment,evaluate_field_v4_fullvolume}.slurm`、
+`wss_pinn/configs/volume_uvwp_peak_field_v4*/`、[路线真源](WSS_PINN/README.md)、
+[`wss_pinn` README](../../wss_pinn/README.md)和
+[已完成执行合同](WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)。
+
+**推进到实验步骤**：Stage 0-a/0-b Gate pass；B0 val15 完成；Raw `11315_[0-1]`、
+PE `11318_[0-1]`、确认种子 `11321_[0-3]` 与 full-volume `11325_[0-5]` 全部完成、
+exit code 0。补种子前 GPU preflight `11320` 通过；最终 26 tests、CPU smoke、原矩阵和
+补种子矩阵静态 preflight 均 pass。训练/评估只使用 train123/val15，test35 读取数为 0。
+
+**当前状态判断**：单 seed 排名为 G-PE `0.567612`、G-Raw `0.578311`、L-Raw
+`0.588856`、L-PE `0.597688`。确认后 G-Raw/G-PE 为
+`0.576116±0.007477 / 0.581208±0.012599`；PE 只在 seed1234 改善，病例 bootstrap
+95% CI 跨 0，并触发 pressure 与最差 ILO 队列 2% 护栏。保留 G-Raw，G-PE No-Go，
+停止 PE 扫频和 local decoder；Stage 2 未启动。本轮未运行 WSS、BC loss/input 或 PDE loss。
+
+## 2026-08-06｜WSS_PINN 当前提示词换代与六臂提示词归档
+
+**本次主要修改**：归档已完成的准稳态平滑场六臂预注册提示词，并以冻结诊断为真源
+新建 Stage 0-a/0-b → Stage 1 执行提示词。新提示词不继承旧六臂、quasi-steady
+momentum、2500 epoch、`lambda=1` 或自动正式提交合同，改为病例等权选模、B0 atlas、
+边界 Gate 和纯监督表示矩阵。
+
+**对应代码/文档**：
+[当前执行提示词](WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)、
+[历史六臂提示词](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)、
+[归档索引](WSS_PINN/_archive/README.md)、[路线真源](WSS_PINN/README.md)、
+[`wss_pinn` README](../../wss_pinn/README.md)、`wss_pinn/AGENTS.md`、`docs/README.md`和
+[项目级推进摘要](代码修改与实验推进记录.md)。
+
+**推进到实验步骤**：完成执行提示词换代与导航同步；未改代码、配置、数据、split、
+checkpoint 或训练产物，未启动训练。
+
+**当前状态判断**：当前智能体应从新提示词进入 Stage 0-a/0-b；旧提示词仅供 V3 六臂
+历史复盘，不再具有执行授权或活动合同效力。
+
+## 2026-08-06｜体域 `u,v,w,p` 设计最终冻结与执行入口收口
+
+**本次主要修改**：完成冻结前最后一轮科学审查。将新增 atlas、平滑 oracle、support
+稳定性、梯度余弦和 outlet/RCR 链测量保持为 B 级证据；新增病例等权 `S_field^cb` 作为
+唯一 checkpoint/early-stop 标量，规定 B0 atlas 永久进入主表，修正 Stage 0 依赖、
+Stage 1 的 BC/PDE 隔离、Stage 3 起点和瞬态 physics 双路线。WSS 仍严格冻结为最终
+checkpoint 的 downstream audit。
+
+**对应代码/文档**：
+[冻结版核心诊断](WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)、
+[WSS-PINN 路线真源](WSS_PINN/README.md)、[`wss_pinn` README](../../wss_pinn/README.md)、
+`wss_pinn/AGENTS.md`、根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md`和
+[项目级推进摘要](代码修改与实验推进记录.md)。
+
+**推进到实验步骤**：下一轮科学合同冻结为 `FROZEN FOR IMPLEMENTATION v1.0`，可开始
+Stage 0-a/0-b 的实现准备；未改代码、配置、数据、split、checkpoint 或训练产物，未启动训练。
+
+**当前状态判断**：设计层面无剩余阻塞问题。Stage 0-a 通过后可进入纯监督 Stage 1；
+Stage 0-b 仅阻塞 Stage 2/BC。任何 WSS 指标、test35 或 physics residual 均不得反选
+checkpoint 或改变本轮架构顺序。
+
+## 2026-08-06｜冻结 velocity→WSS，转入 `u,v,w,p` 优化主线
+
+**本次主要修改**：将 Profile-Secant V3 的角色从“继续优化的 WSS 算法路线”收束为
+冻结 downstream validator。核心诊断删除 WSS loss、直接 WSS 辅助监督、WSS 选模和
+WSS 算法调优建议，改为 `u/v/w/speed/p` 多任务结构、区域采样、流量、pressure gauge、
+压力梯度与压降的优化和验收；同时保留全壁面 overall/high-WSS/峰值限制，避免把冻结
+验证器误写成无误差算子。
+
+**对应代码/文档**：
+[核心诊断与下一轮设计](WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)、
+[WSS-PINN 路线真源](WSS_PINN/README.md)、
+[历史六臂预注册提示词](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)、
+[`wss_pinn` README](../../wss_pinn/README.md)、`wss_pinn/AGENTS.md`、
+[CFD 适配说明](../../wss_mri_calculator/README_CFD_ADAPTATION.md)、根 `README.md`、
+`docs/README.md`、`docs/实验设计总纲.md`和 [项目级推进摘要](代码修改与实验推进记录.md)。
+
+**推进到实验步骤**：完成文档级范围收束和下一轮实验路线重排；未修改代码、配置、
+数据、split 或模型产物，未启动新训练，也未继续调 WSS 算法。
+
+**当前状态判断**：`u,v,w,p` 是当前唯一模型优化主线。冻结 WSS 仅在四通道主 checkpoint
+按 validation 指标确定后运行一次 sanity check，不得参与 loss、早停、checkpoint、
+采样比例或架构选择。
+
+## 2026-08-05｜WSS-PINN 核心诊断的对抗性复核与下一轮因果设计
+
+**本次主要修改**：从不可压缩瞬态流、RCR/Windkessel 边界、WSS 一阶导数可辨识性、
+病例级统计和可部署性出发，重构了核心诊断文档。将准稳态算子实现正确性与
+瞬态 peak 方程适定性分开；确认 val15 因 batch 等权聚合导致固定单病例双倍权重；
+明确当前 outlet 目标是 monitor-derived proxy，未证明等于真实 RCR boundary profile 或部署可得输入；
+撤回按 x/y/z 强行平衡 momentum 和用三例散点 residual 生成逐点 floor 的建议。新增
+test35 development exposure、配对 case-bootstrap、队列异质性、边界 face 面积采样、
+WSS 直接/近壁切向监督和分阶段 Go/No-Go。
+
+**对应代码/文档**：
+[对抗性修订后的核心诊断](WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)、
+[WSS-PINN 路线真源](WSS_PINN/README.md)、
+[历史六臂预注册提示词](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)、
+[`wss_pinn` README](../../wss_pinn/README.md)、
+`wss_pinn/AGENTS.md`、`docs/实验设计总纲.md`和 [项目级推进摘要](代码修改与实验推进记录.md)。
+
+**推进到实验步骤**：完成 Stage 0 前的文档级科学审查和新实验路线预设计；未改代码、
+配置、split、checkpoint 或评估产物，未启动新训练。只读复核了 V3 model/loss/dataset/train、
+六臂 epoch 日志、test35 逐例 CSV、V2 residual audit 和代表病例 UDF。
+
+**当前状态判断**：当前六臂仅能支持“geom 正增量、BC 速度近中性、当前
+quasi-steady PDE 组合对 speed No-Go”的历史结论；不支持全局 latent 根因已定、
+物理普遍无用或已可靠恢复 WSS。新训练前必须先修边界/选模/确认集合同，然后执行
+global/local × raw/PE 的 2×2 无 PDE 消融；只在最佳监督设计上再验证 continuity、瞬态或弱形式 physics。
+
 ## 2026-08-05｜准稳态平滑场 V3 六臂完训、三 checkpoint 评估与结论回填
 
 **本次主要修改**：从 Fluent 二进制 case 恢复 173 例真实 wall/inlet/four-outlet
@@ -78,7 +221,7 @@ R²=`0.96790`、pooled high-WSS R²=`0.94405`、逐病例 high-WSS R² 均值
 `xyz/xyz+geom × DATA/DATA+BC/DATA+BC+PDE` 六臂拆分 BC、PDE 与几何特征增量。
 
 **对应代码/文档**：
-[准稳态平滑场六臂实验交接](WSS_PINN/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验.md)、
+[准稳态平滑场六臂实验交接（已归档）](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)、
 [体域 PINN 路线真源](WSS_PINN/README.md)、
 [`wss_pinn` 代码入口](../../wss_pinn/README.md)、`docs/README.md` 和
 [项目级推进摘要](代码修改与实验推进记录.md)。

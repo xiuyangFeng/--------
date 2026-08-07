@@ -26,6 +26,7 @@ from wss_pinn.utils import (
 CONFIG_ROOT = ROOT / "wss_pinn/configs/volume_uvwp_peak_v1"
 SLURM_PREFLIGHT = ROOT / "wss_pinn/cluster/preflight.slurm"
 SLURM_RUN = ROOT / "wss_pinn/cluster/run_experiment.slurm"
+SBATCH = Path("/public/slurm/bin/sbatch")
 
 
 def _gate(path: Path) -> dict:
@@ -74,9 +75,17 @@ def main() -> None:
     parser.add_argument("--data-gate")
     parser.add_argument("--output")
     parser.add_argument("--max-concurrent", type=int, default=4)
+    parser.add_argument("--phase", choices=("all", "raw", "pe"), default="all")
     args = parser.parse_args()
     config_root = Path(args.config_root).resolve()
     matrix_path, matrix, matrix_config_paths = _matrix_configs(config_root)
+    if args.phase != "all":
+        phase_names = matrix.get("phases", {}).get(args.phase)
+        if not phase_names:
+            raise ValueError(f"matrix phase is not registered: {args.phase}")
+        selected_config_paths = [(config_root / name).resolve() for name in phase_names]
+    else:
+        selected_config_paths = matrix_config_paths
     submission = matrix.get("submission", {})
     preflight_report = _submission_path(
         args.preflight_report, submission, "preflight_report"
@@ -93,12 +102,14 @@ def main() -> None:
             if line.strip()
         ]
     else:
-        configs = [str(path) for path in matrix_config_paths]
-        config_list = guard_write_path(output_path.parent / "submission_configs.txt")
+        configs = [str(path) for path in selected_config_paths]
+        config_list = guard_write_path(
+            output_path.parent / f"submission_configs_{args.phase}.txt"
+        )
         config_list.parent.mkdir(parents=True, exist_ok=True)
         config_list.write_text("\n".join(configs) + "\n", encoding="utf-8")
-    if [_config_path(value) for value in configs] != matrix_config_paths:
-        raise ValueError("config list must match matrix.json order exactly")
+    if [_config_path(value) for value in configs] != selected_config_paths:
+        raise ValueError("config list must match the registered matrix phase order exactly")
     if int(args.max_concurrent) <= 0:
         raise ValueError("max-concurrent must be positive")
     payload = {
@@ -107,6 +118,7 @@ def main() -> None:
         "status": "dry_run" if not args.submit else "submitting",
         "formal_training_submitted": False,
         "config_root": str(config_root),
+        "phase": args.phase,
         "matrix": {"path": str(matrix_path), "sha256": sha256_file(matrix_path)},
         "config_list": {"path": str(config_list), "sha256": sha256_file(config_list)},
         "slurm_time_limit": "0 (no requested limit; partition policy may still apply)",
@@ -118,7 +130,7 @@ def main() -> None:
         _gate(data_gate_path)
         preflight_job = subprocess.run(
             [
-                "sbatch",
+                str(SBATCH),
                 "--parsable",
                 (
                     "--export=ALL,"
@@ -135,7 +147,7 @@ def main() -> None:
         ).stdout.strip()
         train_job = subprocess.run(
             [
-                "sbatch",
+                str(SBATCH),
                 "--parsable",
                 f"--dependency=afterok:{preflight_job}",
                 f"--array=0-{len(configs) - 1}%{int(args.max_concurrent)}",

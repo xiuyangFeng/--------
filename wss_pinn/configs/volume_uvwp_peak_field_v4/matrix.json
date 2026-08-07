@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "route": "volume_uvwp_peak_field_v4",
+  "status": "preregistered",
+  "seed": 1234,
+  "warm_start": false,
+  "split_sha256": "c80cb65ad95f7d76fadaff82ea02c35c27ad24ab2474e1050bf981eff97493f9",
+  "decision_contract": "decision_contract.json",
+  "groups": [
+    ["g_raw_s1234.json", "l_raw_s1234.json"],
+    ["g_pe_s1234.json", "l_pe_s1234.json"]
+  ],
+  "phases": {
+    "raw": ["g_raw_s1234.json", "l_raw_s1234.json"],
+    "pe": ["g_pe_s1234.json", "l_pe_s1234.json"]
+  },
+  "execution_order": ["B0", "g_raw_s1234.json", "l_raw_s1234.json", "g_pe_s1234.json", "l_pe_s1234.json"],
+  "submission": {
+    "enabled": true,
+    "preflight_report": "outputs/wss_pinn/audits/volume_uvwp_peak_field_v4_preflight/report.json",
+    "data_gate": "outputs/wss_pinn/audits/volume_uvwp_peak_field_v4_stage0a/report.json",
+    "output": "outputs/wss_pinn/volume_uvwp_peak_field_v4/submission_stage1_seed1234.json"
+  }
+}

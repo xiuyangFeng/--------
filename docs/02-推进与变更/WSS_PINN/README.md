@@ -1,23 +1,117 @@
 # 峰值体域 `u,v,w,p` PINN 路线
 
-> 当前路线 ID：`volume_uvwp_peak_qs_smooth_v3`；V1/V2 为已完成历史对照
+> 当前活动路线：`volume_uvwp_peak_field_v4`；`volume_uvwp_peak_qs_smooth_v3` 为冻结历史基线
 >
-> 更新日期：2026-08-05
+> 更新日期：2026-08-06
 >
-> 状态：**V3 boundary Gate 173/173 passed / tests + CPU smoke + static/GPU preflight
-> passed / 六臂 2500 epoch 与三 checkpoint test35 全体域评估均 completed；主结果显示
-> geom 稳定提升 speed R²，BC 对总体速度近中性，PDE residual 显著下降但 speed R²
-> 下降。历史 schema-v2 data Gate passed / GPU preflight `11127` completed /
-> training array `11128_[0-7%4]` 8/8 completed / results audited；
-> SAME5K-E7500 v2 GPU preflight `11137` completed / training array
-> `11138_[0-7%4]` 8/8 completed / 48 evaluations audited；现有 checkpoint 的
-> SAME/独立查询 residual 与 CFD 准稳态/瞬态 residual 已完成零重训诊断。**
+> 状态：**field-v4 Stage 0-a/0-b、B0、四臂 seed1234、前二臂三种子确认、导数/support
+> Gate 和 full-volume val15 晋级审计均 completed；26 tests、CPU smoke、静态/GPU
+> preflight 与所有 Slurm 作业通过。最终保留 G-Raw，G-PE 与 local conditioner No-Go。**
 
 V3 的完整预注册目标见
-[准稳态平滑场六臂实验交接提示词](./WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验.md)。
-真实病例 inlet/outlet 边界资产已完成 173/173 Gate；无 3NN 条件 PointNet 平滑场
+[已归档的准稳态平滑场六臂预注册提示词](./_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)。
+当时冻结的 inlet/wall 与 monitor-derived outlet 资产已完成 173/173 Gate；无 3NN 条件 PointNet 平滑场
 按 `xyz/xyz+geom × DATA/DATA+BC/DATA+BC+PDE` 六臂完训。test35 只在训练结束后按
 预注册的三类 checkpoint 统一评估，未用于训练控制或主 checkpoint 选择。
+
+> **2026-08-05 对抗性复核限定**：已完成 V3 使用的四出口目标应精确称为
+> **exact-timestep, monitor-derived pressure proxy**。它尚未被证明等于真实
+> pressure-outlet face 上的 RCR UDF profile，也未被证明是部署时可得输入。
+> 这不改变已完成六臂的历史数值，但会限制 BC 机制解读。同时，
+> test35 虽未参与 V3 训练/选 checkpoint，但已被用于后续架构、采样和 loss
+> 设计；下一轮应把它视为 development-exposed screen，不再当作新模型的
+> 未触碰确认集。详见[核心代码诊断与下一轮设计建议](./核心代码诊断与下一轮设计建议_2026-08-05.md)。
+
+> **2026-08-06 当前范围**：下一轮唯一优化主线是峰值体域 `u,v,w,p`。已验证的
+> Profile-Secant V3 velocity→WSS 算法冻结为下游检查器，不再继续调算法；本路线不新增
+> 直接 WSS 输出、WSS loss 或 WSS 辅助监督，也不允许用 WSS 指标反选 checkpoint、loss
+> 或架构。WSS 只在基于 validation 的 `u/v/w/speed/p`、区域、流量和压降指标选定主
+> checkpoint 后运行一次，作为 downstream sanity check。
+>
+> **执行状态**：`FROZEN FOR IMPLEMENTATION v1.0` 的 Stage 0–1 已于 2026-08-06
+> 在独立 route 完成；V3 历史产物未覆盖，Stage 1 未读取 test35、未输入 BC、未使用
+> PDE 或 WSS 选模。执行合同见
+> [冻结诊断后 Stage 0–1 提示词](./WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)。
+
+## field-v4 Stage 0–1 结果（2026-08-06）
+
+### Gate 与数据合同
+
+- Stage 0-a：pass；修复病例等权 `S_field^cb`、固定 val15×5000 query、主 checkpoint
+  `best_validation_field_cb.pt`，并保留 point/legacy batch 聚合审计；
+- Stage 0-b：pass；173 例覆盖、138 train/val deep audit、35 test35 仅 guard 未读取；
+  552 个 outlet 记录中 536 个来自日志双路径、16 个使用 face-pressure fallback；
+  train-only 阈值 `22.2161 Pa`；
+- B0：train-only 病例盲 atlas，val15 `S_field^cb=0.699472`；
+- Stage 1：统一 `xyz+geom`、data-only、无 BC/PDE、无 warm-start，参数量最大/最小比
+  `1.0222 < 1.10`。
+
+### 单种子矩阵与多种子确认
+
+| 臂 | seed1234 `S_field^cb` | 状态 |
+| --- | ---: | --- |
+| G-PE | **0.567612** | 单种子第 1，进入确认种子 |
+| G-Raw | 0.578311 | 单种子第 2，进入确认种子 |
+| L-Raw | 0.588856 | 无单种子增量，停止 local decoder |
+| L-PE | 0.597688 | 排名第 4，不晋级 |
+
+确认 seeds `[1234,2345,3456]` 后，G-Raw 为 `0.576116±0.007477`，G-PE 为
+`0.581208±0.012599`。G-PE−G-Raw 的配对差为
+`[-0.010699,+0.015734,+0.010240]`，只在 1/3 seeds 改善；病例 bootstrap 均值差
+`+0.004572`，95% CI `[-0.013164,0.030957]`。两臂都相对 B0 有明确增量，但 PE
+的跨种子改善方向不稳定。
+
+### 稳健性与 Go/No-Go
+
+- G-PE 相对 G-Raw 的 pressure RMSE 退化 `2.36%`，超过预注册 `2%` 通道护栏；
+- 最差 ILO 队列的病例分数退化 `5.58%`，超过 `2%` 最差队列护栏；
+- near-wall 四通道 RMSE 护栏通过；八个训练 checkpoint 的一/二阶导数与 support
+  重采样 Gate 全通过，最大相对误差/敏感度为 `1.79e-8 / 1.91e-5 / 2.997%`；
+- full-volume val15 每 seed 覆盖 `12,502,817` 个严格体域点，G-Raw/G-PE 为
+  `0.576816±0.007717 / 0.581096±0.013807`，与固定 5k 结论一致。
+
+最终决定：**保留 G-Raw；G-PE No-Go 并关闭继续扫频；L-Raw 单 seed 无增量，停止
+继续堆 local decoder。** 当前证据把下一假设转向 patient-specific conditioning /
+缺失可部署 BC；Stage 2 尚未启动。本轮未运行 test35、WSS、BC loss/input 或 PDE loss。
+
+机器可读真源：
+
+- `outputs/wss_pinn/audits/volume_uvwp_peak_field_v4_stage0a/report.json`
+- `outputs/wss_pinn/audits/volume_uvwp_peak_field_v4_stage0b/report.json`
+- `outputs/wss_pinn/audits/volume_uvwp_peak_field_v4_stage1_raw_gate/report.json`
+- `outputs/wss_pinn/audits/volume_uvwp_peak_field_v4_stage1_single_seed_gate/report.json`
+- `outputs/wss_pinn/volume_uvwp_peak_field_v4/b0/evaluation_val15.json`
+- `outputs/wss_pinn/volume_uvwp_peak_field_v4/stage1_multiseed_and_promotion_report.json`
+- `outputs/wss_pinn/volume_uvwp_peak_field_v4/stage1_b0_case_deltas.csv`
+- `outputs/wss_pinn/volume_uvwp_peak_field_v4/stage1_trained_derivative_support_gate.json`
+
+## V2/V3 冻结后全点线性回归审计（2026-08-06）
+
+为散点参考图新增带截距 OLS `y=a·x+b` 诊断（a、b、拟合线 R²），用于判断各臂是
+高值段还是低值段未学会。该审计只做下游重新推理与统计，不改任何训练、checkpoint
+或 WSS 算法；原 raw/scaled R²、MAE、RMSE、NMAE 指标全部保留。
+
+- 冻结边界：V2 八臂用 `last@7500`、V3 六臂用 `best_validation_data`，均在 test35
+  上评估，共 14 臂 × 35 例 = 490 份逐病例结果，全部完成并通过校验；
+- 速度口径：CFD 与预测速度标量均由 `u,v,w` 重新合成；逐例用解剖 STL 封口
+  enclosed-point 裁剪去除 CFD 人工延长段后取全部体内点（35 例严格体域
+  27,803,241 点保留 15,757,669 点，保留率 56.68%）；
+- WSS 口径：全部冻结壁面节点（每例 9,704–96,719 点，远超原 1200 点协议），
+  预测 WSS 由冻结 Profile-Secant V3 velocity→WSS 算法从预测速度场重算；
+- 关键读数：所有 14 臂速度斜率 `a` 仅 0.20–0.43，系统性远小于 1，即高速段
+  被普遍压缩低估；speed fit R² V2-PNPP 臂 0.32–0.34、V2-PN 臂 0.14–0.20、
+  V3 六臂 0.24–0.29（`QSF-XYZG-DATA` 最高 0.2878±0.1320）；WSS fit R² 最高为
+  V2 `VF-PNPP-XYZG` 双臂 ≈0.294；
+- 产物：`outputs/wss_pinn/audits/v2_v3_linear_regression_fullpoints_20260807/`
+  （目录名为 UTC 日期），每例含 `metrics.json`、speed/wss 回归密度图与
+  `density_histograms.npz`；每臂 `summary.json` 与 6 张汇总图（worst/most-
+  frequent/best 代表病例回归图、R² 分布、按 R² 从 worst 到 best 排序的
+  case–R² 图）；ROI 审计见同目录 `anatomical_roi/manifest.json`；
+- 工具与回填：`docs/03-汇报材料/tools/add_wss_pinn_v2_v3_linear_regression.py`
+  （roi/arm/summarize/workbook/verify 子命令，病例级可恢复）；
+  `WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx` 主表由 34 列扩为
+  40 列并新增「线性回归汇总」「线性回归逐病例」两表，修改前原件已备份为
+  `…_备份_新增线性回归指标前.xlsx`。
 
 ## 0. V3 准稳态平滑场六臂（2026-08-05 完训并评估）
 
@@ -65,7 +159,8 @@ V3 的完整预注册目标见
 - BC：E2−E1 的 speed R²_cb/pooled 为 `+0.0015/-0.0070`，E5−E4 为
   `+0.0073/-0.0017`。BC 对总体速度近中性且两种汇总口径方向不一致；但其直接监督的
   入口流量 ARE 与出口压力 MAE 分别改善 17.0%/19.0%（xyz）和 46.5%/32.8%
-  （xyz+geom）。
+  （xyz+geom）。这些边界指标是相对当时冻结的 monitor-derived outlet
+  proxy 计算，不能外推为对真实 RCR boundary profile 的精确恢复。
 - PDE on BC：E3−E2 的 speed R²_cb/pooled 为 `-0.0502/-0.0239`，E6−E5 为
   `-0.0537/-0.0379`；speed MAE 同时增加。另一方面 continuity/momentum RMS 分别
   降低 88.5%/60.3% 与 90.1%/61.6%。这是准稳态正则改善方程一致性、却与瞬态 peak
@@ -88,7 +183,7 @@ V3 的完整预注册目标见
   应先修分 zone/尺度平衡，而不是盲目加 epoch。
 - near-wall speed R² 六臂仍全部为负，不能加入 WSS 可靠性结论。未发现零速度或病例间
   常数场塌缩，但病例内 speed 预测方差中位数仅是真值的 0.19–0.38，存在振幅压缩。
-- exact outlet pressure 可评估；outlet flow 因冻结资产没有 exact target、面法向和面积
+- 冻结的 monitor-derived outlet pressure proxy 可评估；outlet flow 因冻结资产没有 exact target、面法向和面积
   权重，只保留 PCA 法向质量守恒诊断，不作为 CFD 出口流量误差结论。
 - 老师汇报用的六臂 data/physics loss 图、每臂最后 10% 放大图、BC/PDE 子项图和 9 页
   PDF 见
@@ -117,14 +212,18 @@ V3 的完整预注册目标见
 旧的 WSS-target PINN 方案、F0/F1/F2 阶梯和既有运行记录保留为历史证据，入口见
 [_archive/wss_target_v1_20260730](./_archive/wss_target_v1_20260730/README.md)。
 
-### 1.1 与 velocity→WSS 高 WSS 研究的边界
+### 1.1 与冻结 velocity→WSS 验证器的边界
 
 本路线只重建体域 `u,v,w,p`，不直接输出 WSS。后处理计算器的 2026-08-04 推荐结果见
 [Profile-Secant V3 结果](../../../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/PROFILE_SECANT_HIGH_TAIL_V3_RESULTS.md)。
-该推荐结果模型在 CFD 速度真值输入下仍只有 4/35 病例同时满足 high-WSS R² `≥0.90` 和
-峰值低估 `≤10%`，而且精度与首层内部速度点距壁深度显著相关。这进一步说明：本路线
-当前 near-wall speed R² 为负时，不能直接宣称能够可靠恢复高 WSS；下一步应优先改善
-近壁速度采样、监督与分辨率，而不是只延长体域训练 epoch。
+该模型在 CFD 真速度输入下的 test35 全壁面病例 overall R² 均值约 `0.9604`、pooled
+high-WSS R² 约 `0.9440`，已经足以作为冻结下游验证器；但逐病例 high-WSS R² 均值约
+`0.7735`、平均峰值低估约 `15.81%`，不能当作无误差真值算子。
+
+当前研发瓶颈因此前移到 `u,v,w,p`：优先改善 `u/v/w` 分量、速度向量、near-wall/core、
+截面与分支流量，以及病例 pressure gauge、压力梯度和入口—出口压降。WSS 不参与训练
+和选模；只有主 checkpoint 冻结后才做一次下游审计，以判断预测速度误差是否被梯度算子
+放大。
 
 ## 2. 八实验矩阵
 
@@ -415,6 +514,10 @@ test35 的标签是 reused development screen，不是新的独立确认集。
   epoch 的 data loss 变化仅约 `-0.07%` 至 `+0.06%`。同一 run 三个 checkpoint 的
   SAME5K speed R² 极差为 `0.0006–0.0230`，说明本轮结论不依赖偶然 checkpoint，
   训练已基本平台。
+- 老师汇报版 train data / physics 收敛图（本轮 val0，仅 train）：
+  [`summary/loss_convergence/`](../../../outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/summary/loss_convergence/)；
+  主文件 `teacher_loss_convergence.pdf`，复现
+  `python -m wss_pinn.tools.plot_v2_loss_convergence`。
 - 早期 30 分钟健康快照仍保留为运行过程证据；最终判读以 8/8 完训后的
   `last@7500` 为主，不以 test35 反选 checkpoint。
 
@@ -491,9 +594,9 @@ test35 的标签是 reused development screen，不是新的独立确认集。
 2. 7500 epoch 已基本平台，train-selected checkpoint 也不能改变结论；零重训诊断已
    确认 SAME-IDW 导数退化与准稳态方程缺项，下一轮若获准训练，首要变量应是独立
    physics query / 连续坐标场头与可观测边界条件，而不是继续延长 epoch。
-3. 当前 near-wall speed R² 全部为负。由于 velocity→WSS 依赖壁面附近速度梯度，
-   本轮整体 speed R² 不能直接推导出可靠 WSS；在近壁精度改善前，不把该模型写成
-   可替代 CFD 的 WSS 输入。
+3. 当前 near-wall speed R² 全部为负，说明 overall speed 指标掩盖了边界层区域的
+   严重失真。下一轮把 near-wall `u/v/w` 作为场重建困难区单独优化和验收；冻结 WSS
+   只在主模型选定后检查误差放大，不反向参与选模。
 4. test35 是 reused development screen，且本轮只有 seed1234。任何“PINN 稳定提高
    速度”的论文结论仍需独立确认集或多 seed 复核。
 
@@ -584,14 +687,22 @@ test 全局 `u/v/w` range 作为 NMAE 分母重算，当前 V2 竟可得到 SAME
 - 测试从 7 个文件收敛为 4 个核心文件、18 项合同测试；完整数据 Gate、矩阵静态
   preflight 和逐配置 GPU dry-run 继续作为正式提交前验证，因此没有削弱配置驱动实验。
 
-验证结果：18/18 核心测试通过；V1 四组与 V3 两组静态 preflight 均为 `pass`；
-V1 PINN 和 V3 DATA+BC+PDE 的 synthetic forward/backward loss 冒烟均为有限值。
+当前最终验证：26/26 核心测试通过；field-v4 原矩阵/补种子矩阵静态 preflight、CPU
+smoke、master/node04 GPU dry-run 和全部正式 Slurm 训练/评估均为 `pass/completed`。
 
 ## 11. 真源与归档
 
 - 代码说明：`wss_pinn/README.md`
-- 下一阶段执行交接：
-  [准稳态平滑场六臂实验提示词](./WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验.md)
+- 核心代码诊断与下一轮设计建议（2026-08-05，第一性原理/对抗性修订版）：
+  [核心代码诊断与下一轮设计建议_2026-08-05.md](./核心代码诊断与下一轮设计建议_2026-08-05.md)
+- Stage 0–1 已完成执行合同：
+  [冻结诊断后 Stage 0–1 提示词](./WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)
+- field-v4 决策合同与结果：
+  `wss_pinn/configs/volume_uvwp_peak_field_v4/decision_contract.json`、
+  `outputs/wss_pinn/volume_uvwp_peak_field_v4/stage1_multiseed_and_promotion_report.json`
+- 历史六臂预注册：
+  [准稳态平滑场六臂实验提示词（已完成）](./_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)
+- 归档索引：[`_archive/README.md`](./_archive/README.md)
 - 矩阵：`wss_pinn/configs/volume_uvwp_peak_v1/matrix.json`
 - SAME5K-E7500 v2 矩阵：
   `wss_pinn/configs/volume_uvwp_peak_same5k_e7500_v2/matrix.json`

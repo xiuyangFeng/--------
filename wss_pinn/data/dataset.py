@@ -60,12 +60,14 @@ class VolumeCase:
     def __init__(self, row: dict[str, Any], *, aggregate_route: str):
         self.row = dict(row)
         is_v3 = aggregate_route == "volume_uvwp_peak_qs_smooth_v3"
+        is_v4 = aggregate_route == "volume_uvwp_peak_field_v4"
+        uses_source_volume = is_v3 or is_v4
         manifest_path = Path(
-            row["source_volume_manifest"] if is_v3 else row["manifest"]
+            row["source_volume_manifest"] if uses_source_volume else row["manifest"]
         )
         expected_manifest_hash = (
             row.get("source_volume_manifest_sha256")
-            if is_v3
+            if uses_source_volume
             else row.get("manifest_sha256")
         )
         if sha256_file(manifest_path) != expected_manifest_hash:
@@ -79,7 +81,7 @@ class VolumeCase:
             raise ValueError(f"case manifest contract drift: {manifest_path}")
         if self.manifest.get("canonical_id") != row.get("canonical_id"):
             raise ValueError(f"case identity drift: {manifest_path}")
-        if not is_v3 and self.manifest.get("role") != row.get("role"):
+        if not uses_source_volume and self.manifest.get("role") != row.get("role"):
             raise ValueError(f"case role drift: {manifest_path}")
         if (
             self.manifest.get("pressure_target")
@@ -87,7 +89,7 @@ class VolumeCase:
         ):
             raise ValueError(f"case pressure target drift: {manifest_path}")
         self.case_id = str(self.manifest["canonical_id"])
-        self.role = str(row["role"] if is_v3 else self.manifest["role"])
+        self.role = str(row["role"] if uses_source_volume else self.manifest["role"])
         self.length_m = float(self.manifest["scales"]["length_m"])
         if (
             not np.isfinite(self.length_m)
@@ -111,6 +113,36 @@ class VolumeCase:
         self.outlet_pressure = np.empty((0,), dtype=np.float32)
         self.outlet_zone = np.empty((0,), dtype=np.int8)
         self.outlet_zone_names: list[str] = []
+        self.fixed_validation_indices: np.ndarray | None = None
+        self.fixed_validation_query_sha256: str | None = None
+        if is_v4 and self.role == "val":
+            contract = row.get("fixed_validation_query", {})
+            index_path = Path(contract.get("indices", {}).get("path", ""))
+            coords_path = Path(
+                contract.get("prediction_only_coords", {}).get("path", "")
+            )
+            if (
+                not index_path.is_file()
+                or sha256_file(index_path) != contract.get("indices", {}).get("sha256")
+                or not coords_path.is_file()
+                or sha256_file(coords_path)
+                != contract.get("prediction_only_coords", {}).get("sha256")
+            ):
+                raise ValueError(f"fixed validation query hash drift: {self.case_id}")
+            indices = np.load(index_path, mmap_mode="r")
+            query_coords = np.load(coords_path, mmap_mode="r")
+            if (
+                indices.shape != (5000,)
+                or query_coords.shape != (5000, 3)
+                or not np.array_equal(
+                    np.asarray(self.coords[indices], dtype=np.float32),
+                    np.asarray(query_coords, dtype=np.float32),
+                )
+                or bool(np.asarray(self.is_wall[indices], dtype=bool).any())
+            ):
+                raise ValueError(f"fixed validation query content drift: {self.case_id}")
+            self.fixed_validation_indices = indices
+            self.fixed_validation_query_sha256 = str(contract.get("query_sha256"))
         if is_v3:
             boundary_manifest_path = Path(row["boundary_manifest"])
             if sha256_file(boundary_manifest_path) != row.get(
@@ -156,12 +188,19 @@ class VolumeFieldDataset(Dataset):
         stats_path = Path(field_stats)
         aggregate = json.loads(aggregate_path.read_text(encoding="utf-8"))
         aggregate_route = str(aggregate.get("route", ""))
-        expected_schema = 3 if aggregate_route == "volume_uvwp_peak_qs_smooth_v3" else SCHEMA_VERSION
+        expected_schema = {
+            "volume_uvwp_peak_qs_smooth_v3": 3,
+            "volume_uvwp_peak_field_v4": 4,
+        }.get(aggregate_route, SCHEMA_VERSION)
         if (
             aggregate.get("schema_version") != expected_schema
             or aggregate.get("status") != "completed"
             or aggregate_route
-            not in {"volume_uvwp_peak_v1", "volume_uvwp_peak_qs_smooth_v3"}
+            not in {
+                "volume_uvwp_peak_v1",
+                "volume_uvwp_peak_qs_smooth_v3",
+                "volume_uvwp_peak_field_v4",
+            }
         ):
             raise ValueError("aggregate sidecar manifest contract drift")
         aggregate_stats = aggregate.get("field_stats", {})
@@ -175,6 +214,11 @@ class VolumeFieldDataset(Dataset):
         if len(case_ids) != len(set(case_ids)) or any(not value for value in case_ids):
             raise ValueError("aggregate case IDs must be present and unique")
         allowed = set(roles)
+        if aggregate_route == "volume_uvwp_peak_field_v4":
+            if "test" in allowed or any(row.get("role") == "test" for row in rows):
+                raise ValueError("V4 test35 guard rejected a test role")
+            if aggregate.get("split", {}).get("test35_guard") != "reject":
+                raise ValueError("V4 manifest must explicitly reject test35")
         self.route = aggregate_route
         self.cases = [
             VolumeCase(row, aggregate_route=aggregate_route)
@@ -186,13 +230,22 @@ class VolumeFieldDataset(Dataset):
         self.stats = json.loads(stats_path.read_text(encoding="utf-8"))
         expected_scope = (
             "train123 strict-volume only"
-            if aggregate_route == "volume_uvwp_peak_qs_smooth_v3"
+            if aggregate_route in {
+                "volume_uvwp_peak_qs_smooth_v3",
+                "volume_uvwp_peak_field_v4",
+            }
             else "train138 strict-volume only"
         )
+        expected_stats_route = (
+            "volume_uvwp_peak_qs_smooth_v3"
+            if aggregate_route == "volume_uvwp_peak_field_v4"
+            else aggregate_route
+        )
+        expected_stats_schema = 3 if aggregate_route == "volume_uvwp_peak_field_v4" else expected_schema
         if (
-            self.stats.get("schema_version") != expected_schema
+            self.stats.get("schema_version") != expected_stats_schema
             or self.stats.get("status") != "completed"
-            or self.stats.get("route") != aggregate_route
+            or self.stats.get("route") != expected_stats_route
             or self.stats.get("scope") != expected_scope
         ):
             raise ValueError("field stats contract drift")
@@ -212,6 +265,18 @@ class VolumeFieldDataset(Dataset):
             }
             if self.stats.get("case_asset_sha256") != expected_train_hashes:
                 raise ValueError("train123 field-stat membership/hash drift")
+        elif aggregate_route == "volume_uvwp_peak_field_v4":
+            expected_train_hashes = {
+                row["canonical_id"]: row.get("source_volume_manifest_sha256")
+                for row in rows
+                if row.get("role") == "train"
+            }
+            source_stats_hashes = {
+                key: value.get("volume_manifest")
+                for key, value in self.stats.get("case_asset_sha256", {}).items()
+            }
+            if expected_train_hashes != source_stats_hashes:
+                raise ValueError("V4 train123 field-stat membership/hash drift")
         else:
             expected_train_hashes = {
                 row["canonical_id"]: row.get("manifest_sha256")
@@ -284,8 +349,19 @@ class VolumeFieldDataset(Dataset):
         query_n = int(self.sampling["query_points"])
         physics_n = int(self.sampling["physics_points"])
         wall_n = int(self.sampling["wall_points"])
-        support_idx = _take_strict_volume(rng, case.is_wall, support_n)
-        if self.sampling.get("query_mode") == "same":
+        fixed_query = getattr(case, "fixed_validation_indices", None)
+        if fixed_query is not None:
+            query_idx = np.asarray(fixed_query, dtype=np.int64)
+            if len(query_idx) != query_n:
+                raise ValueError("fixed validation query count/config mismatch")
+            support_idx = _take_strict_volume(
+                rng, case.is_wall, support_n, excluded=query_idx
+            )
+        else:
+            support_idx = _take_strict_volume(rng, case.is_wall, support_n)
+        if fixed_query is not None:
+            pass
+        elif self.sampling.get("query_mode") == "same":
             if query_n != support_n:
                 raise ValueError(
                     "same query_mode requires equal support/query point counts"
@@ -295,7 +371,10 @@ class VolumeFieldDataset(Dataset):
             query_idx = _take_strict_volume(
                 rng, case.is_wall, query_n, excluded=support_idx
             )
-        if getattr(self, "route", "volume_uvwp_peak_v1") == "volume_uvwp_peak_qs_smooth_v3":
+        if getattr(self, "route", "volume_uvwp_peak_v1") in {
+            "volume_uvwp_peak_qs_smooth_v3",
+            "volume_uvwp_peak_field_v4",
+        }:
             physics_local = np.empty((0,), dtype=np.int64)
             physics_idx = _take_strict_volume(
                 rng,
@@ -366,6 +445,10 @@ class VolumeFieldDataset(Dataset):
                 case.coords[support_idx], case.geometry[support_idx]
             ),
             "query_coords": np.asarray(case.coords[query_idx], dtype=np.float32),
+            "query_indices": np.asarray(query_idx, dtype=np.int64),
+            "fixed_validation_query_sha256": getattr(
+                case, "fixed_validation_query_sha256", None
+            ),
             "query_target": target,
             "query_region": np.asarray(case.region[query_idx], dtype=np.int8),
             "physics_coords": physics_coords,
@@ -394,6 +477,7 @@ def collate_volume_samples(samples: list[dict[str, Any]]) -> dict[str, Any]:
     query_target = []
     query_region = []
     query_batch = []
+    query_indices = []
     physics_coords = []
     physics_batch = []
     physics_length = []
@@ -415,6 +499,7 @@ def collate_volume_samples(samples: list[dict[str, Any]]) -> dict[str, Any]:
         support_features.append(sample["support_features"])
         support_batch.append(np.full(ns, graph_id, dtype=np.int64))
         query_coords.append(sample["query_coords"])
+        query_indices.append(sample["query_indices"])
         query_target.append(sample["query_target"])
         query_region.append(sample["query_region"])
         query_batch.append(np.full(nq, graph_id, dtype=np.int64))
@@ -438,6 +523,10 @@ def collate_volume_samples(samples: list[dict[str, Any]]) -> dict[str, Any]:
         "support_features": torch.from_numpy(np.concatenate(support_features)),
         "support_batch": torch.from_numpy(np.concatenate(support_batch)),
         "query_coords": torch.from_numpy(np.concatenate(query_coords)),
+        "query_indices": torch.from_numpy(np.concatenate(query_indices)),
+        "fixed_validation_query_sha256": [
+            sample.get("fixed_validation_query_sha256") for sample in samples
+        ],
         "query_target": torch.from_numpy(np.concatenate(query_target)),
         "query_region": torch.from_numpy(np.concatenate(query_region)),
         "query_batch": torch.from_numpy(np.concatenate(query_batch)),

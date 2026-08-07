@@ -14,7 +14,7 @@
 4. 目标：同为 raw WSS magnitude，不将分量、对数目标或 gauge pressure 混入。
 5. 输入信息：几何-only、临床可测 BC 和 CFD-oracle BC 分层。
 6. 采样与权重：同一点数、病例权重和完整点云评估方式。
-7. 指标公式：同一 R² 中心、pooling 和物理空间。
+7. 指标公式：同一 R² 中心、pooling 和物理空间；线性拟合指标还必须使用同一 `prediction=a×truth+b` 方向与病例权重。
 8. 选模与报告集：只用 val 选 checkpoint，不用 test 选模；对比时使用同一 checkpoint 规则。
 
 只要有一项不同，就不得使用“公平对比”、“只差 0.1”或“已证明达到同一上限”等表述。
@@ -33,16 +33,19 @@ V3P 绝对压力 `r2_p≈0.92–0.96` 与 wss_min gauge pressure `R²≈0.53` �
 
 ## 3. WSS 主结果的指标层级
 
-WSS 不使用单一 pooled R² 决定路线成败。主表固定为四层：
+WSS 不使用单一 pooled R² 决定路线成败。主表固定为五层：
 
 | 层级 | 必报指标 | 作用 |
 |---|---|---|
 | 点级总体 | `R²_field_casebalanced`、`RMSE`、`MAE` | 病例等权地评估整体重建；作为首要点级指标 |
 | 病例稳健性 | 逐病例 R² 中位数、P10、负 R² 病例数；配对 bootstrap CI | 防止少数大病例/高方差病例主导结论 |
+| 线性趋势与校准 | `R²_fit_casebalanced`、`R²_fit_pooled`、拟合斜率 `a` 与截距 `b` | 区分“相对变化趋势已学到”与“幅值/偏移仍有系统误差” |
 | 幅值与定位 | 每例 top10 ratio、top10 IoU、high-WSS MAE、Spearman | 分开“幅值收缩”与“热点位置错误” |
 | 下游任务 | 区域 mean/p95/高 WSS 面积误差；若有多时相再报 TAWSS/OSI/RRT | 判断是否支撑实际科学/临床用途 |
 
 `R²_field_raw`（按点 pooled）保留为与历史结果衔接的次指标。`R²_casemean` 是“每例 R² 的算术平均”，对低方差病例非常敏感，不再单独作为部署主指标；必须与中位数、P10、失败率和物理单位误差同报。
+
+线性拟合口径固定为 `y=prediction`、`x=truth`，在同一评估集上最小二乘拟合 `y=ax+b`。`R²_fit` 等价于 Pearson `r²`，允许整体缩放与平移，因此高 `R²_fit` 不代表绝对值准确；必须同时报告 `a`、`b`、原始 R² 与 MAE/RMSE。病例等权版本是在所有病例上共享同一条拟合线，不允许每例单独拟合后再平均。该指标当前只作评估/汇报补充，不参与既有训练损失、checkpoint 选择或 Go/No-Go 门槛。
 
 ## 4. 压力和速度不复用 WSS 的成功标准
 

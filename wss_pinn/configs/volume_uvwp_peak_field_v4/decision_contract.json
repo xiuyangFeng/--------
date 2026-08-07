@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "route": "volume_uvwp_peak_field_v4",
+  "status": "preregistered_before_formal_training",
+  "primary_selection": "validation_field_score_cb",
+  "selection_formula": "mean_case((MSE_u_std + MSE_v_std + MSE_w_std + MSE_p_std)/4)",
+  "development_query_points_per_val_case": 5000,
+  "max_epochs": 600,
+  "early_stopping_patience": 80,
+  "early_stopping_min_delta": 0.00001,
+  "optimizer": "AdamW",
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "warmup_epochs": 20,
+  "minimum_learning_rate": 0.00001,
+  "single_seed": 1234,
+  "confirmation_seeds": [1234, 2345, 3456],
+  "top_arms_for_multiseed": 2,
+  "local_centroids": 128,
+  "local_bandwidths_normalized": [0.06, 0.12, 0.24],
+  "pe_frequencies_cycles_per_normalized_length": [0.5, 1.0, 2.0],
+  "pe_physical_wavelength_rule": "case_length_m / frequency",
+  "equivalence_guard": {
+    "parameter_count_max_to_min": 1.10,
+    "channel_relative_degradation": 0.02,
+    "near_wall_relative_degradation": 0.02,
+    "worst_cohort_relative_degradation": 0.02
+  },
+  "forbidden_selection_inputs": ["test35", "WSS", "physics_residual", "pooled_R2"],
+  "stage1_losses": {"data": true, "BC": false, "PDE": false},
+  "formal_training_authorization": "granted by current user after all gates pass"
+}

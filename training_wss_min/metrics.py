@@ -25,6 +25,104 @@ def r2_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return 1.0 - ss_res / ss_tot
 
 
+def linear_fit_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+    """Fit ``y_pred = a * y_true + b`` and report the regression R².
+
+    This metric measures whether predictions follow an affine transform of the
+    truth.  With an intercept it is numerically equal to Pearson ``r ** 2`` and
+    therefore must be reported together with ``a`` and ``b``: a high value can
+    coexist with substantial amplitude or offset bias.
+    """
+    yt = np.asarray(y_true, dtype=np.float64).reshape(-1)
+    yp = np.asarray(y_pred, dtype=np.float64).reshape(-1)
+    if yt.shape != yp.shape:
+        raise ValueError("y_true and y_pred must have the same shape")
+    finite = np.isfinite(yt) & np.isfinite(yp)
+    yt, yp = yt[finite], yp[finite]
+    out = {
+        "r2_linear_fit": float("nan"),
+        "linear_fit_slope": float("nan"),
+        "linear_fit_intercept": float("nan"),
+        "n": int(yt.size),
+    }
+    if yt.size < 2:
+        return out
+
+    x_centered = yt - yt.mean()
+    y_centered = yp - yp.mean()
+    ss_x = float(np.sum(x_centered ** 2))
+    if ss_x < 1e-12:
+        return out
+
+    slope = float(np.sum(x_centered * y_centered) / ss_x)
+    intercept = float(yp.mean() - slope * yt.mean())
+    out["linear_fit_slope"] = slope
+    out["linear_fit_intercept"] = intercept
+
+    ss_y = float(np.sum(y_centered ** 2))
+    if ss_y < 1e-12:
+        return out
+    fitted = slope * yt + intercept
+    ss_res = float(np.sum((yp - fitted) ** 2))
+    out["r2_linear_fit"] = float(np.clip(1.0 - ss_res / ss_y, 0.0, 1.0))
+    return out
+
+
+def casebalanced_linear_fit_metrics(
+    y_true_by_case: Sequence[np.ndarray],
+    y_pred_by_case: Sequence[np.ndarray],
+) -> Dict[str, float]:
+    """Case-balanced fit of one shared line ``y_pred = a*y_true+b``.
+
+    Every case has total weight one and every valid point within a case has
+    equal weight.  The fit is shared across cases; this is intentionally not an
+    average of separately calibrated per-case regressions.
+    """
+    if len(y_true_by_case) != len(y_pred_by_case):
+        raise ValueError("y_true_by_case and y_pred_by_case must have the same length")
+    pairs = []
+    for yt0, yp0 in zip(y_true_by_case, y_pred_by_case):
+        yt = np.asarray(yt0, dtype=np.float64).reshape(-1)
+        yp = np.asarray(yp0, dtype=np.float64).reshape(-1)
+        if yt.shape != yp.shape:
+            raise ValueError("true/pred shape mismatch within a case")
+        finite = np.isfinite(yt) & np.isfinite(yp)
+        if finite.any():
+            pairs.append((yt[finite], yp[finite]))
+
+    out = {
+        "r2_linear_fit": float("nan"),
+        "linear_fit_slope": float("nan"),
+        "linear_fit_intercept": float("nan"),
+        "n": int(sum(len(yt) for yt, _ in pairs)),
+        "n_cases": int(len(pairs)),
+    }
+    if not pairs or out["n"] < 2:
+        return out
+
+    mean_x = float(np.mean([yt.mean() for yt, _ in pairs]))
+    mean_y = float(np.mean([yp.mean() for _, yp in pairs]))
+    var_x = float(np.mean([np.mean((yt - mean_x) ** 2) for yt, _ in pairs]))
+    if var_x < 1e-12:
+        return out
+    covariance = float(np.mean([
+        np.mean((yt - mean_x) * (yp - mean_y)) for yt, yp in pairs
+    ]))
+    slope = covariance / var_x
+    intercept = mean_y - slope * mean_x
+    out["linear_fit_slope"] = float(slope)
+    out["linear_fit_intercept"] = float(intercept)
+
+    var_y = float(np.mean([np.mean((yp - mean_y) ** 2) for _, yp in pairs]))
+    if var_y < 1e-12:
+        return out
+    residual = float(np.mean([
+        np.mean((yp - (slope * yt + intercept)) ** 2) for yt, yp in pairs
+    ]))
+    out["r2_linear_fit"] = float(np.clip(1.0 - residual / var_y, 0.0, 1.0))
+    return out
+
+
 def nrmse(y_true: np.ndarray, y_pred: np.ndarray, norm: str = "range") -> float:
     y_true = np.asarray(y_true, dtype=np.float64)
     y_pred = np.asarray(y_pred, dtype=np.float64)

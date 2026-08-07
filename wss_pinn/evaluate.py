@@ -329,8 +329,10 @@ def evaluate(
     """
     if int(query_chunk_size) <= 0:
         raise ValueError("query_chunk_size must be positive")
-    if protocol not in {"full_volume", "same5k"}:
-        raise ValueError("protocol must be full_volume or same5k")
+    if protocol not in {"full_volume", "same5k", "fixed_validation"}:
+        raise ValueError("protocol must be full_volume, same5k or fixed_validation")
+    if protocol == "fixed_validation" and config.route != "volume_uvwp_peak_field_v4":
+        raise ValueError("fixed_validation protocol is reserved for field-v4")
     device_name = device_override or config["train"]["device"]
     if device_name == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA was requested but unavailable")
@@ -372,17 +374,29 @@ def evaluate(
 
     reports = []
     pooled_accumulators = _case_metrics()
+    pooled_vector_error_sq_sum = 0.0
+    pooled_vector_points = 0
+    pooled_direction_cosine_sum = 0.0
+    pooled_direction_points = 0
     # enable_grad：物理残差需要对 query 坐标求导；场值解码本身用 no_grad
     with torch.enable_grad():
         for case_index, case in enumerate(dataset.cases):
             rng = np.random.default_rng(
                 _case_seed(case.case_id, int(config["sampling"]["seed"]))
             )
-            # 支撑点：严格体域（排除壁面重复行）均匀抽取
+            strict_indices = np.flatnonzero(~np.asarray(case.is_wall, dtype=bool))
+            fixed_indices = getattr(case, "fixed_validation_indices", None)
+            evaluation_indices = (
+                np.asarray(fixed_indices, dtype=np.int64)
+                if protocol == "fixed_validation"
+                else strict_indices
+            )
+            # 支撑点：严格体域均匀抽取；v4 固定 validation query 与 support 不重合。
             support_idx = _take_strict_volume(
                 rng,
                 case.is_wall,
                 int(config["sampling"]["support_points"]),
+                excluded=(evaluation_indices if protocol == "fixed_validation" else None),
             )
             support_coords = _to_tensor(
                 np.asarray(case.coords[support_idx]), device, dtype
@@ -409,16 +423,18 @@ def evaluate(
             )
 
             # same5k：评估点 = support；full_volume：全部严格体域点
-            strict_indices = np.flatnonzero(~np.asarray(case.is_wall, dtype=bool))
             evaluation_indices = (
                 np.asarray(support_idx, dtype=np.int64)
                 if protocol == "same5k"
-                else strict_indices
+                else evaluation_indices
             )
             accumulators = _case_metrics()
             predicted_pressure_sum = 0.0
             truth_pressure_sum = 0.0
             evaluated_coord_sum = np.zeros(3, dtype=np.float64)
+            vector_error_sq_sum = 0.0
+            direction_cosine_sum = 0.0
+            direction_points = 0
 
             # ---- 分块解码场量，累计回归指标与压力均值诊断 ----
             for start in range(0, len(evaluation_indices), int(query_chunk_size)):
@@ -432,6 +448,30 @@ def evaluate(
                 pressure_np = pressure.cpu().numpy()
                 truth_velocity = np.asarray(case.velocity[indices], dtype=np.float64)
                 truth_pressure = np.asarray(case.pressure[indices], dtype=np.float64)
+                vector_error = velocity_np - truth_velocity
+                vector_error_sq_sum += float(
+                    np.sum(np.sum(np.square(vector_error), axis=1))
+                )
+                pooled_vector_error_sq_sum += float(
+                    np.sum(np.sum(np.square(vector_error), axis=1))
+                )
+                pooled_vector_points += int(len(indices))
+                truth_speed = np.linalg.norm(truth_velocity, axis=1)
+                predicted_speed = np.linalg.norm(velocity_np, axis=1)
+                direction_mask = truth_speed >= 0.05
+                if bool(np.any(direction_mask)):
+                    cosine = np.sum(
+                        truth_velocity[direction_mask] * velocity_np[direction_mask],
+                        axis=1,
+                    ) / np.maximum(
+                        truth_speed[direction_mask] * predicted_speed[direction_mask],
+                        1e-12,
+                    )
+                    cosine = np.clip(cosine, -1.0, 1.0)
+                    direction_cosine_sum += float(np.sum(cosine))
+                    direction_points += int(len(cosine))
+                    pooled_direction_cosine_sum += float(np.sum(cosine))
+                    pooled_direction_points += int(len(cosine))
                 evaluated_coord_sum += np.asarray(
                     case.coords[indices], dtype=np.float64
                 ).sum(axis=0)
@@ -509,6 +549,33 @@ def evaluate(
                         "p95": float(np.quantile(wall_speed, 0.95)),
                         "max": float(np.max(wall_speed)),
                     },
+                    "velocity_vector": {
+                        "l2_rmse_m_s": float(
+                            np.sqrt(vector_error_sq_sum / len(evaluation_indices))
+                        ),
+                        "direction_truth_speed_threshold_m_s": 0.05,
+                        "direction_points": int(direction_points),
+                        "direction_cosine_mean": (
+                            direction_cosine_sum / direction_points
+                            if direction_points
+                            else float("nan")
+                        ),
+                        "direction_error_degrees_mean_proxy": (
+                            float(
+                                np.degrees(
+                                    np.arccos(
+                                        np.clip(
+                                            direction_cosine_sum / direction_points,
+                                            -1.0,
+                                            1.0,
+                                        )
+                                    )
+                                )
+                            )
+                            if direction_points
+                            else float("nan")
+                        ),
+                    },
                     "boundary": boundary_report,
                     "physics": physics_report,
                 }
@@ -551,6 +618,12 @@ def evaluate(
         ][2],
         "wall_speed_p95_m_s": lambda row: row["wall_speed_m_s"]["p95"],
         "wall_speed_max_m_s": lambda row: row["wall_speed_m_s"]["max"],
+        "velocity_vector_l2_rmse_m_s": lambda row: row["velocity_vector"][
+            "l2_rmse_m_s"
+        ],
+        "direction_cosine_mean": lambda row: row["velocity_vector"][
+            "direction_cosine_mean"
+        ],
     }
     if config.route == "volume_uvwp_peak_qs_smooth_v3":
         scalar_paths.update(
@@ -605,15 +678,25 @@ def evaluate(
         "input_variant": config.input_variant,
         "evaluation_protocol": protocol,
         "support_query_relationship": (
-            "same_fixed_5k" if protocol == "same5k" else "fixed_5k_to_full_volume"
+            "same_fixed_5k"
+            if protocol == "same5k"
+            else (
+                "fixed_5k_support_disjoint_from_fixed_5k_validation_query"
+                if protocol == "fixed_validation"
+                else "fixed_5k_to_full_volume"
+            )
         ),
         "checkpoint": str(checkpoint.resolve()),
         "checkpoint_kind": checkpoint.stem,
         "checkpoint_sha256": sha256_file(checkpoint),
         "split_label": (
-            "frozen_train123_val15_test35_s1234"
-            if config.route == "volume_uvwp_peak_qs_smooth_v3"
-            else "reused_development_screen_train138_test35"
+            "field_v4_train123_val15_only_test35_guarded"
+            if config.route == "volume_uvwp_peak_field_v4"
+            else (
+                "frozen_train123_val15_test35_s1234"
+                if config.route == "volume_uvwp_peak_qs_smooth_v3"
+                else "reused_development_screen_train138_test35"
+            )
         ),
         "pressure_metric": "strict-volume case-mean-centered relative pressure in Pa",
         "cases": reports,
@@ -636,6 +719,42 @@ def evaluate(
             for metric_name in regression_names
         },
         "pooled_regression": _metrics_result(pooled_accumulators),
+        "pooled_velocity_vector": {
+            "l2_rmse_m_s": float(
+                np.sqrt(
+                    pooled_vector_error_sq_sum / max(pooled_vector_points, 1)
+                )
+            ),
+            "direction_truth_speed_threshold_m_s": 0.05,
+            "direction_points": int(pooled_direction_points),
+            "direction_cosine_mean": (
+                pooled_direction_cosine_sum / pooled_direction_points
+                if pooled_direction_points
+                else float("nan")
+            ),
+        },
+        "cohort_case_balanced_regression": {
+            cohort: {
+                metric_name: {
+                    statistic: float(
+                        np.nanmean(
+                            [
+                                row["metrics"][metric_name][statistic]
+                                for row in reports
+                                if row["case_id"].split("/", 1)[0] == cohort
+                            ]
+                        )
+                    )
+                    for statistic in ("r2", "mae", "rmse")
+                }
+                for metric_name in regression_names
+            }
+            for cohort in ("AG", "AAA", "ILO")
+        },
+        "bifurcation_region": {
+            "status": "not_available_in_stage0a_contract",
+            "reason": "a topology-backed bifurcation label is a Stage-0c asset; no curvature proxy was fabricated",
+        },
         "collapse_diagnostic": {
             "speed_cases_prediction_variance_below_1pct_truth": int(
                 np.sum(speed_variance_ratios < 0.01)
@@ -670,13 +789,13 @@ def main() -> None:
     parser.add_argument("--device", choices=("cpu", "cuda"))
     parser.add_argument("--query-chunk-size", type=int, default=16384)
     parser.add_argument(
-        "--protocol", choices=("full_volume", "same5k"), default="full_volume"
+        "--protocol", choices=("full_volume", "same5k", "fixed_validation"), default="full_volume"
     )
     parser.add_argument("--output-name")
     args = parser.parse_args()
     config = ExperimentConfig.from_json(args.config)
     checkpoint = Path(args.checkpoint)
-    aliases = {"best_data", "best_total", "best_validation_data", "best_validation_total", "last"}
+    aliases = {"best_data", "best_total", "best_validation_data", "best_validation_field_cb", "best_validation_total", "last"}
     if args.checkpoint in aliases:
         checkpoint = config.run_dir / "checkpoints" / f"{args.checkpoint}.pt"
     report = evaluate(

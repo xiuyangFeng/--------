@@ -173,10 +173,16 @@ def _evaluate_space(cases: List[Dict], true_by_case: List[np.ndarray],
         raise ValueError("evaluate_partition received no cases")
     pt = np.concatenate(true_by_case)
     pp = np.concatenate(pred_by_case)
+    field = M.basic_metrics(pt, pp)
+    field.update(M.linear_fit_metrics(pt, pp))
+    field_casebalanced = M.casebalanced_field_metrics(true_by_case, pred_by_case)
+    field_casebalanced.update(
+        M.casebalanced_linear_fit_metrics(true_by_case, pred_by_case)
+    )
     result = {
         "aggregate": M.aggregate_case_metrics(per_case),
-        "field": M.basic_metrics(pt, pp),
-        "field_casebalanced": M.casebalanced_field_metrics(true_by_case, pred_by_case),
+        "field": field,
+        "field_casebalanced": field_casebalanced,
         "calibration": M.calibration_metrics(pt, pp),
         "distribution": M.distribution_metrics(pt, pp),
         "hotspot": M.aggregate_hotspot_metrics(per_case),
@@ -370,6 +376,38 @@ def write_reports(result_by_part: Dict[str, Dict], eval_dir: Path):
             w.writeheader()
             w.writerows(rows)
 
+    fit_rows = []
+    for part, res in result_by_part.items():
+        if res.get("metric_space") == "normalized_target":
+            spaces = [("normalized", res)]
+        else:
+            spaces = [("physical", res)]
+            normalized = res.get("normalized")
+            if normalized is not None and normalized is not res:
+                spaces.append(("normalized", normalized))
+        for space_name, space_result in spaces:
+            for aggregation, section in (
+                ("pooled", space_result["field"]),
+                ("casebalanced", space_result["field_casebalanced"]),
+            ):
+                fit_rows.append({
+                    "partition": part,
+                    "space": space_name,
+                    "aggregation": aggregation,
+                    "r2_linear_fit": section.get("r2_linear_fit", float("nan")),
+                    "linear_fit_slope": section.get("linear_fit_slope", float("nan")),
+                    "linear_fit_intercept": section.get(
+                        "linear_fit_intercept", float("nan")
+                    ),
+                    "n": section.get("n", 0),
+                    "n_cases": section.get("n_cases", res["aggregate"]["n_cases"]),
+                })
+    if fit_rows:
+        with open(eval_dir / "linear_fit_metrics.csv", "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(fit_rows[0]))
+            w.writeheader()
+            w.writerows(fit_rows)
+
 
 def checkpoint_filename(checkpoint: str) -> str:
     value = checkpoint.removesuffix(".pt")
@@ -478,6 +516,8 @@ def main():
         cb = report["field_casebalanced"]
         print(f"[{part}] cases={agg['n_cases']}  R2_casemean={agg['r2_casemean']:.4f}  "
               f"R2_field_raw={fld['r2']:.4f}  R2_field_casebalanced={cb['r2']:.4f}  "
+              f"R2_fit_raw={fld['r2_linear_fit']:.4f}  "
+              f"R2_fit_casebalanced={cb['r2_linear_fit']:.4f}  "
               f"NRMSE_field={fld['nrmse_range']:.4f}  "
               f"MAE={fld['mae']:.4f}")
         for rname, rm in report["regional_field"].items():

@@ -8,6 +8,8 @@ computes its weights under ``torch.no_grad()``.
 
 from __future__ import annotations
 
+import hashlib
+import math
 from typing import Any
 
 import torch
@@ -269,6 +271,174 @@ class ConditionalSmoothPointNetField(nn.Module):
         return self.output(self.decoder(fused))
 
 
+def _deterministic_fps(
+    points: torch.Tensor,
+    count: int,
+    *,
+    identity: str,
+    seed: int,
+) -> torch.Tensor:
+    """Small deterministic farthest-point sampler used only on support points."""
+    if int(count) <= 0 or int(count) > int(points.size(0)):
+        raise ValueError("invalid deterministic FPS centroid count")
+    digest = hashlib.sha256(f"{seed}|{identity}".encode("utf-8")).digest()
+    selected = torch.empty(int(count), dtype=torch.long, device=points.device)
+    current = int.from_bytes(digest[:8], "little") % int(points.size(0))
+    distance = torch.full(
+        (points.size(0),), float("inf"), dtype=points.dtype, device=points.device
+    )
+    with torch.no_grad():
+        for offset in range(int(count)):
+            selected[offset] = current
+            delta = points - points[current]
+            distance = torch.minimum(distance, torch.sum(delta * delta, dim=-1))
+            current = int(torch.argmax(distance).item())
+    return selected
+
+
+class ConditionalFieldV4(nn.Module):
+    """Matched global/local field with optional band-limited query PE.
+
+    Global and local arms share exactly the same trainable layers.  The local
+    arm replaces max-pool broadcasting with a positive-bandwidth, all-centroid
+    Gaussian mixture; no query top-k/kNN decision is made.
+    """
+
+    def __init__(self, in_dim: int, config: dict[str, Any]):
+        super().__init__()
+        branch = [int(value) for value in config["branch_channels"]]
+        decoder = [int(value) for value in config["decoder_channels"]]
+        if branch != [64, 128, 256] or decoder != [256, 256, 128]:
+            raise ValueError("V4 matched widths are frozen")
+        self.conditioner = str(config["conditioner"])
+        self.query_encoding = str(config["query_encoding"])
+        self.local_centroids = int(config["local_centroids"])
+        bandwidths = torch.tensor(
+            [float(value) for value in config["local_bandwidths_normalized"]],
+            dtype=torch.float32,
+        )
+        frequencies = torch.tensor(
+            [
+                float(value)
+                for value in config[
+                    "pe_frequencies_cycles_per_normalized_length"
+                ]
+            ],
+            dtype=torch.float32,
+        )
+        self.register_buffer("local_bandwidths", bandwidths)
+        self.register_buffer("pe_frequencies", frequencies)
+
+        branch_layers: list[nn.Module] = []
+        for cin, cout in zip([int(in_dim), *branch[:-1]], branch):
+            branch_layers.extend([nn.Linear(cin, cout), nn.Tanh()])
+        self.branch = nn.Sequential(*branch_layers)
+
+        query_dim = 3
+        if self.query_encoding == "pe":
+            query_dim += 3 * 2 * len(frequencies)
+        decoder_layers: list[nn.Module] = []
+        for cin, cout in zip(
+            [query_dim + branch[-1], *decoder[:-1]], decoder
+        ):
+            decoder_layers.extend([nn.Linear(cin, cout), nn.Tanh()])
+        self.decoder = nn.Sequential(*decoder_layers)
+        self.output = nn.Linear(decoder[-1], 4)
+
+    def _query_features(self, query_pos: torch.Tensor) -> torch.Tensor:
+        if self.query_encoding == "raw":
+            return query_pos
+        phase = (
+            query_pos.unsqueeze(-1)
+            * self.pe_frequencies.to(dtype=query_pos.dtype)
+            * (2.0 * math.pi)
+        )
+        encoded = torch.cat([torch.sin(phase), torch.cos(phase)], dim=-1)
+        return torch.cat([query_pos, encoded.flatten(start_dim=1)], dim=-1)
+
+    def encode_support(
+        self,
+        support_pos: torch.Tensor,
+        support_features: torch.Tensor,
+        support_batch: torch.Tensor,
+        **context: Any,
+    ) -> dict[str, torch.Tensor]:
+        local = self.branch(support_features)
+        global_feature = scatter(local, support_batch, dim=0, reduce="max")
+        if self.conditioner == "global":
+            return {"case_latent": global_feature}
+        centroid_pos = []
+        centroid_feature = []
+        centroid_batch = []
+        unit_ids = list(context.get("unit_ids") or [])
+        global_seed = int(context.get("global_seed", 0))
+        epoch = 0 if context.get("evaluation") else int(context.get("epoch", 0))
+        for graph_id in range(int(global_feature.size(0))):
+            mask = support_batch == graph_id
+            graph_points = support_pos[mask]
+            graph_features = local[mask]
+            identity = unit_ids[graph_id] if graph_id < len(unit_ids) else str(graph_id)
+            indices = _deterministic_fps(
+                graph_points,
+                self.local_centroids,
+                identity=identity,
+                seed=global_seed + epoch * 1_000_003,
+            )
+            centroid_pos.append(graph_points[indices])
+            centroid_feature.append(graph_features[indices])
+            centroid_batch.append(
+                torch.full(
+                    (len(indices),),
+                    graph_id,
+                    dtype=torch.long,
+                    device=support_pos.device,
+                )
+            )
+        return {
+            "case_latent": global_feature,
+            "centroid_pos": torch.cat(centroid_pos, dim=0),
+            "centroid_feature": torch.cat(centroid_feature, dim=0),
+            "centroid_batch": torch.cat(centroid_batch, dim=0),
+        }
+
+    def _local_condition(
+        self,
+        encoded: dict[str, torch.Tensor],
+        query_pos: torch.Tensor,
+        query_batch: torch.Tensor,
+    ) -> torch.Tensor:
+        output = query_pos.new_empty((query_pos.size(0), 256))
+        bandwidths = self.local_bandwidths.to(dtype=query_pos.dtype)
+        for graph_id in range(int(encoded["case_latent"].size(0))):
+            query_mask = query_batch == graph_id
+            centroid_mask = encoded["centroid_batch"] == graph_id
+            query = query_pos[query_mask]
+            centroids = encoded["centroid_pos"][centroid_mask]
+            features = encoded["centroid_feature"][centroid_mask]
+            distance_sq = torch.cdist(query, centroids).square()
+            scales = []
+            for bandwidth in bandwidths:
+                weights = torch.softmax(
+                    -distance_sq / (2.0 * torch.square(bandwidth)), dim=1
+                )
+                scales.append(weights @ features)
+            output[query_mask] = torch.stack(scales, dim=0).mean(dim=0)
+        return output
+
+    def decode_query(
+        self,
+        encoded: dict[str, torch.Tensor],
+        query_pos: torch.Tensor,
+        query_batch: torch.Tensor,
+    ) -> torch.Tensor:
+        if self.conditioner == "global":
+            condition = encoded["case_latent"][query_batch]
+        else:
+            condition = self._local_condition(encoded, query_pos, query_batch)
+        fused = torch.cat([self._query_features(query_pos), condition], dim=-1)
+        return self.output(self.decoder(fused))
+
+
 def build_model(config) -> nn.Module:
     in_dim = 3 if config.input_variant == "xyz" else 6
     activation = str(config["model"]["activation"])
@@ -286,6 +456,10 @@ def build_model(config) -> nn.Module:
         return ConditionalSmoothPointNetField(
             in_dim, config["model"]["smooth_pointnet"]
         )
+    if config.architecture == "conditional_field_v4":
+        if activation != "tanh":
+            raise ValueError("V4 conditional field activation must be tanh")
+        return ConditionalFieldV4(in_dim, config["model"]["field_v4"])
     raise ValueError(f"unsupported architecture={config.architecture!r}")
 
 

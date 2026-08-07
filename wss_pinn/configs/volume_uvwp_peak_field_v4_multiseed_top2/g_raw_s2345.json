@@ -1,0 +1,19 @@
+{
+  "route": "volume_uvwp_peak_field_v4",
+  "contracts": {"split_sha256": "c80cb65ad95f7d76fadaff82ea02c35c27ad24ab2474e1050bf981eff97493f9"},
+  "experiment": {"id": "F4-G-RAW-s2345", "mode": "data", "architecture": "conditional_field_v4", "input_variant": "xyz_geom", "description": "Stage-1 confirmation seed 2345 for selected global raw arm"},
+  "paths": {
+    "split": "wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_qs_smooth_v3_train123_val15_test35_s1234.json",
+    "sidecar_manifest": "data_wss_pinn/volume_uvwp_peak_field_v4_train123_val15/manifest.json",
+    "field_stats": "data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/field_stats.json",
+    "validation_query_manifest": "data_wss_pinn/volume_uvwp_peak_field_v4_train123_val15/validation_queries/manifest.json",
+    "output_root": "outputs/wss_pinn/volume_uvwp_peak_field_v4",
+    "run_dir": "outputs/wss_pinn/volume_uvwp_peak_field_v4/runs/F4-G-RAW-s2345"
+  },
+  "data": {"train_roles": ["train"], "validation_roles": ["val"], "eval_roles": ["val"]},
+  "sampling": {"support_points": 5000, "query_points": 5000, "physics_points": 256, "wall_points": 256, "inlet_points": 1, "outlet_points": 1, "query_mode": "independent", "seed": 1234},
+  "model": {"activation": "tanh", "field_v4": {"conditioner": "global", "query_encoding": "raw", "branch_channels": [64, 128, 256], "decoder_channels": [256, 256, 128], "local_centroids": 128, "local_bandwidths_normalized": [0.06, 0.12, 0.24], "pe_frequencies_cycles_per_normalized_length": [0.5, 1.0, 2.0]}},
+  "physics": {"enabled": false},
+  "loss": {"continuity_weight": 0.0, "momentum_weight": 0.0, "no_slip_weight": 0.0, "lambda_bc": 0.0, "lambda_pde": 0.0},
+  "train": {"seed": 2345, "epochs": 600, "batch_cases": 2, "learning_rate": 0.001, "weight_decay": 0.0001, "warmup_epochs": 20, "min_learning_rate": 0.00001, "grad_clip_norm": 1.0, "precision": "float32", "checkpoint_every_epochs": 10, "validation_every_epochs": 1, "early_stopping_patience": 80, "early_stopping_min_delta": 0.00001, "selection_metric": "validation_field_score_cb", "milestone_epochs": [100, 200, 300, 400, 500, 600]}
+}

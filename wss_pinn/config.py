@@ -24,6 +24,7 @@ from wss_pinn.utils import ROOT, guard_write_path, sha256_file, sha256_json
 
 ROUTE_V1 = "volume_uvwp_peak_v1"
 ROUTE_V3 = "volume_uvwp_peak_qs_smooth_v3"
+ROUTE_V4 = "volume_uvwp_peak_field_v4"
 VALID_INPUTS = {"xyz", "xyz_geom"}
 GEOMETRY_FEATURES = [
     "abscissa_norm",
@@ -63,6 +64,19 @@ ROUTE_CONTRACTS = {
         ),
         "split_sha256": None,
     },
+    ROUTE_V4: {
+        "modes": {"data"},
+        "architectures": {"conditional_field_v4"},
+        "activation": "tanh",
+        "split": (
+            "wss_pinn/configs/splits/"
+            "split_WSS_PINN_AG_AAA_ILO_qs_smooth_v3_"
+            "train123_val15_test35_s1234.json"
+        ),
+        "split_sha256": (
+            "c80cb65ad95f7d76fadaff82ea02c35c27ad24ab2474e1050bf981eff97493f9"
+        ),
+    },
 }
 
 
@@ -97,6 +111,7 @@ DEFAULTS: dict[str, Any] = {
         "field_stats": (
             "data_wss_pinn/volume_uvwp_peak_v1_train138_test35/field_stats.json"
         ),
+        "validation_query_manifest": "",
         "output_root": "outputs/wss_pinn/volume_uvwp_peak_v1",
         "run_dir": "",  # 必须由具体实验 JSON 给出，禁止空目录
     },
@@ -147,6 +162,15 @@ DEFAULTS: dict[str, Any] = {
             "branch_channels": [64, 128, 256],
             "decoder_channels": [256, 256, 128],
         },
+        "field_v4": {
+            "conditioner": "global",  # global | local
+            "query_encoding": "raw",  # raw | pe
+            "branch_channels": [64, 128, 256],
+            "decoder_channels": [256, 256, 128],
+            "local_centroids": 128,
+            "local_bandwidths_normalized": [0.06, 0.12, 0.24],
+            "pe_frequencies_cycles_per_normalized_length": [0.5, 1.0, 2.0],
+        },
     },
     "physics": {
         "enabled": False,  # data_only=False；pinn 配置须显式 True
@@ -181,6 +205,9 @@ DEFAULTS: dict[str, Any] = {
         "log_every_steps": 10,
         "checkpoint_every_epochs": 10,
         "validation_every_epochs": 1,
+        "early_stopping_patience": 0,
+        "early_stopping_min_delta": 0.0,
+        "selection_metric": "legacy_route_default",
         "milestone_epochs": [],  # 例如 [400,1000,2500,5000,7500]
         "resume": None,  # 仅允许同 run 目录断点续训
         # 故意不支持：PINN 不得加载 data-only 权重（热启动禁止）
@@ -238,6 +265,7 @@ class ExperimentConfig:
             "field_stats",
             "output_root",
             "run_dir",
+            "validation_query_manifest",
         ):
             value = self.payload["paths"].get(key)
             if value:
@@ -340,6 +368,46 @@ class ExperimentConfig:
                 raise ValueError("V3 requires a fixed val15 role")
             if sampling.get("query_mode") != "independent":
                 raise ValueError("V3 data queries must be independent of support")
+        if route == ROUTE_V4:
+            if input_variant != "xyz_geom":
+                raise ValueError("V4 Stage 1 is frozen to xyz_geom")
+            if self.payload["data"].get("train_roles") != ["train"]:
+                raise ValueError("V4 train role is frozen to train123")
+            if self.payload["data"].get("validation_roles") != ["val"]:
+                raise ValueError("V4 validation role is frozen to val15")
+            if self.payload["data"].get("eval_roles") != ["val"]:
+                raise ValueError("V4 test35 guard requires eval_roles=['val']")
+            if sampling.get("query_mode") != "independent":
+                raise ValueError("V4 uses independent support and fixed validation queries")
+            if int(sampling["query_points"]) != 5000:
+                raise ValueError("V4 development validation is frozen to 5000 queries/case")
+            query_manifest = Path(paths.get("validation_query_manifest", ""))
+            if not query_manifest.is_file():
+                raise ValueError("V4 fixed validation query manifest is required")
+            expected_root = (
+                ROOT / "data_wss_pinn/volume_uvwp_peak_field_v4_train123_val15"
+            ).resolve()
+            if not query_manifest.is_relative_to(expected_root):
+                raise ValueError("V4 validation queries must stay in the independent v4 route")
+            if Path(paths["sidecar_manifest"]) != expected_root / "manifest.json":
+                raise ValueError("V4 sidecar manifest path is frozen")
+            expected_output = (
+                ROOT / "outputs/wss_pinn/volume_uvwp_peak_field_v4"
+            ).resolve()
+            if Path(paths["output_root"]) != expected_output:
+                raise ValueError("V4 output root is frozen")
+            if not Path(paths["run_dir"]).is_relative_to(expected_output / "runs"):
+                raise ValueError("V4 run must stay below the independent output root")
+            expected_stats = (
+                ROOT
+                / "data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/field_stats.json"
+            ).resolve()
+            if (
+                Path(paths["field_stats"]) != expected_stats
+                or sha256_file(expected_stats)
+                != "8428403c0c33e6ec129b3eefff14c1759bc5cb4b198458879fa4bc4a93fbbd42"
+            ):
+                raise ValueError("V4 train123-only field statistics drift")
 
         # ---- 物理常数与流变学冻结 ----
         physics = self.payload["physics"]
@@ -367,7 +435,7 @@ class ExperimentConfig:
                     raise ValueError(
                         "pinn must enable continuity, momentum and no-slip from step one"
                     )
-        else:
+        elif route == ROUTE_V3:
             lambda_bc = float(self.payload["loss"]["lambda_bc"])
             lambda_pde = float(self.payload["loss"]["lambda_pde"])
             expected = {
@@ -382,6 +450,44 @@ class ExperimentConfig:
                 )
             if any(weight != 1.0 for weight in physics_weights):
                 raise ValueError("V3 raw continuity/momentum/wall weights remain one")
+        else:
+            lambda_bc = float(self.payload["loss"]["lambda_bc"])
+            lambda_pde = float(self.payload["loss"]["lambda_pde"])
+            if enabled or lambda_bc != 0.0 or lambda_pde != 0.0:
+                raise ValueError("V4 Stage 1 is data-only without BC or PDE")
+            if any(weight != 0.0 for weight in physics_weights):
+                raise ValueError("V4 Stage 1 must zero all physics loss weights")
+            model_v4 = self.payload["model"]["field_v4"]
+            if model_v4.get("conditioner") not in {"global", "local"}:
+                raise ValueError("V4 conditioner must be global or local")
+            if model_v4.get("query_encoding") not in {"raw", "pe"}:
+                raise ValueError("V4 query encoding must be raw or pe")
+            if [int(value) for value in model_v4.get("branch_channels", [])] != [64, 128, 256]:
+                raise ValueError("V4 branch widths are frozen to 64-128-256")
+            if [int(value) for value in model_v4.get("decoder_channels", [])] != [256, 256, 128]:
+                raise ValueError("V4 decoder widths are frozen to 256-256-128")
+            if int(model_v4.get("local_centroids", 0)) <= 0:
+                raise ValueError("V4 local centroid count must be positive")
+            bandwidths = [
+                float(value)
+                for value in model_v4.get("local_bandwidths_normalized", [])
+            ]
+            if not bandwidths or any(value <= 0 for value in bandwidths):
+                raise ValueError("V4 local bandwidths must be positive and pre-registered")
+            frequencies = [
+                float(value)
+                for value in model_v4.get(
+                    "pe_frequencies_cycles_per_normalized_length", []
+                )
+            ]
+            if not frequencies or any(value <= 0 for value in frequencies):
+                raise ValueError("V4 PE frequencies must be positive and pre-registered")
+            if self.payload["train"].get("selection_metric") != "validation_field_score_cb":
+                raise ValueError("V4 checkpoint selection is frozen to S_field^cb")
+            if int(self.payload["train"].get("early_stopping_patience", 0)) <= 0:
+                raise ValueError("V4 requires pre-registered positive early-stopping patience")
+            if float(self.payload["train"].get("early_stopping_min_delta", -1.0)) < 0:
+                raise ValueError("V4 early-stopping min_delta cannot be negative")
         # 禁止任何跨 run / data-only 热启动
         if self.payload["train"].get("init_checkpoint"):
             raise ValueError(
@@ -408,11 +514,11 @@ class ExperimentConfig:
             for value in self.payload["loss"]["velocity_component_weights"]
         ) or float(self.payload["loss"]["pressure_weight"]) <= 0:
             raise ValueError("all four supervised output weights must be positive")
-        if route == ROUTE_V3 and (
+        if route in {ROUTE_V3, ROUTE_V4} and (
             self.payload["loss"]["velocity_component_weights"] != [1.0, 1.0, 1.0]
             or float(self.payload["loss"]["pressure_weight"]) != 1.0
         ):
-            raise ValueError("V3 uses an equal mean over u/v/w/p data losses")
+            raise ValueError("V3/V4 use an equal mean over u/v/w/p data losses")
         if not paths.get("run_dir"):
             raise ValueError("paths.run_dir is required")
 

@@ -30,7 +30,12 @@ def _data_losses(
         float(config["loss"]["pressure_weight"]),
     ]
     # V3 registered an equal four-channel mean; V1/V2 registered a weighted sum.
-    scale = 0.25 if config.route == "volume_uvwp_peak_qs_smooth_v3" else 1.0
+    scale = (
+        0.25
+        if config.route
+        in {"volume_uvwp_peak_qs_smooth_v3", "volume_uvwp_peak_field_v4"}
+        else 1.0
+    )
     weighted = [value * weight * scale for value, weight in zip(raw, weights)]
     losses = {
         f"data_{name}_raw": value for name, value in zip(DATA_NAMES, raw)

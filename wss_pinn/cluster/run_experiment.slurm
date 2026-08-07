@@ -9,6 +9,7 @@
 #SBATCH --error=outputs/wss_pinn/slurm/volume_field_train_%A_%a.err
 
 set -euo pipefail
+ulimit -n 65535
 cd /public/newhome/cy/Digital_twin/GNN
 PY=/public/newhome/cy/.conda/envs/GNN/bin/python
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
@@ -23,6 +24,13 @@ fi
 ROUTE=$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["route"])' "$CONFIG")
 if [ "$ROUTE" = "volume_uvwp_peak_qs_smooth_v3" ]; then
   echo '{"event":"v3_training_completed","evaluation":"deferred_until_user_requests_analysis"}'
+elif [ "$ROUTE" = "volume_uvwp_peak_field_v4" ]; then
+  for checkpoint in best_validation_field_cb best_validation_total last; do
+    "$PY" -m wss_pinn.evaluate \
+      --config "$CONFIG" --checkpoint "$checkpoint" \
+      --protocol fixed_validation \
+      --output-name "evaluation_val15_${checkpoint}.json"
+  done
 else
   for checkpoint in best_data best_total last; do
     "$PY" -m wss_pinn.evaluate \

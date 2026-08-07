@@ -41,6 +41,7 @@ from .config import ExperimentConfig
 from .data import VolumeFieldDataset, collate_volume_samples
 from .losses import compute_losses
 from .models import build_model
+from .validation import aggregate_case_validation
 from .volume_utils import tensor_state_sha256
 
 
@@ -145,6 +146,11 @@ def _checkpoint_payload(
         "global_step": int(global_step),
         "best_data": float(best_data),
         "best_total": float(best_total),
+        "best_validation_field_score_cb": (
+            float(best_data)
+            if config.route == "volume_uvwp_peak_field_v4"
+            else None
+        ),
         "model": model.state_dict(),
         "optimizer": optimizer.state_dict(),
         "scheduler": scheduler.state_dict(),
@@ -194,6 +200,68 @@ def _step_record(
     ]
     record["all_finite"] = bool(np.isfinite(finite_values).all())
     return record
+
+
+def _validate_field_v4(
+    *,
+    model,
+    dataset: VolumeFieldDataset,
+    field_stats: dict[str, Any],
+    config: ExperimentConfig,
+    device: torch.device,
+    dtype: torch.dtype,
+) -> tuple[dict[str, float], dict[str, Any]]:
+    """Evaluate the frozen val15 one case at a time for exact case balance."""
+    loader = DataLoader(
+        dataset,
+        batch_size=1,
+        shuffle=False,
+        num_workers=int(config["train"]["num_workers"]),
+        collate_fn=collate_volume_samples,
+        pin_memory=device.type == "cuda",
+    )
+    model.eval()
+    cases: list[dict[str, Any]] = []
+    with torch.no_grad():
+        for cpu_batch in loader:
+            batch = _move_batch(cpu_batch, device, dtype)
+            losses = compute_losses(
+                model,
+                batch,
+                field_stats=field_stats,
+                config=config,
+                epoch=0,
+            )
+            components = {
+                name: float(losses[f"data_{name}_raw"].detach().cpu())
+                for name in ("u", "v", "w", "pressure")
+            }
+            score = float(np.mean(list(components.values())))
+            cases.append(
+                {
+                    "case_id": batch["case_ids"][0],
+                    "points": int(len(batch["query_coords"])),
+                    "field_score": score,
+                    **{f"data_{name}": value for name, value in components.items()},
+                    "query_sha256": batch["fixed_validation_query_sha256"][0],
+                }
+            )
+    audit = aggregate_case_validation(
+        cases, legacy_batch_cases=int(config["train"]["batch_cases"])
+    )
+    audit["cases"] = cases
+    means = {
+        "data_total": audit["validation_field_score_cb"],
+        "total": audit["validation_field_score_cb"],
+        **{
+            f"data_{name}_raw": float(
+                np.mean([row[f"data_{name}"] for row in cases])
+            )
+            for name in ("u", "v", "w", "pressure")
+        },
+    }
+    model.train()
+    return means, audit
 
 
 def run(
@@ -270,6 +338,8 @@ def run(
     global_step = 0
     best_data = float("inf")
     best_total = float("inf")
+    epochs_without_improvement = 0
+    selection_history: list[dict[str, Any]] = []
 
     # ---- 同 run 断点续训（显式拒绝跨 run / 热启动）----
     resume = train_cfg.get("resume")
@@ -402,6 +472,8 @@ def run(
     csv_handle = None
     csv_writer = None
     last_record: dict[str, Any] = {}
+    executed_epochs = 0
+    stopped_early = False
     try:
         if not dry_run:
             json_handle = jsonl_path.open("a", encoding="utf-8")
@@ -495,56 +567,77 @@ def run(
             mean_data = epoch_data / max(epoch_steps, 1)
             mean_total = epoch_total / max(epoch_steps, 1)
             validation_means: dict[str, float] = {}
+            validation_audit: dict[str, Any] | None = None
             if validation_dataset is not None and (
                 (epoch + 1) % int(train_cfg["validation_every_epochs"]) == 0
                 or epoch == start_epoch + requested_epochs - 1
             ):
-                validation_generator = torch.Generator()
-                validation_generator.manual_seed(int(train_cfg["seed"]) + 700_001)
-                validation_loader = DataLoader(
-                    validation_dataset,
-                    batch_size=int(train_cfg["batch_cases"]),
-                    shuffle=False,
-                    generator=validation_generator,
-                    num_workers=int(train_cfg["num_workers"]),
-                    collate_fn=collate_volume_samples,
-                    pin_memory=device.type == "cuda",
-                )
-                model.eval()
-                validation_sums: dict[str, float] = {}
-                validation_steps = 0
-                with torch.enable_grad():
-                    for validation_cpu_batch in validation_loader:
-                        validation_batch = _move_batch(
-                            validation_cpu_batch, device, dtype
-                        )
-                        validation_losses = compute_losses(
-                            model,
-                            validation_batch,
-                            field_stats=field_stats,
-                            config=config,
-                            epoch=0,
-                        )
-                        if not torch.isfinite(validation_losses["total"]):
-                            raise FloatingPointError("non-finite validation loss")
-                        validation_steps += 1
-                        for name, value in validation_losses.items():
-                            validation_sums[name] = validation_sums.get(name, 0.0) + float(
-                                value.detach().cpu()
+                if config.route == "volume_uvwp_peak_field_v4":
+                    validation_means, validation_audit = _validate_field_v4(
+                        model=model,
+                        dataset=validation_dataset,
+                        field_stats=field_stats,
+                        config=config,
+                        device=device,
+                        dtype=dtype,
+                    )
+                else:
+                    validation_generator = torch.Generator()
+                    validation_generator.manual_seed(int(train_cfg["seed"]) + 700_001)
+                    validation_loader = DataLoader(
+                        validation_dataset,
+                        batch_size=int(train_cfg["batch_cases"]),
+                        shuffle=False,
+                        generator=validation_generator,
+                        num_workers=int(train_cfg["num_workers"]),
+                        collate_fn=collate_volume_samples,
+                        pin_memory=device.type == "cuda",
+                    )
+                    model.eval()
+                    validation_sums: dict[str, float] = {}
+                    validation_steps = 0
+                    with torch.enable_grad():
+                        for validation_cpu_batch in validation_loader:
+                            validation_batch = _move_batch(
+                                validation_cpu_batch, device, dtype
                             )
-                        if dry_run:
-                            break
-                validation_means = {
-                    name: total / max(validation_steps, 1)
-                    for name, total in validation_sums.items()
-                }
-                model.train()
+                            validation_losses = compute_losses(
+                                model,
+                                validation_batch,
+                                field_stats=field_stats,
+                                config=config,
+                                epoch=0,
+                            )
+                            if not torch.isfinite(validation_losses["total"]):
+                                raise FloatingPointError("non-finite validation loss")
+                            validation_steps += 1
+                            for name, value in validation_losses.items():
+                                validation_sums[name] = validation_sums.get(name, 0.0) + float(
+                                    value.detach().cpu()
+                                )
+                            if dry_run:
+                                break
+                    validation_means = {
+                        name: total / max(validation_steps, 1)
+                        for name, total in validation_sums.items()
+                    }
+                    model.train()
             selection_data = validation_means.get("data_total", mean_data)
             selection_total = validation_means.get("total", mean_total)
-            data_improved = selection_data < best_data
-            total_improved = selection_total < best_total
-            best_data = min(best_data, selection_data)
-            best_total = min(best_total, selection_total)
+            min_delta = (
+                float(train_cfg.get("early_stopping_min_delta", 0.0))
+                if config.route == "volume_uvwp_peak_field_v4"
+                else 0.0
+            )
+            data_improved = selection_data < best_data - min_delta
+            total_improved = selection_total < best_total - min_delta
+            if data_improved:
+                best_data = selection_data
+                epochs_without_improvement = 0
+            elif config.route == "volume_uvwp_peak_field_v4":
+                epochs_without_improvement += 1
+            if total_improved:
+                best_total = selection_total
             epoch_record = {
                 "created_at": utc_now(),
                 "epoch": int(epoch),
@@ -566,6 +659,42 @@ def run(
                     for name, value in validation_means.items()
                 },
             }
+            if validation_audit is not None:
+                epoch_record.update(
+                    {
+                        "validation_field_score_cb": validation_audit[
+                            "validation_field_score_cb"
+                        ],
+                        "validation_field_score_point_weighted": validation_audit[
+                            "validation_field_score_point_weighted"
+                        ],
+                        "validation_field_score_legacy_batch_weighted": validation_audit[
+                            "validation_field_score_legacy_batch_weighted"
+                        ],
+                        "validation_legacy_overweighted_case_ids": validation_audit[
+                            "legacy_overweighted_case_ids"
+                        ],
+                        "validation_legacy_weight_ratio_max_to_min": validation_audit[
+                            "legacy_weight_ratio_max_to_min"
+                        ],
+                        "validation_cases": validation_audit["cases"],
+                        "epochs_without_field_improvement": epochs_without_improvement,
+                    }
+                )
+                selection_history.append(
+                    {
+                        "epoch": int(epoch),
+                        "case_balanced": validation_audit[
+                            "validation_field_score_cb"
+                        ],
+                        "point_weighted": validation_audit[
+                            "validation_field_score_point_weighted"
+                        ],
+                        "legacy_batch_weighted": validation_audit[
+                            "validation_field_score_legacy_batch_weighted"
+                        ],
+                    }
+                )
             if not dry_run:
                 epoch_json_handle.write(
                     json.dumps(epoch_record, ensure_ascii=False) + "\n"
@@ -595,13 +724,21 @@ def run(
                     initialization_sha256=initialization_sha256,
                 )
                 data_checkpoint = (
-                    "best_validation_data.pt"
-                    if config.route == "volume_uvwp_peak_qs_smooth_v3"
-                    else "best_data.pt"
+                    "best_validation_field_cb.pt"
+                    if config.route == "volume_uvwp_peak_field_v4"
+                    else (
+                        "best_validation_data.pt"
+                        if config.route == "volume_uvwp_peak_qs_smooth_v3"
+                        else "best_data.pt"
+                    )
                 )
                 total_checkpoint = (
                     "best_validation_total.pt"
-                    if config.route == "volume_uvwp_peak_qs_smooth_v3"
+                    if config.route
+                    in {
+                        "volume_uvwp_peak_qs_smooth_v3",
+                        "volume_uvwp_peak_field_v4",
+                    }
                     else "best_total.pt"
                 )
                 if data_improved:
@@ -623,6 +760,59 @@ def run(
                 ):
                     _atomic_checkpoint(run_dir / "checkpoints/last.pt", payload)
 
+            executed_epochs += 1
+            if (
+                not dry_run
+                and config.route == "volume_uvwp_peak_field_v4"
+                and epochs_without_improvement
+                >= int(train_cfg["early_stopping_patience"])
+            ):
+                _atomic_checkpoint(run_dir / "checkpoints/last.pt", payload)
+                stopped_early = True
+                break
+
+        selection_audit_path = None
+        if not dry_run and config.route == "volume_uvwp_peak_field_v4":
+            if not selection_history:
+                raise RuntimeError("V4 training produced no validation selection history")
+            best_epochs = {
+                key: min(selection_history, key=lambda row: row[key])["epoch"]
+                for key in ("case_balanced", "point_weighted", "legacy_batch_weighted")
+            }
+            last_validation = validation_audit or {}
+            selection_audit = {
+                "schema_version": 1,
+                "created_at": utc_now(),
+                "route": config.route,
+                "selection_metric": "validation_field_score_cb",
+                "selection_formula": (
+                    "mean_case((MSE_u + MSE_v + MSE_w + MSE_p)/4), "
+                    "all components standardized by frozen train123 statistics"
+                ),
+                "best_epoch_zero_based": best_epochs,
+                "checkpoint_epoch_difference": {
+                    "legacy_minus_case_balanced": best_epochs[
+                        "legacy_batch_weighted"
+                    ]
+                    - best_epochs["case_balanced"],
+                    "point_minus_case_balanced": best_epochs["point_weighted"]
+                    - best_epochs["case_balanced"],
+                },
+                "legacy_overweighted_case_ids": last_validation.get(
+                    "legacy_overweighted_case_ids", []
+                ),
+                "legacy_weight_ratio_max_to_min": last_validation.get(
+                    "legacy_weight_ratio_max_to_min"
+                ),
+                "fixed_validation_query_hashes": {
+                    row["case_id"]: row["query_sha256"]
+                    for row in last_validation.get("cases", [])
+                },
+                "history": selection_history,
+            }
+            selection_audit_path = atomic_write_json(
+                run_dir / "selection_audit.json", selection_audit
+            )
         summary = {
             "schema_version": 1,
             "created_at": utc_now(),
@@ -635,13 +825,25 @@ def run(
             "warm_start": False,
             "resume_checkpoint_sha256": resume_sha256,
             "initialization_state_sha256": initialization_sha256,
-            "epochs_executed": requested_epochs,
+            "epochs_executed": executed_epochs,
             "start_epoch": start_epoch,
-            "end_epoch_exclusive": end_epoch,
+            "end_epoch_exclusive": start_epoch + executed_epochs,
             "configured_total_epochs": total_epochs,
+            "stopped_early": stopped_early,
             "global_steps": global_step,
             "best_data": best_data,
             "best_total": best_total,
+            "best_validation_field_score_cb": (
+                best_data if config.route == "volume_uvwp_peak_field_v4" else None
+            ),
+            "selection_audit": (
+                {
+                    "path": str(selection_audit_path),
+                    "sha256": sha256_file(selection_audit_path),
+                }
+                if selection_audit_path is not None
+                else None
+            ),
             "last_record": last_record,
         }
         if not dry_run:

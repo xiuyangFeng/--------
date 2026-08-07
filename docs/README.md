@@ -1,37 +1,40 @@
 # 项目文档索引
 
-> 更新时间：2026-08-05
+> 更新时间：2026-08-06
 > 主入口：[实验设计总纲](实验设计总纲.md)
 
-本目录存放实验设计、任务规范、路线文档、推进日志、汇报材料和外部论文 baseline 复现记录。当前项目已经不再按“单一 GNN 优化线”推进，而是分成：
+本目录存放实验设计、任务规范、路线文档、推进日志、汇报材料和外部论文 baseline 复现记录。2026-08-06 起，当前模型开发范围收束为峰值体域 `u,v,w,p`；其他路线按历史、baseline 或冻结下游验证器维护：
 
-- **任务 A 当前主线**：V3 PointNeXt / 双域 WSS / 路径 G-I 诊断与 Go/No-Go
+- **当前模型优化主线**：峰值体域 `u,v,w,p`；field-v4 Stage 0–1 已完成，三种子结论为保留 G-Raw、G-PE/local No-Go；下一假设转向 patient-specific conditioning / 缺失可部署 BC，Stage 2 尚未启动
+- **任务 A 直接 WSS 历史线**：V3 PointNeXt / 双域 WSS / 路径 G-I 诊断结果保留，本轮不继续调参
 - **V1 历史补充验证**：旧 PINN / physics loss 阶梯已归档，只作早期路线证据
 - **外部 baseline 复现**：公开医学血管点云、mesh、等变网络、2D 展开方法在私有 AAA/WSS 数据上的对照
 - **后处理与可视化**：预测点云到 CFD 面片/体网格的公平映射和论文图件规范
 - **WSS-only 最小化线**：`pipeline_wss_min/` + `training_wss_min/`；当前单 seed 开发锚点为 LSA2 SAME-H2 + `log(local_radius)`；数据口径 v4（AG76 / AAA 白名单 / ILO before41）
-- **velocity→WSS 物理估算**：`wss_mri_calculator/`（CFD 点云适配）；当前推荐结果模型为 Profile-Secant V3。test35 全壁面 1,328,017 点的病例 overall / pooled high-WSS R²=`0.9604/0.9440`；V4 final 保留为冻结基线。严格双目标仅 4/35 病例达标，全壁面平均峰值低估=`15.81%`，不能写成逐病例或峰值保证
-- **峰值体域 `u,v,w,p` PINN**：历史 SEP/SAME5K-E7500 已完成；V3 无 3NN 条件平滑场六臂 6/6 完训、三 checkpoint test35 评估 18/18 完成。主结果：geom 稳定提高 speed R²_cb 约 `+0.19`，BC 对总体速度近中性，PDE residual 明显下降但 speed R²_cb 下降约 `0.05`
+- **velocity→WSS 冻结验证器**：`wss_mri_calculator/` 的 Profile-Secant V3；test35 全壁面病例 overall / pooled high-WSS R²=`0.9604/0.9440`，但逐病例 high-WSS R² 均值=`0.7735`、平均峰值低估=`15.81%`。当前不继续调算法，也不参与 `u,v,w,p` 训练或选模
 
 ## 1. 现在先看什么
 
-### 日常推进任务 A
+### 当前 `u,v,w,p` 推进
 
-1. [任务A总入口](01-任务/任务A/README.md)
-2. [V3 路线 README](01-任务/任务A/03-V3路线/README.md)
-3. [V3 实验执行跟踪日志](01-任务/任务A/03-V3路线/01-执行与待办/V3_实验执行跟踪日志.md)
-4. [V3 后续优化待办](01-任务/任务A/03-V3路线/01-执行与待办/V3_后续优化待办.md)
+1. [Stage 0–1 已完成执行合同](02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)
+2. [核心诊断与下一轮设计](02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)
+3. [峰值体域 PINN 路线真源](02-推进与变更/WSS_PINN/README.md)
+4. [`wss_pinn` 代码入口](../wss_pinn/README.md)
 5. [代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md)
+
+历史任务 A / V3 直接 WSS 路线仍从[任务A总入口](01-任务/任务A/README.md)进入，
+本轮不继续其结构或 loss 调优。
 
 ### 当前复现与 V3P 状态速读
 
 | 主题 | 先看 | 只记录什么 |
 | --- | --- | --- |
-| V3P / 后平台期精度优化 | [V3 路线 README](01-任务/任务A/03-V3路线/README.md) + [V3P 后平台期结构与训练优化路线](01-任务/任务A/03-V3路线/01-执行与待办/V3P_后平台期结构与训练优化路线_2026-07-01.md) + [V3P 精度平台期复盘](01-任务/任务A/03-V3路线/01-执行与待办/V3P_精度平台期复盘与下一轮想法_2026-06-30.md) | 对照既有 No-Go 证据后，只保留 K1-lite 5886 作为当前内部 GPU 判断；K3/K5 已 No-Go |
+| V3P / 直接 WSS 历史线 | [V3 路线 README](01-任务/任务A/03-V3路线/README.md) + [V3P 后平台期结构与训练优化路线](01-任务/任务A/03-V3路线/01-执行与待办/V3P_后平台期结构与训练优化路线_2026-07-01.md) + [V3P 精度平台期复盘](01-任务/任务A/03-V3路线/01-执行与待办/V3P_精度平台期复盘与下一轮想法_2026-06-30.md) | 保留既有 No-Go 与平台期证据；本轮不继续 WSS 网络优化 |
 | 外部 CROWN/Beihang 复现 | [CROWN 代码 README](../external_baselines/crown_beihang/README.md) + [hemodynamics_pointcloud_pinn](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | `u,v,w,p` 速度/压力 paper-original 复现，不写成 WSS baseline |
 | 外部 baseline 批次总结 | [paper_reproduction/README](paper_reproduction/README.md) + [梳理记录规范](paper_reproduction/04-梳理记录规范.md) | 一轮矩阵跑齐后的批次结论，单个 Job 只放 `external_baselines/<name>/experiments/` |
-| velocity→WSS V1–V4 | [实验总跟踪](../wss_mri_calculator/experiments/README.md) + [Profile-Secant V3 推荐结果](../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/PROFILE_SECANT_HIGH_TAIL_V3_RESULTS.md) + [全壁面结果](../outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/README.md) + [CFD 适配说明](../wss_mri_calculator/README_CFD_ADAPTATION.md) | Profile-Secant V3 用于当前主结果和高 WSS 可视化；V4 final 作为冻结基线。全壁面峰值低估未达 10%，不能写成逐病例严格达标 |
-| WSS-only 最小化与体域 PINN | [峰值体域 PINN 当前入口](02-推进与变更/WSS_PINN/README.md) + [V3 六臂结果](../outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/README.md) + [准稳态平滑场六臂交接](02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验.md) + [当前代码入口](../wss_pinn/README.md) + [老师论文与 V2 对照](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) + [旧 WSS-target 源码归档](../wss_pinn/archive/wss_target_v1_20260730/README.md) + [历史体域物理约束讨论稿](02-推进与变更/WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md) + [高值区域预测优化方案](02-推进与变更/WSS高值区域预测优化方案.md) + [PointNet baseline 实验矩阵与进度](02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) + [训练实验跟踪](02-推进与变更/WSS最小化_训练实验跟踪.md) + [ILO 术前最终审核](02-推进与变更/ILO术前队列最终审核通过_2026-07-17.md) + [跨路线指标口径](00-规范与记录/WSS跨路线评估与横向对比口径.md) | V3 6/6 完训并完成 18/18 评估；geom Go，BC 速度近中性，PDE 对瞬态 peak 速度 No-Go |
+| velocity→WSS V1–V4 | [实验总跟踪](../wss_mri_calculator/experiments/README.md) + [Profile-Secant V3 推荐结果](../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/PROFILE_SECANT_HIGH_TAIL_V3_RESULTS.md) + [全壁面结果](../outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/README.md) + [CFD 适配说明](../wss_mri_calculator/README_CFD_ADAPTATION.md) | Profile-Secant V3 冻结为 `u,v,w,p` 最终 checkpoint 的下游 sanity check；不继续调算法或参与选模 |
+| 当前 `u,v,w,p` 优化与历史 WSS 线 | [Stage 0–1 已完成执行合同](02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md) + [核心诊断与下一轮设计](02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md) + [峰值体域 PINN 当前入口](02-推进与变更/WSS_PINN/README.md) + [V3 六臂结果](../outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/README.md) + [当前代码入口](../wss_pinn/README.md) + [历史六臂预注册](02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md) + [老师论文与 V2 对照](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | Stage 0–1 已完成并保留 G-Raw；Stage 2 尚未启动，历史六臂只作追溯 |
 
 ### 查当前总设计
 
@@ -59,9 +62,9 @@
 | --- | --- | --- |
 | `Route-KNN-GNN-V1` | 历史基线与消融证据 | A-Base / A-Main / A-Opt / Line G / Line W 保留为历史对照；新增 V1 PINN 阶梯用于回答物理损失问题 |
 | `Route-PhysicsAware-V2` | V2 修正路线历史框架 | V2P-WSSP 已形成一批 p+WSS / WSS loss 对照结果，当前不再作为日常主攻 |
-| `Route-DualDomain-PointNeXt-V3` | 当前任务 A 主攻 | V3P post5463 / I6-diag 平台约 `wss_r2_wss=0.425±0.012`，I6-diag **0.429**；E-J、G4-c、J4/J5、K3/K5 均已封口或 No-Go；M-N/G5 叙事可收口，M-E 当前只等 K1-lite BranchFeat Job **5886** 判读 |
-| `Route-CFD-Velocity-to-WSS-V4` | CFD 速度场到 WSS 的物理 Oracle / 后处理可信链 | Profile-Secant V3 是当前推荐结果模型；V4 final 是冻结基线。全壁面 pooled high-WSS R²=`0.9440`，但平均峰值低估=`15.81%`、逐病例严格目标未达；下一阶段优先更靠壁速度层、新外部队列和分辨率鲁棒性 |
-| `Route-Volume-UVWP-PINN` | 峰值体域四通道补充线 | SEP v1 与 SAME5K-E7500 v2 均 8/8 completed；当前锚点 full-volume speed R²=`0.1820`。零重训诊断确认 SAME residual 不代表独立连续场，准稳态缺项只解释部分 CFD residual |
+| `Route-DualDomain-PointNeXt-V3` | 直接 WSS 历史内部线 | V3P post5463 / I6-diag 平台约 `wss_r2_wss=0.425±0.012`，I6-diag **0.429**；既有分支保留，当前不新增 WSS 调参 |
+| `Route-CFD-Velocity-to-WSS-V4` | 冻结的 WSS 后处理验证器 | Profile-Secant V3 只用于 `u,v,w,p` 主 checkpoint 的 downstream sanity check；不继续调算法，不参与训练或选模 |
+| `Route-Volume-UVWP-PINN` | **当前模型优化主线；Stage 0–1 已完成** | field-v4 保留 G-Raw；G-PE 跨种子不稳定并触发 pressure/ILO 护栏，local 单 seed 无增量。Stage 2 未启动，下一假设是可部署 patient-specific conditioning / BC |
 | 外部论文 baseline | 论文必需对照 | PointNetCFD 首轮矩阵已完成；CROWN/Beihang 非 PINN/PINN paper-original 复现均已结案 No-Go。原文 NMAE、病例级 FR/PD R² 不与当前点级 speed R² 混表 |
 | 后处理可视化 | 论文与答辩支撑链 | 已明确同点指标优先、插值只作展示、WSS 后处理必须先做 CFD velocity oracle；新增 `paper_reproduction/visualization_pipeline/` 管理点云回面片与 CFD-Post/Fluent 交付流程 |
 
@@ -100,7 +103,7 @@
 | 任务 D | [任务D端到端验证清单](01-任务/任务D/任务D端到端验证清单.md) |
 | 任务 E | [任务E执行清单](01-任务/任务E/任务E血流动力学三维可视化执行清单.md) · [任务E论文可视化规范](01-任务/任务E/任务E论文可视化规范.md) |
 | 推进记录 | [V3P/主线代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md) · [WSS 最小化代码修改与实验推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) |
-| WSS-only 最小化 / velocity→WSS / 体域 PINN | [根 README 主攻入口](../README.md) · [velocity→WSS V1–V4 总跟踪](../wss_mri_calculator/experiments/README.md) · [CFD 适配说明](../wss_mri_calculator/README_CFD_ADAPTATION.md) · [V1](../wss_mri_calculator/experiments/pointcloud_adaptive_v1/README.md) · [V2](../wss_mri_calculator/experiments/pointcloud_multiscale_v2/README.md) · [V3](../wss_mri_calculator/experiments/pointcloud_normal_multiscale_v3/README.md) · [V4](../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/README.md) · [峰值体域 PINN 当前入口](02-推进与变更/WSS_PINN/README.md) · [准稳态平滑场六臂交接](02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验.md) · [体域 PINN 当前代码](../wss_pinn/README.md) · [旧 WSS-target 文档归档](02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/README.md) · [旧 WSS-target 源码归档](../wss_pinn/archive/wss_target_v1_20260730/README.md) · [历史体域物理约束讨论稿](02-推进与变更/WSS最小化_体域物理约束与PINN训练路线_2026-07-29.md) · [高值区域预测优化方案](02-推进与变更/WSS高值区域预测优化方案.md) · [PointNet baseline 矩阵](02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) · [训练实验跟踪](02-推进与变更/WSS最小化_训练实验跟踪.md) · [推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) · [历史路线归档](02-推进与变更/_archive/WSS最小化/README.md) |
+| WSS-only 最小化 / velocity→WSS / 体域 PINN | [根 README 主攻入口](../README.md) · [Stage 0–1 已完成执行合同](02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md) · [峰值体域 PINN 当前入口](02-推进与变更/WSS_PINN/README.md) · [体域 PINN 当前代码](../wss_pinn/README.md) · [WSS_PINN 归档索引](02-推进与变更/WSS_PINN/_archive/README.md) · [velocity→WSS V1–V4 总跟踪](../wss_mri_calculator/experiments/README.md) · [CFD 适配说明](../wss_mri_calculator/README_CFD_ADAPTATION.md) · [PointNet baseline 矩阵](02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) · [推进记录](02-推进与变更/WSS最小化_代码修改与实验推进记录.md) |
 | 项目思路 | [项目思路](paper_idea/项目思路.md) · [基准模型推荐](paper_idea/基准模型推荐与引用参考.md) |
 | 外部 baseline | [paper_reproduction/README](paper_reproduction/README.md) · [文献筛选总表](paper_reproduction/00-文献筛选总表.md) · [后处理插值方法](paper_reproduction/03-后处理可视化与插值方法.md) · [点云回插面片方法](paper_reproduction/05-点云预测值与真值回插到面片方法.md) · [CFD-Post 云图导出工具](../tools/cfdpost_cloud_export/README.md) |
 | 外部 baseline 代码 | [PointNetCFD 复现代码](../external_baselines/pointnetcfd/README.md) |
