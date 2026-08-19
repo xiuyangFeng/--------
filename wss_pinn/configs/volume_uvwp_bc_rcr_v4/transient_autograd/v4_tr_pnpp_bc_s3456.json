@@ -1,0 +1,31 @@
+{
+  "experiment": {
+    "backbone": "pointnetpp",
+    "id": "V4-TR-PNPP-BC-s3456",
+    "momentum_mode": "transient_autograd",
+    "seed": 3456,
+    "temporal_mode": "transient_81",
+    "time_input": true,
+    "training_mode": "data_bc"
+  },
+  "loss_balancing": {
+    "mode": "disabled"
+  },
+  "paths": {
+    "run_dir": "outputs/wss_pinn/volume_uvwp_bc_rcr_v4/transient_autograd/V4-TR-PNPP-BC-s3456"
+  },
+  "physics": {
+    "bc_enabled": true,
+    "lambda_bc": 1.0,
+    "lambda_pde": 0.0,
+    "pde_enabled": false
+  },
+  "route": "volume_uvwp_bc_rcr_v4",
+  "sampling": {
+    "query_points": 2000,
+    "support_points": 2000
+  },
+  "train": {
+    "seed": 3456
+  }
+}

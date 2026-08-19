@@ -1,5 +1,7 @@
 # WSS 最小化·PointNet baseline 实验矩阵与进度跟踪
 
+> **🧊 已冻结（2026-08-07 标注）**：2026-08-06 起主线收束为峰值体域 `u,v,w,p`，本矩阵不再新增实验或续写；只作为 PointNet/PointNet++ baseline 的结果档案供论文对照引用。
+
 > 建立日期：2026-07-14
 >
 > 更新日期：2026-07-29（同 seed H2 control / +log(local_radius) 已完成；处理臂晋级新开发锚点）
@@ -103,7 +105,7 @@ H1/H2 的保护线和三域 R² 均未退化，但各自主终点没有达到预
 
 O1a − O0 的病例均值 ΔR² 95%CI `[+0.0127,+0.1021]`，O2 − O0 为 `[-0.0622,+0.0356]`；O1a − O2 的 \(R^2_{cb}\) 差为 `+0.0838`。因此真实 RCR 的收益不是“多 12 个输入维度”或域标签伪增益。三域 R² 均改善（AG/AAA/ILO `+0.110/+0.028/+0.089`），但 high-WSS Spearman 不变，说明 RCR 主要补病例级幅值/条件信息，局部热点排序仍需另解。
 
-本组只授权条件信息方向进入多种子或新协议确认；单种子、复用 test36 和 train-loss 选模不支持最终泛化声称。详表与配置见 [训练实验跟踪](WSS最小化_训练实验跟踪.md) 和 [高值区域优化方案 §4.2](WSS高值区域预测优化方案.md)。
+本组只授权条件信息方向进入多种子或新协议确认；单种子、复用 test36 和 train-loss 选模不支持最终泛化声称。详表与配置见 [训练实验跟踪](WSS最小化_训练实验跟踪.md) 和 [高值区域优化方案 §4.2](_archive/WSS最小化/WSS高值区域预测优化方案.md)。
 
 ## 0M. REG-P10 静态几何约束 EdgeConv 矩阵（2026-07-28 回填｜Jobs `10993→10994_[0-2]%3`｜✅3/3 完成）
 
@@ -377,7 +379,7 @@ Phase-V 六组显式使用 `eval.surface_metric_mode=legacy_vertex`，不读取 
 
 面积硬门失败病例为 `AG/fast/LI_ZHEN_SHAN`、`AAA/ruputer/{XIE_JIN_QUAN,ZHOU_KE_XUN,SHI_YUN_XI}`、`AAA/unruputer/{GUO_BAO_CHUN,LIU_WEN_QI}`。诊断、失败ID与六份冻结配置已固化到 `training_wss_min/preflight/ag_aaa_v4_area_phase_backlog.json`；后续不得放宽阈值、自动退化或把同一模型的技术重复当额外病例。
 
-失败病例可视化见 [`area_mapping_failures_summary.png`](assets_新队列审计/area_mapping_failures_20260717/area_mapping_failures_summary.png) 与同目录6张逐例三视图。图中四个 crop 例的高距离区集中在完整 STL 尾端；`ZHOU_KE_XUN` 原坐标整体相隔约一个大平移，bbox-center 平移后主体高度重合；`LIU_WEN_QI` 平移后分支与瘤体轮廓仍不一致，因此不能把两例都自动按“只修平移”处理。
+失败病例可视化见 [`area_mapping_failures_summary.png`](_archive/assets_新队列审计/area_mapping_failures_20260717/area_mapping_failures_summary.png) 与同目录6张逐例三视图。图中四个 crop 例的高距离区集中在完整 STL 尾端；`ZHOU_KE_XUN` 原坐标整体相隔约一个大平移，bbox-center 平移后主体高度重合；`LIU_WEN_QI` 平移后分支与瘤体轮廓仍不一致，因此不能把两例都自动按“只修平移”处理。
 
 ### 0B. 面积依赖合同与判读边界（后续实验按此执行）
 

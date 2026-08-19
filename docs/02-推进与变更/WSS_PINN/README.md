@@ -1,12 +1,151 @@
-# 峰值体域 `u,v,w,p` PINN 路线
+# 体域 `u,v,w,p` PINN 路线
 
-> 当前活动路线：`volume_uvwp_peak_field_v4`；`volume_uvwp_peak_qs_smooth_v3` 为冻结历史基线
+> 当前活动主线：`volume_uvwp_bc_rcr_v4`；已完成的
+> `volume_uvwp_peak_field_v4` 与 `volume_uvwp_peak_qs_smooth_v3` 保留为冻结历史结果
 >
-> 更新日期：2026-08-06
+> 更新日期：2026-08-20
 >
-> 状态：**field-v4 Stage 0-a/0-b、B0、四臂 seed1234、前二臂三种子确认、导数/support
-> Gate 和 full-volume val15 晋级审计均 completed；26 tests、CPU smoke、静态/GPU
-> preflight 与所有 Slurm 作业通过。最终保留 G-Raw，G-PE 与 local conditioner No-Go。**
+> 状态：**新 V4 设计基线 v1.2 已实现。`11972_{0-6}` 与
+> `12210_{7-10,12,13,18-21}` 已 completed。2026-08-20 数组并发改回 `%4`；
+> node04 两张空闲 A100 已直启 index `11/14`（不能同时跑 4 路：04 只有 2 卡，
+> 且不在 Slurm GPU 分区）。当前 master 跑 `12210_{22,23,24}`，node04 跑
+> `11/14`；`12210_[15-17,25-47]%4` pending。尚无 V4 汇总，未读 test35。**
+
+## 新 V4 大重构（2026-08-08，实现与提交阶段）
+
+当前活动设计真源：
+[WSS_PINN V4 大重构设计方案](./WSS_PINN_V4大重构设计方案_2026-08-08.md)。
+
+- 原 val15 放回训练池，采用 train138/test35；test35 只在配置和 train-only 收敛停止规则
+  冻结后评估，不参与 checkpoint、epoch 或动态权重选择；
+- 取消旧 V3 的 CFD 求解后 outlet pressure monitor 输入；条件输入为入口/出口网格面积、
+  `Q_actual_peak` 与四组 `R1/R2/C`（v1.2：6 例 `A_udf≠A_mesh`，入口流量并非全库常量）；
+  入口以 UDF 实际施加的 `Q_nom/A_udf` 速度 Dirichlet 残差、出口以质量流量口径的
+  RCR 一致性残差（瞬态）进入物理 loss；
+- wall no-slip、continuity 和三分量 momentum 保留；准稳态 peak 与含 `du/dt` 的多时相
+  模型通过独立配置启动；
+- 每个时间模式/backbone 使用 DATA、DATA+BC、BC+PDE-fixed、BC+PDE-EMA 四臂，分离
+  边界监督与 PDE 残差贡献；动态 `λ_pde` 采用 detached EMA 比值、默认每 50 step 更新，
+  `λ_bc≡1` 不参与调权；
+- 173 例文件级审计确认每例均有 81 帧 `u/v/w/p`、81 个精确匹配 `Q_in(t)`、0.005 s
+  solver step、0.01 s 场导出间隔、四组 RCR 和正值入口/四出口面积；跨时相点身份、
+  时间映射、pressure gauge 和 train-only stats Gate 已实现，173/173 本地全量 Gate 已通过；
+- 新 route/数据/输出未覆盖已完成 `volume_uvwp_peak_field_v4`。独立实现位于
+  `wss_pinn/v4/`，48 个配置位于 `wss_pinn/configs/volume_uvwp_bc_rcr_v4/`；本轮只提交
+  训练依赖链，不运行 test35、WSS 或工作簿数值回填。
+- **v1.2 修订（同日，对抗性审核后）**：撤回“入口流量全库零方差”（6 例 `A_udf≠A_mesh`，
+  最大约 35.6%，冻结 `U_in=Q_nom/A_udf`、`Q_actual=U_in·A_mesh` 合同）；RCR 残差改
+  质量流量口径（UDF 按 `F_FLUX` 递推，混用体积流量差约 ρ≈1060 倍）；波形
+  `w=6.491≠2π/0.8`，mod-T 重置点跳变按分段处理；压力锚定收紧为条件成立的
+  raw Fluent gauge 约定；primary endpoint 改速度向量相对 L2 并预注册 contrasts +
+  Holm 校正，test35 结论定性为探索性。
+- **实现/提交（同日）**：34 项 `test_volume_*` 全通过；真实 train、`A_udf≠A_mesh`
+  与 test 三类病例 81 帧 smoke 通过。最终 Slurm 依赖链为 CPU Stage 0 `11970` → GPU
+  preflight `11971` → 48-run array `11972_[0-47%4]`，数组 throttle 固定为 4。
+- **进度截断（2026-08-09）**：先 `scancel 11972_[8-47]`，随后再 `scancel 11972_7`。
+  当时 `2/3/6` 继续跑；补跑起点约定为 index `7`。
+- **补提交（2026-08-14）**：`11972_{0-6}` 均已 completed。未完训 `7-47` 以
+  `sbatch --array=7-47%4` 提交为 `12210`（不重跑 Stage 0 / preflight）。index 7
+  的中断产物已挪到
+  `.../V4-SP-PNPP-BC-PDE-EMA-s1234_cancelled_11972_7_epoch797/`，本轮对 index 7
+  **全新开跑**（非 resume）。对照 `matrix_configs.txt`：
+
+  | array | run | 状态（截至 2026-08-14） |
+  | --- | --- | --- |
+  | 0 | `V4-SP-PN-DATA-s1234` | `11972_0` completed（`train_only_plateau`，9859 epoch） |
+  | 1 | `V4-SP-PN-BC-s1234` | `11972_1` completed（`max_epochs`，10000） |
+  | 2 | `V4-SP-PN-BC-PDE-F-s1234` | `11972_2` completed（`max_epochs`，10000） |
+  | 3 | `V4-SP-PN-BC-PDE-EMA-s1234` | `11972_3` completed（`max_epochs`，10000） |
+  | 4 | `V4-SP-PNPP-DATA-s1234` | `11972_4` completed（`train_only_plateau`，9859 epoch） |
+  | 5 | `V4-SP-PNPP-BC-s1234` | `11972_5` completed（`max_epochs`，10000） |
+  | 6 | `V4-SP-PNPP-BC-PDE-F-s1234` | `11972_6` completed（`max_epochs`，10000） |
+  | 7 | `V4-SP-PNPP-BC-PDE-EMA-s1234` | `12210_7` 全新重跑中 |
+  | 8–47 | 瞬态 seed1234 + 全部 seed2345/3456 | `12210_[8-47%4]` 排队/运行中 |
+
+- **让卡与两卡排队（2026-08-16）**：当时运行 `12210_{11,13,14,15}`。物理 GPU
+  对照为 11→GPU0、13→GPU3、14→GPU1、15→GPU2。先把 `12210` 的
+  `ArrayTaskThrottle` 改为 2 并 hold 未启动任务，再 `scancel 12210_{14,15}`，
+  避免空卡被 `16-47` 立刻占回。14/15 半成品因含 `last.pt` 会拒绝覆盖，已挪到
+  `.../V4-TR-PNPP-BC-PDE-F-s1234_cancelled_12210_20260816_epoch3622/` 与
+  `.../V4-TR-PNPP-BC-PDE-EMA-s1234_cancelled_12210_20260816_epoch545/`；Slurm
+  日志归档到 `outputs/wss_pinn/slurm/cancelled/`。随后 `requeuehold` 14/15 并
+  release，队列现为 `12210_{11,13}` running + `12210_[14-47]%2` pending。14/15
+  **全新开跑**（非 resume）。师姐 `sunfanji` 的 `12240/12261` 已在释放后启动。
+  对照 `matrix_configs.txt`：
+
+  | array | run | 状态（截至 2026-08-16） |
+  | --- | --- | --- |
+  | 0–6 | `steady_peak × seed1234` 除 PNPP BC+PDE-EMA | `11972_{0-6}` completed |
+  | 7 | `V4-SP-PNPP-BC-PDE-EMA-s1234` | `12210_7` completed（`train_only_plateau`，9985 epoch） |
+  | 8 | `V4-TR-PN-DATA-s1234` | `12210_8` completed（`train_only_plateau`，9871） |
+  | 9 | `V4-TR-PN-BC-s1234` | `12210_9` completed（`max_epochs`，10000） |
+  | 10 | `V4-TR-PN-BC-PDE-F-s1234` | `12210_10` completed（`max_epochs`，10000） |
+  | 11 | `V4-TR-PN-BC-PDE-EMA-s1234` | `12210_11` running（GPU0） |
+  | 12 | `V4-TR-PNPP-DATA-s1234` | `12210_12` completed（`train_only_plateau`，9871） |
+  | 13 | `V4-TR-PNPP-BC-s1234` | `12210_13` running（GPU3） |
+  | 14 | `V4-TR-PNPP-BC-PDE-F-s1234` | 已杀后 requeue；半成品已隔离；待两卡队列全新重跑 |
+  | 15 | `V4-TR-PNPP-BC-PDE-EMA-s1234` | 已杀后 requeue；半成品已隔离；待两卡队列全新重跑 |
+  | 16–47 | 其余 seeds / 瞬态 | `12210_[16-47]%2` pending（`JobArrayTaskLimit`） |
+
+- **master 失联（2026-08-17 凌晨）**：`slurmctld` 记录 04:51 `Nodes master not
+  responding`，随后 05:03 将 master 置 DOWN。`12210_11` / `12210_16` 被
+  `requeue job due to failure of node master`（脚本默认 `Requeue=1`，不是人工
+  scancel）。05:03:50 backfill 启动了 `12210_17`；05:12 master 再次失联，17
+  也被 requeue。08:01 slurmctld 恢复，09:13 节点 IDLE 后调度了从未启动过的
+  `12210_{18,19}`，而 11/16/17 因已 requeue 且 throttle=2 继续 pending。
+  **半成品已隔离（同日稍后）**：用户确认后 hold `11/16/17`，把 run 目录与 Slurm
+  日志挪到 `*_cancelled_12210_20260817_epoch*` / `outputs/wss_pinn/slurm/cancelled/`，
+  再 release。`requeuehold` 对已 pending 的 task 无效（早上已被自动 requeue）。
+  下次启动为全新开跑，非 resume。记录：
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/quarantine_11_16_17_20260817.json`。
+
+  | array | run | 状态（截至 2026-08-17 15:46） |
+  | --- | --- | --- |
+  | 11 | `V4-TR-PN-BC-PDE-EMA-s1234` | pending；半成品已隔离（epoch 9401）；待全新开跑 |
+  | 13 | `V4-TR-PNPP-BC-s1234` | completed（01:46） |
+  | 16 | `V4-SP-PN-DATA-s2345` | pending；半成品已隔离（epoch 1912）；待全新开跑 |
+  | 17 | `V4-SP-PN-BC-s2345` | pending；半成品已隔离（epoch 1889）；待全新开跑 |
+  | 18 | `V4-SP-PN-BC-PDE-F-s2345` | running |
+  | 19 | `V4-SP-PN-BC-PDE-EMA-s2345` | running |
+
+- **恢复四卡（2026-08-20）**：用户授权等待作业改回 4 GPU 并行。未新提交数组，只
+  `scontrol update JobId=12210 ArrayTaskThrottle=4`。`12210_24`
+  （`V4-TR-PN-DATA-s2345`）已在 GPU3 全新开跑；`22/23` 继续跑。11/14–17 的
+  `last.pt` 目录此前已隔离，启动前复核 run 目录均不存在。剩余 pending 原因从
+  `JobArrayTaskLimit` 变为 `Resources`（师姐 `12366` 仍占 GPU2）。记录：
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/throttle_restore_4gpu_20260820.json`。
+
+  | array | run | 状态（截至 2026-08-20 00:56） |
+  | --- | --- | --- |
+  | 0–10,12,13 | `steady_peak/transient seed1234` 除 11/14/15 | completed |
+  | 11 | `V4-TR-PN-BC-PDE-EMA-s1234` | pending；半成品已隔离；待全新开跑 |
+  | 14 | `V4-TR-PNPP-BC-PDE-F-s1234` | pending；08-16 半成品已隔离；待全新开跑 |
+  | 15 | `V4-TR-PNPP-BC-PDE-EMA-s1234` | pending；08-16 半成品已隔离；待全新开跑 |
+  | 16 | `V4-SP-PN-DATA-s2345` | pending；半成品已隔离；待全新开跑 |
+  | 17 | `V4-SP-PN-BC-s2345` | pending；半成品已隔离；待全新开跑 |
+  | 18 | `V4-SP-PN-BC-PDE-F-s2345` | completed（`train_only_plateau`，9859） |
+  | 19 | `V4-SP-PN-BC-PDE-EMA-s2345` | completed（`train_only_plateau`，9865） |
+  | 20 | `V4-SP-PNPP-DATA-s2345` | completed（`train_only_plateau`，9859） |
+  | 21 | `V4-SP-PNPP-BC-s2345` | completed（`max_epochs`，10000） |
+  | 22 | `V4-SP-PNPP-BC-PDE-F-s2345` | running（GPU1） |
+  | 23 | `V4-SP-PNPP-BC-PDE-EMA-s2345` | running（GPU0） |
+  | 24 | `V4-TR-PN-DATA-s2345` | running（GPU3，全新开跑） |
+  | 25–47 | 其余 seeds / 瞬态 | `12210_[25-47]%4` pending（`Resources`） |
+
+- **node04 直启两臂（2026-08-20）**：两张 A100 空闲，但只有 2 卡，且 node04 在
+  Slurm 中为 CPU/`DOWN`、无 GPU GRES，GPU 分区仅 master。无法 `sbatch` 四路。
+  按 V3 直启先例把排队最前的 `11/14` hold 后在 04 上各占一卡全新开跑，确认
+  epoch 写出后再 `scancel 12210_{11,14}`。PID `2098215/2098627`。记录：
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_11_14_20260820.json`。
+
+  | array | run | 状态（截至 2026-08-20 01:06） |
+  | --- | --- | --- |
+  | 11 | `V4-TR-PN-BC-PDE-EMA-s1234` | node04 GPU0 直启 running（全新开跑） |
+  | 14 | `V4-TR-PNPP-BC-PDE-F-s1234` | node04 GPU1 直启 running（全新开跑） |
+  | 15–17,25–47 | 其余 pending | `12210_[15-17,25-47]%4`（`Resources`） |
+  | 22–24 | seed2345 PNPP PDE 两臂 + TR-PN-DATA | master running |
+
+以下 field-v4 Stage 0–1 与 V3 内容均为历史结果，继续保留用于追溯。
 
 V3 的完整预注册目标见
 [已归档的准稳态平滑场六臂预注册提示词](./_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)。
@@ -22,7 +161,7 @@ V3 的完整预注册目标见
 > 设计；下一轮应把它视为 development-exposed screen，不再当作新模型的
 > 未触碰确认集。详见[核心代码诊断与下一轮设计建议](./核心代码诊断与下一轮设计建议_2026-08-05.md)。
 
-> **2026-08-06 当前范围**：下一轮唯一优化主线是峰值体域 `u,v,w,p`。已验证的
+> **2026-08-06 历史范围**：当时下一轮唯一优化主线是峰值体域 `u,v,w,p`。已验证的
 > Profile-Secant V3 velocity→WSS 算法冻结为下游检查器，不再继续调算法；本路线不新增
 > 直接 WSS 输出、WSS loss 或 WSS 辅助监督，也不允许用 WSS 指标反选 checkpoint、loss
 > 或架构。WSS 只在基于 validation 的 `u/v/w/speed/p`、区域、流量和压降指标选定主
@@ -111,7 +250,7 @@ V3 的完整预注册目标见
   （roi/arm/summarize/workbook/verify 子命令，病例级可恢复）；
   `WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx` 主表由 34 列扩为
   40 列并新增「线性回归汇总」「线性回归逐病例」两表，修改前原件已备份为
-  `…_备份_新增线性回归指标前.xlsx`。
+  `…_备份_新增线性回归指标前.xlsx`（现存 `docs/03-汇报材料/_archive/`）。
 
 ## 0. V3 准稳态平滑场六臂（2026-08-05 完训并评估）
 

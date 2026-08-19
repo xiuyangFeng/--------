@@ -1,10 +1,18 @@
-# 峰值体域 `u,v,w,p` PINN
+# 体域 `u,v,w,p` PINN
 
-> 当前活动路线：`volume_uvwp_peak_field_v4`；`volume_uvwp_peak_qs_smooth_v3` 为冻结历史基线
+> 当前活动主线：`volume_uvwp_bc_rcr_v4`；已完成的
+> `volume_uvwp_peak_field_v4` 与 `volume_uvwp_peak_qs_smooth_v3` 为冻结历史结果
 >
-> 当前状态（2026-08-06）：**Stage 0-a/0-b、B0、四臂 seed1234、前二臂三种子确认、
-> 训练后导数/support Gate 与 full-volume val15 晋级审计均完成。主选模标量固定为
-> 病例等权 `S_field^cb`；最终保留 G-Raw，关闭 PE 扫频，并停止继续堆 local decoder。**
+> 当前状态（2026-08-20）：**V4 v1.2 已实现。`11972_{0-6}` 与
+> `12210_{7-10,12,13,18-21}` completed。数组并发已改回 `%4`。node04 两张空闲
+> A100 已直启 `11/14`（04 只有 2 卡，不能跑 4 路）。master 跑 `12210_{22,23,24}`；
+> `12210_[15-17,25-47]%4` pending。未读 test35。**
+
+> 新 V4 设计真源：
+> [`WSS_PINN V4 大重构设计方案`](../docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
+> 最终提交链为 CPU `11970`（completed）→ GPU preflight `11971`（completed）→
+> `11972_{0-6}`（completed）+ `12210`（master `22/23/24` running；node04 直启
+> `11/14`；`15-17/25-47%4` pending）。
 
 > **当前开发范围**：只优化 `u,v,w,p`。Profile-Secant V3 velocity→WSS 路线冻结为
 > 下游验证器；本目录不新增直接 WSS 输出、WSS loss 或 WSS 辅助监督，不用 WSS 指标
@@ -12,7 +20,7 @@
 > `u/v/w/speed/p`、区域、流量、pressure gauge/梯度和压降指标确定，再做一次冻结 WSS
 > downstream sanity check。
 
-> **执行结果**：科学设计以
+> **历史执行结果**：旧 field-v4 科学设计以
 > [`核心代码诊断与下一轮设计建议`](../docs/02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)
 > 的 `FROZEN FOR IMPLEMENTATION v1.0` 为准，并已在独立 route 完成。执行合同见
 > [`冻结诊断后 Stage 0–1 提示词`](../docs/02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)。
@@ -32,6 +40,32 @@ PINN 路线已冻结在
 [_archive/wss_target_v1_20260730](../docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/README.md)。
 对应历史源码位于
 [`archive/wss_target_v1_20260730/`](archive/wss_target_v1_20260730/README.md)。
+
+## V4 v1.2 实现与集群提交（进行中）
+
+- 独立包：`wss_pinn/v4/`，覆盖严格配置、UDF Fourier/RCR 解析、Stage 0 builder、
+  train138-only 统计、PointNet/PointNet++ + 共享 BCEncoder、稳态/瞬态 strong-form
+  residual、质量流量 RCR BC、detached EMA `λ_pde`、train-only 收敛与 checkpoint；
+- 配置：`wss_pinn/configs/volume_uvwp_bc_rcr_v4/`，固定 16 臂 × seeds
+  `[1234,2345,3456]` = 48 run；同一时间模式/backbone/seed 的四臂共享初始化结构与采样流；
+- 数据：峰值复用冻结 full-volume sidecar；瞬态从 `processed/features` 的 81 帧已配准
+  样本构建 mmap 缓存，并用 `unit_factor + stl_landmarks_v4` bundle 统一坐标/速度框架；
+- 测试：34/34 `test_volume_*` 通过；DING_JUN_FENG 峰值对齐最大坐标/速度/压力差分别
+  `1.56e-7 / 2.38e-7 m/s / 0.0011 Pa`，ZHOU_KE_XUN 的 `A_udf≠A_mesh` 实际流量合同
+  已复现；旧 `BC_Inlet` 仅作 monitor 诊断，训练真源固定为 UDF 解析的
+  `Q_nom·A_mesh/A_udf`；
+- 集群：正式数组 `11972_{0-6}` 与 `12210_{7-10,12,13,18-21}` completed。
+  2026-08-16 曾杀死 `12210_{14,15}` 并把并发改为 `%2`。2026-08-17 凌晨 master
+  失联后，`12210_{11,16,17}` 半成品与日志已隔离。2026-08-20 用户授权后
+  `scontrol update JobId=12210 ArrayTaskThrottle=4`，`12210_24` 已在 GPU3 全新开跑。
+  同日 node04 两张空闲 A100 直启 `11/14`（不能跑 4 路）；`12210_{11,14}` 已从数组
+  取消。当前 master 跑 `22/23/24`，node04 跑 `11/14`。14/15 已在 08-16 隔离过；
+- 本轮不自动运行 test35、WSS、工作簿回填。记录：
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/requeue_14_47_two_gpu.json`、
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node_fail_11_16_17_20260817.json`、
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/quarantine_11_16_17_20260817.json`、
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/throttle_restore_4gpu_20260820.json`、
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_11_14_20260820.json`。
 
 ## field-v4 Stage 0–1（已完成）
 

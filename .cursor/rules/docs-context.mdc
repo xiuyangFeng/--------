@@ -1,27 +1,30 @@
 ---
-description: 文档入口；当前主攻 V3，其余路线按需查阅，避免加载无关上下文
+description: 文档入口；当前主攻峰值体域 u,v,w,p PINN，V3/WSS-min 为历史冻结线，按需查阅，避免加载无关上下文
 alwaysApply: true
 ---
 
 # 实验文档规范
 
-**当前阶段（默认）**：任务 A **V3 路线**（`03-V3路线/`）。接到实验/分析/训练相关任务时，**先读** [v3-context.mdc](v3-context.mdc)，不要默认打开 V1/V2 清单或任务 B/C/D 文档。
+**当前阶段（2026-08-06 收束）**：模型开发主线为**峰值体域 `u,v,w,p` PINN**（`wss_pinn/`，field-v4 Stage 0–1 已完成、保留 G-Raw，Stage 2 未启动）。接到实验/分析/训练任务时，**先读** `docs/02-推进与变更/WSS_PINN/README.md`（路线真源）与 `核心代码诊断与下一轮设计建议_2026-08-05.md`。任务 A V3 直接 WSS、WSS-min PointNet baseline、velocity→WSS 均为**历史/冻结线**，不默认打开。
 
 ## 全局最少入口（任意任务）
 
-- `docs/02-推进与变更/代码修改与实验推进记录.md`：近期结论（**只读文首 3–5 条**，勿通读 7000+ 行）
+- `docs/README.md`「现在先看什么」：唯一活跃导航
+- `docs/02-推进与变更/代码修改与实验推进记录.md`：近期结论（**只读文首 3–5 条**；已滚动切卷，只含 2026-07 以来，更早见 `_archive/` 历史卷）
 - `docs/00-规范与记录/实验记录填写规范.md`：仅当要填 xlsx / 正式入账时
 - `docs/00-规范与记录/实验分析对比图目录说明.md`：仅当分析实验、出对比图时
 - `docs/00-规范与记录/点云回插面片可视化目录说明.md` + `.cursor/skills/postview-surface-viz/`：仅当后处理可视化、面片云图、postview 时
 
-## 按场景追加（非 V3 默认栈）
+## 按场景追加
 
 | 场景 | 再读 |
 | --- | --- |
-| 分析 V3 实验结果 | `experiment-analysis.mdc` + `.cursor/skills/analyze-experiment/` |
+| **`u,v,w,p` 体域 PINN（当前主线）** | `docs/02-推进与变更/WSS_PINN/README.md` + `wss_pinn/README.md` + `WSS最小化_代码修改与实验推进记录.md`（**只读文首 1–2 条**） |
+| 分析 V3 历史实验结果 | `experiment-analysis.mdc` + `.cursor/skills/analyze-experiment/` |
 | 后处理可视化 / postview | `点云回插面片可视化目录说明.md` + `.cursor/skills/postview-surface-viz/` |
-| **WSS-only 最小化**（`pipeline_wss_min/`） | `wss-min-log.mdc` + `pipeline_wss_min/AGENTS.md` + `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`（**只读文首 1–2 条**） |
-| V3 训练配置/提交 | `任务A配置与启动说明.md`（V3 相关节）+ `v3-context.mdc` |
+| WSS-only 最小化（🧊 已冻结，仅查档） | `wss-min-log.mdc` + `WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md`（结果档案，不新增实验） |
+| velocity→WSS 冻结验证器 | `wss_mri_calculator/experiments/README.md`（不调算法、不参与选模） |
+| V3 训练配置/提交（历史线） | `任务A配置与启动说明.md`（V3 相关节）+ `v3-context.mdc` |
 | **node04 / 04 节点跑实验** | `.cursor/skills/node04-experiments/SKILL.md` + `docs/00-规范与记录/集群node04使用要点.md` |
 | **明确**在做 V1 消融/Line G | `01-V1路线/` + `任务A实验状态表` 对应节 |
 | **明确**在做 V2 点云 | `02-V2路线/` |
@@ -30,9 +33,13 @@ alwaysApply: true
 ## 默认不读（除非用户点名或 exp_id 属该路线）
 
 - `docs/实验设计总纲.md` 全文（仅需上位约束时读相关一节）
-- `01-V1路线/任务A_V1实验清单.md`、`任务A_V1本周实验启动清单.md`
-- `02-V2路线/` 矩阵与 Gate 文档
-- `docs/01-任务/任务B|C|D/` 全套规范
-- `03-V3路线/_archive/`、重定向页（`V3_三域数据修复计划.md` 等）
+- `01-V1路线/`、`02-V2路线/`、`docs/01-任务/任务B|C|D/` 全套
+- 各级 `_archive/`（含推进记录历史卷、`assets_新队列审计/`、`03-汇报材料/_archive/`）——只在追溯证据时按 `_archive/README.md` 索引进入
+- `WSS最小化_训练实验跟踪.md` / `WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md` 全文（🧊 冻结档案，只按需查节）
 
-完整索引：`docs/README.md` · V3 地图：`docs/01-任务/任务A/03-V3路线/README.md`
+## 归档与切卷约定（写文档时遵守）
+
+- 结案/被取代文档就近移入所在目录 `_archive/` 并更新其 `README.md` 索引；加 🧊冻结 / ⏸️暂停 标注，不删除。
+- 两份推进记录滚动切卷：主文件只留当前活跃区间（约 1–2 个月），旧月份整月切入 `02-推进与变更/_archive/<记录名>_<区间>卷.md`。
+
+完整索引：`docs/README.md` · V3 历史地图：`docs/01-任务/任务A/03-V3路线/README.md`

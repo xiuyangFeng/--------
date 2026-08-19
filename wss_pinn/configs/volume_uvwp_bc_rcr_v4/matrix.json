@@ -1,0 +1,316 @@
+{
+  "config_order": [
+    "steady_peak/v4_sp_pn_data_s1234.json",
+    "steady_peak/v4_sp_pn_bc_s1234.json",
+    "steady_peak/v4_sp_pn_bc_pde_f_s1234.json",
+    "steady_peak/v4_sp_pn_bc_pde_ema_s1234.json",
+    "steady_peak/v4_sp_pnpp_data_s1234.json",
+    "steady_peak/v4_sp_pnpp_bc_s1234.json",
+    "steady_peak/v4_sp_pnpp_bc_pde_f_s1234.json",
+    "steady_peak/v4_sp_pnpp_bc_pde_ema_s1234.json",
+    "transient_autograd/v4_tr_pn_data_s1234.json",
+    "transient_autograd/v4_tr_pn_bc_s1234.json",
+    "transient_autograd/v4_tr_pn_bc_pde_f_s1234.json",
+    "transient_autograd/v4_tr_pn_bc_pde_ema_s1234.json",
+    "transient_autograd/v4_tr_pnpp_data_s1234.json",
+    "transient_autograd/v4_tr_pnpp_bc_s1234.json",
+    "transient_autograd/v4_tr_pnpp_bc_pde_f_s1234.json",
+    "transient_autograd/v4_tr_pnpp_bc_pde_ema_s1234.json",
+    "steady_peak/v4_sp_pn_data_s2345.json",
+    "steady_peak/v4_sp_pn_bc_s2345.json",
+    "steady_peak/v4_sp_pn_bc_pde_f_s2345.json",
+    "steady_peak/v4_sp_pn_bc_pde_ema_s2345.json",
+    "steady_peak/v4_sp_pnpp_data_s2345.json",
+    "steady_peak/v4_sp_pnpp_bc_s2345.json",
+    "steady_peak/v4_sp_pnpp_bc_pde_f_s2345.json",
+    "steady_peak/v4_sp_pnpp_bc_pde_ema_s2345.json",
+    "transient_autograd/v4_tr_pn_data_s2345.json",
+    "transient_autograd/v4_tr_pn_bc_s2345.json",
+    "transient_autograd/v4_tr_pn_bc_pde_f_s2345.json",
+    "transient_autograd/v4_tr_pn_bc_pde_ema_s2345.json",
+    "transient_autograd/v4_tr_pnpp_data_s2345.json",
+    "transient_autograd/v4_tr_pnpp_bc_s2345.json",
+    "transient_autograd/v4_tr_pnpp_bc_pde_f_s2345.json",
+    "transient_autograd/v4_tr_pnpp_bc_pde_ema_s2345.json",
+    "steady_peak/v4_sp_pn_data_s3456.json",
+    "steady_peak/v4_sp_pn_bc_s3456.json",
+    "steady_peak/v4_sp_pn_bc_pde_f_s3456.json",
+    "steady_peak/v4_sp_pn_bc_pde_ema_s3456.json",
+    "steady_peak/v4_sp_pnpp_data_s3456.json",
+    "steady_peak/v4_sp_pnpp_bc_s3456.json",
+    "steady_peak/v4_sp_pnpp_bc_pde_f_s3456.json",
+    "steady_peak/v4_sp_pnpp_bc_pde_ema_s3456.json",
+    "transient_autograd/v4_tr_pn_data_s3456.json",
+    "transient_autograd/v4_tr_pn_bc_s3456.json",
+    "transient_autograd/v4_tr_pn_bc_pde_f_s3456.json",
+    "transient_autograd/v4_tr_pn_bc_pde_ema_s3456.json",
+    "transient_autograd/v4_tr_pnpp_data_s3456.json",
+    "transient_autograd/v4_tr_pnpp_bc_s3456.json",
+    "transient_autograd/v4_tr_pnpp_bc_pde_f_s3456.json",
+    "transient_autograd/v4_tr_pnpp_bc_pde_ema_s3456.json"
+  ],
+  "counts": {
+    "arms": 16,
+    "runs": 48,
+    "seeds": 3
+  },
+  "created_at": "2026-08-08T08:11:21.758726+00:00",
+  "design": "2 temporal x 2 backbone x 4 training modes x 3 seeds",
+  "paired_groups": [
+    {
+      "backbone": "pointnet",
+      "configs": [
+        "steady_peak/v4_sp_pn_data_s1234.json",
+        "steady_peak/v4_sp_pn_bc_s1234.json",
+        "steady_peak/v4_sp_pn_bc_pde_f_s1234.json",
+        "steady_peak/v4_sp_pn_bc_pde_ema_s1234.json"
+      ],
+      "seed": 1234,
+      "temporal_mode": "steady_peak"
+    },
+    {
+      "backbone": "pointnetpp",
+      "configs": [
+        "steady_peak/v4_sp_pnpp_data_s1234.json",
+        "steady_peak/v4_sp_pnpp_bc_s1234.json",
+        "steady_peak/v4_sp_pnpp_bc_pde_f_s1234.json",
+        "steady_peak/v4_sp_pnpp_bc_pde_ema_s1234.json"
+      ],
+      "seed": 1234,
+      "temporal_mode": "steady_peak"
+    },
+    {
+      "backbone": "pointnet",
+      "configs": [
+        "transient_autograd/v4_tr_pn_data_s1234.json",
+        "transient_autograd/v4_tr_pn_bc_s1234.json",
+        "transient_autograd/v4_tr_pn_bc_pde_f_s1234.json",
+        "transient_autograd/v4_tr_pn_bc_pde_ema_s1234.json"
+      ],
+      "seed": 1234,
+      "temporal_mode": "transient_81"
+    },
+    {
+      "backbone": "pointnetpp",
+      "configs": [
+        "transient_autograd/v4_tr_pnpp_data_s1234.json",
+        "transient_autograd/v4_tr_pnpp_bc_s1234.json",
+        "transient_autograd/v4_tr_pnpp_bc_pde_f_s1234.json",
+        "transient_autograd/v4_tr_pnpp_bc_pde_ema_s1234.json"
+      ],
+      "seed": 1234,
+      "temporal_mode": "transient_81"
+    },
+    {
+      "backbone": "pointnet",
+      "configs": [
+        "steady_peak/v4_sp_pn_data_s2345.json",
+        "steady_peak/v4_sp_pn_bc_s2345.json",
+        "steady_peak/v4_sp_pn_bc_pde_f_s2345.json",
+        "steady_peak/v4_sp_pn_bc_pde_ema_s2345.json"
+      ],
+      "seed": 2345,
+      "temporal_mode": "steady_peak"
+    },
+    {
+      "backbone": "pointnetpp",
+      "configs": [
+        "steady_peak/v4_sp_pnpp_data_s2345.json",
+        "steady_peak/v4_sp_pnpp_bc_s2345.json",
+        "steady_peak/v4_sp_pnpp_bc_pde_f_s2345.json",
+        "steady_peak/v4_sp_pnpp_bc_pde_ema_s2345.json"
+      ],
+      "seed": 2345,
+      "temporal_mode": "steady_peak"
+    },
+    {
+      "backbone": "pointnet",
+      "configs": [
+        "transient_autograd/v4_tr_pn_data_s2345.json",
+        "transient_autograd/v4_tr_pn_bc_s2345.json",
+        "transient_autograd/v4_tr_pn_bc_pde_f_s2345.json",
+        "transient_autograd/v4_tr_pn_bc_pde_ema_s2345.json"
+      ],
+      "seed": 2345,
+      "temporal_mode": "transient_81"
+    },
+    {
+      "backbone": "pointnetpp",
+      "configs": [
+        "transient_autograd/v4_tr_pnpp_data_s2345.json",
+        "transient_autograd/v4_tr_pnpp_bc_s2345.json",
+        "transient_autograd/v4_tr_pnpp_bc_pde_f_s2345.json",
+        "transient_autograd/v4_tr_pnpp_bc_pde_ema_s2345.json"
+      ],
+      "seed": 2345,
+      "temporal_mode": "transient_81"
+    },
+    {
+      "backbone": "pointnet",
+      "configs": [
+        "steady_peak/v4_sp_pn_data_s3456.json",
+        "steady_peak/v4_sp_pn_bc_s3456.json",
+        "steady_peak/v4_sp_pn_bc_pde_f_s3456.json",
+        "steady_peak/v4_sp_pn_bc_pde_ema_s3456.json"
+      ],
+      "seed": 3456,
+      "temporal_mode": "steady_peak"
+    },
+    {
+      "backbone": "pointnetpp",
+      "configs": [
+        "steady_peak/v4_sp_pnpp_data_s3456.json",
+        "steady_peak/v4_sp_pnpp_bc_s3456.json",
+        "steady_peak/v4_sp_pnpp_bc_pde_f_s3456.json",
+        "steady_peak/v4_sp_pnpp_bc_pde_ema_s3456.json"
+      ],
+      "seed": 3456,
+      "temporal_mode": "steady_peak"
+    },
+    {
+      "backbone": "pointnet",
+      "configs": [
+        "transient_autograd/v4_tr_pn_data_s3456.json",
+        "transient_autograd/v4_tr_pn_bc_s3456.json",
+        "transient_autograd/v4_tr_pn_bc_pde_f_s3456.json",
+        "transient_autograd/v4_tr_pn_bc_pde_ema_s3456.json"
+      ],
+      "seed": 3456,
+      "temporal_mode": "transient_81"
+    },
+    {
+      "backbone": "pointnetpp",
+      "configs": [
+        "transient_autograd/v4_tr_pnpp_data_s3456.json",
+        "transient_autograd/v4_tr_pnpp_bc_s3456.json",
+        "transient_autograd/v4_tr_pnpp_bc_pde_f_s3456.json",
+        "transient_autograd/v4_tr_pnpp_bc_pde_ema_s3456.json"
+      ],
+      "seed": 3456,
+      "temporal_mode": "transient_81"
+    }
+  ],
+  "route": "volume_uvwp_bc_rcr_v4",
+  "schema_version": 1,
+  "seed_groups": {
+    "1234": [
+      "steady_peak/v4_sp_pn_data_s1234.json",
+      "steady_peak/v4_sp_pn_bc_s1234.json",
+      "steady_peak/v4_sp_pn_bc_pde_f_s1234.json",
+      "steady_peak/v4_sp_pn_bc_pde_ema_s1234.json",
+      "steady_peak/v4_sp_pnpp_data_s1234.json",
+      "steady_peak/v4_sp_pnpp_bc_s1234.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_f_s1234.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_ema_s1234.json",
+      "transient_autograd/v4_tr_pn_data_s1234.json",
+      "transient_autograd/v4_tr_pn_bc_s1234.json",
+      "transient_autograd/v4_tr_pn_bc_pde_f_s1234.json",
+      "transient_autograd/v4_tr_pn_bc_pde_ema_s1234.json",
+      "transient_autograd/v4_tr_pnpp_data_s1234.json",
+      "transient_autograd/v4_tr_pnpp_bc_s1234.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_f_s1234.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_ema_s1234.json"
+    ],
+    "2345": [
+      "steady_peak/v4_sp_pn_data_s2345.json",
+      "steady_peak/v4_sp_pn_bc_s2345.json",
+      "steady_peak/v4_sp_pn_bc_pde_f_s2345.json",
+      "steady_peak/v4_sp_pn_bc_pde_ema_s2345.json",
+      "steady_peak/v4_sp_pnpp_data_s2345.json",
+      "steady_peak/v4_sp_pnpp_bc_s2345.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_f_s2345.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_ema_s2345.json",
+      "transient_autograd/v4_tr_pn_data_s2345.json",
+      "transient_autograd/v4_tr_pn_bc_s2345.json",
+      "transient_autograd/v4_tr_pn_bc_pde_f_s2345.json",
+      "transient_autograd/v4_tr_pn_bc_pde_ema_s2345.json",
+      "transient_autograd/v4_tr_pnpp_data_s2345.json",
+      "transient_autograd/v4_tr_pnpp_bc_s2345.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_f_s2345.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_ema_s2345.json"
+    ],
+    "3456": [
+      "steady_peak/v4_sp_pn_data_s3456.json",
+      "steady_peak/v4_sp_pn_bc_s3456.json",
+      "steady_peak/v4_sp_pn_bc_pde_f_s3456.json",
+      "steady_peak/v4_sp_pn_bc_pde_ema_s3456.json",
+      "steady_peak/v4_sp_pnpp_data_s3456.json",
+      "steady_peak/v4_sp_pnpp_bc_s3456.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_f_s3456.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_ema_s3456.json",
+      "transient_autograd/v4_tr_pn_data_s3456.json",
+      "transient_autograd/v4_tr_pn_bc_s3456.json",
+      "transient_autograd/v4_tr_pn_bc_pde_f_s3456.json",
+      "transient_autograd/v4_tr_pn_bc_pde_ema_s3456.json",
+      "transient_autograd/v4_tr_pnpp_data_s3456.json",
+      "transient_autograd/v4_tr_pnpp_bc_s3456.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_f_s3456.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_ema_s3456.json"
+    ]
+  },
+  "seeds": [
+    1234,
+    2345,
+    3456
+  ],
+  "submission": {
+    "data_gate": "outputs/wss_pinn/volume_uvwp_bc_rcr_v4/audits/stage0/gate_report.json",
+    "max_concurrent": 4,
+    "output": "outputs/wss_pinn/volume_uvwp_bc_rcr_v4/submission.json",
+    "preflight_report": "outputs/wss_pinn/volume_uvwp_bc_rcr_v4/audits/preflight/report.json"
+  },
+  "temporal_groups": {
+    "steady_peak": [
+      "steady_peak/v4_sp_pn_data_s1234.json",
+      "steady_peak/v4_sp_pn_bc_s1234.json",
+      "steady_peak/v4_sp_pn_bc_pde_f_s1234.json",
+      "steady_peak/v4_sp_pn_bc_pde_ema_s1234.json",
+      "steady_peak/v4_sp_pnpp_data_s1234.json",
+      "steady_peak/v4_sp_pnpp_bc_s1234.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_f_s1234.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_ema_s1234.json",
+      "steady_peak/v4_sp_pn_data_s2345.json",
+      "steady_peak/v4_sp_pn_bc_s2345.json",
+      "steady_peak/v4_sp_pn_bc_pde_f_s2345.json",
+      "steady_peak/v4_sp_pn_bc_pde_ema_s2345.json",
+      "steady_peak/v4_sp_pnpp_data_s2345.json",
+      "steady_peak/v4_sp_pnpp_bc_s2345.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_f_s2345.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_ema_s2345.json",
+      "steady_peak/v4_sp_pn_data_s3456.json",
+      "steady_peak/v4_sp_pn_bc_s3456.json",
+      "steady_peak/v4_sp_pn_bc_pde_f_s3456.json",
+      "steady_peak/v4_sp_pn_bc_pde_ema_s3456.json",
+      "steady_peak/v4_sp_pnpp_data_s3456.json",
+      "steady_peak/v4_sp_pnpp_bc_s3456.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_f_s3456.json",
+      "steady_peak/v4_sp_pnpp_bc_pde_ema_s3456.json"
+    ],
+    "transient_81": [
+      "transient_autograd/v4_tr_pn_data_s1234.json",
+      "transient_autograd/v4_tr_pn_bc_s1234.json",
+      "transient_autograd/v4_tr_pn_bc_pde_f_s1234.json",
+      "transient_autograd/v4_tr_pn_bc_pde_ema_s1234.json",
+      "transient_autograd/v4_tr_pnpp_data_s1234.json",
+      "transient_autograd/v4_tr_pnpp_bc_s1234.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_f_s1234.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_ema_s1234.json",
+      "transient_autograd/v4_tr_pn_data_s2345.json",
+      "transient_autograd/v4_tr_pn_bc_s2345.json",
+      "transient_autograd/v4_tr_pn_bc_pde_f_s2345.json",
+      "transient_autograd/v4_tr_pn_bc_pde_ema_s2345.json",
+      "transient_autograd/v4_tr_pnpp_data_s2345.json",
+      "transient_autograd/v4_tr_pnpp_bc_s2345.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_f_s2345.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_ema_s2345.json",
+      "transient_autograd/v4_tr_pn_data_s3456.json",
+      "transient_autograd/v4_tr_pn_bc_s3456.json",
+      "transient_autograd/v4_tr_pn_bc_pde_f_s3456.json",
+      "transient_autograd/v4_tr_pn_bc_pde_ema_s3456.json",
+      "transient_autograd/v4_tr_pnpp_data_s3456.json",
+      "transient_autograd/v4_tr_pnpp_bc_s3456.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_f_s3456.json",
+      "transient_autograd/v4_tr_pnpp_bc_pde_ema_s3456.json"
+    ]
+  }
+}

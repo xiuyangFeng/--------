@@ -1,5 +1,7 @@
 # WSS 最小化路线 · 训练实验跟踪
 
+> **🧊 已冻结（2026-08-07 标注）**：2026-08-06 起主线收束为峰值体域 `u,v,w,p`，本跟踪不再新增轮次或续写；只作为 `training_wss_min/` 各轮实验的结果档案。
+
 > 用途：跟踪 `training_wss_min/`（PointNeXt 残差 baseline，独立于 V3P `training/`）的逐轮实验：
 > 设计、完整指标表、结论、待办。**每完成一轮/一次任务，回填本文档。**
 > 上位：[WSS最小化_代码修改与实验推进记录](WSS最小化_代码修改与实验推进记录.md) / [training_wss_min/README](../../training_wss_min/README.md)。
@@ -105,7 +107,7 @@ Jobs `11012`、`11013_0`、`11013_1` 均 `COMPLETED (0:0)`，分别耗时 `00:03
 
 ## 2026-07-26｜高 WSS 优化方案的第一性原理重估与对抗性审查（**无训练**，全库 192 例只读诊断）
 
-不提交任何作业。对 [WSS高值区域预测优化方案](WSS高值区域预测优化方案.md) 做第一性原理重估与对抗性审查，结论回填该文档 §13–§17。诊断脚本 `training_wss_min/tools/diagnose_high_wss_ceilings.py`，产物 `training_wss_min/preflight/high_wss_ceilings_20260726.json`。
+不提交任何作业。对 [WSS高值区域预测优化方案](_archive/WSS最小化/WSS高值区域预测优化方案.md) 做第一性原理重估与对抗性审查，结论回填该文档 §13–§17。诊断脚本 `training_wss_min/tools/diagnose_high_wss_ceilings.py`，产物 `training_wss_min/preflight/high_wss_ceilings_20260726.json`。
 
 **为什么这轮不训练**：现有锚点 `regp10_localtf_sa2_s1234` 的落盘产物已足以确定"下一步该往哪投"，而按原方案 §9 直接开 A0–A4 + B0–B5 十一臂会在一个**门禁自相矛盾、口径混用、且处于过拟合区**的框架里烧掉整轮预算。
 
@@ -904,7 +906,7 @@ log-z MSE 主损失 + raw-space scaled Huber 辅助。L0=`r6_scale_D_xyzgeom_s12
 ## 汇报｜A0E-ctrl 两例 postview（2026-07-12 ✅DONE）
 
 - 模型 `r5_a0e_b1_ctrl_s1234`；病例 `slow/WU_FENG_YAN`、`fast/RAN_QING_BO`（均为 train）。
-- 产物：`docs/03-汇报材料/figures/WSS最小路线_20260712/postview_a0e_ctrl/`（`*__surface_wall.vtp` 含 CFD/Pred/Error；映射覆盖率 100%）。
+- 产物：`docs/03-汇报材料/_archive/figures/WSS最小路线_20260712/postview_a0e_ctrl/`（`*__surface_wall.vtp` 含 CFD/Pred/Error；映射覆盖率 100%）。
 - 同点 wall R²：`0.3225` / `0.4959`；脚本 `training_wss_min/tools/export_wss_postview.py`。
 
 ## 第五轮｜F0 结案（2026-07-12 ✅DONE / 科学结案·工程未达标）
@@ -1050,7 +1052,7 @@ log-z MSE 主损失 + raw-space scaled Huber 辅助。L0=`r6_scale_D_xyzgeom_s12
 ## 第四轮状态（计划 v2.3 终审通过，历史快照）
 
 - 开发阶段仍须 val-only；`test16` 仅保留为最后一次的 legacy benchmark。
-- A5 只读诊断已完成**三 seed 标准化口径**（终审独立复现，seed1234 与原引用逐位一致）：8 个 val 病例、同一 FPS-2000 点上比较子采样/全量推理同索引输出，MAE/RMSE/Pearson/mean-shift：s1234 `0.1645/0.2278/0.9381/-0.050`、s7 `0.1413/0.1884/0.9605/-0.033`、s2025 `0.1191/0.1638/0.9717/-0.066`。三 seed 方向一致：全量推理系统性偏高 `0.03–0.07σ`，且点数最多的病例漂移最大。证据：`docs/02-推进与变更/assets_第四轮/a5_density_probe.{py,csv}`。这证明推理密度敏感，尚不能推出全量评估不正确或采用下采样插值作为修复。
+- A5 只读诊断已完成**三 seed 标准化口径**（终审独立复现，seed1234 与原引用逐位一致）：8 个 val 病例、同一 FPS-2000 点上比较子采样/全量推理同索引输出，MAE/RMSE/Pearson/mean-shift：s1234 `0.1645/0.2278/0.9381/-0.050`、s7 `0.1413/0.1884/0.9605/-0.033`、s2025 `0.1191/0.1638/0.9717/-0.066`。三 seed 方向一致：全量推理系统性偏高 `0.03–0.07σ`，且点数最多的病例漂移最大。证据：`docs/02-推进与变更/_archive/assets_第四轮/a5_density_probe.{py,csv}`。这证明推理密度敏感，尚不能推出全量评估不正确或采用下采样插值作为修复。
 - 下一步固定为 Stage A：split/bundle 完整性、worker-safe sampler、固定 train-only loss 阈值、A5 剩余项（同索引 raw top10 差 + 邻域 cap 审计）、残差校准、repeated-holdout；不直接启动 NLL、法向、rot_aug 或 6000 点训练。
 - 现行状态入口：本跟踪文档与 [WSS最小化代码修改与实验推进记录](WSS最小化_代码修改与实验推进记录.md)；第四轮计划已归档为[执行总结](../02-推进与变更/_archive/WSS最小化/WSS最小化_第四轮优化计划_执行总结与归档_2026-07-10.md)。
 

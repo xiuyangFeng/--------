@@ -1,8 +1,9 @@
-# wss_pinn — 峰值体域 `u,v,w,p` PINN 指令
+# wss_pinn — 体域 `u,v,w,p` PINN 指令
 
-本目录当前活动 route 是 `volume_uvwp_peak_field_v4`；Stage 0-a/0-b 与纯监督 Stage 1
-已完成。`volume_uvwp_peak_qs_smooth_v3` 是 Fluent 瞬态 peak `u,v,w,p` 标签 +
-Carreau–Yasuda 准稳态 PINN 正则的冻结历史基线。
+本目录当前活动主线是已实现并提交受 Gate 保护训练链的 `volume_uvwp_bc_rcr_v4`，设计真源为
+`docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md`。
+已完成的 `volume_uvwp_peak_field_v4` Stage 0–1 与
+`volume_uvwp_peak_qs_smooth_v3` 六臂均为冻结历史结果，不得覆盖或冒充新 V4。
 `volume_uvwp_peak_v1` 与 SAME5K-E7500 v2 保留为历史对照；旧“直接 WSS 输出 + 阶梯
 F0/F1/F2”路线已归档。
 
@@ -12,16 +13,21 @@ F0/F1/F2”路线已归档。
 - 新派生数据只写 `data_wss_pinn/volume_uvwp_peak_v1_train138_test35/`。
 - V3 新派生边界只写
   `data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/`。
-- 冻结诊断后的下一轮派生合同只写
+- 已完成旧 field-v4 的派生合同只写
   `data_wss_pinn/volume_uvwp_peak_field_v4_train123_val15/`；不得复制或覆盖 V3 sidecar。
+- 新 V4 派生数据只允许写入
+  `data_wss_pinn/volume_uvwp_bc_rcr_v4_train138_test35/`，配置只写
+  `wss_pinn/configs/volume_uvwp_bc_rcr_v4/`，输出只写
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/`；不得复用旧 field-v4 写路径。
 - 新结果只写 `outputs/wss_pinn/volume_uvwp_peak_v1/`、
   `outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/`、
   `outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/`、
-  `outputs/wss_pinn/volume_uvwp_peak_field_v4/` 与对应 audit 目录；V3 结果只读。
+  `outputs/wss_pinn/volume_uvwp_peak_field_v4/`、
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/` 与对应 audit 目录；历史结果只读。
 - 活动训练、评估、数据、模型、物理、工具和 Slurm 入口直接位于 `wss_pinn/`
   根层；活动配置位于 `wss_pinn/configs/volume_uvwp_peak_v1/`、
   `wss_pinn/configs/volume_uvwp_peak_same5k_e7500_v2/` 和
-  `wss_pinn/configs/volume_uvwp_peak_qs_smooth_v3/`；下一轮新配置只写
+  `wss_pinn/configs/volume_uvwp_peak_qs_smooth_v3/`；已完成旧 field-v4 配置位于
   `wss_pinn/configs/volume_uvwp_peak_field_v4/`；Stage 1 确认种子只写
   `wss_pinn/configs/volume_uvwp_peak_field_v4_multiseed_top2/`。测试只保留配置、采样、
   模型可微性和物理公式四类核心合同，位于 `wss_pinn/tests/test_volume_*.py`；
@@ -34,7 +40,46 @@ F0/F1/F2”路线已归档。
 
 ## 冻结科学合同
 
-### 当前 V3
+### 新 V4 v1.2 实现与运行边界
+
+- split 为 train138/test35，不设 val；原 val15 合并回训练集。test35 是
+  development-exposed screen，禁止用于训练停止、checkpoint、动态权重、采样或架构选择。
+- 输入固定为 `xyz+geom` 加显式病例条件：`A_mesh`、`Q_actual_peak`、四出口面积与每出口
+  `R1/R2/C`；禁止输入旧 V3 monitor pressure、CFD outlet-face pressure 或 UDF 求解后
+  `P_n`。
+- 面积/RCR/`Q_actual_peak` 显式进入网络；no-slip、入口 `Q_nom/A_udf` Dirichlet BC 与
+  瞬态质量流量 RCR 一致性进入 BC loss，`lambda_bc=1`；continuity/momentum 属于 PDE 组。
+- 架构固定比较 PointNet / PointNet++；每种、每个时间模式均保留 DATA、DATA+BC、
+  BC+PDE-fixed (`lambda_pde=1`) 与 BC+PDE-EMA 四臂，共 16 臂；正式 seeds 为
+  `[1234,2345,3456]`，合计 48 run。四臂共享初始化结构与采样协议，不加载旧 checkpoint。
+- 物理通过配置区分 `steady_peak/quasi_steady` 与
+  `transient_81/transient_autograd`；后者必须显式输入时间和 `Q_in(t)`，由 autograd 计算
+  `du/dt`，不得用峰值单帧伪装瞬态。
+- data `u/v/w/p`、continuity、momentum x/y/z、no-slip、raw/weighted、动态权重、梯度
+  范数和冲突余弦必须单独记录。三轴 momentum 可分别监控，但动态平衡优先作为向量组。
+- 默认动态权重为老师建议的 detached EMA ratio：
+  `lambda_phy = clip(alpha * EMA(L_data)/(EMA(L_phy)+eps))`，默认每 50 step 更新并做权重
+  EMA 平滑。ratio/EMA/weight 必须在计算图外更新；不 detach 会使总损失代数退化为
+  `2*L_data`，属于硬失败。ReLoBRaLo/GradNorm 不作为首轮默认 controller。
+- 无 val 时主 checkpoint 为 train-only 原始分量达到预注册平台后的 `last_converged`；
+  weighted total 或 test35 均不能单独决定停止。
+- 2026-08-08 文件级核对确认 173/173 每例有 81 帧 `u/v/w/p`、81 个精确匹配
+  `Q_in(t)`、0.005 s solver step、0.01 s 场导出间隔、四组 RCR 和正值入口/四出口面积。
+  Stage 0 builder 已实现跨时相点身份、时间映射、pressure gauge、注册向量和 train-only
+  stats Gate；173/173 全量 Gate 已在本地通过，Slurm CPU `11970` 负责提交后的复核。
+- 用户已明确授权正式多 GPU 训练提交；最终链为 `11970 → 11971 → 11972_[0-47%4]`，
+  正式数组必须依赖 Stage 0 与 GPU preflight 成功。2026-08-09 用户截断 `11972_7`
+  与 `11972_[8-47]`。2026-08-14 补提交 `12210_[7-47%4]`。2026-08-16 用户要求为师姐
+  空出两卡：保留 `12210_{11,13}`（GPU0/3），杀死并重排 `14/15`，后续未启动任务改为
+  `ArrayTaskThrottle=2`。2026-08-17 凌晨 master 失联，`12210_{11,16}` 被
+  `NODE_FAIL` 自动 requeue，`12210_17` 半成品后同样被 requeue。11/16/17 半成品已隔离，
+  再启动为全新开跑，不得 resume。2026-08-20 用户授权把等待作业改回四卡并行：
+  `scontrol update JobId=12210 ArrayTaskThrottle=4`。同日用户要求使用空闲的
+  node04：该节点只有 2×A100、不在 GPU 分区，已直启 `11/14`（PID
+  `2098215/2098627`），并从数组 `scancel` 对应 task。当前 master 跑 `22/23/24`。
+  test35 批量评估、WSS 和工作簿回填仍未获授权。
+
+### 历史 V3 与旧 field-v4 冻结合同
 
 - 科学定位固定为“Fluent 瞬态 peak 标签 + Carreau–Yasuda 准稳态 PINN 正则”，
   不含 `du/dt`，不得写成稳态 CFD surrogate。

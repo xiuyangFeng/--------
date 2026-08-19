@@ -10,13 +10,15 @@ alwaysApply: true
 | 路线 | 推进记录 |
 | --- | --- |
 | V3P / V3D / 训练主线 / 通用代码 | `docs/02-推进与变更/代码修改与实验推进记录.md` |
-| **WSS-only 最小化**（`pipeline_wss_min/`） | `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md` |
+| **WSS 独立线**（`pipeline_wss_min/`、`training_wss_min/`、`wss_mri_calculator/`、**`wss_pinn/` 当前主线**） | `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`（细节条目）；主日志只写一条指针/摘要 |
 
-WSS 最小化路线细则见 [wss-min-log.mdc](wss-min-log.mdc) 与 `pipeline_wss_min/AGENTS.md`。**禁止**把 WSS-min 详细条目写入 V3P 大日志。
+WSS 独立线细则见 [wss-min-log.mdc](wss-min-log.mdc) 与 `pipeline_wss_min/AGENTS.md`。**禁止**把 WSS 线详细条目写入 V3P 大日志。
 
 ## 通用规则
 
 每次完成一个任务或实验后，**必须**在对应推进记录中同步更新；新增条目应写在文档**开头**（最新在上），不得在文末追加。
+
+**滚动切卷**：两份推进记录已按区间切卷（主文件只留当前活跃区间；历史卷在 `docs/02-推进与变更/_archive/`）。主文件超过约 1500 行或跨季度时，把最旧月份整月切入新卷并更新文首历史卷索引；切卷只搬不改写。
 
 ## 记录内容应包含
 

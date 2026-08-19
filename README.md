@@ -1,7 +1,7 @@
 # AAA / WSS 数字孪生实验仓库
 
 本仓库包含血管几何预处理、WSS 场重建训练，以及 velocity→WSS 物理估算对照。
-**2026-08-06 起当前模型优化主攻**是峰值体域 `u,v,w,p`；直接 WSS 网络路线保留历史结果，
+**2026-08-08 起当前模型设计主攻**是显式 RCR 条件的体域 `u,v,w,p` V4 重构；直接 WSS 网络路线保留历史结果，
 `wss_mri_calculator` 的 Profile-Secant V3 冻结为最终 checkpoint 的下游验证器，不再进入
 新的 WSS 算法、loss 或选模优化。
 
@@ -9,7 +9,7 @@
 
 | 路线 | 代码 | 数据 / 产物 | 说明入口 |
 | --- | --- | --- | --- |
-| **峰值体域 `u,v,w,p` PINN** | [`wss_pinn/`](wss_pinn/) | `data_wss_pinn/volume_uvwp_peak_*`、`outputs/wss_pinn/volume_uvwp_peak_{v1,same5k_e7500_v2,qs_smooth_v3,field_v4}/` | [Stage 0–1 已完成执行合同](docs/02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md) · [`wss_pinn/README.md`](wss_pinn/README.md) · [路线真源](docs/02-推进与变更/WSS_PINN/README.md) |
+| **体域 `u,v,w,p` PINN** | [`wss_pinn/`](wss_pinn/) | 历史 `volume_uvwp_peak_*`；新 V4 计划写入 `data_wss_pinn/volume_uvwp_bc_rcr_v4_train138_test35/` 与 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/` | [V4 大重构设计](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md) · [`wss_pinn/README.md`](wss_pinn/README.md) · [路线真源](docs/02-推进与变更/WSS_PINN/README.md) |
 | **WSS-min 预处理** | [`pipeline_wss_min/`](pipeline_wss_min/) | `data_wss_min/` | [`pipeline_wss_min/README.md`](pipeline_wss_min/README.md) |
 | **WSS-min 训练** | [`training_wss_min/`](training_wss_min/) | `outputs/wss_min/`（及本目录 `runs/`） | [`training_wss_min/README.md`](training_wss_min/README.md) |
 | velocity→WSS 冻结验证器 | [`wss_mri_calculator/`](wss_mri_calculator/) | `outputs/wss_mri_calculator/`、`outputs/wss_pinn/audits/…` | [V1–V4 总跟踪](wss_mri_calculator/experiments/README.md) · [CFD 适配说明](wss_mri_calculator/README_CFD_ADAPTATION.md) |
@@ -17,14 +17,14 @@
 文档总索引：[`docs/README.md`](docs/README.md)。
 WSS-min 推进记录（专用，勿混入 V3 大日志）：[`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`](docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md)。
 
-### 状态速览（2026-08-06）
+### 状态速览（2026-08-08）
 
 - **WSS-min 数据**：v4 活动口径；AG76（`stl_landmarks_v4`）；AAA 几何签核 63 / 训练白名单 57；ILO 术前审核通过 41（未进正式 split）。产物独立于 `data_new/`。
 - **WSS-min 训练**：单 seed 开发锚点为 **LSA2 SAME-H2 + `log(local_radius)`**（`R²_cb≈0.3506`）；暂不做多 seed。矩阵真源见 [PointNet baseline 进度跟踪](docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。
-- **峰值体域 PINN**：field-v4 Stage 0–1 已完成。B0=`0.699472`；三种子 G-Raw/G-PE
-  `S_field^cb=0.576116±0.007477 / 0.581208±0.012599`。PE 仅 1/3 seeds 改善且触发
-  pressure/最差 ILO 队列护栏，因此保留 G-Raw，关闭 PE 扫频和 local decoder；Stage 2
-  尚未启动，下一假设是 patient-specific conditioning / 缺失可部署 BC。
+- **体域 PINN 新 V4**：大重构设计已形成，采用 train138/test35、无 val、PointNet/
+  PointNet++ × data-only/PINN-fixed/PINN-EMA-ratio 共 12 臂，显式输入 `Q_in`、入口/四出口面积和四组 `R1/R2/C`，
+  通过配置区分准稳态 peak 与含 `du/dt` 的 81 帧瞬态路线。173/173 文件级覆盖已确认，
+  但新 route、跨时相 Gate 和训练实现尚未落地；旧 field-v4 Stage 0–1 保留为历史结果。
 - **wss_mri_calculator**：Profile-Secant V3 冻结为 downstream validator。test35 全壁面病例 overall / pooled high-WSS R²=`0.9604/0.9440`，逐病例 high-WSS R² 均值=`0.7735`，平均峰值低估 `15.81%`。本轮不继续调算法，只在 `u,v,w,p` 主 checkpoint 冻结后做一次 sanity check。
 
 ---

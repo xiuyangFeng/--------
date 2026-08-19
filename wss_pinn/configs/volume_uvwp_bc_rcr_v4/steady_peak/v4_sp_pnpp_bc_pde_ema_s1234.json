@@ -1,0 +1,28 @@
+{
+  "experiment": {
+    "backbone": "pointnetpp",
+    "id": "V4-SP-PNPP-BC-PDE-EMA-s1234",
+    "momentum_mode": "quasi_steady",
+    "seed": 1234,
+    "temporal_mode": "steady_peak",
+    "time_input": false,
+    "training_mode": "bc_pde_ema"
+  },
+  "loss_balancing": {
+    "mode": "ema_loss_ratio"
+  },
+  "paths": {
+    "run_dir": "outputs/wss_pinn/volume_uvwp_bc_rcr_v4/steady_peak/V4-SP-PNPP-BC-PDE-EMA-s1234"
+  },
+  "physics": {
+    "bc_enabled": true,
+    "lambda_bc": 1.0,
+    "lambda_pde": 1.0,
+    "pde_enabled": true
+  },
+  "route": "volume_uvwp_bc_rcr_v4",
+  "sampling": {},
+  "train": {
+    "seed": 1234
+  }
+}
