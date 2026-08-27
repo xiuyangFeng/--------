@@ -5,7 +5,7 @@ alwaysApply: true
 
 # 实验文档规范
 
-**当前阶段（2026-08-06 收束）**：模型开发主线为**峰值体域 `u,v,w,p` PINN**（`wss_pinn/`，field-v4 Stage 0–1 已完成、保留 G-Raw，Stage 2 未启动）。接到实验/分析/训练任务时，**先读** `docs/02-推进与变更/WSS_PINN/README.md`（路线真源）与 `核心代码诊断与下一轮设计建议_2026-08-05.md`。任务 A V3 直接 WSS、WSS-min PointNet baseline、velocity→WSS 均为**历史/冻结线**，不默认打开。
+**当前阶段（2026-08-21）**：模型开发主线为**新 V4** `volume_uvwp_bc_rcr_v4`（`wss_pinn/`）。接到实验/分析/训练任务时，**先读** `docs/02-推进与变更/WSS_PINN/README.md`（路线真源）与 `WSS_PINN_V4大重构设计方案_2026-08-08.md`。旧 field-v4 Stage 0–1（保留 G-Raw）与 V3 六臂均为**历史/冻结线**，不默认打开。任务 A V3 直接 WSS、WSS-min PointNet baseline、velocity→WSS 同为历史/冻结线。
 
 ## 全局最少入口（任意任务）
 
@@ -19,7 +19,7 @@ alwaysApply: true
 
 | 场景 | 再读 |
 | --- | --- |
-| **`u,v,w,p` 体域 PINN（当前主线）** | `docs/02-推进与变更/WSS_PINN/README.md` + `wss_pinn/README.md` + `WSS最小化_代码修改与实验推进记录.md`（**只读文首 1–2 条**） |
+| **`u,v,w,p` 体域 PINN（当前主线）** | `docs/02-推进与变更/WSS_PINN/README.md` + `WSS_PINN_V4大重构设计方案_2026-08-08.md` + `wss_pinn/README.md` + `WSS最小化_代码修改与实验推进记录.md`（**只读文首 1–2 条**） |
 | 分析 V3 历史实验结果 | `experiment-analysis.mdc` + `.cursor/skills/analyze-experiment/` |
 | 后处理可视化 / postview | `点云回插面片可视化目录说明.md` + `.cursor/skills/postview-surface-viz/` |
 | WSS-only 最小化（🧊 已冻结，仅查档） | `wss-min-log.mdc` + `WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md`（结果档案，不新增实验） |

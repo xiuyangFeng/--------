@@ -14,6 +14,7 @@ from wss_pinn.v4.build import _case_complete
 from wss_pinn.v4.controller import PDEWeightController
 from wss_pinn.v4.models import build_model
 from wss_pinn.v4.physics import rcr_pressure_form_residual, strong_form_residuals
+from wss_pinn.v4.evaluate import denormalize_prediction, vector_relative_l2
 from wss_pinn.v4.waveform import q_nom_numpy, q_nom_torch
 
 
@@ -162,6 +163,26 @@ class TestPhysics(unittest.TestCase):
         )
         self.assertTrue(torch.allclose(residual["du_dt_m_s2"][:, 0], coords[:, 0]))
         self.assertTrue(torch.isfinite(residual["momentum"]).all())
+
+
+class TestEvaluateMetrics(unittest.TestCase):
+    def test_vector_relative_l2_is_the_registered_primary(self):
+        truth = np.asarray([[3.0, 0.0, 4.0], [0.0, 0.0, 0.0]], dtype=np.float64)
+        pred = np.asarray([[3.0, 0.0, 4.0], [0.0, 3.0, 4.0]], dtype=np.float64)
+        # ||err||_2 = 5, ||truth||_2 = 5
+        self.assertAlmostEqual(vector_relative_l2(pred, truth), 1.0)
+
+    def test_denormalize_prediction_inverts_field_stats(self):
+        stats = {
+            "velocity_mean": np.asarray([1.0, -2.0, 0.5], dtype=np.float32),
+            "velocity_std": np.asarray([2.0, 4.0, 0.5], dtype=np.float32),
+            "pressure_mean": np.asarray([100.0], dtype=np.float32),
+            "pressure_std": np.asarray([10.0], dtype=np.float32),
+        }
+        pred = np.asarray([[0.5, 0.25, -2.0, 1.5]], dtype=np.float32)
+        velocity, pressure = denormalize_prediction(pred, stats)
+        np.testing.assert_allclose(velocity, [[2.0, -1.0, -0.5]], atol=1e-6)
+        np.testing.assert_allclose(pressure, [115.0], atol=1e-6)
 
 
 if __name__ == "__main__":

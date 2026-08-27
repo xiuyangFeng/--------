@@ -6,6 +6,281 @@
 > **滚动切卷**：本文件只保留 2026-08 以来的条目；2026-07 条目（PointNet 矩阵、新队列审计、WSS-PINN F0/F1）见历史卷
 > [2026-07卷](_archive/WSS最小化_代码修改与实验推进记录_2026-07卷.md)。主文件超过约 1500 行或跨季度时，把最旧月份整月切入 `_archive/` 新卷并更新本索引。
 
+## 2026-08-27｜完训臂 WSS 下游（与 0–14 同协议）· 已完成 · 未填工作簿
+
+**本次主要修改**：用户要求对已评完的 18–38、40 补跑 WSS，口径与 0–14 相同。
+node04 GPU1 从 11:45 跑到 15:35，22 臂全部完成。xlsx 仍不改。
+
+**口径（回答「全量还是输入点」）**：
+- **速度推理是峰值时刻全场体点**（V1 `interior_coords`），不是训练 2k/5k query。
+- 瞬态只解 **peak frame** 到该全体域，不是 81 帧。
+- **WSS 本身是 test35×1200 壁面采样**，不是全壁面；Profile-Secant V3 冻结。
+- speed OLS 仍用解剖 ROI 上的全场速度。
+
+**对应代码/文档**：
+`docs/03-汇报材料/tools/update_wss_pinn_v4_workbook.py arm --output-dir …`；
+产物 `outputs/wss_pinn/audits/v4_wss_18_38_40_20260827/`；
+汇总 `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`（含 0–14 共 37 臂）；
+日志 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/eval_logs/gpu1_wss_18_38_40_20260827.log`。
+
+**实验结果摘要**：WSS R²_cb 仍为负或贴零。DATA 最差（约 −3～−10）；PDE 臂约 −0.6～0。
+已评最好贴零：`TR-PNPP-BC-PDE-F-s1234` ≈ 0.00、`TR-PN-BC-PDE-F-s2345` ≈ −0.06。
+**禁止当正式赢家。**
+
+| 组 | DATA | DATA+BC | BC+PDE-F | BC+PDE-EMA |
+| --- | ---: | ---: | ---: | ---: |
+| SP-PN s1234 | −7.97 | −1.89 | −0.36 | −0.10 |
+| SP-PNPP s1234 | −7.47 | −1.54 | −0.34 | −0.45 |
+| TR-PN s1234 | −4.66 | −0.81 | −0.24 | −0.37 |
+| TR-PNPP s1234 | −3.88 | −0.81 | −0.00 | —（15） |
+| SP-PN s2345 | —（16） | —（17） | −0.59 | −0.39 |
+| SP-PNPP s2345 | −6.26 | −1.46 | −0.36 | −0.10 |
+| TR-PN s2345 | −3.92 | −0.85 | −0.06 | −0.10 |
+| TR-PNPP s2345 | −2.86 | −1.03 | −0.22 | −0.15 |
+| SP-PN s3456 | −10.05 | −1.52 | −0.38 | −0.20 |
+| SP-PNPP s3456 | −9.12 | −2.53 | −0.22 | —（39） |
+| TR-PN s3456 | −2.82 | —（41） | —（42） | —（43） |
+| TR-PNPP s3456 | —（44） | —（45） | —（46） | —（47） |
+
+**遗留问题**：xlsx 未更新。缺 15 / 16–17 / 39 / 41–47。未做 full-wall fit。
+
+**推进到实验步骤**：37/48 已有场指标 + WSS 下游；工作簿仍只有 0–14。
+
+**当前状态判断**：GPU1 已空闲；index 15 仍在 GPU0。WSS 不能当可用重建。
+
+**下一步**：用户点名后再填 xlsx；其余臂完训后再补评。
+
+## 2026-08-27｜完训臂 official test35（22 个新评）· 已完成 · 未填工作簿
+
+**本次主要修改**：用户要求用 node04 空闲卡，把已完训但未 test 的 V4 臂做
+official test35，并更新文档、**先不改 xlsx**。当时 GPU0 仍在跑 index 15，
+GPU1 空闲。按 0–14 同一协议评完 index **18–38、40** 共 22 臂
+（`last_converged`，`eval_support`，稳态全体非壁面 / 瞬态 eligible×81）。
+未跑 WSS，未按 test35 反选 checkpoint。
+
+**对应代码/文档**：
+`python -m wss_pinn.v4.evaluate --protocol official --checkpoint last_converged`；
+日志 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/eval_logs/gpu1_completed_pending_20260827.log`；
+记录 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/eval_logs/node04_eval_completed_pending_20260827.json`；
+新 22 臂汇总 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_18_38_40_official_20260827.json`；
+全部已评 37 臂 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_completed_official_20260827.json`。
+
+**方法变更**：无。口径与 2026-08-23 的 0–14 相同。
+
+**实验结果摘要**：primary `E_rel_l2`（病例等权，越低越好；零场预测 = 1）。
+已评 37/48。方向与 0–14 一致：准稳态 DATA 仍 ≥1.10；PDE 臂略好但仍贴近零场。
+目前已评最低约 **0.894**（`TR-PN-BC-PDE-F-s1234` 与 `TR-PNPP-BC-PDE-F-s2345`）。
+瞬态压力 R² 仍约 −20，只作次要诊断。**禁止当正式赢家 / 3-seed Holm。**
+
+| 组 | DATA | DATA+BC | BC+PDE-F | BC+PDE-EMA |
+| --- | ---: | ---: | ---: | ---: |
+| SP-PN s1234 | 1.125 | 1.176 | 0.968 | 0.935 |
+| SP-PNPP s1234 | 1.105 | 1.153 | 0.964 | 0.910 |
+| TR-PN s1234 | 1.041 | 0.937 | **0.894** | 0.965 |
+| TR-PNPP s1234 | 1.037 | 0.941 | 0.907 | —（15 在训） |
+| SP-PN s2345 | —（16） | —（17） | 0.997 | 0.929 |
+| SP-PNPP s2345 | 1.128 | 1.116 | 0.979 | 0.919 |
+| TR-PN s2345 | 1.017 | 0.953 | 0.919 | 0.938 |
+| TR-PNPP s2345 | 1.018 | 0.950 | **0.894** | 0.951 |
+| SP-PN s3456 | 1.139 | 1.138 | 0.984 | 0.926 |
+| SP-PNPP s3456 | 1.129 | 1.211 | 0.950 | —（39 在训） |
+| TR-PN s3456 | 1.012 | —（41） | —（42） | —（43） |
+| TR-PNPP s3456 | —（44） | —（45） | —（46） | —（47） |
+
+**遗留问题**：xlsx 未更新。缺 15 / 16–17 / 39 / 41–47。未跑 WSS。
+
+**推进到实验步骤**：已评完训臂的场指标；工作簿仍只有 0–14。
+
+**当前状态判断**：GPU1 评估已结束并空闲；index 15 仍在 GPU0。矩阵未齐，不能 Holm。
+
+**下一步**：15 与其余臂完训后再评；用户点名后再填 xlsx / 跑 WSS。
+
+## 2026-08-25｜优先直启 index 15（seed1234 末臂）· 进行中
+
+**本次主要修改**：用户要求下一个实验先跑 **index 15**（`V4-TR-PNPP-BC-PDE-EMA-s1234`），
+其余 pending 正常排队，以便先齐 seed1234 再汇总评估。未杀 master 上正在跑的
+`12210_{31,37,38,39}`。node04 两张 A100 空闲且不在 GPU 分区，按 11/14 先例
+SSH 直启 GPU0 全新开跑，并从数组 `scancel 12210_15`。确认正式 `run_dir` 原先不存在，
+08-16 半成品仍只在 `*_cancelled_*` 目录。已写出 epoch 0–2。
+
+**对应代码/文档**：
+`wss_pinn/cluster/launch_node04_v4_index15.sh`；
+记录 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_15_20260825.json`；
+日志 `outputs/wss_pinn/slurm/v4_train_node04_15.out`。
+
+**方法变更**：无训练/评估协议变更。15 为全新开跑，不是 resume。
+
+**实验结果摘要**：启动后约 1 min 已完成 epoch 0–2，`mean_data_total` 约 1.17 → 0.89 → 1.00。
+PID `2206976`，node04 GPU0。其余队列：`12210_[16-17,40-47]` 仍 PENDING
+（`JobArrayTaskLimit`）。
+
+**遗留问题**：15 完训前不能补工作簿第 15 行；GPU1 仍空闲，未另开别的臂。
+
+**推进到实验步骤**：seed1234 第 16 臂已在训；0–14 评估/入账不变。
+
+**当前状态判断**：15 已从数组抽出并在 04 上跑，不会和 master 四卡抢下一个空槽。
+16–17、40–47 仍按 `%4` 排队。
+
+**下一步**：等 15 完训后再做 official test35 + 工作簿第 15 行；不按中途 loss 改训练。
+
+## 2026-08-23｜V4 seed1234 0–14 回填工作簿 + WSS 下游 + milestone 敏感性 · 待定（矩阵未齐）
+
+**本次主要修改**：用户授权后，把 seed1234 index **0–14** 写入
+`docs/03-汇报材料/WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx`
+主表（行 19–33），**index 15 留空**。新增 `E_rel_l2_cb` 列。按 V2/V3 方法补
+Profile-Secant V3、test35×1200 WSS，以及 `last_converged` vs `epoch_07500`
+场敏感性。未按 test35 反选 checkpoint。备份
+`…_备份_补V4_0-14前.xlsx`。
+
+**对应代码/文档**：
+`docs/03-汇报材料/tools/update_wss_pinn_v4_workbook.py`；
+产物 `outputs/wss_pinn/audits/v4_workbook_0_14_20260823/`；
+敏感性 sheet `V4 Checkpoint敏感性`。
+
+**方法变更**：场指标=official 宇宙（瞬态 eligible×81）。WSS=峰值全场速度 +
+冻结 Profile-Secant V3 ×1200。speed OLS 用已有解剖 ROI；WSS OLS 用同一 1200
+点（V2/V3 后来的 full-wall fit 未重做）。`last` 与 `last_converged` 权值 SHA
+相同，敏感性有效对照是 `epoch_07500`。
+
+**关键指标**（test35 / seed1234 / last_converged；禁止与 V2 SAME5K、V3 val-selected 裸比）：
+
+| 臂 | SP E_rel_l2 | SP WSS R²_cb | TR E_rel_l2 | TR WSS R²_cb |
+| --- | ---: | ---: | ---: | ---: |
+| DATA | 1.125 ± 0.172 | −7.97 ± 11.39 | 1.041 ± 0.143 | −4.66 ± 5.17 |
+| DATA+BC | 1.176 ± 0.127 | −1.89 ± 2.65 | 0.937 ± 0.055 | −0.81 ± 1.05 |
+| BC+PDE-F | 0.968 ± 0.060 | −0.36 ± 0.63 | 0.894 ± 0.052 | −0.24 ± 0.94 |
+| BC+PDE-EMA | 0.935 ± 0.071 | −0.10 ± 0.26 | 0.965 ± 0.019 | −0.37 ± 0.22 |
+
+PN++ 同向；TR-PNPP-F 的 WSS R²_cb ≈ 0.00 ± 0.37。`epoch_07500` 的 E 与终点同方向，
+DATA 略好于终点、PDE 臂接近。
+
+**Go-NoGo**：
+- **待定** — 单 seed、缺 15、无 Holm，不能宣布正式赢家。判据：§12.0。
+- **No-Go** — 用本表宣称可用场/WSS 重建。WSS R² 仍为负或贴零。
+- 工作簿 V4 行是 **screen 草稿**，不是 Stage 4 正式入账。
+
+**推进到实验步骤**：xlsx 已有 0–14 可对读的 V4 行；15 与其余 seeds 仍待完训。
+
+**当前状态判断**：主表 + V4 敏感性已按现有完训臂补齐；线性回归两张附表仍只有 V2/V3。
+
+**下一步**：等 index 15 完训后补第 15 行；48-run 齐后再做 3-seed 正式汇总。
+
+## 2026-08-23｜V4 seed1234 index 0–14 的 test35 official 评估 · 待定（矩阵未齐）
+
+**本次主要修改**：新增 `wss_pinn/v4/evaluate.py`。用户授权后在 node04 两张空闲
+A100 上评估完训臂 **0–14**（seed1234；缺 index 15
+`V4-TR-PNPP-BC-PDE-EMA-s1234`）。未跑 WSS，未按 test35 反选 checkpoint，未填
+xlsx。checkpoint 固定 `last_converged.pt`。
+
+**对应代码/文档**：`wss_pinn/v4/evaluate.py`；汇总
+`outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_0_14_official_20260823.json`；
+逐臂 `evaluation_official_last_converged_full.json`；日志
+`outputs/wss_pinn/volume_uvwp_bc_rcr_v4/eval_logs/`。
+
+**方法变更**：协议 `official` = `eval_support`（配置点数；稳态 5k / 瞬态 2k）→
+稳态全体非壁面体点；瞬态全部 eligible 缓存点 × 81 帧。这是 V4 评估宇宙，不是
+same5k 抽点。Primary 为病例等权速度向量相对 L2
+`E_case=‖u_pred−u_true‖₂/‖u_true‖₂`。零场预测的 `E=1`。
+
+**关键指标**（test35 / seed1234 / official / `last_converged`；禁止与 V2/V3 裸比）：
+
+| 臂 | SP-PN | SP-PNPP | TR-PN | TR-PNPP |
+| --- | ---: | ---: | ---: | ---: |
+| DATA | 1.125 | 1.105 | 1.041 | 1.037 |
+| DATA+BC | 1.176 | 1.153 | 0.937 | 0.941 |
+| BC+PDE-F | 0.968 | 0.964 | 0.894 | 0.907 |
+| BC+PDE-EMA | 0.935 | 0.910 | 0.965 | （缺 15） |
+
+辅指标：准稳态 speed R² 仍为负；瞬态 BC+PDE-F 的 speed R² 约 0.12–0.17。
+瞬态压力 R² 约 −20，不能当成功。NMAE 分母为 `RMS(y)`。
+
+**Go-NoGo**：
+- **待定** — 正式 16 臂 × 3-seed Holm 未齐；单 seed、缺 15，不能宣布架构/物理赢家。
+  判据：设计 §12.0。
+- **探索性方向** — 与 train-only「加物理抬高 data loss」不同：test35 上 PDE 臂
+  `E` 低于 DATA（DATA 甚至差于零场）。这不是选模依据。
+- **No-Go** — 用本切片宣称可用场重建。最低 `E≈0.89` 仍接近零场。
+- 不回填工作簿正式 V4 行。
+
+**推进到实验步骤**：Stage 4 的 seed1234 前 15 臂 screen 已落地；矩阵其余 run
+与 index 15 仍待完训后再评。
+
+**当前状态判断**：0–14 有可汇总的 test35 primary；结论仍是探索性 screen。
+
+**下一步**：等 index 15 与其余 seeds 完训后再做正式汇总；不跑 WSS；不按本表砍臂。
+
+## 2026-08-21｜归档 field-v4 Stage 0–1 执行提示词 · 🧊冻结
+
+**本次主要修改**：将已完成的
+`WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md` 移入
+`WSS_PINN/_archive/`，按 V3 六臂先例改名为
+`…_已完成_2026-08-06.md`。该提示词文首 2026-08-06 已写「已完成」；现行执行入口是
+`volume_uvwp_bc_rcr_v4`，不能再当待办。未改训练代码、未动 `outputs/`。
+
+**对应代码/文档**：
+[归档后的 Stage 0–1 提示词](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)、
+[归档索引](WSS_PINN/_archive/README.md)、[路线 README](WSS_PINN/README.md)、
+[V4 设计方案](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
+结论仍留在路线 README 的 field-v4 结果节；证据
+`outputs/wss_pinn/volume_uvwp_peak_field_v4/stage1_multiseed_and_promotion_report.json`。
+
+**Go-NoGo**：归档不改变历史结论 — **保留 G-Raw**；G-PE / local decoder **No-Go**。
+判据来源：field-v4 Stage 1 多种子报告。现行主线仍是新 V4，不据此重开 Stage 2。
+
+**推进到实验步骤**：文档入口收口；训练矩阵状态不变。
+
+**当前状态判断**：活动目录不再把 Stage 0–1 提示词当作当前执行合同。
+
+**下一步**：继续 `volume_uvwp_bc_rcr_v4` 48-run；不恢复 field-v4 Stage 2。
+
+## 2026-08-21｜V4 中期整理：22/48 完训的 train-only 分析 · 待定（primary）/ No-Go（train 侧加物理改善拟合）
+
+**本次主要修改**：未改训练代码、未提交作业、未读 test35、未跑 WSS、未回填
+`WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx`（该表仍只有
+V2/V3，符合设计「无 test35 不预填 V4 行」）。对已完训 22 个 run 的
+`training_summary.json` + 末 epoch `epoch_progress.jsonl` 做中期整理。
+
+**对应代码/文档**：
+- 证据：`outputs/wss_pinn/volume_uvwp_bc_rcr_v4/midterm_train_only_20260821.json`
+- 路线状态：`docs/02-推进与变更/WSS_PINN/README.md`
+- 设计方案文首进度：`WSS_PINN_V4大重构设计方案_2026-08-08.md`
+
+**背景假设**：四臂分离 DATA / DATA+BC / BC+PDE-fixed / BC+PDE-EMA 的贡献；
+停止只看 train-only raw 分量；primary endpoint 仍是 test35 速度向量相对 L2。
+
+**关键指标**（train138 末 epoch raw `mean_data_total`；split train138/test35；
+对照为同 backbone×seed 的 DATA 臂；**禁止与 V2/V3 test35 R² 裸比**）：
+
+| 臂 | SP-PN s1234 | SP-PNPP s1234 | 停止 |
+| --- | ---: | ---: | --- |
+| DATA | 0.1912 | 0.1932 | plateau 9859 |
+| DATA+BC | 0.4902 | 0.4997 | max_epochs |
+| BC+PDE-F | 0.7260 | 0.7301 | max_epochs |
+| BC+PDE-EMA | 0.8329 | 0.8262 | max_epochs / plateau 9985 |
+
+SP s1234 四臂初始化配对成立（PN `e23bcf10481f…`，PNPP `967333b84902…`）。
+EMA 四个完训臂 `λ_pde` 有 99.8% epoch 贴上限 10。瞬态 DATA 出现明显 seed 差：
+s1234 0.178 vs s2345 0.255。全部完训 run `test35_read_during_training=false`。
+
+队列（2026-08-21 11:34）：完训 22；master `12210_{26,27,29,30}` running；
+node04 直启 11/14 running；pending `12210_[15-17,31-47]`。
+
+**Go-NoGo**：
+- **待定** — primary endpoint（test35 相对 L2）未评估。判据：设计方案 §12.0。
+- **No-Go** — train 侧「加 BC/PDE 改善场拟合」。SP s1234 完整八臂上三组预注册
+  contrast 的 `data_total` 全部为正（变差）；p loss 在 PDE 两臂从 ~0.016 升到
+  0.50/0.80。判据：设计 §9/§12 四臂分离 + 禁止只看 weighted total。
+- **Inconclusive** — PointNet++ vs PointNet（同臂差 ~0.002）。
+- 不据此砍臂或改 λ；EMA 撞限可另立案重预注册，须不读 test35。
+
+**推进到实验步骤**：Stage 2/3 训练矩阵进行中；Stage 4 汇总与 test35 仍未启动。
+
+**当前状态判断**：中期证据足够说明「物理臂在训练损失上系统性差于 DATA」，
+但 3-seed 矩阵和 test35 主指标都未齐，不能写进工作簿或对外宣称架构/物理优劣。
+
+**下一步**：保持 12210 与 node04 11/14 跑完；seed3456 仍走原数组；矩阵冻结后再
+统一 test35。
+
 ## 2026-08-20｜node04 两张 A100 空闲，直启 `11/14`；不能同时跑 4 路
 
 **本次主要修改**：用户要求检查 node04 GPU。UID `1006/1007`、public 树可读、两张
@@ -344,7 +619,7 @@ DATA、PINN-fixed 与 PINN-EMA-ratio，共 12 臂；动态臂采用 detached EMA
 `wss_pinn/cluster/{preflight,run_experiment,evaluate_field_v4_fullvolume}.slurm`、
 `wss_pinn/configs/volume_uvwp_peak_field_v4*/`、[路线真源](WSS_PINN/README.md)、
 [`wss_pinn` README](../../wss_pinn/README.md)和
-[已完成执行合同](WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)。
+[已完成执行合同](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)。
 
 **推进到实验步骤**：Stage 0-a/0-b Gate pass；B0 val15 完成；Raw `11315_[0-1]`、
 PE `11318_[0-1]`、确认种子 `11321_[0-3]` 与 full-volume `11325_[0-5]` 全部完成、
@@ -365,7 +640,7 @@ momentum、2500 epoch、`lambda=1` 或自动正式提交合同，改为病例等
 边界 Gate 和纯监督表示矩阵。
 
 **对应代码/文档**：
-[当前执行提示词](WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)、
+[当时执行提示词](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)、
 [历史六臂提示词](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)、
 [归档索引](WSS_PINN/_archive/README.md)、[路线真源](WSS_PINN/README.md)、
 [`wss_pinn` README](../../wss_pinn/README.md)、`wss_pinn/AGENTS.md`、`docs/README.md`和

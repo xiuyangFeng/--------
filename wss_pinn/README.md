@@ -3,16 +3,18 @@
 > 当前活动主线：`volume_uvwp_bc_rcr_v4`；已完成的
 > `volume_uvwp_peak_field_v4` 与 `volume_uvwp_peak_qs_smooth_v3` 为冻结历史结果
 >
-> 当前状态（2026-08-20）：**V4 v1.2 已实现。`11972_{0-6}` 与
-> `12210_{7-10,12,13,18-21}` completed。数组并发已改回 `%4`。node04 两张空闲
-> A100 已直启 `11/14`（04 只有 2 卡，不能跑 4 路）。master 跑 `12210_{22,23,24}`；
-> `12210_[15-17,25-47]%4` pending。未读 test35。**
+> 当前状态（2026-08-27）：**V4 v1.2 已实现。official test35 与同协议 WSS 已评 37/48
+> （0–14 与 18–38、40）；xlsx 仍只有 0–14。index 15 仍在 node04 GPU0。** 评估入口
+> `python -m wss_pinn.v4.evaluate`。
+> 场汇总 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_completed_official_20260827.json`；
+> WSS `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`。
 
 > 新 V4 设计真源：
 > [`WSS_PINN V4 大重构设计方案`](../docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
 > 最终提交链为 CPU `11970`（completed）→ GPU preflight `11971`（completed）→
-> `11972_{0-6}`（completed）+ `12210`（master `22/23/24` running；node04 直启
-> `11/14`；`15-17/25-47%4` pending）。
+> `11972_{0-6}`（completed）+ `12210`（master `39/41/42/43` running；node04 直启
+> index 15；`16-17/44-47%4` pending）。official 已评 37/48。train-only 中期见
+> `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/midterm_train_only_20260821.json`。
 
 > **当前开发范围**：只优化 `u,v,w,p`。Profile-Secant V3 velocity→WSS 路线冻结为
 > 下游验证器；本目录不新增直接 WSS 输出、WSS loss 或 WSS 辅助监督，不用 WSS 指标
@@ -22,8 +24,8 @@
 
 > **历史执行结果**：旧 field-v4 科学设计以
 > [`核心代码诊断与下一轮设计建议`](../docs/02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)
-> 的 `FROZEN FOR IMPLEMENTATION v1.0` 为准，并已在独立 route 完成。执行合同见
-> [`冻结诊断后 Stage 0–1 提示词`](../docs/02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)。
+> 的 `FROZEN FOR IMPLEMENTATION v1.0` 为准，并已在独立 route 完成。执行合同已归档：
+> [`冻结诊断后 Stage 0–1 提示词`](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)。
 > 新配置、派生合同和输出分别落到
 > `wss_pinn/configs/volume_uvwp_peak_field_v4/`、
 > `data_wss_pinn/volume_uvwp_peak_field_v4_train123_val15/` 和
@@ -59,13 +61,21 @@ PINN 路线已冻结在
   失联后，`12210_{11,16,17}` 半成品与日志已隔离。2026-08-20 用户授权后
   `scontrol update JobId=12210 ArrayTaskThrottle=4`，`12210_24` 已在 GPU3 全新开跑。
   同日 node04 两张空闲 A100 直启 `11/14`（不能跑 4 路）；`12210_{11,14}` 已从数组
-  取消。当前 master 跑 `22/23/24`，node04 跑 `11/14`。14/15 已在 08-16 隔离过；
-- 本轮不自动运行 test35、WSS、工作簿回填。记录：
+  取消。14/15 已在 08-16 隔离过。2026-08-25 为优先齐 seed1234，已
+  `scancel 12210_15` 并在 node04 GPU0 全新直启 index 15。2026-08-27 用 node04
+  GPU1 评完当时所有已完训未测臂（18–38、40）；xlsx 未改。master 当时跑
+  `39/41/42/43`，pending 为 `16-17,44-47`；
+- 评估：`python -m wss_pinn.v4.evaluate --matrix-index <0-47> --protocol official --checkpoint last_converged --device cuda`。
+  2026-08-23 评完 0–14；2026-08-27 补评 18–38、40 的场指标，并按 0–14 协议补跑
+  同批 WSS（峰值全场速度 + Profile-Secant V3 ×1200）。合计 37/48。未填新 xlsx 行。记录：
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/requeue_14_47_two_gpu.json`、
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node_fail_11_16_17_20260817.json`、
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/quarantine_11_16_17_20260817.json`、
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/throttle_restore_4gpu_20260820.json`、
-  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_11_14_20260820.json`。
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_11_14_20260820.json`、
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_15_20260825.json`、
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_completed_official_20260827.json`、
+  `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`。
 
 ## field-v4 Stage 0–1（已完成）
 

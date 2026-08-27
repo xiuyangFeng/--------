@@ -3,13 +3,15 @@
 > 当前活动主线：`volume_uvwp_bc_rcr_v4`；已完成的
 > `volume_uvwp_peak_field_v4` 与 `volume_uvwp_peak_qs_smooth_v3` 保留为冻结历史结果
 >
-> 更新日期：2026-08-20
+> 更新日期：2026-08-27
 >
-> 状态：**新 V4 设计基线 v1.2 已实现。`11972_{0-6}` 与
-> `12210_{7-10,12,13,18-21}` 已 completed。2026-08-20 数组并发改回 `%4`；
-> node04 两张空闲 A100 已直启 index `11/14`（不能同时跑 4 路：04 只有 2 卡，
-> 且不在 Slurm GPU 分区）。当前 master 跑 `12210_{22,23,24}`，node04 跑
-> `11/14`；`12210_[15-17,25-47]%4` pending。尚无 V4 汇总，未读 test35。**
+> 状态：**新 V4 设计基线 v1.2 已实现。official test35 与同协议 WSS 下游已齐
+> 37/48（0–14 与 18–38、40）。xlsx 仍只有 seed1234 的 0–14 行，本轮未改。**
+> 速度推理=峰值全场体点；WSS=test35×1200，不是训练 query，也不是全壁面。
+> index 15 仍在 node04 GPU0。缺：15 / 16–17 / 39 / 41–47。
+> 已评最低 `E_rel_l2` 约 0.894；WSS R²_cb 仍为负或贴零。非正式赢家。
+> 场证据 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_completed_official_20260827.json`；
+> WSS `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`。
 
 ## 新 V4 大重构（2026-08-08，实现与提交阶段）
 
@@ -145,6 +147,71 @@
   | 15–17,25–47 | 其余 pending | `12210_[15-17,25-47]%4`（`Resources`） |
   | 22–24 | seed2345 PNPP PDE 两臂 + TR-PN-DATA | master running |
 
+- **中期 train-only 整理（2026-08-21）**：队列已前进到 22 完训。相对 2026-08-20
+  新增完训 `22/23/24/25/28`。机器可读清单
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/midterm_train_only_20260821.json`。
+  口径只使用末 epoch raw 分量 loss，**不是** §12.0 primary endpoint。
+
+  | 范围 | 作业 | 状态（截至 2026-08-21 11:34） |
+  | --- | --- | --- |
+  | 0–10,12,13,18–25,28 | 22 个完训 run | `training_summary.json` 齐全；`test35_read_during_training=false` |
+  | 11,14 | `V4-TR-PN-BC-PDE-EMA-s1234` / `V4-TR-PNPP-BC-PDE-F-s1234` | node04 直启 running（约 epoch 6278 / 5848） |
+  | 26,27,29,30 | TR seed2345 的 PN PDE 两臂 + PNPP BC / PDE-F | master `12210_*` running |
+  | 15–17,31–47 | 含 seed3456 全部 16 臂 | pending（`JobArrayTaskLimit`） |
+
+  准稳态 seed1234 **八臂已齐**（唯一完整四臂配对）。末 epoch raw `data_total`：
+
+  | 臂 | PN s1234 | PNPP s1234 | 停止 |
+  | --- | ---: | ---: | --- |
+  | DATA | 0.1912 | 0.1932 | `train_only_plateau` 9859 |
+  | DATA+BC | 0.4902 | 0.4997 | `max_epochs` |
+  | BC+PDE-F | 0.7260 | 0.7301 | `max_epochs` |
+  | BC+PDE-EMA | 0.8329 | 0.8262 | max_epochs / plateau 9985 |
+
+  Train-only 方向（SP s1234，同初始化 SHA）：DATA+BC 相对 DATA 的 `data_total`
+  变差约 +0.30；PDE-F 再 +0.23；EMA 再 +0.10 且 `λ_pde` 有 99.8% epoch 贴上限
+  10。PN 与 PNPP 同臂差约 0.002。压力：DATA/BC 的 `p` loss 仍约 0.016，PDE-F /
+  EMA 分别约 0.50 / 0.80。这是训练侧「加 BC/PDE 改善场拟合」的 **No-Go**，
+  **不是** test35 主指标结论，也不据此砍臂或改 λ。工作簿
+  `WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx` 已在 2026-08-23
+  追加 seed1234 的 V4 行 0–14（15 空行）；那是 screen 草稿，不是 3-seed 正式入账。
+
+- **优先直启 index 15（2026-08-25）**：用户要求先齐 seed1234 再汇总评估。
+  node04 两张 A100 空闲且不在 GPU 分区。已 `scancel 12210_15`，在 GPU0 全新开跑
+  `V4-TR-PNPP-BC-PDE-EMA-s1234`（PID `2206976`）。未动 master 上
+  `12210_{31,37,38,39}`；`12210_[16-17,40-47]` 仍 `%4` PENDING。
+  记录：`outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_15_20260825.json`。
+
+  | 范围 | 作业 | 状态（截至 2026-08-25 22:37） |
+  | --- | --- | --- |
+  | 0–14 | seed1234 除 15 | 已完训，已评 test35 official，已写入工作簿 |
+  | 15 | `V4-TR-PNPP-BC-PDE-EMA-s1234` | node04 GPU0 直启 running（全新开跑） |
+  | 31,37,38,39 | master 四卡 | `12210_*` running，未打断 |
+  | 16–17,40–47 | 其余 pending | `12210_[16-17,40-47]%4`（`JobArrayTaskLimit`） |
+
+- **完训臂 official test35（2026-08-27）**：node04 GPU1 评完当时所有已完训、
+  尚未 test 的臂（index **18–38、40**，22 个）。协议与 0–14 相同；不跑 WSS、
+  不填 xlsx。合计已评 **37/48**。记录：
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/eval_logs/node04_eval_completed_pending_20260827.json`。
+
+  | 范围 | 状态（截至 2026-08-27 11:40） |
+  | --- | --- |
+  | 0–14 | 已评（08-23）；xlsx 已有草稿行 |
+  | 18–38、40 | 已评（08-27）；xlsx 未写 |
+  | 15 | node04 GPU0 仍在训 |
+  | 39、41–43 | master 仍在训 |
+  | 16–17、44–47 | 未开跑 |
+
+  已评 `E_rel_l2` 方向不变：准稳态 DATA ≥1.10；PDE 臂约 0.89–0.98。
+  已评最低约 0.894（`TR-PN-BC-PDE-F-s1234`、`TR-PNPP-BC-PDE-F-s2345`）。
+  矩阵未齐，不能 Holm，也不能据此砍臂。
+
+- **完训臂 WSS 下游（2026-08-27 15:35）**：同一 GPU1 按 0–14 协议补跑 18–38、40。
+  **峰值全场速度** → 冻结 Profile-Secant V3 × **1200 壁面点**（不是训练 query，
+  也不是全壁面；瞬态只解 peak frame）。xlsx 仍不填。记录：
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/eval_logs/node04_wss_18_38_40_20260827.json`。
+  WSS R²_cb 仍为负或贴零；DATA 约 −3～−10，PDE 臂约 −0.6～0。
+
 以下 field-v4 Stage 0–1 与 V3 内容均为历史结果，继续保留用于追溯。
 
 V3 的完整预注册目标见
@@ -169,8 +236,8 @@ V3 的完整预注册目标见
 >
 > **执行状态**：`FROZEN FOR IMPLEMENTATION v1.0` 的 Stage 0–1 已于 2026-08-06
 > 在独立 route 完成；V3 历史产物未覆盖，Stage 1 未读取 test35、未输入 BC、未使用
-> PDE 或 WSS 选模。执行合同见
-> [冻结诊断后 Stage 0–1 提示词](./WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)。
+> PDE 或 WSS 选模。执行合同已归档：
+> [冻结诊断后 Stage 0–1 提示词（已完成）](./_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)。
 
 ## field-v4 Stage 0–1 结果（2026-08-06）
 
@@ -834,8 +901,8 @@ smoke、master/node04 GPU dry-run 和全部正式 Slurm 训练/评估均为 `pas
 - 代码说明：`wss_pinn/README.md`
 - 核心代码诊断与下一轮设计建议（2026-08-05，第一性原理/对抗性修订版）：
   [核心代码诊断与下一轮设计建议_2026-08-05.md](./核心代码诊断与下一轮设计建议_2026-08-05.md)
-- Stage 0–1 已完成执行合同：
-  [冻结诊断后 Stage 0–1 提示词](./WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md)
+- Stage 0–1 已完成执行合同（🧊 2026-08-21 归档）：
+  [冻结诊断后 Stage 0–1 提示词](./_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)
 - field-v4 决策合同与结果：
   `wss_pinn/configs/volume_uvwp_peak_field_v4/decision_contract.json`、
   `outputs/wss_pinn/volume_uvwp_peak_field_v4/stage1_multiseed_and_promotion_report.json`

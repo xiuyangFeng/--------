@@ -76,8 +76,16 @@ F0/F1/F2”路线已归档。
   再启动为全新开跑，不得 resume。2026-08-20 用户授权把等待作业改回四卡并行：
   `scontrol update JobId=12210 ArrayTaskThrottle=4`。同日用户要求使用空闲的
   node04：该节点只有 2×A100、不在 GPU 分区，已直启 `11/14`（PID
-  `2098215/2098627`），并从数组 `scancel` 对应 task。当前 master 跑 `22/23/24`。
-  test35 批量评估、WSS 和工作簿回填仍未获授权。
+  `2098215/2098627`），并从数组 `scancel` 对应 task。当前 master 跑 `26/27/29/30`，
+  node04 直启 `11/14` 已完训。2026-08-21 已对当时完训 run 做 train-only 中期整理。
+  2026-08-23 用户授权并完成 seed1234 index 0–14 的 test35 official 评估，以及
+  同日的 Profile-Secant V3 WSS 与工作簿 0–14 回填（index 15 留空）。
+  不得按该结果反选 checkpoint 或改训练。2026-08-25 用户要求先跑 index 15：
+  已 `scancel 12210_15`，在 node04 GPU0 全新直启（PID `2206976`）。2026-08-27
+  用户要求评完训未测臂：node04 GPU1 完成 index 18–38、40 的 official test35
+  （合计 37/48），随后同卡按 0–14 协议补跑 WSS（峰值全场 + Profile-Secant V3 ×1200）。
+  按用户要求不填 xlsx。不得按该结果反选 checkpoint 或改训练。其余未完训臂与正式
+  3-seed 入账仍未获授权。
 
 ### 历史 V3 与旧 field-v4 冻结合同
 
@@ -187,7 +195,8 @@ IDW 导数退化限制，并用独立 query 作连续场审计；不得只看总
 
 - 代码入口：`wss_pinn/README.md`
 - 路线真源：`docs/02-推进与变更/WSS_PINN/README.md`
-- 当前执行提示词：`docs/02-推进与变更/WSS_PINN/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1.md`
+- 当前执行真源：`docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md`
+- 历史 field-v4 Stage 0–1 提示词（🧊 已完成）：`docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md`
 - WSS 详细推进记录：`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`
 - 项目级短摘要：`docs/02-推进与变更/代码修改与实验推进记录.md`
 - 历史路线：`docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/`
