@@ -1,19 +1,59 @@
 # 体域 `u,v,w,p` PINN 路线
 
-> 当前活动主线：`volume_uvwp_bc_rcr_v4`；已完成的
-> `volume_uvwp_peak_field_v4` 与 `volume_uvwp_peak_qs_smooth_v3` 保留为冻结历史结果
+> 当前工程活动：`volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging` 数据 cutover；
+> pre-Centerline-V2 `volume_uvwp_bc_rcr_v4` 训练矩阵及已完成的
+> `volume_uvwp_peak_field_v4`、`volume_uvwp_peak_qs_smooth_v3` 均保留为历史结果
 >
-> 更新日期：2026-08-27
+> 更新日期：2026-08-31
 >
-> 状态：**新 V4 设计基线 v1.2 已实现。official test35 与同协议 WSS 下游已齐
-> 37/48（0–14 与 18–38、40）。xlsx 仍只有 seed1234 的 0–14 行，本轮未改。**
-> 速度推理=峰值全场体点；WSS=test35×1200，不是训练 query，也不是全壁面。
-> index 15 仍在 node04 GPU0。缺：15 / 16–17 / 39 / 41–47。
-> 已评最低 `E_rel_l2` 约 0.894；WSS R²_cb 仍为负或贴零。非正式赢家。
-> 场证据 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_completed_official_20260827.json`；
-> WSS `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`。
+> 旧矩阵快照：**V4 设计基线 v1.2 seed1234 index 0–15 已完训、已做
+> official test35 与同协议 WSS，并已写入工作簿主表（行 19–34）。**
+> 已评 38/48。缺 16–17 / 39 / 41–47。
+> 训练：master `12210_{39,42,43,45}` running；node04 直启 46/47 running；
+> 排队只剩 `12210_{16,17}`。
+> index 15：`E_rel_l2=0.951`，WSS R²_cb=−0.198。已评最低 E 约 0.894。
+> 单 seed screen，不是正式 3-seed Holm 结论。工作簿
+> `docs/03-汇报材料/WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx`。
 
-## 新 V4 大重构（2026-08-08，实现与提交阶段）
+> **2026-08-31 数据切换状态**：已在独立 staging 从完整 raw 数据重建 173 例，并统一
+> steady/transient 几何语义、Centerline V2 刚性帧、volume-aware scale、15k 瞬态空间池和
+> 173/173 Fluent face 边界生成器；几何/注册/数组/loader Gate 已通过。该 staging 仍明确
+> `training_ready=false`，因为 8 例压力低值簇、81 帧 raw 内容 SHA256、速度/BC 长尾、
+> 4 例 optional outlet monitor 标签与正式 route/config/output 隔离尚未签收。已启动 48-run 仍属于
+> `pre-Centerline-V2 / old-registration-frame historical matrix`。现有 Gate 未覆盖
+> steady/transient 几何语义错位、旧曲率损坏、压力低值簇、左右方向和 volume scale；
+> 现有结果只作历史 screen。新的正式训练继续 **No-Go**。详见
+> [173 例训练数据数值与刚性配准审阅及修复计划](./WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)。
+
+## Centerline V2 173 例 staging 实施状态（2026-08-31）
+
+- 新 route：`volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging`；数据根为
+  `data_wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging_train138_test35/`；
+- 新数据不是复用旧 WSS-min `.npz` bundle，而是每例 `manifest.json` 加 steady、transient、
+  boundary 三组 direct `.npy` 数组，以及顶层 aggregate manifest/stats；
+- steady/transient 共享 raw geometry：`abscissa_norm/local_radius_mm/curvature_per_mm`，
+  模型统一对曲率做 `signed_log1p`；`radial_ratio` 不再冒充半径，只保留为 auxiliary；
+- 原点固定为 V2 shared-trunk junction，`+Z=junction→inlet`，`+X=right outlet pair→left
+  outlet pair`；173 例 `det(R)`、正交性、入口/出口方向和左右分离全部通过；
+- steady 使用完整 raw peak，恢复旧 bundle 裁掉的区域；transient 使用 81 帧 raw volume，
+  每例 15,000 个唯一 strict-volume cell，按 cell ID 对齐且 81 帧坐标差为 0；
+- 统一 173/173 边界生成器；二次代码审阅后恢复 inlet-wall shared-node + one-edge rim
+  buffer，入口面 `128,437→70,016`，最小 inlet-wall 距离 `0.249 mm`；steady/transient
+  均补齐 near-wall/core region；
+- train138-only stats 与 manifest/split/case/array-audit hash 绑定；当前 5,182 数组、
+  11.1222 GiB。manifest SHA256 为
+  `ff556c95ef1e336c70dd1efd2edd0f62ec6de054a4f1ccfcdbdc8963f9037fd5`，stats SHA256 为
+  `eda1679af0e28c0a8dc76edc8ac65c47bbe148e7024904727dbc1575fab4d7c9`，array audit
+  SHA256 为 `0576854c9ee1864fe80db8fafe1a9f52b5d44d6bc9fe34a3c2b10abf9ba1dfef`；
+- 最新统计下的默认 5k loader 已分别遍历 steady/transient 173 例：无 NaN/Inf，所有病例
+  support/query 均有 5,000 个唯一点，几何输入最大绝对值约 6；39/39 volume 测试通过；
+  training loader 会显式拒绝 `training_ready=false`。
+
+Gate 真源：
+`outputs/wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging/audits/gate_report.json`。
+本次没有创建正式配置、提交训练、修改 checkpoint 或改变旧 48-run 状态。
+
+## 旧 pre-Centerline-V2 V4 大重构（2026-08-08，历史实现与执行）
 
 当前活动设计真源：
 [WSS_PINN V4 大重构设计方案](./WSS_PINN_V4大重构设计方案_2026-08-08.md)。
@@ -211,6 +251,37 @@
   也不是全壁面；瞬态只解 peak frame）。xlsx 仍不填。记录：
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/eval_logs/node04_wss_18_38_40_20260827.json`。
   WSS R²_cb 仍为负或贴零；DATA 约 −3～−10，PDE 臂约 −0.6～0。
+
+- **index 15 完训评估并入账（2026-08-28）**：`V4-TR-PNPP-BC-PDE-EMA-s1234`
+  `max_epochs` 10000。official `E_rel_l2=0.951`（`epoch_07500` 为 0.963），
+  WSS R²_cb=−0.198。主表行 34 与 `V4 Checkpoint敏感性` 已写入。seed1234 16 臂齐。
+  记录：`outputs/wss_pinn/volume_uvwp_bc_rcr_v4/eval_logs/node04_eval_wss_15_20260828.json`。
+  仍是单 seed screen，不能 Holm。
+
+- **node04 直启 46/47（2026-08-30）**：排队原为 `12210_[16-17,46-47]`，不是只剩
+  46/47。已 `scancel 12210_{46,47}`，在 node04 GPU0/1 全新开跑
+  `V4-TR-PNPP-BC-PDE-F-s3456` / `V4-TR-PNPP-BC-PDE-EMA-s3456`
+  （PID `2261430/2261834`）。未动 master `12210_{39,42,43,45}`；
+  `12210_{16,17}` 仍 PENDING。记录：
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_46_47_20260830.json`。
+
+  | 范围 | 作业 | 状态（截至 2026-08-30 12:35） |
+  | --- | --- | --- |
+  | 39,42,43,45 | master 四卡 | `12210_*` running，未打断 |
+  | 46 | `V4-TR-PNPP-BC-PDE-F-s3456` | node04 GPU0 直启 running（全新开跑） |
+  | 47 | `V4-TR-PNPP-BC-PDE-EMA-s3456` | node04 GPU1 直启 running（全新开跑） |
+  | 16–17 | 其余 pending | `12210_[16-17]%4`（`JobArrayTaskLimit`） |
+
+- **seed1234 0–15 训练曲线与诊断图（2026-08-31）**：基于既有训练日志与评估产物
+  （只读）生成 8 张分析图 + 合订 PDF，入口
+  [V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/README.md](./V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/README.md)。
+  关键读数：16 臂 `E_rel_l2` 全在 0.89–1.18（1.0=零预测器）；训练拟合与测试主指标
+  脱钩（过拟合主导，SP 8 臂 epoch_07500 均优于 last）；物理臂 E 增益主要来自幅值
+  压缩（speed 方差比 DATA→EMA 为 0.39→0.04，TR-PN-EMA 中位 ≈3e-4）；EMA 的
+  `λ_pde` 开局即贴死上限 10、全程未调节，TR-EMA 出现 continuity 1e-12 平凡解区段；
+  瞬态压力 R̄²=−20 由 2 例 gauge 口径异常病例（真值 ≈196/688 Pa 对全库主流
+  13–16 kPa）拉爆，中位 +0.87；WSS R²_cb 排序与近壁速度 R² 同构。单 seed 探索性
+  screen，不回填 xlsx，不据此砍臂。
 
 以下 field-v4 Stage 0–1 与 V3 内容均为历史结果，继续保留用于追溯。
 

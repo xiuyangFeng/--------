@@ -177,6 +177,26 @@ python -m training.scripts.predict_field \
   --subset test
 ```
 
+`predict_field` 自 2026-08-30 起默认使用 `--payload-mode compact`：保留预测、真值、
+WSS、壁面 mask 和源图索引，不再每帧重复保存 `x/global_cond/edge_index`。
+常规误差分析、regional/WSS 指标使用 compact 即可。以下情况应显式使用 full：
+
+- 任务 B / CFD 对照需要产物脱离原始图资产独立传递；
+- 脚本直接读取 payload `x` 或 `edge_index`（如截面图、某些 case panel）；
+- 需要长期冻结完整输入与预测的特殊交付。
+
+```bash
+python -m training.scripts.predict_field \
+  --config outputs/field/<run_dir>/config.snapshot.json \
+  --checkpoint outputs/field/<run_dir>/best_model.pt \
+  --subset test \
+  --payload-mode full
+```
+
+历史图资产重算可用 `--legacy-snapshot <snapshot_dir>`；快速数值核验可加
+`--max-samples 1`。当前快照格式和完整复现命令见
+`outputs/field/_reproducibility/legacy_graph_snapshot_pre_20260609/README.md`。
+
 如果已经导出了 `predictions_test/manifest.json`，可以继续直接生成误差分析图：
 
 ```bash

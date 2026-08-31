@@ -61,6 +61,24 @@
 - **按最终输出校验后再清理**：仅当目标步骤输出存在时才删除中间目录，避免误删失败病例的数据
 - **调试/生产双模式**：`debug` 保留 `processed/` 下中间结果，`production` 仅保留本次运行的最终步骤输出
 
+### Centerline V2 全队列审计（2026-08-28）
+
+针对历史 `extract_features` 的 STL 版本、单位循环依赖、世界轴入口判定、单轮 VMTK、
+分叉处数组差分和异常长边问题，仓库新增独立的版本化 Centerline V2 工具：
+
+- `tools/centerline_v2_pilot.py`：权威 STL/单位冻结、CFD 边界开口匹配、三轮 VMTK、
+  显式图、逐路径特征、硬/软 Gate、终末尖刺修复、安全长边细分和病例渲染；
+- `tools/centerline_v2_batch.py`：稳定批量入口。
+
+2026-08-28 的 173 例结果为 173/173 硬 Gate 通过、20 例软复核、0 例处理错误。
+完整记录见
+[Centerline V2 全队列修复与切换记录](../docs/02-推进与变更/Centerline_V2全队列修复与切换记录_2026-08-28.md)，
+产物见 [`outputs/centerline_v2_full_173_20260828/`](../outputs/centerline_v2_full_173_20260828/README.md)。
+
+> **切换边界**：Centerline V2 当前是独立审计/源产物，不会自动覆盖 `data_new`，也不会
+> 自动刷新 `data_wss_min`、`data_wss_pinn` 或旧 bundle。下游必须通过单独 cutover/rebuild
+> 才能使用，禁止把新中心线与旧派生产物混用。
+
 ---
 
 ## 目录结构
@@ -424,6 +442,21 @@ python -m pipeline.extract_features --case ZHANG_CHUN
 # 处理所有病例
 python -m pipeline.extract_features
 ```
+
+上面的命令仍是历史 `pipeline.extract_features` 入口。若任务需要 Centerline V2 的权威
+STL/单位冻结、三轮重试和 Gate，请使用独立版本目录：
+
+```bash
+/public/newhome/cy/.conda/envs/GNN_vmtk/bin/python tools/centerline_v2_batch.py \
+  --output outputs/centerline_v2_full_173_20260828 \
+  --count 173 \
+  --seed 20260828 \
+  --contact-page-size 20 \
+  --force
+```
+
+该命令只写 `outputs/centerline_v2_full_173_20260828/`。在下游 cutover 完成前，不能把它
+视为 `processed/features/` 或既有 bundle 已自动更新。
 
 **CSV 输出特征（逐点）**：
 | 特征 | 说明 |

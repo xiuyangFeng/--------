@@ -272,7 +272,15 @@ def preprocess_case(
     cl = raw_io.read_centerline(case_dir)
 
     # ---- 单位统一 -> 毫米（逐病例，用中心线包围盒反推，鲁棒处理异常单位病例） ----
-    unit_factor, unit_anomaly, unit_extent_mismatch = _resolve_unit_factor(wall_native, cl, cfg.unit)
+    unit_cfg, unit_override_reason = C.unit_for_case(cohort_rel, case_name, cfg.unit)
+    unit_factor, unit_anomaly, unit_extent_mismatch = _resolve_unit_factor(
+        wall_native, cl, unit_cfg
+    )
+    if unit_override_reason:
+        log.warning(
+            "  病例单位覆盖 %s/%s: mode=%s factor=%.6g reason=%s",
+            cohort_rel, case_name, unit_cfg.mode, unit_factor, unit_override_reason,
+        )
     if unit_extent_mismatch:
         log.warning("  壁面/中心线覆盖范围不一致 %s/%s: 比值法不可信，已用整十次幂兜底 "
                     "factor=%.4g（中心线可能只描了远端一段），朝向/配准请人工复核",
@@ -454,6 +462,8 @@ def preprocess_case(
         coord_scale_on=np.asarray(cfg.normalization.coord_scale_on),
         unit_factor=np.float64(unit_factor),
         unit_extent_mismatch=np.bool_(unit_extent_mismatch),
+        unit_override_applied=np.bool_(unit_override_reason is not None),
+        unit_override_reason=np.asarray(unit_override_reason or ""),
         wall_crop_applied=np.bool_(crop_applied),
         wall_crop_frac=np.float64(crop_frac),
         transform_centroid=T.centroid.astype(np.float64),
@@ -538,6 +548,8 @@ def preprocess_case(
         "peak_step": int(peak), "peak_from_waveform": bool(cfg.timestep.peak_from_waveform),
         "unit_factor": round(float(unit_factor), 4), "unit_anomaly": bool(unit_anomaly),
         "unit_extent_mismatch": bool(unit_extent_mismatch),
+        "unit_override_applied": unit_override_reason is not None,
+        "unit_override_reason": unit_override_reason or "",
         "wall_crop_applied": bool(crop_applied),
         "wall_crop_frac": round(float(crop_frac), 4),
         "coord_scale_mm": round(scale, 4), "coord_scope": cfg.normalization.coord_scope,

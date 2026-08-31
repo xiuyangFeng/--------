@@ -21,5 +21,7 @@
 | [training脚本评估入口与清理建议](./training脚本评估入口与清理建议.md) | 2026-06 早期 training 脚本清理建议，已过时 |
 | [ILO_before_review_history_20260717/](./ILO_before_review_history_20260717/) | ILO 术前复审过程稿 |
 | [Agent交接_待修复问题_2026-06-13_已完成](./Agent交接_待修复问题_2026-06-13_已完成.md) | 早期交接单，已完成 |
+| [`outputs/field` 冗余审查与可再生性清理方案（已执行）](./outputs_field冗余审查与可再生性清理方案_已执行_2026-08-30.md) | 删除 79.987 GiB 逐样本预测，建立 legacy snapshot 与长期保留规范 |
+| [VMTK 中心线修复与全队列优化方案（已执行）](./VMTK中心线修复与全队列优化方案_已执行_2026-08-27.md) | Centerline V2 源中心线提取、自动修复和 173 例全队列 QA 已完成；下游 bundle/cutover 尚未执行 |
 
 `assets_新队列审计/` 内部另有 `_archive/`（ILO 复审过程图）；其 4 个 cutover 快照目录中，终态为 `alignment_v4_cutover_final_eligible_20260716/` 与 `ilo_before_final_approved_20260717/`，其余为过程轮次。

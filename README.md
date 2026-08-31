@@ -5,11 +5,18 @@
 `wss_mri_calculator` 的 Profile-Secant V3 冻结为最终 checkpoint 的下游验证器，不再进入
 新的 WSS 算法、loss 或选模优化。
 
+几何数据侧已于 2026-08-28 完成 **Centerline V2 173 例全队列修复**：173/173 通过硬
+Gate，20 例保留软复核标记，0 例处理错误。新产物位于
+[`outputs/centerline_v2_full_173_20260828/`](outputs/centerline_v2_full_173_20260828/README.md)，
+2026-08-31 已为 WSS_PINN 在独立 staging 重建 173 例，但保持 `training_ready=false`，
+未覆盖旧 `data_wss_pinn`；`data_wss_min` 和其他旧 bundle 仍未切换。详见
+[全队列修复与切换记录](docs/02-推进与变更/Centerline_V2全队列修复与切换记录_2026-08-28.md)。
+
 ## 当前主攻（先看这里）
 
 | 路线 | 代码 | 数据 / 产物 | 说明入口 |
 | --- | --- | --- | --- |
-| **体域 `u,v,w,p` PINN** | [`wss_pinn/`](wss_pinn/) | 历史 `volume_uvwp_peak_*`；新 V4 计划写入 `data_wss_pinn/volume_uvwp_bc_rcr_v4_train138_test35/` 与 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/` | [V4 大重构设计](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md) · [`wss_pinn/README.md`](wss_pinn/README.md) · [路线真源](docs/02-推进与变更/WSS_PINN/README.md) |
+| **体域 `u,v,w,p` PINN** | [`wss_pinn/`](wss_pinn/) | 旧 V4 为 pre-Centerline-V2 历史矩阵；新 staging：`data_wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging_train138_test35/`（`training_ready=false`） | [173 例审阅与修复计划](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md) · [`wss_pinn/README.md`](wss_pinn/README.md) · [路线真源](docs/02-推进与变更/WSS_PINN/README.md) |
 | **WSS-min 预处理** | [`pipeline_wss_min/`](pipeline_wss_min/) | `data_wss_min/` | [`pipeline_wss_min/README.md`](pipeline_wss_min/README.md) |
 | **WSS-min 训练** | [`training_wss_min/`](training_wss_min/) | `outputs/wss_min/`（及本目录 `runs/`） | [`training_wss_min/README.md`](training_wss_min/README.md) |
 | velocity→WSS 冻结验证器 | [`wss_mri_calculator/`](wss_mri_calculator/) | `outputs/wss_mri_calculator/`、`outputs/wss_pinn/audits/…` | [V1–V4 总跟踪](wss_mri_calculator/experiments/README.md) · [CFD 适配说明](wss_mri_calculator/README_CFD_ADAPTATION.md) |
@@ -17,14 +24,15 @@
 文档总索引：[`docs/README.md`](docs/README.md)。
 WSS-min 推进记录（专用，勿混入 V3 大日志）：[`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`](docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md)。
 
-### 状态速览（2026-08-08）
+### 状态速览（2026-08-31）
 
 - **WSS-min 数据**：v4 活动口径；AG76（`stl_landmarks_v4`）；AAA 几何签核 63 / 训练白名单 57；ILO 术前审核通过 41（未进正式 split）。产物独立于 `data_new/`。
+- **Centerline V2**：173/173 硬 Gate 通过；153 `pass` + 20 `pass_review`。WSS_PINN 已完成独立 staging cutover：统一几何/刚性帧、15k transient cell、rim-buffered 边界、region、train-only stats 和全数组审计；正式训练仍 No-Go。其他下游尚未切换。
 - **WSS-min 训练**：单 seed 开发锚点为 **LSA2 SAME-H2 + `log(local_radius)`**（`R²_cb≈0.3506`）；暂不做多 seed。矩阵真源见 [PointNet baseline 进度跟踪](docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。
-- **体域 PINN 新 V4**：大重构设计已形成，采用 train138/test35、无 val、PointNet/
-  PointNet++ × data-only/PINN-fixed/PINN-EMA-ratio 共 12 臂，显式输入 `Q_in`、入口/四出口面积和四组 `R1/R2/C`，
-  通过配置区分准稳态 peak 与含 `du/dt` 的 81 帧瞬态路线。173/173 文件级覆盖已确认，
-  但新 route、跨时相 Gate 和训练实现尚未落地；旧 field-v4 Stage 0–1 保留为历史结果。
+- **体域 PINN 新 V4**：旧 48-run 属于 pre-Centerline-V2 历史 screen。Centerline V2
+  staging 已完成 173 例重建并通过工程 Gate，但仍有压力低值簇、raw content SHA、速度/BC
+  长尾、4 例 optional outlet monitor 标签和正式 route/config/output 阻断，manifest 明确
+  `training_ready=false`；未提交新训练。
 - **wss_mri_calculator**：Profile-Secant V3 冻结为 downstream validator。test35 全壁面病例 overall / pooled high-WSS R²=`0.9604/0.9440`，逐病例 high-WSS R² 均值=`0.7735`，平均峰值低估 `15.81%`。本轮不继续调算法，只在 `u,v,w,p` 主 checkpoint 冻结后做一次 sanity check。
 
 ---
@@ -103,10 +111,10 @@ $PY batch_validate_cfd.py \
 | [`wss_mri_calculator/`](wss_mri_calculator/) | MRI WSS 计算器 + CFD 点云适配 / 实验 |
 | [`wss_pinn/`](wss_pinn/) | 峰值体域 `u,v,w,p` 的 PointNet / PointNet++ data-only 与非牛顿 PINN 活动实现；旧 WSS-target 路线已归档 |
 | [`pipeline/`](pipeline/) | 历史主线几何/图数据流程（`data_new/`） |
+| [`tools/centerline_v2_pilot.py`](tools/centerline_v2_pilot.py) / [`centerline_v2_batch.py`](tools/centerline_v2_batch.py) | Centerline V2 权威表面冻结、稳健提取、自动 Gate 与版本化批处理 |
 | [`training/`](training/) | 任务 A V1/V2/V3 场重建训练 |
 | [`external_baselines/`](external_baselines/) | 外部论文复现（如 PointNetCFD、CROWN） |
 | [`docs/`](docs/) | 实验总纲、路线文档、推进记录 |
-| [`legacy/`](legacy/) | 归档脚本；非稳定入口 |
 | `data_new/` · `data_wss_min/` · `stl_data/` | 原始与处理数据（勿随意重排） |
 
 ---
@@ -130,6 +138,20 @@ python -m pipeline.run_all --case ZHANG_CHUN \
 `data_new/<病例路径>/processed/logs/progress.log`。
 几何步骤需要 `GNN_vmtk`；其余用 `GNN`。详见 [`pipeline/README.md`](pipeline/README.md)。
 
+### Centerline V2 版本化全队列
+
+```bash
+/public/newhome/cy/.conda/envs/GNN_vmtk/bin/python tools/centerline_v2_batch.py \
+  --output outputs/centerline_v2_full_173_20260828 \
+  --count 173 \
+  --seed 20260828 \
+  --contact-page-size 20 \
+  --force
+```
+
+该入口不会覆盖 `data_new`。当前产物、20 例软复核队列、9 页总览图和下游切换边界见
+[`outputs/centerline_v2_full_173_20260828/README.md`](outputs/centerline_v2_full_173_20260828/README.md)。
+
 ### 外部 baseline（PointNetCFD 示例）
 
 ```bash
@@ -141,13 +163,7 @@ python -m external_baselines.pointnetcfd.train \
 
 详见 [`external_baselines/pointnetcfd/README.md`](external_baselines/pointnetcfd/README.md)。
 
-### 历史脚本
-
-```bash
-python -m legacy.preprocess.batch_process --help
-```
-
-`pipeline.extract_features` 依赖 [`pipeline/vmtk_core.py`](pipeline/vmtk_core.py)；`legacy/preprocess/vmtk_core.py` 仅为兼容层。
+`pipeline.extract_features` 依赖 [`pipeline/vmtk_core.py`](pipeline/vmtk_core.py)。
 
 ---
 

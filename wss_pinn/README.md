@@ -1,19 +1,21 @@
 # 体域 `u,v,w,p` PINN
 
-> 当前活动主线：`volume_uvwp_bc_rcr_v4`；已完成的
-> `volume_uvwp_peak_field_v4` 与 `volume_uvwp_peak_qs_smooth_v3` 为冻结历史结果
+> 当前工程活动：Centerline V2 173 例 staging cutover；pre-Centerline-V2
+> `volume_uvwp_bc_rcr_v4` 训练矩阵、`volume_uvwp_peak_field_v4` 与
+> `volume_uvwp_peak_qs_smooth_v3` 均为冻结历史结果
 >
-> 当前状态（2026-08-27）：**V4 v1.2 已实现。official test35 与同协议 WSS 已评 37/48
-> （0–14 与 18–38、40）；xlsx 仍只有 0–14。index 15 仍在 node04 GPU0。** 评估入口
-> `python -m wss_pinn.v4.evaluate`。
+> 旧矩阵状态（2026-08-30）：**V4 v1.2 seed1234 0–15 已完训、已评估、已写入工作簿；
+> official 场+WSS 已评 38/48。** 这些 run 均绑定 pre-Centerline-V2 数据，只作历史 screen。
+> master 跑 `12210_{39,42,43,45}`；node04 直启 46/47；排队只剩 `16/17`。
+> 评估入口 `python -m wss_pinn.v4.evaluate`。
 > 场汇总 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_completed_official_20260827.json`；
 > WSS `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`。
 
 > 新 V4 设计真源：
 > [`WSS_PINN V4 大重构设计方案`](../docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
 > 最终提交链为 CPU `11970`（completed）→ GPU preflight `11971`（completed）→
-> `11972_{0-6}`（completed）+ `12210`（master `39/41/42/43` running；node04 直启
-> index 15；`16-17/44-47%4` pending）。official 已评 37/48。train-only 中期见
+> `11972_{0-6}`（completed）+ `12210`（index 15 已完训并入账；其余 seeds 仍有
+> running/pending）。official 场+WSS 已评 38/48。train-only 中期见
 > `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/midterm_train_only_20260821.json`。
 
 > **当前开发范围**：只优化 `u,v,w,p`。Profile-Secant V3 velocity→WSS 路线冻结为
@@ -43,16 +45,63 @@ PINN 路线已冻结在
 对应历史源码位于
 [`archive/wss_target_v1_20260730/`](archive/wss_target_v1_20260730/README.md)。
 
-## V4 v1.2 实现与集群提交（进行中）
+## Centerline V2 对齐重建 staging（2026-08-31）
+
+旧 steady/transient 几何通道不同不是科学设计，而是两条历史数据链的合同漂移：steady 的
+第 2 通道是 `local_radius_mm`，transient 却把旧 `NormRadius=distance/radius` 放在同一
+位置；两边曲率来源和变换也不同。新 staging 已统一为一个合同：
+
+```text
+raw:   abscissa_norm, local_radius_mm, curvature_per_mm
+model: abscissa_norm, local_radius_mm, signed_log1p(curvature_per_mm)
+aux:   radial_ratio, centerline_distance_mm, path_id, outlet_id
+```
+
+- builder：`wss_pinn/v4/build_centerline_v2.py`；统一几何/刚性帧：
+  `wss_pinn/v4/geometry_v2.py`；loader/evaluate 已支持新 schema，同时只为旧 run 保留显式
+  historical fallback；
+- 数据：
+  `data_wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging_train138_test35/`；
+  173 例、train138/test35、11.1222 GiB、5,182 个数组；steady 从完整 raw peak 重建，
+  transient 从完整 81 帧按 cell ID 对齐，每例 15,000 个唯一 strict-volume cell；
+- 注册：原点为 Centerline V2 shared-trunk junction；`+Z` 指向 inlet，`+X` 指向
+  patient-left 出口对；点做平移/旋转/各向同性缩放，速度和法向只做同一个旋转；
+- stats：只使用 train138；曲率不 clip，先 `signed_log1p`，再使用
+  `max(population_std, train_max_abs_deviation/6)` 缩放，train/test 实际 loader 几何输入均
+  保持在 `±6` 内；
+- Gate：173/173 Centerline V2 provenance、proper rotation、单位盒、steady/transient
+  geometry identity、81 帧静态坐标、15k 唯一池与统一边界生成器通过；inlet-wall
+  shared-node + one-edge rim buffer 已恢复，near-wall/core region 已落库。全量 5,182 数组
+  SHA/shape/dtype/NaN/Inf 审计通过。最终 5k loader
+  对 steady/transient 各遍历 173 例，无 NaN/Inf，support/query 最小唯一点数均为 5,000；
+  `test_volume_*` 为 39/39 通过，训练 loader 会拒绝该 staging。
+
+该数据仍是 **staging**，manifest 明确 `training_ready=false`。正式训练继续 No-Go，直到：
+
+1. 8 例 transient 压力低值簇逐例签收；
+2. 81 帧 raw 父文件从 path/size/mtime 升级为内容 SHA256；
+3. 稀疏 transient 速度/BC 长尾完成 raw 来源和 loss 敏感性签收；
+4. 4 例缺失 outlet monitor 标签明确为 optional 或补建；
+5. 建立独立正式 route/config/output root，并重新执行正式 preflight 与用户授权。
+
+最终 manifest/stats/array-audit SHA256 分别为
+`ff556c95ef1e336c70dd1efd2edd0f62ec6de054a4f1ccfcdbdc8963f9037fd5`、
+`eda1679af0e28c0a8dc76edc8ac65c47bbe148e7024904727dbc1575fab4d7c9`、
+`0576854c9ee1864fe80db8fafe1a9f52b5d44d6bc9fe34a3c2b10abf9ba1dfef`。
+
+完整问题、修复状态和病例清单见
+[173 例训练数据数值与刚性配准审阅及修复计划](../docs/02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)。
+
+## pre-Centerline-V2 V4 v1.2 历史实现与集群提交
 
 - 独立包：`wss_pinn/v4/`，覆盖严格配置、UDF Fourier/RCR 解析、Stage 0 builder、
   train138-only 统计、PointNet/PointNet++ + 共享 BCEncoder、稳态/瞬态 strong-form
   residual、质量流量 RCR BC、detached EMA `λ_pde`、train-only 收敛与 checkpoint；
 - 配置：`wss_pinn/configs/volume_uvwp_bc_rcr_v4/`，固定 16 臂 × seeds
   `[1234,2345,3456]` = 48 run；同一时间模式/backbone/seed 的四臂共享初始化结构与采样流；
-- 数据：峰值复用冻结 full-volume sidecar；瞬态从 `processed/features` 的 81 帧已配准
+- 旧矩阵数据：峰值复用冻结 full-volume sidecar；瞬态从 `processed/features` 的 81 帧已配准
   样本构建 mmap 缓存，并用 `unit_factor + stl_landmarks_v4` bundle 统一坐标/速度框架；
-- 测试：34/34 `test_volume_*` 通过；DING_JUN_FENG 峰值对齐最大坐标/速度/压力差分别
+- 测试：当前 39/39 `test_volume_*` 通过；旧数据 DING_JUN_FENG 峰值对齐最大坐标/速度/压力差分别
   `1.56e-7 / 2.38e-7 m/s / 0.0011 Pa`，ZHOU_KE_XUN 的 `A_udf≠A_mesh` 实际流量合同
   已复现；旧 `BC_Inlet` 仅作 monitor 诊断，训练真源固定为 UDF 解析的
   `Q_nom·A_mesh/A_udf`；
@@ -64,16 +113,18 @@ PINN 路线已冻结在
   取消。14/15 已在 08-16 隔离过。2026-08-25 为优先齐 seed1234，已
   `scancel 12210_15` 并在 node04 GPU0 全新直启 index 15。2026-08-27 用 node04
   GPU1 评完当时所有已完训未测臂（18–38、40）；xlsx 未改。master 当时跑
-  `39/41/42/43`，pending 为 `16-17,44-47`；
+  `39/41/42/43`，pending 为 `16-17,44-47`。2026-08-30 已 `scancel 12210_{46,47}`，
+  在 node04 GPU0/1 全新直启 46/47；master 现跑 `39/42/43/45`，pending 只剩 `16-17`；
 - 评估：`python -m wss_pinn.v4.evaluate --matrix-index <0-47> --protocol official --checkpoint last_converged --device cuda`。
-  2026-08-23 评完 0–14；2026-08-27 补评 18–38、40 的场指标，并按 0–14 协议补跑
-  同批 WSS（峰值全场速度 + Profile-Secant V3 ×1200）。合计 37/48。未填新 xlsx 行。记录：
+  2026-08-23 评完 0–14；2026-08-27 补评 18–38、40 的场指标与 WSS；2026-08-28
+  评完 index 15 并写入工作簿第 15 行。合计 38/48。记录：
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/requeue_14_47_two_gpu.json`、
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node_fail_11_16_17_20260817.json`、
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/quarantine_11_16_17_20260817.json`、
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/throttle_restore_4gpu_20260820.json`、
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_11_14_20260820.json`、
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_15_20260825.json`、
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_46_47_20260830.json`、
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_completed_official_20260827.json`、
   `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`。
 

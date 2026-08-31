@@ -449,6 +449,11 @@ python -m training.scripts.run_field_plan \
 
 在仓库根目录、**`conda activate rag_venv`** 下，对已完成训练的 run；**`predict_field`** 的 `--config` 可使用 **run 内 `config.snapshot.json`** 或 **原始 `training/configs/.../V2P-*.json`**（与训练一致即可）。
 
+> **2026-08-30 产物口径**：`predict_field` 默认 `--payload-mode compact`，不再每帧重复保存
+> `x/global_cond/edge_index`；常规误差、regional 和 WSS 评估不受影响。截面图、
+> 需要 payload `x/edge_index` 的 case panel，或需要脱离源图独立交付时，必须加
+> `--payload-mode full`。历史图重算使用 `--legacy-snapshot`，快速核验可加 `--max-samples 1`。
+
 **示例 A — 仅 p + WSS、速度未训（`V2P-WSSP-01`）**：
 
 ```bash

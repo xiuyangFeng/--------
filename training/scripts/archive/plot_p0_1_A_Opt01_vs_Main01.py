@@ -16,14 +16,14 @@ RUNS_ROOT = ROOT / "outputs" / "field"
 OUT_DIR = optimization_campaign_dir(RUNS_ROOT, SUBDIR_P0_1_OPT01_VS_MAIN01)
 
 MAIN_RUNS = [
-    ROOT / "outputs/field/field_transformer_coord_t_bc_geom_wall_split_AG_v1_seed1_20260322_064925/summary.json",
-    ROOT / "outputs/field/field_transformer_coord_t_bc_geom_wall_split_AG_v1_seed2_20260322_141028/summary.json",
-    ROOT / "outputs/field/field_transformer_coord_t_bc_geom_wall_split_AG_v1_seed3_20260323_004454/summary.json",
+    ROOT / "outputs/field/_archive/legacy_pre_wss_schema/field_transformer_coord_t_bc_geom_wall_split_AG_v1_seed1_20260322_064925/summary.json",
+    ROOT / "outputs/field/_archive/legacy_pre_wss_schema/field_transformer_coord_t_bc_geom_wall_split_AG_v1_seed2_20260322_141028/summary.json",
+    ROOT / "outputs/field/_archive/legacy_pre_wss_schema/field_transformer_coord_t_bc_geom_wall_split_AG_v1_seed3_20260323_004454/summary.json",
 ]
 OPT_RUNS = [
-    ROOT / "outputs/field/field_transformer_coord_t_bc_geom_wall_tw22205_split_AG_v1_seed1_20260325_135407/summary.json",
-    ROOT / "outputs/field/field_transformer_coord_t_bc_geom_wall_tw22205_split_AG_v1_seed2_20260325_135428/summary.json",
-    ROOT / "outputs/field/field_transformer_coord_t_bc_geom_wall_tw22205_split_AG_v1_seed3_20260325_232853/summary.json",
+    ROOT / "outputs/field/_archive/legacy_pre_wss_schema/field_transformer_coord_t_bc_geom_wall_tw22205_split_AG_v1_seed1_20260325_135407/summary.json",
+    ROOT / "outputs/field/_archive/legacy_pre_wss_schema/field_transformer_coord_t_bc_geom_wall_tw22205_split_AG_v1_seed2_20260325_135428/summary.json",
+    ROOT / "outputs/field/_archive/legacy_pre_wss_schema/field_transformer_coord_t_bc_geom_wall_tw22205_split_AG_v1_seed3_20260325_232853/summary.json",
 ]
 
 # English labels for reliable matplotlib rendering across environments

@@ -138,28 +138,44 @@ class _CaseArrays:
         self.temporal_mode = dataset.temporal_mode
         transient = self.case["files"]["transient"]
         if self.temporal_mode == "steady_peak":
-            volume_manifest = json.loads(
-                Path(self.case["files"]["steady_volume_manifest"]["path"]).read_text(
-                    encoding="utf-8"
-                )
-            )
-            files = volume_manifest["files"]
-            self.coords = np.load(files["interior_coords"]["path"], mmap_mode="r")
-            self.geometry_raw = np.load(files["interior_geometry"]["path"], mmap_mode="r")
-            is_wall = np.asarray(
-                np.load(files["interior_is_wall"]["path"], mmap_mode="r"), dtype=bool
-            )
-            self.population = np.flatnonzero(~is_wall)
-            self.velocity = np.load(files["velocity_m_s"]["path"], mmap_mode="r")
-            self.pressure = np.load(files["pressure_relative_pa"]["path"], mmap_mode="r")
-            self.times_s = None
-            self.geometry_is_pretransformed = True
-            if "interior_region" in files:
-                self.region = np.asarray(
-                    np.load(files["interior_region"]["path"], mmap_mode="r")
+            if "steady" in self.case["files"]:
+                files = self.case["files"]["steady"]
+                self.coords = np.load(files["coords"]["path"], mmap_mode="r")
+                self.geometry_raw = np.load(files["geometry_raw"]["path"], mmap_mode="r")
+                is_wall = np.asarray(np.load(files["is_wall"]["path"], mmap_mode="r"), dtype=bool)
+                self.velocity = np.load(files["velocity_m_s"]["path"], mmap_mode="r")
+                self.pressure = np.load(files["pressure_relative_pa"]["path"], mmap_mode="r")
+                self.geometry_is_pretransformed = False
+                if dataset.centerline_v2_schema and "region" not in files:
+                    raise ValueError("Centerline V2 steady evaluation requires region")
+                self.region = (
+                    np.asarray(np.load(files["region"]["path"], mmap_mode="r"))
+                    if "region" in files
+                    else None
                 )
             else:
-                self.region = None
+                volume_manifest = json.loads(
+                    Path(self.case["files"]["steady_volume_manifest"]["path"]).read_text(
+                        encoding="utf-8"
+                    )
+                )
+                files = volume_manifest["files"]
+                self.coords = np.load(files["interior_coords"]["path"], mmap_mode="r")
+                self.geometry_raw = np.load(files["interior_geometry"]["path"], mmap_mode="r")
+                is_wall = np.asarray(
+                    np.load(files["interior_is_wall"]["path"], mmap_mode="r"), dtype=bool
+                )
+                self.velocity = np.load(files["velocity_m_s"]["path"], mmap_mode="r")
+                self.pressure = np.load(files["pressure_relative_pa"]["path"], mmap_mode="r")
+                self.geometry_is_pretransformed = True
+                if "interior_region" in files:
+                    self.region = np.asarray(
+                        np.load(files["interior_region"]["path"], mmap_mode="r")
+                    )
+                else:
+                    self.region = None
+            self.population = np.flatnonzero(~is_wall)
+            self.times_s = None
         else:
             self.coords = np.load(transient["coords"]["path"], mmap_mode="r")
             self.geometry_raw = np.load(transient["geometry_raw"]["path"], mmap_mode="r")
@@ -171,7 +187,13 @@ class _CaseArrays:
             self.pressure = np.load(transient["pressure_raw_pa"]["path"], mmap_mode="r")
             self.times_s = np.asarray(np.load(transient["times_s"]["path"], mmap_mode="r"))
             self.geometry_is_pretransformed = False
-            self.region = None
+            if dataset.centerline_v2_schema and "region" not in transient:
+                raise ValueError("Centerline V2 transient evaluation requires region")
+            self.region = (
+                np.asarray(np.load(transient["region"]["path"], mmap_mode="r"))
+                if "region" in transient
+                else None
+            )
 
         self.bc_vector = _bc_transform(
             np.asarray(self.case["conditions"]["bc_vector_raw"], dtype=np.float32),
@@ -292,6 +314,13 @@ def evaluate_run(
     payload = torch.load(checkpoint_path, map_location=device, weights_only=False)
     if payload.get("route") != config["route"]:
         raise ValueError("checkpoint route mismatch")
+    if payload.get("resolved_config_sha256") != config.resolved_sha256:
+        raise ValueError("checkpoint/resolved config SHA256 mismatch")
+    saved_snapshot = payload.get("dataset_snapshot")
+    if saved_snapshot is not None and saved_snapshot != dataset.dataset_snapshot:
+        raise ValueError("checkpoint/dataset snapshot mismatch")
+    if dataset.centerline_v2_schema and saved_snapshot is None:
+        raise ValueError("Centerline V2 checkpoint lacks a dataset snapshot")
     model = build_model(config).to(device=device, dtype=torch.float32)
     model.load_state_dict(payload["model"], strict=True)
     model.eval()
@@ -443,7 +472,7 @@ def evaluate_run(
             "path": str(checkpoint_path),
             "sha256": sha256_file(checkpoint_path),
             "epoch": int(payload.get("epoch", -1)),
-            "converged": bool(payload.get("converged", False)),
+            "converged": bool(payload.get("train_only_converged", False)),
         },
         "sampling": {
             "support_points": support_count,

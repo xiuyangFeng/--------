@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Fill V4 seed1234 rows 0-14 into the existing V2/V3 workbook.
+"""Fill V4 seed1234 rows 0-15 into the existing V2/V3 workbook.
 
 Field columns reuse the official test35 evaluations.  Downstream WSS uses the
 frozen Profile-Secant V3 calculator on peak-time full-volume velocity, matching
 the V2/V3 test35 x 1200 protocol.  Checkpoint sensitivity compares
 last_converged (identical weights to last) with the pre-registered milestone
-epoch_07500.  Index 15 is left blank until that run finishes.
+epoch_07500.
 """
 
 from __future__ import annotations
@@ -48,7 +48,9 @@ XLSX = (
     "WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx"
 )
 BACKUP = XLSX.with_name(XLSX.stem + "_备份_补V4_0-14前.xlsx")
+BACKUP_15 = XLSX.with_name(XLSX.stem + "_备份_补V4_15前.xlsx")
 OUTPUT = ROOT / "outputs/wss_pinn/audits/v4_workbook_0_14_20260823"
+FIELD_METRICS = OUTPUT / "field_metrics_v4_0_15.json"
 ROI_DIR = (
     ROOT
     / "outputs/wss_pinn/audits/v2_v3_linear_regression_fullpoints_20260807/anatomical_roi"
@@ -326,7 +328,7 @@ def build_field_metrics() -> Path:
         "milestones": {},
     }
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for index in range(15):
+    for index in range(16):
         arm = load_arm(index)
         report = _json(arm.official_eval_path)
         payload["arms"][arm.key] = summarize_official(report, ranges[arm.temporal_mode])
@@ -334,9 +336,8 @@ def build_field_metrics() -> Path:
             payload["milestones"][arm.key] = summarize_official(
                 _json(arm.milestone_eval_path), ranges[arm.temporal_mode]
             )
-    path = OUTPUT / "field_metrics_v4_0_14.json"
-    atomic_write_json(path, payload)
-    return path
+    atomic_write_json(FIELD_METRICS, payload)
+    return FIELD_METRICS
 
 
 def _predict_volume(
@@ -569,7 +570,9 @@ def update_workbook() -> Path:
 
     if not BACKUP.is_file():
         shutil.copy2(XLSX, BACKUP)
-    field = _json(OUTPUT / "field_metrics_v4_0_14.json")
+    if not BACKUP_15.is_file():
+        shutil.copy2(XLSX, BACKUP_15)
+    field = _json(FIELD_METRICS if FIELD_METRICS.is_file() else OUTPUT / "field_metrics_v4_0_14.json")
     wb = load_workbook(XLSX)
     ws = wb["实验矩阵汇总"]
     headers = [ws.cell(4, column).value for column in range(1, ws.max_column + 1)]
@@ -589,13 +592,12 @@ def update_workbook() -> Path:
                 dst.fill = copy(src.fill)
                 dst.alignment = copy(src.alignment)
                 dst.border = copy(src.border)
-    ws.cell(1, 1, "WSS_PINN V2 / V3 / V4 实验矩阵与核心指标汇总（2026-08-23 更新）")
+    ws.cell(1, 1, "WSS_PINN V2 / V3 / V4 实验矩阵与核心指标汇总（2026-08-28 更新）")
     note = ws.cell(3, 1)
     note.value = (
-        str(note.value or "")
-        + " V4 行是 seed1234 official test35 screen：场指标来自全部评估宇宙（瞬态=eligible×81 帧）；"
+        "V4 行是 seed1234 official test35 screen：场指标来自全部评估宇宙（瞬态=eligible×81 帧）；"
         "E_rel_l2 为设计 primary。WSS 为冻结 Profile-Secant V3、峰值全场速度、test35×1200。"
-        "index 15 空行。单 seed，禁止与 V2 SAME5K / V3 val-selected 裸比。"
+        "index 0–15（seed1234 16 臂）已填。单 seed，禁止与 V2 SAME5K / V3 val-selected 裸比。"
     )
 
     thin = Side(style="thin", color="B7B7B7")
@@ -604,32 +606,7 @@ def update_workbook() -> Path:
     start_row = 19
     for offset in range(16):
         row = start_row + offset
-        arm = load_arm(offset) if offset < 16 else None
-        if offset == 15:
-            values = {
-                "路线": "V4",
-                "阶段": "volume_uvwp_bc_rcr_v4",
-                "编号/臂": "15",
-                "实验ID": "V4-TR-PNPP-BC-PDE-EMA-s1234",
-                "架构/解码器": "PointNet++",
-                "输入": "xyz+geom + A/Q/RCR",
-                "训练模式/旋钮": "BC+PDE-EMA",
-                "Split": "train138 / test35",
-                "Seed": 1234,
-                "Epoch/预算": "",
-                "主checkpoint": "last_converged",
-                "场评估集/协议": "待完训",
-                "状态/判定": "待完训",
-                "结论/备注": "index 15 尚未完训，指标留空。",
-            }
-            for name, value in values.items():
-                if name in header_index:
-                    cell = ws.cell(row, header_index[name], value)
-                    cell.border = border
-                    cell.fill = PatternFill("solid", fgColor="F2F2F2")
-                    cell.font = Font(name="Microsoft YaHei", size=9, italic=True, color="666666")
-            continue
-
+        arm = load_arm(offset)
         field_row = field["arms"][arm.key]
         down_path = OUTPUT / "arms" / arm.key / "downstream_metrics.json"
         down = _json(down_path) if down_path.is_file() else {}
@@ -733,7 +710,7 @@ def _write_sensitivity_sheet(wb, field: dict[str, Any]) -> None:
         "near-wall speed R²_cb", "core speed R²_cb", "说明",
     ]
     ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(headers))
-    title = ws.cell(1, 1, "V4 checkpoint 敏感性（seed1234 index 0–14；主读数 last_converged）")
+    title = ws.cell(1, 1, "V4 checkpoint 敏感性（seed1234 index 0–15；主读数 last_converged）")
     title.font = Font(name="Microsoft YaHei", size=14, bold=True, color="FFFFFF")
     title.fill = PatternFill("solid", fgColor=navy)
     ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=len(headers))
@@ -752,7 +729,7 @@ def _write_sensitivity_sheet(wb, field: dict[str, Any]) -> None:
         cell.fill = PatternFill("solid", fgColor=blue)
         cell.border = border
     row = 4
-    for index in range(15):
+    for index in range(16):
         arm = load_arm(index)
         main = field["arms"][arm.key]
         milestone = field.get("milestones", {}).get(arm.key)

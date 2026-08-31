@@ -32,6 +32,17 @@ COHORTS: Dict[str, str] = {
 # 局部半径同量纲；异常因子会在审计中标记待人工复核。
 MESH_COORD_TO_MM = 1000.0  # 固定单位模式下的回退因子
 
+# 已由“权威 STL ↔ Fluent 壁面”同坐标核验确认的逐病例单位覆盖。
+# 不能继续用中心线包围盒反推这些病例的单位；中心线略短于完整表面时会把
+# 正确的米→毫米因子错误压缩。键使用 data_new 下的 canonical 相对路径。
+UNIT_CASE_OVERRIDES: Dict[str, Dict] = {
+    "ILO/YANG_YU_QING-1/before": {
+        "mode": "fixed",
+        "fixed_factor": 1000.0,
+        "reason": "2026-08-27 regenerated centerline from authoritative ANG_YU_QINF-sq.stl.stl",
+    },
+}
+
 # 原始 CFD 子文件（相对每个病例目录）
 RAW_LAYOUT = {
     "wall_ascii_dir": "ascii",          # 壁面节点：含 wall-shear
@@ -313,6 +324,18 @@ def registration_for_case(cohort_rel: str, case_name: str,
     reg = base or DEFAULT.registration
     over = REGISTRATION_CASE_OVERRIDES.get(case_rel_path(cohort_rel, case_name))
     return replace(reg, **over) if over else reg
+
+
+def unit_for_case(cohort_rel: str, case_name: str,
+                  base: UnitConfig | None = None) -> tuple[UnitConfig, str | None]:
+    """返回逐病例生效的单位配置及审计原因。"""
+    unit = base or DEFAULT.unit
+    canonical_id = f"{str(cohort_rel).strip('/')}/{str(case_name).strip('/')}"
+    override = UNIT_CASE_OVERRIDES.get(canonical_id)
+    if not override:
+        return unit, None
+    values = {key: value for key, value in override.items() if key != "reason"}
+    return replace(unit, **values), str(override.get("reason", "case_unit_override"))
 
 
 def out_case_dir(

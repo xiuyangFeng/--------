@@ -56,7 +56,19 @@ def load_prediction_arrays(prediction_path: Path) -> Tuple[np.ndarray, np.ndarra
     payload = load_prediction_payload(prediction_path)
     y_true = payload["y_true"].detach().cpu().numpy()
     y_pred = payload["y_pred"].detach().cpu().numpy()
-    x = payload["x"].detach().cpu().numpy()
+    x_value = payload.get("x")
+    if x_value is not None:
+        x = x_value.detach().cpu().numpy()
+    else:
+        # compact prediction 不重复保存 x；需要坐标时尝试回读源图。
+        graph_path = payload.get("graph_path")
+        path = Path(str(graph_path)) if graph_path else None
+        if path is not None and path.is_file():
+            from pipeline.dataset import load_graph_data
+
+            x = load_graph_data(path).x.detach().cpu().numpy()
+        else:
+            x = np.empty((y_true.shape[0], 0), dtype=np.float32)
     case_name = str(payload.get("case_name", prediction_path.stem))
     return y_true, y_pred, x, case_name
 
@@ -88,7 +100,21 @@ def _resolve_wall_mask_from_payload(payload: Dict[str, object]) -> np.ndarray:
             except Exception:
                 pass
 
-    x = payload["x"]
+    stored_wall_mask = payload.get("wall_mask")
+    if stored_wall_mask is not None:
+        if hasattr(stored_wall_mask, "detach"):
+            stored_wall_mask = stored_wall_mask.detach().cpu().numpy()
+        stored_wall_mask = np.asarray(stored_wall_mask, dtype=bool)
+        if stored_wall_mask.shape == (n,):
+            return stored_wall_mask
+
+    x = payload.get("x")
+    if x is None:
+        warnings.warn(
+            "compact payload 且 graph_path 不可读，无法提取 is_wall；默认全部标记为 interior",
+            stacklevel=2,
+        )
+        return np.zeros(n, dtype=bool)
     if hasattr(x, "detach"):
         x = x.detach().cpu().numpy()
     if x.shape[1] <= _IS_WALL_FEATURE_IDX:

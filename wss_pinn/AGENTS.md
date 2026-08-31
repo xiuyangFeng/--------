@@ -1,6 +1,8 @@
 # wss_pinn — 体域 `u,v,w,p` PINN 指令
 
-本目录当前活动主线是已实现并提交受 Gate 保护训练链的 `volume_uvwp_bc_rcr_v4`，设计真源为
+旧 `volume_uvwp_bc_rcr_v4` 已实现并提交受 Gate 保护训练链，但其数据属于
+pre-Centerline-V2 历史矩阵。当前工程活动是 Centerline V2 隔离 staging cutover，尚未形成
+可提交训练的正式 route。设计真源为
 `docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md`。
 已完成的 `volume_uvwp_peak_field_v4` Stage 0–1 与
 `volume_uvwp_peak_qs_smooth_v3` 六臂均为冻结历史结果，不得覆盖或冒充新 V4。
@@ -19,6 +21,12 @@ F0/F1/F2”路线已归档。
   `data_wss_pinn/volume_uvwp_bc_rcr_v4_train138_test35/`，配置只写
   `wss_pinn/configs/volume_uvwp_bc_rcr_v4/`，输出只写
   `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/`；不得复用旧 field-v4 写路径。
+- 2026-08-31 Centerline V2 对齐重建只允许写入隔离 staging：
+  `data_wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging_train138_test35/`
+  与 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging/audits/`。
+  该 route 必须保持 `training_ready=false`，不得复用旧 V4 配置、run 目录或 checkpoint；
+  压力低值簇、81 帧 raw 父源内容 SHA256、速度/BC 长尾、4 例 optional outlet monitor
+  标签和正式 route/config/output 隔离未签收前，不得提交训练。
 - 新结果只写 `outputs/wss_pinn/volume_uvwp_peak_v1/`、
   `outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/`、
   `outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/`、
@@ -41,6 +49,9 @@ F0/F1/F2”路线已归档。
 ## 冻结科学合同
 
 ### 新 V4 v1.2 实现与运行边界
+
+以下提交、作业和评估状态只描述 pre-Centerline-V2 旧矩阵，不构成 Centerline V2 正式训练
+授权。新 staging 的 `staging_pass` 不等于 `training_ready` 或 formal Go-C。
 
 - split 为 train138/test35，不设 val；原 val15 合并回训练集。test35 是
   development-exposed screen，禁止用于训练停止、checkpoint、动态权重、采样或架构选择。
@@ -67,6 +78,12 @@ F0/F1/F2”路线已归档。
   `Q_in(t)`、0.005 s solver step、0.01 s 场导出间隔、四组 RCR 和正值入口/四出口面积。
   Stage 0 builder 已实现跨时相点身份、时间映射、pressure gauge、注册向量和 train-only
   stats Gate；173/173 全量 Gate 已在本地通过，Slurm CPU `11970` 负责提交后的复核。
+- 2026-08-31 新增 Centerline V2 staging 重建：steady/transient 统一使用
+  `abscissa_norm + local_radius_mm + signed_log1p(curvature_per_mm)`，`radial_ratio` 只作独立
+  auxiliary；原点固定为 V2 shared-trunk junction，`+Z` 为 junction→inlet，`+X` 为
+  patient-right 出口对→patient-left 出口对。173/173 从完整 raw peak/81 帧和统一 Fluent
+  face 边界生成器重建，瞬态每例固定 15,000 个唯一 strict-volume cell，统计量只用 train138。
+  几何、注册、空间池、边界和 loader 全遍历 Gate 已通过，但旧 run 继续只作历史 screen。
 - 用户已明确授权正式多 GPU 训练提交；最终链为 `11970 → 11971 → 11972_[0-47%4]`，
   正式数组必须依赖 Stage 0 与 GPU preflight 成功。2026-08-09 用户截断 `11972_7`
   与 `11972_[8-47]`。2026-08-14 补提交 `12210_[7-47%4]`。2026-08-16 用户要求为师姐
@@ -84,8 +101,12 @@ F0/F1/F2”路线已归档。
   已 `scancel 12210_15`，在 node04 GPU0 全新直启（PID `2206976`）。2026-08-27
   用户要求评完训未测臂：node04 GPU1 完成 index 18–38、40 的 official test35
   （合计 37/48），随后同卡按 0–14 协议补跑 WSS（峰值全场 + Profile-Secant V3 ×1200）。
-  按用户要求不填 xlsx。不得按该结果反选 checkpoint 或改训练。其余未完训臂与正式
-  3-seed 入账仍未获授权。
+  按用户要求不填 xlsx。2026-08-28 index 15 完训后，用户授权 official test35 +
+  同协议 WSS，并写入工作簿第 15 行（seed1234 16 臂齐）。不得按该结果反选
+  checkpoint 或改训练。2026-08-30 用户要求把排队的 46/47 改到 node04：已
+  `scancel 12210_{46,47}`，在 GPU0/1 全新直启（PID `2261430/2261834`）；
+  master `12210_{39,42,43,45}` 未打断；pending 只剩 `16/17`。其余未完训臂与
+  正式 3-seed 入账仍未获授权。
 
 ### 历史 V3 与旧 field-v4 冻结合同
 
@@ -155,11 +176,17 @@ checkpoint 初始化都视为热启动并拒绝。正式提交前必须保留初
 
 正式训练前必须全部满足：
 
-1. 173 例 schema-v2 sidecar 构建完成；
-2. sidecar + deep-source audit 均通过；
+1. 173 例 schema-v2 per-case manifest/direct-array 数据构建完成（历史路线可为 sidecar）；
+2. case arrays + deep-source audit 均通过；
 3. train138-only 严格体域统计与 split、病例 manifest hash 完整绑定；
 4. `test_volume_*.py`、八臂静态 preflight 和八臂 GPU dry-run 通过；
 5. 用户再次明确授权正式训练。
+
+Centerline V2 正式 cutover 还必须先关闭 staging blocker：8 例压力低值簇逐例签收、
+81 帧 raw 父文件内容 SHA256 绑定、速度/BC 长尾来源与 loss 敏感性签收、4 例 outlet
+monitor 标签明确为 optional 或补建、独立正式 route/config/output root 建立。完成后重新执行
+173 例默认采样 loader、静态/GPU preflight，并再次取得用户授权；旧 V4 的 2026-08-08
+授权不得自动继承。
 
 V3 另要求 173/173 真实边界 Gate、六臂静态 preflight、六张物理 GPU dry-run 全部
 通过。提交后的前 30 分钟监控和完训后的三 checkpoint test35 评估均已完成；后续不得

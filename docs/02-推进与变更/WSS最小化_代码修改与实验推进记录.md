@@ -6,6 +6,195 @@
 > **滚动切卷**：本文件只保留 2026-08 以来的条目；2026-07 条目（PointNet 矩阵、新队列审计、WSS-PINN F0/F1）见历史卷
 > [2026-07卷](_archive/WSS最小化_代码修改与实验推进记录_2026-07卷.md)。主文件超过约 1500 行或跨季度时，把最旧月份整月切入 `_archive/` 新卷并更新本索引。
 
+## 2026-08-31｜WSS_PINN Centerline V2 几何统一与 173 例 staging 全链重建 · staging_pass / training_ready=false
+
+**本次主要修改**：解释并修复旧 steady/transient 几何通道差异——它不是设计要求，而是
+steady 复用 `local_radius_mm`、transient 复用 `NormRadius=distance/radius` 的历史上游合同
+漂移。新增 `wss_pinn/v4/geometry_v2.py`，统一 raw geometry 为
+`abscissa_norm/local_radius_mm/curvature_per_mm`，模型统一使用
+`signed_log1p(curvature_per_mm)`；新增 `build_centerline_v2.py` 从完整 raw peak/81 帧重建。
+修改 loader/evaluate/tests，增加显式 schema dispatch、split 病例集合核验、manifest/stats/
+case/array-audit SHA、build-input digest、resume/pilot 防护和 `training_ready=false` 训练硬阻断。
+checkpoint/resume/evaluate 同时新增 manifest/stats/split/array-audit/case-manifest-root 内容
+快照绑定，避免同路径刷新数据后误用旧 checkpoint。
+独立代码复核发现首版新边界漏 inlet-wall rim buffer，已恢复 shared-node + one-edge 过滤，并
+补齐 steady/transient near-wall/core `region` 与 `distance_to_wall_mm`。
+
+**对应代码/文档**：`wss_pinn/v4/geometry_v2.py`、`build_centerline_v2.py`、`data.py`、
+`evaluate.py`、`wss_pinn/tests/test_volume_bc_rcr_v4.py`；数据根
+`data_wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging_train138_test35/`；
+机器 Gate `outputs/wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging/audits/gate_report.json`
+与 `full_array_audit.json`；同步更新 [173 例审阅与修复计划](WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)、
+[WSS_PINN 当前入口](WSS_PINN/README.md)、[代码入口](../../wss_pinn/README.md)、
+[V4 设计基线](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md) 和 `wss_pinn/AGENTS.md`。
+
+**推进到实验步骤**：Phase 1/2/3/5 的 staging 实施完成。173 例采用每例 manifest +
+steady/transient/boundary direct `.npy`，不是从旧 WSS-min `.npz` bundle 派生；共 5,182 数组、
+11.1222 GiB。steady 来自完整 raw peak；transient 每例 15,000 个唯一 cell × 81 帧对齐；
+173/173 统一 Fluent face 边界。入口 rim filter 为 `128,437→70,016`，最小 inlet-wall 距离
+`0.249 mm`。全数组 SHA/shape/dtype/NaN/Inf 审计 0 错误；最终 manifest/stats/array-audit
+SHA 分别为 `ff556c95...9037fd5`、`eda1679a...ab4d7c9`、`0576854c...ba1dfef`。
+最新 stats 下 steady/transient 默认 5k loader 各遍历 173 例，support/query 均为 5,000
+unique，无非有限值；39/39 volume 测试通过；单例 resume pilot 不覆盖全量 manifest。
+
+**当前状态判断**：工程 Gate 为 `staging_pass`，但 manifest 仍为 `training_ready=false`，
+正式训练 No-Go。尚需关闭：8 例压力低值簇、14,013 个 raw frame content SHA256、稀疏
+速度/BC 长尾与 loss 敏感性、4 例缺失 outlet monitor 标签的 optional/补建决策、正式
+route/config/output 与 CPU/GPU preflight。未应用 pressure/velocity clip 或 offset；本次没有
+新增训练、提交 job、修改 checkpoint，也没有改变旧 48-run 状态。
+
+## 2026-08-31｜V4 seed1234 0–15 训练曲线与诊断图 · 已完成
+
+**本次主要修改**：对已完训并完成 official test35 + WSS 下游的 seed1234 全部 16 臂
+（index 0–15）做训练曲线与失败机制可视化：raw data_total 与 u/p 分通道曲线、
+λ_pde/PDE/RCR 残差动态、训练拟合 vs 测试主指标散点、`E_rel_l2` 全景（含
+epoch_07500 checkpoint 敏感性）、逐病例 speed 方差比箱线、瞬态压力 gauge 异常散点、
+WSS 与近壁场耦合，共 8 图 + 合订 PDF + 可复现脚本。全程只读训练/评估产物，
+未改代码、数据、配置、checkpoint 或训练状态，未回填 xlsx。
+
+**对应代码/文档**：新增目录
+[WSS_PINN/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/](WSS_PINN/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/README.md)
+（图件清单、数据真源与口径限制见其 README）；同步更新
+[WSS_PINN 当前入口](WSS_PINN/README.md)。
+
+**推进到实验步骤**：为 V4 seed1234 screen 的老师汇报与下一轮优化方向提供图证；
+不改变 48-run 训练队列与评估协议。
+
+**当前状态判断**：图证支持四个机制结论——(1) train-only plateau 停止协议下过拟合
+主导（SP 8 臂 7500 均优于 last，DATA 训练最好测试最差）；(2) 物理臂 E 增益主要为
+幅值压缩趋零（方差比阶梯 0.39→0.04，TR-PN-EMA 中位 ≈3e-4）；(3) EMA 控制器开局
+贴死 λ_max=10 全程未调节，TR-EMA 有 continuity 1e-12 平凡解区段，RCR 残差比
+DATA+BC 臂差约 300 倍；(4) 瞬态压力均值 −20 为 2 例 gauge 口径异常病例
+（ZHANG_YONG_SHENG-0/before ≈196 Pa、WANG_FU_SHUN ≈688 Pa）拉爆的假象，
+中位 +0.87。均为单 seed 探索性读数，非 Holm 结论。
+
+**下一步**：候选优化方向按证据强度排序为停止/选模协议（train138 内部 CV 或
+milestone 泛化曲线诊断）、173 例压力 gauge 口径审计、λ_pde 控制器重设、逐病例
+无量纲化输出；与 Centerline V2 重建的先后关系以 08-30 No-Go 结论为准。
+
+## 2026-08-30｜WSS_PINN V4 173 例训练数据数值与刚性配准审阅 · No-Go
+
+**本次主要修改**：只读审阅实际进入 V4 的 train138/test35 共 173 例数据，核对
+Centerline V2 provenance、steady/transient 几何语义、曲率、压力、刚性变换中心与左右
+方向、volume scale、空间池、边界资产、stats、loader/resume Gate，并形成问题清单和分阶段
+修复计划。本次未修改代码、数据、配置、checkpoint、作业或训练状态，未停止现有任务。
+
+**对应代码/文档**：新增
+[173 例训练数据数值与刚性配准审阅及修复计划](WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)；
+同步更新 [WSS_PINN 当前入口](WSS_PINN/README.md)、
+[V4 设计基线](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md) 与
+[docs 索引](../README.md)。
+
+**推进到实验步骤**：完成 Centerline V2 下游 cutover 前的数据审阅与 Go/No-Go 判定；
+现有 48-run 统一标记为 `pre-Centerline-V2 / old-registration-frame historical matrix`，
+可继续完成并保留为历史 screen，但不得作为新中心线数据的性能结论。
+
+**当前状态判断**：**新正式训练 No-Go**。旧旋转矩阵数值正确、数组无 NaN/Inf、当前 split
+无实际 test 泄漏，但 173/173 尚未绑定 Centerline V2；steady/transient 第 2 几何通道语义
+不同，旧曲率系统性损坏，8 例压力低值簇未解释，左右语义、volume scale、空间池和数据快照
+Gate 仍有缺口。下一步必须从完整 raw 数据建立独立版本化 root，全链重建、重算 stats 并
+通过新硬 Gate；旧 checkpoint 禁止在新数据上 resume/warm-start。
+
+## 2026-08-30｜Centerline V2 优化前后对照图 · 已完成
+
+**本次主要修改**：用 08-27 审计包中的旧中心线与 08-28 V2 产物，按同一机位渲染
+`YANG_YU_QING-1`（错 STL、中心线整体脱离）和 `XIE_JIN_QUAN`（漏支、
+`Target not reached`）两例左右对照图，供汇报使用。未改提取算法或全量产物。
+
+**对应代码/文档**：`tools/render_centerline_before_after.py`；
+图 `outputs/centerline_v2_full_173_20260828/compare_before_after/`。
+
+**推进到实验步骤**：仅补汇报对照图，不切换 `data_new` / bundle。
+
+**当前状态判断**：两例前后差异可直接展示。YANG 旧中心线相对权威表面约偏
+100 mm；XIE 由 4 端点/2 分叉补为 5 端点/3 分叉。
+
+**下一步**：下游 cutover 仍按 08-28 切换记录，不因本图改变。
+
+## 2026-08-30｜node04 直启 index 46/47 · 进行中
+
+**本次主要修改**：`12210` 排队不是只剩 46/47，还有 `16/17`。用户要求把
+master 上排队的 46/47 挪到 node04。已 `scancel 12210_{46,47}`，在 04 两张
+空闲 A100 上全新直启（非 resume、非 Slurm）。未动 master 上
+`12210_{39,42,43,45}`；`12210_{16,17}` 仍 `%4` PENDING。
+
+**对应代码/文档**：`wss_pinn/cluster/launch_node04_v4_index46.sh`、
+`launch_node04_v4_index47.sh`、`launch_node04_v4_index46_47.py`；
+记录 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/node04_direct_46_47_20260830.json`；
+日志 `outputs/wss_pinn/slurm/v4_train_node04_{46,47}.out`。
+
+**方法变更**：无。node04 仍不在 GPU 分区，按 11/14/15 先例 SSH 直启。
+
+**关键指标**：46 `V4-TR-PNPP-BC-PDE-F-s3456` GPU0 PID `2261430` 已写 epoch 0–2；
+47 `V4-TR-PNPP-BC-PDE-EMA-s3456` GPU1 PID `2261834` 已写 epoch 0–1。
+正式 `run_dir` 原先不存在。
+
+**Go-NoGo**：不适用。本轮只改调度，不评 test35、不填 xlsx。
+
+**推进到实验步骤**：矩阵训练从「master 四卡 + 排队 16/17/46/47」变为
+「master 四卡 + node04 两卡 + 排队只剩 16/17」。
+
+**当前状态判断**：04 两卡已占用。master 下一空卡会启动 16 或 17（全新开跑）。
+
+**下一步**：保持 46/47 与 master 四臂跑完；16/17 仍走原数组。
+
+## 2026-08-28｜index 15 official test35 + 同协议 WSS + 工作簿第 15 行 · 已完成
+
+**本次主要修改**：index 15 `V4-TR-PNPP-BC-PDE-EMA-s1234` 已于 10:40 完训
+（`max_epochs` 10000）。在 node04 GPU0 跑 official test35（`last_converged` 与
+`epoch_07500`），GPU1 跑与 0–14 相同的峰值全场 + Profile-Secant V3 ×1200 WSS。
+随后把主表第 15 行（工作簿行 34）和敏感性 sheet 补齐。xlsx 填前备份
+`…_备份_补V4_15前.xlsx`。未按 test35 反选 checkpoint。
+
+**对应代码/文档**：
+`wss_pinn/v4/evaluate.py`；`docs/03-汇报材料/tools/update_wss_pinn_v4_workbook.py`；
+场 `evaluation_official_last_converged_full.json`；
+WSS `outputs/wss_pinn/audits/v4_workbook_0_14_20260823/arms/V4-TR-PNPP-BC-PDE-EMA-s1234/`；
+记录 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/eval_logs/node04_eval_wss_15_20260828.json`。
+
+**方法变更**：无新协议。seed1234 16 臂场+WSS 现已齐。
+
+**关键指标**（test35 / seed1234 / last_converged）：
+`E_rel_l2` = **0.951 ± 0.028**；speed R²_cb = −0.071 ± 0.077；
+WSS R²_cb = **−0.198 ± 0.155**。`epoch_07500` 的 E = 0.963。
+seed1234 TR-PNPP 四臂现为 DATA 1.037 / DATA+BC 0.941 / PDE-F **0.907** / EMA 0.951。
+全矩阵已评最低仍约 0.894（TR-PN-BC-PDE-F-s1234 与 TR-PNPP-BC-PDE-F-s2345）。
+
+**Go-NoGo**：
+- **待定** — seed1234 16 臂 screen 已齐，但仍是单 seed，无 Holm，不能宣布正式赢家。判据：§12.0。
+- **No-Go** — 用本行宣称可用场/WSS 重建。E≈0.95 仍贴近零场；WSS R² 为负。
+
+**推进到实验步骤**：工作簿 V4 行 0–15 已填；其余 seeds 的 xlsx 行仍未写。
+
+**当前状态判断**：场+WSS 已评 38/48。缺 16–17 / 39 / 41–47。
+
+**下一步**：其余臂完训后再评；3-seed 齐后再做 Holm。不按本行改训练。
+
+## 2026-08-27｜YANG_YU_QING 中心线错 STL 修复与 173 例拓扑审计
+
+**本次主要修改**：确认 `ILO/YANG_YU_QING-1/before` 的旧中心线来自同目录错误
+`YANG_YU_QING-sq-wrap.stl`，而 CFD/bundle 权威表面为 `ANG_YU_QINF-sq.stl.stl`。
+在权威 STL 上重新运行 VMTK，源 `centerline.vtp/csv` 已替换，旧文件按 SHA256 归档；
+为避免正确中心线较完整表面略短导致 `auto_centerline` 把 m→mm 因子误算为约 950，
+新增该例固定 `unit_factor=1000` 的可审计覆盖，并把覆盖状态/原因写入 bundle 和 report。
+
+**对应代码/文档**：`pipeline_wss_min/config.py`、`pipeline_wss_min/preprocess.py`、
+`pipeline_wss_min/tests/test_unit_overrides.py`；
+[VMTK 中心线修复与全队列优化方案（已执行归档）](_archive/VMTK中心线修复与全队列优化方案_已执行_2026-08-27.md)；病例内
+`data_new/ILO/YANG_YU_QING-1/before/centerline/REPAIR_2026-08-27.md`；审计包
+`outputs/centerline_postview_audit_173/`。
+
+**推进到实验步骤**：修复中心线为 2495 点，图拓扑 5 端点/3 分叉节点，5/5 开口覆盖，
+开口到最近端点最大 0.386 mm。固定 1000 口径下，壁面距离/局部半径 p95 从
+24.233R 降为 1.459R，`>2R` 壁点从 100% 降为 0.259%。隔离 preprocess 81 帧通过，
+`unit_factor=1000`、权威 STL scale=1、det(R)=1、无中心线平移修复。单位覆盖测试
+`2 passed`。173 例权威 STL 均为 5 开口；172 例中心线为 5 端点，
+`AAA/ruputer/XIE_JIN_QUAN` 仅 4 端点，隔离重跑仍出现 `Target not reached`。
+
+**当前状态判断**：YANG 可修复，不做永久排除；但修复前生成的所有中心线依赖 bundle/
+sidecar 均为 stale，必须重建后才能用于新实验。XIE 在完成目标级重试算法前应暂时排除
+centerline-dependent 实验。尚未全量实现 Centerline V2 或重建 173 例派生产物。
+
 ## 2026-08-27｜完训臂 WSS 下游（与 0–14 同协议）· 已完成 · 未填工作簿
 
 **本次主要修改**：用户要求对已评完的 18–38、40 补跑 WSS，口径与 0–14 相同。

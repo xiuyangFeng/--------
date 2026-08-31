@@ -126,6 +126,7 @@ def _checkpoint_payload(
     epoch: int,
     global_step: int,
     initialization_sha256: str,
+    dataset_snapshot: dict[str, Any],
     converged: bool,
 ) -> dict[str, Any]:
     return {
@@ -140,6 +141,7 @@ def _checkpoint_payload(
         "initialization_state_sha256": initialization_sha256,
         "resolved_config": config.as_dict(),
         "resolved_config_sha256": config.resolved_sha256,
+        "dataset_snapshot": dataset_snapshot,
         "train_only_converged": bool(converged),
     }
 
@@ -224,6 +226,7 @@ def run(config_path: str | Path, *, dry_run: bool = False, device_override: str 
     dataset = V4Dataset(config, roles=("train",))
     if len(dataset) != 138:
         raise ValueError("formal V4 training must see exactly train138")
+    dataset_snapshot = dataset.dataset_snapshot
     model = build_model(config).to(device=device, dtype=torch.float32)
     initialization_sha256 = tensor_state_sha256(model.state_dict())
     optimizer = torch.optim.AdamW(
@@ -250,6 +253,11 @@ def run(config_path: str | Path, *, dry_run: bool = False, device_override: str 
             raise ValueError("resume route mismatch")
         if payload.get("initialization_state_sha256") != initialization_sha256:
             raise ValueError("resume initialization hash mismatch")
+        saved_snapshot = payload.get("dataset_snapshot")
+        if saved_snapshot is not None and saved_snapshot != dataset_snapshot:
+            raise ValueError("resume dataset snapshot mismatch")
+        if dataset.centerline_v2_schema and saved_snapshot is None:
+            raise ValueError("Centerline V2 resume checkpoint lacks a dataset snapshot")
         old_config = payload.get("resolved_config", {})
         for key in ("id", "temporal_mode", "backbone", "training_mode", "seed"):
             if old_config.get("experiment", {}).get(key) != config["experiment"][key]:
@@ -293,6 +301,7 @@ def run(config_path: str | Path, *, dry_run: bool = False, device_override: str 
                         "path": config["paths"]["split"],
                         "sha256": sha256_file(config["paths"]["split"]),
                     },
+                    "dataset_snapshot": dataset_snapshot,
                     "initialization_state_sha256": initialization_sha256,
                     "test35_read_during_training": False,
                     "warm_start": False,
@@ -306,6 +315,7 @@ def run(config_path: str | Path, *, dry_run: bool = False, device_override: str 
                     "model": model.state_dict(),
                     "initialization_state_sha256": initialization_sha256,
                     "resolved_config_sha256": config.resolved_sha256,
+                    "dataset_snapshot": dataset_snapshot,
                 },
             )
 
@@ -481,6 +491,7 @@ def run(config_path: str | Path, *, dry_run: bool = False, device_override: str 
                     epoch=epoch,
                     global_step=global_step,
                     initialization_sha256=initialization_sha256,
+                    dataset_snapshot=dataset_snapshot,
                     converged=converged,
                 )
                 completed_epoch = epoch + 1
