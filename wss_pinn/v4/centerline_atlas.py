@@ -65,11 +65,11 @@ KINK_CURVATURE_FLOOR_PER_MM = 0.3
 # 1-3 samples but reads as curvature 0.4-0.55 /mm.  Coordinates are never moved
 # (a coordinate extrapolation was tried first and displaced samples by up to
 # 36 mm where the junction sphere of an AAA sac made the zone 20 mm long).  The
-# zone radius is min(radius at the end, segment median radius) and at least
-# SG_HALF_WINDOW_MIN + 1 samples so the SG footprint of the hook is covered.  The
+# zone radius is min(radius at the end, segment median radius, 12 mm) and the zone
+# is at least one SG window (11 samples) so the SG footprint of the hook is covered.  The
 # parent's own junction end is never touched (it is shared by every path).
 END_ZONE_RADIUS_FACTOR = 1.0
-END_ZONE_MIN_SAMPLES = SG_HALF_WINDOW_MIN + 1
+END_ZONE_MIN_SAMPLES = SG_WINDOW  # >= one full SG window so the footprint of a 1-3 sample hook never leaks past the zone
 END_ZONE_MAX_RADIUS_MM = 12.0  # the hook spans 1-3 samples; beyond ~12 mm a radius-proportional zone eats real geometry (AAA sacs)
 END_BAND_MIN_SAMPLES = SG_WINDOW
 JUNCTION_HALF_WIDTH_MM = 2.5

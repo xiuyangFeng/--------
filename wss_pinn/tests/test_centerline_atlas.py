@@ -270,14 +270,14 @@ def test_end_hooks_are_held_at_the_interior_value():
     kinks = detect_kinks(atlas)
     assert kinks["interior"] == 0 and kinks["junction"] == 0 and kinks["endpoint"] == 0
     assert float(atlas.column("curvature_per_mm").max()) < 1e-3
-    # zones: R = 5 mm -> 10 samples at the root start, each child start and each leaf end
+    # zones: R = 5 mm -> 10 samples, raised to the 11-sample minimum (one SG window)
     trunk = [s for s in atlas.segments if s.starts_at_root][0]
     info = trunk.end_zone_info
-    assert info["start"]["applied"] and info["start"]["zone_samples"] == 10
+    assert info["start"]["applied"] and info["start"]["zone_samples"] == 11
     assert not info["end"]["applied"]  # the parent's junction end is never touched
-    assert int(trunk.end_zone[:10].sum()) == 10 and not trunk.end_zone[10:].any()
+    assert int(trunk.end_zone[:11].sum()) == 11 and not trunk.end_zone[11:].any()
     assert info["start"]["zone_curvature_max_before"] > 0.3 and info["start"]["held_curvature_per_mm"] < 1e-6
-    assert np.allclose(trunk.tangent[:10], [0.0, 0.0, -1.0], atol=1e-6)
+    assert np.allclose(trunk.tangent[:11], [0.0, 0.0, -1.0], atol=1e-6)
     leaf = [s for s in atlas.segments if s.ends_at_leaf][0]
     assert leaf.end_zone_info["start"]["applied"] and leaf.end_zone_info["end"]["applied"]
     # coordinates and raw samples are untouched by the rule
