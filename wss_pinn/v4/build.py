@@ -44,6 +44,13 @@ from wss_pinn.utils import (
     utc_now,
 )
 
+from .bc_contract import (
+    BC_TRANSFORM_DESCRIPTION,
+    INLET_AREA_RATIO_INDEX,
+    bc_scale_policy,
+    bc_vector_raw as _bc_vector_raw,
+    transform_bc_raw,
+)
 from .config import DATA_ROOT, MANIFEST_PATH, OUTLET_ORDER, ROUTE, SPLIT_PATH, STATS_PATH
 from .waveform import DEFAULT_FOURIER, PERIOD_S, parse_udf, q_nom_numpy, q_nom_peak
 
@@ -442,9 +449,8 @@ def _build_case(task: dict[str, Any]) -> dict[str, Any]:
         [(item["R1"] + item["R2"]) * mass_characteristic[index] for index, item in enumerate(rcr)],
         dtype=np.float64,
     )
-    bc_vector_raw = [a_mesh, q_actual_peak]
-    for index, item in enumerate(rcr):
-        bc_vector_raw.extend([outlet_areas[index], item["R1"], item["R2"], item["C"]])
+    # frozen 2026-09-05 contract: index 1 is the inlet area ratio A_mesh/A_udf (= Q_actual/Q_nom), not Q_actual_peak
+    bc_vector_raw = _bc_vector_raw(a_mesh, a_udf, outlet_areas, rcr)
 
     transient_files: dict[str, dict[str, Any]] = {}
     transient_report: dict[str, Any] = {"status": "not_built"}
@@ -683,6 +689,7 @@ def _build_case(task: dict[str, Any]) -> dict[str, Any]:
             "mesh_udf_mismatch": mismatch > 1.0e-3,
             "q_nominal_peak_m3_s": q_peak_nominal,
             "q_actual_peak_m3_s": q_actual_peak,
+            "inlet_area_ratio": a_mesh / a_udf,
             "outlet_area_m2": outlet_areas.tolist(),
             "rcr_mass_flow_basis": rcr,
             "bc_vector_raw": bc_vector_raw,
@@ -722,13 +729,9 @@ def _build_case(task: dict[str, Any]) -> dict[str, Any]:
 
 
 def _transformed_bc(raw: np.ndarray) -> np.ndarray:
-    output = raw.astype(np.float64, copy=True)
-    log_indices = [0]
-    for outlet in range(4):
-        base = 2 + 4 * outlet
-        log_indices.extend([base, base + 1, base + 2, base + 3])
-    output[:, log_indices] = np.log10(output[:, log_indices])
-    return output
+    """Physical BC transform of the frozen 2026-09-05 contract (see ``bc_contract``)."""
+
+    return transform_bc_raw(np.asarray(raw, dtype=np.float64))
 
 
 def _running_stats(arrays: list[np.ndarray]) -> tuple[int, np.ndarray, np.ndarray]:
@@ -757,10 +760,7 @@ def _build_stats(case_reports: list[dict[str, Any]], split: dict[str, Any]) -> d
         raise ValueError("train-only stats case set does not equal frozen train138")
     bc_raw = np.asarray([report["conditions"]["bc_vector_raw"] for report in train], dtype=np.float64)
     bc_value = _transformed_bc(bc_raw)
-    bc_mean = bc_value.mean(axis=0)
-    bc_std = bc_value.std(axis=0)
-    zero_variance = bc_std < 1.0e-12
-    bc_scale = np.where(zero_variance, 1.0, bc_std)
+    bc_policy = bc_scale_policy(bc_value)  # raises on a near-constant z-scored field
 
     curvature_values = []
     for report in train:
@@ -857,22 +857,7 @@ def _build_stats(case_reports: list[dict[str, Any]], split: dict[str, Any]) -> d
         "scope": "train138 only except explicitly descriptive 173-case collinearity",
         "split": {"path": str(SPLIT_PATH.resolve()), "sha256": sha256_file(SPLIT_PATH)},
         "train_case_ids": [report["canonical_id"] for report in train],
-        "bc": {
-            "names": [
-                "log10_A_in_mesh",
-                "Q_actual_peak",
-                *[
-                    f"log10_{field}_{outlet}"
-                    for outlet in OUTLET_ORDER
-                    for field in ("A_out", "R1", "R2", "C")
-                ],
-            ],
-            "mean": bc_mean.tolist(),
-            "std": bc_scale.tolist(),
-            "raw_std": bc_std.tolist(),
-            "zero_variance_mask": zero_variance.tolist(),
-            "transform": "log10 for areas/R1/R2/C; raw Q_actual_peak; train138 z-score",
-        },
+        "bc": bc_policy,
         "geometry": {
             "names": ["abscissa_norm", "local_radius", "curvature_signed_log1p"],
             "count": geometry_count,
@@ -1009,9 +994,8 @@ def build(*, workers: int = 1, resume: bool = False, build_transient: bool = Tru
                 min(report["conditions"]["bc_vector_raw"]) > 0 for report in case_reports
             ),
             "known_a_udf_a_mesh_mismatch_count_is_6": len(mismatch_cases) == 6,
-            "q_actual_peak_has_train_variance": not bool(
-                stats["bc"]["zero_variance_mask"][1]
-            ),
+            "bc_inlet_ratio_fixed_scale": stats["bc"]["scale_policy"][INLET_AREA_RATIO_INDEX] == "fixed_physical",
+            "bc_train_abs_z_within_6": max(stats["bc"]["train_abs_z_max"]) <= 6.0 + 1.0e-9,
             "outlet_label_reference_available_train": stats["label_reference"]["rcr_cases_available"] > 0,
         },
         "known_a_udf_a_mesh_mismatch_cases": mismatch_cases,

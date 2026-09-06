@@ -1,19 +1,47 @@
 # 体域 `u,v,w,p` PINN 路线
 
-> 当前工程活动：`volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging` 数据 cutover；
+> 当前工程活动：Centerline V2 anatomy-only 正式重建准备；2026-08-31 的
+> `volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging` 仅作中间证据，不再是待训练数据；
 > pre-Centerline-V2 `volume_uvwp_bc_rcr_v4` 训练矩阵及已完成的
 > `volume_uvwp_peak_field_v4`、`volume_uvwp_peak_qs_smooth_v3` 均保留为历史结果
 >
-> 更新日期：2026-08-31
+> 更新日期：2026-09-04
 >
 > 旧矩阵快照：**V4 设计基线 v1.2 seed1234 index 0–15 已完训、已做
 > official test35 与同协议 WSS，并已写入工作簿主表（行 19–34）。**
-> 已评 38/48。缺 16–17 / 39 / 41–47。
-> 训练：master `12210_{39,42,43,45}` running；node04 直启 46/47 running；
-> 排队只剩 `12210_{16,17}`。
+> 全矩阵本地已有 46/48 份 `training_summary.json`，official 评估为 38/48，评估缺
+> 16–17 / 39 / 41–47。46/47 只有停在 epoch 5098/4691 的部分产物，远端状态本次未能
+> 复核，因此不得继续无日期地标为 `running`，也不得写成 48/48 完训。
 > index 15：`E_rel_l2=0.951`，WSS R²_cb=−0.198。已评最低 E 约 0.894。
 > 单 seed screen，不是正式 3-seed Holm 结论。工作簿
 > `docs/03-汇报材料/WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx`。
+
+> **2026-09-03 正式重建状态**：八例低压力族和 `ZHOU_KE_XUN` / `ZUO_DAO_SHENG`
+> 原 Q 长尾已完成 raw 修复；`MENG_GUANG_QIN` monitor、`LIU_YUE_DONG` UDF 归档和
+> `LIU_ZONG_YANG` 出口映射/完整周期均已复核。当前剩余阻断项改为：唯一分支段曲率
+> feature atlas、全链 anatomy-only、5 个 `blood↔bloodN` 解剖切面 BC、全 train138
+> 条件长尾复审、`ZHOU_KE_XUN` 逐步收敛、raw 内容 SHA 和正式 bundle/stats/Gate 重建。
+> 旧 2026-08-31 staging 未包含这些 raw 更新，继续保持 `training_ready=false`。执行清单见
+> [正式重建前剩余整改问题与验收计划](./WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)。
+
+> **2026-09-03 夜 预处理准备状态**：新增 `wss_pinn/v4/fluent_topology.py`（Fluent 全拓扑/
+> Fluent 兼容质心/ASCII 身份匹配）、`centerline_atlas.py`（7 段唯一分支 SG11 曲率 atlas）及
+> 173 例拓扑、atlas、求解收敛三项审计，产物在隔离根
+> `outputs/wss_pinn/volume_uvwp_bc_rcr_v4_anatomy_prep_20260903/`。173/173：6 fluid zone、
+> 5 接口、解剖壁面与导出身份全部通过；atlas 曲率 p99 0.174 /mm、max 0.799 /mm。新发现
+> V2 冻结单位因子（810–1088）不是物理 mm、收敛标志仅 50/172 全通过、`Q_actual_peak` 为退化
+> 条件；正式重建前需用户对 7 项问题拍板。详见
+> [anatomy-only 预处理准备与 173 例数据核查](./WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md)。
+
+> **2026-09-04 正式骨干决策（用户选择 B）**：新的 Centerline-V2 formal V4 恢复
+> 非 PINN 阶段转交 V1/V2 PINN 的两个架构锚点：PointNet=`P2V`，PointNet++=纯
+> `D2 c125-k128`。只继承骨干结构锚点，不加载任何旧 WSS/V1/V2/V4 checkpoint。
+> 当前 `wss_pinn/v4/` 与旧 48-run 配置仍是参数量配平的简化实现，尚未按该决策改造；
+> 正式代码、配置、参数量差异说明和 preflight 完成前继续 `training_ready=false / No-Go`。
+
+> **2026-09-04 formal split**：`YANG_BAO_KUI` 因体域网格/81 帧 raw 被其他病例覆盖且
+> 无可恢复备份，已按既有用户决定从正式测试集排除；train138 保持逐条不变，formal
+> 数据总数为 172、测试集为 test34。旧 train138/test35 split 与所有历史结果继续只读。
 
 > **2026-08-31 数据切换状态**：已在独立 staging 从完整 raw 数据重建 173 例，并统一
 > steady/transient 几何语义、Centerline V2 刚性帧、volume-aware scale、15k 瞬态空间池和
@@ -52,6 +80,35 @@
 Gate 真源：
 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging/audits/gate_report.json`。
 本次没有创建正式配置、提交训练、修改 checkpoint 或改变旧 48-run 状态。
+
+## 名称、骨干与采样继承边界（2026-09-04 冻结）
+
+仓库中的“V4”不是同一套实验。后续文档和汇报必须使用下表限定词，禁止只写“V4”：
+
+| 限定名称 | 任务与时间 | PointNet / PointNet++ | 采样与继承边界 |
+| --- | --- | --- | --- |
+| WSS-min V4 | 非 PINN，壁面点云直接回归标量 WSS | 2026-07-18 阶段候选为 P2V / Q1V；2026-07-21 另筛出纯 D2 `c125-k128` | P2V 父实验为 random5000+SEP；D2 父实验为 random5000+SAME；均为历史开发 screen |
+| 体域 PINN V1/V2 | 严格体域点云重建 `u,v,w,p` | 冻结 P2V / D2 `c125-k128` 为架构 provenance | 只继承层宽、SA hierarchy 与 random5000 support 概念；V1 统一独立 query，V2 统一 SAME5K；不继承任务域、输出头、完整 query 协议或权重 |
+| field-v4 | `volume_uvwp_peak_field_v4` 连续场表示实验 | global/local conditioner | 与下述 BC/RCR V4 不同，不含 RCR 主矩阵 |
+| pre-Centerline-V2 BC/RCR V4 | 已训练的 `volume_uvwp_bc_rcr_v4` 历史 screen | PN=`64→128→256+global max`；PNPP=单层 `FPS-128+32-NN` 后 global max | 两者约 250k 参数，是容量配平重写，不是 P2V/D2；strict-volume uniform `support5000+独立 query5000`，无近壁分层/无法线剖面 |
+| Centerline-V2 formal V4 | 尚未生成正式配置、尚未训练 | **按用户选择 B：P2V / D2 `c125-k128`** | 从随机初始化训练；正式 query/PDE/近壁采样须在新配置中另行冻结，不能把旧 V4 sampler 自动视为已沿用 |
+
+补充边界：
+
+- P2V/D2 是壁面 direct-WSS 任务中筛出的父结构；“用于 PINN”是指改造成连续体域
+  `u,v,w,p` 网络，不是把原模型、标量 WSS 输出头或 checkpoint 原样搬入。
+- 2026-07-23 以后 direct-WSS 线继续发展到 D2-k64 + PointNeXt-R/LocalGeoPE 以及
+  L-SA2/H2/log-radius；它是后续 WSS-only 开发锚点，不是 V1/V2 或本次 formal V4
+  选择 B 所指的 PINN 父结构。
+- 沿内法线的 3–5 点有序速度剖面来自 `wss_mri_calculator` velocity→WSS/Profile
+  oracle 证据，不属于 P2V/D2 的训练 sampler。formal V4 是否把它转成近壁 velocity
+  query 仍待独立采样合同冻结。
+- 旧 BC/RCR V4 的 `DATA` 与 `DATA+BC` 都输入同一 18 维 BC vector 并训练 BCEncoder；
+  `DATA+BC` 只表示额外启用 BC loss，不是首次加入 BC 输入。V1/V2 的 `data-only`
+  没有这一病例级 BC 条件，跨代比较时不得混写。
+
+近壁厚度、173 例覆盖率与同病例 PN/PNPP 采样图见
+[BC/RCR V4 近壁采样核查](../../03-汇报材料/V4汇报/V4_近壁采样核查_2026-09-04/README.md)。
 
 ## 旧 pre-Centerline-V2 V4 大重构（2026-08-08，历史实现与执行）
 
@@ -283,6 +340,52 @@ Gate 真源：
   13–16 kPa）拉爆，中位 +0.87；WSS R²_cb 排序与近壁速度 R² 同构。单 seed 探索性
   screen，不回填 xlsx，不据此砍臂。
 
+- **V4 实验分析与汇报提纲（2026-09-02）**：基于 seed1234 16 臂 + 38/48 已评 run 的
+  只读分析，入口
+  [WSS_PINN_V4实验分析与汇报提纲_2026-09-02.md](../../03-汇报材料/WSS_PINN_V4实验分析与汇报提纲_2026-09-02.md)。
+  新增读数：跨 seed `E_rel_l2` sd 仅 0.004–0.039（排序稳健、全臂失败）；准稳态
+  BC/PDE 臂 `cos(∇L_data, ∇L_no-slip)` ≈ −0.88～−0.97、no-slip 残差全程不降；EMA 臂
+  `loss_ratio_raw` 中位 654（SP）/ 7.8e4（TR），λ 全程贴 10 → 老师的 EMA 方法未被检验；
+  169 例 outlet 标签重算瞬态 RCR 强形式残差归一化 RMS 中位 0.79–0.85（与差分格式无关），
+  但周期均值 ⟨P⟩/((R1+R2)⟨ṁ⟩)=0.983 成立 → RCR 项应改积分/周期均值形式。
+  **以下 Gate A–D 是 2026-09-02/03 当时的诊断提案，不是 09-04 formal 合同**：当时
+  建议数据 cutover → CV+DATA 基线 → 硬约束/梯度平衡/标签 `du/dt`/积分 RCR 逐项配对
+  → 准稳态达标后再瞬态。当前 formal 只已冻结 split 和 P2V/D2 骨干，条件输入、
+  interface BC、near-wall sampler 与硬/软 no-slip 仍待另行冻结。不回填 xlsx。
+  **同日 milestone 补评**：放开 `wss_pinn/v4/evaluate.py` 的 checkpoint 白名单
+  （新增 `epoch_02500`、`epoch_01000`），用
+  `eval_logs/launch_eval_milestones_20260902.sh` 在 master GPU1/2 评了 seed1234 16 臂的
+  `epoch_01000/02500/05000`（产物 `evaluation_official_epoch_0*_full.json`，日志
+  `gpu{1,2}_milestones_*_20260902.log`）。DATA 臂 epoch 1000 的 `E_rel_l2` 0.80–0.81 是全矩阵
+  最好点（TR-DATA speed R²_cb 0.32），之后单调退化到 1.04–1.13；物理臂随 epoch 基本不退化但
+  ceiling 更低。定性：test35 epoch 诊断，不反选 checkpoint。另核实 `train.py:464` 的
+  `lambda_clamped_fraction` 分母用全部 step、最大只能 0.02，`lambda_bound_fraction_limit=0.5`
+  永不触发，EMA 臂记录的 0.02 实际为 100% 撞限。
+  图件与汇报汇总：新建 `docs/03-汇报材料/V4汇报/`，内含 08-31 训练曲线图、09-01 横向 R²
+  散点图两套副本（原件保留）以及本次 milestone 曲线
+  `V4_milestone补评_epoch曲线_2026-09-02/`（fig9 E 与 speed R²、fig10 近壁与压力 R²、CSV、脚本）。
+  **同日第二轮讨论已写回分析文档** §3.10（RCR/镜像、2000 点池来源、相对 gauge、速度泛化差距、
+  CV 与"收敛即停"、V3 BC 定性、PINN 每 epoch 成本 3.2/11/18 s、旧线局部学习杠杆、体域→WSS 与
+  直接 WSS 路线、WSS 0.8 口径）。当时 Gate C 诊断提案包括“去 RCR/A_out 留入口流量 +
+  相对 gauge + U_c 归一”和“`u=d_wall·g` + 直接 WSS 头”；两者均未被 09-04 formal
+  合同采纳，后者若启用必须另立 WSS 多任务路线。同时新增 Gate E（学习曲线、CFD
+  成本中位 92 min/例、合成几何 + 稳态 CFD 预训练方案）。本地网页版
+  `docs/03-汇报材料/WSS_PINN_V4实验分析与汇报提纲_2026-09-02.html` 已用 `V4汇报/` 图件重做。
+
+- **汇报答疑与图件重绘（2026-09-03）**：老师汇报前的 11 个问题（稳态/瞬态实现、"BC 以残差进 loss"的含义、
+  `E_rel_l2` 与 R² 的关系、cos ≈ −0.9 的形象解释、λ 撞限与护栏 bug 的逐步解释、入口流量/相对 gauge 是否泄漏与
+  U_c 归一、跨代只看同口径 R²、预注册 contrast + Holm、近壁定义）逐条写入分析文档 §6，并按汇报稿改写第 0 节；
+  §2.4 改为 V2/V3/V4 三代同口径 R² 表（三代最好都停在 speed R²_cb ≈ 0.24、WSS fit ≤ 0.29 的平台）；
+  Gate E 改为**后置**（先不扩数据集，只留零成本学习曲线）。新核实的数字（只读日志）：EMA 臂 `λ_applied`
+  从 1.09 起步、**epoch 15 即 ≥ 9.9**，此后 99.8%（SP）/ 99.5%（TR）贴 10，未夹紧目标在 α=0.1 起点已是 130–220；
+  准稳态三臂 cos(∇L_data, ∇L_no-slip) 从 epoch 0–200 起就是 −0.87～−0.89、末段 −0.88/−0.97/−0.97，
+  瞬态两臂开局 ≈ 0；PDE-F 末段 ‖∇L_data‖ 3.05 对 ‖∇L_pde‖ 0.69；瞬态压力两例离群 σ 0.55/0.99 kPa 而 RMSE ≈ 13 kPa，
+  去掉两例后 p R² 均值 +0.36。图件：`docs/03-汇报材料/V4汇报/V4_汇报图件重绘_2026-09-03/`
+  （fig4 轨迹版、fig7 重绘、fig11 梯度冲突四联、fig12 E 对 R²，脚本 `extract_grad_cos.py` → `plot_v4_report_figs_v2.py`）。
+  近壁定义真源核实：旧 bundle `int_type` 由 `pipeline_wss_min` 按"到最近壁面节点 ≤ 1.5 mm、每例上限 40000 点"标记
+  （173 例全部取满），Centerline V2 同阈值不设上限。单文件网页改由
+  `docs/03-汇报材料/tools/build_v4_report_singlefile.py` 从本地版生成（base64 内嵌），不再手改。不回填 xlsx。
+
 以下 field-v4 Stage 0–1 与 V3 内容均为历史结果，继续保留用于追溯。
 
 V3 的完整预注册目标见
@@ -297,7 +400,7 @@ V3 的完整预注册目标见
 > 这不改变已完成六臂的历史数值，但会限制 BC 机制解读。同时，
 > test35 虽未参与 V3 训练/选 checkpoint，但已被用于后续架构、采样和 loss
 > 设计；下一轮应把它视为 development-exposed screen，不再当作新模型的
-> 未触碰确认集。详见[核心代码诊断与下一轮设计建议](./核心代码诊断与下一轮设计建议_2026-08-05.md)。
+> 未触碰确认集。详见[核心代码诊断与下一轮设计建议](./_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)。
 
 > **2026-08-06 历史范围**：当时下一轮唯一优化主线是峰值体域 `u,v,w,p`。已验证的
 > Profile-Secant V3 velocity→WSS 算法冻结为下游检查器，不再继续调算法；本路线不新增
@@ -533,12 +636,21 @@ test35，不使用 test35 调度、早停或 checkpoint 选择。
 `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`
 中的历史结果选择：
 
-- PointNet：P2V 宽度与 global random5000 设计；
-- PointNet++：纯 D2 `c125-k128` 与 random5000 设计；
-- 只继承结构，不加载历史权重。
+- PointNet：P2V 的 `256/512` support encoder 与 random5000 support 锚点；父实验 query=SEP；
+- PointNet++：纯 D2 `c125-k128` 的三层 `125/125/32`、邻域 `128/16/16` 与
+  random5000 support 锚点；父实验 query=SAME；
+- 只继承层宽/SA hierarchy 与 support 概念，不继承壁面 WSS 任务、标量输出头、完整
+  query 协议或历史权重。V1 为两骨干统一独立 query，V2 为统一 SAME5K。
+
+这里的 D2 是 2026-07-21 与 Q1V 基本打平的 single-seed 工程候选，后来被 V1/V2
+provenance 冻结；它不是 2026-07-23 以后 direct-WSS 线的 D2-k64/PointNeXt-R 开发锚点。
+2026-09-04 用户选择 formal V4 继续采用本节 P2V / D2 `c125-k128` 口径。
 
 对应父配置、SHA256 和工作簿 SHA256 已冻结在
 `wss_pinn/configs/volume_uvwp_peak_v1/matrix.json`，preflight 会检查来源漂移。
+其中工作簿 SHA 是当时的历史快照绑定；当前工作簿后来追加了多轮实验，整文件 SHA
+自然已变化，不应把 matrix 中的历史 SHA 更新成当前活动工作簿 SHA。父配置 SHA 仍是
+架构 provenance 真源。
 
 PINN 所需的适配只发生在连续查询路径：平滑 SiLU、query-local LayerNorm、独立查询
 坐标和可微逆距离 3NN 权重。PointNet++ 的 support encoder 可以保留离散 FPS/kNN；
@@ -932,9 +1044,13 @@ Fluent 原生离散残差。
 | CFD/方程 | 严格稳态、常黏度 Newtonian | 脉动 CFD 的 peak，Carreau–Yasuda 准稳态训练 | V2 缺少已证实非零的 `du/dt` |
 | 边界条件可辨识性 | 所有病例入口调到 WSS=1.5 Pa，出口按面积平方律 | 患者特异入口/RCR，但网络不输入流量、入口波形、出口压力/RCR | 论文更接近“几何→标准化流场”；V2 是缺少关键条件的多解映射 |
 | loss 权重 | `omega=loss_data/loss_phy`，每 10 epoch 更新 | data/continuity/momentum/no-slip 固定 1:1 权重 | V2 最后 epoch 的 physics 中 no-slip 占 **99.85%**，内部 PDE 实际权重很弱 |
-| 点云 | 0.05 mm voxel + 每例 10000 均匀点 | 每例 5000 uniform support，近壁点比例低 | V2 对近壁速度与梯度的信息预算更少 |
+| 点云 | 0.05 mm voxel + 每例 10000 均匀点 | 每例 5000 uniform support，无近壁分层；旧评估 near-wall 为 `≤1.5 mm + 40k cap` | 最近壁 1–2 层的速度梯度信息没有受控配额 |
 | 评估 | 速度/压力 NMAE；FR/PD 是病例级 R² | case-balanced 点级 speed R²、MAE/RMSE与近壁 R² | 原文没有报告可直接比较的点级速度 R² |
 | 验证 | 40/11，四组 Monte Carlo 划分 | reused test35、单 seed1234 | 原文对划分方差检查更完整 |
+
+`50.11%–88.10%` 的“真实 1.5 mm 带占多数”只来自 2026-08-31 Centerline-V2
+staging 按真实 mm 的重算，不是历史 PINN V2 `int_type` 的统计；详见
+[BC/RCR V4 近壁采样核查](../../03-汇报材料/V4汇报/V4_近壁采样核查_2026-09-04/README.md)。
 
 指标差异本身足以解释一部分“论文很准、我们 R² 很低”的观感。按老师源码快照使用的
 test 全局 `u/v/w` range 作为 NMAE 分母重算，当前 V2 竟可得到 SAME5K
@@ -970,8 +1086,10 @@ smoke、master/node04 GPU dry-run 和全部正式 Slurm 训练/评估均为 `pas
 ## 11. 真源与归档
 
 - 代码说明：`wss_pinn/README.md`
-- 核心代码诊断与下一轮设计建议（2026-08-05，第一性原理/对抗性修订版）：
-  [核心代码诊断与下一轮设计建议_2026-08-05.md](./核心代码诊断与下一轮设计建议_2026-08-05.md)
+- 核心代码诊断与下一轮设计建议（2026-08-05，🧊 2026-09-02 归档）：
+  [核心代码诊断与下一轮设计建议_2026-08-05.md](./_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)
+- V4 seed1234 index 5/7/8 速度 R² best/worst ParaView 包（2026-09-02）：
+  `outputs/wss_pinn/audits/v4_speed_r2_postview_20260902/`
 - Stage 0–1 已完成执行合同（🧊 2026-08-21 归档）：
   [冻结诊断后 Stage 0–1 提示词](./_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)
 - field-v4 决策合同与结果：

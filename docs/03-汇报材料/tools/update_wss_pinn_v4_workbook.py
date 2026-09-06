@@ -2,8 +2,10 @@
 """Fill V4 seed1234 rows 0-15 into the existing V2/V3 workbook.
 
 Field columns reuse the official test35 evaluations.  Downstream WSS uses the
-frozen Profile-Secant V3 calculator on peak-time full-volume velocity, matching
-the V2/V3 test35 x 1200 protocol.  Checkpoint sensitivity compares
+frozen Profile-Secant V3 calculator on peak-time full-volume velocity.  With
+``sample_count=0`` the audit evaluates every frozen wall node (full-wall);
+positive ``sample_count`` values retain the historical sampled protocol.
+Checkpoint sensitivity compares
 last_converged (identical weights to last) with the pre-registered milestone
 epoch_07500.
 """
@@ -543,7 +545,11 @@ def run_arm(
             "slope_a": _mean_std([row["slope_a"] for row in wss_fits]),
             "intercept_b": _mean_std([row["intercept_b"] for row in wss_fits]),
             "regression_r2": _mean_std([row["regression_r2"] for row in wss_fits]),
-            "protocol": "OLS y=a*x+b on the same test35 x 1200 WSS points",
+            "protocol": (
+                "OLS y=a*x+b on test35 × all frozen wall nodes (full-wall)"
+                if int(sample_count) <= 0
+                else f"OLS y=a*x+b on the same test35 × {int(sample_count)} WSS points"
+            ),
         },
         "query_time": "steady peak volume" if arm.temporal_mode == "steady_peak" else "transient peak frame on full V1 volume",
     }
@@ -551,6 +557,137 @@ def run_arm(
     atomic_write_json(path, result)
     atomic_write_json(arm_dir / "wss_metrics.json", wss_report)
     return path
+
+
+def run_arm_cache_shard(
+    index: int,
+    device_name: str,
+    sample_count: int = 0,
+    chunk_size: int = 16384,
+    case_start: int = 0,
+    case_stride: int = 1,
+    offload_before_wss: bool = False,
+    output_dir: Path | None = None,
+) -> Path:
+    """Build only a disjoint shard of WSS caches for later aggregation.
+
+    This is useful for the expensive full-wall audit.  It deliberately skips
+    physics and speed-fit diagnostics, and never writes aggregate metric JSON;
+    the ordinary ``arm`` command remains the single finalizer.
+    """
+    import torch
+
+    from wss_pinn.v4.evaluate import _CaseArrays
+
+    if case_start < 0 or case_stride < 1:
+        raise ValueError("case shard requires case_start >= 0 and case_stride >= 1")
+    base = _load_base()
+    arm = load_arm(index)
+    if not arm.checkpoint_path.is_file():
+        raise FileNotFoundError(arm.checkpoint_path)
+    config = load_config(arm.config_path, require_assets=True)
+    dataset = V4Dataset(config, roles=("test",))
+    device = torch.device(device_name)
+    model = build_model(config).to(device=device, dtype=torch.float32)
+    payload = torch.load(arm.checkpoint_path, map_location=device, weights_only=False)
+    model.load_state_dict(payload["model"], strict=True)
+    del payload
+    model.eval()
+
+    out_root = Path(output_dir) if output_dir is not None else OUTPUT
+    cache_dir = out_root / "arms" / arm.key / f"point_cache_s{sample_count}"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    wss_configs = base._load_wss_configs()
+    selected = list(range(case_start, len(dataset), case_stride))
+    if offload_before_wss and len(selected) != 1:
+        raise ValueError("--offload-before-wss requires a one-case shard")
+    for ordinal, case_index in enumerate(selected, start=1):
+        v4_case = dataset._case(case_index)
+        arrays = _CaseArrays(dataset, case_index)
+        cache_path = cache_dir / (arrays.case_id.replace("/", "__") + ".npz")
+        if base._cache_valid(cache_path, arm, sample_count):
+            print(
+                json.dumps(
+                    {
+                        "event": "v4_wss_case_cached",
+                        "arm": arm.key,
+                        "case": arrays.case_id,
+                        "index": case_index,
+                        "shard_ordinal": ordinal,
+                    },
+                    ensure_ascii=False,
+                ),
+                flush=True,
+            )
+            continue
+        volume = _volume_case(v4_case)
+        query_time = (
+            None
+            if arm.temporal_mode == "steady_peak"
+            else _peak_time_s(v4_case, volume.peak_step)
+        )
+        support_index = arrays.sample_indices(
+            "eval_support", int(config["sampling"]["support_points"])
+        )
+        support_coords = torch.as_tensor(
+            np.asarray(arrays.coords[support_index], dtype=np.float32), device=device
+        )
+        support_features = torch.as_tensor(
+            _support_features(dataset, arrays, support_index), device=device
+        )
+        support_batch = torch.zeros(len(support_index), dtype=torch.long, device=device)
+        bc_vector = torch.as_tensor(
+            arrays.bc_vector, dtype=torch.float32, device=device
+        ).unsqueeze(0)
+        encoded = model.encode_support(
+            support_coords,
+            support_features,
+            support_batch,
+            bc_vector,
+            [arrays.case_id],
+            int(config["train"]["seed"]),
+        )
+        pred_u, _ = _predict_volume(
+            model,
+            encoded,
+            np.asarray(volume.coords),
+            query_time,
+            device,
+            dataset.field_stats,
+            chunk_size,
+        )
+        if offload_before_wss:
+            del encoded, model, support_coords, support_features, support_batch, bc_vector
+            if device.type == "cuda":
+                torch.cuda.empty_cache()
+        wss_arrays = base._build_wss_cache_arrays(
+            volume,
+            base._bundle_arrays(volume),
+            pred_u,
+            arm,
+            sample_count,
+            *wss_configs[:4],
+        )
+        base._write_npz(cache_path, wss_arrays)
+        if not offload_before_wss:
+            del encoded
+        del pred_u, wss_arrays
+        if device.type == "cuda":
+            torch.cuda.empty_cache()
+        print(
+            json.dumps(
+                {
+                    "event": "v4_wss_case_completed",
+                    "arm": arm.key,
+                    "case": arrays.case_id,
+                    "index": case_index,
+                    "shard_ordinal": ordinal,
+                },
+                ensure_ascii=False,
+            ),
+            flush=True,
+        )
+    return cache_dir
 
 
 def _mean_std_fit(rows: list[dict[str, Any]], key: str) -> dict[str, Any]:
@@ -773,11 +910,16 @@ def _write_sensitivity_sheet(wb, field: dict[str, Any]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("field-metrics", "arm", "workbook"))
+    parser.add_argument(
+        "command", choices=("field-metrics", "arm", "arm-cache-shard", "workbook")
+    )
     parser.add_argument("--matrix-index", type=int)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--sample-count", type=int, default=1200)
     parser.add_argument("--limit-cases", type=int)
+    parser.add_argument("--case-start", type=int, default=0)
+    parser.add_argument("--case-stride", type=int, default=1)
+    parser.add_argument("--offload-before-wss", action="store_true")
     parser.add_argument("--output-dir")
     args = parser.parse_args()
     if args.command == "field-metrics":
@@ -790,6 +932,18 @@ def main() -> None:
             args.device,
             sample_count=args.sample_count,
             case_limit=args.limit_cases,
+            output_dir=Path(args.output_dir) if args.output_dir else None,
+        )
+    elif args.command == "arm-cache-shard":
+        if args.matrix_index is None:
+            raise ValueError("--matrix-index is required")
+        path = run_arm_cache_shard(
+            args.matrix_index,
+            args.device,
+            sample_count=args.sample_count,
+            case_start=args.case_start,
+            case_stride=args.case_stride,
+            offload_before_wss=args.offload_before_wss,
             output_dir=Path(args.output_dir) if args.output_dir else None,
         )
     else:

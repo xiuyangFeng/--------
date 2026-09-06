@@ -304,7 +304,7 @@ seed=`7/2025` 的每个配置只改变 `name` 和 `train.seed`；mixed `train138
 
 S3 通过本批决策规则，只提出后续互不组合的 `S3+DropPath 0.05`、`S3+DropPath 0.10`、`S3+NeighborDrop 0.05`，本批未自动混入 Drop。AAA unrupture 轻微回退、少数 high-WSS seed 回退且绝对 high-WSS R²仍为负，继续作护栏。test36 是历史工程筛选集，未用于 checkpoint 选择，也不是独立外部测试集。真源：`training_wss_min/preflight/d2_k64_ilo_structure_three_seed_confirmation_{analysis.json,summary.csv,paired_case_seed.csv}`。
 
-**完整性**：门禁 `10837/10843` 和数组 `10838_[0-4]/10844_[0-3]` 全部 `COMPLETED (0:0)`。9 个新 run 均完成 400 epoch、best/last checkpoint、best/last 全云评估、逐病例 CSV、配置哈希和有限数值审计。主结果固定使用 `ckpt_best(train_loss)`；病例 bootstrap 为 20,000 次。所有结论均为单种子筛选，不能替代后续三种子确认。
+**完整性**：门禁 `10837/10843` 和数组 `10838_[0-4]/10844_[0-3]` 全部 `COMPLETED (0:0)`。原始 9 个结构/数据 run 均完成 400 epoch、best/last checkpoint、best/last 全云评估、逐病例 CSV、配置哈希和有限数值审计，属于 single-seed 筛选；M1/S2/S3 后续 6 个 run 已完成三种子严格配对确认。主结果固定使用 `ckpt_best(train_loss)`；病例 bootstrap 为 20,000 次。test36 仍是 development-exposed screen，三种子工程确认不等于独立外部确认。
 
 ### 数据协议结果
 

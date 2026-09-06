@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "case_id": "AG/fast/RAN_QING_BO",
+  "interpretation": {
+    "wall_tissue_thickness_available": false,
+    "available_geometry": "fluid-lumen points and local lumen radius",
+    "near_wall_definition": "interior distance to physical wall"
+  },
+  "unit_contract": {
+    "formula": "true_mm = stored_legacy_or_staging_length * 1000 / fluent_to_mm_unit_factor",
+    "case_unit_factor": 967.7487699318277,
+    "case_true_mm_rescale": 1.0333260357132195,
+    "case_stored_threshold_true_mm": 1.549989053569829
+  },
+  "atlas_radius_true_mm_all_173": {
+    "n_samples": 199033,
+    "min_p05_p50_p95_max": [
+      0.7953300422609214,
+      2.5701237902387137,
+      6.162535778535021,
+      16.245133736119424,
+      45.733006380089606
+    ]
+  },
+  "current_centerline_v2_staging_untrained": {
+    "n_cases": 173,
+    "pooled_strict_points": 134133743,
+    "pooled_true_1p5_points": 92409142,
+    "pooled_true_1p5_fraction": 0.6889328511469333,
+    "per_case_fraction_min_p50_max": [
+      0.5010552596732136,
+      0.6849015057400549,
+      0.8809829331428721
+    ],
+    "test35_fraction_min_p50_max": [
+      0.510769570621049,
+      0.6719776492813452,
+      0.8712247883052252
+    ],
+    "n_cases_all_points_selected": 0
+  },
+  "legacy_trained_v4": {
+    "per_case_tag_fraction_min_p50_max": [
+      0.0,
+      0.052546398469848876,
+      0.08855944774328388
+    ],
+    "near_wall_is_training_sampler": false,
+    "near_wall_is_evaluation_region_only": true
+  },
+  "representative_case": {
+    "case_id": "AG/fast/RAN_QING_BO",
+    "role": "test",
+    "unit_factor": 967.7487699318277,
+    "true_mm_rescale": 1.0333260357132195,
+    "n_strict": 990613,
+    "current_true_1p5_n": 567294,
+    "current_true_1p5_fraction": 0.5726696500045931,
+    "current_stored_region_n": 581868,
+    "current_stored_region_fraction": 0.587381752510819,
+    "current_stored_1p5_true_thickness_mm": 1.549989053569829,
+    "legacy_true_1p5_candidate_n": 303507,
+    "legacy_true_1p5_candidate_fraction": 0.30638301738418533,
+    "legacy_tagged_n": 40000,
+    "legacy_tagged_fraction": 0.04037903802998749,
+    "legacy_tag_effective_max_true_mm": 0.6371822538012631,
+    "atlas_radius_min_mm": 1.8225282346703007,
+    "atlas_radius_p05_mm": 2.352594393090447,
+    "atlas_radius_p50_mm": 8.483499940398778,
+    "atlas_radius_p95_mm": 15.038755295001112,
+    "atlas_radius_max_mm": 16.778145620132367,
+    "atlas_radius_true_mm_min_p05_p25_p50_p75_p95_max": [
+      1.8225282346703007,
+      2.352594393090447,
+      3.490102119022398,
+      8.483499940398778,
+      12.174494462273598,
+      15.038755295001112,
+      16.778145620132367
+    ]
+  },
+  "epoch0_sampling": {
+    "support": {
+      "n": 5000,
+      "current_true_1p5_n": 2806,
+      "legacy_true_1p5_n": 1488,
+      "legacy_tagged_n": 207
+    },
+    "query": {
+      "n": 5000,
+      "current_true_1p5_n": 2853,
+      "legacy_true_1p5_n": 1525,
+      "legacy_tagged_n": 184
+    },
+    "pointnet": "uses all 5000 support points; point MLP + global max",
+    "pointnetpp": {
+      "fps_centers": 128,
+      "neighbors_per_center": 32,
+      "knn_unique_union": 3626,
+      "fps_current_true_1p5_n": 113,
+      "fps_legacy_tagged_n": 6,
+      "knn_union_current_true_1p5_n": 2000,
+      "knn_union_legacy_tagged_n": 140
+    },
+    "base_support_identical_between_backbones": true
+  },
+  "outputs": {
+    "vtp_written": true,
+    "figures": [
+      "fig1_全队列近壁厚度与病例覆盖.png",
+      "fig2_PointNet_RAN_QING_BO_epoch0采样.png",
+      "fig3_PointNetPP_RAN_QING_BO_epoch0采样.png"
+    ]
+  }
+}

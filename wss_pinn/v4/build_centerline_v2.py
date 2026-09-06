@@ -37,7 +37,7 @@ from wss_pinn.utils import (
 )
 from wss_pinn.volume_utils import StreamingMoments, iter_slices
 
-from .build import _transformed_bc
+from .bc_contract import bc_scale_policy, bc_vector_from_conditions, transform_bc_raw
 from .geometry_v2 import (
     GEOMETRY_AUX_NAMES,
     GEOMETRY_MODEL_NAMES,
@@ -103,19 +103,11 @@ PRESSURE_LOW_CLUSTER = {
     "ILO/ZHANG_YONG_SHENG-0/before",
     "AAA/ruputer/WANG_FU_SHUN",
 }
-BC_Z_WHITELIST = {
-    ("AAA/ruputer/ZHOU_KE_XUN", "Q_actual_peak"): (
-        "Q_actual_peak source requires raw UDF/area sign-off"
-    ),
-    ("AAA/ruputer/ZUO_DAO_SHENG", "Q_actual_peak"): (
-        "Q_actual_peak source requires raw UDF/area sign-off"
-    ),
-    ("AAA/ruputer/ZOU_LI_SHUN", "log10_R2_out-re"): (
-        "out-re RCR source requires unit/opening sign-off"
-    ),
-    ("AAA/ruputer/ZOU_LI_SHUN", "log10_C_out-re"): (
-        "out-re RCR source requires unit/opening sign-off"
-    ),
+# 2026-09-05 BC contract: max-aware z-scale bounds every train |z| by 6 and the inlet
+# ratio uses a fixed physical scale, so no per-case |z|>6 whitelist is needed any more.
+# The ZOU_LI_SHUN out-re R2/C values (formerly +6.5σ / -6.5σ) are surfaced through the
+# advisory ``abs_z_gt_4`` list instead of a blocking whitelist.
+BC_Z_WHITELIST: dict[tuple[str, str], str] = {
 }
 
 
@@ -895,7 +887,12 @@ def build_case(row: dict[str, Any], *, resume: bool = False) -> dict[str, Any]:
                 and boundary_raw["diagnostics"]["wall_nonempty"]
             ),
         },
-        "conditions": case["conditions"],
+        "conditions": {
+            **case["conditions"],
+            # frozen 2026-09-05 contract: rebuild the raw vector from solver-time quantities
+            "inlet_area_ratio": float(case["conditions"]["a_in_mesh_m2"]) / float(case["conditions"]["a_in_udf_m2"]),
+            "bc_vector_raw": bc_vector_from_conditions(case["conditions"]),
+        },
         "physics_scales": {
             **case["physics_scales"],
             "coordinate_length_m": scale_mm * 1.0e-3,
@@ -956,10 +953,11 @@ def build_stats(case_reports: list[dict[str, Any]]) -> dict[str, Any]:
     transient_velocity = StreamingMoments(3)
     transient_pressure = StreamingMoments(1)
     bc_raw = np.asarray([row["conditions"]["bc_vector_raw"] for row in train], dtype=np.float64)
-    bc_value = _transformed_bc(bc_raw)
-    bc_mean = bc_value.mean(axis=0)
-    bc_std_raw = bc_value.std(axis=0)
-    bc_std = np.where(bc_std_raw < 1.0e-12, 1.0, bc_std_raw)
+    bc_value = transform_bc_raw(bc_raw)
+    bc_policy = bc_scale_policy(bc_value)  # raises on a near-constant z-scored field
+    bc_mean = np.asarray(bc_policy["mean"], dtype=np.float64)
+    bc_std = np.asarray(bc_policy["std"], dtype=np.float64)
+    bc_std_raw = np.asarray(bc_policy["raw_std"], dtype=np.float64)
 
     for row in train:
         steady = row["files"]["steady"]
@@ -990,17 +988,15 @@ def build_stats(case_reports: list[dict[str, Any]]) -> dict[str, Any]:
             transient_velocity.update(np.asarray(velocity_t[frame])[eligible])
             transient_pressure.update(np.asarray(pressure_t[frame])[eligible, None])
 
-    transformed_names = [
-        "log10_A_in_mesh",
-        "Q_actual_peak",
-        *[
-            f"log10_{field}_{outlet}"
-            for outlet in OUTLET_ORDER
-            for field in ("A_out", "R1", "R2", "C")
-        ],
-    ]
+    transformed_names = list(bc_policy["names"])
     z = (bc_value - bc_mean) / bc_std
     outliers = []
+    advisory = [
+        {"canonical_id": row["canonical_id"], "field": name, "z": float(z[case_index, field_index])}
+        for case_index, row in enumerate(train)
+        for field_index, name in enumerate(transformed_names)
+        if abs(float(z[case_index, field_index])) > 4.0
+    ]
     for case_index, row in enumerate(train):
         for field_index, name in enumerate(transformed_names):
             if abs(float(z[case_index, field_index])) > 6.0:
@@ -1058,13 +1054,9 @@ def build_stats(case_reports: list[dict[str, Any]]) -> dict[str, Any]:
             "scale_policy": "max-aware train-only z-scale; no clipping; hard bound ±6 on train",
         },
         "bc": {
-            "names": transformed_names,
-            "mean": bc_mean.tolist(),
-            "std": bc_std.tolist(),
-            "raw_std": bc_std_raw.tolist(),
-            "zero_variance_mask": (bc_std_raw < 1.0e-12).tolist(),
-            "transform": "log10 for areas/R1/R2/C; raw Q_actual_peak; train138 z-score",
+            **bc_policy,
             "z_gt_6": outliers,
+            "abs_z_gt_4": advisory,
         },
         "steady": {
             "velocity_m_s": steady_velocity.result(),

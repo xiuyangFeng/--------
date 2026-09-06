@@ -347,7 +347,7 @@ ax2.set_ylabel('WSS R²_cb', color=INK2, fontsize=9.5)
 ax2.set_title('(b) 准稳态 8 臂：WSS 完全跟随近壁场质量', **TITLE_KW)
 h1 = [Line2D([],[], marker='s', ls='', color=MODE_COLOR[m], label=m) for m in MODES]
 ax2.legend(handles=h1, frameon=False, fontsize=8.5, loc='lower right')
-fig.suptitle('图8 · WSS 全负不是 WSS 算法问题：排序与近壁速度 R² 同构，误差被梯度算子放大',
+fig.suptitle('WSS横向对比',
              fontsize=12.5, color=INK, x=0.01, ha='left')
 fig.tight_layout(rect=[0,0,1,0.93])
 p=f'{OUT}/fig8_wss_nearwall.png'; fig.savefig(p, dpi=150, facecolor=SURF); figs.append(p); plt.close(fig)

@@ -265,7 +265,7 @@ def validate_config(payload: dict[str, Any], *, require_assets: bool = False) ->
     if int(payload["model"]["support_in_dim"]) != 6:
         raise ValueError("support input is xyz + three geometry features")
     if int(payload["model"]["bc_in_dim"]) != 18:
-        raise ValueError("BC input is A_in,Q_actual_peak + 4x(A,R1,R2,C)")
+        raise ValueError("BC input is A_in,inlet_area_ratio + 4x(A,R1,R2,C)")
     if payload["train"].get("init_checkpoint"):
         raise ValueError("cross-run warm start is forbidden")
     if payload["train"]["precision"] != "float32":

@@ -1,13 +1,18 @@
 # wss_pinn — 体域 `u,v,w,p` PINN 指令
 
-旧 `volume_uvwp_bc_rcr_v4` 已实现并提交受 Gate 保护训练链，但其数据属于
-pre-Centerline-V2 历史矩阵。当前工程活动是 Centerline V2 隔离 staging cutover，尚未形成
-可提交训练的正式 route。设计真源为
+旧 `volume_uvwp_bc_rcr_v4` 已实现并提交受 Gate 保护训练链，但其数据与约 250k
+容量配平 PN/PNPP 均属于 pre-Centerline-V2 历史矩阵。2026-08-31 隔离 staging 已因
+后续 raw/真实 mm/anatomy-only 合同更新而过期；当前工程活动是 172 例 train138/test34
+formal 重建准备，尚未形成可提交训练的正式 route。设计真源为
 `docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md`。
 已完成的 `volume_uvwp_peak_field_v4` Stage 0–1 与
 `volume_uvwp_peak_qs_smooth_v3` 六臂均为冻结历史结果，不得覆盖或冒充新 V4。
 `volume_uvwp_peak_v1` 与 SAME5K-E7500 v2 保留为历史对照；旧“直接 WSS 输出 + 阶梯
 F0/F1/F2”路线已归档。
+
+2026-09-04 用户选择 formal backbone 方案 B：PointNet=P2V、PointNet++=纯 D2
+`c125-k128`，只继承骨干结构并从随机初始化训练。当前 `v4/config.py` / `v4/models.py`
+仍是旧容量配平实现；在独立正式配置、连续 query/导数 Gate 与参数量报告完成前不得提交。
 
 ## 隔离边界
 
@@ -25,8 +30,21 @@ F0/F1/F2”路线已归档。
   `data_wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging_train138_test35/`
   与 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging/audits/`。
   该 route 必须保持 `training_ready=false`，不得复用旧 V4 配置、run 目录或 checkpoint；
-  压力低值簇、81 帧 raw 父源内容 SHA256、速度/BC 长尾、4 例 optional outlet monitor
-  标签和正式 route/config/output 隔离未签收前，不得提交训练。
+  2026-09-03 八例压力低值簇与 ZHOU/ZUO 原 Q 长尾已在 raw 侧修复，但旧 staging 尚未
+  重建。唯一分支段曲率 atlas、全链 anatomy-only、`blood↔bloodN` 解剖切面 BC、
+  train138 条件长尾、ZHOU 单步收敛、81 帧 raw 父源内容 SHA256、monitor 语义映射和
+  正式 route/config/output 隔离未签收前，不得提交训练。
+- formal anatomy-only split 固定为 train138/test34，排除 raw 资产不可恢复的
+  `YANG_BAO_KUI`；原 train138/test35 split 只允许服务历史矩阵/staging provenance。
+- formal 路径预留为 `volume_uvwp_bc_rcr_v4_centerline_v2_p2v_d2`（配置/输出）与
+  `volume_uvwp_bc_rcr_v4_centerline_v2_p2v_d2_train138_test34`（数据）；实现前先做
+  collision preflight。本条不授权创建数据、配置或提交训练。
+- 2026-09-03 anatomy-only 预处理准备（`wss_pinn/v4/fluent_topology.py`、`centerline_atlas.py`、
+  `build_feature_atlas.py`、`audit_anatomy_topology.py`、`audit_solver_convergence.py`）只写隔离根
+  `outputs/wss_pinn/volume_uvwp_bc_rcr_v4_anatomy_prep_20260903/`；它不是正式 data root。
+  已核实：V2 `fluent_to_mm_unit_factor` 非物理单位（真实 mm = Fluent m × 1000），ASCII 导出
+  `cellnumber/nodenumber` 不是 `.cas` 索引，zone 归属只能靠几何身份匹配；正式 builder 在用户对
+  单位/表面/求解质量/`Q_actual_peak` 归一化四项拍板前不得启动。
 - 新结果只写 `outputs/wss_pinn/volume_uvwp_peak_v1/`、
   `outputs/wss_pinn/volume_uvwp_peak_same5k_e7500_v2/`、
   `outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/`、
@@ -47,6 +65,19 @@ F0/F1/F2”路线已归档。
   `bca002025d40b290d171570e6470f484fd4feec7`。
 
 ## 冻结科学合同
+
+### Centerline-V2 formal v1.3 骨干边界（2026-09-04）
+
+- PointNet 使用 P2V `256/512` support encoder 锚点；PointNet++ 使用纯 D2
+  `c125-k128` 三层 `125/125/32`、邻域 `128/16/16`、`knn_cover/ball/ball` 锚点。
+- 父 P2V 是壁面 WSS + SEP，父 D2 是壁面 WSS + SAME；formal V4 只继承层宽、SA
+  hierarchy 与 random5000 support 概念，不继承标量 WSS 头、完整 query sampler 或权重。
+- P2V/D2 参数量不配平。正式 preflight 必须报告差异并把容量列为 backbone 比较混杂，
+  但不得为追求 10% 内配平而再次改写用户已选骨干。
+- formal query/PDE/near-wall sampler 尚未冻结；旧 uniform support/query、D2 父 SAME 和
+  velocity→WSS 法线剖面都不能自动视为新实现。
+- 旧 v1.2 的 PN `64→128→256` 与 PNPP 单层 `FPS-128+32-NN` 只作历史结果读取兼容，
+  不得用于新的 formal 配置。
 
 ### 新 V4 v1.2 实现与运行边界
 
@@ -118,8 +149,8 @@ F0/F1/F2”路线已归档。
   验证器；只允许在基于 validation 的 `u/v/w/speed/p`、区域、流量和压降指标确定主
   checkpoint 后做一次 sanity check，不得在本路线继续调 WSS 算法。
 - 下一轮科学合同已冻结在
-  `docs/02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md`
-  的 `FROZEN FOR IMPLEMENTATION v1.0`。实现必须先完成 Stage 0-a 的病例等权
+  `docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md`
+  的 `FROZEN FOR IMPLEMENTATION v1.0`（🧊 2026-09-02 归档；现行执行真源是 V4 设计方案）。实现必须先完成 Stage 0-a 的病例等权
   `S_field^cb`、validation 聚合、B0 atlas 与探针入库；任何 BC 实验前完成 Stage 0-b。
   Stage 1 不输入病例 BC、不使用 PDE、不读取 test35，且不得覆盖现有 V3 配置/产物。
 - Stage 1 决策已冻结为：保留 G-Raw；G-PE 跨种子方向不稳定且触发 pressure/最差
@@ -176,17 +207,19 @@ checkpoint 初始化都视为热启动并拒绝。正式提交前必须保留初
 
 正式训练前必须全部满足：
 
-1. 173 例 schema-v2 per-case manifest/direct-array 数据构建完成（历史路线可为 sidecar）；
+1. formal 172 例 schema-v2 per-case manifest/direct-array 数据构建完成；历史
+   train138/test35 路线可保留 173 例 sidecar，不得混入 formal manifest；
 2. case arrays + deep-source audit 均通过；
 3. train138-only 严格体域统计与 split、病例 manifest hash 完整绑定；
 4. `test_volume_*.py`、八臂静态 preflight 和八臂 GPU dry-run 通过；
 5. 用户再次明确授权正式训练。
 
-Centerline V2 正式 cutover 还必须先关闭 staging blocker：8 例压力低值簇逐例签收、
-81 帧 raw 父文件内容 SHA256 绑定、速度/BC 长尾来源与 loss 敏感性签收、4 例 outlet
-monitor 标签明确为 optional 或补建、独立正式 route/config/output root 建立。完成后重新执行
-173 例默认采样 loader、静态/GPU preflight，并再次取得用户授权；旧 V4 的 2026-08-08
-授权不得自动继承。
+Centerline V2 正式 cutover 还必须先关闭 2026-09-03 整改清单：完成唯一分支段曲率 atlas；
+从 Fluent zone topology 重建全链 anatomy-only 数据、壁面与 5 个 `blood↔bloodN` interface；
+重审 train138 条件长尾与 ZHOU 单步收敛；绑定 81 帧 raw 父文件内容 SHA256；关闭 monitor
+命名/语义映射；建立独立正式 route/config/output root。已修复的八例压力和 ZHOU/ZUO Q
+必须写入新 bundle，禁止 pressure offset。完成后重新执行 formal 172 例默认采样 loader、
+静态/GPU preflight，并再次取得用户授权；旧 V4 的 2026-08-08 授权不得自动继承。
 
 V3 另要求 173/173 真实边界 Gate、六臂静态 preflight、六张物理 GPU dry-run 全部
 通过。提交后的前 30 分钟监控和完训后的三 checkpoint test35 评估均已完成；后续不得
@@ -211,8 +244,9 @@ V3 的对应命名为 `best_validation_data.pt`、`best_validation_total.pt`、`
 checkpoint 均使用固定 5k support→full strict-volume test35 协议；跨臂主比较只能用
 `best_validation_data`。
 
-已有 V1/V2/V3 和后续诊断已读取 test35 并用于新设计；因此下一轮可继续把
-test35 用作历史统一 screen，但不得再宣称它是新架构的未触碰确认集。
+已有 V1/V2/V3 和后续诊断已读取历史 test35 并用于新设计。formal V4
+排除 `YANG_BAO_KUI` 后的 test34 是该 exposed test35 的子集，只能作历史统一
+screen，不得宣称为新架构的未触碰确认集。
 
 评估必须同时报告 `u/v/w/speed/p`、近壁/核心分区、压力 gauge 诊断、壁面速度、
 continuity 和 momentum residual。PointNet++ SAME support 上的 residual 必须标注

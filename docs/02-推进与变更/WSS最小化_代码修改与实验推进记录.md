@@ -6,6 +6,90 @@
 > **滚动切卷**：本文件只保留 2026-08 以来的条目；2026-07 条目（PointNet 矩阵、新队列审计、WSS-PINN F0/F1）见历史卷
 > [2026-07卷](_archive/WSS最小化_代码修改与实验推进记录_2026-07卷.md)。主文件超过约 1500 行或跨季度时，把最旧月份整月切入 `_archive/` 新卷并更新本索引。
 
+## 2026-09-04｜BC/RCR V4 与非 PINN 血统对齐 · formal backbone 选择 B · 文档完成 / 训练 No-Go
+
+**本次主要修改**：交叉核对非 PINN 点云实验、体域 PINN V1/V2、field-v4、旧 BC/RCR
+V4 代码/配置/产物和两份汇报工作簿。冻结正式口径：Centerline-V2 formal V4 按用户
+选择 B 使用 PointNet P2V / 纯 PointNet++ D2 `c125-k128`，只继承骨干结构并从随机
+初始化；旧 pre-Centerline-V2 V4 继续如实记录为 PN `64→128→256`、PNPP 单层
+`FPS-128+32-NN` 的约 250k 容量配平历史 screen。同步澄清 P2V 父采样为 SEP、D2 父
+采样为 SAME，V1/V2 只继承层宽/SA/support 概念；沿法线剖面证据属于
+velocity→WSS/Profile oracle，不属于 P2V/D2 sampler。修正 DATA/DATA+BC、query geom、
+`Q_actual_peak`、旧矩阵状态、真实 mm near-wall 与多处历史/当前 V4 混写，并把 formal
+172 例 train138/test34 与历史 173 例 train138/test35 分开。近壁三图已重绘独立标题，
+明确图 2/3 展示旧 matched-v1.2，而非尚未实现的 formal P2V/D2 sampler。
+
+**对应代码/文档**：[WSS_PINN 路线真源](WSS_PINN/README.md)、
+[V4 大重构设计](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)、
+[正式重建清单](WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)、
+[非 PINN PointNet 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、
+[训练跟踪](WSS最小化_训练实验跟踪.md)、`wss_pinn/README.md`、根/`docs` README、
+`docs/实验设计总纲.md`、V4 分析 Markdown/HTML/单文件版与
+[`V4汇报/`](../03-汇报材料/V4汇报/README.md)。两份工作簿仅改描述性单元格：
+`WSS_PointNet实验矩阵与结果汇总last.xlsx` 与
+`WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx`；可复现、安全保留
+OOXML drawings 的更新器为 `docs/03-汇报材料/tools/align_v4_backbone_lineage_workbooks.py`。
+该更新器同时修复 PINN 主表 `A1:AO34` 打印区及两个 V4 sheet 的横向、单页宽、独立打印区；
+LibreOffice 导出时两个 V4 sheet 分别成为第 192/193 页且各占一页。近壁说明、三图、CSV、
+VTP 与可复现脚本位于
+[`V4_近壁采样核查_2026-09-04`](../03-汇报材料/V4汇报/V4_近壁采样核查_2026-09-04/README.md)；
+`build_v4_report_singlefile.py` 已在 PNG 重绘后重新打包 15 张图。
+
+**推进到实验步骤**：完成模型血统、版本命名、历史结果与 formal 设计的文档冻结；近壁
+审计已在同病例 `RAN_QING_BO` 展示旧 PN/PNPP 共用 uniform support5000 及 PNPP
+FPS128/32NN。未修改训练模型、配置、数据 bundle、checkpoint 或作业；下一步是把
+P2V/D2 连续 query 模型和 formal sampler 落入独立配置并重新执行导数/参数量/preflight Gate。
+
+**当前状态判断**：旧矩阵本地 46/48 有完成摘要、38/48 有 official 评估；46/47 只有
+epoch5098/4691 部分产物且远端状态未复核。formal split=train138/test34，backbone=P2V /
+D2 `c125-k128`，但代码/配置尚未改造，继续 `training_ready=false / No-Go`。真实 1.5 mm
+带未选完全部点，却因边界层网格加密覆盖 50.11%–88.10% cell（中位 68.49%）；正式近壁
+sampler 仍须另行冻结，不能把旧 uniform 或法线后处理证据写成已实现设计。
+
+## 2026-09-03｜WSS_PINN V4 正式重建前剩余整改合同冻结 · formal No-Go
+
+**本次主要修改**：在八例低压力 raw 更新、ZHOU/ZUO 原 Q 长尾修复、MENG monitor 整理、
+LIU_YUE_DONG UDF 归档和 LIU_ZONG_YANG 完整周期复核基础上，新增正式重建前剩余整改清单。
+把“已签收压力问题”和“仍阻断的数据合同”分开，冻结七项工作：唯一分支段曲率 atlas、
+全链 anatomy-only、5 个 `blood↔bloodN` 解剖切面 BC、train138 条件长尾复审、ZHOU 单步
+收敛、raw 内容 SHA、正式 bundle/stats/Gate 重建。
+
+**对应代码/文档**：
+[正式重建前剩余整改问题与验收计划](WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)、
+[WSS_PINN 当前入口](WSS_PINN/README.md)、[项目文档索引](../README.md)、根 `README.md`、
+`wss_pinn/README.md`、`wss_pinn/AGENTS.md`、`docs/实验设计总纲.md`；08-30 初审文档新增
+最新状态指针。本次未修改 builder、训练代码、
+数据数组、配置、checkpoint 或作业。
+
+**推进到实验步骤**：完成正式 cutover 的问题定义、实施顺序和机器/人工验收门槛；尚未执行
+feature atlas、zone mask、interface BC 或正式 173 例重建。
+
+**当前状态判断**：八例低压力为 `8/8` raw 侧通过，ZHOU/ZUO 原 Q 长尾通过；但
+2026-08-31 staging 已过期。正式训练继续 `training_ready=false / No-Go`，不得先重算旧
+staging stats，也不得 resume 旧 checkpoint。
+
+## 2026-09-02｜V4 index 5/7/8 速度 R² best/worst ParaView 包 · 诊断文档归档 · 已完成
+
+**本次主要修改**：按 V2/V3 审计同款流程，为 V4 seed1234 矩阵 index 5/7/8 各导出 official
+test35 速度 R² 最好与最差病例的后处理包：源点云 VTP、Gaussian r=3 mm 壁面 STL 面片
+（含 `wss_pred_over_wss_pred_max`）、解剖 ROI 速度点云。同期将已完成的 field-v4
+科学合同移入 `_archive/`，不再作为待执行入口。
+
+**对应代码/文档**：`docs/03-汇报材料/tools/export_v4_speed_r2_postview.py`；产物
+`outputs/wss_pinn/audits/v4_speed_r2_postview_20260902/`（打开说明见同目录
+`README_后处理打开说明.md`）；归档
+[核心代码诊断与下一轮设计建议](WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)。
+
+**推进到实验步骤**：只做可视化导出与文档归档，未改 checkpoint、训练或正式指标。
+
+**当前状态判断**：6/6 病例 STL 映射覆盖率 100%。ParaView 主文件是各例
+`*__surface_wall.vtp`（WSS）和 `*__anatomical_roi_velocity_pointcloud.vtp`（速度）。
+index 5=`V4-SP-PNPP-BC-s1234`（worst `AG/fast/SUN_ZHI_YU` −0.685 / best
+`AAA/unruputer/WANG_MAN_TIAN` 0.130）；index 7=`V4-SP-PNPP-BC-PDE-EMA-s1234`
+（worst `AG/slow/HE_SHU_ZHEN` −1.389 / best `AAA/ruputer/WANG_FU_SHUN` −0.015）；
+index 8=`V4-TR-PN-DATA-s1234`（worst `ILO/LI_YOU_ZHI-0/before` −0.707 / best
+`ILO/YANG_WEN_TAI-0/before` 0.291）。正式 speed R² 仍以 official evaluation JSON 为准。
+
 ## 2026-08-31｜WSS_PINN Centerline V2 几何统一与 173 例 staging 全链重建 · staging_pass / training_ready=false
 
 **本次主要修改**：解释并修复旧 steady/transient 几何通道差异——它不是设计要求，而是
@@ -850,7 +934,7 @@ Stage 1 的 BC/PDE 隔离、Stage 3 起点和瞬态 physics 双路线。WSS 仍�
 checkpoint 的 downstream audit。
 
 **对应代码/文档**：
-[冻结版核心诊断](WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)、
+[冻结版核心诊断](WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)、
 [WSS-PINN 路线真源](WSS_PINN/README.md)、[`wss_pinn` README](../../wss_pinn/README.md)、
 `wss_pinn/AGENTS.md`、根 `README.md`、`docs/README.md`、`docs/实验设计总纲.md`和
 [项目级推进摘要](代码修改与实验推进记录.md)。
@@ -871,7 +955,7 @@ WSS 算法调优建议，改为 `u/v/w/speed/p` 多任务结构、区域采样�
 验证器误写成无误差算子。
 
 **对应代码/文档**：
-[核心诊断与下一轮设计](WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)、
+[核心诊断与下一轮设计](WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)、
 [WSS-PINN 路线真源](WSS_PINN/README.md)、
 [历史六臂预注册提示词](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)、
 [`wss_pinn` README](../../wss_pinn/README.md)、`wss_pinn/AGENTS.md`、
@@ -896,7 +980,7 @@ test35 development exposure、配对 case-bootstrap、队列异质性、边界 f
 WSS 直接/近壁切向监督和分阶段 Go/No-Go。
 
 **对应代码/文档**：
-[对抗性修订后的核心诊断](WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)、
+[对抗性修订后的核心诊断](WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)、
 [WSS-PINN 路线真源](WSS_PINN/README.md)、
 [历史六臂预注册提示词](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)、
 [`wss_pinn` README](../../wss_pinn/README.md)、

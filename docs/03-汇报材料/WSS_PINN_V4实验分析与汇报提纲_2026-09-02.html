@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WSS_PINN V4 十六臂复盘</title>
+<style>
+:root{--bg:#F5F7F9;--surface:#FFFFFF;--ink:#1B2430;--ink2:#4A5563;--ink3:#7B8592;--rule:#D9DFE6;--accent:#0E6E8C;--accent-soft:#DDEEF4;
+--data:#3B7DD8;--bc:#E8763A;--pdef:#2BAA82;--ema:#E5A419;--bad:#C4443C;--bad-soft:#F9E3E1;--ok:#2E8B57;--ok-soft:#E1F3E8;--warn-soft:#FBF0D6;--code:#EEF1F4}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans CJK SC","Noto Sans SC","Source Han Sans SC","PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;font-size:15px;line-height:1.75}
+.page{max-width:1120px;margin:0 auto;padding:36px 28px 90px}
+h1,h2,h3,h4{font-family:"Noto Serif CJK SC","Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;margin:0;text-wrap:balance}
+h1{font-size:34px;line-height:1.25}
+h2{font-size:22px;margin-top:60px;padding-top:16px;border-top:2px solid var(--ink)}
+h3{font-size:17px;margin-top:30px;color:var(--ink)}
+h4{font-size:15px;margin-top:20px;color:var(--ink2);font-family:inherit;font-weight:700}
+p{max-width:76ch;margin:12px 0}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.sub{color:var(--ink2);max-width:80ch;margin-top:10px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:16px;font-size:13px;color:var(--ink2)}
+.meta b{color:var(--ink);font-weight:500}
+.tag{display:inline-block;padding:2px 9px;border-radius:3px;font-size:12px;font-weight:700;background:var(--bad-soft);color:var(--bad)}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+nav.toc{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);margin:22px -28px 0;padding:8px 28px;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px}
+nav.toc a{color:var(--accent);text-decoration:none}
+nav.toc a:hover{text-decoration:underline}
+.mono,.num{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,"Courier New",monospace;font-variant-numeric:tabular-nums}
+ol.key{counter-reset:k;list-style:none;padding:0;margin:18px 0 0;max-width:82ch}
+ol.key li{position:relative;padding:10px 0 10px 44px;border-top:1px solid var(--rule)}
+ol.key li::before{counter-increment:k;content:counter(k);position:absolute;left:0;top:12px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-family:"IBM Plex Mono",monospace;font-size:13px;display:flex;align-items:center;justify-content:center}
+ol.key li b{display:block;margin-bottom:2px}
+.tablewrap{overflow-x:auto;margin:12px 0 4px;border:1px solid var(--rule);border-radius:4px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 11px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+th{font-weight:700;color:var(--ink2);font-size:12.5px;background:var(--code);white-space:nowrap}
+td.num,th.num{text-align:right;white-space:nowrap;font-family:"IBM Plex Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td.worst{color:var(--bad);font-weight:700}
+td.best{color:var(--ok);font-weight:700}
+.cap{font-size:12.5px;color:var(--ink3);max-width:86ch;margin:6px 0 0}
+figure{margin:18px 0 6px;background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:10px}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto}
+figure.tall img{max-height:900px;width:auto}
+figcaption{font-size:13px;color:var(--ink2);margin-top:8px;max-width:100ch}
+figcaption b{color:var(--ink)}
+figcaption a{color:var(--accent);text-decoration:none;font-size:12px;margin-left:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+.mech{border-top:1px solid var(--rule);margin-top:16px}
+.m{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;padding:18px 0;border-bottom:1px solid var(--rule)}
+.m .t{font-family:"Noto Serif CJK SC","Noto Serif SC",serif;font-weight:600;font-size:15.5px;line-height:1.5}
+.m .t small{display:block;font-family:inherit;font-weight:400;font-size:12px;color:var(--ink3);margin-top:6px}
+.m .e p{margin:0 0 8px;max-width:82ch}
+.m .e ul{margin:0;padding-left:18px;max-width:82ch}
+.m .e li{margin:3px 0}
+@media (max-width:720px){.m{grid-template-columns:1fr;gap:6px}}
+.gate{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;padding:16px 0;border-bottom:1px solid var(--rule)}
+.gate .g{font-family:"IBM Plex Mono",Menlo,monospace;font-weight:600;color:var(--accent);font-size:14px}
+.gate .g small{display:block;font-family:inherit;color:var(--ink3);font-size:12px;font-weight:400}
+.gate ul{margin:6px 0 0;padding-left:18px;max-width:84ch}
+.gate li{margin:3px 0}
+.pass{display:inline-block;margin-top:8px;padding:6px 10px;border-left:3px solid var(--ok);background:var(--ok-soft);font-size:13px;max-width:84ch}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 14px;margin:16px 0;max-width:84ch;font-size:14px}
+.callout.warn{border-left-color:var(--bad);background:var(--warn-soft)}
+code{font-family:"IBM Plex Mono",Menlo,Consolas,monospace;font-size:12.5px;background:var(--code);padding:1px 5px;border-radius:3px}
+ul.plain{max-width:82ch;padding-left:20px}
+ul.plain li{margin:4px 0}
+.src{font-size:12.5px;color:var(--ink3);max-width:96ch}
+.src code{font-size:11.5px}
+@media print{nav.toc{display:none}.page{padding:0}h2{page-break-before:always}figure{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">WSS_PINN · volume_uvwp_bc_rcr_v4 · 实验分析</div>
+  <h1 style="margin-top:10px">V4 十六臂复盘</h1>
+  <p class="sub">在"只用求解前可得的边界参数"这一新合同下，把 BC 监督、固定权重 PDE、EMA 动态调权拆成四臂严格配对，跨两种物理模式与两种 backbone 各跑三个种子。</p>
+  <div class="meta">
+    <span><b>日期</b> 2026-09-02 · 修订 09-04（骨干/近壁口径对齐）</span><span><b>完成摘要</b> 46 / 48</span><span><b>已评 test35</b> 38 / 48</span><span><b>seed1234</b> 16 臂齐，WSS 已入账，milestone 已补评</span>
+    <span class="tag">pre-Centerline-V2 matched-v1.2 历史矩阵 · 单 seed 探索性 screen</span>
+  </div>
+  <p class="callout"><b>骨干边界：</b>本页旧矩阵实际是 PN 64→128→256 global max / PNPP 单层 FPS-128+32-NN 的约 250k 容量配平实现，不是 P2V/D2。2026-09-04 用户选择 formal Centerline-V2 V4 恢复 PointNet P2V / 纯 PointNet++ D2 c125-k128；新代码与配置尚未完成，本页数值不能冒充新骨干结果。</p>
+  <nav class="toc">
+    <a href="#s0">一页结论</a><a href="#s1">1 验证了什么</a><a href="#s2">2 结果</a><a href="#s24">2.4 跨代 R²</a><a href="#s25">2.5 milestone</a><a href="#s3">3 为什么</a><a href="#s39">3.9 稳态可比性</a><a href="#s310">3.10 第二轮讨论</a><a href="#s4">4 下一步</a><a href="#s5">5 表述边界</a><a href="#s6">6 答疑</a><a href="#src">真源</a>
+  </nav>
+
+  <h2 id="s0">一页结论</h2>
+  <ol class="key">
+    <li><b>验证</b>2 时间模式（准稳态 peak / 瞬态 81 帧 autograd）× 2 backbone（PointNet / PointNet++）× 4 训练模式（DATA / DATA+BC / BC+PDE-FIXED λ=1 / BC+PDE-EMA）× 3 seeds。条件输入为入口/出口面积、Q_actual_peak、四出口 R1/R2/C；入口 Dirichlet 与出口 RCR 关系以残差进 loss（"输入参数"与"残差进 loss"的区别见 <a href="#q2">Q2</a>）。</li>
+    <li><b>简单结果</b>16 臂 primary endpoint E_rel_l2 全在 <span class="mono">0.89–1.18</span>。跨 seed 标准差 0.004–0.039，排序可复现，但没有一臂实质性重建速度场；与 V3 同类臂比是退步（speed R²_cb 0.23 → −0.28；跨代对比一律用同口径 R²，见 <a href="#s24">2.4</a>）。</li>
+    <li><b>原因分析</b>三层叠加：协议层取消 validation 训满 10000 epoch，后续做了 epoch 补评证明 DATA 臂在 epoch 1000 时 E 0.80 是全矩阵最好点、之后单调退化到 1.12（图 4 / 图 9）；数据层旧注册帧的几何通道错位、曲率失真、瞬态池只有 2000 点；物理层 no-slip 梯度与数据梯度近乎反向（cos ≈ −0.9，图 11）、PDE 残差靠降低压力满足、EMA λ 动态调整的权重一开始就触发上限，从未进入主动调节、瞬态 RCR 强形式残差在标签上本身不成立。物理臂在 E 上的"改善"全部是幅值压缩（图 6 / 图 12）。</li>
+    <li><b>λ 动态调整带来的影响</b>没有真正生效。无量纲化后 PDE loss 比 data loss 小 2–5 个数量级，比值目标 600–80000 被 λ_max=10 限制，实际跑的是"λ≡10 固定"；瞬态下直接打开 u≡0 平凡解。代码设定有 bug（撞限比例最大只能 0.02，门限 0.5 永不触发）。逐步解释见 <a href="#q5">Q5</a>。</li>
+    <li><b>后续边界</b>09-03 曾提出去 RCR/A_out、硬约束 u=d_wall·g、直接 WSS 头和强形式 PINN 降级方案；这些是历史诊断提案，<b>未被 09-04 formal 合同采纳</b>。当前只冻结 train138/test34 与 P2V / D2 c125-k128，仍只输出 u,v,w,p、不使用 WSS loss。下一步先完成 formal 172 例 anatomy-only bundle、病例条件/interface BC、连续 query 与 near-wall sampler 合同，再从随机初始化 DATA 基线开始配对验证。</li>
+  </ol>
+
+  <h2 id="s1">1 · 做了什么验证</h2>
+  <div class="tablewrap"><table>
+    <tr><th>项</th><th>V3</th><th>V4</th></tr>
+    <tr><td>出口条件</td><td>CFD 求解后 <code>p-out*</code> monitor 压力作输入（泄漏）</td><td>只输入 A_in、Q_actual_peak、四出口 A_out / R1 / R2 / C（18 维 BCEncoder）</td></tr>
+    <tr><td>入口 / 出口物理</td><td>monitor 派生</td><td>入口 UDF 实施的 Q_nom/A_udf 速度 Dirichlet 残差；瞬态另含质量流量口径 RCR 一致性残差</td></tr>
+    <tr><td>训练模式</td><td>DATA / DATA+BC / DATA+BC+PDE</td><td>DATA / DATA+BC / BC+PDE-FIXED / BC+PDE-EMA（分离 BC 与 PDE 贡献）</td></tr>
+    <tr><td>时间模式</td><td>准稳态 peak</td><td>准稳态 peak + 瞬态 81 帧（autograd du/dt，时间编码 t, sin, cos, Q_wave）</td></tr>
+    <tr><td>split / 选模</td><td>train123 / val15 / test35，best_validation_data</td><td>train138 / test35，无 validation，train-only plateau，主 checkpoint last_converged</td></tr>
+    <tr><td>primary endpoint</td><td>speed R²_cb</td><td>病例等权速度向量相对 L2 E_rel_l2（1.0 = 零预测器）；预注册 4 个 contrast + Holm（含义见 <a href="#q3">Q3</a> / <a href="#q8">Q8</a>；E 只用于 V4 内部排序，跨代对比用 R²）</td></tr>
+  </table></div>
+  <p class="cap">协议细节：每例每 epoch 5000 support + 5000 query 重采样，PDE 512 点、wall 512、inlet 256；lr 1e-3→1e-5，grad clip 1.0；停止规则 min 1000 / max 10000 epoch，实际 14/16 臂以 max_epochs 停止。准稳态在全体域 53 万–224 万点上评估，瞬态在每例 1609–5296 点 × 81 帧上评估，两种模式的 E 不可直接比。</p>
+
+  <h2 id="s2">2 · 得到了什么</h2>
+  <h3>2.1 主指标全景</h3>
+  <figure><img src="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig5_primary_bars.png" alt="16 臂 E_rel_l2 条形图"><figcaption><b>图5</b> 16 臂 E_rel_l2（seed1234，last_converged）与 epoch 7500 黑菱形。全部挤在 0.89–1.18，准稳态 8 臂 7500 都优于 last。<a href="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig5_primary_bars.png">原图</a></figcaption></figure>
+  <div class="tablewrap"><table>
+    <tr><th>时间模式 · backbone（跨 seed 均值 ± sd, n）</th><th class="num">DATA</th><th class="num">DATA+BC</th><th class="num">BC+PDE-F</th><th class="num">BC+PDE-EMA</th></tr>
+    <tr><td>SP · PN</td><td class="num">1.132 ± 0.007 (2)</td><td class="num worst">1.157 ± 0.019 (2)</td><td class="num">0.983 ± 0.012 (3)</td><td class="num">0.930 ± 0.004 (3)</td></tr>
+    <tr><td>SP · PNPP</td><td class="num">1.121 ± 0.011 (3)</td><td class="num worst">1.160 ± 0.039 (3)</td><td class="num">0.964 ± 0.012 (3)</td><td class="num">0.914 ± 0.005 (2)</td></tr>
+    <tr><td>TR · PN</td><td class="num">1.023 ± 0.013 (3)</td><td class="num">0.945 ± 0.008 (2)</td><td class="num best">0.907 ± 0.013 (2)</td><td class="num">0.952 ± 0.013 (2)</td></tr>
+    <tr><td>TR · PNPP</td><td class="num">1.027 ± 0.010 (2)</td><td class="num">0.945 ± 0.005 (2)</td><td class="num best">0.901 ± 0.007 (2)</td><td class="num">0.951 ± 0.000 (2)</td></tr>
+  </table></div>
+  <p class="cap">四个预注册 contrast 的方向（探索性、未 Holm）：BC−DATA 准稳态更差 +0.03～+0.05、瞬态更好 −0.08～−0.10；PDE-F−BC 两模式 E 都降 −0.04～−0.21；EMA−FIXED 准稳态再降、瞬态更差 +0.04～+0.07；PNPP−PN 差 ≤0.03，与 seed sd 同量级，inconclusive。</p>
+
+  <h3>2.2 E 的"改善"来自幅值压缩，不是更正确</h3>
+  <div class="grid2">
+    <figure><img src="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig6_variance_ratio.png" alt="逐病例速度方差比箱线图"><figcaption><b>图6</b> 逐病例 speed 方差比 pred/truth：DATA→BC→PDE-F→EMA 逐级压向零；瞬态 PN·EMA 中位 3e-4 是纯零场。<a href="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig6_variance_ratio.png">原图</a></figcaption></figure>
+    <figure><img src="V4汇报/V4_汇报图件重绘_2026-09-03/fig12_E_vs_speedR2.png" alt="E 与 speed R² 的关系"><figcaption><b>图12</b> 16 臂 last（实心）与 epoch 1000（空心）在 E–R² 平面：E 最低的准稳态物理臂 speed R² 最负。E 的分母不减均值、R² 减均值，预测整体缩小时 E 最多退到 1.0 而 R² 一路变负，所以 E 只用于 V4 内部排序，跨代对比用 R²（<a href="#q3">Q3</a>）。<a href="V4汇报/V4_汇报图件重绘_2026-09-03/fig12_E_vs_speedR2.png">原图</a></figcaption></figure>
+  </div>
+  <figure><img src="V4汇报/V4_汇报图件重绘_2026-09-03/fig4_overfit_trajectory.png" alt="训练拟合与测试脱钩轨迹"><figcaption><b>图4</b>（重绘）按准稳态 / 瞬态分两幅，每臂画 epoch 1000→2500→5000→7500→10000 的轨迹（横轴该 milestone 前 100 epoch 的训练 data_total，纵轴该 checkpoint 的 test E）。DATA / +BC 臂训练 loss 一路降、test E 一路升（SP-DATA 0.81→1.12，TR-DATA 0.89→1.04）；PDE 臂几乎不动；EMA 几乎不拟合却 E &lt; 1。<a href="V4汇报/V4_汇报图件重绘_2026-09-03/fig4_overfit_trajectory.png">原图</a></figcaption></figure>
+  <div class="tablewrap"><table>
+    <tr><th>臂（s1234）</th><th class="num">speed R²_cb</th><th class="num">fit 斜率 a</th><th class="num">方差比中位</th><th class="num">near-wall R²_cb</th><th class="num">p R²_cb</th><th class="num">wall RMS m/s</th><th class="num">continuity RMS</th></tr>
+    <tr><td>SP-PN-DATA</td><td class="num">−0.105</td><td class="num">0.222</td><td class="num">0.39</td><td class="num">−2.40</td><td class="num">0.436</td><td class="num">0.363</td><td class="num">4.41</td></tr>
+    <tr><td>SP-PN-BC</td><td class="num">−0.281</td><td class="num">0.099</td><td class="num">0.16</td><td class="num">−0.74</td><td class="num">0.368</td><td class="num">0.230</td><td class="num">2.09</td></tr>
+    <tr><td>SP-PN-PDE-F</td><td class="num">−0.424</td><td class="num">0.058</td><td class="num">0.07</td><td class="num">−0.25</td><td class="num">0.382</td><td class="num">0.160</td><td class="num">0.37</td></tr>
+    <tr><td>SP-PN-PDE-EMA</td><td class="num worst">−0.513</td><td class="num">0.061</td><td class="num">0.04</td><td class="num">−0.22</td><td class="num worst">0.111</td><td class="num">0.132</td><td class="num">0.16</td></tr>
+    <tr><td>TR-PN-DATA</td><td class="num">0.012</td><td class="num">0.203</td><td class="num">0.43</td><td class="num">–</td><td class="num">中位 ≈ +0.8</td><td class="num">0.328</td><td class="num">2.73</td></tr>
+    <tr><td>TR-PN-BC</td><td class="num">0.122</td><td class="num">0.125</td><td class="num">0.16</td><td class="num">–</td><td class="num">中位 ≈ +0.8</td><td class="num">0.141</td><td class="num">1.81</td></tr>
+    <tr><td>TR-PN-PDE-F</td><td class="num best">0.171</td><td class="num">0.103</td><td class="num">0.12</td><td class="num">–</td><td class="num">中位 +0.87</td><td class="num">0.119</td><td class="num">0.19</td></tr>
+    <tr><td>TR-PN-PDE-EMA</td><td class="num">−0.134</td><td class="num worst">0.000</td><td class="num worst">3e-4</td><td class="num">–</td><td class="num">中位 ≈ +0.8</td><td class="num">0.062</td><td class="num">0.0009</td></tr>
+  </table></div>
+  <p class="cap">准稳态从 DATA 到 EMA：E 单调变好、wall RMS 与 continuity 单调下降，但 speed R² 单调变差、方差比 0.39 → 0.04。瞬态压力 R̄²=−20 由两例 gauge 异常病例（真值 196 / 688 Pa，全库主流 13–16 kPa）拉爆，中位 +0.87、去掉两例后均值 +0.36（图7）。PNPP 同臂差 ≤0.05，方向一致。表中 <b>near-wall</b> = 距最近壁面节点 ≤ 1.5 mm 的内部 cell 中心（每例上限 40000 点）上算的 speed R²_cb；瞬态旧 bundle 无此标记，故为 –（<a href="#q11">Q11</a>）。</p>
+  <figure><img src="V4汇报/V4_汇报图件重绘_2026-09-03/fig7_pressure_outliers_v2.png" alt="瞬态压力离群病例"><figcaption><b>图7</b>（重绘）(a) TR-PN-PDE-F 35 例逐病例 pressure R² 排序：29 例 &gt; 0、中位 +0.87；两例 gauge 口径异常病例（红）R² = −552 / −159，含两例均值 −20、去掉两例 +0.36。(b) R² = 1 − RMSE²/σ²：两例真值压力标准差只有 0.55 / 0.99 kPa，而模型按全库 13–16 kPa 的绝对水平预测、RMSE ≈ 13 kPa（其余 33 例 RMSE 中位 0.31 kPa）。这也是 C0 改相对 gauge 的直接理由。<a href="V4汇报/V4_汇报图件重绘_2026-09-03/fig7_pressure_outliers_v2.png">原图</a></figcaption></figure>
+
+  <h3>2.3 下游 WSS（full-wall · Profile-Secant V3）与逐病例分布</h3>
+  <figure><img src="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig8_wss_nearwall.png" alt="WSS 与近壁速度耦合"><figcaption><b>图8</b> 16 臂 WSS R²_cb 全负或贴零，排序与近壁速度 R² 同构：是上游速度场问题，不是 WSS 算法问题（真速度输入下算法上限 ≈0.96）。(b) 横轴 <b>near-wall speed R²_cb</b> 的定义：只在"到最近壁面节点距离 ≤ 1.5 mm 的内部 cell 中心"（按距离最近优先、每例上限 40000 点，173 例全部取满，实际带厚略小于 1.5 mm）上算的病例等权 speed R²；WSS = μ·∂u/∂n|wall 由最靠壁 1–2 层 cell 的速度差决定，所以近壁 R² 是 WSS 的上游代理。瞬态旧 bundle 没有该标记，(b) 只画准稳态 8 臂（<a href="#q11">Q11</a>）。<a href="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig8_wss_nearwall.png">原图</a></figcaption></figure>
+  <div class="tablewrap"><table>
+    <tr><th>臂</th><th class="num">WSS R²_cb</th><th class="num">WSS fit R²_cb</th><th class="num">WSS fit 斜率</th><th class="num">WSS NMAE</th></tr>
+    <tr><td>SP-PN-DATA / BC</td><td class="num">−7.97 / −1.89</td><td class="num">0.136 / 0.093</td><td class="num">0.76 / 0.33</td><td class="num">22.9% / 12.9%</td></tr>
+    <tr><td>SP-PN-PDE-F / EMA</td><td class="num">−0.36 / −0.11</td><td class="num">0.100 / 0.150</td><td class="num">0.20 / 0.19</td><td class="num">7.1% / 6.1%</td></tr>
+    <tr><td>TR-PN-PDE-F / EMA</td><td class="num">−0.24 / −0.39</td><td class="num">0.213 / 0.081</td><td class="num">0.31 / 0.02</td><td class="num">6.5% / 6.5%</td></tr>
+    <tr><td>TR-PNPP-PDE-F / EMA</td><td class="num">−0.00 / −0.21</td><td class="num best">0.220 / 0.080</td><td class="num">0.23 / 0.04</td><td class="num">5.5% / 6.0%</td></tr>
+    <tr><td>参照：V3 QSF-XYZG-BC（best_validation_data）</td><td class="num">−4.07</td><td class="num">0.248</td><td class="num">0.70</td><td class="num">20.8%</td></tr>
+    <tr><td>参照：V2 PNPP-XYZG-PINN</td><td class="num">−6.75</td><td class="num">0.294</td><td class="num">1.14</td><td class="num">21.1%</td></tr>
+    <tr><td>参照：旧线直接回归壁面 WSS 最佳（★ LSA2 H2 + log(radius)，test36）</td><td class="num best">0.351</td><td class="num">–</td><td class="num">–</td><td class="num">–</td></tr>
+  </table></div>
+  <p class="cap">NMAE 6% 看似好，只是因为预测接近常数；设计文档已禁止单用 NMAE 宣称成功。速度层面 V3 QSF-XYZG-BC speed R²_cb 0.234 对 V4 SP-PN-BC −0.281，V4 是退步。</p>
+
+  <h3 id="s24">2.4 与 V2 / V3 的横向对照（同口径 R²）：V4 是退步，三代都停在 0.2–0.25 平台</h3>
+  <p>跨代比较不用 E_rel_l2（V2/V3 没有这个指标，且它对幅值压缩不敏感），一律用主表里三代都有、定义相同的病例等权 R²；WSS 下游都是冻结 Profile-Secant V3。评估宇宙略有不同：V2 在 test35 固定 5000 点（SAME5K），V3 在全严格体域，V4 在全体域非壁面点；V3 与 V4 口径接近，V2 偏乐观。</p>
+  <div class="tablewrap"><table>
+    <tr><th>代</th><th>臂</th><th>评估协议 / 主 checkpoint</th><th class="num">speed R²_cb</th><th class="num">speed fit R²</th><th class="num">fit 斜率 a</th><th class="num">p R²_cb</th><th class="num">near-wall R²_cb</th><th class="num">WSS fit R²_cb</th></tr>
+    <tr><td>V2</td><td>E8 PNPP-XYZG-PINN（主锚点）</td><td>SAME5K · last@7500</td><td class="num best">0.238</td><td class="num">0.340</td><td class="num">0.36</td><td class="num">0.32</td><td class="num">−1.48</td><td class="num best">0.294</td></tr>
+    <tr><td>V2</td><td>E7 PNPP-XYZG-DATA</td><td>SAME5K · last@7500</td><td class="num">0.206</td><td class="num">0.335</td><td class="num">0.39</td><td class="num">0.17</td><td class="num">−2.05</td><td class="num">0.294</td></tr>
+    <tr><td>V3</td><td>E5 QSF-XYZG-BC（主锚点）</td><td>全严格体域 · best_validation_data（epoch 92–203）</td><td class="num">0.234</td><td class="num">0.264</td><td class="num">0.20</td><td class="num best">0.604</td><td class="num best">−1.02</td><td class="num">0.248</td></tr>
+    <tr><td>V3</td><td>E4 QSF-XYZG-DATA</td><td>同上</td><td class="num">0.226</td><td class="num">0.288</td><td class="num">0.28</td><td class="num">0.537</td><td class="num">−1.32</td><td class="num">0.274</td></tr>
+    <tr><td>V4</td><td>SP-PNPP-DATA</td><td>全体域非壁面 · last_converged（10000）</td><td class="num worst">−0.095</td><td class="num">0.112</td><td class="num">0.20</td><td class="num">0.440</td><td class="num worst">−2.39</td><td class="num">0.132</td></tr>
+    <tr><td>V4</td><td>SP-PNPP-DATA @ epoch 1000（诊断）</td><td>同上 · epoch_01000</td><td class="num">+0.146</td><td class="num">–</td><td class="num">–</td><td class="num">0.484</td><td class="num">−1.72</td><td class="num">–</td></tr>
+    <tr><td>V4</td><td>SP-PN-BC</td><td>同上 · last_converged</td><td class="num worst">−0.281</td><td class="num">0.072</td><td class="num">0.10</td><td class="num">0.368</td><td class="num">−0.74</td><td class="num">0.093</td></tr>
+    <tr><td>V4</td><td>TR-PN-BC-PDE-F（瞬态宇宙，不直接比）</td><td>eligible 点 × 81 帧 · last_converged</td><td class="num">0.171</td><td class="num">0.196</td><td class="num">0.10</td><td class="num">中位 +0.87</td><td class="num">–</td><td class="num">0.213</td></tr>
+    <tr><td>V4</td><td>TR-PNPP-DATA @ epoch 1000（瞬态，诊断）</td><td>同上 · epoch_01000</td><td class="num">+0.326</td><td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">–</td></tr>
+  </table></div>
+  <p class="cap">与 V3 同类臂比，V4 SP-PN-BC 从 0.234 退到 −0.281，即使取 V4 最好的诊断点（DATA @1000，0.146）也低于 V3。但 V2 → V3 只是 0.238 → 0.234，speed fit R² 甚至从 0.34 降到 0.26：三代最好都停在 speed R²_cb ≈ 0.24、WSS fit R² ≤ 0.29 的平台，近壁 R² 三代全负，fit 斜率 0.2–0.4。V4 不是"从一个好状态掉下来"，而是把同一个平台上的问题暴露得更彻底。汇报口径：一页结论用 speed R²_cb / WSS fit R² 讲跨代；E 只出现在 V4 内部排序与 contrast。</p>
+  <div class="grid2">
+    <figure><img src="V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01/V4-TR-PN-BC-PDE-FIXED/speed_representative_regressions.png" alt="速度代表病例回归"><figcaption><b>速度代表病例</b>（TR-PN-BC-PDE-FIXED，worst / most frequent / best）：斜率 0.05–0.22，高速段被系统压低。<a href="V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01/V4-TR-PN-BC-PDE-FIXED/speed_representative_regressions.png">原图</a></figcaption></figure>
+    <figure><img src="V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01/V4-TR-PN-BC-PDE-FIXED/wss_representative_regressions.png" alt="WSS 代表病例回归"><figcaption><b>WSS 代表病例</b>（full-wall，同臂）：最好病例 fit R² 0.46、斜率 0.44；最差 0.01。<a href="V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01/V4-TR-PN-BC-PDE-FIXED/wss_representative_regressions.png">原图</a></figcaption></figure>
+  </div>
+  <figure class="tall"><img src="V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01/V4_BC-PDE_FIXED_EMA_speed_r2_horizontal_overview.png" alt="8 臂逐病例 speed R² 横向排序"><figcaption><b>8 个 PDE 臂逐病例 speed R² 横向排序</b>：准稳态四臂几乎全部病例 &lt;0；瞬态 PDE-F 两臂 89–94% 病例 &gt;0；瞬态 EMA 两臂再次全负。单臂图与 linear-fit 版见 <code>V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01/</code>。<a href="V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01/V4_BC-PDE_FIXED_EMA_speed_r2_horizontal_overview.png">原图</a></figcaption></figure>
+
+  <h3 id="s25">2.5 milestone 补评：最优点在 epoch 1000 以前，之后单调退化</h3>
+  <figure><img src="V4汇报/V4_milestone补评_epoch曲线_2026-09-02/fig9_milestone_E_and_speedR2.png" alt="milestone E 与 speed R² 曲线"><figcaption><b>图9</b> 16 臂 E_rel_l2 与 speed R²_cb 随 milestone（1000/2500/5000/7500/10000）。DATA 臂 epoch 1000 时 E 0.80–0.81、TR-DATA speed R² 0.32，是全矩阵最好点；物理臂几乎不退化但 ceiling 更低，BC/PDE 臂在 1000 时 speed R² 已是 −0.45～−0.58。<a href="V4汇报/V4_milestone补评_epoch曲线_2026-09-02/fig9_milestone_E_and_speedR2.png">原图</a></figcaption></figure>
+  <figure><img src="V4汇报/V4_milestone补评_epoch曲线_2026-09-02/fig10_milestone_nearwall_pressure.png" alt="milestone 近壁与压力"><figcaption><b>图10</b> 准稳态近壁速度 R²（DATA −1.4 → −2.4 持续恶化；BC/PDE 臂「更好」只是预测趋零）与压力 R²（EMA 全程 0.11–0.15）。<a href="V4汇报/V4_milestone补评_epoch曲线_2026-09-02/fig10_milestone_nearwall_pressure.png">原图</a></figcaption></figure>
+  <div class="tablewrap"><table>
+    <tr><th>E_rel_l2</th><th class="num">1000</th><th class="num">2500</th><th class="num">5000</th><th class="num">7500</th><th class="num">10000</th><th>speed R²_cb</th><th class="num">1000</th><th class="num">10000</th></tr>
+    <tr><td>SP-PN-DATA</td><td class="num best">0.811</td><td class="num">0.864</td><td class="num">0.960</td><td class="num">1.075</td><td class="num">1.125</td><td></td><td class="num best">+0.112</td><td class="num">−0.105</td></tr>
+    <tr><td>SP-PNPP-DATA</td><td class="num best">0.803</td><td class="num">0.849</td><td class="num">0.938</td><td class="num">1.053</td><td class="num">1.105</td><td></td><td class="num best">+0.146</td><td class="num">−0.095</td></tr>
+    <tr><td>SP-PN-BC-PDE-EMA</td><td class="num">0.884</td><td class="num">0.869</td><td class="num">0.887</td><td class="num">0.910</td><td class="num">0.935</td><td></td><td class="num">−0.583</td><td class="num">−0.513</td></tr>
+    <tr><td>TR-PN-DATA</td><td class="num">0.890</td><td class="num">0.915</td><td class="num">0.951</td><td class="num">1.005</td><td class="num">1.041</td><td></td><td class="num best">+0.324</td><td class="num">+0.011</td></tr>
+    <tr><td>TR-PN-BC-PDE-F</td><td class="num">0.876</td><td class="num">0.885</td><td class="num">0.873</td><td class="num">0.889</td><td class="num">0.894</td><td></td><td class="num">+0.176</td><td class="num">+0.171</td></tr>
+    <tr><td>TR-PN-BC-PDE-EMA</td><td class="num">0.954</td><td class="num">0.973</td><td class="num">0.981</td><td class="num">0.967</td><td class="num">0.965</td><td></td><td class="num">+0.024</td><td class="num">−0.134</td></tr>
+  </table></div>
+  <div class="callout warn">这是拿 test35 做 epoch 诊断（development-exposed），只能说"最优点在 1000 以前"；不得把 epoch 1000 的 checkpoint 当结果报，也不得据此反选。每 100 epoch 的 last.pt 会被覆盖，最早可评的就是 1000。三点读数：V3→V4 的退步主要是协议不是数据；物理项的实际作用是防记忆的正则而非提升；SP-DATA@1000 的 0.11–0.15 仍低于 V3 的 0.23，剩余差距在旧数据上分不开，交给 Gate B 的 CV。</div>
+
+  <h2 id="s3">3 · 为什么</h2>
+  <div class="mech">
+    <div class="m"><div class="t">3.1 协议层：无 validation + 10000 epoch<small>最主要 · 图4 / 图5 / 图9</small></div><div class="e">
+      <ul><li>训练末段 data_total 与 test E 完全脱钩：DATA 臂训练最好（0.19）测试最差（1.12）。</li>
+      <li>milestone 补评：DATA 臂 epoch 1000 最好，之后每个 milestone 都更差；V3 最优在 92–203，V4 训了 50 倍。</li>
+      <li>14/16 臂以 max_epochs 停止；lr 到底后"200 epoch 窗口 &lt;0.5%"必然满足，plateau 判据退化为跑满预算。预留的五折 CV 从未执行。</li></ul></div></div>
+    <div class="m"><div class="t">3.2 数据层：旧注册帧合同缺陷<small>8-30 审阅 P0 六项 · 整个矩阵降级为 historical screen 的原因</small></div><div class="e">
+      <ul><li>steady 与 transient 的第 2 个几何通道不是同一物理量（mm 半径 vs 无量纲径向比），stats 用错口径。</li>
+      <li>旧曲率按 VTP 全局点顺序求导：18% 点 |κ|&gt;1、最大 3e11；V2 重算后 p99 只有 0.27/mm。</li>
+      <li>瞬态空间池 123/173 例只有 2000 点（继承旧特征管线的 CSV 子样本），5000 support/query 有放回。</li>
+      <li>wall scale 复用到体域：22.6% 内点 |coord|&gt;1；4 例左右镜像；8 例压力低值簇（含 test 两例）。</li></ul></div></div>
+    <div class="m"><div class="t">3.3 no-slip 梯度与数据梯度反向<small>training_progress.jsonl 每 50 step 的 cos_grad_*</small></div><div class="e">
+      <div class="tablewrap" style="margin-top:0"><table>
+        <tr><th>臂</th><th class="num">cos(∇data, ∇no-slip)</th><th class="num">cos(∇data, ∇momentum)</th><th class="num">‖∇L_data‖</th><th class="num">裁剪触发</th><th class="num">no_slip_raw</th></tr>
+        <tr><td>SP-PN-BC</td><td class="num worst">−0.876</td><td class="num">–</td><td class="num">3.38</td><td class="num">82%</td><td class="num">0.253 不降</td></tr>
+        <tr><td>SP-PN-PDE-F</td><td class="num worst">−0.968</td><td class="num">−0.221</td><td class="num">3.05</td><td class="num">30%</td><td class="num">0.241</td></tr>
+        <tr><td>SP-PN-PDE-EMA</td><td class="num worst">−0.969</td><td class="num">−0.288</td><td class="num">2.80</td><td class="num">26%</td><td class="num">0.225</td></tr>
+        <tr><td>TR-PN-BC</td><td class="num">−0.334</td><td class="num">–</td><td class="num">0.33</td><td class="num">41%</td><td class="num">0.026</td></tr>
+        <tr><td>TR-PN-PDE-F</td><td class="num">−0.611</td><td class="num">−0.058</td><td class="num">0.46</td><td class="num">52%</td><td class="num">0.017</td></tr>
+      </table></div>
+      <p>全局 latent + tanh 解码器没有边界层表达能力：同时要求壁面为零和近壁 cell-center 标签非零，唯一折中是整体压幅。wall RMS 0.36→0.13 m/s，方差比 0.39→0.04。数据梯度范数 ≈3 而 clip=1，BC 臂 82% 的 step 被裁剪。瞬态标签在舒张期本就接近零，冲突弱，所以瞬态 BC 臂反而改善——与"BC 有物理增益"无关。</p>
+      <figure><img src="V4汇报/V4_汇报图件重绘_2026-09-03/fig11_gradient_conflict.png" alt="no-slip 与数据梯度冲突"><figcaption><b>图11</b> cos ≈ −0.9 的形象化：(a) 两支梯度夹角 ≈ 154°，合力很短再被 clip=1 截断；(b) 日志实测：准稳态三臂从 epoch 0–200 起就是 −0.87～−0.89，末段 −0.88 / −0.97 / −0.97，瞬态两臂开局 ≈ 0、末段 −0.33 / −0.61；(c) 一维剖面演示：平滑低阶网络只拟合数据时壁面残留 0.21，加 no-slip 后壁面归零但峰值只剩 0.95——折中就是整体压幅；(d) 末 500 epoch 分布：准稳态三臂 71–99% 的 step 低于 −0.8。<a href="V4汇报/V4_汇报图件重绘_2026-09-03/fig11_gradient_conflict.png">原图</a></figcaption></figure>
+      <figure><img src="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig1_train_data_total.png" alt="训练 data loss 阶梯"><figcaption><b>图1</b> 训练侧 data_total：每加一层物理（BC→PDE→EMA），训练拟合系统性变差一档（0.19 → 0.49 → 0.73 → 0.83）。<a href="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig1_train_data_total.png">原图</a></figcaption></figure></div></div>
+    <div class="m"><div class="t">3.4 PDE 残差靠压平压力廉价满足<small>momentum 各项 RMS · 图2</small></div><div class="e">
+      <p>SP-PN-PDE-F 末段动量残差：压力项 544 &gt; 对流项 344 ≫ 黏性 10.6。压力梯度项最大，最便宜的降残差路径是 ∇p→0 与 u→0：p 通道训练 loss 从 0.016 涨到 0.50 / 0.80，test p R²_cb 从 0.44 掉到 0.11。"continuity RMS 从 4.4 降到 0.16"就是这么来的。</p>
+      <figure><img src="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig2_train_channels.png" alt="分通道训练损失"><figcaption><b>图2</b> u / p 分通道训练 loss：瞬态 EMA 的 u 通道全程钉在 0.99（完全未拟合）；准稳态 PDE 臂牺牲 p 通道。<a href="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig2_train_channels.png">原图</a></figcaption></figure></div></div>
+    <div class="m"><div class="t">3.5 EMA 权重从未进入工作区<small>loss_ratio_raw / lambda_bound · 图3</small></div><div class="e">
+      <ul><li>无量纲化后 L_pde ≈ 1e-3～1e-4，L_data ≈ 0.5–1；比值中位 SP-EMA 654、TR-EMA 7.8e4。控制器记录：未夹紧目标 α·EMA_data/EMA_pde 在 α=0.1 的 warm-up 起点就是 130–220，λ_applied 经 0.9 平滑从 1.09 起步、<b>epoch 15 即 ≥ 9.9</b>，此后 99.8%（SP）/ 99.5%（TR）的时间贴在 10，撞限标志 100%。</li>
+      <li>控制器公式（controller.py）与设计一致，无 bug；问题是量程设错 2–4 个数量级。护栏有真 bug：train.py 第 464 行撞限比例分母用全部 step，而标志每 50 步才置一次，最大 0.02，门限 0.5 永不触发；EMA 臂记录的 0.02 实际是 100% 撞限。</li>
+      <li>EMA 臂 ≡ λ_pde=10 固定臂：准稳态是 3.4 的更强版本；瞬态 λ=10 打开平凡解通道（pde_total 3e-6、对流项 0.001、continuity 1e-12）。要检验老师的方法，先要让比值落在工作区，并用正确归一的撞限比例 &lt;20% 作 Gate；同时注意"loss 值相等 ≠ 梯度贡献相等"，λ 放到 600 时 PDE 梯度是 data 的 100 倍，会更快掉进平凡解。</li></ul>
+      <figure><img src="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig3_physics_dynamics.png" alt="物理项动态"><figcaption><b>图3</b> λ_pde 轨迹（开局贴死 10）、continuity / momentum 残差（瞬态 EMA 掉到 1e-12 的平凡解区段）、瞬态 RCR 残差。<a href="V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/fig3_physics_dynamics.png">原图</a></figcaption></figure></div></div>
+    <div class="m"><div class="t">3.6 瞬态 RCR 强形式残差在标签上不成立<small>169 例 outlet monitor 标签重算</small></div><div class="e">
+      <div class="tablewrap" style="margin-top:0"><table>
+        <tr><th>量</th><th class="num">中位（169 例 × 4 出口）</th></tr>
+        <tr><td>归一化残差 RMS（中心差分 / UDF 同款后向欧拉 / 加一帧滞后）</td><td class="num worst">0.81 / 0.84 / 0.80</td></tr>
+        <tr><td>参考尺度 (R1+R2)·ṁ_c</td><td class="num">42.8 kPa</td></tr>
+        <tr><td>各项 RMS：R1R2C·dṁ/dt · (R1+R2)ṁ · R2C·dP/dt · P</td><td class="num">37.7 · 20.6 · 14.3 · 13.2 kPa</td></tr>
+        <tr><td>四出口残差都 &lt;0.3 的病例</td><td class="num">2 / 169</td></tr>
+        <tr><td>周期均值比值 ⟨P⟩ / ((R1+R2)⟨ṁ⟩)</td><td class="num best">0.983（IQR 0.980–0.988）</td></tr>
+      </table></div>
+      <p>Stage 0 stats 早已记录 rcr_discrete_normalized_rms ≈ 0.9–1.1，但设计 §5.4 要求的标签级 Gate 没有执行就启用了 RCR 项。两个导数项主导并互相抵消，瞬时强形式数值病态；周期均值关系却精确成立，说明 R1/R2/C、质量流量口径、远端压力为零的 gauge 都对，问题只在瞬时微分形式。TR-BC / TR-PDE-F 把 rcr_bc_raw 压到 1.8e-4 / 2.6e-6，是在逼近标签并不满足的关系。</p></div></div>
+    <div class="m"><div class="t">3.7 准稳态方程与 peak 标签不一致<small>label_reference.time_fd_velocity_derivative_rms</small></div><div class="e"><p>标签级 du/dt RMS 1.0–1.5 m/s²，即 ρ∂u/∂t ≈ 1.1–1.6 kPa/m，与入口—出口压力梯度同量级；准稳态残差把它当零。V3 已验证过一次，V4 复现。</p></div></div>
+    <div class="m"><div class="t">3.8 评估口径提醒</div><div class="e"><p>瞬态 E 在 1609–5296 点 × 81 帧上算（含舒张期低速帧），准稳态在全体域 53 万–224 万点上算，TR &lt; SP 不得读作物理增益。E_rel_l2 对幅值压缩不惩罚（缩到零 E→1），R² 惩罚，两者必须并列报告。</p></div></div>
+  </div>
+
+  <h3 id="s39">3.9 稳态是否受几何通道缺陷影响</h3>
+  <p>train138_stats.json 第 2 通道 mean=2.92、std=20.59 确实来自瞬态的无量纲径向比（std 被 3 例坏值撑大）。按 loader 的实际变换重算 173 例，两种模式真正喂给网络的量：</p>
+  <div class="tablewrap"><table>
+    <tr><th>几何通道</th><th>稳态模型实际收到的</th><th>瞬态模型实际收到的</th></tr>
+    <tr><td>第 2 通道（local_radius 槽位）</td><td>物理含义正确（mm 半径，中位 9.3 mm），但被瞬态 stats 压扁：z 中位 0.31，病例内 p5–p95 跨度 0.52σ，病例间中位差 0.10–0.46σ（对照：第 1 通道弧长病例内跨度 3.4σ）</td><td>几乎常数：z ≈ −0.09，病例内跨度 0.03σ；另 3 例为几百量级坏值</td></tr>
+    <tr><td>第 3 通道（曲率）</td><td>同一套旧曲率，|z| p95 中位 2.6、每例最大值中位 8.8σ</td><td>同一套旧曲率，|z| p95 1.9、最大 5.7σ</td></tr>
+    <tr><td>坐标尺度、4 例镜像、3 例裁剪</td><td>都受影响</td><td>都受影响</td></tr>
+    <tr><td>空间池</td><td>全体域 53 万–224 万点，每 epoch 5000 新点</td><td>123/173 例只有 2000 点，有放回抽 5000</td></tr>
+    <tr><td>压力</td><td>逐例中心化，两例 gauge 异常不影响</td><td>绝对 gauge，8 例低值簇直接进标签</td></tr>
+  </table></div>
+  <p>结论：稳态没有"免疫"但更轻（半径是弱信号不是无信号，池与压力口径健康）。稳态 8 臂内部可比，四个 contrast 与 3.3–3.5 的机制结论成立；与 V3 的比较需加限定，但 V3 用的是同一条旧 bundle 线和同一套旧曲率，几何缺陷不是 V3→V4 退步的原因；与 Centerline V2 新数据不可比，只能重跑。几何特征是历代精度不高的重要原因之一而不是全部：V3 geom +0.19 是最大单项增量，但近壁 R² 三代全负、斜率三代 0.2–0.4 指向模型、loss 和样本量。</p>
+
+  <h3 id="s310">3.10 第二轮讨论补充</h3>
+  <div class="mech">
+    <div class="m"><div class="t">不输入 RCR / A_out，左右镜像还有影响吗</div><div class="e"><p>只去掉 RCR 仍留 A_out 逐出口输入，槽位与空间位置对不上的问题一样；全部逐出口输入去掉才不受影响。RCR 残差按出口面自身算，与镜像无关。旧线 oracle 给出 RCR 的信息量：</p>
+      <div class="tablewrap" style="margin-top:0"><table><tr><th>臂</th><th>输入</th><th class="num">WSS R²_cb</th><th>相对 geometry-only</th></tr>
+      <tr><td>RCR-O0</td><td>仅几何 6 维</td><td class="num">0.276</td><td>–</td></tr><tr><td>RCR-O1a</td><td>几何 + 真实 log(R1/R2/C)</td><td class="num best">0.356</td><td>+0.081，CI [+0.013, +0.102]，22 胜 14 负</td></tr><tr><td>RCR-O2</td><td>几何 + 打乱的 RCR</td><td class="num">0.272</td><td>−0.003</td></tr></table></div>
+      <p>09-03 当时的诊断提案是去掉 RCR 与 A_out、保留单一入口流量标量；该输入删减方案尚未冻结为 formal 合同，须在 anatomy-only 条件审计后重做单变量配对。</p></div></div>
+    <div class="m"><div class="t">瞬态 2000 点池的来源</div><div class="e"><p>不是 V4 决定：builder 读旧特征管线每帧 CSV（每例只抽 2000 内部点），再筛落在冻结目标域 5e-5 内的点。V2 staging 已改为每例 15,000 个唯一 cell。</p></div></div>
+    <div class="m"><div class="t">绝对 gauge 好不好</div><div class="e"><p>设计目的（RCR 残差锚定）已不成立；不输入 RCR 时绝对水平不可辨识 → 相对 gauge：准稳态病例均值中心化，瞬态病例内全帧一个均值（不逐帧）；报压降与梯度。放弃的是绝对压力（FFR 类）；需要时用 p_ref=(R1+R2)·ρQ̄ 锚定，周期均值关系（0.983）可支撑。</p></div></div>
+    <div class="m"><div class="t">速度学不好，是数据还是模型</div><div class="e"><p>主要是跨病人泛化：训练病例 R² 约 0.8（epoch 200 附近约 0.7），同模型 test 0.1。数据侧几何条件弱或坏、138 例；模型侧全局 latent 分辨不了局部（PNPP&gt;PN、近壁最差）。三代斜率 0.2–0.4 是回归到均值的症状。判决性诊断：单病例过拟合测试、几何最近邻基线、学习曲线。便宜改法：速度按病例 U_c=Q/A 归一、坐标按局部半径无量纲化。</p></div></div>
+    <div class="m"><div class="t">为什么要 CV；"小数据不设验证集、收敛即停"</div><div class="e"><p>不浪费数据是对的；"训练 loss 收敛 = 最好模型"被证据否定：V3 验证最优 92–203，V4 最优 ≤1000 而后 9000 epoch 训练 loss 降、test 坏，相差 50 倍。CV 是不牺牲数据的做法，可改写为"held-out fold 的 loss 收敛即停"。快速验证可单跑一组，但要留一个 fold（110/28）每 100 epoch 评一次；不再用 test35。</p></div></div>
+    <div class="m"><div class="t">V3 的 BC 到底是什么</div><div class="e"><p>monitor 压力在 V3 既作 BC_O1–O4 输入又作 BC loss 出口监督（占 96%）。它是 Fluent 实际施加出口压力的近似（差约百 Pa），不是"假"；但它是耦合求解的结果不是给定条件（给定的是 Q_in(t)、R1/R2/C、远端压力）。作监督冗余，作输入是泄漏。</p></div></div>
+    <div class="m"><div class="t">强形式 PINN 的成本与去留</div><div class="e">
+      <div class="tablewrap" style="margin-top:0"><table><tr><th>臂</th><th class="num">准稳态 s/epoch</th><th class="num">瞬态 s/epoch</th><th class="num">10000 epoch 墙钟</th></tr>
+      <tr><td>DATA</td><td class="num">3.2</td><td class="num">2.4</td><td class="num">7–11 h</td></tr><tr><td>DATA+BC</td><td class="num">3.8</td><td class="num">–</td><td class="num">10.5 h</td></tr><tr><td>BC+PDE（F / EMA）</td><td class="num worst">11–12</td><td class="num worst">18–21</td><td class="num worst">31–59 h</td></tr></table></div>
+      <p>贵 3.5–9 倍；三代收益 V2 ≤+0.03、V3 −0.05、V4 仅正则。09-03 历史诊断提案是暂停强形式 PINN，改用硬约束、物理归一与事后一致性检查；该提案未随方案 B 自动转为 formal 合同。</p></div></div>
+    <div class="m"><div class="t">局部学习的历史证据（逐行协议不同）</div><div class="e">
+      <div class="tablewrap" style="margin-top:0"><table><tr><th>手段</th><th class="num">可比协议内结果</th><th>协议与迁移边界</th></tr>
+      <tr><td>LocalGeoPE vs xyz-only</td><td class="num best">aggregate ΔR²_cb=+0.0671；病例差均值 +0.3051，CI [+0.1062,+0.5750]</td><td>test36 single seed；+0.31 不是 aggregate R²_cb</td></tr>
+      <tr><td>加 log(局部半径) 输入</td><td class="num">ΔR²_cb=+0.0436</td><td>test36 single seed</td></tr>
+      <tr><td>D2 c125-k64 → PointNeXt-R + LocalGeoPE</td><td class="num">ΔR²_cb=+0.0347</td><td>fixed test27 single seed；模块在 SA support encoder，不是 query-local 解码</td></tr>
+      <tr><td>H2 pinball q90 λ0.2</td><td class="num">ΔR²_cb=+0.0376</td><td>test36 single seed；只作尾部 loss 迁移假设</td></tr></table></div>
+      <p>formal 主骨干已冻结为 P2V/D2 c125-k128。真实 1.5 mm 带点数已占多数；采样缺口是最近 1–2 层的受控配额、距离分带和同法线有序剖面。</p></div></div>
+    <div class="m"><div class="t">体域→WSS 还是直接 WSS；WSS 0.8 的口径</div><div class="e">
+      <ul><li>旧线直接回归壁面 WSS 最好 0.351；体域路线 WSS raw R² 三代为负、fit ≤0.29。</li>
+      <li>WSS 是壁面法向导数，导数放大误差；落地口径应写成原始病例等权 R² ≥ 0.8 且斜率 ≈ 1（fit R² 是上界，fit 0.8 而斜率 0.3 不可用）。</li>
+      <li>算子天花板：Profile-Secant V3 在真速度上 0.96 pooled，但逐病例 high-WSS 0.77、峰值低估 16%。</li>
+      <li>未冻结备选：u = d_wall·g(x) 可用于 no-slip 硬约束；直接 WSS 多任务头必须另立路线。当前 formal V4 仍只输出 u,v,w,p，不用 WSS loss。</li>
+      <li>文献 0.9 条件：1000+ 例（参数化变形）、稳态、统一 BC、pooled R²。对纯监督模型，黏度模型烘在标签里不可见；是否去掉 RCR/A_out 仍是待配对验证的输入假设，不是 formal 已定合同。</li></ul></div></div>
+  </div>
+
+  <h2 id="s4">4 · 后续怎么做（formal 现行 Gate + 09-03 历史提案）</h2>
+  <div class="gate"><div class="g">Gate A<small>数据 · 进行中</small></div><div>
+    <ul><li>把已实现的 feature atlas / Fluent topology 审计接入 formal builder，按 train138/test34 一次性重建 172 例 blood-only 数据、物理壁面与 5 个解剖 interface。</li>
+    <li>关闭 train138 条件长尾、ZHOU 逐步收敛和 monitor 语义映射；绑定 formal 172×81=13,932 帧 raw 内容 SHA256。</li>
+    <li>冻结病例条件、interface BC、真实 mm 近壁 sampler，并实现 P2V/D2 连续 query 与导数/参数量/初始化 Gate。</li>
+    <li>旧 checkpoint 不 resume、不 warm-start。</li></ul>
+    <div class="pass">通过标准：formal 172/172 manifest/数组/Gate 全通过；在用户重新授权前仍保持 training_ready=false。</div></div></div>
+  <div class="gate"><div class="g">Gate B<small>协议</small></div><div>
+    <ul><li><s>用现有 seed1234 的 epoch 1000 / 2500 / 5000 checkpoint 补评 test35</s> 已做（2.5）：最优点 ≤1000，新预算量级几百 epoch 且必须配 CV 早停。</li>
+    <li>新数据上启用 train138 五折 CV（fold 文件已存在）：fold-val 早停选 epoch，"CV 选配方 → 全 train138 重训"，formal test34 仍一次性评估。快速验证可先做单 fold（110/28）。</li>
+    <li>先只跑 DATA 臂：P2V / D2 c125-k128 × 3 seeds。</li></ul>
+    <div class="pass">通过标准：speed R²_cb ≥ 0.25（≥ V3 水平）且 near-wall speed R²_cb &gt; −0.5。不达标不进物理。</div></div></div>
+  <div class="gate"><div class="g">Gate C<small>09-03 诊断提案 · 未冻结，不得冒充 formal 合同</small></div><div>
+    <div class="tablewrap" style="margin-top:4px"><table>
+      <tr><th>项</th><th>现状问题</th><th>改法</th><th>通过判据</th></tr>
+      <tr><td>C0 输入与目标</td><td>RCR/A_out 不可部署且每几何仅一组；绝对 gauge 混入 8 例低值簇</td><td>输入只用坐标 + V2 几何点云 + 单一入口流量标量；压力相对 gauge；速度按 U_c 归一</td><td>与 V4 输入配对不退化；报压降/梯度</td></tr>
+      <tr><td>C1 no-slip 硬约束</td><td>软约束与数据梯度 cos ≈ −0.9；WSS 依赖有限差分算子（天花板 0.77）</td><td>先验证 u = d_wall·g(x)；直接 WSS 多任务头须另立路线，不属于当前 formal V4</td><td>冲突消失；near-wall R²_cb 转正</td></tr>
+      <tr><td>C5 采样</td><td>1.5 mm 带点数已占多数，但最近 1–2 层和同法线剖面无受控覆盖</td><td>按真实壁距给 query/loss 分带固定配额</td><td>near-wall 不低于均匀采样且分带覆盖通过</td></tr>
+      <tr><td>C6 局部几何条件化</td><td>旧 matched-v1.2 只有病例级 global latent</td><td>先实现 P2V/D2 c125-k128；LocalGeoPE/PointNeXt-R 若迁移须另作 support encoder 单变量</td><td>speed 与 near-wall 同时提升</td></tr>
+      <tr><td>C7 尾部 loss</td><td>斜率 0.2–0.4 幅值压缩</td><td>H2 pinball q90 λ0.2 或按速度分位加权（旧线 +0.038）</td><td>斜率上升且 raw R² 不降</td></tr>
+      <tr><td>C2/C3/C4 物理项</td><td>λ 量程与护栏、缺 du/dt、RCR 标签不满足</td><td>降为确认臂：DATA 达标后只跑一个 PDE 对照（λ 按梯度平衡、护栏分母修正）；RCR 项标签级 Gate 通过前不启用</td><td>相对 DATA 不退化才保留</td></tr>
+    </table></div><p class="cap">当前 formal 唯一已确定的模型变化是 P2V / D2 c125-k128；C0/C1/C2–C7 均须在 anatomy-only DATA 基线上重新预注册。</p></div></div>
+  <div class="gate"><div class="g">Gate D<small>落地门槛 · 再上瞬态</small></div><div>
+    <ul><li>准稳态达到 speed R²_cb ≥ 0.5、near-wall R²_cb &gt; 0 后再进瞬态；瞬态用 15k 唯一 cell 池，评估分 peak 帧 + 全周期两套口径。</li>
+    <li>当前部署链路：几何 + 求解前 BC → peak u,v,w,p → 冻结 velocity→WSS downstream sanity check。直接 WSS 多任务头不是 formal V4 已定合同。</li></ul></div></div>
+  <div class="gate"><div class="g">Gate E<small>数据规模 · 2026-09-03 决定：后置</small></div><div>
+    <div class="callout warn" style="margin-top:4px">决定：先不考虑扩充数据集。补真实病例或合成几何都要重跑全部 CFD（单例瞬态中位 92 min），且 V4 差距的主因是协议与数据合同而非样本量。Gate E 只做下面第一条学习曲线（零 CFD 成本）；合成队列、稳态 CFD 预训练、稳态–瞬态偏移试验全部挂起，只有 Gate B/C 做完、学习曲线仍陡升时才重新立项。</div>
+    <ul><li><b>学习曲线</b>：V2 数据上 35 / 69 / 104 / 138 例各训 DATA 臂 + CV，画 R² 对 log(N)。仍陡升 → 数据是主瓶颈；已平 → 先解决几何编码。</li>
+    <li><b>CFD 成本账</b>：单例瞬态 = 8 周期 × 160 步 × 20 次迭代、约 50 万单元、40–64 核、墙钟中位 92 min（313 条记录）；1000 例瞬态 ≈ 64 单节点日，R2C ≈ 1.4 s &gt; 0.8 s 周期，8 个周期砍不掉。稳态单例分钟级，1000 例一两天。</li>
+    <li><b>合成队列（挂起）</b>：Centerline V2 中心线 + 逐路径半径参数化，formal 172 个真实几何各 5–6 个变形 ≈ 1000 例；跑稳态 CFD；稳态合成预训练 → 138 真实瞬态 peak 微调；合成几何永不进 formal test34。</li>
+    <li><b>稳态–瞬态偏移（挂起）</b>：10 个真实病例补跑稳态 CFD，与瞬态 peak 帧比 WSS 与近壁速度，动大工程前先量。</li>
+    <li>边界：合成 1000 例的有效多样性远小于 1000 个真实病人；文献 0.9 多在合成集内部评；我们的口径更严，0.8 仍是高要求。</li></ul></div></div>
+  <div class="callout">现有 48-run 的处置：本地已有 46/48 份完成摘要、38/48 official 评估；46/47 只有停滞的部分产物且远端状态未复核。旧合同不再追加训练或正式 Holm，主表行 19–34 与图件只保留为机制诊断；formal P2V/D2 + test34 结果必须另开配置、输出和工作簿区域。</div>
+
+  <h2 id="s5">5 · 汇报时的表述边界</h2>
+  <ul class="plain">
+    <li>一律称"单 seed 探索性 screen / pre-Centerline-V2 历史矩阵"；跨 seed 复核只说明排序稳健，不说显著。</li>
+    <li>test35 是 development-exposed screen，milestone 补评只能说"最优点在 1000 以前"，不能把 epoch 1000 当结果报。</li>
+    <li>不能说"BC / PDE / EMA 有效或无效"，只能说"在当前数据合同与协议下，它们的作用机制是压幅、压平压力、平凡解，未观察到结构增益"。</li>
+    <li>老师的 EMA 方法：明确"未被检验"，原因是控制器全程饱和且护栏失效。</li>
+    <li>WSS 全负不归咎 WSS 算法；NMAE 不单独报；fit R² 不能替代原始 R²。</li>
+    <li>“去掉 RCR 的代价约 0.08 WSS R²”只属于 09-03 历史提案；formal 是否删 RCR/A_out 尚待配对冻结。</li>
+  </ul>
+
+  <h2 id="s6">6 · 汇报答疑（2026-09-03，十一问）</h2>
+  <p>每问先给一句可直接说出口的答案，再给证据与代码位置。代码真源 <code>wss_pinn/v4/{physics.py, models.py, controller.py, train.py, evaluate.py, config.py}</code>；完整版见 md §6。</p>
+  <div class="mech">
+    <div class="m" id="q1"><div class="t">Q1 准稳态与瞬态两种模式的具体区别和实现方式</div><div class="e">
+      <p><b>一句话</b>：两种模式共用同一套编码器/解码器与四臂配对，区别只在"标签用哪些帧、解码器有没有时间输入、动量方程带不带 ∂u/∂t、出口有没有 RCR 残差、压力用什么 gauge"；评估宇宙不同，E 不能互比。</p>
+      <div class="tablewrap" style="margin-top:0"><table>
+        <tr><th>项</th><th>准稳态 peak（steady_peak）</th><th>瞬态 81 帧（transient_81）</th></tr>
+        <tr><td>训练标签</td><td>每例只用峰值流量时刻一帧的 u,v,w,p</td><td>每例 81 帧（0.01 s 间隔、0.8 s 周期）；每 epoch 每例随机抽 1 个时相</td></tr>
+        <tr><td>解码器输入</td><td>查询点 xyz + 几何 latent（256）+ BC latent（128）</td><td>同上，再拼 4 维时间编码 t/T、sin、cos、Q_nom(t)/1e-4（models.py: time_features）</td></tr>
+        <tr><td>空间点池</td><td>全体域非壁面 cell（53 万–224 万/例），每 epoch 重采 5000 + 5000</td><td>旧特征管线每例 2000 个内部点，5000 有放回抽样</td></tr>
+        <tr><td>动量方程</td><td>quasi_steady：ρ(u·∇)u + ∇p − ∇·τ(γ̇) = 0，∂u/∂t 置零</td><td>transient_autograd：再加 ρ∂u/∂t，由 autograd 对时间输入求导</td></tr>
+        <tr><td>边界项（BC 臂）</td><td>no-slip（512 壁面点）+ 入口 Dirichlet（256 点，目标 U_in·n，U_in = Q_nom/A_udf 峰值）</td><td>同上但入口目标随时间；再加四出口 RCR 一致性残差（Q2）</td></tr>
+        <tr><td>压力口径</td><td>病例严格体域均值中心化（相对 gauge）</td><td>Fluent 原始 gauge（远端压力为零的绝对水平）</td></tr>
+        <tr><td>无量纲化</td><td>momentum / (ρU_c²/L_c)，continuity / (U_c/L_c)，BC / U_c</td><td>同上，RCR / ((R1+R2)·ṁ_c)</td></tr>
+        <tr><td>评估</td><td>test35 全体域非壁面点 × peak 一帧</td><td>test35 eligible 缓存点（1609–5296/例）× 81 帧 pooled</td></tr>
+        <tr><td>每 epoch 成本（PN）</td><td>DATA 3.2 s，BC+PDE 11–12 s</td><td>DATA 2.4 s，BC+PDE 18–21 s</td></tr>
+      </table></div>
+      <p>设计意图：准稳态是"最简问题"（一帧标签、点池最健康、直接服务 peak WSS 下游）；瞬态是为了让 ∂u/∂t 与 RCR 微分方程有意义。代价：准稳态动量方程与 peak 标签不一致（3.7）；瞬态实际只拿到 2000 点池 + 绝对 gauge 低值簇（3.9）。两模式在同一 backbone 下共享初始化 SHA、采样序列与优化器，四臂 contrast 在模式内部成立，跨模式不成立。</p></div></div>
+
+    <div class="m" id="q2"><div class="t">Q2 "入口 Dirichlet 与出口 RCR 关系以残差进 loss"是什么意思？出入口数据不是显式输入吗？</div><div class="e">
+      <p><b>一句话</b>：显式输入的是<b>边界参数</b>（一串数字），残差进 loss 的是<b>边界条件本身</b>（预测场必须满足的关系）；输入不能保证网络用对，残差才是强制。</p>
+      <ul><li><b>显式输入</b>（四臂都有，含 DATA 臂）：18 维向量 [A_in, Q_actual_peak, 4 × (A_out, R1, R2, C)] 经 BCEncoder（MLP 18→64→128）得到 bc_latent 拼进解码器。它只告诉网络"这一例的流量与 RCR 参数是多少"，网络可以完全忽略。</li>
+      <li><b>残差进 loss</b>（DATA+BC / PDE 臂，physics.py: _boundary_losses）：在边界点上检查<b>网络预测出来的场</b>是否满足这些参数定义的条件。入口 Dirichlet：256 个入口面点罚 ‖u_pred − U_in·n‖²/U_c²，U_in = Q_nom/A_udf 是 UDF 真正施加的入口速度；no-slip：512 壁面点罚 ‖u_pred‖²/U_c²；出口 RCR（仅瞬态）：对每个出口面用<b>预测场</b>算面积均值压力 P̂ 与法向质量流量 ṁ̂，autograd 算 dP̂/dt、dṁ̂/dt，罚 [R2C·dP̂/dt + P̂ − (R1+R2)ṁ̂ − R1R2C·dṁ̂/dt]²/((R1+R2)ṁ_c)²。这里<b>没有用任何出口压力标签</b>，R1/R2/C 只是系数。</li>
+      <li>与 V3 的区别：V3 把求解后才有的 p-out* monitor 压力当输入（部署拿不到，泄漏）；V4 输入的 A、Q、R1/R2/C 都是求解前给定的量，求解后的量只出现在 data loss 标签里。</li>
+      <li>结果回看：入口残差正常收敛；no-slip 残差 0.22–0.25 不降（Q4）；RCR 残差被压到 1e-4–1e-6，但标签本身不满足强形式（3.6）。</li></ul></div></div>
+
+    <div class="m" id="q3"><div class="t">Q3 E_rel_l2 起什么作用？和 V2/V3 比不该用同一个 R² 吗？</div><div class="e">
+      <p><b>一句话</b>：应该。E_rel_l2 只是 V4 预注册的<b>内部排序指标</b>；跨代比较一律用三代同口径的病例等权 R²（2.4）。</p>
+      <ul><li>定义（evaluate.py: vector_relative_l2）：逐病例 E = ‖u_pred − u_true‖₂ / ‖u_true‖₂，u 为三分量向量、在该例全部评估点取范数（瞬态 81 帧 pooled），再对 35 例等权平均。全零预测器恰好 E = 1。</li>
+      <li>当初选它：PINN 文献常用；三分量联合，不像 v/w 单分量 R² 在某例方差极小时爆成 −10；逐例尺度无关；只预注册一个主指标配四个 contrast，避免在 16 臂 × 十几个指标里挑好看的（Q8）。</li>
+      <li>与 R² 的差别只在分母：R² = 1 − Σ‖e‖²/Σ‖u − ū‖²（减均值），E² = Σ‖e‖²/Σ‖u‖²（不减均值）。预测整体缩小 k 倍：E 从 0 平滑退到 1（零场也只是 1.0），R² 却从 1 一路掉到负（零场 R² = −‖ū‖²/var）。所以 E 对 V4 物理臂的失败方式——幅值压缩——几乎不惩罚（图 12）。</li>
+      <li>汇报口径：一页结论与跨代表格用 speed R²_cb / near-wall / p / WSS fit R²；E 只出现在 V4 四臂排序和 contrast；并列时要说"E 低而 R² 负 = 预测更保守，不是更正确"。</li></ul></div></div>
+
+    <div class="m" id="q4"><div class="t">Q4 "no-slip 梯度与数据梯度近乎反向（cos ≈ −0.9）"怎么形象地说？→ 图 11</div><div class="e">
+      <p><b>一句话</b>：数据项要把近壁速度拉高（CFD cell-center 标签非零），no-slip 项要把壁面速度压到零；网络分辨不了 1–2 mm 的边界层，两项在同一批参数上一个往东一个往西，合力很短再被裁剪，最后唯一的折中是把整个速度场整体压小。</p>
+      <ul><li>度量：每 50 step 把 data_total 与 no_slip_raw 分别对全部参数求梯度向量，算夹角余弦。cos = 1 同向，0 互不干扰，−1 完全对拉；−0.9 对应夹角约 154°。</li>
+      <li>图 11 四联（3.3 处）：(a) 向量示意；(b) 日志实测：准稳态三臂从 epoch 0–200 起就是 −0.87～−0.89，末段 −0.88 / −0.97 / −0.97，瞬态两臂开局 ≈ 0、末段 −0.33 / −0.61；(c) 一维剖面演示：只拟合数据时壁面残留 0.21，加 no-slip 后壁面归零但峰值只剩 0.95；(d) 末 500 epoch 分布：准稳态三臂 71–99% 的 step 低于 −0.8，‖∇L_data‖ ≈ 3 而 clip = 1，BC 臂 83% 的 step 被裁剪。</li>
+      <li>后果链（准稳态 PN）：wall RMS 0.36 → 0.23 → 0.16 → 0.13 m/s，方差比 0.39 → 0.16 → 0.07 → 0.04，speed R²_cb −0.10 → −0.28 → −0.42 → −0.51。瞬态弱是因为舒张期标签本身近零。硬约束 u=d_wall·g(x) 是待验证候选，formal 尚未决定硬约束还是软 BC loss。</li></ul></div></div>
+
+    <div class="m" id="q5"><div class="t">Q5 为什么 PDE loss 小 2–5 个数量级、λ 被 10 夹死、瞬态打开平凡解、护栏 bug——逐步解释</div><div class="e">
+      <ol style="padding-left:20px;max-width:84ch">
+        <li><b>两个 loss 的"单位"不同，比值没有物理含义。</b> data loss 是标准化 MSE（标签按全库 std 标准化，训练中 0.2–1.0）；PDE loss 是无量纲残差的平方：动量残差除以 ρU_c²/L_c（例 1060 × 0.29² / 0.0217 ≈ 4.1 kPa/m），训练末段残差各项 RMS 几百 Pa/m → 无量纲 0.05–0.1 → 平方 1e-3～1e-2。实测 EMA(L_data) ≈ 0.85–1.1、EMA(L_pde) ≈ 6e-4～2e-3，比值 500–3600（SP）；瞬态后期 PDE 残差塌到 7e-5，比值 1e4–1e10。</li>
+        <li><b>控制器第一次更新就撞上限。</b> λ_target = clip(α·EMA_data/EMA_pde, 1e-4, 10)，α 从 0.1 ramp 到 1。α = 0.1 时目标已是 130–220 ≫ 10。λ_applied 经 0.9 平滑从 1.09 起步、每 50 step +0.6～0.9，epoch 15 就 ≥ 9.9，此后 99.8% / 99.5% 的时间贴在 10。所以 EMA 臂 ≡ "λ ≡ 10 固定臂"，老师方法的核心——随训练动态调整——从未发生（controller.py 公式本身与设计一致）。</li>
+        <li><b>为什么瞬态下 λ = 10 打开 u ≡ 0 平凡解。</b> 对 u ≡ 0、p ≡ const：动量与连续性残差恒为 0、no-slip 为 0，只剩 data loss（标准化 MSE ≈ 1）和入口残差。而认真拟合标签的解要付 λ × PDE 残差的代价：瞬态标签与强形式方程本身不一致（RCR 标签级残差 0.8）、PDE 点只有 512 个、网络表达受限，残差压不下去。λ = 10 让"什么都不预测"的总 loss 反而更低：TR-PN-EMA 的 u 通道训练 MSE 0.99、pde_total 3e-6、continuity 1e-12。准稳态 peak 标签处处非零，零场 data loss 太大，所以只是幅值压得更狠（方差比 0.04、p R² 0.11）。</li>
+        <li><b>护栏 bug（train.py:403/464）。</b> 设计要求"撞限比例 &gt; 0.5 不判收敛、应报警"。实现里每 step 累加 lambda_clamped，但 controller 只在 global_step % 50 == 0 的 step 才算撞限标志，其余 step 恒为 False；每 epoch 138 step 里只有 2–3 步可能为 True，分母却用 138 → 比例上限 0.02。training_summary.json 里 EMA 臂的 lambda_bound_fraction = 0.02 实际是 100% 撞限；门限 0.5 永远触发不了。修法：分母改为控制器更新步数，或每 step 记录"当前仍在撞限"状态。</li>
+        <li><b>要真检验老师的方法</b>：把 PDE 残差换成与 data 同"单位"的度量，或把 λ_max 放到比值量级；按梯度范数而不是 loss 值平衡——PDE-F 末段 ‖∇L_data‖ 3.05 对 ‖∇L_pde‖ 0.69，λ = 600 时 PDE 梯度是 data 的 ≈ 140 倍，会更快掉进平凡解；先做 train-only smoke 确认 λ 在工作区内浮动（修正后的撞限比例 &lt; 20%）再进矩阵。</li>
+      </ol></div></div>
+
+    <div class="m" id="q6"><div class="t">Q6 不先补数据；入口流量与相对 gauge 会不会泄漏、部署时拿得到吗；"速度按 U_c 归一"是什么</div><div class="e">
+      <ul><li><b>数据扩充后置</b>：补真实例或合成几何都要重跑全部 CFD；当前先完成数据/模型合同与零 CFD 成本学习曲线。</li>
+      <li><b>入口流量本身不是泄漏</b>：它是求解前边界量；但 formal 是否把 Q_actual_peak 放入病例条件仍待冻结。Q_nom(t) 若用于 physics，只生成入口残差，不等于网络条件输入。</li>
+      <li><b>相对 gauge 与 U_c 归一</b>均是 09-03 提出的标签/尺度候选，不是方案 B 自动采纳项；须分别与 formal DATA 基线做配对。</li></ul></div></div>
+
+    <div class="m" id="q7"><div class="t">Q7 总体比较不能只看 V4 新指标，要看横向可比的 R² fit</div><div class="e"><p>同意，见 2.4 的三代同口径表。关键读数：V4 SP-PN-BC 对 V3 QSF-XYZG-BC 是 0.234 → −0.281 的退步；但三代最好都停在 speed R²_cb ≈ 0.24、WSS fit R² ≤ 0.29，近壁 R² 三代全负、fit 斜率 0.2–0.4。评估宇宙差异要注明（V2 SAME5K 5000 点，V3 全严格体域，V4 全体域非壁面）。fit R²（Pearson r²）永远不低于原始 R²，fit 高而斜率 0.1–0.3 的模型不可用，两者要一起报。</p></div></div>
+
+    <div class="m" id="q8"><div class="t">Q8 "预注册 4 个 contrast + Holm"是什么意思</div><div class="e">
+      <ul><li><b>预注册</b>：在看到任何 test35 结果之前，设计文档（§12.0，2026-08-08）就写死了要检验哪几个差值、用什么指标、什么检验、怎么校正，避免"16 臂 × 十几个指标里挑显著的"这种事后选择。</li>
+      <li><b>4 个 contrast</b>（配对差值，各时间模式内分别做）：DATA+BC − DATA（BC 监督有没有用）、BC+PDE-FIXED − DATA+BC（固定权重 PDE 有没有用）、EMA − FIXED（老师的动态权重比固定好不好）、PointNet++ − PointNet。每个用 35 个测试病例的逐例 E 差值做配对 Wilcoxon（每例先对 3 seeds 取均值）。</li>
+      <li><b>Holm 校正</b>：4 个检验同时做，假阳性率会累积。Holm 把 4 个 p 值从小到大排，依次与 α/4、α/3、α/2、α 比较，第一次不通过就停，后面全判不显著；它把整体假阳性率控制在 α 以内，比 Bonferroni（全用 α/4）宽松一点。</li>
+      <li><b>本次不做正式 Holm</b>：3 seeds 未齐（38/48）；数据侧 No-Go 把矩阵降级为探索性 screen；test35 是 development-exposed。做了也不能当确认性结论，只报方向与效应量。</li></ul></div></div>
+
+    <div class="m" id="q9"><div class="t">Q9 / Q10 图 4 与图 7 的重绘</div><div class="e"><p>图 4 按准稳态 / 瞬态分两幅，每臂画 epoch 1000→10000 的轨迹，"训练 loss 一路降、test E 一路升"直接可见；图 7 改为逐病例排序条形 + σ/RMSE 机制图，两例离群病例红色截断显示。中文渲染统一 Noto Sans CJK SC，数学符号走 mathtext；图片已栅格化，在别的机器上不受字体影响。新增图 11（Q4）、图 12（Q3）。目录 <code>V4汇报/V4_汇报图件重绘_2026-09-03/</code>，脚本 <code>extract_grad_cos.py</code>（从训练日志抽梯度诊断，只读）→ <code>plot_v4_report_figs_v2.py</code>。</p></div></div>
+
+    <div class="m" id="q11"><div class="t">Q11 图 8 里"近壁（near-wall）"的定义</div><div class="e">
+      <ul><li><b>旧数据（本矩阵）</b>：内部 cell 中心到最近壁面节点的距离 ≤ 1.5 mm（pipeline_wss_min/config.py: near_wall_threshold_mm=1.5），按距离最近优先、每例上限 40000 点（near_wall_max_points=40000）；173 例全部恰好取满，说明 1.5 mm 层内的点数超过上限，实际近壁带比 1.5 mm 更薄且逐例不同。标记存在 bundle 的 int_type（1 = near-wall，0 = core），V4 评估直接读它。</li>
+      <li><b>near-wall speed R²_cb</b>：只在这些点上算的病例等权 speed R²；core 是其余内部点。瞬态旧 bundle 没有这一标记，所以瞬态臂的近壁列为 –，图 8b 只画准稳态 8 臂。</li>
+      <li><b>08-31 Centerline V2 staging</b>：阈值数值为 1.5、无上限，但后续审计证明冻结单位因子不是统一物理 mm；formal anatomy-only 数据须按 Fluent m×1000 重算真实壁距。</li>
+      <li><b>物理意义</b>：WSS = μ·∂u/∂n|wall 由最靠壁 1–2 层 cell 的速度差决定；近壁速度对不上，壁面梯度就对不上，所以图 8b 用它作 WSS 的上游代理。三代近壁 R² 全负（V2 −1.5、V3 −1.0、V4 −0.7～−2.4），支持 Gate C1 的 no-slip 硬约束研究与 C5 分层采样；直接 WSS 输出仍是未冻结的独立备选。</li></ul></div></div>
+  </div>
+
+  <h2 id="src">真源</h2>
+  <p class="src">本页为本地版，图件相对引用 <code>V4汇报/</code>。单文件版由 <code>tools/build_v4_report_singlefile.py</code> 从本页生成（图片 base64 内嵌，后半段看起来像乱码是正常的）；改中文只改本页或 md。2026-09-03 重绘图件 <code>V4汇报/V4_汇报图件重绘_2026-09-03/</code>（fig4 / fig7 重绘、fig11 / fig12 新增、gradcos_*.csv、summary_numbers.json）。近壁定义 <code>pipeline_wss_min/config.py</code>、<code>wss_pinn/v4/build_centerline_v2.py</code>；λ 控制器与护栏 <code>wss_pinn/v4/controller.py</code>、<code>wss_pinn/v4/train.py</code>（403 / 464 行）。</p>
+  <p class="src">训练日志 <code>outputs/wss_pinn/volume_uvwp_bc_rcr_v4/{steady_peak,transient_autograd}/V4-*-s1234/{training_progress.jsonl, epoch_progress.jsonl, training_summary.json}</code>；官方评估 <code>evaluation_official_{last_converged,epoch_07500,epoch_05000,epoch_02500,epoch_01000}_full.json</code>；图件 <code>docs/03-汇报材料/V4汇报/</code>（三个子目录各有 README）；工作簿主表行 19–34、V4 Checkpoint敏感性、V4 Full-wall WSS；旧线纯监督 <code>WSS_PointNet实验矩阵与结果汇总last.xlsx</code>（汇总对比、RCR Oracle）；数据审阅 <code>WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md</code>；标签级参照 <code>train138_stats.json</code>；UDF 递推 <code>data_new/*/udf-inlet*.c</code>；CFD 成本 <code>data_new/*/*/*/{fluent.slurm,2.jou,Fluent_*.err}</code>。完整文字版：<code>WSS_PINN_V4实验分析与汇报提纲_2026-09-02.md</code>。</p>
+</div>
+</body>
+</html>

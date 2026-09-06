@@ -1,16 +1,16 @@
 # 项目文档索引
 
-> 更新时间：2026-08-31（Centerline V2 WSS_PINN 173 例 staging 重建与二次边界审阅完成；`training_ready=false`）
+> 更新时间：2026-09-04（formal backbone 选定 P2V/D2；anatomy-only 正式 bundle 与模型改造仍 No-Go）
 > 主入口：[实验设计总纲](实验设计总纲.md)
 
 本目录存放实验设计、任务规范、路线文档、推进日志、汇报材料和外部论文 baseline 复现记录。2026-08-08 起，当前模型设计范围为显式 RCR 条件的体域 `u,v,w,p` V4 重构；其他路线按历史、baseline 或冻结下游验证器维护：
 
-- **当前模型设计主线**：旧 `volume_uvwp_bc_rcr_v4` 48-run 为 pre-Centerline-V2 历史 screen。2026-08-31 已在独立 staging 完成 173 例 Centerline V2 rawfull 重建，统一 geometry/registration/15k pool/rim-buffered boundary/region/stats/array audit；工程 Gate 通过但 `training_ready=false`，正式训练仍 No-Go。seed1234 0–15 的旧矩阵结果和 38/48 已评状态仅保留为历史证据
+- **当前模型设计主线**：旧 `volume_uvwp_bc_rcr_v4` 48-run 为 pre-Centerline-V2 容量配平历史 screen。2026-09-04 用户选择 formal backbone=PointNet P2V / 纯 PointNet++ D2 `c125-k128`；当前代码/配置尚未改造。八例低压力族及 ZHOU/ZUO 原 Q 长尾已完成 raw 修复，但 2026-08-31 staging 已过期；须先完成 anatomy-only train138/test34 正式 bundle、模型/采样合同与新 Gate，继续保持 `training_ready=false`
 - **任务 A 直接 WSS 历史线**：V3 PointNeXt / 双域 WSS / 路径 G-I 诊断结果保留，本轮不继续调参
 - **V1 历史补充验证**：旧 PINN / physics loss 阶梯已归档，只作早期路线证据
 - **外部 baseline 复现**：公开医学血管点云、mesh、等变网络、2D 展开方法在私有 AAA/WSS 数据上的对照
 - **后处理与可视化**：预测点云到 CFD 面片/体网格的公平映射和论文图件规范
-- **Centerline V2 数据修复**：2026-08-28 已完成源产物；2026-08-31 WSS_PINN 已独立 staging cutover，其他下游和正式训练 route 尚未切换
+- **Centerline V2 数据修复**：2026-08-28 已完成当时源产物；2026-08-31 WSS_PINN staging 曾通过工程 Gate，但因后续 raw/真实 mm/anatomy-only 合同更新已过期，仅作中间证据；其他下游和正式训练 route 尚未切换
 - **WSS-only 最小化线**：`pipeline_wss_min/` + `training_wss_min/`；当前单 seed 开发锚点为 LSA2 SAME-H2 + `log(local_radius)`；数据口径 v4（AG76 / AAA 白名单 / ILO before41）
 - **velocity→WSS 冻结验证器**：`wss_mri_calculator/` 的 Profile-Secant V3；test35 全壁面病例 overall / pooled high-WSS R²=`0.9604/0.9440`，但逐病例 high-WSS R² 均值=`0.7735`、平均峰值低估=`15.81%`。当前不继续调算法，也不参与 `u,v,w,p` 训练或选模
 
@@ -18,12 +18,14 @@
 
 ### 当前 `u,v,w,p` 推进
 
-1. [173 例训练数据数值与刚性配准审阅及修复计划](02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)
-2. [V4 大重构设计方案](02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)
-3. [体域 PINN 路线真源](02-推进与变更/WSS_PINN/README.md)
-4. [`wss_pinn` 代码入口](../wss_pinn/README.md)
-5. [核心代码诊断（field-v4 历史科学合同）](02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)
-6. [代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md)
+1. [正式重建前剩余整改问题与验收计划](02-推进与变更/WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)
+2. [BC/RCR V4 近壁 1.5 mm 与 PN/PNPP 采样核查](03-汇报材料/V4汇报/V4_近壁采样核查_2026-09-04/README.md)
+3. [173 例训练数据数值与刚性配准审阅及修复计划](02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)
+4. [V4 大重构设计方案](02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)
+5. [体域 PINN 路线真源](02-推进与变更/WSS_PINN/README.md)
+6. [`wss_pinn` 代码入口](../wss_pinn/README.md)
+7. [核心代码诊断（field-v4 历史科学合同，🧊已归档）](02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)
+8. [代码修改与实验推进记录](02-推进与变更/代码修改与实验推进记录.md)
 
 历史任务 A / V3 直接 WSS 路线仍从[任务A总入口](01-任务/任务A/README.md)进入，
 本轮不继续其结构或 loss 调优。
@@ -35,8 +37,8 @@
 3. [已执行归档方案](02-推进与变更/_archive/VMTK中心线修复与全队列优化方案_已执行_2026-08-27.md)
 4. [`pipeline` 中心线入口与切换边界](../pipeline/README.md#centerline-v2-全队列审计2026-08-28)
 
-WSS_PINN 已在独立 staging 重建，不覆盖旧 root；`data_wss_min` 和其他旧 bundle 仍未重建。
-staging 不得与旧矩阵混用，也不得作为正式训练输入。
+WSS_PINN 的 08-31 独立 staging 不覆盖旧 root，但已被后续合同更新判为过期；
+`data_wss_min` 和其他旧 bundle 仍未重建。该 staging 不得与旧矩阵混用，也不得作为正式训练输入。
 
 ### 当前复现与 V3P 状态速读
 
@@ -46,7 +48,7 @@ staging 不得与旧矩阵混用，也不得作为正式训练输入。
 | 外部 CROWN/Beihang 复现 | [CROWN 代码 README](../external_baselines/crown_beihang/README.md) + [hemodynamics_pointcloud_pinn](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | `u,v,w,p` 速度/压力 paper-original 复现，不写成 WSS baseline |
 | 外部 baseline 批次总结 | [paper_reproduction/README](paper_reproduction/README.md) + [梳理记录规范](paper_reproduction/04-梳理记录规范.md) | 一轮矩阵跑齐后的批次结论，单个 Job 只放 `external_baselines/<name>/experiments/` |
 | velocity→WSS V1–V4 | [实验总跟踪](../wss_mri_calculator/experiments/README.md) + [Profile-Secant V3 推荐结果](../wss_mri_calculator/experiments/pointcloud_surface_mls_v4/PROFILE_SECANT_HIGH_TAIL_V3_RESULTS.md) + [全壁面结果](../outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/README.md) + [CFD 适配说明](../wss_mri_calculator/README_CFD_ADAPTATION.md) | Profile-Secant V3 冻结为 `u,v,w,p` 最终 checkpoint 的下游 sanity check；不继续调算法或参与选模 |
-| 当前 `u,v,w,p` 优化与历史 WSS 线 | [173 例数据审阅与修复计划](02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md) + [V4 大重构设计](02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md) + [体域 PINN 当前入口](02-推进与变更/WSS_PINN/README.md) + [当前代码入口](../wss_pinn/README.md) + [field-v4 Stage 0–1 已归档合同](02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md) + [V3 六臂结果](../outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/README.md) + [历史六臂预注册](02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md) + [老师论文与 V2 对照](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | seed1234 的 0–15 已在 xlsx 主表；当前 173 例是 Centerline V2 前历史 screen，新正式训练 No-Go，须独立全链重建 |
+| 当前 `u,v,w,p` 优化与历史 WSS 线 | [173 例数据审阅与修复计划](02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md) + [V4 大重构设计](02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md) + [体域 PINN 当前入口](02-推进与变更/WSS_PINN/README.md) + [当前代码入口](../wss_pinn/README.md) + [field-v4 Stage 0–1 已归档合同](02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md) + [V3 六臂结果](../outputs/wss_pinn/volume_uvwp_peak_qs_smooth_v3/summary/README.md) + [历史六臂预注册](02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md) + [老师论文与 V2 对照](paper_reproduction/papers/hemodynamics_pointcloud_pinn/README.md) | seed1234 的 0–15 已在 xlsx 主表；旧 173 例只作 pre-Centerline-V2 历史 screen，formal 为 train138/test34 共 172 例且训练 No-Go |
 
 ### 查当前总设计
 
@@ -76,7 +78,7 @@ staging 不得与旧矩阵混用，也不得作为正式训练输入。
 | `Route-PhysicsAware-V2` | V2 修正路线历史框架 | V2P-WSSP 已形成一批 p+WSS / WSS loss 对照结果，当前不再作为日常主攻 |
 | `Route-DualDomain-PointNeXt-V3` | 直接 WSS 历史内部线 | V3P post5463 / I6-diag 平台约 `wss_r2_wss=0.425±0.012`，I6-diag **0.429**；既有分支保留，当前不新增 WSS 调参 |
 | `Route-CFD-Velocity-to-WSS-V4` | 冻结的 WSS 后处理验证器 | Profile-Secant V3 只用于 `u,v,w,p` 主 checkpoint 的 downstream sanity check；不继续调算法，不参与训练或选模 |
-| `Route-Volume-UVWP-PINN` | **当前数据 cutover 主线；正式训练 No-Go** | 旧 V4 矩阵为历史 screen；Centerline V2 staging 已重建并通过工程 Gate，但保持 `training_ready=false`，待压力/raw SHA/长尾/正式 route 闭环 |
+| `Route-Volume-UVWP-PINN` | **当前数据/骨干 cutover 主线；正式训练 No-Go** | 旧 BC/RCR V4 为容量配平历史 screen；08-31 staging 已过期。formal split=train138/test34、backbone=P2V/D2 `c125-k128`，待正式 bundle、模型/采样合同与新 preflight 闭环 |
 | 外部论文 baseline | 论文必需对照 | PointNetCFD 首轮矩阵已完成；CROWN/Beihang 非 PINN/PINN paper-original 复现均已结案 No-Go。原文 NMAE、病例级 FR/PD R² 不与当前点级 speed R² 混表 |
 | 后处理可视化 | 论文与答辩支撑链 | 已明确同点指标优先、插值只作展示、WSS 后处理必须先做 CFD velocity oracle；新增 `paper_reproduction/visualization_pipeline/` 管理点云回面片与 CFD-Post/Fluent 交付流程 |
 

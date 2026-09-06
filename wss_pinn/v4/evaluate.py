@@ -29,7 +29,7 @@ from wss_pinn.v4.data import (
 from wss_pinn.v4.models import build_model
 
 PROTOCOLS = ("official", "same5k")
-CHECKPOINT_NAMES = ("last_converged", "last", "epoch_07500", "epoch_05000")
+CHECKPOINT_NAMES = ("last_converged", "last", "epoch_07500", "epoch_05000", "epoch_02500", "epoch_01000")
 REGION_NAMES = {0: "core", 1: "near_wall"}
 SCALAR_NAMES = ("u", "v", "w", "speed", "pressure")
 

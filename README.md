@@ -8,15 +8,16 @@
 几何数据侧已于 2026-08-28 完成 **Centerline V2 173 例全队列修复**：173/173 通过硬
 Gate，20 例保留软复核标记，0 例处理错误。新产物位于
 [`outputs/centerline_v2_full_173_20260828/`](outputs/centerline_v2_full_173_20260828/README.md)，
-2026-08-31 已为 WSS_PINN 在独立 staging 重建 173 例，但保持 `training_ready=false`，
-未覆盖旧 `data_wss_pinn`；`data_wss_min` 和其他旧 bundle 仍未切换。详见
+2026-08-31 曾为 WSS_PINN 在独立 staging 重建 173 例并通过当时工程 Gate，但该 staging
+因后续 raw 修复、真实 mm 与 anatomy-only/interface 新合同已失效，只作中间证据；正式
+route 从未达到 `training_ready=true`。`data_wss_min` 和其他旧 bundle 仍未切换。详见
 [全队列修复与切换记录](docs/02-推进与变更/Centerline_V2全队列修复与切换记录_2026-08-28.md)。
 
 ## 当前主攻（先看这里）
 
 | 路线 | 代码 | 数据 / 产物 | 说明入口 |
 | --- | --- | --- | --- |
-| **体域 `u,v,w,p` PINN** | [`wss_pinn/`](wss_pinn/) | 旧 V4 为 pre-Centerline-V2 历史矩阵；新 staging：`data_wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging_train138_test35/`（`training_ready=false`） | [173 例审阅与修复计划](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md) · [`wss_pinn/README.md`](wss_pinn/README.md) · [路线真源](docs/02-推进与变更/WSS_PINN/README.md) |
+| **体域 `u,v,w,p` PINN** | [`wss_pinn/`](wss_pinn/) | 旧 BC/RCR V4 为 pre-Centerline-V2 容量配平历史矩阵；formal V4 已选 P2V/D2 `c125-k128`，但代码/配置与 anatomy-only 重建未完成，仍 `training_ready=false` | [剩余整改与验收计划](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md) · [173 例初审](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md) · [`wss_pinn/README.md`](wss_pinn/README.md) · [路线真源](docs/02-推进与变更/WSS_PINN/README.md) |
 | **WSS-min 预处理** | [`pipeline_wss_min/`](pipeline_wss_min/) | `data_wss_min/` | [`pipeline_wss_min/README.md`](pipeline_wss_min/README.md) |
 | **WSS-min 训练** | [`training_wss_min/`](training_wss_min/) | `outputs/wss_min/`（及本目录 `runs/`） | [`training_wss_min/README.md`](training_wss_min/README.md) |
 | velocity→WSS 冻结验证器 | [`wss_mri_calculator/`](wss_mri_calculator/) | `outputs/wss_mri_calculator/`、`outputs/wss_pinn/audits/…` | [V1–V4 总跟踪](wss_mri_calculator/experiments/README.md) · [CFD 适配说明](wss_mri_calculator/README_CFD_ADAPTATION.md) |
@@ -24,15 +25,16 @@ Gate，20 例保留软复核标记，0 例处理错误。新产物位于
 文档总索引：[`docs/README.md`](docs/README.md)。
 WSS-min 推进记录（专用，勿混入 V3 大日志）：[`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`](docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md)。
 
-### 状态速览（2026-08-31）
+### 状态速览（2026-09-04）
 
 - **WSS-min 数据**：v4 活动口径；AG76（`stl_landmarks_v4`）；AAA 几何签核 63 / 训练白名单 57；ILO 术前审核通过 41（未进正式 split）。产物独立于 `data_new/`。
-- **Centerline V2**：173/173 硬 Gate 通过；153 `pass` + 20 `pass_review`。WSS_PINN 已完成独立 staging cutover：统一几何/刚性帧、15k transient cell、rim-buffered 边界、region、train-only stats 和全数组审计；正式训练仍 No-Go。其他下游尚未切换。
+- **Centerline V2**：2026-08-28 源几何曾为 173/173 通过；08-31 WSS_PINN staging 也曾通过当时工程 Gate，但因后续 raw/anatomy-only 合同更新已过期。formal split 现为 train138/test34；正式 bundle 尚未重建，训练仍 No-Go。
 - **WSS-min 训练**：单 seed 开发锚点为 **LSA2 SAME-H2 + `log(local_radius)`**（`R²_cb≈0.3506`）；暂不做多 seed。矩阵真源见 [PointNet baseline 进度跟踪](docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。
-- **体域 PINN 新 V4**：旧 48-run 属于 pre-Centerline-V2 历史 screen。Centerline V2
-  staging 已完成 173 例重建并通过工程 Gate，但仍有压力低值簇、raw content SHA、速度/BC
-  长尾、4 例 optional outlet monitor 标签和正式 route/config/output 阻断，manifest 明确
-  `training_ready=false`；未提交新训练。
+- **体域 PINN 新 V4**：旧 48-run 属于 pre-Centerline-V2 历史 screen。八例低压力族及
+  ZHOU/ZUO 原 Q 长尾已完成 raw 修复；剩余阻断为曲率 atlas、全链 anatomy-only、解剖
+  interface BC、train138 条件长尾、ZHOU 收敛、raw SHA 和正式 bundle/Gate 重建。正式
+  backbone 已按用户选择 B 冻结为 P2V / 纯 D2 `c125-k128`，当前代码仍是旧约 250k
+  容量配平 PN/PNPP；08-31 staging 已过期，继续 `training_ready=false`，未提交新训练。
 - **wss_mri_calculator**：Profile-Secant V3 冻结为 downstream validator。test35 全壁面病例 overall / pooled high-WSS R²=`0.9604/0.9440`，逐病例 high-WSS R² 均值=`0.7735`，平均峰值低估 `15.81%`。本轮不继续调算法，只在 `u,v,w,p` 主 checkpoint 冻结后做一次 sanity check。
 
 ---
@@ -83,7 +85,7 @@ $PY calculate_wss_cfd.py --case-dir /public/newhome/cy/Digital_twin/GNN/data_new
 # 多尺度 v2（需显式指定，避免改动已冻结 v1 口径）
 $PY calculate_wss_cfd.py --case-dir <病例目录> --neighbor-mode multiscale_v2
 
-# 正式批量：仅 PINN 冻结 173 例（勿对全库随机抽样当下结论）
+# velocity→WSS 历史冻结批量：旧 PINN cohort 173 例（不是 formal V4 的 172 例 split）
 $PY batch_validate_cfd.py \
   --json-out ../../outputs/wss_pinn/audits/cfd_velocity_wss_explore/pinn173_peak.json
 ```

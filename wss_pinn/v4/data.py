@@ -13,6 +13,7 @@ from torch.utils.data import Dataset
 
 from wss_pinn.utils import sha256_file, sha256_json
 
+from .bc_contract import normalize_bc
 from .geometry_v2 import transform_geometry
 from .waveform import PERIOD_S, q_nom_numpy
 
@@ -84,15 +85,9 @@ def _geometry_transform(raw: np.ndarray, stats: dict[str, Any]) -> np.ndarray:
 
 
 def _bc_transform(raw: np.ndarray, stats: dict[str, Any]) -> np.ndarray:
-    value = np.asarray(raw, dtype=np.float32).copy()
-    log_indices = [0]
-    for outlet in range(4):
-        base = 2 + 4 * outlet
-        log_indices.extend([base, base + 1, base + 2, base + 3])
-    value[log_indices] = np.log10(value[log_indices])
-    return (
-        value - np.asarray(stats["mean"], dtype=np.float32)
-    ) / np.asarray(stats["std"], dtype=np.float32)
+    """Frozen 2026-09-05 BC contract (refuses stats built under the old Q_actual_peak z-score)."""
+
+    return normalize_bc(np.asarray(raw, dtype=np.float64), stats)
 
 
 def field_stats(stats: dict[str, Any], temporal_mode: str) -> dict[str, np.ndarray]:

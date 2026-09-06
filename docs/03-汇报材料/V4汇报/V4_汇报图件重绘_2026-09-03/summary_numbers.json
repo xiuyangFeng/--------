@@ -1,0 +1,77 @@
+{
+ "pressure_r2_TR_PN_PDE_F": {
+  "mean_all": -19.977149011406553,
+  "median": 0.8690763981173448,
+  "mean_without_2_outliers": 0.35846842291434466,
+  "n_positive": 29,
+  "outliers": [
+   {
+    "case": "ILO/ZHANG_YONG_SHENG-0/before",
+    "gauge_pa": 195.84852848266067,
+    "r2": -551.6668238282685,
+    "truth_std_pa": 550.5794444821722,
+    "rmse_pa": 12943.498888820755
+   },
+   {
+    "case": "AAA/ruputer/WANG_FU_SHUN",
+    "gauge_pa": 688.2009836578102,
+    "r2": -159.36284952713422,
+    "truth_std_pa": 991.9394560047339,
+    "rmse_pa": 12561.371146248657
+   }
+  ],
+  "normal_truth_std_median_pa": 825.1947160185039,
+  "normal_rmse_median_pa": 311.7966840166578
+ },
+ "gradcos": [
+  {
+   "arm": "准稳态 · DATA+BC",
+   "cos_median_first200": -0.8722090125083923,
+   "cos_median_last500": -0.8758979439735413,
+   "frac_below_m0p8_last500": 0.707881417208966,
+   "grad_norm_data_median_last500": 3.3790740966796875,
+   "clip_fraction_last500": 0.8264642082429501,
+   "no_slip_raw_median_last500": 0.25061431527137756
+  },
+  {
+   "arm": "准稳态 · BC+PDE-F",
+   "cos_median_first200": -0.894073098897934,
+   "cos_median_last500": -0.9680805802345276,
+   "frac_below_m0p8_last500": 0.9884309472161966,
+   "grad_norm_data_median_last500": 3.0541319847106934,
+   "clip_fraction_last500": 0.30151843817787416,
+   "no_slip_raw_median_last500": 0.24438200891017914
+  },
+  {
+   "arm": "准稳态 · BC+PDE-EMA",
+   "cos_median_first200": -0.8850681483745575,
+   "cos_median_last500": -0.9686346054077148,
+   "frac_below_m0p8_last500": 0.9783080260303688,
+   "grad_norm_data_median_last500": 2.8127405643463135,
+   "clip_fraction_last500": 0.2762111352133044,
+   "no_slip_raw_median_last500": 0.22537344694137573
+  },
+  {
+   "arm": "瞬态 · DATA+BC",
+   "cos_median_first200": -0.01515991473570466,
+   "cos_median_last500": -0.33438751101493835,
+   "frac_below_m0p8_last500": 0.04338394793926247,
+   "grad_norm_data_median_last500": 0.33333051204681396,
+   "clip_fraction_last500": 0.41576283441793205,
+   "no_slip_raw_median_last500": 0.02654530480504036
+  },
+  {
+   "arm": "瞬态 · BC+PDE-F",
+   "cos_median_first200": 0.033795371651649475,
+   "cos_median_last500": -0.6109105944633484,
+   "frac_below_m0p8_last500": 0.22342733188720174,
+   "grad_norm_data_median_last500": 0.4591800272464752,
+   "clip_fraction_last500": 0.5242227042660882,
+   "no_slip_raw_median_last500": 0.017606984823942184
+  }
+ ],
+ "profile_demo": {
+  "u_wall_data_only": 0.21049097510933956,
+  "u_peak_compromise": 0.9479900980944804
+ }
+}

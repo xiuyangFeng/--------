@@ -2,6 +2,14 @@
 
 > **🧊 已冻结（2026-08-07 标注）**：2026-08-06 起主线收束为峰值体域 `u,v,w,p`，本矩阵不再新增实验或续写；只作为 PointNet/PointNet++ baseline 的结果档案供论文对照引用。
 
+> **转交体域 PINN 的架构口径（2026-09-04 对齐）**：本页 2026-07-18 的 P2V/Q1V
+> 只是当时两个分支的 single-seed/test27 优先候选。体域 PINN V1/V2 后来实际冻结的是
+> PointNet=P2V、PointNet++=2026-07-21 的纯 D2 `c125-k128`；后者
+> `R²_cb=0.2765`，与 Q1V `0.2763` 基本打平且未获独立多种子确认。2026-09-04 用户决定
+> Centerline-V2 formal V4 继续采用这两个 PINN provenance 锚点，只继承骨干结构、不加载
+> 旧权重。2026-07-23 以后 direct-WSS 线发展的 D2-k64 + PointNeXt-R/LocalGeoPE 与
+> L-SA2/H2/log-radius 是另一条后续开发线，不得倒写成 V1/V2 当时使用的父模型。
+
 > 建立日期：2026-07-14
 >
 > 更新日期：2026-07-29（同 seed H2 control / +log(local_radius) 已完成；处理臂晋级新开发锚点）

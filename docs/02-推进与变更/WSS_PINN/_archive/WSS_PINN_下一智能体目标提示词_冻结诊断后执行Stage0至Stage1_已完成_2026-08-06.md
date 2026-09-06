@@ -10,7 +10,7 @@
 > 归档日期：2026-08-21  
 > 状态：🧊冻结 / 已完成执行合同 / 对应 `FROZEN FOR IMPLEMENTATION v1.0`  
 > 现行入口：[体域 PINN 路线 README](../README.md) · [V4 大重构设计方案](../WSS_PINN_V4大重构设计方案_2026-08-08.md)  
-> 科学真源：[核心代码诊断与下一轮设计建议](../核心代码诊断与下一轮设计建议_2026-08-05.md)  
+> 科学真源：[核心代码诊断与下一轮设计建议](./核心代码诊断与下一轮设计建议_2026-08-05.md)
 > 历史提示词：[已完成的准稳态平滑场六臂预注册](./WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)
 
 ## 可直接复制的提示词
@@ -24,7 +24,7 @@
 
 科学真源是：
 
-`docs/02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md`
+`docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md`
 
 你的任务不是重新讨论路线，也不是继续已完成的准稳态六臂。你要按冻结顺序完成：
 
@@ -43,7 +43,7 @@ CPU/GPU smoke、static preflight 和 dry-run submission；只有当前对话中�
 - `wss_pinn/AGENTS.md`
 - `wss_pinn/README.md`
 - `docs/02-推进与变更/WSS_PINN/README.md`
-- `docs/02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md`
+- `docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md`
 - `wss_mri_calculator/README_CFD_ADAPTATION.md`
 - 当前 `wss_pinn/config.py`、`train.py`、`evaluate.py`、`losses.py`
 - `wss_pinn/models/`、`data/`、`physics/`、`tools/`、`cluster/`

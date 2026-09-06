@@ -1,21 +1,23 @@
 # 体域 `u,v,w,p` PINN
 
-> 当前工程活动：Centerline V2 173 例 staging cutover；pre-Centerline-V2
+> 当前工程活动：Centerline V2 anatomy-only formal 172 例重建前整改（源队列 173 例，
+> 排除 `YANG_BAO_KUI`）；pre-Centerline-V2
 > `volume_uvwp_bc_rcr_v4` 训练矩阵、`volume_uvwp_peak_field_v4` 与
 > `volume_uvwp_peak_qs_smooth_v3` 均为冻结历史结果
 >
-> 旧矩阵状态（2026-08-30）：**V4 v1.2 seed1234 0–15 已完训、已评估、已写入工作簿；
+> 旧矩阵状态（2026-09-04 盘点）：**V4 v1.2 seed1234 0–15 已完训、已评估、已写入工作簿；
 > official 场+WSS 已评 38/48。** 这些 run 均绑定 pre-Centerline-V2 数据，只作历史 screen。
-> master 跑 `12210_{39,42,43,45}`；node04 直启 46/47；排队只剩 `16/17`。
+> 本地已有 46/48 份 `training_summary.json`；46/47 仅有停在 epoch 5098/4691 的部分产物，
+> 远端状态本次未能复核，因此不再无日期地标为 `running`。
 > 评估入口 `python -m wss_pinn.v4.evaluate`。
 > 场汇总 `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/test35_eval_completed_official_20260827.json`；
 > WSS `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`。
 
 > 新 V4 设计真源：
 > [`WSS_PINN V4 大重构设计方案`](../docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
-> 最终提交链为 CPU `11970`（completed）→ GPU preflight `11971`（completed）→
-> `11972_{0-6}`（completed）+ `12210`（index 15 已完训并入账；其余 seeds 仍有
-> running/pending）。official 场+WSS 已评 38/48。train-only 中期见
+> 历史提交链为 CPU `11970`（completed）→ GPU preflight `11971`（completed）→
+> `11972` / `12210` 与 node04 直启。当前可确认 46/48 有完成摘要、38/48 有 official
+> 场+WSS 评估；不得据此写成 48/48 完训。train-only 中期见
 > `outputs/wss_pinn/volume_uvwp_bc_rcr_v4/midterm_train_only_20260821.json`。
 
 > **当前开发范围**：只优化 `u,v,w,p`。Profile-Secant V3 velocity→WSS 路线冻结为
@@ -24,8 +26,21 @@
 > `u/v/w/speed/p`、区域、流量、pressure gauge/梯度和压降指标确定，再做一次冻结 WSS
 > downstream sanity check。
 
+> **2026-09-03 数据状态**：八例低压力族和 ZHOU/ZUO 原 Q 长尾已在 raw 侧修复；
+> 08-31 staging 未包含这些更新且尚未排除 `blood1…blood5` 延长段。正式重建前必须完成
+> 曲率 feature atlas、全链 anatomy-only、5 个解剖 interface BC、train138 条件长尾、
+> ZHOU 收敛、raw SHA 和正式 bundle/Gate。执行真源见
+> [剩余整改与验收计划](../docs/02-推进与变更/WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)。
+
+> **2026-09-04 正式骨干决策**：用户选择 B。新的 Centerline-V2 formal V4 将恢复
+> PointNet=`P2V`、PointNet++=纯 `D2 c125-k128` 两个 V1/V2 provenance 锚点，并从
+> 随机初始化训练；不加载旧 WSS、V1/V2 或 pre-Centerline-V2 V4 权重。当前本目录的
+> `v4/config.py` / `v4/models.py` 仍对应旧容量配平实现，尚未完成正式改造，不能直接提交新训练。
+> formal split 保持原 train138，排除 raw 资产不可恢复的 `YANG_BAO_KUI` 后使用 test34；
+> 旧 train138/test35 仅用于历史矩阵和 08-31 staging provenance。
+
 > **历史执行结果**：旧 field-v4 科学设计以
-> [`核心代码诊断与下一轮设计建议`](../docs/02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)
+> [`核心代码诊断与下一轮设计建议`](../docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)
 > 的 `FROZEN FOR IMPLEMENTATION v1.0` 为准，并已在独立 route 完成。执行合同已归档：
 > [`冻结诊断后 Stage 0–1 提示词`](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)。
 > 新配置、派生合同和输出分别落到
@@ -34,7 +49,8 @@
 > `outputs/wss_pinn/volume_uvwp_peak_field_v4/`；补种子配置位于
 > `wss_pinn/configs/volume_uvwp_peak_field_v4_multiseed_top2/`，V3 路径保持只读。
 
-历史 V1/V2 重构不直接预测 WSS，也不复用旧 WSS 最优网络或 checkpoint；其目标是：
+历史 V1/V2 重构不直接预测 WSS；它继承旧 WSS 筛选出的 P2V / D2 `c125-k128`
+架构锚点，但不加载旧网络权重或 checkpoint。其目标是：
 给定峰值时刻的患者体域点云，用 PointNet 或 PointNet++ 输出四通道
 `u,v,w,p`，并在严格配对实验中比较纯数据监督与非牛顿 PINN。
 
@@ -76,13 +92,16 @@ aux:   radial_ratio, centerline_distance_mm, path_id, outlet_id
   对 steady/transient 各遍历 173 例，无 NaN/Inf，support/query 最小唯一点数均为 5,000；
   `test_volume_*` 为 39/39 通过，训练 loader 会拒绝该 staging。
 
-该数据仍是 **staging**，manifest 明确 `training_ready=false`。正式训练继续 No-Go，直到：
+该数据仍是 **staging**，manifest 明确 `training_ready=false`。截至 2026-09-03，低压力族和
+ZHOU/ZUO 原 Q 长尾已在 raw 侧修复，但该 staging 已过期。正式训练继续 No-Go，直到：
 
-1. 8 例 transient 压力低值簇逐例签收；
-2. 81 帧 raw 父文件从 path/size/mtime 升级为内容 SHA256；
-3. 稀疏 transient 速度/BC 长尾完成 raw 来源和 loss 敏感性签收；
-4. 4 例缺失 outlet monitor 标签明确为 optional 或补建；
-5. 建立独立正式 route/config/output root，并重新执行正式 preflight 与用户授权。
+1. 7 个唯一分支段的曲率 feature atlas、SG11 三阶局部拟合和端点外推通过；
+2. 从 Fluent zone topology 重建 blood-only 体域/壁面/统计/评估和 5 个解剖 interface BC；
+3. train138 条件长尾、ZHOU 单步收敛和四例 monitor 命名/语义映射完成签收；
+4. formal 172×81=`13,932` 个 raw frame 及 UDF/monitor/zone map 升级为内容
+   SHA256；旧 staging 的 14,013 frame 计数只作历史 inventory；
+5. 建立独立正式 route/config/output root，一次性重建 bundle/stats/Gate，并重新执行正式
+   CPU/GPU preflight 与用户授权。
 
 最终 manifest/stats/array-audit SHA256 分别为
 `ff556c95ef1e336c70dd1efd2edd0f62ec6de054a4f1ccfcdbdc8963f9037fd5`、
@@ -94,6 +113,17 @@ aux:   radial_ratio, centerline_distance_mm, path_id, outlet_id
 
 ## pre-Centerline-V2 V4 v1.2 历史实现与集群提交
 
+- **骨干事实**：该历史 V4 没有继承 P2V/D2。PointNet 是
+  `64→128→256 + global max`；PointNet++ 只有一层 `FPS-128 + 32-NN` 局部聚合，随后
+  对 center 再做 global max，二者均只产生病例级 256 维 geometry latent。两者参数量
+  `249,860 / 250,052`（比值 `1.0008`），是容量配平的家族对照；所有 query 广播同一
+  case latent，不存在 D2 式三层 SA 或 query-local 3NN 特征。
+- **输入/模式事实**：旧 V4 的 `DATA` 与 `DATA+BC` 都输入 18 维 BC vector 并训练
+  BCEncoder；`DATA+BC` 仅比 `DATA` 多启用 BC loss。该含义不同于 V1/V2 的无病例 BC
+  条件 `data-only`。
+- **采样事实**：两个 backbone 在同病例/seed/epoch 下共享同一套 strict-volume uniform
+  `support5000`，并独立均匀抽 `query5000`；physics 点另抽现有 cell center。没有近壁
+  分层或沿法线剖面采样，PointNet++ 的 FPS/32NN 只是 encoder 内部操作。
 - 独立包：`wss_pinn/v4/`，覆盖严格配置、UDF Fourier/RCR 解析、Stage 0 builder、
   train138-only 统计、PointNet/PointNet++ + 共享 BCEncoder、稳态/瞬态 strong-form
   residual、质量流量 RCR BC、detached EMA `λ_pde`、train-only 收敛与 checkpoint；
@@ -220,7 +250,7 @@ E5 `0.2336/0.3523`、E6 `0.1799/0.3144`。BC 未稳定提升总体速度；PDE �
 目标是当时冻结的 exact-timestep monitor-derived proxy，未证明等于真实
 pressure-outlet face 上的 RCR profile；test35 也已经因用于后续设计而成为
 development-exposed screen。详见
-[`docs/02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md`](../docs/02-推进与变更/WSS_PINN/核心代码诊断与下一轮设计建议_2026-08-05.md)。
+[`docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md`](../docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)。
 
 2026-08-06 起，下一轮开发不再围绕 WSS 算子、WSS loss 或 WSS 选模展开。near-wall
 仍是 `u/v/w` 场重建的困难区域，但其优化与验收直接使用速度分量、速度向量和区域误差；
@@ -240,12 +270,17 @@ development-exposed screen。详见
 
 ## 架构来源
 
-- PointNet：沿用历史 P2V 宽度，来源配置
+- PointNet：V1/V2 沿用历史 P2V 宽度，来源配置
   `training_wss_min/configs/pointnet_v4/ag_aaa_v4_stratified_e2_global_random5000_sep.json`。
-- PointNet++：沿用纯 PointNet++ D2 `c125-k128`，来源配置
+- PointNet++：V1/V2 沿用纯 PointNet++ D2 `c125-k128`，来源配置
   `training_wss_min/configs/pointnetpp_sa1_scale_single_seed_20260721/d2_rand5000_c125_k128.json`。
 - 选择证据：`docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`。
-- 只继承架构和采样设计，不加载历史权重；PointNeXt 暂不进入本矩阵。
+- 只继承 P2V 层宽、D2 SA hierarchy 与 random5000 support 锚点，不加载历史权重，也不
+  继承壁面 WSS 任务、标量输出头或完整 query 协议：父 P2V 为 SEP、父 D2 为 SAME，
+  体域 V1 为两骨干统一 SEP，V2 为统一 SAME5K。PointNeXt 未进入 V1/V2 provenance。
+- 2026-09-04 用户决定新的 Centerline-V2 formal V4 再次采用上述 P2V / D2
+  `c125-k128` 锚点；实现和正式配置仍待更新。旧 pre-Centerline-V2 V4 继续按本页上方
+  的约 250k 容量配平结构归档，不能追溯改写为 P2V/D2。
 
 为了让坐标一、二阶导数可用于 PINN，查询路径使用 SiLU、query-local LayerNorm 和
 可微逆距离 3NN 权重；PyG kNN 的离散邻居选择不求导，距离权重对查询坐标求导。
