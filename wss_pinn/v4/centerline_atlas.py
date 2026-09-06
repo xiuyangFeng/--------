@@ -58,6 +58,20 @@ SG_HALF_WINDOW_MAX = 30  # 61 samples = 30.5 mm
 SG_WINDOW_RADIUS_FACTOR = 1.0  # coordinate SG window length (mm) ~= factor x local smoothed radius
 KINK_RATIO_TO_SEGMENT_MEDIAN = 8.0
 KINK_CURVATURE_FLOOR_PER_MM = 0.3
+# Frozen 2026-09-06: within about one local radius of an opening endpoint or of a
+# child-segment start, tangent and curvature are *held* at the robust value of the
+# adjacent interior band (1R..2R): VMTK paths hook towards the cap centre at
+# openings and towards the parent axis where a branch departs; the hook spans
+# 1-3 samples but reads as curvature 0.4-0.55 /mm.  Coordinates are never moved
+# (a coordinate extrapolation was tried first and displaced samples by up to
+# 36 mm where the junction sphere of an AAA sac made the zone 20 mm long).  The
+# zone radius is min(radius at the end, segment median radius) and at least
+# SG_HALF_WINDOW_MIN + 1 samples so the SG footprint of the hook is covered.  The
+# parent's own junction end is never touched (it is shared by every path).
+END_ZONE_RADIUS_FACTOR = 1.0
+END_ZONE_MIN_SAMPLES = SG_HALF_WINDOW_MIN + 1
+END_ZONE_MAX_RADIUS_MM = 12.0  # the hook spans 1-3 samples; beyond ~12 mm a radius-proportional zone eats real geometry (AAA sacs)
+END_BAND_MIN_SAMPLES = SG_WINDOW
 JUNCTION_HALF_WIDTH_MM = 2.5
 ENDPOINT_HALF_WIDTH_MM = 2.5
 EXPECTED_ENDPOINTS = 5
@@ -409,6 +423,72 @@ def smooth_and_differentiate_adaptive(
     return smoothed, first, second, (2 * half + 1).astype(np.int64)
 
 
+def hold_end_features(
+    tangent: np.ndarray,
+    curvature: np.ndarray,
+    radius_mm: np.ndarray,
+    *,
+    step: float,
+    start: bool,
+    end: bool,
+    factor: float = END_ZONE_RADIUS_FACTOR,
+    min_zone: int = END_ZONE_MIN_SAMPLES,
+    min_band: int = END_BAND_MIN_SAMPLES,
+    max_radius: float = END_ZONE_MAX_RADIUS_MM,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, Any]]:
+    """Hold tangent/curvature inside the end zones at the robust interior value.
+
+    Zone: ``n = max(min_zone, rint(factor * min(R_end, median R, max_radius) / step))`` samples
+    at the selected ends; band: the next ``max(n, min_band)`` samples.  Inside the
+    zone the curvature becomes the band median and the tangent the normalised
+    band mean.  Returns ``(tangent, curvature, zone_mask, info)``; a side is
+    skipped (and reported) when the segment is too short.
+    """
+
+    tangent = np.array(tangent, dtype=np.float64, copy=True)
+    curvature = np.array(curvature, dtype=np.float64, copy=True)
+    count = len(curvature)
+    mask = np.zeros(count, dtype=bool)
+    radius_zone_cap = float(np.median(radius_mm))
+    info: dict[str, Any] = {}
+    for side, active in (("start", start), ("end", end)):
+        if not active:
+            info[side] = {"applied": False, "reason": "not an opening or child start"}
+            continue
+        radius_end = float(radius_mm[0] if side == "start" else radius_mm[-1])
+        radius_zone = min(radius_end, radius_zone_cap, float(max_radius))
+        n_zone = max(int(min_zone), int(np.rint(factor * max(radius_zone, 0.0) / step)))
+        n_band = max(n_zone, int(min_band))
+        if n_zone + n_band > count or (int(mask.sum()) + n_zone) >= count:
+            info[side] = {"applied": False, "reason": "segment too short", "zone_samples": n_zone, "band_samples": n_band}
+            continue
+        if side == "start":
+            zone = np.arange(0, n_zone)
+            band = np.arange(n_zone, n_zone + n_band)
+        else:
+            zone = np.arange(count - n_zone, count)
+            band = np.arange(count - n_zone - n_band, count - n_zone)
+        before = curvature[zone].copy()
+        held_curvature = float(np.median(curvature[band]))
+        held_tangent = tangent[band].mean(axis=0)
+        held_tangent = held_tangent / max(float(np.linalg.norm(held_tangent)), 1.0e-12)
+        curvature[zone] = held_curvature
+        tangent[zone] = held_tangent
+        mask[zone] = True
+        info[side] = {
+            "applied": True,
+            "zone_samples": int(n_zone),
+            "zone_mm": float(n_zone * step),
+            "band_samples": int(n_band),
+            "radius_end_mm": radius_end,
+            "radius_zone_mm": float(radius_zone),
+            "held_curvature_per_mm": held_curvature,
+            "zone_curvature_max_before": float(before.max()),
+            "max_curvature_change": float(np.max(np.abs(before - held_curvature))),
+        }
+    return tangent, curvature, mask, info
+
+
 def curvature_from_derivatives(first: np.ndarray, second: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     speed = np.linalg.norm(first, axis=1)
     cross = np.cross(first, second)
@@ -450,6 +530,7 @@ ATLAS_SAMPLE_COLUMNS = (
     "sg_window_samples",
     "curvature_times_radius",
     "radius_over_case_median",
+    "end_zone",
 )
 
 
@@ -476,6 +557,8 @@ class SegmentFeatures:
     fit_residual: np.ndarray
     sg_window: np.ndarray
     curvature_times_radius: np.ndarray
+    end_zone: np.ndarray
+    end_zone_info: dict[str, Any]
     native_length_mm: float
     native_points: int
 
@@ -499,6 +582,7 @@ def build_segment_features(
     segments: list[RawSegment],
     *,
     step: float = PATH_STEP_MM,
+    end_hold: bool = True,
 ) -> list[SegmentFeatures]:
     by_id = {segment.segment_id: segment for segment in segments}
     features: dict[int, SegmentFeatures] = {}
@@ -521,6 +605,18 @@ def build_segment_features(
             sampled, s_local, radius_smooth[:, 0], step=grid_step
         )
         tangent, curvature = curvature_from_derivatives(first, second)
+        # end hooks: opening endpoints (root start / leaf end) and child starts; never the parent's junction end
+        if end_hold:
+            tangent, curvature, end_mask, end_info = hold_end_features(
+                tangent,
+                curvature,
+                radius_smooth[:, 0],
+                step=grid_step,
+                start=True,  # root start is the inlet opening; any other start is a child start
+                end=bool(segment.ends_at_leaf),
+            )
+        else:
+            end_mask, end_info = np.zeros(len(s_local), dtype=bool), {"disabled": True}
         parent = features.get(segment.parent_id)
         s_offset = 0.0 if parent is None else parent.s_offset_mm + parent.length_mm
         # along-tree distances are filled in after every segment length is known
@@ -548,6 +644,8 @@ def build_segment_features(
             fit_residual=np.linalg.norm(smoothed - sampled, axis=1),
             sg_window=np.asarray(sg_window, dtype=np.int64),
             curvature_times_radius=curvature * radius_smooth[:, 0],
+            end_zone=end_mask,
+            end_zone_info=end_info,
             native_length_mm=length,
             native_points=len(segment.nodes),
         )
@@ -708,6 +806,18 @@ class FeatureAtlas:
                 "fraction_gt_1": float(np.mean(k_times_r > 1.0)),
             },
             "sg_window_samples": {"min": int(np.min(windows)), "p50": float(np.median(windows)), "max": int(np.max(windows))},
+            "end_zone": {
+                "samples": int(np.sum(rows[:, ATLAS_SAMPLE_COLUMNS.index("end_zone")] > 0.5)),
+                "fraction": float(np.mean(rows[:, ATLAS_SAMPLE_COLUMNS.index("end_zone")] > 0.5)),
+                "max_curvature_change": float(max(
+                    (side["max_curvature_change"] for seg in self.segments for side in seg.end_zone_info.values() if isinstance(side, dict) and side.get("applied")),
+                    default=0.0,
+                )),
+                "skipped_sides": int(sum(
+                    1 for seg in self.segments for side in seg.end_zone_info.values()
+                    if isinstance(side, dict) and side.get("reason") == "segment too short"
+                )),
+            },
             "top_curvature_peaks": peaks,
             "provenance": self.provenance,
         }
@@ -718,9 +828,10 @@ def build_feature_atlas(
     graph: CenterlineGraph,
     *,
     step: float = PATH_STEP_MM,
+    end_hold: bool = True,
 ) -> FeatureAtlas:
     segments = decompose_tree(graph)
-    features = build_segment_features(graph, segments, step=step)
+    features = build_segment_features(graph, segments, step=step, end_hold=end_hold)
     rows = []
     for feature in features:
         count = len(feature.s_local)
@@ -752,6 +863,7 @@ def build_feature_atlas(
                     float(feature.sg_window[index]),
                     float(feature.curvature_times_radius[index]),
                     np.nan,  # radius_over_case_median: filled once every segment is known
+                    float(feature.end_zone[index]),
                 ]
             )
     table = np.asarray(rows, dtype=np.float64)
@@ -778,6 +890,15 @@ def build_feature_atlas(
             "sg_half_window_max": SG_HALF_WINDOW_MAX,
             "sg_window_radius_factor": SG_WINDOW_RADIUS_FACTOR,
             "radius_median_mm": radius_median,
+            "end_zone_policy": (
+                "opening endpoints and child-segment starts: tangent/curvature within "
+                f"{END_ZONE_RADIUS_FACTOR} x min(end radius, segment median radius, {END_ZONE_MAX_RADIUS_MM} mm) (>= {END_ZONE_MIN_SAMPLES} samples) "
+                "held at the median/mean of the adjacent 1R..2R band; coordinates untouched; parent junction ends "
+                "untouched (frozen 2026-09-06)"
+                if end_hold
+                else "disabled"
+            ),
+            "end_zone": {str(feature.segment_id): feature.end_zone_info for feature in features},
             "junction_half_width_mm": JUNCTION_HALF_WIDTH_MM,
             "endpoint_half_width_mm": ENDPOINT_HALF_WIDTH_MM,
             "columns": list(ATLAS_SAMPLE_COLUMNS),

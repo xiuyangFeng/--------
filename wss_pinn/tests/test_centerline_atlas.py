@@ -231,3 +231,62 @@ def test_wide_sac_corner_is_flattened_and_kink_gate_clears():
     assert mapped["curvature_times_radius"][0] == pytest.approx(
         mapped["curvature_per_mm"][0] * mapped["local_radius_mm"][0]
     )
+
+
+# ---------------------------------------------------------------------------
+# end-hook extrapolation (frozen 2026-09-06)
+
+
+def _hooked_tree() -> CenterlineGraph:
+    """Straight Y tree whose inlet, one outlet and one child start carry a 1 mm VMTK-style hook."""
+
+    trunk = _line(np.array([0.0, 0.0, 0.0]), np.array([0.0, 0.0, -1.0]), 80.0, 0.5, include_start=True)
+    trunk[:3, 0] += np.array([0.8, 0.5, 0.2])  # inlet hook: first three samples bend sideways
+    j0 = trunk[-1]
+    left = _line(j0, np.array([-1.0, 0.0, -1.0]), 40.0, 0.5, include_start=False)
+    left[:2, 1] += np.array([0.7, 0.3])  # child-start hook towards the parent axis
+    right = _line(j0, np.array([1.0, 0.0, -1.0]), 40.0, 0.5, include_start=False)
+    sub_left = (
+        _line(left[-1], np.array([-1.0, 0.2, -1.0]), 30.0, 0.5, include_start=False),
+        _line(left[-1], np.array([-0.2, 0.0, -1.0]), 30.0, 0.5, include_start=False),
+    )
+    sub_right = (
+        _line(right[-1], np.array([1.0, 0.2, -1.0]), 30.0, 0.5, include_start=False),
+        _line(right[-1], np.array([0.2, 0.0, -1.0]), 30.0, 0.5, include_start=False),
+    )
+    sub_right[0][-3:, 1] += np.array([0.2, 0.5, 0.8])  # outlet hook at a leaf end
+    return _y_tree(trunk, left, right, sub_left, sub_right, radius=5.0)
+
+
+def test_end_hooks_are_held_at_the_interior_value():
+    graph = _hooked_tree()
+    raw_atlas = build_feature_atlas("synthetic/hooks-raw", graph, end_hold=False)
+    atlas = build_feature_atlas("synthetic/hooks", graph)
+    # without the rule the hooks read as end/junction folds
+    raw_kinks = detect_kinks(raw_atlas)
+    assert raw_kinks["endpoint"] + raw_kinks["junction"] >= 2
+    assert float(raw_atlas.column("curvature_per_mm").max()) > 0.3
+    # with the rule every branch reads straight again and no fold remains
+    kinks = detect_kinks(atlas)
+    assert kinks["interior"] == 0 and kinks["junction"] == 0 and kinks["endpoint"] == 0
+    assert float(atlas.column("curvature_per_mm").max()) < 1e-3
+    # zones: R = 5 mm -> 10 samples at the root start, each child start and each leaf end
+    trunk = [s for s in atlas.segments if s.starts_at_root][0]
+    info = trunk.end_zone_info
+    assert info["start"]["applied"] and info["start"]["zone_samples"] == 10
+    assert not info["end"]["applied"]  # the parent's junction end is never touched
+    assert int(trunk.end_zone[:10].sum()) == 10 and not trunk.end_zone[10:].any()
+    assert info["start"]["zone_curvature_max_before"] > 0.3 and info["start"]["held_curvature_per_mm"] < 1e-6
+    assert np.allclose(trunk.tangent[:10], [0.0, 0.0, -1.0], atol=1e-6)
+    leaf = [s for s in atlas.segments if s.ends_at_leaf][0]
+    assert leaf.end_zone_info["start"]["applied"] and leaf.end_zone_info["end"]["applied"]
+    # coordinates and raw samples are untouched by the rule
+    assert trunk.coords_raw[0, 0] == pytest.approx(0.8) and trunk.coords_raw[2, 0] > 0.1  # hook kept in the raw samples
+    raw_trunk = [s for s in raw_atlas.segments if s.starts_at_root][0]
+    assert np.allclose(trunk.coords, raw_trunk.coords)
+    assert atlas.summary()["end_zone"]["samples"] == int(atlas.column("end_zone").sum())
+    # mapping is unchanged by the rule (the synthetic hook itself lengthens the trunk slightly)
+    mapped = atlas.map_points(np.array([[0.0, 0.0, -10.0]]))
+    raw_mapped = raw_atlas.map_points(np.array([[0.0, 0.0, -10.0]]))
+    assert mapped["abscissa_norm"][0] == pytest.approx(raw_mapped["abscissa_norm"][0])
+    assert mapped["curvature_per_mm"][0] < 1e-6

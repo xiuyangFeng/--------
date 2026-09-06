@@ -1319,6 +1319,10 @@ formal 条件输入冻结时以几何 + `inlet_area_ratio` 为准。需要正视
 formal 的瞬态压力目标应按病例均值中心化或明确接受脉动分量的不可约误差；RCR 一致性残差随之不可用，与验收计划 §4.1 的
 "解剖切面上隔离 distal RCR"一致。
 
+**用户 2026-09-06 拍板：formal 瞬态压力监督目标按病例均值中心化**（与 steady 的 `case_strict_volume_mean_centered_pa` 同口径，
+瞬态按每例 81 帧 blood-only 体域均值中心化，均值作为诊断量随 manifest 落库）；评估中的压力指标同样在中心化后报告；
+RCR 一致性残差不启用。该合同随 Phase C 正式 builder 实现。
+
 ## 26. 2026-09-05 第 3 题落地：半径自适应 SG 窗、kink Gate 与辅助列
 
 ### 26.1 实现（`wss_pinn/v4/centerline_atlas.py`、`build_feature_atlas.py`）
@@ -1362,6 +1366,28 @@ formal 的瞬态压力目标应按病例均值中心化或明确接受脉动分�
 
 测试：`test_centerline_atlas.py` 新增 3 项（常半径等价、变半径圆弧、宽腔拐角与 Gate），7/7 通过。
 正式 bundle builder 仍用 `geometry_v2`，atlas 在 Phase C 接入，与此前状态一致。
+
+### 26.4 2026-09-06 端点与分叉 1R 规则落地（用户拍板"1R 采用"）
+
+**被否决的第一版**：坐标外推（用 1R～3R 带的二次拟合改写 1R 内的原始样本）。AAA 分叉的内切球半径达 20～33 mm，
+子支起点区因此长到 25～29 mm，外推位移全队列中位 7 mm、最大 36 mm（`MENG_GUANG_QIN`），会改写真实几何，不能用。
+
+**冻结规则（`hold_end_features`）**：坐标不动；只在开口端点（trunk 根端、四个出口端）和子支起点作用，母支的分叉端不动。
+区宽 = max(6 样本, rint(min(R_end, 段中位 R, 12 mm) / 0.5 mm))；区内切线取内侧 1R～2R 带的切线均值，曲率取该带中位数。
+新列 `end_zone`，provenance 逐段记录区宽、带宽、改前区内最大曲率与持值。`build_feature_atlas(end_hold=False)` 可复现改前结果。
+
+| 端类型 | 数量 | 区宽 mm p50 / p90 / max | 曲率改变 p50 / p90 / max |
+| --- | ---: | --- | --- |
+| trunk 根端（入口） | 173 | 11.0 / 12.0 / 12.0 | 0.057 / 0.140 / 0.379 |
+| 子支起点（分叉） | 1,036 | 4.0 / 7.5 / 12.0 | 0.067 / 0.166 / 0.391 |
+| 出口端 | 692 | 3.0 / 4.5 / 8.0 | 0.040 / 0.112 / 0.522 |
+
+逐例区内样本占比中位 8.6%，最大 14.4%；改前区内最大曲率超过 0.3 /mm 的端占 1.6%。
+
+**重建后全队列**：曲率 p50/p99/max 0.0354 / 0.1570 / 0.4448（此前 0.0358 / 0.1677 / 0.5517），train138 p99/max 0.1567 / 0.4448；
+`k·R` p99/max 0.99 / 5.25；kink Gate interior/junction/endpoint 全为 0；review 队列空；峰值位置 endpoint 0 / junction 32 / interior 141。
+原先四例：ZHANG_XUN_LIAN 0.417→0.288、LIU_FENG 0.552→0.259、SUN_XU_XIA-1 0.402→0.301、HOU_SHI_GUO-0 0.401→0.222。
+图：`audits/atlas_review/end_zone_profiles_20260906.png`。测试 8/8 通过。
 
 ## 27. 2026-09-06 D 层四例重算验收
 
