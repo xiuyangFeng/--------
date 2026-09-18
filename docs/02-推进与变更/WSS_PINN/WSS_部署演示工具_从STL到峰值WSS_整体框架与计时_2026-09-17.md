@@ -310,7 +310,7 @@ Case
 定向验证已通过：
 
 ```text
-24 passed  (report / confidence gate / schema / P0 quality-audit)
+25 passed  (report / confidence gate / schema / P0 quality-audit / holdout calibration metrics)
 python -m py_compile wss_deploy/*.py
 node --check wss_deploy/static/app.js
 ```
