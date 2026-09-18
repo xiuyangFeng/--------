@@ -1,9 +1,11 @@
 from pathlib import Path
+import pytest
 
 from wss_deploy.ingest import _unit_confidence
 from wss_deploy.ingest import _quality_card
 from wss_deploy.jobs import JobManager
 from wss_deploy.centerline import evaluate_confidence_gate
+from wss_deploy.confidence_audit import calibration_metrics
 
 
 def _stage_a(confidence=0.99, required=False):
@@ -44,6 +46,14 @@ def test_validated_profile_is_bound_to_release_and_orientation():
                                     release=_ValidatedRelease())
     assert gate["passed"] is True
     assert gate["joint_lower_bound"] >= 0.95
+
+
+def test_calibration_metrics_are_holdout_only_and_reproducible():
+    report = calibration_metrics([0.9, 0.8, 0.2, 0.1], [1, 1, 0, 0], bins=2)
+    assert report["n"] == 4
+    assert report["brier"] == pytest.approx(0.025)
+    assert report["ece"] == pytest.approx(0.15)
+    assert sum(item["count"] for item in report["bins"]) == 4
 
 
 def test_auto_unit_confidence_requires_unique_candidate():

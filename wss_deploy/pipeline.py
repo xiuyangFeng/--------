@@ -134,7 +134,7 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
             job_record = json.loads(job_record_path.read_text(encoding="utf-8"))
             for item in job_record.get("mapping_history", []):
                 if isinstance(item, dict):
-                mapping_history.append({key: item[key] for key in (
+                    mapping_history.append({key: item[key] for key in (
                         "at", "source", "confidence", "inlet", "suggested", "confirmed", "acknowledged",
                         "confidence_gate") if key in item})
         except (OSError, ValueError, TypeError):

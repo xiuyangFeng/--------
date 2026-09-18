@@ -13,6 +13,37 @@ from pathlib import Path
 from typing import Any
 
 
+def calibration_metrics(confidences: Any, outcomes: Any, *, bins: int = 10) -> dict[str, Any]:
+    """Compute Brier/ECE and reliability bins for an independent holdout.
+
+    Inputs are intentionally explicit arrays: callers must provide predictions
+    and binary correctness labels from a *different* labelled set than the
+    one used to fit a profile.  No threshold or profile is fitted here.
+    """
+    import numpy as np
+    p = np.asarray(confidences, dtype=float).reshape(-1)
+    y = np.asarray(outcomes, dtype=float).reshape(-1)
+    if p.size == 0 or p.size != y.size or not np.isfinite(p).all() or not np.isfinite(y).all():
+        raise ValueError("confidences/outcomes must be finite, non-empty arrays of equal length")
+    if np.any((p < 0) | (p > 1)) or np.any((y < 0) | (y > 1)):
+        raise ValueError("confidences and outcomes must lie in [0, 1]")
+    bins = max(1, int(bins))
+    edges = np.linspace(0.0, 1.0, bins + 1)
+    records = []
+    ece = 0.0
+    for index in range(bins):
+        mask = (p >= edges[index]) & (p <= edges[index + 1] if index == bins - 1 else p < edges[index + 1])
+        count = int(mask.sum())
+        if not count:
+            continue
+        mean_p, mean_y = float(p[mask].mean()), float(y[mask].mean())
+        ece += count / p.size * abs(mean_p - mean_y)
+        records.append({"lower": float(edges[index]), "upper": float(edges[index + 1]),
+                        "count": count, "mean_confidence": mean_p, "empirical_accuracy": mean_y})
+    return {"n": int(p.size), "brier": float(np.mean((p - y) ** 2)), "ece": float(ece),
+            "bins": records}
+
+
 def audit_acceptance(root: Path) -> dict[str, Any]:
     root = Path(root)
     acceptance_path = root / "acceptance.json"
