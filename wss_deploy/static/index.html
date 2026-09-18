@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>WSS · 壁面预测工作台</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/three.min.js" defer></script>
+  <script src="/static/OrbitControls.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="WSS 工作台首页"><span class="brand-mark" aria-hidden="true">W</span><span>WSS <span class="brand-sub">壁面预测工作台</span></span></a>
+    <span class="connection" id="connection" role="status">正在连接服务…</span>
+  </header>
+  <div id="notice" class="notice" role="alert" hidden></div>
+  <section id="login-panel" class="login card" hidden aria-labelledby="login-title">
+    <p class="eyebrow">共享服务</p><h1 id="login-title">连接工作台</h1>
+    <p>输入此服务的访问令牌。任务和报告仅对当前会话可见。</p>
+    <form id="login-form"><label for="access-token">访问令牌</label><input id="access-token" type="password" autocomplete="current-password" required><button class="primary" type="submit">连接</button></form>
+  </section>
+  <main id="workspace" class="workspace" hidden>
+    <aside class="sidebar">
+      <section class="card upload-card" aria-labelledby="upload-title">
+        <p class="eyebrow">新建预测</p><h2 id="upload-title">从一个 STL 开始</h2>
+        <form id="upload-form">
+          <label class="file-field" for="stl-file"><span class="file-icon" aria-hidden="true">↑</span><strong>选择血管壁面 STL</strong><span id="file-name">1 个入口 · 4 个髂动脉出口</span><input id="stl-file" name="stl" type="file" accept=".stl" required></label>
+          <label for="case-id">匿名病例编号 <span class="optional">可选</span></label>
+          <input id="case-id" name="case_id" maxlength="80" placeholder="例如 AAA-001" autocomplete="off">
+          <label for="upload-units">STL 原始单位</label>
+          <select id="upload-units" name="units"><option value="auto">不确定，先检查尺寸</option><option value="mm">毫米 mm</option><option value="cm">厘米 cm</option><option value="m">米 m</option></select>
+          <p class="help">STL 不记录单位。尺寸检查后可确认换算；多连通片需确认保留主体后的删除比例。</p>
+          <button class="primary full" id="upload-button" type="submit" disabled>上传并检查</button>
+        </form>
+      </section>
+      <section class="card jobs-card" aria-labelledby="jobs-title">
+        <div class="section-head"><h2 id="jobs-title">我的任务</h2><button type="button" class="text-button" id="refresh-jobs">刷新</button></div>
+        <p class="help" id="jobs-empty">暂无任务。上传 STL 后开始。</p><ul id="jobs-list" class="jobs-list"></ul>
+      </section>
+    </aside>
+    <section id="detail" class="detail" aria-live="polite" aria-busy="false">
+      <div class="empty-state card"><p class="eyebrow">从几何到壁面 WSS</p><h1>确认输入，理解结果。</h1><p>上传血管壁面，核对单位和出口命名，再查看三维 WSS、热点与分支统计。</p><ol class="intro-steps"><li><span>01</span>检查几何尺寸</li><li><span>02</span>三维确认出口</li><li><span>03</span>预测并导出报告</li></ol><p class="help">计算通常需要几十秒，复杂病例可能更久。任务会保存进度，可识别中断并重试。</p></div>
+    </section>
+  </main>
+  <noscript><p class="notice">请启用 JavaScript 后使用上传和三维查看功能。</p></noscript>
+</body>
+</html>
