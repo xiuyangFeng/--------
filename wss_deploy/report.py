@@ -196,7 +196,7 @@ function showPanel(){const m=META,w=m.wss_field_pa,p=m.peak,ic=m.input_check||{}
  for(const [k,v] of Object.entries(m.timing_s||{}))h+=`<tr><td>${esc(timingNames[k]||k)}</td><td>${fmt(v,2)} s</td></tr>`;
  h+='</table><p><small>计算时间、排队和人工确认分别记录；导出包含首次完整 HTML 写盘，最终记录回填有少量额外开销。</small></p>';
  h+=`<small>发布包 ${esc(m.release)} · 输入 SHA256 ${esc(m.input_sha256)} · ${esc(m.created_at)}</small>`;
- h+='<details><summary>完整参数与版本信息</summary><pre>'+esc(JSON.stringify({release_hash:m.release_hash||m.release_sha256,run_parameters:m.run_parameters||m.parameters,mapping:m.mapping,frame_transform:m.frame_transform,statistics_protocol:m.statistics_protocol,interpolation:m.interpolation,timing_protocol:m.timing_protocol,exports:m.exports||m.export_status},null,2))+'</pre></details></div></details>';
+ h+='<details><summary>完整参数与版本信息</summary><pre>'+esc(JSON.stringify({schema_version:m.schema_version,model_release:m.model_release,time_axis:m.time_axis,fields:m.fields,release_hash:m.release_hash||m.release_sha256,run_parameters:m.run_parameters||m.parameters,mapping:m.mapping,frame_transform:m.frame_transform,statistics_protocol:m.statistics_protocol,interpolation:m.interpolation,timing_protocol:m.timing_protocol,exports:m.exports||m.export_status},null,2))+'</pre></details></div></details>';
  h+=`<div id="print-note">病例 ${esc(m.case_id)} · 发布包 ${esc(m.release)} · ${esc(m.created_at)}<br>固定收缩期帧的模型预测；统计来自预测点云，壁面显示使用 Gaussian 插值。黄色标记为全场最大值。</div>`;
  el('panel').innerHTML=h;el('subtitle').textContent=m.case_id+' · 固定收缩期帧 · '+m.release;
  for(const [sid,name] of Object.entries(m.branch_names||{})){const o=document.createElement('option');o.value=sid;o.textContent=name;el('branch').appendChild(o);}

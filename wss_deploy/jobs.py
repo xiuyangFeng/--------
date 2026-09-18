@@ -418,7 +418,8 @@ class JobManager:
                         if self._cancelled(job):
                             raise InterruptedError("任务已取消。")
                         job["summary"] = {key: result.get(key) for key in (
-                            "peak", "wss_field_pa", "timing_s", "device", "gpu", "release", "flags")}
+                            "peak", "wss_field_pa", "timing_s", "device", "gpu", "release", "flags",
+                            "schema_version", "model_release", "time_axis", "fields", "results", "run_manifest")}
                         job.update(status="done", phase="计算完成", detail="报告和导出文件已准备好。", finished_ts=time.time())
             except InterruptedError:
                 with self.lock:

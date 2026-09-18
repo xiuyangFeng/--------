@@ -314,7 +314,9 @@
     }));
     card.append(node('div',{class:'actions'},actions));
     card.append(help('报告可旋转查看整段壁面、查看最大值位置和分支统计，并导出当前视角截图。p99 是统计量，不对应单一解剖位置。'));
-    card.append(node('div',{class:'file-links'},node('a',{href:jobUrl(job,'/files/summary.json'),target:'_blank',rel:'noopener',text:'查看完整统计与参数 JSON'})));
+    const fileLinks = [node('a',{href:jobUrl(job,'/files/summary.json'),target:'_blank',rel:'noopener',text:'查看完整统计与参数 JSON'})];
+    if (summary.run_manifest) fileLinks.push(node('a',{href:jobUrl(job,'/files/run_manifest.json'),target:'_blank',rel:'noopener',text:'查看可复现运行清单'}));
+    card.append(node('div',{class:'file-links'},fileLinks));
     return card;
   }
   function processCard(job) {
@@ -332,6 +334,8 @@
     if (queue != null) append('排队等待',duration(queue));
     if (manual != null) append('人工确认',duration(manual));
     if (summary.device) append('计算设备',`${summary.device}${summary.gpu ? ` · ${summary.gpu}` : ''}`);
+    if (summary.model_release?.release || summary.model_release?.name) append('模型发布包',summary.model_release.release || summary.model_release.name);
+    if (Array.isArray(summary.time_axis) && summary.time_axis.length) append('时间帧',`${summary.time_axis.length} 帧 · ${summary.time_axis[0].label || 'frame_0'}`);
     details.append(info);
     if (ic.flags?.length) details.append(node('ul',{class:'compact-list'},ic.flags.map(text => node('li',{text}))));
     if (summary.release) details.append(help(`发布版本：${summary.release}`));

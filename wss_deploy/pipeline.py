@@ -9,6 +9,8 @@ from .ingest import ingest
 from .infer import Release
 from .paths import OUTLET_CN
 from .io_utils import file_sha256
+from .schema import (build_results, field_descriptor, model_release_metadata,
+                     single_frame_time_axis, write_run_manifest, wss_compatibility)
 
 
 def _preview_surface(path: Path, max_faces: int = 18000) -> dict:
@@ -96,7 +98,12 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
     for sid in np.unique(geom["segment_id"]):
         per_branch_s[str(int(sid))] = float(np.median(geom["s_from_root_mm"][geom["segment_id"] == sid]))
     T["metrics_and_interpolation"] = time.perf_counter() - t
-    meta = {"case_id": case_id or job_dir.name, "release": release.name, "device": pred["device"], "gpu": pred["gpu"], "created_at": _now(), "input_sha256": a["input_sha256"],
+    model_frame = {"target": "peak_systole", "step": 1162, "time_s": 0.21, "label": "peak_systole"}
+    time_axis = single_frame_time_axis(model_frame)
+    fields = {"wss": field_descriptor("wss", label="壁面切应力", units="Pa", location="wall",
+                                       kind="scalar", array_key="wss_pa", time_indices=(0,),
+                                       axis_order=("point",), statistics_key="wss")}
+    meta = {"schema_version": "wss-deploy.summary/v1", "case_id": case_id or job_dir.name, "release": release.name, "device": pred["device"], "gpu": pred["gpu"], "created_at": _now(), "input_sha256": a["input_sha256"],
             "input_check": a["input_check"], "centerline": a["centerline"], "outlets_confirmed": confirmed, "mapping": mapping,
             "proposal_confidence": a["proposal"].get("confidence"),
             "proposal_side_confidence": a["proposal"].get("side_confidence", {}),
@@ -106,11 +113,19 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
             "caps": diag["caps"], "murray_shares": diag["murray_shares"], "endpoints": endpoints, "per_branch_s": per_branch_s, "timing_s": {k: round(v, 2) for k, v in T.items()},
             "seconds_per_model": [round(x, 2) for x in pred["seconds_per_model"]],
             "sampling_seed": G.stable_sampling_seed(a["input_sha256"]),
-            "model_frame": {"target": "peak_systole", "step": 1162, "time_s": 0.21},
+            "model_frame": model_frame,
+            # Generic result metadata.  The historical WSS keys below remain
+            # in the summary for old reports and scripts.
+            "model_release": model_release_metadata(release),
+            "time_axis": time_axis,
+            "fields": fields,
             "run_parameters": {"smooth_mm": smooth_mm, "spacing_mm": spacing_mm, "device": pred["device"], "seed_count": len(pred["seed_pred_pa"])},
             "frame_transform": {"source": "vessel_geom atlas + anatomical_frame", "direction_source": a["input_check"].get("orientation_source")},
             "release_hash": file_sha256(Path(release.dir) / "MANIFEST.sha256") if (Path(release.dir) / "MANIFEST.sha256").is_file() else release.name,
             "interpolation": {"method": "Gaussian", "sigma_mm": 0.5, "max_dist_mm": 1.5, "covered_vertices": int(np.isfinite(vw).sum()), "total_vertices": int(len(vw))}, **met}
+    meta["results"] = build_results(time_axis=time_axis, fields=fields,
+                                     statistics={"wss": met["wss_field_pa"]},
+                                     compatibility=wss_compatibility(met))
     progress("export", "正在写入 CSV、VTP 和 HTML 报告")
     export_started = time.perf_counter()
     np.savez_compressed(job_dir / "field.npz", pts=pts.astype(np.float32), wss_pa=wss.astype(np.float32), seed_pred_pa=pred["seed_pred_pa"].astype(np.float32), segment_id=geom["segment_id"],
@@ -128,9 +143,15 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
     T["export"] = time.perf_counter() - export_started
     T["total"] = float(sum(v for k, v in T.items() if k not in {"total"}))
     meta["timing_s"] = {k: round(v, 2) for k, v in T.items()}
-    meta["exports"] = {"vtp": bool(vtp_ok), "csv": True, "html": True, "internal_field": True}
+    meta["run_manifest"] = {"path": "run_manifest.json", "schema_version": "wss-deploy.run-manifest/v1"}
+    meta["exports"] = {"vtp": bool(vtp_ok), "csv": True, "html": True, "internal_field": True, "run_manifest": True}
     R.update_html_meta(job_dir / "report.html", meta)
     (job_dir / "summary.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")
+    # The manifest is intentionally a separate, portable record.  It is
+    # written after summary/report so their hashes are stable.  Changing model
+    # weights creates a new, auditable release rather than overwriting a run.
+    output_names = ("report.html", "summary.json", "wall_wss.vtp", "points_wss.csv", "field.npz", "stage_a.json")
+    write_run_manifest(job_dir, meta, outputs=output_names)
     return meta
 
 
