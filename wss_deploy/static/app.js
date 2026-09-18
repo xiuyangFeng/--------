@@ -202,6 +202,19 @@
     const ic = getA(job).input_check || {}, params = job.params || {};
     const card = node('section',{class:'card'},node('p',{class:'eyebrow',text:'步骤 02'}),node('h2',{text:'确认几何尺寸与处理方式'}));
     card.append(inputFacts(ic));
+    const quality = ic.quality;
+    if (quality) {
+      const labels = {pass:'通过',pass_with_limits:'通过但有未评估项',review:'需要复核',fail:'阻断',not_checked:'未检查',unknown:'未知'};
+      const qualityCard = node('div',{class:'quality-card'},node('div',{class:'quality-head'},node('strong',{text:'输入质量评分卡'}),node('span',{class:`quality-status ${quality.grade || ''}`,text:quality.grade_label || labels[quality.grade] || '未评估'})));
+      const grid = node('div',{class:'quality-grid'});
+      for (const check of quality.checks || []) {
+        const status = check.status || 'not_checked';
+        grid.append(node('div',{class:'quality-check'},node('span',{class:`quality-dot ${status}`,'aria-hidden':'true'}),node('span',{},node('strong',{text:check.label || check.key}),node('small',{text:`${labels[status] || status} · ${check.note || ''}`}))));
+      }
+      qualityCard.append(grid);
+      if ((quality.not_evaluated || []).length) qualityCard.append(node('small',{class:'quality-limit',text:`未评估项目：${quality.not_evaluated.join('、')}。质量评分卡不代表预测准确率。`}));
+      card.append(qualityCard);
+    }
     const flags = [...(ic.errors || []),...(ic.flags || [])];
     for (const text of [...new Set(flags)]) card.append(callout(text,ic.status === 'fail' ? 'error' : 'warn'));
     if (ic.status === 'fail') {
@@ -304,6 +317,21 @@
     const automatic = [...(job.mapping_history || [])].reverse().find(item => item.source === 'automatic_high_confidence');
     if (automatic) card.append(callout(`出口命名已自动确认（最低置信度 ${fmt(Number(automatic.confidence) * 100,1)}%）。仍可打开下方入口人工复核并重算。`,'success'));
     card.append(node('div',{class:'result-cards'},fact('全场 p99',`${fmt(peak.p99_pa,2)} Pa`,'预测点云的第 99 百分位'),fact('全场最大值',`${fmt(peak.max_pa,2)} Pa`,peak.branch ? `最大值位置：${peak.branch}` : '位置见三维报告'),fact('计算耗时',duration(times.total),'不包含排队与人工确认')));
+    const quality = summary.quality;
+    if (quality) {
+      const qualityCard = node('div',{class:'quality-card result-quality'},
+        node('div',{class:'quality-head'},node('strong',{text:'结果质量与复核提示'}),node('span',{class:`quality-status ${quality.level || ''}`,text:quality.label || quality.level || '未评估'})));
+      const reasons = Array.isArray(quality.reasons) ? quality.reasons : [];
+      qualityCard.append(node('small',{text:reasons.length ? reasons.join('；') : '五模型集成离散度在当前分流阈值内。逐点标准差保存在质量审计文件中。'}));
+      card.append(qualityCard);
+    }
+    const surface = summary.surface_statistics || summary.results?.statistics?.surface;
+    if (surface && Number.isFinite(Number(surface.p99_pa))) {
+      const coverage = Number(surface.covered_area_fraction);
+      card.append(node('div',{class:'quality-card surface-card'},node('div',{class:'quality-head'},node('strong',{text:'壁面面积加权参考'}),node('span',{class:'badge',text:'补充口径'})),
+        node('div',{class:'kv'},node('span',{class:'fact-label',text:'面积加权 p99'}),node('strong',{text:`${fmt(surface.p99_pa,2)} Pa`}),node('span',{class:'fact-label',text:'有效覆盖面积'}),node('strong',{text:Number.isFinite(coverage) ? `${fmt(coverage * 100,1)}%` : '—'})),
+        node('small',{text:'主指标仍为预测点云 p99；面积口径仅统计 Gaussian 插值后完整有效三角面。'})));
+    }
     const link = (text,path,cls = '') => node('a',{class:`button ${cls}`,href:jobUrl(job,path),target:'_blank',rel:'noopener',text});
     const actions = [link('打开三维报告','/report','primary'),link('下载壁面 VTP','/files/wall_wss.vtp'),link('下载点云 CSV','/files/points_wss.csv')];
     if (getA(job).proposal) actions.push(button('检查 / 修改出口命名并重算',() => {

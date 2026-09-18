@@ -234,8 +234,28 @@ class JobManager:
         ic, cl = a.get("input_check") or {}, a.get("centerline") or {}
         return ic.get("ok") is True and ic.get("status", "pass") == "pass" and cl.get("hard_pass") is True
 
-    @staticmethod
-    def _auto_outlet_gate(a: dict | None) -> bool:
+    def _confidence_gate(self, a: dict | None) -> dict:
+        """Evaluate the calibrated confidence contract for a Stage-A result."""
+        from . import centerline as cl
+        a = a or {}
+        proposal = a.get("proposal") or {}
+        gate = cl.evaluate_confidence_gate(
+            proposal,
+            orientation_source=(a.get("input_check") or {}).get("orientation_source", "unknown_stl"),
+            release=self.release,
+        )
+        # Keep a copy in the immutable Stage-A snapshot.  The report and the
+        # run manifest can then explain why an automatic route was or was not
+        # taken, including the profile/release binding.
+        proposal["confidence_gate"] = gate
+        proposal["confidence_profile"] = gate.get("profile_id")
+        proposal["confidence_is_calibrated"] = gate.get("calibration_status") == "validated"
+        proposal["confidence_reasons"] = list(dict.fromkeys(
+            list(proposal.get("confidence_reasons") or []) + list(gate.get("reasons") or [])))
+        proposal["confirmation_required"] = not bool(gate.get("passed"))
+        return gate
+
+    def _auto_outlet_gate(self, a: dict | None) -> bool:
         """Return true only for a complete, explicitly high-confidence proposal.
 
         Legacy stage-A records do not contain the confidence fields and remain
@@ -246,8 +266,11 @@ class JobManager:
             return False
         proposal = (a or {}).get("proposal") or {}
         confidence = proposal.get("confidence")
+        gate = proposal.get("confidence_gate") or {}
         return (proposal.get("auto_ok") is True
                 and proposal.get("confirmation_required") is False
+                and gate.get("passed") is True
+                and gate.get("calibration_status") == "validated"
                 and isinstance(confidence, (int, float)) and confidence >= 0.95
                 and isinstance(proposal.get("mapping"), dict)
                 and len(proposal["mapping"]) == 4
@@ -294,7 +317,8 @@ class JobManager:
             job.setdefault("mapping_history", []).append({"at": _date(time.time()),
                 "suggested": (job["a"].get("proposal") or {}).get("mapping"), "confirmed": mapping,
                 "inlet": inlet, "acknowledged": True,
-                "source": "manual_override" if override_done else "manual_confirmation"})
+                "source": "manual_override" if override_done else "manual_confirmation",
+                "confidence_gate": (job["a"].get("proposal") or {}).get("confidence_gate", {})})
             if override_done:
                 job.pop("summary", None)
             self._enqueue(job, "B", "outlets_confirmed")
@@ -367,6 +391,12 @@ class JobManager:
                 if stage == "A":
                     result = a_fn(job_dir / job["filename"], job_dir, **job["params"], **callbacks)
                     with self.lock:
+                        gate = self._confidence_gate(result)
+                        # stage_a() writes its immutable snapshot before the
+                        # service knows which release is active.  Persist the
+                        # release-bound gate immediately so a resumed job and
+                        # its run manifest contain the same audit decision.
+                        atomic_json(job_dir / "stage_a.json", result)
                         job["a"] = result
                         if self._cancelled(job):
                             raise InterruptedError("任务已取消。")
@@ -398,6 +428,7 @@ class JobManager:
                                     "acknowledged": False,
                                     "source": "automatic_high_confidence",
                                     "confidence": result["proposal"].get("confidence"),
+                                    "confidence_gate": gate,
                                 })
                                 # The worker's final event below increments
                                 # the job version.  Defer putting this queue
@@ -407,7 +438,10 @@ class JobManager:
                                 self._enqueue(job, "B", "outlets_auto_confirmed", defer=True)
                                 deferred_stage = "B"
                             else:
-                                job.update(status="awaiting_confirmation", phase="请确认出口", detail="自动命名置信度不足 95%，请结合原始影像核对开口名称。", awaiting_ts=time.time())
+                                reasons = "；".join(gate.get("reasons") or [])
+                                job.update(status="awaiting_confirmation", phase="请确认出口", detail=(
+                                    "自动命名未满足已校准的 95% 自动门控，请结合原始影像核对开口名称。"
+                                    + (f" 原因：{reasons}" if reasons else "")), awaiting_ts=time.time())
                         else:
                             raise ValueError("输入或中心线未通过检查，请检查 STL 和开口。")
                 else:
@@ -419,7 +453,10 @@ class JobManager:
                             raise InterruptedError("任务已取消。")
                         job["summary"] = {key: result.get(key) for key in (
                             "peak", "wss_field_pa", "timing_s", "device", "gpu", "release", "flags",
-                            "schema_version", "model_release", "time_axis", "fields", "results", "run_manifest")}
+                            "schema_version", "model_release", "time_axis", "fields", "results", "run_manifest",
+                            "surface_statistics")}
+                        job["summary"]["quality"] = result.get("quality")
+                        job["summary"]["audit"] = result.get("audit")
                         job.update(status="done", phase="计算完成", detail="报告和导出文件已准备好。", finished_ts=time.time())
             except InterruptedError:
                 with self.lock:

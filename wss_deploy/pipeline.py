@@ -1,6 +1,6 @@
 """Orchestration: stage A (ingest + centreline + naming proposal, CPU) -> [human confirms outlets] -> stage B (geometry + inference + report)."""
 from __future__ import annotations
-import hashlib, json, time, datetime
+import hashlib, json, time, datetime, shutil
 from pathlib import Path
 import numpy as np
 from wss_v5.centerline_features import Atlas
@@ -11,6 +11,7 @@ from .paths import OUTLET_CN
 from .io_utils import file_sha256
 from .schema import (build_results, field_descriptor, model_release_metadata,
                      single_frame_time_axis, write_run_manifest, wss_compatibility)
+from .quality import ensemble_quality
 
 
 def _preview_surface(path: Path, max_faces: int = 18000) -> dict:
@@ -27,6 +28,23 @@ def _preview_surface(path: Path, max_faces: int = 18000) -> dict:
 
 def _now() -> str:
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _archive_previous_run(job_dir: Path) -> str | None:
+    """Preserve a completed result before a retry/manual override rewrites it."""
+    summary = Path(job_dir) / "summary.json"
+    if not summary.is_file():
+        return None
+    stamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S") + f"_{time.time_ns() % 1000000:06d}"
+    digest = hashlib.sha256(summary.read_bytes()).hexdigest()[:10]
+    archive = Path(job_dir) / "history" / f"{stamp}_{digest}"
+    archive.mkdir(parents=True, exist_ok=False)
+    for name in ("summary.json", "run_manifest.json", "report.html", "wall_wss.vtp",
+                 "points_wss.csv", "field.npz", "quality_audit.json"):
+        source = Path(job_dir) / name
+        if source.is_file():
+            shutil.copy2(source, archive / name)
+    return archive.relative_to(job_dir).as_posix()
 
 
 def stage_a(stl_path: Path, job_dir: Path, *, inlet: int | None = None, smooth_iterations: int = 0,
@@ -48,7 +66,7 @@ def stage_a(stl_path: Path, job_dir: Path, *, inlet: int | None = None, smooth_i
     t = time.perf_counter(); cl = CL.run_vessel_geom(Path(ic["clean_stl"]), cl_dir, inlet=inlet, smooth_iterations=smooth_iterations); T["centerline"] = time.perf_counter() - t
     if cancelled(): raise InterruptedError("任务已取消")
     atlas = CL.load_vessel_geom_atlas(cl_dir)
-    proposal = CL.propose_outlets(atlas)
+    proposal = CL.propose_outlets(atlas, orientation_source=ic.get("orientation_source", "unknown_stl"))
     proposal["direction_note"] = ic.get("direction_note", "")
     out = {"stage": "A", "created_at": _now(), "stl": str(stl_path), "input_sha256": file_sha256(Path(stl_path)), "input_check": ic,
            "centerline": cl, "proposal": proposal, "preview": _preview_surface(Path(ic["clean_stl"])),
@@ -58,7 +76,7 @@ def stage_a(stl_path: Path, job_dir: Path, *, inlet: int | None = None, smooth_i
 
 
 def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_mm: float = 1.0, spacing_mm: float = 0.5, confirmed: bool = False, case_id: str | None = None, progress=None, cancelled=None) -> dict:
-    job_dir = Path(job_dir).resolve(); a = json.loads((job_dir / "stage_a.json").read_text(encoding="utf-8")); T = dict(a["timing_s"])
+    job_dir = Path(job_dir).resolve(); previous_archive = _archive_previous_run(job_dir); a = json.loads((job_dir / "stage_a.json").read_text(encoding="utf-8")); T = dict(a["timing_s"])
     progress = progress or (lambda phase, detail: None)
     cancelled = cancelled or (lambda: False)
     if a.get("stage") != "A" or not a.get("input_check", {}).get("ok"):
@@ -78,10 +96,18 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
     progress("inference", "正在运行五模型集成")
     t = time.perf_counter(); pred = release.predict(case); T["inference_5_models"] = time.perf_counter() - t
     wss = pred["wss_pa"]; geom = aux["geom"]; diag = aux["diag"]
+    quality = ensemble_quality(wss, pred["seed_sd_pa"], seed_count=len(pred["seed_pred_pa"]))
     progress("metrics", "正在汇总预测点云统计")
     t = time.perf_counter()
     met = M.compute(pts, wss, geom, atlas, diag, a["input_check"]["area_mm2"])
     vw = R.interpolate_to_vertices(pts, wss.astype(np.float32), vertices); vseg = R.nearest_label(pts, geom["segment_id"], vertices)
+    # Surface statistics are face based; derive a deterministic majority label
+    # from the three interpolated vertex labels for the branch breakdown.
+    face_segments = np.asarray(vseg, dtype=np.int64)[faces]
+    face_labels = np.where(face_segments[:, 0] == face_segments[:, 1], face_segments[:, 0],
+                           np.where(face_segments[:, 0] == face_segments[:, 2], face_segments[:, 0], face_segments[:, 1]))
+    met["surface_statistics"] = M.surface_metrics(vertices, faces, vw,
+                                                   covered=np.isfinite(vw), face_labels=face_labels)
     # centreline arrays for the viewer
     seg = atlas.col("segment_id").astype(int); idx = atlas.col("sample_index").astype(int); edges = []
     for s in atlas.segments:
@@ -98,6 +124,21 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
     for sid in np.unique(geom["segment_id"]):
         per_branch_s[str(int(sid))] = float(np.median(geom["s_from_root_mm"][geom["segment_id"] == sid]))
     T["metrics_and_interpolation"] = time.perf_counter() - t
+    # Mapping provenance lives in the service job record.  Copy only the
+    # review fields into the portable run record; never copy owner/session
+    # credentials or the rest of job.json.
+    mapping_history = []
+    job_record_path = job_dir / "job.json"
+    if job_record_path.is_file():
+        try:
+            job_record = json.loads(job_record_path.read_text(encoding="utf-8"))
+            for item in job_record.get("mapping_history", []):
+                if isinstance(item, dict):
+                mapping_history.append({key: item[key] for key in (
+                        "at", "source", "confidence", "inlet", "suggested", "confirmed", "acknowledged",
+                        "confidence_gate") if key in item})
+        except (OSError, ValueError, TypeError):
+            mapping_history = []
     model_frame = {"target": "peak_systole", "step": 1162, "time_s": 0.21, "label": "peak_systole"}
     time_axis = single_frame_time_axis(model_frame)
     fields = {"wss": field_descriptor("wss", label="壁面切应力", units="Pa", location="wall",
@@ -108,6 +149,7 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
             "proposal_confidence": a["proposal"].get("confidence"),
             "proposal_side_confidence": a["proposal"].get("side_confidence", {}),
             "proposal_confirmation_required": a["proposal"].get("confirmation_required"),
+            "proposal_confidence_gate": a["proposal"].get("confidence_gate", {}),
             "flags": a["proposal"].get("flags", []),
             "cloud": {"n_points": int(len(pts)), "spacing_mm": diag["spacing_mm"], "smooth_mm": smooth_mm, "surface_variation_median": diag["surface_variation_median"], "junction_ambiguous_fraction": diag["junction_ambiguous_fraction"]},
             "caps": diag["caps"], "murray_shares": diag["murray_shares"], "endpoints": endpoints, "per_branch_s": per_branch_s, "timing_s": {k: round(v, 2) for k, v in T.items()},
@@ -122,13 +164,19 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
             "run_parameters": {"smooth_mm": smooth_mm, "spacing_mm": spacing_mm, "device": pred["device"], "seed_count": len(pred["seed_pred_pa"])},
             "frame_transform": {"source": "vessel_geom atlas + anatomical_frame", "direction_source": a["input_check"].get("orientation_source")},
             "release_hash": file_sha256(Path(release.dir) / "MANIFEST.sha256") if (Path(release.dir) / "MANIFEST.sha256").is_file() else release.name,
+            "quality": quality["quality"],
+            "audit": {"mapping_history": mapping_history, "mapping_history_count": len(mapping_history),
+                      "previous_run_archive": previous_archive,
+                      "quality_audit": quality["audit"], "quality_audit_path": "quality_audit.json"},
             "interpolation": {"method": "Gaussian", "sigma_mm": 0.5, "max_dist_mm": 1.5, "covered_vertices": int(np.isfinite(vw).sum()), "total_vertices": int(len(vw))}, **met}
     meta["results"] = build_results(time_axis=time_axis, fields=fields,
-                                     statistics={"wss": met["wss_field_pa"]},
+                                     statistics={"wss": met["wss_field_pa"],
+                                                 "surface": met["surface_statistics"],
+                                                 "quality": quality["quality"]},
                                      compatibility=wss_compatibility(met))
     progress("export", "正在写入 CSV、VTP 和 HTML 报告")
     export_started = time.perf_counter()
-    np.savez_compressed(job_dir / "field.npz", pts=pts.astype(np.float32), wss_pa=wss.astype(np.float32), seed_pred_pa=pred["seed_pred_pa"].astype(np.float32), segment_id=geom["segment_id"],
+    np.savez_compressed(job_dir / "field.npz", pts=pts.astype(np.float32), wss_pa=wss.astype(np.float32), seed_pred_pa=pred["seed_pred_pa"].astype(np.float32), seed_sd_pa=pred["seed_sd_pa"].astype(np.float32), segment_id=geom["segment_id"],
                         s_from_root_mm=geom["s_from_root_mm"], theta_rad=geom["theta_rad"], radius_mm=geom["radius_mm"], vertices=vertices.astype(np.float32), faces=faces.astype(np.int32), vertex_wss_pa=vw)
     with open(job_dir / "points_wss.csv", "w") as f:
         f.write("x_mm,y_mm,z_mm,wss_pa,segment_id,branch,s_from_inlet_mm,theta_rad\n")
@@ -150,17 +198,43 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
     # The manifest is intentionally a separate, portable record.  It is
     # written after summary/report so their hashes are stable.  Changing model
     # weights creates a new, auditable release rather than overwriting a run.
-    output_names = ("report.html", "summary.json", "wall_wss.vtp", "points_wss.csv", "field.npz", "stage_a.json")
+    quality_audit_path = job_dir / "quality_audit.json"
+    # Maintenance-only record: keeps numeric ensemble diagnostics and the
+    # provenance needed to identify a result, while the public report receives
+    # only the compact quality level/reasons.
+    quality_audit_record = {
+        **quality["audit"], "created_at": meta["created_at"],
+        "input_sha256": meta["input_sha256"], "release_hash": meta["release_hash"],
+        "model_release": meta["model_release"], "mapping_history": mapping_history,
+    }
+    quality_audit_path.write_text(json.dumps(quality_audit_record, ensure_ascii=False, indent=1), encoding="utf-8")
+    output_names = ("report.html", "summary.json", "wall_wss.vtp", "points_wss.csv", "field.npz", "quality_audit.json", "stage_a.json")
     write_run_manifest(job_dir, meta, outputs=output_names)
     return meta
 
 
-def run_all(stl_path: Path, out_dir: Path, release: Release, *, mapping: dict[str, str] | None = None, inlet: int | None = None, smooth_mm: float = 1.0, spacing_mm: float = 0.5, case_id: str | None = None) -> dict:
+def run_all(stl_path: Path, out_dir: Path, release: Release, *, mapping: dict[str, str] | None = None,
+            inlet: int | None = None, smooth_mm: float = 1.0, spacing_mm: float = 0.5,
+            case_id: str | None = None, allow_unvalidated_auto: bool = False) -> dict:
     a = stage_a(stl_path, out_dir, inlet=inlet, units="mm")
     if a.get("stage") != "A":
         raise RuntimeError("输入检查未通过：" + "; ".join(a["input_check"].get("errors", []) + a["input_check"].get("flags", [])))
+    gate = CL.evaluate_confidence_gate(
+        a["proposal"],
+        orientation_source=a["input_check"].get("orientation_source", "unknown_stl"),
+        release=release,
+    )
+    a["proposal"]["confidence_gate"] = gate
+    a["proposal"]["confidence_profile"] = gate.get("profile_id")
+    a["proposal"]["confidence_is_calibrated"] = gate.get("calibration_status") == "validated"
+    a["proposal"]["confirmation_required"] = not bool(gate.get("passed"))
+    (Path(out_dir) / "stage_a.json").write_text(json.dumps(a, ensure_ascii=False, indent=1), encoding="utf-8")
     if mapping is None:
         if not a["proposal"]["auto_ok"]:
             raise RuntimeError("automatic outlet naming failed: " + "; ".join(a["proposal"]["flags"]))
+        if not gate["passed"] and not allow_unvalidated_auto:
+            reasons = "; ".join(gate.get("reasons") or [])
+            raise RuntimeError("automatic outlet naming is not independently validated; "
+                               "provide an explicit mapping after review. " + reasons)
         mapping = a["proposal"]["mapping"]
     return stage_b(out_dir, mapping, release, smooth_mm=smooth_mm, spacing_mm=spacing_mm, confirmed=True, case_id=case_id)

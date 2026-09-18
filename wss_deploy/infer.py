@@ -6,6 +6,7 @@ import numpy as np
 import torch
 from training_wss_min import dataset as D, evaluate as E
 from .paths import RELEASE_DIR, SEEDS
+from .io_utils import file_sha256
 
 
 class Release:
@@ -18,11 +19,27 @@ class Release:
             raise ValueError("release.json 必须包含非空 release 标识。")
         self.model_specs = self._model_specs(seeds)
         self.models = []
+        self.weight_records = []
+        manifest_records = self._manifest_records()
         t = time.perf_counter()
         for spec in self.model_specs:
             s, run = spec["seed"], self.dir / spec["path"]
             if not run.is_dir():
                 raise FileNotFoundError(f"发布包模型目录不存在：{run}")
+            checkpoint = run / "ckpt_best.pt"
+            if not checkpoint.is_file():
+                raise FileNotFoundError(f"发布包缺少 ckpt_best.pt：{checkpoint}")
+            actual_hash = file_sha256(checkpoint)
+            rel_checkpoint = checkpoint.relative_to(self.dir).as_posix()
+            expected_hash = manifest_records.get(rel_checkpoint)
+            if manifest_records and expected_hash is None:
+                raise ValueError(f"权重校验失败：{rel_checkpoint} 未在 MANIFEST.sha256 中登记。")
+            if expected_hash and expected_hash != actual_hash:
+                raise ValueError(f"权重校验失败：{rel_checkpoint} 的 SHA256 与 MANIFEST.sha256 不一致。")
+            self.weight_records.append({"seed": s, "path": rel_checkpoint,
+                                        "sha256": actual_hash,
+                                        "size_bytes": int(checkpoint.stat().st_size),
+                                        "verified": bool(expected_hash)})
             cfg, feat_stats, model, _ = E.load_model_from_run(run, self.device, "best"); model.eval()
             self.models.append({"seed": s, "cfg": cfg, "feat_stats": feat_stats, "model": model, "stats": E.load_wss_stats_for_run(run)})
         self.load_seconds = time.perf_counter() - t
@@ -57,6 +74,18 @@ class Release:
                 specs.append({"seed": item.get("seed", index), "path": rel.as_posix()})
             return specs
         return [{"seed": seed, "path": f"models/X5D_v51_s{seed}"} for seed in seeds]
+
+    def _manifest_records(self) -> dict[str, str]:
+        """Read the release checksum list used to verify loaded checkpoints."""
+        path = self.dir / "MANIFEST.sha256"
+        if not path.is_file():
+            return {}
+        records = {}
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            parts = line.strip().split()
+            if len(parts) >= 2 and len(parts[0]) == 64 and parts[1].startswith("models/") and "/ckpt_" in parts[1]:
+                records[parts[1]] = parts[0].lower()
+        return records
 
     @property
     def name(self) -> str:

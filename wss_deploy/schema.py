@@ -11,6 +11,9 @@ from __future__ import annotations
 
 import json
 import re
+import os
+import platform
+import subprocess
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -113,6 +116,11 @@ def model_release_metadata(release: Any) -> dict[str, Any]:
     specs = getattr(release, "model_specs", None)
     if specs is not None:
         out["models"] = _jsonable(specs)
+    loaded = getattr(release, "weight_records", None)
+    if loaded is not None:
+        # Runtime hashes are kept separately from the release manifest hashes;
+        # this proves the files actually loaded by the worker were checked.
+        out["loaded_weights"] = _jsonable(loaded)
     for key in ("model_family", "version"):
         if info.get(key) is not None:
             out[key] = info[key]
@@ -190,6 +198,34 @@ def _output_records(job_dir: Path, outputs: Sequence[str]) -> dict[str, dict[str
     return records
 
 
+def _code_runtime_metadata() -> dict[str, Any]:
+    """Capture reproducibility identifiers without serialising host paths."""
+    root = Path(__file__).resolve().parents[1]
+    commit = None
+    try:
+        commit = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                check=True, capture_output=True, text=True, timeout=2).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    commit = commit or os.environ.get("WSS_DEPLOY_GIT_COMMIT")
+    return {
+        "git_commit": commit,
+        "source_hash": commit,
+        "python": platform.python_version(),
+        "platform": platform.platform(),
+        "torch": _module_version("torch"),
+        "numpy": _module_version("numpy"),
+    }
+
+
+def _module_version(name: str) -> str | None:
+    try:
+        module = __import__(name)
+        return str(getattr(module, "__version__", "unknown"))
+    except Exception:
+        return None
+
+
 def build_run_manifest(meta: Mapping[str, Any], job_dir: Path, *, outputs: Sequence[str] | None = None) -> dict[str, Any]:
     """Build a portable ``run_manifest.json`` from a stage-B summary."""
     job_dir = Path(job_dir)
@@ -209,11 +245,13 @@ def build_run_manifest(meta: Mapping[str, Any], job_dir: Path, *, outputs: Seque
         "mapping": _jsonable(meta.get("mapping", {})),
         "review": {key: _jsonable(meta[key]) for key in (
             "outlets_confirmed", "proposal_confidence", "proposal_side_confidence",
-            "proposal_confirmation_required") if key in meta},
+            "proposal_confirmation_required", "proposal_confidence_gate") if key in meta},
         "parameters": _jsonable(meta.get("run_parameters", {})),
         "runtime": {key: _jsonable(meta[key]) for key in ("device", "gpu", "timing_s", "seconds_per_model") if key in meta},
         "provenance": {"input_sha256": input_sha, "release_hash": meta.get("release_hash"),
-                       "sampling_seed": meta.get("sampling_seed"), "frame_transform": meta.get("frame_transform")},
+                       "sampling_seed": meta.get("sampling_seed"), "frame_transform": meta.get("frame_transform"),
+                       "code_runtime": _code_runtime_metadata()},
+        "audit": _jsonable(meta.get("audit", {})),
         "outputs": _output_records(job_dir, tuple(outputs or ())),
     }
     return _jsonable(result)

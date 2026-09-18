@@ -1,13 +1,15 @@
 from pathlib import Path
 
 from wss_deploy.ingest import _unit_confidence
+from wss_deploy.ingest import _quality_card
 from wss_deploy.jobs import JobManager
+from wss_deploy.centerline import evaluate_confidence_gate
 
 
 def _stage_a(confidence=0.99, required=False):
     return {
         "stage": "A",
-        "input_check": {"status": "pass", "ok": True},
+        "input_check": {"status": "pass", "ok": True, "orientation_source": "dicom_ct"},
         "centerline": {"hard_pass": True},
         "proposal": {
             "auto_ok": True,
@@ -20,10 +22,44 @@ def _stage_a(confidence=0.99, required=False):
     }
 
 
+class _ValidatedRelease:
+    name = "test-release"
+    info = {"release": "test-release", "confidence_profile": {
+        "id": "iliac-naming-v1", "version": "1", "status": "validated",
+        "release": "test-release", "joint_lower_bound": 0.96,
+        "validation_set": "holdout-v1", "sample_count": 100,
+        "allowed_orientation_sources": ["dicom_ct"],
+    }}
+
+
+def test_proxy_never_claims_95_percent_without_validated_profile():
+    gate = evaluate_confidence_gate(_stage_a()["proposal"], orientation_source="unknown_stl")
+    assert gate["passed"] is False
+    assert gate["calibration_status"] == "missing"
+    assert any("未提供已验证" in reason or "profile" in reason for reason in gate["reasons"])
+
+
+def test_validated_profile_is_bound_to_release_and_orientation():
+    gate = evaluate_confidence_gate(_stage_a()["proposal"], orientation_source="dicom_ct",
+                                    release=_ValidatedRelease())
+    assert gate["passed"] is True
+    assert gate["joint_lower_bound"] >= 0.95
+
+
 def test_auto_unit_confidence_requires_unique_candidate():
     high, reasons = _unit_confidence(239.0, "auto", "mm")
     assert high >= 0.95
     assert reasons == []
+
+
+def test_quality_card_marks_self_intersection_and_training_domain_unchecked():
+    card = _quality_card(status='pass', units='mm', unit_confidence=1., diag=200.,
+        components=1, removed=0., fragments_removed=False, openings=5,
+        nonmanifold=0, irregular=0, degenerate=0, duplicate=0,
+        inconsistent=0, slivers=0, opening_geometry=[])
+    assert card['grade'] == 'pass_with_limits'
+    assert 'self_intersection' in card['not_evaluated']
+    assert card['checks'][-1]['key'] == 'training_domain'
     low, reasons = _unit_confidence(100.0, "auto", "mm")
     assert low < 0.95
     assert reasons
@@ -42,7 +78,7 @@ def test_high_confidence_proposal_auto_queues_stage_b(tmp_path):
         seen.append(mapping)
         return {"peak": {}, "wss_field_pa": {}, "timing_s": {}, "flags": []}
 
-    manager = JobManager(tmp_path, stage_a_fn=stage_a, stage_b_fn=stage_b,
+    manager = JobManager(tmp_path, release=_ValidatedRelease(), stage_a_fn=stage_a, stage_b_fn=stage_b,
                          mapping_validator=lambda *_: [])
     job = manager.create("owner", content=b"stl", filename="input.stl")
     assert manager.run_next()
@@ -87,7 +123,7 @@ def test_done_job_can_be_manually_overridden_and_recomputed(tmp_path):
         calls.append(mapping)
         return {"peak": {}, "wss_field_pa": {}, "timing_s": {}, "flags": []}
 
-    manager = JobManager(tmp_path, stage_a_fn=lambda *_args, **_kw: _stage_a(),
+    manager = JobManager(tmp_path, release=_ValidatedRelease(), stage_a_fn=lambda *_args, **_kw: _stage_a(),
                          stage_b_fn=stage_b, mapping_validator=lambda *_: [])
     job = manager.create("owner", content=b"stl", filename="input.stl")
     manager.run_next(); manager.run_next()

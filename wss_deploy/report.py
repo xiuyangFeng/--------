@@ -173,6 +173,18 @@ function showPanel(){const m=META,w=m.wss_field_pa,p=m.peak,ic=m.input_check||{}
  const pct=v=>Math.max(0,Math.min(100,Number.isFinite(+v)?(+v*100):0));
  const bar=(label,value,detail,klass='')=>`<div class="metric-bar"><span class="metric-label">${esc(label)}</span><span class="metric-track"><span class="metric-fill ${klass}" style="width:${pct(value)}%"></span></span><span>${esc(detail)}</span></div>`;
  h+=`<section class="card"><h3>固定收缩期帧 · 空间 p99</h3><div class="big">${fmt(p.p99_pa)} Pa</div><small>预测点云第 99 百分位，不代表时间最大值。</small><div class="kv"><b>全场最大值</b><span>${fmt(p.max_pa)} Pa</span><b>最大值位置</b><span>${esc(p.branch)}，距入口 ${fmt(p.s_from_inlet_mm,0)} mm；距分叉 ${fmt(p.dist_to_junction_mm,0)} mm</span><b>黄色标记</b><span>全场最大值预测点；局部半径 ${fmt(p.local_radius_mm,1)} mm</span></div></section>`;
+ const ss=m.surface_statistics||{};
+ if(ss.p99_pa!=null) h+=`<section class="card"><h3>壁面面积加权参考</h3><div class="kv"><b>面积加权 p99</b><span>${fmt(ss.p99_pa)} Pa</span><b>最高 1% 面积均值</b><span>${fmt(ss.top_area_mean_pa)} Pa</span><b>有效覆盖面积</b><span>${fmt(ss.effective_area_mm2/100,1)} cm² / ${fmt(ss.covered_area_fraction*100,1)}%</span></div><small>基于 Gaussian 插值后的完整三角面；未覆盖或部分覆盖面片不外推。主指标仍是预测点云 p99。</small></section>`;
+ const quality=m.quality||{};
+ if(quality.level) {
+   const qclass=quality.level==='good'?'ok':quality.level==='poor'?'flag':'flag';
+   h+=`<section class="card"><h3>五模型集成质量</h3><div class="flag ${qclass}">${esc(quality.label||quality.level)}</div>${(quality.reasons||[]).map(x=>`<small>${esc(x)}</small>`).join('<br>')}<p><small>逐点 seed 标准差仅写入 quality_audit.json，避免把分散度误读为预测概率。</small></p></section>`;
+ }
+ const gate=m.proposal_confidence_gate||{};
+ if(gate.status||gate.confirmation_required!=null) {
+   const gateText=gate.confirmation_required?'需要人工确认':'已通过自动门控';
+   h+=`<section class="card"><h3>出口命名门控</h3><div class="flag ${gate.confirmation_required?'':'ok'}">${esc(gateText)}</div><small>${esc(gate.calibration_status==='validated'?'已绑定独立校准 profile。':'当前几何置信度只是代理值，未作为统计概率使用。')}</small></section>`;
+ }
  h+=`<section class="card"><h3>点数占比与估计面积</h3><div class="metric-bars">${bar('低 WSS < '+fmt(w.thresholds_pa[0],1)+' Pa',w.area_frac_low,fmt(w.area_frac_low*100,1)+'% · '+fmt(w.area_low_mm2/100,1)+' cm²','low')}${bar('高 WSS > '+fmt(w.thresholds_pa[1],1)+' Pa',w.area_frac_high,fmt(w.area_frac_high*100,1)+'% · '+fmt(w.area_high_mm2/100,1)+' cm²','high')}${bar('极高 > '+fmt(w.thresholds_pa[2],1)+' Pa',w.area_frac_very_high,fmt(w.area_frac_very_high*100,1)+'%','very-high')}</div><div class="kv"><b>均值 / 中位</b><span>${fmt(w.mean)} / ${fmt(w.median)} Pa</span></div><small>估计面积 = 点数占比 × 输入壁面总面积；未按逐面片面积加权。</small></section>`;
  const branchEntries=Object.entries(m.per_branch||{}),branchMax=Math.max(...branchEntries.map(([,b])=>Number(b.wss_p99_pa)||0),.01);
  h+='<section class="card branch-card"><h3>分支统计 · 预测点云（Pa）</h3><div class="branch-chart metric-bars">'+branchEntries.map(([name,b])=>bar(name,(Number(b.wss_p99_pa)||0)/branchMax,fmt(b.wss_p99_pa)+' Pa')).join('')+'</div><table><thead><tr><th>分支</th><th>p99</th><th>均值</th><th>最大</th><th>低%</th><th>高%</th><th>估计<br>cm²</th></tr></thead><tbody>';

@@ -115,6 +115,84 @@ def largest_component(vertices, faces):
     return vertices, faces, count
 
 
+def _opening_geometry(vertices, boundary, labels) -> list[dict]:
+    """Measure simple boundary loops without interpreting them as anatomy."""
+    out = []
+    for label in np.unique(labels[boundary.ravel()]):
+        loop_edges = boundary[labels[boundary[:, 0]] == label]
+        touched, degree = np.unique(loop_edges, return_counts=True)
+        if len(touched) < 3 or np.any(degree != 2):
+            continue
+        neighbors = {int(index): [] for index in touched}
+        for i, j in loop_edges:
+            neighbors[int(i)].append(int(j))
+            neighbors[int(j)].append(int(i))
+        ordered = [int(touched[0])]
+        previous, current = -1, ordered[0]
+        for _ in range(len(touched)):
+            following = next(i for i in neighbors[current] if i != previous)
+            if following == ordered[0]:
+                break
+            ordered.append(following)
+            previous, current = current, following
+        xyz = vertices[ordered]
+        centered = xyz - xyz.mean(axis=0)
+        _, _, vh = np.linalg.svd(centered, full_matrices=False)
+        residual = centered @ vh[-1]
+        projected_area = float(np.linalg.norm(np.cross(centered, np.roll(centered, -1, axis=0)).sum(axis=0)) * .5)
+        radius = float(np.sqrt(projected_area / np.pi))
+        rms = float(np.sqrt(np.mean(residual ** 2)))
+        out.append({"opening_index": len(out), "boundary_vertices": len(ordered),
+                    "perimeter_mm": float(np.linalg.norm(xyz - np.roll(xyz, -1, axis=0), axis=1).sum()),
+                    "projected_area_mm2": projected_area, "equivalent_radius_mm": radius,
+                    "planarity_rms_mm": rms,
+                    "planarity_rms_over_radius": rms / radius if radius > 0 else None,
+                    "center_mm": xyz.mean(axis=0).tolist()})
+    return out
+
+
+def _quality_card(*, status, units, unit_confidence, diag, components, removed,
+                  fragments_removed, openings, nonmanifold, irregular,
+                  degenerate, duplicate, inconsistent, slivers, opening_geometry) -> dict:
+    """Transparent check results; an unmeasured property is never a pass."""
+    checks = []
+
+    def add(key, label, result, value, note):
+        checks.append({"key": key, "label": label, "status": result, "value": value, "note": note})
+
+    add("units", "输入单位", "pass" if unit_confidence >= .95 else "review", units,
+        "用户指定单位" if units != "auto" else "基于物理尺寸的规则估计，不是校准概率")
+    add("physical_size", "物理尺寸", "pass" if MIN_BBOX_DIAG_MM <= diag <= MAX_BBOX_DIAG_MM else "fail", diag,
+        "包围盒对角线 50–1500 mm 仅为输入范围，不等于模型训练分布")
+    add("components", "连通片与碎片", "pass" if components == 1 or fragments_removed else ("fail" if removed > MAX_FRAGMENT_FRACTION else "review"),
+        components, f"较小片面积占比 {removed:.4%}；删除状态：{'已确认删除' if fragments_removed else '未删除'}")
+    add("degenerate_faces", "退化三角面", "fail" if degenerate else "pass", degenerate, "面片面积必须为有限正数")
+    add("duplicate_faces", "重复三角面", "fail" if duplicate else "pass", duplicate, "按顶点索引检查重复三角面")
+    add("nonmanifold_edges", "非流形边", "fail" if nonmanifold else "pass", nonmanifold, "每条内部边应恰好连接两个面片")
+    add("boundary_loops", "切口与孔洞", "pass" if openings == 5 and irregular == 0 else "fail", openings,
+        f"当前模型需要 5 个开放环；非环状连接点 {irregular} 个。开口计数不能证明解剖位置正确。")
+    add("winding", "相邻面法向一致性", "review" if inconsistent else "pass", inconsistent,
+        "检查共享边的面片绕序，不判定法向朝内或朝外")
+    add("sliver_faces", "狭长三角面", "review" if slivers else "pass", slivers,
+        "形状质量 4√3×面积/边长平方和 < 0.01 的面片数；提示阈值，不自动修复")
+    tiny = [o["opening_index"] for o in opening_geometry if o["equivalent_radius_mm"] < .5]
+    nonplanar = [o["opening_index"] for o in opening_geometry if (o["planarity_rms_over_radius"] or 0) > .05]
+    add("opening_radius", "切口细小半径", "review" if tiny else ("pass" if opening_geometry else "not_checked"), tiny,
+        "投影等效半径 < 0.5 mm 的切口需要复核；不替代沿中心线的最小半径")
+    add("cut_planarity", "切口平面性", "review" if nonplanar else ("pass" if opening_geometry else "not_checked"), nonplanar,
+        "最佳拟合平面 RMS 距离/切口等效半径 > 5% 时提示复核")
+    add("self_intersection", "表面自交", "not_checked", None, "本版未运行可靠的三角面自交检测；不能将其视为已通过")
+    add("patient_orientation", "患者方向", "unknown", None, "STL 没有患者坐标信息，世界轴不等于患者左右")
+    add("training_domain", "模型训练范围", "not_checked", None, "由当前模型发布包的适用范围另行评估；尺寸预检不能替代训练域判断")
+    review = any(c["status"] == "review" for c in checks)
+    return {"schema_version": "wss-deploy.input-quality/v1",
+            "grade": "fail" if status == "fail" else ("review" if status != "pass" or review else "pass_with_limits"),
+            "grade_label": "输入不通过" if status == "fail" else ("需要关注" if status != "pass" or review else "已检查项通过（存在未评估项）"),
+            "checks": checks, "opening_geometry": opening_geometry,
+            "not_evaluated": [c["key"] for c in checks if c["status"] in {"not_checked", "unknown"}],
+            "note": "质量等级只汇总实际输入检查，不表示预测准确率或自动命名置信度。"}
+
+
 def ingest(stl_path: Path, out_dir: Path, *, units: str = "mm", remove_fragments: bool = False) -> dict:
     if units not in {*UNIT_FACTORS, "auto"}:
         raise ValueError("单位必须选择 mm、cm、m，或 auto（仅建议、需要确认）。")
@@ -130,9 +208,11 @@ def ingest(stl_path: Path, out_dir: Path, *, units: str = "mm", remove_fragments
     if not MIN_BBOX_DIAG_MM <= raw_diag * factor <= MAX_BBOX_DIAG_MM:
         errors.append("换算后的整体尺寸超出工具预检范围（包围盒对角 50–1500 mm）；请重新核对单位或血管范围。")
     area = _areas(vertices, faces)
-    if not np.isfinite(area).all() or np.any(area <= 1e-12):
+    degenerate = int(np.sum(~np.isfinite(area) | (area <= 1e-12)))
+    if degenerate:
         errors.append("表面含退化面片或无效面积，请修复后重新导出。")
-    if len(np.unique(np.sort(faces, axis=1), axis=0)) != len(faces):
+    duplicate = len(faces) - len(np.unique(np.sort(faces, axis=1), axis=0))
+    if duplicate:
         errors.append("表面含重复三角面，请修复后重新导出。")
     kept_v, kept_f, count, removed = _components(vertices, faces)
     if count > 1:
@@ -142,17 +222,30 @@ def ingest(stl_path: Path, out_dir: Path, *, units: str = "mm", remove_fragments
             confirmations.append(f"有 {count} 个连通片；删除小片将移除 {removed:.3%} 的面积，请核对后确认。")
         else:
             flags.append(f"经确认删除 {count - 1} 个小片（原总面积的 {removed:.3%}）。")
-    edges = np.sort(np.concatenate([kept_f[:, [0, 1]], kept_f[:, [1, 2]], kept_f[:, [2, 0]]]), axis=1)
-    unique, counts = np.unique(edges, axis=0, return_counts=True)
+    directed = np.concatenate([kept_f[:, [0, 1]], kept_f[:, [1, 2]], kept_f[:, [2, 0]]])
+    edges = np.sort(directed, axis=1)
+    unique, inverse, counts = np.unique(edges, axis=0, return_inverse=True, return_counts=True)
+    signs = np.where(directed[:, 0] < directed[:, 1], 1, -1)
+    winding = np.bincount(inverse, weights=signs, minlength=len(unique))
+    inconsistent = int(np.sum((counts == 2) & (np.abs(winding) == 2)))
+    tri = kept_v[kept_f]
+    edge_square = np.sum((tri - np.roll(tri, -1, axis=1)) ** 2, axis=(1, 2))
+    shape_quality = 4 * np.sqrt(3.) * _areas(kept_v, kept_f) / np.maximum(edge_square, 1e-30)
+    slivers = int(np.sum(shape_quality < .01))
     boundary = unique[counts == 1]
     nonmanifold = int(np.sum(counts > 2))
-    openings, irregular = 0, 0
+    openings, irregular, opening_geometry = 0, 0, []
     if len(boundary):
         touched, degree = np.unique(boundary.ravel(), return_counts=True)
         irregular = int(np.sum(degree != 2))
         graph = coo_matrix((np.ones(len(boundary)), (boundary[:, 0], boundary[:, 1])), shape=(len(kept_v), len(kept_v)))
         _, labels = connected_components(graph, directed=False)
         openings = len(np.unique(labels[touched]))
+        opening_geometry = _opening_geometry(kept_v, boundary, labels)
+    if inconsistent:
+        flags.append(f"{inconsistent} 条内部边的相邻面片绕序不一致，建议复核法向。")
+    if slivers:
+        flags.append(f"{slivers} 个面片极度狭长，建议复核网格质量。")
     if nonmanifold:
         errors.append(f"存在 {nonmanifold} 条非流形边，请修复表面。")
     if irregular:
@@ -165,6 +258,13 @@ def ingest(stl_path: Path, out_dir: Path, *, units: str = "mm", remove_fragments
         Path(out_dir).mkdir(parents=True, exist_ok=True)
         write_binary_stl(clean, kept_v, kept_f)
     unit_note = "mm" if factor == 1 else f"{suggested if units == 'auto' else units}→mm (×{factor:g})"
+    fragments_removed = count > 1 and remove_fragments and status == "pass"
+    quality = _quality_card(status=status, units=units, unit_confidence=unit_confidence,
+                            diag=raw_diag * factor, components=count, removed=removed,
+                            fragments_removed=fragments_removed, openings=int(openings),
+                            nonmanifold=nonmanifold, irregular=irregular, degenerate=degenerate,
+                            duplicate=duplicate, inconsistent=inconsistent, slivers=slivers,
+                            opening_geometry=opening_geometry)
     return {"source_stl": str(stl_path), "clean_stl": str(clean) if status == "pass" else None,
             "unit": unit_note, "selected_units": units,
             "resolved_units": suggested if units == "auto" else units,
@@ -175,7 +275,9 @@ def ingest(stl_path: Path, out_dir: Path, *, units: str = "mm", remove_fragments
             "bbox_size_mm": (raw_size * factor).tolist(), "bbox_diag_mm": raw_diag * factor,
             "vertices": len(kept_v), "faces": len(kept_f), "area_mm2": float(_areas(kept_v, kept_f).sum()),
             "original_area_mm2": float(area.sum()), "components": count,
-            "removed_area_fraction": removed, "fragments_removed": count > 1 and remove_fragments and status == "pass",
+            "removed_area_fraction": removed, "fragments_removed": fragments_removed,
+            "quality": quality, "degenerate_faces": degenerate, "duplicate_faces": duplicate,
+            "inconsistent_winding_edges": inconsistent, "sliver_faces": slivers,
             "openings": int(openings), "nonmanifold_edges": nonmanifold, "irregular_boundary_vertices": irregular,
             "flags": flags + confirmations, "errors": errors, "status": status, "ok": status == "pass",
             "orientation_source": "unknown_stl", "direction_note": "STL 未提供患者方向；世界 XYZ 不能自动解释为患者左右，请参考原始影像核对。"}

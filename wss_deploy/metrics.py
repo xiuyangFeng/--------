@@ -9,6 +9,103 @@ from .paths import BRANCH_CN
 LOW_PA, HIGH_PA, VERY_HIGH_PA = 0.4, 4.0, 7.0
 
 
+def surface_metrics(vertices, faces, values, *, covered=None, face_labels=None,
+                    top_fraction: float = .01) -> dict:
+    """Area-weighted statistics on the displayed/interpolated wall surface.
+
+    ``values`` are vertex values (normally the Gaussian-interpolated ``vw``),
+    so this deliberately reports a separate *surface display* protocol. A
+    triangle contributes only when all three vertex values are finite; partial
+    triangles are counted as uncovered instead of silently inventing values.
+    ``p99`` is the weighted value whose cumulative covered area reaches 99%.
+    This is not the historical prediction-point-cloud p99.
+    """
+    vertices = np.asarray(vertices, dtype=np.float64)
+    faces = np.asarray(faces, dtype=np.int64)
+    values = np.asarray(values, dtype=np.float64)
+    if vertices.ndim != 2 or vertices.shape[1] != 3 or not np.isfinite(vertices).all():
+        raise ValueError("surface vertices must be a finite (N, 3) array")
+    if faces.ndim != 2 or faces.shape[1] != 3 or len(faces) == 0:
+        raise ValueError("surface faces must be a non-empty (M, 3) array")
+    if np.any(faces < 0) or np.any(faces >= len(vertices)):
+        raise ValueError("surface faces contain an out-of-range vertex index")
+    if values.shape != (len(vertices),):
+        raise ValueError("surface values must contain one value per vertex")
+    if not np.isfinite(top_fraction) or not 0 < top_fraction <= 1:
+        raise ValueError("top_fraction must be in (0, 1]")
+    if covered is None:
+        covered = np.isfinite(values)
+    else:
+        covered = np.asarray(covered, dtype=bool)
+        if covered.shape != values.shape:
+            raise ValueError("surface coverage mask must contain one value per vertex")
+    finite = covered & np.isfinite(values)
+    tri = vertices[faces]
+    area = .5 * np.linalg.norm(np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0]), axis=1)
+    if not np.isfinite(area).all() or np.any(area <= 0):
+        raise ValueError("surface contains non-positive or non-finite triangle areas")
+    valid_face = finite[faces].all(axis=1)
+    partial_face = finite[faces].any(axis=1) & ~valid_face
+    valid_area = area[valid_face]
+    face_values = values[faces[valid_face]].mean(axis=1)
+    total_area = float(area.sum())
+    effective_area = float(valid_area.sum())
+    if effective_area <= 0:
+        raise ValueError("surface has no fully covered finite triangles")
+    if not np.isfinite(face_values).all():
+        raise ValueError("surface face values are not finite")
+
+    def weighted_quantile(q):
+        order = np.argsort(face_values, kind="mergesort")
+        sv, sa = face_values[order], valid_area[order]
+        target = float(q) * effective_area
+        return float(sv[np.searchsorted(np.cumsum(sa), target, side="left").clip(0, len(sv) - 1)])
+
+    p99 = weighted_quantile(.99)
+    top_threshold = weighted_quantile(1. - top_fraction)
+    top = face_values >= top_threshold
+    top_area = float(valid_area[top].sum())
+    top_mean = float(np.average(face_values[top], weights=valid_area[top])) if top_area else None
+    out = {
+        "protocol": "gaussian_interpolated_wall_surface_area_weighted",
+        "value_source": "vertex_gaussian_interpolation",
+        "weight_source": "triangle_area_mm2",
+        "p99_definition": "covered wall triangle area-weighted 99th percentile of triangle mean values",
+        "top_area_definition": f"mean over highest {top_fraction:.4g} covered wall area (threshold ties may exceed target)",
+        "n_vertices": int(len(vertices)), "n_faces": int(len(faces)),
+        "n_valid_faces": int(valid_face.sum()), "n_partial_faces": int(partial_face.sum()),
+        "total_area_mm2": total_area, "effective_area_mm2": effective_area,
+        "covered_area_fraction": effective_area / total_area,
+        "coverage_vertex_fraction": float(finite.mean()),
+        "mean_pa": float(np.average(face_values, weights=valid_area)),
+        "p95_pa": weighted_quantile(.95), "p99_pa": p99,
+        "max_pa": float(face_values.max()), "top_threshold_pa": top_threshold,
+        "top_area_mm2": top_area, "top_area_fraction": top_area / effective_area,
+        "top_area_mean_pa": top_mean,
+    }
+    if face_labels is not None:
+        labels = np.asarray(face_labels)
+        if labels.shape != (len(faces),):
+            raise ValueError("face_labels must contain one label per face")
+        by_label = {}
+        for label in np.unique(labels[valid_face]):
+            mask = valid_face & (labels == label)
+            label_area = area[mask]
+            label_values = np.asarray(values[faces[mask]], dtype=np.float64).mean(axis=1)
+            by_label[str(label)] = {"area_mm2": float(label_area.sum()),
+                "area_fraction_of_covered": float(label_area.sum() / effective_area),
+                "mean_pa": float(np.average(label_values, weights=label_area)),
+                "p99_pa": float(np.quantile(label_values, .99)),
+                "max_pa": float(label_values.max())}
+        out["by_face_label"] = by_label
+    return out
+
+
+# Explicit name used by report/pipeline integration; keep the shorter alias
+# available for callers that treat this as a generic surface field utility.
+surface_statistics = surface_metrics
+
+
 def branch_names(segments) -> dict[int, str]:
     out = {}
     for s in segments:

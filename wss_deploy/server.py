@@ -18,7 +18,7 @@ MAX_JSON_BYTES = 64 * 1024
 COOKIE_NAME = "wss_session"
 SESSION_SECONDS = 7 * 24 * 3600
 STATIC_FILES = {"index.html", "app.js", "app.css", "three.min.js", "OrbitControls.js"}
-OUTPUT_FILES = {"report.html", "summary.json", "run_manifest.json", "wall_wss.vtp", "points_wss.csv", "field.npz"}
+OUTPUT_FILES = {"report.html", "summary.json", "run_manifest.json", "quality_audit.json", "wall_wss.vtp", "points_wss.csv", "field.npz"}
 
 
 def is_loopback(host: str) -> bool:

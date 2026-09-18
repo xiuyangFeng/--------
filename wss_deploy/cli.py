@@ -30,7 +30,9 @@ def main(argv=None) -> int:
             a = stage_a(Path(args.stl), out, inlet=args.inlet, units=args.units)
             print(json.dumps({"stage": a["stage"], "message": "请人工核对出口映射后使用 --outlets，或在确认后显式加 --accept-auto。", "proposal": (a["proposal"] or {}).get("mapping", {}), "flags": (a["proposal"] or {}).get("flags", []), "input_check": a["input_check"]}, ensure_ascii=False, indent=1))
             return 2
-        meta = run_all(Path(args.stl), out, rel, mapping=mapping, inlet=args.inlet, smooth_mm=args.smooth_mm, spacing_mm=args.spacing_mm, case_id=args.case_id)
+        meta = run_all(Path(args.stl), out, rel, mapping=mapping, inlet=args.inlet,
+                       smooth_mm=args.smooth_mm, spacing_mm=args.spacing_mm,
+                       case_id=args.case_id, allow_unvalidated_auto=bool(args.accept_auto and mapping is None))
         print(json.dumps({"case_id": meta["case_id"], "peak": meta["peak"], "timing_s": meta["timing_s"], "report": str(out / "report.html")}, ensure_ascii=False, indent=1)); return 0
     if args.cmd == "serve":
         from .server import serve

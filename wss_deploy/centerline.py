@@ -16,6 +16,113 @@ from .paths import VESSEL_GEOM_DIR, VMTK_PYTHON, OUTLET_NAMES, OUTLET_CN
 
 IE_SCALE = np.array([16.2, 12.5, 0.77, 10.56])   # median |Δ| of (y, lateral, radius, z) on the training atlases
 IE_WEIGHT = np.array([1.0, 1.0, 0.3, 0.3])
+CONFIDENCE_THRESHOLD = 0.95
+CONFIDENCE_METHOD = "geometry_margin_proxy_v1"
+
+
+def _release_name(release) -> str | None:
+    """Return a stable release id without serialising the release object."""
+    if release is None:
+        return None
+    name = getattr(release, "name", None)
+    if callable(name):
+        name = name()
+    if name:
+        return str(name)
+    if isinstance(release, dict):
+        return str(release.get("release") or release.get("name") or "") or None
+    return None
+
+
+def release_confidence_profile(release) -> dict | None:
+    """Read the explicitly validated naming profile from a model release.
+
+    A geometry margin is useful for ranking suggestions, but is not a
+    probability.  The profile is deliberately opt-in and lives next to the
+    release metadata so replacing weights cannot silently reuse a calibration
+    belonging to another release.
+    """
+    if release is None:
+        return None
+    info = getattr(release, "info", release if isinstance(release, dict) else None)
+    if not isinstance(info, dict):
+        return None
+    profile = info.get("confidence_profile") or info.get("outlet_naming_confidence_profile")
+    return dict(profile) if isinstance(profile, dict) else None
+
+
+def evaluate_confidence_gate(proposal: dict | None, *, orientation_source: str = "unknown_stl",
+                            release=None) -> dict:
+    """Evaluate whether a proposal may bypass a human confirmation.
+
+    ``proposal.confidence`` is an uncalibrated geometry-margin proxy.  It is
+    never interpreted as a 95% correctness probability by itself.  Bypass is
+    permitted only when an independently validated profile is explicitly
+    bound to the active model release and the patient's orientation is known.
+    The returned record is persisted in the job for auditability.
+    """
+    proposal = proposal or {}
+    try:
+        requested_threshold = float(proposal.get("confidence_threshold", CONFIDENCE_THRESHOLD))
+        threshold = max(CONFIDENCE_THRESHOLD, requested_threshold) if np.isfinite(requested_threshold) else CONFIDENCE_THRESHOLD
+    except (TypeError, ValueError):
+        threshold = CONFIDENCE_THRESHOLD
+    raw = proposal.get("confidence")
+    reasons: list[str] = []
+    if proposal.get("auto_ok") is not True:
+        reasons.append("拓扑或中心线未形成完整的自动命名建议")
+    if not isinstance(raw, (int, float)) or not np.isfinite(raw):
+        reasons.append("缺少有限的几何置信度代理值")
+        raw_value = None
+    else:
+        raw_value = float(raw)
+        if raw_value < threshold:
+            reasons.append(f"几何置信度代理 {raw_value:.1%} 低于门槛 {threshold:.1%}")
+    if proposal.get("confirmation_required") is True:
+        reasons.append("命名建议自身标记为需要确认")
+
+    profile = release_confidence_profile(release)
+    release_id = _release_name(release)
+    profile_id = profile.get("id") if profile else None
+    profile_version = profile.get("version") if profile else None
+    profile_status = profile.get("status") if profile else None
+    joint_lower_bound = ((profile or {}).get("joint_lower_bound")
+                         if profile else None)
+    if joint_lower_bound is None and profile:
+        joint_lower_bound = profile.get("joint_correctness_lower_bound")
+    if profile_status != "validated":
+        reasons.append("当前发布包没有经过独立标注集验证的命名置信度 profile")
+    if profile and not profile.get("validation_set"):
+        reasons.append("命名 profile 缺少独立验证集标识")
+    sample_count = (profile or {}).get("sample_count")
+    if profile and (not isinstance(sample_count, (int, float)) or sample_count < 1):
+        reasons.append("命名 profile 缺少有效的独立验证样本数")
+    if not isinstance(joint_lower_bound, (int, float)) or float(joint_lower_bound) < threshold:
+        reasons.append("命名 profile 没有达到联合正确率下界 95%")
+    profile_release = (profile or {}).get("release") or (profile or {}).get("release_id")
+    if not release_id or not profile_release:
+        reasons.append("命名 profile 未绑定具体模型发布版本")
+    elif str(profile_release) != str(release_id):
+        reasons.append(f"命名 profile 属于 {profile_release}，当前发布包为 {release_id}")
+
+    allowed_orientation = (profile or {}).get("allowed_orientation_sources")
+    if allowed_orientation is None and profile:
+        source = profile.get("orientation_source")
+        allowed_orientation = [source] if source else []
+    if not isinstance(allowed_orientation, (list, tuple, set)) or orientation_source not in allowed_orientation:
+        reasons.append("STL 未提供已验证的患者方向，不能自动解释左右")
+
+    passed = not reasons
+    return {
+        "passed": bool(passed), "threshold": threshold,
+        "proxy_confidence": raw_value, "proxy_method": CONFIDENCE_METHOD,
+        "calibration_status": profile_status or "missing",
+        "profile_id": profile_id, "profile_version": profile_version,
+        "profile_release": profile_release, "release": release_id,
+        "orientation_source": orientation_source,
+        "joint_lower_bound": float(joint_lower_bound) if isinstance(joint_lower_bound, (int, float)) else None,
+        "reasons": reasons,
+    }
 
 
 def _confidence_from_score(score: float) -> float:
@@ -77,16 +184,19 @@ def _subtree(kids, sid):
     return out
 
 
-def propose_outlets(atlas: Atlas) -> dict:
+def propose_outlets(atlas: Atlas, *, orientation_source: str = "unknown_stl") -> dict:
     """Automatic naming proposal + everything the confirmation page needs (endpoints, radii, 2-D preview coordinates)."""
     by, kids, root = _tree(atlas)
     seg = atlas.col("segment_id").astype(int); idx = atlas.col("sample_index").astype(int); xyz = atlas.xyz
     cias = kids.get(root, []) if root is not None else []
     leaves_of = {c: [k for k in _subtree(kids, c) if by[k].get("ends_at_leaf")] for c in cias}
     proposal = {"root_segment": root, "cia_segments": cias, "auto_ok": False,
-                "confirmation_required": True, "confidence_threshold": 0.95,
-                "confidence": 0.0, "confidence_reasons": [], "flags": [],
-                "mapping": {}, "scores": {}, "side_confidence": {}, "sides": {}}
+                "confirmation_required": True, "confidence_threshold": CONFIDENCE_THRESHOLD,
+                "confidence": 0.0, "confidence_method": CONFIDENCE_METHOD,
+                "confidence_is_calibrated": False, "confidence_profile": None,
+                "orientation_source": str(orientation_source or "unknown_stl"),
+                "confidence_reasons": [], "flags": [], "mapping": {}, "scores": {},
+                "side_confidence": {}, "sides": {}}
     if len(cias) != 2 or any(len(leaves_of[c]) != 2 for c in cias):
         proposal["flags"].append(f"拓扑不是 1 入口 → 2 髂总 → 各 2 出口（髂总 {len(cias)} 条，出口 {[len(v) for v in leaves_of.values()]}），无法自动命名")
     else:
@@ -124,7 +234,15 @@ def propose_outlets(atlas: Atlas) -> dict:
             *(_confidence_from_score(proposal["scores"][str(c)]) for c in cias),
         ))
         proposal["confidence_reasons"] = list(proposal["flags"])
-        proposal["confirmation_required"] = bool(proposal["flags"] or proposal["confidence"] < 0.95)
+        proposal["confidence_reasons"].append("几何间隔置信度只是未校准的代理值")
+        if proposal["orientation_source"] == "unknown_stl":
+            proposal["confidence_reasons"].append("STL 未提供患者方向，左右语义必须人工核对")
+        # This flag is intentionally conservative.  A validated release
+        # profile is checked later by evaluate_confidence_gate; the centreline
+        # stage alone must never claim that its proxy is a true probability.
+        proposal["confirmation_required"] = bool(
+            proposal["flags"] or proposal["confidence"] < CONFIDENCE_THRESHOLD
+            or proposal["orientation_source"] == "unknown_stl")
         proposal["auto_ok"] = True
     # endpoints + 2-D preview (PCA plane of the centreline)
     c0 = xyz.mean(0); _, _, vt = np.linalg.svd(xyz - c0, full_matrices=False); P = vt[:2]
