@@ -168,7 +168,7 @@ class JobManager:
             return [self._snapshot(j, detail=False) for j in sorted(self.jobs.values(),
                     key=lambda j: j.get("created_ts", 0), reverse=True) if j.get("owner") == owner]
 
-    def _enqueue(self, job: dict, stage: str, action: str) -> None:
+    def _enqueue(self, job: dict, stage: str, action: str, *, defer: bool = False) -> None:
         now = time.time()
         if job["status"] in {"awaiting_input", "awaiting_confirmation"}:
             job["confirmation_seconds"] = job.get("confirmation_seconds", 0) + max(0, now - job.get("awaiting_ts", now))
@@ -176,7 +176,8 @@ class JobManager:
                    phase="等待计算", detail="任务将按顺序执行。", error=None)
         job.pop("finished_ts", None)
         self._event(job, action)
-        self.tasks.put((job["id"], job["version"], stage))
+        if not defer:
+            self.tasks.put((job["id"], job["version"], stage))
 
     @staticmethod
     def _params(payload: dict) -> dict:
@@ -233,11 +234,41 @@ class JobManager:
         ic, cl = a.get("input_check") or {}, a.get("centerline") or {}
         return ic.get("ok") is True and ic.get("status", "pass") == "pass" and cl.get("hard_pass") is True
 
+    @staticmethod
+    def _auto_outlet_gate(a: dict | None) -> bool:
+        """Return true only for a complete, explicitly high-confidence proposal.
+
+        Legacy stage-A records do not contain the confidence fields and remain
+        manual by default.  A high-confidence route still stores the proposed
+        mapping in the job so the user can override it before a later rerun.
+        """
+        if not JobManager._gate(a):
+            return False
+        proposal = (a or {}).get("proposal") or {}
+        confidence = proposal.get("confidence")
+        return (proposal.get("auto_ok") is True
+                and proposal.get("confirmation_required") is False
+                and isinstance(confidence, (int, float)) and confidence >= 0.95
+                and isinstance(proposal.get("mapping"), dict)
+                and len(proposal["mapping"]) == 4
+                and set(proposal["mapping"].values()) == LABELS)
+
+    @staticmethod
+    def _mapping_payload(payload: dict) -> dict:
+        mapping = payload.get("mapping")
+        if not isinstance(mapping, dict) or len(mapping) != 4 or set(mapping.values()) != LABELS:
+            raise JobError("四个出口必须分别且唯一对应左外、左内、右外、右内。")
+        return {str(k): value for k, value in mapping.items()}
+
     def confirm(self, job_id: str, owner: str, payload: dict) -> dict:
         with self.lock:
             job = self._owned(job_id, owner)
             self._version(job, payload)
-            if job["status"] != "awaiting_confirmation":
+            # A high-confidence proposal can already have completed.  Keep a
+            # deliberate override path so a reviewer can change its mapping
+            # and rerun stage B without uploading the STL again.
+            override_done = job["status"] == "done" and payload.get("override") is True
+            if job["status"] != "awaiting_confirmation" and not override_done:
                 raise JobError("当前任务不在出口确认阶段。", 409)
             if payload.get("acknowledged") is not True:
                 raise JobError("请确认出口命名及其对计算的影响。")
@@ -253,17 +284,19 @@ class JobManager:
                 job.pop("mapping", None)
                 self._enqueue(job, "A", "inlet_changed")
                 return self._snapshot(job)
-            mapping = payload.get("mapping")
-            if not isinstance(mapping, dict) or len(mapping) != 4 or set(mapping.values()) != LABELS:
-                raise JobError("四个出口必须分别且唯一对应左外、左内、右外、右内。")
-            mapping = {str(k): value for k, value in mapping.items()}
+            mapping = self._mapping_payload(payload)
             errors = self.mapping_validator(self.root / job_id, mapping)
             if errors:
                 raise JobError("；".join(errors))
+            if override_done and mapping == job.get("mapping"):
+                return self._snapshot(job)
             job["mapping"] = mapping
             job.setdefault("mapping_history", []).append({"at": _date(time.time()),
                 "suggested": (job["a"].get("proposal") or {}).get("mapping"), "confirmed": mapping,
-                "inlet": inlet, "acknowledged": True})
+                "inlet": inlet, "acknowledged": True,
+                "source": "manual_override" if override_done else "manual_confirmation"})
+            if override_done:
+                job.pop("summary", None)
             self._enqueue(job, "B", "outlets_confirmed")
             return self._snapshot(job)
 
@@ -308,6 +341,7 @@ class JobManager:
             self._event(job, "progress", version=False, phase=phase, detail=detail)
 
     def run_next(self, timeout: float = 0.1) -> bool:
+        deferred_stage = None
         try:
             job_id, version, stage = self.tasks.get(timeout=timeout)
         except queue.Empty:
@@ -350,7 +384,30 @@ class JobManager:
                                 error={"message": "输入检查未通过：" + "; ".join(str(item) for item in errors)},
                             )
                         elif input_status == "pass" and self._gate(result):
-                            job.update(status="awaiting_confirmation", phase="请确认出口", detail="请结合原始影像核对开口名称。", awaiting_ts=time.time())
+                            if self._auto_outlet_gate(result):
+                                # Keep the exact proposal in the persisted job
+                                # and enter stage B immediately.  It remains
+                                # manually overridable through confirm(...,
+                                # override=True) after completion.
+                                job["mapping"] = dict(result["proposal"]["mapping"])
+                                job.setdefault("mapping_history", []).append({
+                                    "at": _date(time.time()),
+                                    "suggested": dict(result["proposal"]["mapping"]),
+                                    "confirmed": dict(result["proposal"]["mapping"]),
+                                    "inlet": job["params"].get("inlet"),
+                                    "acknowledged": False,
+                                    "source": "automatic_high_confidence",
+                                    "confidence": result["proposal"].get("confidence"),
+                                })
+                                # The worker's final event below increments
+                                # the job version.  Defer putting this queue
+                                # item until after that event so it carries
+                                # the final version and cannot be discarded as
+                                # stale.
+                                self._enqueue(job, "B", "outlets_auto_confirmed", defer=True)
+                                deferred_stage = "B"
+                            else:
+                                job.update(status="awaiting_confirmation", phase="请确认出口", detail="自动命名置信度不足 95%，请结合原始影像核对开口名称。", awaiting_ts=time.time())
                         else:
                             raise ValueError("输入或中心线未通过检查，请检查 STL 和开口。")
                 else:
@@ -378,6 +435,8 @@ class JobManager:
                 with self.lock:
                     job["compute_seconds"] = job.get("compute_seconds", 0) + max(0, time.time() - job.pop("started_ts", time.time()))
                     self._event(job, "finished")
+                    if deferred_stage and job["status"] == "queued":
+                        self.tasks.put((job["id"], job["version"], deferred_stage))
             return True
         finally:
             self.tasks.task_done()

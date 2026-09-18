@@ -13,6 +13,36 @@ MAX_BYTES = 128 * 1024 * 1024
 MAX_FACES = 2_000_000
 MAX_FRAGMENT_FRACTION = 0.01
 UNIT_FACTORS = {"mm": 1.0, "cm": 10.0, "m": 1000.0}
+MIN_BBOX_DIAG_MM, MAX_BBOX_DIAG_MM = 50.0, 1500.0
+
+
+def _unit_confidence(raw_diag: float, selected: str, suggested: str) -> tuple[float, list[str]]:
+    """Estimate whether an STL's unit can be selected without a pause.
+
+    STL has no unit field, so this is deliberately conservative.  A unit is
+    considered high confidence only when exactly one of mm/cm/m puts the
+    vessel in the supported physical size range and it is not right on a
+    range boundary.  A user supplied unit is an explicit decision and has
+    confidence 1.0.  The confidence is a routing aid, not a measurement of
+    model uncertainty.
+    """
+    if selected != "auto":
+        return 1.0, []
+    converted = {u: raw_diag * factor for u, factor in UNIT_FACTORS.items()}
+    candidates = [u for u, diag in converted.items()
+                  if MIN_BBOX_DIAG_MM <= diag <= MAX_BBOX_DIAG_MM]
+    if suggested not in candidates or len(candidates) != 1:
+        if len(candidates) > 1:
+            return 0.60, ["自动单位有多个合理候选，请确认 STL 原始单位。"]
+        return 0.0, ["自动单位没有唯一的合理候选，请明确选择 mm、cm 或 m。"]
+    diag = converted[suggested]
+    # Distance from the nearest physical-size boundary in log space.  Values
+    # well inside the range get 0.999; borderline values stay below 0.95.
+    margin = min(diag / MIN_BBOX_DIAG_MM, MAX_BBOX_DIAG_MM / diag)
+    confidence = 0.90 + 0.099 * min(max(np.log(margin) / np.log(3.0), 0.0), 1.0)
+    if confidence < 0.95:
+        return float(confidence), ["自动单位接近尺寸判定边界，请确认 STL 原始单位。"]
+    return float(confidence), []
 
 
 def write_binary_stl(path: Path, vertices: np.ndarray, faces: np.ndarray, header: str = "wss_deploy") -> None:
@@ -95,9 +125,9 @@ def ingest(stl_path: Path, out_dir: Path, *, units: str = "mm", remove_fragments
     factor = UNIT_FACTORS[suggested if units == "auto" else units]
     vertices *= factor
     errors, flags, confirmations = [], [], []
-    if units == "auto":
-        confirmations.append("STL 不记录单位；请核对原始尺寸后明确选择 mm、cm 或 m。")
-    if not 50 <= raw_diag * factor <= 1500:
+    unit_confidence, unit_reasons = _unit_confidence(raw_diag, units, suggested)
+    confirmations.extend(unit_reasons)
+    if not MIN_BBOX_DIAG_MM <= raw_diag * factor <= MAX_BBOX_DIAG_MM:
         errors.append("换算后的整体尺寸超出工具预检范围（包围盒对角 50–1500 mm）；请重新核对单位或血管范围。")
     area = _areas(vertices, faces)
     if not np.isfinite(area).all() or np.any(area <= 1e-12):
@@ -136,7 +166,11 @@ def ingest(stl_path: Path, out_dir: Path, *, units: str = "mm", remove_fragments
         write_binary_stl(clean, kept_v, kept_f)
     unit_note = "mm" if factor == 1 else f"{suggested if units == 'auto' else units}→mm (×{factor:g})"
     return {"source_stl": str(stl_path), "clean_stl": str(clean) if status == "pass" else None,
-            "unit": unit_note, "selected_units": units, "suggested_units": suggested,
+            "unit": unit_note, "selected_units": units,
+            "resolved_units": suggested if units == "auto" else units,
+            "suggested_units": suggested,
+            "unit_confidence": round(float(unit_confidence), 4),
+            "unit_confirmation_required": bool(unit_confidence < 0.95),
             "scale_factor": factor, "raw_bbox_size": raw_size.tolist(), "raw_bbox_diag": raw_diag,
             "bbox_size_mm": (raw_size * factor).tolist(), "bbox_diag_mm": raw_diag * factor,
             "vertices": len(kept_v), "faces": len(kept_f), "area_mm2": float(_areas(kept_v, kept_f).sum()),

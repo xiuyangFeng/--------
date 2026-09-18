@@ -229,11 +229,17 @@
     card.append(node('div',{class:'actions'},help('服务端会再次检查全部输入门限。'),submit));
     return card;
   }
-  function outletCard(job) {
+  function outletCard(job, options = {}) {
+    const override = options.override === true;
     const a = getA(job), p = a.proposal;
     if (!a.preview && job.preview) a.preview = job.preview;
-    state.mapping = {...p.mapping};
-    const card = node('section',{class:'card'},node('p',{class:'eyebrow',text:'步骤 03'}),node('h2',{text:'旋转壁面，确认每个出口'}),node('p',{class:'muted',text:'点击三维端点或表格中的编号，定位对应开口。颜色与命名同步更新。'}));
+    state.mapping = {...(job.mapping || p.mapping)};
+    const card = node('section',{class:`card${override ? ' override-outlet-card' : ''}`},node('p',{class:'eyebrow',text:override ? '人工复核' : '步骤 03'}),node('h2',{text:override ? '检查或修改出口命名后重算' : '旋转壁面，确认每个出口'}),node('p',{class:'muted',text:'点击三维端点或表格中的编号，定位对应开口。颜色与命名同步更新。'}));
+    if (Number.isFinite(Number(p.confidence))) {
+      card.append(callout(p.confirmation_required
+        ? `自动命名最低置信度 ${fmt(Number(p.confidence) * 100,1)}%，低于 95%，需要人工核对。`
+        : `自动命名最低置信度 ${fmt(Number(p.confidence) * 100,1)}%，已自动继续；如需修正，可在此人工修改并重算。`, p.confirmation_required ? 'warn' : 'success'));
+    }
     const directionNote = p.direction_note || getA(job).input_check?.direction_note || '方向来源：STL 世界坐标。图中的 X / Y / Z 不是患者左 / 右 / 前 / 后方向；请结合原始影像确认左右及髂内、髂外。';
     card.append(callout(directionNote,'warn'));
     for (const flag of p.flags || []) card.append(callout(flag,'warn'));
@@ -260,21 +266,21 @@
     card.append(node('div',{class:'table-wrap'},node('table',{},node('thead',{},node('tr',{},...['端点','开口半径','解剖命名','世界坐标 X, Y, Z（mm）'].map(text => node('th',{scope:'col',text})))),tbody)));
     const changed = node('p',{class:'mapping-changes','aria-live':'polite'});
     const ack = node('input',{type:'checkbox',id:'outlet-ack'});
-    const confirm = button('确认出口并计算 WSS',() => mutate(job,'/confirm',{mapping:{...state.mapping},acknowledged:true}),'primary');
+    const confirm = button(override ? '采用修改后的命名并重算' : '确认出口并计算 WSS',() => mutate(job,'/confirm',{mapping:{...state.mapping},acknowledged:true,...(override ? {override:true,stage:'B'} : {})}),'primary');
     function validMapping() { const names = [...selects.keys()].map(id => state.mapping[id]); return names.length === 4 && new Set(names).size === 4 && names.every(name => name && Object.hasOwn(CN,name)); }
     function updateConfirm() { confirm.disabled = !ack.checked || !validMapping(); }
     function updateMapping() {
       ack.checked = false; updateConfirm();
       selects.forEach((el,sid) => {el.value = state.mapping[sid] || '';});
       const differences = Object.keys(state.mapping).filter(key => state.mapping[key] !== p.mapping?.[key]);
-      changed.textContent = differences.length ? `已修改 ${differences.length} 个出口：${differences.map(id => `#${id} → ${CN[state.mapping[id]] || '未命名'}`).join('；')}。确认后将采用当前命名计算。` : '当前使用自动命名建议，仍需人工核对。';
+      changed.textContent = differences.length ? `已修改 ${differences.length} 个出口：${differences.map(id => `#${id} → ${CN[state.mapping[id]] || '未命名'}`).join('；')}。确认后将采用当前命名计算。` : (override ? '当前结果使用自动命名建议。你可以修改后重新计算。' : '当前使用自动命名建议，仍需人工核对。');
       for (const e of p.endpoints || []) { const name = e.kind === 'inlet' ? 'inlet' : state.mapping[String(e.segment_id)]; const dot = rows.get(String(e.segment_id))?.querySelector('.endpoint-dot'); if (dot) dot.style.backgroundColor = `#${(COLORS[name] || 0x74889b).toString(16).padStart(6,'0')}`; }
       state.viewer?.update(state.mapping);
     }
     const swap = pairs => { for (const key of Object.keys(state.mapping)) if (pairs[state.mapping[key]]) state.mapping[key] = pairs[state.mapping[key]]; updateMapping(); };
     card.append(node('div',{class:'mapping-actions'},button('左右互换',() => swap({'out-le':'out-re','out-li':'out-ri','out-re':'out-le','out-ri':'out-li'})),button('左侧内 / 外互换',() => swap({'out-le':'out-li','out-li':'out-le'})),button('右侧内 / 外互换',() => swap({'out-re':'out-ri','out-ri':'out-re'})),button('恢复自动建议',() => {state.mapping = {...p.mapping}; updateMapping();})),changed);
     card.append(callout('左右命名参与模型坐标的构建。修改左右后，确认计算会按新的坐标和出口分配重新生成预测。'));
-    card.append(node('label',{class:'ack',htmlFor:'outlet-ack'},ack,node('span',{text:'我已结合原始影像核对患者方向、主动脉入口以及四个髂内 / 髂外出口，确认表格命名正确。'})));
+    card.append(node('label',{class:'ack',htmlFor:'outlet-ack'},ack,node('span',{text:override ? '我已核对修改后的患者方向、主动脉入口和四个出口命名。' : '我已结合原始影像核对患者方向、主动脉入口以及四个髂内 / 髂外出口，确认表格命名正确。'})));
     ack.addEventListener('change',updateConfirm); updateMapping();
     card.append(node('div',{class:'actions'},help('四个出口名称必须各使用一次，同一髂总下的两个出口须属于同侧。'),confirm));
     const openings = a.centerline?.openings || [];
@@ -295,9 +301,18 @@
   function resultCard(job) {
     const summary = job.summary || {}, peak = summary.peak || {}, times = summary.timing_s || {};
     const card = node('section',{class:'card'},node('p',{class:'eyebrow',text:'预测完成'}),node('h2',{text:'壁面 WSS 结果已就绪'}));
+    const automatic = [...(job.mapping_history || [])].reverse().find(item => item.source === 'automatic_high_confidence');
+    if (automatic) card.append(callout(`出口命名已自动确认（最低置信度 ${fmt(Number(automatic.confidence) * 100,1)}%）。仍可打开下方入口人工复核并重算。`,'success'));
     card.append(node('div',{class:'result-cards'},fact('全场 p99',`${fmt(peak.p99_pa,2)} Pa`,'预测点云的第 99 百分位'),fact('全场最大值',`${fmt(peak.max_pa,2)} Pa`,peak.branch ? `最大值位置：${peak.branch}` : '位置见三维报告'),fact('计算耗时',duration(times.total),'不包含排队与人工确认')));
     const link = (text,path,cls = '') => node('a',{class:`button ${cls}`,href:jobUrl(job,path),target:'_blank',rel:'noopener',text});
-    card.append(node('div',{class:'actions'},link('打开三维报告','/report','primary'),link('下载壁面 VTP','/files/wall_wss.vtp'),link('下载点云 CSV','/files/points_wss.csv')));
+    const actions = [link('打开三维报告','/report','primary'),link('下载壁面 VTP','/files/wall_wss.vtp'),link('下载点云 CSV','/files/points_wss.csv')];
+    if (getA(job).proposal) actions.push(button('检查 / 修改出口命名并重算',() => {
+      if (card.parentElement?.querySelector('.override-outlet-card')) return;
+      const editor = outletCard(job,{override:true});
+      card.parentElement?.append(editor);
+      editor.scrollIntoView({behavior:'smooth',block:'start'});
+    }));
+    card.append(node('div',{class:'actions'},actions));
     card.append(help('报告可旋转查看整段壁面、查看最大值位置和分支统计，并导出当前视角截图。p99 是统计量，不对应单一解剖位置。'));
     card.append(node('div',{class:'file-links'},node('a',{href:jobUrl(job,'/files/summary.json'),target:'_blank',rel:'noopener',text:'查看完整统计与参数 JSON'})));
     return card;
@@ -307,7 +322,9 @@
     const details = node('details',{},node('summary',{text:'查看输入检查与计算过程'}),inputFacts(ic));
     const info = node('dl',{class:'timing-list'});
     const append = (label,value) => {info.append(node('dt',{text:label}),node('dd',{text:value}));};
-    append('原始单位',ic.selected_units || ic.unit || '—'); append('换算倍数',`× ${ic.scale_factor || 1}`);
+    const displayUnit = ic.selected_units === 'auto' ? `${ic.resolved_units || ic.suggested_units || '—'}（自动）` : (ic.selected_units || ic.unit || '—');
+    append('原始单位',displayUnit); append('换算倍数',`× ${ic.scale_factor || 1}`);
+    if (Number.isFinite(Number(ic.unit_confidence))) append('单位自动判定置信度',`${fmt(Number(ic.unit_confidence) * 100,1)}%`);
     if (a.centerline) {append('中心线检查',a.centerline.hard_pass ? '通过' : '未通过'); append('中心线端点 / 分叉',`${a.centerline.topology?.endpoints ?? '—'} / ${a.centerline.topology?.junctions ?? '—'}`);}
     for (const [key,value] of Object.entries(timing)) if (typeof value === 'number') append(TIMER_NAMES[key] || key,`${fmt(value,2)} 秒`);
     const queue = job.timing?.queue_seconds ?? job.queue_seconds ?? job.elapsed?.queue;

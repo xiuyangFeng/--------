@@ -18,6 +18,29 @@ IE_SCALE = np.array([16.2, 12.5, 0.77, 10.56])   # median |Δ| of (y, lateral, r
 IE_WEIGHT = np.array([1.0, 1.0, 0.3, 0.3])
 
 
+def _confidence_from_score(score: float) -> float:
+    """Conservative probability proxy for the internal/external score margin.
+
+    The historical review threshold was a score magnitude of 0.3.  The
+    calibrated map gives that boundary 50% confidence and reaches 95% at a
+    margin of about 2.0, avoiding the false precision of treating the raw
+    score itself as a probability.
+    """
+    value = float(score)
+    if not np.isfinite(value):
+        return 0.0
+    slope = np.log(19.0) / 1.7  # p(.3)=.50, p(2.0)=.95
+    return float(1.0 / (1.0 + np.exp(-slope * (abs(value) - 0.3))))
+
+
+def _confidence_from_x_gap(gap_mm: float) -> float:
+    """Probability proxy for separating the two common iliac sides."""
+    value = float(gap_mm)
+    if not np.isfinite(value):
+        return 0.0
+    return float(1.0 / (1.0 + np.exp(-0.8 * (value - 10.0))))
+
+
 def run_vessel_geom(stl_path: Path, out_dir: Path, *, inlet: int | None = None, smooth_iterations: int = 0, timeout: int = 900) -> dict:
     stl_path = Path(stl_path).resolve(); out_dir = Path(out_dir).resolve(); out_dir.mkdir(parents=True, exist_ok=True)
     cmd = [str(VMTK_PYTHON), "-m", "vessel_geom.cli", "--surface", str(stl_path), "--out", str(out_dir), "--preset", "frozen-aortoiliac",
@@ -60,14 +83,20 @@ def propose_outlets(atlas: Atlas) -> dict:
     seg = atlas.col("segment_id").astype(int); idx = atlas.col("sample_index").astype(int); xyz = atlas.xyz
     cias = kids.get(root, []) if root is not None else []
     leaves_of = {c: [k for k in _subtree(kids, c) if by[k].get("ends_at_leaf")] for c in cias}
-    proposal = {"root_segment": root, "cia_segments": cias, "auto_ok": False, "flags": [], "mapping": {}, "scores": {}, "sides": {}}
+    proposal = {"root_segment": root, "cia_segments": cias, "auto_ok": False,
+                "confirmation_required": True, "confidence_threshold": 0.95,
+                "confidence": 0.0, "confidence_reasons": [], "flags": [],
+                "mapping": {}, "scores": {}, "side_confidence": {}, "sides": {}}
     if len(cias) != 2 or any(len(leaves_of[c]) != 2 for c in cias):
         proposal["flags"].append(f"拓扑不是 1 入口 → 2 髂总 → 各 2 出口（髂总 {len(cias)} 条，出口 {[len(v) for v in leaves_of.values()]}），无法自动命名")
     else:
         mx = {c: float(xyz[np.isin(seg, _subtree(kids, c)), 0].mean()) for c in cias}
         left = min(mx, key=mx.get); right = max(mx, key=mx.get)
-        if abs(mx[left] - mx[right]) < 5.0:
-            proposal["flags"].append(f"左右髂总在 x 轴上只差 {abs(mx[left]-mx[right]):.1f} mm，左右判定不可靠")
+        x_gap = abs(mx[left] - mx[right])
+        x_confidence = _confidence_from_x_gap(x_gap)
+        proposal["side_confidence"]["left_right"] = round(x_confidence, 4)
+        if x_confidence < 0.95:
+            proposal["flags"].append(f"左右髂总在 x 轴上只差 {x_gap:.1f} mm，左右判定置信度 {x_confidence:.1%}，请人工核对")
         sem = {int(s["segment_id"]): -1 for s in atlas.segments}; sem[root] = 0
         for k in _subtree(kids, left): sem[k] = 1
         for k in _subtree(kids, right): sem[k] = 2
@@ -84,8 +113,18 @@ def propose_outlets(atlas: Atlas) -> dict:
             internal, external = (a, b) if score > 0 else (b, a)
             proposal["mapping"][str(internal)] = names[0]; proposal["mapping"][str(external)] = names[1]
             proposal["scores"][str(c)] = score; proposal["sides"][str(c)] = "left" if side == 1 else "right"
-            if abs(score) < 0.3:
-                proposal["flags"].append(f"{'左' if side==1 else '右'}侧髂内/髂外区分置信度低（score {score:.2f}），请人工核对")
+            confidence = _confidence_from_score(score)
+            proposal["side_confidence"][str(c)] = round(confidence, 4)
+            if confidence < 0.95:
+                proposal["flags"].append(f"{'左' if side==1 else '右'}侧髂内/髂外区分置信度 {confidence:.1%}（score {score:.2f}），请人工核对")
+        # Keep the unrounded value for the strict 0.95 routing gate; the UI
+        # formats it for display.
+        proposal["confidence"] = float(min(
+            _confidence_from_x_gap(x_gap),
+            *(_confidence_from_score(proposal["scores"][str(c)]) for c in cias),
+        ))
+        proposal["confidence_reasons"] = list(proposal["flags"])
+        proposal["confirmation_required"] = bool(proposal["flags"] or proposal["confidence"] < 0.95)
         proposal["auto_ok"] = True
     # endpoints + 2-D preview (PCA plane of the centreline)
     c0 = xyz.mean(0); _, _, vt = np.linalg.svd(xyz - c0, full_matrices=False); P = vt[:2]

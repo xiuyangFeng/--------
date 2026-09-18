@@ -97,7 +97,11 @@ def stage_b(job_dir: Path, mapping: dict[str, str], release: Release, *, smooth_
         per_branch_s[str(int(sid))] = float(np.median(geom["s_from_root_mm"][geom["segment_id"] == sid]))
     T["metrics_and_interpolation"] = time.perf_counter() - t
     meta = {"case_id": case_id or job_dir.name, "release": release.name, "device": pred["device"], "gpu": pred["gpu"], "created_at": _now(), "input_sha256": a["input_sha256"],
-            "input_check": a["input_check"], "centerline": a["centerline"], "outlets_confirmed": confirmed, "mapping": mapping, "flags": a["proposal"].get("flags", []),
+            "input_check": a["input_check"], "centerline": a["centerline"], "outlets_confirmed": confirmed, "mapping": mapping,
+            "proposal_confidence": a["proposal"].get("confidence"),
+            "proposal_side_confidence": a["proposal"].get("side_confidence", {}),
+            "proposal_confirmation_required": a["proposal"].get("confirmation_required"),
+            "flags": a["proposal"].get("flags", []),
             "cloud": {"n_points": int(len(pts)), "spacing_mm": diag["spacing_mm"], "smooth_mm": smooth_mm, "surface_variation_median": diag["surface_variation_median"], "junction_ambiguous_fraction": diag["junction_ambiguous_fraction"]},
             "caps": diag["caps"], "murray_shares": diag["murray_shares"], "endpoints": endpoints, "per_branch_s": per_branch_s, "timing_s": {k: round(v, 2) for k, v in T.items()},
             "seconds_per_model": [round(x, 2) for x in pred["seconds_per_model"]],
