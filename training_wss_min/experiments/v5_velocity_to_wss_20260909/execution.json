@@ -1,0 +1,25 @@
+{
+  "experiment": "VELWSS1",
+  "jobs": {
+    "failed_initial_velocity_reproduction": 13788,
+    "velocity_reproduction": 13789,
+    "geometry_prepare": 13790,
+    "fullwall_chunks": 13791,
+    "assemble": 13858,
+    "verification_report_workbook": 13961,
+    "workbook_resume": 13962,
+    "final_figures": 13963
+  },
+  "array": "0-168%64",
+  "requested_cpus_per_worker": 1,
+  "requested_memory_gb_per_worker": 6,
+  "protocol": "full V5 valid wall; same frozen radius/normals for predicted and CFD velocity; calibrate after complete-case merge",
+  "status": "complete",
+  "recovered_failures": {
+    "13788": "Initial strict scalar velocity reproduction stopped at one hotspot vertex boundary; 13789 rerun passed all 5372 original tolerances.",
+    "13961": "Independent verification and reporting passed; workbook import failed only because system Python on compute node lacked openpyxl. Resumed workbook on shared GNN Python in 13962."
+  },
+  "worker_cpu_seconds": 35477,
+  "array_start": "2026-09-09T21:04:51",
+  "array_end": "2026-09-09T21:16:43"
+}

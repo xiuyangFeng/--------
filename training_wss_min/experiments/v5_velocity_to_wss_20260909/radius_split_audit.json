@@ -1,0 +1,3597 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "created_at": "2026-09-09T13:02:01.344770+00:00",
+  "scope": "read-only geometry and split audit; no gradient fitting or training; no WSS/velocity label columns read",
+  "split_evidence": {
+    "legacy_split_path": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_q2v_pool2025_train138_test35_exclude_SHI_YUN_XI_v1.json",
+    "legacy_split_sha256": "964d7021f2d12baadd630e7b936456a4e62294fa72c5ada4fc70abe4d9361f2b",
+    "v5_split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+    "v5_split_sha256": "02c727d0218460671077966e26e34aa5263e9570575a8039538ad3df9676b5d0",
+    "model_path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_surface_mls_v4/calibrator_profile_secant_high_tail_anchor10_v3.joblib",
+    "model_sha256": "c1e53af5d60e17620c4e5123da76bab9f135c4125decf6a282b944f492433a02",
+    "model_manifest_path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_surface_mls_v4/calibrator_profile_secant_high_tail_anchor10_v3_manifest.json",
+    "model_manifest_sha256": "e92c9329f6628365181b5d5b0f0d284343d29bf67d12c5cfed15a9176a99937a",
+    "calibrator_train_cache_dir": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/point_cache_train138_profile_secant_s600",
+    "calibrator_training_cases_actual": [
+      "AAA/ruputer/DING_JUN_FENG",
+      "AAA/ruputer/FENG_LI_XIN",
+      "AAA/ruputer/GAO_FENG_SHAN",
+      "AAA/ruputer/GUO_AI_JUN",
+      "AAA/ruputer/HUO_SHI_LIANG",
+      "AAA/ruputer/LIN_LIANG_XIAO",
+      "AAA/ruputer/LIU_JI_XIN",
+      "AAA/ruputer/LIU_YONG_LAN",
+      "AAA/ruputer/LI_BING_JIANG",
+      "AAA/ruputer/LI_LAO_PING",
+      "AAA/ruputer/MA_XIAO_DONG",
+      "AAA/ruputer/MENG_GUANG_QIN",
+      "AAA/ruputer/TONG_XUE_LIAN",
+      "AAA/ruputer/WANG_AN",
+      "AAA/ruputer/WANG_KUI_WU",
+      "AAA/ruputer/WU_GUANG_CUN",
+      "AAA/ruputer/XIE_JIN_QUAN",
+      "AAA/ruputer/ZHANG_MAO_JIN",
+      "AAA/ruputer/ZHOU_KE_XUN",
+      "AAA/ruputer/ZOU_LI_SHUN",
+      "AAA/ruputer/ZUO_DAO_SHENG",
+      "AAA/unruputer/CAO_HONG_TAI",
+      "AAA/unruputer/CHEN_FU_YE",
+      "AAA/unruputer/CHEN_LIANG_FU",
+      "AAA/unruputer/CHEN_SHU_LIN",
+      "AAA/unruputer/FENG_ZHI_YING",
+      "AAA/unruputer/GAO_WEI_LI",
+      "AAA/unruputer/GUO_BAO_CHUN",
+      "AAA/unruputer/HAN_JIAN_FU",
+      "AAA/unruputer/LIN_JIAN_RONG",
+      "AAA/unruputer/LIU_CHENG_ZHANG",
+      "AAA/unruputer/LIU_JIE",
+      "AAA/unruputer/LIU_LI_FENG",
+      "AAA/unruputer/LIU_WEN_QI",
+      "AAA/unruputer/LIU_XING_GUO",
+      "AAA/unruputer/LI_YOU_YU",
+      "AAA/unruputer/QIAO_XIU_YUN",
+      "AAA/unruputer/SHEN_CHUN_WANG",
+      "AAA/unruputer/SHEN_FANG_JIN",
+      "AAA/unruputer/YANG_BEN_RUI",
+      "AAA/unruputer/YAN_FU_TANG",
+      "AAA/unruputer/ZHANG_XUN_LIAN",
+      "AAA/unruputer/ZHANG_ZHI_HUA",
+      "AAA/unruputer/ZHOU_XI_SHENG",
+      "AAA/unruputer/ZHU_ZI_HAI",
+      "AG/fast/CHEN_SHI_MING",
+      "AG/fast/HAN_JIAN_JUN",
+      "AG/fast/LIU_FENG_MING",
+      "AG/fast/LIU_JUN_FENG",
+      "AG/fast/LIU_LI_QUN",
+      "AG/fast/LIU_YI_BING",
+      "AG/fast/LI_SHI_QIANG",
+      "AG/fast/LI_SHU_KUN",
+      "AG/fast/LI_ZHEN_SHAN",
+      "AG/fast/LI_ZHI_LIN",
+      "AG/fast/WANG_CHUN_MING",
+      "AG/fast/WANG_DAO_CHUN",
+      "AG/fast/WANG_YONG_FAN",
+      "AG/fast/ZHANG_HAO",
+      "AG/fast/ZHANG_QING_WANG",
+      "AG/fast/ZHANG_XIU_WEN",
+      "AG/fast/ZHANG_XIU_ZHEN",
+      "AG/slow/A_MIN_SE_HA_CHI",
+      "AG/slow/CAO_FENG_CHI",
+      "AG/slow/CHENG_GUANG_SEN",
+      "AG/slow/CHENG_LU_LI",
+      "AG/slow/DING_LIAN_ZHONG",
+      "AG/slow/GONG_HUI_XIA",
+      "AG/slow/GUAN_TONG_XIANG",
+      "AG/slow/HOU_SHEN_QIAN",
+      "AG/slow/KANG_XI_MING",
+      "AG/slow/LIU_FA_CHUN",
+      "AG/slow/LIU_FENG",
+      "AG/slow/LIU_JIN_LIANG",
+      "AG/slow/LIU_ZONG_YANG",
+      "AG/slow/LI_BING_YI",
+      "AG/slow/LI_CHONG_ZENG",
+      "AG/slow/LI_GUI_YING",
+      "AG/slow/LU_ZHEN_QING",
+      "AG/slow/LV_FU_LONG",
+      "AG/slow/MI_DE_XI",
+      "AG/slow/NI_YAN_BIN",
+      "AG/slow/QIN_SI_FU",
+      "AG/slow/QU_HE_PING",
+      "AG/slow/SHEN_ZHI_GANG",
+      "AG/slow/SUN_ZONG_GE",
+      "AG/slow/WANG_GUANG_CHAO",
+      "AG/slow/WANG_GUI",
+      "AG/slow/WANG_KE",
+      "AG/slow/WANG_YAN_LING",
+      "AG/slow/WANG_YONG_LI",
+      "AG/slow/WEI_BAO_XING",
+      "AG/slow/WU_FENG_YAN",
+      "AG/slow/WU_YI_FA",
+      "AG/slow/XI_CHENG_JIANG",
+      "AG/slow/XU_YI_CAI",
+      "AG/slow/YANG_YOU_SHENG",
+      "AG/slow/YIN_YU_RONG",
+      "AG/slow/ZANG_YU_SHU",
+      "AG/slow/ZHANG_JING_SHUN",
+      "AG/slow/ZHANG_JUN_HUA",
+      "AG/slow/ZHANG_LING_GUANG",
+      "AG/slow/ZHANG_QING_SHUI",
+      "AG/slow/ZHANG_QUAN_YOU",
+      "AG/slow/ZHANG_SONG_TIAN",
+      "AG/slow/ZHANG_ZHI_JUN",
+      "ILO/AN_GUANG_JIE-0/before",
+      "ILO/BAO_EN_YUN-0/before",
+      "ILO/CUI_WEI_PING-0/before",
+      "ILO/GAO_SHU_CAI-0/before",
+      "ILO/GENG_CHUN_LAI-1/before",
+      "ILO/GONG_HAI_ZENG-1/before",
+      "ILO/GUO_QING_SHAN-0/before",
+      "ILO/GUO_YU_SHU-0/before",
+      "ILO/HOU_SHI_GUO-0/before",
+      "ILO/LIN_CHUN_YANG-1/before",
+      "ILO/LIU_BAO_JUN-0/before",
+      "ILO/LIU_LIAN_YOU-0/before",
+      "ILO/LIU_YUE_DONG-0/before",
+      "ILO/LI_SHENG_WEN-0/before",
+      "ILO/LV_JIAN_HUA-0/before",
+      "ILO/PAN_YIN_GEN-1/before",
+      "ILO/SUN_DE_QI-1/before",
+      "ILO/SUN_YU_SHENG-0/before",
+      "ILO/WAGN_LI_JUN-1/before",
+      "ILO/WANG_JIN_MING-0/before",
+      "ILO/WANG_SHU_SHENG-0/before",
+      "ILO/WANG_TIAN_QING-1/before",
+      "ILO/WANG_XIAO_LIN-0/before",
+      "ILO/WENG_ZHAO_GUANG-0/before",
+      "ILO/WU_JUN-0/before",
+      "ILO/XIE_ZHI_FU-0/before",
+      "ILO/YANG_WANG_QI-1/before",
+      "ILO/YANG_YU_QING-1/before",
+      "ILO/YAO_GUO_CHEN-0/before",
+      "ILO/ZHANG_JIAN_JUN-1/before",
+      "ILO/ZHANG_YAN_SHAN-0/before",
+      "ILO/ZHAO_CHANG_SHAN-0/before"
+    ],
+    "actual_cache_identity_records": [
+      {
+        "filename": "AAA__ruputer__DING_JUN_FENG.npz",
+        "canonical_id": "AAA/ruputer/DING_JUN_FENG",
+        "identity_npy_sha256": "d689c7209ff5f049c0c17109ee657d4130fed6530d9d556a7067c6f3788b51f5"
+      },
+      {
+        "filename": "AAA__ruputer__FENG_LI_XIN.npz",
+        "canonical_id": "AAA/ruputer/FENG_LI_XIN",
+        "identity_npy_sha256": "cf69111e71e2acb5130dbb198364ccf1c5e64149f32aea389ac3b44dffb43af3"
+      },
+      {
+        "filename": "AAA__ruputer__GAO_FENG_SHAN.npz",
+        "canonical_id": "AAA/ruputer/GAO_FENG_SHAN",
+        "identity_npy_sha256": "02f71480d9d2a04ad7612ee6e49188597c397871d88ab1b0ccd480cbc4a8071c"
+      },
+      {
+        "filename": "AAA__ruputer__GUO_AI_JUN.npz",
+        "canonical_id": "AAA/ruputer/GUO_AI_JUN",
+        "identity_npy_sha256": "44d6f94e277a9b61f4580da9f71d19d6989dc1105546eaff9f436428e1a09f75"
+      },
+      {
+        "filename": "AAA__ruputer__HUO_SHI_LIANG.npz",
+        "canonical_id": "AAA/ruputer/HUO_SHI_LIANG",
+        "identity_npy_sha256": "3a66e8591f0cbb0396b53cd8c451fce43a8ad1911d353c9447c4bc3d4897deaa"
+      },
+      {
+        "filename": "AAA__ruputer__LIN_LIANG_XIAO.npz",
+        "canonical_id": "AAA/ruputer/LIN_LIANG_XIAO",
+        "identity_npy_sha256": "cece242ba408aaae0feda1af53e8bd50fdde1eb115f38ccca24a8d1f00a494e2"
+      },
+      {
+        "filename": "AAA__ruputer__LIU_JI_XIN.npz",
+        "canonical_id": "AAA/ruputer/LIU_JI_XIN",
+        "identity_npy_sha256": "953a31eaa85acebc4248c79644291bc1429a312080dab223895dc6ac53d0030a"
+      },
+      {
+        "filename": "AAA__ruputer__LIU_YONG_LAN.npz",
+        "canonical_id": "AAA/ruputer/LIU_YONG_LAN",
+        "identity_npy_sha256": "37b2d29c91813879dab226f938d345053dad938d346ea6a4ead034a164155572"
+      },
+      {
+        "filename": "AAA__ruputer__LI_BING_JIANG.npz",
+        "canonical_id": "AAA/ruputer/LI_BING_JIANG",
+        "identity_npy_sha256": "3fcf0f221da73517237594c994df9855462aab76b95f306a42a86bd3e828deaf"
+      },
+      {
+        "filename": "AAA__ruputer__LI_LAO_PING.npz",
+        "canonical_id": "AAA/ruputer/LI_LAO_PING",
+        "identity_npy_sha256": "3e4519ed986020a5ff7bba25297570e67e6873bc9b53cce02ec1f3f43235e657"
+      },
+      {
+        "filename": "AAA__ruputer__MA_XIAO_DONG.npz",
+        "canonical_id": "AAA/ruputer/MA_XIAO_DONG",
+        "identity_npy_sha256": "05ec5f6850f552e15421cd2532b03ce1a4e1999ef899d57d1b58d65c41fd1223"
+      },
+      {
+        "filename": "AAA__ruputer__MENG_GUANG_QIN.npz",
+        "canonical_id": "AAA/ruputer/MENG_GUANG_QIN",
+        "identity_npy_sha256": "3133d891dc6688a2136e5369b7bc030642268af3473cbdcb2144ec12122e76c4"
+      },
+      {
+        "filename": "AAA__ruputer__TONG_XUE_LIAN.npz",
+        "canonical_id": "AAA/ruputer/TONG_XUE_LIAN",
+        "identity_npy_sha256": "06ef859468e146602b10f7b16e18e8bbb6abd1223384c014acc88bc449974e49"
+      },
+      {
+        "filename": "AAA__ruputer__WANG_AN.npz",
+        "canonical_id": "AAA/ruputer/WANG_AN",
+        "identity_npy_sha256": "0cfd2d6f9854acf080101421eb298c5b094a9b06740dfae4263c3b7b01ec9b96"
+      },
+      {
+        "filename": "AAA__ruputer__WANG_KUI_WU.npz",
+        "canonical_id": "AAA/ruputer/WANG_KUI_WU",
+        "identity_npy_sha256": "289c9f7f3dbf0d8ee8b3b121b5527c3e2993e262362bf47237b1270b22a4057b"
+      },
+      {
+        "filename": "AAA__ruputer__WU_GUANG_CUN.npz",
+        "canonical_id": "AAA/ruputer/WU_GUANG_CUN",
+        "identity_npy_sha256": "ca0f686963fd4acb95474ac7306ca481c7dbce138abf58f25fbfe7fc4a008f53"
+      },
+      {
+        "filename": "AAA__ruputer__XIE_JIN_QUAN.npz",
+        "canonical_id": "AAA/ruputer/XIE_JIN_QUAN",
+        "identity_npy_sha256": "8af89bc137c0b1671247b5523dd8d3cda47c5f75211003dbb5f235327597ec85"
+      },
+      {
+        "filename": "AAA__ruputer__ZHANG_MAO_JIN.npz",
+        "canonical_id": "AAA/ruputer/ZHANG_MAO_JIN",
+        "identity_npy_sha256": "00e92f8dcff1e3741b2735874ed78c778995db39f7d7732842d16b5683e51085"
+      },
+      {
+        "filename": "AAA__ruputer__ZHOU_KE_XUN.npz",
+        "canonical_id": "AAA/ruputer/ZHOU_KE_XUN",
+        "identity_npy_sha256": "acadb6daf7195157e92693c72a4b6a837563cb45b3cf92f19d60ac7efc3550c7"
+      },
+      {
+        "filename": "AAA__ruputer__ZOU_LI_SHUN.npz",
+        "canonical_id": "AAA/ruputer/ZOU_LI_SHUN",
+        "identity_npy_sha256": "e9d76d26d21376b50059074e3ba3fdc364abde0ce70171cc967446dd7ec69c72"
+      },
+      {
+        "filename": "AAA__ruputer__ZUO_DAO_SHENG.npz",
+        "canonical_id": "AAA/ruputer/ZUO_DAO_SHENG",
+        "identity_npy_sha256": "ea715013cc145d2b2dbebfbf680b6c75fc129dc84c79dad9cbcbf531353e1f63"
+      },
+      {
+        "filename": "AAA__unruputer__CAO_HONG_TAI.npz",
+        "canonical_id": "AAA/unruputer/CAO_HONG_TAI",
+        "identity_npy_sha256": "6c38205f763bdddf2779144379572e93d43deac7e5c2bb6561febf12dd5794cf"
+      },
+      {
+        "filename": "AAA__unruputer__CHEN_FU_YE.npz",
+        "canonical_id": "AAA/unruputer/CHEN_FU_YE",
+        "identity_npy_sha256": "a2aaff4ac02628dbcbf66b17f93af55fa9dbd433259d43228958ffdcd1492f35"
+      },
+      {
+        "filename": "AAA__unruputer__CHEN_LIANG_FU.npz",
+        "canonical_id": "AAA/unruputer/CHEN_LIANG_FU",
+        "identity_npy_sha256": "12fac6a8deac0e59b6b7410f3352446347bcb031e22a1d7946b48c114baf97d9"
+      },
+      {
+        "filename": "AAA__unruputer__CHEN_SHU_LIN.npz",
+        "canonical_id": "AAA/unruputer/CHEN_SHU_LIN",
+        "identity_npy_sha256": "5c48ec902787413c7a92d4624adfd437badd335b96b6a896fdd0d3759f3206dd"
+      },
+      {
+        "filename": "AAA__unruputer__FENG_ZHI_YING.npz",
+        "canonical_id": "AAA/unruputer/FENG_ZHI_YING",
+        "identity_npy_sha256": "b99ba919a81cb9db05ade7da32772441e285dff316eedd47139f4af85e7793cd"
+      },
+      {
+        "filename": "AAA__unruputer__GAO_WEI_LI.npz",
+        "canonical_id": "AAA/unruputer/GAO_WEI_LI",
+        "identity_npy_sha256": "cf7a9ffe0298754f1ded57368264b677b43e184e7310e8dc3054d19705a88c3e"
+      },
+      {
+        "filename": "AAA__unruputer__GUO_BAO_CHUN.npz",
+        "canonical_id": "AAA/unruputer/GUO_BAO_CHUN",
+        "identity_npy_sha256": "f1f06ac7a77e9eda7543a1cd3672a185f3cd2db24f62477e7abe6ad22420cf72"
+      },
+      {
+        "filename": "AAA__unruputer__HAN_JIAN_FU.npz",
+        "canonical_id": "AAA/unruputer/HAN_JIAN_FU",
+        "identity_npy_sha256": "2c1f23463941e6de3222da83706bd954a1149da338ddffa4b3e5aa3ade211e21"
+      },
+      {
+        "filename": "AAA__unruputer__LIN_JIAN_RONG.npz",
+        "canonical_id": "AAA/unruputer/LIN_JIAN_RONG",
+        "identity_npy_sha256": "80013c93cd82a4efd2c9e549085abed7f6c7b2cc7511876d1597ca5b59f0f98e"
+      },
+      {
+        "filename": "AAA__unruputer__LIU_CHENG_ZHANG.npz",
+        "canonical_id": "AAA/unruputer/LIU_CHENG_ZHANG",
+        "identity_npy_sha256": "7865b333d924c85381799974bcbb8ee01fe8270f17bda309df3ef65ba3b37904"
+      },
+      {
+        "filename": "AAA__unruputer__LIU_JIE.npz",
+        "canonical_id": "AAA/unruputer/LIU_JIE",
+        "identity_npy_sha256": "136ccffea23c74ea70496a736b85b391256066c59dc509113e146a6ba6aa4301"
+      },
+      {
+        "filename": "AAA__unruputer__LIU_LI_FENG.npz",
+        "canonical_id": "AAA/unruputer/LIU_LI_FENG",
+        "identity_npy_sha256": "ccd0e7cff98e77f2c87e7e41add87cc0e51c8432dd6be0bfd7e56ce617ef75e3"
+      },
+      {
+        "filename": "AAA__unruputer__LIU_WEN_QI.npz",
+        "canonical_id": "AAA/unruputer/LIU_WEN_QI",
+        "identity_npy_sha256": "e2169be87d866c0d051c96f7c71a6ca6f3de23bd2de11dc170bdbf056fb6b8e2"
+      },
+      {
+        "filename": "AAA__unruputer__LIU_XING_GUO.npz",
+        "canonical_id": "AAA/unruputer/LIU_XING_GUO",
+        "identity_npy_sha256": "ceecb485e2926e5a7d54fe3c2af43c26f7671eaad988281f2e19ead51f8d6c0b"
+      },
+      {
+        "filename": "AAA__unruputer__LI_YOU_YU.npz",
+        "canonical_id": "AAA/unruputer/LI_YOU_YU",
+        "identity_npy_sha256": "a9590c6f000f9c446a61ccff7744902d36a71c7fd51d723e0ff773e7f4ebf422"
+      },
+      {
+        "filename": "AAA__unruputer__QIAO_XIU_YUN.npz",
+        "canonical_id": "AAA/unruputer/QIAO_XIU_YUN",
+        "identity_npy_sha256": "e033836ce5cff8353ce04f9c1421ccccf9ddcba30113198be1f248b42e05418c"
+      },
+      {
+        "filename": "AAA__unruputer__SHEN_CHUN_WANG.npz",
+        "canonical_id": "AAA/unruputer/SHEN_CHUN_WANG",
+        "identity_npy_sha256": "cfc430beb62b33e56c07f2c7ffaf1c9a264df03041bb555fb41927d939ad5296"
+      },
+      {
+        "filename": "AAA__unruputer__SHEN_FANG_JIN.npz",
+        "canonical_id": "AAA/unruputer/SHEN_FANG_JIN",
+        "identity_npy_sha256": "96ad9fe16d0f8b80780de5d7c77d7978d95deb06de47f617d3c89c19b3a391e0"
+      },
+      {
+        "filename": "AAA__unruputer__YANG_BEN_RUI.npz",
+        "canonical_id": "AAA/unruputer/YANG_BEN_RUI",
+        "identity_npy_sha256": "49e4a1484edccbc68fd403a06292434bcfba28b984f69575261738f4f25441b8"
+      },
+      {
+        "filename": "AAA__unruputer__YAN_FU_TANG.npz",
+        "canonical_id": "AAA/unruputer/YAN_FU_TANG",
+        "identity_npy_sha256": "6041465acf729a22a59a494ef2613e609d7862ba70d03a3aa742e0b54d3cd781"
+      },
+      {
+        "filename": "AAA__unruputer__ZHANG_XUN_LIAN.npz",
+        "canonical_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+        "identity_npy_sha256": "6a16406b5ee52a44aaaaeb119adf5e4ca4f999dccaad78cb1df2058d1ff75059"
+      },
+      {
+        "filename": "AAA__unruputer__ZHANG_ZHI_HUA.npz",
+        "canonical_id": "AAA/unruputer/ZHANG_ZHI_HUA",
+        "identity_npy_sha256": "986e0fd27eeb067c63e5264d81b906720b383b4531cae92792996b9b601efcec"
+      },
+      {
+        "filename": "AAA__unruputer__ZHOU_XI_SHENG.npz",
+        "canonical_id": "AAA/unruputer/ZHOU_XI_SHENG",
+        "identity_npy_sha256": "b554135164ab84ddf577cc38e1e240be15a9f5e92644b75cc2bcb9ebd752473a"
+      },
+      {
+        "filename": "AAA__unruputer__ZHU_ZI_HAI.npz",
+        "canonical_id": "AAA/unruputer/ZHU_ZI_HAI",
+        "identity_npy_sha256": "cf5783231c4b0847865395a6d9a157665b1bb9effb542592e4fa429ab38f0aab"
+      },
+      {
+        "filename": "AG__fast__CHEN_SHI_MING.npz",
+        "canonical_id": "AG/fast/CHEN_SHI_MING",
+        "identity_npy_sha256": "8598aa3b9a8713944f25ba645c776dffe3f394d4a6fe3f3ccba0db9ac80a8eb9"
+      },
+      {
+        "filename": "AG__fast__HAN_JIAN_JUN.npz",
+        "canonical_id": "AG/fast/HAN_JIAN_JUN",
+        "identity_npy_sha256": "5424b0ccecbb7ed6e998922e34ac2171190e69cdc031bb5442e3b175e9116019"
+      },
+      {
+        "filename": "AG__fast__LIU_FENG_MING.npz",
+        "canonical_id": "AG/fast/LIU_FENG_MING",
+        "identity_npy_sha256": "d5366c3a68675f9a57ee724144d31bf201d4da8f3d7b8005305c4ebfc084f1b3"
+      },
+      {
+        "filename": "AG__fast__LIU_JUN_FENG.npz",
+        "canonical_id": "AG/fast/LIU_JUN_FENG",
+        "identity_npy_sha256": "e5fd1563b9f46dd305c3d6fb27f9710ac8eb2e7ee125da2e8012bc8aa97484f8"
+      },
+      {
+        "filename": "AG__fast__LIU_LI_QUN.npz",
+        "canonical_id": "AG/fast/LIU_LI_QUN",
+        "identity_npy_sha256": "501815c47b38602251b4c0d5f687b9bb9a583655bd2f1eaf98f43f1b20fd593e"
+      },
+      {
+        "filename": "AG__fast__LIU_YI_BING.npz",
+        "canonical_id": "AG/fast/LIU_YI_BING",
+        "identity_npy_sha256": "e734733f47e4884e58585755f0c1f08df89d2b7e4838086f0d5a5233fa4c8203"
+      },
+      {
+        "filename": "AG__fast__LI_SHI_QIANG.npz",
+        "canonical_id": "AG/fast/LI_SHI_QIANG",
+        "identity_npy_sha256": "9ceb866e0f213ff3efbd37b9dc4ac863ed9229a619f5ee6fe33fc7e935ed2140"
+      },
+      {
+        "filename": "AG__fast__LI_SHU_KUN.npz",
+        "canonical_id": "AG/fast/LI_SHU_KUN",
+        "identity_npy_sha256": "6b70355bb4ccabbd8bbc2a49b6fa6106135d0e02c9ce7b34a7e189c0a20ef14f"
+      },
+      {
+        "filename": "AG__fast__LI_ZHEN_SHAN.npz",
+        "canonical_id": "AG/fast/LI_ZHEN_SHAN",
+        "identity_npy_sha256": "4c53c945527196b036c0bfc1b048652a5294da8c385bce83bf9e2a01799d8d57"
+      },
+      {
+        "filename": "AG__fast__LI_ZHI_LIN.npz",
+        "canonical_id": "AG/fast/LI_ZHI_LIN",
+        "identity_npy_sha256": "60ccce25e9ca8f81f8d508fd58bffead848b00d7d30ef5817ed86cdbd1da2219"
+      },
+      {
+        "filename": "AG__fast__WANG_CHUN_MING.npz",
+        "canonical_id": "AG/fast/WANG_CHUN_MING",
+        "identity_npy_sha256": "37959847dc3d19cb397f0f50ac8cf07ff95dce9c3d1773d0d8bd72429d48959d"
+      },
+      {
+        "filename": "AG__fast__WANG_DAO_CHUN.npz",
+        "canonical_id": "AG/fast/WANG_DAO_CHUN",
+        "identity_npy_sha256": "6131f7d39cf2ea07d19457023042ce97c284364148d5e76bd1846306540c81bb"
+      },
+      {
+        "filename": "AG__fast__WANG_YONG_FAN.npz",
+        "canonical_id": "AG/fast/WANG_YONG_FAN",
+        "identity_npy_sha256": "07f7fac3994ea671d369664c83880070bee4ab7210fd492a66bace4d7b56ae4e"
+      },
+      {
+        "filename": "AG__fast__ZHANG_HAO.npz",
+        "canonical_id": "AG/fast/ZHANG_HAO",
+        "identity_npy_sha256": "6130a8b58a4e851f782cf39aba7e7a40884dcfeea63d94cbfccaf150d65e70ba"
+      },
+      {
+        "filename": "AG__fast__ZHANG_QING_WANG.npz",
+        "canonical_id": "AG/fast/ZHANG_QING_WANG",
+        "identity_npy_sha256": "5d65de5b0154068e891f96c3399ba7cb3566e04782a7cfb8c0b33d43b269638a"
+      },
+      {
+        "filename": "AG__fast__ZHANG_XIU_WEN.npz",
+        "canonical_id": "AG/fast/ZHANG_XIU_WEN",
+        "identity_npy_sha256": "0d9067e06c58b0b827f4dd56c4edeaab276c1acad3a5320e3f9b8d377d800546"
+      },
+      {
+        "filename": "AG__fast__ZHANG_XIU_ZHEN.npz",
+        "canonical_id": "AG/fast/ZHANG_XIU_ZHEN",
+        "identity_npy_sha256": "3d4859e31c0fdf87a5ecc44ebeec993e1175dd9dcb8af1d3a2c694170dd75edb"
+      },
+      {
+        "filename": "AG__slow__A_MIN_SE_HA_CHI.npz",
+        "canonical_id": "AG/slow/A_MIN_SE_HA_CHI",
+        "identity_npy_sha256": "3265cb12c73e1675ef3cbd96837f28d4de627303366932672cbcbd3ad46d045d"
+      },
+      {
+        "filename": "AG__slow__CAO_FENG_CHI.npz",
+        "canonical_id": "AG/slow/CAO_FENG_CHI",
+        "identity_npy_sha256": "678726f41b647626afc9cb50ec9e21e768def03cb985eace422330dae7348413"
+      },
+      {
+        "filename": "AG__slow__CHENG_GUANG_SEN.npz",
+        "canonical_id": "AG/slow/CHENG_GUANG_SEN",
+        "identity_npy_sha256": "52058dc1097c08dd122bcd1c1d59d788fe96dc06d6c3ffd3f9a5dbb9a1fb0295"
+      },
+      {
+        "filename": "AG__slow__CHENG_LU_LI.npz",
+        "canonical_id": "AG/slow/CHENG_LU_LI",
+        "identity_npy_sha256": "321eff357249a157bb51f354055364e297b739599d1c53aa079383df21aaef0d"
+      },
+      {
+        "filename": "AG__slow__DING_LIAN_ZHONG.npz",
+        "canonical_id": "AG/slow/DING_LIAN_ZHONG",
+        "identity_npy_sha256": "a40e3f45f8cb49b7c4b106d177040f3e8f86d006fc8693fa316895d1cc65dc70"
+      },
+      {
+        "filename": "AG__slow__GONG_HUI_XIA.npz",
+        "canonical_id": "AG/slow/GONG_HUI_XIA",
+        "identity_npy_sha256": "f27735e26b5b18ad4838ff8ae17c249c44b29ad1177ca699906512dbd3c530d1"
+      },
+      {
+        "filename": "AG__slow__GUAN_TONG_XIANG.npz",
+        "canonical_id": "AG/slow/GUAN_TONG_XIANG",
+        "identity_npy_sha256": "b8e0bba4e9507623021d4cd6d48daefd8c475e565419adb61fc73bd3e246ddc0"
+      },
+      {
+        "filename": "AG__slow__HOU_SHEN_QIAN.npz",
+        "canonical_id": "AG/slow/HOU_SHEN_QIAN",
+        "identity_npy_sha256": "dc113bf0f8c43a6662d45ed9ea5789c7d59c2048e4a0e8d63b2c21e703b5e2cd"
+      },
+      {
+        "filename": "AG__slow__KANG_XI_MING.npz",
+        "canonical_id": "AG/slow/KANG_XI_MING",
+        "identity_npy_sha256": "6e7216bf334fdc86abae5298ffb281428fdd1266ef0c9d1f0e57f7a4e019726c"
+      },
+      {
+        "filename": "AG__slow__LIU_FA_CHUN.npz",
+        "canonical_id": "AG/slow/LIU_FA_CHUN",
+        "identity_npy_sha256": "29476a2c634c4a22e962934e8759646cad86837740b081b852ce4313c5c5b0e4"
+      },
+      {
+        "filename": "AG__slow__LIU_FENG.npz",
+        "canonical_id": "AG/slow/LIU_FENG",
+        "identity_npy_sha256": "5dbd50609be558a30ec16f44330d5386734f42f634590433672833fbd9a4248b"
+      },
+      {
+        "filename": "AG__slow__LIU_JIN_LIANG.npz",
+        "canonical_id": "AG/slow/LIU_JIN_LIANG",
+        "identity_npy_sha256": "187343e2a960a7e478301405aa470122703397702acc8c8bb8f43a1c606f31b9"
+      },
+      {
+        "filename": "AG__slow__LIU_ZONG_YANG.npz",
+        "canonical_id": "AG/slow/LIU_ZONG_YANG",
+        "identity_npy_sha256": "bc26774d0e730a3ac1a062790bea872aa7044f942459efff8ef4276df2b9f8fb"
+      },
+      {
+        "filename": "AG__slow__LI_BING_YI.npz",
+        "canonical_id": "AG/slow/LI_BING_YI",
+        "identity_npy_sha256": "6a56726bcfa68fbf6dae62094dd7356b2b476d3e05c2c1e421adfdd1c976a9cf"
+      },
+      {
+        "filename": "AG__slow__LI_CHONG_ZENG.npz",
+        "canonical_id": "AG/slow/LI_CHONG_ZENG",
+        "identity_npy_sha256": "b254d25738bf63a9205ce9eda918a43bf30d3297ebd9f3c5c17600160c83643c"
+      },
+      {
+        "filename": "AG__slow__LI_GUI_YING.npz",
+        "canonical_id": "AG/slow/LI_GUI_YING",
+        "identity_npy_sha256": "2cab3b626f1f6157f4ab683ac912eff6e6f954eaeb687fe443c57fdec194d355"
+      },
+      {
+        "filename": "AG__slow__LU_ZHEN_QING.npz",
+        "canonical_id": "AG/slow/LU_ZHEN_QING",
+        "identity_npy_sha256": "ad2d4c48b7aa5988eacf2de061fa8668d769d6de4b0e514a19b0acf238c55202"
+      },
+      {
+        "filename": "AG__slow__LV_FU_LONG.npz",
+        "canonical_id": "AG/slow/LV_FU_LONG",
+        "identity_npy_sha256": "1c8f2b0a529bcd55b1ee421ace28a31c49cdb0bb987b0bad6fc98adea0d69c9f"
+      },
+      {
+        "filename": "AG__slow__MI_DE_XI.npz",
+        "canonical_id": "AG/slow/MI_DE_XI",
+        "identity_npy_sha256": "3b8b589f79438b2bc693b042b0c625cc60dab4ef54e0ae4aa800d77a529980e8"
+      },
+      {
+        "filename": "AG__slow__NI_YAN_BIN.npz",
+        "canonical_id": "AG/slow/NI_YAN_BIN",
+        "identity_npy_sha256": "ce4e661f95f788831f3c6e3b22b263fb7b0bc423369838fe3956a1987b4bfb16"
+      },
+      {
+        "filename": "AG__slow__QIN_SI_FU.npz",
+        "canonical_id": "AG/slow/QIN_SI_FU",
+        "identity_npy_sha256": "89968cdc563ed3866db968e954c04e384687eb936d65b8488eaa6d8deb4ec09e"
+      },
+      {
+        "filename": "AG__slow__QU_HE_PING.npz",
+        "canonical_id": "AG/slow/QU_HE_PING",
+        "identity_npy_sha256": "fb00a02904cc9aaa08cf4545d7416a8e239fc08e9a10a6e357ac0867f0c4d08b"
+      },
+      {
+        "filename": "AG__slow__SHEN_ZHI_GANG.npz",
+        "canonical_id": "AG/slow/SHEN_ZHI_GANG",
+        "identity_npy_sha256": "a346c56abfdd6e33a7f1a24eda0353ea79f0a72baedd763ff0aa842f886c74f2"
+      },
+      {
+        "filename": "AG__slow__SUN_ZONG_GE.npz",
+        "canonical_id": "AG/slow/SUN_ZONG_GE",
+        "identity_npy_sha256": "02d5019d3cc220da530b61e6de13f9a24d030a2ebf529850ad0148a83b58c340"
+      },
+      {
+        "filename": "AG__slow__WANG_GUANG_CHAO.npz",
+        "canonical_id": "AG/slow/WANG_GUANG_CHAO",
+        "identity_npy_sha256": "cc90901210214fa63ca911cf8f199880085cb0ff5964a83a9ddf9ee6f2d699d1"
+      },
+      {
+        "filename": "AG__slow__WANG_GUI.npz",
+        "canonical_id": "AG/slow/WANG_GUI",
+        "identity_npy_sha256": "fb5fb0381728ff82644b1655b473b45083f4e36dc9d58a4a3ea550ffd5f359a4"
+      },
+      {
+        "filename": "AG__slow__WANG_KE.npz",
+        "canonical_id": "AG/slow/WANG_KE",
+        "identity_npy_sha256": "7f2e37ea32571535eaf1d5193ad53f55da31238eda89aa00efcc55a992d770e3"
+      },
+      {
+        "filename": "AG__slow__WANG_YAN_LING.npz",
+        "canonical_id": "AG/slow/WANG_YAN_LING",
+        "identity_npy_sha256": "8cbaa363248e3e6648d2e655f46864609e5df56ea2ae00cc919b67cd49166e8f"
+      },
+      {
+        "filename": "AG__slow__WANG_YONG_LI.npz",
+        "canonical_id": "AG/slow/WANG_YONG_LI",
+        "identity_npy_sha256": "fb90ff4dfea7f4b8e553ad625c40a0ed1971ed656425e1cc4cee3992dce38453"
+      },
+      {
+        "filename": "AG__slow__WEI_BAO_XING.npz",
+        "canonical_id": "AG/slow/WEI_BAO_XING",
+        "identity_npy_sha256": "683382d3a9924835943eddda78a910db11c50e8ba5a88265a0412f9b6b3fa571"
+      },
+      {
+        "filename": "AG__slow__WU_FENG_YAN.npz",
+        "canonical_id": "AG/slow/WU_FENG_YAN",
+        "identity_npy_sha256": "b5c52e962a0edf788fae828ec05908cae37380a2008569a5fcc7979ff1958f75"
+      },
+      {
+        "filename": "AG__slow__WU_YI_FA.npz",
+        "canonical_id": "AG/slow/WU_YI_FA",
+        "identity_npy_sha256": "0a0d9cf9a13583f0e8c7761685a36c274225fe39b28e6321585da3b4bff5c069"
+      },
+      {
+        "filename": "AG__slow__XI_CHENG_JIANG.npz",
+        "canonical_id": "AG/slow/XI_CHENG_JIANG",
+        "identity_npy_sha256": "1e2b01a13039fe7fd1af146fb1984458e24fe1a1644d106afab0f870f79b1284"
+      },
+      {
+        "filename": "AG__slow__XU_YI_CAI.npz",
+        "canonical_id": "AG/slow/XU_YI_CAI",
+        "identity_npy_sha256": "7b5c1073db4ac2d807ad8e34d888f1bb621592c575a003a78544887f838eaf7c"
+      },
+      {
+        "filename": "AG__slow__YANG_YOU_SHENG.npz",
+        "canonical_id": "AG/slow/YANG_YOU_SHENG",
+        "identity_npy_sha256": "99d5e9408c1f31ded0a8535b0e844cd852f75ae2188e07d056b2e611385597f8"
+      },
+      {
+        "filename": "AG__slow__YIN_YU_RONG.npz",
+        "canonical_id": "AG/slow/YIN_YU_RONG",
+        "identity_npy_sha256": "5d6db98580c3139eed6f2bc3709322e9e83cd836dedf5b434b9c62cf85bf8212"
+      },
+      {
+        "filename": "AG__slow__ZANG_YU_SHU.npz",
+        "canonical_id": "AG/slow/ZANG_YU_SHU",
+        "identity_npy_sha256": "6f1eadbee954213d860ec5b34d5f0c0bc23ae14bfdab2f3e63d204a4e48ffbc7"
+      },
+      {
+        "filename": "AG__slow__ZHANG_JING_SHUN.npz",
+        "canonical_id": "AG/slow/ZHANG_JING_SHUN",
+        "identity_npy_sha256": "0531d3806d35556c3bc6dde5b9c84a38b88ae94e6f66b70869f786398087ce14"
+      },
+      {
+        "filename": "AG__slow__ZHANG_JUN_HUA.npz",
+        "canonical_id": "AG/slow/ZHANG_JUN_HUA",
+        "identity_npy_sha256": "9522bcdc5884e062490be1fed448afad73d9f52a21b6e36d65d5af247d889386"
+      },
+      {
+        "filename": "AG__slow__ZHANG_LING_GUANG.npz",
+        "canonical_id": "AG/slow/ZHANG_LING_GUANG",
+        "identity_npy_sha256": "3e0b6e83cf446bb29c325ba63cf7b63d415903e7758a83285fe67cd447302362"
+      },
+      {
+        "filename": "AG__slow__ZHANG_QING_SHUI.npz",
+        "canonical_id": "AG/slow/ZHANG_QING_SHUI",
+        "identity_npy_sha256": "ffacf4b5c823d981bbb319777e8d3c440ad23938dd0cc495203bd5eeedf67b25"
+      },
+      {
+        "filename": "AG__slow__ZHANG_QUAN_YOU.npz",
+        "canonical_id": "AG/slow/ZHANG_QUAN_YOU",
+        "identity_npy_sha256": "7db00d21dd328cb8b533c9e6d56de695307bb50f2cdbc58f3a82c6533daebe57"
+      },
+      {
+        "filename": "AG__slow__ZHANG_SONG_TIAN.npz",
+        "canonical_id": "AG/slow/ZHANG_SONG_TIAN",
+        "identity_npy_sha256": "e3db2e1d4e17462a15befc03bd7134358c5b42ed5d53b045748510ee9dc2824c"
+      },
+      {
+        "filename": "AG__slow__ZHANG_ZHI_JUN.npz",
+        "canonical_id": "AG/slow/ZHANG_ZHI_JUN",
+        "identity_npy_sha256": "3152a2ebb0bac65f19e56f3e20779977aa2a6b3e98dea052e87fceac2917150f"
+      },
+      {
+        "filename": "ILO__AN_GUANG_JIE-0__before.npz",
+        "canonical_id": "ILO/AN_GUANG_JIE-0/before",
+        "identity_npy_sha256": "360ce5e00a9edffa49b4fd80995a01a206f925c4934c7ede2f77acf09cc1a5ae"
+      },
+      {
+        "filename": "ILO__BAO_EN_YUN-0__before.npz",
+        "canonical_id": "ILO/BAO_EN_YUN-0/before",
+        "identity_npy_sha256": "c3d6d1be8edb9833865d030a0dd63b86cfb30617e5b6856be113af1cc673b2a2"
+      },
+      {
+        "filename": "ILO__CUI_WEI_PING-0__before.npz",
+        "canonical_id": "ILO/CUI_WEI_PING-0/before",
+        "identity_npy_sha256": "c8debb17a453f279a76f0a8af39cc69580df962eb72340e860dce8bded3008b6"
+      },
+      {
+        "filename": "ILO__GAO_SHU_CAI-0__before.npz",
+        "canonical_id": "ILO/GAO_SHU_CAI-0/before",
+        "identity_npy_sha256": "86302f8b47130c8e2a4f111530d61bc2e0c8f8448fe23a1c158175c540045720"
+      },
+      {
+        "filename": "ILO__GENG_CHUN_LAI-1__before.npz",
+        "canonical_id": "ILO/GENG_CHUN_LAI-1/before",
+        "identity_npy_sha256": "f0b5898fea964b42b71020dbd3187384d90ddea9397cb8e560a8cb3ae2ff692e"
+      },
+      {
+        "filename": "ILO__GONG_HAI_ZENG-1__before.npz",
+        "canonical_id": "ILO/GONG_HAI_ZENG-1/before",
+        "identity_npy_sha256": "427015ccea85fa7b46d5e3f4dbcbb4aca60645c46196442fe3083a758f7f52d7"
+      },
+      {
+        "filename": "ILO__GUO_QING_SHAN-0__before.npz",
+        "canonical_id": "ILO/GUO_QING_SHAN-0/before",
+        "identity_npy_sha256": "08c9a32fb6e49f0097fb77cb296c8acfb5f1e628aab8f524a83ee43a6b1c9b30"
+      },
+      {
+        "filename": "ILO__GUO_YU_SHU-0__before.npz",
+        "canonical_id": "ILO/GUO_YU_SHU-0/before",
+        "identity_npy_sha256": "550b4cc13a40fe195dbbc3b974cf0b300a71eabab56267e5ede4d503abea4111"
+      },
+      {
+        "filename": "ILO__HOU_SHI_GUO-0__before.npz",
+        "canonical_id": "ILO/HOU_SHI_GUO-0/before",
+        "identity_npy_sha256": "6bda8170ef24e858da0d863b7ad0fade5b6a14b4c41bc2dd79c835484262b048"
+      },
+      {
+        "filename": "ILO__LIN_CHUN_YANG-1__before.npz",
+        "canonical_id": "ILO/LIN_CHUN_YANG-1/before",
+        "identity_npy_sha256": "20eee3e49c5ab6572367b6c6d47d747a4554a60075c8f400775fad5474b94471"
+      },
+      {
+        "filename": "ILO__LIU_BAO_JUN-0__before.npz",
+        "canonical_id": "ILO/LIU_BAO_JUN-0/before",
+        "identity_npy_sha256": "6a601355ab4594cbd869abb0e0b4e5699bc7723717aa68ea1ec03e314ceaf264"
+      },
+      {
+        "filename": "ILO__LIU_LIAN_YOU-0__before.npz",
+        "canonical_id": "ILO/LIU_LIAN_YOU-0/before",
+        "identity_npy_sha256": "b73d524ad62c00e08ba2572e070e17dc61daa154a71abced285a28352bfc8ed0"
+      },
+      {
+        "filename": "ILO__LIU_YUE_DONG-0__before.npz",
+        "canonical_id": "ILO/LIU_YUE_DONG-0/before",
+        "identity_npy_sha256": "38d5387f22184214e50b0dd92a399e0075273d7c2643a0ca93163e3f53963fcd"
+      },
+      {
+        "filename": "ILO__LI_SHENG_WEN-0__before.npz",
+        "canonical_id": "ILO/LI_SHENG_WEN-0/before",
+        "identity_npy_sha256": "f7ecd51deb7a74255b464cb1d99170013c681485666d4d5d5316a019f52b928c"
+      },
+      {
+        "filename": "ILO__LV_JIAN_HUA-0__before.npz",
+        "canonical_id": "ILO/LV_JIAN_HUA-0/before",
+        "identity_npy_sha256": "cc8fef91b09bd0e23345f6808dc5a28588a57b1240b58c9571266d94827b3442"
+      },
+      {
+        "filename": "ILO__PAN_YIN_GEN-1__before.npz",
+        "canonical_id": "ILO/PAN_YIN_GEN-1/before",
+        "identity_npy_sha256": "e08c0552c0e18a61a807079d5223633b2aa0b95643cc48c055468740cdf064f8"
+      },
+      {
+        "filename": "ILO__SUN_DE_QI-1__before.npz",
+        "canonical_id": "ILO/SUN_DE_QI-1/before",
+        "identity_npy_sha256": "9bb58ed82c580e0e40c2d21a971a5e5b9abd86daf61477d667d5562b482e46d4"
+      },
+      {
+        "filename": "ILO__SUN_YU_SHENG-0__before.npz",
+        "canonical_id": "ILO/SUN_YU_SHENG-0/before",
+        "identity_npy_sha256": "51b3ca71814dde38631a4f652fc68ee2a739d960c5a76741ee03b39bd9590413"
+      },
+      {
+        "filename": "ILO__WAGN_LI_JUN-1__before.npz",
+        "canonical_id": "ILO/WAGN_LI_JUN-1/before",
+        "identity_npy_sha256": "2bf9c0a1b92743b9a8529f27eb8f66721c6e38a626ee09c94583e9e4640eec04"
+      },
+      {
+        "filename": "ILO__WANG_JIN_MING-0__before.npz",
+        "canonical_id": "ILO/WANG_JIN_MING-0/before",
+        "identity_npy_sha256": "7464ad25d25d43a4355ec1dd6ccb11b295b818d21e625f85d068fe1328775f7d"
+      },
+      {
+        "filename": "ILO__WANG_SHU_SHENG-0__before.npz",
+        "canonical_id": "ILO/WANG_SHU_SHENG-0/before",
+        "identity_npy_sha256": "9150613d9faf2a953572e07a2adcc0fe0894aae127b53047c60e5c2b01be117f"
+      },
+      {
+        "filename": "ILO__WANG_TIAN_QING-1__before.npz",
+        "canonical_id": "ILO/WANG_TIAN_QING-1/before",
+        "identity_npy_sha256": "00f6230fec09cb3d43148d62c1c4b711ca3b8e441e1b61047296cabf12de75cf"
+      },
+      {
+        "filename": "ILO__WANG_XIAO_LIN-0__before.npz",
+        "canonical_id": "ILO/WANG_XIAO_LIN-0/before",
+        "identity_npy_sha256": "762898ff8ace26ba68b948dbf3628778a389804288cd8d695cc43e993b8a215e"
+      },
+      {
+        "filename": "ILO__WENG_ZHAO_GUANG-0__before.npz",
+        "canonical_id": "ILO/WENG_ZHAO_GUANG-0/before",
+        "identity_npy_sha256": "680bb5a154ce311ccdaa42fa1a0526f3fae66bba9029196fc46643c9c0a875bb"
+      },
+      {
+        "filename": "ILO__WU_JUN-0__before.npz",
+        "canonical_id": "ILO/WU_JUN-0/before",
+        "identity_npy_sha256": "bcc7888533ad3241cd0cf10435b187379bb05ecf27090c8d44cdc07ebddd2b6d"
+      },
+      {
+        "filename": "ILO__XIE_ZHI_FU-0__before.npz",
+        "canonical_id": "ILO/XIE_ZHI_FU-0/before",
+        "identity_npy_sha256": "3e3c58fccd42f777e3b5feed43c74bc335494c44421548df9b6743046a0b4abd"
+      },
+      {
+        "filename": "ILO__YANG_WANG_QI-1__before.npz",
+        "canonical_id": "ILO/YANG_WANG_QI-1/before",
+        "identity_npy_sha256": "9383fe471e3f18e1e0b1b3ae9a4d5c47fde52d4f38ec0ee91b18aecb4ac102ee"
+      },
+      {
+        "filename": "ILO__YANG_YU_QING-1__before.npz",
+        "canonical_id": "ILO/YANG_YU_QING-1/before",
+        "identity_npy_sha256": "4e7deead1756660e5e4b8c3ed2030c1e44e5c4e1ba1cd6fc863d0cf57b482379"
+      },
+      {
+        "filename": "ILO__YAO_GUO_CHEN-0__before.npz",
+        "canonical_id": "ILO/YAO_GUO_CHEN-0/before",
+        "identity_npy_sha256": "b7a0320f077b39deae4302c484b72f792761207fcab020b42ad14c8377fdcac9"
+      },
+      {
+        "filename": "ILO__ZHANG_JIAN_JUN-1__before.npz",
+        "canonical_id": "ILO/ZHANG_JIAN_JUN-1/before",
+        "identity_npy_sha256": "ef4c77a91d6c214e11cdf256ea529556a9d3146dc25fc47a3bdb183d1e232caa"
+      },
+      {
+        "filename": "ILO__ZHANG_YAN_SHAN-0__before.npz",
+        "canonical_id": "ILO/ZHANG_YAN_SHAN-0/before",
+        "identity_npy_sha256": "347b9617dd014305d83d8504bcaf81f0526911263cd5afb8149c757b3e10a64b"
+      },
+      {
+        "filename": "ILO__ZHAO_CHANG_SHAN-0__before.npz",
+        "canonical_id": "ILO/ZHAO_CHANG_SHAN-0/before",
+        "identity_npy_sha256": "af894b709dc9a271b68329afc0e19199ebf547e725b6706f01ac8501a2abe645"
+      }
+    ],
+    "calibrator_train_count": 138,
+    "calibrator_train_unique_count": 138,
+    "calibrator_train_equals_legacy_train138": true,
+    "calibrator_train_equals_v5_train138": true,
+    "v5_test_cases": [
+      "AAA/ruputer/KANG_YONG",
+      "AAA/ruputer/LI_ZHEN_HUA",
+      "AAA/ruputer/WANG_FU_SHUN",
+      "AAA/ruputer/YU_TIAN_HAI",
+      "AAA/unruputer/GAO_DIAN_WEN",
+      "AAA/unruputer/LIU_KANG_WEN",
+      "AAA/unruputer/MA_JIN_HE",
+      "AAA/unruputer/SUN_SHU_MING",
+      "AAA/unruputer/WANG_MAN_TIAN",
+      "AAA/unruputer/ZHANG_YONG_ZHI",
+      "AG/fast/FAN_JIAN_MING",
+      "AG/fast/LOU_YANG",
+      "AG/fast/RAN_QING_BO",
+      "AG/fast/SUN_ZHI_YU",
+      "AG/fast/YAO_CUN_HONG",
+      "AG/fast/ZHANG_CHUN",
+      "AG/fast/ZHANG_LIANG",
+      "AG/slow/BAI_WEN_JIE",
+      "AG/slow/CHEN_JING_RU",
+      "AG/slow/GUO_XI_JIANG",
+      "AG/slow/HE_SHU_ZHEN",
+      "AG/slow/LI_HUAN_GE",
+      "AG/slow/MA_TIAN_YI",
+      "AG/slow/MA_YU",
+      "AG/slow/ZHANG_WEI_XIAN",
+      "ILO/LI_YOU_ZHI-0/before",
+      "ILO/LU_FU_SHAN-0/before",
+      "ILO/SUN_DONG_XIN-0/before",
+      "ILO/SUN_XU_XIA-1/before",
+      "ILO/YANG_WEN_TAI-0/before",
+      "ILO/YU_XIANG_SHENG-1/before",
+      "ILO/ZHANG_HE_PING-0/before",
+      "ILO/ZHANG_JIN_CHUN-1/before",
+      "ILO/ZHANG_YONG_SHENG-0/before"
+    ],
+    "v5_test_count": 34,
+    "calibrator_training_overlap_v5_test": [],
+    "legacy_test35_minus_v5_test34": [
+      "AAA/ruputer/YANG_BAO_KUI"
+    ]
+  },
+  "frozen_geometry_config": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_surface_mls_v4/config_test35_cache.json",
+    "sha256": "2d8ceef714f30cf427fae2b4ae6528b5009fce164316f8d2501fafaaaf29ea52",
+    "geometry": {
+      "radius_source": "bundle_then_wall",
+      "wall_radius_search_neighbors": 512,
+      "wall_radius_opposite_normal_cosine": -0.6
+    },
+    "normal_call": "pca_wall_normals(full_wall_mm, interior_mm, cKDTree(interior_mm), neighbors=24, orient_k=32)",
+    "orientation": "PCA least-eigenvalue direction; flip so dot(normal, mean(nearest32 interior)-wall)>=0; normalize. No WSS/velocity labels used. This is inward, not V5 outward normal.",
+    "radius_call": "_resolve_radius(source=\"bundle_then_wall\", case_dir=data_new/canonical_id, sample_wall_mm=targets, sample_normals=PCA_inward_targets, full_wall_mm=complete_original_wall, full_normals=complete_PCA_inward, wall_tree=cKDTree(complete_original_wall), geometry=config[\"geometry\"])",
+    "resolver_source": "def _resolve_radius(\n    source: str,\n    case_dir: Path,\n    sample_wall_mm: np.ndarray,\n    sample_normals: np.ndarray,\n    full_wall_mm: np.ndarray,\n    full_normals: np.ndarray,\n    wall_tree: cKDTree,\n    geometry: Mapping[str, Any],\n) -> tuple[np.ndarray | None, str]:\n    if source in {\"bundle\", \"bundle_then_wall\"}:\n        radius = _load_bundle_radius(case_dir, sample_wall_mm)\n        if radius is not None:\n            return radius, \"bundle_centerline_radius\"\n        if source == \"bundle\":\n            raise FileNotFoundError(f\"bundle local radius unavailable: {case_dir}\")\n    if source in {\"wall\", \"bundle_then_wall\"}:\n        radius = estimate_local_radius_from_wall(\n            sample_wall_mm,\n            sample_normals,\n            full_wall_mm,\n            full_normals,\n            wall_tree,\n            search_neighbors=int(geometry.get(\"wall_radius_search_neighbors\", 512)),\n            opposite_normal_cosine=float(\n                geometry.get(\"wall_radius_opposite_normal_cosine\", -0.6)\n            ),\n        )\n        return radius, \"wall_opposite_distance\"\n    return None, \"fixed_fallback_radius\"\n",
+    "bundle_resolver_source": "def _load_bundle_radius(case_dir: Path, wall_mm: np.ndarray) -> np.ndarray | None:\n    parts = case_dir.resolve().parts\n    if \"data_new\" not in parts:\n        return None\n    index = parts.index(\"data_new\")\n    bundle = (\n        Path(*parts[:index])\n        / \"data_wss_min\"\n        / Path(*parts[index + 1 :])\n        / \"bundle.npz\"\n    )\n    if not bundle.is_file():\n        return None\n    with np.load(bundle, allow_pickle=False) as source:\n        if not {\"wall_coords_raw\", \"wall_local_radius\"} <= set(source.files):\n            return None\n        raw = np.asarray(source[\"wall_coords_raw\"], dtype=np.float64)\n        radius = np.asarray(source[\"wall_local_radius\"], dtype=np.float64)\n    if np.nanmedian(np.linalg.norm(raw, axis=1)) < 20:\n        raw = raw * 1e3\n    _, nearest = cKDTree(raw).query(wall_mm, k=1)\n    return radius[nearest]\n",
+    "pca_normals_source": "def pca_wall_normals(\n    wall_mm: np.ndarray,\n    interior_mm: np.ndarray,\n    tree: cKDTree,\n    neighbors: int = 24,\n    orient_k: int = 32,\n) -> np.ndarray:\n    \"\"\"\n    直接从壁面点云估法向：局部 PCA 取最小主方向（**默认方案**）。\n\n    对每个壁面点取最近 `neighbors` 个壁面点，做协方差矩阵特征分解；\n    局部近似平面，因此最小特征值对应的特征向量就是法向。\n\n    相对 STL 方案的优势：完全不依赖 STL 文件。实测有病例（AAA/ruputer/LIU_YU_MING）\n    的 STL 只覆盖部分几何（STL z ∈ [-435,-189]，而壁面 z ∈ [-568,-65]），\n    导致 wall→STL 最近面距离 p50 达 24.8mm（正常 0.6mm）、法向严重错配\n    （与真值 WSS 矢量的 |cos| = 0.445，理论应为 0）。该例 raw R² 因此只有 0.652，\n    换 PCA 法向后升到 0.858。正常病例上两者精度持平。\n    \"\"\"\n    k = min(int(neighbors), len(wall_mm))\n    _, nb = cKDTree(wall_mm).query(wall_mm, k=k)\n    centered = wall_mm[nb] - wall_mm[nb].mean(axis=1, keepdims=True)\n    covariance = np.einsum(\"nki,nkj->nij\", centered, centered)\n    _, eigenvectors = np.linalg.eigh(covariance)\n    normals = eigenvectors[:, :, 0]  # 最小特征值对应的特征向量 = 法向\n    return _orient_inward(normals, wall_mm, interior_mm, tree, orient_k)\n",
+    "orient_normals_source": "def _orient_inward(\n    normals: np.ndarray,\n    wall_mm: np.ndarray,\n    interior_mm: np.ndarray,\n    tree: cKDTree,\n    orient_k: int,\n) -> np.ndarray:\n    \"\"\"\n    把法向统一翻转到指向管腔，并单位化。\n\n    定向依据是「壁面点 → 最近 orient_k 个内部单元的质心」这个**局部**方向。\n    不能用「指向整个几何的质心」：对弯曲主动脉，实测 39% 的壁面点会被判错向，\n    近壁点全落在法向负侧被丢弃，有效点只剩 61%。\n    \"\"\"\n    _, nb = tree.query(wall_mm, k=min(orient_k, len(interior_mm)))\n    inward = interior_mm[nb].mean(axis=1) - wall_mm\n    sign = np.sign(np.einsum(\"ij,ij->i\", inward, normals))\n    sign[sign == 0] = 1.0\n    n = normals * sign[:, None]\n    return n / np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)\n"
+  },
+  "radius_summary": {
+    "n_cases": 34,
+    "all_legacy_bundles_exist": true,
+    "all_use_bundle_radius": true,
+    "n_wall_targets": 1231298,
+    "nonpositive_radius_count": 0,
+    "nonfinite_radius_count": 0,
+    "maximum_nearest_mapping_distance_mm": 38.56399438850306,
+    "distance_above_0p1_mm_total": 1230733,
+    "distance_above_0p001_mm_total": 1231298,
+    "anomalies": [
+      {
+        "canonical_id": "AAA/ruputer/KANG_YONG",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 16443,
+        "max_mm": 13.360628130630941
+      },
+      {
+        "canonical_id": "AAA/ruputer/LI_ZHEN_HUA",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 12598,
+        "max_mm": 10.973830573591307
+      },
+      {
+        "canonical_id": "AAA/ruputer/WANG_FU_SHUN",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 95254,
+        "max_mm": 29.44488006158769
+      },
+      {
+        "canonical_id": "AAA/ruputer/YU_TIAN_HAI",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 54622,
+        "max_mm": 19.16528816673294
+      },
+      {
+        "canonical_id": "AAA/unruputer/GAO_DIAN_WEN",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 14692,
+        "max_mm": 27.55771316917123
+      },
+      {
+        "canonical_id": "AAA/unruputer/LIU_KANG_WEN",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 14113,
+        "max_mm": 21.146429901505506
+      },
+      {
+        "canonical_id": "AAA/unruputer/MA_JIN_HE",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 76701,
+        "max_mm": 27.247160916890515
+      },
+      {
+        "canonical_id": "AAA/unruputer/SUN_SHU_MING",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 14956,
+        "max_mm": 15.429894940470227
+      },
+      {
+        "canonical_id": "AAA/unruputer/WANG_MAN_TIAN",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 72472,
+        "max_mm": 23.989971291942073
+      },
+      {
+        "canonical_id": "AAA/unruputer/ZHANG_YONG_ZHI",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 57518,
+        "max_mm": 32.76685534748518
+      },
+      {
+        "canonical_id": "AG/fast/FAN_JIAN_MING",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 10627,
+        "max_mm": 26.245230813711732
+      },
+      {
+        "canonical_id": "AG/fast/LOU_YANG",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 10802,
+        "max_mm": 9.42459968528521
+      },
+      {
+        "canonical_id": "AG/fast/RAN_QING_BO",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 17681,
+        "max_mm": 35.03430112002134
+      },
+      {
+        "canonical_id": "AG/fast/SUN_ZHI_YU",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 11694,
+        "max_mm": 35.350994542070346
+      },
+      {
+        "canonical_id": "AG/fast/YAO_CUN_HONG",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 9703,
+        "max_mm": 21.779863914925162
+      },
+      {
+        "canonical_id": "AG/fast/ZHANG_CHUN",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 13849,
+        "max_mm": 18.0305021377843
+      },
+      {
+        "canonical_id": "AG/fast/ZHANG_LIANG",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 14394,
+        "max_mm": 17.954003367349955
+      },
+      {
+        "canonical_id": "AG/slow/BAI_WEN_JIE",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 10590,
+        "max_mm": 14.533695428759765
+      },
+      {
+        "canonical_id": "AG/slow/CHEN_JING_RU",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 12476,
+        "max_mm": 15.662264889175662
+      },
+      {
+        "canonical_id": "AG/slow/GUO_XI_JIANG",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 10234,
+        "max_mm": 17.199813132390133
+      },
+      {
+        "canonical_id": "AG/slow/HE_SHU_ZHEN",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 10244,
+        "max_mm": 22.12729052722418
+      },
+      {
+        "canonical_id": "AG/slow/LI_HUAN_GE",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 12689,
+        "max_mm": 15.217254546519586
+      },
+      {
+        "canonical_id": "AG/slow/MA_TIAN_YI",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 12627,
+        "max_mm": 8.921597369063027
+      },
+      {
+        "canonical_id": "AG/slow/MA_YU",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 17271,
+        "max_mm": 11.386194061895015
+      },
+      {
+        "canonical_id": "AG/slow/ZHANG_WEI_XIAN",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 18550,
+        "max_mm": 36.99694165114956
+      },
+      {
+        "canonical_id": "ILO/LI_YOU_ZHI-0/before",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 67721,
+        "max_mm": 20.453235767253606
+      },
+      {
+        "canonical_id": "ILO/LU_FU_SHAN-0/before",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 79526,
+        "max_mm": 19.364935699439478
+      },
+      {
+        "canonical_id": "ILO/SUN_DONG_XIN-0/before",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 41577,
+        "max_mm": 10.578108700067402
+      },
+      {
+        "canonical_id": "ILO/SUN_XU_XIA-1/before",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 60236,
+        "max_mm": 16.78250080442962
+      },
+      {
+        "canonical_id": "ILO/YANG_WEN_TAI-0/before",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 81851,
+        "max_mm": 38.56399438850306
+      },
+      {
+        "canonical_id": "ILO/YU_XIANG_SHENG-1/before",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 57205,
+        "max_mm": 13.14750123944916
+      },
+      {
+        "canonical_id": "ILO/ZHANG_HE_PING-0/before",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 85169,
+        "max_mm": 22.202178972368408
+      },
+      {
+        "canonical_id": "ILO/ZHANG_JIN_CHUN-1/before",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 74356,
+        "max_mm": 19.887329288592344
+      },
+      {
+        "canonical_id": "ILO/ZHANG_YONG_SHENG-0/before",
+        "reason": "mapping_distance_above_0.1mm",
+        "count": 60292,
+        "max_mm": 20.733416522655347
+      }
+    ],
+    "unit_factor_min": 926.4108529806475,
+    "unit_factor_max": 1087.8236238219215,
+    "all_legacy_coordinates_match_same_raw_rows_after_unit_correction_below_1e_4mm": true,
+    "historical_cache_radius_differing_cases": [
+      "AAA/ruputer/YU_TIAN_HAI",
+      "AAA/unruputer/WANG_MAN_TIAN",
+      "ILO/ZHANG_YONG_SHENG-0/before"
+    ],
+    "n_v5_effective_wall_targets": 1231295,
+    "v5_excluded_original_wall_nodes": 3,
+    "diagnosis": "Legacy bundle wall_coords_raw is raw ASCII coordinates multiplied by per-case inferred unit_factor; frozen CFD loader uses 1000 m→mm. The frozen radius resolver directly maps between these different scales, creating substantial mismatches. This audit does not repair or substitute radius.",
+    "historical_float32_requery_boundary_changes": [
+      {
+        "case": "AAA/ruputer/YU_TIAN_HAI",
+        "float32_max_radius_diff_mm": 0.1480250358581543,
+        "original_float64_exact": true
+      },
+      {
+        "case": "AAA/unruputer/WANG_MAN_TIAN",
+        "float32_max_radius_diff_mm": 2.146047592163086,
+        "original_float64_exact": true
+      },
+      {
+        "case": "ILO/ZHANG_YONG_SHENG-0/before",
+        "float32_max_radius_diff_mm": 0.08301448822021484,
+        "original_float64_exact": true
+      }
+    ]
+  },
+  "cases": [
+    {
+      "canonical_id": "AAA/ruputer/KANG_YONG",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/ruputer/KANG_YONG/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 39169714,
+      "bundle_mtime_ns": 1783965093503465457,
+      "coordinate_member_sha256": "fc70eaf88988dc1e64b774c40213f69afe0204c998b4e89015af83f57383c1b3",
+      "radius_member_sha256": "4424af0eae2d2c56d11c0199bc450c6e65c48035f906660c0a25e102c594dd10",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/KANG_YONG/ascii/KANG_YONG-1162",
+      "wall_geometry_array_float64_mm_sha256": "e8af12d07c04b090b5199e8fb0c072a5e882526629caa3f392ddc1edb22ad32d",
+      "legacy_coordinate_count": 16448,
+      "wall_target_count": 16448,
+      "coordinate_norm_median_stored_units": 106.83734493120937,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 16448,
+        "nonfinite": 0,
+        "min": 4.025397777557373,
+        "p50": 7.2616190910339355,
+        "p95": 26.369550704956055,
+        "p99": 28.114200592041016,
+        "max": 28.180530548095703
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 16448,
+        "nonfinite": 0,
+        "min": 0.0681989299306407,
+        "p50": 2.824871398620171,
+        "p95": 6.138839531795287,
+        "p99": 9.720060115180502,
+        "max": 13.360628130630941
+      },
+      "distance_above_0p001_mm": 16448,
+      "distance_above_0p01_mm": 16448,
+      "distance_above_0p1_mm": 16443,
+      "distance_above_1_mm": 14443,
+      "unique_matched_legacy_nodes": 10450,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 948.5629568941629,
+        "unit_factor_member_sha256": "e92608588227857dd18e3c4ba62e6da5f76715a6e54899efcab7b991ea7bcdc5",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9485629568941629,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.1032706371916743e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__ruputer__KANG_YONG.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 16448,
+        "current_mapping_max_mm": 13.360633290535521
+      },
+      "v5_effective_wall_count": 16448,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AAA/ruputer/LI_ZHEN_HUA",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/ruputer/LI_ZHEN_HUA/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 28057218,
+      "bundle_mtime_ns": 1783965402225671507,
+      "coordinate_member_sha256": "449724e8ff8d3266947db1c9e704929a9cda8651bba6c33dca3cceac11ee7311",
+      "radius_member_sha256": "58b63147e0e0a4c952adcc64a7a53a60544bb23aad4f056847b75999a2dec010",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/LI_ZHEN_HUA/ascii/LI_ZHEN_HUA-1162",
+      "wall_geometry_array_float64_mm_sha256": "2dca4efcae14a759cb4ecbec4a5e9cc53a5c722adb985fba886eb763c7eb7c00",
+      "legacy_coordinate_count": 12599,
+      "wall_target_count": 12599,
+      "coordinate_norm_median_stored_units": 176.34977043143348,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 12599,
+        "nonfinite": 0,
+        "min": 2.436310291290283,
+        "p50": 5.302511692047119,
+        "p95": 17.710384368896484,
+        "p99": 20.167217254638672,
+        "max": 20.541027069091797
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 12599,
+        "nonfinite": 0,
+        "min": 0.08435220279183586,
+        "p50": 2.767345528718932,
+        "p95": 7.530459684469431,
+        "p99": 9.487443939392458,
+        "max": 10.973830573591307
+      },
+      "distance_above_0p001_mm": 12599,
+      "distance_above_0p01_mm": 12599,
+      "distance_above_0p1_mm": 12598,
+      "distance_above_1_mm": 10707,
+      "unique_matched_legacy_nodes": 7275,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 957.8743288692831,
+        "unit_factor_member_sha256": "d2c90618d0b17fffa8b028d5c14edc0e904d201953425ac0d7dd46e78f5213b1",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9578743288692831,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.123454526634987e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__ruputer__LI_ZHEN_HUA.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 12599,
+        "current_mapping_max_mm": 10.97383254889754
+      },
+      "v5_effective_wall_count": 12599,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AAA/ruputer/WANG_FU_SHUN",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/ruputer/WANG_FU_SHUN/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 153684567,
+      "bundle_mtime_ns": 1783966087726569923,
+      "coordinate_member_sha256": "f45b7dc806e280522b8109f8fbbdfa1f12cab700d63e9a3f4f3a3d17b3990676",
+      "radius_member_sha256": "e2db668ead1e0ab7907a7bc8429ca97eaed031f0ef1398590a40f1fa8c6f3052",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/WANG_FU_SHUN/ascii/WANG_FU_SHUN-1162",
+      "wall_geometry_array_float64_mm_sha256": "47671c8c4591545bf3b76491816b7e93e0379c5ef5e421fe3077355330114749",
+      "legacy_coordinate_count": 95287,
+      "wall_target_count": 95287,
+      "coordinate_norm_median_stored_units": 582.6585200479167,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 95287,
+        "nonfinite": 0,
+        "min": 2.5372064113616943,
+        "p50": 6.631857395172119,
+        "p95": 13.752558708190918,
+        "p99": 14.617648124694824,
+        "max": 14.700278282165527
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 95287,
+        "nonfinite": 0,
+        "min": 0.05270694781181041,
+        "p50": 8.232109407433759,
+        "p95": 24.21122285924066,
+        "p99": 27.21430984763303,
+        "max": 29.44488006158769
+      },
+      "distance_above_0p001_mm": 95287,
+      "distance_above_0p01_mm": 95287,
+      "distance_above_0p1_mm": 95254,
+      "distance_above_1_mm": 89461,
+      "unique_matched_legacy_nodes": 17377,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 956.4699068458407,
+        "unit_factor_member_sha256": "0201a53601e5cf30bd9c615598a95e69b4ed16a45af608a3c41bef367e374435",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9564699068458407,
+        "raw_same_row_max_error_after_unit_correction_mm": 3.286268074513272e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__ruputer__WANG_FU_SHUN.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 95287,
+        "current_mapping_max_mm": 29.444898787637598
+      },
+      "v5_effective_wall_count": 95286,
+      "v5_valid_mask_excluded_count": 1
+    },
+    {
+      "canonical_id": "AAA/ruputer/YU_TIAN_HAI",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/ruputer/YU_TIAN_HAI/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 87327218,
+      "bundle_mtime_ns": 1783966438117073744,
+      "coordinate_member_sha256": "f7daa2c012dc4c331482bb5fababe402243807ff6e337db354b0eb723d1dd754",
+      "radius_member_sha256": "00843891e53bb34bb441d5dc491dd20451e49ed8f1cb060f9e3638bc7d4bc12f",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/YU_TIAN_HAI/ascii/YU_TIAN_HAI-1162",
+      "wall_geometry_array_float64_mm_sha256": "b658598853628059d371f08629169914c10468028e533ffa05ea519934e69ca5",
+      "legacy_coordinate_count": 54654,
+      "wall_target_count": 54654,
+      "coordinate_norm_median_stored_units": 595.4630727037156,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 54654,
+        "nonfinite": 0,
+        "min": 2.2480266094207764,
+        "p50": 5.738673210144043,
+        "p95": 12.407445907592773,
+        "p99": 13.336088180541992,
+        "max": 13.399567604064941
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 54654,
+        "nonfinite": 0,
+        "min": 0.020197465142646757,
+        "p50": 5.289028553006587,
+        "p95": 15.573616853477905,
+        "p99": 17.895027134658804,
+        "max": 19.16528816673294
+      },
+      "distance_above_0p001_mm": 54654,
+      "distance_above_0p01_mm": 54654,
+      "distance_above_0p1_mm": 54622,
+      "distance_above_1_mm": 47735,
+      "unique_matched_legacy_nodes": 16929,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 971.8734369145799,
+        "unit_factor_member_sha256": "3c0f44a3411ee3b6b176f1b957643c7031182037b6233b4416ab3e0a974d30b8",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9718734369145798,
+        "raw_same_row_max_error_after_unit_correction_mm": 3.229789461028881e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__ruputer__YU_TIAN_HAI.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": false,
+        "n_radius_different": 2,
+        "radius_absdiff_max_mm": 0.1480250358581543,
+        "n_compared": 54654,
+        "current_mapping_max_mm": 19.165317302513998,
+        "comparison_using_original_float64_ascii_coordinates_equals_historical": true,
+        "n_radius_different_on_original_float64_ascii_coordinates": 0,
+        "quantization_explanation": "Historical first-stage radius resolver used float64 original ASCII coordinates before caching wall_mm as float32. Re-querying the cached float32 targets can change nearest-node choices at equidistant boundaries."
+      },
+      "v5_effective_wall_count": 54654,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AAA/unruputer/GAO_DIAN_WEN",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/GAO_DIAN_WEN/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 34026518,
+      "bundle_mtime_ns": 1783967165250269655,
+      "coordinate_member_sha256": "65ac46de5001417565d917bee936c0dbd0b20a6eeb38ff91e35c54f553b8501c",
+      "radius_member_sha256": "7153696454fbffb6d83e7fe7b642467def948e31212e7e239488718cf80fd873",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/GAO_DIAN_WEN/ascii/GAO_DIAN_WEN-1162",
+      "wall_geometry_array_float64_mm_sha256": "83234a1d70380b023bc0e8c33c930939d069a5864986045eee8411b9852ab1c7",
+      "legacy_coordinate_count": 14693,
+      "wall_target_count": 14693,
+      "coordinate_norm_median_stored_units": 440.9428728671829,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 14693,
+        "nonfinite": 0,
+        "min": 3.2570669651031494,
+        "p50": 8.431845664978027,
+        "p95": 14.791255950927734,
+        "p99": 16.70846176147461,
+        "max": 16.78549575805664
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 14693,
+        "nonfinite": 0,
+        "min": 0.0927716247300858,
+        "p50": 7.357375916352867,
+        "p95": 22.21983561716356,
+        "p99": 24.564433508594448,
+        "max": 27.55771316917123
+      },
+      "distance_above_0p001_mm": 14693,
+      "distance_above_0p01_mm": 14693,
+      "distance_above_0p1_mm": 14692,
+      "distance_above_1_mm": 13698,
+      "unique_matched_legacy_nodes": 5179,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 947.8555289316295,
+        "unit_factor_member_sha256": "6deaa087da4a8c331dafd468ad637dcc1e964f414951b2adb7d1ffee4d2584c5",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9478555289316295,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.625783452796337e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__unruputer__GAO_DIAN_WEN.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 14693,
+        "current_mapping_max_mm": 27.557732348106953
+      },
+      "v5_effective_wall_count": 14693,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AAA/unruputer/LIU_KANG_WEN",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/LIU_KANG_WEN/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 31493426,
+      "bundle_mtime_ns": 1783967790582738122,
+      "coordinate_member_sha256": "1eeab8cf040b5add4e2a15b7d6d02db3f19710ae1759bb68a1d69200824d3c20",
+      "radius_member_sha256": "71760cdb5a367814867b3f3420d03c0029b823728a9462a2b1faafdb1fdfb896",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/LIU_KANG_WEN/ascii/LIU_KANG_WEN-1162",
+      "wall_geometry_array_float64_mm_sha256": "ff1b77b39869908ce67bd6c690e3f85548bb7d6fe3b6b7dd006236c518b09189",
+      "legacy_coordinate_count": 14115,
+      "wall_target_count": 14115,
+      "coordinate_norm_median_stored_units": 448.7404853443473,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 14115,
+        "nonfinite": 0,
+        "min": 2.512964963912964,
+        "p50": 7.6424560546875,
+        "p95": 21.085586547851562,
+        "p99": 23.025272369384766,
+        "max": 23.19696044921875
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 14115,
+        "nonfinite": 0,
+        "min": 0.08624896477344342,
+        "p50": 5.7287196408097865,
+        "p95": 15.062229467430397,
+        "p99": 18.833207881524615,
+        "max": 21.146429901505506
+      },
+      "distance_above_0p001_mm": 14115,
+      "distance_above_0p01_mm": 14115,
+      "distance_above_0p1_mm": 14113,
+      "distance_above_1_mm": 13223,
+      "unique_matched_legacy_nodes": 5087,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 962.0495948858205,
+        "unit_factor_member_sha256": "68b4cb45fafa2485bfaa50d10c71135f6cebaa0d478f7e6a5b5df2c192f9aa41",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9620495948858205,
+        "raw_same_row_max_error_after_unit_correction_mm": 3.171174721027828e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__unruputer__LIU_KANG_WEN.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 14115,
+        "current_mapping_max_mm": 21.14641270711846
+      },
+      "v5_effective_wall_count": 14115,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AAA/unruputer/MA_JIN_HE",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/MA_JIN_HE/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 118809199,
+      "bundle_mtime_ns": 1783968101944963038,
+      "coordinate_member_sha256": "e5659dc62bd020d32e7e38bd5f12a99256b88e3fdfe969c511a34b732e5aa52a",
+      "radius_member_sha256": "23e233298cb119a5bc93764f3b9e51b8e11948a3c35205ebbdec250658e21df9",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/MA_JIN_HE/ascii/MA_JIN_HE-1162",
+      "wall_geometry_array_float64_mm_sha256": "ab7ff724a7a5d55ed6942ca2b3b45a65ffcfb9db8e3c04157aff89dd63da88b2",
+      "legacy_coordinate_count": 76729,
+      "wall_target_count": 76729,
+      "coordinate_norm_median_stored_units": 506.26146686135957,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 76729,
+        "nonfinite": 0,
+        "min": 2.1685311794281006,
+        "p50": 9.772216796875,
+        "p95": 22.158653259277344,
+        "p99": 22.180784225463867,
+        "max": 22.180784225463867
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 76729,
+        "nonfinite": 0,
+        "min": 0.029829954147975037,
+        "p50": 10.288466960076335,
+        "p95": 22.455032439952042,
+        "p99": 25.189043613913526,
+        "max": 27.247160916890515
+      },
+      "distance_above_0p001_mm": 76729,
+      "distance_above_0p01_mm": 76729,
+      "distance_above_0p1_mm": 76701,
+      "distance_above_1_mm": 71689,
+      "unique_matched_legacy_nodes": 22008,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 956.0932140088704,
+        "unit_factor_member_sha256": "f113fa90f6654eb1528daabe84acc699a296f740b8be5876f2243502f2ba4886",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9560932140088704,
+        "raw_same_row_max_error_after_unit_correction_mm": 3.282326845742918e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__unruputer__MA_JIN_HE.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 76729,
+        "current_mapping_max_mm": 27.24714625210939
+      },
+      "v5_effective_wall_count": 76729,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AAA/unruputer/SUN_SHU_MING",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/SUN_SHU_MING/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 35895400,
+      "bundle_mtime_ns": 1783968261466102936,
+      "coordinate_member_sha256": "088289258aa8b6afd91edbaf1f2aba67998d2175056143b873c71b3707bfb5af",
+      "radius_member_sha256": "5479db8e3ad12ec4142e1fd8378be8e290d48e1a66734985ab2e5ac0fc4c313f",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/SUN_SHU_MING/ascii/SUN_SHU_MING-1162",
+      "wall_geometry_array_float64_mm_sha256": "87595a7d7e84aa7a7a9269702a6e34d63e57ffa35a78f6587b2b93934231c173",
+      "legacy_coordinate_count": 14958,
+      "wall_target_count": 14958,
+      "coordinate_norm_median_stored_units": 156.77221969897658,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 14958,
+        "nonfinite": 0,
+        "min": 4.045948028564453,
+        "p50": 10.19776439666748,
+        "p95": 32.28461837768555,
+        "p99": 35.120635986328125,
+        "max": 35.619998931884766
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 14958,
+        "nonfinite": 0,
+        "min": 0.04291463049297671,
+        "p50": 4.680452474198386,
+        "p95": 10.464378926311758,
+        "p99": 13.47730899752133,
+        "max": 15.429894940470227
+      },
+      "distance_above_0p001_mm": 14958,
+      "distance_above_0p01_mm": 14958,
+      "distance_above_0p1_mm": 14956,
+      "distance_above_1_mm": 13757,
+      "unique_matched_legacy_nodes": 8248,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 936.3698660954961,
+        "unit_factor_member_sha256": "da38699a13232ac2e0b78655c09a5d7b7e01ec9c02be50f49e3ceac44ab783ee",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9363698660954961,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.1662167551314251e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__unruputer__SUN_SHU_MING.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 14958,
+        "current_mapping_max_mm": 15.429902419441685
+      },
+      "v5_effective_wall_count": 14958,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AAA/unruputer/WANG_MAN_TIAN",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/WANG_MAN_TIAN/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 112086683,
+      "bundle_mtime_ns": 1783968369762876797,
+      "coordinate_member_sha256": "42761623d69debfac165b19a685c7398a23c7951853f1a6fb19ed4174bcc923c",
+      "radius_member_sha256": "6f68bea1f3ce6f773ea2b0a4cb35789254a150bb3438ff0052dd2428c4001539",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/WANG_MAN_TIAN/ascii/WANG_MAN_TIAN-1162",
+      "wall_geometry_array_float64_mm_sha256": "8d9d2f52fdfb7947d9b7a5f0f248a1bc9c1338c44fc6b4c9cbd8c6f032259836",
+      "legacy_coordinate_count": 72502,
+      "wall_target_count": 72502,
+      "coordinate_norm_median_stored_units": 349.5270608317133,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 72502,
+        "nonfinite": 0,
+        "min": 2.4412457942962646,
+        "p50": 10.126387596130371,
+        "p95": 22.52244758605957,
+        "p99": 22.947811126708984,
+        "max": 23.010725021362305
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 72502,
+        "nonfinite": 0,
+        "min": 0.020350858223604565,
+        "p50": 5.927968619613192,
+        "p95": 18.774728913742486,
+        "p99": 22.50637062693305,
+        "max": 23.989971291942073
+      },
+      "distance_above_0p001_mm": 72502,
+      "distance_above_0p01_mm": 72502,
+      "distance_above_0p1_mm": 72472,
+      "distance_above_1_mm": 66072,
+      "unique_matched_legacy_nodes": 26192,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 948.2657452457524,
+        "unit_factor_member_sha256": "fb3ba0c1f28390654abc8f7383074e26df78f41a12fc8dbaba4cb7c76707b3d2",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9482657452457525,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.621294442666846e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__unruputer__WANG_MAN_TIAN.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": false,
+        "n_radius_different": 2,
+        "radius_absdiff_max_mm": 2.146047592163086,
+        "n_compared": 72502,
+        "current_mapping_max_mm": 23.989960393910177,
+        "comparison_using_original_float64_ascii_coordinates_equals_historical": true,
+        "n_radius_different_on_original_float64_ascii_coordinates": 0,
+        "quantization_explanation": "Historical first-stage radius resolver used float64 original ASCII coordinates before caching wall_mm as float32. Re-querying the cached float32 targets can change nearest-node choices at equidistant boundaries."
+      },
+      "v5_effective_wall_count": 72502,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/ZHANG_YONG_ZHI/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 92948933,
+      "bundle_mtime_ns": 1783968796685927481,
+      "coordinate_member_sha256": "747739e44b75b85feba4090723dacc963db557e381e1decbf07e579f31f24eb7",
+      "radius_member_sha256": "713dd7cef739576fa9ee2f024ad6a31eb79304c2f9ba1a34b827a673e18e3712",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/ZHANG_YONG_ZHI/ascii/ZHANG_YONG_ZHI-1162",
+      "wall_geometry_array_float64_mm_sha256": "e66909dcfaab0519b74ff6d2163938dded134e3c1d1d76c2361628f5ac2fef3f",
+      "legacy_coordinate_count": 57531,
+      "wall_target_count": 57531,
+      "coordinate_norm_median_stored_units": 370.9766633248578,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 57531,
+        "nonfinite": 0,
+        "min": 2.233499526977539,
+        "p50": 8.322347640991211,
+        "p95": 23.49306297302246,
+        "p99": 24.45897102355957,
+        "max": 24.537858963012695
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 57531,
+        "nonfinite": 0,
+        "min": 0.04144492154495727,
+        "p50": 10.63948666474426,
+        "p95": 27.3235515031516,
+        "p99": 30.566087221358124,
+        "max": 32.76685534748518
+      },
+      "distance_above_0p001_mm": 57531,
+      "distance_above_0p01_mm": 57531,
+      "distance_above_0p1_mm": 57518,
+      "distance_above_1_mm": 54816,
+      "unique_matched_legacy_nodes": 15683,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 926.4108529806475,
+        "unit_factor_member_sha256": "7d618f0ee66806e99af26ff2d09e70203fd82bfcdd851f0d9a62bc18fc7552a2",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9264108529806475,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.6584765631614605e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AAA__unruputer__ZHANG_YONG_ZHI.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 57531,
+        "current_mapping_max_mm": 32.76686572090631
+      },
+      "v5_effective_wall_count": 57531,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/fast/FAN_JIAN_MING",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/FAN_JIAN_MING/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 26169029,
+      "bundle_mtime_ns": 1784115003162682401,
+      "coordinate_member_sha256": "25e5a8e53b9d9406b02d6e1cfba7dba0deaa90d17f61070b0f90161686c941e2",
+      "radius_member_sha256": "a242456a246c161fe689cf2303276e041b9223674505fd36c84a7143e655fad2",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/FAN_JIAN_MING/ascii/FAN_JIAN_MING-1162",
+      "wall_geometry_array_float64_mm_sha256": "930e03e97b8bc0303992e69d93cd1739ea30f447b5afbf64505eefad76da44e9",
+      "legacy_coordinate_count": 10627,
+      "wall_target_count": 10627,
+      "coordinate_norm_median_stored_units": 412.9460451077994,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 10627,
+        "nonfinite": 0,
+        "min": 2.7586724758148193,
+        "p50": 6.73358678817749,
+        "p95": 15.40852165222168,
+        "p99": 16.015029907226562,
+        "max": 16.211944580078125
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 10627,
+        "nonfinite": 0,
+        "min": 0.1022707963501521,
+        "p50": 7.886481609331234,
+        "p95": 21.800395384956246,
+        "p99": 24.839007018437233,
+        "max": 26.245230813711732
+      },
+      "distance_above_0p001_mm": 10627,
+      "distance_above_0p01_mm": 10627,
+      "distance_above_0p1_mm": 10627,
+      "distance_above_1_mm": 10037,
+      "unique_matched_legacy_nodes": 3609,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 946.0124670473563,
+        "unit_factor_member_sha256": "5c1a196b1874e7b842bf69bea369c0fbe1b6ce9b363a6a35326d26692a830ade",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9460124670473563,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.633415164102855e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__fast__FAN_JIAN_MING.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 10627,
+        "current_mapping_max_mm": 26.245215792007738
+      },
+      "v5_effective_wall_count": 10627,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/fast/LOU_YANG",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/LOU_YANG/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 26450613,
+      "bundle_mtime_ns": 1784114895269911427,
+      "coordinate_member_sha256": "e47da48d4eef78d5d374f17e593b6f20f4bc8142ce2e2dad4c20597d2969222c",
+      "radius_member_sha256": "becb7c5eea81927c27b2e45bd9ea737d0579761f7a7771c1ee392d7ec5643412",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/LOU_YANG/ascii/LOU_YANG-1162",
+      "wall_geometry_array_float64_mm_sha256": "3963fda7a56f56ef7094e5aec80b9ff875608f99ec3e5db2c67686f35a9152f1",
+      "legacy_coordinate_count": 10806,
+      "wall_target_count": 10806,
+      "coordinate_norm_median_stored_units": 168.264481515592,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 10806,
+        "nonfinite": 0,
+        "min": 2.2191925048828125,
+        "p50": 5.295043706893921,
+        "p95": 13.735669136047363,
+        "p99": 14.17940902709961,
+        "max": 14.303144454956055
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 10806,
+        "nonfinite": 0,
+        "min": 0.06864593307196162,
+        "p50": 1.8540400105045087,
+        "p95": 5.212372044565433,
+        "p99": 7.674478860342342,
+        "max": 9.42459968528521
+      },
+      "distance_above_0p001_mm": 10806,
+      "distance_above_0p01_mm": 10806,
+      "distance_above_0p1_mm": 10802,
+      "distance_above_1_mm": 8221,
+      "unique_matched_legacy_nodes": 7241,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 962.3571765066913,
+        "unit_factor_member_sha256": "2ea0b8bddf8834d742b7d4ec92ee5182a14a06964b78290cf9d6cbf333bbf20e",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9623571765066913,
+        "raw_same_row_max_error_after_unit_correction_mm": 8.233353223307287e-06,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__fast__LOU_YANG.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 10806,
+        "current_mapping_max_mm": 9.424597883753362
+      },
+      "v5_effective_wall_count": 10806,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/fast/RAN_QING_BO",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/RAN_QING_BO/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 40025630,
+      "bundle_mtime_ns": 1784115027002852757,
+      "coordinate_member_sha256": "a9bcfab849e56988b6c104528b1a305c4ef9e88bb7a00babd96df641d3e849ca",
+      "radius_member_sha256": "759c406a1c7872ddcfa282df01ce7914271aeb8eb512ff9247c75ca12d7cd733",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/RAN_QING_BO/ascii/RAN_QING_BO-1162",
+      "wall_geometry_array_float64_mm_sha256": "9fede938a339a41e39f0996be690e4130f306f1a7da4e97b7fa03797bbd5e119",
+      "legacy_coordinate_count": 17682,
+      "wall_target_count": 17682,
+      "coordinate_norm_median_stored_units": 852.6045767993562,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 17682,
+        "nonfinite": 0,
+        "min": 1.7966984510421753,
+        "p50": 9.167102813720703,
+        "p95": 15.08072280883789,
+        "p99": 16.001428604125977,
+        "max": 16.78618049621582
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 17682,
+        "nonfinite": 0,
+        "min": 0.05413715175932174,
+        "p50": 6.1543047015784325,
+        "p95": 21.44920100687764,
+        "p99": 32.18637398740299,
+        "max": 35.03430112002134
+      },
+      "distance_above_0p001_mm": 17682,
+      "distance_above_0p01_mm": 17682,
+      "distance_above_0p1_mm": 17681,
+      "distance_above_1_mm": 16562,
+      "unique_matched_legacy_nodes": 5869,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 967.7487699318277,
+        "unit_factor_member_sha256": "ef1f70861bac38959ea34adef206467840d57861cdb5fb89fae29c3a3c81d385",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9677487699318277,
+        "raw_same_row_max_error_after_unit_correction_mm": 6.334103941746719e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__fast__RAN_QING_BO.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 17682,
+        "current_mapping_max_mm": 35.03428423337008
+      },
+      "v5_effective_wall_count": 17682,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/fast/SUN_ZHI_YU",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/SUN_ZHI_YU/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 29420508,
+      "bundle_mtime_ns": 1784114948802293955,
+      "coordinate_member_sha256": "6f62b5b5285790a2f8d3c39d482e0e7bf06891fc720604d0160fe1b29bb85659",
+      "radius_member_sha256": "0ee2ebfa3a1395b65211537ee796b90b115ab30f7cb967e8bf2e3af7ee5d5702",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/SUN_ZHI_YU/ascii/SUN_ZHI_YU-1162",
+      "wall_geometry_array_float64_mm_sha256": "3a0bbe56b4080ea15d9ba6b4ae03889c63c408da557b0c38cf1c9b45a1ac22a7",
+      "legacy_coordinate_count": 11696,
+      "wall_target_count": 11696,
+      "coordinate_norm_median_stored_units": 412.0063990608464,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 11696,
+        "nonfinite": 0,
+        "min": 3.4537923336029053,
+        "p50": 6.095819473266602,
+        "p95": 18.00444793701172,
+        "p99": 18.098928451538086,
+        "max": 18.13117790222168
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 11696,
+        "nonfinite": 0,
+        "min": 0.08522222581195842,
+        "p50": 8.727275846350881,
+        "p95": 27.841333838288612,
+        "p99": 32.743023207150365,
+        "max": 35.350994542070346
+      },
+      "distance_above_0p001_mm": 11696,
+      "distance_above_0p01_mm": 11696,
+      "distance_above_0p1_mm": 11694,
+      "distance_above_1_mm": 11071,
+      "unique_matched_legacy_nodes": 3349,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 932.0635081753738,
+        "unit_factor_member_sha256": "f9f20f9eb25941dda833d66e7989a68f3d2870895844f921ddcb4d783f4bd7fa",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9320635081753739,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.8143990064940746e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__fast__SUN_ZHI_YU.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 11696,
+        "current_mapping_max_mm": 35.3510053790718
+      },
+      "v5_effective_wall_count": 11696,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/fast/YAO_CUN_HONG",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/YAO_CUN_HONG/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 23631165,
+      "bundle_mtime_ns": 1784114902653964191,
+      "coordinate_member_sha256": "d99d6ff95173782d3f578b572b170bd03e1aeaf908841d8211b4e56d98d6c9ca",
+      "radius_member_sha256": "efb88e3a639f54ba42128414fe5d56ec94d9df0fc30d9f09a035a8c7d14ed5bc",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/YAO_CUN_HONG/ascii/YAO_CUN_HONG-1162",
+      "wall_geometry_array_float64_mm_sha256": "85f50448bbc70e26f4fbbdc72129088ea48eab9be05da60618cea23a3bffa202",
+      "legacy_coordinate_count": 9704,
+      "wall_target_count": 9704,
+      "coordinate_norm_median_stored_units": 336.31028504950234,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 9704,
+        "nonfinite": 0,
+        "min": 2.0179033279418945,
+        "p50": 6.175305366516113,
+        "p95": 11.877679824829102,
+        "p99": 13.45508098602295,
+        "max": 13.488580703735352
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 9704,
+        "nonfinite": 0,
+        "min": 0.0956408969031053,
+        "p50": 5.673609862572964,
+        "p95": 15.706582601707595,
+        "p99": 19.878269000639804,
+        "max": 21.779863914925162
+      },
+      "distance_above_0p001_mm": 9704,
+      "distance_above_0p01_mm": 9704,
+      "distance_above_0p1_mm": 9703,
+      "distance_above_1_mm": 9129,
+      "unique_matched_legacy_nodes": 3670,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 950.2361307358243,
+        "unit_factor_member_sha256": "031b50752d7ecd7ae0dffc2e230fe3519703b587cf5060f931511a1aa843f99d",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9502361307358244,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.6115592324231907e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__fast__YAO_CUN_HONG.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 9704,
+        "current_mapping_max_mm": 21.779854629254277
+      },
+      "v5_effective_wall_count": 9704,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/fast/ZHANG_CHUN",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/ZHANG_CHUN/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 31685053,
+      "bundle_mtime_ns": 1784114747020852076,
+      "coordinate_member_sha256": "bf157a3cdfd25c540b1aac4a7de423ff46707088c3693ef8319aaf0aa512445c",
+      "radius_member_sha256": "4e48beec1307d9e622636b65f35910f7f170ad33a1cb44b53fb6cf80f678fc1c",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/ZHANG_CHUN/ascii/ZHANG_CHUN-1162",
+      "wall_geometry_array_float64_mm_sha256": "ddf9a363937b53910a4870823a68a09b71927011ea7291594ad815294c19a0bc",
+      "legacy_coordinate_count": 13850,
+      "wall_target_count": 13850,
+      "coordinate_norm_median_stored_units": 209.25958524073135,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 13850,
+        "nonfinite": 0,
+        "min": 2.1247525215148926,
+        "p50": 7.817358016967773,
+        "p95": 15.283226013183594,
+        "p99": 16.145565032958984,
+        "max": 16.21404457092285
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 13850,
+        "nonfinite": 0,
+        "min": 0.029269977540179213,
+        "p50": 3.607151740839254,
+        "p95": 7.853339937045107,
+        "p99": 15.296910545565071,
+        "max": 18.0305021377843
+      },
+      "distance_above_0p001_mm": 13850,
+      "distance_above_0p01_mm": 13850,
+      "distance_above_0p1_mm": 13849,
+      "distance_above_1_mm": 12168,
+      "unique_matched_legacy_nodes": 7437,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 956.0331643274895,
+        "unit_factor_member_sha256": "7d1576af3c485af9023f3cc42ee7d767c5ef16b8c33db105ce62e3a05923fbd8",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9560331643274895,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.7653778949205755e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__fast__ZHANG_CHUN.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 13850,
+        "current_mapping_max_mm": 18.030512785082045
+      },
+      "v5_effective_wall_count": 13850,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/fast/ZHANG_LIANG",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/ZHANG_LIANG/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 33194049,
+      "bundle_mtime_ns": 1784114875961773456,
+      "coordinate_member_sha256": "42601d48973675b7f5baf3721d072ea6e7125c8627055ad4ae2f4e8684214c1c",
+      "radius_member_sha256": "3e360f7164dff496281647848ed6fb845708a1cae250f3ed62de5db0c08627c1",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/ZHANG_LIANG/ascii/ZHANG_LIANG-1162",
+      "wall_geometry_array_float64_mm_sha256": "d11ddd454cb9343496317d4534f32c883ae2f490371a610350bc9411c9796503",
+      "legacy_coordinate_count": 14399,
+      "wall_target_count": 14399,
+      "coordinate_norm_median_stored_units": 410.99708437097894,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 14399,
+        "nonfinite": 0,
+        "min": 2.673105001449585,
+        "p50": 7.931000232696533,
+        "p95": 13.860546112060547,
+        "p99": 14.396450996398926,
+        "max": 14.590913772583008
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 14399,
+        "nonfinite": 0,
+        "min": 0.007232961613728898,
+        "p50": 3.7760732286942367,
+        "p95": 13.973855533542674,
+        "p99": 16.22435114227425,
+        "max": 17.954003367349955
+      },
+      "distance_above_0p001_mm": 14399,
+      "distance_above_0p01_mm": 14398,
+      "distance_above_0p1_mm": 14394,
+      "distance_above_1_mm": 12704,
+      "unique_matched_legacy_nodes": 6766,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 965.1721648092158,
+        "unit_factor_member_sha256": "c2f72e2f2766170efe2cf0ba73dae08f57b4ed5362fd88d294dfc74dce87c5a9",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9651721648092159,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.7601402227543952e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__fast__ZHANG_LIANG.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 14399,
+        "current_mapping_max_mm": 17.954000739734788
+      },
+      "v5_effective_wall_count": 14399,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/slow/BAI_WEN_JIE",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/BAI_WEN_JIE/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 25782154,
+      "bundle_mtime_ns": 1784115049727015138,
+      "coordinate_member_sha256": "a85ed2f81bb45ef0306ed4e537317d719a0d588d94ed7b9ba30d4ed41abf5329",
+      "radius_member_sha256": "ecc64220c2c980fd7fc8f43179a3366ea839df29a73fe8ee42b6ba4d32beef42",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/BAI_WEN_JIE/ascii/BAI_WEN_JIE-1162",
+      "wall_geometry_array_float64_mm_sha256": "01e162c355958169f9b7fc653b3e6f8ed792e384cd3cd5513176904632bcc259",
+      "legacy_coordinate_count": 10595,
+      "wall_target_count": 10595,
+      "coordinate_norm_median_stored_units": 228.56292481962785,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 10595,
+        "nonfinite": 0,
+        "min": 2.052957057952881,
+        "p50": 6.243422985076904,
+        "p95": 14.191390991210938,
+        "p99": 15.6185941696167,
+        "max": 15.700150489807129
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 10595,
+        "nonfinite": 0,
+        "min": 0.0400352636831082,
+        "p50": 2.6925820549170605,
+        "p95": 7.80562688168247,
+        "p99": 13.2997238770387,
+        "max": 14.533695428759765
+      },
+      "distance_above_0p001_mm": 10595,
+      "distance_above_0p01_mm": 10595,
+      "distance_above_0p1_mm": 10590,
+      "distance_above_1_mm": 9015,
+      "unique_matched_legacy_nodes": 5631,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 962.7868705606046,
+        "unit_factor_member_sha256": "d2a44072ff5b73a71b291ddb3ea0572d206e6c0a693fa2e12c91b1bbec9f960c",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9627868705606046,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.752216837383937e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__slow__BAI_WEN_JIE.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 10595,
+        "current_mapping_max_mm": 14.533686078529076
+      },
+      "v5_effective_wall_count": 10595,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/slow/CHEN_JING_RU",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/CHEN_JING_RU/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 30259510,
+      "bundle_mtime_ns": 1784114836017488024,
+      "coordinate_member_sha256": "8717f59c9e48f059e2bd25ebcce0179a83546bb834bbb0f0e844f52337d84c23",
+      "radius_member_sha256": "213eaba49fab02db00d95e84afb99f80217a7d46dcf2a2b2c4457984fc5032a1",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/CHEN_JING_RU/ascii/CHEN_JING_RU-1162",
+      "wall_geometry_array_float64_mm_sha256": "6b9f23c39c2a9d92a97d45033f89c49159397d20265c7cb5901ef2b7b302b692",
+      "legacy_coordinate_count": 12477,
+      "wall_target_count": 12477,
+      "coordinate_norm_median_stored_units": 278.8148279056649,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 12477,
+        "nonfinite": 0,
+        "min": 2.3011128902435303,
+        "p50": 5.701684474945068,
+        "p95": 12.147469520568848,
+        "p99": 13.345930099487305,
+        "max": 13.456355094909668
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 12477,
+        "nonfinite": 0,
+        "min": 0.06074804537668095,
+        "p50": 5.0023259528055535,
+        "p95": 12.270944388577204,
+        "p99": 14.754137357081643,
+        "max": 15.662264889175662
+      },
+      "distance_above_0p001_mm": 12477,
+      "distance_above_0p01_mm": 12477,
+      "distance_above_0p1_mm": 12476,
+      "distance_above_1_mm": 11404,
+      "unique_matched_legacy_nodes": 5600,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 956.288729836968,
+        "unit_factor_member_sha256": "25c97dc17a14a05e5d359a384fa3fe360536ae182b6ddb5bdfc515bc82dafa38",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.956288729836968,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.7474717132753082e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__slow__CHEN_JING_RU.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 12477,
+        "current_mapping_max_mm": 15.662260890553064
+      },
+      "v5_effective_wall_count": 12477,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/slow/GUO_XI_JIANG",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/GUO_XI_JIANG/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 24695606,
+      "bundle_mtime_ns": 1784115023174825403,
+      "coordinate_member_sha256": "d9ae0375cda884d81ab6e271002bcd571bc33e2568586e162c2ae9bd7d457831",
+      "radius_member_sha256": "74f1d92cdc3f4962c9dfa80547a477df057eafb49473670a2a597fb0b8a57fcc",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/GUO_XI_JIANG/ascii/GUO_XI_JIANG-1162",
+      "wall_geometry_array_float64_mm_sha256": "144b1886e9da2c661d29c3e205d1f9d961c5887a437094a42b4a9701e0c7c948",
+      "legacy_coordinate_count": 10236,
+      "wall_target_count": 10236,
+      "coordinate_norm_median_stored_units": 475.5664283558384,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 10236,
+        "nonfinite": 0,
+        "min": 2.3808236122131348,
+        "p50": 5.677100658416748,
+        "p95": 15.838876724243164,
+        "p99": 16.102479934692383,
+        "max": 16.172199249267578
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 10236,
+        "nonfinite": 0,
+        "min": 0.05906610661487034,
+        "p50": 4.85515638479505,
+        "p95": 11.361515724368633,
+        "p99": 14.533240066903376,
+        "max": 17.199813132390133
+      },
+      "distance_above_0p001_mm": 10236,
+      "distance_above_0p01_mm": 10236,
+      "distance_above_0p1_mm": 10234,
+      "distance_above_1_mm": 9466,
+      "unique_matched_legacy_nodes": 4287,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 969.7854555962035,
+        "unit_factor_member_sha256": "a2bd73ef7174c80cf5abe07797994aa452cd9bdf7ca873431598c4be0a022b91",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9697854555962035,
+        "raw_same_row_max_error_after_unit_correction_mm": 3.148302930167257e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__slow__GUO_XI_JIANG.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 10236,
+        "current_mapping_max_mm": 17.199798722533767
+      },
+      "v5_effective_wall_count": 10236,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/slow/HE_SHU_ZHEN",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/HE_SHU_ZHEN/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 25262817,
+      "bundle_mtime_ns": 1784114930502163188,
+      "coordinate_member_sha256": "8e23e725b01503124b32f6823cc5c0821b73681d92399760ed59f950896c12f5",
+      "radius_member_sha256": "afcccbb2ba44188e39c12c89fdc39ba5575e2cbf4910881ab609d7ed31a49961",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/HE_SHU_ZHEN/ascii/HE_SHU_ZHEN-1162",
+      "wall_geometry_array_float64_mm_sha256": "20cc5ef1a4e97a883297efb74ff54f6586338768d5ea03cd148720c2e9f1a57b",
+      "legacy_coordinate_count": 10244,
+      "wall_target_count": 10244,
+      "coordinate_norm_median_stored_units": 375.0019945509746,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 10244,
+        "nonfinite": 0,
+        "min": 2.8376646041870117,
+        "p50": 5.264805793762207,
+        "p95": 12.460423469543457,
+        "p99": 13.022404670715332,
+        "max": 13.111109733581543
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 10244,
+        "nonfinite": 0,
+        "min": 0.17938756117184085,
+        "p50": 6.856397839136085,
+        "p95": 14.899532067747055,
+        "p99": 19.945506149677584,
+        "max": 22.12729052722418
+      },
+      "distance_above_0p001_mm": 10244,
+      "distance_above_0p01_mm": 10244,
+      "distance_above_0p1_mm": 10244,
+      "distance_above_1_mm": 9811,
+      "unique_matched_legacy_nodes": 3261,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 958.9297799686198,
+        "unit_factor_member_sha256": "9443cebd666ab3ee0957818dadd8de5c0d30ad698a6c64e4defda98b9e1fc92a",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9589297799686197,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.776466694163644e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__slow__HE_SHU_ZHEN.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 10244,
+        "current_mapping_max_mm": 22.127288687425086
+      },
+      "v5_effective_wall_count": 10244,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/slow/LI_HUAN_GE",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/LI_HUAN_GE/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 30814700,
+      "bundle_mtime_ns": 1784114714548620038,
+      "coordinate_member_sha256": "cdd13d34afb4bb5ada78477bf54c8d02c782eb788828d899d151548742406be4",
+      "radius_member_sha256": "4dcba77ed287be1a6ba4893e5ba89603dbd95b27dc15931c045ad80c4960d411",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/LI_HUAN_GE/ascii/LI_HUAN_GE-1162",
+      "wall_geometry_array_float64_mm_sha256": "2b31e005c7e590cd79bf77c6a471e2e3b2d5c44a62d8a1f6c927cb1051cb7466",
+      "legacy_coordinate_count": 12691,
+      "wall_target_count": 12691,
+      "coordinate_norm_median_stored_units": 206.296533330332,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 12691,
+        "nonfinite": 0,
+        "min": 2.2311289310455322,
+        "p50": 3.8773436546325684,
+        "p95": 12.97700309753418,
+        "p99": 14.457890510559082,
+        "max": 14.692957878112793
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 12691,
+        "nonfinite": 0,
+        "min": 0.09211779891375653,
+        "p50": 4.3790199718340705,
+        "p95": 8.701423203630508,
+        "p99": 13.876965436119805,
+        "max": 15.217254546519586
+      },
+      "distance_above_0p001_mm": 12691,
+      "distance_above_0p01_mm": 12691,
+      "distance_above_0p1_mm": 12689,
+      "distance_above_1_mm": 11623,
+      "unique_matched_legacy_nodes": 4303,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 959.0633860958129,
+        "unit_factor_member_sha256": "3fa73e7cbe56c96554a39a72bf7b46f56e61044311edf1eb1ea3394251826e13",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9590633860958129,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.7667744461101423e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__slow__LI_HUAN_GE.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 12691,
+        "current_mapping_max_mm": 15.217246586218712
+      },
+      "v5_effective_wall_count": 12691,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/slow/MA_TIAN_YI",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/MA_TIAN_YI/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 30270748,
+      "bundle_mtime_ns": 1784114927762143608,
+      "coordinate_member_sha256": "f9f2fb8fbc92b4f6bc9a68d5cd49588922356aa0ad52f1c72f2c1b606952de4e",
+      "radius_member_sha256": "3cc6c381f16cbd4374adfd297ff422f8b811077d75cc3ee704551cc24aa66a8a",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/MA_TIAN_YI/ascii/MA_TIAN_YI-1162",
+      "wall_geometry_array_float64_mm_sha256": "c22ab803b6f6b6b9feec35d47d00c34f316651c08f3648a449ac36a6abbebec0",
+      "legacy_coordinate_count": 12636,
+      "wall_target_count": 12636,
+      "coordinate_norm_median_stored_units": 424.67831922319886,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 12636,
+        "nonfinite": 0,
+        "min": 1.6688464879989624,
+        "p50": 4.318034648895264,
+        "p95": 11.2817964553833,
+        "p99": 12.382143020629869,
+        "max": 12.699823379516602
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 12636,
+        "nonfinite": 0,
+        "min": 0.024265993439939983,
+        "p50": 1.653427881884101,
+        "p95": 6.225630622398548,
+        "p99": 7.971627847512785,
+        "max": 8.921597369063027
+      },
+      "distance_above_0p001_mm": 12636,
+      "distance_above_0p01_mm": 12636,
+      "distance_above_0p1_mm": 12627,
+      "distance_above_1_mm": 9109,
+      "unique_matched_legacy_nodes": 7723,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 981.7374996357353,
+        "unit_factor_member_sha256": "ac76903bf2a00bec99606f70faccf58f84afddac0bef97d51befb7d1e27a59e1",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9817374996357353,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.5842835454735366e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__slow__MA_TIAN_YI.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 12636,
+        "current_mapping_max_mm": 8.92160640547719
+      },
+      "v5_effective_wall_count": 12636,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/slow/MA_YU",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/MA_YU/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 36588867,
+      "bundle_mtime_ns": 1784114835753486137,
+      "coordinate_member_sha256": "73da3c9b68bc9343bbcb56ff68f8f1472e55d319c85ac281b30545892fe3688c",
+      "radius_member_sha256": "e8108f3772298e945ea9b7ea439cb3030bd7c5aff9c54dd10ac756ca7e9902d9",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/MA_YU/ascii/MA_YU-1162",
+      "wall_geometry_array_float64_mm_sha256": "c9086d6f3d5f874413105942666a54717de148845c42d0c0698ca1dcc9e47f5c",
+      "legacy_coordinate_count": 17282,
+      "wall_target_count": 17282,
+      "coordinate_norm_median_stored_units": 157.33432596014092,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 17282,
+        "nonfinite": 0,
+        "min": 2.159912347793579,
+        "p50": 6.00102424621582,
+        "p95": 12.21401596069336,
+        "p99": 13.793004989624023,
+        "max": 13.94738483428955
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 17282,
+        "nonfinite": 0,
+        "min": 0.05212626148983415,
+        "p50": 2.5813492177277078,
+        "p95": 5.540973914211748,
+        "p99": 8.49966511146088,
+        "max": 11.386194061895015
+      },
+      "distance_above_0p001_mm": 17282,
+      "distance_above_0p01_mm": 17282,
+      "distance_above_0p1_mm": 17271,
+      "distance_above_1_mm": 14453,
+      "unique_matched_legacy_nodes": 10540,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 964.1977335150409,
+        "unit_factor_member_sha256": "75e0f37a73215d198e71cd0e7920061aa9a03894a9c57fe6f4b378e4441e41b4",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9641977335150409,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.7080203943839195e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__slow__MA_YU.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 17282,
+        "current_mapping_max_mm": 11.3861989121947
+      },
+      "v5_effective_wall_count": 17282,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "AG/slow/ZHANG_WEI_XIAN",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/ZHANG_WEI_XIAN/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 39738698,
+      "bundle_mtime_ns": 1784114788253146712,
+      "coordinate_member_sha256": "ce4ec6fa1bd76c9f4ffeec440d38479acc916bda0a281ee53aff219db3f7a8f1",
+      "radius_member_sha256": "bcac064f64c4c2dd5eee75b1beaf838f7ac6b9d3f0b47691b092bbff35dfde0d",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/ZHANG_WEI_XIAN/ascii/ZHANG_WEI_XIAN-1162",
+      "wall_geometry_array_float64_mm_sha256": "75e4ae5d2d5bec0474769ead74d5632b3abcdb997413fcdc0f4c00859ced8190",
+      "legacy_coordinate_count": 18551,
+      "wall_target_count": 18551,
+      "coordinate_norm_median_stored_units": 543.4360369899108,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 18551,
+        "nonfinite": 0,
+        "min": 2.999997854232788,
+        "p50": 4.1444292068481445,
+        "p95": 11.188308715820312,
+        "p99": 13.28139591217041,
+        "max": 13.38398551940918
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 18551,
+        "nonfinite": 0,
+        "min": 0.09714329797708855,
+        "p50": 16.86150320258167,
+        "p95": 31.751557802660813,
+        "p99": 34.832093944082445,
+        "max": 36.99694165114956
+      },
+      "distance_above_0p001_mm": 18551,
+      "distance_above_0p01_mm": 18551,
+      "distance_above_0p1_mm": 18550,
+      "distance_above_1_mm": 18139,
+      "unique_matched_legacy_nodes": 2430,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 940.3396930741571,
+        "unit_factor_member_sha256": "e561b529eda41c5283444fac14f872699bbabed1e6e68858b95b56de56ae06b9",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9403396930741571,
+        "raw_same_row_max_error_after_unit_correction_mm": 3.3294175727830694e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__slow__ZHANG_WEI_XIAN.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 18551,
+        "current_mapping_max_mm": 36.99696301495953
+      },
+      "v5_effective_wall_count": 18551,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "ILO/LI_YOU_ZHI-0/before",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/LI_YOU_ZHI-0/before/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 106719777,
+      "bundle_mtime_ns": 1783972360063390479,
+      "coordinate_member_sha256": "159b1da1c4c2d0c569cc1b5b655d3daac18028c7fbb1a8cd493d6ffc83612e80",
+      "radius_member_sha256": "6522d02a8da8cf41d9fefbf80bf3fed838e7e431b525398b6c4d5b5953493002",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/LI_YOU_ZHI-0/before/ascii/LI_YOU_ZHI-1162",
+      "wall_geometry_array_float64_mm_sha256": "10e179d0fbe11c73348c5df6bb4e8ee7fe635b280e3fcc6ab1c42c644286ca05",
+      "legacy_coordinate_count": 67760,
+      "wall_target_count": 67760,
+      "coordinate_norm_median_stored_units": 194.67631959088322,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 67760,
+        "nonfinite": 0,
+        "min": 2.9192559719085693,
+        "p50": 11.220661163330078,
+        "p95": 19.030925750732422,
+        "p99": 20.074108123779297,
+        "max": 20.18427085876465
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 67760,
+        "nonfinite": 0,
+        "min": 0.04351504227227324,
+        "p50": 4.309494022889501,
+        "p95": 9.512372967093155,
+        "p99": 17.75263466187082,
+        "max": 20.453235767253606
+      },
+      "distance_above_0p001_mm": 67760,
+      "distance_above_0p01_mm": 67760,
+      "distance_above_0p1_mm": 67721,
+      "distance_above_1_mm": 59755,
+      "unique_matched_legacy_nodes": 28302,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 950.2702403334147,
+        "unit_factor_member_sha256": "47a63810a9066446852a37caa9f1ad58f9cf65d64bfa1e1526285d50c80486ea",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9502702403334147,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.7851666914105777e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/ILO__LI_YOU_ZHI-0__before.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 67760,
+        "current_mapping_max_mm": 20.453246222034224
+      },
+      "v5_effective_wall_count": 67760,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "ILO/LU_FU_SHAN-0/before",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/LU_FU_SHAN-0/before/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 123841396,
+      "bundle_mtime_ns": 1783972606177149146,
+      "coordinate_member_sha256": "b5eeba33a88d0ba64b4437f423f716a1e1a94b91d7661dd34abcffff23a4775a",
+      "radius_member_sha256": "1b93d6ae182001635ba89dd7d151cc95aec974ea216e0c35382623c233a8d80a",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/LU_FU_SHAN-0/before/ascii/LU_FU_SHAN-1162",
+      "wall_geometry_array_float64_mm_sha256": "a2684e7886823b22404a4213dadf4cef9cabb41ed2b7f45b89dee2c88028fc63",
+      "legacy_coordinate_count": 79580,
+      "wall_target_count": 79580,
+      "coordinate_norm_median_stored_units": 607.0148032542895,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 79580,
+        "nonfinite": 0,
+        "min": 1.98678457736969,
+        "p50": 8.627522468566895,
+        "p95": 11.532211303710938,
+        "p99": 12.452343940734863,
+        "max": 12.57872200012207
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 79580,
+        "nonfinite": 0,
+        "min": 0.032713784510460246,
+        "p50": 5.078038432997053,
+        "p95": 15.150973563678214,
+        "p99": 18.21150290711649,
+        "max": 19.364935699439478
+      },
+      "distance_above_0p001_mm": 79580,
+      "distance_above_0p01_mm": 79580,
+      "distance_above_0p1_mm": 79526,
+      "distance_above_1_mm": 72018,
+      "unique_matched_legacy_nodes": 29689,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 974.066799448199,
+        "unit_factor_member_sha256": "fd190f208492838ce1a63cbbf3d5527c8cabaa4900b5b7fa4d8cf3774d198947",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9740667994481991,
+        "raw_same_row_max_error_after_unit_correction_mm": 3.224332557380469e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/ILO__LU_FU_SHAN-0__before.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 79580,
+        "current_mapping_max_mm": 19.364907158776035
+      },
+      "v5_effective_wall_count": 79580,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "ILO/SUN_DONG_XIN-0/before",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/SUN_DONG_XIN-0/before/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 67388332,
+      "bundle_mtime_ns": 1783973053284344062,
+      "coordinate_member_sha256": "66987a10084368253f822529bd0a024b6c7b9340f78af5fcfc158c99e353ceca",
+      "radius_member_sha256": "c6d057885fc24125ef908a922c8845b0e34801b12fe3520f405b737efc5f0181",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/SUN_DONG_XIN-0/before/ascii/SUN_DONG_XING-1162",
+      "wall_geometry_array_float64_mm_sha256": "e9f341d3d560969e0d626524309c5f9b0a6d4268185c2b2805d4a5b3e8fa8a91",
+      "legacy_coordinate_count": 41619,
+      "wall_target_count": 41619,
+      "coordinate_norm_median_stored_units": 141.01682234882605,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 41619,
+        "nonfinite": 0,
+        "min": 3.4930036067962646,
+        "p50": 7.4618072509765625,
+        "p95": 12.96638298034668,
+        "p99": 14.117719650268555,
+        "max": 14.368681907653809
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 41619,
+        "nonfinite": 0,
+        "min": 0.027929279995576196,
+        "p50": 2.957076184065049,
+        "p95": 5.825075249735366,
+        "p99": 7.587534716388823,
+        "max": 10.578108700067402
+      },
+      "distance_above_0p001_mm": 41619,
+      "distance_above_0p01_mm": 41619,
+      "distance_above_0p1_mm": 41577,
+      "distance_above_1_mm": 35177,
+      "unique_matched_legacy_nodes": 24565,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 961.634380581669,
+        "unit_factor_member_sha256": "508c882bb6958a9a645fac99ce2768ddcd6deee14f004d36d49c1e35a9c58c36",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9616343805816691,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.0974900950166414e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/ILO__SUN_DONG_XIN-0__before.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 41619,
+        "current_mapping_max_mm": 10.578108578030559
+      },
+      "v5_effective_wall_count": 41619,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "ILO/SUN_XU_XIA-1/before",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/SUN_XU_XIA-1/before/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 94499427,
+      "bundle_mtime_ns": 1783973202841412760,
+      "coordinate_member_sha256": "5ef2201d0d335dc600526dd42a05295c6baa2968feda8826c71c492a0ba3512c",
+      "radius_member_sha256": "71b8f20f10ae7f6b1bdcc50cf48ad706df728098f5d002f15853fb7dcf96e06f",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/SUN_XU_XIA-1/before/ascii/SUN_XU_XIA-1162",
+      "wall_geometry_array_float64_mm_sha256": "a1b7ae8a58f476be13c55bf89a9f2e8ac4869f84543ff21744ee7449a089b15a",
+      "legacy_coordinate_count": 60282,
+      "wall_target_count": 60282,
+      "coordinate_norm_median_stored_units": 390.9635698600274,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 60282,
+        "nonfinite": 0,
+        "min": 1.711701512336731,
+        "p50": 6.469593048095703,
+        "p95": 16.85814666748047,
+        "p99": 18.753480911254883,
+        "max": 18.780168533325195
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 60282,
+        "nonfinite": 0,
+        "min": 0.011992109163462618,
+        "p50": 3.66310960284361,
+        "p95": 11.296456655022034,
+        "p99": 14.243671538206826,
+        "max": 16.78250080442962
+      },
+      "distance_above_0p001_mm": 60282,
+      "distance_above_0p01_mm": 60282,
+      "distance_above_0p1_mm": 60236,
+      "distance_above_1_mm": 52462,
+      "unique_matched_legacy_nodes": 24992,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 966.4275986291979,
+        "unit_factor_member_sha256": "b241be3fb6cd93f14be57eb79ca0510fff16970097788c0ace164a2fa803de3d",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9664275986291979,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.6262065208996075e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/ILO__SUN_XU_XIA-1__before.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 60282,
+        "current_mapping_max_mm": 16.78249228077639
+      },
+      "v5_effective_wall_count": 60281,
+      "v5_valid_mask_excluded_count": 1
+    },
+    {
+      "canonical_id": "ILO/YANG_WEN_TAI-0/before",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/YANG_WEN_TAI-0/before/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 127388718,
+      "bundle_mtime_ns": 1783974967922025579,
+      "coordinate_member_sha256": "a45838156e2b99fc1b7458225710b3cfa436d40194903e0ceb915f66f5db5801",
+      "radius_member_sha256": "9ba8005ec5ade792972768c6fdbc38eee50c8db3521abdbe67b502c1df81fb79",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/YANG_WEN_TAI-0/before/ascii/YANG_WEN_TAI-1162",
+      "wall_geometry_array_float64_mm_sha256": "147017273cdd6e46a0edd9ec3dd2c016b804f62bdc30448cc22adab8ddb15f29",
+      "legacy_coordinate_count": 81868,
+      "wall_target_count": 81868,
+      "coordinate_norm_median_stored_units": 276.25978836143656,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 81868,
+        "nonfinite": 0,
+        "min": 2.6701135635375977,
+        "p50": 11.408883094787598,
+        "p95": 35.28998565673828,
+        "p99": 37.159664154052734,
+        "max": 37.159664154052734
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 81868,
+        "nonfinite": 0,
+        "min": 0.02760993562551247,
+        "p50": 8.427724053358357,
+        "p95": 21.83027492836232,
+        "p99": 26.804612426331065,
+        "max": 38.56399438850306
+      },
+      "distance_above_0p001_mm": 81868,
+      "distance_above_0p01_mm": 81868,
+      "distance_above_0p1_mm": 81851,
+      "distance_above_1_mm": 77430,
+      "unique_matched_legacy_nodes": 28323,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 928.1533558230065,
+        "unit_factor_member_sha256": "bd6d8a3a020c9fa6a50ab5362f1b8e2a0ca2c2478851436cf236adf20efbd552",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9281533558230064,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.8356523859395785e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/ILO__YANG_WEN_TAI-0__before.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 81868,
+        "current_mapping_max_mm": 38.563972625957305
+      },
+      "v5_effective_wall_count": 81868,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "ILO/YU_XIANG_SHENG-1/before",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/YU_XIANG_SHENG-1/before/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 89446710,
+      "bundle_mtime_ns": 1783975368120885299,
+      "coordinate_member_sha256": "f1c2639a1615eda0535e117902d6afb4200901098d5525457e82841fd063eea2",
+      "radius_member_sha256": "3ccaeafca6531ab62cc743377aa596b2795b536f9fba28e5047db44d47a447c4",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/YU_XIANG_SHENG-1/before/ascii/YU_XIANG_SHENG-1162",
+      "wall_geometry_array_float64_mm_sha256": "c9e7fee21c20ce7647009f060068493af3f6ad268a8fce4583e6ffa438559180",
+      "legacy_coordinate_count": 57231,
+      "wall_target_count": 57231,
+      "coordinate_norm_median_stored_units": 184.82979415117998,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 57231,
+        "nonfinite": 0,
+        "min": 1.9524744749069214,
+        "p50": 8.284406661987305,
+        "p95": 11.609847068786621,
+        "p99": 12.243565559387207,
+        "max": 12.381057739257812
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 57231,
+        "nonfinite": 0,
+        "min": 0.045546607312291904,
+        "p50": 5.335233931644677,
+        "p95": 10.520199650959766,
+        "p99": 11.742583551094583,
+        "max": 13.14750123944916
+      },
+      "distance_above_0p001_mm": 57231,
+      "distance_above_0p01_mm": 57231,
+      "distance_above_0p1_mm": 57205,
+      "distance_above_1_mm": 52028,
+      "unique_matched_legacy_nodes": 15096,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 1087.8236238219215,
+        "unit_factor_member_sha256": "b527504e5284ff5fac4214ec4e9efe0025756dd0ea33fc8b1deb066ee5bd5c46",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 1.0878236238219214,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.0169301569420559e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/ILO__YU_XIANG_SHENG-1__before.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 57231,
+        "current_mapping_max_mm": 13.147505847769926
+      },
+      "v5_effective_wall_count": 57231,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "ILO/ZHANG_HE_PING-0/before",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/ZHANG_HE_PING-0/before/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 132748060,
+      "bundle_mtime_ns": 1783975396309086725,
+      "coordinate_member_sha256": "17c17fd9645cd50d2a6562d0ce43e931dfd26a6e4cb6d1c3ed8b63c49012d60f",
+      "radius_member_sha256": "7b0f88d5c81fff4a4579d60e06b23c77f9f850a965350a03b7d1fbe7530564f5",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/ZHANG_HE_PING-0/before/ascii/ZHANG_HE_PING-1162",
+      "wall_geometry_array_float64_mm_sha256": "30154c0f54bb68b8f90015547d0980ca7e7ee4349ed302b2d701f5234c878600",
+      "legacy_coordinate_count": 85234,
+      "wall_target_count": 85234,
+      "coordinate_norm_median_stored_units": 264.41982631560916,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 85234,
+        "nonfinite": 0,
+        "min": 2.898890256881714,
+        "p50": 8.713147163391113,
+        "p95": 16.85493278503418,
+        "p99": 17.485443115234375,
+        "max": 17.50885581970215
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 85234,
+        "nonfinite": 0,
+        "min": 0.028855324168465257,
+        "p50": 3.3194871847135268,
+        "p95": 10.109847734520804,
+        "p99": 19.485168673849582,
+        "max": 22.202178972368408
+      },
+      "distance_above_0p001_mm": 85234,
+      "distance_above_0p01_mm": 85234,
+      "distance_above_0p1_mm": 85169,
+      "distance_above_1_mm": 72583,
+      "unique_matched_legacy_nodes": 36276,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 952.6195926151455,
+        "unit_factor_member_sha256": "3aad02c3859753019861eaa5e4e380ae7a1c0b818cf2905172239b35bb7421bf",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9526195926151455,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.7854458810474123e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/ILO__ZHANG_HE_PING-0__before.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 85234,
+        "current_mapping_max_mm": 22.202173054810018
+      },
+      "v5_effective_wall_count": 85234,
+      "v5_valid_mask_excluded_count": 0
+    },
+    {
+      "canonical_id": "ILO/ZHANG_JIN_CHUN-1/before",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/ZHANG_JIN_CHUN-1/before/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 116239185,
+      "bundle_mtime_ns": 1783975626806733803,
+      "coordinate_member_sha256": "5e51bcabe5e624ea5e2fc7c33f953e849a3d6c2e151fc163a415ff8a191d667b",
+      "radius_member_sha256": "614aec42ce16979520f03e2389c5bbbb87632022067d069dea1353d408ad3091",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/ZHANG_JIN_CHUN-1/before/ascii/ZHANG_JIN_CHUN-1162",
+      "wall_geometry_array_float64_mm_sha256": "f4ab9d12155c955b21000254638e18479aa2a01662b5af421ddbdde2a36d9aed",
+      "legacy_coordinate_count": 74403,
+      "wall_target_count": 74403,
+      "coordinate_norm_median_stored_units": 406.82605621826946,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 74403,
+        "nonfinite": 0,
+        "min": 2.1852896213531494,
+        "p50": 9.400835037231445,
+        "p95": 13.112890243530273,
+        "p99": 13.847168922424316,
+        "max": 14.025642395019531
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 74403,
+        "nonfinite": 0,
+        "min": 0.011876542038202991,
+        "p50": 4.041757940206137,
+        "p95": 16.53060794508092,
+        "p99": 18.942958504787477,
+        "max": 19.887329288592344
+      },
+      "distance_above_0p001_mm": 74403,
+      "distance_above_0p01_mm": 74403,
+      "distance_above_0p1_mm": 74356,
+      "distance_above_1_mm": 63913,
+      "unique_matched_legacy_nodes": 28223,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 959.5429755951617,
+        "unit_factor_member_sha256": "578a3a8f0c93d7e1a6883b6030dfff1e49109385ca1abab96a548fb19dfbe5d4",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9595429755951617,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.6041130491261223e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/ILO__ZHANG_JIN_CHUN-1__before.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": true,
+        "n_radius_different": 0,
+        "radius_absdiff_max_mm": 0.0,
+        "n_compared": 74403,
+        "current_mapping_max_mm": 19.88734060266945
+      },
+      "v5_effective_wall_count": 74402,
+      "v5_valid_mask_excluded_count": 1
+    },
+    {
+      "canonical_id": "ILO/ZHANG_YONG_SHENG-0/before",
+      "legacy_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/ZHANG_YONG_SHENG-0/before/bundle.npz",
+      "exists": true,
+      "bundle_bytes": 97191297,
+      "bundle_mtime_ns": 1783976226871021729,
+      "coordinate_member_sha256": "f3f1f57f584038e055e47be61e184da2e9d5b2e62d3f675566fd5d6e3cb4b2d9",
+      "radius_member_sha256": "2fceeb56d1b0449c0b55c938f2c461774f389f723c5a9dc8da929be0e7d99214",
+      "source_step": 1162,
+      "wall_geometry_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/ZHANG_YONG_SHENG-0/before/ascii/ZHANG_YONG_SHENG-1162",
+      "wall_geometry_array_float64_mm_sha256": "d5f5ab5b73d7fff2b8dba8b443a535c50e839df7c152bd48582c4ca8a3f61ddf",
+      "legacy_coordinate_count": 60329,
+      "wall_target_count": 60329,
+      "coordinate_norm_median_stored_units": 366.9574639708032,
+      "legacy_coordinate_factor_to_mm": 1.0,
+      "resolved_radius_source": "bundle_centerline_radius",
+      "radius_mm": {
+        "count": 60329,
+        "nonfinite": 0,
+        "min": 2.6447060108184814,
+        "p50": 9.955831527709961,
+        "p95": 13.695915222167969,
+        "p99": 14.359090805053711,
+        "max": 14.607104301452637
+      },
+      "nonpositive_radius_count": 0,
+      "nearest_mapping_distance_mm": {
+        "count": 60329,
+        "nonfinite": 0,
+        "min": 0.031913259931130436,
+        "p50": 3.849542042341749,
+        "p95": 13.73121707011037,
+        "p99": 18.965038482299242,
+        "max": 20.733416522655347
+      },
+      "distance_above_0p001_mm": 60329,
+      "distance_above_0p01_mm": 60329,
+      "distance_above_0p1_mm": 60292,
+      "distance_above_1_mm": 52592,
+      "unique_matched_legacy_nodes": 29126,
+      "frozen_load_bundle_radius_exact": true,
+      "unit_factor_diagnosis": {
+        "bundle_unit_factor_native_to_stored": 958.2642097262117,
+        "unit_factor_member_sha256": "2cea84007d303dfb195d399061590356eba76db37a2b9bb6cd7e2fbc1b012c25",
+        "frozen_cfd_loader_unit_factor": 1000.0,
+        "legacy_frame_version": "stl_landmarks_v4",
+        "bundle_size_relative_to_true_mm": 0.9582642097262116,
+        "raw_same_row_max_error_after_unit_correction_mm": 1.604051681363741e-05,
+        "correction_applied_to_experiment": false
+      },
+      "historical_fullwall_radius_cache_comparison": {
+        "cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/ILO__ZHANG_YONG_SHENG-0__before.npz",
+        "step": 1162,
+        "same_wall_count": true,
+        "wall_coords_equal_after_float32": true,
+        "sample_index_full_original_order": true,
+        "current_resolver_equals_historical_radius_float32": false,
+        "n_radius_different": 2,
+        "radius_absdiff_max_mm": 0.08301448822021484,
+        "n_compared": 60329,
+        "current_mapping_max_mm": 20.733415318948705,
+        "comparison_using_original_float64_ascii_coordinates_equals_historical": true,
+        "n_radius_different_on_original_float64_ascii_coordinates": 0,
+        "quantization_explanation": "Historical first-stage radius resolver used float64 original ASCII coordinates before caching wall_mm as float32. Re-querying the cached float32 targets can change nearest-node choices at equidistant boundaries."
+      },
+      "v5_effective_wall_count": 60329,
+      "v5_valid_mask_excluded_count": 0
+    }
+  ],
+  "provenance_audit": {
+    "additional_reference_files": [
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/run_v3_experiment.py",
+        "sha256": "03d4ac22285706918c8ab29c8150d44487f1c84b9db2c0f5c5b7e9d7c7607e16"
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/run_v4_experiment.py",
+        "sha256": "9908dfc023b9fcf7dbc657f99a9825b3fe9c77c8a1030c8fd902676afc930c2e"
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/build_v4_depth3_fusion_cache.py",
+        "sha256": "9346b7818cfa80663a6bb66b34534bcab92182f4a05829db50b7c032ed48e460"
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/run_profile_secant_v3_fullwall.py",
+        "sha256": "fcca6c8d10b08624883ea3af6430d3eabfa3a8a0cdc8bb0bad40d7bd41b707e7"
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/run_frozen_wss_compat.py",
+        "sha256": "59cc98cce52d030ed2d489e0242600e755f936d73b6d4a70b1173e04a4419299"
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/calculate_wss_cfd.py",
+        "sha256": "a5ee80aaadb02345eae38d97c69db92450d5c7470341745b4475a25b18b2b42d"
+      }
+    ],
+    "missing_from_adapter_frozen_sources": [
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/run_v3_experiment.py",
+        "sha256": "03d4ac22285706918c8ab29c8150d44487f1c84b9db2c0f5c5b7e9d7c7607e16"
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/run_v4_experiment.py",
+        "sha256": "9908dfc023b9fcf7dbc657f99a9825b3fe9c77c8a1030c8fd902676afc930c2e"
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/build_v4_depth3_fusion_cache.py",
+        "sha256": "9346b7818cfa80663a6bb66b34534bcab92182f4a05829db50b7c032ed48e460"
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/run_profile_secant_v3_fullwall.py",
+        "sha256": "fcca6c8d10b08624883ea3af6430d3eabfa3a8a0cdc8bb0bad40d7bd41b707e7"
+      }
+    ],
+    "required_executed_geometry_dependency": "run_v3_experiment.py is executed by the outer geometry resolver; adapter itself does not call it. Add it to outer provenance. The other missing orchestration scripts are reference provenance only, since adapter implements their array-only orchestration.",
+    "additional_runtime_library_versions": {
+      "numpy": "1.26.4"
+    },
+    "selected_member_hash_policy": "2.14GB legacy archives are not rehashed in this low-I/O audit. Exact NPY members consumed by radius mapping are SHA256-recorded; unrelated archive arrays are not read. Archive size/mtime supplement member identities.",
+    "legacy_unit_factor_source": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/pipeline_wss_min/preprocess.py",
+      "sha256": "d55d0096e302c567f98bb7da263e0421429a6cb141dfc7cb01a47ee929ab7975",
+      "function": "_resolve_unit_factor; raw coordinates multiplied by chosen per-case factor at preprocess.py:291"
+    }
+  },
+  "elapsed_seconds": 19.93526792898774,
+  "calibrator_train_cases": [
+    "AAA/ruputer/DING_JUN_FENG",
+    "AAA/ruputer/FENG_LI_XIN",
+    "AAA/ruputer/GAO_FENG_SHAN",
+    "AAA/ruputer/GUO_AI_JUN",
+    "AAA/ruputer/HUO_SHI_LIANG",
+    "AAA/ruputer/LIN_LIANG_XIAO",
+    "AAA/ruputer/LIU_JI_XIN",
+    "AAA/ruputer/LIU_YONG_LAN",
+    "AAA/ruputer/LI_BING_JIANG",
+    "AAA/ruputer/LI_LAO_PING",
+    "AAA/ruputer/MA_XIAO_DONG",
+    "AAA/ruputer/MENG_GUANG_QIN",
+    "AAA/ruputer/TONG_XUE_LIAN",
+    "AAA/ruputer/WANG_AN",
+    "AAA/ruputer/WANG_KUI_WU",
+    "AAA/ruputer/WU_GUANG_CUN",
+    "AAA/ruputer/XIE_JIN_QUAN",
+    "AAA/ruputer/ZHANG_MAO_JIN",
+    "AAA/ruputer/ZHOU_KE_XUN",
+    "AAA/ruputer/ZOU_LI_SHUN",
+    "AAA/ruputer/ZUO_DAO_SHENG",
+    "AAA/unruputer/CAO_HONG_TAI",
+    "AAA/unruputer/CHEN_FU_YE",
+    "AAA/unruputer/CHEN_LIANG_FU",
+    "AAA/unruputer/CHEN_SHU_LIN",
+    "AAA/unruputer/FENG_ZHI_YING",
+    "AAA/unruputer/GAO_WEI_LI",
+    "AAA/unruputer/GUO_BAO_CHUN",
+    "AAA/unruputer/HAN_JIAN_FU",
+    "AAA/unruputer/LIN_JIAN_RONG",
+    "AAA/unruputer/LIU_CHENG_ZHANG",
+    "AAA/unruputer/LIU_JIE",
+    "AAA/unruputer/LIU_LI_FENG",
+    "AAA/unruputer/LIU_WEN_QI",
+    "AAA/unruputer/LIU_XING_GUO",
+    "AAA/unruputer/LI_YOU_YU",
+    "AAA/unruputer/QIAO_XIU_YUN",
+    "AAA/unruputer/SHEN_CHUN_WANG",
+    "AAA/unruputer/SHEN_FANG_JIN",
+    "AAA/unruputer/YANG_BEN_RUI",
+    "AAA/unruputer/YAN_FU_TANG",
+    "AAA/unruputer/ZHANG_XUN_LIAN",
+    "AAA/unruputer/ZHANG_ZHI_HUA",
+    "AAA/unruputer/ZHOU_XI_SHENG",
+    "AAA/unruputer/ZHU_ZI_HAI",
+    "AG/fast/CHEN_SHI_MING",
+    "AG/fast/HAN_JIAN_JUN",
+    "AG/fast/LIU_FENG_MING",
+    "AG/fast/LIU_JUN_FENG",
+    "AG/fast/LIU_LI_QUN",
+    "AG/fast/LIU_YI_BING",
+    "AG/fast/LI_SHI_QIANG",
+    "AG/fast/LI_SHU_KUN",
+    "AG/fast/LI_ZHEN_SHAN",
+    "AG/fast/LI_ZHI_LIN",
+    "AG/fast/WANG_CHUN_MING",
+    "AG/fast/WANG_DAO_CHUN",
+    "AG/fast/WANG_YONG_FAN",
+    "AG/fast/ZHANG_HAO",
+    "AG/fast/ZHANG_QING_WANG",
+    "AG/fast/ZHANG_XIU_WEN",
+    "AG/fast/ZHANG_XIU_ZHEN",
+    "AG/slow/A_MIN_SE_HA_CHI",
+    "AG/slow/CAO_FENG_CHI",
+    "AG/slow/CHENG_GUANG_SEN",
+    "AG/slow/CHENG_LU_LI",
+    "AG/slow/DING_LIAN_ZHONG",
+    "AG/slow/GONG_HUI_XIA",
+    "AG/slow/GUAN_TONG_XIANG",
+    "AG/slow/HOU_SHEN_QIAN",
+    "AG/slow/KANG_XI_MING",
+    "AG/slow/LIU_FA_CHUN",
+    "AG/slow/LIU_FENG",
+    "AG/slow/LIU_JIN_LIANG",
+    "AG/slow/LIU_ZONG_YANG",
+    "AG/slow/LI_BING_YI",
+    "AG/slow/LI_CHONG_ZENG",
+    "AG/slow/LI_GUI_YING",
+    "AG/slow/LU_ZHEN_QING",
+    "AG/slow/LV_FU_LONG",
+    "AG/slow/MI_DE_XI",
+    "AG/slow/NI_YAN_BIN",
+    "AG/slow/QIN_SI_FU",
+    "AG/slow/QU_HE_PING",
+    "AG/slow/SHEN_ZHI_GANG",
+    "AG/slow/SUN_ZONG_GE",
+    "AG/slow/WANG_GUANG_CHAO",
+    "AG/slow/WANG_GUI",
+    "AG/slow/WANG_KE",
+    "AG/slow/WANG_YAN_LING",
+    "AG/slow/WANG_YONG_LI",
+    "AG/slow/WEI_BAO_XING",
+    "AG/slow/WU_FENG_YAN",
+    "AG/slow/WU_YI_FA",
+    "AG/slow/XI_CHENG_JIANG",
+    "AG/slow/XU_YI_CAI",
+    "AG/slow/YANG_YOU_SHENG",
+    "AG/slow/YIN_YU_RONG",
+    "AG/slow/ZANG_YU_SHU",
+    "AG/slow/ZHANG_JING_SHUN",
+    "AG/slow/ZHANG_JUN_HUA",
+    "AG/slow/ZHANG_LING_GUANG",
+    "AG/slow/ZHANG_QING_SHUI",
+    "AG/slow/ZHANG_QUAN_YOU",
+    "AG/slow/ZHANG_SONG_TIAN",
+    "AG/slow/ZHANG_ZHI_JUN",
+    "ILO/AN_GUANG_JIE-0/before",
+    "ILO/BAO_EN_YUN-0/before",
+    "ILO/CUI_WEI_PING-0/before",
+    "ILO/GAO_SHU_CAI-0/before",
+    "ILO/GENG_CHUN_LAI-1/before",
+    "ILO/GONG_HAI_ZENG-1/before",
+    "ILO/GUO_QING_SHAN-0/before",
+    "ILO/GUO_YU_SHU-0/before",
+    "ILO/HOU_SHI_GUO-0/before",
+    "ILO/LIN_CHUN_YANG-1/before",
+    "ILO/LIU_BAO_JUN-0/before",
+    "ILO/LIU_LIAN_YOU-0/before",
+    "ILO/LIU_YUE_DONG-0/before",
+    "ILO/LI_SHENG_WEN-0/before",
+    "ILO/LV_JIAN_HUA-0/before",
+    "ILO/PAN_YIN_GEN-1/before",
+    "ILO/SUN_DE_QI-1/before",
+    "ILO/SUN_YU_SHENG-0/before",
+    "ILO/WAGN_LI_JUN-1/before",
+    "ILO/WANG_JIN_MING-0/before",
+    "ILO/WANG_SHU_SHENG-0/before",
+    "ILO/WANG_TIAN_QING-1/before",
+    "ILO/WANG_XIAO_LIN-0/before",
+    "ILO/WENG_ZHAO_GUANG-0/before",
+    "ILO/WU_JUN-0/before",
+    "ILO/XIE_ZHI_FU-0/before",
+    "ILO/YANG_WANG_QI-1/before",
+    "ILO/YANG_YU_QING-1/before",
+    "ILO/YAO_GUO_CHEN-0/before",
+    "ILO/ZHANG_JIAN_JUN-1/before",
+    "ILO/ZHANG_YAN_SHAN-0/before",
+    "ILO/ZHAO_CHANG_SHAN-0/before"
+  ],
+  "outer_script_review": {
+    "reviewed_files": [
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/export_r5v_for_wss.py",
+        "sha256": "4f2060689eb0b60ddf4e6866e89943936d71439a70c6e6ef668704784ff9c9fc"
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/evaluate_velocity_to_wss.py",
+        "sha256": "f2c548f3cde0d65c08d6a9258861f066a06886f07079ab383d9608ae6cf92376"
+      }
+    ],
+    "blocking_issues_found": [],
+    "checks": [
+      "Raw velocity restoration uses aligned @ rotation, consistent with volume_view forward transform.",
+      "Each frozen stage receives the explicit predicted or CFD velocity array; no stage reloads labels.",
+      "Target arrays are concatenated and sample_index asserted complete before one-case rank/statistics calibration.",
+      "Pa and current train138 log_z stats reuse standard evaluator; no test-time fitted correction.",
+      "Same V5 valid wall nodes used by predicted velocity path and oracle; 3 raw ASCII nodes excluded by existing V5 valid masks.",
+      "Missing run_v3_experiment.py dependency is included in outer source_hashes."
+    ],
+    "unit_mapping_limitation_reported_to_root": true,
+    "no_source_files_modified": true
+  },
+  "supplemental_audit_elapsed_seconds": 8.455633145058528
+}

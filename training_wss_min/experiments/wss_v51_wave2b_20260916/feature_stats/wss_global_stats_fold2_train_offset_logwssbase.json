@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-15T22:52:31.161103+00:00",
+  "method": "log_z",
+  "eps": 1e-06,
+  "required_frame_version": "v5_atlas_frame_v1",
+  "timesteps_scope": "peak",
+  "statistics_scope": "train partition of cv3 fold2 only (92 cases, valid anatomy wall nodes)",
+  "split_path": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold2.json",
+  "split_sha256": "02232e071a4791013d6a34d654819a32979c6b54e28ace3c4df8d0d51632302d",
+  "n_cases": 92,
+  "n_points": 3540399,
+  "zero_frac": 0.0,
+  "linear": {
+    "mean": 4.404318479350816,
+    "std": 7.519498748248798
+  },
+  "log": {
+    "mean": 0.672917889035124,
+    "std": 1.2830662990376553
+  },
+  "raw_min": 0.008207342587411404,
+  "raw_max": 294.8127136230469,
+  "raw_percentiles": {
+    "p50": 1.8129456043243408,
+    "p90": 10.880334472656255,
+    "p95": 16.915735626220687,
+    "p99": 34.95252281188965
+  },
+  "offset": {
+    "feature": "log_wss_base",
+    "mean": -0.07162495855245056,
+    "std": 0.5124134536049026,
+    "n_points": 3540399,
+    "note": "residual target over cv3_v51 fold2 train cases only (nested); log_wss_base = out-of-fold X5D_v51 prediction"
+  },
+  "source_stats": "/public/newhome/cy/Digital_twin/GNN_v51_frozen/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold2_train.json"
+}

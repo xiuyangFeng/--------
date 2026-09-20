@@ -1,0 +1,401 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_x5d_long_prune_20260917",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_x5d_long_ref8_20260917/X5D_long_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5D_v51_s1234": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json",
+    "X5D_long_s1234": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_x5d_longitudinal_20260917/X5D_long_s1234/eval/ckpt_best/metrics.json"
+  },
+  "expected_training_runs": 4,
+  "expected_evaluations": 8,
+  "arms": [
+    {
+      "id": "L8_s1234",
+      "title": "L8: ref 8 通道（折外解释力 0.00435 = 全 32 通道天花板的 92%）",
+      "config": "L8_s1234.json",
+      "phase": 0,
+      "modules": [
+        "longitudinal_pruned_16"
+      ],
+      "seed": 1234,
+      "fold": null,
+      "parent": "X5D_v51_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "input_dim": 43,
+      "channels": [
+        "geom_ref_log_area",
+        "geom_ref_area_slope",
+        "geom_ref_roundness",
+        "geom_ref_eccentricity",
+        "geom_ref_upstream_min_area_ratio",
+        "geom_ref_downstream_min_area_ratio",
+        "geom_ref_upstream_min_distance",
+        "geom_ref_downstream_min_distance"
+      ],
+      "config_diff_vs_anchor": {
+        "name": {
+          "before": "wss_x5d_long_ref8_20260917/X5D_long_s1234",
+          "after": "wss_x5d_long_prune_20260917/L8_s1234"
+        },
+        "notes": {
+          "before": "X5D v5.1 + 16 longitudinal value/mask channels (geom_ref_log_area,geom_ref_area_slope,geom_ref_roundness,geom_ref_eccentricity,geom_ref_upstream_min_area_ratio,geom_ref_downstream_min_area_ratio,geom_ref_upstream_min_distance,geom_ref_downstream_min_distance), seed 1234; 27 original channels retained in order; full X5D recipe unchanged; train136 valid-only geometry statistics; fresh paired initialization from same-seed X5D_v51 with appended columns initialized to zero. Density augmentation subsets fixed full-cloud longitudinal context.",
+          "after": "沿程通道剪枝阶梯 L8：ref 8 通道（折外解释力 0.00435 = 全 32 通道天花板的 92%）；X5D_v51 底座其余配方逐位不变，统计量沿用 wss_x5d_long_ref8_20260917 的 train136 valid-only 冻结文件（本臂通道是其子集），27 -> 43 配对零初始化，seed 1234。"
+        }
+      }
+    },
+    {
+      "id": "L5_s1234",
+      "title": "L5: 前向选出的 5 个（0.00404 = 85%）",
+      "config": "L5_s1234.json",
+      "phase": 0,
+      "modules": [
+        "longitudinal_pruned_10"
+      ],
+      "seed": 1234,
+      "fold": null,
+      "parent": "X5D_v51_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "input_dim": 37,
+      "channels": [
+        "geom_ref_area_slope",
+        "geom_ref_roundness",
+        "geom_ref_upstream_min_area_ratio",
+        "geom_ref_downstream_min_area_ratio",
+        "geom_ref_upstream_min_distance"
+      ],
+      "config_diff_vs_anchor": {
+        "data.input_features": {
+          "before": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "geom_ref_log_area",
+            "geom_ref_log_area_valid",
+            "geom_ref_area_slope",
+            "geom_ref_area_slope_valid",
+            "geom_ref_roundness",
+            "geom_ref_roundness_valid",
+            "geom_ref_eccentricity",
+            "geom_ref_eccentricity_valid",
+            "geom_ref_upstream_min_area_ratio",
+            "geom_ref_upstream_min_area_ratio_valid",
+            "geom_ref_downstream_min_area_ratio",
+            "geom_ref_downstream_min_area_ratio_valid",
+            "geom_ref_upstream_min_distance",
+            "geom_ref_upstream_min_distance_valid",
+            "geom_ref_downstream_min_distance",
+            "geom_ref_downstream_min_distance_valid"
+          ],
+          "after": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "geom_ref_area_slope",
+            "geom_ref_area_slope_valid",
+            "geom_ref_roundness",
+            "geom_ref_roundness_valid",
+            "geom_ref_upstream_min_area_ratio",
+            "geom_ref_upstream_min_area_ratio_valid",
+            "geom_ref_downstream_min_area_ratio",
+            "geom_ref_downstream_min_area_ratio_valid",
+            "geom_ref_upstream_min_distance",
+            "geom_ref_upstream_min_distance_valid"
+          ]
+        },
+        "name": {
+          "before": "wss_x5d_long_ref8_20260917/X5D_long_s1234",
+          "after": "wss_x5d_long_prune_20260917/L5_s1234"
+        },
+        "notes": {
+          "before": "X5D v5.1 + 16 longitudinal value/mask channels (geom_ref_log_area,geom_ref_area_slope,geom_ref_roundness,geom_ref_eccentricity,geom_ref_upstream_min_area_ratio,geom_ref_downstream_min_area_ratio,geom_ref_upstream_min_distance,geom_ref_downstream_min_distance), seed 1234; 27 original channels retained in order; full X5D recipe unchanged; train136 valid-only geometry statistics; fresh paired initialization from same-seed X5D_v51 with appended columns initialized to zero. Density augmentation subsets fixed full-cloud longitudinal context.",
+          "after": "沿程通道剪枝阶梯 L5：前向选出的 5 个（0.00404 = 85%）；X5D_v51 底座其余配方逐位不变，统计量沿用 wss_x5d_long_ref8_20260917 的 train136 valid-only 冻结文件（本臂通道是其子集），27 -> 37 配对零初始化，seed 1234。"
+        }
+      }
+    },
+    {
+      "id": "L2_s1234",
+      "title": "L2: 前 2 个（0.00291 = 62%）",
+      "config": "L2_s1234.json",
+      "phase": 0,
+      "modules": [
+        "longitudinal_pruned_4"
+      ],
+      "seed": 1234,
+      "fold": null,
+      "parent": "X5D_v51_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "input_dim": 31,
+      "channels": [
+        "geom_ref_roundness",
+        "geom_ref_upstream_min_distance"
+      ],
+      "config_diff_vs_anchor": {
+        "data.input_features": {
+          "before": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "geom_ref_log_area",
+            "geom_ref_log_area_valid",
+            "geom_ref_area_slope",
+            "geom_ref_area_slope_valid",
+            "geom_ref_roundness",
+            "geom_ref_roundness_valid",
+            "geom_ref_eccentricity",
+            "geom_ref_eccentricity_valid",
+            "geom_ref_upstream_min_area_ratio",
+            "geom_ref_upstream_min_area_ratio_valid",
+            "geom_ref_downstream_min_area_ratio",
+            "geom_ref_downstream_min_area_ratio_valid",
+            "geom_ref_upstream_min_distance",
+            "geom_ref_upstream_min_distance_valid",
+            "geom_ref_downstream_min_distance",
+            "geom_ref_downstream_min_distance_valid"
+          ],
+          "after": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "geom_ref_roundness",
+            "geom_ref_roundness_valid",
+            "geom_ref_upstream_min_distance",
+            "geom_ref_upstream_min_distance_valid"
+          ]
+        },
+        "name": {
+          "before": "wss_x5d_long_ref8_20260917/X5D_long_s1234",
+          "after": "wss_x5d_long_prune_20260917/L2_s1234"
+        },
+        "notes": {
+          "before": "X5D v5.1 + 16 longitudinal value/mask channels (geom_ref_log_area,geom_ref_area_slope,geom_ref_roundness,geom_ref_eccentricity,geom_ref_upstream_min_area_ratio,geom_ref_downstream_min_area_ratio,geom_ref_upstream_min_distance,geom_ref_downstream_min_distance), seed 1234; 27 original channels retained in order; full X5D recipe unchanged; train136 valid-only geometry statistics; fresh paired initialization from same-seed X5D_v51 with appended columns initialized to zero. Density augmentation subsets fixed full-cloud longitudinal context.",
+          "after": "沿程通道剪枝阶梯 L2：前 2 个（0.00291 = 62%）；X5D_v51 底座其余配方逐位不变，统计量沿用 wss_x5d_long_ref8_20260917 的 train136 valid-only 冻结文件（本臂通道是其子集），27 -> 31 配对零初始化，seed 1234。"
+        }
+      }
+    },
+    {
+      "id": "L1_s1234",
+      "title": "L1: 只留 roundness（0.00250 = 53%，覆盖率最高）",
+      "config": "L1_s1234.json",
+      "phase": 0,
+      "modules": [
+        "longitudinal_pruned_2"
+      ],
+      "seed": 1234,
+      "fold": null,
+      "parent": "X5D_v51_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "input_dim": 29,
+      "channels": [
+        "geom_ref_roundness"
+      ],
+      "config_diff_vs_anchor": {
+        "data.input_features": {
+          "before": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "geom_ref_log_area",
+            "geom_ref_log_area_valid",
+            "geom_ref_area_slope",
+            "geom_ref_area_slope_valid",
+            "geom_ref_roundness",
+            "geom_ref_roundness_valid",
+            "geom_ref_eccentricity",
+            "geom_ref_eccentricity_valid",
+            "geom_ref_upstream_min_area_ratio",
+            "geom_ref_upstream_min_area_ratio_valid",
+            "geom_ref_downstream_min_area_ratio",
+            "geom_ref_downstream_min_area_ratio_valid",
+            "geom_ref_upstream_min_distance",
+            "geom_ref_upstream_min_distance_valid",
+            "geom_ref_downstream_min_distance",
+            "geom_ref_downstream_min_distance_valid"
+          ],
+          "after": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "geom_ref_roundness",
+            "geom_ref_roundness_valid"
+          ]
+        },
+        "name": {
+          "before": "wss_x5d_long_ref8_20260917/X5D_long_s1234",
+          "after": "wss_x5d_long_prune_20260917/L1_s1234"
+        },
+        "notes": {
+          "before": "X5D v5.1 + 16 longitudinal value/mask channels (geom_ref_log_area,geom_ref_area_slope,geom_ref_roundness,geom_ref_eccentricity,geom_ref_upstream_min_area_ratio,geom_ref_downstream_min_area_ratio,geom_ref_upstream_min_distance,geom_ref_downstream_min_distance), seed 1234; 27 original channels retained in order; full X5D recipe unchanged; train136 valid-only geometry statistics; fresh paired initialization from same-seed X5D_v51 with appended columns initialized to zero. Density augmentation subsets fixed full-cloud longitudinal context.",
+          "after": "沿程通道剪枝阶梯 L1：只留 roundness（0.00250 = 53%，覆盖率最高）；X5D_v51 底座其余配方逐位不变，统计量沿用 wss_x5d_long_ref8_20260917 的 train136 valid-only 冻结文件（本臂通道是其子集），27 -> 29 配对零初始化，seed 1234。"
+        }
+      }
+    }
+  ],
+  "prepared_audit": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_prune_20260917/prepared_audit.json",
+  "reading_rule": "单 seed 剪枝阶梯：四臂只差沿程通道集合，全部与同 seed 的 X5D_v51（0.7461）和全 32 通道臂（X5D_long_s1234 0.7705）在同一 test34 协议下比较。单 seed 读数不能分辨 <0.02 的差别，用途是确认剪枝没有损失，通道排序依据仍是折外边际增量。"
+}

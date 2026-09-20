@@ -1,0 +1,251 @@
+{
+  "stem": "11_longitudinal_why",
+  "sources": [
+    "training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_redundancy.json",
+    "training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_effective_rank.json",
+    "training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_residual_explainability.json",
+    "training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_where_it_helps.txt"
+  ],
+  "values": {
+    "ref_pc_corr": {
+      "log_area": 0.999981857517629,
+      "area_slope": 0.9919512103623803,
+      "roundness": 0.7264443625712377,
+      "eccentricity": 0.9962179442968282,
+      "upstream_min_area_ratio": 0.9817379764241008,
+      "downstream_min_area_ratio": 0.9801107248776455,
+      "upstream_min_distance": 0.949019575459582,
+      "downstream_min_distance": 0.9280107191344297
+    },
+    "channels": {
+      "geom_ref_log_area": {
+        "valid_frac": 0.7761,
+        "pooled_r2": 0.9905116895324071,
+        "within_case_r2": 0.9835547955971312
+      },
+      "geom_ref_area_slope": {
+        "valid_frac": 0.7754,
+        "pooled_r2": 0.558262457585955,
+        "within_case_r2": 0.5450788649192799
+      },
+      "geom_ref_roundness": {
+        "valid_frac": 0.7761,
+        "pooled_r2": 0.20761897536119955,
+        "within_case_r2": 0.17754988077241918
+      },
+      "geom_ref_eccentricity": {
+        "valid_frac": 0.7761,
+        "pooled_r2": 0.2097214354353497,
+        "within_case_r2": 0.17882461989310572
+      },
+      "geom_ref_upstream_min_area_ratio": {
+        "valid_frac": 0.7504375,
+        "pooled_r2": 0.5691178683549147,
+        "within_case_r2": 0.5648593839387843
+      },
+      "geom_ref_downstream_min_area_ratio": {
+        "valid_frac": 0.75858125,
+        "pooled_r2": 0.535446788264941,
+        "within_case_r2": 0.531730175964789
+      },
+      "geom_ref_upstream_min_distance": {
+        "valid_frac": 0.7504375,
+        "pooled_r2": 0.2771625072102042,
+        "within_case_r2": 0.2835438861198999
+      },
+      "geom_ref_downstream_min_distance": {
+        "valid_frac": 0.75858125,
+        "pooled_r2": 0.25666319952880023,
+        "within_case_r2": 0.25801558034847794
+      },
+      "geom_pc_log_area": {
+        "valid_frac": 0.6791375,
+        "pooled_r2": 0.9935311611541816,
+        "within_case_r2": 0.9766167437634412
+      },
+      "geom_pc_area_slope": {
+        "valid_frac": 0.67305625,
+        "pooled_r2": 0.5789008152744495,
+        "within_case_r2": 0.5608614476311989
+      },
+      "geom_pc_roundness": {
+        "valid_frac": 0.6791375,
+        "pooled_r2": 0.2684248461018973,
+        "within_case_r2": 0.2570141645364238
+      },
+      "geom_pc_eccentricity": {
+        "valid_frac": 0.6791375,
+        "pooled_r2": 0.2397327487645705,
+        "within_case_r2": 0.20584370460530788
+      },
+      "geom_pc_upstream_min_area_ratio": {
+        "valid_frac": 0.631525,
+        "pooled_r2": 0.578668113452357,
+        "within_case_r2": 0.5698847386322572
+      },
+      "geom_pc_downstream_min_area_ratio": {
+        "valid_frac": 0.63819375,
+        "pooled_r2": 0.524897909695154,
+        "within_case_r2": 0.5149065824703838
+      },
+      "geom_pc_upstream_min_distance": {
+        "valid_frac": 0.631525,
+        "pooled_r2": 0.2778643756727458,
+        "within_case_r2": 0.27568887347150783
+      },
+      "geom_pc_downstream_min_distance": {
+        "valid_frac": 0.63819375,
+        "pooled_r2": 0.23185343314678308,
+        "within_case_r2": 0.23106628641920912
+      }
+    },
+    "target_corr": {
+      "geom_ref_log_area": -0.7985836415621135,
+      "geom_ref_area_slope": -0.22606483030384386,
+      "geom_ref_roundness": 0.14794148129530468,
+      "geom_ref_eccentricity": -0.16740528456413883,
+      "geom_ref_upstream_min_area_ratio": 0.27142325046759147,
+      "geom_ref_downstream_min_area_ratio": -0.10378914959152435,
+      "geom_ref_upstream_min_distance": -0.3180988457247544,
+      "geom_ref_downstream_min_distance": 0.013684197237853904,
+      "geom_pc_log_area": -0.8052164310757844,
+      "geom_pc_area_slope": -0.24260904169861017,
+      "geom_pc_roundness": -0.004617697532817677,
+      "geom_pc_eccentricity": -0.17561048130621848,
+      "geom_pc_upstream_min_area_ratio": 0.3013012058970565,
+      "geom_pc_downstream_min_area_ratio": -0.11648235113648095,
+      "geom_pc_upstream_min_distance": -0.33523022944584946,
+      "geom_pc_downstream_min_distance": 0.019418621977581478
+    },
+    "effective_rank": {
+      "n_points": 95466,
+      "all_valid_frac": 0.5966625,
+      "variance_explained_by_base27": 0.4769318332427841,
+      "eigenvalues": [
+        3.8481950060106342,
+        3.699032788799907,
+        2.954325290974541,
+        1.7795342959039795,
+        1.2270258835087762,
+        1.0079954988446154,
+        0.6505814820406611,
+        0.36664208216874156,
+        0.22773008150822913,
+        0.10541216198886935,
+        0.08713983384759756,
+        0.019193043712741584,
+        0.01855873594026084,
+        0.004531418038074592,
+        0.0028576154923836,
+        0.0012447812199886659
+      ],
+      "k95": 8,
+      "effective_dim": 7.15529040767319
+    },
+    "residual_explainability": {
+      "X5D_v51 底座": {
+        "n_points": 1231295,
+        "n_all_valid": 801358,
+        "resid_sd": 0.4728070459944021,
+        "ols_r2_16values_pooled": 0.005921984080115128,
+        "ols_r2_16values_within_case": 0.006992368377670588,
+        "ols_r2_8ref_pooled": 0.002435065537970238,
+        "resid_corr_within_case": {
+          "geom_ref_log_area": 0.004127937581093733,
+          "geom_ref_area_slope": 0.00731381849917211,
+          "geom_ref_roundness": 0.051509651933346466,
+          "geom_ref_eccentricity": -0.03952669213918091,
+          "geom_ref_upstream_min_area_ratio": 0.0037498734877936353,
+          "geom_ref_downstream_min_area_ratio": 0.020311025845884626,
+          "geom_ref_upstream_min_distance": -0.010601444603112863,
+          "geom_ref_downstream_min_distance": -0.014882892652894828,
+          "geom_pc_log_area": 0.004268855493551026,
+          "geom_pc_area_slope": 0.006926879875730118,
+          "geom_pc_roundness": 0.051245448519430574,
+          "geom_pc_eccentricity": -0.039700750181841826,
+          "geom_pc_upstream_min_area_ratio": 0.004323257637391368,
+          "geom_pc_downstream_min_area_ratio": 0.018825980213589937,
+          "geom_pc_upstream_min_distance": -0.010413828247275535,
+          "geom_pc_downstream_min_distance": -0.014063785286525066
+        }
+      },
+      "X5D_long 沿程臂": {
+        "n_points": 1231295,
+        "n_all_valid": 801358,
+        "resid_sd": 0.46714024905588486,
+        "ols_r2_16values_pooled": 0.0050324209080973015,
+        "ols_r2_16values_within_case": 0.003976724559487721,
+        "ols_r2_8ref_pooled": 0.001818419057687981,
+        "resid_corr_within_case": {
+          "geom_ref_log_area": 0.0005745401257596721,
+          "geom_ref_area_slope": 0.0008828522374307332,
+          "geom_ref_roundness": 0.017127642807204826,
+          "geom_ref_eccentricity": -0.013697586689509678,
+          "geom_ref_upstream_min_area_ratio": 0.024922846939728332,
+          "geom_ref_downstream_min_area_ratio": 0.01629698193415207,
+          "geom_ref_upstream_min_distance": -0.009470300989479012,
+          "geom_ref_downstream_min_distance": -0.00958302045976888,
+          "geom_pc_log_area": 0.0007060291872075888,
+          "geom_pc_area_slope": 0.0007503855292921366,
+          "geom_pc_roundness": 0.01812258892722431,
+          "geom_pc_eccentricity": -0.013760682063713262,
+          "geom_pc_upstream_min_area_ratio": 0.023044611340905918,
+          "geom_pc_downstream_min_area_ratio": 0.015062216681625816,
+          "geom_pc_upstream_min_distance": -0.009177322949494979,
+          "geom_pc_downstream_min_distance": -0.008155233438459848
+        }
+      }
+    },
+    "buckets": [
+      {
+        "group": "全部",
+        "share": 1.0,
+        "base": 0.2258,
+        "long": 0.2209,
+        "gain_pct": 2.14
+      },
+      {
+        "group": "沿程通道全有效",
+        "share": 0.651,
+        "base": 0.2078,
+        "long": 0.1981,
+        "gain_pct": 4.67
+      },
+      {
+        "group": "有缺失通道",
+        "share": 0.349,
+        "base": 0.2593,
+        "long": 0.2635,
+        "gain_pct": -1.65
+      },
+      {
+        "group": "WSS 下 50%",
+        "share": 0.5,
+        "base": 0.2513,
+        "long": 0.2546,
+        "gain_pct": -1.32
+      },
+      {
+        "group": "50–90%",
+        "share": 0.4,
+        "base": 0.1742,
+        "long": 0.1646,
+        "gain_pct": 5.54
+      },
+      {
+        "group": "90–99%",
+        "share": 0.09,
+        "base": 0.282,
+        "long": 0.2552,
+        "gain_pct": 9.51
+      },
+      {
+        "group": "top 1%",
+        "share": 0.01,
+        "base": 0.5045,
+        "long": 0.4832,
+        "gain_pct": 4.23
+      }
+    ]
+  }
+}

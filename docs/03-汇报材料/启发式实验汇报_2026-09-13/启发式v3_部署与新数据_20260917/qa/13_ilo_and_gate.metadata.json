@@ -1,0 +1,19 @@
+{
+  "stem": "13_ilo_and_gate",
+  "claim": "ILO 折外的误差有 52% 集中在两例高幅值病例；按沿程通道有效性门控两模型混合可在不重训的情况下把 test34 三 seed 集成从 0.7736 抬到 0.7844，但大头是集成多样性而非门控本身。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/analysis_20260917/current_residuals.json",
+      "sha256": "9ed834434b5139d2265a6105a5a89d404520d53fccb03c531e8ee7556236ca22"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/gate_by_validity.json",
+      "sha256": "1821775f7b9fdca273e5993fec3704fd8931c6bc6eaea7d536a9d9713412b8ce"
+    }
+  ],
+  "exports": {
+    "png": "figures/13_ilo_and_gate.png"
+  },
+  "alignment": "PASS",
+  "note": "Panel b mixes two models that differ only in inputs; the honest attribution line is printed inside the panel. Gate masks are deployment-available validity flags, never ground truth."
+}

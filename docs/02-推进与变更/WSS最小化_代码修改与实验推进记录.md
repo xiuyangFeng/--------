@@ -6,6 +6,393 @@
 > **滚动切卷**：本文件只保留 2026-08 以来的条目；2026-07 条目（PointNet 矩阵、新队列审计、WSS-PINN F0/F1）见历史卷
 > [2026-07卷](_archive/WSS最小化_代码修改与实验推进记录_2026-07卷.md)。主文件超过约 1500 行或跨季度时，把最旧月份整月切入 `_archive/` 新卷并更新本索引。
 
+## 2026-09-20｜WANG / ZHAO CFD 来源审计：数据链通过，RCR 时序与求解收敛尚不能放行
+
+- 应用户要求，先核查 `ILO/WANG_JIN_MING-0/before`、`ILO/ZHAO_CHANG_SHAN-0/before` 的 CFD 来源；未启动 CFD、GPU 训练或新增模型评估。报告与可复核脚本：[审计产物](../../outputs/wss_cfd_hardcases_audit_20260920/README.md)。
+- 两例各 81 帧原始壁面导出与当前 v5.1 标签逐点匹配，数据链与出口面积核查通过。当前日志的峰值步 continuity 为 WANG `6.6531e-5`（60 次上限）、ZHAO `3.8200e-3`（20 次上限）。
+- 共同 RCR 疑点：8 个出口无回流样本的压力日志贴合“滞后流量、R1 动态项消失”递推（RMS `0.00076–0.00973 Pa`），与标准三元递推（`48–353 Pa`）不符。具体 UDS 历史层机制及对 WSS 的影响量尚待 trace / 隔离对照，不能将两例定性为纯模型难例，也不能宣称 CFD 已证为主因。
+- 网格/时间步独立性未验证；WANG 重跑前后 WSS P99/max 未完成原始场核查，不引用摘要中的稳定性判断。详见 V5 跟踪 §32。
+
+## 2026-09-20｜体场全周期逐帧可视化：自相似性一图分开压力与速度，PT0 的 best/last 差是单折失稳
+
+- **本次主要修改**：只读已有产物出图，无训练无推理。新目录 `training_wss_min/experiments/volume_time_20260919/analysis_20260920/`（`plot_cycle_r2_volume.py` + fig1–6 + `frame_r2_source.csv` + `phase_summary.json` + README），与 WSS 线 `wss_time_ecc_20260918/analysis_20260919/` 同一套口径，曲线取各臂 `cycle.frame_r2cb` 与 A3 逐帧基线（同一套固定子采样点，三折均值±标准差）。
+- **fig5（体场特有）**：共同时间缩放 r(t) = `T-null − peak_freeze`，压力在减速段/谷底最多买到 **+1.9** R²，速度**全程贴 0、谷底为负**。速度场周期内近乎自相似（冻住峰值帧 0.553，T-null 仅 0.557）——这是速度三个时间臂拿不到增量的根因，补 K 无用。
+- **分相位读数（best，三折均值）**：压力 T-null/PT0/PTB8 加速 0.702/0.914/0.925、峰值窗 0.939/0.747/0.672、减速 0.238/0.436/0.363、谷底 0.309/0.497/0.583、全周期 0.437/0.477/0.539；速度 T-null/VT0/VTB4 峰值窗 0.972/0.764/0.713、谷底 0.118/0.280/0.237、全周期 0.557/0.559/0.506。注意 T-null/peak_freeze 用真值峰值场，峰值帧 R²=1 是构造的。
+- **新结论**：① PTB8 全周期（0.539）其实高于 PT0（0.477）、谷底也更好，时间基头「把周期学像」是有效的，No-Go 是**任务取舍**（峰值帧 −0.051）不是学不动；② 速度只在最深谷底（步 1216 附近）相对 T-null 有 +0.4 尖峰，被峰值窗和减速段抵消；③ **PT0 的 best/last 全周期差 0.056 全部来自 fold0**（0.401 vs 0.565，fold1/fold2 逐帧几乎重合），fold0 的 EMA 选点在谷底塌掉（最差帧 −0.936@49、10 帧为负，`last` 只有 3 帧为负）——修正 09-19 条的措辞：不是 EMA 选模在体场普遍不可靠，而是 PT0 在 fold0 训练末段失稳。
+- **回填**：跟踪 §31.4、矩阵文档 §9，Go/No-Go 不变。下一步先查 fold0 的训练末段不稳定，再谈换选模。
+
+## 2026-09-19｜体场（压力/速度）全周期时间矩阵：24 臂完训完评，速度全线 No-Go、压力仅 PT0(last) 有条件过门
+
+- **起因**：导师要求把 §30 的「融入 t」在压力和速度上各做一遍；用户拍板每臂只做 seed 1234、显卡并行。底座由 X5D_v51 改为体场原生 PF6/VF6（X5D 的 27D 含壁面专属 sidecar，内部单元上没有定义）。矩阵文档 [WSS_V5_体场压力与速度全周期时间实验矩阵_2026-09-19.md](WSS_PINN/WSS_V5_体场压力与速度全周期时间实验矩阵_2026-09-19.md)，跟踪 §31。
+- **本次主要修改（配置驱动、旧配置逐位不变）**：`dataset.VolumeFrameSource`（`case.h5` 懒读 81 帧体场标签 + 每例 sidecar，压力逐帧减 `p_volume_mean`、速度按 `transform_rotation` 旋转）；体场目标放开 `timesteps=random_frame/time_basis`；`frame_stats` 泛化到线性空间；`config` 新增 `volume_time_sidecar_root`/`volume_h5_root`；`evaluate._evaluate_partition_volume_time`（峰值帧全云 + 周期指标固定子采样）；`time_basis` 多通道化（速度三分量共用基向量）+ `reconstruct_frame`；共享口径收进新模块 `training_wss_min/volume_time.py`。新工具 `tools/prepare_volume_time.py`、`tools/update_volume_time_xlsx.py`、`offline/{a0_scan,a1_frame_stats,a2_time_basis,a3_tnull,report}.py`。
+- **回归验收**：① `X5D_v51_s1234` 重评 5622 个数值叶子最大差 3.3e-5（作业 15114）；② 旧 `PF6_s1234`/`VF6_s1234` 依赖的旧 v5 视图已随 v5.1 切换删除、无法重评，改与改动前冻结树 `GNN_time_frozen_20260918` 对拍体场峰值帧数据路径，压力/速度各 4 例、各 138 数组逐字节相同。
+- **阶段 0（作业 15112/15113）**：A0 合同 170 例零错误；`p_volume_mean` 周期 DC 摆幅 2290 Pa ≫ 峰值帧空间信号 359 Pa → 逐帧去 DC 必须。**K\*(压力)=8、K\*(速度)=4**。T-null 全周期压力 0.4373 / 速度 0.5569；**速度 `peak_freeze`（峰值帧冻住、不缩放）就有 0.5463**。
+- **阶段 2（预检 15122 → 队列 15123，master 4×4090，13:37–18:47，墙钟 5.16 h）**：24 训练 + 42 评估退出码全 0。三折均值（峰值帧对同折折底座 / 全周期对 T-null）：PT0 best 0.7730(+0.029)/0.4771(+0.040)、PT0 last 0.7804(+0.037)/0.5335(+0.096, 3/3)；PTB8 0.6932(−0.051)/0.5392(+0.102)；PTB16 0.6816(−0.063)/0.5395(+0.102)；VT0 best 0.7668(−0.011)/0.5589(+0.002)；VTB4 0.7158(−0.062)/0.5061(−0.051)；VTB8 0.7174(−0.061)/0.5188(−0.038)。
+- **结论**：压力 TB8/TB16 No-Go（峰值三折全掉 0.05–0.06，与 §30 WSS TB 同一失败形态；TB16 对 TB8 无增益）。PT0 只有 `last` 过两门，但过门依赖 checkpoint（best/last 全周期差 0.056，说明 EMA(train_loss) 在体场逐帧目标上选模不可靠），峰值「提升」几乎全来自底座异常弱的 fold1，最差帧仍为负 → 不改部署。速度全线 No-Go：VT0 与 T-null 打平、TB 比 T-null 还差，结合 `peak_freeze` ≈ T-null 说明速度场周期内近乎自相似，全周期 R²_cb 对速度区分度不足，要谈周期得先换指标而不是加 K。
+- **落账**：工作簿 `速度与压力实验矩阵` 组 `体场全周期时间阶段2｜2026-09-19（…）` **98–139 行**（42 行，6–125 列为峰值帧读数，周期指标在备注）；本批是 v5.1 + cv3 留出折，与波 2 体场行（旧 v5 train138/test34）不可直接比。
+- **下一步（未启动）**：唯一有证据支持的是把 PT0 选模换成留出折周期指标或固定 epoch 重跑三折；不补 seed、不读 test34、不为速度加 K。
+
+## 2026-09-19｜时间线逐帧 R² 图：峰值高是因为谷底把全周期均值拉低
+
+- **本次主要修改**：只读已有 `frame_curve` / D2 `frame_r2cb_pa`，出图 `training_wss_min/experiments/wss_time_ecc_20260918/analysis_20260919/`（fig1–4）。
+- **读数**：峰值帧 0.713/0.697/0.609（T-null/T0/TB8），全周期 0.461/0.517/0.450；谷底 20 帧 0.22/0.32/0.27。
+- **结论**：全周期低主要是减速+谷底，不是峰值本身差。底座只训峰值能解释 T-null；T0/TB 另有「低流量场与峰值场不同构」的问题。跟踪 §30.4。
+
+## 2026-09-19｜时间线逐帧 R² 图：峰值高、全周期被谷底拉低
+
+- 只读作图，无新训练。T-null / T0 / TB8 三折逐帧物理 R²_cb，图在 `training_wss_min/experiments/wss_time_ecc_20260918/analysis_20260919/`。
+- 峰值期（Q≥0.8）三臂 0.70 / 0.68 / 0.60；谷底 20 帧 0.22 / 0.32 / 0.27。全周期是 81 帧平均，所以会被谷底拉低。
+- T-null 的形状符合「峰值场 × 波形」；T0 在离峰段相对 T-null 为正；TB8 峰值掉 0.10 且不优于套波形。见跟踪 §30.4。
+
+## 2026-09-18｜WSS V5 时间线阶段 2：作业 15071 完训完评，TB No-Go
+
+- **本次主要修改**：无新代码。作业 15071（master 3×4090，11:43–20:08）九臂 T0/TB8/TB16 × cv3_v51 完训完评；按预注册 G2.1–G2.6 回填跟踪 §30.3、矩阵 P0.7、PointNet 工作簿组 `WSS偏心与全周期时间阶段2｜2026-09-18（T0/TB8/TB16×cv3）`。
+- **关键指标（best，留出折 81 帧，test34 未用）**：T0 峰值/全周期/谷底/TAWSS = 0.6967 / 0.5166 / 0.3218 / 0.7164；TB8 = 0.6094 / 0.4497 / 0.2682 / 0.5953；TB16 = 0.6040 / 0.4490 / 0.2696 / 0.5932。T-null 全周期 0.4613；同折 X5D 峰值 0.7130。
+- **门控**：T0 过 G2.1/G2.4，G2.3 均值过、fold2 掉 0.033 不过三折硬门。TB8/TB16 不过 G2.1（低于 T-null）、G2.2（对 T0 −0.067）、G2.3（峰值 −0.10）、G2.5（amp_err）；只过 G2.4。G2.6 本轮未算。last≈best。
+- **结论**：时间基头 No-Go；不补 seed、不开 2b/I1、不补 T0-800。部署仍为峰值帧 X5D_v51。证据：`training_wss_min/experiments/wss_time_ecc_20260918/stage2_report_best.json`。
+
+## 2026-09-18｜腾盘：删 CROWN 预处理 pkl、V5.0 快照、过期 PINN bundle
+
+- **本次主要修改**：按用户授权清理可重建/已过期产物，**未动源库 `data_new/`**（仍 3.1T）。现行训练数据只留 v5.1。
+- **CROWN**：删除 `private_preprocessed_raw_ascii_v1/pkl/`（约 565GB，merge+partial）与旧 `private_preprocessed/` pkl（9.2GB）。保留导出代码/配置、`audit/manifests/stats` 与论文 `CROWN_Dataset`。重导命令写在 `external_baselines/CROWN_Beihang/private_preprocessed_raw_ascii_v1/README.md`（`submit_export_crown_array.sh`，源为 `data_new/AG` ascii_in）。
+- **V5.0**：删除 `data_wss_v5/anatomy_pointcloud_v5_20260906/` 与 `views/`（约 127GB）。保留 `anatomy_pointcloud_v5_1_20260916/`（103GB）与 `views_v5_1/`（23GB）。现行 X5D_v51 配置本来就指向 v5.1。
+- **过期 PINN**：清空 `data_wss_pinn/` 训练 bundle（32GB）及 `outputs/wss_pinn/volume_uvwp_*` 体场产物与 slurm 日志（约 26GB）。**未删** V5 签收 `volume_uvwp_bc_rcr_v4_anatomy_prep_20260903/`、历史 `runs/` checkpoint、`audits/`（含 09-01 full-wall 缓存）。
+- **盘面**：`/public` 39T/3.0T（93%）→ 38T/3.7T（92%），约腾出 0.7T。
+- **空壳目录（同日稍后）**：撤掉只剩 README 的 `data_wss_pinn/` 与 CROWN `private_preprocessed/`。说明并入 `wss_pinn/README.md` / `crown_beihang/README.md`。保留 `private_preprocessed_raw_ascii_v1/`（重导入口 + audit）。`data_new/` 仍未动。
+- **当前状态判断**：v5.1 训练数据完整；CROWN 预处理可从源 ASCII 重导；PINN V4 训练数据不再本地可训，证据与权重仍在。
+
+## 2026-09-18｜局部形态 Wave B 扇区 token · 作业 15046 完训入账
+
+- **本次主要修改**：核实作业 15046 四臂完训完评（S4/S6/S8/S6R2，seed 1234，400/400 epoch，8/8 评估，退出码全 0，01:26:57–07:04:25），把数字回填跟踪 §30 与工作簿 455–458 行。未做机制列、未训练、未改底座。
+- **对应代码/文档**：[训练跟踪 §30](WSS_PINN/WSS_V5_训练实验跟踪.md)、[局部形态矩阵 Wave B](WSS_PINN/WSS_V5_局部形态实验矩阵_2026-09-17.md)、[`experiments/wss_local_morph_sectors_20260918/results.md`](../../training_wss_min/experiments/wss_local_morph_sectors_20260918/results.md)、工作簿 [`WSS_PointNet实验矩阵与结果汇总last.xlsx`](../03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx)。
+- **关键指标**（test34，ckpt_best，对照 = 同球无扇区 W06K32 0.7560）：S4 0.7634（+0.0074）、S6 0.7560（0）、S8 0.7718（+0.0158）、S6R2 0.7565（+0.0006）；归一化 Δ 全在 +0.0027～+0.0033。物理列非单调，不用于排名。
+- **Go-NoGo**：待机制验证 — 判据来源是矩阵启动前冻结的 `reading_rule`（主判据 = 区间内残差 m=1..3 净份额，尚未算）。不宣布胜出、不进底座、不补三 seed。
+- **下一步**：按 Wave A 同口径算四臂 m=1..3 净份额；相对 W06K32 下降 ≥0.02 才送确认波，否则 B2 收口。
+
+## 2026-09-17｜V4 EMA 代表病例 WSS/速度/压力后处理
+
+- **本次主要修改**：为历史臂 `V4-SP-PN-BC-PDE-EMA-s1234`（index 3，seed1234，`last_converged` 未收敛）导出 best/median/worst 汇报包。选例按 test35 全壁面派生 WSS 物理 R²；WSS 复用 09-01 full-wall 缓存，未重新校准。速度/压力在 master GPU2 剩余显存（约 19 GB）上按历史 BC 变换重推理三例，未训练、未动冻结跟踪表/xlsx。
+- **对应代码/文档**：后处理 [V4_EMA/](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/README.md)；散点 [WSS](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/figures/V4_EMA_scatter_fit.png) / [速度](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/figures/V4_EMA_speed_scatter_fit.png) / [压力](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/figures/V4_EMA_pressure_scatter_fit.png)。脚本 `prepare_v4_ema_postview.py`、`prepare_v4_ema_volume.py`。
+- **选例与指标**：Best `AG/fast/RAN_QING_BO` WSS 0.260 / 速度 −0.170 / 压力 0.145，WSS a=0.211；Median `ILO/LI_YOU_ZHI-0/before` −0.040 / −0.614 / 0.011；Worst `AG/fast/LOU_YANG` −0.889 / −0.050 / 0.256。速度/压力是同一三例，不是独立排名。Gaussian 覆盖率 100%。test35 派生 WSS 均值 −0.105，20/35 负 R²。
+- **当前状态判断**：汇报用 WSS/速度/压力图已齐。历史 V4 EMA 体场与派生 WSS 均弱，不能当现行 V5 对照的正面例子。未改冻结 WSS-min 跟踪表。
+
+## 2026-09-17｜X5D_v51 后处理并入 09-14 目录并补 R² 分布
+
+- **本次主要修改**：把日期目录 `启发式v2_X5D_v51_代表病例后处理_20260917` 并入 `启发式v2_代表病例后处理_20260914/X5D_v51/`（与 VF6_wss 同层，不用日期命名）；按既有协议从五 seed metrics 补 A_X5D_v51 病例 R² 分布。未训练、未推理。
+- **对应代码/文档**：后处理 [X5D_v51/](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5D_v51/README.md)；R² 图 [A_X5D_v51_distribution.png](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_R2分布_20260914/A_X5D_v51_distribution.png)；脚本 `build_x5d_v51_distribution.py`。
+- **关键指标**（test34，ckpt_best，五 seed 1234/7/2025/11/2026 病例 R² 均值，非集成场）：均值/中位/P10 = 0.7619 / 0.7612 / 0.6542；负 R² 0/34。Best `AG/fast/ZHANG_LIANG` 0.9043；Most `AG/slow/HE_SHU_ZHEN` 0.7503（箱 [0.70, 0.80) 15/34）；Worst `ILO/ZHANG_YONG_SHENG-0/before` 0.6021。后处理 Median 仍是 `AAA/ruputer/KANG_YONG` 0.7608，与橙色 Most 不同。五 seed 单次 R²_cb 均值 0.7548，不是部署集成 0.7749。
+- **当前状态判断**：汇报后处理与 R² 分布已并到 09-14 目录；日期文件夹已删除。
+
+## 2026-09-17｜X5D_v51 最好/中位/最差后处理、散点与模块图
+
+- **本次主要修改**：用 v5.1 数据更新后已跑完的密度增广 X5D_v51 五 seed 缓存，导出 best/median/worst 壁面包，并补拟合散点与第 4 页网络模块图。不是正在训练的纵向几何 X5D_long，未推理。
+- **对应代码/文档**：后处理已并入 [X5D_v51/](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5D_v51/README.md)；散点 [X5D_v51_scatter_fit.png](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/figures/X5D_v51_scatter_fit.png)；模块图 [slide-4.png](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_网络模块_20260913/slide-4.png)。
+- **选例**：五 seed 逐例物理 R² 均值。Best `AG/fast/ZHANG_LIANG` 0.904 / s1234 0.884，a=0.926；Median `AAA/ruputer/KANG_YONG` 0.761 / s1234 0.778（与 ZHANG_HE_PING 近并列，该例 s7=0.614）；Worst `ILO/ZHANG_YONG_SHENG-0/before` 0.602 / s1234 0.610，a=0.611。
+- **验收**：Gaussian 三例覆盖率 100%；独立核验 358 项通过。最差例 STL 更密，最近距离最大 1.32 mm，热点请对照 native 面。
+- **当前状态判断**：汇报用图已齐；部署底座仍是 X5D_v51 五 seed 集成，本包图画的是 s1234 单次场。test34 已暴露。
+
+## 2026-09-17｜v5.1 后续优化：折外局部误差与 cap 优先级
+
+- 只读当前 v5.1 五 seed/test34 与三折136例预测，新增 [CPU 诊断与建议](../../training_wss_min/experiments/wss_v51_wave1_20260916/analysis_20260917/next_optimization.md)，回填 [训练跟踪 §28.9](WSS_PINN/WSS_V5_训练实验跟踪.md)。未训练、未模型推理。
+- 折外4 mm区间内部log_z残差方差份额70.13%，区间均值轨迹R² 0.9306、局部型态0.5218；两例ILO合占该队列病例等权平方误差52.16%。建议cap先做患者分组cv3再补seed，主要新结构候选为保留局部空间结构的query patch，先诊断再试验；已有部署底座不变。
+- 澄清协议版cap为盖面r³ Murray、旧分流解释上限不能移用；区分全局P90与每例P90后pool的high-WSS指标。8个run主指标/正式尾部指标从缓存复现，未把test34五seed与cv单seed差值直接解释为过拟合。
+
+## 2026-09-16｜VELWSS2 vs X5：速度→WSS 偏差拆解 · 完成
+
+- **本次主要修改**：只读 VELWSS2 / VF6_s1234 / X5 已有指标与同点预测，按距壁分层体内速度，解释派生 WSS 为何低于直接 WSS。未训练、未推理。
+- **对应代码/文档**：`training_wss_min/experiments/vf6_velocity_to_wss_20260916/analysis_20260916/`（诊断 JSON、距壁分层图、速度–WSS 散点）；跟踪 [§27.5](WSS_PINN/WSS_V5_训练实验跟踪.md)。
+- **结果摘要**：算子 0.965、半径 ±0.003 均非瓶颈。体内速度与 X5 逐例 Spearman 0.886，与派生 WSS 仅 0.484。距壁 <2.5 mm 占 84% 点、速度 R² 与核心几乎相同；0–0.5 mm 层 R² 降到 0.683、相对 MAE 0.40，与派生 WSS 相关升到 0.667，仍高于派生 WSS 本身。KANG_YONG 最内层速度偏高 35%，派生 WSS −0.217，而 X5 0.754、oracle 0.976。
+- **当前状态判断**：差距来自预测速度的最内层剖面/导数与监督目标不对齐，不是冻结算子坏了。速度→WSS 仍不进主线。test34 已暴露。
+
+## 2026-09-16｜VELWSS2 汇报图：R² 分布、拟合散点、三例 Gaussian 壁面 · 完成
+
+- **本次主要修改**：用已完成的 VF6→冻结 Profile-Secant V3 派生 WSS（legacy 校准路径）出汇报图，不训练、不推理。选例按 seed 1234/7/2025 的逐例预测 R² 均值；Median 取距分布中位最近病例；图上场值均为 s1234。
+- **对应代码/文档**：分布 [B_VF6_wss_distribution.png](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_R2分布_20260914/B_VF6_wss_distribution.png)；散点 [VF6_wss_scatter_fit.png](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/figures/VF6_wss_scatter_fit.png)；后处理包 [VF6_wss/](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6_wss/)。脚本 `build_velwss2_distribution.py`、`prepare_velwss2_postview.py`、`verify_velwss2_postview.py`。跟踪 §27.4。
+- **结果摘要**：Best RAN_QING_BO 0.756 / s1234 0.793，a=0.790；Median LU_FU_SHAN-0 0.488 / s1234 0.515；Worst KANG_YONG −0.217 / s1234 −0.221，拟合 R² 0.605 不能挽救负预测 R²。三例 Gaussian 覆盖率 100%，核验 346 项通过。中位例 ILO STL 比 CFD 壁面更密（119k vs 80k），热点请对照 native 面。
+- **当前状态判断**：汇报图已齐；速度→WSS 仍不进主线。test34 已暴露。
+
+## 2026-09-16｜VELWSS2：VF6 三 seed 速度→冻结 Profile-Secant V3→WSS 工具链
+
+- 新增 `training_wss_min/tools/vf6_velocity_to_wss.py`（export / prepare / worker / assemble 四阶段，参数化到三 seed 与三种半径来源 legacy / legacy_exact / v5atlas；只新增 tools，不改根目录 `.py`）、`tools/report_vf6_velocity_to_wss.py`（独立 NumPy 复算 2,640 项、results.md/json、逐例 CSV、两张图、README）、`tools/update_vf6_velocity_to_wss_xlsx.py`（WSS实验矩阵 追加 6 行并核验历史单元格）、`cluster/vf6_velocity_to_wss{,_export}.slurm`；`tools/annotate_workbook_methods.py` 补 VELWSS2 词条。
+- 集群坑：master 四张卡被 wss_v51 队列 14428 以 gres=gpu:4 占满，不带 gres 的 GPU 分区作业在 cgroup 下看不到 GPU（探针 14448 `nvidia-smi -L` No devices found，14438 秒退）；速度导出改在登录 shell 的 GPU 3 直接跑，工具用 `--allow-login-node` 显式开关并把执行方式/主机/GPU/空闲显存写进 reproduction JSON。用户同日提示 node04 的 2×A100 可用（`docs/00-规范与记录/集群node04使用要点.md`），下次优先。
+- 半径核查：旧 `data_wss_min` bundle 的 `wall_local_radius` 在 unit_factor 尺度坐标上错位、VELWSS1 的最近邻旧映射恰好补偿（V5 半径与 legacy 相关 0.985、与"精确对应"只有 0.863）；后续算子一律直接读 V5 bundle 半径。
+- 结果与判读：[训练跟踪 §27](WSS_PINN/WSS_V5_训练实验跟踪.md)；实验目录 `training_wss_min/experiments/vf6_velocity_to_wss_20260916/`（17 GB，其中 chunks 11 GB 为分片诊断数组，结果固化后可删）。
+
+## 2026-09-15｜核对 X5X11 / PF6 / VF6 查看版无 CFD 延长段
+
+- **核查**：对三套包全部病例，用母库 `interfaces` 的最近切口平面（法向指向 blood1–blood5 延长段）判断点是否越过解剖切面。
+- **结果**：壁面/体点最近平面距离最大值约 0 / −0.05～−0.13 mm，没有点落到延长段一侧。SUN 的 STL 包围盒与解剖壁面一致。图上的直管是解剖入口和髂动脉，不是网格拉伸段。
+- **当前状态判断**：无需从这三套 VTP 删点。未训练、未推理。
+
+## 2026-09-15｜VF6 管内点云去掉近壁层，不再半剖
+
+- **本次主要修改**：按用户要求，查看版每个病例只保留一个 VTP：`dist_to_wall_mm > 1 mm` 的体单元中心，不做半剖/薄层。切开交给 ParaView Clip。
+- **对应代码/文档**：[VF6 管内点云](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6_体内点云查看版_20260915/README.md)。Best/Median/Worst 点数 210412 / 146581 / 263396。
+- **验收**：36 项核验通过；VTP 无三角面、无壁面 query、最小距壁 > 1 mm，selfmax 分母仍为完整域。未训练、未推理。
+- **当前状态判断**：近壁 1 mm 层已从文件里拿掉；完整外形仍在，内部用后处理切开查看。
+
+## 2026-09-15｜启发式 v2 代表病例 ax+b 拟合散点
+
+- **本次主要修改**：用已交付 9 例同点 CSV 补画 X5X11 / VF6 / PF6 的最好/中位/最差 Pred vs CFD 散点，红线 `pred = a·CFD + b`，灰虚线 y=x。未训练、未推理。
+- **对应代码/文档**：[拟合散点图包](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/README.md)；数据来自 [09-14 代表病例包](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/README.md)。
+- **结果摘要**：预测 R² 与包内 `visualization_metrics.r2` 逐例对齐。X5X11/VF6 最好例斜率 0.95/0.97；最差例斜率 0.45/0.48，拟合 R² 几乎不抬预测 R²。PF6 最好例接近恒等；中位例拟合 R² 0.934 但 a=0.693；最差例预测/拟合 0.349/0.387 一起掉。三图对齐 PASS。
+- **当前状态判断**：现行三模型此前只有空间三联，没有 ax+b 散点；本包补上。拟合 R² 不能代替预测 R²。test34 已暴露。
+
+## 2026-09-15｜启发式 v2 训练 loss history 图
+
+- **本次主要修改**：读取 wave-2 已保存 `history.jsonl`，为汇报重绘 PF6/VF6 合图与 X5X11 三 seed 曲线。未训练、未评估、未改 checkpoint。
+- **对应代码/文档**：[训练 loss 图包](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_训练loss_20260915/README.md)；源 run 为 `training_wss_min/runs/wss_local_wave2_20260912/{PF6_s1234,VF6_s1234,X5X11_s1234,X5X11_s7,X5X11_s2025}`。
+- **推进到实验步骤**：只读日志出图。
+- **当前状态判断**：PF6/VF6/X5X11 均写满 400 轮、无逐轮 val。ckpt_best 按 train_loss 最低选取：PF6 epoch 375（0.0283）、VF6 epoch 374（0.1208）、X5X11 三 seed 379/379/393。X5X11 的曲线是 total loss（base MSE+0.2×pinball）。两图对齐/文字/碰撞均 PASS。test34 已暴露，图注 R²_cb 未参与选模。
+
+## 2026-09-15｜X5D 后续优化分析与同点残差诊断
+
+- **结果**：复用X5/X5D三seed已保存的test34预测，六个单模型Pa R²复现、缓存行与真值对齐通过。X5D在log_z空间4 mm分支区间内的残差方差份额中位数69.56%、型态R²0.5999，基本同X5；Pa均值集成R²0.7382、top10幅值比0.7031，支持继续处理局部型态与高值收缩。
+- **建议**：优先固定毫米范围的全壁面patch（覆盖采样＋有效mask），其次密度视图一致性；精度候选为X5D条件残差细化与保留周向位置的局部结构。均为建议，未启动训练/推理；已存在的wave6b补seed11/2026不重复启动。
+- **口径核查**：区分Pa/log均值集成、三/五seed、逐例/全队列p90区域；同一Pa集成预测的归一化R²为0.8718。明确STL点采样间距不等于分割分辨率，0.5 mm未证明局部处处覆盖，毫米邻域不是已确认的唯一机制。
+- **产物**：[分析报告与复现数据](../../training_wss_min/experiments/wss_local_wave6_20260915/analysis_20260915/X5D_next_directions.md)，回填[训练跟踪§22.4](WSS_PINN/WSS_V5_训练实验跟踪.md)。独立审阅确认指标与分解正确；test34开发暴露边界保留。
+
+## 2026-09-15｜VF6 全点排壁核查与内部速度查看补充
+
+- **核查结果**：针对整管速度图近乎全蓝的反馈，对原 Best/Median/Worst 的 1,257,254 个点逐点核对 query、母库 cell centre、坐标/向量变换，并用原生 CFD 全部壁面三角重新求最近距离。原速度 VTP 无壁面节点，也无精确零速；三例最小距壁约 0.012141/0.012159/0.011605 mm。图像外层为靠近壁面的低速体内点，不按速度值删除。
+- **查看交付**：新增 [VF6 体内点云查看版](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6_体内点云查看版_20260915/README.md)，各例完整/几何半剖/1 mm 薄层共 9 VTP 和 9 同点 CSV，6 张原量/selfmax 对照图，附相机/平面合同与 ParaView 辅助脚本。子集只依据几何，不插值、不补壁面点；原完整场、正式指标、角色及 selfmax 原分母保留。
+- **验收**：独立核验 617 项、0 失败；1,749,941 行字段与 38 文件 SHA 匹配，6 图面板对齐/文字/碰撞检查通过。源审计发现 SUN 两个远离壁面的点，其历史近邻候选距壁特征最多高估 0.041908 mm，单列警告，不影响排壁结论，未修改源特征。
+- **技能改进**：postview 的 SKILL、交付合同、V5 入口补充体内身份和真实壁面距离的独立检查，不能只看 point_kind，也不能按单元/节点整数 ID 交集或低速删点；半剖/slab 必须披露几何谓词与显示子集点数。没有训练、推理或全测试集重评。
+
+## 2026-09-15｜安装 nature-skills，重绘模块与启发式汇报图
+
+- **技能与交付**：按用户要求安装 `Yuan1z0825/nature-skills` 的 19 个功能技能及 `nature-shared`，共 20 个完整目录，固定提交 `9ea7330a17813a15421fe843778a776c258b9001`。新增 [Nature 风格优化包](../03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/README.md)：22 页汇报 PPT/PDF、4 页模块 PPT/PDF、22 组 PNG/PDF/SVG，附讲解备注、绘图源码和待补材料清单。
+- **内容优化**：主干、X5、X11、PF6/VF6 分成四张信息流图；模块收益与设计意图分开，X11 的 R²/高值收益与 MAE/热点 IoU 代价同时展示。补齐全病例横向 R² 与直方图、9 例 Best/Median/Worst 矩阵、selfmax 附录、10 项 raw loss 及历史梯度冲突；旧 R5、V4 与当前 V5 的证据边界保留。
+- **核验**：22 个 PDF 文字/碰撞检查通过，0 FAIL/0 WARN；15 个多面板图对齐 PASS，7 个单图不适用。56 个来源 SHA 匹配，66 个导出齐全，22 页/4 页两套 PPT/PDF 内容与页数核对通过。源码审计的组会尺寸、300 dpi 等 WARN 已在随包 QA 说明中解释。
+- **执行范围**：只安装技能和重绘已有结果；原病例 VTP/CSV、指标和旧图保留，无新训练、推理或全 test 重评。新版 VF6 点云页绘制全部体内点，不再沿用旧预览 30,000 点抽样；PPT 为高清图件页，修改模块文字/箭头使用 SVG/PDF 或 Python 源码。
+
+## 2026-09-14｜后处理技能统一交付合同，9 例新增各自最大值归一化
+
+- **技能更新**：更新 `.cursor/skills/postview-surface-viz/`（`.agents/skills/` 共用软链接），新增 `delivery-fields.md`。今后完整病例包默认按变量交付：WSS 原点云＋Gaussian/native 壁面，速度仅体内点云，压力完整 wall∪interior 点云＋wall-only Gaussian/native 壁面；保留同点 CSV、预览、映射报告、manifest、打开清单和核验报告。V5 与历史 V3/CROWN 都接入新合同，病例范围仍以用户请求为准。
+- **字段与实现**：新增可复用 `tools/cfdpost_cloud_export/display_fields.py`，重导 [代表病例包](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/README.md) 全部 9 例（schema 3）。原物理量和误差保留；新增 `{wss|speed|pressure}_cfd_selfmax`、`_pred_selfmax`、归一化 signed/absolute error 和 3 个有效性 mask。最大值写入 VTP FieldData、manifest 和分母清单。
+- **归一化口径**：Pred/Predmax、CFD/CFDmax 各自分母取该病例所选帧原始完整同点评估域，在点云/native/Gaussian 之间固定复用，插值后不重求 max。速度对模长归一化；相对压力保持 p_ref，使用带符号 max，保留负值，不换成 maxabs/min-max。selfmax 仅供分布对照，原始 R²/MAE 不变；零/非有限分母明确 NaN＋valid=0。
+- **执行与验收**：只复用原缓存并本地导出/绘图，无新训练、推理或全 test 重评。技能格式与内部引用检查通过；包内 `verify_selected_postview.py` 的 **901 项检查全部通过**，含原场、坐标/拓扑、Gaussian、selfmax 公式/分母、21 份 CSV、FieldData、64 个源/输出/验证代码 SHA 与 16 个 helper 边界检查，结果见随包 `verification.json`。原物理量/selfmax 共 18 张三联图和 4 张总览；速度仅对点云绘图抽样，每例 30,000 点，完整 VTP 不减点。
+
+## 2026-09-14｜代表病例补齐壁面 Gaussian 插值并修正压力点云坐标
+
+- **修正内容**：此前代表病例包只有点云，遗漏 WSS/压力壁面插值；PF6 的旧索引还将壁面压力值挂到体内坐标。本次从原始 `query_idx` 对“壁面＋体内”坐标数组重新挂载，逐点核对真值与坐标，旧包文件归入标明“勿用于汇报”的审计目录。
+- **最终交付**：沿用 X5X11/VF6/PF6 各 Best、Median、Worst 共 9 个 s1234/ckpt_best 缓存病例；X5X11 = 壁面点云＋Gaussian STL 面＋原生 CFD 面；VF6 按用户要求仅保留体内速度点云；PF6 = 壁面∪体内完整压力点云＋仅壁面 Gaussian STL 面＋原生 CFD 面。另附 6 张壁面三联图与总览，入口为移动后的 [代表病例打开说明](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/README.md)。
+- **核验与口径**：Gaussian r=3 mm、sharpness=2、max_dist=3 mm，6 份壁面覆盖率均 100%；STL 倍率 1.0，经 V5 刚性变换后最近壁面点最大距离小于 3.69e-5 mm。逐点核对原缓存/母库、VTP 数组读回与 R²；压力保留原 p_ref，无偏置拟合。选例三 seed R² 均值与文件 s1234 原始同点 R² 分列；不以平滑后指标代替正式评估。
+- **局部展示限制**：YAO_CUN_HONG / ZHANG_CHUN 分别有 12 / 16 个高斯邻域含局部三角图不连通点，诊断与权重写入 mapping report；使用原生壁面检查局部热点和平滑影响，不以 100% 覆盖率声称无跨壁混合或面积映射通过。
+- **执行范围**：重写包内缓存导出脚本，复用 9 例既有预测并本地出图；无新训练、模型推理或全 test 重评。包内输出改用相对路径，源哈希和独立核验报告随包保留；独立核验 495 项全部通过，62 个源/输出 SHA 匹配。
+
+## 2026-09-14｜启发式汇报材料归入同一目录
+
+- **本次主要修改**：把 09-13/09-14 启发式提纲、参考 PPT、R² 分布、代表病例后处理、R4 结构图和 R5 体场图从 `docs/03-汇报材料/` 根目录收进 [启发式实验汇报_2026-09-13](../03-汇报材料/启发式实验汇报_2026-09-13/README.md)，避免汇报材料顶层过于分散。
+- **对应代码/文档**：入口 README、`docs/README.md` 汇报导航、`WSS_PINN/README.md` 提纲链接、V5 训练跟踪体场图链接、`training_wss_min/tools/export_v5_volume_postview.py` 导出目录。
+- **推进到实验步骤**：只改存放位置与引用路径，未训练、重评或重导图。
+- **当前状态判断**：现行讲解入口仍是提纲 v2；旧顶层路径已失效。
+
+## 2026-09-14｜启发式汇报：病例 R² 横向分布与选例素材
+
+- 复用 X5X11、VF6、PF6 的 s1234/ckpt_best 预测缓存和同帧 bundle/volume 坐标，整理各模型独立 Best/Median/Worst 共 9 个 ParaView 点云 VTP；未重新训练或推理。交付目录：[代表病例后处理包](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/)。
+- 仅读取现有 `eval/ckpt_best/metrics.json`、V4历史评估 JSON 和 velocity→WSS 审计结果，生成 12 组横向病例预测 R² 散点＋固定宽度直方图（PNG/PDF/SVG），覆盖 X5/X5X11、PF6/VF6、R5 诊断链和 V4 三目标。
+- V5 三 seed 每例取 R² 算术均值，横须为 seed 间样本 SD；Most 按 0 锚定、宽 0.10 的最高频区间选取，Best/Worst 为真实极值，负 R² 保留。`summary.json` 保存源路径/SHA256、统计和分箱敏感性；`representative_cases.csv` 保存 36 条角色选例。
+- 交付[分布补充 PPT/PDF](../03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_R2分布_20260914/)，共 14 页。此批不调用训练、推理或后处理导出；病例云图仍需按 CSV 中的 run/checkpoint/seed 在 ParaView 补齐。V4 源文件名虽含 `last_converged`，实际记录为 epoch9999、`converged:false`，汇报中按历史未收敛诊断页标注。
+
+## 2026-09-13｜V4稳态独立损失项补图
+
+- 用户澄清后另交付[单个PNPP EMA两图](../03-汇报材料/V4汇报/V4_稳态梯度与损失_2026-09-12/individual_losses/single_pnpp_ema/README.md)：同轴u/v/w/p与同轴边界/PDE六项，均为raw；挑选与此前动态权重对应的臂，不按测试成绩筛选。
+
+- 按用户要求新增10个独立损失项及动量组共11张英文图，每张含raw/weighted与两骨干对照，输出PNG/PDF/SVG与合订PDF。
+- [图件与字段口径](../03-汇报材料/V4汇报/V4_稳态梯度与损失_2026-09-12/individual_losses/README.md)；读取历史8臂日志，逐epoch校验10项加权之和复原total。关闭项不作零残差展示，稳态不画RCR/时间项。无新训练、推理或测试集评估。
+
+## 2026-09-13｜波 2 结案、波 3 提交与文档归档（指针）
+
+- 波 2（`wss_local_wave2_20260912`，Slurm 14185）结案：X5+X11 三 seed 只改善尾部；F6 变体无增益；F6 接体场有效（压力 +0.035、速度 +0.023）。WSS 新底座 = X5（三 seed +0.069）。详见 [V5 训练实验跟踪 §20.4](WSS_PINN/WSS_V5_训练实验跟踪.md)；工作簿 WSS 表 372–377 行、速度与压力表 74–81 行（新工具 `training_wss_min/tools/update_wss_local_wave2_volume_xlsx.py`）；工作簿另新增「方法说明对照」页与列 B 人话说明（`tools/annotate_workbook_methods.py`）。
+- 波 3（`wss_local_wave3_20260913`，Slurm 14198 → 14199，1 h 10 min，已完成）：PF6/VF6 seed 7/2025 + 同 seed P02/V07 对照，seed 配对参考链 `configs/wss_local_wave3_20260913/refs/`（`tools/prepare_wss_local_wave3.py`）。三 seed 配对 Δ 压力 +0.035/+0.062/+0.039、速度 +0.023/+0.026/+0.033 全部同号 → **PF6/VF6 正式成为压力/速度底座**（[§20.5](WSS_PINN/WSS_V5_训练实验跟踪.md)）；工作簿速度与压力表 82–97 行（`update_wss_local_wave2_volume_xlsx.py --name/--group`）。用户同日裁定：部署拿不到的输入（CFD 出口分流、真值压力梯度、RCR）不做实验，含 oracle 上限探针。
+- 文档归档：V5 数据重建记录、交叉审阅意见（含探针）、固定峰值快照审阅稿、局部信息头脑风暴 → `WSS_PINN/_archive/`；Centerline V2 切换记录 → `_archive/`。索引与结案说明见 [WSS_PINN/_archive/README.md](WSS_PINN/_archive/README.md)、[_archive/README.md](_archive/README.md)。
+
+## 2026-09-12｜V4历史稳态梯度与损失英文重绘
+
+- 复用旧V4 seed1234稳态8臂epoch日志与PN三臂梯度CSV，生成3张英文PNG/PDF/SVG及合订PDF；附中文导师短总结、统计CSV和复现脚本。
+- [图件与口径](../03-汇报材料/V4汇报/V4_稳态梯度与损失_2026-09-12/README.md)：明确no-slip强负余弦、较弱动量冲突、连续性近零；关闭项标N/A，区分共同数据损失与各臂加权总损失。
+- 仅历史证据重绘与精确统计，不改变路线结论；未训练、重评测试集、修改工作簿或旧图。
+- 同日按用户反馈将梯度图改为反向箭头示意＋两张实测曲线，移除热图、公式和大段说明；同步更新PNG/PDF/SVG及合订PDF。随后将动态权重改为前50轮放大、99.76%饱和比例、残差比值与数据MSE四联展示，突出epoch24达到9.99及其训练拟合代价。
+
+## 2026-09-12｜WSS 分析与可视化技能对齐现行 V5（指针）
+
+- **本次主要修改**：项目实验分析/postview 技能改为实际 run/config 路由，补齐 V5 指标、峰值帧、坐标、物理恢复与当前导出器限制；node04 按现场资源选择执行方式并继承已有任务授权。
+- **对应代码/文档**：`.cursor/skills/` 三个技能及 `.agents/skills/` 共用入口；详细改动与验证见[通用推进记录本次条目](代码修改与实验推进记录.md)。
+- **推进到实验步骤**：只读已有结果做技能场景验证，未训练、重评、导出或修改工作簿。
+- **当前状态判断**：本次改变 Agent 工作规范，不产生新的模型结论；后续 C1 Pa 图优先复用已验收缓存，R5V 连续 Slice 必须先满足真实体拓扑/配准合同。
+
+## 2026-09-12｜直接WSS 14臂完成、结果回填与提交记录清理
+
+- **本次主要修改**：14臂400轮、28份best/last整壁面test34评估完成；复核42份验收、1143个文件哈希。C1 best/last Pa R²=0.6575/0.6593，best MAE=1.8447 Pa、IoU=0.4698。删除无训练结果的旧提交记录、失败登记16行及相关冗余备份；已完成消融全部保留。
+- **对应代码/文档**：[V5跟踪§18](WSS_PINN/WSS_V5_训练实验跟踪.md)、[工作簿](../03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx)、`training_wss_min/tools/report_wss_recovery.py`；旧失败登记生成器与提交脚本移除，通用队列入口改为显式配置路径。
+- **推进到实验步骤**：Slurm14119于2026-09-12 15:42:02正常结束；工作簿本轮有效结果位于333–346行，保留327条历史实验及另外两页。
+- **当前状态判断**：C1优先保留，C4实际为E3＋E9；E0低于历史M2的差距尚待解释。结论限于单seed、test34开发筛选。
+
+## 2026-09-11｜压力/速度26臂完成、最终判读与工作簿回填
+
+26臂400轮、60组目标/checkpoint和26条history验收均通过；14040耗时12:26:51，14041与14056完成退出0。压力P02通过精度和长波门槛，P03为低MAE备选；速度V07相对同期/历史基线更好，但各速度臂均未通过直接父臂完整门槛；联合J01不构成两任务共同提升。三张原结果表完整回填，新增“体场注意力结论”页，修正历史参照的待完成显示。原始科学报告不改数值；源表3000项及结论页186项转录复核通过，历史公式/合并保留。详见[跟踪§17](WSS_PINN/WSS_V5_训练实验跟踪.md)与[完整结论](../../training_wss_min/experiments/volume_attention_20260910/final_summary.md)。单seed1234、暴露test34边界保留。
+
+## 2026-09-10｜压力/速度26臂后台监控与阶段工作簿回填
+
+按用户要求增加每5分钟后台巡检（Slurm14056），监控14040训练和14041最终汇总。首批P00–P03的8组best/last逐点指标及4条400轮history独立验收通过；工作簿三张结果表新增独立体场分节，总览321–354、教师281–314、汇总449–512，3000项转录核对通过，原25,308个非空单元格、1,360个公式保留。阶段结果显示数值已核验，正式门槛判定待整批完成；新增结果/阶段转换时增量回填，正常巡检静默。监控与最终回填共享文件锁，11项监控检查与9项finalizer检查通过；冻结训练源码和26臂配置未改变。详情见[跟踪§17](WSS_PINN/WSS_V5_训练实验跟踪.md)。
+
+## 2026-09-10｜压力/速度全局注意力26臂：实现、验收与正式执行
+
+用户确认完整实施P/V各12臂及联合2臂，seed1234。新增原SA3逐token FFN容量对照、独立速度/压力heads、联合采样双mask与等权损失、递归fresh配对初始化、联合分任务评估和同点预测缓存。新增全34例分支5mm体积分箱及5/10/20/40mm残差诊断、26臂配置/队列、独立NumPy验收及工作簿幂等分节回填工具。旧默认配置/模型键保持兼容，冻结原18D统计，不扩展曲面曲率或新几何。单测104项+40子测试通过；真实GPU预检14034、26臂两轮冒烟14038、历史R5 best/last复核14036（2948检查）均通过。正式14040已启动（1GPU/4槽/48小时），自动验收与回填14041依赖其结束。原14039因分配限时调整提前中止并归档，14040全部从零训练；当前不作新体场科学结论。进展与最终结果见[唯一跟踪§17](WSS_PINN/WSS_V5_训练实验跟踪.md)。
+
+## 2026-09-08｜V6 单帧 WSS 矩阵：局部尺度 / 解码器 / 病例幅值 / 局部微分几何 / NLL 校准
+
+**本次主要修改**（全部配置驱动，默认值 = 旧行为）：
+- `training_wss_min/baseline_models.py` 新增三个零初始化模块：`LocalWallBranch`（support 分辨率上的多尺度球邻域分支，`model.local_branch`）、
+  `LocalQueryDecoder`（k 近邻几何条件凸插值 + 零初始化局部残差头，`model.query_decoder='local_attn'`）、`CaseScaleHead`（最粗层池化 → 逐例幅值，`model.case_scale_head`）。
+- `evaluate.py`/`dataset.py`：高斯 NLL 的逐点 Jensen 回变换 `eval.pointwise_jensen` + 只读覆盖 `--back-transform {config,exp_mu,jensen}`；`denormalize_wss_lognormal_mean`。
+- `config.py`/`dataset.py`：V6 逐点特征键（壁面主曲率族两尺度、curvedness/shape index、切向·法向、分支语义 one-hot、分支内相对弧长）与 sidecar 加载 `data.point_features_root`；曲率族沿用 curvature 的 signed_log1p + p99 截断。
+- 数据侧新增 `wss_v5/views/wall_geom_v2.py`：在 PCA 法向切平面做局部二次拟合求主曲率，写 `data_wss_v5/views/wss_min_geom_v2/`（172/172 例，409 MB，40 秒），**不动冻结的 `wss_min_view_v1`**；只用部署可得输入，网格对偶面积仅作审计不进配置。
+- 工具/提交：`tools/prepare_v6_singleframe_matrix.py`（含单变量自检与 `--combo`）、`tools/report_v6_matrix.py`（复用 §11 的 `verdict_for`）、`tools/update_v6_matrix_xlsx.py`、`tools/v6_module_diagnostics.py`、`cluster/run_v6_matrix_queue.slurm`（共享显存模式：预检从"卡必须空"改为"剩余显存够"）。
+
+**前后兼容验收**：386 个历史配置全部通过校验；149 个既有单测 + 19 个新单测通过；用新代码只读重评旧 run（R4 s1234 best）与已存 `metrics.json` 逐字段比对，5624 个数值最大绝对差 1.9e-5（GPU 非确定性量级）。
+
+**推进到实验步骤**：11 个臂（A0–A5b，每臂 seed 1234、峰值单帧、400 epoch），Slurm 作业 13164 + 13167，与另一位同学的非 Slurm 进程共享 4 张 4090。
+最好配方 **A5 = 局部分支 + 局部微分几何**：物理 R²_cb 0.5567→**0.6230**、归一化 0.7830→**0.8196**（单 seed 带的 5.2 倍）、MAE 2.19→2.01 Pa、top10 IoU 0.355→0.416。
+NLL 的收益全部在回变换（同一权重 exp(μ) 0.558 → 逐点 Jensen 0.599）；病例幅值头塌成常数（逐例因子 1.0325–1.0330）；只调 SA1 中心/半径远不如新增局部通路。
+
+**当前状态判断**：单 seed 只作筛选，按既定统计合同**不判定**；A5/A4/A1 需补 seed 7/2025 做三 seed 判定。结果与判读见
+[V5 训练实验跟踪 §12](WSS_PINN/WSS_V5_训练实验跟踪.md)，工作簿已回填（总览 255–265、教师视图第 ⅩⅢ 节、汇总对比 371–385）。
+
+## 2026-09-07｜数据预处理图件汇集为老师展示目录
+
+**本次主要修改**：把 2026-07 至 09 的几何坐标配准 QA、Centerline V2 总览/前后对照、权威表面与网格壁面、曲率端区、压力/WSS 重算、ILO 队列审核叠图、V5 特征对照，拷贝进
+[数据预处理全历程展示_2026-09-07](../03-汇报材料/数据预处理全历程展示_2026-09-07/README.md)
+（约 85 个文件、59 MB）。只做展示拷贝，不改 `outputs/` 真源，不改数据或训练。
+
+**对应代码/文档**：展示入口 README；项目索引 `docs/README.md`「准备论文图和汇报」；全历程汇报准备稿 §10 增加指针。
+
+**推进到实验步骤**：预处理证据可按 01–07 子目录给老师翻阅。
+
+**当前状态判断**：材料齐备可展示。173 例逐例三视图仍只在 `outputs/centerline_v2_full_173_20260828/cases/`，展示包只收总览与代表病例。
+
+## 2026-09-07｜V5：数据母库 172/172、Wave 1/2 重跑、V4 文档归档
+
+- `wss_v5/`（contract/sources/mesh_topology/raw_frames/centerline_features/pointcloud/conditions/store/build_case/build/refresh_geometry/views）：B-Full HDF5 母库；部署侧几何程序 = PCA 法向 + kNN-MST 一致定向（跨壁边惩罚、中心线置信区还原）+ rim 平面拟合虚拟盖 + 自校准 winding 内外判定；atlas 出口命名按几何最近接口重对应（8 例）。gate 定义与 172 例结果见 [V5 数据重建记录](./WSS_PINN/_archive/WSS_V5_数据重建_Pilot与全量构建记录_2026-09-06.md)。
+- `wss_v5/views/wss_min_view.py`：V5 → `training_wss_min` 旧 schema 视图（atlas 解剖坐标架、[−1,1] 归一、train138 log_z 统计、train138/test34 split）；`training_wss_min/config.py` 加 `V5_POINT_FEATURE_KEYS`，`dataset.load_case` 读 `wall_<name>`/`wall_normal_pca_aligned` 可选字段（旧 bundle 不受影响）。
+- 配置 `training_wss_min/configs/v5_rerun_20260906/`、提交 `cluster/run_v5_rerun_wave{1,2}.slurm`（作业 13095/13098，GPU 0/1/3）、汇报 `tools/report_v5_rerun.py`、旧 ckpt 34 例交集重评 `experiments/v5_rerun_20260906/legacy_overlap34/`。结果与判读见 [V5 训练实验跟踪](WSS_PINN/WSS_V5_训练实验跟踪.md)。
+- 文档：V4 四份文档归档至 `WSS_PINN/_archive/`（文首结案说明），全仓库链接同步；新开 [Centerline V5 记录](Centerline_V5_点云atlas接入与出口命名修正记录_2026-09-07.md)。
+- 工作簿：`tools/update_v5_rerun_xlsx.py` 把 V5 Wave 1/2 的 8 个 run + 5 个旧 ckpt 交集参照回填到《WSS_PointNet实验矩阵与结果汇总last.xlsx》三张表（总览行 195–207、教师视图第 Ⅹ 节、汇总对比 2026-09-07 节），备份在 `experiments/v5_rerun_20260906/`。
+
+## 2026-09-06｜V5 v0.3-review 局部几何输入主线 · 设计修订 / 实施待决定
+
+**本次主要修改**：按用户最新偏好，将
+[WSS V5 完整设计方案](WSS_PINN/WSS_V5_几何点云与中心线驱动的WSS及流体场预测完整设计方案_2026-09-06.md)
+修订为 `v0.3-review`。默认输入为 xyz + 局部几何/中心线特征，保留局部物理半径、弧长等，
+优先直接 WSS 与体场预测头。入口/出口面积等独立全局参数、面积分流代理及依赖面积的参考场
+退出默认预测路径；RCR 不作模型输入的边界不变。
+
+**数据与入口边界**：面积/体积积分权、接口审计元数据仍保存在 bundle，用于积分评价及审计，
+不拼接为模型特征。其余数据合同及 Phase C 待决定项保持不变，B-Full + Zarr 仍为优先 pilot 候选。
+同步[路线入口](WSS_PINN/README.md)、[项目索引](../README.md)与通用推进记录；
+`v0.2-review` 及更早日志保留历史版本含义。
+
+**验证与状态**：检查新增本地链接与 diff 空白。本次仅修订设计文档，未修改模型代码、训练配置、
+数据或 checkpoint，未执行正式 bundle 重建、pilot 或训练。
+
+## 2026-09-06｜V4 速度 R² 后处理补 DATA / BC+PDE-FIXED · 已完成
+
+**本次主要修改**：在既有 `outputs/wss_pinn/audits/v4_speed_r2_postview_20260902/` 上补
+seed1234 SP-PNPP 纯 DATA（index 4）与 BC+PDE-FIXED（index 6）的 official speed R²
+best/worst 面片与腔内速度点云；原 index 5/7/8 未重算。导出脚本增加历史 BC z-score
+兼容（旧矩阵 stats 无 `v4_bc_vector_2026-09-05` 合同），并在增量导出时合并已有臂
+manifest / README。
+
+**对应代码/文档**：`docs/03-汇报材料/tools/export_v4_speed_r2_postview.py`；
+工作簿对照 `docs/03-汇报材料/WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx`
+（未改表，仅按矩阵选臂）。产物见
+`outputs/wss_pinn/audits/v4_speed_r2_postview_20260902/README_后处理打开说明.md`。
+
+**推进到实验步骤**：历史 V4 seed1234 SP-PNPP 四臂（DATA / BC / FIXED / EMA）+ 瞬态 PN-DATA
+的速度 R² 极值病例后处理已齐。
+
+**当前状态判断**：四例面片覆盖率均为 100%。DATA worst/best 为 `ILO/SUN_DONG_XIN-0/before`
+（R²=−0.774）/ `ILO/SUN_XU_XIA-1/before`（R²=0.227）；FIXED worst/best 为
+`AG/fast/SUN_ZHI_YU`（R²=−1.228）/ `AG/fast/YAO_CUN_HONG`（R²=0.071）。
+可视化产物，正式指标仍以 official eval JSON 为准。未写入工作簿新行。
+
+## 2026-09-06｜V5 v0.2-review 综合审阅修订 · 设计完成 / 实施待决定
+
+**本次主要修改**：综合核验交叉审阅意见与历史实验真源，修订
+[WSS V5 完整设计方案](WSS_PINN/WSS_V5_几何点云与中心线驱动的WSS及流体场预测完整设计方案_2026-09-06.md)
+至 `v0.2-review`。RCR 不作模型输入；协议探针覆盖 172 例，`(R1+R2)·C` 近常量而
+`R2·C` 不恒定，左右 50/50 仅为末端 DC 电导近似，不作为实际瞬态流量硬约束。
+历史小样本平台、面积回归残差与旧标签噪声估计均不作为新数据的理论精度上限。
+
+**对应设计与入口**：物理参考场及残差学习、时间低秩表示、提前验证部署采样纳入候选；
+B-Full + Zarr 为优先 pilot 候选，模块范围、物理格式和 Phase C 重建方式仍待用户决定。
+[交叉审阅意见原稿](./WSS_PINN/_archive/WSS_V5_设计方案交叉审阅意见_2026-09-06.md)与
+[BC 协议结构探针](./WSS_PINN/_archive/V5审阅_BC协议结构探针_2026-09-06)保留供追溯；同步
+[路线入口](WSS_PINN/README.md)、[项目索引](../README.md)与通用推进记录。
+
+**验证与边界**：核对新增本地链接与 diff 空白。此次为设计和文档修订，候选模型/实验未实现，
+未修改训练代码、数据、配置、checkpoint 或作业，未执行正式 bundle 重建或训练。
+
+## 2026-09-06｜V5 完整设计草案 · 交叉审阅后再确定 bundle
+
+**本次主要修改**：按用户明确的部署方式编写
+[WSS V5 完整设计方案](WSS_PINN/WSS_V5_几何点云与中心线驱动的WSS及流体场预测完整设计方案_2026-09-06.md)，
+状态 `v0.1-review`。覆盖几何点云/中心线输入、共享多尺度编码、WSS幅值与空间分布、速度/相对压力、
+多任务与可选物理约束、患者级CV、工程能力分级和GPU推理。数据提案为不可变物理量母库＋多种实验视图＋索引缓存，
+保留完整体域/壁面、可逆压力和可选拓扑；完整时序物理量估算约95.40GiB，未含静态/缓存/格式开销。
+
+**验证与边界**：独立审阅补充固定积分参考集的query分块不变性、非线性动量与几何-only条件平均的区别、
+R²与时间聚合公式、Compact覆盖能力及缓存失效规则；检查本地引用、Markdown结构和新增diff。
+本轮只写方案与入口/推进记录，未修改训练代码、数据、配置、checkpoint或作业。
+
+**下一步**：用户交叉审阅后确定模块范围、逻辑schema和候选存储，再少例pilot冻结物理格式，最后决定正式Phase C构建。
+文中的模型、精度门槛和实验参数均为提案，不代表已验证或已冻结。
+
+## 2026-09-06｜终审版 §5.4 补压力 / WSS 前后对照表 · 已完成
+
+**本次主要修改**：终审版 §5.4 改为两张总表。表 A 覆盖 08-30 P0-5 八例低压力族（旧 V4 `steady_reference_pa` 476–3,508 Pa → 09-01/02 后 11.7–15.9 kPa）及 ZHOU/ZUO Q 长尾；表 B 覆盖同一批病例峰值帧 WSS p50/p99/max 前后，外加 D 层 4 例 20→60 次。数字来自旧 V4 manifest、验收计划 §1.1 与 `audits/superseded_20260904|06/wall_wss`。逐例 CSV 写在 `V4汇报/V4_数据审查与中心线修复_2026-09-06/pressure_wss_before_after.csv`。单文件版已重建。
+
+**对应代码/文档**：终审版 HTML；审查真源 08-30 审阅 P0-5、anatomy-only §17/§23/§27。未改训练产物。
+
+**推进到实验步骤**：汇报材料整理。
+
+**当前状态判断**：压力低值簇与壁面 WSS 错配的前后对比已可直接汇报。formal 仍 No-Go。
+
+## 2026-09-06｜终审版补 §5 数据审查图 · 中心线错配 / 曲率 / 压力·WSS 重算 · 已完成
+
+**本次主要修改**：终审版 HTML 新增第 5 节，把 08-28～09-06 的数据合同工作收进汇报稿（不是 16 组训练结果）。图件汇到
+`docs/03-汇报材料/V4汇报/V4_数据审查与中心线修复_2026-09-06/`：`YANG_YU_QING` 错 STL、`XIE_JIN_QUAN` 漏支、
+三例 STL≠CFD 壁面叠图与 `.cas` 网格重提拼图、`LI_LAO_PING` 半径自适应曲率、端点 1R 持值、
+以及 10 例壁面–体域 Δp + D 层 4 例 WSS 20→60 次对照图。终审版单文件已重建（21 张图，17 MB）。
+
+**对应代码/文档**：脚本 `V4汇报/V4_数据审查与中心线修复_2026-09-06/plot_v4_data_review_figs.py`；
+终审版 `WSS_PINN_V4实验分析与汇报提纲_2026-09-02（终审版）.html` 与 `_单文件版.html`；
+审查真源 `WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md` §12–13 / §23 / §26–27。
+未改训练产物，formal 仍 `training_ready=false`。
+
+**推进到实验步骤**：汇报材料整理；不涉及训练/评估。
+
+**当前状态判断**：终审版已能展示中心线错配修复、曲率 atlas 与压力/WSS 标签重算。正式重建仍 No-Go。
+
+## 2026-09-06｜V4 汇报图件去重 · 旧双份目录删除 · 已完成
+
+**本次主要修改**：`docs/03-汇报材料/V4汇报/` 定为 V4 汇报图件唯一存放处。删除两处旧双份目录，不再留指针夹：
+`docs/02-推进与变更/WSS_PINN/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/`（fig1–8 + 合订 PDF）、
+`docs/03-汇报材料/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01/`（8 臂横向 R² / 代表病例 / full-wall WSS，与 `V4汇报` 副本字节级相同）。
+出图脚本默认输出改到 `V4汇报/`；终审版 HTML 已按改过的 `plot_v4_report_figs_v2.py` 重绘 fig4/fig7/fig11 并打包
+`WSS_PINN_V4实验分析与汇报提纲_2026-09-02（终审版）_单文件版.html`（13 张图，终审稿已去掉 fig6 / fig12）。
+
+**对应代码/文档**：图件真源 [`V4汇报/`](../03-汇报材料/V4汇报/README.md)；
+脚本 `docs/03-汇报材料/tools/plot_v4_bc_pde_r2_horizontal.py`、
+`plot_v4_representative_regressions.py`、`plot_v4_fullwall_wss_regressions.py`、
+`update_v4_fullwall_wss_workbook.py`、`build_v4_report_singlefile.py`；
+分析稿 `WSS_PINN_V4实验分析与汇报提纲_2026-09-02.md` / 终审版 HTML。未改训练产物。
+
+**推进到实验步骤**：汇报材料整理；不涉及训练/评估。
+
+**当前状态判断**：旧双份目录已删除，图只在 `V4汇报/`。formal Centerline-V2 训练仍是 `training_ready=false / No-Go`。
+
 ## 2026-09-04｜BC/RCR V4 与非 PINN 血统对齐 · formal backbone 选择 B · 文档完成 / 训练 No-Go
 
 **本次主要修改**：交叉核对非 PINN 点云实验、体域 PINN V1/V2、field-v4、旧 BC/RCR
@@ -20,8 +407,8 @@ velocity→WSS/Profile oracle，不属于 P2V/D2 sampler。修正 DATA/DATA+BC�
 明确图 2/3 展示旧 matched-v1.2，而非尚未实现的 formal P2V/D2 sampler。
 
 **对应代码/文档**：[WSS_PINN 路线真源](WSS_PINN/README.md)、
-[V4 大重构设计](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)、
-[正式重建清单](WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)、
+[V4 大重构设计](WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md)、
+[正式重建清单](WSS_PINN/_archive/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)、
 [非 PINN PointNet 矩阵](WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)、
 [训练跟踪](WSS最小化_训练实验跟踪.md)、`wss_pinn/README.md`、根/`docs` README、
 `docs/实验设计总纲.md`、V4 分析 Markdown/HTML/单文件版与
@@ -55,7 +442,7 @@ LIU_YUE_DONG UDF 归档和 LIU_ZONG_YANG 完整周期复核基础上，新增正
 收敛、raw 内容 SHA、正式 bundle/stats/Gate 重建。
 
 **对应代码/文档**：
-[正式重建前剩余整改问题与验收计划](WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)、
+[正式重建前剩余整改问题与验收计划](WSS_PINN/_archive/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)、
 [WSS_PINN 当前入口](WSS_PINN/README.md)、[项目文档索引](../README.md)、根 `README.md`、
 `wss_pinn/README.md`、`wss_pinn/AGENTS.md`、`docs/实验设计总纲.md`；08-30 初审文档新增
 最新状态指针。本次未修改 builder、训练代码、
@@ -108,9 +495,9 @@ checkpoint/resume/evaluate 同时新增 manifest/stats/split/array-audit/case-ma
 `evaluate.py`、`wss_pinn/tests/test_volume_bc_rcr_v4.py`；数据根
 `data_wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging_train138_test35/`；
 机器 Gate `outputs/wss_pinn/volume_uvwp_bc_rcr_v4_centerline_v2_rawfull_v2_staging/audits/gate_report.json`
-与 `full_array_audit.json`；同步更新 [173 例审阅与修复计划](WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)、
+与 `full_array_audit.json`；同步更新 [173 例审阅与修复计划](WSS_PINN/_archive/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)、
 [WSS_PINN 当前入口](WSS_PINN/README.md)、[代码入口](../../wss_pinn/README.md)、
-[V4 设计基线](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md) 和 `wss_pinn/AGENTS.md`。
+[V4 设计基线](WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md) 和 `wss_pinn/AGENTS.md`。
 
 **推进到实验步骤**：Phase 1/2/3/5 的 staging 实施完成。173 例采用每例 manifest +
 steady/transient/boundary direct `.npy`，不是从旧 WSS-min `.npz` bundle 派生；共 5,182 数组、
@@ -137,7 +524,7 @@ WSS 与近壁场耦合，共 8 图 + 合订 PDF + 可复现脚本。全程只读
 未改代码、数据、配置、checkpoint 或训练状态，未回填 xlsx。
 
 **对应代码/文档**：新增目录
-[WSS_PINN/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/](WSS_PINN/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/README.md)
+[V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/](../03-汇报材料/V4汇报/V4_seed1234_0-15_训练曲线与诊断图_2026-08-31/README.md)
 （图件清单、数据真源与口径限制见其 README）；同步更新
 [WSS_PINN 当前入口](WSS_PINN/README.md)。
 
@@ -164,9 +551,9 @@ Centerline V2 provenance、steady/transient 几何语义、曲率、压力、刚
 修复计划。本次未修改代码、数据、配置、checkpoint、作业或训练状态，未停止现有任务。
 
 **对应代码/文档**：新增
-[173 例训练数据数值与刚性配准审阅及修复计划](WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)；
+[173 例训练数据数值与刚性配准审阅及修复计划](WSS_PINN/_archive/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)；
 同步更新 [WSS_PINN 当前入口](WSS_PINN/README.md)、
-[V4 设计基线](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md) 与
+[V4 设计基线](WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md) 与
 [docs 索引](../README.md)。
 
 **推进到实验步骤**：完成 Centerline V2 下游 cutover 前的数据审阅与 Go/No-Go 判定；
@@ -493,7 +880,7 @@ same5k 抽点。Primary 为病例等权速度向量相对 L2
 **对应代码/文档**：
 [归档后的 Stage 0–1 提示词](WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)、
 [归档索引](WSS_PINN/_archive/README.md)、[路线 README](WSS_PINN/README.md)、
-[V4 设计方案](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
+[V4 设计方案](WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
 结论仍留在路线 README 的 field-v4 结果节；证据
 `outputs/wss_pinn/volume_uvwp_peak_field_v4/stage1_multiseed_and_promotion_report.json`。
 
@@ -749,7 +1136,7 @@ resume 处理，勿与 completed 混写。
 
 **当前状态判断**：当前占 3 卡（`2/3/6`）。下次接手先查 `squeue` 是否仍有
 `11972_{2,3,6}`，再按用户指令补提 **`7-47`**。入口已同步：
-[WSS_PINN README](WSS_PINN/README.md)、[V4 设计方案](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
+[WSS_PINN README](WSS_PINN/README.md)、[V4 设计方案](WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
 
 ## 2026-08-09｜V4 正式数组截断：取消挂起 `11972_[8-47]`，仅保留 `0-7`
 
@@ -798,7 +1185,7 @@ schema manifest 的识别，避免缺少 `eligible_interior` 时错误跳过。�
 
 ## 2026-08-08｜WSS_PINN V4 设计 v1.2：对抗性审核修正（入口合同/RCR 单位/四臂）
 
-**本次主要修改**：对 [V4 大重构设计方案](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)
+**本次主要修改**：对 [V4 大重构设计方案](WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md)
 完成 v1.0→v1.1→v1.2 两轮修订，仅改设计与导航文档，未动代码/数据。v1.1 曾以“入口波形
 全库统一”为由移除 `Q_in` 输入并把入口/出口 BC 以残差放入物理 loss；对抗性审核证实四个
 关键问题，v1.2 修正为：
@@ -831,7 +1218,7 @@ schema manifest 的识别，避免缺少 `eligible_interior` 时错误跳过。�
 ## 2026-08-08｜WSS_PINN V4 大重构设计：显式 RCR 条件与稳态/瞬态双路线
 
 **本次主要修改**：新增
-[WSS_PINN V4 大重构设计方案](WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)，
+[WSS_PINN V4 大重构设计方案](WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md)，
 将新 V4 与已完成旧 field-v4 隔离。新方案不再输入 CFD 求解后才能得到的 outlet pressure，
 改用 `Q_in`、入口/四出口面积和四组 `R1/R2/C`；统一比较 PointNet/PointNet++ 的
 DATA、PINN-fixed 与 PINN-EMA-ratio，共 12 臂；动态臂采用 detached EMA

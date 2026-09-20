@@ -1,0 +1,1853 @@
+{
+  "experiment": "VELWSS1",
+  "checkpoint": "best",
+  "seed": 1234,
+  "new_training": false,
+  "new_centerlines": false,
+  "calibration": "frozen; historically WSS-supervised on train138",
+  "frozen_sources": {
+    "method": "surface_mls_v4_profile_secant_high_tail_anchor10",
+    "files": [
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/profile_secant_adapter.py",
+        "sha256": "7302e3813a7a4f2d0cbe81dabfa1b4735e5c072fca6dd238541418a58f7d8ebb",
+        "bytes": 21447
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/run_frozen_wss_compat.py",
+        "sha256": "59cc98cce52d030ed2d489e0242600e755f936d73b6d4a70b1173e04a4419299",
+        "bytes": 3821
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/calculate_wss_cfd.py",
+        "sha256": "a5ee80aaadb02345eae38d97c69db92450d5c7470341745b4475a25b18b2b42d",
+        "bytes": 31551
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/data_loader_cfd.py",
+        "sha256": "50cae2d8dd7846cb2050b9f27e45b802c329c985af8420ebe2534e76a295670c",
+        "bytes": 4232
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/wss_multiscale.py",
+        "sha256": "ea85303c97e794c6a2c6baa98c37d4554ccafec4c63e2d08583f0fd99aeddda9",
+        "bytes": 12003
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/wss_normal_multiscale_v3.py",
+        "sha256": "37fe180cd5ee65d0d8c077edcc3b635e721ea3e987833cb573cb6a6d3fb72b73",
+        "bytes": 45332
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/wss_surface_mls_v4.py",
+        "sha256": "7d83c49534f84c2d8041e135cea39cceb3f9ad01ee778167d8c68e078bea9511",
+        "bytes": 34302
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/batch_validate_cfd.py",
+        "sha256": "5a6cb19291e93d2bbf5021b1a27b9f36af2bfdee79708e6b2b791b1429fbe904",
+        "bytes": 14053
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/calibrate_v4_oof.py",
+        "sha256": "4ddc65fa84d8739e4137a1089813eca78de9b9d0a1b5a338c603ae72050d91c1",
+        "bytes": 19458
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/calibrate_v4_high_tail_oof.py",
+        "sha256": "3c86cf8a943852f28ccb50d1d50eff1497e3a8bfe28aeb077a18e6885577f0de",
+        "bytes": 20328
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/v4_profile_features.py",
+        "sha256": "b47d8bcefe670a59a2901b3bce53c8b2df75ae9387ca1da71f3c492879080c2b",
+        "bytes": 5944
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/apply_v4_high_tail_calibrator.py",
+        "sha256": "5f906334f345159a37a8e2c8308ea562c6752f0ff7ed008f3ab8f5266a73558d",
+        "bytes": 7148
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/validate_v4_high_tail_holdout.py",
+        "sha256": "492b4d1b07bd41339d0b9ac9604eba46e7fdc6b0614f9b079601626f27150263",
+        "bytes": 9039
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_adaptive_v1/config_frozen_v1.json",
+        "sha256": "dc01a32c34cff06da085031bb708e7a97f38515838c19702b50996f8f56526ea",
+        "bytes": 326
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_normal_multiscale_v3/config_frozen_v3.json",
+        "sha256": "939394978113badeaecebbc2c1131df4dcf5e157b1ae236adaa211d742bdeaae",
+        "bytes": 2077
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_surface_mls_v4/config_test35_cache.json",
+        "sha256": "2d8ceef714f30cf427fae2b4ae6528b5009fce164316f8d2501fafaaaf29ea52",
+        "bytes": 2117
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_surface_mls_v4/calibrator_profile_secant_high_tail_anchor10_v3.joblib",
+        "sha256": "c1e53af5d60e17620c4e5123da76bab9f135c4125decf6a282b944f492433a02",
+        "bytes": 760997
+      },
+      {
+        "path": "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/experiments/pointcloud_surface_mls_v4/calibrator_profile_secant_high_tail_anchor10_v3_manifest.json",
+        "sha256": "e92c9329f6628365181b5d5b0f0d284343d29bf67d12c5cfed15a9176a99937a",
+        "bytes": 3634
+      }
+    ],
+    "model_sha256": "c1e53af5d60e17620c4e5123da76bab9f135c4125decf6a282b944f492433a02",
+    "v1": {
+      "selection_source": "stage_b_train138_s600.json",
+      "neighbor_mode": "adaptive_cv",
+      "adaptive_neighbors": [
+        16,
+        20,
+        24,
+        28,
+        32,
+        36,
+        40,
+        44,
+        48,
+        64
+      ],
+      "cv_tolerance": 1.25,
+      "prediction_scale": 1.0,
+      "degree": 2,
+      "viscosity": "carreau",
+      "normals": "pca",
+      "seed": 0,
+      "prefer_peak": true,
+      "test_tuned": false
+    },
+    "v3_method": {
+      "sampling": {
+        "query_neighbors": 256,
+        "mode": "normal_ray_interpolation",
+        "depth_fractions": [
+          0.35,
+          0.5,
+          0.7,
+          0.85,
+          1.0
+        ],
+        "depth_bins": 8,
+        "points_per_bin": 2,
+        "min_samples": 8,
+        "tube_wall_spacing_multiplier": 0.75,
+        "tube_depth_slope": 0.25,
+        "tube_min_radius_mm": 0.15,
+        "tube_max_radius_fraction": 0.35,
+        "fallback_tube_expand": 1.5,
+        "ray_stations": 12,
+        "ray_interpolation_neighbors": 16,
+        "ray_min_interpolation_neighbors": 4,
+        "ray_start_fractions": [
+          0.35
+        ],
+        "ray_distance_floor_mm": 0.03
+      },
+      "ownership": {
+        "enabled": true,
+        "max_anchor_spacing_multiplier": 2.5,
+        "max_anchor_separation_mm": 2.0,
+        "min_normal_cosine": 0.5
+      },
+      "depth_prior": {
+        "density_kg_m3": 1060.0,
+        "viscosity_pa_s": 0.0035,
+        "re_depth_coefficient": 5.0,
+        "min_mm": 0.2,
+        "max_mm": 2.5,
+        "max_radius_fraction": 0.7,
+        "fallback_radius_mm": 5.0,
+        "edge_velocity_quantile": 0.8,
+        "edge_velocity_min_m_s": 0.02,
+        "pulsatile_frequency_hz": 0.0
+      },
+      "fit": {
+        "model": "normal_profile",
+        "cv_tolerance": 1.25,
+        "lateral_weight_power": 2.0
+      },
+      "multiscale": {
+        "enabled": true,
+        "cv_tolerance": 1.5,
+        "extrapolation_power": 1.0,
+        "correction_min": 1.0,
+        "correction_max": 1.35,
+        "correction_shrink": 0.5,
+        "max_trend_correlation": 0.0,
+        "min_direction_cosine": 0.98
+      },
+      "hybrid": {
+        "enabled": true,
+        "lateral_over_eta_min": 1.4,
+        "max_ownership_rejected": 20,
+        "min_ray_to_fallback_norm": 1.0,
+        "max_ray_to_fallback_norm": 1.2,
+        "preserve_fallback_direction": true
+      }
+    },
+    "v4_method": {
+      "query_neighbors": 384,
+      "depth_fractions": [
+        0.45,
+        0.65,
+        0.82,
+        1.0
+      ],
+      "min_samples": 16,
+      "min_anchor_groups": 6,
+      "surface_spacing_multiplier": 3.0,
+      "surface_depth_multiplier": 0.75,
+      "surface_min_radius_mm": 0.3,
+      "surface_max_radius_mm": 2.0,
+      "surface_max_radius_fraction": 0.5,
+      "ownership_min_normal_cosine": 0.5,
+      "support_depth_overshoot": 1.15,
+      "cv_tolerance": 1.25,
+      "huber_delta": 1.5,
+      "robust_iterations": 3,
+      "ridge": 1e-08,
+      "parallel_transport": false,
+      "depth_degree": 2,
+      "tangential_degree": 1,
+      "group_balance_power": 0.0,
+      "correction_min": 1.0,
+      "correction_max": 1.5,
+      "correction_shrink": 1.0,
+      "max_cv_score": 0.2,
+      "max_condition": 1000000.0
+    },
+    "depth3_overrides": {
+      "correction_max": 1.5,
+      "parallel_transport": true,
+      "group_balance_power": 0.5,
+      "depth_degree": 3
+    },
+    "units": {
+      "coordinates": "mm",
+      "velocity": "m/s",
+      "gradient": "1/s",
+      "wss": "Pa"
+    },
+    "truth_used_at_inference": false,
+    "calibration_scope": "complete single case; no wall chunk calibration"
+  },
+  "adapter_contracts": {
+    "status": "passed",
+    "model_sha256": "c1e53af5d60e17620c4e5123da76bab9f135c4125decf6a282b944f492433a02",
+    "historical_complete_cache": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_mri_calculator/pointcloud_surface_mls_v4/profile_secant_v3_fullwall/inference/point_cache_test35_profile_secant_fullwall/AG__fast__YAO_CUN_HONG.npz",
+    "historical_cache_sha256": "6ef83b0acde24da0e7df98e2e02f3dc04da4e1dfbeeed2e2d150fb850f760cfc",
+    "canonical_id": "AG/fast/YAO_CUN_HONG",
+    "n_wall": 9704,
+    "frozen_cli_float32_exact": {
+      "wss_vec_pa": true,
+      "current_wss_vec_pa": true,
+      "physics_wss_vec_pa": true,
+      "high_tail_ratio": true
+    },
+    "truth_disturbed_and_removed_double_outputs_exact": true,
+    "analytic_gradient_s_inv": 120.0,
+    "analytic_tolerance_s_inv": 0.002,
+    "rotation_and_equal_coordinate_velocity_scale_contract": true,
+    "chunked_vs_unsplit_arrays_exact": 103,
+    "n_invalid_historical_predictions": 0,
+    "elapsed_seconds": 8.396607918664813
+  },
+  "evaluation_source_sha256": {
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/evaluate_velocity_to_wss.py": "f2c548f3cde0d65c08d6a9258861f066a06886f07079ab383d9608ae6cf92376",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/export_r5v_for_wss.py": "4f2060689eb0b60ddf4e6866e89943936d71439a70c6e6ef668704784ff9c9fc",
+    "/public/newhome/cy/Digital_twin/GNN/wss_mri_calculator/src/run_v3_experiment.py": "03d4ac22285706918c8ab29c8150d44487f1c84b9db2c0f5c5b7e9d7c7607e16",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json": "138202559f1d01085d0a0c8abc3a948893400da0f1a589ae1de2a0f23b9d1a42",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json": "02c727d0218460671077966e26e34aa5263e9570575a8039538ad3df9676b5d0",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/baseline_models.py": "5c0ecb057f7dc52a36bf18da3b34774556d1253b4d1a58291362ea6a8de8c9f2",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/config.py": "0c74916cdeb8fd84f1450ebe5081ee7752d4ae1f2a5218dac9dc3317bfdc3ccd",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/dataset.py": "10fa9b4d9163212bd7157fca244e7c1699da0588d19833d609a61fb8f10e54a3",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py": "3a7ac7f65e2133fce3c314b54202ff39e26f2547935cef143a7dbb5b7a648984",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/objectives.py": "7526c88ceb43d8bffcaaf1598a70530b045d7c64d9bf743228a7fa46a8cff375",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/train.py": "7ea29dee2e55039f5cb65a2428edae61575c12d1678e4ed6d888cf52057d1981",
+    "/public/newhome/cy/Digital_twin/GNN/wss_pinn/physics/__init__.py": "5f4888d3d566897eccfaf514ea98db408746150e7af948019d4aed3b34759ac9",
+    "/public/newhome/cy/Digital_twin/GNN/wss_pinn/physics/residuals.py": "895e6d0495e1c798233d5ada35879ec85e95366134fe5bf05eee262fbc2fa0ff",
+    "/public/newhome/cy/Digital_twin/GNN/wss_pinn/physics/rheology.py": "553a33e3bb4ebd7436f25986af881c4cb122bdfbb89f30c6938966a76831fb1e"
+  },
+  "velocity_reproduction_sha256": "5b629ead8d9e0dd4540e48f772ed1e15377f9efc7b3846a8a464530c96cbabec",
+  "normalization_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+  "normalization_sha256": "138202559f1d01085d0a0c8abc3a948893400da0f1a589ae1de2a0f23b9d1a42",
+  "n_cases": 34,
+  "geometry": {
+    "AAA/ruputer/KANG_YONG": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__ruputer__KANG_YONG.npz",
+      "sha256": "335a0567f480e8a8fcdcc64398f121a043d3af0bc962b06aa171f1e1ef44b466",
+      "n_wall": 16448,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 7.2616190910339355,
+        "min_mm": 4.025397777557373,
+        "max_mm": 28.180530548095703,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/ruputer/KANG_YONG/bundle.npz",
+        "bundle_sha256": "556a01e4b9d1ec2eed9c500385641abbea40e4e026aa2ae3e09de8ce7ee6aa9f",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 2.8248725239883843,
+        "mapping_distance_mm_max": 13.360633290535521
+      }
+    },
+    "AAA/ruputer/LI_ZHEN_HUA": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__ruputer__LI_ZHEN_HUA.npz",
+      "sha256": "6c313ed3a4606ee14ba2f15d068af2641a0c6dc2f457b9b0ea67ceb404444f2d",
+      "n_wall": 12599,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 5.302511692047119,
+        "min_mm": 2.436310291290283,
+        "max_mm": 20.541027069091797,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/ruputer/LI_ZHEN_HUA/bundle.npz",
+        "bundle_sha256": "c7d1b4e5c280e0db3ff3251c0500f9d5ba02e57676130df2f3a879969896ed3d",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 2.7673501777823244,
+        "mapping_distance_mm_max": 10.97383254889754
+      }
+    },
+    "AAA/ruputer/WANG_FU_SHUN": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__ruputer__WANG_FU_SHUN.npz",
+      "sha256": "e066b7f914b62c81972cd26623024236b5ca793fe501b685446f09e982a8f023",
+      "n_wall": 95286,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 6.631857395172119,
+        "min_mm": 2.5372064113616943,
+        "max_mm": 14.700278282165527,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/ruputer/WANG_FU_SHUN/bundle.npz",
+        "bundle_sha256": "babc3329fe942779602ed76b1e6ee38a6d0d6fb72ef934e7bdfbf6a7cd2da2af",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 8.231892495864237,
+        "mapping_distance_mm_max": 29.444898787637598
+      }
+    },
+    "AAA/ruputer/YU_TIAN_HAI": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__ruputer__YU_TIAN_HAI.npz",
+      "sha256": "e56198a48a2c12b8cc374e4f1ad94ed300c6eee6bf0639ad6f89c33b09872271",
+      "n_wall": 54654,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 5.738673210144043,
+        "min_mm": 2.2480266094207764,
+        "max_mm": 13.399567604064941,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/ruputer/YU_TIAN_HAI/bundle.npz",
+        "bundle_sha256": "2b91d6efeca75bf2ccd68455a9bf814e051307cbceb522020cf0fc2d36cd1903",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 5.289037538087278,
+        "mapping_distance_mm_max": 19.165317302513998
+      }
+    },
+    "AAA/unruputer/GAO_DIAN_WEN": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__unruputer__GAO_DIAN_WEN.npz",
+      "sha256": "f280f9cc56378483b8ab46087287b5f7d5348b09bf0a4052322ee5ab0e5f1019",
+      "n_wall": 14693,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 8.431845664978027,
+        "min_mm": 3.2570669651031494,
+        "max_mm": 16.78549575805664,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/GAO_DIAN_WEN/bundle.npz",
+        "bundle_sha256": "e96b043816e0028bc5be2a43ff80999e2047a6ebca73308b1839a203910fd6a8",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 7.357375506334465,
+        "mapping_distance_mm_max": 27.557732348106953
+      }
+    },
+    "AAA/unruputer/LIU_KANG_WEN": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__unruputer__LIU_KANG_WEN.npz",
+      "sha256": "e2abee7b40b3b4599d53b4741d6b8ed6ac73df035c8554d38b64d0aa9e9399f8",
+      "n_wall": 14115,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 7.6424560546875,
+        "min_mm": 2.512964963912964,
+        "max_mm": 23.19696044921875,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/LIU_KANG_WEN/bundle.npz",
+        "bundle_sha256": "fd2236ee01f8147ddfab3329db4edf45181e320757a18aff13464c8ad196660c",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 5.728724303206019,
+        "mapping_distance_mm_max": 21.14641270711846
+      }
+    },
+    "AAA/unruputer/MA_JIN_HE": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__unruputer__MA_JIN_HE.npz",
+      "sha256": "338b82540205bdc5f4dca55bc88ba14d85766a8a41d91931fdd226bd48cd10f6",
+      "n_wall": 76729,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 9.772216796875,
+        "min_mm": 2.1685311794281006,
+        "max_mm": 22.180784225463867,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/MA_JIN_HE/bundle.npz",
+        "bundle_sha256": "55c749dc6acc8c0a271a4f318c236d8cb182c837ff127edfd5951ac286ef74c5",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 10.288474688562475,
+        "mapping_distance_mm_max": 27.24714625210939
+      }
+    },
+    "AAA/unruputer/SUN_SHU_MING": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__unruputer__SUN_SHU_MING.npz",
+      "sha256": "db5f40b627804ee29bf6a695317f89221a4dab37f91fd6d363bb522de8e06783",
+      "n_wall": 14958,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 10.19776439666748,
+        "min_mm": 4.045948028564453,
+        "max_mm": 35.619998931884766,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/SUN_SHU_MING/bundle.npz",
+        "bundle_sha256": "9f924da36602da024450de17c63108faeab55648766e921dee66e913c87a2de0",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 4.680454694167679,
+        "mapping_distance_mm_max": 15.429902419441685
+      }
+    },
+    "AAA/unruputer/WANG_MAN_TIAN": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__unruputer__WANG_MAN_TIAN.npz",
+      "sha256": "ff713db49387706f5b6d5ba36a5b816e891e71d0729e65bafa921af413e627ef",
+      "n_wall": 72502,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 10.126387596130371,
+        "min_mm": 2.4412457942962646,
+        "max_mm": 23.010725021362305,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/WANG_MAN_TIAN/bundle.npz",
+        "bundle_sha256": "67d1c23e7e9c3137f0be52c083e032827b2651df05192938513429e60da60a35",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 5.927968318052797,
+        "mapping_distance_mm_max": 23.989960393910177
+      }
+    },
+    "AAA/unruputer/ZHANG_YONG_ZHI": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AAA__unruputer__ZHANG_YONG_ZHI.npz",
+      "sha256": "9e6dc53e8d2f5ca64c7aad36e5b26e737ea68765431a087843be2841f974b674",
+      "n_wall": 57531,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 8.322347640991211,
+        "min_mm": 2.233499526977539,
+        "max_mm": 24.537858963012695,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AAA/unruputer/ZHANG_YONG_ZHI/bundle.npz",
+        "bundle_sha256": "d40d39f9ced02a8f48aec37667200a96982c2290cb887dbfab8c3f2e3463c42e",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 10.639486995893435,
+        "mapping_distance_mm_max": 32.76686572090631
+      }
+    },
+    "AG/fast/FAN_JIAN_MING": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__fast__FAN_JIAN_MING.npz",
+      "sha256": "df23c1db50a005fb0191445213634367c310a58c208f9a67dee2dbc30d1f6875",
+      "n_wall": 10627,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 6.73358678817749,
+        "min_mm": 2.7586724758148193,
+        "max_mm": 16.211944580078125,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/FAN_JIAN_MING/bundle.npz",
+        "bundle_sha256": "957dfeb1af7e7cf6b536df6931ba4a7acc1b357caf0a819a282a7d086186588d",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 7.886482772034392,
+        "mapping_distance_mm_max": 26.245215792007738
+      }
+    },
+    "AG/fast/LOU_YANG": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__fast__LOU_YANG.npz",
+      "sha256": "2f0f0ff3ed3ad1e28a4617b1ed70e00a4bc4741a9a288e9b08be849801c39b09",
+      "n_wall": 10806,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 5.295043706893921,
+        "min_mm": 2.2191925048828125,
+        "max_mm": 14.303144454956055,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/LOU_YANG/bundle.npz",
+        "bundle_sha256": "f167e9eccdf24437d8c781602a0f108e71dfe39dae191d7b779562b3f764c93f",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 1.8540432667157187,
+        "mapping_distance_mm_max": 9.424597883753362
+      }
+    },
+    "AG/fast/RAN_QING_BO": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__fast__RAN_QING_BO.npz",
+      "sha256": "dc9eb2b04ba0ffacae412adfa1d36636fe1ad7faa3a6d716bf16787a53eba9bb",
+      "n_wall": 17682,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 9.167102813720703,
+        "min_mm": 1.7966984510421753,
+        "max_mm": 16.78618049621582,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/RAN_QING_BO/bundle.npz",
+        "bundle_sha256": "b815bcba4b2c407f9f315b0d4454ba5bb1ca1d475deae252cd0badd2a2f620de",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 6.15430370957396,
+        "mapping_distance_mm_max": 35.03428423337008
+      }
+    },
+    "AG/fast/SUN_ZHI_YU": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__fast__SUN_ZHI_YU.npz",
+      "sha256": "05bc3919827a9f1cbd83d8a4cc9430740ba0e3497463a5f2825ada7a8191d677",
+      "n_wall": 11696,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 6.095819473266602,
+        "min_mm": 3.4537923336029053,
+        "max_mm": 18.13117790222168,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/SUN_ZHI_YU/bundle.npz",
+        "bundle_sha256": "ba7b7b22ea7b7bfb2044490c3e20ff8ae389eb60f5322114139f569f78b5dbda",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 8.727280852186606,
+        "mapping_distance_mm_max": 35.3510053790718
+      }
+    },
+    "AG/fast/YAO_CUN_HONG": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__fast__YAO_CUN_HONG.npz",
+      "sha256": "1dbba340db8cd68ffa54c0b90be7a145d43872965e84b626dc887a58e684d811",
+      "n_wall": 9704,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 6.175305366516113,
+        "min_mm": 2.0179033279418945,
+        "max_mm": 13.488580703735352,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/YAO_CUN_HONG/bundle.npz",
+        "bundle_sha256": "592a0013d9adc0800d1ec6d2570a63b31076c1be4dd837fb94815c100802ec08",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 5.673608672813471,
+        "mapping_distance_mm_max": 21.779854629254277
+      }
+    },
+    "AG/fast/ZHANG_CHUN": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__fast__ZHANG_CHUN.npz",
+      "sha256": "c5e9a4278371f332295092d97a059a48aca40044b0633631b283a5688d43a61a",
+      "n_wall": 13850,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 7.817358016967773,
+        "min_mm": 2.1247525215148926,
+        "max_mm": 16.21404457092285,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/ZHANG_CHUN/bundle.npz",
+        "bundle_sha256": "84e8762798b3f40660ef2410df37e4244473a1fbb0d4209c22122ce10c2a01e8",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 3.6071528044200156,
+        "mapping_distance_mm_max": 18.030512785082045
+      }
+    },
+    "AG/fast/ZHANG_LIANG": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__fast__ZHANG_LIANG.npz",
+      "sha256": "cac6c4052bbc57031cd248e66dd3200a17243eb82504319d1a3bf70e711a9871",
+      "n_wall": 14399,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 7.931000232696533,
+        "min_mm": 2.673105001449585,
+        "max_mm": 14.590913772583008,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/fast/ZHANG_LIANG/bundle.npz",
+        "bundle_sha256": "62cac1aa8010df9d37156b8f7d46227fb918d82b35cf3bd098d220113b67aa80",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 3.776073279726545,
+        "mapping_distance_mm_max": 17.954000739734788
+      }
+    },
+    "AG/slow/BAI_WEN_JIE": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__slow__BAI_WEN_JIE.npz",
+      "sha256": "c723da825d379e5416bb522d416d528f74452a470d71650f43acd5c6cb43a3c2",
+      "n_wall": 10595,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 6.243422985076904,
+        "min_mm": 2.052957057952881,
+        "max_mm": 15.700150489807129,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/BAI_WEN_JIE/bundle.npz",
+        "bundle_sha256": "0b50a2bb695e8ec8e551ae4a89ed67a91fc97c0febc80a5bd703f292cec8aef6",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 2.692574537110885,
+        "mapping_distance_mm_max": 14.533686078529076
+      }
+    },
+    "AG/slow/CHEN_JING_RU": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__slow__CHEN_JING_RU.npz",
+      "sha256": "8a55355a697eff96dc1172d07ead7f76d008cb4aeb7d4e7a5a5b5ab495402e5e",
+      "n_wall": 12477,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 5.701684474945068,
+        "min_mm": 2.3011128902435303,
+        "max_mm": 13.456355094909668,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/CHEN_JING_RU/bundle.npz",
+        "bundle_sha256": "9602f14f941e4b790e7306e6a7bbdc19cda7f9d5b9e15a4895d3963968c86375",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 5.002332105325453,
+        "mapping_distance_mm_max": 15.662260890553064
+      }
+    },
+    "AG/slow/GUO_XI_JIANG": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__slow__GUO_XI_JIANG.npz",
+      "sha256": "1f76744146d9170a286ab72dedbd17c3fb96daa5e8dd588e0b38c8b1dec94557",
+      "n_wall": 10236,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 5.677100658416748,
+        "min_mm": 2.3808236122131348,
+        "max_mm": 16.172199249267578,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/GUO_XI_JIANG/bundle.npz",
+        "bundle_sha256": "69f6fec3579aba6c475ea555f803476f896c205662de1306af4537d3baf581cb",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 4.855151616110588,
+        "mapping_distance_mm_max": 17.199798722533767
+      }
+    },
+    "AG/slow/HE_SHU_ZHEN": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__slow__HE_SHU_ZHEN.npz",
+      "sha256": "43bab44ff8bd3980a52c679bbf547febda27b8cc0b15432cb34797d63f1170a0",
+      "n_wall": 10244,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 5.264805793762207,
+        "min_mm": 2.8376646041870117,
+        "max_mm": 13.111109733581543,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/HE_SHU_ZHEN/bundle.npz",
+        "bundle_sha256": "38cbeb08e530c4e416b99cc62a0a662d3e23fd21682cef4ab2e18662272e159e",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 6.856397902193304,
+        "mapping_distance_mm_max": 22.127288687425086
+      }
+    },
+    "AG/slow/LI_HUAN_GE": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__slow__LI_HUAN_GE.npz",
+      "sha256": "640d63c72bf352850dcff6b3412fc6bb1160ef789236b15eeb9ad6271e7721cf",
+      "n_wall": 12691,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 3.8773436546325684,
+        "min_mm": 2.2311289310455322,
+        "max_mm": 14.692957878112793,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/LI_HUAN_GE/bundle.npz",
+        "bundle_sha256": "6a5d16b7717cc43da376dc709cc13046dc2b9b1158a9006f13842c39876ffb9a",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 4.379021564041962,
+        "mapping_distance_mm_max": 15.217246586218712
+      }
+    },
+    "AG/slow/MA_TIAN_YI": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__slow__MA_TIAN_YI.npz",
+      "sha256": "fd0eaf6066d63c5480d5e58912566ffea1b641f65d615a26dbe49e60c371a778",
+      "n_wall": 12636,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 4.318034648895264,
+        "min_mm": 1.6688464879989624,
+        "max_mm": 12.699823379516602,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/MA_TIAN_YI/bundle.npz",
+        "bundle_sha256": "1c2671dae61791ce8b0ca9bb5e9bc2aa5378b2c9644b8b841f71f1ecdf1b66e3",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 1.653428292138262,
+        "mapping_distance_mm_max": 8.92160640547719
+      }
+    },
+    "AG/slow/MA_YU": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__slow__MA_YU.npz",
+      "sha256": "ebcd132891bfa3c20e17fd1f7dd4b5a0bbed8a5e8ee5d5485b6d1d7a44ffea64",
+      "n_wall": 17282,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 6.00102424621582,
+        "min_mm": 2.159912347793579,
+        "max_mm": 13.94738483428955,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/MA_YU/bundle.npz",
+        "bundle_sha256": "21555be95239e61938ab30dbba66facdc068797e8901527bb3d9a768ff3b92ab",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 2.5813503927988792,
+        "mapping_distance_mm_max": 11.3861989121947
+      }
+    },
+    "AG/slow/ZHANG_WEI_XIAN": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/AG__slow__ZHANG_WEI_XIAN.npz",
+      "sha256": "f9f3d52ec4d5042689ad9b6afa96ee09adbfcc5f04080b847172b36ddfdfbf24",
+      "n_wall": 18551,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 4.1444292068481445,
+        "min_mm": 2.999997854232788,
+        "max_mm": 13.38398551940918,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/AG/slow/ZHANG_WEI_XIAN/bundle.npz",
+        "bundle_sha256": "41b7cbe35889ff1a8f6c5c4548906079a2fe9e834ac7a1b2f5a627516dab1c4a",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 16.861501919222963,
+        "mapping_distance_mm_max": 36.99696301495953
+      }
+    },
+    "ILO/LI_YOU_ZHI-0/before": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/ILO__LI_YOU_ZHI-0__before.npz",
+      "sha256": "9bc277c7830962f6a0a0b4b3d6dcb642f42b10fee3017ce74accdfc139811907",
+      "n_wall": 67760,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 11.220661163330078,
+        "min_mm": 2.9192559719085693,
+        "max_mm": 20.18427085876465,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/LI_YOU_ZHI-0/before/bundle.npz",
+        "bundle_sha256": "0aed83cf823f256b41a9ee70ae85cf75d4c459e9650ff529141237e147ba0802",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 4.30949572179579,
+        "mapping_distance_mm_max": 20.453246222034224
+      }
+    },
+    "ILO/LU_FU_SHAN-0/before": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/ILO__LU_FU_SHAN-0__before.npz",
+      "sha256": "ec7505acb130f8a2f7edb679e9f02877df321d2b4db03e77ec5092aada02c33a",
+      "n_wall": 79580,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 8.627522468566895,
+        "min_mm": 1.98678457736969,
+        "max_mm": 12.57872200012207,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/LU_FU_SHAN-0/before/bundle.npz",
+        "bundle_sha256": "5e2bfe555422a215e12d5a36cd603a1353d6dc794f91fe35033770de3a0ceac7",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 5.078039740481976,
+        "mapping_distance_mm_max": 19.364907158776035
+      }
+    },
+    "ILO/SUN_DONG_XIN-0/before": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/ILO__SUN_DONG_XIN-0__before.npz",
+      "sha256": "3efddeb1c203a1635497d1b5870d8c0e04090eb1d9482575ecd5bb93c8897668",
+      "n_wall": 41619,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 7.4618072509765625,
+        "min_mm": 3.4930036067962646,
+        "max_mm": 14.368681907653809,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/SUN_DONG_XIN-0/before/bundle.npz",
+        "bundle_sha256": "66740ac53b8d36d787465f378c5a722a7b20a982557cf627b3a0f0f83c6cd8e3",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 2.957078975335549,
+        "mapping_distance_mm_max": 10.578108578030559
+      }
+    },
+    "ILO/SUN_XU_XIA-1/before": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/ILO__SUN_XU_XIA-1__before.npz",
+      "sha256": "429b787f8f94050776f7de9c758dd4303f5f884b0efc404315073cd20cfcc4bb",
+      "n_wall": 60281,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 6.469593048095703,
+        "min_mm": 1.711701512336731,
+        "max_mm": 18.780168533325195,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/SUN_XU_XIA-1/before/bundle.npz",
+        "bundle_sha256": "9a1af8454ce229b416ceb6536f335d6abc1c90d269d01fc0383a3c221b6516ce",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 3.663090788762286,
+        "mapping_distance_mm_max": 16.78249228077639
+      }
+    },
+    "ILO/YANG_WEN_TAI-0/before": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/ILO__YANG_WEN_TAI-0__before.npz",
+      "sha256": "d4b52a3beeb8421b0cd4925998972d50f49aef8513fd2e4d452d7eec408dc497",
+      "n_wall": 81868,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 11.408883094787598,
+        "min_mm": 2.6701135635375977,
+        "max_mm": 37.159664154052734,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/YANG_WEN_TAI-0/before/bundle.npz",
+        "bundle_sha256": "0c310d772149297dff790868c3e2b9a6449bd1dfe1345314117efd6b60fcfd45",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 8.427724825808657,
+        "mapping_distance_mm_max": 38.563972625957305
+      }
+    },
+    "ILO/YU_XIANG_SHENG-1/before": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/ILO__YU_XIANG_SHENG-1__before.npz",
+      "sha256": "1f873386988be23f341708054c7efdb1c183b57ad825dd0954674634c5fd8c15",
+      "n_wall": 57231,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 8.284406661987305,
+        "min_mm": 1.9524744749069214,
+        "max_mm": 12.381057739257812,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/YU_XIANG_SHENG-1/before/bundle.npz",
+        "bundle_sha256": "d54ef94eae37602a72ffe3c2c8c09f1e781b367290fd64bb058271e3abc730f1",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 5.335236856420055,
+        "mapping_distance_mm_max": 13.147505847769926
+      }
+    },
+    "ILO/ZHANG_HE_PING-0/before": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/ILO__ZHANG_HE_PING-0__before.npz",
+      "sha256": "7c9e2ff43d08375a3c9cf48c29cd3c719a41ef9ac8fac282c7654089990ec09c",
+      "n_wall": 85234,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 8.713147163391113,
+        "min_mm": 2.898890256881714,
+        "max_mm": 17.50885581970215,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/ZHANG_HE_PING-0/before/bundle.npz",
+        "bundle_sha256": "da076ae8f63b75b39990e606c42974a75bb255fa274972402e4373e4eb806e99",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 3.319485752753068,
+        "mapping_distance_mm_max": 22.202173054810018
+      }
+    },
+    "ILO/ZHANG_JIN_CHUN-1/before": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/ILO__ZHANG_JIN_CHUN-1__before.npz",
+      "sha256": "b8e9d63f16bb73d78c0d164b5e332667d691415266ab569ebe1509ba032edbd8",
+      "n_wall": 74402,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 9.400835037231445,
+        "min_mm": 2.1852896213531494,
+        "max_mm": 14.025642395019531,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/ZHANG_JIN_CHUN-1/before/bundle.npz",
+        "bundle_sha256": "2825a095f13de9eaea467768158e5803e2ba06e6f5e611317c346354d7e7cf15",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 4.041739386049867,
+        "mapping_distance_mm_max": 19.88734060266945
+      }
+    },
+    "ILO/ZHANG_YONG_SHENG-0/before": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/geometry/ILO__ZHANG_YONG_SHENG-0__before.npz",
+      "sha256": "23ff36616354b4117e7fc9ea7b12a39b664572724a404b2d4cf03fdcf297e4f0",
+      "n_wall": 60329,
+      "radius": {
+        "source": "bundle_centerline_radius",
+        "median_mm": 9.955831527709961,
+        "min_mm": 2.6447060108184814,
+        "max_mm": 14.607104301452637,
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_min/ILO/ZHANG_YONG_SHENG-0/before/bundle.npz",
+        "bundle_sha256": "e20670f2310cd6ab88c30c3ad5ec91d29424bf4a8ccd0d9a587a220210490658",
+        "legacy_coordinate_scale1000": false,
+        "mapping_distance_mm_p50": 3.849541999123193,
+        "mapping_distance_mm_max": 20.733415318948705
+      }
+    }
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "uid": "AAA/ruputer/KANG_YONG",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 1,
+      "uid": "AAA/ruputer/KANG_YONG",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 2,
+      "uid": "AAA/ruputer/KANG_YONG",
+      "start": 16384,
+      "stop": 16448
+    },
+    {
+      "index": 3,
+      "uid": "AAA/ruputer/LI_ZHEN_HUA",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 4,
+      "uid": "AAA/ruputer/LI_ZHEN_HUA",
+      "start": 8192,
+      "stop": 12599
+    },
+    {
+      "index": 5,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 6,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 7,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 8,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 9,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 10,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 11,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 12,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 57344,
+      "stop": 65536
+    },
+    {
+      "index": 13,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 65536,
+      "stop": 73728
+    },
+    {
+      "index": 14,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 73728,
+      "stop": 81920
+    },
+    {
+      "index": 15,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 81920,
+      "stop": 90112
+    },
+    {
+      "index": 16,
+      "uid": "AAA/ruputer/WANG_FU_SHUN",
+      "start": 90112,
+      "stop": 95286
+    },
+    {
+      "index": 17,
+      "uid": "AAA/ruputer/YU_TIAN_HAI",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 18,
+      "uid": "AAA/ruputer/YU_TIAN_HAI",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 19,
+      "uid": "AAA/ruputer/YU_TIAN_HAI",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 20,
+      "uid": "AAA/ruputer/YU_TIAN_HAI",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 21,
+      "uid": "AAA/ruputer/YU_TIAN_HAI",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 22,
+      "uid": "AAA/ruputer/YU_TIAN_HAI",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 23,
+      "uid": "AAA/ruputer/YU_TIAN_HAI",
+      "start": 49152,
+      "stop": 54654
+    },
+    {
+      "index": 24,
+      "uid": "AAA/unruputer/GAO_DIAN_WEN",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 25,
+      "uid": "AAA/unruputer/GAO_DIAN_WEN",
+      "start": 8192,
+      "stop": 14693
+    },
+    {
+      "index": 26,
+      "uid": "AAA/unruputer/LIU_KANG_WEN",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 27,
+      "uid": "AAA/unruputer/LIU_KANG_WEN",
+      "start": 8192,
+      "stop": 14115
+    },
+    {
+      "index": 28,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 29,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 30,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 31,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 32,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 33,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 34,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 35,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 57344,
+      "stop": 65536
+    },
+    {
+      "index": 36,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 65536,
+      "stop": 73728
+    },
+    {
+      "index": 37,
+      "uid": "AAA/unruputer/MA_JIN_HE",
+      "start": 73728,
+      "stop": 76729
+    },
+    {
+      "index": 38,
+      "uid": "AAA/unruputer/SUN_SHU_MING",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 39,
+      "uid": "AAA/unruputer/SUN_SHU_MING",
+      "start": 8192,
+      "stop": 14958
+    },
+    {
+      "index": 40,
+      "uid": "AAA/unruputer/WANG_MAN_TIAN",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 41,
+      "uid": "AAA/unruputer/WANG_MAN_TIAN",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 42,
+      "uid": "AAA/unruputer/WANG_MAN_TIAN",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 43,
+      "uid": "AAA/unruputer/WANG_MAN_TIAN",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 44,
+      "uid": "AAA/unruputer/WANG_MAN_TIAN",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 45,
+      "uid": "AAA/unruputer/WANG_MAN_TIAN",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 46,
+      "uid": "AAA/unruputer/WANG_MAN_TIAN",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 47,
+      "uid": "AAA/unruputer/WANG_MAN_TIAN",
+      "start": 57344,
+      "stop": 65536
+    },
+    {
+      "index": 48,
+      "uid": "AAA/unruputer/WANG_MAN_TIAN",
+      "start": 65536,
+      "stop": 72502
+    },
+    {
+      "index": 49,
+      "uid": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 50,
+      "uid": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 51,
+      "uid": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 52,
+      "uid": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 53,
+      "uid": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 54,
+      "uid": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 55,
+      "uid": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 56,
+      "uid": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "start": 57344,
+      "stop": 57531
+    },
+    {
+      "index": 57,
+      "uid": "AG/fast/FAN_JIAN_MING",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 58,
+      "uid": "AG/fast/FAN_JIAN_MING",
+      "start": 8192,
+      "stop": 10627
+    },
+    {
+      "index": 59,
+      "uid": "AG/fast/LOU_YANG",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 60,
+      "uid": "AG/fast/LOU_YANG",
+      "start": 8192,
+      "stop": 10806
+    },
+    {
+      "index": 61,
+      "uid": "AG/fast/RAN_QING_BO",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 62,
+      "uid": "AG/fast/RAN_QING_BO",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 63,
+      "uid": "AG/fast/RAN_QING_BO",
+      "start": 16384,
+      "stop": 17682
+    },
+    {
+      "index": 64,
+      "uid": "AG/fast/SUN_ZHI_YU",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 65,
+      "uid": "AG/fast/SUN_ZHI_YU",
+      "start": 8192,
+      "stop": 11696
+    },
+    {
+      "index": 66,
+      "uid": "AG/fast/YAO_CUN_HONG",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 67,
+      "uid": "AG/fast/YAO_CUN_HONG",
+      "start": 8192,
+      "stop": 9704
+    },
+    {
+      "index": 68,
+      "uid": "AG/fast/ZHANG_CHUN",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 69,
+      "uid": "AG/fast/ZHANG_CHUN",
+      "start": 8192,
+      "stop": 13850
+    },
+    {
+      "index": 70,
+      "uid": "AG/fast/ZHANG_LIANG",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 71,
+      "uid": "AG/fast/ZHANG_LIANG",
+      "start": 8192,
+      "stop": 14399
+    },
+    {
+      "index": 72,
+      "uid": "AG/slow/BAI_WEN_JIE",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 73,
+      "uid": "AG/slow/BAI_WEN_JIE",
+      "start": 8192,
+      "stop": 10595
+    },
+    {
+      "index": 74,
+      "uid": "AG/slow/CHEN_JING_RU",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 75,
+      "uid": "AG/slow/CHEN_JING_RU",
+      "start": 8192,
+      "stop": 12477
+    },
+    {
+      "index": 76,
+      "uid": "AG/slow/GUO_XI_JIANG",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 77,
+      "uid": "AG/slow/GUO_XI_JIANG",
+      "start": 8192,
+      "stop": 10236
+    },
+    {
+      "index": 78,
+      "uid": "AG/slow/HE_SHU_ZHEN",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 79,
+      "uid": "AG/slow/HE_SHU_ZHEN",
+      "start": 8192,
+      "stop": 10244
+    },
+    {
+      "index": 80,
+      "uid": "AG/slow/LI_HUAN_GE",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 81,
+      "uid": "AG/slow/LI_HUAN_GE",
+      "start": 8192,
+      "stop": 12691
+    },
+    {
+      "index": 82,
+      "uid": "AG/slow/MA_TIAN_YI",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 83,
+      "uid": "AG/slow/MA_TIAN_YI",
+      "start": 8192,
+      "stop": 12636
+    },
+    {
+      "index": 84,
+      "uid": "AG/slow/MA_YU",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 85,
+      "uid": "AG/slow/MA_YU",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 86,
+      "uid": "AG/slow/MA_YU",
+      "start": 16384,
+      "stop": 17282
+    },
+    {
+      "index": 87,
+      "uid": "AG/slow/ZHANG_WEI_XIAN",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 88,
+      "uid": "AG/slow/ZHANG_WEI_XIAN",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 89,
+      "uid": "AG/slow/ZHANG_WEI_XIAN",
+      "start": 16384,
+      "stop": 18551
+    },
+    {
+      "index": 90,
+      "uid": "ILO/LI_YOU_ZHI-0/before",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 91,
+      "uid": "ILO/LI_YOU_ZHI-0/before",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 92,
+      "uid": "ILO/LI_YOU_ZHI-0/before",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 93,
+      "uid": "ILO/LI_YOU_ZHI-0/before",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 94,
+      "uid": "ILO/LI_YOU_ZHI-0/before",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 95,
+      "uid": "ILO/LI_YOU_ZHI-0/before",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 96,
+      "uid": "ILO/LI_YOU_ZHI-0/before",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 97,
+      "uid": "ILO/LI_YOU_ZHI-0/before",
+      "start": 57344,
+      "stop": 65536
+    },
+    {
+      "index": 98,
+      "uid": "ILO/LI_YOU_ZHI-0/before",
+      "start": 65536,
+      "stop": 67760
+    },
+    {
+      "index": 99,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 100,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 101,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 102,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 103,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 104,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 105,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 106,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 57344,
+      "stop": 65536
+    },
+    {
+      "index": 107,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 65536,
+      "stop": 73728
+    },
+    {
+      "index": 108,
+      "uid": "ILO/LU_FU_SHAN-0/before",
+      "start": 73728,
+      "stop": 79580
+    },
+    {
+      "index": 109,
+      "uid": "ILO/SUN_DONG_XIN-0/before",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 110,
+      "uid": "ILO/SUN_DONG_XIN-0/before",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 111,
+      "uid": "ILO/SUN_DONG_XIN-0/before",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 112,
+      "uid": "ILO/SUN_DONG_XIN-0/before",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 113,
+      "uid": "ILO/SUN_DONG_XIN-0/before",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 114,
+      "uid": "ILO/SUN_DONG_XIN-0/before",
+      "start": 40960,
+      "stop": 41619
+    },
+    {
+      "index": 115,
+      "uid": "ILO/SUN_XU_XIA-1/before",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 116,
+      "uid": "ILO/SUN_XU_XIA-1/before",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 117,
+      "uid": "ILO/SUN_XU_XIA-1/before",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 118,
+      "uid": "ILO/SUN_XU_XIA-1/before",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 119,
+      "uid": "ILO/SUN_XU_XIA-1/before",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 120,
+      "uid": "ILO/SUN_XU_XIA-1/before",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 121,
+      "uid": "ILO/SUN_XU_XIA-1/before",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 122,
+      "uid": "ILO/SUN_XU_XIA-1/before",
+      "start": 57344,
+      "stop": 60281
+    },
+    {
+      "index": 123,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 124,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 125,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 126,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 127,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 128,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 129,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 130,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 57344,
+      "stop": 65536
+    },
+    {
+      "index": 131,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 65536,
+      "stop": 73728
+    },
+    {
+      "index": 132,
+      "uid": "ILO/YANG_WEN_TAI-0/before",
+      "start": 73728,
+      "stop": 81868
+    },
+    {
+      "index": 133,
+      "uid": "ILO/YU_XIANG_SHENG-1/before",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 134,
+      "uid": "ILO/YU_XIANG_SHENG-1/before",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 135,
+      "uid": "ILO/YU_XIANG_SHENG-1/before",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 136,
+      "uid": "ILO/YU_XIANG_SHENG-1/before",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 137,
+      "uid": "ILO/YU_XIANG_SHENG-1/before",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 138,
+      "uid": "ILO/YU_XIANG_SHENG-1/before",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 139,
+      "uid": "ILO/YU_XIANG_SHENG-1/before",
+      "start": 49152,
+      "stop": 57231
+    },
+    {
+      "index": 140,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 141,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 142,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 143,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 144,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 145,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 146,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 147,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 57344,
+      "stop": 65536
+    },
+    {
+      "index": 148,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 65536,
+      "stop": 73728
+    },
+    {
+      "index": 149,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 73728,
+      "stop": 81920
+    },
+    {
+      "index": 150,
+      "uid": "ILO/ZHANG_HE_PING-0/before",
+      "start": 81920,
+      "stop": 85234
+    },
+    {
+      "index": 151,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 152,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 153,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 154,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 155,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 156,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 157,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 158,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 57344,
+      "stop": 65536
+    },
+    {
+      "index": 159,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 65536,
+      "stop": 73728
+    },
+    {
+      "index": 160,
+      "uid": "ILO/ZHANG_JIN_CHUN-1/before",
+      "start": 73728,
+      "stop": 74402
+    },
+    {
+      "index": 161,
+      "uid": "ILO/ZHANG_YONG_SHENG-0/before",
+      "start": 0,
+      "stop": 8192
+    },
+    {
+      "index": 162,
+      "uid": "ILO/ZHANG_YONG_SHENG-0/before",
+      "start": 8192,
+      "stop": 16384
+    },
+    {
+      "index": 163,
+      "uid": "ILO/ZHANG_YONG_SHENG-0/before",
+      "start": 16384,
+      "stop": 24576
+    },
+    {
+      "index": 164,
+      "uid": "ILO/ZHANG_YONG_SHENG-0/before",
+      "start": 24576,
+      "stop": 32768
+    },
+    {
+      "index": 165,
+      "uid": "ILO/ZHANG_YONG_SHENG-0/before",
+      "start": 32768,
+      "stop": 40960
+    },
+    {
+      "index": 166,
+      "uid": "ILO/ZHANG_YONG_SHENG-0/before",
+      "start": 40960,
+      "stop": 49152
+    },
+    {
+      "index": 167,
+      "uid": "ILO/ZHANG_YONG_SHENG-0/before",
+      "start": 49152,
+      "stop": 57344
+    },
+    {
+      "index": 168,
+      "uid": "ILO/ZHANG_YONG_SHENG-0/before",
+      "start": 57344,
+      "stop": 60329
+    }
+  ],
+  "job_id": "13790",
+  "n_wall": 1231295
+}

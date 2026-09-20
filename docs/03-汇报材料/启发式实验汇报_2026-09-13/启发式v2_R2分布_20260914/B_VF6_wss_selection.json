@@ -1,0 +1,30 @@
+{
+  "metric": "physical per-case prediction R2 (not fitted-line R2)",
+  "radius_source": "legacy",
+  "operator": "frozen Profile-Secant V3 + within-case calibration",
+  "replicate_policy": "one patient per dot; arithmetic mean of VF6 seed 1234/7/2025 derived-WSS R2; sample SD whiskers; not ensemble predictions",
+  "visualization_seed": 1234,
+  "best": {
+    "case_id": "AG/fast/RAN_QING_BO",
+    "r2": 0.7561696990785558,
+    "r2_sd": 0.058337895248554116
+  },
+  "worst": {
+    "case_id": "AAA/ruputer/KANG_YONG",
+    "r2": -0.21733798503749438,
+    "r2_sd": 0.38066604192309667
+  },
+  "most_frequent": {
+    "case_id": "AG/slow/LI_HUAN_GE",
+    "r2": 0.4489350139781032,
+    "r2_sd": 0.05552182085039979
+  },
+  "median": {
+    "case_id": "ILO/LU_FU_SHAN-0/before",
+    "r2": 0.48792430707294354,
+    "r2_sd": 0.10503607040692454,
+    "statistical_median": 0.4878518742282969,
+    "rule": "closest actual case to statistical median; ties broken by canonical ID"
+  },
+  "source_metrics": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/vf6_velocity_to_wss_20260916/metrics/legacy.json"
+}

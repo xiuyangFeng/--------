@@ -1,0 +1,27 @@
+{
+  "stem": "11_longitudinal_why",
+  "claim": "沿程通道一半互为重复、最强的一个 98% 是底座已有信息，对底座残差的线性解释力只有 R² 0.006，收益集中在 9% 的高值点而在 35% 的缺失点为负。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_redundancy.json",
+      "sha256": "b6f338995ef99eb8777eecb3330670369045fa8a91b43da67fc776edb7813f63"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_effective_rank.json",
+      "sha256": "d770d76c485c047e91be4523e419980afbb880036a7d19f7ef422ab3eb97c680"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_residual_explainability.json",
+      "sha256": "f299a7947c234d702a0a6ca143fb38ae300bcb9f39065890c4992145e51b351b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_where_it_helps.txt",
+      "sha256": "f135903d513bd7d568984663d77a39d546a3ad4b366fda618efd96db85cc0d88"
+    }
+  ],
+  "exports": {
+    "png": "figures/11_longitudinal_why.png"
+  },
+  "alignment": "PASS",
+  "note": "Panel b mixes ref and pc channels on one scatter; the two families overlap because they are near-duplicates (panel a). Bucket shares in c overlap by construction (validity split and WSS quantile split are two different partitions)."
+}

@@ -1,0 +1,43 @@
+{
+  "stem": "07_murray_paired_effect",
+  "claim": "F6对WSS/压力/速度三目标的9个配对seed比较均为正；不声明显著性或机制已获证明。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/results.json",
+      "sha256": "1fa18d00402aa56a39640dbd658da1703e63751dc81147e8e65a14978e1461dc"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1b_20260912/results.json",
+      "sha256": "2475d31ee20dfb9f399003b41ef98a2398a7de2151a674f161072f980f0c8307"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave2_20260912/results.json",
+      "sha256": "1515c6c86428c6e3d5fedf2590f338155317d10b81be6da3575d0f42a9ebe40d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave3_20260913/results.json",
+      "sha256": "2237e3be7bee851c42cd1915f84cd38da1853b1f4819758b790b0276c66c2515"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/07_murray_paired_effect.csv",
+      "sha256": "84fa29568c60f9ef32323aee59235ff51df0afd0640c03be7d4a5aa1fd81a8ec"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/07_murray_paired_effect.pdf",
+    "svg": "figures/07_murray_paired_effect.svg",
+    "png": "figures/07_murray_paired_effect.png"
+  },
+  "alignment": "PASS",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/07_murray_paired_effect.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/07_murray_paired_effect.collision.json"
+    }
+  },
+  "note": "Three same-size quantitative panels; physical R2_cb, not arithmetic per-case R2. Pressure/velocity seed1234 controls are contemporaneous P02r/V07r. Seeds 7/2025 use paired P02/V07 controls. Full n=3 points and sample SD retained."
+}

@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[3]
 XLSX = ROOT / "docs/03-汇报材料/WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx"
 BACKUP = XLSX.with_name(XLSX.stem + "_备份_补V4_fullwall_WSS前.xlsx")
 AUDIT = ROOT / "outputs/wss_pinn/audits/v4_fullwall_20260901"
-PLOT_ROOT = ROOT / "docs/03-汇报材料/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01"
+PLOT_ROOT = ROOT / "docs/03-汇报材料/V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01"
 
 
 def _fmt(summary: dict, decimals: int = 4) -> str:

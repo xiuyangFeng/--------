@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "checked_at": "2026-09-10T01:32:14+0800",
+  "probe": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/threshold_probe/job_13980/probe.json",
+    "sha256": "9825e4c07b704691dc9d97ebc4eebf6c449e86a5278da5ac800a16d24b6638fe",
+    "job_id": "13980",
+    "repeats": 8,
+    "count_values": [
+      13859,
+      13860
+    ],
+    "reference_count_repeat_indices": [
+      2,
+      5
+    ],
+    "only_crossing_vertex_index": 55137,
+    "vertex_values": [
+      1.0,
+      1.0000001192092896
+    ],
+    "float32_ulp": 1.1920928955078125e-07,
+    "all_truth_and_finite_masks_equal": true,
+    "max_pairwise_to_first_abs_difference": 8.940696716308594e-07
+  },
+  "local_implementation": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/diagnose_m2_optimization.py",
+    "sha256": "eb087bf2be263bee8803cfc45137bc25e91e23b42f09f2c7555356fcde2c44b1",
+    "scope": [
+      "MO-P4",
+      "best",
+      "AAA/unruputer/ZHANG_YONG_ZHI",
+      "log_z"
+    ],
+    "metric": "distribution.pred_above_one_fraction",
+    "source_hashes": {
+      "metrics": "6f4c49970ed2508920c2bac88ae8e5e057f3a41c0e66f483612e1772a9ad197e",
+      "checkpoint": "a84e2faad6fc6286d8436b3e52ac3bec42eceaf62ae693c0cf678ee388187e29",
+      "config": "71ac891c63d87da0ce87e8bbddc3aeefe67dc50833ec694dd6465099cae7e391"
+    },
+    "strict_checks_retained": true,
+    "original_values_unchanged": true,
+    "validation_command": "/public/newhome/cy/.conda/envs/GNN/bin/python -m training_wss_min.tools.diagnose_m2_optimization --self-test",
+    "self_test_passed": true,
+    "included_rejection_cases": 13,
+    "independent_review": {
+      "reviewer": "threshold_guard_review",
+      "blocking_findings": 0,
+      "allowed_cases_passed": 1,
+      "rejected_cases_passed": 19,
+      "SHA_failure_classes_rejected": [
+        "probe JSON",
+        "probe script",
+        "probe NPZ"
+      ]
+    },
+    "post_review_hardening": "All pinned probe evidence files added to provenance.inputs for end-of-run unchanged verification; actual n type required int."
+  }
+}

@@ -1,0 +1,2096 @@
+{
+  "integrity": {
+    "changed": false,
+    "changed_files": [],
+    "basis": "live_start",
+    "archived": false,
+    "start_hash_available": true,
+    "end_hash_available": false,
+    "archived_hashes_match": false,
+    "current_drift": false,
+    "current_drift_files": []
+  },
+  "queue_status": "running",
+  "checkpoints": {
+    "best": {
+      "A5": {
+        "r2": 0.622993,
+        "log": 0.819626,
+        "mean": 0.587594,
+        "p10": 0.385531,
+        "neg": 0,
+        "mae": 2.005621,
+        "high": 0.214817,
+        "high_mae": 9.25893,
+        "top": 0.609241,
+        "p99": 0.605522,
+        "iou": 0.416318,
+        "sp": 0.883311,
+        "high_sp": 0.3963,
+        "peak": 0.105703,
+        "centroid": 0.037015,
+        "fit": 0.640088,
+        "a": 0.548845,
+        "b": 1.727241
+      },
+      "arms": {
+        "D1": {
+          "values": {
+            "r2": 0.591889,
+            "log": 0.815836,
+            "mean": 0.576154,
+            "p10": 0.421955,
+            "neg": 1,
+            "mae": 2.042202,
+            "high": 0.137096,
+            "high_mae": 9.533123,
+            "top": 0.589432,
+            "p99": 0.593405,
+            "iou": 0.419327,
+            "sp": 0.883034,
+            "high_sp": 0.415736,
+            "peak": 0.143503,
+            "centroid": 0.035389,
+            "fit": 0.61131,
+            "a": 0.517096,
+            "b": 1.836634
+          },
+          "delta": {
+            "r2": -0.031104,
+            "log": -0.00379,
+            "mean": -0.011439,
+            "p10": 0.036424,
+            "neg": 1,
+            "mae": 0.036581,
+            "high": -0.07772,
+            "high_mae": 0.274193,
+            "top": -0.01981,
+            "p99": -0.012117,
+            "iou": 0.00301,
+            "sp": -0.000277,
+            "high_sp": 0.019435,
+            "peak": 0.0378,
+            "centroid": -0.001626,
+            "fit": -0.028778,
+            "a": -0.031749,
+            "b": 0.109393
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 15,
+          "r2_case_delta_median": -0.008803,
+          "iou_cases_improved": 16,
+          "spearman_cases_improved": 11,
+          "high_mae_cases_improved": 14,
+          "largest_drops": {
+            "AAA/ruputer/KANG_YONG": {
+              "delta": -0.388839,
+              "r2": -0.142213,
+              "iou_delta": 0.03904
+            },
+            "ILO/YU_XIANG_SHENG-1/before": {
+              "delta": -0.109495,
+              "r2": 0.568421,
+              "iou_delta": -0.036506
+            },
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.104268,
+              "r2": 0.488821,
+              "iou_delta": -0.005644
+            }
+          },
+          "largest_gains": {
+            "AG/fast/FAN_JIAN_MING": {
+              "delta": 0.089454,
+              "r2": 0.626954,
+              "iou_delta": 0.055024
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.245587,
+              "r2": 0.545605,
+              "iou_delta": 0.078385
+            },
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.295811,
+              "r2": 0.491212,
+              "iou_delta": 0.084427
+            }
+          },
+          "group_delta": {
+            "AG": -0.015078,
+            "AAA": -0.007038,
+            "AAA_ruputer": 0.004558,
+            "AAA_unruputer": -0.012593,
+            "ILO": -0.064083,
+            "ILO_0": 0.037857,
+            "ILO_1": -0.080775
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": -0.388839,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.004376,
+            "AAA/ruputer/WANG_FU_SHUN": -0.00794,
+            "AAA/ruputer/YU_TIAN_HAI": 0.043826,
+            "AAA/unruputer/GAO_DIAN_WEN": -0.090967,
+            "AAA/unruputer/LIU_KANG_WEN": 0.013843,
+            "AAA/unruputer/MA_JIN_HE": 0.002886,
+            "AAA/unruputer/SUN_SHU_MING": -0.064455,
+            "AAA/unruputer/WANG_MAN_TIAN": -0.024794,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.011628,
+            "AG/fast/FAN_JIAN_MING": 0.089454,
+            "AG/fast/LOU_YANG": -0.032636,
+            "AG/fast/RAN_QING_BO": 0.007735,
+            "AG/fast/SUN_ZHI_YU": 0.295811,
+            "AG/fast/YAO_CUN_HONG": -0.060639,
+            "AG/fast/ZHANG_CHUN": -0.020264,
+            "AG/fast/ZHANG_LIANG": 0.005448,
+            "AG/slow/BAI_WEN_JIE": -0.009666,
+            "AG/slow/CHEN_JING_RU": -0.104268,
+            "AG/slow/GUO_XI_JIANG": 0.025331,
+            "AG/slow/HE_SHU_ZHEN": -0.005884,
+            "AG/slow/LI_HUAN_GE": 0.019565,
+            "AG/slow/MA_TIAN_YI": -0.027072,
+            "AG/slow/MA_YU": -0.028107,
+            "AG/slow/ZHANG_WEI_XIAN": -0.050123,
+            "ILO/LI_YOU_ZHI-0/before": -0.08706,
+            "ILO/LU_FU_SHAN-0/before": 0.021753,
+            "ILO/SUN_DONG_XIN-0/before": 0.026134,
+            "ILO/SUN_XU_XIA-1/before": -0.079405,
+            "ILO/YANG_WEN_TAI-0/before": 0.083197,
+            "ILO/YU_XIANG_SHENG-1/before": -0.109495,
+            "ILO/ZHANG_HE_PING-0/before": 0.025264,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.095908,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.245587
+          }
+        },
+        "D2": {
+          "values": {
+            "r2": 0.622843,
+            "log": 0.819791,
+            "mean": 0.607564,
+            "p10": 0.446547,
+            "neg": 0,
+            "mae": 2.003494,
+            "high": 0.229161,
+            "high_mae": 9.131836,
+            "top": 0.607132,
+            "p99": 0.600487,
+            "iou": 0.434421,
+            "sp": 0.881208,
+            "high_sp": 0.412861,
+            "peak": 0.125866,
+            "centroid": 0.032313,
+            "fit": 0.645113,
+            "a": 0.539612,
+            "b": 1.719386
+          },
+          "delta": {
+            "r2": -0.00015,
+            "log": 0.000165,
+            "mean": 0.01997,
+            "p10": 0.061016,
+            "neg": 0,
+            "mae": -0.002127,
+            "high": 0.014345,
+            "high_mae": -0.127095,
+            "top": -0.002109,
+            "p99": -0.005035,
+            "iou": 0.018103,
+            "sp": -0.002102,
+            "high_sp": 0.016561,
+            "peak": 0.020163,
+            "centroid": -0.004702,
+            "fit": 0.005025,
+            "a": -0.009233,
+            "b": -0.007855
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 18,
+          "r2_case_delta_median": 0.001926,
+          "iou_cases_improved": 22,
+          "spearman_cases_improved": 15,
+          "high_mae_cases_improved": 18,
+          "largest_drops": {
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.117745,
+              "r2": 0.475344,
+              "iou_delta": -0.033158
+            },
+            "AAA/ruputer/KANG_YONG": {
+              "delta": -0.10026,
+              "r2": 0.146366,
+              "iou_delta": -0.072683
+            },
+            "ILO/LI_YOU_ZHI-0/before": {
+              "delta": -0.077884,
+              "r2": 0.510929,
+              "iou_delta": 0.050787
+            }
+          },
+          "largest_gains": {
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.152343,
+              "r2": 0.347744,
+              "iou_delta": 0.061529
+            },
+            "AAA/unruputer/SUN_SHU_MING": {
+              "delta": 0.312834,
+              "r2": 0.681666,
+              "iou_delta": 0.120893
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.370295,
+              "r2": 0.670313,
+              "iou_delta": 0.07102
+            }
+          },
+          "group_delta": {
+            "AG": -0.00929,
+            "AAA": 0.016698,
+            "AAA_ruputer": -0.002642,
+            "AAA_unruputer": 0.025972,
+            "ILO": -0.002351,
+            "ILO_0": 0.019476,
+            "ILO_1": -0.004924
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": -0.10026,
+            "AAA/ruputer/LI_ZHEN_HUA": -0.005781,
+            "AAA/ruputer/WANG_FU_SHUN": -0.010374,
+            "AAA/ruputer/YU_TIAN_HAI": 0.016602,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.004986,
+            "AAA/unruputer/LIU_KANG_WEN": 0.038607,
+            "AAA/unruputer/MA_JIN_HE": 0.007328,
+            "AAA/unruputer/SUN_SHU_MING": 0.312834,
+            "AAA/unruputer/WANG_MAN_TIAN": 0.030312,
+            "AAA/unruputer/ZHANG_YONG_ZHI": 0.027143,
+            "AG/fast/FAN_JIAN_MING": 0.072974,
+            "AG/fast/LOU_YANG": 0.00161,
+            "AG/fast/RAN_QING_BO": -0.075656,
+            "AG/fast/SUN_ZHI_YU": 0.152343,
+            "AG/fast/YAO_CUN_HONG": -0.020546,
+            "AG/fast/ZHANG_CHUN": 0.071392,
+            "AG/fast/ZHANG_LIANG": -0.016575,
+            "AG/slow/BAI_WEN_JIE": -0.033524,
+            "AG/slow/CHEN_JING_RU": -0.117745,
+            "AG/slow/GUO_XI_JIANG": 0.087281,
+            "AG/slow/HE_SHU_ZHEN": -0.05566,
+            "AG/slow/LI_HUAN_GE": 0.039074,
+            "AG/slow/MA_TIAN_YI": -0.059672,
+            "AG/slow/MA_YU": -0.01346,
+            "AG/slow/ZHANG_WEI_XIAN": -0.029211,
+            "ILO/LI_YOU_ZHI-0/before": -0.077884,
+            "ILO/LU_FU_SHAN-0/before": -0.064188,
+            "ILO/SUN_DONG_XIN-0/before": 0.038804,
+            "ILO/SUN_XU_XIA-1/before": -0.006901,
+            "ILO/YANG_WEN_TAI-0/before": 0.11755,
+            "ILO/YU_XIANG_SHENG-1/before": -0.038462,
+            "ILO/ZHANG_HE_PING-0/before": 0.013506,
+            "ILO/ZHANG_JIN_CHUN-1/before": 0.002243,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.370295
+          }
+        },
+        "D3": {
+          "values": {
+            "r2": 0.611258,
+            "log": 0.812774,
+            "mean": 0.597726,
+            "p10": 0.415364,
+            "neg": 0,
+            "mae": 2.054918,
+            "high": 0.177012,
+            "high_mae": 9.386298,
+            "top": 0.595646,
+            "p99": 0.596244,
+            "iou": 0.422083,
+            "sp": 0.877643,
+            "high_sp": 0.402393,
+            "peak": 0.076155,
+            "centroid": 0.036297,
+            "fit": 0.628254,
+            "a": 0.539932,
+            "b": 1.742242
+          },
+          "delta": {
+            "r2": -0.011735,
+            "log": -0.006852,
+            "mean": 0.010133,
+            "p10": 0.029833,
+            "neg": 0,
+            "mae": 0.049297,
+            "high": -0.037805,
+            "high_mae": 0.127368,
+            "top": -0.013596,
+            "p99": -0.009278,
+            "iou": 0.005766,
+            "sp": -0.005668,
+            "high_sp": 0.006092,
+            "peak": -0.029548,
+            "centroid": -0.000718,
+            "fit": -0.011834,
+            "a": -0.008913,
+            "b": 0.015001
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 17,
+          "r2_case_delta_median": 0.000721,
+          "iou_cases_improved": 19,
+          "spearman_cases_improved": 12,
+          "high_mae_cases_improved": 13,
+          "largest_drops": {
+            "ILO/LU_FU_SHAN-0/before": {
+              "delta": -0.132397,
+              "r2": 0.566047,
+              "iou_delta": -0.051532
+            },
+            "AG/slow/MA_YU": {
+              "delta": -0.1117,
+              "r2": 0.365925,
+              "iou_delta": -0.040489
+            },
+            "ILO/LI_YOU_ZHI-0/before": {
+              "delta": -0.094594,
+              "r2": 0.49422,
+              "iou_delta": -0.043843
+            }
+          },
+          "largest_gains": {
+            "ILO/YANG_WEN_TAI-0/before": {
+              "delta": 0.105535,
+              "r2": 0.760882,
+              "iou_delta": 0.073593
+            },
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.182663,
+              "r2": 0.429289,
+              "iou_delta": 0.070772
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.370603,
+              "r2": 0.670621,
+              "iou_delta": 0.055656
+            }
+          },
+          "group_delta": {
+            "AG": 0.007699,
+            "AAA": -0.006424,
+            "AAA_ruputer": 0.009362,
+            "AAA_unruputer": -0.013979,
+            "ILO": -0.035135,
+            "ILO_0": -0.01099,
+            "ILO_1": -0.040846
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.182663,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.018925,
+            "AAA/ruputer/WANG_FU_SHUN": -0.022333,
+            "AAA/ruputer/YU_TIAN_HAI": 0.047485,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.029815,
+            "AAA/unruputer/LIU_KANG_WEN": 0.025398,
+            "AAA/unruputer/MA_JIN_HE": -0.00857,
+            "AAA/unruputer/SUN_SHU_MING": 0.079455,
+            "AAA/unruputer/WANG_MAN_TIAN": -0.032561,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.01979,
+            "AG/fast/FAN_JIAN_MING": 0.074905,
+            "AG/fast/LOU_YANG": -0.025036,
+            "AG/fast/RAN_QING_BO": -0.01162,
+            "AG/fast/SUN_ZHI_YU": 0.00196,
+            "AG/fast/YAO_CUN_HONG": -0.062063,
+            "AG/fast/ZHANG_CHUN": 0.026032,
+            "AG/fast/ZHANG_LIANG": 0.013941,
+            "AG/slow/BAI_WEN_JIE": -0.034163,
+            "AG/slow/CHEN_JING_RU": -0.000519,
+            "AG/slow/GUO_XI_JIANG": 0.029622,
+            "AG/slow/HE_SHU_ZHEN": -0.018532,
+            "AG/slow/LI_HUAN_GE": -0.059553,
+            "AG/slow/MA_TIAN_YI": 0.047475,
+            "AG/slow/MA_YU": -0.1117,
+            "AG/slow/ZHANG_WEI_XIAN": -0.012386,
+            "ILO/LI_YOU_ZHI-0/before": -0.094594,
+            "ILO/LU_FU_SHAN-0/before": -0.132397,
+            "ILO/SUN_DONG_XIN-0/before": 0.036505,
+            "ILO/SUN_XU_XIA-1/before": -0.026451,
+            "ILO/YANG_WEN_TAI-0/before": 0.105535,
+            "ILO/YU_XIANG_SHENG-1/before": 0.005473,
+            "ILO/ZHANG_HE_PING-0/before": 0.003998,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.083013,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.370603
+          }
+        },
+        "D4": {
+          "values": {
+            "r2": 0.589925,
+            "log": 0.815856,
+            "mean": 0.584753,
+            "p10": 0.418233,
+            "neg": 0,
+            "mae": 2.03953,
+            "high": 0.161427,
+            "high_mae": 9.52917,
+            "top": 0.586121,
+            "p99": 0.584748,
+            "iou": 0.40527,
+            "sp": 0.877799,
+            "high_sp": 0.369733,
+            "peak": 0.080303,
+            "centroid": 0.033904,
+            "fit": 0.609554,
+            "a": 0.517445,
+            "b": 1.7919
+          },
+          "delta": {
+            "r2": -0.033068,
+            "log": -0.003771,
+            "mean": -0.002841,
+            "p10": 0.032702,
+            "neg": 0,
+            "mae": 0.033909,
+            "high": -0.05339,
+            "high_mae": 0.270239,
+            "top": -0.02312,
+            "p99": -0.020774,
+            "iou": -0.011048,
+            "sp": -0.005512,
+            "high_sp": -0.026567,
+            "peak": -0.0254,
+            "centroid": -0.003111,
+            "fit": -0.030534,
+            "a": -0.0314,
+            "b": 0.064659
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 11,
+          "r2_case_delta_median": -0.0239,
+          "iou_cases_improved": 14,
+          "spearman_cases_improved": 11,
+          "high_mae_cases_improved": 9,
+          "largest_drops": {
+            "AG/fast/RAN_QING_BO": {
+              "delta": -0.176983,
+              "r2": 0.583245,
+              "iou_delta": -0.151313
+            },
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.137701,
+              "r2": 0.455389,
+              "iou_delta": -0.038524
+            },
+            "AG/slow/MA_TIAN_YI": {
+              "delta": -0.093223,
+              "r2": 0.504166,
+              "iou_delta": -0.036935
+            }
+          },
+          "largest_gains": {
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.157761,
+              "r2": 0.404387,
+              "iou_delta": 0.028761
+            },
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.190945,
+              "r2": 0.386346,
+              "iou_delta": 0.033619
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.390585,
+              "r2": 0.690603,
+              "iou_delta": 0.082982
+            }
+          },
+          "group_delta": {
+            "AG": -0.045896,
+            "AAA": -0.018637,
+            "AAA_ruputer": -0.024204,
+            "AAA_unruputer": -0.016017,
+            "ILO": -0.030419,
+            "ILO_0": 0.020437,
+            "ILO_1": -0.03861
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.157761,
+            "AAA/ruputer/LI_ZHEN_HUA": -0.049849,
+            "AAA/ruputer/WANG_FU_SHUN": -0.042634,
+            "AAA/ruputer/YU_TIAN_HAI": 0.015633,
+            "AAA/unruputer/GAO_DIAN_WEN": -0.008231,
+            "AAA/unruputer/LIU_KANG_WEN": -0.029611,
+            "AAA/unruputer/MA_JIN_HE": 0.037903,
+            "AAA/unruputer/SUN_SHU_MING": 0.083462,
+            "AAA/unruputer/WANG_MAN_TIAN": -0.00268,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.045832,
+            "AG/fast/FAN_JIAN_MING": 0.074152,
+            "AG/fast/LOU_YANG": -0.049594,
+            "AG/fast/RAN_QING_BO": -0.176983,
+            "AG/fast/SUN_ZHI_YU": 0.190945,
+            "AG/fast/YAO_CUN_HONG": -0.043756,
+            "AG/fast/ZHANG_CHUN": 0.059325,
+            "AG/fast/ZHANG_LIANG": -0.021545,
+            "AG/slow/BAI_WEN_JIE": 0.001916,
+            "AG/slow/CHEN_JING_RU": -0.137701,
+            "AG/slow/GUO_XI_JIANG": -0.051489,
+            "AG/slow/HE_SHU_ZHEN": -0.046029,
+            "AG/slow/LI_HUAN_GE": -0.08162,
+            "AG/slow/MA_TIAN_YI": -0.093223,
+            "AG/slow/MA_YU": -0.058718,
+            "AG/slow/ZHANG_WEI_XIAN": -0.067243,
+            "ILO/LI_YOU_ZHI-0/before": 0.006808,
+            "ILO/LU_FU_SHAN-0/before": -0.026141,
+            "ILO/SUN_DONG_XIN-0/before": -0.060262,
+            "ILO/SUN_XU_XIA-1/before": -0.052506,
+            "ILO/YANG_WEN_TAI-0/before": 0.091078,
+            "ILO/YU_XIANG_SHENG-1/before": -0.019602,
+            "ILO/ZHANG_HE_PING-0/before": -0.019252,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.02166,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.390585
+          }
+        },
+        "D5": {
+          "values": {
+            "r2": 0.588731,
+            "log": 0.813266,
+            "mean": 0.583038,
+            "p10": 0.381835,
+            "neg": 0,
+            "mae": 2.061514,
+            "high": 0.124742,
+            "high_mae": 9.74316,
+            "top": 0.573937,
+            "p99": 0.579561,
+            "iou": 0.410053,
+            "sp": 0.88101,
+            "high_sp": 0.38156,
+            "peak": 0.116216,
+            "centroid": 0.040713,
+            "fit": 0.60742,
+            "a": 0.5202,
+            "b": 1.755484
+          },
+          "delta": {
+            "r2": -0.034261,
+            "log": -0.00636,
+            "mean": -0.004556,
+            "p10": -0.003696,
+            "neg": 0,
+            "mae": 0.055893,
+            "high": -0.090075,
+            "high_mae": 0.48423,
+            "top": -0.035304,
+            "p99": -0.025961,
+            "iou": -0.006264,
+            "sp": -0.002301,
+            "high_sp": -0.014741,
+            "peak": 0.010512,
+            "centroid": 0.003698,
+            "fit": -0.032668,
+            "a": -0.028645,
+            "b": 0.028243
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 13,
+          "r2_case_delta_median": -0.008358,
+          "iou_cases_improved": 17,
+          "spearman_cases_improved": 9,
+          "high_mae_cases_improved": 14,
+          "largest_drops": {
+            "AAA/unruputer/GAO_DIAN_WEN": {
+              "delta": -0.156971,
+              "r2": 0.448748,
+              "iou_delta": -0.066282
+            },
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.144604,
+              "r2": 0.448485,
+              "iou_delta": -0.038524
+            },
+            "ILO/ZHANG_JIN_CHUN-1/before": {
+              "delta": -0.122002,
+              "r2": 0.37306,
+              "iou_delta": -0.114126
+            }
+          },
+          "largest_gains": {
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.159143,
+              "r2": 0.354543,
+              "iou_delta": 0.054069
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.347381,
+              "r2": 0.647398,
+              "iou_delta": 0.078209
+            },
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.411707,
+              "r2": 0.658333,
+              "iou_delta": 0.019885
+            }
+          },
+          "group_delta": {
+            "AG": -0.024228,
+            "AAA": -0.016776,
+            "AAA_ruputer": -0.016878,
+            "AAA_unruputer": -0.016763,
+            "ILO": -0.056778,
+            "ILO_0": 0.005212,
+            "ILO_1": -0.068497
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.411707,
+            "AAA/ruputer/LI_ZHEN_HUA": -0.009781,
+            "AAA/ruputer/WANG_FU_SHUN": -0.054415,
+            "AAA/ruputer/YU_TIAN_HAI": 0.014766,
+            "AAA/unruputer/GAO_DIAN_WEN": -0.156971,
+            "AAA/unruputer/LIU_KANG_WEN": 0.016346,
+            "AAA/unruputer/MA_JIN_HE": 0.043306,
+            "AAA/unruputer/SUN_SHU_MING": -0.1053,
+            "AAA/unruputer/WANG_MAN_TIAN": 0.034062,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.061467,
+            "AG/fast/FAN_JIAN_MING": 0.095119,
+            "AG/fast/LOU_YANG": -0.079241,
+            "AG/fast/RAN_QING_BO": 0.017408,
+            "AG/fast/SUN_ZHI_YU": 0.159143,
+            "AG/fast/YAO_CUN_HONG": -0.099203,
+            "AG/fast/ZHANG_CHUN": -0.060075,
+            "AG/fast/ZHANG_LIANG": -0.078999,
+            "AG/slow/BAI_WEN_JIE": 0.010377,
+            "AG/slow/CHEN_JING_RU": -0.144604,
+            "AG/slow/GUO_XI_JIANG": -0.059754,
+            "AG/slow/HE_SHU_ZHEN": -0.006052,
+            "AG/slow/LI_HUAN_GE": -0.078987,
+            "AG/slow/MA_TIAN_YI": 0.021992,
+            "AG/slow/MA_YU": -0.074546,
+            "AG/slow/ZHANG_WEI_XIAN": -0.063659,
+            "ILO/LI_YOU_ZHI-0/before": -0.000283,
+            "ILO/LU_FU_SHAN-0/before": -0.05305,
+            "ILO/SUN_DONG_XIN-0/before": 0.029806,
+            "ILO/SUN_XU_XIA-1/before": -0.052122,
+            "ILO/YANG_WEN_TAI-0/before": 0.017265,
+            "ILO/YU_XIANG_SHENG-1/before": -0.006935,
+            "ILO/ZHANG_HE_PING-0/before": -0.00612,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.122002,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.347381
+          }
+        },
+        "D6": {
+          "values": {
+            "r2": 0.619504,
+            "log": 0.820676,
+            "mean": 0.598438,
+            "p10": 0.402954,
+            "neg": 0,
+            "mae": 2.024011,
+            "high": 0.187736,
+            "high_mae": 9.327629,
+            "top": 0.60473,
+            "p99": 0.593042,
+            "iou": 0.437991,
+            "sp": 0.884369,
+            "high_sp": 0.42546,
+            "peak": 0.096681,
+            "centroid": 0.034194,
+            "fit": 0.63396,
+            "a": 0.550271,
+            "b": 1.763269
+          },
+          "delta": {
+            "r2": -0.003489,
+            "log": 0.001049,
+            "mean": 0.010844,
+            "p10": 0.017423,
+            "neg": 0,
+            "mae": 0.01839,
+            "high": -0.027081,
+            "high_mae": 0.068698,
+            "top": -0.004511,
+            "p99": -0.012481,
+            "iou": 0.021673,
+            "sp": 0.001058,
+            "high_sp": 0.02916,
+            "peak": -0.009022,
+            "centroid": -0.00282,
+            "fit": -0.006128,
+            "a": 0.001426,
+            "b": 0.036028
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 21,
+          "r2_case_delta_median": 0.013534,
+          "iou_cases_improved": 21,
+          "spearman_cases_improved": 19,
+          "high_mae_cases_improved": 17,
+          "largest_drops": {
+            "ILO/ZHANG_JIN_CHUN-1/before": {
+              "delta": -0.176576,
+              "r2": 0.318485,
+              "iou_delta": -0.124928
+            },
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.170079,
+              "r2": 0.42301,
+              "iou_delta": -0.023659
+            },
+            "AG/slow/MA_YU": {
+              "delta": -0.107789,
+              "r2": 0.369836,
+              "iou_delta": -0.011245
+            }
+          },
+          "largest_gains": {
+            "AAA/unruputer/SUN_SHU_MING": {
+              "delta": 0.155274,
+              "r2": 0.524106,
+              "iou_delta": 0.051699
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.158895,
+              "r2": 0.458912,
+              "iou_delta": 0.039779
+            },
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.206615,
+              "r2": 0.402016,
+              "iou_delta": 0.077475
+            }
+          },
+          "group_delta": {
+            "AG": 0.012673,
+            "AAA": 0.019813,
+            "AAA_ruputer": 0.000828,
+            "AAA_unruputer": 0.028925,
+            "ILO": -0.035658,
+            "ILO_0": 0.015696,
+            "ILO_1": -0.044364
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": -0.09687,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.010762,
+            "AAA/ruputer/WANG_FU_SHUN": -0.019353,
+            "AAA/ruputer/YU_TIAN_HAI": 0.029205,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.040831,
+            "AAA/unruputer/LIU_KANG_WEN": 0.024977,
+            "AAA/unruputer/MA_JIN_HE": 0.114328,
+            "AAA/unruputer/SUN_SHU_MING": 0.155274,
+            "AAA/unruputer/WANG_MAN_TIAN": 0.057971,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.018296,
+            "AG/fast/FAN_JIAN_MING": 0.029614,
+            "AG/fast/LOU_YANG": 0.01299,
+            "AG/fast/RAN_QING_BO": -0.055742,
+            "AG/fast/SUN_ZHI_YU": 0.206615,
+            "AG/fast/YAO_CUN_HONG": -0.013371,
+            "AG/fast/ZHANG_CHUN": 0.030859,
+            "AG/fast/ZHANG_LIANG": -0.003518,
+            "AG/slow/BAI_WEN_JIE": 0.052734,
+            "AG/slow/CHEN_JING_RU": -0.170079,
+            "AG/slow/GUO_XI_JIANG": -0.026632,
+            "AG/slow/HE_SHU_ZHEN": 0.010056,
+            "AG/slow/LI_HUAN_GE": 0.069467,
+            "AG/slow/MA_TIAN_YI": 0.026618,
+            "AG/slow/MA_YU": -0.107789,
+            "AG/slow/ZHANG_WEI_XIAN": 0.039878,
+            "ILO/LI_YOU_ZHI-0/before": -0.097832,
+            "ILO/LU_FU_SHAN-0/before": 0.009941,
+            "ILO/SUN_DONG_XIN-0/before": -0.033005,
+            "ILO/SUN_XU_XIA-1/before": 0.014077,
+            "ILO/YANG_WEN_TAI-0/before": 0.083346,
+            "ILO/YU_XIANG_SHENG-1/before": 0.028885,
+            "ILO/ZHANG_HE_PING-0/before": -0.01956,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.176576,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.158895
+          }
+        },
+        "D7": {
+          "values": {
+            "r2": 0.606801,
+            "log": 0.817029,
+            "mean": 0.606166,
+            "p10": 0.427455,
+            "neg": 0,
+            "mae": 2.035667,
+            "high": 0.165133,
+            "high_mae": 9.464562,
+            "top": 0.590765,
+            "p99": 0.573917,
+            "iou": 0.428756,
+            "sp": 0.880262,
+            "high_sp": 0.40853,
+            "peak": 0.105303,
+            "centroid": 0.036596,
+            "fit": 0.628988,
+            "a": 0.526467,
+            "b": 1.759575
+          },
+          "delta": {
+            "r2": -0.016191,
+            "log": -0.002597,
+            "mean": 0.018573,
+            "p10": 0.041924,
+            "neg": 0,
+            "mae": 0.030046,
+            "high": -0.049684,
+            "high_mae": 0.205632,
+            "top": -0.018477,
+            "p99": -0.031605,
+            "iou": 0.012438,
+            "sp": -0.003049,
+            "high_sp": 0.012229,
+            "peak": -0.0004,
+            "centroid": -0.000419,
+            "fit": -0.0111,
+            "a": -0.022378,
+            "b": 0.032334
+          },
+          "best_training_epoch": 399,
+          "r2_cases_improved": 19,
+          "r2_case_delta_median": 0.003487,
+          "iou_cases_improved": 19,
+          "spearman_cases_improved": 14,
+          "high_mae_cases_improved": 14,
+          "largest_drops": {
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.118704,
+              "r2": 0.474385,
+              "iou_delta": 0.023064
+            },
+            "AG/slow/ZHANG_WEI_XIAN": {
+              "delta": -0.113209,
+              "r2": 0.408844,
+              "iou_delta": -0.041455
+            },
+            "ILO/SUN_XU_XIA-1/before": {
+              "delta": -0.082701,
+              "r2": 0.47517,
+              "iou_delta": -0.011777
+            }
+          },
+          "largest_gains": {
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.14907,
+              "r2": 0.395695,
+              "iou_delta": -0.010342
+            },
+            "AAA/unruputer/SUN_SHU_MING": {
+              "delta": 0.20812,
+              "r2": 0.576952,
+              "iou_delta": 0.060694
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.30497,
+              "r2": 0.604987,
+              "iou_delta": 0.076625
+            }
+          },
+          "group_delta": {
+            "AG": 0.007471,
+            "AAA": -0.002399,
+            "AAA_ruputer": 0.007491,
+            "AAA_unruputer": -0.007128,
+            "ILO": -0.049679,
+            "ILO_0": 0.023325,
+            "ILO_1": -0.061968
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.14907,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.02556,
+            "AAA/ruputer/WANG_FU_SHUN": 0.022296,
+            "AAA/ruputer/YU_TIAN_HAI": -0.038046,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.037538,
+            "AAA/unruputer/LIU_KANG_WEN": 0.017776,
+            "AAA/unruputer/MA_JIN_HE": 0.055524,
+            "AAA/unruputer/SUN_SHU_MING": 0.20812,
+            "AAA/unruputer/WANG_MAN_TIAN": -0.040696,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.026895,
+            "AG/fast/FAN_JIAN_MING": 0.137089,
+            "AG/fast/LOU_YANG": -0.022469,
+            "AG/fast/RAN_QING_BO": -0.006391,
+            "AG/fast/SUN_ZHI_YU": 0.054896,
+            "AG/fast/YAO_CUN_HONG": -0.047509,
+            "AG/fast/ZHANG_CHUN": 0.036697,
+            "AG/fast/ZHANG_LIANG": 0.001028,
+            "AG/slow/BAI_WEN_JIE": 0.00452,
+            "AG/slow/CHEN_JING_RU": -0.118704,
+            "AG/slow/GUO_XI_JIANG": 0.060974,
+            "AG/slow/HE_SHU_ZHEN": 0.034069,
+            "AG/slow/LI_HUAN_GE": 0.110106,
+            "AG/slow/MA_TIAN_YI": 0.002453,
+            "AG/slow/MA_YU": -0.051763,
+            "AG/slow/ZHANG_WEI_XIAN": -0.113209,
+            "ILO/LI_YOU_ZHI-0/before": -0.040979,
+            "ILO/LU_FU_SHAN-0/before": 0.005273,
+            "ILO/SUN_DONG_XIN-0/before": -0.006762,
+            "ILO/SUN_XU_XIA-1/before": -0.082701,
+            "ILO/YANG_WEN_TAI-0/before": 0.065308,
+            "ILO/YU_XIANG_SHENG-1/before": -0.031883,
+            "ILO/ZHANG_HE_PING-0/before": -0.036019,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.03777,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.30497
+          }
+        },
+        "L1": {
+          "values": {
+            "r2": 0.587053,
+            "log": 0.822575,
+            "mean": 0.613399,
+            "p10": 0.437018,
+            "neg": 0,
+            "mae": 2.027706,
+            "high": 0.10731,
+            "high_mae": 9.789477,
+            "top": 0.555795,
+            "p99": 0.535626,
+            "iou": 0.431376,
+            "sp": 0.885576,
+            "high_sp": 0.419279,
+            "peak": 0.086012,
+            "centroid": 0.035739,
+            "fit": 0.625694,
+            "a": 0.492263,
+            "b": 1.719536
+          },
+          "delta": {
+            "r2": -0.03594,
+            "log": 0.002949,
+            "mean": 0.025805,
+            "p10": 0.051487,
+            "neg": 0,
+            "mae": 0.022085,
+            "high": -0.107506,
+            "high_mae": 0.530547,
+            "top": -0.053446,
+            "p99": -0.069897,
+            "iou": 0.015059,
+            "sp": 0.002265,
+            "high_sp": 0.022978,
+            "peak": -0.019691,
+            "centroid": -0.001276,
+            "fit": -0.014394,
+            "a": -0.056582,
+            "b": -0.007705
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 18,
+          "r2_case_delta_median": 0.007144,
+          "iou_cases_improved": 19,
+          "spearman_cases_improved": 16,
+          "high_mae_cases_improved": 10,
+          "largest_drops": {
+            "ILO/SUN_XU_XIA-1/before": {
+              "delta": -0.119894,
+              "r2": 0.437977,
+              "iou_delta": -0.006404
+            },
+            "AAA/unruputer/ZHANG_YONG_ZHI": {
+              "delta": -0.114401,
+              "r2": 0.349375,
+              "iou_delta": -0.052282
+            },
+            "AG/slow/BAI_WEN_JIE": {
+              "delta": -0.062747,
+              "r2": 0.710955,
+              "iou_delta": -0.035573
+            }
+          },
+          "largest_gains": {
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.159937,
+              "r2": 0.355338,
+              "iou_delta": 0.089885
+            },
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.238809,
+              "r2": 0.485435,
+              "iou_delta": -0.015757
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.423828,
+              "r2": 0.723845,
+              "iou_delta": 0.066151
+            }
+          },
+          "group_delta": {
+            "AG": -0.010702,
+            "AAA": -0.028005,
+            "AAA_ruputer": 0.010522,
+            "AAA_unruputer": -0.04647,
+            "ILO": -0.067352,
+            "ILO_0": 0.049426,
+            "ILO_1": -0.08594
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.238809,
+            "AAA/ruputer/LI_ZHEN_HUA": -0.016546,
+            "AAA/ruputer/WANG_FU_SHUN": 0.012111,
+            "AAA/ruputer/YU_TIAN_HAI": 0.026255,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.031099,
+            "AAA/unruputer/LIU_KANG_WEN": 0.019775,
+            "AAA/unruputer/MA_JIN_HE": 0.071876,
+            "AAA/unruputer/SUN_SHU_MING": 0.158489,
+            "AAA/unruputer/WANG_MAN_TIAN": -0.053838,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.114401,
+            "AG/fast/FAN_JIAN_MING": 0.076413,
+            "AG/fast/LOU_YANG": -0.050349,
+            "AG/fast/RAN_QING_BO": -0.012526,
+            "AG/fast/SUN_ZHI_YU": 0.159937,
+            "AG/fast/YAO_CUN_HONG": -0.039751,
+            "AG/fast/ZHANG_CHUN": 0.018397,
+            "AG/fast/ZHANG_LIANG": -0.006813,
+            "AG/slow/BAI_WEN_JIE": -0.062747,
+            "AG/slow/CHEN_JING_RU": 0.099904,
+            "AG/slow/GUO_XI_JIANG": -0.012419,
+            "AG/slow/HE_SHU_ZHEN": -0.024224,
+            "AG/slow/LI_HUAN_GE": 0.010297,
+            "AG/slow/MA_TIAN_YI": -0.028309,
+            "AG/slow/MA_YU": 0.00399,
+            "AG/slow/ZHANG_WEI_XIAN": -0.041545,
+            "ILO/LI_YOU_ZHI-0/before": 0.028508,
+            "ILO/LU_FU_SHAN-0/before": -0.014164,
+            "ILO/SUN_DONG_XIN-0/before": 0.022039,
+            "ILO/SUN_XU_XIA-1/before": -0.119894,
+            "ILO/YANG_WEN_TAI-0/before": 0.122284,
+            "ILO/YU_XIANG_SHENG-1/before": -0.035843,
+            "ILO/ZHANG_HE_PING-0/before": 0.030054,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.043316,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.423828
+          }
+        }
+      }
+    },
+    "last": {
+      "A5": {
+        "r2": 0.622115,
+        "log": 0.81964,
+        "mean": 0.584898,
+        "p10": 0.372022,
+        "neg": 0,
+        "mae": 2.002691,
+        "high": 0.214497,
+        "high_mae": 9.257949,
+        "top": 0.606899,
+        "p99": 0.602274,
+        "iou": 0.416985,
+        "sp": 0.883438,
+        "high_sp": 0.397902,
+        "peak": 0.109036,
+        "centroid": 0.03687,
+        "fit": 0.641288,
+        "a": 0.545076,
+        "b": 1.707855
+      },
+      "arms": {
+        "D1": {
+          "values": {
+            "r2": 0.596988,
+            "log": 0.81656,
+            "mean": 0.57933,
+            "p10": 0.431007,
+            "neg": 1,
+            "mae": 2.036686,
+            "high": 0.153181,
+            "high_mae": 9.421047,
+            "top": 0.599797,
+            "p99": 0.607917,
+            "iou": 0.421397,
+            "sp": 0.88327,
+            "high_sp": 0.420982,
+            "peak": 0.143714,
+            "centroid": 0.034665,
+            "fit": 0.613238,
+            "a": 0.528117,
+            "b": 1.808787
+          },
+          "delta": {
+            "r2": -0.025127,
+            "log": -0.003081,
+            "mean": -0.005568,
+            "p10": 0.058985,
+            "neg": 1,
+            "mae": 0.033995,
+            "high": -0.061316,
+            "high_mae": 0.163097,
+            "top": -0.007102,
+            "p99": 0.005643,
+            "iou": 0.004412,
+            "sp": -0.000168,
+            "high_sp": 0.02308,
+            "peak": 0.034678,
+            "centroid": -0.002206,
+            "fit": -0.02805,
+            "a": -0.016959,
+            "b": 0.100932
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 16,
+          "r2_case_delta_median": -0.000466,
+          "iou_cases_improved": 20,
+          "spearman_cases_improved": 13,
+          "high_mae_cases_improved": 16,
+          "largest_drops": {
+            "AAA/ruputer/KANG_YONG": {
+              "delta": -0.288152,
+              "r2": -0.091834,
+              "iou_delta": 0.014512
+            },
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.169229,
+              "r2": 0.435886,
+              "iou_delta": -0.010576
+            },
+            "AAA/unruputer/GAO_DIAN_WEN": {
+              "delta": -0.125863,
+              "r2": 0.477404,
+              "iou_delta": -0.0275
+            }
+          },
+          "largest_gains": {
+            "AG/fast/FAN_JIAN_MING": {
+              "delta": 0.099066,
+              "r2": 0.646501,
+              "iou_delta": 0.065012
+            },
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.291434,
+              "r2": 0.498899,
+              "iou_delta": 0.07919
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.296111,
+              "r2": 0.542604,
+              "iou_delta": 0.080051
+            }
+          },
+          "group_delta": {
+            "AG": -0.006633,
+            "AAA": -0.001511,
+            "AAA_ruputer": 0.016114,
+            "AAA_unruputer": -0.009934,
+            "ILO": -0.060198,
+            "ILO_0": 0.040314,
+            "ILO_1": -0.076393
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": -0.288152,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.028582,
+            "AAA/ruputer/WANG_FU_SHUN": 0.005659,
+            "AAA/ruputer/YU_TIAN_HAI": 0.039367,
+            "AAA/unruputer/GAO_DIAN_WEN": -0.125863,
+            "AAA/unruputer/LIU_KANG_WEN": 0.007262,
+            "AAA/unruputer/MA_JIN_HE": 0.005748,
+            "AAA/unruputer/SUN_SHU_MING": -0.030713,
+            "AAA/unruputer/WANG_MAN_TIAN": -0.023274,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.0047,
+            "AG/fast/FAN_JIAN_MING": 0.099066,
+            "AG/fast/LOU_YANG": -0.03382,
+            "AG/fast/RAN_QING_BO": 0.014152,
+            "AG/fast/SUN_ZHI_YU": 0.291434,
+            "AG/fast/YAO_CUN_HONG": -0.051542,
+            "AG/fast/ZHANG_CHUN": -0.007747,
+            "AG/fast/ZHANG_LIANG": 0.004593,
+            "AG/slow/BAI_WEN_JIE": -0.000403,
+            "AG/slow/CHEN_JING_RU": -0.169229,
+            "AG/slow/GUO_XI_JIANG": 0.032407,
+            "AG/slow/HE_SHU_ZHEN": 0.001914,
+            "AG/slow/LI_HUAN_GE": -0.004343,
+            "AG/slow/MA_TIAN_YI": -0.00053,
+            "AG/slow/MA_YU": -0.042208,
+            "AG/slow/ZHANG_WEI_XIAN": -0.05948,
+            "ILO/LI_YOU_ZHI-0/before": -0.063508,
+            "ILO/LU_FU_SHAN-0/before": 0.013171,
+            "ILO/SUN_DONG_XIN-0/before": 0.042775,
+            "ILO/SUN_XU_XIA-1/before": -0.077104,
+            "ILO/YANG_WEN_TAI-0/before": 0.083729,
+            "ILO/YU_XIANG_SHENG-1/before": -0.106377,
+            "ILO/ZHANG_HE_PING-0/before": 0.020134,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.086431,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.296111
+          }
+        },
+        "D2": {
+          "values": {
+            "r2": 0.629645,
+            "log": 0.819498,
+            "mean": 0.606267,
+            "p10": 0.452389,
+            "neg": 0,
+            "mae": 2.002985,
+            "high": 0.256032,
+            "high_mae": 8.978227,
+            "top": 0.623446,
+            "p99": 0.62357,
+            "iou": 0.434463,
+            "sp": 0.881084,
+            "high_sp": 0.416267,
+            "peak": 0.134576,
+            "centroid": 0.033035,
+            "fit": 0.64687,
+            "a": 0.55502,
+            "b": 1.691097
+          },
+          "delta": {
+            "r2": 0.00753,
+            "log": -0.000142,
+            "mean": 0.021369,
+            "p10": 0.080366,
+            "neg": 0,
+            "mae": 0.000294,
+            "high": 0.041536,
+            "high_mae": -0.279723,
+            "top": 0.016548,
+            "p99": 0.021296,
+            "iou": 0.017478,
+            "sp": -0.002354,
+            "high_sp": 0.018365,
+            "peak": 0.02554,
+            "centroid": -0.003835,
+            "fit": 0.005582,
+            "a": 0.009944,
+            "b": -0.016758
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 19,
+          "r2_case_delta_median": 0.003256,
+          "iou_cases_improved": 22,
+          "spearman_cases_improved": 13,
+          "high_mae_cases_improved": 20,
+          "largest_drops": {
+            "AAA/ruputer/KANG_YONG": {
+              "delta": -0.122619,
+              "r2": 0.073699,
+              "iou_delta": -0.105332
+            },
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.118955,
+              "r2": 0.486161,
+              "iou_delta": -0.027153
+            },
+            "ILO/LI_YOU_ZHI-0/before": {
+              "delta": -0.084276,
+              "r2": 0.499488,
+              "iou_delta": 0.059338
+            }
+          },
+          "largest_gains": {
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.140905,
+              "r2": 0.34837,
+              "iou_delta": 0.060914
+            },
+            "AAA/unruputer/SUN_SHU_MING": {
+              "delta": 0.321378,
+              "r2": 0.671443,
+              "iou_delta": 0.126812
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.391779,
+              "r2": 0.638272,
+              "iou_delta": 0.060288
+            }
+          },
+          "group_delta": {
+            "AG": -0.002201,
+            "AAA": 0.023611,
+            "AAA_ruputer": -2.9e-05,
+            "AAA_unruputer": 0.034955,
+            "ILO": 0.006563,
+            "ILO_0": 0.016703,
+            "ILO_1": 0.006042
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": -0.122619,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.001924,
+            "AAA/ruputer/WANG_FU_SHUN": -0.00214,
+            "AAA/ruputer/YU_TIAN_HAI": 0.00698,
+            "AAA/unruputer/GAO_DIAN_WEN": -0.010505,
+            "AAA/unruputer/LIU_KANG_WEN": 0.037974,
+            "AAA/unruputer/MA_JIN_HE": 0.012535,
+            "AAA/unruputer/SUN_SHU_MING": 0.321378,
+            "AAA/unruputer/WANG_MAN_TIAN": 0.044193,
+            "AAA/unruputer/ZHANG_YONG_ZHI": 0.039422,
+            "AG/fast/FAN_JIAN_MING": 0.081145,
+            "AG/fast/LOU_YANG": 0.003628,
+            "AG/fast/RAN_QING_BO": -0.074576,
+            "AG/fast/SUN_ZHI_YU": 0.140905,
+            "AG/fast/YAO_CUN_HONG": -0.020004,
+            "AG/fast/ZHANG_CHUN": 0.087846,
+            "AG/fast/ZHANG_LIANG": -0.028054,
+            "AG/slow/BAI_WEN_JIE": -0.022529,
+            "AG/slow/CHEN_JING_RU": -0.118955,
+            "AG/slow/GUO_XI_JIANG": 0.085812,
+            "AG/slow/HE_SHU_ZHEN": -0.041318,
+            "AG/slow/LI_HUAN_GE": 0.009604,
+            "AG/slow/MA_TIAN_YI": -0.038087,
+            "AG/slow/MA_YU": -0.025215,
+            "AG/slow/ZHANG_WEI_XIAN": -0.031341,
+            "ILO/LI_YOU_ZHI-0/before": -0.084276,
+            "ILO/LU_FU_SHAN-0/before": -0.072683,
+            "ILO/SUN_DONG_XIN-0/before": 0.052582,
+            "ILO/SUN_XU_XIA-1/before": 0.002883,
+            "ILO/YANG_WEN_TAI-0/before": 0.111042,
+            "ILO/YU_XIANG_SHENG-1/before": -0.040358,
+            "ILO/ZHANG_HE_PING-0/before": 0.008223,
+            "ILO/ZHANG_JIN_CHUN-1/before": 0.019352,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.391779
+          }
+        },
+        "D3": {
+          "values": {
+            "r2": 0.610668,
+            "log": 0.812122,
+            "mean": 0.595385,
+            "p10": 0.411237,
+            "neg": 0,
+            "mae": 2.060224,
+            "high": 0.181611,
+            "high_mae": 9.356389,
+            "top": 0.600803,
+            "p99": 0.60364,
+            "iou": 0.419651,
+            "sp": 0.877194,
+            "high_sp": 0.399189,
+            "peak": 0.088722,
+            "centroid": 0.036114,
+            "fit": 0.625553,
+            "a": 0.54408,
+            "b": 1.739593
+          },
+          "delta": {
+            "r2": -0.011447,
+            "log": -0.007518,
+            "mean": 0.010487,
+            "p10": 0.039215,
+            "neg": 0,
+            "mae": 0.057533,
+            "high": -0.032886,
+            "high_mae": 0.09844,
+            "top": -0.006095,
+            "p99": 0.001367,
+            "iou": 0.002666,
+            "sp": -0.006244,
+            "high_sp": 0.001287,
+            "peak": -0.020314,
+            "centroid": -0.000756,
+            "fit": -0.015736,
+            "a": -0.000996,
+            "b": 0.031739
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 17,
+          "r2_case_delta_median": -0.00019,
+          "iou_cases_improved": 20,
+          "spearman_cases_improved": 10,
+          "high_mae_cases_improved": 15,
+          "largest_drops": {
+            "ILO/LU_FU_SHAN-0/before": {
+              "delta": -0.134317,
+              "r2": 0.575318,
+              "iou_delta": -0.05531
+            },
+            "AG/slow/MA_YU": {
+              "delta": -0.127759,
+              "r2": 0.359187,
+              "iou_delta": -0.050703
+            },
+            "ILO/LI_YOU_ZHI-0/before": {
+              "delta": -0.117676,
+              "r2": 0.466088,
+              "iou_delta": -0.053541
+            }
+          },
+          "largest_gains": {
+            "ILO/YANG_WEN_TAI-0/before": {
+              "delta": 0.100021,
+              "r2": 0.757944,
+              "iou_delta": 0.072613
+            },
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.210019,
+              "r2": 0.406337,
+              "iou_delta": 0.0451
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.408171,
+              "r2": 0.654664,
+              "iou_delta": 0.062686
+            }
+          },
+          "group_delta": {
+            "AG": 0.007924,
+            "AAA": -0.00999,
+            "AAA_ruputer": 0.006482,
+            "AAA_unruputer": -0.01788,
+            "ILO": -0.032164,
+            "ILO_0": -0.012861,
+            "ILO_1": -0.037089
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.210019,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.024603,
+            "AAA/ruputer/WANG_FU_SHUN": -0.027836,
+            "AAA/ruputer/YU_TIAN_HAI": 0.038745,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.04176,
+            "AAA/unruputer/LIU_KANG_WEN": 0.02713,
+            "AAA/unruputer/MA_JIN_HE": -0.013178,
+            "AAA/unruputer/SUN_SHU_MING": 0.095251,
+            "AAA/unruputer/WANG_MAN_TIAN": -0.038301,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.025386,
+            "AG/fast/FAN_JIAN_MING": 0.052348,
+            "AG/fast/LOU_YANG": -0.020019,
+            "AG/fast/RAN_QING_BO": -0.003499,
+            "AG/fast/SUN_ZHI_YU": 0.010006,
+            "AG/fast/YAO_CUN_HONG": -0.058148,
+            "AG/fast/ZHANG_CHUN": 0.030976,
+            "AG/fast/ZHANG_LIANG": 0.006726,
+            "AG/slow/BAI_WEN_JIE": -0.023716,
+            "AG/slow/CHEN_JING_RU": 0.000673,
+            "AG/slow/GUO_XI_JIANG": 0.027688,
+            "AG/slow/HE_SHU_ZHEN": -0.008543,
+            "AG/slow/LI_HUAN_GE": -0.114335,
+            "AG/slow/MA_TIAN_YI": 0.055674,
+            "AG/slow/MA_YU": -0.127759,
+            "AG/slow/ZHANG_WEI_XIAN": -0.006135,
+            "ILO/LI_YOU_ZHI-0/before": -0.117676,
+            "ILO/LU_FU_SHAN-0/before": -0.134317,
+            "ILO/SUN_DONG_XIN-0/before": 0.03603,
+            "ILO/SUN_XU_XIA-1/before": -0.026786,
+            "ILO/YANG_WEN_TAI-0/before": 0.100021,
+            "ILO/YU_XIANG_SHENG-1/before": 0.007759,
+            "ILO/ZHANG_HE_PING-0/before": -0.001054,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.070337,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.408171
+          }
+        },
+        "D4": {
+          "values": {
+            "r2": 0.589651,
+            "log": 0.816306,
+            "mean": 0.58692,
+            "p10": 0.417314,
+            "neg": 0,
+            "mae": 2.036291,
+            "high": 0.158775,
+            "high_mae": 9.551635,
+            "top": 0.583638,
+            "p99": 0.582659,
+            "iou": 0.406652,
+            "sp": 0.878213,
+            "high_sp": 0.370315,
+            "peak": 0.077669,
+            "centroid": 0.033376,
+            "fit": 0.611403,
+            "a": 0.514779,
+            "b": 1.76673
+          },
+          "delta": {
+            "r2": -0.032463,
+            "log": -0.003335,
+            "mean": 0.002022,
+            "p10": 0.045291,
+            "neg": 0,
+            "mae": 0.0336,
+            "high": -0.055721,
+            "high_mae": 0.293686,
+            "top": -0.023261,
+            "p99": -0.019615,
+            "iou": -0.010333,
+            "sp": -0.005225,
+            "high_sp": -0.027587,
+            "peak": -0.031366,
+            "centroid": -0.003494,
+            "fit": -0.029885,
+            "a": -0.030297,
+            "b": 0.058875
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 12,
+          "r2_case_delta_median": -0.02093,
+          "iou_cases_improved": 15,
+          "spearman_cases_improved": 11,
+          "high_mae_cases_improved": 10,
+          "largest_drops": {
+            "AG/fast/RAN_QING_BO": {
+              "delta": -0.185692,
+              "r2": 0.572915,
+              "iou_delta": -0.146681
+            },
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.141698,
+              "r2": 0.463417,
+              "iou_delta": -0.037305
+            },
+            "AG/slow/MA_TIAN_YI": {
+              "delta": -0.088967,
+              "r2": 0.5003,
+              "iou_delta": -0.040082
+            }
+          },
+          "largest_gains": {
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.196699,
+              "r2": 0.404165,
+              "iou_delta": 0.039483
+            },
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.21893,
+              "r2": 0.415248,
+              "iou_delta": 0.008167
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.441636,
+              "r2": 0.688129,
+              "iou_delta": 0.078997
+            }
+          },
+          "group_delta": {
+            "AG": -0.043352,
+            "AAA": -0.019523,
+            "AAA_ruputer": -0.023564,
+            "AAA_unruputer": -0.017633,
+            "ILO": -0.030752,
+            "ILO_0": 0.020414,
+            "ILO_1": -0.039006
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.21893,
+            "AAA/ruputer/LI_ZHEN_HUA": -0.032564,
+            "AAA/ruputer/WANG_FU_SHUN": -0.049554,
+            "AAA/ruputer/YU_TIAN_HAI": 0.010563,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.006295,
+            "AAA/unruputer/LIU_KANG_WEN": -0.021893,
+            "AAA/unruputer/MA_JIN_HE": 0.030855,
+            "AAA/unruputer/SUN_SHU_MING": 0.102441,
+            "AAA/unruputer/WANG_MAN_TIAN": 0.002693,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.052192,
+            "AG/fast/FAN_JIAN_MING": 0.071905,
+            "AG/fast/LOU_YANG": -0.054792,
+            "AG/fast/RAN_QING_BO": -0.185692,
+            "AG/fast/SUN_ZHI_YU": 0.196699,
+            "AG/fast/YAO_CUN_HONG": -0.042981,
+            "AG/fast/ZHANG_CHUN": 0.068683,
+            "AG/fast/ZHANG_LIANG": -0.019966,
+            "AG/slow/BAI_WEN_JIE": 0.010641,
+            "AG/slow/CHEN_JING_RU": -0.141698,
+            "AG/slow/GUO_XI_JIANG": -0.061349,
+            "AG/slow/HE_SHU_ZHEN": -0.040684,
+            "AG/slow/LI_HUAN_GE": -0.073773,
+            "AG/slow/MA_TIAN_YI": -0.088967,
+            "AG/slow/MA_YU": -0.064812,
+            "AG/slow/ZHANG_WEI_XIAN": -0.063657,
+            "ILO/LI_YOU_ZHI-0/before": -0.001074,
+            "ILO/LU_FU_SHAN-0/before": -0.035626,
+            "ILO/SUN_DONG_XIN-0/before": -0.047397,
+            "ILO/SUN_XU_XIA-1/before": -0.055816,
+            "ILO/YANG_WEN_TAI-0/before": 0.088048,
+            "ILO/YU_XIANG_SHENG-1/before": -0.012299,
+            "ILO/ZHANG_HE_PING-0/before": -0.016419,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.017441,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.441636
+          }
+        },
+        "D5": {
+          "values": {
+            "r2": 0.591753,
+            "log": 0.814069,
+            "mean": 0.5829,
+            "p10": 0.382326,
+            "neg": 0,
+            "mae": 2.056322,
+            "high": 0.136314,
+            "high_mae": 9.692076,
+            "top": 0.580206,
+            "p99": 0.589381,
+            "iou": 0.409251,
+            "sp": 0.881266,
+            "high_sp": 0.381701,
+            "peak": 0.116216,
+            "centroid": 0.04163,
+            "fit": 0.608939,
+            "a": 0.526847,
+            "b": 1.725032
+          },
+          "delta": {
+            "r2": -0.030361,
+            "log": -0.005571,
+            "mean": -0.001998,
+            "p10": 0.010304,
+            "neg": 0,
+            "mae": 0.05363,
+            "high": -0.078183,
+            "high_mae": 0.434126,
+            "top": -0.026693,
+            "p99": -0.012893,
+            "iou": -0.007734,
+            "sp": -0.002172,
+            "high_sp": -0.0162,
+            "peak": 0.00718,
+            "centroid": 0.00476,
+            "fit": -0.03235,
+            "a": -0.018229,
+            "b": 0.017178
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 14,
+          "r2_case_delta_median": -0.008662,
+          "iou_cases_improved": 17,
+          "spearman_cases_improved": 10,
+          "high_mae_cases_improved": 15,
+          "largest_drops": {
+            "AAA/unruputer/GAO_DIAN_WEN": {
+              "delta": -0.162128,
+              "r2": 0.441139,
+              "iou_delta": -0.066738
+            },
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.130782,
+              "r2": 0.474333,
+              "iou_delta": -0.035287
+            },
+            "AG/slow/LI_HUAN_GE": {
+              "delta": -0.121613,
+              "r2": 0.5394,
+              "iou_delta": -0.065698
+            }
+          },
+          "largest_gains": {
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.141126,
+              "r2": 0.348592,
+              "iou_delta": 0.058665
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.357916,
+              "r2": 0.60441,
+              "iou_delta": 0.066988
+            },
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.469445,
+              "r2": 0.665762,
+              "iou_delta": 0.016427
+            }
+          },
+          "group_delta": {
+            "AG": -0.022385,
+            "AAA": -0.018315,
+            "AAA_ruputer": -0.011921,
+            "AAA_unruputer": -0.021409,
+            "ILO": -0.047052,
+            "ILO_0": 0.005041,
+            "ILO_1": -0.056842
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.469445,
+            "AAA/ruputer/LI_ZHEN_HUA": -0.003466,
+            "AAA/ruputer/WANG_FU_SHUN": -0.046104,
+            "AAA/ruputer/YU_TIAN_HAI": 0.011972,
+            "AAA/unruputer/GAO_DIAN_WEN": -0.162128,
+            "AAA/unruputer/LIU_KANG_WEN": 0.020156,
+            "AAA/unruputer/MA_JIN_HE": 0.042951,
+            "AAA/unruputer/SUN_SHU_MING": -0.093373,
+            "AAA/unruputer/WANG_MAN_TIAN": 0.021045,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.06577,
+            "AG/fast/FAN_JIAN_MING": 0.087425,
+            "AG/fast/LOU_YANG": -0.082739,
+            "AG/fast/RAN_QING_BO": 0.020283,
+            "AG/fast/SUN_ZHI_YU": 0.141126,
+            "AG/fast/YAO_CUN_HONG": -0.097684,
+            "AG/fast/ZHANG_CHUN": -0.054755,
+            "AG/fast/ZHANG_LIANG": -0.068764,
+            "AG/slow/BAI_WEN_JIE": 0.024283,
+            "AG/slow/CHEN_JING_RU": -0.130782,
+            "AG/slow/GUO_XI_JIANG": -0.051474,
+            "AG/slow/HE_SHU_ZHEN": 0.002904,
+            "AG/slow/LI_HUAN_GE": -0.121613,
+            "AG/slow/MA_TIAN_YI": 0.031516,
+            "AG/slow/MA_YU": -0.070816,
+            "AG/slow/ZHANG_WEI_XIAN": -0.068634,
+            "ILO/LI_YOU_ZHI-0/before": -0.006592,
+            "ILO/LU_FU_SHAN-0/before": -0.057782,
+            "ILO/SUN_DONG_XIN-0/before": 0.021298,
+            "ILO/SUN_XU_XIA-1/before": -0.034413,
+            "ILO/YANG_WEN_TAI-0/before": 0.027174,
+            "ILO/YU_XIANG_SHENG-1/before": -0.010731,
+            "ILO/ZHANG_HE_PING-0/before": -0.001956,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.117842,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.357916
+          }
+        },
+        "D6": {
+          "values": {
+            "r2": 0.614236,
+            "log": 0.820468,
+            "mean": 0.596077,
+            "p10": 0.404729,
+            "neg": 0,
+            "mae": 2.028723,
+            "high": 0.173546,
+            "high_mae": 9.406317,
+            "top": 0.597421,
+            "p99": 0.584967,
+            "iou": 0.435744,
+            "sp": 0.884583,
+            "high_sp": 0.419352,
+            "peak": 0.111944,
+            "centroid": 0.03323,
+            "fit": 0.631244,
+            "a": 0.541118,
+            "b": 1.762184
+          },
+          "delta": {
+            "r2": -0.007879,
+            "log": 0.000828,
+            "mean": 0.011179,
+            "p10": 0.032707,
+            "neg": 0,
+            "mae": 0.026032,
+            "high": -0.04095,
+            "high_mae": 0.148368,
+            "top": -0.009477,
+            "p99": -0.017307,
+            "iou": 0.018759,
+            "sp": 0.001145,
+            "high_sp": 0.02145,
+            "peak": 0.002908,
+            "centroid": -0.003641,
+            "fit": -0.010045,
+            "a": -0.003958,
+            "b": 0.054329
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 21,
+          "r2_case_delta_median": 0.009338,
+          "iou_cases_improved": 21,
+          "spearman_cases_improved": 19,
+          "high_mae_cases_improved": 18,
+          "largest_drops": {
+            "ILO/ZHANG_JIN_CHUN-1/before": {
+              "delta": -0.174727,
+              "r2": 0.319662,
+              "iou_delta": -0.136915
+            },
+            "AAA/ruputer/KANG_YONG": {
+              "delta": -0.156324,
+              "r2": 0.039994,
+              "iou_delta": 0.035855
+            },
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.129622,
+              "r2": 0.475494,
+              "iou_delta": -0.021674
+            }
+          },
+          "largest_gains": {
+            "AAA/unruputer/SUN_SHU_MING": {
+              "delta": 0.160335,
+              "r2": 0.510399,
+              "iou_delta": 0.038935
+            },
+            "AG/fast/SUN_ZHI_YU": {
+              "delta": 0.215943,
+              "r2": 0.423409,
+              "iou_delta": 0.080736
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.268221,
+              "r2": 0.514714,
+              "iou_delta": 0.054328
+            }
+          },
+          "group_delta": {
+            "AG": 0.011962,
+            "AAA": 0.014919,
+            "AAA_ruputer": -0.004088,
+            "AAA_unruputer": 0.02403,
+            "ILO": -0.043486,
+            "ILO_0": 0.018506,
+            "ILO_1": -0.054035
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": -0.156324,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.006036,
+            "AAA/ruputer/WANG_FU_SHUN": -0.026534,
+            "AAA/ruputer/YU_TIAN_HAI": 0.028884,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.060221,
+            "AAA/unruputer/LIU_KANG_WEN": 0.02469,
+            "AAA/unruputer/MA_JIN_HE": 0.10469,
+            "AAA/unruputer/SUN_SHU_MING": 0.160335,
+            "AAA/unruputer/WANG_MAN_TIAN": 0.04849,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.022257,
+            "AG/fast/FAN_JIAN_MING": 0.008592,
+            "AG/fast/LOU_YANG": 0.013414,
+            "AG/fast/RAN_QING_BO": -0.058697,
+            "AG/fast/SUN_ZHI_YU": 0.215943,
+            "AG/fast/YAO_CUN_HONG": -0.032204,
+            "AG/fast/ZHANG_CHUN": 0.028619,
+            "AG/fast/ZHANG_LIANG": 0.001781,
+            "AG/slow/BAI_WEN_JIE": 0.060458,
+            "AG/slow/CHEN_JING_RU": -0.129622,
+            "AG/slow/GUO_XI_JIANG": -0.062063,
+            "AG/slow/HE_SHU_ZHEN": 0.010084,
+            "AG/slow/LI_HUAN_GE": 0.070977,
+            "AG/slow/MA_TIAN_YI": 0.031689,
+            "AG/slow/MA_YU": -0.107952,
+            "AG/slow/ZHANG_WEI_XIAN": 0.046594,
+            "ILO/LI_YOU_ZHI-0/before": -0.096087,
+            "ILO/LU_FU_SHAN-0/before": 0.000271,
+            "ILO/SUN_DONG_XIN-0/before": -0.028699,
+            "ILO/SUN_XU_XIA-1/before": -0.002949,
+            "ILO/YANG_WEN_TAI-0/before": 0.082803,
+            "ILO/YU_XIANG_SHENG-1/before": 0.026171,
+            "ILO/ZHANG_HE_PING-0/before": -0.020752,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.174727,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.268221
+          }
+        },
+        "D7": {
+          "values": {
+            "r2": 0.606801,
+            "log": 0.817029,
+            "mean": 0.606166,
+            "p10": 0.427455,
+            "neg": 0,
+            "mae": 2.035667,
+            "high": 0.165133,
+            "high_mae": 9.464562,
+            "top": 0.590765,
+            "p99": 0.573917,
+            "iou": 0.428756,
+            "sp": 0.880262,
+            "high_sp": 0.40853,
+            "peak": 0.105303,
+            "centroid": 0.036596,
+            "fit": 0.628988,
+            "a": 0.526467,
+            "b": 1.759575
+          },
+          "delta": {
+            "r2": -0.015313,
+            "log": -0.002611,
+            "mean": 0.021268,
+            "p10": 0.055433,
+            "neg": 0,
+            "mae": 0.032975,
+            "high": -0.049364,
+            "high_mae": 0.206613,
+            "top": -0.016134,
+            "p99": -0.028357,
+            "iou": 0.011771,
+            "sp": -0.003176,
+            "high_sp": 0.010628,
+            "peak": -0.003732,
+            "centroid": -0.000274,
+            "fit": -0.012301,
+            "a": -0.01861,
+            "b": 0.05172
+          },
+          "best_training_epoch": 399,
+          "r2_cases_improved": 18,
+          "r2_case_delta_median": 0.00692,
+          "iou_cases_improved": 19,
+          "spearman_cases_improved": 14,
+          "high_mae_cases_improved": 14,
+          "largest_drops": {
+            "AG/slow/CHEN_JING_RU": {
+              "delta": -0.13073,
+              "r2": 0.474385,
+              "iou_delta": 0.020935
+            },
+            "AG/slow/ZHANG_WEI_XIAN": {
+              "delta": -0.112682,
+              "r2": 0.408844,
+              "iou_delta": -0.04197
+            },
+            "ILO/SUN_XU_XIA-1/before": {
+              "delta": -0.085312,
+              "r2": 0.47517,
+              "iou_delta": -0.013759
+            }
+          },
+          "largest_gains": {
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.199378,
+              "r2": 0.395695,
+              "iou_delta": -0.023954
+            },
+            "AAA/unruputer/SUN_SHU_MING": {
+              "delta": 0.226887,
+              "r2": 0.576952,
+              "iou_delta": 0.057492
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.358494,
+              "r2": 0.604987,
+              "iou_delta": 0.080402
+            }
+          },
+          "group_delta": {
+            "AG": 0.01032,
+            "AAA": -0.001212,
+            "AAA_ruputer": 0.009055,
+            "AAA_unruputer": -0.006119,
+            "ILO": -0.050986,
+            "ILO_0": 0.022616,
+            "ILO_1": -0.063454
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.199378,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.034222,
+            "AAA/ruputer/WANG_FU_SHUN": 0.023535,
+            "AAA/ruputer/YU_TIAN_HAI": -0.04434,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.03999,
+            "AAA/unruputer/LIU_KANG_WEN": 0.017731,
+            "AAA/unruputer/MA_JIN_HE": 0.051342,
+            "AAA/unruputer/SUN_SHU_MING": 0.226887,
+            "AAA/unruputer/WANG_MAN_TIAN": -0.041244,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.023288,
+            "AG/fast/FAN_JIAN_MING": 0.127154,
+            "AG/fast/LOU_YANG": -0.022014,
+            "AG/fast/RAN_QING_BO": -0.004769,
+            "AG/fast/SUN_ZHI_YU": 0.042831,
+            "AG/fast/YAO_CUN_HONG": -0.044808,
+            "AG/fast/ZHANG_CHUN": 0.049874,
+            "AG/fast/ZHANG_LIANG": -0.000653,
+            "AG/slow/BAI_WEN_JIE": 0.015312,
+            "AG/slow/CHEN_JING_RU": -0.13073,
+            "AG/slow/GUO_XI_JIANG": 0.057487,
+            "AG/slow/HE_SHU_ZHEN": 0.039711,
+            "AG/slow/LI_HUAN_GE": 0.087504,
+            "AG/slow/MA_TIAN_YI": 0.010575,
+            "AG/slow/MA_YU": -0.061083,
+            "AG/slow/ZHANG_WEI_XIAN": -0.112682,
+            "ILO/LI_YOU_ZHI-0/before": -0.035929,
+            "ILO/LU_FU_SHAN-0/before": -0.005918,
+            "ILO/SUN_DONG_XIN-0/before": 0.003264,
+            "ILO/SUN_XU_XIA-1/before": -0.085312,
+            "ILO/YANG_WEN_TAI-0/before": 0.062732,
+            "ILO/YU_XIANG_SHENG-1/before": -0.03541,
+            "ILO/ZHANG_HE_PING-0/before": -0.039623,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.037098,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.358494
+          }
+        },
+        "L1": {
+          "values": {
+            "r2": 0.593595,
+            "log": 0.82313,
+            "mean": 0.618323,
+            "p10": 0.447241,
+            "neg": 0,
+            "mae": 2.017555,
+            "high": 0.129402,
+            "high_mae": 9.669576,
+            "top": 0.563537,
+            "p99": 0.546164,
+            "iou": 0.432987,
+            "sp": 0.885586,
+            "high_sp": 0.424032,
+            "peak": 0.084777,
+            "centroid": 0.03523,
+            "fit": 0.632264,
+            "a": 0.498559,
+            "b": 1.680591
+          },
+          "delta": {
+            "r2": -0.028519,
+            "log": 0.003489,
+            "mean": 0.033425,
+            "p10": 0.075218,
+            "neg": 0,
+            "mae": 0.014864,
+            "high": -0.085095,
+            "high_mae": 0.411626,
+            "top": -0.043362,
+            "p99": -0.05611,
+            "iou": 0.016002,
+            "sp": 0.002148,
+            "high_sp": 0.02613,
+            "peak": -0.024259,
+            "centroid": -0.00164,
+            "fit": -0.009024,
+            "a": -0.046517,
+            "b": -0.027264
+          },
+          "best_training_epoch": 378,
+          "r2_cases_improved": 18,
+          "r2_case_delta_median": 0.003506,
+          "iou_cases_improved": 20,
+          "spearman_cases_improved": 16,
+          "high_mae_cases_improved": 10,
+          "largest_drops": {
+            "ILO/SUN_XU_XIA-1/before": {
+              "delta": -0.107379,
+              "r2": 0.453104,
+              "iou_delta": -0.010345
+            },
+            "AAA/unruputer/ZHANG_YONG_ZHI": {
+              "delta": -0.100196,
+              "r2": 0.359973,
+              "iou_delta": -0.042119
+            },
+            "AAA/unruputer/WANG_MAN_TIAN": {
+              "delta": -0.054974,
+              "r2": 0.417445,
+              "iou_delta": 0.002033
+            }
+          },
+          "largest_gains": {
+            "AAA/unruputer/SUN_SHU_MING": {
+              "delta": 0.173589,
+              "r2": 0.523653,
+              "iou_delta": 0.085166
+            },
+            "AAA/ruputer/KANG_YONG": {
+              "delta": 0.340819,
+              "r2": 0.537137,
+              "iou_delta": -0.021534
+            },
+            "ILO/ZHANG_YONG_SHENG-0/before": {
+              "delta": 0.471719,
+              "r2": 0.718212,
+              "iou_delta": 0.069063
+            }
+          },
+          "group_delta": {
+            "AG": -0.007841,
+            "AAA": -0.02049,
+            "AAA_ruputer": 0.018996,
+            "AAA_unruputer": -0.039398,
+            "ILO": -0.055277,
+            "ILO_0": 0.05215,
+            "ILO_1": -0.071789
+          },
+          "per_case_r2_delta": {
+            "AAA/ruputer/KANG_YONG": 0.340819,
+            "AAA/ruputer/LI_ZHEN_HUA": 0.002635,
+            "AAA/ruputer/WANG_FU_SHUN": 0.021471,
+            "AAA/ruputer/YU_TIAN_HAI": 0.021413,
+            "AAA/unruputer/GAO_DIAN_WEN": 0.0245,
+            "AAA/unruputer/LIU_KANG_WEN": 0.02742,
+            "AAA/unruputer/MA_JIN_HE": 0.075122,
+            "AAA/unruputer/SUN_SHU_MING": 0.173589,
+            "AAA/unruputer/WANG_MAN_TIAN": -0.054974,
+            "AAA/unruputer/ZHANG_YONG_ZHI": -0.100196,
+            "AG/fast/FAN_JIAN_MING": 0.06631,
+            "AG/fast/LOU_YANG": -0.044034,
+            "AG/fast/RAN_QING_BO": -0.016698,
+            "AG/fast/SUN_ZHI_YU": 0.155382,
+            "AG/fast/YAO_CUN_HONG": -0.039079,
+            "AG/fast/ZHANG_CHUN": 0.018876,
+            "AG/fast/ZHANG_LIANG": -0.008654,
+            "AG/slow/BAI_WEN_JIE": -0.053853,
+            "AG/slow/CHEN_JING_RU": 0.088467,
+            "AG/slow/GUO_XI_JIANG": -0.012289,
+            "AG/slow/HE_SHU_ZHEN": -0.016494,
+            "AG/slow/LI_HUAN_GE": 0.004377,
+            "AG/slow/MA_TIAN_YI": -0.018765,
+            "AG/slow/MA_YU": -0.000867,
+            "AG/slow/ZHANG_WEI_XIAN": -0.032424,
+            "ILO/LI_YOU_ZHI-0/before": 0.025602,
+            "ILO/LU_FU_SHAN-0/before": -0.020429,
+            "ILO/SUN_DONG_XIN-0/before": 0.043199,
+            "ILO/SUN_XU_XIA-1/before": -0.107379,
+            "ILO/YANG_WEN_TAI-0/before": 0.125781,
+            "ILO/YU_XIANG_SHENG-1/before": -0.028602,
+            "ILO/ZHANG_HE_PING-0/before": 0.026766,
+            "ILO/ZHANG_JIN_CHUN-1/before": -0.02226,
+            "ILO/ZHANG_YONG_SHENG-0/before": 0.471719
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "abscissa_norm": {
+    "mean": 0.5797046666111454,
+    "std": 0.28231316667150996,
+    "transform": "none"
+  },
+  "local_radius": {
+    "mean": 8.569695415227855,
+    "std": 5.411263264570001,
+    "transform": "none"
+  },
+  "curvature": {
+    "mean": 0.03936848976536831,
+    "std": 0.027869828540026967,
+    "clip": 0.13625054431054232,
+    "transform": "signed_log1p"
+  },
+  "log_local_radius": {
+    "mean": 1.9702490018766101,
+    "std": 0.6013302349675865,
+    "transform": "none"
+  },
+  "rho": {
+    "mean": 0.9735876820539838,
+    "std": 0.2828533526835293,
+    "transform": "none"
+  },
+  "theta_sin": {
+    "mean": 0.004488948663319711,
+    "std": 0.7070373933618871,
+    "transform": "none"
+  },
+  "theta_cos": {
+    "mean": 0.0006429741695403665,
+    "std": 0.7071636220520144,
+    "transform": "none"
+  },
+  "dr_ds": {
+    "mean": -0.026915279317505224,
+    "std": 0.18020481682497777,
+    "transform": "none"
+  },
+  "dist_to_junction_mm": {
+    "mean": 56.643668548182724,
+    "std": 53.58284357357889,
+    "transform": "none"
+  },
+  "dist_to_endpoint_mm": {
+    "mean": 73.8048087360438,
+    "std": 48.011537629592254,
+    "transform": "none"
+  },
+  "end_zone": {
+    "mean": 0.09149770843601883,
+    "std": 0.2883165871384225,
+    "transform": "none"
+  },
+  "nx_aligned": {
+    "mean": 0.0013480872184160233,
+    "std": 0.6431989982508252,
+    "transform": "none"
+  },
+  "ny_aligned": {
+    "mean": 0.006374936021216183,
+    "std": 0.6326460794475385,
+    "transform": "none"
+  },
+  "nz_aligned": {
+    "mean": 0.00489819618299668,
+    "std": 0.43126668263678075,
+    "transform": "none"
+  },
+  "dist_to_wall_mm": {
+    "mean": 1.1690187089719253,
+    "std": 1.7769985167373181,
+    "transform": "none"
+  },
+  "log_q_branch_murray": {
+    "mean": -0.6390972781552116,
+    "std": 0.7135834658526843,
+    "transform": "none"
+  },
+  "log_tau0_murray": {
+    "mean": -6.549844283495848,
+    "std": 1.3209935052374544,
+    "transform": "none"
+  },
+  "q_norm": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "dq_norm": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "t_sin": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "t_cos": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "_provenance": {
+    "train_split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold2.json",
+    "n_cases": 92,
+    "volume_stats": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/volume_stats_fold2.json",
+    "target": "pressure_mixed",
+    "scope": "volume point set (wall nodes ∪ interior cells) of the two training folds",
+    "peak_reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/P_fold2_train.json",
+    "time_features": [
+      "q_norm",
+      "dq_norm",
+      "t_sin",
+      "t_cos"
+    ],
+    "note": "the 20 volume statistics are bit-identical to the fold base file; phase features are bounded protocol constants (identity)"
+  }
+}

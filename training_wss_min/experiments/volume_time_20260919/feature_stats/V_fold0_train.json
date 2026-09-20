@@ -1,0 +1,95 @@
+{
+  "abscissa_norm": {
+    "mean": 0.5791519019039285,
+    "std": 0.281595577539157,
+    "transform": "none"
+  },
+  "local_radius": {
+    "mean": 8.797524108749728,
+    "std": 5.956208256525674,
+    "transform": "none"
+  },
+  "curvature": {
+    "mean": 0.03928629461495455,
+    "std": 0.028023663204396178,
+    "clip": 0.1372604149147164,
+    "transform": "signed_log1p"
+  },
+  "log_local_radius": {
+    "mean": 1.9837165949175721,
+    "std": 0.6151777192518846,
+    "transform": "none"
+  },
+  "rho": {
+    "mean": 0.9780875994066132,
+    "std": 0.33145765520355275,
+    "transform": "none"
+  },
+  "theta_sin": {
+    "mean": 0.0029530319938677516,
+    "std": 0.7084146857474312,
+    "transform": "none"
+  },
+  "theta_cos": {
+    "mean": -0.000886545700444495,
+    "std": 0.7057917219065055,
+    "transform": "none"
+  },
+  "dr_ds": {
+    "mean": -0.026936992429937558,
+    "std": 0.18899065400034007,
+    "transform": "none"
+  },
+  "dist_to_junction_mm": {
+    "mean": 56.03496546550613,
+    "std": 53.54570936507903,
+    "transform": "none"
+  },
+  "dist_to_endpoint_mm": {
+    "mean": 74.14098858912715,
+    "std": 48.2242672332924,
+    "transform": "none"
+  },
+  "end_zone": {
+    "mean": 0.09244067780662561,
+    "std": 0.2896480246580742,
+    "transform": "none"
+  },
+  "nx_aligned": {
+    "mean": -0.00012913883452647697,
+    "std": 0.6452625832112043,
+    "transform": "none"
+  },
+  "ny_aligned": {
+    "mean": 0.004932003766902376,
+    "std": 0.6333274208534768,
+    "transform": "none"
+  },
+  "nz_aligned": {
+    "mean": 0.004396183813609596,
+    "std": 0.42719119897572777,
+    "transform": "none"
+  },
+  "dist_to_wall_mm": {
+    "mean": 1.1635095434391851,
+    "std": 1.7925204969546997,
+    "transform": "none"
+  },
+  "log_q_branch_murray": {
+    "mean": -0.6244284399402351,
+    "std": 0.7198633682312464,
+    "transform": "none"
+  },
+  "log_tau0_murray": {
+    "mean": -6.575578223727091,
+    "std": 1.373355974638054,
+    "transform": "none"
+  },
+  "_provenance": {
+    "train_split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold0.json",
+    "n_cases": 90,
+    "volume_stats": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/volume_stats_fold0.json",
+    "target": "velocity",
+    "scope": "volume point set (wall nodes ∪ interior cells) of the two training folds"
+  }
+}

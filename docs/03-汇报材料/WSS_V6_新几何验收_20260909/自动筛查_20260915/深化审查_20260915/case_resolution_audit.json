@@ -1,0 +1,5908 @@
+{
+  "schema": "v6_case_resolution_evidence_v1",
+  "scope": "The 29 cases flagged by the prior sidecar; preserves existing data and training permissions.",
+  "algorithm_sha256": {
+    "docs/03-汇报材料/WSS_V6_新几何验收_20260909/自动筛查_20260915/深化审查_20260915/build_case_resolution_audit.py": "78aa49a95a0bc1b07bb4632bc17c0397e74d64022f1e3647f46ba9fe5a6c81b3",
+    "docs/03-汇报材料/WSS_V6_新几何验收_20260909/自动筛查_20260915/深化审查_20260915/resolve_bifurcation_routes.py": "b8f7936dfcefd0ce3d54ebf9bebb053da6fbc05fe01a2b1b029fa04e55d7f3e7"
+  },
+  "limitations": [
+    "This audit does not repair source triangles or centerlines; source repair validation is a separate artifact.",
+    "Slice-transition intervals are not wall carina coordinates and do not replace the original graph atlas.",
+    "CIA length/tortuosity bands are diagnostic prioritization, not normative anatomical acceptance limits."
+  ],
+  "summary": {
+    "previous_review_cases": 29,
+    "outside_core_cases": 9,
+    "residual_edge_cases": 5,
+    "bifurcation_old_undetermined": 10,
+    "bifurcation_route_consensus_resolved": 8,
+    "graph_cia_outliers": 6,
+    "cia_outliers_now_inside_diagnostic_bands": 3,
+    "stale_hardcoded_review_cases": [
+      "AAA/ruputer/WANG_KUI_WU"
+    ]
+  },
+  "cases": [
+    {
+      "canonical_id": "AAA/ruputer/FENG_LI_XIN",
+      "key": "AAA__ruputer__FENG_LI_XIN",
+      "source_geometry_sha256": "001fe672e1954e2c8e9d1cdefdf0f7c8e2ddbdfd6cc1e21e7ae43b6271fc421f",
+      "source_report_sha256": "b85558956e70e15b16b4daa78511bf112dd14a53b6fa47206a1afb53250d6514",
+      "prior_review_causes": [
+        "bifurcation_truncated_scan"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1475,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 78.25,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 0.7674416590821753,
+          "consensus_bracket_mm": [
+            94.5,
+            95.0
+          ],
+          "consensus_slice_center_mm": [
+            -19.681110259386625,
+            -166.7495413747148,
+            1240.8078489301809
+          ],
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": true
+        }
+      ],
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -37.64015815375578,
+            -176.07808426471408,
+            1242.437264849033
+          ],
+          "distal_point_mm": [
+            -54.40540879851679,
+            -144.27522651681915,
+            1232.065023069817
+          ],
+          "projection_error_mm": 6.703246762680666e-14,
+          "proximal_route_arc_mm": 97.56918837717019,
+          "distal_route_arc_mm": 137.4512620247672,
+          "interval_length_mm": 39.88207364759701,
+          "interval_chord_mm": 37.41762672379174,
+          "interval_tortuosity": 1.0658632612377381,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -1.9535275994289802,
+            -157.14146548151373,
+            1239.390031707971
+          ],
+          "distal_point_mm": [
+            -6.553279527187687,
+            -157.12155495353653,
+            1222.9797273499746
+          ],
+          "projection_error_mm": 3.218344867404965e-14,
+          "proximal_route_arc_mm": 91.31156256167067,
+          "distal_route_arc_mm": 109.6886736165544,
+          "interval_length_mm": 18.377111054883727,
+          "interval_chord_mm": 17.042775693768935,
+          "interval_tortuosity": 1.0782933123741483,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -38.03368099662877,
+            -175.69852937432682,
+            1241.9261399496772
+          ],
+          "distal_point_mm": [
+            -54.40540879851679,
+            -144.27522651681915,
+            1232.065023069817
+          ],
+          "projection_error_mm": 3.552713678800501e-14,
+          "proximal_route_arc_mm": 98.3178492678398,
+          "distal_route_arc_mm": 137.4512620247672,
+          "interval_length_mm": 39.1334127569274,
+          "interval_chord_mm": 36.7790573534998,
+          "interval_tortuosity": 1.064013478670724,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -1.8420034853792258,
+            -157.50061138416297,
+            1239.9748278300256
+          ],
+          "distal_point_mm": [
+            2.1506873810627956,
+            -152.2937610866678,
+            1222.079737793394
+          ],
+          "projection_error_mm": 4.179396199674811e-14,
+          "proximal_route_arc_mm": 90.61624008027452,
+          "distal_route_arc_mm": 110.74504577984546,
+          "interval_length_mm": 20.128805699570933,
+          "interval_chord_mm": 19.06009228190257,
+          "interval_tortuosity": 1.0560707367971718,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -38.84046168980091,
+            -176.86438945883256,
+            1243.5035257089376
+          ],
+          "distal_point_mm": [
+            -48.54505456131122,
+            -170.21968769058174,
+            1220.7549887208295
+          ],
+          "projection_error_mm": 4.0194366942304644e-14,
+          "proximal_route_arc_mm": 97.20341880322565,
+          "distal_route_arc_mm": 125.18234775343268,
+          "interval_length_mm": 27.978928950207035,
+          "interval_chord_mm": 25.609121802398562,
+          "interval_tortuosity": 1.092537618669396,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -2.081324696985408,
+            -156.72118296570812,
+            1238.7170422767408
+          ],
+          "distal_point_mm": [
+            -6.553279527187687,
+            -157.12155495353653,
+            1222.9797273499746
+          ],
+          "projection_error_mm": 3.218344867404965e-14,
+          "proximal_route_arc_mm": 92.1152418143879,
+          "distal_route_arc_mm": 109.6886736165544,
+          "interval_length_mm": 17.573431802166496,
+          "interval_chord_mm": 16.36526073230199,
+          "interval_tortuosity": 1.0738253480728113,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -39.3766940087549,
+            -176.3170849885258,
+            1242.6946472689665
+          ],
+          "distal_point_mm": [
+            -48.54505456131122,
+            -170.21968769058174,
+            1220.7549887208295
+          ],
+          "projection_error_mm": 3.552713678800501e-14,
+          "proximal_route_arc_mm": 98.31759479928756,
+          "distal_route_arc_mm": 125.18234775343268,
+          "interval_length_mm": 26.864752954145118,
+          "interval_chord_mm": 24.54762119309094,
+          "interval_tortuosity": 1.0943933321615027,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -1.9089790605560208,
+            -157.29196418215582,
+            1239.6284753223736
+          ],
+          "distal_point_mm": [
+            2.1506873810627956,
+            -152.2937610866678,
+            1222.079737793394
+          ],
+          "projection_error_mm": 4.179396199674811e-14,
+          "proximal_route_arc_mm": 91.02609839849075,
+          "distal_route_arc_mm": 110.74504577984546,
+          "interval_length_mm": 19.71894738135471,
+          "interval_chord_mm": 18.692809169891092,
+          "interval_tortuosity": 1.0548948101988032,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The shorter graph daughter truncated the old search before the persistent wall-contour split. Four descendant-route combinations now agree; review of failure-to-find alone can be cleared."
+      ]
+    },
+    {
+      "canonical_id": "AAA/ruputer/GAO_FENG_SHAN",
+      "key": "AAA__ruputer__GAO_FENG_SHAN",
+      "source_geometry_sha256": "f3f50770a9afbfd53f80f043047c0d4d5344d17540ce5ee04d38e71a0091f704",
+      "source_report_sha256": "5b5d33fda1acd8060148a964ad24bb5f04d07c4c8983e53a216e4ea3c13aa83f",
+      "prior_review_causes": [
+        "bifurcation_truncated_scan",
+        "coverage"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1149,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 39.75,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 0.18511564790611829,
+          "consensus_bracket_mm": [
+            40.5,
+            41.0
+          ],
+          "consensus_slice_center_mm": [
+            -22.2340367746674,
+            -3.579063914917092,
+            -399.84970434541486
+          ],
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": true
+        }
+      ],
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -39.99512527954007,
+            -1.3508433774251265,
+            -404.4319222640313
+          ],
+          "distal_point_mm": [
+            -30.69646317673467,
+            6.069463956367772,
+            -426.84687439750735
+          ],
+          "projection_error_mm": 9.441466109136565e-15,
+          "proximal_route_arc_mm": 48.33003625904503,
+          "distal_route_arc_mm": 77.16346039008268,
+          "interval_length_mm": 28.833424131037646,
+          "interval_chord_mm": 25.376291237612175,
+          "interval_tortuosity": 1.1362347579106196,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -11.333453185468835,
+            -4.815947708616787,
+            -397.1537796994897
+          ],
+          "distal_point_mm": [
+            30.236398476241526,
+            -7.354470009197048,
+            -419.56939845832136
+          ],
+          "projection_error_mm": 7.160723346098895e-15,
+          "proximal_route_arc_mm": 33.694469138390865,
+          "distal_route_arc_mm": 83.2947958247116,
+          "interval_length_mm": 49.600326686320734,
+          "interval_chord_mm": 47.29647584110716,
+          "interval_tortuosity": 1.048710835305222,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -39.967827492823936,
+            -1.3992039285209292,
+            -404.2724843753286
+          ],
+          "distal_point_mm": [
+            -30.69646317673467,
+            6.069463956367772,
+            -426.84687439750735
+          ],
+          "projection_error_mm": 1.0367366991496098e-14,
+          "proximal_route_arc_mm": 48.16120393863254,
+          "distal_route_arc_mm": 77.16346039008268,
+          "interval_length_mm": 29.002256451450137,
+          "interval_chord_mm": 25.521408290489482,
+          "interval_tortuosity": 1.1363893450291216,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -11.449964251275992,
+            -4.871248266029498,
+            -396.9825080986366
+          ],
+          "distal_point_mm": [
+            32.752669029955975,
+            -16.172422259543886,
+            -400.7161128267871
+          ],
+          "projection_error_mm": 5.617333549722722e-15,
+          "proximal_route_arc_mm": 33.480039874770426,
+          "distal_route_arc_mm": 85.68850106966646,
+          "interval_length_mm": 52.20846119489603,
+          "interval_chord_mm": 45.776949733384704,
+          "interval_tortuosity": 1.1404967237653427,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -39.99512527954007,
+            -1.3508433774251265,
+            -404.4319222640313
+          ],
+          "distal_point_mm": [
+            -41.31707616528207,
+            8.832753335855005,
+            -436.15066470956964
+          ],
+          "projection_error_mm": 1.2434497875801753e-14,
+          "proximal_route_arc_mm": 48.33003625904503,
+          "distal_route_arc_mm": 82.70638569175658,
+          "interval_length_mm": 34.37634943271155,
+          "interval_chord_mm": 33.33964334676422,
+          "interval_tortuosity": 1.0310952962263151,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -11.333453185468835,
+            -4.815947708616787,
+            -397.1537796994897
+          ],
+          "distal_point_mm": [
+            30.236398476241526,
+            -7.354470009197048,
+            -419.56939845832136
+          ],
+          "projection_error_mm": 7.160723346098895e-15,
+          "proximal_route_arc_mm": 33.694469138390865,
+          "distal_route_arc_mm": 83.2947958247116,
+          "interval_length_mm": 49.600326686320734,
+          "interval_chord_mm": 47.29647584110716,
+          "interval_tortuosity": 1.048710835305222,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -39.967827492823936,
+            -1.3992039285209292,
+            -404.2724843753286
+          ],
+          "distal_point_mm": [
+            -41.31707616528207,
+            8.832753335855005,
+            -436.15066470956964
+          ],
+          "projection_error_mm": 1.2434497875801753e-14,
+          "proximal_route_arc_mm": 48.16120393863254,
+          "distal_route_arc_mm": 82.70638569175658,
+          "interval_length_mm": 34.54518175312404,
+          "interval_chord_mm": 33.5071903158492,
+          "interval_tortuosity": 1.0309781699835292,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -11.449964251275992,
+            -4.871248266029498,
+            -396.9825080986366
+          ],
+          "distal_point_mm": [
+            32.752669029955975,
+            -16.172422259543886,
+            -400.7161128267871
+          ],
+          "projection_error_mm": 5.617333549722722e-15,
+          "proximal_route_arc_mm": 33.480039874770426,
+          "distal_route_arc_mm": 85.68850106966646,
+          "interval_length_mm": 52.20846119489603,
+          "interval_chord_mm": 45.776949733384704,
+          "interval_tortuosity": 1.1404967237653427,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The shorter graph daughter truncated the old search before the persistent wall-contour split. Four descendant-route combinations now agree; review of failure-to-find alone can be cleared."
+      ]
+    },
+    {
+      "canonical_id": "AAA/ruputer/LIU_YONG_LAN",
+      "key": "AAA__ruputer__LIU_YONG_LAN",
+      "source_geometry_sha256": "22b123f60fc72ab34518693acb7076b86c06d4bfaedcaeccf7c7b6784ee09b55",
+      "source_report_sha256": "254b113afcfd854cad999171dde7ff434f595785f2c745d78d8ae3769dd6281b",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": false,
+        "remaining_boundary_or_nonmanifold_edges": 4,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1151,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -2.9278451859446792,
+            -2.589827372468691,
+            -398.7803649240414
+          ],
+          "distal_point_mm": [
+            17.80421844135218,
+            32.90354156664274,
+            -446.1604026550636
+          ],
+          "projection_error_mm": 1.0048591735576161e-14,
+          "proximal_route_arc_mm": 29.25898970341594,
+          "distal_route_arc_mm": 106.11695657554795,
+          "interval_length_mm": 76.85796687213201,
+          "interval_chord_mm": 62.725319260146065,
+          "interval_tortuosity": 1.2253100945309248,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -2.9278451859446792,
+            -2.589827372468691,
+            -398.7803649240414
+          ],
+          "distal_point_mm": [
+            25.16930947453588,
+            23.71102629421563,
+            -440.0267020773687
+          ],
+          "projection_error_mm": 1.1234667099445444e-14,
+          "proximal_route_arc_mm": 29.25898970341594,
+          "distal_route_arc_mm": 107.10219445420137,
+          "interval_length_mm": 77.84320475078543,
+          "interval_chord_mm": 56.41316630164678,
+          "interval_tortuosity": 1.3798765404258664,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            15.825374790483071,
+            -4.9929669490978545,
+            -406.93809422899966
+          ],
+          "distal_point_mm": [
+            48.588147903229824,
+            -1.7872647718553074,
+            -432.54207944050273
+          ],
+          "projection_error_mm": 7.191640501203643e-15,
+          "proximal_route_arc_mm": 33.0811711790182,
+          "distal_route_arc_mm": 90.42731760675969,
+          "interval_length_mm": 57.34614642774149,
+          "interval_chord_mm": 41.70419507912085,
+          "interval_tortuosity": 1.3750690144947015,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            15.825374790483071,
+            -4.9929669490978545,
+            -406.93809422899966
+          ],
+          "distal_point_mm": [
+            50.269027985474935,
+            -11.908209115750408,
+            -432.5649153995726
+          ],
+          "projection_error_mm": 7.105427357601002e-15,
+          "proximal_route_arc_mm": 33.0811711790182,
+          "distal_route_arc_mm": 89.61656375974373,
+          "interval_length_mm": 56.53539258072553,
+          "interval_chord_mm": 43.48470746077118,
+          "interval_tortuosity": 1.3001212583004669,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AAA/ruputer/LI_BING_JIANG",
+      "key": "AAA__ruputer__LI_BING_JIANG",
+      "source_geometry_sha256": "7c02a4dcf1c291dc18d82837d482e2cf65322ea2a4c6878d1bf5af00f2219bd8",
+      "source_report_sha256": "02e2b39268f6ffb113e0e4fbf392f65169ff17f812e82276876d199ef5a4bda4",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit",
+        "bifurcation_truncated_scan"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1118,
+        "outside_core_points": 23,
+        "outside_core_atlas_rows": [
+          716,
+          717,
+          718,
+          719,
+          720,
+          721,
+          722,
+          723,
+          724,
+          725,
+          1135,
+          1136,
+          1137,
+          1138,
+          1139,
+          1140,
+          1141,
+          1142,
+          1143,
+          1144,
+          1145,
+          1146,
+          1147
+        ],
+        "outside_core_fraction": 0.020572450805008944
+      },
+      "outside_point_locations": [
+        {
+          "row": 716,
+          "segment": 3,
+          "s_mm": 72.63387298583984,
+          "nearest_segment_end_distance_mm": 7.4623870849609375
+        },
+        {
+          "row": 717,
+          "segment": 3,
+          "s_mm": 73.13136291503906,
+          "nearest_segment_end_distance_mm": 6.964897155761719
+        },
+        {
+          "row": 718,
+          "segment": 3,
+          "s_mm": 73.62886047363281,
+          "nearest_segment_end_distance_mm": 6.467399597167969
+        },
+        {
+          "row": 719,
+          "segment": 3,
+          "s_mm": 74.12635040283203,
+          "nearest_segment_end_distance_mm": 5.96990966796875
+        },
+        {
+          "row": 720,
+          "segment": 3,
+          "s_mm": 74.62384033203125,
+          "nearest_segment_end_distance_mm": 5.472419738769531
+        },
+        {
+          "row": 721,
+          "segment": 3,
+          "s_mm": 75.12133026123047,
+          "nearest_segment_end_distance_mm": 4.9749298095703125
+        },
+        {
+          "row": 722,
+          "segment": 3,
+          "s_mm": 75.61882781982422,
+          "nearest_segment_end_distance_mm": 4.4774322509765625
+        },
+        {
+          "row": 723,
+          "segment": 3,
+          "s_mm": 76.11631774902344,
+          "nearest_segment_end_distance_mm": 3.9799423217773438
+        },
+        {
+          "row": 724,
+          "segment": 3,
+          "s_mm": 76.61380767822266,
+          "nearest_segment_end_distance_mm": 3.482452392578125
+        },
+        {
+          "row": 725,
+          "segment": 3,
+          "s_mm": 77.1113052368164,
+          "nearest_segment_end_distance_mm": 2.984954833984375
+        },
+        {
+          "row": 1135,
+          "segment": 6,
+          "s_mm": 65.46315002441406,
+          "nearest_segment_end_distance_mm": 8.99493408203125
+        },
+        {
+          "row": 1136,
+          "segment": 6,
+          "s_mm": 65.9628677368164,
+          "nearest_segment_end_distance_mm": 8.495216369628906
+        },
+        {
+          "row": 1137,
+          "segment": 6,
+          "s_mm": 66.46258544921875,
+          "nearest_segment_end_distance_mm": 7.9954986572265625
+        },
+        {
+          "row": 1138,
+          "segment": 6,
+          "s_mm": 66.9623031616211,
+          "nearest_segment_end_distance_mm": 7.495780944824219
+        },
+        {
+          "row": 1139,
+          "segment": 6,
+          "s_mm": 67.46202850341797,
+          "nearest_segment_end_distance_mm": 6.996055603027344
+        },
+        {
+          "row": 1140,
+          "segment": 6,
+          "s_mm": 67.96174621582031,
+          "nearest_segment_end_distance_mm": 6.496337890625
+        },
+        {
+          "row": 1141,
+          "segment": 6,
+          "s_mm": 68.46146392822266,
+          "nearest_segment_end_distance_mm": 5.996620178222656
+        },
+        {
+          "row": 1142,
+          "segment": 6,
+          "s_mm": 68.961181640625,
+          "nearest_segment_end_distance_mm": 5.4969024658203125
+        },
+        {
+          "row": 1143,
+          "segment": 6,
+          "s_mm": 69.46089935302734,
+          "nearest_segment_end_distance_mm": 4.997184753417969
+        },
+        {
+          "row": 1144,
+          "segment": 6,
+          "s_mm": 69.96061706542969,
+          "nearest_segment_end_distance_mm": 4.497467041015625
+        },
+        {
+          "row": 1145,
+          "segment": 6,
+          "s_mm": 70.46033477783203,
+          "nearest_segment_end_distance_mm": 3.9977493286132812
+        },
+        {
+          "row": 1146,
+          "segment": 6,
+          "s_mm": 70.96005249023438,
+          "nearest_segment_end_distance_mm": 3.4980316162109375
+        },
+        {
+          "row": 1147,
+          "segment": 6,
+          "s_mm": 71.45977783203125,
+          "nearest_segment_end_distance_mm": 2.9983062744140625
+        }
+      ],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 42.25,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 0.34424539057709386,
+          "consensus_bracket_mm": [
+            50.75,
+            51.0
+          ],
+          "consensus_slice_center_mm": [
+            7.47308805225385,
+            -10.041454629577078,
+            -410.2852441920537
+          ],
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": true
+        }
+      ],
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -7.138724147517085,
+            -10.428648287174816,
+            -413.17066936004557
+          ],
+          "distal_point_mm": [
+            -13.783571391673105,
+            4.766472272401366,
+            -434.68248285191805
+          ],
+          "projection_error_mm": 1.0805156823142815e-14,
+          "proximal_route_arc_mm": 50.42553688744774,
+          "distal_route_arc_mm": 78.46410312829867,
+          "interval_length_mm": 28.038566240850933,
+          "interval_chord_mm": 27.162544126560196,
+          "interval_tortuosity": 1.0322511068995979,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            22.0105632017564,
+            -9.43573846089021,
+            -407.3855006664423
+          ],
+          "distal_point_mm": [
+            29.79305237165372,
+            5.878491388759857,
+            -422.00817512934356
+          ],
+          "projection_error_mm": 6.4047456679787536e-15,
+          "proximal_route_arc_mm": 51.188497290871204,
+          "distal_route_arc_mm": 74.3237058045501,
+          "interval_length_mm": 23.135208513678897,
+          "interval_chord_mm": 22.55915295429922,
+          "interval_tortuosity": 1.0255353363908062,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -7.226919452671391,
+            -10.077871769607594,
+            -413.6523765566811
+          ],
+          "distal_point_mm": [
+            -13.783571391673105,
+            4.766472272401366,
+            -434.68248285191805
+          ],
+          "projection_error_mm": 8.188600426433445e-15,
+          "proximal_route_arc_mm": 51.02794438692199,
+          "distal_route_arc_mm": 78.46410312829867,
+          "interval_length_mm": 27.436158741376687,
+          "interval_chord_mm": 26.56331314944933,
+          "interval_tortuosity": 1.0328590634389843,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            22.32720993786206,
+            -10.186372946425472,
+            -406.8959464211108
+          ],
+          "distal_point_mm": [
+            39.9227817042438,
+            -7.182647592269397,
+            -420.7520849914824
+          ],
+          "projection_error_mm": 7.105427357601002e-15,
+          "proximal_route_arc_mm": 50.603332671693266,
+          "distal_route_arc_mm": 74.317918733035,
+          "interval_length_mm": 23.714586061341734,
+          "interval_chord_mm": 22.59688225995854,
+          "interval_tortuosity": 1.0494627439540078,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -7.138724147517085,
+            -10.428648287174816,
+            -413.17066936004557
+          ],
+          "distal_point_mm": [
+            -8.580148984091684,
+            10.451442198332401,
+            -427.1733374744156
+          ],
+          "projection_error_mm": 1.0805156823142815e-14,
+          "proximal_route_arc_mm": 50.42553688744774,
+          "distal_route_arc_mm": 76.41478096882432,
+          "interval_length_mm": 25.989244081376576,
+          "interval_chord_mm": 25.181949856269227,
+          "interval_tortuosity": 1.032058447805477,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            22.0105632017564,
+            -9.43573846089021,
+            -407.3855006664423
+          ],
+          "distal_point_mm": [
+            29.79305237165372,
+            5.878491388759857,
+            -422.00817512934356
+          ],
+          "projection_error_mm": 6.4047456679787536e-15,
+          "proximal_route_arc_mm": 51.188497290871204,
+          "distal_route_arc_mm": 74.3237058045501,
+          "interval_length_mm": 23.135208513678897,
+          "interval_chord_mm": 22.55915295429922,
+          "interval_tortuosity": 1.0255353363908062,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -7.226919452671391,
+            -10.077871769607594,
+            -413.6523765566811
+          ],
+          "distal_point_mm": [
+            -8.580148984091684,
+            10.451442198332401,
+            -427.1733374744156
+          ],
+          "projection_error_mm": 3.66205343881779e-15,
+          "proximal_route_arc_mm": 51.02794438692199,
+          "distal_route_arc_mm": 76.41478096882432,
+          "interval_length_mm": 25.38683658190233,
+          "interval_chord_mm": 24.619105310670164,
+          "interval_tortuosity": 1.031184369275167,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            22.32720993786206,
+            -10.186372946425472,
+            -406.8959464211108
+          ],
+          "distal_point_mm": [
+            39.9227817042438,
+            -7.182647592269397,
+            -420.7520849914824
+          ],
+          "projection_error_mm": 7.105427357601002e-15,
+          "proximal_route_arc_mm": 50.603332671693266,
+          "distal_route_arc_mm": 74.317918733035,
+          "interval_length_mm": 23.714586061341734,
+          "interval_chord_mm": 22.59688225995854,
+          "interval_tortuosity": 1.0494627439540078,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The shorter graph daughter truncated the old search before the persistent wall-contour split. Four descendant-route combinations now agree; review of failure-to-find alone can be cleared."
+      ]
+    },
+    {
+      "canonical_id": "AAA/ruputer/LI_ZHEN_HUA",
+      "key": "AAA__ruputer__LI_ZHEN_HUA",
+      "source_geometry_sha256": "6adc6d3091dcfd2f08e14f25d67ef96c896fc8f2e9bc6816252fff009186ce4a",
+      "source_report_sha256": "63f08cc5a22709d67bcdf1c996beac960f121ed671eadf32dbfd7e130bc210de",
+      "prior_review_causes": [
+        "graph_based_cia_band"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1253,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -2.8201555284141,
+            106.3067966380042,
+            -129.7679884751485
+          ],
+          "distal_point_mm": [
+            -26.182792360588483,
+            143.36133179013316,
+            -160.57847856266844
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 78.98288818042595,
+          "distal_route_arc_mm": 134.3525689620846,
+          "interval_length_mm": 55.36968078165866,
+          "interval_chord_mm": 53.554996727902015,
+          "interval_tortuosity": 1.0338844956517605,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -2.8201555284141,
+            106.3067966380042,
+            -129.7679884751485
+          ],
+          "distal_point_mm": [
+            -21.91182882491197,
+            150.10624778215808,
+            -152.1284635451066
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 78.98288818042595,
+          "distal_route_arc_mm": 134.8675061692738,
+          "interval_length_mm": 55.884617988847864,
+          "interval_chord_mm": 52.75295968136337,
+          "interval_tortuosity": 1.0593645991883722,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            16.364133073221804,
+            114.81722993017438,
+            -125.39389863844879
+          ],
+          "distal_point_mm": [
+            20.77501129872179,
+            147.91061467998995,
+            -169.0826981160738
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 79.56605884099727,
+          "distal_route_arc_mm": 138.39265862166894,
+          "interval_length_mm": 58.82659978067167,
+          "interval_chord_mm": 54.98489938806511,
+          "interval_tortuosity": 1.0698682808436752,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            16.364133073221804,
+            114.81722993017438,
+            -125.39389863844879
+          ],
+          "distal_point_mm": [
+            34.29696683559052,
+            138.20970164254834,
+            -169.0646320017165
+          ],
+          "projection_error_mm": 7.105427357601002e-15,
+          "proximal_route_arc_mm": 79.56605884099727,
+          "distal_route_arc_mm": 138.5588969380472,
+          "interval_length_mm": 58.99283809704994,
+          "interval_chord_mm": 52.68706873653714,
+          "interval_tortuosity": 1.1196834348869347,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The old CIA uses graph bifurcation nodes that may precede physical lumen separation. The additional transition-to-transition lengths are reproducible topology-defined measurements, not a replacement anatomical convention or proof of a faulty source geometry."
+      ]
+    },
+    {
+      "canonical_id": "AAA/ruputer/WANG_KUI_WU",
+      "key": "AAA__ruputer__WANG_KUI_WU",
+      "source_geometry_sha256": "589a035c3f3775e86eba21f82c66bcc722a6dfcbe3c428e0a3bb9ea1b2c5fcc6",
+      "source_report_sha256": "b6f60b87f19f8aa6bd83ddc5d5eb1cfb134eed8ae50278e10bd0baf86aac1e88",
+      "prior_review_causes": [
+        "stale_hardcoded_review_case"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1024,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -20.41023345357178,
+            -156.2154339930251,
+            -585.9702908849843
+          ],
+          "distal_point_mm": [
+            -22.301071913042854,
+            -137.7676008809568,
+            -621.7800650581593
+          ],
+          "projection_error_mm": 1.0658141036401503e-14,
+          "proximal_route_arc_mm": 34.76590211154319,
+          "distal_route_arc_mm": 77.66328591866207,
+          "interval_length_mm": 42.89738380711888,
+          "interval_chord_mm": 40.32663813094678,
+          "interval_tortuosity": 1.0637480780774358,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -20.41023345357178,
+            -156.2154339930251,
+            -585.9702908849843
+          ],
+          "distal_point_mm": [
+            -22.20458271774034,
+            -143.86865838043343,
+            -625.8754929862885
+          ],
+          "projection_error_mm": 3.03543989777123e-14,
+          "proximal_route_arc_mm": 34.76590211154319,
+          "distal_route_arc_mm": 78.24636722514278,
+          "interval_length_mm": 43.480465113599585,
+          "interval_chord_mm": 41.81013886673237,
+          "interval_tortuosity": 1.0399502678570691,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -6.9527010403694405,
+            -150.4913766270631,
+            -581.1335551237759
+          ],
+          "distal_point_mm": [
+            13.687686157060345,
+            -130.8105820455594,
+            -622.4087909085904
+          ],
+          "projection_error_mm": 3.6067043581494844e-14,
+          "proximal_route_arc_mm": 32.87197783819219,
+          "distal_route_arc_mm": 86.81472327851569,
+          "interval_length_mm": 53.9427454403235,
+          "interval_chord_mm": 50.16975531245096,
+          "interval_tortuosity": 1.075204475373157,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -6.9527010403694405,
+            -150.4913766270631,
+            -581.1335551237759
+          ],
+          "distal_point_mm": [
+            20.066688358914792,
+            -135.28193514964835,
+            -623.7258136045261
+          ],
+          "projection_error_mm": 3.6067043581494844e-14,
+          "proximal_route_arc_mm": 32.87197783819219,
+          "distal_route_arc_mm": 86.33268835880871,
+          "interval_length_mm": 53.46071052061652,
+          "interval_chord_mm": 52.68277703439807,
+          "interval_tortuosity": 1.0147663720481273,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "No current source warning or numerical review cause; remove from the old hardcoded human-review list."
+      ]
+    },
+    {
+      "canonical_id": "AAA/ruputer/ZHOU_KE_XUN",
+      "key": "AAA__ruputer__ZHOU_KE_XUN",
+      "source_geometry_sha256": "a741d35a4028f26d7681f18c603d5930fe7c729c111cafcc46731d230e55dfd0",
+      "source_report_sha256": "55fe8504e2bb96d17a3bb560b9677ada45938e0b73fe01a767030d96f5923c80",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1059,
+        "outside_core_points": 1,
+        "outside_core_atlas_rows": [
+          6
+        ],
+        "outside_core_fraction": 0.0009442870632672333
+      },
+      "outside_point_locations": [
+        {
+          "row": 6,
+          "segment": 0,
+          "s_mm": 2.9940669536590576,
+          "nearest_segment_end_distance_mm": 2.9940669536590576
+        }
+      ],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -33.806380272451,
+            123.7815984428657,
+            357.1952039701665
+          ],
+          "distal_point_mm": [
+            -35.24075269187062,
+            135.42490019314016,
+            326.5392726078033
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 26.39931319875516,
+          "distal_route_arc_mm": 60.492828930129804,
+          "interval_length_mm": 34.093515731374644,
+          "interval_chord_mm": 32.82392462182822,
+          "interval_tortuosity": 1.0386788333258032,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -33.806380272451,
+            123.7815984428657,
+            357.1952039701665
+          ],
+          "distal_point_mm": [
+            -28.754101002899496,
+            141.07566958864945,
+            336.52927048898033
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 26.39931319875516,
+          "distal_route_arc_mm": 59.32735787093433,
+          "interval_length_mm": 32.92804467217917,
+          "interval_chord_mm": 27.416987968443618,
+          "interval_tortuosity": 1.2010088310969338,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -18.32296003041178,
+            125.29413090671204,
+            363.28899005917907
+          ],
+          "distal_point_mm": [
+            10.664006751653153,
+            140.38729889153146,
+            337.0316567089847
+          ],
+          "projection_error_mm": 5.329070518200751e-15,
+          "proximal_route_arc_mm": 21.903717878788076,
+          "distal_route_arc_mm": 65.45232240007326,
+          "interval_length_mm": 43.548604521285185,
+          "interval_chord_mm": 41.92249417324478,
+          "interval_tortuosity": 1.038788492433692,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -18.32296003041178,
+            125.29413090671204,
+            363.28899005917907
+          ],
+          "distal_point_mm": [
+            15.534654343500874,
+            135.08265618062472,
+            343.48098724948386
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 21.903717878788076,
+          "distal_route_arc_mm": 64.96607371477903,
+          "interval_length_mm": 43.06235583599096,
+          "interval_chord_mm": 40.42907683140313,
+          "interval_tortuosity": 1.0651332954143151,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AAA/ruputer/ZOU_LI_SHUN",
+      "key": "AAA__ruputer__ZOU_LI_SHUN",
+      "source_geometry_sha256": "df07ca039bfa34a71cea9ef348cf96ca45901a8461ce3c93e794ca107dcde3c3",
+      "source_report_sha256": "81e572c4e954e01c2b25561f2d69f74d79df81a25340c32bfc7df92c1cd43a57",
+      "prior_review_causes": [
+        "graph_based_cia_band"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1351,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -2.1420118440894123,
+            0.21312589610166963,
+            -373.0707039209539
+          ],
+          "distal_point_mm": [
+            -38.27908259420861,
+            41.035731957909654,
+            -440.77527699302794
+          ],
+          "projection_error_mm": 1.0322089227061201e-14,
+          "proximal_route_arc_mm": 38.79768282278759,
+          "distal_route_arc_mm": 145.14286748851066,
+          "interval_length_mm": 106.34518466572307,
+          "interval_chord_mm": 86.92687882898186,
+          "interval_tortuosity": 1.2233866681782557,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -2.1420118440894123,
+            0.21312589610166963,
+            -373.0707039209539
+          ],
+          "distal_point_mm": [
+            -31.743982955883844,
+            47.48790504501062,
+            -436.7799600202882
+          ],
+          "projection_error_mm": 1.0322089227061201e-14,
+          "proximal_route_arc_mm": 38.79768282278759,
+          "distal_route_arc_mm": 142.55455878482272,
+          "interval_length_mm": 103.75687596203512,
+          "interval_chord_mm": 84.67615219181955,
+          "interval_tortuosity": 1.2253376337530242,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            12.090020673521813,
+            6.4865100110303855,
+            -375.30181034178685
+          ],
+          "distal_point_mm": [
+            44.89554951931805,
+            45.563793073061106,
+            -432.593899729496
+          ],
+          "projection_error_mm": 9.769962616701378e-15,
+          "proximal_route_arc_mm": 35.4431009408293,
+          "distal_route_arc_mm": 143.50246142139372,
+          "interval_length_mm": 108.05936048056442,
+          "interval_chord_mm": 76.71779637588463,
+          "interval_tortuosity": 1.4085305572532276,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            12.090020673521813,
+            6.4865100110303855,
+            -375.30181034178685
+          ],
+          "distal_point_mm": [
+            46.76173189249755,
+            51.42245024856812,
+            -426.2679736753094
+          ],
+          "projection_error_mm": 9.769962616701378e-15,
+          "proximal_route_arc_mm": 35.4431009408293,
+          "distal_route_arc_mm": 143.94694528504724,
+          "interval_length_mm": 108.50384434421794,
+          "interval_chord_mm": 76.28182017245597,
+          "interval_tortuosity": 1.4224076470503098,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The old CIA uses graph bifurcation nodes that may precede physical lumen separation. The additional transition-to-transition lengths are reproducible topology-defined measurements, not a replacement anatomical convention or proof of a faulty source geometry."
+      ]
+    },
+    {
+      "canonical_id": "AAA/unruputer/CAO_HONG_TAI",
+      "key": "AAA__unruputer__CAO_HONG_TAI",
+      "source_geometry_sha256": "be52f7f15d62a3756eb80d82f291ee10f144b889177c78b5d5ad828a80753a59",
+      "source_report_sha256": "fe68074c19e6d1dbc699c52bd61c1002b0cc4e80ed3a63bef02217d0a6f698ef",
+      "prior_review_causes": [
+        "bifurcation_truncated_scan"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1265,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 43.25,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 0.0,
+          "consensus_bracket_mm": [
+            43.75,
+            44.0
+          ],
+          "consensus_slice_center_mm": [
+            44.2299118002467,
+            93.32080409236448,
+            -52.14881761855045
+          ],
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": true
+        }
+      ],
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            27.512665413640804,
+            87.30257266923837,
+            -57.99787428654447
+          ],
+          "distal_point_mm": [
+            11.130572042591641,
+            120.41774482194391,
+            -75.31964011467242
+          ],
+          "projection_error_mm": 1.7763568394002505e-15,
+          "proximal_route_arc_mm": 45.67428069768623,
+          "distal_route_arc_mm": 87.16428704613169,
+          "interval_length_mm": 41.49000634844546,
+          "interval_chord_mm": 40.80479360719275,
+          "interval_tortuosity": 1.0167924569806408,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            59.84832582634701,
+            99.44125312116233,
+            -46.34405894116187
+          ],
+          "distal_point_mm": [
+            52.69996499695592,
+            113.68280871847958,
+            -58.04969301151912
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 41.88945012193091,
+          "distal_route_arc_mm": 63.745802478049285,
+          "interval_length_mm": 21.85635235611837,
+          "interval_chord_mm": 19.772274461168077,
+          "interval_tortuosity": 1.1054040545028512,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            27.50082614295636,
+            87.34951686651267,
+            -58.05479870195814
+          ],
+          "distal_point_mm": [
+            11.130572042591641,
+            120.41774482194391,
+            -75.31964011467242
+          ],
+          "projection_error_mm": 1.7763568394002505e-15,
+          "proximal_route_arc_mm": 45.74901437637349,
+          "distal_route_arc_mm": 87.16428704613169,
+          "interval_length_mm": 41.4152726697582,
+          "interval_chord_mm": 40.73779164889828,
+          "interval_tortuosity": 1.016630283415921,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            59.81327045172741,
+            99.40937929464067,
+            -46.286890606029836
+          ],
+          "distal_point_mm": [
+            66.3377911817204,
+            116.29965976166643,
+            -60.477657267156886
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 41.81520028254643,
+          "distal_route_arc_mm": 65.14664480474734,
+          "interval_length_mm": 23.33144452220091,
+          "interval_chord_mm": 23.004973450135846,
+          "interval_tortuosity": 1.0141913257484387,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            27.512665413640804,
+            87.30257266923837,
+            -57.99787428654447
+          ],
+          "distal_point_mm": [
+            18.365589080470222,
+            125.8323622201219,
+            -66.56505305387644
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 45.67428069768623,
+          "distal_route_arc_mm": 87.96325454015384,
+          "interval_length_mm": 42.28897384246761,
+          "interval_chord_mm": 40.51678961013133,
+          "interval_tortuosity": 1.043739502793507,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            59.84832582634701,
+            99.44125312116233,
+            -46.34405894116187
+          ],
+          "distal_point_mm": [
+            52.69996499695592,
+            113.68280871847958,
+            -58.04969301151912
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 41.88945012193091,
+          "distal_route_arc_mm": 63.745802478049285,
+          "interval_length_mm": 21.85635235611837,
+          "interval_chord_mm": 19.772274461168077,
+          "interval_tortuosity": 1.1054040545028512,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            27.50082614295636,
+            87.34951686651267,
+            -58.05479870195814
+          ],
+          "distal_point_mm": [
+            18.365589080470222,
+            125.8323622201219,
+            -66.56505305387644
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 45.74901437637349,
+          "distal_route_arc_mm": 87.96325454015384,
+          "interval_length_mm": 42.21424016378035,
+          "interval_chord_mm": 40.457463734544305,
+          "interval_tortuosity": 1.0434228018039609,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            59.81327045172741,
+            99.40937929464067,
+            -46.286890606029836
+          ],
+          "distal_point_mm": [
+            66.3377911817204,
+            116.29965976166643,
+            -60.477657267156886
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 41.81520028254643,
+          "distal_route_arc_mm": 65.14664480474734,
+          "interval_length_mm": 23.33144452220091,
+          "interval_chord_mm": 23.004973450135846,
+          "interval_tortuosity": 1.0141913257484387,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The shorter graph daughter truncated the old search before the persistent wall-contour split. Four descendant-route combinations now agree; review of failure-to-find alone can be cleared."
+      ]
+    },
+    {
+      "canonical_id": "AAA/unruputer/GUO_BAO_CHUN",
+      "key": "AAA__unruputer__GUO_BAO_CHUN",
+      "source_geometry_sha256": "d1c5ad3acea49af8068336670371e469a4282af6424c1e67e916c6b1cf6d8275",
+      "source_report_sha256": "63aed478ff9872b0f89fb0a0bd0aee95a3fdcd667205d888da9454bf140c23ed",
+      "prior_review_causes": [
+        "coverage"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1142,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -7.656486998499477,
+            95.6073433380824,
+            -865.7978974348434
+          ],
+          "distal_point_mm": [
+            -39.17223466850556,
+            108.82283866328662,
+            -888.0956524289319
+          ],
+          "projection_error_mm": 1.4210854715202004e-14,
+          "proximal_route_arc_mm": 52.2128106413645,
+          "distal_route_arc_mm": 97.78882285272107,
+          "interval_length_mm": 45.57601221135657,
+          "interval_chord_mm": 40.805410740076915,
+          "interval_tortuosity": 1.1169110023586706,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -7.656486998499477,
+            95.6073433380824,
+            -865.7978974348434
+          ],
+          "distal_point_mm": [
+            -24.256684817189427,
+            113.33256339219557,
+            -892.8195946794077
+          ],
+          "projection_error_mm": 7.993605777301127e-15,
+          "proximal_route_arc_mm": 52.2128106413645,
+          "distal_route_arc_mm": 95.44280500269754,
+          "interval_length_mm": 43.22999436133304,
+          "interval_chord_mm": 36.33073238407488,
+          "interval_tortuosity": 1.1899015385740577,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            34.596111998921714,
+            100.57961247915225,
+            -869.4672752058151
+          ],
+          "distal_point_mm": [
+            36.27869061455039,
+            123.54784947454176,
+            -889.8276413349921
+          ],
+          "projection_error_mm": 1.5888218580782548e-14,
+          "proximal_route_arc_mm": 56.87051615794694,
+          "distal_route_arc_mm": 93.43186466521946,
+          "interval_length_mm": 36.56134850727253,
+          "interval_chord_mm": 30.73947771820935,
+          "interval_tortuosity": 1.1893939396899524,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            34.596111998921714,
+            100.57961247915225,
+            -869.4672752058151
+          ],
+          "distal_point_mm": [
+            50.0405359565564,
+            128.6307472982895,
+            -886.6525617226541
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 56.87051615794694,
+          "distal_route_arc_mm": 100.54337778433204,
+          "interval_length_mm": 43.6728616263851,
+          "interval_chord_mm": 36.34185560329059,
+          "interval_tortuosity": 1.2017234921386546,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AAA/unruputer/LIN_JIAN_RONG",
+      "key": "AAA__unruputer__LIN_JIAN_RONG",
+      "source_geometry_sha256": "7f5c88984e8cf722e80bfd0db3cacdfa438a0e2fd1bdd15af0ec7d8541637fb7",
+      "source_report_sha256": "43197ecec847d7638c548777d4a9c84512a42ea817c0186212f4ded513525f19",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1012,
+        "outside_core_points": 2,
+        "outside_core_atlas_rows": [
+          6,
+          7
+        ],
+        "outside_core_fraction": 0.001976284584980237
+      },
+      "outside_point_locations": [
+        {
+          "row": 6,
+          "segment": 0,
+          "s_mm": 2.995567798614502,
+          "nearest_segment_end_distance_mm": 2.995567798614502
+        },
+        {
+          "row": 7,
+          "segment": 0,
+          "s_mm": 3.494828939437866,
+          "nearest_segment_end_distance_mm": 3.494828939437866
+        }
+      ],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            12.663055544231142,
+            109.52941211562477,
+            -813.5507452977251
+          ],
+          "distal_point_mm": [
+            -7.082642792057333,
+            126.95571026131837,
+            -851.4710914707682
+          ],
+          "projection_error_mm": 1.464821375527116e-14,
+          "proximal_route_arc_mm": 13.419424704099628,
+          "distal_route_arc_mm": 68.06840786649445,
+          "interval_length_mm": 54.64898316239483,
+          "interval_chord_mm": 46.168399622834364,
+          "interval_tortuosity": 1.1836880552248137,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            12.663055544231142,
+            109.52941211562477,
+            -813.5507452977251
+          ],
+          "distal_point_mm": [
+            0.4806402673638461,
+            128.6345075554077,
+            -846.653000220009
+          ],
+          "projection_error_mm": 1.0935696792557792e-14,
+          "proximal_route_arc_mm": 13.419424704099628,
+          "distal_route_arc_mm": 67.80639424357835,
+          "interval_length_mm": 54.38696953947873,
+          "interval_chord_mm": 40.11452598101001,
+          "interval_tortuosity": 1.355792402114516,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            24.00926878300967,
+            115.30197138900337,
+            -817.6080173592338
+          ],
+          "distal_point_mm": [
+            45.85611768211176,
+            134.7253555007423,
+            -839.5015247563671
+          ],
+          "projection_error_mm": 1.464821375527116e-14,
+          "proximal_route_arc_mm": 14.967180997828445,
+          "distal_route_arc_mm": 55.11559402329324,
+          "interval_length_mm": 40.1484130254648,
+          "interval_chord_mm": 36.5222989873403,
+          "interval_tortuosity": 1.099284933825809,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            24.00926878300967,
+            115.30197138900337,
+            -817.6080173592338
+          ],
+          "distal_point_mm": [
+            49.33711690894609,
+            130.41167665717873,
+            -831.7497775078818
+          ],
+          "projection_error_mm": 1.464821375527116e-14,
+          "proximal_route_arc_mm": 14.967180997828445,
+          "distal_route_arc_mm": 57.22697684125883,
+          "interval_length_mm": 42.25979584343039,
+          "interval_chord_mm": 32.70768203470733,
+          "interval_tortuosity": 1.2920449635833855,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AAA/unruputer/LIU_JIE",
+      "key": "AAA__unruputer__LIU_JIE",
+      "source_geometry_sha256": "8747cc1a45045ea770e1ccb30c10ffdf84f45bacc6c8f65b80ce6691e1acf76a",
+      "source_report_sha256": "6a47b35665a24c01e3a0832e3881d019887fed6c6f9cbba3921b62edf90851c5",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1017,
+        "outside_core_points": 3,
+        "outside_core_atlas_rows": [
+          6,
+          7,
+          8
+        ],
+        "outside_core_fraction": 0.0029498525073746312
+      },
+      "outside_point_locations": [
+        {
+          "row": 6,
+          "segment": 0,
+          "s_mm": 2.9983222484588623,
+          "nearest_segment_end_distance_mm": 2.9983222484588623
+        },
+        {
+          "row": 7,
+          "segment": 0,
+          "s_mm": 3.498042583465576,
+          "nearest_segment_end_distance_mm": 3.498042583465576
+        },
+        {
+          "row": 8,
+          "segment": 0,
+          "s_mm": 3.99776291847229,
+          "nearest_segment_end_distance_mm": 3.99776291847229
+        }
+      ],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            1.4825324360785954,
+            -22.76683531637009,
+            -408.10503818840317
+          ],
+          "distal_point_mm": [
+            -23.108329088427517,
+            14.63400710323211,
+            -435.7358653897839
+          ],
+          "projection_error_mm": 6.217248937900877e-15,
+          "proximal_route_arc_mm": 25.095739413030685,
+          "distal_route_arc_mm": 80.58364968203755,
+          "interval_length_mm": 55.48791026900686,
+          "interval_chord_mm": 52.602244211116236,
+          "interval_tortuosity": 1.0548582308828718,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            1.4825324360785954,
+            -22.76683531637009,
+            -408.10503818840317
+          ],
+          "distal_point_mm": [
+            -15.080993609785539,
+            16.12211484988167,
+            -429.60193347440605
+          ],
+          "projection_error_mm": 6.217248937900877e-15,
+          "proximal_route_arc_mm": 25.095739413030685,
+          "distal_route_arc_mm": 78.38036106599039,
+          "interval_length_mm": 53.2846216529597,
+          "interval_chord_mm": 47.4216970071992,
+          "interval_tortuosity": 1.1236338008922464,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            18.993889224588617,
+            -19.236878064809492,
+            -405.3237671860197
+          ],
+          "distal_point_mm": [
+            32.10917549140532,
+            17.943139485210306,
+            -421.81222357870433
+          ],
+          "projection_error_mm": 1.0658141036401503e-14,
+          "proximal_route_arc_mm": 25.578633574869563,
+          "distal_route_arc_mm": 70.55150654782705,
+          "interval_length_mm": 44.97287297295748,
+          "interval_chord_mm": 42.73445487067541,
+          "interval_tortuosity": 1.0523797041299827,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            18.993889224588617,
+            -19.236878064809492,
+            -405.3237671860197
+          ],
+          "distal_point_mm": [
+            40.508374475796145,
+            15.56978660653689,
+            -419.75185537609406
+          ],
+          "projection_error_mm": 5.0242958677880805e-15,
+          "proximal_route_arc_mm": 25.578633574869563,
+          "distal_route_arc_mm": 70.9424970809941,
+          "interval_length_mm": 45.36386350612454,
+          "interval_chord_mm": 43.38832458148783,
+          "interval_tortuosity": 1.0455315789141948,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AAA/unruputer/LIU_KANG_WEN",
+      "key": "AAA__unruputer__LIU_KANG_WEN",
+      "source_geometry_sha256": "148065f9db606811eb554485870bb38bfaf76c7f8f05ca4fa0e3c4e78d66eb89",
+      "source_report_sha256": "6ab64f224833f57af7c59e96978c15c5f64e613c6d6e0b47be29e7524e94c687",
+      "prior_review_causes": [
+        "graph_based_cia_band"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1353,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            15.505028684504735,
+            -16.40603222779968,
+            -462.6048766938645
+          ],
+          "distal_point_mm": [
+            -14.772398805817017,
+            20.975665654975657,
+            -508.7059646677513
+          ],
+          "projection_error_mm": 3.972054645195637e-15,
+          "proximal_route_arc_mm": 92.75388326248891,
+          "distal_route_arc_mm": 166.20907956959644,
+          "interval_length_mm": 73.45519630710753,
+          "interval_chord_mm": 66.62900467819424,
+          "interval_tortuosity": 1.1024507519192661,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            15.505028684504735,
+            -16.40603222779968,
+            -462.6048766938645
+          ],
+          "distal_point_mm": [
+            -7.294673777109182,
+            21.01630340762831,
+            -520.7087076345613
+          ],
+          "projection_error_mm": 1.1234667099445444e-14,
+          "proximal_route_arc_mm": 92.75388326248891,
+          "distal_route_arc_mm": 167.1998161689102,
+          "interval_length_mm": 74.44593290642128,
+          "interval_chord_mm": 72.77577073953815,
+          "interval_tortuosity": 1.0229494260234024,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            41.52577659421531,
+            -14.645609664106718,
+            -453.68061219751297
+          ],
+          "distal_point_mm": [
+            57.4987127635487,
+            15.507242976383019,
+            -489.1929792427685
+          ],
+          "projection_error_mm": 1.0048591735576161e-14,
+          "proximal_route_arc_mm": 98.51441732296053,
+          "distal_route_arc_mm": 149.25810214963957,
+          "interval_length_mm": 50.74368482667904,
+          "interval_chord_mm": 49.248933241093034,
+          "interval_tortuosity": 1.0303509434055882,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            41.52577659421531,
+            -14.645609664106718,
+            -453.68061219751297
+          ],
+          "distal_point_mm": [
+            62.30633779170053,
+            21.538174089611946,
+            -480.9660432110538
+          ],
+          "projection_error_mm": 1.0048591735576161e-14,
+          "proximal_route_arc_mm": 98.51441732296053,
+          "distal_route_arc_mm": 150.24590327647,
+          "interval_length_mm": 51.73148595350946,
+          "interval_chord_mm": 49.855718588874005,
+          "interval_tortuosity": 1.0376239159263478,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The old CIA uses graph bifurcation nodes that may precede physical lumen separation. The additional transition-to-transition lengths are reproducible topology-defined measurements, not a replacement anatomical convention or proof of a faulty source geometry."
+      ]
+    },
+    {
+      "canonical_id": "AAA/unruputer/LIU_XING_GUO",
+      "key": "AAA__unruputer__LIU_XING_GUO",
+      "source_geometry_sha256": "f9ea44555aefffe9b0bf94f0dd0b3e3e451626fd99e652180947e3afb2718003",
+      "source_report_sha256": "65206a7858cb004b0c16dfe531cef6636c411deeb0ba1cf5f5bdcdbe8eb355ef",
+      "prior_review_causes": [
+        "bifurcation_truncated_scan"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1251,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 43.75,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 23.389374160312524,
+          "consensus_bracket_mm": [
+            54.5,
+            97.75
+          ],
+          "consensus_slice_center_mm": null,
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": false
+        }
+      ],
+      "cia_slice_transition_intervals": [],
+      "interpretation": [
+        "Descendant-route transitions disagree or contain wide ambiguity gaps. Keep this location unresolved; a distant transition must not be accepted to remove a warning."
+      ]
+    },
+    {
+      "canonical_id": "AAA/unruputer/MA_JIN_HE",
+      "key": "AAA__unruputer__MA_JIN_HE",
+      "source_geometry_sha256": "fe51a1d1fe7bdd4a686deab54dc1b28163cfc6de811f696be056c9d42e556949",
+      "source_report_sha256": "c669b83c78439c732c28c7faf9773970b397830f0eb14fe3149684176d011d6a",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": false,
+        "remaining_boundary_or_nonmanifold_edges": 1,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1002,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            4.58710129430462,
+            -173.99009973421371,
+            -536.405037226631
+          ],
+          "distal_point_mm": [
+            -11.431406853378435,
+            -145.98689573887663,
+            -561.9036753364674
+          ],
+          "projection_error_mm": 9.769962616701378e-15,
+          "proximal_route_arc_mm": 30.56743478868902,
+          "distal_route_arc_mm": 73.02589930085813,
+          "interval_length_mm": 42.45846451216911,
+          "interval_chord_mm": 41.121193838922686,
+          "interval_tortuosity": 1.032520229798889,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            4.58710129430462,
+            -173.99009973421371,
+            -536.405037226631
+          ],
+          "distal_point_mm": [
+            -4.611234910856625,
+            -142.20924279102945,
+            -560.6827965284932
+          ],
+          "projection_error_mm": 9.769962616701378e-15,
+          "proximal_route_arc_mm": 30.56743478868902,
+          "distal_route_arc_mm": 74.60307646539023,
+          "interval_length_mm": 44.03564167670121,
+          "interval_chord_mm": 41.037079010395985,
+          "interval_tortuosity": 1.0730695931244423,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            19.401063842741923,
+            -174.8729480625281,
+            -536.6865018481675
+          ],
+          "distal_point_mm": [
+            39.22235353116968,
+            -147.67821167178144,
+            -569.8439482228794
+          ],
+          "projection_error_mm": 1.4210854715202004e-14,
+          "proximal_route_arc_mm": 31.10902034843054,
+          "distal_route_arc_mm": 79.74299789342086,
+          "interval_length_mm": 48.63397754499032,
+          "interval_chord_mm": 47.24249636044508,
+          "interval_tortuosity": 1.0294540147482616,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            19.401063842741923,
+            -174.8729480625281,
+            -536.6865018481675
+          ],
+          "distal_point_mm": [
+            46.01950310050145,
+            -150.39285121788603,
+            -568.3211679156668
+          ],
+          "projection_error_mm": 1.4210854715202004e-14,
+          "proximal_route_arc_mm": 31.10902034843054,
+          "distal_route_arc_mm": 80.21839643551283,
+          "interval_length_mm": 49.10937608708229,
+          "interval_chord_mm": 48.04756546636137,
+          "interval_tortuosity": 1.0220991555017351,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AAA/unruputer/SUN_SHU_MING",
+      "key": "AAA__unruputer__SUN_SHU_MING",
+      "source_geometry_sha256": "a097994af1932ad9499b3d9c32329de0d193c16e1e88a10b9d3eafc1b0bc2a9c",
+      "source_report_sha256": "5f1ebe17f1d52508d01457927949ba3cd687f86c94aaa652a1e4bc89df99371c",
+      "prior_review_causes": [
+        "bifurcation_truncated_scan"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1502,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 100.25,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 14.173659882390057,
+          "consensus_bracket_mm": [
+            48.5,
+            147.75
+          ],
+          "consensus_slice_center_mm": null,
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": false
+        }
+      ],
+      "cia_slice_transition_intervals": [],
+      "interpretation": [
+        "Descendant-route transitions disagree or contain wide ambiguity gaps. Keep this location unresolved; a distant transition must not be accepted to remove a warning."
+      ]
+    },
+    {
+      "canonical_id": "AAA/unruputer/WANG_MAN_TIAN",
+      "key": "AAA__unruputer__WANG_MAN_TIAN",
+      "source_geometry_sha256": "cd7cfe6fe5519ea7dafd80eb81e7ccaee11c3b386f342f4eb7f8d37824e22255",
+      "source_report_sha256": "80b0e1900ef476e1b22fbb6c97fa8d0554350b61315b958189726c760a67841f",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": false,
+        "remaining_boundary_or_nonmanifold_edges": 1,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1140,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -14.70823989988581,
+            -18.049286907645257,
+            -395.38291343043085
+          ],
+          "distal_point_mm": [
+            -31.16193012159464,
+            11.659677821690726,
+            -422.69842134967536
+          ],
+          "projection_error_mm": 1.1374233532693354e-14,
+          "proximal_route_arc_mm": 39.46118652726261,
+          "distal_route_arc_mm": 84.55112612749657,
+          "interval_length_mm": 45.08993960023396,
+          "interval_chord_mm": 43.58306414293511,
+          "interval_tortuosity": 1.0345747938317715,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -14.70823989988581,
+            -18.049286907645257,
+            -395.38291343043085
+          ],
+          "distal_point_mm": [
+            -17.9877670678599,
+            8.439067530838198,
+            -420.8841146081321
+          ],
+          "projection_error_mm": 1.1374233532693354e-14,
+          "proximal_route_arc_mm": 39.46118652726261,
+          "distal_route_arc_mm": 83.2353717963642,
+          "interval_length_mm": 43.774185269101594,
+          "interval_chord_mm": 36.9147596607346,
+          "interval_tortuosity": 1.1858179674311466,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            18.743055729400222,
+            -16.587482455081243,
+            -397.7899971852112
+          ],
+          "distal_point_mm": [
+            30.588068643956376,
+            4.369874826358382,
+            -429.39998548579086
+          ],
+          "projection_error_mm": 1.2809491335957507e-14,
+          "proximal_route_arc_mm": 36.96116566299117,
+          "distal_route_arc_mm": 77.97911248264384,
+          "interval_length_mm": 41.01794681965267,
+          "interval_chord_mm": 39.732939930625534,
+          "interval_tortuosity": 1.0323410976200298,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            18.743055729400222,
+            -16.587482455081243,
+            -397.7899971852112
+          ],
+          "distal_point_mm": [
+            42.42832310009555,
+            5.485987814240422,
+            -426.1179088681045
+          ],
+          "projection_error_mm": 1.2809491335957507e-14,
+          "proximal_route_arc_mm": 36.96116566299117,
+          "distal_route_arc_mm": 80.76675596934415,
+          "interval_length_mm": 43.805590306352975,
+          "interval_chord_mm": 43.019769414372234,
+          "interval_tortuosity": 1.0182665063685397,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AAA/unruputer/YANG_BEN_RUI",
+      "key": "AAA__unruputer__YANG_BEN_RUI",
+      "source_geometry_sha256": "6be3a1e3319d81332d286faa726eec308d134d2a767300b7b17b170084cd8a76",
+      "source_report_sha256": "9f7dbae8fc83585a154187f1f7cec2dc74b1edce9b16097c88fdb7e7afb75dd9",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1202,
+        "outside_core_points": 4,
+        "outside_core_atlas_rows": [
+          1228,
+          1229,
+          1230,
+          1231
+        ],
+        "outside_core_fraction": 0.0033277870216306157
+      },
+      "outside_point_locations": [
+        {
+          "row": 1228,
+          "segment": 6,
+          "s_mm": 70.49818420410156,
+          "nearest_segment_end_distance_mm": 4.499885559082031
+        },
+        {
+          "row": 1229,
+          "segment": 6,
+          "s_mm": 70.99817657470703,
+          "nearest_segment_end_distance_mm": 3.9998931884765625
+        },
+        {
+          "row": 1230,
+          "segment": 6,
+          "s_mm": 71.49816131591797,
+          "nearest_segment_end_distance_mm": 3.499908447265625
+        },
+        {
+          "row": 1231,
+          "segment": 6,
+          "s_mm": 71.9981460571289,
+          "nearest_segment_end_distance_mm": 2.9999237060546875
+        }
+      ],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -11.974657602704692,
+            -15.187078336823715,
+            -408.51192730776825
+          ],
+          "distal_point_mm": [
+            -16.160840936932733,
+            33.466100711554176,
+            -431.2709454683774
+          ],
+          "projection_error_mm": 6.4047456679787536e-15,
+          "proximal_route_arc_mm": 34.86822569585121,
+          "distal_route_arc_mm": 96.66143486583076,
+          "interval_length_mm": 61.79320916997955,
+          "interval_chord_mm": 53.876050987950336,
+          "interval_tortuosity": 1.1469513454837277,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -11.974657602704692,
+            -15.187078336823715,
+            -408.51192730776825
+          ],
+          "distal_point_mm": [
+            -8.165575468339066,
+            23.325304431368558,
+            -422.237899764029
+          ],
+          "projection_error_mm": 6.4047456679787536e-15,
+          "proximal_route_arc_mm": 34.86822569585121,
+          "distal_route_arc_mm": 95.98747144852064,
+          "interval_length_mm": 61.11924575266943,
+          "interval_chord_mm": 41.06233131545414,
+          "interval_tortuosity": 1.488450455555764,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            15.600766646081127,
+            -18.709762184634403,
+            -407.98283141296565
+          ],
+          "distal_point_mm": [
+            31.903815434964994,
+            25.286161696789545,
+            -419.5922196835201
+          ],
+          "projection_error_mm": 1.2932072993408848e-14,
+          "proximal_route_arc_mm": 32.72137559337765,
+          "distal_route_arc_mm": 92.43267692256089,
+          "interval_length_mm": 59.711301329183236,
+          "interval_chord_mm": 48.33434197347953,
+          "interval_tortuosity": 1.2353804539626525,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            15.600766646081127,
+            -18.709762184634403,
+            -407.98283141296565
+          ],
+          "distal_point_mm": [
+            43.851910149862,
+            26.667572136553357,
+            -421.92512915597604
+          ],
+          "projection_error_mm": 1.2932072993408848e-14,
+          "proximal_route_arc_mm": 32.72137559337765,
+          "distal_route_arc_mm": 93.40800941069661,
+          "interval_length_mm": 60.686633817318956,
+          "interval_chord_mm": 55.24144500031491,
+          "interval_tortuosity": 1.0985707165511873,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AG/fast/FAN_JIAN_MING",
+      "key": "AG__fast__FAN_JIAN_MING",
+      "source_geometry_sha256": "2a1aaa11bb748b6a47779d15e6af604ccd68f7b5af4f1d067d2961413482c7ce",
+      "source_report_sha256": "ef84c83a1b5a52bbd764c12e1d9568d6861389af64975dc0696ca9d4587dee72",
+      "prior_review_causes": [
+        "graph_based_cia_band"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1124,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -14.206804541566699,
+            4.962112024308644,
+            -433.1179074621319
+          ],
+          "distal_point_mm": [
+            -25.97412739421144,
+            50.2455148286512,
+            -436.9354873611663
+          ],
+          "projection_error_mm": 7.105427357601002e-15,
+          "proximal_route_arc_mm": 33.54037181944415,
+          "distal_route_arc_mm": 114.78982851564108,
+          "interval_length_mm": 81.24945669619693,
+          "interval_chord_mm": 46.942841551659676,
+          "interval_tortuosity": 1.7308167552401679,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -14.206804541566699,
+            4.962112024308644,
+            -433.1179074621319
+          ],
+          "distal_point_mm": [
+            -18.823960167657834,
+            41.327091008258705,
+            -437.38737628495375
+          ],
+          "projection_error_mm": 7.105427357601002e-15,
+          "proximal_route_arc_mm": 33.54037181944415,
+          "distal_route_arc_mm": 115.16849211809756,
+          "interval_length_mm": 81.62812029865341,
+          "interval_chord_mm": 36.90471767413649,
+          "interval_tortuosity": 2.211861394508375,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -8.384847749510943,
+            20.27454285222239,
+            -436.36134921250874
+          ],
+          "distal_point_mm": [
+            43.28236946982482,
+            45.24549415844407,
+            -449.20277832750065
+          ],
+          "projection_error_mm": 1.7763568394002505e-15,
+          "proximal_route_arc_mm": 33.685007823993345,
+          "distal_route_arc_mm": 126.01965717870128,
+          "interval_length_mm": 92.33464935470793,
+          "interval_chord_mm": 58.80435397181983,
+          "interval_tortuosity": 1.5702008970110695,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -8.384847749510943,
+            20.27454285222239,
+            -436.36134921250874
+          ],
+          "distal_point_mm": [
+            38.650743961097255,
+            39.32468728375336,
+            -438.53152376656766
+          ],
+          "projection_error_mm": 1.0048591735576161e-14,
+          "proximal_route_arc_mm": 33.685007823993345,
+          "distal_route_arc_mm": 129.62071568676754,
+          "interval_length_mm": 95.9357078627742,
+          "interval_chord_mm": 50.79335141555744,
+          "interval_tortuosity": 1.8887453808253762,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The old CIA uses graph bifurcation nodes that may precede physical lumen separation. The additional transition-to-transition lengths are reproducible topology-defined measurements, not a replacement anatomical convention or proof of a faulty source geometry."
+      ]
+    },
+    {
+      "canonical_id": "AG/slow/HE_SHU_ZHEN",
+      "key": "AG__slow__HE_SHU_ZHEN",
+      "source_geometry_sha256": "79be06fe181071324a564fdea8613f9004462a27b1eacc15c2ff6165b56d3a73",
+      "source_report_sha256": "a74409ad327f939aaccf6b6a76cb977fa7bac55de1e9bc2fc49cb6269680ec31",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 926,
+        "outside_core_points": 3,
+        "outside_core_atlas_rows": [
+          815,
+          816,
+          817
+        ],
+        "outside_core_fraction": 0.0032397408207343412
+      },
+      "outside_point_locations": [
+        {
+          "row": 815,
+          "segment": 5,
+          "s_mm": 61.99419403076172,
+          "nearest_segment_end_distance_mm": 3.9996261596679688
+        },
+        {
+          "row": 816,
+          "segment": 5,
+          "s_mm": 62.49414825439453,
+          "nearest_segment_end_distance_mm": 3.4996719360351562
+        },
+        {
+          "row": 817,
+          "segment": 5,
+          "s_mm": 62.994102478027344,
+          "nearest_segment_end_distance_mm": 2.9997177124023438
+        }
+      ],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -4.510217848596106,
+            117.43613402433681,
+            378.3346600987312
+          ],
+          "distal_point_mm": [
+            -29.14770673279053,
+            141.06735150121085,
+            342.65243004757565
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 21.395640908396533,
+          "distal_route_arc_mm": 73.16574913520512,
+          "interval_length_mm": 51.77010822680859,
+          "interval_chord_mm": 49.38280914834341,
+          "interval_tortuosity": 1.0483427152006248,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -4.510217848596106,
+            117.43613402433681,
+            378.3346600987312
+          ],
+          "distal_point_mm": [
+            -24.985061007362845,
+            146.094496854508,
+            347.7844417968518
+          ],
+          "projection_error_mm": 8.881784197001252e-16,
+          "proximal_route_arc_mm": 21.395640908396533,
+          "distal_route_arc_mm": 73.4054647413713,
+          "interval_length_mm": 52.009823832974774,
+          "interval_chord_mm": 46.62442279293463,
+          "interval_tortuosity": 1.1155060098857938,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            3.0169730474474203,
+            126.68576591740698,
+            377.0244996627053
+          ],
+          "distal_point_mm": [
+            13.285664809927155,
+            156.95778630621007,
+            345.70030412232364
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 20.477503380867656,
+          "distal_route_arc_mm": 68.15001273509938,
+          "interval_length_mm": 47.67250935423172,
+          "interval_chord_mm": 44.75540721728487,
+          "interval_tortuosity": 1.0651787642727613,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            3.0169730474474203,
+            126.68576591740698,
+            377.0244996627053
+          ],
+          "distal_point_mm": [
+            21.238819378450774,
+            153.52796756800933,
+            349.74814583562886
+          ],
+          "projection_error_mm": 1.0658141036401503e-14,
+          "proximal_route_arc_mm": 20.477503380867656,
+          "distal_route_arc_mm": 68.32548643252794,
+          "interval_length_mm": 47.84798305166028,
+          "interval_chord_mm": 42.38559839452744,
+          "interval_tortuosity": 1.128873600091443,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AG/slow/LIU_FENG",
+      "key": "AG__slow__LIU_FENG",
+      "source_geometry_sha256": "a1204456d0f0a621b8d08a71dda9d6ceb76e01835ea1f85be7ed275c7c46185a",
+      "source_report_sha256": "90df7719157b15688d43ec3dcbd48518b6368181bfeb1763909abc6274570249",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1111,
+        "outside_core_points": 3,
+        "outside_core_atlas_rows": [
+          1138,
+          1139,
+          1140
+        ],
+        "outside_core_fraction": 0.0027002700270027003
+      },
+      "outside_point_locations": [
+        {
+          "row": 1138,
+          "segment": 6,
+          "s_mm": 68.8176040649414,
+          "nearest_segment_end_distance_mm": 3.9894256591796875
+        },
+        {
+          "row": 1139,
+          "segment": 6,
+          "s_mm": 69.3162841796875,
+          "nearest_segment_end_distance_mm": 3.4907455444335938
+        },
+        {
+          "row": 1140,
+          "segment": 6,
+          "s_mm": 69.8149642944336,
+          "nearest_segment_end_distance_mm": 2.9920654296875
+        }
+      ],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -2.5659842175062435,
+            -7.12633887958046,
+            -435.1090340410442
+          ],
+          "distal_point_mm": [
+            -33.62990154298159,
+            3.4193936342553304,
+            -470.0687122839709
+          ],
+          "projection_error_mm": 7.993605777301127e-15,
+          "proximal_route_arc_mm": 34.22596239246096,
+          "distal_route_arc_mm": 85.51259269056793,
+          "interval_length_mm": 51.28663029810697,
+          "interval_chord_mm": 47.94119874081482,
+          "interval_tortuosity": 1.0697819755275333,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -2.5659842175062435,
+            -7.12633887958046,
+            -435.1090340410442
+          ],
+          "distal_point_mm": [
+            -26.216247404490854,
+            6.278322160838552,
+            -466.24565471188555
+          ],
+          "projection_error_mm": 2.6645352591003757e-15,
+          "proximal_route_arc_mm": 34.22596239246096,
+          "distal_route_arc_mm": 84.94746594859664,
+          "interval_length_mm": 50.72150355613569,
+          "interval_chord_mm": 41.334114641806856,
+          "interval_tortuosity": 1.2271099549531437,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            13.134757717575418,
+            -6.049620150864824,
+            -440.99979309358446
+          ],
+          "distal_point_mm": [
+            17.383160833692084,
+            27.383221611832433,
+            -475.69878328220983
+          ],
+          "projection_error_mm": 1.9860273225978185e-15,
+          "proximal_route_arc_mm": 34.55482267497866,
+          "distal_route_arc_mm": 85.87143235115657,
+          "interval_length_mm": 51.31660967617791,
+          "interval_chord_mm": 48.37172477260764,
+          "interval_tortuosity": 1.0608802956151344,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            13.134757717575418,
+            -6.049620150864824,
+            -440.99979309358446
+          ],
+          "distal_point_mm": [
+            24.65092434173322,
+            24.244888533045756,
+            -473.68365806234726
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 34.55482267497866,
+          "distal_route_arc_mm": 84.8894455182875,
+          "interval_length_mm": 50.33462284330884,
+          "interval_chord_mm": 46.02840839537274,
+          "interval_tortuosity": 1.0935555800875576,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AG/slow/LI_CHONG_ZENG",
+      "key": "AG__slow__LI_CHONG_ZENG",
+      "source_geometry_sha256": "225e6416d0237520e5a1602728998353a3a1ca861d5ce1fbfa8f3cfe7480f1bb",
+      "source_report_sha256": "b6bb77776b2bb2adbd6486b3a516b3dbadb8eb651d6841f5d21c30fcc7ceda93",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1015,
+        "outside_core_points": 3,
+        "outside_core_atlas_rows": [
+          787,
+          788,
+          789
+        ],
+        "outside_core_fraction": 0.002955665024630542
+      },
+      "outside_point_locations": [
+        {
+          "row": 787,
+          "segment": 4,
+          "s_mm": 63.63172912597656,
+          "nearest_segment_end_distance_mm": 3.9769821166992188
+        },
+        {
+          "row": 788,
+          "segment": 4,
+          "s_mm": 64.12885284423828,
+          "nearest_segment_end_distance_mm": 3.4798583984375
+        },
+        {
+          "row": 789,
+          "segment": 4,
+          "s_mm": 64.6259765625,
+          "nearest_segment_end_distance_mm": 2.9827346801757812
+        }
+      ],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -23.408565438225335,
+            -157.75695822264493,
+            999.6704020042104
+          ],
+          "distal_point_mm": [
+            -42.035835806980295,
+            -148.44535829211625,
+            958.2075405670906
+          ],
+          "projection_error_mm": 3.351623381340333e-14,
+          "proximal_route_arc_mm": 19.230050469496394,
+          "distal_route_arc_mm": 68.25927369739233,
+          "interval_length_mm": 49.02922322789594,
+          "interval_chord_mm": 46.398814351346395,
+          "interval_tortuosity": 1.056691295097139,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -23.408565438225335,
+            -157.75695822264493,
+            999.6704020042104
+          ],
+          "distal_point_mm": [
+            -32.86851501021229,
+            -148.403838991347,
+            958.4816297672367
+          ],
+          "projection_error_mm": 3.351623381340333e-14,
+          "proximal_route_arc_mm": 19.230050469496394,
+          "distal_route_arc_mm": 68.36155056597912,
+          "interval_length_mm": 49.131500096482725,
+          "interval_chord_mm": 43.283789617461956,
+          "interval_tortuosity": 1.135101628824608,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -10.9309924789417,
+            -154.37507343404104,
+            997.108792452195
+          ],
+          "distal_point_mm": [
+            18.413293441544607,
+            -141.66833083138297,
+            943.0055704940153
+          ],
+          "projection_error_mm": 1.5987211554602254e-14,
+          "proximal_route_arc_mm": 19.103754938976074,
+          "distal_route_arc_mm": 85.74529802541963,
+          "interval_length_mm": 66.64154308644356,
+          "interval_chord_mm": 62.84669482168106,
+          "interval_tortuosity": 1.060382622754146,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -10.9309924789417,
+            -154.37507343404104,
+            997.108792452195
+          ],
+          "distal_point_mm": [
+            24.660329794595217,
+            -147.92330371221558,
+            949.4686210649621
+          ],
+          "projection_error_mm": 3.1776437161565096e-14,
+          "proximal_route_arc_mm": 19.103754938976074,
+          "distal_route_arc_mm": 86.32746823031522,
+          "interval_length_mm": 67.22371329133915,
+          "interval_chord_mm": 59.81599688651145,
+          "interval_tortuosity": 1.123841727805395,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AG/slow/LI_GUI_YING",
+      "key": "AG__slow__LI_GUI_YING",
+      "source_geometry_sha256": "8760cd4c20664478e2d2616a3b88adc57a8c135248c619e213305d72cabd50ed",
+      "source_report_sha256": "c26b17cba55c98ba4cec7a7dfa0632b16ec87b6ac4b3f7430a4ccb01b49d4d9e",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1064,
+        "outside_core_points": 7,
+        "outside_core_atlas_rows": [
+          843,
+          844,
+          845,
+          846,
+          847,
+          848,
+          849
+        ],
+        "outside_core_fraction": 0.006578947368421052
+      },
+      "outside_point_locations": [
+        {
+          "row": 843,
+          "segment": 4,
+          "s_mm": 69.46957397460938,
+          "nearest_segment_end_distance_mm": 5.99737548828125
+        },
+        {
+          "row": 844,
+          "segment": 4,
+          "s_mm": 69.9693603515625,
+          "nearest_segment_end_distance_mm": 5.497589111328125
+        },
+        {
+          "row": 845,
+          "segment": 4,
+          "s_mm": 70.4691390991211,
+          "nearest_segment_end_distance_mm": 4.997810363769531
+        },
+        {
+          "row": 846,
+          "segment": 4,
+          "s_mm": 70.96891784667969,
+          "nearest_segment_end_distance_mm": 4.4980316162109375
+        },
+        {
+          "row": 847,
+          "segment": 4,
+          "s_mm": 71.46870422363281,
+          "nearest_segment_end_distance_mm": 3.9982452392578125
+        },
+        {
+          "row": 848,
+          "segment": 4,
+          "s_mm": 71.9684829711914,
+          "nearest_segment_end_distance_mm": 3.4984664916992188
+        },
+        {
+          "row": 849,
+          "segment": 4,
+          "s_mm": 72.46826171875,
+          "nearest_segment_end_distance_mm": 2.998687744140625
+        }
+      ],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -19.382743986101698,
+            116.63891084800484,
+            -207.90526977146396
+          ],
+          "distal_point_mm": [
+            -37.841038369676966,
+            131.83075256403706,
+            -239.74161614481417
+          ],
+          "projection_error_mm": 7.105427357601002e-15,
+          "proximal_route_arc_mm": 46.12154032482733,
+          "distal_route_arc_mm": 87.98314371422515,
+          "interval_length_mm": 41.86160338939782,
+          "interval_chord_mm": 39.81273209263127,
+          "interval_tortuosity": 1.05146271529418,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -19.382743986101698,
+            116.63891084800484,
+            -207.90526977146396
+          ],
+          "distal_point_mm": [
+            -30.193658996402995,
+            132.94349782738922,
+            -239.35725946424458
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 46.12154032482733,
+          "distal_route_arc_mm": 89.31772958149215,
+          "interval_length_mm": 43.196189256664816,
+          "interval_chord_mm": 37.03975020924205,
+          "interval_tortuosity": 1.1662116783359577,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -5.7905019286135,
+            123.02792388491719,
+            -214.91538826262732
+          ],
+          "distal_point_mm": [
+            18.278555726371554,
+            136.72370717581623,
+            -245.69118392188568
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 44.940833208752395,
+          "distal_route_arc_mm": 89.7839340445386,
+          "interval_length_mm": 44.8431008357862,
+          "interval_chord_mm": 41.40100982839295,
+          "interval_tortuosity": 1.0831402669079984,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            -5.7905019286135,
+            123.02792388491719,
+            -214.91538826262732
+          ],
+          "distal_point_mm": [
+            21.462954915713517,
+            139.82660745834957,
+            -239.48481538743482
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 44.940833208752395,
+          "distal_route_arc_mm": 90.23201054381705,
+          "interval_length_mm": 45.29117733506466,
+          "interval_chord_mm": 40.355959027225815,
+          "interval_tortuosity": 1.1222921825376357,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "ILO/GUO_YU_SHU-0/before",
+      "key": "ILO__GUO_YU_SHU-0__before",
+      "source_geometry_sha256": "a2777205d8aab78225ef414d3ef1c5f784e06783414fdc523a70ba359ba1d03b",
+      "source_report_sha256": "49e84885c68c7bd542af40e077bc0a69f7445ab48979fe45eeec5e84f294a8c3",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": false,
+        "remaining_boundary_or_nonmanifold_edges": 1,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1059,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            10.997694761427235,
+            114.27587856222787,
+            215.79407651449452
+          ],
+          "distal_point_mm": [
+            -32.57266670018262,
+            133.6400726707631,
+            172.39808873284622
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 17.167440531057075,
+          "distal_route_arc_mm": 85.05864785338314,
+          "interval_length_mm": 67.89120732232607,
+          "interval_chord_mm": 64.47139029766099,
+          "interval_tortuosity": 1.0530439472280024,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            10.997694761427235,
+            114.27587856222787,
+            215.79407651449452
+          ],
+          "distal_point_mm": [
+            -26.94179169739473,
+            138.1613390924524,
+            175.7149340911228
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 17.167440531057075,
+          "distal_route_arc_mm": 85.11572127485108,
+          "interval_length_mm": 67.94828074379402,
+          "interval_chord_mm": 60.13532667985569,
+          "interval_tortuosity": 1.129922867227984,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            22.620952279213707,
+            119.62803289523933,
+            226.50139695147712
+          ],
+          "distal_point_mm": [
+            26.11858681605598,
+            132.52568851571704,
+            168.02907022860288
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 17.22001486182081,
+          "distal_route_arc_mm": 85.87462877040593,
+          "interval_length_mm": 68.65461390858512,
+          "interval_chord_mm": 59.97996298968769,
+          "interval_tortuosity": 1.144625813130109,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            22.620952279213707,
+            119.62803289523933,
+            226.50139695147712
+          ],
+          "distal_point_mm": [
+            28.369705144568506,
+            125.36390088307239,
+            165.93860316198413
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 17.22001486182081,
+          "distal_route_arc_mm": 87.11448736260856,
+          "interval_length_mm": 69.89447250078774,
+          "interval_chord_mm": 61.1048306819471,
+          "interval_tortuosity": 1.143845285564918,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "ILO/LIU_LIAN_YOU-0/before",
+      "key": "ILO__LIU_LIAN_YOU-0__before",
+      "source_geometry_sha256": "1d35652007be840f7909a514c999128543be4a44f1d27e46609f4b15ba845f37",
+      "source_report_sha256": "6f97a2b8820b1da738843981e8368501974d52beb665ad2b0c08d2c1f46edee0",
+      "prior_review_causes": [
+        "bifurcation_truncated_scan",
+        "graph_based_cia_band"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1072,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 14.0,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 0.09658587408915295,
+          "consensus_bracket_mm": [
+            20.75,
+            21.0
+          ],
+          "consensus_slice_center_mm": [
+            6.508737921775531,
+            -2.461361102866393,
+            -446.9100752563005
+          ],
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": true
+        }
+      ],
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -1.312571189282537,
+            -6.6445386504255275,
+            -447.46712935629284
+          ],
+          "distal_point_mm": [
+            -15.912145964082736,
+            -5.330940831415109,
+            -464.59338552822527
+          ],
+          "projection_error_mm": 1.9860273225978185e-15,
+          "proximal_route_arc_mm": 18.878859758193208,
+          "distal_route_arc_mm": 42.93307951506638,
+          "interval_length_mm": 24.054219756873174,
+          "interval_chord_mm": 22.542887421573678,
+          "interval_tortuosity": 1.0670425357247333,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            15.075238293699213,
+            2.5351197049585816,
+            -446.1814381897963
+          ],
+          "distal_point_mm": [
+            15.109624310861253,
+            5.4175374710159625,
+            -454.99241802340885
+          ],
+          "projection_error_mm": 2.5121479338940403e-15,
+          "proximal_route_arc_mm": 22.724399957727577,
+          "distal_route_arc_mm": 32.135694521551024,
+          "interval_length_mm": 9.411294563823446,
+          "interval_chord_mm": 9.270538290983216,
+          "interval_tortuosity": 1.0151831822945097,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -1.530342763017487,
+            -6.640301057065651,
+            -448.03524668848786
+          ],
+          "distal_point_mm": [
+            -15.912145964082736,
+            -5.330940831415109,
+            -464.59338552822527
+          ],
+          "projection_error_mm": 1.9860273225978185e-15,
+          "proximal_route_arc_mm": 19.487315384200215,
+          "distal_route_arc_mm": 42.93307951506638,
+          "interval_length_mm": 23.445764130866166,
+          "interval_chord_mm": 21.9709501239866,
+          "interval_tortuosity": 1.0671256362859542,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            15.59275961832337,
+            2.0900431155221195,
+            -445.68942476330807
+          ],
+          "distal_point_mm": [
+            21.939478082480576,
+            5.5712170349367405,
+            -451.3581821547485
+          ],
+          "projection_error_mm": 4.440892098500626e-15,
+          "proximal_route_arc_mm": 22.21098995184674,
+          "distal_route_arc_mm": 31.48245419661775,
+          "interval_length_mm": 9.271464244771007,
+          "interval_chord_mm": 9.194249152785495,
+          "interval_tortuosity": 1.0083981944259275,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -1.312571189282537,
+            -6.6445386504255275,
+            -447.46712935629284
+          ],
+          "distal_point_mm": [
+            -6.9418373383253495,
+            0.4795517027970302,
+            -464.83730553324983
+          ],
+          "projection_error_mm": 1.112884370092863e-14,
+          "proximal_route_arc_mm": 18.878859758193208,
+          "distal_route_arc_mm": 39.41211564260267,
+          "interval_length_mm": 20.533255884409463,
+          "interval_chord_mm": 19.60011023326558,
+          "interval_tortuosity": 1.0476092042360117,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            15.075238293699213,
+            2.5351197049585816,
+            -446.1814381897963
+          ],
+          "distal_point_mm": [
+            15.109624310861253,
+            5.4175374710159625,
+            -454.99241802340885
+          ],
+          "projection_error_mm": 2.5121479338940403e-15,
+          "proximal_route_arc_mm": 22.724399957727577,
+          "distal_route_arc_mm": 32.135694521551024,
+          "interval_length_mm": 9.411294563823446,
+          "interval_chord_mm": 9.270538290983216,
+          "interval_tortuosity": 1.0151831822945097,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -1.530342763017487,
+            -6.640301057065651,
+            -448.03524668848786
+          ],
+          "distal_point_mm": [
+            -6.9418373383253495,
+            0.4795517027970302,
+            -464.83730553324983
+          ],
+          "projection_error_mm": 1.112884370092863e-14,
+          "proximal_route_arc_mm": 19.487315384200215,
+          "distal_route_arc_mm": 39.41211564260267,
+          "interval_length_mm": 19.924800258402456,
+          "interval_chord_mm": 19.033805670006057,
+          "interval_tortuosity": 1.0468111634553698,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            15.59275961832337,
+            2.0900431155221195,
+            -445.68942476330807
+          ],
+          "distal_point_mm": [
+            21.939478082480576,
+            5.5712170349367405,
+            -451.3581821547485
+          ],
+          "projection_error_mm": 4.440892098500626e-15,
+          "proximal_route_arc_mm": 22.21098995184674,
+          "distal_route_arc_mm": 31.48245419661775,
+          "interval_length_mm": 9.271464244771007,
+          "interval_chord_mm": 9.194249152785495,
+          "interval_tortuosity": 1.0083981944259275,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The shorter graph daughter truncated the old search before the persistent wall-contour split. Four descendant-route combinations now agree; review of failure-to-find alone can be cleared.",
+        "The old CIA uses graph bifurcation nodes that may precede physical lumen separation. The additional transition-to-transition lengths are reproducible topology-defined measurements, not a replacement anatomical convention or proof of a faulty source geometry."
+      ]
+    },
+    {
+      "canonical_id": "ILO/WANG_XIAO_LIN-0/before",
+      "key": "ILO__WANG_XIAO_LIN-0__before",
+      "source_geometry_sha256": "b863ff896c886be41a9fb86d8303f58aefe7139263db0a4d884761fe91efed77",
+      "source_report_sha256": "5ecc0c5d8d785e3dabceeb67f64a93a857819f99569cba3c210ef7b65b48375b",
+      "prior_review_causes": [
+        "source_inside_or_surface_audit"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": false,
+        "remaining_boundary_or_nonmanifold_edges": 1,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1260,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": null,
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            2.3580685916201505,
+            11.500002952365255,
+            -409.83554604207245
+          ],
+          "distal_point_mm": [
+            -16.79561145052017,
+            49.68866592781344,
+            -459.6477077821129
+          ],
+          "projection_error_mm": 1.0048591735576161e-14,
+          "proximal_route_arc_mm": 19.053036150391396,
+          "distal_route_arc_mm": 91.64664922178567,
+          "interval_length_mm": 72.59361307139427,
+          "interval_chord_mm": 65.6238439610558,
+          "interval_tortuosity": 1.1062078764309304,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            2.3580685916201505,
+            11.500002952365255,
+            -409.83554604207245
+          ],
+          "distal_point_mm": [
+            -16.01428531224287,
+            51.650487755991804,
+            -451.29978143667455
+          ],
+          "projection_error_mm": 3.552713678800501e-15,
+          "proximal_route_arc_mm": 19.053036150391396,
+          "distal_route_arc_mm": 91.7912174035598,
+          "interval_length_mm": 72.7381812531684,
+          "interval_chord_mm": 60.57134334645394,
+          "interval_tortuosity": 1.2008678895748273,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            16.769483124391037,
+            13.28709251580359,
+            -415.90333933730994
+          ],
+          "distal_point_mm": [
+            45.45979387644975,
+            58.90012279003385,
+            -453.31936822734184
+          ],
+          "projection_error_mm": 7.105427357601002e-15,
+          "proximal_route_arc_mm": 18.888205664555024,
+          "distal_route_arc_mm": 129.97616255535112,
+          "interval_length_mm": 111.08795689079611,
+          "interval_chord_mm": 65.60214691416161,
+          "interval_tortuosity": 1.6933585578556032,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1
+            ],
+            [
+              2
+            ]
+          ],
+          "proximal_point_mm": [
+            16.769483124391037,
+            13.28709251580359,
+            -415.90333933730994
+          ],
+          "distal_point_mm": [
+            48.80479271535656,
+            50.219175871948934,
+            -452.95397117886955
+          ],
+          "projection_error_mm": 7.105427357601002e-15,
+          "proximal_route_arc_mm": 18.888205664555024,
+          "distal_route_arc_mm": 132.86955212736515,
+          "interval_length_mm": 113.98134646281014,
+          "interval_chord_mm": 61.3432079489903,
+          "interval_tortuosity": 1.8580923670896194,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": []
+    },
+    {
+      "canonical_id": "AAA/ruputer/KANG_YONG",
+      "key": "AAA__ruputer__KANG_YONG",
+      "source_geometry_sha256": "6efc8d8b6c7e95e0681953f8cd67aeb59f137f78a280a9d1b13e86c6c42e5aaf",
+      "source_report_sha256": "6beef8741ea13ef0a06aad6993ee719a34de5e1ae15054f6967494c36307b4f5",
+      "prior_review_causes": [
+        "bifurcation_truncated_scan"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1167,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 34.0,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 0.04617568465133498,
+          "consensus_bracket_mm": [
+            45.5,
+            45.75
+          ],
+          "consensus_slice_center_mm": [
+            -26.85386728363573,
+            71.11076499085794,
+            -8.713082421213528
+          ],
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": true
+        }
+      ],
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -39.82722385929263,
+            79.32459569652696,
+            -2.5756607759014836
+          ],
+          "distal_point_mm": [
+            -32.22975378688128,
+            106.73407738115071,
+            -20.611582668798082
+          ],
+          "projection_error_mm": 1.3322676295501878e-15,
+          "proximal_route_arc_mm": 43.87413995153747,
+          "distal_route_arc_mm": 80.54918347787145,
+          "interval_length_mm": 36.67504352633398,
+          "interval_chord_mm": 33.679306944288186,
+          "interval_tortuosity": 1.088948878520609,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -12.827292597348118,
+            61.702034523106434,
+            -15.524234779746012
+          ],
+          "distal_point_mm": [
+            -10.122104433393181,
+            69.22626934494606,
+            -32.4690044271349
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 47.30199610267306,
+          "distal_route_arc_mm": 66.28738138584255,
+          "interval_length_mm": 18.985385283169492,
+          "interval_chord_mm": 18.736525052945588,
+          "interval_tortuosity": 1.0132820909704803,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -39.27968391685617,
+            78.87071711164114,
+            -2.1652943727819247
+          ],
+          "distal_point_mm": [
+            -32.22975378688128,
+            106.73407738115071,
+            -20.611582668798082
+          ],
+          "projection_error_mm": 1.7763568394002505e-15,
+          "proximal_route_arc_mm": 43.052871385906506,
+          "distal_route_arc_mm": 80.54918347787145,
+          "interval_length_mm": 37.496312091964946,
+          "interval_chord_mm": 34.15163117986833,
+          "interval_tortuosity": 1.097936197966094,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -13.022022457402501,
+            61.439622769391114,
+            -16.230267338215405
+          ],
+          "distal_point_mm": [
+            -15.675553281260836,
+            54.42669933201887,
+            -31.825891307568433
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 48.10477670023012,
+          "distal_route_arc_mm": 65.4964425630601,
+          "interval_length_mm": 17.39166586282998,
+          "interval_chord_mm": 17.304502534458187,
+          "interval_tortuosity": 1.0050370317319568,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -39.82722385929263,
+            79.32459569652696,
+            -2.5756607759014836
+          ],
+          "distal_point_mm": [
+            -40.48904960775084,
+            96.3433234932522,
+            -34.593477895455564
+          ],
+          "projection_error_mm": 1.3322676295501878e-15,
+          "proximal_route_arc_mm": 43.87413995153747,
+          "distal_route_arc_mm": 83.26967910316976,
+          "interval_length_mm": 39.39553915163229,
+          "interval_chord_mm": 36.26590302531513,
+          "interval_tortuosity": 1.0862969308700943,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -12.827292597348118,
+            61.702034523106434,
+            -15.524234779746012
+          ],
+          "distal_point_mm": [
+            -10.122104433393181,
+            69.22626934494606,
+            -32.4690044271349
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 47.30199610267306,
+          "distal_route_arc_mm": 66.28738138584255,
+          "interval_length_mm": 18.985385283169492,
+          "interval_chord_mm": 18.736525052945588,
+          "interval_tortuosity": 1.0132820909704803,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -39.27968391685617,
+            78.87071711164114,
+            -2.1652943727819247
+          ],
+          "distal_point_mm": [
+            -40.48904960775084,
+            96.3433234932522,
+            -34.593477895455564
+          ],
+          "projection_error_mm": 1.7763568394002505e-15,
+          "proximal_route_arc_mm": 43.052871385906506,
+          "distal_route_arc_mm": 83.26967910316976,
+          "interval_length_mm": 40.21680771726326,
+          "interval_chord_mm": 36.855686477411204,
+          "interval_tortuosity": 1.091196815501241,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -13.022022457402501,
+            61.439622769391114,
+            -16.230267338215405
+          ],
+          "distal_point_mm": [
+            -15.675553281260836,
+            54.42669933201887,
+            -31.825891307568433
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 48.10477670023012,
+          "distal_route_arc_mm": 65.4964425630601,
+          "interval_length_mm": 17.39166586282998,
+          "interval_chord_mm": 17.304502534458187,
+          "interval_tortuosity": 1.0050370317319568,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The shorter graph daughter truncated the old search before the persistent wall-contour split. Four descendant-route combinations now agree; review of failure-to-find alone can be cleared."
+      ]
+    },
+    {
+      "canonical_id": "AG/fast/LIU_JUN_FENG",
+      "key": "AG__fast__LIU_JUN_FENG",
+      "source_geometry_sha256": "271c0c2342614212487c3bc93f4d0bab87aef5d429d837ab95e302ad618ae1b3",
+      "source_report_sha256": "d203e7ce3529d3272833de2eb2f46176bbd0649bbeaba17d9be262f449850177",
+      "prior_review_causes": [
+        "bifurcation_truncated_scan"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 1056,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 34.75,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 0.12972811308577442,
+          "consensus_bracket_mm": [
+            40.25,
+            40.5
+          ],
+          "consensus_slice_center_mm": [
+            1.5139355305223963,
+            -22.218037282618667,
+            -269.1755893069086
+          ],
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": true
+        }
+      ],
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -6.947736842245579,
+            -24.080192430670614,
+            -270.21975065693783
+          ],
+          "distal_point_mm": [
+            -14.315335712946291,
+            -23.015522618555995,
+            -286.1317910875812
+          ],
+          "projection_error_mm": 4.440892098500626e-15,
+          "proximal_route_arc_mm": 41.272336664444154,
+          "distal_route_arc_mm": 59.37620799759276,
+          "interval_length_mm": 18.103871333148604,
+          "interval_chord_mm": 17.56724410927357,
+          "interval_tortuosity": 1.0305470351830401,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            9.356218129836305,
+            -20.514019371572523,
+            -268.2088386829843
+          ],
+          "distal_point_mm": [
+            9.142865831367681,
+            -14.701802234951208,
+            -280.4195644508672
+          ],
+          "projection_error_mm": 8.881784197001252e-15,
+          "proximal_route_arc_mm": 39.502214854600524,
+          "distal_route_arc_mm": 53.739046153016695,
+          "interval_length_mm": 14.23683129841617,
+          "interval_chord_mm": 13.52513256958819,
+          "interval_tortuosity": 1.0526204623256903,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -6.949146779398409,
+            -24.080714331707764,
+            -270.22579101117856
+          ],
+          "distal_point_mm": [
+            -14.315335712946291,
+            -23.015522618555995,
+            -286.1317910875812
+          ],
+          "projection_error_mm": 5.329070518200751e-15,
+          "proximal_route_arc_mm": 41.2785613076324,
+          "distal_route_arc_mm": 59.37620799759276,
+          "interval_length_mm": 18.097646689960357,
+          "interval_chord_mm": 17.56121326164598,
+          "interval_tortuosity": 1.0305464901725188,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            9.405688594213874,
+            -20.7067008377072,
+            -268.20894131276617
+          ],
+          "distal_point_mm": [
+            17.58786845391242,
+            -18.483354640820906,
+            -278.66992419434916
+          ],
+          "projection_error_mm": 1.1234667099445444e-14,
+          "proximal_route_arc_mm": 39.49635441664308,
+          "distal_route_arc_mm": 53.07735737046834,
+          "interval_length_mm": 13.581002953825262,
+          "interval_chord_mm": 13.465641403826172,
+          "interval_tortuosity": 1.0085671039751816,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -6.947736842245579,
+            -24.080192430670614,
+            -270.21975065693783
+          ],
+          "distal_point_mm": [
+            -7.092616419392464,
+            -17.937863220629932,
+            -284.74098314482575
+          ],
+          "projection_error_mm": 4.440892098500626e-15,
+          "proximal_route_arc_mm": 41.272336664444154,
+          "distal_route_arc_mm": 58.18245213804489,
+          "interval_length_mm": 16.910115473600733,
+          "interval_chord_mm": 15.76754233175496,
+          "interval_tortuosity": 1.072463616574201,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            9.356218129836305,
+            -20.514019371572523,
+            -268.2088386829843
+          ],
+          "distal_point_mm": [
+            9.142865831367681,
+            -14.701802234951208,
+            -280.4195644508672
+          ],
+          "projection_error_mm": 8.881784197001252e-15,
+          "proximal_route_arc_mm": 39.502214854600524,
+          "distal_route_arc_mm": 53.739046153016695,
+          "interval_length_mm": 14.23683129841617,
+          "interval_chord_mm": 13.52513256958819,
+          "interval_tortuosity": 1.0526204623256903,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -6.949146779398409,
+            -24.080714331707764,
+            -270.22579101117856
+          ],
+          "distal_point_mm": [
+            -7.092616419392464,
+            -17.937863220629932,
+            -284.74098314482575
+          ],
+          "projection_error_mm": 5.329070518200751e-15,
+          "proximal_route_arc_mm": 41.2785613076324,
+          "distal_route_arc_mm": 58.18245213804489,
+          "interval_length_mm": 16.903890830412486,
+          "interval_chord_mm": 15.762170091302892,
+          "interval_tortuosity": 1.0724342354191168,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            9.405688594213874,
+            -20.7067008377072,
+            -268.20894131276617
+          ],
+          "distal_point_mm": [
+            17.58786845391242,
+            -18.483354640820906,
+            -278.66992419434916
+          ],
+          "projection_error_mm": 1.1234667099445444e-14,
+          "proximal_route_arc_mm": 39.49635441664308,
+          "distal_route_arc_mm": 53.07735737046834,
+          "interval_length_mm": 13.581002953825262,
+          "interval_chord_mm": 13.465641403826172,
+          "interval_tortuosity": 1.0085671039751816,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The shorter graph daughter truncated the old search before the persistent wall-contour split. Four descendant-route combinations now agree; review of failure-to-find alone can be cleared."
+      ]
+    },
+    {
+      "canonical_id": "AG/fast/LI_SHI_QIANG",
+      "key": "AG__fast__LI_SHI_QIANG",
+      "source_geometry_sha256": "923edf094e64a175ecf9b33cf2bb32ed554f7d0a0a0d16c84afb4def2624cb33",
+      "source_report_sha256": "e57c4442af8894e865e4300ca915a21db6d20e6a89e8aeb7e3e6a70b8e000ebc",
+      "prior_review_causes": [
+        "bifurcation_truncated_scan",
+        "graph_based_cia_band"
+      ],
+      "source_centerline": {
+        "closed_reference_valid": true,
+        "remaining_boundary_or_nonmanifold_edges": 0,
+        "caps": "vtkFillHoles_for_inside_audit_only",
+        "reused_without_coordinate_changes": true,
+        "core_points": 985,
+        "outside_core_points": 0,
+        "outside_core_atlas_rows": [],
+        "outside_core_fraction": 0.0
+      },
+      "outside_point_locations": [],
+      "bifurcation_recovery": [
+        {
+          "parent_segment": 0,
+          "old_status": "no_persistent_two_contour_transition",
+          "old_scan_end_mm": 13.75,
+          "all_routes_have_transition": true,
+          "route_center_spread_mm": 0.2315195620440988,
+          "consensus_bracket_mm": [
+            22.25,
+            22.5
+          ],
+          "consensus_slice_center_mm": [
+            6.202583537515616,
+            4.2364311589792205,
+            -435.9809161521505
+          ],
+          "consensus_center_definition": "mean_of_four_route_variant_slice_centers_not_a_surface_carina",
+          "resolved_by_route_consensus": true
+        }
+      ],
+      "cia_slice_transition_intervals": [
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -3.337230296825063,
+            1.246324052808489,
+            -436.2453837522578
+          ],
+          "distal_point_mm": [
+            -39.190217617472435,
+            17.060820250585483,
+            -476.39544789679843
+          ],
+          "projection_error_mm": 7.588599744428075e-15,
+          "proximal_route_arc_mm": 23.009462023051544,
+          "distal_route_arc_mm": 82.06083406202241,
+          "interval_length_mm": 59.05137203897087,
+          "interval_chord_mm": 56.10314287644438,
+          "interval_tortuosity": 1.0525501604967007,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            15.053848516750138,
+            7.292151926396902,
+            -435.62428019236796
+          ],
+          "distal_point_mm": [
+            14.88969884227232,
+            15.485009907972701,
+            -444.65024823355617
+          ],
+          "projection_error_mm": 9.565974336450906e-15,
+          "proximal_route_arc_mm": 21.834191314182238,
+          "distal_route_arc_mm": 34.9879234488714,
+          "interval_length_mm": 13.153732134689161,
+          "interval_chord_mm": 12.190896853900961,
+          "interval_tortuosity": 1.0789798562260908,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            5
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -3.2877765136057335,
+            1.2284677142667442,
+            -436.18093832245216
+          ],
+          "distal_point_mm": [
+            -39.190217617472435,
+            17.060820250585483,
+            -476.39544789679843
+          ],
+          "projection_error_mm": 1.3622757722034222e-14,
+          "proximal_route_arc_mm": 22.926289077187793,
+          "distal_route_arc_mm": 82.06083406202241,
+          "interval_length_mm": 59.13454498483462,
+          "interval_chord_mm": 56.18590076127714,
+          "interval_tortuosity": 1.0524801450827619,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            15.242990597287488,
+            6.927566008370594,
+            -435.8575601345915
+          ],
+          "distal_point_mm": [
+            23.026608333781077,
+            10.550643519300015,
+            -447.4143306680939
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 21.92541313190845,
+          "distal_route_arc_mm": 36.551979668213455,
+          "interval_length_mm": 14.626566536305006,
+          "interval_chord_mm": 14.39688649959044,
+          "interval_tortuosity": 1.015953451930117,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            -3.337230296825063,
+            1.246324052808489,
+            -436.2453837522578
+          ],
+          "distal_point_mm": [
+            -32.589609055594515,
+            10.977407259284803,
+            -484.09040802177213
+          ],
+          "projection_error_mm": 7.588599744428075e-15,
+          "proximal_route_arc_mm": 23.009462023051544,
+          "distal_route_arc_mm": 83.5749015819249,
+          "interval_length_mm": 60.565439558873365,
+          "interval_chord_mm": 56.91697453983554,
+          "interval_tortuosity": 1.064101527681945,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            3
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "proximal_point_mm": [
+            15.053848516750138,
+            7.292151926396902,
+            -435.62428019236796
+          ],
+          "distal_point_mm": [
+            14.88969884227232,
+            15.485009907972701,
+            -444.65024823355617
+          ],
+          "projection_error_mm": 9.565974336450906e-15,
+          "proximal_route_arc_mm": 21.834191314182238,
+          "distal_route_arc_mm": 34.9879234488714,
+          "interval_length_mm": 13.153732134689161,
+          "interval_chord_mm": 12.190896853900961,
+          "interval_tortuosity": 1.0789798562260908,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 1,
+          "route": [
+            1,
+            6
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            -3.2877765136057335,
+            1.2284677142667442,
+            -436.18093832245216
+          ],
+          "distal_point_mm": [
+            -32.589609055594515,
+            10.977407259284803,
+            -484.09040802177213
+          ],
+          "projection_error_mm": 1.3622757722034222e-14,
+          "proximal_route_arc_mm": 22.926289077187793,
+          "distal_route_arc_mm": 83.5749015819249,
+          "interval_length_mm": 60.648612504737116,
+          "interval_chord_mm": 56.999618414873865,
+          "interval_tortuosity": 1.0640178687391189,
+          "positive_interval": true
+        },
+        {
+          "side_segment": 2,
+          "route": [
+            2,
+            4
+          ],
+          "root_pair_routes": [
+            [
+              1,
+              6
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "proximal_point_mm": [
+            15.242990597287488,
+            6.927566008370594,
+            -435.8575601345915
+          ],
+          "distal_point_mm": [
+            23.026608333781077,
+            10.550643519300015,
+            -447.4143306680939
+          ],
+          "projection_error_mm": 0.0,
+          "proximal_route_arc_mm": 21.92541313190845,
+          "distal_route_arc_mm": 36.551979668213455,
+          "interval_length_mm": 14.626566536305006,
+          "interval_chord_mm": 14.39688649959044,
+          "interval_tortuosity": 1.015953451930117,
+          "positive_interval": true
+        }
+      ],
+      "interpretation": [
+        "The shorter graph daughter truncated the old search before the persistent wall-contour split. Four descendant-route combinations now agree; review of failure-to-find alone can be cleared.",
+        "The old CIA uses graph bifurcation nodes that may precede physical lumen separation. The additional transition-to-transition lengths are reproducible topology-defined measurements, not a replacement anatomical convention or proof of a faulty source geometry."
+      ]
+    }
+  ]
+}

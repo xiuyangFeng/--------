@@ -138,11 +138,11 @@ axes[0].set_ylabel("official test35  $E_{\\mathrm{rel},L2}$（病例等权，越
 axes[0].set_xlim(0.12, 0.95); axes[0].set_ylim(0.76, 1.22)
 axes[1].set_xlim(0.12, 0.95); axes[1].set_ylim(0.76, 1.22)
 # 读图指引
-axes[0].annotate("DATA / +BC：训练 loss 一路降，\n测试 E 一路升 —— 记住了训练病例",
+axes[0].annotate("DATA/DATA+BC：训练 loss下降，\n测试 E 上升 —— 记忆训练数据",
                  xy=(0.215, 1.09), xytext=(0.60, 1.115), fontsize=9.5, color=INK,
                  arrowprops=dict(arrowstyle="->", color=INK2, lw=0.9),
                  bbox=dict(boxstyle="round,pad=0.35", fc="#fff5f4", ec="#f0c8c4", lw=0.8))
-axes[0].annotate("PDE 臂：几乎不动。物理项只是\n防记忆的正则，天花板更低",
+axes[0].annotate("PDE组：几乎不动。物理项只是\n防记忆的正则，下限更低",
                  xy=(0.80, 0.905), xytext=(0.50, 0.83), fontsize=9.5, color=INK,
                  arrowprops=dict(arrowstyle="->", color=INK2, lw=0.9),
                  bbox=dict(boxstyle="round,pad=0.35", fc="#eef7f3", ec="#bfe3d2", lw=0.8))
@@ -157,7 +157,7 @@ h2 = [Line2D([], [], marker="o", ls="-", color=INK2, ms=7, label="PointNet（实
       Line2D([], [], marker="s", ls=(0, (3, 2)), color=INK2, ms=6, label="PointNet++（虚线 · 方）"),
       Line2D([], [], marker="o", ls="", color=INK3, ms=3, label="小点 = epoch 1000 / 2500 / 5000 / 7500，大点 = 10000（last）")]
 fig.legend(handles=h1 + h2, loc="lower center", ncol=7, frameon=False, fontsize=9, bbox_to_anchor=(0.5, 0.0))
-fig.suptitle("图4 · 训练越拟合、测试越差：16 臂从 epoch 1000 到 10000 的轨迹（无 validation 的代价）",
+fig.suptitle("图4 · 训练越拟合、测试越差：16 臂从 epoch 1000 到 10000 的轨迹",
              fontsize=13, color=INK, x=0.01, ha="left", y=0.985)
 fig.tight_layout(rect=[0, 0.07, 1, 0.95])
 fig.savefig(f"{OUT}/fig4_overfit_trajectory.png", dpi=170, facecolor=SURF)
@@ -228,7 +228,7 @@ ax.set_xlim(CLIP - 0.05, 1.08); ax.set_ylim(-0.8, len(rows) + 0.6)
 ax.set_xlabel("逐病例 pressure $R^2$（x 轴截断于 −1）", color=INK2, fontsize=10)
 ax.set_title(f"(a) 35 例逐病例压力 $R^2$（TR-PN-PDE-F）：{n_pos} 例 > 0，中位 {med_all:+.2f}", fontsize=11, color=INK, loc="left", pad=8)
 ax.text(0.03, 0.56,
-        f"病例等权均值：\n含两例  {mean_all:+.1f}\n去掉两例  {mean_wo:+.2f}\n\n主表里的 −20 是这两例\n拉出来的均值假象",
+        f"病例等权均值：\n含两例  {mean_all:+.1f}\n去掉两例  {mean_wo:+.2f}",
         transform=ax.transAxes, fontsize=9.5, color=INK, va="center", ha="left", linespacing=1.45,
         bbox=dict(boxstyle="round,pad=0.5", fc="#fff5f4", ec="#f0c8c4", lw=0.8), zorder=6)
 
@@ -236,7 +236,7 @@ ax2 = fig.add_subplot(gs[0, 1]); style(ax2)
 ax2.set_xscale("log"); ax2.set_yscale("log")
 for g_, s_, e_ in zip(gauge, tstd, rmse):
     ax2.plot([g_, g_], [s_, e_], color=INK3, lw=0.7, alpha=0.6, zorder=2)
-ax2.scatter(gauge[~outlier], tstd[~outlier], s=48, color="#2a78d6", edgecolors=SURF, linewidths=1.0, zorder=3, label="真值压力标准差 σ（其余 33 例）")
+ax2.scatter(gauge[~outlier], tstd[~outlier], s=48, color="#2a78d6", edgecolors=SURF, linewidths=1.0, zorder=3, label="真值压力标准差 σ")
 ax2.scatter(gauge[outlier], tstd[outlier], s=90, color=BAD, edgecolors=SURF, linewidths=1.0, zorder=4, label="真值压力标准差 σ（两例 gauge 口径异常）")
 ax2.scatter(gauge, rmse, s=30, marker="x", color=INK, zorder=4, label="模型 RMSE（同一病例，竖线相连）")
 for r, o, s, e in zip(rows, outlier, tstd, rmse):
@@ -250,9 +250,9 @@ ax2.text(14400, 130, "全库主流\n13–16 kPa", fontsize=8.5, color="#2a78d6",
 ax2.set_xlim(120, 40000); ax2.set_ylim(100, 60000)
 ax2.set_xlabel("病例真值 gauge 压力均值（Pa，log）", color=INK2, fontsize=10)
 ax2.set_ylabel("压力标准差 σ 与模型 RMSE（Pa，log）", color=INK2, fontsize=10)
-ax2.set_title("(b) 为什么会 −552：$R^2 = 1 - \\mathrm{RMSE}^2/\\sigma^2$；两例的 RMSE ≈ 13 kPa\n（模型按全库 13–16 kPa 水平预测）而 σ 只有 0.5–1 kPa", fontsize=10.5, color=INK, loc="left", pad=8)
+ax2.set_title("(b) $R^2 = 1 - \\mathrm{RMSE}^2/\\sigma^2$；RMSE ≈ 13 kPa", fontsize=10.5, color=INK, loc="left", pad=8)
 ax2.legend(frameon=False, fontsize=8.3, loc="upper left")
-fig.suptitle("图7 · 瞬态压力 R̄² = −20 的真相：两例 gauge 口径异常病例拉爆均值，其余 33 例大多良好",
+fig.suptitle("图7 · 极端病例影响均值",
              fontsize=13, color=INK, x=0.01, ha="left", y=0.985)
 fig.tight_layout(rect=[0, 0, 1, 0.95])
 fig.savefig(f"{OUT}/fig7_pressure_outliers_v2.png", dpi=170, facecolor=SURF)
@@ -388,7 +388,7 @@ ax.set_title("(d) 末 500 epoch 的分布：准稳态三臂 −0.88～−0.97，
 ax.text(0.015, 0.97, "后果（准稳态 PN，DATA→BC→PDE-F→EMA）：\nwall RMS 0.36 → 0.23 → 0.16 → 0.13 m/s\nspeed 方差比 0.39 → 0.16 → 0.07 → 0.04\nspeed R²_cb −0.10 → −0.28 → −0.42 → −0.51",
         transform=ax.transAxes, fontsize=8.8, color=INK, ha="left", va="top",
         bbox=dict(boxstyle="round,pad=0.4", fc="#fff5f4", ec="#f0c8c4", lw=0.8), linespacing=1.4)
-fig.suptitle("图11 · no-slip 软约束与数据项梯度反向（cos ≈ −0.9）：它是什么、日志里长什么样、为什么结果是幅值压缩",
+fig.suptitle("图11 · no-slip 约束与数据梯度反向（cos ≈ −0.9）",
              fontsize=13, color=INK, x=0.01, ha="left", y=0.985)
 fig.tight_layout(rect=[0, 0, 1, 0.96])
 fig.savefig(f"{OUT}/fig11_gradient_conflict.png", dpi=170, facecolor=SURF)

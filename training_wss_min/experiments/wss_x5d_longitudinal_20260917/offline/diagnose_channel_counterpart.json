@@ -1,0 +1,423 @@
+{
+  "n_points": 160000,
+  "n_cases": 40,
+  "note": "univariate fit of each base feature to each longitudinal value channel, on that channel's valid points only",
+  "channels": {
+    "geom_ref_log_area": {
+      "valid_frac": 0.7761,
+      "top": [
+        {
+          "base": "log_local_radius",
+          "r_pooled": 0.9923473000526428,
+          "r2_pooled": 0.9847531639217699,
+          "r_within_case": 0.9922931683545433,
+          "r2_within_case": 0.984645731963098
+        },
+        {
+          "base": "log_tau0_murray",
+          "r_pooled": -0.9457208514213562,
+          "r2_pooled": 0.8943879288131349,
+          "r_within_case": -0.944528020753996,
+          "r2_within_case": 0.8921331819894611
+        },
+        {
+          "base": "local_radius",
+          "r_pooled": 0.9157498478889465,
+          "r2_pooled": 0.8385977839086287,
+          "r_within_case": 0.9127449316867399,
+          "r2_within_case": 0.8331033103198314
+        }
+      ]
+    },
+    "geom_ref_area_slope": {
+      "valid_frac": 0.7754,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": 0.6742031574249268,
+          "r2_pooled": 0.4545498974817406,
+          "r_within_case": 0.6742789982679306,
+          "r2_within_case": 0.45465216750520393
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": -0.6605410575866699,
+          "r2_pooled": 0.4363144887577164,
+          "r_within_case": -0.6598432043254728,
+          "r2_within_case": 0.4353930542945077
+        },
+        {
+          "base": "nz_aligned",
+          "r_pooled": 0.21512606739997864,
+          "r2_pooled": 0.04627922487498015,
+          "r_within_case": 0.2139195758513404,
+          "r2_within_case": 0.04576158493241737
+        }
+      ]
+    },
+    "geom_ref_roundness": {
+      "valid_frac": 0.7761,
+      "top": [
+        {
+          "base": "rho",
+          "r_pooled": -0.33848586678504944,
+          "r2_pooled": 0.11457268201322623,
+          "r_within_case": -0.3082332366365666,
+          "r2_within_case": 0.09500772816745366
+        },
+        {
+          "base": "dist_to_endpoint_mm",
+          "r_pooled": -0.1992390751838684,
+          "r2_pooled": 0.03969620908012317,
+          "r_within_case": -0.20651153742083198,
+          "r2_within_case": 0.042647015087915685
+        },
+        {
+          "base": "dist_to_junction_mm",
+          "r_pooled": 0.1023557260632515,
+          "r2_pooled": 0.010476694657935381,
+          "r_within_case": 0.14754087199411303,
+          "r2_within_case": 0.021768308908783247
+        }
+      ]
+    },
+    "geom_ref_eccentricity": {
+      "valid_frac": 0.7761,
+      "top": [
+        {
+          "base": "rho",
+          "r_pooled": 0.3895062506198883,
+          "r2_pooled": 0.15171511927196324,
+          "r_within_case": 0.3544038631246112,
+          "r2_within_case": 0.12560209819764814
+        },
+        {
+          "base": "dist_to_endpoint_mm",
+          "r_pooled": 0.1991978883743286,
+          "r2_pooled": 0.03967979873279148,
+          "r_within_case": 0.2152987870186045,
+          "r2_within_case": 0.04635356769168242
+        },
+        {
+          "base": "dist_to_junction_mm",
+          "r_pooled": -0.10786046087741852,
+          "r2_pooled": 0.01163387902068913,
+          "r_within_case": -0.14920994142193306,
+          "r2_within_case": 0.022263606619136695
+        }
+      ]
+    },
+    "geom_ref_upstream_min_area_ratio": {
+      "valid_frac": 0.7504375,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": -0.6863943338394165,
+          "r2_pooled": 0.47113718152685635,
+          "r_within_case": -0.6865549549738952,
+          "r2_within_case": 0.47135770619920725
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": 0.5830345749855042,
+          "r2_pooled": 0.33992931562852746,
+          "r_within_case": 0.5822975665292013,
+          "r2_within_case": 0.3390704559858296
+        },
+        {
+          "base": "dist_to_endpoint_mm",
+          "r_pooled": -0.20396368205547333,
+          "r2_pooled": 0.04160118359762621,
+          "r_within_case": -0.20733939608079716,
+          "r2_within_case": 0.04298962516714968
+        }
+      ]
+    },
+    "geom_ref_downstream_min_area_ratio": {
+      "valid_frac": 0.75858125,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": 0.6206336617469788,
+          "r2_pooled": 0.38518614209346325,
+          "r_within_case": 0.6222096820202404,
+          "r2_within_case": 0.38714488839972866
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": -0.5626029968261719,
+          "r2_pooled": 0.31652213203778956,
+          "r_within_case": -0.5629686437327507,
+          "r2_within_case": 0.3169336938262928
+        },
+        {
+          "base": "log_q_branch_murray",
+          "r_pooled": 0.24322141706943512,
+          "r2_pooled": 0.059156657721264105,
+          "r_within_case": 0.24620446540836313,
+          "r2_within_case": 0.060616638787017875
+        }
+      ]
+    },
+    "geom_ref_upstream_min_distance": {
+      "valid_frac": 0.7504375,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": 0.4168721139431,
+          "r2_pooled": 0.17378235938338893,
+          "r_within_case": 0.41264060299463967,
+          "r2_within_case": 0.17027226723977984
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": -0.339761883020401,
+          "r2_pooled": 0.11543813715356865,
+          "r_within_case": -0.3346858685449559,
+          "r2_within_case": 0.1120146306036915
+        },
+        {
+          "base": "log_tau0_murray",
+          "r_pooled": -0.2854962944984436,
+          "r2_pooled": 0.08150813417234204,
+          "r_within_case": -0.2834158893053537,
+          "r2_within_case": 0.08032456631074451
+        }
+      ]
+    },
+    "geom_ref_downstream_min_distance": {
+      "valid_frac": 0.75858125,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": -0.4144701063632965,
+          "r2_pooled": 0.17178546906880232,
+          "r_within_case": -0.40895478242437894,
+          "r2_within_case": 0.16724401406777112
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": 0.3529239296913147,
+          "r2_pooled": 0.12455530014876004,
+          "r_within_case": 0.34732678240257026,
+          "r2_within_case": 0.12063589377412239
+        },
+        {
+          "base": "curv_k2_c",
+          "r_pooled": 0.15775898098945618,
+          "r2_pooled": 0.024887896082831595,
+          "r_within_case": 0.1581876000077639,
+          "r2_within_case": 0.02502331679621631
+        }
+      ]
+    },
+    "geom_pc_log_area": {
+      "valid_frac": 0.6791375,
+      "top": [
+        {
+          "base": "log_local_radius",
+          "r_pooled": 0.9938815236091614,
+          "r2_pooled": 0.987800482971668,
+          "r_within_case": 0.9936694661567979,
+          "r2_within_case": 0.9873790079723357
+        },
+        {
+          "base": "log_tau0_murray",
+          "r_pooled": -0.9495049715042114,
+          "r2_pooled": 0.9015596909112134,
+          "r_within_case": -0.94695242623622,
+          "r2_within_case": 0.8967188975546637
+        },
+        {
+          "base": "local_radius",
+          "r_pooled": 0.917866051197052,
+          "r2_pooled": 0.8424780879400693,
+          "r_within_case": 0.9143428147372786,
+          "r2_within_case": 0.8360227828616894
+        }
+      ]
+    },
+    "geom_pc_area_slope": {
+      "valid_frac": 0.67305625,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": 0.6901822090148926,
+          "r2_pooled": 0.47635148164067687,
+          "r_within_case": 0.6907920858268632,
+          "r2_within_case": 0.4771937058410284
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": -0.6789198517799377,
+          "r2_pooled": 0.46093216514089264,
+          "r_within_case": -0.6761215692565015,
+          "r2_within_case": 0.4571403764138741
+        },
+        {
+          "base": "nz_aligned",
+          "r_pooled": 0.23742760717868805,
+          "r2_pooled": 0.0563718686505974,
+          "r_within_case": 0.23447018483149418,
+          "r2_within_case": 0.05497626757491504
+        }
+      ]
+    },
+    "geom_pc_roundness": {
+      "valid_frac": 0.6791375,
+      "top": [
+        {
+          "base": "rho",
+          "r_pooled": -0.34758543968200684,
+          "r2_pooled": 0.12081563787893401,
+          "r_within_case": -0.3154575405757062,
+          "r2_within_case": 0.09951345990607331
+        },
+        {
+          "base": "curvedness",
+          "r_pooled": -0.17035192251205444,
+          "r2_pooled": 0.029019777503553,
+          "r_within_case": -0.1973924555094423,
+          "r2_within_case": 0.038963781492047156
+        },
+        {
+          "base": "dist_to_junction_mm",
+          "r_pooled": 0.16227392852306366,
+          "r2_pooled": 0.026332827878308374,
+          "r_within_case": 0.19707918758687573,
+          "r2_within_case": 0.038840206179902956
+        }
+      ]
+    },
+    "geom_pc_eccentricity": {
+      "valid_frac": 0.6791375,
+      "top": [
+        {
+          "base": "rho",
+          "r_pooled": 0.42075031995773315,
+          "r2_pooled": 0.17703083174453482,
+          "r_within_case": 0.39258251745653533,
+          "r2_within_case": 0.15412103301251087
+        },
+        {
+          "base": "dist_to_endpoint_mm",
+          "r_pooled": 0.20597746968269348,
+          "r2_pooled": 0.04242671801688491,
+          "r_within_case": 0.2285139168532202,
+          "r2_within_case": 0.05221861019560044
+        },
+        {
+          "base": "dist_to_junction_mm",
+          "r_pooled": -0.11871805787086487,
+          "r2_pooled": 0.01409397726463002,
+          "r_within_case": -0.15991175366885396,
+          "r2_within_case": 0.025571768961448228
+        }
+      ]
+    },
+    "geom_pc_upstream_min_area_ratio": {
+      "valid_frac": 0.631525,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": -0.6894364356994629,
+          "r2_pooled": 0.47532259886997963,
+          "r_within_case": -0.6903963593852824,
+          "r2_within_case": 0.47664713305245204
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": 0.5908663272857666,
+          "r2_pooled": 0.34912301672017065,
+          "r_within_case": 0.5869512507034188,
+          "r2_within_case": 0.3445117707023076
+        },
+        {
+          "base": "dist_to_endpoint_mm",
+          "r_pooled": -0.2214392125606537,
+          "r2_pooled": 0.049035324859482365,
+          "r_within_case": -0.22626090727668766,
+          "r2_within_case": 0.05119399816166985
+        }
+      ]
+    },
+    "geom_pc_downstream_min_area_ratio": {
+      "valid_frac": 0.63819375,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": 0.6152637600898743,
+          "r2_pooled": 0.37854949447993036,
+          "r_within_case": 0.6167462430487524,
+          "r2_within_case": 0.3803759283147507
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": -0.555897057056427,
+          "r2_pooled": 0.30902153804399646,
+          "r_within_case": -0.5546519166953564,
+          "r2_within_case": 0.30763874869383256
+        },
+        {
+          "base": "log_q_branch_murray",
+          "r_pooled": 0.2378866821527481,
+          "r2_pooled": 0.056590073545642605,
+          "r_within_case": 0.24178167862334077,
+          "r2_within_case": 0.058458380117920435
+        }
+      ]
+    },
+    "geom_pc_upstream_min_distance": {
+      "valid_frac": 0.631525,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": 0.4091440439224243,
+          "r2_pooled": 0.16739884867719468,
+          "r_within_case": 0.4042507015957289,
+          "r2_within_case": 0.16341862974063906
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": -0.33841052651405334,
+          "r2_pooled": 0.1145216844555188,
+          "r_within_case": -0.33194164609646537,
+          "r2_within_case": 0.11018525641323107
+        },
+        {
+          "base": "log_tau0_murray",
+          "r_pooled": -0.2985307276248932,
+          "r2_pooled": 0.08912059533624817,
+          "r_within_case": -0.29017342074861396,
+          "r2_within_case": 0.08420061410895215
+        }
+      ]
+    },
+    "geom_pc_downstream_min_distance": {
+      "valid_frac": 0.63819375,
+      "top": [
+        {
+          "base": "dr_ds",
+          "r_pooled": -0.4039372503757477,
+          "r2_pooled": 0.16316530224111947,
+          "r_within_case": -0.39890364774430376,
+          "r2_within_case": 0.15912412018371158
+        },
+        {
+          "base": "tn_dot",
+          "r_pooled": 0.33347824215888977,
+          "r2_pooled": 0.11120773799338313,
+          "r_within_case": 0.32819910439353533,
+          "r2_within_case": 0.1077146521247187
+        },
+        {
+          "base": "curv_k2_c",
+          "r_pooled": 0.14787280559539795,
+          "r2_pooled": 0.021866366634654355,
+          "r_within_case": 0.14960450597143476,
+          "r2_within_case": 0.02238150820695706
+        }
+      ]
+    }
+  }
+}

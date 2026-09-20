@@ -1,0 +1,736 @@
+{
+  "frozen_at": "2026-09-10T01:14:10+0800",
+  "additional_training_runs": 0,
+  "manifest_sha256": "9e9d107747241411045287f5b571756daf7476861dec076d3bcd36c80ccaa7e1",
+  "selection": {
+    "ready": true,
+    "rules": {
+      "min_delta_best_physical_r2_cb": 0.01,
+      "min_delta_last_physical_r2_cb": 0.005,
+      "max_relative_mae_increase": 0.02,
+      "max_top10_iou_drop": 0.01,
+      "max_case_p10_drop": 0.02,
+      "max_negative_cases_increase": 0,
+      "references": [
+        "historical_m2",
+        "MO0"
+      ],
+      "guards_checkpoints": [
+        "best",
+        "last"
+      ],
+      "ranking": [
+        "best physical_r2_cb descending",
+        "last physical_r2_cb descending",
+        "best mae ascending",
+        "arm ID ascending"
+      ],
+      "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+    },
+    "families": {
+      "L": {
+        "winner": "MO0",
+        "qualified": [],
+        "fallback": true
+      },
+      "P": {
+        "winner": "MO0",
+        "qualified": [],
+        "fallback": true
+      },
+      "S": {
+        "winner": "MO0",
+        "qualified": [],
+        "fallback": true
+      }
+    },
+    "candidates": {
+      "MO-L1": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: MAE increases > 2%",
+          "historical_m2/best: IoU drops > .01",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: MAE increases > 2%",
+          "historical_m2/last: IoU drops > .01",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: case P10 drops > .02"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-L2": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/best: negative-R² case count increases",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: case P10 drops > .02",
+          "MO0/best: negative-R² case count increases",
+          "MO0/last: case P10 drops > .02"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-L3": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-L4": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: MAE increases > 2%",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: MAE increases > 2%",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: Pa R² gain < 0.01",
+          "MO0/best: MAE increases > 2%",
+          "MO0/best: case P10 drops > .02",
+          "MO0/last: Pa R² gain < 0.005",
+          "MO0/last: MAE increases > 2%",
+          "MO0/last: case P10 drops > .02"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-L5": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/last: Pa R² gain < 0.005"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-L6": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: case P10 drops > .02",
+          "MO0/last: case P10 drops > .02"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-L7": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: case P10 drops > .02"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-L8": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: MAE increases > 2%",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: Pa R² gain < 0.01",
+          "MO0/best: case P10 drops > .02",
+          "MO0/last: Pa R² gain < 0.005",
+          "MO0/last: case P10 drops > .02"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-P1": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: MAE increases > 2%",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: MAE increases > 2%",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: Pa R² gain < 0.01",
+          "MO0/last: Pa R² gain < 0.005"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-P2": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/last: Pa R² gain < 0.005"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-P3": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: negative-R² case count increases",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "MO0/best: negative-R² case count increases"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-P4": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: MAE increases > 2%",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: MAE increases > 2%",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: Pa R² gain < 0.01",
+          "MO0/last: Pa R² gain < 0.005"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-P5": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: case P10 drops > .02"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-S1": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/last: Pa R² gain < 0.005"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-S2": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/last: Pa R² gain < 0.005"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-S3": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/last: Pa R² gain < 0.005"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-S4": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-S5": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: case P10 drops > .02",
+          "historical_m2/last: negative-R² case count increases",
+          "MO0/best: Pa R² gain < 0.01",
+          "MO0/best: case P10 drops > .02",
+          "MO0/last: Pa R² gain < 0.005",
+          "MO0/last: case P10 drops > .02",
+          "MO0/last: negative-R² case count increases"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      },
+      "MO-S6": {
+        "qualified": false,
+        "issues": [
+          "historical_m2/best: Pa R² gain < 0.01",
+          "historical_m2/best: case P10 drops > .02",
+          "historical_m2/last: Pa R² gain < 0.005",
+          "historical_m2/last: case P10 drops > .02",
+          "MO0/best: case P10 drops > .02"
+        ],
+        "rules": {
+          "min_delta_best_physical_r2_cb": 0.01,
+          "min_delta_last_physical_r2_cb": 0.005,
+          "max_relative_mae_increase": 0.02,
+          "max_top10_iou_drop": 0.01,
+          "max_case_p10_drop": 0.02,
+          "max_negative_cases_increase": 0,
+          "references": [
+            "historical_m2",
+            "MO0"
+          ],
+          "guards_checkpoints": [
+            "best",
+            "last"
+          ],
+          "ranking": [
+            "best physical_r2_cb descending",
+            "last physical_r2_cb descending",
+            "best mae ascending",
+            "arm ID ascending"
+          ],
+          "interpretation": "预登记实用筛选线；不是置信带、显著性或稳定性判据"
+        }
+      }
+    },
+    "final_priority_candidates": [],
+    "combination_priority": {},
+    "ranking": [],
+    "highest_qualified_candidate": "MO0",
+    "observed_ranking": [
+      "MO-S2",
+      "MO-L3",
+      "MO-P5",
+      "MO-P2",
+      "MO-P3",
+      "MO-S6",
+      "MO-L7",
+      "MO-L2",
+      "MO-S3",
+      "MO-L5",
+      "MO-S4",
+      "MO-S1",
+      "MO-L6",
+      "MO-L1",
+      "MO-S5",
+      "MO-P1",
+      "MO-L8",
+      "MO-P4",
+      "MO-L4"
+    ],
+    "highest_observed_candidate": "MO-S2",
+    "observed_ranking_note": "保留全部有效候选，包含未过门槛与负结果；观测最高值不等于合格或稳定替换。",
+    "highest_final_priority_candidate": null,
+    "final_priority_rule": "基础单项通过原门槛即可进入最终优先列表；组合另须best Pa R²严格超过全部有效基础单项（不含MO0）的最高best。合格排名不是最终优先排名。"
+  },
+  "skipped": [
+    {
+      "id": "MO-CLP",
+      "reason": "fewer than two qualified families",
+      "members": []
+    },
+    {
+      "id": "MO-CLS",
+      "reason": "fewer than two qualified families",
+      "members": []
+    },
+    {
+      "id": "MO-CPS",
+      "reason": "fewer than two qualified families",
+      "members": []
+    },
+    {
+      "id": "MO-CLPS",
+      "reason": "fewer than two qualified families",
+      "members": []
+    }
+  ]
+}

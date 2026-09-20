@@ -1,0 +1,61 @@
+{
+  "updated_at": "2026-09-10T02:04:20+0800",
+  "attempts": [
+    {
+      "job_id": "13979",
+      "role": "full_diagnostics",
+      "state": "FAILED",
+      "exit_code": "1:0",
+      "archive": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/diagnostics_failed_13979",
+      "provenance_sha256": "2f6acd726b1f89913fcfdcdb4c5b7d7cfd85576a38779d3a7d53cd4173911ce9"
+    },
+    {
+      "job_id": "13980",
+      "role": "threshold_probe",
+      "state": "COMPLETED",
+      "exit_code": "0:0",
+      "evidence": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/threshold_probe/job_13980/probe.json",
+      "evidence_sha256": "9825e4c07b704691dc9d97ebc4eebf6c449e86a5278da5ac800a16d24b6638fe"
+    },
+    {
+      "job_id": "13981",
+      "role": "full_diagnostics",
+      "state": "FAILED",
+      "exit_code": "1:0",
+      "archive": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/diagnostics_failed_13981",
+      "provenance_sha256": "8a995b2467a6abefade8294a947abc57d5338a635f2eddafae6bba1f77760fd5"
+    },
+    {
+      "job_id": "13982",
+      "role": "full_diagnostic_capture",
+      "state": "FAILED",
+      "exit_code": "1:0",
+      "coverage_complete": true,
+      "provenance": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/diagnostics_collection/provenance.json",
+      "provenance_sha256": "95c11973694af1716564a5f2aa4a40c1c48655e55693c9e063250c79c1d9c725",
+      "note": "All42 checkpoint inferences completed;1 unreviewed discrete below-zero fraction caused intentional failure exit."
+    },
+    {
+      "job_id": "13983",
+      "role": "batch_threshold_probe",
+      "state": "COMPLETED",
+      "exit_code": "0:0",
+      "evidence": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/threshold_batch_probe/job_13983/probe.json",
+      "evidence_sha256": "92bd5b2ebeaf5a63cb22a3505db29a9edf7c0d7f497a4fe177873bfc358f7baf",
+      "repeats_per_case": 32,
+      "inferences": 64
+    },
+    {
+      "job_id": "13984",
+      "role": "cpu_saved_capture_finalization",
+      "state": "COMPLETED",
+      "exit_code": "0:0",
+      "evidence": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/diagnostics/provenance.json",
+      "evidence_sha256": "f13e57466a7b31bd5b99bfd5a068855244bcb0fa9c06d0396e6bf8e5e61c16fc",
+      "strict_passed_numeric_checks": 225622,
+      "strict_failed_numeric_checks": 2,
+      "boundary_review_count": 2,
+      "figures": 40
+    }
+  ]
+}

@@ -1,0 +1,885 @@
+{
+  "passed": true,
+  "slurm_job_id": "14159",
+  "fingerprints": {
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/protocol_inlet_waveform.json": "d2145a82630e8aaa7594e452c2b286ee7d8a6b4769b11edeef1c8723ad164817",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json": "02c727d0218460671077966e26e34aa5263e9570575a8039538ad3df9676b5d0",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json": "138202559f1d01085d0a0c8abc3a948893400da0f1a589ae1de2a0f23b9d1a42",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138_allframes_floor005.json": "9cddc93d04463325e61671976ea6fcd3f448a890b693676d9e09fb9a5cc590c2",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/baseline_models.py": "bd3f2a4fb8d6b33b0555f0f11055210b282e3a7c7d9e04fb0b873038ba478613",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/config.py": "6eae6886406d1ff99d8b47836e4b82f4653eeb5160046b37a0f2be02a9f6719d",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json": "6cfa1524594de79a9b9b84652d5b8e74e5e5c221f244607a263436b942d4a837",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X0_s1234.json": "703ab2f6fc29b55fad3882afb26399fe494ec7668e94db2c9793e8ff45aa0fe3",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X10_s1234.json": "b8edf9d4c1ff427f9af3a01574bf66a3d239100f76e657c778ea5c53ac28a01b",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X11_s1234.json": "571cf466b05283e5f07e0cf3994a7fff7ab50197624130e0fc2c024d9f750788",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X12_s1234.json": "ed6a0cc61cf71d7d2bc63ab16ff291ab0208d7b818279e4d1ffe0222b2403921",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X13a_s1234.json": "16e7fcd298e4ef54d11a364e298102d92e1e2b91ce6a2beddd00c90b80bf2889",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X13b_s1234.json": "b1a30d3fdfb33b101cf8e0ea4124b5e735606150d992be7eb48e9a740d2f492d",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X15_s1234.json": "c2a893c06c956c0c8be72a17bef323dce5ad0806e00524d5c5913ddccb7f5cb3",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X16_s1234.json": "0e03094319d86c359fa868716d2f9eefa88a9ac02f90c6d9bbe4f602a8dc4cb5",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X1_s1234.json": "89af9d305d95c4f3b3115775f773ffeb5e05e75c9d5f052bcc2cdd6468a08c78",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X2_s1234.json": "aecd2005fca98f6826d1d2632419b26eb6ca55cbc25b15a3816d30ab6c042f67",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X3_s1234.json": "44b442a6df2662bf22bc62a4912c6811b29b9345e10df81f7a78c680f5d01c02",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X4_s1234.json": "db74372ccd9ae504b5c1bb300484963348c92d61247a6a6645ae3f4f302c8469",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X5_s1234.json": "dcdb2db2d59170afee8da836c60536399ad92f1744b9935afcdfe1b370314564",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X6_s1234.json": "30775fbf342c463acbf564d60fe54607f9db2d12cf6899e184665c31e2e8cd84",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X7_s1234.json": "1060394487a767e42d9d41cd17dec9c5d7ef6fde95aea7ec353a1f6938812531",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X8_s1234.json": "d43f6df4db7556fa7ba9deaccd326ca41982cc8ec7f618198a4acb594191051d",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X9_s1234.json": "87475a4226445276a0fc617bfbdbf0648584252ac5c138ebbff1192f1fbbc87c",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/matrix.json": "6d71324c62f1960bb063fc95a015d1f3181ad2556d7000a6374147e8b8114c10",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/dataset.py": "2823cfe07d3820b6038422aa6162e3cf2d3fc57f680e5b49369d1370d68f7a27",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py": "d71709aa127ba2b69798f6e4e1a0814874088a7dcc47e0141b0e9bba9232bd77",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X13a_feature_stats.json": "c68d320ba49b857f8d1e2d73e72d0b987a83f141db4fc4a393726be8a2b753d9",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X13b_feature_stats.json": "c68d320ba49b857f8d1e2d73e72d0b987a83f141db4fc4a393726be8a2b753d9",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X15_feature_stats.json": "c44f99254f3343d12dc5e9dca94ece3ff3332dff67cc1f2541a7f8fbc2d3a5e8",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X16_feature_stats.json": "c44f99254f3343d12dc5e9dca94ece3ff3332dff67cc1f2541a7f8fbc2d3a5e8",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X2_feature_stats.json": "b5decd8b1c02f00c0dab5e624cf87f7c47732f603aff238e6c5da0ef5eefeaa4",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X3_feature_stats.json": "fbcf1df78c4e98c0dcaef1840a1b6e97b3323ae179081d58d5466a0c8245dec1",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X4_feature_stats.json": "489adf008fee0e0c8e0364f0fd176ecaa73612a70fe94ba3df6366c0435ccb1f",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X5_feature_stats.json": "5850a4b73086d29d66a731c63dd34411aac02522fdd78becd1513bc90d16da5a",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X6_feature_stats.json": "feec89ec883d8f0706d5582a4b0f34b3bebfc98cbc94a359c27cacaccce379db",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/local_refinement.py": "67dd678f47a615c69fd3af57c333f5abac0d3c203375f5340ec3407af145f01a",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/next_geometry.py": "9fa014576561ac980d3a614a2ed5a977e6fd1f5e4686219ca2b2a1b994ca7ad7",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/objectives.py": "87a75da06dec93465d4c07897d8c311855c28ea5a663f9f4e77519640224eba5",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/paired_initialization.py": "cab8188596160fc3522ffd789a5ee741948dc4b4c65443cd6597c87e7c84ea8b",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json": "365429e20906ee1a27d800e3f7939a65ed2bb36419a8db1c79d84c908bc911f1",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/train.py": "dfef4b9b9fb7ab5a699f2f222d3070fb7fe0814867cb607eddb25868e0692888"
+  },
+  "arms": {
+    "X0_s1234.json": {
+      "parameters": 629096,
+      "peak_memory_mib": 2214.93212890625,
+      "seconds": 4.871527623035945,
+      "losses": [
+        1.1696317195892334,
+        0.9056780338287354,
+        0.7255952954292297
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6609237194061279,
+        "pinball": 0.32335779070854187,
+        "pinball_weighted": 0.06467156112194061,
+        "total": 0.7255952954292297
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.9802322387695312e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "new_keys": [],
+        "zero_extended_input_keys": [],
+        "appended_input_features": []
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X10_s1234.json": {
+      "parameters": 630218,
+      "peak_memory_mib": 2219.6455078125,
+      "seconds": 4.831668397062458,
+      "losses": [
+        1.2799336910247803,
+        0.9957041144371033,
+        0.8047311305999756
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6759566068649292,
+        "pinball": 0.3290252685546875,
+        "pinball_weighted": 0.06580505520105362,
+        "direction": 0.6296945810317993,
+        "direction_weighted": 0.06296946108341217,
+        "direction_valid_fraction": 1.0,
+        "total": 0.8047311305999756
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "8c72e7788af3bff23e378f4df8e996d37c5e507c77bc6cdde8f841c7581cbc95",
+        "new_keys": [
+          "direction.0.bias",
+          "direction.0.weight",
+          "direction.2.bias",
+          "direction.2.weight"
+        ],
+        "zero_extended_input_keys": [],
+        "appended_input_features": []
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X11_s1234.json": {
+      "parameters": 952808,
+      "peak_memory_mib": 2254.73095703125,
+      "seconds": 4.896102880011313,
+      "losses": [
+        1.16963529586792,
+        0.9055574536323547,
+        0.7220808267593384
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6575489044189453,
+        "pinball": 0.3226596713066101,
+        "pinball_weighted": 0.06453193724155426,
+        "total": 0.7220808267593384
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "3f8f0dfabde18f20e7bf4a9407815a1b4629cae5cbcb6a0a25784ab8667fa800",
+        "new_keys": [
+          "section_context.embed.0.bias",
+          "section_context.embed.0.weight",
+          "section_context.embed.1.bias",
+          "section_context.embed.1.weight",
+          "section_context.embed.3.bias",
+          "section_context.embed.3.weight",
+          "section_context.embed.4.bias",
+          "section_context.embed.4.weight",
+          "section_context.encoder.layers.0.linear1.bias",
+          "section_context.encoder.layers.0.linear1.weight",
+          "section_context.encoder.layers.0.linear2.bias",
+          "section_context.encoder.layers.0.linear2.weight",
+          "section_context.encoder.layers.0.norm1.bias",
+          "section_context.encoder.layers.0.norm1.weight",
+          "section_context.encoder.layers.0.norm2.bias",
+          "section_context.encoder.layers.0.norm2.weight",
+          "section_context.encoder.layers.0.self_attn.in_proj_bias",
+          "section_context.encoder.layers.0.self_attn.in_proj_weight",
+          "section_context.encoder.layers.0.self_attn.out_proj.bias",
+          "section_context.encoder.layers.0.self_attn.out_proj.weight",
+          "section_context.encoder.layers.1.linear1.bias",
+          "section_context.encoder.layers.1.linear1.weight",
+          "section_context.encoder.layers.1.linear2.bias",
+          "section_context.encoder.layers.1.linear2.weight",
+          "section_context.encoder.layers.1.norm1.bias",
+          "section_context.encoder.layers.1.norm1.weight",
+          "section_context.encoder.layers.1.norm2.bias",
+          "section_context.encoder.layers.1.norm2.weight",
+          "section_context.encoder.layers.1.self_attn.in_proj_bias",
+          "section_context.encoder.layers.1.self_attn.in_proj_weight",
+          "section_context.encoder.layers.1.self_attn.out_proj.bias",
+          "section_context.encoder.layers.1.self_attn.out_proj.weight",
+          "section_context.out.bias",
+          "section_context.out.weight"
+        ],
+        "zero_extended_input_keys": [],
+        "appended_input_features": []
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X12_s1234.json": {
+      "parameters": 638288,
+      "peak_memory_mib": 2242.91552734375,
+      "seconds": 4.900441277073696,
+      "losses": [
+        1.1696348190307617,
+        0.9054844379425049,
+        0.7249321341514587
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.660292387008667,
+        "pinball": 0.32319867610931396,
+        "pinball_weighted": 0.06463973969221115,
+        "total": 0.7249321341514587
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "f364088f5c6043054e13278e7e4763219d88fabb7af17c6d6fca020be642e457",
+        "new_keys": [
+          "moe_head.experts.0.0.bias",
+          "moe_head.experts.0.0.weight",
+          "moe_head.experts.0.3.bias",
+          "moe_head.experts.0.3.weight",
+          "moe_head.experts.1.0.bias",
+          "moe_head.experts.1.0.weight",
+          "moe_head.experts.1.3.bias",
+          "moe_head.experts.1.3.weight",
+          "moe_head.experts.2.0.bias",
+          "moe_head.experts.2.0.weight",
+          "moe_head.experts.2.3.bias",
+          "moe_head.experts.2.3.weight",
+          "moe_head.experts.3.0.bias",
+          "moe_head.experts.3.0.weight",
+          "moe_head.experts.3.3.bias",
+          "moe_head.experts.3.3.weight",
+          "moe_head.gate.0.bias",
+          "moe_head.gate.0.weight",
+          "moe_head.gate.2.bias",
+          "moe_head.gate.2.weight"
+        ],
+        "zero_extended_input_keys": [],
+        "appended_input_features": []
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X13a_s1234.json": {
+      "parameters": 629736,
+      "peak_memory_mib": 2222.2529296875,
+      "seconds": 3.980803887010552,
+      "losses": [
+        1.0383038520812988,
+        0.8359546661376953,
+        0.7001849412918091
+      ],
+      "amp_initial_overflows": 0,
+      "loss_components": {
+        "base": 0.6366312503814697,
+        "pinball": 0.31776848435401917,
+        "pinball_weighted": 0.06355369836091995,
+        "total": 0.7001849412918091
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 1.862645149230957e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "0d790de122381f0b08ba5ebc83c56c4cbf138fd9860a822112f3737239b1d870",
+        "new_keys": [],
+        "zero_extended_input_keys": [
+          "stem.0.weight",
+          "query_patch.patch.0.weight"
+        ],
+        "appended_input_features": [
+          "q_norm",
+          "dq_norm",
+          "t_sin",
+          "t_cos"
+        ]
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X13b_s1234.json": {
+      "parameters": 629736,
+      "peak_memory_mib": 2224.35693359375,
+      "seconds": 5.6866209069266915,
+      "losses": [
+        1.2885010242462158,
+        1.0682469606399536,
+        0.9422696828842163
+      ],
+      "amp_initial_overflows": 2,
+      "loss_components": {
+        "base": 0.8696151971817017,
+        "pinball": 0.36327236890792847,
+        "pinball_weighted": 0.07265447825193405,
+        "total": 0.9422696828842163
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 1.6763806343078613e-08,
+      "initialization": {
+        "mode": "architecture_only_preflight"
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X15_s1234.json": {
+      "parameters": 631656,
+      "peak_memory_mib": 2276.14990234375,
+      "seconds": 4.86260668199975,
+      "losses": [
+        1.1696183681488037,
+        0.9041657447814941,
+        0.7193715572357178
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.65506511926651,
+        "pinball": 0.32153210043907166,
+        "pinball_weighted": 0.06430642306804657,
+        "total": 0.7193715572357178
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "bde1af56cb6fac80a783ef3e9a2972f7d04b33e0c6078ee2aa9b74c7125cb40b",
+        "new_keys": [],
+        "zero_extended_input_keys": [
+          "stem.0.weight",
+          "query_patch.patch.0.weight"
+        ],
+        "appended_input_features": [
+          "bend_cos",
+          "bend_signed",
+          "torsion_rr",
+          "bend_cos_up2",
+          "bend_cos_up5",
+          "carina_cos",
+          "bif_plane_cos",
+          "bif_angle_cos",
+          "sibling_radius_ratio",
+          "s_over_d",
+          "up_min_r_ratio_2d",
+          "up_min_r_ratio_5d",
+          "up_max_r_ratio_5d",
+          "up_kappa_5d",
+          "log_q_branch_murray",
+          "log_tau0_murray"
+        ]
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X16_s1234.json": {
+      "parameters": 632843,
+      "peak_memory_mib": 3847.13330078125,
+      "seconds": 5.095446732942946,
+      "losses": [
+        1.2799139022827148,
+        0.9948182702064514,
+        0.8002956509590149
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6719359159469604,
+        "pinball": 0.32673853635787964,
+        "pinball_weighted": 0.06534770876169205,
+        "direction": 0.6301202774047852,
+        "direction_weighted": 0.0630120262503624,
+        "direction_valid_fraction": 1.0,
+        "total": 0.8002956509590149
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "1797c4dbb63e65a7477b49cf0a4874ffd9984c03a97704b5cdf28dd8b95d0b48",
+        "new_keys": [
+          "direction.0.bias",
+          "direction.0.weight",
+          "direction.2.bias",
+          "direction.2.weight",
+          "query_patch.attn.bias",
+          "query_patch.attn.weight"
+        ],
+        "zero_extended_input_keys": [
+          "stem.0.weight",
+          "query_patch.patch.0.weight"
+        ],
+        "appended_input_features": [
+          "bend_cos",
+          "bend_signed",
+          "torsion_rr",
+          "bend_cos_up2",
+          "bend_cos_up5",
+          "carina_cos",
+          "bif_plane_cos",
+          "bif_angle_cos",
+          "sibling_radius_ratio",
+          "s_over_d",
+          "up_min_r_ratio_2d",
+          "up_min_r_ratio_5d",
+          "up_max_r_ratio_5d",
+          "up_kappa_5d",
+          "log_q_branch_murray",
+          "log_tau0_murray"
+        ]
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X1_s1234.json": {
+      "parameters": 629096,
+      "peak_memory_mib": 2214.43505859375,
+      "seconds": 4.8319071679143235,
+      "losses": [
+        1.1696343421936035,
+        0.9052603244781494,
+        0.7249348163604736
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6602815389633179,
+        "pinball": 0.32326623797416687,
+        "pinball_weighted": 0.06465324759483337,
+        "total": 0.7249348163604736
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "new_keys": [],
+        "zero_extended_input_keys": [],
+        "appended_input_features": []
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X2_s1234.json": {
+      "parameters": 629896,
+      "peak_memory_mib": 2227.56494140625,
+      "seconds": 4.843664982006885,
+      "losses": [
+        1.1696186065673828,
+        0.9057350754737854,
+        0.7234637141227722
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6589147448539734,
+        "pinball": 0.322744756937027,
+        "pinball_weighted": 0.06454895436763763,
+        "total": 0.7234637141227722
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "22017ab91be582b40df42eee830b1e2df979438e06d19a6a1dbc5f9cdd5bceff",
+        "new_keys": [],
+        "zero_extended_input_keys": [
+          "stem.0.weight",
+          "query_patch.patch.0.weight"
+        ],
+        "appended_input_features": [
+          "bend_cos",
+          "bend_signed",
+          "torsion_rr",
+          "bend_cos_up2",
+          "bend_cos_up5"
+        ]
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X3_s1234.json": {
+      "parameters": 629736,
+      "peak_memory_mib": 2224.31103515625,
+      "seconds": 4.8381716249277815,
+      "losses": [
+        1.1696330308914185,
+        0.905043363571167,
+        0.7230733633041382
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6585078835487366,
+        "pinball": 0.3228272497653961,
+        "pinball_weighted": 0.06456544995307922,
+        "total": 0.7230733633041382
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 1.862645149230957e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "0d790de122381f0b08ba5ebc83c56c4cbf138fd9860a822112f3737239b1d870",
+        "new_keys": [],
+        "zero_extended_input_keys": [
+          "stem.0.weight",
+          "query_patch.patch.0.weight"
+        ],
+        "appended_input_features": [
+          "carina_cos",
+          "bif_plane_cos",
+          "bif_angle_cos",
+          "sibling_radius_ratio"
+        ]
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X4_s1234.json": {
+      "parameters": 629896,
+      "peak_memory_mib": 2227.56494140625,
+      "seconds": 4.837034562020563,
+      "losses": [
+        1.1696186065673828,
+        0.904662013053894,
+        0.7214722633361816
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6570898294448853,
+        "pinball": 0.3219121992588043,
+        "pinball_weighted": 0.06438244134187698,
+        "total": 0.7214722633361816
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "22017ab91be582b40df42eee830b1e2df979438e06d19a6a1dbc5f9cdd5bceff",
+        "new_keys": [],
+        "zero_extended_input_keys": [
+          "stem.0.weight",
+          "query_patch.patch.0.weight"
+        ],
+        "appended_input_features": [
+          "s_over_d",
+          "up_min_r_ratio_2d",
+          "up_min_r_ratio_5d",
+          "up_max_r_ratio_5d",
+          "up_kappa_5d"
+        ]
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X5_s1234.json": {
+      "parameters": 629416,
+      "peak_memory_mib": 2220.00537109375,
+      "seconds": 4.83862370706629,
+      "losses": [
+        1.1696348190307617,
+        0.9050398468971252,
+        0.723647952079773
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6591543555259705,
+        "pinball": 0.3224678635597229,
+        "pinball_weighted": 0.0644935742020607,
+        "total": 0.723647952079773
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "491bf5175d0739c57b3d15fcad1fff1de7fa86f584a900fddf93d68e9d4baf2e",
+        "new_keys": [],
+        "zero_extended_input_keys": [
+          "stem.0.weight",
+          "query_patch.patch.0.weight"
+        ],
+        "appended_input_features": [
+          "log_q_branch_murray",
+          "log_tau0_murray"
+        ]
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X6_s1234.json": {
+      "parameters": 629256,
+      "peak_memory_mib": 2216.67431640625,
+      "seconds": 4.83114799298346,
+      "losses": [
+        1.1696186065673828,
+        0.9054312705993652,
+        0.723107099533081
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.658564031124115,
+        "pinball": 0.32271528244018555,
+        "pinball_weighted": 0.06454306095838547,
+        "total": 0.723107099533081
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "7022e6718878b81f1ee824a86163466d53c8334ddef72b6f27fe131e2922b638",
+        "new_keys": [],
+        "zero_extended_input_keys": [
+          "stem.0.weight",
+          "query_patch.patch.0.weight"
+        ],
+        "appended_input_features": [
+          "atlas_prior_logwss"
+        ]
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X7_s1234.json": {
+      "parameters": 629096,
+      "peak_memory_mib": 2214.43505859375,
+      "seconds": 4.833551884978078,
+      "losses": [
+        1.1696363687515259,
+        0.9053924083709717,
+        0.7243874073028564
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6597127914428711,
+        "pinball": 0.32337304949760437,
+        "pinball_weighted": 0.06467460840940475,
+        "total": 0.7243874073028564
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "new_keys": [],
+        "zero_extended_input_keys": [],
+        "appended_input_features": []
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X8_s1234.json": {
+      "parameters": 629161,
+      "peak_memory_mib": 2278.9267578125,
+      "seconds": 4.8377063140505925,
+      "losses": [
+        1.1696351766586304,
+        0.9056728482246399,
+        0.7249377965927124
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6602599024772644,
+        "pinball": 0.3233894109725952,
+        "pinball_weighted": 0.0646778866648674,
+        "total": 0.7249377965927124
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 1.862645149230957e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "522bd8471cb80eb74dda522d1241a23f626b6540a0b23efd6e5d1c7d8f88975b",
+        "new_keys": [
+          "query_patch.attn.bias",
+          "query_patch.attn.weight"
+        ],
+        "zero_extended_input_keys": [],
+        "appended_input_features": []
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    },
+    "X9_s1234.json": {
+      "parameters": 629161,
+      "peak_memory_mib": 3762.76513671875,
+      "seconds": 5.007009232998826,
+      "losses": [
+        1.1696317195892334,
+        0.9060896039009094,
+        0.7269394993782043
+      ],
+      "amp_initial_overflows": 1,
+      "loss_components": {
+        "base": 0.6621684432029724,
+        "pinball": 0.3238552212715149,
+        "pinball_weighted": 0.06477104872465134,
+        "total": 0.7269394993782043
+      },
+      "fullwall_points": 9338,
+      "chunk_max_abs_diff": 2.2351741790771484e-08,
+      "initialization": {
+        "mode": "paired_fresh_random_initialization",
+        "reference_state_sha256": "e0c4d6a8a01e0903f117831899bd7e855456086280af88e651aa6c062956c090",
+        "initial_state_sha256": "522bd8471cb80eb74dda522d1241a23f626b6540a0b23efd6e5d1c7d8f88975b",
+        "new_keys": [
+          "query_patch.attn.bias",
+          "query_patch.attn.weight"
+        ],
+        "zero_extended_input_keys": [],
+        "appended_input_features": []
+      },
+      "units": [
+        "AG/fast/CHEN_SHI_MING",
+        "AG/fast/HAN_JIAN_JUN",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/ruputer/FENG_LI_XIN",
+        "ILO/AN_GUANG_JIE-0/before",
+        "ILO/BAO_EN_YUN-0/before",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/GUO_AI_JUN"
+      ]
+    }
+  },
+  "cli_smoke": {
+    "X16": {
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1_20260912_smoke/job_14159_X16",
+      "checkpoints": [
+        "best",
+        "last"
+      ],
+      "pa_r2_cb": -0.15303599497026843
+    },
+    "X11": {
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1_20260912_smoke/job_14159_X11",
+      "checkpoints": [
+        "best",
+        "last"
+      ],
+      "pa_r2_cb": -0.1530475216311844
+    },
+    "X13a": {
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1_20260912_smoke/job_14159_X13a",
+      "checkpoints": [
+        "best",
+        "last",
+        "ema"
+      ],
+      "pa_r2_cb": -0.45861885200508645
+    }
+  },
+  "anchor_reevaluation": {
+    "compared_fields": 5622,
+    "max_abs_diff": 2.4228397009551372e-05,
+    "max_abs_diff_field": "per_case.AAA/unruputer/ZHANG_YONG_ZHI.distribution.pred_dynamic_range",
+    "missing_fields": [],
+    "tolerance": 0.0005,
+    "pa_r2_cb_stored": 0.657492082127713,
+    "pa_r2_cb_now": 0.657492083457809,
+    "seconds": 31.201649555005133,
+    "passed": true
+  },
+  "started_at": "2026-09-12T06:10:36-0700",
+  "ended_at": "2026-09-12T06:13:39-0700"
+}

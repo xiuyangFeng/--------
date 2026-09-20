@@ -1,0 +1,28 @@
+
+=== X5D_v51 底座：残差 ln(true)−ln(pred)（三 seed Pa 均值集成）
+  test34 共 1231295 点，32 通道同时有效的点 801358 (0.651)
+  残差 sd 全体 0.4728，同时有效子集 0.4536
+  16 个 value 通道 OLS 解释残差：pooled R² 0.0059，逐例去均值 R² 0.0070
+  只用 ref 的 8 个：pooled R² 0.0024
+  单通道 |corr| 与残差（逐例去均值）：
+    geom_ref_roundness                 +0.0515
+    geom_pc_roundness                  +0.0512
+    geom_pc_eccentricity               -0.0397
+    geom_ref_eccentricity              -0.0395
+    geom_ref_downstream_min_area_ratio +0.0203
+    geom_pc_downstream_min_area_ratio  +0.0188
+
+=== X5D_long 沿程臂：残差 ln(true)−ln(pred)（三 seed Pa 均值集成）
+  test34 共 1231295 点，32 通道同时有效的点 801358 (0.651)
+  残差 sd 全体 0.4671，同时有效子集 0.4424
+  16 个 value 通道 OLS 解释残差：pooled R² 0.0050，逐例去均值 R² 0.0040
+  只用 ref 的 8 个：pooled R² 0.0018
+  单通道 |corr| 与残差（逐例去均值）：
+    geom_ref_upstream_min_area_ratio   +0.0249
+    geom_pc_upstream_min_area_ratio    +0.0230
+    geom_pc_roundness                  +0.0181
+    geom_ref_roundness                 +0.0171
+    geom_ref_downstream_min_area_ratio +0.0163
+    geom_pc_downstream_min_area_ratio  +0.0151
+
+wrote /public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_residual_explainability.json

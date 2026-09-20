@@ -1,0 +1,244 @@
+[
+  {
+    "run": "A1_r4_localbranch_s1234",
+    "epoch": 378,
+    "local_wall_branch": {
+      "fuse_weight": {
+        "n": 3072,
+        "abs_mean": 0.029887622222304344,
+        "abs_max": 0.20828410983085632,
+        "l2": 2.128796100616455
+      },
+      "fuse_bias": {
+        "n": 32,
+        "abs_mean": 0.02474486082792282,
+        "abs_max": 0.07246629148721695,
+        "l2": 0.16808396577835083
+      },
+      "note": "zero-initialised; a non-zero fuse weight means the multi-scale branch was used"
+    }
+  },
+  {
+    "run": "A2b_r4_localattn_s1234",
+    "epoch": 378,
+    "local_query_decoder": {
+      "beta": 1.6311166286468506,
+      "beta_init": 2.0,
+      "weight_correction_last_layer": {
+        "n": 32,
+        "abs_mean": 0.4110366702079773,
+        "abs_max": 1.2058968544006348,
+        "l2": 3.078526735305786
+      },
+      "residual_out": {
+        "n": 32,
+        "abs_mean": 0.06138748675584793,
+        "abs_max": 0.17126433551311493,
+        "l2": 0.37403860688209534
+      },
+      "note": "beta=2 with zero corrections == the parent 1/d^2 k-NN interpolation"
+    }
+  },
+  {
+    "run": "A3_r4_casescale_s1234",
+    "epoch": 378,
+    "case_scale_head": {
+      "last_layer": {
+        "n": 64,
+        "abs_mean": 0.0018070931546390057,
+        "abs_max": 0.023079587146639824,
+        "l2": 0.03412467613816261
+      },
+      "bias": 0.024990757927298546,
+      "per_case_bias_z": {
+        "mean": 0.02496461055296309,
+        "sd": 8.784202261290506e-05,
+        "min": 0.02457731030881405,
+        "max": 0.024990757927298546
+      },
+      "per_case_pa_factor": {
+        "mean": 1.0329850454525669,
+        "sd": 0.00011793402068963527,
+        "min": 1.0324650922788292,
+        "max": 1.033020150723397
+      },
+      "per_case": {
+        "AAA/ruputer/KANG_YONG": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AAA/ruputer/LI_ZHEN_HUA": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AAA/ruputer/WANG_FU_SHUN": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AAA/ruputer/YU_TIAN_HAI": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AAA/unruputer/GAO_DIAN_WEN": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AAA/unruputer/LIU_KANG_WEN": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AAA/unruputer/MA_JIN_HE": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AAA/unruputer/SUN_SHU_MING": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AAA/unruputer/WANG_MAN_TIAN": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AAA/unruputer/ZHANG_YONG_ZHI": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/fast/FAN_JIAN_MING": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/fast/LOU_YANG": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/fast/RAN_QING_BO": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/fast/SUN_ZHI_YU": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/fast/YAO_CUN_HONG": {
+          "bias_z": 0.02457731030881405,
+          "pa_factor": 1.0324650922788292
+        },
+        "AG/fast/ZHANG_CHUN": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/fast/ZHANG_LIANG": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/slow/BAI_WEN_JIE": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/slow/CHEN_JING_RU": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/slow/GUO_XI_JIANG": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/slow/HE_SHU_ZHEN": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/slow/LI_HUAN_GE": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/slow/MA_TIAN_YI": {
+          "bias_z": 0.024781063199043274,
+          "pa_factor": 1.0327385957237845
+        },
+        "AG/slow/MA_YU": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "AG/slow/ZHANG_WEI_XIAN": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "ILO/LI_YOU_ZHI-0/before": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "ILO/LU_FU_SHAN-0/before": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "ILO/SUN_DONG_XIN-0/before": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "ILO/SUN_XU_XIA-1/before": {
+          "bias_z": 0.024724889546632767,
+          "pa_factor": 1.0326631849593615
+        },
+        "ILO/YANG_WEN_TAI-0/before": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "ILO/YU_XIANG_SHENG-1/before": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "ILO/ZHANG_HE_PING-0/before": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "ILO/ZHANG_JIN_CHUN-1/before": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        },
+        "ILO/ZHANG_YONG_SHENG-0/before": {
+          "bias_z": 0.024990757927298546,
+          "pa_factor": 1.033020150723397
+        }
+      },
+      "note": "a per-case additive bias in log_z space is a multiplicative Pa amplitude factor"
+    }
+  },
+  {
+    "run": "A5_r4_localbranch_diffgeom_s1234",
+    "epoch": 378,
+    "local_wall_branch": {
+      "fuse_weight": {
+        "n": 3072,
+        "abs_mean": 0.026892494410276413,
+        "abs_max": 0.21974492073059082,
+        "l2": 1.9519543647766113
+      },
+      "fuse_bias": {
+        "n": 32,
+        "abs_mean": 0.01829329878091812,
+        "abs_max": 0.0689610168337822,
+        "l2": 0.13143622875213623
+      },
+      "note": "zero-initialised; a non-zero fuse weight means the multi-scale branch was used"
+    }
+  },
+  {
+    "run": "A5b_r4_localbranch_diffgeom_nll_s1234",
+    "epoch": 399,
+    "local_wall_branch": {
+      "fuse_weight": {
+        "n": 3072,
+        "abs_mean": 0.026271499693393707,
+        "abs_max": 0.16362299025058746,
+        "l2": 1.8034403324127197
+      },
+      "fuse_bias": {
+        "n": 32,
+        "abs_mean": 0.03132252395153046,
+        "abs_max": 0.08027050644159317,
+        "l2": 0.22442738711833954
+      },
+      "note": "zero-initialised; a non-zero fuse weight means the multi-scale branch was used"
+    }
+  }
+]

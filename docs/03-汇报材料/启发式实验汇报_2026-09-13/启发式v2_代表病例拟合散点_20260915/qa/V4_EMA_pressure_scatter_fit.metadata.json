@@ -1,0 +1,39 @@
+{
+  "stem": "V4_EMA_pressure_scatter_fit",
+  "claim": "同例压力散点见三面板；正式口径不含壁面点",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/best/_export/same_point_pressure.csv.gz",
+      "sha256": "096c3e7c5b34e8082074ad7802f6691d3c416004ada0f8ff52969781b2341887"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/best/manifest.json",
+      "sha256": "a4b956c314106db2c02694867698927bc4d02c2bc2f4098b9a343528fe4eaa5b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/median/_export/same_point_pressure.csv.gz",
+      "sha256": "24bfaa41d46e4bd3a10b6e2529c65104b2227873fe42325a70e376785b88848d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/median/manifest.json",
+      "sha256": "d5af1911944fc7547860efd981e0221cfd535051424ab622f827b858428ae1b8"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/worst/_export/same_point_pressure.csv.gz",
+      "sha256": "fc97f77cc153980d8ae26c657b507e16e3820fc5385a29a329235bdb6e633c52"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/worst/manifest.json",
+      "sha256": "e1a68e83518b4a66b96c07bb7023b91e9b780697afacbbb4244ba70a149dbbc8"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/source_data/V4_EMA_pressure_scatter_fit.csv",
+      "sha256": "475b90acd5fb7e4447767f49b2438c39ee772f7a3122976630265da74d2014dc"
+    }
+  ],
+  "exports": {
+    "png": "figures/V4_EMA_pressure_scatter_fit.png"
+  },
+  "alignment": "PASS",
+  "note": "Three equal-width identity scatters. Axis limits are independent per case so that every same-point query is retained. Density color is KDE on a 6000-point sample; slope, intercept and both R² values use all points. Prediction R² matches the package visualization_metrics.r2."
+}

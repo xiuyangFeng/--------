@@ -1,0 +1,119 @@
+{
+  "bend_cos": {
+    "mean": -0.14072871731247902,
+    "std": 0.673333985325629,
+    "transform": "none"
+  },
+  "bend_signed": {
+    "mean": -0.05595762316965705,
+    "std": 0.2076105022643446,
+    "clip": 0.629485036410371,
+    "transform": "signed_log1p"
+  },
+  "torsion_rr": {
+    "mean": 0.0007390546570241658,
+    "std": 0.5684090826061753,
+    "clip": 1.0986122886681096,
+    "transform": "signed_log1p"
+  },
+  "bend_cos_up2": {
+    "mean": 0.0017688026663357284,
+    "std": 0.6902666634049375,
+    "transform": "none"
+  },
+  "bend_cos_up5": {
+    "mean": -0.0012877819213724774,
+    "std": 0.6898926033714319,
+    "transform": "none"
+  },
+  "carina_cos": {
+    "mean": -0.04019372594240034,
+    "std": 0.5107518044881346,
+    "transform": "none"
+  },
+  "bif_plane_cos": {
+    "mean": 0.3174633043134824,
+    "std": 0.3875172834330964,
+    "transform": "none"
+  },
+  "bif_angle_cos": {
+    "mean": 0.5284449585474343,
+    "std": 0.37795635877423844,
+    "transform": "none"
+  },
+  "sibling_radius_ratio": {
+    "mean": 0.5393121775358636,
+    "std": 0.500541556125998,
+    "transform": "none"
+  },
+  "s_over_d": {
+    "mean": 7.638126752000965,
+    "std": 4.004312442248024,
+    "transform": "none"
+  },
+  "up_min_r_ratio_2d": {
+    "mean": 0.8787454663237333,
+    "std": 0.179572942171191,
+    "transform": "none"
+  },
+  "up_min_r_ratio_5d": {
+    "mean": 0.8449789908172205,
+    "std": 0.19218407773487786,
+    "transform": "none"
+  },
+  "up_max_r_ratio_5d": {
+    "mean": 1.5562285111988132,
+    "std": 0.670298734637368,
+    "transform": "none"
+  },
+  "up_kappa_5d": {
+    "mean": 0.5980188705687031,
+    "std": 0.26907831855599357,
+    "clip": 1.6252008545524521,
+    "transform": "signed_log1p"
+  },
+  "log_q_branch_murray": {
+    "mean": -0.6322251005100918,
+    "std": 0.7283186621978677,
+    "transform": "none"
+  },
+  "log_tau0_murray": {
+    "mean": -6.603205559140016,
+    "std": 1.3175523390822352,
+    "transform": "none"
+  },
+  "atlas_prior_logwss": {
+    "mean": 0.6453633960267973,
+    "std": 0.81130462374286,
+    "transform": "none"
+  },
+  "q_norm": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "dq_norm": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "t_sin": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "t_cos": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "_provenance": {
+    "train_split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+    "n_cases": 138,
+    "sidecar_roots": [
+      "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+      "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_flowref_v1"
+    ],
+    "curvature_transform": "signed_log1p"
+  }
+}

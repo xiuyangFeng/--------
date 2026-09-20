@@ -1,0 +1,49 @@
+{
+  "schema": "v6_coverage_review_v1",
+  "source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_v6_geometry_coverage_20260916_final_v2",
+  "baseline_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_v6_geometry_candidate_20260915_opt_v3_final",
+  "job_id": "14401",
+  "cases": 170,
+  "manual_case_count": 0,
+  "manual_cases": [],
+  "user_confirmed_case_count": 2,
+  "user_confirmed_cases": [
+    "AAA/unruputer/LIU_XING_GUO",
+    "AAA/unruputer/SUN_SHU_MING"
+  ],
+  "counts": {
+    "n_sections": 50470,
+    "reference_before": 38270,
+    "reference_after": 38662,
+    "pointcloud_before": 34884,
+    "pointcloud_after": 34988,
+    "recovered_reference": 674,
+    "withheld_reference": 282,
+    "recovered_pointcloud": 340,
+    "withheld_pointcloud": 236
+  },
+  "low_coverage_diagnostic_cases": [
+    "AAA/ruputer/FENG_LI_XIN",
+    "AAA/ruputer/GAO_FENG_SHAN",
+    "AAA/unruputer/SUN_SHU_MING",
+    "AAA/unruputer/ZHU_ZI_HAI",
+    "AG/fast/CHEN_SHI_MING",
+    "AG/fast/FAN_JIAN_MING",
+    "AG/slow/ZHANG_JING_SHUN"
+  ],
+  "case_level_feature_disable": false,
+  "retain_all_case_supervision": true,
+  "missing_value_policy": "per_field_validity_not_case_level_disable",
+  "independent_audit": {
+    "expected_cases": 170,
+    "audited_cases": 170,
+    "cases_with_errors": 0,
+    "structural_errors": 0,
+    "numeric_errors": 0,
+    "all_mechanical_checks_pass": true,
+    "recovered_reference": 674,
+    "recovered_pointcloud": 340
+  },
+  "audit_sha256": "a88a1441c25a23e01e3f2f721bb53306404a6409d3581d3c5e14f0e3563f6217",
+  "training_allowed": false
+}

@@ -1,311 +1,64 @@
 ---
 name: postview-surface-viz
 description: >-
-  GNN/CROWN 点云标量回插 STL 面片并生成病例级可视化（postview 交付包、三联图、ParaView 包），
-  以及把体点云转成可在 ParaView Slice 出连续填充截面的 .vtu 体网格。
-  在用户要求后处理可视化、面片云图、点云插值到 STL、点云转 VTU/VTP、做截面/切片、postview、
-  merged-1146 汇报图、CFD|Pred|Error 三联图时使用。遵循 docs/paper_reproduction/05-点云预测值与真值回插到面片方法.md。
+  为 AAA/WSS 仓库生成可后处理的病例包：WSS/压力壁面 Gaussian 面片、原始点云、原生 CFD 壁面及原量/selfmax 对照图。
+  用于 postview、点云回插、代表病例与截面展示；速度保留体内点云，按 run 适配 V5/WSS-min、历史 V3 或 CROWN 的坐标和指标口径。
 ---
 
-# 点云 → 面片后处理可视化（postview）
+# 病例场可视化与 ParaView 交付
 
-## 触发
+交付可在后处理软件打开的场文件、预览与可追溯的数值来源。用户明确要求更窄范围时按其范围执行；完整病例包默认遵循 [交付与字段合同](delivery-fields.md)，不能只给点云或截图代替要求的壁面面片。下文仓库路径相对仓库根目录；技能参考文件相对本目录。
 
-「后处理可视化」「面片云图」「回插 STL」「点云转 VTU/VTP」「做截面/切片/Slice」「postview」「merged-1146 图」「三联图」「ParaView 包」等；或给出 `manifest.json` / CROWN checkpoint + 病例名。
+## 先识别数据合同
 
-**默认假定**：V3P/GNN 场重建；CROWN baseline 走专用分支。**禁止**把插值面片指标当作正式 R²。
+优先使用用户指定的 run、checkpoint、病例和变量；未指定时读根 `README.md`、`docs/README.md` 的当前入口，再读对应实验目录。以实际配置、预测 manifest、原始指标核对：
 
----
+- `target`、数据根/版本、split、病例 canonical ID；不按目录名猜测模型输出。
+- 帧号/时间模式、support/query 采样、checkpoint 选择规则、推理种子。
+- 坐标单位、配准版本/旋转约定、标量单位/归一化、压力参考零点。
 
-## 0. 核心口径（每次必守）
-
-| 目的 | 口径 |
+| 对象 | 按需阅读 / 入口 |
 | --- | --- |
-| **数值指标** | 原始同点点云 CSV（`__wall.csv`），**不**在插值面片上算 R² |
-| **病例级云图** | 点云标量 → **同一 STL** + **同一插值法/参数** → VTP/PNG |
-| **展示帧** | 默认 **`result_features_merged-1146`**（`t_norm≈0.16`，收缩期上升段）；**不用** 1120 作主图 |
+| 所有新建/补全病例包 | [delivery-fields.md](delivery-fields.md)：按变量交付、selfmax 分母、索引与验收合同 |
+| V5 / WSS-min 直接壁面 WSS | [v5-wss-min.md](v5-wss-min.md)；`training_wss_min/tools/export_wss_postview.py` |
+| V5 压力/速度体场 | [v5-wss-min.md](v5-wss-min.md) 的体场部分；检查批次工具是否固定 run 与输出 |
+| 历史 V3P/GNN 或 CROWN | [legacy-v3-crown.md](legacy-v3-crown.md)；插值细节见 [reference.md](reference.md) |
+| 真实连续截面 | 本文“网格选择”；再查 `tools/cfdpost_cloud_export/build_sliceable_volume.py` 与源数据坐标合同 |
 
-图注必写：`merged-1146 · t_norm≈0.16 · 收缩期上升段（近似）· Gaussian r=3 mm, sharpness=2`；若报数字须注明 **81 帧 pooled**。
+2026-09-12 的 V5 直接 WSS 使用 peak 1162；历史 V3 展示通常为 merged-1146。后续仍以本次配置为准，不能给单帧图标注“81 帧 pooled”。
 
-方法细节与 QC 清单 → [reference.md](reference.md) · 交付索引 → `outputs/field/postview/README.md` · 方法论文档 → `docs/paper_reproduction/05-点云预测值与真值回插到面片方法.md`
+## 指标与展示分开核验
 
----
+- 正式误差/R²来自原始同点预测和真值，按实验约定的点级、病例等权或 pooled 口径报告；不能在 Gaussian/STL 插值结果上重算后替代正式指标。
+- 最好/最差病例按约定的正式逐病例预测 R²排序，中位病例取距分布中位数最近的实际病例；记录排序范围与规则。用户已指定病例则直接使用。多种子均值选例与某一个种子实际出图的 R²分别列出；回归拟合 R²不能代替预测 R²。
+- 未指定病例范围时，可从已有、允许使用的评估中选最好/最差各一例。不能为了选两例暗中重新推理整队列；缺逐病例结果时先利用可用证据完成其余部分。
+- CFD、Pred 在同一几何/坐标上比较，使用相同插值和 field 色标范围；signed error 为 pred−CFD，absolute error 单独标识。
+- 每个可预测标量默认同时保留原量与 selfmax：CFD/CFDmax、Pred/Predmax，以及两种口径各自的有符号/绝对误差。分母取本病例、本帧原始完整同点评估域，并在点云、native、Gaussian 中固定复用；不在面片上重求最大值。selfmax 移除了幅值差，只比较分布。公式、压力负值与无效分母见 [字段合同](delivery-fields.md#selfmax-字段与固定分母)。
+- 如另需 CFD 最大值共分母，作为独立标量明确命名；不能把它、训练 `true_norm/pred_norm` 或 min-max 显示缩放当作 selfmax。
+- 顶点 top10% 与面积 top10% 不是同一指标；按 manifest 的 `surface_metric_mode`、面积映射状态标注。
 
-## 0.5 两条产物路线（先判别需求）
+## 网格选择
 
-| 需求 | 产物 | 几何 | 标量挂载 | 脚本 | 节点用途 |
-| --- | --- | --- | --- | --- | --- |
-| **只看壁面**（WSS/压力面片云图、三联图） | **VTP 面片**（三角面） | STL 三角网格 | 壁面点云 → 插值到 STL 顶点 | `map_to_stl_surface.py`（§3.1/§3.4） | 旋转看面 |
-| **要做截面/切片**（腔内压力、速度切面） | **VTU 体网格** | Fluent `.cas` 四面体单元 | 体点云 → 插值到网格节点 | `build_sliceable_volume.py`（§3.5） | ParaView Slice 出连续填充截面 |
-
-判别关键：**ParaView/CFD-Post 对纯点云做 Slice 只会切到平面附近的稀疏散点**，要得到连续填充截面，标量必须挂在**带体单元连接**的网格上（即 `.vtu`，与文件后缀 `.cas/.dat` 无关）。仅看壁面则无需体网格，VTP 面片即可。
-
-### 0.6 先锁定病例范围，避免无意全量导出
-
-- 对已完成的 baseline，默认只导出**一个最佳与一个最差**的开发集病例；以正式同点 `per_case_metrics.csv` / `metrics.json` 的逐病例 R² 排序，并在批次 README 记录模型、分区、排序指标与数值。
-- 仅当用户明确要求“全部病例 / 全 val / 全 test / 批量”时，才提交全病例后处理作业；test 仍遵守原实验访问门禁。
-- 用户要求 `wss / wss(max)` 时，CFD、预测、signed error 与 absolute error 必须都除以**同一病例 CFD 壁面最大 WSS**；在 VTP 使用明确后缀（如 `*_over_cfd_max`），并在 manifest 写入分母（Pa）。不得各自按预测最大值归一化。
-
----
-
-## 1. 锁定输入
-
-### 1.1 GNN / V3P
-
-| 项 | 路径/说明 |
-| --- | --- |
-| manifest | `outputs/field/<run>/predictions_test_best_wss/manifest.json`（或 `predictions_test`） |
-| 病例 | `slow/GUO_XI_JIANG` · `slow/ZHANG_JUN_HUA` · `fast/CHEN_SHI_MING`（汇报三例） |
-| STL | `data_new/AG/<CASE_NAME>/<CASE_SHORT>.stl` |
-| 展示帧 | `SAMPLE_ID=result_features_merged-1146` |
-
-从 `config.snapshot.json` / 用户说明确认 run；**不要**与 V3D 或 CROWN 指标混表。
-
-### 1.2 CROWN baseline
-
-| 项 | 路径/说明 |
-| --- | --- |
-| config | `external_baselines/crown_beihang/configs/local/crown_original_vp_*.json` |
-| checkpoint | `outputs/external_baselines/crown_beihang/.../best_model.pt` |
-| 说明 | CROWN **无 wss_pred**；主变量 `p` / `vel_mag`；WSS 仅 `wss_cfd` 真值 |
-
----
-
-## 2. 默认插值参数（与现有 postview 对齐）
-
-```text
-METHOD=gaussian
-RADIUS=3.0      # mm
-SHARPNESS=2.0
-MAX_DIST=3.0    # mm
-FIELD_CMAP=GNN_BWR
-ERR_CMAP=GNN_BWR
-```
-
-**一次性回插标量**（GNN 壁面）：
-
-```text
-wss_cfd,wss_pred,err_wss,abs_err_wss,
-wss_cfd_over_cfd_max,wss_pred_over_cfd_max,
-err_wss_over_cfd_max,abs_err_wss_over_cfd_max,
-p_cfd,p_pred,err_p,abs_err_p
-```
-
-debug 坐标对齐可用 `--method nearest`；汇报主图用 **gaussian**。
-
----
-
-## 3. 执行流程（按场景选一条）
-
-**环境**：仓库根目录；`export_for_cfdpost.py` → **GNN**；`map_to_stl_surface.py` / `plot_stl_mapped_triptych.py` → 现有 shell 默认 **GNN**（需 vtk）。
-
-### 3.1 ★ GNN 完整 ParaView 交付包（推荐）
-
-每病例生成 `surface_wall.vtp` + 配色 + 说明 + `manifest_bundle.json`：
-
-```bash
-cd /path/to/GNN
-conda activate GNN
-
-MANIFEST=outputs/field/<run>/predictions_test_best_wss/manifest.json \
-CASE_NAME=slow/GUO_XI_JIANG \
-SAMPLE_ID=result_features_merged-1146 \
-RUN_TAG=v3p_i6diag_t016_report \
-bash tools/cfdpost_cloud_export/package_postview_case.sh
-```
-
-产出：`outputs/field/postview/<RUN_TAG>/<CASE>__result_features_merged-1146/`
-
-| 主文件 | 用途 |
-| --- | --- |
-| `<CASE>__surface_wall.vtp` | ★ ParaView 面片云图（含全部标量） |
-| `<CASE>__pointcloud_wall.vtp` | 原始壁面点云（对照插值平滑） |
-| `<CASE>__mapping_report.json` | 覆盖率 / map_dist 统计 |
-| `GNN_blue_white_red.xml` | 蓝-白-红色标 |
-| `README_后处理打开说明.md` | ParaView 操作 |
-
-三例批量：对 `GUO_XI_JIANG` / `ZHANG_JUN_HUA` / `CHEN_SHI_MING` 各跑一遍（改 `CASE_NAME`）。
-
-### 3.2 GNN 仅出 WSS/P 三联 PNG（无 ParaView 包）
-
-```bash
-MANIFEST=outputs/field/<run>/predictions_test_best_wss/manifest.json \
-CASE_NAME=slow/GUO_XI_JIANG \
-SAMPLE_ID=result_features_merged-1146 \
-RUN_TAG=<slug> \
-bash tools/cfdpost_cloud_export/run_case_surface_compare.sh
-```
-
-产出：
-- PNG：`outputs/field/plots/stl_surface_compare/<RUN_TAG>/<stem>/fig_{wss,p}_triptych.png`
-- 中间件：`tools/cfdpost_cloud_export/output/<RUN_TAG>/route_interp/*__stl_mapped_wall.vtp`
-
-### 3.3 CROWN 完整包（推理 + 映射 + 压力/速度三联图）
-
-```bash
-CROWN_CONFIG=external_baselines/crown_beihang/configs/local/crown_original_vp_split_AG_v1_seed1.json \
-CROWN_CKPT=outputs/external_baselines/crown_beihang/<run>/best_model.pt \
-CASE_NAME=slow/GUO_XI_JIANG \
-SAMPLE_ID=result_features_merged-1146 \
-RUN_TAG=crown_vp_t016_report \
-CROWN_METHOD_LABEL=non-PINN \
-bash tools/cfdpost_cloud_export/package_crown_postview_case.sh
-```
-
-三例批量：
-
-```bash
-bash tools/cfdpost_cloud_export/run_crown_surface_batch.sh
-```
-
-PINN 变体：改 `CROWN_CONFIG` / `CROWN_CKPT` / `RUN_TAG=crown_pinn_t016_report` / `CROWN_METHOD_LABEL=PINN`。
-
-已有 `_export` CSV 时仅重映射+补图：
-
-```bash
-bash tools/cfdpost_cloud_export/refresh_crown_surface_plots.sh
-```
-
-### 3.4 已有 wall CSV，仅重跑映射
-
-```bash
-conda activate GNN
-
-python tools/cfdpost_cloud_export/map_to_stl_surface.py \
-  --csv <path/to/*__wall.csv> \
-  --stl data_new/AG/<case>/<CASE>.stl \
-  --method gaussian \
-  --radius 3.0 \
-  --sharpness 2.0 \
-  --max-dist 3.0 \
-  --scalars wss_cfd,wss_pred,err_wss,abs_err_wss,p_cfd,p_pred,err_p,abs_err_p \
-  --output-dir <out>/surface_gaussian
-```
-
-补三联图：
-
-```bash
-python tools/cfdpost_cloud_export/plot_stl_mapped_triptych.py \
-  --vtp <out>/*__stl_mapped_wall.vtp \
-  --render surface \
-  --variable wss|p|vel_mag \
-  --output <out>/fig_<var>_triptych.png \
-  --field-cmap GNN_BWR --err-cmap GNN_BWR \
-  --report-json <out>/fig_<var>_triptych_report.json
-```
-
-### 3.5 ★ 体点云 → 可切面 .vtu（做截面用）
-
-**前提**：已有 `<CASE>__volume_merged-1146.vtp`（§3.1 的交付包里已含；它是体点云=Fluent 单元中心点 + 合并 pred/cfd 标量）。
-
-**环境**：`conda activate GNN_vmtk`（`.cas` 模式需 `vtkFLUENTReader`，比纯 GNN 环境更稳）。
-
-**默认 `.cas` 模式（推荐，最严谨）**——从 Fluent `.cas` 读体单元，再把体点云标量高斯插值到网格节点：
-
-```bash
-conda activate GNN_vmtk
-
-CASEDIR=outputs/field/postview/v3p_i6diag_t016_report/GUO_XI_JIANG__result_features_merged-1146
-python tools/cfdpost_cloud_export/build_sliceable_volume.py \
-  --cas data_new/AG/slow/GUO_XI_JIANG/GUO_XI_JIANG.cas.gz \
-  --source $CASEDIR/GUO_XI_JIANG__volume_merged-1146.vtp \
-  --output $CASEDIR/GUO_XI_JIANG__volume_merged-1146.vtu \
-  --cas-scale 1000 --radius 2.0 --sharpness 2.0 --fallback nearest
-```
-
-- `--cas-scale 1000`：Fluent `.cas` 多为米，点云为 mm，必须 ×1000 对齐（默认即 1000）。
-- 验证：日志打印 `单元数 > 0`；节点数应等于 `.cas` 网格节点（≠ 来源点数，说明确实挂到了体单元）。
-- `--interior-only`：仅用 `is_wall==0` 的点，去壁面只看腔内场（可选）。
-
-**无 `.cas` 兜底**——直接对体点云 Delaunay3D 四面体化（凸包会在凹陷/分叉外侧补料，精度不如 `.cas`）：
-
-```bash
-python tools/cfdpost_cloud_export/build_sliceable_volume.py \
-  --delaunay --alpha 4.0 \
-  --source $CASEDIR/_export/*__all.csv \
-  --output $CASEDIR/GUO_volume_delaunay.vtu
-```
-
-**ParaView**：Open `.vtu` → Filters → **Slice**（选法向/原点）→ Coloring 选 `p_cfd`/`p_pred`/`err_p`/`vel_mag_cfd` → 即得连续填充截面。多切面用 Slice 的 Plane 偏移或 Filters → Clip。
-
----
-
-## 4. 出图规范
-
-### 4.1 三联图布局
-
-| CFD 真值 | GNN/CROWN 预测 | 误差 |
+| 需求 | 合适产物 | 必查 |
 | --- | --- | --- |
-| `wss_cfd` / `p_cfd` / `vel_mag_cfd` | `*_pred` | `err_*` 或 `abs_err_*` |
+| WSS | 原始壁面点云 + Gaussian STL 面片；有身份一致的 CFD 壁面拓扑时另附 native 面片 | 面片必须有三角面；保留原量、selfmax 与映射质量 |
+| 速度 | 体内点云，保留 CFD/Pred 速度向量和速度大小 | 以 query/单元身份及同帧真实壁面距离验域，不能只看 `point_kind`；默认不回插壁面，selfmax 使用向量模 |
+| 壁面与体内均有压力 | 完整 wall∪interior 点云 + 仅壁面点回插的 Gaussian 面片；可用时附 native 面片 | 点云保留点类型，面片不混入体内压力点；所有产物共享完整原始域的 selfmax 分母 |
+| 明确要求的体点云 slab/投影 | 点云 VTP、投影 PNG | slab/投影/深度均值不是连续 Slice，写明方法 |
+| 连续腔内截面 | 带真实体单元连接的 VTU | 优先 Fluent 体拓扑；坐标与速度向量同帧，身份映射可核验 |
 
-- CFD 与 Pred **同一色标范围**（`plot_stl_mapped_triptych.py` 默认共用 field range）
-- 误差列单独色标
-- 标题含：病例 · 帧号 · 变量 · 插值参数
+VTP 后缀不保证存在面，VTU 后缀也不保证连接正确。不要只改后缀，或把 Delaunay 凸包跨越血管分叉的补料当成原 CFD 流域。确需近似时说明局限并检查越界。
 
-### 4.2 ParaView 交互出图
+近壁低速点可能是真实体内单元中心，不能按速度值把它们当成壁面删除。完整点云遮挡内部时，可附几何半剖或薄层点集用于查看，保留完整原场、原分母及正式指标；具体身份核验和子集合同见 [体点身份与几何查看](delivery-fields.md#体点身份与几何查看)。
 
-读 `README_后处理打开说明.md`：`Representation=Surface` · 导入 `GNN_blue_white_red.xml` · CFD/Pred 关 separate color scales。
+## 执行与验收
 
-### 4.3 交付目录约定
+1. 优先复用已验收预测缓存、同点 CSV 与现有脚本；核对参数及默认输出，避免覆盖历史包。必要修改先完成并验证，再进入已授权的推理/出图。
+2. 已授权的病例导出、必要本地汇总/绘图持续完成；授权包含 test 病例时，传递脚本要求的参数，不重复询问。新全量推理、批量 WSS 重评或训练不由“看看图”自动授权。
+3. 大量推理/网格处理使用该路线集群入口；需要 node04 时读对应技能。独立病例/变量可并行，统一排序与色标；共享 batch manifest、README、工作簿由一个写者更新。
+4. 读取 mapping report，检查覆盖率、映射距离、坐标叠合、镜像、分叉跨壁插值。覆盖率通过不等于面积映射通过；以该路线实际 Gate 为准。Gaussian 的 CFD/Pred 同一 stencil，误差在回插后的两个值之间重算。
+5. 重新读取写出的 VTP/CSV：核对原点身份、数组值、向量分量、三角面与 selfmax 固定分母。不能仅用“能打开”验收。具体数值检查见 [交付与字段合同](delivery-fields.md#交付前核验)。
+6. 打开代表 PNG 检查图例、单位、裁剪与色标；原量与 selfmax 分开出图。每组 CFD/Pred 共用色标，有符号误差用对称色标。VTU 另查非零体单元与场数组。
+7. manifest/批次说明写清数据合同、选择/出图指标、selfmax 分母与定义、映射参数、验收结果和相对输出路径。附可直接打开的文件清单；包内路径随文件夹移动仍可用。
 
-```text
-outputs/field/postview/<RUN_TAG>/
-├── README.md                    # 批次说明（可选，多 run 对照时写）
-├── <CASE>__result_features_merged-1146/
-│   ├── <CASE>__surface_wall.vtp
-│   ├── plots/fig_{wss,p,vel_mag}_triptych.png
-│   └── manifest_bundle.json
-└── V3P_vs_CROWN_对照表_1146.md   # 跨方法并排时
-```
-
-路径与 `manifest.json` 写入 `docs/02-推进与变更/代码修改与实验推进记录.md` 文首（与 `实验分析对比图目录说明.md` 的 analysis_compare **分开**）。
-
----
-
-## 5. 质量控制（出图前必查）
-
-复制 checklist 并逐项确认 → [reference.md §QC](reference.md#qc-出图前清单)
-
-最低要求：
-- [ ] `mapping_report` 中 `valid_ratio` ≥ 95%
-- [ ] STL 与 CSV 无错位/镜像
-- [ ] CFD 与 Pred 同插值法、同参数
-- [ ] 图注含帧号 + 插值参数 +「指标为 pooled CSV」
-- [ ] 正式 R² 仍来自 run `summary.json`，非面片 VTP
-
-**截面出图关键坑**：单截面内变量跨度（几十 Pa）远小于全腔全局范围（压力 ~3000 Pa），若色标用全局范围，截面会几乎一个颜色。出截面图时务必把色标 **Rescale 到该截面的局部/可见范围**（ParaView: Rescale to Visible Data Range），才能复现 Fluent 那种丰富的截面云图。（另注：某些 run 的 `vel_mag_pred` 可能退化为常数；压力单位为 Pa，转 mmHg 需 ÷133.322。）
-
----
-
-## 6. 任务完成检查
-
-- [ ] 产物路径可打开（VTP 或 PNG 存在）
-- [ ] `mapping_report.json` 已读并记录 coverage
-- [ ] 需要跨方法对比时更新 `outputs/field/postview/*对照表*.md`
-- [ ] 推进记录文首追加条目（日期 · run · 病例 · 帧 · 产物路径）
-
----
-
-## 7. 禁止
-
-- 用 **1120** 作主汇报帧（除非用户明确要求对照）
-- 在插值面片上算正式 R² 与 pooled 指标混报
-- CFD 真值（Fluent 原生网格）与 GNN 插值面片**不说明口径差异**就并排
-- 把 CROWN/V3P postview 数字写入 V3 母版实验表（见 `docs/00-规范与记录/外部baseline实验记录规范.md`）
-- 未经用户明确要求代跑 WSS 批量对比脚本（见 workspace wss 规则）
-
----
-
-## 8. 相关脚本与文档
-
-| 资源 | 路径 |
-| --- | --- |
-| 工具包 README | `tools/cfdpost_cloud_export/README.md` |
-| 壁面点云 → STL 面片 VTP | `tools/cfdpost_cloud_export/map_to_stl_surface.py` |
-| 体点云 → 可切面 .vtu | `tools/cfdpost_cloud_export/build_sliceable_volume.py` |
-| 体点云合并 pred/cfd → VTP | `tools/cfdpost_cloud_export/export_volume_merged_vtp.py` |
-| 三条路线 A/B/C | `tools/cfdpost_cloud_export/三条对比路线.md` |
-| postview 索引 | `outputs/field/postview/README.md` |
-| **落盘目录规范** | `docs/00-规范与记录/点云回插面片可视化目录说明.md` |
-| 方法论文档 | `docs/paper_reproduction/05-点云预测值与真值回插到面片方法.md` |
-| 精度分析对比图（另一套） | `docs/00-规范与记录/实验分析对比图目录说明.md` |
+WSS 独立线交付写入 `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md` 文首；历史 V3/通用交付写入 `docs/02-推进与变更/代码修改与实验推进记录.md`。单纯解释已有图时无需制造新产物或重复记账。回复给出图件预览、主包路径与影响解读的限制。

@@ -1,0 +1,35 @@
+{
+  "stem": "04_x5",
+  "claim": "X5把Murray尺度先验输入几何通路，并分别在support特征和log_z输出处做局部残差修正。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/baseline_models.py",
+      "sha256": "bd3f2a4fb8d6b33b0555f0f11055210b282e3a7c7d9e04fb0b873038ba478613"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/local_refinement.py",
+      "sha256": "67dd678f47a615c69fd3af57c333f5abac0d3c203375f5340ec3407af145f01a"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X5_s1234.json",
+      "sha256": "dcdb2db2d59170afee8da836c60536399ad92f1744b9935afcdfe1b370314564"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/04_x5.pdf",
+    "svg": "figures/04_x5.svg",
+    "png": "figures/04_x5.png"
+  },
+  "alignment": "NOT APPLICABLE",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/04_x5.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/04_x5.collision.json"
+    }
+  },
+  "note": "Two additions are different quantities: support32D and log_z. FiLM context label references the query feature and the max-pooled SA3 case feature. The downward reference arrow is from the query block, not from its scalar output."
+}

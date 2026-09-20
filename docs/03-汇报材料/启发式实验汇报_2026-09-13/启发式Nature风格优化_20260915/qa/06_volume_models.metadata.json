@@ -1,0 +1,35 @@
+{
+  "stem": "06_volume_models",
+  "claim": "PF6与VF6是两套独立权重模型，其BT接入位置和support局部分支不同，但均用QAD几何残差回答体内query。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/baseline_models.py",
+      "sha256": "bd3f2a4fb8d6b33b0555f0f11055210b282e3a7c7d9e04fb0b873038ba478613"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+      "sha256": "7478854a1f43a8e23312dcf62bb0b1e1aedbd5b943f2ba235942bbac2fa90e62"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+      "sha256": "35f1ac353029ac123433ab3e41b94fc0c747f87eba8ad6f0c443a094490a592d"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/06_volume_models.pdf",
+    "svg": "figures/06_volume_models.svg",
+    "png": "figures/06_volume_models.png"
+  },
+  "alignment": "PASS",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/06_volume_models.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/06_volume_models.collision.json"
+    }
+  },
+  "note": "Two equal-width equal-height rows are aligned for architectural comparison. The bottom QAD explanation and velocity-to-WSS note are shared annotations outside the comparison axes. The arrow to WSS is external postprocessing, not an implemented VF6 head."
+}

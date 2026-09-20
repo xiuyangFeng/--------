@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "applicable": true,
+  "auditable": true,
+  "verdict": "PASS",
+  "backend": "python-matplotlib",
+  "summary": {
+    "fail": 0,
+    "warn": 0,
+    "comparisons": 6,
+    "exemptions": 1
+  },
+  "tolerances": {
+    "alignment_pt": 1.5,
+    "gutter_pt": 1.5
+  },
+  "layout": {
+    "schema_version": 1,
+    "backend": "python-matplotlib",
+    "figure": {
+      "width_pt": 1152.0,
+      "height_pt": 648.0
+    },
+    "panels": [
+      {
+        "id": "a",
+        "bbox_pt": [
+          218.88,
+          412.938,
+          794.8799999999999,
+          479.52
+        ],
+        "panel_label": "a",
+        "panel_label_anchor_pt": [
+          203.88000000000002,
+          479.52
+        ]
+      },
+      {
+        "id": "b",
+        "bbox_pt": [
+          910.08,
+          412.938,
+          1105.92,
+          479.52
+        ],
+        "panel_label": "b",
+        "panel_label_anchor_pt": [
+          895.0800000000002,
+          479.52
+        ]
+      },
+      {
+        "id": "c",
+        "bbox_pt": [
+          218.88,
+          312.012,
+          794.8799999999999,
+          378.59400000000005
+        ],
+        "panel_label": "c",
+        "panel_label_anchor_pt": [
+          203.88000000000002,
+          378.59400000000005
+        ]
+      },
+      {
+        "id": "d",
+        "bbox_pt": [
+          910.08,
+          312.012,
+          1105.92,
+          378.59400000000005
+        ],
+        "panel_label": "d",
+        "panel_label_anchor_pt": [
+          895.0800000000002,
+          378.59400000000005
+        ]
+      },
+      {
+        "id": "e",
+        "bbox_pt": [
+          218.88,
+          211.086,
+          794.8799999999999,
+          277.668
+        ],
+        "panel_label": "e",
+        "panel_label_anchor_pt": [
+          203.88000000000002,
+          277.668
+        ]
+      },
+      {
+        "id": "f",
+        "bbox_pt": [
+          910.08,
+          211.086,
+          1105.92,
+          277.668
+        ],
+        "panel_label": "f",
+        "panel_label_anchor_pt": [
+          895.0800000000002,
+          277.668
+        ]
+      },
+      {
+        "id": "g",
+        "bbox_pt": [
+          218.88,
+          110.16000000000003,
+          794.8799999999999,
+          176.74200000000002
+        ],
+        "panel_label": "g",
+        "panel_label_anchor_pt": [
+          203.88000000000002,
+          176.74200000000005
+        ]
+      },
+      {
+        "id": "h",
+        "bbox_pt": [
+          910.08,
+          110.16000000000003,
+          1105.92,
+          176.74200000000002
+        ],
+        "panel_label": "h",
+        "panel_label_anchor_pt": [
+          895.0800000000002,
+          176.74200000000005
+        ]
+      }
+    ],
+    "row_groups": [
+      {
+        "id": "row-1",
+        "panels": [
+          "a",
+          "b"
+        ]
+      },
+      {
+        "id": "row-2",
+        "panels": [
+          "c",
+          "d"
+        ]
+      },
+      {
+        "id": "row-3",
+        "panels": [
+          "e",
+          "f"
+        ]
+      },
+      {
+        "id": "row-4",
+        "panels": [
+          "g",
+          "h"
+        ]
+      }
+    ],
+    "column_groups": [
+      {
+        "id": "column-1",
+        "panels": [
+          "a",
+          "c",
+          "e",
+          "g"
+        ]
+      },
+      {
+        "id": "column-2",
+        "panels": [
+          "b",
+          "d",
+          "f",
+          "h"
+        ]
+      }
+    ],
+    "boundary_groups": [],
+    "exemptions": [
+      {
+        "panels": [
+          "b",
+          "d",
+          "f",
+          "h"
+        ],
+        "checks": [
+          "panel-width"
+        ],
+        "reason": "Narrow frequency summaries accompany the wide all-case scatter; source identities and seed uncertainty need more horizontal space."
+      }
+    ]
+  },
+  "findings": []
+}

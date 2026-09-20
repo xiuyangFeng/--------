@@ -1,0 +1,2811 @@
+{
+  "mode": "formal",
+  "job_id": "14040",
+  "started_at": "2026-09-10T18:15:25+0800",
+  "status": "complete",
+  "gpus": [
+    "0"
+  ],
+  "slots_per_gpu": 4,
+  "source_sha256": {
+    "training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "training_wss_min/baseline_models.py": "619c21d90858b1135b3366e89e6d13dc2f44be3cd0ef95c9dcf07fa0d16356cf",
+    "training_wss_min/config.py": "225a2892772af7e0a6651ec8364fe47ab8ab41113912bac1d39da2a46bc10e1a",
+    "training_wss_min/configs/volume_attention_20260910/J00_s1234.json": "1837a87f64330b24852dadf335f226e78e70c19040298b2e0b9092bd30a24076",
+    "training_wss_min/configs/volume_attention_20260910/J01_s1234.json": "e5fcfcf05655b2f06b25461dd5685a651780259c0cd21fda7fbfee6e123e29ac",
+    "training_wss_min/configs/volume_attention_20260910/P00_s1234.json": "c70357a7b11655c1d8f42b2e00dbb95e932fbe15217726c88376b17fae5c57f6",
+    "training_wss_min/configs/volume_attention_20260910/P01_s1234.json": "0fc221ffee808f0542c60159778fc1f104a9b1fc858533c1e5e54dff567800e9",
+    "training_wss_min/configs/volume_attention_20260910/P02_s1234.json": "3cf2bc0ad9c8d0da2ed55f3eb4bcd6b8701de286b32783f77858541e5f51e50b",
+    "training_wss_min/configs/volume_attention_20260910/P03_s1234.json": "992424a7b21d1c654adbe431e895d47f3f647732f5f9fec7e75b8c50cb947060",
+    "training_wss_min/configs/volume_attention_20260910/P04_s1234.json": "99b10771e118551f35363a740b2636d9e3c95865333ae600dca130e95f9b68a6",
+    "training_wss_min/configs/volume_attention_20260910/P05_s1234.json": "8831b620f14ade5c770403534fdb3143fc49d527c4a1485950845a9a8623f8c1",
+    "training_wss_min/configs/volume_attention_20260910/P06_s1234.json": "5e24bc0e73b9391c03d46a47455ca3907e6d100467478bb150eb59dd3e34a81f",
+    "training_wss_min/configs/volume_attention_20260910/P07_s1234.json": "877d11e04ccd17bdbc450b86a404981befb7b0a336f3d6bbbb6823536640baa1",
+    "training_wss_min/configs/volume_attention_20260910/P08_s1234.json": "20e4fa1eba67bb73e93655f72bde5ab4e10b455a8cddd1b74cc109f39cbfa480",
+    "training_wss_min/configs/volume_attention_20260910/P09_s1234.json": "e7ba4a5cc183bcbf187c255889e75f9a658dc141cdb4e097ca4b0d2be2a37246",
+    "training_wss_min/configs/volume_attention_20260910/P10_s1234.json": "df04df0baa904bc5292a209e43c9c58322f82195ce893186d135281281d02df1",
+    "training_wss_min/configs/volume_attention_20260910/P11_s1234.json": "239d8fb30011f806ab6116f2b4b718c6d1ba4cd6827d8e123b5ddcba0b6c7f6b",
+    "training_wss_min/configs/volume_attention_20260910/V00_s1234.json": "89d7e591cbc98296bcd6aed5c03f9e24218aa0939bc64f434672088dbed3dbad",
+    "training_wss_min/configs/volume_attention_20260910/V01_s1234.json": "66e57d82e5f2bcc5b297adf8bcd751eb0d3c17fbeef2527cc8fa316523b298ab",
+    "training_wss_min/configs/volume_attention_20260910/V02_s1234.json": "76bcc5c75e86d97142836baa04bffc6513965c219b157e58e12c921aacdde986",
+    "training_wss_min/configs/volume_attention_20260910/V03_s1234.json": "5b2cb2d794154e15962b1727f2bf24dee1d53310338714523e463ec697f14640",
+    "training_wss_min/configs/volume_attention_20260910/V04_s1234.json": "686d6ad0ba5419b0135289c4eec03c54a9306c0729d2ab27ae8307ec03be76bc",
+    "training_wss_min/configs/volume_attention_20260910/V05_s1234.json": "6a94537ba2dcd36007c9cb1fd24d3366bd7a9484dd765895121054541136a6aa",
+    "training_wss_min/configs/volume_attention_20260910/V06_s1234.json": "7f9426cd84fd959a1211e7eb63c2644ea7c72679cfb3f7fe177c0f81149825ce",
+    "training_wss_min/configs/volume_attention_20260910/V07_s1234.json": "f6b632ca53ecf3f911aba5476731df840ac4033b98c9c7b08ed6607bca6b6817",
+    "training_wss_min/configs/volume_attention_20260910/V08_s1234.json": "3b3a2b4701c9e36f0326b3373f0871c10ff29eeb00d5250573bbe7d9b7eda07e",
+    "training_wss_min/configs/volume_attention_20260910/V09_s1234.json": "b05b479d5dfdb4ef8a7654aa8eeb6e20b3abfe1c2e03bc750aa038da0e78cb53",
+    "training_wss_min/configs/volume_attention_20260910/V10_s1234.json": "300f748589f89e490d16621c1c1554d7e40caaac521591333aeac195835dc786",
+    "training_wss_min/configs/volume_attention_20260910/V11_s1234.json": "7a6251f5aeec7df69d40329e6e6b180642332e44e05f69272a0168c983250b6d",
+    "training_wss_min/configs/volume_attention_20260910/matrix.json": "a3ac7497def764b150bfdf1fa0fadbd2bcc758b9b0e96c868070547a70fa4ecd",
+    "training_wss_min/configs/volume_attention_20260910/references/J_base.json": "249e519696849fdb2d13353b4945b97bec52fbc0e405c80d4c1313a7763ce803",
+    "training_wss_min/dataset.py": "ffd1b1fd46436c8d1ee891048002591540ff198fcb49348de805e6438f645412",
+    "training_wss_min/evaluate.py": "fbbcdec649caf9e2d8dba9048eda8f30cf37d314bac46eab29c661fbc5bd4997",
+    "training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/objectives.py": "d266df1af388a415c98debbc30facffeb6832db8d438f3299e8fb5ce3aced458",
+    "training_wss_min/paired_initialization.py": "e91bd352b15d24310b9cd022427b058244a1967b007d3b5f0d11ac4645853e28",
+    "training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "training_wss_min/tests/test_volume_attention_evaluation.py": "496e36d161b77005d346146c541b462addcb1038a57c949b418d097b71caa1d9",
+    "training_wss_min/tests/test_volume_attention_matrix_queue.py": "3435c15648206772c5fa55986d74fb24a3e680e931b2163ac3339a95ec9f5ae8",
+    "training_wss_min/tests/test_volume_attention_models.py": "68447e028577a423b73b51d56cfb9d396c9c135b139bd39ded76c3d8e4a24424",
+    "training_wss_min/tests/test_volume_attention_reporting.py": "1d79723e7acd65ee7e4ad46c0cc93449773c1b30b0757856c7b4b413456cbdd7",
+    "training_wss_min/tests/test_volume_attention_xlsx.py": "35e9f95e9dc3383eb3fc4faaa0ab1f58b738ea5305671f37e4c187ad4ec20924",
+    "training_wss_min/tests/test_volume_joint_data_objectives.py": "af25e984d36c6d6e86b2bd31a40bcc07dba74d9d75121a44114c61e67f830672",
+    "training_wss_min/tools/preflight_volume_attention.py": "f8c2ddf1890ce7f813cd5235363f0a1d0bfbe82f4469241e43762b7ad845b681",
+    "training_wss_min/tools/prepare_v6_singleframe_matrix.py": "e21610f951a5debb1b568d2d4370683bc72c91bff21d2994f66e94bb03c1da3f",
+    "training_wss_min/tools/prepare_volume_attention_matrix.py": "468a3c075f8e18a604e34b984bcc6aa67f62b26c8aff329fe0d094708a1d5788",
+    "training_wss_min/tools/report_volume_attention.py": "807f4e897eb4e404b84c48c2c50f61b71c439a575b80d102fff9930f43dd0c02",
+    "training_wss_min/tools/run_volume_attention_queue.py": "8ee9328f0a2824a4776cf9e461bbf45b99f10e42f76743b10be54e5038475194",
+    "training_wss_min/tools/update_volume_attention_xlsx.py": "402c1818d974d2b72095beb4c35c11def8758dd692ea31882a6eb87d11fc989b",
+    "training_wss_min/tools/volume_attention_common.py": "8d7b25a20128ddc2e9f4da3705c8408a42666aedb90c7afa2a75a7839f5bcb8c",
+    "training_wss_min/tools/volume_attention_diagnostics.py": "4b4b19a7d22cf0fdda761188284e3abd01f2ba2742845a0dfe973fd27e432c8b",
+    "training_wss_min/train.py": "dd1d017728f4de0c5371df4f16f555acb6ff7345e61c376e2925f24e9113d5d2"
+  },
+  "arms": {
+    "P00": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:15:25+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P00_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T19:59:24+0800",
+          "elapsed_seconds": 6239.687485666946
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T19:59:24+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P00_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P00_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:02:22+0800",
+          "elapsed_seconds": 177.25337905902416
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T20:02:22+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P00_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P00_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:02:37+0800",
+          "elapsed_seconds": 15.035284341080114
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T20:02:37+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P00_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P00_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:04:52+0800",
+          "elapsed_seconds": 135.23645049496554
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T20:04:52+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P00_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P00_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:05:07+0800",
+          "elapsed_seconds": 15.015907334978692
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P00_s1234",
+      "gpu": "0",
+      "pid": 1132598
+    },
+    "P01": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:15:37+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P01_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P01_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:00:19+0800",
+          "elapsed_seconds": 6281.726922272006
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T20:00:19+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P01_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P01_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:02:52+0800",
+          "elapsed_seconds": 153.26061866502278
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T20:02:52+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P01_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P01_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:03:07+0800",
+          "elapsed_seconds": 15.056646227953024
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T20:03:07+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P01_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P01_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:05:19+0800",
+          "elapsed_seconds": 132.19716950098518
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T20:05:19+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P01_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P01_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:05:34+0800",
+          "elapsed_seconds": 15.050790664041415
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P01_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P01_s1234",
+      "gpu": "0",
+      "pid": 1133464
+    },
+    "P02": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:15:49+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P02_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P02_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:00:28+0800",
+          "elapsed_seconds": 6278.725544038927
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T20:00:28+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P02_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P02_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:02:49+0800",
+          "elapsed_seconds": 141.21043863904197
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T20:02:49+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P02_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P02_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:03:04+0800",
+          "elapsed_seconds": 15.04012695804704
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T20:03:04+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P02_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P02_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:05:25+0800",
+          "elapsed_seconds": 141.23754049197305
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T20:05:25+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P02_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P02_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:05:43+0800",
+          "elapsed_seconds": 18.079464204027317
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P02_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P02_s1234",
+      "gpu": "0",
+      "pid": 1133550
+    },
+    "P03": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:16:01+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P03_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P03_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:00:58+0800",
+          "elapsed_seconds": 6296.666196685983
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T20:00:58+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P03_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P03_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:03:10+0800",
+          "elapsed_seconds": 132.26739080401603
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T20:03:10+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P03_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P03_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:03:25+0800",
+          "elapsed_seconds": 15.017798204091378
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T20:03:25+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P03_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P03_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:05:34+0800",
+          "elapsed_seconds": 129.1858065740671
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T20:05:34+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P03_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P03_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T20:05:49+0800",
+          "elapsed_seconds": 15.090550841996446
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P03_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P03_s1234",
+      "gpu": "0",
+      "pid": 1133971
+    },
+    "P04": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T20:05:07+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P04_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P04_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:51:01+0800",
+          "elapsed_seconds": 6353.715385026997
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T21:51:01+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P04_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P04_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:53:34+0800",
+          "elapsed_seconds": 153.26347283506766
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T21:53:34+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P04_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P04_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:53:52+0800",
+          "elapsed_seconds": 18.04701738699805
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T21:53:52+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P04_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P04_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:56:04+0800",
+          "elapsed_seconds": 132.2600672999397
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T21:56:04+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P04_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P04_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:56:22+0800",
+          "elapsed_seconds": 18.019897895981558
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P04_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P04_s1234",
+      "gpu": "0",
+      "pid": 1731883
+    },
+    "P05": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T20:05:34+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P05_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P05_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:51:46+0800",
+          "elapsed_seconds": 6371.687257371959
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T21:51:46+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P05_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P05_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:53:58+0800",
+          "elapsed_seconds": 132.27212229405995
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T21:53:58+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P05_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P05_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:54:16+0800",
+          "elapsed_seconds": 18.020681697991677
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T21:54:16+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P05_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P05_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:56:40+0800",
+          "elapsed_seconds": 144.29177519504447
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T21:56:40+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P05_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P05_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:56:58+0800",
+          "elapsed_seconds": 18.037184081040323
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P05_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P05_s1234",
+      "gpu": "0",
+      "pid": 1734620
+    },
+    "P06": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T23:47:23+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P06_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P06_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:34:20+0800",
+          "elapsed_seconds": 6417.053584147943
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T01:34:20+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P06_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P06_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:37:08+0800",
+          "elapsed_seconds": 168.21874931803904
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T01:37:08+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P06_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P06_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:37:23+0800",
+          "elapsed_seconds": 15.068263289984316
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T01:37:23+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P06_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P06_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:40:00+0800",
+          "elapsed_seconds": 156.28775571996812
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T01:40:00+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P06_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P06_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:40:18+0800",
+          "elapsed_seconds": 18.063422826002352
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P06_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P06_s1234",
+      "gpu": "0",
+      "pid": 2957522
+    },
+    "P07": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T23:47:35+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P07_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P07_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:34:20+0800",
+          "elapsed_seconds": 6405.007511729957
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T01:34:20+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P07_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P07_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:37:08+0800",
+          "elapsed_seconds": 168.22224675805774
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T01:37:08+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P07_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P07_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:37:23+0800",
+          "elapsed_seconds": 15.06486467004288
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T01:37:23+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P07_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P07_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:39:57+0800",
+          "elapsed_seconds": 153.19917340495158
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T01:39:57+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P07_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P07_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:40:12+0800",
+          "elapsed_seconds": 15.076142212026753
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P07_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P07_s1234",
+      "gpu": "0",
+      "pid": 2957406
+    },
+    "P08": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T23:47:47+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P08_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P08_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:37:26+0800",
+          "elapsed_seconds": 6579.277023065952
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T01:37:26+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P08_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P08_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:39:57+0800",
+          "elapsed_seconds": 150.22165553097147
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T01:39:57+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P08_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P08_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:40:12+0800",
+          "elapsed_seconds": 15.043418447021395
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T01:40:12+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P08_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P08_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:42:30+0800",
+          "elapsed_seconds": 138.22595498897135
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T01:42:30+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P08_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P08_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:42:45+0800",
+          "elapsed_seconds": 15.03594141092617
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P08_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P08_s1234",
+      "gpu": "0",
+      "pid": 2968156
+    },
+    "P09": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T23:47:59+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P09_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P09_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:38:27+0800",
+          "elapsed_seconds": 6627.323599005002
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T01:38:27+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P09_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P09_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:40:42+0800",
+          "elapsed_seconds": 135.29287411808036
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T01:40:42+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P09_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P09_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:40:57+0800",
+          "elapsed_seconds": 15.01462407305371
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T01:40:57+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P09_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P09_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:43:54+0800",
+          "elapsed_seconds": 177.2371551640099
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T01:43:54+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P09_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P09_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T01:44:09+0800",
+          "elapsed_seconds": 15.040969135938212
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P09_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P09_s1234",
+      "gpu": "0",
+      "pid": 2975827
+    },
+    "P10": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T01:40:12+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P10_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P10_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:31:15+0800",
+          "elapsed_seconds": 6663.446874257992
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T03:31:15+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P10_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P10_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:33:36+0800",
+          "elapsed_seconds": 141.30457920895424
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T03:33:36+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P10_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P10_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:33:52+0800",
+          "elapsed_seconds": 15.057801428018138
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T03:33:52+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P10_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P10_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:36:13+0800",
+          "elapsed_seconds": 141.28742158797104
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T03:36:13+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P10_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P10_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:36:28+0800",
+          "elapsed_seconds": 15.056518364930525
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P10_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P10_s1234",
+      "gpu": "0",
+      "pid": 3582426
+    },
+    "P11": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T01:40:24+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P11_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P11_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:31:21+0800",
+          "elapsed_seconds": 6657.436912261997
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T03:31:21+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P11_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P11_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:33:33+0800",
+          "elapsed_seconds": 132.23504315596074
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T03:33:33+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P11_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P11_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:33:49+0800",
+          "elapsed_seconds": 15.070304546970874
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T03:33:49+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P11_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P11_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:36:04+0800",
+          "elapsed_seconds": 135.29112464294303
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T03:36:04+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P11_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/P11_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:36:19+0800",
+          "elapsed_seconds": 15.032640067045577
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P11_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P11_s1234",
+      "gpu": "0",
+      "pid": 3581719
+    },
+    "V00": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T20:05:46+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V00_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:50:49+0800",
+          "elapsed_seconds": 6302.529066369985
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T21:50:49+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V00_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V00_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:52:55+0800",
+          "elapsed_seconds": 126.18535337399226
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T21:52:55+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V00_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V00_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:53:28+0800",
+          "elapsed_seconds": 33.087056161952205
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T21:53:28+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V00_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V00_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:55:07+0800",
+          "elapsed_seconds": 99.19396624190267
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T21:55:07+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V00_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V00_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:55:43+0800",
+          "elapsed_seconds": 36.06249376107007
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V00_s1234",
+      "gpu": "0",
+      "pid": 1730315
+    },
+    "V01": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T20:05:58+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V01_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V01_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:51:10+0800",
+          "elapsed_seconds": 6311.559304993018
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T21:51:10+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V01_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V01_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:53:10+0800",
+          "elapsed_seconds": 120.153526574024
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T21:53:10+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V01_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V01_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:53:43+0800",
+          "elapsed_seconds": 33.09162578696851
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T21:53:43+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V01_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V01_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:55:28+0800",
+          "elapsed_seconds": 105.18797080405056
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T21:55:28+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V01_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V01_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T21:55:58+0800",
+          "elapsed_seconds": 30.06937507505063
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V01_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V01_s1234",
+      "gpu": "0",
+      "pid": 1731040
+    },
+    "V02": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T21:55:43+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V02_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V02_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:41:28+0800",
+          "elapsed_seconds": 6344.951304762973
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T23:41:28+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V02_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V02_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:43:44+0800",
+          "elapsed_seconds": 135.2374700710643
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T23:43:44+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V02_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V02_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:44:14+0800",
+          "elapsed_seconds": 30.090820196084678
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T23:44:14+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V02_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V02_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:45:53+0800",
+          "elapsed_seconds": 99.17343754100148
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T23:45:53+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V02_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V02_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:46:23+0800",
+          "elapsed_seconds": 30.082978950929828
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V02_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V02_s1234",
+      "gpu": "0",
+      "pid": 2346370
+    },
+    "V03": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T21:55:58+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V03_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V03_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:41:58+0800",
+          "elapsed_seconds": 6359.976491270005
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T23:41:58+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V03_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V03_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:44:02+0800",
+          "elapsed_seconds": 123.21303382201586
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T23:44:02+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V03_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V03_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:44:32+0800",
+          "elapsed_seconds": 30.090453443001024
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T23:44:32+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V03_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V03_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:46:14+0800",
+          "elapsed_seconds": 102.19013804092538
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T23:46:14+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V03_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V03_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:46:44+0800",
+          "elapsed_seconds": 30.044200874050148
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V03_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V03_s1234",
+      "gpu": "0",
+      "pid": 2347147
+    },
+    "V04": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T21:56:22+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V04_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V04_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:42:04+0800",
+          "elapsed_seconds": 6341.935371567961
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T23:42:04+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V04_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V04_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:44:05+0800",
+          "elapsed_seconds": 120.21847678604536
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T23:44:05+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V04_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V04_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:44:38+0800",
+          "elapsed_seconds": 33.08919050800614
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T23:44:38+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V04_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V04_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:46:20+0800",
+          "elapsed_seconds": 102.17123850609642
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T23:46:20+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V04_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V04_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:46:50+0800",
+          "elapsed_seconds": 30.035699905012734
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V04_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V04_s1234",
+      "gpu": "0",
+      "pid": 2347365
+    },
+    "V05": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T21:56:59+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V05_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V05_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:43:01+0800",
+          "elapsed_seconds": 6362.911259120912
+        },
+        "eval_best": {
+          "started_at": "2026-09-10T23:43:01+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V05_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V05_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:44:44+0800",
+          "elapsed_seconds": 102.26194495300297
+        },
+        "diag_best": {
+          "started_at": "2026-09-10T23:44:44+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V05_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V05_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:45:14+0800",
+          "elapsed_seconds": 30.034595000906847
+        },
+        "eval_last": {
+          "started_at": "2026-09-10T23:45:14+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V05_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V05_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:46:53+0800",
+          "elapsed_seconds": 99.16253057692666
+        },
+        "diag_last": {
+          "started_at": "2026-09-10T23:46:53+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V05_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V05_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T23:47:23+0800",
+          "elapsed_seconds": 30.053988912026398
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V05_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V05_s1234",
+      "gpu": "0",
+      "pid": 2348080
+    },
+    "V06": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T01:42:45+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V06_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V06_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:29:18+0800",
+          "elapsed_seconds": 6392.988199473941
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T03:29:18+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V06_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V06_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:31:36+0800",
+          "elapsed_seconds": 138.26920340105426
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T03:31:36+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V06_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V06_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:32:06+0800",
+          "elapsed_seconds": 30.03652920492459
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T03:32:06+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V06_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V06_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:33:49+0800",
+          "elapsed_seconds": 102.20154252403881
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T03:33:49+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V06_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V06_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:34:19+0800",
+          "elapsed_seconds": 30.086791756912135
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V06_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V06_s1234",
+      "gpu": "0",
+      "pid": 3574407
+    },
+    "V07": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T01:44:09+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V07_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V07_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:30:54+0800",
+          "elapsed_seconds": 6404.959283406963
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T03:30:54+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V07_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V07_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:32:45+0800",
+          "elapsed_seconds": 111.23841806792188
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T03:32:45+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V07_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V07_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:33:15+0800",
+          "elapsed_seconds": 30.054518720018677
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T03:33:15+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V07_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V07_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:34:55+0800",
+          "elapsed_seconds": 99.25112319993787
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T03:34:55+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V07_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V07_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T03:35:25+0800",
+          "elapsed_seconds": 30.035989711992443
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V07_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V07_s1234",
+      "gpu": "0",
+      "pid": 3576137
+    },
+    "V08": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T03:34:19+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V08_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V08_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:24:58+0800",
+          "elapsed_seconds": 6639.305572231999
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T05:24:58+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V08_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V08_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:27:19+0800",
+          "elapsed_seconds": 141.1754353980068
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T05:27:19+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V08_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V08_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:27:49+0800",
+          "elapsed_seconds": 30.035487222950906
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T05:27:49+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V08_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V08_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:29:53+0800",
+          "elapsed_seconds": 123.34812131908257
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T05:29:53+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V08_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V08_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:30:23+0800",
+          "elapsed_seconds": 30.047012240975164
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V08_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V08_s1234",
+      "gpu": "0",
+      "pid": 4180139
+    },
+    "V09": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T03:35:25+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V09_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V09_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:26:22+0800",
+          "elapsed_seconds": 6657.292185277096
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T05:26:22+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V09_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V09_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:28:28+0800",
+          "elapsed_seconds": 126.1579658370465
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T05:28:28+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V09_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V09_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:28:58+0800",
+          "elapsed_seconds": 30.234275809954852
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T05:28:58+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V09_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V09_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:30:41+0800",
+          "elapsed_seconds": 102.18238853500225
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T05:30:41+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V09_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V09_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:31:11+0800",
+          "elapsed_seconds": 30.058378595043905
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V09_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V09_s1234",
+      "gpu": "0",
+      "pid": 4183153
+    },
+    "V10": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T03:36:19+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V10_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V10_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:28:58+0800",
+          "elapsed_seconds": 6759.534662054968
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T05:28:58+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V10_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V10_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:30:44+0800",
+          "elapsed_seconds": 105.22374448401388
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T05:30:44+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V10_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V10_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:31:14+0800",
+          "elapsed_seconds": 30.048458439065143
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T05:31:14+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V10_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V10_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:32:53+0800",
+          "elapsed_seconds": 99.13602300907951
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T05:32:53+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V10_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V10_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:33:23+0800",
+          "elapsed_seconds": 30.039832732989453
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V10_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V10_s1234",
+      "gpu": "0",
+      "pid": 4190200
+    },
+    "V11": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T03:36:31+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V11_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V11_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:28:34+0800",
+          "elapsed_seconds": 6723.303844020003
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T05:28:34+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V11_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V11_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:30:26+0800",
+          "elapsed_seconds": 111.33714523992967
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T05:30:26+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V11_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V11_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:30:56+0800",
+          "elapsed_seconds": 30.085286026005633
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T05:30:56+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V11_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V11_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:32:35+0800",
+          "elapsed_seconds": 99.12025497097056
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T05:32:35+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V11_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/V11_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T05:33:05+0800",
+          "elapsed_seconds": 30.062691634055227
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V11_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/V11_s1234",
+      "gpu": "0",
+      "pid": 4188866
+    },
+    "J00": {
+      "phase": 3,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T05:33:23+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/J00_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J00_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:33:41+0800",
+          "elapsed_seconds": 3618.4192348819925
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T06:33:41+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J00_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J00_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:37:09+0800",
+          "elapsed_seconds": 207.25645562889986
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T06:37:09+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J00_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J00_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:37:48+0800",
+          "elapsed_seconds": 39.071120406035334
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T06:37:48+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J00_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J00_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:41:12+0800",
+          "elapsed_seconds": 204.23144439596217
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T06:41:12+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J00_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J00_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:41:51+0800",
+          "elapsed_seconds": 39.103989299968816
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/J00_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J00_s1234",
+      "gpu": "0",
+      "pid": 344698
+    },
+    "J01": {
+      "phase": 3,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-11T05:33:35+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/J01_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J01_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:33:59+0800",
+          "elapsed_seconds": 3624.4131850020494
+        },
+        "eval_best": {
+          "started_at": "2026-09-11T06:33:59+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J01_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J01_eval_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:37:21+0800",
+          "elapsed_seconds": 201.25415267399512
+        },
+        "diag_best": {
+          "started_at": "2026-09-11T06:37:21+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J01_s1234",
+            "--ckpt",
+            "best"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J01_diag_best.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:38:00+0800",
+          "elapsed_seconds": 39.065056490013376
+        },
+        "eval_last": {
+          "started_at": "2026-09-11T06:38:00+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J01_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J01_eval_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:41:24+0800",
+          "elapsed_seconds": 204.2535098020453
+        },
+        "diag_last": {
+          "started_at": "2026-09-11T06:41:24+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.tools.volume_attention_diagnostics",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J01_s1234",
+            "--ckpt",
+            "last"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/execution/J01_diag_last.log",
+          "returncode": 0,
+          "ended_at": "2026-09-11T06:42:03+0800",
+          "elapsed_seconds": 39.062068057013676
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/J01_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/J01_s1234",
+      "gpu": "0",
+      "pid": 344946
+    }
+  },
+  "source_sha256_end": {
+    "training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "training_wss_min/baseline_models.py": "619c21d90858b1135b3366e89e6d13dc2f44be3cd0ef95c9dcf07fa0d16356cf",
+    "training_wss_min/config.py": "225a2892772af7e0a6651ec8364fe47ab8ab41113912bac1d39da2a46bc10e1a",
+    "training_wss_min/configs/volume_attention_20260910/J00_s1234.json": "1837a87f64330b24852dadf335f226e78e70c19040298b2e0b9092bd30a24076",
+    "training_wss_min/configs/volume_attention_20260910/J01_s1234.json": "e5fcfcf05655b2f06b25461dd5685a651780259c0cd21fda7fbfee6e123e29ac",
+    "training_wss_min/configs/volume_attention_20260910/P00_s1234.json": "c70357a7b11655c1d8f42b2e00dbb95e932fbe15217726c88376b17fae5c57f6",
+    "training_wss_min/configs/volume_attention_20260910/P01_s1234.json": "0fc221ffee808f0542c60159778fc1f104a9b1fc858533c1e5e54dff567800e9",
+    "training_wss_min/configs/volume_attention_20260910/P02_s1234.json": "3cf2bc0ad9c8d0da2ed55f3eb4bcd6b8701de286b32783f77858541e5f51e50b",
+    "training_wss_min/configs/volume_attention_20260910/P03_s1234.json": "992424a7b21d1c654adbe431e895d47f3f647732f5f9fec7e75b8c50cb947060",
+    "training_wss_min/configs/volume_attention_20260910/P04_s1234.json": "99b10771e118551f35363a740b2636d9e3c95865333ae600dca130e95f9b68a6",
+    "training_wss_min/configs/volume_attention_20260910/P05_s1234.json": "8831b620f14ade5c770403534fdb3143fc49d527c4a1485950845a9a8623f8c1",
+    "training_wss_min/configs/volume_attention_20260910/P06_s1234.json": "5e24bc0e73b9391c03d46a47455ca3907e6d100467478bb150eb59dd3e34a81f",
+    "training_wss_min/configs/volume_attention_20260910/P07_s1234.json": "877d11e04ccd17bdbc450b86a404981befb7b0a336f3d6bbbb6823536640baa1",
+    "training_wss_min/configs/volume_attention_20260910/P08_s1234.json": "20e4fa1eba67bb73e93655f72bde5ab4e10b455a8cddd1b74cc109f39cbfa480",
+    "training_wss_min/configs/volume_attention_20260910/P09_s1234.json": "e7ba4a5cc183bcbf187c255889e75f9a658dc141cdb4e097ca4b0d2be2a37246",
+    "training_wss_min/configs/volume_attention_20260910/P10_s1234.json": "df04df0baa904bc5292a209e43c9c58322f82195ce893186d135281281d02df1",
+    "training_wss_min/configs/volume_attention_20260910/P11_s1234.json": "239d8fb30011f806ab6116f2b4b718c6d1ba4cd6827d8e123b5ddcba0b6c7f6b",
+    "training_wss_min/configs/volume_attention_20260910/V00_s1234.json": "89d7e591cbc98296bcd6aed5c03f9e24218aa0939bc64f434672088dbed3dbad",
+    "training_wss_min/configs/volume_attention_20260910/V01_s1234.json": "66e57d82e5f2bcc5b297adf8bcd751eb0d3c17fbeef2527cc8fa316523b298ab",
+    "training_wss_min/configs/volume_attention_20260910/V02_s1234.json": "76bcc5c75e86d97142836baa04bffc6513965c219b157e58e12c921aacdde986",
+    "training_wss_min/configs/volume_attention_20260910/V03_s1234.json": "5b2cb2d794154e15962b1727f2bf24dee1d53310338714523e463ec697f14640",
+    "training_wss_min/configs/volume_attention_20260910/V04_s1234.json": "686d6ad0ba5419b0135289c4eec03c54a9306c0729d2ab27ae8307ec03be76bc",
+    "training_wss_min/configs/volume_attention_20260910/V05_s1234.json": "6a94537ba2dcd36007c9cb1fd24d3366bd7a9484dd765895121054541136a6aa",
+    "training_wss_min/configs/volume_attention_20260910/V06_s1234.json": "7f9426cd84fd959a1211e7eb63c2644ea7c72679cfb3f7fe177c0f81149825ce",
+    "training_wss_min/configs/volume_attention_20260910/V07_s1234.json": "f6b632ca53ecf3f911aba5476731df840ac4033b98c9c7b08ed6607bca6b6817",
+    "training_wss_min/configs/volume_attention_20260910/V08_s1234.json": "3b3a2b4701c9e36f0326b3373f0871c10ff29eeb00d5250573bbe7d9b7eda07e",
+    "training_wss_min/configs/volume_attention_20260910/V09_s1234.json": "b05b479d5dfdb4ef8a7654aa8eeb6e20b3abfe1c2e03bc750aa038da0e78cb53",
+    "training_wss_min/configs/volume_attention_20260910/V10_s1234.json": "300f748589f89e490d16621c1c1554d7e40caaac521591333aeac195835dc786",
+    "training_wss_min/configs/volume_attention_20260910/V11_s1234.json": "7a6251f5aeec7df69d40329e6e6b180642332e44e05f69272a0168c983250b6d",
+    "training_wss_min/configs/volume_attention_20260910/matrix.json": "a3ac7497def764b150bfdf1fa0fadbd2bcc758b9b0e96c868070547a70fa4ecd",
+    "training_wss_min/configs/volume_attention_20260910/references/J_base.json": "249e519696849fdb2d13353b4945b97bec52fbc0e405c80d4c1313a7763ce803",
+    "training_wss_min/dataset.py": "ffd1b1fd46436c8d1ee891048002591540ff198fcb49348de805e6438f645412",
+    "training_wss_min/evaluate.py": "fbbcdec649caf9e2d8dba9048eda8f30cf37d314bac46eab29c661fbc5bd4997",
+    "training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/objectives.py": "d266df1af388a415c98debbc30facffeb6832db8d438f3299e8fb5ce3aced458",
+    "training_wss_min/paired_initialization.py": "e91bd352b15d24310b9cd022427b058244a1967b007d3b5f0d11ac4645853e28",
+    "training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "training_wss_min/tests/test_volume_attention_evaluation.py": "496e36d161b77005d346146c541b462addcb1038a57c949b418d097b71caa1d9",
+    "training_wss_min/tests/test_volume_attention_matrix_queue.py": "3435c15648206772c5fa55986d74fb24a3e680e931b2163ac3339a95ec9f5ae8",
+    "training_wss_min/tests/test_volume_attention_models.py": "68447e028577a423b73b51d56cfb9d396c9c135b139bd39ded76c3d8e4a24424",
+    "training_wss_min/tests/test_volume_attention_reporting.py": "1d79723e7acd65ee7e4ad46c0cc93449773c1b30b0757856c7b4b413456cbdd7",
+    "training_wss_min/tests/test_volume_attention_xlsx.py": "35e9f95e9dc3383eb3fc4faaa0ab1f58b738ea5305671f37e4c187ad4ec20924",
+    "training_wss_min/tests/test_volume_joint_data_objectives.py": "af25e984d36c6d6e86b2bd31a40bcc07dba74d9d75121a44114c61e67f830672",
+    "training_wss_min/tools/preflight_volume_attention.py": "f8c2ddf1890ce7f813cd5235363f0a1d0bfbe82f4469241e43762b7ad845b681",
+    "training_wss_min/tools/prepare_v6_singleframe_matrix.py": "e21610f951a5debb1b568d2d4370683bc72c91bff21d2994f66e94bb03c1da3f",
+    "training_wss_min/tools/prepare_volume_attention_matrix.py": "468a3c075f8e18a604e34b984bcc6aa67f62b26c8aff329fe0d094708a1d5788",
+    "training_wss_min/tools/report_volume_attention.py": "807f4e897eb4e404b84c48c2c50f61b71c439a575b80d102fff9930f43dd0c02",
+    "training_wss_min/tools/run_volume_attention_queue.py": "8ee9328f0a2824a4776cf9e461bbf45b99f10e42f76743b10be54e5038475194",
+    "training_wss_min/tools/update_volume_attention_xlsx.py": "402c1818d974d2b72095beb4c35c11def8758dd692ea31882a6eb87d11fc989b",
+    "training_wss_min/tools/volume_attention_common.py": "8d7b25a20128ddc2e9f4da3705c8408a42666aedb90c7afa2a75a7839f5bcb8c",
+    "training_wss_min/tools/volume_attention_diagnostics.py": "4b4b19a7d22cf0fdda761188284e3abd01f2ba2742845a0dfe973fd27e432c8b",
+    "training_wss_min/train.py": "dd1d017728f4de0c5371df4f16f555acb6ff7345e61c376e2925f24e9113d5d2"
+  },
+  "source_changed": false,
+  "data_check_end": {
+    "passed": true,
+    "files": 520,
+    "check": "data size/mtime; split/statistics SHA256; full data SHA256 captured in runtime preflight"
+  },
+  "ended_at": "2026-09-11T06:42:06+0800"
+}

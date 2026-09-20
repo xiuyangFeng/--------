@@ -1,0 +1,156 @@
+{
+  "name": "v5_rerun_20260906/outputs/bt3_r4_bottleneck_c125_s7919",
+  "notes": "V5 rerun R1: workbook best deployable recipe (PointNeXt-R + LocalGeoPE + L-SA2 stage2, DropPath0.1, MSE + q90 pinball lambda0.20, 7D input incl. train-only ln(local_radius)) on the V5 anatomy point-cloud bundle view (true mm atlas features, atlas anatomical frame, train138/test34, train138 log_z stats). Same architecture/loss/protocol as legacy run lsa2_h2_logradius_s1234; only the data changed. Wave 2 R4: R1 recipe plus the V5 point features (tube coordinates rho/sin theta/cos theta, dR/ds, distance to junction/endpoint, end-zone flag, PCA normal in the aligned frame); LocalGeoPE indices unchanged (3,4,5). Tests whether the new geometric information adds beyond the 7D legacy input. | BT matrix (teacher bottleneck-transformer adapted; every arm changes ONE thing vs its stated reference): ARM(main candidate): same as BT-2 but 125 coarse tokens (13 mm spacing instead of 27 mm) | seed extension 7919: 配对检验 BT-3 vs R4 的归一化增益（三 seed 配对 t=3.04 未达 95%，补到 5 seed 判定）",
+  "data": {
+    "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+    "required_frame_version": "v5_atlas_frame_v1",
+    "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+    "wss_stats_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+    "wall_n_points": 5000,
+    "sampling": "random",
+    "support_n_points": 5000,
+    "support_sampling": "random",
+    "query_mode": "same",
+    "query_n_points": 5000,
+    "query_sampling": "random",
+    "resample_each_epoch": true,
+    "rot_aug": false,
+    "input_features": [
+      "x",
+      "y",
+      "z",
+      "abscissa_norm",
+      "local_radius",
+      "curvature",
+      "log_local_radius",
+      "rho",
+      "theta_sin",
+      "theta_cos",
+      "dr_ds",
+      "dist_to_junction_mm",
+      "dist_to_endpoint_mm",
+      "end_zone",
+      "nx_aligned",
+      "ny_aligned",
+      "nz_aligned"
+    ],
+    "curvature_transform": "signed_log1p",
+    "timesteps": "peak",
+    "target": "wss",
+    "target_normalization": "global_stats",
+    "num_workers": 4,
+    "persistent_workers": false,
+    "feature_stats_path": null,
+    "case_features_path": null
+  },
+  "model": {
+    "name": "pointnetpp",
+    "width": 32,
+    "sa_ratios": [
+      0.25,
+      0.25,
+      0.25
+    ],
+    "sa_radius": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "sa_nsample": [
+      64,
+      16,
+      16
+    ],
+    "sa_blocks": [
+      1,
+      1,
+      0
+    ],
+    "sa_center_sampling": "fps",
+    "sa_center_counts": [
+      125,
+      125,
+      125
+    ],
+    "fp_knn": 3,
+    "head_hidden": 64,
+    "out_dim": 1,
+    "dropout": 0,
+    "sa_grouping": [
+      "knn_cover",
+      "ball",
+      "ball"
+    ],
+    "invres_expansion": 2,
+    "residual_scale_init": 0.001,
+    "invres_radius_scale": 1.0,
+    "query_decoder": "interpolate",
+    "local_geope": true,
+    "local_geope_feature_indices": [
+      3,
+      4,
+      5
+    ],
+    "drop_path_rate": 0.1,
+    "local_transformer_stages": [
+      2
+    ],
+    "coarse_attention": false,
+    "coarse_attention_heads": 4,
+    "sep_hidden": 32,
+    "sep_beta_init": 2.0,
+    "neighbor_drop_rate": 0.0,
+    "local_transformer_heads": 4,
+    "local_transformer_ffn_ratio": 2,
+    "local_transformer_dropout": 0.0,
+    "edgeconv_stages": [],
+    "bottleneck_transformer": true,
+    "bottleneck_layers": 1,
+    "bottleneck_heads": 8,
+    "bottleneck_ffn_ratio": 2,
+    "bottleneck_dropout": 0.0,
+    "bottleneck_pos_enc": "input_features",
+    "bottleneck_geo_bias": true
+  },
+  "train": {
+    "epochs": 400,
+    "batch_cases": 8,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 10,
+    "min_lr": 1e-05,
+    "grad_clip": 1,
+    "seed": 7919,
+    "loss": "mse",
+    "loss_geom_weight": false,
+    "loss_weight_target": false,
+    "loss_weight_fixed_quantiles": true,
+    "loss_raw_huber_lambda": 0,
+    "amp": true,
+    "eval_every": 400,
+    "ckpt_metric": "train_loss",
+    "selection_rule": "train_loss",
+    "ckpt_top_k": 3,
+    "early_stop_patience": 0,
+    "min_epoch": 400,
+    "log_every_steps": 0,
+    "loss_hotspot_bce_lambda": 0.0,
+    "hotspot_quantile": 0.9,
+    "loss_pinball_lambda": 0.2,
+    "pinball_quantile": 0.9
+  },
+  "eval": {
+    "fixed_support": true,
+    "full_cloud_query": true,
+    "query_chunk_size": 16384,
+    "support_seed": 1234,
+    "surface_metric_mode": "legacy_vertex",
+    "stability_seeds": [
+      1234,
+      2025,
+      3407,
+      7919,
+      104729
+    ]
+  }
+}

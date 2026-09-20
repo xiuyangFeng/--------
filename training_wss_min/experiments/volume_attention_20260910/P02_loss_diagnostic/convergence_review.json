@@ -1,0 +1,198 @@
+{
+  "run": "P02_s1234",
+  "history_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P02_s1234/history.jsonl",
+  "n_epochs": 400,
+  "best_epoch_onebased": 382,
+  "best_epoch_zero_based": 381,
+  "best_history": {
+    "epoch": 381,
+    "train_loss": 0.031374795362353325,
+    "train_mse_norm": 0.03189282323864923,
+    "train_mae_norm": 0.10373477164005887,
+    "train_rmse_norm": 0.17858561879011767,
+    "train_sampled_points": 690000,
+    "lr": 1.5194332271729696e-05,
+    "elapsed_s": 5987.4,
+    "loss_components": {
+      "base": 0.031374795362353325,
+      "total": 0.031374795362353325
+    },
+    "grad_norm_preclip_mean": 0.41935639331738156,
+    "grad_norm_preclip_max": 0.7959727048873901,
+    "amp_overflow_steps": 0,
+    "amp_scale": 4096.0,
+    "peak_cuda_allocated_mb": 301.150390625,
+    "peak_cuda_reserved_mb": 454.0,
+    "selection_score": -0.031374795362353325,
+    "is_best": true
+  },
+  "last_history": {
+    "epoch": 399,
+    "train_loss": 0.03777366773121887,
+    "train_mse_norm": 0.03631851788949275,
+    "train_mae_norm": 0.1024361968551857,
+    "train_rmse_norm": 0.19057417949316416,
+    "train_sampled_points": 690000,
+    "lr": 1e-05,
+    "elapsed_s": 6250.3,
+    "loss_components": {
+      "base": 0.03777366773121887,
+      "total": 0.03777366773121887
+    },
+    "grad_norm_preclip_mean": 0.524178586072392,
+    "grad_norm_preclip_max": 1.6506448984146118,
+    "amp_overflow_steps": 0,
+    "amp_scale": 4096.0,
+    "peak_cuda_allocated_mb": 301.150390625,
+    "peak_cuda_reserved_mb": 454.0,
+    "selection_score": -0.03777366773121887
+  },
+  "windows": [
+    {
+      "epoch_start_onebased": 251,
+      "epoch_end_onebased": 300,
+      "train_loss_mean": 0.0489509991204573,
+      "train_loss_median": 0.04418995133083728,
+      "train_loss_std": 0.022178813400332408,
+      "train_loss_linear_slope_per_epoch": -0.0004610287023831711,
+      "train_mse_norm_mean": 0.044481995059248325
+    },
+    {
+      "epoch_start_onebased": 301,
+      "epoch_end_onebased": 350,
+      "train_loss_mean": 0.03956806251468758,
+      "train_loss_median": 0.036939892245249614,
+      "train_loss_std": 0.011538809290971303,
+      "train_loss_linear_slope_per_epoch": -0.00021607327127273402,
+      "train_mse_norm_mean": 0.03717873538495492
+    },
+    {
+      "epoch_start_onebased": 351,
+      "epoch_end_onebased": 400,
+      "train_loss_mean": 0.03549135710216231,
+      "train_loss_median": 0.034270472953923874,
+      "train_loss_std": 0.0052092809305746505,
+      "train_loss_linear_slope_per_epoch": 3.657059712943938e-05,
+      "train_mse_norm_mean": 0.03418409651736937
+    },
+    {
+      "epoch_start_onebased": 301,
+      "epoch_end_onebased": 325,
+      "train_loss_mean": 0.042404037206951115,
+      "train_loss_median": 0.03751828759494755,
+      "train_loss_std": 0.01570828106121713,
+      "train_loss_linear_slope_per_epoch": -0.00034573730013659997,
+      "train_mse_norm_mean": 0.03841260199947634
+    },
+    {
+      "epoch_start_onebased": 326,
+      "epoch_end_onebased": 350,
+      "train_loss_mean": 0.03673208782242404,
+      "train_loss_median": 0.03664667842288812,
+      "train_loss_std": 0.002886188349293108,
+      "train_loss_linear_slope_per_epoch": -2.147712637312011e-05,
+      "train_mse_norm_mean": 0.035944868770433513
+    },
+    {
+      "epoch_start_onebased": 351,
+      "epoch_end_onebased": 375,
+      "train_loss_mean": 0.03486977450342642,
+      "train_loss_median": 0.034320528308550514,
+      "train_loss_std": 0.0024300810904284756,
+      "train_loss_linear_slope_per_epoch": -0.0001003651797739614,
+      "train_mse_norm_mean": 0.03423072062351393
+    },
+    {
+      "epoch_start_onebased": 376,
+      "epoch_end_onebased": 400,
+      "train_loss_mean": 0.0361129397008982,
+      "train_loss_median": 0.03420764787329568,
+      "train_loss_std": 0.00697808616900923,
+      "train_loss_linear_slope_per_epoch": 9.444380931269714e-05,
+      "train_mse_norm_mean": 0.034137472411224806
+    },
+    {
+      "epoch_start_onebased": 391,
+      "epoch_end_onebased": 400,
+      "train_loss_mean": 0.034412145386967394,
+      "train_loss_median": 0.033678343390218086,
+      "train_loss_std": 0.0022115021576777742,
+      "train_loss_linear_slope_per_epoch": 0.0005417247770059293,
+      "train_mse_norm_mean": 0.033570515800144356
+    }
+  ],
+  "checkpoint_metrics": {
+    "ckpt_best": {
+      "field_casebalanced": {
+        "r2": 0.7491126030578994,
+        "mae": 116.34427562547344,
+        "rmse": 299.06149446895745,
+        "n": 15353714,
+        "n_cases": 34,
+        "r2_linear_fit": 0.8047190363169097,
+        "linear_fit_slope": 0.6056261615393768,
+        "linear_fit_intercept": -43.313154966743895
+      },
+      "field": {
+        "r2": 0.743597820943303,
+        "mae": 118.01293786818795,
+        "rmse": 300.8760639718678
+      },
+      "aggregate": {
+        "r2_casemean": 0.7978261544409031,
+        "r2_casemed": 0.7959651163274554,
+        "r2_casep10": 0.6411902647276316,
+        "n_cases": 34
+      }
+    },
+    "ckpt_last": {
+      "field_casebalanced": {
+        "r2": 0.7528317184185754,
+        "mae": 115.92591448050615,
+        "rmse": 296.8365979969492,
+        "n": 15353714,
+        "n_cases": 34,
+        "r2_linear_fit": 0.8089550949955797,
+        "linear_fit_slope": 0.6071563158829001,
+        "linear_fit_intercept": -45.130811614804685
+      },
+      "field": {
+        "r2": 0.7469838055028992,
+        "mae": 117.69790045218694,
+        "rmse": 298.88281359605264
+      },
+      "aggregate": {
+        "r2_casemean": 0.7978211189585378,
+        "r2_casemed": 0.8015343141771506,
+        "r2_casep10": 0.6339212120022841,
+        "n_cases": 34
+      }
+    }
+  },
+  "late_changes": {
+    "train_loss_mean_351_400_vs_301_350_reduction_percent": 10.303020045553168,
+    "train_loss_mean_376_400_vs_351_375_reduction_percent": -3.565165577281326,
+    "train_mse_norm_mean_376_400_vs_351_375_reduction_percent": 0.2724108946309034
+  },
+  "evidence": {
+    "selection": {
+      "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/train.py:394",
+      "description": "best maximizes negative epoch online train_loss, not test R2; checkpoint is epoch-end model whereas loss averages pre-update predictions across changing model states."
+    },
+    "sampling": {
+      "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/dataset.py:1001",
+      "description": "resample_each_epoch true; stable per-case support/query streams depend on epoch; train138 cases and support/query each5000."
+    },
+    "aggregation": {
+      "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/train.py:311",
+      "description": "Single-task ep_loss averages 18 batch means equally. DataLoader batch8/drop_last=False on138 cases creates17 batches of8 and1 batch of2. train_mse_norm sums squared residuals over all690000 sampled scalar labels, hence equal cases when each has5000 labels. These remain online training estimates, not evaluation of the frozen epoch-end checkpoint."
+    },
+    "learning_rate": {
+      "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/train.py:353",
+      "factory_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runtime.py:42",
+      "description": "sched.step occurs before lr recording. History lr is the next-epoch LR, not the just-completed epoch LR. Actual first-epoch LR is0.001/10=0.0001; later epochs use previous record lr. Last epoch actual LR1.001606e-5; recorded after final scheduler step1e-5. Warmup10 and cosine to400 are part of the run."
+    }
+  },
+  "interpretation": "Loss falls substantially across the full run and still improves in broad final50 windows, but latest25 online loss mean rises3.57% while point-weighted MSE falls only0.27%; latest training dynamics are near a noisy plateau, not clear sustained late decline. Last test case-balanced R2 exceeds best by0.003719, which is compatible with train-loss checkpoint selection and does not establish that400epochs is insufficient or that extending epochs will improve test performance. No per-epoch validation/test history exists for an overfitting trend. More epochs could reduce training loss; current curve cannot predict the amount or guarantee generalization improvement.",
+  "actions": "Read-only audit; no training launched; original runs/configs/checkpoints unchanged."
+}

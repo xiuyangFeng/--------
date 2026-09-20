@@ -1,0 +1,26 @@
+
+=== T-null · train136 折外（136 例）===
+  A_shift        cycle R²cb Pa 0.0504 | ln 0.1215 | peak 0.7100 | trough -0.5702 | min -1.6799@46 | TAWSS 0.6521 (MAE 0.513 Pa) | peak-time med/p90 2.0/9.9 f | ts-corr 0.792 | amp-err 1.002
+  B_scale        cycle R²cb Pa 0.4535 | ln 0.3998 | peak 0.7100 | trough 0.2167 | min 0.0412@48 | TAWSS 0.6879 (MAE 0.441 Pa) | peak-time med/p90 1.3/10.3 f | ts-corr 0.808 | amp-err 0.910
+  C_oracle_peak  cycle R²cb Pa -0.2154 | ln 0.0674 | peak 1.0000 | trough -1.0535 | min -2.5859@46 | TAWSS 0.8002 (MAE 0.421 Pa) | peak-time med/p90 2.0/9.9 f | ts-corr 0.792 | amp-err 1.002
+
+=== T-null · test34 五 seed 集成（34 例）===
+  A_shift        cycle R²cb Pa 0.1007 | ln 0.1180 | peak 0.7749 | trough -0.5354 | min -1.4262@47 | TAWSS 0.7437 (MAE 0.486 Pa) | peak-time med/p90 2.1/10.0 f | ts-corr 0.785 | amp-err 0.976
+  B_scale        cycle R²cb Pa 0.5074 | ln 0.3986 | peak 0.7749 | trough 0.2401 | min 0.0398@49 | TAWSS 0.7537 (MAE 0.411 Pa) | peak-time med/p90 1.4/10.6 f | ts-corr 0.802 | amp-err 0.880
+  C_oracle_peak  cycle R²cb Pa -0.2993 | ln 0.0489 | peak 1.0000 | trough -1.2195 | min -2.4553@47 | TAWSS 0.8050 (MAE 0.444 Pa) | peak-time med/p90 2.1/10.0 f | ts-corr 0.785 | amp-err 0.976
+
+=== T-null · fold0 留出折（折外）（46 例）===
+  A_shift        cycle R²cb Pa -0.1629 | ln 0.1106 | peak 0.7366 | trough -1.3538 | min -3.4622@47 | TAWSS 0.6869 (MAE 0.482 Pa) | peak-time med/p90 2.0/9.1 f | ts-corr 0.793 | amp-err 0.964
+  B_scale        cycle R²cb Pa 0.4940 | ln 0.3890 | peak 0.7366 | trough 0.2250 | min -0.0234@48 | TAWSS 0.7335 (MAE 0.411 Pa) | peak-time med/p90 1.3/9.7 f | ts-corr 0.810 | amp-err 0.890
+  C_oracle_peak  cycle R²cb Pa -0.6257 | ln 0.0583 | peak 1.0000 | trough -2.3919 | min -5.4472@47 | TAWSS 0.7994 (MAE 0.393 Pa) | peak-time med/p90 2.0/9.1 f | ts-corr 0.793 | amp-err 0.964
+
+=== T-null · fold1 留出折（折外）（46 例）===
+  A_shift        cycle R²cb Pa 0.1377 | ln 0.1674 | peak 0.6701 | trough -0.3029 | min -1.0514@46 | TAWSS 0.6113 (MAE 0.564 Pa) | peak-time med/p90 2.1/10.2 f | ts-corr 0.796 | amp-err 1.068
+  B_scale        cycle R²cb Pa 0.4077 | ln 0.4361 | peak 0.6701 | trough 0.1893 | min 0.0518@48 | TAWSS 0.6240 (MAE 0.489 Pa) | peak-time med/p90 1.4/9.9 f | ts-corr 0.813 | amp-err 0.945
+  C_oracle_peak  cycle R²cb Pa -0.0784 | ln 0.1042 | peak 1.0000 | trough -0.6324 | min -1.8686@11 | TAWSS 0.7928 (MAE 0.476 Pa) | peak-time med/p90 2.1/10.2 f | ts-corr 0.796 | amp-err 1.068
+
+=== T-null · fold2 留出折（折外）（44 例）===
+  A_shift        cycle R²cb Pa -0.0039 | ln 0.0746 | peak 0.7323 | trough -0.6486 | min -1.8787@46 | TAWSS 0.6722 (MAE 0.494 Pa) | peak-time med/p90 2.1/10.4 f | ts-corr 0.786 | amp-err 0.971
+  B_scale        cycle R²cb Pa 0.4822 | ln 0.3656 | peak 0.7323 | trough 0.2499 | min 0.0516@48 | TAWSS 0.7306 (MAE 0.421 Pa) | peak-time med/p90 1.3/11.4 f | ts-corr 0.802 | amp-err 0.893
+  C_oracle_peak  cycle R²cb Pa -0.2417 | ln 0.0282 | peak 1.0000 | trough -1.1211 | min -2.6927@46 | TAWSS 0.8102 (MAE 0.394 Pa) | peak-time med/p90 2.1/10.4 f | ts-corr 0.786 | amp-err 0.971
+wrote d2_tnull.json

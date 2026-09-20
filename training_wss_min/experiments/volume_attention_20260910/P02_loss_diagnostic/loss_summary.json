@@ -1,0 +1,110 @@
+{
+  "timestamp": "2026-09-11T11:48:34+0800",
+  "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/P02_s1234",
+  "history_sha256": "1940672d0514b121a83d9453157dd1f2e7331b44dfc9a25f74ed77d76a56379b",
+  "epoch_display": "one-based; history/ckpt use zero-based",
+  "selection": "minimum online epoch train_loss, averaged equally over batches; not test R2",
+  "best_epoch": 382,
+  "best_train_loss": 0.031374795362353325,
+  "last_epoch": 400,
+  "last_train_loss": 0.03777366773121887,
+  "best_test_r2": 0.7491126030578994,
+  "last_test_r2": 0.7528317184185754,
+  "smoothing": "trailing arithmetic mean, 20 epochs; first19 values absent",
+  "windows": [
+    {
+      "first_epoch": 1,
+      "last_epoch": 50,
+      "mean": 0.3418443279051118,
+      "median": 0.31634178074697655,
+      "std": 0.13352641404376905,
+      "minimum": 0.18287956404189268,
+      "sampled_mse_mean": 0.3340607106597458
+    },
+    {
+      "first_epoch": 51,
+      "last_epoch": 100,
+      "mean": 0.1698241593295501,
+      "median": 0.166527235466573,
+      "std": 0.035973405259652175,
+      "minimum": 0.10852339905169275,
+      "sampled_mse_mean": 0.16648690027651583
+    },
+    {
+      "first_epoch": 101,
+      "last_epoch": 150,
+      "mean": 0.11140899886273675,
+      "median": 0.10769685937298669,
+      "std": 0.01899555654431358,
+      "minimum": 0.07784695240358512,
+      "sampled_mse_mean": 0.10934708731698298
+    },
+    {
+      "first_epoch": 151,
+      "last_epoch": 200,
+      "mean": 0.08125504115389454,
+      "median": 0.07844073568574256,
+      "std": 0.01747897433555464,
+      "minimum": 0.053438502777781755,
+      "sampled_mse_mean": 0.07867015662947946
+    },
+    {
+      "first_epoch": 201,
+      "last_epoch": 250,
+      "mean": 0.05971302760454515,
+      "median": 0.057451857460869685,
+      "std": 0.014141027433545207,
+      "minimum": 0.04397379824270805,
+      "sampled_mse_mean": 0.05682149939495584
+    },
+    {
+      "first_epoch": 251,
+      "last_epoch": 300,
+      "mean": 0.0489509991204573,
+      "median": 0.04418995133083728,
+      "std": 0.021955905095664564,
+      "minimum": 0.036211745192607246,
+      "sampled_mse_mean": 0.044481995059248325
+    },
+    {
+      "first_epoch": 301,
+      "last_epoch": 350,
+      "mean": 0.03956806251468758,
+      "median": 0.036939892245249614,
+      "std": 0.011422838415049805,
+      "minimum": 0.032382386529611215,
+      "sampled_mse_mean": 0.03717873538495492
+    },
+    {
+      "first_epoch": 351,
+      "last_epoch": 400,
+      "mean": 0.03549135710216231,
+      "median": 0.034270472953923874,
+      "std": 0.005156925019561146,
+      "minimum": 0.031374795362353325,
+      "sampled_mse_mean": 0.03418409651736937
+    },
+    {
+      "first_epoch": 351,
+      "last_epoch": 375,
+      "mean": 0.03486977450342642,
+      "median": 0.034320528308550514,
+      "std": 0.0023809834820543645,
+      "minimum": 0.03146130658893122,
+      "sampled_mse_mean": 0.03423072062351393
+    },
+    {
+      "first_epoch": 376,
+      "last_epoch": 400,
+      "mean": 0.0361129397008982,
+      "median": 0.03420764787329568,
+      "std": 0.006837100198098108,
+      "minimum": 0.031374795362353325,
+      "sampled_mse_mean": 0.034137472411224806
+    }
+  ],
+  "learning_rate": "actual LR used: previous history.lr, first epoch initial warmup LR",
+  "last_used_lr": 1.0016059920318663e-05,
+  "last_logged_next_lr": 1e-05,
+  "limitation": "No per-epoch test/validation curve; train loss is online with resampled points and stochastic training."
+}

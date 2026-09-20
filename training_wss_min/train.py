@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import heapq
 import json
@@ -33,6 +34,7 @@ from . import dataset as D
 from .evaluate import evaluate_partition
 from .models import build_model
 from .objectives import compute_loss, compute_selection_score
+from .paired_initialization import build_paired_model
 from .runtime import lr_lambda_factory, seed_all, setup_logger
 
 
@@ -70,6 +72,11 @@ def _save_topk(run_dir: Path, topk: list, model, epoch: int, score: float, cfg_n
     best = max(topk, key=lambda t: t[0])
     best_path = run_dir / "ckpt_best.pt"
     torch.save(torch.load(best[2], map_location="cpu", weights_only=False), best_path)
+
+
+def _record_nonfinite_event(run_dir: Path, epoch: int, step: int, kind: str) -> None:
+    with (run_dir / "nonfinite_events.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"epoch": epoch, "step": step, "kind": kind}) + "\n")
 
 
 def main():
@@ -110,8 +117,16 @@ def main():
         data_root=cfg.data.data_root,
         required_frame_version=cfg.data.required_frame_version,
         case_features_path=cfg.data.case_features_path,
+        timesteps=getattr(cfg.data, "timesteps", "peak"), waveform_path=getattr(cfg.data, "waveform_path", None),
+        extra_point_features=C.v6_point_features(cfg),
+        point_features_root=getattr(cfg.data, "point_features_root", None),
+        time_basis_path=getattr(cfg.data, "time_basis_path", None), time_basis_k=int(getattr(cfg.model, "time_basis_k", 0)),
+        volume_time_sidecar_root=getattr(cfg.data, "volume_time_sidecar_root", None),
+        volume_h5_root=getattr(cfg.data, "volume_h5_root", None),
     )
-    select_by_train_loss = cfg.train.selection_rule == "train_loss"
+    select_by_train_loss = cfg.train.selection_rule in ("train_loss", "train_loss_ema")
+    select_by_ema = cfg.train.selection_rule == "train_loss_ema"
+    train_loss_ema = None
     val_labels = D.load_split_cases(cfg.data.split_path, "val")
     if select_by_train_loss or not val_labels:
         va_cases = []
@@ -122,7 +137,16 @@ def main():
             data_root=cfg.data.data_root,
             required_frame_version=cfg.data.required_frame_version,
             case_features_path=cfg.data.case_features_path,
+            timesteps=getattr(cfg.data, "timesteps", "peak"), waveform_path=getattr(cfg.data, "waveform_path", None),
+            extra_point_features=C.v6_point_features(cfg),
+            point_features_root=getattr(cfg.data, "point_features_root", None),
+            time_basis_path=getattr(cfg.data, "time_basis_path", None), time_basis_k=int(getattr(cfg.model, "time_basis_k", 0)),
+            volume_time_sidecar_root=getattr(cfg.data, "volume_time_sidecar_root", None),
+            volume_h5_root=getattr(cfg.data, "volume_h5_root", None),
         )
+    joint_target = cfg.data.target == "velocity_pressure"
+    if joint_target and not cfg.data.feature_stats_path:
+        raise ValueError("joint volume runs require frozen historical volume feature_stats_path")
     feature_stats_source = None
     if cfg.data.feature_stats_path:
         feature_stats_source = Path(cfg.data.feature_stats_path)
@@ -143,15 +167,25 @@ def main():
         feat_stats = D.compute_feature_stats(
             tr_cases, cfg.data.input_features, cfg.data.curvature_transform
         )
-    wq = D.compute_train_weight_quantiles(tr_cases)
-    if cfg.train.loss_weight_fixed_quantiles:
+    # Joint labels combine m/s and Pa. No flattened raw quantile has a meaning,
+    # and the fixed equal-task MSE does not consume any loss-weight quantiles.
+    wq = ({"mode": "not_used", "reason": "joint equal-task MSE; no mixed-unit quantiles"}
+          if joint_target else D.compute_train_weight_quantiles(tr_cases))
+    if cfg.train.loss_weight_fixed_quantiles and not joint_target:
         cfg.train.y_norm_q02 = wq["y_norm_q02"]
         cfg.train.y_norm_q98 = wq["y_norm_q98"]
         cfg.train.curv_q02 = wq["curv_q02"]
         cfg.train.curv_q98 = wq["curv_q98"]
         cfg.train.invr_q02 = wq["invr_q02"]
         cfg.train.invr_q98 = wq["invr_q98"]
-    cfg.train._raw_p90 = wq["raw_p90"]  # type: ignore[attr-defined]
+    if not joint_target:
+        cfg.train._raw_p90 = wq["raw_p90"]  # type: ignore[attr-defined]
+    if float(getattr(cfg.train, "loss_raw_mse_lambda", 0.0)) > 0:
+        if (cfg.data.target != "wss" or cfg.data.target_normalization != "global_stats"
+                or cfg.model.out_dim != 1):
+            raise ValueError("Pa-MSE requires scalar WSS with global_stats normalization")
+        if not math.isfinite(float(wq["raw_p90"])) or float(wq["raw_p90"]) <= 0:
+            raise ValueError("Pa-MSE requires a finite positive train-only p90")
     log.info("train cases=%d val cases=%d  selection=%s  feat_stats=%s  fixed_q=%s",
              len(tr_cases), len(va_cases), cfg.train.selection_rule,
              list(feat_stats.keys()), cfg.train.loss_weight_fixed_quantiles)
@@ -195,8 +229,12 @@ def main():
     )
 
     # ---- 模型/优化器 ----
-    model = build_model(cfg.model, C.input_dim(cfg)).to(device)
-    initialization = {"mode": "random_initialization"}
+    if getattr(cfg.train, "init_reference_config", None):
+        model, initialization = build_paired_model(cfg)
+        model = model.to(device)
+    else:
+        model = build_model(cfg.model, C.input_dim(cfg)).to(device)
+        initialization = {"mode": "random_initialization"}
     if cfg.train.init_checkpoint_path:
         init_path = Path(cfg.train.init_checkpoint_path)
         if not init_path.is_file():
@@ -221,6 +259,15 @@ def main():
     (run_dir / "initialization.json").write_text(
         json.dumps(initialization, indent=2, ensure_ascii=False), encoding="utf-8"
     )
+    # 波 1：可选权重 EMA（影子模型；best/last 选择与保存不变，另存 ckpt_ema.pt）
+    ema_decay = float(getattr(cfg.train, "ema_decay", 0.0) or 0.0)
+    ema_model = None
+    ema_updates = 0
+    if ema_decay > 0:
+        ema_model = copy.deepcopy(model).eval()
+        for parameter in ema_model.parameters():
+            parameter.requires_grad_(False)
+        log.info("EMA enabled: decay=%.5f (warm-up decay min(d, (1+t)/(10+t)))", ema_decay)
     n_par = sum(p.numel() for p in model.parameters())
     log.info("model=%s params=%.2fM selection=%s top_k=%d patience=%d",
              cfg.model.name, n_par / 1e6, cfg.train.selection_rule,
@@ -229,6 +276,11 @@ def main():
                             weight_decay=cfg.train.weight_decay)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lr_lambda_factory(cfg.train))
     scaler = torch.amp.GradScaler("cuda", enabled=(cfg.train.amp and device == "cuda"))
+    log_components = joint_target or bool(getattr(cfg.train, "log_loss_components", False))
+    guard_finite = log_components or float(getattr(cfg.train, "loss_raw_mse_lambda", 0.0)) > 0
+    if log_components and device == "cuda":
+        torch.cuda.reset_peak_memory_stats()
+    total_amp_overflows = 0
 
     history = []
     best_metric = -math.inf
@@ -239,14 +291,25 @@ def main():
     t0 = time.time()
     stopped_early = False
 
+    region_feature = getattr(cfg.train, "loss_region_feature", None)
+    region_column = list(cfg.data.input_features).index(region_feature) if region_feature else None
+
     for epoch in range(cfg.train.epochs):
         model.train()
         train_ds.set_epoch(epoch)
         ep_loss, nb = 0.0, 0
+        ep_loss_units = 0
         ep_sqerr, ep_abserr, ep_points = 0.0, 0.0, 0
+        task_errors = {task: {"sqerr": 0.0, "abserr": 0.0, "elements": 0, "points": 0}
+                       for task in ("velocity", "pressure")} if joint_target else {}
+        component_sums = {}
+        finite_grad_norms = []
+        epoch_amp_overflows = 0
         for batch in train_loader:
             pos = batch["pos"].to(device)
             x = batch["x"].to(device)
+            if region_column is not None:
+                batch["loss_region_value"] = x[:, region_column]  # T3 focus region from the standardised input column
             opt.zero_grad(set_to_none=True)
             with torch.amp.autocast("cuda", enabled=(cfg.train.amp and device == "cuda")):
                 if cfg.data.support_n_points is not None or cfg.model.sa_center_counts:
@@ -255,27 +318,81 @@ def main():
                         batch["support_batch"].to(device), pos, x,
                         batch["batch"].to(device), unit_ids=batch["unit_ids"], epoch=epoch,
                         global_seed=cfg.train.seed, evaluation=False,
+                        **D.local_model_context(batch, device),
                     )
                 else:
                     pred = model(pos, x, batch["batch"].to(device))
-                loss = compute_loss(pred, batch, cfg.train, device, wss_stats)
-            pred_metric = pred[:, 0] if pred.ndim == 2 else pred
+                loss_parts = {} if log_components else None
+                try:
+                    loss = compute_loss(pred, batch, cfg.train, device, wss_stats,
+                                        components=loss_parts)
+                except FloatingPointError:
+                    _record_nonfinite_event(run_dir, epoch, nb, "physical_loss_nonfinite_fatal")
+                    raise
+            if guard_finite and not bool(torch.isfinite(loss)):
+                _record_nonfinite_event(run_dir, epoch, nb, "total_loss_nonfinite_fatal")
+                raise FloatingPointError(f"non-finite training loss at epoch={epoch} step={nb}")
+            loss_units = len(batch["unit_ids"]) if joint_target else 1
+            if loss_parts is not None:
+                for key, value in loss_parts.items():
+                    component_sums[key] = component_sums.get(key, 0.0) + float(value) * loss_units
             target_metric = batch["y"].to(device)
-            diff = (pred_metric.detach().float() - target_metric.float())
-            ep_sqerr += float(diff.square().sum().item())
-            ep_abserr += float(diff.abs().sum().item())
-            ep_points += int(diff.numel())
+            if joint_target:
+                for task, channels in (("velocity", slice(0, 3)), ("pressure", 3)):
+                    mask = batch[f"{task}_mask"].to(device)
+                    diff = (pred.detach()[mask, channels].float() - target_metric[mask, channels].float())
+                    acc = task_errors[task]
+                    acc["sqerr"] += float(diff.square().sum())
+                    acc["abserr"] += float(diff.abs().sum())
+                    acc["elements"] += int(diff.numel())
+                    acc["points"] += int(mask.sum())
+                ep_points += len(target_metric)
+            elif pred.ndim == 2 and target_metric.ndim == 2 and pred.shape == target_metric.shape:
+                pred_metric = pred  # vector target
+            else:
+                pred_metric = pred[:, 0] if pred.ndim == 2 else pred
+            if not joint_target:
+                diff = (pred_metric.detach().float() - target_metric.float())
+                ep_sqerr += float(diff.square().sum().item())
+                ep_abserr += float(diff.abs().sum().item())
+                ep_points += int(diff.numel())
             scaler.scale(loss).backward()
-            if cfg.train.grad_clip > 0:
+            if cfg.train.grad_clip > 0 or guard_finite:
                 scaler.unscale_(opt)
-                torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.train.grad_clip)
+                grad_norm = torch.nn.utils.clip_grad_norm_(
+                    model.parameters(), cfg.train.grad_clip if cfg.train.grad_clip > 0 else float("inf"),
+                )
+                if guard_finite:
+                    if bool(torch.isfinite(grad_norm)):
+                        if log_components:
+                            finite_grad_norms.append(float(grad_norm))
+                    elif scaler.is_enabled():
+                        epoch_amp_overflows += 1
+                        _record_nonfinite_event(run_dir, epoch, nb, "amp_gradient_overflow_skipped")
+                    else:
+                        _record_nonfinite_event(run_dir, epoch, nb, "gradient_nonfinite_fatal")
+                        raise FloatingPointError(f"non-finite gradient at epoch={epoch} step={nb}")
             scaler.step(opt); scaler.update()
-            ep_loss += float(loss.item()); nb += 1
+            if ema_model is not None:
+                ema_updates += 1
+                decay = min(ema_decay, (1.0 + ema_updates) / (10.0 + ema_updates))
+                with torch.no_grad():
+                    for shadow, live in zip(ema_model.parameters(), model.parameters()):
+                        shadow.mul_(decay).add_(live.detach(), alpha=1.0 - decay)
+                    for shadow, live in zip(ema_model.buffers(), model.buffers()):
+                        shadow.copy_(live)
+            ep_loss += float(loss.item()) * loss_units
+            ep_loss_units += loss_units
+            nb += 1
         sched.step()
-        ep_loss /= max(1, nb)
+        ep_loss /= max(1, ep_loss_units)
 
-        train_mse_norm = ep_sqerr / max(1, ep_points)
-        train_mae_norm = ep_abserr / max(1, ep_points)
+        if joint_target:
+            train_mse_norm = sum(acc["sqerr"] / acc["elements"] for acc in task_errors.values()) / 2
+            train_mae_norm = sum(acc["abserr"] / acc["elements"] for acc in task_errors.values()) / 2
+        else:
+            train_mse_norm = ep_sqerr / max(1, ep_points)
+            train_mae_norm = ep_abserr / max(1, ep_points)
         rec = {"epoch": epoch, "train_loss": ep_loss,
                "train_mse_norm": train_mse_norm,
                "train_mae_norm": train_mae_norm,
@@ -283,11 +400,37 @@ def main():
                "train_sampled_points": ep_points,
                "lr": opt.param_groups[0]["lr"],
                "elapsed_s": round(time.time() - t0, 1)}
+        if joint_target:
+            rec["train_metric_reduction"] = "equal tasks; fixed per-task queries per case"
+            for task, acc in task_errors.items():
+                mse = acc["sqerr"] / acc["elements"]
+                rec.update({f"train_{task}_mse_norm": mse,
+                            f"train_{task}_mae_norm": acc["abserr"] / acc["elements"],
+                            f"train_{task}_rmse_norm": math.sqrt(mse),
+                            f"train_{task}_sampled_points": acc["points"]})
+        total_amp_overflows += epoch_amp_overflows
+        if log_components:
+            rec.update({
+                "loss_components": {k: v / max(1, ep_loss_units) for k, v in component_sums.items()},
+                "grad_norm_preclip_mean": (
+                    sum(finite_grad_norms) / len(finite_grad_norms) if finite_grad_norms else None
+                ),
+                "grad_norm_preclip_max": max(finite_grad_norms) if finite_grad_norms else None,
+                "amp_overflow_steps": epoch_amp_overflows,
+                "amp_scale": float(scaler.get_scale()),
+                "peak_cuda_allocated_mb": torch.cuda.max_memory_allocated() / 2**20 if device == "cuda" else 0.0,
+                "peak_cuda_reserved_mb": torch.cuda.max_memory_reserved() / 2**20 if device == "cuda" else 0.0,
+            })
 
         do_eval = ((epoch + 1) % cfg.train.eval_every == 0) or (epoch == cfg.train.epochs - 1)
         if select_by_train_loss:
             # Maximize -train_loss so existing top-k / best machinery stays max-based.
             score = -float(ep_loss)
+            if select_by_ema:
+                alpha = float(cfg.train.selection_ema_alpha)
+                train_loss_ema = float(ep_loss) if train_loss_ema is None else alpha * float(ep_loss) + (1.0 - alpha) * train_loss_ema
+                rec["train_loss_ema"] = train_loss_ema
+                score = -train_loss_ema
             rec["selection_score"] = score
             improved = np.isfinite(score) and score > best_metric + 1e-12
             if improved:
@@ -359,10 +502,26 @@ def main():
             f.write(json.dumps(rec) + "\n")
         torch.save({"model": model.state_dict(), "epoch": epoch, "cfg_name": cfg.name},
                    run_dir / "ckpt_last.pt")
+        if ema_model is not None:
+            rec["ema_updates"] = ema_updates
+            torch.save({"model": ema_model.state_dict(), "epoch": epoch, "cfg_name": cfg.name,
+                        "ema_decay": ema_decay, "ema_updates": ema_updates}, run_dir / "ckpt_ema.pt")
         if stopped_early:
             break
 
     plot_history(history, run_dir / "history.png")
+    if log_components:
+        (run_dir / "training_diagnostics.json").write_text(json.dumps({
+            "completed_epochs": len(history), "parameter_count": n_par,
+            "elapsed_seconds": time.time() - t0,
+            "amp_overflow_steps": total_amp_overflows,
+            "fatal_nonfinite_events": 0,
+            "peak_cuda_allocated_mb": torch.cuda.max_memory_allocated() / 2**20 if device == "cuda" else 0.0,
+            "peak_cuda_reserved_mb": torch.cuda.max_memory_reserved() / 2**20 if device == "cuda" else 0.0,
+            "loss_components": ("equal-task MSE; epoch means weighted by cases" if joint_target else
+                                "unweighted and weighted auxiliary terms; epoch means over batches"),
+            "gradient_norm": "unscaled, before clipping; finite steps only",
+        }, indent=2, ensure_ascii=False), encoding="utf-8")
     log.info("训练完成 best score=%.4f  用时 %.1f min  early=%s  -> %s",
              best_metric, (time.time() - t0) / 60, stopped_early, run_dir)
     if not (run_dir / "ckpt_best.pt").exists():

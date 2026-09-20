@@ -1,6 +1,7 @@
 data_new/
 data_wss_min/
 data_wss_pinn/
+data_wss_v5/
 env_packages/
 stl_data/
 legacy/
@@ -52,7 +53,16 @@ outputs/
 
 # Generated experiment reports and local editor state.
 training_wss_min/preflight/
-.cursor/
+.cursor/*
+# Project skill sources are shared with Codex via .agents/skills symlinks.
+!.cursor/skills/
+.cursor/skills/*
+!.cursor/skills/analyze-experiment/
+!.cursor/skills/node04-experiments/
+!.cursor/skills/postview-surface-viz/
+!.cursor/rules/
+.cursor/rules/*
+!.cursor/rules/node04.mdc
 
 # Large/generated binary report assets. Keep their source scripts and Markdown.
 *.pdf

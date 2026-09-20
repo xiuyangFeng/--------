@@ -1,0 +1,19 @@
+{
+  "stem": "04_rcr_audit",
+  "claim": "用 R1 反推出口面积发现 23 例（39 个出口）录入错误，修正后 26 例重算 CFD，并剔除 2 例重复病例，数据口径变为 170 例。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/02-推进与变更/WSS_PINN/RCR出口面积录入核查_2026-09-15/rcr_area_audit.csv",
+      "sha256": "1ef0771ac7eb67e07334a0d2e8932ce94d6bc1c3fc1567fee4949c35bc2c6781"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/02-推进与变更/WSS_PINN/RCR出口面积录入核查_2026-09-15/rcr_corrected_udf_values.csv",
+      "sha256": "7e9d66cc82cf8ef81c1de48590aaf2beab13a6cf24cda063e738b282cc2392fa"
+    }
+  ],
+  "exports": {
+    "png": "figures/04_rcr_audit.png"
+  },
+  "alignment": "PASS",
+  "note": "Panel a is one point per outlet (688 outlets over 172 cases); the shaded band is the 0.8-1.25x agreement zone used only for reading, not a pass/fail threshold. Panel b counts outlets, not cases."
+}

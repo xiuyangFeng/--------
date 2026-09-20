@@ -1,0 +1,1770 @@
+{
+  "job_id": "15123",
+  "started_at": "2026-09-19T13:37:55+0800",
+  "status": "complete",
+  "gpus": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "slots_per_gpu": 1,
+  "launch_interval_seconds": 15.0,
+  "arms": {
+    "PF6_v51_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f0_s1234.json",
+      "run_name": "volume_time_20260919/PF6_v51_f0_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T13:37:55+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PF6_v51_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f0_s1234.json"
+          ],
+          "pid": 894267,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:03:00+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T14:03:00+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PF6_v51_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PF6_v51_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1367119,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:07:28+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T14:07:28+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PF6_v51_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PF6_v51_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1380307,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:11:10+0800"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "gpu": "0"
+    },
+    "PF6_v51_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f1_s1234.json",
+      "run_name": "volume_time_20260919/PF6_v51_f1_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T13:37:55+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PF6_v51_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f1_s1234.json"
+          ],
+          "pid": 894271,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:02:27+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T14:02:27+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PF6_v51_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PF6_v51_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1361297,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:06:51+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T14:06:51+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PF6_v51_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PF6_v51_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1379397,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:10:45+0800"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "gpu": "1"
+    },
+    "PF6_v51_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f2_s1234.json",
+      "run_name": "volume_time_20260919/PF6_v51_f2_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T13:37:55+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PF6_v51_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f2_s1234.json"
+          ],
+          "pid": 894275,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:02:27+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T14:02:27+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PF6_v51_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PF6_v51_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1361301,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:06:54+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T14:06:54+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PF6_v51_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PF6_v51_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1379453,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:10:45+0800"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "gpu": "2"
+    },
+    "VF6_v51_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f0_s1234.json",
+      "run_name": "volume_time_20260919/VF6_v51_f0_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T13:37:55+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VF6_v51_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f0_s1234.json"
+          ],
+          "pid": 894279,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:04:04+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T14:04:04+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VF6_v51_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VF6_v51_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1373542,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:07:28+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T14:07:28+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VF6_v51_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VF6_v51_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1380311,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:10:33+0800"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "gpu": "3"
+    },
+    "VF6_v51_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f1_s1234.json",
+      "run_name": "volume_time_20260919/VF6_v51_f1_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T14:10:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VF6_v51_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f1_s1234.json"
+          ],
+          "pid": 1384904,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:35:43+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T14:35:43+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VF6_v51_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VF6_v51_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1636321,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:38:06+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T14:38:06+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VF6_v51_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VF6_v51_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1640366,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:40:29+0800"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "gpu": "3"
+    },
+    "VF6_v51_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f2_s1234.json",
+      "run_name": "volume_time_20260919/VF6_v51_f2_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T14:10:45+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VF6_v51_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f2_s1234.json"
+          ],
+          "pid": 1385471,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:35:52+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T14:35:53+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VF6_v51_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VF6_v51_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1637121,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:38:21+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T14:38:21+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VF6_v51_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VF6_v51_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 1640671,
+          "returncode": 0,
+          "ended_at": "2026-09-19T14:40:47+0800"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "gpu": "1"
+    },
+    "PT0_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PT0_f0_s1234.json",
+      "run_name": "volume_time_20260919/PT0_f0_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T14:40:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PT0_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PT0_f0_s1234.json"
+          ],
+          "pid": 1644508,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:06:27+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T15:06:27+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PT0_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PT0_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 2095389,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:15:10+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T15:15:10+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PT0_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PT0_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 2120581,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:24:22+0800"
+        }
+      },
+      "depends_on": [
+        "PF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "PT0_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PT0_f1_s1234.json",
+      "run_name": "volume_time_20260919/PT0_f1_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T14:40:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PT0_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PT0_f1_s1234.json"
+          ],
+          "pid": 1644512,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:06:03+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T15:06:03+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PT0_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PT0_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 2091819,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:15:16+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T15:15:16+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PT0_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PT0_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 2120766,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:24:25+0800"
+        }
+      },
+      "depends_on": [
+        "PF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "PT0_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PT0_f2_s1234.json",
+      "run_name": "volume_time_20260919/PT0_f2_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T14:40:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PT0_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PT0_f2_s1234.json"
+          ],
+          "pid": 1644517,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:06:03+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T15:06:03+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PT0_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PT0_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 2091823,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:15:03+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T15:15:04+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PT0_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PT0_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 2120436,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:23:55+0800"
+        }
+      },
+      "depends_on": [
+        "PF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "PTB8_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB8_f0_s1234.json",
+      "run_name": "volume_time_20260919/PTB8_f0_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T14:40:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB8_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB8_f0_s1234.json"
+          ],
+          "pid": 1644521,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:09:32+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T15:09:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB8_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB8_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 2112523,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:16:29+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T15:16:29+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB8_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB8_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 2122711,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:22:12+0800"
+        }
+      },
+      "depends_on": [
+        "PF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "PTB8_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB8_f1_s1234.json",
+      "run_name": "volume_time_20260919/PTB8_f1_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T15:22:12+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB8_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB8_f1_s1234.json"
+          ],
+          "pid": 2131391,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:48:53+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T15:48:53+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB8_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB8_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 2544759,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:54:16+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T15:54:16+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB8_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB8_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 2603739,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:01:36+0800"
+        }
+      },
+      "depends_on": [
+        "PF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "PTB8_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB8_f2_s1234.json",
+      "run_name": "volume_time_20260919/PTB8_f2_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T15:23:55+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB8_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB8_f2_s1234.json"
+          ],
+          "pid": 2133916,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:49:57+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T15:49:57+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB8_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB8_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 2560662,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:54:59+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T15:54:59+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB8_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB8_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 2605006,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:02:56+0800"
+        }
+      },
+      "depends_on": [
+        "PF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "PTB16_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB16_f0_s1234.json",
+      "run_name": "volume_time_20260919/PTB16_f0_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T15:24:22+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB16_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB16_f0_s1234.json"
+          ],
+          "pid": 2134542,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:54:16+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T15:54:16+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB16_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB16_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 2603735,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:03:02+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T16:03:02+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB16_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB16_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 2616652,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:08:26+0800"
+        }
+      },
+      "depends_on": [
+        "PF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "PTB16_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB16_f1_s1234.json",
+      "run_name": "volume_time_20260919/PTB16_f1_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T15:24:25+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB16_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB16_f1_s1234.json"
+          ],
+          "pid": 2134611,
+          "returncode": 0,
+          "ended_at": "2026-09-19T15:54:25+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T15:54:25+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB16_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB16_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 2604199,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:01:42+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T16:01:43+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB16_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB16_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 2614754,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:07:42+0800"
+        }
+      },
+      "depends_on": [
+        "PF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "PTB16_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB16_f2_s1234.json",
+      "run_name": "volume_time_20260919/PTB16_f2_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T16:01:36+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB16_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PTB16_f2_s1234.json"
+          ],
+          "pid": 2614658,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:29:54+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T16:29:54+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB16_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB16_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3028434,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:37:26+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T16:37:26+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/PTB16_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/PTB16_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3092364,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:44:36+0800"
+        }
+      },
+      "depends_on": [
+        "PF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "VT0_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VT0_f0_s1234.json",
+      "run_name": "volume_time_20260919/VT0_f0_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T16:02:56+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VT0_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VT0_f0_s1234.json"
+          ],
+          "pid": 2616307,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:31:41+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T16:31:41+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VT0_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VT0_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3051868,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:42:21+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T16:42:22+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VT0_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VT0_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3099888,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:52:50+0800"
+        }
+      },
+      "depends_on": [
+        "VF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "VT0_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VT0_f1_s1234.json",
+      "run_name": "volume_time_20260919/VT0_f1_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T16:07:43+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VT0_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VT0_f1_s1234.json"
+          ],
+          "pid": 2647130,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:36:16+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T16:36:16+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VT0_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VT0_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3090411,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:46:38+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T16:46:38+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VT0_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VT0_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3106089,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:55:40+0800"
+        }
+      },
+      "depends_on": [
+        "VF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "VT0_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VT0_f2_s1234.json",
+      "run_name": "volume_time_20260919/VT0_f2_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T16:08:26+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VT0_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VT0_f2_s1234.json"
+          ],
+          "pid": 2653941,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:36:16+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T16:36:16+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VT0_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VT0_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3090407,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:47:30+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T16:47:30+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VT0_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VT0_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3108107,
+          "returncode": 0,
+          "ended_at": "2026-09-19T16:57:21+0800"
+        }
+      },
+      "depends_on": [
+        "VF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "VTB4_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB4_f0_s1234.json",
+      "run_name": "volume_time_20260919/VTB4_f0_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T16:44:36+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB4_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB4_f0_s1234.json"
+          ],
+          "pid": 3103201,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:20:51+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T17:20:53+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB4_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB4_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3406371,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:42:58+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T17:42:58+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB4_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB4_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3617987,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:56:04+0800"
+        }
+      },
+      "depends_on": [
+        "VF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "VTB4_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB4_f1_s1234.json",
+      "run_name": "volume_time_20260919/VTB4_f1_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T16:52:50+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB4_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB4_f1_s1234.json"
+          ],
+          "pid": 3116074,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:28:56+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T17:28:57+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB4_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB4_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3520778,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:43:51+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T17:43:51+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB4_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB4_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3619415,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:56:56+0800"
+        }
+      },
+      "depends_on": [
+        "VF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "VTB4_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB4_f2_s1234.json",
+      "run_name": "volume_time_20260919/VTB4_f2_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T16:55:40+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB4_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB4_f2_s1234.json"
+          ],
+          "pid": 3122910,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:37:18+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T17:37:18+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB4_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB4_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3606023,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:51:17+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T17:51:17+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB4_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB4_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3632914,
+          "returncode": 0,
+          "ended_at": "2026-09-19T18:04:05+0800"
+        }
+      },
+      "depends_on": [
+        "VF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "VTB8_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB8_f0_s1234.json",
+      "run_name": "volume_time_20260919/VTB8_f0_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T16:57:21+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB8_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB8_f0_s1234.json"
+          ],
+          "pid": 3132135,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:37:46+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T17:37:46+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB8_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB8_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3608252,
+          "returncode": 0,
+          "ended_at": "2026-09-19T17:51:01+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T17:51:01+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB8_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB8_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3632422,
+          "returncode": 0,
+          "ended_at": "2026-09-19T18:01:48+0800"
+        }
+      },
+      "depends_on": [
+        "VF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "VTB8_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB8_f1_s1234.json",
+      "run_name": "volume_time_20260919/VTB8_f1_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T17:56:04+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB8_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB8_f1_s1234.json"
+          ],
+          "pid": 3641353,
+          "returncode": 0,
+          "ended_at": "2026-09-19T18:32:13+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T18:32:13+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB8_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB8_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3909399,
+          "returncode": 0,
+          "ended_at": "2026-09-19T18:39:41+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T18:39:41+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB8_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB8_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3933361,
+          "returncode": 0,
+          "ended_at": "2026-09-19T18:45:40+0800"
+        }
+      },
+      "depends_on": [
+        "VF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "VTB8_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB8_f2_s1234.json",
+      "run_name": "volume_time_20260919/VTB8_f2_s1234",
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-19T17:56:56+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB8_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VTB8_f2_s1234.json"
+          ],
+          "pid": 3642967,
+          "returncode": 0,
+          "ended_at": "2026-09-19T18:34:24+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-19T18:34:24+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB8_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB8_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "pid": 3923249,
+          "returncode": 0,
+          "ended_at": "2026-09-19T18:41:30+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-19T18:41:30+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/logs/VTB8_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_voltime_frozen_20260919/training_wss_min/runs/volume_time_20260919/VTB8_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "pid": 3937553,
+          "returncode": 0,
+          "ended_at": "2026-09-19T18:47:30+0800"
+        }
+      },
+      "depends_on": [
+        "VF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    }
+  },
+  "matrix": "volume_time_20260919",
+  "expected_training_runs": 24,
+  "expected_evaluations": 42,
+  "preflight_verification": {
+    "preflight": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/runtime_preflight.json",
+    "sha256": "95e512d0c667536ae56d52ad9b6f6148ed2feb367ffecd9358087c0e46ccfcae",
+    "job_id": "15122"
+  },
+  "ended_at": "2026-09-19T18:47:30+0800"
+}

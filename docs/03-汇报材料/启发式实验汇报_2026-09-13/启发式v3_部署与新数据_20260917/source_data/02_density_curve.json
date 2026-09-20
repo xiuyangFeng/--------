@@ -1,0 +1,307 @@
+{
+  "stem": "02_density_curve",
+  "sources": [
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/stl_x5/deployment_stl_simulation.json",
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/stl_x5_fine/deployment_stl_simulation.json",
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/stl_x5d/deployment_stl_simulation.json",
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/deployment_reeval_x5_3seed/deployment_resample_reeval.json",
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/deployment_reeval_x5d/deployment_resample_reeval.json",
+    "training_wss_min/experiments/wss_x5d_inference_followup_20260915/decomposition_x5d/neighbourhood_decomposition.json"
+  ],
+  "values": {
+    "stl_X5_5seed": [
+      {
+        "target": 0.35,
+        "actual": 0.34811771857126916,
+        "points": 120351.5,
+        "r2": 0.7405374856431278,
+        "ref": 0.7613612300620404,
+        "high": 0.3825130867438249,
+        "iou": 0.6141397653090747,
+        "norm": 0.8738824481493171
+      },
+      {
+        "target": 0.5,
+        "actual": 0.49656980496147984,
+        "points": 59380.5,
+        "r2": 0.7486454761714115,
+        "ref": 0.7603982587728252,
+        "high": 0.4013056712028702,
+        "iou": 0.6238179710002327,
+        "norm": 0.8787023679853987
+      },
+      {
+        "target": 0.8,
+        "actual": 0.7947053490515547,
+        "points": 23081.5,
+        "r2": 0.7194223071173605,
+        "ref": 0.762032861652129,
+        "high": 0.33025323855595734,
+        "iou": 0.6128135410621064,
+        "norm": 0.8782262619417358
+      },
+      {
+        "target": 0.0,
+        "actual": 0.9552252056508846,
+        "points": 15259.0,
+        "r2": 0.6906537680571972,
+        "ref": 0.7602126549524008,
+        "high": 0.26624111005400475,
+        "iou": 0.5752365585103166,
+        "norm": 0.8727678042044784
+      },
+      {
+        "target": 1.2,
+        "actual": 1.192588157833582,
+        "points": 10184.5,
+        "r2": 0.613516268038239,
+        "ref": 0.7601016362219916,
+        "high": 0.05222093892550428,
+        "iou": 0.5575002505324009,
+        "norm": 0.8626904498680347
+      }
+    ],
+    "stl_X5D_3seed": [
+      {
+        "target": 0.5,
+        "actual": 0.49656980496147984,
+        "points": 59380.5,
+        "r2": 0.7385819868087546,
+        "ref": 0.7608664616089675,
+        "high": 0.3797571216074893,
+        "iou": 0.615082035671589,
+        "norm": 0.8771918187103234
+      },
+      {
+        "target": 0.8,
+        "actual": 0.7947053490515547,
+        "points": 23081.5,
+        "r2": 0.7268045044170051,
+        "ref": 0.7624917315323482,
+        "high": 0.3463662667499654,
+        "iou": 0.6130872882412551,
+        "norm": 0.8794392221436932
+      },
+      {
+        "target": 0.0,
+        "actual": 0.9552252056508846,
+        "points": 15259.0,
+        "r2": 0.7315450900814324,
+        "ref": 0.7604673488476712,
+        "high": 0.3048276593851571,
+        "iou": 0.6055213597894925,
+        "norm": 0.8787414394344323
+      },
+      {
+        "target": 1.2,
+        "actual": 1.192588157833582,
+        "points": 10184.5,
+        "r2": 0.7135653686233754,
+        "ref": 0.7607018041992062,
+        "high": 0.3137269453381636,
+        "iou": 0.5948913366222177,
+        "norm": 0.8769747309770448
+      }
+    ],
+    "voxel_X5_3seed": [
+      {
+        "fraction": 1.0,
+        "variant": "recompute",
+        "points": 16865.0,
+        "r2": 0.7331008467264759,
+        "ref": 0.733102066388955
+      },
+      {
+        "fraction": 0.5,
+        "variant": "recompute",
+        "points": 8443.5,
+        "r2": 0.6902941969579235,
+        "ref": 0.7511926256598008
+      },
+      {
+        "fraction": 0.5,
+        "variant": "frozen",
+        "points": 8443.5,
+        "r2": 0.7228373364491909,
+        "ref": 0.7511926256598008
+      },
+      {
+        "fraction": 0.25,
+        "variant": "recompute",
+        "points": 4203.0,
+        "r2": 0.5702778081097456,
+        "ref": 0.7529708160524238
+      },
+      {
+        "fraction": 0.25,
+        "variant": "frozen",
+        "points": 4203.0,
+        "r2": 0.662263085902891,
+        "ref": 0.7529708160524238
+      },
+      {
+        "fraction": 0.1,
+        "variant": "recompute",
+        "points": 1685.5,
+        "r2": 0.3568238781135855,
+        "ref": 0.7532787740498127
+      },
+      {
+        "fraction": 0.1,
+        "variant": "frozen",
+        "points": 1685.5,
+        "r2": 0.5440361762978221,
+        "ref": 0.7532787740498127
+      }
+    ],
+    "voxel_X5D_3seed": [
+      {
+        "fraction": 1.0,
+        "variant": "recompute",
+        "points": 16865.0,
+        "r2": 0.7332526273440172,
+        "ref": 0.733258268199897
+      },
+      {
+        "fraction": 0.5,
+        "variant": "recompute",
+        "points": 8443.5,
+        "r2": 0.7307537785496487,
+        "ref": 0.752917906898559
+      },
+      {
+        "fraction": 0.5,
+        "variant": "frozen",
+        "points": 8443.5,
+        "r2": 0.7319994820123483,
+        "ref": 0.752917906898559
+      },
+      {
+        "fraction": 0.25,
+        "variant": "recompute",
+        "points": 4203.0,
+        "r2": 0.6865498704027246,
+        "ref": 0.7547527251295307
+      },
+      {
+        "fraction": 0.25,
+        "variant": "frozen",
+        "points": 4203.0,
+        "r2": 0.6940195515928023,
+        "ref": 0.7547527251295307
+      },
+      {
+        "fraction": 0.1,
+        "variant": "recompute",
+        "points": 1685.5,
+        "r2": 0.585343044992411,
+        "ref": 0.7560857691889732
+      },
+      {
+        "fraction": 0.1,
+        "variant": "frozen",
+        "points": 1685.5,
+        "r2": 0.6082448002136218,
+        "ref": 0.7560857691889732
+      }
+    ],
+    "neighbourhood_X5D": [
+      {
+        "fraction": 0.5,
+        "variant": "thin/thin",
+        "support": "thin",
+        "patch": "thin",
+        "r2": 0.7319994814075146,
+        "ref": 0.752917906898559
+      },
+      {
+        "fraction": 0.5,
+        "variant": "full/thin",
+        "support": "full",
+        "patch": "thin",
+        "r2": 0.7316058983545262,
+        "ref": 0.752917906898559
+      },
+      {
+        "fraction": 0.5,
+        "variant": "thin/full",
+        "support": "thin",
+        "patch": "full",
+        "r2": 0.751245795167787,
+        "ref": 0.752917906898559
+      },
+      {
+        "fraction": 0.5,
+        "variant": "full/full",
+        "support": "full",
+        "patch": "full",
+        "r2": 0.7529179000494237,
+        "ref": 0.752917906898559
+      },
+      {
+        "fraction": 0.25,
+        "variant": "thin/thin",
+        "support": "thin",
+        "patch": "thin",
+        "r2": 0.6940195512095013,
+        "ref": 0.7547527251295307
+      },
+      {
+        "fraction": 0.25,
+        "variant": "full/thin",
+        "support": "full",
+        "patch": "thin",
+        "r2": 0.7008461409358108,
+        "ref": 0.7547527251295307
+      },
+      {
+        "fraction": 0.25,
+        "variant": "thin/full",
+        "support": "thin",
+        "patch": "full",
+        "r2": 0.7459023064886229,
+        "ref": 0.7547527251295307
+      },
+      {
+        "fraction": 0.25,
+        "variant": "full/full",
+        "support": "full",
+        "patch": "full",
+        "r2": 0.754752718660947,
+        "ref": 0.7547527251295307
+      },
+      {
+        "fraction": 0.1,
+        "variant": "thin/thin",
+        "support": "thin",
+        "patch": "thin",
+        "r2": 0.6082448017399751,
+        "ref": 0.7560857691889732
+      },
+      {
+        "fraction": 0.1,
+        "variant": "full/thin",
+        "support": "full",
+        "patch": "thin",
+        "r2": 0.6287761170845689,
+        "ref": 0.7560857691889732
+      },
+      {
+        "fraction": 0.1,
+        "variant": "thin/full",
+        "support": "thin",
+        "patch": "full",
+        "r2": 0.7392529861837709,
+        "ref": 0.7560857691889732
+      },
+      {
+        "fraction": 0.1,
+        "variant": "full/full",
+        "support": "full",
+        "patch": "full",
+        "r2": 0.7560857626667838,
+        "ref": 0.7560857691889732
+      }
+    ]
+  }
+}

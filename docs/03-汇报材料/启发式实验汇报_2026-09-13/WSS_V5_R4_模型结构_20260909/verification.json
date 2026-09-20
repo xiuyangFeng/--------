@@ -1,0 +1,59 @@
+{
+  "parameter_count": 573351,
+  "checkpoint_strict_load": true,
+  "checkpoint_epoch_zero_based": 378,
+  "shapes_single_case": {
+    "stem": [
+      5000,
+      32
+    ],
+    "SA1": [
+      125,
+      64
+    ],
+    "SA2": [
+      125,
+      128
+    ],
+    "SA3": [
+      32,
+      256
+    ],
+    "FP3": [
+      125,
+      128
+    ],
+    "FP2": [
+      125,
+      64
+    ],
+    "FP1": [
+      5000,
+      32
+    ],
+    "head": [
+      137,
+      1
+    ]
+  },
+  "same_output": [
+    5000
+  ],
+  "independent_query_output": [
+    137
+  ],
+  "finite": true,
+  "source_bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/ZHOU_XI_SHENG/bundle.npz",
+  "drop_path_per_block": [
+    0.0,
+    0.10000000149011612
+  ],
+  "source_sha256": {
+    "training_wss_min/baseline_models.py": "af7c9e3f87d0e1a4da40bbfec13de66a0024e3f6075dd4e2edb1254f48106455",
+    "training_wss_min/dataset.py": "10fa9b4d9163212bd7157fca244e7c1699da0588d19833d609a61fb8f10e54a3",
+    "training_wss_min/objectives.py": "7526c88ceb43d8bffcaaf1598a70530b045d7c64d9bf743228a7fa46a8cff375",
+    "training_wss_min/configs/v5_rerun_20260906/r4_lsa2_h2_logradius_v5feat_s1234.json": "3d7278193c3db1d8a8a0a1d6da7d89931f6418e419a7a0f9b6b586ad09c35fc2",
+    "wss_v5/centerline_features.py": "98411f0b5d438fb347c99152d8ba3e6a4c9655b1b097ea1d66b84d2d4d17bb8f",
+    "wss_v5/views/wss_min_view.py": "7c4489c4226c50881b30ac6abdaeb3975ec8f6d42edc62ba27ce65189d835a27"
+  }
+}

@@ -8,7 +8,7 @@
   - 指标口径：同点 wall CSV（不在面片上算正式 R2）
 
 坐标系：bundle 刚性配准帧（mm）；STL 先按 bbox 对角缩放再应用同一刚性变换，
-与 ``visualize_sampling.py`` 一致。
+与 ``visualize_sampling.py`` 一致。旋转约定按壁面点自检（旧 bundle ``@R``，V5 视图 ``@R.T``）。
 
 示例：
   python -m training_wss_min.tools.export_wss_postview \\
@@ -477,7 +477,14 @@ def export_case(
     stl_scale = float(case.get("original_stl_scale_to_mm", float("nan")))
     if not np.isfinite(stl_scale) or stl_scale <= 0:
         stl_scale = _bbox_diag(wall_raw) / max(_bbox_diag(stl_raw), 1e-12)
-    stl_xyz = (stl_raw * stl_scale - centroid) @ rotation
+    # 旧 bundle（stl_landmarks_v4）存的是 (raw - c) @ R；V5 视图（v5_atlas_frame_v1）存的是 (raw - c) @ R.T。
+    # 用壁面点自检选出能复现 wall_xyz 的约定，避免 STL 与点云错位。
+    err_r = float(np.abs((wall_raw - centroid) @ rotation - wall_xyz).max())
+    err_rt = float(np.abs((wall_raw - centroid) @ rotation.T - wall_xyz).max())
+    rotation_apply = rotation if err_r <= err_rt else rotation.T
+    if min(err_r, err_rt) > 1e-2:
+        raise RuntimeError(f"{label}: cannot reproduce wall frame from bundle transform (err {err_r:.3g}/{err_rt:.3g} mm)")
+    stl_xyz = (stl_raw * stl_scale - centroid) @ rotation_apply
     crop_report = {"applied": False}
     if case.get("wall_crop_applied", False):
         stl_xyz, stl_tris, crop_report = _crop_stl_to_wall(
@@ -613,6 +620,7 @@ def export_case(
         "coordinate_system": (
             "bundle registration frame in mm; STL bbox-scaled then rigid-transformed"
         ),
+        "rotation_convention": "R" if rotation_apply is rotation else "R.T",
         "stl_to_pipeline_scale": float(stl_scale),
         "stl_crop_to_cfd_wall": crop_report,
         "unit_extent_mismatch": extent_mismatch,

@@ -1,0 +1,323 @@
+{
+  "schema": "v6_multiradius_delivery_verification_v1",
+  "generated_at_utc": "2026-09-09T11:47:44.792944+00:00",
+  "passed": true,
+  "scope": "partial",
+  "all_6_best_and_last_reported_finalized": false,
+  "limitations": [
+    "Checks faithful transcription from original metrics; does not recompute evaluator outputs.",
+    "Checkpoint ZIP CRC and scalar metadata are checked with inert tensor placeholders; no torch or training package is imported.",
+    "Only archived start/end hashes establish training source integrity; later current-source drift is reported separately.",
+    "Pending metrics are checked as absent/blank and never converted to zero."
+  ],
+  "execution_and_configuration": {
+    "queue_finished": false,
+    "start_end_hash_equal": false,
+    "current_source_drift": [],
+    "arms": {
+      "MS1": {
+        "train_done": false,
+        "queue_status": "train",
+        "checkpoints": {}
+      },
+      "MS2": {
+        "train_done": false,
+        "queue_status": "train",
+        "checkpoints": {}
+      },
+      "MS3": {
+        "train_done": false,
+        "queue_status": "train",
+        "checkpoints": {}
+      },
+      "MS4": {
+        "train_done": false,
+        "queue_status": "train",
+        "checkpoints": {}
+      },
+      "MS5": {
+        "train_done": false,
+        "queue_status": "train",
+        "checkpoints": {}
+      },
+      "MS6": {
+        "train_done": false,
+        "queue_status": "train",
+        "checkpoints": {}
+      }
+    }
+  },
+  "checkpoints": {
+    "best": {
+      "valid_count": 0,
+      "valid_ids": [],
+      "pending_ids": [
+        "MS1",
+        "MS2",
+        "MS3",
+        "MS4",
+        "MS5",
+        "MS6"
+      ],
+      "matrix_finalized_reported": false
+    },
+    "last": {
+      "valid_count": 0,
+      "valid_ids": [],
+      "pending_ids": [
+        "MS1",
+        "MS2",
+        "MS3",
+        "MS4",
+        "MS5",
+        "MS6"
+      ],
+      "matrix_finalized_reported": false
+    }
+  },
+  "workbook_checkpoint": "best",
+  "metric_semantics": {
+    "overview_AA_AB": "log_z pooled MAE/RMSE",
+    "overview_M_N": "Pa pooled RMSE/MAE",
+    "teacher_O": "log_z pooled p99_pred_true_ratio",
+    "comparison_L": "Pa pooled p99_pred_true_ratio"
+  },
+  "original_workbook_preservation": {
+    "汇总对比": {
+      "last_original_row": 404,
+      "backup_max_row": 404,
+      "original_nonempty_cells": 5117,
+      "original_formula_cells": 768
+    },
+    "教师汇报视图": {
+      "last_original_row": 241,
+      "backup_max_row": 241,
+      "original_nonempty_cells": 4110,
+      "original_formula_cells": 580
+    },
+    "RCR Oracle": {
+      "last_original_row": 23,
+      "backup_max_row": 23,
+      "original_nonempty_cells": 140,
+      "original_formula_cells": 12
+    },
+    "指标说明": {
+      "last_original_row": 36,
+      "backup_max_row": 36,
+      "original_nonempty_cells": 191,
+      "original_formula_cells": 0
+    },
+    "实验矩阵总览": {
+      "last_original_row": 281,
+      "backup_max_row": 281,
+      "original_nonempty_cells": 13080,
+      "original_formula_cells": 0
+    }
+  },
+  "checks_by_category": {
+    "matrix": 1,
+    "source_test_set": 13,
+    "freeze": 6,
+    "freeze_hash": 7,
+    "source_live": 21,
+    "configuration": 138,
+    "configuration_unchanged": 222,
+    "runtime_configuration": 642,
+    "source_protocol": 2,
+    "summary_metadata": 36,
+    "summary_reference": 28,
+    "summary_pending_blank": 240,
+    "markdown": 184,
+    "tracker": 4,
+    "workbook_metadata": 73,
+    "legacy_boundary": 5,
+    "legacy_cell": 22638,
+    "workbook_pending_blank": 402,
+    "workbook_metric": 8,
+    "snapshot": 1
+  },
+  "total_checks": 24671,
+  "difference_count": 0,
+  "differences": [],
+  "input_files": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+      "sha256": "02c727d0218460671077966e26e34aa5263e9570575a8039538ad3df9676b5d0"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md",
+      "sha256": "d04bce6c358e0b0db62c5a27c59d3367e4bdf0a5cc052f564886be57906f87e0"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx",
+      "sha256": "660b47f92ad964d1899c4d5842ae1a5d21044b4c580ba4dbab6781fbfde41bee"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/__init__.py",
+      "sha256": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/baseline_models.py",
+      "sha256": "5c0ecb057f7dc52a36bf18da3b34774556d1253b4d1a58291362ea6a8de8c9f2"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/config.py",
+      "sha256": "0c74916cdeb8fd84f1450ebe5081ee7752d4ae1f2a5218dac9dc3317bfdc3ccd"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+      "sha256": "1260d50e07efc56eecf3205f26070fa164e66d4cfade220d6d243a841562a27d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234.json",
+      "sha256": "da2d8039b28e527cf63bf3d6b1fb7abc17d09ee564ace7faccbc0d770d2c3e08"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234.json",
+      "sha256": "d7c9de4f72015f1cb64e0e25da263c50caa3081927de075524ca9ba73a100e64"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234.json",
+      "sha256": "893dff34a12a02341e022b9d744f6dc735920c2edad9c937474314a1970cc5c1"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234.json",
+      "sha256": "1db53c3f31ee464010e83d4e49bf0e87af5cdaf0f2e96c30588a19cc8b1a190d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234.json",
+      "sha256": "3162455125789e9cba240d8e5108bbe660cf9caec5a2a2b2ce7b66c83f225751"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234.json",
+      "sha256": "c6fd70538f6874ba50fe49ba9ad884524a617b09ca538bb12227b9c8f6322869"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/matrix.json",
+      "sha256": "1cb30a1b7ae322f8e24036311e24438c1f3c6d28f73a28da83ce004e980074af"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/dataset.py",
+      "sha256": "10fa9b4d9163212bd7157fca244e7c1699da0588d19833d609a61fb8f10e54a3"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py",
+      "sha256": "3a7ac7f65e2133fce3c314b54202ff39e26f2547935cef143a7dbb5b7a648984"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/WSS_PointNet实验矩阵与结果汇总last_backup_before_multiradius_20260909.xlsx",
+      "sha256": "3af96ac5cfbb2a8f7047bccf15ba624239d4e5e8bca0e56bd5bb0e6c69db05f1"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/grouping_freeze.json",
+      "sha256": "58b6f438597de94de555cc307a7296c805ff693be9f38a8eff01431768f24f59"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/matrix_summary_best.json",
+      "sha256": "fd9db6744b6c795456d6c6be700769d45e378013728e2253fff89b26e2b058a3"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/matrix_summary_last.json",
+      "sha256": "7080567e17bac4e03dbb35f6a2e6fd1e45b51704ecdf8d5bf72803fad36e3238"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/matrix_tables_best.md",
+      "sha256": "593da56d40a32bebd527d099c20094dda7fdd3f62964542fee3a8b7000ff5128"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/matrix_tables_last.md",
+      "sha256": "fbc84c1774656874c55a78b63741b6581cda45d5b48a500e09275fe0c19fd7f6"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/queue_status.json",
+      "sha256": "b92fb824a7d1f004c00cdf94621efe3046d9f45eedb7c6484f53a026eba72fbe"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/workbook_update.json",
+      "sha256": "3d1aea2b67c175b32562f807afbc37799dfb71d83bbe11a9b45c78fcfa35c4f5"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py",
+      "sha256": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/models.py",
+      "sha256": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/objectives.py",
+      "sha256": "7526c88ceb43d8bffcaaf1598a70530b045d7c64d9bf743228a7fa46a8cff375"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/pointnext.py",
+      "sha256": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "0a78ee4fcde789a9b2bdf0474110f64d9fbe7bde8069c6dd187d89020865b3bd"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "683fc7d0dacd4b12965a3adb9a61a17991b99917a71bb5e03e886f664462de8f"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234/config.json",
+      "sha256": "e41ce6eac91a6582a88340516b8e4f153cf89d6fb5eeed468fb56b70bc69c6fe"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234/config.json",
+      "sha256": "18d97a7ce710a8443e912ed35a78686ffcfea14ace99ef78d9c7664dabe41f64"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234/config.json",
+      "sha256": "1712218cc3ed97d25e30f691608bba8fcf3e8c9d82275239cb9621d0cc5fc49b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234/config.json",
+      "sha256": "2e34801b3e02426fee7d1bb7d87d1a6fe4be4c3aa8e5dff197a76c0337701204"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234/config.json",
+      "sha256": "936f2973e1c4f54b7818a392e9fd3417137b5cf33b2f6cadf62bf952fe0ee58e"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234/config.json",
+      "sha256": "5d9ef33fc6c8fe3aa9eedf3bbe38575c710a0c4e4e9408d51c30eae46fb03261"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runtime.py",
+      "sha256": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/surface.py",
+      "sha256": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/prepare_v6_multiradius_bt_matrix.py",
+      "sha256": "53ba0218fc9649301529e61bf8afacd6f56d59beb57a7613a1633906d7a07d95"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/run_v6_multiradius_bt_queue.py",
+      "sha256": "a81a4831a670bc2fc5b73778e7fc362e7d83236bb16ee5d91aca549a722d50e6"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/train.py",
+      "sha256": "7ea29dee2e55039f5cb65a2428edae61575c12d1678e4ed6d888cf52057d1981"
+    }
+  ],
+  "input_hashes_unchanged_during_audit": true,
+  "missing_original_metric_files": [
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234/eval/ckpt_last/metrics.json"
+  ]
+}

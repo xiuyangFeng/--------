@@ -1,0 +1,1206 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_time_ecc_20260918",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5D_v51_f0_s1234 (wave 2a, peak-frame base)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234/eval/ckpt_best/metrics.json",
+    "X5D_v51_f1_s1234 (wave 2a, peak-frame base)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234/eval/ckpt_best/metrics.json",
+    "X5D_v51_f2_s1234 (wave 2a, peak-frame base)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234/eval/ckpt_best/metrics.json"
+  },
+  "cv3": {
+    "schema_version": 1,
+    "source_split": "data_wss_v5/views_v5_1/wss_min_view_v1/split_V5_train136_test34.json",
+    "source_split_sha256": "c7ee6304cca3d34f9e40ae2054baea450115faeccae7e741cc6525cefbd15522",
+    "folds": 3,
+    "seed": 20260913,
+    "grouped_units": [],
+    "fold_of": {
+      "AG/slow/QIN_SI_FU": 1,
+      "AG/slow/ZHANG_JING_SHUN": 2,
+      "AG/slow/LIU_ZONG_YANG": 0,
+      "AG/slow/ZHANG_QUAN_YOU": 1,
+      "AG/fast/ZHANG_XIU_ZHEN": 2,
+      "AG/fast/LIU_YI_BING": 0,
+      "AG/fast/LI_SHU_KUN": 1,
+      "AG/slow/WU_YI_FA": 2,
+      "AG/slow/GONG_HUI_XIA": 0,
+      "AG/slow/MI_DE_XI": 1,
+      "AG/fast/LI_SHI_QIANG": 2,
+      "AG/fast/ZHANG_HAO": 0,
+      "AG/slow/LI_CHONG_ZENG": 1,
+      "AG/slow/QU_HE_PING": 2,
+      "AG/fast/WANG_YONG_FAN": 0,
+      "AG/slow/GUAN_TONG_XIANG": 1,
+      "AG/slow/WU_FENG_YAN": 2,
+      "AG/slow/ZANG_YU_SHU": 0,
+      "AG/slow/WANG_KE": 1,
+      "AG/slow/LV_FU_LONG": 2,
+      "AG/fast/ZHANG_QING_WANG": 0,
+      "AG/slow/LU_ZHEN_QING": 1,
+      "AG/fast/LIU_FENG_MING": 2,
+      "AG/slow/WANG_YONG_LI": 0,
+      "AG/slow/LI_GUI_YING": 1,
+      "AG/fast/WANG_DAO_CHUN": 2,
+      "AG/slow/ZHANG_QING_SHUI": 0,
+      "AG/slow/YANG_YOU_SHENG": 1,
+      "AG/slow/DING_LIAN_ZHONG": 2,
+      "AG/fast/LI_ZHEN_SHAN": 0,
+      "AG/slow/ZHANG_LING_GUANG": 1,
+      "AG/slow/WEI_BAO_XING": 2,
+      "AG/slow/NI_YAN_BIN": 0,
+      "AG/slow/LIU_FA_CHUN": 1,
+      "AG/slow/SUN_ZONG_GE": 2,
+      "AG/slow/CHENG_GUANG_SEN": 0,
+      "AG/slow/LIU_FENG": 1,
+      "AG/fast/CHEN_SHI_MING": 2,
+      "AG/fast/LIU_LI_QUN": 0,
+      "AG/slow/KANG_XI_MING": 1,
+      "AG/slow/CHENG_LU_LI": 2,
+      "AG/fast/LIU_JUN_FENG": 0,
+      "AG/slow/YIN_YU_RONG": 1,
+      "AG/slow/WANG_GUANG_CHAO": 2,
+      "AG/slow/LIU_JIN_LIANG": 0,
+      "AG/fast/WANG_CHUN_MING": 1,
+      "AG/fast/HAN_JIAN_JUN": 2,
+      "AG/slow/WANG_GUI": 0,
+      "AG/slow/CAO_FENG_CHI": 1,
+      "AG/slow/WANG_YAN_LING": 2,
+      "AG/fast/LI_ZHI_LIN": 0,
+      "AG/fast/ZHANG_XIU_WEN": 1,
+      "AG/slow/LI_BING_YI": 2,
+      "AG/slow/XU_YI_CAI": 0,
+      "AG/slow/SHEN_ZHI_GANG": 1,
+      "AG/slow/XI_CHENG_JIANG": 2,
+      "AG/slow/ZHANG_SONG_TIAN": 0,
+      "AG/slow/ZHANG_ZHI_JUN": 1,
+      "AG/slow/A_MIN_SE_HA_CHI": 2,
+      "AG/slow/ZHANG_JUN_HUA": 0,
+      "AAA/ruputer/LI_LAO_PING": 0,
+      "AAA/ruputer/FENG_LI_XIN": 1,
+      "AAA/ruputer/LIU_YONG_LAN": 2,
+      "AAA/ruputer/DING_JUN_FENG": 0,
+      "AAA/unruputer/GUO_BAO_CHUN": 1,
+      "AAA/ruputer/WU_GUANG_CUN": 2,
+      "AAA/ruputer/HUO_SHI_LIANG": 0,
+      "AAA/ruputer/ZOU_LI_SHUN": 1,
+      "AAA/unruputer/LI_YOU_YU": 2,
+      "AAA/ruputer/WANG_KUI_WU": 0,
+      "AAA/unruputer/QIAO_XIU_YUN": 1,
+      "AAA/unruputer/ZHANG_XUN_LIAN": 2,
+      "AAA/unruputer/CHEN_LIANG_FU": 0,
+      "AAA/unruputer/ZHOU_XI_SHENG": 1,
+      "AAA/ruputer/LIU_JI_XIN": 2,
+      "AAA/ruputer/MENG_GUANG_QIN": 0,
+      "AAA/unruputer/LIU_JIE": 1,
+      "AAA/unruputer/ZHANG_ZHI_HUA": 2,
+      "AAA/ruputer/ZHOU_KE_XUN": 0,
+      "AAA/ruputer/GUO_AI_JUN": 1,
+      "AAA/unruputer/SHEN_FANG_JIN": 2,
+      "AAA/ruputer/TONG_XUE_LIAN": 0,
+      "AAA/unruputer/YANG_BEN_RUI": 1,
+      "AAA/unruputer/SHEN_CHUN_WANG": 2,
+      "AAA/unruputer/YAN_FU_TANG": 0,
+      "AAA/unruputer/HAN_JIAN_FU": 1,
+      "AAA/ruputer/LI_BING_JIANG": 2,
+      "AAA/unruputer/ZHU_ZI_HAI": 0,
+      "AAA/ruputer/MA_XIAO_DONG": 1,
+      "AAA/unruputer/FENG_ZHI_YING": 2,
+      "AAA/unruputer/CHEN_SHU_LIN": 0,
+      "AAA/unruputer/LIU_LI_FENG": 1,
+      "AAA/unruputer/LIN_JIAN_RONG": 2,
+      "AAA/unruputer/CHEN_FU_YE": 0,
+      "AAA/unruputer/LIU_CHENG_ZHANG": 1,
+      "AAA/ruputer/ZUO_DAO_SHENG": 2,
+      "AAA/unruputer/LIU_XING_GUO": 0,
+      "AAA/unruputer/GAO_WEI_LI": 1,
+      "AAA/ruputer/WANG_AN": 2,
+      "AAA/ruputer/GAO_FENG_SHAN": 0,
+      "AAA/unruputer/CAO_HONG_TAI": 1,
+      "AAA/ruputer/ZHANG_MAO_JIN": 2,
+      "AAA/ruputer/LIN_LIANG_XIAO": 0,
+      "AAA/ruputer/XIE_JIN_QUAN": 1,
+      "ILO/AN_GUANG_JIE-0/before": 0,
+      "ILO/SUN_DE_QI-1/before": 1,
+      "ILO/GENG_CHUN_LAI-1/before": 2,
+      "ILO/LIU_YUE_DONG-0/before": 0,
+      "ILO/WU_JUN-0/before": 1,
+      "ILO/LIN_CHUN_YANG-1/before": 2,
+      "ILO/XIE_ZHI_FU-0/before": 0,
+      "ILO/CUI_WEI_PING-0/before": 1,
+      "ILO/YANG_YU_QING-1/before": 2,
+      "ILO/WANG_TIAN_QING-1/before": 0,
+      "ILO/YAO_GUO_CHEN-0/before": 1,
+      "ILO/SUN_YU_SHENG-0/before": 2,
+      "ILO/GUO_QING_SHAN-0/before": 0,
+      "ILO/LIU_LIAN_YOU-0/before": 1,
+      "ILO/WANG_XIAO_LIN-0/before": 2,
+      "ILO/YANG_WANG_QI-1/before": 0,
+      "ILO/HOU_SHI_GUO-0/before": 1,
+      "ILO/LI_SHENG_WEN-0/before": 2,
+      "ILO/ZHANG_YAN_SHAN-0/before": 0,
+      "ILO/WANG_JIN_MING-0/before": 1,
+      "ILO/BAO_EN_YUN-0/before": 2,
+      "ILO/WENG_ZHAO_GUANG-0/before": 0,
+      "ILO/GAO_SHU_CAI-0/before": 1,
+      "ILO/ZHANG_JIAN_JUN-1/before": 2,
+      "ILO/LV_JIAN_HUA-0/before": 0,
+      "ILO/WAGN_LI_JUN-1/before": 1,
+      "ILO/GONG_HAI_ZENG-1/before": 2,
+      "ILO/GUO_YU_SHU-0/before": 0,
+      "ILO/ZHAO_CHANG_SHAN-0/before": 1,
+      "ILO/PAN_YIN_GEN-1/before": 2,
+      "ILO/LIU_BAO_JUN-0/before": 0,
+      "ILO/WANG_SHU_SHENG-0/before": 1
+    },
+    "files": {
+      "fold0": {
+        "split": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold0.json",
+        "wss_stats": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold0_train.json",
+        "n_train": 90,
+        "n_test": 46,
+        "held_by_family": {
+          "AG": 20,
+          "AAA": 15,
+          "ILO": 11
+        },
+        "log_mean": 0.6426076719438435,
+        "log_std": 1.2992293085825233
+      },
+      "fold1": {
+        "split": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold1.json",
+        "wss_stats": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold1_train.json",
+        "n_train": 90,
+        "n_test": 46,
+        "held_by_family": {
+          "AG": 20,
+          "AAA": 15,
+          "ILO": 11
+        },
+        "log_mean": 0.5979764642451415,
+        "log_std": 1.3040268598356648
+      },
+      "fold2": {
+        "split": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold2.json",
+        "wss_stats": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold2_train.json",
+        "n_train": 92,
+        "n_test": 44,
+        "held_by_family": {
+          "AG": 20,
+          "AAA": 14,
+          "ILO": 10
+        },
+        "log_mean": 0.672917889035124,
+        "log_std": 1.2830662990376553
+      }
+    }
+  },
+  "stage0_job": 15062,
+  "k_star": 8,
+  "d1_fold_mean_ceiling": {
+    "8": {
+      "cycle_r2cb_pa": 0.9745020862789143,
+      "cycle_r2cb_ln": 0.9637349565017833,
+      "peak_r2cb_pa": 0.9496005685537453,
+      "trough_r2cb_pa": 0.9737626536500917,
+      "tawss_r2cb": 0.9980084003895836,
+      "peak_time_err_med_frames": 1.029973649538867,
+      "peak_time_err_p90_frames": 4.103820816864298,
+      "ts_corr_ln": 0.9737228709741053,
+      "amp_err_ln_med": 0.21178088692967148
+    },
+    "16": {
+      "cycle_r2cb_pa": 0.9942438598791644,
+      "cycle_r2cb_ln": 0.9888075277569038,
+      "peak_r2cb_pa": 0.9939337606816788,
+      "trough_r2cb_pa": 0.9930224072373414,
+      "tawss_r2cb": 0.9999745402134188,
+      "peak_time_err_med_frames": 0.9051383399209486,
+      "peak_time_err_p90_frames": 1.9627799736495388,
+      "ts_corr_ln": 0.9928331816112509,
+      "amp_err_ln_med": 0.0901046690668395
+    }
+  },
+  "t_null": {
+    "n_cases": 136,
+    "cycle_r2cb_pa": 0.4534565444164873,
+    "cycle_r2cb_ln": 0.3997859172905891,
+    "peak_r2cb_pa": 0.7099921626818331,
+    "peak_r2cb_ln": 0.8544125801575035,
+    "trough_r2cb_pa": 0.21669797584192194,
+    "trough_r2cb_ln": 0.07078976513175761,
+    "min_frame_r2cb_pa": 0.04119203680749195,
+    "argmin_frame": 48,
+    "tawss_r2cb": 0.6878501849131298,
+    "tawss_mae_pa": 0.4407960373112417,
+    "peak_time_err_med_frames": 1.3455882352941178,
+    "peak_time_err_p90_frames": 10.323529411764707,
+    "ts_corr_ln": 0.8083585374321004,
+    "amp_err_ln_med": 0.9097985308673887,
+    "frame_r2cb_pa": [
+      0.5076855225218972,
+      0.5390574626586078,
+      0.5390261180085112,
+      0.5210887649047395,
+      0.4777145629070253,
+      0.4170570224072526,
+      0.3632021799833176,
+      0.3614365176262836,
+      0.4373004856664382,
+      0.5699565743357196,
+      0.6616856543248473,
+      0.7030855241081047,
+      0.7183768229971046,
+      0.7238726056037452,
+      0.7258540837607543,
+      0.7258771825597536,
+      0.7251086246122884,
+      0.7238995988768355,
+      0.7225940118451966,
+      0.7202112934715298,
+      0.7161098931658161,
+      0.7099921626818331,
+      0.7007939570162731,
+      0.6888085398888191,
+      0.6762891226698388,
+      0.663824068182248,
+      0.6513505532871279,
+      0.6390912947840034,
+      0.6271299016810905,
+      0.6152058076125317,
+      0.6025508598069058,
+      0.5888352221413834,
+      0.5729802409052472,
+      0.5530227560445764,
+      0.528335980799598,
+      0.49905979993740646,
+      0.46564157243673077,
+      0.42800407804910634,
+      0.3858451677321961,
+      0.3392445303112235,
+      0.2890768985164287,
+      0.23836207673680632,
+      0.1895584079249133,
+      0.14491669798568052,
+      0.10692601295512061,
+      0.07734151323552885,
+      0.05635619520399271,
+      0.043962217011242144,
+      0.04119203680749195,
+      0.050696001630804566,
+      0.07246637278195678,
+      0.10942024655496174,
+      0.15164004935917696,
+      0.19549729789242687,
+      0.23497999349424958,
+      0.2716449032564532,
+      0.30186640722674385,
+      0.3261007914235976,
+      0.3426793188980969,
+      0.35879009656600147,
+      0.3691190606768898,
+      0.37930059991907483,
+      0.3884003985837857,
+      0.3952345428701375,
+      0.40062864376928986,
+      0.40498704663773943,
+      0.4101228794716726,
+      0.4170692541898242,
+      0.4280303766551452,
+      0.44511891000257275,
+      0.46551275260180414,
+      0.4867209293046929,
+      0.5072401034517695,
+      0.5213763097117133,
+      0.5288492329710996,
+      0.5300640038767438,
+      0.5225135366612166,
+      0.5090575906675763,
+      0.4929459383585143,
+      0.47907793406042853,
+      0.5089303955181992
+    ],
+    "frame_r2cb_ln": [
+      0.38902135872626586,
+      0.47704393467742945,
+      0.48475994825153157,
+      0.443183397882308,
+      0.3498108083715368,
+      0.2429893715131547,
+      0.15974915115956612,
+      0.1603876767380885,
+      0.29206604319731155,
+      0.5837651853389791,
+      0.7324741490260384,
+      0.7854094127946489,
+      0.8086654550978105,
+      0.821884994157452,
+      0.8297742279692484,
+      0.833742287852879,
+      0.8374008660954563,
+      0.8430817878674468,
+      0.8505453167136359,
+      0.8574478105311393,
+      0.8595129599461191,
+      0.8544125801575035,
+      0.8414785037156579,
+      0.8221408582644127,
+      0.7981264413432609,
+      0.7700391181324118,
+      0.7390745279674145,
+      0.706395559284644,
+      0.6724608171474049,
+      0.636291175209424,
+      0.5974551099748959,
+      0.5575464311675447,
+      0.5218204152286854,
+      0.48934093405277235,
+      0.4540920908192053,
+      0.415637353916667,
+      0.3736464058712896,
+      0.32697676613151616,
+      0.2733354355569724,
+      0.21142804877543475,
+      0.14229128911864053,
+      0.0682964089128375,
+      -0.0027108418829802083,
+      -0.05842091335719446,
+      -0.0986089097894769,
+      -0.12850806996113673,
+      -0.1612870481727191,
+      -0.2028099850949654,
+      -0.24130475058742262,
+      -0.25275853492179734,
+      -0.21537023721801818,
+      -0.0986536308536774,
+      0.03945703025151104,
+      0.16022584106531934,
+      0.24298258796638017,
+      0.2993049669761576,
+      0.3371082883984098,
+      0.35548123998668213,
+      0.3604052240017186,
+      0.36184910965735884,
+      0.3571617546267877,
+      0.35299348385508156,
+      0.34849531166998127,
+      0.3394926484764542,
+      0.32902369684697697,
+      0.3182734445379183,
+      0.31036449487661866,
+      0.3063226409053834,
+      0.31583519386072245,
+      0.33669419530668443,
+      0.36440573753631766,
+      0.396911685554282,
+      0.4295396017819453,
+      0.45008783100148164,
+      0.45914434550861183,
+      0.4548206187348933,
+      0.43257025747192324,
+      0.3950690443619387,
+      0.35463851672755564,
+      0.3259223464373676,
+      0.3935086693380011
+    ],
+    "definition": "T-null B_scale (sigma-scaled peak prediction), train136 out-of-fold"
+  },
+  "expected_training_runs": 9,
+  "expected_evaluations": 18,
+  "arms": [
+    {
+      "id": "T0_f0_s1234",
+      "title": "X5D_v51 fold-0 recipe + phase condition ['q_norm', 'dq_norm', 't_sin', 't_cos'] (31 inputs, appended columns zero-initialised), timesteps=random_frame (uniform frames, peak guarantee 1/9), frame_stats normalisation, checkpoint by EMA(train_loss, alpha 0.2)",
+      "config": "T0_f0_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "phase_condition",
+        "frame_stats",
+        "train_loss_ema"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "parent": "X5D_v51_f0_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave2a_20260916/feature_stats/fold0_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/feature_stats/fold0_train_feature_stats_time.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold0.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234.json"
+        },
+        "train.selection_ema_alpha": {
+          "anchor": null,
+          "arm": 0.2
+        },
+        "train.selection_rule": {
+          "anchor": "train_loss",
+          "arm": "train_loss_ema"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "T0_f1_s1234",
+      "title": "X5D_v51 fold-1 recipe + phase condition ['q_norm', 'dq_norm', 't_sin', 't_cos'] (31 inputs, appended columns zero-initialised), timesteps=random_frame (uniform frames, peak guarantee 1/9), frame_stats normalisation, checkpoint by EMA(train_loss, alpha 0.2)",
+      "config": "T0_f1_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "phase_condition",
+        "frame_stats",
+        "train_loss_ema"
+      ],
+      "seed": 1234,
+      "fold": 1,
+      "parent": "X5D_v51_f1_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave2a_20260916/feature_stats/fold1_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/feature_stats/fold1_train_feature_stats_time.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold1.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234.json"
+        },
+        "train.selection_ema_alpha": {
+          "anchor": null,
+          "arm": 0.2
+        },
+        "train.selection_rule": {
+          "anchor": "train_loss",
+          "arm": "train_loss_ema"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "T0_f2_s1234",
+      "title": "X5D_v51 fold-2 recipe + phase condition ['q_norm', 'dq_norm', 't_sin', 't_cos'] (31 inputs, appended columns zero-initialised), timesteps=random_frame (uniform frames, peak guarantee 1/9), frame_stats normalisation, checkpoint by EMA(train_loss, alpha 0.2)",
+      "config": "T0_f2_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "phase_condition",
+        "frame_stats",
+        "train_loss_ema"
+      ],
+      "seed": 1234,
+      "fold": 2,
+      "parent": "X5D_v51_f2_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave2a_20260916/feature_stats/fold2_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/feature_stats/fold2_train_feature_stats_time.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold2.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234.json"
+        },
+        "train.selection_ema_alpha": {
+          "anchor": null,
+          "arm": 0.2
+        },
+        "train.selection_rule": {
+          "anchor": "train_loss",
+          "arm": "train_loss_ema"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "TB8_f0_s1234",
+      "title": "X5D_v51 fold-0 recipe with a time-basis output head K=8 (out_dim 9",
+      "config": "TB8_f0_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "time_basis_K8",
+        "frame_stats",
+        "pinball_off"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "parent": "X5D_v51_f0_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/time_basis_fold0.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold0.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 9
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 8
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "TB8_f1_s1234",
+      "title": "X5D_v51 fold-1 recipe with a time-basis output head K=8 (out_dim 9",
+      "config": "TB8_f1_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "time_basis_K8",
+        "frame_stats",
+        "pinball_off"
+      ],
+      "seed": 1234,
+      "fold": 1,
+      "parent": "X5D_v51_f1_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/time_basis_fold1.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold1.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 9
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 8
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "TB8_f2_s1234",
+      "title": "X5D_v51 fold-2 recipe with a time-basis output head K=8 (out_dim 9",
+      "config": "TB8_f2_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "time_basis_K8",
+        "frame_stats",
+        "pinball_off"
+      ],
+      "seed": 1234,
+      "fold": 2,
+      "parent": "X5D_v51_f2_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/time_basis_fold2.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold2.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 9
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 8
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "TB16_f0_s1234",
+      "title": "X5D_v51 fold-0 recipe with a time-basis output head K=16 (out_dim 17",
+      "config": "TB16_f0_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "time_basis_K16",
+        "frame_stats",
+        "pinball_off"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "parent": "X5D_v51_f0_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/time_basis_fold0.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold0.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 17
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 16
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "TB16_f1_s1234",
+      "title": "X5D_v51 fold-1 recipe with a time-basis output head K=16 (out_dim 17",
+      "config": "TB16_f1_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "time_basis_K16",
+        "frame_stats",
+        "pinball_off"
+      ],
+      "seed": 1234,
+      "fold": 1,
+      "parent": "X5D_v51_f1_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/time_basis_fold1.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold1.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 17
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 16
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "TB16_f2_s1234",
+      "title": "X5D_v51 fold-2 recipe with a time-basis output head K=16 (out_dim 17",
+      "config": "TB16_f2_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "time_basis_K16",
+        "frame_stats",
+        "pinball_off"
+      ],
+      "seed": 1234,
+      "fold": 2,
+      "parent": "X5D_v51_f2_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/time_basis_fold2.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold2.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 17
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 16
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    }
+  ],
+  "reading_rule": "fold arms are read only on their held-out fold (all 81 frames); gates G2.1-G2.6 use the three-fold mean and fold sign agreement; T-null = D2 B_scale; test34 is read once only after the winner is locked"
+}

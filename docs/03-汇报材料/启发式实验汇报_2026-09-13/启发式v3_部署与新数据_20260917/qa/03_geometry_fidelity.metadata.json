@@ -1,0 +1,27 @@
+{
+  "stem": "03_geometry_fidelity",
+  "claim": "部署端先做 1 mm 平滑几乎不花代价并能救回大部分表面粗糙损失；边界噪声是最伤的一项；采样 TTA 不值得。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_inference_followup_20260915/geometry_x5d5/geometry_sensitivity.json",
+      "sha256": "721abccb1a7beb9e411885d95f10bd1ba146fbd1c4782e1d7fc82c7bcee53066"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_inference_followup_20260915/geometry_x5d5_b2/geometry_sensitivity.json",
+      "sha256": "9b7c682cfdb4cd54267bee5377cc42e9fb942b63c9ccad1ea2c48a7745231185"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_inference_followup_20260915/geometry_x5d5_b3/geometry_sensitivity.json",
+      "sha256": "4d8a7d142c0aefd10826405dbe1fdb1dbad1f0800ed08d7a6dca9a9c4bba0d05"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_inference_followup_20260915/tta_x5d5/sampling_tta.json",
+      "sha256": "f38051d9fccf95d8c4b7c90d2bd9b07a49ff098e5171e1b4d44dd69a7e4e931d"
+    }
+  ],
+  "exports": {
+    "png": "figures/03_geometry_fidelity.png"
+  },
+  "alignment": "PASS",
+  "note": "Perturbations are applied to the resampled deployment surface only; CFD labels are unchanged, so these quantify input-error sensitivity rather than a new ground truth."
+}

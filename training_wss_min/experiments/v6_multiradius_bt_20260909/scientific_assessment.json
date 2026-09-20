@@ -1,0 +1,1001 @@
+{
+  "recorded_at_utc": "2026-09-09T12:27:30.795387+00:00",
+  "source_analysis": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/independent_analysis_final.json",
+    "sha256": "077df02aea29a45939c7ec3a4f8d3eba875bd10498223650805a92d34f7a6bdd"
+  },
+  "source_branch_diagnostics": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/branch_diagnostics_best.json",
+    "sha256": "4ef3ced2a4f1fea7a239a6a8bdf4db25b9af6151d4a4c2eabf0742ba3c0c4188"
+  },
+  "all_branch_checkpoint_hashes_match_final_analysis": true,
+  "contrasts": {
+    "best": {
+      "MS1_vs_MS0": {
+        "delta": {
+          "physical_r2_cb": -0.01806539228570936,
+          "log_z_r2_cb": -0.0044845784017997214,
+          "case_r2_mean": -0.02564611989540766,
+          "case_r2_p10": -0.037875036667342155,
+          "negative_r2_cases": 0.0,
+          "mae_pa": 0.011841412598971202,
+          "mae_pa_cb": 0.024922044272784216,
+          "rmse_pa_cb": 0.11339532985466683,
+          "high_wss_r2": -0.03453567503382682,
+          "high_wss_mae_pa": 0.014125435492401195,
+          "top10_iou": 0.005852692646734825,
+          "spearman": -0.0014754490679486088,
+          "spearman_high_wss": 0.0027687533527014363,
+          "top10_ratio": -0.0052827270655227965,
+          "p99_ratio": -0.020056210422501164,
+          "peak_distance_bbox": 0.02919255764091226,
+          "hotspot_centroid_distance_bbox": 1.1847321268576572e-05
+        },
+        "improved_case_counts": {
+          "r2": 16,
+          "iou": 15,
+          "spearman": 20
+        },
+        "largest_negative_cbR2_contributions": {
+          "ILO/SUN_XU_XIA-1/before": -0.007744130394136441,
+          "AG/slow/MA_TIAN_YI": -0.006496411467411826,
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.002789360938378382,
+          "AG/fast/ZHANG_CHUN": -0.002418654382243264,
+          "AG/slow/GUO_XI_JIANG": -0.0011566628091631494
+        }
+      },
+      "MS2_vs_MS1": {
+        "delta": {
+          "physical_r2_cb": 0.01066687577176606,
+          "log_z_r2_cb": 0.004160081029388807,
+          "case_r2_mean": 0.03179290041396843,
+          "case_r2_p10": 0.005276589131656739,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.005539751012789029,
+          "mae_pa_cb": -0.03180163516498946,
+          "rmse_pa_cb": -0.06662920234203806,
+          "high_wss_r2": -0.008115073131069295,
+          "high_wss_mae_pa": 0.03782269764615798,
+          "top10_iou": 0.01219239357665719,
+          "spearman": 0.003057419773671022,
+          "spearman_high_wss": 0.0018131279660077992,
+          "top10_ratio": 0.000942874779549796,
+          "p99_ratio": -0.00025064217540193834,
+          "peak_distance_bbox": 0.0063411002884696255,
+          "hotspot_centroid_distance_bbox": -0.0034240363596959346
+        },
+        "improved_case_counts": {
+          "r2": 22,
+          "iou": 20,
+          "spearman": 21
+        },
+        "largest_negative_cbR2_contributions": {
+          "ILO/ZHANG_JIN_CHUN-1/before": -0.00710104908164139,
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.006885826783790181,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0016392051960377094,
+          "AG/fast/YAO_CUN_HONG": -0.0008695833308493526,
+          "AAA/unruputer/MA_JIN_HE": -0.0006978438108422694
+        }
+      },
+      "MS3_vs_MS1": {
+        "delta": {
+          "physical_r2_cb": 0.003704536651039425,
+          "log_z_r2_cb": 0.010704875230235111,
+          "case_r2_mean": 0.036382578770005725,
+          "case_r2_p10": 0.04132215767388864,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.030855943767766014,
+          "mae_pa_cb": -0.05382865307474205,
+          "rmse_pa_cb": -0.023035306094914,
+          "high_wss_r2": -0.03980005984012791,
+          "high_wss_mae_pa": 0.20109133100406673,
+          "top10_iou": 0.01822052703242588,
+          "spearman": 0.00822461994907242,
+          "spearman_high_wss": 0.012614832718847835,
+          "top10_ratio": -0.019935604010161034,
+          "p99_ratio": -0.017876833131932335,
+          "peak_distance_bbox": 0.018243726232901852,
+          "hotspot_centroid_distance_bbox": -0.004287046086862124
+        },
+        "improved_case_counts": {
+          "r2": 23,
+          "iou": 22,
+          "spearman": 26
+        },
+        "largest_negative_cbR2_contributions": {
+          "ILO/SUN_XU_XIA-1/before": -0.006989320244677342,
+          "ILO/ZHANG_JIN_CHUN-1/before": -0.0058093589603635,
+          "AAA/unruputer/MA_JIN_HE": -0.0011301966998375566,
+          "AAA/unruputer/WANG_MAN_TIAN": -0.001016914544420071,
+          "AG/fast/RAN_QING_BO": -0.0002863760606458723
+        }
+      },
+      "MS4_vs_MS0": {
+        "delta": {
+          "physical_r2_cb": -0.012069900958166846,
+          "log_z_r2_cb": 0.007215632822156981,
+          "case_r2_mean": 0.02480315803950639,
+          "case_r2_p10": -0.003078172661772016,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.04649223136573433,
+          "mae_pa_cb": -0.038616336008164165,
+          "rmse_pa_cb": 0.07605920416549772,
+          "high_wss_r2": -0.051982282402526114,
+          "high_wss_mae_pa": 0.18488080873310508,
+          "top10_iou": 0.01404352844112089,
+          "spearman": 0.006362505464594159,
+          "spearman_high_wss": -0.004910852018817802,
+          "top10_ratio": -0.0303853089442655,
+          "p99_ratio": -0.04652227802538078,
+          "peak_distance_bbox": 0.002250806570618491,
+          "hotspot_centroid_distance_bbox": -0.005079512801195299
+        },
+        "improved_case_counts": {
+          "r2": 17,
+          "iou": 21,
+          "spearman": 23
+        },
+        "largest_negative_cbR2_contributions": {
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.006115703688410482,
+          "ILO/SUN_XU_XIA-1/before": -0.004740219420212082,
+          "AG/slow/MA_TIAN_YI": -0.003403368040497468,
+          "AG/fast/ZHANG_CHUN": -0.003191668374789201,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0023298899458763945
+        }
+      },
+      "MS4_vs_MS1": {
+        "delta": {
+          "physical_r2_cb": 0.005995491327542513,
+          "log_z_r2_cb": 0.011700211223956702,
+          "case_r2_mean": 0.05044927793491405,
+          "case_r2_p10": 0.03479686400557014,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.05833364396470553,
+          "mae_pa_cb": -0.06353838028094838,
+          "rmse_pa_cb": -0.03733612568916911,
+          "high_wss_r2": -0.017446607368699296,
+          "high_wss_mae_pa": 0.1707553732407039,
+          "top10_iou": 0.008190835794386064,
+          "spearman": 0.007837954532542768,
+          "spearman_high_wss": -0.007679605371519238,
+          "top10_ratio": -0.025102581878742702,
+          "p99_ratio": -0.026466067602879617,
+          "peak_distance_bbox": -0.02694175107029377,
+          "hotspot_centroid_distance_bbox": -0.0050913601224638755
+        },
+        "improved_case_counts": {
+          "r2": 22,
+          "iou": 20,
+          "spearman": 26
+        },
+        "largest_negative_cbR2_contributions": {
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.003326342750032101,
+          "AAA/ruputer/WANG_FU_SHUN": -0.002451637442032639,
+          "ILO/ZHANG_JIN_CHUN-1/before": -0.0023946497781627066,
+          "AG/fast/YAO_CUN_HONG": -0.0012509739802799963,
+          "AG/fast/ZHANG_CHUN": -0.000773013992545937
+        }
+      },
+      "MS4_vs_MS2": {
+        "delta": {
+          "physical_r2_cb": -0.0046713844442235475,
+          "log_z_r2_cb": 0.007540130194567896,
+          "case_r2_mean": 0.018656377520945622,
+          "case_r2_p10": 0.0295202748739134,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.0527938929519165,
+          "mae_pa_cb": -0.03173674511595892,
+          "rmse_pa_cb": 0.029293076652868955,
+          "high_wss_r2": -0.009331534237630001,
+          "high_wss_mae_pa": 0.1329326755945459,
+          "top10_iou": -0.004001557782271126,
+          "spearman": 0.004780534758871746,
+          "spearman_high_wss": -0.009492733337527037,
+          "top10_ratio": -0.0260454566582925,
+          "p99_ratio": -0.02621542542747768,
+          "peak_distance_bbox": -0.033282851358763396,
+          "hotspot_centroid_distance_bbox": -0.001667323762767941
+        },
+        "improved_case_counts": {
+          "r2": 16,
+          "iou": 17,
+          "spearman": 19
+        },
+        "largest_negative_cbR2_contributions": {
+          "AG/slow/MA_TIAN_YI": -0.008629650148613447,
+          "AAA/unruputer/WANG_MAN_TIAN": -0.002965021245682077,
+          "AG/fast/ZHANG_CHUN": -0.0020105016194389086,
+          "AG/slow/GUO_XI_JIANG": -0.0016756008912628623,
+          "ILO/SUN_XU_XIA-1/before": -0.0015968727543046771
+        }
+      },
+      "MS4_vs_MS3": {
+        "delta": {
+          "physical_r2_cb": 0.0022909546765030875,
+          "log_z_r2_cb": 0.000995335993721591,
+          "case_r2_mean": 0.014066699164908325,
+          "case_r2_p10": -0.006525293668318499,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.027477700196939514,
+          "mae_pa_cb": -0.009709727206206331,
+          "rmse_pa_cb": -0.01430081959425511,
+          "high_wss_r2": 0.022353452471428614,
+          "high_wss_mae_pa": -0.030335957763362842,
+          "top10_iou": -0.010029691238039817,
+          "spearman": -0.00038666541652965236,
+          "spearman_high_wss": -0.020294438090367073,
+          "top10_ratio": -0.005166977868581668,
+          "p99_ratio": -0.008589234470947282,
+          "peak_distance_bbox": -0.04518547730319562,
+          "hotspot_centroid_distance_bbox": -0.0008043140356017511
+        },
+        "improved_case_counts": {
+          "r2": 19,
+          "iou": 15,
+          "spearman": 15
+        },
+        "largest_negative_cbR2_contributions": {
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.006797701616486124,
+          "AG/fast/ZHANG_CHUN": -0.003428912129268026,
+          "AG/slow/MA_TIAN_YI": -0.002724402994587751,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0025163358994599065,
+          "AG/fast/YAO_CUN_HONG": -0.0013240533407182973
+        }
+      },
+      "MS4_vs_MS5": {
+        "delta": {
+          "physical_r2_cb": -0.0022409889925518733,
+          "log_z_r2_cb": -0.0002740675646576429,
+          "case_r2_mean": -0.001755674315029876,
+          "case_r2_p10": 0.0009597591040149678,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.02351386243118081,
+          "mae_pa_cb": 0.0003619291230907429,
+          "rmse_pa_cb": 0.01403028924449412,
+          "high_wss_r2": -0.022618256528660674,
+          "high_wss_mae_pa": 0.1573766619877972,
+          "top10_iou": -0.0013183358212818796,
+          "spearman": 0.0004813067109946667,
+          "spearman_high_wss": -0.02632459178610841,
+          "top10_ratio": -0.012951799647415552,
+          "p99_ratio": -0.0114051939838139,
+          "peak_distance_bbox": -0.012058013853391447,
+          "hotspot_centroid_distance_bbox": -0.0011047240296835938
+        },
+        "improved_case_counts": {
+          "r2": 16,
+          "iou": 16,
+          "spearman": 18
+        },
+        "largest_negative_cbR2_contributions": {
+          "ILO/ZHANG_JIN_CHUN-1/before": -0.0039756035943647496,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0031363555611273034,
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.0017043151526567075,
+          "AG/fast/YAO_CUN_HONG": -0.0016914728777865451,
+          "AG/slow/GUO_XI_JIANG": -0.0010905816861969894
+        }
+      },
+      "MS4_vs_MS6": {
+        "delta": {
+          "physical_r2_cb": -0.007193690946445175,
+          "log_z_r2_cb": 0.004587846032905962,
+          "case_r2_mean": 0.017398473655627078,
+          "case_r2_p10": 0.0296639001718374,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.04798353996540938,
+          "mae_pa_cb": -0.04051198062479777,
+          "rmse_pa_cb": 0.04518490206742154,
+          "high_wss_r2": -0.029160812882071285,
+          "high_wss_mae_pa": 0.11790790557897424,
+          "top10_iou": 0.002714414995857173,
+          "spearman": 0.0016007252261373006,
+          "spearman_high_wss": -0.014726376438106203,
+          "top10_ratio": -0.021920943435863705,
+          "p99_ratio": -0.03176291963234101,
+          "peak_distance_bbox": -0.005857235155671853,
+          "hotspot_centroid_distance_bbox": -0.0034603544067989753
+        },
+        "improved_case_counts": {
+          "r2": 17,
+          "iou": 17,
+          "spearman": 19
+        },
+        "largest_negative_cbR2_contributions": {
+          "ILO/SUN_XU_XIA-1/before": -0.01001994620592874,
+          "AG/slow/MA_TIAN_YI": -0.003075638849937086,
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.0011826526804450145,
+          "AG/fast/ZHANG_CHUN": -0.001178381694637633,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0010428391221721392
+        }
+      },
+      "MS6_vs_MS3": {
+        "delta": {
+          "physical_r2_cb": 0.009484645622948262,
+          "log_z_r2_cb": -0.003592510039184371,
+          "case_r2_mean": -0.003331774490718753,
+          "case_r2_p10": -0.0361891938401559,
+          "negative_r2_cases": 0.0,
+          "mae_pa": 0.02050583976846987,
+          "mae_pa_cb": 0.03080225341859144,
+          "rmse_pa_cb": -0.05948572166167665,
+          "high_wss_r2": 0.0515142653534999,
+          "high_wss_mae_pa": -0.14824386334233708,
+          "top10_iou": -0.01274410623389699,
+          "spearman": -0.001987390642666953,
+          "spearman_high_wss": -0.0055680616522608695,
+          "top10_ratio": 0.016753965567282036,
+          "p99_ratio": 0.02317368516139373,
+          "peak_distance_bbox": -0.03932824214752377,
+          "hotspot_centroid_distance_bbox": 0.002656040371197224
+        },
+        "improved_case_counts": {
+          "r2": 13,
+          "iou": 16,
+          "spearman": 12
+        },
+        "largest_negative_cbR2_contributions": {
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.005615048936041109,
+          "AG/fast/ZHANG_CHUN": -0.002250530434630393,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0014734967772877673,
+          "AG/fast/YAO_CUN_HONG": -0.0006851789776945948,
+          "ILO/ZHANG_JIN_CHUN-1/before": -0.0005415511432362663
+        }
+      }
+    },
+    "last": {
+      "MS1_vs_MS0": {
+        "delta": {
+          "physical_r2_cb": -0.014125845473161425,
+          "log_z_r2_cb": -0.005595461546063496,
+          "case_r2_mean": -0.0261648551820024,
+          "case_r2_p10": -0.03270644270169998,
+          "negative_r2_cases": 0.0,
+          "mae_pa": 0.009919703692784498,
+          "mae_pa_cb": 0.02826086923678739,
+          "rmse_pa_cb": 0.08841529018043737,
+          "high_wss_r2": -0.013525501774626525,
+          "high_wss_mae_pa": -0.09810110429470598,
+          "top10_iou": 0.003963343087400317,
+          "spearman": -0.0024700879965823264,
+          "spearman_high_wss": 0.0002657927725701059,
+          "top10_ratio": 0.006011024631303319,
+          "p99_ratio": -0.005297829084484285,
+          "peak_distance_bbox": 0.015386684456686756,
+          "hotspot_centroid_distance_bbox": 0.0007759680871460284
+        },
+        "improved_case_counts": {
+          "r2": 15,
+          "iou": 16,
+          "spearman": 18
+        },
+        "largest_negative_cbR2_contributions": {
+          "AG/slow/MA_TIAN_YI": -0.005850849039545712,
+          "ILO/SUN_XU_XIA-1/before": -0.0043120378459151005,
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.00287476911899956,
+          "AG/fast/ZHANG_CHUN": -0.0020815587438827846,
+          "AG/slow/GUO_XI_JIANG": -0.0012729493785247807
+        }
+      },
+      "MS2_vs_MS1": {
+        "delta": {
+          "physical_r2_cb": 0.00805693811590702,
+          "log_z_r2_cb": 0.004100301324032607,
+          "case_r2_mean": 0.03009329863055099,
+          "case_r2_p10": 0.013538961284195683,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.002188583173625025,
+          "mae_pa_cb": -0.032862432814558806,
+          "rmse_pa_cb": -0.05022913641557558,
+          "high_wss_r2": -0.017619007481819438,
+          "high_wss_mae_pa": 0.08060959086836128,
+          "top10_iou": 0.014183908968076087,
+          "spearman": 0.003524657869665049,
+          "spearman_high_wss": 0.008427402154689123,
+          "top10_ratio": -0.006550641195522844,
+          "p99_ratio": -0.009679963714285589,
+          "peak_distance_bbox": 0.019582549899451768,
+          "hotspot_centroid_distance_bbox": -0.002907708217416309
+        },
+        "improved_case_counts": {
+          "r2": 23,
+          "iou": 18,
+          "spearman": 21
+        },
+        "largest_negative_cbR2_contributions": {
+          "ILO/ZHANG_JIN_CHUN-1/before": -0.006412759672869395,
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.006064370671753983,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0014533544664240938,
+          "AAA/unruputer/MA_JIN_HE": -0.0008963569592450661,
+          "AG/fast/YAO_CUN_HONG": -0.0008727221161008487
+        }
+      },
+      "MS3_vs_MS1": {
+        "delta": {
+          "physical_r2_cb": 0.007110956849865624,
+          "log_z_r2_cb": 0.011364891045218317,
+          "case_r2_mean": 0.03603430663210416,
+          "case_r2_p10": 0.039875402694498685,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.03241385137274766,
+          "mae_pa_cb": -0.061291876507231,
+          "rmse_pa_cb": -0.04430434807416539,
+          "high_wss_r2": -0.0384850430185778,
+          "high_wss_mae_pa": 0.18518923110628727,
+          "top10_iou": 0.019123092610855708,
+          "spearman": 0.009637274200936963,
+          "spearman_high_wss": 0.018944300827401506,
+          "top10_ratio": -0.017501881052249924,
+          "p99_ratio": -0.0168346301235901,
+          "peak_distance_bbox": 0.024187052855546898,
+          "hotspot_centroid_distance_bbox": -0.0044925274710020426
+        },
+        "improved_case_counts": {
+          "r2": 21,
+          "iou": 22,
+          "spearman": 26
+        },
+        "largest_negative_cbR2_contributions": {
+          "ILO/SUN_XU_XIA-1/before": -0.007216127517481482,
+          "ILO/ZHANG_JIN_CHUN-1/before": -0.005183336266302502,
+          "AAA/unruputer/WANG_MAN_TIAN": -0.0013474153221664951,
+          "AAA/unruputer/MA_JIN_HE": -0.0010403213392441966,
+          "AG/fast/ZHANG_LIANG": -0.0002597057419612846
+        }
+      },
+      "MS4_vs_MS0": {
+        "delta": {
+          "physical_r2_cb": -0.006946814135069812,
+          "log_z_r2_cb": 0.006314876724218155,
+          "case_r2_mean": 0.023006777805383183,
+          "case_r2_p10": 0.025269073913472884,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.04774926030989102,
+          "mae_pa_cb": -0.03955738451873403,
+          "rmse_pa_cb": 0.0436848285121485,
+          "high_wss_r2": -0.031049892392893796,
+          "high_wss_mae_pa": 0.04919571796895639,
+          "top10_iou": 0.01249299054692199,
+          "spearman": 0.005983754233451655,
+          "spearman_high_wss": -0.0029705089283842967,
+          "top10_ratio": -0.018725379684585874,
+          "p99_ratio": -0.032047019811822564,
+          "peak_distance_bbox": 0.013707245618352112,
+          "hotspot_centroid_distance_bbox": -0.004111067076806297
+        },
+        "improved_case_counts": {
+          "r2": 17,
+          "iou": 21,
+          "spearman": 24
+        },
+        "largest_negative_cbR2_contributions": {
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.0051094091076785446,
+          "AG/fast/ZHANG_CHUN": -0.003055307977343508,
+          "ILO/SUN_XU_XIA-1/before": -0.002694195732977999,
+          "AG/slow/MA_TIAN_YI": -0.002334685587414877,
+          "AAA/ruputer/WANG_FU_SHUN": -0.002039598132001102
+        }
+      },
+      "MS4_vs_MS1": {
+        "delta": {
+          "physical_r2_cb": 0.007179031338091613,
+          "log_z_r2_cb": 0.01191033827028165,
+          "case_r2_mean": 0.04917163298738558,
+          "case_r2_p10": 0.05797551661517286,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.057668964002675516,
+          "mae_pa_cb": -0.06781825375552142,
+          "rmse_pa_cb": -0.04473046166828887,
+          "high_wss_r2": -0.01752439061826727,
+          "high_wss_mae_pa": 0.14729682226366236,
+          "top10_iou": 0.008529647459521672,
+          "spearman": 0.008453842230033981,
+          "spearman_high_wss": -0.0032363017009544026,
+          "top10_ratio": -0.024736404315889193,
+          "p99_ratio": -0.02674919072733828,
+          "peak_distance_bbox": -0.0016794388383346431,
+          "hotspot_centroid_distance_bbox": -0.004887035163952325
+        },
+        "improved_case_counts": {
+          "r2": 22,
+          "iou": 20,
+          "spearman": 25
+        },
+        "largest_negative_cbR2_contributions": {
+          "AAA/ruputer/WANG_FU_SHUN": -0.0024158613655547163,
+          "ILO/ZHANG_JIN_CHUN-1/before": -0.0022845138652866225,
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.0022346399886789847,
+          "AG/fast/YAO_CUN_HONG": -0.0010797391497568269,
+          "AG/fast/ZHANG_CHUN": -0.0009737492334607235
+        }
+      },
+      "MS4_vs_MS2": {
+        "delta": {
+          "physical_r2_cb": -0.000877906777815407,
+          "log_z_r2_cb": 0.007810036946249044,
+          "case_r2_mean": 0.019078334356834592,
+          "case_r2_p10": 0.04443655533097718,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.05548038082905049,
+          "mae_pa_cb": -0.03495582094096261,
+          "rmse_pa_cb": 0.005498674747286714,
+          "high_wss_r2": 9.461686355216603e-05,
+          "high_wss_mae_pa": 0.06668723139530108,
+          "top10_iou": -0.0056542615085544146,
+          "spearman": 0.004929184360368932,
+          "spearman_high_wss": -0.011663703855643526,
+          "top10_ratio": -0.01818576312036635,
+          "p99_ratio": -0.01706922701305269,
+          "peak_distance_bbox": -0.02126198873778641,
+          "hotspot_centroid_distance_bbox": -0.0019793269465360162
+        },
+        "improved_case_counts": {
+          "r2": 17,
+          "iou": 18,
+          "spearman": 22
+        },
+        "largest_negative_cbR2_contributions": {
+          "AG/slow/MA_TIAN_YI": -0.007590274756719333,
+          "AAA/unruputer/WANG_MAN_TIAN": -0.002562597311896936,
+          "AG/slow/GUO_XI_JIANG": -0.0016252175564450697,
+          "AG/fast/ZHANG_CHUN": -0.0011661480344477865,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0009625068991306225
+        }
+      },
+      "MS4_vs_MS3": {
+        "delta": {
+          "physical_r2_cb": 6.807448822598872e-05,
+          "log_z_r2_cb": 0.0005454472250633335,
+          "case_r2_mean": 0.01313732635528142,
+          "case_r2_p10": 0.018100113920674177,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.025255112629927856,
+          "mae_pa_cb": -0.006526377248290416,
+          "rmse_pa_cb": -0.0004261135941234784,
+          "high_wss_r2": 0.02096065240031053,
+          "high_wss_mae_pa": -0.0378924088426249,
+          "top10_iou": -0.010593445151334036,
+          "spearman": -0.0011834319709029817,
+          "spearman_high_wss": -0.02218060252835591,
+          "top10_ratio": -0.00723452326363927,
+          "p99_ratio": -0.00991456060374818,
+          "peak_distance_bbox": -0.02586649169388154,
+          "hotspot_centroid_distance_bbox": -0.00039450769295028276
+        },
+        "improved_case_counts": {
+          "r2": 18,
+          "iou": 15,
+          "spearman": 13
+        },
+        "largest_negative_cbR2_contributions": {
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.006033590727193143,
+          "AG/slow/MA_TIAN_YI": -0.004037312551633876,
+          "AG/fast/ZHANG_CHUN": -0.0038309375978182333,
+          "AAA/ruputer/WANG_FU_SHUN": -0.002242108333042463,
+          "AG/fast/YAO_CUN_HONG": -0.0013359348166600681
+        }
+      },
+      "MS4_vs_MS5": {
+        "delta": {
+          "physical_r2_cb": -0.0009528332239515658,
+          "log_z_r2_cb": -4.222904082640255e-06,
+          "case_r2_mean": 0.0004980340416820273,
+          "case_r2_p10": 0.0074961167150410235,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.022994600825118283,
+          "mae_pa_cb": -0.004155805137557866,
+          "rmse_pa_cb": 0.005968261165601341,
+          "high_wss_r2": -0.023527065709165185,
+          "high_wss_mae_pa": 0.1542734357024944,
+          "top10_iou": -0.0008972107609039326,
+          "spearman": 0.0007573690503778208,
+          "spearman_high_wss": -0.023141561334924843,
+          "top10_ratio": -0.013681753687490028,
+          "p99_ratio": -0.010529521800082486,
+          "peak_distance_bbox": 0.0025454090835675403,
+          "hotspot_centroid_distance_bbox": -0.0016661410496701529
+        },
+        "improved_case_counts": {
+          "r2": 17,
+          "iou": 16,
+          "spearman": 16
+        },
+        "largest_negative_cbR2_contributions": {
+          "ILO/ZHANG_JIN_CHUN-1/before": -0.004711564323012275,
+          "AAA/ruputer/WANG_FU_SHUN": -0.003104721512560469,
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.001520221695614955,
+          "AG/fast/YAO_CUN_HONG": -0.001518879227959187,
+          "AG/slow/GUO_XI_JIANG": -0.0010912506099123585
+        }
+      },
+      "MS4_vs_MS6": {
+        "delta": {
+          "physical_r2_cb": -0.008218338339836095,
+          "log_z_r2_cb": 0.004430246249894965,
+          "case_r2_mean": 0.017299608735416583,
+          "case_r2_p10": 0.054679495557904856,
+          "negative_r2_cases": 0.0,
+          "mae_pa": -0.04639524956175012,
+          "mae_pa_cb": -0.04013178018166075,
+          "rmse_pa_cb": 0.0517243695250702,
+          "high_wss_r2": -0.033960706778420224,
+          "high_wss_mae_pa": 0.14541198500005414,
+          "top10_iou": 0.0008999694634416744,
+          "spearman": 0.0017211302681603424,
+          "spearman_high_wss": -0.015010272146828596,
+          "top10_ratio": -0.02613210698850399,
+          "p99_ratio": -0.037568171822360386,
+          "peak_distance_bbox": 0.009581789231653093,
+          "hotspot_centroid_distance_bbox": -0.0034323779177874887
+        },
+        "improved_case_counts": {
+          "r2": 17,
+          "iou": 18,
+          "spearman": 19
+        },
+        "largest_negative_cbR2_contributions": {
+          "ILO/SUN_XU_XIA-1/before": -0.010291823278504688,
+          "AG/slow/MA_TIAN_YI": -0.003627172181528752,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0012582610238786023,
+          "AG/fast/ZHANG_CHUN": -0.0012348370950028703,
+          "AG/fast/YAO_CUN_HONG": -0.000562825648424835
+        }
+      },
+      "MS6_vs_MS3": {
+        "delta": {
+          "physical_r2_cb": 0.008286412828062084,
+          "log_z_r2_cb": -0.003884799024831631,
+          "case_r2_mean": -0.004162282380135163,
+          "case_r2_p10": -0.03657938163723068,
+          "negative_r2_cases": 0.0,
+          "mae_pa": 0.021140136931822262,
+          "mae_pa_cb": 0.03360540293337033,
+          "rmse_pa_cb": -0.05215048311919368,
+          "high_wss_r2": 0.054921359178730755,
+          "high_wss_mae_pa": -0.18330439384267905,
+          "top10_iou": -0.01149341461477571,
+          "spearman": -0.002904562239063324,
+          "spearman_high_wss": -0.007170330381527312,
+          "top10_ratio": 0.01889758372486472,
+          "p99_ratio": 0.027653611218612206,
+          "peak_distance_bbox": -0.035448280925534634,
+          "hotspot_centroid_distance_bbox": 0.003037870224837206
+        },
+        "improved_case_counts": {
+          "r2": 13,
+          "iou": 16,
+          "spearman": 10
+        },
+        "largest_negative_cbR2_contributions": {
+          "AAA/unruputer/ZHANG_YONG_ZHI": -0.005673786721331112,
+          "AG/fast/ZHANG_CHUN": -0.002596100502815363,
+          "AAA/ruputer/WANG_FU_SHUN": -0.0009838473091638607,
+          "AG/fast/YAO_CUN_HONG": -0.0007731091682352333,
+          "AG/fast/SUN_ZHI_YU": -0.00041839423644599255
+        }
+      }
+    }
+  },
+  "branch_summary": {
+    "MS1": {
+      "fusion": null,
+      "scales": [
+        {
+          "radius_norm": 0.2,
+          "radius_mm_range": [
+            26.823736572265627,
+            46.19854431152344
+          ],
+          "token_rms_range": [
+            1.8101253509521484,
+            2.290029764175415
+          ],
+          "token_rms_mean": 2.0330792516469955,
+          "ffn_gammas": []
+        }
+      ]
+    },
+    "MS2": {
+      "fusion": null,
+      "scales": [
+        {
+          "radius_norm": 0.2,
+          "radius_mm_range": [
+            26.823736572265627,
+            46.19854431152344
+          ],
+          "token_rms_range": [
+            1.9931434392929077,
+            2.440844774246216
+          ],
+          "token_rms_mean": 2.178196683526039,
+          "ffn_gammas": [],
+          "gamma_attention": 0.07257261127233505,
+          "gamma_ffn": -0.2751937210559845,
+          "attention_entropy_mean": 1.2979748100042343,
+          "attention_distance_mm_mean": 104.7333283231826,
+          "attention_distance_mm_range": [
+            83.49758597197433,
+            132.66552017301365
+          ]
+        }
+      ]
+    },
+    "MS3": {
+      "fusion": {
+        "block_frobenius_norm": [
+          5.663183689117432,
+          17.688154220581055,
+          8.513155937194824
+        ],
+        "bias_norm": 0.4181109666824341
+      },
+      "scales": [
+        {
+          "radius_norm": 0.1,
+          "radius_mm_range": [
+            13.411868286132814,
+            23.09927215576172
+          ],
+          "token_rms_range": [
+            0.9399034976959229,
+            1.0449358224868774
+          ],
+          "token_rms_mean": 0.9989975392818451,
+          "ffn_gammas": []
+        },
+        {
+          "radius_norm": 0.2,
+          "radius_mm_range": [
+            26.823736572265627,
+            46.19854431152344
+          ],
+          "token_rms_range": [
+            1.8671810626983643,
+            2.102602958679199
+          ],
+          "token_rms_mean": 1.9689902514219284,
+          "ffn_gammas": []
+        },
+        {
+          "radius_norm": 0.4,
+          "radius_mm_range": [
+            53.647473144531254,
+            92.39708862304688
+          ],
+          "token_rms_range": [
+            1.7765552997589111,
+            2.8696043491363525
+          ],
+          "token_rms_mean": 2.2771594524383545,
+          "ffn_gammas": []
+        }
+      ]
+    },
+    "MS4": {
+      "fusion": {
+        "block_frobenius_norm": [
+          5.635701656341553,
+          17.725479125976562,
+          8.264418601989746
+        ],
+        "bias_norm": 0.39646974205970764
+      },
+      "scales": [
+        {
+          "radius_norm": 0.1,
+          "radius_mm_range": [
+            13.411868286132814,
+            23.09927215576172
+          ],
+          "token_rms_range": [
+            1.0597524642944336,
+            1.185318112373352
+          ],
+          "token_rms_mean": 1.1177555173635483,
+          "ffn_gammas": [],
+          "gamma_attention": 0.014752359129488468,
+          "gamma_ffn": -0.033247530460357666,
+          "attention_entropy_mean": 0.1284720036201179,
+          "attention_distance_mm_mean": 105.74681270925714,
+          "attention_distance_mm_range": [
+            84.04321503105166,
+            124.34407906186061
+          ]
+        },
+        {
+          "radius_norm": 0.2,
+          "radius_mm_range": [
+            26.823736572265627,
+            46.19854431152344
+          ],
+          "token_rms_range": [
+            1.9566218852996826,
+            2.390144109725952
+          ],
+          "token_rms_mean": 2.140941396355629,
+          "ffn_gammas": [],
+          "gamma_attention": 0.06350794434547424,
+          "gamma_ffn": -0.18618668615818024,
+          "attention_entropy_mean": 1.0764628648757935,
+          "attention_distance_mm_mean": 114.46167045884681,
+          "attention_distance_mm_range": [
+            95.21605201661441,
+            137.86413189773157
+          ]
+        },
+        {
+          "radius_norm": 0.4,
+          "radius_mm_range": [
+            53.647473144531254,
+            92.39708862304688
+          ],
+          "token_rms_range": [
+            2.1070170402526855,
+            3.1256608963012695
+          ],
+          "token_rms_mean": 2.5319963693618774,
+          "ffn_gammas": [],
+          "gamma_attention": -0.024577202275395393,
+          "gamma_ffn": 0.1702188104391098,
+          "attention_entropy_mean": 0.22663128469139338,
+          "attention_distance_mm_mean": 124.13714189900872,
+          "attention_distance_mm_range": [
+            97.01246938259646,
+            147.4414011261615
+          ]
+        }
+      ]
+    },
+    "MS5": {
+      "fusion": {
+        "block_frobenius_norm": [
+          6.965314865112305,
+          17.64640235900879,
+          7.375387191772461
+        ],
+        "bias_norm": 0.4095989167690277
+      },
+      "scales": [
+        {
+          "radius_norm": 0.2,
+          "radius_mm_range": [
+            26.823736572265627,
+            46.19854431152344
+          ],
+          "token_rms_range": [
+            1.9909303188323975,
+            2.3240668773651123
+          ],
+          "token_rms_mean": 2.131794035434723,
+          "ffn_gammas": [],
+          "gamma_attention": 0.028611430898308754,
+          "gamma_ffn": -0.11924775689840317,
+          "attention_entropy_mean": 0.21319262124598026,
+          "attention_distance_mm_mean": 116.9327738402178,
+          "attention_distance_mm_range": [
+            90.5451094551554,
+            141.3695806491487
+          ]
+        },
+        {
+          "radius_norm": 0.2,
+          "radius_mm_range": [
+            26.823736572265627,
+            46.19854431152344
+          ],
+          "token_rms_range": [
+            1.9963955879211426,
+            2.4923884868621826
+          ],
+          "token_rms_mean": 2.207383304834366,
+          "ffn_gammas": [],
+          "gamma_attention": 0.0674058273434639,
+          "gamma_ffn": 0.17517714202404022,
+          "attention_entropy_mean": 1.1606610417366028,
+          "attention_distance_mm_mean": 99.3892007718162,
+          "attention_distance_mm_range": [
+            82.48076887995921,
+            123.24616701560262
+          ]
+        },
+        {
+          "radius_norm": 0.2,
+          "radius_mm_range": [
+            26.823736572265627,
+            46.19854431152344
+          ],
+          "token_rms_range": [
+            1.996201515197754,
+            2.2888906002044678
+          ],
+          "token_rms_mean": 2.1095252633094788,
+          "ffn_gammas": [],
+          "gamma_attention": 0.02703351154923439,
+          "gamma_ffn": -0.02733328752219677,
+          "attention_entropy_mean": 0.09913006681017578,
+          "attention_distance_mm_mean": 124.23530096105048,
+          "attention_distance_mm_range": [
+            103.03382268091627,
+            152.70831759392695
+          ]
+        }
+      ]
+    },
+    "MS6": {
+      "fusion": {
+        "block_frobenius_norm": [
+          5.45270299911499,
+          17.60613250732422,
+          8.361196517944336
+        ],
+        "bias_norm": 0.36296388506889343
+      },
+      "scales": [
+        {
+          "radius_norm": 0.1,
+          "radius_mm_range": [
+            13.411868286132814,
+            23.09927215576172
+          ],
+          "token_rms_range": [
+            0.9478518962860107,
+            1.0235786437988281
+          ],
+          "token_rms_mean": 0.9827080965042114,
+          "ffn_gammas": [
+            0.0582655668258667
+          ]
+        },
+        {
+          "radius_norm": 0.2,
+          "radius_mm_range": [
+            26.823736572265627,
+            46.19854431152344
+          ],
+          "token_rms_range": [
+            1.7280504703521729,
+            2.1410534381866455
+          ],
+          "token_rms_mean": 1.9359938949346542,
+          "ffn_gammas": [
+            0.1747681051492691
+          ]
+        },
+        {
+          "radius_norm": 0.4,
+          "radius_mm_range": [
+            53.647473144531254,
+            92.39708862304688
+          ],
+          "token_rms_range": [
+            1.9281466007232666,
+            3.0462520122528076
+          ],
+          "token_rms_mean": 2.423001706600189,
+          "ffn_gammas": [
+            0.22540636360645294
+          ]
+        }
+      ]
+    }
+  },
+  "maximum_cbR2_decomposition_reconstruction_error": 1.739060284666749e-16,
+  "recommendation": {
+    "replace_M2_primary": false,
+    "automatically_run_MS7_to_MS9": false,
+    "reason": "Predeclared physical metric is lower for MS4 versus MS0, MS2, same-parameter MS5 and near-parameter MS6 at both checkpoints. MS3 has better hotspot IoU than MS4 with fewer parameters. Keep distinct MAE/spatial candidates rather than call the full proposal a physical improvement.",
+    "keep_as_exploratory_candidates": [
+      "MS3: hotspotIoU0.45154/0.44980; no addedBT",
+      "MS4: lowestMAE of new6,1.94174/1.94318Pa; physical/high-amplitude tradeoff",
+      "MS6: best new-arm physical0.62354/0.62556; versusM2 sign differs acrossbest/last, not confirmed gain"
+    ],
+    "geometry_G_M6": "awaiting user review; no newgeometry execution"
+  },
+  "interpretation_limits": [
+    "Single seed1234/exposed test34; best/last are correlated checkpoints, not independent replicates.",
+    "Eight train-case branch diagnostics confirm learned nonzero outer projections/BT residual scales but do not quantify causal importance or generalize to all geometries.",
+    "Low attention entropy and long Euclidean attention-weighted distances describe concentrated remote token selection, not verified hemodynamic information.",
+    "Three wall plots were preselected before new results; the largest newly observed cbR2 regression contributor, ZHANG_YONG_ZHI, is not among them.",
+    "No inference that uniform amplitude rescaling would fix the model; hotspot and ranking regressions also occur in several cases."
+  ]
+}

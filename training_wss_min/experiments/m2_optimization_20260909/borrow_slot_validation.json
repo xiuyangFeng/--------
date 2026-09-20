@@ -1,0 +1,54 @@
+{
+  "completed": true,
+  "passed": true,
+  "recorded_at": "2026-09-10T00:34:54+0800",
+  "kind": "CPU process recovery test with mocked Slurm commands; no real Slurm mutation",
+  "borrower_sha256": "ca714ca7a639d8b7b49377dea26c4064f262ffadcc84633a88174ef3db824e15",
+  "script": "training_wss_min/experiments/m2_optimization_20260909/borrow_slot_validation/reproduce_cpu_safety.py",
+  "script_sha256": "d0e2746a9e015a10ba8a149872be0d60784ef5a0c1419062773f15307299f16d",
+  "checks": [
+    "Numeric diagnostic step only; rejects foreign allocation, batch, extern, and allocation-only IDs",
+    "Step name padding is stripped; explicit %100j display width requested",
+    "Numeric marker fallback recovers a truncated displayed step name",
+    "claimed/train/eval_best/eval_last count toward active arms",
+    "Independent file opens cannot acquire duplicate flock",
+    "Real local coordinator reaches SIGSTOP and resumes after controller SIGTERM",
+    "Real local diagnostic and simulated remote processes both exit before SIGCONT; mocked scancel receives only 99999.7"
+  ],
+  "read_only_slurm_check": {
+    "command": "/public/slurm/bin/squeue --steps -h -j 13974 -o '%i|%100j'",
+    "exit_code": 0,
+    "observation": "Existing batch step name printed at explicit 100-character width"
+  },
+  "limitations": [
+    "Slurm scheduling/cancellation itself is mocked in recovery test",
+    "Real borrower lifecycle monitored separately by the parent task",
+    "Controller survives owner termination by design; simultaneous SIGKILL of controller is not covered"
+  ],
+  "evidence_files": {
+    "borrowed_diagnostic_slot.json": {
+      "path": "training_wss_min/experiments/m2_optimization_20260909/borrow_slot_validation/borrowed_diagnostic_slot.json",
+      "sha256": "cea1a97d30e42dad38efbcad9ff3f66b6b9c3f218dc01645eeb3a64821cc6e9d"
+    },
+    "controller.json": {
+      "path": "training_wss_min/experiments/m2_optimization_20260909/borrow_slot_validation/controller.json",
+      "sha256": "cea1a97d30e42dad38efbcad9ff3f66b6b9c3f218dc01645eeb3a64821cc6e9d"
+    },
+    "exact_cancel.txt": {
+      "path": "training_wss_min/experiments/m2_optimization_20260909/borrow_slot_validation/exact_cancel.txt",
+      "sha256": "5ca29e7cffd516a9fc0268c30fe5e3a9fa1b88b211c35a992e5f65b4a27b1892"
+    },
+    "expected_abort.txt": {
+      "path": "training_wss_min/experiments/m2_optimization_20260909/borrow_slot_validation/expected_abort.txt",
+      "sha256": "2fef596bc47e40717456c9181217b3ed18036f0407a497c607357945261f5355"
+    },
+    "plan.json": {
+      "path": "training_wss_min/experiments/m2_optimization_20260909/borrow_slot_validation/plan.json",
+      "sha256": "95193e9934e4113b2d4a12ffee99b6a8afbfd311a48c4eef15530ebc69a155de"
+    },
+    "test_children.json": {
+      "path": "training_wss_min/experiments/m2_optimization_20260909/borrow_slot_validation/test_children.json",
+      "sha256": "0dbe75310fa83c5c013987eee5073885c6570e6d13f7b15e4fd3658fb268a3b6"
+    }
+  }
+}

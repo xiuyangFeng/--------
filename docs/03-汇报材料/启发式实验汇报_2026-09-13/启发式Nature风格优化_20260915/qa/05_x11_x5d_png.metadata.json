@@ -1,0 +1,79 @@
+{
+  "stem": "05_x11",
+  "claim": "X11按截面聚合support并跨截面交换信息，生成的上下文残差只进入FiLM条件；当前作为X5D上的可选尾部模块。",
+  "export": "figures/05_x11.png",
+  "format": "PNG only",
+  "resolution_px": [
+    4800,
+    2700
+  ],
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/baseline_models.py",
+      "sha256": "2a0b54c56fa4b5d7698213e7111d321841ffdfaf75f1f24f102015f9a7c73093"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/local_refinement.py",
+      "sha256": "48f0173d9ce3d219bcec7cc9270c58fda203e09a67eeeb1a6661c13167bb7f09"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/X5X11_s1234.json",
+      "sha256": "ecfc5c6f2dc774a57ec2ec0c03fc2e33899d643b67dab10b59f07ac0247ca8d6"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave2_20260912/results.json",
+      "sha256": "1515c6c86428c6e3d5fedf2590f338155317d10b81be6da3575d0f42a9ebe40d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1b_20260912/results.json",
+      "sha256": "2475d31ee20dfb9f399003b41ef98a2398a7de2151a674f161072f980f0c8307"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave6_20260915/X5D_s1234.json",
+      "sha256": "4a3e5666140365c9496cba170e570ed555e9e32d92cd0282fa452ccb6bc69f73"
+    }
+  ],
+  "alignment": {
+    "schema_version": 1,
+    "applicable": false,
+    "auditable": false,
+    "verdict": "NOT APPLICABLE",
+    "backend": "python-matplotlib",
+    "summary": {
+      "fail": 0,
+      "warn": 0,
+      "comparisons": 0,
+      "exemptions": 0
+    },
+    "tolerances": {
+      "alignment_pt": 1.5,
+      "gutter_pt": 1.5
+    },
+    "errors": [],
+    "findings": [],
+    "layout": {
+      "schema_version": 1,
+      "backend": "python-matplotlib",
+      "figure": {
+        "width_pt": 1152.0,
+        "height_pt": 648.0
+      },
+      "panels": [
+        {
+          "id": "a",
+          "bbox_pt": [
+            46.08,
+            77.75999999999999,
+            1105.92,
+            505.44
+          ]
+        }
+      ],
+      "row_groups": [],
+      "column_groups": [],
+      "boundary_groups": [],
+      "exemptions": []
+    }
+  },
+  "note": "The context residual is not a WSS residual. X5D+X11 has not been trained in the current base line; the old X5→X5X11 arithmetic deltas are shown only as historical structural evidence. Nearest occupied lookup is constrained to the same segment."
+}

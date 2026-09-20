@@ -1,0 +1,23 @@
+{
+  "stem": "VF6_loss_history",
+  "claim": "VF6 400 轮速度训练 loss 总体下降，交付 checkpoint 按最低训练 loss 选在末期而非 last",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/history.jsonl",
+      "sha256": "6e1dbba728ad923e372063f46e818791448d23a3f2048ab3d025c30995a7a977"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/config.json",
+      "sha256": "58350b38690b385cbd722fa633f29df32d9c9594e05b5fae5cb32722dfcd8c3a"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_训练loss_20260915/source_data/VF6_loss_history.csv",
+      "sha256": "a33793e02126ace77e7fc7e006d1907fe7be5f59f25285201f7848b4e98e58f6"
+    }
+  ],
+  "exports": {
+    "png": "figures/VF6_loss_history.png"
+  },
+  "alignment": "NOT APPLICABLE",
+  "note": "All 400 logged epochs retained on a log axis fitted to this run. Centered 21-epoch mean is a visual aid only. Best is argmin(train_loss); no validation curve exists."
+}

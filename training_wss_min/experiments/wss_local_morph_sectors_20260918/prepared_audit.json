@@ -1,0 +1,142 @@
+{
+  "status": "passed",
+  "passed": true,
+  "experiment": "wss_local_morph_sectors_20260918",
+  "training_started": false,
+  "seed": 1234,
+  "donor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_morph_radius_k_20260917/W06K32_s1234.json",
+  "control_run": "/public/newhome/cy/Digital_twin/GNN_localmorph_frozen_20260918/training_wss_min/runs/wss_local_morph_radius_k_20260917/W06K32_s1234",
+  "feature_set_unchanged": true,
+  "feature_stats_unchanged": true,
+  "ball_unchanged": true,
+  "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/split_V5_train136_test34.json",
+  "paired_initialization": {
+    "S4": {
+      "passed": true,
+      "seed": 1234,
+      "tokens": 4,
+      "new_tensors": [
+        "query_patch.sector_attn.in_proj_bias",
+        "query_patch.sector_attn.in_proj_weight",
+        "query_patch.sector_attn.out_proj.bias",
+        "query_patch.sector_attn.out_proj.weight",
+        "query_patch.sector_norm.bias",
+        "query_patch.sector_norm.weight",
+        "query_patch.sector_out.bias",
+        "query_patch.sector_out.weight",
+        "query_patch.sector_pos.weight"
+      ],
+      "zero_initialised": [
+        "query_patch.sector_out.bias",
+        "query_patch.sector_out.weight"
+      ],
+      "shared_tensors_exact": true,
+      "unchanged_tensors": 255,
+      "new_parameters": 17089,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+      "initial_state_sha256": "67df53af03df494d168985ff4d88198ec85b3f95430c7d8913eeae1dfa3acd8b",
+      "trained_checkpoint_loaded": false
+    },
+    "S6": {
+      "passed": true,
+      "seed": 1234,
+      "tokens": 6,
+      "new_tensors": [
+        "query_patch.sector_attn.in_proj_bias",
+        "query_patch.sector_attn.in_proj_weight",
+        "query_patch.sector_attn.out_proj.bias",
+        "query_patch.sector_attn.out_proj.weight",
+        "query_patch.sector_norm.bias",
+        "query_patch.sector_norm.weight",
+        "query_patch.sector_out.bias",
+        "query_patch.sector_out.weight",
+        "query_patch.sector_pos.weight"
+      ],
+      "zero_initialised": [
+        "query_patch.sector_out.bias",
+        "query_patch.sector_out.weight"
+      ],
+      "shared_tensors_exact": true,
+      "unchanged_tensors": 255,
+      "new_parameters": 17217,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+      "initial_state_sha256": "dc91c6c674d5ae8592ab2c967420dedb147f9d1c7353d9805c2bc94a05dd5eee",
+      "trained_checkpoint_loaded": false
+    },
+    "S8": {
+      "passed": true,
+      "seed": 1234,
+      "tokens": 8,
+      "new_tensors": [
+        "query_patch.sector_attn.in_proj_bias",
+        "query_patch.sector_attn.in_proj_weight",
+        "query_patch.sector_attn.out_proj.bias",
+        "query_patch.sector_attn.out_proj.weight",
+        "query_patch.sector_norm.bias",
+        "query_patch.sector_norm.weight",
+        "query_patch.sector_out.bias",
+        "query_patch.sector_out.weight",
+        "query_patch.sector_pos.weight"
+      ],
+      "zero_initialised": [
+        "query_patch.sector_out.bias",
+        "query_patch.sector_out.weight"
+      ],
+      "shared_tensors_exact": true,
+      "unchanged_tensors": 255,
+      "new_parameters": 17345,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+      "initial_state_sha256": "13c2acbe550f84e6838239a814607754a6985fb13c63dd5d6a7db3e9fc0bba5d",
+      "trained_checkpoint_loaded": false
+    },
+    "S6R2": {
+      "passed": true,
+      "seed": 1234,
+      "tokens": 12,
+      "new_tensors": [
+        "query_patch.sector_attn.in_proj_bias",
+        "query_patch.sector_attn.in_proj_weight",
+        "query_patch.sector_attn.out_proj.bias",
+        "query_patch.sector_attn.out_proj.weight",
+        "query_patch.sector_norm.bias",
+        "query_patch.sector_norm.weight",
+        "query_patch.sector_out.bias",
+        "query_patch.sector_out.weight",
+        "query_patch.sector_pos.weight"
+      ],
+      "zero_initialised": [
+        "query_patch.sector_out.bias",
+        "query_patch.sector_out.weight"
+      ],
+      "shared_tensors_exact": true,
+      "unchanged_tensors": 255,
+      "new_parameters": 17601,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+      "initial_state_sha256": "71f649adf0e1299a76da2c8ce1eef3588e9dcca627cc82abfda37fc4ae39a840",
+      "trained_checkpoint_loaded": false
+    }
+  },
+  "wave_a_evidence": "/public/newhome/cy/Digital_twin/GNN_localmorph_frozen_20260918/training_wss_min/experiments/wss_local_morph_radius_20260917/offline",
+  "arms": {
+    "S4": {
+      "sectors": 4,
+      "rings": 1,
+      "tokens": 4
+    },
+    "S6": {
+      "sectors": 6,
+      "rings": 1,
+      "tokens": 6
+    },
+    "S8": {
+      "sectors": 8,
+      "rings": 1,
+      "tokens": 8
+    },
+    "S6R2": {
+      "sectors": 6,
+      "rings": 2,
+      "tokens": 12
+    }
+  }
+}

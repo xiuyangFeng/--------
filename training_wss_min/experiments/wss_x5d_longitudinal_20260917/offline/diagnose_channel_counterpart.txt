@@ -1,0 +1,19 @@
+每个沿程 value 通道最像的原始特征（逐例去均值口径，valid 点）
+样本 160000 点 / 40 例 train
+
+geom_ref_log_area                    最像 log_local_radius       |r|=0.992 R²=0.985  次：log_tau0_murray(0.94)、local_radius(0.91)
+geom_ref_area_slope                  最像 dr_ds                  |r|=0.674 R²=0.455  次：tn_dot(0.66)、nz_aligned(0.21)
+geom_ref_roundness                   最像 rho                    |r|=0.308 R²=0.095  次：dist_to_endpoint_mm(0.21)、dist_to_junction_mm(0.15)
+geom_ref_eccentricity                最像 rho                    |r|=0.354 R²=0.126  次：dist_to_endpoint_mm(0.22)、dist_to_junction_mm(0.15)
+geom_ref_upstream_min_area_ratio     最像 dr_ds                  |r|=0.687 R²=0.471  次：tn_dot(0.58)、dist_to_endpoint_mm(0.21)
+geom_ref_downstream_min_area_ratio   最像 dr_ds                  |r|=0.622 R²=0.387  次：tn_dot(0.56)、log_q_branch_murray(0.25)
+geom_ref_upstream_min_distance       最像 dr_ds                  |r|=0.413 R²=0.170  次：tn_dot(0.33)、log_tau0_murray(0.28)
+geom_ref_downstream_min_distance     最像 dr_ds                  |r|=0.409 R²=0.167  次：tn_dot(0.35)、curv_k2_c(0.16)
+geom_pc_log_area                     最像 log_local_radius       |r|=0.994 R²=0.987  次：log_tau0_murray(0.95)、local_radius(0.91)
+geom_pc_area_slope                   最像 dr_ds                  |r|=0.691 R²=0.477  次：tn_dot(0.68)、nz_aligned(0.23)
+geom_pc_roundness                    最像 rho                    |r|=0.315 R²=0.100  次：curvedness(0.20)、dist_to_junction_mm(0.20)
+geom_pc_eccentricity                 最像 rho                    |r|=0.393 R²=0.154  次：dist_to_endpoint_mm(0.23)、dist_to_junction_mm(0.16)
+geom_pc_upstream_min_area_ratio      最像 dr_ds                  |r|=0.690 R²=0.477  次：tn_dot(0.59)、dist_to_endpoint_mm(0.23)
+geom_pc_downstream_min_area_ratio    最像 dr_ds                  |r|=0.617 R²=0.380  次：tn_dot(0.55)、log_q_branch_murray(0.24)
+geom_pc_upstream_min_distance        最像 dr_ds                  |r|=0.404 R²=0.163  次：tn_dot(0.33)、log_tau0_murray(0.29)
+geom_pc_downstream_min_distance      最像 dr_ds                  |r|=0.399 R²=0.159  次：tn_dot(0.33)、curv_k2_c(0.15)

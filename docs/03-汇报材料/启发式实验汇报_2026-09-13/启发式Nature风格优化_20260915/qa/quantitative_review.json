@@ -1,0 +1,27 @@
+{
+  "figures": [
+    "07_murray_paired_effect",
+    "08_x11_tradeoff",
+    "09_current_case_distributions",
+    "16_historical_case_distributions",
+    "17_velocity_wss_gap"
+  ],
+  "panel_count": 23,
+  "human_visual_review": "Viewed all five final PNGs, including revised08/09/16/17. Readable Chinese slide typography, no text clipped, no crossed annotations; all source observations kept.",
+  "source_audit": {
+    "authoritative": "quantitative_source_validation.json",
+    "counts": {
+      "PASS": 18,
+      "WARN": 3,
+      "FAIL": 0
+    },
+    "import_limitation": "Standalone validator cannot follow plot_style import; original isolated false positives retained in quantitative_source_validation.import-unaware.json. Authoritative validator input concatenates the unchanged actual helper and plotting source in quantitative_validation_source_bundle.py.",
+    "warnings_review": {
+      "PNG_without_TIFF": "Slide/report assets requested; editable SVG/PDF are authoritative and 300dpi PNG is the slide preview. No submission-ready TIFF claim.",
+      "300dpi": "Appropriate for 16x9-inch slides and references; user requested report graphics, not journal final-production assets.",
+      "406.4mm_width": "Intentional16x9-inch report canvas, not an89/183mm journal column."
+    }
+  },
+  "data_integrity": "Every current and historical case seed value checked directly against raw metrics JSON, then arithmetic mean/sampleSD recomputed. All source hashes matched the existing audit. No exclusion, no inference, no significance test.",
+  "geometry": "07 equal1x3;08 equal2x2;09/16 wide scatter with narrow histogram, explicit physical row/column groups and intentional panel-width exemptions;17 asymmetric schematic+case plot with common top/bottom."
+}

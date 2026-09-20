@@ -1,5 +1,9 @@
 # 体域 `u,v,w,p` PINN
 
+> **2026-09-18 数据根**：过期 V4 bundle 已腾盘，空壳目录 `data_wss_pinn/` 已撤。历史 checkpoint / 签收 atlas 在 `outputs/wss_pinn/runs/` 与 `volume_uvwp_bc_rcr_v4_anatomy_prep_20260903/`。现行训练数据是 `data_wss_v5/views_v5_1/`。若将来重建 V4，builder 会重新创建 `data_wss_pinn/`。
+
+> **2026-09-07 状态**：V4 正式重建线已于 2026-09-06 被 V5 取代（V5 设计/数据/训练文档入口：[`docs/02-推进与变更/WSS_PINN/README.md`](../docs/02-推进与变更/WSS_PINN/README.md)；四份 V4 文档已归档到 `docs/02-推进与变更/WSS_PINN/_archive/`）。本目录的 `v4/fluent_topology.py`、`v4/centerline_atlas.py`、`v4/waveform.py`、`data/raw_io.py`、`utils.py` 作为库被 V5 数据母库 `wss_v5/` 复用；`v4/build*.py`、`v4/train.py`、`v4/config.py`、`v4/models.py` 对应的 formal V4 route 不再推进，只作历史。下方 V4 状态说明按原日期保留。
+
 > 当前工程活动：Centerline V2 anatomy-only formal 172 例重建前整改（源队列 173 例，
 > 排除 `YANG_BAO_KUI`）；pre-Centerline-V2
 > `volume_uvwp_bc_rcr_v4` 训练矩阵、`volume_uvwp_peak_field_v4` 与
@@ -14,7 +18,7 @@
 > WSS `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`。
 
 > 新 V4 设计真源：
-> [`WSS_PINN V4 大重构设计方案`](../docs/02-推进与变更/WSS_PINN/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
+> [`WSS_PINN V4 大重构设计方案`](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
 > 历史提交链为 CPU `11970`（completed）→ GPU preflight `11971`（completed）→
 > `11972` / `12210` 与 node04 直启。当前可确认 46/48 有完成摘要、38/48 有 official
 > 场+WSS 评估；不得据此写成 48/48 完训。train-only 中期见
@@ -30,7 +34,7 @@
 > 08-31 staging 未包含这些更新且尚未排除 `blood1…blood5` 延长段。正式重建前必须完成
 > 曲率 feature atlas、全链 anatomy-only、5 个解剖 interface BC、train138 条件长尾、
 > ZHOU 收敛、raw SHA 和正式 bundle/Gate。执行真源见
-> [剩余整改与验收计划](../docs/02-推进与变更/WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)。
+> [剩余整改与验收计划](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)。
 
 > **2026-09-04 正式骨干决策**：用户选择 B。新的 Centerline-V2 formal V4 将恢复
 > PointNet=`P2V`、PointNet++=纯 `D2 c125-k128` 两个 V1/V2 provenance 锚点，并从
@@ -109,7 +113,7 @@ ZHOU/ZUO 原 Q 长尾已在 raw 侧修复，但该 staging 已过期。正式训
 `0576854c9ee1864fe80db8fafe1a9f52b5d44d6bc9fe34a3c2b10abf9ba1dfef`。
 
 完整问题、修复状态和病例清单见
-[173 例训练数据数值与刚性配准审阅及修复计划](../docs/02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)。
+[173 例训练数据数值与刚性配准审阅及修复计划](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)。
 
 ## pre-Centerline-V2 V4 v1.2 历史实现与集群提交
 

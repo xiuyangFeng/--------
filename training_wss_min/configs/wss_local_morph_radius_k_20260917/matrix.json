@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_local_morph_radius_k_20260917",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5D_v51_s1234": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json",
+    "X5Ddual_s1234": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_v51_wave1_20260916/X5Ddual_s1234/eval/ckpt_best/metrics.json"
+  },
+  "expected_training_runs": 1,
+  "expected_evaluations": 2,
+  "arms": [
+    {
+      "id": "W06K32_s1234",
+      "title": "W06K32: query patch + 6 mm 球 × 32 点",
+      "config": "W06K32_s1234.json",
+      "phase": 0,
+      "modules": [
+        "query_patch_radius_6mm"
+      ],
+      "seed": 1234,
+      "fold": null,
+      "parent": "X5D_v51_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "radius_mm": 6.0,
+      "radius_k": 32,
+      "config_diff_vs_anchor": {
+        "data.query_patch_radius_k": {
+          "before": null,
+          "after": 32
+        },
+        "data.query_patch_radius_mm": {
+          "before": null,
+          "after": 6.0
+        },
+        "model.query_patch_radius_k": {
+          "before": null,
+          "after": 32
+        },
+        "name": {
+          "before": "wss_v51_wave1_20260916/X5D_v51_s1234",
+          "after": "wss_local_morph_radius_k_20260917/W06K32_s1234"
+        },
+        "notes": {
+          "before": "v5.1 wave-1 X5D_v51_s1234: X5D on v5.1 data (train136), seed 1234; data = views_v5_1 train136/test34 (26 RCR-corrected reruns, 2 duplicates removed); C1_s1234 paired init.",
+          "after": "局部形态波 A：query patch 在 K16 之外增加固定 6 mm 球的 32 点覆盖采样（零初始化第二分支），其余 X5D_v51 配方与 offset_norm='mm' 逐位不变，seed 1234。依据 Phase 0：K16 只覆盖约 8.3% 圆周，而区间内残差的 m=1..3 周向模态净份额 0.589。"
+        }
+      }
+    }
+  ],
+  "prepared_audit": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_k_20260917/prepared_audit.json",
+  "reading_rule": "感受野阶梯，单 seed 1234，全部与同 seed X5D_v51（0.7461）配对；X5Ddual（4 mm + spacing 归一）是已知的近中性参照。单 seed 噪声带 ±0.014 物理 / ±0.004 归一化，本波只用于淘汰与定方向。"
+}

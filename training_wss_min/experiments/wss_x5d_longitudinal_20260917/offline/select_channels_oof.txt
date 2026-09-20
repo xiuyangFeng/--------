@@ -1,0 +1,45 @@
+train136 折外残差：544000 点，sd 0.4790（stage1 ln R² 约 0.815）
+原 27 维（线性、逐例去均值）能解释折外残差 R² 0.0036 → 之后只在剩余部分上选通道
+
+  步 通道                                     累计 R²     边际 ΔR²
+  1 geom_ref_roundness                   0.00250    0.00250
+  2 geom_ref_upstream_min_distance       0.00291    0.00040
+  3 geom_pc_log_area                     0.00312    0.00022
+  4 geom_ref_upstream_min_area_ratio     0.00331    0.00019
+  5 geom_ref_area_slope                  0.00391    0.00060
+  6 geom_ref_downstream_min_area_ratio   0.00423    0.00032
+  7 geom_pc_area_slope                   0.00440    0.00017
+  8 geom_ref_eccentricity                0.00457    0.00017
+  9 geom_pc_downstream_min_distance      0.00461    0.00004
+ 10 geom_pc_upstream_min_area_ratio      0.00464    0.00003
+ 11 geom_pc_upstream_min_distance        0.00469    0.00005
+ 12 geom_pc_roundness                    0.00470    0.00001
+ 13 geom_pc_eccentricity                 0.00471    0.00002
+ 14 geom_ref_log_area                    0.00472    0.00000
+ 15 geom_pc_downstream_min_area_ratio    0.00472    0.00000
+ 16 geom_ref_downstream_min_distance     0.00473    0.00001
+
+按病例分半的前 6 名（稳定性检查）
+  A 半：ref_roundness, pc_upstream_min_distance, ref_eccentricity, pc_area_slope, pc_downstream_min_area_ratio, pc_upstream_min_area_ratio
+  B 半：ref_roundness, ref_log_area, ref_upstream_min_distance, ref_upstream_min_area_ratio, ref_area_slope, ref_downstream_min_distance
+  全体：ref_roundness, ref_upstream_min_distance, pc_log_area, ref_upstream_min_area_ratio, ref_area_slope, ref_downstream_min_area_ratio
+
+只在 ref 8 内部前向选择（剪枝臂的通道顺序）
+   1 geom_ref_roundness                 累计 R² 0.00250  边际 0.00250
+   2 geom_ref_upstream_min_distance     累计 R² 0.00291  边际 0.00040
+   3 geom_ref_upstream_min_area_ratio   累计 R² 0.00311  边际 0.00020
+   4 geom_ref_area_slope                累计 R² 0.00370  边际 0.00059
+   5 geom_ref_downstream_min_area_ratio 累计 R² 0.00404  边际 0.00035
+   6 geom_ref_eccentricity              累计 R² 0.00418  边际 0.00014
+   7 geom_ref_log_area                  累计 R² 0.00432  边际 0.00014
+   8 geom_ref_downstream_min_distance   累计 R² 0.00435  边际 0.00003
+
+候选子集的解释力（同一残差口径）
+  全部 16 value                        16 个 value / 32 列   R² 0.00473
+  ref 8                               8 个 value / 16 列   R² 0.00435
+  ref 8 + pc_roundness                9 个 value / 18 列   R² 0.00442
+  前 4（前向选出）                           4 个 value /  8 列   R² 0.00331
+  前 6（前向选出）                           6 个 value / 12 列   R² 0.00423
+  "新"4 ref（圆度/偏心/上下游距离）               4 个 value /  8 列   R² 0.00312
+
+wrote /public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/select_channels_oof.json

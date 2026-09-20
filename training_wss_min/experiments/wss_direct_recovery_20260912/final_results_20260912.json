@@ -1,0 +1,620 @@
+{
+  "generated_at": "2026-09-12T19:44:02.041567+08:00",
+  "job_id": 14119,
+  "job_accounting": "JobID|JobName|State|ExitCode|Start|End|Elapsed\n14119|wss_direct_recovery|COMPLETED|0:0|2026-09-12T11:18:58|2026-09-12T15:42:02|04:23:04\n14119.batch|batch|COMPLETED|0:0|2026-09-12T11:18:58|2026-09-12T15:42:02|04:23:04",
+  "training_complete": 14,
+  "evaluations_complete": 28,
+  "seed": 1234,
+  "epochs": 400,
+  "c4_selected_structure": "E3",
+  "acceptance_audit": {
+    "records": 42,
+    "all_passed": true,
+    "unique_files_hashed": 1143,
+    "unique_bytes_hashed": 3212214805,
+    "hash_mismatches": [],
+    "conflicting_expected_hashes": [],
+    "all_histories_contiguous_finite": true,
+    "all_evaluated_case_sets_equal_frozen_test34": true
+  },
+  "arms": [
+    {
+      "id": "E0",
+      "title": "M2 independent-query contemporary control",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E0_s1234",
+      "best": {
+        "norm_r2_cb": 0.8211287294877638,
+        "pa_r2_cb": 0.602332266380148,
+        "pooled_mae_pa": 2.026101536837905,
+        "top10_iou_casemean": 0.4219565451630993,
+        "pa_r2_casep10": 0.41256639643500514,
+        "negative_case_count": 1,
+        "negative_cases": [
+          "AAA/ruputer/KANG_YONG"
+        ],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E0_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "ffdc25c68b569ca6008400e2286f0e5800f6346b8921db231ce51831721a199f"
+      },
+      "last": {
+        "norm_r2_cb": 0.8212595747213157,
+        "pa_r2_cb": 0.6029552852078126,
+        "pooled_mae_pa": 2.0273276949251575,
+        "top10_iou_casemean": 0.42054290425728574,
+        "pa_r2_casep10": 0.41605051802410126,
+        "negative_case_count": 1,
+        "negative_cases": [
+          "AAA/ruputer/KANG_YONG"
+        ],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E0_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "c0a3873566c968d80f1182dda42a7346222a28724a836255fc44a4acd7341128"
+      }
+    },
+    {
+      "id": "E1",
+      "title": "A5 SAME-query contemporary control",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "same",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E1_s1234",
+      "best": {
+        "norm_r2_cb": 0.8199512023663271,
+        "pa_r2_cb": 0.592935815625776,
+        "pooled_mae_pa": 2.028829012574992,
+        "top10_iou_casemean": 0.4145359705339333,
+        "pa_r2_casep10": 0.3895400210118943,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E1_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "c5e5e28d1cc10263afc5aaa4fd49e623ee20de77f5402dee76e6e26b9fad377b"
+      },
+      "last": {
+        "norm_r2_cb": 0.8208923273437692,
+        "pa_r2_cb": 0.592976493738719,
+        "pooled_mae_pa": 2.031926565949976,
+        "top10_iou_casemean": 0.41518157114355425,
+        "pa_r2_casep10": 0.3635253083085467,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E1_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "13e4ea935be5aeb7cf1f34cbb753fc43808ad187da72db1c34107d6cbc8b9a56"
+      }
+    },
+    {
+      "id": "E2",
+      "title": "Tangent-plane axial/circumferential directional quotas",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E2_s1234",
+      "best": {
+        "norm_r2_cb": 0.8289071839823783,
+        "pa_r2_cb": 0.626622929555787,
+        "pooled_mae_pa": 1.9547260451829174,
+        "top10_iou_casemean": 0.4408631580125451,
+        "pa_r2_casep10": 0.40760843004928876,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E2_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "8dfc9fd983c09e8cf9c0f6fa1402eb6a74749ef032380ed842a24cc3e4006c45"
+      },
+      "last": {
+        "norm_r2_cb": 0.8290853807344307,
+        "pa_r2_cb": 0.6183347468343688,
+        "pooled_mae_pa": 1.9621179372432667,
+        "top10_iou_casemean": 0.43903794146776637,
+        "pa_r2_casep10": 0.40701228472240486,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E2_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "a645f8b759ebeac297924c3f2895d490a9ea667292ee3b0bc9805c089a824b90"
+      }
+    },
+    {
+      "id": "E3",
+      "title": "Full-wall query patch with coarse-context FiLM residual",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E3_s1234",
+      "best": {
+        "norm_r2_cb": 0.8342810128242228,
+        "pa_r2_cb": 0.6365111178044676,
+        "pooled_mae_pa": 1.9114259225086014,
+        "top10_iou_casemean": 0.4581307709959712,
+        "pa_r2_casep10": 0.43518740731935773,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E3_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "fe3b397b6bd58279f43b5ebc9dd8cde7c2e3a91911ccd50e9a7e56effc6ebaa9"
+      },
+      "last": {
+        "norm_r2_cb": 0.8330902660608073,
+        "pa_r2_cb": 0.6368155110897777,
+        "pooled_mae_pa": 1.9167994518798641,
+        "top10_iou_casemean": 0.45553844161540036,
+        "pa_r2_casep10": 0.43036762148731833,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E3_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "44c918aa23939cb7bab09bce9dd457431e71e229b3251db6ebd11280b90b1a56"
+      }
+    },
+    {
+      "id": "E4",
+      "title": "Local max + weighted mean + std pooling, unchanged width",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E4_s1234",
+      "best": {
+        "norm_r2_cb": 0.825257558617064,
+        "pa_r2_cb": 0.6118189885633174,
+        "pooled_mae_pa": 2.0124971882526874,
+        "top10_iou_casemean": 0.41850336958567075,
+        "pa_r2_casep10": 0.3998576411468772,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E4_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "19a804eea7bcabb3e0207836e7fe451479eb73b5a24b454601124370d61c1b3b"
+      },
+      "last": {
+        "norm_r2_cb": 0.8254874345647738,
+        "pa_r2_cb": 0.6142260406346169,
+        "pooled_mae_pa": 2.006401994755194,
+        "top10_iou_casemean": 0.41829355457366474,
+        "pa_r2_casep10": 0.41089615249366135,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E4_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "eb090e1e3c49543328fea4ceede9011a61c2a6594279f4d54fec8585e537f66c"
+      }
+    },
+    {
+      "id": "E5",
+      "title": "Two fixed-mm scales plus 0.5 local-radius scale",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E5_s1234",
+      "best": {
+        "norm_r2_cb": 0.8158193600564817,
+        "pa_r2_cb": 0.5884898955978358,
+        "pooled_mae_pa": 2.041671522651142,
+        "top10_iou_casemean": 0.4149293790623951,
+        "pa_r2_casep10": 0.43395671471521335,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E5_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "59148dc95d9bf773413661361399fa88f650e262660aa1f675a36fc970df8b3d"
+      },
+      "last": {
+        "norm_r2_cb": 0.815261364785677,
+        "pa_r2_cb": 0.5925764008968493,
+        "pooled_mae_pa": 2.0388813032242488,
+        "top10_iou_casemean": 0.41355788809509125,
+        "pa_r2_casep10": 0.4337345125396907,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E5_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "c6922337558a43f9ae46537a3fa2223ca465f908c4d61b1859f38a028ef630ac"
+      }
+    },
+    {
+      "id": "E6",
+      "title": "Physical local surface-pair WSS difference loss",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E6_s1234",
+      "best": {
+        "norm_r2_cb": 0.825903443080334,
+        "pa_r2_cb": 0.6333571127966832,
+        "pooled_mae_pa": 1.9640508430975343,
+        "top10_iou_casemean": 0.43863705204561687,
+        "pa_r2_casep10": 0.470761810925554,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E6_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "031ef5fc2d34e69f26d5355fb3658c4a0eb61e4ec8336f33f85a6d3054c3f4a7"
+      },
+      "last": {
+        "norm_r2_cb": 0.8251235065093547,
+        "pa_r2_cb": 0.6306541235634768,
+        "pooled_mae_pa": 1.96662384800095,
+        "top10_iou_casemean": 0.43853257856770567,
+        "pa_r2_casep10": 0.4610600583031441,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E6_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "0954131eb79f4b061b42b37e5c6adf3cd8febc390d22e19c8126aa930b2747df"
+      }
+    },
+    {
+      "id": "E7",
+      "title": "Within-case pairwise ranking loss",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E7_s1234",
+      "best": {
+        "norm_r2_cb": 0.8237611453280334,
+        "pa_r2_cb": 0.610376254914679,
+        "pooled_mae_pa": 2.005860323771784,
+        "top10_iou_casemean": 0.435865122013573,
+        "pa_r2_casep10": 0.4360142757176508,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E7_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "e5694e4f349f85f9b9ae2278bda225e4816b5c81770e3a2d691958c7fe214a13"
+      },
+      "last": {
+        "norm_r2_cb": 0.8240981455630115,
+        "pa_r2_cb": 0.6124554191274281,
+        "pooled_mae_pa": 1.999034081860822,
+        "top10_iou_casemean": 0.43504889159567467,
+        "pa_r2_casep10": 0.4356584430250944,
+        "negative_case_count": 1,
+        "negative_cases": [
+          "AG/fast/SUN_ZHI_YU"
+        ],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E7_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "cb25fbba6a4bd0a70476262d52ab72bd3c8532acb91ea6a4ce9eb8382bcf400a"
+      }
+    },
+    {
+      "id": "E8",
+      "title": "70% spatial coverage + 15% high-curvature + 15% junction support",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E8_s1234",
+      "best": {
+        "norm_r2_cb": 0.8228760329416471,
+        "pa_r2_cb": 0.6047801337316682,
+        "pooled_mae_pa": 1.999898665611514,
+        "top10_iou_casemean": 0.43272121536128116,
+        "pa_r2_casep10": 0.40389588179962266,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E8_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "382fa4db11f0382c984fa11635e7d100d831f7db3936e7ca5dd86e1317b244dc"
+      },
+      "last": {
+        "norm_r2_cb": 0.8225022643206199,
+        "pa_r2_cb": 0.6045837589155209,
+        "pooled_mae_pa": 2.00296145300911,
+        "top10_iou_casemean": 0.43182847276498026,
+        "pa_r2_casep10": 0.40048982303308656,
+        "negative_case_count": 1,
+        "negative_cases": [
+          "AAA/ruputer/KANG_YONG"
+        ],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E8_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "adee4194727b747fa64da5d2f48eb0b6a0062a85c29b7883e0ec1dc329aa9d9c"
+      }
+    },
+    {
+      "id": "E9",
+      "title": "Audited nominal inlet Q/A feature",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 26,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E9_s1234",
+      "best": {
+        "norm_r2_cb": 0.8197848868670572,
+        "pa_r2_cb": 0.6266568655687836,
+        "pooled_mae_pa": 2.0016479868656667,
+        "top10_iou_casemean": 0.4208450578914584,
+        "pa_r2_casep10": 0.4348415449759129,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E9_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "5e45480d03e37d9e5543ac2cd6a68454daee56996385d965426ba3a23bace4b1"
+      },
+      "last": {
+        "norm_r2_cb": 0.820479481382002,
+        "pa_r2_cb": 0.6215797330781367,
+        "pooled_mae_pa": 2.0052466545723457,
+        "top10_iou_casemean": 0.4221620299440594,
+        "pa_r2_casep10": 0.4378117164365805,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E9_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "f17793215fb76614861bcd8e4fc5296c2951fb0f7772253646cdb6150ceb199a"
+      }
+    },
+    {
+      "id": "C1",
+      "title": "E2 + E3",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+      "best": {
+        "norm_r2_cb": 0.8409786679038207,
+        "pa_r2_cb": 0.657492082127713,
+        "pooled_mae_pa": 1.8447162633080068,
+        "top10_iou_casemean": 0.46979340840522593,
+        "pa_r2_casep10": 0.5050215061433275,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "0688e147420d8d8a770b115b0c7088bbd8151b84ed0e6aadc3869b555f7c8eed"
+      },
+      "last": {
+        "norm_r2_cb": 0.8402891570920829,
+        "pa_r2_cb": 0.6593192215617267,
+        "pooled_mae_pa": 1.8482824634175656,
+        "top10_iou_casemean": 0.46851309536982255,
+        "pa_r2_casep10": 0.5084729737437106,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "9bb0077b9be6d50d2a4e10677bfec954898eab328b840e6414e4e498a6c58565"
+      }
+    },
+    {
+      "id": "C2",
+      "title": "E2 + E6",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C2_s1234",
+      "best": {
+        "norm_r2_cb": 0.8280623107845694,
+        "pa_r2_cb": 0.6136465063789998,
+        "pooled_mae_pa": 1.9788045212573913,
+        "top10_iou_casemean": 0.4330002168257368,
+        "pa_r2_casep10": 0.4624060651906285,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C2_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "c17b8f6bfcf3ce0c707ead5a684aa7077534ca1c95948878d0325e1b5ac9ce7b"
+      },
+      "last": {
+        "norm_r2_cb": 0.8288521759595104,
+        "pa_r2_cb": 0.6084750088976436,
+        "pooled_mae_pa": 1.9808272007946013,
+        "top10_iou_casemean": 0.43519619975358453,
+        "pa_r2_casep10": 0.456785329688252,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C2_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "ea27b362504b1f61b78b0cf40ead14649bf91955fa9705867c904a2354142c6b"
+      }
+    },
+    {
+      "id": "C3",
+      "title": "E3 + E7",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 25,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C3_s1234",
+      "best": {
+        "norm_r2_cb": 0.8337323829413269,
+        "pa_r2_cb": 0.6337864521788708,
+        "pooled_mae_pa": 1.9093359034543902,
+        "top10_iou_casemean": 0.4512344981891907,
+        "pa_r2_casep10": 0.4490259226811973,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C3_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "efd6fe6fab9160b31759ceab7e6867446b16de77be03a567e76540e60eaf6b26"
+      },
+      "last": {
+        "norm_r2_cb": 0.8330609610313906,
+        "pa_r2_cb": 0.6306717144238048,
+        "pooled_mae_pa": 1.9167450685322747,
+        "top10_iou_casemean": 0.44953466661912406,
+        "pa_r2_casep10": 0.45172319038763753,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C3_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "379709ac68ac675a0bb6bce93f7998d8ec7796359ab1c57ab2f172ae1524685b"
+      }
+    },
+    {
+      "id": "C4",
+      "title": "Selected E2-E5 structure + E9",
+      "seed": 1234,
+      "epochs": 400,
+      "accepted": true,
+      "query_mode": "independent",
+      "input_dim": 26,
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C4_s1234",
+      "best": {
+        "norm_r2_cb": 0.836463376145202,
+        "pa_r2_cb": 0.6416306920269157,
+        "pooled_mae_pa": 1.8889807530021154,
+        "top10_iou_casemean": 0.45907001332189695,
+        "pa_r2_casep10": 0.5049909061674605,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C4_s1234/eval/ckpt_best/metrics.json",
+        "metrics_sha256": "5c80ef35caeb12e787dc83a671f0624f62b88d1c571f48aa54b7844f187a5bd7"
+      },
+      "last": {
+        "norm_r2_cb": 0.8366242750284488,
+        "pa_r2_cb": 0.6443301483669179,
+        "pooled_mae_pa": 1.8887338807362335,
+        "top10_iou_casemean": 0.4583979660936846,
+        "pa_r2_casep10": 0.4979208613338378,
+        "negative_case_count": 0,
+        "negative_cases": [],
+        "test_cases": 34,
+        "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C4_s1234/eval/ckpt_last/metrics.json",
+        "metrics_sha256": "b3d86e97331fdff6ad6f380eb5992b71a605ded0eb9728367b7d55ca15be563e"
+      }
+    }
+  ],
+  "deltas": {
+    "C1_minus_E0": {
+      "best": {
+        "norm_r2_cb": 0.019849938416056867,
+        "pa_r2_cb": 0.05515981574756501,
+        "pooled_mae_pa": -0.1813852735298982,
+        "top10_iou_casemean": 0.04783686324212666,
+        "pa_r2_casep10": 0.09245510970832238
+      },
+      "last": {
+        "norm_r2_cb": 0.01902958237076713,
+        "pa_r2_cb": 0.056363936353914124,
+        "pooled_mae_pa": -0.17904523150759188,
+        "top10_iou_casemean": 0.04797019111253681,
+        "pa_r2_casep10": 0.09242245571960933
+      }
+    },
+    "C1_minus_E3": {
+      "best": {
+        "norm_r2_cb": 0.006697655079597853,
+        "pa_r2_cb": 0.020980964323245477,
+        "pooled_mae_pa": -0.06670965920059468,
+        "top10_iou_casemean": 0.011662637409254717,
+        "pa_r2_casep10": 0.06983409882396979
+      },
+      "last": {
+        "norm_r2_cb": 0.007198891031275578,
+        "pa_r2_cb": 0.02250371047194899,
+        "pooled_mae_pa": -0.06851698846229848,
+        "top10_iou_casemean": 0.012974653754422194,
+        "pa_r2_casep10": 0.07810535225639226
+      }
+    },
+    "C3_minus_E3": {
+      "best": {
+        "norm_r2_cb": -0.0005486298828959457,
+        "pa_r2_cb": -0.0027246656255968116,
+        "pooled_mae_pa": -0.002090019054211245,
+        "top10_iou_casemean": -0.006896272806780512,
+        "pa_r2_casep10": 0.013838515361839554
+      },
+      "last": {
+        "norm_r2_cb": -2.930502941667079e-05,
+        "pa_r2_cb": -0.006143796665972978,
+        "pooled_mae_pa": -5.4383347589448405e-05,
+        "top10_iou_casemean": -0.006003774996276301,
+        "pa_r2_casep10": 0.0213555689003192
+      }
+    },
+    "C4_minus_E3": {
+      "best": {
+        "norm_r2_cb": 0.002182363320979208,
+        "pa_r2_cb": 0.005119574222448131,
+        "pooled_mae_pa": -0.022445169506486007,
+        "top10_iou_casemean": 0.0009392423259257376,
+        "pa_r2_casep10": 0.06980349884810272
+      },
+      "last": {
+        "norm_r2_cb": 0.0035340089676415554,
+        "pa_r2_cb": 0.00751463727714019,
+        "pooled_mae_pa": -0.02806557114363062,
+        "top10_iou_casemean": 0.0028595244782842477,
+        "pa_r2_casep10": 0.06755323984651945
+      }
+    },
+    "E6_minus_E0": {
+      "best": {
+        "norm_r2_cb": 0.004774713592570201,
+        "pa_r2_cb": 0.031024846416535135,
+        "pooled_mae_pa": -0.062050693740370644,
+        "top10_iou_casemean": 0.0166805068825176,
+        "pa_r2_casep10": 0.05819541449054888
+      },
+      "last": {
+        "norm_r2_cb": 0.00386393178803901,
+        "pa_r2_cb": 0.027698838355664224,
+        "pooled_mae_pa": -0.060703846924207605,
+        "top10_iou_casemean": 0.017989674310419923,
+        "pa_r2_casep10": 0.04500954027904286
+      }
+    },
+    "C2_minus_E2": {
+      "best": {
+        "norm_r2_cb": -0.0008448731978089041,
+        "pa_r2_cb": -0.012976423176787266,
+        "pooled_mae_pa": 0.024078476074473887,
+        "top10_iou_casemean": -0.007862941186808303,
+        "pa_r2_casep10": 0.05479763514133973
+      },
+      "last": {
+        "norm_r2_cb": -0.00023320477492028147,
+        "pa_r2_cb": -0.009859737936725232,
+        "pooled_mae_pa": 0.01870926355133462,
+        "top10_iou_casemean": -0.0038417417141818344,
+        "pa_r2_casep10": 0.04977304496584711
+      }
+    }
+  },
+  "historical_m2_reference": {
+    "pa_r2_cb": 0.6284,
+    "reference_precision": 4,
+    "E0_best_delta": -0.02606773361985193,
+    "C1_best_delta": 0.02909208212771308,
+    "note": "Historical value supplied by project records; this audit rechecks current matrix artifacts, not the historical run."
+  },
+  "interpretation": [
+    "14/14 arms completed 400 epochs; 28/28 best/last full-wall test34 evaluations passed independent acceptance. All 42 acceptance records passed, and every recorded file hash was rechecked.",
+    "C1 (E2+E3) leads both best and last in physical case-balanced R2, with lower pooled MAE, higher hotspot IoU and higher case P10 than contemporary E0 and standalone E3.",
+    "Contemporary E0 best Pa R2=0.602332 is 0.026068 below historical M2=0.6284. C1 gain is +0.055160 versus E0 but +0.029092 versus historical M2; attribution of the baseline discrepancy remains unresolved.",
+    "E3 is the strongest qualified standalone structural arm; C4 actually used E3+E9. C4 improves E3 modestly and improves lower-tail P10, but remains below C1 in overall fit.",
+    "E6 improves E0 lower-tail P10 strongly, but C2 (E2+E6) underperforms E2 overall: additive losses do not guarantee additive gains. C3 (E3+E7) does not improve E3 overall R2 or hotspot IoU.",
+    "All arms used one seed. Test34 was used for adaptive C4 selection and development, so these are exploratory comparisons, not independent confirmatory evidence. Best and last are correlated checkpoints from the same run, not two independent repeats.",
+    "E1 uses SAME query; E0 and module arms use independent query, so E1 is a protocol reference, not a direct single-variable parent for module attribution."
+  ]
+}

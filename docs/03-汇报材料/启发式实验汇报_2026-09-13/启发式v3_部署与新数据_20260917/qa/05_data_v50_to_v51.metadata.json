@@ -1,0 +1,23 @@
+{
+  "stem": "05_data_v50_to_v51",
+  "claim": "把同一批 X5D 权重放到修正后的标签上就涨 0.019，重训再涨 0.010；v5.1 相对 v5.0 的提升主要是标签修正而非方法改进。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_inference_followup_20260915/label_only_reeval_x5d5/label_only_summary.json",
+      "sha256": "b6a0a326b8950ee4c4e1658a5736c2ed1d29f9c6ba91054a7cf8e23d3f4acf90"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_inference_followup_20260915/label_only_reeval_x5d5/label_only_reeval.json",
+      "sha256": "810ba52c78f740b1bd6d316307968585f6ab6c4fb0c4f65a6c1ea38d668864c3"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/offline/analyze_wave1.json",
+      "sha256": "b1ffdc30fb9e46f9d8ecd4c13f06a5adb073962eb2f9710dabd7ff5ebec6ac0b"
+    }
+  ],
+  "exports": {
+    "png": "figures/05_data_v50_to_v51.png"
+  },
+  "alignment": "PASS",
+  "note": "Old weights are the v5.0 X5D runs evaluated on the v5.1 labels of the same 34 test cases; the retrained column is a different model, so the second arrow mixes retraining with the refreshed train split (136 vs 138 cases)."
+}

@@ -1,0 +1,27 @@
+{
+  "stem": "09_stl_and_noise_reeval",
+  "claim": "在现行部署口径（重采样 0.5 mm + 平滑 1 mm）下，双尺度 patch 与噪声增广相对底座的净收益都归零，不进部署底座。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1r_20260916/offline/stl_x5d_v51/deployment_stl_simulation.json",
+      "sha256": "3a36a95b3d4f8fdd24b0f7d881f106af364fdc2944e7b30f3bc3dacf54883066"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1r_20260916/offline/stl_x5ddual/deployment_stl_simulation.json",
+      "sha256": "ae7c19b0f49dacfbc991f6cd8b7aab772a34ee7ec46497212c7ed785c0b919f1"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1r_20260916/offline/geometry_x5d_v51/geometry_sensitivity.json",
+      "sha256": "d118a120160dd9b62810a1a11489ae89923b4535ebf9e3b87db170bace77da52"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1r_20260916/offline/geometry_x5dnoise/geometry_sensitivity.json",
+      "sha256": "d799b8b6652bc77f94001964a78b90a3b89e6895325e7124e68362a88016e25b"
+    }
+  ],
+  "exports": {
+    "png": "figures/09_stl_and_noise_reeval.png"
+  },
+  "alignment": "PASS",
+  "note": "Panel a compares absolute ensemble R2 across models at the same spacing; panel b compares same-point deltas. The two arms have different full-cloud baselines, which is why both views are shown."
+}

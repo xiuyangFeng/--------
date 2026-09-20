@@ -1,0 +1,163 @@
+{
+  "abscissa_norm": {
+    "mean": 0.5890543964240239,
+    "std": 0.2804366039015822,
+    "transform": "none"
+  },
+  "local_radius": {
+    "mean": 8.817299073107765,
+    "std": 5.639583483451786,
+    "transform": "none"
+  },
+  "curvature": {
+    "mean": 0.041305811595105574,
+    "std": 0.029286114902493866,
+    "clip": 0.1434185812808071,
+    "transform": "signed_log1p"
+  },
+  "log_local_radius": {
+    "mean": 1.9934802721501121,
+    "std": 0.6104700783761582,
+    "transform": "none"
+  },
+  "rho": {
+    "mean": 1.1443240183121606,
+    "std": 0.24154665366523384,
+    "transform": "none"
+  },
+  "theta_sin": {
+    "mean": 0.0016338944793129106,
+    "std": 0.7104949743349271,
+    "transform": "none"
+  },
+  "theta_cos": {
+    "mean": -0.0020221088067792553,
+    "std": 0.7036994819819574,
+    "transform": "none"
+  },
+  "dr_ds": {
+    "mean": -0.025508181860105672,
+    "std": 0.19018904721250512,
+    "transform": "none"
+  },
+  "dist_to_junction_mm": {
+    "mean": 57.736330073193066,
+    "std": 55.735345235278395,
+    "transform": "none"
+  },
+  "dist_to_endpoint_mm": {
+    "mean": 76.36209292636097,
+    "std": 49.71515664686764,
+    "transform": "none"
+  },
+  "end_zone": {
+    "mean": 0.0877324612606701,
+    "std": 0.2829064197109258,
+    "transform": "none"
+  },
+  "nx_aligned": {
+    "mean": 0.000982672765163994,
+    "std": 0.6346408774864517,
+    "transform": "none"
+  },
+  "ny_aligned": {
+    "mean": -0.020949590473225144,
+    "std": 0.6233403059770116,
+    "transform": "none"
+  },
+  "nz_aligned": {
+    "mean": -0.013235399953635749,
+    "std": 0.4561427638158078,
+    "transform": "none"
+  },
+  "curv_k1": {
+    "mean": 0.15917273987867112,
+    "std": 0.10755505700559963,
+    "clip": 0.48759245796470946,
+    "transform": "signed_log1p"
+  },
+  "curv_k2": {
+    "mean": -0.023130315415118237,
+    "std": 0.09108788013848935,
+    "clip": 0.40251359169185513,
+    "transform": "signed_log1p"
+  },
+  "curv_gauss": {
+    "mean": -0.0014309382238319455,
+    "std": 0.021950227342680827,
+    "clip": 0.11416529275925054,
+    "transform": "signed_log1p"
+  },
+  "curvedness": {
+    "mean": 0.13525497150367555,
+    "std": 0.08093011144775654,
+    "clip": 0.4157968630818705,
+    "transform": "signed_log1p"
+  },
+  "curv_k1_c": {
+    "mean": 0.163223974233317,
+    "std": 0.11194876269668956,
+    "clip": 0.5156857790131356,
+    "transform": "signed_log1p"
+  },
+  "curv_k2_c": {
+    "mean": -0.017034368756093342,
+    "std": 0.07594957737301547,
+    "clip": 0.3366978596620325,
+    "transform": "signed_log1p"
+  },
+  "curv_gauss_c": {
+    "mean": -0.0023075610376489457,
+    "std": 0.020160389184001502,
+    "clip": 0.1083785670689643,
+    "transform": "signed_log1p"
+  },
+  "tn_dot": {
+    "mean": 0.035170100051512776,
+    "std": 0.2555747455361421,
+    "transform": "none"
+  },
+  "log_q_branch_murray": {
+    "mean": -0.6339971882236146,
+    "std": 0.7404787341869069,
+    "transform": "none"
+  },
+  "log_tau0_murray": {
+    "mean": -6.614438001916582,
+    "std": 1.3438716836368594,
+    "transform": "none"
+  },
+  "q_norm": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "dq_norm": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "t_sin": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "t_cos": {
+    "mean": 0.0,
+    "std": 1.0,
+    "transform": "none"
+  },
+  "_provenance": {
+    "train_split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold0.json",
+    "n_cases": 90,
+    "wss_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold0_train.json",
+    "wave2a_reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave2a_20260916/feature_stats/fold0_train_feature_stats.json",
+    "time_features": [
+      "q_norm",
+      "dq_norm",
+      "t_sin",
+      "t_cos"
+    ],
+    "note": "27 X5D statistics identical to wave-2a fold file; phase features are bounded protocol constants (identity)"
+  }
+}

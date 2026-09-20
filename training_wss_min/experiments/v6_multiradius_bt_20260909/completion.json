@@ -1,0 +1,82 @@
+{
+  "status": "complete",
+  "completed_at_utc": "2026-09-09T12:31:27.093971+00:00",
+  "authorized_arms": [
+    "MS1",
+    "MS2",
+    "MS3",
+    "MS4",
+    "MS5",
+    "MS6"
+  ],
+  "training_runs": 6,
+  "epochs_per_run": 400,
+  "seed": 1234,
+  "best_evaluations": 6,
+  "last_evaluations": 6,
+  "formal_jobs": [
+    {
+      "JobID": "13781",
+      "State": "COMPLETED",
+      "Elapsed": "00:43:51",
+      "ExitCode": "0:0"
+    },
+    {
+      "JobID": "13782",
+      "State": "COMPLETED",
+      "Elapsed": "00:00:05",
+      "ExitCode": "0:0"
+    },
+    {
+      "JobID": "13783",
+      "State": "COMPLETED",
+      "Elapsed": "00:00:13",
+      "ExitCode": "0:0"
+    },
+    {
+      "JobID": "13787",
+      "State": "COMPLETED",
+      "Elapsed": "00:00:43",
+      "ExitCode": "0:0"
+    }
+  ],
+  "frozen_sources_unchanged": true,
+  "workbook_best_rows": {
+    "MS1": 283,
+    "MS2": 284,
+    "MS3": 285,
+    "MS4": 286,
+    "MS5": 287,
+    "MS6": 288
+  },
+  "verification": {
+    "passed": true,
+    "delivery_report": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/delivery_verification_final.json",
+    "spatial_file_hashes_rechecked": 32,
+    "spatial_metric_checks": 948,
+    "all_8_png_figures_visually_inspected": true
+  },
+  "decision": "Retain historical M2 physical baseline and historical M4 spatial/MAE reference; no automatic MS7-MS9 expansion. G/M6/new geometry remain awaiting user review.",
+  "artifacts_sha256": {
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/README.md": "3f08c1ed6ae41ace84a1f3684f20e9ec66792032dd73d81aacc14e5a18eec5a7",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/submission.json": "17fb365766416f113c8b4afef9d1e17735c8e60c9445eaa3ceb133cc45eff394",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/matrix_summary_best.json": "e1e1cd182a7aa607328a3a4f593d3f2cee8ccb4ab57fe13da9ca9bdfede52ff4",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/matrix_summary_last.json": "6f1ad8641648027488eb659d674bbcca246399487bd6ca65cd617812b1497051",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/matrix_tables_best.md": "2148a64dbeadfec1e082135b63b1e90ddcf753f90d3cc134784166818bf82c77",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/matrix_tables_last.md": "1ebdd640ec3496564d05489784e5315f0ea10398edd1a2d1a7ed98fe550405bd",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/delivery_verification_final.json": "ba4aea9b9d995fe6663463fcf91d43425d8e38ca61cde75ad4dbd424513ce88f",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/independent_analysis_final.json": "077df02aea29a45939c7ec3a4f8d3eba875bd10498223650805a92d34f7a6bdd",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/scientific_assessment.md": "f3a2f64643661171976a878530dfbd29f7a7e13314a61e302328472cde274daf",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/scientific_assessment.json": "c28f9e7f8c7bc06c62a77b1a0fa587a3d22794f5a43a4aef2af1eccce99ccc32",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/branch_diagnostics_best.json": "4ef3ced2a4f1fea7a239a6a8bdf4db25b9af6151d4a4c2eabf0742ba3c0c4188",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/workbook_update.json": "0f3ca13a528f65e5bfb828c8d7a2498e8ed6d1d413ed30f22f007f83884b2ca4",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/multiradius_comparison.png": "7243d89f201b3b2e93f27a043628f4a41db69fe36808068e41cc78221286b3ed",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/multiradius_comparison.pdf": "7bba735fd412748908f1925eb72223980f7e3f8c63708525e6ed4864a14a123b",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/figure_provenance.json": "f580a9a46ecd432b0e4d63ad17d338c5bcf24af02eebdef47d03acab250cb702",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/paired_wall_fields_best/provenance.json": "6aba435c64561291c2c81e79e2dae91800d51aec8efbf282ca5f6dc025d7db35",
+    "training_wss_min/experiments/v6_multiradius_bt_20260909/paired_wall_fields_best/paired_wall_overview.png": "0b86cbfcd69728e75d49736709152bcc36dcf243c66c798f2455c32b1d5d9c38",
+    "docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md": "306646d65a03748574ce4cf7921d36af310347fbcb17cd06da98b86534438438",
+    "docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx": "01514756171fefd33619c8708b2ba6ca7fe9b63492500b76b7c5f17f6cdf3f91"
+  },
+  "precompletion_gate_test_note": "independent_analysis_refused.json records the intentional early finalization refusal test; final analysis now passes."
+}

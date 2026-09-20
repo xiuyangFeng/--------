@@ -1,0 +1,37 @@
+
+=== D3 · train136 折外（cascade，seed 1234）（n=136）逐例 R² 均值 0.720 ===
+  中位偏心           Spearman -0.243 (p=0.004)
+  p95 偏心         Spearman -0.199 (p=0.020)
+  偏心>0.2 比例      Spearman -0.171 (p=0.046)
+  中位圆度           Spearman +0.295 (p=0.000)
+  中位半径           Spearman -0.090 (p=0.298)
+  最大/中位半径        Spearman +0.127 (p=0.142)
+  主干长            Spearman -0.057 (p=0.511)
+  ln WSS 空间 sd   Spearman -0.023 (p=0.794)
+  中位偏心 · 队列去均值      Spearman -0.226 (p=0.008)
+  中位偏心 · 偏相关（控制半径/膨大比/长度/ln sd） -0.249 (p=0.003)
+  AAA  n= 44 组内 Spearman -0.337 (p=0.025)  R² 0.715
+  AG   n= 60 组内 Spearman -0.095 (p=0.470)  R² 0.744
+  ILO  n= 32 组内 Spearman -0.282 (p=0.118)  R² 0.684
+  按中位偏心三档：R² 低 0.746 / 中 0.728 / 高 0.688；MAE 1.312 / 1.584 / 1.614 Pa
+  ⇒ D3 门：不通过（|ρ|=0.243，队列符号 [-1.0, -1.0, -1.0]）
+     fold0 n=46 Spearman -0.100
+     fold1 n=46 Spearman -0.205
+     fold2 n=44 Spearman -0.472
+
+=== D3 · test34 五 seed 集成（n=34）逐例 R² 均值 0.791 ===
+  中位偏心           Spearman -0.563 (p=0.001)
+  p95 偏心         Spearman -0.295 (p=0.091)
+  偏心>0.2 比例      Spearman -0.237 (p=0.178)
+  中位圆度           Spearman +0.520 (p=0.002)
+  中位半径           Spearman -0.233 (p=0.184)
+  最大/中位半径        Spearman +0.106 (p=0.551)
+  主干长            Spearman -0.036 (p=0.840)
+  ln WSS 空间 sd   Spearman -0.269 (p=0.123)
+  中位偏心 · 队列去均值      Spearman -0.542 (p=0.001)
+  中位偏心 · 偏相关（控制半径/膨大比/长度/ln sd） -0.515 (p=0.002)
+  AAA  n= 10 组内 Spearman -0.721 (p=0.019)  R² 0.772
+  AG   n= 15 组内 Spearman -0.443 (p=0.098)  R² 0.820
+  ILO  n=  9 组内 Spearman -0.533 (p=0.139)  R² 0.761
+  按中位偏心三档：R² 低 0.835 / 中 0.799 / 高 0.742；MAE 0.904 / 1.364 / 1.766 Pa
+wrote d3_ecc_difficulty.json

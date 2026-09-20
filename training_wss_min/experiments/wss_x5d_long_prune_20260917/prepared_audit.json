@@ -1,0 +1,142 @@
+{
+  "status": "passed",
+  "passed": true,
+  "experiment": "wss_x5d_long_prune_20260917",
+  "training_started": false,
+  "seed": 1234,
+  "inherits_full_audit_from": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/experiments/wss_x5d_long_ref8_20260917/prepared_audit.json",
+  "inherited_audit_cases": 170,
+  "inherited_density_levels": [
+    70,
+    50,
+    35,
+    25
+  ],
+  "nesting_verified_cases": [
+    {
+      "canonical_id": "AAA/ruputer/DING_JUN_FENG",
+      "wall_points": 55763,
+      "nested_columns_exact": true
+    },
+    {
+      "canonical_id": "AAA/ruputer/FENG_LI_XIN",
+      "wall_points": 21644,
+      "nested_columns_exact": true
+    },
+    {
+      "canonical_id": "AAA/ruputer/GAO_FENG_SHAN",
+      "wall_points": 48245,
+      "nested_columns_exact": true
+    },
+    {
+      "canonical_id": "AAA/ruputer/KANG_YONG",
+      "wall_points": 16448,
+      "nested_columns_exact": true
+    },
+    {
+      "canonical_id": "AAA/ruputer/LI_ZHEN_HUA",
+      "wall_points": 12599,
+      "nested_columns_exact": true
+    },
+    {
+      "canonical_id": "AAA/ruputer/WANG_FU_SHUN",
+      "wall_points": 95286,
+      "nested_columns_exact": true
+    }
+  ],
+  "paired_initialization": {
+    "L8": {
+      "passed": true,
+      "appended_channels": 16,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s1234.json",
+      "reference_state_sha256": "491bf5175d0739c57b3d15fcad1fff1de7fa86f584a900fddf93d68e9d4baf2e",
+      "initial_state_sha256": "5bfa60c31caeb59a7d1df0ba54c9cd13d541427a4ca7dd17f1012ca2ca520b5c",
+      "unchanged_tensors": 239,
+      "zero_extended_input_keys": [
+        "query_patch.patch.0.weight",
+        "stem.0.weight"
+      ],
+      "shared_tensors_exact": true
+    },
+    "L5": {
+      "passed": true,
+      "appended_channels": 10,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s1234.json",
+      "reference_state_sha256": "491bf5175d0739c57b3d15fcad1fff1de7fa86f584a900fddf93d68e9d4baf2e",
+      "initial_state_sha256": "316b9b7d1ea5d3e8dae3cd4ce16a4ca6b651cdde647cc559cd176e0f869fb613",
+      "unchanged_tensors": 239,
+      "zero_extended_input_keys": [
+        "query_patch.patch.0.weight",
+        "stem.0.weight"
+      ],
+      "shared_tensors_exact": true
+    },
+    "L2": {
+      "passed": true,
+      "appended_channels": 4,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s1234.json",
+      "reference_state_sha256": "491bf5175d0739c57b3d15fcad1fff1de7fa86f584a900fddf93d68e9d4baf2e",
+      "initial_state_sha256": "65bac55ebdd41546eb4bc45ffea9940671f644ffb9d550cd15201ff2316ebe59",
+      "unchanged_tensors": 239,
+      "zero_extended_input_keys": [
+        "query_patch.patch.0.weight",
+        "stem.0.weight"
+      ],
+      "shared_tensors_exact": true
+    },
+    "L1": {
+      "passed": true,
+      "appended_channels": 2,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s1234.json",
+      "reference_state_sha256": "491bf5175d0739c57b3d15fcad1fff1de7fa86f584a900fddf93d68e9d4baf2e",
+      "initial_state_sha256": "0d790de122381f0b08ba5ebc83c56c4cbf138fd9860a822112f3737239b1d870",
+      "unchanged_tensors": 239,
+      "zero_extended_input_keys": [
+        "query_patch.patch.0.weight",
+        "stem.0.weight"
+      ],
+      "shared_tensors_exact": true
+    }
+  },
+  "feature_stats": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_ref8_20260917/feature_stats/all_train136.json",
+  "statistics_train_only": true,
+  "original_27_feature_statistics_unchanged": true,
+  "arms": {
+    "L8": {
+      "channels": [
+        "geom_ref_log_area",
+        "geom_ref_area_slope",
+        "geom_ref_roundness",
+        "geom_ref_eccentricity",
+        "geom_ref_upstream_min_area_ratio",
+        "geom_ref_downstream_min_area_ratio",
+        "geom_ref_upstream_min_distance",
+        "geom_ref_downstream_min_distance"
+      ],
+      "input_dim": 43
+    },
+    "L5": {
+      "channels": [
+        "geom_ref_area_slope",
+        "geom_ref_roundness",
+        "geom_ref_upstream_min_area_ratio",
+        "geom_ref_downstream_min_area_ratio",
+        "geom_ref_upstream_min_distance"
+      ],
+      "input_dim": 37
+    },
+    "L2": {
+      "channels": [
+        "geom_ref_roundness",
+        "geom_ref_upstream_min_distance"
+      ],
+      "input_dim": 31
+    },
+    "L1": {
+      "channels": [
+        "geom_ref_roundness"
+      ],
+      "input_dim": 29
+    }
+  }
+}

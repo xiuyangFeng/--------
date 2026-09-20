@@ -1,0 +1,197 @@
+{
+ "n_points": 544000,
+ "resid_sd": 0.47904262930013586,
+ "base27_linear_r2": 0.003590461105575815,
+ "forward": [
+  {
+   "rank": 1,
+   "channel": "geom_ref_roundness",
+   "cum_r2": 0.0025012867390777904,
+   "marginal_r2": 0.0025012867390777904
+  },
+  {
+   "rank": 2,
+   "channel": "geom_ref_upstream_min_distance",
+   "cum_r2": 0.0029054739738063606,
+   "marginal_r2": 0.0004041872347285702
+  },
+  {
+   "rank": 3,
+   "channel": "geom_pc_log_area",
+   "cum_r2": 0.003120745456510754,
+   "marginal_r2": 0.00021527148270439334
+  },
+  {
+   "rank": 4,
+   "channel": "geom_ref_upstream_min_area_ratio",
+   "cum_r2": 0.003313750845492791,
+   "marginal_r2": 0.00019300538898203712
+  },
+  {
+   "rank": 5,
+   "channel": "geom_ref_area_slope",
+   "cum_r2": 0.003914915257860918,
+   "marginal_r2": 0.000601164412368127
+  },
+  {
+   "rank": 6,
+   "channel": "geom_ref_downstream_min_area_ratio",
+   "cum_r2": 0.0042316859131841245,
+   "marginal_r2": 0.00031677065532320636
+  },
+  {
+   "rank": 7,
+   "channel": "geom_pc_area_slope",
+   "cum_r2": 0.004399824719163115,
+   "marginal_r2": 0.0001681388059789901
+  },
+  {
+   "rank": 8,
+   "channel": "geom_ref_eccentricity",
+   "cum_r2": 0.004566245721086548,
+   "marginal_r2": 0.00016642100192343356
+  },
+  {
+   "rank": 9,
+   "channel": "geom_pc_downstream_min_distance",
+   "cum_r2": 0.0046081780276786555,
+   "marginal_r2": 4.193230659210734e-05
+  },
+  {
+   "rank": 10,
+   "channel": "geom_pc_upstream_min_area_ratio",
+   "cum_r2": 0.004642397611318461,
+   "marginal_r2": 3.421958363980515e-05
+  },
+  {
+   "rank": 11,
+   "channel": "geom_pc_upstream_min_distance",
+   "cum_r2": 0.004689157864805393,
+   "marginal_r2": 4.676025348693269e-05
+  },
+  {
+   "rank": 12,
+   "channel": "geom_pc_roundness",
+   "cum_r2": 0.004695869684328002,
+   "marginal_r2": 6.711819522609019e-06
+  },
+  {
+   "rank": 13,
+   "channel": "geom_pc_eccentricity",
+   "cum_r2": 0.00471224069798859,
+   "marginal_r2": 1.6371013660587685e-05
+  },
+  {
+   "rank": 14,
+   "channel": "geom_ref_log_area",
+   "cum_r2": 0.004717122518759331,
+   "marginal_r2": 4.881820770741285e-06
+  },
+  {
+   "rank": 15,
+   "channel": "geom_pc_downstream_min_area_ratio",
+   "cum_r2": 0.004720895399964897,
+   "marginal_r2": 3.772881205565959e-06
+  },
+  {
+   "rank": 16,
+   "channel": "geom_ref_downstream_min_distance",
+   "cum_r2": 0.0047262834669229425,
+   "marginal_r2": 5.388066958045279e-06
+  }
+ ],
+ "half_a": [
+  "geom_ref_roundness",
+  "geom_pc_upstream_min_distance",
+  "geom_ref_eccentricity",
+  "geom_pc_area_slope",
+  "geom_pc_downstream_min_area_ratio",
+  "geom_pc_upstream_min_area_ratio",
+  "geom_ref_area_slope",
+  "geom_ref_downstream_min_distance",
+  "geom_ref_upstream_min_area_ratio",
+  "geom_pc_log_area",
+  "geom_ref_log_area",
+  "geom_ref_downstream_min_area_ratio",
+  "geom_ref_upstream_min_distance",
+  "geom_pc_eccentricity",
+  "geom_pc_roundness",
+  "geom_pc_downstream_min_distance"
+ ],
+ "half_b": [
+  "geom_ref_roundness",
+  "geom_ref_log_area",
+  "geom_ref_upstream_min_distance",
+  "geom_ref_upstream_min_area_ratio",
+  "geom_ref_area_slope",
+  "geom_ref_downstream_min_distance",
+  "geom_ref_eccentricity",
+  "geom_pc_area_slope",
+  "geom_pc_upstream_min_area_ratio",
+  "geom_ref_downstream_min_area_ratio",
+  "geom_pc_downstream_min_area_ratio",
+  "geom_pc_log_area",
+  "geom_pc_eccentricity",
+  "geom_pc_roundness",
+  "geom_pc_downstream_min_distance",
+  "geom_pc_upstream_min_distance"
+ ],
+ "subsets": {
+  "全部 16 value": 0.0047262834669229425,
+  "ref 8": 0.004347391725234906,
+  "ref 8 + pc_roundness": 0.004423190241986452,
+  "前 4（前向选出）": 0.003313750845492791,
+  "前 6（前向选出）": 0.0042316859131841245,
+  "\"新\"4 ref（圆度/偏心/上下游距离）": 0.0031246015235234514
+ },
+ "ref_only_forward": [
+  {
+   "rank": 1,
+   "channel": "geom_ref_roundness",
+   "cum_r2": 0.0025012867390777904,
+   "marginal_r2": 0.0025012867390777904
+  },
+  {
+   "rank": 2,
+   "channel": "geom_ref_upstream_min_distance",
+   "cum_r2": 0.0029054739738063606,
+   "marginal_r2": 0.0004041872347285702
+  },
+  {
+   "rank": 3,
+   "channel": "geom_ref_upstream_min_area_ratio",
+   "cum_r2": 0.003106165654861437,
+   "marginal_r2": 0.0002006916810550763
+  },
+  {
+   "rank": 4,
+   "channel": "geom_ref_area_slope",
+   "cum_r2": 0.003695457719361861,
+   "marginal_r2": 0.000589292064500424
+  },
+  {
+   "rank": 5,
+   "channel": "geom_ref_downstream_min_area_ratio",
+   "cum_r2": 0.004043520195848749,
+   "marginal_r2": 0.0003480624764868878
+  },
+  {
+   "rank": 6,
+   "channel": "geom_ref_eccentricity",
+   "cum_r2": 0.004179087723315433,
+   "marginal_r2": 0.00013556752746668455
+  },
+  {
+   "rank": 7,
+   "channel": "geom_ref_log_area",
+   "cum_r2": 0.004317254370737045,
+   "marginal_r2": 0.00013816664742161144
+  },
+  {
+   "rank": 8,
+   "channel": "geom_ref_downstream_min_distance",
+   "cum_r2": 0.004347391725234906,
+   "marginal_r2": 3.0137354497861146e-05
+  }
+ ]
+}

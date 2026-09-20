@@ -1,0 +1,2004 @@
+{
+  "schema_version": 1,
+  "experiment": "volume_time_20260919",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "PF6_s1234 (legacy old-v5 pressure base)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/eval/ckpt_best/metrics.json",
+    "VF6_s1234 (legacy old-v5 velocity base)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/metrics.json"
+  },
+  "cv3": {
+    "schema_version": 1,
+    "source_split": "data_wss_v5/views_v5_1/wss_min_view_v1/split_V5_train136_test34.json",
+    "source_split_sha256": "c7ee6304cca3d34f9e40ae2054baea450115faeccae7e741cc6525cefbd15522",
+    "folds": 3,
+    "seed": 20260913,
+    "grouped_units": [],
+    "fold_of": {
+      "AG/slow/QIN_SI_FU": 1,
+      "AG/slow/ZHANG_JING_SHUN": 2,
+      "AG/slow/LIU_ZONG_YANG": 0,
+      "AG/slow/ZHANG_QUAN_YOU": 1,
+      "AG/fast/ZHANG_XIU_ZHEN": 2,
+      "AG/fast/LIU_YI_BING": 0,
+      "AG/fast/LI_SHU_KUN": 1,
+      "AG/slow/WU_YI_FA": 2,
+      "AG/slow/GONG_HUI_XIA": 0,
+      "AG/slow/MI_DE_XI": 1,
+      "AG/fast/LI_SHI_QIANG": 2,
+      "AG/fast/ZHANG_HAO": 0,
+      "AG/slow/LI_CHONG_ZENG": 1,
+      "AG/slow/QU_HE_PING": 2,
+      "AG/fast/WANG_YONG_FAN": 0,
+      "AG/slow/GUAN_TONG_XIANG": 1,
+      "AG/slow/WU_FENG_YAN": 2,
+      "AG/slow/ZANG_YU_SHU": 0,
+      "AG/slow/WANG_KE": 1,
+      "AG/slow/LV_FU_LONG": 2,
+      "AG/fast/ZHANG_QING_WANG": 0,
+      "AG/slow/LU_ZHEN_QING": 1,
+      "AG/fast/LIU_FENG_MING": 2,
+      "AG/slow/WANG_YONG_LI": 0,
+      "AG/slow/LI_GUI_YING": 1,
+      "AG/fast/WANG_DAO_CHUN": 2,
+      "AG/slow/ZHANG_QING_SHUI": 0,
+      "AG/slow/YANG_YOU_SHENG": 1,
+      "AG/slow/DING_LIAN_ZHONG": 2,
+      "AG/fast/LI_ZHEN_SHAN": 0,
+      "AG/slow/ZHANG_LING_GUANG": 1,
+      "AG/slow/WEI_BAO_XING": 2,
+      "AG/slow/NI_YAN_BIN": 0,
+      "AG/slow/LIU_FA_CHUN": 1,
+      "AG/slow/SUN_ZONG_GE": 2,
+      "AG/slow/CHENG_GUANG_SEN": 0,
+      "AG/slow/LIU_FENG": 1,
+      "AG/fast/CHEN_SHI_MING": 2,
+      "AG/fast/LIU_LI_QUN": 0,
+      "AG/slow/KANG_XI_MING": 1,
+      "AG/slow/CHENG_LU_LI": 2,
+      "AG/fast/LIU_JUN_FENG": 0,
+      "AG/slow/YIN_YU_RONG": 1,
+      "AG/slow/WANG_GUANG_CHAO": 2,
+      "AG/slow/LIU_JIN_LIANG": 0,
+      "AG/fast/WANG_CHUN_MING": 1,
+      "AG/fast/HAN_JIAN_JUN": 2,
+      "AG/slow/WANG_GUI": 0,
+      "AG/slow/CAO_FENG_CHI": 1,
+      "AG/slow/WANG_YAN_LING": 2,
+      "AG/fast/LI_ZHI_LIN": 0,
+      "AG/fast/ZHANG_XIU_WEN": 1,
+      "AG/slow/LI_BING_YI": 2,
+      "AG/slow/XU_YI_CAI": 0,
+      "AG/slow/SHEN_ZHI_GANG": 1,
+      "AG/slow/XI_CHENG_JIANG": 2,
+      "AG/slow/ZHANG_SONG_TIAN": 0,
+      "AG/slow/ZHANG_ZHI_JUN": 1,
+      "AG/slow/A_MIN_SE_HA_CHI": 2,
+      "AG/slow/ZHANG_JUN_HUA": 0,
+      "AAA/ruputer/LI_LAO_PING": 0,
+      "AAA/ruputer/FENG_LI_XIN": 1,
+      "AAA/ruputer/LIU_YONG_LAN": 2,
+      "AAA/ruputer/DING_JUN_FENG": 0,
+      "AAA/unruputer/GUO_BAO_CHUN": 1,
+      "AAA/ruputer/WU_GUANG_CUN": 2,
+      "AAA/ruputer/HUO_SHI_LIANG": 0,
+      "AAA/ruputer/ZOU_LI_SHUN": 1,
+      "AAA/unruputer/LI_YOU_YU": 2,
+      "AAA/ruputer/WANG_KUI_WU": 0,
+      "AAA/unruputer/QIAO_XIU_YUN": 1,
+      "AAA/unruputer/ZHANG_XUN_LIAN": 2,
+      "AAA/unruputer/CHEN_LIANG_FU": 0,
+      "AAA/unruputer/ZHOU_XI_SHENG": 1,
+      "AAA/ruputer/LIU_JI_XIN": 2,
+      "AAA/ruputer/MENG_GUANG_QIN": 0,
+      "AAA/unruputer/LIU_JIE": 1,
+      "AAA/unruputer/ZHANG_ZHI_HUA": 2,
+      "AAA/ruputer/ZHOU_KE_XUN": 0,
+      "AAA/ruputer/GUO_AI_JUN": 1,
+      "AAA/unruputer/SHEN_FANG_JIN": 2,
+      "AAA/ruputer/TONG_XUE_LIAN": 0,
+      "AAA/unruputer/YANG_BEN_RUI": 1,
+      "AAA/unruputer/SHEN_CHUN_WANG": 2,
+      "AAA/unruputer/YAN_FU_TANG": 0,
+      "AAA/unruputer/HAN_JIAN_FU": 1,
+      "AAA/ruputer/LI_BING_JIANG": 2,
+      "AAA/unruputer/ZHU_ZI_HAI": 0,
+      "AAA/ruputer/MA_XIAO_DONG": 1,
+      "AAA/unruputer/FENG_ZHI_YING": 2,
+      "AAA/unruputer/CHEN_SHU_LIN": 0,
+      "AAA/unruputer/LIU_LI_FENG": 1,
+      "AAA/unruputer/LIN_JIAN_RONG": 2,
+      "AAA/unruputer/CHEN_FU_YE": 0,
+      "AAA/unruputer/LIU_CHENG_ZHANG": 1,
+      "AAA/ruputer/ZUO_DAO_SHENG": 2,
+      "AAA/unruputer/LIU_XING_GUO": 0,
+      "AAA/unruputer/GAO_WEI_LI": 1,
+      "AAA/ruputer/WANG_AN": 2,
+      "AAA/ruputer/GAO_FENG_SHAN": 0,
+      "AAA/unruputer/CAO_HONG_TAI": 1,
+      "AAA/ruputer/ZHANG_MAO_JIN": 2,
+      "AAA/ruputer/LIN_LIANG_XIAO": 0,
+      "AAA/ruputer/XIE_JIN_QUAN": 1,
+      "ILO/AN_GUANG_JIE-0/before": 0,
+      "ILO/SUN_DE_QI-1/before": 1,
+      "ILO/GENG_CHUN_LAI-1/before": 2,
+      "ILO/LIU_YUE_DONG-0/before": 0,
+      "ILO/WU_JUN-0/before": 1,
+      "ILO/LIN_CHUN_YANG-1/before": 2,
+      "ILO/XIE_ZHI_FU-0/before": 0,
+      "ILO/CUI_WEI_PING-0/before": 1,
+      "ILO/YANG_YU_QING-1/before": 2,
+      "ILO/WANG_TIAN_QING-1/before": 0,
+      "ILO/YAO_GUO_CHEN-0/before": 1,
+      "ILO/SUN_YU_SHENG-0/before": 2,
+      "ILO/GUO_QING_SHAN-0/before": 0,
+      "ILO/LIU_LIAN_YOU-0/before": 1,
+      "ILO/WANG_XIAO_LIN-0/before": 2,
+      "ILO/YANG_WANG_QI-1/before": 0,
+      "ILO/HOU_SHI_GUO-0/before": 1,
+      "ILO/LI_SHENG_WEN-0/before": 2,
+      "ILO/ZHANG_YAN_SHAN-0/before": 0,
+      "ILO/WANG_JIN_MING-0/before": 1,
+      "ILO/BAO_EN_YUN-0/before": 2,
+      "ILO/WENG_ZHAO_GUANG-0/before": 0,
+      "ILO/GAO_SHU_CAI-0/before": 1,
+      "ILO/ZHANG_JIAN_JUN-1/before": 2,
+      "ILO/LV_JIAN_HUA-0/before": 0,
+      "ILO/WAGN_LI_JUN-1/before": 1,
+      "ILO/GONG_HAI_ZENG-1/before": 2,
+      "ILO/GUO_YU_SHU-0/before": 0,
+      "ILO/ZHAO_CHANG_SHAN-0/before": 1,
+      "ILO/PAN_YIN_GEN-1/before": 2,
+      "ILO/LIU_BAO_JUN-0/before": 0,
+      "ILO/WANG_SHU_SHENG-0/before": 1
+    },
+    "files": {
+      "fold0": {
+        "split": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold0.json",
+        "wss_stats": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold0_train.json",
+        "n_train": 90,
+        "n_test": 46,
+        "held_by_family": {
+          "AG": 20,
+          "AAA": 15,
+          "ILO": 11
+        },
+        "log_mean": 0.6426076719438435,
+        "log_std": 1.2992293085825233
+      },
+      "fold1": {
+        "split": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold1.json",
+        "wss_stats": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold1_train.json",
+        "n_train": 90,
+        "n_test": 46,
+        "held_by_family": {
+          "AG": 20,
+          "AAA": 15,
+          "ILO": 11
+        },
+        "log_mean": 0.5979764642451415,
+        "log_std": 1.3040268598356648
+      },
+      "fold2": {
+        "split": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold2.json",
+        "wss_stats": "data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold2_train.json",
+        "n_train": 92,
+        "n_test": 44,
+        "held_by_family": {
+          "AG": 20,
+          "AAA": 14,
+          "ILO": 10
+        },
+        "log_mean": 0.672917889035124,
+        "log_std": 1.2830662990376553
+      }
+    }
+  },
+  "stage0_jobs": [
+    15112,
+    15113
+  ],
+  "k_star": {
+    "pressure": 8,
+    "velocity": 4
+  },
+  "a0_contract": {
+    "n_cases": 170,
+    "n_errors": 0,
+    "all_steps_match": true,
+    "all_peak_index_21": true,
+    "max_peak_pressure_diff": 0.00043383420415921137,
+    "max_peak_velocity_diff": 1.1920185194469468e-07,
+    "p_volmean_ptp_pa": {
+      "median": 2704.4833111533208,
+      "min": 2012.7145792100873,
+      "max": 7009.340871295721
+    },
+    "p_rel_spatial_std_peak_pa_median": 359.0220351469966
+  },
+  "a2_fold_mean_ceiling": {
+    "pressure": {
+      "8": {
+        "cycle_r2cb": 0.9830141255235763,
+        "peak_r2cb": 0.9927383693349597,
+        "trough_r2cb": 0.9736957925005805,
+        "tmean_r2cb": 0.9990718414472818,
+        "min_frame_r2cb": 0.8591740684254309,
+        "peak_time_err_med_frames": 0.20487483530961792,
+        "peak_time_err_p90_frames": 2.104413702239789,
+        "ts_corr": 0.9929442903920357,
+        "amp_err_med": 15.275104186700617
+      },
+      "16": {
+        "cycle_r2cb": 0.9949301813402137,
+        "peak_r2cb": 0.9990477513447843,
+        "trough_r2cb": 0.9923385402418471,
+        "tmean_r2cb": 0.999973381847381,
+        "min_frame_r2cb": 0.9702083221916297,
+        "peak_time_err_med_frames": 0.0876152832674572,
+        "peak_time_err_p90_frames": 1.2104743083003953,
+        "ts_corr": 0.997707357320846,
+        "amp_err_med": 6.3159500198296685
+      }
+    },
+    "velocity": {
+      "4": {
+        "cycle_r2cb": 0.9763619532623983,
+        "peak_r2cb": 0.9734170843519699,
+        "trough_r2cb": 0.9715158269349473,
+        "tmean_r2cb": 0.9984885125107996,
+        "min_frame_r2cb": 0.9517389541987534,
+        "peak_time_err_med_frames": 1.0747694334650857,
+        "peak_time_err_p90_frames": 5.593939393939411,
+        "ts_corr": 0.9400713423688122,
+        "amp_err_med": 0.0152452525599057
+      },
+      "8": {
+        "cycle_r2cb": 0.9956451847882096,
+        "peak_r2cb": 0.9930224217068112,
+        "trough_r2cb": 0.9959703727244683,
+        "tmean_r2cb": 0.9998927553024909,
+        "min_frame_r2cb": 0.991426238974834,
+        "peak_time_err_med_frames": 0.4061264822134387,
+        "peak_time_err_p90_frames": 2.33300395256917,
+        "ts_corr": 0.9854479644419468,
+        "amp_err_med": 0.004901893582911858
+      }
+    }
+  },
+  "t_null": {
+    "pressure": {
+      "tnull": {
+        "cycle_r2cb": 0.4373451303559137,
+        "peak_r2cb": 1.0,
+        "trough_r2cb": 0.30882204277880904,
+        "tmean_r2cb": 0.9505255085905343,
+        "ts_corr": 0.6032053003600254,
+        "peak_time_err_med_frames": 3.5032938076416333,
+        "amp_err_med": 199.92728430425655
+      },
+      "peak_freeze": {
+        "cycle_r2cb": 0.021736929276937145,
+        "peak_r2cb": 1.0,
+        "trough_r2cb": -0.5292724486469008,
+        "tmean_r2cb": 0.8234656723759418,
+        "ts_corr": 0.5351952988029796,
+        "peak_time_err_med_frames": 16.142292490118578,
+        "amp_err_med": 210.70341106720159
+      },
+      "frame_mean": {
+        "cycle_r2cb": -0.0027528557065248107,
+        "peak_r2cb": -0.00416284992275114,
+        "trough_r2cb": -0.0031845990806268674,
+        "tmean_r2cb": -0.0032750969672952954,
+        "ts_corr": 0.2264749124218363,
+        "peak_time_err_med_frames": 11.327733860342557,
+        "amp_err_med": 292.0724851588782
+      }
+    },
+    "velocity": {
+      "tnull": {
+        "cycle_r2cb": 0.5568669282184949,
+        "peak_r2cb": 1.0,
+        "trough_r2cb": 0.11776503204679234,
+        "tmean_r2cb": 0.9045327499478,
+        "ts_corr": 0.8317388387613468,
+        "peak_time_err_med_frames": 1.22167325428195,
+        "amp_err_med": 0.014812305640485064
+      },
+      "peak_freeze": {
+        "cycle_r2cb": 0.5532257934804967,
+        "peak_r2cb": 1.0,
+        "trough_r2cb": 0.16550937466102758,
+        "tmean_r2cb": 0.8972285060057185,
+        "ts_corr": 0.8009849945482558,
+        "peak_time_err_med_frames": 1.383399209486166,
+        "amp_err_med": 0.02863341206070989
+      },
+      "frame_mean": {
+        "cycle_r2cb": -0.21231057378193194,
+        "peak_r2cb": -0.10552861525235062,
+        "trough_r2cb": -0.4045533580324763,
+        "tmean_r2cb": -0.18908076626153383,
+        "ts_corr": 0.8025211931949521,
+        "peak_time_err_med_frames": 1.6179183135704875,
+        "amp_err_med": 0.15631683209227054
+      }
+    }
+  },
+  "cycle_metric_protocol": "peak frame full cloud; cycle metrics on a fixed per-case subsample (20000 interior cells + 4000 wall nodes for pressure, interior only for velocity, seed 20260919 keyed by unit_id) shared by the offline ceiling / T-null and every arm",
+  "expected_training_runs": 24,
+  "expected_evaluations": 42,
+  "arms": [
+    {
+      "id": "PF6_v51_f0_s1234",
+      "title": "pressure peak-frame fold base",
+      "config": "PF6_v51_f0_s1234.json",
+      "phase": 1,
+      "modules": [
+        "F6"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "target": "pressure_mixed",
+      "parent": "legacy PF6_s1234 (old v5 view, train138)",
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "single_change": false
+    },
+    {
+      "id": "PF6_v51_f1_s1234",
+      "title": "pressure peak-frame fold base",
+      "config": "PF6_v51_f1_s1234.json",
+      "phase": 1,
+      "modules": [
+        "F6"
+      ],
+      "seed": 1234,
+      "fold": 1,
+      "target": "pressure_mixed",
+      "parent": "legacy PF6_s1234 (old v5 view, train138)",
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "single_change": false
+    },
+    {
+      "id": "PF6_v51_f2_s1234",
+      "title": "pressure peak-frame fold base",
+      "config": "PF6_v51_f2_s1234.json",
+      "phase": 1,
+      "modules": [
+        "F6"
+      ],
+      "seed": 1234,
+      "fold": 2,
+      "target": "pressure_mixed",
+      "parent": "legacy PF6_s1234 (old v5 view, train138)",
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "single_change": false
+    },
+    {
+      "id": "VF6_v51_f0_s1234",
+      "title": "velocity peak-frame fold base",
+      "config": "VF6_v51_f0_s1234.json",
+      "phase": 1,
+      "modules": [
+        "F6"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "target": "velocity",
+      "parent": "legacy VF6_s1234 (old v5 view, train138)",
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "single_change": false
+    },
+    {
+      "id": "VF6_v51_f1_s1234",
+      "title": "velocity peak-frame fold base",
+      "config": "VF6_v51_f1_s1234.json",
+      "phase": 1,
+      "modules": [
+        "F6"
+      ],
+      "seed": 1234,
+      "fold": 1,
+      "target": "velocity",
+      "parent": "legacy VF6_s1234 (old v5 view, train138)",
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "single_change": false
+    },
+    {
+      "id": "VF6_v51_f2_s1234",
+      "title": "velocity peak-frame fold base",
+      "config": "VF6_v51_f2_s1234.json",
+      "phase": 1,
+      "modules": [
+        "F6"
+      ],
+      "seed": 1234,
+      "fold": 2,
+      "target": "velocity",
+      "parent": "legacy VF6_s1234 (old v5 view, train138)",
+      "depends_on": [],
+      "evaluate": [
+        "best"
+      ],
+      "single_change": false
+    },
+    {
+      "id": "PT0_f0_s1234",
+      "title": "PF6_v51_f0_s1234 recipe + phase condition ['q_norm', 'dq_norm', 't_sin', 't_cos'] (24 inputs, appended columns zero-initialised), timesteps=random_frame (uniform frames, peak guarantee 1/9), per-frame linear z on the pressure target, checkpoint by EMA(train_loss, alpha 0.2)",
+      "config": "PT0_f0_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 0,
+      "target": "pressure_mixed",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "phase_condition",
+        "train_loss_ema"
+      ],
+      "parent": "PF6_v51_f0_s1234",
+      "depends_on": [
+        "PF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/P_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/P_fold0_train_time.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f0_s1234.json"
+        },
+        "train.selection_ema_alpha": {
+          "anchor": null,
+          "arm": 0.2
+        },
+        "train.selection_rule": {
+          "anchor": "train_loss",
+          "arm": "train_loss_ema"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "PT0_f1_s1234",
+      "title": "PF6_v51_f1_s1234 recipe + phase condition ['q_norm', 'dq_norm', 't_sin', 't_cos'] (24 inputs, appended columns zero-initialised), timesteps=random_frame (uniform frames, peak guarantee 1/9), per-frame linear z on the pressure target, checkpoint by EMA(train_loss, alpha 0.2)",
+      "config": "PT0_f1_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 1,
+      "target": "pressure_mixed",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "phase_condition",
+        "train_loss_ema"
+      ],
+      "parent": "PF6_v51_f1_s1234",
+      "depends_on": [
+        "PF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/P_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/P_fold1_train_time.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f1_s1234.json"
+        },
+        "train.selection_ema_alpha": {
+          "anchor": null,
+          "arm": 0.2
+        },
+        "train.selection_rule": {
+          "anchor": "train_loss",
+          "arm": "train_loss_ema"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "PT0_f2_s1234",
+      "title": "PF6_v51_f2_s1234 recipe + phase condition ['q_norm', 'dq_norm', 't_sin', 't_cos'] (24 inputs, appended columns zero-initialised), timesteps=random_frame (uniform frames, peak guarantee 1/9), per-frame linear z on the pressure target, checkpoint by EMA(train_loss, alpha 0.2)",
+      "config": "PT0_f2_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 2,
+      "target": "pressure_mixed",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "phase_condition",
+        "train_loss_ema"
+      ],
+      "parent": "PF6_v51_f2_s1234",
+      "depends_on": [
+        "PF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/P_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/P_fold2_train_time.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f2_s1234.json"
+        },
+        "train.selection_ema_alpha": {
+          "anchor": null,
+          "arm": 0.2
+        },
+        "train.selection_rule": {
+          "anchor": "train_loss",
+          "arm": "train_loss_ema"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "PTB8_f0_s1234",
+      "title": "PF6_v51_f0_s1234 recipe with a time-basis output head K=8 (out_dim 9 = 1 component(s) × [b0, a_1..a_K] on the train-fold PCA basis",
+      "config": "PTB8_f0_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 0,
+      "target": "pressure_mixed",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K8",
+        "pinball_off"
+      ],
+      "parent": "PF6_v51_f0_s1234",
+      "depends_on": [
+        "PF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_pressure_fold0.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 9
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 8
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f0_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "PTB8_f1_s1234",
+      "title": "PF6_v51_f1_s1234 recipe with a time-basis output head K=8 (out_dim 9 = 1 component(s) × [b0, a_1..a_K] on the train-fold PCA basis",
+      "config": "PTB8_f1_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 1,
+      "target": "pressure_mixed",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K8",
+        "pinball_off"
+      ],
+      "parent": "PF6_v51_f1_s1234",
+      "depends_on": [
+        "PF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_pressure_fold1.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 9
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 8
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f1_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "PTB8_f2_s1234",
+      "title": "PF6_v51_f2_s1234 recipe with a time-basis output head K=8 (out_dim 9 = 1 component(s) × [b0, a_1..a_K] on the train-fold PCA basis",
+      "config": "PTB8_f2_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 2,
+      "target": "pressure_mixed",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K8",
+        "pinball_off"
+      ],
+      "parent": "PF6_v51_f2_s1234",
+      "depends_on": [
+        "PF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_pressure_fold2.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 9
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 8
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f2_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "PTB16_f0_s1234",
+      "title": "PF6_v51_f0_s1234 recipe with a time-basis output head K=16 (out_dim 17 = 1 component(s) × [b0, a_1..a_K] on the train-fold PCA basis",
+      "config": "PTB16_f0_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 0,
+      "target": "pressure_mixed",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K16",
+        "pinball_off"
+      ],
+      "parent": "PF6_v51_f0_s1234",
+      "depends_on": [
+        "PF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_pressure_fold0.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 17
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 16
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f0_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "PTB16_f1_s1234",
+      "title": "PF6_v51_f1_s1234 recipe with a time-basis output head K=16 (out_dim 17 = 1 component(s) × [b0, a_1..a_K] on the train-fold PCA basis",
+      "config": "PTB16_f1_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 1,
+      "target": "pressure_mixed",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K16",
+        "pinball_off"
+      ],
+      "parent": "PF6_v51_f1_s1234",
+      "depends_on": [
+        "PF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_pressure_fold1.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 17
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 16
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f1_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "PTB16_f2_s1234",
+      "title": "PF6_v51_f2_s1234 recipe with a time-basis output head K=16 (out_dim 17 = 1 component(s) × [b0, a_1..a_K] on the train-fold PCA basis",
+      "config": "PTB16_f2_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 2,
+      "target": "pressure_mixed",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K16",
+        "pinball_off"
+      ],
+      "parent": "PF6_v51_f2_s1234",
+      "depends_on": [
+        "PF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_pressure_fold2.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 17
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 16
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/PF6_v51_f2_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "VT0_f0_s1234",
+      "title": "VF6_v51_f0_s1234 recipe + phase condition ['q_norm', 'dq_norm', 't_sin', 't_cos'] (24 inputs, appended columns zero-initialised), timesteps=random_frame (uniform frames, peak guarantee 1/9), per-frame linear z on the velocity target, checkpoint by EMA(train_loss, alpha 0.2)",
+      "config": "VT0_f0_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 0,
+      "target": "velocity",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "phase_condition",
+        "train_loss_ema"
+      ],
+      "parent": "VF6_v51_f0_s1234",
+      "depends_on": [
+        "VF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/V_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/V_fold0_train_time.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f0_s1234.json"
+        },
+        "train.selection_ema_alpha": {
+          "anchor": null,
+          "arm": 0.2
+        },
+        "train.selection_rule": {
+          "anchor": "train_loss",
+          "arm": "train_loss_ema"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "VT0_f1_s1234",
+      "title": "VF6_v51_f1_s1234 recipe + phase condition ['q_norm', 'dq_norm', 't_sin', 't_cos'] (24 inputs, appended columns zero-initialised), timesteps=random_frame (uniform frames, peak guarantee 1/9), per-frame linear z on the velocity target, checkpoint by EMA(train_loss, alpha 0.2)",
+      "config": "VT0_f1_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 1,
+      "target": "velocity",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "phase_condition",
+        "train_loss_ema"
+      ],
+      "parent": "VF6_v51_f1_s1234",
+      "depends_on": [
+        "VF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/V_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/V_fold1_train_time.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f1_s1234.json"
+        },
+        "train.selection_ema_alpha": {
+          "anchor": null,
+          "arm": 0.2
+        },
+        "train.selection_rule": {
+          "anchor": "train_loss",
+          "arm": "train_loss_ema"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "VT0_f2_s1234",
+      "title": "VF6_v51_f2_s1234 recipe + phase condition ['q_norm', 'dq_norm', 't_sin', 't_cos'] (24 inputs, appended columns zero-initialised), timesteps=random_frame (uniform frames, peak guarantee 1/9), per-frame linear z on the velocity target, checkpoint by EMA(train_loss, alpha 0.2)",
+      "config": "VT0_f2_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 2,
+      "target": "velocity",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "phase_condition",
+        "train_loss_ema"
+      ],
+      "parent": "VF6_v51_f2_s1234",
+      "depends_on": [
+        "VF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/V_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/feature_stats/V_fold2_train_time.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "dist_to_wall_mm",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f2_s1234.json"
+        },
+        "train.selection_ema_alpha": {
+          "anchor": null,
+          "arm": 0.2
+        },
+        "train.selection_rule": {
+          "anchor": "train_loss",
+          "arm": "train_loss_ema"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "VTB4_f0_s1234",
+      "title": "VF6_v51_f0_s1234 recipe with a time-basis output head K=4 (out_dim 15 = 3 component(s) × [b0, a_1..a_K] on the train-fold PCA basis (the three components share one set of basis vectors)",
+      "config": "VTB4_f0_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 0,
+      "target": "velocity",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K4",
+        "pinball_off"
+      ],
+      "parent": "VF6_v51_f0_s1234",
+      "depends_on": [
+        "VF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_velocity_fold0.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 3,
+          "arm": 15
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 4
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f0_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "VTB4_f1_s1234",
+      "title": "VF6_v51_f1_s1234 recipe with a time-basis output head K=4 (out_dim 15 = 3 component(s) × [b0, a_1..a_K] on the train-fold PCA basis (the three components share one set of basis vectors)",
+      "config": "VTB4_f1_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 1,
+      "target": "velocity",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K4",
+        "pinball_off"
+      ],
+      "parent": "VF6_v51_f1_s1234",
+      "depends_on": [
+        "VF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_velocity_fold1.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 3,
+          "arm": 15
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 4
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f1_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "VTB4_f2_s1234",
+      "title": "VF6_v51_f2_s1234 recipe with a time-basis output head K=4 (out_dim 15 = 3 component(s) × [b0, a_1..a_K] on the train-fold PCA basis (the three components share one set of basis vectors)",
+      "config": "VTB4_f2_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 2,
+      "target": "velocity",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K4",
+        "pinball_off"
+      ],
+      "parent": "VF6_v51_f2_s1234",
+      "depends_on": [
+        "VF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_velocity_fold2.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 3,
+          "arm": 15
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 4
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f2_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "VTB8_f0_s1234",
+      "title": "VF6_v51_f0_s1234 recipe with a time-basis output head K=8 (out_dim 27 = 3 component(s) × [b0, a_1..a_K] on the train-fold PCA basis (the three components share one set of basis vectors)",
+      "config": "VTB8_f0_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 0,
+      "target": "velocity",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K8",
+        "pinball_off"
+      ],
+      "parent": "VF6_v51_f0_s1234",
+      "depends_on": [
+        "VF6_v51_f0_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_velocity_fold0.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 3,
+          "arm": 27
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 8
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f0_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "VTB8_f1_s1234",
+      "title": "VF6_v51_f1_s1234 recipe with a time-basis output head K=8 (out_dim 27 = 3 component(s) × [b0, a_1..a_K] on the train-fold PCA basis (the three components share one set of basis vectors)",
+      "config": "VTB8_f1_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 1,
+      "target": "velocity",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K8",
+        "pinball_off"
+      ],
+      "parent": "VF6_v51_f1_s1234",
+      "depends_on": [
+        "VF6_v51_f1_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_velocity_fold1.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 3,
+          "arm": 27
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 8
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f1_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    },
+    {
+      "id": "VTB8_f2_s1234",
+      "title": "VF6_v51_f2_s1234 recipe with a time-basis output head K=8 (out_dim 27 = 3 component(s) × [b0, a_1..a_K] on the train-fold PCA basis (the three components share one set of basis vectors)",
+      "config": "VTB8_f2_s1234.json",
+      "phase": 2,
+      "seed": 1234,
+      "fold": 2,
+      "target": "velocity",
+      "modules": [
+        "F6",
+        "frame_stats",
+        "time_basis_K8",
+        "pinball_off"
+      ],
+      "parent": "VF6_v51_f2_s1234",
+      "depends_on": [
+        "VF6_v51_f2_s1234"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.target_normalization": {
+          "anchor": "global_stats",
+          "arm": "frame_stats"
+        },
+        "data.time_basis_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_time_20260919/offline/time_basis_velocity_fold2.npz"
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "time_basis"
+        },
+        "data.volume_h5_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
+        },
+        "data.volume_time_sidecar_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_volume_time_v1"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json"
+        },
+        "model.out_dim": {
+          "anchor": 3,
+          "arm": 27
+        },
+        "model.time_basis_k": {
+          "anchor": null,
+          "arm": 8
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_time_20260919/VF6_v51_f2_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "all"
+        },
+        "eval.time_metrics": {
+          "anchor": null,
+          "arm": true
+        }
+      }
+    }
+  ],
+  "reading_rule": "fold arms are read only on their held-out fold (all 81 frames); gates use the three-fold mean and fold sign agreement; every time arm must beat both its peak-frame fold base (peak frame) and the A3 T-null (cycle); test34 is read once only after a winner is locked"
+}

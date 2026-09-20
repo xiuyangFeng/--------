@@ -1,0 +1,15 @@
+{
+  "preflight_job_id": "14159",
+  "matrix_job_id": "14160",
+  "submitted_at": "2026-09-12T06:10:33.794303-07:00",
+  "scripts": {
+    "preflight": "training_wss_min/cluster/preflight_wss_local_wave1.slurm",
+    "matrix": "training_wss_min/cluster/run_wss_local_wave1.slurm"
+  },
+  "gpus": 4,
+  "slots_per_gpu": 2,
+  "seed": 1234,
+  "expected_training_runs": 17,
+  "expected_evaluations": 35,
+  "dependency": "matrix afterok preflight; queue re-verifies runtime_preflight.json + fingerprints"
+}

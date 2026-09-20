@@ -1,0 +1,43 @@
+{
+  "stem": "16_historical_case_distributions",
+  "claim": "历史 V4：速度与派生 WSS 的失败覆盖多数病例，需逐环节诊断",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_R2分布_20260914/summary.json",
+      "sha256": "7285bbf6ff421f866b98d341a3811fc917d30c4f7e5c7359f2b2209d4506b72d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/volume_uvwp_bc_rcr_v4/steady_peak/V4-SP-PN-BC-PDE-EMA-s1234/evaluation_official_last_converged_full.json",
+      "sha256": "24495a712a0f3687a4d381600dd65404650341c06034b756dc70f4d716094cd4"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/wss_metrics.json",
+      "sha256": "0b3e299d3573075382f726a76f471036abc36340f243f8258b6fefc30f51bca8"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/16_historical_case_distributions.csv",
+      "sha256": "16c6a069433fa3940260f4a77269d3ea377558afabb5e60dcd3ce91c4cdb12c9"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/16_historical_case_distributions_histogram.csv",
+      "sha256": "b6338824e3e5e1620953244dbf177ebe966c010c7a95b4fb1019cfcb41fa29c5"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/16_historical_case_distributions.pdf",
+    "svg": "figures/16_historical_case_distributions.svg",
+    "png": "figures/16_historical_case_distributions.png"
+  },
+  "alignment": "PASS",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/16_historical_case_distributions.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/16_historical_case_distributions.collision.json"
+    }
+  },
+  "note": "All cases retained; display lanes have no numerical meaning. Current means/SD independently recomputed from seed_values and source SHA256 checked. Histogram has zero-anchored width0.10. Explicit groups audit actual rows and columns; intentional scatter:histogram width 0.50:0.17. Current B/M/W refer to existing visualization package, not modal-bin cases. Historical converged:false and incompatible protocol disclosed. Editable vector data marks."
+}

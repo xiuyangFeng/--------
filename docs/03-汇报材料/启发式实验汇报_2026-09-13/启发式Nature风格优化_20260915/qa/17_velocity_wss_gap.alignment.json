@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "applicable": true,
+  "auditable": true,
+  "verdict": "PASS",
+  "backend": "python-matplotlib",
+  "summary": {
+    "fail": 0,
+    "warn": 0,
+    "comparisons": 1,
+    "exemptions": 1
+  },
+  "tolerances": {
+    "alignment_pt": 1.5,
+    "gutter_pt": 1.5
+  },
+  "layout": {
+    "schema_version": 1,
+    "backend": "python-matplotlib",
+    "figure": {
+      "width_pt": 1152.0,
+      "height_pt": 648.0
+    },
+    "panels": [
+      {
+        "id": "a",
+        "bbox_pt": [
+          74.88,
+          149.04000000000002,
+          650.8799999999999,
+          460.08
+        ],
+        "panel_label": "a",
+        "panel_label_anchor_pt": [
+          59.88000000000001,
+          470.08
+        ]
+      },
+      {
+        "id": "b",
+        "bbox_pt": [
+          766.08,
+          149.04000000000002,
+          1100.16,
+          460.08
+        ],
+        "panel_label": "b",
+        "panel_label_anchor_pt": [
+          751.0800000000002,
+          470.08
+        ]
+      }
+    ],
+    "row_groups": [
+      {
+        "id": "row-1",
+        "panels": [
+          "a",
+          "b"
+        ]
+      }
+    ],
+    "column_groups": [],
+    "boundary_groups": [],
+    "exemptions": [
+      {
+        "panels": [
+          "a"
+        ],
+        "checks": [
+          "panel-width"
+        ],
+        "reason": "Input-substitution schematic is the hero; per-case quantitative panel is subordinate."
+      }
+    ]
+  },
+  "findings": []
+}

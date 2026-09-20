@@ -1,0 +1,29 @@
+=== X5D_v51 ensembles on the corrected test34
+X5D_v51_s1234                      Pa R2_cb 0.7461 | case mean/p10 0.757/0.654 | high-WSS R2 0.333 top10 0.754 | AG/AAA/ILO 0.785/0.716/0.718
+X5D_v51_s7                         Pa R2_cb 0.7571 | case mean/p10 0.756/0.640 | high-WSS R2 0.352 top10 0.752 | AG/AAA/ILO 0.804/0.707/0.736
+X5D_v51_s2025                      Pa R2_cb 0.7657 | case mean/p10 0.774/0.674 | high-WSS R2 0.380 top10 0.764 | AG/AAA/ILO 0.808/0.720/0.747
+X5D_v51_s11                        Pa R2_cb 0.7510 | case mean/p10 0.764/0.652 | high-WSS R2 0.330 top10 0.732 | AG/AAA/ILO 0.793/0.716/0.724
+X5D_v51_s2026                      Pa R2_cb 0.7542 | case mean/p10 0.758/0.649 | high-WSS R2 0.348 top10 0.747 | AG/AAA/ILO 0.795/0.716/0.731
+X5D_v51 5-seed (Pa mean)           Pa R2_cb 0.7749 | case mean/p10 0.791/0.680 | high-WSS R2 0.387 top10 0.750 | AG/AAA/ILO 0.818/0.739/0.747
+X5D_v51 5-seed (log mean)          Pa R2_cb 0.7718 | case mean/p10 0.790/0.676 | high-WSS R2 0.374 top10 0.741 | AG/AAA/ILO 0.816/0.736/0.743
+X5D_v51 3-seed (Pa mean)           Pa R2_cb 0.7736 | case mean/p10 0.787/0.683 | high-WSS R2 0.389 top10 0.757 | AG/AAA/ILO 0.817/0.735/0.748
+
+=== paired deltas vs same-seed X5D_v51 (best ckpt)
+  X5Dcap_s1234     Δ物理 +0.0149 Δ归一化 +0.0074 逐例胜 22/34 | AG/AAA/ILO +0.007/+0.017/+0.023 | Δhigh-WSS R2 +0.034 Δtop10 -0.005
+  X5Dcap_s7        Δ物理 -0.0094 Δ归一化 +0.0060 逐例胜 20/34 | AG/AAA/ILO -0.017/+0.022/-0.025 | Δhigh-WSS R2 -0.028 Δtop10 -0.005
+  X5Dcap_s2025     Δ物理 +0.0028 Δ归一化 +0.0027 逐例胜 18/34 | AG/AAA/ILO -0.001/+0.002/+0.008 | Δhigh-WSS R2 +0.012 Δtop10 +0.029
+  X5Dcap 三 seed 均值: Δ物理 +0.0028 (sd 0.0099) Δ归一化 +0.0053 (sd 0.0020)
+X5Dcap 3-seed (Pa mean)            Pa R2_cb 0.7770 | case mean/p10 0.796/0.692 | high-WSS R2 0.398 top10 0.763 | AG/AAA/ILO 0.813/0.747/0.754
+  X5Dcap 3-seed ensemble vs base 3-seed: Δ +0.0035
+  X5Ddual_s1234    Δ物理 +0.0042 Δ归一化 +0.0019 逐例胜 19/34 | AG/AAA/ILO +0.005/-0.005/+0.010 | Δhigh-WSS R2 +0.001 Δtop10 -0.005
+  X5Ddual_s7       Δ物理 -0.0130 Δ归一化 +0.0017 逐例胜 15/34 | AG/AAA/ILO -0.004/-0.005/-0.030 | Δhigh-WSS R2 -0.065 Δtop10 -0.027
+  X5Ddual_s2025    Δ物理 -0.0108 Δ归一化 -0.0035 逐例胜 16/34 | AG/AAA/ILO -0.011/-0.002/-0.017 | Δhigh-WSS R2 -0.043 Δtop10 -0.017
+  X5Ddual 三 seed 均值: Δ物理 -0.0065 (sd 0.0077) Δ归一化 +0.0000 (sd 0.0025)
+X5Ddual 3-seed (Pa mean)           Pa R2_cb 0.7661 | case mean/p10 0.787/0.646 | high-WSS R2 0.351 top10 0.741 | AG/AAA/ILO 0.813/0.730/0.734
+  X5Ddual 3-seed ensemble vs base 3-seed: Δ -0.0075
+  X5Dnoise_s1234   Δ物理 +0.0015 Δ归一化 -0.0018 逐例胜 14/34 | AG/AAA/ILO -0.001/-0.001/+0.007 | Δhigh-WSS R2 +0.004 Δtop10 -0.004
+  X5Dnoise_s7      Δ物理 -0.0044 Δ归一化 -0.0023 逐例胜 14/34 | AG/AAA/ILO -0.014/-0.009/+0.011 | Δhigh-WSS R2 -0.002 Δtop10 -0.002
+  X5Dnoise_s2025   Δ物理 -0.0124 Δ归一化 -0.0073 逐例胜 7/34 | AG/AAA/ILO -0.022/-0.018/+0.004 | Δhigh-WSS R2 -0.020 Δtop10 -0.001
+  X5Dnoise 三 seed 均值: Δ物理 -0.0051 (sd 0.0057) Δ归一化 -0.0038 (sd 0.0025)
+X5Dnoise 3-seed (Pa mean)          Pa R2_cb 0.7691 | case mean/p10 0.782/0.667 | high-WSS R2 0.385 top10 0.754 | AG/AAA/ILO 0.804/0.729/0.755
+  X5Dnoise 3-seed ensemble vs base 3-seed: Δ -0.0045

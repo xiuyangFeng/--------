@@ -1,0 +1,35 @@
+{
+  "stem": "02_density_curve",
+  "claim": "部署点云重采样到 0.5 mm 时 X5 几乎不掉分；密度增广 X5D 把粗点云的损失压到三分之一；损失定位在 K16 query patch 这一层。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave6_20260915/offline/stl_x5/deployment_stl_simulation.json",
+      "sha256": "a20b101bccfa0e23a93ce3ff99dd0a88f03daa5c0bb5b7101fa9ec5bfd1b871c"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave6_20260915/offline/stl_x5_fine/deployment_stl_simulation.json",
+      "sha256": "ecce6f59439c8c1c0718603bf66abb696478ea2f34de7d6f7a1583f10c1be04b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave6_20260915/offline/stl_x5d/deployment_stl_simulation.json",
+      "sha256": "1474c5be69d7ce41d0d1636aadb2684c5c6d1094582bac91960477d5b675b880"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave6_20260915/offline/deployment_reeval_x5_3seed/deployment_resample_reeval.json",
+      "sha256": "9672d909f033fa5ee311b2148602ab9b05fb68c393a7316c0fa30f11b8a8d016"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave6_20260915/offline/deployment_reeval_x5d/deployment_resample_reeval.json",
+      "sha256": "2e89b08d991df99cd4aff813834e75bb2130cd989437e4857858bcee39053eff"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_inference_followup_20260915/decomposition_x5d/neighbourhood_decomposition.json",
+      "sha256": "db73c605076d378073e4540e417051affb0b1c3b7bff76bd9a5953e21eadb861"
+    }
+  ],
+  "exports": {
+    "png": "figures/02_density_curve.png"
+  },
+  "alignment": "PASS",
+  "note": "Panel a shows absolute ensemble R2 (different point sets per spacing, reference line is the mean same-point reference); panels b and c show same-point deltas only. Full-cloud rows are exactly 0 by construction."
+}

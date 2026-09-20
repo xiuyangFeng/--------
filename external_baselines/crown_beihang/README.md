@@ -2,7 +2,7 @@
 
 > 源码快照：`external_baselines/CROWN_Beihang/source_snapshot/`  
 > 预处理产物（论文 raw_ascii v1）：`external_baselines/CROWN_Beihang/private_preprocessed_raw_ascii_v1/`  
-> 旧链路（无效，仅对照）：`external_baselines/CROWN_Beihang/private_preprocessed/`
+> **2026-09-18**：私有预处理 pkl 已腾盘；旧 15000 点目录 `private_preprocessed/` 已撤（空壳）。`audit/manifests/stats` 与导出脚本留在 `private_preprocessed_raw_ascii_v1/`。从 `data_new` ASCII 重导见该目录 README。
 
 ## 与论文源码对齐的口径
 
@@ -55,7 +55,7 @@ python -m external_baselines.crown_beihang.train \
 
 | 链路 | 状态 | 口径 |
 | --- | --- | --- |
-| raw_ascii v1 export | ✅ 完成 | Array 5630 + 补跑 5734_80 + merge 5738；`private_preprocessed_raw_ascii_v1/` |
+| raw_ascii v1 export | ✅ 完成 / **pkl 已于 2026-09-18 腾盘删除** | 历史 Array 5630 + 补跑 5734_80 + merge 5738；重导命令见 `private_preprocessed_raw_ascii_v1/README.md` |
 | `crown_original_vp` 非 PINN | ❌ Job **5751** evaluate 后 **No-Go** | best_ep=55 · `p_r2=-5.28` · `nmae=0.077`；5739 保留 OOM 截断记录 |
 | `crown_original_vp_pinn` | ❌ 5740 evaluate 后 No-Go | 24h TIMEOUT checkpoint：PINN 未改善压力且速度 R2 退化；不扩 seed |
 | 指标口径 | ✅ 已补齐 | `metrics_{split}.json` 同时报告 NMAE 与点级 R² |

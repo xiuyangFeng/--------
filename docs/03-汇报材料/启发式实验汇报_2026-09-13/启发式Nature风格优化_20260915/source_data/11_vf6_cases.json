@@ -1,0 +1,550 @@
+{
+  "model": "VF6",
+  "mode": "physical",
+  "field_mapping": {
+    "rows": [
+      "speed_cfd",
+      "speed_pred",
+      "speed_error_pred_minus_cfd"
+    ],
+    "columns": [
+      "best",
+      "median",
+      "worst"
+    ]
+  },
+  "case_summary": [
+    {
+      "model": "VF6",
+      "role": "best",
+      "case_id": "AG/fast/ZHANG_LIANG",
+      "physical_r2_s1234": 0.9163681618454015,
+      "selection_three_seed_r2_mean": 0.916770543993211,
+      "physical_metric_scope": "完整体内",
+      "source_point_count": 426057,
+      "drawn_point_count": 426057,
+      "triangle_count": 0,
+      "excluded_point_count": 0,
+      "field_min": 0.0,
+      "field_max": 1.4262983308216952,
+      "signed_error_min": -0.7851270521919839,
+      "signed_error_max": 0.7851270521919839,
+      "cfd_max_denominator": 1.3350822045440662,
+      "pred_max_denominator": 1.4262983308216952,
+      "denominator_scope": "interior",
+      "coordinate_frame": "v5_atlas_frame_v1",
+      "unit": "m/s"
+    },
+    {
+      "model": "VF6",
+      "role": "median",
+      "case_id": "AG/slow/LI_HUAN_GE",
+      "physical_r2_s1234": 0.771183035816835,
+      "selection_three_seed_r2_mean": 0.7996790670872551,
+      "physical_metric_scope": "完整体内",
+      "source_point_count": 367250,
+      "drawn_point_count": 367250,
+      "triangle_count": 0,
+      "excluded_point_count": 0,
+      "field_min": 0.0,
+      "field_max": 1.867390857897593,
+      "signed_error_min": -1.39545444828171,
+      "signed_error_max": 1.39545444828171,
+      "cfd_max_denominator": 1.752716853410338,
+      "pred_max_denominator": 1.867390857897593,
+      "denominator_scope": "interior",
+      "coordinate_frame": "v5_atlas_frame_v1",
+      "unit": "m/s"
+    },
+    {
+      "model": "VF6",
+      "role": "worst",
+      "case_id": "AAA/unruputer/SUN_SHU_MING",
+      "physical_r2_s1234": 0.4376894162206607,
+      "selection_three_seed_r2_mean": 0.4812790945710115,
+      "physical_metric_scope": "完整体内",
+      "source_point_count": 463947,
+      "drawn_point_count": 463947,
+      "triangle_count": 0,
+      "excluded_point_count": 0,
+      "field_min": 0.0,
+      "field_max": 0.7926372757660343,
+      "signed_error_min": -0.6381601628004431,
+      "signed_error_max": 0.6381601628004431,
+      "cfd_max_denominator": 0.7926372757660343,
+      "pred_max_denominator": 0.7023988571699061,
+      "denominator_scope": "interior",
+      "coordinate_frame": "v5_atlas_frame_v1",
+      "unit": "m/s"
+    }
+  ],
+  "source_vtps": [
+    {
+      "case_id": "AG/fast/ZHANG_LIANG",
+      "vtp": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/best/VF6__best__AG__fast__ZHANG_LIANG__volume_velocity.vtp",
+      "vtp_sha256": "8a8f00fba40b0111fcfb44cf901472ebd63b9831de828254be0f112d7c5f39c5",
+      "manifest": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/best/manifest.json",
+      "manifest_sha256": "f9fa2111ee7f8a014ed79c8368c5d84b68892e3a4d7f34b9148cf57fa600ab6a",
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 426057,
+        "cfd_max": 1.3350822045440662,
+        "pred_max": 1.4262983308216952,
+        "cfd_denominator": {
+          "max": 1.3350822045440662,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.3350822045440663e-12
+        },
+        "pred_denominator": {
+          "max": 1.4262983308216952,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.4262983308216953e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "visualization_metrics": {
+        "r2": 0.9163681618454015,
+        "nrmse_range": 0.0634365384714653,
+        "nrmse_mean": 0.2464360113535906,
+        "mae": 0.056154741584421825,
+        "nmae_range": 0.042061889187116494,
+        "rmse": 0.0846909754582893,
+        "n": 426057,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/metrics.json",
+        "metric_key": "test.per_case[AG/fast/ZHANG_LIANG].overall",
+        "basis": "whole evaluated case, not smoothed surface",
+        "cache_recomputed": {
+          "r2": 0.9163681618570033,
+          "mae": 0.0561547415541382,
+          "n": 426057
+        }
+      },
+      "selection": {
+        "basis": "fixed three-seed mean of per-case R2 (1234,7,2025); not ensemble",
+        "r2_case_mean": 0.916770543993211,
+        "statistical_median": 0.8036596560678764,
+        "median_rule": "closest actual case to statistical median; selected IDs retained from original package"
+      },
+      "camera_basis_columns": [
+        [
+          -0.04760000393743934,
+          0.9396926207859084,
+          0.3386916268018251
+        ],
+        [
+          0.13077993598406573,
+          0.3420201433256687,
+          -0.9305475967963663
+        ],
+        [
+          -0.9902680687415704,
+          0.0,
+          -0.13917310096006547
+        ]
+      ],
+      "camera_origin_mm": [
+        -22.706939697265625,
+        -24.813008308410645,
+        37.743648529052734
+      ]
+    },
+    {
+      "case_id": "AG/slow/LI_HUAN_GE",
+      "vtp": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/median/VF6__median__AG__slow__LI_HUAN_GE__volume_velocity.vtp",
+      "vtp_sha256": "3ccde494809868d358390e7f765f5f87a0674fb0ede3a1ce1ef350f2a9afb47e",
+      "manifest": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/median/manifest.json",
+      "manifest_sha256": "0486c807c4ef5a2a7fd4ffaa7784c85a83264c5b1dc8b849def778d05d5d44ec",
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 367250,
+        "cfd_max": 1.752716853410338,
+        "pred_max": 1.867390857897593,
+        "cfd_denominator": {
+          "max": 1.752716853410338,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.7527168534103379e-12
+        },
+        "pred_denominator": {
+          "max": 1.867390857897593,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.867390857897593e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "visualization_metrics": {
+        "r2": 0.771183035816835,
+        "nrmse_range": 0.10316950670878479,
+        "nrmse_mean": 0.36632003071831437,
+        "mae": 0.11781651081893614,
+        "nmae_range": 0.06722249851012264,
+        "rmse": 0.18081849935270536,
+        "n": 367250,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/metrics.json",
+        "metric_key": "test.per_case[AG/slow/LI_HUAN_GE].overall",
+        "basis": "whole evaluated case, not smoothed surface",
+        "cache_recomputed": {
+          "r2": 0.7711830357048868,
+          "mae": 0.1178165108519691,
+          "n": 367250
+        }
+      },
+      "selection": {
+        "basis": "fixed three-seed mean of per-case R2 (1234,7,2025); not ensemble",
+        "r2_case_mean": 0.7996790670872551,
+        "statistical_median": 0.8036596560678764,
+        "median_rule": "closest actual case to statistical median; selected IDs retained from original package"
+      },
+      "camera_basis_columns": [
+        [
+          -0.04760000393743934,
+          0.9396926207859084,
+          0.3386916268018251
+        ],
+        [
+          0.13077993598406573,
+          0.3420201433256687,
+          -0.9305475967963663
+        ],
+        [
+          -0.9902680687415704,
+          0.0,
+          -0.13917310096006547
+        ]
+      ],
+      "camera_origin_mm": [
+        -34.01432991027832,
+        -17.702954292297363,
+        32.31028366088867
+      ]
+    },
+    {
+      "case_id": "AAA/unruputer/SUN_SHU_MING",
+      "vtp": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/worst/VF6__worst__AAA__unruputer__SUN_SHU_MING__volume_velocity.vtp",
+      "vtp_sha256": "70eb0b537967de3735134b51c02616c8754147ff7c8e616176b6e9c828211b43",
+      "manifest": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/worst/manifest.json",
+      "manifest_sha256": "31d66c09658c7820e422eba90e92d5e2eacc67006fb15de3447fecfedce44b5e",
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 463947,
+        "cfd_max": 0.7926372757660343,
+        "pred_max": 0.7023988571699061,
+        "cfd_denominator": {
+          "max": 0.7926372757660343,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "pred_denominator": {
+          "max": 0.7023988571699061,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "visualization_metrics": {
+        "r2": 0.4376894162206607,
+        "nrmse_range": 0.15594512306452085,
+        "nrmse_mean": 0.7348554570363981,
+        "mae": 0.07713315501918826,
+        "nmae_range": 0.09731652640238006,
+        "rmse": 0.12360222663607007,
+        "n": 463947,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/metrics.json",
+        "metric_key": "test.per_case[AAA/unruputer/SUN_SHU_MING].overall",
+        "basis": "whole evaluated case, not smoothed surface",
+        "cache_recomputed": {
+          "r2": 0.43768941618463175,
+          "mae": 0.07713315502374068,
+          "n": 463947
+        }
+      },
+      "selection": {
+        "basis": "fixed three-seed mean of per-case R2 (1234,7,2025); not ensemble",
+        "r2_case_mean": 0.4812790945710115,
+        "statistical_median": 0.8036596560678764,
+        "median_rule": "closest actual case to statistical median; selected IDs retained from original package"
+      },
+      "camera_basis_columns": [
+        [
+          -0.04760000393743934,
+          0.9396926207859084,
+          0.3386916268018251
+        ],
+        [
+          0.13077993598406573,
+          0.3420201433256687,
+          -0.9305475967963663
+        ],
+        [
+          -0.9902680687415704,
+          0.0,
+          -0.13917310096006547
+        ]
+      ],
+      "camera_origin_mm": [
+        -6.479713439941406,
+        -23.398286819458008,
+        38.43589401245117
+      ]
+    }
+  ],
+  "archetype": "image plate + fixed-checkpoint quantitative reference",
+  "transforms": "same-source fields; fixed orthographic camera with 90-degree display roll; depth sorting; no source modification",
+  "surface_rendering": "complete delivered Gaussian triangle topology; face colour is mean of its three vertex values",
+  "volume_rendering": "complete original interior point cloud; opaque rasterized marks; no downsampling or interpolation",
+  "exclusions": [],
+  "normalized_r2_recomputed": false,
+  "panels": [
+    {
+      "panel": "a",
+      "model": "VF6",
+      "role": "best",
+      "case_id": "AG/fast/ZHANG_LIANG",
+      "field": "speed_cfd",
+      "evidence_role": "reference anatomy/field",
+      "n_source_points": 426057,
+      "n_points_excluded": 0,
+      "uncertainty": "none: one fixed checkpoint field, not a seed aggregate",
+      "limits_mm": [
+        [
+          -156.77147417365055,
+          159.79989169881807
+        ],
+        [
+          -61.13149751006243,
+          68.81249219772452
+        ]
+      ]
+    },
+    {
+      "panel": "d",
+      "model": "VF6",
+      "role": "best",
+      "case_id": "AG/fast/ZHANG_LIANG",
+      "field": "speed_pred",
+      "evidence_role": "same-point prediction",
+      "n_source_points": 426057,
+      "n_points_excluded": 0,
+      "uncertainty": "none: one fixed checkpoint field, not a seed aggregate",
+      "limits_mm": [
+        [
+          -156.77147417365055,
+          159.79989169881807
+        ],
+        [
+          -61.13149751006243,
+          68.81249219772452
+        ]
+      ]
+    },
+    {
+      "panel": "g",
+      "model": "VF6",
+      "role": "best",
+      "case_id": "AG/fast/ZHANG_LIANG",
+      "field": "speed_error_pred_minus_cfd",
+      "evidence_role": "local discrepancy/failure boundary",
+      "n_source_points": 426057,
+      "n_points_excluded": 0,
+      "uncertainty": "none: one fixed checkpoint field, not a seed aggregate",
+      "limits_mm": [
+        [
+          -156.77147417365055,
+          159.79989169881807
+        ],
+        [
+          -61.13149751006243,
+          68.81249219772452
+        ]
+      ]
+    },
+    {
+      "panel": "b",
+      "model": "VF6",
+      "role": "median",
+      "case_id": "AG/slow/LI_HUAN_GE",
+      "field": "speed_cfd",
+      "evidence_role": "reference anatomy/field",
+      "n_source_points": 367250,
+      "n_points_excluded": 0,
+      "uncertainty": "none: one fixed checkpoint field, not a seed aggregate",
+      "limits_mm": [
+        [
+          -162.53383808876464,
+          164.67011830769735
+        ],
+        [
+          -65.18600175677867,
+          69.1223789937961
+        ]
+      ]
+    },
+    {
+      "panel": "e",
+      "model": "VF6",
+      "role": "median",
+      "case_id": "AG/slow/LI_HUAN_GE",
+      "field": "speed_pred",
+      "evidence_role": "same-point prediction",
+      "n_source_points": 367250,
+      "n_points_excluded": 0,
+      "uncertainty": "none: one fixed checkpoint field, not a seed aggregate",
+      "limits_mm": [
+        [
+          -162.53383808876464,
+          164.67011830769735
+        ],
+        [
+          -65.18600175677867,
+          69.1223789937961
+        ]
+      ]
+    },
+    {
+      "panel": "h",
+      "model": "VF6",
+      "role": "median",
+      "case_id": "AG/slow/LI_HUAN_GE",
+      "field": "speed_error_pred_minus_cfd",
+      "evidence_role": "local discrepancy/failure boundary",
+      "n_source_points": 367250,
+      "n_points_excluded": 0,
+      "uncertainty": "none: one fixed checkpoint field, not a seed aggregate",
+      "limits_mm": [
+        [
+          -162.53383808876464,
+          164.67011830769735
+        ],
+        [
+          -65.18600175677867,
+          69.1223789937961
+        ]
+      ]
+    },
+    {
+      "panel": "c",
+      "model": "VF6",
+      "role": "worst",
+      "case_id": "AAA/unruputer/SUN_SHU_MING",
+      "field": "speed_cfd",
+      "evidence_role": "reference anatomy/field",
+      "n_source_points": 463947,
+      "n_points_excluded": 0,
+      "uncertainty": "none: one fixed checkpoint field, not a seed aggregate",
+      "limits_mm": [
+        [
+          -192.16635935509007,
+          190.24663904095885
+        ],
+        [
+          -77.39514893951163,
+          79.57505141562332
+        ]
+      ]
+    },
+    {
+      "panel": "f",
+      "model": "VF6",
+      "role": "worst",
+      "case_id": "AAA/unruputer/SUN_SHU_MING",
+      "field": "speed_pred",
+      "evidence_role": "same-point prediction",
+      "n_source_points": 463947,
+      "n_points_excluded": 0,
+      "uncertainty": "none: one fixed checkpoint field, not a seed aggregate",
+      "limits_mm": [
+        [
+          -192.16635935509007,
+          190.24663904095885
+        ],
+        [
+          -77.39514893951163,
+          79.57505141562332
+        ]
+      ]
+    },
+    {
+      "panel": "i",
+      "model": "VF6",
+      "role": "worst",
+      "case_id": "AAA/unruputer/SUN_SHU_MING",
+      "field": "speed_error_pred_minus_cfd",
+      "evidence_role": "local discrepancy/failure boundary",
+      "n_source_points": 463947,
+      "n_points_excluded": 0,
+      "uncertainty": "none: one fixed checkpoint field, not a seed aggregate",
+      "limits_mm": [
+        [
+          -192.16635935509007,
+          190.24663904095885
+        ],
+        [
+          -77.39514893951163,
+          79.57505141562332
+        ]
+      ]
+    }
+  ],
+  "caveats": [
+    "projection occludes deeper anatomy/points",
+    "per-case color scales differ except nonnegative selfmax 0–1",
+    "spatial observations require separate region/slice quantification",
+    "selfmax removes separate amplitude scales"
+  ]
+}

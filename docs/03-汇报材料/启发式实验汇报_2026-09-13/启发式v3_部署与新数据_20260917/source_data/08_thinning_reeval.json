@@ -1,0 +1,111 @@
+{
+  "stem": "08_thinning_reeval",
+  "sources": [
+    "training_wss_min/experiments/wss_v51_wave1r_20260916/offline/deployment_reeval_x5d_v51/deployment_resample_reeval.json",
+    "training_wss_min/experiments/wss_v51_wave1r_20260916/offline/deployment_reeval_x5ddual/deployment_resample_reeval.json"
+  ],
+  "values": {
+    "X5D_v51": [
+      {
+        "fraction": 1.0,
+        "variant": "recompute",
+        "points": 16865.0,
+        "r2": 0.7713077374350303,
+        "ref": 0.7713081457685064
+      },
+      {
+        "fraction": 0.5,
+        "variant": "recompute",
+        "points": 8443.5,
+        "r2": 0.7658129732854533,
+        "ref": 0.7874300511733814
+      },
+      {
+        "fraction": 0.5,
+        "variant": "frozen",
+        "points": 8443.5,
+        "r2": 0.7701854312764426,
+        "ref": 0.7874300511733814
+      },
+      {
+        "fraction": 0.25,
+        "variant": "recompute",
+        "points": 4203.0,
+        "r2": 0.7186832928998985,
+        "ref": 0.7888482429375193
+      },
+      {
+        "fraction": 0.25,
+        "variant": "frozen",
+        "points": 4203.0,
+        "r2": 0.7291530929683976,
+        "ref": 0.7888482429375193
+      },
+      {
+        "fraction": 0.1,
+        "variant": "recompute",
+        "points": 1685.5,
+        "r2": 0.6075970334060645,
+        "ref": 0.790297239161369
+      },
+      {
+        "fraction": 0.1,
+        "variant": "frozen",
+        "points": 1685.5,
+        "r2": 0.6445877910033527,
+        "ref": 0.790297239161369
+      }
+    ],
+    "X5Ddual": [
+      {
+        "fraction": 1.0,
+        "variant": "recompute",
+        "points": 16865.0,
+        "r2": 0.7632796099748952,
+        "ref": 0.763282642748827
+      },
+      {
+        "fraction": 0.5,
+        "variant": "recompute",
+        "points": 8443.5,
+        "r2": 0.7642809174880153,
+        "ref": 0.7808770952957159
+      },
+      {
+        "fraction": 0.5,
+        "variant": "frozen",
+        "points": 8443.5,
+        "r2": 0.7767111990826254,
+        "ref": 0.7808770952957159
+      },
+      {
+        "fraction": 0.25,
+        "variant": "recompute",
+        "points": 4203.0,
+        "r2": 0.7200894869247096,
+        "ref": 0.7822731756522979
+      },
+      {
+        "fraction": 0.25,
+        "variant": "frozen",
+        "points": 4203.0,
+        "r2": 0.7590551135972781,
+        "ref": 0.7822731756522979
+      },
+      {
+        "fraction": 0.1,
+        "variant": "recompute",
+        "points": 1685.5,
+        "r2": 0.6414007189840147,
+        "ref": 0.7845692457385834
+      },
+      {
+        "fraction": 0.1,
+        "variant": "frozen",
+        "points": 1685.5,
+        "r2": 0.7287258790787603,
+        "ref": 0.7845692457385834
+      }
+    ]
+  }
+}

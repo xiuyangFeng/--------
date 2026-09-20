@@ -1,0 +1,39 @@
+{
+  "stem": "PF6_scatter_fit",
+  "claim": "PF6 最好例接近恒等；中位例拟合 R² 0.93 但斜率仅 0.69；最差例预测与拟合一起掉",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/best/_export/same_point_fields.csv.gz",
+      "sha256": "f350ba112c4418b714f5e0139c925f110a462f38d5460c0f8157812e41dcd2a1"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/best/manifest.json",
+      "sha256": "3cff92ef91f17aa729a41ec68cb788a699aa5b5c2a26ec3b08bc52a2c76c6cb2"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/median/_export/same_point_fields.csv.gz",
+      "sha256": "229becb70e986cce6eec83639ac30567a20941445a8aa4abb501ae40e09a9a93"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/median/manifest.json",
+      "sha256": "d53d5d43cbd41dff6c9ff5d4bcb0615606b4836bc2938a765b2d28e5bfe86bb0"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/worst/_export/same_point_fields.csv.gz",
+      "sha256": "7a051f70a09402de9ed2100288d5d8a4bc66d94c41c2eb5c6076fce47457fda8"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/worst/manifest.json",
+      "sha256": "62d5338893a9d4633b1bc10a2e6381f22d2930e524c9dbe17dc025052a484341"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/source_data/PF6_scatter_fit.csv",
+      "sha256": "cfbce8b8ce4f988c8533c92b7119e4babfa6729adb98044bd342bcc0a666d8a0"
+    }
+  ],
+  "exports": {
+    "png": "figures/PF6_scatter_fit.png"
+  },
+  "alignment": "PASS",
+  "note": "Three equal-width identity scatters. Axis limits are independent per case so that every same-point query is retained. Density color is KDE on a 6000-point sample; slope, intercept and both R² values use all points. Prediction R² matches the package visualization_metrics.r2."
+}

@@ -1,0 +1,21 @@
+{
+  "preflight_job_id": "14282",
+  "matrix_job_id": "14283",
+  "submitted_at": "2026-09-15T14:02:22.948976+08:00",
+  "dependency": "matrix afterok preflight",
+  "gpus": 2,
+  "slots_per_gpu": 1,
+  "expected_training_runs": 2,
+  "expected_evaluations": 4,
+  "phases": {
+    "0": [
+      "X5D_s11",
+      "X5D_s2026"
+    ]
+  },
+  "scripts": {
+    "preflight": "training_wss_min/cluster/preflight_wss_local_wave6b.slurm",
+    "matrix": "training_wss_min/cluster/run_wss_local_wave6b.slurm"
+  },
+  "pairing": "X5D_s<seed> vs wave-4 X5_s<seed> (same C1_s<seed> chain); completes the five-seed X5D ensemble"
+}

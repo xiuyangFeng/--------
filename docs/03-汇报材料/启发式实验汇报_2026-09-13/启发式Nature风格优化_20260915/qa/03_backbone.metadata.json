@@ -1,0 +1,27 @@
+{
+  "stem": "03_backbone",
+  "claim": "共用主干先逐层编码几何，再恢复support特征并对query回归。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/baseline_models.py",
+      "sha256": "bd3f2a4fb8d6b33b0555f0f11055210b282e3a7c7d9e04fb0b873038ba478613"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/03_backbone.pdf",
+    "svg": "figures/03_backbone.svg",
+    "png": "figures/03_backbone.png"
+  },
+  "alignment": "NOT APPLICABLE",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/03_backbone.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/03_backbone.collision.json"
+    }
+  },
+  "note": "Single information-flow schematic. Lower annotations explain three different operations, not quantitative comparable panels. R4 has no bottleneck global Transformer."
+}

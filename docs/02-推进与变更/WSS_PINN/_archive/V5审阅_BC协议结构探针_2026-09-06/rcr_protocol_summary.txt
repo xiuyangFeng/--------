@@ -1,0 +1,27 @@
+cases parsed: 172 / 172; missing UDF at case root: []
+=== AG n=76 ===
+  R_total (Pa·s/kg): min 4.367e+05 median 4.368e+05 max 4.368e+05 CoV 0.000; MAP≈rho*Qbar*R_total = 116 mmHg
+  left conductance share: mean 0.500 sd 0.0000
+  external share within side: mean 0.647 sd 0.154
+  R2(ext share ~ area share) 0.783; residual sd 0.072; residual CoV ext 0.11 / int 0.20
+  R2*C median 1.566 s (p5 1.457, p95 1.680)
+=== AAA n=55 ===
+  R_total (Pa·s/kg): min 3.761e+05 median 3.761e+05 max 4.409e+05 CoV 0.023; MAP≈rho*Qbar*R_total = 100 mmHg
+  left conductance share: mean 0.502 sd 0.0115
+  external share within side: mean 0.567 sd 0.197
+  R2(ext share ~ area share) 0.360; residual sd 0.158; residual CoV ext 0.28 / int 0.36
+  R2*C median 1.567 s (p5 1.396, p95 1.669)
+=== ILO n=41 ===
+  R_total (Pa·s/kg): min 3.761e+05 median 3.761e+05 max 3.762e+05 CoV 0.000; MAP≈rho*Qbar*R_total = 100 mmHg
+  left conductance share: mean 0.500 sd 0.0000
+  external share within side: mean 0.665 sd 0.183
+  R2(ext share ~ area share) 0.278; residual sd 0.156; residual CoV ext 0.23 / int 0.46
+  R2*C median 1.581 s (p5 1.431, p95 1.669)
+=== ALL n=172 ===
+  R_total (Pa·s/kg): min 3.761e+05 median 3.762e+05 max 4.409e+05 CoV 0.075; MAP≈rho*Qbar*R_total = 100 mmHg
+  left conductance share: mean 0.501 sd 0.0065
+  external share within side: mean 0.625 sd 0.181
+  R2(ext share ~ area share) 0.491; residual sd 0.129; residual CoV ext 0.21 / int 0.34
+  R2*C median 1.570 s (p5 1.420, p95 1.673)
+=== AG measured within-side external flow share (Fluent monitors), n_cases=58 ===
+  R2(measured ~ area share) 0.734; R2(measured ~ RCR conductance share) 0.909; measured sd 0.157; residual sd after area 0.081

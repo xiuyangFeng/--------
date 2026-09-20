@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-09-09T23:24:54.088116+08:00",
+  "passed": true,
+  "mechanism": "Slurm GRES indices refer to /dev/nvidia device minors. Root NVML indices use PCI ordering; within each one-GPU Slurm step NVML exposes the assigned GPU as local index 0.",
+  "evidence_method": "Cross-check same-job overlapping read-only NVML probes, /proc driver UUID-to-minor mapping, actual worker child GPU process UUIDs, and actual child /proc maps. The probe runs in an additional same-allocation Slurm step; worker stdout was not intercepted.",
+  "worker_memory_queries_match_allocation": true,
+  "all_four_assigned_uuids_distinct": true,
+  "records": [
+    {
+      "job_id": "13974",
+      "worker_pid": 798190,
+      "slurm_gres_device_minor": 0,
+      "worker_cuda_visible_devices": "0",
+      "worker_local_nvml_index": 0,
+      "root_nvml_index": 1,
+      "uuid": "GPU-99ad58be-5459-6d50-0383-001595b234ab",
+      "pci_bus_id": "00000000:61:00.0",
+      "probe_command": "srun --jobid=13974 --overlap --gres=gpu:1 --cpus-per-task=1 --ntasks=1 nvidia-smi -i 0 --query-gpu=index,uuid,pci.bus_id,memory.free --format=csv,noheader,nounits",
+      "probe_stdout": "0, GPU-99ad58be-5459-6d50-0383-001595b234ab, 00000000:61:00.0, 18034",
+      "probe_free_memory_mib": 18034.0,
+      "training_processes": [
+        {
+          "pid": 798223,
+          "command": "/public/newhome/cy/.conda/envs/GNN/bin/python -u -m training_wss_min.train --config /public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/m2_optimization_20260909/MO0_s1234.json",
+          "opened_device_minors": [
+            "0"
+          ],
+          "uuid": "GPU-99ad58be-5459-6d50-0383-001595b234ab",
+          "used_memory_mib": 2740.0
+        },
+        {
+          "pid": 799625,
+          "command": "/public/newhome/cy/.conda/envs/GNN/bin/python -u -m training_wss_min.train --config /public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/m2_optimization_20260909/MO-L4_s1234.json",
+          "opened_device_minors": [
+            "0"
+          ],
+          "uuid": "GPU-99ad58be-5459-6d50-0383-001595b234ab",
+          "used_memory_mib": 2740.0
+        }
+      ]
+    },
+    {
+      "job_id": "13975",
+      "worker_pid": 798197,
+      "slurm_gres_device_minor": 1,
+      "worker_cuda_visible_devices": "0",
+      "worker_local_nvml_index": 0,
+      "root_nvml_index": 0,
+      "uuid": "GPU-8a88fadc-4ef8-892b-83ee-c0cbc7fa6979",
+      "pci_bus_id": "00000000:01:00.0",
+      "probe_command": "srun --jobid=13975 --overlap --gres=gpu:1 --cpus-per-task=1 --ntasks=1 nvidia-smi -i 0 --query-gpu=index,uuid,pci.bus_id,memory.free --format=csv,noheader,nounits",
+      "probe_stdout": "0, GPU-8a88fadc-4ef8-892b-83ee-c0cbc7fa6979, 00000000:01:00.0, 18028",
+      "probe_free_memory_mib": 18028.0,
+      "training_processes": [
+        {
+          "pid": 798231,
+          "command": "/public/newhome/cy/.conda/envs/GNN/bin/python -u -m training_wss_min.train --config /public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/m2_optimization_20260909/MO-L1_s1234.json",
+          "opened_device_minors": [
+            "1"
+          ],
+          "uuid": "GPU-8a88fadc-4ef8-892b-83ee-c0cbc7fa6979",
+          "used_memory_mib": 2738.0
+        },
+        {
+          "pid": 799626,
+          "command": "/public/newhome/cy/.conda/envs/GNN/bin/python -u -m training_wss_min.train --config /public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/m2_optimization_20260909/MO-L5_s1234.json",
+          "opened_device_minors": [
+            "1"
+          ],
+          "uuid": "GPU-8a88fadc-4ef8-892b-83ee-c0cbc7fa6979",
+          "used_memory_mib": 2740.0
+        }
+      ]
+    },
+    {
+      "job_id": "13976",
+      "worker_pid": 798365,
+      "slurm_gres_device_minor": 2,
+      "worker_cuda_visible_devices": "0",
+      "worker_local_nvml_index": 0,
+      "root_nvml_index": 3,
+      "uuid": "GPU-d0b318d1-2854-e739-dce2-ba709b7f99a8",
+      "pci_bus_id": "00000000:C1:00.0",
+      "probe_command": "srun --jobid=13976 --overlap --gres=gpu:1 --cpus-per-task=1 --ntasks=1 nvidia-smi -i 0 --query-gpu=index,uuid,pci.bus_id,memory.free --format=csv,noheader,nounits",
+      "probe_stdout": "0, GPU-d0b318d1-2854-e739-dce2-ba709b7f99a8, 00000000:C1:00.0, 18036",
+      "probe_free_memory_mib": 18036.0,
+      "training_processes": [
+        {
+          "pid": 798380,
+          "command": "/public/newhome/cy/.conda/envs/GNN/bin/python -u -m training_wss_min.train --config /public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/m2_optimization_20260909/MO-L2_s1234.json",
+          "opened_device_minors": [
+            "2"
+          ],
+          "uuid": "GPU-d0b318d1-2854-e739-dce2-ba709b7f99a8",
+          "used_memory_mib": 2738.0
+        },
+        {
+          "pid": 800450,
+          "command": "/public/newhome/cy/.conda/envs/GNN/bin/python -u -m training_wss_min.train --config /public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/m2_optimization_20260909/MO-L6_s1234.json",
+          "opened_device_minors": [
+            "2"
+          ],
+          "uuid": "GPU-d0b318d1-2854-e739-dce2-ba709b7f99a8",
+          "used_memory_mib": 2740.0
+        }
+      ]
+    },
+    {
+      "job_id": "13977",
+      "worker_pid": 798366,
+      "slurm_gres_device_minor": 3,
+      "worker_cuda_visible_devices": "0",
+      "worker_local_nvml_index": 0,
+      "root_nvml_index": 2,
+      "uuid": "GPU-550c33a9-610b-c160-ab40-b360e328bd6e",
+      "pci_bus_id": "00000000:A1:00.0",
+      "probe_command": "srun --jobid=13977 --overlap --gres=gpu:1 --cpus-per-task=1 --ntasks=1 nvidia-smi -i 0 --query-gpu=index,uuid,pci.bus_id,memory.free --format=csv,noheader,nounits",
+      "probe_stdout": "0, GPU-550c33a9-610b-c160-ab40-b360e328bd6e, 00000000:A1:00.0, 18038",
+      "probe_free_memory_mib": 18038.0,
+      "training_processes": [
+        {
+          "pid": 798381,
+          "command": "/public/newhome/cy/.conda/envs/GNN/bin/python -u -m training_wss_min.train --config /public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/m2_optimization_20260909/MO-L3_s1234.json",
+          "opened_device_minors": [
+            "3"
+          ],
+          "uuid": "GPU-550c33a9-610b-c160-ab40-b360e328bd6e",
+          "used_memory_mib": 2738.0
+        },
+        {
+          "pid": 800456,
+          "command": "/public/newhome/cy/.conda/envs/GNN/bin/python -u -m training_wss_min.train --config /public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/m2_optimization_20260909/MO-L7_s1234.json",
+          "opened_device_minors": [
+            "3"
+          ],
+          "uuid": "GPU-550c33a9-610b-c160-ab40-b360e328bd6e",
+          "used_memory_mib": 2738.0
+        }
+      ]
+    }
+  ],
+  "root_gpus": [
+    {
+      "root_nvml_index": 0,
+      "uuid": "GPU-8a88fadc-4ef8-892b-83ee-c0cbc7fa6979",
+      "pci_bus_id": "00000000:01:00.0",
+      "used_memory_mib": 6188.0,
+      "free_memory_mib": 18028.0
+    },
+    {
+      "root_nvml_index": 1,
+      "uuid": "GPU-99ad58be-5459-6d50-0383-001595b234ab",
+      "pci_bus_id": "00000000:61:00.0",
+      "used_memory_mib": 6182.0,
+      "free_memory_mib": 18034.0
+    },
+    {
+      "root_nvml_index": 2,
+      "uuid": "GPU-550c33a9-610b-c160-ab40-b360e328bd6e",
+      "pci_bus_id": "00000000:A1:00.0",
+      "used_memory_mib": 6178.0,
+      "free_memory_mib": 18038.0
+    },
+    {
+      "root_nvml_index": 3,
+      "uuid": "GPU-d0b318d1-2854-e739-dce2-ba709b7f99a8",
+      "pci_bus_id": "00000000:C1:00.0",
+      "used_memory_mib": 6180.0,
+      "free_memory_mib": 18036.0
+    }
+  ],
+  "gres_config": "Name=gpu Type=4090 File=/dev/nvidia[0-3]\n",
+  "gres_config_sha256": "4102263f8628edb9ea70464deac862457ffcaf26c5c061ceb5098c3f27cdd3d3",
+  "minimum_root_free_memory_mib": 18028.0,
+  "maximum_queue_admission_threshold_mib": 7000.0,
+  "frozen_sources_unchanged": true,
+  "action": "No running process or frozen source changed; retain the worker admission checks and external four-GPU monitoring."
+}

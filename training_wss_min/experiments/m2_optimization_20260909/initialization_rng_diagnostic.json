@@ -1,0 +1,521 @@
+{
+  "cpu_only": true,
+  "historical_snapshot": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/source_snapshot_13205/training_wss_min",
+  "global_rng_stages": {
+    "after_seed": {
+      "cpu": "de89fdb4ebc4cb9ba868b924a5bdd7042b3741bf9939013d2c1f38675274a084",
+      "numpy": "a986aeeedc393ea12ee2c8fcbc8bb8b9f59c10e8ca10fee36524eef5e86ee82e",
+      "initial_seed": 1234
+    },
+    "after_load_train138": {
+      "cpu": "de89fdb4ebc4cb9ba868b924a5bdd7042b3741bf9939013d2c1f38675274a084",
+      "numpy": "a986aeeedc393ea12ee2c8fcbc8bb8b9f59c10e8ca10fee36524eef5e86ee82e",
+      "initial_seed": 1234
+    },
+    "after_training_statistics": {
+      "cpu": "de89fdb4ebc4cb9ba868b924a5bdd7042b3741bf9939013d2c1f38675274a084",
+      "numpy": "a986aeeedc393ea12ee2c8fcbc8bb8b9f59c10e8ca10fee36524eef5e86ee82e",
+      "initial_seed": 1234
+    },
+    "after_dataset_and_loader_construction": {
+      "cpu": "de89fdb4ebc4cb9ba868b924a5bdd7042b3741bf9939013d2c1f38675274a084",
+      "numpy": "a986aeeedc393ea12ee2c8fcbc8bb8b9f59c10e8ca10fee36524eef5e86ee82e",
+      "initial_seed": 1234
+    },
+    "historical_actual_post_model": {
+      "cpu": "d6c2f7992ffaf7e6054765131ec0fa5c7160f003a36db77738dd811b15aaf113",
+      "numpy": "a986aeeedc393ea12ee2c8fcbc8bb8b9f59c10e8ca10fee36524eef5e86ee82e",
+      "initial_seed": 1234
+    },
+    "new_pre_paired_model": {
+      "cpu": "de89fdb4ebc4cb9ba868b924a5bdd7042b3741bf9939013d2c1f38675274a084",
+      "numpy": "a986aeeedc393ea12ee2c8fcbc8bb8b9f59c10e8ca10fee36524eef5e86ee82e",
+      "initial_seed": 1234
+    },
+    "paired_post_model": {
+      "cpu": "d6c2f7992ffaf7e6054765131ec0fa5c7160f003a36db77738dd811b15aaf113",
+      "numpy": "a986aeeedc393ea12ee2c8fcbc8bb8b9f59c10e8ca10fee36524eef5e86ee82e",
+      "initial_seed": 1234
+    }
+  },
+  "checks": {
+    "dataset.py_byte_identical": true,
+    "runtime.py_byte_identical": true,
+    "surface.py_byte_identical": true,
+    "actual_model_parameters_and_buffers_exact": true,
+    "actual_post_model_cpu_numpy_rng_exact": true,
+    "actual_initial_state_matches_completed_mo0_evidence": true,
+    "actual_post_model_cpu_rng_matches_completed_mo0_evidence": true,
+    "first_two_epochs_all_36_batches_identical": true,
+    "dataloader_generator_state_identical": true,
+    "all_pre_model_data_preparation_preserves_global_rng": true
+  },
+  "historical_actual_initial_state_sha256": "6256d78e6081412192d1540fe850bcef54eddca100e971b37e3837b98c657aae",
+  "new_actual_initial_state_sha256": "6256d78e6081412192d1540fe850bcef54eddca100e971b37e3837b98c657aae",
+  "initial_state_differences": [],
+  "batch_mismatches": [],
+  "first_two_epochs_batch_hashes": [
+    [
+      {
+        "unit_ids": [
+          "ILO/WANG_SHU_SHENG-0/before",
+          "AG/fast/ZHANG_XIU_WEN",
+          "AAA/ruputer/DING_JUN_FENG",
+          "AAA/unruputer/SHEN_CHUN_WANG",
+          "AAA/unruputer/LIU_CHENG_ZHANG",
+          "ILO/ZHANG_JIAN_JUN-1/before",
+          "ILO/YANG_YU_QING-1/before",
+          "AG/slow/ZHANG_JING_SHUN"
+        ],
+        "sha256": "7f38ff389ee9ec7d742695e07af32916b474618b9b6a09a3bcde794ed3728b38"
+      },
+      {
+        "unit_ids": [
+          "ILO/PAN_YIN_GEN-1/before",
+          "AG/fast/WANG_CHUN_MING",
+          "AAA/unruputer/QIAO_XIU_YUN",
+          "AG/slow/LI_BING_YI",
+          "AAA/ruputer/MENG_GUANG_QIN",
+          "AAA/ruputer/HUO_SHI_LIANG",
+          "ILO/SUN_DE_QI-1/before",
+          "AG/fast/LI_ZHI_LIN"
+        ],
+        "sha256": "707aa54a3e74ba25312c3a8e2a97c651c4756336142c5e83dde7091ed1df57c5"
+      },
+      {
+        "unit_ids": [
+          "ILO/ZHANG_YAN_SHAN-0/before",
+          "AG/slow/ZANG_YU_SHU",
+          "AAA/ruputer/MA_XIAO_DONG",
+          "ILO/GONG_HAI_ZENG-1/before",
+          "AG/slow/WANG_KE",
+          "AG/slow/HOU_SHEN_QIAN",
+          "AG/slow/XU_YI_CAI",
+          "AAA/ruputer/TONG_XUE_LIAN"
+        ],
+        "sha256": "a096c914ff3dfd76d8d8f98397dee5f5fd1b6bfaa85d75d9015074d89d27d8eb"
+      },
+      {
+        "unit_ids": [
+          "AAA/ruputer/LI_BING_JIANG",
+          "AG/slow/QIN_SI_FU",
+          "AG/slow/CHENG_GUANG_SEN",
+          "AG/slow/LU_ZHEN_QING",
+          "AG/slow/LI_GUI_YING",
+          "AG/slow/WU_YI_FA",
+          "AAA/ruputer/WANG_KUI_WU",
+          "AG/slow/LI_CHONG_ZENG"
+        ],
+        "sha256": "4fad9e9595d7632d324ed057966f28f1152fabfc445daa07ca710b2786474705"
+      },
+      {
+        "unit_ids": [
+          "AAA/ruputer/WANG_AN",
+          "AAA/unruputer/GUO_BAO_CHUN",
+          "AG/fast/LI_SHU_KUN",
+          "AAA/ruputer/GAO_FENG_SHAN",
+          "AAA/ruputer/XIE_JIN_QUAN",
+          "AAA/unruputer/LIU_LI_FENG",
+          "AG/slow/WANG_YAN_LING",
+          "ILO/SUN_YU_SHENG-0/before"
+        ],
+        "sha256": "eb71653aba36659593b034376c997979460b31f6cf25fcc5173eb29319389321"
+      },
+      {
+        "unit_ids": [
+          "ILO/LIU_YUE_DONG-0/before",
+          "AG/slow/ZHANG_JUN_HUA",
+          "AG/slow/SUN_ZONG_GE",
+          "AG/slow/ZHANG_QING_SHUI",
+          "AAA/unruputer/CHEN_SHU_LIN",
+          "AAA/unruputer/SHEN_FANG_JIN",
+          "AG/fast/ZHANG_XIU_ZHEN",
+          "ILO/YAO_GUO_CHEN-0/before"
+        ],
+        "sha256": "a8ef59ea1b70cf98afad745c50e5b8fe8e678f957f3856445e31c192f2ff75f9"
+      },
+      {
+        "unit_ids": [
+          "ILO/BAO_EN_YUN-0/before",
+          "AAA/ruputer/WU_GUANG_CUN",
+          "AAA/unruputer/ZHANG_ZHI_HUA",
+          "ILO/WU_JUN-0/before",
+          "AAA/ruputer/GUO_AI_JUN",
+          "ILO/GAO_SHU_CAI-0/before",
+          "AG/slow/MI_DE_XI",
+          "AG/slow/A_MIN_SE_HA_CHI"
+        ],
+        "sha256": "1d6db8975d671b2ebef31f9f2c07c7b97582f5c8b94884d49a11cbb292e18f63"
+      },
+      {
+        "unit_ids": [
+          "AG/slow/LV_FU_LONG",
+          "AG/slow/ZHANG_QUAN_YOU",
+          "AG/slow/SHEN_ZHI_GANG",
+          "AAA/unruputer/LIU_XING_GUO",
+          "AAA/unruputer/GAO_WEI_LI",
+          "AAA/unruputer/CAO_HONG_TAI",
+          "AG/slow/WEI_BAO_XING",
+          "AAA/ruputer/FENG_LI_XIN"
+        ],
+        "sha256": "c74588476c14bc02ee92680a125863990b1f428b1b34e840cb5cd4ce2056a46c"
+      },
+      {
+        "unit_ids": [
+          "AG/fast/LI_ZHEN_SHAN",
+          "AG/slow/WANG_YONG_LI",
+          "AG/slow/LIU_ZONG_YANG",
+          "ILO/LIU_BAO_JUN-0/before",
+          "ILO/LIU_LIAN_YOU-0/before",
+          "AAA/unruputer/LIU_JIE",
+          "AAA/unruputer/CHEN_FU_YE",
+          "AAA/unruputer/LI_YOU_YU"
+        ],
+        "sha256": "00bd8abf9ff317d213eec0fece2f14aabbb77906ae18c7e56f8b2116e820834f"
+      },
+      {
+        "unit_ids": [
+          "ILO/ZHAO_CHANG_SHAN-0/before",
+          "AG/slow/YIN_YU_RONG",
+          "ILO/XIE_ZHI_FU-0/before",
+          "AG/fast/WANG_YONG_FAN",
+          "AG/slow/ZHANG_ZHI_JUN",
+          "AAA/unruputer/ZHANG_XUN_LIAN",
+          "ILO/LIN_CHUN_YANG-1/before",
+          "ILO/WENG_ZHAO_GUANG-0/before"
+        ],
+        "sha256": "ce5efe8443702aefcabd5cc4f84ac80eb19f2e0165b92fb7586d6db4e0b79f1b"
+      },
+      {
+        "unit_ids": [
+          "AG/fast/CHEN_SHI_MING",
+          "AAA/ruputer/LIN_LIANG_XIAO",
+          "AAA/unruputer/FENG_ZHI_YING",
+          "AG/slow/ZHANG_LING_GUANG",
+          "ILO/CUI_WEI_PING-0/before",
+          "AAA/unruputer/LIN_JIAN_RONG",
+          "ILO/LV_JIAN_HUA-0/before",
+          "ILO/GUO_YU_SHU-0/before"
+        ],
+        "sha256": "e8eb0cdf5c78036a7fbaf3907d50cccd7dc6f8335a1c8d3cf7044fdef1b65fc6"
+      },
+      {
+        "unit_ids": [
+          "ILO/GENG_CHUN_LAI-1/before",
+          "AG/slow/KANG_XI_MING",
+          "AAA/unruputer/ZHU_ZI_HAI",
+          "AG/slow/NI_YAN_BIN",
+          "AG/slow/GONG_HUI_XIA",
+          "AG/fast/HAN_JIAN_JUN",
+          "AG/slow/WU_FENG_YAN",
+          "ILO/WANG_JIN_MING-0/before"
+        ],
+        "sha256": "8d3710146eb1d05e849049fcfec9473021df2ceb4db81468f3089b8f4ef3a24b"
+      },
+      {
+        "unit_ids": [
+          "AG/slow/WANG_GUI",
+          "AG/slow/YANG_YOU_SHENG",
+          "AAA/ruputer/ZHOU_KE_XUN",
+          "ILO/YANG_WANG_QI-1/before",
+          "AG/slow/WANG_GUANG_CHAO",
+          "AAA/unruputer/CHEN_LIANG_FU",
+          "AAA/ruputer/LI_LAO_PING",
+          "AG/slow/GUAN_TONG_XIANG"
+        ],
+        "sha256": "c7045b149d6f58ccf7c5410af72f5fc48d55cced9fc16a9dfed0bb24dcc38d09"
+      },
+      {
+        "unit_ids": [
+          "AG/fast/LIU_JUN_FENG",
+          "AAA/unruputer/LIU_WEN_QI",
+          "AG/slow/LIU_FA_CHUN",
+          "AAA/ruputer/LIU_JI_XIN",
+          "AAA/unruputer/ZHOU_XI_SHENG",
+          "AAA/unruputer/YANG_BEN_RUI",
+          "ILO/GUO_QING_SHAN-0/before",
+          "AG/slow/XI_CHENG_JIANG"
+        ],
+        "sha256": "c748108248c5f58ed81a0519168838b1219a0364a783106de81aa789c57172c4"
+      },
+      {
+        "unit_ids": [
+          "ILO/AN_GUANG_JIE-0/before",
+          "AG/slow/LIU_FENG",
+          "ILO/WAGN_LI_JUN-1/before",
+          "AG/fast/ZHANG_QING_WANG",
+          "AG/slow/ZHANG_SONG_TIAN",
+          "AG/slow/LIU_JIN_LIANG",
+          "AG/fast/WANG_DAO_CHUN",
+          "AAA/unruputer/HAN_JIAN_FU"
+        ],
+        "sha256": "c6ea9fb68f18e9fc9c69004e0100caf5afb7b50353c8ec726674e9077c214692"
+      },
+      {
+        "unit_ids": [
+          "AG/slow/DING_LIAN_ZHONG",
+          "AAA/ruputer/ZOU_LI_SHUN",
+          "ILO/LI_SHENG_WEN-0/before",
+          "AG/fast/ZHANG_HAO",
+          "AG/slow/QU_HE_PING",
+          "ILO/WANG_TIAN_QING-1/before",
+          "AG/slow/CAO_FENG_CHI",
+          "AG/fast/LIU_FENG_MING"
+        ],
+        "sha256": "7699b12b885764c0ab3e7086ea5dd4223c4c2fb0c46164ef3fd713fb6cac818d"
+      },
+      {
+        "unit_ids": [
+          "AAA/unruputer/YAN_FU_TANG",
+          "AAA/ruputer/ZHANG_MAO_JIN",
+          "AG/fast/LIU_YI_BING",
+          "ILO/WANG_XIAO_LIN-0/before",
+          "AAA/ruputer/ZUO_DAO_SHENG",
+          "AG/fast/LIU_LI_QUN",
+          "AAA/ruputer/LIU_YONG_LAN",
+          "AG/slow/CHENG_LU_LI"
+        ],
+        "sha256": "adc87c188412fa6cda2955abfbd8f635b19e0d03e71d94d21644fefecad542ea"
+      },
+      {
+        "unit_ids": [
+          "ILO/HOU_SHI_GUO-0/before",
+          "AG/fast/LI_SHI_QIANG"
+        ],
+        "sha256": "241ba6d3e933693624720bd56de8dd64380409d5504d5a86933e34068fe219e1"
+      }
+    ],
+    [
+      {
+        "unit_ids": [
+          "ILO/GUO_QING_SHAN-0/before",
+          "AG/slow/YANG_YOU_SHENG",
+          "AAA/ruputer/TONG_XUE_LIAN",
+          "ILO/XIE_ZHI_FU-0/before",
+          "ILO/GONG_HAI_ZENG-1/before",
+          "AG/slow/WU_YI_FA",
+          "ILO/ZHANG_YAN_SHAN-0/before",
+          "ILO/LIN_CHUN_YANG-1/before"
+        ],
+        "sha256": "aef8a19bfac3f61887bf5b0cb5c14f973d8de587c17a3cd6648b7ed327c8a746"
+      },
+      {
+        "unit_ids": [
+          "AAA/unruputer/LI_YOU_YU",
+          "ILO/WU_JUN-0/before",
+          "AAA/unruputer/SHEN_CHUN_WANG",
+          "AG/slow/LI_CHONG_ZENG",
+          "AAA/ruputer/LIU_JI_XIN",
+          "AG/slow/QU_HE_PING",
+          "AG/slow/DING_LIAN_ZHONG",
+          "ILO/GAO_SHU_CAI-0/before"
+        ],
+        "sha256": "5a27ddd6c099249379d24feafa0a432d50974beea3daad9eda01b69edc735f3a"
+      },
+      {
+        "unit_ids": [
+          "AG/slow/HOU_SHEN_QIAN",
+          "AG/slow/ZHANG_LING_GUANG",
+          "AG/slow/LIU_JIN_LIANG",
+          "AG/slow/SHEN_ZHI_GANG",
+          "AAA/unruputer/ZHOU_XI_SHENG",
+          "AG/slow/WANG_YAN_LING",
+          "ILO/WENG_ZHAO_GUANG-0/before",
+          "AG/slow/QIN_SI_FU"
+        ],
+        "sha256": "5ffb2b4fbd6544c0a4d12381a0aed9f2c63dccdc75e673c75100fe584dc0d01d"
+      },
+      {
+        "unit_ids": [
+          "AAA/unruputer/SHEN_FANG_JIN",
+          "AG/slow/YIN_YU_RONG",
+          "AG/slow/GONG_HUI_XIA",
+          "AAA/ruputer/ZOU_LI_SHUN",
+          "AG/slow/LIU_FENG",
+          "AG/fast/CHEN_SHI_MING",
+          "AG/slow/XU_YI_CAI",
+          "AAA/unruputer/CHEN_SHU_LIN"
+        ],
+        "sha256": "6ee509fcefd80969dfc87b83063d68a91bcae7ff5803b28df3c4b2b986ecd373"
+      },
+      {
+        "unit_ids": [
+          "AAA/unruputer/ZHANG_XUN_LIAN",
+          "AG/slow/MI_DE_XI",
+          "ILO/AN_GUANG_JIE-0/before",
+          "AG/slow/ZHANG_JING_SHUN",
+          "AG/slow/ZHANG_QUAN_YOU",
+          "AAA/unruputer/LIU_JIE",
+          "AG/fast/LI_SHU_KUN",
+          "ILO/WANG_JIN_MING-0/before"
+        ],
+        "sha256": "70e0c23486cb11ec8f5d04541f7c64f7b95f7b5c56dddcbd7f2ea2b86f86dc79"
+      },
+      {
+        "unit_ids": [
+          "AAA/unruputer/LIU_CHENG_ZHANG",
+          "AG/fast/LIU_YI_BING",
+          "ILO/GUO_YU_SHU-0/before",
+          "AAA/ruputer/MENG_GUANG_QIN",
+          "AG/fast/ZHANG_XIU_WEN",
+          "AG/slow/LIU_ZONG_YANG",
+          "AG/fast/LI_ZHEN_SHAN",
+          "AG/slow/XI_CHENG_JIANG"
+        ],
+        "sha256": "0fd8d87c8d64d5224a7dd03322b1f4cf872ff33c7f1446b3ebfcaf7db9cb220f"
+      },
+      {
+        "unit_ids": [
+          "AG/slow/WU_FENG_YAN",
+          "AAA/ruputer/ZHOU_KE_XUN",
+          "AAA/ruputer/DING_JUN_FENG",
+          "AG/slow/CAO_FENG_CHI",
+          "AG/slow/LI_GUI_YING",
+          "AAA/unruputer/CAO_HONG_TAI",
+          "AG/slow/LU_ZHEN_QING",
+          "AAA/ruputer/GAO_FENG_SHAN"
+        ],
+        "sha256": "0a3fbb736f7b19d070c605d4cd0f30c042844a962aca375897305f2b990f67cb"
+      },
+      {
+        "unit_ids": [
+          "AAA/ruputer/XIE_JIN_QUAN",
+          "ILO/LV_JIAN_HUA-0/before",
+          "AAA/ruputer/LI_LAO_PING",
+          "ILO/SUN_DE_QI-1/before",
+          "ILO/BAO_EN_YUN-0/before",
+          "AG/fast/ZHANG_QING_WANG",
+          "ILO/WAGN_LI_JUN-1/before",
+          "AAA/unruputer/YANG_BEN_RUI"
+        ],
+        "sha256": "d68059b627e6c48db2242f5ba48c5fb9b7b17a2e63e6b1f1498cec228a976295"
+      },
+      {
+        "unit_ids": [
+          "AG/fast/LI_SHI_QIANG",
+          "AAA/unruputer/ZHU_ZI_HAI",
+          "AG/fast/WANG_CHUN_MING",
+          "AAA/unruputer/FENG_ZHI_YING",
+          "ILO/ZHANG_JIAN_JUN-1/before",
+          "ILO/ZHAO_CHANG_SHAN-0/before",
+          "AG/slow/WEI_BAO_XING",
+          "AAA/unruputer/GAO_WEI_LI"
+        ],
+        "sha256": "713aa0db8e369b866f6719fb9975c30c551647466b49d86df066b1a2eb39d6d7"
+      },
+      {
+        "unit_ids": [
+          "AG/fast/LIU_LI_QUN",
+          "AG/slow/LIU_FA_CHUN",
+          "ILO/WANG_SHU_SHENG-0/before",
+          "ILO/CUI_WEI_PING-0/before",
+          "ILO/YAO_GUO_CHEN-0/before",
+          "AAA/unruputer/LIU_WEN_QI",
+          "ILO/SUN_YU_SHENG-0/before",
+          "AAA/unruputer/GUO_BAO_CHUN"
+        ],
+        "sha256": "3194dc84a053b3cd407778392264a580d9bdbb8cbceb2b828a465228af66086b"
+      },
+      {
+        "unit_ids": [
+          "ILO/LIU_LIAN_YOU-0/before",
+          "ILO/WANG_TIAN_QING-1/before",
+          "AAA/unruputer/YAN_FU_TANG",
+          "AG/slow/LI_BING_YI",
+          "AG/fast/LIU_FENG_MING",
+          "AG/slow/A_MIN_SE_HA_CHI",
+          "ILO/LIU_BAO_JUN-0/before",
+          "AAA/ruputer/LI_BING_JIANG"
+        ],
+        "sha256": "d06523c16cbd215cfcdd8a1f024c19fc42851c82ed777bb294c4120951576703"
+      },
+      {
+        "unit_ids": [
+          "AG/slow/WANG_GUI",
+          "AG/slow/WANG_KE",
+          "ILO/YANG_YU_QING-1/before",
+          "AG/slow/ZANG_YU_SHU",
+          "AG/fast/LI_ZHI_LIN",
+          "AG/fast/WANG_YONG_FAN",
+          "AG/slow/KANG_XI_MING",
+          "AAA/unruputer/CHEN_LIANG_FU"
+        ],
+        "sha256": "20ee4fdd2fd1e92032bf752c3625d81e8a3587fbb373794e452e76e9f4bbafb8"
+      },
+      {
+        "unit_ids": [
+          "AG/slow/ZHANG_QING_SHUI",
+          "AAA/unruputer/QIAO_XIU_YUN",
+          "AG/fast/LIU_JUN_FENG",
+          "AG/slow/GUAN_TONG_XIANG",
+          "ILO/HOU_SHI_GUO-0/before",
+          "AAA/unruputer/LIU_XING_GUO",
+          "AG/slow/CHENG_LU_LI",
+          "AG/fast/HAN_JIAN_JUN"
+        ],
+        "sha256": "3ef5f041b4dfb54a84bb686c019ec48062a29d8fa8e2eb72c0f5366d260977eb"
+      },
+      {
+        "unit_ids": [
+          "ILO/GENG_CHUN_LAI-1/before",
+          "ILO/YANG_WANG_QI-1/before",
+          "AAA/ruputer/WANG_AN",
+          "AG/slow/NI_YAN_BIN",
+          "AAA/ruputer/HUO_SHI_LIANG",
+          "AAA/ruputer/FENG_LI_XIN",
+          "AG/fast/ZHANG_XIU_ZHEN",
+          "ILO/LIU_YUE_DONG-0/before"
+        ],
+        "sha256": "e8761f0d7410bed7157cbbcabef88542495de1f18d50b43d2bbd8745e1209544"
+      },
+      {
+        "unit_ids": [
+          "AAA/unruputer/CHEN_FU_YE",
+          "ILO/LI_SHENG_WEN-0/before",
+          "AAA/ruputer/WU_GUANG_CUN",
+          "AAA/ruputer/LIU_YONG_LAN",
+          "AG/slow/WANG_YONG_LI",
+          "AAA/ruputer/GUO_AI_JUN",
+          "AAA/unruputer/LIN_JIAN_RONG",
+          "AG/slow/WANG_GUANG_CHAO"
+        ],
+        "sha256": "56a5ca725f7fb6a7ad87a8f2a0753ed79d20a424fd7c2770fa5e2810ea29fce9"
+      },
+      {
+        "unit_ids": [
+          "ILO/WANG_XIAO_LIN-0/before",
+          "AAA/unruputer/LIU_LI_FENG",
+          "AG/slow/LV_FU_LONG",
+          "AAA/ruputer/LIN_LIANG_XIAO",
+          "AG/slow/ZHANG_JUN_HUA",
+          "AG/fast/ZHANG_HAO",
+          "AG/slow/ZHANG_ZHI_JUN",
+          "AAA/ruputer/MA_XIAO_DONG"
+        ],
+        "sha256": "39599a0138922539ff6cc18658edc59851b7a7252e07d9f07fd05f7270b3805c"
+      },
+      {
+        "unit_ids": [
+          "AG/slow/CHENG_GUANG_SEN",
+          "AG/slow/ZHANG_SONG_TIAN",
+          "AAA/ruputer/ZHANG_MAO_JIN",
+          "AG/slow/SUN_ZONG_GE",
+          "AG/fast/WANG_DAO_CHUN",
+          "AAA/unruputer/ZHANG_ZHI_HUA",
+          "AAA/ruputer/WANG_KUI_WU",
+          "ILO/PAN_YIN_GEN-1/before"
+        ],
+        "sha256": "20b5121ae3ca15d91cb029740603b298ed99f74d0f11a68e171455ad5cf317fe"
+      },
+      {
+        "unit_ids": [
+          "AAA/ruputer/ZUO_DAO_SHENG",
+          "AAA/unruputer/HAN_JIAN_FU"
+        ],
+        "sha256": "045a1e9e2080460cb24087a36cc8c2f0fccd54a06a83e2f5461e5f08a62bfda5"
+      }
+    ]
+  ],
+  "cuda_scope": "No CUDA execution here. Historical preprocessing/model construction are CPU-only; GPU RNG draws first occur during forward stochastic depth. CPU evidence excludes an erroneous pre-model RNG reset but does not prove CUDA training determinism.",
+  "passed": true
+}

@@ -1,0 +1,502 @@
+{
+  "status": "passed",
+  "figure_count": 22,
+  "export_files": 66,
+  "source_hashes_checked": 56,
+  "sources_sha256": {
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式汇报提纲_v2_2026-09-13.md": "ad1d7a9d388d7f061b43e5df23e68fbefecb42e7725e473f124ab9a7117c6f92",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/baseline_models.py": "bd3f2a4fb8d6b33b0555f0f11055210b282e3a7c7d9e04fb0b873038ba478613",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/local_refinement.py": "67dd678f47a615c69fd3af57c333f5abac0d3c203375f5340ec3407af145f01a",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1_20260912/X5_s1234.json": "dcdb2db2d59170afee8da836c60536399ad92f1744b9935afcdfe1b370314564",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/X5X11_s1234.json": "ecfc5c6f2dc774a57ec2ec0c03fc2e33899d643b67dab10b59f07ac0247ca8d6",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave2_20260912/results.json": "1515c6c86428c6e3d5fedf2590f338155317d10b81be6da3575d0f42a9ebe40d",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1b_20260912/results.json": "2475d31ee20dfb9f399003b41ef98a2398a7de2151a674f161072f980f0c8307",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/PF6_s1234.json": "7478854a1f43a8e23312dcf62bb0b1e1aedbd5b943f2ba235942bbac2fa90e62",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave2_20260912/VF6_s1234.json": "35f1ac353029ac123433ab3e41b94fc0c747f87eba8ad6f0c443a094490a592d",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/results.json": "1fa18d00402aa56a39640dbd658da1703e63751dc81147e8e65a14978e1461dc",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave3_20260913/results.json": "2237e3be7bee851c42cd1915f84cd38da1853b1f4819758b790b0276c66c2515",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/07_murray_paired_effect.csv": "84fa29568c60f9ef32323aee59235ff51df0afd0640c03be7d4a5aa1fd81a8ec",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/08_x11_tradeoff.csv": "3b4b82163af3597f03ad18fb129ac1b64377b584649c33f9a9e4ef7438db3ad6",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_R2分布_20260914/summary.json": "7285bbf6ff421f866b98d341a3811fc917d30c4f7e5c7359f2b2209d4506b72d",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1_20260912/X5_s1234/eval/ckpt_best/metrics.json": "4f92a5dc11586b964d01e7987f0b61752be0540da0f62672925fb281145f07f3",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1b_20260912/X5_s7/eval/ckpt_best/metrics.json": "964abe7d0aa2b1c134bdcb3cedb72b77751a358eaf6fefff6e53d7283939fab3",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1b_20260912/X5_s2025/eval/ckpt_best/metrics.json": "e45ba9dbea0dd85a91a406a23e0e3d3505ad951b7f4a9926046c26f4122ee728",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/eval/ckpt_best/metrics.json": "8595b618c43dba87b3ff2acf6c72d1eab7088f9d716e5b418a737b5ca23fcf1b",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s7/eval/ckpt_best/metrics.json": "1038ab35bca53f78d6c9f80f83e2c970c7d287aba45d299e93fc8658958183b2",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s2025/eval/ckpt_best/metrics.json": "f19738800dd0f264304c478e66c129b74939a06ffd58fefae06ac76e9ee34b25",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/metrics.json": "8ba2bbb611983f2225d59e26e0c7f206fb301c7b7af22c727f63ae4d14b3cc20",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave3_20260913/VF6_s7/eval/ckpt_best/metrics.json": "1f768ca9ddd3e0c6c1c4f04b2f53f19d7994b8af82e56c829a43529ace1bc23d",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave3_20260913/VF6_s2025/eval/ckpt_best/metrics.json": "cbb703d325b7ed2e7a6768c471a09bae3660383f76017c48493c55748e5b8cf1",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/eval/ckpt_best/metrics.json": "3216eb585c07d4f720281d14a8ec98d58cfd6c918d90e9fb8eab8bd72754774a",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave3_20260913/PF6_s7/eval/ckpt_best/metrics.json": "983ba7795067b9f0f065323fd6162d9c5999eb60119db37f66ae03687a39e2df",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave3_20260913/PF6_s2025/eval/ckpt_best/metrics.json": "3dead8e601400dce56e9d2589a07462a358555fd7dee299a7980507c40f50bb0",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/09_current_case_distributions.csv": "8311c88ebd0073715f8c6d2380ca2608338d19caea34fe5e805996e76acf5f1e",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/09_current_case_distributions_histogram.csv": "6f28203d334eda5a57332908ddeaad791a0dc5f0a0545c6ae2b8ea179624d16a",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/best/surface_gaussian.vtp": "283225d247e033878d15460a2ddf6f02ee4e21acc46812e8c5643a1774380fa1",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/best/manifest.json": "d70c8f7202d049a1b928f04f79a232e91ec74c97c0c2c7cced992427929e2790",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/median/surface_gaussian.vtp": "1a58ab4efdd9330c1ba5a95b6c1e399dacd4c431929ad1097e0fced526022632",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/median/manifest.json": "9f975c727801b7520378cf8af62dfe5fccaeddd82f1af966dd70e00a0127212a",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/worst/surface_gaussian.vtp": "3ef5a27cc2f2db51513b62aecc0fb9c2a1e45c30956f7951e638e9b78f35481d",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/worst/manifest.json": "a66b22ef52f7558c21703cc6edd6c744384105f7a042a285390d61be76b8041c",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/best/VF6__best__AG__fast__ZHANG_LIANG__volume_velocity.vtp": "8a8f00fba40b0111fcfb44cf901472ebd63b9831de828254be0f112d7c5f39c5",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/best/manifest.json": "f9fa2111ee7f8a014ed79c8368c5d84b68892e3a4d7f34b9148cf57fa600ab6a",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/median/VF6__median__AG__slow__LI_HUAN_GE__volume_velocity.vtp": "3ccde494809868d358390e7f765f5f87a0674fb0ede3a1ce1ef350f2a9afb47e",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/median/manifest.json": "0486c807c4ef5a2a7fd4ffaa7784c85a83264c5b1dc8b849def778d05d5d44ec",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/worst/VF6__worst__AAA__unruputer__SUN_SHU_MING__volume_velocity.vtp": "70eb0b537967de3735134b51c02616c8754147ff7c8e616176b6e9c828211b43",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/worst/manifest.json": "31d66c09658c7820e422eba90e92d5e2eacc67006fb15de3447fecfedce44b5e",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/best/surface_gaussian.vtp": "987ef7b6c7bbbedbb97a62866b8160e0a8a317c875b2d03e61d992d408eb15d7",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/best/manifest.json": "3cff92ef91f17aa729a41ec68cb788a699aa5b5c2a26ec3b08bc52a2c76c6cb2",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/median/surface_gaussian.vtp": "2bcd67b983d2bfb7853faa34b24ce3c3867e9c8bc68f21e401f597a615cbaa73",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/median/manifest.json": "d53d5d43cbd41dff6c9ff5d4bcb0615606b4836bc2938a765b2d28e5bfe86bb0",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/worst/surface_gaussian.vtp": "87b84c420c83a17a5e9af2f776702f69905b0e0d8176e25ce73cc98926fca69a",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/worst/manifest.json": "62d5338893a9d4633b1bc10a2e6381f22d2930e524c9dbe17dc025052a484341",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/metrics.json": "bd09a28bd5ef82ac1e84fc83ac3edf38d85ea777e0d8f484b56640ba8a6069cd",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v5_rerun_20260906/outputs/r5v_velocity_qad_s1234/eval/ckpt_best/metrics.json": "374ee5e1953fb82aa0df58e47ef6e6a06f13d5b9ac30c00c3af5c85d97638ab5",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/17_velocity_wss_gap.csv": "f600d59f2416134a5b7d89f5511155b208f9fd502183e2643965be800fb57cb0",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/V4汇报/V4_稳态梯度与损失_2026-09-12/individual_losses/single_pnpp_ema/source_curves.csv": "f449b8a2e2cc56bcb8c6d6f887b66dc498f14e714a3b5aea1178f906ac17bf68",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/V4汇报/V4_稳态梯度与损失_2026-09-12/gradient_summary_last500.csv": "91a1366d70b56cf73b909a27d68d4063523fca8f46cc360bf35bac8e5f0ee72e",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/V4汇报/V4_稳态梯度与损失_2026-09-12/loss_summary_last500.csv": "87e0e30ef638c056cf028e254f2bf9d02e8f98dfa87015e236b042b5fb4d3531",
+    "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/volume_uvwp_bc_rcr_v4/steady_peak/V4-SP-PN-BC-PDE-EMA-s1234/evaluation_official_last_converged_full.json": "24495a712a0f3687a4d381600dd65404650341c06034b756dc70f4d716094cd4",
+    "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/wss_metrics.json": "0b3e299d3573075382f726a76f471036abc36340f243f8258b6fefc30f51bca8",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/16_historical_case_distributions.csv": "16c6a069433fa3940260f4a77269d3ea377558afabb5e60dcd3ce91c4cdb12c9",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/16_historical_case_distributions_histogram.csv": "b6338824e3e5e1620953244dbf177ebe966c010c7a95b4fb1019cfcb41fa29c5"
+  },
+  "output_sha256": {
+    "figures/01_routes.pdf": "e0e6d1b8a4a208a9a490cc2e4492702de4256fc30a38f3845a44efe388c2b3fe",
+    "figures/01_routes.svg": "b5f29cc1a83e9851efc425f1c542c2a954b5627cda6d115dd0d2d4e298e119bd",
+    "figures/01_routes.png": "7afd674c49a82ab957a93af86463c3a49773100a6d580a08c2aaa320a86aa42a",
+    "figures/02_protocol.pdf": "016c6e9daf1b67649b7d99e332f55414022e839737d26b1bd12350a1b6c97728",
+    "figures/02_protocol.svg": "c28cedbecb69659a650793fad71cfdcd569a22019261ff62fbbbd4741bafab70",
+    "figures/02_protocol.png": "f63558a2c513a208c0d2ce52090986dd9ef9c6b5c4cac87a0229aa2d649761b5",
+    "figures/03_backbone.pdf": "dce674d0dc6345399f16f2fc798935c0abcead8d2d944253a7c3427baa99ad5b",
+    "figures/03_backbone.svg": "3bf8c0a2f48a2b4f7c6f824ec3771c23fffe8d2bbc65276eeb3948b891288bb4",
+    "figures/03_backbone.png": "f7c0ab1f94bfffe3e460e11c7c1c815495883f743691041462b64cf17e6b42f9",
+    "figures/04_x5.pdf": "c0434bc5973e72e4c93535f0ceabe7f8a22452193636b22b90fa6508a8ad0d76",
+    "figures/04_x5.svg": "f21a2e3218906d1052a8e4cf4e2ac509114b04850c8bc0ae7ded90506f4a4df6",
+    "figures/04_x5.png": "6d019a27dc09fdeebd0e5ae03b6c05c74d24f5b07968589fdfc2bf555cdfe2bd",
+    "figures/05_x11.pdf": "36851ea0852ae92621273f3f5310a41df62bc175cbe097e36309e85f4e50d15a",
+    "figures/05_x11.svg": "ba5da7339733575151ca6e287658c7e5c704b9206170ba0bc1ba484546a1f8b2",
+    "figures/05_x11.png": "94281505802075e98043b316e10c86523e5aa73b636e90d798f974f31d5293bc",
+    "figures/06_volume_models.pdf": "968ae41d44d45726cf20a0424cb0e4f478395672a371b22272063d02f3d2e194",
+    "figures/06_volume_models.svg": "98932da2e2f1588ae33c31b2e5fb0da316782f74940f61d0321577ca4d5506bc",
+    "figures/06_volume_models.png": "893dedd1f1445e58274485a74a2d1c822489399d86c3b6f81f1949d32926733d",
+    "figures/07_murray_paired_effect.pdf": "8f9774157f0e6a765dccc08acb75b29883633fa9a04e0fdb9eaa78c4440731fd",
+    "figures/07_murray_paired_effect.svg": "58018c56ecb28025d7ec5c745e3929bfda10492685d9fdfd70e95dd8157d3335",
+    "figures/07_murray_paired_effect.png": "88d5e025fa3081c47cb64eb40ab3f21ea70570ff37f94db89960c597cebb8608",
+    "figures/08_x11_tradeoff.pdf": "26fdfa008826acc37f4f50d177d18222f97b6e14522c4cae7e6e936d3b63932b",
+    "figures/08_x11_tradeoff.svg": "d0bd9e06fbab8df39be8ac5996bcf262b6a4c9642b6fae57089ce50aabec3f79",
+    "figures/08_x11_tradeoff.png": "d4d5ac17675a249fe8c2dedda114824a743cac50bf751d077642e5c335e4f35f",
+    "figures/09_current_case_distributions.pdf": "698776361edebbb646fa06175df5a29551a87398579bc95b6f17a017c5633d77",
+    "figures/09_current_case_distributions.svg": "42bf8db416f5089c42a72189d769f5366a4c6c1a73006c6c2180ea3818f9f691",
+    "figures/09_current_case_distributions.png": "29ecb7d868c59da50a2263526e71dc67117ded3bf14f27945fefb57e02807e0b",
+    "figures/10_x5x11_cases.pdf": "80e7a80ca189d4eaa592d5e60060cd7037823da5cd976f07ec6c45d9ba89f703",
+    "figures/10_x5x11_cases.svg": "ba56270b1989c4109a3f5f842421fb3c47bbcf7b194e34235c9c3ee8edc1472c",
+    "figures/10_x5x11_cases.png": "0f4f582963f44817f018a07a61ef03e5f39d88003c0f6c19582d7ffb4b4ac117",
+    "figures/11_vf6_cases.pdf": "f85ceca8a8bb66f01c95afe29de757291d643b026f6563802e4ac97a5d2f4db1",
+    "figures/11_vf6_cases.svg": "0d8439c04ca37d6c5700f2a9846d56708010cc1805324dd213436c8bbae0bc0c",
+    "figures/11_vf6_cases.png": "18a9baeca3fed08c9052bcf23e32748c25e03e352dc117cbfdf416c22cda97ef",
+    "figures/12_pf6_cases.pdf": "411a44c0f7b7d9cc28b15aed0bb88cb3270d296056b9f76b60ab799e59e423df",
+    "figures/12_pf6_cases.svg": "c99527f17211118b2f5431e8e6f803b9e405cc9cf14c9898f15d5ebc4b8a5bd2",
+    "figures/12_pf6_cases.png": "7bdd96dd5c12ff4c1e91cfd143bd15a23ec328161b2a06af75df29cc71dbbc0b",
+    "figures/17_velocity_wss_gap.pdf": "80cf2003a3c9a7519a3e6c850c9b2fd3524a4f51e69c9c20e62a4e60146f99bf",
+    "figures/17_velocity_wss_gap.svg": "05b5bf254f324f142dd0d3a4b6ac5849dd318a1ad53f8635cc566d7bbc91ea68",
+    "figures/17_velocity_wss_gap.png": "c147fbdbe2b968134e7ab7df7a60add57ef2c33c1871a5ef74d7ddf9f00041fe",
+    "figures/13_diagnostic_map.pdf": "6c6b97911eb82c33fd938df07f4ac195b71b3fed091aafe135b769cf772f20b8",
+    "figures/13_diagnostic_map.svg": "f4ca62821b0b6cfc0b8f0a372fd84a4722b3e1abcd2babea04215586c3742211",
+    "figures/13_diagnostic_map.png": "9c46c43755242078b3da9ad9ae78ee3d0c0cdebc724540af91c4270a07362590",
+    "figures/14_data_loss_terms.pdf": "c83b8f60b2a9ddd45a8fa237fb64939154d3f5ca64c6d294bc12df63932f1339",
+    "figures/14_data_loss_terms.svg": "feb3bced0bd13df363953e33596e8091fc94f301ea95e5f2d549c5c901c90c57",
+    "figures/14_data_loss_terms.png": "c9e9b1776cef0e4522c52d3fdf064391f7451e820010f52550e9bcfddc786914",
+    "figures/15_physics_loss_terms.pdf": "08f396a09901122065d2478cbfc4664f0b9fa7be4f465dece65a88bf306e6e96",
+    "figures/15_physics_loss_terms.svg": "bc83bbc44ca5788ad6e7eca70f47676b65ea3207968a613a851fc1c95f9cd653",
+    "figures/15_physics_loss_terms.png": "dd39734b01c99c9446d2de392bab88d20c3ab49a4d389c599e202537ed5ea0f3",
+    "figures/18_physics_conflicts.pdf": "a713cfefd641a86130ab3b26b09ca25f34b2d6a3199712c0c9999816a238b397",
+    "figures/18_physics_conflicts.svg": "8fb2c715f7413ea30b6fb30657873084a68790e60f039362378e6d54d4a77a7b",
+    "figures/18_physics_conflicts.png": "debe02594b20d7875d3806f0551199c05923b9638aa499d231838186b4bb0e47",
+    "figures/16_historical_case_distributions.pdf": "20d1a23ff91bd61dccadc82ed0fd438f1fd4aad0671109edb02dcf684de52122",
+    "figures/16_historical_case_distributions.svg": "0a3882226caf29eefd523b56acf4b1b3e5bd07003fa722c1ef85cd2a5c4d8a50",
+    "figures/16_historical_case_distributions.png": "f916ca15a5060ce60be6591b40d9e70449979063f71e0ad8b0b19e102d5d81f7",
+    "figures/19_discussion.pdf": "be4e206980796142f77cce2fa14ca8c91f05d7a99fa7906c33c5b563ff38a91b",
+    "figures/19_discussion.svg": "d8751ee568f9ea663c201a9d730ec5f0014ec53a7057b67f6bfa74ddd2cd0b18",
+    "figures/19_discussion.png": "0fa573e0941ca3166b7662a3f948029846065a0ed544dacf52718f3c05473c02",
+    "figures/10_x5x11_cases_selfmax.pdf": "aff1bb4dd6b2a8a279a48de3d3b29dac645a1ed78067f7c3754a215b9a307406",
+    "figures/10_x5x11_cases_selfmax.svg": "ae02277251d64ace7cbef244139eba68da94b4b85640019b754038608ce51ee1",
+    "figures/10_x5x11_cases_selfmax.png": "c4f3084828e6ae8aa6a2fa26b276e599508095e73041f7145e4e1c2f815c0360",
+    "figures/11_vf6_cases_selfmax.pdf": "d7a475b31c3879dcc996e501d392c555ff0fcbfbffc80e5ba41fe32fee6b9bd7",
+    "figures/11_vf6_cases_selfmax.svg": "5e9956b649c427ff6f0ae46ab1c59519cb5c8e8ba214c89fadff2d39163f8368",
+    "figures/11_vf6_cases_selfmax.png": "6b845d6451337e9d85af21abe2533d51bda4d3870657e89e5208b9eb5875cab9",
+    "figures/12_pf6_cases_selfmax.pdf": "836aa389e047f2ddfc9165f641a52ebaf432eb644429b425e323cf24a57dd34b",
+    "figures/12_pf6_cases_selfmax.svg": "eb47ee2e60d73adea1f2eb3cc969914ff28e3a0572263a99ecf302c2589dcf46",
+    "figures/12_pf6_cases_selfmax.png": "f1e8c0574c1aae4aa649ca6c3f02ba89959d8aeccebb88a7e79c6caf1317ba97",
+    "启发式实验汇报_Nature优化版_20260915.pptx": "7335f8153148dd152353fd77a26ad6ee985d2a42bfe0745ac47e5428fd13edaa",
+    "启发式实验汇报_Nature优化版_20260915.pdf": "2c2b20838e4e5be24dac942c25187c6b9969e7a01c1139c855812902dce7721b",
+    "网络模块_Nature优化版_20260915.pptx": "e1372a6ea6b6a1522216fa0b57f18a5f55d1246b9f90af5701d1a82d7c786434",
+    "网络模块_Nature优化版_20260915.pdf": "1531a19156ab4478e33fd94ea475078d11910564faba88a08c7cbac74e5a19be",
+    "plot_style.py": "d447fbc355f3db154454a5b54cf86a75cdf424cd74d5b68263a0130cdf21d2a3",
+    "build_modules.py": "b0937e56127e68c99147c4be895860c5231c9eb384863a7237e76c3f2b8bddbe",
+    "build_quantitative.py": "d8310166dad3070824edb8a685fdaf4e814a96dde83d63805acb5a623047d953",
+    "build_case_plates.py": "9a9329d85f603750850c482828b8321adde6afdd191b47936e142668bbf59577",
+    "build_report_figures.py": "b93bba3d467cf369310c6e229150c3b89f40e66b17b4464531a5cf2adce99bce",
+    "assemble_report.py": "a9707efa673b8dc94d3f2ba7a347e073c532c035e955f4afd853f65d55b93a47",
+    "verify_delivery.py": "3d6e349e02d3121384550ed5f4f881a183625260bec18c913da1bb4b14388a9f"
+  },
+  "decks": [
+    {
+      "name": "启发式实验汇报_Nature优化版_20260915",
+      "pages": 22,
+      "image_bytes_and_pdf_text_match": true
+    },
+    {
+      "name": "网络模块_Nature优化版_20260915",
+      "pages": 4,
+      "image_bytes_and_pdf_text_match": true
+    }
+  ],
+  "alignment": [
+    {
+      "stem": "01_routes",
+      "verdict": "NOT APPLICABLE",
+      "panels": 1
+    },
+    {
+      "stem": "02_protocol",
+      "verdict": "NOT APPLICABLE",
+      "panels": 1
+    },
+    {
+      "stem": "03_backbone",
+      "verdict": "NOT APPLICABLE",
+      "panels": 1
+    },
+    {
+      "stem": "04_x5",
+      "verdict": "NOT APPLICABLE",
+      "panels": 1
+    },
+    {
+      "stem": "05_x11",
+      "verdict": "NOT APPLICABLE",
+      "panels": 1
+    },
+    {
+      "stem": "06_volume_models",
+      "verdict": "PASS",
+      "panels": 2
+    },
+    {
+      "stem": "07_murray_paired_effect",
+      "verdict": "PASS",
+      "panels": 3
+    },
+    {
+      "stem": "08_x11_tradeoff",
+      "verdict": "PASS",
+      "panels": 4
+    },
+    {
+      "stem": "09_current_case_distributions",
+      "verdict": "PASS",
+      "panels": 8
+    },
+    {
+      "stem": "10_x5x11_cases",
+      "verdict": "PASS",
+      "panels": 9
+    },
+    {
+      "stem": "11_vf6_cases",
+      "verdict": "PASS",
+      "panels": 9
+    },
+    {
+      "stem": "12_pf6_cases",
+      "verdict": "PASS",
+      "panels": 9
+    },
+    {
+      "stem": "17_velocity_wss_gap",
+      "verdict": "PASS",
+      "panels": 2
+    },
+    {
+      "stem": "13_diagnostic_map",
+      "verdict": "NOT APPLICABLE",
+      "panels": 1
+    },
+    {
+      "stem": "14_data_loss_terms",
+      "verdict": "PASS",
+      "panels": 4
+    },
+    {
+      "stem": "15_physics_loss_terms",
+      "verdict": "PASS",
+      "panels": 6
+    },
+    {
+      "stem": "18_physics_conflicts",
+      "verdict": "PASS",
+      "panels": 2
+    },
+    {
+      "stem": "16_historical_case_distributions",
+      "verdict": "PASS",
+      "panels": 6
+    },
+    {
+      "stem": "19_discussion",
+      "verdict": "NOT APPLICABLE",
+      "panels": 1
+    },
+    {
+      "stem": "10_x5x11_cases_selfmax",
+      "verdict": "PASS",
+      "panels": 9
+    },
+    {
+      "stem": "11_vf6_cases_selfmax",
+      "verdict": "PASS",
+      "panels": 9
+    },
+    {
+      "stem": "12_pf6_cases_selfmax",
+      "verdict": "PASS",
+      "panels": 9
+    }
+  ],
+  "static_source_audits": [
+    {
+      "script": "build_modules.py",
+      "counts": {
+        "PASS": 17,
+        "WARN": 4,
+        "FAIL": 0
+      },
+      "warnings": [
+        {
+          "check_id": "EXPORT-RASTER",
+          "level": "WARN",
+          "message": "PNG preview is present but no TIFF submission raster was found",
+          "evidence": []
+        },
+        {
+          "check_id": "RASTER-DPI",
+          "level": "WARN",
+          "message": "Raster export meets the 300 dpi floor but not the 600 dpi default",
+          "evidence": [
+            "300"
+          ]
+        },
+        {
+          "check_id": "FINAL-WIDTH",
+          "level": "WARN",
+          "message": "Detected width 406.4 mm is not near the common 89/183 mm defaults; verify the target journal",
+          "evidence": []
+        },
+        {
+          "check_id": "UNCERTAINTY-ENCODING",
+          "level": "WARN",
+          "message": "Seed/fold/split aggregates are present without an obvious error bar or uncertainty band",
+          "evidence": [
+            "seed",
+            "mean"
+          ]
+        }
+      ]
+    },
+    {
+      "script": "build_quantitative.py",
+      "counts": {
+        "PASS": 18,
+        "WARN": 3,
+        "FAIL": 0
+      },
+      "warnings": [
+        {
+          "check_id": "EXPORT-RASTER",
+          "level": "WARN",
+          "message": "PNG preview is present but no TIFF submission raster was found",
+          "evidence": []
+        },
+        {
+          "check_id": "RASTER-DPI",
+          "level": "WARN",
+          "message": "Raster export meets the 300 dpi floor but not the 600 dpi default",
+          "evidence": [
+            "300"
+          ]
+        },
+        {
+          "check_id": "FINAL-WIDTH",
+          "level": "WARN",
+          "message": "Detected width 406.4 mm is not near the common 89/183 mm defaults; verify the target journal",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "script": "build_case_plates.py",
+      "counts": {
+        "PASS": 17,
+        "WARN": 4,
+        "FAIL": 0
+      },
+      "warnings": [
+        {
+          "check_id": "EXPORT-RASTER",
+          "level": "WARN",
+          "message": "PNG preview is present but no TIFF submission raster was found",
+          "evidence": []
+        },
+        {
+          "check_id": "RASTER-DPI",
+          "level": "WARN",
+          "message": "Raster export meets the 300 dpi floor but not the 600 dpi default",
+          "evidence": [
+            "300"
+          ]
+        },
+        {
+          "check_id": "FINAL-WIDTH",
+          "level": "WARN",
+          "message": "Detected width 406.4 mm is not near the common 89/183 mm defaults; verify the target journal",
+          "evidence": []
+        },
+        {
+          "check_id": "UNCERTAINTY-ENCODING",
+          "level": "WARN",
+          "message": "Seed/fold/split aggregates are present without an obvious error bar or uncertainty band",
+          "evidence": [
+            "seed",
+            "median",
+            "mean"
+          ]
+        }
+      ]
+    },
+    {
+      "script": "build_report_figures.py",
+      "counts": {
+        "PASS": 17,
+        "WARN": 4,
+        "FAIL": 0
+      },
+      "warnings": [
+        {
+          "check_id": "EXPORT-RASTER",
+          "level": "WARN",
+          "message": "PNG preview is present but no TIFF submission raster was found",
+          "evidence": []
+        },
+        {
+          "check_id": "RASTER-DPI",
+          "level": "WARN",
+          "message": "Raster export meets the 300 dpi floor but not the 600 dpi default",
+          "evidence": [
+            "300"
+          ]
+        },
+        {
+          "check_id": "FINAL-WIDTH",
+          "level": "WARN",
+          "message": "Detected width 406.4 mm is not near the common 89/183 mm defaults; verify the target journal",
+          "evidence": []
+        },
+        {
+          "check_id": "LOG-GUARD",
+          "level": "WARN",
+          "message": "Logarithmic operation found without an obvious positivity/pseudocount guard",
+          "evidence": [
+            "set_yscale('log"
+          ]
+        }
+      ]
+    }
+  ],
+  "installed_directories": [
+    {
+      "name": "nature-academic-search",
+      "file_count": 48
+    },
+    {
+      "name": "nature-citation",
+      "file_count": 15
+    },
+    {
+      "name": "nature-data",
+      "file_count": 15
+    },
+    {
+      "name": "nature-downloader",
+      "file_count": 66
+    },
+    {
+      "name": "nature-experiment-log",
+      "file_count": 11
+    },
+    {
+      "name": "nature-figure",
+      "file_count": 127
+    },
+    {
+      "name": "nature-image2ppt",
+      "file_count": 87
+    },
+    {
+      "name": "nature-literature-pipeline",
+      "file_count": 12
+    },
+    {
+      "name": "nature-paper-card",
+      "file_count": 21
+    },
+    {
+      "name": "nature-paper-to-patent",
+      "file_count": 65
+    },
+    {
+      "name": "nature-paper2ppt",
+      "file_count": 19
+    },
+    {
+      "name": "nature-polishing",
+      "file_count": 33
+    },
+    {
+      "name": "nature-proposal-writer",
+      "file_count": 34
+    },
+    {
+      "name": "nature-reader",
+      "file_count": 20
+    },
+    {
+      "name": "nature-ref-verifier",
+      "file_count": 6
+    },
+    {
+      "name": "nature-response",
+      "file_count": 38
+    },
+    {
+      "name": "nature-reviewer",
+      "file_count": 19
+    },
+    {
+      "name": "nature-shared",
+      "file_count": 21
+    },
+    {
+      "name": "nature-statistics",
+      "file_count": 11
+    },
+    {
+      "name": "nature-writing",
+      "file_count": 77
+    }
+  ],
+  "pdf_collision_failures": 0,
+  "pdf_collision_warnings": 0,
+  "all_pdf_text_audits_passed": true,
+  "scope": "Existing evidence redrawn. No new model inference, training or full-test evaluation."
+}

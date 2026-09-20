@@ -1,0 +1,97 @@
+{
+  "style_source": "training_wss_min/tools/plot_postview_case_scatter.py",
+  "density": "Gaussian KDE fitted to fixed-seed 6000-point sample, evaluated on 256x256 grid and interpolated for point colors only",
+  "scatter_and_fit": "all original query points; no subsampling, clipping or calibration",
+  "normalization": "train138 scalar linear z (pressure or speed), same transform for CFD and prediction",
+  "cases": [
+    {
+      "field": "pressure",
+      "case": "AAA/ruputer/LI_ZHEN_HUA",
+      "selection": "best",
+      "archive_sha256": "3da3e485e9be7ee8b5ae11de899b576964fa4b168e34f1fca0d2bbb9bdb540fb",
+      "mean": -213.0913369896554,
+      "std": 594.2269362666614,
+      "physical": {
+        "n": 377725,
+        "slope": 0.9436016215871,
+        "intercept": -0.7530245946176854,
+        "r2_raw": 0.956971371866482,
+        "r2_fit": 0.9586946745462044
+      },
+      "normalized": {
+        "n": 377725,
+        "slope": 0.9436016215871001,
+        "intercept": 0.0189573723066308,
+        "r2_raw": 0.956971371866482,
+        "r2_fit": 0.9586946745462044
+      }
+    },
+    {
+      "field": "pressure",
+      "case": "AAA/ruputer/KANG_YONG",
+      "selection": "worst",
+      "archive_sha256": "951e657634b2e177872a859bcc0875d4b03756fdfdfa1dfb83126bc3c99b622d",
+      "mean": -213.0913369896554,
+      "std": 594.2269362666614,
+      "physical": {
+        "n": 528637,
+        "slope": 2.0245451195229216,
+        "intercept": 11.700385088009686,
+        "r2_raw": -1.6747579556537464,
+        "r2_fit": 0.7641553780308239
+      },
+      "normalized": {
+        "n": 528637,
+        "slope": 2.02454511952292,
+        "intercept": -0.3477144700566613,
+        "r2_raw": -1.6747579556537482,
+        "r2_fit": 0.764155378030824
+      }
+    },
+    {
+      "field": "speed",
+      "case": "AAA/ruputer/LI_ZHEN_HUA",
+      "selection": "best",
+      "archive_sha256": "c2a249a640b1c4cb347930c2ec5c52d4500207907deae7c63cc0ba739c85702e",
+      "mean": 0.3091556739300583,
+      "std": 0.3322826187296528,
+      "physical": {
+        "n": 365126,
+        "slope": 0.8459267853276555,
+        "intercept": 0.039345987468486866,
+        "r2_raw": 0.890054341741543,
+        "r2_fit": 0.8975946018702412
+      },
+      "normalized": {
+        "n": 365126,
+        "slope": 0.8459267853276553,
+        "intercept": -0.024938472797021063,
+        "r2_raw": 0.890054341741543,
+        "r2_fit": 0.8975946018702413
+      }
+    },
+    {
+      "field": "speed",
+      "case": "AAA/ruputer/KANG_YONG",
+      "selection": "worst",
+      "archive_sha256": "1dea3fd79c8d9e6f2416ed4bd8944b3b04e3d5ade73b76a816199011c7c3437d",
+      "mean": 0.3091556739300583,
+      "std": 0.3322826187296528,
+      "physical": {
+        "n": 512189,
+        "slope": 1.3323169972790854,
+        "intercept": 0.0031791380206416613,
+        "r2_raw": 0.3537366878715288,
+        "r2_fit": 0.8328357450125627
+      },
+      "normalized": {
+        "n": 512189,
+        "slope": 1.3323169972790854,
+        "intercept": 0.3187552321508735,
+        "r2_raw": 0.3537366878715287,
+        "r2_fit": 0.8328357450125626
+      }
+    }
+  ],
+  "verified": true
+}

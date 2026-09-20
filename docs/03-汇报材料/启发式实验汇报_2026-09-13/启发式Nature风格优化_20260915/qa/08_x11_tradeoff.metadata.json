@@ -1,0 +1,39 @@
+{
+  "stem": "08_x11_tradeoff",
+  "claim": "X11一致改善高WSS拟合和p99幅值，但IoU与MAE均在3个seed回退；应保留为尾部候选。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/results.json",
+      "sha256": "1fa18d00402aa56a39640dbd658da1703e63751dc81147e8e65a14978e1461dc"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1b_20260912/results.json",
+      "sha256": "2475d31ee20dfb9f399003b41ef98a2398a7de2151a674f161072f980f0c8307"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave2_20260912/results.json",
+      "sha256": "1515c6c86428c6e3d5fedf2590f338155317d10b81be6da3575d0f42a9ebe40d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/08_x11_tradeoff.csv",
+      "sha256": "3b4b82163af3597f03ad18fb129ac1b64377b584649c33f9a9e4ef7438db3ad6"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/08_x11_tradeoff.pdf",
+    "svg": "figures/08_x11_tradeoff.svg",
+    "png": "figures/08_x11_tradeoff.png"
+  },
+  "alignment": "PASS",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/08_x11_tradeoff.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/08_x11_tradeoff.collision.json"
+    }
+  },
+  "note": "Primary panels separate aggregate fitting, high-tail fitting, amplitude and localization. P99 is a pooled amplitude ratio with optimum 1, all source ratios below 1; its positive difference improves amplitude here, not a universal higher-is-better rule. MAE is physical pooled Pa. Full five metrics exported without rounded-document reconstruction."
+}

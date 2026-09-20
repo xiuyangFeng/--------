@@ -1,0 +1,73 @@
+{
+  "passed": true,
+  "completed_at": "2026-09-10T00:55:31+0800",
+  "scope": "CPU-only synthetic producer-schema validation; real full diagnostics have not been summarized",
+  "tool": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/summarize_m2_mechanisms.py",
+    "sha256": "afcd257b1731b71697c9a11b511c15373bcc41fa8f4040a899b51065600f48ee"
+  },
+  "tests": {
+    "test_methods_passed": 4,
+    "elapsed_seconds": 0.364,
+    "synthetic_complete_evaluation_counts": [
+      42,
+      50
+    ],
+    "aggregation_semantics_verified": [
+      "34 equal case weights despite unequal wall counts",
+      "mean per-query exp(entropy), not exp(mean entropy)",
+      "mean per-case residual RMS, not pooled RMS",
+      "signed true-high-WSS mean impact",
+      "S3 channel-averaged per-scale gate mean and within-case spatial std",
+      "S3 last-minus-best gate changes",
+      "S4 additive mode has no gate",
+      "S6 added SA1 scalar gammas"
+    ],
+    "rejected_subcases": [
+      "incomplete_provenance",
+      "smoke_only",
+      "wrong_evaluation_count",
+      "missing_run",
+      "missing_checkpoint",
+      "missing_case",
+      "wrong_run_name",
+      "failed_case_metric_check",
+      "wrong_wall_population",
+      "nonfinite_beta",
+      "wrong_effective_beta",
+      "partial_query_distribution",
+      "missing_S2_residual",
+      "missing_S3_gate",
+      "invented_S4_gate",
+      "missing_S6_block",
+      "incomplete_support",
+      "incorrect_numeric_check_count"
+    ],
+    "temporary_main_checks": [
+      "Markdown and JSON output written only in TemporaryDirectory",
+      "source provenance hash matches",
+      "S4 no-gate statement present",
+      "disabled residual marked as not enabled",
+      "S6 row present",
+      "failed provenance produces no output directory"
+    ]
+  },
+  "execution": {
+    "python": "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "OMP_NUM_THREADS": 2,
+    "OPENBLAS_NUM_THREADS": 1,
+    "MKL_NUM_THREADS": 2
+  },
+  "frozen_sources": {
+    "files_checked": 41,
+    "equal_queue_start_hashes": true
+  },
+  "real_diagnostic_summarization_executed": false,
+  "new_training_or_inference_executed": false,
+  "wording_fix": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/loss_parameter_analysis.md",
+    "change": "L4: MAE/P10 不满足保护线",
+    "sha256": "2407f81d965a1848cccb8368dc2fa8b09029d34da949eaee099e9f002b44ba18"
+  }
+}

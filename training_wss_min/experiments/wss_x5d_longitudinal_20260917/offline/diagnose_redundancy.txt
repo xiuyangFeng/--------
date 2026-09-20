@@ -1,0 +1,98 @@
+  loaded AG/slow/ZANG_YU_SHU (15381 pts)
+  loaded AAA/unruputer/GUO_BAO_CHUN (65270 pts)
+  loaded AG/slow/LIU_JIN_LIANG (13759 pts)
+  loaded AAA/unruputer/GAO_WEI_LI (13879 pts)
+  loaded AAA/unruputer/FENG_ZHI_YING (72600 pts)
+  loaded ILO/WENG_ZHAO_GUANG-0/before (77413 pts)
+  loaded AG/fast/ZHANG_XIU_WEN (12862 pts)
+  loaded AAA/unruputer/CHEN_FU_YE (14037 pts)
+  loaded AG/slow/ZHANG_ZHI_JUN (10095 pts)
+  loaded AAA/unruputer/LIU_LI_FENG (63758 pts)
+  loaded AG/slow/ZHANG_QING_SHUI (14223 pts)
+  loaded AG/fast/LIU_FENG_MING (13309 pts)
+  loaded AAA/unruputer/LI_YOU_YU (53826 pts)
+  loaded AAA/unruputer/ZHANG_XUN_LIAN (101435 pts)
+  loaded AG/slow/A_MIN_SE_HA_CHI (12309 pts)
+  loaded AAA/ruputer/ZOU_LI_SHUN (14609 pts)
+  loaded AAA/ruputer/WU_GUANG_CUN (15910 pts)
+  loaded AAA/unruputer/LIU_CHENG_ZHANG (54589 pts)
+  loaded AG/slow/MI_DE_XI (15380 pts)
+  loaded ILO/WANG_XIAO_LIN-0/before (65760 pts)
+  loaded AAA/ruputer/WANG_AN (15849 pts)
+  loaded ILO/GONG_HAI_ZENG-1/before (81938 pts)
+  loaded AAA/unruputer/CAO_HONG_TAI (17197 pts)
+  loaded AG/fast/WANG_YONG_FAN (16017 pts)
+  loaded AG/slow/GONG_HUI_XIA (12801 pts)
+  loaded AG/fast/CHEN_SHI_MING (9338 pts)
+  loaded ILO/GAO_SHU_CAI-0/before (76062 pts)
+  loaded ILO/SUN_YU_SHENG-0/before (65815 pts)
+  loaded ILO/BAO_EN_YUN-0/before (89416 pts)
+  loaded ILO/LV_JIAN_HUA-0/before (104509 pts)
+  loaded ILO/ZHAO_CHANG_SHAN-0/before (52807 pts)
+  loaded AAA/unruputer/CHEN_SHU_LIN (19687 pts)
+  loaded AG/fast/ZHANG_QING_WANG (13843 pts)
+  loaded AAA/unruputer/ZHANG_ZHI_HUA (55200 pts)
+  loaded AAA/ruputer/LIU_YONG_LAN (103697 pts)
+  loaded AAA/unruputer/LIN_JIAN_RONG (68653 pts)
+  loaded AG/slow/WANG_GUI (12031 pts)
+  loaded AG/slow/ZHANG_JING_SHUN (12230 pts)
+  loaded AAA/ruputer/WANG_KUI_WU (72309 pts)
+  loaded AG/slow/KANG_XI_MING (11379 pts)
+
+pooled points 160000 from 40 train cases
+
+通道                                     有效率  pooled R²  within-case R²
+geom_ref_log_area                    0.776      0.991           0.984
+geom_ref_area_slope                  0.775      0.558           0.545
+geom_ref_roundness                   0.776      0.208           0.178
+geom_ref_eccentricity                0.776      0.210           0.179
+geom_ref_upstream_min_area_ratio     0.750      0.569           0.565
+geom_ref_downstream_min_area_ratio   0.759      0.535           0.532
+geom_ref_upstream_min_distance       0.750      0.277           0.284
+geom_ref_downstream_min_distance     0.759      0.257           0.258
+geom_pc_log_area                     0.679      0.994           0.977
+geom_pc_area_slope                   0.673      0.579           0.561
+geom_pc_roundness                    0.679      0.268           0.257
+geom_pc_eccentricity                 0.679      0.240           0.206
+geom_pc_upstream_min_area_ratio      0.632      0.579           0.570
+geom_pc_downstream_min_area_ratio    0.638      0.525           0.515
+geom_pc_upstream_min_distance        0.632      0.278           0.276
+geom_pc_downstream_min_distance      0.638      0.232           0.231
+
+ref / pc 同名通道相关（两者都 valid 的点上）
+  log_area                     corr +1.0000  (共同有效 0.679)
+  area_slope                   corr +0.9920  (共同有效 0.673)
+  roundness                    corr +0.7264  (共同有效 0.679)
+  eccentricity                 corr +0.9962  (共同有效 0.679)
+  upstream_min_area_ratio      corr +0.9817  (共同有效 0.632)
+  downstream_min_area_ratio    corr +0.9801  (共同有效 0.638)
+  upstream_min_distance        corr +0.9490  (共同有效 0.632)
+  downstream_min_distance      corr +0.9280  (共同有效 0.638)
+
+与目标 log_z(WSS) 的单变量相关（valid 点上）
+  geom_ref_log_area                  -0.7986
+  geom_ref_area_slope                -0.2261
+  geom_ref_roundness                 +0.1479
+  geom_ref_eccentricity              -0.1674
+  geom_ref_upstream_min_area_ratio   +0.2714
+  geom_ref_downstream_min_area_ratio -0.1038
+  geom_ref_upstream_min_distance     -0.3181
+  geom_ref_downstream_min_distance   +0.0137
+  geom_pc_log_area                   -0.8052
+  geom_pc_area_slope                 -0.2426
+  geom_pc_roundness                  -0.0046
+  geom_pc_eccentricity               -0.1756
+  geom_pc_upstream_min_area_ratio    +0.3013
+  geom_pc_downstream_min_area_ratio  -0.1165
+  geom_pc_upstream_min_distance      -0.3352
+  geom_pc_downstream_min_distance    +0.0194
+
+对照：原 27 维里最相关的几个
+  log_tau0_murray                    +0.8319
+  log_local_radius                   -0.7970
+  local_radius                       -0.7487
+  curv_k1_c                          +0.5839
+  curvedness                         +0.5743
+  curv_k1                            +0.5532
+
+wrote /public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_redundancy.json

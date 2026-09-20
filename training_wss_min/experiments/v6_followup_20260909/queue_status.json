@@ -1,0 +1,1083 @@
+{
+  "job_id": "13205",
+  "started_at": "2026-09-09T11:09:33+0800",
+  "mode": "formal",
+  "status": "complete",
+  "gpus": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "slots_per_gpu": 2,
+  "min_free_mib": 7000,
+  "source_sha256": {
+    "training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "training_wss_min/baseline_models.py": "af7c9e3f87d0e1a4da40bbfec13de66a0024e3f6075dd4e2edb1254f48106455",
+    "training_wss_min/config.py": "2c6cdced0a1347a8f37b66725bfa73cc51e2d1dae5b9d5b19789d4591fb45dfd",
+    "training_wss_min/dataset.py": "10fa9b4d9163212bd7157fca244e7c1699da0588d19833d609a61fb8f10e54a3",
+    "training_wss_min/evaluate.py": "3a7ac7f65e2133fce3c314b54202ff39e26f2547935cef143a7dbb5b7a648984",
+    "training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/objectives.py": "7526c88ceb43d8bffcaaf1598a70530b045d7c64d9bf743228a7fa46a8cff375",
+    "training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "training_wss_min/train.py": "7ea29dee2e55039f5cb65a2428edae61575c12d1678e4ed6d888cf52057d1981",
+    "training_wss_min/configs/v6_followup_20260909/D1_a5_notube_s1234.json": "2ffb830cc5c5d45b1307536d7a287db7d79430b2335701f193a2a22841cefdd7",
+    "training_wss_min/configs/v6_followup_20260909/D2_a5_nodist_s1234.json": "fc67bacd27c98d0c601bd0fc6a66fac19129b2f04f00f5335b35f18ea35e1629",
+    "training_wss_min/configs/v6_followup_20260909/D3_a5_nodrds_s1234.json": "70a5c8300cbb631e46572fa6c1694527bedecbbbcfc22d9d0e2be8b76078fb97",
+    "training_wss_min/configs/v6_followup_20260909/D4_a5_nonormal_s1234.json": "0f870aa508443c23b7b18b7e58c4512633849a4ca382f39d696034ad793206a5",
+    "training_wss_min/configs/v6_followup_20260909/D5_a5_nofine_s1234.json": "ea5520efff00568e7b2fb8d15184908811b762459fd54f808da0e0c7a11c28f3",
+    "training_wss_min/configs/v6_followup_20260909/D6_a5_nocoarse_s1234.json": "78f11d1933415a160554d88470b1cd78c1b806f81ef8c0ebc72d1309afdc638a",
+    "training_wss_min/configs/v6_followup_20260909/D7_a5_notndot_s1234.json": "36ff8728e16b686b3afc8d64b4f3669061a364f80f26f8dba20feb584f689290",
+    "training_wss_min/configs/v6_followup_20260909/L1_a5_mse_s1234.json": "fd811d66d0b20cc3c1809ba49f445732e730a73343b8b3d6e93150a37b77476a",
+    "training_wss_min/configs/v6_followup_20260909/L2_a5_pin_rawhuber_s1234.json": "2c664ebf535a88d5c1a458c7885f64e6e878eff6bfcb6484d4c33e34d3622751",
+    "training_wss_min/configs/v6_followup_20260909/L3_a5_mse_rawhuber_s1234.json": "2a196388bc0da41f4ec39c1d978c54f9fb19e683f72af61da40ebe68ec7f1307",
+    "training_wss_min/configs/v6_followup_20260909/M1_a5_pointwise_s1234.json": "b9d4e5af7a284d2f7cfbf5eb96df3a09f21e5fe92fb622b23348beddd019bc13",
+    "training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json": "1260d50e07efc56eecf3205f26070fa164e66d4cfade220d6d243a841562a27d",
+    "training_wss_min/configs/v6_followup_20260909/M3_a5_independent_k16_s1234.json": "3e4cbb7e67eba9905eaec30695e6304fe52849cd0ddfc1daebdaf5c7ef6a44f0",
+    "training_wss_min/configs/v6_followup_20260909/M4_a5_localdecoder_s1234.json": "0a4ae7d81f6fc31886c3aec3e84777791233dba19577c87e2d6946af6814bd55",
+    "training_wss_min/configs/v6_followup_20260909/M5_a5_singleradius_s1234.json": "eb0dfcb8f257ddf9ad96f1b53a02441bf33d55653dc77325d2f1d52bc64f5a22",
+    "training_wss_min/configs/v6_followup_20260909/matrix.json": "e93a5096bcaf4f0d925a1871ed6c76948ac7b651210c7841c916256823dfca20"
+  },
+  "arms": {
+    "D1": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D1_a5_notube_s1234.json",
+      "run_name": "v6_followup_20260909/D1_a5_notube_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:09:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D1_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D1_a5_notube_s1234.json"
+          ],
+          "ended_at": "2026-09-09T11:45:23+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2150.2176625728607
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T11:45:23+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D1_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D1_a5_notube_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:45:38+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.037588834762573
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T11:45:38+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D1_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D1_a5_notube_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:45:53+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.04043960571289
+        }
+      },
+      "hypothesis": "标准化后屏蔽管道坐标 rho/sin(theta)/cos(theta)，保留固定25通道和所有索引",
+      "gpu": "1",
+      "pid": 2582517
+    },
+    "D2": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D2_a5_nodist_s1234.json",
+      "run_name": "v6_followup_20260909/D2_a5_nodist_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:09:45+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D2_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D2_a5_nodist_s1234.json"
+          ],
+          "ended_at": "2026-09-09T11:44:56+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2111.062373638153
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T11:44:56+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D2_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D2_a5_nodist_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:45:14+0800",
+          "returncode": 0,
+          "elapsed_seconds": 18.03470754623413
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T11:45:14+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D2_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D2_a5_nodist_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:45:29+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.015135526657104
+        }
+      },
+      "hypothesis": "标准化后屏蔽分叉/端点距离与端区，保留固定25通道和所有索引",
+      "gpu": "2",
+      "pid": 2573508
+    },
+    "D3": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D3_a5_nodrds_s1234.json",
+      "run_name": "v6_followup_20260909/D3_a5_nodrds_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:09:57+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D3_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D3_a5_nodrds_s1234.json"
+          ],
+          "ended_at": "2026-09-09T11:45:56+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2159.1402888298035
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T11:45:56+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D3_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D3_a5_nodrds_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:46:11+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.01049518585205
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T11:46:11+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D3_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D3_a5_nodrds_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:46:26+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.33910322189331
+        }
+      },
+      "hypothesis": "标准化后屏蔽半径梯度 dr/ds，保留固定25通道和所有索引",
+      "gpu": "3",
+      "pid": 2595000
+    },
+    "D4": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D4_a5_nonormal_s1234.json",
+      "run_name": "v6_followup_20260909/D4_a5_nonormal_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:10:09+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D4_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D4_a5_nonormal_s1234.json"
+          ],
+          "ended_at": "2026-09-09T11:46:23+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2174.082249403
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T11:46:23+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D4_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D4_a5_nonormal_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:46:38+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.346428155899048
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T11:46:38+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D4_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D4_a5_nonormal_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:46:54+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.039913654327393
+        }
+      },
+      "hypothesis": "标准化后屏蔽显式法向及局部分支法向差分；预计算曲率保留，保留固定25通道和所有索引",
+      "gpu": "0",
+      "pid": 2604522
+    },
+    "D5": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D5_a5_nofine_s1234.json",
+      "run_name": "v6_followup_20260909/D5_a5_nofine_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:10:21+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D5_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D5_a5_nofine_s1234.json"
+          ],
+          "ended_at": "2026-09-09T11:46:38+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2177.356425523758
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T11:46:38+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D5_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D5_a5_nofine_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:46:54+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.036196231842041
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T11:46:54+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D5_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D5_a5_nofine_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:47:09+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.064022779464722
+        }
+      },
+      "hypothesis": "标准化后屏蔽fine 主曲率/高斯曲率/curvedness，保留固定25通道和所有索引",
+      "gpu": "0",
+      "pid": 2609571
+    },
+    "D6": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D6_a5_nocoarse_s1234.json",
+      "run_name": "v6_followup_20260909/D6_a5_nocoarse_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:10:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D6_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D6_a5_nocoarse_s1234.json"
+          ],
+          "ended_at": "2026-09-09T11:47:06+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2192.381763935089
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T11:47:06+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D6_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D6_a5_nocoarse_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:47:21+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.045466184616089
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T11:47:21+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D6_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D6_a5_nocoarse_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:47:36+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.044477462768555
+        }
+      },
+      "hypothesis": "标准化后屏蔽coarse 主曲率/高斯曲率，保留固定25通道和所有索引",
+      "gpu": "1",
+      "pid": 2618088
+    },
+    "D7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D7_a5_notndot_s1234.json",
+      "run_name": "v6_followup_20260909/D7_a5_notndot_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:10:45+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D7_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/D7_a5_notndot_s1234.json"
+          ],
+          "ended_at": "2026-09-09T11:47:09+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2183.334912776947
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T11:47:09+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D7_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D7_a5_notndot_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:47:24+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.046326875686646
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T11:47:24+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/D7_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D7_a5_notndot_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:47:39+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.060070991516113
+        }
+      },
+      "hypothesis": "标准化后屏蔽中心线切向与壁面法向点积，保留固定25通道和所有索引",
+      "gpu": "2",
+      "pid": 2619766
+    },
+    "L1": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/L1_a5_mse_s1234.json",
+      "run_name": "v6_followup_20260909/L1_a5_mse_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:10:57+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/L1_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/L1_a5_mse_s1234.json"
+          ],
+          "ended_at": "2026-09-09T11:47:42+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2204.422997236252
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T11:47:42+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/L1_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L1_a5_mse_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:47:57+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.041660785675049
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T11:47:57+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/L1_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L1_a5_mse_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T11:48:12+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.016347169876099
+        }
+      },
+      "hypothesis": "固定原A5输入/模型，仅去除pinball，使用纯MSE",
+      "gpu": "3",
+      "pid": 2631688
+    },
+    "L2": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/L2_a5_pin_rawhuber_s1234.json",
+      "run_name": "v6_followup_20260909/L2_a5_pin_rawhuber_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:45:29+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/L2_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/L2_a5_pin_rawhuber_s1234.json"
+          ],
+          "ended_at": "2026-09-09T12:21:19+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2150.416958808899
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T12:21:19+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/L2_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L2_a5_pin_rawhuber_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:21:34+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.018438339233398
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T12:21:34+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/L2_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L2_a5_pin_rawhuber_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:21:49+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.034327507019043
+        }
+      },
+      "hypothesis": "固定原A5，保留q90 pinball并增加0.1 Pa Huber",
+      "gpu": "2",
+      "pid": 3372635
+    },
+    "L3": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/L3_a5_mse_rawhuber_s1234.json",
+      "run_name": "v6_followup_20260909/L3_a5_mse_rawhuber_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:45:53+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/L3_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/L3_a5_mse_rawhuber_s1234.json"
+          ],
+          "ended_at": "2026-09-09T12:23:14+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2240.484377145767
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T12:23:14+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/L3_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L3_a5_mse_rawhuber_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:23:29+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.043079614639282
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T12:23:29+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/L3_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L3_a5_mse_rawhuber_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:23:44+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.035067558288574
+        }
+      },
+      "hypothesis": "固定原A5，MSE+0.1 Pa Huber，无pinball",
+      "gpu": "1",
+      "pid": 3401499
+    },
+    "M1": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M1_a5_pointwise_s1234.json",
+      "run_name": "v6_followup_20260909/M1_a5_pointwise_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:46:26+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M1_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M1_a5_pointwise_s1234.json"
+          ],
+          "ended_at": "2026-09-09T12:09:49+0800",
+          "returncode": 0,
+          "elapsed_seconds": 1402.347153186798
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T12:09:49+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M1_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M1_a5_pointwise_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:10:01+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.03432583808899
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T12:10:01+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M1_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M1_a5_pointwise_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:10:13+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.03096890449524
+        }
+      },
+      "hypothesis": "同注入位置/零初始化的逐点残差容量对照，替代空间邻域分支",
+      "gpu": "3",
+      "pid": 3156642
+    },
+    "M2": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+      "run_name": "v6_followup_20260909/M2_a5_independent_k3_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:46:54+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M2_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json"
+          ],
+          "ended_at": "2026-09-09T12:24:23+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2249.1201617717743
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T12:24:23+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M2_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:24:38+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.015649318695068
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T12:24:38+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M2_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:24:50+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.020537614822388
+        }
+      },
+      "hypothesis": "只将SAME改为独立query，保持固定3NN解码",
+      "gpu": "0",
+      "pid": 3414628
+    },
+    "M3": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M3_a5_independent_k16_s1234.json",
+      "run_name": "v6_followup_20260909/M3_a5_independent_k16_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:47:09+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M3_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M3_a5_independent_k16_s1234.json"
+          ],
+          "ended_at": "2026-09-09T12:24:44+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2255.1043531894684
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T12:24:44+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M3_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M3_a5_independent_k16_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:24:56+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.034338235855103
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T12:24:56+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M3_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M3_a5_independent_k16_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:25:08+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.02149748802185
+        }
+      },
+      "hypothesis": "独立query条件下，仅将固定query插值3NN改为16NN；encoder FP仍3NN",
+      "gpu": "0",
+      "pid": 3415967
+    },
+    "M4": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M4_a5_localdecoder_s1234.json",
+      "run_name": "v6_followup_20260909/M4_a5_localdecoder_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:47:36+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M4_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M4_a5_localdecoder_s1234.json"
+          ],
+          "ended_at": "2026-09-09T12:24:56+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2240.0385506153107
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T12:24:56+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M4_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M4_a5_localdecoder_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:25:08+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.031811952590942
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T12:25:08+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M4_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M4_a5_localdecoder_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:25:20+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.017740964889526
+        }
+      },
+      "hypothesis": "固定16邻居基础上增加可学几何条件权重、query自身几何和残差头",
+      "gpu": "1",
+      "pid": 3416206
+    },
+    "M5": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M5_a5_singleradius_s1234.json",
+      "run_name": "v6_followup_20260909/M5_a5_singleradius_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T11:47:48+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M5_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M5_a5_singleradius_s1234.json"
+          ],
+          "ended_at": "2026-09-09T12:22:50+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2101.800994873047
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T12:22:50+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M5_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M5_a5_singleradius_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:23:02+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.013534545898438
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T12:23:02+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M5_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M5_a5_singleradius_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T12:23:14+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.04148530960083
+        }
+      },
+      "hypothesis": "三条局部分支均设r=0.03，参数量严格相同，检验多尺度邻域作用",
+      "gpu": "2",
+      "pid": 3396316
+    }
+  },
+  "source_sha256_end": {
+    "training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "training_wss_min/baseline_models.py": "af7c9e3f87d0e1a4da40bbfec13de66a0024e3f6075dd4e2edb1254f48106455",
+    "training_wss_min/config.py": "2c6cdced0a1347a8f37b66725bfa73cc51e2d1dae5b9d5b19789d4591fb45dfd",
+    "training_wss_min/dataset.py": "10fa9b4d9163212bd7157fca244e7c1699da0588d19833d609a61fb8f10e54a3",
+    "training_wss_min/evaluate.py": "3a7ac7f65e2133fce3c314b54202ff39e26f2547935cef143a7dbb5b7a648984",
+    "training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/objectives.py": "7526c88ceb43d8bffcaaf1598a70530b045d7c64d9bf743228a7fa46a8cff375",
+    "training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "training_wss_min/train.py": "7ea29dee2e55039f5cb65a2428edae61575c12d1678e4ed6d888cf52057d1981",
+    "training_wss_min/configs/v6_followup_20260909/D1_a5_notube_s1234.json": "2ffb830cc5c5d45b1307536d7a287db7d79430b2335701f193a2a22841cefdd7",
+    "training_wss_min/configs/v6_followup_20260909/D2_a5_nodist_s1234.json": "fc67bacd27c98d0c601bd0fc6a66fac19129b2f04f00f5335b35f18ea35e1629",
+    "training_wss_min/configs/v6_followup_20260909/D3_a5_nodrds_s1234.json": "70a5c8300cbb631e46572fa6c1694527bedecbbbcfc22d9d0e2be8b76078fb97",
+    "training_wss_min/configs/v6_followup_20260909/D4_a5_nonormal_s1234.json": "0f870aa508443c23b7b18b7e58c4512633849a4ca382f39d696034ad793206a5",
+    "training_wss_min/configs/v6_followup_20260909/D5_a5_nofine_s1234.json": "ea5520efff00568e7b2fb8d15184908811b762459fd54f808da0e0c7a11c28f3",
+    "training_wss_min/configs/v6_followup_20260909/D6_a5_nocoarse_s1234.json": "78f11d1933415a160554d88470b1cd78c1b806f81ef8c0ebc72d1309afdc638a",
+    "training_wss_min/configs/v6_followup_20260909/D7_a5_notndot_s1234.json": "36ff8728e16b686b3afc8d64b4f3669061a364f80f26f8dba20feb584f689290",
+    "training_wss_min/configs/v6_followup_20260909/L1_a5_mse_s1234.json": "fd811d66d0b20cc3c1809ba49f445732e730a73343b8b3d6e93150a37b77476a",
+    "training_wss_min/configs/v6_followup_20260909/L2_a5_pin_rawhuber_s1234.json": "2c664ebf535a88d5c1a458c7885f64e6e878eff6bfcb6484d4c33e34d3622751",
+    "training_wss_min/configs/v6_followup_20260909/L3_a5_mse_rawhuber_s1234.json": "2a196388bc0da41f4ec39c1d978c54f9fb19e683f72af61da40ebe68ec7f1307",
+    "training_wss_min/configs/v6_followup_20260909/M1_a5_pointwise_s1234.json": "b9d4e5af7a284d2f7cfbf5eb96df3a09f21e5fe92fb622b23348beddd019bc13",
+    "training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json": "1260d50e07efc56eecf3205f26070fa164e66d4cfade220d6d243a841562a27d",
+    "training_wss_min/configs/v6_followup_20260909/M3_a5_independent_k16_s1234.json": "3e4cbb7e67eba9905eaec30695e6304fe52849cd0ddfc1daebdaf5c7ef6a44f0",
+    "training_wss_min/configs/v6_followup_20260909/M4_a5_localdecoder_s1234.json": "0a4ae7d81f6fc31886c3aec3e84777791233dba19577c87e2d6946af6814bd55",
+    "training_wss_min/configs/v6_followup_20260909/M5_a5_singleradius_s1234.json": "eb0dfcb8f257ddf9ad96f1b53a02441bf33d55653dc77325d2f1d52bc64f5a22",
+    "training_wss_min/configs/v6_followup_20260909/matrix.json": "e93a5096bcaf4f0d925a1871ed6c76948ac7b651210c7841c916256823dfca20"
+  },
+  "source_changed": false,
+  "ended_at": "2026-09-09T12:25:23+0800"
+}

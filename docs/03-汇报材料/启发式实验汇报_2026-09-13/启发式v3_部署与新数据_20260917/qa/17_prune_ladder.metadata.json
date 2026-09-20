@@ -1,0 +1,27 @@
+{
+  "stem": "17_prune_ladder",
+  "claim": "把沿程 32 列剪到只留 ref 圆度 2 列，归一化增益不变（+0.0060 对 +0.0065），覆盖率从 0.651 升到 0.788，并且是唯一在几何缺失区不变差的配方。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_prune_20260917/offline/analyze_ladder.json",
+      "sha256": "c8ac9c207d747a1ceaa96375161c36f12e3acc38e42edb5051cf9739f43efef1"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_prune_20260917/offline/common_buckets.txt",
+      "sha256": "529ffc5e3f6a154083c24bcdc1b9bfdc34ad910b3e9073106f41b303b31fe1e3"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/select_channels_oof.json",
+      "sha256": "11c064101478efb1a76016221fe10fa766f06adf3734f31466a1fc306ac8f02b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_redundancy.json",
+      "sha256": "b6f338995ef99eb8777eecb3330670369045fa8a91b43da67fc776edb7813f63"
+    }
+  ],
+  "exports": {
+    "png": "figures/17_prune_ladder.png"
+  },
+  "alignment": "PASS",
+  "note": "Single seed 1234 throughout; differences in physical R2 between ladder rungs are inside the run-to-run band and are not read as information differences. Bucket shares are fixed across arms so the columns are comparable."
+}

@@ -1,0 +1,14 @@
+﻿输入索引（0起）,分组,配置字段名,维数,几何含义,标准化前单位/范围,进入网络前处理
+0–2,原有7D,"x, y, z",3,对齐后的壁面三维坐标,"无量纲，[-1,1]",分叉为原点；+Z朝入口、+X朝左髂总；除以逐例 max-abs 尺度；不做 z-score
+3,原有7D,abscissa_norm,1,从入口根节点沿中心线树到映射点的累计弧长 / 本例壁面映射弧长最大值,"无量纲，[0,1]",train138 z-score；同时进入 LocalGeoPE 的差分属性
+4,原有7D,local_radius,1,映射中心线位置的平滑局部半径 R,mm,train138 z-score；同时进入 LocalGeoPE 的差分属性
+5,原有7D,curvature,1,映射中心线位置的曲率 κ,mm⁻¹,signed_log1p → 训练集绝对值 P99 裁剪 → train138 z-score；同时用于 LocalGeoPE
+6,原有7D,log_local_radius,1,"局部半径的自然对数 ln(max(R, 10⁻⁶))，R 取 mm 数值",对数特征,先取 ln，再用 train138 z-score
+7,V5新增10D,rho,1,到中心线的横向径向距离 r⊥ / 局部半径 R,无量纲,"train138 z-score；不强制限制在 [0,1]"
+8,V5新增10D,theta_sin,1,中心线局部法平面内周向角的 sinθ,"无量纲，[-1,1]",从 atlas 局部坐标架计算 θ，再取 sin，最后 train138 z-score
+9,V5新增10D,theta_cos,1,中心线局部法平面内周向角的 cosθ,"无量纲，[-1,1]",从 atlas 局部坐标架计算 θ，再取 cos，最后 train138 z-score
+10,V5新增10D,dr_ds,1,局部半径沿中心线弧长的变化率 dR/ds,mm/mm，无量纲,train138 z-score
+11,V5新增10D,dist_to_junction_mm,1,映射中心线点沿中心线树到最近分叉节点的距离,mm,train138 z-score；沿树距离
+12,V5新增10D,dist_to_endpoint_mm,1,映射中心线点沿中心线树到最近开口端点的距离（入口或出口）,mm,train138 z-score；沿树距离
+13,V5新增10D,end_zone,1,中心线端区特征保持/修正区域标记；含开口端点与子分支起始端,原始值 0/1,该实验仍做 train138 z-score；不是单纯的入口/出口类别
+14–16,V5新增10D,"nx_aligned, ny_aligned, nz_aligned",3,壁面点云 PCA 估计的外向法向，旋转到与 xyz 相同的解剖坐标架,原始单位法向的三个分量,三个分量分别使用 train138 z-score；标准化后不再是单位向量

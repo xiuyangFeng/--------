@@ -1,0 +1,2008 @@
+{
+  "passed": true,
+  "job_id": "13783",
+  "partition": "train",
+  "n_cases": 8,
+  "checkpoint": "best",
+  "fit_labels_used": false,
+  "source_sha256": {
+    "training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "training_wss_min/baseline_models.py": "5c0ecb057f7dc52a36bf18da3b34774556d1253b4d1a58291362ea6a8de8c9f2",
+    "training_wss_min/config.py": "0c74916cdeb8fd84f1450ebe5081ee7752d4ae1f2a5218dac9dc3317bfdc3ccd",
+    "training_wss_min/dataset.py": "10fa9b4d9163212bd7157fca244e7c1699da0588d19833d609a61fb8f10e54a3",
+    "training_wss_min/evaluate.py": "3a7ac7f65e2133fce3c314b54202ff39e26f2547935cef143a7dbb5b7a648984",
+    "training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/objectives.py": "7526c88ceb43d8bffcaaf1598a70530b045d7c64d9bf743228a7fa46a8cff375",
+    "training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "training_wss_min/train.py": "7ea29dee2e55039f5cb65a2428edae61575c12d1678e4ed6d888cf52057d1981",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234.json": "da2d8039b28e527cf63bf3d6b1fb7abc17d09ee564ace7faccbc0d770d2c3e08",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234.json": "d7c9de4f72015f1cb64e0e25da263c50caa3081927de075524ca9ba73a100e64",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234.json": "893dff34a12a02341e022b9d744f6dc735920c2edad9c937474314a1970cc5c1",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234.json": "1db53c3f31ee464010e83d4e49bf0e87af5cdaf0f2e96c30588a19cc8b1a190d",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234.json": "3162455125789e9cba240d8e5108bbe660cf9caec5a2a2b2ce7b66c83f225751",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234.json": "c6fd70538f6874ba50fe49ba9ad884524a617b09ca538bb12227b9c8f6322869",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/matrix.json": "1cb30a1b7ae322f8e24036311e24438c1f3c6d28f73a28da83ce004e980074af",
+    "training_wss_min/tools/run_v6_multiradius_bt_queue.py": "a81a4831a670bc2fc5b73778e7fc362e7d83236bb16ee5d91aca549a722d50e6",
+    "training_wss_min/tools/prepare_v6_multiradius_bt_matrix.py": "53ba0218fc9649301529e61bf8afacd6f56d59beb57a7613a1633906d7a07d95"
+  },
+  "arms": {
+    "MS1": {
+      "checkpoint": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234/ckpt_best.pt",
+      "checkpoint_sha256": "03e047d9920f1fa4e1f93a1cc22387b9a6dd845fae3cdc7b14073860ea1c6cad",
+      "fusion": null,
+      "cases": [
+        {
+          "unit_id": "AG/fast/CHEN_SHI_MING",
+          "coord_scale": 134.11868286132812,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 26.823736572265627,
+              "actual_neighbors_mean": 12.75,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.8981833457946777,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "coord_scale": 186.05386352539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 37.21077270507813,
+              "actual_neighbors_mean": 18.84375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9118725061416626,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/DING_JUN_FENG",
+          "coord_scale": 158.86001586914062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 31.772003173828125,
+              "actual_neighbors_mean": 14.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.114483594894409,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/FENG_LI_XIN",
+          "coord_scale": 196.13046264648438,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 39.22609252929688,
+              "actual_neighbors_mean": 9.3125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.2102599143981934,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/AN_GUANG_JIE-0/before",
+          "coord_scale": 183.8637237548828,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 36.772744750976564,
+              "actual_neighbors_mean": 20.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9887423515319824,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/BAO_EN_YUN-0/before",
+          "coord_scale": 230.9927215576172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 46.19854431152344,
+              "actual_neighbors_mean": 23.53125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.8101253509521484,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GAO_FENG_SHAN",
+          "coord_scale": 167.70230102539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 33.540460205078126,
+              "actual_neighbors_mean": 11.5,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.290029764175415,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GUO_AI_JUN",
+          "coord_scale": 194.6870574951172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 38.93741149902344,
+              "actual_neighbors_mean": 20.4375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0409371852874756,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        }
+      ]
+    },
+    "MS2": {
+      "checkpoint": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234/ckpt_best.pt",
+      "checkpoint_sha256": "f576806ff9bdfa6294c49090f7636a84f390627fb9c225b9f78c891d800a9068",
+      "fusion": null,
+      "cases": [
+        {
+          "unit_id": "AG/fast/CHEN_SHI_MING",
+          "coord_scale": 134.11868286132812,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 26.823736572265627,
+              "actual_neighbors_mean": 12.75,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9948225021362305,
+              "layers": [
+                {
+                  "gamma_attention": 0.07257261127233505,
+                  "gamma_ffn": -0.2751937210559845,
+                  "attention_entropy": 1.2378780841827393,
+                  "attention_mean_distance_norm": 0.6225649118423462,
+                  "attention_mean_distance_mm": 83.49758597197433
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "coord_scale": 186.05386352539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 37.21077270507813,
+              "actual_neighbors_mean": 18.84375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.04742169380188,
+              "layers": [
+                {
+                  "gamma_attention": 0.07257261127233505,
+                  "gamma_ffn": -0.2751937210559845,
+                  "attention_entropy": 1.3308799266815186,
+                  "attention_mean_distance_norm": 0.5356794595718384,
+                  "attention_mean_distance_mm": 99.66523306453382
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/DING_JUN_FENG",
+          "coord_scale": 158.86001586914062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 31.772003173828125,
+              "actual_neighbors_mean": 14.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.2217860221862793,
+              "layers": [
+                {
+                  "gamma_attention": 0.07257261127233505,
+                  "gamma_ffn": -0.2751937210559845,
+                  "attention_entropy": 1.0421900749206543,
+                  "attention_mean_distance_norm": 0.594585657119751,
+                  "attention_mean_distance_mm": 94.45588692560705
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/FENG_LI_XIN",
+          "coord_scale": 196.13046264648438,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 39.22609252929688,
+              "actual_neighbors_mean": 9.3125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.440844774246216,
+              "layers": [
+                {
+                  "gamma_attention": 0.07257261127233505,
+                  "gamma_ffn": -0.2751937210559845,
+                  "attention_entropy": 1.213991641998291,
+                  "attention_mean_distance_norm": 0.644347071647644,
+                  "attention_mean_distance_mm": 126.37608926715984
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/AN_GUANG_JIE-0/before",
+          "coord_scale": 183.8637237548828,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 36.772744750976564,
+              "actual_neighbors_mean": 20.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.1279170513153076,
+              "layers": [
+                {
+                  "gamma_attention": 0.07257261127233505,
+                  "gamma_ffn": -0.2751937210559845,
+                  "attention_entropy": 1.394122838973999,
+                  "attention_mean_distance_norm": 0.5007326602935791,
+                  "attention_mean_distance_mm": 92.0665715272662
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/BAO_EN_YUN-0/before",
+          "coord_scale": 230.9927215576172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 46.19854431152344,
+              "actual_neighbors_mean": 23.53125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9931434392929077,
+              "layers": [
+                {
+                  "gamma_attention": 0.07257261127233505,
+                  "gamma_ffn": -0.2751937210559845,
+                  "attention_entropy": 1.555213212966919,
+                  "attention_mean_distance_norm": 0.5743277072906494,
+                  "attention_mean_distance_mm": 132.66552017301365
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GAO_FENG_SHAN",
+          "coord_scale": 167.70230102539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 33.540460205078126,
+              "actual_neighbors_mean": 11.5,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.433016538619995,
+              "layers": [
+                {
+                  "gamma_attention": 0.07257261127233505,
+                  "gamma_ffn": -0.2751937210559845,
+                  "attention_entropy": 1.3590227365493774,
+                  "attention_mean_distance_norm": 0.5699090957641602,
+                  "attention_mean_distance_mm": 95.57506673494936
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GUO_AI_JUN",
+          "coord_scale": 194.6870574951172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 38.93741149902344,
+              "actual_neighbors_mean": 20.4375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.166621446609497,
+              "layers": [
+                {
+                  "gamma_attention": 0.07257261127233505,
+                  "gamma_ffn": -0.2751937210559845,
+                  "attention_entropy": 1.250499963760376,
+                  "attention_mean_distance_norm": 0.5833190679550171,
+                  "attention_mean_distance_mm": 113.56467292095658
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        }
+      ]
+    },
+    "MS3": {
+      "checkpoint": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234/ckpt_best.pt",
+      "checkpoint_sha256": "23590619af4dd80839b55e638471c7e6ec83ab557d03039e6fbbfb575904fbbc",
+      "fusion": {
+        "block_frobenius_norm": [
+          5.663183689117432,
+          17.688154220581055,
+          8.513155937194824
+        ],
+        "bias_norm": 0.4181109666824341
+      },
+      "cases": [
+        {
+          "unit_id": "AG/fast/CHEN_SHI_MING",
+          "coord_scale": 134.11868286132812,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 13.411868286132814,
+              "actual_neighbors_mean": 3.375,
+              "only_self_fraction": 0.0625,
+              "tokens_rms": 0.9551024436950684,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 26.823736572265627,
+              "actual_neighbors_mean": 12.75,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.8671810626983643,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 53.647473144531254,
+              "actual_neighbors_mean": 28.9375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.234860897064209,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "coord_scale": 186.05386352539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 18.605386352539064,
+              "actual_neighbors_mean": 4.59375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 0.9399034976959229,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 37.21077270507813,
+              "actual_neighbors_mean": 18.84375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.8825643062591553,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 74.42154541015626,
+              "actual_neighbors_mean": 30.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0467910766601562,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/DING_JUN_FENG",
+          "coord_scale": 158.86001586914062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 15.886001586914062,
+              "actual_neighbors_mean": 3.34375,
+              "only_self_fraction": 0.0625,
+              "tokens_rms": 1.0195057392120361,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 31.772003173828125,
+              "actual_neighbors_mean": 14.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0387277603149414,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 63.54400634765625,
+              "actual_neighbors_mean": 28.40625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.377483606338501,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/FENG_LI_XIN",
+          "coord_scale": 196.13046264648438,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 19.61304626464844,
+              "actual_neighbors_mean": 1.59375,
+              "only_self_fraction": 0.5,
+              "tokens_rms": 1.0449358224868774,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 39.22609252929688,
+              "actual_neighbors_mean": 9.3125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.102602958679199,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 78.45218505859376,
+              "actual_neighbors_mean": 30.40625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.8696043491363525,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/AN_GUANG_JIE-0/before",
+          "coord_scale": 183.8637237548828,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 18.386372375488282,
+              "actual_neighbors_mean": 5.375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.0132187604904175,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 36.772744750976564,
+              "actual_neighbors_mean": 20.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.936682939529419,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 73.54548950195313,
+              "actual_neighbors_mean": 30.875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0177295207977295,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/BAO_EN_YUN-0/before",
+          "coord_scale": 230.9927215576172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 23.09927215576172,
+              "actual_neighbors_mean": 7.28125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 0.9871163368225098,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 46.19854431152344,
+              "actual_neighbors_mean": 23.53125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.8716126680374146,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 92.39708862304688,
+              "actual_neighbors_mean": 31.90625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.7765552997589111,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GAO_FENG_SHAN",
+          "coord_scale": 167.70230102539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 16.770230102539063,
+              "actual_neighbors_mean": 2.1875,
+              "only_self_fraction": 0.21875,
+              "tokens_rms": 1.0152828693389893,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 33.540460205078126,
+              "actual_neighbors_mean": 11.5,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.088238000869751,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 67.08092041015625,
+              "actual_neighbors_mean": 30.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.7719838619232178,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GUO_AI_JUN",
+          "coord_scale": 194.6870574951172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 19.46870574951172,
+              "actual_neighbors_mean": 5.09375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.0169148445129395,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 38.93741149902344,
+              "actual_neighbors_mean": 20.4375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9643123149871826,
+              "layers": [],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 77.87482299804688,
+              "actual_neighbors_mean": 30.0625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.122267007827759,
+              "layers": [],
+              "ffn_gammas": []
+            }
+          ]
+        }
+      ]
+    },
+    "MS4": {
+      "checkpoint": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234/ckpt_best.pt",
+      "checkpoint_sha256": "2571c43d2c8e7032e6c2465cd1c375883ecfb0b30a65ddfed2675a4efd9ccead",
+      "fusion": {
+        "block_frobenius_norm": [
+          5.635701656341553,
+          17.725479125976562,
+          8.264418601989746
+        ],
+        "bias_norm": 0.39646974205970764
+      },
+      "cases": [
+        {
+          "unit_id": "AG/fast/CHEN_SHI_MING",
+          "coord_scale": 134.11868286132812,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 13.411868286132814,
+              "actual_neighbors_mean": 3.375,
+              "only_self_fraction": 0.0625,
+              "tokens_rms": 1.0634362697601318,
+              "layers": [
+                {
+                  "gamma_attention": 0.014752359129488468,
+                  "gamma_ffn": -0.033247530460357666,
+                  "attention_entropy": 0.08386421203613281,
+                  "attention_mean_distance_norm": 0.6266331672668457,
+                  "attention_mean_distance_mm": 84.04321503105166
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 26.823736572265627,
+              "actual_neighbors_mean": 12.75,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9971486330032349,
+              "layers": [
+                {
+                  "gamma_attention": 0.06350794434547424,
+                  "gamma_ffn": -0.18618668615818024,
+                  "attention_entropy": 0.995132327079773,
+                  "attention_mean_distance_norm": 0.7099387645721436,
+                  "attention_mean_distance_mm": 95.21605201661441
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 53.647473144531254,
+              "actual_neighbors_mean": 28.9375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.380974054336548,
+              "layers": [
+                {
+                  "gamma_attention": -0.024577202275395393,
+                  "gamma_ffn": 0.1702188104391098,
+                  "attention_entropy": 0.31668925285339355,
+                  "attention_mean_distance_norm": 0.7233330011367798,
+                  "attention_mean_distance_mm": 97.01246938259646
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "coord_scale": 186.05386352539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 18.605386352539064,
+              "actual_neighbors_mean": 4.59375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.0597524642944336,
+              "layers": [
+                {
+                  "gamma_attention": 0.014752359129488468,
+                  "gamma_ffn": -0.033247530460357666,
+                  "attention_entropy": 0.05597508326172829,
+                  "attention_mean_distance_norm": 0.6550143957138062,
+                  "attention_mean_distance_mm": 121.8679589873027
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 37.21077270507813,
+              "actual_neighbors_mean": 18.84375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0111467838287354,
+              "layers": [
+                {
+                  "gamma_attention": 0.06350794434547424,
+                  "gamma_ffn": -0.18618668615818024,
+                  "attention_entropy": 1.1900629997253418,
+                  "attention_mean_distance_norm": 0.621238112449646,
+                  "attention_mean_distance_mm": 115.58375099047771
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 74.42154541015626,
+              "actual_neighbors_mean": 30.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.2507309913635254,
+              "layers": [
+                {
+                  "gamma_attention": -0.024577202275395393,
+                  "gamma_ffn": 0.1702188104391098,
+                  "attention_entropy": 0.20703169703483582,
+                  "attention_mean_distance_norm": 0.7091830372810364,
+                  "attention_mean_distance_mm": 131.94624403280795
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/DING_JUN_FENG",
+          "coord_scale": 158.86001586914062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 15.886001586914062,
+              "actual_neighbors_mean": 3.34375,
+              "only_self_fraction": 0.0625,
+              "tokens_rms": 1.1179356575012207,
+              "layers": [
+                {
+                  "gamma_attention": 0.014752359129488468,
+                  "gamma_ffn": -0.033247530460357666,
+                  "attention_entropy": 0.09143323451280594,
+                  "attention_mean_distance_norm": 0.6354297399520874,
+                  "attention_mean_distance_mm": 100.9443785725125
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 31.772003173828125,
+              "actual_neighbors_mean": 14.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.2220544815063477,
+              "layers": [
+                {
+                  "gamma_attention": 0.06350794434547424,
+                  "gamma_ffn": -0.18618668615818024,
+                  "attention_entropy": 0.8962613344192505,
+                  "attention_mean_distance_norm": 0.7110609412193298,
+                  "attention_mean_distance_mm": 112.9591524060288
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 63.54400634765625,
+              "actual_neighbors_mean": 28.40625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.514540672302246,
+              "layers": [
+                {
+                  "gamma_attention": -0.024577202275395393,
+                  "gamma_ffn": 0.1702188104391098,
+                  "attention_entropy": 0.11492424458265305,
+                  "attention_mean_distance_norm": 0.6830683350563049,
+                  "attention_mean_distance_mm": 108.51224654675207
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/FENG_LI_XIN",
+          "coord_scale": 196.13046264648438,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 19.61304626464844,
+              "actual_neighbors_mean": 1.59375,
+              "only_self_fraction": 0.5,
+              "tokens_rms": 1.185318112373352,
+              "layers": [
+                {
+                  "gamma_attention": 0.014752359129488468,
+                  "gamma_ffn": -0.033247530460357666,
+                  "attention_entropy": 0.07583463191986084,
+                  "attention_mean_distance_norm": 0.6210203766822815,
+                  "attention_mean_distance_mm": 121.80101379158987
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 39.22609252929688,
+              "actual_neighbors_mean": 9.3125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.390144109725952,
+              "layers": [
+                {
+                  "gamma_attention": 0.06350794434547424,
+                  "gamma_ffn": -0.18618668615818024,
+                  "attention_entropy": 1.1522753238677979,
+                  "attention_mean_distance_norm": 0.6009541749954224,
+                  "attention_mean_distance_mm": 117.86542037118852
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 78.45218505859376,
+              "actual_neighbors_mean": 30.40625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 3.0473885536193848,
+              "layers": [
+                {
+                  "gamma_attention": -0.024577202275395393,
+                  "gamma_ffn": 0.1702188104391098,
+                  "attention_entropy": 0.23608210682868958,
+                  "attention_mean_distance_norm": 0.7517516613006592,
+                  "attention_mean_distance_mm": 147.4414011261615
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/AN_GUANG_JIE-0/before",
+          "coord_scale": 183.8637237548828,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 18.386372375488282,
+              "actual_neighbors_mean": 5.375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.1365193128585815,
+              "layers": [
+                {
+                  "gamma_attention": 0.014752359129488468,
+                  "gamma_ffn": -0.033247530460357666,
+                  "attention_entropy": 0.07979041337966919,
+                  "attention_mean_distance_norm": 0.5407071709632874,
+                  "attention_mean_distance_mm": 99.41643391427806
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 36.772744750976564,
+              "actual_neighbors_mean": 20.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0904152393341064,
+              "layers": [
+                {
+                  "gamma_attention": 0.06350794434547424,
+                  "gamma_ffn": -0.18618668615818024,
+                  "attention_entropy": 1.1488019227981567,
+                  "attention_mean_distance_norm": 0.6044273376464844,
+                  "attention_mean_distance_mm": 111.13226103893248
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 73.54548950195313,
+              "actual_neighbors_mean": 30.875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.3723464012145996,
+              "layers": [
+                {
+                  "gamma_attention": -0.024577202275395393,
+                  "gamma_ffn": 0.1702188104391098,
+                  "attention_entropy": 0.17844116687774658,
+                  "attention_mean_distance_norm": 0.7149050831794739,
+                  "attention_mean_distance_mm": 131.4451107246723
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/BAO_EN_YUN-0/before",
+          "coord_scale": 230.9927215576172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 23.09927215576172,
+              "actual_neighbors_mean": 7.28125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.1009347438812256,
+              "layers": [
+                {
+                  "gamma_attention": 0.014752359129488468,
+                  "gamma_ffn": -0.033247530460357666,
+                  "attention_entropy": 0.3306177258491516,
+                  "attention_mean_distance_norm": 0.538303017616272,
+                  "attention_mean_distance_mm": 124.34407906186061
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 46.19854431152344,
+              "actual_neighbors_mean": 23.53125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9566218852996826,
+              "layers": [
+                {
+                  "gamma_attention": 0.06350794434547424,
+                  "gamma_ffn": -0.18618668615818024,
+                  "attention_entropy": 1.128309965133667,
+                  "attention_mean_distance_norm": 0.5968332290649414,
+                  "attention_mean_distance_mm": 137.86413189773157
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 92.39708862304688,
+              "actual_neighbors_mean": 31.90625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.1070170402526855,
+              "layers": [
+                {
+                  "gamma_attention": -0.024577202275395393,
+                  "gamma_ffn": 0.1702188104391098,
+                  "attention_entropy": 0.20694859325885773,
+                  "attention_mean_distance_norm": 0.6376515030860901,
+                  "attention_mean_distance_mm": 147.29285610316128
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GAO_FENG_SHAN",
+          "coord_scale": 167.70230102539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 16.770230102539063,
+              "actual_neighbors_mean": 2.1875,
+              "only_self_fraction": 0.21875,
+              "tokens_rms": 1.1662492752075195,
+              "layers": [
+                {
+                  "gamma_attention": 0.014752359129488468,
+                  "gamma_ffn": -0.033247530460357666,
+                  "attention_entropy": 0.14414969086647034,
+                  "attention_mean_distance_norm": 0.516916036605835,
+                  "attention_mean_distance_mm": 86.68800877572357
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 33.540460205078126,
+              "actual_neighbors_mean": 11.5,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.363698959350586,
+              "layers": [
+                {
+                  "gamma_attention": 0.06350794434547424,
+                  "gamma_ffn": -0.18618668615818024,
+                  "attention_entropy": 1.2163574695587158,
+                  "attention_mean_distance_norm": 0.6221050024032593,
+                  "attention_mean_distance_mm": 104.32844038243275
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 67.08092041015625,
+              "actual_neighbors_mean": 30.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 3.1256608963012695,
+              "layers": [
+                {
+                  "gamma_attention": -0.024577202275395393,
+                  "gamma_ffn": 0.1702188104391098,
+                  "attention_entropy": 0.348366379737854,
+                  "attention_mean_distance_norm": 0.6412215232849121,
+                  "attention_mean_distance_mm": 107.53432492188585
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GUO_AI_JUN",
+          "coord_scale": 194.6870574951172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 19.46870574951172,
+              "actual_neighbors_mean": 5.09375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.1118983030319214,
+              "layers": [
+                {
+                  "gamma_attention": 0.014752359129488468,
+                  "gamma_ffn": -0.033247530460357666,
+                  "attention_entropy": 0.1661110371351242,
+                  "attention_mean_distance_norm": 0.5489292144775391,
+                  "attention_mean_distance_mm": 106.86941353973816
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 38.93741149902344,
+              "actual_neighbors_mean": 20.4375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0963010787963867,
+              "layers": [
+                {
+                  "gamma_attention": 0.06350794434547424,
+                  "gamma_ffn": -0.18618668615818024,
+                  "attention_entropy": 0.884501576423645,
+                  "attention_mean_distance_norm": 0.6201961040496826,
+                  "attention_mean_distance_mm": 120.74415456736824
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 77.87482299804688,
+              "actual_neighbors_mean": 30.0625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.4573123455047607,
+              "layers": [
+                {
+                  "gamma_attention": -0.024577202275395393,
+                  "gamma_ffn": 0.1702188104391098,
+                  "attention_entropy": 0.2045668363571167,
+                  "attention_mean_distance_norm": 0.6261971592903137,
+                  "attention_mean_distance_mm": 121.91248235403236
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        }
+      ]
+    },
+    "MS5": {
+      "checkpoint": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234/ckpt_best.pt",
+      "checkpoint_sha256": "f4affe15d2bde624eb767325acfd09ac1c99a220729d5af756c4c2c093c69bee",
+      "fusion": {
+        "block_frobenius_norm": [
+          6.965314865112305,
+          17.64640235900879,
+          7.375387191772461
+        ],
+        "bias_norm": 0.4095989167690277
+      },
+      "cases": [
+        {
+          "unit_id": "AG/fast/CHEN_SHI_MING",
+          "coord_scale": 134.11868286132812,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 26.823736572265627,
+              "actual_neighbors_mean": 12.75,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9909303188323975,
+              "layers": [
+                {
+                  "gamma_attention": 0.028611430898308754,
+                  "gamma_ffn": -0.11924775689840317,
+                  "attention_entropy": 0.18147215247154236,
+                  "attention_mean_distance_norm": 0.6751118302345276,
+                  "attention_mean_distance_mm": 90.5451094551554
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 26.823736572265627,
+              "actual_neighbors_mean": 12.75,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9963955879211426,
+              "layers": [
+                {
+                  "gamma_attention": 0.0674058273434639,
+                  "gamma_ffn": 0.17517714202404022,
+                  "attention_entropy": 1.0230127573013306,
+                  "attention_mean_distance_norm": 0.6149834394454956,
+                  "attention_mean_distance_mm": 82.48076887995921
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.2,
+              "radius_mm": 26.823736572265627,
+              "actual_neighbors_mean": 12.75,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.031885862350464,
+              "layers": [
+                {
+                  "gamma_attention": 0.02703351154923439,
+                  "gamma_ffn": -0.02733328752219677,
+                  "attention_entropy": 0.17504742741584778,
+                  "attention_mean_distance_norm": 0.7682287096977234,
+                  "attention_mean_distance_mm": 103.03382268091627
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "coord_scale": 186.05386352539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 37.21077270507813,
+              "actual_neighbors_mean": 18.84375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.001516819000244,
+              "layers": [
+                {
+                  "gamma_attention": 0.028611430898308754,
+                  "gamma_ffn": -0.11924775689840317,
+                  "attention_entropy": 0.21837560832500458,
+                  "attention_mean_distance_norm": 0.6487305760383606,
+                  "attention_mean_distance_mm": 120.69883005898919
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 37.21077270507813,
+              "actual_neighbors_mean": 18.84375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.08225679397583,
+              "layers": [
+                {
+                  "gamma_attention": 0.0674058273434639,
+                  "gamma_ffn": 0.17517714202404022,
+                  "attention_entropy": 1.3071842193603516,
+                  "attention_mean_distance_norm": 0.5224208831787109,
+                  "attention_mean_distance_mm": 97.19842370174592
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.2,
+              "radius_mm": 37.21077270507813,
+              "actual_neighbors_mean": 18.84375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.015195369720459,
+              "layers": [
+                {
+                  "gamma_attention": 0.02703351154923439,
+                  "gamma_ffn": -0.02733328752219677,
+                  "attention_entropy": 0.17069190740585327,
+                  "attention_mean_distance_norm": 0.6640469431877136,
+                  "attention_mean_distance_mm": 123.54849934229969
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/DING_JUN_FENG",
+          "coord_scale": 158.86001586914062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 31.772003173828125,
+              "actual_neighbors_mean": 14.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.1435658931732178,
+              "layers": [
+                {
+                  "gamma_attention": 0.028611430898308754,
+                  "gamma_ffn": -0.11924775689840317,
+                  "attention_entropy": 0.1694248914718628,
+                  "attention_mean_distance_norm": 0.7561848759651184,
+                  "attention_mean_distance_mm": 120.12754139582285
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 31.772003173828125,
+              "actual_neighbors_mean": 14.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.2673847675323486,
+              "layers": [
+                {
+                  "gamma_attention": 0.0674058273434639,
+                  "gamma_ffn": 0.17517714202404022,
+                  "attention_entropy": 0.7918453216552734,
+                  "attention_mean_distance_norm": 0.5790106058120728,
+                  "attention_mean_distance_mm": 91.9816340277066
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.2,
+              "radius_mm": 31.772003173828125,
+              "actual_neighbors_mean": 14.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.1136558055877686,
+              "layers": [
+                {
+                  "gamma_attention": 0.02703351154923439,
+                  "gamma_ffn": -0.02733328752219677,
+                  "attention_entropy": 0.025070583447813988,
+                  "attention_mean_distance_norm": 0.7018702626228333,
+                  "attention_mean_distance_mm": 111.49912105834119
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/FENG_LI_XIN",
+          "coord_scale": 196.13046264648438,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 39.22609252929688,
+              "actual_neighbors_mean": 9.3125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.29998779296875,
+              "layers": [
+                {
+                  "gamma_attention": 0.028611430898308754,
+                  "gamma_ffn": -0.11924775689840317,
+                  "attention_entropy": 0.28164350986480713,
+                  "attention_mean_distance_norm": 0.6229926943778992,
+                  "attention_mean_distance_mm": 122.18784537371721
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 39.22609252929688,
+              "actual_neighbors_mean": 9.3125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.4923884868621826,
+              "layers": [
+                {
+                  "gamma_attention": 0.0674058273434639,
+                  "gamma_ffn": 0.17517714202404022,
+                  "attention_entropy": 1.285111904144287,
+                  "attention_mean_distance_norm": 0.6283887028694153,
+                  "attention_mean_distance_mm": 123.24616701560262
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.2,
+              "radius_mm": 39.22609252929688,
+              "actual_neighbors_mean": 9.3125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.160602569580078,
+              "layers": [
+                {
+                  "gamma_attention": 0.02703351154923439,
+                  "gamma_ffn": -0.02733328752219677,
+                  "attention_entropy": 0.10558795928955078,
+                  "attention_mean_distance_norm": 0.7177447080612183,
+                  "attention_mean_distance_mm": 140.7716016541126
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/AN_GUANG_JIE-0/before",
+          "coord_scale": 183.8637237548828,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 36.772744750976564,
+              "actual_neighbors_mean": 20.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.1119556427001953,
+              "layers": [
+                {
+                  "gamma_attention": 0.028611430898308754,
+                  "gamma_ffn": -0.11924775689840317,
+                  "attention_entropy": 0.2136778086423874,
+                  "attention_mean_distance_norm": 0.5892918109893799,
+                  "attention_mean_distance_mm": 108.34938674676596
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 36.772744750976564,
+              "actual_neighbors_mean": 20.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.14975905418396,
+              "layers": [
+                {
+                  "gamma_attention": 0.0674058273434639,
+                  "gamma_ffn": 0.17517714202404022,
+                  "attention_entropy": 1.316227674484253,
+                  "attention_mean_distance_norm": 0.5112364292144775,
+                  "attention_mean_distance_mm": 93.9978335945234
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.2,
+              "radius_mm": 36.772744750976564,
+              "actual_neighbors_mean": 20.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.081238269805908,
+              "layers": [
+                {
+                  "gamma_attention": 0.02703351154923439,
+                  "gamma_ffn": -0.02733328752219677,
+                  "attention_entropy": 0.08247916400432587,
+                  "attention_mean_distance_norm": 0.7249481081962585,
+                  "attention_mean_distance_mm": 133.29165870202178
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/BAO_EN_YUN-0/before",
+          "coord_scale": 230.9927215576172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 46.19854431152344,
+              "actual_neighbors_mean": 23.53125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.033562660217285,
+              "layers": [
+                {
+                  "gamma_attention": 0.028611430898308754,
+                  "gamma_ffn": -0.11924775689840317,
+                  "attention_entropy": 0.23951467871665955,
+                  "attention_mean_distance_norm": 0.612008810043335,
+                  "attention_mean_distance_mm": 141.3695806491487
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 46.19854431152344,
+              "actual_neighbors_mean": 23.53125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0485141277313232,
+              "layers": [
+                {
+                  "gamma_attention": 0.0674058273434639,
+                  "gamma_ffn": 0.17517714202404022,
+                  "attention_entropy": 1.229377269744873,
+                  "attention_mean_distance_norm": 0.4933112561702728,
+                  "attention_mean_distance_mm": 113.9513096377782
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.2,
+              "radius_mm": 46.19854431152344,
+              "actual_neighbors_mean": 23.53125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.996201515197754,
+              "layers": [
+                {
+                  "gamma_attention": 0.02703351154923439,
+                  "gamma_ffn": -0.02733328752219677,
+                  "attention_entropy": 0.02231491357088089,
+                  "attention_mean_distance_norm": 0.6610957980155945,
+                  "attention_mean_distance_mm": 152.70831759392695
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GAO_FENG_SHAN",
+          "coord_scale": 167.70230102539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 33.540460205078126,
+              "actual_neighbors_mean": 11.5,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.3240668773651123,
+              "layers": [
+                {
+                  "gamma_attention": 0.028611430898308754,
+                  "gamma_ffn": -0.11924775689840317,
+                  "attention_entropy": 0.25808051228523254,
+                  "attention_mean_distance_norm": 0.6230748891830444,
+                  "attention_mean_distance_mm": 104.49109262713682
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 33.540460205078126,
+              "actual_neighbors_mean": 11.5,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.4572489261627197,
+              "layers": [
+                {
+                  "gamma_attention": 0.0674058273434639,
+                  "gamma_ffn": 0.17517714202404022,
+                  "attention_entropy": 1.2232993841171265,
+                  "attention_mean_distance_norm": 0.5591070652008057,
+                  "attention_mean_distance_mm": 93.76354135372821
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.2,
+              "radius_mm": 33.540460205078126,
+              "actual_neighbors_mean": 11.5,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.2888906002044678,
+              "layers": [
+                {
+                  "gamma_attention": 0.02703351154923439,
+                  "gamma_ffn": -0.02733328752219677,
+                  "attention_entropy": 0.15210206806659698,
+                  "attention_mean_distance_norm": 0.6391596794128418,
+                  "attention_mean_distance_mm": 107.18854896018456
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GUO_AI_JUN",
+          "coord_scale": 194.6870574951172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.2,
+              "radius_mm": 38.93741149902344,
+              "actual_neighbors_mean": 20.4375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.148766279220581,
+              "layers": [
+                {
+                  "gamma_attention": 0.028611430898308754,
+                  "gamma_ffn": -0.11924775689840317,
+                  "attention_entropy": 0.14335180819034576,
+                  "attention_mean_distance_norm": 0.6558874845504761,
+                  "attention_mean_distance_mm": 127.69280441500632
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 38.93741149902344,
+              "actual_neighbors_mean": 20.4375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.16511869430542,
+              "layers": [
+                {
+                  "gamma_attention": 0.0674058273434639,
+                  "gamma_ffn": 0.17517714202404022,
+                  "attention_entropy": 1.1092298030853271,
+                  "attention_mean_distance_norm": 0.5059089660644531,
+                  "attention_mean_distance_mm": 98.49392796348548
+                }
+              ],
+              "ffn_gammas": []
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.2,
+              "radius_mm": 38.93741149902344,
+              "actual_neighbors_mean": 20.4375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.1885321140289307,
+              "layers": [
+                {
+                  "gamma_attention": 0.02703351154923439,
+                  "gamma_ffn": -0.02733328752219677,
+                  "attention_entropy": 0.05974651128053665,
+                  "attention_mean_distance_norm": 0.6258291602134705,
+                  "attention_mean_distance_mm": 121.84083769660083
+                }
+              ],
+              "ffn_gammas": []
+            }
+          ]
+        }
+      ]
+    },
+    "MS6": {
+      "checkpoint": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234/ckpt_best.pt",
+      "checkpoint_sha256": "353726c7812e6205d575d6bbc8c0cacc08ad0535626bdde133e605fcebf1303c",
+      "fusion": {
+        "block_frobenius_norm": [
+          5.45270299911499,
+          17.60613250732422,
+          8.361196517944336
+        ],
+        "bias_norm": 0.36296388506889343
+      },
+      "cases": [
+        {
+          "unit_id": "AG/fast/CHEN_SHI_MING",
+          "coord_scale": 134.11868286132812,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 13.411868286132814,
+              "actual_neighbors_mean": 3.375,
+              "only_self_fraction": 0.0625,
+              "tokens_rms": 0.9478518962860107,
+              "layers": [],
+              "ffn_gammas": [
+                0.0582655668258667
+              ]
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 26.823736572265627,
+              "actual_neighbors_mean": 12.75,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.8178988695144653,
+              "layers": [],
+              "ffn_gammas": [
+                0.1747681051492691
+              ]
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 53.647473144531254,
+              "actual_neighbors_mean": 28.9375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.3014345169067383,
+              "layers": [],
+              "ffn_gammas": [
+                0.22540636360645294
+              ]
+            }
+          ]
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "coord_scale": 186.05386352539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 18.605386352539064,
+              "actual_neighbors_mean": 4.59375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 0.965273916721344,
+              "layers": [],
+              "ffn_gammas": [
+                0.0582655668258667
+              ]
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 37.21077270507813,
+              "actual_neighbors_mean": 18.84375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.8428071737289429,
+              "layers": [],
+              "ffn_gammas": [
+                0.1747681051492691
+              ]
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 74.42154541015626,
+              "actual_neighbors_mean": 30.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.2075021266937256,
+              "layers": [],
+              "ffn_gammas": [
+                0.22540636360645294
+              ]
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/DING_JUN_FENG",
+          "coord_scale": 158.86001586914062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 15.886001586914062,
+              "actual_neighbors_mean": 3.34375,
+              "only_self_fraction": 0.0625,
+              "tokens_rms": 0.9606937170028687,
+              "layers": [],
+              "ffn_gammas": [
+                0.0582655668258667
+              ]
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 31.772003173828125,
+              "actual_neighbors_mean": 14.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0111842155456543,
+              "layers": [],
+              "ffn_gammas": [
+                0.1747681051492691
+              ]
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 63.54400634765625,
+              "actual_neighbors_mean": 28.40625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.509923219680786,
+              "layers": [],
+              "ffn_gammas": [
+                0.22540636360645294
+              ]
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/FENG_LI_XIN",
+          "coord_scale": 196.13046264648438,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 19.61304626464844,
+              "actual_neighbors_mean": 1.59375,
+              "only_self_fraction": 0.5,
+              "tokens_rms": 0.9785889983177185,
+              "layers": [],
+              "ffn_gammas": [
+                0.0582655668258667
+              ]
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 39.22609252929688,
+              "actual_neighbors_mean": 9.3125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0602805614471436,
+              "layers": [],
+              "ffn_gammas": [
+                0.1747681051492691
+              ]
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 78.45218505859376,
+              "actual_neighbors_mean": 30.40625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.886679172515869,
+              "layers": [],
+              "ffn_gammas": [
+                0.22540636360645294
+              ]
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/AN_GUANG_JIE-0/before",
+          "coord_scale": 183.8637237548828,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 18.386372375488282,
+              "actual_neighbors_mean": 5.375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.0235786437988281,
+              "layers": [],
+              "ffn_gammas": [
+                0.0582655668258667
+              ]
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 36.772744750976564,
+              "actual_neighbors_mean": 20.1875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.8744655847549438,
+              "layers": [],
+              "ffn_gammas": [
+                0.1747681051492691
+              ]
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 73.54548950195313,
+              "actual_neighbors_mean": 30.875,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.18239688873291,
+              "layers": [],
+              "ffn_gammas": [
+                0.22540636360645294
+              ]
+            }
+          ]
+        },
+        {
+          "unit_id": "ILO/BAO_EN_YUN-0/before",
+          "coord_scale": 230.9927215576172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 23.09927215576172,
+              "actual_neighbors_mean": 7.28125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 0.9984489679336548,
+              "layers": [],
+              "ffn_gammas": [
+                0.0582655668258667
+              ]
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 46.19854431152344,
+              "actual_neighbors_mean": 23.53125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.7280504703521729,
+              "layers": [],
+              "ffn_gammas": [
+                0.1747681051492691
+              ]
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 92.39708862304688,
+              "actual_neighbors_mean": 31.90625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 1.9281466007232666,
+              "layers": [],
+              "ffn_gammas": [
+                0.22540636360645294
+              ]
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GAO_FENG_SHAN",
+          "coord_scale": 167.70230102539062,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 16.770230102539063,
+              "actual_neighbors_mean": 2.1875,
+              "only_self_fraction": 0.21875,
+              "tokens_rms": 0.9967160820960999,
+              "layers": [],
+              "ffn_gammas": [
+                0.0582655668258667
+              ]
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 33.540460205078126,
+              "actual_neighbors_mean": 11.5,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.1410534381866455,
+              "layers": [],
+              "ffn_gammas": [
+                0.1747681051492691
+              ]
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 67.08092041015625,
+              "actual_neighbors_mean": 30.03125,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 3.0462520122528076,
+              "layers": [],
+              "ffn_gammas": [
+                0.22540636360645294
+              ]
+            }
+          ]
+        },
+        {
+          "unit_id": "AAA/ruputer/GUO_AI_JUN",
+          "coord_scale": 194.6870574951172,
+          "branches": [
+            {
+              "scale": 0,
+              "radius_norm": 0.1,
+              "radius_mm": 19.46870574951172,
+              "actual_neighbors_mean": 5.09375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 0.9905125498771667,
+              "layers": [],
+              "ffn_gammas": [
+                0.0582655668258667
+              ]
+            },
+            {
+              "scale": 1,
+              "radius_norm": 0.2,
+              "radius_mm": 38.93741149902344,
+              "actual_neighbors_mean": 20.4375,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.0122108459472656,
+              "layers": [],
+              "ffn_gammas": [
+                0.1747681051492691
+              ]
+            },
+            {
+              "scale": 2,
+              "radius_norm": 0.4,
+              "radius_mm": 77.87482299804688,
+              "actual_neighbors_mean": 30.0625,
+              "only_self_fraction": 0.0,
+              "tokens_rms": 2.32167911529541,
+              "layers": [],
+              "ffn_gammas": [
+                0.22540636360645294
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "limits": "Read-only best-checkpoint branch/attention diagnostics on eight train cases.\n\nDoes not evaluate fit or select a radius, checkpoint or case-dependent mask.\nDistances are reported per case using its existing coordinate scale. Projection\nnorms describe activation of a route, not causal feature importance.\n"
+}

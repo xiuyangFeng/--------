@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-09-10T18:09:21+0800",
+  "runtime_job": 14034,
+  "references_job": 14036,
+  "smoke_job": 14038,
+  "formal_dependency": "all matching gates rechecked at startup; no pending dependency",
+  "cancelled_pending_jobs": {
+    "14035": "three GPUs unavailable; cancelled before any execution",
+    "14037": "replaced pending request with four slots on the one available GPU"
+  },
+  "resource_decision": "Slurm has three GPUs allocated to other users; one GPU, four slots, batch8 unchanged, runtime peak <1GiB per real batch; memory150G",
+  "formal_job": 14040,
+  "updated_at": "2026-09-10T18:24:45+0800",
+  "finalizer_job": 14041,
+  "finalizer_dependency": "afterany:14040",
+  "formal_walltime": "48:00:00",
+  "finalizer_walltime": "04:00:00",
+  "interrupted_formal_jobs": {
+    "14039": {
+      "reason": "12-hour allocation replaced early by48-hour allocation; all26 restarted fresh",
+      "provenance": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/interrupted_initial_allocation_14039/reason.json",
+      "scientific_result": false
+    }
+  },
+  "monitor": {
+    "job": 14056,
+    "interval_seconds": 300,
+    "started_at": "2026-09-10T21:05:52+0800",
+    "status_file": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/monitor_status.json",
+    "events_file": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/monitor_events.jsonl",
+    "incremental_workbook": true,
+    "publication": "new arm result or execution stage; finalizer retains final acceptance",
+    "superseded_job": 14055,
+    "superseded_reason": "initial live publication succeeded; monitor-only restart loads reviewed publication guards",
+    "source_sha256": "c81d4ecda6e8d1bd727017c97a0615d8f5b0387c53d93cf1528a957cdce58b0b"
+  },
+  "shared_gpu_execution": {
+    "confirmed_at": "2026-09-10T21:23:50+0800",
+    "slots_per_gpu": 4,
+    "applies_to": "all remaining pending arms",
+    "evidence": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/gpu_sharing_policy.json"
+  },
+  "completion": {
+    "status": "complete",
+    "completed_at": "2026-09-11T06:44:24+0800",
+    "training_job": 14040,
+    "finalizer_job": 14041,
+    "validated_task_checkpoints": 60,
+    "validated_training_runs": 26,
+    "paired_case_rows": 6936,
+    "evidence": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/completion_status.json"
+  },
+  "final_delivery": {
+    "status": "complete",
+    "published_at": "2026-09-11T10:36:37+0800",
+    "evidence": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/final_publication.json",
+    "summary": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/final_summary.md",
+    "workbook_sha256": "cfccb3ace8e42797000372c98faa96ceac2afa272bcdbe2fd546fa22320afbf4"
+  }
+}

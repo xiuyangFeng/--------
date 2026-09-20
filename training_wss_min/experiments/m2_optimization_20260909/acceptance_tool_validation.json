@@ -1,0 +1,75 @@
+{
+  "passed": true,
+  "completed_at": "2026-09-10T00:25:39+0800",
+  "scope": "CPU-only acceptance-tool validation; not final experiment acceptance",
+  "tool": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/accept_m2_optimization.py",
+    "sha256": "2623f2cf9da110fa504e6aba0ac7278436583bb82d0a0135b79f43dacfa11667"
+  },
+  "execution": {
+    "python": "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "cuda_visible_devices": "-1",
+    "omp_num_threads": 2,
+    "openblas_num_threads": 1,
+    "mkl_num_threads": 2
+  },
+  "temporary_unittest": {
+    "test_methods_passed": 3,
+    "elapsed_seconds": 0.577,
+    "input_negative_subcases_passed": [
+      "missing_file",
+      "same_count_wrong_path",
+      "new_geometry_flag",
+      "changed_data_root"
+    ],
+    "diagnostic_negative_subcases_passed": [
+      "missing_run",
+      "missing_last",
+      "missing_case",
+      "incorrect_evaluation_counter",
+      "incorrect_numeric_counter",
+      "smoke_only",
+      "changed_run_source_hash",
+      "missing_run_sources",
+      "failed_numeric_check",
+      "changed_wall_point_count",
+      "duplicate_figure_record",
+      "missing_input",
+      "unexpected_source_phase",
+      "changed_prediction_array"
+    ],
+    "positive_cases_passed": [
+      "real_input_manifest_boundary",
+      "complete_mock_diagnostics",
+      "first_workbook_update",
+      "repeated_workbook_update"
+    ],
+    "workbook_history_corruption_rejected_on_first_and_repeat": true,
+    "real_deliverables_modified_by_tests": false
+  },
+  "input_boundary": {
+    "training_cases": 138,
+    "test_cases": 34,
+    "runtime_input_files": 346,
+    "additional_frozen_volume_files": 172,
+    "manifest_files": 518,
+    "manifest_bytes": 21209776152,
+    "manifest_sha256": "002b9fb67f387dde1ac81ce4a904724dd59be32d151650410948fe383d78b854",
+    "missing_paths": [],
+    "unexpected_paths": [],
+    "volume_boundary": "172 volume.npz files are additionally frozen but not read by peak-WSS training/evaluation",
+    "full_input_content_rehash_deferred_to_final_acceptance": true
+  },
+  "real_wall_population_check": {
+    "cases_verified": 34,
+    "wall_node_id_cas_total": 1231295,
+    "historical_best_metric_n_total": 1231295,
+    "per_case_count_mismatches": []
+  },
+  "frozen_training_sources": {
+    "files_checked": 41,
+    "equal_queue_start_hashes": true,
+    "modified": false
+  },
+  "final_acceptance_main_executed": false
+}

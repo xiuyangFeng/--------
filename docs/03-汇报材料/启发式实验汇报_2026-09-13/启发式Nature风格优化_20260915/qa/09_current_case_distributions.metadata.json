@@ -1,0 +1,83 @@
+{
+  "stem": "09_current_case_distributions",
+  "claim": "最佳病例只代表分布的一端：低分病例与 seed 波动仍需解释",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_R2分布_20260914/summary.json",
+      "sha256": "7285bbf6ff421f866b98d341a3811fc917d30c4f7e5c7359f2b2209d4506b72d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1_20260912/X5_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "4f92a5dc11586b964d01e7987f0b61752be0540da0f62672925fb281145f07f3"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1b_20260912/X5_s7/eval/ckpt_best/metrics.json",
+      "sha256": "964abe7d0aa2b1c134bdcb3cedb72b77751a358eaf6fefff6e53d7283939fab3"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1b_20260912/X5_s2025/eval/ckpt_best/metrics.json",
+      "sha256": "e45ba9dbea0dd85a91a406a23e0e3d3505ad951b7f4a9926046c26f4122ee728"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "8595b618c43dba87b3ff2acf6c72d1eab7088f9d716e5b418a737b5ca23fcf1b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s7/eval/ckpt_best/metrics.json",
+      "sha256": "1038ab35bca53f78d6c9f80f83e2c970c7d287aba45d299e93fc8658958183b2"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s2025/eval/ckpt_best/metrics.json",
+      "sha256": "f19738800dd0f264304c478e66c129b74939a06ffd58fefae06ac76e9ee34b25"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "8ba2bbb611983f2225d59e26e0c7f206fb301c7b7af22c727f63ae4d14b3cc20"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave3_20260913/VF6_s7/eval/ckpt_best/metrics.json",
+      "sha256": "1f768ca9ddd3e0c6c1c4f04b2f53f19d7994b8af82e56c829a43529ace1bc23d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave3_20260913/VF6_s2025/eval/ckpt_best/metrics.json",
+      "sha256": "cbb703d325b7ed2e7a6768c471a09bae3660383f76017c48493c55748e5b8cf1"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "3216eb585c07d4f720281d14a8ec98d58cfd6c918d90e9fb8eab8bd72754774a"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave3_20260913/PF6_s7/eval/ckpt_best/metrics.json",
+      "sha256": "983ba7795067b9f0f065323fd6162d9c5999eb60119db37f66ae03687a39e2df"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave3_20260913/PF6_s2025/eval/ckpt_best/metrics.json",
+      "sha256": "3dead8e601400dce56e9d2589a07462a358555fd7dee299a7980507c40f50bb0"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/09_current_case_distributions.csv",
+      "sha256": "8311c88ebd0073715f8c6d2380ca2608338d19caea34fe5e805996e76acf5f1e"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/09_current_case_distributions_histogram.csv",
+      "sha256": "6f28203d334eda5a57332908ddeaad791a0dc5f0a0545c6ae2b8ea179624d16a"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/09_current_case_distributions.pdf",
+    "svg": "figures/09_current_case_distributions.svg",
+    "png": "figures/09_current_case_distributions.png"
+  },
+  "alignment": "PASS",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/09_current_case_distributions.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/09_current_case_distributions.collision.json"
+    }
+  },
+  "note": "All cases retained; display lanes have no numerical meaning. Current means/SD independently recomputed from seed_values and source SHA256 checked. Histogram has zero-anchored width0.10. Explicit groups audit actual rows and columns; intentional scatter:histogram width 0.50:0.17. Current B/M/W refer to existing visualization package, not modal-bin cases. Historical converged:false and incompatible protocol disclosed. Editable vector data marks."
+}

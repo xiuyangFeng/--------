@@ -1,0 +1,946 @@
+{
+  "recorded_at_utc": "2026-09-09T11:50:35.043972+00:00",
+  "requested_mode": "final",
+  "analysis_script": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/independent_analysis.py",
+    "sha256": "902831f0a2928812974803036619934aeea60faf47d34a0ca2dc67563cd28bec"
+  },
+  "matrix": {
+    "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/matrix.json",
+    "sha256": "1cb30a1b7ae322f8e24036311e24438c1f3c6d28f73a28da83ce004e980074af"
+  },
+  "queue_job_id": "13781",
+  "queue_status": "running",
+  "source_integrity": {
+    "source_count": 21,
+    "current_mismatches": [],
+    "final_hashes_recorded": false,
+    "start_end_equal": false,
+    "queue_reports_changed": null,
+    "passed": false
+  },
+  "metric_paths": {
+    "physical_r2_cb": "field_casebalanced.r2",
+    "log_z_r2_cb": "normalized.field_casebalanced.r2",
+    "case_r2_mean": "aggregate.r2_casemean",
+    "case_r2_p10": "aggregate.r2_casep10",
+    "negative_r2_cases": "aggregate.r2_negative_cases",
+    "mae_pa": "field.mae",
+    "mae_pa_cb": "field_casebalanced.mae",
+    "rmse_pa_cb": "field_casebalanced.rmse",
+    "high_wss_r2": "regional_field.high_wss.r2",
+    "high_wss_mae_pa": "regional_field.high_wss.mae",
+    "top10_iou": "hotspot.top10_iou_casemean",
+    "spearman": "hotspot.spearman_all_casemean",
+    "spearman_high_wss": "hotspot.spearman_high_wss_casemean",
+    "top10_ratio": "calibration.top10_pred_true_ratio",
+    "p99_ratio": "calibration.p99_pred_true_ratio",
+    "peak_distance_bbox": "hotspot.peak_point_dist_over_bbox_casemean",
+    "hotspot_centroid_distance_bbox": "hotspot.hotspot_centroid_dist_over_bbox_casemean"
+  },
+  "checkpoint_results": {
+    "best": {
+      "runs": {
+        "MS0": {
+          "id": "MS0",
+          "run_name": "v6_followup_20260909/M2_a5_independent_k3_s1234",
+          "valid_completed_result": true,
+          "issues": [],
+          "history": {
+            "complete": true,
+            "issues": [],
+            "row_count": 400,
+            "last_epoch": 399,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/history.jsonl",
+              "sha256": "93ad8c388d59bcd9735cec178fdf8a82c973012ba3ad9e20d5b56f81fe94e303"
+            },
+            "history_cumulative_elapsed_seconds": 2232.9,
+            "median_epoch_seconds_after_epoch9": 5.600000000000023,
+            "mean_epoch_seconds": 5.58225
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T11:46:54+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M2_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json"
+              ],
+              "ended_at": "2026-09-09T12:24:23+0800",
+              "returncode": 0,
+              "elapsed_seconds": 2249.1201617717743
+            },
+            "eval_best": {
+              "started_at": "2026-09-09T12:24:23+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M2_eval_best.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.evaluate",
+                "--run-dir",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234",
+                "--partitions",
+                "test",
+                "--allow-test",
+                "--checkpoint",
+                "best",
+                "--no-plots"
+              ],
+              "ended_at": "2026-09-09T12:24:38+0800",
+              "returncode": 0,
+              "elapsed_seconds": 15.015649318695068
+            },
+            "eval_last": {
+              "started_at": "2026-09-09T12:24:38+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M2_eval_last.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.evaluate",
+                "--run-dir",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234",
+                "--partitions",
+                "test",
+                "--allow-test",
+                "--checkpoint",
+                "last",
+                "--no-plots"
+              ],
+              "ended_at": "2026-09-09T12:24:50+0800",
+              "returncode": 0,
+              "elapsed_seconds": 12.020537614822388
+            }
+          },
+          "checkpoint": {
+            "valid": true,
+            "issues": [],
+            "epoch": 378,
+            "parameter_count_from_state": 584103,
+            "artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/ckpt_best.pt",
+              "sha256": "a58d64ffff834e574b2c6bf41738931609ecbf24fd859938eefdf5a1d56f6c1e"
+            },
+            "new_module_gammas": {},
+            "fusion": null,
+            "initially_zero_geo_and_condition_weight_norms": {}
+          },
+          "metric_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/eval/ckpt_best/metrics.json",
+            "sha256": "0a78ee4fcde789a9b2bdf0474110f64d9fbe7bde8069c6dd187d89020865b3bd"
+          },
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/config.json",
+            "sha256": "8eb053bf1bbaaaee912d848b149cc02ad4c60bd07c4bf19b4f1d15b4d7b5dab0"
+          },
+          "efficiency": {
+            "parameters": 584103,
+            "elapsed_seconds": 8.005986780975945,
+            "seconds_per_case": 0.23547019944046899,
+            "peak_cuda_memory_bytes": 75795456,
+            "fixed_support": true,
+            "query_chunk_size": 16384
+          },
+          "metrics": {
+            "physical_r2_cb": 0.6284126356135231,
+            "log_z_r2_cb": 0.8236965525164378,
+            "case_r2_mean": 0.6207459279559143,
+            "case_r2_p10": 0.4555274640712761,
+            "negative_r2_cases": 0.0,
+            "mae_pa": 1.9882321487169918,
+            "mae_pa_cb": 1.814108690668934,
+            "rmse_pa_cb": 4.720885786086935,
+            "high_wss_r2": 0.21945885643647156,
+            "high_wss_mae_pa": 9.182841050213009,
+            "top10_iou": 0.427468925201191,
+            "spearman": 0.8845693878310087,
+            "spearman_high_wss": 0.40498940055236055,
+            "top10_ratio": 0.6155996340653817,
+            "p99_ratio": 0.60993176273113,
+            "peak_distance_bbox": 0.09433796847621119,
+            "hotspot_centroid_distance_bbox": 0.034017636788725235
+          }
+        },
+        "MS1": {
+          "id": "MS1",
+          "run_name": "v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_best stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 120,
+            "last_epoch": 119,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234/history.jsonl",
+              "sha256": "3e44d6f3bcaa0b48590a14ec448d1754945f86a23aebad5f25578e29c113c416"
+            },
+            "history_cumulative_elapsed_seconds": 668.0,
+            "median_epoch_seconds_after_epoch9": 5.7999999999999545,
+            "mean_epoch_seconds": 5.566666666666666
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:39:12+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS1_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234/config.json",
+            "sha256": "e41ce6eac91a6582a88340516b8e4f153cf89d6fb5eeed468fb56b70bc69c6fe"
+          }
+        },
+        "MS2": {
+          "id": "MS2",
+          "run_name": "v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_best stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 115,
+            "last_epoch": 114,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234/history.jsonl",
+              "sha256": "4af4a3d00a951fe0c8a9c36d55db5b14dbee3ca30e0c3422a9abe567bc16d64d"
+            },
+            "history_cumulative_elapsed_seconds": 657.4,
+            "median_epoch_seconds_after_epoch9": 5.899999999999977,
+            "mean_epoch_seconds": 5.716521739130434
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:39:24+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS2_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234/config.json",
+            "sha256": "18d97a7ce710a8443e912ed35a78686ffcfea14ace99ef78d9c7664dabe41f64"
+          }
+        },
+        "MS3": {
+          "id": "MS3",
+          "run_name": "v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_best stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 101,
+            "last_epoch": 100,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234/history.jsonl",
+              "sha256": "b728a4b31eef375eba65fe424dd52aba482cb8f3f0fc0b1d880c71ddba99635d"
+            },
+            "history_cumulative_elapsed_seconds": 638.2,
+            "median_epoch_seconds_after_epoch9": 6.399999999999977,
+            "mean_epoch_seconds": 6.318811881188119
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:39:36+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS3_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234/config.json",
+            "sha256": "1712218cc3ed97d25e30f691608bba8fcf3e8c9d82275239cb9621d0cc5fc49b"
+          }
+        },
+        "MS4": {
+          "id": "MS4",
+          "run_name": "v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_best stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 97,
+            "last_epoch": 96,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234/history.jsonl",
+              "sha256": "8837be294391ca5ffb972e197d983e0cf47ec6ad44c1fed4babaeac6e7fba4f5"
+            },
+            "history_cumulative_elapsed_seconds": 627.6,
+            "median_epoch_seconds_after_epoch9": 6.5,
+            "mean_epoch_seconds": 6.470103092783505
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:39:48+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS4_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234/config.json",
+            "sha256": "2e34801b3e02426fee7d1bb7d87d1a6fe4be4c3aa8e5dff197a76c0337701204"
+          }
+        },
+        "MS5": {
+          "id": "MS5",
+          "run_name": "v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_best stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 97,
+            "last_epoch": 96,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234/history.jsonl",
+              "sha256": "ff1d4f522b84bf7a24d13cdf4d3fd12502da38b160b402a6ceccee81539c5bda"
+            },
+            "history_cumulative_elapsed_seconds": 617.6,
+            "median_epoch_seconds_after_epoch9": 6.300000000000011,
+            "mean_epoch_seconds": 6.367010309278351
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:40:00+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS5_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234/config.json",
+            "sha256": "936f2973e1c4f54b7818a392e9fd3417137b5cf33b2f6cadf62bf952fe0ee58e"
+          }
+        },
+        "MS6": {
+          "id": "MS6",
+          "run_name": "v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_best stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 94,
+            "last_epoch": 93,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234/history.jsonl",
+              "sha256": "ab013c68181bce7f3723a5dc9f1a2f52bfe188c6a3028f008696a5dd7e0f4c35"
+            },
+            "history_cumulative_elapsed_seconds": 601.7,
+            "median_epoch_seconds_after_epoch9": 6.399999999999977,
+            "mean_epoch_seconds": 6.401063829787234
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:40:12+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS6_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234/config.json",
+            "sha256": "5d9ef33fc6c8fe3aa9eedf3bbe38575c710a0c4e4e9408d51c30eae46fb03261"
+          }
+        }
+      },
+      "contrasts": {},
+      "factorial_interaction": null,
+      "completed_new_run_count": 0
+    },
+    "last": {
+      "runs": {
+        "MS0": {
+          "id": "MS0",
+          "run_name": "v6_followup_20260909/M2_a5_independent_k3_s1234",
+          "valid_completed_result": true,
+          "issues": [],
+          "history": {
+            "complete": true,
+            "issues": [],
+            "row_count": 400,
+            "last_epoch": 399,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/history.jsonl",
+              "sha256": "93ad8c388d59bcd9735cec178fdf8a82c973012ba3ad9e20d5b56f81fe94e303"
+            },
+            "history_cumulative_elapsed_seconds": 2232.9,
+            "median_epoch_seconds_after_epoch9": 5.600000000000023,
+            "mean_epoch_seconds": 5.58225
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T11:46:54+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M2_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json"
+              ],
+              "ended_at": "2026-09-09T12:24:23+0800",
+              "returncode": 0,
+              "elapsed_seconds": 2249.1201617717743
+            },
+            "eval_best": {
+              "started_at": "2026-09-09T12:24:23+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M2_eval_best.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.evaluate",
+                "--run-dir",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234",
+                "--partitions",
+                "test",
+                "--allow-test",
+                "--checkpoint",
+                "best",
+                "--no-plots"
+              ],
+              "ended_at": "2026-09-09T12:24:38+0800",
+              "returncode": 0,
+              "elapsed_seconds": 15.015649318695068
+            },
+            "eval_last": {
+              "started_at": "2026-09-09T12:24:38+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/logs/M2_eval_last.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.evaluate",
+                "--run-dir",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234",
+                "--partitions",
+                "test",
+                "--allow-test",
+                "--checkpoint",
+                "last",
+                "--no-plots"
+              ],
+              "ended_at": "2026-09-09T12:24:50+0800",
+              "returncode": 0,
+              "elapsed_seconds": 12.020537614822388
+            }
+          },
+          "checkpoint": {
+            "valid": true,
+            "issues": [],
+            "epoch": 399,
+            "parameter_count_from_state": 584103,
+            "artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/ckpt_last.pt",
+              "sha256": "401c2aded139dbcdf0801c2d529a3eb5d2ca3cc46ac04bcc48f84d5473a05a66"
+            },
+            "new_module_gammas": {},
+            "fusion": null,
+            "initially_zero_geo_and_condition_weight_norms": {}
+          },
+          "metric_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/eval/ckpt_last/metrics.json",
+            "sha256": "683fc7d0dacd4b12965a3adb9a61a17991b99917a71bb5e03e886f664462de8f"
+          },
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/config.json",
+            "sha256": "8eb053bf1bbaaaee912d848b149cc02ad4c60bd07c4bf19b4f1d15b4d7b5dab0"
+          },
+          "efficiency": {
+            "parameters": 584103,
+            "elapsed_seconds": 6.073665247007739,
+            "seconds_per_case": 0.17863721314728642,
+            "peak_cuda_memory_bytes": 75795456,
+            "fixed_support": true,
+            "query_chunk_size": 16384
+          },
+          "metrics": {
+            "physical_r2_cb": 0.6242935512055154,
+            "log_z_r2_cb": 0.8246276552303107,
+            "case_r2_mean": 0.6226324593336708,
+            "case_r2_p10": 0.4410457341455938,
+            "negative_r2_cases": 0.0,
+            "mae_pa": 1.9909288007681991,
+            "mae_pa_cb": 1.8141328237444752,
+            "rmse_pa_cb": 4.746979426572886,
+            "high_wss_r2": 0.2020894854519495,
+            "high_wss_mae_pa": 9.296652114221194,
+            "top10_iou": 0.4267166924347061,
+            "spearman": 0.8848341652162398,
+            "spearman_high_wss": 0.40221571653052035,
+            "top10_ratio": 0.6057015251719725,
+            "p99_ratio": 0.599993613603671,
+            "peak_distance_bbox": 0.09748495236543656,
+            "hotspot_centroid_distance_bbox": 0.03341732649454919
+          }
+        },
+        "MS1": {
+          "id": "MS1",
+          "run_name": "v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_last stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 120,
+            "last_epoch": 119,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234/history.jsonl",
+              "sha256": "3e44d6f3bcaa0b48590a14ec448d1754945f86a23aebad5f25578e29c113c416"
+            },
+            "history_cumulative_elapsed_seconds": 668.0,
+            "median_epoch_seconds_after_epoch9": 5.7999999999999545,
+            "mean_epoch_seconds": 5.566666666666666
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:39:12+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS1_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234/config.json",
+            "sha256": "e41ce6eac91a6582a88340516b8e4f153cf89d6fb5eeed468fb56b70bc69c6fe"
+          }
+        },
+        "MS2": {
+          "id": "MS2",
+          "run_name": "v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_last stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 115,
+            "last_epoch": 114,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234/history.jsonl",
+              "sha256": "4af4a3d00a951fe0c8a9c36d55db5b14dbee3ca30e0c3422a9abe567bc16d64d"
+            },
+            "history_cumulative_elapsed_seconds": 657.4,
+            "median_epoch_seconds_after_epoch9": 5.899999999999977,
+            "mean_epoch_seconds": 5.716521739130434
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:39:24+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS2_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234/config.json",
+            "sha256": "18d97a7ce710a8443e912ed35a78686ffcfea14ace99ef78d9c7664dabe41f64"
+          }
+        },
+        "MS3": {
+          "id": "MS3",
+          "run_name": "v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_last stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 101,
+            "last_epoch": 100,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234/history.jsonl",
+              "sha256": "b728a4b31eef375eba65fe424dd52aba482cb8f3f0fc0b1d880c71ddba99635d"
+            },
+            "history_cumulative_elapsed_seconds": 638.2,
+            "median_epoch_seconds_after_epoch9": 6.399999999999977,
+            "mean_epoch_seconds": 6.318811881188119
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:39:36+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS3_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234/config.json",
+            "sha256": "1712218cc3ed97d25e30f691608bba8fcf3e8c9d82275239cb9621d0cc5fc49b"
+          }
+        },
+        "MS4": {
+          "id": "MS4",
+          "run_name": "v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_last stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 97,
+            "last_epoch": 96,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234/history.jsonl",
+              "sha256": "8837be294391ca5ffb972e197d983e0cf47ec6ad44c1fed4babaeac6e7fba4f5"
+            },
+            "history_cumulative_elapsed_seconds": 627.6,
+            "median_epoch_seconds_after_epoch9": 6.5,
+            "mean_epoch_seconds": 6.470103092783505
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:39:48+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS4_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234/config.json",
+            "sha256": "2e34801b3e02426fee7d1bb7d87d1a6fe4be4c3aa8e5dff197a76c0337701204"
+          }
+        },
+        "MS5": {
+          "id": "MS5",
+          "run_name": "v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_last stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 97,
+            "last_epoch": 96,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234/history.jsonl",
+              "sha256": "ff1d4f522b84bf7a24d13cdf4d3fd12502da38b160b402a6ceccee81539c5bda"
+            },
+            "history_cumulative_elapsed_seconds": 617.6,
+            "median_epoch_seconds_after_epoch9": 6.300000000000011,
+            "mean_epoch_seconds": 6.367010309278351
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:40:00+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS5_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234/config.json",
+            "sha256": "936f2973e1c4f54b7818a392e9fd3417137b5cf33b2f6cadf62bf952fe0ee58e"
+          }
+        },
+        "MS6": {
+          "id": "MS6",
+          "run_name": "v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234",
+          "valid_completed_result": false,
+          "issues": [
+            "history must contain exactly one row for each epoch0..399",
+            "train stage not complete0",
+            "eval_last stage not complete0",
+            "metric missing",
+            "checkpoint inspection deferred until run/eval prerequisites pass"
+          ],
+          "history": {
+            "complete": false,
+            "issues": [
+              "history must contain exactly one row for each epoch0..399"
+            ],
+            "row_count": 94,
+            "last_epoch": 93,
+            "history_artifact": {
+              "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234/history.jsonl",
+              "sha256": "ab013c68181bce7f3723a5dc9f1a2f52bfe188c6a3028f008696a5dd7e0f4c35"
+            },
+            "history_cumulative_elapsed_seconds": 601.7,
+            "median_epoch_seconds_after_epoch9": 6.399999999999977,
+            "mean_epoch_seconds": 6.401063829787234
+          },
+          "stages": {
+            "train": {
+              "started_at": "2026-09-09T19:40:12+0800",
+              "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS6_train.log",
+              "command": [
+                "/public/newhome/cy/.conda/envs/GNN/bin/python",
+                "-u",
+                "-m",
+                "training_wss_min.train",
+                "--config",
+                "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234.json"
+              ]
+            }
+          },
+          "checkpoint": {
+            "valid": false,
+            "issues": [
+              "checkpoint inspection deferred until run/eval prerequisites pass"
+            ]
+          },
+          "metric_artifact": null,
+          "config_artifact": {
+            "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234/config.json",
+            "sha256": "5d9ef33fc6c8fe3aa9eedf3bbe38575c710a0c4e4e9408d51c30eae46fb03261"
+          }
+        }
+      },
+      "contrasts": {},
+      "factorial_interaction": null,
+      "completed_new_run_count": 0
+    }
+  },
+  "limitations": [
+    "Single seed1234; exposed test34; all results exploratory.",
+    "Efficiency timing is observed under actual concurrent jobs, not a controlled hardware benchmark.",
+    "Weight and projection norms do not measure causal branch contribution.",
+    "MS1 bridge includes grouping/cap/centre condition/newSA3 initialization; original M2 is the practical anchor.",
+    "Geometry G/M6 and conditional MS7-MS9 are outside this analysis and remain unexecuted."
+  ],
+  "finalization": {
+    "all_six_runs_and_12_evaluations_valid": false,
+    "all18_stages_zero": false,
+    "complete_and_frozen": false
+  },
+  "scope": "partial_informational"
+}

@@ -1,0 +1,103 @@
+{
+  "job_id": "14986",
+  "started_at": "2026-09-16T23:45:58-0700",
+  "status": "running",
+  "gpus": [
+    "0",
+    "1",
+    "2"
+  ],
+  "slots_per_gpu": 1,
+  "launch_interval_seconds": 10.0,
+  "arms": {
+    "X5D_long_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_x5d_long_ref8_20260917/X5D_long_s1234.json",
+      "run_name": "wss_x5d_long_ref8_20260917/X5D_long_s1234",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-16T23:45:58-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_ref8_20260917/logs/X5D_long_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_x5d_long_ref8_20260917/X5D_long_s1234.json"
+          ],
+          "pid": 2491493
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "X5D_long_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_x5d_long_ref8_20260917/X5D_long_s7.json",
+      "run_name": "wss_x5d_long_ref8_20260917/X5D_long_s7",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-16T23:45:58-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_ref8_20260917/logs/X5D_long_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_x5d_long_ref8_20260917/X5D_long_s7.json"
+          ],
+          "pid": 2491498
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "X5D_long_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_x5d_long_ref8_20260917/X5D_long_s2025.json",
+      "run_name": "wss_x5d_long_ref8_20260917/X5D_long_s2025",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-16T23:45:58-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_ref8_20260917/logs/X5D_long_s2025_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_x5d_long_ref8_20260917/X5D_long_s2025.json"
+          ],
+          "pid": 2491502
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    }
+  },
+  "matrix": "wss_x5d_long_ref8_20260917",
+  "expected_training_runs": 3,
+  "expected_evaluations": 6,
+  "preflight_verification": {
+    "preflight": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_ref8_20260917/runtime_preflight.json",
+    "sha256": "9d4123a16725176a53e122f0f5bfec9ebafe84137fc69f3207f7e96568ac0e91",
+    "job_id": "14985"
+  }
+}

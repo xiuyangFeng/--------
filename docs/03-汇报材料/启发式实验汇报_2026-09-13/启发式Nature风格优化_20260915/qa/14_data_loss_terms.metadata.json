@@ -1,0 +1,27 @@
+{
+  "stem": "14_data_loss_terms",
+  "claim": "把 u、v、w、p 分开看，确认数据拟合是否完成",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/V4汇报/V4_稳态梯度与损失_2026-09-12/individual_losses/single_pnpp_ema/source_curves.csv",
+      "sha256": "f449b8a2e2cc56bcb8c6d6f887b66dc498f14e714a3b5aea1178f906ac17bf68"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/14_data_loss_terms.pdf",
+    "svg": "figures/14_data_loss_terms.svg",
+    "png": "figures/14_data_loss_terms.png"
+  },
+  "alignment": "PASS",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/14_data_loss_terms.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/14_data_loss_terms.collision.json"
+    }
+  },
+  "note": "All 9985 logged epochs retained. Raw values plus centered 51-epoch mean; independently scaled positive log axes. No uncertainty band or replicate inference."
+}

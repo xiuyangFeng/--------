@@ -1,0 +1,19 @@
+{
+  "stem": "10_longitudinal_paired",
+  "claim": "沿程 32 通道在尾部与热点定位上一致改善（IoU 3/3 升），但整体 R²_cb 的三 seed 均值落在 seed 噪声带内，结论为候选而非底座替换。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/analyze_longitudinal.json",
+      "sha256": "95cb600874f371b0d67159ebd72464bd09facb6d6b8c4d2190160d933a5f63dd"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/analyze_mae_iou.txt",
+      "sha256": "b2aaed7ac7fcc09417aac1713578fe91851f09225cb0f6a282c4987cece27313"
+    }
+  ],
+  "exports": {
+    "png": "figures/10_longitudinal_paired.png"
+  },
+  "alignment": "PASS",
+  "note": "Panel a scales the normalised delta by 4 so both bars share one axis; printed numbers are the unscaled values. Panel c compares a 3-seed ensemble with a 5-seed one, which is deliberately flagged as an unequal comparison."
+}

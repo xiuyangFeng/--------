@@ -1,0 +1,101 @@
+{
+  "schema": "independent_geometry_compliance_audit_v1",
+  "created": "2026-09-15",
+  "scope": {
+    "candidate_root": "outputs/wss_v6_geometry_candidate_20260909/cases",
+    "cases_included": 170,
+    "excluded_resolved_duplicates": [
+      "AAA/unruputer/LIU_WEN_QI",
+      "AG/slow/HOU_SHEN_QIAN"
+    ],
+    "read_only": true
+  },
+  "automated_findings": {
+    "L1_numeric_recompute": "all published L1 checks pass; this does not establish cross-section anatomical meaning",
+    "along_path_fields": {
+      "implemented": [
+        "d(log(area))/ds on each contiguous valid run, with no derivative across gaps or branches",
+        "upstream/downstream minimum-area ratio and distance in a 20 mm same-segment valid window",
+        "wall-area interpolation only when both bracketing sections are valid",
+        "P6 shift ±1 mm, tilt ±5 deg and half point-cloud density probes"
+      ],
+      "risk": "A wrong but smooth contour contaminates slope and context descriptors over neighboring stations; these descriptors are diagnostic and must not be used to auto-approve a whole run.",
+      "recommended_low_cost_gate": "Flag a run when area ratio to a robust local median (3-station window) exceeds 2, when signed dlogA/ds exceeds the train-cohort 99.5th percentile, or when a P6 perturbation changes area >50%; merge contiguous flags into one review interval instead of one flag per station."
+    },
+    "flag_counts_from_existing_screen": {
+      "area_vs_volume_dVds_case_count": 121,
+      "A_over_pi_Rmis2_case_count": 52,
+      "adjacent_jump_case_count": 91,
+      "nonstar_from_centerline_case_count": 82,
+      "interpretation": "These are triage signals, not independent failures; overlap is expected and should be collapsed by case plus contiguous station interval."
+    }
+  },
+  "scientific_corrections": {
+    "dV_ds": {
+      "status": "not_true_cross_section_area_in_general",
+      "reason": "Nearest-atlas s is a projected/discrete coordinate. Volume per s bin is dV/ds = integral(1/|grad s|) dA under a coarea interpretation; curvature, oblique planes, aneurysm sacs and branch overlap alter the factor.",
+      "rename_to": "projected volume density (dV/ds) oracle",
+      "use": "Strong inconsistency ranking when the contour and volume density disagree by a large factor; never a hard physical inequality."
+    },
+    "Rmis_ratio": {
+      "status": "diagnostic_only",
+      "reason": "Rmis is a centerline/atlas local radius, not a guaranteed inscribed radius of the reconstructed polygon. A/(pi*Rmis^2)>3 is physically possible in aneurysm/elliptic sections and has no upper bound.",
+      "safe_rule": "A/(pi*Rmis^2)<~0.85 is a strong contradiction only after confirming Rmis and station alignment; high values rank for visual review but do not reject."
+    },
+    "nonstar": {
+      "status": "not_by_itself_noncompliant",
+      "reason": "A simple non-star-shaped section can be a valid concave lumen. It becomes a compliance concern only with self-intersection, multiple disconnected contours, a centerline outside the selected lumen, or instability under small plane perturbation.",
+      "safe_rule": "Keep nonstar as a weak flag; promote only when paired with self-intersection/multiple-contour/centerline-outside/P6 instability."
+    },
+    "slope": {
+      "status": "valid_local_descriptor_with_limits",
+      "reason": "log_area_slopes uses np.gradient on contiguous valid samples and does not bridge gaps, but edge derivatives are noisier and any contour error propagates to adjacent values.",
+      "safe_rule": "Report robust window slopes or median slope over 3–5 stations; do not threshold a single edge derivative."
+    }
+  },
+  "user_determinations_remaining": {
+    "bifurcation_localization": {
+      "count": 10,
+      "cases": [
+        "AAA/ruputer/FENG_LI_XIN",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "AAA/ruputer/KANG_YONG",
+        "AAA/ruputer/LI_BING_JIANG",
+        "AAA/unruputer/CAO_HONG_TAI",
+        "AAA/unruputer/LIU_XING_GUO",
+        "AAA/unruputer/SUN_SHU_MING",
+        "AG/fast/LIU_JUN_FENG",
+        "AG/fast/LI_SHI_QIANG",
+        "ILO/LIU_LIAN_YOU-0/before"
+      ],
+      "why": "bifurcation_review marks no persistent two-contour transition; choose whether to accept inherited centerline segment endpoint or inspect the wall ridge manually"
+    },
+    "CIA_band_outliers": {
+      "count": 6,
+      "cases": [
+        "AAA/ruputer/LI_ZHEN_HUA (both CIA lengths 120.4/123.3 mm)",
+        "AG/fast/LI_SHI_QIANG (right CIA 14.6 mm)",
+        "AG/fast/FAN_JIAN_MING (left tortuosity 2.23)",
+        "ILO/LIU_LIAN_YOU-0/before (right CIA 14.9 mm)",
+        "AAA/unruputer/LIU_KANG_WEN (CIA 134.0/150.0 mm)",
+        "AAA/ruputer/ZOU_LI_SHUN (CIA 127.9/130.2 mm)"
+      ],
+      "why": "hard-band outliers can be real anatomy or a segment endpoint error; only a human can decide the intended CIA extent"
+    },
+    "centerline_inside_or_surface_integrity": {
+      "count": 14,
+      "cases": "Use audit_summary.md quality-review list; 6 have nonzero outside-core points and 4 have an unclosed reference surface.",
+      "why": "caps are added for the inside audit only; this is a source-surface integrity question, not a contour algorithm pass/fail"
+    },
+    "P6_visual_review": {
+      "priority": "Keep the existing v1.3 stability list; rank-3 ZHANG_XIU_ZHEN has perturbed_gate=false and therefore is automatically contained. The remaining large-change variants need visual confirmation only if their contours are to be used for training.",
+      "why": "P6 samples only 21 sections per case and does not recompute whole-branch slope/context/wall mapping"
+    }
+  },
+  "recommended_automation_contract": {
+    "auto_pass": ["L1 arithmetic/invariant checks", "closed non-self-intersecting contour with centerline inside", "stable local area and no strong projected-volume contradiction"],
+    "auto_review": ["paired dV/ds disagreement plus adjacent jump", "Rmis ratio below 0.85", "P6 area change >50% with both gates true", "centerline outside or unclosed source surface"],
+    "never_auto_reject": ["nonstar alone", "A/(pi Rmis^2)>3 alone", "dV/ds ratio alone", "CIA length/tortuosity hard-band alone"],
+    "human_only": ["anatomical left/right labels", "CIA endpoint and bifurcation location when no persistent transition", "whether a true aneurysm sac/concavity should be accepted"]
+  }
+}

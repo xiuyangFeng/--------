@@ -1,0 +1,54 @@
+{
+  "stem": "12_residual_structure",
+  "sources": [
+    "training_wss_min/experiments/wss_v51_wave1_20260916/analysis_20260917/current_residuals.json",
+    "training_wss_min/experiments/wss_v51_wave1_20260916/offline/analyze_wave1.json"
+  ],
+  "values": {
+    "test34_base5": {
+      "residual_medians": {
+        "within_bin_share": 0.6966227016125248,
+        "bin_mean_share": 0.3033772983874754,
+        "branch_mean_share": 0.07302257576737234,
+        "bin_track_r2": 0.9446823784930445,
+        "within_bin_pattern_r2": 0.6051271735732396
+      },
+      "calibration_pooled": {
+        "top10_mean_true": 22.641141625398703,
+        "top10_mean_pred": 16.980357205280416,
+        "top10_pred_true_ratio": 0.7499779598671804,
+        "p90_pred_true_ratio": 0.9281656203824359,
+        "p95_pred_true_ratio": 0.8864245807381078,
+        "p99_pred_true_ratio": 0.7497896275121833,
+        "max_pred_true_ratio": 0.48356950996620274,
+        "calibration_slope": 0.6497880496827382,
+        "n": 1231295
+      },
+      "high_wss_case_p90_then_pool_r2": 0.5264682995696683,
+      "pa_r2": 0.7748513641426353
+    },
+    "cv3_oof": {
+      "residual_medians": {
+        "within_bin_share": 0.7012984377290322,
+        "bin_mean_share": 0.29870156227096767,
+        "branch_mean_share": 0.08148223268358885,
+        "bin_track_r2": 0.9305811826666202,
+        "within_bin_pattern_r2": 0.521834597890601
+      },
+      "calibration_pooled": {
+        "top10_mean_true": 20.51274966193961,
+        "top10_mean_pred": 15.175174586837821,
+        "top10_pred_true_ratio": 0.7397923163365371,
+        "p90_pred_true_ratio": 0.9298731644913892,
+        "p95_pred_true_ratio": 0.869216413822739,
+        "p99_pred_true_ratio": 0.7617866510042638,
+        "max_pred_true_ratio": 0.5775248248501935,
+        "calibration_slope": 0.6302304545194292,
+        "n": 5400675
+      },
+      "high_wss_case_p90_then_pool_r2": 0.4022018743862591,
+      "pa_r2": 0.7099926844666036
+    },
+    "offline_pooled_p90_high_r2": 0.3873781880531022
+  }
+}

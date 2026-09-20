@@ -1,0 +1,23 @@
+{
+  "stem": "06_x5d_v51_baseline",
+  "claim": "X5D_v51 五 seed 集成 0.7749 成为新部署底座；患者分组折外 0.7100，ILO 队列最弱。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/analysis_20260917/current_residuals.json",
+      "sha256": "9ed834434b5139d2265a6105a5a89d404520d53fccb03c531e8ee7556236ca22"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave2a_20260916/offline/analyze_cv3.json",
+      "sha256": "221b05b99057f548a009904a2bcfe9443642e5e4206a41508eb1081517920ceb"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/offline/analyze_wave1.json",
+      "sha256": "b1ffdc30fb9e46f9d8ecd4c13f06a5adb073962eb2f9710dabd7ff5ebec6ac0b"
+    }
+  ],
+  "exports": {
+    "png": "figures/06_x5d_v51_baseline.png"
+  },
+  "alignment": "PASS",
+  "note": "Panel b pools per-case R2 from two different case sets (34 vs 136) and is a distribution comparison, not a paired test. Cohort counts differ between the two scopes."
+}

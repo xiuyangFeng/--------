@@ -1,6 +1,8 @@
-# postview 参考：插值方法 · 产物结构 · QC
+# 历史 V3 / CROWN postview 参考：插值方法 · 产物结构 · QC
 
-> 从 `docs/paper_reproduction/05-点云预测值与真值回插到面片方法.md` 提炼；执行时以 **SKILL.md 默认参数 + 现有 shell** 为准。
+> 从 `docs/paper_reproduction/05-点云预测值与真值回插到面片方法.md` 提炼；仅在 [legacy-v3-crown.md](legacy-v3-crown.md) 路线读取。下列帧号、目录与图注不是 V5 默认值，示例数字不是待复用的实验事实。参数以本次合同与现有脚本为准。
+
+新交付产物与 selfmax 字段以 [delivery-fields.md](delivery-fields.md) 为准；下面保留历史文件名/方法说明，不能把旧包结构当成免补新字段的完整验收标准。
 
 ## 方法选择
 
@@ -94,7 +96,7 @@ eps = 1e-8
 | map_dist | 映射距离 | mm |
 | map_valid | 有效插值 | 0/1 |
 
-压力若做过 per-case offset correction，图注写 `per-case offset corrected`。
+历史压力源若已经做过 per-case offset correction，保留源定义并在图注写 `per-case offset corrected`；本次导出不额外拟合偏置。`pressure_*_selfmax` 仍对这份已明确零点的原始同点场按其实际最大值计算，不能改用 maxabs。
 
 ---
 

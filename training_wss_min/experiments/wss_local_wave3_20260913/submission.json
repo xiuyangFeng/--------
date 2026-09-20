@@ -1,0 +1,27 @@
+{
+  "preflight_job_id": "14198",
+  "matrix_job_id": "14199",
+  "submitted_at": "2026-09-13T01:34:38.150814-07:00",
+  "dependency": "matrix afterok preflight",
+  "gpus": 4,
+  "slots_per_gpu": 2,
+  "expected_training_runs": 8,
+  "expected_evaluations": 16,
+  "phases": {
+    "0": [
+      "PF6_s7",
+      "PF6_s2025",
+      "VF6_s7",
+      "VF6_s2025",
+      "P02_s7",
+      "P02_s2025",
+      "V07_s7",
+      "V07_s2025"
+    ]
+  },
+  "scripts": {
+    "preflight": "training_wss_min/cluster/preflight_wss_local_wave3.slurm",
+    "matrix": "training_wss_min/cluster/run_wss_local_wave3.slurm"
+  },
+  "pairing": "PF6_s<seed> vs P02_s<seed>, VF6_s<seed> vs V07_s<seed> (seed-matched reference chains in configs/wss_local_wave3_20260913/refs/)"
+}

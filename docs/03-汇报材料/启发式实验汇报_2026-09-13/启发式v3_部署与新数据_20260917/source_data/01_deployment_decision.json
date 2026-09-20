@@ -1,0 +1,97 @@
+{
+  "stem": "01_deployment_decision",
+  "sources": [
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/cfd_wall_spacing.json",
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/stl_x5/deployment_stl_simulation.json",
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/stl_x5d/deployment_stl_simulation.json",
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/stl_x5_fine/deployment_stl_simulation.json",
+    "training_wss_min/experiments/wss_x5d_inference_followup_20260915/decomposition_x5d/neighbourhood_decomposition.json",
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/deployment_reeval_x5_3seed/deployment_resample_reeval.json",
+    "training_wss_min/experiments/wss_local_wave6_20260915/offline/deployment_reeval_x5d/deployment_resample_reeval.json",
+    "training_wss_min/experiments/wss_x5d_inference_followup_20260915/geometry_x5d5/geometry_sensitivity.json",
+    "training_wss_min/experiments/wss_x5d_inference_followup_20260915/geometry_x5d5_b3/geometry_sensitivity.json",
+    "training_wss_min/experiments/wss_x5d_inference_followup_20260915/tta_x5d5/sampling_tta.json",
+    "training_wss_min/experiments/wss_local_wave6b_20260915/five_seed_ensemble.json"
+  ],
+  "values": {
+    "wall_spacing_mm": {
+      "p10": 0.4129386778909985,
+      "p50": 0.9402316222057275,
+      "p90": 1.2822504432998567,
+      "cohort_median": {
+        "AG": 1.168174186828411,
+        "AAA": 0.4713756486520528,
+        "ILO": 0.4553928275985032
+      },
+      "n_cases": 172
+    },
+    "stl_delta_X5": {
+      "0.5mm": -0.011752782601413658,
+      "1.2mm": -0.14658536818375256,
+      "0.35mm": -0.02082374441891255
+    },
+    "stl_delta_X5D_3seed": {
+      "0.5mm": -0.022284474800212895,
+      "1.2mm": -0.047136435575830804
+    },
+    "decomposition_25pct": {
+      "thin/thin": -0.060733173920029415,
+      "full/thin": -0.053906584193719964,
+      "thin/full": -0.008850418640907853,
+      "full/full": -6.468583779728476e-09
+    },
+    "voxel_full_density": {
+      "X5": 0.7331008467264759,
+      "X5D": 0.7332526273440172
+    },
+    "geometry_delta": {
+      "clean": -0.018394395439827793,
+      "smooth_s1.0": -0.020401970295131244,
+      "smooth_s1.5": -0.0217269294842366,
+      "smooth_s2.0": -0.05325172670943645,
+      "noise_0.1": -0.029183900359960324,
+      "noise_0.2": -0.05317027833989618,
+      "noise_0.4": -0.12265025296213306,
+      "cut_5": -0.024118877428031538,
+      "cut_10": -0.04227979015364014
+    },
+    "rough_delta": {
+      "noise_0.2c0.5": -0.09207558193088883,
+      "noise_0.2c0.5+smooth_s1.0": -0.03775311977585738
+    },
+    "tta": {
+      "reference_full_cloud": 0.7465168080208717,
+      "single": 0.7186336283410106,
+      "tta_2": 0.7168126353404813,
+      "tta_3": 0.7219350932909963,
+      "tta_4": 0.7215766509843724,
+      "tta_5": 0.7225001495896994
+    },
+    "five_seed_ensemble_v50": {
+      "X5": {
+        "singles": [
+          0.7177988409339453,
+          0.7209707733685963,
+          0.7131094390645285,
+          0.7239265359949801,
+          0.7103594342728967
+        ],
+        "ens_log": 0.7354409534696575,
+        "ens_pa": 0.740167549705322,
+        "ens_norm": 0.8711776921469344
+      },
+      "X5D": {
+        "singles": [
+          0.7055675658260002,
+          0.719742602640518,
+          0.7339855751224886,
+          0.7229427827135992,
+          0.7413529238400764
+        ],
+        "ens_log": 0.7416734526772878,
+        "ens_pa": 0.7465168080208717,
+        "ens_norm": 0.873660758171104
+      }
+    }
+  }
+}

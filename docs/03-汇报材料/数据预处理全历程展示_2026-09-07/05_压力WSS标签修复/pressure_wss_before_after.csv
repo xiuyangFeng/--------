@@ -1,0 +1,16 @@
+group,case,role,old_v4_steady_ref_pa,raw_fix_81frame_mean_pa,wall_peak_p_before_pa,wall_peak_p_after_pa,wall_volume_dp_before_pa,wall_volume_dp_after_pa,wss_p50_before,wss_p50_after,wss_p99_before,wss_p99_after,wss_max_before,wss_max_after,note
+low_pressure,ILO/LIU_YUE_DONG-0/before,train,475.9,13133,592.2,13423.8,-12821,-0.005,2.37,2.29,15.4,14.2,52.2,44.2,08-30 P0-5; 09-01/02 raw; 09-04 wall
+low_pressure,ILO/LI_SHENG_WEN-0/before,train,621.6,13214,744.1,13576.2,-12840,-0.077,2.00,1.99,22.0,23.6,87.0,92.5,08-30 P0-5
+low_pressure,ILO/ZHANG_YONG_SHENG-0/before,test,656.0,13094,728.9,13179.1,-12439,-0.033,1.47,1.53,10.9,8.9,41.8,25.7,08-30 P0-5; V4 eval gauge 196 Pa
+low_pressure,AG/slow/LI_BING_YI,train,675.2,15328,,15641.5,-14902,0.00,,,5.63,5.43,66.4,61.3,wall cleaned 09-04 early; WSS mean/max from anatomy §18
+low_pressure,AAA/ruputer/MENG_GUANG_QIN,train,1963.5,13231,2063.1,14299.6,-12235,-0.005,1.09,1.11,34.4,40.3,86.3,92.4,08-30 P0-5
+low_pressure,AAA/ruputer/WANG_FU_SHUN,test,2256.3,13164,2423.8,14022.4,-11658,0.029,2.03,2.16,30.9,40.5,122.5,184.5,08-30 P0-5; V4 eval gauge 688 Pa
+low_pressure,AAA/unruputer/CHEN_SHU_LIN,train,2295.2,11677,2304.4,12466.7,-10131,-0.017,1.13,1.14,28.3,18.2,64.6,43.9,08-30 P0-5
+low_pressure,AG/slow/LIU_ZONG_YANG,train,3508.4,15871,3450.5,17021.0,-13536,-0.013,3.17,3.37,47.8,54.4,143.0,124.2,08-30 P0-5 cluster max
+q_tail,AAA/ruputer/ZHOU_KE_XUN,train,24436.9,,24930.2,17596.5,7576,-0.006,0.97,0.69,89.2,58.6,320.1,209.1,A_udf fix; Q +8.94σ gone
+q_tail,AAA/ruputer/ZUO_DAO_SHENG,train,10362.5,,10452.8,14464.4,-4053,-0.008,0.61,0.84,17.1,26.7,35.7,58.9,A_udf fix; Q -6.54σ gone
+format,AG/slow/ZHANG_ZHI_JUN,train,,,,,mixed,-0.016,,,5.00,,22.7,,54.3,old wall face-center / mixed frames
+d_layer,AAA/ruputer/DING_JUN_FENG,train,,,15731.4,15725.7,,,3.25,3.27,75.5,75.0,263.2,262.4,20→60 iter; now A
+d_layer,AAA/unruputer/GUO_BAO_CHUN,train,,,13438.0,13440.5,,,0.51,0.51,10.0,10.0,59.2,59.0,20→60 iter; now A
+d_layer,ILO/WANG_JIN_MING-0/before,train,,,17749.3,17767.7,,,2.64,2.63,106.6,106.9,294.7,294.8,20→60 iter; now A
+d_layer,ILO/SUN_XU_XIA-1/before,test,,,18129.0,18143.3,,,4.14,4.16,79.5,80.1,273.5,275.4,20→60 iter; still D

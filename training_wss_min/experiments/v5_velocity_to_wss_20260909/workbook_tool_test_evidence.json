@@ -1,0 +1,54 @@
+{
+  "fixture_only": true,
+  "fixture_metrics": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/eval/ckpt_best/metrics.json",
+  "formal_workbook_sha256_before": "01514756171fefd33619c8708b2ba6ca7fe9b63492500b76b7c5f17f6cdf3f91",
+  "checks": [
+    {
+      "round": 1,
+      "verification": {
+        "passed": true,
+        "source_result": "test only (oracle/physics_only excluded)",
+        "preserved_nonempty_cells": 23171,
+        "preserved_formulas": 1360,
+        "metric_checks": 66,
+        "differences": 0
+      }
+    },
+    {
+      "round": 2,
+      "verification": {
+        "passed": true,
+        "source_result": "test only (oracle/physics_only excluded)",
+        "preserved_nonempty_cells": 23171,
+        "preserved_formulas": 1360,
+        "metric_checks": 66,
+        "differences": 0
+      }
+    },
+    {
+      "gate_rejected": "passed",
+      "book_unchanged": true
+    },
+    {
+      "gate_rejected": "n_cases",
+      "book_unchanged": true
+    },
+    {
+      "gate_rejected": "checkpoint",
+      "book_unchanged": true
+    },
+    {
+      "nonfinite_result_rejected": true,
+      "book_unchanged": true
+    },
+    {
+      "unowned_tail_rejected": true,
+      "book_unchanged": true
+    }
+  ],
+  "passed": true,
+  "idempotent_values": true,
+  "oracle_excluded": true,
+  "formal_workbook_unchanged": true,
+  "tool_sha256": "6127ae902d8dd8bc407318815b705598a6f6a3827841ff2b14a378a008acbada"
+}

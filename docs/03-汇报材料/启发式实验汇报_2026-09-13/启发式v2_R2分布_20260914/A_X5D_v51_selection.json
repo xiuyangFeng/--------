@@ -1,0 +1,35 @@
+{
+  "metric": "physical per-case prediction R2 (not fitted-line R2)",
+  "data": "v5.1 train136/test34; density-augmented X5D_v51; not X5D_long",
+  "replicate_policy": "one patient per dot; arithmetic mean of seed 1234/7/2025/11/2026 R2; sample SD whiskers; not ensemble predictions",
+  "visualization_seed": 1234,
+  "best": {
+    "case_id": "AG/fast/ZHANG_LIANG",
+    "r2": 0.9042640595121249,
+    "r2_sd": 0.012063314287881226
+  },
+  "worst": {
+    "case_id": "ILO/ZHANG_YONG_SHENG-0/before",
+    "r2": 0.6021192706995688,
+    "r2_sd": 0.01066784063350576
+  },
+  "most_frequent": {
+    "case_id": "AG/slow/HE_SHU_ZHEN",
+    "r2": 0.7502659746993382,
+    "r2_sd": 0.014447207643949923
+  },
+  "median": {
+    "case_id": "AAA/ruputer/KANG_YONG",
+    "r2": 0.7607525450657214,
+    "r2_sd": 0.08346979387947286,
+    "statistical_median": 0.7611775557168168,
+    "rule": "closest actual case to statistical median; ties broken by canonical ID"
+  },
+  "source_metrics": [
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s7/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s2025/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s11/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s2026/eval/ckpt_best/metrics.json"
+  ]
+}

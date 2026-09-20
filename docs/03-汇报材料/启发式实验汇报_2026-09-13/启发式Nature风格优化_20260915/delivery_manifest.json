@@ -1,0 +1,292 @@
+{
+  "status": "passed",
+  "figure_count": 22,
+  "main_pages": 19,
+  "appendix_pages": 3,
+  "network_pages": 4,
+  "formats": [
+    "pptx",
+    "pdf",
+    "svg",
+    "png"
+  ],
+  "png_resolution": [
+    4800,
+    2700
+  ],
+  "pptx_content": "high-resolution figure images with speaker notes; edit scientific diagrams via SVG or Python source",
+  "checks": {
+    "all_pdf_collision_failures": 0,
+    "all_pdf_collision_warnings": 0,
+    "all_pdf_text_audits_passed": true,
+    "all_figure_exports_exist": true,
+    "all_pdfs_have_selectable_text": true,
+    "pptx_pdf_page_counts_match": true
+  },
+  "pages": [
+    {
+      "page": 1,
+      "stem": "01_routes",
+      "claim": "直接WSS、速度派生WSS与物理训练是三种不同误差链",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/01_routes.pdf",
+        "svg": "figures/01_routes.svg",
+        "png": "figures/01_routes.png"
+      },
+      "note": "先指出A直接输出WSS，B输出速度再经算子求WSS，PF6压力独立；C是历史物理诊断。"
+    },
+    {
+      "page": 2,
+      "stem": "02_protocol",
+      "claim": "当前A/B保留统一的V5比较合同，历史C不参与同条件排名",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/02_protocol.pdf",
+        "svg": "figures/02_protocol.svg",
+        "png": "figures/02_protocol.png"
+      },
+      "note": "说明当前A/B使用V5；历史C不能混成同条件排名。病例R²均值与R²_cb不同。"
+    },
+    {
+      "page": 3,
+      "stem": "03_backbone",
+      "claim": "共用主干先逐层编码几何，再恢复support特征并对query回归。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/03_backbone.pdf",
+        "svg": "figures/03_backbone.svg",
+        "png": "figures/03_backbone.png"
+      },
+      "note": "主干负责几何编码与特征恢复。结构用途不等于独立消融净增益。"
+    },
+    {
+      "page": 4,
+      "stem": "04_x5",
+      "claim": "X5把Murray尺度先验输入几何通路，并分别在support特征和log_z输出处做局部残差修正。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/04_x5.pdf",
+        "svg": "figures/04_x5.svg",
+        "png": "figures/04_x5.png"
+      },
+      "note": "沿箭头讲两处残差：support特征相加；log_z基础输出加patch修正。Murray是输入先验。"
+    },
+    {
+      "page": 5,
+      "stem": "05_x11",
+      "claim": "X11按截面聚合support并跨截面交换信息，生成的上下文残差只进入FiLM条件。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/05_x11.pdf",
+        "svg": "figures/05_x11.svg",
+        "png": "figures/05_x11.png"
+      },
+      "note": "突出截面上下文进入FiLM条件，不直接加到WSS；有收益也有代价。"
+    },
+    {
+      "page": 6,
+      "stem": "06_volume_models",
+      "claim": "PF6与VF6是两套独立权重模型，其BT接入位置和support局部分支不同，但均用QAD几何残差回答体内query。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/06_volume_models.pdf",
+        "svg": "figures/06_volume_models.svg",
+        "png": "figures/06_volume_models.png"
+      },
+      "note": "PF6/VF6独立训练；BT位置与局部分支不同，QAD不是PDE约束。"
+    },
+    {
+      "page": 7,
+      "stem": "07_murray_paired_effect",
+      "claim": "F6对WSS/压力/速度三目标的9个配对seed比较均为正；不声明显著性或机制已获证明。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/07_murray_paired_effect.pdf",
+        "svg": "figures/07_murray_paired_effect.svg",
+        "png": "figures/07_murray_paired_effect.png"
+      },
+      "note": "三个目标按相同seed配对。支持先验收益同向，不声称统计显著或机制已经证明。"
+    },
+    {
+      "page": 8,
+      "stem": "08_x11_tradeoff",
+      "claim": "X11一致改善高WSS拟合和p99幅值，但IoU与MAE均在3个seed回退；应保留为尾部候选。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/08_x11_tradeoff.pdf",
+        "svg": "figures/08_x11_tradeoff.svg",
+        "png": "figures/08_x11_tradeoff.png"
+      },
+      "note": "整体R²与高值幅度改善，MAE和热点IoU退步。请老师讨论如何权衡。"
+    },
+    {
+      "page": 9,
+      "stem": "09_current_case_distributions",
+      "claim": "最佳病例只代表分布的一端：低分病例与 seed 波动仍需解释",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/09_current_case_distributions.pdf",
+        "svg": "figures/09_current_case_distributions.svg",
+        "png": "figures/09_current_case_distributions.png"
+      },
+      "note": "每点是一病例三seed均值，横须为seed样本SD；展示全部34例，Median不是Most。"
+    },
+    {
+      "page": 10,
+      "stem": "10_x5x11_cases",
+      "claim": "X5X11：高 R² 病例仍需检查局部 WSS 误差；这是空间诊断问题，尚非机制或区域误差量化结论。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/10_x5x11_cases.pdf",
+        "svg": "figures/10_x5x11_cases.svg",
+        "png": "figures/10_x5x11_cases.png"
+      },
+      "note": "从最好到中位到最差看空间误差。场值和正式R²是s1234，选例依据三seed均值。"
+    },
+    {
+      "page": 11,
+      "stem": "11_vf6_cases",
+      "claim": "VF6：速度整体得分能否反映局部失真？；这是空间诊断问题，尚非机制或区域误差量化结论。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/11_vf6_cases.pdf",
+        "svg": "figures/11_vf6_cases.svg",
+        "png": "figures/11_vf6_cases.png"
+      },
+      "note": "完整体内点云投影，无壁面插值；速度大小好不代表方向和近壁梯度好。"
+    },
+    {
+      "page": 12,
+      "stem": "12_pf6_cases",
+      "claim": "PF6：压力大趋势与局部差异需要分开判断；这是空间诊断问题，尚非机制或区域误差量化结论。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/12_pf6_cases.pdf",
+        "svg": "figures/12_pf6_cases.svg",
+        "png": "figures/12_pf6_cases.png"
+      },
+      "note": "展示相对壁面压力；R²针对原始壁面与体内全域，不能当作仅壁面分数。"
+    },
+    {
+      "page": 13,
+      "stem": "17_velocity_wss_gap",
+      "claim": "在旧R5V冻结派生管线中CFD速度参照明显优于预测速度，支持优先诊断速度输入与误差传播，但不能识别单一故障环节。",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/17_velocity_wss_gap.pdf",
+        "svg": "figures/17_velocity_wss_gap.svg",
+        "png": "figures/17_velocity_wss_gap.png"
+      },
+      "note": "旧R5V与CFD速度通过同算子是诊断证据；数值不能贴给VF6。"
+    },
+    {
+      "page": 14,
+      "stem": "13_diagnostic_map",
+      "claim": "速度到WSS的差距需要局部分量与冻结算子对照才能定位",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/13_diagnostic_map.pdf",
+        "svg": "figures/13_diagnostic_map.svg",
+        "png": "figures/13_diagnostic_map.png"
+      },
+      "note": "不画未经测量的假想剖面。用三项待验证问题定位误差来源。"
+    },
+    {
+      "page": 15,
+      "stem": "14_data_loss_terms",
+      "claim": "把 u、v、w、p 分开看，确认数据拟合是否完成",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/14_data_loss_terms.pdf",
+        "svg": "figures/14_data_loss_terms.svg",
+        "png": "figures/14_data_loss_terms.png"
+      },
+      "note": "逐项核查u/v/w/p的数据拟合；所有epoch保留，粗线只是移动均值。"
+    },
+    {
+      "page": 16,
+      "stem": "15_physics_loss_terms",
+      "claim": "边界和 PDE 六项分开看，定位持续不降的残差",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/15_physics_loss_terms.pdf",
+        "svg": "figures/15_physics_loss_terms.svg",
+        "png": "figures/15_physics_loss_terms.png"
+      },
+      "note": "六项都是raw损失，尺度不同；不能从大小直接判断加权贡献或梯度强弱。"
+    },
+    {
+      "page": 17,
+      "stem": "18_physics_conflicts",
+      "claim": "历史数据与无滑移优化冲突伴随共同数据拟合代价，不能据此否定物理方程",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/18_physics_conflicts.pdf",
+        "svg": "figures/18_physics_conflicts.svg",
+        "png": "figures/18_physics_conflicts.png"
+      },
+      "note": "左为PN梯度诊断，右为PN/PNPP共同数据损失，接近重合不是漏画；不据此否定PINN。"
+    },
+    {
+      "page": 18,
+      "stem": "16_historical_case_distributions",
+      "claim": "历史 V4：速度与派生 WSS 的失败覆盖多数病例，需逐环节诊断",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/16_historical_case_distributions.pdf",
+        "svg": "figures/16_historical_case_distributions.svg",
+        "png": "figures/16_historical_case_distributions.png"
+      },
+      "note": "V4历史test35、单seed、未收敛状态；全部负R²保留，只作机制诊断。"
+    },
+    {
+      "page": 19,
+      "stem": "19_discussion",
+      "claim": "三个方向的下一步都应由能区分错误来源的对照决定",
+      "appendix": false,
+      "files": {
+        "pdf": "figures/19_discussion.pdf",
+        "svg": "figures/19_discussion.svg",
+        "png": "figures/19_discussion.png"
+      },
+      "note": "把讨论落到区分幅度/位置、场/算子、边界/优化的下一轮证据上。"
+    },
+    {
+      "page": 20,
+      "stem": "10_x5x11_cases_selfmax",
+      "claim": "X5X11：去掉各自幅值后，空间差异还剩多少？；这是空间诊断问题，尚非机制或区域误差量化结论。",
+      "appendix": true,
+      "files": {
+        "pdf": "figures/10_x5x11_cases_selfmax.pdf",
+        "svg": "figures/10_x5x11_cases_selfmax.svg",
+        "png": "figures/10_x5x11_cases_selfmax.png"
+      },
+      "note": "从最好到中位到最差看空间误差。场值和正式R²是s1234，选例依据三seed均值。"
+    },
+    {
+      "page": 21,
+      "stem": "11_vf6_cases_selfmax",
+      "claim": "VF6：幅值差移除后，速度分布仍有何差异？；这是空间诊断问题，尚非机制或区域误差量化结论。",
+      "appendix": true,
+      "files": {
+        "pdf": "figures/11_vf6_cases_selfmax.pdf",
+        "svg": "figures/11_vf6_cases_selfmax.svg",
+        "png": "figures/11_vf6_cases_selfmax.png"
+      },
+      "note": "完整体内点云投影，无壁面插值；速度大小好不代表方向和近壁梯度好。"
+    },
+    {
+      "page": 22,
+      "stem": "12_pf6_cases_selfmax",
+      "claim": "PF6：各自除最大值后，压力分布如何变化？；这是空间诊断问题，尚非机制或区域误差量化结论。",
+      "appendix": true,
+      "files": {
+        "pdf": "figures/12_pf6_cases_selfmax.pdf",
+        "svg": "figures/12_pf6_cases_selfmax.svg",
+        "png": "figures/12_pf6_cases_selfmax.png"
+      },
+      "note": "展示相对壁面压力；R²针对原始壁面与体内全域，不能当作仅壁面分数。"
+    }
+  ]
+}

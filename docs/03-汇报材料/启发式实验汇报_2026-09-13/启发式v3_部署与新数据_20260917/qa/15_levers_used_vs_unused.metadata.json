@@ -1,0 +1,39 @@
+{
+  "stem": "15_levers_used_vs_unused",
+  "claim": "流量 / 沿程标量这条线的杠杆已经用完：Murray 先验之后每一轮加输入的配对增益都落在 seed 噪声带内，且这类标量对底座残差的线性解释力天花板只有 R² 0.005 左右。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/results.json",
+      "sha256": "1fa18d00402aa56a39640dbd658da1703e63751dc81147e8e65a14978e1461dc"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave5_20260913/offline/analyze_wave5.json",
+      "sha256": "8cec5bd80aea33584f7a911b1419d1fdb3500d8a7605d58c699a502471e98c2b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/offline/analyze_wave1.json",
+      "sha256": "b1ffdc30fb9e46f9d8ecd4c13f06a5adb073962eb2f9710dabd7ff5ebec6ac0b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave2b_20260916/offline/analyze_t3n.json",
+      "sha256": "0551f48fe2bdc794630bcd924810de44b43410e9d3c3faf6f4c1ae02464f4841"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/analyze_longitudinal.json",
+      "sha256": "95cb600874f371b0d67159ebd72464bd09facb6d6b8c4d2190160d933a5f63dd"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/select_channels_oof.json",
+      "sha256": "11c064101478efb1a76016221fe10fa766f06adf3734f31466a1fc306ac8f02b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_residual_explainability.json",
+      "sha256": "f299a7947c234d702a0a6ca143fb38ae300bcb9f39065890c4992145e51b351b"
+    }
+  ],
+  "exports": {
+    "png": "figures/15_levers_used_vs_unused.png"
+  },
+  "alignment": "PASS",
+  "note": "Panel a is single-seed v5.0 readings against a contemporaneous control; arms inside the shaded band are unreadable at that budget, which is not the same as refuted. Panel b mixes v5.0 and v5.1 references, each labelled on its own tick."
+}

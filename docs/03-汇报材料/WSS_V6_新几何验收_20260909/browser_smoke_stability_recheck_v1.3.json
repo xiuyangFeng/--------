@@ -1,0 +1,224 @@
+{
+  "url": "file:///public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/WSS_V6_新几何验收_20260909/priority_stability_v1.3.html",
+  "metadata": {
+    "version": "v1.3",
+    "appliedGate": "wss_v6_geometry_review_candidate_v1.3",
+    "diagnostics": 6,
+    "notice": "← 优先审阅清单P6 实际扰动前后轮廓 · v1.3这些图重算自保存的几何坐标，用于识别参考截面自身的轮廓选择不稳定；不读取 CFD 场标签，不自动修改点云输入 mask。这是 v1.2 历史 top6 的 v1.3 门控复核，不是新版本重排后的 top6。当前 1/6 个扰动被拦截，另 5 个仍通过局部门控且需人工复核；门控通过不等于截面可信。v1.3 的 raw / pipeline 状态按当时定义保留。面积由各自切平面计算；共同平面投影仅用来比较形状。密集中心线采样命中不能直接当作独立穿越次数；连续交点以 × / 菱形显示。无效轮廓面积仅作诊断。"
+  },
+  "checks": [
+    {
+      "rank": 1,
+      "canonical_id": "ILO/LIN_CHUN_YANG-1/before",
+      "selectedIndex": 0,
+      "baseline_valid": true,
+      "perturbed_valid": true,
+      "perturbed_reason": "ok",
+      "continuous_crossing_groups": 1,
+      "nonlocal_groups": 0,
+      "crossings": {
+        "inside_crossing_groups": [
+          {
+            "s_min_mm": 16.772231909172227,
+            "s_max_mm": 16.772231909172227,
+            "points_xyz_mm": [
+              [
+                28.715530589144564,
+                33.55790600694469,
+                -471.1207796754958
+              ]
+            ],
+            "coplanar_interval": false
+          }
+        ],
+        "extra_nonlocal_groups": [],
+        "local_group_index": 0
+      },
+      "plotCrossingMarkers": 1,
+      "perturbed_color": "#9333ea",
+      "plots": 3
+    },
+    {
+      "rank": 2,
+      "canonical_id": "AAA/unruputer/LIN_JIAN_RONG",
+      "selectedIndex": 1,
+      "baseline_valid": true,
+      "perturbed_valid": true,
+      "perturbed_reason": "ok",
+      "continuous_crossing_groups": 1,
+      "nonlocal_groups": 0,
+      "crossings": {
+        "inside_crossing_groups": [
+          {
+            "s_min_mm": 10.655536125323883,
+            "s_max_mm": 10.655536125323883,
+            "points_xyz_mm": [
+              [
+                15.155362160685963,
+                109.16001556598941,
+                -812.2021498723418
+              ]
+            ],
+            "coplanar_interval": false
+          }
+        ],
+        "extra_nonlocal_groups": [],
+        "local_group_index": 0
+      },
+      "plotCrossingMarkers": 1,
+      "perturbed_color": "#9333ea",
+      "plots": 3
+    },
+    {
+      "rank": 3,
+      "canonical_id": "AG/fast/ZHANG_XIU_ZHEN",
+      "selectedIndex": 2,
+      "baseline_valid": true,
+      "perturbed_valid": false,
+      "perturbed_reason": "section_contains_same_segment_nonlocal_plane_crossing",
+      "continuous_crossing_groups": 2,
+      "nonlocal_groups": 1,
+      "crossings": {
+        "inside_crossing_groups": [
+          {
+            "s_min_mm": 94.17281137040342,
+            "s_max_mm": 94.17281137040342,
+            "points_xyz_mm": [
+              [
+                30.465277396010972,
+                -132.6145844844348,
+                85.54108514609074
+              ]
+            ],
+            "coplanar_interval": false
+          },
+          {
+            "s_min_mm": 136.9339586245985,
+            "s_max_mm": 136.9339586245985,
+            "points_xyz_mm": [
+              [
+                19.14621156369696,
+                -149.2304615960881,
+                54.8409236586786
+              ]
+            ],
+            "coplanar_interval": false
+          }
+        ],
+        "extra_nonlocal_groups": [
+          {
+            "s_min_mm": 136.9339586245985,
+            "s_max_mm": 136.9339586245985,
+            "points_xyz_mm": [
+              [
+                19.14621156369696,
+                -149.2304615960881,
+                54.8409236586786
+              ]
+            ],
+            "coplanar_interval": false
+          }
+        ],
+        "local_group_index": 0
+      },
+      "plotCrossingMarkers": 2,
+      "perturbed_color": "#94a3b8",
+      "plots": 3
+    },
+    {
+      "rank": 4,
+      "canonical_id": "AAA/unruputer/LIU_JIE",
+      "selectedIndex": 3,
+      "baseline_valid": true,
+      "perturbed_valid": true,
+      "perturbed_reason": "ok",
+      "continuous_crossing_groups": 1,
+      "nonlocal_groups": 0,
+      "crossings": {
+        "inside_crossing_groups": [
+          {
+            "s_min_mm": 6.779657677163493,
+            "s_max_mm": 6.779657677163493,
+            "points_xyz_mm": [
+              [
+                -16.08425159078287,
+                13.032837020023688,
+                -431.01625774497666
+              ]
+            ],
+            "coplanar_interval": false
+          }
+        ],
+        "extra_nonlocal_groups": [],
+        "local_group_index": 0
+      },
+      "plotCrossingMarkers": 1,
+      "perturbed_color": "#9333ea",
+      "plots": 3
+    },
+    {
+      "rank": 5,
+      "canonical_id": "AG/slow/LI_GUI_YING",
+      "selectedIndex": 4,
+      "baseline_valid": true,
+      "perturbed_valid": true,
+      "perturbed_reason": "ok",
+      "continuous_crossing_groups": 1,
+      "nonlocal_groups": 0,
+      "crossings": {
+        "inside_crossing_groups": [
+          {
+            "s_min_mm": 41.69102584999031,
+            "s_max_mm": 41.69102584999031,
+            "points_xyz_mm": [
+              [
+                -15.563439389293478,
+                117.07419263451516,
+                -205.40944172948343
+              ]
+            ],
+            "coplanar_interval": false
+          }
+        ],
+        "extra_nonlocal_groups": [],
+        "local_group_index": 0
+      },
+      "plotCrossingMarkers": 1,
+      "perturbed_color": "#9333ea",
+      "plots": 3
+    },
+    {
+      "rank": 6,
+      "canonical_id": "AAA/ruputer/TONG_XUE_LIAN",
+      "selectedIndex": 5,
+      "baseline_valid": true,
+      "perturbed_valid": true,
+      "perturbed_reason": "ok",
+      "continuous_crossing_groups": 1,
+      "nonlocal_groups": 0,
+      "crossings": {
+        "inside_crossing_groups": [
+          {
+            "s_min_mm": 35.61255316355284,
+            "s_max_mm": 35.61255316355284,
+            "points_xyz_mm": [
+              [
+                -34.50643247931459,
+                -161.38737487878046,
+                -568.2015245056931
+              ]
+            ],
+            "coplanar_interval": false
+          }
+        ],
+        "extra_nonlocal_groups": [],
+        "local_group_index": 0
+      },
+      "plotCrossingMarkers": 1,
+      "perturbed_color": "#9333ea",
+      "plots": 3
+    }
+  ],
+  "runtimeErrors": [],
+  "pass": true
+}

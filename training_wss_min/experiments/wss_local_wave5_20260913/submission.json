@@ -1,0 +1,33 @@
+{
+  "preflight_job_id": "14208",
+  "matrix_job_id": "14209",
+  "submitted_at": "2026-09-13T19:47:07.448738-07:00",
+  "dependency": "matrix afterok preflight",
+  "gpus": 4,
+  "slots_per_gpu": 3,
+  "expected_training_runs": 12,
+  "expected_evaluations": 24,
+  "phases": {
+    "0": [
+      "X5I_s1234",
+      "X5I_s7",
+      "X5I_s2025",
+      "X5AI_s1234",
+      "X5AI_s7",
+      "X5AI_s2025",
+      "X5_f0_s1234",
+      "X5_f1_s1234",
+      "X5_f2_s1234",
+      "X5X11_f0_s1234",
+      "X5X11_f1_s1234",
+      "X5X11_f2_s1234"
+    ]
+  },
+  "scripts": {
+    "preflight": "training_wss_min/cluster/preflight_wss_local_wave5.slurm",
+    "matrix": "training_wss_min/cluster/run_wss_local_wave5.slurm"
+  },
+  "pairing": "X5I_s<seed> vs X5_s<seed>; X5AI_s<seed> vs X5A_s<seed>; X5X11_f<k> vs X5_f<k> (same inherited init)",
+  "sidecar": "wss_min_flowref_v1 v1.3 (+log_r_over_rdistal; old keys bitwise unchanged, verified over 172 cases)",
+  "cv3": "data_wss_v5/views/wss_min_view_v1/cv3_20260913 (patient-grouped, cohort-stratified, fold-train log_z and feature stats)"
+}

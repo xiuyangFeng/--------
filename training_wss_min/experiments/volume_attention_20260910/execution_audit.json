@@ -1,0 +1,183 @@
+{
+  "audited_at": "2026-09-10T18:27:08.889965+08:00",
+  "audit_scope": "Read-only independent live execution inspection; no frozen source/config/test mutation; not final experimental acceptance.",
+  "formal_job": 14040,
+  "finalizer_job": 14041,
+  "queue_status": "running",
+  "arm_status_counts": {
+    "train": 4,
+    "pending": 22
+  },
+  "gates": {
+    "tests.json": {
+      "passed": true,
+      "source_matches_execution": true,
+      "job_id": null
+    },
+    "runtime_preflight.json": {
+      "passed": true,
+      "source_matches_execution": true,
+      "job_id": "14034",
+      "input_count": 520
+    },
+    "reference_reproduction.json": {
+      "passed": true,
+      "source_matches_execution": true,
+      "job_id": "14036",
+      "checks": {
+        "R5P": 1712,
+        "R5V": 1236
+      }
+    },
+    "training_gate.json": {
+      "passed": true,
+      "source_matches_execution": true,
+      "job_id": null
+    },
+    "smoke_14038/queue_status.json": {
+      "passed": true,
+      "source_matches_execution": true,
+      "job_id": "14038",
+      "arms": 26,
+      "all_complete": true,
+      "source_changed": false
+    }
+  },
+  "source_hash_audit": {
+    "files": 55,
+    "changed_paths": [],
+    "all_match": true
+  },
+  "running_arms": {
+    "P00": {
+      "pid": 557932,
+      "completed_epochs": 46,
+      "latest_epoch_zero_based": 45,
+      "latest_train_loss": 0.2791793772743808,
+      "median_recent20_epoch_seconds": 15.400000000000034,
+      "nonfinite_history_fields": [],
+      "event_kind_counts": {
+        "amp_gradient_overflow_skipped": 2
+      },
+      "last_nonfinite_event": {
+        "epoch": 10,
+        "step": 17,
+        "kind": "amp_gradient_overflow_skipped"
+      },
+      "fatal_or_oom_log_matches": [],
+      "visible_device_environment": [
+        "SLURM_JOB_GPUS=3",
+        "CUDA_VISIBLE_DEVICES=0"
+      ],
+      "peak_cuda_allocated_mb": 290.3369140625
+    },
+    "P01": {
+      "pid": 558136,
+      "completed_epochs": 43,
+      "latest_epoch_zero_based": 42,
+      "latest_train_loss": 0.27311553930242854,
+      "median_recent20_epoch_seconds": 15.850000000000023,
+      "nonfinite_history_fields": [],
+      "event_kind_counts": {
+        "amp_gradient_overflow_skipped": 3
+      },
+      "last_nonfinite_event": {
+        "epoch": 26,
+        "step": 17,
+        "kind": "amp_gradient_overflow_skipped"
+      },
+      "fatal_or_oom_log_matches": [],
+      "visible_device_environment": [
+        "SLURM_JOB_GPUS=3",
+        "CUDA_VISIBLE_DEVICES=0"
+      ],
+      "peak_cuda_allocated_mb": 945.5263671875
+    },
+    "P02": {
+      "pid": 558334,
+      "completed_epochs": 41,
+      "latest_epoch_zero_based": 40,
+      "latest_train_loss": 0.19639342567986912,
+      "median_recent20_epoch_seconds": 15.850000000000023,
+      "nonfinite_history_fields": [],
+      "event_kind_counts": {
+        "amp_gradient_overflow_skipped": 2
+      },
+      "last_nonfinite_event": {
+        "epoch": 10,
+        "step": 17,
+        "kind": "amp_gradient_overflow_skipped"
+      },
+      "fatal_or_oom_log_matches": [],
+      "visible_device_environment": [
+        "SLURM_JOB_GPUS=3",
+        "CUDA_VISIBLE_DEVICES=0"
+      ],
+      "peak_cuda_allocated_mb": 301.150390625
+    },
+    "P03": {
+      "pid": 559299,
+      "completed_epochs": 40,
+      "latest_epoch_zero_based": 39,
+      "latest_train_loss": 0.23183261851469675,
+      "median_recent20_epoch_seconds": 15.800000000000011,
+      "nonfinite_history_fields": [],
+      "event_kind_counts": {
+        "amp_gradient_overflow_skipped": 2
+      },
+      "last_nonfinite_event": {
+        "epoch": 10,
+        "step": 17,
+        "kind": "amp_gradient_overflow_skipped"
+      },
+      "fatal_or_oom_log_matches": [],
+      "visible_device_environment": [
+        "SLURM_JOB_GPUS=3",
+        "CUDA_VISIBLE_DEVICES=0"
+      ],
+      "peak_cuda_allocated_mb": 956.3720703125
+    }
+  },
+  "slurm_state": "             JOBID PARTITION                         NAME     USER ST       TIME TIME_LIMIT  NODES NODELIST(REASON)\n             14041       CPU              volume_finalize       cy PD       0:00    4:00:00      1 (Dependency)\n             14040       GPU                volume_formal       cy  R      11:49 2-00:00:00      1 master\n",
+  "resources": {
+    "gpu_snapshot": "index, uuid, memory.free [MiB], memory.used [MiB], memory.total [MiB], utilization.gpu [%]\n0, GPU-8a88fadc-4ef8-892b-83ee-c0cbc7fa6979, 11220 MiB, 12996 MiB, 24564 MiB, 96 %\n1, GPU-99ad58be-5459-6d50-0383-001595b234ab, 10618 MiB, 13598 MiB, 24564 MiB, 100 %\n2, GPU-550c33a9-610b-c160-ab40-b360e328bd6e, 15140 MiB, 9076 MiB, 24564 MiB, 100 %\n3, GPU-d0b318d1-2854-e739-dce2-ba709b7f99a8, 11332 MiB, 12884 MiB, 24564 MiB, 91 %\n",
+    "compute_process_snapshot": "gpu_uuid, pid, process_name, used_gpu_memory [MiB]\nGPU-8a88fadc-4ef8-892b-83ee-c0cbc7fa6979, 3221997, python, 12286 MiB\nGPU-8a88fadc-4ef8-892b-83ee-c0cbc7fa6979, 3996835, /public/newhome/simple/Desktop/ruochen/build_release/bend-model, 702 MiB\nGPU-99ad58be-5459-6d50-0383-001595b234ab, 3835302, /public/newhome/simple/Desktop/ruochen/build_release/bend-model, 702 MiB\nGPU-99ad58be-5459-6d50-0383-001595b234ab, 365676, /public/newhome/Fengjianyi/.virtualenvs/DiffUNet_01/bin/python, 12882 MiB\nGPU-550c33a9-610b-c160-ab40-b360e328bd6e, 557932, /public/newhome/cy/.conda/envs/GNN/bin/python, 1824 MiB\nGPU-550c33a9-610b-c160-ab40-b360e328bd6e, 558136, /public/newhome/cy/.conda/envs/GNN/bin/python, 2702 MiB\nGPU-550c33a9-610b-c160-ab40-b360e328bd6e, 558334, /public/newhome/cy/.conda/envs/GNN/bin/python, 1832 MiB\nGPU-550c33a9-610b-c160-ab40-b360e328bd6e, 559299, /public/newhome/cy/.conda/envs/GNN/bin/python, 2710 MiB\nGPU-d0b318d1-2854-e739-dce2-ba709b7f99a8, 365677, /public/newhome/Fengjianyi/.virtualenvs/DiffUNet_01/bin/python, 12876 MiB\n",
+    "process_count_in_training_trees": 20,
+    "memory_gib": {
+      "Rss": 164.108,
+      "Pss": 33.598,
+      "Private_Dirty": 0.764,
+      "SwapPss": 0.0
+    },
+    "host_memory": "              total        used        free      shared  buff/cache   available\nMem:          377Gi       128Gi        35Gi       1.1Gi       213Gi       245Gi\nSwap:          99Gi        40Gi        59Gi\n",
+    "disk": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda         44T   39T  3.3T  93% /public\n",
+    "interpretation": "Summed RSS counts fork-shared dataset pages repeatedly; total PSS of all training trees is about40GiB, below150GiB allocation. Initial sstat MaxRSS~204GiB is not physical ownership. No current RAM/GPU/disk blocker."
+  },
+  "throughput": {
+    "recent_pressure_epoch_seconds": [
+      15.400000000000034,
+      15.850000000000023,
+      15.850000000000023,
+      15.800000000000011
+    ],
+    "training_only_projection_hours_at_current_pressure_throughput": 11.35694444444446,
+    "interpretation": "Early pressure arms average~15.8s/epoch at4-way concurrency. Equal-throughput26-arm training projects~11.4h; velocity/joint cost and phase barriers add uncertainty. Historical evaluation+diagnostics took~4.5–5min per arm with2-way concurrency.48h appears ample absent scheduling stalls/failures; do not treat as committed ETA."
+  },
+  "known_scheduling_caveat": {
+    "severity": "latent; no current stall",
+    "source": "training_wss_min/tools/run_volume_attention_queue.py launch capacity check",
+    "finding": "Queue passes Slurm-local CUDA_VISIBLE_DEVICES=0 to nvidia-smi -i0, but NVML physical ordinal0 differs from allocated CUDA device. Training PIDs are on physical GPU2 / GPU-550c33a9-610b-c160-ab40-b360e328bd6e; gate queries another user GPU0.",
+    "current_effect": "Both queried and actual GPU free memory exceed6500MiB launch threshold, so none currently.",
+    "possible_effect": "Future starts may wait despite free allocated GPU if unrelated physical GPU0 free memory drops below6500MiB. Conversely gate does not measure true allocated-device capacity.",
+    "handling": "Preserve frozen queue source during scientific run; monitor actual UUID and gate device. No cancellation or scheduling mutation performed."
+  },
+  "queue_failure_semantics": {
+    "stage_nonzero_exit": "Marks this arm failed, skips its later stages, continues other arms; final queue incomplete with nonzero exit.",
+    "source_change": "Checks hashes before every stage launch; mismatch raises, terminates active process groups and records incomplete/source_changed.",
+    "data_change": "Checks frozen520inputs before formal start and at completion; final mismatch invalidates completion.",
+    "interrupt": "SIGTERM/SIGINT terminates active process groups and records interrupted arms; incomplete return.",
+    "resume": "Existing queue state/run directories are deliberately refused; no transparent checkpoint resume/requeue support. Recovery must preserve evidence and explicitly define continuation or fresh restart.",
+    "finalization": "Slurm14041 afterany14040 creates completion/failure evidence; reporting must validate all arms before scientific completion/workbook claims."
+  },
+  "overall_assessment": "Formal job currently progressing with all gates valid and finite recorded histories. Initial2–3 AMP gradient-overflow skips per active arm are recorded and handled by GradScaler; no fatal nonfinite loss/gradient or OOM.26-arm results are not complete."
+}

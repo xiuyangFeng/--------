@@ -1,0 +1,2116 @@
+{
+  "job_id": "14119",
+  "started_at": "2026-09-12T11:18:58+0800",
+  "status": "complete",
+  "gpus": [
+    "0",
+    "1"
+  ],
+  "slots_per_gpu": 2,
+  "launch_interval_seconds": 60.0,
+  "arms": {
+    "E0": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E0_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E0_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T11:19:09+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E0_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E0_s1234.json"
+          ],
+          "pid": 3022466,
+          "returncode": 0,
+          "ended_at": "2026-09-12T12:08:30+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T12:08:30+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E0_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3537294,
+          "returncode": 0,
+          "ended_at": "2026-09-12T12:08:51+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E0_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E0_verify_best.log",
+            "started_at": "2026-09-12T12:08:51+0800",
+            "ended_at": "2026-09-12T12:08:55+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T12:09:31+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E0_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3546686,
+          "returncode": 0,
+          "ended_at": "2026-09-12T12:09:52+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E0_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E0_verify_last.log",
+            "started_at": "2026-09-12T12:09:52+0800",
+            "ended_at": "2026-09-12T12:09:56+0800"
+          }
+        }
+      },
+      "gpu": "0"
+    },
+    "E1": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E1_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E1_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T11:19:09+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E1_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E1_s1234.json"
+          ],
+          "pid": 3022470,
+          "returncode": 0,
+          "ended_at": "2026-09-12T11:51:02+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T11:51:02+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E1_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3363551,
+          "returncode": 0,
+          "ended_at": "2026-09-12T11:51:18+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E1_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E1_verify_best.log",
+            "started_at": "2026-09-12T11:51:18+0800",
+            "ended_at": "2026-09-12T11:51:22+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T11:52:04+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E1_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3372223,
+          "returncode": 0,
+          "ended_at": "2026-09-12T11:52:22+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E1_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E1_verify_last.log",
+            "started_at": "2026-09-12T11:52:22+0800",
+            "ended_at": "2026-09-12T11:52:26+0800"
+          }
+        }
+      },
+      "gpu": "1"
+    },
+    "E2": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E2_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E2_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T11:20:10+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E2_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E2_s1234.json"
+          ],
+          "pid": 3033528,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:30:56+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T13:30:56+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E2_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 81641,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:31:29+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E2_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E2_verify_best.log",
+            "started_at": "2026-09-12T13:31:29+0800",
+            "ended_at": "2026-09-12T13:31:32+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T13:31:56+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E2_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 82752,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:32:30+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E2_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E2_verify_last.log",
+            "started_at": "2026-09-12T13:32:30+0800",
+            "ended_at": "2026-09-12T13:32:34+0800"
+          }
+        }
+      },
+      "gpu": "0"
+    },
+    "E3": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E3_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E3_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T11:20:10+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E3_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E3_s1234.json"
+          ],
+          "pid": 3033666,
+          "returncode": 0,
+          "ended_at": "2026-09-12T11:56:54+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T11:56:54+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E3_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3420578,
+          "returncode": 0,
+          "ended_at": "2026-09-12T11:57:18+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E3_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E3_verify_best.log",
+            "started_at": "2026-09-12T11:57:18+0800",
+            "ended_at": "2026-09-12T11:57:22+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T11:57:55+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E3_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3429475,
+          "returncode": 0,
+          "ended_at": "2026-09-12T11:58:19+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E3_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E3_verify_last.log",
+            "started_at": "2026-09-12T11:58:19+0800",
+            "ended_at": "2026-09-12T11:58:23+0800"
+          }
+        }
+      },
+      "gpu": "1"
+    },
+    "E4": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E4_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E4_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T11:53:05+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E4_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E4_s1234.json"
+          ],
+          "pid": 3380816,
+          "returncode": 0,
+          "ended_at": "2026-09-12T12:27:31+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T12:27:31+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E4_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E4_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3714463,
+          "returncode": 0,
+          "ended_at": "2026-09-12T12:27:49+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E4_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E4_verify_best.log",
+            "started_at": "2026-09-12T12:27:49+0800",
+            "ended_at": "2026-09-12T12:27:53+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T12:28:32+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E4_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E4_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3722556,
+          "returncode": 0,
+          "ended_at": "2026-09-12T12:28:50+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E4_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E4_verify_last.log",
+            "started_at": "2026-09-12T12:28:50+0800",
+            "ended_at": "2026-09-12T12:28:54+0800"
+          }
+        }
+      },
+      "gpu": "1"
+    },
+    "E5": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E5_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E5_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T11:58:56+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E5_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E5_s1234.json"
+          ],
+          "pid": 3439403,
+          "returncode": 0,
+          "ended_at": "2026-09-12T12:35:19+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T12:35:19+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E5_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E5_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3785468,
+          "returncode": 0,
+          "ended_at": "2026-09-12T12:35:37+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E5_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E5_verify_best.log",
+            "started_at": "2026-09-12T12:35:37+0800",
+            "ended_at": "2026-09-12T12:35:41+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T12:36:20+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E5_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E5_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3793771,
+          "returncode": 0,
+          "ended_at": "2026-09-12T12:36:38+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E5_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E5_verify_last.log",
+            "started_at": "2026-09-12T12:36:38+0800",
+            "ended_at": "2026-09-12T12:36:42+0800"
+          }
+        }
+      },
+      "gpu": "1"
+    },
+    "E6": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E6_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E6_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T12:10:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E6_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E6_s1234.json"
+          ],
+          "pid": 3555247,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:18:26+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T13:18:26+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E6_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E6_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 13483,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:18:47+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E6_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E6_verify_best.log",
+            "started_at": "2026-09-12T13:18:47+0800",
+            "ended_at": "2026-09-12T13:18:51+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T13:19:27+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E6_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E6_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 21831,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:19:48+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E6_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E6_verify_last.log",
+            "started_at": "2026-09-12T13:19:48+0800",
+            "ended_at": "2026-09-12T13:19:53+0800"
+          }
+        }
+      },
+      "gpu": "0"
+    },
+    "E7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E7_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E7_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T12:29:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E7_s1234.json"
+          ],
+          "pid": 3730421,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:00:44+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T13:00:44+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E7_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4037584,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:00:59+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E7_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E7_verify_best.log",
+            "started_at": "2026-09-12T13:00:59+0800",
+            "ended_at": "2026-09-12T13:01:03+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T13:01:45+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E7_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4046186,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:02:00+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E7_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E7_verify_last.log",
+            "started_at": "2026-09-12T13:02:00+0800",
+            "ended_at": "2026-09-12T13:02:05+0800"
+          }
+        }
+      },
+      "gpu": "1"
+    },
+    "E8": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E8_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E8_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T12:37:21+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E8_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E8_s1234.json"
+          ],
+          "pid": 3802605,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:10:14+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T13:10:14+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E8_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E8_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4131705,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:10:45+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E8_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E8_verify_best.log",
+            "started_at": "2026-09-12T13:10:45+0800",
+            "ended_at": "2026-09-12T13:10:48+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T13:11:15+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E8_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E8_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4140916,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:11:46+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E8_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E8_verify_last.log",
+            "started_at": "2026-09-12T13:11:46+0800",
+            "ended_at": "2026-09-12T13:11:50+0800"
+          }
+        }
+      },
+      "gpu": "1"
+    },
+    "E9": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E9_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/E9_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T13:02:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E9_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/E9_s1234.json"
+          ],
+          "pid": 4055182,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:25:41+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T13:25:41+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E9_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E9_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 69942,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:25:53+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E9_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E9_verify_best.log",
+            "started_at": "2026-09-12T13:25:53+0800",
+            "ended_at": "2026-09-12T13:25:57+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T13:26:42+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E9_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E9_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 72419,
+          "returncode": 0,
+          "ended_at": "2026-09-12T13:26:54+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E9_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/E9_verify_last.log",
+            "started_at": "2026-09-12T13:26:54+0800",
+            "ended_at": "2026-09-12T13:26:58+0800"
+          }
+        }
+      },
+      "gpu": "1"
+    },
+    "C1": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/C1_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T13:32:34+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C1_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+          ],
+          "pid": 83462,
+          "returncode": 0,
+          "ended_at": "2026-09-12T15:36:29+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T15:36:29+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C1_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 657941,
+          "returncode": 0,
+          "ended_at": "2026-09-12T15:37:08+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C1_verify_best.log",
+            "started_at": "2026-09-12T15:37:08+0800",
+            "ended_at": "2026-09-12T15:37:12+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T15:37:30+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C1_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 659646,
+          "returncode": 0,
+          "ended_at": "2026-09-12T15:38:09+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C1_verify_last.log",
+            "started_at": "2026-09-12T15:38:09+0800",
+            "ended_at": "2026-09-12T15:38:13+0800"
+          }
+        }
+      },
+      "constituents": [
+        "E2",
+        "E3"
+      ],
+      "constituent_gates": {
+        "E2": {
+          "qualified": true,
+          "checks": {
+            "normalized_cb_r2_gain_at_least_0.005": true,
+            "physical_cb_r2_improves": true,
+            "physical_field_mae_increase_at_most_2pct": true,
+            "top10_iou_drop_at_most_0.010": true,
+            "physical_case_p10_drop_at_most_0.020": true,
+            "no_additional_negative_cases": true
+          },
+          "additional_negative_cases": [],
+          "delta_normalized_cb_r2": 0.007778454494614451,
+          "delta_physical_cb_r2": 0.024290663175638993
+        },
+        "E3": {
+          "qualified": true,
+          "checks": {
+            "normalized_cb_r2_gain_at_least_0.005": true,
+            "physical_cb_r2_improves": true,
+            "physical_field_mae_increase_at_most_2pct": true,
+            "top10_iou_drop_at_most_0.010": true,
+            "physical_case_p10_drop_at_most_0.020": true,
+            "no_additional_negative_cases": true
+          },
+          "additional_negative_cases": [],
+          "delta_normalized_cb_r2": 0.013152283336459014,
+          "delta_physical_cb_r2": 0.034178851424319534
+        }
+      },
+      "exploratory": true,
+      "forced_exploratory": false,
+      "execution_policy": "run requested combination irrespective of efficacy gates",
+      "gpu": "1"
+    },
+    "C2": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C2_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/C2_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T13:32:58+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C2_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C2_s1234.json"
+          ],
+          "pid": 84287,
+          "returncode": 0,
+          "ended_at": "2026-09-12T15:40:04+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T15:40:04+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C2_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 663864,
+          "returncode": 0,
+          "ended_at": "2026-09-12T15:40:37+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C2_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C2_verify_best.log",
+            "started_at": "2026-09-12T15:40:37+0800",
+            "ended_at": "2026-09-12T15:40:41+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T15:41:05+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C2_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 664702,
+          "returncode": 0,
+          "ended_at": "2026-09-12T15:41:38+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C2_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C2_verify_last.log",
+            "started_at": "2026-09-12T15:41:38+0800",
+            "ended_at": "2026-09-12T15:41:43+0800"
+          }
+        }
+      },
+      "constituents": [
+        "E2",
+        "E6"
+      ],
+      "constituent_gates": {
+        "E2": {
+          "qualified": true,
+          "checks": {
+            "normalized_cb_r2_gain_at_least_0.005": true,
+            "physical_cb_r2_improves": true,
+            "physical_field_mae_increase_at_most_2pct": true,
+            "top10_iou_drop_at_most_0.010": true,
+            "physical_case_p10_drop_at_most_0.020": true,
+            "no_additional_negative_cases": true
+          },
+          "additional_negative_cases": [],
+          "delta_normalized_cb_r2": 0.007778454494614451,
+          "delta_physical_cb_r2": 0.024290663175638993
+        },
+        "E6": {
+          "qualified": false,
+          "checks": {
+            "normalized_cb_r2_gain_at_least_0.005": false,
+            "physical_cb_r2_improves": true,
+            "physical_field_mae_increase_at_most_2pct": true,
+            "top10_iou_drop_at_most_0.010": true,
+            "physical_case_p10_drop_at_most_0.020": true,
+            "no_additional_negative_cases": true
+          },
+          "additional_negative_cases": [],
+          "delta_normalized_cb_r2": 0.004774713592570201,
+          "delta_physical_cb_r2": 0.031024846416535135
+        }
+      },
+      "exploratory": true,
+      "forced_exploratory": true,
+      "execution_policy": "run requested combination irrespective of efficacy gates",
+      "gpu": "0"
+    },
+    "C3": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C3_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/C3_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T13:33:34+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C3_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C3_s1234.json"
+          ],
+          "pid": 86082,
+          "returncode": 0,
+          "ended_at": "2026-09-12T14:34:20+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T14:34:20+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C3_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 463707,
+          "returncode": 0,
+          "ended_at": "2026-09-12T14:34:47+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C3_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C3_verify_best.log",
+            "started_at": "2026-09-12T14:34:47+0800",
+            "ended_at": "2026-09-12T14:34:51+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T14:35:21+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C3_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 466899,
+          "returncode": 0,
+          "ended_at": "2026-09-12T14:35:48+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C3_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C3_verify_last.log",
+            "started_at": "2026-09-12T14:35:48+0800",
+            "ended_at": "2026-09-12T14:35:52+0800"
+          }
+        }
+      },
+      "constituents": [
+        "E3",
+        "E7"
+      ],
+      "constituent_gates": {
+        "E3": {
+          "qualified": true,
+          "checks": {
+            "normalized_cb_r2_gain_at_least_0.005": true,
+            "physical_cb_r2_improves": true,
+            "physical_field_mae_increase_at_most_2pct": true,
+            "top10_iou_drop_at_most_0.010": true,
+            "physical_case_p10_drop_at_most_0.020": true,
+            "no_additional_negative_cases": true
+          },
+          "additional_negative_cases": [],
+          "delta_normalized_cb_r2": 0.013152283336459014,
+          "delta_physical_cb_r2": 0.034178851424319534
+        },
+        "E7": {
+          "qualified": false,
+          "checks": {
+            "normalized_cb_r2_gain_at_least_0.005": false,
+            "physical_cb_r2_improves": true,
+            "physical_field_mae_increase_at_most_2pct": true,
+            "top10_iou_drop_at_most_0.010": true,
+            "physical_case_p10_drop_at_most_0.020": true,
+            "no_additional_negative_cases": true
+          },
+          "additional_negative_cases": [],
+          "delta_normalized_cb_r2": 0.0026324158402695197,
+          "delta_physical_cb_r2": 0.008043988534530921
+        }
+      },
+      "exploratory": true,
+      "forced_exploratory": true,
+      "execution_policy": "run requested combination irrespective of efficacy gates",
+      "gpu": "1"
+    },
+    "C4": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C4_E3_s1234.json",
+      "run_name": "wss_direct_recovery_20260912/C4_s1234",
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-12T13:33:58+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C4_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C4_E3_s1234.json"
+          ],
+          "pid": 87807,
+          "returncode": 0,
+          "ended_at": "2026-09-12T14:29:19+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-12T14:29:19+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C4_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C4_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 440746,
+          "returncode": 0,
+          "ended_at": "2026-09-12T14:29:46+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C4_s1234",
+              "--checkpoint",
+              "best"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C4_verify_best.log",
+            "started_at": "2026-09-12T14:29:46+0800",
+            "ended_at": "2026-09-12T14:29:51+0800"
+          }
+        },
+        "eval_last": {
+          "started_at": "2026-09-12T14:30:21+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C4_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C4_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 445403,
+          "returncode": 0,
+          "ended_at": "2026-09-12T14:30:48+0800",
+          "prediction_verification": {
+            "status": "passed",
+            "command": [
+              "/public/newhome/cy/.conda/envs/GNN/bin/python",
+              "-u",
+              "-m",
+              "training_wss_min.tools.verify_wss_recovery",
+              "--run-dir",
+              "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C4_s1234",
+              "--checkpoint",
+              "last"
+            ],
+            "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/logs/C4_verify_last.log",
+            "started_at": "2026-09-12T14:30:48+0800",
+            "ended_at": "2026-09-12T14:30:52+0800"
+          }
+        }
+      },
+      "constituents": [
+        "E3",
+        "E9"
+      ],
+      "constituent_gates": {
+        "E3": {
+          "qualified": true,
+          "checks": {
+            "normalized_cb_r2_gain_at_least_0.005": true,
+            "physical_cb_r2_improves": true,
+            "physical_field_mae_increase_at_most_2pct": true,
+            "top10_iou_drop_at_most_0.010": true,
+            "physical_case_p10_drop_at_most_0.020": true,
+            "no_additional_negative_cases": true
+          },
+          "additional_negative_cases": [],
+          "delta_normalized_cb_r2": 0.013152283336459014,
+          "delta_physical_cb_r2": 0.034178851424319534
+        },
+        "E9": {
+          "qualified": false,
+          "checks": {
+            "normalized_cb_r2_gain_at_least_0.005": false,
+            "physical_cb_r2_improves": true,
+            "physical_field_mae_increase_at_most_2pct": true,
+            "top10_iou_drop_at_most_0.010": true,
+            "physical_case_p10_drop_at_most_0.020": true,
+            "no_additional_negative_cases": true
+          },
+          "additional_negative_cases": [],
+          "delta_normalized_cb_r2": -0.0013438426207066367,
+          "delta_physical_cb_r2": 0.02432459918863561
+        }
+      },
+      "exploratory": true,
+      "forced_exploratory": true,
+      "execution_policy": "run requested combination irrespective of efficacy gates",
+      "placeholder_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C4_s1234.json",
+      "selected_structure": "E3",
+      "gpu": "0"
+    }
+  },
+  "matrix": "wss_direct_recovery_20260912",
+  "expected_training_runs": 14,
+  "expected_evaluations": 28,
+  "phase1_prepared": true,
+  "preflight_verification": {
+    "preflight": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_direct_recovery_20260912/runtime_preflight.json",
+    "sha256": "865bda23a2a4561a04fa7468045380f376035574971570748aa23e1dbd88f49c",
+    "job_id": "14118"
+  },
+  "combination_selection": {
+    "selected_structure": "E3",
+    "eligible_structures": [
+      "E2",
+      "E3"
+    ],
+    "ranking": [
+      "E3",
+      "E2"
+    ],
+    "forced_exploratory": false,
+    "qualification": {
+      "E2": {
+        "qualified": true,
+        "checks": {
+          "normalized_cb_r2_gain_at_least_0.005": true,
+          "physical_cb_r2_improves": true,
+          "physical_field_mae_increase_at_most_2pct": true,
+          "top10_iou_drop_at_most_0.010": true,
+          "physical_case_p10_drop_at_most_0.020": true,
+          "no_additional_negative_cases": true
+        },
+        "additional_negative_cases": [],
+        "delta_normalized_cb_r2": 0.007778454494614451,
+        "delta_physical_cb_r2": 0.024290663175638993
+      },
+      "E3": {
+        "qualified": true,
+        "checks": {
+          "normalized_cb_r2_gain_at_least_0.005": true,
+          "physical_cb_r2_improves": true,
+          "physical_field_mae_increase_at_most_2pct": true,
+          "top10_iou_drop_at_most_0.010": true,
+          "physical_case_p10_drop_at_most_0.020": true,
+          "no_additional_negative_cases": true
+        },
+        "additional_negative_cases": [],
+        "delta_normalized_cb_r2": 0.013152283336459014,
+        "delta_physical_cb_r2": 0.034178851424319534
+      },
+      "E4": {
+        "qualified": false,
+        "checks": {
+          "normalized_cb_r2_gain_at_least_0.005": false,
+          "physical_cb_r2_improves": true,
+          "physical_field_mae_increase_at_most_2pct": true,
+          "top10_iou_drop_at_most_0.010": true,
+          "physical_case_p10_drop_at_most_0.020": true,
+          "no_additional_negative_cases": true
+        },
+        "additional_negative_cases": [],
+        "delta_normalized_cb_r2": 0.004128829129300127,
+        "delta_physical_cb_r2": 0.009486722183169372
+      },
+      "E5": {
+        "qualified": false,
+        "checks": {
+          "normalized_cb_r2_gain_at_least_0.005": false,
+          "physical_cb_r2_improves": false,
+          "physical_field_mae_increase_at_most_2pct": true,
+          "top10_iou_drop_at_most_0.010": true,
+          "physical_case_p10_drop_at_most_0.020": true,
+          "no_additional_negative_cases": true
+        },
+        "additional_negative_cases": [],
+        "delta_normalized_cb_r2": -0.005309369431282129,
+        "delta_physical_cb_r2": -0.013842370782312208
+      }
+    },
+    "metric_paths": {
+      "norm_r2": "test.normalized.field_casebalanced.r2",
+      "pa_r2": "test.field_casebalanced.r2",
+      "pa_mae": "test.field.mae",
+      "iou": "test.hotspot.top10_iou_casemean",
+      "pa_p10": "test.aggregate.r2_casep10"
+    },
+    "disclosure": "Adaptive test34 selection; exploratory single-seed evidence.",
+    "selected_at": "2026-09-12T13:32:34+0800",
+    "source_metrics": {
+      "E0": {
+        "norm_r2": 0.8211287294877638,
+        "pa_r2": 0.602332266380148,
+        "pa_mae": 2.026101536837905,
+        "iou": 0.4219565451630993,
+        "pa_p10": 0.41256639643500514,
+        "negative_cases": [
+          "AAA/ruputer/KANG_YONG"
+        ],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E0_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "ffdc25c68b569ca6008400e2286f0e5800f6346b8921db231ce51831721a199f"
+      },
+      "E1": {
+        "norm_r2": 0.8199512023663271,
+        "pa_r2": 0.592935815625776,
+        "pa_mae": 2.028829012574992,
+        "iou": 0.4145359705339333,
+        "pa_p10": 0.3895400210118943,
+        "negative_cases": [],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E1_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "c5e5e28d1cc10263afc5aaa4fd49e623ee20de77f5402dee76e6e26b9fad377b"
+      },
+      "E2": {
+        "norm_r2": 0.8289071839823783,
+        "pa_r2": 0.626622929555787,
+        "pa_mae": 1.9547260451829174,
+        "iou": 0.4408631580125451,
+        "pa_p10": 0.40760843004928876,
+        "negative_cases": [],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E2_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "8dfc9fd983c09e8cf9c0f6fa1402eb6a74749ef032380ed842a24cc3e4006c45"
+      },
+      "E3": {
+        "norm_r2": 0.8342810128242228,
+        "pa_r2": 0.6365111178044676,
+        "pa_mae": 1.9114259225086014,
+        "iou": 0.4581307709959712,
+        "pa_p10": 0.43518740731935773,
+        "negative_cases": [],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E3_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "fe3b397b6bd58279f43b5ebc9dd8cde7c2e3a91911ccd50e9a7e56effc6ebaa9"
+      },
+      "E4": {
+        "norm_r2": 0.825257558617064,
+        "pa_r2": 0.6118189885633174,
+        "pa_mae": 2.0124971882526874,
+        "iou": 0.41850336958567075,
+        "pa_p10": 0.3998576411468772,
+        "negative_cases": [],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E4_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "19a804eea7bcabb3e0207836e7fe451479eb73b5a24b454601124370d61c1b3b"
+      },
+      "E5": {
+        "norm_r2": 0.8158193600564817,
+        "pa_r2": 0.5884898955978358,
+        "pa_mae": 2.041671522651142,
+        "iou": 0.4149293790623951,
+        "pa_p10": 0.43395671471521335,
+        "negative_cases": [],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E5_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "59148dc95d9bf773413661361399fa88f650e262660aa1f675a36fc970df8b3d"
+      },
+      "E6": {
+        "norm_r2": 0.825903443080334,
+        "pa_r2": 0.6333571127966832,
+        "pa_mae": 1.9640508430975343,
+        "iou": 0.43863705204561687,
+        "pa_p10": 0.470761810925554,
+        "negative_cases": [],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E6_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "031ef5fc2d34e69f26d5355fb3658c4a0eb61e4ec8336f33f85a6d3054c3f4a7"
+      },
+      "E7": {
+        "norm_r2": 0.8237611453280334,
+        "pa_r2": 0.610376254914679,
+        "pa_mae": 2.005860323771784,
+        "iou": 0.435865122013573,
+        "pa_p10": 0.4360142757176508,
+        "negative_cases": [],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E7_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "e5694e4f349f85f9b9ae2278bda225e4816b5c81770e3a2d691958c7fe214a13"
+      },
+      "E8": {
+        "norm_r2": 0.8228760329416471,
+        "pa_r2": 0.6047801337316682,
+        "pa_mae": 1.999898665611514,
+        "iou": 0.43272121536128116,
+        "pa_p10": 0.40389588179962266,
+        "negative_cases": [],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E8_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "382fa4db11f0382c984fa11635e7d100d831f7db3936e7ca5dd86e1317b244dc"
+      },
+      "E9": {
+        "norm_r2": 0.8197848868670572,
+        "pa_r2": 0.6266568655687836,
+        "pa_mae": 2.0016479868656667,
+        "iou": 0.4208450578914584,
+        "pa_p10": 0.4348415449759129,
+        "negative_cases": [],
+        "case_ids": [
+          "AAA/ruputer/KANG_YONG",
+          "AAA/ruputer/LI_ZHEN_HUA",
+          "AAA/ruputer/WANG_FU_SHUN",
+          "AAA/ruputer/YU_TIAN_HAI",
+          "AAA/unruputer/GAO_DIAN_WEN",
+          "AAA/unruputer/LIU_KANG_WEN",
+          "AAA/unruputer/MA_JIN_HE",
+          "AAA/unruputer/SUN_SHU_MING",
+          "AAA/unruputer/WANG_MAN_TIAN",
+          "AAA/unruputer/ZHANG_YONG_ZHI",
+          "AG/fast/FAN_JIAN_MING",
+          "AG/fast/LOU_YANG",
+          "AG/fast/RAN_QING_BO",
+          "AG/fast/SUN_ZHI_YU",
+          "AG/fast/YAO_CUN_HONG",
+          "AG/fast/ZHANG_CHUN",
+          "AG/fast/ZHANG_LIANG",
+          "AG/slow/BAI_WEN_JIE",
+          "AG/slow/CHEN_JING_RU",
+          "AG/slow/GUO_XI_JIANG",
+          "AG/slow/HE_SHU_ZHEN",
+          "AG/slow/LI_HUAN_GE",
+          "AG/slow/MA_TIAN_YI",
+          "AG/slow/MA_YU",
+          "AG/slow/ZHANG_WEI_XIAN",
+          "ILO/LI_YOU_ZHI-0/before",
+          "ILO/LU_FU_SHAN-0/before",
+          "ILO/SUN_DONG_XIN-0/before",
+          "ILO/SUN_XU_XIA-1/before",
+          "ILO/YANG_WEN_TAI-0/before",
+          "ILO/YU_XIANG_SHENG-1/before",
+          "ILO/ZHANG_HE_PING-0/before",
+          "ILO/ZHANG_JIN_CHUN-1/before",
+          "ILO/ZHANG_YONG_SHENG-0/before"
+        ],
+        "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/E9_s1234/eval/ckpt_best/metrics.json",
+        "source_sha256": "5e45480d03e37d9e5543ac2cd6a68454daee56996385d965426ba3a23bace4b1"
+      }
+    }
+  },
+  "ended_at": "2026-09-12T15:41:43+0800"
+}

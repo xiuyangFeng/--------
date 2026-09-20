@@ -1,0 +1,323 @@
+{
+ "bt2_r4_bottleneck_s1234": {
+  "run": "bt2_r4_bottleneck_s1234",
+  "n_cases": 6,
+  "per_case": [
+   {
+    "case": "AAA/ruputer/KANG_YONG",
+    "layer": 0,
+    "n_tokens": 32,
+    "entropy": 1.2182435989379883,
+    "entropy_max": 3.4657359027997265,
+    "effective_tokens": 3.3812437057495117,
+    "attended_mean_dist_mm": 104.38916015625,
+    "token_mean_pairwise_dist_mm": 105.73625183105469
+   },
+   {
+    "case": "AAA/ruputer/LI_ZHEN_HUA",
+    "layer": 0,
+    "n_tokens": 32,
+    "entropy": 1.1291565895080566,
+    "entropy_max": 3.4657359027997265,
+    "effective_tokens": 3.0930466651916504,
+    "attended_mean_dist_mm": 99.52383422851562,
+    "token_mean_pairwise_dist_mm": 115.18932342529297
+   },
+   {
+    "case": "AAA/ruputer/WANG_FU_SHUN",
+    "layer": 0,
+    "n_tokens": 32,
+    "entropy": 0.9301303029060364,
+    "entropy_max": 3.4657359027997265,
+    "effective_tokens": 2.534839391708374,
+    "attended_mean_dist_mm": 96.4083480834961,
+    "token_mean_pairwise_dist_mm": 96.88285064697266
+   },
+   {
+    "case": "AAA/ruputer/YU_TIAN_HAI",
+    "layer": 0,
+    "n_tokens": 32,
+    "entropy": 1.0829224586486816,
+    "entropy_max": 3.4657359027997265,
+    "effective_tokens": 2.9532973766326904,
+    "attended_mean_dist_mm": 97.43586730957031,
+    "token_mean_pairwise_dist_mm": 102.76634979248047
+   },
+   {
+    "case": "AAA/unruputer/GAO_DIAN_WEN",
+    "layer": 0,
+    "n_tokens": 32,
+    "entropy": 0.997305691242218,
+    "entropy_max": 3.4657359027997265,
+    "effective_tokens": 2.710968017578125,
+    "attended_mean_dist_mm": 108.39248657226562,
+    "token_mean_pairwise_dist_mm": 108.41255950927734
+   },
+   {
+    "case": "AAA/unruputer/LIU_KANG_WEN",
+    "layer": 0,
+    "n_tokens": 32,
+    "entropy": 1.1618077754974365,
+    "entropy_max": 3.4657359027997265,
+    "effective_tokens": 3.1957054138183594,
+    "attended_mean_dist_mm": 106.19513702392578,
+    "token_mean_pairwise_dist_mm": 110.1504135131836
+   }
+  ],
+  "gammas": {
+   "bottleneck.layers.0.gamma_attention": 0.07898068428039551,
+   "bottleneck.layers.0.gamma_ffn": -0.371353417634964
+  },
+  "layer0_summary": {
+   "n_tokens": 32,
+   "entropy": 1.0865944027900696,
+   "entropy_max": 3.4657359027997265,
+   "effective_tokens": 2.9781834284464517,
+   "attended_mean_dist_mm": 102.0574722290039,
+   "token_mean_pairwise_dist_mm": 106.52295811971028,
+   "reach_ratio": 0.9597335679163997
+  }
+ },
+ "bt3_r4_bottleneck_c125_s1234": {
+  "run": "bt3_r4_bottleneck_c125_s1234",
+  "n_cases": 6,
+  "per_case": [
+   {
+    "case": "AAA/ruputer/KANG_YONG",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.7157671451568604,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 15.116202354431152,
+    "attended_mean_dist_mm": 102.07994079589844,
+    "token_mean_pairwise_dist_mm": 98.22051239013672
+   },
+   {
+    "case": "AAA/ruputer/LI_ZHEN_HUA",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.591292142868042,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 13.347005844116211,
+    "attended_mean_dist_mm": 107.02190399169922,
+    "token_mean_pairwise_dist_mm": 102.73928833007812
+   },
+   {
+    "case": "AAA/ruputer/WANG_FU_SHUN",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.3994204998016357,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 11.016790390014648,
+    "attended_mean_dist_mm": 92.19974517822266,
+    "token_mean_pairwise_dist_mm": 92.05491638183594
+   },
+   {
+    "case": "AAA/ruputer/YU_TIAN_HAI",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.4437389373779297,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 11.516016960144043,
+    "attended_mean_dist_mm": 100.93760681152344,
+    "token_mean_pairwise_dist_mm": 91.68997955322266
+   },
+   {
+    "case": "AAA/unruputer/GAO_DIAN_WEN",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.5790951251983643,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 13.185202598571777,
+    "attended_mean_dist_mm": 104.48780059814453,
+    "token_mean_pairwise_dist_mm": 99.41148376464844
+   },
+   {
+    "case": "AAA/unruputer/LIU_KANG_WEN",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.437866449356079,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 11.448587417602539,
+    "attended_mean_dist_mm": 104.89485168457031,
+    "token_mean_pairwise_dist_mm": 98.1163101196289
+   }
+  ],
+  "gammas": {
+   "bottleneck.layers.0.gamma_attention": 0.10287174582481384,
+   "bottleneck.layers.0.gamma_ffn": 0.5312215685844421
+  },
+  "layer0_summary": {
+   "n_tokens": 125,
+   "entropy": 2.527863383293152,
+   "entropy_max": 4.828313737302301,
+   "effective_tokens": 12.604967594146729,
+   "attended_mean_dist_mm": 101.9369748433431,
+   "token_mean_pairwise_dist_mm": 97.03874842325847,
+   "reach_ratio": 1.0505931894363856
+  }
+ },
+ "bt7_r4_bottleneck_c125_res1_s1234": {
+  "run": "bt7_r4_bottleneck_c125_res1_s1234",
+  "n_cases": 6,
+  "per_case": [
+   {
+    "case": "AAA/ruputer/KANG_YONG",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 3.2372915744781494,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 25.464658737182617,
+    "attended_mean_dist_mm": 98.68693542480469,
+    "token_mean_pairwise_dist_mm": 98.22051239013672
+   },
+   {
+    "case": "AAA/ruputer/LI_ZHEN_HUA",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 3.225017786026001,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 25.154020309448242,
+    "attended_mean_dist_mm": 96.9079818725586,
+    "token_mean_pairwise_dist_mm": 102.73928833007812
+   },
+   {
+    "case": "AAA/ruputer/WANG_FU_SHUN",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 3.2596113681793213,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 26.03941535949707,
+    "attended_mean_dist_mm": 87.14698791503906,
+    "token_mean_pairwise_dist_mm": 92.05491638183594
+   },
+   {
+    "case": "AAA/ruputer/YU_TIAN_HAI",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 3.154151439666748,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 23.433143615722656,
+    "attended_mean_dist_mm": 87.79086303710938,
+    "token_mean_pairwise_dist_mm": 91.68997955322266
+   },
+   {
+    "case": "AAA/unruputer/GAO_DIAN_WEN",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 3.3042421340942383,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 27.22789764404297,
+    "attended_mean_dist_mm": 92.5033950805664,
+    "token_mean_pairwise_dist_mm": 99.41148376464844
+   },
+   {
+    "case": "AAA/unruputer/LIU_KANG_WEN",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 3.1299965381622314,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 22.873899459838867,
+    "attended_mean_dist_mm": 92.93590545654297,
+    "token_mean_pairwise_dist_mm": 98.1163101196289
+   }
+  ],
+  "gammas": {
+   "bottleneck.layers.0.gamma_attention": 0.74225914478302,
+   "bottleneck.layers.0.gamma_ffn": 1.6690151691436768
+  },
+  "layer0_summary": {
+   "n_tokens": 125,
+   "entropy": 3.2183851401011148,
+   "entropy_max": 4.828313737302301,
+   "effective_tokens": 25.032172520955402,
+   "attended_mean_dist_mm": 92.66201146443684,
+   "token_mean_pairwise_dist_mm": 97.03874842325847,
+   "reach_ratio": 0.9549769603905375
+  }
+ },
+ "bt5b_r4_bottleneck_c125_nogeobias_s1234": {
+  "run": "bt5b_r4_bottleneck_c125_nogeobias_s1234",
+  "n_cases": 6,
+  "per_case": [
+   {
+    "case": "AAA/ruputer/KANG_YONG",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.8276455402374268,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 16.905609130859375,
+    "attended_mean_dist_mm": 90.12298583984375,
+    "token_mean_pairwise_dist_mm": 98.22051239013672
+   },
+   {
+    "case": "AAA/ruputer/LI_ZHEN_HUA",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.6993322372436523,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 14.86979866027832,
+    "attended_mean_dist_mm": 100.80192565917969,
+    "token_mean_pairwise_dist_mm": 102.73928833007812
+   },
+   {
+    "case": "AAA/ruputer/WANG_FU_SHUN",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.5562195777893066,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 12.887007713317871,
+    "attended_mean_dist_mm": 81.76970672607422,
+    "token_mean_pairwise_dist_mm": 92.05491638183594
+   },
+   {
+    "case": "AAA/ruputer/YU_TIAN_HAI",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.6894330978393555,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 14.723326683044434,
+    "attended_mean_dist_mm": 91.79370880126953,
+    "token_mean_pairwise_dist_mm": 91.68997955322266
+   },
+   {
+    "case": "AAA/unruputer/GAO_DIAN_WEN",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.6374640464782715,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 13.97771167755127,
+    "attended_mean_dist_mm": 95.87033081054688,
+    "token_mean_pairwise_dist_mm": 99.41148376464844
+   },
+   {
+    "case": "AAA/unruputer/LIU_KANG_WEN",
+    "layer": 0,
+    "n_tokens": 125,
+    "entropy": 2.662132740020752,
+    "entropy_max": 4.828313737302301,
+    "effective_tokens": 14.326811790466309,
+    "attended_mean_dist_mm": 89.4124984741211,
+    "token_mean_pairwise_dist_mm": 98.1163101196289
+   }
+  ],
+  "gammas": {
+   "bottleneck.layers.0.gamma_attention": 0.10237525403499603,
+   "bottleneck.layers.0.gamma_ffn": -0.5648094415664673
+  },
+  "layer0_summary": {
+   "n_tokens": 125,
+   "entropy": 2.678704539934794,
+   "entropy_max": 4.828313737302301,
+   "effective_tokens": 14.615044275919596,
+   "attended_mean_dist_mm": 91.62852605183919,
+   "token_mean_pairwise_dist_mm": 97.03874842325847,
+   "reach_ratio": 0.943962093261134
+  }
+ },
+ "bt6_r4_c125_condonly_s1234": {
+  "run": "bt6_r4_c125_condonly_s1234",
+  "note": "layers=0 (conditioning-only control): no attention to analyse",
+  "gammas": {}
+ }
+}

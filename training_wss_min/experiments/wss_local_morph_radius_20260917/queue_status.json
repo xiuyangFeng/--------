@@ -1,0 +1,242 @@
+{
+  "job_id": "15000",
+  "started_at": "2026-09-17T19:24:08+0800",
+  "status": "complete",
+  "gpus": [
+    "0",
+    "1",
+    "2"
+  ],
+  "slots_per_gpu": 1,
+  "launch_interval_seconds": 10.0,
+  "arms": {
+    "W04_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_morph_radius_20260917/W04_s1234.json",
+      "run_name": "wss_local_morph_radius_20260917/W04_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-17T19:24:08+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/logs/W04_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_morph_radius_20260917/W04_s1234.json"
+          ],
+          "pid": 3338772,
+          "returncode": 0,
+          "ended_at": "2026-09-17T22:02:36+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-17T22:02:36+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/logs/W04_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_local_morph_radius_20260917/W04_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4007561,
+          "returncode": 0,
+          "ended_at": "2026-09-17T22:04:37+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-17T22:04:38+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/logs/W04_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_local_morph_radius_20260917/W04_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4014968,
+          "returncode": 0,
+          "ended_at": "2026-09-17T22:06:20+0800"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "W06_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_morph_radius_20260917/W06_s1234.json",
+      "run_name": "wss_local_morph_radius_20260917/W06_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-17T19:24:08+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/logs/W06_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_morph_radius_20260917/W06_s1234.json"
+          ],
+          "pid": 3338776,
+          "returncode": 0,
+          "ended_at": "2026-09-17T22:07:06+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-17T22:07:06+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/logs/W06_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_local_morph_radius_20260917/W06_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4022851,
+          "returncode": 0,
+          "ended_at": "2026-09-17T22:09:40+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-17T22:09:40+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/logs/W06_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_local_morph_radius_20260917/W06_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4031133,
+          "returncode": 0,
+          "ended_at": "2026-09-17T22:12:15+0800"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "W08_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_morph_radius_20260917/W08_s1234.json",
+      "run_name": "wss_local_morph_radius_20260917/W08_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-17T19:24:08+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/logs/W08_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_morph_radius_20260917/W08_s1234.json"
+          ],
+          "pid": 3338780,
+          "returncode": 0,
+          "ended_at": "2026-09-17T22:15:31+0800"
+        },
+        "eval_best": {
+          "started_at": "2026-09-17T22:15:32+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/logs/W08_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_local_morph_radius_20260917/W08_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4048715,
+          "returncode": 0,
+          "ended_at": "2026-09-17T22:19:22+0800"
+        },
+        "eval_last": {
+          "started_at": "2026-09-17T22:19:22+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/logs/W08_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_local_morph_radius_20260917/W08_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4058223,
+          "returncode": 0,
+          "ended_at": "2026-09-17T22:23:09+0800"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    }
+  },
+  "matrix": "wss_local_morph_radius_20260917",
+  "expected_training_runs": 3,
+  "expected_evaluations": 6,
+  "preflight_verification": {
+    "preflight": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_morph_radius_20260917/runtime_preflight.json",
+    "sha256": "736e5d69fc8db740600093ab83bf7363e993e2df302e3fea1883d7036b322eb1",
+    "job_id": "14999"
+  },
+  "ended_at": "2026-09-17T22:23:09+0800"
+}

@@ -1,0 +1,524 @@
+{
+  "schema_version": 1,
+  "scope": "只读核对现有实现；不修改原始数据、代码或工作簿",
+  "definitions": [
+    {
+      "key": "physical_space",
+      "title": "物理空间",
+      "definition": "使用反归一化后的目标：WSS（Pa）、相对压力（Pa）或速度幅值（m/s）。",
+      "unit": "见行单位",
+      "direction": "按对应指标",
+      "note": "WSS log-z 为非线性反变换；case-max 实验的主指标可能仅在归一化空间，不能填作 Pa。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:253"
+      ]
+    },
+    {
+      "key": "normalized_space",
+      "title": "归一化空间",
+      "definition": "在训练目标变换空间计算，具体为本行记录的 log-z、case-max 或线性 z。",
+      "unit": "无量纲",
+      "direction": "按对应指标",
+      "note": "压力和速度幅值使用全局线性 z 时，标量 R² 与物理值相同；WSS log-z 不保证相同。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:449"
+      ]
+    },
+    {
+      "key": "pooled",
+      "title": "pooled（点等权）",
+      "definition": "拼接所有测试病例的点后计算；病例按点数隐式加权。",
+      "unit": "随指标",
+      "direction": "按对应指标",
+      "note": "常规指标的 pooled 不代表面积/体积加权。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:496"
+      ]
+    },
+    {
+      "key": "case_mean",
+      "title": "case-mean（病例平均）",
+      "definition": "逐病例单独计算指标，再对有效病例取算术平均。",
+      "unit": "随指标",
+      "direction": "按对应指标",
+      "note": "与使用共享全局中心的 R²_cb 不同。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:509"
+      ]
+    },
+    {
+      "key": "r2_cb",
+      "title": "R²_cb",
+      "definition": "每病例总权重相同，病例内点等权；R²=1−mean_c(MSE_c)/mean_c(mean_i((y_ci−μ_cb)²))，μ_cb 为病例真值均值的算术平均。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "不是逐病例 R² 的平均；0 对应共享病例等权真值均值基线。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:301"
+      ]
+    },
+    {
+      "key": "r2_pooled",
+      "title": "R² pooled（原 raw）",
+      "definition": "所有点等权，以 pooled 真值均值为中心计算 1−SSE/SST。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "与“物理空间”是两个维度；raw 旧名容易被误读，建议表头用 pooled。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:20"
+      ]
+    },
+    {
+      "key": "r2_casemean",
+      "title": "病例 R² 均值",
+      "definition": "逐病例计算 R²，再取有效值算术平均。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "病例真值方差很小时 R² 易出现极端负值。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:510"
+      ]
+    },
+    {
+      "key": "r2_casemed",
+      "title": "病例 R² 中位数",
+      "definition": "逐病例 R² 的第 50 百分位。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "反映典型病例水平。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:526"
+      ]
+    },
+    {
+      "key": "r2_casep10",
+      "title": "病例 R² P10",
+      "definition": "逐病例 R² 的第 10 百分位，约 10% 病例不高于此值。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "是尾部表现分位阈值，不是最差 10% 病例的下界或均值。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:527"
+      ]
+    },
+    {
+      "key": "r2_negative_cases",
+      "title": "负 R² 病例数",
+      "definition": "逐病例 R²<0 的有效病例数；分母单列实际测试病例数。",
+      "unit": "例",
+      "direction": "越低越好",
+      "note": "按整数展示；分母不能固定为 34，历史 test16/15/27 与后续 test34 需各自保留。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:528"
+      ]
+    },
+    {
+      "key": "mae",
+      "title": "标量 MAE pooled",
+      "definition": "全部点 |预测−真实| 的算术平均。",
+      "unit": "WSS/压力：Pa；速度幅值：m/s",
+      "direction": "越低越好",
+      "note": "速度标量误差比较 ||u_pred|| 与 ||u_true||。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:139"
+      ]
+    },
+    {
+      "key": "rmse",
+      "title": "标量 RMSE pooled",
+      "definition": "sqrt(mean((预测−真实)²))，对全部点等权。",
+      "unit": "WSS/压力：Pa；速度幅值：m/s",
+      "direction": "越低越好",
+      "note": "速度幅值 RMSE 与速度向量 RMSE 是不同指标。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:157"
+      ]
+    },
+    {
+      "key": "nrmse_pooled",
+      "title": "range-NRMSE pooled",
+      "definition": "pooled RMSE / pooled 真值极差（max−min）。",
+      "unit": "百分比",
+      "direction": "越低越好",
+      "note": "JSON 数值为比值，Excel 用百分比格式展示；分母不是均值。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:126"
+      ]
+    },
+    {
+      "key": "nrmse_casemean",
+      "title": "range-NRMSE case-mean",
+      "definition": "每病例 RMSE / 本病例真值极差，再按病例平均。",
+      "unit": "百分比",
+      "direction": "越低越好",
+      "note": "不能用病例平均 RMSE 除以 pooled 极差替代。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:513"
+      ]
+    },
+    {
+      "key": "nmae_pooled",
+      "title": "range-NMAE pooled",
+      "definition": "pooled MAE / pooled 真值极差（max−min）。",
+      "unit": "百分比",
+      "direction": "越低越好",
+      "note": "JSON 数值为比值；原值不得再乘 100 后套百分比格式。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:143"
+      ]
+    },
+    {
+      "key": "nmae_casemean",
+      "title": "range-NMAE case-mean",
+      "definition": "每病例 MAE / 本病例真值极差，再按病例平均。",
+      "unit": "百分比",
+      "direction": "越低越好",
+      "note": "分母为极差；与 nrmse_mean 或 high_wss_nrmse_mean 的均值分母不同。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:515"
+      ]
+    },
+    {
+      "key": "high_r2",
+      "title": "高值区 R²（WSS：high-WSS）",
+      "definition": "每病例选取真值≥本病例 P90 的点，将这些点 pooled 后计算 R²。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "WSS 可称 high-WSS；速度为高速度幅值区；压力为高相对压力区。压力高值区不是绝对压力或 |压力| 最高区。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:592",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:485"
+      ]
+    },
+    {
+      "key": "top10_ratio",
+      "title": "top10 幅值比 pooled",
+      "definition": "所有点 pooled 后，以 pooled 真值 P90 为阈值；在同一真值高值点集上求预测均值/真值均值。",
+      "unit": "倍",
+      "direction": "接近 1",
+      "note": "不同于先逐病例取 top10 再拼接；归一化 z 空间比值无直接物理幅值百分比含义。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:508",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:328"
+      ]
+    },
+    {
+      "key": "top10_iou",
+      "title": "top10 IoU case-mean",
+      "definition": "每病例分别按真值和预测值各自的 P90 阈值选高值点，求交集/并集，再病例等权平均。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "默认是点数集合重叠，不是面积重叠；阈值并列时高值集合可超过 10%。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:377",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:421"
+      ]
+    },
+    {
+      "key": "spearman",
+      "title": "Spearman case-mean",
+      "definition": "每病例求真值与预测值的秩相关，再对有效病例取平均。",
+      "unit": "无量纲",
+      "direction": "越接近 1 越好",
+      "note": "当前历史实现用 argsort 生成秩；有并列值时未做平均秩修正。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:355",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:421"
+      ]
+    },
+    {
+      "key": "spearman_high",
+      "title": "高值区 Spearman case-mean",
+      "definition": "每病例真值≥P90 的点内计算秩相关，再对有效病例取平均。",
+      "unit": "无量纲",
+      "direction": "越接近 1 越好",
+      "note": "高值点数不足或并列值多时谨慎解释；WSS 与 VP 的高值区名称分开。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:408"
+      ]
+    },
+    {
+      "key": "p99_ratio",
+      "title": "p99 比 pooled",
+      "definition": "全部预测点的 P99 / 全部真值点的 P99。",
+      "unit": "倍",
+      "direction": "接近 1",
+      "note": "分子与分母分别计算分位数；不要求对应同一空间点。归一化空间比值不等同物理幅值恢复率。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:508",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:335"
+      ]
+    },
+    {
+      "key": "r2_fit_cb",
+      "title": "R² fit cb",
+      "definition": "每病例总权重相同，在所有病例上共享一条 prediction=a×truth+b 拟合线，并计算加权回归 R²。",
+      "unit": "无量纲",
+      "direction": "越高趋势越一致",
+      "note": "等价于病例等权 Pearson r²；不是每例各拟合一条线后求平均；需同时看 a、b 和直接预测 R²。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:68"
+      ]
+    },
+    {
+      "key": "r2_fit_pooled",
+      "title": "R² fit pooled",
+      "definition": "全部点 pooled，拟合 prediction=a×truth+b 后计算回归 R²（等价于 Pearson r²）。",
+      "unit": "无量纲",
+      "direction": "越高趋势越一致",
+      "note": "允许缩放和偏移；高值不能替代直接预测 R²。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:31"
+      ]
+    },
+    {
+      "key": "fit_slope",
+      "title": "fit a",
+      "definition": "prediction=a×truth+b 的斜率，按表头区分 cb 与 pooled。",
+      "unit": "无量纲",
+      "direction": "接近 1",
+      "note": "a<1 表示线性校准斜率偏小；需结合 b 与散点分布判断。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:58"
+      ]
+    },
+    {
+      "key": "fit_intercept",
+      "title": "fit b",
+      "definition": "prediction=a×truth+b 的截距，按表头区分 cb 与 pooled。",
+      "unit": "物理：本行目标单位；归一化：无量纲",
+      "direction": "接近 0",
+      "note": "物理 WSS/压力为 Pa，物理速度幅值为 m/s。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:59"
+      ]
+    },
+    {
+      "key": "pressure_target",
+      "title": "相对压力 p_rel",
+      "definition": "p_rel = p − 本病例峰值帧的体积加权平均压力，壁面与内部共用参考值。",
+      "unit": "Pa",
+      "direction": "按对应指标",
+      "note": "常规压力指标使用壁面∪内部；壁面标签来自最近内部单元压力，壁面/内部可在 query_groups 查看。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/wss_v5/build_case.py:239",
+        "/public/newhome/cy/Digital_twin/GNN/wss_v5/views/volume_view.py:64",
+        "/public/newhome/cy/Digital_twin/GNN/wss_v5/views/volume_view.py:82",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:277"
+      ]
+    },
+    {
+      "key": "velocity_target",
+      "title": "速度幅值 |u|",
+      "definition": "模型预测三分量，反归一化后计算向量模长 |u|，与真实速度模长比较；仅内部单元。",
+      "unit": "m/s",
+      "direction": "按对应指标",
+      "note": "标量页统一使用速度幅值；向量与局部分量仅作为补充。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:443"
+      ]
+    },
+    {
+      "key": "vector_rmse",
+      "title": "速度向量 RMSE pooled",
+      "definition": "sqrt(mean_i(||u_pred−u_true||²))，仅内部单元、全部点等权。",
+      "unit": "m/s",
+      "direction": "越低越好",
+      "note": "不是三个分量平方误差再除以 3，也不是速度幅值 RMSE。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:440"
+      ]
+    },
+    {
+      "key": "component_r2",
+      "title": "轴向 / 径向 / 周向速度 R²_cb",
+      "definition": "将速度投影到中心线局部坐标系后，对各分量计算病例等权 R²。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "局部分量诊断排除径向基退化点；轴向长波仍使用所有具有有效中心线切向的内部点。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/volume_attention_diagnostics.py:244",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/volume_attention_diagnostics.py:143"
+      ]
+    },
+    {
+      "key": "direction_cosine",
+      "title": "方向余弦 case-mean",
+      "definition": "真值速度>0.05 m/s 的点计算预测与真值向量夹角余弦，再病例等权平均。",
+      "unit": "无量纲",
+      "direction": "越接近 1 越好",
+      "note": "每病例不足 10 个有效点时跳过；speedweighted 版本在病例内按真值速度加权。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:422"
+      ]
+    },
+    {
+      "key": "longwave_20",
+      "title": "长波残差 MSE · σ=20 mm",
+      "definition": "内部单元按分支与 5 mm 轴向距离分箱，箱内体积加权；残差先减本病例体积加权均值偏差，再按分支做 Gaussian σ=20 mm 平滑，平方后按箱体积加权、再病例平均。",
+      "unit": "压力：Pa²；轴向速度：(m/s)²",
+      "direction": "越低越好",
+      "note": "20 mm 是高斯标准差，不是波长截断；压力仅内部，速度仅轴向。边界/空缺箱处核按行归一化；平滑核本身不按箱体积加权。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/volume_attention_diagnostics.py:66",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/volume_attention_diagnostics.py:111"
+      ]
+    },
+    {
+      "key": "longwave_40",
+      "title": "长波残差 MSE · σ=40 mm",
+      "definition": "与 σ=20 mm 相同，Gaussian 平滑标准差改为 40 mm。",
+      "unit": "压力：Pa²；轴向速度：(m/s)²",
+      "direction": "越低越好",
+      "note": "仅作残差尺度诊断；不是正交频谱分解，也不是可达到精度的理论上限。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/volume_attention_diagnostics.py:23",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/volume_attention_diagnostics.py:285"
+      ]
+    },
+    {
+      "key": "area_r2_cb",
+      "title": "面积加权 R²_cb",
+      "definition": "每病例总权重相同，病例内使用归一化表面积权重；以病例等权、面积加权全局真值均值为中心计算 R²。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "仅 WSS 表面积评价；与默认点等权 cb 分栏展示。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:235"
+      ]
+    },
+    {
+      "key": "area_top10_iou",
+      "title": "面积 top10 IoU case-mean",
+      "definition": "每病例按值从高到低选取累计约 10% 表面积的热点，求面积交并比，再病例平均。",
+      "unit": "无量纲",
+      "direction": "越高越好",
+      "note": "纳入跨越 10% 边界的完整顶点权重，热点实际面积可略超 10%。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:194",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:211"
+      ]
+    },
+    {
+      "key": "delta_r2",
+      "title": "ΔR² vs 基准",
+      "definition": "当前行 R² 减去明确标注的比较基准行 R²。",
+      "unit": "绝对差值",
+      "direction": "越高越好",
+      "note": "仅同任务、同测试集、同 checkpoint 口径比较；联合任务 best 与单任务 best 的选模标准不同，主比较使用 last。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/report_volume_attention.py:57",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/update_volume_attention_xlsx.py:55"
+      ]
+    }
+  ],
+  "header_comments": {
+    "physical_space": "使用反归一化后的目标：WSS（Pa）、相对压力（Pa）或速度幅值（m/s）。\nWSS log-z 为非线性反变换；case-max 实验的主指标可能仅在归一化空间，不能填作 Pa。",
+    "normalized_space": "在训练目标变换空间计算，具体为本行记录的 log-z、case-max 或线性 z。\n压力和速度幅值使用全局线性 z 时，标量 R² 与物理值相同；WSS log-z 不保证相同。",
+    "pooled": "拼接所有测试病例的点后计算；病例按点数隐式加权。\n常规指标的 pooled 不代表面积/体积加权。",
+    "case_mean": "逐病例单独计算指标，再对有效病例取算术平均。\n与使用共享全局中心的 R²_cb 不同。",
+    "r2_cb": "每病例总权重相同，病例内点等权；R²=1−mean_c(MSE_c)/mean_c(mean_i((y_ci−μ_cb)²))，μ_cb 为病例真值均值的算术平均。\n不是逐病例 R² 的平均；0 对应共享病例等权真值均值基线。",
+    "r2_pooled": "所有点等权，以 pooled 真值均值为中心计算 1−SSE/SST。\n与“物理空间”是两个维度；raw 旧名容易被误读，建议表头用 pooled。",
+    "r2_casemean": "逐病例计算 R²，再取有效值算术平均。\n病例真值方差很小时 R² 易出现极端负值。",
+    "r2_casemed": "逐病例 R² 的第 50 百分位。\n反映典型病例水平。",
+    "r2_casep10": "逐病例 R² 的第 10 百分位，约 10% 病例不高于此值。\n是尾部表现分位阈值，不是最差 10% 病例的下界或均值。",
+    "r2_negative_cases": "逐病例 R²<0 的有效病例数；分母单列实际测试病例数。\n按整数展示；分母不能固定为 34，历史 test16/15/27 与后续 test34 需各自保留。",
+    "mae": "全部点 |预测−真实| 的算术平均。\n速度标量误差比较 ||u_pred|| 与 ||u_true||。",
+    "rmse": "sqrt(mean((预测−真实)²))，对全部点等权。\n速度幅值 RMSE 与速度向量 RMSE 是不同指标。",
+    "nrmse_pooled": "pooled RMSE / pooled 真值极差（max−min）。\nJSON 数值为比值，Excel 用百分比格式展示；分母不是均值。",
+    "nrmse_casemean": "每病例 RMSE / 本病例真值极差，再按病例平均。\n不能用病例平均 RMSE 除以 pooled 极差替代。",
+    "nmae_pooled": "pooled MAE / pooled 真值极差（max−min）。\nJSON 数值为比值；原值不得再乘 100 后套百分比格式。",
+    "nmae_casemean": "每病例 MAE / 本病例真值极差，再按病例平均。\n分母为极差；与 nrmse_mean 或 high_wss_nrmse_mean 的均值分母不同。",
+    "high_r2": "每病例选取真值≥本病例 P90 的点，将这些点 pooled 后计算 R²。\nWSS 可称 high-WSS；速度为高速度幅值区；压力为高相对压力区。压力高值区不是绝对压力或 |压力| 最高区。",
+    "top10_ratio": "所有点 pooled 后，以 pooled 真值 P90 为阈值；在同一真值高值点集上求预测均值/真值均值。\n不同于先逐病例取 top10 再拼接；归一化 z 空间比值无直接物理幅值百分比含义。",
+    "top10_iou": "每病例分别按真值和预测值各自的 P90 阈值选高值点，求交集/并集，再病例等权平均。\n默认是点数集合重叠，不是面积重叠；阈值并列时高值集合可超过 10%。",
+    "spearman": "每病例求真值与预测值的秩相关，再对有效病例取平均。\n当前历史实现用 argsort 生成秩；有并列值时未做平均秩修正。",
+    "spearman_high": "每病例真值≥P90 的点内计算秩相关，再对有效病例取平均。\n高值点数不足或并列值多时谨慎解释；WSS 与 VP 的高值区名称分开。",
+    "p99_ratio": "全部预测点的 P99 / 全部真值点的 P99。\n分子与分母分别计算分位数；不要求对应同一空间点。归一化空间比值不等同物理幅值恢复率。",
+    "r2_fit_cb": "每病例总权重相同，在所有病例上共享一条 prediction=a×truth+b 拟合线，并计算加权回归 R²。\n等价于病例等权 Pearson r²；不是每例各拟合一条线后求平均；需同时看 a、b 和直接预测 R²。",
+    "r2_fit_pooled": "全部点 pooled，拟合 prediction=a×truth+b 后计算回归 R²（等价于 Pearson r²）。\n允许缩放和偏移；高值不能替代直接预测 R²。",
+    "fit_slope": "prediction=a×truth+b 的斜率，按表头区分 cb 与 pooled。\na<1 表示线性校准斜率偏小；需结合 b 与散点分布判断。",
+    "fit_intercept": "prediction=a×truth+b 的截距，按表头区分 cb 与 pooled。\n物理 WSS/压力为 Pa，物理速度幅值为 m/s。",
+    "pressure_target": "p_rel = p − 本病例峰值帧的体积加权平均压力，壁面与内部共用参考值。\n常规压力指标使用壁面∪内部；壁面标签来自最近内部单元压力，壁面/内部可在 query_groups 查看。",
+    "velocity_target": "模型预测三分量，反归一化后计算向量模长 |u|，与真实速度模长比较；仅内部单元。\n标量页统一使用速度幅值；向量与局部分量仅作为补充。",
+    "vector_rmse": "sqrt(mean_i(||u_pred−u_true||²))，仅内部单元、全部点等权。\n不是三个分量平方误差再除以 3，也不是速度幅值 RMSE。",
+    "component_r2": "将速度投影到中心线局部坐标系后，对各分量计算病例等权 R²。\n局部分量诊断排除径向基退化点；轴向长波仍使用所有具有有效中心线切向的内部点。",
+    "direction_cosine": "真值速度>0.05 m/s 的点计算预测与真值向量夹角余弦，再病例等权平均。\n每病例不足 10 个有效点时跳过；speedweighted 版本在病例内按真值速度加权。",
+    "longwave_20": "内部单元按分支与 5 mm 轴向距离分箱，箱内体积加权；残差先减本病例体积加权均值偏差，再按分支做 Gaussian σ=20 mm 平滑，平方后按箱体积加权、再病例平均。\n20 mm 是高斯标准差，不是波长截断；压力仅内部，速度仅轴向。边界/空缺箱处核按行归一化；平滑核本身不按箱体积加权。",
+    "longwave_40": "与 σ=20 mm 相同，Gaussian 平滑标准差改为 40 mm。\n仅作残差尺度诊断；不是正交频谱分解，也不是可达到精度的理论上限。",
+    "area_r2_cb": "每病例总权重相同，病例内使用归一化表面积权重；以病例等权、面积加权全局真值均值为中心计算 R²。\n仅 WSS 表面积评价；与默认点等权 cb 分栏展示。",
+    "area_top10_iou": "每病例按值从高到低选取累计约 10% 表面积的热点，求面积交并比，再病例平均。\n纳入跨越 10% 边界的完整顶点权重，热点实际面积可略超 10%。",
+    "delta_r2": "当前行 R² 减去明确标注的比较基准行 R²。\n仅同任务、同测试集、同 checkpoint 口径比较；联合任务 best 与单任务 best 的选模标准不同，主比较使用 last。"
+  },
+  "confirmed_correct": [
+    "病例等权 R² 定义",
+    "range-NMAE / range-NRMSE 的极差分母",
+    "high-WSS R² 为逐病例 P90 选点后 pooled",
+    "fit cb 为共享拟合线而非逐病例拟合平均"
+  ],
+  "findings": [
+    {
+      "kind": "错误",
+      "location": "原指标说明!E15 / F15",
+      "original": "近似最差10%病例的性能下界 / 困难病例的 R² 下界",
+      "correction": "第10百分位阈值，约10%病例的 R² 不高于此值。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:527"
+      ]
+    },
+    {
+      "kind": "口径遗漏",
+      "location": "原指标说明!C26",
+      "original": "真实 top10% 点上的平均预测值 / 平均真实值（未写聚合）",
+      "correction": "先合并所有点，再用 pooled 真值 P90 阈值选点并求比；不是每病例 top10 点集合。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:508",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:328"
+      ]
+    },
+    {
+      "kind": "口径遗漏",
+      "location": "原指标说明!C27",
+      "original": "真实 top10% 与预测 top10% 点集的交并比（未写聚合）",
+      "correction": "逐病例独立求交并比后病例等权平均。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:421"
+      ]
+    },
+    {
+      "kind": "口径遗漏",
+      "location": "原指标说明!C30",
+      "original": "预测值第99百分位 / 真实值第99百分位（未写聚合）",
+      "correction": "在所有点 pooled 上分别计算预测与真值 P99。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/evaluate.py:508"
+      ]
+    },
+    {
+      "kind": "列名风险",
+      "location": "体场注意力长波列",
+      "original": "长波20mm / 长波40mm",
+      "correction": "σ=20/40 mm 去偏长波残差 MSE；明确压力仅内部、速度仅轴向、单位为平方。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/volume_attention_diagnostics.py:229",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/volume_attention_diagnostics.py:260"
+      ]
+    },
+    {
+      "kind": "实现限制",
+      "location": "原指标说明!Spearman 与 high-WSS Spearman",
+      "original": "秩相关（未说明并列值处理）",
+      "correction": "保留历史指标，但注明当前实现 argsort 排秩，未对并列值使用平均秩。此审计未更改或重算历史数据。",
+      "evidence": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/metrics.py:355"
+      ]
+    }
+  ],
+  "layout_recommendations": [
+    "常规 VP 列使用“标量”并在任务列明确压力或速度幅值；不沿用 WSS 专名。",
+    "速度向量、局部分量、长波放在补充指标区，单位与适用任务在表头注明。",
+    "测试病例数单列；负 R² 病例数为整数，不能固定 34 或显示六位小数。",
+    "指标数值保留原精度、显示四位小数；百分比字段直接以比值套百分比格式；长波可用科学记数格式防止 ######。",
+    "若 VP 保留高值区、top10 幅值比、p99 比，压力注明基于有符号相对压力，且这些比值对参考零点敏感；优先汇报 R²、MAE、RMSE、range-NMAE/NRMSE。"
+  ]
+}

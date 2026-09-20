@@ -1,0 +1,26 @@
+{
+  "experiment": "VELWSS2",
+  "submitted_at": "2026-09-16T00:47:07-07:00",
+  "jobs": {
+    "export_s1234": "login-node (see velocity/s1234_reproduction.json)",
+    "export_s7": "login-node",
+    "export_s2025": "login-node",
+    "prepare": "14450",
+    "worker_legacy": "14451",
+    "worker_legacy_exact": "14453",
+    "worker_v5atlas": "14455",
+    "assemble_legacy": "14452",
+    "assemble_legacy_exact": "14454",
+    "assemble_v5atlas": "14456"
+  },
+  "dependency_chain": "prepare -> 3 worker arrays (0-168%150, 3G, all 4 velocity sources per chunk) -> 3 assembles",
+  "gpu_note": "GPU gres on master fully held by wss_v51 queue 14428 (gres=gpu:4); a no-gres probe job (14448) saw no devices, so the three exports ran on the master login shell on the GPU with the most free memory (recorded per seed). All CPU stages run through Slurm.",
+  "scripts": [
+    "training_wss_min/cluster/vf6_velocity_to_wss_export.slurm",
+    "training_wss_min/cluster/vf6_velocity_to_wss.slurm"
+  ],
+  "tool": "training_wss_min/tools/vf6_velocity_to_wss.py",
+  "cancelled_first_attempt": {
+    "export_14438": "FAILED exit 6: no-gres Slurm job on the GPU partition cannot see GPUs (cgroup isolation); dependents 14439-14447 cancelled"
+  }
+}

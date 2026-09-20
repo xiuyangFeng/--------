@@ -1,0 +1,387 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_x5d_long_ref8_20260917",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5D_v51_s1234": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json",
+    "X5D_v51_s7": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s7/eval/ckpt_best/metrics.json",
+    "X5D_v51_s2025": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s2025/eval/ckpt_best/metrics.json"
+  },
+  "expected_training_runs": 3,
+  "expected_evaluations": 6,
+  "arms": [
+    {
+      "id": "X5D_long_s1234",
+      "title": "X5D v5.1 + 16 longitudinal geometry/mask channels, seed 1234",
+      "config": "X5D_long_s1234.json",
+      "phase": 0,
+      "modules": [
+        "longitudinal_geometry_16"
+      ],
+      "seed": 1234,
+      "fold": null,
+      "parent": "X5D_v51_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "before": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/feature_stats/X5D_v51_s1234_feature_stats.json",
+          "after": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_ref8_20260917/feature_stats/all_train136.json"
+        },
+        "data.input_features": {
+          "before": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "after": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "geom_ref_log_area",
+            "geom_ref_log_area_valid",
+            "geom_ref_area_slope",
+            "geom_ref_area_slope_valid",
+            "geom_ref_roundness",
+            "geom_ref_roundness_valid",
+            "geom_ref_eccentricity",
+            "geom_ref_eccentricity_valid",
+            "geom_ref_upstream_min_area_ratio",
+            "geom_ref_upstream_min_area_ratio_valid",
+            "geom_ref_downstream_min_area_ratio",
+            "geom_ref_downstream_min_area_ratio_valid",
+            "geom_ref_upstream_min_distance",
+            "geom_ref_upstream_min_distance_valid",
+            "geom_ref_downstream_min_distance",
+            "geom_ref_downstream_min_distance_valid"
+          ]
+        },
+        "data.point_features_root": {
+          "before": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_flowref_v1"
+          ],
+          "after": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_flowref_v1",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/frozen_longitudinal_features"
+          ]
+        },
+        "name": {
+          "before": "wss_v51_wave1_20260916/X5D_v51_s1234",
+          "after": "wss_x5d_long_ref8_20260917/X5D_long_s1234"
+        },
+        "notes": {
+          "before": "v5.1 wave-1 X5D_v51_s1234: X5D on v5.1 data (train136), seed 1234; data = views_v5_1 train136/test34 (26 RCR-corrected reruns, 2 duplicates removed); C1_s1234 paired init.",
+          "after": "X5D v5.1 + 16 longitudinal value/mask channels (geom_ref_log_area,geom_ref_area_slope,geom_ref_roundness,geom_ref_eccentricity,geom_ref_upstream_min_area_ratio,geom_ref_downstream_min_area_ratio,geom_ref_upstream_min_distance,geom_ref_downstream_min_distance), seed 1234; 27 original channels retained in order; full X5D recipe unchanged; train136 valid-only geometry statistics; fresh paired initialization from same-seed X5D_v51 with appended columns initialized to zero. Density augmentation subsets fixed full-cloud longitudinal context."
+        },
+        "train.init_reference_config": {
+          "before": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "after": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5D_long_s7",
+      "title": "X5D v5.1 + 16 longitudinal geometry/mask channels, seed 7",
+      "config": "X5D_long_s7.json",
+      "phase": 0,
+      "modules": [
+        "longitudinal_geometry_16"
+      ],
+      "seed": 7,
+      "fold": null,
+      "parent": "X5D_v51_s7",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "before": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/feature_stats/X5D_v51_s7_feature_stats.json",
+          "after": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_ref8_20260917/feature_stats/all_train136.json"
+        },
+        "data.input_features": {
+          "before": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "after": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "geom_ref_log_area",
+            "geom_ref_log_area_valid",
+            "geom_ref_area_slope",
+            "geom_ref_area_slope_valid",
+            "geom_ref_roundness",
+            "geom_ref_roundness_valid",
+            "geom_ref_eccentricity",
+            "geom_ref_eccentricity_valid",
+            "geom_ref_upstream_min_area_ratio",
+            "geom_ref_upstream_min_area_ratio_valid",
+            "geom_ref_downstream_min_area_ratio",
+            "geom_ref_downstream_min_area_ratio_valid",
+            "geom_ref_upstream_min_distance",
+            "geom_ref_upstream_min_distance_valid",
+            "geom_ref_downstream_min_distance",
+            "geom_ref_downstream_min_distance_valid"
+          ]
+        },
+        "data.point_features_root": {
+          "before": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_flowref_v1"
+          ],
+          "after": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_flowref_v1",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/frozen_longitudinal_features"
+          ]
+        },
+        "name": {
+          "before": "wss_v51_wave1_20260916/X5D_v51_s7",
+          "after": "wss_x5d_long_ref8_20260917/X5D_long_s7"
+        },
+        "notes": {
+          "before": "v5.1 wave-1 X5D_v51_s7: X5D on v5.1 data (train136), seed 7; data = views_v5_1 train136/test34 (26 RCR-corrected reruns, 2 duplicates removed); C1_s7 paired init.",
+          "after": "X5D v5.1 + 16 longitudinal value/mask channels (geom_ref_log_area,geom_ref_area_slope,geom_ref_roundness,geom_ref_eccentricity,geom_ref_upstream_min_area_ratio,geom_ref_downstream_min_area_ratio,geom_ref_upstream_min_distance,geom_ref_downstream_min_distance), seed 7; 27 original channels retained in order; full X5D recipe unchanged; train136 valid-only geometry statistics; fresh paired initialization from same-seed X5D_v51 with appended columns initialized to zero. Density augmentation subsets fixed full-cloud longitudinal context."
+        },
+        "train.init_reference_config": {
+          "before": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json",
+          "after": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s7.json"
+        }
+      }
+    },
+    {
+      "id": "X5D_long_s2025",
+      "title": "X5D v5.1 + 16 longitudinal geometry/mask channels, seed 2025",
+      "config": "X5D_long_s2025.json",
+      "phase": 0,
+      "modules": [
+        "longitudinal_geometry_16"
+      ],
+      "seed": 2025,
+      "fold": null,
+      "parent": "X5D_v51_s2025",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "before": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/feature_stats/X5D_v51_s2025_feature_stats.json",
+          "after": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_ref8_20260917/feature_stats/all_train136.json"
+        },
+        "data.input_features": {
+          "before": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "after": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "geom_ref_log_area",
+            "geom_ref_log_area_valid",
+            "geom_ref_area_slope",
+            "geom_ref_area_slope_valid",
+            "geom_ref_roundness",
+            "geom_ref_roundness_valid",
+            "geom_ref_eccentricity",
+            "geom_ref_eccentricity_valid",
+            "geom_ref_upstream_min_area_ratio",
+            "geom_ref_upstream_min_area_ratio_valid",
+            "geom_ref_downstream_min_area_ratio",
+            "geom_ref_downstream_min_area_ratio_valid",
+            "geom_ref_upstream_min_distance",
+            "geom_ref_upstream_min_distance_valid",
+            "geom_ref_downstream_min_distance",
+            "geom_ref_downstream_min_distance_valid"
+          ]
+        },
+        "data.point_features_root": {
+          "before": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_flowref_v1"
+          ],
+          "after": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_flowref_v1",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_longitudinal_20260917/frozen_longitudinal_features"
+          ]
+        },
+        "name": {
+          "before": "wss_v51_wave1_20260916/X5D_v51_s2025",
+          "after": "wss_x5d_long_ref8_20260917/X5D_long_s2025"
+        },
+        "notes": {
+          "before": "v5.1 wave-1 X5D_v51_s2025: X5D on v5.1 data (train136), seed 2025; data = views_v5_1 train136/test34 (26 RCR-corrected reruns, 2 duplicates removed); C1_s2025 paired init.",
+          "after": "X5D v5.1 + 16 longitudinal value/mask channels (geom_ref_log_area,geom_ref_area_slope,geom_ref_roundness,geom_ref_eccentricity,geom_ref_upstream_min_area_ratio,geom_ref_downstream_min_area_ratio,geom_ref_upstream_min_distance,geom_ref_downstream_min_distance), seed 2025; 27 original channels retained in order; full X5D recipe unchanged; train136 valid-only geometry statistics; fresh paired initialization from same-seed X5D_v51 with appended columns initialized to zero. Density augmentation subsets fixed full-cloud longitudinal context."
+        },
+        "train.init_reference_config": {
+          "before": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json",
+          "after": "/public/newhome/cy/Digital_twin/GNN_x5d_longitudinal_frozen_20260917/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s2025.json"
+        }
+      }
+    }
+  ],
+  "prepared_audit": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_x5d_long_ref8_20260917/prepared_audit.json",
+  "reading_rule": "Compare each seed against its same-seed X5D_v51 parent on the unchanged train136/test34 protocol; 400 epochs, train_loss selection, best/last evaluation; geometry masks affect inputs only. The existing test34 is exposed and is not used for model selection."
+}

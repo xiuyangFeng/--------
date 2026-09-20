@@ -1,0 +1,465 @@
+{
+  "job_id": "13781",
+  "started_at": "2026-09-09T19:39:12+0800",
+  "mode": "formal",
+  "status": "complete",
+  "gpus": [
+    "0",
+    "1",
+    "2"
+  ],
+  "slots_per_gpu": 2,
+  "min_free_mib": 7000,
+  "source_sha256": {
+    "training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "training_wss_min/baseline_models.py": "5c0ecb057f7dc52a36bf18da3b34774556d1253b4d1a58291362ea6a8de8c9f2",
+    "training_wss_min/config.py": "0c74916cdeb8fd84f1450ebe5081ee7752d4ae1f2a5218dac9dc3317bfdc3ccd",
+    "training_wss_min/dataset.py": "10fa9b4d9163212bd7157fca244e7c1699da0588d19833d609a61fb8f10e54a3",
+    "training_wss_min/evaluate.py": "3a7ac7f65e2133fce3c314b54202ff39e26f2547935cef143a7dbb5b7a648984",
+    "training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/objectives.py": "7526c88ceb43d8bffcaaf1598a70530b045d7c64d9bf743228a7fa46a8cff375",
+    "training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "training_wss_min/train.py": "7ea29dee2e55039f5cb65a2428edae61575c12d1678e4ed6d888cf52057d1981",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234.json": "da2d8039b28e527cf63bf3d6b1fb7abc17d09ee564ace7faccbc0d770d2c3e08",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234.json": "d7c9de4f72015f1cb64e0e25da263c50caa3081927de075524ca9ba73a100e64",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234.json": "893dff34a12a02341e022b9d744f6dc735920c2edad9c937474314a1970cc5c1",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234.json": "1db53c3f31ee464010e83d4e49bf0e87af5cdaf0f2e96c30588a19cc8b1a190d",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234.json": "3162455125789e9cba240d8e5108bbe660cf9caec5a2a2b2ce7b66c83f225751",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234.json": "c6fd70538f6874ba50fe49ba9ad884524a617b09ca538bb12227b9c8f6322869",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/matrix.json": "1cb30a1b7ae322f8e24036311e24438c1f3c6d28f73a28da83ce004e980074af",
+    "training_wss_min/tools/run_v6_multiradius_bt_queue.py": "a81a4831a670bc2fc5b73778e7fc362e7d83236bb16ee5d91aca549a722d50e6",
+    "training_wss_min/tools/prepare_v6_multiradius_bt_matrix.py": "53ba0218fc9649301529e61bf8afacd6f56d59beb57a7613a1633906d7a07d95"
+  },
+  "arms": {
+    "MS1": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T19:39:12+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS1_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234.json"
+          ],
+          "ended_at": "2026-09-09T20:17:38+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2306.1136798858643
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T20:17:38+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS1_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:17:59+0800",
+          "returncode": 0,
+          "elapsed_seconds": 21.055957794189453
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T20:17:59+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS1_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:18:14+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.032822370529175
+        }
+      },
+      "hypothesis": "单半径新SA3及中心条件桥接；无新增全局BT",
+      "gpu": "1",
+      "pid": 493740
+    },
+    "MS2": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T19:39:24+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS2_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234.json"
+          ],
+          "ended_at": "2026-09-09T20:17:59+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2315.0722472667694
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T20:17:59+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS2_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:18:14+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.036447525024414
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T20:18:14+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS2_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:18:29+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.03360390663147
+        }
+      },
+      "hypothesis": "单半径新SA3加全局BT；与MS1比较",
+      "gpu": "2",
+      "pid": 496746
+    },
+    "MS3": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T19:39:36+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS3_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234.json"
+          ],
+          "ended_at": "2026-09-09T20:22:05+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2549.2451362609863
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T20:22:05+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS3_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:22:20+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.03037977218628
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T20:22:20+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS3_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:22:35+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.019775152206421
+        }
+      },
+      "hypothesis": "多半径分组及融合；无新增全局BT",
+      "gpu": "0",
+      "pid": 542698
+    },
+    "MS4": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T19:39:48+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS4_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234.json"
+          ],
+          "ended_at": "2026-09-09T20:22:35+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2567.1892318725586
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T20:22:35+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS4_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:22:47+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.014241218566895
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T20:22:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS4_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:22:59+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.013095140457153
+        }
+      },
+      "hypothesis": "老师主方案：多半径各支独立BT后按中心融合",
+      "gpu": "0",
+      "pid": 543703
+    },
+    "MS5": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T19:40:00+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS5_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234.json"
+          ],
+          "ended_at": "2026-09-09T20:20:38+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2437.9889965057373
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T20:20:38+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS5_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:20:50+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.012564182281494
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T20:20:50+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS5_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:21:02+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.012521982192993
+        }
+      },
+      "hypothesis": "相同半径三支BT；与MS4固定容量检验多尺度",
+      "gpu": "1",
+      "pid": 532581
+    },
+    "MS6": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234",
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-09T19:40:12+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS6_train.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234.json"
+          ],
+          "ended_at": "2026-09-09T20:21:14+0800",
+          "returncode": 0,
+          "elapsed_seconds": 2461.9964547157288
+        },
+        "eval_best": {
+          "started_at": "2026-09-09T20:21:14+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS6_eval_best.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:21:26+0800",
+          "returncode": 0,
+          "elapsed_seconds": 12.014262199401855
+        },
+        "eval_last": {
+          "started_at": "2026-09-09T20:21:26+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_multiradius_bt_20260909/logs/MS6_eval_last.log",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots"
+          ],
+          "ended_at": "2026-09-09T20:21:41+0800",
+          "returncode": 0,
+          "elapsed_seconds": 15.014794826507568
+        }
+      },
+      "hypothesis": "逐token近等容量FFN替代BT；保持分组及融合",
+      "gpu": "2",
+      "pid": 537560
+    }
+  },
+  "source_sha256_end": {
+    "training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "training_wss_min/baseline_models.py": "5c0ecb057f7dc52a36bf18da3b34774556d1253b4d1a58291362ea6a8de8c9f2",
+    "training_wss_min/config.py": "0c74916cdeb8fd84f1450ebe5081ee7752d4ae1f2a5218dac9dc3317bfdc3ccd",
+    "training_wss_min/dataset.py": "10fa9b4d9163212bd7157fca244e7c1699da0588d19833d609a61fb8f10e54a3",
+    "training_wss_min/evaluate.py": "3a7ac7f65e2133fce3c314b54202ff39e26f2547935cef143a7dbb5b7a648984",
+    "training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/objectives.py": "7526c88ceb43d8bffcaaf1598a70530b045d7c64d9bf743228a7fa46a8cff375",
+    "training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "training_wss_min/train.py": "7ea29dee2e55039f5cb65a2428edae61575c12d1678e4ed6d888cf52057d1981",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234.json": "da2d8039b28e527cf63bf3d6b1fb7abc17d09ee564ace7faccbc0d770d2c3e08",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234.json": "d7c9de4f72015f1cb64e0e25da263c50caa3081927de075524ca9ba73a100e64",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234.json": "893dff34a12a02341e022b9d744f6dc735920c2edad9c937474314a1970cc5c1",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234.json": "1db53c3f31ee464010e83d4e49bf0e87af5cdaf0f2e96c30588a19cc8b1a190d",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234.json": "3162455125789e9cba240d8e5108bbe660cf9caec5a2a2b2ce7b66c83f225751",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234.json": "c6fd70538f6874ba50fe49ba9ad884524a617b09ca538bb12227b9c8f6322869",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/matrix.json": "1cb30a1b7ae322f8e24036311e24438c1f3c6d28f73a28da83ce004e980074af",
+    "training_wss_min/tools/run_v6_multiradius_bt_queue.py": "a81a4831a670bc2fc5b73778e7fc362e7d83236bb16ee5d91aca549a722d50e6",
+    "training_wss_min/tools/prepare_v6_multiradius_bt_matrix.py": "53ba0218fc9649301529e61bf8afacd6f56d59beb57a7613a1633906d7a07d95"
+  },
+  "source_changed": false,
+  "ended_at": "2026-09-09T20:23:02+0800"
+}

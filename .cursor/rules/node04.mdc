@@ -1,0 +1,13 @@
+---
+description: node04 实验与环境检查路由；使用技能中的 UID/public/环境 Gate 和现场 GPU/Slurm 检查
+alwaysApply: true
+---
+
+# node04 入口
+
+任务涉及 node04/04 节点的实验、冒烟、调试或环境时，读取
+[node04-experiments](../skills/node04-experiments/SKILL.md)。
+
+UID/GID、public 共享路径和绝对 conda 环境是接入约束；GPU 数量、占用与 Slurm/GRES
+支持必须现场检查。已授权任务按该技能继续执行，作业状态与产物路径写入实验族记录。
+历史背景见 [集群 node04 使用要点](../../docs/00-规范与记录/集群node04使用要点.md)。

@@ -1,0 +1,511 @@
+{
+  "matrix_id": "v6_singleframe_20260909",
+  "objective": "峰值单帧壁面 WSS：只用几何/网络/解码/校准的改动提高精度，不引入时间维 t",
+  "anchor_config": "training_wss_min/configs/v5_rerun_20260906/r4_lsa2_h2_logradius_v5feat_s1234.json",
+  "protocol": {
+    "seed": 1234,
+    "timesteps": "peak",
+    "target": "wss",
+    "epochs": 400,
+    "split": "data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+    "support_n_points": 5000,
+    "selection_rule": "train_loss",
+    "eval": "test34 全壁面 query、固定 support（seed 1234）、best 与 last 两个 checkpoint",
+    "single_seed": "筛选轮每臂只跑 seed 1234"
+  },
+  "reference": {
+    "r4_three_seed_mean_physical_r2_cb": 0.556,
+    "r4_three_seed_mean_normalized_r2_cb": 0.7823,
+    "r4_seed1234_physical_r2_cb": 0.572146,
+    "r4_seed1234_normalized_r2_cb": 0.786347,
+    "seed_noise_sd_physical": 0.0164,
+    "seed_noise_sd_normalized": 0.004,
+    "single_seed_vs_single_seed_95_band_physical": 0.045,
+    "single_seed_vs_single_seed_95_band_normalized": 0.011,
+    "decision_rule": "单 seed 只做筛选，不下结论；晋级臂必须补到三 seed 后按三 seed 均值 ±0.026(物理)/±0.006(归一化) 判定"
+  },
+  "arms": [
+    {
+      "id": "A0",
+      "config": "A0_r4nll_jensen_s1234.json",
+      "run_name": "v6_singleframe_20260909/A0_r4nll_jensen_s1234",
+      "baseline": "R4",
+      "hypothesis": "高斯 NLL 头 + 逐点 Jensen 回变换是更好的部署口径（Wave 3 单 seed 0.600 复核）",
+      "changes": {
+        "model.out_dim": {
+          "from": 1,
+          "to": 2
+        },
+        "train.loss": {
+          "from": "mse",
+          "to": "gaussian_nll"
+        },
+        "train.loss_pinball_lambda": {
+          "from": 0.2,
+          "to": 0.0
+        },
+        "eval.pointwise_jensen": {
+          "from": false,
+          "to": true
+        }
+      },
+      "declared_but_already_default": [],
+      "note": "out_dim=2 与 pinball=0 是 gaussian_nll 的配套约束，不是独立变量",
+      "input_dim": 17
+    },
+    {
+      "id": "A1",
+      "config": "A1_r4_localbranch_s1234.json",
+      "run_name": "v6_singleframe_20260909/A1_r4_localbranch_s1234",
+      "baseline": "R4",
+      "hypothesis": "2–10 mm 局部壁面结构需要 support 分辨率上的多尺度邻域（SA1 的 0.05 半径太粗）",
+      "changes": {
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        }
+      },
+      "declared_but_already_default": [
+        "model.local_branch_channels",
+        "model.local_branch_nsample",
+        "model.local_branch_radii"
+      ],
+      "note": "分支的半径/邻居数/通道/法向差分是同一个模块的定义，父模型完全没有该模块",
+      "input_dim": 17
+    },
+    {
+      "id": "A1a",
+      "config": "A1a_r4_sa1c256_s1234.json",
+      "run_name": "v6_singleframe_20260909/A1a_r4_sa1c256_s1234",
+      "baseline": "R4",
+      "hypothesis": "只加密 SA1 中心（125→256）即可覆盖局部尺度",
+      "changes": {
+        "model.sa_center_counts": {
+          "from": [
+            125,
+            125,
+            32
+          ],
+          "to": [
+            256,
+            125,
+            32
+          ]
+        }
+      },
+      "declared_but_already_default": [],
+      "note": "",
+      "input_dim": 17
+    },
+    {
+      "id": "A1b",
+      "config": "A1b_r4_sa1r003_s1234.json",
+      "run_name": "v6_singleframe_20260909/A1b_r4_sa1r003_s1234",
+      "baseline": "R4",
+      "hypothesis": "只缩小 SA1 半径（0.05→0.03，≈8.5→5 mm）即可对准局部尺度",
+      "changes": {
+        "model.sa_radius": {
+          "from": [
+            0.05,
+            0.1,
+            0.2
+          ],
+          "to": [
+            0.03,
+            0.1,
+            0.2
+          ]
+        }
+      },
+      "declared_but_already_default": [],
+      "note": "",
+      "input_dim": 17
+    },
+    {
+      "id": "A2a",
+      "config": "A2a_r4_indepquery_s1234.json",
+      "run_name": "v6_singleframe_20260909/A2a_r4_indepquery_s1234",
+      "baseline": "R4",
+      "hypothesis": "训练时 query==support 使解码器只在恒等状态下被训练，与评估的 5000→全壁面插值不一致",
+      "changes": {
+        "data.query_mode": {
+          "from": "same",
+          "to": "independent"
+        }
+      },
+      "declared_but_already_default": [
+        "data.query_n_points",
+        "data.query_sampling"
+      ],
+      "note": "",
+      "input_dim": 17
+    },
+    {
+      "id": "A2b",
+      "config": "A2b_r4_localattn_s1234.json",
+      "run_name": "v6_singleframe_20260909/A2b_r4_localattn_s1234",
+      "baseline": "A2a",
+      "hypothesis": "3-NN 凸插值抹平峰值：改用 16 邻域几何条件权重 + 零初始化局部残差头",
+      "changes": {
+        "data.query_mode": {
+          "from": "same",
+          "to": "independent"
+        },
+        "model.query_decoder": {
+          "from": "interpolate",
+          "to": "local_attn"
+        },
+        "model.query_decoder_k": {
+          "from": 0,
+          "to": 16
+        },
+        "model.query_decoder_residual": {
+          "from": false,
+          "to": true
+        },
+        "model.query_decoder_feature_indices": {
+          "from": [],
+          "to": [
+            4,
+            14,
+            15,
+            16
+          ]
+        }
+      },
+      "declared_but_already_default": [
+        "data.query_n_points",
+        "data.query_sampling",
+        "model.query_decoder_hidden"
+      ],
+      "note": "相对 A2a 只多了解码器本身；independent query 是 local_attn 的训练前提",
+      "input_dim": 17
+    },
+    {
+      "id": "A3",
+      "config": "A3_r4_casescale_s1234.json",
+      "run_name": "v6_singleframe_20260909/A3_r4_casescale_s1234",
+      "baseline": "R4",
+      "hypothesis": "逐例 oracle 仿射还剩 0.05–0.07 R²：让网络自己预测一个病例级幅值",
+      "changes": {
+        "model.case_scale_head": {
+          "from": false,
+          "to": true
+        }
+      },
+      "declared_but_already_default": [
+        "model.case_scale_hidden"
+      ],
+      "note": "",
+      "input_dim": 17
+    },
+    {
+      "id": "A4",
+      "config": "A4_r4_diffgeom_s1234.json",
+      "run_name": "v6_singleframe_20260909/A4_r4_diffgeom_s1234",
+      "baseline": "R4",
+      "hypothesis": "局部微分几何（主曲率/高斯曲率/curvedness/切向-法向夹角）补充局部流动形态",
+      "changes": {
+        "data.input_features": {
+          "from": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned"
+          ],
+          "to": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ]
+        },
+        "data.point_features_root": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2"
+        }
+      },
+      "declared_but_already_default": [],
+      "note": "point_features_root 是新特征的数据来源，不是独立变量",
+      "input_dim": 25
+    },
+    {
+      "id": "A4b",
+      "config": "A4b_r4_branchsem_s1234.json",
+      "run_name": "v6_singleframe_20260909/A4b_r4_branchsem_s1234",
+      "baseline": "R4",
+      "hypothesis": "分支语义 one-hot + 分支内相对弧长给出分支身份与位置",
+      "changes": {
+        "data.input_features": {
+          "from": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned"
+          ],
+          "to": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "sem_trunk",
+            "sem_lcia",
+            "sem_rcia",
+            "sem_lext",
+            "sem_lint",
+            "sem_rext",
+            "sem_rint",
+            "s_local_frac"
+          ]
+        }
+      },
+      "declared_but_already_default": [],
+      "note": "",
+      "input_dim": 25
+    },
+    {
+      "id": "A5b",
+      "config": "A5b_r4_localbranch_diffgeom_nll_s1234.json",
+      "run_name": "v6_singleframe_20260909/A5b_r4_localbranch_diffgeom_nll_s1234",
+      "baseline": "A1+A4+A0",
+      "hypothesis": "组合验证互补性：A0（高斯 NLL 头 + 逐点 Jensen 回变换是更好的部署口径（Wave 3 单 seed 0.600 复核）） + A1（2–10 mm 局部壁面结构需要 support 分辨率上的多尺度邻域（SA1 的 0.05 半径太粗）） + A4（局部微分几何（主曲率/高斯曲率/curvedness/切向-法向夹角）补充局部流动形态）",
+      "changes": {
+        "data.input_features": {
+          "from": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned"
+          ],
+          "to": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ]
+        },
+        "data.point_features_root": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2"
+        },
+        "model.out_dim": {
+          "from": 1,
+          "to": 2
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.loss": {
+          "from": "mse",
+          "to": "gaussian_nll"
+        },
+        "train.loss_pinball_lambda": {
+          "from": 0.2,
+          "to": 0.0
+        },
+        "eval.pointwise_jensen": {
+          "from": false,
+          "to": true
+        }
+      },
+      "declared_but_already_default": [
+        "model.local_branch_channels",
+        "model.local_branch_nsample",
+        "model.local_branch_radii"
+      ],
+      "note": "组合臂，相对 R4 有多处变化；只用于检验互补性，不作单变量归因",
+      "input_dim": 25
+    },
+    {
+      "id": "A5",
+      "config": "A5_r4_localbranch_diffgeom_s1234.json",
+      "run_name": "v6_singleframe_20260909/A5_r4_localbranch_diffgeom_s1234",
+      "baseline": "A1+A4",
+      "hypothesis": "组合验证互补性：A1（2–10 mm 局部壁面结构需要 support 分辨率上的多尺度邻域（SA1 的 0.05 半径太粗）） + A4（局部微分几何（主曲率/高斯曲率/curvedness/切向-法向夹角）补充局部流动形态）",
+      "changes": {
+        "data.input_features": {
+          "from": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned"
+          ],
+          "to": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ]
+        },
+        "data.point_features_root": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2"
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        }
+      },
+      "declared_but_already_default": [
+        "model.local_branch_channels",
+        "model.local_branch_nsample",
+        "model.local_branch_radii"
+      ],
+      "note": "组合臂，相对 R4 有多处变化；只用于检验互补性，不作单变量归因",
+      "input_dim": 25
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "schema": "v6_followup_delivery_verification_v1",
+  "generated_at_utc": "2026-09-09T04:08:30.141899+00:00",
+  "passed": true,
+  "scope": "partial",
+  "all_15_best_and_last_reported_finalized": false,
+  "limitations": [
+    "Checks faithful transcription from original metrics; does not recompute evaluator outputs.",
+    "Matrix-finalized flags are recorded from summaries; queue/source provenance is audited separately.",
+    "Pending metrics are checked as absent/blank and never converted to zero."
+  ],
+  "checkpoints": {
+    "best": {
+      "valid_count": 8,
+      "valid_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6",
+        "D7",
+        "L1"
+      ],
+      "pending_ids": [
+        "L2",
+        "L3",
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5"
+      ],
+      "matrix_finalized_reported": false
+    },
+    "last": {
+      "valid_count": 8,
+      "valid_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "D4",
+        "D5",
+        "D6",
+        "D7",
+        "L1"
+      ],
+      "pending_ids": [
+        "L2",
+        "L3",
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5"
+      ],
+      "matrix_finalized_reported": false
+    }
+  },
+  "workbook_checkpoint": "best",
+  "metric_semantics": {
+    "overview_AA_AB": "log_z pooled MAE/RMSE",
+    "overview_M_N": "Pa pooled RMSE/MAE",
+    "teacher_O": "log_z pooled p99_pred_true_ratio",
+    "comparison_L": "Pa pooled p99_pred_true_ratio"
+  },
+  "original_workbook_preservation": {
+    "汇总对比": {
+      "last_original_row": 385,
+      "backup_max_row": 385,
+      "original_nonempty_cells": 4859,
+      "original_formula_cells": 768
+    },
+    "教师汇报视图": {
+      "last_original_row": 225,
+      "backup_max_row": 225,
+      "original_nonempty_cells": 3824,
+      "original_formula_cells": 580
+    },
+    "RCR Oracle": {
+      "last_original_row": 23,
+      "backup_max_row": 23,
+      "original_nonempty_cells": 140,
+      "original_formula_cells": 12
+    },
+    "指标说明": {
+      "last_original_row": 36,
+      "backup_max_row": 36,
+      "original_nonempty_cells": 191,
+      "original_formula_cells": 0
+    },
+    "实验矩阵总览": {
+      "last_original_row": 265,
+      "backup_max_row": 265,
+      "original_nonempty_cells": 12344,
+      "original_formula_cells": 0
+    }
+  },
+  "checks_by_category": {
+    "source_test_set": 54,
+    "summary_metadata": 122,
+    "summary_reference": 28,
+    "summary_raw": 224,
+    "summary_valid": 224,
+    "summary_delta": 64,
+    "summary_per_case": 576,
+    "summary_pending_blank": 280,
+    "workbook_metadata": 133,
+    "legacy_boundary": 5,
+    "legacy_cell": 21358,
+    "workbook_metric": 528,
+    "workbook_delta": 16,
+    "workbook_pending_blank": 469,
+    "snapshot": 1
+  },
+  "total_checks": 24082,
+  "difference_count": 0,
+  "differences": [],
+  "input_files": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx",
+      "sha256": "8f91b2b9a275722ee20d50f05bb547ba7fc65e30a09c9f969bc2f5d11831b25a"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/matrix.json",
+      "sha256": "e93a5096bcaf4f0d925a1871ed6c76948ac7b651210c7841c916256823dfca20"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/WSS_PointNet实验矩阵与结果汇总last_backup_before_followup_20260909.xlsx",
+      "sha256": "216a3bedaed34e6e60bf2c9770cd7ab88ea57fd6f227ff8be8c0026de11448c5"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/matrix_summary_best.json",
+      "sha256": "673c5a9a35a3037bdfc94849e294ece4359cc4d9302686e39dd97a0670c96b2a"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/matrix_summary_last.json",
+      "sha256": "a5d13967c164ca7e09efc4d08dbf873243ee30738b542b83b812fceb7fcb48de"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v6_followup_20260909/workbook_update.json",
+      "sha256": "9f8dfd5bb9cec2ec2bfe89d4e2fba04ca113ac9b5d042e5debbd4465e0e4b908"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D1_a5_notube_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "ada5884a0dffa4edacff4e107766564de75838dd4b3c11c5d9b127168718eaf4"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D1_a5_notube_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "29c65bef1ca7dcfbf14397ed085aca33da7b6eb0930479984636c0019344d44a"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D2_a5_nodist_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "6972162f7cac6ff0715759bccbed0ae95b4061c2ce2949a63735d5423e85bfcd"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D2_a5_nodist_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "1ec09758613af946618de82c9a41ce86a175d9d11d61969387d184e6b67cf4ca"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D3_a5_nodrds_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "252aaac4c1526e1c1d5d913b999d9ef30ce901c1b79285511bde5a706ac06e71"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D3_a5_nodrds_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "665b50d191675396e6778ef775333f0411270d382b153680599ebfa7370487d6"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D4_a5_nonormal_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "8eb554df073c4f824e2eb9482d54468d4c6f71a3a91a8985925aa60cd42c1d14"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D4_a5_nonormal_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "c80eedbb54f8d1ef82fc725e9ec81f2a5d99788e3bfb997837738433b2a7833d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D5_a5_nofine_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "069a2461fbb885f85537da40ae5389a76f55cb238dc86fbca75169514a573bbc"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D5_a5_nofine_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "bdf47877c64f4f74f06454659023231ce0cf7b3bafec494d38bd1cd0be16313f"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D6_a5_nocoarse_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "ec190e2adc4370ec0e2359fa541ce3a56001de5d06a4f76857b85ba3a95a3813"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D6_a5_nocoarse_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "7e4d2a5af9157a67b289806072b042462fb20170d820d7189ee35a67afa05e54"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D7_a5_notndot_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "20c2826a23171842e60f02376143a229d6a717581c3200488a8f7c100eec53a9"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/D7_a5_notndot_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "f4a5643c88343e5e29e5c91b727aa9ee450e06b66be175ef75c5536fbc8af7e9"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L1_a5_mse_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "5d9bfc4ef441238b84ac05fb6c2a9f75affa0b122179272bba72c4645e575365"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L1_a5_mse_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "10fdd7ff3774d28f9f53e5add4ae9ac0e733eb0b4088faaf6806e9f0fb991297"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_singleframe_20260909/A5_r4_localbranch_diffgeom_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "a5cba2eea40f187b02472e15abdb31b87fed1ca4529ab8d50f3599e7d3ed8725"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_singleframe_20260909/A5_r4_localbranch_diffgeom_s1234/eval/ckpt_last/metrics.json",
+      "sha256": "f07478bca03de57df30e05fc39dc125fbdff79fc2b0acc349f6e23ba22171c6a"
+    }
+  ],
+  "input_hashes_unchanged_during_audit": true,
+  "missing_original_metric_files": [
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L2_a5_pin_rawhuber_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L3_a5_mse_rawhuber_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M1_a5_pointwise_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M3_a5_independent_k16_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M4_a5_localdecoder_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M5_a5_singleradius_s1234/eval/ckpt_best/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L2_a5_pin_rawhuber_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/L3_a5_mse_rawhuber_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M1_a5_pointwise_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M3_a5_independent_k16_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M4_a5_localdecoder_s1234/eval/ckpt_last/metrics.json",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M5_a5_singleradius_s1234/eval/ckpt_last/metrics.json"
+  ]
+}

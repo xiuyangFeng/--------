@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 
 ROOT = Path(__file__).resolve().parents[3]
-REPORT_ROOT = ROOT / "docs/03-汇报材料/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01"
+REPORT_ROOT = ROOT / "docs/03-汇报材料/V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01"
 FULLWALL_AUDIT = ROOT / "outputs/wss_pinn/audits/v4_fullwall_20260901"
 LEGACY_AUDIT = ROOT / "outputs/wss_pinn/audits/v4_workbook_0_14_20260823"
 V2_TOOL = ROOT / "docs/03-汇报材料/tools/update_wss_pinn_v2_v3_workbook.py"

@@ -1,0 +1,52 @@
+{
+  "stem": "05_data_v50_to_v51",
+  "sources": [
+    "training_wss_min/experiments/wss_x5d_inference_followup_20260915/label_only_reeval_x5d5/label_only_summary.json",
+    "training_wss_min/experiments/wss_x5d_inference_followup_20260915/label_only_reeval_x5d5/label_only_reeval.json",
+    "training_wss_min/experiments/wss_v51_wave1_20260916/offline/analyze_wave1.json"
+  ],
+  "values": {
+    "five_seed": {
+      "old_weights_old_labels": 0.7465168080208717,
+      "old_weights_new_labels": 0.7652144363929374,
+      "retrained_new_labels": 0.7748513641426353
+    },
+    "three_seed": {
+      "old_weights_new_labels": 0.7569651176367509,
+      "retrained_new_labels": 0.7735819523046554
+    },
+    "per_seed_old_weights": {
+      "X5D_s1234": [
+        0.7055675658260002,
+        0.714567524517788
+      ],
+      "X5D_s7": [
+        0.719742602640518,
+        0.7403037637877663
+      ],
+      "X5D_s2025": [
+        0.7339855751224886,
+        0.7575076001601201
+      ],
+      "X5D_s11": [
+        0.7229427827135992,
+        0.7416121102602793
+      ],
+      "X5D_s2026": [
+        0.7413529238400764,
+        0.756696088812964
+      ]
+    },
+    "per_seed_retrained": {
+      "X5D_v51_s1234": 0.7461090296994921,
+      "X5D_v51_s7": 0.7571042037280103,
+      "X5D_v51_s2025": 0.765728359157967
+    },
+    "relabelled_cases": [
+      "AAA/unruputer/SUN_SHU_MING",
+      "ILO/SUN_XU_XIA-1/before",
+      "ILO/ZHANG_JIN_CHUN-1/before",
+      "ILO/ZHANG_YONG_SHENG-0/before"
+    ]
+  }
+}

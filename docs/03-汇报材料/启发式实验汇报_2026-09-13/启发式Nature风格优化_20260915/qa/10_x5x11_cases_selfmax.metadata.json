@@ -1,0 +1,47 @@
+{
+  "stem": "10_x5x11_cases_selfmax",
+  "claim": "X5X11：去掉各自幅值后，空间差异还剩多少？；这是空间诊断问题，尚非机制或区域误差量化结论。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/best/surface_gaussian.vtp",
+      "sha256": "283225d247e033878d15460a2ddf6f02ee4e21acc46812e8c5643a1774380fa1"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/best/manifest.json",
+      "sha256": "d70c8f7202d049a1b928f04f79a232e91ec74c97c0c2c7cced992427929e2790"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/median/surface_gaussian.vtp",
+      "sha256": "1a58ab4efdd9330c1ba5a95b6c1e399dacd4c431929ad1097e0fced526022632"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/median/manifest.json",
+      "sha256": "9f975c727801b7520378cf8af62dfe5fccaeddd82f1af966dd70e00a0127212a"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/worst/surface_gaussian.vtp",
+      "sha256": "3ef5a27cc2f2db51513b62aecc0fb9c2a1e45c30956f7951e638e9b78f35481d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/worst/manifest.json",
+      "sha256": "a66b22ef52f7558c21703cc6edd6c744384105f7a042a285390d61be76b8041c"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/10_x5x11_cases_selfmax.pdf",
+    "svg": "figures/10_x5x11_cases_selfmax.svg",
+    "png": "figures/10_x5x11_cases_selfmax.png"
+  },
+  "alignment": "PASS",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/10_x5x11_cases_selfmax.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/10_x5x11_cases_selfmax.collision.json"
+    }
+  },
+  "note": "All delivered source vertices/interior points retained; colourbars excluded through explicit image axes."
+}

@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_direct_recovery_20260912",
+  "arms": [
+    {
+      "id": "E0",
+      "title": "M2 independent-query contemporary control",
+      "config": "E0_s1234.json",
+      "phase": 0,
+      "modules": [],
+      "parent": "E0"
+    },
+    {
+      "id": "E1",
+      "title": "A5 SAME-query contemporary control",
+      "config": "E1_s1234.json",
+      "phase": 0,
+      "modules": [],
+      "parent": "historical_A5_same"
+    },
+    {
+      "id": "E2",
+      "title": "Tangent-plane axial/circumferential directional quotas",
+      "config": "E2_s1234.json",
+      "phase": 0,
+      "modules": [
+        "E2"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "E3",
+      "title": "Full-wall query patch with coarse-context FiLM residual",
+      "config": "E3_s1234.json",
+      "phase": 0,
+      "modules": [
+        "E3"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "E4",
+      "title": "Local max + weighted mean + std pooling, unchanged width",
+      "config": "E4_s1234.json",
+      "phase": 0,
+      "modules": [
+        "E4"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "E5",
+      "title": "Two fixed-mm scales plus 0.5 local-radius scale",
+      "config": "E5_s1234.json",
+      "phase": 0,
+      "modules": [
+        "E5"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "E6",
+      "title": "Physical local surface-pair WSS difference loss",
+      "config": "E6_s1234.json",
+      "phase": 0,
+      "modules": [
+        "E6"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "E7",
+      "title": "Within-case pairwise ranking loss",
+      "config": "E7_s1234.json",
+      "phase": 0,
+      "modules": [
+        "E7"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "E8",
+      "title": "70% spatial coverage + 15% high-curvature + 15% junction support",
+      "config": "E8_s1234.json",
+      "phase": 0,
+      "modules": [
+        "E8"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "E9",
+      "title": "Audited nominal inlet Q/A feature",
+      "config": "E9_s1234.json",
+      "phase": 0,
+      "modules": [
+        "E9"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "C1",
+      "title": "E2 + E3",
+      "config": "C1_s1234.json",
+      "phase": 1,
+      "modules": [
+        "E2",
+        "E3"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "C2",
+      "title": "E2 + E6",
+      "config": "C2_s1234.json",
+      "phase": 1,
+      "modules": [
+        "E2",
+        "E6"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "C3",
+      "title": "E3 + E7",
+      "config": "C3_s1234.json",
+      "phase": 1,
+      "modules": [
+        "E3",
+        "E7"
+      ],
+      "parent": "E0"
+    },
+    {
+      "id": "C4",
+      "title": "Selected E2-E5 structure + E9",
+      "config": "C4_s1234.json",
+      "phase": 1,
+      "modules": "selected_before_phase1",
+      "parent": "E0",
+      "candidate_configs": {
+        "E2": "C4_E2_s1234.json",
+        "E3": "C4_E3_s1234.json",
+        "E4": "C4_E4_s1234.json",
+        "E5": "C4_E5_s1234.json"
+      }
+    }
+  ],
+  "seed": 1234,
+  "epochs": 400,
+  "expected_training_runs": 14,
+  "expected_evaluations": 28,
+  "controls": {
+    "E0": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+    "E1": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_singleframe_20260909/A5_r4_localbranch_diffgeom_s1234.json"
+  },
+  "combination_policy": "Run all combinations as requested; record qualification. C4 selects eligible structure, or best structure labelled forced_exploratory if none qualifies.",
+  "selection": {
+    "checkpoint": "best",
+    "partition": "test",
+    "candidates": [
+      "E2",
+      "E3",
+      "E4",
+      "E5"
+    ],
+    "normalized_casebalanced_r2_gain_min": 0.005,
+    "pa_casebalanced_r2_gain_min_exclusive": 0,
+    "pa_pooled_mae_ratio_max": 1.02,
+    "iou_drop_max": 0.01,
+    "pa_r2_p10_drop_max": 0.02,
+    "no_additional_negative_r2_cases": true,
+    "ordering": [
+      "normalized_casebalanced_r2_desc",
+      "pa_casebalanced_r2_desc",
+      "id_asc"
+    ],
+    "disclosure": "Adaptive selection on test34: exploratory evidence, not an untouched confirmation set; no multi-seed significance claims."
+  }
+}

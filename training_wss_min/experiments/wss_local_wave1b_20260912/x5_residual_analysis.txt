@@ -1,0 +1,35 @@
+=== single seeds vs 3-seed ensemble (log-space mean), physical R2_cb / normalized R2_cb / tail
+  X5_s1234: Pa 0.7178  norm 0.8559  {'top10_ratio': 0.7010017144479326, 'high_r2': 0.2502003325557012, 'p99_ratio': 0.6907033528652278}
+  X5_s   7: Pa 0.7210  norm 0.8575  {'top10_ratio': 0.6975949292987317, 'high_r2': 0.2631975108269645, 'p99_ratio': 0.6800101147705615}
+  X5_s2025: Pa 0.7131  norm 0.8552  {'top10_ratio': 0.7022759786794974, 'high_r2': 0.24400407988659956, 'p99_ratio': 0.6951352036395292}
+  ensemble : Pa 0.7331  norm 0.8688  {'top10_ratio': 0.6914804874864123, 'high_r2': 0.27205676300666404, 'p99_ratio': 0.667355396420346}
+  ensemble (Pa-space mean): Pa 0.7368
+  per-case physical R2: median 0.788 P10 0.626 min 0.523; worst 6: [('ILO/before', 0.523), ('AAA/SUN_SHU_MING', 0.546), ('AAA/WANG_MAN_TIAN', 0.585), ('AAA/WANG_FU_SHUN', 0.619), ('AAA/MA_JIN_HE', 0.642), ('ILO/before', 0.667)]
+  oracle per-case affine (log) -> Pa R2_cb 0.7639; per-case shift only -> 0.7522  (ensemble 0.7331)
+=== ensemble residual decomposition (median [p25,p75] of variance shares): section-mean 0.306 [0.252,0.409], within-section 0.694, branch-mean 0.078 [0.031,0.148]
+  branch rows dropped (non-finite): 1
+=== branch-mean residual (log_z) vs log(true share / Murray share): corr all +0.633 (n=203), leaves +0.641 (n=135), slope +0.486; sd of branch-mean residual 0.187, sd of log split error 0.239; explained share of branch-mean residual var (leaves) 0.41
+=== geometry -> log(Q_ext/Q_int) at peak: n sides 339 (train 272, test 67); sd of target 0.673; mean +0.573
+  baseline murray: raw R2 all +0.568 | corr +0.855 | linear recalibrated (fit train) test R2 +0.629
+  baseline m233  : raw R2 all +0.705 | corr +0.855 | linear recalibrated (fit train) test R2 +0.629
+  baseline cap   : raw R2 all +0.704 | corr +0.887 | linear recalibrated (fit train) test R2 +0.812
+  baseline area  : raw R2 all +0.789 | corr +0.920 | linear recalibrated (fit train) test R2 +0.846
+  ridge(7 geometry feats) train-fit R2 +0.852, test R2 +0.837
+  ridge LOO on train R2 +0.844; per cohort test R2: AG +0.909, AAA +0.860, ILO +0.681
+  ensemble per-cohort Pa R2_cb AG: 0.7822 (n=15)  | X5_s1234: 0.7723
+  ensemble per-cohort Pa R2_cb AAA: 0.7167 (n=10)  | X5_s1234: 0.6957
+  ensemble per-cohort Pa R2_cb ILO: 0.6905 (n=9)  | X5_s1234: 0.6734
+=== explained variance by scale (normalized, per-case median): section-mean track R2 0.938, within-section pattern R2 0.600
+=== mean residual (pred - true, log_z units) by true decile, median over cases: [0.239, 0.108, 0.057, 0.058, 0.047, 0.013, 0.0, -0.056, -0.093, -0.151]
+  global affine recal (oracle, fit on test): a=1.013 b=-0.024 -> Pa R2_cb 0.7337 (ensemble 0.7331)
+=== per-case oracle calibration vs proxies: slope mean 1.003 sd 0.048 (range 0.91–1.11); shift sd 0.058
+    corr(slope, ensemble spread) -0.21 | corr(|shift|, spread) -0.07 | corr(shift, mean |split err|) +0.33 | corr(case R2, spread) -0.48 | corr(case R2, |split err|) -0.74
+    AG: slope 1.005, shift -0.017, spread 0.084, case R2 0.785, |split err| 0.140
+    AAA: slope 1.008, shift -0.038, spread 0.091, case R2 0.732, |split err| 0.242
+    ILO: slope 0.995, shift -0.034, spread 0.085, case R2 0.757, |split err| 0.189
+    spread-predicted slope (a = -0.73*spread + 1.07) applied around case mean -> Pa R2_cb 0.7312 (ensemble 0.7331); constant slope 1.00 -> 0.7347
+=== within-cohort corr(case R2, |split err|): {'AG': -0.55, 'AAA': -0.75, 'ILO': -0.92}
+    fitted on train138: log(Qext/Qint) = 1.07 * cap_term +0.16   (murray_term = 3 log r-ratio; cap_term = 2 log rcap-ratio; area_term = log A-ratio)
+    fitted on train138: log(Qext/Qint) = 1.14 * area_term +0.08   (murray_term = 3 log r-ratio; cap_term = 2 log rcap-ratio; area_term = log A-ratio)
+    fitted on train138: log(Qext/Qint) = 0.70 * murray_term +0.11   (murray_term = 3 log r-ratio; cap_term = 2 log rcap-ratio; area_term = log A-ratio)
+    split error sd: Murray raw 0.437 -> area-fitted 0.264 (test only: 0.471 -> 0.234)

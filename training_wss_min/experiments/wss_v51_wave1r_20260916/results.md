@@ -1,0 +1,53 @@
+# wss_v51_wave1r_20260916 结果（自动生成 2026-09-16 04:15）
+
+单 run、已暴露 test34；参照 = 同期对照 无（同配置重跑）、matrix.json 的外部参照与历史 C1；单 seed 对单 seed 的 95% 带约 ±0.034 物理 R²_cb / ±0.009 归一化。只作筛选，不作显著性或泛化结论。
+
+| 臂 | 变化 | ckpt | Pa R²_cb | Δ vs X0 | Δ vs C1 | norm R²_cb | Δ vs X0 | MAE Pa | case P10 | high-WSS R² | top10 比 | p99 比 | IoU | 负R² |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| C1 历史 | 参照 | best | 0.6575 | — | — | 0.8410 | — | 1.845 | 0.5050 | 0.300 | 0.639 | 0.624 | 0.4698 | 0 |
+| X5D_s1234 (v5.0 data) | 参照 | best | 0.7056 | — | +0.0481 | 0.8598 | — | 1.712 | 0.6112 | 0.409 | 0.681 | 0.668 | 0.5239 | 0 |
+| X5D_s7 (v5.0 data) | 参照 | best | 0.7197 | — | +0.0623 | 0.8628 | — | 1.708 | 0.6010 | 0.403 | 0.708 | 0.694 | 0.5240 | 0 |
+| X5D_s2025 (v5.0 data) | 参照 | best | 0.7340 | — | +0.0765 | 0.8589 | — | 1.703 | 0.5924 | 0.455 | 0.720 | 0.713 | 0.5157 | 0 |
+| X5D_s11 (v5.0 data) | 参照 | best | 0.7229 | — | +0.0655 | 0.8585 | — | 1.697 | 0.6048 | 0.422 | 0.712 | 0.705 | 0.5213 | 0 |
+| X5D_s2026 (v5.0 data) | 参照 | best | 0.7414 | — | +0.0839 | 0.8598 | — | 1.701 | 0.5974 | 0.478 | 0.746 | 0.739 | 0.5223 | 0 |
+| X5D_v51_s11 | X5D on v5.1 data (train136), seed 11 | best | 0.7510 | — | +0.0935 | 0.8694 | — | 1.596 | 0.6520 | 0.479 | 0.732 | 0.728 | 0.5376 | 0 |
+| X5D_v51_s11 | X5D on v5.1 data (train136), seed 11 | last | 0.7520 | — | +0.0945 | 0.8697 | — | 1.594 | 0.6501 | 0.481 | 0.733 | 0.730 | 0.5388 | 0 |
+| X5D_v51_s2026 | X5D on v5.1 data (train136), seed 2026 | best | 0.7542 | — | +0.0967 | 0.8681 | — | 1.598 | 0.6494 | 0.499 | 0.747 | 0.768 | 0.5250 | 0 |
+| X5D_v51_s2026 | X5D on v5.1 data (train136), seed 2026 | last | 0.7596 | — | +0.1021 | 0.8687 | — | 1.592 | 0.6554 | 0.515 | 0.761 | 0.781 | 0.5255 | 0 |
+| X5Dcap_s1234 | X5D with protocol-cap Murray keys (log_q/log_tau0 on virtual-cap radii), seed 1234 | best | 0.7610 | — | +0.1035 | 0.8758 | — | 1.548 | 0.6933 | 0.514 | 0.750 | 0.746 | 0.5454 | 0 |
+| X5Dcap_s1234 | X5D with protocol-cap Murray keys (log_q/log_tau0 on virtual-cap radii), seed 1234 | last | 0.7606 | — | +0.1031 | 0.8760 | — | 1.547 | 0.6904 | 0.511 | 0.745 | 0.740 | 0.5459 | 0 |
+| X5Ddual_s1234 | X5D + dual-scale query patch (spacing-normalised K16 + 4 mm ball of 16), seed 1234 | best | 0.7503 | — | +0.0928 | 0.8704 | — | 1.613 | 0.6400 | 0.487 | 0.749 | 0.750 | 0.5349 | 0 |
+| X5Ddual_s1234 | X5D + dual-scale query patch (spacing-normalised K16 + 4 mm ball of 16), seed 1234 | last | 0.7498 | — | +0.0923 | 0.8705 | — | 1.608 | 0.6399 | 0.480 | 0.740 | 0.739 | 0.5370 | 0 |
+| X5Dnoise_s1234 | X5D + boundary-noise augmentation (0.1/0.2/0.3 mm, p=0.5), seed 1234 | best | 0.7476 | — | +0.0901 | 0.8667 | — | 1.604 | 0.6423 | 0.484 | 0.750 | 0.760 | 0.5285 | 0 |
+| X5Dnoise_s1234 | X5D + boundary-noise augmentation (0.1/0.2/0.3 mm, p=0.5), seed 1234 | last | 0.7415 | — | +0.0840 | 0.8679 | — | 1.602 | 0.6380 | 0.464 | 0.728 | 0.737 | 0.5286 | 0 |
+| X5Dcap_s7 | X5D with protocol-cap Murray keys (log_q/log_tau0 on virtual-cap radii), seed 7 | best | 0.7477 | — | +0.0902 | 0.8753 | — | 1.550 | 0.6569 | 0.483 | 0.748 | 0.757 | 0.5497 | 0 |
+| X5Dcap_s7 | X5D with protocol-cap Murray keys (log_q/log_tau0 on virtual-cap radii), seed 7 | last | 0.7464 | — | +0.0889 | 0.8752 | — | 1.551 | 0.6546 | 0.479 | 0.745 | 0.752 | 0.5489 | 0 |
+| X5Ddual_s7 | X5D + dual-scale query patch (spacing-normalised K16 + 4 mm ball of 16), seed 7 | best | 0.7441 | — | +0.0866 | 0.8710 | — | 1.610 | 0.6285 | 0.449 | 0.726 | 0.743 | 0.5378 | 0 |
+| X5Ddual_s7 | X5D + dual-scale query patch (spacing-normalised K16 + 4 mm ball of 16), seed 7 | last | 0.7457 | — | +0.0882 | 0.8711 | — | 1.608 | 0.6304 | 0.451 | 0.727 | 0.743 | 0.5378 | 0 |
+| X5Dnoise_s7 | X5D + boundary-noise augmentation (0.1/0.2/0.3 mm, p=0.5), seed 7 | best | 0.7527 | — | +0.0952 | 0.8671 | — | 1.611 | 0.6398 | 0.504 | 0.751 | 0.780 | 0.5245 | 0 |
+| X5Dnoise_s7 | X5D + boundary-noise augmentation (0.1/0.2/0.3 mm, p=0.5), seed 7 | last | 0.7535 | — | +0.0960 | 0.8668 | — | 1.610 | 0.6387 | 0.505 | 0.752 | 0.777 | 0.5236 | 0 |
+| X5Dcap_s2025 | X5D with protocol-cap Murray keys (log_q/log_tau0 on virtual-cap radii), seed 2025 | best | 0.7686 | — | +0.1111 | 0.8771 | — | 1.547 | 0.6623 | 0.537 | 0.793 | 0.809 | 0.5422 | 0 |
+| X5Dcap_s2025 | X5D with protocol-cap Murray keys (log_q/log_tau0 on virtual-cap radii), seed 2025 | last | 0.7682 | — | +0.1107 | 0.8770 | — | 1.547 | 0.6657 | 0.536 | 0.789 | 0.804 | 0.5427 | 0 |
+| X5Ddual_s2025 | X5D + dual-scale query patch (spacing-normalised K16 + 4 mm ball of 16), seed 2025 | best | 0.7549 | — | +0.0975 | 0.8709 | — | 1.593 | 0.6417 | 0.486 | 0.747 | 0.743 | 0.5436 | 0 |
+| X5Ddual_s2025 | X5D + dual-scale query patch (spacing-normalised K16 + 4 mm ball of 16), seed 2025 | last | 0.7496 | — | +0.0921 | 0.8711 | — | 1.595 | 0.6354 | 0.470 | 0.732 | 0.728 | 0.5425 | 0 |
+| X5Dnoise_s2025 | X5D + boundary-noise augmentation (0.1/0.2/0.3 mm, p=0.5), seed 2025 | best | 0.7534 | — | +0.0959 | 0.8672 | — | 1.614 | 0.6448 | 0.511 | 0.763 | 0.783 | 0.5161 | 0 |
+| X5Dnoise_s2025 | X5D + boundary-noise augmentation (0.1/0.2/0.3 mm, p=0.5), seed 2025 | last | 0.7504 | — | +0.0930 | 0.8670 | — | 1.613 | 0.6427 | 0.504 | 0.755 | 0.776 | 0.5153 | 0 |
+
+## 分域物理 R²_cb（best）
+
+| 臂 | AG | AAA | ILO |
+|---|---:|---:|---:|
+| C1 历史 | 0.6937 | 0.6342 | 0.6315 |
+| X5D_v51_s11 | 0.7927 | 0.7163 | 0.7239 |
+| X5D_v51_s2026 | 0.7947 | 0.7159 | 0.7314 |
+| X5Dcap_s1234 | 0.7922 | 0.7328 | 0.7415 |
+| X5Ddual_s1234 | 0.7909 | 0.7110 | 0.7283 |
+| X5Dnoise_s1234 | 0.7841 | 0.7150 | 0.7249 |
+| X5Dcap_s7 | 0.7872 | 0.7291 | 0.7103 |
+| X5Ddual_s7 | 0.8003 | 0.7020 | 0.7055 |
+| X5Dnoise_s7 | 0.7899 | 0.6983 | 0.7468 |
+| X5Dcap_s2025 | 0.8072 | 0.7223 | 0.7547 |
+| X5Ddual_s2025 | 0.7965 | 0.7181 | 0.7298 |
+| X5Dnoise_s2025 | 0.7858 | 0.7020 | 0.7506 |
+
+队列状态：complete；作业 14428；跳过的候选：

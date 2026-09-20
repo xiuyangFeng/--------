@@ -1,0 +1,39 @@
+{
+  "stem": "X5X11_loss_history",
+  "claim": "X5X11 三 seed 训练 loss 同步下降，交付 checkpoint 取末期最低 total loss 而非 last",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/history.jsonl",
+      "sha256": "8af5ae016f19399fe0937db33364825ce3a30ec6c97bea96bc9b0ee6f2260dea"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s7/history.jsonl",
+      "sha256": "230ddfa9c4915dbb2264a374f9341e106787f21fb395cfa076cfbb98bf0e8bb8"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s2025/history.jsonl",
+      "sha256": "4e20fe642d640e463bc4d322b0a56b80e3b5d9811bf3e738e29f2f8d8ac90825"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/config.json",
+      "sha256": "11adfa2fc86ca0812540c1d8115e3ad5a6cfcdad989bcf06cffa322aa4d0b07b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s7/config.json",
+      "sha256": "18f991d468cd20bf0b47ce6e90048fadd0b0725966bf4c975e6e9662a2bada0b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s2025/config.json",
+      "sha256": "c3f24e363f031f7b7d5805bce760c506c20a83157f989c823b7a5331c5fddb85"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_训练loss_20260915/source_data/X5X11_loss_history.csv",
+      "sha256": "1b3c9d62b8df6b17521815fe2c103e27f387820d86fac6e91d4dd693ac37d078"
+    }
+  ],
+  "exports": {
+    "png": "figures/X5X11_loss_history.png"
+  },
+  "alignment": "PASS",
+  "note": "All 400 epochs retained. Right panel is a linear zoom of epochs 300-399; y-limits include every recorded point in that window. Diamonds mark argmin(train_loss) per seed."
+}

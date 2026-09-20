@@ -1,0 +1,778 @@
+{
+  "mode": "smoke",
+  "job_id": "14038",
+  "started_at": "2026-09-10T18:04:44+0800",
+  "status": "complete",
+  "gpus": [
+    "0"
+  ],
+  "slots_per_gpu": 4,
+  "source_sha256": {
+    "training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "training_wss_min/baseline_models.py": "619c21d90858b1135b3366e89e6d13dc2f44be3cd0ef95c9dcf07fa0d16356cf",
+    "training_wss_min/config.py": "225a2892772af7e0a6651ec8364fe47ab8ab41113912bac1d39da2a46bc10e1a",
+    "training_wss_min/configs/volume_attention_20260910/J00_s1234.json": "1837a87f64330b24852dadf335f226e78e70c19040298b2e0b9092bd30a24076",
+    "training_wss_min/configs/volume_attention_20260910/J01_s1234.json": "e5fcfcf05655b2f06b25461dd5685a651780259c0cd21fda7fbfee6e123e29ac",
+    "training_wss_min/configs/volume_attention_20260910/P00_s1234.json": "c70357a7b11655c1d8f42b2e00dbb95e932fbe15217726c88376b17fae5c57f6",
+    "training_wss_min/configs/volume_attention_20260910/P01_s1234.json": "0fc221ffee808f0542c60159778fc1f104a9b1fc858533c1e5e54dff567800e9",
+    "training_wss_min/configs/volume_attention_20260910/P02_s1234.json": "3cf2bc0ad9c8d0da2ed55f3eb4bcd6b8701de286b32783f77858541e5f51e50b",
+    "training_wss_min/configs/volume_attention_20260910/P03_s1234.json": "992424a7b21d1c654adbe431e895d47f3f647732f5f9fec7e75b8c50cb947060",
+    "training_wss_min/configs/volume_attention_20260910/P04_s1234.json": "99b10771e118551f35363a740b2636d9e3c95865333ae600dca130e95f9b68a6",
+    "training_wss_min/configs/volume_attention_20260910/P05_s1234.json": "8831b620f14ade5c770403534fdb3143fc49d527c4a1485950845a9a8623f8c1",
+    "training_wss_min/configs/volume_attention_20260910/P06_s1234.json": "5e24bc0e73b9391c03d46a47455ca3907e6d100467478bb150eb59dd3e34a81f",
+    "training_wss_min/configs/volume_attention_20260910/P07_s1234.json": "877d11e04ccd17bdbc450b86a404981befb7b0a336f3d6bbbb6823536640baa1",
+    "training_wss_min/configs/volume_attention_20260910/P08_s1234.json": "20e4fa1eba67bb73e93655f72bde5ab4e10b455a8cddd1b74cc109f39cbfa480",
+    "training_wss_min/configs/volume_attention_20260910/P09_s1234.json": "e7ba4a5cc183bcbf187c255889e75f9a658dc141cdb4e097ca4b0d2be2a37246",
+    "training_wss_min/configs/volume_attention_20260910/P10_s1234.json": "df04df0baa904bc5292a209e43c9c58322f82195ce893186d135281281d02df1",
+    "training_wss_min/configs/volume_attention_20260910/P11_s1234.json": "239d8fb30011f806ab6116f2b4b718c6d1ba4cd6827d8e123b5ddcba0b6c7f6b",
+    "training_wss_min/configs/volume_attention_20260910/V00_s1234.json": "89d7e591cbc98296bcd6aed5c03f9e24218aa0939bc64f434672088dbed3dbad",
+    "training_wss_min/configs/volume_attention_20260910/V01_s1234.json": "66e57d82e5f2bcc5b297adf8bcd751eb0d3c17fbeef2527cc8fa316523b298ab",
+    "training_wss_min/configs/volume_attention_20260910/V02_s1234.json": "76bcc5c75e86d97142836baa04bffc6513965c219b157e58e12c921aacdde986",
+    "training_wss_min/configs/volume_attention_20260910/V03_s1234.json": "5b2cb2d794154e15962b1727f2bf24dee1d53310338714523e463ec697f14640",
+    "training_wss_min/configs/volume_attention_20260910/V04_s1234.json": "686d6ad0ba5419b0135289c4eec03c54a9306c0729d2ab27ae8307ec03be76bc",
+    "training_wss_min/configs/volume_attention_20260910/V05_s1234.json": "6a94537ba2dcd36007c9cb1fd24d3366bd7a9484dd765895121054541136a6aa",
+    "training_wss_min/configs/volume_attention_20260910/V06_s1234.json": "7f9426cd84fd959a1211e7eb63c2644ea7c72679cfb3f7fe177c0f81149825ce",
+    "training_wss_min/configs/volume_attention_20260910/V07_s1234.json": "f6b632ca53ecf3f911aba5476731df840ac4033b98c9c7b08ed6607bca6b6817",
+    "training_wss_min/configs/volume_attention_20260910/V08_s1234.json": "3b3a2b4701c9e36f0326b3373f0871c10ff29eeb00d5250573bbe7d9b7eda07e",
+    "training_wss_min/configs/volume_attention_20260910/V09_s1234.json": "b05b479d5dfdb4ef8a7654aa8eeb6e20b3abfe1c2e03bc750aa038da0e78cb53",
+    "training_wss_min/configs/volume_attention_20260910/V10_s1234.json": "300f748589f89e490d16621c1c1554d7e40caaac521591333aeac195835dc786",
+    "training_wss_min/configs/volume_attention_20260910/V11_s1234.json": "7a6251f5aeec7df69d40329e6e6b180642332e44e05f69272a0168c983250b6d",
+    "training_wss_min/configs/volume_attention_20260910/matrix.json": "a3ac7497def764b150bfdf1fa0fadbd2bcc758b9b0e96c868070547a70fa4ecd",
+    "training_wss_min/configs/volume_attention_20260910/references/J_base.json": "249e519696849fdb2d13353b4945b97bec52fbc0e405c80d4c1313a7763ce803",
+    "training_wss_min/dataset.py": "ffd1b1fd46436c8d1ee891048002591540ff198fcb49348de805e6438f645412",
+    "training_wss_min/evaluate.py": "fbbcdec649caf9e2d8dba9048eda8f30cf37d314bac46eab29c661fbc5bd4997",
+    "training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/objectives.py": "d266df1af388a415c98debbc30facffeb6832db8d438f3299e8fb5ce3aced458",
+    "training_wss_min/paired_initialization.py": "e91bd352b15d24310b9cd022427b058244a1967b007d3b5f0d11ac4645853e28",
+    "training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "training_wss_min/tests/test_volume_attention_evaluation.py": "496e36d161b77005d346146c541b462addcb1038a57c949b418d097b71caa1d9",
+    "training_wss_min/tests/test_volume_attention_matrix_queue.py": "3435c15648206772c5fa55986d74fb24a3e680e931b2163ac3339a95ec9f5ae8",
+    "training_wss_min/tests/test_volume_attention_models.py": "68447e028577a423b73b51d56cfb9d396c9c135b139bd39ded76c3d8e4a24424",
+    "training_wss_min/tests/test_volume_attention_reporting.py": "1d79723e7acd65ee7e4ad46c0cc93449773c1b30b0757856c7b4b413456cbdd7",
+    "training_wss_min/tests/test_volume_attention_xlsx.py": "35e9f95e9dc3383eb3fc4faaa0ab1f58b738ea5305671f37e4c187ad4ec20924",
+    "training_wss_min/tests/test_volume_joint_data_objectives.py": "af25e984d36c6d6e86b2bd31a40bcc07dba74d9d75121a44114c61e67f830672",
+    "training_wss_min/tools/preflight_volume_attention.py": "f8c2ddf1890ce7f813cd5235363f0a1d0bfbe82f4469241e43762b7ad845b681",
+    "training_wss_min/tools/prepare_v6_singleframe_matrix.py": "e21610f951a5debb1b568d2d4370683bc72c91bff21d2994f66e94bb03c1da3f",
+    "training_wss_min/tools/prepare_volume_attention_matrix.py": "468a3c075f8e18a604e34b984bcc6aa67f62b26c8aff329fe0d094708a1d5788",
+    "training_wss_min/tools/report_volume_attention.py": "807f4e897eb4e404b84c48c2c50f61b71c439a575b80d102fff9930f43dd0c02",
+    "training_wss_min/tools/run_volume_attention_queue.py": "8ee9328f0a2824a4776cf9e461bbf45b99f10e42f76743b10be54e5038475194",
+    "training_wss_min/tools/update_volume_attention_xlsx.py": "402c1818d974d2b72095beb4c35c11def8758dd692ea31882a6eb87d11fc989b",
+    "training_wss_min/tools/volume_attention_common.py": "8d7b25a20128ddc2e9f4da3705c8408a42666aedb90c7afa2a75a7839f5bcb8c",
+    "training_wss_min/tools/volume_attention_diagnostics.py": "4b4b19a7d22cf0fdda761188284e3abd01f2ba2742845a0dfe973fd27e432c8b",
+    "training_wss_min/train.py": "dd1d017728f4de0c5371df4f16f555acb6ff7345e61c376e2925f24e9113d5d2"
+  },
+  "arms": {
+    "P00": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:04:44+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P00_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P00_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:05:23+0800",
+          "elapsed_seconds": 39.11604290199466
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P00_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P00_s1234",
+      "gpu": "0",
+      "pid": 517708
+    },
+    "P01": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:04:56+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P01_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P01_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:05:35+0800",
+          "elapsed_seconds": 39.1211006619269
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P01_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P01_s1234",
+      "gpu": "0",
+      "pid": 517959
+    },
+    "P02": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:05:08+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P02_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P02_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:05:47+0800",
+          "elapsed_seconds": 39.12626591406297
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P02_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P02_s1234",
+      "gpu": "0",
+      "pid": 518244
+    },
+    "P03": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:05:20+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P03_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P03_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:05:59+0800",
+          "elapsed_seconds": 39.12504482490476
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P03_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P03_s1234",
+      "gpu": "0",
+      "pid": 519142
+    },
+    "P04": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:05:32+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P04_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P04_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:06:14+0800",
+          "elapsed_seconds": 42.1254795769928
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P04_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P04_s1234",
+      "gpu": "0",
+      "pid": 520117
+    },
+    "P05": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:05:44+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P05_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P05_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:06:23+0800",
+          "elapsed_seconds": 39.122492800001055
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P05_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P05_s1234",
+      "gpu": "0",
+      "pid": 520893
+    },
+    "P06": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:08:05+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P06_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P06_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:08:44+0800",
+          "elapsed_seconds": 39.12571600591764
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P06_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P06_s1234",
+      "gpu": "0",
+      "pid": 528920
+    },
+    "P07": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:08:17+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P07_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P07_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:08:56+0800",
+          "elapsed_seconds": 39.128233178984374
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P07_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P07_s1234",
+      "gpu": "0",
+      "pid": 529230
+    },
+    "P08": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:08:29+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P08_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P08_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:09:08+0800",
+          "elapsed_seconds": 39.12755820096936
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P08_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P08_s1234",
+      "gpu": "0",
+      "pid": 529457
+    },
+    "P09": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:08:41+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P09_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P09_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:09:21+0800",
+          "elapsed_seconds": 39.13156899402384
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P09_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P09_s1234",
+      "gpu": "0",
+      "pid": 530175
+    },
+    "P10": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:08:53+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P10_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P10_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:09:33+0800",
+          "elapsed_seconds": 39.12988886295352
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P10_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P10_s1234",
+      "gpu": "0",
+      "pid": 531117
+    },
+    "P11": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:09:05+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P11_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/P11_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:09:45+0800",
+          "elapsed_seconds": 39.12965510005597
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/P11_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/P11_s1234",
+      "gpu": "0",
+      "pid": 531844
+    },
+    "V00": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:05:56+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V00_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V00_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:06:50+0800",
+          "elapsed_seconds": 54.14403382292949
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V00_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V00_s1234",
+      "gpu": "0",
+      "pid": 521650
+    },
+    "V01": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:06:08+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V01_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V01_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:07:11+0800",
+          "elapsed_seconds": 63.147198456921615
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V01_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V01_s1234",
+      "gpu": "0",
+      "pid": 522478
+    },
+    "V02": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:06:20+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V02_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V02_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:07:17+0800",
+          "elapsed_seconds": 57.1507419180125
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V02_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V02_s1234",
+      "gpu": "0",
+      "pid": 523267
+    },
+    "V03": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:06:32+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V03_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V03_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:07:32+0800",
+          "elapsed_seconds": 60.122426914051175
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V03_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V03_s1234",
+      "gpu": "0",
+      "pid": 523448
+    },
+    "V04": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:06:50+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V04_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V04_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:07:47+0800",
+          "elapsed_seconds": 57.09165239799768
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V04_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V04_s1234",
+      "gpu": "0",
+      "pid": 524536
+    },
+    "V05": {
+      "phase": 1,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:07:11+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V05_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V05_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:08:05+0800",
+          "elapsed_seconds": 54.06690727605019
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V05_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V05_s1234",
+      "gpu": "0",
+      "pid": 526308
+    },
+    "V06": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:09:18+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V06_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V06_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:10:09+0800",
+          "elapsed_seconds": 51.137663909001276
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V06_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V06_s1234",
+      "gpu": "0",
+      "pid": 532723
+    },
+    "V07": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:09:30+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V07_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V07_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:10:21+0800",
+          "elapsed_seconds": 51.13720084098168
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V07_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V07_s1234",
+      "gpu": "0",
+      "pid": 533685
+    },
+    "V08": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:09:42+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V08_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V08_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:10:33+0800",
+          "elapsed_seconds": 51.136824964080006
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V08_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V08_s1234",
+      "gpu": "0",
+      "pid": 534403
+    },
+    "V09": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:09:54+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V09_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V09_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:10:48+0800",
+          "elapsed_seconds": 54.112804409931414
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V09_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V09_s1234",
+      "gpu": "0",
+      "pid": 534823
+    },
+    "V10": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:10:09+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V10_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V10_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:11:00+0800",
+          "elapsed_seconds": 51.082252430031076
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V10_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V10_s1234",
+      "gpu": "0",
+      "pid": 535856
+    },
+    "V11": {
+      "phase": 2,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:10:21+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V11_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/V11_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:11:12+0800",
+          "elapsed_seconds": 51.05255885992665
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/V11_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/V11_s1234",
+      "gpu": "0",
+      "pid": 536990
+    },
+    "J00": {
+      "phase": 3,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:11:12+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/J00_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/J00_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:11:42+0800",
+          "elapsed_seconds": 30.058224383043125
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/J00_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/J00_s1234",
+      "gpu": "0",
+      "pid": 539815
+    },
+    "J01": {
+      "phase": 3,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-10T18:11:24+0800",
+          "command": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/J01_s1234.json"
+          ],
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/J01_train.log",
+          "returncode": 0,
+          "ended_at": "2026-09-10T18:11:54+0800",
+          "elapsed_seconds": 30.034235758939758
+        }
+      },
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/smoke_14038/configs/J01_s1234.json",
+      "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_attention_20260910/smoke_14038/J01_s1234",
+      "gpu": "0",
+      "pid": 540189
+    }
+  },
+  "source_sha256_end": {
+    "training_wss_min/__init__.py": "07f9667d48fd8fb332f8eba301886743427ef71721752a04d8290d02a9d66b83",
+    "training_wss_min/baseline_models.py": "619c21d90858b1135b3366e89e6d13dc2f44be3cd0ef95c9dcf07fa0d16356cf",
+    "training_wss_min/config.py": "225a2892772af7e0a6651ec8364fe47ab8ab41113912bac1d39da2a46bc10e1a",
+    "training_wss_min/configs/volume_attention_20260910/J00_s1234.json": "1837a87f64330b24852dadf335f226e78e70c19040298b2e0b9092bd30a24076",
+    "training_wss_min/configs/volume_attention_20260910/J01_s1234.json": "e5fcfcf05655b2f06b25461dd5685a651780259c0cd21fda7fbfee6e123e29ac",
+    "training_wss_min/configs/volume_attention_20260910/P00_s1234.json": "c70357a7b11655c1d8f42b2e00dbb95e932fbe15217726c88376b17fae5c57f6",
+    "training_wss_min/configs/volume_attention_20260910/P01_s1234.json": "0fc221ffee808f0542c60159778fc1f104a9b1fc858533c1e5e54dff567800e9",
+    "training_wss_min/configs/volume_attention_20260910/P02_s1234.json": "3cf2bc0ad9c8d0da2ed55f3eb4bcd6b8701de286b32783f77858541e5f51e50b",
+    "training_wss_min/configs/volume_attention_20260910/P03_s1234.json": "992424a7b21d1c654adbe431e895d47f3f647732f5f9fec7e75b8c50cb947060",
+    "training_wss_min/configs/volume_attention_20260910/P04_s1234.json": "99b10771e118551f35363a740b2636d9e3c95865333ae600dca130e95f9b68a6",
+    "training_wss_min/configs/volume_attention_20260910/P05_s1234.json": "8831b620f14ade5c770403534fdb3143fc49d527c4a1485950845a9a8623f8c1",
+    "training_wss_min/configs/volume_attention_20260910/P06_s1234.json": "5e24bc0e73b9391c03d46a47455ca3907e6d100467478bb150eb59dd3e34a81f",
+    "training_wss_min/configs/volume_attention_20260910/P07_s1234.json": "877d11e04ccd17bdbc450b86a404981befb7b0a336f3d6bbbb6823536640baa1",
+    "training_wss_min/configs/volume_attention_20260910/P08_s1234.json": "20e4fa1eba67bb73e93655f72bde5ab4e10b455a8cddd1b74cc109f39cbfa480",
+    "training_wss_min/configs/volume_attention_20260910/P09_s1234.json": "e7ba4a5cc183bcbf187c255889e75f9a658dc141cdb4e097ca4b0d2be2a37246",
+    "training_wss_min/configs/volume_attention_20260910/P10_s1234.json": "df04df0baa904bc5292a209e43c9c58322f82195ce893186d135281281d02df1",
+    "training_wss_min/configs/volume_attention_20260910/P11_s1234.json": "239d8fb30011f806ab6116f2b4b718c6d1ba4cd6827d8e123b5ddcba0b6c7f6b",
+    "training_wss_min/configs/volume_attention_20260910/V00_s1234.json": "89d7e591cbc98296bcd6aed5c03f9e24218aa0939bc64f434672088dbed3dbad",
+    "training_wss_min/configs/volume_attention_20260910/V01_s1234.json": "66e57d82e5f2bcc5b297adf8bcd751eb0d3c17fbeef2527cc8fa316523b298ab",
+    "training_wss_min/configs/volume_attention_20260910/V02_s1234.json": "76bcc5c75e86d97142836baa04bffc6513965c219b157e58e12c921aacdde986",
+    "training_wss_min/configs/volume_attention_20260910/V03_s1234.json": "5b2cb2d794154e15962b1727f2bf24dee1d53310338714523e463ec697f14640",
+    "training_wss_min/configs/volume_attention_20260910/V04_s1234.json": "686d6ad0ba5419b0135289c4eec03c54a9306c0729d2ab27ae8307ec03be76bc",
+    "training_wss_min/configs/volume_attention_20260910/V05_s1234.json": "6a94537ba2dcd36007c9cb1fd24d3366bd7a9484dd765895121054541136a6aa",
+    "training_wss_min/configs/volume_attention_20260910/V06_s1234.json": "7f9426cd84fd959a1211e7eb63c2644ea7c72679cfb3f7fe177c0f81149825ce",
+    "training_wss_min/configs/volume_attention_20260910/V07_s1234.json": "f6b632ca53ecf3f911aba5476731df840ac4033b98c9c7b08ed6607bca6b6817",
+    "training_wss_min/configs/volume_attention_20260910/V08_s1234.json": "3b3a2b4701c9e36f0326b3373f0871c10ff29eeb00d5250573bbe7d9b7eda07e",
+    "training_wss_min/configs/volume_attention_20260910/V09_s1234.json": "b05b479d5dfdb4ef8a7654aa8eeb6e20b3abfe1c2e03bc750aa038da0e78cb53",
+    "training_wss_min/configs/volume_attention_20260910/V10_s1234.json": "300f748589f89e490d16621c1c1554d7e40caaac521591333aeac195835dc786",
+    "training_wss_min/configs/volume_attention_20260910/V11_s1234.json": "7a6251f5aeec7df69d40329e6e6b180642332e44e05f69272a0168c983250b6d",
+    "training_wss_min/configs/volume_attention_20260910/matrix.json": "a3ac7497def764b150bfdf1fa0fadbd2bcc758b9b0e96c868070547a70fa4ecd",
+    "training_wss_min/configs/volume_attention_20260910/references/J_base.json": "249e519696849fdb2d13353b4945b97bec52fbc0e405c80d4c1313a7763ce803",
+    "training_wss_min/dataset.py": "ffd1b1fd46436c8d1ee891048002591540ff198fcb49348de805e6438f645412",
+    "training_wss_min/evaluate.py": "fbbcdec649caf9e2d8dba9048eda8f30cf37d314bac46eab29c661fbc5bd4997",
+    "training_wss_min/metrics.py": "dd686aac9d67208a61b6a01d3280a6271d314c715964462f693b87619f0f12c7",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/objectives.py": "d266df1af388a415c98debbc30facffeb6832db8d438f3299e8fb5ce3aced458",
+    "training_wss_min/paired_initialization.py": "e91bd352b15d24310b9cd022427b058244a1967b007d3b5f0d11ac4645853e28",
+    "training_wss_min/pointnext.py": "907acf0ab80c9ffac8f4895ddaed04d734669f8946d5d0a9a4c891b1425ddd24",
+    "training_wss_min/runtime.py": "6caa3ae7cd770f0eeae64426a3573cb60fc9ff464614322e6d6d13ebb9d68c7c",
+    "training_wss_min/surface.py": "fc486d83904ed363edbf84417ea30dc6f15a678a537b6ba5b84070f270b5aeeb",
+    "training_wss_min/tests/test_volume_attention_evaluation.py": "496e36d161b77005d346146c541b462addcb1038a57c949b418d097b71caa1d9",
+    "training_wss_min/tests/test_volume_attention_matrix_queue.py": "3435c15648206772c5fa55986d74fb24a3e680e931b2163ac3339a95ec9f5ae8",
+    "training_wss_min/tests/test_volume_attention_models.py": "68447e028577a423b73b51d56cfb9d396c9c135b139bd39ded76c3d8e4a24424",
+    "training_wss_min/tests/test_volume_attention_reporting.py": "1d79723e7acd65ee7e4ad46c0cc93449773c1b30b0757856c7b4b413456cbdd7",
+    "training_wss_min/tests/test_volume_attention_xlsx.py": "35e9f95e9dc3383eb3fc4faaa0ab1f58b738ea5305671f37e4c187ad4ec20924",
+    "training_wss_min/tests/test_volume_joint_data_objectives.py": "af25e984d36c6d6e86b2bd31a40bcc07dba74d9d75121a44114c61e67f830672",
+    "training_wss_min/tools/preflight_volume_attention.py": "f8c2ddf1890ce7f813cd5235363f0a1d0bfbe82f4469241e43762b7ad845b681",
+    "training_wss_min/tools/prepare_v6_singleframe_matrix.py": "e21610f951a5debb1b568d2d4370683bc72c91bff21d2994f66e94bb03c1da3f",
+    "training_wss_min/tools/prepare_volume_attention_matrix.py": "468a3c075f8e18a604e34b984bcc6aa67f62b26c8aff329fe0d094708a1d5788",
+    "training_wss_min/tools/report_volume_attention.py": "807f4e897eb4e404b84c48c2c50f61b71c439a575b80d102fff9930f43dd0c02",
+    "training_wss_min/tools/run_volume_attention_queue.py": "8ee9328f0a2824a4776cf9e461bbf45b99f10e42f76743b10be54e5038475194",
+    "training_wss_min/tools/update_volume_attention_xlsx.py": "402c1818d974d2b72095beb4c35c11def8758dd692ea31882a6eb87d11fc989b",
+    "training_wss_min/tools/volume_attention_common.py": "8d7b25a20128ddc2e9f4da3705c8408a42666aedb90c7afa2a75a7839f5bcb8c",
+    "training_wss_min/tools/volume_attention_diagnostics.py": "4b4b19a7d22cf0fdda761188284e3abd01f2ba2742845a0dfe973fd27e432c8b",
+    "training_wss_min/train.py": "dd1d017728f4de0c5371df4f16f555acb6ff7345e61c376e2925f24e9113d5d2"
+  },
+  "source_changed": false,
+  "ended_at": "2026-09-10T18:11:57+0800"
+}

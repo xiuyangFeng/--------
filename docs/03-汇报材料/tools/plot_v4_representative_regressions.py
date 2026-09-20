@@ -32,7 +32,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[3]
 V4_BASE = ROOT / "outputs/wss_pinn/volume_uvwp_bc_rcr_v4"
 V4_AUDIT = ROOT / "outputs/wss_pinn/audits/v4_workbook_0_14_20260823/arms"
-PLOT_ROOT = ROOT / "docs/03-汇报材料/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01"
+PLOT_ROOT = ROOT / "docs/03-汇报材料/V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01"
 ROI_DIR = ROOT / "outputs/wss_pinn/audits/v2_v3_linear_regression_fullpoints_20260807/anatomical_roi"
 BASE_V4_WORKBOOK_TOOL = ROOT / "docs/03-汇报材料/tools/update_wss_pinn_v4_workbook.py"
 BASE_V2_WORKBOOK_TOOL = ROOT / "docs/03-汇报材料/tools/update_wss_pinn_v2_v3_workbook.py"

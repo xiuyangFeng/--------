@@ -1,0 +1,19 @@
+{
+  "checked_at": "2026-09-10T00:39:10+0800",
+  "results": {
+    "best": {
+      "historical_pa_r2": 0.6284126356135231,
+      "contemporary_pa_r2": 0.592588376153524,
+      "delta": -0.03582425945999912
+    },
+    "last": {
+      "historical_pa_r2": 0.6242935512055154,
+      "contemporary_pa_r2": 0.5964886780459473,
+      "delta": -0.027804873159568144
+    }
+  },
+  "interpretation": "MO0 best/last明显低于历史M2。已确认配置、数据统计、重建共享初始化与旧checkpoint评估复现。GPU同batch AMP/FP32各12步诊断完成：旧源码自身重复也从fp.0出现数值分叉，CPU/CUDA RNG、FPS、DropPath、scaler决策全部一致且无跳步；日志和paired路径未呈现独有的初始/RNG偏差或不同首处分叉模块。此证据只定位到FP模块，不能将400轮最终R²差距归因为GPU非确定性。",
+  "diagnosis_status": "completed_short_step; full_training_cause_unresolved",
+  "gpu_training_diagnosis_status": "completed_short_step",
+  "gpu_training_evidence": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/training_trajectory/analysis_job_13974.json"
+}

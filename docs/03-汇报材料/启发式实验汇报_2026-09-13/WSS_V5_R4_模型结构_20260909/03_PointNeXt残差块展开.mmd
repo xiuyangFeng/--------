@@ -1,0 +1,10 @@
+flowchart LR
+    I["输入 F<br/>N×C"] --> L["局部 Ball 邻域<br/>[Δp,Fj]；max<br/>(C+3)→C→C"] --> A(("相加")) --> H["h<br/>N×C"]
+    I -. "恒等支路" .-> A
+    H --> P["倒置瓶颈 Pointwise MLP<br/>C→2C→C<br/>SA1：64→128→64<br/>SA2：128→256→128"] --> B(("相加")) --> O["输出 Fout<br/>N×C"]
+    H -. "恒等支路" .-> B
+    D["缩放因子 D<br/>SA1=0；SA2=0.10<br/>按病例共享；推理时D=1"] -.-> L
+    D -.-> P
+    classDef main fill:#E8F1FB,stroke:#2878BD,color:#12304A;
+    classDef note fill:#FFF0DD,stroke:#C97822,color:#5A3212;
+    class I,L,A,H,P,B,O main; class D note;

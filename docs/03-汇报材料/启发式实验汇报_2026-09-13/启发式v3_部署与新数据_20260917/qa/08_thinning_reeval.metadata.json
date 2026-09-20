@@ -1,0 +1,19 @@
+{
+  "stem": "08_thinning_reeval",
+  "claim": "双尺度 patch 在 10% 抽稀下把冻结特征的损失从 −0.146 缩到 −0.056，达成设计目标，但代价是全密度 −0.007。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1r_20260916/offline/deployment_reeval_x5d_v51/deployment_resample_reeval.json",
+      "sha256": "8160b6280358d9740bd9a7817b3faea82cb340cc76f299e98aaaa88f3a29debf"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1r_20260916/offline/deployment_reeval_x5ddual/deployment_resample_reeval.json",
+      "sha256": "22132ce8011e5e4682031c2a43bc09c7f2df7b9ca5c06d9c67453054133c56b2"
+    }
+  ],
+  "exports": {
+    "png": "figures/08_thinning_reeval.png"
+  },
+  "alignment": "PASS",
+  "note": "Full-density rows are exactly 0 by construction; the two models have different full-density baselines (0.7713 vs 0.7633), so only the deltas are comparable here."
+}

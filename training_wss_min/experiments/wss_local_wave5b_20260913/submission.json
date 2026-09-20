@@ -1,0 +1,39 @@
+{
+  "preflight_job_id": "14213",
+  "matrix_job_id": "14217",
+  "submitted_at": "2026-09-13T23:48:12.170282-07:00",
+  "dependency": "preflight 14213 PASSED before resubmission; matrix resubmitted on 3 GPUs x 4 slots",
+  "gpus": 3,
+  "slots_per_gpu": 4,
+  "expected_training_runs": 12,
+  "expected_evaluations": 24,
+  "phases": {
+    "0": [
+      "T3_s1234",
+      "T3_s7",
+      "T3_s2025",
+      "T3n_s1234",
+      "T3n_s7",
+      "T3n_s2025",
+      "X5_f0_s7",
+      "X5_f1_s7",
+      "X5_f2_s7",
+      "X5X11_f0_s7",
+      "X5X11_f1_s7",
+      "X5X11_f2_s7"
+    ]
+  },
+  "scripts": {
+    "preflight": "training_wss_min/cluster/preflight_wss_local_wave5b.slurm",
+    "matrix": "training_wss_min/cluster/run_wss_local_wave5b_gpu3.slurm"
+  },
+  "pairing": "T3/T3n vs X5_s<seed> (same C1_s<seed> chain; one appended zero-init column); T3 vs T3n same init; X5X11_f<k>_s7 vs X5_f<k>_s7",
+  "cascade_sidecar": {
+    "manifest": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_cascade_v1/cascade_manifest.json",
+    "offset_mean": -0.0652255654530883,
+    "offset_std": 0.5287156379052952,
+    "stage1_ln_r2_train_oof_mean": 0.8046982785684924,
+    "stage1_ln_r2_test_mean": 0.8101776970177416
+  },
+  "matrix_job_id_cancelled": "14214 (pending on 4 GPUs while another user's job 14212 holds one GPU for up to 5 days)"
+}

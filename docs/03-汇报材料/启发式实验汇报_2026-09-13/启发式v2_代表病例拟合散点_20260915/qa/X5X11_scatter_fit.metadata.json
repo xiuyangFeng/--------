@@ -1,0 +1,39 @@
+{
+  "stem": "X5X11_scatter_fit",
+  "claim": "X5X11 最好例斜率 0.95；最差例斜率 0.45，拟合 R² 只到 0.54，不是截距能解释的偏差",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/best/_export/same_point_fields.csv.gz",
+      "sha256": "5ccf9dbbe4d7906af44558ef9ecccb39a911f0a769c939e550bafc7d821fe459"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/best/manifest.json",
+      "sha256": "d70c8f7202d049a1b928f04f79a232e91ec74c97c0c2c7cced992427929e2790"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/median/_export/same_point_fields.csv.gz",
+      "sha256": "604215eaf120e0d83a8c9815e13bf05ec7981786517eb0b63a2a9ebb207dcb21"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/median/manifest.json",
+      "sha256": "9f975c727801b7520378cf8af62dfe5fccaeddd82f1af966dd70e00a0127212a"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/worst/_export/same_point_fields.csv.gz",
+      "sha256": "b998c15dc320fd21f740102d4b5c34ce16e8e82372154a5f7f4206564d982a9f"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5X11/worst/manifest.json",
+      "sha256": "a66b22ef52f7558c21703cc6edd6c744384105f7a042a285390d61be76b8041c"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/source_data/X5X11_scatter_fit.csv",
+      "sha256": "4c07e4c320c0af9eb82ff5dcaf3b06c3fc0dbf2a69e4ef36bfbc6742dc1e5012"
+    }
+  ],
+  "exports": {
+    "png": "figures/X5X11_scatter_fit.png"
+  },
+  "alignment": "PASS",
+  "note": "Three equal-width identity scatters. Axis limits are independent per case so that every same-point query is retained. Density color is KDE on a 6000-point sample; slope, intercept and both R² values use all points. Prediction R² matches the package visualization_metrics.r2."
+}

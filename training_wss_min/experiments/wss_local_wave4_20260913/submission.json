@@ -1,0 +1,28 @@
+{
+  "preflight_job_id": "14200",
+  "matrix_job_id": "14201",
+  "submitted_at": "2026-09-13T03:59:05.387186-07:00",
+  "dependency": "matrix afterok preflight",
+  "gpus": 4,
+  "slots_per_gpu": 2,
+  "expected_training_runs": 8,
+  "expected_evaluations": 16,
+  "phases": {
+    "0": [
+      "X5A_s1234",
+      "X5A_s7",
+      "X5A_s2025",
+      "X5A_s11",
+      "X5A_s2026",
+      "X5_s11",
+      "X5_s2026",
+      "X5B_s1234"
+    ]
+  },
+  "scripts": {
+    "preflight": "training_wss_min/cluster/preflight_wss_local_wave4.slurm",
+    "matrix": "training_wss_min/cluster/run_wss_local_wave4.slurm"
+  },
+  "pairing": "X5A_s<seed> vs X5_s<seed> (same C1_s<seed> reference chain; only the two appended zero-init columns differ)",
+  "sidecar": "wss_min_flowref_v1 v1.2 (flow_split_rule_train138.json: a=1.0723, b=0.1640; old keys bitwise unchanged)"
+}

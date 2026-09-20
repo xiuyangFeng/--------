@@ -1,0 +1,90 @@
+{
+  "stem": "04_rcr_audit",
+  "sources": [
+    "docs/02-推进与变更/WSS_PINN/RCR出口面积录入核查_2026-09-15/rcr_area_audit.csv",
+    "docs/02-推进与变更/WSS_PINN/RCR出口面积录入核查_2026-09-15/rcr_corrected_udf_values.csv"
+  ],
+  "values": {
+    "n_outlets": 688,
+    "n_bad_outlets": 39,
+    "n_bad_cases": 23,
+    "by_type": {
+      "左右 / 内外互换": 10,
+      "小数点错一位": 14,
+      "面积不符（未归类）": 15
+    },
+    "bad_cases": [
+      "AAA/ruputer/LIU_YONG_LAN",
+      "AAA/ruputer/MENG_GUANG_QIN",
+      "AAA/ruputer/WU_GUANG_CUN",
+      "AAA/ruputer/ZHOU_KE_XUN",
+      "AAA/ruputer/ZOU_LI_SHUN",
+      "AAA/ruputer/ZUO_DAO_SHENG",
+      "AAA/unruputer/GUO_BAO_CHUN",
+      "AAA/unruputer/LIU_XING_GUO",
+      "AAA/unruputer/QIAO_XIU_YUN",
+      "AAA/unruputer/SUN_SHU_MING",
+      "AG/fast/LIU_JUN_FENG",
+      "AG/fast/LIU_LI_QUN",
+      "AG/fast/LIU_YI_BING",
+      "AG/fast/WANG_CHUN_MING",
+      "AG/fast/ZHANG_QING_WANG",
+      "AG/slow/CHENG_GUANG_SEN",
+      "ILO/HOU_SHI_GUO-0/before",
+      "ILO/LIU_BAO_JUN-0/before",
+      "ILO/LIU_LIAN_YOU-0/before",
+      "ILO/SUN_XU_XIA-1/before",
+      "ILO/YANG_WANG_QI-1/before",
+      "ILO/ZHANG_JIN_CHUN-1/before",
+      "ILO/ZHANG_YONG_SHENG-0/before"
+    ],
+    "test34_cases": [
+      "AAA/unruputer/SUN_SHU_MING",
+      "ILO/SUN_XU_XIA-1/before",
+      "ILO/ZHANG_JIN_CHUN-1/before",
+      "ILO/ZHANG_YONG_SHENG-0/before"
+    ],
+    "n_rerun_cases": 26,
+    "rerun_cases": [
+      "AAA/ruputer/LIU_YONG_LAN",
+      "AAA/ruputer/MENG_GUANG_QIN",
+      "AAA/ruputer/WANG_KUI_WU",
+      "AAA/ruputer/WU_GUANG_CUN",
+      "AAA/ruputer/ZHOU_KE_XUN",
+      "AAA/ruputer/ZOU_LI_SHUN",
+      "AAA/ruputer/ZUO_DAO_SHENG",
+      "AAA/unruputer/GUO_BAO_CHUN",
+      "AAA/unruputer/LIU_XING_GUO",
+      "AAA/unruputer/QIAO_XIU_YUN",
+      "AAA/unruputer/SUN_SHU_MING",
+      "AAA/unruputer/YANG_BEN_RUI",
+      "AG/fast/LIU_JUN_FENG",
+      "AG/fast/LIU_LI_QUN",
+      "AG/fast/LIU_YI_BING",
+      "AG/fast/WANG_CHUN_MING",
+      "AG/fast/ZHANG_QING_WANG",
+      "AG/slow/CHENG_GUANG_SEN",
+      "AG/slow/LIU_ZONG_YANG",
+      "ILO/HOU_SHI_GUO-0/before",
+      "ILO/LIU_BAO_JUN-0/before",
+      "ILO/LIU_LIAN_YOU-0/before",
+      "ILO/SUN_XU_XIA-1/before",
+      "ILO/YANG_WANG_QI-1/before",
+      "ILO/ZHANG_JIN_CHUN-1/before",
+      "ILO/ZHANG_YONG_SHENG-0/before"
+    ],
+    "ok_ratio_range": [
+      0.673129,
+      1.47135
+    ],
+    "bad_ratio_range": [
+      0.0998343,
+      38.7221
+    ],
+    "cohort_of_bad_outlets": {
+      "AAA": 17,
+      "AG": 14,
+      "ILO": 8
+    }
+  }
+}

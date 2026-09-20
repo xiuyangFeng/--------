@@ -33,10 +33,38 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 
 from wss_pinn.utils import atomic_write_json, sha256_file, utc_now
+from wss_pinn.v4 import data as v4_data
+from wss_pinn.v4 import evaluate as v4_evaluate
+from wss_pinn.v4.bc_contract import BC_CONTRACT, normalize_bc
 from wss_pinn.v4.config import load_config
 from wss_pinn.v4.data import V4Dataset
 from wss_pinn.v4.evaluate import _CaseArrays
 from wss_pinn.v4.models import build_model
+
+
+def _historical_or_current_bc_transform(raw: np.ndarray, stats: dict[str, Any]) -> np.ndarray:
+    """Keep old-matrix inference on the pre-2026-09-05 Q_actual_peak z-score.
+
+    New Centerline-V2 stats still go through the frozen 2026-09-05 contract.
+    Historical ``volume_uvwp_bc_rcr_v4`` checkpoints were trained with log10 on
+    area/RCR channels and a plain z-score of raw ``Q_actual_peak`` at index 1.
+    """
+
+    if stats.get("contract") == BC_CONTRACT:
+        return normalize_bc(np.asarray(raw, dtype=np.float64), stats)
+    value = np.asarray(raw, dtype=np.float32).copy()
+    log_indices = [0]
+    for outlet in range(4):
+        base = 2 + 4 * outlet
+        log_indices.extend([base, base + 1, base + 2, base + 3])
+    value[log_indices] = np.log10(value[log_indices])
+    return (
+        value - np.asarray(stats["mean"], dtype=np.float32)
+    ) / np.asarray(stats["std"], dtype=np.float32)
+
+
+v4_data._bc_transform = _historical_or_current_bc_transform
+v4_evaluate._bc_transform = _historical_or_current_bc_transform
 
 V4_TOOL = ROOT / "docs/03-汇报材料/tools/update_wss_pinn_v4_workbook.py"
 MAP_TOOL = ROOT / "docs/03-汇报材料/tools/map_wss_pinn_vtp_to_surface.py"
@@ -44,7 +72,7 @@ CROP_TOOL = ROOT / "docs/03-汇报材料/tools/crop_wss_pinn_velocity_pointcloud
 COLORMAP = ROOT / "tools/cfdpost_cloud_export/paraview/GNN_blue_white_red.xml"
 EXISTING_FULLWALL = ROOT / "outputs/wss_pinn/audits/v4_fullwall_20260901"
 DEFAULT_OUTPUT = ROOT / "outputs/wss_pinn/audits/v4_speed_r2_postview_20260902"
-DEFAULT_INDICES = (5, 7, 8)
+DEFAULT_INDICES = (4, 5, 6, 7, 8)
 INTERIOR_VISUAL_POINTS = 100_000
 
 
@@ -59,6 +87,7 @@ def _load_module(name: str, path: Path):
 
 
 V4WB = _load_module("v4_workbook_tool_for_postview", V4_TOOL)
+V4WB._bc_transform = _historical_or_current_bc_transform
 BASE = V4WB._load_base()
 MAP = _load_module("map_wss_pinn_vtp_to_surface_for_v4", MAP_TOOL)
 CROP = _load_module("crop_wss_pinn_velocity_for_v4", CROP_TOOL)
@@ -505,12 +534,25 @@ def main() -> None:
             )
         )
 
+    existing_batch = output_dir / "vtp" / "batch_manifest.json"
+    if existing_batch.is_file():
+        previous = _json(existing_batch)
+        by_index = {
+            int(arm["matrix_index"]): arm for arm in previous.get("arms", [])
+        }
+        for arm in manifests:
+            by_index[int(arm["matrix_index"])] = arm
+        manifests = [by_index[index] for index in sorted(by_index)]
+        matrix_indices = [int(arm["matrix_index"]) for arm in manifests]
+    else:
+        matrix_indices = list(args.indices)
+
     batch = {
         "schema_version": 1,
         "created_at": utc_now(),
         "status": "completed",
         "selection_metric": "official test35 metrics.speed.r2",
-        "matrix_indices": list(args.indices),
+        "matrix_indices": matrix_indices,
         "output_dir": str(output_dir),
         "arms": manifests,
     }

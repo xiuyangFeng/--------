@@ -1,0 +1,23 @@
+{
+  "stem": "PF6_loss_history",
+  "claim": "PF6 400 轮相对压力训练 loss 总体下降，交付 checkpoint 按最低训练 loss 选在末期而非 last",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/history.jsonl",
+      "sha256": "d66999346124811b27fd5c18ec149e40dfe43db233e99b54351f61b7af5c9b9d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/config.json",
+      "sha256": "e7f19af7cf45921a28f6203bbe94874ac1556ee8abadc06f99177e23257e5174"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_训练loss_20260915/source_data/PF6_loss_history.csv",
+      "sha256": "ab212543d65a44f51ff62214137ffba08a68b9c2d0dd55ffdad031c121f7996d"
+    }
+  ],
+  "exports": {
+    "png": "figures/PF6_loss_history.png"
+  },
+  "alignment": "NOT APPLICABLE",
+  "note": "All 400 logged epochs retained on a log axis fitted to this run. Centered 21-epoch mean is a visual aid only. Best is argmin(train_loss); no validation curve exists."
+}

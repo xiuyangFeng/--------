@@ -40,7 +40,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[3]
 XLSX = ROOT / "docs/03-汇报材料/WSS_PINN_V1_V2_V3_field-v4实验矩阵与指标汇总_2026-08-06.xlsx"
 V4_BASE = ROOT / "outputs/wss_pinn/volume_uvwp_bc_rcr_v4"
-DEFAULT_OUT = ROOT / "docs/03-汇报材料/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01"
+DEFAULT_OUT = ROOT / "docs/03-汇报材料/V4汇报/V4_BC-PDE_FIX_EMA_横向R2散点图_2026-09-01"
 
 TARGET_MODES = {"BC+PDE-FIXED", "BC+PDE-EMA"}
 TIME_DIR = {"steady peak": "steady_peak", "transient 81": "transient_autograd"}

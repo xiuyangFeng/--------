@@ -1,9 +1,8 @@
 # AAA / WSS 数字孪生实验仓库
 
 本仓库包含血管几何预处理、WSS 场重建训练，以及 velocity→WSS 物理估算对照。
-**2026-08-08 起当前模型设计主攻**是显式 RCR 条件的体域 `u,v,w,p` V4 重构；直接 WSS 网络路线保留历史结果，
-`wss_mri_calculator` 的 Profile-Secant V3 冻结为最终 checkpoint 的下游验证器，不再进入
-新的 WSS 算法、loss 或选模优化。
+**当前实验入口（2026-09-12）**是 V5 的几何点云直接 WSS/体场预测。直接 WSS 14臂矩阵已完成400轮及28份best/last评估；C1（方向邻域＋完整壁面patch/FiLM）本轮最优，Pa R²为0.6575/0.6593。单seed、test34开发筛选；详见[最终结果](docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md)与[结果工作簿](docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx)。
+`wss_mri_calculator` 的 Profile-Secant V3 保持为下游验证器；下方2026-09-04的V4状态仅作版本历史。
 
 几何数据侧已于 2026-08-28 完成 **Centerline V2 173 例全队列修复**：173/173 通过硬
 Gate，20 例保留软复核标记，0 例处理错误。新产物位于
@@ -11,12 +10,13 @@ Gate，20 例保留软复核标记，0 例处理错误。新产物位于
 2026-08-31 曾为 WSS_PINN 在独立 staging 重建 173 例并通过当时工程 Gate，但该 staging
 因后续 raw 修复、真实 mm 与 anatomy-only/interface 新合同已失效，只作中间证据；正式
 route 从未达到 `training_ready=true`。`data_wss_min` 和其他旧 bundle 仍未切换。详见
-[全队列修复与切换记录](docs/02-推进与变更/Centerline_V2全队列修复与切换记录_2026-08-28.md)。
+[全队列修复与切换记录](./docs/02-推进与变更/_archive/Centerline_V2全队列修复与切换记录_2026-08-28.md)。
 
 ## 当前主攻（先看这里）
 
 | 路线 | 代码 | 数据 / 产物 | 说明入口 |
 | --- | --- | --- | --- |
+| **V5直接WSS** | [`training_wss_min/`](training_wss_min/) | `runs/wss_direct_recovery_20260912/`，14/14完整验收 | [14臂结果与判读](training_wss_min/experiments/wss_direct_recovery_20260912/README.md) |
 | **体域 `u,v,w,p` PINN** | [`wss_pinn/`](wss_pinn/) | 旧 BC/RCR V4 为 pre-Centerline-V2 容量配平历史矩阵；formal V4 已选 P2V/D2 `c125-k128`，但代码/配置与 anatomy-only 重建未完成，仍 `training_ready=false` | [剩余整改与验收计划](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md) · [173 例初审](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md) · [`wss_pinn/README.md`](wss_pinn/README.md) · [路线真源](docs/02-推进与变更/WSS_PINN/README.md) |
 | **WSS-min 预处理** | [`pipeline_wss_min/`](pipeline_wss_min/) | `data_wss_min/` | [`pipeline_wss_min/README.md`](pipeline_wss_min/README.md) |
 | **WSS-min 训练** | [`training_wss_min/`](training_wss_min/) | `outputs/wss_min/`（及本目录 `runs/`） | [`training_wss_min/README.md`](training_wss_min/README.md) |
@@ -25,7 +25,7 @@ route 从未达到 `training_ready=true`。`data_wss_min` 和其他旧 bundle �
 文档总索引：[`docs/README.md`](docs/README.md)。
 WSS-min 推进记录（专用，勿混入 V3 大日志）：[`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`](docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md)。
 
-### 状态速览（2026-09-04）
+### 历史状态速览（2026-09-04）
 
 - **WSS-min 数据**：v4 活动口径；AG76（`stl_landmarks_v4`）；AAA 几何签核 63 / 训练白名单 57；ILO 术前审核通过 41（未进正式 split）。产物独立于 `data_new/`。
 - **Centerline V2**：2026-08-28 源几何曾为 173/173 通过；08-31 WSS_PINN staging 也曾通过当时工程 Gate，但因后续 raw/anatomy-only 合同更新已过期。formal split 现为 train138/test34；正式 bundle 尚未重建，训练仍 No-Go。
@@ -122,6 +122,16 @@ $PY batch_validate_cfd.py \
 ---
 
 ## 4. 其他常用入口
+
+### 项目 Agent 技能
+
+| 技能 | 用途 |
+| --- | --- |
+| [analyze-experiment](.cursor/skills/analyze-experiment/SKILL.md) | 按实际 run/配置识别路线，核验比较协议，分析指标、曲线与下一步 |
+| [postview-surface-viz](.cursor/skills/postview-surface-viz/SKILL.md) | V5/WSS-min、历史 V3/CROWN 病例云图、ParaView 面片与连续截面 |
+| [node04-experiments](.cursor/skills/node04-experiments/SKILL.md) | node04 现场资源检查、已授权作业执行与恢复跟踪 |
+
+技能真源保留在 `.cursor/skills/`；`.agents/skills/` 使用相对符号链接供 Codex 发现，两边共用一份内容。历史细节按需读参考，当前路线与实验状态仍从本页、路线入口和真实产物核对。
 
 ### 任务 A / V3
 

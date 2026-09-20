@@ -1,0 +1,15 @@
+flowchart LR
+    I["输入<br/>5000×17"] --> S["Stem<br/>5000×32"]
+    S --> E1["SA1<br/>125×64"] --> E2["SA2 + L-SA2<br/>125×128"] --> E3["SA3<br/>32×256"]
+    E3 --> D3["FP3 + skip<br/>125×128"] --> D2["FP2 + skip<br/>125×64"] --> D1["FP1 + skip<br/>5000×32"]
+    D1 --> Q["Query 特征<br/>Nq×32"] --> H["回归头<br/>32→64→1"] --> O["WSS(Pa)<br/>Nq×1"]
+    S -. "32D skip" .-> D1
+    E1 -. "64D skip" .-> D2
+    E2 -. "128D skip" .-> D3
+    E2 -. "SA2 内部：LocalGeoPE → 4头局部Transformer → max → InvRes" .-> NOTE["核心模块说明"]
+    classDef input fill:#E8F1FB,stroke:#2878BD,color:#12304A;
+    classDef enc fill:#DCECFB,stroke:#2878BD,color:#12304A;
+    classDef attn fill:#F0E5FA,stroke:#8650B5,color:#3C2055;
+    classDef dec fill:#E1F3EF,stroke:#0B8F88,color:#123F3B;
+    classDef out fill:#FFF0DD,stroke:#C97822,color:#5A3212;
+    class I input; class S,E1,E3 enc; class E2,NOTE attn; class D3,D2,D1,Q dec; class H,O out;

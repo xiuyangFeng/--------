@@ -1,0 +1,856 @@
+{
+  "schema_version": 1,
+  "smoke_job_id": "14118",
+  "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118",
+  "created_at": "2026-09-12T03:15:23.049382+00:00",
+  "scope": "Independent real saved WSS metrics, labels, inverse transforms and hashes; smoke split intentionally overrides frozen train138/test34 split and two training epochs are not a production completion claim",
+  "passed": true,
+  "expected_cases": [
+    "AAA/ruputer/KANG_YONG",
+    "AAA/ruputer/LI_ZHEN_HUA"
+  ],
+  "best": {
+    "normalized": {
+      "field": {
+        "r2": 0.0004921751152152654,
+        "mae": 0.7743539441230545,
+        "rmse": 0.9620645116614478,
+        "n": 29047
+      },
+      "field_casebalanced": {
+        "r2": 0.0038762383074577578,
+        "mae": 0.7915759934736227,
+        "rmse": 0.9734538333356649,
+        "n_cases": 2,
+        "n": 29047
+      },
+      "aggregate": {
+        "r2_casemean": -0.16909015253601756,
+        "r2_casemed": -0.16909015253601756,
+        "r2_casep10": -0.20418643425563396,
+        "r2_negative_cases": 2,
+        "n_cases": 2
+      },
+      "per_case": {
+        "AAA/ruputer/KANG_YONG": {
+          "r2": -0.21296050468553807,
+          "mae": 0.6616074646386123,
+          "rmse": 0.8838848985460833,
+          "n": 16448,
+          "top10_iou": 0.08904336312479312
+        },
+        "AAA/ruputer/LI_ZHEN_HUA": {
+          "r2": -0.12521980038649705,
+          "mae": 0.9215445223086332,
+          "rmse": 1.0554488227261334,
+          "n": 12599,
+          "top10_iou": 0.17100371747211895
+        }
+      },
+      "top10_iou": 0.13002354029845603,
+      "negative_cases": [
+        "AAA/ruputer/KANG_YONG",
+        "AAA/ruputer/LI_ZHEN_HUA"
+      ]
+    },
+    "physical": {
+      "field": {
+        "r2": -0.126423852486228,
+        "mae": 2.781859374652733,
+        "rmse": 5.0611090250760755,
+        "n": 29047
+      },
+      "field_casebalanced": {
+        "r2": -0.15429149627660776,
+        "mae": 3.0332204346319482,
+        "rmse": 5.40762362658595,
+        "n_cases": 2,
+        "n": 29047
+      },
+      "aggregate": {
+        "r2_casemean": -0.21368365496052444,
+        "r2_casemed": -0.21368365496052444,
+        "r2_casep10": -0.38046751650037414,
+        "r2_negative_cases": 2,
+        "n_cases": 2
+      },
+      "per_case": {
+        "AAA/ruputer/KANG_YONG": {
+          "r2": -0.005203828035712288,
+          "mae": 1.136290138654744,
+          "rmse": 1.3661824254363852,
+          "n": 16448,
+          "top10_iou": 0.08904336312479312
+        },
+        "AAA/ruputer/LI_ZHEN_HUA": {
+          "r2": -0.4221634818853366,
+          "mae": 4.930150730609153,
+          "rmse": 7.524515409915108,
+          "n": 12599,
+          "top10_iou": 0.17100371747211895
+        }
+      },
+      "top10_iou": 0.13002354029845603,
+      "negative_cases": [
+        "AAA/ruputer/KANG_YONG",
+        "AAA/ruputer/LI_ZHEN_HUA"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/metrics.json",
+      "passed": true
+    },
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/manifest.json",
+      "passed": true
+    },
+    {
+      "check": "manifest_checkpoint:best",
+      "passed": true
+    },
+    {
+      "check": "manifest_target:best",
+      "passed": true
+    },
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/ckpt_best.pt",
+      "passed": true
+    },
+    {
+      "check": "prediction_provenance:best:checkpoint_sha256",
+      "passed": true,
+      "expected": "9b69327e756dba71010684282d308f70cedd819fdf1c7daf474c4f1477d2aea0",
+      "actual": "9b69327e756dba71010684282d308f70cedd819fdf1c7daf474c4f1477d2aea0"
+    },
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/config.json",
+      "passed": true
+    },
+    {
+      "check": "prediction_provenance:best:config_sha256",
+      "passed": true,
+      "expected": "27855ddfb0bfbb71e50dea38591c9554ed02929bbc24e7dcef7f09d3c9c9a40b",
+      "actual": "27855ddfb0bfbb71e50dea38591c9554ed02929bbc24e7dcef7f09d3c9c9a40b"
+    },
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/wss_global_stats.json",
+      "passed": true
+    },
+    {
+      "check": "prediction_provenance:best:wss_stats_sha256",
+      "passed": true,
+      "expected": "9052ab29dc7f0beedb5dd4dfe080f5bebae42436b7adbc9a3e8ae56fb890953c",
+      "actual": "9052ab29dc7f0beedb5dd4dfe080f5bebae42436b7adbc9a3e8ae56fb890953c"
+    },
+    {
+      "check": "manifest_split:best",
+      "passed": true
+    },
+    {
+      "check": "metrics_split:best",
+      "passed": true
+    },
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/test/manifest.json",
+      "passed": true
+    },
+    {
+      "check": "complete_test_case_list:best",
+      "passed": true
+    },
+    {
+      "check": "manifest_crosscheck:best",
+      "passed": true
+    },
+    {
+      "check": "safe_npz_path:AAA/ruputer/KANG_YONG",
+      "passed": true
+    },
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/test/AAA/ruputer/KANG_YONG/predictions.npz",
+      "passed": true
+    },
+    {
+      "check": "sha256:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/test/AAA/ruputer/KANG_YONG/predictions.npz",
+      "passed": true,
+      "actual": "c0d64021d3337491ae364d16c75add264893360e8d47fed56bc49155a604fcab",
+      "expected": "c0d64021d3337491ae364d16c75add264893360e8d47fed56bc49155a604fcab"
+    },
+    {
+      "check": "npz_schema:AAA/ruputer/KANG_YONG",
+      "passed": true
+    },
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/KANG_YONG/bundle.npz",
+      "passed": true
+    },
+    {
+      "check": "source_peak1162:AAA/ruputer/KANG_YONG",
+      "passed": true
+    },
+    {
+      "check": "source_peak_unique:AAA/ruputer/KANG_YONG",
+      "passed": true
+    },
+    {
+      "check": "source_wall_rows:AAA/ruputer/KANG_YONG",
+      "passed": true
+    },
+    {
+      "check": "source_frame:AAA/ruputer/KANG_YONG",
+      "passed": true
+    },
+    {
+      "check": "source_labels_finite:AAA/ruputer/KANG_YONG",
+      "passed": true
+    },
+    {
+      "check": "npz_n_points:AAA/ruputer/KANG_YONG",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/KANG_YONG:row_index",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/KANG_YONG:true_norm",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/KANG_YONG:true_pa",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/KANG_YONG:pred_pa",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/KANG_YONG:pred_pa_unclipped",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/KANG_YONG:pred_norm",
+      "passed": true
+    },
+    {
+      "check": "row_index_integer:AAA/ruputer/KANG_YONG",
+      "passed": true
+    },
+    {
+      "check": "row_index_complete:AAA/ruputer/KANG_YONG",
+      "passed": true,
+      "shape": [
+        16448
+      ],
+      "expected_shape": [
+        16448
+      ],
+      "atol": 0.0,
+      "rtol": 0.0
+    },
+    {
+      "check": "true_pa_matches_source:AAA/ruputer/KANG_YONG",
+      "passed": true,
+      "shape": [
+        16448
+      ],
+      "expected_shape": [
+        16448
+      ],
+      "atol": 0.0,
+      "rtol": 0.0
+    },
+    {
+      "check": "true_norm_matches_source:AAA/ruputer/KANG_YONG",
+      "passed": true,
+      "shape": [
+        16448
+      ],
+      "expected_shape": [
+        16448
+      ],
+      "atol": 2e-06,
+      "rtol": 2e-06
+    },
+    {
+      "check": "inverse_log_unclipped:AAA/ruputer/KANG_YONG",
+      "passed": true,
+      "shape": [
+        16448
+      ],
+      "expected_shape": [
+        16448
+      ],
+      "atol": 1e-10,
+      "rtol": 1e-10
+    },
+    {
+      "check": "physical_clipping:AAA/ruputer/KANG_YONG",
+      "passed": true,
+      "shape": [
+        16448
+      ],
+      "expected_shape": [
+        16448
+      ],
+      "atol": 1e-10,
+      "rtol": 1e-10
+    },
+    {
+      "check": "safe_npz_path:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true
+    },
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/test/AAA/ruputer/LI_ZHEN_HUA/predictions.npz",
+      "passed": true
+    },
+    {
+      "check": "sha256:/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/test/AAA/ruputer/LI_ZHEN_HUA/predictions.npz",
+      "passed": true,
+      "actual": "ad70168ea911aba6009ce696c13dc708cf39fe18ff0538bd85c9dceaf13799c9",
+      "expected": "ad70168ea911aba6009ce696c13dc708cf39fe18ff0538bd85c9dceaf13799c9"
+    },
+    {
+      "check": "npz_schema:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true
+    },
+    {
+      "check": "file_exists:/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/LI_ZHEN_HUA/bundle.npz",
+      "passed": true
+    },
+    {
+      "check": "source_peak1162:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true
+    },
+    {
+      "check": "source_peak_unique:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true
+    },
+    {
+      "check": "source_wall_rows:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true
+    },
+    {
+      "check": "source_frame:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true
+    },
+    {
+      "check": "source_labels_finite:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true
+    },
+    {
+      "check": "npz_n_points:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/LI_ZHEN_HUA:row_index",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/LI_ZHEN_HUA:true_norm",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/LI_ZHEN_HUA:true_pa",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/LI_ZHEN_HUA:pred_pa",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/LI_ZHEN_HUA:pred_pa_unclipped",
+      "passed": true
+    },
+    {
+      "check": "npz_shape_finite:AAA/ruputer/LI_ZHEN_HUA:pred_norm",
+      "passed": true
+    },
+    {
+      "check": "row_index_integer:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true
+    },
+    {
+      "check": "row_index_complete:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true,
+      "shape": [
+        12599
+      ],
+      "expected_shape": [
+        12599
+      ],
+      "atol": 0.0,
+      "rtol": 0.0
+    },
+    {
+      "check": "true_pa_matches_source:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true,
+      "shape": [
+        12599
+      ],
+      "expected_shape": [
+        12599
+      ],
+      "atol": 0.0,
+      "rtol": 0.0
+    },
+    {
+      "check": "true_norm_matches_source:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true,
+      "shape": [
+        12599
+      ],
+      "expected_shape": [
+        12599
+      ],
+      "atol": 2e-06,
+      "rtol": 2e-06
+    },
+    {
+      "check": "inverse_log_unclipped:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true,
+      "shape": [
+        12599
+      ],
+      "expected_shape": [
+        12599
+      ],
+      "atol": 1e-10,
+      "rtol": 1e-10
+    },
+    {
+      "check": "physical_clipping:AAA/ruputer/LI_ZHEN_HUA",
+      "passed": true,
+      "shape": [
+        12599
+      ],
+      "expected_shape": [
+        12599
+      ],
+      "atol": 1e-10,
+      "rtol": 1e-10
+    },
+    {
+      "check": "best.normalized.field.r2",
+      "passed": true,
+      "actual": 0.0004921751152152654,
+      "expected": 0.0004921751152152654,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.field.mae",
+      "passed": true,
+      "actual": 0.7743539441230545,
+      "expected": 0.7743539441230545,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.field.rmse",
+      "passed": true,
+      "actual": 0.9620645116614478,
+      "expected": 0.9620645116614478,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.field.n",
+      "passed": true,
+      "actual": 29047,
+      "expected": 29047,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.field_casebalanced.r2",
+      "passed": true,
+      "actual": 0.0038762383074577578,
+      "expected": 0.003876238307457869,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.field_casebalanced.mae",
+      "passed": true,
+      "actual": 0.7915759934736227,
+      "expected": 0.7915759934736227,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.field_casebalanced.rmse",
+      "passed": true,
+      "actual": 0.9734538333356649,
+      "expected": 0.9734538333356648,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.field_casebalanced.n_cases",
+      "passed": true,
+      "actual": 2,
+      "expected": 2,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.field_casebalanced.n",
+      "passed": true,
+      "actual": 29047,
+      "expected": 29047,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.aggregate.r2_casemean",
+      "passed": true,
+      "actual": -0.16909015253601756,
+      "expected": -0.16909015253601756,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.aggregate.r2_casemed",
+      "passed": true,
+      "actual": -0.16909015253601756,
+      "expected": -0.16909015253601756,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.aggregate.r2_casep10",
+      "passed": true,
+      "actual": -0.20418643425563396,
+      "expected": -0.20418643425563396,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.aggregate.r2_negative_cases",
+      "passed": true,
+      "actual": 2,
+      "expected": 2,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.aggregate.n_cases",
+      "passed": true,
+      "actual": 2,
+      "expected": 2,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.hotspot.top10_iou",
+      "passed": true,
+      "actual": 0.13002354029845603,
+      "expected": 0.13002354029845603,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.per_case_ids",
+      "passed": true
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/KANG_YONG.r2",
+      "passed": true,
+      "actual": -0.21296050468553807,
+      "expected": -0.21296050468553807,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/KANG_YONG.mae",
+      "passed": true,
+      "actual": 0.6616074646386123,
+      "expected": 0.6616074646386123,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/KANG_YONG.rmse",
+      "passed": true,
+      "actual": 0.8838848985460833,
+      "expected": 0.8838848985460833,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/KANG_YONG.n",
+      "passed": true,
+      "actual": 16448,
+      "expected": 16448,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/KANG_YONG.top10_iou",
+      "passed": true,
+      "actual": 0.08904336312479312,
+      "expected": 0.08904336312479312,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/LI_ZHEN_HUA.r2",
+      "passed": true,
+      "actual": -0.12521980038649705,
+      "expected": -0.12521980038649705,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/LI_ZHEN_HUA.mae",
+      "passed": true,
+      "actual": 0.9215445223086332,
+      "expected": 0.9215445223086332,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/LI_ZHEN_HUA.rmse",
+      "passed": true,
+      "actual": 1.0554488227261334,
+      "expected": 1.0554488227261334,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/LI_ZHEN_HUA.n",
+      "passed": true,
+      "actual": 12599,
+      "expected": 12599,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.normalized.AAA/ruputer/LI_ZHEN_HUA.top10_iou",
+      "passed": true,
+      "actual": 0.17100371747211895,
+      "expected": 0.17100371747211895,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.field.r2",
+      "passed": true,
+      "actual": -0.126423852486228,
+      "expected": -0.126423852486228,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.field.mae",
+      "passed": true,
+      "actual": 2.781859374652733,
+      "expected": 2.781859374652733,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.field.rmse",
+      "passed": true,
+      "actual": 5.0611090250760755,
+      "expected": 5.0611090250760755,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.field.n",
+      "passed": true,
+      "actual": 29047,
+      "expected": 29047,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.field_casebalanced.r2",
+      "passed": true,
+      "actual": -0.15429149627660776,
+      "expected": -0.15429149627660754,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.field_casebalanced.mae",
+      "passed": true,
+      "actual": 3.0332204346319482,
+      "expected": 3.0332204346319482,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.field_casebalanced.rmse",
+      "passed": true,
+      "actual": 5.40762362658595,
+      "expected": 5.40762362658595,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.field_casebalanced.n_cases",
+      "passed": true,
+      "actual": 2,
+      "expected": 2,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.field_casebalanced.n",
+      "passed": true,
+      "actual": 29047,
+      "expected": 29047,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.aggregate.r2_casemean",
+      "passed": true,
+      "actual": -0.21368365496052444,
+      "expected": -0.21368365496052444,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.aggregate.r2_casemed",
+      "passed": true,
+      "actual": -0.21368365496052444,
+      "expected": -0.21368365496052444,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.aggregate.r2_casep10",
+      "passed": true,
+      "actual": -0.38046751650037414,
+      "expected": -0.38046751650037414,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.aggregate.r2_negative_cases",
+      "passed": true,
+      "actual": 2,
+      "expected": 2,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.aggregate.n_cases",
+      "passed": true,
+      "actual": 2,
+      "expected": 2,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.hotspot.top10_iou",
+      "passed": true,
+      "actual": 0.13002354029845603,
+      "expected": 0.13002354029845603,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.per_case_ids",
+      "passed": true
+    },
+    {
+      "check": "best.physical.AAA/ruputer/KANG_YONG.r2",
+      "passed": true,
+      "actual": -0.005203828035712288,
+      "expected": -0.005203828035712288,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.AAA/ruputer/KANG_YONG.mae",
+      "passed": true,
+      "actual": 1.136290138654744,
+      "expected": 1.136290138654744,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.AAA/ruputer/KANG_YONG.rmse",
+      "passed": true,
+      "actual": 1.3661824254363852,
+      "expected": 1.3661824254363852,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.AAA/ruputer/KANG_YONG.n",
+      "passed": true,
+      "actual": 16448,
+      "expected": 16448,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.AAA/ruputer/KANG_YONG.top10_iou",
+      "passed": true,
+      "actual": 0.08904336312479312,
+      "expected": 0.08904336312479312,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.AAA/ruputer/LI_ZHEN_HUA.r2",
+      "passed": true,
+      "actual": -0.4221634818853366,
+      "expected": -0.4221634818853366,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.AAA/ruputer/LI_ZHEN_HUA.mae",
+      "passed": true,
+      "actual": 4.930150730609153,
+      "expected": 4.930150730609153,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.AAA/ruputer/LI_ZHEN_HUA.rmse",
+      "passed": true,
+      "actual": 7.524515409915108,
+      "expected": 7.524515409915108,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.AAA/ruputer/LI_ZHEN_HUA.n",
+      "passed": true,
+      "actual": 12599,
+      "expected": 12599,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    },
+    {
+      "check": "best.physical.AAA/ruputer/LI_ZHEN_HUA.top10_iou",
+      "passed": true,
+      "actual": 0.17100371747211895,
+      "expected": 0.17100371747211895,
+      "atol": 1e-08,
+      "rtol": 1e-08
+    }
+  ],
+  "files_sha256": {
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/metrics.json": "f8575f544904d81c53301a99e1cefc71c88660236575e0232b81a77b78afb768",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/manifest.json": "84fda8f6f287efdaf1e6985a5bbf9bce47d8ed2e8df46e006c61f1c213f1ab47",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/ckpt_best.pt": "9b69327e756dba71010684282d308f70cedd819fdf1c7daf474c4f1477d2aea0",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/config.json": "27855ddfb0bfbb71e50dea38591c9554ed02929bbc24e7dcef7f09d3c9c9a40b",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/wss_global_stats.json": "9052ab29dc7f0beedb5dd4dfe080f5bebae42436b7adbc9a3e8ae56fb890953c",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/test/manifest.json": "46adf1e98707b86ad76e565dbd0849e360866f55cf4d87570c1807ef1778aa48",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/test/AAA/ruputer/KANG_YONG/predictions.npz": "c0d64021d3337491ae364d16c75add264893360e8d47fed56bc49155a604fcab",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/KANG_YONG/bundle.npz": "075e4c07e1a767ae0afa6d3d0d38682f67b076d97c8ef233aa4d9ae6e3dd79f0",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912_smoke/job_14118/eval/ckpt_best/predictions/test/AAA/ruputer/LI_ZHEN_HUA/predictions.npz": "ad70168ea911aba6009ce696c13dc708cf39fe18ff0538bd85c9dceaf13799c9",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/LI_ZHEN_HUA/bundle.npz": "923db192e99556c12816b9d142fa621c7a7a0d73058ac67aad42413c9d43034f"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "job_id": "13974",
+  "coordinator": {
+    "pid": 798190,
+    "start_ticks": "54714610",
+    "state": "S",
+    "uid": 1006
+  },
+  "token": "14fb843ee90647e2a0e3a5a6ae09d92c",
+  "step_name": "m2b_14fb843ee90647e2",
+  "directory": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/borrowed_slots/14fb843ee90647e2a0e3a5a6ae09d92c",
+  "owner": {
+    "pid": 2607050,
+    "start_ticks": "55171672",
+    "state": "R",
+    "uid": 1006
+  },
+  "cancel_pending": "13978",
+  "completed": true,
+  "controller_pid": 2607058,
+  "started_at": "2026-09-10T00:34:05+0800",
+  "other_active_arms": [
+    "MO-P3"
+  ],
+  "coordinator_paused_at": "2026-09-10T00:34:05+0800",
+  "cancelled_pending_allocation": "13978",
+  "command": [
+    "/public/slurm/bin/srun",
+    "--jobid=13974",
+    "--overlap",
+    "-n",
+    "1",
+    "-c",
+    "4",
+    "--job-name=m2b_14fb843ee90647e2",
+    "--time=00:20:00",
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.tools.borrow_m2_diagnostic_slot",
+    "--run-step",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/m2_optimization_20260909/borrowed_slots/14fb843ee90647e2a0e3a5a6ae09d92c/plan.json"
+  ],
+  "srun_pid": 2607078,
+  "returncode": 0,
+  "diagnostic_step_absent_confirmed_at": "2026-09-10T00:35:23+0800",
+  "coordinator_resumed_at": "2026-09-10T00:35:23+0800",
+  "ended_at": "2026-09-10T00:35:23+0800"
+}

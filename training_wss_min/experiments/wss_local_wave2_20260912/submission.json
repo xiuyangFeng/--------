@@ -1,0 +1,41 @@
+{
+  "preflight_job_id": "14184",
+  "matrix_job_id": "14185",
+  "submitted_at": "2026-09-12T20:36:01.589305-07:00",
+  "dependency": "matrix afterok preflight",
+  "gpus": 4,
+  "slots_per_gpu": 2,
+  "expected_training_runs": 10,
+  "expected_evaluations": 20,
+  "phases": {
+    "0": [
+      "X5X11_s1234",
+      "X5X11_s7",
+      "X5X11_s2025",
+      "X5e233_s1234",
+      "X5cap_s1234",
+      "X5res_s1234",
+      "PF6_s1234",
+      "VF6_s1234"
+    ],
+    "1": [
+      "P02r_s1234",
+      "V07r_s1234"
+    ]
+  },
+  "scripts": {
+    "preflight": "training_wss_min/cluster/preflight_wss_local_wave2.slurm",
+    "matrix": "training_wss_min/cluster/run_wss_local_wave2.slurm"
+  },
+  "resubmitted_at": "2026-09-12T20:40:25.362499-07:00",
+  "previous_attempt": {
+    "preflight": "14180 FAILED (preflight case cache ignored the target: velocity arm received pressure cases)",
+    "matrix": "14181 cancelled (dependency never satisfied)"
+  },
+  "attempts": [
+    {
+      "preflight": "14182 FAILED (preflight full-query length check assumed wall rows; velocity predicts the interior pool)",
+      "matrix": "14183 cancelled"
+    }
+  ]
+}

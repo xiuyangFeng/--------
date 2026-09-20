@@ -1,0 +1,31 @@
+{
+  "stem": "18_physics_conflicts",
+  "claim": "历史数据与无滑移优化冲突伴随共同数据拟合代价，不能据此否定物理方程",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/V4汇报/V4_稳态梯度与损失_2026-09-12/gradient_summary_last500.csv",
+      "sha256": "91a1366d70b56cf73b909a27d68d4063523fca8f46cc360bf35bac8e5f0ee72e"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/V4汇报/V4_稳态梯度与损失_2026-09-12/loss_summary_last500.csv",
+      "sha256": "87e0e30ef638c056cf028e254f2bf9d02e8f98dfa87015e236b042b5fb4d3531"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/18_physics_conflicts.pdf",
+    "svg": "figures/18_physics_conflicts.svg",
+    "png": "figures/18_physics_conflicts.png"
+  },
+  "alignment": "PASS",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/18_physics_conflicts.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/18_physics_conflicts.collision.json"
+    }
+  },
+  "note": ""
+}

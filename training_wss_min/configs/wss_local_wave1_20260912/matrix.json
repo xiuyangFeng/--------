@@ -1,0 +1,1326 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_local_wave1_20260912",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+  "seed": 1234,
+  "epochs": {
+    "X0": 400,
+    "X1": 400,
+    "X2": 400,
+    "X3": 400,
+    "X4": 400,
+    "X5": 400,
+    "X6": 400,
+    "X7": 400,
+    "X8": 400,
+    "X9": 400,
+    "X10": 400,
+    "X11": 400,
+    "X12": 400,
+    "X13a": 400,
+    "X13b": 150,
+    "X15": 400,
+    "X16": 400
+  },
+  "expected_training_runs": 17,
+  "expected_evaluations": 35,
+  "arms": [
+    {
+      "id": "X0",
+      "title": "C1 contemporaneous control (identical config, fresh run)",
+      "config": "X0_s1234.json",
+      "phase": 0,
+      "modules": [],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": []
+    },
+    {
+      "id": "X1",
+      "title": "P4 weight EMA 0.999 (extra ckpt_ema evaluation)",
+      "config": "X1_s1234.json",
+      "phase": 0,
+      "modules": [
+        "ema"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last",
+        "ema"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "train.ema_decay": {
+          "anchor": null,
+          "arm": 0.999
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": [
+        "train.ema_decay"
+      ]
+    },
+    {
+      "id": "X2",
+      "title": "F1 bend-referenced circumferential angle (+ upstream 2D/5D lags, torsion)",
+      "config": "X2_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F1"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X2_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "bend_cos",
+            "bend_signed",
+            "torsion_rr",
+            "bend_cos_up2",
+            "bend_cos_up5"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_flowref_v1"
+          ]
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": []
+    },
+    {
+      "id": "X3",
+      "title": "F2 bifurcation-referenced angles (carina side, plane, angle, sibling radius)",
+      "config": "X3_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F2"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X3_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "carina_cos",
+            "bif_plane_cos",
+            "bif_angle_cos",
+            "sibling_radius_ratio"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_flowref_v1"
+          ]
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": []
+    },
+    {
+      "id": "X4",
+      "title": "F3 upstream history (s/D, upstream radius extrema, upstream max kappa*R)",
+      "config": "X4_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F3"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X4_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "s_over_d",
+            "up_min_r_ratio_2d",
+            "up_min_r_ratio_5d",
+            "up_max_r_ratio_5d",
+            "up_kappa_5d"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_flowref_v1"
+          ]
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": []
+    },
+    {
+      "id": "X5",
+      "title": "F6 Murray flow-share prior (log Q share, log tau0)",
+      "config": "X5_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X5_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_flowref_v1"
+          ]
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": []
+    },
+    {
+      "id": "X6",
+      "title": "P5 population prior ln WSS (train138, leave-one-out)",
+      "config": "X6_s1234.json",
+      "phase": 0,
+      "modules": [
+        "P5"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X6_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "atlas_prior_logwss"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_flowref_v1"
+          ]
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": []
+    },
+    {
+      "id": "X7",
+      "title": "S1a query patch offsets in the query tangent frame",
+      "config": "X7_s1234.json",
+      "phase": 0,
+      "modules": [
+        "frame"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "model.query_patch_frame": {
+          "anchor": null,
+          "arm": "tangent"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": [
+        "model.query_patch_frame"
+      ]
+    },
+    {
+      "id": "X8",
+      "title": "S1b query-conditioned attention pooling over the patch",
+      "config": "X8_s1234.json",
+      "phase": 0,
+      "modules": [
+        "attn"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "model.query_patch_pool": {
+          "anchor": null,
+          "arm": "attention"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": [
+        "model.query_patch_pool"
+      ]
+    },
+    {
+      "id": "X9",
+      "title": "S1c tangent frame + attention + K=32 patch",
+      "config": "X9_s1234.json",
+      "phase": 0,
+      "modules": [
+        "frame",
+        "attn",
+        "k32"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.query_patch_nsample": {
+          "anchor": 16,
+          "arm": 32
+        },
+        "model.query_patch_frame": {
+          "anchor": null,
+          "arm": "tangent"
+        },
+        "model.query_patch_k": {
+          "anchor": 16,
+          "arm": 32
+        },
+        "model.query_patch_pool": {
+          "anchor": null,
+          "arm": "attention"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": [
+        "data.query_patch_nsample",
+        "model.query_patch_frame",
+        "model.query_patch_k",
+        "model.query_patch_pool"
+      ]
+    },
+    {
+      "id": "X10",
+      "title": "T1 tangent-plane WSS direction auxiliary head (cosine loss 0.1)",
+      "config": "X10_s1234.json",
+      "phase": 0,
+      "modules": [
+        "direction"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.direction_target": {
+          "anchor": null,
+          "arm": true
+        },
+        "model.direction_head": {
+          "anchor": null,
+          "arm": true
+        },
+        "model.direction_head_hidden": {
+          "anchor": null,
+          "arm": 32
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        },
+        "train.loss_direction_lambda": {
+          "anchor": null,
+          "arm": 0.1
+        }
+      },
+      "substantive_diff_keys": [
+        "data.direction_target",
+        "model.direction_head",
+        "model.direction_head_hidden",
+        "train.loss_direction_lambda"
+      ]
+    },
+    {
+      "id": "X11",
+      "title": "S3 centreline section-token context replacing the per-case FiLM vector",
+      "config": "X11_s1234.json",
+      "phase": 0,
+      "modules": [
+        "section"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.section_tokens": {
+          "anchor": null,
+          "arm": true
+        },
+        "model.section_context": {
+          "anchor": null,
+          "arm": true
+        },
+        "model.section_context_bin_mm": {
+          "anchor": null,
+          "arm": 4.0
+        },
+        "model.section_context_heads": {
+          "anchor": null,
+          "arm": 4
+        },
+        "model.section_context_hidden": {
+          "anchor": null,
+          "arm": 128
+        },
+        "model.section_context_layers": {
+          "anchor": null,
+          "arm": 2
+        },
+        "model.section_context_max_bins": {
+          "anchor": null,
+          "arm": 64
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": [
+        "data.section_tokens",
+        "model.section_context",
+        "model.section_context_bin_mm",
+        "model.section_context_heads",
+        "model.section_context_hidden",
+        "model.section_context_layers",
+        "model.section_context_max_bins"
+      ]
+    },
+    {
+      "id": "X12",
+      "title": "S5 mixture-of-experts head gated by query input features (4 experts)",
+      "config": "X12_s1234.json",
+      "phase": 0,
+      "modules": [
+        "moe"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "model.head_moe_experts": {
+          "anchor": null,
+          "arm": 4
+        },
+        "model.head_moe_hidden": {
+          "anchor": null,
+          "arm": 16
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": [
+        "model.head_moe_experts",
+        "model.head_moe_hidden"
+      ]
+    },
+    {
+      "id": "X13a",
+      "title": "P1 stage 1: all-frame pretraining with phase features (peak prob 1/9)",
+      "config": "X13a_s1234.json",
+      "phase": 0,
+      "modules": [
+        "allframe"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X13a_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.peak_frame_prob": {
+          "anchor": null,
+          "arm": 0.1111111111111111
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/protocol_inlet_waveform.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138_allframes_floor005.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "peak"
+        }
+      },
+      "substantive_diff_keys": [
+        "data.peak_frame_prob",
+        "data.timesteps",
+        "data.waveform_path",
+        "data.wss_stats_path",
+        "eval.eval_frames"
+      ]
+    },
+    {
+      "id": "X13b",
+      "title": "P1 stage 2: peak-frame fine-tuning from X13a (150 epochs, lr 5e-4)",
+      "config": "X13b_s1234.json",
+      "phase": 0,
+      "modules": [
+        "peak_finetune"
+      ],
+      "parent": "X0",
+      "depends_on": [
+        "X13a"
+      ],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X13b_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "q_norm",
+            "dq_norm",
+            "t_sin",
+            "t_cos"
+          ]
+        },
+        "data.peak_frame_prob": {
+          "anchor": null,
+          "arm": 1.0
+        },
+        "data.timesteps": {
+          "anchor": "peak",
+          "arm": "random_frame"
+        },
+        "data.waveform_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/protocol_inlet_waveform.json"
+        },
+        "train.epochs": {
+          "anchor": 400,
+          "arm": 150
+        },
+        "train.eval_every": {
+          "anchor": 400,
+          "arm": 150
+        },
+        "train.init_checkpoint_path": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave1_20260912/X13a_s1234/ckpt_last.pt"
+        },
+        "train.init_checkpoint_strict": {
+          "anchor": null,
+          "arm": true
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": null
+        },
+        "train.lr": {
+          "anchor": 0.001,
+          "arm": 0.0005
+        },
+        "train.min_epoch": {
+          "anchor": 400,
+          "arm": 150
+        },
+        "train.warmup_epochs": {
+          "anchor": 10,
+          "arm": 5
+        },
+        "eval.eval_frames": {
+          "anchor": null,
+          "arm": "peak"
+        }
+      },
+      "substantive_diff_keys": [
+        "data.peak_frame_prob",
+        "data.timesteps",
+        "data.waveform_path",
+        "eval.eval_frames",
+        "train.epochs",
+        "train.eval_every",
+        "train.init_checkpoint_path",
+        "train.init_checkpoint_strict",
+        "train.lr",
+        "train.min_epoch",
+        "train.warmup_epochs"
+      ]
+    },
+    {
+      "id": "X15",
+      "title": "F-all: F1 + F2 + F3 + F6 appended together",
+      "config": "X15_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F1",
+        "F2",
+        "F3",
+        "F6"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X15_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "bend_cos",
+            "bend_signed",
+            "torsion_rr",
+            "bend_cos_up2",
+            "bend_cos_up5",
+            "carina_cos",
+            "bif_plane_cos",
+            "bif_angle_cos",
+            "sibling_radius_ratio",
+            "s_over_d",
+            "up_min_r_ratio_2d",
+            "up_min_r_ratio_5d",
+            "up_max_r_ratio_5d",
+            "up_kappa_5d",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_flowref_v1"
+          ]
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "substantive_diff_keys": []
+    },
+    {
+      "id": "X16",
+      "title": "Combo: S1c + F-all + T1 direction head",
+      "config": "X16_s1234.json",
+      "phase": 0,
+      "modules": [
+        "frame",
+        "attn",
+        "k32",
+        "F1",
+        "F2",
+        "F3",
+        "F6",
+        "direction"
+      ],
+      "parent": "X0",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.direction_target": {
+          "anchor": null,
+          "arm": true
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/feature_stats/X16_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "bend_cos",
+            "bend_signed",
+            "torsion_rr",
+            "bend_cos_up2",
+            "bend_cos_up5",
+            "carina_cos",
+            "bif_plane_cos",
+            "bif_angle_cos",
+            "sibling_radius_ratio",
+            "s_over_d",
+            "up_min_r_ratio_2d",
+            "up_min_r_ratio_5d",
+            "up_max_r_ratio_5d",
+            "up_kappa_5d",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_flowref_v1"
+          ]
+        },
+        "data.query_patch_nsample": {
+          "anchor": 16,
+          "arm": 32
+        },
+        "model.direction_head": {
+          "anchor": null,
+          "arm": true
+        },
+        "model.direction_head_hidden": {
+          "anchor": null,
+          "arm": 32
+        },
+        "model.query_patch_frame": {
+          "anchor": null,
+          "arm": "tangent"
+        },
+        "model.query_patch_k": {
+          "anchor": 16,
+          "arm": 32
+        },
+        "model.query_patch_pool": {
+          "anchor": null,
+          "arm": "attention"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        },
+        "train.loss_direction_lambda": {
+          "anchor": null,
+          "arm": 0.1
+        }
+      },
+      "substantive_diff_keys": [
+        "data.direction_target",
+        "data.query_patch_nsample",
+        "model.direction_head",
+        "model.direction_head_hidden",
+        "model.query_patch_frame",
+        "model.query_patch_k",
+        "model.query_patch_pool",
+        "train.loss_direction_lambda"
+      ]
+    }
+  ],
+  "controls": {
+    "X0": "same config as C1, fresh run (contemporaneous control)",
+    "C1_historical": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234/eval/ckpt_best/metrics.json"
+  },
+  "reading_rule": "single seed 1234 on the exposed test34; deltas vs X0 and vs historical C1 are screening evidence only (single-seed 95% band ~ +-0.034 Pa R2, +-0.009 normalized); no significance or generalisation claims",
+  "skipped": [
+    "T4 anisotropic local-difference loss (E6 interaction unresolved)",
+    "F4 geodesic/HKS descriptors",
+    "F5 section-shape features (geometry candidate still training_allowed=false)",
+    "F7 predicted wall-pressure gradient cascade",
+    "S2 windowed attention",
+    "S4 (s,theta) chart U-Net",
+    "S6 DiffusionNet branch",
+    "P2/P3 pretraining data",
+    "T3 hotspot cascade"
+  ]
+}

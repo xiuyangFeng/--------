@@ -1,0 +1,16 @@
+--- train_cases（136 例）逐点"全部所选通道同时有效"占比
+  全部 32 列（16 value）                      0.6670
+  ref 8                                  0.7378
+  ref 8 + pc_roundness                   0.6922
+  "新"4（圆度/偏心/上下游距离, ref）                 0.7378
+  ref 4（log_area/坡度/上下游面积比）              0.7378
+  只 geom_ref_log_area                    0.7785
+
+--- test_cases（34 例）逐点"全部所选通道同时有效"占比
+  全部 32 列（16 value）                      0.6508
+  ref 8                                  0.7471
+  ref 8 + pc_roundness                   0.6805
+  "新"4（圆度/偏心/上下游距离, ref）                 0.7471
+  ref 4（log_area/坡度/上下游面积比）              0.7471
+  只 geom_ref_log_area                    0.7881
+

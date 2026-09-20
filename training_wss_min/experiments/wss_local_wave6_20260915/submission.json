@@ -1,0 +1,23 @@
+{
+  "preflight_job_id": "14264",
+  "matrix_job_id": "14265",
+  "submitted_at": "2026-09-15T10:10:58.103050+08:00",
+  "dependency": "matrix afterok preflight",
+  "gpus": 3,
+  "slots_per_gpu": 1,
+  "expected_training_runs": 3,
+  "expected_evaluations": 6,
+  "phases": {
+    "0": [
+      "X5D_s1234",
+      "X5D_s7",
+      "X5D_s2025"
+    ]
+  },
+  "scripts": {
+    "preflight": "training_wss_min/cluster/preflight_wss_local_wave6.slurm",
+    "matrix": "training_wss_min/cluster/run_wss_local_wave6.slurm"
+  },
+  "pairing": "X5D_s<seed> vs X5_s<seed> (same C1_s<seed> chain, identical inputs; only training-time density augmentation)",
+  "density_sidecars": "data_wss_v5/views/wss_min_density_v1 (levels 70/50/35/25, voxel decimation, recomputed normals/curvature/tn_dot; tools/build_density_sidecars)"
+}

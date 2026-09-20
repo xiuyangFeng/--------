@@ -1,0 +1,29 @@
+{
+  "version": "p_geometry_review_v1.3",
+  "training_allowed": false,
+  "awaiting_user_review": true,
+  "section_spacing_mm": 2.0,
+  "junction_exclusion_mm": 2.5,
+  "endpoint_exclusion_mm": 1.0,
+  "context_window_mm": 10.0,
+  "same_segment_nonlocal_s_gap_mm": 5.0,
+  "plane_intersection_tolerance_mm": 0.00001,
+  "stability_sections_per_segment": 3,
+  "stability_shift_mm": 1.0,
+  "stability_tilt_deg": 5.0,
+  "reference_coverage_review_threshold": 0.6,
+  "pointcloud_coverage_review_threshold": 0.5,
+  "pointcloud_area_p90_review_threshold": 0.2,
+  "threshold_role": "triage_for_visual_review_not_acceptance_or_training_permission",
+  "seed": 1234,
+  "pilot_cases": [
+    "AAA/ruputer/WANG_KUI_WU",
+    "AAA/ruputer/DING_JUN_FENG",
+    "AAA/unruputer/HAN_JIAN_FU",
+    "AAA/ruputer/GAO_FENG_SHAN",
+    "AG/fast/LOU_YANG",
+    "AG/slow/LIU_FENG",
+    "AAA/ruputer/ZHOU_KE_XUN",
+    "ILO/YU_XIANG_SHENG-1/before"
+  ]
+}

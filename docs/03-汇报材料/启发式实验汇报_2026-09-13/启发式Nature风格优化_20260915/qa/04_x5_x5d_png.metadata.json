@@ -1,0 +1,71 @@
+{
+  "stem": "04_x5",
+  "claim": "X5D保留X5的Murray尺度先验与局部残差结构，并在训练期用多密度视图增强部署鲁棒性。",
+  "export": "figures/04_x5.png",
+  "format": "PNG only",
+  "resolution_px": [
+    4800,
+    2700
+  ],
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/baseline_models.py",
+      "sha256": "2a0b54c56fa4b5d7698213e7111d321841ffdfaf75f1f24f102015f9a7c73093"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/local_refinement.py",
+      "sha256": "48f0173d9ce3d219bcec7cc9270c58fda203e09a67eeeb1a6661c13167bb7f09"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave6_20260915/X5D_s1234.json",
+      "sha256": "4a3e5666140365c9496cba170e570ed555e9e32d92cd0282fa452ccb6bc69f73"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave1_20260916/X5D_v51_s1234.json",
+      "sha256": "57417b59c4444ed0d1b793c33022e8e6082886282dc4da5946b8be71860a2792"
+    }
+  ],
+  "alignment": {
+    "schema_version": 1,
+    "applicable": false,
+    "auditable": false,
+    "verdict": "NOT APPLICABLE",
+    "backend": "python-matplotlib",
+    "summary": {
+      "fail": 0,
+      "warn": 0,
+      "comparisons": 0,
+      "exemptions": 0
+    },
+    "tolerances": {
+      "alignment_pt": 1.5,
+      "gutter_pt": 1.5
+    },
+    "errors": [],
+    "findings": [],
+    "layout": {
+      "schema_version": 1,
+      "backend": "python-matplotlib",
+      "figure": {
+        "width_pt": 1152.0,
+        "height_pt": 648.0
+      },
+      "panels": [
+        {
+          "id": "a",
+          "bbox_pt": [
+            46.08,
+            77.75999999999999,
+            1105.92,
+            505.44
+          ]
+        }
+      ],
+      "row_groups": [],
+      "column_groups": [],
+      "boundary_groups": [],
+      "exemptions": []
+    }
+  },
+  "note": "X5D has the same inference modules as X5. Density augmentation replaces the training point-cloud view at p=0.6 across 70/50/35/25% levels; it is not an inference-time branch. Two model additions remain distinct: support32D and log_z. FiLM uses query32D plus SA3 256D."
+}

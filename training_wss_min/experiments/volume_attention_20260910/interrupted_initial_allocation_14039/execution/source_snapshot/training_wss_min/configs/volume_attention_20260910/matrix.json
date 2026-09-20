@@ -1,0 +1,1389 @@
+{
+  "matrix_id": "volume_attention_20260910",
+  "training_runs": 26,
+  "seeds": [
+    1234
+  ],
+  "arms": [
+    {
+      "id": "P00",
+      "config": "P00_s1234.json",
+      "run_name": "volume_attention_20260910/P00_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "R5P",
+      "comparisons": [],
+      "phase": 1,
+      "hypothesis": "原R5体场配置同期从零对照",
+      "changes_vs_base": {},
+      "changes_vs_parent": {
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        }
+      }
+    },
+    {
+      "id": "P01",
+      "config": "P01_s1234.json",
+      "run_name": "volume_attention_20260910/P01_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P00",
+      "comparisons": [
+        "P00"
+      ],
+      "phase": 1,
+      "hypothesis": "原R5加M2局部壁面分支L",
+      "changes_vs_base": {
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "P02",
+      "config": "P02_s1234.json",
+      "run_name": "volume_attention_20260910/P02_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P00",
+      "comparisons": [
+        "P00"
+      ],
+      "phase": 1,
+      "hypothesis": "原R5原SA3后直接加全局BT",
+      "changes_vs_base": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "P03",
+      "config": "P03_s1234.json",
+      "run_name": "volume_attention_20260910/P03_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P01",
+      "comparisons": [
+        "P01",
+        "P02",
+        "P04",
+        "P05"
+      ],
+      "phase": 1,
+      "hypothesis": "L加原SA3后全局BT（直接接入主候选）",
+      "changes_vs_base": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        }
+      }
+    },
+    {
+      "id": "P04",
+      "config": "P04_s1234.json",
+      "run_name": "volume_attention_20260910/P04_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P01",
+      "comparisons": [
+        "P01",
+        "P03"
+      ],
+      "phase": 1,
+      "hypothesis": "L加仅中心条件编码（layers=0）",
+      "changes_vs_base": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_layers": {
+          "from": 1,
+          "to": 0
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_layers": {
+          "from": 1,
+          "to": 0
+        }
+      }
+    },
+    {
+      "id": "P05",
+      "config": "P05_s1234.json",
+      "run_name": "volume_attention_20260910/P05_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P04",
+      "comparisons": [
+        "P03",
+        "P04"
+      ],
+      "phase": 1,
+      "hypothesis": "L加中心条件及近等参数逐token FFN",
+      "changes_vs_base": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_mode": {
+          "from": "attention",
+          "to": "token_ffn"
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.bottleneck_mode": {
+          "from": "attention",
+          "to": "token_ffn"
+        },
+        "model.bottleneck_layers": {
+          "from": 0,
+          "to": 1
+        }
+      }
+    },
+    {
+      "id": "P06",
+      "config": "P06_s1234.json",
+      "run_name": "volume_attention_20260910/P06_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P01",
+      "comparisons": [
+        "P01"
+      ],
+      "phase": 2,
+      "hypothesis": "L加新SA3单半径0.20接入，无BT",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2
+          ]
+        }
+      }
+    },
+    {
+      "id": "P07",
+      "config": "P07_s1234.json",
+      "run_name": "volume_attention_20260910/P07_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P06",
+      "comparisons": [
+        "P06",
+        "P03"
+      ],
+      "phase": 2,
+      "hypothesis": "新SA3单半径0.20加BT",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        }
+      }
+    },
+    {
+      "id": "P08",
+      "config": "P08_s1234.json",
+      "run_name": "volume_attention_20260910/P08_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P06",
+      "comparisons": [
+        "P06"
+      ],
+      "phase": 2,
+      "hypothesis": "新SA3三半径0.10/0.20/0.40，无BT",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_values": {
+          "from": [
+            0.2
+          ],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "P09",
+      "config": "P09_s1234.json",
+      "run_name": "volume_attention_20260910/P09_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P08",
+      "comparisons": [
+        "P08",
+        "P07",
+        "P03",
+        "P10",
+        "P11"
+      ],
+      "phase": 2,
+      "hypothesis": "新SA3三半径独立BT（老师完整主候选）",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        }
+      }
+    },
+    {
+      "id": "P10",
+      "config": "P10_s1234.json",
+      "run_name": "volume_attention_20260910/P10_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P09",
+      "comparisons": [
+        "P09"
+      ],
+      "phase": 2,
+      "hypothesis": "相同0.20半径三支独立BT",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_values": {
+          "from": [
+            0.1,
+            0.2,
+            0.4
+          ],
+          "to": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        }
+      }
+    },
+    {
+      "id": "P11",
+      "config": "P11_s1234.json",
+      "run_name": "volume_attention_20260910/P11_s1234",
+      "target": "pressure_mixed",
+      "task": "pressure",
+      "parent": "P08",
+      "comparisons": [
+        "P09",
+        "P08"
+      ],
+      "phase": 2,
+      "hypothesis": "新SA3三半径近等参数逐token FFN",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "model.multiradius_ffn": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/P00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_ffn": {
+          "from": false,
+          "to": true
+        }
+      }
+    },
+    {
+      "id": "V00",
+      "config": "V00_s1234.json",
+      "run_name": "volume_attention_20260910/V00_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "R5V",
+      "comparisons": [],
+      "phase": 1,
+      "hypothesis": "原R5体场配置同期从零对照",
+      "changes_vs_base": {},
+      "changes_vs_parent": {
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        }
+      }
+    },
+    {
+      "id": "V01",
+      "config": "V01_s1234.json",
+      "run_name": "volume_attention_20260910/V01_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V00",
+      "comparisons": [
+        "V00"
+      ],
+      "phase": 1,
+      "hypothesis": "原R5加M2局部壁面分支L",
+      "changes_vs_base": {
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "V02",
+      "config": "V02_s1234.json",
+      "run_name": "volume_attention_20260910/V02_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V00",
+      "comparisons": [
+        "V00"
+      ],
+      "phase": 1,
+      "hypothesis": "原R5原SA3后直接加全局BT",
+      "changes_vs_base": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "V03",
+      "config": "V03_s1234.json",
+      "run_name": "volume_attention_20260910/V03_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V01",
+      "comparisons": [
+        "V01",
+        "V02",
+        "V04",
+        "V05"
+      ],
+      "phase": 1,
+      "hypothesis": "L加原SA3后全局BT（直接接入主候选）",
+      "changes_vs_base": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        }
+      }
+    },
+    {
+      "id": "V04",
+      "config": "V04_s1234.json",
+      "run_name": "volume_attention_20260910/V04_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V01",
+      "comparisons": [
+        "V01",
+        "V03"
+      ],
+      "phase": 1,
+      "hypothesis": "L加仅中心条件编码（layers=0）",
+      "changes_vs_base": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_layers": {
+          "from": 1,
+          "to": 0
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_layers": {
+          "from": 1,
+          "to": 0
+        }
+      }
+    },
+    {
+      "id": "V05",
+      "config": "V05_s1234.json",
+      "run_name": "volume_attention_20260910/V05_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V04",
+      "comparisons": [
+        "V03",
+        "V04"
+      ],
+      "phase": 1,
+      "hypothesis": "L加中心条件及近等参数逐token FFN",
+      "changes_vs_base": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_mode": {
+          "from": "attention",
+          "to": "token_ffn"
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.bottleneck_mode": {
+          "from": "attention",
+          "to": "token_ffn"
+        },
+        "model.bottleneck_layers": {
+          "from": 0,
+          "to": 1
+        }
+      }
+    },
+    {
+      "id": "V06",
+      "config": "V06_s1234.json",
+      "run_name": "volume_attention_20260910/V06_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V01",
+      "comparisons": [
+        "V01"
+      ],
+      "phase": 2,
+      "hypothesis": "L加新SA3单半径0.20接入，无BT",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2
+          ]
+        }
+      }
+    },
+    {
+      "id": "V07",
+      "config": "V07_s1234.json",
+      "run_name": "volume_attention_20260910/V07_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V06",
+      "comparisons": [
+        "V06",
+        "V03"
+      ],
+      "phase": 2,
+      "hypothesis": "新SA3单半径0.20加BT",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        }
+      }
+    },
+    {
+      "id": "V08",
+      "config": "V08_s1234.json",
+      "run_name": "volume_attention_20260910/V08_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V06",
+      "comparisons": [
+        "V06"
+      ],
+      "phase": 2,
+      "hypothesis": "新SA3三半径0.10/0.20/0.40，无BT",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_values": {
+          "from": [
+            0.2
+          ],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "V09",
+      "config": "V09_s1234.json",
+      "run_name": "volume_attention_20260910/V09_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V08",
+      "comparisons": [
+        "V08",
+        "V07",
+        "V03",
+        "V10",
+        "V11"
+      ],
+      "phase": 2,
+      "hypothesis": "新SA3三半径独立BT（老师完整主候选）",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        }
+      }
+    },
+    {
+      "id": "V10",
+      "config": "V10_s1234.json",
+      "run_name": "volume_attention_20260910/V10_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V09",
+      "comparisons": [
+        "V09"
+      ],
+      "phase": 2,
+      "hypothesis": "相同0.20半径三支独立BT",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_values": {
+          "from": [
+            0.1,
+            0.2,
+            0.4
+          ],
+          "to": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        }
+      }
+    },
+    {
+      "id": "V11",
+      "config": "V11_s1234.json",
+      "run_name": "volume_attention_20260910/V11_s1234",
+      "target": "velocity",
+      "task": "velocity",
+      "parent": "V08",
+      "comparisons": [
+        "V09",
+        "V08"
+      ],
+      "phase": 2,
+      "hypothesis": "新SA3三半径近等参数逐token FFN",
+      "changes_vs_base": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        },
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "model.multiradius_ffn": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_ffn": {
+          "from": false,
+          "to": true
+        }
+      }
+    },
+    {
+      "id": "J00",
+      "config": "J00_s1234.json",
+      "run_name": "volume_attention_20260910/J00_s1234",
+      "target": "velocity_pressure",
+      "task": "joint",
+      "phase": 3,
+      "parent": "P01+V01",
+      "comparisons": [
+        "P01",
+        "V01"
+      ],
+      "hypothesis": "共享结构双任务",
+      "changes_vs_parent": {
+        "model.local_branch": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        },
+        "model.local_branch_feature_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        },
+        "train.init_reference_config": {
+          "from": null,
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/references/J_base.json"
+        }
+      }
+    },
+    {
+      "id": "J01",
+      "config": "J01_s1234.json",
+      "run_name": "volume_attention_20260910/J01_s1234",
+      "target": "velocity_pressure",
+      "task": "joint",
+      "phase": 3,
+      "parent": "J00",
+      "comparisons": [
+        "J00",
+        "P03",
+        "V03"
+      ],
+      "hypothesis": "共享结构双任务加全局BT",
+      "changes_vs_parent": {
+        "model.bottleneck_transformer": {
+          "from": false,
+          "to": true
+        },
+        "train.init_reference_config": {
+          "from": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/references/J_base.json",
+          "to": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/J00_s1234.json"
+        }
+      }
+    }
+  ],
+  "protocol": {
+    "input_dim": 18,
+    "epochs": 400,
+    "batch_cases": 8,
+    "peak": 1162,
+    "support": 5000,
+    "queries_per_task": 5000,
+    "pressure_wall_fraction": 0.5,
+    "split": "train138/test34",
+    "best": "minimum training loss",
+    "last": "epoch399 (400 completed epochs)",
+    "joint_comparison": "last400 primary; best supplementary",
+    "evaluation": "fixed support seed1234; all query points; no multi-seed repeat"
+  },
+  "references": {
+    "R5P": {
+      "run_name": "v5_rerun_20260906/outputs/r5p_pressure_mixed_qad_s1234",
+      "feature_stats_sha256": "00d11e602aed7653be4c020fb02a10262d1709b8c6c783029ecaad2ed58baf24",
+      "best_sha256": "2c6581f38ad66d0ce2ce2c518f433e857864468481f80deeb360a1d22b544da3",
+      "last_sha256": "9d72097adedc4bbcaa4f6a74e00392372d24daeaf8e1c90fef8f39a795fb8b7d"
+    },
+    "R5V": {
+      "run_name": "v5_rerun_20260906/outputs/r5v_velocity_qad_s1234",
+      "feature_stats_sha256": "00d11e602aed7653be4c020fb02a10262d1709b8c6c783029ecaad2ed58baf24",
+      "best_sha256": "441832195ac42f8e18e7f94019192a6f7dcbb6f51c8d1b0489f058690cf11e77",
+      "last_sha256": "081a9ba6333865df918ec4feb2bd72390f16748a0ff23583804cd28f01a00a72"
+    }
+  },
+  "gates": {
+    "best_r2_gain": 0.01,
+    "pressure_mae_reduction": 0.03,
+    "velocity_vector_rmse_reduction": 0.03,
+    "secondary_component_r2_max_drop": 0.01,
+    "last": "same direction",
+    "longwave_debiased_mse_reduction": 0.1,
+    "longwave_sigmas_mm": [
+      20,
+      40
+    ],
+    "inference": "single-seed exposed-development screening only"
+  },
+  "factorials": [
+    [
+      "00",
+      "01",
+      "02",
+      "03"
+    ],
+    [
+      "06",
+      "07",
+      "08",
+      "09"
+    ]
+  ]
+}

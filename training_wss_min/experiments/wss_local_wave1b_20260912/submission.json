@@ -1,0 +1,14 @@
+{
+  "preflight_job_id": "14168",
+  "matrix_job_id": "14169",
+  "submitted_at": "2026-09-12T09:55:46.620609-07:00",
+  "dependency": "preflight afterany:14160 (wave-1 matrix); matrix afterok preflight",
+  "gpus": 4,
+  "slots_per_gpu": 2,
+  "expected_training_runs": 8,
+  "expected_evaluations": 16,
+  "scripts": {
+    "preflight": "training_wss_min/cluster/preflight_wss_local_wave1b.slurm",
+    "matrix": "training_wss_min/cluster/run_wss_local_wave1b.slurm"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schema": "v6_followup_completion_v1",
+  "completed_at_utc": "2026-09-09T04:39:09.346109+00:00",
+  "authorized_scope_complete": true,
+  "training_arms": 15,
+  "evaluations": 30,
+  "seed": 1234,
+  "epochs": 400,
+  "checks": {
+    "transcription_verification_passed": true,
+    "transcription_inputs_still_match": true,
+    "all_15_best_and_last_finalized": true,
+    "queue_all_stages_complete": true,
+    "training_sources_still_match_launch": true,
+    "plot_sources_match": true,
+    "plot_font_matches": true,
+    "archived_independent_audit_script_matches": true,
+    "geometry_evidence_still_matches": true,
+    "geometry_awaits_user_confirmation": true,
+    "corrected_png_visually_reviewed_by_root": true
+  },
+  "transcription_checks": 24838,
+  "transcription_differences": 0,
+  "visual_review_note": "Root viewed corrected PNG after job 13765: Chinese labels and legend are readable; all 15 arms and four metric panels present. This is plot inspection, not user acceptance of new geometry.",
+  "deferred_training": [
+    "G1-G7",
+    "M6",
+    "B1_if_original_inputs_change",
+    "C1-C4_nonduplicate_combinations"
+  ],
+  "geometry_state": "v1.3, 172 cases, awaiting user visual confirmation",
+  "artifact_sha256": {
+    "README.md": "71cd88eda0e3426ecdcb8c6e1b6e94a66e02f6fcd365ec3bdca0eb6cfadfb7e0",
+    "submission.json": "d0f762f29340a1dec5a6d7d116a324435243e66e7d14b889bb8b641ab4810f21",
+    "slurm_accounting_final.txt": "3bd77eb402e53a4cc72b1d4660f9673a808fb2d41d04871bee2c37177b1375b7",
+    "matrix_summary_best.json": "8f9da5b8aa4a4560b47396b32eb119022742d109514cfed5a394eb77321a4a09",
+    "matrix_summary_last.json": "537c95f503937cb6db9094f6adc4462ee116d8bdeb0d3f6c5b2150c65b6cb35f",
+    "matrix_tables_best.md": "be32dcc9364c1e153e4fae2e971648ddfd58003fa6b085e77e6edb64d20e74f1",
+    "matrix_tables_last.md": "63df86378fed559a13b620fe165738e068857cbb524461cad62890b9a5eaf36c",
+    "delivery_verification_final.json": "3f669be0aca37980d0142b701c2ab0e8bafdf7b7f34dc7621c8f6e711e208d7e",
+    "fullmatrix_independent_audit.json": "16c51edb9fe46e443b1684790f5e407574875f201f2a30476f3486d41ef36820",
+    "fullmatrix_independent_audit.py": "28cf854aa2c2ac78ebe10a7cbe351b4c2007ff64522eb4054ebd12a463ba9603",
+    "figure_provenance.json": "039772998f6ab469bbfac2f2cd7bb52ccf7d7849e9f763d2454eee385017641b",
+    "followup_comparison.png": "1eb925ac8b5fe54bb5946844511418bdb8f723a1eb9f468ed9de65d925029d8c",
+    "followup_comparison.pdf": "a569b9d945b9ae16fa924d507317d4460132bc1f208bb0bcfb31d0edc3cd63be",
+    "geometry_delivery_evidence.json": "1dfe452b3803bde976aa020032c477d60a6b2c8ac7e273b71ade1d384cc0e719"
+  },
+  "tracker_sha256": "a2b89ea913ef0412c8625c66d7a092bd490ecb72eaeb788aa22e34c92e91fb6f",
+  "workbook_sha256": "3af96ac5cfbb2a8f7047bccf15ba624239d4e5e8bca0e56bd5bb0e6c69db05f1"
+}

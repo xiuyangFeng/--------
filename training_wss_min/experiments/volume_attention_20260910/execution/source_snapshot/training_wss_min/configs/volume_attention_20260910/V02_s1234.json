@@ -1,0 +1,160 @@
+{
+  "name": "volume_attention_20260910/V02_s1234",
+  "notes": "V02: 原R5原SA3后直接加全局BT。18D、峰值1162、单seed1234；体场纯MSE；test34开发暴露集。",
+  "data": {
+    "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+    "required_frame_version": "v5_atlas_frame_v1",
+    "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+    "wss_stats_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/volume_stats_train138.json",
+    "wall_n_points": 5000,
+    "sampling": "random",
+    "support_n_points": 5000,
+    "support_sampling": "random",
+    "query_mode": "independent",
+    "query_n_points": 5000,
+    "query_sampling": "random",
+    "resample_each_epoch": true,
+    "rot_aug": false,
+    "input_features": [
+      "x",
+      "y",
+      "z",
+      "abscissa_norm",
+      "local_radius",
+      "curvature",
+      "log_local_radius",
+      "rho",
+      "theta_sin",
+      "theta_cos",
+      "dr_ds",
+      "dist_to_junction_mm",
+      "dist_to_endpoint_mm",
+      "end_zone",
+      "nx_aligned",
+      "ny_aligned",
+      "nz_aligned",
+      "dist_to_wall_mm"
+    ],
+    "curvature_transform": "signed_log1p",
+    "timesteps": "peak",
+    "target": "velocity",
+    "target_normalization": "global_stats",
+    "num_workers": 4,
+    "persistent_workers": false,
+    "feature_stats_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v5_rerun_20260906/outputs/r5v_velocity_qad_s1234/feature_stats.json",
+    "case_features_path": null
+  },
+  "model": {
+    "name": "pointnetpp",
+    "width": 32,
+    "sa_ratios": [
+      0.25,
+      0.25,
+      0.25
+    ],
+    "sa_radius": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "sa_nsample": [
+      64,
+      16,
+      16
+    ],
+    "sa_blocks": [
+      1,
+      1,
+      0
+    ],
+    "sa_center_sampling": "fps",
+    "sa_center_counts": [
+      125,
+      125,
+      32
+    ],
+    "fp_knn": 3,
+    "head_hidden": 64,
+    "out_dim": 3,
+    "dropout": 0,
+    "sa_grouping": [
+      "knn_cover",
+      "ball",
+      "ball"
+    ],
+    "invres_expansion": 2,
+    "residual_scale_init": 0.001,
+    "invres_radius_scale": 1.0,
+    "query_decoder": "qad_lite",
+    "local_geope": true,
+    "local_geope_feature_indices": [
+      3,
+      4,
+      5
+    ],
+    "drop_path_rate": 0.1,
+    "local_transformer_stages": [
+      2
+    ],
+    "coarse_attention": false,
+    "coarse_attention_heads": 4,
+    "sep_hidden": 32,
+    "sep_beta_init": 2.0,
+    "neighbor_drop_rate": 0.0,
+    "local_transformer_heads": 4,
+    "local_transformer_ffn_ratio": 2,
+    "local_transformer_dropout": 0.0,
+    "edgeconv_stages": [],
+    "bottleneck_transformer": true,
+    "bottleneck_mode": "attention",
+    "output_head": "single",
+    "multiradius_values": [],
+    "local_branch": false,
+    "bottleneck_layers": 1,
+    "bottleneck_heads": 8,
+    "bottleneck_ffn_ratio": 2,
+    "bottleneck_dropout": 0.0,
+    "bottleneck_pos_enc": "input_features",
+    "bottleneck_geo_bias": true,
+    "bottleneck_residual_scale_init": 0.001
+  },
+  "train": {
+    "epochs": 400,
+    "batch_cases": 8,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 10,
+    "min_lr": 1e-05,
+    "grad_clip": 1,
+    "seed": 1234,
+    "loss": "mse",
+    "loss_geom_weight": false,
+    "loss_weight_target": false,
+    "loss_weight_fixed_quantiles": true,
+    "loss_raw_huber_lambda": 0,
+    "amp": true,
+    "eval_every": 400,
+    "ckpt_metric": "train_loss",
+    "selection_rule": "train_loss",
+    "ckpt_top_k": 3,
+    "early_stop_patience": 0,
+    "min_epoch": 400,
+    "log_every_steps": 0,
+    "loss_hotspot_bce_lambda": 0.0,
+    "hotspot_quantile": 0.9,
+    "loss_pinball_lambda": 0.0,
+    "pinball_quantile": 0.9,
+    "log_loss_components": true,
+    "init_reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/volume_attention_20260910/V00_s1234.json"
+  },
+  "eval": {
+    "fixed_support": true,
+    "full_cloud_query": true,
+    "query_chunk_size": 16384,
+    "support_seed": 1234,
+    "surface_metric_mode": "legacy_vertex",
+    "stability_seeds": [
+      1234
+    ]
+  }
+}

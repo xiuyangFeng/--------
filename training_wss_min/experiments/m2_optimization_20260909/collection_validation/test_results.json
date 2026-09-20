@@ -1,0 +1,59 @@
+[
+  {
+    "scenario": "full_collection_early_middle_late",
+    "counts": {
+      "evaluate": 1428,
+      "created": 42,
+      "closed": 42,
+      "resets": 1428,
+      "mechanisms": 1428,
+      "renders": 0,
+      "empty_cache": 42
+    },
+    "exception": "RuntimeError: Complete inference captured; 3 unreviewed metric failures remain",
+    "passed": false,
+    "completed": true,
+    "evaluations_completed": 42,
+    "evaluations_verified": 39,
+    "strict_failed_numeric_checks": 3,
+    "output": "/tmp/m2_collection_main_review_8e01f7l6/full_collection_early_middle_late/exp/diagnostics_collection"
+  },
+  {
+    "scenario": "normal_mode_fails_first",
+    "counts": {
+      "evaluate": 1,
+      "created": 1,
+      "closed": 1,
+      "resets": 1,
+      "mechanisms": 1,
+      "renders": 0,
+      "empty_cache": 1
+    },
+    "exception": "RuntimeError: M2/best/AG/slow/MA_TIAN_YI: saved original metrics not reproduced: {'Pa': {'passed': False, 'strict_passed': False, 'checks': 4, 'strict_passed_checks': 3, 'strict_failed_checks': 1, 'boundary_reviews': [], 'max_absolute_difference': 0.25, 'failed_checks': [{'metric': 'overall.r2', 'reference': 0.5, 'recomputed': 0.25, 'absolute_difference': 0.25, 'tolerance': 7.500000000000001e-06, 'passed': False}]}, 'log_z': {'passed': True, 'strict_passed': True, 'checks': 4, 'strict_passed_checks': 4, 'strict_failed_checks': 0, 'boundary_reviews': [], 'max_absolute_difference': 0.0, 'failed_",
+    "passed": false,
+    "completed": false,
+    "evaluations_completed": 0,
+    "evaluations_verified": 0,
+    "strict_failed_numeric_checks": 1,
+    "output": "/tmp/m2_collection_main_review_8e01f7l6/normal_mode_fails_first/exp/diagnostics"
+  },
+  {
+    "scenario": "nonmetric_exception_is_fatal",
+    "counts": {
+      "evaluate": 2,
+      "created": 1,
+      "closed": 1,
+      "resets": 2,
+      "mechanisms": 1,
+      "renders": 0,
+      "empty_cache": 1
+    },
+    "exception": "ValueError: injected non-metric fatal error",
+    "passed": false,
+    "completed": false,
+    "evaluations_completed": 0,
+    "evaluations_verified": 0,
+    "strict_failed_numeric_checks": 1,
+    "output": "/tmp/m2_collection_main_review_8e01f7l6/nonmetric_exception_is_fatal/exp/diagnostics_collection"
+  }
+]

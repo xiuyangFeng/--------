@@ -1,0 +1,39 @@
+{
+  "stem": "17_velocity_wss_gap",
+  "claim": "在旧R5V冻结派生管线中CFD速度参照明显优于预测速度，支持优先诊断速度输入与误差传播，但不能识别单一故障环节。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_R2分布_20260914/summary.json",
+      "sha256": "7285bbf6ff421f866b98d341a3811fc917d30c4f7e5c7359f2b2209d4506b72d"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/v5_velocity_to_wss_20260909/metrics.json",
+      "sha256": "bd09a28bd5ef82ac1e84fc83ac3edf38d85ea777e0d8f484b56640ba8a6069cd"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v5_rerun_20260906/outputs/r5v_velocity_qad_s1234/eval/ckpt_best/metrics.json",
+      "sha256": "374ee5e1953fb82aa0df58e47ef6e6a06f13d5b9ac30c00c3af5c85d97638ab5"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式Nature风格优化_20260915/source_data/17_velocity_wss_gap.csv",
+      "sha256": "f600d59f2416134a5b7d89f5511155b208f9fd502183e2643965be800fb57cb0"
+    }
+  ],
+  "exports": {
+    "pdf": "figures/17_velocity_wss_gap.pdf",
+    "svg": "figures/17_velocity_wss_gap.svg",
+    "png": "figures/17_velocity_wss_gap.png"
+  },
+  "alignment": "PASS",
+  "audits": {
+    "text": {
+      "exit_code": 0,
+      "report": "qa/17_velocity_wss_gap.text.log"
+    },
+    "collision": {
+      "exit_code": 0,
+      "report": "qa/17_velocity_wss_gap.collision.json"
+    }
+  },
+  "note": "Left labels are physical case-balanced R2, right shows every one of34 per-case R2 values, with same-patient connector lines, no summary uncertainty for one fixed checkpoint. Frozen V3 uses historical trained calibration and known legacy radius-coordinate limitations. No VF6 closed-loop inference. All34 case values retained including -1.3416."
+}

@@ -1,0 +1,19 @@
+{
+  "stem": "12_residual_structure",
+  "claim": "三代底座、两套数据、test34 与折外口径一致：约 70% 的残差方差在分支×4mm 区间内部，沿程轨迹已解释到 0.93 以上，截面内型态只有 0.52–0.61。",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/analysis_20260917/current_residuals.json",
+      "sha256": "9ed834434b5139d2265a6105a5a89d404520d53fccb03c531e8ee7556236ca22"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave1_20260916/offline/analyze_wave1.json",
+      "sha256": "b1ffdc30fb9e46f9d8ecd4c13f06a5adb073962eb2f9710dabd7ff5ebec6ac0b"
+    }
+  ],
+  "exports": {
+    "png": "figures/12_residual_structure.png"
+  },
+  "alignment": "PASS",
+  "note": "Branch share is nested inside the bin-mean share (dashed line), so the three numbers must not be summed. Panel c compares two threshold definitions of the same predictions plus one out-of-fold scope."
+}

@@ -1,0 +1,533 @@
+{
+  "matrix_id": "v6_followup_20260909",
+  "anchor_config": "training_wss_min/configs/v6_singleframe_20260909/A5_r4_localbranch_diffgeom_s1234.json",
+  "anchor_sha256": "990a27c53c6916fd9d9bca798a3893d771222f542d6f968ec45debbc569c367b",
+  "authorised_scope": "D1-D7, L1-L3, M1-M5 only; WSS output only; no new geometry or centreline changes",
+  "protocol": {
+    "seed": 1234,
+    "epochs": 400,
+    "target": "wss",
+    "timesteps": "peak",
+    "support_n_points": 5000,
+    "query_n_points": 5000,
+    "batch_cases": 8,
+    "selection_rule": "train_loss",
+    "eval_support_seed": 1234,
+    "single_seed": "screening only; no statistical superiority claims",
+    "raw_huber": "Pa/p90(train138); lambda=0.1; delta=1.0; fixed before test evaluation"
+  },
+  "reference": {
+    "id": "B0",
+    "run_name": "v6_singleframe_20260909/A5_r4_localbranch_diffgeom_s1234",
+    "reuse": [
+      "R4",
+      "A1",
+      "A4",
+      "A5",
+      "A5b"
+    ]
+  },
+  "arms": [
+    {
+      "id": "D1",
+      "category": "ablation",
+      "config": "D1_a5_notube_s1234.json",
+      "run_name": "v6_followup_20260909/D1_a5_notube_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "标准化后屏蔽管道坐标 rho/sin(theta)/cos(theta)，保留固定25通道和所有索引",
+      "note": "",
+      "changes": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            7,
+            8,
+            9
+          ]
+        }
+      },
+      "changes_vs_parent": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            7,
+            8,
+            9
+          ]
+        }
+      },
+      "input_dim": 25,
+      "masked_features": [
+        "rho",
+        "theta_sin",
+        "theta_cos"
+      ]
+    },
+    {
+      "id": "D2",
+      "category": "ablation",
+      "config": "D2_a5_nodist_s1234.json",
+      "run_name": "v6_followup_20260909/D2_a5_nodist_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "标准化后屏蔽分叉/端点距离与端区，保留固定25通道和所有索引",
+      "note": "",
+      "changes": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            11,
+            12,
+            13
+          ]
+        }
+      },
+      "changes_vs_parent": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            11,
+            12,
+            13
+          ]
+        }
+      },
+      "input_dim": 25,
+      "masked_features": [
+        "dist_to_junction_mm",
+        "dist_to_endpoint_mm",
+        "end_zone"
+      ]
+    },
+    {
+      "id": "D3",
+      "category": "ablation",
+      "config": "D3_a5_nodrds_s1234.json",
+      "run_name": "v6_followup_20260909/D3_a5_nodrds_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "标准化后屏蔽半径梯度 dr/ds，保留固定25通道和所有索引",
+      "note": "",
+      "changes": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            10
+          ]
+        }
+      },
+      "changes_vs_parent": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            10
+          ]
+        }
+      },
+      "input_dim": 25,
+      "masked_features": [
+        "dr_ds"
+      ]
+    },
+    {
+      "id": "D4",
+      "category": "ablation",
+      "config": "D4_a5_nonormal_s1234.json",
+      "run_name": "v6_followup_20260909/D4_a5_nonormal_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "标准化后屏蔽显式法向及局部分支法向差分；预计算曲率保留，保留固定25通道和所有索引",
+      "note": "",
+      "changes": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        }
+      },
+      "changes_vs_parent": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            14,
+            15,
+            16
+          ]
+        }
+      },
+      "input_dim": 25,
+      "masked_features": [
+        "nx_aligned",
+        "ny_aligned",
+        "nz_aligned"
+      ]
+    },
+    {
+      "id": "D5",
+      "category": "ablation",
+      "config": "D5_a5_nofine_s1234.json",
+      "run_name": "v6_followup_20260909/D5_a5_nofine_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "标准化后屏蔽fine 主曲率/高斯曲率/curvedness，保留固定25通道和所有索引",
+      "note": "",
+      "changes": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            17,
+            18,
+            19,
+            20
+          ]
+        }
+      },
+      "changes_vs_parent": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            17,
+            18,
+            19,
+            20
+          ]
+        }
+      },
+      "input_dim": 25,
+      "masked_features": [
+        "curv_k1",
+        "curv_k2",
+        "curv_gauss",
+        "curvedness"
+      ]
+    },
+    {
+      "id": "D6",
+      "category": "ablation",
+      "config": "D6_a5_nocoarse_s1234.json",
+      "run_name": "v6_followup_20260909/D6_a5_nocoarse_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "标准化后屏蔽coarse 主曲率/高斯曲率，保留固定25通道和所有索引",
+      "note": "",
+      "changes": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            21,
+            22,
+            23
+          ]
+        }
+      },
+      "changes_vs_parent": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            21,
+            22,
+            23
+          ]
+        }
+      },
+      "input_dim": 25,
+      "masked_features": [
+        "curv_k1_c",
+        "curv_k2_c",
+        "curv_gauss_c"
+      ]
+    },
+    {
+      "id": "D7",
+      "category": "ablation",
+      "config": "D7_a5_notndot_s1234.json",
+      "run_name": "v6_followup_20260909/D7_a5_notndot_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "标准化后屏蔽中心线切向与壁面法向点积，保留固定25通道和所有索引",
+      "note": "",
+      "changes": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            24
+          ]
+        }
+      },
+      "changes_vs_parent": {
+        "model.input_feature_mask_indices": {
+          "from": [],
+          "to": [
+            24
+          ]
+        }
+      },
+      "input_dim": 25,
+      "masked_features": [
+        "tn_dot"
+      ]
+    },
+    {
+      "id": "L1",
+      "category": "loss",
+      "config": "L1_a5_mse_s1234.json",
+      "run_name": "v6_followup_20260909/L1_a5_mse_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "固定原A5输入/模型，仅去除pinball，使用纯MSE",
+      "note": "",
+      "changes": {
+        "train.loss_pinball_lambda": {
+          "from": 0.2,
+          "to": 0.0
+        }
+      },
+      "changes_vs_parent": {
+        "train.loss_pinball_lambda": {
+          "from": 0.2,
+          "to": 0.0
+        }
+      },
+      "input_dim": 25,
+      "masked_features": []
+    },
+    {
+      "id": "L2",
+      "category": "loss",
+      "config": "L2_a5_pin_rawhuber_s1234.json",
+      "run_name": "v6_followup_20260909/L2_a5_pin_rawhuber_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "固定原A5，保留q90 pinball并增加0.1 Pa Huber",
+      "note": "",
+      "changes": {
+        "train.loss_raw_huber_lambda": {
+          "from": 0,
+          "to": 0.1
+        }
+      },
+      "changes_vs_parent": {
+        "train.loss_raw_huber_lambda": {
+          "from": 0,
+          "to": 0.1
+        }
+      },
+      "input_dim": 25,
+      "masked_features": []
+    },
+    {
+      "id": "L3",
+      "category": "loss",
+      "config": "L3_a5_mse_rawhuber_s1234.json",
+      "run_name": "v6_followup_20260909/L3_a5_mse_rawhuber_s1234",
+      "anchor": "A5",
+      "baseline": "L1",
+      "hypothesis": "固定原A5，MSE+0.1 Pa Huber，无pinball",
+      "note": "",
+      "changes": {
+        "train.loss_raw_huber_lambda": {
+          "from": 0,
+          "to": 0.1
+        },
+        "train.loss_pinball_lambda": {
+          "from": 0.2,
+          "to": 0.0
+        }
+      },
+      "changes_vs_parent": {
+        "train.loss_raw_huber_lambda": {
+          "from": 0,
+          "to": 0.1
+        }
+      },
+      "input_dim": 25,
+      "masked_features": []
+    },
+    {
+      "id": "M1",
+      "category": "model",
+      "config": "M1_a5_pointwise_s1234.json",
+      "run_name": "v6_followup_20260909/M1_a5_pointwise_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "同注入位置/零初始化的逐点残差容量对照，替代空间邻域分支",
+      "note": "pointwise分支10640参数，原邻域分支10496，差+1.37%；逐点MLP不读取邻域/相对几何",
+      "changes": {
+        "model.local_branch_mode": {
+          "from": "neighborhood",
+          "to": "pointwise"
+        }
+      },
+      "changes_vs_parent": {
+        "model.local_branch_mode": {
+          "from": "neighborhood",
+          "to": "pointwise"
+        }
+      },
+      "input_dim": 25,
+      "masked_features": []
+    },
+    {
+      "id": "M2",
+      "category": "model",
+      "config": "M2_a5_independent_k3_s1234.json",
+      "run_name": "v6_followup_20260909/M2_a5_independent_k3_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "只将SAME改为独立query，保持固定3NN解码",
+      "note": "",
+      "changes": {
+        "data.query_mode": {
+          "from": "same",
+          "to": "independent"
+        }
+      },
+      "changes_vs_parent": {
+        "data.query_mode": {
+          "from": "same",
+          "to": "independent"
+        }
+      },
+      "input_dim": 25,
+      "masked_features": []
+    },
+    {
+      "id": "M3",
+      "category": "model",
+      "config": "M3_a5_independent_k16_s1234.json",
+      "run_name": "v6_followup_20260909/M3_a5_independent_k16_s1234",
+      "anchor": "A5",
+      "baseline": "M2",
+      "hypothesis": "独立query条件下，仅将固定query插值3NN改为16NN；encoder FP仍3NN",
+      "note": "",
+      "changes": {
+        "data.query_mode": {
+          "from": "same",
+          "to": "independent"
+        },
+        "model.query_interpolation_k": {
+          "from": 0,
+          "to": 16
+        }
+      },
+      "changes_vs_parent": {
+        "model.query_interpolation_k": {
+          "from": 0,
+          "to": 16
+        }
+      },
+      "input_dim": 25,
+      "masked_features": []
+    },
+    {
+      "id": "M4",
+      "category": "model",
+      "config": "M4_a5_localdecoder_s1234.json",
+      "run_name": "v6_followup_20260909/M4_a5_localdecoder_s1234",
+      "anchor": "A5",
+      "baseline": "M3",
+      "hypothesis": "固定16邻居基础上增加可学几何条件权重、query自身几何和残差头",
+      "note": "整个局部解码配方对照；可学权重/输入条件/残差不作单项归因",
+      "changes": {
+        "data.query_mode": {
+          "from": "same",
+          "to": "independent"
+        },
+        "model.query_decoder": {
+          "from": "interpolate",
+          "to": "local_attn"
+        },
+        "model.query_decoder_k": {
+          "from": 0,
+          "to": 16
+        },
+        "model.query_decoder_residual": {
+          "from": false,
+          "to": true
+        },
+        "model.query_decoder_feature_indices": {
+          "from": [],
+          "to": [
+            4,
+            14,
+            15,
+            16
+          ]
+        }
+      },
+      "changes_vs_parent": {
+        "model.query_decoder": {
+          "from": "interpolate",
+          "to": "local_attn"
+        },
+        "model.query_interpolation_k": {
+          "from": 16,
+          "to": 0
+        },
+        "model.query_decoder_k": {
+          "from": 0,
+          "to": 16
+        },
+        "model.query_decoder_residual": {
+          "from": false,
+          "to": true
+        },
+        "model.query_decoder_feature_indices": {
+          "from": [],
+          "to": [
+            4,
+            14,
+            15,
+            16
+          ]
+        }
+      },
+      "input_dim": 25,
+      "masked_features": []
+    },
+    {
+      "id": "M5",
+      "category": "model",
+      "config": "M5_a5_singleradius_s1234.json",
+      "run_name": "v6_followup_20260909/M5_a5_singleradius_s1234",
+      "anchor": "A5",
+      "baseline": "B0",
+      "hypothesis": "三条局部分支均设r=0.03，参数量严格相同，检验多尺度邻域作用",
+      "note": "",
+      "changes": {
+        "model.local_branch_radii": {
+          "from": [
+            0.015,
+            0.03,
+            0.06
+          ],
+          "to": [
+            0.03,
+            0.03,
+            0.03
+          ]
+        }
+      },
+      "changes_vs_parent": {
+        "model.local_branch_radii": {
+          "from": [
+            0.015,
+            0.03,
+            0.06
+          ],
+          "to": [
+            0.03,
+            0.03,
+            0.03
+          ]
+        }
+      },
+      "input_dim": 25,
+      "masked_features": []
+    }
+  ]
+}

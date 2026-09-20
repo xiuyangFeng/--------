@@ -1,0 +1,47 @@
+{
+  "stem": "15_levers_used_vs_unused",
+  "sources": [
+    "training_wss_min/experiments/wss_local_wave1_20260912/results.json",
+    "training_wss_min/experiments/wss_local_wave5_20260913/offline/analyze_wave5.json",
+    "training_wss_min/experiments/wss_v51_wave1_20260916/offline/analyze_wave1.json",
+    "training_wss_min/experiments/wss_v51_wave2b_20260916/offline/analyze_t3n.json",
+    "training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/analyze_longitudinal.json",
+    "training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/select_channels_oof.json",
+    "training_wss_min/experiments/wss_x5d_longitudinal_20260917/offline/diagnose_residual_explainability.json"
+  ],
+  "values": {
+    "wave1_deltas_vs_X0": {
+      "X1": 0.012437889210949349,
+      "X2": 0.03367647776571314,
+      "X3": 0.028574114623957536,
+      "X4": 0.02463035878653086,
+      "X5": 0.10050723566831143,
+      "X6": 0.015406267791393313,
+      "X7": 0.03747012153177365,
+      "X8": 0.011902228737407206,
+      "X9": 0.024631880251757998,
+      "X10": 0.018968664420358827,
+      "X11": 0.05296682789213225,
+      "X12": 0.03442411339578699,
+      "X13a": 0.008265693790479367,
+      "X13b": 0.025561346866040946,
+      "X15": 0.09450554698445579,
+      "X16": 0.09675689182315572
+    },
+    "wave1_band": 0.034,
+    "paired_means": {
+      "X5Dcap(v5.1, 3 seed)": 0.002786566849531047,
+      "X5I 狭窄指数(v5.0, 3 seed)": 0.0012336580790946645,
+      "沿程 32 通道(v5.1, 3 seed)": 0.004866731400362386,
+      "T3n test34(v5.1, 3 seed)": -0.007759941843463587,
+      "T3n cv3 折外(v5.1)": -0.01996193683880254
+    },
+    "ceiling": {
+      "base27_self": 0.003590461105575815,
+      "all16_on_base_residual_pooled": 0.005921984080115128,
+      "oof_forward_all16": 0.0047262834669229425,
+      "oof_forward_ref8": 0.004347391725234906,
+      "arm_residual_left": 0.0050324209080973015
+    }
+  }
+}

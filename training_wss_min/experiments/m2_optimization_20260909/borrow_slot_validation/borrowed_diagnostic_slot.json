@@ -1,0 +1,48 @@
+{
+  "job_id": "99999",
+  "token": "tttttttttttttttttttttttttttttttt",
+  "step_name": "m2b_0123456789abcdef",
+  "directory": "/tmp/m2-borrow-safety-ef74cybx",
+  "coordinator": {
+    "pid": 2597934,
+    "start_ticks": "55167675",
+    "state": "R",
+    "uid": 1006
+  },
+  "owner": {
+    "pid": 2597920,
+    "start_ticks": "55167665",
+    "state": "R",
+    "uid": 1006
+  },
+  "cancel_pending": "",
+  "completed": false,
+  "controller_pid": 2597935,
+  "started_at": "2026-09-10T00:33:25+0800",
+  "other_active_arms": [
+    "x"
+  ],
+  "coordinator_paused_at": "2026-09-10T00:33:25+0800",
+  "command": [
+    "/public/slurm/bin/srun",
+    "--jobid=99999",
+    "--overlap",
+    "-n",
+    "1",
+    "-c",
+    "4",
+    "--job-name=m2b_0123456789abcdef",
+    "--time=00:20:00",
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.tools.borrow_m2_diagnostic_slot",
+    "--run-step",
+    "/tmp/m2-borrow-safety-ef74cybx/plan.json"
+  ],
+  "srun_pid": 2597936,
+  "error": "RuntimeError: Borrow owner exited or requested abort; cancelling only the diagnostic step",
+  "diagnostic_step_absent_confirmed_at": "2026-09-10T00:33:32+0800",
+  "coordinator_resumed_at": "2026-09-10T00:33:32+0800",
+  "ended_at": "2026-09-10T00:33:32+0800"
+}

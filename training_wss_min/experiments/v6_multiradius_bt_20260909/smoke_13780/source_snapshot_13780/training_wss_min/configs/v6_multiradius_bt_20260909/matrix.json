@@ -1,0 +1,324 @@
+{
+  "matrix_id": "v6_multiradius_bt_20260909",
+  "anchor_config": "training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+  "anchor_sha256": "1260d50e07efc56eecf3205f26070fa164e66d4cfade220d6d243a841562a27d",
+  "reference": {
+    "id": "MS0",
+    "run_name": "v6_followup_20260909/M2_a5_independent_k3_s1234"
+  },
+  "authorised_scope": "MS1-MS6 only; no G/M6/new-geometry/conditional arms",
+  "protocol": {
+    "seed": 1234,
+    "epochs": 400,
+    "target": "wss",
+    "timesteps": "peak",
+    "batch_cases": 8,
+    "support_n_points": 5000,
+    "query_n_points": 5000,
+    "selection_rule": "train_loss",
+    "evaluation": "best and last; test34 exposed development comparison",
+    "grouping": "shared FPS32; nearest within normalized radii; cap32; shared distance ordering"
+  },
+  "arms": [
+    {
+      "id": "MS1",
+      "config": "MS1_m2_single_r020_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234",
+      "baseline": "MS0",
+      "category": "model",
+      "hypothesis": "单半径新SA3及中心条件桥接；无新增全局BT",
+      "anchor": "M2",
+      "changes": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2
+          ]
+        },
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        }
+      },
+      "changes_vs_parent": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2
+          ]
+        },
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        }
+      },
+      "input_dim": 25
+    },
+    {
+      "id": "MS2",
+      "config": "MS2_m2_single_r020_bt_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234",
+      "baseline": "MS1",
+      "category": "model",
+      "hypothesis": "单半径新SA3加全局BT；与MS1比较",
+      "anchor": "M2",
+      "changes": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2
+          ]
+        },
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        }
+      },
+      "input_dim": 25
+    },
+    {
+      "id": "MS3",
+      "config": "MS3_m2_multi_r010_r020_r040_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234",
+      "baseline": "MS1",
+      "category": "model",
+      "hypothesis": "多半径分组及融合；无新增全局BT",
+      "anchor": "M2",
+      "changes": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        },
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_values": {
+          "from": [
+            0.2
+          ],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        }
+      },
+      "input_dim": 25
+    },
+    {
+      "id": "MS4",
+      "config": "MS4_m2_multi_r010_r020_r040_bt_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234",
+      "baseline": "MS3",
+      "category": "model",
+      "hypothesis": "老师主方案：多半径各支独立BT后按中心融合",
+      "anchor": "M2",
+      "changes": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        },
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        }
+      },
+      "input_dim": 25
+    },
+    {
+      "id": "MS5",
+      "config": "MS5_m2_multi_r020x3_bt_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234",
+      "baseline": "MS4",
+      "category": "model",
+      "hypothesis": "相同半径三支BT；与MS4固定容量检验多尺度",
+      "anchor": "M2",
+      "changes": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        },
+        "model.multiradius_bottleneck": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_values": {
+          "from": [
+            0.1,
+            0.2,
+            0.4
+          ],
+          "to": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        }
+      },
+      "input_dim": 25
+    },
+    {
+      "id": "MS6",
+      "config": "MS6_m2_multi_r010_r020_r040_ffn_s1234.json",
+      "run_name": "v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234",
+      "baseline": "MS4",
+      "category": "model",
+      "hypothesis": "逐token近等容量FFN替代BT；保持分组及融合",
+      "anchor": "M2",
+      "changes": {
+        "model.sa_nsample": {
+          "from": [
+            64,
+            16,
+            16
+          ],
+          "to": [
+            64,
+            16,
+            32
+          ]
+        },
+        "model.multiradius_values": {
+          "from": [],
+          "to": [
+            0.1,
+            0.2,
+            0.4
+          ]
+        },
+        "model.multiradius_ffn": {
+          "from": false,
+          "to": true
+        },
+        "model.bottleneck_residual_scale_init": {
+          "from": null,
+          "to": 0.001
+        }
+      },
+      "changes_vs_parent": {
+        "model.multiradius_bottleneck": {
+          "from": true,
+          "to": false
+        },
+        "model.multiradius_ffn": {
+          "from": false,
+          "to": true
+        }
+      },
+      "input_dim": 25
+    }
+  ]
+}

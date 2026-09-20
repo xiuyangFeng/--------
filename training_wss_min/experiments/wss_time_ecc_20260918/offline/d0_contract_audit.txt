@@ -1,0 +1,17 @@
+  20/170
+  40/170
+  60/170
+  80/170
+  100/170
+  120/170
+  140/170
+  160/170
+
+D0 审计 170 例：steps/time 不一致 0；波形与首例最大差 q 0.000e+00 dq 0.000e+00；|vec|/标量 比值中位 0.9971（相对误差 p99 中位 0.251，max 最大 9.98e-01）；floor 以下点比例（全帧）中位 0.0172，峰值帧 0.0000
+异常病例： 无
+波形：峰值帧 21（应为 21）谷底帧 48，Q_min/Q_peak 0.0030，Q_mean/Q_peak 0.3102
+  stats train136: 136 例, 全帧 log mean -0.7329 std 1.2933; 峰值帧 mean 0.6375 std 1.2951; 谷底帧 mean -1.7935 (帧 7) ; floor 以下 0.0290
+  stats fold0: 90 例, 全帧 log mean -0.7254 std 1.2943; 峰值帧 mean 0.6429 std 1.2983; 谷底帧 mean -1.7853 (帧 7) ; floor 以下 0.0288
+  stats fold1: 90 例, 全帧 log mean -0.7576 std 1.2881; 峰值帧 mean 0.5983 std 1.3030; 谷底帧 mean -1.8120 (帧 7) ; floor 以下 0.0296
+  stats fold2: 92 例, 全帧 log mean -0.7148 std 1.2974; 峰值帧 mean 0.6731 std 1.2824; 谷底帧 mean -1.7825 (帧 7) ; floor 以下 0.0286
+wrote d0_contract_audit.json

@@ -1,0 +1,174 @@
+{
+  "generated_at": "2026-09-09T11:38:17.417611+00:00",
+  "source": "config_matrix agent tool transcript; tests were executed once before core freeze and not rerun for this record",
+  "working_directory": "/public/newhome/cy/Digital_twin/GNN",
+  "passed": true,
+  "test_commands": [
+    {
+      "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /public/newhome/cy/.conda/envs/GNN/bin/python -m unittest training_wss_min.tests.test_v6_multiradius_modules -v",
+      "exit_code": 0,
+      "test_count": 10,
+      "reported_runtime_seconds": 1.211,
+      "result": "OK"
+    },
+    {
+      "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /public/newhome/cy/.conda/envs/GNN/bin/python -m unittest training_wss_min.tests.test_v6_followup_matrix training_wss_min.tests.test_v6_singleframe_modules -q",
+      "exit_code": 0,
+      "test_count": 28,
+      "reported_runtime_seconds": 0.54,
+      "result": "OK"
+    }
+  ],
+  "total_test_count": 38,
+  "final_readonly_config_audit": [
+    {
+      "id": "MS1",
+      "checks": {
+        "data_identical_to_M2": true,
+        "train_identical_to_M2": true,
+        "eval_identical_to_M2": true,
+        "original_model_fields_unchanged": true,
+        "no_unregistered_model_fields": true,
+        "final_cap32": true,
+        "radii": true,
+        "bt_mode": true,
+        "ffn_mode": true,
+        "no_legacy_global_module": true,
+        "common_context": true,
+        "run_name_matches": true
+      }
+    },
+    {
+      "id": "MS2",
+      "checks": {
+        "data_identical_to_M2": true,
+        "train_identical_to_M2": true,
+        "eval_identical_to_M2": true,
+        "original_model_fields_unchanged": true,
+        "no_unregistered_model_fields": true,
+        "final_cap32": true,
+        "radii": true,
+        "bt_mode": true,
+        "ffn_mode": true,
+        "no_legacy_global_module": true,
+        "common_context": true,
+        "run_name_matches": true
+      }
+    },
+    {
+      "id": "MS3",
+      "checks": {
+        "data_identical_to_M2": true,
+        "train_identical_to_M2": true,
+        "eval_identical_to_M2": true,
+        "original_model_fields_unchanged": true,
+        "no_unregistered_model_fields": true,
+        "final_cap32": true,
+        "radii": true,
+        "bt_mode": true,
+        "ffn_mode": true,
+        "no_legacy_global_module": true,
+        "common_context": true,
+        "run_name_matches": true
+      }
+    },
+    {
+      "id": "MS4",
+      "checks": {
+        "data_identical_to_M2": true,
+        "train_identical_to_M2": true,
+        "eval_identical_to_M2": true,
+        "original_model_fields_unchanged": true,
+        "no_unregistered_model_fields": true,
+        "final_cap32": true,
+        "radii": true,
+        "bt_mode": true,
+        "ffn_mode": true,
+        "no_legacy_global_module": true,
+        "common_context": true,
+        "run_name_matches": true
+      }
+    },
+    {
+      "id": "MS5",
+      "checks": {
+        "data_identical_to_M2": true,
+        "train_identical_to_M2": true,
+        "eval_identical_to_M2": true,
+        "original_model_fields_unchanged": true,
+        "no_unregistered_model_fields": true,
+        "final_cap32": true,
+        "radii": true,
+        "bt_mode": true,
+        "ffn_mode": true,
+        "no_legacy_global_module": true,
+        "common_context": true,
+        "run_name_matches": true
+      }
+    },
+    {
+      "id": "MS6",
+      "checks": {
+        "data_identical_to_M2": true,
+        "train_identical_to_M2": true,
+        "eval_identical_to_M2": true,
+        "original_model_fields_unchanged": true,
+        "no_unregistered_model_fields": true,
+        "final_cap32": true,
+        "radii": true,
+        "bt_mode": true,
+        "ffn_mode": true,
+        "no_legacy_global_module": true,
+        "common_context": true,
+        "run_name_matches": true
+      }
+    }
+  ],
+  "material_issues": [],
+  "manual_model_review": {
+    "grouping": "shared FPS indices; one per-case stable distance ordering; exact center self identity first; nearest-within-radius cap32; ragged real edges only; no cross-case grouping",
+    "geometry": "independent local and GeoPE per branch; same 3 semantic indices and normalized relative-position definition as original SA3; full 25D centre condition per branch all6",
+    "global_context": "independent 1-layer 256-dim 8-head BT on32 centres, or per-token LayerNorm FFN; no added global module in MS1/MS3",
+    "fusion": "single branch direct; triple concat projection initialized middle [0,I,0]; same MS4/MS5 parameters",
+    "historical_path": "original SA3 replaced before forward and optimizer; initial construction preserves all inherited weights; substream initialization preserves CPU RNG; disabled CPU state/output exact to launch13205 source",
+    "near_wall_and_outputs": "original multi-radius wall branch, independent query and3NN FP/decode retained; only peak scalar WSS"
+  },
+  "parameter_control": {
+    "provenance": "actual ExpConfig/build_model parameter inspection reported before final cap32 update; cap is not a trainable dimension and leaves counts unchanged",
+    "full_model_parameters": {
+      "MS1": 657063,
+      "MS2": 1184281,
+      "MS3": 1337767,
+      "MS4": 2919421,
+      "MS5": 2919421,
+      "MS6": 2919088
+    },
+    "MS6_hidden_width": 1026,
+    "per_BT_layer_parameters": 527218,
+    "per_FFN_layer_parameters": 527107,
+    "FFN_relative_parameter_difference": -0.0002105390938852425,
+    "MS6_vs_MS4_full_model_relative_parameter_difference": -0.00011406371331845744,
+    "full_model_MS4_MS5_exact_equal": true
+  },
+  "sha256": {
+    "training_wss_min/baseline_models.py": "5c0ecb057f7dc52a36bf18da3b34774556d1253b4d1a58291362ea6a8de8c9f2",
+    "training_wss_min/config.py": "0c74916cdeb8fd84f1450ebe5081ee7752d4ae1f2a5218dac9dc3317bfdc3ccd",
+    "training_wss_min/models.py": "89dd1917894ccacf9a019be40565cc00696ff7f4ee21fa23f37924b25cf4f365",
+    "training_wss_min/tests/test_v6_multiradius_modules.py": "97d4a24dde2166325172dcebf79ae8bfbada4d2e110df7015ab19b454117fcdb",
+    "training_wss_min/tests/test_v6_followup_matrix.py": "ad43851ffd78970f04276882e067fce02c4d866dc84992a47bd6c84a735488e7",
+    "training_wss_min/tests/test_v6_singleframe_modules.py": "92485d3916dd4daa689b358c2ef1e7c01d13cf012d28893c5f154c1f0b50bce1",
+    "training_wss_min/experiments/v6_followup_20260909/source_snapshot_13205/training_wss_min/baseline_models.py": "af7c9e3f87d0e1a4da40bbfec13de66a0024e3f6075dd4e2edb1254f48106455",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS1_m2_single_r020_s1234.json": "da2d8039b28e527cf63bf3d6b1fb7abc17d09ee564ace7faccbc0d770d2c3e08",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS2_m2_single_r020_bt_s1234.json": "d7c9de4f72015f1cb64e0e25da263c50caa3081927de075524ca9ba73a100e64",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS3_m2_multi_r010_r020_r040_s1234.json": "893dff34a12a02341e022b9d744f6dc735920c2edad9c937474314a1970cc5c1",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS4_m2_multi_r010_r020_r040_bt_s1234.json": "1db53c3f31ee464010e83d4e49bf0e87af5cdaf0f2e96c30588a19cc8b1a190d",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS5_m2_multi_r020x3_bt_s1234.json": "3162455125789e9cba240d8e5108bbe660cf9caec5a2a2b2ce7b66c83f225751",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/MS6_m2_multi_r010_r020_r040_ffn_s1234.json": "c6fd70538f6874ba50fe49ba9ad884524a617b09ca538bb12227b9c8f6322869",
+    "training_wss_min/configs/v6_multiradius_bt_20260909/matrix.json": "1cb30a1b7ae322f8e24036311e24438c1f3c6d28f73a28da83ce004e980074af"
+  },
+  "limits": [
+    "Test evidence is transcribed from tool output, not a new test run. GPU runtime/smoke evidence is owned by root and recorded separately.",
+    "MS1 versus historical M2 includes new nearest ordering, final cap16->32, centre conditioning and a new SA3 initialization substream; this is the declared bridge contrast, not a pure attention contrast.",
+    "Single seed and exposed test34 support exploratory comparisons. New geometry G/M6 remains unexecuted."
+  ]
+}

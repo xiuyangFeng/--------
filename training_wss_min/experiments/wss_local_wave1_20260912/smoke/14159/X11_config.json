@@ -1,0 +1,190 @@
+{
+  "name": "wss_local_wave1_20260912_smoke/job_14159_X11",
+  "notes": "wave-1 local-information screening X11: S3 centreline section-token context replacing the per-case FiLM vector; modules=['section']; single seed.",
+  "data": {
+    "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+    "required_frame_version": "v5_atlas_frame_v1",
+    "split_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_local_wave1_20260912/smoke/14159/split.json",
+    "wss_stats_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+    "wall_n_points": 5000,
+    "sampling": "random",
+    "support_n_points": 5000,
+    "support_sampling": "random",
+    "query_mode": "independent",
+    "query_n_points": 5000,
+    "query_sampling": "random",
+    "resample_each_epoch": true,
+    "rot_aug": false,
+    "input_features": [
+      "x",
+      "y",
+      "z",
+      "abscissa_norm",
+      "local_radius",
+      "curvature",
+      "log_local_radius",
+      "rho",
+      "theta_sin",
+      "theta_cos",
+      "dr_ds",
+      "dist_to_junction_mm",
+      "dist_to_endpoint_mm",
+      "end_zone",
+      "nx_aligned",
+      "ny_aligned",
+      "nz_aligned",
+      "curv_k1",
+      "curv_k2",
+      "curv_gauss",
+      "curvedness",
+      "curv_k1_c",
+      "curv_k2_c",
+      "curv_gauss_c",
+      "tn_dot"
+    ],
+    "curvature_transform": "signed_log1p",
+    "timesteps": "peak",
+    "target": "wss",
+    "target_normalization": "global_stats",
+    "num_workers": 4,
+    "persistent_workers": false,
+    "feature_stats_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+    "case_features_path": null,
+    "point_features_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+    "local_geometry": true,
+    "query_patch_nsample": 16,
+    "section_tokens": true
+  },
+  "model": {
+    "name": "pointnetpp",
+    "width": 32,
+    "sa_ratios": [
+      0.25,
+      0.25,
+      0.25
+    ],
+    "sa_radius": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "sa_nsample": [
+      64,
+      16,
+      16
+    ],
+    "sa_blocks": [
+      1,
+      1,
+      0
+    ],
+    "sa_center_sampling": "fps",
+    "sa_center_counts": [
+      125,
+      125,
+      32
+    ],
+    "fp_knn": 3,
+    "head_hidden": 64,
+    "out_dim": 1,
+    "dropout": 0,
+    "sa_grouping": [
+      "knn_cover",
+      "ball",
+      "ball"
+    ],
+    "invres_expansion": 2,
+    "residual_scale_init": 0.001,
+    "invres_radius_scale": 1.0,
+    "query_decoder": "interpolate",
+    "local_geope": true,
+    "local_geope_feature_indices": [
+      3,
+      4,
+      5
+    ],
+    "drop_path_rate": 0.1,
+    "local_transformer_stages": [
+      2
+    ],
+    "coarse_attention": false,
+    "coarse_attention_heads": 4,
+    "sep_hidden": 32,
+    "sep_beta_init": 2.0,
+    "neighbor_drop_rate": 0.0,
+    "local_transformer_heads": 4,
+    "local_transformer_ffn_ratio": 2,
+    "local_transformer_dropout": 0.0,
+    "edgeconv_stages": [],
+    "local_branch": true,
+    "local_branch_radii": [
+      0.015,
+      0.03,
+      0.06
+    ],
+    "local_branch_nsample": [
+      16,
+      16,
+      16
+    ],
+    "local_branch_channels": 32,
+    "local_branch_feature_indices": [
+      14,
+      15,
+      16
+    ],
+    "local_branch_directional": true,
+    "query_patch_film": true,
+    "query_patch_k": 16,
+    "query_patch_hidden": 64,
+    "section_context": true,
+    "section_context_bin_mm": 4.0,
+    "section_context_max_bins": 64,
+    "section_context_layers": 2,
+    "section_context_heads": 4,
+    "section_context_hidden": 128
+  },
+  "train": {
+    "epochs": 2,
+    "batch_cases": 8,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 10,
+    "min_lr": 1e-05,
+    "grad_clip": 1,
+    "seed": 1234,
+    "loss": "mse",
+    "loss_geom_weight": false,
+    "loss_weight_target": false,
+    "loss_weight_fixed_quantiles": true,
+    "loss_raw_huber_lambda": 0,
+    "amp": true,
+    "eval_every": 2,
+    "ckpt_metric": "train_loss",
+    "selection_rule": "train_loss",
+    "ckpt_top_k": 3,
+    "early_stop_patience": 0,
+    "min_epoch": 2,
+    "log_every_steps": 0,
+    "loss_hotspot_bce_lambda": 0.0,
+    "hotspot_quantile": 0.9,
+    "loss_pinball_lambda": 0.2,
+    "pinball_quantile": 0.9,
+    "log_loss_components": true,
+    "init_reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+  },
+  "eval": {
+    "fixed_support": true,
+    "full_cloud_query": true,
+    "query_chunk_size": 16384,
+    "support_seed": 1234,
+    "surface_metric_mode": "legacy_vertex",
+    "stability_seeds": [
+      1234,
+      2025,
+      3407,
+      7919,
+      104729
+    ]
+  }
+}

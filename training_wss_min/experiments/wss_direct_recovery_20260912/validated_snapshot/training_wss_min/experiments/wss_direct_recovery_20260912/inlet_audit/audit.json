@@ -1,0 +1,3125 @@
+{
+  "status": "pass",
+  "cases_expected": 172,
+  "cases_passed": 172,
+  "public_waveform_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/protocol_inlet_waveform.json",
+  "public_waveform_sha256": "d2145a82630e8aaa7594e452c2b286ee7d8a6b4769b11edeef1c8723ad164817",
+  "feature_definition": "public protocol peak Q [m^3/s] / sum norm(frozen inlet face area vectors) [m^2]",
+  "interpretation": "Geometry-dependent reference speed under the common inlet protocol; not patient-specific flow information.",
+  "input_provenance": "Frozen inlet boundary mesh geometry; same inlet surface can be triangulated at deployment. No flow solution needed.",
+  "read_allowlist": [
+    "wall_static/node_id_cas",
+    "wall_static/xyz_mm",
+    "wall_static/atlas_row",
+    "geometry/atlas_table",
+    "interfaces/inlet/face_area_vec_m2",
+    "conditions/q_nom_m3s (public equality audit only)"
+  ],
+  "excluded_inputs": [
+    "CFD velocity",
+    "CFD pressure",
+    "WSS labels",
+    "measured inlet flux",
+    "RCR",
+    "unreviewed replacement centerline"
+  ],
+  "records": [
+    {
+      "unit_id": "AAA/ruputer/DING_JUN_FENG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/DING_JUN_FENG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__DING_JUN_FENG/case.h5",
+      "geometry_shape": [
+        55763,
+        8
+      ],
+      "geometry_sha256": "d58b85d559554591e33932c7c7a27aaae548b198a04d497583ee2a4277c8dd76",
+      "inlet_area_vectors_sha256": "b9ce4d171d96bf09f08cd067970b796c746aba55aa658f2ad826a10154962473",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 158.86001586914062,
+      "inlet_area_m2": 0.00039038267507217334,
+      "inlet_planarity": 0.9999999999999989,
+      "inlet_velocity_nominal_m_s": 0.27477927020529613
+    },
+    {
+      "unit_id": "AAA/ruputer/FENG_LI_XIN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/FENG_LI_XIN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__FENG_LI_XIN/case.h5",
+      "geometry_shape": [
+        21644,
+        8
+      ],
+      "geometry_sha256": "91ed633d624f1f44d47c2707ef7dd11a5b567c6caf808b55fbc80dc70c8dd85c",
+      "inlet_area_vectors_sha256": "0c4bd8a3d8d8168806323056b725c8933a3407b197149118bd58cfdf7f6a10e4",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 196.13046264648438,
+      "inlet_area_m2": 0.0004617360728641927,
+      "inlet_planarity": 0.9999999996511433,
+      "inlet_velocity_nominal_m_s": 0.23231684258871707
+    },
+    {
+      "unit_id": "AAA/ruputer/GAO_FENG_SHAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/GAO_FENG_SHAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__GAO_FENG_SHAN/case.h5",
+      "geometry_shape": [
+        48245,
+        8
+      ],
+      "geometry_sha256": "49aa2c242c8f55a81bfd8b89ee0f953bbc77e8ca3df129a44bba4c5379b95e51",
+      "inlet_area_vectors_sha256": "fb2f0d530067489df0bb75936e1082e75e4812d6a6bc7a7fe98eafb70d322e1f",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 167.70230102539062,
+      "inlet_area_m2": 0.0006293975818461355,
+      "inlet_planarity": 0.9999999999999969,
+      "inlet_velocity_nominal_m_s": 0.17043132933953087
+    },
+    {
+      "unit_id": "AAA/ruputer/GUO_AI_JUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/GUO_AI_JUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__GUO_AI_JUN/case.h5",
+      "geometry_shape": [
+        13824,
+        8
+      ],
+      "geometry_sha256": "30f48afa914634e3a3039ba8b6e8b07ee88070b1f74e627cc55a0ffdd31e577f",
+      "inlet_area_vectors_sha256": "25fa4524e145a5fbfae53ea4282b614e5912e00699d56a5ecdb703c9cb6ebfd8",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 194.6870574951172,
+      "inlet_area_m2": 0.000617030137598088,
+      "inlet_planarity": 0.9999999996786543,
+      "inlet_velocity_nominal_m_s": 0.17384736987838084
+    },
+    {
+      "unit_id": "AAA/ruputer/HUO_SHI_LIANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/HUO_SHI_LIANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__HUO_SHI_LIANG/case.h5",
+      "geometry_shape": [
+        61662,
+        8
+      ],
+      "geometry_sha256": "55c6b4348a108163adb9ead8f2858207c96c5c24da1878f6a4acc763033b0ff0",
+      "inlet_area_vectors_sha256": "cf041cdf86859197ad7737e98299d5df5ca90b668bb9a4dd95cfc5c330647266",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 176.4888458251953,
+      "inlet_area_m2": 0.00035074784051891016,
+      "inlet_planarity": 0.9999999999998436,
+      "inlet_velocity_nominal_m_s": 0.3058295851470531
+    },
+    {
+      "unit_id": "AAA/ruputer/LIN_LIANG_XIAO",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/LIN_LIANG_XIAO/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__LIN_LIANG_XIAO/case.h5",
+      "geometry_shape": [
+        68779,
+        8
+      ],
+      "geometry_sha256": "7754fbd7c1fcce979d5eac47a93eb3d4fe9d0bb16da0037dbdd252fc1170c0b5",
+      "inlet_area_vectors_sha256": "b8a516dad7be326a29865a9da3deb9fdc0fbddfcadd57a2ac22539e1d180041b",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 174.4195556640625,
+      "inlet_area_m2": 0.0005132973953606912,
+      "inlet_planarity": 0.9999999999999905,
+      "inlet_velocity_nominal_m_s": 0.20898034458512235
+    },
+    {
+      "unit_id": "AAA/ruputer/LIU_JI_XIN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/LIU_JI_XIN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__LIU_JI_XIN/case.h5",
+      "geometry_shape": [
+        55752,
+        8
+      ],
+      "geometry_sha256": "4c7047009a6de9653536f1153dc7c3a7f7c381d8af8711aed07ccfee8fd94fc2",
+      "inlet_area_vectors_sha256": "933f6a9768cee79f7c4152b28004d7cf137343cc93b07f23b28c8b3fb7152d05",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 188.1941375732422,
+      "inlet_area_m2": 0.0003892999561396261,
+      "inlet_planarity": 0.9999999999998329,
+      "inlet_velocity_nominal_m_s": 0.2755434848254902
+    },
+    {
+      "unit_id": "AAA/ruputer/LIU_YONG_LAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/LIU_YONG_LAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__LIU_YONG_LAN/case.h5",
+      "geometry_shape": [
+        103697,
+        8
+      ],
+      "geometry_sha256": "6961606a1f0077edc63ce5cbd92e2d70e0bbdb1eebbd82468336857611159d79",
+      "inlet_area_vectors_sha256": "8b765f3d1eb5af3626ee305141f3f591b11da7e7f723232589558563ef558c33",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 171.36709594726562,
+      "inlet_area_m2": 0.0003758700546088575,
+      "inlet_planarity": 0.9999999999999997,
+      "inlet_velocity_nominal_m_s": 0.28538870080711987
+    },
+    {
+      "unit_id": "AAA/ruputer/LI_BING_JIANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/LI_BING_JIANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__LI_BING_JIANG/case.h5",
+      "geometry_shape": [
+        83987,
+        8
+      ],
+      "geometry_sha256": "73080cdae990c768cd58ba9886e671dea27f10fb51c38f83a2a9183530de1ac4",
+      "inlet_area_vectors_sha256": "f3314eed9920a9dcce7f7d17ce4edfae6c47077b120343c9d3d9e4b5bf28e73c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 167.90309143066406,
+      "inlet_area_m2": 0.0006525152171766014,
+      "inlet_planarity": 0.999999999999985,
+      "inlet_velocity_nominal_m_s": 0.16439320299880605
+    },
+    {
+      "unit_id": "AAA/ruputer/LI_LAO_PING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/LI_LAO_PING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__LI_LAO_PING/case.h5",
+      "geometry_shape": [
+        83854,
+        8
+      ],
+      "geometry_sha256": "8e9e979ffe2302b8f66de0297d17f6afed126a321df4fdf853e481f71600b175",
+      "inlet_area_vectors_sha256": "97c74831929e936f002e5cd29e1a216d1328ffd0e7338860b6621a91c57a536a",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 181.9910430908203,
+      "inlet_area_m2": 0.000303315662549187,
+      "inlet_planarity": 0.9999999999998971,
+      "inlet_velocity_nominal_m_s": 0.3536548876361696
+    },
+    {
+      "unit_id": "AAA/ruputer/MA_XIAO_DONG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/MA_XIAO_DONG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__MA_XIAO_DONG/case.h5",
+      "geometry_shape": [
+        65455,
+        8
+      ],
+      "geometry_sha256": "b3ee38ae78b519fa34cb66f320717c76b58dea39cb2a0f48b35c6067ca97767b",
+      "inlet_area_vectors_sha256": "22e19689fabb136526e35804fa157b2d6ced79921dba45e3015c9ee2db1e59e8",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 144.60450744628906,
+      "inlet_area_m2": 0.00030637769914633944,
+      "inlet_planarity": 0.9999999999999993,
+      "inlet_velocity_nominal_m_s": 0.35012034771462475
+    },
+    {
+      "unit_id": "AAA/ruputer/MENG_GUANG_QIN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/MENG_GUANG_QIN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__MENG_GUANG_QIN/case.h5",
+      "geometry_shape": [
+        14527,
+        8
+      ],
+      "geometry_sha256": "7b242cc0fea15d9491a02e09b4e9d699bebb8bab4c9ab2c2fedf5a2ac43c81b9",
+      "inlet_area_vectors_sha256": "4c3bee0a4880d2459dcc4ce4e244b328599dd615f2627cc98f619e461efee2f7",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 191.0433807373047,
+      "inlet_area_m2": 0.0004599939629028691,
+      "inlet_planarity": 0.9999999998418719,
+      "inlet_velocity_nominal_m_s": 0.23319668345250358
+    },
+    {
+      "unit_id": "AAA/ruputer/TONG_XUE_LIAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/TONG_XUE_LIAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__TONG_XUE_LIAN/case.h5",
+      "geometry_shape": [
+        84820,
+        8
+      ],
+      "geometry_sha256": "f86a033508d8af6064ddb346cc636d2cad72e4680d0a57707916880600bb5119",
+      "inlet_area_vectors_sha256": "9c6c65376a63b8e5cf16ed807e25a13d701e2a9fa0ad68c3d0bf61b42f4d13a9",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 141.17808532714844,
+      "inlet_area_m2": 0.00037678572546556753,
+      "inlet_planarity": 0.9999999999999996,
+      "inlet_velocity_nominal_m_s": 0.2846951445004405
+    },
+    {
+      "unit_id": "AAA/ruputer/WANG_AN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/WANG_AN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__WANG_AN/case.h5",
+      "geometry_shape": [
+        15849,
+        8
+      ],
+      "geometry_sha256": "6ac3b0fe435885707eb0609f1fec073d67c452aa7177eca0d44ca42fea9ad1c4",
+      "inlet_area_vectors_sha256": "ac904e70e053500d5e0c968efa870856018cf9b151e2f9238afba8a5b3d07688",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 189.10067749023438,
+      "inlet_area_m2": 0.000500685991109529,
+      "inlet_planarity": 0.9999999998366869,
+      "inlet_velocity_nominal_m_s": 0.214244193889693
+    },
+    {
+      "unit_id": "AAA/ruputer/WANG_KUI_WU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/WANG_KUI_WU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__WANG_KUI_WU/case.h5",
+      "geometry_shape": [
+        72309,
+        8
+      ],
+      "geometry_sha256": "be9a8159339d25de7f306b413d4f6cf08abb03e078e616229b6d5e8cb2ec3690",
+      "inlet_area_vectors_sha256": "3af290749ce6ee9d53fc63d82f6c83aef11d296a6c4a8e32246a1b4ae0acb5aa",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 155.5236358642578,
+      "inlet_area_m2": 0.000574818797982422,
+      "inlet_planarity": 1.0000000000000007,
+      "inlet_velocity_nominal_m_s": 0.18661370667353044
+    },
+    {
+      "unit_id": "AAA/ruputer/WU_GUANG_CUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/WU_GUANG_CUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__WU_GUANG_CUN/case.h5",
+      "geometry_shape": [
+        15910,
+        8
+      ],
+      "geometry_sha256": "a40c9dd9f0584d88cf5fe22e841befa35acf63c0dc52d3bab5ab32784bada325",
+      "inlet_area_vectors_sha256": "78f673b5bd28bffb8d41f093a47abba23ca3a87e241612ecc828647d6c71ac45",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 208.7197723388672,
+      "inlet_area_m2": 0.0005155785912101148,
+      "inlet_planarity": 0.999999999696656,
+      "inlet_velocity_nominal_m_s": 0.20805570360350256
+    },
+    {
+      "unit_id": "AAA/ruputer/XIE_JIN_QUAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/XIE_JIN_QUAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__XIE_JIN_QUAN/case.h5",
+      "geometry_shape": [
+        73350,
+        8
+      ],
+      "geometry_sha256": "a4bc138ba4ab73d8eecdc57dc70af18ba650318c3ed0d5968fddb8fbf480a5ac",
+      "inlet_area_vectors_sha256": "bc42a0bbd33945643080a7bd837eb077ac17e3b636a8f5a31393e9c86e2c7036",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 166.1393280029297,
+      "inlet_area_m2": 0.0006965770640282939,
+      "inlet_planarity": 0.9999999999999838,
+      "inlet_velocity_nominal_m_s": 0.1539945428820004
+    },
+    {
+      "unit_id": "AAA/ruputer/ZHANG_MAO_JIN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/ZHANG_MAO_JIN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__ZHANG_MAO_JIN/case.h5",
+      "geometry_shape": [
+        94308,
+        8
+      ],
+      "geometry_sha256": "003a26fab43faf658e86f886dae78b56b74ff33ccb38714fad38b9e03ace7071",
+      "inlet_area_vectors_sha256": "40b6b116f034c9f6cd1cc8d7b4c897d68521dedd3a7f651952a37713d4315888",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 154.8607177734375,
+      "inlet_area_m2": 0.0005786634259476863,
+      "inlet_planarity": 0.9999999999999046,
+      "inlet_velocity_nominal_m_s": 0.18537384902363027
+    },
+    {
+      "unit_id": "AAA/ruputer/ZHOU_KE_XUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/ZHOU_KE_XUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__ZHOU_KE_XUN/case.h5",
+      "geometry_shape": [
+        79783,
+        8
+      ],
+      "geometry_sha256": "c63dae88ddcf7c406bb5f38d37e9809fcc907c9a75aeb261e536d4332b3fe0a9",
+      "inlet_area_vectors_sha256": "c77e8f60d98426f22a9eb27b19bd5a8a3dfb2391a88cef8b9ee2fa8577fdb5bf",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 168.68771362304688,
+      "inlet_area_m2": 0.0006934806673470121,
+      "inlet_planarity": 0.9999999999999434,
+      "inlet_velocity_nominal_m_s": 0.1546821297376506
+    },
+    {
+      "unit_id": "AAA/ruputer/ZOU_LI_SHUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/ZOU_LI_SHUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__ZOU_LI_SHUN/case.h5",
+      "geometry_shape": [
+        14609,
+        8
+      ],
+      "geometry_sha256": "ea2eb2c2939db5c5346673923b7150797bad781bb1eb6cff0d367ebecea6f6c1",
+      "inlet_area_vectors_sha256": "6d8d886a47d319ae15bfd37a6288c4f54340f118958b4271fc3ec61331fa1c53",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 185.42222595214844,
+      "inlet_area_m2": 0.0006016155045002316,
+      "inlet_planarity": 0.999999999857481,
+      "inlet_velocity_nominal_m_s": 0.17830169893349507
+    },
+    {
+      "unit_id": "AAA/ruputer/ZUO_DAO_SHENG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/ZUO_DAO_SHENG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__ZUO_DAO_SHENG/case.h5",
+      "geometry_shape": [
+        74419,
+        8
+      ],
+      "geometry_sha256": "187621a2e3a1892189d541580f79546c4705cc54edf6a6618881e726f0fd7336",
+      "inlet_area_vectors_sha256": "bdef5125c2439ac0e607997bd82584bb2ea02e258ebc12c1dc90deb477987f3b",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 156.95059204101562,
+      "inlet_area_m2": 0.0005101191240304224,
+      "inlet_planarity": 0.9999999999999609,
+      "inlet_velocity_nominal_m_s": 0.21028238602308458
+    },
+    {
+      "unit_id": "AAA/unruputer/CAO_HONG_TAI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/CAO_HONG_TAI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__CAO_HONG_TAI/case.h5",
+      "geometry_shape": [
+        17197,
+        8
+      ],
+      "geometry_sha256": "b0412ca0f1b7cc74370e9eae414443b56d2b887e13a76b28ac3868c960d0a1da",
+      "inlet_area_vectors_sha256": "2ca277e39b30f6501d4170709b47d5d701955851667750c4931e237d94a8fe48",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 222.03311157226562,
+      "inlet_area_m2": 0.0007416148775043422,
+      "inlet_planarity": 0.9999999998474428,
+      "inlet_velocity_nominal_m_s": 0.1446425494025974
+    },
+    {
+      "unit_id": "AAA/unruputer/CHEN_FU_YE",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/CHEN_FU_YE/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__CHEN_FU_YE/case.h5",
+      "geometry_shape": [
+        14037,
+        8
+      ],
+      "geometry_sha256": "8525ae345b9e9f099c54fa5d075b10aafdf3f010e4be8b2bc1977805e16c1afa",
+      "inlet_area_vectors_sha256": "e4b6c6fa402ac61dcbfc806dd1968543ce90ebca811998d9106821e7fac2687f",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 191.16732788085938,
+      "inlet_area_m2": 0.0005383246316839354,
+      "inlet_planarity": 0.9999999997245761,
+      "inlet_velocity_nominal_m_s": 0.19926464486972156
+    },
+    {
+      "unit_id": "AAA/unruputer/CHEN_LIANG_FU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/CHEN_LIANG_FU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__CHEN_LIANG_FU/case.h5",
+      "geometry_shape": [
+        95249,
+        8
+      ],
+      "geometry_sha256": "b0ea6618c385102e407783b73436fef153fc91a4fb5519eca6bd3d2b3acaeb58",
+      "inlet_area_vectors_sha256": "5e7b41ece8925c5e3fb70f96300dc645f9cd3030a558beb50e3b621d5059c532",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 136.0863800048828,
+      "inlet_area_m2": 0.0006033629567473885,
+      "inlet_planarity": 0.9999999999999983,
+      "inlet_velocity_nominal_m_s": 0.17778530378362895
+    },
+    {
+      "unit_id": "AAA/unruputer/CHEN_SHU_LIN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/CHEN_SHU_LIN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__CHEN_SHU_LIN/case.h5",
+      "geometry_shape": [
+        19687,
+        8
+      ],
+      "geometry_sha256": "7ba0125c1d7a8ee457281354ee1e683c543e6669be8cded04ccfc0ce40864f58",
+      "inlet_area_vectors_sha256": "d193fb3dd473c3cb91f67090cc4e183dfc95c364e2e4ee72ade4c1b2688d026c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 188.7494354248047,
+      "inlet_area_m2": 0.0005537703143889097,
+      "inlet_planarity": 0.9999999998602233,
+      "inlet_velocity_nominal_m_s": 0.19370678378723744
+    },
+    {
+      "unit_id": "AAA/unruputer/FENG_ZHI_YING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/FENG_ZHI_YING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__FENG_ZHI_YING/case.h5",
+      "geometry_shape": [
+        72600,
+        8
+      ],
+      "geometry_sha256": "d6db2229e924fa01e3ef6b088afaab2726539e53c76e93404ca7550d4488dea8",
+      "inlet_area_vectors_sha256": "f35bb44638885bfd7eda978aa8ac1400d5c4b1cb19a770b3e73c192869de25ca",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 178.25045776367188,
+      "inlet_area_m2": 0.00041950159063195976,
+      "inlet_planarity": 0.9999999999998016,
+      "inlet_velocity_nominal_m_s": 0.25570598289157176
+    },
+    {
+      "unit_id": "AAA/unruputer/GAO_WEI_LI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/GAO_WEI_LI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__GAO_WEI_LI/case.h5",
+      "geometry_shape": [
+        13879,
+        8
+      ],
+      "geometry_sha256": "f101570461453adc9a8dc39ad6683dd420d54159a8fb63dfbade21310a2016a7",
+      "inlet_area_vectors_sha256": "494c836b9a933d1c5ed5db3c888d47e8eee1302bf84265b6713a548acb9ec8b6",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 138.86692810058594,
+      "inlet_area_m2": 0.00044217781585295006,
+      "inlet_planarity": 0.9999999997330543,
+      "inlet_velocity_nominal_m_s": 0.2425926012371373
+    },
+    {
+      "unit_id": "AAA/unruputer/GUO_BAO_CHUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/GUO_BAO_CHUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__GUO_BAO_CHUN/case.h5",
+      "geometry_shape": [
+        65270,
+        8
+      ],
+      "geometry_sha256": "e9f66f80e0bda724bb920ccc974641870680c33bc63a406ed2e5b9d9e17c7882",
+      "inlet_area_vectors_sha256": "219a62ca2fb82803b040d3e1ca57308f266045ed2c0c557dca24bd56683bfc79",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 154.06663513183594,
+      "inlet_area_m2": 0.0006842058038873211,
+      "inlet_planarity": 0.9999999999999986,
+      "inlet_velocity_nominal_m_s": 0.1567789485965669
+    },
+    {
+      "unit_id": "AAA/unruputer/HAN_JIAN_FU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/HAN_JIAN_FU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__HAN_JIAN_FU/case.h5",
+      "geometry_shape": [
+        82417,
+        8
+      ],
+      "geometry_sha256": "a197a865b3e4016ef02935d961296d3dc2d7873266433f7862289c4568e724d3",
+      "inlet_area_vectors_sha256": "00ad560f7e50b04a68a10aa8e3735c6f8ed23b47a36fcd5999d23292ee9c5fb2",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 189.20729064941406,
+      "inlet_area_m2": 0.0005183766045991666,
+      "inlet_planarity": 0.9999999999999986,
+      "inlet_velocity_nominal_m_s": 0.20693269257409597
+    },
+    {
+      "unit_id": "AAA/unruputer/LIN_JIAN_RONG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/LIN_JIAN_RONG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__LIN_JIAN_RONG/case.h5",
+      "geometry_shape": [
+        68653,
+        8
+      ],
+      "geometry_sha256": "2ccf6ff4be4d997df9bd66406034145a83edae801d2fee3541fa5b4ba5067a5b",
+      "inlet_area_vectors_sha256": "a2a02f916cc42f06fd774263190d4e285e28323703eeb3bac877385642b6483d",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 185.7583465576172,
+      "inlet_area_m2": 0.00029215898043458296,
+      "inlet_planarity": 0.9999999999995094,
+      "inlet_velocity_nominal_m_s": 0.3671599154595953
+    },
+    {
+      "unit_id": "AAA/unruputer/LIU_CHENG_ZHANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/LIU_CHENG_ZHANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__LIU_CHENG_ZHANG/case.h5",
+      "geometry_shape": [
+        54589,
+        8
+      ],
+      "geometry_sha256": "c1833f3c9b7f3a0d345426f68d6af88623cda87df505bed064cd7a8dd91ade10",
+      "inlet_area_vectors_sha256": "5430fde9e4e5a874b98163e7be88c4886c2b15ff2a8a342c2960e3cb13719358",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 151.67318725585938,
+      "inlet_area_m2": 0.0004894602100662293,
+      "inlet_planarity": 0.9999999999999858,
+      "inlet_velocity_nominal_m_s": 0.21915788934632371
+    },
+    {
+      "unit_id": "AAA/unruputer/LIU_JIE",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/LIU_JIE/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__LIU_JIE/case.h5",
+      "geometry_shape": [
+        63467,
+        8
+      ],
+      "geometry_sha256": "bedf83fbd4d7d497c14eceaf98c9ea402916976378d2f1076ff6d3b94eeaded5",
+      "inlet_area_vectors_sha256": "0ddce9c6f7dbaf962f5ad941c010f30981bbb174fa8228d8b3f57201249168e7",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 181.77874755859375,
+      "inlet_area_m2": 0.000621814430476716,
+      "inlet_planarity": 0.9999999999999984,
+      "inlet_velocity_nominal_m_s": 0.172509773494457
+    },
+    {
+      "unit_id": "AAA/unruputer/LIU_LI_FENG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/LIU_LI_FENG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__LIU_LI_FENG/case.h5",
+      "geometry_shape": [
+        63758,
+        8
+      ],
+      "geometry_sha256": "0ab4e3fd107214c7dc3cf3fa94baded7231512ea4fd6d3f0e370346e14d78915",
+      "inlet_area_vectors_sha256": "86c09dd89b7ed6d3fc6a23ebac256ffb2cd607258caf7de9c2e2d48bf9ea6e45",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 144.63427734375,
+      "inlet_area_m2": 0.00041407920789234036,
+      "inlet_planarity": 0.9999999999999944,
+      "inlet_velocity_nominal_m_s": 0.2590544623168154
+    },
+    {
+      "unit_id": "AAA/unruputer/LIU_WEN_QI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/LIU_WEN_QI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__LIU_WEN_QI/case.h5",
+      "geometry_shape": [
+        14749,
+        8
+      ],
+      "geometry_sha256": "44512b9ec842ed5e32aed69ac6e594c20537fdaaa440f2307587f234b06aa3ad",
+      "inlet_area_vectors_sha256": "156530c1cd5a9c02d47f572b72a123b840387ccc9f12456f12b7cd4ea0004473",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 198.9777069091797,
+      "inlet_area_m2": 0.0009992598499612355,
+      "inlet_planarity": 0.9999999998630389,
+      "inlet_velocity_nominal_m_s": 0.10734852056878334
+    },
+    {
+      "unit_id": "AAA/unruputer/LIU_XING_GUO",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/LIU_XING_GUO/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__LIU_XING_GUO/case.h5",
+      "geometry_shape": [
+        12611,
+        8
+      ],
+      "geometry_sha256": "0086783d01db9b5df02e4c2dcbe78fd3a6c28e17224d585edd9b89210a510a66",
+      "inlet_area_vectors_sha256": "579b5b1b894c8704a2a21f5897bfb94c3658288ff3f787dcf87c63b30d92ea83",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 230.38282775878906,
+      "inlet_area_m2": 0.0005302973409469906,
+      "inlet_planarity": 0.9999999998821878,
+      "inlet_velocity_nominal_m_s": 0.20228098139350437
+    },
+    {
+      "unit_id": "AAA/unruputer/LI_YOU_YU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/LI_YOU_YU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__LI_YOU_YU/case.h5",
+      "geometry_shape": [
+        53826,
+        8
+      ],
+      "geometry_sha256": "c7d38cdf427b4ccb3b1c4b7a05b4cac77e602c3effcee6a5b9a42056a76d952f",
+      "inlet_area_vectors_sha256": "beb2811d9193a2bd458b8a3ddb0cca89a06251a1754b457f8bf4c3468e0d1158",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 141.58351135253906,
+      "inlet_area_m2": 0.0007349199052986339,
+      "inlet_planarity": 0.999999999999992,
+      "inlet_velocity_nominal_m_s": 0.14596021387328512
+    },
+    {
+      "unit_id": "AAA/unruputer/QIAO_XIU_YUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/QIAO_XIU_YUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__QIAO_XIU_YUN/case.h5",
+      "geometry_shape": [
+        56492,
+        8
+      ],
+      "geometry_sha256": "1d30a20f800250fcb14616ab791b0c99778b355f0f43995857eb9845671a654b",
+      "inlet_area_vectors_sha256": "32baed90e73833ed8e93bc8051c4f07d52983965b80b3fe29fe68354aab5d7fd",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 169.9631805419922,
+      "inlet_area_m2": 0.0003893735763535103,
+      "inlet_planarity": 1.0,
+      "inlet_velocity_nominal_m_s": 0.27549138686219937
+    },
+    {
+      "unit_id": "AAA/unruputer/SHEN_CHUN_WANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/SHEN_CHUN_WANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__SHEN_CHUN_WANG/case.h5",
+      "geometry_shape": [
+        50896,
+        8
+      ],
+      "geometry_sha256": "f206d06ae0766913c7268286b2a109daad1ea2aeb7e925c7d84f9c4dc7f56d34",
+      "inlet_area_vectors_sha256": "79caacbd2427c2a48a54d9485be62976827a10dd19d95ad55e9325d5563c34c6",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 186.67381286621094,
+      "inlet_area_m2": 0.00046227975152187165,
+      "inlet_planarity": 0.9999999999999747,
+      "inlet_velocity_nominal_m_s": 0.23204361905098037
+    },
+    {
+      "unit_id": "AAA/unruputer/SHEN_FANG_JIN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/SHEN_FANG_JIN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__SHEN_FANG_JIN/case.h5",
+      "geometry_shape": [
+        85304,
+        8
+      ],
+      "geometry_sha256": "96407a4b255942db3604322a9ae860a547ed0551a9dba515454a61db27d0928a",
+      "inlet_area_vectors_sha256": "9227c925bd126fbb94f903381ec07455584bd65a744b57eeb964189bfd931805",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 157.32528686523438,
+      "inlet_area_m2": 0.00044331656102085257,
+      "inlet_planarity": 0.9999999999999993,
+      "inlet_velocity_nominal_m_s": 0.24196945476187018
+    },
+    {
+      "unit_id": "AAA/unruputer/YANG_BEN_RUI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/YANG_BEN_RUI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__YANG_BEN_RUI/case.h5",
+      "geometry_shape": [
+        61553,
+        8
+      ],
+      "geometry_sha256": "7924d04fd3016ce1ef8d6ba18813a6b1794a8aa900f3236efab9313cd39ecc14",
+      "inlet_area_vectors_sha256": "0d4344c69cd4014f2386ac9b7ea30d828b06bc365b8d6237827418779574367e",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 179.621337890625,
+      "inlet_area_m2": 0.00048416091323376994,
+      "inlet_planarity": 0.9999999999998282,
+      "inlet_velocity_nominal_m_s": 0.2215566428951479
+    },
+    {
+      "unit_id": "AAA/unruputer/YAN_FU_TANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/YAN_FU_TANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__YAN_FU_TANG/case.h5",
+      "geometry_shape": [
+        70302,
+        8
+      ],
+      "geometry_sha256": "82af91479eef1550dc8cf7da5b6cefa03e866efaf230078c348f9f62fff8e4e8",
+      "inlet_area_vectors_sha256": "e44ce7bd0a81a70c7375df38670adc78d2082269ee74caa8914b05522d62a1d4",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 157.3568572998047,
+      "inlet_area_m2": 0.0006273477564508113,
+      "inlet_planarity": 0.9999999999999295,
+      "inlet_velocity_nominal_m_s": 0.17098820463468692
+    },
+    {
+      "unit_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/ZHANG_XUN_LIAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__ZHANG_XUN_LIAN/case.h5",
+      "geometry_shape": [
+        101435,
+        8
+      ],
+      "geometry_sha256": "8579033f1f1be88793d47625dd3d93d8c94bef2c317fafb140a5fb9f40e8990a",
+      "inlet_area_vectors_sha256": "1c9fa5851dd0ec088c3866c0d2897d5715cd6988dee1eca09572c99266b009ec",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 139.09576416015625,
+      "inlet_area_m2": 0.0005357669150016156,
+      "inlet_planarity": 0.9999999999999941,
+      "inlet_velocity_nominal_m_s": 0.20021592142695033
+    },
+    {
+      "unit_id": "AAA/unruputer/ZHANG_ZHI_HUA",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/ZHANG_ZHI_HUA/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__ZHANG_ZHI_HUA/case.h5",
+      "geometry_shape": [
+        55200,
+        8
+      ],
+      "geometry_sha256": "8132d98dcc76245984ee2c7dc9ace594e55f2acdc0831c96524f7e3ad6967b9a",
+      "inlet_area_vectors_sha256": "57298f9916f1f5e077044940c7c6f08a677e7eae8ef6c8acbaa43bf0542bcde9",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 174.64039611816406,
+      "inlet_area_m2": 0.0005197179321726156,
+      "inlet_planarity": 0.9999999999999886,
+      "inlet_velocity_nominal_m_s": 0.20639862494006733
+    },
+    {
+      "unit_id": "AAA/unruputer/ZHOU_XI_SHENG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/ZHOU_XI_SHENG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__ZHOU_XI_SHENG/case.h5",
+      "geometry_shape": [
+        13634,
+        8
+      ],
+      "geometry_sha256": "950a3f532be24dd1433fbc2fd370165136c5edd2a44280b207e878d364033d64",
+      "inlet_area_vectors_sha256": "de3c30152adba602282429bf6908d43b88cf274f39551e0d53f46b3a90724b1b",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 257.4394226074219,
+      "inlet_area_m2": 0.0006886224179685778,
+      "inlet_planarity": 0.9999999999109467,
+      "inlet_velocity_nominal_m_s": 0.15577341625555063
+    },
+    {
+      "unit_id": "AAA/unruputer/ZHU_ZI_HAI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/ZHU_ZI_HAI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__ZHU_ZI_HAI/case.h5",
+      "geometry_shape": [
+        14749,
+        8
+      ],
+      "geometry_sha256": "594cfa737bba1fef3dd50ba3d48dd339439d4fadeef17057929c58163f2f0de3",
+      "inlet_area_vectors_sha256": "156530c1cd5a9c02d47f572b72a123b840387ccc9f12456f12b7cd4ea0004473",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 198.9777069091797,
+      "inlet_area_m2": 0.0009992598499612355,
+      "inlet_planarity": 0.9999999998630389,
+      "inlet_velocity_nominal_m_s": 0.10734852056878334
+    },
+    {
+      "unit_id": "AG/fast/CHEN_SHI_MING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/CHEN_SHI_MING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__CHEN_SHI_MING/case.h5",
+      "geometry_shape": [
+        9338,
+        8
+      ],
+      "geometry_sha256": "2e388a829fb8e7c363eeaa9ac10ac087c51b4dbf41227dde5d8d03e2c0bb10ff",
+      "inlet_area_vectors_sha256": "b327abd3734c362fc2de01ac575ba33a6dcd103db19b15181f700f9c04b015b6",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 134.11868286132812,
+      "inlet_area_m2": 0.0003661175612078439,
+      "inlet_planarity": 0.9999999998036225,
+      "inlet_velocity_nominal_m_s": 0.29299077106062854
+    },
+    {
+      "unit_id": "AG/fast/HAN_JIAN_JUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/HAN_JIAN_JUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__HAN_JIAN_JUN/case.h5",
+      "geometry_shape": [
+        11325,
+        8
+      ],
+      "geometry_sha256": "31c38d8464e5f28fe492700fdddbbe9794474c3a26f3ae49bf1502a0c7ae9dd9",
+      "inlet_area_vectors_sha256": "eb6e90957b5edbe2a422b75f7d331d8abc479a84cf3b26afed4ed7ea63c162f7",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 186.05386352539062,
+      "inlet_area_m2": 0.0005449230742890488,
+      "inlet_planarity": 0.9999999998949269,
+      "inlet_velocity_nominal_m_s": 0.19685176058487713
+    },
+    {
+      "unit_id": "AG/fast/LIU_FENG_MING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/LIU_FENG_MING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__LIU_FENG_MING/case.h5",
+      "geometry_shape": [
+        13309,
+        8
+      ],
+      "geometry_sha256": "bf47d464b5a409b44a5a59b8e7a60ccf632a4af7db5bbb662509b294b6bae828",
+      "inlet_area_vectors_sha256": "89d761718b471558d1f07ca0e8725dbdc9e92297259fe8b26b5836fa1d3c95dc",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 125.8276596069336,
+      "inlet_area_m2": 0.00044720934454539065,
+      "inlet_planarity": 0.9999999997308604,
+      "inlet_velocity_nominal_m_s": 0.23986320470599087
+    },
+    {
+      "unit_id": "AG/fast/LIU_JUN_FENG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/LIU_JUN_FENG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__LIU_JUN_FENG/case.h5",
+      "geometry_shape": [
+        14100,
+        8
+      ],
+      "geometry_sha256": "b61aa2289289f8148df2de916fab0594bb387384a99319c768a6f98ba7a6db63",
+      "inlet_area_vectors_sha256": "9037c99cbcfa564db461d92afefa69c6bf8e1d3372b33b4911bd62b3f6172aa5",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 176.8011016845703,
+      "inlet_area_m2": 0.0005400387982483001,
+      "inlet_planarity": 0.9999999999159641,
+      "inlet_velocity_nominal_m_s": 0.19863214810688964
+    },
+    {
+      "unit_id": "AG/fast/LIU_LI_QUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/LIU_LI_QUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__LIU_LI_QUN/case.h5",
+      "geometry_shape": [
+        10887,
+        8
+      ],
+      "geometry_sha256": "4fb586f5f3f7e80f688adedd175d20952f8f7ba4a5c9a8e2af9b0135225d4ff1",
+      "inlet_area_vectors_sha256": "e1f658a4d49f4c18427a8ea96ff4b26e2d91dc28e5197fdd5beb7dd4f57b65e6",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 103.28282165527344,
+      "inlet_area_m2": 0.00028495956035581047,
+      "inlet_planarity": 0.9999999997662247,
+      "inlet_velocity_nominal_m_s": 0.3764361035059962
+    },
+    {
+      "unit_id": "AG/fast/LIU_YI_BING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/LIU_YI_BING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__LIU_YI_BING/case.h5",
+      "geometry_shape": [
+        12569,
+        8
+      ],
+      "geometry_sha256": "da111b16ae03c6035818060751450dc0f18bac5557c3b1a342730e14aec53855",
+      "inlet_area_vectors_sha256": "53b2071f15428d6440a310d7063439b274c10848605540bbe78c4db7c0f51d94",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 177.6240234375,
+      "inlet_area_m2": 0.00039788357159374263,
+      "inlet_planarity": 0.9999999997473008,
+      "inlet_velocity_nominal_m_s": 0.269599134559518
+    },
+    {
+      "unit_id": "AG/fast/LI_SHI_QIANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/LI_SHI_QIANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__LI_SHI_QIANG/case.h5",
+      "geometry_shape": [
+        13171,
+        8
+      ],
+      "geometry_sha256": "38ee67611870cf54b6c2c2f941be4e24cc3ba15329cd75a3f80cc77a5bda4c97",
+      "inlet_area_vectors_sha256": "ad17486c2d67f6c1f92d444f069db538cab674200111455df4cb1ad31982571c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 177.92434692382812,
+      "inlet_area_m2": 0.000521818832357482,
+      "inlet_planarity": 0.9999999997438221,
+      "inlet_velocity_nominal_m_s": 0.20556764130666005
+    },
+    {
+      "unit_id": "AG/fast/LI_SHU_KUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/LI_SHU_KUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__LI_SHU_KUN/case.h5",
+      "geometry_shape": [
+        11243,
+        8
+      ],
+      "geometry_sha256": "626220ddba3acc334e6beb735f3759b2bfdcfb87d499af00c40e7bac3167f09c",
+      "inlet_area_vectors_sha256": "82abcd812a13044a29f61c25c85adf9907cf355500098c9ff64f19772b4ea316",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 165.8079071044922,
+      "inlet_area_m2": 0.00036557770899355697,
+      "inlet_planarity": 0.9999999997112036,
+      "inlet_velocity_nominal_m_s": 0.2934234334266086
+    },
+    {
+      "unit_id": "AG/fast/LI_ZHEN_SHAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/LI_ZHEN_SHAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__LI_ZHEN_SHAN/case.h5",
+      "geometry_shape": [
+        13501,
+        8
+      ],
+      "geometry_sha256": "6a1c8224e6d2d8de4afd42588114791adb906bb3196a96f7434dca278bd0d219",
+      "inlet_area_vectors_sha256": "b11710dceb641edcb52bb2e56b32941e664107378300345cbd24a2f4bb1f7991",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 145.45372009277344,
+      "inlet_area_m2": 0.0005639468260180127,
+      "inlet_planarity": 0.9999999998330548,
+      "inlet_velocity_nominal_m_s": 0.1902113135639792
+    },
+    {
+      "unit_id": "AG/fast/LI_ZHI_LIN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/LI_ZHI_LIN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__LI_ZHI_LIN/case.h5",
+      "geometry_shape": [
+        14047,
+        8
+      ],
+      "geometry_sha256": "21ca2ca62dcf8dc1ccd2a21a8ef24bddde7eae82a9965f1cf129bc854005f2a0",
+      "inlet_area_vectors_sha256": "d317fafcce4c9151792d18fc7042bd08bec208849290040d4d6169cc89bac8d2",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 251.00784301757812,
+      "inlet_area_m2": 0.0004672117780011156,
+      "inlet_planarity": 0.9999999996832928,
+      "inlet_velocity_nominal_m_s": 0.2295940975975715
+    },
+    {
+      "unit_id": "AG/fast/WANG_CHUN_MING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/WANG_CHUN_MING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__WANG_CHUN_MING/case.h5",
+      "geometry_shape": [
+        10030,
+        8
+      ],
+      "geometry_sha256": "5419e219a92a13ebe5ef3a369868651d9f0ba35d16bb5f8eaad3d8a612f2b47c",
+      "inlet_area_vectors_sha256": "e28736ca7e0987c1c6b1c9a3c5a7144db706da45bfdb15b903efee41acc64df3",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 126.98345184326172,
+      "inlet_area_m2": 0.0003983708797041577,
+      "inlet_planarity": 0.9999999998621104,
+      "inlet_velocity_nominal_m_s": 0.26926934678755715
+    },
+    {
+      "unit_id": "AG/fast/WANG_DAO_CHUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/WANG_DAO_CHUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__WANG_DAO_CHUN/case.h5",
+      "geometry_shape": [
+        13219,
+        8
+      ],
+      "geometry_sha256": "4b221a92b31cb3026aad09a94b4f8490a06e006c05dd98e3db695204aa9fa740",
+      "inlet_area_vectors_sha256": "665f651bca8cc4b4ea416246c8d31e35f83969e3043d1bd7c4c03b3758c480b5",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 154.3784942626953,
+      "inlet_area_m2": 0.00039683802463568,
+      "inlet_planarity": 0.9999999998384033,
+      "inlet_velocity_nominal_m_s": 0.27030944591462014
+    },
+    {
+      "unit_id": "AG/fast/WANG_YONG_FAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/WANG_YONG_FAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__WANG_YONG_FAN/case.h5",
+      "geometry_shape": [
+        16017,
+        8
+      ],
+      "geometry_sha256": "54a201772337f4665c6215005d685aebac2c59d8fd76984cce3d2dd45b37005a",
+      "inlet_area_vectors_sha256": "ee780db90fb7d1abc26841a27f4615e962983d6c95bd9b8e7838531cf24eccc6",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 192.83985900878906,
+      "inlet_area_m2": 0.0002801012080047966,
+      "inlet_planarity": 0.9999999997878442,
+      "inlet_velocity_nominal_m_s": 0.3829653835526697
+    },
+    {
+      "unit_id": "AG/fast/ZHANG_HAO",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_HAO/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__ZHANG_HAO/case.h5",
+      "geometry_shape": [
+        12521,
+        8
+      ],
+      "geometry_sha256": "1ffd7d9baccef236fdbf178b0d18bc2bbc9a1a688ed9d39d69da4c3c17213161",
+      "inlet_area_vectors_sha256": "583757b34aca23634f5c385025309c556c78ba0f94cf15c0b76db0448d8aa694",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 126.31988525390625,
+      "inlet_area_m2": 0.0003436914527948283,
+      "inlet_planarity": 0.9999999998585174,
+      "inlet_velocity_nominal_m_s": 0.3121086244212157
+    },
+    {
+      "unit_id": "AG/fast/ZHANG_QING_WANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_QING_WANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__ZHANG_QING_WANG/case.h5",
+      "geometry_shape": [
+        13843,
+        8
+      ],
+      "geometry_sha256": "d8b49e43da659f66b68b688801bdccf778ca4378fc135f1fde32def4d2024a40",
+      "inlet_area_vectors_sha256": "e1b8d0cf3f4aac25d5d6ca747ab19417a90294c95e5be8ab2de47262f0734ef0",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 211.15426635742188,
+      "inlet_area_m2": 0.0005015465666283286,
+      "inlet_planarity": 0.9999999998539012,
+      "inlet_velocity_nominal_m_s": 0.2138765843384087
+    },
+    {
+      "unit_id": "AG/fast/ZHANG_XIU_WEN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_XIU_WEN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__ZHANG_XIU_WEN/case.h5",
+      "geometry_shape": [
+        12862,
+        8
+      ],
+      "geometry_sha256": "f575b466703bf7af1770df0d7096737d1be38c8ba694a65c0a50e1aa8fa52c2d",
+      "inlet_area_vectors_sha256": "516800815f5b5835dbfe94ff620ce5592c607dd49ddfdb275a7076b3e80078d3",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 156.55484008789062,
+      "inlet_area_m2": 0.0005988615461478521,
+      "inlet_planarity": 0.9999999998150363,
+      "inlet_velocity_nominal_m_s": 0.17912164714386175
+    },
+    {
+      "unit_id": "AG/fast/ZHANG_XIU_ZHEN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_XIU_ZHEN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__ZHANG_XIU_ZHEN/case.h5",
+      "geometry_shape": [
+        17203,
+        8
+      ],
+      "geometry_sha256": "39d5bcb5affba6962f970e17e5cb2890de0fb44097d654dc7aab61c9ba57a29a",
+      "inlet_area_vectors_sha256": "c9212eb5fa7a12e88e474e0c032e43552f73cf7cdb86f5e6504be910acd991a2",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 147.21926879882812,
+      "inlet_area_m2": 0.0006246507517712077,
+      "inlet_planarity": 0.9999999999385648,
+      "inlet_velocity_nominal_m_s": 0.17172646675435801
+    },
+    {
+      "unit_id": "AG/slow/A_MIN_SE_HA_CHI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/A_MIN_SE_HA_CHI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__A_MIN_SE_HA_CHI/case.h5",
+      "geometry_shape": [
+        12309,
+        8
+      ],
+      "geometry_sha256": "b846f232f19afc765209ab372b5b6f486583776380838a95e7a51a82fd9dc0db",
+      "inlet_area_vectors_sha256": "ca77bcc9c9fe9e0c45348f3239abf01645804aeddd16620c07e37d0b66d6945b",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 188.00669860839844,
+      "inlet_area_m2": 0.0005893824856614213,
+      "inlet_planarity": 0.9999999998868071,
+      "inlet_velocity_nominal_m_s": 0.1820024672717289
+    },
+    {
+      "unit_id": "AG/slow/CAO_FENG_CHI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/CAO_FENG_CHI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__CAO_FENG_CHI/case.h5",
+      "geometry_shape": [
+        11987,
+        8
+      ],
+      "geometry_sha256": "cc7903f9b06fa13af0ebf50ab2b494e9acf3c75e6c31b9bcf8089079dd586f40",
+      "inlet_area_vectors_sha256": "5eb0bd56e13f73200206e487c6a4ce8a85f59408164b6aa2211e3bab853e0712",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 119.04740905761719,
+      "inlet_area_m2": 0.0003357498918708976,
+      "inlet_planarity": 0.9999999998741034,
+      "inlet_velocity_nominal_m_s": 0.31949099360654476
+    },
+    {
+      "unit_id": "AG/slow/CHENG_GUANG_SEN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/CHENG_GUANG_SEN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__CHENG_GUANG_SEN/case.h5",
+      "geometry_shape": [
+        10923,
+        8
+      ],
+      "geometry_sha256": "6797a93941c9c949dafaba7ef598b407d637940889b33d9e7f661a7b8d4bed8e",
+      "inlet_area_vectors_sha256": "03b619e4b1fa8007b7d32d2a2e6b2e556ab118cbcd412278f2f05e805ce608bf",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 165.07518005371094,
+      "inlet_area_m2": 0.0004114851061182218,
+      "inlet_planarity": 0.9999976854375348,
+      "inlet_velocity_nominal_m_s": 0.2606876043924275
+    },
+    {
+      "unit_id": "AG/slow/CHENG_LU_LI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/CHENG_LU_LI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__CHENG_LU_LI/case.h5",
+      "geometry_shape": [
+        11078,
+        8
+      ],
+      "geometry_sha256": "9ebe0e72a091b00f2e5df4d971cc83a16c98945130418cc667cd78a0da94de7c",
+      "inlet_area_vectors_sha256": "fa9dff0fe7dafe6974e6a065811bd63d7b4a518a3bc1fa3c86764f528a242c65",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 165.37466430664062,
+      "inlet_area_m2": 0.0004584951635593238,
+      "inlet_planarity": 0.9999999997564087,
+      "inlet_velocity_nominal_m_s": 0.2339589925537867
+    },
+    {
+      "unit_id": "AG/slow/DING_LIAN_ZHONG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/DING_LIAN_ZHONG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__DING_LIAN_ZHONG/case.h5",
+      "geometry_shape": [
+        10958,
+        8
+      ],
+      "geometry_sha256": "16d72ec709cc577651d52cdfee56427be7320e1babe8e6fabb7378958dcc9b89",
+      "inlet_area_vectors_sha256": "81bbb1e54d5b86e4bb74f4436a9d6e0ab7d6a2c55fba83ba5a5925ac9257f6c6",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 142.71096801757812,
+      "inlet_area_m2": 0.0004651707261432749,
+      "inlet_planarity": 0.9999999996917811,
+      "inlet_velocity_nominal_m_s": 0.23060149860781146
+    },
+    {
+      "unit_id": "AG/slow/GONG_HUI_XIA",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/GONG_HUI_XIA/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__GONG_HUI_XIA/case.h5",
+      "geometry_shape": [
+        12801,
+        8
+      ],
+      "geometry_sha256": "ad5540e087d5a7a4ad2d37c465a6749bb56427e32b28a5e7e0538082d53f4720",
+      "inlet_area_vectors_sha256": "d2e05f5f2f7809901fd061da53d38e332580426e47204184fe6afdf973399298",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 147.0187530517578,
+      "inlet_area_m2": 0.000402341921891444,
+      "inlet_planarity": 0.999999999718152,
+      "inlet_velocity_nominal_m_s": 0.2666117069104853
+    },
+    {
+      "unit_id": "AG/slow/GUAN_TONG_XIANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/GUAN_TONG_XIANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__GUAN_TONG_XIANG/case.h5",
+      "geometry_shape": [
+        12652,
+        8
+      ],
+      "geometry_sha256": "fd443a0bae29a742280806a45023544528379d261a7359d4c18113470be22855",
+      "inlet_area_vectors_sha256": "c9e3e0ab7dd38ec3ec79c7113a1e177007aec7642404fd672be2dd40c7ff2df8",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 211.6826629638672,
+      "inlet_area_m2": 0.00045384890330062253,
+      "inlet_planarity": 0.9999999998977472,
+      "inlet_velocity_nominal_m_s": 0.23635413851836426
+    },
+    {
+      "unit_id": "AG/slow/HOU_SHEN_QIAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/HOU_SHEN_QIAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__HOU_SHEN_QIAN/case.h5",
+      "geometry_shape": [
+        11379,
+        8
+      ],
+      "geometry_sha256": "5a5ac1ce08c21d5cc71e6093d6864ce60a27ecb828238217cbc74b6c6e9eea76",
+      "inlet_area_vectors_sha256": "1c48ffec7961b70a3276ebdaf388e062c9a5e0c337feba818ac46d7b3a545a5e",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 130.31619262695312,
+      "inlet_area_m2": 0.00024375894766646085,
+      "inlet_planarity": 0.9999999997505494,
+      "inlet_velocity_nominal_m_s": 0.4400620678093055
+    },
+    {
+      "unit_id": "AG/slow/KANG_XI_MING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/KANG_XI_MING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__KANG_XI_MING/case.h5",
+      "geometry_shape": [
+        11379,
+        8
+      ],
+      "geometry_sha256": "d13534554f1f4d4a80d0a041e9c5d4d52c0c3d37ac2b74c68c796528ea707fd8",
+      "inlet_area_vectors_sha256": "6b52ef8962e5c86d34bfea349cf6ae37af6e360f2677ab52eaf4df8a0adc781c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 130.31651306152344,
+      "inlet_area_m2": 0.00024375894765038853,
+      "inlet_planarity": 0.999999999816485,
+      "inlet_velocity_nominal_m_s": 0.44006206783832114
+    },
+    {
+      "unit_id": "AG/slow/LIU_FA_CHUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LIU_FA_CHUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LIU_FA_CHUN/case.h5",
+      "geometry_shape": [
+        11399,
+        8
+      ],
+      "geometry_sha256": "6d27849b142ec99737bb47e125a7a6568959c24f9882b008bbc4c14030eb3a6e",
+      "inlet_area_vectors_sha256": "372959700394b8f605eeadef3abf6e2b24400a417fb97c6dddbc88188c2a84ed",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 132.1574249267578,
+      "inlet_area_m2": 0.000391920980080579,
+      "inlet_planarity": 0.9999999999013808,
+      "inlet_velocity_nominal_m_s": 0.2737007509398158
+    },
+    {
+      "unit_id": "AG/slow/LIU_FENG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LIU_FENG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LIU_FENG/case.h5",
+      "geometry_shape": [
+        13590,
+        8
+      ],
+      "geometry_sha256": "bf92f8a1b7ba1693393858839c82884721e6604656492a7491140ecef1d6634b",
+      "inlet_area_vectors_sha256": "7e926107bca86c94f8114a2c0da570cef750c36177b6940b7dd26caa73d9924c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 165.68743896484375,
+      "inlet_area_m2": 0.00047882685452050846,
+      "inlet_planarity": 0.9999999998881269,
+      "inlet_velocity_nominal_m_s": 0.22402475037566766
+    },
+    {
+      "unit_id": "AG/slow/LIU_JIN_LIANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LIU_JIN_LIANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LIU_JIN_LIANG/case.h5",
+      "geometry_shape": [
+        13759,
+        8
+      ],
+      "geometry_sha256": "80286e18779b673a2c3068fdc25fb0c1c9e8e54256ee72e4428f5520d47d0789",
+      "inlet_area_vectors_sha256": "9951867476f27abf86250490a340d432107b6120ddd1e042b9945669ec2f5dff",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 159.25335693359375,
+      "inlet_area_m2": 0.00040517792743722457,
+      "inlet_planarity": 0.999999999821844,
+      "inlet_velocity_nominal_m_s": 0.26474558284950644
+    },
+    {
+      "unit_id": "AG/slow/LIU_ZONG_YANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LIU_ZONG_YANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LIU_ZONG_YANG/case.h5",
+      "geometry_shape": [
+        12138,
+        8
+      ],
+      "geometry_sha256": "21c5feb87385d28d06eef921d5b1855046123b539fa5f6b07328b4cf7c0eebd9",
+      "inlet_area_vectors_sha256": "a8be4f2ebdfd8a5d1f960cf8ac313674a98a68fe691cfc60facfe18c98d92edc",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 143.13592529296875,
+      "inlet_area_m2": 0.000419345403289978,
+      "inlet_planarity": 0.9999999998307669,
+      "inlet_velocity_nominal_m_s": 0.255801221893796
+    },
+    {
+      "unit_id": "AG/slow/LI_BING_YI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LI_BING_YI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LI_BING_YI/case.h5",
+      "geometry_shape": [
+        13910,
+        8
+      ],
+      "geometry_sha256": "a1b96ca8dbd141d54889b98d18c4e716d7bd53b1150fee9fb25e2a27c949da2c",
+      "inlet_area_vectors_sha256": "e920ec8a954a5acb19c704a676b7e9d3c37776554ac5456482d8b99332ab379c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 159.570556640625,
+      "inlet_area_m2": 0.00036213841123912323,
+      "inlet_planarity": 0.9999999998201032,
+      "inlet_velocity_nominal_m_s": 0.29621013189427264
+    },
+    {
+      "unit_id": "AG/slow/LI_CHONG_ZENG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LI_CHONG_ZENG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LI_CHONG_ZENG/case.h5",
+      "geometry_shape": [
+        15083,
+        8
+      ],
+      "geometry_sha256": "ea377df8b7538713bb7a4ca4c7f5a76f1a56e15ed0b24a4d6f3b4359861b63bb",
+      "inlet_area_vectors_sha256": "41d0a08ab47f83522b1ee83492272cd048a9efc3e904e1fe3ea910e0979e33bc",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 144.30807495117188,
+      "inlet_area_m2": 0.0003952045890544219,
+      "inlet_planarity": 0.9999999996774509,
+      "inlet_velocity_nominal_m_s": 0.27142667248317676
+    },
+    {
+      "unit_id": "AG/slow/LI_GUI_YING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LI_GUI_YING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LI_GUI_YING/case.h5",
+      "geometry_shape": [
+        14932,
+        8
+      ],
+      "geometry_sha256": "3c67226bcf2b50ca4bb60f0da5d531b364580b9b067c7bc40fc72a179716dd76",
+      "inlet_area_vectors_sha256": "24a7254a8404c390fc42f3bea78b81611c0037ee011629fbfa6f21908f53983f",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 139.59213256835938,
+      "inlet_area_m2": 0.0003667822966591202,
+      "inlet_planarity": 0.9999999998471861,
+      "inlet_velocity_nominal_m_s": 0.2924597711890568
+    },
+    {
+      "unit_id": "AG/slow/LU_ZHEN_QING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LU_ZHEN_QING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LU_ZHEN_QING/case.h5",
+      "geometry_shape": [
+        12389,
+        8
+      ],
+      "geometry_sha256": "756d9ca5d8fe8c40bbce83be85ca8787f6db179d15c12e36971d1d5372286469",
+      "inlet_area_vectors_sha256": "4b3a5b9e6a5ceaead00708439aebfa2bbf2d277d53b5affae48ef2bb915d2ef5",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 155.99459838867188,
+      "inlet_area_m2": 0.0005753902975823436,
+      "inlet_planarity": 0.999999999843889,
+      "inlet_velocity_nominal_m_s": 0.18642835481905543
+    },
+    {
+      "unit_id": "AG/slow/LV_FU_LONG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LV_FU_LONG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LV_FU_LONG/case.h5",
+      "geometry_shape": [
+        13229,
+        8
+      ],
+      "geometry_sha256": "1edf157ae27478154436899ea75224eda2114141912870caab4a9e483b66723c",
+      "inlet_area_vectors_sha256": "fc2b694679a8821b24230dd8a75e729225229c60ab62ae0c7adbcc98cdd93c34",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 172.95742797851562,
+      "inlet_area_m2": 0.00034360530810162177,
+      "inlet_planarity": 0.999999999836944,
+      "inlet_velocity_nominal_m_s": 0.31218687263526806
+    },
+    {
+      "unit_id": "AG/slow/MI_DE_XI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/MI_DE_XI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__MI_DE_XI/case.h5",
+      "geometry_shape": [
+        15380,
+        8
+      ],
+      "geometry_sha256": "103d3e49efc97794b86c92da7ea61d4ad3f311eb073f49fea4cb9a50c1136d87",
+      "inlet_area_vectors_sha256": "ce56dcdeacc77dd9115cc519e7c89311225d63b9a53852f58a35ab97f21ae466",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 131.93148803710938,
+      "inlet_area_m2": 0.0004768426145094852,
+      "inlet_planarity": 0.9999999998437304,
+      "inlet_velocity_nominal_m_s": 0.22495696335250526
+    },
+    {
+      "unit_id": "AG/slow/NI_YAN_BIN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/NI_YAN_BIN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__NI_YAN_BIN/case.h5",
+      "geometry_shape": [
+        16977,
+        8
+      ],
+      "geometry_sha256": "6cf9db2bf13144220b9e403d26544ca0e945b0a136d2403474f98db5c90d6608",
+      "inlet_area_vectors_sha256": "e8173e736199e9b377db25d6cdc145f1ddcc1950ac6de2bd5418f3c59ea0bfeb",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 182.2221221923828,
+      "inlet_area_m2": 0.0005042799902802641,
+      "inlet_planarity": 0.9999999997989475,
+      "inlet_velocity_nominal_m_s": 0.21271727735519713
+    },
+    {
+      "unit_id": "AG/slow/QIN_SI_FU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/QIN_SI_FU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__QIN_SI_FU/case.h5",
+      "geometry_shape": [
+        14112,
+        8
+      ],
+      "geometry_sha256": "75071e17c1f3661e99bc8acb4693551b8066e698361c55f99684f4781ec15f55",
+      "inlet_area_vectors_sha256": "8bb5b9483a12645e18ad46d4e04040ae767e411590e98999dcc48e662555af26",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 163.76307678222656,
+      "inlet_area_m2": 0.0007745894027523018,
+      "inlet_planarity": 0.9999999998621691,
+      "inlet_velocity_nominal_m_s": 0.13848506857435738
+    },
+    {
+      "unit_id": "AG/slow/QU_HE_PING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/QU_HE_PING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__QU_HE_PING/case.h5",
+      "geometry_shape": [
+        14176,
+        8
+      ],
+      "geometry_sha256": "e8202397b4e6cc8e1ea621b6dbf370c9ba21cc59622a3de720eb8b9f88147ebd",
+      "inlet_area_vectors_sha256": "67962ae5b3e57a01951728bb76ca75542140eb7a1ef64c74ab71b9111bd83a07",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 170.3844451904297,
+      "inlet_area_m2": 0.0003784042370780904,
+      "inlet_planarity": 0.9999999998760702,
+      "inlet_velocity_nominal_m_s": 0.28347744566873384
+    },
+    {
+      "unit_id": "AG/slow/SHEN_ZHI_GANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/SHEN_ZHI_GANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__SHEN_ZHI_GANG/case.h5",
+      "geometry_shape": [
+        13367,
+        8
+      ],
+      "geometry_sha256": "057b00c6a0ef2748f3ca02170767d716ace2e0c8e6420144b409a35302e0dd58",
+      "inlet_area_vectors_sha256": "8b8ac6c9024cb0edcb603693a058e771f297f739ec9f9edc0a33421f782fc0b0",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 175.9988250732422,
+      "inlet_area_m2": 0.00047099014122543707,
+      "inlet_planarity": 0.9999999998895851,
+      "inlet_velocity_nominal_m_s": 0.2277522545971493
+    },
+    {
+      "unit_id": "AG/slow/SUN_ZONG_GE",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/SUN_ZONG_GE/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__SUN_ZONG_GE/case.h5",
+      "geometry_shape": [
+        11306,
+        8
+      ],
+      "geometry_sha256": "4d8117adbd905de0be72c18b64944fdcecf53a36dfe478701bbbf588d6cfa4b7",
+      "inlet_area_vectors_sha256": "2ca2044c5e04658a665ac8fa8026451b7d6b7c2beb17a67b375303c77645b2bd",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 160.0286102294922,
+      "inlet_area_m2": 0.0002967291078230569,
+      "inlet_planarity": 0.9999999997906975,
+      "inlet_velocity_nominal_m_s": 0.3615050351618651
+    },
+    {
+      "unit_id": "AG/slow/WANG_GUANG_CHAO",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/WANG_GUANG_CHAO/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__WANG_GUANG_CHAO/case.h5",
+      "geometry_shape": [
+        9831,
+        8
+      ],
+      "geometry_sha256": "c51f9485e3297a576002d979b43eded7a34f86d9a2ad5643dd90c759df88f576",
+      "inlet_area_vectors_sha256": "c6869e3ad8ea159d4b7ae94f056e79cde1e760660c8333210127805b4d740f77",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 125.5564956665039,
+      "inlet_area_m2": 0.0003166445650254196,
+      "inlet_planarity": 0.999999999412225,
+      "inlet_velocity_nominal_m_s": 0.3387680649074513
+    },
+    {
+      "unit_id": "AG/slow/WANG_GUI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/WANG_GUI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__WANG_GUI/case.h5",
+      "geometry_shape": [
+        12031,
+        8
+      ],
+      "geometry_sha256": "f97c95e1facb553af4d2d39592a4c1225ee68aeb49418a2cee39ca2f5b348e61",
+      "inlet_area_vectors_sha256": "d6918876305a1e7407439853620c701307184ef485f63bcac0f5d9d357db9afa",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 127.7496566772461,
+      "inlet_area_m2": 0.000432674961082059,
+      "inlet_planarity": 0.9999999999187994,
+      "inlet_velocity_nominal_m_s": 0.24792067072441226
+    },
+    {
+      "unit_id": "AG/slow/WANG_KE",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/WANG_KE/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__WANG_KE/case.h5",
+      "geometry_shape": [
+        13108,
+        8
+      ],
+      "geometry_sha256": "1fb0ad3db02dcc221be13fbf236b1117869b7527035094b1d90815454a660e52",
+      "inlet_area_vectors_sha256": "d8dbbff02f8234d939de41027d258f6f65018e355c7abd00f47c2d7e78c9e4bc",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 129.27099609375,
+      "inlet_area_m2": 0.0004340760655209859,
+      "inlet_planarity": 0.9999999998627838,
+      "inlet_velocity_nominal_m_s": 0.24712043597330524
+    },
+    {
+      "unit_id": "AG/slow/WANG_YAN_LING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/WANG_YAN_LING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__WANG_YAN_LING/case.h5",
+      "geometry_shape": [
+        11695,
+        8
+      ],
+      "geometry_sha256": "c01ef86eecb9c47d10960ac8593f0fb40fe2a4d23b0c84bd14ae3bad461844fc",
+      "inlet_area_vectors_sha256": "43038d2e893dcce7cf42fa60c1b0266101b7651e7250072b0401ff2dcac55e69",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 104.55197143554688,
+      "inlet_area_m2": 0.0002987418948214415,
+      "inlet_planarity": 0.9999999996807634,
+      "inlet_velocity_nominal_m_s": 0.35906937867297767
+    },
+    {
+      "unit_id": "AG/slow/WANG_YONG_LI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/WANG_YONG_LI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__WANG_YONG_LI/case.h5",
+      "geometry_shape": [
+        10355,
+        8
+      ],
+      "geometry_sha256": "3bb044bf7048f6cb4111dc4be6aa95666a44f77dba68d442d4ca6830d770dea4",
+      "inlet_area_vectors_sha256": "fd6efb37f9c5aa6176a3b3d6d0e732483c203dac5a3251e8717113b89104f671",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 142.9171600341797,
+      "inlet_area_m2": 0.0003848385297548879,
+      "inlet_planarity": 0.9999999998433242,
+      "inlet_velocity_nominal_m_s": 0.27873785565453923
+    },
+    {
+      "unit_id": "AG/slow/WEI_BAO_XING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/WEI_BAO_XING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__WEI_BAO_XING/case.h5",
+      "geometry_shape": [
+        9850,
+        8
+      ],
+      "geometry_sha256": "4b19b024b7a5497fd995706bb3de77bd2c4502a59e72ef5212ed6cf8c21d87ad",
+      "inlet_area_vectors_sha256": "b9f5ef2830e669d2c86311225b50e6a07cd777d8a103bab07b7620b07f0d6d83",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 142.08616638183594,
+      "inlet_area_m2": 0.0003403545645039685,
+      "inlet_planarity": 0.999999999758585,
+      "inlet_velocity_nominal_m_s": 0.31516858518838026
+    },
+    {
+      "unit_id": "AG/slow/WU_FENG_YAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/WU_FENG_YAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__WU_FENG_YAN/case.h5",
+      "geometry_shape": [
+        13937,
+        8
+      ],
+      "geometry_sha256": "709d4fcfbfc8ce37d95c9621c36374949a277e74b993f60e9289a3bc89441e0d",
+      "inlet_area_vectors_sha256": "1c1c28f9c0fda88cae0bed564fc1f019c531d8a2cf91187117488d0fbe4fe790",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 163.03163146972656,
+      "inlet_area_m2": 0.00039135241062324843,
+      "inlet_planarity": 0.9999999998443095,
+      "inlet_velocity_nominal_m_s": 0.2740983922554397
+    },
+    {
+      "unit_id": "AG/slow/WU_YI_FA",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/WU_YI_FA/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__WU_YI_FA/case.h5",
+      "geometry_shape": [
+        21452,
+        8
+      ],
+      "geometry_sha256": "4d4a54b395ae839d2e9eeb9f9a1349e9862f7eab1d27996236568d63ba577c5b",
+      "inlet_area_vectors_sha256": "8f456373bcde10859e86c841d880d86cce5dfa0b487634edb8cb137827caeee8",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 146.7708282470703,
+      "inlet_area_m2": 0.0004330175304266658,
+      "inlet_planarity": 0.9999999998391356,
+      "inlet_velocity_nominal_m_s": 0.247724535427994
+    },
+    {
+      "unit_id": "AG/slow/XI_CHENG_JIANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/XI_CHENG_JIANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__XI_CHENG_JIANG/case.h5",
+      "geometry_shape": [
+        12865,
+        8
+      ],
+      "geometry_sha256": "3fdf992b9f3253294b72cc64ec3fb5f470b139d8016065fe2740c4e1cd6b08ae",
+      "inlet_area_vectors_sha256": "44aa731c8340324da0ee0516311872609e427350a8c4f7e2b6c589950958cd05",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 155.7545166015625,
+      "inlet_area_m2": 0.00044928369795444725,
+      "inlet_planarity": 0.9999999998442938,
+      "inlet_velocity_nominal_m_s": 0.23875575064377036
+    },
+    {
+      "unit_id": "AG/slow/XU_YI_CAI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/XU_YI_CAI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__XU_YI_CAI/case.h5",
+      "geometry_shape": [
+        10776,
+        8
+      ],
+      "geometry_sha256": "cf634fb933a25ef5201d4d50a250f8b9ceafb5d8ac054cdf3a50a58ba11c2873",
+      "inlet_area_vectors_sha256": "f57c3175c2f6917e3177bfdca09108e25d133d3a1de8a068a7f5cb3151eacfe7",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 160.45826721191406,
+      "inlet_area_m2": 0.0005202226486251468,
+      "inlet_planarity": 0.9999999999057356,
+      "inlet_velocity_nominal_m_s": 0.20619837840704464
+    },
+    {
+      "unit_id": "AG/slow/YANG_YOU_SHENG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/YANG_YOU_SHENG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__YANG_YOU_SHENG/case.h5",
+      "geometry_shape": [
+        14911,
+        8
+      ],
+      "geometry_sha256": "6afc9049066bbbee7a4ae48a86495007058f975d592f37508c5e1d64fb1f6512",
+      "inlet_area_vectors_sha256": "34d84e96b890c64341e2c2ccf877f05cd7957927f99bdfafce2723288409fd9e",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 168.22390747070312,
+      "inlet_area_m2": 0.0004875276117239824,
+      "inlet_planarity": 0.9999999998551318,
+      "inlet_velocity_nominal_m_s": 0.22002664870160066
+    },
+    {
+      "unit_id": "AG/slow/YIN_YU_RONG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/YIN_YU_RONG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__YIN_YU_RONG/case.h5",
+      "geometry_shape": [
+        9872,
+        8
+      ],
+      "geometry_sha256": "a4b8e2b0ced404641b7a98461d05c88edcaf589626fda9738b8487c29f671d2a",
+      "inlet_area_vectors_sha256": "e2f8d12eff8bf1b7683c192922b7e41af7373d7bf3fa3e3e2ee7830b162df92f",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 125.74195861816406,
+      "inlet_area_m2": 0.00028735071151906547,
+      "inlet_planarity": 0.9999999997627665,
+      "inlet_velocity_nominal_m_s": 0.3733036399668209
+    },
+    {
+      "unit_id": "AG/slow/ZANG_YU_SHU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/ZANG_YU_SHU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__ZANG_YU_SHU/case.h5",
+      "geometry_shape": [
+        15381,
+        8
+      ],
+      "geometry_sha256": "f05e18a4f83df236f5e811e1a61ff9a7ecade6a059eb4279227c86e7ba160fb2",
+      "inlet_area_vectors_sha256": "d04251a8baa4ca82b197de5bc4d8e4d85e0f0eaf8456384e5a1d9badb3aa229c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 168.6657257080078,
+      "inlet_area_m2": 0.0005467335218311448,
+      "inlet_planarity": 0.9999999998824916,
+      "inlet_velocity_nominal_m_s": 0.19619990776832671
+    },
+    {
+      "unit_id": "AG/slow/ZHANG_JING_SHUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/ZHANG_JING_SHUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__ZHANG_JING_SHUN/case.h5",
+      "geometry_shape": [
+        12230,
+        8
+      ],
+      "geometry_sha256": "b1faa6def52dfaeeda0b32d140075a56cb90cb38cf2c6009d028a1e3522413f1",
+      "inlet_area_vectors_sha256": "dd85a70c45376524625175cfaf9c52234345de1a79fd857269bb6ba8d44d516c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 159.2617645263672,
+      "inlet_area_m2": 0.0005248144244687365,
+      "inlet_planarity": 0.9999999998592545,
+      "inlet_velocity_nominal_m_s": 0.20439428025574996
+    },
+    {
+      "unit_id": "AG/slow/ZHANG_JUN_HUA",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/ZHANG_JUN_HUA/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__ZHANG_JUN_HUA/case.h5",
+      "geometry_shape": [
+        13569,
+        8
+      ],
+      "geometry_sha256": "42173dc4f3daea844809a2da79d2208d3dca31cb32a568f27881de5f175e580f",
+      "inlet_area_vectors_sha256": "9f4adfd73b27848a4c5b64ed140ae39937a61ce19bd3fe615ab2c6efd445f546",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 140.86683654785156,
+      "inlet_area_m2": 0.0004071036973763289,
+      "inlet_planarity": 0.9999999998540715,
+      "inlet_velocity_nominal_m_s": 0.26349322604644126
+    },
+    {
+      "unit_id": "AG/slow/ZHANG_LING_GUANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/ZHANG_LING_GUANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__ZHANG_LING_GUANG/case.h5",
+      "geometry_shape": [
+        18124,
+        8
+      ],
+      "geometry_sha256": "7b3823aa1ed309756b207ec077a2dc7acac4661a56ccf93f763f3a0808ff7cee",
+      "inlet_area_vectors_sha256": "79d4ff6918b5d933eeee0aeccbc571743001b4607e9a6922183700b81089cd24",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 146.42324829101562,
+      "inlet_area_m2": 0.00042751242649144243,
+      "inlet_planarity": 0.9999999998491229,
+      "inlet_velocity_nominal_m_s": 0.2509144995795117
+    },
+    {
+      "unit_id": "AG/slow/ZHANG_QING_SHUI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/ZHANG_QING_SHUI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__ZHANG_QING_SHUI/case.h5",
+      "geometry_shape": [
+        14223,
+        8
+      ],
+      "geometry_sha256": "befbe120095d84f4ecc35fe111ac5edab1c2420e921bb1040324e98c6430781b",
+      "inlet_area_vectors_sha256": "13138bd65ad7b1136d40eb2b5d056821c17c5b30198a6662e2b5b8aa57089295",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 184.5631866455078,
+      "inlet_area_m2": 0.0005551025606510893,
+      "inlet_planarity": 0.9999999998421871,
+      "inlet_velocity_nominal_m_s": 0.19324188746545382
+    },
+    {
+      "unit_id": "AG/slow/ZHANG_QUAN_YOU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/ZHANG_QUAN_YOU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__ZHANG_QUAN_YOU/case.h5",
+      "geometry_shape": [
+        12409,
+        8
+      ],
+      "geometry_sha256": "14b9e24810ace3d51b7e5aaca885711e7ebfe31843e116cd1435af47ffc407ec",
+      "inlet_area_vectors_sha256": "68f3140633732bba6ad73a41d67f8362a19d43787d1d9dfc1f5f33eba2a7cf70",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 160.73712158203125,
+      "inlet_area_m2": 0.00039874124175294295,
+      "inlet_planarity": 0.999999999892756,
+      "inlet_velocity_nominal_m_s": 0.2690192418660976
+    },
+    {
+      "unit_id": "AG/slow/ZHANG_SONG_TIAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/ZHANG_SONG_TIAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__ZHANG_SONG_TIAN/case.h5",
+      "geometry_shape": [
+        12468,
+        8
+      ],
+      "geometry_sha256": "7d393787ea6b647096e44fb62c9bd7c96fae42d213a26b6db46b4349191ac229",
+      "inlet_area_vectors_sha256": "3cc4776d23298898ac4f1d331bfeca390c26a441ec28150c5165628efa6f79ed",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 122.87017059326172,
+      "inlet_area_m2": 0.0004649806262608031,
+      "inlet_planarity": 0.9999999999106056,
+      "inlet_velocity_nominal_m_s": 0.2306957763374788
+    },
+    {
+      "unit_id": "AG/slow/ZHANG_ZHI_JUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/ZHANG_ZHI_JUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__ZHANG_ZHI_JUN/case.h5",
+      "geometry_shape": [
+        10095,
+        8
+      ],
+      "geometry_sha256": "6a006e13662b9aaff0a7c2d02e64b659e2681ecca18e9f1285c745d555933e54",
+      "inlet_area_vectors_sha256": "8463c6fbfa2bbff1d7269d5f387de94007557010dbf4ba8506d4f56a3407d5ba",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 133.54530334472656,
+      "inlet_area_m2": 0.0003426515247695351,
+      "inlet_planarity": 0.9999999998775685,
+      "inlet_velocity_nominal_m_s": 0.31305585646896344
+    },
+    {
+      "unit_id": "ILO/AN_GUANG_JIE-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/AN_GUANG_JIE-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__AN_GUANG_JIE-0__before/case.h5",
+      "geometry_shape": [
+        56949,
+        8
+      ],
+      "geometry_sha256": "a74ef14d5dbb3462d2fc1591986d06d4c879a9eb446628c8ac759ee6f21c9dc8",
+      "inlet_area_vectors_sha256": "5f7151c4aff1d55844808e9aa0d1d38dc061a4f0afe5a366aa029fc26d7e75b3",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 183.8637237548828,
+      "inlet_area_m2": 0.0005628158384295325,
+      "inlet_planarity": 1.0000000000000002,
+      "inlet_velocity_nominal_m_s": 0.19059354629472405
+    },
+    {
+      "unit_id": "ILO/BAO_EN_YUN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/BAO_EN_YUN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__BAO_EN_YUN-0__before/case.h5",
+      "geometry_shape": [
+        89416,
+        8
+      ],
+      "geometry_sha256": "d0c0704f782607cafbfd5a6be720a051f9533238f1d54528804eeced0d90ce45",
+      "inlet_area_vectors_sha256": "23fa7995648375e9ff4188943e3a1c23f701b547f2cfb9a3c3bee9fd18940ad4",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 230.9927215576172,
+      "inlet_area_m2": 0.0005127446508302882,
+      "inlet_planarity": 0.999999999939786,
+      "inlet_velocity_nominal_m_s": 0.20920562775920154
+    },
+    {
+      "unit_id": "ILO/CUI_WEI_PING-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/CUI_WEI_PING-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__CUI_WEI_PING-0__before/case.h5",
+      "geometry_shape": [
+        55493,
+        8
+      ],
+      "geometry_sha256": "a3d6e295a4c2368547373d8625bf13d4055fd3ae96ebb9ea0a4a5cca3b6dd66c",
+      "inlet_area_vectors_sha256": "0b072843a2e42536b38c1d16778f1459f0cd3b18179362c5b1bb0c3737c6107f",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 228.17855834960938,
+      "inlet_area_m2": 0.00048363196238555373,
+      "inlet_planarity": 0.9999999998850437,
+      "inlet_velocity_nominal_m_s": 0.2217989605732626
+    },
+    {
+      "unit_id": "ILO/GAO_SHU_CAI-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/GAO_SHU_CAI-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__GAO_SHU_CAI-0__before/case.h5",
+      "geometry_shape": [
+        76062,
+        8
+      ],
+      "geometry_sha256": "2ab63f4eb9bea747e755eb139eec7fdc453e25fe8ab23ef65f2cfbbd81fa4d80",
+      "inlet_area_vectors_sha256": "498a2301654a6acb8b9fc026c0597b5a806f6384b7ec68e3e398820c78a95ba3",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 313.47174072265625,
+      "inlet_area_m2": 0.00045218930998458507,
+      "inlet_planarity": 0.9999999999129056,
+      "inlet_velocity_nominal_m_s": 0.23722158880929714
+    },
+    {
+      "unit_id": "ILO/GENG_CHUN_LAI-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/GENG_CHUN_LAI-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__GENG_CHUN_LAI-1__before/case.h5",
+      "geometry_shape": [
+        49138,
+        8
+      ],
+      "geometry_sha256": "bad94b16cc1d837eb2eafe5ae55fa1a192c769245c8beb8728f9dc76ea81b2c0",
+      "inlet_area_vectors_sha256": "9cba7c8d135c9811d05a402d1b0089a0cffa4cbd942605f314afc6d851942dc4",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 251.2821502685547,
+      "inlet_area_m2": 0.00046772389872745885,
+      "inlet_planarity": 0.999999999947076,
+      "inlet_velocity_nominal_m_s": 0.22934271019499128
+    },
+    {
+      "unit_id": "ILO/GONG_HAI_ZENG-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/GONG_HAI_ZENG-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__GONG_HAI_ZENG-1__before/case.h5",
+      "geometry_shape": [
+        81938,
+        8
+      ],
+      "geometry_sha256": "7e6d9ce1f5b648da5c25c2b8fa184ff67ccdc0ab88fbf4c56f607740cd0f5c0c",
+      "inlet_area_vectors_sha256": "aa19d799c8d494f623987cb1e7803724c3a8adcddb647a6f57e313ea7ce07456",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 254.7240753173828,
+      "inlet_area_m2": 0.0004795005286173321,
+      "inlet_planarity": 0.9999999999999983,
+      "inlet_velocity_nominal_m_s": 0.22371000688245266
+    },
+    {
+      "unit_id": "ILO/GUO_QING_SHAN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/GUO_QING_SHAN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__GUO_QING_SHAN-0__before/case.h5",
+      "geometry_shape": [
+        51146,
+        8
+      ],
+      "geometry_sha256": "bca251fa14395892b3c3b1ac6a42747bd95d907dff17fb3250e5a10806c554dd",
+      "inlet_area_vectors_sha256": "d0bebdc5d4a33d319838bb4d45ac0395a8c8406d26498d7ca844f3821896cf07",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 201.1339874267578,
+      "inlet_area_m2": 0.0004180792091407998,
+      "inlet_planarity": 1.0000000000000007,
+      "inlet_velocity_nominal_m_s": 0.25657594114180693
+    },
+    {
+      "unit_id": "ILO/GUO_YU_SHU-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/GUO_YU_SHU-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__GUO_YU_SHU-0__before/case.h5",
+      "geometry_shape": [
+        50046,
+        8
+      ],
+      "geometry_sha256": "70f1c196022cf75b67ffcb6ebebf51d5e99dc79a331701e5e2323840fbba9f1f",
+      "inlet_area_vectors_sha256": "b24e1bd5a8f40acdfa9a7a5f54ac2862f3fc0f8d2b8fa7594ec4f7220bf848ce",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 177.4984893798828,
+      "inlet_area_m2": 0.0005782234765433229,
+      "inlet_planarity": 0.9999999999999173,
+      "inlet_velocity_nominal_m_s": 0.18551489330455437
+    },
+    {
+      "unit_id": "ILO/HOU_SHI_GUO-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/HOU_SHI_GUO-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__HOU_SHI_GUO-0__before/case.h5",
+      "geometry_shape": [
+        78645,
+        8
+      ],
+      "geometry_sha256": "50c14fa033e576346ab043d6bd273fba4aff53b5d8fe938e2955e75910507312",
+      "inlet_area_vectors_sha256": "510e719600316cd33cf144d4410559f1c57191b74c1e7552fdb79e776c41d496",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 310.479736328125,
+      "inlet_area_m2": 0.00043331936149296657,
+      "inlet_planarity": 0.9999999999820567,
+      "inlet_velocity_nominal_m_s": 0.2475519814935945
+    },
+    {
+      "unit_id": "ILO/LIN_CHUN_YANG-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/LIN_CHUN_YANG-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__LIN_CHUN_YANG-1__before/case.h5",
+      "geometry_shape": [
+        77820,
+        8
+      ],
+      "geometry_sha256": "64859304fe9bd5d3be4e02071156c1ece44cd4ee5fabaf71149b421c161897c7",
+      "inlet_area_vectors_sha256": "da407848edc3123b4cd1a629105dde1e0f6c53bfcd7716d34a42735e13e6db68",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 205.3232879638672,
+      "inlet_area_m2": 0.000295639527616398,
+      "inlet_planarity": 0.9999999997986804,
+      "inlet_velocity_nominal_m_s": 0.36283736285869117
+    },
+    {
+      "unit_id": "ILO/LIU_BAO_JUN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/LIU_BAO_JUN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__LIU_BAO_JUN-0__before/case.h5",
+      "geometry_shape": [
+        96848,
+        8
+      ],
+      "geometry_sha256": "96bbbe5679eb158239943192e5edc33e34649eb36f3336a084e01ad763d78ac7",
+      "inlet_area_vectors_sha256": "30b212018926e1cb828362135ecea287d9f78871e6e461a8584f9e0ea76888ba",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 167.9604034423828,
+      "inlet_area_m2": 0.0006449493261119026,
+      "inlet_planarity": 0.9999999998292612,
+      "inlet_velocity_nominal_m_s": 0.16632169724681783
+    },
+    {
+      "unit_id": "ILO/LIU_LIAN_YOU-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/LIU_LIAN_YOU-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__LIU_LIAN_YOU-0__before/case.h5",
+      "geometry_shape": [
+        108454,
+        8
+      ],
+      "geometry_sha256": "619712f51659ef033954a10a1570b1fdd88ae2981bcfa690d942b1e61b1111f1",
+      "inlet_area_vectors_sha256": "bc9c77cb2950b0965192f342d12ff8cf448a4d28d94a345b84854777c892ff3e",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 219.0322265625,
+      "inlet_area_m2": 0.0004606170157831802,
+      "inlet_planarity": 0.9999999998339613,
+      "inlet_velocity_nominal_m_s": 0.23288125032622833
+    },
+    {
+      "unit_id": "ILO/LIU_YUE_DONG-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/LIU_YUE_DONG-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__LIU_YUE_DONG-0__before/case.h5",
+      "geometry_shape": [
+        62998,
+        8
+      ],
+      "geometry_sha256": "dc5eeecb123153ff1ea9c0152bf64f0e030ef8db19011f9eef664d887fe4a46d",
+      "inlet_area_vectors_sha256": "75b7d83e1153a71d5f2defd51c362cd065e06951480cc74e2789c57301dcb527",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 216.76571655273438,
+      "inlet_area_m2": 0.000414241486635686,
+      "inlet_planarity": 0.999999999999915,
+      "inlet_velocity_nominal_m_s": 0.2589529779557383
+    },
+    {
+      "unit_id": "ILO/LI_SHENG_WEN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/LI_SHENG_WEN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__LI_SHENG_WEN-0__before/case.h5",
+      "geometry_shape": [
+        52856,
+        8
+      ],
+      "geometry_sha256": "e87cabb9be5c82a439cd6aaffe5009a75236289e7f4906d31b3d4b37a201a85e",
+      "inlet_area_vectors_sha256": "40f8c0b7c1a8c7ed0afff561991dda9ac949963f9ec6f4be5698fc4e3573b398",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 243.5707244873047,
+      "inlet_area_m2": 0.0004597963004350106,
+      "inlet_planarity": 0.999999999949209,
+      "inlet_velocity_nominal_m_s": 0.23329693269744975
+    },
+    {
+      "unit_id": "ILO/LV_JIAN_HUA-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/LV_JIAN_HUA-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__LV_JIAN_HUA-0__before/case.h5",
+      "geometry_shape": [
+        104509,
+        8
+      ],
+      "geometry_sha256": "17f36741126a296062f7a3818b280283b82c8885d11b61cea23f0ccc09a226b8",
+      "inlet_area_vectors_sha256": "ad8ec53058086a95eadca920ee3206208d5eeba368b75746c8066dc9bd5e2207",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 166.73268127441406,
+      "inlet_area_m2": 0.00047845908398573035,
+      "inlet_planarity": 1.0000000000000009,
+      "inlet_velocity_nominal_m_s": 0.22419694838591936
+    },
+    {
+      "unit_id": "ILO/PAN_YIN_GEN-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/PAN_YIN_GEN-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__PAN_YIN_GEN-1__before/case.h5",
+      "geometry_shape": [
+        57086,
+        8
+      ],
+      "geometry_sha256": "92153e6a8e459df891064f79a514478a3ccb961370ec3be27f8e94854e889da2",
+      "inlet_area_vectors_sha256": "257e2c0e441233ad05be06ac611322affde0030215cd643968b274fd287f266a",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 208.8043212890625,
+      "inlet_area_m2": 0.0005402364289427934,
+      "inlet_planarity": 0.9999999998565547,
+      "inlet_velocity_nominal_m_s": 0.19855948397823048
+    },
+    {
+      "unit_id": "ILO/SUN_DE_QI-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/SUN_DE_QI-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__SUN_DE_QI-1__before/case.h5",
+      "geometry_shape": [
+        70088,
+        8
+      ],
+      "geometry_sha256": "98525a4192f8368dc4f2b7cf01f48dadad5f702692f64625c52637b8956240ce",
+      "inlet_area_vectors_sha256": "4c16d3a66f9291c12e8030a5fb4ec80a2d48adca1cdb2d75128f367e157c8bab",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 182.86773681640625,
+      "inlet_area_m2": 0.0004071275990688988,
+      "inlet_planarity": 0.9999999998518642,
+      "inlet_velocity_nominal_m_s": 0.2634777568566894
+    },
+    {
+      "unit_id": "ILO/SUN_YU_SHENG-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/SUN_YU_SHENG-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__SUN_YU_SHENG-0__before/case.h5",
+      "geometry_shape": [
+        65815,
+        8
+      ],
+      "geometry_sha256": "3d0b16663b3d417a3731400dd64ded6d832cc0a735c5ce7a5e0f0f57f0573932",
+      "inlet_area_vectors_sha256": "eff348e0a78651f39b4101e1584d1220047946dae1a8892ab5dd4e59ec54abf7",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 196.88717651367188,
+      "inlet_area_m2": 0.0005533047354219741,
+      "inlet_planarity": 0.9999999999997333,
+      "inlet_velocity_nominal_m_s": 0.19386977860457857
+    },
+    {
+      "unit_id": "ILO/WAGN_LI_JUN-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/WAGN_LI_JUN-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__WAGN_LI_JUN-1__before/case.h5",
+      "geometry_shape": [
+        74330,
+        8
+      ],
+      "geometry_sha256": "e2d075ca95a950477e3c14914aa81dc543e1d1d0c5688d35b98b8bf2a3e44535",
+      "inlet_area_vectors_sha256": "a350b1104565c8dba3c827f767d6974d12dbee95f46f2f039a823761eb149eaf",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 161.03746032714844,
+      "inlet_area_m2": 0.0004902334857610894,
+      "inlet_planarity": 0.9999999997870536,
+      "inlet_velocity_nominal_m_s": 0.21881219800925553
+    },
+    {
+      "unit_id": "ILO/WANG_JIN_MING-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/WANG_JIN_MING-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__WANG_JIN_MING-0__before/case.h5",
+      "geometry_shape": [
+        65272,
+        8
+      ],
+      "geometry_sha256": "5411c9a267f4059c5d829805253fddfedc68f9497b1223c0d4603172aa539c02",
+      "inlet_area_vectors_sha256": "aaf927eaa67b09531705cafbf3d347551ce8b6641a88b8fa5a1e8bb16f18d7f0",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 243.63604736328125,
+      "inlet_area_m2": 0.0003158662417255838,
+      "inlet_planarity": 0.999999999873947,
+      "inlet_velocity_nominal_m_s": 0.33960282039356254
+    },
+    {
+      "unit_id": "ILO/WANG_SHU_SHENG-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/WANG_SHU_SHENG-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__WANG_SHU_SHENG-0__before/case.h5",
+      "geometry_shape": [
+        63751,
+        8
+      ],
+      "geometry_sha256": "f24afa4629ab7f798cb5020d5279394bcb140f40d6321d9230eb5f8bd6825342",
+      "inlet_area_vectors_sha256": "111ed219d0570464167e328d291adfe1bb6402d9e982635c00178d723a56ebb4",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 266.8774108886719,
+      "inlet_area_m2": 0.0004619272844091015,
+      "inlet_planarity": 0.9999999999045049,
+      "inlet_velocity_nominal_m_s": 0.2322206766684975
+    },
+    {
+      "unit_id": "ILO/WANG_TIAN_QING-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/WANG_TIAN_QING-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__WANG_TIAN_QING-1__before/case.h5",
+      "geometry_shape": [
+        82168,
+        8
+      ],
+      "geometry_sha256": "89cf6d51b662592cdeabf821aac7eed385cf95ab8549d5b9f269d32a95f12650",
+      "inlet_area_vectors_sha256": "900151abe060fad7b0a9f3af2ee137b6356dd7a1c520816c9d5d2fd6c071b442",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 188.8123016357422,
+      "inlet_area_m2": 0.0004768807356823108,
+      "inlet_planarity": 0.999999999862264,
+      "inlet_velocity_nominal_m_s": 0.2249389806104135
+    },
+    {
+      "unit_id": "ILO/WANG_XIAO_LIN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/WANG_XIAO_LIN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__WANG_XIAO_LIN-0__before/case.h5",
+      "geometry_shape": [
+        65760,
+        8
+      ],
+      "geometry_sha256": "f122af1bac8804fccd1d6c29174e73b7d7a36a7b644558486b5a61ee47e14bf6",
+      "inlet_area_vectors_sha256": "b7da2c75be5c3d917136ae745a579e90946e7f6009473052084feb5c563bb92d",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 250.4224090576172,
+      "inlet_area_m2": 0.0006586177573346321,
+      "inlet_planarity": 0.9999999999670932,
+      "inlet_velocity_nominal_m_s": 0.1628699884910961
+    },
+    {
+      "unit_id": "ILO/WENG_ZHAO_GUANG-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/WENG_ZHAO_GUANG-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__WENG_ZHAO_GUANG-0__before/case.h5",
+      "geometry_shape": [
+        77413,
+        8
+      ],
+      "geometry_sha256": "7883613887692fbf1b4148f74b3c9e34a21ba4f5b88a1e9cd11c24bc38084e42",
+      "inlet_area_vectors_sha256": "66efa6d3675a271c2b9381efba361c8769b6847ceb88676ab983a86eac675532",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 257.3848876953125,
+      "inlet_area_m2": 0.0005161431505346028,
+      "inlet_planarity": 0.9999999999365526,
+      "inlet_velocity_nominal_m_s": 0.2078281314902998
+    },
+    {
+      "unit_id": "ILO/WU_JUN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/WU_JUN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__WU_JUN-0__before/case.h5",
+      "geometry_shape": [
+        65810,
+        8
+      ],
+      "geometry_sha256": "d503b468186cea87123b9994b242fd44390f146e529008fd6140502d3149af1e",
+      "inlet_area_vectors_sha256": "bf24b7d18a57f3a1dd327a8c135a26e60322ac41c582935b6bbc3dc63e4202a5",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 239.2333984375,
+      "inlet_area_m2": 0.0005054922357411443,
+      "inlet_planarity": 0.9999999999999447,
+      "inlet_velocity_nominal_m_s": 0.21220714972970242
+    },
+    {
+      "unit_id": "ILO/XIE_ZHI_FU-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/XIE_ZHI_FU-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__XIE_ZHI_FU-0__before/case.h5",
+      "geometry_shape": [
+        77362,
+        8
+      ],
+      "geometry_sha256": "5c871c1a3687a9b5aaac365e3ed0a6de68709c09f13f1945065bf1891e34ccc0",
+      "inlet_area_vectors_sha256": "df66f106d49635ef7a4790fa84d87c183ec2811bb630cae2d78cf5c1a1b55965",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 178.27919006347656,
+      "inlet_area_m2": 0.0005373231260146805,
+      "inlet_planarity": 0.9999999998348607,
+      "inlet_velocity_nominal_m_s": 0.1996360501970881
+    },
+    {
+      "unit_id": "ILO/YANG_WANG_QI-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/YANG_WANG_QI-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__YANG_WANG_QI-1__before/case.h5",
+      "geometry_shape": [
+        65448,
+        8
+      ],
+      "geometry_sha256": "e10f399b90de15c15371b8f20966c35affef791e95a89dd1cdd86237b96c1239",
+      "inlet_area_vectors_sha256": "9c0c1f100b0380a45729ed6976ff456852958d0993cf0be8804224be6ab975a7",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 272.2627258300781,
+      "inlet_area_m2": 0.0005116192163024978,
+      "inlet_planarity": 0.9999999998884742,
+      "inlet_velocity_nominal_m_s": 0.20966582790295274
+    },
+    {
+      "unit_id": "ILO/YANG_YU_QING-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/YANG_YU_QING-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__YANG_YU_QING-1__before/case.h5",
+      "geometry_shape": [
+        64453,
+        8
+      ],
+      "geometry_sha256": "0df962b3633ad35eb6083fd799caeab987b3d92ae3f591c87973b3f6639351ce",
+      "inlet_area_vectors_sha256": "b15a34b41477034a8e9d0e5831bdbf6cf368deb4f7a1343f8e5ca5fbbe62476c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 206.37527465820312,
+      "inlet_area_m2": 0.00044294216459488827,
+      "inlet_planarity": 0.9999999998506919,
+      "inlet_velocity_nominal_m_s": 0.2421739792038777
+    },
+    {
+      "unit_id": "ILO/YAO_GUO_CHEN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/YAO_GUO_CHEN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__YAO_GUO_CHEN-0__before/case.h5",
+      "geometry_shape": [
+        48898,
+        8
+      ],
+      "geometry_sha256": "2379bd92436b4efca5d46aa62cbb3a27fa60b1df7266d2493ae1390f81ce52c6",
+      "inlet_area_vectors_sha256": "f0070fb2eb4d1a6229fc1a9e9aa55ba9390c34084d0740920e591e5841df4e32",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 312.2845153808594,
+      "inlet_area_m2": 0.000577830748997647,
+      "inlet_planarity": 0.9999999999473033,
+      "inlet_velocity_nominal_m_s": 0.18564098006760776
+    },
+    {
+      "unit_id": "ILO/ZHANG_JIAN_JUN-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/ZHANG_JIAN_JUN-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__ZHANG_JIAN_JUN-1__before/case.h5",
+      "geometry_shape": [
+        67767,
+        8
+      ],
+      "geometry_sha256": "8fd6fbc079837bb8baabb30c4fd7911cdad0065eb493c75bbf805a841bc23d94",
+      "inlet_area_vectors_sha256": "aa09d944b1b720ce849d42b87b5a0df8ec52c67924124f9c7a6db4d6f1efdd6d",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 250.18093872070312,
+      "inlet_area_m2": 0.0004487630134073265,
+      "inlet_planarity": 0.999999999879717,
+      "inlet_velocity_nominal_m_s": 0.23903277086643204
+    },
+    {
+      "unit_id": "ILO/ZHANG_YAN_SHAN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/ZHANG_YAN_SHAN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__ZHANG_YAN_SHAN-0__before/case.h5",
+      "geometry_shape": [
+        56577,
+        8
+      ],
+      "geometry_sha256": "05c732dc55b5bdc22702bc87584874f0ee21e5ed6204ed36e64dbb5339777172",
+      "inlet_area_vectors_sha256": "050c4014c892b1816f939e3c19d1bc8b07dade986e80b2a603aef10be5a432e0",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 187.41949462890625,
+      "inlet_area_m2": 0.00035921533030311875,
+      "inlet_planarity": 0.9999999997570973,
+      "inlet_velocity_nominal_m_s": 0.2986205139591497
+    },
+    {
+      "unit_id": "ILO/ZHAO_CHANG_SHAN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/ZHAO_CHANG_SHAN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__ZHAO_CHANG_SHAN-0__before/case.h5",
+      "geometry_shape": [
+        52807,
+        8
+      ],
+      "geometry_sha256": "cfb8d6c73e3a74a8164d5cb2d0881e87f39f691a915cb3427371008f97be504b",
+      "inlet_area_vectors_sha256": "a6b56dc9c2117f78b75868706a4a2276faf621b180c42fe386d63a34f6a0515b",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 176.33815002441406,
+      "inlet_area_m2": 0.00042092454069446857,
+      "inlet_planarity": 0.9999999998887993,
+      "inlet_velocity_nominal_m_s": 0.2548415599150945
+    },
+    {
+      "unit_id": "AAA/ruputer/KANG_YONG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/KANG_YONG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__KANG_YONG/case.h5",
+      "geometry_shape": [
+        16448,
+        8
+      ],
+      "geometry_sha256": "fe711df0ed83ce968de5c3ab016a8d053216500a2e57c43ab24aaafca94df70c",
+      "inlet_area_vectors_sha256": "3bb4c62d5f17ab248eaec0ac9b2c27c256a37f6e25a1e509ddc76d5160a80503",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 196.52542114257812,
+      "inlet_area_m2": 0.00050604575745435,
+      "inlet_planarity": 0.9999999998829326,
+      "inlet_velocity_nominal_m_s": 0.21197503383238955
+    },
+    {
+      "unit_id": "AAA/ruputer/LI_ZHEN_HUA",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/LI_ZHEN_HUA/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__LI_ZHEN_HUA/case.h5",
+      "geometry_shape": [
+        12599,
+        8
+      ],
+      "geometry_sha256": "ff5f310263e4d4c128516116d77d70f59b185ffbd948d49b33948ab45eee8533",
+      "inlet_area_vectors_sha256": "fed3f7a2d88e1307b27eeef84ee04c610cb2d19aa7217252813c1a80f10e85b1",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 154.97857666015625,
+      "inlet_area_m2": 0.0004738223413086448,
+      "inlet_planarity": 0.999999999884664,
+      "inlet_velocity_nominal_m_s": 0.22639090056593314
+    },
+    {
+      "unit_id": "AAA/ruputer/WANG_FU_SHUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/WANG_FU_SHUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__WANG_FU_SHUN/case.h5",
+      "geometry_shape": [
+        95286,
+        8
+      ],
+      "geometry_sha256": "43ddcc8455c9d3d7b6ac1824cb0562db85cf23bc9ba2b86a5d32443ae99f6488",
+      "inlet_area_vectors_sha256": "e971ea69a47c7d5a873bea168587b48851b28fe09c26760ee0258bb97ca88ee0",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 157.8343505859375,
+      "inlet_area_m2": 0.0002678855842625868,
+      "inlet_planarity": 0.9999999999999474,
+      "inlet_velocity_nominal_m_s": 0.4004286637984064
+    },
+    {
+      "unit_id": "AAA/ruputer/YU_TIAN_HAI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/ruputer/YU_TIAN_HAI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__ruputer__YU_TIAN_HAI/case.h5",
+      "geometry_shape": [
+        54654,
+        8
+      ],
+      "geometry_sha256": "5fa2cd1075dc01fea7effb23087375d7a8421ae3c3395701b4d7f84ccd510cf8",
+      "inlet_area_vectors_sha256": "c6a118703ae053ecdcabe7167202d5f64dce6a4cfca6bb2605eaba89b97f2ec0",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 163.34877014160156,
+      "inlet_area_m2": 0.0004924112394953319,
+      "inlet_planarity": 0.9999999999999146,
+      "inlet_velocity_nominal_m_s": 0.21784447216733357
+    },
+    {
+      "unit_id": "AAA/unruputer/GAO_DIAN_WEN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/GAO_DIAN_WEN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__GAO_DIAN_WEN/case.h5",
+      "geometry_shape": [
+        14693,
+        8
+      ],
+      "geometry_sha256": "c7d9a514a5d013d2e572985880e29d995c574b76c37621f65112c1ef16e54576",
+      "inlet_area_vectors_sha256": "925b4639b732bfbe465f485bad4cda684b4142e9503c881db89d0aabe24c921b",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 164.06124877929688,
+      "inlet_area_m2": 0.0006123697362949677,
+      "inlet_planarity": 0.9999999997329236,
+      "inlet_velocity_nominal_m_s": 0.17517042433568833
+    },
+    {
+      "unit_id": "AAA/unruputer/LIU_KANG_WEN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/LIU_KANG_WEN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__LIU_KANG_WEN/case.h5",
+      "geometry_shape": [
+        14115,
+        8
+      ],
+      "geometry_sha256": "e4bd65b4b1050dc904e86d2c84aff4401435829b0fc0b1ebad824aba71302320",
+      "inlet_area_vectors_sha256": "835419dfdf435fbab9e188e12e5e0915f222384f74a682fa0d82d80673610a6b",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 155.95118713378906,
+      "inlet_area_m2": 0.0005778288853641344,
+      "inlet_planarity": 0.9999999999130669,
+      "inlet_velocity_nominal_m_s": 0.18564157880325516
+    },
+    {
+      "unit_id": "AAA/unruputer/MA_JIN_HE",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/MA_JIN_HE/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__MA_JIN_HE/case.h5",
+      "geometry_shape": [
+        76729,
+        8
+      ],
+      "geometry_sha256": "4779f389c6426ee5d5fcb576c36aedbe692e85dc460b6c6474dbbea227a63460",
+      "inlet_area_vectors_sha256": "c0a5a7b96730925a3f276a541b73e5c311bdc13f0af243661c76b89645ccc5d9",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 171.2296142578125,
+      "inlet_area_m2": 0.00044328869433842347,
+      "inlet_planarity": 1.0000000000000016,
+      "inlet_velocity_nominal_m_s": 0.2419846658106506
+    },
+    {
+      "unit_id": "AAA/unruputer/SUN_SHU_MING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/SUN_SHU_MING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__SUN_SHU_MING/case.h5",
+      "geometry_shape": [
+        14958,
+        8
+      ],
+      "geometry_sha256": "c776a18403d30c1b7a1cfb378a7aeff0d98a5603e35c7c2d404d008f180a65eb",
+      "inlet_area_vectors_sha256": "019b2dedc182182c2d401247522550be9f3ab78b43ceb18b1ebbb753383f8f3b",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 185.5116424560547,
+      "inlet_area_m2": 0.0005782413636318081,
+      "inlet_planarity": 0.9999999998779778,
+      "inlet_velocity_nominal_m_s": 0.18550915466058912
+    },
+    {
+      "unit_id": "AAA/unruputer/WANG_MAN_TIAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/WANG_MAN_TIAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__WANG_MAN_TIAN/case.h5",
+      "geometry_shape": [
+        72502,
+        8
+      ],
+      "geometry_sha256": "842db0015567ca638d39f734508a58e569fb0011b7da1bb4e65a30b65099df60",
+      "inlet_area_vectors_sha256": "c639262ae638e8a53bbf1cb86d0d19f131098ddbb0b8f759a411def282c21304",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 169.49819946289062,
+      "inlet_area_m2": 0.00040943366535810174,
+      "inlet_planarity": 0.9999999999999112,
+      "inlet_velocity_nominal_m_s": 0.2619937626851046
+    },
+    {
+      "unit_id": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/ZHANG_YONG_ZHI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__ZHANG_YONG_ZHI/case.h5",
+      "geometry_shape": [
+        57531,
+        8
+      ],
+      "geometry_sha256": "9b6460694272800a1106290b9bddc0edaf76d5ae160f92cd34d983c783046b4f",
+      "inlet_area_vectors_sha256": "935b0539f93ad5fd0bba198d2da9d73d4d57ae4876df404ebc3187741d5e8844",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 182.95933532714844,
+      "inlet_area_m2": 0.0004581105136907151,
+      "inlet_planarity": 0.9999999999999787,
+      "inlet_velocity_nominal_m_s": 0.23415543488168836
+    },
+    {
+      "unit_id": "AG/fast/FAN_JIAN_MING",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/FAN_JIAN_MING/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__FAN_JIAN_MING/case.h5",
+      "geometry_shape": [
+        10627,
+        8
+      ],
+      "geometry_sha256": "ebdb28db08974b5fb7c3f2bb6b92d120516ae380d6ed729742ad33f1a3c00f6e",
+      "inlet_area_vectors_sha256": "84106d3185e729ca1ca9742a1e8df73d89189a707d87f7ddb6766939141873ef",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 124.13752746582031,
+      "inlet_area_m2": 0.0005510770265076116,
+      "inlet_planarity": 0.9999999998399306,
+      "inlet_velocity_nominal_m_s": 0.19465349016076505
+    },
+    {
+      "unit_id": "AG/fast/LOU_YANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/LOU_YANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__LOU_YANG/case.h5",
+      "geometry_shape": [
+        10806,
+        8
+      ],
+      "geometry_sha256": "2fc81ca2a13c4aff0f175c729db81b8e527d223da1cf1f5a208df87c1b8c53a2",
+      "inlet_area_vectors_sha256": "41cf47b67d87d3d974c96758820ece921378cdf9d5ad5baba9a2e263a33818b4",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 133.8885955810547,
+      "inlet_area_m2": 0.00043279333790569653,
+      "inlet_planarity": 0.9999999997736115,
+      "inlet_velocity_nominal_m_s": 0.24785285992663877
+    },
+    {
+      "unit_id": "AG/fast/RAN_QING_BO",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/RAN_QING_BO/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__RAN_QING_BO/case.h5",
+      "geometry_shape": [
+        17682,
+        8
+      ],
+      "geometry_sha256": "4c829b6c9cb071f1048c0a4b2ffd9d2b958dbed077cec1705fe3508ae6c2df8b",
+      "inlet_area_vectors_sha256": "458b058c858be87da4dcc5ab8d7d102fff0ca524131091be9ec4a3296b6809f1",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 174.56869506835938,
+      "inlet_area_m2": 0.0005249856082247936,
+      "inlet_planarity": 0.9999999998894358,
+      "inlet_velocity_nominal_m_s": 0.2043276327513944
+    },
+    {
+      "unit_id": "AG/fast/SUN_ZHI_YU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/SUN_ZHI_YU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__SUN_ZHI_YU/case.h5",
+      "geometry_shape": [
+        11696,
+        8
+      ],
+      "geometry_sha256": "6efc5f13a8f9c6495f2225078f33ffb79f089fbeab30bd8868e1e157a721b7d5",
+      "inlet_area_vectors_sha256": "abc72674991e842b3ffa3461460dac91a6d75dad1f83578384b7eaeb1bbeef00",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 124.3175048828125,
+      "inlet_area_m2": 0.000392356045403324,
+      "inlet_planarity": 0.9999999998534881,
+      "inlet_velocity_nominal_m_s": 0.2733972569400718
+    },
+    {
+      "unit_id": "AG/fast/YAO_CUN_HONG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/YAO_CUN_HONG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__YAO_CUN_HONG/case.h5",
+      "geometry_shape": [
+        9704,
+        8
+      ],
+      "geometry_sha256": "6bdfd2f984d035ae199c15fb0a98a0e941ae2537b6fd7c7ff51663c4bca0342c",
+      "inlet_area_vectors_sha256": "59bf996a67532daeeea31e327baf4f7446d55f5d90c5ca892f102c5697224cf0",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 169.8035888671875,
+      "inlet_area_m2": 0.0004115848685742433,
+      "inlet_planarity": 0.9999999998884513,
+      "inlet_velocity_nominal_m_s": 0.26062441733757136
+    },
+    {
+      "unit_id": "AG/fast/ZHANG_CHUN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_CHUN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__ZHANG_CHUN/case.h5",
+      "geometry_shape": [
+        13850,
+        8
+      ],
+      "geometry_sha256": "6b39b553f50e03956321bf969c72715a4afe04c954b57fbb05eb099413f3691e",
+      "inlet_area_vectors_sha256": "845642e3d8769e12bbe548cafe6bcf6968befc94b21aee211f02fcd43cc8a1fa",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 230.29443359375,
+      "inlet_area_m2": 0.00042641867628452537,
+      "inlet_planarity": 0.9999999997977552,
+      "inlet_velocity_nominal_m_s": 0.2515580872108622
+    },
+    {
+      "unit_id": "AG/fast/ZHANG_LIANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_LIANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__ZHANG_LIANG/case.h5",
+      "geometry_shape": [
+        14399,
+        8
+      ],
+      "geometry_sha256": "8804a6a4a0cf30d4d019ee319cc1b6e5c31ce328524ce0c19db6007d5ab7534d",
+      "inlet_area_vectors_sha256": "9d0ee12a98a188eb3f86692000550fd70c3aa7d968216d3a9302f0e5453619de",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 180.2899169921875,
+      "inlet_area_m2": 0.0004745587251053018,
+      "inlet_planarity": 0.9999999999188317,
+      "inlet_velocity_nominal_m_s": 0.22603960454698346
+    },
+    {
+      "unit_id": "AG/slow/BAI_WEN_JIE",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/BAI_WEN_JIE/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__BAI_WEN_JIE/case.h5",
+      "geometry_shape": [
+        10595,
+        8
+      ],
+      "geometry_sha256": "f9dd13f42e317fe5930817f1cd26c2b0653679d9fdc834319bd6e576978f83b5",
+      "inlet_area_vectors_sha256": "ac22f4ab4bda5aa637ff39fd07da86b8ea721bc8bdba98a3e19acbaa9c814ffd",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 133.18307495117188,
+      "inlet_area_m2": 0.000354460918307628,
+      "inlet_planarity": 0.9999999996852126,
+      "inlet_velocity_nominal_m_s": 0.30262593424764206
+    },
+    {
+      "unit_id": "AG/slow/CHEN_JING_RU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/CHEN_JING_RU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__CHEN_JING_RU/case.h5",
+      "geometry_shape": [
+        12477,
+        8
+      ],
+      "geometry_sha256": "680a2805d57141fc50dfb17ae5232bcbf5fa49e7c5e8805d21cfd60f2368cc2d",
+      "inlet_area_vectors_sha256": "e7852bd30a170af0d647a67a3c02e8bd712fc83c208f17aa26c6b01a75e6b1f6",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 145.25770568847656,
+      "inlet_area_m2": 0.0005275206913452386,
+      "inlet_planarity": 0.9999999997087382,
+      "inlet_velocity_nominal_m_s": 0.2033457043809496
+    },
+    {
+      "unit_id": "AG/slow/GUO_XI_JIANG",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/GUO_XI_JIANG/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__GUO_XI_JIANG/case.h5",
+      "geometry_shape": [
+        10236,
+        8
+      ],
+      "geometry_sha256": "a7ea7188ae1d078d20b6d409b0e05250559b407c251db96b44b7a22a5a4804aa",
+      "inlet_area_vectors_sha256": "73e88ba363dd1cd66714c0d382fa7b18b32cac49f51cb10464750135ef41207d",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 166.24630737304688,
+      "inlet_area_m2": 0.000445295474445026,
+      "inlet_planarity": 0.9999999998024717,
+      "inlet_velocity_nominal_m_s": 0.240894131454655
+    },
+    {
+      "unit_id": "AG/slow/HE_SHU_ZHEN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/HE_SHU_ZHEN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__HE_SHU_ZHEN/case.h5",
+      "geometry_shape": [
+        10244,
+        8
+      ],
+      "geometry_sha256": "67bb41f81b568d207735ab4dd40b2561cf09378bf4d377b385fc073ba2ba26f5",
+      "inlet_area_vectors_sha256": "99ffeabc67192ca7becfce2e6fe8efe4f76a5da9ca7bfc5a2110b7b9d5b26b96",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 124.9192886352539,
+      "inlet_area_m2": 0.00023144991637058762,
+      "inlet_planarity": 0.9999999997697796,
+      "inlet_velocity_nominal_m_s": 0.463465566284191
+    },
+    {
+      "unit_id": "AG/slow/LI_HUAN_GE",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LI_HUAN_GE/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LI_HUAN_GE/case.h5",
+      "geometry_shape": [
+        12691,
+        8
+      ],
+      "geometry_sha256": "028d80f9ec0c11cca5378e60e56dba425742e430bdfc02b69f03fb63409ca898",
+      "inlet_area_vectors_sha256": "66fc8499a9a60bff8bea64ed5616832d2b6da68fb33fbbd6fc0026069fc9e1ba",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 136.85940551757812,
+      "inlet_area_m2": 0.0003297953710302042,
+      "inlet_planarity": 0.9999999997219529,
+      "inlet_velocity_nominal_m_s": 0.32525946686892354
+    },
+    {
+      "unit_id": "AG/slow/MA_TIAN_YI",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/MA_TIAN_YI/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__MA_TIAN_YI/case.h5",
+      "geometry_shape": [
+        12636,
+        8
+      ],
+      "geometry_sha256": "47a1f1ff80ba27e793a3b4c366cf22aea423ce8560d580db57bd47b12071b302",
+      "inlet_area_vectors_sha256": "33fbdd1da8f44d259974f4371c6d1b0c5b6a35cb406766907ee50cf0a248fbd6",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 146.20103454589844,
+      "inlet_area_m2": 0.00036660244427852055,
+      "inlet_planarity": 0.9999999998276593,
+      "inlet_velocity_nominal_m_s": 0.29260324973618296
+    },
+    {
+      "unit_id": "AG/slow/MA_YU",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/MA_YU/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__MA_YU/case.h5",
+      "geometry_shape": [
+        17282,
+        8
+      ],
+      "geometry_sha256": "29a1ce7071274b56384d69195f43da7bdd58420f512de9ee5b7f8ce33545b085",
+      "inlet_area_vectors_sha256": "2b982c1ae05ac3706bf8d37eedebd877df3703c5e77d467999fb1ced481e1f00",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 142.12448120117188,
+      "inlet_area_m2": 0.0004256731524566767,
+      "inlet_planarity": 0.9999999997998194,
+      "inlet_velocity_nominal_m_s": 0.25199866596717174
+    },
+    {
+      "unit_id": "AG/slow/ZHANG_WEI_XIAN",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/ZHANG_WEI_XIAN/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__ZHANG_WEI_XIAN/case.h5",
+      "geometry_shape": [
+        18551,
+        8
+      ],
+      "geometry_sha256": "6c533261532622d256cd9c2f2aaeff2bd19a8194686c7304ca733783d389cd35",
+      "inlet_area_vectors_sha256": "c10fd47e453245884852dcfffc94213ed55cfcbb703a09e3d781d6a7eb8d159c",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 104.40425872802734,
+      "inlet_area_m2": 0.00025837630100755736,
+      "inlet_planarity": 0.9999999999999648,
+      "inlet_velocity_nominal_m_s": 0.4151660432432055
+    },
+    {
+      "unit_id": "ILO/LI_YOU_ZHI-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/LI_YOU_ZHI-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__LI_YOU_ZHI-0__before/case.h5",
+      "geometry_shape": [
+        67760,
+        8
+      ],
+      "geometry_sha256": "87496d8576392d3211bb59b1075361be483144c6240494ddfb934b99c85f7eaf",
+      "inlet_area_vectors_sha256": "e1fa9236ddf060ddfc520431a6d0dbe050240b8bb1cc56c9e1dcd5916be2790e",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 203.6822052001953,
+      "inlet_area_m2": 0.0007074706789540722,
+      "inlet_planarity": 0.9999999999999672,
+      "inlet_velocity_nominal_m_s": 0.15162333895690222
+    },
+    {
+      "unit_id": "ILO/LU_FU_SHAN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/LU_FU_SHAN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__LU_FU_SHAN-0__before/case.h5",
+      "geometry_shape": [
+        79580,
+        8
+      ],
+      "geometry_sha256": "20d845ca2a47fba3e1823a2776b0f9814d8e0207e55aa58832ab529fd19be87d",
+      "inlet_area_vectors_sha256": "98d09d8203ad77b6bd05ef7181c45d7e492c113ddc806b937e4168e2256b3cac",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 215.0809326171875,
+      "inlet_area_m2": 0.0003071416604392853,
+      "inlet_planarity": 0.9999999997954115,
+      "inlet_velocity_nominal_m_s": 0.34924948443562776
+    },
+    {
+      "unit_id": "ILO/SUN_DONG_XIN-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/SUN_DONG_XIN-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__SUN_DONG_XIN-0__before/case.h5",
+      "geometry_shape": [
+        41619,
+        8
+      ],
+      "geometry_sha256": "27575a632cb616c04917648001cabb38d0d3ad671ade8eebff6ad9d860dd5729",
+      "inlet_area_vectors_sha256": "9fd8f4e84a1f3976b0ec81e8cc99710bde05f0be48b4a95da15c5889803e290a",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 166.86241149902344,
+      "inlet_area_m2": 0.00043140693931427074,
+      "inlet_planarity": 0.999999999999971,
+      "inlet_velocity_nominal_m_s": 0.24864937668278864
+    },
+    {
+      "unit_id": "ILO/SUN_XU_XIA-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/SUN_XU_XIA-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__SUN_XU_XIA-1__before/case.h5",
+      "geometry_shape": [
+        60281,
+        8
+      ],
+      "geometry_sha256": "6d333e84b98105e77c40f9a9d457a8812e6ff42403509102df5882349d10f460",
+      "inlet_area_vectors_sha256": "46c1b096580a32808bede4e9c261ebfba81548b271cc289c86871ed56845c478",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 253.45411682128906,
+      "inlet_area_m2": 0.00037610336815755785,
+      "inlet_planarity": 0.9999999999207766,
+      "inlet_velocity_nominal_m_s": 0.2852116615775313
+    },
+    {
+      "unit_id": "ILO/YANG_WEN_TAI-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/YANG_WEN_TAI-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__YANG_WEN_TAI-0__before/case.h5",
+      "geometry_shape": [
+        81868,
+        8
+      ],
+      "geometry_sha256": "0d565ea39179b8a2227abaa4c78dde86a9833219416ad6b0def59a5f3ba28e22",
+      "inlet_area_vectors_sha256": "df29201514911a903832edec4eeac0083abde147301e039e25b3031a5e6c002b",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 268.4248352050781,
+      "inlet_area_m2": 0.0006449403112530016,
+      "inlet_planarity": 0.9999999999503252,
+      "inlet_velocity_nominal_m_s": 0.16632402206138858
+    },
+    {
+      "unit_id": "ILO/YU_XIANG_SHENG-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/YU_XIANG_SHENG-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__YU_XIANG_SHENG-1__before/case.h5",
+      "geometry_shape": [
+        57231,
+        8
+      ],
+      "geometry_sha256": "f346fd2eb16720fb897604b0bd6568c75e4d7326aa1a6043b45cb4605839661d",
+      "inlet_area_vectors_sha256": "def54dc6eb272e0ab88892684aeaf2573ddae53bc8b42eb03e7c06a49a7556bf",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 202.44850158691406,
+      "inlet_area_m2": 0.00048080898301988424,
+      "inlet_planarity": 0.999999999876157,
+      "inlet_velocity_nominal_m_s": 0.22310121138624162
+    },
+    {
+      "unit_id": "ILO/ZHANG_HE_PING-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/ZHANG_HE_PING-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__ZHANG_HE_PING-0__before/case.h5",
+      "geometry_shape": [
+        85234,
+        8
+      ],
+      "geometry_sha256": "8088014a79e5314156134ecea7d543f3b93dbfb1bf2b1f2d233475ed74efe2ed",
+      "inlet_area_vectors_sha256": "c4b28d96099cdcf0810f3f92393bab8be7cc35913554a891cd0d9d3adfc4dada",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 208.93765258789062,
+      "inlet_area_m2": 0.0005153843961568286,
+      "inlet_planarity": 0.9999999997755884,
+      "inlet_velocity_nominal_m_s": 0.20813409827115073
+    },
+    {
+      "unit_id": "ILO/ZHANG_JIN_CHUN-1/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/ZHANG_JIN_CHUN-1/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__ZHANG_JIN_CHUN-1__before/case.h5",
+      "geometry_shape": [
+        74402,
+        8
+      ],
+      "geometry_sha256": "bfa8a93e2eb63f4b1e4da5116fd35454df97f60deb26b07a35568d15e9d3f77e",
+      "inlet_area_vectors_sha256": "e47f8cd220c7f5229b71a86819ecedc4b7faaac44d71dc9030a0876e95e1fcac",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 193.60670471191406,
+      "inlet_area_m2": 0.0005227188078076487,
+      "inlet_planarity": 0.9999999998159899,
+      "inlet_velocity_nominal_m_s": 0.20521371137767855
+    },
+    {
+      "unit_id": "ILO/ZHANG_YONG_SHENG-0/before",
+      "status": "pass",
+      "bundle_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/ILO/ZHANG_YONG_SHENG-0/before/bundle.npz",
+      "frozen_source_h5": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/ILO__ZHANG_YONG_SHENG-0__before/case.h5",
+      "geometry_shape": [
+        60329,
+        8
+      ],
+      "geometry_sha256": "33d2d29ddc1003412f38f983281a4ab3883e4d80f97447b46ad5b7a10ccf5abd",
+      "inlet_area_vectors_sha256": "c2e08f725899e0a851596248197a593b2e77d10f21feee8a180fcfa6edf4a357",
+      "public_q_peak_m3s": 0.00010726906655712305,
+      "nominal_waveform_bit_identical": true,
+      "coord_scale_mm": 268.60418701171875,
+      "inlet_area_m2": 0.0004953662391538266,
+      "inlet_planarity": 0.9999999999207524,
+      "inlet_velocity_nominal_m_s": 0.21654496830538478
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,39 @@
+{
+  "stem": "V4_EMA_scatter_fit",
+  "claim": "最好例 a=0.211，预测/拟合 R² 0.260 / 0.277；最差例 a=0.722，预测/拟合 -0.889 / 0.292",
+  "sources": [
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/best/_export/same_point_fields.csv.gz",
+      "sha256": "3f9ab4894c2d6ecd487afced6e0c6eb3892fa09f0c97e15ab1f9eed6a2905d9f"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/best/manifest.json",
+      "sha256": "a4b956c314106db2c02694867698927bc4d02c2bc2f4098b9a343528fe4eaa5b"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/median/_export/same_point_fields.csv.gz",
+      "sha256": "8b8acab49382ece89f040cfa3a2bfac99707530c44bf157a8a1dbe423e4a02fb"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/median/manifest.json",
+      "sha256": "d5af1911944fc7547860efd981e0221cfd535051424ab622f827b858428ae1b8"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/worst/_export/same_point_fields.csv.gz",
+      "sha256": "3e7e6a6a11c55709d1e5cd824cf3eeebc2e12b407a0656fb78b3bc5165990800"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/worst/manifest.json",
+      "sha256": "e1a68e83518b4a66b96c07bb7023b91e9b780697afacbbb4244ba70a149dbbc8"
+    },
+    {
+      "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例拟合散点_20260915/source_data/V4_EMA_scatter_fit.csv",
+      "sha256": "3d61ea9df8e0d066f43b6a40bc69dc9645c39df7354b61620e9c239ea9259ef9"
+    }
+  ],
+  "exports": {
+    "png": "figures/V4_EMA_scatter_fit.png"
+  },
+  "alignment": "PASS",
+  "note": "Three equal-width identity scatters. Axis limits are independent per case so that every same-point query is retained. Density color is KDE on a 6000-point sample; slope, intercept and both R² values use all points. Prediction R² matches the package visualization_metrics.r2."
+}

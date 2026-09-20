@@ -1,0 +1,3215 @@
+{
+  "schema_version": 1,
+  "target": "velocity",
+  "run_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/reference_runs/R5V",
+  "checkpoint": "best",
+  "partition": "test",
+  "case_ids": [
+    "AAA/ruputer/KANG_YONG",
+    "AAA/ruputer/LI_ZHEN_HUA",
+    "AAA/ruputer/WANG_FU_SHUN",
+    "AAA/ruputer/YU_TIAN_HAI",
+    "AAA/unruputer/GAO_DIAN_WEN",
+    "AAA/unruputer/LIU_KANG_WEN",
+    "AAA/unruputer/MA_JIN_HE",
+    "AAA/unruputer/SUN_SHU_MING",
+    "AAA/unruputer/WANG_MAN_TIAN",
+    "AAA/unruputer/ZHANG_YONG_ZHI",
+    "AG/fast/FAN_JIAN_MING",
+    "AG/fast/LOU_YANG",
+    "AG/fast/RAN_QING_BO",
+    "AG/fast/SUN_ZHI_YU",
+    "AG/fast/YAO_CUN_HONG",
+    "AG/fast/ZHANG_CHUN",
+    "AG/fast/ZHANG_LIANG",
+    "AG/slow/BAI_WEN_JIE",
+    "AG/slow/CHEN_JING_RU",
+    "AG/slow/GUO_XI_JIANG",
+    "AG/slow/HE_SHU_ZHEN",
+    "AG/slow/LI_HUAN_GE",
+    "AG/slow/MA_TIAN_YI",
+    "AG/slow/MA_YU",
+    "AG/slow/ZHANG_WEI_XIAN",
+    "ILO/LI_YOU_ZHI-0/before",
+    "ILO/LU_FU_SHAN-0/before",
+    "ILO/SUN_DONG_XIN-0/before",
+    "ILO/SUN_XU_XIA-1/before",
+    "ILO/YANG_WEN_TAI-0/before",
+    "ILO/YU_XIANG_SHENG-1/before",
+    "ILO/ZHANG_HE_PING-0/before",
+    "ILO/ZHANG_JIN_CHUN-1/before",
+    "ILO/ZHANG_YONG_SHENG-0/before"
+  ],
+  "tasks": {
+    "velocity": {
+      "longwave": {
+        "per_case": {
+          "AAA/ruputer/KANG_YONG": {
+            "n_cells": 512189,
+            "n_bins": 126,
+            "n_segments": 7,
+            "case_bias": 0.019653314155778593,
+            "case_bias_squared": 0.0003862527573057272,
+            "full_residual_mse": 0.0030709846992304246,
+            "binned_residual_mse": 0.0017029530214390442,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0016400182479985891,
+                "debiased_residual_mse": 0.0012496398551048277
+              },
+              "10": {
+                "residual_mse": 0.0015669545350853764,
+                "debiased_residual_mse": 0.0011672049940018574
+              },
+              "20": {
+                "residual_mse": 0.001487513864611605,
+                "debiased_residual_mse": 0.0010695849013243267
+              },
+              "40": {
+                "residual_mse": 0.001432655789002898,
+                "debiased_residual_mse": 0.0010235663746095503
+              }
+            },
+            "profile_csv": "profiles/AAA__ruputer__KANG_YONG_axial_velocity.csv"
+          },
+          "AAA/ruputer/LI_ZHEN_HUA": {
+            "n_cells": 365126,
+            "n_bins": 135,
+            "n_segments": 7,
+            "case_bias": 0.00012504870782103358,
+            "case_bias_squared": 1.5637179327710225e-08,
+            "full_residual_mse": 0.0038601096391998177,
+            "binned_residual_mse": 0.0014078945101030317,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0013217051825639072,
+                "debiased_residual_mse": 0.001321684519321482
+              },
+              "10": {
+                "residual_mse": 0.0012500241979696847,
+                "debiased_residual_mse": 0.001250059108285429
+              },
+              "20": {
+                "residual_mse": 0.0012124395896403576,
+                "debiased_residual_mse": 0.0012126226910568745
+              },
+              "40": {
+                "residual_mse": 0.0012243658709314561,
+                "debiased_residual_mse": 0.0012249357678969389
+              }
+            },
+            "profile_csv": "profiles/AAA__ruputer__LI_ZHEN_HUA_axial_velocity.csv"
+          },
+          "AAA/ruputer/WANG_FU_SHUN": {
+            "n_cells": 612696,
+            "n_bins": 121,
+            "n_segments": 7,
+            "case_bias": -0.005306239114769722,
+            "case_bias_squared": 2.8156173543112165e-05,
+            "full_residual_mse": 0.016398362225124353,
+            "binned_residual_mse": 0.003994150543053198,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.003240843986109538,
+                "debiased_residual_mse": 0.003211043879126018
+              },
+              "10": {
+                "residual_mse": 0.00284091000286942,
+                "debiased_residual_mse": 0.002811342825968354
+              },
+              "20": {
+                "residual_mse": 0.0026633055409575877,
+                "debiased_residual_mse": 0.00264433532930868
+              },
+              "40": {
+                "residual_mse": 0.002336429053532701,
+                "debiased_residual_mse": 0.002327354327981236
+              }
+            },
+            "profile_csv": "profiles/AAA__ruputer__WANG_FU_SHUN_axial_velocity.csv"
+          },
+          "AAA/ruputer/YU_TIAN_HAI": {
+            "n_cells": 406400,
+            "n_bins": 111,
+            "n_segments": 7,
+            "case_bias": 0.0033051370741625126,
+            "case_bias_squared": 1.0923931079003534e-05,
+            "full_residual_mse": 0.01217238047439299,
+            "binned_residual_mse": 0.0018784393037114642,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0013532271303663666,
+                "debiased_residual_mse": 0.0013511686668837024
+              },
+              "10": {
+                "residual_mse": 0.0011246745560981914,
+                "debiased_residual_mse": 0.0011348150061731466
+              },
+              "20": {
+                "residual_mse": 0.0009663335995448142,
+                "debiased_residual_mse": 0.0009793871928139434
+              },
+              "40": {
+                "residual_mse": 0.000938202944883548,
+                "debiased_residual_mse": 0.000949044313486425
+              }
+            },
+            "profile_csv": "profiles/AAA__ruputer__YU_TIAN_HAI_axial_velocity.csv"
+          },
+          "AAA/unruputer/GAO_DIAN_WEN": {
+            "n_cells": 390226,
+            "n_bins": 126,
+            "n_segments": 7,
+            "case_bias": 0.02981220689787532,
+            "case_bias_squared": 0.0008887676801217248,
+            "full_residual_mse": 0.005794812208720645,
+            "binned_residual_mse": 0.002790689756184385,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0023991626152526186,
+                "debiased_residual_mse": 0.0015131028849173762
+              },
+              "10": {
+                "residual_mse": 0.0019376129127795121,
+                "debiased_residual_mse": 0.0010455468436724143
+              },
+              "20": {
+                "residual_mse": 0.00155524912805832,
+                "debiased_residual_mse": 0.0006585824032144862
+              },
+              "40": {
+                "residual_mse": 0.0013603092015189,
+                "debiased_residual_mse": 0.00047803151593741217
+              }
+            },
+            "profile_csv": "profiles/AAA__unruputer__GAO_DIAN_WEN_axial_velocity.csv"
+          },
+          "AAA/unruputer/LIU_KANG_WEN": {
+            "n_cells": 418491,
+            "n_bins": 144,
+            "n_segments": 7,
+            "case_bias": -0.008753321217096374,
+            "case_bias_squared": 7.662063232966954e-05,
+            "full_residual_mse": 0.0036085682188862797,
+            "binned_residual_mse": 0.001088394298379031,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0009603676592185797,
+                "debiased_residual_mse": 0.0008749833012360084
+              },
+              "10": {
+                "residual_mse": 0.0008395399767598818,
+                "debiased_residual_mse": 0.0007470151259444973
+              },
+              "20": {
+                "residual_mse": 0.0006919796634639817,
+                "debiased_residual_mse": 0.000586786548217438
+              },
+              "40": {
+                "residual_mse": 0.000633914557849218,
+                "debiased_residual_mse": 0.0005083959427919394
+              }
+            },
+            "profile_csv": "profiles/AAA__unruputer__LIU_KANG_WEN_axial_velocity.csv"
+          },
+          "AAA/unruputer/MA_JIN_HE": {
+            "n_cells": 493643,
+            "n_bins": 109,
+            "n_segments": 7,
+            "case_bias": 0.0018329961697388147,
+            "case_bias_squared": 3.3598749582771655e-06,
+            "full_residual_mse": 0.00813952371983426,
+            "binned_residual_mse": 0.0019030782567529458,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0016343961707639446,
+                "debiased_residual_mse": 0.0016305712776377695
+              },
+              "10": {
+                "residual_mse": 0.0015012200084088335,
+                "debiased_residual_mse": 0.0014952938103519697
+              },
+              "20": {
+                "residual_mse": 0.0014078288454374781,
+                "debiased_residual_mse": 0.0013972050740823732
+              },
+              "40": {
+                "residual_mse": 0.0013299572612256222,
+                "debiased_residual_mse": 0.0013133618858483798
+              }
+            },
+            "profile_csv": "profiles/AAA__unruputer__MA_JIN_HE_axial_velocity.csv"
+          },
+          "AAA/unruputer/SUN_SHU_MING": {
+            "n_cells": 463947,
+            "n_bins": 160,
+            "n_segments": 7,
+            "case_bias": 0.00578415026792713,
+            "case_bias_squared": 3.345639432196149e-05,
+            "full_residual_mse": 0.0036980755564067543,
+            "binned_residual_mse": 0.0022025227273027464,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.002129891641592761,
+                "debiased_residual_mse": 0.0020970044758908996
+              },
+              "10": {
+                "residual_mse": 0.002020368456413629,
+                "debiased_residual_mse": 0.0019888734353681365
+              },
+              "20": {
+                "residual_mse": 0.001814936199779825,
+                "debiased_residual_mse": 0.0017892161410979469
+              },
+              "40": {
+                "residual_mse": 0.0016730844207323652,
+                "debiased_residual_mse": 0.0016790202877670988
+              }
+            },
+            "profile_csv": "profiles/AAA__unruputer__SUN_SHU_MING_axial_velocity.csv"
+          },
+          "AAA/unruputer/WANG_MAN_TIAN": {
+            "n_cells": 468733,
+            "n_bins": 123,
+            "n_segments": 7,
+            "case_bias": 0.008551788960034295,
+            "case_bias_squared": 7.313309441696445e-05,
+            "full_residual_mse": 0.009177855186063613,
+            "binned_residual_mse": 0.0016486507222080796,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0014907901927227831,
+                "debiased_residual_mse": 0.0014242910804526442
+              },
+              "10": {
+                "residual_mse": 0.0014023590411930333,
+                "debiased_residual_mse": 0.001345744540905822
+              },
+              "20": {
+                "residual_mse": 0.0014342534318719403,
+                "debiased_residual_mse": 0.0014004026869940307
+              },
+              "40": {
+                "residual_mse": 0.0014402899809166545,
+                "debiased_residual_mse": 0.001438336182485291
+              }
+            },
+            "profile_csv": "profiles/AAA__unruputer__WANG_MAN_TIAN_axial_velocity.csv"
+          },
+          "AAA/unruputer/ZHANG_YONG_ZHI": {
+            "n_cells": 443344,
+            "n_bins": 114,
+            "n_segments": 7,
+            "case_bias": 0.01090761284765332,
+            "case_bias_squared": 0.00011897601803429176,
+            "full_residual_mse": 0.014732651335134782,
+            "binned_residual_mse": 0.0030787238293511045,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0024938536179922735,
+                "debiased_residual_mse": 0.0023964818330525035
+              },
+              "10": {
+                "residual_mse": 0.0021546918828690993,
+                "debiased_residual_mse": 0.002103568356338555
+              },
+              "20": {
+                "residual_mse": 0.002140567591045066,
+                "debiased_residual_mse": 0.002164765636720124
+              },
+              "40": {
+                "residual_mse": 0.0020506096542552026,
+                "debiased_residual_mse": 0.0021176937641841503
+              }
+            },
+            "profile_csv": "profiles/AAA__unruputer__ZHANG_YONG_ZHI_axial_velocity.csv"
+          },
+          "AG/fast/FAN_JIAN_MING": {
+            "n_cells": 307034,
+            "n_bins": 121,
+            "n_segments": 7,
+            "case_bias": -0.008776046986732953,
+            "case_bias_squared": 7.701900071334455e-05,
+            "full_residual_mse": 0.016955456836875472,
+            "binned_residual_mse": 0.011393966273380856,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.010457565066741234,
+                "debiased_residual_mse": 0.010383794324162468
+              },
+              "10": {
+                "residual_mse": 0.00871138808541816,
+                "debiased_residual_mse": 0.008648041108347574
+              },
+              "20": {
+                "residual_mse": 0.005434761614692011,
+                "debiased_residual_mse": 0.005395315546243153
+              },
+              "40": {
+                "residual_mse": 0.0027027630779090086,
+                "debiased_residual_mse": 0.0026293485747856866
+              }
+            },
+            "profile_csv": "profiles/AG__fast__FAN_JIAN_MING_axial_velocity.csv"
+          },
+          "AG/fast/LOU_YANG": {
+            "n_cells": 310133,
+            "n_bins": 109,
+            "n_segments": 7,
+            "case_bias": -0.007687281951085998,
+            "case_bias_squared": 5.909430379549255e-05,
+            "full_residual_mse": 0.005082599393242399,
+            "binned_residual_mse": 0.0012102464230032597,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.001075632925277049,
+                "debiased_residual_mse": 0.0010188823957379702
+              },
+              "10": {
+                "residual_mse": 0.0010149812839297498,
+                "debiased_residual_mse": 0.0009584733627959746
+              },
+              "20": {
+                "residual_mse": 0.000972432729333125,
+                "debiased_residual_mse": 0.0009142756750441768
+              },
+              "40": {
+                "residual_mse": 0.0009101683661570333,
+                "debiased_residual_mse": 0.0008502579961650939
+              }
+            },
+            "profile_csv": "profiles/AG__fast__LOU_YANG_axial_velocity.csv"
+          },
+          "AG/fast/RAN_QING_BO": {
+            "n_cells": 540680,
+            "n_bins": 137,
+            "n_segments": 7,
+            "case_bias": 0.008224378785632968,
+            "case_bias_squared": 6.764040640956961e-05,
+            "full_residual_mse": 0.006587837566182903,
+            "binned_residual_mse": 0.0037948855804706455,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0035931356980600233,
+                "debiased_residual_mse": 0.003525573220599557
+              },
+              "10": {
+                "residual_mse": 0.0034451975044036747,
+                "debiased_residual_mse": 0.0033763011535943113
+              },
+              "20": {
+                "residual_mse": 0.0032952481616422983,
+                "debiased_residual_mse": 0.0032282688644409926
+              },
+              "40": {
+                "residual_mse": 0.003514415234862822,
+                "debiased_residual_mse": 0.003465632216611542
+              }
+            },
+            "profile_csv": "profiles/AG__fast__RAN_QING_BO_axial_velocity.csv"
+          },
+          "AG/fast/SUN_ZHI_YU": {
+            "n_cells": 346815,
+            "n_bins": 98,
+            "n_segments": 7,
+            "case_bias": 0.005625417842526823,
+            "case_bias_squared": 3.164532590301914e-05,
+            "full_residual_mse": 0.004975817764509476,
+            "binned_residual_mse": 0.0018807580764353808,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0017119172782230016,
+                "debiased_residual_mse": 0.0016814932090595273
+              },
+              "10": {
+                "residual_mse": 0.0016196044697688132,
+                "debiased_residual_mse": 0.0015872111489120824
+              },
+              "20": {
+                "residual_mse": 0.0015578376456942343,
+                "debiased_residual_mse": 0.0015266786209791057
+              },
+              "40": {
+                "residual_mse": 0.0014789587674870653,
+                "debiased_residual_mse": 0.001453595270843256
+              }
+            },
+            "profile_csv": "profiles/AG__fast__SUN_ZHI_YU_axial_velocity.csv"
+          },
+          "AG/fast/YAO_CUN_HONG": {
+            "n_cells": 273558,
+            "n_bins": 104,
+            "n_segments": 7,
+            "case_bias": -0.018874662706770656,
+            "case_bias_squared": 0.000356252892294359,
+            "full_residual_mse": 0.011079006169452815,
+            "binned_residual_mse": 0.0021283052813751385,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0018807552464060163,
+                "debiased_residual_mse": 0.0015224186504941514
+              },
+              "10": {
+                "residual_mse": 0.0017124026202559926,
+                "debiased_residual_mse": 0.0013398827343508392
+              },
+              "20": {
+                "residual_mse": 0.0015514283881640162,
+                "debiased_residual_mse": 0.0011617971226276548
+              },
+              "40": {
+                "residual_mse": 0.0013912868498079124,
+                "debiased_residual_mse": 0.0009897926610826046
+              }
+            },
+            "profile_csv": "profiles/AG__fast__YAO_CUN_HONG_axial_velocity.csv"
+          },
+          "AG/fast/ZHANG_CHUN": {
+            "n_cells": 407395,
+            "n_bins": 118,
+            "n_segments": 7,
+            "case_bias": -0.028018929566703453,
+            "case_bias_squared": 0.0007850604140638889,
+            "full_residual_mse": 0.030949805103218764,
+            "binned_residual_mse": 0.009111461487847592,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.00855199824988976,
+                "debiased_residual_mse": 0.007738502873649663
+              },
+              "10": {
+                "residual_mse": 0.008027871023952951,
+                "debiased_residual_mse": 0.007174736696612447
+              },
+              "20": {
+                "residual_mse": 0.007544339023233407,
+                "debiased_residual_mse": 0.006586219235438771
+              },
+              "40": {
+                "residual_mse": 0.007535901196634377,
+                "debiased_residual_mse": 0.006394121026918324
+              }
+            },
+            "profile_csv": "profiles/AG__fast__ZHANG_CHUN_axial_velocity.csv"
+          },
+          "AG/fast/ZHANG_LIANG": {
+            "n_cells": 426057,
+            "n_bins": 128,
+            "n_segments": 7,
+            "case_bias": 0.013516880061439192,
+            "case_bias_squared": 0.0001827060465953324,
+            "full_residual_mse": 0.004892579050944203,
+            "binned_residual_mse": 0.0015992511215546727,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0013992713805972526,
+                "debiased_residual_mse": 0.0012098593258160187
+              },
+              "10": {
+                "residual_mse": 0.0012319606806806304,
+                "debiased_residual_mse": 0.0010331813150442053
+              },
+              "20": {
+                "residual_mse": 0.001067283857347166,
+                "debiased_residual_mse": 0.00086140144107715
+              },
+              "40": {
+                "residual_mse": 0.0008891759916878671,
+                "debiased_residual_mse": 0.0007064248507515403
+              }
+            },
+            "profile_csv": "profiles/AG__fast__ZHANG_LIANG_axial_velocity.csv"
+          },
+          "AG/slow/BAI_WEN_JIE": {
+            "n_cells": 314462,
+            "n_bins": 96,
+            "n_segments": 7,
+            "case_bias": 0.008217157405551637,
+            "case_bias_squared": 6.75216758276121e-05,
+            "full_residual_mse": 0.005026517924938508,
+            "binned_residual_mse": 0.001750053896608226,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0015663360619707304,
+                "debiased_residual_mse": 0.0014959651686735716
+              },
+              "10": {
+                "residual_mse": 0.001367008208346854,
+                "debiased_residual_mse": 0.001285687772393913
+              },
+              "20": {
+                "residual_mse": 0.0011156620145391406,
+                "debiased_residual_mse": 0.0010267284407558478
+              },
+              "40": {
+                "residual_mse": 0.0009794075784431424,
+                "debiased_residual_mse": 0.0008992338625710191
+              }
+            },
+            "profile_csv": "profiles/AG__slow__BAI_WEN_JIE_axial_velocity.csv"
+          },
+          "AG/slow/CHEN_JING_RU": {
+            "n_cells": 360390,
+            "n_bins": 127,
+            "n_segments": 7,
+            "case_bias": -0.00186586502197152,
+            "case_bias_squared": 3.481452280216781e-06,
+            "full_residual_mse": 0.008000192554042542,
+            "binned_residual_mse": 0.0038108454617630395,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0034107407014428224,
+                "debiased_residual_mse": 0.0034077682689831468
+              },
+              "10": {
+                "residual_mse": 0.003002548733203944,
+                "debiased_residual_mse": 0.0030003034589630244
+              },
+              "20": {
+                "residual_mse": 0.002570512075844866,
+                "debiased_residual_mse": 0.0025713350871741595
+              },
+              "40": {
+                "residual_mse": 0.0022991958305430236,
+                "debiased_residual_mse": 0.002300938643398623
+              }
+            },
+            "profile_csv": "profiles/AG__slow__CHEN_JING_RU_axial_velocity.csv"
+          },
+          "AG/slow/GUO_XI_JIANG": {
+            "n_cells": 295383,
+            "n_bins": 110,
+            "n_segments": 7,
+            "case_bias": -0.001967356003770975,
+            "case_bias_squared": 3.8704896455737e-06,
+            "full_residual_mse": 0.006925946303048393,
+            "binned_residual_mse": 0.002725633912899334,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.002385899462046778,
+                "debiased_residual_mse": 0.00238173573278495
+              },
+              "10": {
+                "residual_mse": 0.0021742910699988575,
+                "debiased_residual_mse": 0.0021698426543329185
+              },
+              "20": {
+                "residual_mse": 0.0020299162596182393,
+                "debiased_residual_mse": 0.0020248936608334724
+              },
+              "40": {
+                "residual_mse": 0.001984799363594033,
+                "debiased_residual_mse": 0.0019811479075800744
+              }
+            },
+            "profile_csv": "profiles/AG__slow__GUO_XI_JIANG_axial_velocity.csv"
+          },
+          "AG/slow/HE_SHU_ZHEN": {
+            "n_cells": 296040,
+            "n_bins": 101,
+            "n_segments": 7,
+            "case_bias": -0.010874292590776345,
+            "case_bias_squared": 0.00011825023934981331,
+            "full_residual_mse": 0.016462359875880905,
+            "binned_residual_mse": 0.002406106955921337,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0017642758910715298,
+                "debiased_residual_mse": 0.001630144416262378
+              },
+              "10": {
+                "residual_mse": 0.0014219720144133259,
+                "debiased_residual_mse": 0.001263336819685615
+              },
+              "20": {
+                "residual_mse": 0.0010716327879518692,
+                "debiased_residual_mse": 0.0008717265797089558
+              },
+              "40": {
+                "residual_mse": 0.0007592976590857307,
+                "debiased_residual_mse": 0.0005047091478540085
+              }
+            },
+            "profile_csv": "profiles/AG__slow__HE_SHU_ZHEN_axial_velocity.csv"
+          },
+          "AG/slow/LI_HUAN_GE": {
+            "n_cells": 367250,
+            "n_bins": 102,
+            "n_segments": 7,
+            "case_bias": 0.003256390609451649,
+            "case_bias_squared": 1.0604079801324881e-05,
+            "full_residual_mse": 0.007955796556443281,
+            "binned_residual_mse": 0.001526067614604318,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0012227683758230144,
+                "debiased_residual_mse": 0.0012152107629088648
+              },
+              "10": {
+                "residual_mse": 0.0010346384278820315,
+                "debiased_residual_mse": 0.0010285281445190971
+              },
+              "20": {
+                "residual_mse": 0.0008717314033004523,
+                "debiased_residual_mse": 0.0008587297892519609
+              },
+              "40": {
+                "residual_mse": 0.0007820924284462172,
+                "debiased_residual_mse": 0.0007590709882530594
+              }
+            },
+            "profile_csv": "profiles/AG__slow__LI_HUAN_GE_axial_velocity.csv"
+          },
+          "AG/slow/MA_TIAN_YI": {
+            "n_cells": 367483,
+            "n_bins": 92,
+            "n_segments": 7,
+            "case_bias": -0.02546340891518869,
+            "case_bias_squared": 0.0006483851935821108,
+            "full_residual_mse": 0.023900779039863658,
+            "binned_residual_mse": 0.007037537114712414,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.006085062499068303,
+                "debiased_residual_mse": 0.005373840165254209
+              },
+              "10": {
+                "residual_mse": 0.005671415614912673,
+                "debiased_residual_mse": 0.004843223284802767
+              },
+              "20": {
+                "residual_mse": 0.00587622779249234,
+                "debiased_residual_mse": 0.0048524771738009675
+              },
+              "40": {
+                "residual_mse": 0.006184318881888476,
+                "debiased_residual_mse": 0.005050162104736843
+              }
+            },
+            "profile_csv": "profiles/AG__slow__MA_TIAN_YI_axial_velocity.csv"
+          },
+          "AG/slow/MA_YU": {
+            "n_cells": 421247,
+            "n_bins": 137,
+            "n_segments": 7,
+            "case_bias": 0.010285098272355459,
+            "case_bias_squared": 0.00010578324647200924,
+            "full_residual_mse": 0.015182144532382407,
+            "binned_residual_mse": 0.009371746949036742,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.008833465206792457,
+                "debiased_residual_mse": 0.008723519530738834
+              },
+              "10": {
+                "residual_mse": 0.008168646861141627,
+                "debiased_residual_mse": 0.008047860074922815
+              },
+              "20": {
+                "residual_mse": 0.00740016981802091,
+                "debiased_residual_mse": 0.007253942017430156
+              },
+              "40": {
+                "residual_mse": 0.006716187960559815,
+                "debiased_residual_mse": 0.006562726072236824
+              }
+            },
+            "profile_csv": "profiles/AG__slow__MA_YU_axial_velocity.csv"
+          },
+          "AG/slow/ZHANG_WEI_XIAN": {
+            "n_cells": 559568,
+            "n_bins": 98,
+            "n_segments": 7,
+            "case_bias": -0.05562163374687596,
+            "case_bias_squared": 0.0030937661406716106,
+            "full_residual_mse": 0.025023164379511333,
+            "binned_residual_mse": 0.007868962852475046,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.006919813484083889,
+                "debiased_residual_mse": 0.003470509372979465
+              },
+              "10": {
+                "residual_mse": 0.006898282125871467,
+                "debiased_residual_mse": 0.003222136082829779
+              },
+              "20": {
+                "residual_mse": 0.007011318971315674,
+                "debiased_residual_mse": 0.0031030461446201374
+              },
+              "40": {
+                "residual_mse": 0.006933356832587326,
+                "debiased_residual_mse": 0.002874607153084859
+              }
+            },
+            "profile_csv": "profiles/AG__slow__ZHANG_WEI_XIAN_axial_velocity.csv"
+          },
+          "ILO/LI_YOU_ZHI-0/before": {
+            "n_cells": 434853,
+            "n_bins": 146,
+            "n_segments": 7,
+            "case_bias": 0.022160995081561226,
+            "case_bias_squared": 0.0004911097030049808,
+            "full_residual_mse": 0.0036057823984592596,
+            "binned_residual_mse": 0.0015973585536067547,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0014385406662246977,
+                "debiased_residual_mse": 0.0009610261592966073
+              },
+              "10": {
+                "residual_mse": 0.0012992264817136394,
+                "debiased_residual_mse": 0.0008341719523366477
+              },
+              "20": {
+                "residual_mse": 0.0011709475423002582,
+                "debiased_residual_mse": 0.0007064523151509918
+              },
+              "40": {
+                "residual_mse": 0.0011307824369375932,
+                "debiased_residual_mse": 0.0006382366353746736
+              }
+            },
+            "profile_csv": "profiles/ILO__LI_YOU_ZHI-0__before_axial_velocity.csv"
+          },
+          "ILO/LU_FU_SHAN-0/before": {
+            "n_cells": 503357,
+            "n_bins": 124,
+            "n_segments": 7,
+            "case_bias": -0.007669156072171233,
+            "case_bias_squared": 5.8815954859320896e-05,
+            "full_residual_mse": 0.009727808677612616,
+            "binned_residual_mse": 0.0019463025249539232,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.00161240181123992,
+                "debiased_residual_mse": 0.0015577861629625174
+              },
+              "10": {
+                "residual_mse": 0.001298160337769087,
+                "debiased_residual_mse": 0.001253637416814691
+              },
+              "20": {
+                "residual_mse": 0.0010314986993650128,
+                "debiased_residual_mse": 0.0010023569615350933
+              },
+              "40": {
+                "residual_mse": 0.0009198656518892481,
+                "debiased_residual_mse": 0.0008819186091340145
+              }
+            },
+            "profile_csv": "profiles/ILO__LU_FU_SHAN-0__before_axial_velocity.csv"
+          },
+          "ILO/SUN_DONG_XIN-0/before": {
+            "n_cells": 260668,
+            "n_bins": 120,
+            "n_segments": 7,
+            "case_bias": 0.01622366358547829,
+            "case_bias_squared": 0.0002632072601347743,
+            "full_residual_mse": 0.00874544326758906,
+            "binned_residual_mse": 0.003970807288061307,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.003754412646209036,
+                "debiased_residual_mse": 0.003487258098049372
+              },
+              "10": {
+                "residual_mse": 0.0034965204819633806,
+                "debiased_residual_mse": 0.0032387175640367382
+              },
+              "20": {
+                "residual_mse": 0.0031411517327590414,
+                "debiased_residual_mse": 0.002924503292084994
+              },
+              "40": {
+                "residual_mse": 0.0028744213445541372,
+                "debiased_residual_mse": 0.0027856689242583194
+              }
+            },
+            "profile_csv": "profiles/ILO__SUN_DONG_XIN-0__before_axial_velocity.csv"
+          },
+          "ILO/SUN_XU_XIA-1/before": {
+            "n_cells": 373931,
+            "n_bins": 129,
+            "n_segments": 7,
+            "case_bias": -0.02167665802079447,
+            "case_bias_squared": 0.00046987750295047315,
+            "full_residual_mse": 0.032065062805862535,
+            "binned_residual_mse": 0.010858134133572664,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.010329995610137262,
+                "debiased_residual_mse": 0.009810217490566906
+              },
+              "10": {
+                "residual_mse": 0.009973936949352351,
+                "debiased_residual_mse": 0.009392919904751638
+              },
+              "20": {
+                "residual_mse": 0.009174988013258835,
+                "debiased_residual_mse": 0.008472217306655058
+              },
+              "40": {
+                "residual_mse": 0.009074057209597579,
+                "debiased_residual_mse": 0.008189510388787579
+              }
+            },
+            "profile_csv": "profiles/ILO__SUN_XU_XIA-1__before_axial_velocity.csv"
+          },
+          "ILO/YANG_WEN_TAI-0/before": {
+            "n_cells": 620218,
+            "n_bins": 151,
+            "n_segments": 7,
+            "case_bias": 0.010285385323506759,
+            "case_bias_squared": 0.00010578915125300823,
+            "full_residual_mse": 0.0021297287336202934,
+            "binned_residual_mse": 0.0005727905562516657,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0004885151468885326,
+                "debiased_residual_mse": 0.00038956681793721334
+              },
+              "10": {
+                "residual_mse": 0.0004069679849824604,
+                "debiased_residual_mse": 0.00031966249867865085
+              },
+              "20": {
+                "residual_mse": 0.0003115644839321625,
+                "debiased_residual_mse": 0.0002456750763833503
+              },
+              "40": {
+                "residual_mse": 0.00022939551940261003,
+                "debiased_residual_mse": 0.00018370406901455395
+              }
+            },
+            "profile_csv": "profiles/ILO__YANG_WEN_TAI-0__before_axial_velocity.csv"
+          },
+          "ILO/YU_XIANG_SHENG-1/before": {
+            "n_cells": 359001,
+            "n_bins": 116,
+            "n_segments": 7,
+            "case_bias": 0.00027469217696119444,
+            "case_bias_squared": 7.545579208368017e-08,
+            "full_residual_mse": 0.010571724879166985,
+            "binned_residual_mse": 0.0023849770255131067,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0018716141125088353,
+                "debiased_residual_mse": 0.0018717667909929083
+              },
+              "10": {
+                "residual_mse": 0.0015367284747280086,
+                "debiased_residual_mse": 0.0015371766278034218
+              },
+              "20": {
+                "residual_mse": 0.001303215506854705,
+                "debiased_residual_mse": 0.0013038505021415977
+              },
+              "40": {
+                "residual_mse": 0.0011201757980759473,
+                "debiased_residual_mse": 0.0011212867275416979
+              }
+            },
+            "profile_csv": "profiles/ILO__YU_XIANG_SHENG-1__before_axial_velocity.csv"
+          },
+          "ILO/ZHANG_HE_PING-0/before": {
+            "n_cells": 546441,
+            "n_bins": 123,
+            "n_segments": 7,
+            "case_bias": 0.013300310779760625,
+            "case_bias_squared": 0.00017689826683821668,
+            "full_residual_mse": 0.006727856090015021,
+            "binned_residual_mse": 0.0014513743144443127,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0010923137441641538,
+                "debiased_residual_mse": 0.0009159800869105602
+              },
+              "10": {
+                "residual_mse": 0.0008437763997051523,
+                "debiased_residual_mse": 0.0006664495115344652
+              },
+              "20": {
+                "residual_mse": 0.000608276460926594,
+                "debiased_residual_mse": 0.0004282058702711594
+              },
+              "40": {
+                "residual_mse": 0.00044445586448341894,
+                "debiased_residual_mse": 0.00027810687923046347
+              }
+            },
+            "profile_csv": "profiles/ILO__ZHANG_HE_PING-0__before_axial_velocity.csv"
+          },
+          "ILO/ZHANG_JIN_CHUN-1/before": {
+            "n_cells": 473754,
+            "n_bins": 132,
+            "n_segments": 7,
+            "case_bias": -0.0048579330660196915,
+            "case_bias_squared": 2.359951367392748e-05,
+            "full_residual_mse": 0.03050880966845063,
+            "binned_residual_mse": 0.014703079253381211,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0141357566698188,
+                "debiased_residual_mse": 0.014099409796605816
+              },
+              "10": {
+                "residual_mse": 0.013739742475967341,
+                "debiased_residual_mse": 0.013687392843248611
+              },
+              "20": {
+                "residual_mse": 0.013904233982474912,
+                "debiased_residual_mse": 0.01383486711533872
+              },
+              "40": {
+                "residual_mse": 0.013295792805755343,
+                "debiased_residual_mse": 0.013230012405091857
+              }
+            },
+            "profile_csv": "profiles/ILO__ZHANG_JIN_CHUN-1__before_axial_velocity.csv"
+          },
+          "ILO/ZHANG_YONG_SHENG-0/before": {
+            "n_cells": 381906,
+            "n_bins": 124,
+            "n_segments": 7,
+            "case_bias": 0.01487448638039937,
+            "case_bias_squared": 0.00022125034508068634,
+            "full_residual_mse": 0.002393504131276203,
+            "binned_residual_mse": 0.0009716368784134522,
+            "sigmas_mm": {
+              "5": {
+                "residual_mse": 0.0008538374160460057,
+                "debiased_residual_mse": 0.0006337785734767836
+              },
+              "10": {
+                "residual_mse": 0.0007453931536237925,
+                "debiased_residual_mse": 0.0005202169569854594
+              },
+              "20": {
+                "residual_mse": 0.0006564737094265599,
+                "debiased_residual_mse": 0.00042737433421399286
+              },
+              "40": {
+                "residual_mse": 0.0005900331378121911,
+                "debiased_residual_mse": 0.00037498253136937997
+              }
+            },
+            "profile_csv": "profiles/ILO__ZHANG_YONG_SHENG-0__before_axial_velocity.csv"
+          }
+        },
+        "summary": {
+          "n_cases": 34,
+          "case_bias_mse_casemean": 0.00026592253689067084,
+          "case_bias_abs_casemean": 0.012165585187245418,
+          "full_residual_mse_casemean": 0.011062619028399516,
+          "binned_residual_mse_casemean": 0.0037578760734932777,
+          "sigmas_mm": {
+            "5": {
+              "residual_mse_casemean": 0.0033853024057444838,
+              "debiased_residual_mse_casemean": 0.003105175857897844
+            },
+            "10": {
+              "residual_mse_casemean": 0.003102382853953901,
+              "debiased_residual_mse_casemean": 0.0028093692686855256
+            },
+            "20": {
+              "residual_mse_casemean": 0.0028249194155558475,
+              "debiased_residual_mse_casemean": 0.002514271375824466
+            },
+            "40": {
+              "residual_mse_casemean": 0.002622356603619132,
+              "debiased_residual_mse_casemean": 0.0022989687061665976
+            }
+          }
+        }
+      },
+      "per_case_components": {
+        "AAA/ruputer/KANG_YONG": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 512189,
+            "r2_casebalanced": 0.3545121371837784,
+            "r2_pooled": 0.3545121371837784,
+            "rmse": 0.041564702675819125,
+            "rmse_casebalanced": 0.041564702675819125
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 512189,
+            "r2_casebalanced": 0.5450498615081671,
+            "r2_pooled": 0.5450498615081671,
+            "rmse": 0.07508318500721173,
+            "rmse_casebalanced": 0.07508318500721173
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 512189,
+            "r2_casebalanced": 0.44472990514698707,
+            "r2_pooled": 0.44472990514698707,
+            "rmse": 0.09925963531582273,
+            "rmse_casebalanced": 0.09925963531582273
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 512189,
+            "r2_casebalanced": 0.39808786572255506,
+            "r2_pooled": 0.39808786572255506,
+            "rmse": 0.11737208917763182,
+            "rmse_casebalanced": 0.11737208917763182
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 512189,
+            "r2_casebalanced": -0.45585544516680354,
+            "r2_pooled": -0.45585544516680354,
+            "rmse": 0.03100952626275017,
+            "rmse_casebalanced": 0.03100952626275017
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 512189,
+            "r2_casebalanced": -3.353707581521328,
+            "r2_pooled": -3.353707581521328,
+            "rmse": 0.049797453202191,
+            "rmse_casebalanced": 0.049797453202191
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 512189,
+            "r2_casebalanced": 0.35373669024094234,
+            "r2_pooled": 0.35373669024094234,
+            "rmse": 0.12036273520867947,
+            "rmse_casebalanced": 0.12036273520867947
+          },
+          "vector_rmse_m_s": 0.1312157931896407,
+          "local_frame_excluded_points": 0
+        },
+        "AAA/ruputer/LI_ZHEN_HUA": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 365126,
+            "r2_casebalanced": 0.8874889231055133,
+            "r2_pooled": 0.8874889231055133,
+            "rmse": 0.07253682169851061,
+            "rmse_casebalanced": 0.07253682169851061
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 365126,
+            "r2_casebalanced": 0.9060614798492876,
+            "r2_pooled": 0.9060614798492876,
+            "rmse": 0.124323408023214,
+            "rmse_casebalanced": 0.124323408023214
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 365126,
+            "r2_casebalanced": 0.7709046617335433,
+            "r2_pooled": 0.7709046617335433,
+            "rmse": 0.0906148559102987,
+            "rmse_casebalanced": 0.0906148559102987
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 365126,
+            "r2_casebalanced": 0.8890604628533023,
+            "r2_pooled": 0.8890604628533023,
+            "rmse": 0.14038229142450967,
+            "rmse_casebalanced": 0.14038229142450967
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 365126,
+            "r2_casebalanced": -0.08350901724543758,
+            "r2_pooled": -0.08350901724543758,
+            "rmse": 0.056009062887063185,
+            "rmse_casebalanced": 0.056009062887063185
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 365126,
+            "r2_casebalanced": -0.382890382324129,
+            "r2_pooled": -0.382890382324129,
+            "rmse": 0.07800480450068009,
+            "rmse_casebalanced": 0.07800480450068009
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 365126,
+            "r2_casebalanced": 0.8900543427702422,
+            "r2_pooled": 0.8900543427702422,
+            "rmse": 0.13919573500269686,
+            "rmse_casebalanced": 0.13919573500269686
+          },
+          "vector_rmse_m_s": 0.17008513279023615,
+          "local_frame_excluded_points": 0
+        },
+        "AAA/ruputer/WANG_FU_SHUN": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 612696,
+            "r2_casebalanced": 0.5086756035013096,
+            "r2_pooled": 0.5086756035013096,
+            "rmse": 0.14779385043168858,
+            "rmse_casebalanced": 0.14779385043168858
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 612696,
+            "r2_casebalanced": 0.4734213229245544,
+            "r2_pooled": 0.4734213229245544,
+            "rmse": 0.14405280198560869,
+            "rmse_casebalanced": 0.14405280198560869
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 612696,
+            "r2_casebalanced": 0.567018656646221,
+            "r2_pooled": 0.567018656646221,
+            "rmse": 0.1407343049243001,
+            "rmse_casebalanced": 0.1407343049243001
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 612696,
+            "r2_casebalanced": 0.5998054591328789,
+            "r2_pooled": 0.5998054591328789,
+            "rmse": 0.17207587659007706,
+            "rmse_casebalanced": 0.17207587659007706
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 612696,
+            "r2_casebalanced": 0.1271982965466809,
+            "r2_pooled": 0.1271982965466809,
+            "rmse": 0.08099712314382325,
+            "rmse_casebalanced": 0.08099712314382325
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 612696,
+            "r2_casebalanced": -0.06734374569642676,
+            "r2_pooled": -0.06734374569642676,
+            "rmse": 0.16195596718255273,
+            "rmse_casebalanced": 0.16195596718255273
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 612696,
+            "r2_casebalanced": 0.5748374081006471,
+            "r2_pooled": 0.5748374081006471,
+            "rmse": 0.187320547569716,
+            "rmse_casebalanced": 0.187320547569716
+          },
+          "vector_rmse_m_s": 0.24980067367374167,
+          "local_frame_excluded_points": 0
+        },
+        "AAA/ruputer/YU_TIAN_HAI": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 406400,
+            "r2_casebalanced": 0.7203045883588768,
+            "r2_pooled": 0.7203045883588768,
+            "rmse": 0.10210567504221048,
+            "rmse_casebalanced": 0.10210567504221048
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 406400,
+            "r2_casebalanced": 0.7694697264742916,
+            "r2_pooled": 0.7694697264742916,
+            "rmse": 0.12148470308807864,
+            "rmse_casebalanced": 0.12148470308807864
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 406400,
+            "r2_casebalanced": 0.7879894390195283,
+            "r2_pooled": 0.7879894390195283,
+            "rmse": 0.1161214292217226,
+            "rmse_casebalanced": 0.1161214292217226
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 406400,
+            "r2_casebalanced": 0.7832784720360911,
+            "r2_pooled": 0.7832784720360911,
+            "rmse": 0.15531860895089886,
+            "rmse_casebalanced": 0.15531860895089886
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 406400,
+            "r2_casebalanced": 0.442711339478016,
+            "r2_pooled": 0.442711339478016,
+            "rmse": 0.061618413726042896,
+            "rmse_casebalanced": 0.061618413726042896
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 406400,
+            "r2_casebalanced": 0.07663191652683221,
+            "r2_pooled": 0.07663191652683221,
+            "rmse": 0.1036705796654172,
+            "rmse_casebalanced": 0.1036705796654172
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 406400,
+            "r2_casebalanced": 0.79181034522097,
+            "r2_pooled": 0.79181034522097,
+            "rmse": 0.1475559824390217,
+            "rmse_casebalanced": 0.1475559824390217
+          },
+          "vector_rmse_m_s": 0.19664253935687376,
+          "local_frame_excluded_points": 0
+        },
+        "AAA/unruputer/GAO_DIAN_WEN": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 390226,
+            "r2_casebalanced": 0.740608491520877,
+            "r2_pooled": 0.740608491520877,
+            "rmse": 0.06751162358940438,
+            "rmse_casebalanced": 0.06751162358940438
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 390226,
+            "r2_casebalanced": 0.7976773684795718,
+            "r2_pooled": 0.7976773684795718,
+            "rmse": 0.09275709660091559,
+            "rmse_casebalanced": 0.09275709660091559
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 390226,
+            "r2_casebalanced": 0.6691763184092507,
+            "r2_pooled": 0.6691763184092507,
+            "rmse": 0.10950009299146177,
+            "rmse_casebalanced": 0.10950009299146177
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 390226,
+            "r2_casebalanced": 0.6831053471034918,
+            "r2_pooled": 0.6831053471034918,
+            "rmse": 0.12272658982378362,
+            "rmse_casebalanced": 0.12272658982378362
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 390226,
+            "r2_casebalanced": -0.4223998624204519,
+            "r2_pooled": -0.4223998624204519,
+            "rmse": 0.0521307460295184,
+            "rmse_casebalanced": 0.0521307460295184
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 390226,
+            "r2_casebalanced": -0.8049460551652221,
+            "r2_pooled": -0.8049460551652221,
+            "rmse": 0.08586348538976515,
+            "rmse_casebalanced": 0.08586348538976515
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 390226,
+            "r2_casebalanced": 0.7036889625134882,
+            "r2_pooled": 0.7036889625134882,
+            "rmse": 0.11973908624667909,
+            "rmse_casebalanced": 0.11973908624667909
+          },
+          "vector_rmse_m_s": 0.1585937219900201,
+          "local_frame_excluded_points": 0
+        },
+        "AAA/unruputer/LIU_KANG_WEN": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 418491,
+            "r2_casebalanced": 0.8431288033464603,
+            "r2_pooled": 0.8431288033464603,
+            "rmse": 0.0759105340202925,
+            "rmse_casebalanced": 0.0759105340202925
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 418491,
+            "r2_casebalanced": 0.8709561877649208,
+            "r2_pooled": 0.8709561877649208,
+            "rmse": 0.08527030460565464,
+            "rmse_casebalanced": 0.08527030460565464
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 418491,
+            "r2_casebalanced": 0.8505015615222896,
+            "r2_pooled": 0.8505015615222896,
+            "rmse": 0.10829892358180149,
+            "rmse_casebalanced": 0.10829892358180149
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 418491,
+            "r2_casebalanced": 0.8774346381877035,
+            "r2_pooled": 0.8774346381877035,
+            "rmse": 0.11893192763158669,
+            "rmse_casebalanced": 0.11893192763158669
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 418491,
+            "r2_casebalanced": -0.16945454308277963,
+            "r2_pooled": -0.16945454308277963,
+            "rmse": 0.056604820417624144,
+            "rmse_casebalanced": 0.056604820417624144
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 418491,
+            "r2_casebalanced": -0.960398894244411,
+            "r2_pooled": -0.960398894244411,
+            "rmse": 0.0860998360456484,
+            "rmse_casebalanced": 0.0860998360456484
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 418491,
+            "r2_casebalanced": 0.8781057564406061,
+            "r2_pooled": 0.8781057564406061,
+            "rmse": 0.1170674545023825,
+            "rmse_casebalanced": 0.1170674545023825
+          },
+          "vector_rmse_m_s": 0.15735974984653475,
+          "local_frame_excluded_points": 0
+        },
+        "AAA/unruputer/MA_JIN_HE": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 493643,
+            "r2_casebalanced": 0.601814092743093,
+            "r2_pooled": 0.601814092743093,
+            "rmse": 0.08498080518508024,
+            "rmse_casebalanced": 0.08498080518508024
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 493643,
+            "r2_casebalanced": 0.6197553920251493,
+            "r2_pooled": 0.6197553920251493,
+            "rmse": 0.14393662946729024,
+            "rmse_casebalanced": 0.14393662946729024
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 493643,
+            "r2_casebalanced": 0.6630748874459322,
+            "r2_pooled": 0.6630748874459322,
+            "rmse": 0.10597370733154926,
+            "rmse_casebalanced": 0.10597370733154926
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 493643,
+            "r2_casebalanced": 0.6517673093705105,
+            "r2_pooled": 0.6517673093705105,
+            "rmse": 0.16817604842774958,
+            "rmse_casebalanced": 0.16817604842774958
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 493643,
+            "r2_casebalanced": 0.3895569708410991,
+            "r2_pooled": 0.3895569708410991,
+            "rmse": 0.05720129711942284,
+            "rmse_casebalanced": 0.05720129711942284
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 493643,
+            "r2_casebalanced": -0.025701996437284214,
+            "r2_pooled": -0.025701996437284214,
+            "rmse": 0.08726250936676168,
+            "rmse_casebalanced": 0.08726250936676168
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 493643,
+            "r2_casebalanced": 0.699691195800908,
+            "r2_pooled": 0.699691195800908,
+            "rmse": 0.15763187628954317,
+            "rmse_casebalanced": 0.15763187628954317
+          },
+          "vector_rmse_m_s": 0.1979139136036207,
+          "local_frame_excluded_points": 0
+        },
+        "AAA/unruputer/SUN_SHU_MING": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 463947,
+            "r2_casebalanced": 0.5588828886235215,
+            "r2_pooled": 0.5588828886235215,
+            "rmse": 0.06633295567323169,
+            "rmse_casebalanced": 0.06633295567323169
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 463947,
+            "r2_casebalanced": 0.6989853911441164,
+            "r2_pooled": 0.6989853911441164,
+            "rmse": 0.08379520755764552,
+            "rmse_casebalanced": 0.08379520755764552
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 463947,
+            "r2_casebalanced": 0.2809065494681392,
+            "r2_pooled": 0.2809065494681392,
+            "rmse": 0.08266265140146178,
+            "rmse_casebalanced": 0.08266265140146178
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 463947,
+            "r2_casebalanced": 0.5029204020584561,
+            "r2_pooled": 0.5029204020584561,
+            "rmse": 0.11852998838740941,
+            "rmse_casebalanced": 0.11852998838740941
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 463947,
+            "r2_casebalanced": 0.013602087578934441,
+            "r2_pooled": 0.013602087578934441,
+            "rmse": 0.04056716664921319,
+            "rmse_casebalanced": 0.04056716664921319
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 463947,
+            "r2_casebalanced": -0.775275633370297,
+            "r2_pooled": -0.775275633370297,
+            "rmse": 0.05059405693983193,
+            "rmse_casebalanced": 0.05059405693983193
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 463947,
+            "r2_casebalanced": 0.5249209027554687,
+            "r2_pooled": 0.5249209027554687,
+            "rmse": 0.11361119470258357,
+            "rmse_casebalanced": 0.11361119470258357
+          },
+          "vector_rmse_m_s": 0.13511036879046479,
+          "local_frame_excluded_points": 0
+        },
+        "AAA/unruputer/WANG_MAN_TIAN": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 468733,
+            "r2_casebalanced": 0.5576706499747075,
+            "r2_pooled": 0.5576706499747075,
+            "rmse": 0.11050330824608878,
+            "rmse_casebalanced": 0.11050330824608878
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 468733,
+            "r2_casebalanced": 0.5309968851439291,
+            "r2_pooled": 0.5309968851439291,
+            "rmse": 0.15473770879448395,
+            "rmse_casebalanced": 0.15473770879448395
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 468733,
+            "r2_casebalanced": 0.7382050935360378,
+            "r2_pooled": 0.7382050935360378,
+            "rmse": 0.11618023608218321,
+            "rmse_casebalanced": 0.11618023608218321
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 468733,
+            "r2_casebalanced": 0.6487740460662321,
+            "r2_pooled": 0.6487740460662321,
+            "rmse": 0.18077096547226795,
+            "rmse_casebalanced": 0.18077096547226795
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 468733,
+            "r2_casebalanced": 0.3527488614487896,
+            "r2_pooled": 0.3527488614487896,
+            "rmse": 0.0727312197884216,
+            "rmse_casebalanced": 0.0727312197884216
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 468733,
+            "r2_casebalanced": 0.1740931486332178,
+            "r2_pooled": 0.1740931486332178,
+            "rmse": 0.10809539593674139,
+            "rmse_casebalanced": 0.10809539593674139
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 468733,
+            "r2_casebalanced": 0.6313368336121629,
+            "r2_pooled": 0.6313368336121629,
+            "rmse": 0.19636698628586866,
+            "rmse_casebalanced": 0.19636698628586866
+          },
+          "vector_rmse_m_s": 0.22282860434066462,
+          "local_frame_excluded_points": 0
+        },
+        "AAA/unruputer/ZHANG_YONG_ZHI": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 443344,
+            "r2_casebalanced": 0.5150382363683355,
+            "r2_pooled": 0.5150382363683355,
+            "rmse": 0.1769215270994568,
+            "rmse_casebalanced": 0.1769215270994568
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 443344,
+            "r2_casebalanced": 0.5750721124640782,
+            "r2_pooled": 0.5750721124640782,
+            "rmse": 0.19323769077803474,
+            "rmse_casebalanced": 0.19323769077803474
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 443344,
+            "r2_casebalanced": 0.5144845425047703,
+            "r2_pooled": 0.5144845425047703,
+            "rmse": 0.18842054337657121,
+            "rmse_casebalanced": 0.18842054337657121
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 443344,
+            "r2_casebalanced": 0.5032721108286624,
+            "r2_pooled": 0.5032721108286624,
+            "rmse": 0.26690528194170376,
+            "rmse_casebalanced": 0.26690528194170376
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 443344,
+            "r2_casebalanced": 0.2070812635715804,
+            "r2_pooled": 0.2070812635715804,
+            "rmse": 0.09877484808182044,
+            "rmse_casebalanced": 0.09877484808182044
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 443344,
+            "r2_casebalanced": -0.11860996519408373,
+            "r2_pooled": -0.11860996519408373,
+            "rmse": 0.15214937697140427,
+            "rmse_casebalanced": 0.15214937697140427
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 443344,
+            "r2_casebalanced": 0.5147281389412579,
+            "r2_pooled": 0.5147281389412579,
+            "rmse": 0.26330391164258665,
+            "rmse_casebalanced": 0.26330391164258665
+          },
+          "vector_rmse_m_s": 0.3227140112464185,
+          "local_frame_excluded_points": 0
+        },
+        "AG/fast/FAN_JIAN_MING": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 307034,
+            "r2_casebalanced": 0.735485484321622,
+            "r2_pooled": 0.735485484321622,
+            "rmse": 0.07938185837108398,
+            "rmse_casebalanced": 0.07938185837108398
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 307034,
+            "r2_casebalanced": 0.6630194564348948,
+            "r2_pooled": 0.6630194564348948,
+            "rmse": 0.09644404908415266,
+            "rmse_casebalanced": 0.09644404908415266
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 307034,
+            "r2_casebalanced": 0.5646022579997161,
+            "r2_pooled": 0.5646022579997161,
+            "rmse": 0.1444478799486331,
+            "rmse_casebalanced": 0.1444478799486331
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 307034,
+            "r2_casebalanced": 0.36300824031219525,
+            "r2_pooled": 0.36300824031219525,
+            "rmse": 0.16570631515427445,
+            "rmse_casebalanced": 0.16570631515427445
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 307034,
+            "r2_casebalanced": -0.34912378759194906,
+            "r2_pooled": -0.34912378759194906,
+            "rmse": 0.053691697679510375,
+            "rmse_casebalanced": 0.053691697679510375
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 307034,
+            "r2_casebalanced": -0.8104465317215894,
+            "r2_pooled": -0.8104465317215894,
+            "rmse": 0.07827351264720615,
+            "rmse_casebalanced": 0.07827351264720615
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 307034,
+            "r2_casebalanced": 0.6036358672194155,
+            "r2_pooled": 0.6036358672194155,
+            "rmse": 0.12895768233046223,
+            "rmse_casebalanced": 0.12895768233046223
+          },
+          "vector_rmse_m_s": 0.19096629038615168,
+          "local_frame_excluded_points": 0
+        },
+        "AG/fast/LOU_YANG": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 310133,
+            "r2_casebalanced": 0.897334674021714,
+            "r2_pooled": 0.897334674021714,
+            "rmse": 0.06632797761557191,
+            "rmse_casebalanced": 0.06632797761557191
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 310133,
+            "r2_casebalanced": 0.9069731893922331,
+            "r2_pooled": 0.9069731893922331,
+            "rmse": 0.07628700929642444,
+            "rmse_casebalanced": 0.07628700929642444
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 310133,
+            "r2_casebalanced": 0.8805152128773099,
+            "r2_pooled": 0.8805152128773099,
+            "rmse": 0.09234349209601948,
+            "rmse_casebalanced": 0.09234349209601948
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 310133,
+            "r2_casebalanced": 0.8888646130016064,
+            "r2_pooled": 0.8888646130016064,
+            "rmse": 0.11297184715853512,
+            "rmse_casebalanced": 0.11297184715853512
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 310133,
+            "r2_casebalanced": 0.4650816408670392,
+            "r2_pooled": 0.4650816408670392,
+            "rmse": 0.04007183673388077,
+            "rmse_casebalanced": 0.04007183673388077
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 310133,
+            "r2_casebalanced": 0.19942004234772048,
+            "r2_pooled": 0.19942004234772048,
+            "rmse": 0.0661667483318771,
+            "rmse_casebalanced": 0.0661667483318771
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 310133,
+            "r2_casebalanced": 0.8887813259171645,
+            "r2_pooled": 0.8887813259171645,
+            "rmse": 0.11242489523308524,
+            "rmse_casebalanced": 0.11242489523308524
+          },
+          "vector_rmse_m_s": 0.13691759906765885,
+          "local_frame_excluded_points": 0
+        },
+        "AG/fast/RAN_QING_BO": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 540680,
+            "r2_casebalanced": 0.7442265337347982,
+            "r2_pooled": 0.7442265337347982,
+            "rmse": 0.10271309757018293,
+            "rmse_casebalanced": 0.10271309757018293
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 540680,
+            "r2_casebalanced": 0.7806494906838379,
+            "r2_pooled": 0.7806494906838379,
+            "rmse": 0.125158167977747,
+            "rmse_casebalanced": 0.125158167977747
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 540680,
+            "r2_casebalanced": 0.7440644263649994,
+            "r2_pooled": 0.7440644263649994,
+            "rmse": 0.09612597131096007,
+            "rmse_casebalanced": 0.09612597131096007
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 540680,
+            "r2_casebalanced": 0.7525002252117431,
+            "r2_pooled": 0.7525002252117431,
+            "rmse": 0.15795524423433774,
+            "rmse_casebalanced": 0.15795524423433774
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 540680,
+            "r2_casebalanced": 0.08723715859372871,
+            "r2_pooled": 0.08723715859372871,
+            "rmse": 0.05444887285521208,
+            "rmse_casebalanced": 0.05444887285521208
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 540680,
+            "r2_casebalanced": -0.19074725773297052,
+            "r2_pooled": -0.19074725773297052,
+            "rmse": 0.08683438747495736,
+            "rmse_casebalanced": 0.08683438747495736
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 540680,
+            "r2_casebalanced": 0.7504611144464113,
+            "r2_pooled": 0.7504611144464113,
+            "rmse": 0.16068299208830786,
+            "rmse_casebalanced": 0.16068299208830786
+          },
+          "vector_rmse_m_s": 0.18829431692030263,
+          "local_frame_excluded_points": 0
+        },
+        "AG/fast/SUN_ZHI_YU": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 346815,
+            "r2_casebalanced": 0.8194126864612793,
+            "r2_pooled": 0.8194126864612793,
+            "rmse": 0.06438596814702172,
+            "rmse_casebalanced": 0.06438596814702172
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 346815,
+            "r2_casebalanced": 0.7377109193891064,
+            "r2_pooled": 0.7377109193891064,
+            "rmse": 0.06436163599038058,
+            "rmse_casebalanced": 0.06436163599038058
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 346815,
+            "r2_casebalanced": 0.7643039059855594,
+            "r2_pooled": 0.7643039059855594,
+            "rmse": 0.07416415560991464,
+            "rmse_casebalanced": 0.07416415560991464
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 346815,
+            "r2_casebalanced": 0.7419547024314731,
+            "r2_pooled": 0.7419547024314731,
+            "rmse": 0.09633019588951536,
+            "rmse_casebalanced": 0.09633019588951536
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 346815,
+            "r2_casebalanced": 0.5135219326402773,
+            "r2_pooled": 0.5135219326402773,
+            "rmse": 0.03759901479312964,
+            "rmse_casebalanced": 0.03759901479312964
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 346815,
+            "r2_casebalanced": 0.2568042995777603,
+            "r2_pooled": 0.2568042995777603,
+            "rmse": 0.05563364544403683,
+            "rmse_casebalanced": 0.05563364544403683
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 346815,
+            "r2_casebalanced": 0.738068504820056,
+            "r2_pooled": 0.738068504820056,
+            "rmse": 0.09538435616057876,
+            "rmse_casebalanced": 0.09538435616057876
+          },
+          "vector_rmse_m_s": 0.11742357113850345,
+          "local_frame_excluded_points": 0
+        },
+        "AG/fast/YAO_CUN_HONG": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 273558,
+            "r2_casebalanced": 0.9101699401406809,
+            "r2_pooled": 0.9101699401406809,
+            "rmse": 0.10308225994577706,
+            "rmse_casebalanced": 0.10308225994577706
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 273558,
+            "r2_casebalanced": 0.8610004126658265,
+            "r2_pooled": 0.8610004126658265,
+            "rmse": 0.10517087323835476,
+            "rmse_casebalanced": 0.10517087323835476
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 273558,
+            "r2_casebalanced": 0.8498313313657846,
+            "r2_pooled": 0.8498313313657846,
+            "rmse": 0.12271150973930932,
+            "rmse_casebalanced": 0.12271150973930932
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 273558,
+            "r2_casebalanced": 0.8685403141980594,
+            "r2_pooled": 0.8685403141980594,
+            "rmse": 0.15197044381844102,
+            "rmse_casebalanced": 0.15197044381844102
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 273558,
+            "r2_casebalanced": 0.46934492355951096,
+            "r2_pooled": 0.46934492355951096,
+            "rmse": 0.05877015806107515,
+            "rmse_casebalanced": 0.05877015806107515
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 273558,
+            "r2_casebalanced": 0.30467696794838606,
+            "r2_pooled": 0.30467696794838606,
+            "rmse": 0.10097540414798918,
+            "rmse_casebalanced": 0.10097540414798918
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 273558,
+            "r2_casebalanced": 0.8638000955006186,
+            "r2_pooled": 0.8638000955006186,
+            "rmse": 0.15297542622835242,
+            "rmse_casebalanced": 0.15297542622835242
+          },
+          "vector_rmse_m_s": 0.19168980023920795,
+          "local_frame_excluded_points": 0
+        },
+        "AG/fast/ZHANG_CHUN": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 407395,
+            "r2_casebalanced": 0.7201749088789954,
+            "r2_pooled": 0.7201749088789954,
+            "rmse": 0.17235707101089415,
+            "rmse_casebalanced": 0.17235707101089415
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 407395,
+            "r2_casebalanced": 0.6816167841924272,
+            "r2_pooled": 0.6816167841924272,
+            "rmse": 0.1519217975770168,
+            "rmse_casebalanced": 0.1519217975770168
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 407395,
+            "r2_casebalanced": 0.7105650156879311,
+            "r2_pooled": 0.7105650156879311,
+            "rmse": 0.2142928334229937,
+            "rmse_casebalanced": 0.2142928334229937
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 407395,
+            "r2_casebalanced": 0.6950101244064504,
+            "r2_pooled": 0.6950101244064504,
+            "rmse": 0.2724340903626481,
+            "rmse_casebalanced": 0.2724340903626481
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 407395,
+            "r2_casebalanced": 0.3373122719467282,
+            "r2_pooled": 0.3373122719467282,
+            "rmse": 0.08335744426439398,
+            "rmse_casebalanced": 0.08335744426439398
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 407395,
+            "r2_casebalanced": 0.16508566006466963,
+            "r2_pooled": 0.16508566006466963,
+            "rmse": 0.13243796229528115,
+            "rmse_casebalanced": 0.13243796229528115
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 407395,
+            "r2_casebalanced": 0.6964214773967548,
+            "r2_pooled": 0.6964214773967548,
+            "rmse": 0.2705382349758294,
+            "rmse_casebalanced": 0.2705382349758294
+          },
+          "vector_rmse_m_s": 0.3141792656477212,
+          "local_frame_excluded_points": 0
+        },
+        "AG/fast/ZHANG_LIANG": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 426057,
+            "r2_casebalanced": 0.8426672276907285,
+            "r2_pooled": 0.8426672276907285,
+            "rmse": 0.06321308136783867,
+            "rmse_casebalanced": 0.06321308136783867
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 426057,
+            "r2_casebalanced": 0.8892298972595355,
+            "r2_pooled": 0.8892298972595355,
+            "rmse": 0.07896923501627232,
+            "rmse_casebalanced": 0.07896923501627232
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 426057,
+            "r2_casebalanced": 0.8669148002754878,
+            "r2_pooled": 0.8669148002754878,
+            "rmse": 0.08377035292586248,
+            "rmse_casebalanced": 0.08377035292586248
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 426057,
+            "r2_casebalanced": 0.8761792974513923,
+            "r2_pooled": 0.8761792974513923,
+            "rmse": 0.10265165328926454,
+            "rmse_casebalanced": 0.10265165328926454
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 426057,
+            "r2_casebalanced": 0.34644669774436776,
+            "r2_pooled": 0.34644669774436776,
+            "rmse": 0.04458012513533852,
+            "rmse_casebalanced": 0.04458012513533852
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 426057,
+            "r2_casebalanced": 0.21214680513081852,
+            "r2_pooled": 0.21214680513081852,
+            "rmse": 0.06873686263057097,
+            "rmse_casebalanced": 0.06873686263057097
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 426057,
+            "r2_casebalanced": 0.8740623992943208,
+            "r2_pooled": 0.8740623992943208,
+            "rmse": 0.10392715087792585,
+            "rmse_casebalanced": 0.10392715087792585
+          },
+          "vector_rmse_m_s": 0.13133737382937044,
+          "local_frame_excluded_points": 0
+        },
+        "AG/slow/BAI_WEN_JIE": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 314462,
+            "r2_casebalanced": 0.8199423530133556,
+            "r2_pooled": 0.8199423530133556,
+            "rmse": 0.06909671458740625,
+            "rmse_casebalanced": 0.06909671458740625
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 314462,
+            "r2_casebalanced": 0.848138413952684,
+            "r2_pooled": 0.848138413952684,
+            "rmse": 0.07635533417002513,
+            "rmse_casebalanced": 0.07635533417002513
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 314462,
+            "r2_casebalanced": 0.7885561878929311,
+            "r2_pooled": 0.7885561878929311,
+            "rmse": 0.08569757798158681,
+            "rmse_casebalanced": 0.08569757798158681
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 314462,
+            "r2_casebalanced": 0.8255577571035206,
+            "r2_pooled": 0.8255577571035206,
+            "rmse": 0.10344639309635177,
+            "rmse_casebalanced": 0.10344639309635177
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 314462,
+            "r2_casebalanced": 0.4847744462111234,
+            "r2_pooled": 0.4847744462111234,
+            "rmse": 0.039079152770325025,
+            "rmse_casebalanced": 0.039079152770325025
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 314462,
+            "r2_casebalanced": 0.20847855108771718,
+            "r2_pooled": 0.20847855108771718,
+            "rmse": 0.07563221184791909,
+            "rmse_casebalanced": 0.07563221184791909
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 314462,
+            "r2_casebalanced": 0.8358097994177198,
+            "r2_pooled": 0.8358097994177198,
+            "rmse": 0.10155840786290725,
+            "rmse_casebalanced": 0.10155840786290725
+          },
+          "vector_rmse_m_s": 0.13397226539437126,
+          "local_frame_excluded_points": 0
+        },
+        "AG/slow/CHEN_JING_RU": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 360390,
+            "r2_casebalanced": 0.8024173513399954,
+            "r2_pooled": 0.8024173513399954,
+            "rmse": 0.08564530494559709,
+            "rmse_casebalanced": 0.08564530494559709
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 360390,
+            "r2_casebalanced": 0.8283058685881184,
+            "r2_pooled": 0.8283058685881184,
+            "rmse": 0.10397434684477581,
+            "rmse_casebalanced": 0.10397434684477581
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 360390,
+            "r2_casebalanced": 0.7719693798744616,
+            "r2_pooled": 0.7719693798744616,
+            "rmse": 0.09247516693199759,
+            "rmse_casebalanced": 0.09247516693199759
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 360390,
+            "r2_casebalanced": 0.7026962806727755,
+            "r2_pooled": 0.7026962806727755,
+            "rmse": 0.1289787615357995,
+            "rmse_casebalanced": 0.1289787615357995
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 360390,
+            "r2_casebalanced": -0.08675898499929446,
+            "r2_pooled": -0.08675898499929446,
+            "rmse": 0.054153056286975386,
+            "rmse_casebalanced": 0.054153056286975386
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 360390,
+            "r2_casebalanced": -0.08858933778697997,
+            "r2_pooled": -0.08858933778697997,
+            "rmse": 0.08443556790591228,
+            "rmse_casebalanced": 0.08443556790591228
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 360390,
+            "r2_casebalanced": 0.7168920723586351,
+            "r2_pooled": 0.7168920723586351,
+            "rmse": 0.1245713812206734,
+            "rmse_casebalanced": 0.1245713812206734
+          },
+          "vector_rmse_m_s": 0.1633935113770522,
+          "local_frame_excluded_points": 0
+        },
+        "AG/slow/GUO_XI_JIANG": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 295383,
+            "r2_casebalanced": 0.8116875029278614,
+            "r2_pooled": 0.8116875029278614,
+            "rmse": 0.08621530883855981,
+            "rmse_casebalanced": 0.08621530883855981
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 295383,
+            "r2_casebalanced": 0.8536032340953147,
+            "r2_pooled": 0.8536032340953147,
+            "rmse": 0.13159133899062686,
+            "rmse_casebalanced": 0.13159133899062686
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 295383,
+            "r2_casebalanced": 0.8271174127140115,
+            "r2_pooled": 0.8271174127140115,
+            "rmse": 0.08538727680399086,
+            "rmse_casebalanced": 0.08538727680399086
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 295383,
+            "r2_casebalanced": 0.8266357439193629,
+            "r2_pooled": 0.8266357439193629,
+            "rmse": 0.15354961738301584,
+            "rmse_casebalanced": 0.15354961738301584
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 295383,
+            "r2_casebalanced": 0.4246822346129481,
+            "r2_pooled": 0.4246822346129481,
+            "rmse": 0.04677322199792246,
+            "rmse_casebalanced": 0.04677322199792246
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 295383,
+            "r2_casebalanced": 0.0979361572034837,
+            "r2_pooled": 0.0979361572034837,
+            "rmse": 0.07921570375208556,
+            "rmse_casebalanced": 0.07921570375208556
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 295383,
+            "r2_casebalanced": 0.8282527192639899,
+            "r2_pooled": 0.8282527192639899,
+            "rmse": 0.1517362758649633,
+            "rmse_casebalanced": 0.1517362758649633
+          },
+          "vector_rmse_m_s": 0.17899817601158868,
+          "local_frame_excluded_points": 0
+        },
+        "AG/slow/HE_SHU_ZHEN": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 296040,
+            "r2_casebalanced": 0.8473795235925955,
+            "r2_pooled": 0.8473795235925955,
+            "rmse": 0.08628006245264715,
+            "rmse_casebalanced": 0.08628006245264715
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 296040,
+            "r2_casebalanced": 0.8372691148270672,
+            "r2_pooled": 0.8372691148270672,
+            "rmse": 0.08520330889320732,
+            "rmse_casebalanced": 0.08520330889320732
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 296040,
+            "r2_casebalanced": 0.7563071232468115,
+            "r2_pooled": 0.7563071232468115,
+            "rmse": 0.10910587166782663,
+            "rmse_casebalanced": 0.10910587166782663
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 296040,
+            "r2_casebalanced": 0.7636881471231621,
+            "r2_pooled": 0.7636881471231621,
+            "rmse": 0.13438169199426536,
+            "rmse_casebalanced": 0.13438169199426536
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 296040,
+            "r2_casebalanced": 0.43960788686735475,
+            "r2_pooled": 0.43960788686735475,
+            "rmse": 0.050163947752809766,
+            "rmse_casebalanced": 0.050163947752809766
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 296040,
+            "r2_casebalanced": 0.2612758528757184,
+            "r2_pooled": 0.2612758528757184,
+            "rmse": 0.07767292615958295,
+            "rmse_casebalanced": 0.07767292615958295
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 296040,
+            "r2_casebalanced": 0.7642081526347826,
+            "r2_pooled": 0.7642081526347826,
+            "rmse": 0.12882285220978376,
+            "rmse_casebalanced": 0.12882285220978376
+          },
+          "vector_rmse_m_s": 0.16311941716294923,
+          "local_frame_excluded_points": 0
+        },
+        "AG/slow/LI_HUAN_GE": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 367250,
+            "r2_casebalanced": 0.8690012735981099,
+            "r2_pooled": 0.8690012735981099,
+            "rmse": 0.10906172868589957,
+            "rmse_casebalanced": 0.10906172868589957
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 367250,
+            "r2_casebalanced": 0.817493033756981,
+            "r2_pooled": 0.817493033756981,
+            "rmse": 0.1344361229424906,
+            "rmse_casebalanced": 0.1344361229424906
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 367250,
+            "r2_casebalanced": 0.729635191876251,
+            "r2_pooled": 0.729635191876251,
+            "rmse": 0.1383835660932738,
+            "rmse_casebalanced": 0.1383835660932738
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 367250,
+            "r2_casebalanced": 0.7559644004628929,
+            "r2_pooled": 0.7559644004628929,
+            "rmse": 0.18887804237514125,
+            "rmse_casebalanced": 0.18887804237514125
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 367250,
+            "r2_casebalanced": 0.2621907107938568,
+            "r2_pooled": 0.2621907107938568,
+            "rmse": 0.06217977312320031,
+            "rmse_casebalanced": 0.06217977312320031
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 367250,
+            "r2_casebalanced": -0.08444864876376457,
+            "r2_pooled": -0.08444864876376457,
+            "rmse": 0.09785859238379825,
+            "rmse_casebalanced": 0.09785859238379825
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 367250,
+            "r2_casebalanced": 0.7642780956386755,
+            "r2_pooled": 0.7642780956386755,
+            "rmse": 0.18352647428489866,
+            "rmse_casebalanced": 0.18352647428489866
+          },
+          "vector_rmse_m_s": 0.22162478015884568,
+          "local_frame_excluded_points": 0
+        },
+        "AG/slow/MA_TIAN_YI": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 367483,
+            "r2_casebalanced": 0.6876738526302031,
+            "r2_pooled": 0.6876738526302031,
+            "rmse": 0.16678257928963394,
+            "rmse_casebalanced": 0.16678257928963394
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 367483,
+            "r2_casebalanced": 0.7108212383398353,
+            "r2_pooled": 0.7108212383398353,
+            "rmse": 0.20814253634018695,
+            "rmse_casebalanced": 0.20814253634018695
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 367483,
+            "r2_casebalanced": 0.7218598982111595,
+            "r2_pooled": 0.7218598982111595,
+            "rmse": 0.25080556679785854,
+            "rmse_casebalanced": 0.25080556679785854
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 367483,
+            "r2_casebalanced": 0.721834632351597,
+            "r2_pooled": 0.721834632351597,
+            "rmse": 0.3045833292852675,
+            "rmse_casebalanced": 0.3045833292852675
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 367483,
+            "r2_casebalanced": 0.3167341271383316,
+            "r2_pooled": 0.3167341271383316,
+            "rmse": 0.09992430884096569,
+            "rmse_casebalanced": 0.09992430884096569
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 367483,
+            "r2_casebalanced": 0.1571630560736681,
+            "r2_pooled": 0.1571630560736681,
+            "rmse": 0.17688217702635217,
+            "rmse_casebalanced": 0.17688217702635217
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 367483,
+            "r2_casebalanced": 0.7217143098403491,
+            "r2_pooled": 0.7217143098403491,
+            "rmse": 0.30317799234465337,
+            "rmse_casebalanced": 0.30317799234465337
+          },
+          "vector_rmse_m_s": 0.36611907424419204,
+          "local_frame_excluded_points": 0
+        },
+        "AG/slow/MA_YU": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 421247,
+            "r2_casebalanced": 0.7125937842004283,
+            "r2_pooled": 0.7125937842004283,
+            "rmse": 0.10869787848424049,
+            "rmse_casebalanced": 0.10869787848424049
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 421247,
+            "r2_casebalanced": 0.5742414455940841,
+            "r2_pooled": 0.5742414455940841,
+            "rmse": 0.1107335442987708,
+            "rmse_casebalanced": 0.1107335442987708
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 421247,
+            "r2_casebalanced": 0.7243724873254398,
+            "r2_pooled": 0.7243724873254398,
+            "rmse": 0.11475612865679374,
+            "rmse_casebalanced": 0.11475612865679374
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 421247,
+            "r2_casebalanced": 0.6109256765199191,
+            "r2_pooled": 0.6109256765199191,
+            "rmse": 0.16189373007597768,
+            "rmse_casebalanced": 0.16189373007597768
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 421247,
+            "r2_casebalanced": -0.018175164629211427,
+            "r2_pooled": -0.018175164629211427,
+            "rmse": 0.05079186359854804,
+            "rmse_casebalanced": 0.05079186359854804
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 421247,
+            "r2_casebalanced": -0.05025704657631147,
+            "r2_pooled": -0.05025704657631147,
+            "rmse": 0.09196043952977893,
+            "rmse_casebalanced": 0.09196043952977893
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 421247,
+            "r2_casebalanced": 0.5867497507907966,
+            "r2_pooled": 0.5867497507907966,
+            "rmse": 0.16649244391130272,
+            "rmse_casebalanced": 0.16649244391130272
+          },
+          "vector_rmse_m_s": 0.1929925275347135,
+          "local_frame_excluded_points": 0
+        },
+        "AG/slow/ZHANG_WEI_XIAN": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 559568,
+            "r2_casebalanced": 0.7470963883882915,
+            "r2_pooled": 0.7470963883882915,
+            "rmse": 0.12876551424136168,
+            "rmse_casebalanced": 0.12876551424136168
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 559568,
+            "r2_casebalanced": 0.700261921240497,
+            "r2_pooled": 0.700261921240497,
+            "rmse": 0.12460417245986079,
+            "rmse_casebalanced": 0.12460417245986079
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 559568,
+            "r2_casebalanced": 0.6393671649579575,
+            "r2_pooled": 0.6393671649579575,
+            "rmse": 0.16538930010111588,
+            "rmse_casebalanced": 0.16538930010111588
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 559568,
+            "r2_casebalanced": 0.6942397048451845,
+            "r2_pooled": 0.6942397048451845,
+            "rmse": 0.1959445492863742,
+            "rmse_casebalanced": 0.1959445492863742
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 559568,
+            "r2_casebalanced": -0.15325051213234042,
+            "r2_pooled": -0.15325051213234042,
+            "rmse": 0.08546533180597989,
+            "rmse_casebalanced": 0.08546533180597989
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 559568,
+            "r2_casebalanced": -0.26829324823505263,
+            "r2_pooled": -0.26829324823505263,
+            "rmse": 0.11731065043055328,
+            "rmse_casebalanced": 0.11731065043055328
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 559568,
+            "r2_casebalanced": 0.6874665795756452,
+            "r2_pooled": 0.6874665795756452,
+            "rmse": 0.18843542542697797,
+            "rmse_casebalanced": 0.18843542542697797
+          },
+          "vector_rmse_m_s": 0.243844987728241,
+          "local_frame_excluded_points": 0
+        },
+        "ILO/LI_YOU_ZHI-0/before": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 434853,
+            "r2_casebalanced": 0.7595339406578425,
+            "r2_pooled": 0.7595339406578425,
+            "rmse": 0.054674327086010256,
+            "rmse_casebalanced": 0.054674327086010256
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 434853,
+            "r2_casebalanced": 0.59224054717087,
+            "r2_pooled": 0.59224054717087,
+            "rmse": 0.06308467462091474,
+            "rmse_casebalanced": 0.06308467462091474
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 434853,
+            "r2_casebalanced": 0.5414802684069453,
+            "r2_pooled": 0.5414802684069453,
+            "rmse": 0.06535017219429838,
+            "rmse_casebalanced": 0.06535017219429838
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 434853,
+            "r2_casebalanced": 0.6131847772467947,
+            "r2_pooled": 0.6131847772467947,
+            "rmse": 0.08559920173632203,
+            "rmse_casebalanced": 0.08559920173632203
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 434853,
+            "r2_casebalanced": -0.04879308842823993,
+            "r2_pooled": -0.04879308842823993,
+            "rmse": 0.03343023585981979,
+            "rmse_casebalanced": 0.03343023585981979
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 434853,
+            "r2_casebalanced": -0.7241500521640358,
+            "r2_pooled": -0.7241500521640358,
+            "rmse": 0.05286586055878058,
+            "rmse_casebalanced": 0.05286586055878058
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 434853,
+            "r2_casebalanced": 0.6170363233826122,
+            "r2_pooled": 0.6170363233826122,
+            "rmse": 0.08523676273168927,
+            "rmse_casebalanced": 0.08523676273168927
+          },
+          "vector_rmse_m_s": 0.10601699495910628,
+          "local_frame_excluded_points": 0
+        },
+        "ILO/LU_FU_SHAN-0/before": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 503357,
+            "r2_casebalanced": 0.7852261822019435,
+            "r2_pooled": 0.7852261822019435,
+            "rmse": 0.09644845682328687,
+            "rmse_casebalanced": 0.09644845682328687
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 503357,
+            "r2_casebalanced": 0.7687282894318415,
+            "r2_pooled": 0.7687282894318415,
+            "rmse": 0.09997868828927983,
+            "rmse_casebalanced": 0.09997868828927983
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 503357,
+            "r2_casebalanced": 0.7912740818574615,
+            "r2_pooled": 0.7912740818574615,
+            "rmse": 0.10009507063556149,
+            "rmse_casebalanced": 0.10009507063556149
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 503357,
+            "r2_casebalanced": 0.8007574758774566,
+            "r2_pooled": 0.8007574758774566,
+            "rmse": 0.12665558516553538,
+            "rmse_casebalanced": 0.12665558516553538
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 503357,
+            "r2_casebalanced": 0.24608861310549135,
+            "r2_pooled": 0.24608861310549135,
+            "rmse": 0.05189195187407897,
+            "rmse_casebalanced": 0.05189195187407897
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 503357,
+            "r2_casebalanced": 0.08944817335514177,
+            "r2_pooled": 0.08944817335514177,
+            "rmse": 0.10287202816242391,
+            "rmse_casebalanced": 0.10287202816242391
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 503357,
+            "r2_casebalanced": 0.8062758037560522,
+            "r2_pooled": 0.8062758037560522,
+            "rmse": 0.12455877244334576,
+            "rmse_casebalanced": 0.12455877244334576
+          },
+          "vector_rmse_m_s": 0.1712222710431574,
+          "local_frame_excluded_points": 0
+        },
+        "ILO/SUN_DONG_XIN-0/before": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 260668,
+            "r2_casebalanced": 0.7041826871932783,
+            "r2_pooled": 0.7041826871932783,
+            "rmse": 0.07304598043473977,
+            "rmse_casebalanced": 0.07304598043473977
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 260668,
+            "r2_casebalanced": 0.6884598411154743,
+            "r2_pooled": 0.6884598411154743,
+            "rmse": 0.07025783778223825,
+            "rmse_casebalanced": 0.07025783778223825
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 260668,
+            "r2_casebalanced": 0.4895247232521627,
+            "r2_pooled": 0.4895247232521627,
+            "rmse": 0.09219753741134022,
+            "rmse_casebalanced": 0.09219753741134022
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 260668,
+            "r2_casebalanced": 0.5280610371523853,
+            "r2_pooled": 0.5280610371523853,
+            "rmse": 0.11604715372989349,
+            "rmse_casebalanced": 0.11604715372989349
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 260668,
+            "r2_casebalanced": 0.2502671886406287,
+            "r2_pooled": 0.2502671886406287,
+            "rmse": 0.04068194181174539,
+            "rmse_casebalanced": 0.04068194181174539
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 260668,
+            "r2_casebalanced": 0.033148505477145096,
+            "r2_pooled": 0.033148505477145096,
+            "rmse": 0.06041773459704858,
+            "rmse_casebalanced": 0.06041773459704858
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 260668,
+            "r2_casebalanced": 0.508951982107058,
+            "r2_pooled": 0.508951982107058,
+            "rmse": 0.11857112800806625,
+            "rmse_casebalanced": 0.11857112800806625
+          },
+          "vector_rmse_m_s": 0.13701191529287943,
+          "local_frame_excluded_points": 0
+        },
+        "ILO/SUN_XU_XIA-1/before": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 373931,
+            "r2_casebalanced": 0.6896328719054037,
+            "r2_pooled": 0.6896328719054037,
+            "rmse": 0.17681842526613817,
+            "rmse_casebalanced": 0.17681842526613817
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 373931,
+            "r2_casebalanced": 0.6993428461070065,
+            "r2_pooled": 0.6993428461070065,
+            "rmse": 0.21811994239324523,
+            "rmse_casebalanced": 0.21811994239324523
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 373931,
+            "r2_casebalanced": 0.5841536548321563,
+            "r2_pooled": 0.5841536548321563,
+            "rmse": 0.3564090666670011,
+            "rmse_casebalanced": 0.3564090666670011
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 373931,
+            "r2_casebalanced": 0.6195686305542282,
+            "r2_pooled": 0.6195686305542282,
+            "rmse": 0.4058203269265402,
+            "rmse_casebalanced": 0.4058203269265402
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 373931,
+            "r2_casebalanced": 0.273231930706336,
+            "r2_pooled": 0.273231930706336,
+            "rmse": 0.09972848537770349,
+            "rmse_casebalanced": 0.09972848537770349
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 373931,
+            "r2_casebalanced": -0.02895635051058565,
+            "r2_pooled": -0.02895635051058565,
+            "rmse": 0.17672741452071783,
+            "rmse_casebalanced": 0.17672741452071783
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 373931,
+            "r2_casebalanced": 0.6236699779424713,
+            "r2_pooled": 0.6236699779424713,
+            "rmse": 0.40084817051641186,
+            "rmse_casebalanced": 0.40084817051641186
+          },
+          "vector_rmse_m_s": 0.4537273273516511,
+          "local_frame_excluded_points": 0
+        },
+        "ILO/YANG_WEN_TAI-0/before": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 620218,
+            "r2_casebalanced": 0.7462708766726565,
+            "r2_pooled": 0.7462708766726565,
+            "rmse": 0.07182066327799175,
+            "rmse_casebalanced": 0.07182066327799175
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 620218,
+            "r2_casebalanced": 0.7006283199877058,
+            "r2_pooled": 0.7006283199877058,
+            "rmse": 0.06576481776111393,
+            "rmse_casebalanced": 0.06576481776111393
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 620218,
+            "r2_casebalanced": 0.7608172654076008,
+            "r2_pooled": 0.7608172654076008,
+            "rmse": 0.06858500112795525,
+            "rmse_casebalanced": 0.06858500112795525
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 620218,
+            "r2_casebalanced": 0.8016996153963509,
+            "r2_pooled": 0.8016996153963509,
+            "rmse": 0.08659480010759024,
+            "rmse_casebalanced": 0.08659480010759024
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 620218,
+            "r2_casebalanced": -0.10667579055450127,
+            "r2_pooled": -0.10667579055450127,
+            "rmse": 0.047026402560866216,
+            "rmse_casebalanced": 0.047026402560866216
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 620218,
+            "r2_casebalanced": -0.11948995836558973,
+            "r2_pooled": -0.11948995836558973,
+            "rmse": 0.06691023363488327,
+            "rmse_casebalanced": 0.06691023363488327
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 620218,
+            "r2_casebalanced": 0.8109201345175902,
+            "r2_pooled": 0.8109201345175902,
+            "rmse": 0.08601286521074908,
+            "rmse_casebalanced": 0.08601286521074908
+          },
+          "vector_rmse_m_s": 0.11910970283131775,
+          "local_frame_excluded_points": 0
+        },
+        "ILO/YU_XIANG_SHENG-1/before": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 359001,
+            "r2_casebalanced": 0.7474787358043955,
+            "r2_pooled": 0.7474787358043955,
+            "rmse": 0.08366478833689528,
+            "rmse_casebalanced": 0.08366478833689528
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 359001,
+            "r2_casebalanced": 0.8356986049090567,
+            "r2_pooled": 0.8356986049090567,
+            "rmse": 0.07840684688959156,
+            "rmse_casebalanced": 0.07840684688959156
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 359001,
+            "r2_casebalanced": 0.7794226325306259,
+            "r2_pooled": 0.7794226325306259,
+            "rmse": 0.10743047865095484,
+            "rmse_casebalanced": 0.10743047865095484
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 359001,
+            "r2_casebalanced": 0.8052499499507828,
+            "r2_pooled": 0.8052499499507828,
+            "rmse": 0.12972340337478722,
+            "rmse_casebalanced": 0.12972340337478722
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 359001,
+            "r2_casebalanced": 0.4381291468576828,
+            "r2_pooled": 0.4381291468576828,
+            "rmse": 0.04538411029797389,
+            "rmse_casebalanced": 0.04538411029797389
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 359001,
+            "r2_casebalanced": 0.013093553158666227,
+            "r2_pooled": 0.013093553158666227,
+            "rmse": 0.07616337268741583,
+            "rmse_casebalanced": 0.07616337268741583
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 359001,
+            "r2_casebalanced": 0.8152515513787665,
+            "r2_pooled": 0.8152515513787665,
+            "rmse": 0.12356400284423484,
+            "rmse_casebalanced": 0.12356400284423484
+          },
+          "vector_rmse_m_s": 0.15712650377895707,
+          "local_frame_excluded_points": 0
+        },
+        "ILO/ZHANG_HE_PING-0/before": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 546441,
+            "r2_casebalanced": 0.7762735677131705,
+            "r2_pooled": 0.7762735677131705,
+            "rmse": 0.060127079104946794,
+            "rmse_casebalanced": 0.060127079104946794
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 546441,
+            "r2_casebalanced": 0.7476194967641605,
+            "r2_pooled": 0.7476194967641605,
+            "rmse": 0.0651997788931878,
+            "rmse_casebalanced": 0.0651997788931878
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 546441,
+            "r2_casebalanced": 0.7541449111904088,
+            "r2_pooled": 0.7541449111904088,
+            "rmse": 0.08118699924496357,
+            "rmse_casebalanced": 0.08118699924496357
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 546441,
+            "r2_casebalanced": 0.7873697168378967,
+            "r2_pooled": 0.7873697168378967,
+            "rmse": 0.096148054531579,
+            "rmse_casebalanced": 0.096148054531579
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 546441,
+            "r2_casebalanced": 0.3935854375261604,
+            "r2_pooled": 0.3935854375261604,
+            "rmse": 0.03812269657957096,
+            "rmse_casebalanced": 0.03812269657957096
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 546441,
+            "r2_casebalanced": 0.09774838765970661,
+            "r2_pooled": 0.09774838765970661,
+            "rmse": 0.06131734885910599,
+            "rmse_casebalanced": 0.06131734885910599
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 546441,
+            "r2_casebalanced": 0.7828278117427903,
+            "r2_pooled": 0.7828278117427903,
+            "rmse": 0.09585742741625894,
+            "rmse_casebalanced": 0.09585742741625894
+          },
+          "vector_rmse_m_s": 0.1202397839977053,
+          "local_frame_excluded_points": 0
+        },
+        "ILO/ZHANG_JIN_CHUN-1/before": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 473754,
+            "r2_casebalanced": 0.4634509765343575,
+            "r2_pooled": 0.4634509765343575,
+            "rmse": 0.21661829107585046,
+            "rmse_casebalanced": 0.21661829107585046
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 473754,
+            "r2_casebalanced": 0.2955718190336766,
+            "r2_pooled": 0.2955718190336766,
+            "rmse": 0.24542351410327629,
+            "rmse_casebalanced": 0.24542351410327629
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 473754,
+            "r2_casebalanced": 0.27755349942873475,
+            "r2_pooled": 0.27755349942873475,
+            "rmse": 0.25328249029662814,
+            "rmse_casebalanced": 0.25328249029662814
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 473754,
+            "r2_casebalanced": 0.23587867487256642,
+            "r2_pooled": 0.23587867487256642,
+            "rmse": 0.34982018638313817,
+            "rmse_casebalanced": 0.34982018638313817
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 473754,
+            "r2_casebalanced": 0.06566663674648787,
+            "r2_pooled": 0.06566663674648787,
+            "rmse": 0.10721972800525602,
+            "rmse_casebalanced": 0.10721972800525602
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 473754,
+            "r2_casebalanced": -0.07033581136555278,
+            "r2_pooled": -0.07033581136555278,
+            "rmse": 0.19348894624662635,
+            "rmse_casebalanced": 0.19348894624662635
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 473754,
+            "r2_casebalanced": 0.36542898017005254,
+            "r2_pooled": 0.36542898017005254,
+            "rmse": 0.3425536404836852,
+            "rmse_casebalanced": 0.3425536404836852
+          },
+          "vector_rmse_m_s": 0.4138939540441301,
+          "local_frame_excluded_points": 0
+        },
+        "ILO/ZHANG_YONG_SHENG-0/before": {
+          "u": {
+            "n_cases": 1,
+            "n_points": 381906,
+            "r2_casebalanced": 0.7271528405255296,
+            "r2_pooled": 0.7271528405255296,
+            "rmse": 0.03857254622971009,
+            "rmse_casebalanced": 0.03857254622971009
+          },
+          "v": {
+            "n_cases": 1,
+            "n_points": 381906,
+            "r2_casebalanced": 0.8311944196229781,
+            "r2_pooled": 0.8311944196229781,
+            "rmse": 0.04936203563048056,
+            "rmse_casebalanced": 0.04936203563048056
+          },
+          "w": {
+            "n_cases": 1,
+            "n_points": 381906,
+            "r2_casebalanced": 0.7897778867462841,
+            "r2_pooled": 0.7897778867462841,
+            "rmse": 0.059061108105811215,
+            "rmse_casebalanced": 0.059061108105811215
+          },
+          "axial": {
+            "n_cases": 1,
+            "n_points": 381906,
+            "r2_casebalanced": 0.8051158401918215,
+            "r2_pooled": 0.8051158401918215,
+            "rmse": 0.0692579697122472,
+            "rmse_casebalanced": 0.0692579697122472
+          },
+          "radial": {
+            "n_cases": 1,
+            "n_points": 381906,
+            "r2_casebalanced": 0.4187927614592927,
+            "r2_pooled": 0.4187927614592927,
+            "rmse": 0.026097650293645122,
+            "rmse_casebalanced": 0.026097650293645122
+          },
+          "circ": {
+            "n_cases": 1,
+            "n_points": 381906,
+            "r2_casebalanced": -0.09509028416584187,
+            "r2_pooled": -0.09509028416584187,
+            "rmse": 0.043987642075955034,
+            "rmse_casebalanced": 0.043987642075955034
+          },
+          "speed": {
+            "n_cases": 1,
+            "n_points": 381906,
+            "r2_casebalanced": 0.8096216809783379,
+            "r2_pooled": 0.8096216809783379,
+            "rmse": 0.06881320429484235,
+            "rmse_casebalanced": 0.06881320429484235
+          },
+          "vector_rmse_m_s": 0.08609684300201881,
+          "local_frame_excluded_points": 0
+        }
+      },
+      "evaluation_metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/reference_runs/R5V/eval/ckpt_best/metrics.json",
+      "evaluation": {
+        "field_casebalanced": {
+          "r2": 0.7482932126405307,
+          "mae": 0.09493603846811031,
+          "rmse": 0.17503952548108345,
+          "n": 14122419,
+          "n_cases": 34,
+          "r2_linear_fit": 0.7535065151871545,
+          "linear_fit_slope": 0.7031267465581683,
+          "linear_fit_intercept": 0.0833753141066925
+        },
+        "group_casebalanced": {
+          "AG": {
+            "r2": 0.7810274257420411,
+            "mae": 0.09894051386214402,
+            "rmse": 0.1684948623775352,
+            "n": 5593495,
+            "n_cases": 15
+          },
+          "AAA": {
+            "r2": 0.7305510388579801,
+            "mae": 0.0919835799880934,
+            "rmse": 0.16260716128097416,
+            "n": 4574795,
+            "n_cases": 10
+          },
+          "AAA_ruputer": {
+            "r2": 0.7871235477425226,
+            "mae": 0.09530787919503618,
+            "rmse": 0.1506024536347447,
+            "n": 1896411,
+            "n_cases": 4
+          },
+          "AAA_unruputer": {
+            "r2": 0.6819820565828765,
+            "mae": 0.08976738051679818,
+            "rmse": 0.17014037970420473,
+            "n": 2678384,
+            "n_cases": 6
+          },
+          "ILO": {
+            "r2": 0.6691626559986117,
+            "mae": 0.09154242223362853,
+            "rmse": 0.19761121696371448,
+            "n": 3954129,
+            "n_cases": 9
+          },
+          "ILO_0": {
+            "r2": 0.7673181317817842,
+            "mae": 0.0625617120844436,
+            "rmse": 0.09845593123220323,
+            "n": 2747443,
+            "n_cases": 6
+          },
+          "ILO_1": {
+            "r2": 0.605877114586066,
+            "mae": 0.14950384253199842,
+            "rmse": 0.31267145443746547,
+            "n": 1206686,
+            "n_cases": 3
+          }
+        }
+      },
+      "components": {
+        "u": {
+          "n_cases": 34,
+          "n_points": 14122419,
+          "r2_casebalanced": 0.7480415132885871,
+          "r2_pooled": 0.7337001607599585,
+          "rmse": 0.1077348268223794,
+          "rmse_casebalanced": 0.10608090584186362
+        },
+        "v": {
+          "n_cases": 34,
+          "n_points": 14122419,
+          "r2_casebalanced": 0.7644994218606784,
+          "r2_pooled": 0.7517394571078686,
+          "rmse": 0.12380980545044153,
+          "rmse_casebalanced": 0.12260528193089837
+        },
+        "w": {
+          "n_cases": 34,
+          "n_points": 14122419,
+          "r2_casebalanced": 0.7349583676888646,
+          "r2_pooled": 0.7272787035680526,
+          "rmse": 0.13798097132032852,
+          "rmse_casebalanced": 0.13850330296202523
+        },
+        "axial": {
+          "n_cases": 34,
+          "n_points": 14122419,
+          "r2_casebalanced": 0.7398199836218955,
+          "r2_pooled": 0.7311070221828466,
+          "rmse": 0.17747322779409508,
+          "rmse_casebalanced": 0.17733872611867918
+        },
+        "radial": {
+          "n_cases": 34,
+          "n_points": 14122419,
+          "r2_casebalanced": 0.23316899793801482,
+          "r2_pooled": 0.21491068303196104,
+          "rmse": 0.06222385070050414,
+          "rmse_casebalanced": 0.061311747691620316
+        },
+        "circ": {
+          "n_cases": 34,
+          "n_points": 14122419,
+          "r2_casebalanced": 0.0023302849250850244,
+          "r2_pooled": -0.01370190299661389,
+          "rmse": 0.102984732378019,
+          "rmse_casebalanced": 0.1012927662105204
+        },
+        "speed": {
+          "n_cases": 34,
+          "n_points": 14122419,
+          "r2_casebalanced": 0.748293212654782,
+          "r2_pooled": 0.7392335083602402,
+          "rmse": 0.1756363836222069,
+          "rmse_casebalanced": 0.17503952547612817
+        }
+      },
+      "vector_rmse_m_s": 0.21441643892814183,
+      "vector_rmse_casebalanced_m_s": 0.21323315566059597
+    }
+  },
+  "method": {
+    "prediction_manifest": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/volume_attention_20260910/reference_runs/R5V/eval/ckpt_best/predictions/manifest.json",
+    "snapshot_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906",
+    "bin_width_mm": 5.0,
+    "bin_key": "(segment_id, floor(s_from_root_mm / 5))",
+    "sigmas_mm": [
+      5,
+      10,
+      20,
+      40
+    ],
+    "within_bin_weights": "cell volume_m3",
+    "within_case_metric_weights": "bin volume sum",
+    "smoothing": "Gaussian across occupied 5 mm bins within each segment; row-normalized at boundaries/gaps",
+    "cross_case_weights": "equal",
+    "pressure_scope": "interior only for longwave; wall/interior full metrics unchanged",
+    "velocity_local_metrics": "exclude degenerate radial frame from axial/radial/circ metrics, matching historical decomposition",
+    "velocity_longwave": "axial component at all interior cells with valid atlas tangents",
+    "debiased": "subtract case volume-weighted raw residual mean before smoothing",
+    "interpretation": "diagnostic smoothing; not an orthogonal spectral decomposition or theoretical accuracy bound"
+  }
+}
