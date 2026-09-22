@@ -4,46 +4,128 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>WSS · 壁面预测工作台</title>
+  <title>WSS · 血流场预测工作台</title>
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/three.min.js" defer></script>
   <script src="/static/OrbitControls.js" defer></script>
+  <script src="/static/workbench_core.js" defer></script>
+  <script src="/static/batch_export.js" defer></script>
   <script src="/static/app.js" defer></script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/" aria-label="WSS 工作台首页"><span class="brand-mark" aria-hidden="true">W</span><span>WSS <span class="brand-sub">壁面预测工作台</span></span></a>
-    <span class="connection" id="connection" role="status">正在连接服务…</span>
+    <a class="brand" href="/" aria-label="WSS 工作台首页"><span class="brand-mark" aria-hidden="true">W</span><span>WSS <span class="brand-sub">血流场预测工作台</span></span></a>
+    <div class="topbar-tools">
+      <div id="user-menu" class="user-menu" hidden><span id="user-name" class="user-name"></span><button type="button" class="text-button" id="change-password">改口令</button><button type="button" class="text-button" id="logout">退出</button></div>
+      <span class="connection" id="connection" role="status">正在连接服务…</span>
+    </div>
   </header>
   <div id="notice" class="notice" role="alert" hidden></div>
+  <div id="claim-banner" class="notice claim-banner" role="status" hidden><span id="claim-text">检测到之前会话的任务。</span><button type="button" class="primary" id="claim-button">认领本会话任务</button><button type="button" class="text-button" id="claim-dismiss">稍后</button></div>
   <section id="login-panel" class="login card" hidden aria-labelledby="login-title">
     <p class="eyebrow">共享服务</p><h1 id="login-title">连接工作台</h1>
-    <p>输入此服务的访问令牌。任务和报告仅对当前会话可见。</p>
-    <form id="login-form"><label for="access-token">访问令牌</label><input id="access-token" type="password" autocomplete="current-password" required><button class="primary" type="submit">连接</button></form>
+    <p id="login-help">输入此服务的访问令牌。任务和报告仅对当前会话可见。</p>
+    <form id="login-form">
+      <div id="login-token-group"><label for="access-token">访问令牌</label><input id="access-token" type="password" autocomplete="current-password"></div>
+      <div id="login-user-group" hidden><label for="login-username">用户名</label><input id="login-username" type="text" autocomplete="username" maxlength="64" pattern="[A-Za-z0-9_.\-]{1,64}"><label for="login-password">口令</label><input id="login-password" type="password" autocomplete="current-password"></div>
+      <button class="primary" type="submit">连接</button>
+    </form>
   </section>
   <main id="workspace" class="workspace" hidden>
     <aside class="sidebar">
       <section class="card upload-card" aria-labelledby="upload-title">
-        <p class="eyebrow">新建预测</p><h2 id="upload-title">从一个 STL 开始</h2>
+        <p class="eyebrow">新建预测</p><h2 id="upload-title">上传单例或一组 STL</h2>
         <form id="upload-form">
-          <label class="file-field" for="stl-file"><span class="file-icon" aria-hidden="true">↑</span><strong>选择血管壁面 STL</strong><span id="file-name">1 个入口 · 4 个髂动脉出口</span><input id="stl-file" name="stl" type="file" accept=".stl" required></label>
+          <label class="file-field" for="stl-file"><span class="file-icon" aria-hidden="true">↑</span><strong>选择血管壁面 STL · 可多选</strong><span id="file-name">1 个入口 · 4 个髂动脉出口</span><input id="stl-file" name="stl" type="file" accept=".stl" multiple required></label>
           <label for="case-id">匿名病例编号 <span class="optional">可选</span></label>
-          <input id="case-id" name="case_id" maxlength="80" placeholder="例如 AAA-001" autocomplete="off">
+          <input id="case-id" name="case_id" maxlength="160" placeholder="例如 CASE-001" autocomplete="off">
+          <p class="help" id="case-id-help">留空时用文件名作为病例编号；请使用匿名文件名。</p>
+          <div id="upload-files" class="upload-files" aria-live="polite" hidden></div>
+          <details class="upload-metadata"><summary>患者、扫描与检索标签</summary>
+            <label class="ack remember-row" for="remember-patient"><input type="checkbox" id="remember-patient"><span>沿用上次的患者与标签（按用户记住）</span></label>
+            <label for="patient-id">匿名患者编号 <span class="optional">可选</span></label>
+            <input id="patient-id" name="patient_id" maxlength="80" placeholder="例如 P-001" autocomplete="off">
+            <label for="scan-label">扫描标签 <span class="optional">可选</span></label>
+            <input id="scan-label" name="scan_label" maxlength="120" placeholder="例如 基线、随访 1" autocomplete="off">
+            <label for="scan-date">扫描日期 <span class="optional">可选</span></label>
+            <input id="scan-date" name="scan_date" type="date">
+            <label for="case-tags">检索标签 <span class="optional">逗号分隔</span></label>
+            <input id="case-tags" name="tags" maxlength="1024" placeholder="例如 AAA, 随访" autocomplete="off">
+            <label for="case-notes">备注 <span class="optional">可选</span></label>
+            <textarea id="case-notes" name="notes" rows="3" maxlength="2000" placeholder="记录本次几何或处理说明"></textarea>
+            <p class="help">请使用匿名编号，不填写姓名等身份信息。此处信息会应用于本次选择的全部文件。</p>
+          </details>
           <label for="upload-units">STL 原始单位</label>
           <select id="upload-units" name="units"><option value="auto">不确定，先检查尺寸</option><option value="mm">毫米 mm</option><option value="cm">厘米 cm</option><option value="m">米 m</option></select>
-          <p class="help">STL 不记录单位。尺寸检查后可确认换算；多连通片需确认保留主体后的删除比例。</p>
+          <label for="upload-release">模型发布包</label>
+          <select id="upload-release" name="release_id"><option value="">正在读取可用发布包…</option></select>
+          <p class="help" id="release-help">任务会固定绑定所选发布包；重跑不会覆盖历史结果。</p>
+          <details class="runtime-settings"><summary>计算设置</summary>
+            <label for="upload-device">计算设备</label>
+            <select id="upload-device" name="device"><option value="auto">自动选择</option><option value="cpu">CPU</option><option value="cuda">GPU · CUDA</option></select>
+            <label for="upload-seeds">集成模型数</label>
+            <select id="upload-seeds" name="seed_count"><option value="all">发布包全部模型</option></select>
+            <label for="upload-threads">CPU 线程数 <span class="optional">留空使用默认值</span></label>
+            <input id="upload-threads" name="threads" type="number" min="1" max="32" step="1" placeholder="服务默认值">
+            <p class="help">减少模型数可缩短推理时间，结果会与完整集成不同。设置随任务保存，并按用户记住上次选择。</p>
+          </details>
+          <p class="help">STL 不记录单位。尺寸检查后可确认换算；多连通片需确认保留主体后的删除比例。同一几何再次上传时会提示复用已有中心线。</p>
           <button class="primary full" id="upload-button" type="submit" disabled>上传并检查</button>
+          <div id="upload-progress" class="upload-progress" role="status" hidden><progress id="upload-progress-bar" max="1" value="0"></progress><span id="upload-progress-text"></span></div>
         </form>
       </section>
       <section class="card jobs-card" aria-labelledby="jobs-title">
-        <div class="section-head"><h2 id="jobs-title">我的任务</h2><button type="button" class="text-button" id="refresh-jobs">刷新</button></div>
+        <div class="section-head"><h2 id="jobs-title">病例与历史 <span id="unread-badge" class="unread-badge" hidden aria-label="未读任务数"></span></h2><div class="section-tools"><button type="button" class="text-button" id="select-jobs" aria-pressed="false">选择</button><button type="button" class="text-button" id="refresh-jobs">刷新</button></div></div>
+        <div class="list-mode" role="group" aria-label="列表方式"><button type="button" class="text-button mode-button" id="list-mode-jobs" aria-pressed="true">按任务</button><button type="button" class="text-button mode-button" id="list-mode-cases" aria-pressed="false">按病例</button><label class="notify-toggle" for="notify-toggle" title="任务结束时弹出浏览器通知"><input type="checkbox" id="notify-toggle"><span>通知</span></label><label class="notify-toggle" id="view-all-wrap" for="view-all" hidden title="管理员：查看全部用户的任务"><input type="checkbox" id="view-all"><span>全部用户</span></label></div>
+        <div id="selection-bar" class="selection-bar" hidden><span id="selection-count">已选 0 个</span><button type="button" class="text-button" id="select-finished">全选已结束</button><div class="selection-actions"><button type="button" class="text-button" id="export-csv" disabled>汇总 CSV</button><button type="button" class="text-button" id="export-xlsx" disabled>汇总 xlsx</button><button type="button" class="text-button" id="bundle-selected" disabled>打包下载</button><button type="button" class="text-button" id="batch-export" disabled>批量出图</button><button type="button" class="text-button" id="rerun-selected" disabled>用发布包重跑所选</button><button type="button" class="danger" id="delete-selected" disabled>删除选中</button></div></div>
+        <form id="jobs-filter" class="jobs-filter">
+          <label class="screen-reader-only" for="jobs-query">搜索病例、扫描或备注</label><input id="jobs-query" type="search" maxlength="160" placeholder="搜索病例、扫描或备注">
+          <label class="screen-reader-only" for="jobs-status">任务状态</label><select id="jobs-status"><option value="">所有状态</option><option value="pending_review">待审阅</option><option value="awaiting_input">待确认输入</option><option value="awaiting_confirmation">待确认出口</option><option value="queued">排队中</option><option value="running">计算中</option><option value="done">已完成</option><option value="failed">失败</option><option value="interrupted">已中断</option><option value="cancelled">已取消</option></select>
+          <details><summary>按患者和标签筛选</summary><label for="jobs-patient">匿名患者编号</label><input id="jobs-patient" maxlength="160" placeholder="精确匹配患者编号"><label for="jobs-tag">检索标签</label><input id="jobs-tag" maxlength="80" placeholder="例如 AAA"></details>
+          <div class="filter-actions"><button type="submit">检索</button><button type="button" class="text-button" id="reset-filter">重置</button><label class="screen-reader-only" for="jobs-page-size">每页条数</label><select id="jobs-page-size"><option value="10">10 条 / 页</option><option value="20" selected>20 条 / 页</option><option value="50">50 条 / 页</option></select></div>
+        </form>
         <p class="help" id="jobs-empty">暂无任务。上传 STL 后开始。</p><ul id="jobs-list" class="jobs-list"></ul>
+        <div id="cases-list" class="cases-list" hidden></div>
+        <div class="pagination"><button type="button" id="jobs-prev" aria-label="上一页" disabled>上一页</button><span id="jobs-page" role="status">0 条</span><button type="button" id="jobs-next" aria-label="下一页" disabled>下一页</button></div>
+        <details id="trash-panel" class="trash-panel"><summary>回收站 <span id="trash-count" class="trash-count"></span></summary><p class="help">删除的任务在这里保留 30 天，可恢复或彻底删除。</p><div class="trash-tools"><button type="button" class="text-button" id="trash-refresh">刷新回收站</button></div><ul id="trash-list" class="trash-list"></ul><p class="help" id="trash-empty" hidden>回收站是空的。</p></details>
+      </section>
+      <section class="card cohort-card" aria-labelledby="cohort-title">
+        <details id="cohort-panel" class="cohort-panel">
+          <summary><span id="cohort-title">队列总览</span> <span id="cohort-count" class="trash-count"></span></summary>
+          <p class="help">已完成任务的统计分布与筛选。数值直接取自各例 summary.json，不重新计算。</p>
+          <div class="cohort-tools"><button type="button" class="text-button" id="cohort-refresh">刷新</button><button type="button" class="text-button" id="cohort-export-csv" disabled>导出筛选结果 CSV</button><button type="button" class="text-button" id="cohort-export-xlsx" disabled>xlsx</button></div>
+          <div class="cohort-filters">
+            <label class="screen-reader-only" for="cohort-family">族</label>
+            <select id="cohort-family"><option value="">全部族</option><option value="wall">壁面 WSS</option><option value="volume">压力 + 速度体场</option></select>
+            <label class="screen-reader-only" for="cohort-release">发布包</label>
+            <select id="cohort-release"><option value="">全部发布包</option></select>
+            <label class="screen-reader-only" for="cohort-review">审阅状态</label>
+            <select id="cohort-review"><option value="">全部审阅状态</option><option value="unreviewed">未审阅</option><option value="reviewed">已审阅</option><option value="reopened">已重新打开</option></select>
+            <div class="cohort-numbers">
+              <label for="cohort-p99">p99 ≥ Pa</label><input id="cohort-p99" type="number" min="0" step="0.1" inputmode="decimal" placeholder="不限">
+              <label for="cohort-high">高 WSS 占比 ≥ %</label><input id="cohort-high" type="number" min="0" step="0.1" inputmode="decimal" placeholder="不限">
+              <label for="cohort-very-high">极高 ≥ %</label><input id="cohort-very-high" type="number" min="0" step="0.1" inputmode="decimal" placeholder="不限">
+              <label for="cohort-speed">速度 p99 ≥ m/s</label><input id="cohort-speed" type="number" min="0" step="0.01" inputmode="decimal" placeholder="不限">
+              <label for="cohort-diameter">最大直径 ≥ mm</label><input id="cohort-diameter" type="number" min="0" step="0.5" inputmode="decimal" placeholder="不限">
+            </div>
+          </div>
+          <div class="cohort-charts">
+            <figure><figcaption id="cohort-cap-p99">壁面 p99 分布 · Pa</figcaption><canvas id="cohort-hist-p99" width="560" height="140" role="img" aria-label="壁面 p99 分布直方图"></canvas></figure>
+            <figure><figcaption id="cohort-cap-high">高 WSS 面积占比分布 · %</figcaption><canvas id="cohort-hist-high" width="560" height="140" role="img" aria-label="高 WSS 面积占比分布直方图"></canvas></figure>
+            <figure><figcaption id="cohort-cap-speed">体场速度 p99 分布 · m/s</figcaption><canvas id="cohort-hist-speed" width="560" height="140" role="img" aria-label="体场速度 p99 分布直方图"></canvas></figure>
+            <figure><figcaption id="cohort-cap-diameter">最大直径分布 · mm</figcaption><canvas id="cohort-hist-diameter" width="560" height="140" role="img" aria-label="最大直径分布直方图"></canvas></figure>
+          </div>
+          <p class="help" id="cohort-status">展开后读取队列数据。</p>
+          <div class="cohort-table-wrap"><table class="cohort-table"><thead><tr id="cohort-head"></tr></thead><tbody id="cohort-rows"></tbody></table></div>
+        </details>
       </section>
     </aside>
     <section id="detail" class="detail" aria-live="polite" aria-busy="false">
-      <div class="empty-state card"><p class="eyebrow">从几何到壁面 WSS</p><h1>确认输入，理解结果。</h1><p>上传血管壁面，核对单位和出口命名，再查看三维 WSS、热点与分支统计。</p><ol class="intro-steps"><li><span>01</span>检查几何尺寸</li><li><span>02</span>三维确认出口</li><li><span>03</span>预测并导出报告</li></ol><p class="help">计算通常需要几十秒，复杂病例可能更久。任务会保存进度，可识别中断并重试。</p></div>
+      <div class="empty-state card"><p class="eyebrow">从几何到 WSS、压力与速度</p><h1>确认输入，理解结果。</h1><p>上传血管壁面，核对单位和出口命名，选择 WSS 或压力＋速度发布包，查看三维血流场、流线与截面。</p><ol class="intro-steps"><li><span>01</span>检查几何尺寸</li><li><span>02</span>三维确认出口</li><li><span>03</span>预测并导出报告</li></ol><p class="help">计算通常需要几十秒，复杂病例可能更久。任务会保存进度，可识别中断并重试。</p></div>
     </section>
   </main>
+  <dialog id="modal" class="modal" aria-labelledby="modal-title"><div id="modal-body" class="modal-body"></div></dialog>
+  <div id="gloss-popover" class="gloss-popover" role="tooltip" hidden></div>
   <noscript><p class="notice">请启用 JavaScript 后使用上传和三维查看功能。</p></noscript>
 </body>
 </html>

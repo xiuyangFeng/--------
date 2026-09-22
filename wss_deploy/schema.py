@@ -10,6 +10,7 @@ kept by :func:`wss_compatibility` for existing consumers.
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import os
 import platform
@@ -22,6 +23,20 @@ from .io_utils import atomic_json, file_sha256
 SCHEMA_VERSION = "wss-deploy.run-manifest/v1"
 RESULT_SCHEMA_VERSION = "wss-deploy.results/v1"
 FIELD_SCHEMA_VERSION = "wss-deploy.field/v1"
+
+
+def stable_run_identity(*, input_sha256: str | None, release: Mapping[str, Any] | None,
+                        mapping: Mapping[str, Any] | None, parameters: Mapping[str, Any] | None,
+                        schema_version: str = "wss-deploy.summary/v1") -> str | None:
+    """Return a portable identity for comparing immutable prediction runs."""
+    if not input_sha256 or not release:
+        return None
+    payload = {"schema_version": schema_version, "input_sha256": str(input_sha256),
+               "release": {"id": release.get("registry_id") or release.get("id") or release.get("release") or release.get("name"),
+                           "fingerprint": release.get("fingerprint") or release.get("release_hash")},
+               "mapping": dict(mapping or {}), "parameters": dict(parameters or {})}
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _jsonable(value: Any) -> Any:
@@ -103,6 +118,18 @@ def model_release_metadata(release: Any) -> dict[str, Any]:
         "source_runs": info.get("source_runs"),
         "weights": _manifest_weights(root) if root else [],
     }
+    # Registry-bound identity is intentionally carried alongside the release
+    # metadata.  The manifest hash identifies the bytes on disk; the registry
+    # fingerprint identifies the selectable package a job was bound to.
+    registry_fingerprint = getattr(release, "registry_fingerprint", None)
+    registry_id = getattr(release, "registry_id", None)
+    registry_contract = getattr(release, "registry_contract", None)
+    if registry_id is not None:
+        out["registry_id"] = str(registry_id)
+    if registry_fingerprint is not None:
+        out["fingerprint"] = str(registry_fingerprint)
+    if registry_contract is not None:
+        out["contract"] = _jsonable(registry_contract)
     if root:
         release_json = root / "release.json"
         manifest = root / "MANIFEST.sha256"
@@ -110,6 +137,7 @@ def model_release_metadata(release: Any) -> dict[str, Any]:
             out["release_json_sha256"] = file_sha256(release_json)
         if manifest.is_file():
             out["manifest_sha256"] = file_sha256(manifest)
+            out.setdefault("fingerprint", file_sha256(manifest))
     features = getattr(release, "input_features", None)
     if features is not None:
         out["input_features"] = list(features)
@@ -121,6 +149,16 @@ def model_release_metadata(release: Any) -> dict[str, Any]:
         # Runtime hashes are kept separately from the release manifest hashes;
         # this proves the files actually loaded by the worker were checked.
         out["loaded_weights"] = _jsonable(loaded)
+    feature_contract = getattr(release, "feature_contract", None)
+    if isinstance(feature_contract, Mapping):
+        # Version + source hash of the frozen STL -> feature program the weights ran on.
+        out["feature_contract"] = _jsonable(dict(feature_contract))
+    if isinstance(info.get("feature_contract"), Mapping):
+        out["declared_feature_contract"] = _jsonable(dict(info["feature_contract"]))
+    reference_sha = getattr(release, "reference_sha256", None)
+    if reference_sha:
+        out["reference_sha256"] = str(reference_sha)
+        out["reference_profiles"] = [key for key in ("geometry_reference", "population_reference") if isinstance(info.get(key), Mapping)]
     for key in ("model_family", "version"):
         if info.get(key) is not None:
             out[key] = info[key]
@@ -233,7 +271,9 @@ def build_run_manifest(meta: Mapping[str, Any], job_dir: Path, *, outputs: Seque
     result = {
         "schema_version": SCHEMA_VERSION,
         "run_id": job_dir.name,
+        "run_identity": meta.get("run_identity"),
         "case_id": meta.get("case_id", job_dir.name),
+        "case_metadata": _jsonable(meta.get("case_metadata", {})),
         "created_at": meta.get("created_at"),
         "input": {"stl": {"path": "input.stl", "sha256": input_sha},
                   "clean_stl": _portable_path(job_dir, meta.get("input_check", {}).get("clean_stl")),
@@ -250,8 +290,10 @@ def build_run_manifest(meta: Mapping[str, Any], job_dir: Path, *, outputs: Seque
         "runtime": {key: _jsonable(meta[key]) for key in ("device", "gpu", "timing_s", "seconds_per_model") if key in meta},
         "provenance": {"input_sha256": input_sha, "release_hash": meta.get("release_hash"),
                        "sampling_seed": meta.get("sampling_seed"), "frame_transform": meta.get("frame_transform"),
+                       "feature_contract": _jsonable(meta.get("feature_contract")),
                        "code_runtime": _code_runtime_metadata()},
         "audit": _jsonable(meta.get("audit", {})),
+        "reference_assessment": _jsonable(meta.get("reference_assessment", {})),
         "outputs": _output_records(job_dir, tuple(outputs or ())),
     }
     return _jsonable(result)
@@ -263,6 +305,6 @@ def write_run_manifest(job_dir: Path, meta: Mapping[str, Any], *, outputs: Seque
     return manifest
 
 
-__all__ = ["SCHEMA_VERSION", "RESULT_SCHEMA_VERSION", "FIELD_SCHEMA_VERSION", "model_release_metadata",
+__all__ = ["SCHEMA_VERSION", "RESULT_SCHEMA_VERSION", "FIELD_SCHEMA_VERSION", "stable_run_identity", "model_release_metadata",
            "single_frame_time_axis", "field_descriptor", "wss_compatibility",
            "build_results", "build_run_manifest", "write_run_manifest"]

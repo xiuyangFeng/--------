@@ -1,21 +1,19 @@
-"""Stage 2: Taubin smoothing -> 0.5 mm resampling -> the 27 X5D_v51 inputs, from (STL, atlas) only. No CFD, no bundle."""
+"""Stage 2: Taubin smoothing -> 0.5 mm resampling -> the 27 X5D_v51 inputs, from (STL, atlas) only. No CFD, no bundle.
+
+All geometry comes from the frozen ``wss_features`` program; nothing here imports the training packages
+or mutates module-level state.  The cap-area split rule is an explicit input taken from the model release.
+"""
 from __future__ import annotations
-import json
 import hashlib
 from pathlib import Path
 import numpy as np
 from scipy.spatial import cKDTree
-from training_wss_min.tools.deployment_geometry_sensitivity import taubin_smooth
-from training_wss_min.tools.deployment_stl_simulation import sample_surface, FINE_MAP
-from wss_v5.centerline_features import Atlas, map_points
-from wss_v5.pointcloud import build_oriented_cloud, median_spacing, pca_normals
-from wss_v5.views import wall_flowref_v1 as WF
-from wss_v5.views.wall_flowref_v1 import _Tree, compute_point_features
-from wss_v5.views.wall_geom_v2 import COARSE_K, FINE_K, _unit_rows, principal_curvatures
-from wss_v5.views.wss_min_view import anatomical_frame
-from .paths import RELEASE_DIR
-
-WF._CAPFIT_RULE_OVERRIDE = RELEASE_DIR / "rules" / "flow_split_rule_train136.json"   # never the v5.0 default path
+from wss_features.atlas import Atlas, map_points
+from wss_features.cloud import build_oriented_cloud, median_spacing, pca_normals
+from wss_features.curvature import COARSE_K, FINE_K, FINE_MAP, principal_curvatures, unit_rows as _unit_rows
+from wss_features.flowref import Tree as _Tree, compute_point_features, load_capfit_rule
+from wss_features.frame import anatomical_frame
+from wss_features.sampling import sample_surface, taubin_smooth
 
 
 def stable_sampling_seed(input_sha256: str) -> int:
@@ -31,8 +29,17 @@ def smooth_and_resample(vertices: np.ndarray, faces: np.ndarray, *, smooth_mm: f
     return v, pts
 
 
-def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_name: str = "case") -> tuple[dict, dict]:
-    """Truth-free port of deployment_stl_simulation.build_deployment_case (same programs, same order)."""
+def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_name: str = "case",
+               capfit_rule_path: str | Path | None = None, capfit_rule: dict | None = None) -> tuple[dict, dict]:
+    """Truth-free port of deployment_stl_simulation.build_deployment_case (same programs, same order).
+
+    Exactly one of ``capfit_rule`` (``{"a", "b"}``) or ``capfit_rule_path`` must be given; the rule
+    ships inside the model release and is never read from a training-side default location.
+    """
+    if capfit_rule is None:
+        if capfit_rule_path is None:
+            raise ValueError("build_case requires the release cap-area split rule (capfit_rule or capfit_rule_path)")
+        capfit_rule = load_capfit_rule(Path(capfit_rule_path))
     table, columns, segments = atlas.table, list(atlas.columns), atlas.segments
     feats = map_points(pts, atlas)
     frame = anatomical_frame(table, columns, {str(k): v for k, v in atlas.semantic_of_segment.items()})
@@ -53,7 +60,8 @@ def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_na
     ftree = _Tree(table, columns, segments, atlas.frame_n, atlas.frame_b)
     radius_pt = np.clip(feats["radius_mm"].astype(np.float64), 1e-3, None)
     flow, extra = compute_point_features(ftree, cap_labels, cap_radius, atlas_row, feats["segment_id"], feats["semantic_id"],
-                                         feats["s_local_mm"], feats["s_from_root_mm"], feats["theta_rad"], radius_pt, feats["dist_to_junction_mm"])
+                                         feats["s_local_mm"], feats["s_from_root_mm"], feats["theta_rad"], radius_pt, feats["dist_to_junction_mm"],
+                                         capfit_rule=capfit_rule)
     s_max = float(np.max(feats["s_from_root_mm"])); n = len(pts)
     case = dict(
         cohort="deploy", case=case_name, unit_id=f"deploy/{case_name}",
@@ -93,5 +101,7 @@ def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_na
             "surface_variation_median": float(np.median(variation))}
     geom = {"segment_id": feats["segment_id"].astype(np.int16), "s_from_root_mm": feats["s_from_root_mm"].astype(np.float32), "s_local_mm": feats["s_local_mm"].astype(np.float32),
             "theta_rad": feats["theta_rad"].astype(np.float32), "radius_mm": feats["radius_mm"].astype(np.float32), "dist_to_junction_mm": feats["dist_to_junction_mm"].astype(np.float32),
-            "normals": normals.astype(np.float32), "frame_rotation": frame["rotation"], "frame_origin_mm": frame["origin_mm"]}
+            "normals": normals.astype(np.float32), "frame_rotation": frame["rotation"], "frame_origin_mm": frame["origin_mm"],
+            # Per-point PCA surface variation (smallest eigenvalue share); the report's "rough surface" trust bit uses it.
+            "surface_variation": np.asarray(variation, dtype=np.float32)}
     return case, {"diag": diag, "geom": geom}

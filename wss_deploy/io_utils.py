@@ -16,6 +16,25 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def resolve_job_path(job_dir: Path, value) -> Path:
+    """Resolve a path recorded in a job record: relative paths live inside ``job_dir``.
+
+    Records written before 2026-09-20 stored absolute paths; those are returned unchanged so
+    historical jobs remain readable.
+    """
+    path = Path(str(value))
+    return path if path.is_absolute() else Path(job_dir) / path
+
+
+def portable_job_path(job_dir: Path, path) -> str:
+    """Store a file inside ``job_dir`` by its relative name so the directory can be moved or copied."""
+    path = Path(str(path))
+    try:
+        return path.resolve().relative_to(Path(job_dir).resolve()).as_posix()
+    except (OSError, ValueError):
+        return str(path)
+
+
 def atomic_json(path: Path, value: dict) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)

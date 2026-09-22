@@ -6,12 +6,12 @@ Naming rules (validated on the 170 corrected training atlases, 2026-09-17):
     slightly smaller, and its endpoint sits higher); 325/340 correct.  |score| < 0.3 is flagged for the human check.
 """
 from __future__ import annotations
-import json, subprocess, time
+import json, os, signal, subprocess, time
 from dataclasses import replace
 from pathlib import Path
 import numpy as np
-from wss_v5.centerline_features import Atlas, load_atlas, _semantics
-from wss_v5.views.wss_min_view import anatomical_frame
+from wss_features.atlas import Atlas, load_atlas, semantics as _semantics
+from wss_features.frame import anatomical_frame
 from .paths import VESSEL_GEOM_DIR, VMTK_PYTHON, OUTLET_NAMES, OUTLET_CN
 
 IE_SCALE = np.array([16.2, 12.5, 0.77, 10.56])   # median |Δ| of (y, lateral, radius, z) on the training atlases
@@ -148,17 +148,83 @@ def _confidence_from_x_gap(gap_mm: float) -> float:
     return float(1.0 / (1.0 + np.exp(-0.8 * (value - 10.0))))
 
 
-def run_vessel_geom(stl_path: Path, out_dir: Path, *, inlet: int | None = None, smooth_iterations: int = 0, timeout: int = 900) -> dict:
-    stl_path = Path(stl_path).resolve(); out_dir = Path(out_dir).resolve(); out_dir.mkdir(parents=True, exist_ok=True)
+def _read_text(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+
+
+def _write_atomic(path: Path, text: str) -> None:
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
+
+
+POLL_SECONDS = 0.5          # how often a running vessel_geom is checked for cancellation
+TERMINATE_GRACE_SECONDS = 2.0   # SIGTERM -> SIGKILL grace for the whole process group
+
+
+def vessel_geom_command(stl_path: Path, out_dir: Path, *, inlet: int | None = None, smooth_iterations: int = 0) -> list[str]:
+    """The vessel_geom CLI invocation.  Factored out so tests can substitute a harmless child."""
     cmd = [str(VMTK_PYTHON), "-m", "vessel_geom.cli", "--surface", str(stl_path), "--out", str(out_dir), "--preset", "frozen-aortoiliac",
            "--no-surface-features", "--smooth-iterations", str(smooth_iterations)]
     if inlet is not None:
         cmd += ["--inlet", str(inlet)]
+    return cmd
+
+
+def _terminate_group(proc: "subprocess.Popen") -> None:
+    """Stop the child *and everything it spawned*: vmtk shells out, so a bare terminate() leaks workers."""
+    for signal_number, grace in ((signal.SIGTERM, TERMINATE_GRACE_SECONDS), (signal.SIGKILL, TERMINATE_GRACE_SECONDS)):
+        if proc.poll() is not None:
+            break
+        try:
+            os.killpg(os.getpgid(proc.pid), signal_number)
+        except (ProcessLookupError, PermissionError, OSError):
+            try:
+                proc.kill()
+            except OSError:
+                pass
+        try:
+            proc.wait(timeout=grace)
+        except subprocess.TimeoutExpired:
+            continue
+
+
+def run_vessel_geom(stl_path: Path, out_dir: Path, *, inlet: int | None = None, smooth_iterations: int = 0, timeout: int = 900,
+                    cancelled=None) -> dict:
+    """Run vessel_geom in its own session so a cancelled job kills the whole process group at once.
+
+    ``cancelled`` is polled every :data:`POLL_SECONDS`; output goes to files (no pipes), so a chatty
+    child can never deadlock the poll loop.
+    """
+    stl_path = Path(stl_path).resolve(); out_dir = Path(out_dir).resolve(); out_dir.mkdir(parents=True, exist_ok=True)
+    cmd = vessel_geom_command(stl_path, out_dir, inlet=inlet, smooth_iterations=smooth_iterations)
+    out_file, err_file = out_dir / ".vessel_geom.stdout.part", out_dir / ".vessel_geom.stderr.part"
     t = time.perf_counter()
-    proc = subprocess.run(cmd, cwd=str(VESSEL_GEOM_DIR), capture_output=True, text=True, timeout=timeout)
-    (out_dir / "vessel_geom.stdout.txt").write_text(proc.stdout + "\n--- stderr ---\n" + proc.stderr, encoding="utf-8")
+    with open(out_file, "w", encoding="utf-8") as out_stream, open(err_file, "w", encoding="utf-8") as err_stream:
+        proc = subprocess.Popen(cmd, cwd=str(VESSEL_GEOM_DIR), stdout=out_stream, stderr=err_stream,
+                                text=True, start_new_session=True)
+        stopped = None
+        while proc.poll() is None:
+            if cancelled is not None and cancelled():
+                stopped = InterruptedError("任务已取消")
+                break
+            if time.perf_counter() - t > timeout:
+                stopped = subprocess.TimeoutExpired(cmd, timeout)
+                break
+            time.sleep(POLL_SECONDS)
+        if stopped is not None:
+            _terminate_group(proc)
+    stdout = _read_text(out_file); stderr = _read_text(err_file)
+    _write_atomic(out_dir / "vessel_geom.stdout.txt", stdout + "\n--- stderr ---\n" + stderr)
+    for part in (out_file, err_file):
+        part.unlink(missing_ok=True)
+    if stopped is not None:
+        raise stopped
     if proc.returncode != 0:
-        raise RuntimeError(f"vessel_geom failed (rc={proc.returncode}): {proc.stderr[-2000:]}")
+        raise RuntimeError(f"vessel_geom failed (rc={proc.returncode}): {stderr[-2000:]}")
     run = json.loads((out_dir / "run.json").read_text(encoding="utf-8"))
     result = json.loads((out_dir / "centerline" / "result.json").read_text(encoding="utf-8"))
     return {"seconds": time.perf_counter() - t, "hard_pass": bool(run["extraction"]["hard_pass"]), "attempt": run["extraction"].get("selected_attempt"),

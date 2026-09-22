@@ -1,13 +1,14 @@
 """Explicit units and conservative geometry checks before centreline extraction."""
 from __future__ import annotations
 
-import struct
 from pathlib import Path
 
 import numpy as np
 from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
-from training_wss_min.surface import load_stl
+from wss_features.stl import load_stl, write_binary_stl
+
+from .io_utils import portable_job_path
 
 MAX_BYTES = 128 * 1024 * 1024
 MAX_FACES = 2_000_000
@@ -43,18 +44,6 @@ def _unit_confidence(raw_diag: float, selected: str, suggested: str) -> tuple[fl
     if confidence < 0.95:
         return float(confidence), ["自动单位接近尺寸判定边界，请确认 STL 原始单位。"]
     return float(confidence), []
-
-
-def write_binary_stl(path: Path, vertices: np.ndarray, faces: np.ndarray, header: str = "wss_deploy") -> None:
-    tri = vertices[faces].astype(np.float32)
-    normal = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
-    normal /= np.maximum(np.linalg.norm(normal, axis=1, keepdims=True), 1e-12)
-    rec = np.zeros(len(faces), dtype=[("n", "<f4", 3), ("v", "<f4", (3, 3)), ("attr", "<u2")])
-    rec["n"], rec["v"] = normal, tri
-    with Path(path).open("wb") as stream:
-        stream.write(header.encode("ascii")[:80].ljust(80, b"\0"))
-        stream.write(struct.pack("<I", len(faces)))
-        stream.write(rec.tobytes())
 
 
 def _read_checked(path: Path):
@@ -265,7 +254,10 @@ def ingest(stl_path: Path, out_dir: Path, *, units: str = "mm", remove_fragments
                             nonmanifold=nonmanifold, irregular=irregular, degenerate=degenerate,
                             duplicate=duplicate, inconsistent=inconsistent, slivers=slivers,
                             opening_geometry=opening_geometry)
-    return {"source_stl": str(stl_path), "clean_stl": str(clean) if status == "pass" else None,
+    # Paths inside the job directory are stored relative to it so a job can be moved, copied or
+    # re-run from another root; readers resolve them with ``io_utils.resolve_job_path``.
+    return {"source_stl": portable_job_path(out_dir, stl_path),
+            "clean_stl": portable_job_path(out_dir, clean) if status == "pass" else None,
             "unit": unit_note, "selected_units": units,
             "resolved_units": suggested if units == "auto" else units,
             "suggested_units": suggested,

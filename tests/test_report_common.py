@@ -1,0 +1,209 @@
+"""Node tests for the shared report library ``static/report_common.js`` (contract §12)."""
+import json
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+
+COMMON = Path(__file__).resolve().parents[1] / "wss_deploy" / "static" / "report_common.js"
+
+# Straight aorta along +x (11 samples, r = 3 mm) with two children leaving (20, 0, 0) at ±y (r = 2 mm).
+BIFURCATION = """
+const xyz=[],rad=[],seg=[],edges=[];let idx=0;
+function add(sid,pts,r){const start=idx;for(const p of pts){xyz.push(...p);rad.push(r);seg.push(sid);idx++;}for(let i=start;i<idx-1;i++)edges.push(i,i+1);}
+add(1,Array.from({length:11},(_,i)=>[2*i,0,0]),3);
+add(2,Array.from({length:6},(_,i)=>[20+i,2*i,0]),2);
+add(3,Array.from({length:6},(_,i)=>[20+i,-2*i,0]),2);
+const G=C.buildCenterlineGroups({xyz:new Float32Array(xyz),radius:new Float32Array(rad),edges:new Uint32Array(edges),segment:new Int32Array(seg)},{1:'主动脉',2:'左髂总',3:'右髂总'});
+"""
+
+
+def _node(script: str) -> dict:
+    if not shutil.which("node"):
+        pytest.skip("Node is required for the shared report library tests")
+    program = "const C=require(" + json.dumps(str(COMMON)) + ");\n" + script
+    result = subprocess.run(["node", "-e", program], check=True, text=True, capture_output=True)
+    return json.loads(result.stdout)
+
+
+def test_common_library_parses_and_exports_contract_api():
+    if not shutil.which("node"):
+        pytest.skip("Node is required")
+    subprocess.run(["node", "--check", str(COMMON)], check=True, capture_output=True)
+    out = _node("console.log(JSON.stringify(Object.keys(C).sort()))")
+    for name in ("buildCenterlineGroups", "projectToCenterline", "arcDistance", "localDiameter", "straightDistance", "newId",
+                 "measurementLabel", "probeToTSV", "probeToCSV", "colorbarSVG", "englishLabel", "exportFilename", "builtinPresets",
+                 "renderOffscreen", "glossaryPopover", "viewMessaging"):
+        assert name in out
+
+
+def test_centerline_groups_tree_and_arc_distances():
+    out = _node(BIFURCATION + """
+      const same=C.arcDistance(G,[2,.5,0],[12,.2,0]),cross=C.arcDistance(G,[10,0,0],[25,10,0]),sib=C.arcDistance(G,[22,4,0],[22,-4,0]);
+      const viaJunction=C.arcDistance(G,[10,0,0],[20,0,0]).value_mm+C.arcDistance(G,[20,0,0],[25,10,0]).value_mm;
+      console.log(JSON.stringify({tree:G.map(g=>[g.segment_id,g.name,g.parent_id,+g.parent_s.toFixed(3),+g.length_mm.toFixed(3),g.children]),
+        same:same.value_mm,sameBranch:same.same_branch,cross:+cross.value_mm.toFixed(3),crossPath:cross.path,viaJunction:+viaJunction.toFixed(3),
+        sib:+sib.value_mm.toFixed(3),sibPath:sib.path,straight:C.straightDistance([0,0,0],[3,4,0])}));
+    """)
+    assert out["tree"] == [[1, "主动脉", None, 0, 20, [2, 3]], [2, "左髂总", 1, 20, pytest.approx(11.18, abs=.01), []], [3, "右髂总", 1, 20, pytest.approx(11.18, abs=.01), []]]
+    assert out["same"] == 10 and out["sameBranch"] is True
+    # Across the bifurcation the arc equals the sum of the two legs through the junction.
+    assert out["cross"] == pytest.approx(21.18, abs=.01) and out["cross"] == pytest.approx(out["viaJunction"], abs=1e-6) and out["crossPath"] == [1, 2]
+    assert out["sib"] == pytest.approx(8.944, abs=.01) and out["sibPath"] == [2, 1, 3]
+    assert out["straight"] == 5
+
+
+def test_projection_diameter_and_junction_distance():
+    out = _node(BIFURCATION + """
+      console.log(JSON.stringify({d:C.localDiameter(G,[10,2.9,0]),p:C.projectToCenterline(G,[5,1,0]),child:C.localDiameter(G,[22,4,0]),none:C.projectToCenterline([],[0,0,0])}));
+    """)
+    d = out["d"]
+    assert d["diameter_mm"] == 6 and d["radius_mm"] == 3 and d["segment_id"] == 1 and d["s"] == 10 and d["dist_to_junction_mm"] == 10
+    assert out["p"]["s"] == 5 and out["p"]["dist_mm"] == 1 and out["p"]["xyz"] == [5, 0, 0] and out["p"]["row"] == 3
+    assert out["child"]["diameter_mm"] == 4 and out["child"]["dist_to_junction_mm"] == pytest.approx(4.472, abs=.01)
+    assert out["none"] is None
+
+
+def test_labels_ids_filenames_and_english_dictionary():
+    out = _node("""
+      console.log(JSON.stringify({arcEn:C.measurementLabel({kind:'arc',value_mm:12.34,branch:'左髂外'},'en'),diamZh:C.measurementLabel({kind:'diameter',value_mm:8},'zh'),
+        en:[C.englishLabel('右髂内高 WSS 区','en'),C.englishLabel('wss','en'),C.englishLabel('主动脉','zh'),C.englishLabel('主动脉','en'),C.englishLabel('左髂外','en'),C.englishLabel('view_top','en'),C.englishLabel(null,'en')],
+        file:[C.exportFilename({case_id:'LIU YU/MING',view:'front',field:'wss',scale:2}),C.exportFilename({case_id:'病例-1',scale:4,ext:'svg'}),C.exportFilename({})],
+        ids:[C.newId('D',[{id:'D1'},{id:'D3'}]),C.newId('A',['A1']),C.newId('M',[])]}));
+    """)
+    assert out["arcEn"] == "Arc distance 12.3 mm (Left EIA)" and out["diamZh"] == "管径 8.0 mm · 内切半径 × 2"
+    assert out["en"] == ["Right IIA high-WSS region", "WSS · wall shear stress", "主动脉", "Aorta", "Left EIA", "Top", ""]
+    assert out["file"] == ["LIU_YU_MING_front_wss_2x.png", "病例-1_custom_wss_4x.svg", "case_custom_wss_1x.png"]
+    assert out["ids"] == ["D2", "A2", "M1"]
+
+
+def test_colorbar_svg_bands_log_and_orientation():
+    out = _node("""
+      const banded=C.colorbarSVG({colormap:'turbo',min:0,max:10,bands:4,units:'Pa',title:'WSS',lang:'en'});
+      const cont=C.colorbarSVG({colormap:'rainbow',min:0,max:10,log:true,units:'Pa',lang:'zh'});
+      const horiz=C.colorbarSVG({stops:[[0,'#000000'],[1,'#ffffff']],min:0,max:1,orientation:'horizontal',title:'x<y'});
+      console.log(JSON.stringify({banded:{rects:(banded.match(/<rect/g)||[]).length,ticks:(banded.match(/class="tick"/g)||[]).length,title:/>WSS </.test(banded)&&/\\(Pa\\)/.test(banded),svg:/^<svg xmlns="http:\\/\\/www.w3.org\\/2000\\/svg"/.test(banded)},
+        cont:{grad:/linearGradient/.test(cont),ticks:(cont.match(/class="tick"/g)||[]).length,log:/对数色标/.test(cont),lowTick:/>0.050</.test(cont)||/>0.05</.test(cont)},
+        horiz:{anchor:/text-anchor="middle"/.test(horiz),escaped:/x&lt;y/.test(horiz),mid:C.colorAt([[0,'#000000'],[1,'#ffffff']],.5)}}));
+    """)
+    assert out["banded"] == {"rects": 5, "ticks": 5, "title": True, "svg": True}
+    assert out["cont"]["grad"] is True and out["cont"]["ticks"] == 5 and out["cont"]["log"] is True and out["cont"]["lowTick"] is True
+    assert out["horiz"] == {"anchor": True, "escaped": True, "mid": "#808080"}
+
+
+def test_probe_export_tsv_and_csv():
+    out = _node("""
+      const rows=[{id:'P1',xyz_mm:[1,2,3],branch:'主动脉, x',segment_id:1,s_from_root_mm:5,radius_mm:2,values:{wss_pa:1.5}},{id:'P2',xyz_mm:[4,5,6],branch:'左髂外',values:{wss_pa:2.25,extra:'a\\tb'}}];
+      console.log(JSON.stringify({csv:C.probeToCSV(rows,'zh'),tsv:C.probeToTSV(rows,'en')}));
+    """)
+    csv = out["csv"]
+    assert csv.startswith("﻿编号,x_mm,y_mm,z_mm,分支,分支编号,距入口弧长_mm,半径_mm,wss_pa,extra\r\n")
+    assert 'P1,1,2,3,"主动脉, x",1,5,2,1.5,\r\n' in csv and csv.endswith("\r\n")
+    lines = out["tsv"].split("\n")
+    assert lines[0] == "ID\tx_mm\ty_mm\tz_mm\tbranch\tsegment_id\ts_from_root_mm\tradius_mm\twss_pa\textra"
+    assert lines[2].split("\t")[-1] == "a b"  # tabs inside a cell never break the table
+
+
+def test_builtin_presets_return_partial_states_from_case_context():
+    out = _node("""
+      const meta={branch_names:{4:'左髂外',1:'主动脉'},findings:{items:[{id:'F3',kind:'low_wss_cluster'},{id:'F7',kind:'high_wss_cluster'}]},
+        profiles:{branches:[{segment_id:1,s_from_root_mm:[1,3,5],wss:{p99_pa:[2,9,5]}}]}};
+      const sv={front:{position:[0,-1,0],target:[0,0,0],up:[0,0,1]}};
+      const wall=C.builtinPresets('wall',meta),vol=C.builtinPresets('volume',meta);
+      console.log(JSON.stringify({names:wall.map(p=>p.name),vnames:vol.map(p=>p.name),
+        low:wall[0].build({branchNames:meta.branch_names,standardViews:sv}),hot:wall[1].build({findings:meta.findings.items}),along:wall[2].build({branchNames:meta.branch_names,profiles:meta.profiles}),
+        pd:vol[0].build({branchNames:meta.branch_names}),sl:vol[1].build({}),cut:vol[2].build({branchNames:meta.branch_names}),
+        noSv:'camera' in wall[0].build({branchNames:meta.branch_names}),empty:C.builtinPresets('other',meta).length}));
+    """)
+    assert out["names"] == ["瘤囊低 WSS 区", "髂分叉热点", "主动脉沿程", "临床视图"]
+    assert out["vnames"] == ["沿程压降", "流线全貌", "瘤囊截面系列", "临床视图"]
+    assert out["low"]["highlight"]["branch"] == 1 and out["low"]["range"] == {"mode": "fixed", "min": 0, "max": 2} and out["low"]["camera"]["position"] == [0, -1, 0]
+    assert out["hot"]["highlight"]["finding"] == "F7" and out["hot"]["highlight"]["top"] is True
+    assert out["along"]["ui"] == {"menu": "profiles", "profile": {"branch": 1, "x": "s_from_root_mm", "s": 3}}
+    assert out["pd"]["ui"]["profile"]["branch"] == 1 and out["sl"]["opacity"] == .08 and out["cut"]["slice"]["fractions"] == [.4, .6, .8]
+    assert out["noSv"] is False and out["empty"] == 0
+
+
+def test_view_messaging_and_offscreen_helpers_fail_soft_outside_a_browser():
+    out = _node("""
+      const m=C.viewMessaging({family:'wall'});
+      let err=null;try{C.renderOffscreen({});}catch(e){err=e.message;}
+      const pop=C.glossaryPopover({glossary:{terms:{p99:{zh:'p99',zh_desc:'x'}}}});
+      console.log(JSON.stringify({enabled:m.enabled,ready:m.ready(),err,popShow:pop.show('p99',null)}));
+    """)
+    assert out["enabled"] is False and out["ready"] is False and "renderer" in out["err"] and out["popShow"] is False
+
+
+def test_view_messaging_protocol_roundtrip_in_fake_window():
+    out = _node("""
+      const posted=[];const listeners=[];
+      global.window=global;global.location={protocol:'http:',origin:'http://x'};global.parent={postMessage:(m,o)=>posted.push([m,o])};
+      global.addEventListener=(n,f)=>listeners.push([n,f]);
+      const m=C.viewMessaging({family:'wall',runIdentity:'r1',caseId:'c1',onApplyState:s=>{if(s.bad)throw new Error('nope');},onExport:o=>({png_base64:'AAAA',filename:'f.png',width:o.scale*10,height:10})});
+      m.ready({webgl:true});
+      const fire=(origin,data)=>listeners.filter(l=>l[0]==='message').forEach(l=>l[1]({origin,data}));
+      fire('http://evil',{type:'wss-view:apply-state',state:{},request_id:'x'});
+      fire('http://x',{type:'wss-view:apply-state',state:{mode:'wss'},request_id:'a1'});
+      fire('http://x',{type:'wss-view:apply-state',state:{bad:true},request_id:'a2'});
+      fire('http://x',{type:'wss-view:export',options:{scale:2},request_id:'e1'});
+      setTimeout(()=>console.log(JSON.stringify({enabled:m.enabled,posted})),20);
+    """)
+    assert out["enabled"] is True
+    types = [(p[0]["type"], p[0].get("request_id"), p[1]) for p in out["posted"]]
+    assert types[0] == ("wss-view:ready", None, "http://x") and out["posted"][0][0]["run_identity"] == "r1"
+    assert ("wss-view:applied", "a1", "http://x") in types and ("wss-view:error", "a2", "http://x") in types
+    exported = next(p[0] for p in out["posted"] if p[0]["type"] == "wss-view:exported")
+    assert exported["request_id"] == "e1" and exported["png_base64"] == "AAAA" and exported["width"] == 20
+    assert not any(p[0].get("request_id") == "x" for p in out["posted"])  # foreign origin ignored
+
+
+def test_cross_section_and_montage_guard_degenerate_input():
+    """§15 shape guards: a miss returns the same keys as a hit, and an empty montage is None, not a NaN canvas."""
+    out = _node("""
+      const cs=C.crossSection({vertices:new Float32Array([0,0,0, 1,0,0, 0,1,0]),faces:new Uint32Array([0,1,2]),origin:[0,0,50],normal:[0,0,1]});
+      const doc={createElement:()=>({getContext:()=>({})})};
+      console.log(JSON.stringify({keys:Object.keys(cs).sort(),found:cs.found,poly:cs.polygon_world,open:cs.open,
+        empty:C.composeMontage({panels:[],columns:2,document:doc})}));
+    """)
+    assert out["found"] is False and out["poly"] == [] and out["open"] is False
+    assert {"plane", "segs", "polygon", "polygon_world", "metrics", "closed", "synthetic", "open", "found"} <= set(out["keys"])
+    assert out["empty"] is None
+
+
+def test_cross_section_metrics_on_tube_and_open_chain():
+    """§15: plane ∩ mesh → local loop → polygon metrics; an open chain through an opening is closed synthetically."""
+    out = _node("""
+      const verts=[],faces=[];const NA=36,NZ=6;
+      function tube(cx,cy,R,rx){const base=verts.length/3;for(let iz=0;iz<NZ;iz++)for(let ia=0;ia<NA;ia++){const a=ia/NA*2*Math.PI;verts.push(cx+R*rx*Math.cos(a),cy+R*Math.sin(a),-5+10*iz/(NZ-1));}
+        for(let iz=0;iz<NZ-1;iz++)for(let ia=0;ia<NA;ia++){const a0=base+iz*NA+ia,a1=base+iz*NA+(ia+1)%NA,b0=a0+NA,b1=a1+NA;faces.push(a0,a1,b0,a1,b1,b0);}}
+      tube(0,0,10,1.5);tube(60,0,4,1);
+      const V=new Float32Array(verts),F=new Uint32Array(faces);
+      const cs=C.crossSection({vertices:V,faces:F,origin:[0,0,0.3],normal:[0,0,1]});
+      const m=cs.metrics;
+      // open chain: cut the near tube on one side (drop 6 columns of quads) → a chain that closeChain seals
+      const faces2=[];for(let iz=0;iz<NZ-1;iz++)for(let ia=0;ia<NA;ia++){if(ia<6)continue;const a0=iz*NA+ia,a1=iz*NA+(ia+1)%NA,b0=a0+NA,b1=a1+NA;faces2.push(a0,a1,b0,a1,b1,b0);}
+      const cs2=C.crossSection({vertices:new Float32Array(verts.slice(0,NA*NZ*3)),faces:new Uint32Array(faces2),origin:[0,0,0.3],normal:[0,0,1]});
+      const svg=C.profileSVG({series:[{name:'r',x:[0,1,2],y:[1,2,1.5]}],xLabel:'s (mm)',yLabel:'r (mm)',title:'t'});
+      const csv=C.tableToCSV(['a','b'],[[1,'x,y'],[2.5,'q"z']],['origin 1 2 3']);
+      console.log(JSON.stringify({found:cs.found,closed:cs.closed,synthetic:cs.synthetic,n:cs.polygon.length,area:m.area_mm2,dmax:m.max_diameter_mm,dmin:m.min_diameter_mm,deq:m.equivalent_diameter_mm,circ:m.circularity,
+        cs2:{found:cs2.found,closed:cs2.closed,synthetic:cs2.synthetic,area:cs2.metrics&&cs2.metrics.area_mm2},svgOk:svg.startsWith('<svg')&&svg.includes('s (mm)')&&svg.includes('<path'),csv}));
+    """)
+    import math
+    assert out["found"] and out["closed"] and not out["synthetic"] and out["n"] >= 36
+    assert abs(out["area"] - math.pi * 15 * 10) < math.pi * 150 * 0.02          # ellipse 15 × 10 (polygon underestimates slightly)
+    assert abs(out["dmax"] - 30) < 0.3 and abs(out["dmin"] - 20) < 0.3
+    assert abs(out["deq"] - 2 * math.sqrt(out["area"] / math.pi)) < 1e-6 and 0.85 < out["circ"] < 1.0
+    assert out["cs2"]["found"] and out["cs2"]["closed"] and out["cs2"]["synthetic"] and out["cs2"]["area"] > 0.8 * out["area"]
+    assert out["svgOk"]
+    assert out["csv"].startswith("﻿# origin 1 2 3\r\na,b\r\n1,\"x,y\"\r\n2.5,\"q\"\"z\"\r\n")
+
+
+def test_clinical_view_preset_exists_for_both_families():
+    out = _node("""
+      const meta={branch_names:{'0':'主动脉'},findings:{items:[]},profiles:{branches:[]}};
+      const w=C.builtinPresets('wall',meta).find(p=>p.name==='临床视图'),v=C.builtinPresets('volume',meta).find(p=>p.name==='临床视图');
+      console.log(JSON.stringify({w:w&&w.build({standardViews:{front:{position:[0,0,1],target:[0,0,0],up:[0,1,0]}}}),v:v&&v.build({})}));
+    """)
+    assert out["w"]["labels"] == {"findings": 5, "branches": True} and out["w"]["mode"] == "wss" and out["w"]["camera"]["position"] == [0, 0, 1]
+    assert out["v"]["labels"] == {"findings": 5, "branches": True} and out["v"]["mode"] == "cloud" and out["v"]["field"] == "velocity"

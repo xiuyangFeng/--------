@@ -125,6 +125,34 @@ def _stats(v):
     return {"n": int(v.size), "mean": float(v.mean()), "median": float(np.median(v)), "p95": float(np.quantile(v, .95)), "p99": float(np.quantile(v, .99)), "max": float(v.max()), "min": float(v.min())}
 
 
+def geometry_table(atlas, names: dict | None = None) -> dict:
+    """Per-branch centreline geometry (length, radii, stenosis index, tortuosity, max curvature).
+
+    Uses only the atlas; shared by the wall and volume families and by the findings list.
+    """
+    names = names or branch_names(atlas.segments)
+    if hasattr(atlas, "table") and hasattr(atlas, "columns"):
+        # Same access path as the original inline code (and as the minimal test stubs).
+        tab, cols = atlas.table, list(atlas.columns)
+        col = lambda c: tab[:, cols.index(c)]
+        xyz_all = np.stack([col("x_mm"), col("y_mm"), col("z_mm")], 1)
+    else:
+        col = lambda c: np.asarray(atlas.col(c))
+        xyz_all = np.asarray(atlas.xyz)
+    seg_col = col("segment_id").astype(int)
+    radius_col = col("radius_mm")
+    curvature_col = col("curvature_per_mm")
+    geo = {}
+    for s in atlas.segments:
+        sid = int(s["segment_id"]); mk = seg_col == sid
+        if mk.sum() < 3: continue
+        r = radius_col[mk]; xyz = xyz_all[mk]
+        chord = float(np.linalg.norm(xyz[-1] - xyz[0])); L = float(s.get("length_mm", 0.0))
+        geo[names.get(sid, str(sid))] = {"length_mm": L, "radius_min_mm": float(r.min()), "radius_median_mm": float(np.median(r)), "radius_max_mm": float(r.max()),
+            "max_diameter_mm": float(2 * r.max()), "stenosis_index": float(1 - r.min() / np.median(r)), "tortuosity": float(L / chord) if chord > 0 else None, "curvature_max_per_mm": float(curvature_col[mk].max())}
+    return geo
+
+
 def compute(pts, wss, geom, atlas, diag, total_area_mm2: float, thresholds=(LOW_PA, HIGH_PA, VERY_HIGH_PA)) -> dict:
     pts = np.asarray(pts, dtype=np.float64)
     wss = np.asarray(wss, dtype=np.float64)
@@ -165,15 +193,7 @@ def compute(pts, wss, geom, atlas, diag, total_area_mm2: float, thresholds=(LOW_
         branch[names.get(sid, str(sid))] = {"segment_id": int(sid), "n_points": int(mk.sum()), "area_mm2": float(total_area_mm2 * mk.mean()),
             "wss_mean_pa": float(v.mean()), "wss_p99_pa": float(np.quantile(v, .99)), "wss_max_pa": float(v.max()),
             "frac_low": float(np.mean(v < low)), "frac_high": float(np.mean(v > high)), "share_of_top10": float(np.sum(mk & ens10) / max(1, np.sum(ens10))), "radius_mean_mm": float(rad[mk].mean())}
-    tab, cols = atlas.table, list(atlas.columns); col = lambda c: tab[:, cols.index(c)]
-    geo = {}
-    for s in atlas.segments:
-        sid = int(s["segment_id"]); mk = col("segment_id").astype(int) == sid
-        if mk.sum() < 3: continue
-        r = col("radius_mm")[mk]; xyz = np.stack([col("x_mm")[mk], col("y_mm")[mk], col("z_mm")[mk]], 1)
-        chord = float(np.linalg.norm(xyz[-1] - xyz[0])); L = float(s.get("length_mm", 0.0))
-        geo[names.get(sid, str(sid))] = {"length_mm": L, "radius_min_mm": float(r.min()), "radius_median_mm": float(np.median(r)), "radius_max_mm": float(r.max()),
-            "max_diameter_mm": float(2 * r.max()), "stenosis_index": float(1 - r.min() / np.median(r)), "tortuosity": float(L / chord) if chord > 0 else None, "curvature_max_per_mm": float(col("curvature_per_mm")[mk].max())}
+    geo = geometry_table(atlas, names)
     return {
         "statistics_protocol": {
             "field": "fixed_peak_systolic_frame", "support": "prediction_point_cloud", "quantile_method": "linear",
