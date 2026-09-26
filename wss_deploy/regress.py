@@ -2,7 +2,7 @@
 
 Usage:
     PYTHONPATH=. python -m wss_deploy.regress --jobs-root outputs/wss_deploy_jobs --out /tmp/regress \
-        [--job ID ...] [--device cuda|cpu] [--atol 1e-5] [--release-root DIR]
+        [--job ID ...] [--device cuda|cpu] [--atol 1e-5] [--release-root DIR] [--precompute]
 
 Every selected job is copied (input, clean STL, centreline, stage_a.json, job.json) to ``--out/<id>``,
 stage B is executed with the job's own release/mapping/compute settings, and the new ``summary.json`` and
@@ -22,8 +22,12 @@ import numpy as np
 
 COPY_FILES = ("input.stl", "input_clean_mm.stl", "stage_a.json", "job.json")
 SUMMARY_KEYS = ("peak", "wss_field_pa", "per_branch", "geometry", "surface_statistics", "quality",
-                "volume_statistics", "murray_shares", "caps", "cloud", "mapping", "branch_names")
-SKIP_NUMERIC = {"timing_s", "seconds_per_model", "created_at", "elapsed"}
+                "volume_statistics", "murray_shares", "caps", "cloud", "mapping", "branch_names",
+                "cycle")   # v0.14: three-head TAWSS / OSI block (absent for the other families → not compared)
+# Run-specific keys never compared.  v0.14 provenance keys (schema.summary_provenance) describe the code that ran,
+# not the result, and stored references written before v0.14 lack them.
+PROVENANCE_KEYS = {"analysis_version", "deploy_version", "git_describe", "git_dirty", "code_source_hash"}
+SKIP_NUMERIC = {"timing_s", "seconds_per_model", "created_at", "elapsed"} | PROVENANCE_KEYS
 
 
 def _walk(a, b, path, atol, diffs):
@@ -89,10 +93,14 @@ def compare_arrays(old: Path, new: Path, atol: float) -> tuple[dict, list]:
 
 
 def run_job(src: Path, dst: Path, *, device: str, atol: float, release_root: str | None,
-            reference: Path | None = None) -> dict:
-    """Re-run stage B from the inputs in ``src`` and compare with ``reference`` (default: ``src``)."""
+            reference: Path | None = None, precompute: bool = False) -> dict:
+    """Re-run stage B from the inputs in ``src`` and compare with ``reference`` (default: ``src``).
+
+    ``precompute`` (v0.14) first fills the job's geometry cache the way the service does while outlets are
+    being confirmed, so the comparison also covers the cache-hit path of stage B.
+    """
     from .registry import ReleaseRegistry
-    from .pipeline import stage_b
+    from .pipeline import precompute_geometry_cache, stage_b
     reference = Path(reference) if reference is not None else src
     if dst.exists():
         shutil.rmtree(dst)
@@ -112,6 +120,11 @@ def run_job(src: Path, dst: Path, *, device: str, atol: float, release_root: str
     release_id = (job.get("model_release") or {}).get("id")
     registry = ReleaseRegistry(release_root, device=device)
     release = registry.load(release_id, device=device, seed_count=compute.get("seed_count"))
+    precomputed = None
+    if precompute:
+        precomputed = precompute_geometry_cache(dst, job, release=release)
+        if not precomputed.get("ok"):
+            raise RuntimeError(f"geometry precompute failed: {precomputed}")
     started = time.perf_counter()
     meta = stage_b(dst, job["mapping"], release, confirmed=True, case_id=job.get("case_id"),
                    device=device, seed_count=compute.get("seed_count"), threads=compute.get("threads"))
@@ -124,7 +137,8 @@ def run_job(src: Path, dst: Path, *, device: str, atol: float, release_root: str
             _walk(old_summary.get(key), new_summary.get(key), key, atol, diffs)
     arrays, array_failures = compare_arrays(reference / "field.npz", dst / "field.npz", atol)
     return {"job": src.name, "release": release_id, "device": device, "seconds": round(elapsed, 2),
-            "reference": str(reference),
+            "reference": str(reference), "geometry_cache": meta.get("geometry_cache"),
+            **({"precompute_seconds": precomputed.get("seconds")} if precomputed else {}),
             "summary_diffs": [{"path": p, "kind": k, "values": v} for p, k, v in diffs[:50]],
             "summary_diff_count": len(diffs), "arrays": arrays,
             "array_failures": [{"key": k, "kind": kind, "value": v} for k, kind, v in array_failures],
@@ -143,6 +157,8 @@ def main(argv=None) -> int:
                         help="directory holding <id>/summary.json + field.npz to compare against "
                              "(default: the jobs root; use a previous --out to compare code versions)")
     parser.add_argument("--report", default=None, help="write JSON report here (default: <out>/regress_report.json)")
+    parser.add_argument("--precompute", action="store_true",
+                        help="fill the geometry cache first (service path), so stage B runs on cache hits")
     args = parser.parse_args(argv)
     root, out = Path(args.jobs_root), Path(args.out)
     reference_root = Path(args.reference_root) if args.reference_root else None
@@ -160,7 +176,8 @@ def main(argv=None) -> int:
         print(f"[regress] {job_id} ...", file=sys.stderr, flush=True)
         try:
             result = run_job(root / job_id, out / job_id, device=args.device, atol=args.atol, release_root=args.release_root,
-                             reference=(reference_root / job_id) if reference_root else None)
+                             reference=(reference_root / job_id) if reference_root else None,
+                             precompute=args.precompute)
         except Exception as exc:  # keep going; the report records the failure
             result = {"job": job_id, "passed": False, "error": f"{type(exc).__name__}: {exc}"}
         results.append(result)

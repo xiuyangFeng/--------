@@ -8,7 +8,13 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
 from wss_features.stl import load_stl, write_binary_stl
 
+from .errors import InputGeometryError
 from .io_utils import portable_job_path
+
+
+class STLInputError(InputGeometryError, ValueError):
+    """Unreadable or degenerate STL (v0.14): a typed, non-retryable input error for the job manager that is
+    still a ``ValueError`` for every caller written before the typed errors existed."""
 
 MAX_BYTES = 128 * 1024 * 1024
 MAX_FACES = 2_000_000
@@ -48,32 +54,33 @@ def _unit_confidence(raw_diag: float, selected: str, suggested: str) -> tuple[fl
 
 def _read_checked(path: Path):
     if not path.is_file() or not 84 <= path.stat().st_size <= MAX_BYTES:
-        raise ValueError("STL 文件为空、不可读或超过 128 MiB 上限。")
+        raise STLInputError("STL 文件为空、不可读或超过 128 MiB 上限。")
     with path.open("rb") as stream:
         header = stream.read(84)
         count = int.from_bytes(header[80:84], "little")
         if 84 + 50 * count == path.stat().st_size:
             if not 0 < count <= MAX_FACES:
-                raise ValueError("STL 面片数超过 2,000,000 上限或没有面片。")
+                raise STLInputError("STL 面片数超过 2,000,000 上限或没有面片。")
         else:
             stream.seek(0)
             count = 0
             for line in stream:
                 if len(line) > 16384 or b"\0" in line:
-                    raise ValueError("STL 二进制长度不匹配，或 ASCII 格式不正确。")
+                    raise STLInputError("STL 二进制长度不匹配，或 ASCII 格式不正确。")
                 if line.lstrip().startswith(b"vertex "):
                     count += 1
                     if count > MAX_FACES * 3:
-                        raise ValueError("STL 面片数超过 2,000,000 上限。")
+                        raise STLInputError("STL 面片数超过 2,000,000 上限。")
     try:
         vertices, faces = load_stl(path)
     except Exception as exc:
-        raise ValueError("无法读取 STL，请导出有效的 ASCII 或二进制 STL。") from exc
+        raise STLInputError("无法读取 STL，请导出有效的 ASCII 或二进制 STL。",
+                            admin_detail=f"{type(exc).__name__}: {exc}") from exc
     vertices, faces = np.asarray(vertices, np.float64), np.asarray(faces, np.int64)
     if vertices.ndim != 2 or vertices.shape[1] != 3 or not np.isfinite(vertices).all():
-        raise ValueError("STL 坐标含 NaN/Inf 或维数不正确。")
+        raise STLInputError("STL 坐标含 NaN/Inf 或维数不正确。")
     if len(faces) > MAX_FACES:
-        raise ValueError("STL 面片数超过 2,000,000 上限。")
+        raise STLInputError("STL 面片数超过 2,000,000 上限。")
     return vertices, faces
 
 

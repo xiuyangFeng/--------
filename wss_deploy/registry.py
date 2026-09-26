@@ -7,6 +7,7 @@ uploading a file therefore never allocates GPU memory or imports torch models.
 from __future__ import annotations
 
 from collections import OrderedDict
+import time
 from dataclasses import dataclass
 import hashlib
 import json
@@ -111,6 +112,75 @@ def _verify_package(record) -> None:
                 raise ReleaseError(f"推理目录存在未登记文件：{path.relative_to(root)}")
 
 
+# v0.14: a full package verification hashes every registered file.  It is repeated only when a file's
+# stat signature (size, mtime, ctime, inode) changes, a registered/unregistered file appears or
+# disappears, or the last full verification is older than WSS_DEPLOY_RELEASE_VERIFY_TTL seconds
+# (default 600).  Any failure is never cached, so a changed file still fails closed.
+_VERIFIED: dict[str, tuple[Any, float]] = {}
+_VERIFIED_LOCK = threading.Lock()
+
+
+def _verify_ttl_seconds() -> float:
+    try:
+        return max(0.0, float(os.environ.get("WSS_DEPLOY_RELEASE_VERIFY_TTL", "600")))
+    except ValueError:
+        return 600.0
+
+
+def _package_signature(record) -> tuple:
+    """Cheap identity of everything :func:`_verify_package` reads: stat of each file, plus the file listing."""
+    root = Path(record.path)
+
+    def stat(path: Path) -> tuple:
+        info = path.stat()
+        return (info.st_size, info.st_mtime_ns, info.st_ctime_ns, info.st_ino)
+
+    entries = [("release.json", stat(root / "release.json"))]
+    manifest = root / "MANIFEST.sha256"
+    if manifest.is_file():
+        entries.append(("MANIFEST.sha256", stat(manifest)))
+        for line in manifest.read_text(encoding="utf-8").splitlines():
+            parts = line.split()
+            if len(parts) >= 2:
+                target = root / parts[1].lstrip("*")
+                entries.append((parts[1], stat(target) if target.is_file() else None))
+    for directory in (root / "models", root / "rules"):
+        if directory.is_dir():
+            entries.extend((p.relative_to(root).as_posix(), stat(p)) for p in sorted(directory.rglob("*"))
+                           if p.is_file() and p.suffix in {".json", ".pt"})
+    return (record.fingerprint, tuple(entries))
+
+
+def _verify_package_cached(record) -> None:
+    """:func:`_verify_package` unless the same package state was fully verified within the TTL."""
+    key = str(Path(record.path).resolve())
+    try:
+        signature = _package_signature(record)
+    except OSError:
+        signature = None
+    now = time.monotonic()
+    with _VERIFIED_LOCK:
+        previous = _VERIFIED.get(key)
+    if signature is not None and previous is not None and previous[0] == signature \
+            and now - previous[1] < _verify_ttl_seconds():
+        return
+    try:
+        _verify_package(record)
+    except Exception:
+        with _VERIFIED_LOCK:
+            _VERIFIED.pop(key, None)
+        raise
+    try:
+        after = _package_signature(record)
+    except OSError:
+        after = None
+    with _VERIFIED_LOCK:
+        if signature is not None and after == signature:
+            _VERIFIED[key] = (signature, now)
+        else:
+            _VERIFIED.pop(key, None)
+
+
 def _contract(info: dict[str, Any]) -> dict[str, Any]:
     """Return and validate the intentionally narrow deployment contract of the release's model family."""
     return family_for_info(info).contract(info)
@@ -169,9 +239,12 @@ class ReleaseRegistry:
         # The cache is a small LRU: every entry is a resident ensemble
         # (GPU memory), so it must not grow with every device/seed variant.
         self._cache: OrderedDict[tuple[str, str, int | None], Any] = OrderedDict()
-        self.cache_size = max(1, int(os.environ.get("WSS_DEPLOY_MODEL_CACHE", "2")))
         self._lock = threading.RLock()
         self._records = self._discover()
+        # v0.12.2: room for every discovered release (an ensemble is a few MB of weights), so switching
+        # between releases never reloads; WSS_DEPLOY_MODEL_CACHE still overrides.
+        default_size = min(6, max(2, len(self._records)))
+        self.cache_size = max(1, int(os.environ.get("WSS_DEPLOY_MODEL_CACHE", str(default_size))))
 
     def _discover(self) -> dict[str, ReleaseDescriptor]:
         root = self.root
@@ -280,7 +353,7 @@ class ReleaseRegistry:
             raise ReleaseError("集成模型数必须是正整数。")
         key = (record.id, actual_device, seed_count)
         with self._lock:
-            _verify_package(record)
+            _verify_package_cached(record)
             if key in self._cache:
                 self._cache.move_to_end(key)
                 return self._cache[key]
@@ -297,7 +370,7 @@ class ReleaseRegistry:
                 if "seed_count" not in str(exc):
                     raise
                 obj = loader(record.path, device=actual_device)
-            _verify_package(record)
+            _verify_package_cached(record)
             # Bind identity to the loaded object so summaries and manifests
             # cannot accidentally report another release.
             if not getattr(obj, "name", None):
@@ -314,6 +387,71 @@ class ReleaseRegistry:
                          *evicted_key)
                 _release_resident_models(evicted)
             return obj
+
+
+def preload_all(registry: "ReleaseRegistry", *, log=None) -> dict:
+    """Load every release into the cache (service start, background thread); returns seconds per release.
+
+    ``WSS_DEPLOY_PRELOAD=0`` disables it.  Failures are logged and skipped: a release that cannot load
+    fails again, with its message, when a job asks for it.
+
+    v0.14: each loaded ensemble then runs one throw-away prediction on a small synthetic case
+    (``Release.warm_up``) so the first real job does not pay the CUDA / kernel start-up (1.2-2 s).
+    ``WSS_DEPLOY_WARMUP=0`` skips it; a failing warm-up is logged and never blocks the service.
+
+    Progress is published as ``registry.preload_state`` (read by ``JobManager.health()``):
+    ``{"status": "running" | "done" | "failed" | "disabled", "running": bool, "loaded": [ids],
+    "failed": {release_id: message}}``.  A failed load or warm-up is listed in ``failed``; the preload as
+    a whole is ``failed`` only when releases were requested and none loaded.
+    """
+    log = log or LOG
+
+    def publish(status: str, loaded, failed) -> None:
+        try:
+            registry.preload_state = {"status": status, "running": status == "running",
+                                      "loaded": list(loaded), "failed": dict(failed)}
+        except Exception:  # noqa: BLE001 — a registry stand-in without attribute support
+            pass
+
+    if os.environ.get("WSS_DEPLOY_PRELOAD", "1").strip().lower() in {"0", "false", "off", "no"}:
+        publish("disabled", [], {})
+        return {}
+    warm = os.environ.get("WSS_DEPLOY_WARMUP", "1").strip().lower() not in {"0", "false", "off", "no"}
+    timings, loaded, failed = {}, [], {}
+    publish("running", loaded, failed)
+    ids: list = []
+    try:
+        ids = sorted((record["id"] for record in registry.list()), key=lambda rid: rid != registry.default_id)[: registry.cache_size]
+        for release_id in ids:
+            start = time.perf_counter()
+            try:
+                release = registry.load(release_id)
+                timings[release_id] = round(time.perf_counter() - start, 1)
+                loaded.append(release_id)
+            except Exception as exc:  # the job that needs it reports the real error
+                log.warning("预加载发布包 %s 失败：%s", release_id, exc)
+                failed[release_id] = str(exc)[:300]
+                publish("running", loaded, failed)
+                continue
+            warm_up = getattr(release, "warm_up", None) if warm else None
+            if callable(warm_up):
+                try:
+                    seconds = warm_up()
+                    if seconds is not None:
+                        log.info("发布包 %s 预热推理 %.1f s", release_id, seconds)
+                except Exception as exc:  # noqa: BLE001 — warm-up is best effort
+                    log.warning("发布包 %s 预热推理失败（不影响任务）：%s", release_id, exc)
+                    failed[release_id] = f"预热推理失败：{str(exc)[:280]}"
+            publish("running", loaded, failed)
+    except Exception as exc:  # noqa: BLE001 — listing the releases failed; health reports it
+        log.warning("预加载发布包失败：%s", exc)
+        failed.setdefault("*", str(exc)[:300])
+        publish("failed" if not loaded else "done", loaded, failed)
+        return timings
+    publish("failed" if ids and not loaded else "done", loaded, failed)
+    if timings:
+        log.info("已预加载发布包：%s", ", ".join(f"{k} {v}s" for k, v in timings.items()))
+    return timings
 
 
 def _release_resident_models(obj: Any) -> None:

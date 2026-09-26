@@ -1,6 +1,6 @@
 {
  "version": "wss-features/1.0",
- "source_hash": "5512fad4c80b6968c7c0b9c808e8f33c9e21ef0392340038e6fc0c62dd9e1b3a",
- "recorded_on": "2026-09-20",
- "note": "Bump deliberately: any change to wss_features/*.py must be re-validated against the training implementation."
+ "source_hash": "b4b87e2b62f47efe6a1afaaa44907bf3ab5055bce7bac3557c5b62efcb2d9570",
+ "recorded_on": "2026-09-23",
+ "note": "Bump deliberately: any change to wss_features/*.py must be re-validated against the training implementation. 2026-09-23: end-radius rule (Atlas.endpoints band radius; virtual_caps search scale min(endpoint, band) + band fallback; patch_atlas_end_radius applied in wss_deploy.geometry.build_case) ported from wss_v5; equivalence test 5/5 on an existing job. 2026-09-23 (v0.12.2 speed-up, no numeric change): sampling.VoxelSearch (shared KD spacing, per-axis offsets, memoised distinct counts; full grouping once); curvature fit in 1024-point blocks on a thread pool with an in-place design matrix; winding_number in 8-row blocks with preallocated per-thread float32 buffers on a thread pool (WSS_FEATURES_THREADS, default min(8, CPUs)); bit-for-bit equivalence 5/5 against the training implementation; sample_surface, principal_curvatures and winding_number outputs identical on LV_GUO_YOU and LIU_YU_MING."
 }

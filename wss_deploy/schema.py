@@ -9,20 +9,33 @@ kept by :func:`wss_compatibility` for existing consumers.
 """
 from __future__ import annotations
 
+import ast
 import json
 import hashlib
 import re
 import os
 import platform
 import subprocess
+import threading
+import time
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from . import __version__
 from .io_utils import atomic_json, file_sha256
 
 SCHEMA_VERSION = "wss-deploy.run-manifest/v1"
 RESULT_SCHEMA_VERSION = "wss-deploy.results/v1"
 FIELD_SCHEMA_VERSION = "wss-deploy.field/v1"
+# v0.14 (J9): version of the post-inference analysis (findings, derived indices, morphology, narrative) a
+# summary was written with.  Bump it whenever that analysis changes; ``service upgrade`` then rebuilds every
+# finished job whose ``summary.analysis_version`` is older (records without the field use the key probes).
+ANALYSIS_VERSION = "2026-09-24"
+PACKAGE_DIR = Path(__file__).resolve().parent
+TRAINING_PACKAGE = "training_wss_min"
+_PROVENANCE_TTL_S = 60.0
+_provenance_cache: dict = {}
+_provenance_lock = threading.Lock()
 
 
 def stable_run_identity(*, input_sha256: str | None, release: Mapping[str, Any] | None,
@@ -236,19 +249,125 @@ def _output_records(job_dir: Path, outputs: Sequence[str]) -> dict[str, dict[str
     return records
 
 
-def _code_runtime_metadata() -> dict[str, Any]:
-    """Capture reproducibility identifiers without serialising host paths."""
-    root = Path(__file__).resolve().parents[1]
-    commit = None
+def _git(root: Path, *args: str) -> str | None:
     try:
-        commit = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
-                                check=True, capture_output=True, text=True, timeout=2).stdout.strip()
+        return subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True, text=True,
+                              timeout=5).stdout.strip() or None
     except (OSError, subprocess.SubprocessError):
-        pass
-    commit = commit or os.environ.get("WSS_DEPLOY_GIT_COMMIT")
+        return None
+
+
+def _imported_training_modules(source: str, package: str = TRAINING_PACKAGE) -> set[str]:
+    """``training_wss_min`` modules a Python source imports (``from training_wss_min import a as A, b`` /
+    ``import training_wss_min.x`` / ``from training_wss_min.x import y`` / relative imports inside the package)."""
+    names: set[str] = set()
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return names
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            module = node.module or ""
+            if node.level:                       # relative import inside the training package
+                names.update([module.split(".")[0]] if module else [alias.name for alias in node.names])
+            elif module == package:
+                names.update(alias.name for alias in node.names)
+            elif module.startswith(package + "."):
+                names.add(module.split(".")[1])
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.startswith(package + "."):
+                    names.add(alias.name.split(".")[1])
+    return names
+
+
+def training_modules(project_root: Path | None = None) -> list[Path]:
+    """The ``training_wss_min`` files the deployment actually runs: every module ``families.py`` (and the rest of
+    ``wss_deploy``) imports, plus what those import inside the package (read with ``ast``; nothing is imported)."""
+    project_root = Path(project_root or PACKAGE_DIR.parent)
+    package = TRAINING_PACKAGE
+    package_dir = project_root / package
+    pending: set[str] = set()
+    for path in sorted(PACKAGE_DIR.glob("*.py")):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            continue
+        if package in text:                      # cheap filter before parsing
+            pending |= _imported_training_modules(text, package)
+    seen: set[str] = set()
+    while pending:
+        name = pending.pop()
+        if name in seen or not (package_dir / f"{name}.py").is_file():
+            continue
+        seen.add(name)
+        try:
+            pending |= _imported_training_modules((package_dir / f"{name}.py").read_text(encoding="utf-8")) - seen
+        except (OSError, UnicodeError):
+            continue
+    return [package_dir / f"{name}.py" for name in sorted(seen)]
+
+
+def code_source_files(project_root: Path | None = None) -> list[Path]:
+    """Files covered by ``source_hash``: ``wss_deploy/*.py`` and the training modules it imports."""
+    project_root = Path(project_root or PACKAGE_DIR.parent)
+    return sorted(PACKAGE_DIR.glob("*.py")) + training_modules(project_root)
+
+
+def code_source_hash(project_root: Path | None = None, files: list[Path] | None = None) -> str:
+    """sha256 over (relative path, bytes) of :func:`code_source_files` — the code a run actually used."""
+    project_root = Path(project_root or PACKAGE_DIR.parent)
+    digest = hashlib.sha256()
+    for path in (files if files is not None else code_source_files(project_root)):
+        try:
+            data = path.read_bytes()
+        except OSError:
+            continue
+        digest.update(path.resolve().relative_to(project_root.resolve()).as_posix().encode("utf-8") + b"\0")
+        digest.update(hashlib.sha256(data).digest())
+    return digest.hexdigest()
+
+
+def code_provenance(*, refresh: bool = False) -> dict[str, Any]:
+    """Deployment code identity (J4): ``deploy_version``, ``git_commit``, ``git_describe``
+    (``git describe --always --dirty --long``), ``git_dirty`` and ``source_hash``.  Cached for 60 s."""
+    now = time.time()
+    with _provenance_lock:
+        if not refresh and _provenance_cache.get("at", 0) > now - _PROVENANCE_TTL_S:
+            return dict(_provenance_cache["value"])
+        root = PACKAGE_DIR.parent
+        commit = _git(root, "rev-parse", "HEAD") or os.environ.get("WSS_DEPLOY_GIT_COMMIT")
+        describe = _git(root, "describe", "--always", "--dirty", "--long")
+        training = training_modules(root)
+        value = {"deploy_version": __version__, "git_commit": commit, "git_describe": describe,
+                 "git_dirty": describe.endswith("-dirty") if describe else None,
+                 "source_hash": code_source_hash(root, sorted(PACKAGE_DIR.glob("*.py")) + training),
+                 "training_modules": [p.stem for p in training]}
+        _provenance_cache.update(at=now, value=value)
+        return dict(value)
+
+
+def summary_provenance() -> dict[str, Any]:
+    """Keys a stage-B summary should carry (v0.14): analysis version, deployment version and whether the
+    working tree was dirty.  ``pipeline`` / ``volume_pipeline`` / ``rebuild_report`` merge this into ``meta``."""
+    code = code_provenance()
+    return {"analysis_version": ANALYSIS_VERSION, "deploy_version": code["deploy_version"],
+            "git_describe": code["git_describe"], "git_dirty": code["git_dirty"], "code_source_hash": code["source_hash"]}
+
+
+def _code_runtime_metadata() -> dict[str, Any]:
+    """Capture reproducibility identifiers without serialising host paths.
+
+    v0.14: ``source_hash`` is the hash of the code actually used (it was the commit id), plus ``git_describe``,
+    ``git_dirty`` and ``deploy_version``; ``git_commit`` is unchanged."""
+    code = code_provenance()
     return {
-        "git_commit": commit,
-        "source_hash": commit,
+        "git_commit": code["git_commit"],
+        "git_describe": code["git_describe"],
+        "git_dirty": code["git_dirty"],
+        "deploy_version": code["deploy_version"],
+        "source_hash": code["source_hash"],
+        "training_modules": code["training_modules"],
         "python": platform.python_version(),
         "platform": platform.platform(),
         "torch": _module_version("torch"),
@@ -268,8 +387,15 @@ def build_run_manifest(meta: Mapping[str, Any], job_dir: Path, *, outputs: Seque
     """Build a portable ``run_manifest.json`` from a stage-B summary."""
     job_dir = Path(job_dir)
     input_sha = meta.get("input_sha256")
+    code_runtime = _code_runtime_metadata()
+    # J4: the summary's own values (written when the result was computed) win over the manifest writer's.
+    from_summary = meta.get("deploy_version") is not None
     result = {
         "schema_version": SCHEMA_VERSION,
+        "deploy_version": meta.get("deploy_version") if from_summary else code_runtime["deploy_version"],
+        "git_dirty": meta.get("git_dirty") if from_summary else code_runtime["git_dirty"],
+        "deploy_version_source": "summary" if from_summary else "manifest_writer",
+        "analysis_version": meta.get("analysis_version"),
         "run_id": job_dir.name,
         "run_identity": meta.get("run_identity"),
         "case_id": meta.get("case_id", job_dir.name),
@@ -291,7 +417,7 @@ def build_run_manifest(meta: Mapping[str, Any], job_dir: Path, *, outputs: Seque
         "provenance": {"input_sha256": input_sha, "release_hash": meta.get("release_hash"),
                        "sampling_seed": meta.get("sampling_seed"), "frame_transform": meta.get("frame_transform"),
                        "feature_contract": _jsonable(meta.get("feature_contract")),
-                       "code_runtime": _code_runtime_metadata()},
+                       "code_runtime": code_runtime},
         "audit": _jsonable(meta.get("audit", {})),
         "reference_assessment": _jsonable(meta.get("reference_assessment", {})),
         "outputs": _output_records(job_dir, tuple(outputs or ())),
@@ -305,6 +431,7 @@ def write_run_manifest(job_dir: Path, meta: Mapping[str, Any], *, outputs: Seque
     return manifest
 
 
-__all__ = ["SCHEMA_VERSION", "RESULT_SCHEMA_VERSION", "FIELD_SCHEMA_VERSION", "stable_run_identity", "model_release_metadata",
+__all__ = ["SCHEMA_VERSION", "RESULT_SCHEMA_VERSION", "FIELD_SCHEMA_VERSION", "ANALYSIS_VERSION", "code_provenance",
+           "code_source_files", "code_source_hash", "summary_provenance", "training_modules", "stable_run_identity", "model_release_metadata",
            "single_frame_time_axis", "field_descriptor", "wss_compatibility",
            "build_results", "build_run_manifest", "write_run_manifest"]

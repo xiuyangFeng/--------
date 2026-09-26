@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 from scipy.spatial import cKDTree
 from wss_features.atlas import Atlas, map_points
-from wss_features.cloud import build_oriented_cloud, median_spacing, pca_normals
+from wss_features.cloud import build_oriented_cloud, median_spacing, patch_atlas_end_radius, pca_normals
 from wss_features.curvature import COARSE_K, FINE_K, FINE_MAP, principal_curvatures, unit_rows as _unit_rows
 from wss_features.flowref import Tree as _Tree, compute_point_features, load_capfit_rule
 from wss_features.frame import anatomical_frame
@@ -29,32 +29,51 @@ def smooth_and_resample(vertices: np.ndarray, faces: np.ndarray, *, smooth_mm: f
     return v, pts
 
 
-def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_name: str = "case",
-               capfit_rule_path: str | Path | None = None, capfit_rule: dict | None = None) -> tuple[dict, dict]:
-    """Truth-free port of deployment_stl_simulation.build_deployment_case (same programs, same order).
+def point_geometry(pts: np.ndarray, atlas: Atlas) -> tuple[np.ndarray, np.ndarray, dict, dict]:
+    """Mapping-independent per-point geometry of the resampled cloud: unit PCA normals, surface variation,
+    fine (k=32) and coarse (k=128) principal curvatures.
 
-    Exactly one of ``capfit_rule`` (``{"a", "b"}``) or ``capfit_rule_path`` must be given; the rule
-    ships inside the model release and is never read from a training-side default location.
+    Pure function of the points and the (end-radius-patched) atlas geometry; ``build_case`` calls it
+    unchanged, and the v0.14 geometry cache stores its result under a key over exactly these inputs.
     """
-    if capfit_rule is None:
-        if capfit_rule_path is None:
-            raise ValueError("build_case requires the release cap-area split rule (capfit_rule or capfit_rule_path)")
-        capfit_rule = load_capfit_rule(Path(capfit_rule_path))
-    table, columns, segments = atlas.table, list(atlas.columns), atlas.segments
-    feats = map_points(pts, atlas)
-    frame = anatomical_frame(table, columns, {str(k): v for k, v in atlas.semantic_of_segment.items()})
-    aligned = (pts - frame["origin_mm"]) @ frame["rotation"].T
-    scale = float(np.abs(aligned).max()) or 1.0
     normals, variation = pca_normals(pts, atlas)
     normals = _unit_rows(np.asarray(normals, dtype=np.float64))
-    _, info = build_oriented_cloud(pts, atlas, normals_out=normals, calibrate=False)
-    cap_labels = [c["label"] for c in info["caps"]]
-    cap_radius = np.array([c["radius_mm"] for c in info["caps"]], dtype=np.float64)
     tree = cKDTree(pts)
     max_k = min(COARSE_K, len(pts) - 1)
     _, nb = tree.query(pts, k=max_k + 1, workers=-1); nb = nb[:, 1:]
     fine = principal_curvatures(pts, normals, nb[:, : min(FINE_K, max_k)])
     coarse = principal_curvatures(pts, normals, nb)
+    return normals, variation, fine, coarse
+
+
+def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_name: str = "case",
+               capfit_rule_path: str | Path | None = None, capfit_rule: dict | None = None,
+               point_geometry_provider=None) -> tuple[dict, dict]:
+    """Truth-free port of deployment_stl_simulation.build_deployment_case (same programs, same order).
+
+    Exactly one of ``capfit_rule`` (``{"a", "b"}``) or ``capfit_rule_path`` must be given; the rule
+    ships inside the model release and is never read from a training-side default location.
+
+    ``point_geometry_provider(pts, atlas)`` (v0.14, optional) returns the :func:`point_geometry`
+    tuple — from the job's geometry cache when its key matches — and is called at the point where
+    that geometry is needed (after the end-radius patch).  ``None`` computes it here.
+    """
+    if capfit_rule is None:
+        if capfit_rule_path is None:
+            raise ValueError("build_case requires the release cap-area split rule (capfit_rule or capfit_rule_path)")
+        capfit_rule = load_capfit_rule(Path(capfit_rule_path))
+    end_patch = patch_atlas_end_radius(atlas, pts)  # 2026-09-23: escaped-sphere endpoint radius -> held at the measured opening (same rule as the V5 build)
+    table, columns, segments = atlas.table, list(atlas.columns), atlas.segments
+    feats = map_points(pts, atlas)
+    frame = anatomical_frame(table, columns, {str(k): v for k, v in atlas.semantic_of_segment.items()})
+    aligned = (pts - frame["origin_mm"]) @ frame["rotation"].T
+    scale = float(np.abs(aligned).max()) or 1.0
+    # Normals, variation and curvatures only read the points and the patched atlas geometry (pure).
+    normals, variation, fine, coarse = (point_geometry if point_geometry_provider is None
+                                        else point_geometry_provider)(pts, atlas)
+    _, info = build_oriented_cloud(pts, atlas, normals_out=normals, calibrate=False)
+    cap_labels = [c["label"] for c in info["caps"]]
+    cap_radius = np.array([c["radius_mm"] for c in info["caps"]], dtype=np.float64)
     atlas_row = feats["atlas_row"].astype(np.int64)
     tangent = atlas.tangent[atlas_row]
     ftree = _Tree(table, columns, segments, atlas.frame_n, atlas.frame_b)
@@ -104,4 +123,5 @@ def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_na
             "normals": normals.astype(np.float32), "frame_rotation": frame["rotation"], "frame_origin_mm": frame["origin_mm"],
             # Per-point PCA surface variation (smallest eigenvalue share); the report's "rough surface" trust bit uses it.
             "surface_variation": np.asarray(variation, dtype=np.float32)}
+    diag["atlas_end_radius_patch"] = end_patch
     return case, {"diag": diag, "geom": geom}

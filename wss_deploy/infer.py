@@ -8,7 +8,7 @@ from training_wss_min import dataset as D, evaluate as E  # noqa: F401  (D/E pat
 from .families import ModelFamily, family_for_info
 from .paths import RELEASE_DIR, SEEDS
 from .io_utils import file_sha256
-from .registry import _verify_package, _release_fingerprint, ReleaseDescriptor
+from .registry import _verify_package_cached, _release_fingerprint, ReleaseDescriptor
 
 
 def load_reference_sidecar(release_dir: Path, release_id: str, info: dict) -> str | None:
@@ -48,7 +48,7 @@ class Release:
             raise ValueError("release.json 必须包含非空 release 标识。")
         # CLI callers can instantiate Release without a registry; they must
         # receive the same complete config/statistics/weights validation.
-        _verify_package(ReleaseDescriptor(self.release_id, self.dir,
+        _verify_package_cached(ReleaseDescriptor(self.release_id, self.dir,
             _release_fingerprint(self.dir / "release.json", self.dir / "MANIFEST.sha256"),
             self.info, self.contract))
         self.model_specs = self._model_specs(seeds, seed_count=seed_count)
@@ -140,3 +140,71 @@ class Release:
     def predict(self, case: dict) -> dict:
         """Run the ensemble through the family adapter and return physical-unit predictions."""
         return self.family.predict(self, case)
+
+    def warm_up(self) -> float | None:
+        """One throw-away ensemble prediction on a small synthetic tube (v0.14).
+
+        The first real job otherwise pays CUDA context / kernel / allocator start-up (1.2-2 s on the
+        GPU).  Inference is a pure function of weights and inputs (eval mode, no gradients, no global
+        RNG draws), so this changes no result.  Returns the seconds spent, or None when the family's
+        inputs could not be synthesised (then nothing ran).
+        """
+        from .pipeline import inference_threads, torch_threads
+        case = synthetic_case(self)
+        if case is None:
+            return None
+        start = time.perf_counter()
+        with torch_threads(inference_threads(self.device, None)):   # same thread count as a real CPU job
+            self.family.predict(self, case)
+        return time.perf_counter() - start
+
+
+def synthetic_case(release, n_points: int = 6000, seed: int = 20260924) -> dict | None:
+    """A small straight-tube case carrying every input the release's models read; None if unsupported.
+
+    Only used by :meth:`Release.warm_up`; values are plausible (feature means plus noise) and finite.
+    """
+    models = getattr(release, "models", None) or []
+    if not models:
+        return None
+    cfg = models[0]["cfg"]
+    feat_stats = models[0]["feat_stats"]
+    features = list(cfg.data.input_features)
+    case_keys = set(getattr(D, "CASE_FEATURE_KEYS", ()))
+    cohort_keys = set(getattr(D, "COHORT_FEATURE_KEYS", {}) or {})
+    try:
+        from training_wss_min import longitudinal_geometry as LG
+        if LG.validate_feature_pairs(features):
+            return None          # longitudinal features need atlas tables; skip the warm-up
+    except Exception:
+        pass
+    rng = np.random.default_rng(seed)
+    n = int(n_points)
+    s = np.sort(rng.uniform(0.0, 60.0, n)); theta = rng.uniform(-np.pi, np.pi, n); radius = 8.0
+    xyz = np.column_stack([radius * np.cos(theta), radius * np.sin(theta), s - 30.0])
+    scale = float(np.abs(xyz).max())
+    normals = np.column_stack([np.cos(theta), np.sin(theta), np.zeros(n)])
+    tangent = np.tile(np.array([0.0, 0.0, 1.0]), (n, 1))
+    volume = bool(getattr(release, "is_volume", False))
+    n_wall = n * 2 // 3 if volume else n
+    if volume:   # interior rows follow the wall rows (training layout)
+        xyz[n_wall:, :2] *= rng.uniform(0.1, 0.9, (n - n_wall, 1))
+    case = {"cohort": "deploy", "case": "warmup", "unit_id": "deploy/warmup", "pos": (xyz / scale).astype(np.float32),
+            "wall_coords_raw": xyz, "coord_scale": np.full(n, scale, np.float32), "coord_scale_scalar": scale,
+            "local_geometry": np.column_stack([normals, tangent, np.full(n, radius), np.full(n, scale)]).astype(np.float32),
+            "section": np.column_stack([np.zeros(n), s]).astype(np.float32), "peak_step": 1162, "bundle_path": "",
+            "target_normalization": "global_stats", "y_raw": np.zeros(n, np.float32), "y_norm": np.zeros(n, np.float32)}
+    for name in features:
+        if name in ("x", "y", "z") or name in cohort_keys:
+            continue
+        stats = feat_stats.get(name) if isinstance(feat_stats, dict) else None
+        mean = float(stats.get("mean", 0.0)) if isinstance(stats, dict) else 0.0
+        std = float(stats.get("std", 1.0)) if isinstance(stats, dict) else 1.0
+        if name in case_keys:
+            case[name] = mean
+        else:
+            case[name] = (mean + 0.3 * std * rng.standard_normal(n)).astype(np.float32)
+    if volume:
+        case.update(n_wall=n_wall, support_pool=np.arange(n_wall), frame_rotation=np.eye(3),
+                    frame_origin_mm=np.zeros(3), query_pool=np.arange(n))
+    return case

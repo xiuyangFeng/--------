@@ -3,7 +3,8 @@
 Everything here is derived from the prediction arrays, the confirmed centreline atlas and the
 input geometry.  No CFD data is read, no prediction value is changed, and nothing is written
 to ``field.npz``: the outputs are JSON blocks for ``summary.json`` plus display arrays that
-are embedded in the HTML report only.  Contract: ``wss_deploy/ANALYSIS_CONTRACT.md`` §1–§4.
+are embedded in the HTML report only.  Contract: ``wss_deploy/ANALYSIS_CONTRACT.md`` §1–§4
+(cycle-integrated TAWSS / OSI additions: §19.2).
 """
 from __future__ import annotations
 
@@ -111,7 +112,8 @@ def profiles(atlas, feats: Mapping[str, Any], values_by_field: Mapping[str, Any]
 
     ``feats`` needs ``segment_id`` and ``s_local_mm`` per point (``wss_features.atlas.map_points``
     output or the pipeline ``geom`` dict).  ``values_by_field`` is ``{"wss": wss_pa}`` for the wall
-    family or ``{"speed": speed_m_s, "pressure": pressure_pa}`` for the volume family; the volume
+    family (optionally plus ``tawss`` / ``osi`` / ``rrt`` / ``ecap`` for a three-head release, which add
+    blocks of the same names per branch) or ``{"speed": speed_m_s, "pressure": pressure_pa}`` for the volume family; the volume
     pressure is the model's relative pressure, so its curve is meaningful for differences only.
     Empty bins keep ``n = 0`` and ``null`` values.
     """
@@ -174,6 +176,17 @@ def profiles(atlas, feats: Mapping[str, Any], values_by_field: Mapping[str, Any]
                 vmin.append(_finite(v.min()) if len(v) else None)
             block.update(mean_pa=mean, p99_pa=p99, min_pa=vmin)
             entry["wss"] = block
+            # Cycle-integrated fields of a three-head release (contract §19.2): same bins, keys only when given.
+            q90 = lambda v: np.quantile(v, .90)
+            for key, stats in (("tawss", (("mean_pa", np.mean), ("min_pa", np.min))),
+                               ("osi", (("mean", np.mean), ("p90", q90))),
+                               # v0.13 derived indices (1/Pa): the high tail is the interesting side, like OSI.
+                               ("rrt", (("mean", np.mean), ("p90", q90))),
+                               ("ecap", (("mean", np.mean), ("p90", q90)))):
+                if key in fields:
+                    values = fields[key][sel]
+                    entry[key] = {name: [_finite(fn(values[pbin == b])) if np.any(pbin == b) else None for b in range(n_bins)]
+                                  for name, fn in stats}
         else:
             speed = fields.get("speed")
             pressure = fields.get("pressure")
@@ -305,11 +318,65 @@ def _number_items(items: list[dict]) -> list[dict]:
     return items
 
 
+CYCLE_MAX_CLUSTERS = 3
+
+
+def _cycle_findings(pts, cycle: Mapping[str, Any], seg, s_root, *, link: float, min_points: int,
+                    area_per_point: float, branch_names) -> list[dict]:
+    """Stagnation (TAWSS < 0.4 ∧ OSI > 0.1) and high-OSI (> 0.3) clusters of a three-head release (§19.2)."""
+    from .cycle_fields import OSI_THRESHOLDS, STAGNATION
+    n = len(pts)
+    arrays = {}
+    for key in ("tawss", "osi"):
+        if cycle.get(key) is None:
+            continue
+        values = np.asarray(cycle[key], dtype=np.float64)
+        if values.shape != (n,) or not np.isfinite(values).all():
+            raise ValueError(f"cycle[{key!r}] must contain one finite value per point")
+        arrays[key] = values
+    tawss, osi = arrays.get("tawss"), arrays.get("osi")
+    items: list[dict] = []
+    t_lt, o_gt, o_high = float(STAGNATION["tawss_lt_pa"]), float(STAGNATION["osi_gt"]), float(OSI_THRESHOLDS[2])
+    if tawss is not None and osi is not None:
+        clusters = _clusters(pts, (tawss < t_lt) & (osi > o_gt), link, min_points=min_points)[:CYCLE_MAX_CLUSTERS]
+        for k, cluster in enumerate(clusters):
+            centre = pts[cluster].mean(axis=0)
+            rep = cluster[int(np.argmin(np.linalg.norm(pts[cluster] - centre, axis=1)))]
+            sid = int(seg[rep]); name = _branch_name(branch_names, sid); area = float(len(cluster) * area_per_point)
+            items.append({"kind": "stagnation_cluster", "label": f"{name}滞留区", "branch": name, "segment_id": sid,
+                          "value": area / 100.0, "units": "cm²", "xyz_mm": [float(v) for v in pts[rep]],
+                          "s_from_root_mm": _finite(s_root[rep]), "extent_mm": _extent(pts[cluster], pts[rep]),
+                          "area_mm2": area, "n_points": int(len(cluster)), "severity": "attention" if k == 0 else "info",
+                          "tawss_mean_pa": float(tawss[cluster].mean()), "osi_mean": float(osi[cluster].mean()),
+                          "definition": f"TAWSS < {t_lt:g} Pa 且 OSI > {o_gt:g} 的连通簇（连接半径 {link:.2f} mm，≥ {min_points} 点）；value 为簇面积（点占比 × 输入壁面面积），位置取簇质心最近点",
+                          "point_indices": _subsample(cluster)})
+    if osi is not None:
+        for cluster in _clusters(pts, osi > o_high, link, min_points=min_points)[:CYCLE_MAX_CLUSTERS]:
+            top = cluster[int(np.argmax(osi[cluster]))]
+            sid = int(seg[top]); name = _branch_name(branch_names, sid)
+            item = {"kind": "high_osi_cluster", "label": f"{name}高 OSI 区", "branch": name, "segment_id": sid,
+                    "value": float(osi[top]), "units": "1", "xyz_mm": [float(v) for v in pts[top]],
+                    "s_from_root_mm": _finite(s_root[top]), "extent_mm": _extent(pts[cluster], pts[top]),
+                    "area_mm2": float(len(cluster) * area_per_point), "n_points": int(len(cluster)), "severity": "info",
+                    "osi_mean": float(osi[cluster].mean()),
+                    "definition": f"OSI > {o_high:g} 的连通簇（连接半径 {link:.2f} mm，≥ {min_points} 点）；value 为簇内最大 OSI，位置取该点",
+                    "point_indices": _subsample(cluster)}
+            if tawss is not None:
+                item["tawss_mean_pa"] = float(tawss[cluster].mean())
+            items.append(item)
+    return items
+
+
 def findings_wall(pts, wss, feats: Mapping[str, Any], atlas, geometry_table: Mapping[str, Any] | None, *,
                   thresholds: Sequence[float], total_area_mm2: float, spacing_mm: float,
                   branch_names: Mapping[str, str] | None = None, min_cluster_points: int = 20,
-                  max_clusters: int = 5, morphology: Mapping[str, Any] | None = None) -> dict:
-    """Findings for the wall WSS family (contract §2)."""
+                  max_clusters: int = 5, morphology: Mapping[str, Any] | None = None,
+                  cycle: Mapping[str, Any] | None = None) -> dict:
+    """Findings for the wall WSS family (contract §2).
+
+    ``cycle`` = ``{"tawss": array, "osi": array}`` (three-head release) appends stagnation and high-OSI
+    clusters after every other item (§19.2); without it the output is exactly the peak-WSS list.
+    """
     pts = np.asarray(pts, dtype=np.float64); wss = np.asarray(wss, dtype=np.float64)
     n = len(pts)
     if wss.shape != (n,) or not np.isfinite(wss).all():
@@ -357,10 +424,18 @@ def findings_wall(pts, wss, feats: Mapping[str, Any], atlas, geometry_table: Map
                       "point_indices": _subsample(cluster)})
     items.extend(_geometry_findings(atlas, geometry_table, branch_names, start_id=len(items) + 1,
                                     morphology=morphology))
-    return {"schema_version": FINDINGS_SCHEMA, "family": "wall",
-            "thresholds_pa": [low, high, very_high], "p99_threshold_pa": p99,
-            "low_wss_total_fraction": low_total_fraction, "connectivity_radius_mm": link,
-            "items": _number_items(items)}
+    if cycle is not None:
+        items.extend(_cycle_findings(pts, cycle, seg, s_root, link=link, min_points=min_cluster_points,
+                                     area_per_point=area_per_point, branch_names=branch_names))
+    out = {"schema_version": FINDINGS_SCHEMA, "family": "wall",
+           "thresholds_pa": [low, high, very_high], "p99_threshold_pa": p99,
+           "low_wss_total_fraction": low_total_fraction, "connectivity_radius_mm": link,
+           "items": _number_items(items)}
+    if cycle is not None:
+        from .cycle_fields import OSI_THRESHOLDS, STAGNATION
+        out["cycle_criteria"] = {"stagnation": dict(STAGNATION), "high_osi_gt": float(OSI_THRESHOLDS[2]),
+                                 "max_clusters": CYCLE_MAX_CLUSTERS}
+    return out
 
 
 LOW_SPEED_LINK_FACTOR = 3.0   # interior samples are sparser than the wall cloud; 2× the median spacing leaves only singletons
@@ -561,6 +636,6 @@ def frame_transform(rotation, origin_mm, *, source: str, direction_source: str |
             **extra}
 
 
-__all__ = ["BRANCH_ORDER", "FINDINGS_SCHEMA", "MAX_DIAMETER_DEFINITION", "PROFILES_SCHEMA", "TRUST_BITS", "TRUST_SCHEMA",
+__all__ = ["BRANCH_ORDER", "CYCLE_MAX_CLUSTERS", "FINDINGS_SCHEMA", "MAX_DIAMETER_DEFINITION", "PROFILES_SCHEMA", "TRUST_BITS", "TRUST_SCHEMA",
            "apply_morphology", "findings_volume", "findings_wall", "frame_transform", "profiles", "review_segments",
            "trust_volume", "trust_wall"]

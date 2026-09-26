@@ -115,3 +115,16 @@ def test_model_cache_isolated_by_device_and_seed_subset(tmp_path, monkeypatch):
     assert registry.load("r1", device="cpu", seed_count=3) is not first
     assert registry.load("r1", device="cuda", seed_count=1) is not first
     assert calls == [("cpu", 1), ("cpu", 3), ("cuda", 1)]
+
+
+def test_v0122_cache_holds_every_release_and_preload_loads_default_first(tmp_path, monkeypatch):
+    from wss_deploy import registry as R
+    loaded = []
+    reg = R.ReleaseRegistry.__new__(R.ReleaseRegistry)
+    reg.default_id, reg.cache_size = "B", 3
+    reg.list = lambda: [{"id": "A"}, {"id": "B"}, {"id": "C"}]
+    reg.load = lambda rid: loaded.append(rid)
+    assert set(R.preload_all(reg)) == {"A", "B", "C"} and loaded[0] == "B"
+    monkeypatch.setenv("WSS_DEPLOY_PRELOAD", "0")
+    loaded.clear()
+    assert R.preload_all(reg) == {} and loaded == []

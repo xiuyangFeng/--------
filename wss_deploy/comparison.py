@@ -304,13 +304,52 @@ def _branch_values(summary: Mapping[str, Any]) -> dict[str, float]:
 
 
 def _row(metric: str, label: str, scope: str, left: float | None, right: float | None,
-         *, branch: str | None = None) -> dict[str, Any]:
-    result: dict[str, Any] = {"id": metric, "label": label, "scope": scope, "units": "Pa",
+         *, branch: str | None = None, units: str = "Pa") -> dict[str, Any]:
+    result: dict[str, Any] = {"id": metric, "label": label, "scope": scope, "units": units,
                               "left": left, "right": right,
                               "delta": (right - left if left is not None and right is not None else None)}
     if branch is not None:
         result["branch"] = branch
     return result
+
+
+# Cycle-integrated scalars of a three-head release (contract §19.2): (id, label, units, path in summary["cycle"]).
+_CYCLE_ROWS = (("cycle.tawss.mean_pa", "TAWSS mean", "Pa", ("fields", "tawss", "mean")),
+               ("cycle.tawss.p99_pa", "TAWSS p99", "Pa", ("fields", "tawss", "p99")),
+               ("cycle.osi.mean", "OSI mean", "1", ("fields", "osi", "mean")),
+               # v0.13 derived indices; an older summary without them simply leaves the cells empty.
+               ("cycle.rrt.mean_per_pa", "RRT mean", "1/Pa", ("fields", "rrt", "mean")),
+               ("cycle.ecap.mean_per_pa", "ECAP mean", "1/Pa", ("fields", "ecap", "mean")),
+               ("cycle.stagnation.area_frac", "Stagnation area fraction (TAWSS < 0.4 Pa and OSI > 0.1)", "1",
+                ("stagnation", "area_frac")))
+_CYCLE_PROTOCOL_KEYS = ("frames", "weight", "period_s", "tawss", "osi")
+
+
+def _cycle_rows(left: Mapping[str, Any], right: Mapping[str, Any]) -> tuple[list[dict[str, Any]], str | None]:
+    """Cycle rows plus a note; a delta only when both sides carry ``cycle`` with the same definition and criteria."""
+    lc, rc = _mapping(_first_value(left, "cycle")), _mapping(_first_value(right, "cycle"))
+    if lc is None and rc is None:
+        return [], None
+    rows = [_row(metric, label, "cycle", _stat_value(lc or {}, path), _stat_value(rc or {}, path), units=units)
+            for metric, label, units, path in _CYCLE_ROWS]
+    note = None
+    if lc is None or rc is None:
+        note = "只有{}有周期量（TAWSS / OSI），差值留空".format("左侧" if lc is not None else "右侧")
+    else:
+        def protocol(cycle):
+            definition = _mapping(cycle.get("definition")) or {}
+            stagnation = _mapping(cycle.get("stagnation")) or {}
+            return _canonical({"definition": {key: definition.get(key) for key in _CYCLE_PROTOCOL_KEYS},
+                               "stagnation": stagnation.get("criteria"),
+                               "thresholds": {key: (_mapping((_mapping(cycle.get("fields")) or {}).get(key)) or {}).get("thresholds")
+                                              for key in ("tawss", "osi")}})
+        if protocol(lc) != protocol(rc):
+            note = "两侧周期量定义或阈值不同，差值留空"
+    if note:
+        for item in rows:
+            item["delta"] = None
+            item["note"] = note
+    return rows, note
 
 
 def compare_summaries(left: Mapping[str, Any], right: Mapping[str, Any]) -> dict[str, Any]:
@@ -393,15 +432,20 @@ def compare_summaries(left: Mapping[str, Any], right: Mapping[str, Any]) -> dict
     for branch in sorted(set(left_branches) | set(right_branches)):
         rows.append(_row(f"per_branch.{branch}.p99_pa", f"{branch} p99", "per_branch",
                          left_branches.get(branch), right_branches.get(branch), branch=branch))
+    cycle_rows, cycle_note = _cycle_rows(left, right)
+    rows.extend(cycle_rows)
     # ``delta`` is intentionally withheld for an incompatible protocol.  The
     # values remain visible for diagnostics, but consumers must not interpret
     # them as a valid comparison.
     if not compatible:
         for item in rows:
             item["delta"] = None
-    return {"schema_version": SCHEMA_VERSION, "compatible": compatible, "kind": kind,
-            "reasons": reasons, "left": left_id, "right": right_id,
-            "rows": rows}
+    out = {"schema_version": SCHEMA_VERSION, "compatible": compatible, "kind": kind,
+           "reasons": reasons, "left": left_id, "right": right_id,
+           "rows": rows}
+    if cycle_rows:
+        out["cycle"] = {"comparable": cycle_note is None and compatible, "note": cycle_note}
+    return out
 
 
 def compare_summary_files(left: str | Path, right: str | Path) -> dict[str, Any]:

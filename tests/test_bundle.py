@@ -64,3 +64,11 @@ def test_http_bundle_routes(tmp_path):
         assert status == 200
     finally:
         api.close(); service.close()
+
+
+def test_readme_scope_line_follows_the_cycle_block():
+    from wss_deploy.bundle import readme_text
+    plain = readme_text({"id": "j"}, {"case_id": "A"}, ["summary.json"])
+    assert "没有 TAWSS / OSI" in plain
+    cycle = readme_text({"id": "j"}, {"case_id": "A", "cycle": {"fields": {"tawss": {"mean": 0.66}}}}, ["summary.json"])
+    assert "没有 TAWSS / OSI" not in cycle and "单周期（0.8 s、80 帧）" in cycle and "滞留区" in cycle

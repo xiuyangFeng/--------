@@ -207,3 +207,90 @@ def test_clinical_view_preset_exists_for_both_families():
     """)
     assert out["w"]["labels"] == {"findings": 5, "branches": True} and out["w"]["mode"] == "wss" and out["w"]["camera"]["position"] == [0, 0, 1]
     assert out["v"]["labels"] == {"findings": 5, "branches": True} and out["v"]["mode"] == "cloud" and out["v"]["field"] == "velocity"
+
+
+def test_v012_fit_view_frames_points_and_recentres():
+    out = _node("""
+      const line=[];for(let i=0;i<=100;i++)line.push([0,0,-100+2*i]);
+      const v=C.fitView(line,{dir:[0,1,0],up:[0,0,1],fov:35,aspect:1,margin:1});
+      // Off-centre cloud: target moves to the middle of the projected extents, wide aspect fits the height.
+      const flat=new Float32Array([10,0,0, 30,0,0, 10,0,40, 30,0,40]);
+      const w=C.fitView(flat,{dir:[0,1,0],up:[0,0,1],fov:35,aspect:2,margin:1.1});
+      console.log(JSON.stringify({v,w,expected:100/Math.tan(17.5*Math.PI/180),empty:C.fitView([], {center:[1,2,3],fallbackDistance:50})}));
+    """)
+    assert out["v"]["distance"] == pytest.approx(out["expected"], rel=1e-9)
+    assert out["v"]["up"] == [0, 0, 1] and out["v"]["target"] == [0, 0, 0]
+    assert out["w"]["target"] == pytest.approx([20, 0, 20])
+    assert out["w"]["distance"] == pytest.approx(1.1 * 20 / __import__("math").tan(17.5 * __import__("math").pi / 180), rel=1e-6)
+    assert out["empty"]["target"] == [1, 2, 3] and out["empty"]["distance"] == 50
+
+
+def test_v012_format_value_never_uses_exponent_notation():
+    out = _node("console.log(JSON.stringify([0.00177,1.572,17,52.6,15544.8,0,1e-7,null,NaN,-0.35].map(v=>C.formatValue(v))))")
+    assert out == ["0.0018", "1.57", "17.0", "52.6", "15545", "0", "0", "—", "—", "-0.350"]
+    assert not any("e" in s for s in out)
+
+
+def test_v012_friendly_and_local_time_use_viewer_timezone():
+    out = _node("""
+      const now=new Date(2026,8,23,9,30).getTime(), iso=d=>d.toISOString();
+      console.log(JSON.stringify({
+        just:C.friendlyTime(iso(new Date(now-20e3)),now), min:C.friendlyTime(iso(new Date(now-12*60e3)),now),
+        today:C.friendlyTime(iso(new Date(2026,8,23,7,5)),now), yday:C.friendlyTime(iso(new Date(2026,8,22,17,37)),now),
+        month:C.friendlyTime(iso(new Date(2026,8,20,2,10)),now), year:C.friendlyTime(iso(new Date(2025,0,2,10,0)),now),
+        bad:C.friendlyTime('not-a-date',now), local:C.localTime(iso(new Date(2026,8,20,2,10,5)),{seconds:true})}));
+    """)
+    assert out == {"just": "刚刚", "min": "12 分钟前", "today": "今天 07:05", "yday": "昨天 17:37", "month": "9月20日 02:10",
+                   "year": "2025年1月2日", "bad": "not-a-date", "local": "2026-09-20 02:10:05"}
+
+
+def test_v012_shortcut_matching_rules():
+    out = _node("""
+      const m=(b,e)=>C.shortcutMatches(b,e);
+      console.log(JSON.stringify([m({keys:['1']},{key:'1'}),m({keys:['f']},{key:'F'}),m({keys:['shift+/']},{key:'/',shiftKey:false}),
+        m({keys:['shift+/']},{key:'/',shiftKey:true}),m({keys:['r']},{key:'r',ctrlKey:true}),m({keys:['ArrowUp']},{key:'ArrowUp'}),
+        C.shortcutRows([{keys:['ArrowUp','k'],label:'上一例',group:'列表'},{keys:['x']}])]));
+    """)
+    assert out[:6] == [True, True, False, True, False, True]
+    assert out[6] == [{"group": "列表", "keys": ["↑", "K"], "label": "上一例"}]
+
+
+def test_v0122_declutter_labels_separates_overlaps_deterministically():
+    out = _node("""
+      const items=[{x:100,y:100,w:80,h:20,priority:1},{x:105,y:102,w:80,h:20,priority:3},{x:300,y:100,w:40,h:20},{x:102,y:98,w:80,h:20,priority:2}];
+      const a=C.declutterLabels(items,{padding:2}),b=C.declutterLabels(items,{padding:2});
+      const boxes=a.map((p,i)=>({l:p.x-items[i].w/2,r:p.x+items[i].w/2,t:p.y-items[i].h/2,b:p.y+items[i].h/2}));
+      let overlaps=0;for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){const A=boxes[i],B=boxes[j];if(Math.min(A.r,B.r)>Math.max(A.l,B.l)&&Math.min(A.b,B.b)>Math.max(A.t,B.t))overlaps++;}
+      const hide=C.declutterLabels(Array.from({length:30},()=>({x:50,y:50,w:90,h:30})),{maxShift:20,bounds:{width:100,height:100},hideOverflow:true});
+      console.log(JSON.stringify({a,same:JSON.stringify(a)===JSON.stringify(b),overlaps,hidden:hide.filter(p=>p.hidden).length,shown:hide.filter(p=>!p.hidden).length}));
+    """)
+    assert out["same"] and out["overlaps"] == 0
+    assert out["a"][1] == {"x": 105, "y": 102, "moved": False, "hidden": False}      # highest priority keeps its anchor
+    assert out["a"][2]["moved"] is False                                               # a free label never moves
+    assert out["a"][0]["moved"] and out["a"][3]["moved"]
+    assert out["shown"] >= 1 and out["hidden"] >= 25
+
+
+def test_v014_one_palette_source_rainbow_unchanged():
+    """F2: WssReportCommon.PALETTES is the only colour table; rainbow keeps its historical stops bit for bit."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1] / "wss_deploy"
+    program = r"""
+      const legacy=[[0,0,143],[0,32,255],[0,160,255],[0,255,255],[64,255,160],[160,255,64],[255,255,0],[255,160,0],[255,64,0],[190,0,0]];
+      const old=t=>{t=Math.min(1,Math.max(0,t));const x=t*(legacy.length-1),i=Math.min(legacy.length-2,Math.floor(x)),u=x-i;return [0,1,2].map(k=>(legacy[i][k]+(legacy[i+1][k]-legacy[i][k])*u)/255);};
+      const ts=Array.from({length:101},(_,i)=>i/100);
+      console.log(JSON.stringify({names:C.colormapNames(),rainbow:C.PALETTES.rainbow.stops,same:ts.every(t=>JSON.stringify(C.paletteRGB('rainbow',t))===JSON.stringify(old(t))),
+        lens:Object.fromEntries(Object.entries(C.PALETTES).map(([k,v])=>[k,v.stops.length])),bwrMid:C.paletteRGB('bwr',.5),turboEnds:[C.paletteRGB('turbo',0),C.paletteRGB('turbo',1)],
+        tables:Object.keys(C.colormapTables()),svgStops:C.colormapStops('turbo').length,unknown:C.paletteRGB('nope',0)}));
+    """
+    out = _node(program)
+    assert out["names"] == ["rainbow", "turbo", "bwr", "viridis"] and out["same"] is True
+    assert out["rainbow"][0] == [0, 0, 143] and out["rainbow"][-1] == [190, 0, 0]
+    assert out["lens"] == {"rainbow": 10, "turbo": 33, "bwr": 7, "viridis": 33}
+    assert out["bwrMid"] == [247 / 255] * 3 and out["svgStops"] == 33
+    assert out["turboEnds"] == [[48 / 255, 18 / 255, 59 / 255], [122 / 255, 4 / 255, 3 / 255]]
+    assert out["tables"] == ["rainbow", "turbo", "bwr", "viridis"] and out["unknown"] == [0, 0, 143 / 255]
+    # nobody else carries a stop table any more (turbo's first stop is a fingerprint of a local copy)
+    for name in ("report.py", "volume_report.py", "static/volume_viewer.js", "static/app.js", "static/compare.js"):
+        text = (root / name).read_text(encoding="utf-8")
+        assert "[48,18,59]" not in text and "[68,1,84]" not in text and "[31,78,156]" not in text, name

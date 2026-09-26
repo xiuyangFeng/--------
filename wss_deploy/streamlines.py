@@ -9,6 +9,39 @@ COVERAGE_FACTOR = 1.3     # a query is supported while its nearest sample is wit
 MIN_LINE_POINTS = 8       # stubs shorter than this are not worth drawing
 
 
+def ball_certified_inside(inside, samples, vertices, faces, *, margin: float = 0.999):
+    """Wrap an exact inside test with a certificate that skips it for points that are provably inside.
+
+    Every interior sample ``s`` lies inside the closed lumen, and the open ball around ``s`` whose radius
+    is its distance to the closed surface cannot cross that surface, so any query strictly within such a
+    ball is inside too.  Only queries outside every certified ball (near the wall or an opening) are
+    handed to ``inside`` — the VTK ray test stays the authority for all of them.  Streamline integration
+    asks for ~10^6 mostly deep-lumen points; this removes most of the per-point VTK calls (v0.12.2).
+    """
+    import pyvista as pv
+    samples = np.asarray(samples, dtype=np.float64)
+    mesh = pv.PolyData(np.asarray(vertices, dtype=np.float64),
+                       np.hstack([np.full((len(faces), 1), 3), np.asarray(faces, dtype=np.int64)]).ravel())
+    clearance = np.abs(np.asarray(pv.PolyData(samples).compute_implicit_distance(mesh)["implicit_distance"], dtype=np.float64))
+    clearance = clearance * float(margin)
+    tree = cKDTree(samples)
+
+    def contains(query):
+        q = np.asarray(query, dtype=np.float64).reshape(-1, 3)
+        if not len(q):
+            return np.zeros(0, dtype=bool)
+        d, ix = tree.query(q, k=1)
+        sure = d < clearance[ix]
+        out = np.zeros(len(q), dtype=bool)
+        out[sure] = True
+        rest = ~sure
+        if rest.any():
+            out[rest] = np.asarray(inside(q[rest]), dtype=bool)
+        return out
+
+    return contains
+
+
 def integrate_streamlines(points, velocity, seeds, inside, *, step_mm=0.6,
                           max_steps=650, max_distance_mm=None, min_points=MIN_LINE_POINTS):
     """Bidirectional midpoint integration; stop at wall, gaps, or stagnation.

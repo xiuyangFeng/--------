@@ -1,14 +1,13 @@
 """Automatic reference wording for a finished result (contract §17.2).
 
 ``build_narrative(summary)`` turns the numbers already in ``summary.json`` into a short Chinese /
-English description.  It states only quantities that exist, never invents a value, adds no
+English description (three-head releases add one TAWSS / OSI / stagnation sentence, §19.2).  It states only quantities that exist, never invents a value, adds no
 interpretation beyond the stored definitions, and always ends with the fixed disclaimer.  Reviewers
 may replace the whole text through ``PUT /api/jobs/<id>/narrative``; the generated version is kept
 next to the edit so the two can be compared.
 """
 from __future__ import annotations
 
-import datetime as dt
 import math
 from typing import Any, Mapping
 
@@ -17,6 +16,9 @@ MAX_NARRATIVE_CHARS = 4000
 DISCLAIMER_ZH = "以上为固定收缩期单帧预测的参考描述，非诊断结论。"
 DISCLAIMER_EN = ("The statements above describe a single fixed peak-systolic prediction frame for reference "
                  "only; they are not a diagnosis.")
+CYCLE_DISCLAIMER_ZH = "以上为收缩期峰值 WSS 与单周期 TAWSS / OSI 预测的参考描述，非诊断结论。"
+CYCLE_DISCLAIMER_EN = ("The statements above describe the predicted peak-systolic WSS and single-cycle TAWSS / OSI "
+                       "for reference only; they are not a diagnosis.")
 AORTA_ZH, AORTA_EN = "主动脉", "aorta"
 BRANCH_EN = {"主动脉": "aorta", "左髂总": "left common iliac", "左髂外": "left external iliac",
              "左髂内": "left internal iliac", "右髂总": "right common iliac",
@@ -164,6 +166,62 @@ def _wall_sentences(summary: Mapping[str, Any]) -> tuple[list[str], list[str]]:
     return zh, en
 
 
+def _largest_branch(rows: Mapping[str, Any], area) -> str:
+    """Branch name whose ``area(row)`` is largest (positive); '' when none."""
+    best, name = 0.0, ""
+    for key, row in rows.items():
+        value = _num(area(_map(row)))
+        if value is not None and value > best:
+            best, name = value, str(key)
+    return name
+
+
+def _cycle_sentences(summary: Mapping[str, Any]) -> tuple[list[str], list[str]]:
+    """One sentence on TAWSS / OSI / stagnation from ``summary["cycle"]`` (contract §19.2); none without it."""
+    cycle = _map(summary.get("cycle"))
+    fields = _map(cycle.get("fields"))
+    tawss, osi, stagnation = _map(fields.get("tawss")), _map(fields.get("osi")), _map(cycle.get("stagnation"))
+    first_zh, first_en, parts_zh, parts_en = [], [], [], []
+    mean = _num(tawss.get("mean"))
+    if mean is not None:
+        first_zh.append(f"周期平均 TAWSS 均值 {mean:.2f} Pa")
+        first_en.append(f"Cycle-averaged TAWSS has a mean of {mean:.2f} Pa")
+    thresholds = tawss.get("thresholds") if isinstance(tawss.get("thresholds"), list) and tawss.get("thresholds") else [0.4]
+    low = _percent(_map(tawss.get("area_frac")).get("low"))
+    low_threshold = _num(thresholds[0])
+    if low is not None and low_threshold is not None:
+        where = _largest_branch(_map(tawss.get("per_branch")),
+                                lambda row: (_num(row.get("area_mm2")) or 0.0) * (_num(row.get("frac_low")) or 0.0))
+        first_zh.append(f"低 TAWSS（< {low_threshold:g} Pa）区占壁面 {low}%" + (f"，以{where}为主" if where else ""))
+        first_en.append(f"low TAWSS (< {low_threshold:g} Pa) covers {low}% of the wall"
+                        + (f", mostly in the {_english_branch(where)}" if where else ""))
+    if first_zh:
+        parts_zh.append("，".join(first_zh))
+        parts_en.append(", ".join(first_en))
+    osi_thresholds = osi.get("thresholds") if isinstance(osi.get("thresholds"), list) and osi.get("thresholds") else [0.1]
+    oscillatory = _percent(_map(osi.get("area_frac")).get("above_t0"))
+    osi_threshold = _num(osi_thresholds[0])
+    if oscillatory is not None and osi_threshold is not None:
+        parts_zh.append(f"OSI > {osi_threshold:g} 占 {oscillatory}%")
+        parts_en.append(f"OSI > {osi_threshold:g} covers {oscillatory}%")
+    fraction = _percent(stagnation.get("area_frac"))
+    if fraction is not None:
+        criteria = _map(stagnation.get("criteria"))
+        t_lt, o_gt = _num(criteria.get("tawss_lt_pa")), _num(criteria.get("osi_gt"))
+        rule_zh = f"（TAWSS < {t_lt:g} Pa 且 OSI > {o_gt:g}）" if t_lt is not None and o_gt is not None else ""
+        rule_en = f" (TAWSS < {t_lt:g} Pa and OSI > {o_gt:g})" if t_lt is not None and o_gt is not None else ""
+        area = _num(stagnation.get("area_mm2"))
+        area_zh = f"（约 {area / 100.0:.0f} cm²）" if area is not None else ""
+        area_en = f" (about {area / 100.0:.0f} cm²)" if area is not None else ""
+        where = _largest_branch(_map(stagnation.get("per_branch")), lambda row: row.get("area_mm2"))
+        parts_zh.append(f"滞留区{rule_zh}占 {fraction}%{area_zh}" + (f"，主要位于{where}" if where else ""))
+        parts_en.append(f"the stagnation region{rule_en} covers {fraction}%{area_en}"
+                        + (f", mostly in the {_english_branch(where)}" if where else ""))
+    if not parts_zh:
+        return [], []
+    return ["；".join(parts_zh) + "。"], ["; ".join(parts_en) + "."]
+
+
 def _volume_sentences(summary: Mapping[str, Any]) -> tuple[list[str], list[str]]:
     zh: list[str] = []
     en: list[str] = []
@@ -199,8 +257,13 @@ def build_narrative(summary: Mapping[str, Any] | None, *, generated_at: str | No
     family = family_of(summary)
     zh, en = _morphology_sentences(summary)
     body_zh, body_en = (_volume_sentences(summary) if family == "volume" else _wall_sentences(summary))
-    zh, en = [*zh, *body_zh, DISCLAIMER_ZH], [*en, *body_en, DISCLAIMER_EN]
-    stamp = generated_at or dt.datetime.now().astimezone().isoformat(timespec="seconds")
+    cycle_zh, cycle_en = _cycle_sentences(summary) if family == "wall" else ([], [])
+    disclaimer_zh, disclaimer_en = (CYCLE_DISCLAIMER_ZH, CYCLE_DISCLAIMER_EN) if cycle_zh else (DISCLAIMER_ZH, DISCLAIMER_EN)
+    zh, en = [*zh, *body_zh, *cycle_zh, disclaimer_zh], [*en, *body_en, *cycle_en, disclaimer_en]
+    if not generated_at:
+        from .clock import now_iso
+        generated_at = now_iso()
+    stamp = generated_at
     return {"schema_version": NARRATIVE_SCHEMA, "generated_at": stamp, "family": family,
             "zh": zh, "en": en, "edited": None, "edited_by": None, "edited_at": None}
 
@@ -226,5 +289,5 @@ def display_text(narrative: Mapping[str, Any] | None, lang: str = "zh") -> str:
     return " ".join(str(line) for line in lines) if isinstance(lines, list) else ""
 
 
-__all__ = ["DISCLAIMER_EN", "DISCLAIMER_ZH", "MAX_NARRATIVE_CHARS", "NARRATIVE_SCHEMA", "build_narrative",
+__all__ = ["CYCLE_DISCLAIMER_EN", "CYCLE_DISCLAIMER_ZH", "DISCLAIMER_EN", "DISCLAIMER_ZH", "MAX_NARRATIVE_CHARS", "NARRATIVE_SCHEMA", "build_narrative",
            "display_text", "family_of", "merge_edit"]

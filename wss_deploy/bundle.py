@@ -2,10 +2,13 @@
 
 Text files are deflated; ``field.npz`` (already compressed) is stored.  Nothing is written into the job
 directory: the one-page HTML is rendered on the fly from summary.json.
+
+v0.14: the service writes bundles to a temporary file (:func:`write_job_bundle` / :func:`write_multi_bundle`)
+instead of building them in memory; :func:`job_bundle` / :func:`multi_bundle` keep the byte-returning API.
 """
 from __future__ import annotations
 
-import datetime as dt
+from . import clock as _clock
 import io
 import json
 import re
@@ -27,6 +30,12 @@ def _safe(name: str, fallback: str) -> str:
 def readme_text(job: Mapping[str, Any], summary: Mapping[str, Any], files: list[str]) -> str:
     release = summary.get("model_release") if isinstance(summary.get("model_release"), Mapping) else {}
     review = job.get("review") if isinstance(job.get("review"), Mapping) else {}
+    # §19.2: an M1 result carries single-cycle TAWSS / OSI, so the fixed "no TAWSS / OSI" caveat is written per result.
+    if isinstance(summary.get("cycle"), Mapping) and summary.get("cycle"):
+        scope = ("- 峰值 WSS 为固定收缩期单帧（step 1162，约 0.21 s）；TAWSS / OSI 为单周期（0.8 s、80 帧）积分量的直接回归预测，"
+                 "不是逐帧推演；滞留区 = TAWSS < 0.4 Pa 且 OSI > 0.1。")
+    else:
+        scope = "- 预测对象是固定收缩期单帧（step 1162，约 0.21 s），不是全周期；没有 TAWSS / OSI。"
     lines = [
         "WSS 部署工具 · 结果打包",
         f"病例编号：{summary.get('case_id') or job.get('case_id') or '—'}",
@@ -36,10 +45,10 @@ def readme_text(job: Mapping[str, Any], summary: Mapping[str, Any], files: list[
         f"输入 SHA256：{summary.get('input_sha256') or job.get('input_sha256') or '—'}",
         f"run_identity：{summary.get('run_identity') or job.get('run_identity') or '—'}",
         f"审阅状态：{review.get('status') or 'unreviewed'}{'（' + str(review.get('by')) + '）' if review.get('by') else ''}",
-        f"生成时间：{dt.datetime.now().astimezone().isoformat(timespec='seconds')}",
+        f"生成时间：{_clock.now_iso()}",
         "",
         "口径说明：",
-        "- 预测对象是固定收缩期单帧（step 1162，约 0.21 s），不是全周期；没有 TAWSS / OSI。",
+        scope,
         "- 主指标是预测点云的空间 p99；最大值只作参考并标出位置。",
         "- 面积占比 = 点占比 × 输入壁面面积（估计值）；压力是相对量，只有压差有意义。",
         "- report.html 可离线打开（three.js 内嵌）；onepage.html 为 A4 一页纸；summary.json / run_manifest.json 记录来源链与文件哈希。",
@@ -54,8 +63,39 @@ def readme_text(job: Mapping[str, Any], summary: Mapping[str, Any], files: list[
     return "\n".join(lines) + "\n"
 
 
+def bundle_files(job_dir: Path, allowed: set[str]) -> list[str]:
+    """Names that go into a job's zip: white-listed files, sidecars and snapshot pictures that exist."""
+    job_dir = Path(job_dir).resolve()
+    names = []
+    extras = {path.name for path in job_dir.glob("snapshot_*.png") if SNAPSHOT_FILE.fullmatch(path.name)}
+    for name in sorted(set(allowed) | set(SIDECARS) | extras):
+        candidate = (job_dir / name).resolve()
+        if candidate.parent == job_dir and candidate.is_file():
+            names.append(name)
+    return names
+
+
+def estimate_bytes(job_dir: Path, allowed: set[str]) -> int:
+    """Upper-bound size of a job's zip before compression (sum of the member files)."""
+    job_dir = Path(job_dir).resolve()
+    total = 0
+    for name in bundle_files(job_dir, allowed):
+        try:
+            total += (job_dir / name).stat().st_size
+        except OSError:
+            pass
+    return total
+
+
 def job_bundle(job_dir: Path, job: Mapping[str, Any], allowed: set[str], *, onepage_html: str | None = None) -> bytes:
     """Zip bytes of one finished job: white-listed files that exist, sidecars, onepage.html and README.txt."""
+    buffer = io.BytesIO()
+    write_job_bundle(buffer, job_dir, job, allowed, onepage_html=onepage_html)
+    return buffer.getvalue()
+
+
+def write_job_bundle(target, job_dir: Path, job: Mapping[str, Any], allowed: set[str], *, onepage_html: str | None = None) -> None:
+    """Write one job's zip to ``target`` (a path or a seekable binary file); same members as :func:`job_bundle`."""
     job_dir = Path(job_dir).resolve()
     summary_path = job_dir / "summary.json"
     try:
@@ -64,14 +104,8 @@ def job_bundle(job_dir: Path, job: Mapping[str, Any], allowed: set[str], *, onep
         summary = {}
     if not isinstance(summary, Mapping):
         summary = {}
-    names = []
-    extras = {path.name for path in job_dir.glob("snapshot_*.png") if SNAPSHOT_FILE.fullmatch(path.name)}
-    for name in sorted(set(allowed) | set(SIDECARS) | extras):
-        candidate = (job_dir / name).resolve()
-        if candidate.parent == job_dir and candidate.is_file():
-            names.append(name)
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, "w") as archive:
+    names = bundle_files(job_dir, allowed)
+    with zipfile.ZipFile(target, "w") as archive:
         for name in names:
             method = zipfile.ZIP_STORED if Path(name).suffix in STORED_SUFFIXES else zipfile.ZIP_DEFLATED
             archive.write(job_dir / name, arcname=name, compress_type=method)
@@ -81,27 +115,39 @@ def job_bundle(job_dir: Path, job: Mapping[str, Any], allowed: set[str], *, onep
             listed.append("onepage.html")
         listed.append("README.txt")
         archive.writestr("README.txt", readme_text(job, summary, listed).encode("utf-8"), compress_type=zipfile.ZIP_DEFLATED)
-    return buffer.getvalue()
 
 
 def bundle_name(job: Mapping[str, Any]) -> str:
     return f"{_safe(job.get('case_id'), 'case')}_{_safe(job.get('id'), 'job')}.zip"
 
 
+def _unique_names(names):
+    seen = set()
+    for name in names:
+        unique = name
+        counter = 2
+        while unique in seen:
+            unique = f"{Path(name).stem}_{counter}.zip"
+            counter += 1
+        seen.add(unique)
+        yield unique
+
+
 def multi_bundle(bundles: list[tuple[str, bytes]]) -> bytes:
     """Outer zip holding one already-compressed zip per job (stored, not re-deflated)."""
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w") as archive:
-        seen = set()
-        for name, data in bundles:
-            unique = name
-            counter = 2
-            while unique in seen:
-                unique = f"{Path(name).stem}_{counter}.zip"
-                counter += 1
-            seen.add(unique)
+        for unique, (_, data) in zip(_unique_names(name for name, _ in bundles), bundles):
             archive.writestr(unique, data, compress_type=zipfile.ZIP_STORED)
     return buffer.getvalue()
 
 
-__all__ = ["MAX_BUNDLE_JOBS", "SIDECARS", "bundle_name", "job_bundle", "multi_bundle", "readme_text"]
+def write_multi_bundle(target, parts: list[tuple[str, Path]]) -> None:
+    """Outer zip written to ``target`` from per-job zips on disk (stored, streamed file by file)."""
+    with zipfile.ZipFile(target, "w", allowZip64=True) as archive:
+        for unique, (_, path) in zip(_unique_names(name for name, _ in parts), parts):
+            archive.write(path, arcname=unique, compress_type=zipfile.ZIP_STORED)
+
+
+__all__ = ["MAX_BUNDLE_JOBS", "SIDECARS", "bundle_files", "bundle_name", "estimate_bytes", "job_bundle", "multi_bundle",
+           "readme_text", "write_job_bundle", "write_multi_bundle"]

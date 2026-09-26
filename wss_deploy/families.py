@@ -24,6 +24,9 @@ from typing import Any, Callable
 
 import numpy as np
 
+from .input_memo import shared_inputs
+from .knn_memo import shared_knn
+
 
 class ReleaseError(ValueError):
     """A release is missing, unsafe, or outside the supported contract."""
@@ -133,16 +136,20 @@ def _wss_predict(release, case: dict) -> dict:
     import torch
     from training_wss_min import dataset as D, evaluate as E
     preds, per = [], []
-    for m in release.models:
-        t = time.perf_counter()
-        with torch.no_grad():
-            p = E.predict_case_norm(m["model"], case, m["cfg"].data.input_features, m["feat_stats"], release.device, cfg=m["cfg"])
-        if release.device == "cuda":
-            torch.cuda.synchronize()
-        per.append(time.perf_counter() - t)
-        preds.append(D.denormalize_wss(np.asarray(p, dtype=np.float64), m["stats"]))
+    # Identical kNN graphs (knn_memo.py) and identical support / query / patch inputs (input_memo.py)
+    # are built once per case; every member still runs its own forward pass.
+    with shared_knn() as knn_stats, shared_inputs() as input_stats:
+        for m in release.models:
+            t = time.perf_counter()
+            with torch.no_grad():
+                p = E.predict_case_norm(m["model"], case, m["cfg"].data.input_features, m["feat_stats"], release.device, cfg=m["cfg"])
+            if release.device == "cuda":
+                torch.cuda.synchronize()
+            per.append(time.perf_counter() - t)
+            preds.append(D.denormalize_wss(np.asarray(p, dtype=np.float64), m["stats"]))
     P = np.stack(preds)
-    return {"wss_pa": P.mean(axis=0), "seed_pred_pa": P, "seed_sd_pa": P.std(axis=0), "seconds_per_model": per, "device": release.device,
+    return {"wss_pa": P.mean(axis=0), "seed_pred_pa": P, "seed_sd_pa": P.std(axis=0), "seconds_per_model": per, "knn_reuse": dict(knn_stats),
+            "input_reuse": dict(input_stats), "device": release.device,
             "gpu": torch.cuda.get_device_name(0) if release.device == "cuda" else "cpu"}
 
 
@@ -266,29 +273,32 @@ def _volume_predict(release, case: dict) -> dict:
         raise ValueError("体场需要有效的 anatomical-to-world 正交坐标变换。")
     predictions = {field: [] for field in release.contract["fields"]}
     per = []
-    for m in release.models:
-        pressure = m["field"] == "pressure"
-        query = np.arange(n) if pressure else np.arange(n_wall, n)
-        view = dict(case, query_pool=query)
-        start = time.perf_counter()
-        with torch.no_grad():
-            normalized = E.predict_case_norm(m["model"], view, m["cfg"].data.input_features,
-                                            m["feat_stats"], release.device, cfg=m["cfg"],
-                                            return_all_channels=not pressure)
-        if release.device == "cuda":
-            torch.cuda.synchronize()
-        per.append(time.perf_counter() - start)
-        normalized = np.asarray(normalized, dtype=np.float64)
-        expected = (len(query),) if pressure else (len(query), 3)
-        if normalized.shape != expected or not np.isfinite(normalized).all():
-            raise ValueError(f"{m['field']} 模型输出形状或数值不符合发布合同。")
-        physical = E.denormalize_volume_prediction(normalized, m["cfg"].data.target, m["stats"])
-        if not pressure:
-            physical = physical @ rotation
-        if not np.isfinite(physical).all():
-            raise ValueError("体场反归一化产生非有限物理量。")
-        predictions[m["field"]].append(physical)
-    result = {"seconds_per_model": per, "device": release.device,
+    # One query view per field, shared by that field's members, so the input memo can recognise the case.
+    views = {True: dict(case, query_pool=np.arange(n)), False: dict(case, query_pool=np.arange(n_wall, n))}
+    with shared_knn() as knn_stats, shared_inputs() as input_stats:   # knn_memo.py / input_memo.py
+        for m in release.models:
+            pressure = m["field"] == "pressure"
+            view = views[pressure]
+            query = view["query_pool"]
+            start = time.perf_counter()
+            with torch.no_grad():
+                normalized = E.predict_case_norm(m["model"], view, m["cfg"].data.input_features,
+                                                m["feat_stats"], release.device, cfg=m["cfg"],
+                                                return_all_channels=not pressure)
+            if release.device == "cuda":
+                torch.cuda.synchronize()
+            per.append(time.perf_counter() - start)
+            normalized = np.asarray(normalized, dtype=np.float64)
+            expected = (len(query),) if pressure else (len(query), 3)
+            if normalized.shape != expected or not np.isfinite(normalized).all():
+                raise ValueError(f"{m['field']} 模型输出形状或数值不符合发布合同。")
+            physical = E.denormalize_volume_prediction(normalized, m["cfg"].data.target, m["stats"])
+            if not pressure:
+                physical = physical @ rotation
+            if not np.isfinite(physical).all():
+                raise ValueError("体场反归一化产生非有限物理量。")
+            predictions[m["field"]].append(physical)
+    result = {"seconds_per_model": per, "knn_reuse": dict(knn_stats), "input_reuse": dict(input_stats), "device": release.device,
               "gpu": torch.cuda.get_device_name(0) if release.device == "cuda" else "cpu",
               "n_wall": int(n_wall), "n_interior": int(n - n_wall),
               "pressure_reference": "volume_mean_relative", "velocity_frame": "world"}
@@ -415,34 +425,36 @@ def _cycle_predict(release, case: dict) -> dict:
     n = len(case["pos"])
     channels = list(CYCLE_CHANNELS)
     preds, per = [], []
-    for m in release.models:
-        stats = m["stats"]
-        if stats.get("method") != "multi" or list(stats.get("channels", [])) != channels:
-            raise ValueError("三头模型的统计文件不是 wss/tawss/osi 多通道合同。")
-        t = time.perf_counter()
-        with torch.no_grad():
-            z = E.predict_case_norm(m["model"], case, m["cfg"].data.input_features, m["feat_stats"], release.device,
-                                    cfg=m["cfg"], return_all_channels=True)
-        if release.device == "cuda":
-            torch.cuda.synchronize()
-        per.append(time.perf_counter() - t)
-        z = np.asarray(z, dtype=np.float64)
-        if z.shape != (n, len(channels)) or not np.isfinite(z).all():
-            raise ValueError("三头模型输出形状或数值不符合发布合同。")
-        physical = np.asarray(D.denormalize_wss(z, stats), dtype=np.float64)
-        physical[:, 0] = np.clip(physical[:, 0], 0.0, None)
-        physical[:, 1] = np.clip(physical[:, 1], 0.0, None)
-        physical[:, 2] = np.clip(physical[:, 2], 0.0, OSI_MAX)
-        if not np.isfinite(physical).all():
-            raise ValueError("三头反归一化产生非有限物理量。")
-        preds.append(physical)
+    with shared_knn() as knn_stats, shared_inputs() as input_stats:   # knn_memo.py / input_memo.py
+        for m in release.models:
+            stats = m["stats"]
+            if stats.get("method") != "multi" or list(stats.get("channels", [])) != channels:
+                raise ValueError("三头模型的统计文件不是 wss/tawss/osi 多通道合同。")
+            t = time.perf_counter()
+            with torch.no_grad():
+                z = E.predict_case_norm(m["model"], case, m["cfg"].data.input_features, m["feat_stats"], release.device,
+                                        cfg=m["cfg"], return_all_channels=True)
+            if release.device == "cuda":
+                torch.cuda.synchronize()
+            per.append(time.perf_counter() - t)
+            z = np.asarray(z, dtype=np.float64)
+            if z.shape != (n, len(channels)) or not np.isfinite(z).all():
+                raise ValueError("三头模型输出形状或数值不符合发布合同。")
+            physical = np.asarray(D.denormalize_wss(z, stats), dtype=np.float64)
+            physical[:, 0] = np.clip(physical[:, 0], 0.0, None)
+            physical[:, 1] = np.clip(physical[:, 1], 0.0, None)
+            physical[:, 2] = np.clip(physical[:, 2], 0.0, OSI_MAX)
+            if not np.isfinite(physical).all():
+                raise ValueError("三头反归一化产生非有限物理量。")
+            preds.append(physical)
     P = np.stack(preds)                                    # (seeds, N, 3)
     wss, tawss, osi = P[:, :, 0], P[:, :, 1], P[:, :, 2]
     osi_mean = np.clip(osi.mean(axis=0), 0.0, OSI_MAX)
     result = {"wss_pa": wss.mean(axis=0), "seed_pred_pa": wss, "seed_sd_pa": wss.std(axis=0),
               "tawss_pa": tawss.mean(axis=0), "seed_tawss_pa": tawss, "tawss_seed_sd_pa": tawss.std(axis=0),
               "osi": osi_mean, "seed_osi": osi, "osi_seed_sd": osi.std(axis=0),
-              "seconds_per_model": per, "device": release.device,
+              "seconds_per_model": per, "knn_reuse": dict(knn_stats), "input_reuse": dict(input_stats),
+              "device": release.device,
               "gpu": torch.cuda.get_device_name(0) if release.device == "cuda" else "cpu",
               "channels": channels, "cycle": dict(CYCLE_DEFINITION)}
     result["extra_fields"] = {"tawss": {"values": result["tawss_pa"], "seed_pred": tawss, "seed_sd": result["tawss_seed_sd_pa"]},

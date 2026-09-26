@@ -1,14 +1,18 @@
-"""One-page (A4) printable report generated from ``summary.json``.
+"""One-page (A4) printable report generated from ``summary.json`` (layout: contract §19.5).
 
-The page carries no 3-D content: identity and provenance, input check, geometry table, key
-numbers, findings, trust coverage, review state and the fixed limitations statement.  It is
-rendered on demand by the service (``GET /api/jobs/<id>/onepage``) and never written to the
-job directory, so the exported result files stay exactly what the pipeline produced.
+Page 1 holds what a reader needs at a glance: header (institution template), case identity, the
+reference conclusion, key numbers (TAWSS / OSI / stagnation cards for a three-head release),
+pictures, morphology, the follow-up table (when a timeline is passed), the top findings and the
+signature lines.  The appendix (printed from a new page) holds the merged branch table, finding
+details, input check, trust coverage, limitations, timing, identity hashes and the terms used on
+the page.  It is rendered on demand by the service (``GET /api/jobs/<id>/onepage``) and never
+written to the job directory, so the exported result files stay exactly what the pipeline produced.
 Everything is escaped with :func:`html.escape`; the page contains no scripts.
 """
 from __future__ import annotations
 
 import base64
+import copy
 import html
 import json
 import re
@@ -17,20 +21,34 @@ from typing import Any, Mapping
 
 SNAPSHOT_FILE = re.compile(r"snapshot_[a-z0-9_-]{1,32}\.png")
 MAX_SNAPSHOT_IMAGES = 12
-NO_SNAPSHOTS_HINT = "在三维报告「视图」菜单点「生成一页纸配图」可为本页配图。"
+FIRST_PAGE_SNAPSHOTS = 4
+FIRST_PAGE_FINDINGS = 5
+TIMELINE_ROWS = 4
+NO_SNAPSHOTS_HINT = "在三维报告「导出」菜单点「生成一页纸配图」可为本页配图。"
 
-LIMITATIONS = (
-    "预测对象是固定收缩期单帧（step 1162，约 0.21 s），不是全周期；没有 TAWSS、OSI 等周期量。",
-    "压力为相对量（相对于该帧体积平均压力），不能解释为绝对血压；只有压差有意义。",
-    "面积与占比按预测点占比乘输入壁面面积估计，统计按点等权，不是体积或面积积分。",
-    "模型只在腹主动脉—髂动脉五开口几何上训练；其它血管或超出参考范围的几何不适用。",
-    "输入 STL 不含患者方向；左右语义按解剖坐标架推断并经人工确认，请结合原始影像核对。",
-)
+LIMIT_SINGLE_FRAME = "预测对象是固定收缩期单帧（step 1162，约 0.21 s），不是全周期；没有 TAWSS、OSI 等周期量。"
+LIMIT_CYCLE_FRAME = "峰值 WSS 为固定收缩期帧（step 1162，约 0.21 s）；TAWSS / OSI 为单周期（0.8 s、80 帧）积分量的直接回归预测，不是逐帧推演。"
+LIMIT_PRESSURE = "压力为相对量（相对于该帧体积平均压力），不能解释为绝对血压；只有压差有意义。"
+LIMIT_AREA = "面积与占比按预测点占比乘输入壁面面积估计，统计按点等权，不是体积或面积积分。"
+LIMIT_DOMAIN = "模型只在腹主动脉—髂动脉五开口几何上训练；其它血管或超出参考范围的几何不适用。"
+LIMIT_ORIENTATION = "输入 STL 不含患者方向；左右语义按解剖坐标架推断并经人工确认，请结合原始影像核对。"
+LIMIT_CYCLE_REFERENCE = ("TAWSS / OSI 没有人群参照分位（该发布包没有 CV3 折外预测）；OSI 的预测一致性低于 TAWSS 与峰值 WSS，"
+                         "滞留区与高 OSI 区的边界只作定位参考。")
+# Full historical list (single-frame wording, every family); ``limitations(summary)`` picks the lines per field.
+LIMITATIONS = (LIMIT_SINGLE_FRAME, LIMIT_PRESSURE, LIMIT_AREA, LIMIT_DOMAIN, LIMIT_ORIENTATION)
+FOOTER_STATEMENT = "仅供研究参考，不作临床诊断依据"
 
 REVIEW_LABELS = {"unreviewed": "未审阅", "reviewed": "已审阅签字", "reopened": "已重新打开"}
-SEVERITY_LABELS = {"attention": "关注", "note": "提示", "info": "几何"}
+SEVERITY_LABELS = {"attention": "关注", "note": "提示", "info": "参考"}
+SEVERITY_ORDER = {"attention": 0, "note": 1, "info": 2}
+GEOMETRY_KINDS = {"max_diameter", "min_radius"}
 TRUST_LABELS = {"interpolation_uncovered": "插值无支撑", "rough_surface": "表面粗糙", "geometry_out_of_range": "几何越界",
                 "low_sample_support": "采样支撑弱", "near_opening": "靠近切口"}
+DECISION_LABELS = {"confirmed": "☑ 已确认", "rejected": "✕ 已驳回", None: "☐ 未判定"}
+RELIABILITY_NOTE = re.compile(r"^.+：(\d+ 站重新定向，\d+ 站截面不可靠未计入直径统计|没有可靠截面)")
+TIMELINE_METRICS = {"wss_p99_pa": ("WSS p99", "Pa", 1), "stagnation_frac": ("滞留区占比", "%", 0),
+                    "tawss_mean_pa": ("TAWSS 均值", "Pa", 2), "speed_p99_m_s": ("速度 p99", "m/s", 2),
+                    "aorta_delta_p_pa": ("主动脉 ΔP", "Pa", 0)}
 
 
 def _e(value: Any) -> str:
@@ -38,6 +56,8 @@ def _e(value: Any) -> str:
 
 
 def _num(value: Any, digits: int = 2, suffix: str = "") -> str:
+    if isinstance(value, bool):
+        return "—"
     try:
         number = float(value)
     except (TypeError, ValueError):
@@ -48,6 +68,8 @@ def _num(value: Any, digits: int = 2, suffix: str = "") -> str:
 
 
 def _pct(value: Any, digits: int = 1) -> str:
+    if isinstance(value, bool) or value is None:
+        return "—"
     try:
         return f"{100.0 * float(value):.{digits}f}%"
     except (TypeError, ValueError):
@@ -58,119 +80,131 @@ def _map(value: Any) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
 
 
+def _g(key: str, text: str) -> str:
+    """A glossary-marked term (already escaped text); ``show_glossary=used`` lists exactly these keys."""
+    return f'<span class="g" data-gloss="{_e(key)}">{text}</span>'
+
+
 def family_of(summary: Mapping[str, Any]) -> str:
     fields = _map(summary.get("fields"))
     return "volume" if ("velocity" in fields or "pressure" in fields) else "wall"
 
 
-def _table(headers: list[str], rows: list[list[str]], *, klass: str = "") -> str:
+def has_cycle(summary: Mapping[str, Any]) -> bool:
+    """A three-head result: ``summary["cycle"]`` carries TAWSS or OSI statistics."""
+    fields = _map(_map(summary.get("cycle")).get("fields"))
+    return bool(fields.get("tawss") or fields.get("osi"))
+
+
+def model_count(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None) -> int | None:
+    """Ensemble size: ``run_parameters.seed_count``, else the job's release ``models_count``."""
+    for value in (_map(summary.get("run_parameters")).get("seed_count"), _map(_map(job).get("model_release")).get("models_count")):
+        if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+            return value
+    return None
+
+
+def limitations(summary: Mapping[str, Any]) -> list[str]:
+    """Limitation lines for the fields this result actually carries (§19.2), plus the summary's own notes."""
+    cycle = has_cycle(summary)
+    items = [LIMIT_CYCLE_FRAME if cycle else LIMIT_SINGLE_FRAME]
+    if family_of(summary) == "volume":
+        items.append(LIMIT_PRESSURE)
+    items += [LIMIT_AREA, LIMIT_DOMAIN, LIMIT_ORIENTATION]
+    if cycle:
+        items.append(LIMIT_CYCLE_REFERENCE)
+    items += [str(item) for item in (summary.get("notes") or []) if isinstance(item, str)]
+    return items
+
+
+def _release_id(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None) -> str:
+    release = _map(summary.get("model_release"))
+    value = (release.get("registry_id") or release.get("release") or release.get("name") or summary.get("release")
+             or _map(_map(job).get("model_release")).get("id"))
+    return str(value or "")
+
+
+def _release_short(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None) -> str:
+    rid = _release_id(summary, job)
+    what = "压力 + 速度" if family_of(summary) == "volume" else ("WSS + TAWSS + OSI" if has_cycle(summary) else "壁面 WSS")
+    return f"{rid.split('_')[0]} · {what}" if rid else what
+
+
+def _template(job_dir: Path | str | None, template: Mapping[str, Any] | None) -> dict:
+    from . import report_template as RT
+    if isinstance(template, Mapping):
+        try:
+            return RT.validate({key: value for key, value in template.items() if key != "schema_version"})
+        except ValueError:
+            return copy.deepcopy(RT.DEFAULTS)
+    return RT.load_for_job(Path(job_dir)) if job_dir else copy.deepcopy(RT.DEFAULTS)
+
+
+def _table(headers: list[str], rows: list[list[str]], *, klass: str = "", raw_headers: bool = False) -> str:
     if not rows:
         return '<p class="muted">无数据</p>'
-    head = "".join(f"<th>{_e(h)}</th>" for h in headers)
+    head = "".join(f"<th>{h if raw_headers else _e(h)}</th>" for h in headers)
     body = "".join("<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in rows)
     return f'<table class="{_e(klass)}"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>'
 
 
 def _kv(pairs: list[tuple[str, str]]) -> str:
-    return '<dl class="kv">' + "".join(f"<dt>{_e(k)}</dt><dd>{v}</dd>" for k, v in pairs) + "</dl>"
+    return '<dl class="kv">' + "".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in pairs) + "</dl>"
 
 
-def _identity_section(summary: Mapping[str, Any], job: Mapping[str, Any]) -> str:
+def _cards(cards: list[tuple[str, str, str]], *, klass: str = "") -> str:
+    """Cards: (label HTML, value HTML, note HTML); callers escape their text."""
+    return f'<div class="cards {klass}">' + "".join(
+        f'<div class="card"><span class="label">{label}</span><strong>{value}</strong><small>{note}</small></div>'
+        for label, value, note in cards) + "</div>"
+
+
+def _value_text(value: Any, units: Any) -> str:
+    units = str(units or "")
+    digits = {"Pa": 2, "mm": 1, "cm²": 1, "m/s": 3, "1": 2, "mL": 0}.get(units, 2)
+    if units == "Pa" and isinstance(value, (int, float)) and abs(value) >= 10:
+        digits = 0 if abs(value) >= 100 else 1   # relative pressures reach thousands of Pa
+    text = _num(value, digits)
+    return text if units in ("", "1") or text == "—" else f"{text} {units}"
+
+
+# ----------------------------------------------------------------------------- page 1
+def _header(summary: Mapping[str, Any], job: Mapping[str, Any], template: Mapping[str, Any], title: str) -> str:
+    review = _map(summary.get("review")) or _map(job.get("review"))
+    status = str(review.get("status") or "unreviewed")
+    institution = " · ".join(str(x) for x in (template.get("institution"), template.get("department")) if x)
+    frame = "收缩期峰值 WSS + 单周期 TAWSS / OSI 预测" if has_cycle(summary) else "固定收缩期单帧预测"
+    inst = f'<p class="inst">{_e(institution)}</p>' if institution else ""
+    return (f'<header class="top"><div>{inst}<h1>{_e(title)}</h1>'
+            f'<p class="sub">{_e(frame)} · {_e(FOOTER_STATEMENT)}</p></div>'
+            f'<div class="status">{_g("review_status", "审阅状态")}<br><strong class="{"ok" if status == "reviewed" else ""}">'
+            f'{_e(REVIEW_LABELS.get(status, status))}</strong><br>{_e(_short_time(summary.get("created_at") or job.get("created_at")))}</div></header>')
+
+
+def _short_time(value: Any) -> str:
+    text = str(value or "")
+    return text.replace("T", " ")[:16] if text else "—"
+
+
+def _full_time(value: Any) -> str:
+    """``YYYY-MM-DD HH:MM:SS`` from the v0.15 ISO form (offset dropped) or the older plain local form."""
+    text = str(value or "")
+    return text.replace("T", " ")[:19] if text else "—"
+
+
+def _identity_line(summary: Mapping[str, Any], job: Mapping[str, Any]) -> str:
     meta = _map(summary.get("case_metadata"))
-    release = _map(summary.get("model_release"))
-    contract = _map(summary.get("feature_contract"))
-    tags = meta.get("tags") if isinstance(meta.get("tags"), list) else []
-    pairs = [
-        ("匿名病例编号", _e(summary.get("case_id") or job.get("case_id") or "—")),
-        ("匿名患者编号", _e(meta.get("patient_id") or job.get("patient_id") or "—")),
-        ("扫描标签 / 日期", _e(" / ".join(x for x in (meta.get("scan_label") or job.get("scan_label") or "", meta.get("scan_date") or job.get("scan_date") or "") if x) or "—")),
-        ("标签", _e("、".join(str(t) for t in tags) or "—")),
-        ("任务编号", _e(job.get("id") or "—")),
-        ("生成时间", _e(summary.get("created_at") or "—")),
-        ("发布包", _e(release.get("registry_id") or release.get("release") or release.get("name") or summary.get("release") or "—")),
-        ("发布包指纹", _e(str(release.get("fingerprint") or summary.get("release_hash") or "—")[:16])),
-        ("特征程序合同", _e(f"{contract.get('version') or '—'} · {str(contract.get('source_hash') or '—')[:16]}")),
-        ("运行身份", _e(str(summary.get("run_identity") or job.get("run_identity") or "—")[:16])),
-        ("时间帧", _e(", ".join(str(f.get("label") or f.get("step")) for f in summary.get("time_axis") or [] if isinstance(f, Mapping)) or "固定收缩期单帧")),
-    ]
-    return _kv(pairs)
-
-
-def _input_section(summary: Mapping[str, Any]) -> str:
-    ic = _map(summary.get("input_check"))
-    quality = _map(ic.get("quality"))
-    bbox = ic.get("bbox_size_mm") if isinstance(ic.get("bbox_size_mm"), list) else []
-    pairs = [
-        ("单位", _e(ic.get("unit") or ic.get("resolved_units") or "—")),
-        ("顶点 / 面片", _e(f"{ic.get('vertices', '—')} / {ic.get('faces', '—')}")),
-        ("壁面面积", _num(float(ic["area_mm2"]) / 100.0, 1, " cm²") if ic.get("area_mm2") is not None else "—"),
-        ("包围盒 (mm)", _e(" × ".join(_num(v, 0) for v in bbox) if bbox else "—")),
-        ("开口数 / 连通片", _e(f"{ic.get('openings', '—')} / {ic.get('components', '—')}")),
-        ("质量评分卡", _e(quality.get("grade_label") or quality.get("grade") or "—")),
-    ]
-    flags = [str(f) for f in (ic.get("flags") or [])]
-    extra = f'<p class="muted">{_e("；".join(flags))}</p>' if flags else ""
-    return _kv(pairs) + extra
-
-
-def _geometry_section(summary: Mapping[str, Any]) -> str:
-    geometry = _map(summary.get("geometry"))
-    rows = []
-    for name, row in geometry.items():
-        row = _map(row)
-        rows.append([_e(name), _num(row.get("length_mm"), 0), _num(row.get("radius_min_mm"), 1),
-                     _num(row.get("radius_median_mm"), 1), _num(row.get("max_diameter_mm"), 1),
-                     _num(row.get("stenosis_index"), 2), _num(row.get("tortuosity"), 2)])
-    return _table(["分支", "长度 mm", "最小半径", "中位半径", "最大直径", "狭窄指数", "迂曲度"], rows, klass="compact")
-
-
-def _wall_numbers(summary: Mapping[str, Any]) -> str:
-    peak = _map(summary.get("peak"))
-    field = _map(summary.get("wss_field_pa"))
-    thresholds = field.get("thresholds_pa") if isinstance(field.get("thresholds_pa"), list) else [0.4, 4.0, 7.0]
-    cards = [
-        ("全场 p99", _num(peak.get("p99_pa"), 2, " Pa"), "预测点云空间第 99 百分位"),
-        ("全场最大值", _num(peak.get("max_pa"), 2, " Pa"), _e(f"位置：{peak.get('branch') or '—'}，距入口 {_num(peak.get('s_from_inlet_mm'), 0)} mm")),
-        (f"低 WSS 面积 (< {_num(thresholds[0], 1)} Pa)", _pct(field.get("area_frac_low")), _num(field.get("area_low_mm2", 0) / 100.0 if field.get("area_low_mm2") is not None else None, 0, " cm²")),
-        (f"高 WSS 面积 (> {_num(thresholds[1], 0)} Pa)", _pct(field.get("area_frac_high")), _e(f"> {_num(thresholds[2], 0)} Pa：{_pct(field.get('area_frac_very_high'))}")),
-    ]
-    quality = _map(summary.get("quality"))
-    cards.append(("集成质量", _e(quality.get("label") or quality.get("level") or "未评估"), _e("；".join(quality.get("reasons") or []) or "五模型离散度在常规范围内")))
-    return _cards(cards)
-
-
-def _wall_branches(summary: Mapping[str, Any]) -> str:
-    rows = []
-    for name, row in _map(summary.get("per_branch")).items():
-        row = _map(row)
-        rows.append([_e(name), _num(row.get("wss_mean_pa"), 2), _num(row.get("wss_p99_pa"), 2), _num(row.get("wss_max_pa"), 1),
-                     _pct(row.get("frac_low"), 0), _pct(row.get("frac_high"), 0), _num(row.get("area_mm2", 0) / 100.0 if row.get("area_mm2") is not None else None, 0)])
-    return _table(["分支", "均值 Pa", "p99 Pa", "最大 Pa", "低 WSS", "高 WSS", "面积 cm²"], rows, klass="compact")
-
-
-def _volume_numbers(summary: Mapping[str, Any]) -> str:
-    stats = _map(summary.get("volume_statistics"))
-    speed, interior, wall = _map(stats.get("speed_m_s")), _map(stats.get("pressure_interior_pa")), _map(stats.get("pressure_wall_pa"))
-    cards = [
-        ("体内速度 p99", _num(speed.get("p99"), 3, " m/s"), _e(f"均值 {_num(speed.get('mean'), 3)}，最大 {_num(speed.get('max'), 3)} m/s")),
-        ("体内相对压力范围", _e(f"{_num(interior.get('min'), 0)} ～ {_num(interior.get('max'), 0)} Pa"), "相对于该帧体积平均压力"),
-        ("壁面相对压力范围", _e(f"{_num(wall.get('min'), 0)} ～ {_num(wall.get('max'), 0)} Pa"), "壁面查询点，Gaussian 插值到顶点"),
-    ]
-    lines = _map(summary.get("streamlines"))
-    if lines:
-        cards.append(("流线", _e(f"{lines.get('line_count', '—')} 条"), "固定帧稳态积分，非粒子轨迹"))
-    drops = [item for item in _findings(summary) if item.get("kind") == "pressure_drop"]
-    out = _cards(cards)
-    if drops:
-        rows = [[_e(item.get("branch") or item.get("label")), _num(item.get("value"), 1), _num(float(item["value"]) / 133.322, 2) if item.get("value") is not None else "—",
-                 _e(item.get("definition") or "")] for item in drops]
-        out += "<h3>各分支近远端压差</h3>" + _table(["分支", "ΔP Pa", "ΔP mmHg", "口径"], rows, klass="compact")
-    return out
+    scan = " / ".join(x for x in (str(meta.get("scan_label") or job.get("scan_label") or ""),
+                                  str(meta.get("scan_date") or job.get("scan_date") or "")) if x)
+    parts = [("病例", summary.get("case_id") or job.get("case_id") or "匿名病例"),
+             ("患者", meta.get("patient_id") or job.get("patient_id")), ("扫描", scan),
+             (_g("release", "发布包"), _release_short(summary, job)), ("生成", _short_time(summary.get("created_at") or job.get("created_at")))]
+    return '<p class="idline">' + " · ".join(f"{label if label.startswith('<') else _e(label)} <b>{_e(value)}</b>"
+                                           for label, value in parts if value) + "</p>"
 
 
 def _narrative_section(summary: Mapping[str, Any]) -> str:
     """「结论（参考）」: the reviewer's text when present (badged), else the generated sentences."""
-    from .narrative import display_text
     block = _map(summary.get("narrative"))
     edited = block.get("edited")
     lines = block.get("zh") if isinstance(block.get("zh"), list) else []
@@ -179,13 +213,127 @@ def _narrative_section(summary: Mapping[str, Any]) -> str:
     if isinstance(edited, str) and edited.strip():
         body = "".join(f"<p>{_e(line)}</p>" for line in edited.strip().splitlines() if line.strip())
         badge = '<span class="badge">审阅人已修改</span>'
-        who = _map(summary.get("narrative")).get("edited_by")
+        who = block.get("edited_by")
         note = f'<p class="muted">{_e(str(who))} · {_e(str(block.get("edited_at") or ""))}</p>' if who else ""
     else:
         body = "".join(f"<p>{_e(line)}</p>" for line in lines)
         badge = '<span class="badge auto">自动生成</span>'
-        note = '<p class="muted">由本页数字自动组织，只陈述存在的量，未做诊断判断。</p>'
-    return f'<h2>结论（参考）{badge}</h2><div class="narrative">{body}{note}</div>'
+        note = ""
+    return f'<h2>结论（参考）{badge}<small>{_g("narrative", "由本页数字自动组织，只陈述存在的量，未做诊断判断")}</small></h2><div class="narrative">{body}{note}</div>'
+
+
+def _quality_card(summary: Mapping[str, Any], job: Mapping[str, Any]) -> tuple[str, str, str]:
+    from .quality import model_count_phrase
+    quality = _map(summary.get("quality"))
+    note = "；".join(str(x) for x in quality.get("reasons") or []) or f"{model_count_phrase(model_count(summary, job))}离散度在常规范围内"
+    return (_g("quality_grade", "集成质量"), _e(quality.get("label") or quality.get("level") or "未评估"), _e(note))
+
+
+def _wall_cards(summary: Mapping[str, Any], job: Mapping[str, Any]) -> list[tuple[str, str, str]]:
+    peak = _map(summary.get("peak"))
+    field = _map(summary.get("wss_field_pa"))
+    thresholds = field.get("thresholds_pa") if isinstance(field.get("thresholds_pa"), list) else [0.4, 4.0, 7.0]
+    area_low = field.get("area_low_mm2")
+    population = _map(_map(summary.get("reference_assessment")).get("population"))
+    rank = population.get("percentile")
+    p99_note = (_e(f"人群第 {_num(rank, 0)} 百分位（{population.get('reference_count') or '—'} 例）") if rank is not None
+                else "预测点云空间第 99 百分位")
+    return [
+        (_g("p99", "WSS 全场 p99"), _num(peak.get("p99_pa"), 2, " Pa"), p99_note),
+        (_g("max", "全场最大值"), _num(peak.get("max_pa"), 2, " Pa"), _e(f"{peak.get('branch') or '—'}，距入口 {_num(peak.get('s_from_inlet_mm'), 0)} mm")),
+        (_g("area_fraction", f"低 WSS 面积 (&lt; {_num(thresholds[0], 1)} Pa)"), _pct(field.get("area_frac_low")),
+         _num(area_low / 100.0 if isinstance(area_low, (int, float)) else None, 0, " cm²")),
+        (_g("thresholds", f"高 WSS 面积 (&gt; {_num(thresholds[1], 0)} Pa)"), _pct(field.get("area_frac_high")),
+         _e(f"> {_num(thresholds[2], 0)} Pa：{_pct(field.get('area_frac_very_high'))}")),
+    ]
+
+
+def _largest(rows: Mapping[str, Any], area) -> str:
+    best, name = 0.0, ""
+    for key, row in rows.items():
+        try:
+            value = float(area(_map(row)))
+        except (TypeError, ValueError):
+            continue
+        if value > best:
+            best, name = value, str(key)
+    return name
+
+
+def _cycle_cards(summary: Mapping[str, Any]) -> list[tuple[str, str, str]]:
+    """The §19.2 cards (+ the v0.13 RRT / ECAP card); every number comes from ``summary["cycle"]``."""
+    cycle = _map(summary.get("cycle"))
+    fields = _map(cycle.get("fields"))
+    tawss, osi, stagnation = _map(fields.get("tawss")), _map(fields.get("osi")), _map(cycle.get("stagnation"))
+    cards = []
+    if tawss:
+        t = tawss.get("thresholds") if isinstance(tawss.get("thresholds"), list) and tawss.get("thresholds") else [0.4]
+        cards.append((_g("tawss", "TAWSS 均值"), _num(tawss.get("mean"), 2, " Pa"),
+                      _e(f"低 TAWSS (< {_num(t[0], 1)} Pa) {_pct(_map(tawss.get('area_frac')).get('low'))}；p99 {_num(tawss.get('p99'), 2)} Pa")))
+    if osi:
+        t = osi.get("thresholds") if isinstance(osi.get("thresholds"), list) and len(osi.get("thresholds")) == 3 else [0.1, 0.2, 0.3]
+        frac = _map(osi.get("area_frac"))
+        cards.append((_g("osi", "OSI 均值"), _num(osi.get("mean"), 3),
+                      _e(f"OSI > {t[0]:g}：{_pct(frac.get('above_t0'))}；> {t[2]:g}：{_pct(frac.get('above_t2'))}")))
+    rrt, ecap = _map(fields.get("rrt")), _map(fields.get("ecap"))
+    if rrt or ecap:
+        # v0.13 derived indices share one card (1/Pa); thresholds come from the summary block.
+        def above(block, fallback):
+            t = block.get("thresholds") if isinstance(block.get("thresholds"), list) and block.get("thresholds") else [fallback]
+            return f"> {_num(t[0], 1)}：{_pct(_map(block.get('area_frac')).get('above_t0'))}"
+        value = " / ".join(_num(block.get("mean"), 2) for block in (rrt, ecap) if block)
+        note = "；".join(part for part in ((f"RRT {above(rrt, 5.0)}" if rrt else ""), (f"ECAP {above(ecap, 1.4)}" if ecap else "")) if part)
+        title = _g("rrt", "RRT") + " / " + _g("ecap", "ECAP") + " 均值" if rrt and ecap else (_g("rrt", "RRT 均值") if rrt else _g("ecap", "ECAP 均值"))
+        cards.append((title, value + " Pa⁻¹", _e(note)))
+    if stagnation:
+        area = stagnation.get("area_mm2")
+        where = _largest(_map(stagnation.get("per_branch")), lambda row: row.get("area_mm2"))
+        cards.append((_g("stagnation", "滞留区面积"), _num(area / 100.0 if isinstance(area, (int, float)) else None, 0, " cm²"),
+                      _e(f"占壁面 {_pct(stagnation.get('area_frac'))}" + (f"；主要位于{where}" if where else "") + "；TAWSS < 0.4 Pa 且 OSI > 0.1")))
+    return cards
+
+
+def _drops(summary: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    return [item for item in _findings(summary) if item.get("kind") == "pressure_drop"]
+
+
+def _volume_cards(summary: Mapping[str, Any]) -> list[tuple[str, str, str]]:
+    stats = _map(summary.get("volume_statistics"))
+    speed, interior, wall = _map(stats.get("speed_m_s")), _map(stats.get("pressure_interior_pa")), _map(stats.get("pressure_wall_pa"))
+    cards = [(_g("speed", "体内速度 p99"), _num(speed.get("p99"), 3, " m/s"), _e(f"均值 {_num(speed.get('mean'), 3)}，最大 {_num(speed.get('max'), 3)} m/s"))]
+    aorta = next((item for item in _drops(summary) if item.get("branch") == "主动脉"), None)
+    if aorta is not None:
+        value = aorta.get("value")
+        mmhg = _num(float(value) / 133.322, 2) if isinstance(value, (int, float)) else "—"
+        cards.append((_g("delta_p", "主动脉近远端压差"), _num(value, 1, " Pa"), _e(f"≈ {mmhg} mmHg；近端 10% − 远端 10%")))
+    cards += [(_g("relative_pressure", "体内相对压力范围"), _e(f"{_num(interior.get('min'), 0)} ～ {_num(interior.get('max'), 0)} Pa"), "相对于该帧体积平均压力"),
+              ("壁面相对压力范围", _e(f"{_num(wall.get('min'), 0)} ～ {_num(wall.get('max'), 0)} Pa"), "壁面查询点，Gaussian 插值到顶点")]
+    lines = _map(summary.get("streamlines"))
+    if lines:
+        cards.append((_g("streamlines", "流线"), _e(f"{lines.get('line_count', '—')} 条"), "固定帧稳态积分，非粒子轨迹"))
+    return cards
+
+
+def _numbers_section(summary: Mapping[str, Any], job: Mapping[str, Any]) -> str:
+    if family_of(summary) == "volume":
+        cards = _volume_cards(summary)
+    else:
+        cards = _wall_cards(summary, job) + _cycle_cards(summary) + [_quality_card(summary, job)]
+    return "<h2>关键数字</h2>" + _cards(cards)
+
+
+def _reliability(morphology: Mapping[str, Any]) -> tuple[str, list[str], list[str]]:
+    """One-line section reliability, the per-branch notes (appendix) and the remaining notes (page 1)."""
+    rows = [row for row in (morphology.get("branches") or []) if isinstance(row, Mapping)]
+    aorta = _map(morphology.get("aorta"))
+    counted = rows or ([aorta] if aorta else [])
+    reoriented = sum(int(row.get("n_reoriented") or 0) for row in counted)
+    excluded = sum(int(row.get("n_excluded") or 0) for row in counted)
+    notes = [str(item) for item in (morphology.get("notes") or []) if isinstance(item, str)]
+    detail = [note for note in notes if RELIABILITY_NOTE.match(note)]
+    other = [note for note in notes if not RELIABILITY_NOTE.match(note)]
+    line = f"截面可靠性：{reoriented} 站重定向，{excluded} 站不可靠（已排除）" if counted else ""
+    return line, detail, other
 
 
 def _morphology_section(summary: Mapping[str, Any]) -> str:
@@ -195,50 +343,21 @@ def _morphology_section(summary: Mapping[str, Any]) -> str:
     largest, sac, neck = _map(aorta.get("max")), _map(aorta.get("sac")), _map(aorta.get("neck"))
     if not largest:
         return ""
-    method = _map(morphology.get("method"))
-    station = morphology.get("station_mm") or 1.0
     cards = [
-        ("最大直径", _num(largest.get("max_diameter_mm"), 1, " mm"),
+        (_g("max_diameter", "最大直径"), _num(largest.get("max_diameter_mm"), 1, " mm"),
          _e(f"距入口 {_num(largest.get('distance_from_inlet_mm'), 0)} mm；等效直径 {_num(largest.get('equivalent_diameter_mm'), 1)} mm")),
-        ("瘤体", (_e(f"{_num(sac.get('length_mm'), 0)} mm") if sac.get("present") else "未见"),
+        (_g("aneurysm_sac", "瘤体"), (_e(f"{_num(sac.get('length_mm'), 0)} mm") if sac.get("present") else "未见"),
          _e(f"体积约 {_num(sac.get('volume_ml'), 0)} mL；判据 ≥ {_num(sac.get('threshold_mm'), 1)} mm" if sac.get("present")
             else f"主动脉最大等效直径 < 1.5 × 参考直径 {_num(aorta.get('reference_diameter_mm'), 1)} mm")),
-        ("近端瘤颈", (_e(f"{_num(neck.get('length_mm'), 0)} mm") if neck.get("present") else "未给出"),
+        (_g("aneurysm_neck", "近端瘤颈"), (_e(f"{_num(neck.get('length_mm'), 0)} mm") if neck.get("present") else "未给出"),
          _e(f"平均直径 {_num(neck.get('diameter_mean_mm'), 1)} mm（{_num(neck.get('diameter_min_mm'), 1)}–{_num(neck.get('diameter_max_mm'), 1)}）"
             if neck.get("present") else "瘤体近端无持续 < 1.2 × 参考直径的区段")),
-        ("全腔体积", _num(morphology.get("lumen_volume_ml"), 0, " mL"),
-         _e(f"参考直径 {_num(aorta.get('reference_diameter_mm'), 1)} mm（等效直径第 10 百分位）")),
+        (_g("lumen_volume", "全腔体积"), _num(morphology.get("lumen_volume_ml"), 0, " mL"),
+         _g("reference_diameter", _e(f"参考直径 {_num(aorta.get('reference_diameter_mm'), 1)} mm（等效直径第 10 百分位）"))),
     ]
-    explanation = _e(f"沿中心线每 {_num(station, 0)} mm 取一站，以局部切线为法向切壁面网格；"
-                     f"{method.get('max_diameter') or '最大直径为轮廓上最远两点的距离'}，"
-                     f"{method.get('equivalent_diameter') or '等效直径 = 2·sqrt(面积/π)'}。")
-    notes = [str(item) for item in (morphology.get("notes") or []) if isinstance(item, str)]
-    warning = f'<p class="muted">{_e("；".join(notes))}</p>' if notes else ""
-    return f'<h2>瘤体形态</h2>{_cards(cards)}<p class="muted">{explanation}</p>{warning}'
-
-
-def _morphology_branches(summary: Mapping[str, Any]) -> str:
-    """「血管分支表」 (contract §17.1): length, tortuosity, diameter range and the family's own column."""
-    morphology = _map(summary.get("morphology"))
-    branches = [row for row in (morphology.get("branches") or []) if isinstance(row, Mapping)]
-    if not branches:
-        return ""
-    family = family_of(summary)
-    if family == "wall":
-        extra = ["p99 Pa", "均值 Pa", "低 WSS", "高 WSS"]
-        cells = lambda row: [_num(row.get("wss_p99_pa"), 2), _num(row.get("wss_mean_pa"), 2),
-                             _pct(row.get("area_frac_low"), 0), _pct(row.get("area_frac_high"), 0)]
-    else:
-        extra = ["ΔP Pa", "速度均值 m/s", "速度最大 m/s", ""]
-        cells = lambda row: [_num(row.get("delta_p_pa"), 1), _num(row.get("speed_mean_m_s"), 3),
-                             _num(row.get("speed_max_m_s"), 3), ""]
-    rows = [[_e(row.get("name") or row.get("segment_id")), _num(row.get("length_mm"), 0), _num(row.get("tortuosity"), 2),
-             _e(f"{_num(row.get('diameter_min_mm'), 1)}–{_num(row.get('diameter_max_mm'), 1)}"),
-             _num(row.get("diameter_mean_mm"), 1), *cells(row)] for row in branches]
-    headers = ["分支", "长度 mm", "扭曲度", "直径范围 mm", "平均直径 mm", *extra]
-    return ('<h2>血管分支表</h2>' + _table(headers, rows, klass="compact")
-            + '<p class="muted">直径为壁面网格截面的最大 Feret 直径；扭曲度 = 中心线弧长 / 两端直线距离。'
-              '分叉附近的截面会同时切到母血管，该处直径偏大。</p>')
+    line, _, other = _reliability(morphology)
+    notes = "；".join(([line] if line else []) + other)
+    return f'<h2>瘤体形态<small>逐分支明细与方法见附录</small></h2>{_cards(cards, klass="morph")}' + (f'<p class="muted">{_e(notes)}</p>' if notes else "")
 
 
 def _findings(summary: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -249,9 +368,6 @@ def _findings(summary: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     return sorted(items, key=lambda item: (item.get("rank") if isinstance(item.get("rank"), (int, float)) else 1e9))
 
 
-DECISION_LABELS = {"confirmed": "☑ 已确认", "rejected": "✕ 已驳回", None: "☐ 未判定"}
-
-
 def _findings_review(summary: Mapping[str, Any]) -> tuple[Mapping[str, Any], list[Mapping[str, Any]]]:
     """Reviewer decisions (contract §11.10): ``findings.review.items`` keyed by finding id, plus manual additions."""
     review = _map(_map(summary.get("findings")).get("review"))
@@ -260,64 +376,49 @@ def _findings_review(summary: Mapping[str, Any]) -> tuple[Mapping[str, Any], lis
     return decisions, added
 
 
-def _finding_row(item: Mapping[str, Any], decision: Mapping[str, Any] | None, *, manual: bool = False) -> list[str]:
-    value = item.get("value")
-    units = item.get("units") or ""
-    label = item.get("label") or item.get("text") or item.get("kind") or ""
-    note = (decision or {}).get("note") or ""
-    definition = item.get("definition") or (item.get("text") if manual else "") or ""
-    return [_e(item.get("id") or ""), _e(("【人工】" if manual else "") + str(label)), _e(item.get("branch") or "—"),
-            _e(f"{_num(value, 2)} {units}".strip()) if value is not None else "—",
-            _e(SEVERITY_LABELS.get(str(item.get("severity")), item.get("severity") or "")),
-            _e(DECISION_LABELS.get((decision or {}).get("decision"), "☐ 未判定")),
-            _e((definition + ("；备注：" + note if note else "")) if not manual else (note or definition))]
+def _severity(item: Mapping[str, Any]) -> str:
+    severity = str(item.get("severity") or "")
+    label = "几何" if item.get("kind") in GEOMETRY_KINDS else SEVERITY_LABELS.get(severity, severity)
+    return f'<span class="sev {_e(severity)}">{_e(label)}</span>' if label else ""
 
 
-def _findings_section(summary: Mapping[str, Any]) -> str:
-    items = _findings(summary)
+def top_findings(summary: Mapping[str, Any], limit: int = FIRST_PAGE_FINDINGS) -> list[Mapping[str, Any]]:
+    """Page-1 findings: one per kind first (severity, then flow before geometry, then rank), then the rest.
+
+    Rejected items never appear; the single-point maximum is deferred because it repeats the hottest cluster.
+    """
+    decisions, _ = _findings_review(summary)
+    items = [item for item in _findings(summary) if _map(decisions.get(str(item.get("id")))).get("decision") != "rejected"]
+    key = lambda item: (SEVERITY_ORDER.get(str(item.get("severity")), 3) + (0.5 if item.get("kind") in GEOMETRY_KINDS else 0.0),
+                        item.get("rank") if isinstance(item.get("rank"), (int, float)) else 1e9)
+    ordered = sorted(items, key=key)
+    chosen, kinds = [], set()
+    for item in ordered:
+        if len(chosen) < limit and item.get("kind") not in kinds and item.get("kind") != "max_wss":
+            chosen.append(item); kinds.add(item.get("kind"))
+    for item in ordered:
+        if len(chosen) < limit and item not in chosen:
+            chosen.append(item)
+    return sorted(chosen, key=key)
+
+
+def _top_findings_section(summary: Mapping[str, Any]) -> str:
     decisions, added = _findings_review(summary)
-    if not items and not added:
+    chosen = top_findings(summary)
+    if not chosen and not added:
         return ""
-    headers = ["#", "发现", "分支", "数值", "级别", "判定", "口径 / 备注"]
-    body, rejected = [], []
-    for item in items:
-        decision = _map(decisions.get(str(item.get("id"))))
-        (rejected if decision.get("decision") == "rejected" else body).append((item, decision))
-    rows = [_finding_row(item, decision) for item, decision in body[:14]]
-    rows += [_finding_row(item, {"decision": "confirmed", "note": ""}, manual=True) for item in added]
-    more = f'<p class="muted">另有 {len(body) - 14} 项未列出，见三维报告。</p>' if len(body) > 14 else ""
-    out = '<h2>发现列表</h2>' + _table(headers, rows, klass="compact findings") + more
-    if decisions or added:
-        out += '<p class="muted">☑ 审阅人已确认；☐ 尚未判定；【人工】为审阅人手动添加。驳回项见附录。</p>'
-    if rejected:
-        out += '<h3>附录：已驳回的自动发现</h3>' + _table(headers, [_finding_row(item, decision) for item, decision in rejected], klass="compact findings")
-    return out
+    rows = [[_e(item.get("id") or ""), _e(item.get("label") or item.get("kind") or ""), _e(item.get("branch") or "—"),
+             _e(_value_text(item.get("value"), item.get("units"))) if item.get("value") is not None else "—", _severity(item),
+             _e(DECISION_LABELS.get(_map(decisions.get(str(item.get("id")))).get("decision"), "☐ 未判定"))] for item in chosen]
+    rows += [[_e(item.get("id") or ""), _e("【人工】" + str(item.get("text") or item.get("label") or "")), _e(item.get("branch") or "—"),
+              "—", _severity(item), _e(DECISION_LABELS["confirmed"])] for item in added]
+    total = len(_findings(summary))
+    more = f"共 {total} 条自动发现，完整列表与口径见附录" if total > len(chosen) else "口径见附录"
+    return (f'<h2>重点发现<small>{_e(more)}</small></h2>'
+            + _table(["#", "发现", "分支", "数值", "级别", _g("finding_decision", "判定")], rows, klass="top", raw_headers=True))
 
 
-def _annotations_section(summary: Mapping[str, Any]) -> str:
-    items = [item for item in (_map(summary.get("annotations")).get("items") or []) if isinstance(item, Mapping)]
-    if not items:
-        return ""
-    rows = [[_e(item.get("id") or ""), _e(item.get("branch") or "—"), _num(item.get("s_from_root_mm"), 0), _e(item.get("text") or "")]
-            for item in items]
-    return '<h2>标注</h2>' + _table(["编号", "分支", "弧长 mm", "文字"], rows, klass="compact findings")
-
-
-def _snapshots_document(job_dir: Path | None, snapshots: Any) -> Mapping[str, Any]:
-    """The stored snapshots manifest: passed in directly, or read from the job directory."""
-    if isinstance(snapshots, Mapping):
-        return snapshots
-    if job_dir is None:
-        return {}
-    path = Path(job_dir) / "snapshots.json"
-    try:
-        value = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
-    except (OSError, ValueError, TypeError):
-        return {}
-    return value if isinstance(value, Mapping) else {}
-
-
-def _snapshots_section(job_dir: Path | None, snapshots: Any) -> str:
+def _snapshot_figures(job_dir: Path | None, snapshots: Any) -> list[str]:
     """Pictures exported from the 3-D report, embedded as data URIs so the page stays one file."""
     document = _snapshots_document(job_dir, snapshots)
     items = [item for item in (document.get("items") or []) if isinstance(item, Mapping)]
@@ -336,16 +437,235 @@ def _snapshots_section(job_dir: Path | None, snapshots: Any) -> str:
             continue
         caption = item.get("caption") or item.get("view") or item.get("name") or ""
         figures.append(f'<figure><img alt="{_e(caption)}" src="data:image/png;base64,{data}"><figcaption>{_e(caption)}</figcaption></figure>')
+    return figures
+
+
+def _snapshots_document(job_dir: Path | None, snapshots: Any) -> Mapping[str, Any]:
+    """The stored snapshots manifest: passed in directly, or read from the job directory."""
+    if isinstance(snapshots, Mapping):
+        return snapshots
+    if job_dir is None:
+        return {}
+    path = Path(job_dir) / "snapshots.json"
+    try:
+        value = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    except (OSError, ValueError, TypeError):
+        return {}
+    return value if isinstance(value, Mapping) else {}
+
+
+def _shots(figures: list[str], *, first_page: bool = False) -> str:
+    """Page 1 keeps its pictures in one row (1–2 → two columns, 3 → three, 4 → four) so it still fits one A4
+    sheet; a 2 × 2 grid of useful size would not.  Appendix pictures use three columns."""
+    columns = (2 if len(figures) <= 2 else min(len(figures), 4)) if first_page else 3
+    return f'<div class="shots cols{columns}">' + "".join(figures) + "</div>"
+
+
+def _snapshots_section(figures: list[str]) -> str:
+    # v0.14 (F6): without pictures the slot is a one-line screen hint (never printed); the appendix flows up.
     if not figures:
-        return f'<h2>配图</h2><p class="muted">{_e(NO_SNAPSHOTS_HINT)}</p>'
-    columns = 2 if len(figures) <= 2 else 3
-    return f'<h2>配图</h2><div class="shots cols{columns}">' + "".join(figures) + "</div>"
+        return f'<div class="noprint snap-hint"><h2>配图</h2><p class="muted">{_e(NO_SNAPSHOTS_HINT)}</p></div>'
+    return "<h2>配图</h2>" + _shots(figures[:FIRST_PAGE_SNAPSHOTS], first_page=True)
 
 
-def _glossary_section() -> str:
-    from .glossary import GLOSSARY
-    rows = [[_e(term.get("zh") or key), _e(term.get("zh_desc") or "")] for key, term in GLOSSARY.items()]
-    return '<h2>术语说明</h2>' + _table(["术语", "解释"], rows, klass="compact findings glossary")
+def _timeline_section(timeline: Mapping[str, Any] | None, summary: Mapping[str, Any]) -> str:
+    """「随访变化」 (contract §19.3): dates, max diameter, sac volume, this release's main metric, growth rates."""
+    data = _map(timeline)
+    scans = [scan for scan in (data.get("scans") or []) if isinstance(scan, Mapping)]
+    if len(scans) < 2:
+        return ""
+    rid = _release_id(summary)
+    wanted = (("speed_p99_m_s", "aorta_delta_p_pa") if family_of(summary) == "volume"
+              else ("wss_p99_pa", "stagnation_frac") if has_cycle(summary) else ("wss_p99_pa",))
+    models = [_map(_map(scan.get("models")).get(rid)) for scan in scans]
+    metrics = [key for key in wanted if any(model.get(key) is not None for model in models)]
+    headers = ["扫描", _g("max_diameter", "最大直径 mm"), _g("aneurysm_sac", "瘤体体积 mL")]
+    headers += [_e(f"{TIMELINE_METRICS[key][0]}{'' if TIMELINE_METRICS[key][1] == '%' else ' ' + TIMELINE_METRICS[key][1]}") for key in metrics]
+    rows = []
+    shown = list(zip(scans, models))[-TIMELINE_ROWS:]
+    for scan, model in shown:
+        geometry = _map(scan.get("geometry"))
+        date = str(scan.get("date") or "—") + ("" if scan.get("date_source") == "scan_date" else "（建档）")
+        label = str(scan.get("scan_label") or "")
+        current = bool(summary.get("input_sha256")) and scan.get("input_sha256") == summary.get("input_sha256")
+        cell = _e(date + (f" {label}" if label else "")) + (' <span class="badge auto">本次</span>' if current else "")
+        values = []
+        for key in metrics:
+            _, units, digits = TIMELINE_METRICS[key]
+            values.append(_pct(model.get(key), 0) if units == "%" else _num(model.get(key), digits))
+        rows.append([cell, _num(geometry.get("max_diameter_mm"), 1),
+                     _num(geometry.get("sac_volume_ml"), 0) if geometry.get("sac_present", True) else "未见", *values])
+    growth_parts = []
+    for block_key, label in (("growth", "首末"), ("growth_recent", "最近两次")):
+        growth = _map(data.get(block_key))
+        for key, name, units in (("max_diameter_mm", "最大直径", "mm/年"), ("sac_volume_ml", "瘤体体积", "mL/年")):
+            item = _map(growth.get(key))
+            rate = item.get("per_year")
+            if isinstance(rate, (int, float)) and not isinstance(rate, bool):
+                span = f"{_map(item.get('from')).get('date') or '?'} → {_map(item.get('to')).get('date') or '?'}"
+                growth_parts.append(f"{name} {rate:+.1f} {units}（{label}，{span}）")
+    growth_text = ("年增长率：" + "；".join(growth_parts)) if growth_parts else "；".join(
+        str(note) for note in (data.get("notes") or []) if isinstance(note, str))
+    more = f"共 {len(scans)} 次扫描，显示最近 {len(shown)} 次" if len(scans) > len(shown) else f"共 {len(scans)} 次扫描"
+    return (f'<h2>{_g("follow_up_timeline", "随访变化")}<small>{_e(more)}</small></h2>'
+            + _table(headers, rows, klass="num", raw_headers=True)
+            + (f'<p class="muted">{_g("growth_rate", _e(growth_text))}</p>' if growth_text else ""))
+
+
+def _signature_section(summary: Mapping[str, Any], job: Mapping[str, Any], template: Mapping[str, Any]) -> str:
+    lines = [str(x) for x in (template.get("signature_lines") or []) if str(x).strip()]
+    review = _map(summary.get("review")) or _map(job.get("review"))
+    record = ""
+    if str(review.get("status") or "") in REVIEW_LABELS and review.get("status") != "unreviewed":
+        parts = [REVIEW_LABELS[str(review["status"])]] + [str(review[key]) for key in ("by", "at", "note") if review.get(key)]
+        if review.get("version") is not None:
+            parts.append(f"锁定版本 {review['version']}")
+        record = f'<p class="muted">电子审阅记录：{_e(" · ".join(parts))}</p>'
+    if not lines:
+        return record
+    body = "".join(f'<div class="line"><span class="who">{_e(line)}</span><span class="blank"></span>'
+                   f'<span class="who">日期</span><span class="blank short"></span></div>' for line in lines)
+    return f'<section class="sign">{body}</section>{record}'
+
+
+def _footer(summary: Mapping[str, Any], job: Mapping[str, Any], template: Mapping[str, Any], page: str) -> str:
+    note = str(template.get("footer_note") or "").strip()
+    note_html = ("；" + "<br>".join(_e(line) for line in note.splitlines() if line.strip())) if note else ""
+    return (f'<footer class="pf"><span>{_e(FOOTER_STATEMENT)}{note_html}</span>'
+            f'<span>{_e(_release_short(summary, job))} · 任务 {_e(job.get("id") or "—")} · {_e(page)}</span></footer>')
+
+
+# ----------------------------------------------------------------------------- appendix
+def _branch_table(summary: Mapping[str, Any]) -> str:
+    """Merged 分支统计 + 血管分支表 (+ 几何 stenosis index); columns follow the result family."""
+    family = family_of(summary)
+    morphology = {str(row.get("name")): row for row in (_map(summary.get("morphology")).get("branches") or []) if isinstance(row, Mapping)}
+    per_branch, geometry = _map(summary.get("per_branch")), _map(summary.get("geometry") or summary.get("branch_geometry"))
+    cycle = _map(summary.get("cycle"))
+    tawss_b = _map(_map(_map(cycle.get("fields")).get("tawss")).get("per_branch"))
+    osi_b = _map(_map(_map(cycle.get("fields")).get("osi")).get("per_branch"))
+    stag_b = _map(_map(cycle.get("stagnation")).get("per_branch"))
+    drops = {str(item.get("branch")): item for item in _drops(summary)}
+    names = list(dict.fromkeys([*morphology, *(per_branch if family == "wall" else drops), *geometry]))
+    headers = ["分支", "长度 mm", _g("tortuosity", "扭曲度"), _g("max_diameter", "直径 mm"), "狭窄指数"]
+    if family == "wall":
+        headers += ["面积 cm²", "WSS 均值", "WSS p99", "WSS 最大", "低 WSS", "高 WSS"]
+        if tawss_b or osi_b or stag_b:
+            headers += [_g("tawss", "TAWSS 均值"), _g("osi", "OSI 均值"), _g("stagnation", "滞留区")]
+    else:
+        headers += [_g("delta_p", "ΔP Pa"), "ΔP mmHg", _g("speed", "速度均值 m/s"), "速度最大 m/s"]
+    rows = []
+    for name in names:
+        m, g, w = _map(morphology.get(name)), _map(geometry.get(name)), _map(per_branch.get(name))
+        length = m.get("length_mm") if m.get("length_mm") is not None else g.get("length_mm")
+        tortuosity = m.get("tortuosity") if m.get("tortuosity") is not None else g.get("tortuosity")
+        if m.get("diameter_min_mm") is not None:
+            diameter = f"{_num(m.get('diameter_min_mm'), 1)}–{_num(m.get('diameter_max_mm'), 1)}"
+        else:
+            diameter = f"{_num(2 * g['radius_min_mm'] if isinstance(g.get('radius_min_mm'), (int, float)) else None, 1)}–{_num(g.get('max_diameter_mm'), 1)}"
+        row = [_e(name), _num(length, 0), _num(tortuosity, 2), _e(diameter), _num(g.get("stenosis_index"), 2)]
+        if family == "wall":
+            area = w.get("area_mm2")
+            row += [_num(area / 100.0 if isinstance(area, (int, float)) else None, 0),
+                    _num(w.get("wss_mean_pa") if w.get("wss_mean_pa") is not None else m.get("wss_mean_pa"), 2),
+                    _num(w.get("wss_p99_pa") if w.get("wss_p99_pa") is not None else m.get("wss_p99_pa"), 2), _num(w.get("wss_max_pa"), 1),
+                    _pct(w.get("frac_low") if w.get("frac_low") is not None else m.get("area_frac_low"), 0),
+                    _pct(w.get("frac_high") if w.get("frac_high") is not None else m.get("area_frac_high"), 0)]
+            if tawss_b or osi_b or stag_b:
+                row += [_num(_map(tawss_b.get(name)).get("mean"), 2), _num(_map(osi_b.get(name)).get("mean"), 3),
+                        _pct(_map(stag_b.get(name)).get("frac"), 0)]
+        else:
+            drop = _map(drops.get(name))
+            value = drop.get("value") if drop.get("value") is not None else m.get("delta_p_pa")
+            row += [_num(value, 1), _num(float(value) / 133.322, 2) if isinstance(value, (int, float)) else "—",
+                    _num(m.get("speed_mean_m_s"), 3), _num(m.get("speed_max_m_s"), 3)]
+        rows.append(row)
+    notes = ["直径为壁面网格截面的最大 Feret 直径（没有形态测量时为中心线内切直径）；扭曲度 = 中心线弧长 / 两端直线距离；分叉附近的截面会同时切到母血管，该处直径偏大。"]
+    if family == "volume" and drops:
+        first = next(iter(drops.values()))
+        notes.append(f"各分支近远端压差：{first.get('definition') or '近端与远端弧长段相对压力均值之差'}")
+    return ('<h2>分支统计</h2>' + _table(headers, rows, klass="num wide", raw_headers=True)
+            + "".join(f'<p class="muted">{_e(note)}</p>' for note in notes))
+
+
+def _finding_row(item: Mapping[str, Any], decision: Mapping[str, Any] | None, *, manual: bool = False) -> list[str]:
+    label = item.get("label") or item.get("text") or item.get("kind") or ""
+    note = (decision or {}).get("note") or ""
+    definition = item.get("definition") or (item.get("text") if manual else "") or ""
+    value = item.get("value")
+    return [_e(item.get("id") or ""), _e(("【人工】" if manual else "") + str(label)), _e(item.get("branch") or "—"),
+            _e(_value_text(value, item.get("units"))) if value is not None else "—", _severity(item),
+            _e(DECISION_LABELS.get((decision or {}).get("decision"), "☐ 未判定")),
+            _e((definition + ("；备注：" + note if note else "")) if not manual else (note or definition))]
+
+
+def _findings_section(summary: Mapping[str, Any]) -> str:
+    items = _findings(summary)
+    decisions, added = _findings_review(summary)
+    if not items and not added:
+        return ""
+    headers = ["#", "发现", "分支", "数值", "级别", "判定", "口径 / 备注"]
+    body, rejected = [], []
+    for item in items:
+        decision = _map(decisions.get(str(item.get("id"))))
+        (rejected if decision.get("decision") == "rejected" else body).append((item, decision))
+    rows = [_finding_row(item, decision) for item, decision in body]
+    rows += [_finding_row(item, {"decision": "confirmed", "note": ""}, manual=True) for item in added]
+    out = '<h2>发现详情</h2>' + _table(headers, rows, klass="findings")
+    if decisions or added:
+        out += '<p class="muted">☑ 审阅人已确认；☐ 尚未判定；【人工】为审阅人手动添加；驳回项单列在下方。</p>'
+    if rejected:
+        out += '<h3>附录：已驳回的自动发现</h3>' + _table(headers, [_finding_row(item, decision) for item, decision in rejected], klass="findings")
+    return out
+
+
+def _annotations_section(summary: Mapping[str, Any]) -> str:
+    items = [item for item in (_map(summary.get("annotations")).get("items") or []) if isinstance(item, Mapping)]
+    if not items:
+        return ""
+    rows = [[_e(item.get("id") or ""), _e(item.get("branch") or "—"), _num(item.get("s_from_root_mm"), 0), _e(item.get("text") or "")]
+            for item in items]
+    return '<h2>标注</h2>' + _table(["编号", "分支", "弧长 mm", "文字"], rows, klass="findings")
+
+
+def _input_section(summary: Mapping[str, Any]) -> str:
+    ic = _map(summary.get("input_check"))
+    quality = _map(ic.get("quality"))
+    bbox = ic.get("bbox_size_mm") if isinstance(ic.get("bbox_size_mm"), list) else []
+    assessment = _map(summary.get("reference_assessment"))
+    population = _map(assessment.get("population"))
+    geometry_status = {"pass": "在参考范围内", "review": "部分超出参考范围，请复核", "unknown": "未评估"}.get(str(assessment.get("status") or "unknown"), "未评估")
+    if population.get("percentile") is not None:
+        population_text = f"第 {_num(population.get('percentile'), 0)} 百分位（{population.get('reference_count') or '—'} 例折外预测）"
+    else:
+        population_text = "未提供" + (f"（{'；'.join(str(r) for r in population.get('reasons') or [])}）" if population.get("reasons") else "")
+    pairs = [
+        ("单位", _e(ic.get("unit") or ic.get("resolved_units") or "—")),
+        ("顶点 / 面片", _e(f"{ic.get('vertices', '—')} / {ic.get('faces', '—')}")),
+        ("壁面面积", _num(float(ic["area_mm2"]) / 100.0, 1, " cm²") if isinstance(ic.get("area_mm2"), (int, float)) else "—"),
+        ("包围盒 (mm)", _e(" × ".join(_num(v, 0) for v in bbox) if bbox else "—")),
+        ("开口数 / 连通片", _e(f"{ic.get('openings', '—')} / {ic.get('components', '—')}")),
+        ("质量评分卡", _e(quality.get("grade_label") or quality.get("grade") or "—")),
+        (_g("trust_geometry_out_of_range", "几何参考范围"), _e(geometry_status)),
+        (_g("population_percentile", "人群分位"), _e(population_text)),
+    ]
+    flags = [str(f) for f in (ic.get("flags") or [])]
+    return "<h2>输入检查与参考范围</h2>" + _kv(pairs) + (f'<p class="muted">{_e("；".join(flags))}</p>' if flags else "")
+
+
+def _morphology_details(summary: Mapping[str, Any]) -> str:
+    morphology = _map(summary.get("morphology"))
+    if not _map(morphology.get("aorta")).get("max"):
+        return ""
+    method = _map(morphology.get("method"))
+    station = morphology.get("station_mm") or 1.0
+    explanation = (f"沿中心线每 {_num(station, 0)} mm 取一站，以局部切线为法向切壁面网格；"
+                   f"{method.get('max_diameter') or '最大直径为轮廓上最远两点的距离'}，"
+                   f"{method.get('equivalent_diameter') or '等效直径 = 2·sqrt(面积/π)'}。")
+    line, detail, _ = _reliability(morphology)
+    return ('<h2>瘤体形态方法与截面可靠性</h2>'
+            + f'<p class="muted">{_g("equivalent_diameter", _e(explanation))}</p>'
+            + (f'<p class="muted">{_e(line)}：{_e("；".join(detail))}</p>' if detail else (f'<p class="muted">{_e(line)}</p>' if line else "")))
 
 
 def _trust_section(summary: Mapping[str, Any]) -> str:
@@ -358,114 +678,159 @@ def _trust_section(summary: Mapping[str, Any]) -> str:
     rows = []
     for key, value in fractions.items():
         bit = next((b for b, name in bits.items() if name == key), None)
-        rows.append([_e(labels.get(str(bit)) or TRUST_LABELS.get(str(key), key)), _pct(value)])
-    return '<h2>可信区域</h2><p class="muted">下列比例是模型结果中应谨慎解读的区域占比（按顶点或采样点计）。</p>' + _table(["原因", "占比"], rows, klass="compact")
-
-
-def _review_section(summary: Mapping[str, Any], job: Mapping[str, Any]) -> str:
-    review = _map(summary.get("review")) or _map(job.get("review"))
-    status = str(review.get("status") or "unreviewed")
-    pairs = [("状态", _e(REVIEW_LABELS.get(status, status)))]
-    if review.get("by"):
-        pairs.append(("审阅人", _e(review.get("by"))))
-    if review.get("at"):
-        pairs.append(("时间", _e(review.get("at"))))
-    if review.get("note"):
-        pairs.append(("备注", _e(review.get("note"))))
-    if review.get("version") is not None:
-        pairs.append(("锁定版本", _e(review.get("version"))))
-    klass = "review-box " + ("ok" if status == "reviewed" else "warn")
-    return f'<div class="{klass}">{_kv(pairs)}</div>'
+        label = _e(labels.get(str(bit)) or TRUST_LABELS.get(str(key), key))
+        rows.append([_g(f"trust_{key}", label) if re.fullmatch(r"[a-z_]+", str(key)) else label, _pct(value)])
+    return ('<h2>可信区域</h2><p class="muted">下列比例是模型结果中应谨慎解读的区域占比（按顶点或采样点计），不代表其它位置的预测准确率。</p>'
+            + _table(["原因", "占比"], rows, klass="num narrow"))
 
 
 def _timing_section(summary: Mapping[str, Any]) -> str:
     timing = _map(summary.get("timing_s"))
     names = {"ingest": "输入检查", "centerline": "中心线", "smooth_resample": "平滑重采样", "features": "几何特征",
-             "volume_features": "体场特征", "inference_5_models": "模型推理", "inference_volume": "模型推理",
-             "metrics_and_interpolation": "统计与插值", "streamlines_and_interpolation": "流线与插值", "export": "导出", "total": "合计"}
-    parts = [f"{names.get(k, k)} {_num(v, 1)} s" for k, v in timing.items() if isinstance(v, (int, float))]
+             "volume_features": "体场特征", "inference_5_models": "模型推理", "inference_volume": "模型推理", "morphology": "形态测量",
+             "metrics_and_interpolation": "统计与插值", "streamlines_and_interpolation": "流线与插值", "export": "导出", "total": "合计",
+             "precompute": "后台几何预计算（确认出口期间）"}
+    # v0.14: stages served from the background geometry precompute (summary.geometry_cache.reused) take ≈ 0 s.
+    kind_stage = {"mesh": "smooth_resample", "resample": "smooth_resample", "pointgeom": "features", "morph": "morphology", "morphvol": "morphology"}
+    reused = _map(summary.get("geometry_cache")).get("reused")
+    cached = {kind_stage[k] for k in (reused if isinstance(reused, list) else []) if k in kind_stage}
+    parts = [f"{names.get(k, k)} {_num(v, 1)} s{'（已预计算）' if k in cached else ''}" for k, v in timing.items() if isinstance(v, (int, float))]
     device = summary.get("device")
     gpu = summary.get("gpu")
     device_text = f"{device}{' · ' + str(gpu) if gpu else ''}" if device else ""
-    return f'<p class="muted">{_e("；".join(parts))}{_e("（" + device_text + "）") if device_text else ""}</p>'
+    return f'<h2>计算耗时</h2><p class="muted">{_e("；".join(parts))}{_e("（" + device_text + "）") if device_text else ""}</p>'
 
 
-def _cards(cards: list[tuple[str, str, str]]) -> str:
-    return '<div class="cards">' + "".join(
-        f'<div class="card"><span class="label">{_e(label)}</span><strong>{value}</strong><small>{note}</small></div>'
-        for label, value, note in cards) + "</div>"
+def _identity_section(summary: Mapping[str, Any], job: Mapping[str, Any]) -> str:
+    meta = _map(summary.get("case_metadata"))
+    release = _map(summary.get("model_release"))
+    contract = _map(summary.get("feature_contract"))
+    tags = meta.get("tags") if isinstance(meta.get("tags"), list) else []
+    frame = "收缩期峰值帧（step 1162，约 0.21 s）" + ("；TAWSS / OSI：单周期 0.8 s、80 帧" if has_cycle(summary) else "")
+    pairs = [
+        ("匿名病例编号", _e(summary.get("case_id") or job.get("case_id") or "—")),
+        ("匿名患者编号", _e(meta.get("patient_id") or job.get("patient_id") or "—")),
+        ("扫描标签 / 日期", _e(" / ".join(x for x in (meta.get("scan_label") or job.get("scan_label") or "", meta.get("scan_date") or job.get("scan_date") or "") if x) or "—")),
+        ("标签", _e("、".join(str(t) for t in tags) or "—")),
+        ("任务编号", _e(job.get("id") or "—")),
+        ("生成时间", _e(_full_time(summary.get("created_at")))),
+        (_g("release", "发布包"), _e(_release_id(summary, job) or "—")),
+        ("模型数", _e(model_count(summary, job) or "—")),
+        ("发布包指纹", _e(str(release.get("fingerprint") or summary.get("release_hash") or "—")[:16])),
+        (_g("feature_contract", "特征程序合同"), _e(f"{contract.get('version') or '—'} · {str(contract.get('source_hash') or '—')[:16]}")),
+        (_g("run_identity", "运行身份"), _e(str(summary.get("run_identity") or job.get("run_identity") or "—")[:16])),
+        (_g("cycle_period" if has_cycle(summary) else "fixed_frame", "时间帧"), _e(frame)),
+    ]
+    return "<h2>身份与哈希</h2>" + _kv(pairs)
 
 
+def _glossary_section(mode: str, used: list[str]) -> str:
+    from .glossary import GLOSSARY
+    if mode == "none":
+        return ""
+    keys = list(GLOSSARY) if mode == "all" else [key for key in dict.fromkeys(used) if key in GLOSSARY]
+    if not keys:
+        return ""
+    rows = [[_e(GLOSSARY[key].get("zh") or key), _e(GLOSSARY[key].get("zh_desc") or "")] for key in keys]
+    note = "本页用到的术语" if mode == "used" else "全部术语"
+    return f'<h2>术语说明<small>{note}</small></h2>' + _table(["术语", "解释"], rows, klass="glossary")
+
+
+# ----------------------------------------------------------------------------- page
 CSS = """
-:root{--ink:#20374d;--muted:#62798d;--line:#d8e2ea;--soft:#f4f7fa;--ok:#236956;--warn:#8b6519}
-*{box-sizing:border-box}body{margin:0;background:#eef3f7;color:var(--ink);font:11.5px/1.45 system-ui,-apple-system,"Microsoft YaHei",sans-serif}
-.page{width:210mm;min-height:297mm;margin:10mm auto;background:#fff;padding:12mm 13mm;box-shadow:0 4px 18px #16334b14}
-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:8px}
-h1{margin:0;font-size:17px}h2{font-size:12.5px;margin:10px 0 4px;color:#2c4a66;border-bottom:1px solid var(--line);padding-bottom:2px}h3{font-size:11.5px;margin:8px 0 3px;color:#3f5a72}
-.eyebrow{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:#176ea2;font-weight:650}
-.muted{color:var(--muted);font-size:10.5px;margin:3px 0}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
-dl.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:0;font-size:10.5px}dl.kv dt{color:var(--muted);white-space:nowrap}dl.kv dd{margin:0;overflow-wrap:anywhere}
-table{width:100%;border-collapse:collapse;font-size:10.5px;margin:3px 0}th,td{padding:2.5px 5px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--soft);color:var(--muted);font-weight:500;white-space:nowrap}
-table.compact td:not(:first-child),table.compact th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}table.findings td,table.findings th{text-align:left}table.glossary{font-size:9.5px;page-break-inside:auto}table.glossary td:first-child{white-space:nowrap;color:#2c4a66}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0}.card{background:var(--soft);border-radius:6px;padding:6px 8px;min-width:0}.card .label{display:block;font-size:9.5px;color:var(--muted)}.card strong{display:block;font-size:14px;margin:1px 0}.card small{display:block;font-size:9px;color:var(--muted);overflow-wrap:anywhere}
-.shots{display:grid;gap:5px 7px;margin:4px 0}.shots.cols2{grid-template-columns:repeat(2,1fr)}.shots.cols3{grid-template-columns:repeat(3,1fr)}
-.shots figure{margin:0;min-width:0;page-break-inside:avoid;break-inside:avoid}.shots img{display:block;width:100%;max-width:100%;height:auto;border:1px solid var(--line);border-radius:4px;background:#fff}
-.shots figcaption{font-size:9.5px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
-.narrative{border:1px solid var(--line);border-left:4px solid #176ea2;border-radius:6px;padding:6px 9px;background:#f7fbfd}
-.narrative p{margin:2px 0;font-size:11px}
-.badge{display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;font-size:9px;font-weight:600;vertical-align:middle;background:#fdf0dc;color:#8b6519}
-.badge.auto{background:#e8f1f7;color:#176ea2}
-.review-box{border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:6px;padding:6px 9px;background:#fffaf0}.review-box.ok{border-left-color:var(--ok);background:#f0f8f5}
-ol.limits{margin:3px 0 0 16px;padding:0;font-size:10px;color:#3f5a72}ol.limits li{margin:1px 0}
-footer{margin-top:8px;border-top:1px solid var(--line);padding-top:4px;font-size:9.5px;color:var(--muted);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.toolbar{width:210mm;margin:8mm auto 0;display:flex;justify-content:flex-end}.toolbar button{font:inherit;padding:6px 12px;border:1px solid #b9cbd8;border-radius:7px;background:#fff;color:#176ea2;cursor:pointer}
-@page{size:A4;margin:10mm}@media print{body{background:#fff}.page{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}.toolbar{display:none}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+:root{--ink:#20374d;--muted:#5d7488;--line:#d8e2ea;--soft:#f4f7fa;--ok:#236956;--warn:#8b6519;--accent:#176ea2;--attn:#b4462b}
+*{box-sizing:border-box}body{margin:0;background:#eef3f7;color:var(--ink);font:10.5px/1.42 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+.page{width:210mm;min-height:297mm;margin:8mm auto;background:#fff;padding:11mm 12mm 9mm;box-shadow:0 4px 18px #16334b14;display:flex;flex-direction:column}
+.page>footer.pf{margin-top:auto}.page>:nth-last-child(2){margin-bottom:8px}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:4px}
+.inst{margin:0;font-size:10px;font-weight:650;color:var(--accent);letter-spacing:.4px}h1{margin:1px 0 0;font-size:16px;line-height:1.25}
+.sub{margin:1px 0 0;font-size:9.5px;color:var(--muted)}.status{text-align:right;font-size:9px;color:var(--muted);line-height:1.5;white-space:nowrap}
+.status strong{display:inline-block;padding:0 8px;border-radius:9px;background:#fdf0dc;color:var(--warn);font-size:10.5px}.status strong.ok{background:#e3f3ec;color:var(--ok)}
+.idline{margin:4px 0 0;font-size:9.5px;color:var(--muted)}.idline b{color:var(--ink);font-weight:600}
+h2{display:flex;align-items:baseline;gap:6px;font-size:11.5px;margin:7px 0 3px;color:#2c4a66;border-bottom:1px solid var(--line);padding-bottom:1px}
+h2 small{margin-left:auto;font-size:8.5px;font-weight:400;color:var(--muted)}h3{font-size:10.5px;margin:6px 0 2px;color:#3f5a72}
+.muted{color:var(--muted);font-size:9.5px;margin:2px 0}
+.g{text-decoration:underline dotted #9fb3c4;text-underline-offset:2px}
+dl.kv{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:1px 10px;margin:0;font-size:9.5px}dl.kv dt{color:var(--muted);white-space:nowrap}dl.kv dd{margin:0;overflow-wrap:anywhere}
+table{width:100%;border-collapse:collapse;font-size:9.5px;margin:2px 0}th,td{padding:2px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--soft);color:var(--muted);font-weight:500;white-space:nowrap}
+table.num td:not(:first-child),table.num th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+table.wide{font-size:8.5px}table.wide td,table.wide th{padding:2px 3px}table.narrow{width:auto;min-width:45%}
+table.top td:nth-child(4){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}table.top td:nth-child(1){width:7mm;color:var(--muted)}
+table.findings td:nth-child(7){font-size:8.5px;color:#3f5a72}table.findings td:nth-child(n+3):nth-child(-n+6){white-space:nowrap}
+table.glossary{font-size:8.5px}table.glossary td:first-child{width:24%;white-space:nowrap;color:#2c4a66}
+.sev{display:inline-block;padding:0 5px;border-radius:7px;font-size:8.5px;white-space:nowrap}.sev.attention{background:#fbe3dc;color:#9c3a22}.sev.note{background:#fdf0dc;color:var(--warn)}.sev.info{background:#e8f1f7;color:var(--accent)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:2px 0}.card{background:var(--soft);border-radius:5px;padding:3px 7px 4px;min-width:0}
+.card .label{display:block;font-size:9px;color:var(--muted)}.card strong{display:block;font-size:13px;line-height:1.3;white-space:nowrap}.card small{display:block;font-size:8.5px;line-height:1.3;color:var(--muted);overflow-wrap:anywhere}
+.narrative{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:5px;padding:4px 8px;background:#f7fbfd}.narrative p{margin:1px 0;font-size:10.5px}
+.badge{display:inline-block;padding:0 6px;border-radius:8px;font-size:8.5px;font-weight:600;vertical-align:middle;background:#fdf0dc;color:#8b6519}.badge.auto{background:#e8f1f7;color:#176ea2}
+.shots{display:grid;gap:4px 6px;margin:3px 0}.shots.cols2{grid-template-columns:repeat(2,1fr)}.shots.cols3{grid-template-columns:repeat(3,1fr)}.shots.cols4{grid-template-columns:repeat(4,1fr)}
+.shots figure{margin:0;min-width:0;page-break-inside:avoid;break-inside:avoid}.shots img{display:block;width:100%;max-width:100%;height:auto;max-height:40mm;object-fit:contain;border:1px solid var(--line);border-radius:4px;background:#fff}
+.shots.cols2 img{max-height:41mm}.shots.cols4 img{max-height:31mm}
+.shots figcaption{font-size:8.5px;color:var(--muted);margin-top:1px;overflow-wrap:anywhere}
+.sign{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 18px;margin:10px 0 2px;font-size:10px}.sign .line{display:flex;align-items:flex-end;gap:6px}
+.sign .who{white-space:nowrap;color:var(--muted)}.sign .blank{flex:1;border-bottom:1px solid var(--ink);height:15px}.sign .blank.short{flex:0 0 26mm}
+ol.limits{margin:2px 0 0 16px;padding:0;font-size:9.5px;color:#3f5a72}ol.limits li{margin:1px 0}
+footer.pf{border-top:1px solid var(--line);padding-top:3px;font-size:8.5px;color:var(--muted);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.appendix-title{font-size:13px;margin:0 0 2px;border-bottom:2px solid var(--ink);padding-bottom:3px}
+.toolbar{width:210mm;margin:8mm auto 0;display:flex;justify-content:flex-end}@media screen and (max-width:830px){.toolbar{width:auto;margin:8px 8px 0;justify-content:flex-start}}@media (pointer:coarse){.toolbar button{min-height:44px}}.toolbar button{font:inherit;padding:6px 12px;border:1px solid #b9cbd8;border-radius:7px;background:#fff;color:#176ea2;cursor:pointer}
+@page{size:A4;margin:10mm 10mm 11mm;@bottom-right{content:"第 " counter(page) " 页";font-size:8px;color:#5d7488}}
+@media print{body{background:#fff}.page{width:auto;min-height:0;margin:0;padding:0;box-shadow:none;display:block}.page>footer.pf{margin-top:8px}.page+.page{break-before:page;page-break-before:always}
+.toolbar,.noprint{display:none}tr,.card,.sign{break-inside:avoid;page-break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* v0.14 (F6): no pictures on page 1 → the appendix continues right below page 1 instead of leaving half a page blank */
+.snap-hint{display:flex;align-items:baseline;gap:10px;margin:6px 0 2px}.snap-hint h2{border:0;margin:0;padding:0;flex:0 0 auto}.snap-hint p{margin:0}
+body.flow .page.first{min-height:0;margin-bottom:0;padding-bottom:5mm}body.flow .page.first>footer.pf{display:none}
+body.flow .page.appendix{margin-top:0;padding-top:5mm;min-height:0;border-top:1px dashed var(--line)}
+@media print{body.flow .page+.page{break-before:auto;page-break-before:auto}body.flow .page.appendix{border-top:0;padding-top:4mm}}
 """
 
 
-def render_onepage(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None, *,
-                   job_dir: Path | str | None = None, snapshots: Mapping[str, Any] | None = None) -> str:
-    """Render the A4 page as a self-contained HTML string (no scripts, no external resources).
+def _auto_title(summary: Mapping[str, Any]) -> str:
+    if family_of(summary) == "volume":
+        return "压力与速度体场一页纸报告"
+    return "壁面 WSS / TAWSS / OSI 一页纸报告" if has_cycle(summary) else "壁面 WSS 一页纸报告"
 
-    ``job_dir`` enables the 配图 section: the PNGs listed in ``snapshots.json`` are embedded as data
-    URIs.  Without it (or without pictures) the section degrades to a one-line hint.
+
+def render_onepage(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None, *,
+                   job_dir: Path | str | None = None, snapshots: Mapping[str, Any] | None = None,
+                   template: Mapping[str, Any] | None = None, timeline: Mapping[str, Any] | None = None) -> str:
+    """Render the A4 page (+ appendix) as a self-contained HTML string (no scripts, no external resources).
+
+    ``job_dir`` enables the 配图 section (PNGs listed in ``snapshots.json`` are embedded as data URIs) and
+    selects the institution template (``report_template.load_for_job``); ``template`` overrides it.
+    ``timeline`` is the §19.3 patient timeline; with ≥ 2 scans page 1 carries a 「随访变化」 table.
     """
     summary = _map(summary)
     job = _map(job)
-    family = family_of(summary)
-    title = "壁面 WSS 一页纸报告" if family == "wall" else "压力与速度体场一页纸报告"
+    template = _template(job_dir, template)
+    title = template.get("report_title") or _auto_title(summary)
     case_id = summary.get("case_id") or job.get("case_id") or "匿名病例"
-    release = _map(summary.get("model_release"))
-    contract = _map(summary.get("feature_contract"))
-    review = _map(summary.get("review")) or _map(job.get("review"))
-    review_status = REVIEW_LABELS.get(str(review.get("status") or "unreviewed"), "未审阅")
-    numbers = _wall_numbers(summary) if family == "wall" else _volume_numbers(summary)
-    branches = ("<h2>分支统计</h2>" + _wall_branches(summary)) if family == "wall" else ""
-    notes = summary.get("notes") if isinstance(summary.get("notes"), list) else []
-    body = f"""<div class="toolbar"><button type="button" onclick="window.print()">打印 / 保存 PDF</button></div>
-<article class="page">
-<header><div><p class="eyebrow">{_e(title)}</p><h1>{_e(case_id)}</h1><p class="muted">固定收缩期单帧预测 · 仅供研究参考，不作临床诊断依据</p></div>
-<div style="text-align:right"><p class="muted">复核状态：<strong>{_e(review_status)}</strong></p><p class="muted">{_e(summary.get('created_at') or '')}</p></div></header>
-<div class="grid2"><section><h2>病例与版本</h2>{_identity_section(summary, job)}</section><section><h2>输入检查</h2>{_input_section(summary)}</section></div>
-{_narrative_section(summary)}
-<h2>关键数字</h2>{numbers}
-{_snapshots_section(Path(job_dir) if job_dir else None, snapshots)}
-{_morphology_section(summary)}
-{branches}
-{_morphology_branches(summary)}
-<h2>几何</h2>{_geometry_section(summary)}
-{_findings_section(summary)}
-{_annotations_section(summary)}
-{_trust_section(summary)}
-<h2>复核</h2>{_review_section(summary, job)}
-<h2>局限性声明</h2><ol class="limits">{"".join(f"<li>{_e(item)}</li>" for item in LIMITATIONS)}{"".join(f"<li>{_e(item)}</li>" for item in notes if isinstance(item, str))}</ol>
-<h2>计算耗时</h2>{_timing_section(summary)}
-{_glossary_section()}
-<footer><span>发布包 {_e(release.get('registry_id') or release.get('release') or summary.get('release') or '—')} · 指纹 {_e(str(release.get('fingerprint') or summary.get('release_hash') or '—')[:12])}</span><span>特征合同 {_e(contract.get('version') or '—')} · {_e(str(contract.get('source_hash') or '—')[:12])}</span><span>任务 {_e(job.get('id') or '—')}</span></footer>
-</article>"""
+    figures = _snapshot_figures(Path(job_dir) if job_dir else None, snapshots)
+    first = "".join([
+        _header(summary, job, template, title), _identity_line(summary, job), _narrative_section(summary),
+        _numbers_section(summary, job), _snapshots_section(figures), _morphology_section(summary),
+        _timeline_section(timeline, summary), _top_findings_section(summary),
+        _signature_section(summary, job, template), _footer(summary, job, template, "第 1 页"),
+    ])
+    pages = [f'<article class="page first">{first}</article>']
+    if template.get("appendix", True):
+        more = figures[FIRST_PAGE_SNAPSHOTS:]
+        body = "".join([
+            f'<h1 class="appendix-title">附录 · {_e(case_id)}</h1>', _branch_table(summary), _findings_section(summary),
+            _annotations_section(summary), ("<h2>更多配图</h2>" + _shots(more)) if more else "",
+            _input_section(summary), _morphology_details(summary), _trust_section(summary),
+            '<h2>局限性声明</h2><ol class="limits">' + "".join(f"<li>{_e(item)}</li>" for item in limitations(summary)) + "</ol>",
+            _timing_section(summary), _identity_section(summary, job),
+        ])
+        used = re.findall(r'data-gloss="([a-z0-9_]+)"', first + body)
+        body += _glossary_section(str(template.get("show_glossary") or "used"), used)
+        pages.append(f'<article class="page appendix">{body}{_footer(summary, job, template, "附录")}</article>')
+    toolbar = '<div class="toolbar"><button type="button" onclick="window.print()">打印 / 保存 PDF</button></div>'
+    # Layout with pictures is unchanged: page 1 is a full A4 sheet and the appendix starts on a new one.
+    body_class = ' class="flow"' if not figures and len(pages) > 1 else ""
     return ('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            f'<title>{_e(title)} · {_e(case_id)}</title><style>{CSS}</style></head><body>{body}</body></html>')
+            f'<title>{_e(title)} · {_e(case_id)}</title><style>{CSS}</style></head><body{body_class}>{toolbar}{"".join(pages)}</body></html>')
 
 
-__all__ = ["DECISION_LABELS", "LIMITATIONS", "NO_SNAPSHOTS_HINT", "family_of", "render_onepage"]
+__all__ = ["DECISION_LABELS", "LIMITATIONS", "NO_SNAPSHOTS_HINT", "family_of", "has_cycle", "limitations", "model_count",
+           "render_onepage", "top_findings"]

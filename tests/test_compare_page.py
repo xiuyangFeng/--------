@@ -193,3 +193,82 @@ def test_display_state_round_trip_between_frames():
     assert set(out["crossState"]) == {"colormap", "bands", "log", "opacity"} and out["crossTo"] == "right"
     assert out["finalAsked"] == 3                     # nothing more once the toggle is off
     assert out["cameras"] >= 1                        # the camera relay keeps working alongside
+
+
+def test_v014_shared_range_rules():
+    """F1: one fixed upper limit = the larger case p99; user-typed equal fixed ranges stay; mismatches explain themselves."""
+    if not shutil.which("node"):
+        pytest.skip("node not available")
+    program = r"""
+      const WB=require(process.argv[1]);
+      const st=(field,range)=>({family:'wall',field,range});
+      console.log(JSON.stringify({
+        both:WB.sharedDisplayRange(st('wss',{mode:'case',min:0,max:17.01,case_max:17.01}),st('wss',{mode:'case',min:0,max:5.24,case_max:5.24}),'wall','wall'),
+        oldPage:WB.sharedDisplayRange(st('wss',{mode:'case',min:0,max:3}),st('wss',{mode:'fixed',min:0,max:4,field:'wss',shared:true,case_max:2}),'wall','wall'),
+        userSame:WB.sharedDisplayRange(st('wss',{mode:'fixed',max:10,case_max:17}),st('wss',{mode:'fixed',max:10,case_max:5}),'wall','wall'),
+        userOne:WB.sharedDisplayRange(st('wss',{mode:'fixed',max:10,case_max:17}),st('wss',{mode:'case',max:5,case_max:5}),'wall','wall'),
+        settled:WB.sharedDisplayRange(st('tawss',{mode:'fixed',max:4.4,field:'tawss',shared:true,case_max:4.4}),st('tawss',{mode:'fixed',max:4.4,field:'tawss',shared:true,case_max:3}),'wall','wall'),
+        field:WB.sharedDisplayRange(st('tawss',{mode:'case',max:4}),st('wss',{mode:'case',max:5}),'wall','wall'),
+        family:WB.sharedDisplayRange(st('wss',{}),{family:'volume',field:'velocity'},'wall','volume'),
+        volume:WB.sharedDisplayRange({field:'velocity',range:{mode:'case',min:0,max:1}},{field:'velocity',range:{mode:'case',min:0,max:2}},'volume','volume')}));
+    """
+    result = subprocess.run(["node", "-e", program, str(STATIC / "workbench_core.js")], check=True, text=True, capture_output=True)
+    out = json.loads(result.stdout)
+    assert out["both"]["range"] == {"mode": "fixed", "min": 0, "max": 17.01, "field": "wss", "shared": True} and out["both"]["unchanged"] is False
+    assert out["oldPage"]["max"] == 3                     # no case_max on the left: its current max; the right contributes its p99
+    assert out["userSame"] == {"same": True, "max": 10, "field": "wss"}
+    assert out["userOne"]["max"] == 10                    # a user-typed fixed limit counts as that side's contribution
+    assert out["settled"]["unchanged"] is True and out["settled"]["max"] == 4.4
+    assert out["field"]["mismatch"] == "field" and "TAWSS" in out["field"]["text"] and "峰值 WSS" in out["field"]["text"]
+    assert out["family"]["mismatch"] == "family" and out["volume"]["mismatch"] == "volume"
+
+
+_UNIFY_STUB = _DISPLAY_STUB.split("  (async () => {")[0] + r"""
+  const answer = (side, id, range, field='wss', family='wall') => send(side, {type: 'wss-view:state', request_id: id, family, state: Object.assign({}, viewState, {field, range})});
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  (async () => {
+    send('left', {type: 'wss-view:ready', family: 'wall', run_identity: 'r1', case_id: 'A'});
+    send('right', {type: 'wss-view:ready', family: 'wall', run_identity: 'r2', case_id: 'B'});
+    await wait(220);
+    const asks = typed('wss-view:get-state').filter(p => String(p.msg.request_id).startsWith('unify-'));
+    answer('left', asks.find(p => p.to === 'left').msg.request_id, {mode: 'case', min: 0, max: 17.01, case_max: 17.01});
+    answer('right', asks.find(p => p.to === 'right').msg.request_id, {mode: 'case', min: 0, max: 5.24, case_max: 5.24});
+    const pushed = typed('wss-view:apply-state').map(p => ({to: p.to, state: p.msg.state}));
+    const note = [els['scale-note'].textContent, els['scale-note'].hidden, els['scale-note'].className];
+    // the pushed frames' 'changed' echoes are ignored; a genuine change later starts a normal sync
+    send('right', {type: 'wss-view:changed', family: 'wall'});
+    await wait(20);
+    const echoAsks = typed('wss-view:get-state').filter(p => String(p.msg.request_id).startsWith('sync-')).length;
+    now += 1000;
+    send('left', {type: 'wss-view:changed', family: 'wall'});
+    await wait(450);
+    const syncAsks = typed('wss-view:get-state').filter(p => String(p.msg.request_id).startsWith('sync-')).map(p => p.to);
+    // turning the sync off says the bars are independent; different fields leave the ranges alone with a warning
+    el('sync-display').checked = false; el('sync-display').listeners.change();
+    const offNote = [els['scale-note'].textContent, els['scale-note'].className];
+    el('sync-display').checked = true; el('sync-display').listeners.change();
+    await wait(420);                                   // the last active side's display goes first, then the ranges
+    const again = typed('wss-view:get-state').filter(p => String(p.msg.request_id).startsWith('unify-')).slice(-2);
+    const before = typed('wss-view:apply-state').length;
+    answer('left', again.find(p => p.to === 'left').msg.request_id, {mode: 'case', max: 4, case_max: 4}, 'tawss');
+    answer('right', again.find(p => p.to === 'right').msg.request_id, {mode: 'case', max: 5, case_max: 5}, 'wss');
+    console.log(JSON.stringify({asks: asks.map(p => p.to).sort(), pushed, note, echoAsks, syncAsks, offNote,
+      mismatch: [els['scale-note'].textContent, els['scale-note'].className], appliedAfterMismatch: typed('wss-view:apply-state').length - before}));
+  })();
+"""
+
+
+def test_v014_compare_page_pushes_one_shared_range_to_both_frames():
+    """F1: once both frames are ready, the larger case p99 becomes one fixed range on both sides; the note says so."""
+    if not shutil.which("node"):
+        pytest.skip("node not available")
+    result = subprocess.run(["node", "-e", _UNIFY_STUB, str(STATIC / "compare.js"), str(STATIC / "workbench_core.js")],
+                            check=True, text=True, capture_output=True)
+    out = json.loads(result.stdout.strip().splitlines()[-1])
+    assert out["asks"] == ["left", "right"]
+    shared = {"range": {"mode": "fixed", "min": 0, "max": 17.01, "field": "wss", "shared": True}}
+    assert sorted(out["pushed"], key=lambda p: p["to"]) == [{"to": "left", "state": shared}, {"to": "right", "state": shared}]
+    assert "两侧色标已统一" in out["note"][0] and out["note"][1] is False and "warn" not in out["note"][2]
+    assert out["echoAsks"] == 0 and out["syncAsks"] == ["left"]
+    assert "各自独立" in out["offNote"][0] and "warn" in out["offNote"][1]
+    assert "着色字段不同" in out["mismatch"][0] and "warn" in out["mismatch"][1] and out["appliedAfterMismatch"] == 0

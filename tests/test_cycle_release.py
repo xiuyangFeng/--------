@@ -252,7 +252,8 @@ console.log(JSON.stringify({calls,activeField,before,m_len:F.m.length,p_len:F.p.
     assert run.returncode == 0, run.stderr[-2000:]
     got = json.loads(run.stdout.strip().splitlines()[-1])
     assert got["calls"] == 1 and got["activeField"] == "tawss"
-    assert sorted(f for f, _, _ in got["before"]) == ["osi", "tawss", "wss"] and all(tag == "button" and has for _, tag, has in got["before"])
+    # v0.13: RRT / ECAP are derived in the viewer from the TAWSS / OSI arrays and appear as two more switchable tabs.
+    assert sorted(f for f, _, _ in got["before"]) == ["ecap", "osi", "rrt", "tawss", "wss"] and all(tag == "button" and has for _, tag, has in got["before"])
     assert got["m_len"] == len(mesh["extra"]["tawss_pa"]) and got["p_len"] == len(cloud["extra"]["tawss_pa"])
     assert got["units"] == "Pa" and got["isPa"] and got["log"] is True and got["p99"] == pytest.approx(float(np.quantile(cloud["extra"]["tawss_pa"], 0.99)))
     assert got["first_m"] == pytest.approx(float(mesh["extra"]["tawss_pa"][0]), rel=1e-6)

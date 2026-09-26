@@ -1,4 +1,5 @@
-/* Side-by-side report comparison: two same-origin report iframes with camera linking (contract §6). */
+/* Side-by-side report comparison: two same-origin report iframes with camera linking (contract §6), display-state
+   sync (§15.7) and, since v0.14, one shared colour range so that the same colour means the same value on both sides. */
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -15,12 +16,19 @@
     return el;
   };
   const fmt = (value, digits = 2) => Number.isFinite(Number(value)) && value !== null && value !== undefined ? Number(value).toFixed(digits) : '—';
-  const notify = (message, error = true) => { const el = $('notice'); el.textContent = message; el.className = `notice${error ? ' error' : ''}`; el.hidden = false; };
+  // v0.14: a notice can be closed (×), like the workbench's.
+  const clearNotice = () => { $('notice').hidden = true; };
+  const notify = (message, error = true) => {
+    const el = $('notice');
+    el.replaceChildren(node('span', {class: 'notice-text', text: message}), node('button', {type: 'button', class: 'notice-close', text: '×', title: '关闭提示', 'aria-label': '关闭提示', onclick: clearNotice}));
+    el.className = `notice${error ? ' error' : ''}`; el.hidden = false;
+  };
   const setConnection = (text, online = false) => { $('connection').textContent = text; $('connection').className = `connection${online ? ' online' : ''}`; };
   const ID_PATTERN = /^[A-Za-z0-9_-]{1,80}$/;
   const WB = (typeof window !== 'undefined' && window.WssWorkbenchCore) || (typeof globalThis !== 'undefined' && globalThis.WssWorkbenchCore) || null;
   const state = {csrf: '', left: null, right: null, sync: true, applying: {left: 0, right: 0},
-    displaySync: true, families: {left: null, right: null}, active: null, pending: null, requestId: 0, syncTimer: null, lastSync: 0};
+    displaySync: true, families: {left: null, right: null}, active: null, pending: null, requestId: 0, syncTimer: null, lastSync: 0,
+    ready: {left: false, right: false}, unify: null, unifyTimer: null};
 
   async function request(url, {method = 'GET', body} = {}) {
     const headers = {'Accept': 'application/json'};
@@ -103,14 +111,57 @@
     if (!Object.keys(subset).length) return;
     if (displayGuard) displayGuard.mark(to);
     target.postMessage({type: 'wss-view:apply-state', state: subset, request_id: `apply-${++state.requestId}`}, window.location.origin);
+    scheduleUnify();                                                 // the pushed range may be the source's own p99
+  }
+  // ---- v0.14 (F1) shared colour range ----
+  // Both frames report their state; WssWorkbenchCore.sharedDisplayRange picks one fixed upper limit (the larger
+  // case p99 of the coloured field) that is pushed to both, so the two colour bars are identical.  When that is
+  // impossible (different families / fields, volume pages) a short note under the toolbar says so.
+  function setScaleNote(text, warn = false) {
+    const el = $('scale-note'); if (!el) return;
+    el.textContent = text || ''; el.hidden = !text; el.className = `compare-scale-note${warn ? ' warn' : ''}`;
+  }
+  function unifyRanges() {
+    state.unifyTimer = null;
+    if (!WB || !state.displaySync || !state.ready.left || !state.ready.right) return;
+    const left = frameWindow('left'), right = frameWindow('right'); if (!left || !right) return;
+    const id = ++state.requestId; state.unify = {id, states: {}};
+    left.postMessage({type: 'wss-view:get-state', request_id: `unify-${id}-left`}, window.location.origin);
+    right.postMessage({type: 'wss-view:get-state', request_id: `unify-${id}-right`}, window.location.origin);
+  }
+  function scheduleUnify(wait = 300) {
+    if (state.unifyTimer) clearTimeout(state.unifyTimer);
+    state.unifyTimer = setTimeout(unifyRanges, wait);
+  }
+  function finishUnify(pending) {
+    state.unify = null;
+    const {left, right} = pending.states;
+    const plan = WB.sharedDisplayRange(left.state, right.state, left.family || state.families.left, right.family || state.families.right);
+    if (plan.range) {
+      if (!plan.unchanged) for (const side of ['left', 'right']) {
+        const target = frameWindow(side); if (!target) continue;
+        if (displayGuard) displayGuard.mark(side);
+        target.postMessage({type: 'wss-view:apply-state', state: {range: plan.range}, request_id: `apply-${++state.requestId}`}, window.location.origin);
+      }
+      setScaleNote('两侧色标已统一：上限取两例 p99 的较大值，同一颜色表示同一数值。');
+    } else if (plan.same) setScaleNote('两侧使用相同的固定色标上限。');
+    else setScaleNote(plan.text, true);
   }
   window.addEventListener('message', event => {
     if (event.origin !== window.location.origin) return;
     const data = event.data;
     if (!data || typeof data.type !== 'string') return;
     const from = frameOf(event.source); if (!from) return;
-    if (data.type === 'wss-view:ready') { state.families[from] = data.family || null; return; }
+    if (data.type === 'wss-view:ready') { state.families[from] = data.family || null; state.ready[from] = true; if (state.ready.left && state.ready.right) scheduleUnify(150); return; }
+    // v0.14: a report announces display changes (field, colour map, thresholds …) without waiting for a camera move.
+    if (data.type === 'wss-view:changed') { noteActivity(from); return; }
     if (data.type === 'wss-view:state') {
+      const unify = state.unify;
+      if (unify && data.request_id === `unify-${unify.id}-${from}`) {
+        unify.states[from] = {state: data.state, family: data.family};
+        if (unify.states.left && unify.states.right) finishUnify(unify);
+        return;
+      }
       if (!state.pending || data.request_id !== state.pending.request_id || from !== state.pending.from) return;
       state.pending = null;
       pushDisplayState(from, data.state, data.family);
@@ -127,7 +178,12 @@
     target.postMessage({type: 'wss-view:set-camera', camera: data.camera, family: data.family}, window.location.origin);
   });
   $('sync-camera').addEventListener('change', () => { state.sync = $('sync-camera').checked; });
-  $('sync-display').addEventListener('change', () => { state.displaySync = $('sync-display').checked; });
+  $('sync-display').addEventListener('change', () => {
+    state.displaySync = $('sync-display').checked;
+    if (!state.displaySync) { setScaleNote('未同步显示口径：两侧色标各自独立，颜色不能直接对比。', true); return; }
+    if (state.active) requestDisplayState(state.active);          // the rest of the display state first
+    scheduleUnify(state.active ? 350 : 0);
+  });
   $('push-left').addEventListener('click', () => { state.active = 'left'; requestDisplayState('left'); });
   $('push-right').addEventListener('click', () => { state.active = 'right'; requestDisplayState('right'); });
   $('swap-sides').addEventListener('click', () => {

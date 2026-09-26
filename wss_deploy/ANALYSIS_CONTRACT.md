@@ -112,7 +112,7 @@ B/C 在报告页脚显示：审阅状态、审阅人、时间、发布包、特�
 
 ---
 
-# C 类常用功能契约 v1.1（2026-09-21，四路并行开发共用；规格见 docs/02-推进与变更/WSS_PINN/WSS_部署工具_下一轮功能与优化方案_2026-09-21.md §2–§3）
+# C 类常用功能契约 v1.1（2026-09-21，四路并行开发共用；规格见 docs/02-推进与变更/05-部署工具/_archive/WSS_部署工具_下一轮功能与优化方案_2026-09-21.md §2–§3）
 
 本节是 C1–C18 四个并行任务之间唯一的数据契约。改契约必须先改这里。上文 §0–§9 继续有效。
 
@@ -465,3 +465,254 @@ body `{"version": n, "case_id": "…", "patient_id": "…", "scan_label": "…",
 - 报告：标签顺序按发现列表顺序（严重度 → 排名）而非原始 rank；`labels.findings` 接受 0–50 任意整数，菜单只列 0/3/5/10；自动标签只在「含界面标签」勾选时合成进 PNG（与标注同规则）；直径序列画在半径子图同轴；体场英文标签用 `englishLabel` 已知的键名（如「最低压力」）。
 - 结论：`narrative.json` 结构 `{auto, edited, edited_by, edited_at}`，summary 里 `narrative` 为合并后的显示对象；`PUT` 在锁定时 409。
 
+
+---
+
+# v0.12 三方面优化契约 §19（2026-09-23，五路并行共用）
+
+用户 2026-09-23 凌晨裁定：从「日常使用与操作便利 / 医生功能补充 / 界面设计」三方面优化，**按主会话的判断一直做到开发完成，次日验收**。方案与审计证据见 `docs/02-推进与变更/05-部署工具/_archive/WSS_部署工具_三方面优化方案与落地_2026-09-23.md`。本节是五路并行的共同契约；文件归属见 §19.0，**不得改动他人文件**；主会话已先行落地 §19.1 共享函数、§19.4 模板模块与 `devshot.py`。
+
+通用约束（沿用 §10）：不改预测数值，黄金回归 5/5（`regress.SUMMARY_KEYS` 中的 `peak / wss_field_pa / per_branch / geometry / surface_statistics / quality / volume_statistics / murray_shares / caps / cloud / mapping / branch_names` 与 `field.npz` 逐位不变）；新数据一律是**新键**，旧 `summary.json` / 旧任务缺新键时按空处理；所有新接口沿用会话、CSRF、owner 隔离、白名单文件、路径包含检查；写任务目录走 `atomic_json`；改报告脚本必须配 stub DOM 的 node 行为测试（`test_report_field_tab_click_repaints_wall` 是模板）；改工作台必须跑 `tests/test_workbench_js.py` 启动桩。界面改动**必须用 `python -m wss_deploy.devshot` 在自己的沙箱服务上截图自查**（§19.8）。
+
+## 19.0 文件归属
+
+| 组 | 拥有的文件 |
+|---|---|
+| W1 内容与分析（后端内容组） | `onepager.py`、`narrative.py`、`analysis.py`、`quality.py`、`export_table.py`、`comparison.py`、`glossary.py` + `static/glossary.json`（由 `python -m wss_deploy.glossary` 生成）、`pipeline.py`、`rebuild_report.py`、`build_reference_profiles.py`、`morphology.py`（只读，除非必要）、`cycle_fields.py`（可加函数，不改既有函数行为）；测试 `test_onepager.py`、`test_narrative.py`、`test_analysis.py`、`test_export_table.py`、`test_comparison.py`、`test_glossary.py`、`test_reference_profiles.py`、`test_cycle_release.py`、新建 `test_cycle_content.py` |
+| W2 运维与服务（后端运维组） | `cli.py`、`server.py`、`jobs.py`、`users.py`、`bundle.py`、`cases.py`、`__init__.py`（版本号），新建 `service.py`、`doctor.py`、`timeline.py`、`report_freshness.py`；测试 `test_server_*.py`、`test_p2_jobs.py`、`test_bundle.py`、`test_cases.py`，新建 `test_service_cli.py`、`test_doctor.py`、`test_timeline.py`、`test_report_freshness.py`、`test_health.py`、`test_report_template_api.py` |
+| W3 工作台（前端组） | `static/app.js`、`static/app.css`、`static/index.html`、`static/workbench_core.js`、`static/batch_export.js`、`static/compare.js`、`static/compare.html`；测试 `test_workbench_js.py`、`test_compare_page.py` |
+| W4 壁面报告 | `report.py`；测试 `test_report.py` |
+| W5 体场报告 | `volume_report.py`、`static/volume_viewer.js`；测试 `test_volume_report.py` |
+| 主会话 | `static/report_common.js`（§19.1 已加）、`report_template.py`（§19.4 已建）、`devshot.py`、`README.md`、本契约、`docs/` |
+
+需要共享库新函数时：先在自己文件里局部实现并在完成报告里写明，由主会话合并时决定是否上移。`server.py` 的 `STATIC_FILES` 已含 `report_common.js`；工作台若新引用静态文件须在报告里说明（W2 负责白名单）。
+
+## 19.1 共享库新函数（`static/report_common.js`，主会话已就绪，`tests/test_report_common.py` 覆盖）
+
+- `fitView(pts, {dir, up, fov, aspect, margin=1.12, center?, limit=6000})` → `{position, target, up, distance}`：透视相机沿 `dir`（相机→目标）看，`up` 朝上，把采样点全部框进视口且目标移到投影包围盒中心。`pts` 可以是扁平 xyz 数组或 `[[x,y,z],…]`。
+- `formatValue(v, {digits=3, maxDecimals=4, missing='—'})`：永不出现科学计数法（0.00177 → `0.0018`，1.572 → `1.57`，17 → `17.0`，15544.8 → `15545`，|v| < 1e-4 → `0`）。色标刻度、读数、表格统一用它。
+- `localTime(iso, {seconds})` → 浏览器本地时区的 `2026-09-22 17:37`；`friendlyTime(iso, nowMs?)` → `刚刚 / 12 分钟前 / 今天 17:37 / 昨天 17:37 / 9月20日 17:41 / 2025年1月2日`。任务记录里的时间戳带不同偏移（+08:00 与 -07:00 并存），**界面一律经这两个函数显示**，悬停 `title` 给 `localTime(…, {seconds:true})`。
+- `installShortcuts(bindings, {doc, title, helpGroup})` → `{showHelp, hideHelp, dispose, bindings}`：`bindings=[{keys:['1'], label:'前视', group:'视角', run(ev), when?(ev)}]`，`keys` 为 `KeyboardEvent.key`（字母不分大小写，`shift+x` 要求 Shift）；在输入框 / 下拉 / contenteditable 中或按住 Ctrl/Meta/Alt 时不触发；自动附带 `?` 打开 / 关闭帮助层、Esc 关闭。`shortcutMatches / shortcutRows` 是可测纯函数。
+
+## 19.2 周期量（M1 三头）全链路口径（W1 实现数据，W3 / W4 消费）
+
+关键数字统一取自 `summary.cycle`（`cycle_fields.cycle_block`）：TAWSS 均值 = `cycle.fields.tawss.mean`、低 TAWSS 面积占比 = `cycle.fields.tawss.area_frac.low`（< 0.4 Pa）、TAWSS p99 = `.p99`；OSI 均值 = `cycle.fields.osi.mean`、OSI > 0.1 占比 = `area_frac.above_t0`、OSI > 0.3 占比 = `area_frac.above_t2`；滞留区 = `cycle.stagnation.area_frac` / `area_mm2`，主要分支 = `stagnation.per_branch` 中 `area_mm2` 最大者。没有 `summary.cycle` 的任务（X5D、PF6/VF6）一切照旧。
+
+- **发现列表（`analysis.py`，新 kind，追加在既有条目之后，既有条目顺序与内容不变）**：
+  `stagnation_cluster`（TAWSS < 0.4 ∧ OSI > 0.1 的连通簇，连接半径与最小点数同低 WSS 簇；按面积取前 3；`value` = 面积 cm²，`units:"cm²"`，附 `tawss_mean_pa / osi_mean / area_mm2 / branch / xyz_mm`（簇内 OSI 最大点或质心最近点）/ `point_indices`，`label` 如「主动脉滞留区」，面积最大者 `severity:"attention"`，其余 `"info"`）；
+  `high_osi_cluster`（OSI > 0.3 的连通簇，前 3；`value` = 簇内最大 OSI，`units:"1"`，`label`「左髂总高 OSI 区」，`severity:"info"`）。`definition` 用中文一句写清口径。入口：`build_findings(..., cycle={"tawss": array, "osi": array})` 之类的可选参数，由 `pipeline.stage_b_wall` 与 `rebuild_report.rebuild_wall` 传入；缺省时输出逐位不变。
+- **沿程曲线（`summary.profiles.branches[*]`）**：有周期量时每分支加 `tawss: {mean_pa:[…], min_pa:[…]}` 与 `osi: {mean:[…], p90:[…]}`（与 `wss` 同分箱，空箱 `null`）。
+- **自动结论（`narrative.py`）**：有周期量时在 WSS 句之后加一句：「周期平均 TAWSS 均值 0.66 Pa，低 TAWSS（< 0.4 Pa）区占壁面 65%，以主动脉为主；OSI > 0.1 占 57%；滞留区（TAWSS < 0.4 Pa 且 OSI > 0.1）占 46%（约 155 cm²），主要位于主动脉。」英文同义；免责句改为「以上为收缩期峰值 WSS 与单周期 TAWSS / OSI 预测的参考描述，非诊断结论。」（X5D / PF6 的句子逐字不变）。
+- **质量文案（`quality.py`，`quality` 是黄金比对键）**：理由文字按实际模型数：5 个模型时逐字保持「五模型…」，其他数量写「N 个模型…」。一页纸 / 工作台的「集成质量」说明同样按模型数。
+- **一页纸**：关键数字卡加「TAWSS 均值 / 低 TAWSS 占比」「OSI 均值 / OSI > 0.1 占比」「滞留区面积」；局限性声明按字段生成（有周期量时不再写「没有 TAWSS、OSI 等周期量」，改为「峰值 WSS 为固定收缩期帧；TAWSS / OSI 为单周期（0.8 s、80 帧）积分量的直接回归预测，不是逐帧推演」）；分支表加 TAWSS 均值、OSI 均值、滞留区占比列。
+- **汇总表 / 队列（`export_table.py`）**：新列 `tawss_mean_pa, tawss_p99_pa, tawss_low_frac, osi_mean, osi_high_frac`（> 0.1）`, osi_very_high_frac`（> 0.3）`, stagnation_frac, stagnation_area_cm2`，放在壁面列之后；`population_blocks` 不变（M1 无人群参照）。
+- **比较（`comparison.py`）**：两侧都有 `cycle` 且协议一致时，标量表加 TAWSS 均值 / p99、OSI 均值、滞留区占比的差值；只一侧有时显示单侧值、差值留空并注明。
+- **M1 参考侧车**：M1 与 X5D_v51 同为 v5.1 train136 → 用 `build_reference_profiles.py` 为 `M1_3head_3seed_20260922` 生成**只含几何范围**的 `reference.json`（人群分位 `population.status:"unknown"`，注明「M1 无 CV3 折外预测」），使几何越界提示对 M1 生效；不改发布包指纹（侧车按 release id 绑定，见 §7）。
+- **任务记录**：W2 在 `jobs.py` 把 `cycle`（原样，小于 10 KB）与 `findings_top`（`summary.findings.items` 前 5 条，去掉 `point_indices`）加入 `job["summary"]`，并在加载时为已完成、缺这两个键的旧任务从 `summary.json` 补齐（只读 summary，不改数值）。
+
+## 19.3 患者随访时间线 `GET /api/patients/<patient_id>/timeline[?all=1]`（W2 实现 `timeline.py` + 路由，W3 消费，W1 一页纸可选消费）
+
+同一 owner（管理员 `all=1` 全部）、`patient_id` 完全相等（去首尾空白）、状态 `done` 的任务。**一次扫描 = 一个 `input_sha256`**（同一几何换发布包的多次运行合并为一个扫描点）。
+
+```json
+{"patient_id": "P-001", "n_scans": 2,
+ "scans": [{"input_sha256": "ad23…", "date": "2025-03-01", "date_source": "scan_date", "scan_label": "基线", "case_id": "CASE-001",
+            "jobs": [{"job_id": "…", "release_id": "X5D_v51_5seed_20260916", "release_label": "壁面 WSS", "family": "wall", "review": "reviewed"}],
+            "geometry": {"max_diameter_mm": 52.1, "sac_present": true, "sac_length_mm": 70.2, "sac_volume_ml": 96.3, "neck_diameter_mm": 19.1, "neck_length_mm": 22.0, "lumen_volume_ml": 158.2},
+            "models": {"X5D_v51_5seed_20260916": {"wss_p99_pa": 16.6, "wss_low_frac": 0.34, "wss_high_frac": 0.02},
+                       "M1_3head_3seed_20260922": {"wss_p99_pa": 17.0, "tawss_mean_pa": 0.66, "tawss_low_frac": 0.65, "osi_mean": 0.13, "osi_high_frac": 0.57, "stagnation_frac": 0.46},
+                       "PF6_VF6_peak_3seed_20260920": {"speed_p99_m_s": 1.2, "aorta_delta_p_pa": 850.0}}}],
+ "series": [{"key": "max_diameter_mm", "label": "最大直径", "units": "mm", "group": "geometry", "points": [{"input_sha256": "…", "date": "2025-03-01", "value": 52.1}]},
+            {"key": "wss_p99_pa", "label": "WSS p99", "units": "Pa", "group": "model", "release_id": "X5D_v51_5seed_20260916", "points": […]}],
+ "growth": {"max_diameter_mm": {"per_year": 3.2, "delta": 3.2, "days": 365, "from": {"date": "2025-03-01", "value": 52.1}, "to": {"date": "2026-03-01", "value": 55.3}, "basis": "first_last"},
+            "sac_volume_ml": {…}},
+ "notes": ["年增长率只在两次扫描都填写了扫描日期时计算。", "模型量只在同一发布包内连线；几何量与发布包无关。"]}
+```
+
+- `date` = `scan_date`（`date_source:"scan_date"`）否则任务创建日期（`"created_at"`）；排序按 `date` 再按创建时间。几何量取该扫描任一完成任务的 `summary.morphology`（与发布包无关）。`growth` 只在首末两次扫描都有 `scan_date` 且相隔 ≥ 30 天时给出，否则该键缺省并在 `notes` 说明；同时给 `last_two`（最近两次）一组，键名 `growth_recent`。
+- 空结果（无权限或无任务）→ `{"patient_id":…, "n_scans":0, "scans":[], "series":[], "growth":{}, "notes":[…]}`（不区分「不存在」与「无权限」）。`patient_id` 最长 80 字符，URL 编码。
+- 一页纸：服务端 `GET /api/jobs/<id>/onepage` 在该任务有 `patient_id` 且时间线 ≥ 2 次扫描时调用 `onepager.render_onepage(..., timeline=<上面的对象>)`，一页纸附「随访变化」小表（日期、最大直径、瘤体体积、本发布包的主指标、年增长率）。W1 实现参数与版面，W2 负责传入。
+
+## 19.4 机构报告模板（主会话已建 `report_template.py`；W1 消费，W2 做接口与命令行，W3 可选做设置对话框）
+
+`<jobs_root>/report_template.json`，键：`institution`、`department`、`report_title`（空 = 按族自动）、`footer_note`、`signature_lines`（默认 `["报告人","审阅人"]`，`[]` 不印）、`show_glossary`（`used` 默认 = 只列本页出现的术语 / `all` / `none`）、`appendix`（默认 true）。函数：`load(jobs_root)`（缺失或损坏 → 默认值，不抛错）、`load_for_job(job_dir)`（兼容 `.trash/<id>`）、`validate(data)`（中文 `ValueError`）、`save(jobs_root, data)`。
+
+- W1：`onepager.render_onepage` 读取 `report_template.load_for_job(job_dir)`（`job_dir` 为空时用默认值）。
+- W2：`GET /api/report-template` → `{"template": {...}, "editable": bool}`；`PUT /api/report-template`（body = 部分或全部键，与现值合并后 `validate`）只允许回环模式或管理员，否则 403；CLI `python -m wss_deploy.cli template show | set --institution … --department … --title … --footer … --signatures 报告人,审阅人 --glossary used|all|none --appendix on|off`。
+- W3（可选）：设置菜单「报告模板」对话框（`editable=false` 时只读）。
+
+## 19.5 一页纸重排（W1）
+
+第 1 页（A4 纵向）只放：页眉（机构 / 科室 / 标题 / 审阅状态 / 日期）→ 病例身份一行（病例号 · 患者 · 扫描 · 发布包短名 · 生成时间）→「结论（参考）」→ 关键数字卡（壁面：p99、最大值、低 / 高 WSS 占比 + 周期量三卡；体场：原有）→ 配图（有 snapshots 时 2×2）→ 瘤体形态四卡 → 「重点发现」前 5 条（一行一条：编号、名称、分支、数值、判定）→ 签字栏（模板 `signature_lines`，每项「姓名 ____ 日期 ____」）。**附录**（`@media print` 另起一页，`appendix=false` 时不印）：分支统计与血管分支表合并为一张表（去掉重复的「几何」表）、发现详情（口径列）、输入检查、可信区域、限制声明、计算耗时、身份与哈希、术语（`show_glossary`；`used` 模式只列本页 `data-gloss` 键出现过的术语）。术语表解释列左对齐。页脚：固定声明 + `footer_note` + 发布包 / 任务号 / 页码（打印 CSS `@page` 计数）。形态可靠性长句压成「截面可靠性：N 站重定向，M 站不可靠（已排除）」一句，逐分支明细进附录。
+
+## 19.6 运维（W2）
+
+- **`python -m wss_deploy.cli service start|stop|restart|upgrade|status|logs|token [--jobs-root …]`**（新模块 `service.py`）：配置 `<jobs_root>/service.json`（host / port / device / `env`：如 `CUDA_VISIBLE_DEVICES`、`TZ`、`WSS_DEPLOY_RELEASE`；`start` 时的命令行参数写回）；共享模式令牌存 `<jobs_root>/.service_token`（0600，首次共享启动时生成，`service token` 打印），**不再需要从 `/proc/<pid>/environ` 取令牌**；PID 文件 `<jobs_root>/service.pid`（`{pid, started_at, host, port, argv, version}`）。`status` 在没有 PID 文件时扫描 `/proc/*/cmdline` 找 `wss_deploy.cli serve` 且端口一致的进程（**必须能接管当前手工启动的 master:8765 进程**：读取其 argv 与 `/proc/<pid>/environ` 中的 `WSS_DEPLOY_* / CUDA_VISIBLE_DEVICES / TZ`，首次 `restart` 原样沿用并写入 `service.json`；令牌从旧进程环境迁移进 `.service_token`）。`stop` = SIGTERM → 等 15 s（等待当前计算的任务？不等，任务会标记中断并可重试——在输出里提示有几个任务在计算）→ SIGKILL，只杀 cmdline 匹配的进程；`restart` = stop + start + 轮询 `/api/health` 至多 60 s，失败时打印日志尾部并退出码非 0。`logs [-n 80] [--follow]`。日志：`serve --log-file` 使用 `RotatingFileHandler`（20 MB × 5），时间带时区偏移；`service start` 默认 `<jobs_root>/server.log`。
+- **`python -m wss_deploy.cli doctor [--json] [--jobs-root …]`**（新模块 `doctor.py`）：逐项 ✓/⚠/✗ 与建议：GNN 环境 torch / CUDA 可用与显卡名、`GNN_vmtk` 解释器与 `vmtk` 可导入、vessel_geom 路径、每个发布包合同与 `MANIFEST.sha256`（复用 `registry`）、参考侧车、`wss_features/CONTRACT.json` 源码哈希一致、`static/glossary.json` 与 `glossary.py` 同步、任务根可写、磁盘剩余（< 20 GB 警告）、服务是否在运行 / 健康、过期报告数（§19.7）、`users.json` 是否存在（共享模式建议启用用户名登录）。退出码：有 ✗ 为 1。
+- **`GET /api/health`**：无会话时只返回 `{"ok": true, "version": <wss_deploy.__version__>}`；有会话时加 `started_at, uptime_s, queue:{queued, running, awaiting_input, awaiting_confirmation}, worker_alive, gpu:{available, name}, disk_free_gb, default_release, stale_reports`。版本号取 `wss_deploy.__version__`（本节撰写时为 0.12.0，每个发布版本随之递增，以 `__init__.py` 为准）。
+- **`python -m wss_deploy.cli submit <stl…> [--server http://127.0.0.1:8765] [--release-id] [--units mm] [--patient-id] [--scan-label] [--scan-date] [--tags] [--notes] [--on-duplicate ask|reuse|force] [--user name]`**：走 HTTP 调用运行中的服务（`/api/session` + `/api/jobs/batch`，每批 ≤ 20），打印任务号与工作台链接 `…/#job=<id>`；回环模式免登录；共享模式用 `--user`（口令 `WSS_DEPLOY_PASSWORD` 或终端输入）或令牌（`WSS_DEPLOY_TOKEN` / `.service_token`）；令牌模式下提示「任务属于新会话，需在网页点『认领』或启用用户名登录」。`cli jobs list [--status …] [--json]` 经 HTTP 列出任务。
+
+## 19.7 报告模板自动刷新（W2，`report_freshness.py`）
+
+- `ui_fingerprint()` = sha256(`report.py`、`volume_report.py`、`static/report_common.js`、`static/volume_viewer.js`、`static/three.min.js`、`static/OrbitControls.js`、`static/glossary.json` 的字节)，进程内缓存、源文件 mtime 变化时重算。任务目录旁写 `report_ui.json {"fingerprint", "refreshed_at", "source": "auto|cli"}`。
+- `GET /api/jobs/<id>/report`：任务 `done`、存在 `report.html`、`report_ui.json` 缺失或指纹不同 → 在该任务的锁内调用 `rebuild_report.refresh_ui_only(job_dir)`（约 0.3 s），成功写 `report_ui.json` 后返回新报告；失败记日志、返回原报告（不 500）。`WSS_DEPLOY_AUTO_REFRESH_REPORTS=0` 关闭。锁定（已审阅）任务同样刷新（只换呈现模板，数据与嵌入 JSON 原样）。
+- `python -m wss_deploy.cli reports refresh [--job ID | --all] [--check]`：`--check` 只列出过期任务。以后改完报告界面**不再需要手工 rebuild + 重启服务**（Python 模块变更仍需重启，用 `cli service upgrade`：停服务 → 重建/刷新报告 → 启动；运行中的服务发现模板模块已变更时也只提示执行它）。
+
+## 19.8 界面自查工具 `wss_deploy/devshot.py`（主会话已建）
+
+`python -m wss_deploy.devshot sandbox --jobs <id,…> --dir <自己的 scratch>/jobs --port <端口>` 复制正式任务到沙箱并起回环 CPU 服务；`python -m wss_deploy.devshot <url> <out.png> [--width --height --wait --full --js "…" --after 秒 --marionette-port <端口>]` 截图，页面 JS 错误打印到 stderr 并以退出码 3 返回。Python 中可 `from wss_deploy.devshot import Browser`（`go / js / shot / frame / errors / resize`）。三维报告在软件渲染下首帧约 20–30 s（`--wait 25`）。沙箱里的报告改完模板后用 `from wss_deploy.rebuild_report import refresh_ui_only; refresh_ui_only(Path(job_dir))` 刷新。**端口分配**：W3 = HTTP 8801 / Marionette 2841–2849；W4 = 8802 / 2851–2859；W5 = 8803 / 2861–2869；主会话 8799 / 2830–2839。**绝不指向正式 `outputs/wss_deploy_jobs`，也不要重启正式 8765 服务**。
+
+## 19.9 界面约定（W3 / W4 / W5）
+
+- **默认配色恢复彩虹**（用户 2026-09-20 明确偏好「配色要彩虹」；v0.11.2 改成 Viridis 未见用户要求），Viridis / Turbo / 蓝白红保留可选；已保存的偏好照旧优先。
+- **默认视角 = 解剖前视并撑满视口**（两报告一致）：用 `FRAME.rotation`（或体场的等价坐标架）的 `front` 方向 + `fitView(margin 1.12)`；「复位视角」与 `0` 键回到它；没有坐标架的旧报告回退到现有逻辑再 `fitView`。
+- **技术信息收纳**：页脚只留「审阅状态 · 发布包短名 · 生成时间（`localTime`）」，特征合同、run_identity、哈希、重建时间收进「技术信息」按钮弹层。`?` 术语按钮必须是 16–18 px 的圆（修复页脚与菜单标题里被拉成长椭圆的样式）。时间帧文字写人话：「收缩期峰值帧（约 0.21 s）」，不直接显示 `peak_systole` / `step 1162`（技术信息里保留）。
+- **快捷键**（`installShortcuts`）：两报告 `1–6` = 前 / 后 / 左 / 右 / 上 / 下、`0` / `R` = 复位、`S` = 保存截图、`P` = 点选 / 探针开关、`L` = 自动标注开关、`?` = 帮助；壁面报告 `F` = 循环字段（WSS → TAWSS → OSI）；体场报告 `V` / `B` = 速度 / 压力、`T` = 循环显示页签、`X` = 点选定位截面。工作台：`/` = 聚焦搜索、`N` = 新建预测、`J` / `K` = 下 / 上一例、`Enter` / `O` = 打开三维报告、`G` = 一页纸、`?` = 帮助（列表获得焦点时 ↑↓ 同 J/K）。
+- **工作台路由**：地址 `#job=<id>`（选中即更新，刷新 / 前进后退恢复）；列表分组顺序「需要处理（待确认输入 / 待确认出口 / 失败 / 中断）→ 计算中与排队 → 待审阅 → 已审阅（折叠）」。
+
+## 20. §19 实现记录与偏差（2026-09-23 合并后）
+
+- **W1**：`findings_wall(..., cycle=None)` → `_cycle_findings`；有周期量时 `findings.cycle_criteria` 新键（`service.pending_rebuilds` 用它判断旧 M1 结果是否需要完整重建）。一页纸第 1 页配图改为单行（1–4 张；更多进附录），2×2 会超出 A4；页码为静态「第 1 页 / 附录」（Firefox 不支持 `@page` 计数）；severity `info` 在一页纸按 kind 显示「几何」或「参考」。`build_reference_profiles.collect(population=False)` + `--population-note`；M1 侧车 `profile_id = geometry-train136-2026-09-22`。`quality.model_count_phrase`：5 个或未知 → 「五模型」原文。
+- **W2**：`growth_recent` 只在 ≥ 3 次扫描时给出（两次时与首末相同）；时间线多 `schema_version`、`growth.from/to.input_sha256`、`jobs[].created_at`，M1 模型量多 `wss_low_frac / wss_high_frac`；health 多 `queue_mine / auto_refresh_reports / shared / login`、`gpu.count / device`，`stale_reports` 缓存 60 s；报告刷新时同时持有该任务锁与 manager 全局锁（防审阅并发覆盖，代价是模板更新后每份报告首次打开时其他请求等约 0.5–3 s——`service upgrade` 在停服务期间预先刷新，避免这一等待）；stdout 进 `server.console.log`。列表 / 详情 / `cases.runs[]` 带 `family_label`（「壁面 WSS」「WSS + TAWSS + OSI」「压力 + 速度体场」）、`release_short`、`has_cycle`；主会话合并时补 `finished_at`（done 时的完成时间）与旧格式任务（仅 `peak / wss_field_pa`）归「壁面 WSS」；`findings_top` 改用 `onepager.top_findings`（每类先取一条、驳回项不出现）。主会话新增 `service upgrade`（adopt/stop → 重建 → 刷新 → start，失败也启动）与 `--rebuild / --no-auto-rebuild`。
+- **W3**：概览计数与快速筛选只看最近 100 个任务；「近 7 天完成 / 最近完成」优先 `finished_at`；`computeTiming` 本次尝试 > 0 才拆分，记录为 0 的旧任务回退 summary 总时长；确认页宽屏三维 `clamp(420px, calc(100vh - 300px), 70vh)`、`fitView`、OrbitControls 创建前设 up；缩略图无网格且无三维中心线时画二维中心线示意；可选「报告模板」对话框已做。
+- **W4**：P = 锁定悬停点探针 / 关闭探针（壁面报告无单独点选模式）；视图状态 `field` 记录当前字段（并排同步会带过去，对侧不支持则忽略）；等值线 / 最高 1% 高亮 / 区域统计 / 展开图随当前字段；紧凑布局下页脚隐藏，技术信息从「统计与口径 → 查看计算过程」进入；`cycle` 早已在 meta 中，`build_html` 未改。
+- **W5**：OrbitControls 在创建时固定 `camera.up` 为旋转轴——先设头向再建控件、上视 / 下视时重建（W4 同法）；「壁面压力」页签在速度模式被误禁用是 bug 已修（切页签自动切物理量，真缺数据才禁用并悬停说明）；`formatSvgTicks` 让共享库 `colorbarSVG` 的刻度与 `formatValue` 一致。
+- **待上移共享库**：`releaseShort`、横幅文案（`referenceLabel / warningItems`）、`createdIso / withOffset`、`humanFrame`、`unitText`、按 up 重建 OrbitControls、`formatSvgTicks`（或 `colorbarSVG` 支持 `format`）、工作台 `pillSprite`。
+
+---
+
+# v0.12.2 契约 §21（2026-09-23 下午：进度与剩余时间 + 标签防重叠；算子提速已由主会话完成）
+
+主会话已完成并上线的算子提速（逐位相同或落在原有运行间抖动内，见 README v0.12.2）：`wss_features` 的重采样 / 曲率 / 缠绕数，`knn_memo.py`（集成成员共用 kNN 图），`streamlines.ball_certified_inside`，发布包预加载。本轮只做界面与估计，不改任何预测数值；文件归属同 §19.0。
+
+## 21.1 共享库 `declutterLabels(items, {padding=4, maxShift=120, step=10, bounds?, hideOverflow?})`（主会话已加，node 测试覆盖）
+
+`items=[{x, y, w, h, priority?}]`（锚点 = 标签中心想放的位置，CSS px）→ `[{x, y, moved, hidden}]`（按输入顺序）。高优先级先放，冲突时在锚点周围按环尝试（上 / 下 / 左右 / 对角），`moved` 为真时调用方画引线回锚点；`hideOverflow` 时放不下的低优先级标签 `hidden`。确定性（同输入同输出）。
+
+## 21.2 剩余时间估计（W2 后端 → W3 前端）
+
+任务快照（列表与详情）在 `queued / running / awaiting_*` 时带 `eta`：
+
+```json
+{"eta": {"basis": "history|default", "n_history": 6, "faces": 23184, "family": "wall",
+         "current": "features",
+         "stages": [{"key": "ingest", "label": "检查输入", "expected_s": 0.2, "state": "done", "elapsed_s": 0.1},
+                    {"key": "centerline", "label": "提取中心线", "expected_s": 3.5, "state": "done", "elapsed_s": 3.3},
+                    {"key": "smooth_resample", "label": "平滑与重采样", "expected_s": 4.0, "state": "done", "elapsed_s": 4.2},
+                    {"key": "features", "label": "几何特征", "expected_s": 3.0, "state": "running", "elapsed_s": 1.1},
+                    {"key": "inference", "label": "模型推理", "expected_s": 7.0, "state": "pending"},
+                    {"key": "morphology", "label": "形态测量", "expected_s": 1.8, "state": "pending"},
+                    {"key": "export", "label": "报告与导出", "expected_s": 1.0, "state": "pending"}],
+         "remaining_s": 11.0, "updated_at": "…"}}
+```
+
+- 阶段按族：A 段 `ingest, centerline`；壁面 B 段 `smooth_resample, features, inference, metrics, morphology, export`；体场 B 段 `smooth_resample, volume_features, inference, streamlines, morphology, export`（`summary.timing_s` 的键 `inference_5_models / inference_volume / metrics_and_interpolation / streamlines_and_interpolation / metrics_and_export` 归并到上面的短键）。`awaiting_confirmation` 时只给 B 段预计总时长（`remaining_s` = B 段合计，用于「确认后约 N 秒出结果」）。
+- 估计：输入面片数 `f`（`input_check.faces`）。历史 = 已完成、同族、且 `summary.feature_contract.source_hash` 等于当前 `wss_features.contract()` 的任务（只用提速后的真实耗时），按 `seconds / (f/10k)` 取中位（`centerline` 用 `(f/10k)^1.4` 归一，VMTK 超线性）；少于 3 例时用下列默认值在两点间按面片数线性插值、下限为小例值的一半（2026-09-23 实测，GPU 忙时）：
+
+  | 阶段 | 2.3 万面（LV） | 27.3 万面（LIU） |
+  |---|---|---|
+  | ingest | 0.2 | 6.1 |
+  | centerline | 3.4 | 65 |
+  | smooth_resample | 4.2 | 12.8 |
+  | features（壁面） | 2.8 | 8.0 |
+  | volume_features | 8.9 | 14.1 |
+  | inference（壁面 / 体场） | 7.0 / 3.2 | 9.0 / 3.2 |
+  | metrics | 0.2 | 0.5 |
+  | streamlines | 3.5 | 6.7 |
+  | morphology | 1.7 | 14.0 |
+  | export | 0.8 | 1.1 |
+
+- 运行中：已完成阶段用实际耗时，当前阶段 `elapsed_s` 取自阶段开始时间（进度回调已有 phase，W2 在 `progress()` 时记录 `phase_started_ts`），`remaining_s = max(0, expected_cur − elapsed_cur) + Σ pending`；超时时当前阶段剩余按 `0.2 × expected` 递减显示，不出现负数。事件流（SSE）照常推送快照即可。
+- 排队中：`queue_ahead_s` = 前面任务的剩余合计（估计）。
+
+## 21.3 界面（W3）
+
+详情页运行中：分阶段进度条（每阶段一格，宽度按 `expected_s` 比例，已完成实色、当前阶段按 `elapsed/expected` 填充并带动效、待做浅色），下方「预计还需约 N 秒」（`formatDuration`：< 10 s 显示「几秒」，< 60 s 按 5 s 取整，否则「约 N 分 M 秒」），阶段名悬停显示预计 / 实际秒数；待确认出口时在确认按钮旁写「确认后约 N 秒出结果」；列表行运行中显示细进度条与剩余时间；排队中显示「前面 K 个，约 N 秒后开始」。`eta` 缺失（旧服务）时保持现状。
+
+## 21.4 报告（W4 壁面 / W5 体场）
+
+自动标注（发现 F1…、分支名、最大直径）每帧投影后调用 `declutterLabels`（相机变化时经 `requestAnimationFrame` 节流，静止时不重复计算），优先级：attention 发现 > info 发现 > 最大直径 > 分支名；`moved` 画细引线（1 px，半透明）回锚点；紧凑布局或视口 < 900 px 时 `hideOverflow:true`（被隐藏的发现仍在发现列表里）。导图 / 拼图 / 一页纸配图合成标签时用同一布局结果（离屏渲染按目标分辨率重新计算）。
+
+## 22. v0.13 派生周期指标 RRT / ECAP、阈值跟随字段、细分色标、报告四标签（2026-09-23 晚）
+
+### 22.1 派生指标
+- 定义（`cycle_fields.derive_indices`）：`RRT = 1 / ((1 − 2·OSI)·TAWSS)`、`ECAP = OSI / TAWSS`，单位 `1/Pa`（界面写 Pa⁻¹）；TAWSS 取 `max(TAWSS, 0.01 Pa)`，`1 − 2·OSI` 取 `max(·, 0.01)`，OSI 先截到 [0, 0.5]；输入 NaN（未覆盖顶点）输出 NaN。
+- 条件：`extra_fields` 同时含 `tawss` 与 `osi` 时由 `with_derived` 追加 `rrt` / `ecap`（`derived=True`）；单头发布包输出逐位不变。
+- 描述符：`fields.rrt = {units:'1/Pa', array_key:'rrt_per_pa', source:'derived', derived_from:['tawss','osi'], definition, display:{thresholds:[5,10,20], log_scale:true, p99, max, cycle, threshold_direction:'above'}}`；`ecap` 同构（`ecap_per_pa`，阈值 1.4 / 2.8 / 4.2）。`display.threshold_direction` 新增到所有周期字段（TAWSS 为 `below`，OSI / RRT / ECAP 为 `above`）。
+- 统计：`cycle.fields.rrt|ecap` 与 OSI 同结构（`area_frac.above_t0..t2`、`per_branch.frac_above_t0`），同步进 `results.statistics`；`cycle.definition` 增 `rrt` / `ecap` 两条文字定义。
+- 沿程：`profiles.branches[].rrt|ecap = {mean:[…], p90:[…]}`。
+- 导出：`points_wss.csv` 末尾追加 `rrt_per_pa,ecap_per_pa`（`%.4f`）；`wall_wss.vtp` 增同名点数组（顶点值 = 对插值后的 TAWSS / OSI 顶点值套公式）。**field.npz 不存派生数组。**
+- 旧任务：`rebuild_report` 完整重建时补齐以上各项（CSV 原有列逐字节保留，重复重建只替换派生列）；`--ui-only` 刷新不动嵌入数据，查看器在浏览器端用嵌入的 TAWSS / OSI 数组现算（`source:'derived_in_viewer'`，同公式同下限）。
+
+### 22.2 报告查看器
+- 阈值：三个输入跟随当前着色字段；WSS 仍写 `thresholds_pa`，其余字段覆盖值写视图状态可选键 `field_thresholds: {tawss|osi|rrt|ecap: [t0,t1,t2]}`（基准单位；无效或未知字段忽略；与默认值相同则不记）。阈值与 summary 不同时统计卡从点数组重算（含 ≥ 10 点的分支）。
+- 色标：`WssReportCommon.colorbarTicks({min,max,log,floor,bands,maxLabels=11,target=8,minGap})` → `[{f,v,major,nice}]`；`tickLabel`（取整刻度按原样、端点三位有效数字）；`spreadLabels(items,minGap)`；`colorbarSVG` 新增可选 `ticks:'fine'` 与 `thresholds:[{v,label}]`，缺省行为不变（体场报告仍用旧刻度）。分段档位 `0,4,6,8,10,12,16,20`。
+- 菜单：`PANES = {view:[menu-display,menu-stats], measure:[menu-measure,menu-profiles,menu-region], review:[menu-findings,menu-annot], export:[menu-view,menu-presets]}`；卡片 id 不变；一个标签内一次只开一张卡；视图状态 `ui.menu` 打开对应卡并切标签，新增 `ui.tab`。
+
+
+## 23. v0.14 四维度优化：安全、速度、可运维、界面快赢（2026-09-24）
+
+用户裁定范围见 `README.md` v0.14 节。五路并行的共享契约如下（合并后全部落地）。
+
+### 23.1 错误类型 `errors.py`
+- `PipelineError(user_message, *, admin_detail=None, retryable=None, category=None, retry_hint=None)`；子类 `InputGeometryError`（input_geometry，不可重试）、`ToolchainError`（toolchain，不可重试，`admin_detail` 放工具 stderr 尾）、`ResourceError`（resource，可重试；CUDA 显存不足带 `retry_hint="cpu"`）；`classify(exc)` 把 torch OOM / TimeoutExpired / MemoryError / ENOSPC / ImportError 映射为上述类型，其余返回 None。
+- `job["error"]` = `{message, diagnostic_id, category, retryable, [admin_detail], [retry_hint]}`；普通 `ValueError` 仍原文显示（category internal、retryable False）；未知异常用通用文案、retryable True、原始文本进 `admin_detail`。`ingest.STLInputError` 同时继承 InputGeometryError 与 ValueError 以兼容旧处理。
+- HTTP 层 `_serialize` 在共享模式对非管理员剥除任意深度的 `admin_detail`（含事件流与 `device_fallback` 事件）；本机模式保留。前端 `retryable === false` 时隐藏「重试」，`admin_detail` 存在即在「技术细节」折叠显示。
+
+### 23.2 任务记录与预计算
+- `job.json` `schema_version = "wss-deploy.job/v2"`：不再内嵌 `a.preview` / `a.proposal.preview_polylines`（只在 `stage_a.json`）；紧凑 JSON；进度事件（`version=False`）原子写不 fsync，状态变化 fsync；`MIGRATIONS=[(v1,…),(v2,…)]` 懒迁移（v1 预览与 stage_a.json 逐字相同才移除）。`JobManager.geometry()` / `stage_a(job_id)` 按需读盘。
+- `pipeline.precompute_geometry_cache(job_dir, job, *, release=None, cancel_event=None) -> {ok|cancelled|skipped|error, steps:[mesh,resample,point_geometry,morphology], timing_s:{smooth_resample,features,morphology}, seconds}`：永不抛异常；缓存条目 `<job>/geometry_cache/<kind>-<key>.npz`，键 = 输入字节 + dtype/shape + 参数 + wss_features 哈希 + 代码源哈希；`stage_b` 与预计算共用每任务锁。任务管理器在 `awaiting_confirmation` 时单线程后台调度（`_release_for(record, load=False)`，不加载权重）、stage B 让路、取消 / 删除 / 停服务即取消；重跑 / 重试复制 `geometry_cache/`；`WSS_DEPLOY_PRECOMPUTE=0` 关闭。
+- summary 新增 `geometry_cache = {enabled, reused:[kinds], computed:[kinds]}`、`inference_threads`、`timing_s.precompute`（任务侧 `timing.precompute_s`）；ETA 把命中缓存的运行剔出阶段历史，`apply_precompute` 覆盖率 smooth_resample / morphology 1.0、features 2/3。
+- 事件动作新增 `restart_requeued`、`drain_requeued`、`device_fallback`（`reason` 只放用户文案，原始文本在 `admin_detail`）、`precompute_{done,cancelled,skipped,failed,incomplete}`、`analysis_rebuilt`；`_event(actor=)` 与 `wss_deploy.audit` 每条持久变化一行（会话 owner 仅 `h:<sha12>`）。
+
+### 23.3 溯源、健康与服务
+- `schema.code_provenance()` / `summary_provenance()`：`analysis_version`（"2026-09-24"）、`deploy_version`（`__version__`）、`git_describe`（`--always --dirty --long`）、`git_dirty`、`code_source_hash`（wss_deploy/*.py + AST 扫出的 training_wss_min 模块）。壁面 / 体场 stage B 与 `rebuild_report._finish` 写 summary 前并入；run_manifest 顶层同名键。`regress.py` 跳过这五个键（`PROVENANCE_KEYS`），`SUMMARY_KEYS` 加 `cycle`，不加 `fields`。
+- `JobManager.health()` → `{ok, checks:{workers, releases, jobs_root, disk, vmtk, gpu}, cached_at}`；硬检查 = 前五项；`registry.preload_state = {status: running|done|failed|disabled, running, loaded:[ids], failed:{id: msg}}`。`/api/health` 未登录只返回 `{ok, version}`，登录后带 checks；`/api/ready` 不健康 503；`service.wait_healthy` 用 ready。
+- 单写者锁 `<jobs_root>/.service.lock`（flock，JSON 记 pid / purpose / 脱敏 argv）：`serve` 持有；`jobs claim`、`reports refresh`、`python -m wss_deploy.rebuild_report`、第二个 `serve` 被拒并报 PID（`--force` 越过）；`JobManager(offline=True)` 不标中断、不清回收站、不 `start()`。
+- `service upgrade`：预检（子进程 import server/jobs/pipeline/families/report + `doctor --skip service`）→ 接管 / `--drain [s]`（`.drain.json`）/ 停止 → `queue_maintenance()` → 启动 → `wait_maintenance()`；重建与报告刷新由新服务在 stage-B 锁内后台执行，期间该任务编辑返回 409，结果写 `maintenance_result.json`。`serve --token-file`；`redact_argv` 用于 service.json / status / adopt。
+- 会话：行记 `token_fingerprint` 或 `credential_generation`（users.json 每用户整数，passwd / disable / set_role / API 改口令时 +1）；lookup 时不匹配、用户禁用或角色变化即失效；`legacy_token_allowed()` 为假时旧令牌行失效（`lookup(for_claim=True)` 仅供认领提示）；空闲 `WSS_DEPLOY_SESSION_IDLE_HOURS`（12）+ 7 天；每 256 次或 10 分钟清扫；本机模式无 Cookie 的会话只在内存（pending ≤ 1000、10 分钟）。认领：仅 `previous.username is None` 的 owner 可携带；API 拒绝认领已注册用户名。
+
+### 23.4 HTTP 层
+- 上传：`stream_multipart()` 逐段进 `SpooledTemporaryFile`（8 MiB 阈值，落盘在 `<jobs_root>/.tmp`），以 `content_file=` 交给 `JobManager.create / create_batch`（`_stage_upload` 分块复制、边算 sha256 与面数、暂存 `.tmp/upload_<hex>.stl` 后改名；有 `seek` 即回卷）；客户端 `metadata_json` 中的 `content` / `content_path` / `content_file` 一律丢弃。限额：并发上传 2、每 owner 排队 + 计算 20、每会话 SSE 6、登录每 IP 每分钟 10、打包并发 1 且 ≤ 2 GiB（落盘 `.tmp` 后发送）。超限 429 / 413，body `{"error":{"message":…}, active_jobs?, max_active_jobs?}`。
+- 响应头：工作台 / 静态 / API `script-src 'self'`；三维报告 `'self' 'unsafe-inline'`；一页纸 `'unsafe-hashes' 'sha256-<window.print()>'`（`ONEPAGE_HANDLER_HASH`，改按钮文本须同步）；无 `Server` 头。gzip（> 8 KiB，级别 6，文件级 LRU 256 MiB）；ETag / 304：静态 `private, max-age=0, must-revalidate`，报告 / 一页纸 / 几何 `private, no-cache`，API `no-store`。
+- 日志：`wss_deploy.access`（`ip method path status bytes ms`，无查询串，`/api/patients/<id>/…` 脱敏）→ `access.log`（20 MB × 5）；`wss_deploy.audit` → `server.log`。`report_freshness.ensure_fresh` 在 `<job>/.report_ui_stage_*` 暂存渲染，锁内只校验 + `os.replace`；无嵌入数组的页面直接判失败。`<jobs_root>/.tmp` 与 `.report_ui_stage_*` 不被任何扫描当作任务。
+
+### 23.5 报告与比较页
+- 视图状态 `range` 可选键：`field`（固定上限只作用于该字段）、`shared`（比较页设置，不存偏好）、`case_max`；报告在重着色 / 可见性 / 剖切变化后向父页 post `wss-view:changed {family, run_identity}`。比较页两侧就绪、勾选同步或每次显示同步后调用 `WB.sharedDisplayRange()`（两例 p99 较大者）推送到两侧；字段 / 族不同或体场报告时显示提示。
+- 色表唯一来源 `report_common.js` `PALETTES` / `paletteRGB` / `colormapTables`（彩虹 10 色标不变；turbo / viridis 33 色标；bwr RdBu-7）。
+- 嵌入数据：`build_html(embed_derived=False)` 默认不嵌 RRT / ECAP（描述符仍声明，查看器现算）；分支编号 `ms/ps/cs` 在 0–255 内为 uint8，`arrays.dt[key]="u8"`；`refresh_ui_only` 按 `dt` 解码，旧页面按 int32。report.html 原子写。
+- 前端：`TIMER_NAMES.precompute`；`geometry_cache.reused` 命中的阶段标「已预计算」；`eta.precomputed` 阶段斜纹；`EVENT_TEXT` / `eventText(action)`（未知动作原名）；`limitErrorText(status, body)` 生成 429 / 413 文案。
+- **v0.14.1**：`JobManager.claim_owner(old_owner=None, new_owner)` 迁移没有 owner 的命令行任务；`cli jobs claim --owner none`。令牌模式没有认领通道：升级或会话过期后令牌用户会拿到新 owner，正式部署应使用用户名登录（users.json 存在即启用）。
+
+## 24. v0.15 上线前加固：安全、可运维、前端与操作性（2026-09-26）
+
+范围与裁定见 `README.md` v0.15 节。三路并行（S 安全 / O 可运维 / F 前端）+ 主会话合并；精度链路未动。
+
+### 24.1 网络层开关（server.py，默认全关）
+- `WSS_DEPLOY_TRUST_PROXY=1`：仅当 TCP 对端是 127.0.0.1 / ::1（含 IPv4-mapped）时信任 `X-Forwarded-For`（最右一个非回环地址，遇无法解析的一跳即停）、`X-Forwarded-Proto`（最后一个值，只认 http / https）、`X-Forwarded-Host`（作为 Origin 可接受的 host）；`Handler._client_ip()` 用于登录限速、审计与 access.log；`_allowed_origins()` 只接受代理报告的协议。`service_is_shared(host)` 在该开关下恒为真（即使绑回环也要求登录；无用户无令牌时 `serve` 拒绝启动）。
+- `WSS_DEPLOY_COOKIE_SECURE=auto|1|0`：`Handler._cookie_secure()`；`auto` = 经可信代理且 `X-Forwarded-Proto: https`。判定为 https 的响应（JSON / 文件 / SSE）带 `Strict-Transport-Security: max-age=31536000`；非 https 从不发。
+- `WSS_DEPLOY_UMASK`（八进制）：`apply_umask_from_env()` 在 `cli serve` 拿锁前与 `server.serve` 开头执行。与之无关：`atomic_json` 以 `O_EXCL` 0600 创建临时文件；`PrivateRotatingFileHandler`、console 日志、`deleted_jobs.jsonl` 一律 0600。
+- 登录限速：`LoginThrottle` 两个桶（地址 `WSS_DEPLOY_LOGIN_RATE_PER_MIN` 默认 30；用户名 `WSS_DEPLOY_LOGIN_USER_RATE_PER_MIN` 默认 10，成功退还；用户名桶拒绝时退回地址令牌）+ users.py 锁定。429 体 `{"error": {...}, "retry_after": <秒>}` 且有 `Retry-After` 头；每键每分钟一条 `login_throttled` 审计。
+- 请求解析：JSON `RecursionError` → 400；令牌 / CSRF 比较用 UTF-8 字节；multipart 文件名剔除 C0/C1 控制字符。
+- 审计动作新增 `logout`、`template_updated`（`keys`）、`login_throttled`；CLI `_AuditLog` 把 `user add/passwd/role/disable`、`jobs claim` 写到 service.json 的 `log_file`（actor `cli:<系统用户>`）。
+- `users.password_problem(password, username)`：长度 ≥ 8 之外拒绝纯数字、等于用户名、单字符重复、30 条常见口令；`UserStore.disable/set_role(keep_admin=)`，CLI 默认 `keep_admin=True`（`--force` 越过，单账号库豁免）。
+- `/api/session` 新增 `max_batch_bytes`（256 MiB）、`max_batch_files`（20）；登录后的 `/api/health` 新增 `ui_build`（`static_build_id()`：STATIC_FILES 内容 sha256 前 12 位，按 stat 签名缓存；未登录响应仍只 `{ok, version}`）；非管理员的 `checks.jobs_root` 无 `path`。
+
+### 24.2 时钟（clock.py）
+- `configure(jobs_root, tz=)`、`now_iso()`、`now_local()`、`iso(ts)`、`strftime(fmt)`、`LogFormatter`、`describe(root)`。时区优先级 `WSS_DEPLOY_TZ` → 本次 `--env TZ=` → `service.json.env.TZ` → 系统；不读 shell `TZ`。无效名逐级回落并进 `errors`（doctor ⚠）。
+- 走时钟的写入点：事件 `at`、`created_at/updated_at`、审阅 / 标注 / 快照时间、回收站三个时间、维护结果、预计算时间、service.json / service.pid / 写锁 / drain、`report_ui.json.refreshed_at`、`audit.report_rebuilt_at`、`narrative.generated_at`、打包说明、`eta.finish_at`、`pipeline._now()`（**stage_a / summary / quality_audit 的 `created_at` 改为 ISO 带偏移**）、任务 id（格式不变）、导出文件名、server.log / access.log 时间戳。epoch 秒字段与浏览器端 `toISOString()` 不变。`regress.SUMMARY_KEYS` 不含时间字段，黄金 6/6。
+
+### 24.3 运维接口
+- `doctor.run_checks` 状态集合 `{ok, warn, fail, info}`；新组 `exposure`（`bind_login`、`tls`、`secret_perms`）、`cache`（`derived_cache`）、`tz`；`logs` 组加 `log_rotation`；`releases` 组加 `release_pins`（对照 `env/releases.sha256`）；`disk_thresholds()` 读 `WSS_DEPLOY_MIN_FREE_GB="<fail>[,<warn>]"`（默认 5,20），`JobManager.health()` 共用；`doctor --host` 按将要使用的绑定评判，`service upgrade` 预检传入覆盖后的 `--host` / `--env`，✗ 抛 `ServiceError`。
+- `service.status(root)` / `format_status` / `--json`：`login_mode`、`maintenance_summary`（`requested_at / requested_by / version` 自 `maintenance_result.json`）、`last_started`、`tz`、`ready`；`crashed / log_tail / console_tail / start_command`。`server_summary()` 同口径给 `/api/ready` 的管理员 `summary`。
+- `housekeeping.du(root, top, json)`、`housekeeping.prune_cache(root, older_than_days, yes, force, dry_run)`：只删 `geometry_cache/` 与 `.tmp/` 中早于截止的文件，跳过 `queued / running / awaiting_*`，取写锁（运行中需 `--force`），记录 `prune_cache.jsonl`。
+- `rehearse.run(root, jobs, count, keep, dir, preload, timeout)`：临时目录 + 临时 users.json（管理员 `rehearsal`）+ `WSS_DEPLOY_TRUST_PROXY=1`（回环也登录）+ `--device cpu` + 不预加载；步骤 `ready_anonymous → login → list/detail → report/onepage → ready_admin`；退出码 0/1。
+- 崩溃：工作线程死亡 → CRITICAL + `health.checks.worker.failures`，不自动拉起；`service.install_crash_logging()`（`threading.excepthook`）；`ServiceHTTPServer.handle_error` 记 diagnostic_id。
+
+### 24.4 前端（F）
+- 会话过期：`request()` 对 `SESSION_CALLS`（`/api/session`、`/api/session/password`）的 401 不调用 `expireSession`；其余 401 → `#relogin-dialog`（顶层、不可 Esc）；`resumeSession(result)` 同用户只重开事件流 + 刷新列表与当前病例，换用户走 `startSession`。
+- 登录：`wss-login-user` / `wss-login-remember`（localStorage，只记用户名）；`loginCooldown(seconds)` 读 429 体 `retry_after`。
+- 连接：事件流 `onerror` → 顶栏琥珀并每 10 s 重开；`checkServiceVersion(version, build)`：`bootVersion = version[/ui_build]`，登录后首次学到 build 不提示；版本变 →「服务已更新到 vX」，同版本 build 变 →「服务的页面文件已更新」。
+- 上传：`WB.checkUploadFiles(files, {maxBytes})`、`WB.uploadChunks(files, {maxFiles, maxBytes})`（来自 session 的 `max_batch_files` 与 `max_batch_bytes × 15/16`）、`WB.identifierIssue(text)`（控制字符 / 超长 = 错误，2–4 汉字 = 真名警告）、`WB.waitText(seconds)`；XHR 上传进度，无 XHR 退回 fetch。
+- 报告：壁面 `#cbar` 与体场渐变条 `role=img` + `aria-label`（随字段）；体场 `#back-to-workbench` 同壁面规则；页脚无审阅记录写「待审阅」；`pointer:coarse` 控件 ≥ 44 px。
+- devshot：`sandbox / suite / 单张 --login 用户:口令`（沙箱自带 users.json，共享 / 用户名模式）。

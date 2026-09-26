@@ -67,9 +67,11 @@ def test_password_login_claim_and_admin_view(tmp_path):
         # the old token no longer opens a session once users exist
         status, payload, _, _ = service.login(api, {"token": "legacy-token"})
         assert status == 401
-        # an old token session (simulated) owns jobs; logging in with a username offers to claim them
-        sid, old_row = service.sessions.create(username="root", password="root-secret")
-        service.sessions.sessions[sid]["owner"] = "old-session-owner"
+        # an old token session (simulated: opened before users.json existed) owns jobs; logging in with a
+        # username offers to claim them even though the token window has closed since (v0.14 S1/S2)
+        sid = "legacy-session-id"
+        service.sessions.sessions[sid] = service.sessions._new_row("old-session-owner", role="legacy",
+                                                                   token_fingerprint=service.sessions.token_fingerprint())
         finished(service.manager, owner="old-session-owner", case_id="OLD")
         api.request("POST", "/api/session", body=json.dumps({"username": "alice", "password": "alice-secret"}),
                     headers={"Content-Type": "application/json", "Cookie": f"wss_session={sid}"})

@@ -10,6 +10,7 @@ a diameter measured by hand in the 3-D report agree.
 from __future__ import annotations
 
 import math
+import os
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -29,8 +30,16 @@ SOLIDITY_FLOOR = 0.8         # polygon area / convex-hull area below which the c
 REORIENT_TILTS_DEG = (15.0, 30.0, 45.0)   # cone searched around the tangent for a suspect station
 REORIENT_AZIMUTHS = 8
 MAX_POLYGON_WORLD = 200      # points kept for the ring drawn by the reports
+# v0.14 exact spatial prefilter (``MeshSections``): faces are grouped into Morton-ordered clusters of
+# CLUSTER_FACES with a bounding sphere; a plane only side-tests the faces of clusters its slab reaches.
+CLUSTER_FACES = 64
 BRANCH_ORDER = ("主动脉", "左髂总", "左髂外", "左髂内", "右髂总", "右髂外", "右髂内")
 AORTA_NAME = "主动脉"
+
+
+def prefilter_enabled() -> bool:
+    return os.environ.get("WSS_DEPLOY_MORPH_PREFILTER", "1").strip().lower() not in {"0", "false", "off", "no"}
+
 
 METHOD = {
     "section": "中心线每 1 mm 一站，以局部切线为法向取壁面网格交线的本地闭合环（穿开口时直线封口）",
@@ -93,6 +102,47 @@ class MeshSections:
         # Exactly one of a crossed triangle's three cyclic edges does not cross; this maps that
         # edge's index to the two that do, in the JS order (ab, bc, ca).
         self._other_edges = np.array([[1, 2], [0, 2], [0, 1]], dtype=np.int64)
+        self._index = None
+        self._digest = None
+
+    def digest(self) -> str:
+        """SHA256 of the mesh as used here (float64 vertices, int64 faces): part of every section cache key."""
+        if self._digest is None:
+            from .geometry_cache import key_of
+            self._digest = key_of("morphology-mesh", self.vertices, self.faces)
+        return self._digest
+
+    # ---------------------------------------------------------------- v0.14 spatial index
+    def _spatial_index(self) -> dict:
+        """Morton-ordered face clusters (CLUSTER_FACES each) with bounding spheres, built once per mesh.
+
+        Only used to skip side tests whose outcome is already known; see :meth:`plane_contour`.
+        """
+        if self._index is not None:
+            return self._index
+        V, F = self.vertices, self.faces
+        tri = V[F]                                                     # (F, 3, 3)
+        centroid = tri.mean(axis=1)
+        lo, hi = V.min(axis=0), V.max(axis=0)
+        extent = float(max(np.max(hi - lo), 1e-9))
+        cells = np.clip(((centroid - lo) / extent * 1023.0).astype(np.int64), 0, 1023)
+        code = np.zeros(len(F), dtype=np.int64)
+        for bit in range(10):
+            for axis in range(3):
+                code |= ((cells[:, axis] >> bit) & 1) << (3 * bit + axis)
+        order = np.argsort(code, kind="stable")
+        n_clusters = -(-len(F) // CLUSTER_FACES)
+        padded = np.concatenate([order, np.full(n_clusters * CLUSTER_FACES - len(F), order[-1])])
+        members = padded.reshape(n_clusters, CLUSTER_FACES)
+        points = tri[members].reshape(n_clusters, CLUSTER_FACES * 3, 3)
+        center = 0.5 * (points.min(axis=1) + points.max(axis=1))
+        radius = np.sqrt(((points - center[:, None, :]) ** 2).sum(axis=2)).max(axis=1)
+        # Tolerance far above the float64 rounding of a plane distance (~1e-13 of the coordinates) and
+        # far below any geometric scale: a cluster whose centre is farther than radius + tol from the
+        # plane has every vertex strictly on one side, whatever the rounding of V @ n.
+        tol = 1e-6 * (1.0 + extent + float(np.abs(V).max()))
+        self._index = {"n_faces": len(F), "members": members, "center": center, "radius": radius + tol}
+        return self._index
 
     # ---------------------------------------------------------------- plane ∩ mesh
     def plane_contour(self, plane: Mapping[str, Any]) -> tuple[np.ndarray, np.ndarray]:
@@ -101,17 +151,35 @@ class MeshSections:
         Port of ``planeContour`` with ``maxRadius = Infinity``: a triangle contributes when its
         three vertices are not all on the same side of the plane, and then exactly two of its
         edges cross.
+
+        v0.14: the per-vertex signed distances are computed exactly as before over all vertices, but
+        the per-face side test only visits the Morton clusters whose bounding sphere reaches the plane
+        (a cluster farther than its radius + tolerance has every vertex strictly on one side, so none
+        of its faces can cross).  The crossing faces, their order and every coordinate are unchanged.
+        ``WSS_DEPLOY_MORPH_PREFILTER=0`` tests every face as before.
         """
         V, o = self.vertices, plane["origin"]
         n, u, v = plane["normal"], plane["u"], plane["v"]
         d = V @ n - float(o @ n)
         side = np.asarray(d >= 0.0)
-        face_side = side[self._faces_flat].reshape(-1, 3)
-        first = face_side[:, 0]
-        hit = np.flatnonzero((face_side[:, 1] != first) | (face_side[:, 2] != first))
+        if prefilter_enabled():
+            index = self._spatial_index()
+            near = np.abs(index["center"] @ n - float(o @ n)) <= index["radius"]
+            mask = np.zeros(index["n_faces"], dtype=bool)
+            mask[index["members"][near]] = True
+            candidates = np.flatnonzero(mask)                         # ascending face order, as before
+            face_side = side[self.faces[candidates]]
+            first = face_side[:, 0]
+            crossing = (face_side[:, 1] != first) | (face_side[:, 2] != first)
+            hit = candidates[crossing]
+            sh = face_side[crossing]
+        else:
+            face_side = side[self._faces_flat].reshape(-1, 3)
+            first = face_side[:, 0]
+            hit = np.flatnonzero((face_side[:, 1] != first) | (face_side[:, 2] != first))
+            sh = face_side[hit]
         if len(hit) == 0:
             return np.zeros((0, 4), dtype=np.float64), np.zeros((0, 2), dtype=np.int64)
-        sh = face_side[hit]
         cross = sh != sh[:, [1, 2, 0]]                                  # edges (0,1), (1,2), (2,0)
         order = self._other_edges[np.argmin(cross, axis=1)]             # the two crossed edges
         faces_hit = self.faces[hit]
@@ -165,10 +233,13 @@ def contour_loops(keys: np.ndarray) -> list[dict]:
     """Chain crossing segments that share a mesh edge into loops (port of ``contourLoops``)."""
     keys = np.asarray(keys, dtype=np.int64)
     n = len(keys)
+    # v0.14: the keys as Python ints once (numpy scalar indexing dominated the walk); same algorithm,
+    # same insertion order, same members in the same order.
+    pairs = keys.reshape(-1, 2).tolist() if n else []
     by_key: dict[int, list[int]] = {}
-    for i in range(n):
-        for k in (int(keys[i, 0]), int(keys[i, 1])):
-            by_key.setdefault(k, []).append(i)
+    for i, (k0, k1) in enumerate(pairs):
+        by_key.setdefault(k0, []).append(i)
+        by_key.setdefault(k1, []).append(i)
     used = bytearray(n)
     loops: list[dict] = []
 
@@ -187,7 +258,7 @@ def contour_loops(keys: np.ndarray) -> list[dict]:
             used[nxt] = 1
             out.append(nxt)
             seg = nxt
-            k0, k1 = int(keys[nxt, 0]), int(keys[nxt, 1])
+            k0, k1 = pairs[nxt]
             key = k1 if k0 == key else k0
         return False
 
@@ -196,7 +267,7 @@ def contour_loops(keys: np.ndarray) -> list[dict]:
             continue
         used[s0] = 1
         members = [s0]
-        a, b = int(keys[s0, 0]), int(keys[s0, 1])
+        a, b = pairs[s0]
         closed = walk(s0, b, a, members)
         if not closed:
             walk(s0, a, b, members)
@@ -578,10 +649,10 @@ def branch_stations(mesh: MeshSections, line: Mapping[str, Any], stations: np.nd
                             "equivalent_diameter_mm": [], "area_mm2": [], "closed": [], "xyz_mm": [],
                             "inscribed_diameter_mm": [], "reliable": [], "reoriented": [], "tilt_deg": [],
                             "raw_max_diameter_mm": []}
-    polygons: list = []
     s_local, radius, s_root = line["s_local"], line["radius"], line["s_root"]
     half = float(station_mm)
-    for s in stations:
+
+    def one(s):
         origin = _interp_xyz(line, float(s))
         back = _interp_xyz(line, max(float(s) - half, float(s_local[0])))
         ahead = _interp_xyz(line, min(float(s) + half, float(s_local[-1])))
@@ -600,6 +671,13 @@ def branch_stations(mesh: MeshSections, line: Mapping[str, Any], stations: np.nd
             section, tilt = reorient_section(mesh, origin, tangent, max_dist=max_dist, baseline=section)
             metrics = section["metrics"] if section["closed"] else None
             flags = station_flags(metrics, inscribed)
+        return s, origin, inscribed, metrics, flags, tilt, raw_max, section
+
+    # Serial on purpose: a thread pool over stations was measured slower (13.8 s → 21.5 s on a 273k-face case),
+    # the contour walking is pure Python and holds the GIL.
+    results = [one(s) for s in stations]
+    polygons: list = []
+    for s, origin, inscribed, metrics, flags, tilt, raw_max, section in results:
         out["s_local_mm"].append(float(s))
         out["s_from_root_mm"].append(float(np.interp(float(s), s_local, s_root)))
         out["xyz_mm"].append([float(v) for v in origin])
@@ -659,17 +737,123 @@ def _subsample_polygon(polygon, limit: int = MAX_POLYGON_WORLD) -> list[list[flo
     return [[round(float(c), 3) for c in row] for row in poly]
 
 
+# ----------------------------------------------------------------------------- v0.14 section cache
+def _code_hash() -> str:
+    """Source hash of this module (memoised by geometry_cache; first taken when the module is imported)."""
+    from .geometry_cache import source_hash
+    return source_hash("wss_deploy.morphology")
+
+
+def _section_key(mesh: MeshSections, line: Mapping[str, Any], stations: np.ndarray, *, station_mm: float,
+                 keep_polygons: bool) -> str:
+    """Everything :func:`branch_stations` reads: the mesh, the segment polyline, the stations, the code."""
+    from .geometry_cache import key_of
+    return key_of("morphology-stations", _code_hash(), mesh.digest(),
+                  *(np.asarray(line[k]) for k in ("rows", "s_local", "s_root", "radius", "xyz")),
+                  np.asarray(stations, dtype=np.float64), float(station_mm), bool(keep_polygons))
+
+
+def _encode_table(table: Mapping[str, Any]) -> dict:
+    from .geometry_cache import json_array
+    polygons = table.get("_polygons")
+    arrays = {"table": json_array({k: v for k, v in table.items() if k != "_polygons"})}
+    if polygons is not None:
+        lengths = np.asarray([-1 if p is None else len(p) for p in polygons], dtype=np.int64)
+        parts = [np.asarray(p, dtype=np.float64).reshape(-1, 3) for p in polygons if p is not None]
+        arrays["poly_len"] = lengths
+        arrays["poly_xyz"] = np.concatenate(parts) if parts else np.zeros((0, 3))
+    return arrays
+
+
+def _decode_table(arrays: Mapping[str, np.ndarray], keep_polygons: bool) -> dict:
+    from .geometry_cache import from_json_array
+    table = from_json_array(arrays["table"])
+    if keep_polygons:
+        lengths, xyz, at, polygons = arrays["poly_len"], arrays["poly_xyz"], 0, []
+        for length in lengths.tolist():
+            if length < 0:
+                polygons.append(None)
+            else:
+                polygons.append(np.array(xyz[at:at + length], dtype=np.float64)); at += length
+        table["_polygons"] = polygons
+    return table
+
+
+def cached_branch_stations(mesh: MeshSections, line: Mapping[str, Any], stations: np.ndarray, *,
+                           station_mm: float, keep_polygons: bool = False, cache=None) -> dict:
+    """:func:`branch_stations` through the job's geometry cache (``geometry_cache.GeometryCache`` or None).
+
+    The key covers every input of the station computation and the morphology source, so a hit is the
+    table the computation would return; an entry that kept the ring polygons also serves a request
+    without them.  JSON keeps the Python floats of the table exact.
+    """
+    if cache is None or not getattr(cache, "active", False):
+        return branch_stations(mesh, line, stations, station_mm=station_mm, keep_polygons=keep_polygons)
+    for with_polygons in ((False, True) if not keep_polygons else (True,)):
+        key = _section_key(mesh, line, stations, station_mm=station_mm, keep_polygons=with_polygons)
+        hit = cache.load("morph", key)
+        if hit is not None and (not with_polygons or "poly_len" in hit):
+            try:
+                return _decode_table(hit, keep_polygons)
+            except Exception:   # an entry of another layout is a miss, never an error
+                pass
+    table = branch_stations(mesh, line, stations, station_mm=station_mm, keep_polygons=keep_polygons)
+    cache.save("morph", _section_key(mesh, line, stations, station_mm=station_mm, keep_polygons=keep_polygons),
+               _encode_table(table), compress=True)
+    return table
+
+
+def cached_lumen_volume(mesh: MeshSections, cache=None) -> tuple[float | None, str | None]:
+    """:func:`lumen_volume_ml` of the mesh through the geometry cache (keyed by the mesh and the code)."""
+    if cache is None or not getattr(cache, "active", False):
+        return lumen_volume_ml(mesh.vertices, mesh.faces)
+    from .geometry_cache import from_json_array, json_array, key_of
+    key = key_of("morphology-volume", _code_hash(), mesh.digest())
+    hit = cache.load("morphvol", key)
+    if hit is not None:
+        try:
+            value = from_json_array(hit["value"])
+            return value[0], value[1]
+        except Exception:   # an entry of another layout is a miss, never an error
+            pass
+    volume, note = lumen_volume_ml(mesh.vertices, mesh.faces)
+    cache.save("morphvol", key, {"value": json_array([volume, note])})
+    return volume, note
+
+
+def precompute_sections(vertices, faces, atlas, cache, *, station_mm: float = STATION_MM, cancelled=None) -> dict:
+    """Fill the geometry cache with every segment's station table (ring polygons for the root segment,
+    which is the aorta for every mapping) and the lumen volume; mapping-independent."""
+    mesh = MeshSections(vertices, faces)
+    done = 0
+    for segment in list(atlas.segments):
+        if cancelled is not None and cancelled():
+            break
+        line = _polyline(atlas, int(segment["segment_id"]))
+        if line is None:
+            continue
+        root = bool(segment.get("starts_at_root"))
+        stations = _station_positions(line, station_mm, skip_start=root, margin_mm=OPENING_MARGIN_MM)
+        cached_branch_stations(mesh, line, stations, station_mm=station_mm, keep_polygons=root, cache=cache)
+        done += 1
+    if cancelled is None or not cancelled():
+        cached_lumen_volume(mesh, cache)
+    return {"segments": done}
+
+
 # ----------------------------------------------------------------------------- §17.1 entry point
 def compute(vertices, faces, atlas, *, branch_names: Mapping[str, str] | None = None,
             per_branch: Mapping[str, Any] | None = None, cloud: Mapping[str, Any] | None = None,
             interior: Mapping[str, Any] | None = None, findings: Mapping[str, Any] | None = None,
-            thresholds: Sequence[float] | None = None, station_mm: float = STATION_MM) -> dict:
+            thresholds: Sequence[float] | None = None, station_mm: float = STATION_MM,
+            section_cache=None) -> dict:
     """``summary["morphology"]`` for either family (contract §17.1).
 
     ``cloud`` (wall family) is ``{"segment_id": .., "wss": ..}`` of the prediction cloud;
     ``interior`` (volume family) is ``{"segment_id": .., "speed": ..}`` of the interior points;
     ``findings`` supplies the per-branch ΔP of the volume family.  All are optional: a missing
-    source leaves the corresponding ``branches[]`` columns ``null``.
+    source leaves the corresponding ``branches[]`` columns ``null``.  ``section_cache`` (v0.14) is the
+    job's ``GeometryCache``: station tables and the lumen volume are read from / written to it.
     """
     if not math.isfinite(station_mm) or station_mm <= 0:
         raise ValueError("station_mm must be positive")
@@ -708,7 +892,8 @@ def compute(vertices, faces, atlas, *, branch_names: Mapping[str, str] | None = 
         stations_s = _station_positions(line, station_mm,
                                         skip_start=bool(segment.get("starts_at_root")),
                                         margin_mm=OPENING_MARGIN_MM)
-        table = branch_stations(mesh, line, stations_s, station_mm=station_mm, keep_polygons=is_aorta)
+        table = cached_branch_stations(mesh, line, stations_s, station_mm=station_mm, keep_polygons=is_aorta,
+                                       cache=section_cache)
         polygons = table.pop("_polygons", None)
         dmax = _array(table["max_diameter_mm"])
         equivalent = _array(table["equivalent_diameter_mm"])
@@ -761,7 +946,7 @@ def compute(vertices, faces, atlas, *, branch_names: Mapping[str, str] | None = 
             aorta_block = _aorta_block(entry, table, dmax, equivalent, usable, polygons,
                                        station_mm=station_mm, notes=notes)
 
-    volume_ml, volume_note = lumen_volume_ml(mesh.vertices, mesh.faces)
+    volume_ml, volume_note = cached_lumen_volume(mesh, section_cache)
     if volume_note:
         notes.append(volume_note)
     return {"schema_version": MORPHOLOGY_SCHEMA, "station_mm": float(station_mm), "method": dict(METHOD),
@@ -915,7 +1100,14 @@ def trim_for_report(morphology: Mapping[str, Any] | None) -> dict | None:
     return out
 
 
+# Take the source hash now, while the file on disk is the code this process has just imported.
+try:
+    _code_hash()
+except Exception:  # pragma: no cover - an unreadable source only means cache keys are computed later
+    pass
+
 __all__ = ["AORTA_NAME", "MORPHOLOGY_SCHEMA", "METHOD", "MeshSections", "STATION_MM", "branch_stations",
+           "cached_branch_stations", "cached_lumen_volume", "precompute_sections",
            "close_chain", "compute", "contour_loops", "digest", "loop_polygon", "lumen_volume_ml",
            "max_diameter_mm", "plane_frame", "reorient_section", "section_metrics", "select_loop",
            "station_flags", "trim_for_report"]

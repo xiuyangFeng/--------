@@ -232,7 +232,9 @@ def test_no_webgl_viewer_still_switches_fields_and_manual_automatic_slices(tmp_p
       console.log(JSON.stringify({initial,pressure,auto,manual:els['slice-details'].textContent}));
     """.replace("DATA", json.dumps(data)).replace("VIEWER", json.dumps(str(VIEWER)))
     result = node_json(script)
-    assert result["initial"] == {"field": "velocity", "wallDisabled": True, "count": "3", "error": False}
+    # v0.12: wall pressure exists in this report, so its mode stays available under velocity (the tab switches
+    # the field itself); it used to be disabled whenever velocity was selected.
+    assert result["initial"] == {"field": "velocity", "wallDisabled": False, "count": "3", "error": False}
     assert result["pressure"] == {"wallDisabled": False, "vectorsDisabled": True}
     assert result["auto"] == {"mode": "slice", "position": "40", "branch": "1"}
     assert "中心 [1.00, 0.00, 2.00]" in result["manual"]
@@ -255,9 +257,10 @@ def test_pick_planes_and_colormaps():
     chord = np.array([-6, 0, 2]) / np.linalg.norm([-6, 0, 2])
     np.testing.assert_allclose(np.dot(two["normal"], chord), 0, atol=1e-9)        # plane contains the chord
     assert np.dot(two["normal"], [0, 0, 1]) > 0.9                                  # and stays close to the axis
-    assert result["names"] == ["rainbow", "turbo", "bwr"]
-    assert result["before"] == pytest.approx([0, 0, 143 / 255]) and result["after"] == pytest.approx([190 / 255, 0, 0])
-    assert result["bwr"] == pytest.approx([209 / 255, 229 / 255, 240 / 255])
+    assert result["names"] == ["rainbow", "viridis", "turbo", "bwr"]   # §19.9: rainbow is the default again
+    assert result["before"] == pytest.approx([0, 0, 143 / 255]) and result["after"] == pytest.approx([190 / 255, 0, 0])   # default = rainbow
+    # v0.14 bwr = ColorBrewer RdBu-7 from the shared palette table: t = 0.4 sits 40 % of the way from stop 2 to the white centre
+    assert result["bwr"] == pytest.approx([(209 + .4 * (247 - 209)) / 255, (229 + .4 * (247 - 229)) / 255, (240 + .4 * (247 - 240)) / 255])
     assert result["css"].startswith("linear-gradient")
 
 
@@ -417,7 +420,7 @@ def test_no_webgl_viewer_hides_optional_panels_without_analysis_data(tmp_path):
     result = node_json(script)
     assert result["findingsHidden"] and result["profilesHidden"] and result["trustRowHidden"] and result["probeHidden"]
     assert result["error"] is False and result["count"] == "3"   # hidden=False: the no-WebGL notice is shown
-    assert result["footer"] == "审阅状态：未记录" and result["feature"] == "特征合同：未记录"
+    assert result["footer"] == "待审阅" and result["feature"] == "未记录"   # hashes moved into 技术信息; v0.15: unsigned = 待审阅
     assert "没有解剖坐标架" in result["note"] and "连续色标" in result["legend"]
 
 
@@ -466,12 +469,12 @@ def test_no_webgl_viewer_uses_findings_profiles_trust_units_and_view_state(tmp_p
     first = result["first"]
     assert not first["findingsHidden"] and not first["profilesHidden"] and not first["trustRowHidden"]
     assert first["findings"] == 2 and first["firstSev"] == "关注"                     # attention sorts first
-    assert first["footer"].startswith("已审阅 · R1") and first["feature"] == "特征合同 0123456789ab"
+    assert first["footer"].startswith("已审阅 · R1") and first["feature"] == "0123456789abcdef"
     assert "请核对左右" in first["note"]
     assert result["drop"] == {"basis": "centerline", "branch": "1", "position": "10", "mode": "slice", "hint": result["drop"]["hint"]}
     assert "近端 10%" in result["drop"]["hint"]
     assert result["profile"] == {"position": "50.0", "basis": "centerline"}
-    assert result["units"]["legend"] == "速度 · cm/s" and result["units"]["max"] == "200.000" and "4 段" in result["units"]["legendNote"]
+    assert result["units"]["legend"] == "速度 · cm/s" and result["units"]["max"] == "200" and "4 段" in result["units"]["legendNote"]
     assert result["region"][0] == "体内点数" and result["region"][1] == "3"
     assert result["trustShown"] and result["trustText"].startswith("采样支撑弱 · 25.0%")
 
@@ -1513,6 +1516,634 @@ def test_volume_template_and_viewer_carry_the_section17_controls_and_label_compo
     overlay = source[source.index("const OVERLAY_STYLE="):source.index("function drawOverlayLabels(")]
     for key in ("flabel_attention", "flabel_note", "flabel_info", "flabel_manual", "blabel", "dlabel"):
         assert key in overlay, key
-    render = source[source.index("function renderLabels("):source.index("const OVERLAY_STYLE=")]
-    assert "activateFinding(" in render and "flabel ${item.severity" in render      # clicking a chip opens the finding
+    render = source[source.index("function layoutLabelsNow("):source.index("const OVERLAY_STYLE=")]
+    assert "activateFinding(" in render and "labelClass(p.item)" in render           # clicking a chip opens the finding
+    assert "const labelClass=item=>item.kind==='flabel'?`flabel ${item.severity||'note'}`" in source
     assert "THREE.LineLoop" in source and "depthTest:false" in source               # §17.3 closed ring
+
+
+# ---------------------------------------------------------------- v0.12 (§19.9 / A9 / B4): default view, shortcuts, footer, banner, formatting
+def _rot(axis, degrees):
+    a = np.radians(degrees)
+    c, s = np.cos(a), np.sin(a)
+    x, y, z = np.asarray(axis, float) / np.linalg.norm(axis)
+    return np.array([[c + x * x * (1 - c), x * y * (1 - c) - z * s, x * z * (1 - c) + y * s],
+                     [y * x * (1 - c) + z * s, c + y * y * (1 - c), y * z * (1 - c) - x * s],
+                     [z * x * (1 - c) - y * s, z * y * (1 - c) + x * s, c + z * z * (1 - c)]])
+
+
+# A tilted anatomical frame: rows of R are the patient axes (x = left, y = back, z = towards the inlet) in world space.
+FRAME_R = _rot([0.3, -0.5, 0.8], 37.0)
+
+
+def _frame_meta(**extra):
+    meta = {"case_id": "TUBE", "run_identity": "0123456789abcdef-run", "branch_names": {"1": "主动脉"},
+            "frame_transform": {"rotation": FRAME_R.tolist(), "origin_mm": [0, 0, 0], "direction_source": "unknown_stl"}}
+    meta.update(extra)
+    return meta
+
+
+def _webgl_extra(extra=""):
+    """A three.js stand-in so the viewer's WebGL start-up runs under Node: a real camera / controls / vector, every
+    other object an inert proxy.  Document and window keydown / resize listeners are captured for dispatch."""
+    return r"""
+      const docEvents={},winEvents={};global.docEvents=docEvents;global.winEvents=winEvents;
+      document.addEventListener=(n,f)=>{(docEvents[n]=docEvents[n]||[]).push(f);};
+      document.removeEventListener=(n,f)=>{docEvents[n]=(docEvents[n]||[]).filter(g=>g!==f);};
+      global.addEventListener=(n,f)=>{(winEvents[n]=winEvents[n]||[]).push(f);};
+      global.requestAnimationFrame=()=>0;
+      Element.prototype.setAttribute=function(k,v){this.attrs=this.attrs||{};this.attrs[k]=String(v);};
+      Element.prototype.getAttribute=function(k){return this.attrs?this.attrs[k]:undefined;};
+      Element.prototype.remove=function(){this.removed=true;};
+      Object.defineProperty(Element.prototype,'style',{get(){return this._style||(this._style={});},set(v){this._style=v;},configurable:true});
+      document.body=new Element();document.documentElement=document.body;
+      document.getElementById('volume-view').clientWidth=900;document.getElementById('volume-view').clientHeight=600;
+      Element.prototype.dispatchEvent=function(ev){const f=this.events[ev.type];if(f)f(ev);return true;};
+      for(const [id,lo,hi] of [['slice-position',0,100],['slice-pitch',-85,85],['slice-yaw',-85,85],['slice-thickness',0.2,12],['slice-offset-u',-30,30],['slice-offset-v',-30,30]]){const el=document.getElementById(id);el.min=String(lo);el.max=String(hi);}
+      document.getElementById('streamline-thin').checked=true;   // tube geometry needs real vertex counts
+      document.getElementById('tech-info').hidden=true;           // as in the template
+      const any=()=>new Proxy(function(){}, {get:(t,k)=>k===Symbol.toPrimitive?(()=>0):k==='length'?0:k==='then'?undefined:any(),apply:()=>any(),construct:()=>any(),set:()=>true});
+      class V3{constructor(x=0,y=0,z=0){this.x=x;this.y=y;this.z=z;}set(x,y,z){this.x=x;this.y=y;this.z=z;return this;}toArray(){return [this.x,this.y,this.z];}
+        clone(){return new V3(this.x,this.y,this.z);}project(){this.z=9;return this;}distanceTo(o){return Math.hypot(this.x-o.x,this.y-o.y,this.z-o.z);}}
+      class Camera{constructor(fov,aspect){this.fov=fov;this.aspect=aspect;this.position=new V3();this.up=new V3(0,1,0);}updateProjectionMatrix(){}}
+      class Controls{constructor(cam){this.object=cam;this.target=new V3();this.enabled=true;this.listeners={};this.upAtBuild=cam.up.toArray();Controls.built=(Controls.built||0)+1;global.__controls=this;}
+        update(){}addEventListener(n,f){(this.listeners[n]=this.listeners[n]||[]).push(f);}dispose(){this.disposed=true;}fire(n){for(const f of this.listeners[n]||[])f({type:n});}}
+      global.THREE=new Proxy({PerspectiveCamera:Camera,Vector3:V3,OrbitControls:Controls},{get:(t,k)=>k in t?t[k]:any()});
+      global.key=(k,opts={})=>{const ev={key:k,target:opts.target||{tagName:'BODY'},shiftKey:!!opts.shift,ctrlKey:false,metaKey:false,altKey:false,defaultPrevented:false,preventDefault(){this.defaultPrevented=true;}};
+        for(const f of (docEvents.keydown||[]).slice())f(ev);for(const f of (winEvents.keydown||[]).slice())f(ev);return ev;};
+      global.fire=(n)=>{for(const f of (winEvents[n]||[]).slice())f({type:n});};
+    """ + extra
+
+
+def _fit_expected(mesh_vertices, name, aspect=1.5):
+    """Reference camera for a standard view: WssReportCommon.fitView driven from Python-side expectations."""
+    dirs = {"front": ([0, 1, 0], [0, 0, 1]), "left": ([-1, 0, 0], [0, 0, 1]), "top": ([0, 0, -1], [0, -1, 0])}
+    d, u = dirs[name]
+    world = lambda v: (np.asarray(v, float) @ FRAME_R).tolist()   # dirFromAligned: sum_k v_k R[k]
+    return world(d), world(u)
+
+
+def test_v012_pure_helpers_format_frame_release_time_and_warnings():
+    result = node_json(r"""
+      const out={
+        fmt:[core.formatNumber(0.00177),core.formatNumber(1.572),core.formatNumber(17),core.formatNumber(15544.8),core.formatNumber(null),core.formatNumber(-1404.97)],
+        frame:core.frameText({label:'peak_systole',step:1162,time_s:0.21}),frameEn:core.frameText({label:'peak_systole',time_s:0.21},'en'),
+        frameUnknown:core.frameText({label:'whatever'}),frameNone:core.frameText(null),
+        release:core.releaseShort('PF6_VF6_peak_3seed_20260920'),releaseX5D:core.releaseShort('X5D_v51_5seed_20260916'),releasePlain:core.releaseShort('custom'),
+        offset:core.withOffset('2026-09-20 02:15:34','2026-09-20T02:13:18-07:00'),keep:core.withOffset('2026-09-20T17:42:39+08:00','x'),naive:core.withOffset('2026-09-20 17:42:39',''),
+        label:[core.referenceLabel('geometry.主动脉.radius_max_mm'),core.referenceLabel('cloud.spacing_mm')],
+        none:core.warningItems({reference_assessment:{status:'pass',checks:[{path:'cloud.spacing_mm',value:0.5,min:0.4,max:0.6,status:'pass'}]}}),
+        items:core.warningItems({reference_assessment:{status:'review',checks:[
+            {path:'geometry.主动脉.radius_max_mm',units:'mm',value:55.31,min:9.223,max:50.306,status:'review'},
+            {path:'cloud.spacing_mm',units:'mm',value:0.5,min:0.4,max:0.6,status:'pass'}]},quality:{level:'review',label:'存在不确定性，建议复核',reasons:['3 个模型离散度偏高']}}),
+      };
+      out.text=core.warningText(out.items);out.empty=core.warningText([]);
+      console.log(JSON.stringify(out));
+    """)
+    assert result["fmt"] == ["0.0018", "1.57", "17.0", "15545", "—", "-1405"]   # never 1.77e-3
+    assert result["frame"] == "收缩期峰值帧（约 0.21 s）" and result["frameEn"] == "Peak-systolic frame (≈ 0.21 s)"
+    assert result["frameUnknown"] == "固定预测时相" and result["frameNone"] == "固定预测时相"
+    assert result["release"] == "PF6_VF6_peak" and result["releaseX5D"] == "X5D_v51" and result["releasePlain"] == "custom"   # the wall report's rule
+    assert result["offset"] == "2026-09-20T02:15:34-07:00" and result["keep"] == "2026-09-20T17:42:39+08:00" and result["naive"] == "2026-09-20T17:42:39"
+    assert result["label"] == ["主动脉最大半径", "点云点间距"]
+    assert result["none"] == [] and result["empty"] == ""
+    assert [x["kind"] for x in result["items"]] == ["reference", "quality"]
+    assert result["items"][0]["text"] == "主动脉最大半径 55.3 mm（参考 9.22–50.3 mm）"
+    assert result["text"] == "注意：输入几何有 1 项超出发布包参考范围（主动脉最大半径 55.3 mm，参考 9.22–50.3 mm）；模型集成质量：存在不确定性，建议复核。预测可信度可能下降，请结合详情复核。"
+
+
+def test_v012_fitted_standard_views_use_the_anatomical_frame_and_fill_the_viewport():
+    """fittedStandardCamera = WssReportCommon.fitView along the frame's front direction; every vertex is inside the
+    frustum and the tightest one touches the 1.12 margin (the view fills the viewport)."""
+    mesh, _, _ = tube_case()
+    verts = (np.asarray(mesh["vertices"], float) + [3, -2, 5]).tolist()
+    result = node_json("require(" + json.dumps(str(COMMON)) + ");\n" + r"""
+      const frame=core.frameFromMeta({rotation:__ROT__,origin_mm:[0,0,0]});
+      const pts=__VERTS__.flat();
+      const out={};
+      for(const name of ['front','left','top'])out[name]=core.fittedStandardCamera(name,frame,pts,{fov:42,aspect:1.5,margin:1.12});
+      out.legacy=core.fittedStandardCamera('legacy',null,pts,{fov:42,aspect:1.5});
+      out.noFit=core.fittedStandardCamera('front',frame,pts,{fitView:'none',center:[1,2,3],distance:10});
+      delete globalThis.WssReportCommon.fitView;
+      out.fallback=core.fittedStandardCamera('front',frame,pts,{center:[1,2,3],distance:10});
+      console.log(JSON.stringify(out));
+    """.replace("__ROT__", json.dumps(FRAME_R.tolist())).replace("__VERTS__", json.dumps(verts)))
+    pts = np.asarray(verts)
+    tan = np.tan(np.radians(21.0))
+    for name in ("front", "left", "top"):
+        cam = result[name]
+        d_expect, u_expect = _fit_expected(pts, name)
+        pos, tgt, up = (np.asarray(cam[k]) for k in ("position", "target", "up"))
+        d = (tgt - pos) / np.linalg.norm(tgt - pos)
+        np.testing.assert_allclose(d, d_expect, atol=1e-6)                          # camera → target = anatomical direction
+        np.testing.assert_allclose(up, u_expect, atol=1e-6)
+        r = np.cross(d, up)
+        rel = pts - pos
+        depth = rel @ d
+        ndc_x = np.abs(rel @ r) / (depth * tan * 1.5)
+        ndc_y = np.abs(rel @ up) / (depth * tan)
+        worst = max(ndc_x.max(), ndc_y.max())
+        assert worst <= 1 / 1.12 + 1e-6 and worst >= 1 / 1.12 - 0.02, (name, worst)   # inside, and filling to the margin
+    front_d = np.asarray(result["front"]["target"]) - np.asarray(result["front"]["position"])
+    assert np.dot(front_d / np.linalg.norm(front_d), FRAME_R[1]) > 0.999          # looks from the patient's front to the back
+    assert result["legacy"]["up"] == [0, 0, 1]
+    # without the shared library: the old fixed distance along the same direction
+    fb = result["fallback"]
+    np.testing.assert_allclose(np.asarray(fb["target"]) - np.asarray(fb["position"]), 10 * FRAME_R[1], atol=1e-6)
+
+
+def test_v012_webgl_startup_frames_the_front_view_and_explicit_cameras_win(tmp_path):
+    """Default view = fitted anatomical front view (inlet up); standard views and 0 / R refit; a resize refits
+    until the user moves the camera; a view-state camera (#view= link) always wins; changing up rebuilds the controls."""
+    meta = _frame_meta()
+    body = r"""
+      const V=require(VIEWER),T=V.__test,C=require(COMMON);
+      const verts=V.__test.fittedCamera?null:null;
+      const out={initial:T.camera(),auto:T.autoView(),built:THREE.OrbitControls.built,upAtBuild:__controls.upAtBuild};
+      key('3');out.left=T.camera();out.autoLeft=T.autoView();
+      key('5');out.top=T.camera();out.builtAfterTop=THREE.OrbitControls.built;out.topUpAtBuild=__controls.upAtBuild;
+      key('r');out.reset=T.camera();out.autoReset=T.autoView();
+      document.getElementById('volume-view').clientWidth=200;fire('resize');out.resized=T.camera();
+      __controls.fire('start');out.autoAfterUser=T.autoView();
+      document.getElementById('volume-view').clientWidth=900;fire('resize');out.notRefit=T.camera();
+      console.log(JSON.stringify(out));
+    """
+    result = _run_tube(tmp_path, "fit.html", meta, body.replace("COMMON", json.dumps(str(COMMON))), _webgl_extra(), common=True)
+    init = result["initial"]
+    d = np.asarray(init["target"]) - np.asarray(init["position"])
+    assert np.dot(d / np.linalg.norm(d), FRAME_R[1]) > 0.999 and np.allclose(init["up"], FRAME_R[2], atol=1e-6)
+    assert result["auto"] == "front" and np.allclose(result["upAtBuild"], FRAME_R[2], atol=1e-6)   # controls built with the head-up axis
+    dl = np.asarray(result["left"]["target"]) - np.asarray(result["left"]["position"])
+    assert np.dot(dl / np.linalg.norm(dl), -FRAME_R[0]) > 0.999 and result["autoLeft"] == "left"
+    assert result["builtAfterTop"] == result["built"] + 1 and np.allclose(result["topUpAtBuild"], -FRAME_R[1], atol=1e-6)
+    assert result["autoReset"] == "front" and np.allclose(result["reset"]["position"], init["position"], atol=1e-6)
+    # narrower viewport → the fitted distance grows (the view is refitted), then a user orbit stops the refits
+    dist = lambda c: np.linalg.norm(np.asarray(c["position"]) - np.asarray(c["target"]))
+    assert dist(result["resized"]) > dist(init) * 1.2
+    assert result["autoAfterUser"] is None and np.allclose(result["notRefit"]["position"], result["resized"]["position"])
+
+    state = {"schema_version": "wss-deploy.view/v1", "family": "volume", "camera": {"position": [100, 0, 0], "target": [0, 0, 0], "up": [0, 0, 1]}}
+    hash_extra = _webgl_extra("global.location={hash:'#view=" + _hash_state(state) + "',protocol:'file:',pathname:'/x/report.html'};")
+    body2 = r"""
+      const V=require(VIEWER);console.log(JSON.stringify({cam:V.__test.camera(),auto:V.__test.autoView()}));
+    """
+    linked = _run_tube(tmp_path, "fit_hash.html", meta, body2, hash_extra, common=True)
+    assert linked["cam"]["position"] == [100, 0, 0] and linked["cam"]["target"] == [0, 0, 0] and linked["auto"] is None
+
+
+def test_v012_shortcuts_switch_fields_tabs_labels_probe_and_leave_slice_keys_alone(tmp_path):
+    meta = _frame_meta(findings={"items": [{"id": "F1", "kind": "max_speed", "label": "最大速度", "branch": "主动脉", "segment_id": 1,
+                                            "value": 1.0, "units": "m/s", "xyz_mm": [0, 0, 0], "severity": "attention"}]})
+    mesh, cloud, center = tube_case()
+    lines = [{"points": [[0, 0, -5], [0, 0, 5]], "speed_m_s": [1.0, 1.0]}]
+    out = tmp_path / "keys.html"
+    build_html(out, meta, mesh, cloud, center, lines)
+    data = arrays_from_html(out.read_text())
+    body = r"""
+      const V=require(VIEWER),T=V.__test,mode=()=>els['volume-mode'].value,field=()=>els['volume-field'].value;
+      const r={};
+      r.bindings=T.shortcuts().bindings.map(b=>b.keys.join('/'));
+      key('b');r.b=field();key('v');r.v=field();
+      const cycle=[];for(let i=0;i<5;i++){key('t');cycle.push(mode()+':'+field());}r.cycle=cycle;
+      r.labels0=T.labels();key('l');r.labels1=T.labels();key('l');r.labels2=T.labels();
+      key('p');r.probeOff=T.probeEnabled();r.note=els['view-note'].textContent;key('p');r.probeOn=T.probeEnabled();
+      key('x');r.pick=T.pickMode();key('x');r.pickOff=T.pickMode();
+      const typing=key('b',{target:{tagName:'INPUT',type:'text'}});r.typing=[field(),typing.defaultPrevented];
+      // slice page: arrows stay with the slice handler (not consumed by the shortcut layer)
+      T.setMode('slice');const before=els['slice-position'].value;const arrow=key('ArrowUp');
+      r.arrow={before,after:els['slice-position'].value,mode:mode()};
+      const help=key('?');r.help={prevented:help.defaultPrevented,overlay:document.body.children.some(c=>c.className==='wss-shortcuts'&&!c.removed)};
+      const esc=key('Escape');r.escClosed=!document.body.children.some(c=>c.className==='wss-shortcuts'&&!c.removed);
+      r.sliceAfterEsc=els['slice-position'].value;
+      // with the zoom view open nothing but ? / Esc fires
+      T.sliceZoom(true);key('b');r.zoomBlocked=field();T.sliceZoom(false);
+      console.log(JSON.stringify(r));
+    """
+    script = _stub_prelude(_webgl_extra(), common=True) + body
+    script = script.replace("META", json.dumps(meta, ensure_ascii=False)).replace("DATA", json.dumps(data)).replace("VIEWER", json.dumps(str(VIEWER)))
+    r = node_json(script)
+    for keys in ("1", "2", "3", "4", "5", "6", "0/r", "v", "b", "t", "l", "p", "s", "x", "?/shift+/"):
+        assert keys in r["bindings"], keys
+    assert r["b"] == "pressure" and r["v"] == "velocity"
+    assert r["cycle"] == ["slice:velocity", "wall:pressure", "streamlines:velocity", "cloud:velocity", "slice:velocity"]
+    assert r["labels0"]["findings"] == 0 and r["labels1"] == {"findings": 5, "branches": True, "max_diameter": True}
+    assert r["labels2"]["findings"] == 0 and r["labels2"]["branches"] is False
+    assert r["probeOff"] is False and "探针已关闭" in r["note"] and r["probeOn"] is True
+    assert r["pick"] is True and r["pickOff"] is False
+    assert r["typing"] == ["velocity", False]                                    # typing in an input never triggers
+    assert float(r["arrow"]["after"]) > float(r["arrow"]["before"]) and r["arrow"]["mode"] == "slice"
+    assert r["help"] == {"prevented": True, "overlay": True} and r["escClosed"] is True
+    assert r["sliceAfterEsc"] == r["arrow"]["after"]                               # Esc closed the help only
+    assert r["zoomBlocked"] == "velocity"
+
+
+def test_v012_wall_and_streamline_tabs_switch_the_field_or_explain_missing_data(tmp_path):
+    mesh, cloud, center = tube_case()
+    lines = [{"points": [[0, 0, -5], [0, 0, 5]], "speed_m_s": [1.0, 1.0]}]
+    body = r"""
+      const V=require(VIEWER),r={};
+      r.initial={field:els['volume-field'].value,wall:els['mode-wall'].disabled,lines:els['mode-streamlines'].disabled};
+      els['mode-wall'].events.click();r.wall={field:els['volume-field'].value,mode:els['volume-mode'].value};
+      els['mode-streamlines'].events.click();r.lines={field:els['volume-field'].value,mode:els['volume-mode'].value};
+      els['volume-field'].value='pressure';els['volume-field'].events.change();r.fallback=els['volume-mode'].value;
+      r.titles={wall:(els['mode-wall'].attrs||{}).title,lines:(els['mode-streamlines'].attrs||{}).title};
+      console.log(JSON.stringify(r));
+    """
+    extra = "Element.prototype.setAttribute=function(k,v){this.attrs=this.attrs||{};this.attrs[k]=String(v);};"
+    out = tmp_path / "tabs.html"
+    build_html(out, {"case_id": "tabs"}, mesh, cloud, center, lines)
+    script = (_stub_prelude(extra) + body).replace("META", json.dumps({"case_id": "tabs"})).replace("DATA", json.dumps(arrays_from_html(out.read_text()))).replace("VIEWER", json.dumps(str(VIEWER)))
+    r = node_json(script)
+    assert r["initial"] == {"field": "velocity", "wall": False, "lines": False}     # the old report greyed 壁面压力 out here
+    assert r["wall"] == {"field": "pressure", "mode": "wall"} and r["lines"] == {"field": "velocity", "mode": "streamlines"}
+    assert r["fallback"] == "cloud" and "自动切到压力" in r["titles"]["wall"]
+    # a pressure-only report without wall pressure or streamlines: both tabs stay disabled and say why
+    mesh2 = {k: v for k, v in mesh.items() if k != "pressure_pa"}
+    cloud2 = {k: v for k, v in cloud.items() if k != "velocity_m_s"}
+    out2 = tmp_path / "tabs2.html"
+    build_html(out2, {"case_id": "tabs"}, mesh2, cloud2, center)
+    script2 = (_stub_prelude(extra) + body).replace("META", json.dumps({"case_id": "tabs"})).replace("DATA", json.dumps(arrays_from_html(out2.read_text()))).replace("VIEWER", json.dumps(str(VIEWER)))
+    r2 = node_json(script2)
+    assert r2["initial"]["wall"] is True and r2["initial"]["lines"] is True
+    assert "没有壁面压力" in r2["titles"]["wall"] and "没有流线" in r2["titles"]["lines"]
+    assert r2["wall"]["mode"] == "cloud" and r2["lines"]["mode"] == "cloud"
+
+
+def test_v012_footer_keeps_review_release_time_and_moves_hashes_into_the_tech_popover(tmp_path):
+    meta = _frame_meta(created_at="2026-09-20 02:15:34", release="PF6_VF6_peak_3seed_20260920",
+                       model_release={"registry_id": "PF6_VF6_peak_3seed_20260920", "fingerprint": "e210ca93e4f3aaaa"},
+                       feature_contract={"source_hash": "5512fad4c80b6968c7c0", "version": "wss-features/1.0"},
+                       input_sha256="ad233228972ea2dae7e5", model_frame={"target": "peak_systole", "step": 1162, "time_s": 0.21, "label": "peak_systole"},
+                       audit={"mapping_history": [{"at": "2026-09-20T02:13:18-07:00"}], "report_rebuilt_at": "2026-09-22T22:52:20+08:00"},
+                       review={"status": "reviewed", "by": "R1", "at": "2026-09-22T21:05:00+08:00", "note": "已核对"})
+    body = r"""
+      const V=require(VIEWER),T=V.__test,r={};
+      r.footer={review:els['footer-review'].textContent,release:els['footer-release'].textContent,time:els['footer-time'].textContent,
+        releaseTitle:(els['footer-release'].attrs||{}).title,sub:els['volume-subtitle'].textContent};
+      r.hiddenBefore=els['tech-info'].hidden;
+      els['tech-info-toggle'].events.click({stopPropagation(){}});
+      r.open={hidden:els['tech-info'].hidden,expanded:els['tech-info-toggle'].attrs['aria-expanded'],rows:els['tech-info-rows'].children.map(c=>c.textContent)};
+      r.text=T.techInfoText();
+      key('Escape');r.afterEsc=els['tech-info'].hidden;
+      els['tech-info-menu'].events.click({stopPropagation(){}});r.fromMenu=els['tech-info'].hidden;
+      console.log(JSON.stringify(r));
+    """
+    extra = "process.env.TZ='Asia/Shanghai';" + _webgl_extra()
+    r = _run_tube(tmp_path, "footer.html", meta, body, extra, common=True)
+    f = r["footer"]
+    assert f["review"] == "已审阅 · R1 · 2026-09-22 21:05"
+    assert f["release"] == "PF6_VF6_peak" and f["releaseTitle"] == "PF6_VF6_peak_3seed_20260920"
+    assert f["time"] == "生成 2026-09-20 17:15"          # naive 02:15 written at −07:00 → Shanghai wall clock
+    assert f["sub"] == "TUBE · PF6_VF6_peak · 收缩期峰值帧（约 0.21 s）" and "peak_systole" not in f["sub"]
+    assert r["hiddenBefore"] is True and r["open"]["hidden"] is False and r["open"]["expanded"] == "true"
+    rows = r["open"]["rows"]
+    assert "wss-features/1.0 · 5512fad4c80b6968c7c0" in rows and "0123456789abcdef-run" in rows and "PF6_VF6_peak_3seed_20260920" in rows
+    assert "peak_systole · step 1162 · 0.21 s" in rows and "ad233228972ea2dae7e5" in rows and "e210ca93e4f3aaaa" in rows
+    assert "run_identity\t0123456789abcdef-run" in r["text"] and "报告重建\t2026-09-22 22:52:20（2026-09-22T22:52:20+08:00）" in r["text"]
+    assert r["afterEsc"] is True and r["fromMenu"] is False
+
+
+def test_v012_warning_banner_lists_out_of_range_geometry_and_closes(tmp_path):
+    ra = {"status": "review", "note": "仅检查已声明的几何参考范围。", "checks": [
+        {"path": "geometry.主动脉.radius_max_mm", "units": "mm", "value": 55.31, "min": 9.223, "max": 50.306, "status": "review"},
+        {"path": "geometry.右髂内.length_mm", "units": "mm", "value": 121.4, "min": 31.149, "max": 114.839, "status": "review"},
+        {"path": "cloud.spacing_mm", "units": "mm", "value": 0.5, "min": 0.4, "max": 0.6, "status": "pass"}]}
+    body = r"""
+      const V=require(VIEWER),r={};
+      r.shown=!els['warn-banner'].hidden;r.text=els['warn-banner-text'].textContent;r.list=els['reference-list'].children.map(c=>c.textContent);
+      r.card=!els['reference-card'].hidden;r.status=els['reference-status'].textContent;
+      els['warn-banner-more'].events.click();r.menu=els['menu-stats'].open;
+      els['warn-banner-close'].events.click();r.closed=els['warn-banner'].hidden;
+      console.log(JSON.stringify(r));
+    """
+    r = _run_tube(tmp_path, "banner.html", _tube_meta() | {"reference_assessment": ra}, body, "", common=True)
+    assert r["shown"] and r["text"] == "注意：输入几何有 2 项超出发布包参考范围（主动脉最大半径 55.3 mm，参考 9.22–50.3 mm 等）。预测可信度可能下降，请结合详情复核。"
+    assert r["list"] == ["主动脉最大半径 55.3 mm（参考 9.22–50.3 mm）", "右髂内长度 121 mm（参考 31.1–115 mm）"]
+    assert r["card"] and r["status"].startswith("部分几何测量超出") and r["menu"] is True and r["closed"] is True
+    ok = _run_tube(tmp_path, "banner_ok.html", _tube_meta() | {"reference_assessment": {**ra, "status": "pass", "checks": ra["checks"][2:]}}, body, "", common=True)
+    assert ok["shown"] is False and ok["list"] == [] and ok["status"].startswith("输入几何在本发布包声明的参考范围内")
+    legacy = _run_tube(tmp_path, "banner_none.html", _tube_meta(), body, "", common=True)
+    assert legacy["shown"] is False and legacy["card"] is False                  # old summaries: nothing to show
+
+
+def test_v012_numbers_never_use_scientific_notation_in_legend_stats_slice_map_and_colorbars(tmp_path):
+    mesh, cloud, center = tube_case()
+    vel = np.zeros_like(cloud["velocity_m_s"])
+    vel[:, 2] = np.linspace(0.00177, 1.572, len(vel))
+    cloud["velocity_m_s"] = vel
+    out = tmp_path / "numbers.html"
+    build_html(out, {"case_id": "N"}, mesh, cloud, center)
+    body = r"""
+      const V=require(VIEWER),r={};
+      r.legend=[els['legend-min'].textContent,els['legend-max'].textContent];
+      r.stats=els['volume-statistics'].children.map(c=>c.children[1].textContent);
+      r.svg=Array.from(V.__test.colorbarSVG('zh').matchAll(/<text class="tick"[^>]*>([^<]*)<\/text>/g)).map(m=>m[1]);
+      V.__test.setMode('slice');
+      r.texts=texts.slice();
+      texts.length=0;V.__test.setSliceDisplay({mode:'global'});r.globalTexts=texts.slice();
+      console.log(JSON.stringify(r));
+    """
+    extra = r"""
+      const texts=[];global.texts=texts;
+      const rec=new Proxy({measureText:()=>({width:10}),fillText:(t)=>texts.push(String(t))},{get:(t,k)=>k in t?t[k]:()=>{},set:()=>true});
+      document.getElementById('slice-canvas').getContext=()=>rec;
+    """
+    script = (_stub_prelude(extra, common=True) + body).replace("META", json.dumps({"case_id": "N"})).replace("DATA", json.dumps(arrays_from_html(out.read_text()))).replace("VIEWER", json.dumps(str(VIEWER)))
+    r = node_json(script)
+    assert r["legend"] == ["0.0018", "1.57"]
+    assert all("e-" not in s and "e+" not in s for s in r["stats"] + r["svg"] + r["texts"])
+    assert r["svg"][0] == "0.0018" and r["svg"][-1] == "1.57"                    # the shared colour bar ticks are rewritten too
+    assert all("e-" not in s and "e+" not in s for s in r["globalTexts"])
+    assert "0.0018" in r["globalTexts"] and "1.57" in r["globalTexts"]              # slice map colour-bar ends (全局)
+
+
+def test_v012_template_gloss_circles_one_line_subtitle_footer_and_banner_markup():
+    from wss_deploy.volume_report import TEMPLATE
+    assert "button.gloss:not(.chip){width:16px!important;height:16px!important" in TEMPLATE and "border-radius:50%!important" in TEMPLATE
+    assert "固定时相 ?" not in TEMPLATE and '<div class="subline"><span id="volume-subtitle"' in TEMPLATE
+    footer = TEMPLATE[TEMPLATE.index("<footer>"):TEMPLATE.index("</footer>")]
+    assert 'id="footer-review"' in footer and 'id="footer-release"' in footer and 'id="footer-time"' in footer and 'id="tech-info-toggle"' in footer
+    assert "footer-feature" not in footer and "footer-identity" not in footer          # hashes live in the popover
+    pop = TEMPLATE[TEMPLATE.index('id="tech-info"'):]
+    assert 'id="footer-feature"' in pop and 'id="footer-identity"' in pop
+    assert 'id="warn-banner"' in TEMPLATE and 'id="warn-banner-close"' in TEMPLATE and 'id="reference-card"' in TEMPLATE
+    assert 'id="shortcuts-help"' in TEMPLATE and 'id="tech-info-menu"' in TEMPLATE
+    assert 'class="gloss chip" data-gloss="relative_pressure"' in TEMPLATE
+
+
+# ---------------------------------------------------------------- 用户试用反馈 7: slice colour range, log scale, in-plane arrows, through-plane velocity
+def test_f7_pure_scales_ranges_log_mapping_arrows_and_through_plane():
+    result = node_json(r"""
+      const ramp=Array.from({length:100},(_,i)=>i);
+      const r={
+        robust:core.robustRange(ramp),few:core.robustRange([1,2,3]),flat:core.robustRange(Array(20).fill(0.04)),withNaN:core.robustRange(ramp.concat([NaN,Infinity])),
+        sym:core.symmetricRange(ramp.map(v=>v%2?-v:v)),zeros:core.symmetricRange(Array(20).fill(0)),
+        endsLog:core.scaleEnds({min:0,max:1,log:true}),endsFloor:core.scaleEnds({min:0,max:0.1,log:true}),endsKeep:core.scaleEnds({min:0.05,max:1,log:true}),
+        tLo:core.scaleT(0.001,{min:0,max:1,log:true}),tHi:core.scaleT(1,{min:0,max:1,log:true}),tMid:core.scaleT(Math.sqrt(0.005),{min:0,max:1,log:true}),
+        tLin:core.scaleT(0.25,{min:0,max:1}),inv:core.scaleValueAt(0.5,{min:0,max:1,log:true}),
+        bwrLow:core.scaleColor(-1,{min:-1,max:1,diverging:true}),bwrMid:core.scaleColor(0,{min:-1,max:1,diverging:true}),nan:core.scaleColor(NaN,{min:0,max:1}),
+        normal:Array.from(core.throughPlane(new Float32Array([0,0,1, 0,0,-2, 1,0,0]),[0,1],[0,0,2])).map(v=>Number.isNaN(v)?null:v),
+        inplane:core.inPlane([1,2,3],{u:[1,0,0],v:[0,1,0]}),
+      };
+      const items=[];for(let i=0;i<40;i++)for(let j=0;j<40;j++){const x=-1+2*(i+.5)/40,y=-1+2*(j+.5)/40;items.push({x,y,du:-y,dv:x});}
+      const a120=core.arrowSamples(items,[-1,1,-1,1],120),a300=core.arrowSamples(items,[-1,1,-1,1],300);
+      r.arrows={n120:a120.arrows.length,n300:a300.arrows.length,ref:a120.ref,
+        consistent:a120.arrows.every(a=>Math.abs(a.du+a.y)<1e-12&&Math.abs(a.dv-a.x)<1e-12&&Math.abs(a.mag-Math.hypot(a.du,a.dv))<1e-12),
+        cells:new Set(a120.arrows.map(a=>Math.floor((a.x+1)/0.2)+'_'+Math.floor((a.y+1)/0.2))).size};
+      r.none=core.arrowSamples([],[-1,1,-1,1],120);
+      console.log(JSON.stringify(r));
+    """)
+    assert result["robust"]["min"] == pytest.approx(1.98) and result["robust"]["max"] == pytest.approx(97.02) and result["robust"]["count"] == 100
+    assert result["few"] is None and result["withNaN"]["count"] == 100
+    assert result["flat"]["min"] < 0.04 < result["flat"]["max"]                            # lo < hi protection
+    assert result["sym"]["min"] == pytest.approx(-97.02) and result["sym"]["max"] == pytest.approx(97.02) and result["sym"]["diverging"]
+    assert result["zeros"] is None
+    # log: lower end = max(min, max / 200, 1e-3)
+    assert result["endsLog"] == pytest.approx([0.005, 1]) and result["endsFloor"] == pytest.approx([0.001, 0.1]) and result["endsKeep"] == pytest.approx([0.05, 1])
+    assert result["tLo"] == 0 and result["tHi"] == 1 and result["tMid"] == pytest.approx(0.5) and result["tLin"] == pytest.approx(0.25)
+    assert result["inv"] == pytest.approx(np.sqrt(0.005))
+    assert result["bwrLow"] == pytest.approx([33 / 255, 102 / 255, 172 / 255])
+    assert result["bwrMid"] == pytest.approx([247 / 255, 247 / 255, 247 / 255])                      # v0.14: a true white centre (RdBu-7)
+    assert result["nan"] == pytest.approx([0.63, 0.68, 0.72])
+    assert result["normal"] == [1.0, -2.0, None] and result["inplane"] == [1, 2]              # v · n̂ with the normal made unit
+    a = result["arrows"]
+    assert a["n120"] == 100 and a["n300"] == 289 and a["consistent"] and a["cells"] == 100    # ⌊√max⌋² cells, one arrow each
+    assert a["ref"] == pytest.approx(np.percentile([np.hypot(x, y) for x in (-1 + 2 * (np.arange(40) + .5) / 40) for y in (-1 + 2 * (np.arange(40) + .5) / 40)], 95), rel=1e-6)
+    assert result["none"] == {"arrows": [], "ref": 0}
+
+
+def _swirl_tube(tmp_path, name, meta, lines=None):
+    """The straight tube with a parabolic axial profile (+z, downstream) plus an in-plane swirl (−y, x) · 0.1."""
+    mesh, cloud, center = tube_case()
+    vel = cloud["velocity_m_s"].copy()
+    vel[:, 0] = -0.1 * cloud["pts"][:, 1]
+    vel[:, 1] = 0.1 * cloud["pts"][:, 0]
+    cloud["velocity_m_s"] = vel
+    out = tmp_path / name
+    build_html(out, meta, mesh, cloud, center, lines)
+    return arrays_from_html(out.read_text()), cloud
+
+
+def test_f7_slice_range_modes_quantity_arrows_log_and_legend(tmp_path):
+    meta = _tube_meta()
+    data, cloud = _swirl_tube(tmp_path, "f7.html", meta)
+    body = r"""
+      const V=require(VIEWER),T=V.__test,r={};
+      const legend=()=>({title:els['legend-title'].textContent,min:els['legend-min'].textContent,max:els['legend-max'].textContent,note:els['legend-note'].textContent});
+      r.cloudLegend=legend();
+      T.setMode('slice');
+      r.section={scale:T.sliceScale(),legend:legend(),info:T.sliceInfo(),fill:els['slice-fill-note'].textContent};
+      r.global=T.setSliceDisplay({mode:'global'}).scale;r.globalLegend=legend();
+      r.manual=T.setSliceDisplay({mode:'manual',min:0.2,max:0.8}).scale;
+      els['velocity-unit'].value='cm/s';els['velocity-unit'].events.change();
+      r.manualCm=T.setSliceDisplay({min:30,max:70}).scale;r.manualBoxes=[els['slice-min'].value,els['slice-max'].value];
+      els['velocity-unit'].value='m/s';els['velocity-unit'].events.change();
+      T.setSliceDisplay({mode:'section'});
+      r.normal={state:T.setSliceDisplay({quantity:'normal'}),info:T.sliceInfo(),legend:legend(),samples:T.sliceInfo().samples.map(s=>s.v)};
+      T.setSliceDisplay({quantity:'speed'});
+      r.noArrows={arrows:T.setSliceDisplay({arrows:false}).arrows,count:T.sliceInfo().arrows};T.setSliceDisplay({arrows:true});
+      r.zoomArrows=(T.sliceZoom(true),T.zoomArrows());T.sliceZoom(false);
+      r.log=T.setSliceDisplay({log:true});r.sliceLogLegend=legend();
+      T.setMode('cloud');r.cloudLog={legend:legend(),scale:T.legendScale()};
+      T.setSliceDisplay({log:false});
+      // pressure: no log, no v·n, no arrows; the slice still adapts
+      els['volume-field'].value='pressure';els['volume-field'].events.change();T.setMode('slice');
+      r.pressure={scale:T.sliceScale(),info:T.sliceInfo(),quantityHidden:els['slice-quantity-row'].hidden,arrowsHidden:els['slice-arrows-row'].hidden,logDisabled:els['velocity-log'].disabled};
+      console.log(JSON.stringify(r));
+    """
+    script = (_stub_prelude(_figure_extra(image=False), common=True) + body).replace("META", json.dumps(meta, ensure_ascii=False)).replace("DATA", json.dumps(data)).replace("VIEWER", json.dumps(str(VIEWER)))
+    r = node_json(script)
+    speed = np.hypot(np.hypot(cloud["velocity_m_s"][:, 0], cloud["velocity_m_s"][:, 1]), cloud["velocity_m_s"][:, 2])
+    sec = r["section"]
+    samples = np.array([s["v"] for s in sec["info"]["samples"]])
+    assert sec["scale"]["source"] == "section" and len(samples) >= 8
+    assert sec["scale"]["min"] == pytest.approx(np.percentile(samples, 2), rel=1e-5) and sec["scale"]["max"] == pytest.approx(np.percentile(samples, 98), rel=1e-5)
+    assert "本截面自适应 · 全局" in sec["legend"]["note"] and sec["legend"]["title"] == "速度 · m/s"
+    assert "箭头 = 面内速度方向（长度按本截面归一化）" in sec["fill"] and 0 < sec["info"]["arrows"] <= 120
+    assert r["global"]["source"] == "global" and r["global"]["min"] == pytest.approx(speed.min(), rel=1e-5) and r["global"]["max"] == pytest.approx(speed.max(), rel=1e-5)
+    assert "全局色标" in r["globalLegend"]["note"]
+    assert r["manual"]["source"] == "manual" and r["manual"]["min"] == pytest.approx(0.2) and r["manual"]["max"] == pytest.approx(0.8)
+    assert r["manualCm"]["min"] == pytest.approx(0.3) and r["manualCm"]["max"] == pytest.approx(0.7) and r["manualBoxes"] == ["30", "70"]   # boxes in display units
+    # through-plane velocity: the centreline tangent is +z (downstream), the axial profile is +z → every sample ≥ 0
+    n = r["normal"]
+    assert n["info"]["quantity"] == "normal" and min(n["samples"]) >= 0 and max(n["samples"]) > 0.5
+    assert n["state"]["scale"]["diverging"] and n["state"]["scale"]["min"] == pytest.approx(-n["state"]["scale"]["max"])
+    assert n["legend"]["title"] == "穿面速度 · m/s" and "顺流为正、负值=回流" in n["legend"]["note"]
+    assert r["noArrows"] == {"arrows": False, "count": 0} and 0 < r["zoomArrows"] <= 300
+    # log: the slice keeps its own robust range; the whole-field legend starts at max(min, max / 200, 1e-3)
+    assert r["log"]["log"] is True and "对数色标" in r["sliceLogLegend"]["note"]
+    lo = max(speed.min(), speed.max() / 200, 1e-3)
+    assert r["cloudLog"]["scale"]["log"] is True and float(r["cloudLog"]["legend"]["min"]) == pytest.approx(lo, rel=5e-3)
+    p = r["pressure"]
+    assert p["scale"]["source"] == "section" and not p["scale"].get("log") and not p["scale"].get("diverging")
+    assert p["info"]["quantity"] == "pressure" and p["info"]["arrows"] == 0 and p["quantityHidden"] and p["arrowsHidden"] and p["logDisabled"] is False
+
+
+def test_f7_view_state_round_trip_legacy_replay_csv_header_and_shared_series_range(tmp_path):
+    meta = _tube_meta()
+    data, _ = _swirl_tube(tmp_path, "f7state.html", meta)
+    body = r"""
+      const V=require(VIEWER),T=V.__test,r={};
+      T.setMode('slice');T.setSliceDisplay({mode:'manual',min:0.1,max:0.9,quantity:'normal',arrows:false,log:true});
+      const s=T.capture();r.captured={log:s.log,color_range:s.slice.color_range,quantity:s.slice.quantity,arrows:s.slice.arrows};
+      T.setSliceDisplay({mode:'section',quantity:'speed',arrows:true,log:false});
+      T.apply(s);r.reapplied=T.setSliceDisplay({});
+      // a complete older state (no color_range / quantity / arrows) replays on the whole-field range, no arrows
+      const old=JSON.parse(JSON.stringify(s));delete old.slice.color_range;delete old.slice.quantity;delete old.slice.arrows;old.log=false;
+      T.apply(old);r.legacy=T.setSliceDisplay({});
+      // a partial subset (compare page) without the new keys changes nothing
+      T.setSliceDisplay({mode:'manual',quantity:'normal',arrows:true});T.apply({slice:{thickness:3}});r.partial=T.setSliceDisplay({});
+      T.setSliceDisplay({mode:'section',quantity:'normal'});T.sliceZoom(true);
+      r.csv=T.sliceCSV();r.csv={name:r.csv.name,head:r.csv.csv.split('\n').filter(l=>l.startsWith('#')).join('\n')};T.sliceZoom(false);
+      T.setSliceDisplay({quantity:'speed'});
+      document.getElementById('slice-series-count').value='3';
+      T.exportSliceSeries().then(out=>{r.series={range:out&&out.range,note:els['slice-series-note'].textContent,downloads:downloads.map(d=>d.name)};console.log(JSON.stringify(r));});
+    """
+    script = (_stub_prelude(_figure_extra(), common=True) + body).replace("META", json.dumps(meta, ensure_ascii=False)).replace("DATA", json.dumps(data)).replace("VIEWER", json.dumps(str(VIEWER)))
+    r = node_json(script)
+    assert r["captured"]["log"] is True and r["captured"]["quantity"] == "normal" and r["captured"]["arrows"] is False
+    assert r["captured"]["color_range"]["mode"] == "manual" and r["captured"]["color_range"]["min"] == pytest.approx(0.1) and r["captured"]["color_range"]["max"] == pytest.approx(0.9)
+    re = r["reapplied"]
+    assert re["mode"] == "manual" and re["quantity"] == "normal" and re["arrows"] is False and re["log"] is True
+    assert re["scale"]["min"] == pytest.approx(0.1) and re["scale"]["max"] == pytest.approx(0.9) and re["scale"]["source"] == "manual"
+    assert r["legacy"]["mode"] == "global" and r["legacy"]["quantity"] == "speed" and r["legacy"]["arrows"] is False and r["legacy"]["log"] is False
+    assert r["partial"]["mode"] == "manual" and r["partial"]["quantity"] == "normal" and r["partial"]["arrows"] is True
+    assert r["csv"]["name"] == "TUBE_slice_through_plane.csv"
+    assert "穿面速度" in r["csv"]["head"] and "顺流为正、负值=回流" in r["csv"]["head"] and "显示色标" in r["csv"]["head"] and "本截面自适应" in r["csv"]["head"]
+    s = r["series"]
+    assert s["range"]["shared"] is True and s["range"]["source"] == "section" and s["downloads"] == ["TUBE_slices_主动脉_speed.png"]
+    assert "系列共用" in s["note"]
+
+
+def test_f7_template_carries_the_slice_colour_controls():
+    from wss_deploy.volume_report import TEMPLATE
+    for marker in ('id="slice-range-mode"', 'id="slice-zoom-range"', 'id="slice-min"', 'id="slice-max"', 'id="slice-quantity"', 'id="slice-zoom-quantity"',
+                   'id="slice-arrows"', 'id="slice-zoom-arrows"', 'id="velocity-log"', '<option value="section">本截面</option>', '穿面速度（沿法向为正）', '面内流向箭头'):
+        assert marker in TEMPLATE, marker
+    body = TEMPLATE[TEMPLATE.index('id="slice-panel-body"'):]
+    assert body.index('id="slice-controls"') < body.index('id="slice-canvas"')            # controls sit on top of the map
+
+
+# ---------------------------------------------------------------- §21.4 (v0.12.2): automatic labels never overlap
+def _boxes_overlap(a, b):
+    return min(a[2], b[2]) - max(a[0], b[0]) > 0.5 and min(a[3], b[3]) - max(a[1], b[1]) > 0.5
+
+
+def test_label_plan_orders_by_priority_keeps_user_labels_and_ends_leaders_on_the_box():
+    result = node_json("require(" + json.dumps(str(COMMON)) + ");\n" + r"""
+      const C=globalThis.WssReportCommon;
+      const kinds=[['blabel'],['flabel','info'],['dlabel'],['flabel','attention'],['annot'],['flabel','note']];
+      const items=kinds.map(([kind,severity],i)=>({kind,severity,text:'L'+i,xyz:[0,0,0],anchor:[0,0,0]}));
+      const project=()=>({x:200,y:150});
+      const size=()=>({w:60,h:20});
+      const plan=core.planLabels(items,{project,size,declutter:C.declutterLabels,bounds:{width:400,height:300}});
+      const tight=core.planLabels(items,{project,size,declutter:C.declutterLabels,bounds:{width:70,height:30},hideOverflow:true});
+      const none=core.planLabels(items,{project,size});
+      console.log(JSON.stringify({prio:items.map(core.labelPriority),plan,tight:tight.map(p=>({kind:p.item.kind,hidden:p.hidden})),none:none.map(p=>p.moved),
+        end:core.leaderEnd({x:100,y:100,w:40,h:20,anchor:{x:0,y:100}}),endIn:core.leaderEnd({x:100,y:100,w:40,h:20,anchor:{x:150,y:40}})}));
+    """)
+    assert result["prio"] == [30, 70, 50, 90, 100, 80]              # branch < info < max diameter < note < attention < user
+    plan = result["plan"]
+    boxes = [(p["x"] - p["w"] / 2, p["y"] - p["h"] / 2, p["x"] + p["w"] / 2, p["y"] + p["h"] / 2) for p in plan]
+    assert not any(_boxes_overlap(boxes[i], boxes[j]) for i in range(6) for j in range(i + 1, 6))
+    assert plan[4]["moved"] is False and all(p["moved"] for i, p in enumerate(plan) if i != 4)   # the annotation keeps its spot
+    assert plan[3]["y"] > plan[0]["y"] - 1e9 and plan[0]["anchor"] == {"x": 200, "y": 150}
+    assert all(p["y"] != 150 or p["moved"] for p in plan)                   # the label sits above its point (y − h/2 − gap)
+    hidden = {p["kind"] + str(i): p["hidden"] for i, p in enumerate(result["tight"])}
+    assert hidden["annot4"] is False and hidden["blabel0"] is True         # user labels are never hidden, branch names first
+    assert result["none"] == [False] * 6                                    # without the shared library nothing moves
+    assert result["end"] == {"x": 80, "y": 100} and result["endIn"] == {"x": 120, "y": 90}
+
+
+def _label_meta(**extra):
+    near = [[0.5 * k, 0.0, 10.0 + 0.3 * k] for k in range(6)]
+    sev = ["info", "attention", "note", "info", "attention", "note"]
+    meta = {"case_id": "TUBE", "run_identity": "tube-run", "branch_names": {"1": "主动脉"},
+            "findings": {"items": [{"id": f"F{k + 1}", "kind": "low_speed_region", "label": f"低速区 {k + 1}", "branch": "主动脉", "segment_id": 1,
+                                    "value": 0.01 * (k + 1), "units": "m/s", "xyz_mm": near[k], "severity": sev[k], "rank": k + 1} for k in range(6)]}}
+    meta.update(extra)
+    return meta
+
+
+_ORTHO = r"""
+      V3.prototype.project=function(){const x=this.x,z=this.z;this.x=x/30;this.y=z/30;this.z=0;return this;};
+      global.__declutterCalls=0;
+"""
+
+
+def test_page_labels_are_decluttered_with_leaders_and_hide_overflow_when_narrow(tmp_path):
+    meta = _label_meta()
+    body = r"""
+      const V=require(VIEWER),T=V.__test,C=globalThis.WssReportCommon,orig=C.declutterLabels;
+      C.declutterLabels=(items,opts)=>{__declutterCalls++;global.__lastOpts=opts;return orig(items,opts);};
+      T.setLabels({findings:5,branches:true});
+      const wide=T.layoutLabels(),children=document.getElementById('labels').children;
+      const chips=children.filter(c=>c.className!=='leader'),leaders=children.filter(c=>c.className==='leader');
+      const r={calls:__declutterCalls,opts:{hide:__lastOpts.hideOverflow,bounds:__lastOpts.bounds},wide,chips:chips.map(c=>({cls:c.className,left:c.style.left,top:c.style.top})),
+        leaders:leaders.map(l=>({w:parseFloat(l.style.width),t:l.style.transform}))};
+      r.keySame=T.cameraKey();
+      __controls.target.set(1,2,3);r.keyMoved=T.cameraKey()!==r.keySame;
+      document.getElementById('volume-view').clientWidth=800;
+      r.narrow=T.layoutLabels();r.narrowOpts=__lastOpts.hideOverflow;
+      r.narrowChips=document.getElementById('labels').children.filter(c=>c.className!=='leader').length;
+      console.log(JSON.stringify(r));
+    """
+    r = _run_tube(tmp_path, "labels.html", meta, body, _webgl_extra(_ORTHO), common=True)
+    assert r["calls"] == 1 and r["opts"]["hide"] is False and r["opts"]["bounds"] == {"width": 900, "height": 600}
+    wide = r["wide"]
+    assert [x["kind"] for x in wide].count("flabel") == 5 and [x["kind"] for x in wide].count("blabel") == 1
+    boxes = [(p["x"] - p["w"] / 2, p["y"] - p["h"] / 2, p["x"] + p["w"] / 2, p["y"] + p["h"] / 2) for p in wide if not p["hidden"]]
+    assert not any(_boxes_overlap(boxes[i], boxes[j]) for i in range(len(boxes)) for j in range(i + 1, len(boxes)))
+    first_attention = next(p for p in wide if p["severity"] == "attention")
+    assert first_attention["moved"] is False                                 # the highest priority chip keeps its spot
+    moved = [p for p in wide if p["moved"] and not p["hidden"]]
+    # one leader per moved chip, except a chip whose box still covers its anchor (nothing to point at)
+    assert moved and 1 <= len(r["leaders"]) <= len(moved) and all(l["w"] >= 2 and l["t"].startswith("rotate(") for l in r["leaders"])
+    assert len(r["chips"]) == len([p for p in wide if not p["hidden"]])
+    assert all(c["cls"].endswith(" moved") == p["moved"] for c, p in zip(r["chips"], [p for p in wide if not p["hidden"]]))
+    assert r["keyMoved"] is True                                             # a camera change invalidates the layout
+    assert r["narrowOpts"] is True                                           # < 900 px → hideOverflow
+    assert all(not p["hidden"] for p in r["narrow"] if p["severity"] == "attention")
+    assert r["narrowChips"] == len([p for p in r["narrow"] if not p["hidden"]])
+
+
+def test_export_composites_the_same_decluttered_layout_with_leaders(tmp_path):
+    meta = _label_meta()
+    body = r"""
+      const V=require(VIEWER),T=V.__test;
+      T.setLabels({findings:5,branches:true});
+      const rects=[],lines=[];let alpha=[];
+      const ctx={save(){},restore(){},fillText(){},beginPath(){},stroke(){},strokeRect(){},measureText:t=>({width:String(t).length*7*2}),
+        fillRect:(x,y,w,h)=>rects.push([x,y,x+w,y+h]),moveTo:(x,y)=>lines.push([x,y]),lineTo(){},set globalAlpha(v){alpha.push(v);},get globalAlpha(){return 1;}};
+      const plan=T.drawOverlayLabels(ctx,1800,1200,2,'zh');
+      console.log(JSON.stringify({n:plan.length,moved:plan.filter(p=>p.moved&&!p.hidden).length,rects,leaders:lines.length,alpha}));
+    """
+    r = _run_tube(tmp_path, "labels_export.html", meta, body, _webgl_extra(_ORTHO), common=True)
+    assert r["n"] == 6 and len(r["rects"]) == 6
+    assert not any(_boxes_overlap(r["rects"][i], r["rects"][j]) for i in range(6) for j in range(i + 1, 6))
+    assert r["moved"] >= 1 and r["leaders"] >= r["moved"] and 0.6 in r["alpha"]   # moved chips get a translucent leader
+
+
+def test_v015_served_volume_report_links_back_to_its_case_and_labels_the_colour_bar(tmp_path):
+    """Round 15: 「← 工作台」 appears on a page the service serves (like the wall report) and points at #job=<id>;
+    a file:// copy keeps it hidden.  The colour bar gets a text alternative."""
+    mesh, cloud, center = sample()
+    out = tmp_path / "served.html"
+    build_html(out, {"case_id": "served"}, mesh, cloud, center)
+    data = arrays_from_html(out.read_text())
+    probe = r"""
+      console.log(JSON.stringify({hidden:els['back-to-workbench'].hidden,href:els['back-to-workbench'].href||null,
+        legend:(els['legend-bar'].attr||{})['aria-label']||null,role:(els['legend-bar'].attr||{}).role||null}));
+    """
+    attrs = "Element.prototype.setAttribute=function(k,v){(this.attr=this.attr||{})[k]=String(v);};"
+    served = _stub_prelude(attrs + "global.location={origin:'http://h',protocol:'http:',pathname:'/api/jobs/j1/report',hash:''};global.fetch=async()=>({ok:false,status:404,json:async()=>({})});") + probe
+    local = _stub_prelude(attrs + "global.location={protocol:'file:',pathname:'/x/report.html',hash:''};global.fetch=undefined;") + probe
+    results = []
+    for script in (served, local):
+        script = script.replace("META", json.dumps({"case_id": "served"})).replace("DATA", json.dumps(data)).replace("VIEWER", json.dumps(str(VIEWER)))
+        results.append(node_json(script))
+    assert results[0]["hidden"] is False and results[0]["href"] == "/#job=j1"
+    assert results[1]["href"] is None             # file:// copy: untouched (the markup keeps it hidden)
+    assert '<a id="back-to-workbench" class="back-link" href="/" title="回到工作台（本病例）" hidden>' in (tmp_path / "served.html").read_text()
+    assert results[0]["role"] == "img" and results[0]["legend"].startswith("色标 ") and " – " in results[0]["legend"]
+    assert "back-to-workbench" in (tmp_path / "served.html").read_text()

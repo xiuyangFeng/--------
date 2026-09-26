@@ -119,27 +119,75 @@ function _cell(x,sep){const s=x===null||x===undefined?'':(typeof x==='number'?(N
 function probeToTSV(rows,lang){const c=_probeColumns(rows,lang);return [c.head.join('\t')].concat((rows||[]).map(r=>c.cells(r).map(x=>_cell(x,'\t')).join('\t'))).join('\n');}
 function probeToCSV(rows,lang){const c=_probeColumns(rows,lang);return '\ufeff'+[c.head.join(',')].concat((rows||[]).map(r=>c.cells(r).map(x=>_cell(x,',')).join(','))).join('\r\n')+'\r\n';}
 // ---------------------------------------------------------------- §12.3 colour bars, English labels, filenames
-const CMAPS={rainbow:[[0,0,143],[0,32,255],[0,160,255],[0,255,255],[64,255,160],[160,255,64],[255,255,0],[255,160,0],[255,64,0],[190,0,0]],
-  turbo:[[48,18,59],[70,107,227],[36,182,213],[37,241,150],[128,254,66],[210,239,35],[253,183,31],[240,107,14],[199,40,6],[122,4,3]],
-  bwr:[[31,78,156],[247,247,247],[192,57,43]],viridis:[[68,1,84],[59,82,139],[33,145,140],[94,201,98],[253,231,37]]};
+// v0.14 (F2) the one palette source.  The wall report, the volume report, the compare page and every export
+// (canvas PNG, colour-bar SVG, montage) read these tables; nothing else defines colour stops.  Rainbow keeps its
+// ten historical stops (the default; the user's choice of 2026-09-20).  Turbo (Google, 2019) and viridis
+// (matplotlib) are their published 256-entry tables sampled at 33 evenly spaced stops (linear interpolation
+// between them stays within 2.4/255 of the full table); bwr is ColorBrewer RdBu-7, blue low, white centre.
+const PALETTES={
+  rainbow:{label:'彩虹',label_en:'Rainbow',stops:[[0,0,143],[0,32,255],[0,160,255],[0,255,255],[64,255,160],[160,255,64],[255,255,0],[255,160,0],[255,64,0],[190,0,0]]},
+  turbo:{label:'Turbo',label_en:'Turbo',stops:[[48,18,59],[57,42,115],[64,64,162],[68,86,199],[70,107,227],[70,128,246],[66,148,255],[55,168,250],[40,188,235],[28,205,216],[24,221,194],[31,233,175],[50,242,152],[78,249,125],[109,254,98],[139,255,75],[164,252,60],[183,247,53],[203,237,52],[221,224,55],[236,209,58],[247,193,58],[253,174,53],[254,153,44],[251,129,34],[245,105,24],[236,83,15],[225,65,9],[210,49,5],[193,35,2],[172,23,1],[149,13,1],[122,4,3]]},
+  bwr:{label:'蓝白红',label_en:'Blue-white-red',stops:[[33,102,172],[103,169,207],[209,229,240],[247,247,247],[253,219,199],[239,138,98],[178,24,43]]},
+  viridis:{label:'Viridis',label_en:'Viridis',stops:[[68,1,84],[71,13,96],[72,24,106],[72,35,116],[71,45,123],[69,55,129],[66,64,134],[62,73,137],[59,82,139],[55,91,141],[51,99,141],[47,107,142],[44,114,142],[41,122,142],[38,130,142],[35,137,142],[33,145,140],[31,151,139],[31,159,136],[33,166,133],[39,173,129],[49,181,123],[61,188,116],[76,194,108],[92,200,99],[110,206,88],[129,211,77],[149,216,64],[170,220,50],[192,223,37],[213,226,26],[234,229,26],[253,231,37]]}};
+const CMAPS={};for(const k of Object.keys(PALETTES))CMAPS[k]=PALETTES[k].stops;
 CMAPS.bluewhitered=CMAPS.bwr;
 function colormapNames(){return ['rainbow','turbo','bwr','viridis'];}
+// {name: stops} for viewers that keep a lookup table; the arrays are the shared ones (read-only by convention).
+function colormapTables(){const out={};for(const k of colormapNames())out[k]=CMAPS[k];return out;}
+// t (0..1, clamped) → [r, g, b] in 0..1 by linear interpolation between neighbouring stops.  This is exactly the
+// formula the wall report used before v0.14, so rainbow colours stay bit-identical.
+function paletteRGB(name,t){const stops=CMAPS[name]||CMAPS.rainbow;t=Math.min(1,Math.max(0,+t||0));
+  const x=t*(stops.length-1),i=Math.min(stops.length-2,Math.floor(x)),u=x-i;return [0,1,2].map(k=>(stops[i][k]+(stops[i+1][k]-stops[i][k])*u)/255);}
 function colormapStops(name){const c=CMAPS[name]||CMAPS.rainbow;return c.map((rgb,i)=>[i/(c.length-1),'#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('')]);}
 function _hex2rgb(h){const m=/^#?([0-9a-f]{6})$/i.exec(String(h));if(!m)return [0,0,0];const v=parseInt(m[1],16);return [v>>16&255,v>>8&255,v&255];}
 function colorAt(stops,t){t=Math.max(0,Math.min(1,+t||0));if(!stops||!stops.length)return '#000000';let i=0;while(i<stops.length-2&&stops[i+1][0]<t)i++;const [t0,c0]=stops[i],[t1,c1]=stops[Math.min(i+1,stops.length-1)];const u=t1>t0?(t-t0)/(t1-t0):0;const a=_hex2rgb(c0),b=_hex2rgb(c1);return '#'+[0,1,2].map(k=>Math.round(a[k]+(b[k]-a[k])*Math.max(0,Math.min(1,u))).toString(16).padStart(2,'0')).join('');}
 function _valueAt(t,lo,hi,log,floor){floor=floor>0?floor:.05;if(log){const l0=Math.log(Math.max(lo,floor)),l1=Math.log(Math.max(hi,floor*1.001));return Math.exp(l0+t*(l1-l0));}return lo+t*(hi-lo);}
 function _xml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function _tickFmt(v,lo,hi,log){if(log){const a=Math.abs(+v);if(!(a>0))return '0';const d=Math.max(0,2-Math.floor(Math.log10(a)));return String(+(+v).toFixed(Math.min(d,4)));}const span=Math.abs(hi-lo);const d=span>=100?0:span>=10?1:span>=1?2:3;return (+v).toFixed(d);}
+// v0.13 fine colour-bar ticks: "nice" 1 / 2 / 2.5 / 5 steps (about eight intervals) plus the exact range ends,
+// minor marks halfway; log scale uses 1-2-5 per decade; with bands the band edges are the ticks (≤ maxLabels labelled).
+// Returns [{f (0 bottom … 1 top), v, major (labelled), nice}] sorted by f.  Callers pass display units.
+function _niceStep(span,target){const raw=span/Math.max(1,target);if(!(raw>0))return 1;const mag=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/mag;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*mag;}
+function _fracAt(v,lo,hi,log,floor){if(log){const l0=Math.log(Math.max(lo,floor)),l1=Math.log(Math.max(hi,floor*1.001));return (Math.log(Math.max(v,floor))-l0)/((l1-l0)||1);}return (v-lo)/((hi-lo)||1);}
+const _short=v=>Math.abs(v-+(+v).toPrecision(3))<=1e-9*Math.max(1,Math.abs(v));   // 1, 1.25, 0.05 — printable without padding
+function colorbarTicks(o){
+  o=o||{};const lo=Number.isFinite(+o.min)?+o.min:0,hi=Number.isFinite(+o.max)?+o.max:1,log=!!o.log,floor=o.floor>0?+o.floor:.05;
+  const bands=Math.max(0,Math.floor(o.bands)||0),maxLabels=Math.max(3,Math.floor(o.maxLabels)||11),target=Math.max(2,+o.target||8),gap=o.minGap>0?+o.minGap:.06;
+  if(!(hi>lo))return [{f:0,v:lo,major:true,nice:false}];
+  const out=[],push=(v,major,nice)=>{const f=_fracAt(v,lo,hi,log,floor);if(f>=-1e-9&&f<=1+1e-9)out.push({f:Math.min(1,Math.max(0,f)),v,major,nice});};
+  if(bands>0){const stride=Math.max(1,Math.ceil(bands/(maxLabels-1)));
+    for(let i=0;i<=bands;i++){const v=_valueAt(i/bands,lo,hi,log,floor);out.push({f:i/bands,v,major:i%stride===0||i===bands,nice:_short(v)&&i<bands});}
+    const last=Math.floor(bands/stride)*stride;if(last!==bands&&bands-last<stride/2)out[last].major=false;
+    return out;}
+  if(log){const l0=Math.max(lo,floor),k0=Math.floor(Math.log10(l0)),k1=Math.ceil(Math.log10(hi)),dec=k1-k0,mult=dec<=2?[1,2,5]:dec<=4?[1,3]:[1];
+    push(l0,true,_short(l0));
+    for(let k=k0;k<=k1;k++)for(const m of mult){const v=+(m*Math.pow(10,k)).toPrecision(12);if(v>l0*1.0001&&v<hi/1.0001)push(v,true,true);}
+    push(hi,true,false);}
+  else{const step=_niceStep(hi-lo,target),first=Math.ceil(lo/step-1e-9)*step;
+    push(lo,true,Math.abs(lo-first)<1e-9*step);
+    for(let v=first;v<hi-1e-9*step;v+=step){const r=+v.toPrecision(12);if(r>lo+1e-9*step)push(r,true,true);}
+    push(hi,true,false);
+    for(let v=first-step/2;v<hi;v+=step){const r=+v.toPrecision(12);if(r>lo&&r<hi)push(r,false,true);}}
+  // A nice tick crowding an exact range end loses its label (the end value is the one that matters).
+  const ends=out.filter(t=>t.major&&!t.nice);for(const t of out)if(t.major&&t.nice&&ends.some(e=>Math.abs(e.f-t.f)<gap))t.major=false;
+  return out.sort((a,b)=>a.f-b.f);}
+// Nice ticks print as plain numbers (2, 2.5, 0.05); range ends keep three significant digits (formatValue).
+function tickLabel(t){return t&&t.nice?String(+(+t.v).toPrecision(6)):formatValue(t&&t.v);}
+// Drops labels closer than minGap (fraction of the bar) to an already kept one, keeping the given order's priority.
+function spreadLabels(items,minGap){const kept=[];for(const it of items){if(kept.some(k=>Math.abs(k.f-it.f)<minGap))continue;kept.push(it);}return kept;}
 function colorbarSVG(o){
   o=o||{};const stops=Array.isArray(o.stops)&&o.stops.length?o.stops:colormapStops(o.colormap||'rainbow');
-  const vertical=(o.orientation||'vertical')!=='horizontal',W=o.width||(vertical?110:380),H=o.height||(vertical?320:80);
+  const vertical=(o.orientation||'vertical')!=='horizontal',hasThr=Array.isArray(o.thresholds)&&o.thresholds.length>0;
+  const W=o.width||(vertical?110+(hasThr?34:0):380),H=o.height||(vertical?(o.ticks==='fine'?380:320):(hasThr?96:80));
   const bands=Math.max(0,Math.floor(o.bands)||0),lo=Number.isFinite(+o.min)?+o.min:0,hi=Number.isFinite(+o.max)?+o.max:1,log=!!o.log,lang=o.lang||'zh';
   const title=o.title!=null?String(o.title):englishLabel('wss',lang),units=o.units!=null?String(o.units):'';
-  const barX=vertical?12:24,barY=vertical?30:24,barW=vertical?18:W-48,barH=vertical?H-52:18;
+  // Fine ticks / threshold marks (v0.13, wall report) are opt-in so other callers keep their evenly spaced ticks.
+  const fine=o.ticks==='fine',thr=Array.isArray(o.thresholds)?o.thresholds.filter(t=>t&&Number.isFinite(+t.v)):[],thrPad=vertical&&thr.length?34:0;
+  const barX=(vertical?12:24)+thrPad,barY=vertical?30:24+(thr.length?16:0),barW=vertical?18:W-48,barH=vertical?H-52:18;
   let out='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#203049">';
   out+='<title>'+_xml(title+(units?' · '+units:''))+'</title>';
   out+='<text x="'+(vertical?12:24)+'" y="16" font-size="12" font-weight="600">'+_xml(title)+(units?' <tspan fill="#5f7086">('+_xml(units)+')</tspan>':'')+'</text>';
-  const ticks=[];
+  let ticks=[];
   if(bands>0){
     for(let i=0;i<bands;i++){const c=colorAt(stops,(i+.5)/bands);const f0=i/bands,f1=(i+1)/bands;
       if(vertical)out+='<rect x="'+barX+'" y="'+(barY+barH*(1-f1)).toFixed(2)+'" width="'+barW+'" height="'+(barH/bands).toFixed(2)+'" fill="'+c+'"/>';
@@ -150,10 +198,22 @@ function colorbarSVG(o){
     out+='<rect x="'+barX+'" y="'+barY+'" width="'+barW+'" height="'+barH+'" fill="url(#g)"/>';
     for(let i=0;i<=4;i++)ticks.push({f:i/4,v:_valueAt(i/4,lo,hi,log)});
   }
+  if(fine)ticks=colorbarTicks({min:lo,max:hi,log,bands,floor:o.floor,minGap:14/Math.max(40,barH)});
   out+='<rect x="'+barX+'" y="'+barY+'" width="'+barW+'" height="'+barH+'" fill="none" stroke="#7c8794" stroke-width="1"/>';
-  for(const t of ticks){const label=_tickFmt(t.v,lo,hi,log);
+  for(const t of ticks){const label=fine?tickLabel(t):_tickFmt(t.v,lo,hi,log);
+    if(fine&&!t.major){if(vertical){const y=barY+barH*(1-t.f);out+='<line x1="'+(barX+barW)+'" y1="'+y.toFixed(2)+'" x2="'+(barX+barW+2.5)+'" y2="'+y.toFixed(2)+'" stroke="#7c8794"/>';}
+      else{const x=barX+barW*t.f;out+='<line x1="'+x.toFixed(2)+'" y1="'+(barY+barH)+'" x2="'+x.toFixed(2)+'" y2="'+(barY+barH+2.5)+'" stroke="#7c8794"/>';}continue;}
     if(vertical){const y=barY+barH*(1-t.f);out+='<line x1="'+(barX+barW)+'" y1="'+y.toFixed(2)+'" x2="'+(barX+barW+4)+'" y2="'+y.toFixed(2)+'" stroke="#7c8794"/><text class="tick" x="'+(barX+barW+7)+'" y="'+(y+4).toFixed(2)+'">'+label+'</text>';}
     else{const x=barX+barW*t.f;out+='<line x1="'+x.toFixed(2)+'" y1="'+(barY+barH)+'" x2="'+x.toFixed(2)+'" y2="'+(barY+barH+4)+'" stroke="#7c8794"/><text class="tick" x="'+x.toFixed(2)+'" y="'+(barY+barH+16)+'" text-anchor="middle">'+label+'</text>';}}
+  // Threshold marks: a dark line across the bar, the value on the far side from the ticks.
+  const thrMarks=thr.map(t=>({f:_fracAt(+t.v,lo,hi,log,o.floor>0?+o.floor:.05),t})).filter(x=>x.f>=0&&x.f<=1);
+  const thrShown=spreadLabels(thrMarks,(vertical?14:30)/Math.max(40,vertical?barH:barW));
+  for(const x of thrMarks){
+    const labelled=thrShown.includes(x),text=_xml(x.t.label!=null?x.t.label:formatValue(x.t.v));
+    if(vertical){const y=barY+barH*(1-x.f);out+='<line class="thr" x1="'+(barX-4)+'" y1="'+y.toFixed(2)+'" x2="'+(barX+barW)+'" y2="'+y.toFixed(2)+'" stroke="#203049" stroke-width="1.6"/>';
+      if(labelled)out+='<text class="thr" x="'+(barX-6)+'" y="'+(y+4).toFixed(2)+'" text-anchor="end" font-weight="600">'+text+'</text>';}
+    else{const x0=barX+barW*x.f;out+='<line class="thr" x1="'+x0.toFixed(2)+'" y1="'+(barY-4)+'" x2="'+x0.toFixed(2)+'" y2="'+(barY+barH)+'" stroke="#203049" stroke-width="1.6"/>';
+      if(labelled)out+='<text class="thr" x="'+x0.toFixed(2)+'" y="'+(barY-7)+'" text-anchor="middle" font-weight="600">'+text+'</text>';}}
   if(log)out+='<text x="'+(vertical?12:24)+'" y="'+(H-4)+'" font-size="9" fill="#5f7086">'+(lang==='en'?'log scale':'对数色标')+'</text>';
   return out+'</svg>';
 }
@@ -395,9 +455,156 @@ function tableToCSV(columns,rows,comments){
   for(const r of (rows||[]))lines.push((Array.isArray(r)?r:columns.map(k=>r[k])).map(cell).join(','));
   return '﻿'+lines.join('\r\n')+'\r\n';
 }
+// ---------------------------------------------------------------- §19.1 view fitting, number / time formatting, shortcuts (v0.12)
+// Points may be a flat xyz array (Float32Array / Array) or an array of [x,y,z]; at most ``limit`` are sampled evenly.
+function _samplePoints(pts,limit){
+  const out=[];if(!pts)return out;limit=limit||6000;
+  if(pts.length&&Array.isArray(pts[0])){const step=Math.max(1,Math.floor(pts.length/limit));for(let i=0;i<pts.length;i+=step)out.push(pts[i]);return out;}
+  const n=Math.floor(pts.length/3),step=Math.max(1,Math.floor(n/limit));
+  for(let i=0;i<n;i+=step){const x=pts[3*i],y=pts[3*i+1],z=pts[3*i+2];if(Number.isFinite(x)&&Number.isFinite(y)&&Number.isFinite(z))out.push([x,y,z]);}
+  return out;
+}
+function _norm3(v){const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l];}
+function _cross3(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function _dot3(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+// Camera that frames every sampled point for a perspective view looking along ``dir`` (camera → target) with ``up``.
+// Returns {position,target,up,distance}; the target is re-centred on the projected extents so the vessel sits in the
+// middle of the viewport.  ``margin`` ≥ 1 leaves a border (1.12 ≈ 6 % each side); ``fov`` is the vertical FOV in degrees.
+function fitView(pts,opts){
+  opts=opts||{};const P=_samplePoints(pts,opts.limit);
+  const d=_norm3(opts.dir||[0,0,-1]);let u=opts.up||[0,1,0];
+  const ud=_dot3(u,d);u=_norm3([u[0]-ud*d[0],u[1]-ud*d[1],u[2]-ud*d[2]]);
+  const r=_norm3(_cross3(d,u)),t=Math.tan((opts.fov||35)*Math.PI/360),a=opts.aspect>0?opts.aspect:1,m=opts.margin>0?opts.margin:1.12;
+  if(!P.length){const c=opts.center||[0,0,0],D=opts.fallbackDistance||100;return {position:[c[0]-d[0]*D,c[1]-d[1]*D,c[2]-d[2]*D],target:c.slice(),up:u,distance:D};}
+  let c=opts.center?opts.center.slice():[0,0,0];
+  if(!opts.center){for(const p of P){c[0]+=p[0];c[1]+=p[1];c[2]+=p[2];}c=c.map(v=>v/P.length);}
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+  for(const p of P){const q=[p[0]-c[0],p[1]-c[1],p[2]-c[2]],x=_dot3(q,r),y=_dot3(q,u);if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+  const xm=(x0+x1)/2,ym=(y0+y1)/2;c=[c[0]+r[0]*xm+u[0]*ym,c[1]+r[1]*xm+u[1]*ym,c[2]+r[2]*xm+u[2]*ym];
+  let D=0;
+  for(const p of P){const q=[p[0]-c[0],p[1]-c[1],p[2]-c[2]],x=Math.abs(_dot3(q,r)),y=Math.abs(_dot3(q,u)),z=-_dot3(q,d);
+    D=Math.max(D,z+m*y/t,z+m*x/(t*a));}
+  D=Math.max(D,1e-3);
+  return {position:[c[0]-d[0]*D,c[1]-d[1]*D,c[2]-d[2]*D],target:c,up:u,distance:D};
+}
+// Human-readable number without scientific notation: 0.00177 → "0.0018", 1.572 → "1.57", 17 → "17.0", 15544.8 → "15545".
+// ``digits`` = significant digits (default 3); ``maxDecimals`` caps decimals (default 4); |v| below 10^-maxDecimals → "0".
+function formatValue(v,opts){
+  opts=opts||{};const digits=opts.digits||3,maxDec=opts.maxDecimals===undefined?4:opts.maxDecimals;
+  if(v===null||v===undefined||v===''||!Number.isFinite(Number(v)))return opts.missing===undefined?'—':opts.missing;
+  v=Number(v);const a=Math.abs(v);
+  if(a===0)return '0';
+  if(a>=Math.pow(10,digits))return String(Math.round(v));
+  if(a<Math.pow(10,-maxDec))return '0';
+  const dec=Math.max(0,Math.min(maxDec,digits-1-Math.floor(Math.log10(a))));
+  return v.toFixed(dec);
+}
+function _pad2(n){return String(n).padStart(2,'0');}
+// Local wall-clock rendering of an ISO timestamp (any offset) in the viewer's time zone: "2026-09-22 17:37".
+function localTime(iso,opts){
+  if(!iso)return '';const d=new Date(iso);if(!Number.isFinite(d.getTime()))return String(iso);
+  const date=`${d.getFullYear()}-${_pad2(d.getMonth()+1)}-${_pad2(d.getDate())}`,time=`${_pad2(d.getHours())}:${_pad2(d.getMinutes())}`;
+  return opts&&opts.seconds?`${date} ${time}:${_pad2(d.getSeconds())}`:`${date} ${time}`;
+}
+// Short relative rendering for lists: "刚刚" / "12 分钟前" / "今天 17:37" / "昨天 17:37" / "9月20日 17:41" / "2025年9月20日".
+function friendlyTime(iso,nowMs){
+  if(!iso)return '';const d=new Date(iso);if(!Number.isFinite(d.getTime()))return String(iso);
+  const now=new Date(Number.isFinite(nowMs)?nowMs:Date.now()),diff=(now.getTime()-d.getTime())/1000,hm=`${_pad2(d.getHours())}:${_pad2(d.getMinutes())}`;
+  if(diff>=0&&diff<60)return '刚刚';
+  if(diff>=0&&diff<3600)return `${Math.floor(diff/60)} 分钟前`;
+  const day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime(),dd=Math.round((day(now)-day(d))/86400000);
+  if(dd===0)return `今天 ${hm}`;
+  if(dd===1)return `昨天 ${hm}`;
+  if(d.getFullYear()===now.getFullYear())return `${d.getMonth()+1}月${d.getDate()}日 ${hm}`;
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+// Keyboard shortcuts.  ``bindings`` = [{keys:['1','Home'], label:'前视', group:'视角', run:fn, when?:fn}]; keys are
+// KeyboardEvent.key values (letters case-insensitive; "shift+x" requires Shift).  Keys never fire while typing in
+// inputs / selects / contenteditable or with Ctrl / Meta / Alt held.  "?" toggles a help overlay, Esc closes it.
+function shortcutMatches(binding,ev){
+  if(!binding||!ev||ev.ctrlKey||ev.metaKey||ev.altKey)return false;
+  const key=String(ev.key||'');
+  return (binding.keys||[]).some(k=>{k=String(k);const shift=/^shift\+/i.test(k);if(shift)k=k.slice(6);
+    if(shift&&!ev.shiftKey)return false;
+    return k.length===1?key.toLowerCase()===k.toLowerCase():key===k;});
+}
+function _typingTarget(t){
+  if(!t)return false;const tag=(t.tagName||'').toLowerCase();
+  if(tag==='textarea'||tag==='select')return true;
+  if(tag==='input'){const type=(t.type||'text').toLowerCase();return !['checkbox','radio','button','range','submit','reset','color'].includes(type);}
+  return Boolean(t.isContentEditable);
+}
+function shortcutRows(bindings){
+  const pretty=k=>({ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→',Escape:'Esc',Enter:'Enter',' ':'空格','/':'/'}[k]||(/^shift\+/i.test(k)?'Shift+'+k.slice(6).toUpperCase():k.length===1?k.toUpperCase():k));
+  return (bindings||[]).filter(b=>b&&b.label).map(b=>({group:b.group||'',keys:(b.keys||[]).map(pretty),label:b.label}));
+}
+function installShortcuts(bindings,opts){
+  opts=opts||{};const doc=opts.doc||(typeof document!=='undefined'?document:null);if(!doc)return null;
+  let overlay=null;
+  function hideHelp(){if(overlay){overlay.remove();overlay=null;}}
+  function showHelp(){
+    hideHelp();overlay=doc.createElement('div');overlay.className='wss-shortcuts';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label',opts.title||'快捷键');
+    overlay.style.cssText='position:fixed;inset:0;z-index:60;background:rgba(15,30,45,.35);display:flex;align-items:center;justify-content:center';
+    const card=doc.createElement('div');card.style.cssText='background:#fff;color:#1f3347;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.25);padding:18px 22px;min-width:320px;max-width:560px;max-height:80vh;overflow:auto;font:14px/1.5 system-ui,-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+    const h=doc.createElement('div');h.textContent=opts.title||'快捷键';h.style.cssText='font-weight:700;font-size:16px;margin-bottom:8px';card.appendChild(h);
+    let group=null;
+    for(const row of shortcutRows(all)){
+      if(row.group!==group){group=row.group;if(group){const g=doc.createElement('div');g.textContent=group;g.style.cssText='margin:10px 0 4px;color:#62788c;font-size:12px;font-weight:600';card.appendChild(g);}}
+      const line=doc.createElement('div');line.style.cssText='display:flex;justify-content:space-between;gap:18px;padding:3px 0;border-bottom:1px solid #eef2f5';
+      const l=doc.createElement('span');l.textContent=row.label;const k=doc.createElement('span');
+      for(const key of row.keys){const kb=doc.createElement('kbd');kb.textContent=key;kb.style.cssText='display:inline-block;min-width:22px;text-align:center;margin-left:4px;padding:1px 6px;border:1px solid #c9d4dd;border-bottom-width:2px;border-radius:5px;background:#f6f8fa;font:12px/1.6 ui-monospace,monospace';k.appendChild(kb);}
+      line.appendChild(l);line.appendChild(k);card.appendChild(line);
+    }
+    const foot=doc.createElement('div');foot.textContent='按 Esc 或点击空白处关闭';foot.style.cssText='margin-top:10px;color:#8093a2;font-size:12px';card.appendChild(foot);
+    overlay.appendChild(card);overlay.addEventListener('click',e=>{if(e.target===overlay)hideHelp();});(doc.body||doc.documentElement).appendChild(overlay);
+  }
+  const all=(bindings||[]).concat([{keys:['?','shift+/'],label:'显示 / 关闭快捷键说明',group:opts.helpGroup||'帮助',run:()=>overlay?hideHelp():showHelp()}]);
+  function onKey(ev){
+    if(ev.defaultPrevented)return;
+    if(ev.key==='Escape'&&overlay){hideHelp();ev.preventDefault();return;}
+    if(_typingTarget(ev.target))return;
+    for(const b of all){if(shortcutMatches(b,ev)&&(!b.when||b.when(ev))){ev.preventDefault();try{b.run(ev);}catch(err){if(typeof console!=='undefined')console.error(err);}return;}}
+  }
+  doc.addEventListener('keydown',onKey);
+  return {showHelp,hideHelp,dispose(){doc.removeEventListener('keydown',onKey);hideHelp();},bindings:all};
+}
+// ---------------------------------------------------------------- §21.1 label layout (v0.12.2)
+// Screen-space de-overlap for pinned labels.  ``items`` = [{x, y, w, h, priority?}] where (x, y) is the anchor
+// (label centre wants to sit there) in CSS px.  Labels are placed greedily, highest priority first (ties keep
+// input order); a label that collides with an already placed one tries candidate positions on rings around its
+// anchor (up / down / sideways first) up to ``maxShift`` px.  Returns [{x, y, moved, hidden}] in input order:
+// (x, y) is the new label centre; ``moved`` asks the caller for a leader line to the anchor; ``hidden`` is set
+// only when ``hideOverflow`` is true and no free spot exists (otherwise the least-overlapping spot is used).
+function declutterLabels(items,opts){
+  opts=opts||{};const pad=opts.padding===undefined?4:opts.padding,maxShift=opts.maxShift===undefined?120:opts.maxShift,step=opts.step||10;
+  const bounds=opts.bounds||null;   // {width,height}: keep labels inside the viewport when given
+  const order=(items||[]).map((it,i)=>({it,i})).sort((a,b)=>((b.it.priority||0)-(a.it.priority||0))||(a.i-b.i));
+  const placed=[],out=new Array((items||[]).length);
+  const box=(cx,cy,it)=>({l:cx-it.w/2-pad,r:cx+it.w/2+pad,t:cy-it.h/2-pad,b:cy+it.h/2+pad});
+  const overlap=(a,b)=>Math.max(0,Math.min(a.r,b.r)-Math.max(a.l,b.l))*Math.max(0,Math.min(a.b,b.b)-Math.max(a.t,b.t));
+  const inside=bx=>!bounds||(bx.l>=0&&bx.t>=0&&bx.r<=bounds.width&&bx.b<=bounds.height);
+  const cost=bx=>placed.reduce((s,p)=>s+overlap(bx,p),0);
+  for(const {it,i} of order){
+    const cands=[[0,0]];
+    for(let r=step;r<=maxShift;r+=step){cands.push([0,-r],[0,r],[r,0],[-r,0],[r,-r],[-r,-r],[r,r],[-r,r]);}
+    let best=null,bestCost=Infinity;
+    for(const [dx,dy] of cands){
+      const bx=box(it.x+dx,it.y+dy,it);if(!inside(bx))continue;
+      const c=cost(bx);if(c===0){best=[dx,dy];bestCost=0;break;}
+      if(c<bestCost){bestCost=c;best=[dx,dy];}
+    }
+    if(!best)best=[0,0];
+    const hidden=Boolean(opts.hideOverflow&&bestCost>0);
+    const cx=it.x+best[0],cy=it.y+best[1];
+    if(!hidden)placed.push(box(cx,cy,it));
+    out[i]={x:cx,y:cy,moved:best[0]!==0||best[1]!==0,hidden};
+  }
+  return out;
+}
 const common={buildCenterlineGroups,projectToCenterline,arcDistance,arcFromRoot,localDiameter,straightDistance,newId,measurementLabel,probeToTSV,probeToCSV,
-  colormapNames,colormapStops,colorAt,colorbarSVG,englishLabel,exportFilename,safeName,builtinPresets,renderOffscreen,glossaryPopover,viewMessaging,LABELS,ZH2EN,
-  planeFrame,planeContour,contourLoops,selectLoop,closeChain,pointInLoop,loopPolygon,sectionMetrics,crossSection,composeMontage,loadImage,profileSVG,tableToCSV};
+  PALETTES,colormapNames,colormapTables,paletteRGB,colormapStops,colorAt,colorbarSVG,colorbarTicks,tickLabel,spreadLabels,englishLabel,exportFilename,safeName,builtinPresets,renderOffscreen,glossaryPopover,viewMessaging,LABELS,ZH2EN,
+  planeFrame,planeContour,contourLoops,selectLoop,closeChain,pointInLoop,loopPolygon,sectionMetrics,crossSection,composeMontage,loadImage,profileSVG,tableToCSV,
+  fitView,formatValue,localTime,friendlyTime,shortcutMatches,shortcutRows,installShortcuts,declutterLabels};
 root.WssReportCommon=common;
 if(typeof module!=='undefined'&&module.exports)module.exports=common;
 })(typeof globalThis!=='undefined'?globalThis:this);

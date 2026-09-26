@@ -11,7 +11,7 @@ from . import analysis as A, centerline as CL, geometry as G, metrics as M, morp
 from .io_utils import atomic_json, file_sha256, resolve_job_path
 from .paths import BRANCH_CN
 from .schema import (build_results, field_descriptor, model_release_metadata,
-                     single_frame_time_axis, stable_run_identity, write_run_manifest)
+                     single_frame_time_axis, stable_run_identity, summary_provenance, write_run_manifest)
 
 
 def _statistics(values):
@@ -24,16 +24,21 @@ def _statistics(values):
 
 def _export(job_dir, points, pressure, velocity, wall, wall_pressure, vertices, faces, vertex_pressure, geom, lines):
     import pyvista as pv
+    from .pipeline import atomic_output
+    # v0.14: each file is written to a hidden temporary name and renamed into place (atomic).
     speed = np.linalg.norm(velocity, axis=1)
     interior = pv.PolyData(np.asarray(points, np.float32))
     interior.point_data.update({"pressure_pa": pressure, "velocity_m_s": velocity,
                                 "speed_m_s": speed, "segment_id": geom["segment_id"][len(wall):]})
-    interior.save(str(job_dir / "volume_fields.vtp"))
-    R.write_vtp(job_dir / "wall_pressure.vtp", vertices, faces,
-                {"pressure_pa": vertex_pressure, "pressure_covered": np.isfinite(vertex_pressure)})
-    np.savetxt(job_dir / "points_volume.csv", np.column_stack((points, pressure, velocity, speed)),
-               delimiter=",", fmt="%.7g", comments="",
-               header="x_mm,y_mm,z_mm,pressure_pa,vx_m_s,vy_m_s,vz_m_s,speed_m_s")
+    with atomic_output(job_dir / "volume_fields.vtp") as tmp:
+        interior.save(str(tmp))
+    with atomic_output(job_dir / "wall_pressure.vtp") as tmp:
+        R.write_vtp(tmp, vertices, faces,
+                    {"pressure_pa": vertex_pressure, "pressure_covered": np.isfinite(vertex_pressure)})
+    with atomic_output(job_dir / "points_volume.csv") as tmp:
+        np.savetxt(tmp, np.column_stack((points, pressure, velocity, speed)),
+                   delimiter=",", fmt="%.7g", comments="",
+                   header="x_mm,y_mm,z_mm,pressure_pa,vx_m_s,vy_m_s,vz_m_s,speed_m_s")
     if lines:
         xyz = np.concatenate([line["points"] for line in lines])
         cells = []; offset = 0
@@ -42,18 +47,20 @@ def _export(job_dir, points, pressure, velocity, wall, wall_pressure, vertices, 
             cells.extend([size, *range(offset, offset+size)]); offset += size
         traces = pv.PolyData(xyz, lines=np.asarray(cells))
         traces.point_data["speed_m_s"] = np.concatenate([line["speed_m_s"] for line in lines])
-        traces.save(str(job_dir / "streamlines.vtp"))
+        with atomic_output(job_dir / "streamlines.vtp") as tmp:
+            traces.save(str(tmp))
 
 
 def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
                    confirmed=False, case_id=None, device="auto", seed_count=None, threads=None,
                    progress=None, cancelled=None):
-    from .pipeline import _archive_previous_run, _now
+    from .pipeline import (_archive_previous_run, _clean_mesh, _now, _resampled, VertexInterpolation, cache_record,
+                           inference_threads, prune_geometry_cache, run_inference, save_npz_atomic, torch_threads)
+    from . import geometry_cache as GC
     from .volume_geometry import build_volume_case, make_inside_test
     from .volume_report import build_html
-    from .streamlines import centerline_seeds, integrate_streamlines, thin_lines, volume_seeds
+    from .streamlines import ball_certified_inside, centerline_seeds, integrate_streamlines, thin_lines, volume_seeds
     from wss_features import contract as feature_contract
-    from wss_features.stl import load_stl
     job_dir = Path(job_dir).resolve()
     a = json.loads((job_dir / "stage_a.json").read_text())
     if a.get("stage") != "A" or not a.get("input_check", {}).get("ok"):
@@ -70,13 +77,18 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
     previous_archive = _archive_previous_run(job_dir)
     timing = dict(a["timing_s"])
     atlas = CL.apply_mapping(CL.load_vessel_geom_atlas(job_dir / "centerline"), mapping)
-    vertices, faces = load_stl(clean_stl)
+    # v0.14: clean mesh, resampled wall and morphology sections come from <job_dir>/geometry_cache when
+    # their exact-input keys match (pipeline.precompute_geometry_cache); otherwise computed here.
+    cache, cache_lock = GC.GeometryCache(job_dir), GC.job_lock(job_dir)
+    with cache_lock:
+        vertices, faces = _clean_mesh(job_dir, clean_stl, cache)
     vertices = np.asarray(vertices, np.float64); faces = np.asarray(faces, np.int64)
     sampling_seed = G.stable_sampling_seed(a["input_sha256"])
     progress("geometry", "正在构建壁面支持点和封闭管腔")
     start = time.perf_counter()
-    smoothed, wall = G.smooth_and_resample(vertices, faces, smooth_mm=smooth_mm,
-                                          spacing_mm=spacing_mm, seed=sampling_seed)
+    with cache_lock:
+        smoothed, wall = _resampled(vertices, faces, smooth_mm=smooth_mm, spacing_mm=spacing_mm,
+                                    seed=sampling_seed, cache=cache)
     timing["smooth_resample"] = time.perf_counter()-start
     check()
     progress("features", "正在生成管腔内部采样点和 PF6 / VF6 特征")
@@ -87,14 +99,11 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
     timing["volume_features"] = time.perf_counter()-start
     check()
     progress("inference", "正在分别预测相对压力与体内速度")
-    import torch
-    old_threads = torch.get_num_threads()
-    try:
-        if threads is not None: torch.set_num_threads(int(threads))
-        start = time.perf_counter(); prediction = release.predict(case)
+    # v0.14: CPU inference without an explicit thread count uses min(32, cores) (WSS_DEPLOY_CPU_THREADS).
+    cpu_threads = inference_threads(getattr(release, "device", None), threads)
+    with torch_threads(cpu_threads):
+        start = time.perf_counter(); prediction = run_inference(release, case)
         timing["inference_volume"] = time.perf_counter()-start
-    finally:
-        if threads is not None: torch.set_num_threads(old_threads)
     check()
     n_wall = int(case["n_wall"])
     all_points = case["wall_coords_raw"]
@@ -112,11 +121,12 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
     progress("metrics", "正在积分体内稳态流线并汇总压力与速度")
     start = time.perf_counter()
     closed = aux["closed_surface"]
-    inside = make_inside_test(closed["vertices"], closed["faces"])
+    inside = ball_certified_inside(make_inside_test(closed["vertices"], closed["faces"]), points, closed["vertices"], closed["faces"])
     seeds = np.concatenate([centerline_seeds(atlas), volume_seeds(points, n=120, seed=sampling_seed)])
     lines, line_info = integrate_streamlines(points, velocity, seeds, inside)
     lines, line_info["vertex_stride"] = thin_lines(lines)
-    vertex_pressure = R.interpolate_to_vertices(wall, pressure[:n_wall], vertices)
+    interp = VertexInterpolation(wall, vertices)   # one KD-tree for the pressure and the segment labels
+    vertex_pressure = interp.values(pressure[:n_wall])
     timing["streamlines_and_interpolation"] = time.perf_counter()-start
     check()
     semantic_labels = ("root", "left_cia", "right_cia", "out-le", "out-li", "out-re", "out-ri")
@@ -129,11 +139,13 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
     # Lumen morphology (contract §17.1) on the same clean wall mesh the report embeds.
     progress("metrics", "正在测量沿程管腔截面与瘤体形态")
     start = time.perf_counter()
-    morphology_block = MORPH.compute(vertices, faces, atlas, branch_names=branch_names, findings=findings_block,
-                                     interior={"segment_id": interior_feats["segment_id"], "speed": speed})
+    with cache_lock:
+        morphology_block = MORPH.compute(vertices, faces, atlas, branch_names=branch_names, findings=findings_block,
+                                         interior={"segment_id": interior_feats["segment_id"], "speed": speed},
+                                         section_cache=cache)
     timing["morphology"] = time.perf_counter()-start
     A.apply_morphology(findings_block, morphology_block, branch_names)
-    vertex_segment = R.nearest_label(wall, np.asarray(geom["segment_id"])[:n_wall], vertices)
+    vertex_segment = interp.labels(np.asarray(geom["segment_id"])[:n_wall])
     caps = list((aux["diag"].get("closure") or {}).get("caps") or [])
     dist_to_wall = np.asarray(case["dist_to_wall_mm"], np.float32)[n_wall:]
     segments = atlas.col("segment_id").astype(int); index = atlas.col("sample_index")
@@ -192,6 +204,7 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
             "release_hash": file_sha256(Path(release.dir) / "MANIFEST.sha256"),
             "feature_contract": feature_contract(),
             "seconds_per_model": prediction["seconds_per_model"],
+            **({"inference_threads": cpu_threads} if cpu_threads is not None else {}),
             "interpolation": {"field": "wall_pressure", "source": "wall_query_predictions", "method": "Gaussian",
                               "sigma_mm": .5, "max_dist_mm": 1.5, "covered_vertices": int(np.isfinite(vertex_pressure).sum())},
             "audit": {"mapping_history": mapping_history, "previous_run_archive": previous_archive},
@@ -210,34 +223,39 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
                                                             meta["reference_assessment"], branch_names)
     meta["narrative"] = NARR.build_narrative(meta)
     meta["results"] = build_results(time_axis=axis, fields=fields, statistics=stats, compatibility={})
+    meta["geometry_cache"] = cache_record(cache)
     meta["exports"] = {"vtp": True, "csv": True, "html": True, "internal_field": True,
                        "wall_pressure": True, "streamlines": bool(lines), "run_manifest": True}
     meta["run_manifest"] = {"path": "run_manifest.json", "schema_version": "wss-deploy.run-manifest/v1"}
     progress("export", "正在导出体场、壁面压力、流线和交互截面报告")
     start = time.perf_counter()
-    np.savez_compressed(job_dir / "field.npz", pts=all_points.astype(np.float32), internal_pts=points.astype(np.float32),
-                        pressure_pa=pressure, velocity_m_s=velocity, speed_m_s=speed,
-                        point_kind=np.r_[np.zeros(n_wall, np.uint8), np.ones(len(points), np.uint8)],
-                        segment_id=geom["segment_id"], vertices=vertices.astype(np.float32), faces=faces.astype(np.int32),
-                        vertex_pressure_pa=vertex_pressure, seed_pressure_pa=prediction["seed_pressure_pa"],
-                        seed_velocity_m_s=prediction["seed_velocity_m_s"])
+    save_npz_atomic(job_dir / "field.npz", pts=all_points.astype(np.float32), internal_pts=points.astype(np.float32),
+                    pressure_pa=pressure, velocity_m_s=velocity, speed_m_s=speed,
+                    point_kind=np.r_[np.zeros(n_wall, np.uint8), np.ones(len(points), np.uint8)],
+                    segment_id=geom["segment_id"], vertices=vertices.astype(np.float32), faces=faces.astype(np.int32),
+                    vertex_pressure_pa=vertex_pressure, seed_pressure_pa=prediction["seed_pressure_pa"],
+                    seed_velocity_m_s=prediction["seed_velocity_m_s"])
     _export(job_dir, points, pressure[n_wall:], velocity, wall, pressure[:n_wall], vertices, faces,
             vertex_pressure, geom, lines)
-    from .pipeline import report_meta
-    build_html(job_dir / "report.html", report_meta(meta),
-               mesh={"vertices": vertices, "faces": faces, "pressure_pa": vertex_pressure, "trust": mesh_trust},
-               cloud={"pts": points, "pressure_pa": pressure[n_wall:], "velocity_m_s": velocity,
-                      "segment": geom["segment_id"][n_wall:], "trust": cloud_trust,
-                      "s_from_root_mm": interior_feats["s_from_root_mm"].astype(np.float32),
-                      "radius_mm": interior_feats["radius_mm"].astype(np.float32), "dist_to_wall_mm": dist_to_wall},
-               centerline={"xyz": atlas.xyz, "tangent": atlas.tangent, "radius_mm": atlas.col("radius_mm"),
-                           "edges": np.asarray(edges, np.uint32), "segment": segments}, streamlines=lines)
-    timing["export"] = time.perf_counter()-start
-    timing["total"] = sum(value for key, value in timing.items() if key != "total")
-    meta["timing_s"] = {k: round(v, 2) for k, v in timing.items()}
-    R.update_html_meta(job_dir / "report.html", report_meta(meta))
+    from .pipeline import atomic_output, report_meta
+    with atomic_output(job_dir / "report.html") as report_tmp:
+        build_html(report_tmp, report_meta(meta),
+                   mesh={"vertices": vertices, "faces": faces, "pressure_pa": vertex_pressure, "trust": mesh_trust},
+                   cloud={"pts": points, "pressure_pa": pressure[n_wall:], "velocity_m_s": velocity,
+                          "segment": geom["segment_id"][n_wall:], "trust": cloud_trust,
+                          "s_from_root_mm": interior_feats["s_from_root_mm"].astype(np.float32),
+                          "radius_mm": interior_feats["radius_mm"].astype(np.float32), "dist_to_wall_mm": dist_to_wall},
+                   centerline={"xyz": atlas.xyz, "tangent": atlas.tangent, "radius_mm": atlas.col("radius_mm"),
+                               "edges": np.asarray(edges, np.uint32), "segment": segments}, streamlines=lines)
+        timing["export"] = time.perf_counter()-start
+        timing["total"] = sum(value for key, value in timing.items() if key != "total")
+        meta["timing_s"] = {k: round(v, 2) for k, v in timing.items()}
+        # v0.14 provenance (analysis_version, deploy_version, git_describe, git_dirty, code_source_hash).
+        meta.update(summary_provenance())
+        R.update_html_meta(report_tmp, report_meta(meta))
     atomic_json(job_dir / "summary.json", meta)
     names = ["summary.json", "report.html", "field.npz", "stage_a.json", "volume_fields.vtp", "wall_pressure.vtp", "points_volume.csv"]
     if lines: names.append("streamlines.vtp")
     write_run_manifest(job_dir, meta, outputs=names)
+    prune_geometry_cache(cache)
     return meta

@@ -191,15 +191,23 @@ def virtual_caps(atlas: Atlas, spacing: float, wall_points_mm: np.ndarray | None
         center = np.asarray(end["center_mm"], dtype=np.float64)
         outward = np.asarray(end["outward"], dtype=np.float64)
         radius = float(end["radius_mm"])
-        fit = _rim_plane(center, outward, radius, wall_points_mm, tree) if tree is not None else None
+        band = float(end.get("radius_band_mm", float("nan")))
+        # 2026-09-22: the rim search scale is the smaller of the endpoint radius and the interior band radius. An
+        # inscribed sphere that escaped through the opening inflates the endpoint radius (up to 3x), and a search
+        # scaled by it pulls in the neighbouring wall; ends with radius <= band are searched exactly as before.
+        scale = min(radius, band) if np.isfinite(band) and band > 0 else radius
+        fit = _rim_plane(center, outward, scale, wall_points_mm, tree) if tree is not None else None
         if fit is not None:
             cap_center, cap_normal, cap_radius = fit["center"], fit["normal"], fit["radius"]
             source = "rim_plane_fit"
+        elif tree is not None and np.isfinite(band) and band < radius:
+            cap_center, cap_normal, cap_radius, source = center, outward, band, "atlas_band_radius"  # no rim at the robust scale: trust the interior
         else:
             cap_center, cap_normal, cap_radius, source = center, outward, radius, "atlas_endpoint"
         pts, areas = _disk_points(cap_center, cap_normal, cap_radius, spacing * CAP_POINT_SPACING_FACTOR)
         caps.append({**end, "center_mm": cap_center, "outward": cap_normal, "radius_mm": cap_radius, "atlas_endpoint_mm": center,
-                     "atlas_radius_mm": radius, "rim_snap_mm": float((cap_center - center) @ outward), "cap_source": source,
+                     "atlas_radius_mm": radius, "atlas_band_radius_mm": band, "search_scale_mm": float(scale),
+                     "rim_snap_mm": float((cap_center - center) @ outward), "cap_source": source,
                      "rim_fit": {k: v for k, v in (fit or {}).items() if k in ("rim_samples", "tilt_deg")},
                      "points_mm": pts, "areas_mm2": areas})
     return caps
@@ -219,6 +227,43 @@ def calibration_points(atlas: Atlas) -> np.ndarray:
     if ok.sum() < 20:
         ok = atlas.col("endpoint_mask")[rows] < 0.5
     return atlas.xyz[rows[ok]]
+
+
+END_RADIUS_INFLATION_MAX = 1.25  # endpoint radius / measured opening radius above this = escaped inscribed sphere
+
+
+def patch_atlas_end_radius(atlas: Atlas, wall_points_mm: np.ndarray) -> dict[str, Any]:
+    """Hold the atlas radius inside an opening end zone at the measured opening radius when the endpoint radius is
+    inflated (> END_RADIUS_INFLATION_MAX x the virtual-cap radius). Detect-then-fix: cases without an inflated end are
+    untouched bit for bit. Returns the per-end record (empty when nothing was patched). 2026-09-22."""
+    caps = virtual_caps(atlas, 1.0, wall_points_mm)
+    seg = atlas.col("segment_id").astype(int)
+    idx = atlas.col("sample_index").astype(int)
+    cols = atlas.columns
+    patched: dict[str, Any] = {}
+    for cap in caps:
+        r_end = float(cap["atlas_radius_mm"]); r_cap = float(cap["radius_mm"])
+        if not (np.isfinite(r_cap) and r_cap > 0 and r_end > END_RADIUS_INFLATION_MAX * r_cap):
+            continue
+        rows = np.flatnonzero(seg == int(cap["segment_id"]))
+        rows = rows[np.argsort(idx[rows])]
+        n = int(cap.get("end_zone_samples", 0))
+        zone = rows[:n] if cap.get("side") == "start" else rows[len(rows) - n:]
+        if not len(zone):
+            continue
+        before = atlas.table[zone, cols.index("radius_mm")].copy()
+        atlas.table[zone, cols.index("radius_mm")] = r_cap
+        if "dr_ds" in cols:
+            atlas.table[zone, cols.index("dr_ds")] = 0.0
+        if "curvature_times_radius" in cols:
+            atlas.table[zone, cols.index("curvature_times_radius")] = atlas.table[zone, cols.index("curvature_per_mm")] * r_cap
+        if "radius_over_case_median" in cols:
+            atlas.table[zone, cols.index("radius_over_case_median")] = r_cap / max(float(np.median(atlas.col("radius_raw_mm"))) if "radius_raw_mm" in cols else float(np.median(atlas.col("radius_mm"))), 1.0e-9)
+        patched[str(cap["label"])] = {"segment_id": int(cap["segment_id"]), "side": cap.get("side"), "zone_samples": int(len(zone)),
+                                      "endpoint_radius_mm": r_end, "band_radius_mm": float(cap.get("atlas_band_radius_mm", float("nan"))),
+                                      "held_to_cap_radius_mm": r_cap, "cap_source": cap["cap_source"],
+                                      "zone_radius_before_mm": [float(x) for x in before]}
+    return patched
 
 
 def build_oriented_cloud(points_mm: np.ndarray, atlas: Atlas, *, normals_out: np.ndarray | None = None,
@@ -278,28 +323,59 @@ def inside_score_vote(query_mm: np.ndarray, cloud: OrientedCloud, k: int = INSID
     return np.einsum("ij,ij->i", w, side) / w.sum(axis=1)
 
 
-def winding_number(query_mm: np.ndarray, cloud: OrientedCloud, chunk: int = 128) -> np.ndarray:
+def winding_number(query_mm: np.ndarray, cloud: OrientedCloud, chunk: int = 8) -> np.ndarray:
     """Generalised winding number of an oriented point cloud (Barill et al. 2018), brute force.
 
     The three-component dot products are written out explicitly instead of ``np.einsum``: the
     float32 operations and their order are identical (verified bit-for-bit against the training
     implementation on a real case), and it runs about three times faster because ``einsum``
     has no fast path for a contracted axis of length 3.
+
+    v0.12: ``chunk`` query rows at a time into preallocated per-thread float32 buffers (``out=`` ufuncs,
+    so no (rows, M) temporaries are allocated per block and the working set stays in cache), blocks on a
+    thread pool.  Every element goes through the same float32 operations in the same order and each row
+    is summed alone (``sum(axis=1, dtype=float64)`` on a contiguous row), so the result is bit-identical
+    to the serial version for any ``chunk`` and thread count.
     """
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+    from .curvature import _threads
     q = np.asarray(query_mm, dtype=np.float32)
     p = cloud.points_mm.astype(np.float32)
     an = (cloud.normals_out * cloud.areas_mm2[:, None]).astype(np.float32)  # area-weighted normals
-    px, py, pz = p[:, 0], p[:, 1], p[:, 2]
-    ax, ay, az = an[:, 0], an[:, 1], an[:, 2]
+    px, py, pz = (np.ascontiguousarray(p[None, :, k]) for k in range(3))
+    ax, ay, az = (np.ascontiguousarray(an[:, k]) for k in range(3))
+    m, rows = len(p), max(1, int(chunk))
     out = np.empty(len(q), dtype=np.float64)
-    for start in range(0, len(q), chunk):
-        block = q[start:start + chunk]
-        rx = px[None, :] - block[:, 0:1]  # (c, M) components of p - q
-        ry = py[None, :] - block[:, 1:2]
-        rz = pz[None, :] - block[:, 2:3]
-        r2 = rx * rx + ry * ry + rz * rz
-        num = rx * ax + ry * ay + rz * az
-        out[start:start + chunk] = (num / np.maximum(r2, 1.0e-8) ** 1.5).sum(axis=1, dtype=np.float64) / (4.0 * np.pi)
+    local = threading.local()
+    eps, power = np.float32(1.0e-8), np.float32(1.5)
+
+    def block_at(start: int) -> None:
+        buffers = getattr(local, "buffers", None)
+        if buffers is None:
+            buffers = local.buffers = [np.empty((rows, m), dtype=np.float32) for _ in range(5)]
+        stop = min(start + rows, len(q))
+        rx, ry, rz, r2, tmp = (b[:stop - start] for b in buffers)
+        block = q[start:stop]
+        np.subtract(px, block[:, 0:1], out=rx)  # components of p - q
+        np.subtract(py, block[:, 1:2], out=ry)
+        np.subtract(pz, block[:, 2:3], out=rz)
+        np.multiply(rx, rx, out=r2); np.multiply(ry, ry, out=tmp); np.add(r2, tmp, out=r2)   # rx*rx + ry*ry + rz*rz
+        np.multiply(rz, rz, out=tmp); np.add(r2, tmp, out=r2)
+        np.maximum(r2, eps, out=r2); np.power(r2, power, out=r2)                           # max(r2, 1e-8) ** 1.5
+        np.multiply(rx, ax, out=rx); np.multiply(ry, ay, out=ry); np.add(rx, ry, out=rx)      # rx*ax + ry*ay + rz*az
+        np.multiply(rz, az, out=rz); np.add(rx, rz, out=rx)
+        np.divide(rx, r2, out=rx)
+        out[start:stop] = rx.sum(axis=1, dtype=np.float64) / (4.0 * np.pi)
+
+    starts = list(range(0, len(q), rows))
+    workers = _threads(len(starts))
+    if workers == 1:
+        for start in starts:
+            block_at(start)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            list(pool.map(block_at, starts))
     return out
 
 

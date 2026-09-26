@@ -14,7 +14,9 @@ def _run(job: dict) -> dict:
     return {"job_id": job.get("id"), "release_id": release.get("id"), "family": job.get("family") or family_of_release(release),
             "status": job.get("status"), "review": review.get("status") or "unreviewed", "created_at": job.get("created_at") or "",
             "run_identity": job.get("run_identity"), "version": job.get("version"), "case_id": job.get("case_id"),
-            "reusable": bool(job.get("reusable")), "reused_from": job.get("reused_from"), "source_job_id": job.get("source_job_id")}
+            "reusable": bool(job.get("reusable")), "reused_from": job.get("reused_from"), "source_job_id": job.get("source_job_id"),
+            # §19.2 display labels from the light snapshot (absent on hand-built records → None / False).
+            "family_label": job.get("family_label"), "release_short": job.get("release_short"), "has_cycle": bool(job.get("has_cycle"))}
 
 
 def group_key(job: dict) -> str:

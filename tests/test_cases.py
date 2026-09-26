@@ -60,3 +60,13 @@ def test_http_cases_route(tmp_path):
         assert status == 400
     finally:
         api.close(); service.close()
+
+
+def test_case_runs_carry_display_labels(tmp_path):
+    mgr = manager(tmp_path)
+    finished(mgr, case_id="A", content=b"geom-a")
+    finished(mgr, case_id="A2", content=b"geom-a", protocol="single_frame_volume")
+    runs = {run["case_id"]: run for run in mgr.cases("owner")["cases"][0]["runs"]}
+    assert runs["A"]["family_label"] == "壁面 WSS" and runs["A2"]["family_label"] == "压力 + 速度体场"
+    assert runs["A"]["release_short"] == "REL_A" and runs["A"]["has_cycle"] is False
+    mgr.close()

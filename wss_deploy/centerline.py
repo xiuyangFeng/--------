@@ -13,6 +13,7 @@ import numpy as np
 from wss_features.atlas import Atlas, load_atlas, semantics as _semantics
 from wss_features.frame import anatomical_frame
 from .paths import VESSEL_GEOM_DIR, VMTK_PYTHON, OUTLET_NAMES, OUTLET_CN
+from .errors import ToolchainError
 
 IE_SCALE = np.array([16.2, 12.5, 0.77, 10.56])   # median |Δ| of (y, lateral, radius, z) on the training atlases
 IE_WEIGHT = np.array([1.0, 1.0, 0.3, 0.3])
@@ -221,12 +222,21 @@ def run_vessel_geom(stl_path: Path, out_dir: Path, *, inlet: int | None = None, 
     _write_atomic(out_dir / "vessel_geom.stdout.txt", stdout + "\n--- stderr ---\n" + stderr)
     for part in (out_file, err_file):
         part.unlink(missing_ok=True)
+    # v0.14 typed errors (errors.py): the user sees a short Chinese message, admins the tool's stderr tail.
+    if isinstance(stopped, subprocess.TimeoutExpired):
+        raise ToolchainError(f"中心线提取超时（超过 {int(timeout)} 秒）。请检查网格是否异常大或含大量碎片。",
+                             admin_detail=f"vessel_geom timeout after {timeout} s; stderr tail:\n{stderr[-2000:]}")
     if stopped is not None:
         raise stopped
     if proc.returncode != 0:
-        raise RuntimeError(f"vessel_geom failed (rc={proc.returncode}): {stderr[-2000:]}")
-    run = json.loads((out_dir / "run.json").read_text(encoding="utf-8"))
-    result = json.loads((out_dir / "centerline" / "result.json").read_text(encoding="utf-8"))
+        raise ToolchainError("中心线提取失败（VMTK / vessel_geom 出错）。请检查表面质量后重试，或联系维护者。",
+                             admin_detail=f"vessel_geom failed (rc={proc.returncode}); stderr tail:\n{stderr[-2000:]}")
+    try:
+        run = json.loads((out_dir / "run.json").read_text(encoding="utf-8"))
+        result = json.loads((out_dir / "centerline" / "result.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise ToolchainError("中心线提取没有生成完整结果，请重试或联系维护者。",
+                             admin_detail=f"vessel_geom outputs unreadable: {type(exc).__name__}: {exc}; stderr tail:\n{stderr[-1500:]}") from exc
     return {"seconds": time.perf_counter() - t, "hard_pass": bool(run["extraction"]["hard_pass"]), "attempt": run["extraction"].get("selected_attempt"),
             "topology": run["graph_topology"], "openings": result["surface_report"]["openings"], "surface_report": {k: v for k, v in result["surface_report"].items() if k != "openings"}}
 

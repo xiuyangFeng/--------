@@ -101,8 +101,8 @@ def build_release(output_root: Path = RELEASE_DIR.parent, *, project_root: Path 
             "input_contract": legacy.get("input_contract"),
             "metrics": _metrics(report),
             "data": legacy.get("data"),
-            "provenance": {"matrix": "docs/02-推进与变更/WSS_PINN/WSS_V5_周期积分量TAWSS_OSI直接回归实验矩阵_2026-09-20.md §14",
-                           "tracking": "docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md §34.6",
+            "provenance": {"matrix": "docs/02-推进与变更/03-周期量TAWSS_OSI/WSS_V5_周期积分量TAWSS_OSI直接回归实验矩阵_2026-09-20.md §14",
+                           "tracking": "docs/02-推进与变更/03-周期量TAWSS_OSI/TAWSS_OSI_实验跟踪.md §34.6",
                            "labels": "wss_v5/views/wall_cycle_v1.py (frames 0-79 of the 81-frame CFD wall shear vector)"},
             "note": "config.json files keep the absolute training data paths for provenance only; a deployment loader must not read those roots.",
         }

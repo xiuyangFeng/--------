@@ -21,7 +21,12 @@ import shutil
 import threading
 import time
 
+from . import clock as _clock
+from .errors import ResourceError, classify
+
 LOG = logging.getLogger("wss_deploy.service")
+# v0.14 (J8): one structured line per job state change (routed to server.log by ``cli serve``).
+AUDIT = logging.getLogger("wss_deploy.audit")
 JOB_ID_PATTERN = r"[A-Za-z0-9_-]{1,80}"
 LABELS = {"out-le", "out-li", "out-re", "out-ri"}
 FINAL = {"done", "failed", "cancelled", "interrupted"}
@@ -45,7 +50,32 @@ MAX_SNAPSHOT_BYTES = 6 * 1024 * 1024
 SNAPSHOT_NAME = re.compile(r"[a-z0-9_-]{1,32}")
 SNAPSHOT_FILE = re.compile(r"snapshot_[a-z0-9_-]{1,32}\.png")
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
-FAMILY_OF_PROTOCOL = {"single_frame_wss": "wall", "single_frame_volume": "volume"}
+FAMILY_OF_PROTOCOL = {"single_frame_wss": "wall", "single_frame_wss_cycle_multi": "wall", "single_frame_volume": "volume"}
+# §19.2: the job record carries the cycle block verbatim (≈ 7 kB for M1) and the first findings.
+CYCLE_RECORD_LIMIT = 16 * 1024
+FINDINGS_TOP = 5
+QUEUE_STATUSES = ("queued", "running", "awaiting_input", "awaiting_confirmation")
+ETA_STATUSES = frozenset(QUEUE_STATUSES)
+# v0.14 (J1/J9): job.json v2 no longer embeds the stage-A display geometry (``a.preview`` and
+# ``a.proposal.preview_polylines``, ≈ 1.1 MB); ``stage_a.json`` in the job directory keeps it and
+# ``geometry()`` / ``stage_a()`` read it lazily.  Records without ``schema_version`` are v1 (or older shapes).
+JOB_SCHEMA_VERSION = "wss-deploy.job/v2"
+STAGE_A_FILE = "stage_a.json"
+# v0.14 (J2): mesh-only stage-B intermediates written by ``pipeline.precompute_geometry_cache`` (copied by rerun / reuse).
+GEOMETRY_CACHE_DIR = "geometry_cache"
+PRECOMPUTE_WAIT_S = 300.0          # stage B waits this long for a running precompute of its job, then cancels it
+# v0.14 (J6): ``service stop|restart|upgrade --drain`` writes DRAIN_FILE naming the service pid; that process then
+# starts no new work.  ``service upgrade`` queues post-start maintenance (analysis rebuilds + stale report refresh)
+# in MAINTENANCE_FILE; the new service runs it in the background and writes MAINTENANCE_RESULT.
+DRAIN_FILE = ".drain.json"
+MAINTENANCE_FILE = ".maintenance.json"
+MAINTENANCE_RESULT = "maintenance_result.json"
+GENERIC_FAILURE = "计算未完成，请重试；如仍失败，请向维护者提供诊断编号。"
+WORKER_COUNT = 2
+# Server temp files (spooled uploads, bundles) and streamed upload staging live in ``<jobs_root>/.tmp``; like every
+# dot-entry of the jobs root it is never a job.  ``<job>/.report_ui_stage_*`` are report_freshness staging dirs.
+TMP_DIR = ".tmp"
+UPLOAD_CHUNK_BYTES = 1024 * 1024
 
 
 class JobError(ValueError):
@@ -84,28 +114,173 @@ def run_identity(*, input_sha256: str | None, release: dict | None,
     return hashlib.sha256(_canonical(payload).encode("utf-8")).hexdigest()
 
 
-def atomic_json(path: Path, value: dict) -> None:
-    """Replace a complete JSON document; never expose a partially written job."""
+def atomic_json(path: Path, value: dict, *, compact: bool = False, durable: bool = True) -> None:
+    """Replace a complete JSON document; never expose a partially written job.
+
+    ``compact`` (job.json, v0.14) serialises with the C encoder and no indentation; ``durable=False`` keeps the
+    atomic rename but skips both fsyncs (progress-only updates: a crash can at worst lose the latest phase text).
+    """
     path = Path(path)
     tmp = path.with_name(f".{path.name}.{secrets.token_hex(8)}.tmp")
     try:
-        with tmp.open("x", encoding="utf-8") as stream:
-            os.chmod(tmp, 0o600)
-            json.dump(value, stream, ensure_ascii=False, indent=1, allow_nan=False)
+        # v0.15: created 0600 (O_EXCL) whatever the umask — no window in which another account could open it.
+        with os.fdopen(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w", encoding="utf-8") as stream:
+            os.fchmod(stream.fileno(), 0o600)
+            if compact:
+                stream.write(json.dumps(value, ensure_ascii=False, separators=(",", ":"), allow_nan=False))
+            else:
+                json.dump(value, stream, ensure_ascii=False, indent=1, allow_nan=False)
             stream.flush()
-            os.fsync(stream.fileno())
+            if durable:
+                os.fsync(stream.fileno())
         os.replace(tmp, path)
-        descriptor = os.open(path.parent, os.O_RDONLY)
-        try:
-            os.fsync(descriptor)
-        finally:
-            os.close(descriptor)
+        if durable:
+            descriptor = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
     finally:
         tmp.unlink(missing_ok=True)
 
 
+def slim_stage_a(stage_a):
+    """The stage-A snapshot as kept in job.json v2: everything except the display geometry.
+
+    ``preview`` (display mesh) and ``proposal.preview_polylines`` stay in ``stage_a.json`` only.  Returns a new
+    top-level dict (and a new ``proposal`` dict when one is trimmed); nested values are shared, not copied.
+    """
+    if not isinstance(stage_a, dict):
+        return stage_a
+    light = {key: value for key, value in stage_a.items() if key != "preview"}
+    proposal = stage_a.get("proposal")
+    if isinstance(proposal, dict) and "preview_polylines" in proposal:
+        light["proposal"] = {key: value for key, value in proposal.items() if key != "preview_polylines"}
+    return light
+
+
+def _schema_rank(version) -> int:
+    """``wss-deploy.job/vN`` → N; records written before the field existed are rank 0 (v1 or older shapes)."""
+    match = re.search(r"/v(\d+)$", str(version or ""))
+    return int(match.group(1)) if match else 0
+
+
+def _migrate_v1(job: dict, context: dict) -> None:
+    """Shapes written before job.json carried a schema version (pre-registry / pre-review / pre-metadata records)."""
+    job.setdefault("version", 1)
+    job.setdefault("params", {"units": "mm", "remove_fragments": False, "inlet": None})
+    job.setdefault("compute", {"device": "auto", "seed_count": None, "threads": None})
+    try:
+        job.setdefault("created_ts", context["path"].stat().st_mtime)
+    except OSError:
+        job.setdefault("created_ts", time.time())
+    job.setdefault("owner", context.get("legacy_owner"))
+    for key in CASE_METADATA:
+        job.setdefault(key, [] if key == "tags" else "")
+    if "stage_a" in job and "a" not in job:
+        job["a"] = job.pop("stage_a")
+
+
+def _migrate_v2(job: dict, context: dict) -> None:
+    """Drop the embedded display geometry when ``stage_a.json`` holds the identical value (J1).
+
+    A value that is missing from, or different in, ``stage_a.json`` stays embedded: nothing is ever lost, and
+    ``geometry()`` prefers an embedded value.  The file is read only when the record carries such a value.
+    """
+    a = job.get("a")
+    if not isinstance(a, dict):
+        return
+    proposal = a.get("proposal") if isinstance(a.get("proposal"), dict) else {}
+    if "preview" not in a and "preview_polylines" not in proposal:
+        return
+    stage_file = context["path"].parent / STAGE_A_FILE
+    try:
+        stored = json.loads(stage_file.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
+        stored = None
+    stored = stored if isinstance(stored, dict) else {}
+    stored_proposal = stored.get("proposal") if isinstance(stored.get("proposal"), dict) else {}
+    light = dict(a)
+    if "preview" in a and "preview" in stored and stored["preview"] == a["preview"]:
+        light.pop("preview")
+    if "preview_polylines" in proposal and "preview_polylines" in stored_proposal \
+            and stored_proposal["preview_polylines"] == proposal["preview_polylines"]:
+        light["proposal"] = {key: value for key, value in proposal.items() if key != "preview_polylines"}
+    job["a"] = light
+
+
+# J9: ordered schema migrations applied on load; each runs when the record is older than its version.
+MIGRATIONS = [("wss-deploy.job/v1", _migrate_v1), ("wss-deploy.job/v2", _migrate_v2)]
+
+
+def migrate_record(job: dict, *, path: Path, legacy_owner: str | None = None) -> list[str]:
+    """Bring one loaded record to ``JOB_SCHEMA_VERSION`` in memory; returns the versions applied.
+
+    The file is rewritten by the next save (lazy migration), so a read-only process changes nothing on disk.
+    """
+    context = {"path": Path(path), "legacy_owner": legacy_owner}
+    current = _schema_rank(job.get("schema_version"))
+    applied = []
+    for version, migrate in MIGRATIONS:
+        if _schema_rank(version) > current:
+            migrate(job, context)
+            applied.append(version)
+    if current < _schema_rank(JOB_SCHEMA_VERSION):
+        job["schema_version"] = JOB_SCHEMA_VERSION
+    return applied
+
+
+def _owner_label(owner) -> str | None:
+    """User names as-is; random session owners (32-character url-safe tokens) only as a short hash in logs."""
+    if not isinstance(owner, str) or not owner:
+        return None
+    if re.fullmatch(r"[A-Za-z0-9_.-]{1,20}", owner):
+        return owner
+    return "h:" + hashlib.sha256(owner.encode("utf-8")).hexdigest()[:12]
+
+
 def _date(timestamp: float) -> str:
-    return dt.datetime.fromtimestamp(timestamp).astimezone().isoformat(timespec="seconds")
+    # O1: the deployment zone (clock: WSS_DEPLOY_TZ → service.json env.TZ → system), not the process TZ.
+    return _clock.local(timestamp).isoformat(timespec="seconds")
+
+
+def findings_top(summary: dict | None, limit: int = FINDINGS_TOP) -> list[dict]:
+    """The headline findings of a result for the job record (§19.2), without the point index lists.
+
+    Same choice as the one-pager's first page (one per kind first, rejected items dropped), so the
+    workbench card, the one-pager and the report agree on what "重点发现" means."""
+    findings = summary.get("findings") if isinstance(summary, dict) else None
+    items = findings.get("items") if isinstance(findings, dict) else None
+    try:
+        from .onepager import top_findings
+        chosen = top_findings(summary, limit) if items else []
+    except Exception:  # never let a presentation helper break loading the job list
+        chosen = (items or [])[:limit]
+    return [{key: value for key, value in item.items() if key != "point_indices"} for item in chosen if isinstance(item, dict)]
+
+
+def cycle_record(cycle) -> dict | None:
+    """``summary.cycle`` for the job record: verbatim when small, otherwise without the per-branch tables."""
+    if not isinstance(cycle, dict) or not cycle:
+        return None
+    if len(json.dumps(cycle, ensure_ascii=False, allow_nan=False)) <= CYCLE_RECORD_LIMIT:
+        return copy.deepcopy(cycle)
+    compact = copy.deepcopy(cycle)
+    for block in list((compact.get("fields") or {}).values()) + [compact.get("stagnation")]:
+        if isinstance(block, dict):
+            block.pop("per_branch", None)
+    compact["compact"] = True
+    return compact
+
+
+def release_short(release: dict | None) -> str | None:
+    """Compact release name for lists: ``X5D_v51_5seed_20260916`` → ``X5D_v51``."""
+    rid = (release.get("id") or release.get("release")) if isinstance(release, dict) else None
+    if not rid:
+        return None
+    short = re.sub(r"_20\d{6}$", "", str(rid))
+    short = re.sub(r"_\d+seeds?(?=_|$)", "", short)
+    return short or str(rid)
 
 
 def fresh_review() -> dict:
@@ -120,9 +295,15 @@ def _validate_mapping(job_dir: Path, mapping: dict) -> list[str]:
 
 class JobManager:
     def __init__(self, root: Path, *, release=None, registry=None, stage_a_fn=None, stage_b_fn=None,
-                 mapping_validator=None, legacy_owner: str | None = None, clock=None):
+                 mapping_validator=None, legacy_owner: str | None = None, clock=None, offline: bool = False,
+                 precompute_fn=None):
+        """``offline`` (v0.14, J3): a maintenance process (``cli jobs claim``) that must not act as the service —
+        nothing is marked interrupted or re-queued, no trash / unfinished deletion is purged, and ``start()`` is
+        refused.  ``precompute_fn`` overrides ``pipeline.precompute_geometry_cache`` (J2); managers built with
+        injected stage functions (tests) precompute only when one is given."""
         self.root = Path(root).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
+        self.offline = bool(offline)
         self.release = release
         self.registry = registry
         self.stage_a_fn, self.stage_b_fn = stage_a_fn, stage_b_fn
@@ -143,22 +324,79 @@ class JobManager:
         self._subscribers: dict[str, list[queue.Queue]] = {}
         # Owner-level streams: every transition of the owner's jobs (completion notifications).
         self._owner_subscribers: dict[str, list[queue.Queue]] = {}
-        self._load(legacy_owner)
+        # §21.2 estimate caches: history samples (keyed by the finished-job set), per-job feature hash and face count.
+        self._eta_cache: dict = {}
+        self._eta_hashes: dict[str, str | None] = {}
+        self._eta_faces: dict[str, float] = {}
+        self._eta_default_device: str | None = None
+        self._eta_warm: set = set()
+        # J2 background geometry precompute: one at a time, FIFO, per-job cancel events.
+        self._precompute_fn = precompute_fn
+        self._precompute_enabled = (precompute_fn is not None or (stage_a_fn is None and stage_b_fn is None)) \
+            and os.environ.get("WSS_DEPLOY_PRECOMPUTE", "1").strip().lower() not in {"0", "false", "off", "no"}
+        self._pc_cond = threading.Condition()
+        self._pc_queue: list[str] = []
+        self._pc_state: dict[str, str] = {}
+        self._pc_cancel: dict[str, threading.Event] = {}
+        self._pc_thread: threading.Thread | None = None
+        # J6: the drain flag is a file (written by ``service … --drain``); cached for a second.
+        self._drain_cache = (0.0, False)
+        # J6: analysis rebuilds run inside the service after an upgrade; mutations of a job being rebuilt get a 409.
+        self._maintenance_busy: set[str] = set()
+        self._maintenance_thread: threading.Thread | None = None
         self._next_trash_scan = 0.0
-        self.purge_expired()
+        requeue: list[dict] = []
+        self._load(legacy_owner, requeue=requeue)
+        if not self.offline:
+            self._requeue_after_restart(requeue)
+            self.purge_expired()
+            self._clear_stale_drain()
 
-    def _save(self, job: dict) -> None:
-        atomic_json(self.root / job["id"] / "job.json", job)
+    def _save(self, job: dict, *, durable: bool = True) -> None:
+        # J1: compact v2 record; the embedded stage-A display geometry is gone (see slim_stage_a).
+        job.setdefault("schema_version", JOB_SCHEMA_VERSION)
+        atomic_json(self.root / job["id"] / "job.json", job, compact=True, durable=durable)
 
-    def _event(self, job: dict, action: str, *, version: bool = True, **data) -> None:
+    def _event(self, job: dict, action: str, *, version: bool = True, durable: bool | None = None,
+               actor: str | None = None, **data) -> None:
+        """Append an event, persist and publish it.
+
+        ``version`` marks a state change (bumps the optimistic-concurrency version).  ``durable`` defaults to it:
+        progress-only events (``version=False``) are written atomically without fsync (J1).  ``actor`` (the
+        caller's owner / user name, J8) goes to the audit log only, never into the record returned by the API.
+        """
         now = time.time()
         job["updated_at"] = _date(now)
         if version:
             job["version"] = job.get("version", 0) + 1
         job.setdefault("events", []).append({"at": _date(now), "action": action,
                                              "status": job["status"], "stage": job.get("stage"), **data})
-        self._save(job)
+        durable = version if durable is None else durable
+        self._save(job, durable=durable)
+        if durable:
+            self._audit(job, action, actor=actor)
         self._publish(job, action)
+
+    @classmethod
+    def _audit(cls, job: dict, action: str, *, actor: str | None = None, **extra) -> None:
+        """One structured ``wss_deploy.audit`` line per state change (J8): who, what, which release and device."""
+        try:
+            release = job.get("model_release") if isinstance(job.get("model_release"), dict) else {}
+            compute = job.get("compute") if isinstance(job.get("compute"), dict) else {}
+            summary = job.get("summary") if isinstance(job.get("summary"), dict) else {}
+            record = {"job": job.get("id"), "action": action, "status": job.get("status"), "stage": job.get("stage"),
+                      "version": job.get("version"), "owner": _owner_label(job.get("owner")),
+                      "release": release.get("id"), "device": summary.get("device") or compute.get("device")}
+            if actor is not None:
+                record["actor"] = _owner_label(actor)
+            if job.get("status") == "done" and action in {"finished", "restart_interrupted"} and summary.get("timing_s"):
+                record["timing_s"] = summary.get("timing_s")
+            if job.get("status") == "failed" and isinstance(job.get("error"), dict):
+                record["error"] = {key: job["error"].get(key) for key in ("category", "retryable", "diagnostic_id")}
+            record.update(extra)
+            AUDIT.info("job %s", json.dumps(record, ensure_ascii=False, separators=(",", ":"), default=str))
+        except Exception:  # noqa: BLE001 — logging must never break a state change
+            LOG.exception("Audit line for %s failed", job.get("id"))
 
     @classmethod
     def _live_event(cls, job: dict, action: str) -> dict:
@@ -183,6 +421,12 @@ class JobManager:
         if not listeners and not owner_listeners:
             return
         event = self._live_event(job, action)
+        if job.get("status") in ETA_STATUSES:
+            # §21.2: progress events carry the refreshed estimate so a page listening to the stream needs no poll.
+            try:
+                event["eta"] = self._eta(job, now=time.time())
+            except Exception:  # noqa: BLE001
+                LOG.exception("ETA for %s failed", job.get("id"))
         self._offer(listeners, event)
         self._offer(owner_listeners, event)
 
@@ -221,38 +465,50 @@ class JobManager:
             if listeners is not None and not listeners:
                 self._owner_subscribers.pop(owner, None)
 
-    def _load(self, legacy_owner: str | None) -> None:
+    def _load(self, legacy_owner: str | None, *, requeue: list | None = None) -> None:
         # A deletion renames the directory first and removes it afterwards; anything still
         # carrying the prefix belongs to a deletion the previous process did not finish.
-        for leftover in self.root.glob(DELETING_PREFIX + "*"):
-            if leftover.is_dir() and leftover.resolve().parent == self.root:
-                LOG.info("Purging unfinished deletion %s", leftover.name)
-                shutil.rmtree(leftover, ignore_errors=True)
+        if not self.offline:
+            for leftover in self.root.glob(DELETING_PREFIX + "*"):
+                if leftover.is_dir() and leftover.resolve().parent == self.root:
+                    LOG.info("Purging unfinished deletion %s", leftover.name)
+                    shutil.rmtree(leftover, ignore_errors=True)
         for path in sorted(self.root.glob("*/job.json")):
             try:
                 if path.parent.name.startswith(".") or path.resolve().parent.parent != self.root:
                     continue
-                job = self._restore_record(path, legacy_owner)
+                job = self._restore_record(path, legacy_owner, requeue=requeue)
                 self.jobs[job["id"]] = job
             except Exception:
                 LOG.exception("Cannot restore job record %s", path)
 
-    def _restore_record(self, path: Path, legacy_owner: str | None) -> dict:
-        """Load one persisted record, migrating old shapes; also used when restoring from the trash."""
+    def _requeue_after_restart(self, jobs: list[dict]) -> None:
+        """J7: jobs that were waiting in the queue when the previous process stopped go back into the queue
+        (in their original order) instead of being marked interrupted; a running attempt stays interrupted."""
+        for job in sorted(jobs, key=lambda item: (item.get("queued_ts") or 0, item["id"])):
+            job.setdefault("queued_ts", time.time())
+            job["cancel_requested"] = False
+            job.update(phase="等待计算", detail="服务已重启，任务按原顺序继续排队。")
+            self._event(job, "restart_requeued")
+            self.tasks.put((job["id"], job["version"], job.get("stage") or "A"))
+        if jobs:
+            LOG.info("Re-queued %d job(s) that were waiting when the service stopped", len(jobs))
+
+    def _restore_record(self, path: Path, legacy_owner: str | None, *, requeue: list | None = None) -> dict:
+        """Load one persisted record, migrating old shapes; also used when restoring from the trash.
+
+        ``requeue`` (service start only) collects ``queued`` jobs for :meth:`_requeue_after_restart`; without it a
+        queued job is marked interrupted like a running one (restoring a queued job from the trash never starts it).
+        """
         job = json.loads(path.read_text(encoding="utf-8"))
         if job.get("id") != path.parent.name:
             raise ValueError("job directory/id mismatch")
-        job.setdefault("version", 1)
-        job.setdefault("params", {"units": "mm", "remove_fragments": False, "inlet": None})
-        job.setdefault("compute", {"device": "auto", "seed_count": None, "threads": None})
-        job.setdefault("created_ts", path.stat().st_mtime)
-        job.setdefault("owner", legacy_owner)
-        for key in CASE_METADATA:
-            job.setdefault(key, [] if key == "tags" else "")
+        job.pop("stage_clock", None)   # §21.2: belongs to an attempt of a previous process
+        migrate_record(job, path=path, legacy_owner=legacy_owner)
         if not isinstance(job.get("review"), dict) or job["review"].get("status") not in REVIEW_STATUSES:
             job["review"] = fresh_review()
-        if "stage_a" in job and "a" not in job:
-            job["a"] = job.pop("stage_a")
+        if isinstance(job.get("precompute"), dict) and job["precompute"].get("status") in {"pending", "running"}:
+            job["precompute"] = dict(job["precompute"], status="interrupted")
         legacy_binding = self._recover_legacy_release(path.parent, job)
         if legacy_binding is not None:
             job["model_release"] = legacy_binding
@@ -262,7 +518,11 @@ class JobManager:
         job.setdefault("stage", "B" if old.endswith("_B") else "A")
         if old == "awaiting_outlets":
             job["status"] = "awaiting_confirmation"
-        if old in {"queued", "running", "queued_A", "queued_B", "running_A", "running_B"}:
+        if self.offline:
+            pass   # J3: a maintenance process leaves every status exactly as the service wrote it
+        elif old == "queued" and requeue is not None and job.get("stage") in {"A", "B"}:
+            requeue.append(job)
+        elif old in {"queued", "running", "queued_A", "queued_B", "running_A", "running_B"}:
             job["status"] = "interrupted"
             job["phase"] = "服务重启，任务已中断"
             job["detail"] = "请重试以恢复计算；已完成的输入和中心线可以复用。"
@@ -270,6 +530,7 @@ class JobManager:
             job.pop("started_ts", None)
             job["finished_ts"] = time.time()
             self._event(job, "restart_interrupted")
+        self._backfill_summary(path.parent, job)
         if legacy_binding is not None:
             # This is a state migration, so persist it before the
             # worker can accept a retry.  The historical hash is
@@ -282,6 +543,25 @@ class JobManager:
                 "stage": job.get("stage"), "release_id": legacy_binding.get("id")})
             self._save(job)
         return job
+
+    @classmethod
+    def _backfill_summary(cls, job_dir: Path, job: dict) -> None:
+        """§19.2: finished records written before v0.12 lack ``cycle`` / ``findings_top`` (and older ones the
+        morphology digest); copy them from ``summary.json`` in memory.  Values are copied, never recomputed."""
+        summary = job.get("summary")
+        if job.get("status") != "done" or not isinstance(summary, dict):
+            return
+        missing = [key for key in ("cycle", "findings_top", "morphology") if key not in summary]
+        if not missing:
+            return
+        full = cls._json_file(job_dir / "summary.json")
+        if "cycle" in missing:
+            summary["cycle"] = cycle_record(full.get("cycle"))
+        if "findings_top" in missing:
+            summary["findings_top"] = findings_top(full)
+        if "morphology" in missing and isinstance(full.get("morphology"), dict):
+            from .morphology import digest as morphology_digest
+            summary["morphology"] = morphology_digest(full.get("morphology"))
 
     @staticmethod
     def _json_file(path: Path) -> dict:
@@ -371,7 +651,13 @@ class JobManager:
             raise JobError("任务不存在或不属于当前会话。", 404)
         return job
 
+    def _require_idle(self, job: dict) -> None:
+        """J6: a job whose analysis is being rebuilt by the post-upgrade maintenance accepts no mutation."""
+        if job.get("id") in self._maintenance_busy:
+            raise JobError("该任务正在后台按新版分析重建（升级后自动执行），请稍后再操作。", 409)
+
     def _version(self, job: dict, payload: dict) -> None:
+        self._require_idle(job)
         if type(payload.get("version")) is not int or payload["version"] != job["version"]:
             raise JobError("任务状态已更新，请刷新后再操作。", 409)
         if "stage" in payload and payload["stage"] != job.get("stage"):
@@ -392,12 +678,13 @@ class JobManager:
         if job["status"] in {"awaiting_input", "awaiting_confirmation"}:
             confirmation += max(0, now - job.get("awaiting_ts", now))
         public = {key: val for key, val in job.items() if key not in {
-            "owner", "filename", "traceback", "started_ts", "created_ts", "queued_ts", "awaiting_ts"}}
+            "owner", "filename", "traceback", "started_ts", "created_ts", "queued_ts", "awaiting_ts", "stage_clock", "input_faces"}}
         if not detail:
             public = {key: public.get(key) for key in (
                 "id", "case_id", "status", "stage", "version", "created_at", "updated_at", "phase", "detail", "error",
                 "patient_id", "scan_label", "scan_date", "tags", "notes", "source_filename", "model_release",
                 "source_job_id", "reused_from", "batch_id", "run_identity", "compute", "review")}
+            public["finished_at"] = _date(job["finished_ts"]) if job.get("status") == "done" and isinstance(job.get("finished_ts"), (int, float)) else None
             public["family"] = self._family(job)
             public["input_sha256"] = self._input_sha256(job)
             public["reusable"] = self._reusable(job)
@@ -407,6 +694,7 @@ class JobManager:
             summary = job.get("summary") if isinstance(job.get("summary"), dict) else {}
             from .morphology import max_diameter_mm
             public["max_diameter_mm"] = max_diameter_mm(summary.get("morphology"))
+            public.update(self._labels(job))
         elif isinstance(public.get("a"), dict):
             # The stage-A snapshot carries a display mesh and centreline polylines (megabytes).
             # They are served once by ``geometry()``; the status snapshot stays small so polling
@@ -423,6 +711,8 @@ class JobManager:
             # Keep the old name during the UI transition; both point to the
             # same immutable stage-A snapshot in the response.
             public.setdefault("stage_a", light)
+        if detail:
+            public.update(self._labels(job))
         public["elapsed"] = round(compute, 1)
         public["timing"] = {"compute_s": round(compute, 1), "attempt_s": round(attempt, 1), "queue_s": round(queued, 1),
                             "confirmation_s": round(confirmation, 1),
@@ -431,10 +721,163 @@ class JobManager:
         public["timing"].update(queue_seconds=round(queued, 1),
                                 confirmation_seconds=round(confirmation, 1),
                                 compute_seconds=round(compute, 1))
+        precompute = job.get("precompute") if isinstance(job.get("precompute"), dict) else {}
+        if isinstance(precompute.get("seconds"), (int, float)):
+            # J2: background geometry work done while the outlets were being confirmed (not in compute_s).
+            public["timing"]["precompute_s"] = round(float(precompute["seconds"]), 1)
         waiting = sorted((j for j in self.jobs.values() if j["status"] == "queued"),
                          key=lambda j: j.get("queued_ts", 0))
         public["queue_position"] = next((i + 1 for i, j in enumerate(waiting) if j["id"] == job["id"]), None)
+        if job["status"] in ETA_STATUSES:
+            try:
+                public["eta"] = self._eta(job, now=now)
+            except Exception:  # noqa: BLE001 — an estimate must never break a status response
+                LOG.exception("ETA for %s failed", job.get("id"))
         return copy.deepcopy(public)
+
+    # ------------------------------------------------------------- §21.2 remaining-time estimate
+    def _job_faces(self, job: dict) -> float | None:
+        a = job.get("a") if isinstance(job.get("a"), dict) else {}
+        faces = (a.get("input_check") or {}).get("faces") if isinstance(a.get("input_check"), dict) else None
+        if isinstance(faces, (int, float)) and faces > 0:
+            return float(faces)
+        if isinstance(job.get("input_faces"), (int, float)) and job["input_faces"] > 0:
+            return float(job["input_faces"])
+        cached = self._eta_faces.get(job["id"])
+        if cached is None:
+            from .eta import faces_from_size
+            try:
+                cached = faces_from_size((self.root / job["id"] / (job.get("filename") or "input.stl")).stat().st_size) or 0
+            except OSError:
+                cached = 0
+            self._eta_faces[job["id"]] = cached
+        return float(cached) or None
+
+    def _feature_hash(self, job: dict) -> str | None:
+        """``summary.feature_contract.source_hash`` from the record, else (once) from summary.json's text."""
+        summary = job.get("summary") if isinstance(job.get("summary"), dict) else {}
+        contract = summary.get("feature_contract") if isinstance(summary.get("feature_contract"), dict) else {}
+        if contract.get("source_hash"):
+            return contract["source_hash"]
+        if job["id"] not in self._eta_hashes:
+            value = None
+            try:
+                text = (self.root / job["id"] / "summary.json").read_text(encoding="utf-8")
+                match = re.search(r'"feature_contract":\s*\{[^{}]*?"source_hash":\s*"([0-9a-f]{64})"', text)
+                value = match.group(1) if match else None
+            except (OSError, UnicodeError):
+                value = None
+            self._eta_hashes[job["id"]] = value
+        return self._eta_hashes[job["id"]]
+
+    def _eta_samples(self) -> list[dict]:
+        """History records of every finished job; rebuilt only when the set of finished jobs changes."""
+        from .eta import history_sample
+        done = [job for job in self.jobs.values() if job.get("status") == "done"]
+        signature = (len(done), round(sum(float(job.get("finished_ts") or 0) for job in done), 3))
+        if self._eta_cache.get("signature") == signature:
+            return self._eta_cache["samples"]
+        samples = []
+        for job in done:
+            summary = job.get("summary") if isinstance(job.get("summary"), dict) else {}
+            a = job.get("a") if isinstance(job.get("a"), dict) else {}
+            timing = {**(a.get("timing_s") or {}), **(summary.get("timing_s") or {})}
+            from .eta import cache_reused_stages
+            covered = self._precomputed_stages(job) | cache_reused_stages(summary.get("geometry_cache"))
+            if covered:
+                # J2: stage-B timings of reused (precomputed / copied) intermediates are ≈ 0 s; they must not drag
+                # the per-stage history of full runs towards zero, so those stages of this run are left out.
+                from .eta import TIMING_KEYS
+                timing = {key: value for key, value in timing.items() if TIMING_KEYS.get(key) not in covered}
+            sample = history_sample(family=self._family(job), faces=self._job_faces(job), timing=timing,
+                                    source_hash=self._feature_hash(job), release_id=(job.get("model_release") or {}).get("id"),
+                                    device=summary.get("device"), cold_start=bool(summary.get("eta_cold_start")))
+            if sample:
+                samples.append(sample)
+        self._eta_cache = {"signature": signature, "samples": samples}
+        return samples
+
+    def _eta_device(self, job: dict) -> str:
+        """Device the job's inference will use: the job's choice, else the service's, else whether a GPU is visible."""
+        device = (job.get("compute") or {}).get("device") if isinstance(job.get("compute"), dict) else None
+        if device in {"cpu", "cuda"}:
+            return device
+        device = getattr(self.registry, "device", None)
+        if device in {"cpu", "cuda"}:
+            return device
+        if self._eta_default_device is None:
+            import sys
+            visible = os.environ.get("CUDA_VISIBLE_DEVICES")
+            if visible is not None and visible.strip() in {"", "-1"}:
+                self._eta_default_device = "cpu"
+            elif "torch" in sys.modules:
+                try:
+                    self._eta_default_device = "cuda" if sys.modules["torch"].cuda.is_available() else "cpu"
+                except Exception:  # noqa: BLE001
+                    self._eta_default_device = "cuda"
+            else:
+                return "cuda"                                   # not cached: torch may be imported later
+        return self._eta_default_device
+
+    def _eta(self, job: dict, *, now: float, with_queue: bool = True) -> dict | None:
+        from .eta import build_eta, current_feature_hash, expected_table, queue_wait, stage_seconds
+        family = self._family(job) or "wall"
+        faces = self._job_faces(job)
+        release = job.get("model_release") if isinstance(job.get("model_release"), dict) else {}
+        compute = job.get("compute") if isinstance(job.get("compute"), dict) else {}
+        models = compute.get("seed_count") or release.get("models_count")
+        table, basis, n_history = expected_table(family, faces, self._eta_samples(), source_hash=current_feature_hash(),
+                                                 release_id=release.get("id"), device=self._eta_device(job),
+                                                 models_count=models if isinstance(models, int) else None)
+        a = job.get("a") if isinstance(job.get("a"), dict) else {}
+        segment = job.get("stage") if job.get("stage") in {"A", "B"} else "A"
+        if job["status"] in {"awaiting_input", "awaiting_confirmation"}:
+            segment = "A" if job["status"] == "awaiting_input" else "B"
+        queue_ahead = queue_ahead_s = None
+        clock = job.get("stage_clock") if isinstance(job.get("stage_clock"), dict) else {}
+        waiting = job["status"] == "running" and bool(clock.get("waiting"))
+        if with_queue and job["status"] == "queued":
+            mine = job.get("queued_ts", now)
+            ahead = [other for other in self.jobs.values() if other is not job and (
+                other["status"] == "running" or (other["status"] == "queued" and other.get("queued_ts", 0) < mine))]
+            blocks = [block for block in (self._eta(other, now=now, with_queue=False) for other in ahead) if block]
+            queue_ahead, queue_ahead_s = len(ahead), queue_wait(blocks)
+        elif with_queue and waiting:
+            # Taken by a worker but queued behind the stage-B job that holds the lock.
+            ahead = [other for other in self.jobs.values() if other is not job and other["status"] == "running"
+                     and other.get("stage") == "B" and not (other.get("stage_clock") or {}).get("waiting")]
+            blocks = [block for block in (self._eta(other, now=now, with_queue=False) for other in ahead) if block]
+            queue_ahead, queue_ahead_s = len(ahead), sum(float(b.get("segment_remaining_s") or 0.0) for b in blocks)
+        covered = self._precomputed_stages(job)
+        if covered:
+            from .eta import apply_precompute
+            table = apply_precompute(table, covered)
+        out = build_eta(family=family, status=job["status"], segment=segment, faces=faces, table=table, basis=basis,
+                        n_history=n_history, a_seconds=stage_seconds(a.get("timing_s")), clock=clock,
+                        now=now, queue_ahead=queue_ahead, queue_ahead_s=queue_ahead_s)
+        if out is not None and covered:
+            out["precomputed"] = sorted(covered)
+        if out is not None and waiting:
+            out["waiting"] = True
+        return out
+
+    def _precomputed_stages(self, job: dict) -> set:
+        """Stage keys whose work a finished background precompute already did for this job (J2)."""
+        precompute = job.get("precompute") if isinstance(job.get("precompute"), dict) else {}
+        if precompute.get("status") != "done":
+            return set()
+        from .eta import precompute_stages, stage_seconds, steps_to_stages
+        covered = set(stage_seconds(precompute.get("timing_s") if isinstance(precompute.get("timing_s"), dict) else {}))
+        covered |= steps_to_stages(precompute.get("steps"), self._family(job))
+        return covered or set(precompute_stages(self._family(job)))
+
+    @staticmethod
+    def _labels(job: dict) -> dict:
+        """Display labels the workbench shows as-is (§19.2): family text, short release name, cycle flag."""
+        from .timeline import family_label
+        summary = job.get("summary") if isinstance(job.get("summary"), dict) else {}
+        return {"family_label": family_label(job), "release_short": release_short(job.get("model_release")),
+                "has_cycle": bool(summary.get("cycle"))}
 
     def releases(self) -> list[dict]:
         if self.registry is None:
@@ -518,7 +961,7 @@ class JobManager:
             job["review"] = record
             if isinstance(job.get("summary"), dict):
                 job["summary"]["review"] = dict(record)
-            self._event(job, action, reviewer=reviewer, note=note[:200], review_status=status)
+            self._event(job, action, actor=owner, reviewer=reviewer, note=note[:200], review_status=status)
             self._persist_review(self.root / job_id, record, list(job.get("review_history", [])))
             return self._snapshot(job)
 
@@ -567,6 +1010,7 @@ class JobManager:
 
     def _sidecar_target(self, job_id: str, owner: str, payload: dict, action: str) -> dict:
         job = self._owned(job_id, owner)
+        self._require_idle(job)
         if job.get("status") != "done":
             raise JobError(f"任务完成后才能{action}。", 409)
         self._require_unlocked(job, action)
@@ -634,7 +1078,7 @@ class JobManager:
             job["annotations"] = document
             if isinstance(job.get("summary"), dict):
                 job["summary"]["annotations"] = document
-            self._event(job, "annotations_updated", count=len(items))
+            self._event(job, "annotations_updated", actor=owner, count=len(items))
             self._persist_sidecar(self.root / job_id, "annotations.json", document,
                                   lambda meta: meta.__setitem__("annotations", document))
             return {"annotations": document, "version": job["version"]}
@@ -693,7 +1137,7 @@ class JobManager:
                 meta["findings"] = findings
             if isinstance(job.get("summary"), dict):
                 apply(job["summary"])
-            self._event(job, "findings_review_updated", decided=sum(1 for v in items.values() if v["decision"]), added=len(added))
+            self._event(job, "findings_review_updated", actor=owner, decided=sum(1 for v in items.values() if v["decision"]), added=len(added))
             self._persist_sidecar(self.root / job_id, "findings_review.json", document, apply)
             return {"findings_review": document, "version": job["version"]}
 
@@ -736,7 +1180,7 @@ class JobManager:
                 meta["narrative"] = merge_edit(current, text, edited_by=owner, edited_at=stamp)
             if isinstance(job.get("summary"), dict):
                 apply(job["summary"])
-            self._event(job, "narrative_updated", edited=bool(block["edited"]))
+            self._event(job, "narrative_updated", actor=owner, edited=bool(block["edited"]))
             self._persist_sidecar(job_dir, "narrative.json", document, apply)
             return {"narrative": document, "version": job["version"]}
 
@@ -792,6 +1236,7 @@ class JobManager:
         incoming = [self._snapshot_image(item, seen) for item in raw]
         with self.lock:
             job = self._owned(job_id, owner)
+            self._require_idle(job)
             if job.get("status") != "done":
                 raise JobError("任务完成后才能生成一页纸配图。", 409)
             if "version" in payload and payload["version"] is not None:
@@ -815,7 +1260,7 @@ class JobManager:
                 if SNAPSHOT_FILE.fullmatch(stale.name) and stale.name not in live:
                     stale.unlink(missing_ok=True)
             job["snapshots"] = document
-            self._event(job, "snapshots_updated", count=len(items))
+            self._event(job, "snapshots_updated", actor=owner, count=len(items))
             return {"snapshots": document, "version": job["version"]}
 
     def update_metadata(self, job_id: str, owner: str, payload: dict) -> dict:
@@ -827,6 +1272,7 @@ class JobManager:
         """
         with self.lock:
             job = self._owned(job_id, owner)
+            self._require_idle(job)
             self._require_unlocked(job, "修改元数据")
             if "version" in payload and payload["version"] is not None:
                 self._version(job, payload)
@@ -849,7 +1295,7 @@ class JobManager:
             def apply(meta: dict) -> None:
                 meta["case_metadata"] = dict(metadata)
                 meta["case_id"] = case_id
-            self._event(job, "metadata_updated", changed=changed)
+            self._event(job, "metadata_updated", actor=owner, changed=changed)
             self._persist_summary(self.root / job_id, apply, what="case_metadata")
             return self._snapshot(job)
 
@@ -867,7 +1313,8 @@ class JobManager:
         return {"id": str(rid), "release": str(rid), **({"fingerprint": fp} if fp else {}),
                 "contract": getattr(obj, "registry_contract", {"protocol": "single_frame_wss"})}
 
-    def _release_for(self, job: dict, *, load: bool = True):
+    def _release_for(self, job: dict, *, load: bool = True, device: str | None = None):
+        """The bound release (verified fingerprint); ``device`` overrides the job's choice (CPU fallback, J7)."""
         if self.registry is not None:
             try:
                 release_id = (job.get("model_release") or {}).get("id")
@@ -879,7 +1326,7 @@ class JobManager:
                 if load:
                     compute = job.get("compute") or {}
                     return self.registry.load(release_id,
-                                              device=compute.get("device"),
+                                              device=device or compute.get("device"),
                                               seed_count=compute.get("seed_count"))
                 return descriptor
             except JobError:
@@ -892,11 +1339,45 @@ class JobManager:
         with self.lock:
             return self._snapshot(self._owned(job_id, owner, any_owner=any_owner))
 
+    def _stage_a_file(self, job_id: str, created_at) -> dict:
+        """``stage_a.json`` of a job when it belongs to the same stage-A run as the record (``created_at``)."""
+        try:
+            stored = json.loads((self.root / job_id / STAGE_A_FILE).read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, ValueError):
+            return {}
+        if not isinstance(stored, dict) or (created_at is not None and stored.get("created_at") != created_at):
+            return {}
+        return stored
+
+    @staticmethod
+    def _with_display_geometry(a: dict, stored: dict) -> dict:
+        """``a`` plus the display geometry from ``stored`` where the record does not embed it (v2 records)."""
+        full = dict(a)
+        if "preview" not in full and "preview" in stored:
+            full["preview"] = stored["preview"]
+        proposal = full.get("proposal") if isinstance(full.get("proposal"), dict) else None
+        stored_proposal = stored.get("proposal") if isinstance(stored.get("proposal"), dict) else {}
+        if proposal is not None and "preview_polylines" not in proposal and "preview_polylines" in stored_proposal:
+            full["proposal"] = {**proposal, "preview_polylines": stored_proposal["preview_polylines"]}
+        return full
+
+    def stage_a(self, job_id: str) -> dict | None:
+        """The complete stage-A snapshot of a job (record + display geometry from ``stage_a.json``), a copy.
+
+        v0.14 accessor for readers of the former ``job["a"]["preview"]``; None when the job has no stage A."""
+        with self.lock:
+            job = self.jobs.get(job_id)
+            a = copy.deepcopy(job.get("a")) if job and isinstance(job.get("a"), dict) else None
+        if a is None:
+            return None
+        return self._with_display_geometry(a, self._stage_a_file(job_id, a.get("created_at")))
+
     def geometry(self, job_id: str, owner: str, *, any_owner: bool = False) -> dict:
         """Display geometry of the stage-A snapshot (preview mesh, centreline polylines, endpoints).
 
         The worker replaces ``job["a"]`` wholesale when stage A re-runs, so the nested lists
-        captured here are immutable and can be serialised outside the manager lock.
+        captured here are immutable and can be serialised outside the manager lock.  v2 records do
+        not embed the preview; it is read from ``stage_a.json`` of the same stage-A run (J1).
         """
         with self.lock:
             job = self._owned(job_id, owner, any_owner=any_owner)
@@ -905,6 +1386,12 @@ class JobManager:
             proposal = a.get("proposal") if isinstance(a.get("proposal"), dict) else {}
             preview, polylines, endpoints = a.get("preview"), proposal.get("preview_polylines"), proposal.get("endpoints")
             created_at = a.get("created_at")
+            has_a = bool(a)
+        if has_a and (preview is None or polylines is None):
+            stored = self._stage_a_file(job_id, created_at)
+            stored_proposal = stored.get("proposal") if isinstance(stored.get("proposal"), dict) else {}
+            preview = preview if preview is not None else stored.get("preview")
+            polylines = polylines if polylines is not None else stored_proposal.get("preview_polylines")
         return {"job_id": job_id, "version": version, "stage_a_created_at": created_at,
                 "preview": preview, "preview_polylines": polylines or [], "endpoints": endpoints or [],
                 "available": preview is not None or bool(polylines)}
@@ -1000,9 +1487,49 @@ class JobManager:
         with self.lock:
             return sum(1 for job in self.jobs.values() if job.get("owner") == owner)
 
-    def claim_owner(self, old_owner: str, new_owner: str) -> dict:
-        """Re-home every job of a session-scoped owner under a named user (C3 migration)."""
-        if not isinstance(old_owner, str) or not old_owner or not isinstance(new_owner, str) or not new_owner:
+    def queue_counts(self, owner: str | None = None) -> dict:
+        """Jobs per active status: the whole service, or one owner's."""
+        with self.lock:
+            counts = {status: 0 for status in QUEUE_STATUSES}
+            for job in self.jobs.values():
+                if (owner is None or job.get("owner") == owner) and job.get("status") in counts:
+                    counts[job["status"]] += 1
+            return counts
+
+    def worker_alive(self) -> bool:
+        return any(worker.is_alive() for worker in (self._workers or ([self.thread] if self.thread else [])))
+
+    def owner_of(self, job_id: str) -> str | None:
+        with self.lock:
+            job = self.jobs.get(job_id)
+            return job.get("owner") if job else None
+
+    def done_job_dirs(self) -> list[Path]:
+        with self.lock:
+            return [self.root / job_id for job_id, job in self.jobs.items() if job.get("status") == "done"]
+
+    def patient_timeline(self, patient_id, owner: str, *, all_owners: bool = False) -> dict:
+        """Follow-up timeline of one patient (contract §19.3); owner-scoped unless the admin asks for all."""
+        from .timeline import build_timeline, clean_patient_id
+        try:
+            patient = clean_patient_id(patient_id)
+        except ValueError as exc:
+            raise JobError(str(exc))
+        keys = ("id", "status", "patient_id", "scan_date", "scan_label", "case_id", "created_at", "input_sha256",
+                "model_release", "review")
+        with self.lock:
+            records = [{**{key: copy.deepcopy(job.get(key)) for key in keys},
+                        "a": {"input_sha256": (job.get("a") or {}).get("input_sha256") if isinstance(job.get("a"), dict) else None}}
+                       for job in self.jobs.values()
+                       if (all_owners or job.get("owner") == owner) and job.get("status") == "done"
+                       and str(job.get("patient_id") or "").strip() == patient]
+        return build_timeline(patient, records, lambda job: self._json_file(self.root / job["id"] / "summary.json"))
+
+    def claim_owner(self, old_owner: str | None, new_owner: str) -> dict:
+        """Re-home every job of a session-scoped owner under a named user (C3 migration).
+
+        ``old_owner=None`` moves the jobs that have no owner at all (created by ``cli run`` outside the service)."""
+        if (old_owner is not None and (not isinstance(old_owner, str) or not old_owner)) or not isinstance(new_owner, str) or not new_owner:
             raise JobError("owner 与目标用户名不能为空。")
         if old_owner == new_owner:
             return {"claimed": 0, "job_ids": []}
@@ -1011,7 +1538,7 @@ class JobManager:
             for job in self.jobs.values():
                 if job.get("owner") == old_owner:
                     job["owner"] = new_owner
-                    self._event(job, "owner_claimed", previous_owner=old_owner[:12], claimed_by=new_owner)
+                    self._event(job, "owner_claimed", actor=new_owner, previous_owner=(old_owner or "")[:12], claimed_by=new_owner)
                     moved.append(job["id"])
         return {"claimed": len(moved), "job_ids": moved}
 
@@ -1025,8 +1552,13 @@ class JobManager:
                      "created_at": job.get("created_at"), "review": (job.get("review") or {}).get("status", "unreviewed"),
                      "mapping_confirmed": bool(job.get("mapping")), "reusable": self._reusable(job)} for job in rows]
 
-    def _enqueue(self, job: dict, stage: str, action: str, *, defer: bool = False) -> None:
+    def _enqueue(self, job: dict, stage: str, action: str, *, defer: bool = False, actor: str | None = None) -> None:
         now = time.time()
+        if stage == "A":
+            # Stage A rewrites the clean STL and stage_a.json: a background precompute of the old geometry must stop
+            # (and no longer shortens the estimate).
+            self._cancel_precompute(job["id"])
+            job.pop("precompute", None)
         if job["status"] in {"awaiting_input", "awaiting_confirmation"}:
             job["confirmation_seconds"] = job.get("confirmation_seconds", 0) + max(0, now - job.get("awaiting_ts", now))
         job.update(status="queued", stage=stage, queued_ts=now, cancel_requested=False,
@@ -1034,7 +1566,7 @@ class JobManager:
                    # ``compute_seconds`` accumulates across retries; ``attempt_seconds`` is this attempt only.
                    attempt_seconds=0.0)
         job.pop("finished_ts", None)
-        self._event(job, action)
+        self._event(job, action, actor=actor)
         if not defer:
             self.tasks.put((job["id"], job["version"], stage))
 
@@ -1116,6 +1648,45 @@ class JobManager:
             raise JobError("请上传非空 STL 文件。")
         return re.split(r"[/\\]", filename)[-1][:180]
 
+    def _stage_upload(self, *, content_path=None, content_file=None) -> tuple[Path, str, int | None]:
+        """Copy a streamed upload into ``<jobs_root>/.tmp`` in 1 MiB chunks, hashing (sha256) and counting faces on
+        the way; returns ``(staged file, sha256, faces)``.  Never holds the whole STL in memory.
+
+        ``content_file`` is a binary file-like object (e.g. the server's spooled temporary file); it is rewound
+        first whenever it has ``seek`` (Python 3.10's SpooledTemporaryFile has no ``seekable()``).  The staged file is removed on any error, and an empty upload is refused like
+        ``content=b""``."""
+        from .eta import StlFaceCounter
+        tmp_dir = self.root / TMP_DIR
+        tmp_dir.mkdir(mode=0o700, exist_ok=True)
+        staged = tmp_dir / f"upload_{secrets.token_hex(8)}.stl"
+        digest, counter = hashlib.sha256(), StlFaceCounter()
+        stream = open(content_path, "rb") if content_path is not None else content_file
+        try:
+            if content_path is None and callable(getattr(stream, "seek", None)):
+                seekable = getattr(stream, "seekable", None)
+                if not callable(seekable) or seekable():
+                    stream.seek(0)
+            with open(staged, "xb") as out:
+                while True:
+                    chunk = stream.read(UPLOAD_CHUNK_BYTES)
+                    if not chunk:
+                        break
+                    if not isinstance(chunk, (bytes, bytearray, memoryview)):
+                        raise JobError("STL 文件必须以二进制方式读取。")
+                    chunk = bytes(chunk)
+                    digest.update(chunk)
+                    counter.update(chunk)
+                    out.write(chunk)
+            if counter.size == 0:
+                raise JobError("请上传非空 STL 文件。")
+            return staged, digest.hexdigest(), counter.result()
+        except BaseException:
+            staged.unlink(missing_ok=True)
+            raise
+        finally:
+            if content_path is not None:
+                stream.close()
+
     def _duplicate_error(self, existing: list[dict], sha: str, *, reuse_unavailable: bool = False) -> JobError:
         reusable = next((row["job_id"] for row in existing if row["reusable"]), None)
         payload = {"duplicate": True, "input_sha256": sha, "existing": existing, "reusable": reusable}
@@ -1124,16 +1695,26 @@ class JobManager:
             return JobError("同一几何的已有任务没有可复用的中心线与出口确认，请选择强制重算。", 409, payload)
         return JobError("同一几何已有任务。", 409, payload)
 
-    def create(self, owner: str, *, content: bytes, filename: str, case_id: str = "", release_id: str | None = None,
+    def create(self, owner: str, *, content: bytes | None = None, filename: str, case_id: str = "", release_id: str | None = None,
                patient_id: str = "", scan_label: str = "", scan_date: str = "", tags: list[str] | None = None,
-               notes: str = "", on_duplicate: str = "force", _batch_id: str | None = None, **params) -> dict:
+               notes: str = "", on_duplicate: str = "force", _batch_id: str | None = None,
+               content_path: str | os.PathLike | None = None, content_file=None, **params) -> dict:
         """Create a task; ``on_duplicate`` (contract §11.2) decides what happens when the same STL bytes were seen.
 
         ``force`` (the pre-C2 behaviour, also the default for direct callers) always creates; ``ask`` raises a
         409 carrying the existing runs; ``reuse`` clones centreline + confirmed outlets from the newest reusable
         run and only queues stage B.
+
+        The STL comes as exactly one of ``content`` (bytes, unchanged behaviour), ``content_path`` (a file) or
+        ``content_file`` (a binary file-like object, rewound first when it has ``seek``).  The last two are streamed in 1 MiB
+        chunks through ``<jobs_root>/.tmp`` (sha256 while copying, then renamed into the job) — v0.14, so the
+        server need not read a 128 MiB upload into memory.  All three run the same checks.
         """
-        safe_name = self._upload_checks(content, filename)
+        sources = sum(value is not None for value in (content, content_path, content_file))
+        if sources != 1:
+            raise JobError("请上传非空 STL 文件。" if sources == 0 else "STL 内容只能提供一种来源。")
+        streamed = content is None
+        safe_name = self._upload_checks(b"-" if streamed else content, filename)
         if on_duplicate not in {"ask", "reuse", "force"}:
             raise JobError("on_duplicate 只能是 ask、reuse 或 force。")
         case_id = self._text(case_id, "病例编号", 160)
@@ -1145,57 +1726,75 @@ class JobManager:
         available_models = model_release.get("models_count")
         if compute["seed_count"] is not None and isinstance(available_models, int) and compute["seed_count"] > available_models:
             raise JobError(f"集成模型数不能超过当前发布包的 {available_models} 个模型。")
-        sha = input_digest(content)
-        if on_duplicate != "force":
-            existing = self.find_by_input(owner, sha)
-            if on_duplicate == "ask" and existing:
-                raise self._duplicate_error(existing, sha)
-            if on_duplicate == "reuse":
-                source_id = next((row["job_id"] for row in existing if row["reusable"]), None)
-                if not source_id:
-                    raise self._duplicate_error(existing, sha, reuse_unavailable=True)
-                return self._clone_for_stage_b(source_id, owner, model_release=model_release, compute=compute,
-                                               case_id=case_id.strip() or Path(safe_name).stem, metadata=metadata,
-                                               source_filename=safe_name, batch_id=_batch_id, reused=True)
-        job_id = dt.datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(6)
-        job_dir = self.root / job_id
-        job_dir.mkdir(mode=0o700)
-        (job_dir / "input.stl").write_bytes(content)
+        staged = faces = None
+        if streamed:
+            staged, sha, faces = self._stage_upload(content_path=content_path, content_file=content_file)
+        else:
+            sha = input_digest(content)
+        try:
+            if on_duplicate != "force":
+                existing = self.find_by_input(owner, sha)
+                if on_duplicate == "ask" and existing:
+                    raise self._duplicate_error(existing, sha)
+                if on_duplicate == "reuse":
+                    source_id = next((row["job_id"] for row in existing if row["reusable"]), None)
+                    if not source_id:
+                        raise self._duplicate_error(existing, sha, reuse_unavailable=True)
+                    return self._clone_for_stage_b(source_id, owner, model_release=model_release, compute=compute,
+                                                   case_id=case_id.strip() or Path(safe_name).stem, metadata=metadata,
+                                                   source_filename=safe_name, batch_id=_batch_id, reused=True, actor=owner)
+            job_id = _clock.strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(6)
+            job_dir = self.root / job_id
+            job_dir.mkdir(mode=0o700)
+            if streamed:
+                os.replace(staged, job_dir / "input.stl")
+                staged = None
+            else:
+                (job_dir / "input.stl").write_bytes(content)
+        finally:
+            if staged is not None:
+                staged.unlink(missing_ok=True)
         now = time.time()
         job = {"id": job_id, "owner": owner, "case_id": case_id.strip() or Path(safe_name).stem,
                "source_filename": safe_name, "filename": "input.stl", "input_sha256": sha, "status": "new", "stage": "A",
-               "created_at": _date(now), "created_ts": now, "version": 0,
+               "created_at": _date(now), "created_ts": now, "version": 0, "schema_version": JOB_SCHEMA_VERSION,
                "params": {**inputs, "inlet": None}, "compute": compute, "events": [], "review": fresh_review(), **metadata}
+        if not streamed:
+            from .eta import stl_faces
+            faces = stl_faces(content)
+        if faces:
+            job["input_faces"] = faces   # §21.2: sizes the estimate before stage A has read the mesh
         if _batch_id is not None:
             job["batch_id"] = _batch_id
         job["model_release"] = model_release
         with self.lock:
             self.jobs[job_id] = job
-            self._enqueue(job, "A", "created")
+            self._enqueue(job, "A", "created", actor=owner)
             return self._snapshot(job)
 
     def create_batch(self, owner: str, items: list[dict], **defaults) -> dict:
         """Create up to 20 independent tasks, preserving each item's outcome.
 
-        Each item supplies content/filename and may override the common create
-        parameters. Invalid items do not prevent later items from being saved.
+        Each item supplies filename plus one of content / content_path / content_file (see :meth:`create`)
+        and may override the common create parameters. Invalid items do not prevent later items from being saved.
         Duplicates under ``on_duplicate="ask"`` are reported per item, not created.
         No patient metadata is written to the service log.
         """
         if not isinstance(items, list) or not 1 <= len(items) <= MAX_BATCH_ITEMS:
             raise JobError(f"每批必须包含 1 到 {MAX_BATCH_ITEMS} 个 STL 文件。")
-        allowed = {"content", "filename", "case_id", "release_id", "units", "remove_fragments",
+        allowed = {"content", "content_path", "content_file", "filename", "case_id", "release_id", "units", "remove_fragments",
                    "device", "seed_count", "threads", "on_duplicate", *CASE_METADATA}
         if set(defaults) - allowed:
             raise JobError("批量上传包含不支持的公共参数。")
-        batch_id = "batch_" + dt.datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(6)
+        batch_id = "batch_" + _clock.strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(6)
         results, jobs, duplicates = [], [], 0
         for index, item in enumerate(items):
             try:
                 if not isinstance(item, dict) or set(item) - allowed:
                     raise JobError("批量条目必须是有效的 STL 上传对象。")
                 options = {**defaults, **item}
-                if "content" not in options or "filename" not in options:
+                if not any(options.get(key) is not None for key in ("content", "content_path", "content_file")) \
+                        or "filename" not in options:
                     raise JobError("批量条目缺少 STL 文件内容或文件名。")
                 job = self.create(owner, **options, _batch_id=batch_id)
                 jobs.append(job)
@@ -1233,7 +1832,7 @@ class JobManager:
                 raise JobError("请先确认尺寸、单位和表面修复选项。")
             job["params"].update(self._params(payload))
             job.pop("mapping", None)
-            self._enqueue(job, "A", "input_confirmed")
+            self._enqueue(job, "A", "input_confirmed", actor=owner)
             return self._snapshot(job)
 
     @staticmethod
@@ -1316,7 +1915,7 @@ class JobManager:
             if inlet != job["params"].get("inlet"):
                 job["params"]["inlet"] = inlet
                 job.pop("mapping", None)
-                self._enqueue(job, "A", "inlet_changed")
+                self._enqueue(job, "A", "inlet_changed", actor=owner)
                 return self._snapshot(job)
             mapping = self._mapping_payload(payload)
             errors = self.mapping_validator(self.root / job_id, mapping)
@@ -1332,7 +1931,7 @@ class JobManager:
                 "confidence_gate": (job["a"].get("proposal") or {}).get("confidence_gate", {})})
             if override_done:
                 job.pop("summary", None)
-            self._enqueue(job, "B", "outlets_confirmed")
+            self._enqueue(job, "B", "outlets_confirmed", actor=owner)
             return self._snapshot(job)
 
     @staticmethod
@@ -1395,6 +1994,8 @@ class JobManager:
             staging = self.root / f"{DELETING_PREFIX}{job_id}_{secrets.token_hex(4)}"
             os.rename(job_dir, staging)
         self.jobs.pop(job_id, None)
+        self._cancel_precompute(job_id)
+        self._audit(job, "deleted", actor=deleted_by or None)
         listeners = self._subscribers.pop(job_id, [])
         farewell = {"job_id": job_id, "version": job.get("version"), "status": "deleted", "stage": job.get("stage"),
                     "phase": "任务已删除", "detail": "", "action": "deleted", "at": _date(time.time()), "final": True,
@@ -1487,7 +2088,7 @@ class JobManager:
             if job.get("owner") is None:
                 job["owner"] = (info.get("job_snapshot") or {}).get("owner")
             self.jobs[job_id] = job
-            self._event(job, "restored", deleted_at=info.get("deleted_at"))
+            self._event(job, "restored", actor=owner, deleted_at=info.get("deleted_at"))
             return self._snapshot(job)
 
     def purge(self, job_id: str, owner: str, *, any_owner: bool = False, reason: str = "manual") -> dict:
@@ -1511,8 +2112,11 @@ class JobManager:
             LOG.error("Job directory %s could not be fully removed; it will be purged at the next start", staging)
         record.update(deleted_at=info.get("deleted_at"), purged_at=_date(self.clock()), purge_reason=reason,
                       deleted_by=info.get("deleted_by", ""))
+        self._audit({"id": record.get("id"), "status": "purged", "owner": (info.get("job_snapshot") or {}).get("owner"),
+                     "model_release": (info.get("job_snapshot") or {}).get("model_release")}, "purged", reason=reason)
         try:
-            with (self.root / DELETED_LOG).open("a", encoding="utf-8") as stream:
+            # v0.15: the provenance log names cases; created 0600 whatever the umask.
+            with os.fdopen(os.open(self.root / DELETED_LOG, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600), "a", encoding="utf-8") as stream:
                 stream.write(json.dumps(record, ensure_ascii=False, allow_nan=False) + "\n")
         except (OSError, ValueError):
             LOG.exception("Cannot append to %s", DELETED_LOG)
@@ -1556,9 +2160,10 @@ class JobManager:
                 if job["status"] in {"awaiting_input", "awaiting_confirmation"}:
                     job["confirmation_seconds"] = job.get("confirmation_seconds", 0) + max(0, now - job.get("awaiting_ts", now))
                 job.update(status="cancelled", phase="已取消", detail="可以重试以恢复任务。", finished_ts=now)
+            self._cancel_precompute(job_id)
             # ``attempt_aborted`` belongs to the worker: it is written when a *running* attempt is
             # actually torn down, so a job cancelled while queued keeps the historical event stream.
-            self._event(job, "cancel_requested")
+            self._event(job, "cancel_requested", actor=owner)
             return self._snapshot(job)
 
     def retry(self, job_id: str, owner: str, payload: dict) -> dict:
@@ -1569,7 +2174,7 @@ class JobManager:
             if job["status"] not in {"failed", "cancelled", "interrupted"}:
                 raise JobError("仅失败、取消或中断的任务可以重试。", 409)
             stage = "B" if job.get("stage") == "B" and job.get("mapping") and self._gate(job.get("a")) else "A"
-            self._enqueue(job, stage, "retried")
+            self._enqueue(job, stage, "retried", actor=owner)
             return self._snapshot(job)
 
     @staticmethod
@@ -1606,11 +2211,11 @@ class JobManager:
             if source.get("status") != "done" or not source.get("mapping") or not source.get("a"):
                 raise JobError("只有已完成且确认出口的任务才能换模型重跑。", 409)
             model_release = self._release_record(payload.get("release_id"))
-            return self._clone_for_stage_b(job_id, owner, model_release=model_release)
+            return self._clone_for_stage_b(job_id, owner, model_release=model_release, actor=owner)
 
     def _clone_for_stage_b(self, job_id: str, owner: str, *, model_release: dict, compute: dict | None = None,
                            case_id: str | None = None, metadata: dict | None = None, source_filename: str | None = None,
-                           batch_id: str | None = None, reused: bool = False) -> dict:
+                           batch_id: str | None = None, reused: bool = False, actor: str | None = None) -> dict:
         """Copy input + stage A + confirmed mapping of ``job_id`` into a new task that only runs stage B.
 
         Shared by ``rerun`` (same case, another release) and the C2 reuse path (a fresh upload of the same
@@ -1620,7 +2225,7 @@ class JobManager:
             source = self._owned(job_id, owner)
             if not self._reusable(source):
                 raise JobError("源任务的中心线或出口确认不可复用。", 409)
-            new_id = dt.datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(6)
+            new_id = _clock.strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(6)
             new_dir = self.root / new_id
             new_dir.mkdir(mode=0o700)
             old_dir = self.root / source["id"]
@@ -1639,16 +2244,24 @@ class JobManager:
                     (new_dir / src.name).write_bytes(src.read_bytes())
             if (old_dir / "centerline").is_dir():
                 shutil.copytree(old_dir / "centerline", new_dir / "centerline")
-            stage_a = self._relativize_stage_a(copy.deepcopy(source["a"]), old_dir)
+            cache_dir = self._geometry_cache_dir()
+            if (old_dir / cache_dir).is_dir() and self._pc_state.get(source["id"]) != "running":
+                # J2: the mesh-only stage-B intermediates are keyed by the clean-STL hash + parameters, so the new
+                # run reuses them when nothing changed and recomputes otherwise.
+                shutil.copytree(old_dir / cache_dir, new_dir / cache_dir)
+            # J1: the record no longer embeds the display geometry; take it from the source's stage_a.json.
+            full_a = self._with_display_geometry(copy.deepcopy(source["a"]),
+                                                 self._stage_a_file(source["id"], source["a"].get("created_at")))
+            stage_a = self._relativize_stage_a(full_a, old_dir)
             atomic_json(new_dir / "stage_a.json", stage_a)
             now = time.time()
             new_job = {"id": new_id, "owner": owner, "case_id": case_id or source.get("case_id", new_id),
                        "source_filename": source_filename or source.get("source_filename", "input.stl"), "filename": "input.stl",
                        "input_sha256": self._input_sha256(source),
                        "status": "new", "stage": "B", "created_at": _date(now), "created_ts": now,
-                       "version": 0, "params": copy.deepcopy(source.get("params", {})),
+                       "version": 0, "schema_version": JOB_SCHEMA_VERSION, "params": copy.deepcopy(source.get("params", {})),
                        "compute": copy.deepcopy(compute or source.get("compute", {"device": "auto", "seed_count": None, "threads": None})),
-                       "events": [], "a": stage_a, "mapping": copy.deepcopy(source["mapping"]),
+                       "events": [], "a": slim_stage_a(stage_a), "mapping": copy.deepcopy(source["mapping"]),
                        "mapping_history": copy.deepcopy(source.get("mapping_history", [])),
                        "model_release": model_release, "source_job_id": source["id"], "review": fresh_review()}
             if reused:
@@ -1679,15 +2292,17 @@ class JobManager:
                 proposal["confirmation_required"] = not bool(gate.get("passed"))
                 needs_review = not bool(gate.get("passed"))
                 atomic_json(new_dir / "stage_a.json", stage_a)
+                new_job["a"] = slim_stage_a(stage_a)
             if needs_review:
                 new_job["status"] = "awaiting_confirmation"
                 new_job["stage"] = "A"
                 new_job["awaiting_ts"] = now
                 new_job["phase"] = "请确认出口"
                 new_job["detail"] = "更换发布包后自动命名未满足当前发布包门控，请重新确认出口。"
-                self._event(new_job, "rerun_created", source_job_id=source["id"])
+                self._event(new_job, "rerun_created", actor=actor, source_job_id=source["id"])
+                self._schedule_precompute(new_job)
             else:
-                self._enqueue(new_job, "B", "rerun_created", defer=False)
+                self._enqueue(new_job, "B", "rerun_created", defer=False, actor=actor)
             return self._snapshot(new_job)
 
     def _cancelled(self, job: dict) -> bool:
@@ -1699,7 +2314,255 @@ class JobManager:
             if self._cancelled(job):
                 raise InterruptedError("任务已取消。")
             job.update(phase=phase, detail=detail)
+            self._tick_stage(job, phase, detail)
             self._event(job, "progress", version=False, phase=phase, detail=detail)
+
+    def _tick_stage(self, job: dict, phase: str, detail: str) -> None:
+        """§21.2 stage clock: close the previous stage, start the one this progress call belongs to."""
+        clock = job.get("stage_clock")
+        if not isinstance(clock, dict):
+            return
+        from .eta import phase_stage
+        key = phase_stage(self._family(job), phase, detail)
+        if key is None or key == clock.get("current"):
+            return
+        now = time.time()
+        previous = clock.get("current")
+        if previous and isinstance(clock.get("current_started_ts"), (int, float)):
+            clock.setdefault("done", {})[previous] = round(clock["done"].get(previous, 0.0) + max(0.0, now - clock["current_started_ts"]), 3)
+        clock.update(current=key, current_started_ts=now)
+
+    # ------------------------------------------------------------- v0.14 worker helpers (J2 / J6 / J7)
+    @staticmethod
+    def _error_record(error: BaseException, diagnostic_id: str) -> dict:
+        """``job["error"]`` of a failed attempt (J7): typed errors keep category / retryable / admin detail;
+        a plain ``ValueError`` shows its text and is not retryable; anything else is the generic retryable failure."""
+        typed = classify(error)
+        if typed is not None:
+            return typed.to_record(diagnostic_id=diagnostic_id)
+        if isinstance(error, ValueError):
+            return {"message": str(error)[:800], "diagnostic_id": diagnostic_id, "category": "internal", "retryable": False}
+        return {"message": GENERIC_FAILURE, "diagnostic_id": diagnostic_id, "category": "internal", "retryable": True,
+                "admin_detail": f"{type(error).__name__}: {str(error)[:2000]}"}
+
+    def _device_fallback(self, job: dict, device: str, typed) -> dict:
+        """Record the switch to the CPU after a CUDA out-of-memory and free the GPU cache (J7)."""
+        LOG.warning("Job %s: CUDA out of memory on %s; retrying stage B on the CPU", job.get("id"), device)
+        import sys
+        torch = sys.modules.get("torch")
+        if torch is not None:
+            try:
+                torch.cuda.empty_cache()
+            except Exception:  # noqa: BLE001
+                pass
+        record = {"from": device, "to": "cpu", "at": _date(time.time())}
+        with self.lock:
+            job["run_parameters"] = {**(job.get("run_parameters") or {}), "device_fallback": "cpu", "requested_device": device}
+            job.update(phase="GPU 显存不足，改用 CPU 重新计算", detail="本次结果将在 CPU 上完成（数值等价，耗时更长）。")
+            # Not a version bump: an open page must not get a 409 because the worker changed device.
+            # ``reason`` is the user-facing text; the raw CUDA message goes under ``admin_detail``, which the HTTP
+            # layer strips (at any depth) for non-admin sessions — job detail responses include ``events``.
+            self._event(job, "device_fallback", version=False, durable=True, from_device=device, to_device="cpu",
+                        reason=typed.user_message[:300],
+                        **({"admin_detail": typed.admin_detail[:300]} if typed.admin_detail else {}))
+        return record
+
+    def _persist_run_note(self, job_dir: Path, key: str, value) -> None:
+        """Write ``run_parameters[key]`` into summary.json (+ report metadata) and refresh the run manifest hashes."""
+        def apply(meta: dict) -> None:
+            parameters = meta.get("run_parameters") if isinstance(meta.get("run_parameters"), dict) else {}
+            parameters[key] = value
+            meta["run_parameters"] = parameters
+        self._persist_summary(job_dir, apply, what=f"run_parameters.{key}")
+        manifest_path = job_dir / "run_manifest.json"
+        if manifest_path.is_file():
+            try:
+                existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+                outputs = list((existing.get("outputs") or {}).keys()) if isinstance(existing, dict) else []
+                from .schema import write_run_manifest
+                write_run_manifest(job_dir, self._json_file(job_dir / "summary.json"), outputs=outputs)
+            except (OSError, ValueError, TypeError) as exc:
+                LOG.warning("Run manifest of %s not refreshed with %s: %s", job_dir.name, key, exc)
+
+    def _draining(self) -> bool:
+        """True while ``service … --drain`` asks this process to start no new work (J6); checked at most once a second."""
+        now = time.monotonic()
+        checked, value = self._drain_cache
+        if now - checked < 1.0:
+            return value
+        info = self._json_file(self.root / DRAIN_FILE) if (self.root / DRAIN_FILE).is_file() else {}
+        value = bool(info) and info.get("pid") == os.getpid()
+        self._drain_cache = (now, value)
+        return value
+
+    def _clear_stale_drain(self) -> None:
+        """A drain file of another (stopped) process must never block this one."""
+        path = self.root / DRAIN_FILE
+        info = self._json_file(path) if path.is_file() else None
+        if info is not None and info.get("pid") != os.getpid():
+            path.unlink(missing_ok=True)
+
+    def _requeue_for_drain(self, job: dict, stage: str) -> None:
+        job.pop("started_ts", None)
+        job.pop("stage_clock", None)
+        job.update(status="queued", queued_ts=time.time(), phase="等待计算", detail="服务即将重启，任务会在重启后继续。")
+        self._event(job, "drain_requeued")
+        self.tasks.put((job["id"], job["version"], stage))
+
+    # J2: background precompute of the mesh-only stage-B intermediates while the outlets are being confirmed.
+    @staticmethod
+    def _geometry_cache_dir() -> str:
+        import sys
+        module = sys.modules.get("wss_deploy.geometry_cache")
+        return str(getattr(module, "CACHE_DIRNAME", None) or getattr(sys.modules.get("wss_deploy.pipeline"), "GEOMETRY_CACHE_DIR", None)
+                   or GEOMETRY_CACHE_DIR)
+
+    def _precompute_callable(self):
+        if self._precompute_fn is not None:
+            return self._precompute_fn
+        from . import pipeline
+        return getattr(pipeline, "precompute_geometry_cache", None)
+
+    def _schedule_precompute(self, job: dict) -> None:
+        """Queue a precompute for a job that just entered ``awaiting_confirmation`` (never fails the caller)."""
+        if not self._precompute_enabled or self.offline or job.get("status") != "awaiting_confirmation":
+            return
+        try:
+            with self._pc_cond:
+                if job["id"] in self._pc_state:
+                    return
+                self._pc_state[job["id"]] = "pending"
+                self._pc_cancel[job["id"]] = threading.Event()
+                self._pc_queue.append(job["id"])
+                if self._pc_thread is None or not self._pc_thread.is_alive():
+                    self._pc_thread = threading.Thread(target=self._precompute_loop, name="wss-precompute", daemon=True)
+                    self._pc_thread.start()
+                self._pc_cond.notify_all()
+            job["precompute"] = {"status": "pending", "queued_at": _date(time.time())}
+        except Exception:  # noqa: BLE001
+            LOG.exception("Cannot schedule the geometry precompute of %s", job.get("id"))
+
+    def _cancel_precompute(self, job_id: str) -> None:
+        with self._pc_cond:
+            if self._pc_state.get(job_id) == "pending":
+                self._pc_state[job_id] = "skipped"
+            event = self._pc_cancel.get(job_id)
+            if event is not None:
+                event.set()
+            self._pc_cond.notify_all()
+
+    def _precompute_barrier(self, job: dict, stage: str) -> None:
+        """Before a stage runs: a pending precompute of the job is skipped; a running one is cancelled (stage A,
+        which rewrites the geometry) or awaited (stage B, which then reuses it; cancelled after PRECOMPUTE_WAIT_S)."""
+        job_id = job["id"]
+        with self._pc_cond:
+            state = self._pc_state.get(job_id)
+            if state == "pending":
+                self._pc_state[job_id] = "skipped"
+                return
+            if state != "running":
+                return
+            if stage == "A":
+                self._pc_cancel[job_id].set()
+        if stage == "B":
+            self._progress(job, "geometry", "等待后台几何预计算完成")
+        deadline = time.monotonic() + PRECOMPUTE_WAIT_S
+        with self._pc_cond:
+            while self._pc_state.get(job_id) == "running":
+                if time.monotonic() > deadline and job_id in self._pc_cancel:
+                    self._pc_cancel[job_id].set()
+                self._pc_cond.wait(0.5)
+
+    def _precompute_loop(self) -> None:
+        while True:
+            with self._pc_cond:
+                while not self._pc_queue and not self.stop_event.is_set():
+                    self._pc_cond.wait(1.0)
+                if self.stop_event.is_set():
+                    for job_id in self._pc_queue:
+                        self._pc_state.pop(job_id, None)
+                        self._pc_cancel.pop(job_id, None)
+                    self._pc_queue.clear()
+                    self._pc_cond.notify_all()
+                    return
+                job_id = self._pc_queue[0]
+                if self._pc_state.get(job_id) != "pending":
+                    self._pc_queue.pop(0)
+                    self._pc_state.pop(job_id, None)
+                    self._pc_cancel.pop(job_id, None)
+                    self._pc_cond.notify_all()
+                    continue
+                busy = self._stage_b_lock.locked()
+                if not busy:
+                    self._pc_queue.pop(0)
+                    self._pc_state[job_id] = "running"
+                    cancel = self._pc_cancel[job_id]
+            if busy:
+                time.sleep(0.5)           # lowest priority: never compete with a running stage B
+                continue
+            try:
+                self._run_precompute(job_id, cancel)
+            except Exception:  # noqa: BLE001 — a precompute must never take the service down
+                LOG.exception("Geometry precompute of %s failed outside the pipeline", job_id)
+            finally:
+                with self._pc_cond:
+                    self._pc_state.pop(job_id, None)
+                    self._pc_cancel.pop(job_id, None)
+                    self._pc_cond.notify_all()
+
+    def _run_precompute(self, job_id: str, cancel: threading.Event) -> None:
+        with self.lock:
+            job = self.jobs.get(job_id)
+            if job is None or job.get("status") != "awaiting_confirmation" or cancel.is_set():
+                return
+            record = copy.deepcopy(job)
+            job["precompute"] = {"status": "running", "started_at": _date(time.time())}
+        started = time.perf_counter()
+        status, result, detail = "done", None, None
+        try:
+            fn = self._precompute_callable()
+            if fn is None:
+                status = "unavailable"
+            else:
+                # The precompute needs only the family (contract) of the bound release, never its weights: the
+                # verified descriptor, so the background thread cannot trigger a model load.
+                release = self._release_for(record, load=False)
+                result = fn(self.root / job_id, record, release=release, cancel_event=cancel)
+                # The pipeline contract never raises: it reports ``ok`` / ``cancelled`` / ``skipped`` / ``error``.
+                if isinstance(result, dict) and result.get("error"):
+                    status, detail = "failed", str(result["error"])[:300]
+                elif cancel.is_set() or (isinstance(result, dict) and result.get("cancelled")):
+                    status = "cancelled"
+                elif isinstance(result, dict) and result.get("skipped"):
+                    status = "skipped"
+                elif isinstance(result, dict) and result.get("ok") is False:
+                    status = "incomplete"
+        except InterruptedError:
+            status = "cancelled"
+        except Exception as exc:  # noqa: BLE001 — stage B simply recomputes
+            status, detail = "failed", f"{type(exc).__name__}: {str(exc)[:300]}"
+            LOG.warning("Geometry precompute of %s failed (stage B will recompute): %s", job_id, detail)
+        seconds = round(time.perf_counter() - started, 2)
+        with self.lock:
+            job = self.jobs.get(job_id)
+            if job is None:
+                return
+            if status == "unavailable":
+                job.pop("precompute", None)
+                return
+            entry = {"status": status, "seconds": seconds, "finished_at": _date(time.time())}
+            if detail:
+                entry["error"] = detail
+            if isinstance(result, dict):
+                for key, value in result.items():
+                    if key == "timing_s" and isinstance(value, dict):
+                        entry["timing_s"] = {k: v for k, v in value.items() if isinstance(v, (int, float))}
+                    elif key == "steps" and isinstance(value, list):
+                        entry["steps"] = [str(step) for step in value[:16]]
+                    elif key != "error" and (isinstance(value, (str, int, float, bool)) or value is None):
+                        entry.setdefault(key, value)
+            job["precompute"] = entry
+            self._event(job, "precompute_" + status, version=False, durable=False, seconds=seconds)
 
     def run_next(self, timeout: float = 0.1) -> bool:
         deferred_stage = None
@@ -1710,6 +2573,10 @@ class JobManager:
                 self.purge_expired()
             except Exception:
                 LOG.exception("Trash expiry scan failed")
+        if self._draining():
+            # J6: ``--drain`` — take no new work; queued jobs stay queued and resume after the restart.
+            time.sleep(min(max(float(timeout or 0.0), 0.0), 0.5))
+            return False
         try:
             job_id, version, stage = self.tasks.get(timeout=timeout)
         except queue.Empty:
@@ -1722,11 +2589,27 @@ class JobManager:
                 now = time.time()
                 job["queue_seconds"] = job.get("queue_seconds", 0) + max(0, now - job["queued_ts"])
                 job.update(status="running", started_ts=now, phase="检查输入" if stage == "A" else "开始计算", detail="")
+                # A stage-B attempt starts out "waiting" for the stage-B slot (set in the same critical section as
+                # the status, so no reader sees a running stage-B job that is neither computing nor waiting).
+                job["stage_clock"] = {"segment": stage, "attempt_started_ts": now, "current": None, "current_started_ts": None,
+                                      "done": {}, **({"waiting": True} if stage == "B" else {})}
                 self._event(job, "started")
             job_dir = self.root / job_id
             if stage == "B":
+                # §21.2: a second worker may hold stage B; the clock says "waiting", not "computing".
+                with self.lock:
+                    if isinstance(job.get("stage_clock"), dict):
+                        job["stage_clock"]["waiting"] = True
                 self._stage_b_lock.acquire()
                 stage_lock_acquired = True
+                if self._draining():
+                    # The drain began while this job waited for the stage-B slot: it goes back to the queue.
+                    with self.lock:
+                        self._requeue_for_drain(job, stage)
+                    return True
+                with self.lock:
+                    if isinstance(job.get("stage_clock"), dict):
+                        job["stage_clock"].update(waiting=False, attempt_started_ts=time.time())
             if self.stage_a_fn is None or self.stage_b_fn is None:
                 from .pipeline import stage_a, stage_b
                 a_fn, b_fn = self.stage_a_fn or stage_a, self.stage_b_fn or stage_b
@@ -1735,6 +2618,8 @@ class JobManager:
             callbacks = {"progress": lambda phase, detail="": self._progress(job, phase, detail),
                          "cancelled": lambda: self._cancelled(job)}
             try:
+                # J2: stage A cancels a background precompute of this job; stage B waits for it (or skips it).
+                self._precompute_barrier(job, stage)
                 if stage == "A":
                     result = a_fn(job_dir / job["filename"], job_dir, **job["params"], **callbacks)
                     with self.lock:
@@ -1748,7 +2633,8 @@ class JobManager:
                         # release-bound gate immediately so a resumed job and
                         # its run manifest contain the same audit decision.
                         atomic_json(job_dir / "stage_a.json", result)
-                        job["a"] = result
+                        # J1: the record keeps the stage-A snapshot without its display geometry.
+                        job["a"] = slim_stage_a(result)
                         if self._cancelled(job):
                             raise InterruptedError("任务已取消。")
                         input_check = result.get("input_check") or {}
@@ -1762,7 +2648,8 @@ class JobManager:
                                 phase="输入检查失败",
                                 detail="请修正 STL 后重试。",
                                 finished_ts=time.time(),
-                                error={"message": "输入检查未通过：" + "; ".join(str(item) for item in errors)},
+                                error={"message": "输入检查未通过：" + "; ".join(str(item) for item in errors),
+                                       "category": "input_geometry", "retryable": False},
                             )
                         elif input_status == "pass" and self._gate(result):
                             if self._auto_outlet_gate(result):
@@ -1793,15 +2680,30 @@ class JobManager:
                                 job.update(status="awaiting_confirmation", phase="请确认出口", detail=(
                                     "自动命名未满足已校准的 95% 自动门控，请结合原始影像核对开口名称。"
                                     + (f" 原因：{reasons}" if reasons else "")), awaiting_ts=time.time())
+                                self._schedule_precompute(job)
                         else:
                             raise ValueError("输入或中心线未通过检查，请检查 STL 和开口。")
                 else:
                     if not self._gate(job.get("a")) or not job.get("mapping"):
                         raise ValueError("输入和出口尚未确认，不能继续计算。")
                     compute = job.get("compute") or {}
-                    result = b_fn(job_dir, job["mapping"], self._release_for(job), confirmed=True,
-                                  case_id=job["case_id"], device=compute.get("device", "auto"),
-                                  seed_count=compute.get("seed_count"), threads=compute.get("threads"), **callbacks)
+                    device = compute.get("device", "auto")
+                    fallback = None
+                    with self.lock:
+                        job.pop("run_parameters", None)      # a fallback note belongs to one attempt only
+                    try:
+                        result = b_fn(job_dir, job["mapping"], self._release_for(job), confirmed=True,
+                                      case_id=job["case_id"], device=device,
+                                      seed_count=compute.get("seed_count"), threads=compute.get("threads"), **callbacks)
+                    except Exception as error:  # noqa: BLE001 — only a CUDA OOM is handled here
+                        typed = classify(error)
+                        if not (isinstance(typed, ResourceError) and typed.retry_hint == "cpu") or device == "cpu":
+                            raise
+                        # J7: GPU out of memory → retry this stage B once on the CPU within the same job.
+                        fallback = self._device_fallback(job, device, typed)
+                        result = b_fn(job_dir, job["mapping"], self._release_for(job, device="cpu"), confirmed=True,
+                                      case_id=job["case_id"], device="cpu",
+                                      seed_count=compute.get("seed_count"), threads=compute.get("threads"), **callbacks)
                     with self.lock:
                         if self._cancelled(job):
                             raise InterruptedError("任务已取消。")
@@ -1809,6 +2711,18 @@ class JobManager:
                             "peak", "wss_field_pa", "timing_s", "device", "gpu", "release", "flags",
                             "schema_version", "model_release", "time_axis", "fields", "results", "run_manifest",
                             "surface_statistics", "reference_assessment", "case_metadata", "volume_statistics", "exports")}
+                        for key in ("analysis_version", "deploy_version", "git_dirty", "geometry_cache"):
+                            if result.get(key) is not None:
+                                job["summary"][key] = result.get(key)
+                        precompute = job.get("precompute") if isinstance(job.get("precompute"), dict) else {}
+                        if precompute.get("status") == "done" and isinstance(precompute.get("seconds"), (int, float)):
+                            # J2: background geometry time spent while the outlets were being confirmed.
+                            job["summary"]["timing_s"] = {**(job["summary"].get("timing_s") or {}),
+                                                          "precompute": round(float(precompute["seconds"]), 2)}
+                        if fallback:
+                            job["summary"]["device_fallback"] = fallback["to"]
+                            job["summary"]["run_parameters"] = {**(result.get("run_parameters") or {}), "device_fallback": fallback["to"]}
+                            self._persist_run_note(job_dir, "device_fallback", fallback["to"])
                         job["summary"]["quality"] = result.get("quality")
                         job["summary"]["audit"] = result.get("audit")
                         # §17: the cards need the conclusion and the headline diameter; the station
@@ -1816,6 +2730,20 @@ class JobManager:
                         from .morphology import digest as morphology_digest
                         job["summary"]["morphology"] = morphology_digest(result.get("morphology"))
                         job["summary"]["narrative"] = result.get("narrative")
+                        # §19.2: headline cycle numbers and the first findings, so lists and detail cards
+                        # need no summary.json read.
+                        job["summary"]["cycle"] = cycle_record(result.get("cycle"))
+                        job["summary"]["findings_top"] = findings_top(result)
+                        # §21.2: the first run of a release on a device in this process carries a one-off warm-up;
+                        # flag it so the estimate's inference history leaves it out.
+                        warm_key = ((job.get("model_release") or {}).get("id"), result.get("device"))
+                        if warm_key not in self._eta_warm:
+                            self._eta_warm.add(warm_key)
+                            job["summary"]["eta_cold_start"] = True
+                        # §21.2: history only counts runs of the current feature program.
+                        if isinstance(result.get("feature_contract"), dict):
+                            job["summary"]["feature_contract"] = {key: result["feature_contract"].get(key)
+                                                                  for key in ("version", "source_hash")}
                         job["run_identity"] = result.get("run_identity")
                         if job["run_identity"]:
                             job["summary"]["run_identity"] = job["run_identity"]
@@ -1832,12 +2760,12 @@ class JobManager:
                 diagnostic_id = secrets.token_hex(6)
                 LOG.exception("Job %s failed at %s; diagnostic_id=%s", job_id, stage, diagnostic_id)
                 with self.lock:
-                    message = str(error)[:800] if isinstance(error, ValueError) else "计算未完成，请重试；如仍失败，请向维护者提供诊断编号。"
                     job.update(status="failed", phase="计算失败", detail="", finished_ts=time.time(),
-                               error={"message": message, "diagnostic_id": diagnostic_id})
+                               error=self._error_record(error, diagnostic_id))
             finally:
                 with self.lock:
                     elapsed = max(0, time.time() - job.pop("started_ts", time.time()))
+                    job.pop("stage_clock", None)
                     job["compute_seconds"] = job.get("compute_seconds", 0) + elapsed
                     job["attempt_seconds"] = job.get("attempt_seconds", 0) + elapsed
                     if aborted:
@@ -1853,24 +2781,217 @@ class JobManager:
             self.tasks.task_done()
 
     def start(self) -> None:
+        if self.offline:
+            raise RuntimeError("an offline JobManager never runs workers")
         if self.thread and self.thread.is_alive():
             raise RuntimeError("worker already running")
         self.stop_event.clear()
+        self._worker_failures = []
         def work():
-            while not self.stop_event.is_set():
-                try:
-                    self.run_next()
-                    self.maybe_purge_expired()
-                except Exception:
-                    LOG.exception("Worker failed outside pipeline; worker will continue")
+            try:
+                while not self.stop_event.is_set():
+                    try:
+                        self.run_next()
+                        self.maybe_purge_expired()
+                    except Exception:
+                        LOG.exception("Worker failed outside pipeline; worker will continue")
+            except BaseException as exc:  # noqa: BLE001 — O6: SystemExit / KeyboardInterrupt raised inside a library
+                # The worker is not restarted (its job may be half-written); health() counts it dead, so /api/ready
+                # answers 503 and ``service status`` says so.  One line with a diagnostic id goes to server.log.
+                diagnostic_id = secrets.token_hex(6)
+                self._worker_failures.append({"thread": threading.current_thread().name, "diagnostic_id": diagnostic_id,
+                                              "error": type(exc).__name__, "at": _date(time.time())})
+                LOG.critical("Worker thread %s died (%s); diagnostic_id=%s; /api/ready is now 503 — restart the service "
+                             "(python -m wss_deploy.cli service restart)", threading.current_thread().name, type(exc).__name__,
+                             diagnostic_id, exc_info=True)
         self._workers = [threading.Thread(target=work, name=f"wss-worker-{index + 1}", daemon=True)
-                         for index in range(2)]
+                         for index in range(WORKER_COUNT)]
         for worker in self._workers:
             worker.start()
         self.thread = self._workers[0]
+        self.start_maintenance()
 
     def close(self) -> None:
         self.stop_event.set()
-        for worker in self._workers or ([self.thread] if self.thread else []):
-            if worker:
+        with self._pc_cond:
+            for event in self._pc_cancel.values():
+                event.set()
+            self._pc_cond.notify_all()
+        for worker in [*(self._workers or ([self.thread] if self.thread else [])), self._pc_thread, self._maintenance_thread]:
+            if worker and worker.is_alive():
                 worker.join(timeout=2)
+
+    # ------------------------------------------------------------- J5 health
+    _GPU_TTL_S = 30.0
+
+    def health(self) -> dict:
+        """Readiness of this process (contract: ``/api/health`` merges it, ``/api/ready`` answers 200 / 503).
+
+        Hard checks: worker threads alive, a release loaded (or preload still running / disabled), jobs root
+        writable, disk free above doctor's fail threshold, VMTK interpreter and vessel_geom present.  The GPU
+        block is informational (CPU inference works) and cached for 30 s (``nvidia-smi``).
+        """
+        from .doctor import disk_thresholds
+        from .paths import VESSEL_GEOM_DIR, VMTK_PYTHON
+        DISK_FAIL_GB, DISK_WARN_GB = disk_thresholds()      # v0.15: WSS_DEPLOY_MIN_FREE_GB overrides both
+        checks: dict = {}
+        workers = list(self._workers or [])
+        alive = sum(1 for worker in workers if worker.is_alive())
+        checks["worker"] = {"ok": bool(workers) and alive == len(workers), "hard": True, "alive": alive,
+                            "failures": list(getattr(self, "_worker_failures", None) or [])[-3:],
+                            "expected": len(workers) or WORKER_COUNT, "started": bool(workers), "draining": self._draining(),
+                            "queue": self.queue_counts(), "maintenance": bool(self._maintenance_thread and self._maintenance_thread.is_alive())}
+        checks["releases"] = self._release_health()
+        writable = self.root.is_dir() and os.access(self.root, os.W_OK | os.X_OK)
+        checks["jobs_root"] = {"ok": bool(writable), "hard": True, "path": str(self.root)}
+        try:
+            free = round(shutil.disk_usage(self.root).free / 1024 ** 3, 1)
+        except OSError:
+            free = None
+        checks["disk"] = {"ok": free is not None and free >= DISK_FAIL_GB, "hard": True, "free_gb": free,
+                          "fail_below_gb": DISK_FAIL_GB, "warn": free is not None and free < DISK_WARN_GB}
+        vmtk_ok = Path(VMTK_PYTHON).is_file()
+        geom_ok = (Path(VESSEL_GEOM_DIR) / "vessel_geom" / "cli.py").is_file()
+        checks["vmtk"] = {"ok": vmtk_ok and geom_ok, "hard": True, "python": vmtk_ok, "vessel_geom": geom_ok}
+        gpu, cached_at = self._gpu_health()
+        checks["gpu"] = {"ok": True, "hard": False, **gpu}
+        ok = all(check.get("ok") for check in checks.values() if check.get("hard"))
+        return {"ok": bool(ok), "checks": checks, "cached_at": cached_at}
+
+    def _release_health(self) -> dict:
+        registry = self.registry
+        if registry is None:
+            present = self.release is not None or self.stage_b_fn is not None
+            return {"ok": present, "hard": True, "state": "injected" if present else "missing", "loaded": [], "known": []}
+        try:
+            known = [row.get("id") for row in registry.list()]
+        except Exception:  # noqa: BLE001
+            known = []
+        cache = getattr(registry, "_cache", None) or {}
+        try:
+            loaded = sorted({key[0] for key in list(cache.keys()) if isinstance(key, tuple) and key})
+        except Exception:  # noqa: BLE001
+            loaded = []
+        state_info = getattr(registry, "preload_state", None)
+        preloading = any(t.name == "wss-preload" and t.is_alive() for t in threading.enumerate())
+        disabled = os.environ.get("WSS_DEPLOY_PRELOAD", "1").strip().lower() in {"0", "false", "off", "no"}
+        if isinstance(state_info, dict) and state_info.get("failed") and not loaded:
+            state = "failed"
+        elif loaded:
+            state = "loaded"
+        elif preloading or (isinstance(state_info, dict) and state_info.get("running")):
+            state = "loading"
+        elif disabled or not self._workers:
+            state = "lazy"
+        else:
+            state = "failed"
+        return {"ok": state != "failed", "hard": True, "state": state, "loaded": loaded, "known": known,
+                "default": getattr(registry, "default_id", None), "device": getattr(registry, "device", None)}
+
+    def _gpu_health(self) -> tuple[dict, str]:
+        from .service import gpu_cache_time, gpu_summary
+        gpu = gpu_summary()
+        block = {"available": bool(gpu.get("available")), "name": gpu.get("name"), "count": gpu.get("count", 0),
+                 "visible_devices": gpu.get("visible_devices"), "device": getattr(self.registry, "device", None)}
+        devices = [{key: row.get(key) for key in ("index", "name", "memory_used_mb", "memory_total_mb")}
+                   for row in gpu.get("devices") or []]
+        if devices:
+            block["devices"] = devices
+        if gpu.get("note"):
+            block["note"] = gpu["note"]
+        return block, _date(gpu_cache_time() or time.time())
+
+    # ------------------------------------------------------------- J6 post-upgrade maintenance
+    def start_maintenance(self) -> bool:
+        """Run a queued ``service upgrade`` maintenance (analysis rebuilds, stale report refresh) in the background."""
+        if self.offline or not (self.root / MAINTENANCE_FILE).is_file():
+            return False
+        if self._maintenance_thread is not None and self._maintenance_thread.is_alive():
+            return False
+        self._maintenance_thread = threading.Thread(target=self._run_maintenance, name="wss-maintenance", daemon=True)
+        self._maintenance_thread.start()
+        return True
+
+    def _run_maintenance(self) -> dict:
+        path = self.root / MAINTENANCE_FILE
+        request = self._json_file(path)
+        started = time.time()
+        from . import __version__
+        report = {"schema_version": "wss-deploy.maintenance-result/v1", "request_id": request.get("request_id"),
+                  # v0.15 (O3): when the upgrade was asked for and by which CLI version; ``service status`` shows it.
+                  "requested_at": request.get("requested_at"), "requested_by": request.get("requested_by"), "version": __version__,
+                  "started_at": _date(started), "pid": os.getpid(), "rebuilt": [], "rebuild_failed": [],
+                  "refreshed": 0, "refresh_failed": [], "skipped": []}
+        LOG.info("Post-upgrade maintenance: %d analysis rebuild(s), report refresh=%s",
+                 len(request.get("rebuild") or []), bool(request.get("refresh_reports", True)))
+        for job_id in list(dict.fromkeys(request.get("rebuild") or [])):
+            if self.stop_event.is_set():
+                break
+            try:
+                outcome = self.rebuild_analysis(job_id)
+            except Exception as exc:  # noqa: BLE001 — one broken job must not stop the others
+                LOG.exception("Post-upgrade rebuild of %s failed", job_id)
+                report["rebuild_failed"].append({"id": job_id, "error": f"{type(exc).__name__}: {str(exc)[:300]}"})
+                continue
+            (report["rebuilt"] if outcome == "rebuilt" else report["skipped"]).append(job_id if outcome == "rebuilt" else {"id": job_id, "reason": outcome})
+        if request.get("refresh_reports", True) and not self.stop_event.is_set():
+            from . import report_freshness as F
+            try:
+                stale = F.stale_jobs(self.root)
+            except Exception:  # noqa: BLE001
+                LOG.exception("Cannot list stale reports")
+                stale = []
+            for job_dir in stale:
+                if self.stop_event.is_set():
+                    break
+                try:
+                    with F._job_lock(job_dir):
+                        with self.lock:
+                            F.refresh(job_dir, source="upgrade")
+                    report["refreshed"] += 1
+                except Exception as exc:  # noqa: BLE001
+                    LOG.exception("Post-upgrade report refresh of %s failed", job_dir.name)
+                    report["refresh_failed"].append({"id": job_dir.name, "error": f"{type(exc).__name__}: {str(exc)[:300]}"})
+        report.update(finished_at=_date(time.time()), seconds=round(time.time() - started, 1),
+                      complete=not self.stop_event.is_set())
+        try:
+            atomic_json(self.root / MAINTENANCE_RESULT, report)
+            if report["complete"] and self._json_file(path).get("request_id") == request.get("request_id"):
+                path.unlink(missing_ok=True)
+        except OSError:
+            LOG.exception("Cannot record the maintenance result")
+        LOG.info("Post-upgrade maintenance finished: rebuilt %d, failed %d, reports refreshed %d, failed %d",
+                 len(report["rebuilt"]), len(report["rebuild_failed"]), report["refreshed"], len(report["refresh_failed"]))
+        return report
+
+    def rebuild_analysis(self, job_id: str, *, rebuild_fn=None) -> str:
+        """Full ``rebuild_report`` of one finished job inside the running service (J6).
+
+        The job accepts no mutation meanwhile (409) and stage B is held off; afterwards the record is reloaded
+        from disk (the rebuild rewrites summary.json, report.html, run_manifest.json and job.json) and a
+        version-bumping event tells open pages to refresh.  Returns ``rebuilt`` or why it was skipped.
+        """
+        if not re.fullmatch(JOB_ID_PATTERN, str(job_id)):
+            return "invalid_id"
+        with self.lock:
+            job = self.jobs.get(job_id)
+            if job is None:
+                return "missing"
+            if job.get("status") != "done":
+                return "not_done"
+            self._maintenance_busy.add(job_id)
+        try:
+            if rebuild_fn is None:
+                from .rebuild_report import rebuild as rebuild_fn
+            with self._stage_b_lock:
+                rebuild_fn(self.root / job_id)
+            with self.lock:
+                fresh = self._restore_record(self.root / job_id / "job.json", None)
+                if fresh.get("owner") is None:
+                    fresh["owner"] = job.get("owner")
+                self.jobs[job_id] = fresh
+                self._event(fresh, "analysis_rebuilt")
+            return "rebuilt"
+        finally:
+            with self.lock:
+                self._maintenance_busy.discard(job_id)

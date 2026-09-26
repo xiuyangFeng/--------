@@ -72,13 +72,17 @@ def test_cancelled_run_kills_the_process_group(tmp_path, monkeypatch):
     assert not list(out_dir.glob("*.part"))
 
 
-def test_timeout_kills_the_group_and_raises_as_before(tmp_path, monkeypatch):
+def test_timeout_kills_the_group_and_raises_a_typed_toolchain_error(tmp_path, monkeypatch):
+    from wss_deploy.errors import ToolchainError
     pidfile = tmp_path / "pids.txt"
     _fake_command(monkeypatch, tmp_path, SPAWNER, pidfile)
-    with pytest.raises(subprocess.TimeoutExpired):
+    with pytest.raises(ToolchainError) as error:
         CL.run_vessel_geom(tmp_path / "input.stl", tmp_path / "centerline", timeout=1)
     parent_pid, grandchild_pid = _pids(pidfile)
     assert _dead(parent_pid) and _dead(grandchild_pid)
+    # v0.14: a short Chinese message for the user, the tool details for admins; not retryable.
+    assert "超时" in error.value.user_message and "timeout" in error.value.admin_detail
+    assert error.value.category == "toolchain" and error.value.retryable is False
 
 
 def test_successful_run_reports_topology_and_keeps_the_transcript(tmp_path, monkeypatch):
@@ -104,10 +108,22 @@ def test_successful_run_reports_topology_and_keeps_the_transcript(tmp_path, monk
 
 
 def test_failed_run_still_reports_the_stderr_tail(tmp_path, monkeypatch):
+    from wss_deploy.errors import ToolchainError
     _fake_command(monkeypatch, tmp_path, "import sys; print('boom detail', file=sys.stderr); sys.exit(3)")
-    with pytest.raises(RuntimeError) as error:
+    with pytest.raises(ToolchainError) as error:
         CL.run_vessel_geom(tmp_path / "input.stl", tmp_path / "centerline")
-    assert "rc=3" in str(error.value) and "boom detail" in str(error.value)
+    # v0.14: the stderr tail moved to admin_detail; the user message stays free of tool output.
+    assert "rc=3" in error.value.admin_detail and "boom detail" in error.value.admin_detail
+    assert "boom detail" not in error.value.user_message and "中心线提取失败" in error.value.user_message
+    assert error.value.to_record(diagnostic_id="x")["category"] == "toolchain"
+
+
+def test_missing_outputs_after_success_are_a_toolchain_error(tmp_path, monkeypatch):
+    from wss_deploy.errors import ToolchainError
+    _fake_command(monkeypatch, tmp_path, "print('no outputs written')")
+    with pytest.raises(ToolchainError) as error:
+        CL.run_vessel_geom(tmp_path / "input.stl", tmp_path / "centerline")
+    assert "run.json" in error.value.admin_detail or "No such file" in error.value.admin_detail
 
 
 def test_attempt_seconds_reset_per_attempt_and_abort_event(tmp_path):

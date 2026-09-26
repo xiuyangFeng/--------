@@ -1,6 +1,11 @@
 """Multi-case summary table (C14): one row per selected job, fixed columns, blanks where a value is absent.
 
-Numbers are copied from ``summary.json`` exactly as stored (no unit conversion, no recomputation).
+Numbers are copied from ``summary.json`` exactly as stored (no recomputation; the only unit conversion is
+``stagnation_area_cm2`` = ``cycle.stagnation.area_mm2`` / 100, named that way by contract §19.2).
+
+Text cells are user-controlled (case / patient ids, scan labels, tags, reviewer names): in the CSV a text
+cell starting with ``= + - @ TAB CR`` gets a leading ``'`` so a spreadsheet never evaluates it as a formula;
+in the XLSX every text cell is stored as a string cell (never a formula).
 """
 from __future__ import annotations
 
@@ -16,9 +21,11 @@ MORPHOLOGY_COLUMNS = ("max_diameter_mm", "max_diameter_s_mm", "sac_present", "sa
                       "neck_diameter_mm", "neck_length_mm", "lumen_volume_ml")
 WALL_COLUMNS = ("wss_p99_pa", "wss_max_pa", "wss_mean_pa", "area_frac_low", "area_low_mm2", "area_frac_high", "area_high_mm2",
                 "area_frac_very_high", "area_very_high_mm2", *(f"branch_p99_{b}" for b in BRANCHES), "population_percentile", "quality_grade")
+CYCLE_COLUMNS = ("tawss_mean_pa", "tawss_p99_pa", "tawss_low_frac", "osi_mean", "osi_high_frac", "osi_very_high_frac",
+                 "stagnation_frac", "stagnation_area_cm2")
 VOLUME_COLUMNS = ("speed_p99_m_s", "speed_max_m_s", "pressure_min_pa", "pressure_max_pa", *(f"dp_{b}" for b in BRANCHES), "low_speed_regions")
 TAIL_COLUMNS = ("findings_attention", "findings_note")
-COLUMNS = (*BASE_COLUMNS, *MORPHOLOGY_COLUMNS, *WALL_COLUMNS, *VOLUME_COLUMNS, *TAIL_COLUMNS)
+COLUMNS = (*BASE_COLUMNS, *MORPHOLOGY_COLUMNS, *WALL_COLUMNS, *CYCLE_COLUMNS, *VOLUME_COLUMNS, *TAIL_COLUMNS)
 
 
 def _map(value: Any) -> Mapping[str, Any]:
@@ -54,6 +61,20 @@ def morphology_columns(summary: Mapping[str, Any]) -> dict[str, Any]:
             "lumen_volume_ml": _num(morphology.get("lumen_volume_ml"))}
 
 
+def cycle_columns(summary: Mapping[str, Any]) -> dict[str, Any]:
+    """The §19.2 TAWSS / OSI / stagnation columns from ``summary["cycle"]``; all blank without it."""
+    cycle = _map(summary.get("cycle"))
+    fields = _map(cycle.get("fields"))
+    tawss, osi, stagnation = _map(fields.get("tawss")), _map(fields.get("osi")), _map(cycle.get("stagnation"))
+    area = _num(stagnation.get("area_mm2"))
+    return {"tawss_mean_pa": _num(tawss.get("mean")), "tawss_p99_pa": _num(tawss.get("p99")),
+            "tawss_low_frac": _num(_map(tawss.get("area_frac")).get("low")),
+            "osi_mean": _num(osi.get("mean")), "osi_high_frac": _num(_map(osi.get("area_frac")).get("above_t0")),
+            "osi_very_high_frac": _num(_map(osi.get("area_frac")).get("above_t2")),
+            "stagnation_frac": _num(stagnation.get("area_frac")),
+            "stagnation_area_cm2": area / 100.0 if area is not None else None}
+
+
 def build_row(job: Mapping[str, Any], summary: Mapping[str, Any] | None) -> dict[str, Any]:
     """One table row; ``summary`` is the parsed summary.json of a finished job (or None)."""
     summary = _map(summary)
@@ -87,6 +108,7 @@ def build_row(job: Mapping[str, Any], summary: Mapping[str, Any] | None) -> dict
         row["population_percentile"] = _num(population.get("percentile"))
         quality = _map(summary.get("quality"))
         row["quality_grade"] = quality.get("label") or quality.get("level") or None
+        row.update(cycle_columns(summary))
     elif row["family"] == "volume":
         stats = _map(summary.get("volume_statistics"))
         speed, pressure = _map(stats.get("speed_m_s")), _map(stats.get("pressure_interior_pa"))
@@ -110,12 +132,22 @@ def build_rows(records: list[tuple[Mapping[str, Any], Mapping[str, Any] | None]]
     return [build_row(job, summary) for job, summary in records]
 
 
+FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def csv_safe(value: Any) -> Any:
+    """Neutralise spreadsheet formula injection in a text cell (numbers are left alone)."""
+    if isinstance(value, str) and value.startswith(FORMULA_PREFIXES):
+        return "'" + value
+    return value
+
+
 def to_csv(rows: list[dict[str, Any]]) -> bytes:
     buffer = io.StringIO()
     writer = csv.writer(buffer, lineterminator="\r\n")
     writer.writerow(COLUMNS)
     for row in rows:
-        writer.writerow(["" if row.get(column) is None else row[column] for column in COLUMNS])
+        writer.writerow(["" if row.get(column) is None else csv_safe(row[column]) for column in COLUMNS])
     return ("\ufeff" + buffer.getvalue()).encode("utf-8")
 
 
@@ -128,6 +160,9 @@ def to_xlsx(rows: list[dict[str, Any]]) -> bytes:
     sheet.append(list(COLUMNS))
     for row in rows:
         sheet.append([row.get(column) for column in COLUMNS])
+        for cell in sheet[sheet.max_row]:
+            if isinstance(cell.value, str):
+                cell.data_type = "s"     # openpyxl would store "=…" as a formula
     sheet.freeze_panes = "A2"
     for index, column in enumerate(COLUMNS, start=1):
         sheet.column_dimensions[get_column_letter(index)].width = max(12, min(40, len(column) + 4))
@@ -182,10 +217,12 @@ def population_blocks(registry: Any, release_ids) -> dict[str, dict[str, Any]]:
 
 
 def export_filename(fmt: str, when: dt.datetime | None = None) -> str:
-    when = when or dt.datetime.now()
+    if when is None:
+        from .clock import now_local
+        when = now_local()
     return f"wss_summary_{when.strftime('%Y%m%d_%H%M')}.{fmt}"
 
 
-__all__ = ["BRANCHES", "COLUMNS", "MORPHOLOGY_COLUMNS", "build_row", "build_rows", "export_filename", "family_of",
-           "morphology_columns",
+__all__ = ["BRANCHES", "COLUMNS", "CYCLE_COLUMNS", "FORMULA_PREFIXES", "MORPHOLOGY_COLUMNS", "build_row", "build_rows", "csv_safe",
+           "cycle_columns", "export_filename", "family_of", "morphology_columns",
            "population_block", "population_blocks", "to_csv", "to_xlsx"]

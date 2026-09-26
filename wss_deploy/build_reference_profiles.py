@@ -1,6 +1,8 @@
 """Build ``reference.json`` (geometry ranges + CV3 out-of-fold p99 population) for a WSS release.
 
     PYTHONPATH=. python -m wss_deploy.build_reference_profiles --release X5D_v51_5seed_20260916 [--write]
+    PYTHONPATH=. python -m wss_deploy.build_reference_profiles --release M1_3head_3seed_20260922 --geometry-only \
+        --geometry-note "…" --population-note "M1 无 CV3 折外预测…" --write
 
 Sources (read-only, training side):
 * population: ``data_wss_v5/views_v5_1/wss_min_cascade_v1/<case>/features.npz::wall_log_wss_base`` =
@@ -15,7 +17,6 @@ bound to the release keep validating, and every run records its SHA256.  It is *
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import json
 from pathlib import Path
 
@@ -41,7 +42,8 @@ def population_protocol(spacing_placeholder: float = 1.0) -> dict:
     }
 
 
-def collect(project_root: Path = PROJECT_ROOT) -> dict:
+def collect(project_root: Path = PROJECT_ROOT, *, population: bool = True) -> dict:
+    """Training-side sources; ``population=False`` reads only the centreline atlases (geometry-only sidecar)."""
     import h5py
     from scipy.stats import spearmanr
     from wss_features.atlas import semantics
@@ -52,17 +54,18 @@ def collect(project_root: Path = PROJECT_ROOT) -> dict:
     cascade = root / "data_wss_v5/views_v5_1/wss_min_cascade_v1"
     view = root / "data_wss_v5/views_v5_1/wss_min_view_v1"
     snapshot = root / "data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases"
-    manifest = json.loads((cascade / "cascade_manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads((cascade / "cascade_manifest.json").read_text(encoding="utf-8")) if population else {}
     oof, truth, geometry = {}, {}, {}
     for cid in train:
-        z = np.load(cascade / cid / "features.npz")
-        pred = np.exp(z["wall_log_wss_base"].astype(np.float64))
-        bundle = np.load(view / cid / "bundle.npz", allow_pickle=True)
-        if not np.array_equal(bundle["wall_node_id_cas"], z["wall_node_id_cas"]):
-            raise ValueError(f"{cid}: cascade rows do not match the frozen view rows")
-        steps = bundle["steps"].tolist()
-        peak = bundle["wall_wss"][steps.index(int(bundle["peak_step"]))].astype(np.float64)
-        oof[cid] = float(np.quantile(pred, .99)); truth[cid] = float(np.quantile(peak, .99))
+        if population:
+            z = np.load(cascade / cid / "features.npz")
+            pred = np.exp(z["wall_log_wss_base"].astype(np.float64))
+            bundle = np.load(view / cid / "bundle.npz", allow_pickle=True)
+            if not np.array_equal(bundle["wall_node_id_cas"], z["wall_node_id_cas"]):
+                raise ValueError(f"{cid}: cascade rows do not match the frozen view rows")
+            steps = bundle["steps"].tolist()
+            peak = bundle["wall_wss"][steps.index(int(bundle["peak_step"]))].astype(np.float64)
+            oof[cid] = float(np.quantile(pred, .99)); truth[cid] = float(np.quantile(peak, .99))
         with h5py.File(snapshot / cid.replace("/", "__") / "case.h5", "r") as h5:
             g = h5["geometry"]; table = g["atlas_table"][()]
             cols = json.loads(g.attrs["atlas_columns"]); segs = json.loads(g.attrs["atlas_segments"])
@@ -79,6 +82,9 @@ def collect(project_root: Path = PROJECT_ROOT) -> dict:
                 d = geometry.setdefault(name, {k: [] for k in GEOMETRY_FIELDS})
                 d["length_mm"].append(float(s.get("length_mm", 0.0))); d["radius_min_mm"].append(float(r.min()))
                 d["radius_median_mm"].append(float(np.median(r))); d["radius_max_mm"].append(float(r.max()))
+    if not population:
+        return {"train_cases": train, "oof_p99_pa": {}, "cfd_p99_pa": {}, "geometry": geometry, "validation": {},
+                "split_version": split.get("split_version"), "split_sha256": split.get("source_split_sha256")}
     p = np.array([oof[c] for c in train]); t = np.array([truth[c] for c in train])
     validation = {
         "n_cases": int(len(train)), "spearman_oof_vs_cfd_p99": float(spearmanr(p, t).correlation),
@@ -94,10 +100,14 @@ def collect(project_root: Path = PROJECT_ROOT) -> dict:
 
 
 def build(release_id: str, collected: dict, *, today: str | None = None, geometry_only: bool = False,
-          geometry_note: str | None = None) -> dict:
-    """Assemble the sidecar.  ``geometry_only`` omits the WSS population (e.g. for the PF6/VF6 volume release)."""
-    today = today or dt.date.today().isoformat()
-    v = collected["validation"]
+          geometry_note: str | None = None, population_note: str | None = None) -> dict:
+    """Assemble the sidecar.  ``geometry_only`` omits the WSS population (e.g. for the PF6/VF6 volume release or
+    the M1 three-head release); ``population_note`` then records why, as ``population: {status: unknown, reason}``
+    (informational: the loader reads only the two profile blocks, so results keep ``population.status = unknown``)."""
+    if not today:
+        from .clock import now_local
+        today = now_local().date().isoformat()
+    v = collected.get("validation") or {}
     bounds = [{"path": "cloud.spacing_mm", "units": "mm", "min": 0.4, "max": 0.6,
                "note": "部署合同：0.5 mm 重采样；粗于 0.8 mm 精度明显下降"}]
     for branch, fields in collected["geometry"].items():
@@ -116,8 +126,11 @@ def build(release_id: str, collected: dict, *, today: str | None = None, geometr
         **({"note": geometry_note} if geometry_note else {}),
     }
     if geometry_only:
-        return {"schema_version": "wss-deploy.reference-sidecar/v1", "release": release_id, "built_on": today,
-                "geometry_reference": geometry_reference}
+        out = {"schema_version": "wss-deploy.reference-sidecar/v1", "release": release_id, "built_on": today,
+               "geometry_reference": geometry_reference}
+        if population_note:
+            out["population"] = {"status": "unknown", "reason": population_note}
+        return out
     values = [collected["oof_p99_pa"][c] for c in collected["train_cases"]]
     population_reference = {
         "schema_version": "wss-deploy.population-reference/v1", "id": f"population-cv3-oof-p99-{today}", "status": "validated",
@@ -156,9 +169,11 @@ def main(argv=None) -> int:
     parser.add_argument("--out", default=None, help="write the JSON here instead (for inspection)")
     parser.add_argument("--geometry-only", action="store_true", help="only the geometry ranges (no WSS population)")
     parser.add_argument("--geometry-note", default=None, help="provenance note stored with a geometry-only profile")
+    parser.add_argument("--population-note", default=None, help="why a geometry-only sidecar has no population profile")
     args = parser.parse_args(argv)
-    collected = collect()
-    profile = build(args.release, collected, geometry_only=args.geometry_only, geometry_note=args.geometry_note)
+    collected = collect(population=not args.geometry_only)
+    profile = build(args.release, collected, geometry_only=args.geometry_only, geometry_note=args.geometry_note,
+                    population_note=args.population_note)
     text = json.dumps(profile, ensure_ascii=False, indent=1) + "\n"
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8"); print(f"wrote {args.out}")

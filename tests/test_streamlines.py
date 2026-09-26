@@ -34,3 +34,25 @@ def test_zero_flow_and_invalid_fields():
     assert lines == []
     with pytest.raises(ValueError):
         integrate_streamlines(xyz, np.ones((1, 3)), [[0, 0, 0]], lambda q: True)
+
+
+def test_v0122_ball_certificate_only_skips_provably_inside_points():
+    """A straight closed tube: certified points agree with the exact test, near-wall points still reach it."""
+    import numpy as np
+    import pyvista as pv
+    from wss_deploy.streamlines import ball_certified_inside
+    tube = pv.Cylinder(radius=5.0, height=40.0, resolution=64).triangulate()
+    vertices, faces = np.asarray(tube.points), np.asarray(tube.faces).reshape(-1, 4)[:, 1:]
+    exact_calls = []
+
+    def exact(q):
+        q = np.asarray(q); exact_calls.append(len(q))
+        return (np.hypot(q[:, 1], q[:, 2]) < 5.0) & (np.abs(q[:, 0]) < 20.0)   # cylinder axis = x
+
+    rng = np.random.default_rng(0)
+    samples = np.c_[rng.uniform(-15, 15, 400), rng.uniform(-2, 2, (400, 2))]      # deep inside
+    contains = ball_certified_inside(exact, samples, vertices, faces)
+    queries = np.c_[rng.uniform(-25, 25, 3000), rng.uniform(-7, 7, (3000, 2))]
+    got = contains(queries)
+    assert np.array_equal(got, exact(queries))
+    assert sum(exact_calls[:-1]) < len(queries)          # some queries were certified without the exact test

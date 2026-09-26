@@ -166,15 +166,24 @@
     return {count:sorted.length,mean:sorted.reduce((s,v)=>s+v,0)/sorted.length,
       p99:sorted[lo]+(sorted[hi]-sorted[lo])*(at-lo),min:sorted[0],max:sorted[sorted.length-1]};
   }
-  // Colour maps.  "rainbow" is the classic CFD rainbow (blue -> cyan -> green ->
-  // yellow -> red); "turbo" is Google's perceptually improved rainbow; "bwr"
-  // is the previous blue-white-red diverging map.  ``bands`` > 0 quantises the
-  // map into that many discrete steps (contour-band style).
-  const COLORMAPS={
-    rainbow:{label:'彩虹',stops:[[0,0,143],[0,32,255],[0,160,255],[0,255,255],[64,255,160],[160,255,64],[255,255,0],[255,160,0],[255,64,0],[190,0,0]]},
-    turbo:{label:'Turbo',stops:[[48,18,59],[70,107,227],[36,182,213],[37,241,150],[128,254,66],[210,239,35],[253,183,31],[240,107,14],[199,40,6],[122,4,3]]},
-    bwr:{label:'蓝白红',stops:[[33,102,172],[103,169,207],[209,229,240],[253,219,199],[239,138,98],[178,24,43]]},
-  };
+  // The classic CFD rainbow (blue -> cyan -> green -> yellow -> red) is the default again (§19.9: the user asked
+  // for rainbow on 2026-09-20); saved preferences keep their colour map.  "viridis" is the perceptually uniform
+  // option, "turbo" Google's improved rainbow, "bwr" the blue-white-red diverging map.  ``bands`` > 0 quantises
+  // the map into that many discrete steps (contour-band style).
+  // v0.14 (F2): the stops come from WssReportCommon.PALETTES, the single palette source shared with the wall
+  // report and every export (the volume report inlines report_common.js before this script; under Node it is
+  // required next to this file).  Order = the menu order.
+  const PALETTE_SOURCE=(()=>{
+    if(root.WssReportCommon&&root.WssReportCommon.PALETTES)return root.WssReportCommon.PALETTES;
+    if(typeof module==='undefined'||typeof require!=='function'||typeof __dirname!=='string')return null;
+    // Node only (tests run this file bare): evaluate the shared library into a private object so neither the
+    // global scope nor the require cache changes; a test that loads report_common.js later still installs it.
+    const src=require('fs').readFileSync(require('path').join(__dirname,'report_common.js'),'utf8'),scope={};
+    new Function('globalThis','module',src)(scope,undefined);
+    return scope.WssReportCommon&&scope.WssReportCommon.PALETTES;})();
+  if(!PALETTE_SOURCE)throw new Error('WssReportCommon.PALETTES is required (report_common.js must load before volume_viewer.js)');
+  const COLORMAPS={};
+  for(const id of ['rainbow','viridis','turbo','bwr'])COLORMAPS[id]={label:PALETTE_SOURCE[id].label,stops:PALETTE_SOURCE[id].stops};
   let currentMap='rainbow', currentBands=0;
   function setColormap(name) {currentMap=COLORMAPS[name]?name:'rainbow';return currentMap;}
   function setBands(n) {const v=Math.floor(Number(n)||0);currentBands=v>=2?Math.min(v,64):0;return currentBands;}
@@ -206,6 +215,73 @@
   function desaturate(c,amount=0.7) {
     const grey=0.62;return c.map(v=>v*(1-amount)+grey*amount);
   }
+  // ---- display scales (v0.12, 用户试用反馈 7): a scale is {min,max,log?,diverging?} in raw field units ----
+  // Log (speed only): lower end = max(min, max / 200, 1e-3 m/s); diverging scales (through-plane velocity)
+  // use the blue-white-red map with a symmetric range.  Only colours change; no value is altered.
+  const LOG_SPAN=200, LOG_FLOOR=1e-3;
+  function scaleEnds(scale) {
+    const s=scale||{};let lo=Number(s.min),hi=Number(s.max);
+    if(!Number.isFinite(lo))lo=0;if(!Number.isFinite(hi))hi=lo+1;
+    if(s.log){lo=Math.max(lo,hi/LOG_SPAN,LOG_FLOOR);if(!(hi>lo))hi=lo*LOG_SPAN;}
+    if(!(hi>lo))hi=lo+1e-6;
+    return [lo,hi];
+  }
+  function scaleT(value,scale) {
+    const v=Number(value);if(!Number.isFinite(v))return NaN;
+    const [lo,hi]=scaleEnds(scale);
+    if(scale&&scale.log){const a=Math.log(lo),b=Math.log(hi);return clamp((Math.log(Math.max(v,lo))-a)/(b-a),0,1);}
+    return clamp((v-lo)/(hi-lo),0,1);
+  }
+  function scaleValueAt(t,scale) {
+    const [lo,hi]=scaleEnds(scale),f=clamp(Number(t)||0,0,1);
+    return scale&&scale.log?Math.exp(Math.log(lo)+f*(Math.log(hi)-Math.log(lo))):lo+f*(hi-lo);
+  }
+  function scaleMap(scale) {return scale&&scale.diverging?'bwr':(scale&&COLORMAPS[scale.map]?scale.map:currentMap);}
+  function colorAtT(t,scale,bands) {return sampleStops(COLORMAPS[scaleMap(scale)].stops,bandedT(t,bands===undefined?currentBands:bands));}
+  function scaleColor(value,scale,bands) {
+    const t=scaleT(value,scale);
+    return Number.isFinite(t)?colorAtT(t,scale,bands):[0.63,0.68,0.72];
+  }
+  function quantile(sorted,q) {
+    if(!sorted.length)return NaN;const at=clamp(q,0,1)*(sorted.length-1),lo=Math.floor(at),hi=Math.ceil(at);
+    return sorted[lo]+(sorted[hi]-sorted[lo])*(at-lo);
+  }
+  // Robust p2–p98 of the section's own samples; null when there are too few samples (caller falls back).
+  function robustRange(values,options={}) {
+    const sorted=Array.from(values||[]).map(Number).filter(Number.isFinite).sort((a,b)=>a-b);
+    if(sorted.length<(options.minCount||8))return null;
+    let lo=quantile(sorted,options.lo===undefined?0.02:options.lo),hi=quantile(sorted,options.hi===undefined?0.98:options.hi);
+    if(!(hi>lo)){const pad=Math.max(Math.abs(hi),1e-6)*0.05;lo-=pad;hi+=pad;}
+    return {min:lo,max:hi,count:sorted.length};
+  }
+  // Symmetric ±p98 |v| for signed quantities (through-plane velocity).
+  function symmetricRange(values,options={}) {
+    const sorted=Array.from(values||[]).map(v=>Math.abs(Number(v))).filter(Number.isFinite).sort((a,b)=>a-b);
+    if(sorted.length<(options.minCount||8))return null;
+    const m=quantile(sorted,options.q===undefined?0.98:options.q);
+    return m>0?{min:-m,max:m,count:sorted.length,diverging:true}:null;
+  }
+  // Velocity component along the plane normal (positive = along the normal); NaN outside ``indices``.
+  function throughPlane(velocity,indices,normal) {
+    const n=unit(normal),out=new Float32Array(velocity.length/3).fill(NaN);
+    for(const i of indices)out[i]=velocity[3*i]*n[0]+velocity[3*i+1]*n[1]+velocity[3*i+2]*n[2];
+    return out;
+  }
+  function inPlane(vec,plane) {return [dot(vec,plane.u),dot(vec,plane.v)];}
+  // One arrow per cell of a ⌊√max⌋² grid over the map bounds (the sample nearest the cell centre), so the count
+  // never exceeds ``maxCount`` and the arrows spread evenly; ``ref`` = p95 of the in-plane speed of all samples.
+  function arrowSamples(items,bounds,maxCount) {
+    const k=Math.max(1,Math.floor(Math.sqrt(Math.max(1,maxCount||120)))),[xmin,xmax,ymin,ymax]=bounds,dx=(xmax-xmin)/k||1,dy=(ymax-ymin)/k||1,best=new Map();
+    const mags=[];
+    for(const it of items||[]) {
+      const m=Math.hypot(it.du,it.dv);if(!Number.isFinite(m))continue;mags.push(m);
+      const cx=Math.floor((it.x-xmin)/dx),cy=Math.floor((it.y-ymin)/dy);if(cx<0||cy<0||cx>=k||cy>=k)continue;
+      const key=cx+k*cy,d=Math.hypot(it.x-(xmin+(cx+.5)*dx),it.y-(ymin+(cy+.5)*dy)),prev=best.get(key);
+      if(!prev||d<prev.d)best.set(key,{...it,mag:m,d});
+    }
+    mags.sort((a,b)=>a-b);
+    return {arrows:Array.from(best.values()),ref:mags.length?quantile(mags,0.95):0};
+  }
   // Display units (contract §7): conversions live only in the display layer.
   const UNITS={pressure:{'Pa':1,'mmHg':1/133.322},velocity:{'m/s':1,'cm/s':100}};
   function convertUnit(value,field,unitName) {
@@ -235,6 +311,95 @@
     const view=STANDARD_VIEWS[name];if(!view||!frame) return null;
     const dir=unit(dirFromAligned(view.dir,frame)), up=unit(dirFromAligned(view.up,frame));
     return {position:add(target,mul(dir,distance)),target:target.slice(),up};
+  }
+  // §19.9 default view: the camera looks from the patient's front (aligned −y) towards the back with aligned +z
+  // (towards the inlet) up.  ``dir`` is camera → target, the convention of WssReportCommon.fitView.
+  function viewDirections(name,frame) {
+    const view=STANDARD_VIEWS[name];if(!view||!frame) return null;
+    return {dir:unit(dirFromAligned(mul(view.dir,-1),frame)),up:unit(dirFromAligned(view.up,frame))};
+  }
+  // Legacy reports without an anatomical frame keep the old oblique direction, now fitted to the viewport.
+  const LEGACY_VIEW={dir:unit([-.85,1.25,-.55]),up:[0,0,1]};
+  // A standard view framed to fill the viewport (fitView, margin 1.12); without the shared library the old
+  // fixed distance (1.5 × bounding diagonal) is kept so the numerical core still works under plain Node.
+  function fittedStandardCamera(name,frame,points,options={}) {
+    const spec=name==='legacy'?LEGACY_VIEW:viewDirections(name,frame);if(!spec) return null;
+    const fit=options.fitView||(root.WssReportCommon&&root.WssReportCommon.fitView);
+    if(typeof fit==='function'&&points&&points.length) {
+      try{const cam=fit(points,{dir:spec.dir,up:spec.up,fov:options.fov||42,aspect:options.aspect||1,margin:options.margin||1.12});
+          // keep the declared up (fitView returns it orthogonalised): OrbitControls spins about camera.up, and the
+          // legacy oblique view should still spin about world z; lookAt handles a non-orthogonal up.
+          if(cam&&cam.position&&cam.target)return {position:cam.position.slice(),target:cam.target.slice(),up:spec.up.slice()};}catch(_){}
+    }
+    const target=(options.center||[0,0,0]).slice(),distance=options.distance||1;
+    return {position:add(target,mul(spec.dir,-distance)),target,up:spec.up.slice()};
+  }
+  // Numbers on screen never use scientific notation (§19.1 formatValue; the local copy keeps plain-Node tests
+  // and a report opened without the shared library identical).
+  function formatNumber(v,opts) {
+    const c=root.WssReportCommon;
+    if(c&&typeof c.formatValue==='function'){try{return c.formatValue(v,opts);}catch(_){}}
+    opts=opts||{};const digits=opts.digits||3,maxDec=opts.maxDecimals===undefined?4:opts.maxDecimals;
+    if(v===null||v===undefined||v===''||!Number.isFinite(Number(v)))return opts.missing===undefined?'—':opts.missing;
+    v=Number(v);const a=Math.abs(v);
+    if(a===0)return '0';
+    if(a>=Math.pow(10,digits))return String(Math.round(v));
+    if(a<Math.pow(10,-maxDec))return '0';
+    return v.toFixed(Math.max(0,Math.min(maxDec,digits-1-Math.floor(Math.log10(a)))));
+  }
+  // Human wording of the prediction frame (§19.9): "收缩期峰值帧（约 0.21 s）"; the raw label / step live in 技术信息.
+  const FRAME_WORDS={peak_systole:['收缩期峰值帧','Peak-systolic frame'],end_diastole:['舒张末期帧','End-diastolic frame'],cycle_mean:['周期平均','Cycle average']};
+  function frameText(modelFrame,language) {
+    const mf=modelFrame&&typeof modelFrame==='object'?modelFrame:{},en=language==='en';
+    const key=String(mf.label||mf.target||''),words=FRAME_WORDS[key],t=Number(mf.time_s);
+    const name=words?words[en?1:0]:(en?'Fixed prediction frame':'固定预测时相');
+    const secs=String(+t.toFixed(3));
+    return Number.isFinite(t)&&mf.time_s!==null&&mf.time_s!==''?(en?`${name} (≈ ${secs} s)`:`${name}（约 ${secs} s）`):name;
+  }
+  // Short release name, the wall report's rule (W4, §19.9): "PF6_VF6_peak_3seed_20260920" → "PF6_VF6_peak";
+  // the full id stays in 技术信息 and the tooltip.
+  function releaseShort(id) {
+    const text=String(id||'').trim();
+    return text.replace(/_\d+seed_\d{6,8}$/,'')||'—';
+  }
+  // ISO time with an offset when possible: a naive "2026-09-20 02:15:34" (written in the server process' zone)
+  // borrows the offset of an ISO stamp written by the same run (the outlet confirmation), else stays naive.
+  function withOffset(naive,hintIso) {
+    const s=String(naive||'').trim();if(!s) return '';
+    if(/[zZ]$|[+-]\d{2}:?\d{2}$/.test(s)) return s;
+    const m=String(hintIso||'').match(/([+-]\d{2}:\d{2}|Z)$/);
+    const iso=s.replace(' ','T');
+    return m?iso+m[1]:iso;
+  }
+  // B4 banner rows: geometry checks outside the release's declared reference range and a non-good ensemble quality.
+  const REF_FIELDS={length_mm:'长度',radius_min_mm:'最小半径',radius_median_mm:'中位半径',radius_max_mm:'最大半径',spacing_mm:'点间距',surface_variation_median:'表面变化度',variation:'表面变化度'};
+  function referenceLabel(path) {
+    const p=String(path||'');
+    if(p.startsWith('cloud.'))return '点云'+(REF_FIELDS[p.slice(6)]||p.slice(6));
+    if(p.startsWith('geometry.')){const rest=p.slice(9),at=rest.lastIndexOf('.');if(at>0){const f=rest.slice(at+1);return rest.slice(0,at)+(REF_FIELDS[f]||f);}}
+    return p;
+  }
+  function warningItems(meta) {
+    const out=[];const m=meta&&typeof meta==='object'?meta:{};
+    const ra=m.reference_assessment&&typeof m.reference_assessment==='object'?m.reference_assessment:null;
+    for(const c of (ra&&Array.isArray(ra.checks)?ra.checks:[])) {
+      if(!c||c.status!=='review')continue;
+      const units=c.units&&c.units!=='1'?' '+c.units:'',what=`${referenceLabel(c.path)} ${formatNumber(c.value)}${units}`,range=`${formatNumber(c.min)}–${formatNumber(c.max)}${units}`;
+      out.push({kind:'reference',text:`${what}（参考 ${range}）`,what,range});
+    }
+    const pop=ra&&ra.population&&typeof ra.population==='object'?ra.population:null;
+    if(pop&&pop.status==='review')out.push({kind:'population',text:'人群参照需要复核'});
+    const q=m.quality&&typeof m.quality==='object'?m.quality:null;
+    if(q&&q.level&&q.level!=='good')out.push({kind:'quality',text:`模型集成质量：${q.label||q.level}`});
+    return out;
+  }
+  // Same sentence frame as the wall report's banner (W4): 「注意：…。预测可信度可能下降，请结合详情复核。」; the first
+  // out-of-range measurement is quoted so the doctor sees what is off without opening the menu.
+  function warningText(items) {
+    const ref=items.filter(x=>x.kind==='reference'),rest=items.filter(x=>x.kind!=='reference'),parts=[];
+    if(ref.length)parts.push(`输入几何有 ${ref.length} 项超出发布包参考范围（${ref[0].what}，参考 ${ref[0].range}${ref.length>1?' 等':''}）`);
+    for(const x of rest)parts.push(x.text);
+    return parts.length?'注意：'+parts.join('；')+'。预测可信度可能下降，请结合详情复核。':'';
   }
   function cameraToAligned(cam,frame) {
     return {position:alignedFromWorld(cam.position,frame),target:alignedFromWorld(cam.target,frame),up:dirToAligned(cam.up,frame)};
@@ -573,7 +738,7 @@
     if(common&&typeof common.englishLabel==='function'){try{const v=common.englishLabel(text,lang);if(typeof v==='string'&&v&&v!==text)return v;}catch(_){}}
     return LABELS_EN[text]||text;
   }
-  const fmtTick=v=>!Number.isFinite(v)?'—':Math.abs(v)>=100?v.toFixed(0):Math.abs(v)>=10?v.toFixed(1):Math.abs(v)>=1?v.toFixed(2):v.toFixed(3);
+  const fmtTick=v=>formatNumber(v);
   // Vector colour bar (C12).  Local fallback; WssReportCommon.colorbarSVG is preferred when present.
   function colorbarSVGLocal(o) {
     o=o||{};const width=o.width||96,height=o.height||260,bands=Math.max(0,Math.floor(o.bands||0)),stops=(COLORMAPS[o.colormap||currentMap]||COLORMAPS.rainbow).stops;
@@ -588,6 +753,35 @@
   function exportFilenameLocal(o) {
     o=o||{};const safe=s=>String(s||'').replace(/[^\w一-鿿-]+/g,'_').replace(/^_+|_+$/g,'')||'x';
     return `${safe(o.case_id||'volume')}_${safe(o.view||'custom')}_${safe(o.field||'field')}_${Math.max(1,Math.round(Number(o.scale)||1))}x.${o.ext||'png'}`;
+  }
+  // ---- §21.4 label layout (v0.12.2): one plan for the page overlay and every composited export ----
+  // Priority: user labels (measurements, annotations) > attention findings > manual > note > info findings >
+  // max diameter > branch names.  User labels are never hidden; automatic ones may be (hideOverflow).
+  const LABEL_PRIORITY={meas:100,annot:100,flabel_attention:90,flabel_manual:85,flabel_note:80,flabel_info:70,dlabel:50,blabel:30};
+  function labelPriority(item) {return LABEL_PRIORITY[item.kind==='flabel'?'flabel_'+(item.severity||'note'):item.kind]||40;}
+  // ``project(xyz)`` → {x,y} in CSS px or null; ``size(item)`` → {w,h} in CSS px.  The label wants to sit just
+  // above its (lifted) point; ``declutter`` (WssReportCommon.declutterLabels) moves colliding ones.  Returns one
+  // entry per projected item: {item, x, y (label centre), w, h, anchor {x,y}, moved, hidden}.
+  function planLabels(items,options={}) {
+    const project=options.project,size=options.size,gap=options.gap===undefined?3:options.gap,rows=[];
+    for(const item of items||[]) {
+      const at=project(item.xyz);if(!at||!item.text)continue;
+      const anchor=project(item.anchor)||at,{w,h}=size(item);
+      rows.push({item,w,h,anchor,x:at.x,y:at.y-h/2-gap,priority:labelPriority(item)});
+    }
+    const declutter=typeof options.declutter==='function'?options.declutter:null;
+    let placed=null;
+    if(declutter&&rows.length){try{placed=declutter(rows.map(r=>({x:r.x,y:r.y,w:r.w,h:r.h,priority:r.priority})),
+      {padding:options.padding===undefined?3:options.padding,maxShift:options.maxShift,step:options.step,bounds:options.bounds,hideOverflow:Boolean(options.hideOverflow)});}catch(_){placed=null;}}
+    return rows.map((r,i)=>{
+      const p=placed&&placed[i]?placed[i]:{x:r.x,y:r.y,moved:false,hidden:false};
+      const user=r.item.kind==='meas'||r.item.kind==='annot';
+      return {item:r.item,x:p.x,y:p.y,w:r.w,h:r.h,anchor:r.anchor,moved:Boolean(p.moved),hidden:Boolean(p.hidden)&&!user};
+    });
+  }
+  // End of a leader line: the point of the label box nearest to the anchor (the line stops at the box edge).
+  function leaderEnd(p) {
+    return {x:clamp(p.anchor.x,p.x-p.w/2,p.x+p.w/2),y:clamp(p.anchor.y,p.y-p.h/2,p.y+p.h/2)};
   }
   // Findings review (C16): decisions live in review.items[id]; manual findings in review.added.
   const TRUST_GLOSS={1:'trust_interpolation_uncovered',2:'trust_rough_surface',4:'trust_geometry_out_of_range',8:'trust_low_sample_support',16:'trust_near_opening'};
@@ -607,6 +801,9 @@
   }
   const core={planeBasis,rotatePlane,groupCenterline,centerlinePlane,automaticPlanes,nearestTangent,planeFromPicks,slabIndices,insideIndices,moduleSummary,moduleIndices,sideIndices,interactionDelta,dragAlong,positionStep,planeContour,contourLoops,selectLoop,closeChain,pointInLoop,scaleBarLength,scanlineInside,fillSection,speedField,statistics,
     color,setColormap,setBands,colormapNames,colormapCSS,desaturate,convertUnit,unitOptions,frameFromMeta,dirFromAligned,dirToAligned,worldFromAligned,alignedFromWorld,STANDARD_VIEWS,standardCamera,cameraToAligned,cameraFromAligned,
+    viewDirections,fittedStandardCamera,formatNumber,frameText,releaseShort,withOffset,referenceLabel,warningItems,warningText,
+    scaleEnds,scaleT,scaleValueAt,scaleColor,colorAtT,quantile,robustRange,symmetricRange,throughPlane,inPlane,arrowSamples,
+    LABEL_PRIORITY,labelPriority,planLabels,leaderEnd,
     encodeView,decodeView,nearestBin,fractionForArc,arcAlongBranch,regionIndices,regionPressureDrop,sphereIndices,nearestPoint,probeRecord,trustLabels,findingsSorted,FINDING_KINDS,convexHull,inConvexHull,interpolateIDW,
     nearestLabels,filterFaces,sliceGridToRows,seriesFractions,probeToTSV,probeToCSV,labelText,colorbarSVGLocal,exportFilenameLocal,normalizeReview,reviewDecision,findingsWithReview,TRUST_GLOSS};
   root.VolumeViewerCore=core;
@@ -656,7 +853,7 @@
     if(!c||typeof c.buildCenterlineGroups!=='function'||!centerXyz||!centerXyz.length)return [];
     try{return c.buildCenterlineGroups({xyz:centerXyz,radius:centerRadius,edges:centerEdges,segment:centerSeg},meta.branch_names||{})||[];}catch(_){return [];}
   })();
-  const fmt=v=>v===null||!Number.isFinite(v) ? '—' : Math.abs(v)<0.01&&v!==0 ? v.toExponential(2) : v.toFixed(3);
+  const fmt=v=>formatNumber(v);
   function option(select,value,label) {const o=document.createElement('option');o.value=String(value);o.textContent=label;select.appendChild(o);return o;}
   const setText=(id,text)=>{const el=$(id);if(el)el.textContent=text;};
   const setHidden=(id,hidden)=>{const el=$(id);if(el)el.hidden=Boolean(hidden);};
@@ -691,21 +888,66 @@
   for(const u of unitOptions('pressure')) option($('pressure-unit'),u,u);
   for(const u of unitOptions('velocity')) option($('velocity-unit'),u,u);
   setVal('pressure-unit',pressureUnit);setVal('velocity-unit',velocityUnit);
-  setText('volume-subtitle',[meta.case_id||'',meta.release||meta.release_id||'',(meta.model_frame||{}).label||'固定预测时相'].filter(Boolean).join(' · '));
+  const releaseId=(meta.model_release&&(meta.model_release.registry_id||meta.model_release.name||meta.model_release.release))||meta.release||meta.release_id||'';
+  const releaseName=releaseShort(releaseId);
+  setText('volume-subtitle',[meta.case_id||'',releaseId?releaseName:'',frameText(meta.model_frame)].filter(Boolean).join(' · '));
+  {const el=$('volume-subtitle');if(el&&el.setAttribute)el.setAttribute('title',[meta.case_id||'',releaseId,frameText(meta.model_frame)].filter(Boolean).join(' · '));}
   setText('volume-protocol','统计基于体内预测点，采用点权重；截面不报告未经体积或面积加权的通量。坐标与厚度单位：mm。');
   const reference=meta.pressure_reference;
   setText('pressure-reference',pressure ? '压力参考：'+(typeof reference==='string'?reference:reference&&(reference.label||reference.description)||'请参阅该发布包的参考压定义；不能直接解释为绝对血压。') : '');
   setText('streamline-note',lines.length ? `已载入 ${lines.length} 条由预测速度向量积分的流线；离开有效支撑区域即停止。` : '本报告没有已积分流线；可查看体内速度点云、方向箭头和截面。');
-  // footer (contract §8)
+  // Footer (§19.9): review status · release short name · generation time; hashes and identities live in the
+  // 「技术信息」 popover (the ids footer-feature / footer-identity moved there unchanged).
+  const localTimeText=(iso,seconds)=>{const c=common();if(!iso)return '';if(c&&typeof c.localTime==='function'){try{return c.localTime(iso,seconds?{seconds:true}:undefined);}catch(_){}}return String(iso).replace('T',' ').replace(/(:\d{2})(\.\d+)?([+-]\d{2}:\d{2}|Z)?$/,seconds?'$1':'');};
+  const mappingAt=(()=>{const h=meta.audit&&Array.isArray(meta.audit.mapping_history)?meta.audit.mapping_history:[];for(let i=h.length-1;i>=0;i--)if(h[i]&&typeof h[i].at==='string')return h[i].at;return '';})();
+  const createdIso=withOffset(meta.created_at,mappingAt);
+  const techRows=[];
   {
+    // Same wording as the wall report (W4): 审阅?：<b>状态</b> · 发布包? <b>短名</b> · 生成 时间 · [技术信息].
     const review=meta.review&&typeof meta.review==='object'?meta.review:null;
-    const status={reviewed:'已审阅',unreviewed:'未审阅',reopened:'已重开'}[review&&review.status]||(review?String(review.status):'未审阅');
-    setText('footer-review',review?`${status}${review.by?' · '+review.by:''}${review.at?' · '+review.at:''}${review.note?' · '+review.note:''}`:'审阅状态：未记录');
-    const rel=(meta.model_release&&(meta.model_release.registry_id||meta.model_release.name||meta.model_release.release))||meta.release||'—';
-    setText('footer-release',`发布包 ${rel}`);
-    const hash=meta.feature_contract&&meta.feature_contract.source_hash?String(meta.feature_contract.source_hash).slice(0,12):null;
-    setText('footer-feature',hash?`特征合同 ${hash}`:'特征合同：未记录');
-    setText('footer-identity',meta.run_identity?`run_identity ${String(meta.run_identity).slice(0,12)}`:'run_identity：未记录');
+    const status=review?({reviewed:'已审阅',unreviewed:'待审阅',reopened:'已重新打开'}[review.status]||String(review.status||'待审阅')):'待审阅';
+    const at=review&&review.at?localTimeText(review.at):'';
+    setText('footer-review',`${status}${review&&review.by?' · '+review.by:''}${at?' · '+at:''}`);
+    {const el=$('footer-review');if(el&&el.setAttribute)el.setAttribute('title',review&&review.note?'审阅备注：'+review.note:'审阅状态');}
+    setText('footer-release',releaseName);
+    {const el=$('footer-release');if(el&&el.setAttribute)el.setAttribute('title',releaseId||'');}
+    setText('footer-time',`生成 ${createdIso?localTimeText(createdIso):'—'}`);
+    {const el=$('footer-time');if(el&&el.setAttribute)el.setAttribute('title',createdIso?localTimeText(createdIso,true):'');}
+    const fc=meta.feature_contract||{},mr=meta.model_release||{},mf=meta.model_frame||{},au=meta.audit||{};
+    setText('footer-feature',[fc.version,fc.source_hash].filter(Boolean).join(' · ')||'未记录');
+    setText('footer-identity',meta.run_identity?String(meta.run_identity):'未记录');
+    const stamp=(iso,raw)=>iso?`${localTimeText(iso,true)}（${raw||iso}）`:'—';
+    const nModels=Array.isArray(mr.models)?mr.models.length:Array.isArray(mr.weights)?mr.weights.length:null;
+    techRows.push(['审阅状态',`${status}${review&&review.by?' · '+review.by:''}${review&&review.at?' · '+localTimeText(review.at,true):''}${review&&review.note?' · '+review.note:''}`,'review_status'],
+      ['发布包',releaseId||'—','release'],
+      ['发布包哈希',meta.release_hash||mr.fingerprint||'—',null],
+      ['模型族',[mr.model_family||mr.family,nModels!==null?nModels+' 个模型':null].filter(Boolean).join(' · ')||'—',null],
+      ['特征合同',null,'feature_contract','footer-feature'],
+      ['run_identity',null,'run_identity','footer-identity'],
+      ['输入 SHA256',meta.input_sha256||'—',null],
+      ['模型帧',[mf.label||mf.target,mf.step!==null&&mf.step!==undefined?'step '+mf.step:'',mf.time_s!==null&&mf.time_s!==undefined?mf.time_s+' s':''].filter(Boolean).join(' · ')||'—',null],
+      ['生成时间',createdIso?stamp(createdIso,meta.created_at):(meta.created_at||'—'),null],
+      ['报告重建',stamp(au.report_rebuilt_at),null],
+      ['摘要版本',meta.schema_version||'—',null],
+      ['计算设备',[meta.device,meta.gpu].filter(Boolean).join(' · ')||'—',null],
+      ['坐标架方向来源',frame?(frame.direction_source==='unknown_stl'?'按解剖坐标架推断（STL 无患者方向）':frame.direction_source||'—'):'无解剖坐标架',null]);
+  }
+  function renderTechInfo() {
+    const box=$('tech-info-rows');if(!box||!box.replaceChildren)return;
+    const keep={};for(const id of ['footer-feature','footer-identity']){const el=$(id);if(el)keep[id]=el;}
+    box.replaceChildren();
+    for(const [label,value,gloss,id] of techRows) {
+      const dt=document.createElement('dt');dt.textContent=label;if(gloss)dt.appendChild(glossButton(gloss));
+      let dd=id&&keep[id]?keep[id]:document.createElement('dd');if(!(id&&keep[id]))dd.textContent=value;
+      box.append(dt,dd);
+    }
+  }
+  function techInfoText() {return techRows.map(([label,value,,id])=>`${label}\t${id&&$(id)?$(id).textContent:value}`).join('\n');}
+  let techOpen=false;
+  function setTechInfo(open) {
+    techOpen=Boolean(open);setHidden('tech-info',!techOpen);
+    for(const id of ['tech-info-toggle','tech-info-menu']){const b=$(id);if(b&&b.setAttribute)b.setAttribute('aria-expanded',String(techOpen));}
+    if(techOpen){renderTechInfo();setText('tech-info-status','');}
   }
   const fieldValues=()=> $('volume-field').value==='velocity'?speed:pressure;
   const fieldStats={},fieldRanges={};
@@ -715,12 +957,79 @@
     if(range.max<=range.min)range.max=range.min+1e-6;
     fieldStats[id]=stats;fieldRanges[id]=range;
   }
+  // ---- slice readability (用户试用反馈 7): section colour range, velocity log scale, through-plane velocity,
+  // in-plane arrows.  The whole-field range (max in an iliac jet) left an aneurysm-sac section at 0.01–0.1 m/s
+  // in the bottom 5 % of the colour bar; the section map now adapts to its own samples by default.
+  let sliceRangeMode='section',sliceManual={min:null,max:null},sliceQuantity='speed',sliceArrows=true,logScale=false;
+  let sliceScaleNow=null,legendScaleNow=null;
+  const RANGE_MODES=['section','global','manual'];
+  const quantityOf=field=>field==='velocity'?(sliceQuantity==='normal'?'normal':'speed'):'pressure';
+  // Whole-field scale of the current display: speed (optionally log), pressure, or ±p99|v| for through-plane velocity.
+  function globalScale(field,quantity) {
+    if(field!=='velocity'){const r=fieldRanges.pressure||{min:0,max:1};return {min:r.min,max:r.max,source:'global'};}
+    if(quantity==='normal'){const m=(fieldStats.velocity&&fieldStats.velocity.p99)||(fieldRanges.velocity||{}).max||1;return {min:-m,max:m,diverging:true,source:'global'};}
+    const r=fieldRanges.velocity||{min:0,max:1};return {min:r.min,max:r.max,log:logScale,source:'global'};
+  }
+  // The slice's own scale: 本截面 = robust p2–p98 of the section samples (±p98 |v_n| when signed), 全局, or 手动.
+  function sliceScale(field,quantity,samples) {
+    const g=globalScale(field,quantity),signed=quantity==='normal',log=quantity==='speed'&&logScale;
+    if(sliceRangeMode==='manual'){
+      // Bounds typed for another quantity (field or v·n switched) restart from this section's own range.
+      if(sliceManual.field&&(sliceManual.field!==field||sliceManual.quantity!==quantity)){const r=signed?symmetricRange(samples):robustRange(samples),base=r||g;sliceManual={min:base.min,max:base.max,field,quantity};}
+      const lo=Number(sliceManual.min),hi=Number(sliceManual.max);
+      if(sliceManual.min!==null&&sliceManual.max!==null&&Number.isFinite(lo)&&Number.isFinite(hi)&&hi>lo)return {min:lo,max:hi,log,diverging:signed,source:'manual'};
+      return {...g,source:'fallback'};
+    }
+    if(sliceRangeMode==='global')return g;
+    const r=signed?symmetricRange(samples):robustRange(samples);
+    return r?{min:r.min,max:r.max,log,diverging:signed,source:'section',count:r.count}:{...g,source:'fallback'};
+  }
+  const quantityLabel=(field,quantity,language)=>quantity==='normal'?((language||lang)==='en'?'Through-plane velocity':'穿面速度'):fieldLabel(field,language);
+  // Which way is positive for the through-plane velocity (the centreline tangent points downstream: verified on
+  // LV_GUO_YOU / LIU_YU_MING, every branch's tangent follows increasing arc length and the mean v·t is positive).
+  function normalSense(basis) {
+    const tilted=Number(($('slice-pitch')||{}).value)||Number(($('slice-yaw')||{}).value);
+    if(basis==='centerline')return tilted?'顺流为正、负值=回流（倾斜截面取法向分量）':'顺流为正、负值=回流';
+    if(basis==='x'||basis==='y'||basis==='z')return `沿 +${basis.toUpperCase()} 轴为正`;
+    return '沿截面法向为正';
+  }
+  const SCALE_SOURCE={section:['本截面自适应 p2–p98','this section, p2–p98'],global:['全局','whole field'],manual:['手动','manual'],fallback:['本截面样本不足，用全局','too few samples here, whole field']};
+  // "色标 0.0079–0.118 m/s（本截面自适应）；对数；顺流为正、负值=回流" — used by the zoom caption, CSV header and legend.
+  function scaleCaption(field,scale,quantity,language) {
+    const en=language==='en',[lo,hi]=scaleEnds(scale),src=SCALE_SOURCE[scale.source]||SCALE_SOURCE.global;
+    let text=`${en?'colour range':'色标'} ${fmt(shown(lo,field))}–${fmt(shown(hi,field))} ${unitOf(field)}（${src[en?1:0]}${scale.shared?(en?', shared by the series':'，系列共用'):''}）`;
+    if(scale.log)text+=en?'; log scale':'；对数色标';
+    if(quantity==='normal')text+=en?'; positive along the plane normal':'；'+normalSense(($('slice-basis')||{}).value);
+    return text;
+  }
+  function legendNote(field,scale,quantity,inSlice) {
+    const parts=[];
+    if(field!=='velocity')parts.push('相对压力，非绝对血压');
+    if(scale.log)parts.push('对数色标');
+    if(inSlice) {
+      if(quantity==='normal')parts.push(normalSense(($('slice-basis')||{}).value));
+      const g=globalScale(field,quantity),[glo,ghi]=scaleEnds(g);
+      if(scale.source==='section')parts.push(`本截面自适应 · 全局 ${fmt(shown(glo,field))}–${fmt(shown(ghi,field))}`);
+      else parts.push(scale.source==='manual'?'手动色标':scale.source==='fallback'?'本截面样本不足，用全局色标':'全局色标');
+    }
+    parts.push(currentBands?`${currentBands} 段离散色带`:'连续色标');
+    return parts.join('；');
+  }
   let renderer=null,scene=null,camera=null,controls=null,content=null,contextMesh=null,planeMesh=null,markers=null,highlightGroup=null;
+  // v0.14 (F5) render on demand: one frame per request (controls change, damping settling, resize, scene or UI
+  // change) instead of a continuous loop.  Exports render once themselves before reading pixels.
+  let renderQueued=0,drawFrame=null;
+  function requestRender() {
+    if(renderQueued||!drawFrame||typeof root.requestAnimationFrame!=='function')return;
+    renderQueued=root.requestAnimationFrame(()=>{renderQueued=0;if(drawFrame)drawFrame();})||0;
+  }
   let sliceSelected=false,gesture=null,cutActive=false,pickMode=false,picks=[],pickPlane=null,pickInfo='';
   // Slice gizmo: what a drag on the blue plane does, whether the pointer hovers it, and its helper objects.
   let dragMode='move',planeHover=false,sliceGizmo=null,planeEdge=null,planeArrow=null;
-  let trustOverlay=false, probe=null, probePinned=false, activeFinding=null, findingIndices=[], findingCenter=null, findingExtent=0, regionOn=false, regionSel=[], pointArc=null;
+  let trustOverlay=false, probe=null, probePinned=false, probeEnabled=true, activeFinding=null, findingIndices=[], findingCenter=null, findingExtent=0, regionOn=false, regionSel=[], pointArc=null;
   let applyingRemote=false;
+  let shortcuts=null;   // §19.9 keyboard layer (WssReportCommon.installShortcuts), installed at the end of start-up
+  let started=false;    // set after the first full refresh (layout switches refresh the view note afterwards)
   // v1.1 view-state extensions (contract §12.2)
   let hiddenBranches=new Set(), vertexSegment=null, lineSegment=null, probeLog=[], measurements=[], annotations=[], presetName=null, lang='zh';
   // §17.3 automatic labels + §17.1 morphology.  ``labels.findings`` = how many findings get a 3-D chip
@@ -762,13 +1071,19 @@
   };
   let exportOptions={scale:1,background:'white',colorbar:'overlay',ui:true};
   // C7 / C8 / C9 interaction state (declared before the renderer so the animation loop can read it).
-  let measureMode=null, measurePicks=[], annotMode=false, annotLocked=false, annotSaveTimer=null, presetList=[], labelsAt=0;
+  let measureMode=null, measurePicks=[], annotMode=false, annotLocked=false, annotSaveTimer=null, presetList=[];
+  // §21.4 label layout state (declared before the renderer: the animation loop reads it)
+  let labelsDirty=true,labelKey='',labelPlan=[];
+  const labelSizeCache=new Map();
   let findingReview=normalizeReview(meta.findings&&meta.findings.review), addFindingMode=false, csrfToken=null;
   // Online = served by the workbench (same origin, http/https): server copies of findings review / annotations / preferences apply.
   const online=(()=>{try{const loc=root.location;if(!loc||!/^https?:$/.test(loc.protocol)||typeof fetch!=='function')return null;const path=String(loc.pathname||'');
     let m=path.match(/^(.*)\/api\/jobs\/([A-Za-z0-9_-]{1,80})\/(?:report|files\/report\.html)$/);if(!m)m=path.match(/^(.*)\/jobs\/([A-Za-z0-9_-]{1,80})\/report\.html$/);if(!m)return null;
     return {job_id:m[2],api:`${m[1]}/api/jobs/${m[2]}/`,root:m[1]+'/'};}catch(_){return null;}})();
   const pageOrigin=(()=>{try{const loc=root.location;return loc&&/^https?:$/.test(loc.protocol)&&loc.origin?loc.origin:null;}catch(_){return null;}})();
+  // v0.15: 「← 工作台」 back to this case in the workbench — only on a page the service serves, never inside the compare frame.
+  (()=>{const a=$('back-to-workbench');if(!a||!online)return;let framed=false;try{framed=root.parent&&root.parent!==root;}catch(_){framed=true;}if(framed)return;
+    a.href=online.root+'#job='+online.job_id;a.hidden=false;const h=a.parentNode;if(h&&h.classList)h.classList.add('has-back');})();
   function postParent(message) {if(!pageOrigin||!root.parent||root.parent===root)return false;try{root.parent.postMessage(message,pageOrigin);return true;}catch(_){return false;}}
   async function csrf() {
     if(csrfToken)return csrfToken;
@@ -810,39 +1125,89 @@
   const view=$('volume-view');
   const MODES=['cloud','slice','wall','streamlines'];
   const modeButton=mode=>$('mode-'+mode);
+  // A display tab is only unavailable when the report lacks its data; 「壁面压力」 and 「流线」 switch the physical
+  // quantity themselves (they used to be greyed out whenever the other quantity was selected, v0.12 audit).
+  const MODE_FIELD={wall:'pressure',streamlines:'velocity'};
+  function modeAvailable(mode) {
+    if(mode==='wall')return Boolean(pressure&&wallPressure);
+    if(mode==='streamlines')return Boolean(speed&&lines.length);
+    return MODES.includes(mode);
+  }
+  const MODE_MISSING={wall:'本报告没有壁面压力（发布包未预测压力或未导出壁面插值）',streamlines:'本报告没有流线（未预测速度或未积分流线）'};
+  const MODE_TITLES={cloud:'体内预测点云（快捷键 T 循环页签）',slice:'有限厚度截面与平面投影',wall:'壁面压力（自动切到压力）',streamlines:'由预测速度积分的流线（自动切到速度）'};
+  function setField(field) {
+    const values=field==='velocity'?speed:field==='pressure'?pressure:null;if(!values)return false;
+    const select=$('volume-field');if(select.value===field)return true;
+    select.value=field;refresh();return true;
+  }
   function setMode(mode) {
-    if(!MODES.includes(mode))return;
-    const select=$('volume-mode');const opt=select.querySelector?select.querySelector(`option[value="${mode}"]`):null;
-    if(opt&&opt.disabled)return;
+    if(!MODES.includes(mode)||!modeAvailable(mode))return;
+    const select=$('volume-mode'),want=MODE_FIELD[mode];
+    if(want&&$('volume-field').value!==want)$('volume-field').value=want;
     select.value=mode;sliceSelected=mode==='slice';refresh();
+  }
+  function cycleMode() {
+    const current=MODES.indexOf($('volume-mode').value);
+    for(let k=1;k<=MODES.length;k++){const next=MODES[(current+k)%MODES.length];if(modeAvailable(next)){setMode(next);return next;}}
+    return null;
   }
   function refreshModeTabs() {
     const select=$('volume-mode');
     for(const mode of MODES) {
       const button=modeButton(mode);if(!button)continue;
-      const opt=select.querySelector?select.querySelector(`option[value="${mode}"]`):null;
-      button.disabled=Boolean(opt&&opt.disabled);
-      if(button.classList)button.classList.toggle('on',select.value===mode);
-      if(button.setAttribute)button.setAttribute('aria-pressed',String(select.value===mode));
+      const available=modeAvailable(mode);
+      button.disabled=!available;
+      if(button.setAttribute)button.setAttribute('title',available?MODE_TITLES[mode]:MODE_MISSING[mode]||'');
+      const active=select.value===mode;
+      if(button.classList)button.classList.toggle('on',active);
+      if(button.setAttribute)button.setAttribute('aria-pressed',String(active));
     }
   }
   function cameraState() {
     if(!camera||!controls)return null;
     return {position:[camera.position.x,camera.position.y,camera.position.z],target:controls.target.toArray(),up:[camera.up.x,camera.up.y,camera.up.z]};
   }
+  // OrbitControls caches camera.up when it is constructed (its azimuth axis); a camera whose up differs from that
+  // cached axis would tumble instead of spinning about the vessel, so the controls are rebuilt when up changes.
+  let controlsUp=null,autoView=null;
+  function makeControls() {
+    if(controls&&typeof controls.dispose==='function'){try{controls.dispose();}catch(_){}}
+    controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;
+    controlsUp=[camera.up.x,camera.up.y,camera.up.z];
+    // Any user orbit / zoom / pan ends the automatic framing (the view is no longer refitted on resize).
+    if(typeof controls.addEventListener==='function'){controls.addEventListener('start',()=>{autoView=null;requestRender();});controls.addEventListener('change',requestRender);}
+  }
   function setCamera(cam) {
     if(!camera||!controls||!cam)return;
-    if(cam.up)camera.up.set(...cam.up);
+    if(cam.up){
+      camera.up.set(...cam.up);
+      const u=[camera.up.x,camera.up.y,camera.up.z];
+      if(!controlsUp||Math.abs(u[0]-controlsUp[0])+Math.abs(u[1]-controlsUp[1])+Math.abs(u[2]-controlsUp[2])>1e-6)makeControls();
+    }
     if(cam.target)controls.target.set(...cam.target);
     if(cam.position)camera.position.set(...cam.position);
-    camera.updateProjectionMatrix();controls.update();
+    camera.updateProjectionMatrix();controls.update();requestRender();
+  }
+  // Standard / default views framed to fill the viewport (§19.9); ``autoView`` remembers which one is shown so
+  // a resize (compact layout, menu column, window) refits it until the user moves the camera.
+  function fittedCamera(name) {
+    if(!camera)return null;
+    const useName=frame&&STANDARD_VIEWS[name]?name:'legacy';
+    if(useName==='legacy'&&name!=='front')return null;
+    return fittedStandardCamera(useName,frame,vertices,{fov:camera.fov,aspect:camera.aspect,margin:1.12,center,distance:diagonal*1.5});
+  }
+  function showStandardView(name) {
+    const cam=fittedCamera(name);if(!cam)return false;
+    setCamera(cam);autoView=name;return true;
   }
   let hoverAt=0;
   try {
     renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(root.devicePixelRatio||1,2));
-    renderer.setClearColor(0xeef3f7);view.appendChild(renderer.domElement);
+    renderer.setClearColor(0xeef3f7);renderer.domElement.setAttribute('role','img');renderer.domElement.setAttribute('aria-label','三维体场视图，可旋转、缩放并读取体内数值');view.appendChild(renderer.domElement);
     scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(42,1,diagonal/1000,diagonal*100);
-    controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;
+    // Up = the anatomical head direction before the controls exist, so orbiting spins about the vessel axis.
+    {const up=frame?viewDirections('front',frame).up:LEGACY_VIEW.up;camera.up.set(up[0],up[1],up[2]);}
+    makeControls();
     scene.add(new THREE.AmbientLight(0xffffff,0.75));const light=new THREE.DirectionalLight(0xffffff,0.55);light.position.set(1,1,2);scene.add(light);
     const fill=new THREE.DirectionalLight(0xffffff,0.25);fill.position.set(-1,-0.5,-1);scene.add(fill);
     content=new THREE.Group();scene.add(content);markers=new THREE.Group();scene.add(markers);highlightGroup=new THREE.Group();scene.add(highlightGroup);
@@ -854,7 +1219,11 @@
     planeEdge=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints([[-.5,-.5,0],[.5,-.5,0],[.5,.5,0],[-.5,.5,0]].map(q=>new THREE.Vector3(...q))),new THREE.LineBasicMaterial({color:0x1f6f8b,depthTest:false}));planeEdge.renderOrder=6;
     planeArrow=new THREE.ArrowHelper(new THREE.Vector3(0,0,1),new THREE.Vector3(0,0,0),1,0x1f6f8b,.2,.1);
     sliceGizmo=new THREE.Group();sliceGizmo.add(planeMesh);sliceGizmo.add(planeEdge);sliceGizmo.add(planeArrow);scene.add(sliceGizmo);
-    function resize() {const width=Math.max(view.clientWidth,1),height=Math.max(view.clientHeight,1);renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix();}
+    function resize() {
+      const width=Math.max(view.clientWidth||0,1),height=Math.max(view.clientHeight||0,1);renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix();
+      if(autoView)showStandardView(autoView);
+      requestRender();
+    }
     if(root.ResizeObserver) new ResizeObserver(resize).observe(view);else root.addEventListener('resize',resize);
     resize();
     function setSlider(id,value) {const el=$(id);if(!el)return;const min=Number(el.min),max=Number(el.max);el.value=String(clamp(value,min,max));el.dispatchEvent(new Event('input',{bubbles:true}));}
@@ -881,7 +1250,7 @@
       moveAlongNormal(dragAlong(dx,dy,screenDir(origin,plane.normal),px));
     }
     function updateGizmoStyle() {
-      if(!planeMesh)return;const active=planeHover||Boolean(gesture);
+      if(!planeMesh)return;requestRender();const active=planeHover||Boolean(gesture);
       planeMesh.material.opacity=active?.3:.16;planeEdge.material.color.setHex(active?0xd97706:0x1f6f8b);planeArrow.setColor(new THREE.Color(active?0xd97706:0x1f6f8b));
       if(renderer.domElement.style)renderer.domElement.style.cursor=gesture?'grabbing':planeHover?'grab':'';
     }
@@ -896,6 +1265,8 @@
     },{passive:false,capture:true});
     // Keyboard nudges while a slice is shown: arrows move / rotate, PgUp/PgDn tilt, [ ] change thickness, Esc ends picking.
     root.addEventListener('keydown',event=>{
+      // A key already consumed by the shortcut layer (help overlay, Esc on a popover) is not a slice nudge.
+      if(event.defaultPrevented)return;
       const tag=event.target&&event.target.tagName?String(event.target.tagName).toUpperCase():'';
       if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;
       if(event.key==='Escape'){if(sliceZoomOpen){openSliceZoom(false);event.preventDefault();return;}if(pickMode){setPickMode(false);event.preventDefault();}return;}
@@ -952,7 +1323,7 @@
         const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;gesture.x=event.clientX;gesture.y=event.clientY;applyPlaneDrag(gesture.kind,dx,dy);event.preventDefault();return;
       }
       if(!pressStart&&gizmoIdle()){const on=Boolean(castAt(event.clientX,event.clientY,[planeMesh]));if(on!==planeHover){planeHover=on;updateGizmoStyle();}}
-      if(probePinned||pressStart)return;
+      if(probePinned||pressStart||!probeEnabled)return;
       const now=Date.now();if(now-hoverAt<60)return;hoverAt=now;
       const hit=probeAt(event.clientX,event.clientY,false);
       if(hit){probe=hit;renderProbe();}
@@ -972,7 +1343,7 @@
       } else if(click&&pickMode) {
         const p=pickAt(event.clientX,event.clientY);
         if(p) addPick(p); else setText('pick-status','未点到血管，请点击半透明壁面或体内点。');
-      } else if(click) {
+      } else if(click&&probeEnabled) {
         const hit=probeAt(event.clientX,event.clientY,true);
         if(hit){probe=hit;probePinned=true;} else {probePinned=false;}
         renderProbe();
@@ -982,23 +1353,32 @@
     renderer.domElement.addEventListener('pointerup',endGesture);renderer.domElement.addEventListener('pointercancel',endGesture);
     let lastCam='',lastPost=0;
     function animate() {
-      root.requestAnimationFrame(animate);controls.update();renderer.render(scene,camera);
+      // Keep drawing only while the orbit damping is still settling (update() reports a camera change).
+      if(controls.update())requestRender();renderer.render(scene,camera);
       // measurement / annotation labels follow the camera (throttled; no work when there are none)
-      {const at=Date.now();if(at-labelsAt>100&&(measurements.length||annotations.length||hasAutoLabels())){labelsAt=at;renderLabels();}}
+      // §21.4: labels are laid out again only when the camera / viewport changed or the label set did (once per frame at most)
+      if(started&&(labelsDirty||(measurements.length||annotations.length||hasAutoLabels())&&cameraKey()!==labelKey))layoutLabelsNow();
       // camera link (contract §6): post the anatomical-frame camera to the parent page, throttled
       if(frame&&root.parent&&root.parent!==root&&!applyingRemote) {
-        const now=Date.now();if(now-lastPost<50)return;
-        const cam=cameraState();const key=JSON.stringify(cam);if(key===lastCam)return;lastCam=key;lastPost=now;
+        const now=Date.now(),cam=cameraState(),key=JSON.stringify(cam);if(key===lastCam)return;
+        if(now-lastPost<50){requestRender();return;}   // throttled: draw once more so the final camera still goes out
+        lastCam=key;lastPost=now;
         try{root.parent.postMessage({type:'wss-view:camera',family:'volume',camera:cameraToAligned(cam,frame)},'*');}catch(_){}
       }
     }
+    drawFrame=animate;
+    // Any UI input may change the scene; the requests coalesce into one frame.  Hover over the canvas can move the
+    // probe marker or the slice gizmo highlight, so pointer moves there ask for a frame as well.
+    if(root.document&&typeof root.document.addEventListener==='function')for(const type of ['input','change','click','keydown','pointerup'])root.document.addEventListener(type,requestRender,true);
+    renderer.domElement.addEventListener('pointermove',requestRender);renderer.domElement.addEventListener('wheel',requestRender,{passive:true});
     animate();
-  } catch(error) {renderer=null;camera=null;controls=null;content=null;$('volume-error').hidden=false;$('volume-error').textContent='三维显示不可用：'+error.message+'。仍可使用截面投影与统计。';}
+  } catch(error) {drawFrame=null;renderer=null;camera=null;controls=null;content=null;$('volume-error').hidden=false;$('volume-error').textContent='三维显示不可用：'+error.message+'。仍可使用截面投影与统计。';}
   root.addEventListener('message',event=>{
     const data=event&&event.data;if(!data||typeof data!=='object'||typeof data.type!=='string'||!data.type.startsWith('wss-view:'))return;
+    requestRender();
     if(data.type==='wss-view:set-camera') {
       if(!frame||!data.camera)return;
-      applyingRemote=true;try{setCamera(cameraFromAligned(data.camera,frame));}finally{setTimeout(()=>{applyingRemote=false;},120);}
+      applyingRemote=true;try{setCamera(cameraFromAligned(data.camera,frame));autoView=null;}finally{setTimeout(()=>{applyingRemote=false;},120);}
       return;
     }
     // Batch export / apply-state protocol (contract §12.6): same origin only; disabled for file:// reports.
@@ -1033,14 +1413,17 @@
       postParent(message);
     }
   });
-  function fit() {if(!camera)return;controls.target.set(...center);camera.up.set(0,0,1);camera.position.set(center[0]+diagonal*.85,center[1]-diagonal*1.25,center[2]+diagonal*.55);camera.updateProjectionMatrix();controls.update();}
+  // 复位视角 / 0 / R: the anatomical front view filling the viewport; reports without a frame keep the old
+  // oblique direction, fitted the same way.
+  function fit() {if(!camera)return;showStandardView('front');}
   fit();
   function flyTo(xyz,extent) {
     if(!camera||!controls||!xyz)return;
     const current=cameraState(), dir=unit(sub(current.position,current.target)), distance=Math.max((extent||0)*5,diagonal*.12);
-    setCamera({position:add(xyz,mul(dir,distance)),target:xyz.slice(),up:current.up});
+    setCamera({position:add(xyz,mul(dir,distance)),target:xyz.slice(),up:current.up});autoView=null;
   }
   function drawMarkers() {
+    requestRender();
     if(!markers){renderLabels();return;}
     while(markers.children.length){const o=markers.children[0];markers.remove(o);o.geometry&&o.geometry.dispose();o.material&&o.material.dispose();}
     const sphere=(p,hex,scale)=>{const s=new THREE.Mesh(new THREE.SphereGeometry(diagonal/(scale||160),14,10),new THREE.MeshBasicMaterial({color:hex,depthTest:false}));s.position.set(...p);s.renderOrder=5;markers.add(s);};
@@ -1131,8 +1514,9 @@
   function clearGroup(group) {if(!group)return;while(group.children.length){const object=group.children[0];group.remove(object);if(object.geometry)object.geometry.dispose();if(object.material)object.material.dispose();}}
   function clearContent() {clearGroup(content);}
   const TRUST_INTERIOR=4|8|16, TRUST_WALL_SOFT=2|4;
+  // ``range`` is a display scale {min,max,log?,diverging?}; plain {min,max} ranges map linearly as before.
   function pointColor(i,values,range) {
-    const c=color(values[i],range.min,range.max);
+    const c=scaleColor(values[i],range);
     return trustOverlay&&trust&&(trust[i]&TRUST_INTERIOR)?desaturate(c):c;
   }
   function geometryFor(indices,values,range) {
@@ -1146,7 +1530,7 @@
     for(let j=0;j<indices.length;j+=stride) {
       const i=indices[j],v=point(velocity,i),length=norm(v);if(length<1e-8)continue;
       const start=point(pts,i),direction=unit(v),size=diagonal*.025*Math.sqrt(length/Math.max(range.max,1e-9));
-      const end=add(start,mul(direction,size)),side=planeBasis(direction).u,back=sub(end,mul(direction,size*.24)),c=color(length,range.min,range.max);
+      const end=add(start,mul(direction,size)),side=planeBasis(direction).u,back=sub(end,mul(direction,size*.24)),c=scaleColor(length,range);
       for(const [a,b] of [[start,end],[end,add(back,mul(side,size*.1))],[end,sub(back,mul(side,size*.1))]]) {positions.push(...a,...b);colors.push(...c,...c);}
     }
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));content.add(new THREE.LineSegments(geometry,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.9})));
@@ -1166,14 +1550,14 @@
       if(hiddenLines&&hiddenLines[li]>=0&&hiddenBranches.has(hiddenLines[li]))continue;
       if(!tubes) {
         const geometry=new THREE.BufferGeometry(),colors=new Float32Array(line.points.length);
-        for(let i=0;i<line.speed.length;i++)colors.set(color(line.speed[i],range.min,range.max),i*3);
+        for(let i=0;i<line.speed.length;i++)colors.set(scaleColor(line.speed[i],range),i*3);
         geometry.setAttribute('position',new THREE.BufferAttribute(line.points,3));geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));content.add(new THREE.Line(geometry,material));continue;
       }
       const curvePoints=[];for(let i=0;i<n;i++)curvePoints.push(new THREE.Vector3(line.points[3*i],line.points[3*i+1],line.points[3*i+2]));
       const curve=new THREE.CatmullRomCurve3(curvePoints,false,'centripetal'), segs=Math.max(2,Math.min(n-1,160)), radial=5;
       const geometry=new THREE.TubeGeometry(curve,segs,radius,radial,false);
       const count=geometry.attributes.position.count,colors=new Float32Array(count*3);
-      for(let i=0;i<=segs;i++){const c=color(line.speed[Math.round(i/segs*(n-1))],range.min,range.max);for(let j=0;j<=radial;j++)colors.set(c,3*(i*(radial+1)+j));}
+      for(let i=0;i<=segs;i++){const c=scaleColor(line.speed[Math.round(i/segs*(n-1))],range);for(let j=0;j<=radial;j++)colors.set(c,3*(i*(radial+1)+j));}
       geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));content.add(new THREE.Mesh(geometry,material));
     }
   }
@@ -1202,7 +1586,7 @@
     }
     const nearest=[];for(let i=0;i<finite.length;i++){let best=Infinity;for(let j=0;j<finite.length;j++)if(i!==j)best=Math.min(best,Math.hypot(finite[i].p[0]-finite[j].p[0],finite[i].p[1]-finite[j].p[1]));if(Number.isFinite(best))nearest.push(best);}
     nearest.sort((a,b)=>a-b);const median=nearest.length?nearest[Math.floor(nearest.length/2)]:0;
-    return {finite,contour,loop,bounds,median,fillOn,isVelocityField,extent};
+    return {finite,contour,loop,bounds,median,fillOn,isVelocityField,extent,plane};
   }
   function sliceGrid(data,nx,ny) {
     const {finite,contour,bounds,median,fillOn,isVelocityField}=data;
@@ -1236,31 +1620,58 @@
     const cellW=(xmax-xmin)/nx*scale,cellH=(ymax-ymin)/ny*scale;
     for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
       const at=iy*nx+ix,x=toX(xmin+ix*(xmax-xmin)/nx),y=toY(ymin+(iy+1)*(ymax-ymin)/ny);
-      if(grid.mask[at]&&Number.isFinite(grid.values[at])){const c=color(grid.values[at],range.min,range.max);ctx.fillStyle=`rgb(${c.map(v=>Math.round(v*255)).join(',')})`;if(grid.low&&grid.low[at])ctx.globalAlpha=.78;ctx.fillRect(x,y,cellW+1,cellH+1);ctx.globalAlpha=1;}
+      if(grid.mask[at]&&Number.isFinite(grid.values[at])){const c=scaleColor(grid.values[at],range);ctx.fillStyle=`rgb(${c.map(v=>Math.round(v*255)).join(',')})`;if(grid.low&&grid.low[at])ctx.globalAlpha=.78;ctx.fillRect(x,y,cellW+1,cellH+1);ctx.globalAlpha=1;}
       else if(!grid.stats){ctx.fillStyle='#e1e7ec';ctx.globalAlpha=.38;ctx.fillRect(x,y,cellW+1,cellH+1);ctx.globalAlpha=1;}
     }
     if(contour.length){ctx.strokeStyle='#33475b';ctx.lineWidth=opts.lineWidth||1.4;ctx.beginPath();for(const sg of contour)if(sg[5]>=0){ctx.moveTo(toX(sg[0]),toY(sg[1]));ctx.lineTo(toX(sg[2]),toY(sg[3]));}ctx.stroke();
       if(ctx.setLineDash){ctx.setLineDash([6,4]);ctx.beginPath();for(const sg of contour)if(sg[5]<0){ctx.moveTo(toX(sg[0]),toY(sg[1]));ctx.lineTo(toX(sg[2]),toY(sg[3]));}ctx.stroke();ctx.setLineDash([]);}ctx.lineWidth=1;}
     if(opts.points!==false&&opts.values){const r=opts.pointRadius||2.7;for(const x of finite){const c=pointColor(x.i,opts.values,range);ctx.fillStyle=`rgb(${c.map(v=>Math.round(v*255)).join(',')})`;ctx.strokeStyle='#ffffff';ctx.lineWidth=1;ctx.beginPath();ctx.arc(toX(x.p[0]),toY(x.p[1]),r,0,Math.PI*2);ctx.fill();ctx.stroke();}}
+    // In-plane flow arrows: the samples' velocity projected on (u, v), one per grid cell, length ∝ in-plane speed /
+    // the section's p95 in-plane speed (capped at 6 % of the plot width); dark stroke over a white halo.
+    let arrowCount=0;
+    if(opts.arrows&&velocity&&data.plane&&finite.length) {
+      const items=finite.map(x=>{const [du,dv]=inPlane(point(velocity,x.i),data.plane);return {x:x.p[0],y:x.p[1],du,dv};});
+      const {arrows,ref}=arrowSamples(items,bounds,opts.maxArrows||120),maxLen=plot.width*.06,lw=opts.arrowWidth||1.4;
+      if(ref>0) {
+        const segsOf=a=>{const len=Math.min(1,a.mag/ref)*maxLen;if(len<1.5)return null;const ux=a.du/a.mag,uy=-a.dv/a.mag,x0=toX(a.x)-ux*len/2,y0=toY(a.y)-uy*len/2,x1=x0+ux*len,y1=y0+uy*len,h=Math.max(3,len*.35),c=Math.cos(.45),s=Math.sin(.45);
+          return [[x0,y0,x1,y1],[x1,y1,x1-h*(ux*c-uy*s),y1-h*(uy*c+ux*s)],[x1,y1,x1-h*(ux*c+uy*s),y1-h*(uy*c-ux*s)]];};
+        const all=arrows.map(segsOf).filter(Boolean);arrowCount=all.length;
+        for(const [color2,width2] of [['#ffffff',lw+2],['#16283a',lw]]){ctx.strokeStyle=color2;ctx.lineWidth=width2;if(ctx.lineCap!==undefined)ctx.lineCap='round';ctx.beginPath();for(const segs of all)for(const [x0,y0,x1,y1] of segs){ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);}ctx.stroke();}
+        ctx.lineWidth=1;
+      }
+    }
     const font=opts.font||12;ctx.font=`${font}px sans-serif`;ctx.fillStyle='#33475b';ctx.strokeStyle='#33475b';
     {const L=scaleBarLength(1/scale,Math.min(120,plot.width*.22)),px=L*scale,x0=plot.left+8,y0=plot.top+plot.height-10;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0+px,y0);ctx.moveTo(x0,y0-4);ctx.lineTo(x0,y0+4);ctx.moveTo(x0+px,y0-4);ctx.lineTo(x0+px,y0+4);ctx.stroke();ctx.lineWidth=1;ctx.textAlign='left';ctx.fillText(`${L} mm`,x0,y0-6);}
     const barW=Math.max(120,Math.round(width*.26)),barH=Math.max(10,Math.round(font*.9)),barX=width-pad.right-barW,barY=height-pad.bottom+Math.round(font*2.6);
     if(opts.colorbar!==false) {
-      for(let i=0;i<barW;i++){const c=color(range.min+(range.max-range.min)*i/Math.max(1,barW-1),range.min,range.max);ctx.fillStyle=`rgb(${c.map(v=>Math.round(v*255)).join(',')})`;ctx.fillRect(barX+i,barY,1,barH);}
+      for(let i=0;i<barW;i++){const c=colorAtT(i/Math.max(1,barW-1),range);ctx.fillStyle=`rgb(${c.map(v=>Math.round(v*255)).join(',')})`;ctx.fillRect(barX+i,barY,1,barH);}
       ctx.strokeStyle='#8093a2';ctx.strokeRect(barX,barY,barW,barH);ctx.fillStyle='#536a80';
-      ctx.textAlign='left';ctx.fillText(fmt(shown(range.min,field)),barX,barY-3);ctx.textAlign='right';ctx.fillText(fmt(shown(range.max,field)),barX+barW,barY-3);
-      ctx.textAlign='center';ctx.fillText(`${fieldLabel(field,language)} · ${unitOf(field)}`,barX+barW/2,barY+barH+font+2);ctx.textAlign='left';
+      const [lo,hi]=scaleEnds(range);
+      ctx.textAlign='left';ctx.fillText(fmt(shown(lo,field)),barX,barY-3);ctx.textAlign='right';ctx.fillText(fmt(shown(hi,field)),barX+barW,barY-3);
+      if(range.log||range.diverging){ctx.textAlign='center';ctx.fillText(fmt(shown(scaleValueAt(.5,range),field)),barX+barW/2,barY-3);}
+      ctx.textAlign='center';ctx.fillText(`${quantityLabel(field,opts.quantity,language)} · ${unitOf(field)}${range.log?(en?' · log':' · 对数'):''}`,barX+barW/2,barY+barH+font+2);ctx.textAlign='left';
     }
-    const footer=grid.stats?fillSummary(grid.stats,isVelocityField,language):(en?`local IDW · ${grid.validCount}/${nx*ny} cells supported`:`局部 IDW · 支持 ${grid.validCount}/${nx*ny} 格`);
+    const footer=(grid.stats?fillSummary(grid.stats,isVelocityField,language):(en?`local IDW · ${grid.validCount}/${nx*ny} cells supported`:`局部 IDW · 支持 ${grid.validCount}/${nx*ny} 格`))
+      +(arrowCount?(en?' · arrows = in-plane flow direction (length normalised to this section)':' · 箭头 = 面内速度方向（长度按本截面归一化）'):'');
     if(opts.footer!==false){ctx.fillStyle='#536a80';ctx.fillText(footer,pad.left,height-pad.bottom+Math.round(font*1.4),Math.max(80,barX-pad.left-12));}
     if(!finite.length){ctx.textAlign='center';ctx.fillStyle='#536a80';ctx.fillText(en?'no valid samples within this thickness':'此厚度内没有有效预测点',width/2,toY(0)-20);ctx.textAlign='left';}
-    return {plot,bounds,scale,cx,cy,grid,nx,ny,footer};
+    return {plot,bounds,scale,cx,cy,grid,nx,ny,footer,arrows:arrowCount};
   }
-  function drawSlice(indices,values,plane,range,field) {
-    const canvas=$('slice-canvas'),ctx=canvas.getContext('2d');if(!ctx)return;
+  // The displayed quantity on a slice: speed / pressure, or the through-plane velocity (v · n, signed).
+  function sliceValuesFor(field,quantity,plane,indices) {
+    return quantity==='normal'&&velocity?throughPlane(velocity,indices,plane.normal):field==='velocity'?speed:pressure;
+  }
+  const arrowsOn=field=>field==='velocity'&&sliceArrows&&Boolean(velocity);
+  function drawSlice(indices,plane,field) {
+    const quantity=quantityOf(field),values=sliceValuesFor(field,quantity,plane,indices);
     const data=sliceMapData(indices,values,plane,field);
-    sliceLast={data,range,field,plane,values,indices};computeSliceSection();
-    const map=renderSliceMap(ctx,canvas.width,canvas.height,data,range,field,{values,gridMax:120,footer:false});
+    // 本截面: robust range of this section's own samples (wall-boundary fills are never samples).
+    const range=sliceScale(field,quantity,data.finite.map(x=>x.v));
+    sliceScaleNow=range;
+    sliceLast={data,range,field,plane,values,indices,quantity};computeSliceSection();
+    const canvas=$('slice-canvas'),ctx=canvas&&canvas.getContext?canvas.getContext('2d'):null;if(!ctx)return;
+    const map=renderSliceMap(ctx,canvas.width,canvas.height,data,range,field,{values,gridMax:120,footer:false,quantity,arrows:arrowsOn(field),maxArrows:120});
+    sliceLast.arrows=map.arrows;
     setText('slice-fill-note',map.footer+(data.fillOn&&!data.loop?(lang==='en'?' · no wall contour found here (plane beyond the vessel?)':' · 此处未找到壁面轮廓（截面可能已越过血管末端），按严格模式绘制'):data.loop&&data.loop.synthetic?(lang==='en'?' · plane crosses an opening; outline closed by a straight edge':' · 截面经过血管开口，轮廓缺口以直线封闭'):data.loop&&data.loop.open?(lang==='en'?' · open outline, strict map':' · 轮廓不闭合，按严格模式绘制'):''));
     if(sliceZoomOpen)renderSliceZoom();
   }
@@ -1268,13 +1679,49 @@
   function renderSliceZoom() {
     const canvas=$('slice-zoom-canvas');if(!canvas||!sliceLast||!canvas.getContext)return;const ctx=canvas.getContext('2d');if(!ctx)return;
     const showPoints=!($('slice-zoom-points')&&$('slice-zoom-points').checked===false);
-    const {data,range,field,plane,values}=sliceLast;
-    const map=renderSliceMap(ctx,canvas.width,canvas.height,data,range,field,{values,points:showPoints,gridMax:240,cellPx:5,font:22,lineWidth:2.2,pointRadius:4.5,pad:{left:40,top:30,right:40,bottom:120},background:'#ffffff'});
+    const {data,range,field,plane,values,quantity}=sliceLast;
+    const map=renderSliceMap(ctx,canvas.width,canvas.height,data,range,field,{values,points:showPoints,gridMax:240,cellPx:5,font:22,lineWidth:2.2,pointRadius:4.5,pad:{left:40,top:30,right:40,bottom:120},background:'#ffffff',
+      quantity,arrows:arrowsOn(field),maxArrows:300,arrowWidth:2.4});
     sliceZoomLast=map;
     const en=lang==='en',thickness=Number($('slice-thickness').value);
-    setText('slice-zoom-title',`${fieldLabel(field,lang)} · ${unitOf(field)}${meta.case_id?' · '+meta.case_id:''}`);
+    setText('slice-zoom-title',`${quantityLabel(field,quantity,lang)} · ${unitOf(field)}${meta.case_id?' · '+meta.case_id:''}`);
     setText('slice-zoom-caption',(en?`centre [${plane.origin.map(v=>v.toFixed(1)).join(', ')}] mm · normal [${plane.normal.map(v=>v.toFixed(3)).join(', ')}] · thickness ${thickness.toFixed(1)} mm`
-                                   :`中心 [${plane.origin.map(v=>v.toFixed(1)).join(', ')}] mm · 法向 [${plane.normal.map(v=>v.toFixed(3)).join(', ')}] · 厚度 ${thickness.toFixed(1)} mm`)+sectionCaption(lang));
+                                   :`中心 [${plane.origin.map(v=>v.toFixed(1)).join(', ')}] mm · 法向 [${plane.normal.map(v=>v.toFixed(3)).join(', ')}] · 厚度 ${thickness.toFixed(1)} mm`)+sectionCaption(lang)
+                                   +' · '+scaleCaption(field,range,quantity,en?'en':'zh'));
+  }
+  // ---- slice colour controls (panel + zoom view mirror each other; manual bounds are typed in display units) ----
+  const displayFactor=field=>{const f=convertUnit(1,field,unitOf(field));return Number.isFinite(f)&&f!==0?f:1;};
+  function writeSliceControls(field) {
+    field=field||currentFieldKey();
+    const isVel=field==='velocity'&&Boolean(velocity),manual=sliceRangeMode==='manual';
+    for(const id of ['slice-range-mode','slice-zoom-range'])setVal(id,sliceRangeMode);
+    for(const id of ['slice-quantity','slice-zoom-quantity']){const el=$(id);if(el){el.value=sliceQuantity;el.disabled=!isVel;}}
+    for(const id of ['slice-arrows','slice-zoom-arrows']){const el=$(id);if(el){el.checked=sliceArrows;el.disabled=!isVel;}}
+    for(const id of ['slice-quantity-row','slice-zoom-quantity-row','slice-arrows-row','slice-zoom-arrows-row'])setHidden(id,!isVel);
+    for(const id of ['slice-manual','slice-zoom-manual'])setHidden(id,!manual);
+    if(manual&&sliceManual.min!==null&&sliceManual.max!==null) {
+      const k=displayFactor(field),active=typeof document!=='undefined'?document.activeElement:null;
+      for(const [id,v] of [['slice-min',sliceManual.min],['slice-max',sliceManual.max],['slice-zoom-min',sliceManual.min],['slice-zoom-max',sliceManual.max]]){const el=$(id);if(el&&el!==active)el.value=String(+(Number(v)*k).toPrecision(4));}
+    }
+    const log=$('velocity-log');if(log){log.checked=logScale;log.disabled=!velocity;}
+  }
+  function setSliceDisplay(partial) {
+    const p=partial&&typeof partial==='object'?partial:{},field=currentFieldKey();
+    // quantity / arrows / log first: manual bounds are tagged with the quantity they are typed for
+    if(p.quantity==='speed'||p.quantity==='normal')sliceQuantity=p.quantity;
+    if(p.arrows!==undefined)sliceArrows=Boolean(p.arrows);
+    if(p.log!==undefined)logScale=Boolean(p.log);
+    if(RANGE_MODES.includes(p.mode)){
+      sliceRangeMode=p.mode;
+      // entering 手动 starts from what is on screen, so the two boxes are never empty
+      if(p.mode==='manual'&&(sliceManual.min===null||sliceManual.max===null)&&sliceScaleNow){const [lo,hi]=scaleEnds(sliceScaleNow);sliceManual={min:lo,max:hi,field,quantity:quantityOf(field)};}
+    }
+    if(p.min!==undefined||p.max!==undefined){
+      const k=displayFactor(field),lo=p.min===undefined?sliceManual.min:Number(p.min)/k,hi=p.max===undefined?sliceManual.max:Number(p.max)/k;
+      sliceManual={min:Number.isFinite(lo)?lo:null,max:Number.isFinite(hi)?hi:null,field,quantity:quantityOf(field)};
+    }
+    refresh();
+    return {mode:sliceRangeMode,quantity:sliceQuantity,arrows:sliceArrows,log:logScale,scale:sliceScaleNow&&{...sliceScaleNow}};
   }
   function openSliceZoom(open) {
     sliceZoomOpen=Boolean(open);setHidden('slice-zoom',!sliceZoomOpen);
@@ -1572,7 +2019,7 @@
   }
   function presetContext() {
     const views={};
-    if(frame)for(const name of Object.keys(STANDARD_VIEWS)){const cam=standardCamera(name,frame,center,diagonal*1.5);if(cam)views[name]=cam;}
+    if(frame)for(const name of Object.keys(STANDARD_VIEWS)){const cam=fittedCamera(name)||standardCamera(name,frame,center,diagonal*1.5);if(cam)views[name]=cam;}
     return {meta,branchNames:meta.branch_names||{},standardViews:views,findings:currentFindings(),
       profiles:meta.profiles||null,branchIds:branchIds.slice(),groups:clGroups};
   }
@@ -1741,56 +2188,101 @@
     }
     return out;
   }
+  // ---- §21.4 page overlay: laid out once per camera / viewport change (the animation loop compares a camera key),
+  // or when the label set changes (renderLabels marks it dirty).  Chips and leader lines are pooled divs.
+  const labelClass=item=>item.kind==='flabel'?`flabel ${item.severity||'note'}`:item.kind;
+  function labelsHideOverflow() {return compactOn||Math.max(view&&view.clientWidth||0,0)<900;}
+  function declutterFn() {const c=common();return c&&typeof c.declutterLabels==='function'?c.declutterLabels:null;}
   function renderLabels() {
-    const box=$('labels');if(!box||!box.replaceChildren)return;
+    labelsDirty=true;requestRender();
+    if(!camera||!renderer){const box=$('labels');if(box&&box.replaceChildren)box.replaceChildren();labelPlan=[];}
+  }
+  function cameraKey() {
+    if(!camera||!controls)return '';
+    const q=v=>Number(v).toFixed(3);
+    return [camera.position.x,camera.position.y,camera.position.z,controls.target.x,controls.target.y,controls.target.z,camera.up.x,camera.up.y,camera.up.z].map(q).join(',')
+      +'|'+(view&&view.clientWidth)+'x'+(view&&view.clientHeight)+'|'+(labelsHideOverflow()?1:0);
+  }
+  // Size of a chip as the page draws it (measured once per class + text; estimated where there is no layout engine).
+  function measureChip(box,item) {
+    const key=labelClass(item)+'|'+item.text;
+    if(labelSizeCache.has(key))return labelSizeCache.get(key);
+    let w=0,h=0;
+    try{const probe=document.createElement('div');probe.className=labelClass(item);probe.textContent=item.text;if(probe.style)probe.style.visibility='hidden';box.appendChild(probe);
+        w=Number(probe.offsetWidth)||0;h=Number(probe.offsetHeight)||0;if(probe.remove)probe.remove();else if(box.removeChild)box.removeChild(probe);}catch(_){}
+    const size={w:w>0?w:String(item.text).length*7+14,h:h>0?h:20};
+    labelSizeCache.set(key,size);return size;
+  }
+  function layoutLabelsNow() {
+    labelsDirty=false;labelKey=cameraKey();
+    const box=$('labels');if(!box||!box.replaceChildren)return [];
+    if(!camera||!renderer){box.replaceChildren();labelPlan=[];return [];}
+    const items=labelItems(lang);
+    const plan=planLabels(items,{project:projectPoint,size:item=>measureChip(box,item),declutter:declutterFn(),
+      bounds:{width:Math.max(view.clientWidth||0,1),height:Math.max(view.clientHeight||0,1)},hideOverflow:labelsHideOverflow()});
     box.replaceChildren();
-    if(!camera||!renderer)return;
-    for(const item of labelItems(lang)) {
-      const at=projectPoint(item.xyz);if(!at)continue;
+    // leaders first so the chips cover their inner ends
+    for(const p of plan) {
+      if(p.hidden||!p.moved)continue;
+      const end=leaderEnd(p),dx=end.x-p.anchor.x,dy=end.y-p.anchor.y,len=Math.hypot(dx,dy);if(len<2)continue;
+      const style=OVERLAY_STYLE[p.item.kind==='flabel'?'flabel_'+(p.item.severity||'note'):p.item.kind]||OVERLAY_STYLE.meas;
+      const line=document.createElement('div');line.className='leader';
+      if(line.style){line.style.left=p.anchor.x.toFixed(1)+'px';line.style.top=p.anchor.y.toFixed(1)+'px';line.style.width=len.toFixed(1)+'px';
+        line.style.transform=`rotate(${Math.atan2(dy,dx).toFixed(4)}rad)`;line.style.background=style.leader;}
+      box.appendChild(line);
+    }
+    for(const p of plan) {
+      if(p.hidden)continue;
       const div=document.createElement('div');
-      div.className=item.kind==='flabel'?`flabel ${item.severity||'note'}`:item.kind;div.textContent=item.text;
-      if(div.style){div.style.left=at.x.toFixed(1)+'px';div.style.top=at.y.toFixed(1)+'px';}
+      div.className=labelClass(p.item)+(p.moved?' moved':'');div.textContent=p.item.text;
+      if(div.style){div.style.left=p.x.toFixed(1)+'px';div.style.top=p.y.toFixed(1)+'px';}
       // A findings chip is a shortcut into the list: clicking it flies to the finding, same as the row.
-      if(item.finding&&div.addEventListener)div.addEventListener('click',()=>{
-        const hit=currentFindings().find(x=>x.id===item.finding);
+      if(p.item.finding&&div.addEventListener){const id=p.item.finding;div.addEventListener('click',()=>{
+        const hit=currentFindings().find(x=>x.id===id);
         if(hit)activateFinding(activeFinding===hit.id?null:hit);
-      });
+      });}
       box.appendChild(div);
     }
+    labelPlan=plan;
+    return plan;
   }
   // Chip palette shared by the page overlay (CSS) and the composited exports (canvas).
   const OVERLAY_STYLE={
     meas:{fill:'rgba(232,246,248,0.94)',border:'#5bbcc9',leader:'#3f8f9c'},
     annot:{fill:'rgba(255,247,230,0.94)',border:'#e0a84a',leader:'#b9791d'},
-    flabel_attention:{fill:'rgba(253,236,234,0.96)',border:'#c0392b',leader:'#c0392b',ink:'#8d2114'},
-    flabel_note:{fill:'rgba(234,243,251,0.96)',border:'#176ea2',leader:'#176ea2',ink:'#12547a'},
-    flabel_info:{fill:'rgba(238,241,243,0.96)',border:'#5f7c8a',leader:'#5f7c8a',ink:'#3f5a72'},
+    // finding chips follow the page palette (v0.11.2 restyle: attention red, note amber, info blue)
+    flabel_attention:{fill:'rgba(253,231,227,0.96)',border:'#e2a294',leader:'#c0392b',ink:'#8d3223'},
+    flabel_note:{fill:'rgba(255,242,213,0.96)',border:'#e6c47a',leader:'#b7791f',ink:'#7a5814'},
+    flabel_info:{fill:'rgba(229,240,250,0.96)',border:'#9dc3e6',leader:'#176caa',ink:'#175b8c'},
     flabel_manual:{fill:'rgba(243,236,250,0.96)',border:'#7d5ba6',leader:'#7d5ba6',ink:'#5b3f7d'},
     blabel:{fill:'rgba(247,251,249,0.96)',border:'#3f8f6b',leader:'#3f8f6b',ink:'#2c6b50'},
     dlabel:{fill:'rgba(246,238,250,0.96)',border:'#8e44ad',leader:'#8e44ad',ink:'#6d2f88'}};
+  // Exports (PNG, six views, montages, one-pager figures) redo the same layout at the export's own label sizes
+  // (text measured with the export font, divided by the scale) so the composited chips never overlap either.
   function drawOverlayLabels(ctx,W,H,k,language) {
     const items=labelItems(language);
-    if(!items.length||!camera||!ctx||typeof ctx.fillText!=='function')return;
+    if(!items.length||!camera||!ctx||typeof ctx.fillText!=='function')return [];
     ctx.save();ctx.font=`${12*k}px Arial,Helvetica,sans-serif`;ctx.textAlign='left';ctx.textBaseline='middle';
-    for(const item of items) {
-      const at=projectPoint(item.xyz),anchor=projectPoint(item.anchor);
-      if(!at)continue;
-      const text=item.text;if(!text)continue;
-      let width=text.length*7*k;
-      try{const m=ctx.measureText(text);if(m&&Number.isFinite(m.width)&&m.width>0)width=m.width;}catch(_){}
-      const x=at.x*k,y=at.y*k,pad=5*k,boxW=width+2*pad,boxH=18*k;
-      const style=OVERLAY_STYLE[item.kind==='flabel'?'flabel_'+(item.severity||'note'):item.kind]||OVERLAY_STYLE.meas;
-      if(anchor&&(Math.abs(anchor.x-at.x)>0.5||Math.abs(anchor.y-at.y)>0.5)) {
-        ctx.strokeStyle=style.leader;ctx.lineWidth=Math.max(1,k*0.8);
-        ctx.beginPath();ctx.moveTo(anchor.x*k,anchor.y*k);ctx.lineTo(x,y+boxH/2);ctx.stroke();
+    const pad=5,boxH=18;
+    const size=item=>{let width=String(item.text).length*7*k;try{const m=ctx.measureText(item.text);if(m&&Number.isFinite(m.width)&&m.width>0)width=m.width;}catch(_){}return {w:width/k+2*pad,h:boxH};};
+    const plan=planLabels(items,{project:projectPoint,size,declutter:declutterFn(),bounds:{width:W/k,height:H/k},hideOverflow:labelsHideOverflow()});
+    for(const p of plan) {
+      if(p.hidden)continue;
+      const item=p.item,style=OVERLAY_STYLE[item.kind==='flabel'?'flabel_'+(item.severity||'note'):item.kind]||OVERLAY_STYLE.meas;
+      const x=p.x*k,y=p.y*k,boxW=p.w*k,bh=p.h*k;
+      // leader: a moved chip always gets one; a lifted chip (annotation / finding) keeps its short stem
+      const lifted=Math.abs(p.anchor.x-p.x)>0.5||Math.abs(p.anchor.y-(p.y+p.h/2))>0.5;
+      if(p.moved||lifted) {
+        const end=leaderEnd(p);
+        ctx.save();if(p.moved)ctx.globalAlpha=.6;ctx.strokeStyle=style.leader;ctx.lineWidth=Math.max(1,k*(p.moved?1:0.8));
+        ctx.beginPath();ctx.moveTo(p.anchor.x*k,p.anchor.y*k);ctx.lineTo(end.x*k,end.y*k);ctx.stroke();ctx.restore();
       }
-      ctx.fillStyle=style.fill;
-      ctx.fillRect(x-boxW/2,y-boxH/2,boxW,boxH);
-      ctx.strokeStyle=style.border;ctx.lineWidth=Math.max(1,k*0.8);
-      ctx.strokeRect(x-boxW/2,y-boxH/2,boxW,boxH);
-      ctx.fillStyle=style.ink||'#20374d';ctx.fillText(text,x-boxW/2+pad,y);
+      ctx.fillStyle=style.fill;ctx.fillRect(x-boxW/2,y-bh/2,boxW,bh);
+      ctx.strokeStyle=style.border;ctx.lineWidth=Math.max(1,k*0.8);ctx.strokeRect(x-boxW/2,y-bh/2,boxW,bh);
+      ctx.fillStyle=style.ink||'#20374d';ctx.fillText(item.text,x-boxW/2+pad*k,y);
     }
     ctx.restore();
+    return plan;
   }
   // ---- §17.3 automatic-label state, the max-diameter row and the §17.2 narrative ----
   function hasAutoLabels(){return labelState.findings>0||labelState.branches||Boolean(labelState.max_diameter&&morphMax);}
@@ -2025,7 +2517,7 @@
     }
     const dim=hiddenBranches.has(Number(branch.segment_id));
     const r1=panel(top,series.map(x=>x.values),`${quantity==='pressure'?'压力':'速度'} · ${unitOf(field)}${dim?'（分支已隐藏）':''}`);
-    series.forEach((x,i)=>polyline(top,r1,x.values,x.dashed,dim?'#b0bcc6':i?'#c0392b':'#176ea2'));
+    series.forEach((x,i)=>polyline(top,r1,x.values,x.dashed,dim?'#b0bcc6':i?'#c0392b':'#176caa'));
     // §17.3: the radius sub-plot also carries the morphology station diameters when the case has them.
     const morph=morphSeriesFor(branch);
     const bottomArrays=[];if(radius)bottomArrays.push(radius);
@@ -2071,6 +2563,7 @@
     setText('region-note','压差 = 区间近端 10% 与远端 10% 弧长段的点平均相对压力之差；统计按采样点等权。');
   }
   function drawHighlight() {
+    requestRender();
     if(!highlightGroup)return;clearGroup(highlightGroup);
     const add3=(indices,hex,size)=>{if(!indices.length)return;const positions=new Float32Array(indices.length*3);indices.forEach((i,j)=>positions.set(point(pts,i),j*3));const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));highlightGroup.add(new THREE.Points(geometry,new THREE.PointsMaterial({color:hex,size,sizeAttenuation:true,depthTest:false,transparent:true,opacity:.95})));};
     if(activeFinding){add3(findingIndices,0xff2fa8,diagonal/260);if(findingCenter){const s=new THREE.Mesh(new THREE.SphereGeometry(Math.max(findingExtent,diagonal/200),18,12),new THREE.MeshBasicMaterial({color:0xff2fa8,wireframe:true,transparent:true,opacity:.35,depthTest:false}));s.position.set(...findingCenter);highlightGroup.add(s);}}
@@ -2086,10 +2579,12 @@
   function captureView() {
     const field=$('volume-field').value, range=fieldRanges[field]||{min:0,max:1};
     return {schema_version:'wss-deploy.view/v1',family:'volume',run_identity:meta.run_identity||null,camera:cameraState(),
-      field,mode:$('volume-mode').value,colormap:currentMap,range:{mode:'case',min:range.min,max:range.max},bands:currentBands,log:false,
+      field,mode:$('volume-mode').value,colormap:currentMap,range:{mode:'case',min:range.min,max:range.max},bands:currentBands,log:logScale,
       units:unitOf(field),units_by_field:{pressure:pressureUnit,velocity:velocityUnit},pressure_units:pressureUnit,speed_units:velocityUnit,thresholds_pa:null,opacity:num('volume-opacity',.1),
       overlay:{trust:trustOverlay,contours:false},
-      slice:{basis:$('slice-basis').value,branch:$('slice-branch').value,position:num('slice-position',50),pitch:num('slice-pitch',0),yaw:num('slice-yaw',0),thickness:num('slice-thickness',2),offset_u:num('slice-offset-u',0),offset_v:num('slice-offset-v',0),picks:picks.map(p=>p.slice()),cut:cutActive,module:$('volume-module').value,fill:!($('slice-fill')&&$('slice-fill').checked===false),series:sliceSeries?{segment_id:sliceSeries.segment_id,fractions:sliceSeries.fractions.slice()}:null},
+      slice:{basis:$('slice-basis').value,branch:$('slice-branch').value,position:num('slice-position',50),pitch:num('slice-pitch',0),yaw:num('slice-yaw',0),thickness:num('slice-thickness',2),offset_u:num('slice-offset-u',0),offset_v:num('slice-offset-v',0),picks:picks.map(p=>p.slice()),cut:cutActive,module:$('volume-module').value,fill:!($('slice-fill')&&$('slice-fill').checked===false),series:sliceSeries?{segment_id:sliceSeries.segment_id,fractions:sliceSeries.fractions.slice()}:null,
+        // v0.12 slice readability: colour range (min / max in raw units, used by 手动), coloured quantity, arrows
+        color_range:{mode:sliceRangeMode,min:sliceManual.min,max:sliceManual.max},quantity:sliceQuantity,arrows:sliceArrows},
       highlight:{finding:activeFinding,region:regionOn?{branch:$('region-branch').value,smin:num('region-smin',0),smax:num('region-smax',100)}:null},
       streamlines:{width:num('streamline-width',1),density:$('streamline-density').value||'1',thin:Boolean($('streamline-thin').checked)},vectors:Boolean($('volume-vectors').checked),
       montage:{views:montageSelection(),columns:Math.max(2,Math.min(4,Math.round(num('montage-columns',2))))},
@@ -2120,6 +2615,8 @@
     if(state.field&&(state.field==='velocity'?speed:pressure))setVal('volume-field',state.field);
     if(state.colormap){setColormap(state.colormap);setVal('colormap',currentMap);}
     if(state.bands!==undefined){setBands(state.bands);setVal('color-bands',currentBands);}
+    // ``log`` = velocity log colour scale (older states carry log:false; pressure ignores it).
+    if(state.log!==undefined)logScale=Boolean(state.log);
     // §15.6: the compare page sends the display subset, where the two units are top-level keys.
     const ubf=state.units_by_field||{},pu=state.pressure_units||ubf.pressure,su=state.speed_units||ubf.velocity;
     if(UNITS.pressure[pu]){pressureUnit=pu;setVal('pressure-unit',pressureUnit);}if(UNITS.velocity[su]){velocityUnit=su;setVal('velocity-unit',velocityUnit);}
@@ -2155,6 +2652,16 @@
         if(Number.isFinite(sid)&&groups.some(g=>Number(g.segment)===sid))setVal('slice-series-branch',String(sid));
         if(fr.length)setVal('slice-series-count',String(fr.length));
       }
+      // v0.12 slice colour keys.  A complete older state (schema_version, no color_range) was drawn on the whole-field
+      // range without arrows, so a replay keeps that look; partial states (compare page subsets) change nothing.
+      const legacy=Boolean(state.schema_version);
+      const cr=sl.color_range&&typeof sl.color_range==='object'?sl.color_range:null;
+      if(cr){if(RANGE_MODES.includes(cr.mode))sliceRangeMode=cr.mode;const lo=Number(cr.min),hi=Number(cr.max);
+        if(cr.min!==null&&cr.max!==null&&cr.min!==undefined&&cr.max!==undefined&&Number.isFinite(lo)&&Number.isFinite(hi))sliceManual={min:lo,max:hi,field:$('volume-field').value,quantity:null};}
+      else if(legacy)sliceRangeMode='global';
+      if(sl.quantity==='speed'||sl.quantity==='normal')sliceQuantity=sl.quantity;else if(legacy)sliceQuantity='speed';
+      if(sl.arrows!==undefined)sliceArrows=Boolean(sl.arrows);else if(legacy)sliceArrows=false;
+      if(sliceManual.quantity===null)sliceManual.quantity=quantityOf($('volume-field').value);
       cutActive=Boolean(sl.cut);const moduleSelect=$('volume-module');
       if(cutActive&&moduleSelect.querySelector&&!moduleSelect.querySelector('option[value="cut-positive"]')){option(moduleSelect,'cut-positive','截面 A 侧');option(moduleSelect,'cut-negative','截面 B 侧');}
       if(sl.module!==undefined)setVal('volume-module',sl.module);
@@ -2205,7 +2712,8 @@
     if(!online&&state.findings_review&&typeof state.findings_review==='object')findingReview=normalizeReview(state.findings_review);
     if(hl.finding){const item=currentFindings().find(x=>x.id===hl.finding);if(item){activeFinding=item.id;findingCenter=Array.isArray(item.xyz_mm)?item.xyz_mm.map(Number):null;findingExtent=Number(item.extent_mm)||diagonal*.03;findingIndices=Array.isArray(item.point_indices)&&item.point_indices.length?item.point_indices.map(Number):(findingCenter?sphereIndices(pts,interior,findingCenter,findingExtent):[]);}}
     drawMarkers();renderFindings();refresh();
-    if(state.camera)setCamera(state.camera);
+    // An explicit camera (view state, #view= link, preset, camera link) always wins over the automatic framing.
+    if(state.camera){setCamera(state.camera);autoView=null;}
   }
   const viewKey=()=>'wss-volume-view:'+(meta.run_identity||meta.case_id||'report');
   function viewFromHash() {
@@ -2213,25 +2721,39 @@
   }
   function download(name,href) {if(!document.body)return;const a=document.createElement('a');a.download=name;a.href=href;document.body.appendChild(a);a.click();a.remove&&a.remove();}
   // ---- publication export (C12): off-screen render at 1x/2x/4x, white / transparent / current background ----
+  // The scale on screen (the legend's): the slice's own scale on the 截面 page, the whole-field one elsewhere.
+  function currentScale() {
+    const field=currentFieldKey();
+    return legendScaleNow||{...globalScale(field,field==='velocity'?'speed':'pressure'),quantity:field==='velocity'?'speed':'pressure'};
+  }
   function drawColorbarOverlay(ctx,W,H,k,language) {
-    const fieldKey=$('volume-field').value,field=fieldKey==='velocity'?'velocity':'pressure',range=fieldRanges[fieldKey]||{min:0,max:1};
+    const field=currentFieldKey(),range=currentScale();
     const pad=14*k,barW=18*k,barH=Math.min(220*k,H*0.4),x=W-pad-84*k,y=pad+22*k;
     ctx.save();ctx.fillStyle='rgba(255,255,255,0.86)';ctx.fillRect(x-8*k,pad-4*k,pad+92*k,barH+40*k);
     const n=currentBands>0?currentBands:64;
-    for(let i=0;i<n;i++){const c=color(range.min+(range.max-range.min)*((i+0.5)/n),range.min,range.max).map(v=>Math.round(v*255));ctx.fillStyle=`rgb(${c.join(',')})`;ctx.fillRect(x,y+barH-(i+1)*barH/n,barW,barH/n+1);}
+    for(let i=0;i<n;i++){const c=colorAtT((i+0.5)/n,range).map(v=>Math.round(v*255));ctx.fillStyle=`rgb(${c.join(',')})`;ctx.fillRect(x,y+barH-(i+1)*barH/n,barW,barH/n+1);}
     ctx.strokeStyle='#8093a2';ctx.lineWidth=Math.max(1,k*0.8);ctx.strokeRect(x,y,barW,barH);
     ctx.fillStyle='#20374d';ctx.font=`${12*k}px Arial,Helvetica,sans-serif`;ctx.textAlign='left';
-    ctx.fillText(fieldLabel(field,language)+' ('+unitOf(field)+')',x-4*k,pad+13*k);
+    ctx.fillText(quantityLabel(field,range.quantity,language)+' ('+unitOf(field)+')'+(range.log?(language==='en'?' log':' 对数'):''),x-4*k,pad+13*k);
     const nt=currentBands>0?currentBands+1:5;
-    for(let i=0;i<nt;i++){const tq=i/(nt-1);ctx.fillText(fmt(shown(range.min+(range.max-range.min)*tq,field)),x+barW+5*k,y+barH-tq*barH+4*k);}
+    for(let i=0;i<nt;i++){const tq=i/(nt-1);ctx.fillText(fmt(shown(scaleValueAt(tq,range),field)),x+barW+5*k,y+barH-tq*barH+4*k);}
     ctx.restore();
   }
-  function colorbarSvgCurrent(language) {
-    const fieldKey=$('volume-field').value,field=fieldKey==='velocity'?'velocity':'pressure',range=fieldRanges[fieldKey]||{min:0,max:1};
-    const opts={colormap:currentMap,min:shown(range.min,field),max:shown(range.max,field),bands:currentBands,log:false,units:unitOf(field),title:fieldLabel(field,language||lang),lang:language||lang,width:96,height:260,orientation:'vertical'};
+  // SVG colour bar of a scale (default: the one on screen); ``note`` is appended to the title (e.g. 系列共用).
+  function colorbarSvgCurrent(language,scaleOverride,note) {
+    const field=currentFieldKey(),range=scaleOverride||currentScale(),language2=language||lang,[lo,hi]=scaleEnds(range),map=scaleMap(range);
+    const title=quantityLabel(field,range.quantity,language2)+(range.log?(language2==='en'?' · log':' · 对数'):'')+(note?' · '+note:'');
+    const opts={colormap:map,min:shown(lo,field),max:shown(hi,field),bands:currentBands,log:false,units:unitOf(field),title,lang:language2,width:96,height:260,orientation:'vertical'};
     const common=root.WssReportCommon;
-    if(common&&typeof common.colorbarSVG==='function'){try{const svg=common.colorbarSVG({...opts,stops:(COLORMAPS[currentMap]||COLORMAPS.rainbow).stops.map((c,i,a)=>[i/(a.length-1),'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')])});if(typeof svg==='string'&&svg.startsWith('<svg'))return svg;}catch(_){}}
+    if(common&&typeof common.colorbarSVG==='function'){try{const svg=common.colorbarSVG({...opts,stops:(COLORMAPS[map]||COLORMAPS.rainbow).stops.map((c,i,a)=>[i/(a.length-1),'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')])});if(typeof svg==='string'&&svg.startsWith('<svg'))return formatSvgTicks(svg,range,field,opts.bands);}catch(_){}}
     return colorbarSVGLocal(opts);
+  }
+  // The shared colour bar writes its ticks with fixed decimals (0.00177 → "0.00") and knows nothing of our log
+  // mapping; the ticks sit at even fractions (bands + 1, or 5 for a continuous bar) in document order, so they are
+  // rewritten from the scale itself with formatValue (log ticks are geometric).
+  function formatSvgTicks(svg,range,field,bands) {
+    const n=bands>0?Math.floor(bands):4;let i=0;
+    return svg.replace(/(<text class="tick"[^>]*>)([^<]*)(<\/text>)/g,(all,open,_old,close)=>open+formatNumber(shown(scaleValueAt(i++/n,range),field))+close);
   }
   function renderExport(options) {
     if(!renderer||!camera||!scene)return {error:'三维视图不可用，无法导出。'};
@@ -2277,7 +2799,7 @@
   function exportSixViews() {
     if(!camera||!frame){setText('export-status','没有解剖坐标架或三维视图，无法导出标准视角。');return;}
     const saved=cameraState(),done=[];
-    for(const name of Object.keys(STANDARD_VIEWS)){setCamera(standardCamera(name,frame,center,diagonal*1.5));if(exportPNG(name))done.push(viewLabel(name,lang));}
+    for(const name of Object.keys(STANDARD_VIEWS)){setCamera(fittedCamera(name));if(exportPNG(name))done.push(viewLabel(name,lang));}
     setCamera(saved);
     setText('export-status',`已导出 ${done.length} 个标准视角（${done.join(' / ')}）${measurements.length||annotations.length?'，含测量与标注标签':''}。`);
   }
@@ -2303,13 +2825,14 @@
     if(!c||typeof c.tableToCSV!=='function')return null;
     const map=sliceZoomLast;
     if(!sliceLast||!map||!map.grid||!Array.isArray(map.bounds))return null;
-    const field=sliceLast.field,plane=sliceLast.plane,units=rawUnitOf(field);
+    const field=sliceLast.field,plane=sliceLast.plane,units=rawUnitOf(field),quantity=sliceLast.quantity;
     const rows=sliceGridToRows(map.grid,map.bounds,units);
     if(!rows.length)return null;
     const filled=Boolean(sliceLast.data&&sliceLast.data.fillOn&&sliceLast.data.loop&&!sliceLast.data.loop.open);
     const comments=[
       `病例 ${caseName()}`,
-      `物理量 ${fieldLabel(field,'zh')}（数值为原始单位 ${units}，与显示单位无关）`,
+      `物理量 ${quantityLabel(field,quantity,'zh')}（数值为原始单位 ${units}，与显示单位无关）${quantity==='normal'?'；速度 · 截面法向，'+normalSense(($('slice-basis')||{}).value):''}`,
+      `显示${scaleCaption(field,sliceLast.range,quantity,'zh')}（只影响颜色，不改数值）`,
       `中心 xyz [${plane.origin.map(v=>v.toFixed(3)).join(', ')}] mm`,
       `法向 [${plane.normal.map(v=>v.toFixed(4)).join(', ')}]`,
       `厚度 ${num('slice-thickness',2).toFixed(1)} mm`,
@@ -2317,7 +2840,7 @@
       `补全模式 ${filled?'壁面边界补全（filled_from_wall=1 为主要由壁面边界补出的格子）':'严格模式（只有预测点支撑的格子，filled_from_wall 恒为 0）'}`,
       'x_mm / y_mm 为截面平面内以截面中心为原点的格心坐标（u 轴、v 轴）。'];
     return {csv:c.tableToCSV(['x_mm','y_mm','value','units','filled_from_wall'],rows,comments),rows:rows.length,
-      name:`${safeFile(caseName())}_slice_${fileFieldKey(field)}.csv`};
+      name:`${safeFile(caseName())}_slice_${sliceFileKey(field,quantity)}.csv`};
   }
   function exportSliceCSV() {
     const out=sliceCSV();
@@ -2331,22 +2854,39 @@
     const el=$('slice-series-branch'),id=el&&el.value!==''&&el.value!==undefined?Number(el.value):NaN;
     return groups.find(g=>Number(g.segment)===id)||groups[0]||null;
   }
-  function seriesPanelURL(group,fraction,field,values,range,width,height) {
+  const sliceFileKey=(field,quantity)=>quantity==='normal'?'through_plane':fileFieldKey(field);
+  function seriesPanelURL(station,field,range,quantity,width,height) {
     const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
     const ctx=canvas.getContext&&canvas.getContext('2d');
     if(!ctx)throw new Error('2D 画布不可用');
-    const base=centerlinePlane(group,fraction),plane={...base,...planeBasis(base.normal)};
-    const indices=slabIndices(pts,walls,segments,plane,num('slice-thickness',2),raw.has_segments?group.segment:null);
-    const data=sliceMapData(indices,values,plane,field);
-    renderSliceMap(ctx,width,height,data,range,field,{values,gridMax:160,footer:false,points:false,colorbar:false,lang,
-      pad:{left:20,top:15,right:20,bottom:20}});
+    renderSliceMap(ctx,width,height,station.data,range,field,{values:station.values,gridMax:160,footer:false,points:false,colorbar:false,lang,
+      quantity,arrows:arrowsOn(field),maxArrows:120,pad:{left:20,top:15,right:20,bottom:20}});
     if(typeof canvas.toDataURL!=='function')throw new Error('画布导出不可用');
     return canvas.toDataURL('image/png');
   }
-  async function colorbarImage() {
+  async function colorbarImage(scale,note) {
     const c=common();
     if(!c||typeof c.loadImage!=='function')return null;
-    try{return {image:await c.loadImage('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(colorbarSvgCurrent(lang)),document)};}catch(_){return null;}
+    try{return {image:await c.loadImage('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(colorbarSvgCurrent(lang,scale,note)),document)};}catch(_){return null;}
+  }
+  // Stations along one branch; 本截面 mode gives the whole series one shared colour bar spanning every station's
+  // own robust range (±max for through-plane velocity), so the panels stay comparable.
+  function seriesStations(group,fractions,field,quantity) {
+    const thickness=num('slice-thickness',2);
+    return fractions.map(fraction=>{
+      const base=centerlinePlane(group,fraction),plane={...base,...planeBasis(base.normal)};
+      const indices=slabIndices(pts,walls,segments,plane,thickness,raw.has_segments?group.segment:null);
+      const values=sliceValuesFor(field,quantity,plane,indices);
+      return {fraction,plane,values,data:sliceMapData(indices,values,plane,field)};
+    });
+  }
+  function seriesScale(stations,field,quantity) {
+    if(sliceRangeMode!=='section')return sliceScale(field,quantity,[]);
+    const parts=stations.map(st=>sliceScale(field,quantity,st.data.finite.map(x=>x.v))).filter(r=>r.source==='section');
+    if(!parts.length)return {...globalScale(field,quantity),source:'fallback'};
+    let lo=Math.min(...parts.map(r=>r.min)),hi=Math.max(...parts.map(r=>r.max));
+    if(quantity==='normal'){const m=Math.max(Math.abs(lo),Math.abs(hi));lo=-m;hi=m;}
+    return {min:lo,max:hi,log:quantity==='speed'&&logScale,diverging:quantity==='normal',source:'section',shared:true};
   }
   async function exportSliceSeries() {
     const note=text=>setText('slice-series-note',text);
@@ -2354,28 +2894,28 @@
     if(!c||typeof c.composeMontage!=='function'||typeof c.loadImage!=='function'){note('拼图需要共享库。');return null;}
     const group=seriesGroup();
     if(!group||group.points.length<2||!(group.arc[group.arc.length-1]>0)){note('没有可用的中心线分支。');return null;}
-    const values=fieldValues();
-    if(!values){note('当前物理量不可用。');return null;}
-    const field=currentFieldKey(),range=fieldRanges[$('volume-field').value]||{min:0,max:1};
+    if(!fieldValues()){note('当前物理量不可用。');return null;}
+    const field=currentFieldKey(),quantity=quantityOf(field);
     const fractions=seriesFractions(num('slice-series-count',6));
     sliceSeries={segment_id:Number(group.segment),fractions:fractions.slice()};
     const length=group.arc[group.arc.length-1];
     note(`正在渲染 ${fractions.length} 个站位…`);
     try {
+      const stations=seriesStations(group,fractions,field,quantity),range=seriesScale(stations,field,quantity);
       const panels=[];
-      for(let i=0;i<fractions.length;i++) {
-        const url=seriesPanelURL(group,fractions[i],field,values,range,700,620);
+      for(let i=0;i<stations.length;i++) {
+        const url=seriesPanelURL(stations[i],field,range,quantity,700,620);
         panels.push({image:await c.loadImage(url,document),label:String.fromCharCode(97+i),
           caption:`s = ${(fractions[i]*length).toFixed(1)} mm (${Math.round(fractions[i]*100)}%)`});
       }
-      const branch=branchLabel(branchName(group.segment),lang);
-      const canvas=c.composeMontage({columns:3,panels,colorbar:await colorbarImage(),document,background:'#ffffff',
-        title:[caseName(),branch,`${fieldLabel(field,lang)} · ${unitOf(field)}`].join(' · ')});
+      const branch=branchLabel(branchName(group.segment),lang),shared=range.shared?(lang==='en'?'shared by the series':'系列共用'):'';
+      const canvas=c.composeMontage({columns:3,panels,colorbar:await colorbarImage(range,shared),document,background:'#ffffff',
+        title:[caseName(),branch,`${quantityLabel(field,quantity,lang)} · ${unitOf(field)}`,shared?(lang==='en'?'one colour bar for all stations':'系列共用色标'):''].filter(Boolean).join(' · ')});
       if(!canvas||typeof canvas.toDataURL!=='function')throw new Error('拼图画布不可用');
-      const name=`${safeFile(caseName())}_slices_${safeFile(branchName(group.segment))}_${fileFieldKey(field)}.png`;
+      const name=`${safeFile(caseName())}_slices_${safeFile(branchName(group.segment))}_${sliceFileKey(field,quantity)}.png`;
       download(name,canvas.toDataURL('image/png'));
-      note(`已导出 ${panels.length} 站截面系列拼图：${name}。`);
-      return name;
+      note(`已导出 ${panels.length} 站截面系列拼图：${name}（${scaleCaption(field,range,quantity,'zh')}）。`);
+      return {name,range:{...range}};
     } catch(err){note('导出失败：'+(err&&err.message||err));return null;}
   }
   // ---- §15.11 multi-view montage ----
@@ -2391,14 +2931,20 @@
     return en?viewLabel(name,'en')+' view':viewLabel(name,'zh')+'视';
   }
   // The zoom map on its own canvas: used as the montage's "section" panel and as the one-pager's slice figure.
-  function sliceCanvasURL(width,height) {
+  // ``withBar`` draws the slice's own colour bar (one-pager figure); the montage panel shares the montage's bar,
+  // so outside the 截面 page (legend = whole field) the panel is drawn on that same scale and quantity.
+  function sliceCanvasURL(width,height,withBar) {
     if(!sliceLast)return null;
     const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
     const ctx=canvas.getContext&&canvas.getContext('2d');
     if(!ctx||typeof canvas.toDataURL!=='function')return null;
-    const {data,range,field,values}=sliceLast;
+    let {data,range,field,values,quantity}=sliceLast;
+    if(!withBar&&$('volume-mode').value!=='slice'){
+      const legend=currentScale();quantity=legend.quantity;range=legend;
+      if(quantity!==sliceLast.quantity){values=sliceValuesFor(field,quantity,sliceLast.plane,sliceLast.indices);data=sliceMapData(sliceLast.indices,values,sliceLast.plane,field);}
+    }
     renderSliceMap(ctx,width,height,data,range,field,{values,points:false,gridMax:240,cellPx:5,font:22,lineWidth:2.2,
-      colorbar:false,footer:false,background:'#ffffff',lang,pad:{left:40,top:30,right:40,bottom:60}});
+      colorbar:Boolean(withBar),footer:false,background:'#ffffff',lang,pad:{left:40,top:30,right:40,bottom:withBar?120:60},quantity,arrows:arrowsOn(field),maxArrows:300,arrowWidth:2.4});
     return canvas.toDataURL('image/png');
   }
   async function exportMontage() {
@@ -2418,7 +2964,7 @@
           shots.push({url,caption:montageLabel(name,lang)});continue;
         }
         if(name!=='current') {
-          const cam=frame&&camera?standardCamera(name,frame,center,diagonal*1.5):null;
+          const cam=frame&&camera?fittedCamera(name):null;
           if(!cam){skipped.push(montageLabel(name,lang));continue;}
           setCamera(cam);
         }
@@ -2433,7 +2979,7 @@
       for(let i=0;i<shots.length;i++)panels.push({image:await c.loadImage(shots[i].url,document),label:String.fromCharCode(97+i),caption:shots[i].caption});
       const field=currentFieldKey(),columns=Math.max(2,Math.min(4,Math.round(num('montage-columns',2))));
       const canvas=c.composeMontage({columns,panels,colorbar:await colorbarImage(),document,background:'#ffffff',
-        title:[caseName(),`${fieldLabel(field,lang)} · ${unitOf(field)}`].join(' · ')});
+        title:[caseName(),`${quantityLabel(field,currentScale().quantity,lang)} · ${unitOf(field)}`].join(' · ')});
       if(!canvas||typeof canvas.toDataURL!=='function')throw new Error('拼图画布不可用');
       const name=`${safeFile(caseName())}_montage_${fileFieldKey(field)}_${scale}x.png`;
       download(name,canvas.toDataURL('image/png'));
@@ -2498,8 +3044,8 @@
     if(el.appendChild)el.appendChild(a);
   }
   function snapshotCaption(view,language) {
-    const field=currentFieldKey();
-    return `${montageLabel(view,language||lang)} · ${fieldLabel(field,language||lang)} · ${unitOf(field)}`;
+    const field=currentFieldKey(),quantity=view==='slice'&&sliceLast?sliceLast.quantity:currentScale().quantity;
+    return `${montageLabel(view,language||lang)} · ${quantityLabel(field,quantity,language||lang)} · ${unitOf(field)}`;
   }
   async function makeOnepageShots() {
     const note=text=>setOnepageStatus(text,false);
@@ -2508,7 +3054,7 @@
     try {
       for(const name of ['front','left','top','current']) {
         if(name!=='current') {
-          const cam=frame&&camera?standardCamera(name,frame,center,diagonal*1.5):null;
+          const cam=frame&&camera?fittedCamera(name):null;
           if(!cam){skipped.push(montageLabel(name,lang));continue;}
           setCamera(cam);
         }
@@ -2519,7 +3065,7 @@
       }
     } finally {if(saved)setCamera(saved);}
     if(sliceLast&&($('volume-mode').value==='slice'||sliceZoomOpen)) {
-      const url=sliceCanvasURL(1400,1200);
+      const url=sliceCanvasURL(1400,1200,true);
       if(url)images.push({name:'slice',view:'slice',png_base64:url.replace(/^data:image\/png;base64,/,''),
         width:1400,height:1200,caption:snapshotCaption('slice',lang)});
     }
@@ -2532,12 +3078,20 @@
       return images.map(x=>x.name);
     } catch(err){note('上传失败：'+(err&&err.message||err));return null;}
   }
+  // v0.14 (F1): tell a same-origin parent (the compare page) that the display changed, without waiting for a camera move.
+  let announceOn=false,announceTimer=null;
+  function announceChange() {
+    if(!announceOn||announceTimer||!root.parent||root.parent===root)return;
+    announceTimer=setTimeout(()=>{announceTimer=null;postParent({type:'wss-view:changed',family:'volume',run_identity:meta.run_identity||null});},120);
+  }
   function refresh() {
+    requestRender();announceChange();
     const isVelocity=$('volume-field').value==='velocity',values=fieldValues(),field=isVelocity?'velocity':'pressure',units=unitOf(field);
     const modeSelect=$('volume-mode');
     const wallOption=modeSelect.querySelector?modeSelect.querySelector('option[value="wall"]'):null,lineOption=modeSelect.querySelector?modeSelect.querySelector('option[value="streamlines"]'):null;
-    if(wallOption)wallOption.disabled=isVelocity||!wallPressure;
-    if(lineOption)lineOption.disabled=!isVelocity||!lines.length;
+    // The hidden select mirrors data availability only; a field change away from wall / streamlines falls back below.
+    if(wallOption)wallOption.disabled=!modeAvailable('wall');
+    if(lineOption)lineOption.disabled=!modeAvailable('streamlines');
     let mode=modeSelect.value;
     if((mode==='wall'&&(isVelocity||!wallPressure))||(mode==='streamlines'&&(!isVelocity||!lines.length))) {modeSelect.value='cloud';mode='cloud';sliceSelected=false;}
     refreshModeTabs();
@@ -2546,7 +3100,8 @@
     $('slice-branch-label').hidden=$('slice-basis').value!=='centerline';
     setHidden('slice-panel',!(mode==='slice'||cutActive));
     setText('volume-field-note',isVelocity?'速度展示排除壁面点。颜色表示速度大小，箭头表示预测向量方向。':'压力体内点和壁面使用同一色标；灰色壁面表示缺少有效插值支撑。');
-    const full=fieldStats[$('volume-field').value],range=fieldRanges[$('volume-field').value];
+    // Whole-field display scale (speed may be log); the 截面 page swaps in the slice's own scale below.
+    const full=fieldStats[$('volume-field').value],range=globalScale(field,isVelocity?'speed':'pressure');
     const plane=currentPlane(),thickness=Number($('slice-thickness').value);
     const moduleValue=$('volume-module').value;
     const cutSide=cutSideFromValue(moduleValue);
@@ -2557,9 +3112,6 @@
     const sliced=visibleIndices(slicedAll);   // hidden branches change the drawing only; statistics stay on all points
     controls&&(controls.enabled=!gesture);
     setStats('volume-statistics',full,field);
-    setText('legend-title',fieldLabel(field,lang)+' · '+units);setText('legend-min',fmt(shown(range.min,field)));setText('legend-max',fmt(shown(range.max,field)));
-    setText('legend-note',(isVelocity?'':'相对压力，非绝对血压；')+(currentBands?`${currentBands} 段离散色带`:'连续色标'));
-    const bar=$('legend-bar');if(bar&&bar.style)bar.style.background=colormapCSS();
     const isPick=$('slice-basis').value==='pick';
     setText('slice-details',`中心 [${plane.origin.map(v=>v.toFixed(2)).join(', ')}] mm；法向 [${plane.normal.map(v=>v.toFixed(3)).join(', ')}]；厚度 ${thickness.toFixed(1)} mm${branchFilter!==null?'；'+branchName(branchFilter):''}。`);
     setText('slice-cut-status',cutActive?'已按当前截面切割；可在“血管模块”中选择截面 A 侧、截面 B 侧或全部。':'尚未切割；“血管模块”可按中心线分支筛选。');
@@ -2569,9 +3121,19 @@
     setText('pick-hint',picks.length===1?'第 2 点（可选）：再点一处让截面通过两点；或按 Esc / 「结束点选」后直接拖动截面。':'第 1 点：在半透明血管壁上点击，截面将垂直于该处中心线（Esc 取消）。');
     setText('slice-position-value',isPick?((Number($('slice-position').value)-50)*.5).toFixed(1)+' mm':Number($('slice-position').value).toFixed(1)+'%');setText('slice-pitch-value',$('slice-pitch').value+'°');setText('slice-yaw-value',$('slice-yaw').value+'°');setText('slice-thickness-value',thickness.toFixed(1));setText('slice-offset-u-value',(Number($('slice-offset-u').value)||0).toFixed(1));setText('slice-offset-v-value',(Number($('slice-offset-v').value)||0).toFixed(1));setText('volume-opacity-value',Number($('volume-opacity').value).toFixed(2));
     setText('streamline-width-value',(Number($('streamline-width').value)||1).toFixed(1)+'×');
-    setText('view-note',(pickMode?'点选模式：单击壁面放置截面点，空白处拖动旋转视图。 ':'')+{cloud:'体内预测点云 · 拖动旋转，滚轮缩放，悬停读值',slice:'有限厚度截面 · 右侧为平面投影'+(pickMode?'':'；拖动蓝色截面沿法向移动，Shift 拖动旋转，滚轮移动，空白处拖动旋转视图'),wall:'壁面压力 · 悬停读值；血管内部可通过体内点云与横截面查看',streamlines:'预测向量场的积分流线 · 颜色为局部速度大小'}[mode]);
+    setText('view-note',(pickMode?'点选模式：单击壁面放置截面点，空白处拖动旋转视图。 ':'')+{cloud:'体内预测点云 · 拖动旋转，滚轮缩放，悬停读值',slice:'有限厚度截面 · 右侧为平面投影'+(pickMode||compactOn?'':'；拖动蓝色截面调整（见顶部工具条）'),wall:'壁面压力 · 悬停读值；血管内部可通过体内点云与横截面查看',streamlines:'预测向量场的积分流线 · 颜色为局部速度大小'}[mode]
+      +(probeEnabled?'':' · 探针已关闭（按 P 打开）')+(shortcuts&&!compactOn?' · 按 ? 查看快捷键':''));
     setText('view-direction-note',frame?(frame.direction_source&&frame.direction_source!=='unknown_stl'?`患者方向来源：${frame.direction_source}`:'标准视角按解剖坐标架推断，请核对左右。'):'本报告没有解剖坐标架，标准视角不可用。');
-    drawSlice(sliced,values,plane,range,field);setStats('slice-statistics',statistics(values,slicedAll),field,sectionRows());
+    drawSlice(sliced,plane,field);setStats('slice-statistics',statistics(values,slicedAll),field,sectionRows());   // statistics stay on the raw field
+    const inSlice=mode==='slice'&&Boolean(sliceScaleNow),legendScale=inSlice?sliceScaleNow:range,legendQuantity=inSlice?quantityOf(field):(isVelocity?'speed':'pressure');
+    legendScaleNow={...legendScale,quantity:legendQuantity};
+    {const [lo,hi]=scaleEnds(legendScale);
+     setText('legend-title',quantityLabel(field,legendQuantity,lang)+' · '+units);setText('legend-min',fmt(shown(lo,field)));setText('legend-max',fmt(shown(hi,field)));
+     setText('legend-note',legendNote(field,legendScale,legendQuantity,inSlice));
+     const bar=$('legend-bar');if(bar&&bar.style)bar.style.background=colormapCSS(legendScale.diverging?'bwr':undefined);
+     // v0.15: text alternative for the colour bar (quantity, units and range)
+     if(bar&&bar.setAttribute){bar.setAttribute('role','img');bar.setAttribute('aria-label',`色标 ${quantityLabel(field,legendQuantity,lang)} · ${units}：${fmt(shown(lo,field))} – ${fmt(shown(hi,field))}`);}}
+    writeSliceControls(field);
     renderTrustLegend();renderNarrative();drawProfile();updateRegion();renderProbe();clearContent();
     if(!renderer||!content)return;
     contextMesh.visible=mode!=='wall';contextMesh.material.opacity=Number($('volume-opacity').value);applyCutPlanes(contextMesh.material,plane,cutSide);
@@ -2580,14 +3142,16 @@
      planeMesh.scale.set(side,side,1);planeEdge.scale.set(side,side,1);planeArrow.setLength(side*.55,side*.14,side*.08);}
     if(mode==='wall') {
       const geometry=contextMesh.geometry.clone(),colors=new Float32Array(vertices.length);
-      for(let i=0;i<wallPressure.length;i++){let c=color(wallPressure[i],range.min,range.max);if(trustOverlay&&wallTrust&&(wallTrust[i]&TRUST_WALL_SOFT))c=desaturate(c);colors.set(c,i*3);}
+      for(let i=0;i<wallPressure.length;i++){let c=scaleColor(wallPressure[i],range);if(trustOverlay&&wallTrust&&(wallTrust[i]&TRUST_WALL_SOFT))c=desaturate(c);colors.set(c,i*3);}
       geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));const wallMaterial=new THREE.MeshPhongMaterial({vertexColors:true,side:THREE.DoubleSide,shininess:10});applyCutPlanes(wallMaterial,plane,cutSide);const wallMesh=new THREE.Mesh(geometry,wallMaterial);wallMesh.userData.kind='wall';content.add(wallMesh);
     } else if(mode==='streamlines') {
       addStreamlines(range,plane,cutSide);
     } else {
       const visible=mode==='slice'?sliced:visibleIndices(sideIndices(moduleIndices(interior,segments,selectedSegment),pts,plane,cutSide));
-      const cloud=new THREE.Points(geometryFor(visible,values,range),new THREE.PointsMaterial({vertexColors:true,size:diagonal/500,transparent:true,opacity:mode==='slice'?1:.8,sizeAttenuation:true}));cloud.userData.indices=visible;content.add(cloud);
-      if(isVelocity&&$('volume-vectors').checked)addVectors(visible,range);
+      // 截面 page: the slab points carry the slice quantity (speed or v·n) on the slice's own scale, like the map.
+      const inSlab=mode==='slice'&&sliceLast,pointValues=inSlab?sliceLast.values:values,pointScale=inSlab?sliceLast.range:range;
+      const cloud=new THREE.Points(geometryFor(visible,pointValues,pointScale),new THREE.PointsMaterial({vertexColors:true,size:diagonal/500,transparent:true,opacity:mode==='slice'?1:.8,sizeAttenuation:true}));cloud.userData.indices=visible;content.add(cloud);
+      if(isVelocity&&$('volume-vectors').checked)addVectors(visible,globalScale('velocity','speed'));
     }
     drawHighlight();
   }
@@ -2692,7 +3256,7 @@
   });
   $('slice-apply-auto').addEventListener('click',()=>{const p=presets[Number($('auto-presets').value)];if(!p)return;$('slice-basis').value='centerline';$('slice-branch').value=String(p.segment);$('slice-position').value=String(p.fraction*100);$('slice-pitch').value='0';$('slice-yaw').value='0';$('slice-offset-u').value='0';$('slice-offset-v').value='0';$('volume-mode').value='slice';sliceSelected=true;refresh();});
   $('volume-fit').addEventListener('click',fit);
-  for(const name of Object.keys(STANDARD_VIEWS)){const button=$('view-'+name);if(!button)continue;button.disabled=!frame;button.addEventListener('click',()=>{const cam=standardCamera(name,frame,center,diagonal*1.5);if(cam)setCamera(cam);});}
+  for(const name of Object.keys(STANDARD_VIEWS)){const button=$('view-'+name);if(!button)continue;button.disabled=!frame;button.addEventListener('click',()=>showStandardView(name));}
   $('view-save').addEventListener('click',()=>{try{root.localStorage.setItem(viewKey(),JSON.stringify(captureView()));setText('view-status','视图状态已保存到本浏览器。');}catch(_){setText('view-status','浏览器不允许保存。');}});
   $('view-restore').addEventListener('click',()=>{try{const text=root.localStorage.getItem(viewKey());if(!text){setText('view-status','没有已保存的视图状态。');return;}applyView(JSON.parse(text));setText('view-status','已恢复保存的视图状态。');}catch(_){setText('view-status','读取失败。');}});
   $('view-export').addEventListener('click',()=>{const text=JSON.stringify(captureView(),null,1);download(`${(meta.case_id||'volume')}_view.json`,'data:application/json;charset=utf-8,'+encodeURIComponent(text));setText('view-status','已导出视图状态 JSON。');});
@@ -2709,12 +3273,18 @@
   const MENUS=['menu-display','menu-findings','menu-profiles','menu-measure','menu-annot','menu-presets','menu-slice','menu-view','menu-stats'];
   for(const id of MENUS) {const el=$(id);if(el&&el.addEventListener)el.addEventListener('toggle',()=>{if(el.open)for(const other of MENUS)if(other!==id&&$(other))$(other).open=false;});}
   {const f=$('slice-fill');if(f)f.addEventListener('change',refresh);}
+  // Slice colour controls (panel and zoom view), velocity log scale.
+  for(const id of ['slice-range-mode','slice-zoom-range']){const el=$(id);if(el)el.addEventListener('change',()=>setSliceDisplay({mode:el.value}));}
+  for(const [a,b] of [['slice-min','slice-max'],['slice-zoom-min','slice-zoom-max']])for(const id of [a,b]){const el=$(id);if(el)el.addEventListener('change',()=>setSliceDisplay({min:($(a)||{}).value,max:($(b)||{}).value}));}
+  for(const id of ['slice-quantity','slice-zoom-quantity']){const el=$(id);if(el)el.addEventListener('change',()=>setSliceDisplay({quantity:el.value}));}
+  for(const id of ['slice-arrows','slice-zoom-arrows']){const el=$(id);if(el)el.addEventListener('change',()=>setSliceDisplay({arrows:el.checked}));}
+  {const el=$('velocity-log');if(el)el.addEventListener('change',()=>setSliceDisplay({log:el.checked}));}
   {const b=$('slice-zoom-open');if(b)b.addEventListener('click',()=>openSliceZoom(true));}
   {const b=$('slice-zoom-close');if(b)b.addEventListener('click',()=>openSliceZoom(false));}
   {const z=$('slice-zoom');if(z)z.addEventListener('click',event=>{if(event.target===z)openSliceZoom(false);});}
   {const c=$('slice-zoom-points');if(c)c.addEventListener('change',renderSliceZoom);}
   {const c=$('slice-zoom-fill');if(c)c.addEventListener('change',()=>{if($('slice-fill'))$('slice-fill').checked=c.checked;refresh();});}
-  {const b=$('slice-zoom-png');if(b)b.addEventListener('click',()=>{const canvas=$('slice-zoom-canvas');if(!canvas||!canvas.toDataURL||!sliceLast)return;const c=common();const name=c&&typeof c.exportFilename==='function'?c.exportFilename({case_id:meta.case_id,view:'slice',field:sliceLast.field,scale:1,ext:'png'}):`${meta.case_id||'case'}_slice_${sliceLast.field}.png`;download(name,canvas.toDataURL('image/png'));});}
+  {const b=$('slice-zoom-png');if(b)b.addEventListener('click',()=>{const canvas=$('slice-zoom-canvas');if(!canvas||!canvas.toDataURL||!sliceLast)return;const c=common();const name=c&&typeof c.exportFilename==='function'?c.exportFilename({case_id:meta.case_id,view:'slice',field:sliceLast.quantity==='normal'?'through_plane':sliceLast.field,scale:1,ext:'png'}):`${meta.case_id||'case'}_slice_${sliceLast.field}.png`;download(name,canvas.toDataURL('image/png'));});}
   {const b=$('slice-zoom-csv');if(b)b.addEventListener('click',()=>{exportSliceCSV();});}
   {const b=$('slice-series-export');if(b)b.addEventListener('click',()=>{exportSliceSeries();});}
   {const b=$('montage-export');if(b)b.addEventListener('click',()=>{exportMontage();});}
@@ -2722,25 +3292,28 @@
   {const b=$('onepage-shots');if(b)b.addEventListener('click',()=>{makeOnepageShots();});}
   {const c=$('slice-zoom-canvas');if(c)c.addEventListener('mousemove',event=>sliceZoomReadout(event.clientX,event.clientY));}
   const sliceCollapse=$('slice-panel-collapse');if(sliceCollapse)sliceCollapse.addEventListener('click',()=>{const body=$('slice-panel-body');if(!body)return;body.hidden=!body.hidden;sliceBodyUser=body.hidden?'closed':'open';sliceCollapse.textContent=body.hidden?'展开':'收起';});
-  // ---- compact layout: a narrow window or a compare-page iframe.  The side menu becomes an overlay, the
-  // right dock shrinks to a small legend + a probe strip along the bottom, header and footer lose their padding.
-  const COMPACT_BREAK=1180,SHORT_LABELS={'pick-toggle':['点选定位截面','点选'],'volume-fit':['复位视角','复位'],'volume-save':['保存视图','保存'],'volume-print':['打印 / 保存 PDF','打印']};
+  // ---- compact layout: a narrow window or a compare-page iframe.  The side menu uses an adaptive column
+  // when there is room and falls back to an overlay on very narrow screens; the right dock shrinks to a
+  // small legend + a probe strip along the bottom, while header and footer lose their padding.
+  const COMPACT_BREAK=1180,SHORT_LABELS={'pick-toggle':['点选定位截面','点选'],'volume-fit':['复位视角','复位'],'volume-save':['保存截图','截图'],'volume-print':['打印 / 保存 PDF','打印']};
   try{const v=root.localStorage&&root.localStorage.getItem('wss-report-compact');if(v==='on'||v==='off')compactOverride=v;}catch(_){}
   function menuEl(){return document.querySelector?document.querySelector('aside.menu'):null;}
-  function setMenuOpen(open){const aside=menuEl();if(!aside||!aside.classList)return;aside.classList.toggle('open',Boolean(open));const b=$('menu-toggle');if(b&&b.setAttribute)b.setAttribute('aria-expanded',String(Boolean(open)));}
+  function setMenuOpen(open){const aside=menuEl();if(!aside||!aside.classList)return;aside.classList.toggle('open',Boolean(open));const main=aside.closest&&aside.closest('main');if(main&&main.classList)main.classList.toggle('menu-open',Boolean(open));const b=$('menu-toggle');if(b&&b.setAttribute)b.setAttribute('aria-expanded',String(Boolean(open)));if(typeof root.dispatchEvent==='function'&&typeof root.Event==='function')root.dispatchEvent(new root.Event('resize'));}
   function applyCompact(force){
     const want=compactOverride==='on'?true:compactOverride==='off'?false:(Number(root.innerWidth)||1e4)<COMPACT_BREAK;
     if(!force&&want===compactOn)return;compactOn=want;
+    const aside=menuEl();if(aside&&aside.style){aside.style.transition='none';setTimeout(()=>{try{aside.style.removeProperty('transition');}catch(_){ }},0);}
     if(document.body&&document.body.classList)document.body.classList.toggle('compact',compactOn);
     for(const [id,[long,short]] of Object.entries(SHORT_LABELS)){const b=$(id);if(!b)continue;if(!(id==='pick-toggle'&&pickMode))b.textContent=compactOn?short:long;if(b.setAttribute)b.setAttribute('title',long);}
     const lt=$('layout-toggle');if(lt)lt.textContent=compactOn?'完整布局':'紧凑布局';
     setMenuOpen(false);
     const body=$('slice-panel-body');if(body&&sliceBodyUser===null){body.hidden=compactOn;if(sliceCollapse)sliceCollapse.textContent=body.hidden?'展开':'收起';}
+    if(started)refresh();   // the view note is shorter in the compact layout
   }
   {const b=$('menu-toggle');if(b)b.addEventListener('click',()=>{const aside=menuEl();setMenuOpen(!(aside&&aside.classList&&aside.classList.contains('open')));});}
   {const b=$('menu-tab');if(b)b.addEventListener('click',()=>setMenuOpen(true));}
   {const b=$('menu-close');if(b)b.addEventListener('click',()=>setMenuOpen(false));}
-  {const v=$('volume-view');if(v)v.addEventListener('pointerdown',()=>{if(compactOn)setMenuOpen(false);},{capture:true});}
+  root.addEventListener('keydown',event=>{if(event.key==='Escape'&&compactOn&&!event.defaultPrevented)setMenuOpen(false);});
   {const b=$('layout-toggle');if(b)b.addEventListener('click',()=>{compactOverride=compactOn?'off':'on';try{root.localStorage&&root.localStorage.setItem('wss-report-compact',compactOverride);}catch(_){}applyCompact(true);});}
   root.addEventListener('resize',()=>applyCompact(false));
   applyCompact(true);
@@ -2749,7 +3322,88 @@
     const canvas=document.createElement('canvas');canvas.width=renderer.domElement.width;canvas.height=renderer.domElement.height;
     const ctx=canvas.getContext('2d');ctx.drawImage(renderer.domElement,0,0);const scale=canvas.width/Math.max(view.clientWidth,1);ctx.save();ctx.scale(scale,scale);ctx.fillStyle='#ffffffee';ctx.fillRect(12,12,320,65);ctx.fillStyle='#20374d';ctx.font='14px sans-serif';ctx.fillText($('legend-title').textContent,22,34);ctx.fillText($('legend-min').textContent+' — '+$('legend-max').textContent,22,57);ctx.restore();return canvas.toDataURL('image/png');
   }
-  $('volume-save').addEventListener('click',()=>{const url=snapshot();if(!url)return;download('volume-view.png',url);});
+  function saveSnapshot() {
+    const url=snapshot();if(!url){setText('export-status','三维视图不可用，无法保存截图。');return null;}
+    const name=`${safeFile(caseName())}_view_${fileFieldKey()}.png`;download(name,url);setText('export-status',`已保存截图 ${name}。`);return name;
+  }
+  $('volume-save').addEventListener('click',saveSnapshot);
+  // ---------------------------------------------------------------- v0.12 (§19.9, B4, A9)
+  // B4: a thin closable yellow banner on top of the viewport when the geometry leaves the release's reference
+  // range or the ensemble quality is not good; the full list sits in 「统计与口径 → 参考范围」.
+  const warnings=warningItems(meta);
+  function renderWarnings() {
+    const text=warningText(warnings),banner=$('warn-banner');
+    setText('warn-banner-text',text);
+    {const el=$('warn-banner-text');if(el&&el.setAttribute)el.setAttribute('title',warnings.map(x=>x.text).join('\n'));}
+    if(banner)banner.hidden=!text;
+    if(view&&view.classList)view.classList.toggle('has-banner',Boolean(text));
+    const ra=meta.reference_assessment&&typeof meta.reference_assessment==='object'?meta.reference_assessment:null;
+    setHidden('reference-card',!ra&&!warnings.length);
+    const status=ra?{pass:'输入几何在本发布包声明的参考范围内。',review:'部分几何测量超出本发布包声明的参考范围，请复核。',unknown:'部分几何测量缺失或本发布包未声明参考范围，无法完成范围检查。'}[ra.status]||'参考范围检查状态未知。':'本报告没有参考范围检查。';
+    setText('reference-status',status+(ra&&ra.note?' '+ra.note:''));
+    const list=$('reference-list');
+    if(list&&list.replaceChildren){list.replaceChildren();for(const w of warnings){const li=document.createElement('li');li.textContent=w.text;list.appendChild(li);}}
+  }
+  function closeWarnings() {const banner=$('warn-banner');if(banner)banner.hidden=true;if(view&&view.classList)view.classList.remove('has-banner');}
+  {const b=$('warn-banner-close');if(b)b.addEventListener('click',closeWarnings);}
+  {const b=$('warn-banner-more');if(b)b.addEventListener('click',()=>{const card=$('menu-stats');if(card)card.open=true;if(compactOn)setMenuOpen(true);const ref=$('reference-card');if(ref&&ref.scrollIntoView){try{ref.scrollIntoView({block:'nearest'});}catch(_){}}});}
+  // P: the hover / click probe on or off (a hovering read-out can hide the vessel when reading figures).
+  function setProbeEnabled(on) {
+    probeEnabled=Boolean(on);
+    if(!probeEnabled){probe=null;probePinned=false;}
+    renderProbe();refresh();
+    return probeEnabled;
+  }
+  // L: automatic labels on / off; turning them back on restores the last choice (default: top 5 + branch names).
+  let labelsRemembered={findings:5,branches:true};
+  function toggleAutoLabels() {
+    const on=labelState.findings>0||labelState.branches;
+    if(on){labelsRemembered={findings:labelState.findings,branches:labelState.branches};setLabels({findings:0,branches:false});}
+    else setLabels(labelsRemembered.findings>0||labelsRemembered.branches?labelsRemembered:{findings:5,branches:true});
+    drawMarkers();
+    return {...labelState};
+  }
+  // 技术信息 popover (footer button and the 统计与口径 menu, which stays reachable in the compact layout).
+  for(const id of ['tech-info-toggle','tech-info-menu']){const b=$(id);if(b)b.addEventListener('click',ev=>{if(ev&&ev.stopPropagation)ev.stopPropagation();setTechInfo(!techOpen);});}
+  {const b=$('tech-info-close');if(b)b.addEventListener('click',()=>setTechInfo(false));}
+  {const b=$('tech-info-copy');if(b)b.addEventListener('click',()=>{
+    const text=techInfoText(),done=()=>setText('tech-info-status','已复制到剪贴板。');
+    if(root.navigator&&root.navigator.clipboard&&root.navigator.clipboard.writeText)root.navigator.clipboard.writeText(text).then(done,()=>setText('tech-info-status','剪贴板不可用。'));
+    else setText('tech-info-status','剪贴板不可用。');
+  });}
+  if(typeof document.addEventListener==='function') {
+    document.addEventListener('click',event=>{
+      if(!techOpen)return;const t=event&&event.target;
+      if(t&&t.closest&&(t.closest('#tech-info')||t.closest('.gloss-pop')||t.closest('#tech-info-toggle')||t.closest('#tech-info-menu')))return;
+      setTechInfo(false);
+    });
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&techOpen&&!event.defaultPrevented){setTechInfo(false);if(event.preventDefault)event.preventDefault();}});
+  }
+  // A9 keyboard shortcuts (§19.9).  Arrow keys / PgUp / PgDn / [ ] stay with the slice gizmo handler; they are
+  // listed in the help overlay only.  Nothing fires while the slice zoom view is open, except ? / Esc.
+  function shortcutBindings() {
+    const free=fn=>ev=>!sliceZoomOpen&&(!fn||fn(ev));
+    const views=['front','back','left','right','top','bottom'].map((name,i)=>({keys:[String(i+1)],label:`${STANDARD_VIEWS[name].label}视（撑满视口）`,group:'视角',
+      run:()=>showStandardView(name),when:free(()=>Boolean(frame&&camera))}));
+    const info=(keys,label)=>({keys,label,group:'截面（截面页签下）',run(){},when:()=>false});
+    return views.concat([
+      {keys:['0','r'],label:'复位视角（解剖前视）',group:'视角',run:fit,when:free(()=>Boolean(camera))},
+      {keys:['v'],label:'物理量：速度',group:'显示',run:()=>setField('velocity'),when:free(()=>Boolean(speed))},
+      {keys:['b'],label:'物理量：压力',group:'显示',run:()=>setField('pressure'),when:free(()=>Boolean(pressure))},
+      {keys:['t'],label:'循环显示页签（点云 → 截面 → 壁面压力 → 流线）',group:'显示',run:cycleMode,when:free()},
+      {keys:['l'],label:'自动标注开 / 关（发现与分支名）',group:'显示',run:toggleAutoLabels,when:free()},
+      {keys:['p'],label:'探针开 / 关（悬停读数）',group:'显示',run:()=>setProbeEnabled(!probeEnabled),when:free()},
+      {keys:['s'],label:'保存截图（PNG）',group:'导出',run:saveSnapshot,when:free(()=>Boolean(renderer))},
+      {keys:['x'],label:'点选定位截面 开 / 关',group:'截面（截面页签下）',run:()=>setPickMode(!pickMode),when:free(()=>Boolean(renderer))},
+      info(['ArrowUp','ArrowDown'],'截面沿法向移动（Shift 5 mm）'),info(['ArrowLeft','ArrowRight'],'截面绕纵轴旋转'),
+      info(['PageUp','PageDown'],'截面绕横轴倾斜'),info(['[',']'],'截面变薄 / 变厚'),info(['Escape'],'结束点选 / 关闭放大图与弹层')]);
+  }
+  function installKeys() {
+    const c=common();
+    if(!c||typeof c.installShortcuts!=='function')return null;
+    try{return c.installShortcuts(shortcutBindings(),{doc:document,title:'体场报告快捷键',helpGroup:'帮助'});}catch(_){return null;}
+  }
+  {const b=$('shortcuts-help');if(b)b.addEventListener('click',()=>{if(shortcuts&&shortcuts.showHelp)shortcuts.showHelp();});}
   $('volume-print').addEventListener('click',()=>{const url=snapshot();if(url)$('volume-snapshot').src=url;root.print();});
   root.addEventListener('beforeprint',()=>{const url=snapshot();if(url)$('volume-snapshot').src=url;});
   if(lines.length>320&&$('streamline-density'))$('streamline-density').value='2';
@@ -2796,13 +3450,15 @@
   applyDefaults(loadLocalDefaults());writeExportOptions();
   presetList=loadLocalPresets();
   renderBranchVisibility();renderProbeLog();renderFindings();renderMeasurements();renderPresets();
-  writeLabelControls();renderMorphologyRow();renderNarrative();
-  refresh();drawMarkers();
+  writeLabelControls();renderMorphologyRow();renderNarrative();renderWarnings();setTechInfo(false);
+  shortcuts=installKeys();setHidden('shortcuts-row',!shortcuts);
+  refresh();drawMarkers();started=true;
   const hashState=viewFromHash();
   if(hashState){try{applyView(hashState);setText('view-status','已按链接复现视图。');}catch(_){}}
   else loadServerDefaults().then(d=>{if(d&&!viewFromHash()){applyDefaults(d);refresh();}});
   loadFindingsReview();loadAnnotations();loadServerPresets();
   postParent({type:'wss-view:ready',family:'volume',run_identity:meta.run_identity||null,case_id:meta.case_id||null,webgl:Boolean(renderer)});
+  setTimeout(()=>{announceOn=true;},0);
   // Node-only hook: picks and pinning need WebGL in a browser, so tests drive the handlers with world coordinates.
   if(typeof module!=='undefined'&&module.exports) module.exports.__test={
     setMeasureMode,measurePick:addMeasurePick,measure:(kind,points)=>{measureMode=null;setMeasureMode(kind);let out=null;for(const p of points)out=addMeasurePick(p);return out;},
@@ -2816,6 +3472,18 @@
     profileSVGs:buildProfileSVGs,exportProfileSVG,exportSliceSeries,exportMontage,makeOnepageShots,
     montageSelection,seriesFractions,sliceSeries:()=>sliceSeries&&{...sliceSeries,fractions:sliceSeries.fractions.slice()},
     labels:()=>({...labelState}),setLabels,findingChipText,activateFinding,findings:()=>currentFindings().map(x=>({...x})),
+    // v0.12 (§19.9 / A9 / B4)
+    camera:()=>cameraState(),autoView:()=>autoView,fit,showStandardView,fittedCamera,setField,setMode,cycleMode,
+    probeEnabled:()=>probeEnabled,setProbeEnabled,toggleAutoLabels,setTechInfo,techOpen:()=>techOpen,techInfoText,
+    shortcuts:()=>shortcuts,warnings:()=>warnings.map(x=>({...x})),pickMode:()=>pickMode,
+    sliceZoom:open=>{openSliceZoom(open);return sliceZoomOpen;},
+    // §21.4 label layout
+    layoutLabels:()=>layoutLabelsNow().map(x=>({kind:x.item.kind,severity:x.item.severity||null,text:x.item.text,x:x.x,y:x.y,w:x.w,h:x.h,anchor:x.anchor,moved:x.moved,hidden:x.hidden})),
+    labelsDirty:()=>labelsDirty,cameraKey,
+    // slice readability (用户试用反馈 7)
+    setSliceDisplay,sliceScale:()=>sliceScaleNow&&{...sliceScaleNow},legendScale:()=>legendScaleNow&&{...legendScaleNow},
+    sliceInfo:()=>sliceLast&&{quantity:sliceLast.quantity,arrows:sliceLast.arrows||0,plane:{origin:sliceLast.plane.origin,normal:sliceLast.plane.normal},
+      samples:sliceLast.data.finite.map(x=>({i:x.i,v:x.v}))},zoomArrows:()=>sliceZoomLast?sliceZoomLast.arrows:0,
     morphMax:()=>morphMax&&{max_diameter_mm:Number(morphMax.max_diameter_mm),ring:Boolean(morphMax.polygon_world),xyz:morphMax.xyz_mm},
     morphSeries:branchIndex=>{const b=profileBranches[Number(branchIndex)||0]||null;const m=morphSeriesFor(b);return m&&{x:m.x,max:m.max,equiv:m.equiv,offset_mm:m.offset_mm};}};
 })(typeof globalThis!=='undefined'?globalThis:this);
