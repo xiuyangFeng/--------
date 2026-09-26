@@ -716,3 +716,8 @@ body `{"version": n, "case_id": "…", "patient_id": "…", "scan_label": "…",
 - 上传：`WB.checkUploadFiles(files, {maxBytes})`、`WB.uploadChunks(files, {maxFiles, maxBytes})`（来自 session 的 `max_batch_files` 与 `max_batch_bytes × 15/16`）、`WB.identifierIssue(text)`（控制字符 / 超长 = 错误，2–4 汉字 = 真名警告）、`WB.waitText(seconds)`；XHR 上传进度，无 XHR 退回 fetch。
 - 报告：壁面 `#cbar` 与体场渐变条 `role=img` + `aria-label`（随字段）；体场 `#back-to-workbench` 同壁面规则；页脚无审阅记录写「待审阅」；`pointer:coarse` 控件 ≥ 44 px。
 - devshot：`sandbox / suite / 单张 --login 用户:口令`（沙箱自带 users.json，共享 / 用户名模式）。
+
+### 24.5 v0.15.1 结果文件脱敏与权限（2026-09-26 晚，用户裁定）
+- `schema.redact_paths(value)`：`str(PROJECT_ROOT)` → `<project>`、`str(Path.home())` → `~`，对字符串内任意位置替换，递归 dict / list，不改非字符串；`model_release_metadata()` 的返回值整体经过它，所以 summary / run_manifest / quality_audit / job.json / report META 的 `model_release` 不含服务器绝对路径。`rebuild_report` 读入旧 summary 时对 `model_release` 脱敏，并在写 summary 后重写 `quality_audit.json` 的 `model_release`。
+- `ANALYSIS_VERSION = "2026-09-26"`：`service.needs_rebuild` 据此把所有 `analysis_version < 2026-09-26` 的已完成任务列入 `pending_rebuilds`，`service upgrade` 启动新服务后在后台完整重建（不重跑模型），历史结果文件随之脱敏。`regress.SUMMARY_KEYS` 不含 `model_release`。
+- 权限：正式 jobs_root 已 `chmod -R go-rwx`；上线命令带 `--env WSS_DEPLOY_UMASK=077`。未上 TLS / 反代（用户裁定先展示使用）；工作线程死亡不自动拉起（用户裁定）。

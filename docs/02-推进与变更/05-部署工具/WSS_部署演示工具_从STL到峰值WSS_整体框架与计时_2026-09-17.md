@@ -529,3 +529,5 @@ v0.8 上线后用户逐项试用，当天提出五轮反馈并逐轮修复（REA
 **合并胶水**：session 带批量上限、登录后 health 带 `ui_build`、一页纸时间显示、报告单位转义、版本 0.15.0。
 
 **验收与状态**：676 项测试通过 / 3 跳过、黄金回归 6/6（GPU 2）、用户名登录沙箱 devshot 20 页 0 错误、版本 0.15.0；**未上线**，上线命令在 `GO_LIVE.md` §2（`service rehearse` → `service upgrade --drain 600 --env CUDA_VISIBLE_DEVICES=1 --env TZ=Asia/Shanghai`），由用户执行。待拍板：nginx + TLS、umask 077 与存量权限收窄、上线前提交以获得回滚目标、绝对路径脱敏、最后用户退回令牌、线程死亡自动拉起、`created_at` 外观。
+
+**§29.1 用户裁定与追加（2026-09-26 晚）**：① 先提交保证可回滚 → 已提交 `061713f`（部署线 v0.12–v0.15）；② 暂不完全上线、先展示使用 → 不上 nginx / TLS；③ 目录权限收窄 → 正式 jobs_root 已整树 `go-rwx`，上线命令加 `WSS_DEPLOY_UMASK=077`；④ 结果文件脱敏 → `schema.redact_paths`（`<project>` / `~`）作用于 `model_release`，`ANALYSIS_VERSION` 升 2026-09-26 使下次 `service upgrade` 自动重建并脱敏全部历史任务（沙箱副本真实任务验证 0 处绝对路径，黄金 6/6）；⑤ 工作线程死亡不自动拉起。上线（展示用）命令：`service rehearse` → `service upgrade --drain 600 --env CUDA_VISIBLE_DEVICES=1 --env TZ=Asia/Shanghai --env WSS_DEPLOY_UMASK=077`，由用户执行。

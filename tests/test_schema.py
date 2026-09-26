@@ -98,7 +98,7 @@ def test_code_provenance_records_dirty_flag_version_and_source_hash(tmp_path, mo
     assert runtime["git_describe"] == "e8d3b69" and runtime["source_hash"] == code["source_hash"] and runtime["git_commit"]
     computed = write_run_manifest(tmp_path, {"deploy_version": "0.13.0", "git_dirty": True, "analysis_version": S.ANALYSIS_VERSION})
     assert computed["deploy_version"] == "0.13.0" and computed["git_dirty"] is True and computed["deploy_version_source"] == "summary"
-    assert S.summary_provenance()["analysis_version"] == S.ANALYSIS_VERSION == "2026-09-24"
+    assert S.summary_provenance()["analysis_version"] == S.ANALYSIS_VERSION == "2026-09-26"
     S.code_provenance(refresh=True)       # leave no monkeypatched values in the cache
     monkeypatch.undo()
     S.code_provenance(refresh=True)

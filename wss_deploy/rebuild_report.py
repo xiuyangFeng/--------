@@ -81,6 +81,9 @@ def _record_timing(meta: dict, key: str, seconds: float) -> None:
 def _load_job(job_dir: Path):
     record = json.loads((job_dir / "job.json").read_text(encoding="utf-8"))
     meta = json.loads((job_dir / "summary.json").read_text(encoding="utf-8"))
+    if "model_release" in meta:    # v0.15.1: strip server paths from provenance written by older code
+        from .schema import redact_paths
+        meta["model_release"] = redact_paths(meta["model_release"])
     if record.get("status") != "done" or not record.get("mapping"):
         raise ValueError("只能重建已完成且已确认出口的任务")
     atlas = CL.apply_mapping(CL.load_vessel_geom_atlas(job_dir / "centerline"), record["mapping"])
@@ -509,6 +512,15 @@ def _finish(job_dir: Path, record: dict, meta: dict, outputs: list, extra: dict)
     meta.update(summary_provenance())
     R.update_html_meta(job_dir / "report.html", report_meta(meta))
     atomic_json(job_dir / "summary.json", meta)
+    audit_path = job_dir / "quality_audit.json"      # v0.15.1: the audit copy of model_release is redacted too
+    if audit_path.is_file():
+        try:
+            audit = json.loads(audit_path.read_text(encoding="utf-8"))
+            if isinstance(audit, dict) and "model_release" in audit:
+                from .schema import redact_paths
+                audit["model_release"] = redact_paths(audit["model_release"]); atomic_json(audit_path, audit)
+        except (OSError, ValueError):
+            pass
     write_run_manifest(job_dir, meta, outputs=outputs)
     summary = record.get("summary")
     # The job record is owned by the running service (stop it, or restart afterwards).  Keep the few
@@ -519,6 +531,9 @@ def _finish(job_dir: Path, record: dict, meta: dict, outputs: list, extra: dict)
         if "narrative" in meta:
             summary["narrative"] = meta["narrative"]
         summary.pop("findings_top", None)
+        if "model_release" in meta and summary.get("model_release") != meta["model_release"]:
+            summary["model_release"] = meta["model_release"]     # v0.15.1: the mirror carries the redacted provenance
+            changed = True
         if extra.get("regenerated"):
             if "exports" in meta: summary["exports"] = meta["exports"]
             changed = True

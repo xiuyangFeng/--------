@@ -30,7 +30,7 @@ FIELD_SCHEMA_VERSION = "wss-deploy.field/v1"
 # v0.14 (J9): version of the post-inference analysis (findings, derived indices, morphology, narrative) a
 # summary was written with.  Bump it whenever that analysis changes; ``service upgrade`` then rebuilds every
 # finished job whose ``summary.analysis_version`` is older (records without the field use the key probes).
-ANALYSIS_VERSION = "2026-09-24"
+ANALYSIS_VERSION = "2026-09-26"   # v0.15.1: model_release provenance paths are redacted (<project> / ~)
 PACKAGE_DIR = Path(__file__).resolve().parent
 TRAINING_PACKAGE = "training_wss_min"
 _PROVENANCE_TTL_S = 60.0
@@ -102,6 +102,34 @@ def _manifest_weights(root: Path) -> list[dict[str, Any]]:
                             "sha256": file_sha256(path), "size_bytes": path.stat().st_size,
                             "seed": path.parent.name.rsplit("_s", 1)[-1] if "_s" in path.parent.name else None})
     return records
+
+
+def redact_paths(value: Any) -> Any:
+    """Copy ``value`` with server file-system prefixes removed from every string (v0.15.1, user decision 2026-09-26).
+
+    ``<project>`` replaces the project root and ``~`` the home directory, anywhere in a string, recursively through
+    dicts / lists.  Result files (summary / manifest / quality audit / report META) keep the *relative* provenance of
+    the training runs without the account name and directory layout of the server."""
+    from .paths import PROJECT_ROOT
+    prefixes = [(str(PROJECT_ROOT), "<project>")]
+    try:
+        home = str(Path.home())
+        if home and home not in ("/", str(PROJECT_ROOT)):
+            prefixes.append((home, "~"))
+    except (RuntimeError, OSError):
+        pass
+    def visit(item):
+        if isinstance(item, str):
+            for prefix, short in prefixes:
+                if prefix in item:
+                    item = item.replace(prefix, short)
+            return item
+        if isinstance(item, dict):
+            return {key: visit(inner) for key, inner in item.items()}
+        if isinstance(item, (list, tuple)):
+            return [visit(inner) for inner in item]
+        return item
+    return visit(value)
 
 
 def model_release_metadata(release: Any) -> dict[str, Any]:
@@ -177,7 +205,7 @@ def model_release_metadata(release: Any) -> dict[str, Any]:
             out[key] = info[key]
     # Do not emit keys with no information: old/custom releases often have a
     # deliberately minimal release.json.
-    return {key: _jsonable(value) for key, value in out.items() if value is not None}
+    return redact_paths({key: _jsonable(value) for key, value in out.items() if value is not None})   # v0.15.1: no server paths
 
 
 def single_frame_time_axis(model_frame: Mapping[str, Any] | None = None) -> list[dict[str, Any]]:

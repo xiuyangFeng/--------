@@ -21,13 +21,15 @@ PY=~/.conda/envs/GNN/bin/python; export PYTHONPATH=.
 | 凭据文件权限 | doctor「凭据文件权限」 | ✓（否则执行 doctor 给出的 `chmod 600 …`） |
 | 时区 | doctor「时区」 | `Asia/Shanghai（UTC+08:00）`；来源不是 service.json 时，上线命令里带 `--env TZ=Asia/Shanghai` |
 | GPU | `nvidia-smi -i 1 --query-gpu=memory.used,memory.total --format=csv` | 已用 < 20 GB（占满时推理自动回退 CPU，不阻止上线） |
-| 回滚目标 | `git status --short wss_deploy \| head`；`git log --oneline -3` | 当前运行版本已提交（见第 6 节）；否则先提交或导出补丁 |
+| 回滚目标 | `git log --oneline -3 -- wss_deploy` | 当前运行版本已提交（2026-09-26 起：`061713f` = v0.15 部署线；见第 6 节） |
 
 ## 2. 上线
 
 ```bash
-$PY -m wss_deploy.cli service upgrade --drain 600 --env CUDA_VISIBLE_DEVICES=1 --env TZ=Asia/Shanghai
+$PY -m wss_deploy.cli service upgrade --drain 600 --env CUDA_VISIBLE_DEVICES=1 --env TZ=Asia/Shanghai --env WSS_DEPLOY_UMASK=077
 ```
+
+（`--env` 写入 service.json 后，之后的 `service upgrade` 不必重复；`WSS_DEPLOY_UMASK=077` 是 2026-09-26 用户裁定：新建的任务目录与文件只给本账号。）
 
 判定：依次出现「升级预检通过」→「排空完成」→「服务已就绪：http://0.0.0.0:8765/」→「报告模板：刷新 N 个」，退出码 0。
 
@@ -76,7 +78,7 @@ $PY -m wss_deploy.cli service upgrade --drain 600 --env CUDA_VISIBLE_DEVICES=1 -
 
 ## 6. 回滚
 
-回滚目标必须是一个提交。**当前 HEAD（e8d3b69）是 v0.11.1，v0.14 的改动还没有提交**：直接回到 HEAD 会退回 v0.11。上线前先固定当前运行版本：
+回滚目标必须是一个提交。2026-09-26 起部署线已提交（`061713f` v0.15，之后每轮改动再提交一次）；改代码后上线前先固定当前运行版本：
 
 ```bash
 git add wss_deploy tests && git commit -m "wss_deploy 上线版 $(date +%F)"   # 或只导出补丁：

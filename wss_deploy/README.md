@@ -130,6 +130,18 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 
 全套 **676 项测试通过、3 项跳过**（基线 629 + 本轮 47；4 分 26 秒）、**黄金回归 6/6**（自包含模式，GPU 2，精度链路未动）、合并后新沙箱（用户名登录模式，5 例）**devshot suite 20 页 0 个 JS 错误**、版本 **0.15.0**。正式 8765 服务全程未动（仍 v0.14.0，PID 293808），`outputs/wss_deploy_jobs/` 只读。一次偶发：`test_audit_covers_logout_template_review_metadata_without_patient_ids` 在 7 文件批跑中失败一次，单跑与两次复跑均通过，未定位。**未上线**：上线由用户按 `env/GO_LIVE.md` 执行 `service rehearse` → `service upgrade --drain 600 --env CUDA_VISIBLE_DEVICES=1 --env TZ=Asia/Shanghai`；升级后 `created_at` 新写入带 +08:00，历史报告因模板变化会在打开或升级时自动 UI 刷新。
 
+### v0.15.1 用户裁定与追加（2026-09-26 晚）
+
+用户对「待拍板」的裁定：**① 先提交保证可回滚**（已提交 `061713f`：部署线 v0.12–v0.15 全部改动，含 wss_features / tests / 05 文档；本节追加另成一提交）；**② 暂不完全上线，先展示使用**（不上 nginx / TLS，保持 0.0.0.0 + 用户名登录）；**③ 目录权限收窄**（已执行：`outputs/wss_deploy_jobs` 整棵树 `chmod -R go-rwx`，0 个组 / 他人可读项，服务不受影响；上线命令加 `--env WSS_DEPLOY_UMASK=077` 让新文件保持只属本账号）；**④ 结果文件脱敏**（已做，见下）；**⑤ 工作线程死亡不自动拉起**（保持现状）。
+
+| 改动 | 做法 | 验收 | 文件 |
+|---|---|---|---|
+| 结果文件脱敏 | `schema.redact_paths()`：把项目根替换为 `<project>`、home 替换为 `~`，递归作用于字符串；`model_release_metadata()` 返回前统一脱敏（summary / run_manifest / quality_audit / job.json / report META 中 `model_release.source_runs[*].path / test34_metrics` 不再含 `/public/newhome/...`）；`rebuild_report` 读入旧 summary 时脱敏并顺带重写 `quality_audit.json`；`ANALYSIS_VERSION` 升到 `2026-09-26`，因此 **下一次 `service upgrade` 会自动完整重建全部已完成任务**（从 field.npz 重建、不重跑模型，单例秒级），历史文件随之脱敏 | `test_redact_paths_strips_project_root_and_home_everywhere`；沙箱副本对真实任务离线 `rebuild_report` 后五个文件 0 处绝对路径；黄金回归 6/6（`model_release` 不在比对键内） | schema.py, rebuild_report.py |
+
+未脱敏（服务器内部文件，不打包、不经 API 下发）：`centerline/run.json`（vessel_geom 子进程记录）。`/api/releases` 只下发 `Release.public()`，本就不含路径。
+
+验收：全套 **677 项测试通过、3 项跳过**（+1）、黄金回归 6/6、沙箱副本真实任务离线重建后 summary / run_manifest / quality_audit / job.json / report.html 均 0 处绝对路径。提交：`061713f`（v0.15）+ 本节追加提交。**仍未上线**，展示用上线命令见 `env/GO_LIVE.md` §2（含 `--env WSS_DEPLOY_UMASK=077`）。
+
 ### 没做
 
 TLS 由用户拍板；systemd / cron / 备份；tag 部署；中心线抽稀；app.js 拆模块 / 设计令牌 / 暗色；「待审阅 / 未审阅」术语统一（涉及一页纸与导出表列值）；一页纸手机端缩放（A4 打印版式）；比较页同步视角出框（预期行为）；后端配合项中未做的：401 区分码、报告生成时写 `review` 字段、批量上传逐文件错误 `code`（前端均已兜底）。

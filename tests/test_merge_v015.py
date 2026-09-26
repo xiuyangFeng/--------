@@ -57,3 +57,29 @@ def test_one_pager_time_text_accepts_iso_with_offset_and_plain_local_forms():
     assert _full_time("2026-09-24 18:23:40") == "2026-09-24 18:23:40"
     assert _short_time("2026-09-26T14:00:05+08:00") == "2026-09-26 14:00"
     assert _full_time(None) == "—" and _short_time("") == "—"
+
+
+def test_redact_paths_strips_project_root_and_home_everywhere():
+    from pathlib import Path as _P
+    from wss_deploy.paths import PROJECT_ROOT
+    from wss_deploy.schema import redact_paths, model_release_metadata, ANALYSIS_VERSION
+    from wss_deploy.service import needs_rebuild
+    run = str(PROJECT_ROOT / "training_wss_min/runs/x/M1_s7")
+    value = {"source_runs": [{"seed": 7, "path": run, "test34_metrics": run + "/eval/metrics.json"}],
+             "note": f"trained at {run}", "n": 3, "home": str(_P.home() / "secret.txt")}
+    out = redact_paths(value)
+    text = repr(out)
+    assert str(PROJECT_ROOT) not in text and "<project>/training_wss_min/runs/x/M1_s7" in text
+    assert out["n"] == 3 and out["note"].startswith("trained at <project>/")
+    if str(_P.home()) not in (str(PROJECT_ROOT), "/"):
+        assert out["home"] == "~/secret.txt"
+    assert value["source_runs"][0]["path"] == run          # the input is not mutated
+
+    class FakeRelease:
+        info = {"release": "REL", "source_runs": value["source_runs"]}
+        name = "REL"
+    meta = model_release_metadata(FakeRelease())
+    assert meta["source_runs"][0]["path"] == "<project>/training_wss_min/runs/x/M1_s7"
+    assert str(PROJECT_ROOT) not in repr(meta)
+    # the analysis version moved so every finished job is rebuilt (and cleaned) by the next service upgrade
+    assert ANALYSIS_VERSION == "2026-09-26" and needs_rebuild({"analysis_version": "2026-09-24"}) and not needs_rebuild({"analysis_version": ANALYSIS_VERSION})
