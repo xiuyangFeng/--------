@@ -1107,6 +1107,15 @@ def restart(root: Path, port: int | None = None, *, timeout: float = HEALTH_TIME
     return start(root, timeout=timeout, out=out, **overrides)
 
 
+def _has_server_paths(value) -> bool:
+    """True when any string inside ``value`` mentions the project root or the home directory (see schema.redact_paths)."""
+    from .schema import redact_paths
+    try:
+        return redact_paths(value) != value
+    except Exception:
+        return False
+
+
 def needs_rebuild(summary: dict, current: str | None = None) -> bool:
     """J9: a summary written by an older analysis needs a full ``rebuild_report`` (not just a UI refresh).
 
@@ -1120,6 +1129,10 @@ def needs_rebuild(summary: dict, current: str | None = None) -> bool:
     version = summary.get("analysis_version")
     if isinstance(version, str) and version:
         return version < current
+    # v0.15.1: records written before the field existed (all pre-v0.14 jobs) still carry the server's absolute
+    # paths in ``model_release``; a rebuild rewrites them redacted, so such a summary always qualifies.
+    if _has_server_paths(summary.get("model_release")):
+        return True
     findings = summary.get("findings") if isinstance(summary.get("findings"), dict) else {}
     cycle = summary.get("cycle") if isinstance(summary.get("cycle"), dict) else {}
     fields = cycle.get("fields") if isinstance(cycle.get("fields"), dict) else {}

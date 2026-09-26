@@ -136,7 +136,7 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 
 | 改动 | 做法 | 验收 | 文件 |
 |---|---|---|---|
-| 结果文件脱敏 | `schema.redact_paths()`：把项目根替换为 `<project>`、home 替换为 `~`，递归作用于字符串；`model_release_metadata()` 返回前统一脱敏（summary / run_manifest / quality_audit / job.json / report META 中 `model_release.source_runs[*].path / test34_metrics` 不再含 `/public/newhome/...`）；`rebuild_report` 读入旧 summary 时脱敏并顺带重写 `quality_audit.json`；`ANALYSIS_VERSION` 升到 `2026-09-26`，因此 **下一次 `service upgrade` 会自动完整重建全部已完成任务**（从 field.npz 重建、不重跑模型，单例秒级），历史文件随之脱敏 | `test_redact_paths_strips_project_root_and_home_everywhere`；沙箱副本对真实任务离线 `rebuild_report` 后五个文件 0 处绝对路径；黄金回归 6/6（`model_release` 不在比对键内） | schema.py, rebuild_report.py |
+| 结果文件脱敏 | `schema.redact_paths()`：把项目根替换为 `<project>`、home 替换为 `~`，递归作用于字符串；`model_release_metadata()` 返回前统一脱敏（summary / run_manifest / quality_audit / job.json / report META 中 `model_release.source_runs[*].path / test34_metrics` 不再含 `/public/newhome/...`）；`rebuild_report` 读入旧 summary 时脱敏并顺带重写 `quality_audit.json`；`ANALYSIS_VERSION` 升到 `2026-09-26`，因此 **下一次 `service upgrade` 会自动完整重建全部已完成任务**（从 field.npz 重建、不重跑模型，单例秒级），历史文件随之脱敏；**v0.15.2 补**：v0.14 之前的记录没有 `analysis_version`，首次上线时 5 例未被列入重建，故 `needs_rebuild` 增加探针「`model_release` 含服务器绝对路径即需重建」（`_has_server_paths`），再次 `service upgrade` 后 5 例自动重建 | `test_redact_paths_strips_project_root_and_home_everywhere`；沙箱副本对真实任务离线 `rebuild_report` 后五个文件 0 处绝对路径；黄金回归 6/6（`model_release` 不在比对键内） | schema.py, rebuild_report.py |
 
 未脱敏（服务器内部文件，不打包、不经 API 下发）：`centerline/run.json`（vessel_geom 子进程记录）。`/api/releases` 只下发 `Release.public()`，本就不含路径。
 

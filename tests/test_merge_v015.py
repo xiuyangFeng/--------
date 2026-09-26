@@ -83,3 +83,13 @@ def test_redact_paths_strips_project_root_and_home_everywhere():
     assert str(PROJECT_ROOT) not in repr(meta)
     # the analysis version moved so every finished job is rebuilt (and cleaned) by the next service upgrade
     assert ANALYSIS_VERSION == "2026-09-26" and needs_rebuild({"analysis_version": "2026-09-24"}) and not needs_rebuild({"analysis_version": ANALYSIS_VERSION})
+
+
+def test_pre_v014_summaries_with_server_paths_are_queued_for_rebuild():
+    from wss_deploy.paths import PROJECT_ROOT
+    from wss_deploy.service import needs_rebuild
+    old = {"peak": {}, "model_release": {"source_runs": [{"path": str(PROJECT_ROOT / "training_wss_min/runs/x")}]}}
+    assert needs_rebuild(old) is True                                   # no analysis_version + absolute path
+    clean = {"peak": {}, "model_release": {"source_runs": [{"path": "<project>/training_wss_min/runs/x"}]}}
+    assert needs_rebuild(clean) is False                                # no analysis_version, already redacted, no cycle probe
+    assert needs_rebuild({"analysis_version": "2026-09-26", "model_release": old["model_release"]}) is False   # version wins
