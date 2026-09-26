@@ -4,7 +4,7 @@
 
 ## 当前状态（2026-09-26）
 
-- **v0.15（09-26）已合并、待用户验收后上线**：上线前加固（安全审计 18 项无实锤 + 反代 / TLS 就绪开关默认关、统一时钟、doctor 上线预检、`service rehearse` 演练、`jobs du / prune-cache`、前端会话过期不丢页 / 登录页 / 断线升级提示 / 上传检查 / 触屏可及性），精度链路未动；上线手册 `wss_deploy/env/GO_LIVE.md`；活文档 §29、README v0.15、契约 §24。
+- **v0.15.3（09-26 21:55）已上线**（PID 3072069，GPU 1，TZ Asia/Shanghai，umask 077；分支 codex/clean-initial-commit 已推 origin 至 5fd4a45；5 例历史任务已重建脱敏）：上线前加固（安全审计 18 项无实锤 + 反代 / TLS 就绪开关默认关、统一时钟、doctor 上线预检、`service rehearse` 演练、`jobs du / prune-cache`、前端会话过期不丢页 / 登录页 / 断线升级提示 / 上传检查 / 触屏可及性），精度链路未动；上线手册 `wss_deploy/env/GO_LIVE.md`；活文档 §29、README v0.15、契约 §24。
 - **v0.14（09-24）已上线**，v0.14.1 切到用户名登录 + 管理员 `admin`（PID 293808，GPU 1）；现有 5 例已归 admin：四维度优化落地（安全 / 速度 / 可运维 / 界面快赢），628 测试、黄金 6/6、截图 10 页 0 错误；LV·M1 B 段 GPU 13.8 → 5.6 s、CPU 50.5 → 6.4 s；活文档 §28。
 - **v0.13（09-23）已上线**：提示条可关可撤销、RRT / ECAP 全链路（派生量，RRT 阈值待导师）、细分色标、报告四标签；服务运行于 master:8765。
 - **模型**：默认发布包 X5D_v51 五 seed；可切换到 M1 三头（峰值 + TAWSS + OSI）与 PF6 / VF6 峰值体场。

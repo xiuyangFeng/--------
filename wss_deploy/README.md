@@ -140,7 +140,7 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 
 未脱敏（服务器内部文件，不打包、不经 API 下发）：`centerline/run.json`（vessel_geom 子进程记录）。`/api/releases` 只下发 `Release.public()`，本就不含路径。
 
-验收：全套 **677 项测试通过、3 项跳过**（+1）、黄金回归 6/6、沙箱副本真实任务离线重建后 summary / run_manifest / quality_audit / job.json / report.html 均 0 处绝对路径。提交：`061713f`（v0.15）+ 本节追加提交。**仍未上线**，展示用上线命令见 `env/GO_LIVE.md` §2（含 `--env WSS_DEPLOY_UMASK=077`）。
+验收：全套 **677 项测试通过、3 项跳过**（+1）、黄金回归 6/6、沙箱副本真实任务离线重建后 summary / run_manifest / quality_audit / job.json / report.html 均 0 处绝对路径。提交并推送 origin：`061713f`（v0.15）→ `c111ca3`（v0.15.1）→ `e6630b1`（v0.15.2 探针）→ `5fd4a45`（v0.15.3 整份脱敏）。**已上线（2026-09-26 21:55，用户要求后由本会话执行 `service rehearse` + `service upgrade --drain 600 --env CUDA_VISIBLE_DEVICES=1 --env TZ=Asia/Shanghai --env WSS_DEPLOY_UMASK=077`）**：PID 3072069、0.15.0、时区 +08:00、umask 077；三次升级后 5 例历史任务全部重建脱敏（result 文件 0 处绝对路径，`analysis_version` 2026-09-26）；全套 678 测试通过、3 跳过。
 
 ### 没做
 
