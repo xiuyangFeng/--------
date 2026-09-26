@@ -504,7 +504,9 @@ def embed_sidecars(job_dir: Path, meta: dict) -> dict:
 
 def _finish(job_dir: Path, record: dict, meta: dict, outputs: list, extra: dict) -> dict:
     from .clock import now_iso
+    from .schema import redact_paths
     stamp = now_iso()
+    meta = redact_paths(meta)     # v0.15.2: no server paths anywhere in summary / manifest / report META (strings only)
     meta["narrative"] = NARR.build_narrative(meta)
     embed_sidecars(job_dir, meta)
     meta.setdefault("audit", {})["report_rebuilt_at"] = stamp
@@ -516,9 +518,8 @@ def _finish(job_dir: Path, record: dict, meta: dict, outputs: list, extra: dict)
     if audit_path.is_file():
         try:
             audit = json.loads(audit_path.read_text(encoding="utf-8"))
-            if isinstance(audit, dict) and "model_release" in audit:
-                from .schema import redact_paths
-                audit["model_release"] = redact_paths(audit["model_release"]); atomic_json(audit_path, audit)
+            if isinstance(audit, dict) and redact_paths(audit) != audit:
+                atomic_json(audit_path, redact_paths(audit))
         except (OSError, ValueError):
             pass
     write_run_manifest(job_dir, meta, outputs=outputs)

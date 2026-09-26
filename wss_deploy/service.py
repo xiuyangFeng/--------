@@ -1130,8 +1130,9 @@ def needs_rebuild(summary: dict, current: str | None = None) -> bool:
     if isinstance(version, str) and version:
         return version < current
     # v0.15.1: records written before the field existed (all pre-v0.14 jobs) still carry the server's absolute
-    # paths in ``model_release``; a rebuild rewrites them redacted, so such a summary always qualifies.
-    if _has_server_paths(summary.get("model_release")):
+    # paths (``model_release.source_runs``, or ``input_check`` in v0.3-era records); a rebuild rewrites them
+    # redacted, so such a summary always qualifies.
+    if _has_server_paths(summary):
         return True
     findings = summary.get("findings") if isinstance(summary.get("findings"), dict) else {}
     cycle = summary.get("cycle") if isinstance(summary.get("cycle"), dict) else {}
