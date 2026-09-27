@@ -1278,7 +1278,8 @@ class Handler(BaseHTTPRequestHandler):
         if match:
             # Display mesh + centreline polylines: fetched once per stage-A result, never polled.
             geometry = manager.geometry(match[1], row["owner"], any_owner=admin)
-            etag = f'W/"{geometry["job_id"]}-{geometry["version"]}-{geometry.get("stage_a_created_at") or ""}"'
+            # v0.15.8: the preview revision is part of the tag, so an upgraded (connected) preview replaces a cached scatter.
+            etag = f'W/"{geometry["job_id"]}-{geometry["version"]}-{geometry.get("stage_a_created_at") or ""}-{geometry.get("preview_rev") or ""}"'
             if etag_matches(self.headers.get("If-None-Match"), etag):
                 return self._not_modified(etag, REPORT_CACHE, vary=True)
             return self._json(geometry, etag=etag, cache=REPORT_CACHE)

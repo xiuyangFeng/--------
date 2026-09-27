@@ -2468,7 +2468,7 @@
     const gradient = context.createLinearGradient(0, 0, width, height); gradient.addColorStop(0, '#f8fbfd'); gradient.addColorStop(1, '#edf5fa');
     context.fillStyle = gradient; context.fillRect(0, 0, width, height);
     // Cap the face pass so a large STL stays responsive while preserving its silhouette.
-    const stride = Math.max(1, Math.ceil(faces.length / 2600));
+    const stride = Math.max(1, Math.ceil(faces.length / 20000));
     context.lineJoin = 'round'; context.strokeStyle = 'rgba(63,116,145,.16)'; context.lineWidth = .55;
     for (let index = 0; index < faces.length && (!project2d || meshProject !== worldProject); index += stride) {
       const face = faces[index]; if (!Array.isArray(face) || face.length < 3) continue;
@@ -2555,7 +2555,8 @@
     const raw = geometry?.preview || {};
     const vertices = Array.isArray(raw.vertices) ? raw.vertices.filter(p => Array.isArray(p) && p.length >= 3 && p.slice(0,3).every(Number.isFinite)) : [];
     const rawFaces = Array.isArray(raw.faces) ? raw.faces.filter(f => Array.isArray(f) && f.length >= 3 && f.slice(0,3).every(i => Number.isInteger(Number(i)) && Number(i) >= 0 && Number(i) < vertices.length)) : [];
-    const faceStride = Math.max(1, Math.ceil(rawFaces.length / 12000));
+    // v0.15.8: the preview is a connected ≤ 18 000-face surface; keep every face (dropping every other one left holes).
+    const faceStride = Math.max(1, Math.ceil(rawFaces.length / 20000));
     const faces = rawFaces.filter((_, index) => index % faceStride === 0);
     const lines = Array.isArray(geometry?.preview_polylines) ? geometry.preview_polylines : [];
     const endpointData = (geometry?.endpoints || []).filter(Boolean).map(e => {
@@ -2628,7 +2629,7 @@
         // A preview is an identity sketch, not the calculation mesh.  Keep the
         // triangle budget bounded so a high-resolution STL cannot stall the
         // result page or consume a second large WebGL context.
-        const faceStride = Math.max(1,Math.ceil(faces.length / 12000));
+        const faceStride = Math.max(1,Math.ceil(faces.length / 20000));
         for (let fi = 0; fi < faces.length; fi += faceStride) { const face = faces[fi]; index.push(Number(face[0]),Number(face[1]),Number(face[2])); }
         const meshGeometry = remember(new T.BufferGeometry());
         meshGeometry.setAttribute('position',new T.BufferAttribute(pos,3)); meshGeometry.setIndex(index); meshGeometry.computeVertexNormals();

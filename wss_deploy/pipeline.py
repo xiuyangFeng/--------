@@ -354,15 +354,12 @@ def prune_geometry_cache(cache: "GC.GeometryCache") -> None:
 def _preview_surface(path: Path, max_faces: int = 18000, mesh: tuple | None = None) -> dict:
     """Small display mesh; model inference always uses the full cleaned STL.
 
-    ``mesh`` (v0.14) is the already loaded ``load_stl(path)`` result, to avoid reading the file twice.
+    ``mesh`` (v0.14) is the already loaded ``load_stl(path)`` result, to avoid reading the file twice.  v0.15.8: a
+    connected vertex-clustered surface (:mod:`.preview`) instead of every k-th triangle of the upload.
     """
+    from .preview import preview_payload
     vertices, faces = mesh if mesh is not None else load_stl(path)
-    vertices, faces = np.asarray(vertices, np.float32), np.asarray(faces, np.int64)
-    if len(faces) > max_faces:
-        faces = faces[np.linspace(0, len(faces) - 1, max_faces, dtype=np.int64)]
-    used, inverse = np.unique(faces.reshape(-1), return_inverse=True)
-    return {"vertices": vertices[used].round(3).tolist(), "faces": inverse.reshape(-1, 3).tolist(),
-            "display_faces": int(len(faces)), "display_only": True}
+    return preview_payload(np.asarray(vertices, np.float32), np.asarray(faces, np.int64), max_faces)
 
 
 def report_meta(meta: dict) -> dict:

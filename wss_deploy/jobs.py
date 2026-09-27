@@ -1387,14 +1387,50 @@ class JobManager:
             preview, polylines, endpoints = a.get("preview"), proposal.get("preview_polylines"), proposal.get("endpoints")
             created_at = a.get("created_at")
             has_a = bool(a)
+        stored = None
         if has_a and (preview is None or polylines is None):
             stored = self._stage_a_file(job_id, created_at)
             stored_proposal = stored.get("proposal") if isinstance(stored.get("proposal"), dict) else {}
             preview = preview if preview is not None else stored.get("preview")
             polylines = polylines if polylines is not None else stored_proposal.get("preview_polylines")
+        from .preview import needs_upgrade
+        if needs_upgrade(preview):
+            # v0.15.8: a pre-v0.15.8 preview is a scatter of every k-th triangle; rebuild a connected display mesh
+            # from the job's cleaned STL once and keep it beside the geometry cache (records stay untouched).
+            preview = self._upgraded_preview(job_id, a, stored) or preview
         return {"job_id": job_id, "version": version, "stage_a_created_at": created_at,
                 "preview": preview, "preview_polylines": polylines or [], "endpoints": endpoints or [],
+                "preview_rev": (preview or {}).get("method") or "legacy" if isinstance(preview, dict) else None,
                 "available": preview is not None or bool(polylines)}
+
+    def _upgraded_preview(self, job_id: str, a: dict, stored: dict | None) -> dict | None:
+        """Connected preview for an older job, cached as ``<geometry cache>/preview-<clean STL sha>.json``; None on failure."""
+        from .preview import PREVIEW_METHOD, preview_payload
+        job_dir = self.root / job_id
+        check = (a or {}).get("input_check") or (stored or {}).get("input_check") or {}
+        ref = check.get("clean_stl")
+        if not ref:
+            return None
+        path = Path(str(ref))
+        path = path if path.is_absolute() else job_dir / path
+        try:
+            if not path.is_file() or path.resolve().parent != job_dir.resolve():
+                return None
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+            cache = job_dir / self._geometry_cache_dir() / f"preview-{digest}.json"
+            if cache.is_file():
+                cached = json.loads(cache.read_text(encoding="utf-8"))
+                if isinstance(cached, dict) and cached.get("method") in {PREVIEW_METHOD, "full"}:
+                    return cached
+            from wss_features.stl import load_stl
+            vertices, faces = load_stl(path)
+            payload = preview_payload(vertices, faces)
+            cache.parent.mkdir(parents=True, exist_ok=True)
+            atomic_json(cache, payload, compact=True)
+            return payload
+        except (OSError, ValueError) as exc:
+            LOG.warning("preview upgrade for %s failed: %s", job_id, exc)
+            return None
 
     def compare(self, left_id: str, right_id: str, owner: str) -> dict:
         """Compare two completed reports owned by the current session."""
