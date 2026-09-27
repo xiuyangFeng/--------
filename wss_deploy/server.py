@@ -1520,7 +1520,7 @@ class Handler(BaseHTTPRequestHandler):
         manager = self.server.manager
         fields, uploads, raw_fields = {}, [], {}
         simple = {"case_id", "units", "remove_fragments", "release_id", "patient_id", "scan_label", "scan_date", "tags", "notes",
-                  "device", "seed_count", "threads", "on_duplicate", "metadata_json"}
+                  "device", "seed_count", "threads", "on_duplicate", "metadata_json", "companion_release_ids"}
         spool_dir = self.server.temp_dir()
 
         def start_part(name, filename):
@@ -1599,7 +1599,7 @@ class Handler(BaseHTTPRequestHandler):
                         "device": fields.get("device", "auto"), "seed_count": seed_count, "threads": threads,
                         "patient_id": fields.get("patient_id", ""), "scan_label": fields.get("scan_label", ""),
                         "scan_date": fields.get("scan_date", ""), "tags": tags, "notes": fields.get("notes", ""),
-                        "on_duplicate": on_duplicate}
+                        "on_duplicate": on_duplicate, "companion_release_ids": fields.get("companion_release_ids") or None}
             items = []
             for (filename, spool), item_meta in zip(uploads, metadata_json):
                 # Client metadata must never name the STL source: ``content_path`` would read a server-side file.
@@ -1618,7 +1618,7 @@ class Handler(BaseHTTPRequestHandler):
                                  scan_date=fields.get("scan_date", ""), tags=tags, notes=fields.get("notes", ""),
                                  units=fields.get("units", "auto"), remove_fragments=remove in {"true", "1", "on"},
                                  device=fields.get("device", "auto"), seed_count=seed_count, threads=threads,
-                                 on_duplicate=on_duplicate)
+                                 on_duplicate=on_duplicate, companion_release_ids=fields.get("companion_release_ids") or None)
         except ReleaseError as exc:
             raise self._release_error(exc)
         response = {"job": job, "job_id": job["id"]}

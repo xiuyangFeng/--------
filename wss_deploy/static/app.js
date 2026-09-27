@@ -613,8 +613,8 @@
   uploadDialog?.addEventListener('cancel', closeUploadDialog);
   uploadDialog?.addEventListener('close', () => { if (state.authenticated && !$('workspace').hidden && !$('modal').open) $('new-prediction').focus({preventScroll:true}); });
   function uploadReady() {
-    const selected = $('upload-release').value;
-    return state.authenticated && Boolean(selected) && state.releases.some(release => (release.id || release.release) === selected);
+    const ids = splitReleaseChoice($('upload-release').value);
+    return state.authenticated && ids.length > 0 && ids.every(id => state.releases.some(release => (release.id || release.release) === id));
   }
   function syncUploadAvailability() { $('upload-button').disabled = state.busy || !uploadReady(); }
 
@@ -660,23 +660,27 @@
         const label = releaseDisplay(release);
         select.append(node('option',{value:release.id || release.release,text:label,title:release.id || release.release}));
       }
+      // v0.15.7: one upload → the three-head wall package and the volume package (two tasks, outlets confirmed once).
+      for (const combo of releaseCombos(state.releases)) select.append(node('option',{value:combo.value,text:combo.label,title:combo.ids.join(' + ')}));
       const selected = state.releases.find(item => item.default) || state.releases[0];
       if (selected) select.value = selected.id || selected.release;
       select.disabled = state.releases.length <= 1;
       function updateReleaseSettings() {
-        const selected = state.releases.find(item => (item.id || item.release) === select.value);
+        const ids = splitReleaseChoice(select.value), combo = ids.length > 1;
+        const selected = state.releases.find(item => (item.id || item.release) === ids[0]);
         const fields = selected?.contract?.fields || {};
         const volume = Boolean(fields.velocity || selected?.contract?.protocol === 'single_frame_volume');
         const cycleWall = Boolean(fields.tawss || fields.osi || selected?.contract?.protocol === 'single_frame_wss_cycle_multi');
         const seedSelect = $('upload-seeds');
         const count = Number(selected?.models_count || selected?.model_count || 5);
-        if (seedSelect) {
+        if (seedSelect && combo) seedSelect.replaceChildren(node('option',{value:'all',text:'全部模型（各发布包）'}));
+        else if (seedSelect) {
           seedSelect.replaceChildren(node('option',{value:'all',text:`全部模型（${volume ? '每字段 ' : ''}${count}）`}));
           for (const n of [1,3,5]) if (n < count) seedSelect.append(node('option',{value:String(n),text:`${volume ? '每字段 ' : ''}${n} 个模型`}));
         }
         const helpText = $('release-help');
-        if (helpText) helpText.textContent = volume ? '查看体内速度、流线与截面，压力可切换到壁面。固定收缩期单帧。' : cycleWall ? '查看峰值 WSS、周期平均 TAWSS 与 OSI，可在报告中切换字段。任务会固定绑定所选发布包。' : '查看壁面 WSS 热点与分支统计。任务会固定绑定所选发布包。';
-        if ($('release-version')) $('release-version').textContent = `发布包版本：${selected?.id || selected?.release || '未指定'}`;
+        if (helpText) helpText.textContent = combo ? '同时创建两个任务：峰值 WSS + TAWSS + OSI，以及压力 + 速度体场。出口只需确认一次，确认后体场任务自动排队，两个结果显示在同一病例下。' : volume ? '查看体内速度、流线与截面，压力可切换到壁面。固定收缩期单帧。' : cycleWall ? '查看峰值 WSS、周期平均 TAWSS 与 OSI，可在报告中切换字段。任务会固定绑定所选发布包。' : '查看壁面 WSS 热点与分支统计。任务会固定绑定所选发布包。';
+        if ($('release-version')) $('release-version').textContent = `发布包版本：${combo ? ids.join(' + ') : selected?.id || selected?.release || '未指定'}`;
         syncUploadAvailability();
       }
       select.onchange = updateReleaseSettings;
@@ -695,6 +699,28 @@
     if (protocol === 'single_frame_volume' || fields.velocity) return 'volume';
     if (protocol === 'single_frame_wss' || protocol === 'single_frame_wss_cycle_multi' || fields.wss || fields.tawss || fields.osi) return 'wall';
     return null;
+  };
+  // v0.15.7: an upload choice is one release id or several joined by '+' (primary first, then companions).
+  const splitReleaseChoice = value => String(value || '').split('+').map(part => part.trim()).filter(Boolean);
+  const releaseKindOfRecord = release => {
+    const fields = release?.contract?.fields || {}, protocol = release?.contract?.protocol;
+    if (protocol === 'single_frame_volume' || fields.velocity) return 'volume';
+    if (fields.tawss || fields.osi || protocol === 'single_frame_wss_cycle_multi') return 'cycle';
+    return 'wall';
+  };
+  // Short family name of a release for provenance lines ('压力 + 速度体场' …); unknown ids fall back to the display name.
+  const releaseFamilyName = id => {
+    const release = state.releases.find(item => (item.id || item.release) === id) || state.caseReleases.find(item => (item.id || item.release) === id);
+    if (!release || !release.contract) return releaseDisplay(id);   // case-list records carry no contract
+    return {volume:'压力 + 速度体场', cycle:'WSS + TAWSS + OSI', wall:'壁面 WSS'}[releaseKindOfRecord(release)];
+  };
+  // Combined choices offered at upload: every three-head wall package with every volume package (plain WSS is not
+  // combined for now — it is expected to merge into the three-head model).
+  const releaseCombos = releases => {
+    const idOf = release => release.id || release.release, list = Array.isArray(releases) ? releases : [];
+    const cycle = list.filter(release => releaseKindOfRecord(release) === 'cycle'), volume = list.filter(release => releaseKindOfRecord(release) === 'volume');
+    return cycle.flatMap(c => volume.map(v => ({ids:[idOf(c), idOf(v)], value:`${idOf(c)}+${idOf(v)}`,
+      label:`WSS + TAWSS + OSI ＋ 压力 + 速度体场（同时预测，两个任务）${cycle.length > 1 || volume.length > 1 ? ` · ${releaseDisplay(c)} / ${releaseDisplay(v)}` : ''}`})));
   };
   // Keep internal release IDs available as option values, but show a short,
   // task-oriented name wherever a person chooses or reviews a model package.
@@ -806,11 +832,12 @@
     const progress = $('upload-progress'), bar = $('upload-progress-bar'), progressText = $('upload-progress-text');
     if (progress) progress.hidden = false; if (bar) {bar.value = 0; bar.max = files.length;}
     const rows = [...($('upload-files')?.children || [])].filter(el => String(el.className || '').includes('upload-file-row')); const failures = [], created = [], opened = [];
+    const releaseIds = splitReleaseChoice($('upload-release').value);
     const baseCase = $('case-id').value.trim(), metadata = {
       case_id: baseCase, patient_id: $('patient-id').value.trim(), scan_label: $('scan-label').value.trim(),
       scan_date: $('scan-date')?.value || '',
       tags: $('case-tags').value.trim(), notes: $('case-notes').value.trim(), units: $('upload-units').value,
-      release_id: $('upload-release').value, remove_fragments: 'false', device: $('upload-device').value,
+      release_id: releaseIds[0] || '', companion_release_ids: releaseIds.slice(1).join(','), remove_fragments: 'false', device: $('upload-device').value,
       seed_count: $('upload-seeds').value, threads: $('upload-threads').value.trim()
     };
     try {
@@ -825,7 +852,7 @@
         if (progressText) progressText.textContent = `${label} · ${Math.round(fraction * 100)}%（${WB.formatBytes(loaded)} / ${WB.formatBytes(total)}）`;
       };
       const record = (index, jobId, error, reusedFrom) => {
-        if (jobId) { created.push(jobId); setRow(index, reusedFrom ? `已创建任务 ${jobId}（复用 ${reusedFrom}）` : `已创建任务 ${jobId}`); }
+        if (jobId) { created.push(jobId); setRow(index, (reusedFrom ? `已创建任务 ${jobId}（复用 ${reusedFrom}）` : `已创建任务 ${jobId}`) + (releaseIds.length > 1 ? '；体场任务将在出口确认后自动创建' : '')); }
         else { failures.push(`${files[index].name}：${error}`); setRow(index, `失败：${error}`); }
       };
       const uploadOne = async (index, mode) => {
@@ -870,7 +897,7 @@
         }
         for (const item of duplicates) { if (progressText) progressText.textContent = `请选择如何处理 ${files[item.index].name}`; await resolveDuplicate(item.index, item.body); }
       }
-      savePreferences({upload: WB.uploadPreferencesFrom({...metadata, remember_patient: $('remember-patient').checked})});
+      savePreferences({upload: WB.uploadPreferencesFrom({...metadata, release_id: $('upload-release').value, remember_patient: $('remember-patient').checked})});
       await refreshJobs(true);
       const focus = created[created.length - 1] || opened[opened.length - 1];
       if (focus) { if (!failures.length) closeUploadDialog(); await selectJob(focus); }
@@ -1916,7 +1943,15 @@
     const heading = node('section',{class:`card detail-head${confirming ? ' compact-head' : ''}`},node('div',{class:'job-heading'},node('div',{class:'job-heading-main'},node('h1',{text:job.case_id || '匿名病例'}),headBadges),actions),identity);
     const back = button('← 返回病例列表',() => { const list = $('jobs-title'); list.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',block:'start'}); $('jobs-query').focus({preventScroll:true}); },'text-button back-to-cases');
     heading.prepend(back);
-    if (job.reused_from) heading.append(node('p',{class:'job-origin',text:`复用自任务 ${job.reused_from}：中心线与出口确认沿用，只重新计算所选发布包。`}));
+    const companions = Array.isArray(job.companions) ? job.companions.filter(entry => entry && entry.release_id) : [];
+    if (job.companion_of) heading.append(node('p',{class:'job-origin'},`与任务 ${job.companion_of} 同时上传的${releaseFamilyName(job.model_release?.id || '')}预测，复用其中心线与出口确认。 `,button('打开该任务',() => selectJob(job.companion_of),'link-button')));
+    if (companions.length) heading.append(node('p',{class:'job-origin'},...companions.flatMap((entry,i) => {
+      const name = releaseFamilyName(entry.release_id), sep = i ? '；' : '';
+      if (entry.job_id) return [`${sep}同时预测 ${name}：任务 ${entry.job_id} `, button('打开',() => selectJob(entry.job_id),'link-button')];
+      return [`${sep}同时预测 ${name}：${entry.error ? `未能创建（${entry.error}）` : '确认出口后自动创建'}`];
+    })));
+    if (job.companion_of) { /* provenance already shown above */ }
+    else if (job.reused_from) heading.append(node('p',{class:'job-origin',text:`复用自任务 ${job.reused_from}：中心线与出口确认沿用，只重新计算所选发布包。`}));
     else if (job.source_job_id) heading.append(node('p',{class:'job-origin',text:`由任务 ${job.source_job_id} 换发布包重跑，复用其中心线与出口确认。`}));
     // While queued / running with an estimate, the stage bar below replaces the coarse five-step stepper.
     const staged = Boolean(job.eta) && ['queued','queued_A','queued_B','running','running_A','running_B'].includes(job.status);

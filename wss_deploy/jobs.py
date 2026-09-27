@@ -683,7 +683,7 @@ class JobManager:
             public = {key: public.get(key) for key in (
                 "id", "case_id", "status", "stage", "version", "created_at", "updated_at", "phase", "detail", "error",
                 "patient_id", "scan_label", "scan_date", "tags", "notes", "source_filename", "model_release",
-                "source_job_id", "reused_from", "batch_id", "run_identity", "compute", "review")}
+                "source_job_id", "reused_from", "batch_id", "run_identity", "compute", "review", "companions", "companion_of")}
             public["finished_at"] = _date(job["finished_ts"]) if job.get("status") == "done" and isinstance(job.get("finished_ts"), (int, float)) else None
             public["family"] = self._family(job)
             public["input_sha256"] = self._input_sha256(job)
@@ -1698,7 +1698,8 @@ class JobManager:
     def create(self, owner: str, *, content: bytes | None = None, filename: str, case_id: str = "", release_id: str | None = None,
                patient_id: str = "", scan_label: str = "", scan_date: str = "", tags: list[str] | None = None,
                notes: str = "", on_duplicate: str = "force", _batch_id: str | None = None,
-               content_path: str | os.PathLike | None = None, content_file=None, **params) -> dict:
+               content_path: str | os.PathLike | None = None, content_file=None,
+               companion_release_ids: list[str] | str | None = None, **params) -> dict:
         """Create a task; ``on_duplicate`` (contract §11.2) decides what happens when the same STL bytes were seen.
 
         ``force`` (the pre-C2 behaviour, also the default for direct callers) always creates; ``ask`` raises a
@@ -1709,6 +1710,11 @@ class JobManager:
         ``content_file`` (a binary file-like object, rewound first when it has ``seek``).  The last two are streamed in 1 MiB
         chunks through ``<jobs_root>/.tmp`` (sha256 while copying, then renamed into the job) — v0.14, so the
         server need not read a 128 MiB upload into memory.  All three run the same checks.
+
+        ``companion_release_ids`` (v0.15.7): further releases to predict for the same upload, e.g. the volume package
+        next to the three-head wall package.  Each becomes its own task, cloned from this one (input, centreline,
+        confirmed outlets) as soon as its outlets are confirmed — manually or by the automatic gate — so the outlets
+        are confirmed once for all of them (:meth:`_spawn_companions`).
         """
         sources = sum(value is not None for value in (content, content_path, content_file))
         if sources != 1:
@@ -1723,6 +1729,7 @@ class JobManager:
         inputs = self._params(params)
         compute = self._compute(params)
         model_release = self._release_record(release_id)
+        companions = self._companion_records(companion_release_ids, model_release)
         available_models = model_release.get("models_count")
         if compute["seed_count"] is not None and isinstance(available_models, int) and compute["seed_count"] > available_models:
             raise JobError(f"集成模型数不能超过当前发布包的 {available_models} 个模型。")
@@ -1740,9 +1747,18 @@ class JobManager:
                     source_id = next((row["job_id"] for row in existing if row["reusable"]), None)
                     if not source_id:
                         raise self._duplicate_error(existing, sha, reuse_unavailable=True)
-                    return self._clone_for_stage_b(source_id, owner, model_release=model_release, compute=compute,
-                                                   case_id=case_id.strip() or Path(safe_name).stem, metadata=metadata,
-                                                   source_filename=safe_name, batch_id=_batch_id, reused=True, actor=owner)
+                    clone = self._clone_for_stage_b(source_id, owner, model_release=model_release, compute=compute,
+                                                    case_id=case_id.strip() or Path(safe_name).stem, metadata=metadata,
+                                                    source_filename=safe_name, batch_id=_batch_id, reused=True, actor=owner)
+                    if not companions:
+                        return clone
+                    with self.lock:
+                        job = self.jobs[clone["id"]]
+                        job["companions"] = companions
+                        if job.get("status") != "awaiting_confirmation":   # outlets already confirmed: spawn now
+                            self._spawn_companions(job, actor=owner)
+                        self._save(job)
+                        return self._snapshot(job)
             job_id = _clock.strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(6)
             job_dir = self.root / job_id
             job_dir.mkdir(mode=0o700)
@@ -1767,6 +1783,8 @@ class JobManager:
         if _batch_id is not None:
             job["batch_id"] = _batch_id
         job["model_release"] = model_release
+        if companions:
+            job["companions"] = companions
         with self.lock:
             self.jobs[job_id] = job
             self._enqueue(job, "A", "created", actor=owner)
@@ -1783,7 +1801,7 @@ class JobManager:
         if not isinstance(items, list) or not 1 <= len(items) <= MAX_BATCH_ITEMS:
             raise JobError(f"每批必须包含 1 到 {MAX_BATCH_ITEMS} 个 STL 文件。")
         allowed = {"content", "content_path", "content_file", "filename", "case_id", "release_id", "units", "remove_fragments",
-                   "device", "seed_count", "threads", "on_duplicate", *CASE_METADATA}
+                   "device", "seed_count", "threads", "on_duplicate", "companion_release_ids", *CASE_METADATA}
         if set(defaults) - allowed:
             raise JobError("批量上传包含不支持的公共参数。")
         batch_id = "batch_" + _clock.strftime("%Y%m%d_%H%M%S") + "_" + secrets.token_hex(6)
@@ -1932,6 +1950,7 @@ class JobManager:
             if override_done:
                 job.pop("summary", None)
             self._enqueue(job, "B", "outlets_confirmed", actor=owner)
+            self._spawn_companions(job, actor=owner)
             return self._snapshot(job)
 
     @staticmethod
@@ -2202,6 +2221,58 @@ class JobManager:
                 if key in input_check:
                     input_check[key] = portable(input_check.get(key))
         return stage_a
+
+    MAX_COMPANIONS = 2
+
+    def _companion_records(self, release_ids, primary: dict) -> list[dict]:
+        """Validated companion list for :meth:`create` — each release exists, differs from the primary and is unique."""
+        if release_ids is None or release_ids == "" or release_ids == []:
+            return []
+        ids = [part.strip() for part in release_ids.split(",")] if isinstance(release_ids, str) else release_ids
+        if not isinstance(ids, (list, tuple)) or not all(isinstance(rid, str) and rid.strip() for rid in ids):
+            raise JobError("同时预测的发布包必须是发布包编号列表。")
+        ids = [rid.strip() for rid in ids]
+        if len(ids) > self.MAX_COMPANIONS:
+            raise JobError(f"一次上传最多同时预测 {self.MAX_COMPANIONS + 1} 个发布包。")
+        records, seen = [], {primary.get("id")}
+        for rid in ids:
+            record = self._release_record(rid)
+            if record.get("id") in seen:
+                raise JobError("同时预测的发布包不能重复，也不能与主发布包相同。")
+            seen.add(record.get("id"))
+            records.append({"release_id": record.get("id"), "job_id": None})
+        return records
+
+    def _spawn_companions(self, job: dict, *, actor: str | None = None) -> None:
+        """Create the companion tasks of ``job`` once its outlets are confirmed (v0.15.7).
+
+        Each companion is a stage-B-only clone (the 补跑 path, :meth:`_clone_for_stage_b`) bound to its own release;
+        it records ``companion_of`` and the primary records the new task id.  Runs at most once per companion (a later
+        override or retry does not spawn again); a failure is recorded on the primary and never fails it.
+        """
+        from .registry import ReleaseError   # local: registry imports this module
+        with self.lock:
+            pending = [entry for entry in (job.get("companions") or []) if isinstance(entry, dict) and not entry.get("job_id")]
+            if not pending or not self._reusable(job):
+                return
+            for entry in pending:
+                try:
+                    release = self._release_record(entry.get("release_id"))
+                    created = self._clone_for_stage_b(job["id"], job["owner"], model_release=release, actor=actor)
+                except (JobError, ReleaseError, OSError, ValueError) as exc:
+                    entry["error"] = str(exc) or type(exc).__name__
+                    self._event(job, "companion_failed", version=False, durable=True, actor=actor,
+                                release_id=entry.get("release_id"), error=entry["error"])
+                    continue
+                entry.pop("error", None)
+                entry["job_id"] = created["id"]
+                companion = self.jobs.get(created["id"])
+                if companion is not None:
+                    companion["companion_of"] = job["id"]
+                    self._save(companion)
+                # version=False: the primary's queued stage-B item carries the current version and must stay valid.
+                self._event(job, "companion_created", version=False, durable=True, actor=actor,
+                            release_id=entry.get("release_id"), companion_job_id=created["id"])
 
     def rerun(self, job_id: str, owner: str, payload: dict) -> dict:
         """Create a new task using an existing input/stage-A/mapping snapshot."""
@@ -2675,6 +2746,7 @@ class JobManager:
                                 # stale.
                                 self._enqueue(job, "B", "outlets_auto_confirmed", defer=True)
                                 deferred_stage = "B"
+                                self._spawn_companions(job, actor=job.get("owner"))
                             else:
                                 reasons = "；".join(gate.get("reasons") or [])
                                 job.update(status="awaiting_confirmation", phase="请确认出口", detail=(

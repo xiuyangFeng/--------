@@ -1260,3 +1260,55 @@ def test_v015_wait_text_upload_checks_chunks_and_identifier_hints():
     assert ids[0] is None and ids[1] is None and ids[2]["level"] == "error" and ids[2]["text"].startswith("病例编号含有")
     assert ids[3] == {"level": "error", "text": "患者编号最多 80 个字符（当前 81 个）。"} and ids[4]["level"] == "warn"
     assert out["bytes"] == ["0 B", "1023 B", "2.0 KB", "5.0 MB", "3.0 GB"]
+
+
+def test_v0157_upload_offers_three_head_plus_volume_and_sends_the_companion():
+    """One upload → the three-head wall package and the volume package: a combined choice appears only when both kinds
+    exist (plain WSS is not combined), fixes the seed count to all models, and the POST carries the primary release
+    plus ``companion_release_ids``; a single package sends no companion field."""
+    extra = r"""
+canned['/api/releases']={releases:[
+  {id:'X5D_v51_5seed_20260916',release:'X5D_v51_5seed_20260916',models_count:5,contract:{protocol:'single_frame_wss'}},
+  {id:'M1_3head_3seed_20260922',release:'M1_3head_3seed_20260922',models_count:3,contract:{protocol:'single_frame_wss_cycle_multi',fields:{wss:{},tawss:{},osi:{}}}},
+  {id:'PF6_VF6_peak_3seed_20260920',release:'PF6_VF6_peak_3seed_20260920',models_count:6,contract:{protocol:'single_frame_volume'}}]};
+canned['/api/session'].max_upload_bytes=128*1024*1024;
+"""
+    tail = r"""
+(async()=>{
+  const g=id=>document.getElementById(id);
+  await wait(80);
+  const select=g('upload-release');
+  const options=select.children.map(o=>({value:o.value,text:o.textContent}));
+  const combo=options.find(o=>o.value.includes('+'));
+  select.value=combo.value;select.onchange();
+  const settings={seeds:g('upload-seeds').children.map(o=>o.textContent),help:g('release-help').textContent,version:g('release-version').textContent,ready:!g('upload-button').disabled};
+  const sent=[];const origFetch=global.fetch;
+  global.fetch=async(url,opts)=>{if(String(url)==='/api/jobs'&&opts&&opts.method==='POST'){const b=opts.body;sent.push({release:b.get('release_id'),companions:b.get('companion_release_ids')});
+    return {ok:true,status:200,json:async()=>({job:{id:'j'+sent.length}}),headers:{get:()=>null}};}return origFetch(url,opts);};
+  g('stl-file').files=[{name:'CASE_A.stl',size:2*1048576}];
+  await step('files',()=>fire(g('stl-file'),'change'));
+  g('case-id').value='CASE-1';await step('case id',()=>fire(g('case-id'),'input'));
+  await step('submit combo',()=>fire(g('upload-form'),'submit'));
+  await wait(80);
+  const row=(byClass(g('upload-files'),'upload-file-row').map(r=>(byClass(r,'upload-file-state')[0]||{})._text))[0]||null;
+  select.value='M1_3head_3seed_20260922';select.onchange();
+  const single={seeds:g('upload-seeds').children.map(o=>o.textContent)};
+  g('stl-file').files=[{name:'CASE_B.stl',size:2*1048576}];
+  await step('files 2',()=>fire(g('stl-file'),'change'));
+  await step('submit single',()=>fire(g('upload-form'),'submit'));
+  await wait(80);
+  global.fetch=origFetch;
+  console.log(JSON.stringify({errors,options,combo,settings,sent,row,single}));
+  process.exit(0);
+})();
+"""
+    out = _run(_bare_program(tail, extra))
+    assert out["errors"] == [], out
+    combos = [o for o in out["options"] if "+" in o["value"]]
+    assert [o["value"] for o in combos] == ["M1_3head_3seed_20260922+PF6_VF6_peak_3seed_20260920"]
+    assert "同时预测" in combos[0]["text"] and "压力 + 速度体场" in combos[0]["text"]
+    assert out["settings"]["seeds"] == ["全部模型（各发布包）"] and "同时创建两个任务" in out["settings"]["help"]
+    assert "M1_3head_3seed_20260922 + PF6_VF6_peak_3seed_20260920" in out["settings"]["version"] and out["settings"]["ready"] is True
+    assert out["sent"][0] == {"release": "M1_3head_3seed_20260922", "companions": "PF6_VF6_peak_3seed_20260920"}
+    assert len(out["single"]["seeds"]) > 1
+    assert out["sent"][1] == {"release": "M1_3head_3seed_20260922", "companions": None}

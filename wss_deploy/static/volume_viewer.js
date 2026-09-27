@@ -1792,7 +1792,9 @@
   function renderProbe() {
     const body=$('probe-body');if(!body)return;
     if(!probe){setHidden('probe-card',true);return;}
-    const rows=[];
+    // v0.15.5: an unpinned (hover) probe shows only its key rows — the active quantity and the branch — on one line,
+    // so the slice plan view below keeps its room; a pinned probe lists everything (third item = key row).
+    const rows=[],primary=($('volume-field')||{}).value==='velocity'?'速度大小':'相对压力';
     if(probe.kind==='interior') {
       const rec=probeRecord(probe.index,{pts,velocity,pressure,segments,s:sFromRoot,radius:pointRadius,distWall,trust});
       rows.push(['位置 (mm)',rec.position.map(v=>v.toFixed(1)).join(', ')]);
@@ -1809,9 +1811,11 @@
       const near=nearestTangent(groups,point(vertices,v));if(near)rows.push(['最近分支',branchName(near.segment)],['弧长 s',near.arc.toFixed(1)+' mm']);
       if(wallTrust&&wallTrust[v])rows.push(['可信标记',trustLabels(meta.trust).filter(t=>wallTrust[v]&t.bit).map(t=>t.label).join('、')]);
     }
+    const keys=new Set([primary,'分支','壁面压力','最近分支']);if(!rows.some(r=>r[0]===primary)&&rows[1])keys.add(rows[1][0]);
     body.replaceChildren();
-    for(const [label,value] of rows){const kv=document.createElement('div');kv.className='kv';const span=document.createElement('span'),b=document.createElement('b');span.textContent=label;b.textContent=value;kv.append(span,b);body.append(kv);}
-    setText('probe-note',probePinned?'已固定；点击空白处或「清除」解除；「记录」加入探针记录表。':'悬停读数；单击可固定；「记录」加入探针记录表。');
+    for(const [label,value] of rows){const kv=document.createElement('div');kv.className='kv'+(keys.has(label)?' key':'');const span=document.createElement('span'),b=document.createElement('b');span.textContent=label;b.textContent=value;kv.append(span,b);body.append(kv);}
+    setText('probe-note',probePinned?'已固定；点击空白处或「清除」解除；「记录」加入探针记录表。':'悬停读数 · 单击血管固定并查看全部读数');
+    const card=$('probe-card');if(card&&card.classList)card.classList.toggle('brief',!probePinned);
     setHidden('probe-card',false);
   }
   // ---- probe log (C11) ----
@@ -3500,7 +3504,7 @@
     labels:()=>({...labelState}),setLabels,findingChipText,activateFinding,findings:()=>currentFindings().map(x=>({...x})),
     // v0.12 (§19.9 / A9 / B4)
     camera:()=>cameraState(),autoView:()=>autoView,fit,showStandardView,fittedCamera,setField,setMode,cycleMode,
-    probeEnabled:()=>probeEnabled,setProbeEnabled,toggleAutoLabels,setTechInfo,techOpen:()=>techOpen,techInfoText,
+    probeEnabled:()=>probeEnabled,setProbeEnabled,setProbe:(kind,index,pinned)=>{probe=kind?{kind,index}:null;probePinned=!!pinned;renderProbe();},toggleAutoLabels,setTechInfo,techOpen:()=>techOpen,techInfoText,
     shortcuts:()=>shortcuts,warnings:()=>warnings.map(x=>({...x})),pickMode:()=>pickMode,
     sliceZoom:open=>{openSliceZoom(open);return sliceZoomOpen;},
     // §21.4 label layout

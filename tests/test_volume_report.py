@@ -1685,6 +1685,31 @@ def test_v0154_camera_is_framed_to_the_area_the_right_dock_and_slice_toolbar_lea
     assert result["both"]["d"] > result["short"]["d"] * 1.05
 
 
+def test_v0155_unpinned_probe_is_one_line_of_key_readings_and_pinned_lists_all(tmp_path):
+    """A hover (unpinned) probe marks the card ``brief`` and only the active quantity + branch rows as ``key`` (the CSS
+    shows just those, so the slice plan view keeps its room); pinning drops ``brief`` and keeps every row."""
+    meta = _frame_meta()
+    extra = _webgl_extra(r"""
+      Object.defineProperty(Element.prototype,'classList',{get(){return this._cl||(this._cl={_s:new Set(),
+        toggle(c,f){const on=f===undefined?!this._s.has(c):!!f;if(on)this._s.add(c);else this._s.delete(c);return on;},contains(c){return this._s.has(c);}});},configurable:true});
+    """)
+    body = r"""
+      const V=require(VIEWER),T=V.__test,g=id=>document.getElementById(id);
+      const rows=()=>g('probe-body').children.map(kv=>({label:kv.children[0].textContent,key:/\bkey\b/.test(kv.className)}));
+      document.getElementById('volume-field').value='velocity';
+      T.setProbe('interior',0,false);const hover={brief:g('probe-card').classList.contains('brief'),hidden:g('probe-card').hidden,rows:rows(),note:g('probe-note').textContent};
+      T.setProbe('interior',0,true);const pinned={brief:g('probe-card').classList.contains('brief'),rows:rows(),note:g('probe-note').textContent};
+      console.log(JSON.stringify({hover,pinned}));
+    """
+    result = _run_tube(tmp_path, "probe.html", meta, body, extra, common=True)
+    hover, pinned = result["hover"], result["pinned"]
+    assert hover["brief"] is True and hover["hidden"] is False and "单击血管固定" in hover["note"]
+    keys = [r["label"] for r in hover["rows"] if r["key"]]
+    assert keys == ["速度大小", "分支"] and len(hover["rows"]) > len(keys)       # the other rows stay in the DOM, hidden by CSS
+    assert pinned["brief"] is False and [r["label"] for r in pinned["rows"]] == [r["label"] for r in hover["rows"]]
+    assert "已固定" in pinned["note"]
+
+
 def test_v012_webgl_startup_frames_the_front_view_and_explicit_cameras_win(tmp_path):
     """Default view = fitted anatomical front view (inlet up); standard views and 0 / R refit; a resize refits
     until the user moves the camera; a view-state camera (#view= link) always wins; changing up rebuilds the controls."""

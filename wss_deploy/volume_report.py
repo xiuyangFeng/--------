@@ -292,6 +292,15 @@ footer .tech-toggle{margin-left:auto;min-height:0;padding:2px 10px;font-size:12p
 /* v0.15.4: the 3-D viewport's own size (not the window) drives the overlays of the full layout — a compare-page half or a
    narrow window shrinks the right dock, the slice plan view and the slice toolbar so the vessel stays visible.  The camera
    is also centred on the free area left of the dock (volume_viewer.js viewOffset). */
+/* v0.15.5 probe card: labels never wrap; an unpinned (hover) probe is one line of key readings; in slice mode the
+   plan view sits right under the colour legend and keeps its size, the probe card shrinks and scrolls instead. */
+.probe .metrics{grid-template-columns:auto minmax(0,1fr)}.probe .metrics span{white-space:nowrap}.probe .metrics b{overflow-wrap:anywhere}
+body:not(.compact) .probe.brief{padding:6px 10px}body:not(.compact) .probe.brief .slice-panel-head{margin-bottom:2px}body:not(.compact) .probe.brief .slice-panel-head button{padding:1px 7px;font-size:12px;min-height:0}
+body:not(.compact) .probe.brief .metrics{display:flex;flex-wrap:wrap;gap:2px 12px}
+body:not(.compact) .probe.brief .metrics .kv{display:none}body:not(.compact) .probe.brief .metrics .kv.key{display:inline-flex;gap:5px;white-space:nowrap}
+body:not(.compact) .probe.brief .note{margin:3px 0 0}
+body:not(.compact) #volume-view.mode-slice #right-dock .slice-panel{order:2}
+body:not(.compact) #volume-view.mode-slice #right-dock .probe{order:3;flex:0 20 auto;min-height:min(128px,24%);overflow:auto}body:not(.compact) #volume-view.mode-slice #right-dock .probe.brief{min-height:78px}
 @media screen{#volume-view{container:vview/size}
 @container vview (max-width:1000px){
 body:not(.compact) #right-dock{right:10px;top:10px;bottom:10px;width:clamp(210px,36cqw,330px);gap:8px}
