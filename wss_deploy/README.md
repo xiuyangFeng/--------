@@ -55,6 +55,31 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 
 验收与计时：`training_wss_min/experiments/wss_deploy_timing_20260917/`（分段计时、指标演示、`acceptance_test34/` 34 例回归）。设计与讨论：`docs/02-推进与变更/05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md`。
 
+## v0.15.5（2026-09-27）：TAWSS 最小值标记 + 并排比较时视口内元素自适应
+
+用户要求：① TAWSS 也要标出最小值；② 并排比较时截面和体场那边的指标卡、截面卡要自适应变小，确保血管能看到。
+
+| 改动 | 做法 | 文件 |
+|---|---|---|
+| TAWSS 最小值 | `fieldPeak(id, low)` 取预测点最小值（`np.argmin` 同序）；TAWSS 时另加白色标记与标签「TAWSS 最小值 0.0932 Pa」，统计卡加「最小 / 最小值位置 / 白色标记」，打印脚注与截图说明同步；复选框改为「全场最大值标记（TAWSS 另标最小值）」，同一开关控制两个标记 | report.py |
+| 体场视口自适应 | `#volume-view` 设为尺寸容器（仅屏幕），按**三维视口自身**宽高（不是窗口）分三档：≤ 1000 px 右侧栏宽 `clamp(210px, 36cqw, 330px)`、截面平面视图画布高度按视口高缩放、截面工具条移到左上角并隐藏长提示；≤ 680 px 再收窄并隐藏色标注释和视图说明；≤ 460 px 工具条单行可横向滚动 | volume_report.py |
+| 体场相机避让 | 右侧栏（色标 + 截面平面视图）竖向占到视口 45% 以上时，标准视角按左侧空白区的宽高适配，并用 `camera.setViewOffset` 把画面中心移到空白区中央；左上角的截面工具条同样把空白区往下推。拾取与标签用同一投影；只有图例时不移动 | static/volume_viewer.js |
+| 紧凑布局截面模式 | 视口加 `mode-slice` 类；截面模式下隐藏会被工具条盖住的一行视图说明 | volume_viewer.js, volume_report.py |
+| 壁面视口自适应 | `#view` 同样设为尺寸容器：≤ 760 px 字段切换条移到左上角并缩小、色标变短、底部提示缩小；≤ 520 px 字段条可横向滚动、色标下移、底部提示隐藏 | report.py |
+
+纯报告页 UI 改动，精度链路不变。验收：新增 `test_v0154_camera_is_framed_to_the_area_the_right_dock_and_slice_toolbar_leave_free`，扩展 `test_peak_marker_follows_the_coloured_field`（最小值）；全量 680 项测试通过 / 3 跳过，黄金回归 6/6，devshot 标准套件 10 页 0 个 JS 错误；并排比较在窗口 2000 / 1500 / 1200 宽（强制完整布局与自动紧凑布局）下截图：血管均完整可见，改前 1500 宽时截面工具条被挤成竖排文字、血管完全被遮挡。
+
+## v0.15.4（2026-09-27）：最大值标记跟随着色字段
+
+用户要求：报告切到 TAWSS / OSI 等指标时，三维图里也要标出该指标的最大值，而不是始终只标峰值 WSS 最大值。
+
+| 改动 | 做法 | 文件 |
+|---|---|---|
+| 黄色标记跟随字段 | 新增 `fieldPeak(id)`：峰值 WSS 仍用 summary 的 `peak.xyz_mm / max_pa`（位置、文字与旧版逐字相同）；TAWSS / OSI / RRT / ECAP 在页面内对预测点数组取第一个最大有限值（与 `np.argmax` 同序），标记移到该点，标签为「TAWSS 最大值 11.9 Pa」「OSI 最大值 0.394」；某字段无有限值时隐藏标记 | report.py |
+| 统计卡 | 周期量卡在「最大」后加「最大值位置」（分支、距入口、距分叉）与「黄色标记」行；峰值 WSS 卡在其他字段下注明「切回峰值 WSS 时标在此处」；打印脚注、截图说明随字段改写，周期量截图说明补「最大值」 | report.py |
+
+纯报告页 UI 改动，精度链路与 summary 不变；已有报告打开时由 `report_freshness` 自动刷新。验收：新增 `test_peak_marker_follows_the_coloured_field`，全量 679 项测试通过 / 3 跳过，黄金回归 6/6，沙箱 devshot（LV_GUO_YOU M1 报告）TAWSS 标在分叉、OSI 标在近端主动脉。
+
 ## v0.15（2026-09-26）：上线前加固——安全、可运维、前端与操作性
 
 用户要求在正式上线前再做一轮「前端 / 操作性 / 安全」优化，允许子智能体并行、由用户验收。三路 opus 通用代理并行（S 安全审计与加固 / O 可运维与上线就绪 / F 前端与操作快赢），主会话做合并胶水、全量验证与文档。**精度链路（pipeline / geometry / morphology / centerline / ingest / infer / families / analysis / wss_features）一行未改**，黄金回归 6/6。用户此前的裁定继续有效：彩虹默认色标、「计算耗时」卡、菜单式布局保留；不拆 app.js、不做设计令牌 / 暗色；不做 systemd / cron / 备份、不做 tag 部署、不做中心线抽稀。**网络层开关全部默认关闭**：不设新环境变量时行为与 v0.14 相同（登录限速按地址默认值 10 → 30 除外）。

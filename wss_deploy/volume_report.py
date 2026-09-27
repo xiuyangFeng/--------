@@ -289,6 +289,39 @@ footer .tech-toggle{margin-left:auto;min-height:0;padding:2px 10px;font-size:12p
 .compact header.has-back{grid-template-columns:auto auto minmax(0,1fr)}.compact .back-link{padding:4px 8px;font-size:12px}
 @media print{.back-link{display:none!important}}
 @media (pointer:coarse){button:not(.gloss),select,summary,.back-link{min-height:44px!important}button:not(.gloss){min-width:40px}input[type=range]{min-height:40px}.gloss{position:relative}.gloss:after{content:"";position:absolute;inset:-12px}input[type=checkbox]{width:22px;height:22px}}
+/* v0.15.4: the 3-D viewport's own size (not the window) drives the overlays of the full layout — a compare-page half or a
+   narrow window shrinks the right dock, the slice plan view and the slice toolbar so the vessel stays visible.  The camera
+   is also centred on the free area left of the dock (volume_viewer.js viewOffset). */
+@media screen{#volume-view{container:vview/size}
+@container vview (max-width:1000px){
+body:not(.compact) #right-dock{right:10px;top:10px;bottom:10px;width:clamp(210px,36cqw,330px);gap:8px}
+body:not(.compact) #legend{padding:6px 9px}body:not(.compact) #legend-bar{height:9px;margin:4px 0}
+body:not(.compact) .slice-panel{padding:6px 9px}body:not(.compact) .slice-panel-head{margin-bottom:4px}
+body:not(.compact) #slice-canvas{height:clamp(130px,32cqh,260px)}
+body:not(.compact) .slice-tools{top:10px;left:10px;transform:none;justify-content:flex-start;max-width:calc(100% - clamp(210px,36cqw,330px) - 30px);padding:4px 8px;gap:4px}
+body:not(.compact) .slice-tools-hint,body:not(.compact) .slice-tools-label{display:none}
+body:not(.compact) .slice-tools button{padding:2px 7px}
+body:not(.compact) #view-note{bottom:10px;left:10px;max-width:calc(100% - clamp(210px,36cqw,330px) - 30px);padding:5px 8px}
+body:not(.compact) #volume-view.has-banner .slice-tools{top:40px}
+}
+@container vview (max-width:680px){
+body:not(.compact) #right-dock{width:clamp(180px,40cqw,240px);gap:6px}
+body:not(.compact) .slice-tools{max-width:calc(100% - clamp(180px,40cqw,240px) - 28px)}
+body:not(.compact) #legend-note{display:none}
+body:not(.compact) .slice-panel-head{flex-wrap:wrap;gap:2px 6px}body:not(.compact) .slice-panel-head strong{font-size:13px;flex:1 0 auto}
+body:not(.compact) .slice-panel-head button{padding:1px 6px;font-size:12px}
+body:not(.compact) .slice-tools{padding:3px 6px}body:not(.compact) .slice-tools button{padding:1px 5px;font-size:11px}
+body:not(.compact) #slice-canvas{height:clamp(110px,28cqh,200px)}
+body:not(.compact) #view-note{display:none}
+}
+/* compact layout, slice mode: the slice toolbar owns the top-left corner (the note would sit under it) */
+.compact #volume-view.mode-slice #view-note{display:none}
+@container vview (max-height:560px){body:not(.compact) #slice-canvas{height:clamp(96px,24cqh,180px)}}
+@container vview (max-width:460px){
+body:not(.compact) .slice-tools{top:6px;left:6px;right:6px;max-width:none;flex-wrap:nowrap;overflow-x:auto}body:not(.compact) .slice-tools button{flex:0 0 auto;white-space:nowrap}
+body:not(.compact) #right-dock{top:52px;right:6px;width:clamp(140px,44cqw,190px)}body:not(.compact) #volume-view.has-banner #right-dock{top:82px}
+}
+}
 </style></head><body>
 <header><a id="back-to-workbench" class="back-link" href="/" title="回到工作台（本病例）" hidden>← 工作台</a><button type="button" id="menu-toggle" class="compact-only" aria-expanded="false" title="打开菜单">☰ 菜单</button><div><h1>体场预测报告</h1><div class="subline"><span id="volume-subtitle" class="note"></span><button type="button" class="gloss" data-gloss="fixed_frame" aria-label="固定时相说明">?</button></div></div>
 <div class="mode-tabs" role="group" aria-label="显示方式"><button type="button" aria-pressed="false" aria-controls="volume-view" class="tab" id="mode-cloud">体内点云</button><button type="button" aria-pressed="false" aria-controls="volume-view" class="tab" id="mode-slice">截面</button><button type="button" aria-pressed="false" aria-controls="volume-view" class="tab" id="mode-wall">壁面压力</button><button type="button" aria-pressed="false" aria-controls="volume-view" class="tab" id="mode-streamlines">流线</button></div>

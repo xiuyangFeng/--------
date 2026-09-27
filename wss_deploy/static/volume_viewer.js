@@ -1169,7 +1169,7 @@
   }
   // OrbitControls caches camera.up when it is constructed (its azimuth axis); a camera whose up differs from that
   // cached axis would tumble instead of spinning about the vessel, so the controls are rebuilt when up changes.
-  let controlsUp=null,autoView=null;
+  let controlsUp=null,autoView=null,freeAspect=null,freeFov=null;
   function makeControls() {
     if(controls&&typeof controls.dispose==='function'){try{controls.dispose();}catch(_){}}
     controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;
@@ -1194,7 +1194,7 @@
     if(!camera)return null;
     const useName=frame&&STANDARD_VIEWS[name]?name:'legacy';
     if(useName==='legacy'&&name!=='front')return null;
-    return fittedStandardCamera(useName,frame,vertices,{fov:camera.fov,aspect:camera.aspect,margin:1.12,center,distance:diagonal*1.5});
+    return fittedStandardCamera(useName,frame,vertices,{aspect:freeAspect||camera.aspect,fov:freeFov||camera.fov,margin:1.12,center,distance:diagonal*1.5});
   }
   function showStandardView(name) {
     const cam=fittedCamera(name);if(!cam)return false;
@@ -1219,12 +1219,38 @@
     planeEdge=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints([[-.5,-.5,0],[.5,-.5,0],[.5,.5,0],[-.5,.5,0]].map(q=>new THREE.Vector3(...q))),new THREE.LineBasicMaterial({color:0x1f6f8b,depthTest:false}));planeEdge.renderOrder=6;
     planeArrow=new THREE.ArrowHelper(new THREE.Vector3(0,0,1),new THREE.Vector3(0,0,0),1,0x1f6f8b,.2,.1);
     sliceGizmo=new THREE.Group();sliceGizmo.add(planeMesh);sliceGizmo.add(planeEdge);sliceGizmo.add(planeArrow);scene.add(sliceGizmo);
+    // v0.15.4: when the right dock (legend + slice plan view) covers a tall strip of the viewport, standard views are
+    // framed to the free area on its left and the image centre is shifted there (setViewOffset), so the vessel is not
+    // hidden behind the dock (compare-page halves, narrow windows); the slice toolbar in the top-left corner likewise
+    // pushes the free area down.  Picking and labels use the same projection.
+    function dockOcclusion(width,height) {
+      const dock=$('right-dock');if(!dock||typeof view.getBoundingClientRect!=='function')return 0;
+      const vr=view.getBoundingClientRect();let left=Infinity,top=Infinity,bottom=-Infinity;
+      for(const child of Array.from(dock.children||[])){
+        if(child.hidden||typeof child.getBoundingClientRect!=='function')continue;const r=child.getBoundingClientRect();
+        if(!(r.width>0&&r.height>0)||r.width>width*.7)continue;   // a strip across the view (compact probe) does not count
+        left=Math.min(left,r.left-vr.left);top=Math.min(top,r.top-vr.top);bottom=Math.max(bottom,r.bottom-vr.top);}
+      if(!Number.isFinite(left)||bottom-top<height*.45)return 0;
+      const occ=width-left;return occ>0&&occ<width*.62?occ:0;
+    }
+    function toolbarOcclusion(width,height) {
+      const bar=$('slice-tools');if(!bar||bar.hidden||typeof bar.getBoundingClientRect!=='function'||typeof view.getBoundingClientRect!=='function')return 0;
+      const vr=view.getBoundingClientRect(),r=bar.getBoundingClientRect();
+      if(!(r.width>0&&r.height>0)||r.left-vr.left>width*.5)return 0;   // only the toolbar parked in the top-left corner
+      const bottom=r.bottom-vr.top+4;return bottom>0&&bottom<height*.35?bottom:0;
+    }
     function resize() {
-      const width=Math.max(view.clientWidth||0,1),height=Math.max(view.clientHeight||0,1);renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix();
+      const width=Math.max(view.clientWidth||0,1),height=Math.max(view.clientHeight||0,1);renderer.setSize(width,height);camera.aspect=width/height;
+      const occ=dockOcclusion(width,height),top=occ>0?toolbarOcclusion(width,height):0,freeH=height-top;
+      freeAspect=occ>0?(width-occ)/freeH:null;freeFov=occ>0&&top>0?2*Math.atan(Math.tan(camera.fov*Math.PI/360)*freeH/height)*180/Math.PI:null;
+      if(occ>0&&typeof camera.setViewOffset==='function')camera.setViewOffset(width,height,occ/2,-top/2,width,height);
+      else if(typeof camera.clearViewOffset==='function')camera.clearViewOffset();
+      camera.updateProjectionMatrix();
       if(autoView)showStandardView(autoView);
       requestRender();
     }
-    if(root.ResizeObserver) new ResizeObserver(resize).observe(view);else root.addEventListener('resize',resize);
+    if(root.ResizeObserver){const ro=new ResizeObserver(resize);ro.observe(view);const dock=$('right-dock');for(const child of Array.from(dock&&dock.children||[]))ro.observe(child);if($('slice-tools'))ro.observe($('slice-tools'));}
+    else root.addEventListener('resize',resize);
     resize();
     function setSlider(id,value) {const el=$(id);if(!el)return;const min=Number(el.min),max=Number(el.max);el.value=String(clamp(value,min,max));el.dispatchEvent(new Event('input',{bubbles:true}));}
     function screenDir(origin,axis) {
@@ -3117,7 +3143,7 @@
     setText('slice-cut-status',cutActive?'已按当前截面切割；可在“血管模块”中选择截面 A 侧、截面 B 侧或全部。':'尚未切割；“血管模块”可按中心线分支筛选。');
     setText('pick-status',pickInfo||(pickMode?'点击半透明壁面上的一点：截面垂直于该处中心线；再点第二点：截面通过两点。':'点「点选定位截面」后在血管壁上点 1 或 2 个点即可放置截面；放好后可直接拖动蓝色截面。'));
     setText('slice-position-label',isPick?'沿法向微调':'位置');
-    setHidden('slice-tools',mode!=='slice');setHidden('pick-hint',!pickMode);
+    setHidden('slice-tools',mode!=='slice');setHidden('pick-hint',!pickMode);if(view&&view.classList)view.classList.toggle('mode-slice',mode==='slice');
     setText('pick-hint',picks.length===1?'第 2 点（可选）：再点一处让截面通过两点；或按 Esc / 「结束点选」后直接拖动截面。':'第 1 点：在半透明血管壁上点击，截面将垂直于该处中心线（Esc 取消）。');
     setText('slice-position-value',isPick?((Number($('slice-position').value)-50)*.5).toFixed(1)+' mm':Number($('slice-position').value).toFixed(1)+'%');setText('slice-pitch-value',$('slice-pitch').value+'°');setText('slice-yaw-value',$('slice-yaw').value+'°');setText('slice-thickness-value',thickness.toFixed(1));setText('slice-offset-u-value',(Number($('slice-offset-u').value)||0).toFixed(1));setText('slice-offset-v-value',(Number($('slice-offset-v').value)||0).toFixed(1));setText('volume-opacity-value',Number($('volume-opacity').value).toFixed(2));
     setText('streamline-width-value',(Number($('streamline-width').value)||1).toFixed(1)+'×');

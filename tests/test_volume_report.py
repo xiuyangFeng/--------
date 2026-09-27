@@ -1652,6 +1652,39 @@ def test_v012_fitted_standard_views_use_the_anatomical_frame_and_fill_the_viewpo
     np.testing.assert_allclose(np.asarray(fb["target"]) - np.asarray(fb["position"]), 10 * FRAME_R[1], atol=1e-6)
 
 
+def test_v0154_camera_is_framed_to_the_area_the_right_dock_and_slice_toolbar_leave_free(tmp_path):
+    """Compare-page halves: a tall right dock (legend + slice plan view) shifts the image centre left by half its width
+    and the standard view is fitted to the free area; the slice toolbar in the top-left corner pushes it down.  A short
+    dock (legend only) leaves the full viewport."""
+    meta = _frame_meta()
+    extra = _webgl_extra(r"""
+      global.__cams=[];const baseCam=global.THREE.PerspectiveCamera;
+      baseCam.prototype.setViewOffset=function(...a){this.viewOffset=a;};baseCam.prototype.clearViewOffset=function(){this.viewOffset=null;};
+      const rect=(l,t,w,h)=>({left:l,top:t,right:l+w,bottom:t+h,width:w,height:h});
+      const view=document.getElementById('volume-view');view.getBoundingClientRect=()=>rect(0,0,900,600);
+      global.__legend={hidden:false,getBoundingClientRect:()=>rect(600,10,290,70)};
+      global.__plan={hidden:false,getBoundingClientRect:()=>rect(600,90,290,480)};
+      document.getElementById('right-dock').children=[__legend,__plan];
+      const bar=document.getElementById('slice-tools');bar.getBoundingClientRect=()=>rect(10,10,280,40);
+    """)
+    body = r"""
+      const V=require(VIEWER),T=V.__test,cam=()=>__controls.object;
+      const dist=c=>Math.hypot(...c.position.map((v,k)=>v-c.target[k]));
+      const out={};
+      document.getElementById('slice-tools').hidden=false;fire('resize');out.both={offset:cam().viewOffset,d:dist(T.camera())};
+      document.getElementById('slice-tools').hidden=true;fire('resize');out.dock={offset:cam().viewOffset,d:dist(T.camera())};
+      __plan.hidden=true;fire('resize');out.short={offset:cam().viewOffset,d:dist(T.camera())};
+      console.log(JSON.stringify(out));
+    """
+    result = _run_tube(tmp_path, "dock.html", meta, body, extra, common=True)
+    assert result["both"]["offset"] == [900, 600, 150, -27, 900, 600]   # dock 300 px wide → +150; toolbar bottom 50 + 4 → −27
+    assert result["dock"]["offset"] == [900, 600, 150, 0, 900, 600]
+    assert result["short"]["offset"] is None                             # legend only: 70 px of 600 is not a strip
+    # the free area is narrower / lower than the viewport, so the fitted camera stands further back
+    assert result["both"]["d"] >= result["dock"]["d"] >= result["short"]["d"]
+    assert result["both"]["d"] > result["short"]["d"] * 1.05
+
+
 def test_v012_webgl_startup_frames_the_front_view_and_explicit_cameras_win(tmp_path):
     """Default view = fitted anatomical front view (inlet up); standard views and 0 / R refit; a resize refits
     until the user moves the camera; a view-state camera (#view= link) always wins; changing up rebuilds the controls."""

@@ -1160,6 +1160,37 @@ def test_cycle_card_uses_the_active_field_thresholds(tmp_path):
         assert part in o, part
 
 
+def test_peak_marker_follows_the_coloured_field(tmp_path):
+    """The yellow marker sits on the maximum of the coloured field (TAWSS / OSI / RRT / ECAP), not always on peak WSS;
+    TAWSS also gets a white marker on its minimum."""
+    out = _m1_gl(tmp_path, """
+      g('showpeak').checked=true;g('showpeak').onchange();const w=T.peak(),wl=T.trough();
+      g('field-seg').children[1].onclick();const t=T.peak(),tl=T.trough(),tp=T.panel();
+      key('f');const o=T.peak(),ol=T.trough(),op=T.panel();
+      T.apply(Object.assign(T.state(),{field:'ecap'}));const e=T.peak();
+      T.apply(Object.assign(T.state(),{field:'wss'}));const back=T.peak(),wp=T.panel();
+      T.apply(Object.assign(T.state(),{field:'tawss'}));g('showpeak').checked=false;g('showpeak').onchange();const off=T.peak().visible,offl=T.trough().visible;
+      console.log(JSON.stringify({errors,w,wl,t,tl,o,ol,e,back,tp,op,wp,off,offl}));
+    """)
+    assert out["errors"] == []
+    # Peak WSS keeps the summary's point and wording.
+    assert out["w"]["xyz"] == [1, 1, 0] and out["w"]["text"].startswith("全场最大值 ") and out["w"]["visible"] is True
+    assert out["back"] == out["w"] and "黄色标记</b><span>全场最大值预测点" in out["wp"]
+    # TAWSS [.2 .5 1.5 3] → point 3; OSI [.25 .05 .3 .12] → point 2; ECAP = OSI / TAWSS → point 0.
+    assert out["t"]["xyz"] == [1, 1, 0] and out["t"]["text"].startswith("TAWSS 最大值 ") and out["t"]["text"].endswith("Pa") and out["t"]["visible"] is True
+    assert out["o"]["xyz"] == [0, 1, 0] and out["o"]["text"].startswith("OSI 最大值 0.3") and out["o"]["visible"] is True
+    assert out["e"]["xyz"] == [0, 0, 0] and out["e"]["text"].startswith("ECAP 最大值 ")
+    assert out["off"] is False and out["offl"] is False
+    # TAWSS also marks its minimum (point 0, white); other fields have no minimum marker.
+    assert out["tl"]["xyz"] == [0, 0, 0] and out["tl"]["text"].startswith("TAWSS 最小值 0.2") and out["tl"]["visible"] is True
+    assert out["wl"]["visible"] is False and out["wl"]["text"] == "" and out["ol"]["visible"] is False and out["ol"]["text"] == ""
+    assert "TAWSS 全场最小值预测点" in out["tp"] and "白色标记" in out["tp"] and "白色标记" not in out["op"]
+    # 统计 card: location of the active field's maximum; the WSS card says where its own marker goes.
+    assert "OSI 全场最大值预测点" in out["op"] and "距入口 2 mm" in out["op"] and "最大值位置" in out["op"]
+    assert "TAWSS 全场最大值预测点" in out["tp"] and "切回峰值 WSS 时标在此处（当前标 TAWSS 最大值）" in out["tp"]
+    assert "黄色标记为OSI 的全场最大值" in out["op"]
+
+
 def test_cycle_finding_kinds_render_with_units_labels_and_fly_to(tmp_path):
     """W1's stagnation_cluster (cm²) / high_osi_cluster (dimensionless) and an unknown kind all render."""
     m1, _ = _m1_parts()

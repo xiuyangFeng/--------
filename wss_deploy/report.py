@@ -366,7 +366,7 @@ footer{flex:0 0 auto;font-size:12px;color:var(--muted);padding:5px 16px;border-t
 .probe-table{font-size:12px}.mode-row button.on{background:var(--acc);color:#fff}#branch-vis label{font-size:12px;margin-right:6px}
 #labels div.meas{background:#e8f6f8;border-color:#5bbcc9}#labels div.annot{background:#fff7e6;border-color:#e0a84a;pointer-events:auto;cursor:pointer;max-width:240px;white-space:normal}
 #labels div.flabel{pointer-events:auto;cursor:pointer;font-weight:600}#labels div.flabel.attention{background:#fde7e3f0;border-color:#e2a294;color:#8d3223}#labels div.flabel.note{background:#fff2d5f0;border-color:#e6c47a;color:#7a5814}#labels div.flabel.info{background:#e5f0faf0;border-color:#9dc3e6;color:#175b8c}
-#labels div.blabel{background:#eef4fbf0;border-color:#a9c4de;color:#2a4c6b;font-weight:600}#labels div.maxd{background:#f5ecfbf0;border-color:#b98fe0;color:#6c3483;font-weight:600}
+#labels div.blabel{background:#eef4fbf0;border-color:#a9c4de;color:#2a4c6b;font-weight:600}#labels div.maxd{background:#f5ecfbf0;border-color:#b98fe0;color:#6c3483;font-weight:600}#labels div.trough{background:#fffffff2;border-color:#5f6f86;color:#1f2a3a;font-weight:600}
 #narrative-card p{margin:4px 0}#narrative-card .edited{background:#eaf3fc;border-color:#9dc3e6}
 /* v0.13 menu tabs, quick statistics, grouped rows */
 .menu-tabs{position:sticky;top:-14px;z-index:4;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:-14px -14px 10px;padding:10px 14px 8px;background:#f7f9fc;border-bottom:1px solid var(--line)}
@@ -424,6 +424,26 @@ details.sub-details{border-top:1px solid var(--line);margin-top:8px;padding-top:
 }
 /* v0.15: touch screens (iPad) get 44 px controls; the 16–18 px「?」circle keeps its size with a larger hit area. */
 @media (pointer:coarse){button:not(.gloss),select,summary,.back-link{min-height:44px!important}button:not(.gloss){min-width:40px}#std-views button{min-width:40px!important;flex:1 1 40px}button.linkish,#quick-stats-more{display:inline-flex;align-items:center;min-height:40px!important}#tip-close{min-height:40px!important;min-width:40px}.gloss{position:relative}.gloss:after{content:"";position:absolute;inset:-12px}input[type=checkbox]{width:22px;height:22px}}
+/* v0.15.4: the 3-D viewport's own size (not the window) drives the overlays of the full layout — in a compare-page half or
+   a narrow window the field switch moves to the top-left corner and the colour bar shortens, so they no longer overlap
+   each other or the vessel. */
+@media screen{#view{container:wview/size}
+@container wview (max-width:760px){
+body:not(.compact) #field-seg{top:8px;left:8px;transform:none}
+body:not(.compact) #field-seg button{min-height:26px;padding:2px 9px;font-size:12px}
+body:not(.compact) #cbar-unit{top:8px;right:8px;max-width:150px}
+body:not(.compact) #cbar{right:34px;top:32px;height:clamp(150px,40cqh,300px)}
+body:not(.compact) #legend-stack{top:calc(44px + clamp(150px,40cqh,300px));right:8px;max-width:170px}
+body:not(.compact) #view.has-banner #field-seg{top:38px}body:not(.compact) #view.has-banner #cbar-unit{top:40px}
+body:not(.compact) #view.has-banner #cbar{top:64px}body:not(.compact) #view.has-banner #legend-stack{top:calc(76px + clamp(150px,40cqh,300px))}
+body:not(.compact) #tip{left:8px;bottom:8px;max-width:calc(100% - 110px);padding:4px 7px}
+}
+@container wview (max-width:520px){
+body:not(.compact) #field-seg{max-width:calc(100% - 16px);overflow-x:auto}body:not(.compact) #field-seg button{padding:2px 7px}body:not(.compact) #tip{display:none}
+body:not(.compact) #cbar-unit{top:44px}body:not(.compact) #cbar{top:66px;height:clamp(120px,36cqh,260px)}body:not(.compact) #legend-stack{top:calc(78px + clamp(120px,36cqh,260px))}
+body:not(.compact) #view.has-banner #cbar-unit{top:74px}body:not(.compact) #view.has-banner #cbar{top:96px}body:not(.compact) #view.has-banner #legend-stack{top:calc(108px + clamp(120px,36cqh,260px))}
+}
+}
 </style></head><body>
 <header><a id="back-to-workbench" class="back-link" href="/" title="回到工作台（本病例）" hidden>← 工作台</a><button type="button" id="menu-toggle" class="compact-only" aria-expanded="false" title="打开菜单">☰ 菜单</button><div><h1>壁面 WSS 预测报告</h1><div class="sub" id="subtitle"></div></div>
 <div class="mode-tabs view-mode-controls" role="group" aria-label="显示对象"><button type="button" id="tab-wss" aria-pressed="true" aria-controls="view" data-v="wss" class="on">WSS 壁面</button><button type="button" id="tab-stl" aria-pressed="false" aria-controls="view" data-v="stl">输入 STL</button><button type="button" id="tab-cl" aria-pressed="false" aria-controls="view" data-v="cl">中心线</button><button type="button" id="tab-cloud" aria-pressed="false" aria-controls="view" data-v="cloud">预测点云</button></div>
@@ -436,7 +456,7 @@ details.sub-details{border-top:1px solid var(--line);margin-top:8px;padding-top:
 <label>配色 <select id="cmap"><option value="rainbow">彩虹（默认）</option><option value="viridis">Viridis</option><option value="turbo">Turbo</option><option value="bwr">蓝白红</option></select><select id="bands" title="色带分段"><option value="0">连续</option><option value="4">4 段</option><option value="6">6 段</option><option value="8">8 段</option><option value="10">10 段</option><option value="12">12 段</option><option value="16">16 段</option><option value="20">20 段</option></select></label>
 <small id="scale-description" class="hint"></small>
 <label>分支 <select id="branch"><option value="-1">全部</option></select></label>
-<label><input type="checkbox" id="showpeak" checked> 全场最大值标记</label>
+<label><input type="checkbox" id="showpeak" checked> 全场最大值标记（TAWSS 另标最小值）</label>
 <div class="row"><label><input type="checkbox" id="showpts"> 叠加点云</label><label><input type="checkbox" id="showcl"> 叠加中心线</label></div>
 <label id="stag-row" hidden title="单周期 TAWSS &lt; 0.4 Pa 且 OSI &gt; 0.1 的壁面：血流慢且方向来回摆动；在任一字段下用品红斜纹叠加"><input type="checkbox" id="stag"> 滞留区（TAWSS &lt; 0.4 且 OSI &gt; 0.1）</label>
 <div class="view-row"><span class="row-label">视角</span><div class="row" id="std-views"><button type="button" data-view="front">前</button><button type="button" data-view="back">后</button><button type="button" data-view="left">左</button><button type="button" data-view="right">右</button><button type="button" data-view="top">上</button><button type="button" data-view="bottom">下</button><button type="button" id="reset-camera" title="解剖前视并撑满视口（快捷键 0 / R）">复位</button></div></div>
@@ -802,6 +822,18 @@ function cycleStats(id){
   for(const sid of ids){const mask=new Uint8Array(PS.length);let k=0;for(let i=0;i<PS.length;i++)if(PS[i]===sid){mask[i]=1;k++;}if(k<10)continue;
     const st=CORE.stats(F.p,CORE.maskIndices(mask)),b=thrFracs(F.p,t,above,mask);per[branchName(sid)]={segment_id:sid,mean:st.mean,p99:st.p99,max:st.max,[above?'frac_above_t0':'frac_low']:b.f0};}
   return {mean:src&&Number.isFinite(+src.mean)?+src.mean:s/n,p99:src&&src.p99!=null?src.p99:CORE.percentile(v,.99),max:src&&src.max!=null?src.max:v[n-1],thresholds:t.slice(),frac,keys,per_branch:per,source:src?'summary+thresholds':'arrays'};}
+// Maximum of a field over the prediction points (the yellow marker follows the coloured field).  Peak WSS keeps the
+// summary's point (metrics.py); TAWSS / OSI / RRT / ECAP take the first largest finite point value (np.argmax order).
+// ``low`` asks for the minimum instead (np.argmin order): TAWSS also marks its lowest point (white marker).
+const PEAK_CACHE={},MIN_FIELDS=new Set(['tawss']);
+function fieldPeak(id,low){const F=fieldArrays(id);
+  if(F.id==='wss'&&!low){const xyz=Array.isArray(PEAK.xyz_mm)&&PEAK.xyz_mm.length===3?PEAK.xyz_mm.map(Number):null;
+    return xyz?{id:'wss',value:Number(PEAK.max_pa),xyz,branch:PEAK.branch,s:PEAK.s_from_inlet_mm,dj:PEAK.dist_to_junction_mm,r:PEAK.local_radius_mm}:null;}
+  const ck=F.id+(low?':min':''),hit=PEAK_CACHE[ck];if(hit&&hit.arr===F.p)return hit.peak;
+  const v=F.p;let best=-1;for(let i=0;i<v.length;i++){const x=v[i];if(Number.isFinite(x)&&(best<0||(low?x<v[best]:x>v[best])))best=i;}
+  const peak=best<0||3*best+2>=PV.length?null:{id:F.id,value:v[best],index:best,xyz:[PV[3*best],PV[3*best+1],PV[3*best+2]],
+    branch:branchName(PS[best]),s:P_S[best],dj:P_DJ[best],r:P_R[best]};
+  PEAK_CACHE[ck]={arr:v,peak};return peak;}
 const HAS_STAG=()=>fieldSupported('tawss',FIELD_SCHEMA.tawss)&&fieldSupported('osi',FIELD_SCHEMA.osi);
 function stagCriteria(){const c=(CYCLE&&CYCLE.stagnation&&CYCLE.stagnation.criteria)||{};return {t:Number.isFinite(+c.tawss_lt_pa)?+c.tawss_lt_pa:.4,o:Number.isFinite(+c.osi_gt)?+c.osi_gt:.1};}
 // 'm' = mesh vertices (display), 'p' = prediction points (statistics).
@@ -817,9 +849,12 @@ function cycleCard(bar){const ids=supportedFields().filter(isCycleField);if(!ids
   const stagLine=st?`<b>滞留区</b><span>TAWSS &lt; ${esc(thr('tawss',c.t))} 且 OSI &gt; ${esc(String(c.o))}：${fmt(st.frac*100,0)}%（约 ${fmt(st.area_mm2/100,0)} cm²）${st.main?'，主要位于'+esc(st.main.name):''}</span>`:'';
   const derivedAct=act&&isDerived(act),glossKey=act&&['rrt','ecap'].includes(act)&&GLOSSARY.terms&&GLOSSARY.terms[act]?`<button type="button" class="gloss" data-gloss="${act}">?</button>`:'';
   let h=`<section class="card" id="cycle-card"><h3>${act?esc(fieldArrays(act).short)+' · ':''}${derivedAct?'由 TAWSS / OSI 派生（'+per+' s 周期）':'单周期积分量（'+per+' s）'}${glossKey}</h3>`;
-  if(act){const s=cycleStats(act);if(s){const t=s.thresholds,k=s.keys,cm=f=>fmt(f*AREA/100,1)+' cm²',sh=fieldArrays(act).short,up=aboveField(act),
+  if(act){const s=cycleStats(act);if(s){const t=s.thresholds,k=s.keys,cm=f=>fmt(f*AREA/100,1)+' cm²',sh=fieldArrays(act).short,up=aboveField(act),pk=fieldPeak(act),
+     lo=MIN_FIELDS.has(act)?fieldPeak(act,true):null,
+     where=(pk?`<b>最大值位置</b><span>${esc(pk.branch)}，距入口 ${fmt(pk.s,0)} mm；距分叉 ${fmt(pk.dj,0)} mm</span><b>黄色标记</b><span>${esc(sh)} 全场最大值预测点；局部半径 ${fmt(pk.r,1)} mm</span>`:'')
+      +(lo?`<b>最小</b><span>${qv(act,lo.value)}</span><b>最小值位置</b><span>${esc(lo.branch)}，距入口 ${fmt(lo.s,0)} mm；距分叉 ${fmt(lo.dj,0)} mm</span><b>白色标记</b><span>${esc(sh)} 全场最小值预测点；局部半径 ${fmt(lo.r,1)} mm</span>`:''),
      lab=up?[sh+' > '+thr(act,t[0]),sh+' > '+thr(act,t[1]),sh+' > '+thr(act,t[2])]:[(act==='tawss'?'低 TAWSS < ':'< ')+thr(act,t[0]),'> '+thr(act,t[1]),'> '+thr(act,t[2])];
-     h+=`<div class="big">${qv(act,s.mean)}</div><small>预测点云均值（${esc(fieldArrays(act).label)}）</small><div class="kv"><b>p99</b><span>${qv(act,s.p99)}</span><b>最大</b><span>${qv(act,s.max)}</span>${stagLine}</div>`
+     h+=`<div class="big">${qv(act,s.mean)}</div><small>预测点云均值（${esc(fieldArrays(act).label)}）</small><div class="kv"><b>p99</b><span>${qv(act,s.p99)}</span><b>最大</b><span>${qv(act,s.max)}</span>${where}${stagLine}</div>`
       +`<div class="metric-bars">${bar(lab[0],s.frac[k[0]],fmt(s.frac[k[0]]*100,1)+'% · '+cm(s.frac[k[0]]||0),up?'high':'low')}${bar(lab[1],s.frac[k[1]],fmt(s.frac[k[1]]*100,1)+'% · '+cm(s.frac[k[1]]||0),'high')}${bar(lab[2],s.frac[k[2]],fmt(s.frac[k[2]]*100,1)+'% · '+cm(s.frac[k[2]]||0),'very-high')}</div>`;
      const pb=s.per_branch&&typeof s.per_branch==='object'?Object.entries(s.per_branch):[];
      if(pb.length)h+=`<table><thead><tr><th>分支</th><th>均值</th><th>p99</th><th>${up?'&gt; '+esc(thr(act,t[0])):'&lt; '+esc(thr(act,t[0]))}</th></tr></thead><tbody>`+pb.map(([name,b])=>`<tr><td>${esc(name)}</td><td>${qv(act,b.mean)}</td><td>${qv(act,b.p99)}</td><td>${fmt((up?b.frac_above_t0:b.frac_low)*100,0)}%</td></tr>`).join('')+'</tbody></table>';}}
@@ -869,7 +904,7 @@ function renderPanel(){const m=META,p=PEAK,ic=m.input_check||{},cloud=m.cloud||{
  const wssEmbedded=fieldSupported('wss',fields.wss),nSwitch=supportedFields().length;
  const viewerNote=nSwitch>1?'壁面着色可在峰值 WSS 与周期量之间切换（视口上方按钮或 F 键）；本卡以下的 WSS 统计固定为收缩期峰值帧。':wssEmbedded&&frames.length===1?'当前查看器显示已嵌入的单帧标量 WSS；其他字段及时间帧保留为元数据。':'字段与时间轴元数据已保留；当前导出未提供可切换的字段数组。';
  h+=`<section class="card"><h3>结果字段与模型</h3><div class="kv"><b>声明字段</b><span>${esc(Object.keys(fields).map(id=>fieldText(id,fields[id]||{})).join('、')||'—')}</span><b>时间轴</b><span>${frames.length===1?'单帧 · '+esc(humanFrame(frames[0])):'多帧 · '+frames.length+' 帧'}</span><b>模型发布</b><span>${esc(modelName)}${modelVersion!=='—'?' · '+esc(modelVersion):''}</span>${model.ensemble_protocol?`<b>集成协议</b><span>${esc(model.ensemble_protocol)}</span>`:''}${Array.isArray(model.weights)?`<b>权重文件</b><span>${model.weights.length} 个</span>`:''}</div><table><thead><tr><th>字段</th><th>单位</th><th>位置</th><th>类型</th></tr></thead><tbody>${fieldRows}</tbody></table><small>${viewerNote}</small></section>`;
- h+=`<section class="card"><h3>收缩期峰值帧 · 空间 p99<button type="button" class="gloss" data-gloss="p99">?</button></h3><div class="big">${fqu(p.p99_pa)} ${ul()}</div><small>预测点云第 99 百分位，不代表时间最大值。</small><div class="kv"><b>全场最大值<button type="button" class="gloss" data-gloss="max">?</button></b><span>${fqu(p.max_pa)} ${ul()}</span><b>最大值位置</b><span>${esc(p.branch)}，距入口 ${fmt(p.s_from_inlet_mm,0)} mm；距分叉 ${fmt(p.dist_to_junction_mm,0)} mm</span><b>黄色标记</b><span>全场最大值预测点；局部半径 ${fmt(p.local_radius_mm,1)} mm</span></div></section>`;
+ h+=`<section class="card"><h3>收缩期峰值帧 · 空间 p99<button type="button" class="gloss" data-gloss="p99">?</button></h3><div class="big">${fqu(p.p99_pa)} ${ul()}</div><small>预测点云第 99 百分位，不代表时间最大值。</small><div class="kv"><b>全场最大值<button type="button" class="gloss" data-gloss="max">?</button></b><span>${fqu(p.max_pa)} ${ul()}</span><b>最大值位置</b><span>${esc(p.branch)}，距入口 ${fmt(p.s_from_inlet_mm,0)} mm；距分叉 ${fmt(p.dist_to_junction_mm,0)} mm</span><b>黄色标记</b><span>${activeField==='wss'?'全场最大值预测点':'切回峰值 WSS 时标在此处（当前标 '+esc(fieldArrays(activeField).short)+' 最大值）'}；局部半径 ${fmt(p.local_radius_mm,1)} mm</span></div></section>`;
  const ss=m.surface_statistics||{};
  if(ss.p99_pa!=null) h+=`<section class="card"><h3>壁面面积加权参考<button type="button" class="gloss" data-gloss="area_weighted_p99">?</button></h3><div class="kv"><b>面积加权 p99</b><span>${fqu(ss.p99_pa)} ${ul()}</span><b>最高 1% 面积均值</b><span>${fqu(ss.top_area_mean_pa)} ${ul()}</span><b>有效覆盖面积</b><span>${fmt(ss.effective_area_mm2/100,1)} cm² / ${fmt(ss.covered_area_fraction*100,1)}%</span></div><small>基于 Gaussian 插值后的完整三角面；未覆盖或部分覆盖面片不外推。主指标仍是预测点云 p99。</small></section>`;
  const quality=m.quality||{},nModels=Array.isArray(model.models)?model.models.length:Array.isArray(model.weights)?model.weights.length:5;
@@ -910,7 +945,7 @@ function renderPanel(){const m=META,p=PEAK,ic=m.input_check||{},cloud=m.cloud||{
  h+='</table><p><small>计算时间、排队和人工确认分别记录；导出包含首次完整 HTML 写盘，最终记录回填有少量额外开销。</small></p>';
  h+=`<small>发布包 ${esc(m.release)} · 输入 SHA256 ${esc(m.input_sha256)} · ${esc(m.created_at)}</small>`;
  h+='<details><summary>完整参数与版本信息</summary><pre>'+esc(JSON.stringify({schema_version:m.schema_version,model_release:m.model_release,time_axis:m.time_axis,fields:m.fields,release_hash:m.release_hash||m.release_sha256,run_parameters:m.run_parameters||m.parameters,mapping:m.mapping,frame_transform:m.frame_transform,statistics_protocol:m.statistics_protocol,interpolation:m.interpolation,feature_contract:m.feature_contract,exports:m.exports||m.export_status},null,2))+'</pre></details></div></details>';
- h+=`<div id="print-note">病例 ${esc(m.case_id)} · 发布包 ${esc(m.release)} · ${esc(COMMON.localTime(m.created_at))}<br>收缩期峰值帧的模型预测${nSwitch>1?'（另含单周期 TAWSS / OSI）':''}；统计来自预测点云，壁面显示使用 Gaussian 插值。黄色标记为全场最大值。</div>`;
+ h+=`<div id="print-note">病例 ${esc(m.case_id)} · 发布包 ${esc(m.release)} · ${esc(COMMON.localTime(m.created_at))}<br>收缩期峰值帧的模型预测${nSwitch>1?'（另含单周期 TAWSS / OSI）':''}；统计来自预测点云，壁面显示使用 Gaussian 插值。黄色标记为${activeField==='wss'?'':esc(fieldArrays(activeField).short)+' 的'}全场最大值${MIN_FIELDS.has(activeField)?'，白色标记为全场最小值':''}。</div>`;
  // Every table scrolls sideways in its own box instead of widening the card (v0.13.1).
  el('panel').innerHTML=h.replace(/<table/g,'<div class="tscroll"><table').replace(/<\/table>/g,'</table></div>');
  renderQuickStats();
@@ -1047,6 +1082,17 @@ function initViewer(){
  const labels=[];for(const e of META.endpoints||[]){const obj=new THREE.Mesh(new THREE.SphereGeometry(Math.max(1,e.radius_mm*.6),12,8),new THREE.MeshLambertMaterial({color:e.kind==='inlet'?0x1f77b4:0xff7f0e,clippingPlanes:[clipPlane]}));obj.position.set(...e.center_mm);scene.add(obj);const div=document.createElement('div');div.textContent=e.name_cn+' r='+fmt(e.radius_mm,1)+' mm';el('labels').appendChild(div);labels.push({obj,div,kind:'endpoint'});}
  const peakXYZ=Array.isArray(PEAK.xyz_mm)&&PEAK.xyz_mm.length===3?PEAK.xyz_mm:center;
  const peak=new THREE.Mesh(new THREE.SphereGeometry(1.6,12,8),new THREE.MeshBasicMaterial({color:0xffd400,clippingPlanes:[clipPlane]}));peak.position.set(...peakXYZ);scene.add(peak);const peakLabel=document.createElement('div');el('labels').appendChild(peakLabel);labels.push({obj:peak,div:peakLabel,kind:'peak'});
+ // The marker and its chip follow the coloured field; a field without a finite point value hides it.
+ const trough=new THREE.Mesh(new THREE.SphereGeometry(1.6,12,8),new THREE.MeshBasicMaterial({color:0xffffff,clippingPlanes:[clipPlane]}));trough.visible=false;scene.add(trough);
+ const troughLabel=document.createElement('div');troughLabel.className='trough';el('labels').appendChild(troughLabel);labels.push({obj:trough,div:troughLabel,kind:'trough'});
+ let peakOK=true,troughOK=false;
+ function placePeak(){const pk=activeField==='wss'?null:fieldPeak(activeField);peakOK=activeField==='wss'||!!pk;
+  if(activeField==='wss'){peak.position.set(...peakXYZ);peakLabel.textContent='全场最大值 '+fqu(PEAK.max_pa)+' '+ul();}
+  else if(pk){peak.position.set(pk.xyz[0],pk.xyz[1],pk.xyz[2]);peakLabel.textContent=fieldArrays(activeField).short+' 最大值 '+fv(pk.value);}
+  else peakLabel.textContent='';
+  const lo=MIN_FIELDS.has(activeField)?fieldPeak(activeField,true):null;troughOK=!!lo;
+  if(lo){trough.position.set(lo.xyz[0],lo.xyz[1],lo.xyz[2]);troughLabel.textContent=fieldArrays(activeField).short+' 最小值 '+fv(lo.value);}else troughLabel.textContent='';
+  peak.visible=viewMode==='wss'&&el('showpeak').checked&&peakOK;trough.visible=viewMode==='wss'&&el('showpeak').checked&&troughOK;}
  const marker=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshBasicMaterial({color:0x00c2d8,transparent:true,opacity:.75,depthTest:false}));marker.visible=false;marker.renderOrder=3;scene.add(marker);const markerLabel=document.createElement('div');el('labels').appendChild(markerLabel);labels.push({obj:marker,div:markerLabel,kind:'marker'});
  let contourObj=null;
  // v0.14 (F1): a fixed range may be scoped to one field (fixedField) and marked as set by the compare page
@@ -1124,8 +1170,8 @@ function initViewer(){
  // ---- §21.4 label de-overlap: every layout participant is placed by WssReportCommon.declutterLabels ----
  // attention finding > note > info finding > maximum diameter > branch name; the peak / highlight markers take
  // part too (they sit on the very spots the findings point at) but are never pushed aside by a finding.
- const LABEL_PRIORITY={marker:60,peak:50,attention:40,note:30,info:20,maxd:10,blabel:0};
- const LAYOUT_KINDS=new Set(['flabel','blabel','maxd','peak','marker']);
+ const LABEL_PRIORITY={marker:60,peak:50,trough:50,attention:40,note:30,info:20,maxd:10,blabel:0};
+ const LAYOUT_KINDS=new Set(['flabel','blabel','maxd','peak','trough','marker']);
  let LBL_KEY='',LBL_RUNS=0,LBL_LAST=[];
  const requestLabelLayout=()=>{LBL_KEY='';requestRender();};   // picked up by the next frame (frame() compares LBL_KEY)
  // Compact layout or a narrow viewport: a label with no free spot is hidden (the finding stays in the list).
@@ -1390,10 +1436,10 @@ function initViewer(){
  // v0.14 (F1): tell a parent page (the compare page) that the display changed, so its sync does not wait for a camera move.
  function announceChange(){if(!ANNOUNCE||announceTimer||window.parent===window)return;announceTimer=setTimeout(()=>{announceTimer=null;postToParent({type:'wss-view:changed',family:'wall',run_identity:META.run_identity||null});},120);}
  function recolor(){requestRender();announceChange();if(paintedField!==activeField)fieldChanged();const AF=fieldArrays(activeField),LGS=logScale&&AF.log!==false;vmax=scaleMode==='fixed'&&(!fixedField||fixedField===activeField)?fixedMax:Math.max(Number(AF.p99)||0,.01);el('fixed-control').hidden=scaleMode!=='fixed';el('scale-description').textContent=(activeField==='wss'?'':AF.short+' · ')+(LGS?'对数 ':'')+fq((LGS?.05:0)*af())+' – '+fq(vmax*af())+(al()?' '+al():'')+' · '+(scaleMode==='fixed'&&(!fixedField||fixedField===activeField)?(fixedShared?'并排比较共用上限':'固定色标'):'本例空间 p99')+'；超限按上限着色'+(bands?' · '+bands+' 段':'');rebuildTop();colorArray(AF.m,MS,mcol,viewMode==='wss'?'wss':'grey',0,vmax,true);const f=feature();colorArray(f.values,PS,pcol,f.mode,f.lo,f.hi,false);updateColors();el('display-readout').textContent='当前视图：'+({wss:'WSS 壁面',stl:'输入 STL',cl:'中心线',cloud:'预测点云'}[viewMode]||viewMode)+' · '+(viewMode==='wss'?(activeField==='wss'?'统计：预测点云 · 壁面：Gaussian 插值':AF.short+'（壁面着色）· 对应统计卡在「统计与口径」顶部'):f.label)+(branchSel>=0?' · 分支：'+branchName(branchSel):'')+(hl.label?' · '+hl.label:'');
-  if(viewMode==='cloud')drawBar(f.mode,f.lo,f.hi,f.label);else if(viewMode==='cl')drawBar('vir',rmin,rmax,COMMON.englishLabel('centerline_radius',LANG)+' · mm');else drawBar('wss',0,vmax,fieldTitle(LANG));peakLabel.textContent=(activeField==='wss'?'全场最大值 ':'峰值 WSS 最大 ')+fqu(PEAK.max_pa)+' '+ul();renderTrustLegend();renderLegendNote();if(contourObj)contourObj.visible=viewMode==='wss'&&showContours;drawUnroll();}
+  if(viewMode==='cloud')drawBar(f.mode,f.lo,f.hi,f.label);else if(viewMode==='cl')drawBar('vir',rmin,rmax,COMMON.englishLabel('centerline_radius',LANG)+' · mm');else drawBar('wss',0,vmax,fieldTitle(LANG));placePeak();renderTrustLegend();renderLegendNote();if(contourObj)contourObj.visible=viewMode==='wss'&&showContours;drawUnroll();}
  recolorActive=recolor;
  function updateColors(){mg.attributes.color.needsUpdate=true;pg.attributes.color.needsUpdate=true;}
- function visibility(){requestRender();announceChange();mesh.visible=viewMode!=='cloud';mmat.transparent=viewMode==='cl'||opacity<1;mmat.opacity=viewMode==='cl'?.18:opacity;pts.visible=viewMode==='cloud'||el('showpts').checked;cl.visible=viewMode==='cl'||el('showcl').checked;peak.visible=viewMode==='wss'&&el('showpeak').checked;top.visible=(viewMode==='wss'||viewMode==='cloud')&&el('showtop').checked;if(hlPts)hlPts.visible=viewMode==='wss'||viewMode==='cloud';if(contourObj)contourObj.visible=viewMode==='wss'&&showContours;for(const item of labels)if(item.kind==='endpoint')item.obj.visible=viewMode==='cl';}
+ function visibility(){requestRender();announceChange();mesh.visible=viewMode!=='cloud';mmat.transparent=viewMode==='cl'||opacity<1;mmat.opacity=viewMode==='cl'?.18:opacity;pts.visible=viewMode==='cloud'||el('showpts').checked;cl.visible=viewMode==='cl'||el('showcl').checked;peak.visible=viewMode==='wss'&&el('showpeak').checked&&peakOK;trough.visible=viewMode==='wss'&&el('showpeak').checked&&troughOK;top.visible=(viewMode==='wss'||viewMode==='cloud')&&el('showtop').checked;if(hlPts)hlPts.visible=viewMode==='wss'||viewMode==='cloud';if(contourObj)contourObj.visible=viewMode==='wss'&&showContours;for(const item of labels)if(item.kind==='endpoint')item.obj.visible=viewMode==='cl';}
  function setView(mode){viewMode=mode;document.querySelectorAll('[data-v]').forEach(b=>{const active=b.dataset.v===mode;b.classList.toggle('on',active);b.setAttribute('aria-pressed',String(active));});visibility();recolor();setTip(mode==='cloud'?'悬停读取预测点原值与几何特征':TIP_HINT,true);}
  document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>setView(b.dataset.v));
  function saveScale(){try{localStorage.setItem('wss-report-scale-v1',JSON.stringify({mode:userScale.mode,max:userScale.max,highlightPct}));}catch(_){}recolor();}
@@ -1596,7 +1642,7 @@ function initViewer(){
  el('view-import').onclick=()=>el('view-file').click();el('view-file').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(String(r.result));if(s.run_identity&&META.run_identity&&s.run_identity!==META.run_identity)el('view-note').textContent='注意：视图来自另一次运行（run_identity 不同），已按可用项应用。';else el('view-note').textContent='已导入视图。';applyViewState(s);}catch(err){el('view-note').textContent='视图文件无法解析。';}};r.readAsText(f);e.target.value='';};
  el('view-link').onclick=()=>{const hash=CORE.viewHash(currentViewState());try{history.replaceState(null,'',hash);}catch(_){location.hash=hash;}const url=location.href.split('#')[0]+hash;const done=()=>{el('view-note').textContent='已把视图写入链接并复制；打开该链接即可复现此图。';};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(url).then(done,()=>{el('view-note').textContent='视图已写入地址栏链接（复制失败，请手动复制地址）。';});else el('view-note').textContent='视图已写入地址栏链接，请手动复制地址。';};
  function capture(){renderer.render(scene,camera);const source=renderer.domElement,canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');canvas.width=1200;canvas.height=700;ctx.fillStyle='#eef2f7';ctx.fillRect(0,0,1200,700);const scale=Math.min(980/source.width,610/source.height),w=source.width*scale,h=source.height*scale;ctx.drawImage(source,(980-w)/2,45+(610-h)/2,w,h);ctx.fillStyle='#203049';ctx.font='22px sans-serif';ctx.fillText('WSS · '+String(META.case_id).slice(0,70),20,28);const f=viewMode==='cloud'?feature():viewMode==='cl'?{mode:'vir',lo:rmin,hi:rmax,label:'中心线半径 · mm'}:{mode:'wss',lo:0,hi:vmax,label:fieldTitle('zh')};if(viewMode!=='stl'){const k=f.mode==='wss'?af():1,LG=f.mode==='wss'&&logScale&&fieldArrays(activeField).log!==false;
-  paintCanvasBar(ctx,1030,130,24,420,1.15,t=>f.mode==='wss'?cmap(t):vir(t),barSpec(f.mode,f.lo,f.hi,LG,k));ctx.fillStyle='#203049';ctx.font='18px sans-serif';ctx.textAlign='left';ctx.fillText(f.label,990,100);}ctx.fillStyle='#203049';ctx.font='17px sans-serif';const cs=isCycleField(activeField)?cycleStats(activeField):null;ctx.fillText(cs?fieldArrays(activeField).short+' · 单周期积分量（'+cyclePeriod()+' s）· 均值 '+fv(cs.mean)+' · p99 '+fv(cs.p99):'收缩期峰值帧 · p99 '+fqu(PEAK.p99_pa)+' '+ul()+' · 最大值 '+fqu(PEAK.max_pa)+' '+ul(),20,675);ctx.font='14px sans-serif';ctx.fillText('统计：预测点云；壁面：Gaussian 插值；黄色：全场最大值；粉色：高亮最高 '+fmt(highlightPct,1)+'%'+(hl.label?'；青色：'+hl.label:''),20,697);return canvas.toDataURL('image/png');}
+  paintCanvasBar(ctx,1030,130,24,420,1.15,t=>f.mode==='wss'?cmap(t):vir(t),barSpec(f.mode,f.lo,f.hi,LG,k));ctx.fillStyle='#203049';ctx.font='18px sans-serif';ctx.textAlign='left';ctx.fillText(f.label,990,100);}ctx.fillStyle='#203049';ctx.font='17px sans-serif';const cs=isCycleField(activeField)?cycleStats(activeField):null;ctx.fillText(cs?fieldArrays(activeField).short+' · 单周期积分量（'+cyclePeriod()+' s）· 均值 '+fv(cs.mean)+' · p99 '+fv(cs.p99)+' · 最大值 '+fv(cs.max):'收缩期峰值帧 · p99 '+fqu(PEAK.p99_pa)+' '+ul()+' · 最大值 '+fqu(PEAK.max_pa)+' '+ul(),20,675);ctx.font='14px sans-serif';ctx.fillText('统计：预测点云；壁面：Gaussian 插值；黄色：'+(activeField==='wss'?'':fieldArrays(activeField).short+' ')+'全场最大值；'+(MIN_FIELDS.has(activeField)?'白色：'+fieldArrays(activeField).short+' 全场最小值；':'')+'粉色：高亮最高 '+fmt(highlightPct,1)+'%'+(hl.label?'；青色：'+hl.label:''),20,697);return canvas.toDataURL('image/png');}
  const fileStem=()=>'WSS-'+String(META.case_id).replace(/[^\w\u3400-\u9fff-]/g,'_');
  el('save-image').onclick=()=>{const a=document.createElement('a');a.href=capture();a.download=fileStem()+'.png';a.click();};
  // ---- C12 publication-grade export (the six-view button uses the very same path) ----
@@ -1856,7 +1902,7 @@ function initViewer(){
   autoLabels:()=>AUTO_CHIPS.map(c=>({kind:c.kind,text:c.text,ring:Array.isArray(c.ring)?c.ring.length:0})),panel:()=>el('panel').innerHTML,
   // v0.12: finish a camera tween at once, the fitted views, the field switch and the shortcut handle.
   settle:()=>{if(tween){camera.position.copy(tween.p1);controls.target.copy(tween.t1);tween=null;}controls.update();},renderPending:()=>RAF!==0,fitted:fittedView,fitName:()=>fitName,
-  field:()=>activeField,controlsUp:()=>controlsUp,values:(id,which)=>Array.from(fieldArrays(id)[which==='m'?'m':'p']),segTypes:()=>[MS,PS,CS].map(a=>a.constructor.name),supported:()=>supportedFields(),
+  field:()=>activeField,peak:()=>({xyz:peak.position.toArray(),text:String(peakLabel.textContent||''),visible:!!peak.visible}),trough:()=>({xyz:trough.position.toArray(),text:String(troughLabel.textContent||''),visible:!!trough.visible}),controlsUp:()=>controlsUp,values:(id,which)=>Array.from(fieldArrays(id)[which==='m'?'m':'p']),segTypes:()=>[MS,PS,CS].map(a=>a.constructor.name),supported:()=>supportedFields(),
   layoutLabels:()=>{LBL_KEY='';return layoutLiveLabels();},labelRuns:()=>LBL_RUNS,frame:()=>frame(),leaders:()=>el('label-leaders').innerHTML,
   exportLayout:(W,H,k)=>exportLabelLayout(W,H,k,t=>estimateSize(t,12*k)).map(L=>({kind:L.c.kind,text:L.c.text,x:L.x,y:L.y,w:L.w,h:L.h,ax:L.ax,ay:L.ay,moved:L.moved,hidden:L.hidden})),colors:()=>Array.from(mcol.slice(0,12)),stag:()=>({on:showStag,mask:STAG_M?Array.from(STAG_M):null}),shortcuts:()=>SHORTCUTS,resize};
 }
