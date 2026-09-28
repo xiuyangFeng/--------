@@ -5,15 +5,31 @@ or mutates module-level state.  The cap-area split rule is an explicit input tak
 """
 from __future__ import annotations
 import hashlib
+import inspect
 from pathlib import Path
 import numpy as np
 from scipy.spatial import cKDTree
+import wss_features.cloud as _cloud
 from wss_features.atlas import Atlas, map_points
 from wss_features.cloud import build_oriented_cloud, median_spacing, patch_atlas_end_radius, pca_normals
 from wss_features.curvature import COARSE_K, FINE_K, FINE_MAP, principal_curvatures, unit_rows as _unit_rows
 from wss_features.flowref import Tree as _Tree, compute_point_features, load_capfit_rule
 from wss_features.frame import anatomical_frame
 from wss_features.sampling import sample_surface, taubin_smooth
+
+
+def _caps_helper():
+    """``wss_features.cloud.virtual_caps`` when it has the ``(atlas, spacing, wall_points_mm)`` call that
+    ``build_oriented_cloud`` uses, else ``None`` (then :func:`cap_records` builds the full oriented cloud)."""
+    fn = getattr(_cloud, "virtual_caps", None)
+    try:
+        params = list(inspect.signature(fn).parameters) if callable(fn) else []
+    except (TypeError, ValueError):
+        params = []
+    return fn if params[:3] == ["atlas", "spacing", "wall_points_mm"] else None
+
+
+_VIRTUAL_CAPS = _caps_helper()
 
 
 def stable_sampling_seed(input_sha256: str) -> int:
@@ -46,6 +62,28 @@ def point_geometry(pts: np.ndarray, atlas: Atlas) -> tuple[np.ndarray, np.ndarra
     return normals, variation, fine, coarse
 
 
+def cap_records(pts: np.ndarray, atlas: Atlas, normals: np.ndarray) -> tuple[list[dict], float | None]:
+    """``build_oriented_cloud(pts, atlas, normals_out=normals, calibrate=False)[1]["caps"]`` without the cloud.
+
+    With the normals given and no calibration, the records only read the float64 points, their median spacing
+    and the atlas endpoints: ``virtual_caps(atlas, median_spacing(p), p)`` plus the same record fields.  The
+    cloud's local areas, concatenation and KD-tree were never read by :func:`build_case` (2026-09-28, Tier A:
+    bit-identical, tests/test_caps_only.py).  The second value is that median spacing when ``pts`` was already
+    the float64 array (``median_spacing(pts)`` is then the same call on the same array), else ``None``.
+    No cap helper, or no opening (where the full cloud raises): the full oriented cloud, unchanged.
+    """
+    if _VIRTUAL_CAPS is not None:
+        wall = np.asarray(pts, dtype=np.float64)  # build_oriented_cloud's own cast
+        spacing = median_spacing(wall)
+        caps = _VIRTUAL_CAPS(atlas, spacing, wall)
+        if caps:
+            return ([{"label": c["label"], "center_mm": np.asarray(c["center_mm"]).tolist(), "outward": np.asarray(c["outward"]).tolist(),
+                      "radius_mm": float(c["radius_mm"]), "atlas_radius_mm": float(c["atlas_radius_mm"]), "rim_snap_mm": c["rim_snap_mm"],
+                      "cap_source": c["cap_source"], "rim_fit": c["rim_fit"], "points": int(len(c["points_mm"]))} for c in caps],
+                    spacing if wall is pts else None)
+    return build_oriented_cloud(pts, atlas, normals_out=normals, calibrate=False)[1]["caps"], None
+
+
 def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_name: str = "case",
                capfit_rule_path: str | Path | None = None, capfit_rule: dict | None = None,
                point_geometry_provider=None) -> tuple[dict, dict]:
@@ -71,9 +109,9 @@ def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_na
     # Normals, variation and curvatures only read the points and the patched atlas geometry (pure).
     normals, variation, fine, coarse = (point_geometry if point_geometry_provider is None
                                         else point_geometry_provider)(pts, atlas)
-    _, info = build_oriented_cloud(pts, atlas, normals_out=normals, calibrate=False)
-    cap_labels = [c["label"] for c in info["caps"]]
-    cap_radius = np.array([c["radius_mm"] for c in info["caps"]], dtype=np.float64)
+    caps, spacing = cap_records(pts, atlas, normals)  # only the oriented cloud's caps were ever read here
+    cap_labels = [c["label"] for c in caps]
+    cap_radius = np.array([c["radius_mm"] for c in caps], dtype=np.float64)
     atlas_row = feats["atlas_row"].astype(np.int64)
     tangent = atlas.tangent[atlas_row]
     ftree = _Tree(table, columns, segments, atlas.frame_n, atlas.frame_b)
@@ -111,9 +149,9 @@ def build_case(pts: np.ndarray, atlas: Atlas, input_features: list[str], case_na
     tangent_aligned = _unit_rows(tangent @ frame["rotation"].T)
     case["local_geometry"] = np.column_stack((aligned_normals, tangent_aligned, radius_pt, np.full(n, scale))).astype(np.float32)
     case["section"] = np.column_stack((feats["segment_id"].astype(np.float64), np.clip(feats["s_local_mm"], 0.0, None))).astype(np.float32)
-    diag = {"n_points": n, "spacing_mm": float(median_spacing(pts)), "scale_mm": scale, "frame_x_source": frame["x_source"],
+    diag = {"n_points": n, "spacing_mm": float(median_spacing(pts) if spacing is None else spacing), "scale_mm": scale, "frame_x_source": frame["x_source"],
             "junction_ambiguous_fraction": float(np.mean(feats["junction_ambiguous"])),
-            "caps": {c["label"]: {"radius_mm": float(c["radius_mm"]), "atlas_radius_mm": float(c["atlas_radius_mm"])} for c in info["caps"]},
+            "caps": {c["label"]: {"radius_mm": float(c["radius_mm"]), "atlas_radius_mm": float(c["atlas_radius_mm"])} for c in caps},
             "murray_shares": {str(k): float(v) for k, v in extra["murray_shares"].items()},
             "capfit_shares": {str(k): float(v) for k, v in extra["capfit_shares"].items()},
             "fine_neighbourhood_mm_median": float(np.median(fine["_neighbourhood_mm"])), "coarse_neighbourhood_mm_median": float(np.median(coarse["_neighbourhood_mm"])),

@@ -35,6 +35,9 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 | `errors.py` | 分类错误：InputGeometryError / ToolchainError / ResourceError，`classify()` 映射 OOM / 超时 / 缺模块；记录带 category / retryable / admin_detail | v0.14；非管理员看不到 admin_detail |
 | `input_memo.py` | 集成成员共用支持点 / 特征 / 16 邻域 patch（参数完全相等才复用，返回副本；训练代码不改） | v0.14；`WSS_DEPLOY_PATCH_MEMO=0` 关闭 |
 | `geometry_cache.py` | 几何缓存 `<job>/geometry_cache/<kind>-<key>.npz`（键含输入字节、参数、特征程序与代码哈希）；确认出口期间后台预计算，B 段 / 重跑 / 重建命中即原值 | v0.14；`WSS_DEPLOY_GEOMETRY_CACHE=0` 关闭 |
+| `cache_handoff.py` | 伴随 / 重跑任务 B 段开始时，把源任务已原子提交的几何缓存条目复制成自己的私有副本（不跟随符号链接、不覆盖、可随取消中止） | v0.15.11；随 `WSS_DEPLOY_GEOMETRY_CACHE` 开关 |
+| `volume_cache.py` | 确认出口后的 PF6 / VF6 体场几何（`build_volume_case` 的数组 / 字典结果，无 pickle）存为 `volume_case-*.npz`，同输入重跑命中即原值 | v0.15.11；随 `WSS_DEPLOY_GEOMETRY_CACHE` 开关 |
+| `prepared_inference.py` | 集成推理时支持点 / 查询块 / 16 邻域 patch 张量每例只上设备一次，各成员只读复用；输出每成员一次回传 | v0.15.11；`WSS_DEPLOY_PREPARED_INPUTS=0` 关闭，`WSS_DEPLOY_PREPARED_INPUTS_MB` 预算（默认 256） |
 | `analysis.py` | 沿程曲线 / 发现列表 / 可信区域 / 解剖坐标架（合同 `ANALYSIS_CONTRACT.md` §1–§4） | 两族 B 段与 rebuild 共用 |
 | `build_reference_profiles.py` | 生成发布包参考侧车 `reference.json`（几何范围 + CV3 折外 p99 人群） | 不改发布包指纹 |
 | `onepager.py` | 一页纸 A4 报告（无三维） | `GET /api/jobs/<id>/onepage` |
@@ -54,6 +57,24 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 | `server.py` / `jobs.py` | 本地优先 HTTP 服务：上传 → 输入确认 → 三维出口确认 → B 段 → 报告；状态机、事件、取消、重试和重启恢复 | 默认回环；共享需 token；任务落盘 `outputs/wss_deploy_jobs/<job>/job.json` |
 
 验收与计时：`training_wss_min/experiments/wss_deploy_timing_20260917/`（分段计时、指标演示、`acceptance_test34/` 34 例回归）。设计与讨论：`docs/02-推进与变更/05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md`。
+
+## v0.15.11（2026-09-28）：算子与缓存提速——组合请求 SHI 112–126 s → 80–82 s，结果不变
+
+按 09-28 单病例速度审计（`training_wss_min/experiments/wss_deploy_timing_20260917/analysis_20260928/README.md`）实施；codex 会话写到一半的三个模块（缓存接力 / 体场缓存 / 设备输入复用）补全、测试并接入，另加四项算子。模型、采样密度、seed 数、FP32 不变；几何 / 采样 / 特征 / 导出链逐位相同（Tier A），只有设备输入复用属浮点抖动档（Tier B）。
+
+| 项 | 做了什么 | 精度 | 收益 |
+|---|---|---|---|
+| 组合任务缓存接力 | 伴随 / 重跑任务 B 段开始时，等源任务仍在跑的后台预计算结束，再复制它已提交的几何缓存条目（`cache_handoff.py`）。修掉「确认出口时父任务预计算没跑完 → 体场任务重算重采样与形态」的时序漏洞 | 同键条目，读取仍按完整键校验 | SHI 体场任务重采样 18–25 s、形态 6 s → 0 |
+| 体场几何缓存 | 确认后的体场几何存为 `volume_case-*.npz`（无 pickle、带校验和），重跑 / 换包 / 查重复用命中；过期条目随 B 段清理（`volume_cache.py`） | 两例三路逐位相同 | 命中 11–13 s → 0.05 s |
+| 采样内判证书 | 中心线锚点安全球内的查询直接判内，其余仍交 VTK 射线测试 | 5 例整例逐位相同 | 与下一项合计体场特征 −1 ~ −4.6 s |
+| 边去重 | 封口边界 `np.unique(axis=0)` 改一维整数键 | 值 / 顺序 / 计数相同 | 大网格 1.4 → 0.2 s × 3 |
+| 流线端点复用 | 端点已算的方向 / 速度带到下一步，`inside()` 调用序列不变 | 两例字节相同 | 流线 −15 ~ −17% |
+| caps 精简 | `build_case` 只算封口记录，不建完整 oriented cloud | 6 例 43 数组字节相同 | 每例 −0.2 ~ −0.3 s |
+| 集成设备输入复用 | 支持点 / 查询块 / patch 张量每例只上设备一次，成员只读复用；绕开 `input_memo` 的无用副本、并行构建查询块（`prepared_inference.py`） | CPU 逐位相同；GPU 差 ≤ 1.9e-5 Pa，与原实现运行间差同分布 | M1 首调 1.9–2.6 → 0.6–0.8 s，且不再 0.7–6 s 乱跳 |
+
+端到端（M1 三头 + 体场组合请求，上传即确认，GPU 2）：SHI_YUN_XI 112.5 / 126.4 → **80.1 / 82.2 s**，FAN_JIAN_MING 32.7 / 33.7 → **25.8 / 24.1 s**。新开关 `WSS_DEPLOY_PREPARED_INPUTS=0`（关闭设备输入复用）、`WSS_DEPLOY_PREPARED_INPUTS_MB`（默认 1024）；缓存接力与体场缓存随 `WSS_DEPLOY_GEOMETRY_CACHE`。**没做**：VTK 多线程后端（进程全局，影响并发 A 段）、省掉流线里重复的 `inside()`（不能证明逐位相同，待裁定）、确认前预算体场几何、模型内同步 / FiLM / 混合精度。升级后已有任务的几何缓存各未命中一次（结果相同）。
+
+验收：744 项测试通过 / 3 跳过（+44），黄金回归 6/6（自包含，GPU 2），真实数据逐位核对与计时见 `…/analysis_20260928/implementation_20260928/README.md`；契约 §26。文件：cache_handoff.py、volume_cache.py、prepared_inference.py（新）、jobs.py、families.py、geometry.py、pipeline.py、streamlines.py、volume_geometry.py、volume_pipeline.py。
 
 ## v0.15.10（2026-09-28）：壁面探针卡片改成对照表
 

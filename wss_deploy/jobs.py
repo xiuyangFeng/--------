@@ -2530,6 +2530,53 @@ class JobManager:
         from . import pipeline
         return getattr(pipeline, "precompute_geometry_cache", None)
 
+    def _inherit_geometry_cache(self, job: dict) -> None:
+        """At stage B, pick up source entries committed after this clone was created.
+
+        A companion can be cloned while its parent's background precompute is
+        running.  Only wait for work already running: pending work cannot start
+        while this worker owns the stage-B slot.  Never cancel a source job's
+        work on timeout, and never hold ``self.lock`` during waits or cache I/O.
+        """
+        from . import geometry_cache as GC
+        from .cache_handoff import copy_committed
+
+        if not GC.enabled():
+            return
+        source_id, target_id = job.get("source_job_id"), job.get("id")
+        if not all(isinstance(value, str) and re.fullmatch(JOB_ID_PATTERN, value)
+                   for value in (source_id, target_id)) or source_id == target_id:
+            return
+
+        def valid():
+            with self.lock:
+                if self.stop_event.is_set() or job.get("cancel_requested"):
+                    raise InterruptedError("任务已取消。")
+                source = self.jobs.get(source_id)
+                return (self.jobs.get(target_id) is job and source is not None
+                        and source.get("owner") == job.get("owner"))
+
+        deadline = time.monotonic() + PRECOMPUTE_WAIT_S
+        announced = False
+        while valid():
+            with self._pc_cond:
+                running = self._pc_state.get(source_id) == "running"
+                cancel = self._pc_cancel.get(source_id)
+                running = running and not (cancel is not None and cancel.is_set())
+            remaining = deadline - time.monotonic()
+            if not running or remaining <= 0:
+                break
+            if not announced:
+                self._progress(job, "geometry", "等待共享几何预计算完成")
+                announced = True
+            with self._pc_cond:
+                if self._pc_state.get(source_id) == "running":
+                    self._pc_cond.wait(min(0.25, remaining))
+        if valid():
+            copied = copy_committed(self.root, source_id, target_id, valid=valid)
+            if copied:
+                LOG.info("Reused %d committed geometry entries from %s for %s", copied, source_id, target_id)
+
     def _schedule_precompute(self, job: dict) -> None:
         """Queue a precompute for a job that just entered ``awaiting_confirmation`` (never fails the caller)."""
         if not self._precompute_enabled or self.offline or job.get("status") != "awaiting_confirmation":
@@ -2727,6 +2774,8 @@ class JobManager:
             try:
                 # J2: stage A cancels a background precompute of this job; stage B waits for it (or skips it).
                 self._precompute_barrier(job, stage)
+                if stage == "B":
+                    self._inherit_geometry_cache(job)
                 if stage == "A":
                     result = a_fn(job_dir / job["filename"], job_dir, **job["params"], **callbacks)
                     with self.lock:

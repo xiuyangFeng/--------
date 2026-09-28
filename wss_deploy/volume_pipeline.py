@@ -57,7 +57,8 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
     from .pipeline import (_archive_previous_run, _clean_mesh, _now, _resampled, VertexInterpolation, cache_record,
                            inference_threads, prune_geometry_cache, run_inference, save_npz_atomic, torch_threads)
     from . import geometry_cache as GC
-    from .volume_geometry import build_volume_case, make_inside_test
+    from .volume_geometry import make_inside_test
+    from .volume_cache import build_volume_case_cached
     from .volume_report import build_html
     from .streamlines import ball_certified_inside, centerline_seeds, integrate_streamlines, thin_lines, volume_seeds
     from wss_features import contract as feature_contract
@@ -93,9 +94,11 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
     check()
     progress("features", "正在生成管腔内部采样点和 PF6 / VF6 特征")
     start = time.perf_counter()
-    case, aux = build_volume_case(wall, smoothed, faces, atlas, release.input_features,
-                                  case_name="input-" + a["input_sha256"][:24],
-                                  n_internal=20000, seed=sampling_seed)
+    with cache_lock:
+        case, aux = build_volume_case_cached(wall, smoothed, faces, atlas, release.input_features,
+                                             cache=cache, mapping=mapping,
+                                             case_name="input-" + a["input_sha256"][:24],
+                                             n_internal=20000, seed=sampling_seed)
     timing["volume_features"] = time.perf_counter()-start
     check()
     progress("inference", "正在分别预测相对压力与体内速度")

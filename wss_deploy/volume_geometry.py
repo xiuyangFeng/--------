@@ -41,9 +41,26 @@ def _surface(vertices: np.ndarray, faces: np.ndarray):
     return pv.PolyData(vertices, np.column_stack((np.full(len(faces), 3), faces))).clean()
 
 
+def _unique_edges(edges: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """``np.unique(edges, axis=0, return_counts=True)`` for sorted non-negative index pairs.
+
+    v0.15.11: one int64 key per edge (``a * M + b`` with ``b < M``) sorts exactly like the rows do
+    lexicographically, so the unique rows, their order and counts are the same — about ten
+    times faster than the structured-row sort of ``axis=0``.
+    """
+    edges = np.asarray(edges)
+    if not len(edges) or edges.dtype.kind not in "iu" or int(edges.min()) < 0:
+        return np.unique(edges, axis=0, return_counts=True)
+    width = int(edges.max()) + 1
+    if width > 3_000_000_000:                  # the key would overflow int64
+        return np.unique(edges, axis=0, return_counts=True)
+    keys, counts = np.unique(edges[:, 0].astype(np.int64) * width + edges[:, 1], return_counts=True)
+    return np.column_stack((keys // width, keys % width)).astype(edges.dtype, copy=False), counts
+
+
 def _boundary_loops(faces: np.ndarray) -> list[np.ndarray]:
     edges = np.sort(np.concatenate([faces[:, [0, 1]], faces[:, [1, 2]], faces[:, [2, 0]]]), axis=1)
-    edges, counts = np.unique(edges, axis=0, return_counts=True)
+    edges, counts = _unique_edges(edges)
     if np.any(counts > 2):
         raise ValueError("体场采样要求流形表面；当前 STL 含非流形边。")
     boundary = edges[counts == 1]
@@ -304,6 +321,14 @@ def sample_internal_points(wall_points: np.ndarray, vertices: np.ndarray, faces:
     closed, closure = close_lumen(vertices, faces, atlas)
     closed_faces = np.asarray(closed.faces).reshape(-1, 4)[:, 1:]
     contains = make_inside_test(closed.points, closed_faces)
+    # v0.15.11: centreline samples that the exact test places inside certify every query strictly
+    # within their clearance ball (as for the streamlines); only the rest reaches the VTK ray test,
+    # which stays the authority.  Deep-lumen queries are the expensive ones for the ray test.
+    anchors = atlas.xyz[np.unique(atlas.tree_rows)]
+    anchors = anchors[contains(anchors)]
+    if len(anchors):
+        from .streamlines import ball_certified_inside
+        contains = ball_certified_inside(contains, anchors, closed.points, closed_faces)
     cloud, cloud_info = build_oriented_cloud(wall, atlas, normals_out=wall_normals)
     candidates, sweep = generate_internal_queries(atlas, cloud, n_target=max(2 * n_internal, 1000), seed=int(seed))
     accepted_sweep = candidates[contains(candidates)]

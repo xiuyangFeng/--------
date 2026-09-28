@@ -80,9 +80,8 @@ def integrate_streamlines(points, velocity, seeds, inside, *, step_mm=0.6,
         allowed = np.full(len(points), float(max_distance_mm))
         coverage_note = {"mode": "absolute", "max_distance_mm": float(max_distance_mm)}
 
-    def sample(query):
-        if not len(query):
-            return np.empty((0, 3)), np.empty(0), np.empty(0, bool)
+    def interpolate(query):
+        # Row-wise pure: each kNN query and each row's sums are independent of the rest of the batch.
         d, ix = tree.query(query, k=k)
         d = d.reshape(len(query), k); ix = ix.reshape(len(query), k)
         limit = allowed[ix[:, 0]]
@@ -91,41 +90,56 @@ def integrate_streamlines(points, velocity, seeds, inside, *, step_mm=0.6,
         den = weights.sum(1)
         vectors = (velocity[ix] * weights[:, :, None]).sum(1) / np.maximum(den[:, None], 1e-30)
         speed = np.linalg.norm(vectors, axis=1)
-        valid = np.asarray(inside(query), bool) & (d[:, 0] <= limit) & (speed > 1e-5)
-        return vectors / np.maximum(speed[:, None], 1e-30), speed, valid
+        return vectors / np.maximum(speed[:, None], 1e-30), speed, (d[:, 0] <= limit) & (speed > 1e-5)
+
+    def sample(query, field=None):
+        if not len(query):
+            return np.empty((0, 3)), np.empty(0), np.empty(0, bool), np.empty(0, bool)
+        direction, speed, supported = interpolate(query) if field is None else field
+        return direction, speed, np.asarray(inside(query), bool) & supported, supported
 
     paths = []
     for sign in (-1, 1):
         current = seeds.copy()
-        records = [[p.copy()] for p in current]
-        speeds = [[] for _ in current]
+        first = np.full(len(current), np.nan)      # speed at the seed; NaN = never a valid start
+        acc_rows, acc_xyz, acc_speed = [], [], []  # accepted end points, step by step
         active = np.arange(len(current))
+        field = None
         for _ in range(max_steps):
             if not len(active): break
-            direction, speed, valid = sample(current[active])
+            direction, speed, valid, _ = sample(current[active], field)
             ids = active[valid]
             if not len(ids): break
-            for row, val in zip(ids, speed[valid]):
-                if not speeds[row]: speeds[row].append(float(val))
+            fresh = np.isnan(first[ids])
+            first[ids[fresh]] = speed[valid][fresh]
             midpoint = current[ids] + sign * .5 * step_mm * direction[valid]
-            mid_direction, _, mid_valid = sample(midpoint)
+            mid_direction, _, mid_valid, _ = sample(midpoint)
             ids = ids[mid_valid]
             candidate = current[ids] + sign * step_mm * mid_direction[mid_valid]
-            _, end_speed, end_valid = sample(candidate)
+            end_direction, end_speed, end_valid, end_supported = sample(candidate)
             active = ids[end_valid]
-            for row, point, val in zip(active, candidate[end_valid], end_speed[end_valid]):
-                records[row].append(point.copy()); speeds[row].append(float(val))
+            # The accepted end points start the next step: reuse their interpolated field (v0.15.11).
+            # ``inside`` is still asked again, exactly as before: the VTK ray test draws its ray
+            # directions from VTK's global random sequence, so dropping a call could change later answers.
+            field = end_direction[end_valid], end_speed[end_valid], end_supported[end_valid]
+            acc_rows.append(active); acc_xyz.append(candidate[end_valid]); acc_speed.append(end_speed[end_valid])
             current[active] = candidate[end_valid]
-        paths.append((records, speeds))
+        # Group the accepted points by seed; the stable sort keeps each seed's points in step order.
+        rows = np.concatenate(acc_rows) if acc_rows else np.empty(0, np.int64)
+        order = np.argsort(rows, kind="stable")
+        bounds = np.searchsorted(rows[order], np.arange(len(seeds) + 1))
+        paths.append((first, bounds, np.concatenate(acc_xyz)[order] if len(order) else np.empty((0, 3)),
+                      np.concatenate(acc_speed)[order] if len(order) else np.empty(0)))
     result = []
+    (left_first, left_at, left_xyz, left_spd), (right_first, right_at, right_xyz, right_spd) = paths
     for row in range(len(seeds)):
-        left, ls = paths[0][0][row], paths[0][1][row]
-        right, rs = paths[1][0][row], paths[1][1][row]
-        if not ls or not rs: continue
-        xyz = np.asarray(left[:0:-1] + right, np.float32)
-        speed = np.asarray(ls[:0:-1] + rs, np.float32)
-        if len(xyz) >= max(5, int(min_points)):
-            result.append({"points": xyz, "speed_m_s": speed})
+        if np.isnan(left_first[row]) or np.isnan(right_first[row]): continue
+        back, ahead = slice(left_at[row], left_at[row + 1]), slice(right_at[row], right_at[row + 1])
+        if (back.stop - back.start) + 1 + (ahead.stop - ahead.start) < max(5, int(min_points)): continue
+        # backward points reversed, the seed, forward points; the seed speed is the forward pass's
+        xyz = np.concatenate([left_xyz[back][::-1], seeds[row:row + 1], right_xyz[ahead]]).astype(np.float32)
+        speed = np.concatenate([left_spd[back][::-1], right_first[row:row + 1], right_spd[ahead]]).astype(np.float32)
+        result.append({"points": xyz, "speed_m_s": speed})
     return result, {"method": "steady_midpoint_local_idw", "step_mm": step_mm,
                     "max_steps_each_direction": max_steps, "coverage": coverage_note,
                     "coverage_distance_mm": coverage_note.get("max_distance_mm"),

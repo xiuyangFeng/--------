@@ -143,6 +143,8 @@ def test_memo_and_warm_up_leave_real_ensemble_predictions_bit_identical(monkeypa
     release = _release_or_skip("M1_3head_3seed_20260922")
     from wss_deploy.infer import synthetic_case
     case_a, case_b = synthetic_case(release, n_points=6000, seed=1), synthetic_case(release, n_points=6000, seed=1)
+    # v0.15.11: prepared device inputs bypass input_memo; it is still the evaluator path's memo, tested here.
+    monkeypatch.setenv("WSS_DEPLOY_PREPARED_INPUTS", "0")
     with P.torch_threads(4):
         monkeypatch.setenv("WSS_DEPLOY_PATCH_MEMO", "0"); monkeypatch.setenv("WSS_DEPLOY_KNN_MEMO", "0")
         plain = release.predict(case_a)

@@ -749,3 +749,35 @@ body `{"version": n, "case_id": "…", "patient_id": "…", "scan_label": "…",
 - 壁面：截面均值与沿程 2 mm 分箱均值（周长 ≤ 1.5 × 该支中位的站）中位相对差 WSS 4–6%、TAWSS 3–4%、OSI 6–7%。
 - 测试：`test_report_common.py`（线积分与密度无关、站位 / 切向、无截面原因、合成边与线长加权）、`test_report.py`（点击 → 卡片 → 记录 → 关闭）、`test_volume_report.py`（Voronoi 面积平均对 Poiseuille 1/2 与密度无关、固定探针积分 / 记录 / 看截面 / 清除）。
 - 已知限制：分叉口附近垂直截面会切进相邻分支（周长突增，3D 环可见）；体场点稀疏处个别站 Q 偏 ±20%；模型速度不受质量守恒约束。
+
+## 26. v0.15.11 算子与缓存提速：组合任务缓存接力、体场几何缓存、集成设备输入、采样 / 流线 / 封口算子（2026-09-28）
+
+依据 `training_wss_min/experiments/wss_deploy_timing_20260917/analysis_20260928/README.md`（09-28 审计）。不改任何模型、特征定义、采样密度、种子数或精度；精度两档沿用 09-24 裁定（几何 / 采样 / 特征 / 导出链 Tier A 逐位相同，只改浮点归约顺序的 Tier B 不超过原实现运行间抖动）。summary / field.npz / 报告字段不变，`ANALYSIS_VERSION` 不变。
+
+### 26.1 组合任务缓存接力（`cache_handoff.py`，`jobs.JobManager._inherit_geometry_cache`）
+- 触发：任何带 `source_job_id` 的任务（伴随、换包重跑、查重复用）在 B 段屏障之后、B 段函数之前调用一次。源任务的后台预计算状态为 running（且未被取消）时等待，最长 `PRECOMPUTE_WAIT_S`（300 s），进度文案「等待共享几何预计算完成」；pending 不等（B 段锁在手，它不会开始）；超时不取消源任务的预计算。等待与复制期间不持有 `JobManager.lock`。
+- `copy_committed(root, source_id, target_id, *, valid)` → 复制条目数：只接受任务 id `[A-Za-z0-9_-]{1,80}`、源 ≠ 目标；目录逐级 `O_DIRECTORY | O_NOFOLLOW` 打开；只复制名字符合 `<kind>-<40 hex>.npz` 的常规文件，跳过符号链接、硬链接（`st_nlink ≠ 1`）、临时文件、子目录；目标已有同名条目（包括损坏的）一律不覆盖；写临时文件（0600）→ 复制前后 `fstat` 不变 → `os.link` 发布（目标存在即失败）；每 1 MiB 与发布前调用 `valid()`（归属一致、未取消、服务未停），失败即放弃且不留临时文件。任何 `OSError` 只丢掉这次优化。读取仍由 `GeometryCache.load` 按完整键校验，复制来的旧键条目只是一次正常未命中。
+- 开关：随 `WSS_DEPLOY_GEOMETRY_CACHE`。
+
+### 26.2 体场几何缓存（`volume_cache.py`）
+- `build_volume_case_cached(wall, vertices, faces, atlas, input_features, *, cache, mapping, target, case_name, n_internal, seed)`：`stage_b_volume` 在 `GC.job_lock` 内调用；条目 `volume_case-<key>.npz`。载荷 = `(case, aux)` 的类型化树（dict / list / tuple / None / str / bool / int / float / ndarray / NumPy 标量；dict 键可为任意这些类型；object / structured 数组与其他对象拒绝），JSON 树 + 数组，无 pickle；另存 `__payload_hash__` 校验。
+- 键 = schema + 类型化输入（壁面点、平滑网格顶点 / 面、atlas 的 table / columns / segments / semantic_of_segment / frame_n / frame_b / tree_rows / provenance 与 KD 树数据 / 索引 / 分区、特征列表、确认映射、target、case_name、n_internal、seed）+ 源哈希（volume_cache / volume_geometry / streamlines / geometry_cache / wss_features.{atlas,cloud,flowref,frame}）+ 特征程序哈希 + numpy / scipy / pyvista / vtk 版本。键不可构造（未知对象）→ 记 `errors`、按未命中直接计算；载荷损坏 / 校验失败 → 撤销命中记录、按未命中重算；缓存写失败不影响任务。
+- `prune_geometry_cache` 清理未使用的 `volume_case` 条目（与 mesh / resample / pointgeom / morph / morphvol 一起）。
+
+### 26.3 集成设备输入（`prepared_inference.PreparedInference`）
+- 用法：`with shared_knn(), shared_inputs(), PreparedInference() as prepared:` 内 `prepared.predict(E.predict_case_norm, model, case, features, feat_stats, device, cfg=…, [return_all_channels=…])`；三个模型族（`wall_wss_v1`、`pf6_vf6_volume_v1`、`wall_cycle_multi_v1`）均已接入，结果字典加 `prepared_inputs = {calls, reused, built, fallbacks, peak_bytes, output_transfers}`（不写 summary）。
+- 只接管：作用域内、开关开、`cfg.eval.fixed_support`、kwargs ⊆ {cfg, return_all_channels, frame_index}、预测函数解包后是 `training_wss_min.evaluate.predict_case_norm`、模型类型恰为 `PointNetPlusPlusRegressor` / `PointNetRegressor` 且 eval 模式；否则原样调用传入的预测函数（计 `fallbacks`）。CUDA OOM → 清空、`empty_cache`、回退原评估器。
+- 块键 = blake2b(case 公开条目内容〔每个 case 字典每作用域哈希一次，顶层条目被替换即重哈希〕, `cfg.data`〔除 `feature_stats_path`，统计内容另作 `feat_stats` 入键〕, `cfg.eval`, 特征列表, feat_stats, 设备, frame)；块 = 支持点块 + 每个查询块（pos / x / batch / geometry / section / patch 张量）。保留预算 `WSS_DEPLOY_PREPARED_INPUTS_MB`（默认 1024 MiB，GPU 上再限空闲显存的 1/4）；保留的块按张量 `_version` 校验，被原地改写即重建。
+- 构建：块全部可保留时，构建函数调用 `input_memo` 包装之下的原函数（其私有副本无人读取）；首个成员在第一块同步构建后，其余查询块在 ≤ 8 个线程上并行构建（每块是 case 的纯函数；第一块已填好 case 的 KD 树与全壁面特征表）。某块超预算后（`_overflow`），后续构建回到 `input_memo` 包装函数、串行。
+- 输出：每成员整例一次回传 CPU（单例输出 > 64 MiB 时仍逐块回传）。
+- 开关：`WSS_DEPLOY_PREPARED_INPUTS=0` 回到原评估器路径。
+
+### 26.4 几何算子（结果逐位相同）
+- `geometry.cap_records(pts, atlas, normals)`：`build_case` 只读封口记录，改为 `virtual_caps(atlas, median_spacing(p), p)` + 同字段记录，不再建完整 oriented cloud；`virtual_caps` 签名不符或无开口时回到原 `build_oriented_cloud`；`diag.spacing_mm` 在点已是 float64 时复用同一次 `median_spacing`。
+- `volume_geometry.sample_internal_points`：VTK 精确测试判在内部的中心线采样点（`atlas.tree_rows` 去重）作锚点，经 `streamlines.ball_certified_inside` 包装 `contains`——距锚点小于 0.999 × 锚点到封闭面距离的查询直接判内，其余仍交 VTK；没有锚点时不包装。
+- `volume_geometry._unique_edges`：`_boundary_loops` 的 `np.unique(axis=0)` 改为 int64 单键 `a·M + b`（`b < M`）一维去重，值 / 顺序 / 计数 / dtype 相同；空、负数或键会溢出时回到原调用。
+- `streamlines.integrate_streamlines`：接受的端点已算出的 IDW 方向 / 速度 / 支撑作为下一步起点，不再重复 kNN / IDW；`inside()` 的调用序列（及 VTK 全局随机序列位置）完全不变；逐点 list 改为逐步数组 + 稳定排序拼接。
+
+### 26.5 VTK 射线测试的随机性（约定）
+- `vtkSelectEnclosedPoints.IsInsideSurface` 的射线方向取自 VTK 全局随机序列，服务进程里每个任务的射线取决于此前跑过的任务，所以「逐位相同」对 VTK 内判只在「结果对射线方向不敏感」的前提下成立；5 个真实几何约 72 万次查询在逐点（全局随机序列）与批量（`vtkRandomPool`）两种射线来源下无一处翻转，流线在 4 个 VTK 随机种子下输出不变。改动 VTK 调用次数或顺序（26.4 的锚点证书）按此约定验收：整例 `build_volume_case` 输出与旧实现逐位比较。
+- 不采用：`vtkSMPTools` STDThread 后端（批量内判快约 15 倍，但后端是进程全局状态，会影响并发的 A 段 VTK / VMTK）；流线里省掉重复的 `inside()` 调用（可再省 0.35–0.75 s，但改变全局随机序列位置、无法证明逐位相同，留待用户裁定）。

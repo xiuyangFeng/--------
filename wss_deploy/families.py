@@ -26,6 +26,7 @@ import numpy as np
 
 from .input_memo import shared_inputs
 from .knn_memo import shared_knn
+from .prepared_inference import PreparedInference
 
 
 class ReleaseError(ValueError):
@@ -137,19 +138,21 @@ def _wss_predict(release, case: dict) -> dict:
     from training_wss_min import dataset as D, evaluate as E
     preds, per = [], []
     # Identical kNN graphs (knn_memo.py) and identical support / query / patch inputs (input_memo.py)
-    # are built once per case; every member still runs its own forward pass.
-    with shared_knn() as knn_stats, shared_inputs() as input_stats:
+    # are built once per case; v0.15.11 keeps those inputs on the device for every member
+    # (prepared_inference.py).  Every member still runs its own forward pass.
+    with shared_knn() as knn_stats, shared_inputs() as input_stats, PreparedInference() as prepared:
         for m in release.models:
             t = time.perf_counter()
             with torch.no_grad():
-                p = E.predict_case_norm(m["model"], case, m["cfg"].data.input_features, m["feat_stats"], release.device, cfg=m["cfg"])
+                p = prepared.predict(E.predict_case_norm, m["model"], case, m["cfg"].data.input_features, m["feat_stats"],
+                                     release.device, cfg=m["cfg"])
             if release.device == "cuda":
                 torch.cuda.synchronize()
             per.append(time.perf_counter() - t)
             preds.append(D.denormalize_wss(np.asarray(p, dtype=np.float64), m["stats"]))
     P = np.stack(preds)
     return {"wss_pa": P.mean(axis=0), "seed_pred_pa": P, "seed_sd_pa": P.std(axis=0), "seconds_per_model": per, "knn_reuse": dict(knn_stats),
-            "input_reuse": dict(input_stats), "device": release.device,
+            "input_reuse": dict(input_stats), "prepared_inputs": dict(prepared.stats), "device": release.device,
             "gpu": torch.cuda.get_device_name(0) if release.device == "cuda" else "cpu"}
 
 
@@ -275,16 +278,16 @@ def _volume_predict(release, case: dict) -> dict:
     per = []
     # One query view per field, shared by that field's members, so the input memo can recognise the case.
     views = {True: dict(case, query_pool=np.arange(n)), False: dict(case, query_pool=np.arange(n_wall, n))}
-    with shared_knn() as knn_stats, shared_inputs() as input_stats:   # knn_memo.py / input_memo.py
-        for m in release.models:
+    with shared_knn() as knn_stats, shared_inputs() as input_stats, PreparedInference() as prepared:
+        for m in release.models:                                  # knn_memo.py / input_memo.py / prepared_inference.py
             pressure = m["field"] == "pressure"
             view = views[pressure]
             query = view["query_pool"]
             start = time.perf_counter()
             with torch.no_grad():
-                normalized = E.predict_case_norm(m["model"], view, m["cfg"].data.input_features,
-                                                m["feat_stats"], release.device, cfg=m["cfg"],
-                                                return_all_channels=not pressure)
+                normalized = prepared.predict(E.predict_case_norm, m["model"], view, m["cfg"].data.input_features,
+                                              m["feat_stats"], release.device, cfg=m["cfg"],
+                                              return_all_channels=not pressure)
             if release.device == "cuda":
                 torch.cuda.synchronize()
             per.append(time.perf_counter() - start)
@@ -298,7 +301,8 @@ def _volume_predict(release, case: dict) -> dict:
             if not np.isfinite(physical).all():
                 raise ValueError("体场反归一化产生非有限物理量。")
             predictions[m["field"]].append(physical)
-    result = {"seconds_per_model": per, "knn_reuse": dict(knn_stats), "input_reuse": dict(input_stats), "device": release.device,
+    result = {"seconds_per_model": per, "knn_reuse": dict(knn_stats), "input_reuse": dict(input_stats),
+              "prepared_inputs": dict(prepared.stats), "device": release.device,
               "gpu": torch.cuda.get_device_name(0) if release.device == "cuda" else "cpu",
               "n_wall": int(n_wall), "n_interior": int(n - n_wall),
               "pressure_reference": "volume_mean_relative", "velocity_frame": "world"}
@@ -425,15 +429,15 @@ def _cycle_predict(release, case: dict) -> dict:
     n = len(case["pos"])
     channels = list(CYCLE_CHANNELS)
     preds, per = [], []
-    with shared_knn() as knn_stats, shared_inputs() as input_stats:   # knn_memo.py / input_memo.py
-        for m in release.models:
+    with shared_knn() as knn_stats, shared_inputs() as input_stats, PreparedInference() as prepared:
+        for m in release.models:                                  # knn_memo.py / input_memo.py / prepared_inference.py
             stats = m["stats"]
             if stats.get("method") != "multi" or list(stats.get("channels", [])) != channels:
                 raise ValueError("三头模型的统计文件不是 wss/tawss/osi 多通道合同。")
             t = time.perf_counter()
             with torch.no_grad():
-                z = E.predict_case_norm(m["model"], case, m["cfg"].data.input_features, m["feat_stats"], release.device,
-                                        cfg=m["cfg"], return_all_channels=True)
+                z = prepared.predict(E.predict_case_norm, m["model"], case, m["cfg"].data.input_features, m["feat_stats"],
+                                     release.device, cfg=m["cfg"], return_all_channels=True)
             if release.device == "cuda":
                 torch.cuda.synchronize()
             per.append(time.perf_counter() - t)
@@ -454,6 +458,7 @@ def _cycle_predict(release, case: dict) -> dict:
               "tawss_pa": tawss.mean(axis=0), "seed_tawss_pa": tawss, "tawss_seed_sd_pa": tawss.std(axis=0),
               "osi": osi_mean, "seed_osi": osi, "osi_seed_sd": osi.std(axis=0),
               "seconds_per_model": per, "knn_reuse": dict(knn_stats), "input_reuse": dict(input_stats),
+              "prepared_inputs": dict(prepared.stats),
               "device": release.device,
               "gpu": torch.cuda.get_device_name(0) if release.device == "cuda" else "cpu",
               "channels": channels, "cycle": dict(CYCLE_DEFINITION)}

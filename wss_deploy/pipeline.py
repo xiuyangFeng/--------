@@ -346,7 +346,7 @@ def prune_geometry_cache(cache: "GC.GeometryCache") -> None:
     keep = set(cache.used)
     for path in cache.dir.glob("*.npz"):
         kind = path.name.split("-", 1)[0]
-        if kind in {"mesh", "resample", "pointgeom", "morph", "morphvol"} and path.name not in keep:
+        if kind in {"mesh", "resample", "pointgeom", "morph", "morphvol", "volume_case"} and path.name not in keep:
             with contextlib.suppress(OSError):
                 path.unlink()
 
