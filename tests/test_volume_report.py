@@ -1706,7 +1706,10 @@ def test_v0155_unpinned_probe_is_one_line_of_key_readings_and_pinned_lists_all(t
     assert hover["brief"] is True and hover["hidden"] is False and "单击血管固定" in hover["note"]
     keys = [r["label"] for r in hover["rows"] if r["key"]]
     assert keys == ["速度大小", "分支"] and len(hover["rows"]) > len(keys)       # the other rows stay in the DOM, hidden by CSS
-    assert pinned["brief"] is False and [r["label"] for r in pinned["rows"]] == [r["label"] for r in hover["rows"]]
+    # pinned: every hover row, then the §25 section-integral rows (the tube's station is a closed circle)
+    labels = [r["label"] for r in pinned["rows"]]
+    assert pinned["brief"] is False and labels[:len(hover["rows"])] == [r["label"] for r in hover["rows"]]
+    assert labels[len(hover["rows"])] == "截面积分" and "截面流量 Q" in labels
     assert "已固定" in pinned["note"]
 
 
@@ -2205,3 +2208,71 @@ def test_v015_served_volume_report_links_back_to_its_case_and_labels_the_colour_
     assert '<a id="back-to-workbench" class="back-link" href="/" title="回到工作台（本病例）" hidden>' in (tmp_path / "served.html").read_text()
     assert results[0]["role"] == "img" and results[0]["legend"].startswith("色标 ") and " – " in results[0]["legend"]
     assert "back-to-workbench" in (tmp_path / "served.html").read_text()
+
+
+def test_section_integral_is_a_voronoi_area_mean_independent_of_sampling_density():
+    """§25: inside a closed 96-gon (r = 10 mm) every sample stands for its nearest part of the section.  A dense disk
+    gives Poiseuille u = 1 − (r/R)² its area mean 1/2; piling extra samples into one half leaves the mean of v = x at 0
+    (a plain sample mean is pulled to that half); a uniform field stays exact."""
+    result = node_json("""
+      const R=10,N=96,contour=[];
+      for(let k=0;k<N;k++){const a=2*Math.PI*k/N,b=2*Math.PI*(k+1)/N;contour.push([R*Math.cos(a),R*Math.sin(a),R*Math.cos(b),R*Math.sin(b),NaN,k,k+1]);}
+      const xy=[];for(let x=-9.75;x<=9.75;x+=.5)for(let y=-9.75;y<=9.75;y+=.5)if(Math.hypot(x,y)<R-.2)xy.push([x,y]);
+      const u=xy.map(p=>1-(Math.hypot(p[0],p[1])/R)**2);
+      const r=core.sectionIntegral(contour,xy,{u,p:xy.map(()=>7)},{grid:64});
+      const dense=xy.slice();for(let x=.1;x<9;x+=.25)for(let y=-8.9;y<9;y+=.25)if(Math.hypot(x,y)<9.5)dense.push([x,y]);
+      const vx=dense.map(p=>p[0]),skew=core.sectionIntegral(contour,dense,{vx},{grid:64});
+      console.log(JSON.stringify({u:r.quantities.u,p:r.quantities.p.mean,inside:r.inside_cells,cell:r.cell_area_mm2,supported:r.supported,
+        samples:r.samples,median:r.median_spacing_mm,vx:skew.quantities.vx.mean,plain:vx.reduce((a,b)=>a+b,0)/vx.length,
+        none:core.sectionIntegral([],[],{}),noSamples:core.sectionIntegral(contour,[],{})}));
+    """)
+    q = result["u"]
+    assert q["mean"] == pytest.approx(0.5, abs=.01) and q["cells"] == result["inside"]
+    assert result["inside"] * result["cell"] == pytest.approx(3.14159 * 100, rel=.03)   # the mask covers the lumen area
+    assert result["p"] == pytest.approx(7.0, abs=1e-9) and result["supported"] == 1
+    assert result["median"] == pytest.approx(0.5, abs=1e-6) and result["samples"] > 1000
+    assert abs(result["vx"]) < .1 and result["plain"] > 2          # density-independent, unlike the plain mean
+    assert result["none"] is None and result["noSamples"] is None
+
+
+def test_pinned_probe_integrates_its_centreline_section_and_opens_it_in_the_slice_view(tmp_path):
+    """§25 on the synthetic tube (r = 10 mm along +z, u_z = 1 − (r/R)², p = 10 − 0.2 z, wall pressure 5): pinning a probe
+    cuts the section perpendicular to the centreline at its station, integrates over the lumen and records it."""
+    meta = _frame_meta()
+    extra = _webgl_extra()
+    body = r"""
+      const V=require(VIEWER),T=V.__test,g=id=>document.getElementById(id);
+      T.setProbe('interior',34,false);const hover=T.probeSection();   // point 34 = the axis sample at z = 0
+      T.setProbe('interior',34,true);const s=T.probeSection(),button=g('probe-slice').hidden;
+      const rows=g('probe-body').children.map(kv=>[kv.children[0].textContent,kv.children[1].textContent,kv.className]);
+      const row=T.probeRow();
+      const opened=T.openProbeSection(),plane=T.currentPlane();
+      T.setProbe(null,0,false);const cleared=T.probeSection(),button2=g('probe-slice').hidden;
+      console.log(JSON.stringify({hover,s,button,rows,values:row.values,opened,basis:g('slice-basis').value,mode:g('volume-mode').value,
+        plane:{origin:plane.origin,normal:plane.normal},cleared,button2}));
+    """
+    result = _run_tube(tmp_path, "section.html", meta, body, extra, common=True)
+    assert result["hover"] is None                                   # hover probes are not integrated
+    s = result["s"]
+    assert s["found"] and s["integrated"] and s["closed"] and s["branch"] == "主动脉"
+    assert s["origin"] == pytest.approx([0, 0, 0], abs=1e-6) and s["tangent"] == pytest.approx([0, 0, 1])
+    assert s["thickness_mm"] == 2 and s["samples"] == 85             # |z| ≤ 1: five sample levels × 17 points
+    # 24-gon inscribed in r = 10: 310.6 mm²; the flow is the mean through-plane velocity × that area (m/s × mm² = mL/s)
+    assert s["area_mm2"] == pytest.approx(310.58, abs=.05)
+    assert s["flow_ml_s"] == pytest.approx(s["normal_mean_m_s"] * s["area_mm2"], rel=1e-9)
+    assert s["normal_mean_m_s"] == pytest.approx(s["speed_mean_m_s"], abs=1e-9)   # axial flow: |u| = u·n
+    # Poiseuille mean 0.5; the tube has samples only at r = 0, 3, 6, so the outer ring takes the r = 6 value (≈ 0.70)
+    assert 0.6 < s["speed_mean_m_s"] < 0.75
+    assert 9.8 <= s["pressure_mean_pa"] <= 10.2                       # p = 10 − 0.2 z over the |z| ≤ 1 slab, no wall value imposed
+    assert 0 < s["direct_fraction"] <= 1
+    assert result["button"] is False and result["button2"] is True and result["cleared"] is None
+    labels = [r[0] for r in result["rows"]]
+    assert labels[labels.index("截面积分"):] == ["截面积分", "截面面积", "面积平均速度", "平均穿面速度", "截面流量 Q", "面积平均相对压力", "截面取样"]
+    assert "sec" in result["rows"][labels.index("截面积分")][2]
+    assert result["rows"][labels.index("截面流量 Q")][1].endswith("mL/s")
+    v = result["values"]
+    assert v["section_flow_ml_s"] == pytest.approx(s["flow_ml_s"], abs=1e-3) and v["section_area_mm2"] == pytest.approx(310.58, abs=.01)
+    assert v["section_s_from_root_mm"] == pytest.approx(20.0) and "section_pressure_mean_pa" in v
+    # 「看截面」 puts the slice view on exactly this plane
+    assert result["opened"] is True and result["basis"] == "pick" and result["mode"] == "slice"
+    assert result["plane"]["origin"] == pytest.approx([0, 0, 0], abs=1e-6) and result["plane"]["normal"] == pytest.approx([0, 0, 1])

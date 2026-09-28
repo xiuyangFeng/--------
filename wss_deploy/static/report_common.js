@@ -402,6 +402,54 @@ function crossSection(o){
   const world=polygon.map(q=>[plane.origin[0]+plane.u[0]*q[0]+plane.v[0]*q[1],plane.origin[1]+plane.u[1]*q[0]+plane.v[1]*q[1],plane.origin[2]+plane.u[2]*q[0]+plane.v[2]*q[1]]);
   return {plane,segs:contour,polygon,polygon_world:world,metrics,closed:loop.closed||synthetic,synthetic,open,found:true,dmin:loop.dmin};
 }
+// ---------------------------------------------------------------- §25 section means at a centreline station (v0.15.9)
+// Local centreline direction at a projection: the chord between the neighbouring samples.  Groups run
+// proximal → distal, so it points downstream; it is the normal of every perpendicular section the reports cut.
+function centerlineTangent(groups,pr){const g=pr&&groups?groups[pr.group_index]:null;if(!g)return null;const k=g.s.length;if(k<2)return null;
+  const j=Math.max(0,Math.min(k-1,Number(pr.row_local)||0)),a=Math.max(0,j-1),b=Math.min(k-1,j+1);
+  const v=[g.xyz[3*b]-g.xyz[3*a],g.xyz[3*b+1]-g.xyz[3*a+1],g.xyz[3*b+2]-g.xyz[3*a+2]],n=Math.hypot(v[0],v[1],v[2]);
+  return n>1e-9?v.map(x=>x/n):null;}
+// The station of a picked point: its centreline projection (branch, s, s from root, inscribed radius), the
+// downstream tangent, and the wall-mesh cross-section perpendicular to it.  The lumen outline is searched within
+// 4 × the inscribed radius, the same as the manual diameter tool; ``o.wallValues`` (per mesh vertex, optional) is
+// interpolated onto the outline segments.  ``found`` is false without a closed or open outline.
+function stationSection(o){
+  const pr=projectToCenterline(o.groups,o.point);if(!pr)return {found:false,reason:'no_centerline'};
+  let sRoot=0;for(const c of _chain(o.groups,pr))sRoot+=c.s;
+  const tangent=centerlineTangent(o.groups,pr),r=Number(pr.radius_mm)||0;
+  const base={projection:pr,segment_id:pr.segment_id,branch:pr.name,s_mm:pr.s,s_from_root_mm:sRoot,radius_mm:r,origin:pr.xyz.slice(),tangent};
+  if(!tangent)return Object.assign(base,{found:false,reason:'no_tangent'});
+  if(!o.vertices||!o.faces||!o.faces.length)return Object.assign(base,{found:false,reason:'no_mesh'});
+  const cs=crossSection({vertices:o.vertices,faces:o.faces,origin:pr.xyz,normal:tangent,maxDist:Math.max(4*r,1),wallValues:o.wallValues||null});
+  return Object.assign(base,{found:!!cs.found,reason:cs.found?null:'no_contour',section:cs,plane:cs.plane});
+}
+// The wall part of a cross-section as line elements: midpoint (world mm) and length of every real wall segment.
+// The straight edge that closes an opening (edge key < 0) is not wall: it is counted in ``gap_mm`` only.
+function ringElements(cs){
+  const segs=cs&&Array.isArray(cs.segs)?cs.segs:[],pl=cs&&cs.plane,mids=[],lens=[];let wall=0,gap=0;
+  if(!pl)return {mid_world:new Float32Array(0),length_mm:new Float64Array(0),wall_mm:0,gap_mm:0};
+  const o=pl.origin,u=pl.u,v=pl.v;
+  for(const sg of segs){const len=Math.hypot(sg[2]-sg[0],sg[3]-sg[1]);if(sg[5]<0||sg[6]<0){gap+=len;continue;}if(!(len>0))continue;
+    const x=(sg[0]+sg[2])/2,y=(sg[1]+sg[3])/2;mids.push(o[0]+u[0]*x+v[0]*y,o[1]+u[1]*x+v[1]*y,o[2]+u[2]*x+v[2]*y);lens.push(len);wall+=len;}
+  return {mid_world:Float32Array.from(mids),length_mm:Float64Array.from(lens),wall_mm:wall,gap_mm:gap};
+}
+// Length-weighted line mean ∮ f dl / ∮ dl over the elements with a finite value, and the extremes around the ring.
+function lineMean(values,lengths){let s=0,w=0,mn=Infinity,mx=-Infinity,n=0;
+  for(let i=0;i<(lengths?lengths.length:0);i++){const f=Number(values[i]),l=Number(lengths[i]);if(!Number.isFinite(f)||!(l>0))continue;s+=f*l;w+=l;n++;if(f<mn)mn=f;if(f>mx)mx=f;}
+  return w>0?{mean:s/w,min:mn,max:mx,length_mm:w,n}:{mean:null,min:null,max:null,length_mm:0,n:0};}
+// 截面均值 of wall fields: ∮ f dl / ∮ dl around the lumen outline at the station of ``o.point``.  Every wall element
+// takes the value of one prediction point, ``o.sample(midsWorld: Float32Array) → Int32Array`` (the reports pass
+// their nearest-prediction-point lookup), so the means are of predicted values, not of the smoothed display colours.
+// ``o.fields`` = {id: per-prediction-point array}.  An outline through an opening is averaged over its wall part.
+function sectionMeans(o){
+  const st=stationSection(o);if(!st.found)return st;
+  const cs=st.section,ring=ringElements(cs),m=ring.length_mm.length;
+  const idx=m&&typeof o.sample==='function'?o.sample(ring.mid_world):new Int32Array(0),used=new Set(),means={};
+  for(let i=0;i<m;i++)if(idx[i]>=0)used.add(idx[i]);
+  for(const [id,arr] of Object.entries(o.fields||{})){if(!arr)continue;const f=new Float64Array(m);for(let i=0;i<m;i++){const j=idx[i];f[i]=j>=0?Number(arr[j]):NaN;}means[id]=lineMean(f,ring.length_mm);}
+  return Object.assign(st,{wall_length_mm:ring.wall_mm,gap_mm:ring.gap_mm,n_elements:m,n_points:used.size,closed:cs.closed,synthetic:cs.synthetic,open:cs.open,
+    metrics:cs.metrics,polygon_world:cs.polygon_world,means});
+}
 // ---------------------------------------------------------------- §15 figure helpers: montage, curve SVG, CSV
 function _xmlEsc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 // Panels ({image, label, caption}) laid out in a grid on one canvas with optional title, a shared colour-bar
@@ -603,7 +651,8 @@ function declutterLabels(items,opts){
 }
 const common={buildCenterlineGroups,projectToCenterline,arcDistance,arcFromRoot,localDiameter,straightDistance,newId,measurementLabel,probeToTSV,probeToCSV,
   PALETTES,colormapNames,colormapTables,paletteRGB,colormapStops,colorAt,colorbarSVG,colorbarTicks,tickLabel,spreadLabels,englishLabel,exportFilename,safeName,builtinPresets,renderOffscreen,glossaryPopover,viewMessaging,LABELS,ZH2EN,
-  planeFrame,planeContour,contourLoops,selectLoop,closeChain,pointInLoop,loopPolygon,sectionMetrics,crossSection,composeMontage,loadImage,profileSVG,tableToCSV,
+  planeFrame,planeContour,contourLoops,selectLoop,closeChain,pointInLoop,loopPolygon,sectionMetrics,crossSection,
+  centerlineTangent,stationSection,ringElements,lineMean,sectionMeans,composeMontage,loadImage,profileSVG,tableToCSV,
   fitView,formatValue,localTime,friendlyTime,shortcutMatches,shortcutRows,installShortcuts,declutterLabels};
 root.WssReportCommon=common;
 if(typeof module!=='undefined'&&module.exports)module.exports=common;

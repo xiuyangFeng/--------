@@ -294,3 +294,71 @@ def test_v014_one_palette_source_rainbow_unchanged():
     for name in ("report.py", "volume_report.py", "static/volume_viewer.js", "static/app.js", "static/compare.js"):
         text = (root / name).read_text(encoding="utf-8")
         assert "[48,18,59]" not in text and "[68,1,84]" not in text and "[31,78,156]" not in text, name
+
+
+# §25 截面均值: a straight tube along +x (r = 5 mm, 48 around, rings every 2 mm) with a dense wall point cloud.
+TUBE = """
+const R=5,NA=48,NZ=21,V=[],F=[];
+for(let iz=0;iz<NZ;iz++)for(let ia=0;ia<NA;ia++){const a=2*Math.PI*ia/NA;V.push(2*iz,R*Math.cos(a),R*Math.sin(a));}
+for(let iz=0;iz<NZ-1;iz++)for(let ia=0;ia<NA;ia++){const a0=iz*NA+ia,a1=iz*NA+(ia+1)%NA;F.push(a0,a1,a0+NA,a1,a1+NA,a0+NA);}
+const G=C.buildCenterlineGroups({xyz:new Float32Array([0,0,0,10,0,0,20,0,0,30,0,0,40,0,0]),radius:new Float32Array([R,R,R,R,R]),
+  edges:new Uint32Array([0,1,1,2,2,3,3,4]),segment:new Int32Array([1,1,1,1,1])},{1:'主动脉'});
+// prediction points every 0.5 mm along x; the half with cos θ > 0 is sampled four times as densely
+const P=[],f=[],g=[];
+for(let x=0;x<=40;x+=0.5)for(let k=0;k<160;k++){const a=2*Math.PI*k/160;if(Math.cos(a)<=0&&k%4)continue;P.push(x,R*Math.cos(a),R*Math.sin(a));f.push(2+Math.cos(a));g.push(x);}
+const PV=new Float32Array(P);
+const nearest=q=>{const out=new Int32Array(q.length/3);for(let j=0;j<out.length;j++){let b=-1,bd=Infinity;
+  for(let i=0;i<PV.length/3;i++){const d=(PV[3*i]-q[3*j])**2+(PV[3*i+1]-q[3*j+1])**2+(PV[3*i+2]-q[3*j+2])**2;if(d<bd){bd=d;b=i;}}out[j]=b;}return out;};
+const base={groups:G,vertices:new Float32Array(V),faces:new Uint32Array(F),fields:{f:new Float32Array(f),g:new Float32Array(g)},sample:nearest};
+"""
+
+
+def test_section_means_are_length_weighted_line_integrals_around_the_station():
+    out = _node(TUBE + """
+      const s=C.sectionMeans(Object.assign({point:[13.1,R,0]},base));
+      let naive=0,n=0;for(let i=0;i<PV.length/3;i++)if(Math.abs(PV[3*i]-13)<.3){naive+=f[i];n++;}
+      console.log(JSON.stringify({found:s.found,closed:s.closed,open:s.open,synthetic:s.synthetic,branch:s.branch,segment:s.segment_id,
+        s:s.s_from_root_mm,origin:s.origin,tangent:s.tangent,wall:s.wall_length_mm,gap:s.gap_mm,elements:s.n_elements,points:s.n_points,
+        f:s.means.f,g:s.means.g.mean,naive:naive/n,ring:s.polygon_world.length,area:s.metrics.area_mm2}));
+    """)
+    assert out["found"] and out["closed"] and not out["open"] and not out["synthetic"]
+    assert out["branch"] == "主动脉" and out["segment"] == 1
+    # the station is the centreline projection of the pick, the normal the downstream tangent
+    assert out["s"] == pytest.approx(13.1, abs=1e-4) and out["origin"] == pytest.approx([13.1, 0, 0], abs=1e-4)
+    assert out["tangent"] == pytest.approx([1, 0, 0])
+    # 48-gon inscribed in r = 5: perimeter 2·48·5·sin(π/48) = 31.39 mm, all of it wall
+    assert out["wall"] == pytest.approx(31.39, abs=.02) and out["gap"] == 0 and out["elements"] >= 48
+    assert out["ring"] >= 48 and out["area"] == pytest.approx(78.33, abs=.1)
+    # ∮ (2 + cos θ) dl / L = 2 although one half of the ring holds 4× more prediction points (their plain mean ≈ 2.38)
+    assert out["f"]["mean"] == pytest.approx(2.0, abs=.02) and out["naive"] > 2.3
+    assert out["f"]["min"] == pytest.approx(1.0, abs=.02) and out["f"]["max"] == pytest.approx(3.0, abs=.02)
+    # values come from the nearest prediction points (0.5 mm rings): x = 13.0 at a station at 13.1
+    assert out["g"] == pytest.approx(13.0, abs=1e-6) and out["points"] >= 48
+
+
+def test_section_means_report_why_there_is_no_section():
+    out = _node(TUBE + """
+      const none=C.sectionMeans(Object.assign({},base,{groups:[],point:[5,R,0]}));
+      const noMesh=C.sectionMeans(Object.assign({},base,{faces:new Uint32Array(0),point:[5,R,0]}));
+      // a centreline running on past the mesh (x > 40): the plane at x = 55 cuts no wall
+      const G2=C.buildCenterlineGroups({xyz:new Float32Array([0,0,0,20,0,0,40,0,0,60,0,0]),radius:new Float32Array([R,R,R,R]),edges:new Uint32Array([0,1,1,2,2,3]),segment:new Int32Array([1,1,1,1])},{1:'主动脉'});
+      const beyond=C.sectionMeans(Object.assign({},base,{groups:G2,point:[55,R,0]}));
+      console.log(JSON.stringify({none:[none.found,none.reason],noMesh:[noMesh.found,noMesh.reason,+noMesh.s_from_root_mm.toFixed(3)],
+        beyond:[beyond.found,beyond.reason]}));
+    """)
+    assert out["none"] == [False, "no_centerline"]
+    assert out["noMesh"] == [False, "no_mesh", 5.0]
+    assert out["beyond"] == [False, "no_contour"]
+
+
+def test_ring_elements_skip_the_synthetic_closing_edge_and_line_mean_weights_by_length():
+    out = _node("""
+      const cs={plane:C.planeFrame([0,0,0],[0,0,1]),segs:[[0,0,1,0,NaN,1,2],[1,0,1,3,NaN,2,3],[1,3,0,0,NaN,-1,-1]]};
+      const r=C.ringElements(cs);
+      console.log(JSON.stringify({n:r.length_mm.length,wall:r.wall_mm,gap:+r.gap_mm.toFixed(4),
+        mean:C.lineMean([1,3],[1,3]),skip:C.lineMean([1,NaN,5],[1,9,0]),empty:C.lineMean([],[])}));
+    """)
+    assert out["n"] == 2 and out["wall"] == 4 and out["gap"] == pytest.approx(3.1623, abs=1e-4)
+    assert out["mean"]["mean"] == 2.5 and out["mean"]["min"] == 1 and out["mean"]["max"] == 3 and out["mean"]["length_mm"] == 4
+    assert out["skip"]["mean"] == 1 and out["skip"]["n"] == 1   # NaN value and zero length carry no weight
+    assert out["empty"]["mean"] is None and out["empty"]["n"] == 0

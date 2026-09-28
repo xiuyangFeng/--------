@@ -702,6 +702,37 @@
     }
     return out;
   }
+  // §25 截面积分 (volume): area means over one closed lumen outline ``contour`` (in-plane segment soup) of the slab
+  // samples ``xy`` ([[x, y], …] in the plane frame).  Every sample stands for the part of the section nearest to it
+  // (its Voronoi cell clipped to the outline, rasterised on a grid × grid map), so the mean is Σ vᵢ Aᵢ / A whatever the
+  // sampling density.  No wall value is imposed: the interior sampling puts points close to the wall, and on the
+  // deployed cases this keeps the flow Q = A · ⟨u·n⟩ conserved (Σ outlets 115–117 mL/s on three cases sharing one inlet
+  // waveform, aorta and parent = Σ daughters), whereas filling from a zero-velocity wall read 20–45 % low.
+  // ``quantities`` = {key: values aligned with xy}.  ``supported`` = share of cells within 3.2 × the median sample
+  // spacing of a sample (the slice map's "directly supported" radius).
+  function sectionIntegral(contour,xy,quantities,options={}) {
+    const n=Math.max(8,Math.floor(Number(options.grid)||64));
+    let minx=Infinity,maxx=-Infinity,miny=Infinity,maxy=-Infinity;
+    for(const sg of contour||[]){minx=Math.min(minx,sg[0],sg[2]);maxx=Math.max(maxx,sg[0],sg[2]);miny=Math.min(miny,sg[1],sg[3]);maxy=Math.max(maxy,sg[1],sg[3]);}
+    if(!(maxx>minx||maxy>miny)||!xy||!xy.length)return null;
+    const cx=(minx+maxx)/2,cy=(miny+maxy)/2,half=Math.max(maxx-minx,maxy-miny)/2*1.02,bounds=[cx-half,cx+half,cy-half,cy+half],step=2*half/n;
+    const inside=scanlineInside(contour,bounds,n,n);
+    // median nearest-sample spacing from up to 300 evenly strided samples
+    const near=[],stride=Math.max(1,Math.floor(xy.length/300));
+    for(let i=0;i<xy.length;i+=stride){let best=Infinity;for(let j=0;j<xy.length;j++)if(i!==j)best=Math.min(best,Math.hypot(xy[i][0]-xy[j][0],xy[i][1]-xy[j][1]));if(Number.isFinite(best))near.push(best);}
+    near.sort((a,b)=>a-b);const median=near.length?near[Math.floor(near.length/2)]:0,reach=median>0?3.2*median:Infinity;
+    // nearest sample of every inside cell (once, shared by all quantities)
+    const owner=new Int32Array(n*n).fill(-1);let cells=0,supported=0;
+    for(let iy=0;iy<n;iy++)for(let ix=0;ix<n;ix++){const at=iy*n+ix;if(!inside[at])continue;
+      const qx=bounds[0]+(ix+.5)*step,qy=bounds[2]+(iy+.5)*step;let best=-1,bd=Infinity;
+      for(let k=0;k<xy.length;k++){const d=(xy[k][0]-qx)**2+(xy[k][1]-qy)**2;if(d<bd){bd=d;best=k;}}
+      owner[at]=best;cells++;if(Math.sqrt(bd)<=reach)supported++;}
+    const out={};
+    for(const [key,values] of Object.entries(quantities||{})){let sum=0,c=0;
+      for(let at=0;at<owner.length;at++){const k=owner[at];if(k<0)continue;const v=Number(values[k]);if(Number.isFinite(v)){sum+=v;c++;}}
+      out[key]={mean:c?sum/c:null,cells:c};}
+    return {bounds,grid:n,cell_area_mm2:step*step,inside_cells:cells,samples:xy.length,median_spacing_mm:median,supported:cells?supported/cells:0,quantities:out};
+  }
   // A triangle disappears only when all three vertices belong to hidden branches (C10).
   function filterFaces(faces,vertexLabels,hidden) {
     if(!hidden||!hidden.size||!vertexLabels)return faces;
@@ -805,7 +836,7 @@
     scaleEnds,scaleT,scaleValueAt,scaleColor,colorAtT,quantile,robustRange,symmetricRange,throughPlane,inPlane,arrowSamples,
     LABEL_PRIORITY,labelPriority,planLabels,leaderEnd,
     encodeView,decodeView,nearestBin,fractionForArc,arcAlongBranch,regionIndices,regionPressureDrop,sphereIndices,nearestPoint,probeRecord,trustLabels,findingsSorted,FINDING_KINDS,convexHull,inConvexHull,interpolateIDW,
-    nearestLabels,filterFaces,sliceGridToRows,seriesFractions,probeToTSV,probeToCSV,labelText,colorbarSVGLocal,exportFilenameLocal,normalizeReview,reviewDecision,findingsWithReview,TRUST_GLOSS};
+    nearestLabels,filterFaces,sectionIntegral,sliceGridToRows,seriesFractions,probeToTSV,probeToCSV,labelText,colorbarSVGLocal,exportFilenameLocal,normalizeReview,reviewDecision,findingsWithReview,TRUST_GLOSS};
   root.VolumeViewerCore=core;
   if(typeof module!=='undefined'&&module.exports) module.exports=core;
   if(typeof document==='undefined') return;
@@ -1478,6 +1509,24 @@
         if(morphMax.xyz_mm)sphere(morphMax.xyz_mm,0x8e44ad,260);
       } catch(_){}
     }
+    // §25 the pinned probe's section, legible over the wall and the points: the outline as a black tube with a white
+    // core, a black / white target at the centreline point its integrals belong to, and a line from the probe to it.
+    if(probeSection&&probeSection.found&&probeSection.section) {
+      try {
+        const sec=probeSection.section,ring=(sec.polygon_world||[]).filter(q=>Array.isArray(q)&&q.length===3);
+        const local=Number(probeSection.radius_mm)||Infinity,r=Math.max(.15,Math.min(diagonal*.002,.15*local));
+        if(ring.length>2&&typeof THREE.TubeGeometry==='function'&&typeof THREE.CatmullRomCurve3==='function') {
+          const curve=new THREE.CatmullRomCurve3(ring.map(q=>new THREE.Vector3(q[0],q[1],q[2])),!sec.open);
+          for(const [rr,hex,order] of [[r,SECTION_COLOR,6],[r*.45,0xffffff,7]]){const m=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.min(600,2*ring.length),rr,6,!sec.open),new THREE.MeshBasicMaterial({color:hex,depthTest:false}));m.renderOrder=order;markers.add(m);}
+        } else if(ring.length>2) {
+          const Ctor=sec.open?THREE.Line:(THREE.LineLoop||THREE.Line);
+          if(typeof Ctor==='function'){const o=new Ctor(new THREE.BufferGeometry().setFromPoints(ring.map(q=>new THREE.Vector3(q[0],q[1],q[2]))),new THREE.LineBasicMaterial({color:SECTION_COLOR,depthTest:false}));o.renderOrder=6;markers.add(o);}
+        }
+        const R=Math.max(.5,Math.min(diagonal*.006,.4*local)),dot3=(hex,rad,order)=>{const s=new THREE.Mesh(new THREE.SphereGeometry(rad,14,10),new THREE.MeshBasicMaterial({color:hex,depthTest:false}));s.position.set(...probeSection.origin);s.renderOrder=order;markers.add(s);};
+        dot3(SECTION_COLOR,R,6);dot3(0xffffff,R*.5,7);
+        if(Array.isArray(probeSection.pick))segment(probeSection.pick,probeSection.origin,SECTION_COLOR);
+      } catch(_){}
+    }
     renderLabels();
   }
   function gizmoSide(p) {
@@ -1788,9 +1837,63 @@
     const at=iy*m.nx+ix,v=m.grid.mask[at]?m.grid.values[at]:NaN,field=sliceLast.field;
     setText('slice-zoom-readout',Number.isFinite(v)?`${lang==='en'?'in-plane':'面内坐标'} (${wx.toFixed(1)}, ${wy.toFixed(1)}) mm · ${fmtField(v,field)}${m.grid.low&&m.grid.low[at]?(lang==='en'?' · filled from the wall condition':' · 壁面边界补全值'):''}`:'');
   }
+  // ---- §25 截面积分: the section perpendicular to the centreline at a pinned probe's station, integrated over the
+  // lumen (area means of |u| and relative pressure, flow Q = ∫ u·n dA) and attached to that centreline point ----
+  let probeSection=null,probeSectionKey=null;
+  const SECTION_COLOR=0x111111;
+  const probePosition=pr=>pr?(pr.kind==='interior'?point(pts,pr.index):point(vertices,pr.index)):null;
+  function sectionThickness(){const t=Number(($('slice-thickness')||{}).value);return Number.isFinite(t)&&t>0?t:2;}
+  function sectionIntegralAt(p) {
+    const c=common();
+    if(!p||!c||typeof c.stationSection!=='function'||!clGroups.length)return {found:false,reason:'no_centerline'};
+    const st=c.stationSection({groups:clGroups,point:p,vertices,faces,wallValues:wallPressure});
+    st.thickness_mm=sectionThickness();
+    if(!st.found)return st;
+    const cs=st.section,plane=cs.plane,m=cs.metrics;
+    if(cs.open||!m||!(m.area_mm2>0))return Object.assign(st,{integrated:false});
+    const contour=cs.segs,xy=[],idx=[];
+    for(const i of slabIndices(pts,walls,segments,plane,st.thickness_mm)){const q=sub(point(pts,i),plane.origin),x=dot(q,plane.u),y=dot(q,plane.v);if(pointInLoop(contour,x,y)){xy.push([x,y]);idx.push(i);}}
+    const quantities={};
+    if(velocity){quantities.speed=idx.map(i=>speed[i]);quantities.normal=idx.map(i=>dot(point(velocity,i),plane.normal));}
+    if(pressure)quantities.pressure=idx.map(i=>pressure[i]);
+    const r=sectionIntegral(contour,xy,quantities,{grid:64}),q=r?r.quantities:{};
+    const mean=k=>q[k]&&Number.isFinite(q[k].mean)?q[k].mean:null;
+    return Object.assign(st,{integrated:Boolean(r),area_mm2:m.area_mm2,equivalent_diameter_mm:m.equivalent_diameter_mm,samples:idx.length,
+      speed_mean_m_s:mean('speed'),normal_mean_m_s:mean('normal'),flow_ml_s:mean('normal')===null?null:mean('normal')*m.area_mm2,   // m/s × mm² = mL/s
+      pressure_mean_pa:mean('pressure'),direct_fraction:r?r.supported:null});
+  }
+  // Recomputed only when the pinned probe (or the slab thickness) changes; hover probes carry no section.
+  function updateProbeSection() {
+    const key=probe&&probePinned?`${probe.kind}:${probe.index}:${sectionThickness()}`:null;
+    if(key===probeSectionKey)return probeSection;
+    probeSectionKey=key;const at=key?probePosition(probe):null;probeSection=key?Object.assign(sectionIntegralAt(at),{pick:at}):null;
+    setHidden('probe-slice',!(probeSection&&probeSection.found));drawMarkers();
+    return probeSection;
+  }
+  function sectionProbeRows(st) {
+    if(!st)return [];
+    if(!st.found)return [['截面积分',st.reason==='no_contour'?'此处垂直截面未切到管腔轮廓':'本报告没有可用中心线','sec']];
+    const rows=[['截面积分',`垂直中心线 · ${branchName(st.segment_id)} 弧长 ${fmt(st.s_from_root_mm)} mm · 厚度 ${fmt(st.thickness_mm)} mm`,'sec']];
+    if(!st.integrated)return rows.concat([['说明','轮廓不闭合（截面经过开口），不做面积积分']]);
+    rows.push(['截面面积',`${fmt(st.area_mm2)} mm² · 等效直径 ${fmt(st.equivalent_diameter_mm)} mm`+(st.section.synthetic?'（缺口以直线封闭）':'')]);
+    if(st.speed_mean_m_s!==null)rows.push(['面积平均速度',fmtField(st.speed_mean_m_s,'velocity')]);
+    if(st.normal_mean_m_s!==null)rows.push(['平均穿面速度',fmtField(st.normal_mean_m_s,'velocity')+'（顺流为正）'],['截面流量 Q',`${fmt(st.flow_ml_s)} mL/s`]);
+    if(st.pressure_mean_pa!==null)rows.push(['面积平均相对压力',fmtField(st.pressure_mean_pa,'pressure')]);
+    rows.push(['截面取样',`${st.samples} 个体内点，各代表离它最近的截面面积`+(st.direct_fraction!==null?` · 邻点直接支撑 ${Math.round(100*st.direct_fraction)}%`:'')]);
+    return rows;
+  }
+  // 「看截面」: the slice view on exactly this plane (pick basis, no tilt / offset; same slab thickness).
+  function openProbeSection() {
+    const st=probeSection;if(!st||!st.found)return false;
+    picks=[st.origin.slice()];pickPlane={origin:st.origin.slice(),normal:st.tangent.slice(),segment:null,picks:1};
+    pickInfo=`探针截面：垂直于${branchName(st.segment_id)}中心线，过弧长 ${fmt(st.s_from_root_mm)} mm 处的中心线点。`;
+    $('slice-basis').value='pick';$('slice-position').value='50';$('slice-pitch').value='0';$('slice-yaw').value='0';$('slice-offset-u').value='0';$('slice-offset-v').value='0';
+    $('volume-mode').value='slice';sliceSelected=true;drawMarkers();refresh();return true;
+  }
   // ---- probe card ----
   function renderProbe() {
     const body=$('probe-body');if(!body)return;
+    updateProbeSection();
     if(!probe){setHidden('probe-card',true);return;}
     // v0.15.5: an unpinned (hover) probe shows only its key rows — the active quantity and the branch — on one line,
     // so the slice plan view below keeps its room; a pinned probe lists everything (third item = key row).
@@ -1812,13 +1915,22 @@
       if(wallTrust&&wallTrust[v])rows.push(['可信标记',trustLabels(meta.trust).filter(t=>wallTrust[v]&t.bit).map(t=>t.label).join('、')]);
     }
     const keys=new Set([primary,'分支','壁面压力','最近分支']);if(!rows.some(r=>r[0]===primary)&&rows[1])keys.add(rows[1][0]);
+    if(probePinned)for(const row of sectionProbeRows(probeSection))rows.push(row);
     body.replaceChildren();
-    for(const [label,value] of rows){const kv=document.createElement('div');kv.className='kv'+(keys.has(label)?' key':'');const span=document.createElement('span'),b=document.createElement('b');span.textContent=label;b.textContent=value;kv.append(span,b);body.append(kv);}
+    for(const [label,value,cls] of rows){const kv=document.createElement('div');kv.className='kv'+(keys.has(label)?' key':'')+(cls?' '+cls:'');const span=document.createElement('span'),b=document.createElement('b');span.textContent=label;b.textContent=value;kv.append(span,b);body.append(kv);}
     setText('probe-note',probePinned?'已固定；点击空白处或「清除」解除；「记录」加入探针记录表。':'悬停读数 · 单击血管固定并查看全部读数');
     const card=$('probe-card');if(card&&card.classList)card.classList.toggle('brief',!probePinned);
     setHidden('probe-card',false);
   }
   // ---- probe log (C11) ----
+  // §25: the pinned probe's section integrals travel with its row (raw units; only when computed for this probe).
+  function sectionValues(values) {
+    const st=probeSection;if(!st||!st.found||!st.integrated||probeSectionKey===null||!probePinned)return values;
+    const put=(k,v,d)=>{if(v!==null&&v!==undefined&&Number.isFinite(v))values[k]=+v.toFixed(d);};
+    put('section_s_from_root_mm',st.s_from_root_mm,2);put('section_area_mm2',st.area_mm2,2);put('section_speed_mean_m_s',st.speed_mean_m_s,4);
+    put('section_normal_mean_m_s',st.normal_mean_m_s,4);put('section_flow_ml_s',st.flow_ml_s,3);put('section_pressure_mean_pa',st.pressure_mean_pa,2);
+    return values;
+  }
   function probeToRow() {
     if(!probe)return null;
     const id='P'+(probeLog.reduce((m,r)=>Math.max(m,Number(String(r.id||'').replace(/^P/,''))||0),0)+1);
@@ -1827,11 +1939,13 @@
       if(rec.speed!==undefined){values.speed_m_s=rec.speed;values.u=rec.velocity[0];values.v=rec.velocity[1];values.w=rec.velocity[2];}
       if(rec.pressure!==undefined)values.pressure_pa=rec.pressure;
       if(rec.distWall!==undefined)values.dist_to_wall_mm=rec.distWall;
+      sectionValues(values);
       return {id,kind:'interior',index:probe.index,xyz_mm:rec.position.map(v=>+v.toFixed(3)),branch:rec.segment!==undefined?branchName(rec.segment):'',segment_id:rec.segment!==undefined?rec.segment:null,
         s_from_root_mm:rec.s!==undefined?+rec.s.toFixed(2):null,radius_mm:rec.radius!==undefined?+rec.radius.toFixed(3):null,values,created_at:new Date().toISOString()};
     }
     const v=probe.index,p=point(vertices,v),near=nearestTangent(groups,p),values={};
     if(wallPressure&&Number.isFinite(wallPressure[v]))values.wall_pressure_pa=wallPressure[v];
+    sectionValues(values);
     return {id,kind:'wall',index:v,xyz_mm:p.map(x=>+x.toFixed(3)),branch:near?branchName(near.segment):'',segment_id:near?near.segment:null,s_from_root_mm:near?+near.arc.toFixed(2):null,radius_mm:null,values,created_at:new Date().toISOString()};
   }
   function summarizeValues(values) {
@@ -1840,6 +1954,9 @@
     if(values.pressure_pa!==undefined)parts.push(fmtField(Number(values.pressure_pa),'pressure'));
     if(values.wall_pressure_pa!==undefined)parts.push('壁 '+fmtField(Number(values.wall_pressure_pa),'pressure'));
     if(values.dist_to_wall_mm!==undefined)parts.push('壁距 '+Number(values.dist_to_wall_mm).toFixed(2)+' mm');
+    if(values.section_speed_mean_m_s!==undefined)parts.push('截面均速 '+fmtField(Number(values.section_speed_mean_m_s),'velocity'));
+    if(values.section_flow_ml_s!==undefined)parts.push('截面 Q '+fmt(Number(values.section_flow_ml_s))+' mL/s');
+    if(values.section_pressure_mean_pa!==undefined)parts.push('截面均压 '+fmtField(Number(values.section_pressure_mean_pa),'pressure'));
     return parts.join(' · ')||'—';
   }
   function renderProbeLog() {
@@ -3211,6 +3328,7 @@
   {const b=$('slice-reset-angle');if(b)b.addEventListener('click',()=>{for(const id of ['slice-pitch','slice-yaw','slice-offset-u','slice-offset-v'])$(id).value='0';refresh();});}
   $('pick-clear').addEventListener('click',clearPicks);
   $('probe-clear').addEventListener('click',()=>{probe=null;probePinned=false;renderProbe();});
+  if($('probe-slice'))$('probe-slice').addEventListener('click',()=>{openProbeSection();});
   $('probe-record').addEventListener('click',()=>{const row=probeToRow();if(!row){setText('probe-log-note','没有探针读数可记录。');return;}probeLog=probeLog.concat([row]);renderProbeLog();setText('probe-note',`已记录为 ${row.id}。`);});
   $('probe-log-copy').addEventListener('click',()=>{const text=probeSerializer('tsv')(probeLog,lang);const done=()=>setText('probe-log-note','已复制 TSV 到剪贴板。');if(root.navigator&&root.navigator.clipboard&&root.navigator.clipboard.writeText)root.navigator.clipboard.writeText(text).then(done,()=>setText('probe-log-note','剪贴板不可用；请改用导出 CSV。'));else setText('probe-log-note','剪贴板不可用；请改用导出 CSV。');});
   $('probe-log-export').addEventListener('click',()=>{const csv=probeSerializer('csv')(probeLog,lang);download(`${(meta.case_id||'volume')}_probes.csv`,'data:text/csv;charset=utf-8,'+encodeURIComponent(csv));setText('probe-log-note',`已导出 ${probeLog.length} 条探针记录 CSV。`);});
@@ -3505,6 +3623,9 @@
     // v0.12 (§19.9 / A9 / B4)
     camera:()=>cameraState(),autoView:()=>autoView,fit,showStandardView,fittedCamera,setField,setMode,cycleMode,
     probeEnabled:()=>probeEnabled,setProbeEnabled,setProbe:(kind,index,pinned)=>{probe=kind?{kind,index}:null;probePinned=!!pinned;renderProbe();},toggleAutoLabels,setTechInfo,techOpen:()=>techOpen,techInfoText,
+    // §25 section integral of the pinned probe
+    probeSection:()=>probeSection&&{...probeSection,section:undefined,projection:undefined,plane:undefined,closed:probeSection.section?probeSection.section.closed:false},
+    openProbeSection,currentPlane:()=>currentPlane(),probeRow:()=>probeToRow(),
     shortcuts:()=>shortcuts,warnings:()=>warnings.map(x=>({...x})),pickMode:()=>pickMode,
     sliceZoom:open=>{openSliceZoom(open);return sliceZoomOpen;},
     // §21.4 label layout

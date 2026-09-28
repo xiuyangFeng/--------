@@ -608,7 +608,7 @@ def test_probe_annotation_and_manual_finding_round_trip_through_the_view_state(t
     meta, *_ = _minimal_report_inputs()
     out = _domless_gl(tmp_path, _analysis_meta(meta), """
       T.pick([1,1,0]);const card=g('probe-card').hidden;
-      g('probe-card').children[1].children[0].onclick();        // 「记录」
+      g('probe-card').children.find(c=>c.className==='pc-head').children.find(c=>c.className==='pc-actions').children[0].onclick();        // 「记录」
       T.text('瘤囊后壁');g('annot-add').onclick();T.pick([0,1,0]);
       T.text('可疑龛影');g('finding-add').onclick();T.pick([1,0,0]);
       const s=T.state();
@@ -709,6 +709,39 @@ def test_diameter_measurement_cuts_a_real_cross_section_on_a_tube(tmp_path):
     assert out["redrawn"] == m["poly"]  # the polygon travels in the view state and redraws on apply
     from wss_deploy.report import TEMPLATE
     assert "等效直径" in TEMPLATE and "内切半径 × 2 并注明" in TEMPLATE  # the hint explains both branches
+
+
+def test_probe_click_adds_the_section_mean_at_its_centreline_station(tmp_path):
+    """§25: a locked probe also shows ∮ f dl / L around the section perpendicular to the centreline at its station;
+    the record carries the section columns, closing the card drops the section."""
+    meta, mesh, cloud, centerline = _tube_report_inputs()
+    out = _domless_gl(tmp_path, _analysis_meta(meta), """
+      T.pick([3,0,11]);
+      const card=g('probe-card'),head=card.children[0],acts=head.children.find(c=>c.className==='pc-actions');
+      const table=card.children[1]._html,foot=card.children[2].children.map(c=>c.textContent),label=card['aria-label'];
+      acts.children[0].onclick();
+      const row=T.state().probe_log[0];
+      acts.children[1].onclick();
+      console.log(JSON.stringify({errors,classes:card.children.map(c=>c.className),where:head.children[1].textContent,table,foot,label,
+        buttons:acts.children.map(b=>[b.className,b.textContent]),values:row.values,hidden:card.hidden}));
+    """, parts=(meta, mesh, cloud, centerline))
+    assert out["errors"] == []
+    # v0.15.10 card: title bar / one table row per field (此点 · 截面均值 · 环上范围) / footnote with the section
+    assert out["classes"] == ["pc-head", "pc-table", "pc-foot"]
+    # the title reads the nearest prediction point (z = 10 ring); the section sits at the pick's own station (11.0)
+    assert out["where"] == "主动脉 · 弧长 10.0 mm · 半径 3.0 mm"
+    assert out["buttons"] == [["pc-rec", "记录"], ["pc-x", "×"]]
+    t = out["table"]
+    assert ">此点</th>" in t and ">截面均值</th>" in t and 'data-field="wss" class="on"' in t and 'class="pc-sec"' in t and 'class="pc-range"' in t
+    assert out["foot"][0] == "截面：垂直中心线，过主动脉弧长 11.0 mm 处 · 周长 18.8 mm"
+    assert "截面均值 · WSS" in out["label"] and out["label"].startswith("探针 · WSS")
+    v = out["values"]
+    # the plane z = 11 is nearest to the z = 10 ring (indices 48–71 of linspace(1, 4, 168)): every element takes a ring value
+    ring = [1 + 3 * i / 167 for i in range(48, 72)]
+    assert min(ring) - 1e-4 <= v["section_wss_pa"] <= max(ring) + 1e-4
+    assert v["section_wss_pa"] == pytest.approx(sum(ring) / len(ring), abs=.03)
+    assert v["section_perimeter_mm"] == pytest.approx(18.80, abs=.02) and v["section_s_from_root_mm"] == pytest.approx(11.0)
+    assert out["hidden"] is True
 
 
 def test_diameter_falls_back_to_the_inscribed_radius_without_a_closed_contour(tmp_path):
@@ -1307,7 +1340,7 @@ def test_colour_bar_ticks_and_readouts_use_formatvalue(tmp_path):
     """U3: 0.348 / 0.174 / 0 instead of toFixed(1) (which printed 0.3 / 0.2 / 0.0)."""
     out = _m1_gl(tmp_path, """
       key('f');key('f');const osi=g('cbar')._html,desc=g('scale-description')._text;g('field-seg').children[0].onclick();
-      T.pick([1,1,0]);const probe=g('probe-card').children[0].textContent;
+      T.pick([1,1,0]);const probe=g('probe-card')['aria-label'];
       console.log(JSON.stringify({errors,osi,probe,desc}));
     """)
     assert out["errors"] == []
@@ -1439,7 +1472,7 @@ def test_rrt_ecap_are_derived_in_the_viewer_for_an_older_three_head_page(tmp_pat
       const rrt={cbar:g('cbar-unit')._text,panel:T.panel(),thr:[g('thr0').value,g('thr1').value,g('thr2').value],unit:g('thr-unit')._text,
         label:g('thr-label-text')._text,frame:g('frame-status')._text,quick:g('quick-stats')._html,bar:g('cbar')._html,sc:g('schema-controls').hidden,
         tabText:g('field-tabs').children.map(t=>t.textContent)};
-      T.pick([0,0,0]);const probe=g('probe-card').children[0].textContent;
+      T.pick([0,0,0]);const probe=g('probe-card')['aria-label'];
       g('thr0').value='8';g('thr0').onchange();const edited={panel:T.panel(),state:T.state().field_thresholds,quick:g('quick-stats')._html};
       seg.children[4].onclick();const ecap={cbar:g('cbar-unit')._text,thr:[g('thr0').value,g('thr1').value,g('thr2').value],panel:T.panel()};
       seg.children[0].onclick();const wss=[g('thr0').value,g('thr1').value,g('thr2').value,g('thr-label-text')._text];
@@ -1476,7 +1509,7 @@ def test_summary_rrt_descriptors_are_used_when_the_page_carries_them(tmp_path):
     xc = {**cloud["extra"], "rrt_per_pa": (d["rrt"] * 2).astype(np.float32), "ecap_per_pa": d["ecap"].astype(np.float32)}
     out = _domless_gl(tmp_path, meta, """
       g('field-seg').children[3].onclick();T.pick([0,0,0]);
-      console.log(JSON.stringify({errors,labels:g('field-seg').children.map(b=>b.textContent),probe:g('probe-card').children[0].textContent,panel:T.panel()}));
+      console.log(JSON.stringify({errors,labels:g('field-seg').children.map(b=>b.textContent),probe:g('probe-card')['aria-label'],panel:T.panel()}));
     """, parts=(meta, {**mesh, "extra": xe}, {**cloud, "extra": xc}, centerline), embed_derived=True)   # the v0.13 layout
     assert out["errors"] == [] and out["labels"] == ["峰值 WSS", "TAWSS", "OSI", "RRT", "ECAP"]
     assert "RRT 20.0 Pa⁻¹" in out["probe"]                                          # the embedded array, not a recomputation
@@ -1549,7 +1582,7 @@ def test_menu_tables_scroll_inside_their_card_instead_of_widening_it(tmp_path):
     assert ".tscroll{overflow-x:auto" in TEMPLATE and ".tscroll table{width:100%;min-width:max-content}" in TEMPLATE
     assert ".tscroll th:first-child,.tscroll td:first-child{position:sticky;left:0" in TEMPLATE
     out = _m1_gl(tmp_path, """
-      T.pick([0,0,0]);g('probe-card').children[1].children[0].onclick();
+      T.pick([0,0,0]);g('probe-card').children.find(c=>c.className==='pc-head').children.find(c=>c.className==='pc-actions').children[0].onclick();
       const panel=T.panel(),probe=g('probe-log').children.map(c=>[c.className,(c.children[0]||{}).className]);
       console.log(JSON.stringify({errors,tables:(panel.match(/<table/g)||[]).length,wrapped:(panel.match(/<div class="tscroll"><table/g)||[]).length,probe}));
     """)

@@ -721,3 +721,31 @@ body `{"version": n, "case_id": "…", "patient_id": "…", "scan_label": "…",
 - `schema.redact_paths(value)`：`str(PROJECT_ROOT)` → `<project>`、`str(Path.home())` → `~`，对字符串内任意位置替换，递归 dict / list，不改非字符串；`model_release_metadata()` 的返回值整体经过它，所以 summary / run_manifest / quality_audit / job.json / report META 的 `model_release` 不含服务器绝对路径。`rebuild_report` 读入旧 summary 时对 `model_release` 脱敏，并在写 summary 后重写 `quality_audit.json` 的 `model_release`。
 - `ANALYSIS_VERSION = "2026-09-26"`：`service.needs_rebuild` 据此把所有 `analysis_version < 2026-09-26` 的已完成任务列入 `pending_rebuilds`，`service upgrade` 启动新服务后在后台完整重建（不重跑模型），历史结果文件随之脱敏。`regress.SUMMARY_KEYS` 不含 `model_release`。
 - 权限：正式 jobs_root 已 `chmod -R go-rwx`；上线命令带 `--env WSS_DEPLOY_UMASK=077`。未上 TLS / 反代（用户裁定先展示使用）；工作线程死亡不自动拉起（用户裁定）。
+
+## 25. v0.15.9 截面均值 / 截面积分：点击点所在的垂直截面，积分到中心线那一点（2026-09-27）
+
+用户要求（2026-09-27）：点击一个点，给出沿中心线该处截面的积分均值（TAWSS 等），积分到中心线这个点上；截面 = 过中心线点、垂直于中心线的平面（用户选定），壁面与体场都做。纯显示与读数，不改任何预测、summary 或导出文件。
+
+### 25.1 站位与截面（`report_common.js`）
+- `centerlineTangent(groups, pr)`：投影行 `row_local` 两侧相邻样本的弦方向（单位向量）；组按近端 → 远端排序，所以指向下游。壁面「管径」测量（§15.14）改为调用它，算式逐字相同。
+- `stationSection({groups, point, vertices, faces, wallValues?})`：`projectToCenterline` → `{segment_id, branch, s_mm, s_from_root_mm, radius_mm, origin(投影点), tangent}`；`crossSection(origin, tangent, maxDist = max(4 r, 1))` 取包住中心线点的管腔轮廓（与管径测量相同的选环规则）。`found = false` 时 `reason ∈ {no_centerline, no_tangent, no_mesh, no_contour}`。`wallValues`（每网格顶点，可选）插值到轮廓线段。
+- `ringElements(cs)`：轮廓里每段真实壁面的中点（世界坐标）与长度；闭合开口的合成直线段（边键 < 0）只计入 `gap_mm`。`lineMean(values, lengths)`：∮f dl / ∮dl 与环上最小 / 最大；非有限值与零长度不计权。
+
+### 25.2 壁面截面均值（`sectionMeans`，report.py 探针）
+- 每个线元取 `o.sample(中点)` 返回的预测点（报告页传 `CORE.nearestIndex(PV, ·, 3 × 点间距)`，与探针同一查找）的值；每个字段 `means[id] = lineMean(...)`，字段 = 页面全部字段（WSS、TAWSS、OSI、RRT、ECAP，有哪个算哪个）。线长加权使结果与点云密度无关。
+- 显示（v0.15.10 起）：探针卡 = `.pc-head`（「探针」、分支 · 弧长 · 半径、记录、×）+ `.pc-table`（每字段一行 `data-field`：此点 / 截面均值 / 环上范围条，当前字段 `tr.on`，点行 = `setField`，`recolor` 时重绘）+ `.pc-foot`（「截面：垂直中心线，过 分支弧长 x mm 处 · 周长 L mm[ · 经过开口，缺口 g mm 不计 | · 轮廓不闭合，只平均切到的壁面]」、坐标、图例）；整卡文字在 `aria-label`（`probeSummary`）。3D：黑色管（半径 min(0.003 × 包围盒, 0.15 × 内切半径)，下限 0.15 mm）+ 0.45 倍白芯的截面环，中心线点黑 / 白靶心，探针点 → 中心线点连线；关闭卡片或按 P 关闭即清除。
+- 记录：`values.section_<array_key>`（WSS 为 `section_wss_pa`）、`section_s_from_root_mm`、`section_perimeter_mm`（壁面长度）；探针记录表按需加「截面 字段」列；TSV / CSV 通过既有 `_probeColumns` 自动带出。
+
+### 25.3 体场截面积分（`sectionIntegral`，volume_viewer.js 探针）
+- 只对**固定**的探针计算（键 = 探针类型 : 下标 : 截面厚度，变了才重算）；悬停不算。
+- 样本：`slabIndices(pts, is_wall, segments, plane, 厚度)`（厚度 = 截面厚度控件，默认 2 mm）中落在轮廓内（`pointInLoop`）的体内点。
+- 面积平均：轮廓外接方框 64 × 64 格，轮廓内每格取最近样本的值（Voronoi 面积光栅化），均值 = 格均值 = Σ vᵢAᵢ / A；不施加壁面值。`supported` = 离最近样本 ≤ 3.2 × 中位样本间距的格占比（截面图「直接支撑」同一半径）。
+- 读数：`area_mm2`（轮廓多边形面积）、`equivalent_diameter_mm`、`speed_mean_m_s`（⟨|u|⟩）、`normal_mean_m_s`（⟨u·n⟩，n = 中心线切向，顺流为正）、`flow_ml_s = normal_mean × area`（m/s × mm² = mL/s）、`pressure_mean_pa`（相对压）。轮廓不闭合（经过开口且无法直线封闭）→ `integrated = false`，不给面积量。
+- 「看截面」（`#probe-slice`，有截面时才显示）：`pick` 基准、位置 50、俯仰 / 偏航 / 面内偏移 0，`pickPlane = {origin: 中心线点, normal: 切向}`，切到截面模式——与积分同一平面、同一厚度。
+- 记录：`section_s_from_root_mm`、`section_area_mm2`、`section_speed_mean_m_s`、`section_normal_mean_m_s`、`section_flow_ml_s`、`section_pressure_mean_pa`。
+
+### 25.4 选择依据与验证
+- 面积平均方法按质量守恒选：三个真实体场任务（入口波形统一）各 35 站，Voronoi 下四出口支 Q 之和 116.7 / 114.7 / 115.4 mL/s，主动脉各站 95–137 / 108–125 / 106–133，分叉处主干 ≈ 两子支之和；截面热图的「IDW + 壁面 0 值」补全用作面积平均则出口和 92 / 86 / 84、稀疏处（LV 瘤颈 15–30 点）偏低约一半，故只保留作显示。样本普通平均受采样密度影响（近壁包围盒填充），个别站可到负值。
+- 壁面：截面均值与沿程 2 mm 分箱均值（周长 ≤ 1.5 × 该支中位的站）中位相对差 WSS 4–6%、TAWSS 3–4%、OSI 6–7%。
+- 测试：`test_report_common.py`（线积分与密度无关、站位 / 切向、无截面原因、合成边与线长加权）、`test_report.py`（点击 → 卡片 → 记录 → 关闭）、`test_volume_report.py`（Voronoi 面积平均对 Poiseuille 1/2 与密度无关、固定探针积分 / 记录 / 看截面 / 清除）。
+- 已知限制：分叉口附近垂直截面会切进相邻分支（周长突增，3D 环可见）；体场点稀疏处个别站 Q 偏 ±20%；模型速度不受质量守恒约束。

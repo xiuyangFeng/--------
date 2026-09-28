@@ -362,7 +362,19 @@ footer{flex:0 0 auto;font-size:12px;color:var(--muted);padding:5px 16px;border-t
 .gloss-pop{position:fixed;z-index:20;max-width:320px;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 20px #0002;padding:8px 10px;font-size:12px;line-height:1.45}.gloss-pop b{display:block;margin-bottom:3px}
 .item-list{display:grid;gap:4px}.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;align-items:center;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px}.item>span,.item>button{overflow-wrap:anywhere;text-align:left}.item .tools{display:flex;gap:3px}.item .tools button{font-size:12px;padding:2px 6px}
 .finding-tools{display:flex;gap:3px;flex-wrap:wrap;align-items:center;margin:2px 0 6px}.finding-tools button{font-size:12px;padding:2px 7px}.finding-tools input{flex:1;min-width:80px;font-size:12px;padding:2px 5px}.finding-wrap.rejected .finding{opacity:.5}
-#probe-card{position:absolute;left:12px;bottom:118px;max-width:60%;background:#fffffff0;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;z-index:2;white-space:pre-line;display:grid;gap:4px}
+#probe-card{position:absolute;left:12px;bottom:118px;max-width:min(60%,560px);background:#fffffff5;border:1px solid var(--line);border-radius:10px;padding:8px 10px 7px;font-size:12px;z-index:2;display:grid;gap:6px;box-shadow:0 4px 16px #16334b1f}
+#probe-card .pc-head{display:flex;align-items:baseline;gap:8px;min-width:0}#probe-card .pc-head b{font-size:13px;color:var(--ink);display:flex;align-items:center;gap:6px}#probe-card .pc-head b::before{content:'';width:8px;height:8px;border-radius:50%;background:#111;box-shadow:0 0 0 2px #fff,0 0 0 3px #111}
+#probe-card .pc-where{color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#probe-card .pc-actions{margin-left:auto;display:flex;gap:2px;align-items:center;align-self:center}
+#probe-card .pc-rec{font-size:12px;padding:2px 10px;min-height:0;border-color:var(--acc);color:var(--acc);background:#fff}#probe-card .pc-rec:hover{background:#eaf3fc}
+#probe-card .pc-x{border:0;background:transparent;min-height:0;padding:0 4px;font-size:17px;line-height:1;color:var(--muted)}#probe-card .pc-x:hover{color:var(--ink)}
+#probe-card .pc-table{border-collapse:collapse;font-variant-numeric:tabular-nums;width:100%}#probe-card .pc-table th,#probe-card .pc-table td{padding:3px 8px;text-align:right;white-space:nowrap}
+#probe-card .pc-table thead th{font-weight:500;font-size:11px;color:var(--muted);padding-bottom:4px;border-bottom:1px solid var(--line)}#probe-card .pc-table tbody th{text-align:left;font-weight:600;color:#33475b}#probe-card .pc-table tbody th small{font-weight:400;margin-left:4px;font-size:11px}
+#probe-card .pc-table tbody tr{cursor:pointer}#probe-card .pc-table tbody tr:hover{background:var(--soft)}#probe-card .pc-table tbody tr.on{background:#eaf3fc}#probe-card .pc-table tbody tr.on th{color:var(--acc)}
+#probe-card .pc-table td.pc-sec{font-weight:600;color:var(--ink)}#probe-card .pc-table th:first-child,#probe-card .pc-table td:first-child{padding-left:4px}
+#probe-card .pc-range{position:relative;display:inline-block;width:76px;height:14px;vertical-align:middle}#probe-card .pc-range::before{content:'';position:absolute;left:0;right:0;top:6px;height:2px;border-radius:1px;background:#cfd9e4}
+#probe-card .pc-mean{position:absolute;top:1px;width:2px;height:12px;margin-left:-1px;border-radius:1px;background:var(--ink)}#probe-card .pc-pt{position:absolute;top:3px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 1.5px #fff}#probe-card .pc-pt.out{background:#fff;box-shadow:inset 0 0 0 1.5px var(--acc)}
+#probe-card .pc-foot{display:grid;gap:1px;color:var(--muted);font-size:11px;line-height:1.45;border-top:1px solid var(--line);padding-top:5px}
+#probe-card .pc-legend{margin-left:10px;white-space:nowrap}#probe-card .pc-legend i{display:inline-block;vertical-align:middle;margin:0 3px 0 7px}#probe-card .pc-lg-mean{width:2px;height:10px;border-radius:1px;background:var(--ink)}#probe-card .pc-lg-pt{width:7px;height:7px;border-radius:50%;background:var(--acc)}
 .probe-table{font-size:12px}.mode-row button.on{background:var(--acc);color:#fff}#branch-vis label{font-size:12px;margin-right:6px}
 #labels div.meas{background:#e8f6f8;border-color:#5bbcc9}#labels div.annot{background:#fff7e6;border-color:#e0a84a;pointer-events:auto;cursor:pointer;max-width:240px;white-space:normal}
 #labels div.flabel{pointer-events:auto;cursor:pointer;font-weight:600}#labels div.flabel.attention{background:#fde7e3f0;border-color:#e2a294;color:#8d3223}#labels div.flabel.note{background:#fff2d5f0;border-color:#e6c47a;color:#7a5814}#labels div.flabel.info{background:#e5f0faf0;border-color:#9dc3e6;color:#175b8c}
@@ -407,7 +419,7 @@ header .mode-tabs{flex-wrap:wrap}header>div:nth-of-type(1){min-width:0;overflow-
 #menu-tab{display:none}.compact #menu-tab{display:block;position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:3;writing-mode:vertical-rl;padding:10px 4px;border-radius:0 8px 8px 0;border:1px solid var(--line);border-left:0;background:#fffffff0;font-size:12px;letter-spacing:2px;color:#3f5a72}
 .compact footer{display:none}
 .compact #cbar{right:34px;top:32px;height:210px}.compact #cbar span{font-size:12px}.compact #cbar em.thr-l{font-size:12px}.compact #cbar-unit{top:8px;right:8px;font-size:12px;max-width:150px}.compact #legend-stack{top:254px;right:8px;max-width:170px}.compact .legend-note,.compact #trust-legend{font-size:12px}
-.compact #probe-card{left:8px;right:8px;bottom:8px;max-width:none;font-size:12px;padding:4px 8px}.compact #tip{bottom:auto;top:8px;left:8px;max-width:45%;font-size:12px;padding:5px 8px}
+.compact #probe-card{left:8px;right:auto;bottom:8px;max-width:calc(100% - 16px);font-size:12px;padding:5px 8px;gap:3px}.compact #probe-card .pc-foot span+span{display:none}.compact #probe-card .pc-table th,.compact #probe-card .pc-table td{padding:1px 6px}.compact #tip{bottom:auto;top:8px;left:8px;max-width:45%;font-size:12px;padding:5px 8px}
 .compact #field-seg{top:6px}.compact #field-seg button{min-height:26px;padding:2px 9px;font-size:12px}.compact #view.has-seg #tip{top:44px}
 .compact #view.has-banner #cbar-unit{top:40px}.compact #view.has-banner #cbar{top:64px}.compact #view.has-banner #legend-stack{top:286px}.compact #view.has-banner #field-seg{top:36px}.compact #view.has-banner #tip{top:40px}.compact #view.has-banner.has-seg #tip{top:74px}
 }
@@ -1119,6 +1131,8 @@ function initViewer(){
   if(MESH_SEGS.length>1)el('branch-vis-note').hidden=false;}
  // ---- C7 / C8 three-dimensional overlays: measurement polylines, annotation pins and their HTML labels ----
  const overlay=new THREE.Group();scene.add(overlay);
+ let SECTION=null;const SECTION_COLOR=0x111111;   // §25 the locked probe's section (drawn by redrawOverlays)
+ let probeSel=-1,lastHover=null;   // C11 locked probe (prediction-point index) and the last hovered wall point
  function makeLabel(cls,text,obj,kind,priority){const div=document.createElement('div');div.className=cls;div.textContent=text;el('labels').appendChild(div);labels.push({obj,div,kind,priority});return div;}
  function dropLabels(kind){for(let i=labels.length-1;i>=0;i--)if(labels[i].kind===kind){const d=labels[i].div;if(d&&d.remove)d.remove();labels.splice(i,1);}}
  function anchorAt(p){const o=new THREE.Object3D();o.position.set(p[0],p[1],p[2]);overlay.add(o);return o;}
@@ -1152,7 +1166,17 @@ function initViewer(){
   for(const a of ANNOTS){const p=(a.xyz_mm||[0,0,0]).map(Number),tip=[p[0],p[1],p[2]+lift];
    polyline([p,tip],0xe0a84a);sphereAt(p,0xe0a84a,Math.max(.4,size*.003));
    makeLabel('annot',a.id+' · '+a.text,anchorAt(tip),'annot').onclick=()=>editAnnot(a.id);}
+  if(SECTION&&SECTION.found)sectionMarks(SECTION);
   renderAutoLabels();}
+ // §25 the probe's section, legible on any colour: the outline as a black tube with a white core (open chains stay
+ // open), a black / white target at the centreline point the means belong to, and a line from the probe to it.
+ function sectionMarks(sec){const ring=(sec.polygon_world||[]).filter(q=>Array.isArray(q)&&q.length===3);
+  const r=Math.max(.15,Math.min(size*.003,.15*(Number(sec.radius_mm)||Infinity)));
+  if(ring.length>2&&THREE.TubeGeometry&&THREE.CatmullRomCurve3){const curve=new THREE.CatmullRomCurve3(ring.map(q=>new THREE.Vector3(q[0],q[1],q[2])),!sec.open);
+   for(const [rr,color,order] of [[r,SECTION_COLOR,5],[r*.45,0xffffff,6]]){const m=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.min(600,2*ring.length),rr,6,!sec.open),new THREE.MeshBasicMaterial({color,depthTest:false}));m.renderOrder=order;overlay.add(m);}}
+  else if(ring.length>2)(sec.open?polyline:loopLine)(ring,SECTION_COLOR);
+  const R=Math.max(.5,Math.min(size*.008,.4*(Number(sec.radius_mm)||Infinity)));sphereAt(sec.origin,SECTION_COLOR,R).renderOrder=5;sphereAt(sec.origin,0xffffff,R*.5).renderOrder=6;
+  if(Array.isArray(sec.pick))polyline([sec.pick,sec.origin],SECTION_COLOR);}
  REDRAW=redrawOverlays;
  // ---- §17.3 automatic labels: top-N findings, branch names, maximum-diameter ring ----
  // AUTO_CHIPS mirrors what is pinned in 3D so the export path can composite the very same chips.
@@ -1253,10 +1277,7 @@ function initViewer(){
   for(let j=0;j<g.s.length;j++)if(g.s[j]>first.s&&g.s[j]<last.s)out.push([g.xyz[3*j],g.xyz[3*j+1],g.xyz[3*j+2]]);
   out.push(last.xyz.slice());return out;}
  // §15.14: the pick is projected onto the centreline, the local tangent becomes the section normal.
- function centerlineTangent(pr){const g=CLGROUPS[pr.group_index];if(!g)return null;const k=g.s.length;if(k<2)return null;
-  const j=Math.max(0,Math.min(k-1,Number(pr.row_local)||0)),a=Math.max(0,j-1),b=Math.min(k-1,j+1);
-  const v=[g.xyz[3*b]-g.xyz[3*a],g.xyz[3*b+1]-g.xyz[3*a+1],g.xyz[3*b+2]-g.xyz[3*a+2]],n=Math.hypot(v[0],v[1],v[2]);
-  return n>1e-9?v.map(x=>x/n):null;}
+ function centerlineTangent(pr){return COMMON.centerlineTangent(CLGROUPS,pr);}
  // A real lumen contour when the plane closes one; otherwise the inscribed-radius fallback, always marked as such.
  function diameterAt(p){const pr=COMMON.projectToCenterline(CLGROUPS,p);if(!pr)return null;
   const r=Number(pr.radius_mm)||0,tangent=centerlineTangent(pr),lj=COMMON.localDiameter(CLGROUPS,p);
@@ -1298,20 +1319,60 @@ function initViewer(){
    const del=document.createElement('button');del.type='button';del.textContent='删除';del.onclick=()=>{MEAS=MEAS.filter(x=>x!==m);renderMeasList();redrawOverlays();};
    tools.append(copy,del);row.appendChild(tools);box.appendChild(row);}}
  // ---- C11 probe log ----
- let probeSel=-1,lastHover=null;
  // Every embedded field at prediction point i, the active one first (M1: 峰值 WSS · TAWSS · OSI).
- function pointValues(i){const ids=supportedFields();ids.sort((a,b)=>(b===activeField)-(a===activeField));
-  return ids.map(id=>{const F=fieldArrays(id),u=unitText(F.units);return (id==='wss'&&ids.length>1?FIELD_SHORT.wss:F.short)+' '+(F.isPa?fqu(F.p[i])+' '+ul():fq(F.p[i])+(u?' '+u:''));}).join(' · ');}
- function lockProbe(p){const i=CORE.nearestIndex(PV,new Float32Array([p[0],p[1],p[2]]),Math.max(.5,(Number((META.cloud||{}).spacing_mm)||.5)*3))[0],card=el('probe-card');
-  if(!(i>=0)){probeSel=-1;card.hidden=true;return;}
-  probeSel=i;card.replaceChildren();
-  const txt=document.createElement('span');txt.textContent='探针 · '+pointValues(i)+'\n'+bn(PS[i])+' · 弧长 '+fmt(P_S[i],1)+' mm · 半径 '+fmt(P_R[i],1)+' mm\n('+[0,1,2].map(k=>fmt(PV[3*i+k],1)).join(', ')+') mm';
-  const row=document.createElement('div');row.className='row';
-  const add=document.createElement('button');add.type='button';add.textContent='记录';add.onclick=recordProbe;
-  const close=document.createElement('button');close.type='button';close.textContent='关闭';close.onclick=()=>{card.hidden=true;probeSel=-1;};
-  row.append(add,close);card.append(txt,row);card.hidden=false;}
+ const probeFieldIds=()=>{const ids=supportedFields();ids.sort((a,b)=>(b===activeField)-(a===activeField));return ids;};
+ function fieldValueText(id,x,ids){const F=fieldArrays(id),u=unitText(F.units);return (id==='wss'&&ids.length>1?FIELD_SHORT.wss:F.short)+' '+(F.isPa?fqu(x)+' '+ul():fq(x)+(u?' '+u:''));}
+ function pointValues(i){const ids=probeFieldIds();return ids.map(id=>fieldValueText(id,fieldArrays(id).p[i],ids)).join(' · ');}
+ // ---- §25 截面均值: the section perpendicular to the centreline at the probe's station, each wall field
+ // integrated around the lumen outline (∮ f dl / ∮ dl) and attached to that centreline point ----
+ const sectionKey=id=>'section_'+(id==='wss'?'wss_pa':FIELD_SCHEMA[id].array_key);
+ function sectionAtPick(p){if(!CLGROUPS.length||!MF.length)return null;const fields={};for(const id of supportedFields())fields[id]=fieldArrays(id).p;
+  const cell=Math.max(.5,(Number((META.cloud||{}).spacing_mm)||.5)*3);
+  try{return Object.assign(COMMON.sectionMeans({groups:CLGROUPS,point:p,vertices:MV,faces:MF,fields,sample:q=>CORE.nearestIndex(PV,q,cell)}),{pick:p.slice()});}catch(_){return null;}}
+ function sectionNote(sec){if(!sec)return '本报告没有可用中心线或壁面网格，无法取截面';
+  if(!sec.found)return sec.reason==='no_contour'?'此处垂直截面未切到管腔轮廓':'此处没有可用中心线';
+  return '截面：垂直中心线，过'+bn(sec.segment_id)+'弧长 '+fmt(sec.s_from_root_mm,1)+' mm 处 · 周长 '+fmt(sec.wall_length_mm,1)+' mm'
+   +(sec.open?' · 轮廓不闭合，只平均切到的壁面':sec.synthetic?' · 经过开口，缺口 '+fmt(sec.gap_mm,1)+' mm 不计':'');}
+ // Plain-text reading of the card (screen readers via aria-label; the tests read it too).
+ function probeSummary(i,sec){const ids=probeFieldIds(),ok=sec&&sec.found;
+  return '探针 · '+pointValues(i)+'\n'+bn(PS[i])+' · 弧长 '+fmt(P_S[i],1)+' mm · 半径 '+fmt(P_R[i],1)+' mm\n('+[0,1,2].map(k=>fmt(PV[3*i+k],1)).join(', ')+') mm\n'
+   +(ok?'截面均值 · '+ids.filter(id=>sec.means[id]&&Number.isFinite(sec.means[id].mean)).map(id=>fieldValueText(id,sec.means[id].mean,ids)).join(' · ')+'\n':'')+sectionNote(sec);}
+ // Where the probe value and the section mean sit on the ring's min → max (clamped; hollow dot when outside).
+ function rangeBar(x,m,F,u){if(!m||!Number.isFinite(m.min)||!Number.isFinite(m.max)||!(m.max>m.min))return '';
+  const k=F.isPa?uf():1,pos=v=>Math.max(0,Math.min(100,(v-m.min)/(m.max-m.min)*100)).toFixed(1),out=Number.isFinite(x)&&(x<m.min||x>m.max);
+  const tip='截面环上 '+fq(m.min*k)+' – '+fq(m.max*k)+(u?' '+u:'')+'；竖线 = 截面均值，圆点 = 此点'+(out?'（此点在环上范围之外）':'');
+  return '<span class="pc-range" title="'+esc(tip)+'"><i class="pc-mean" style="left:'+pos(m.mean)+'%"></i>'+(Number.isFinite(x)?'<i class="pc-pt'+(out?' out':'')+'" style="left:'+pos(x)+'%"></i>':'')+'</span>';}
+ // v0.15.10: the probe card is a small table — one row per field, 此点 / 截面均值 / where both sit on the ring —
+ // under a title bar (branch · arc · radius, 记录, ×); the active colouring field is highlighted and a row click switches to it.
+ function renderProbeCard(){const card=el('probe-card'),i=probeSel;if(!(i>=0)){card.hidden=true;return;}
+  const sec=SECTION,ok=!!(sec&&sec.found),ids=supportedFields();card.replaceChildren();
+  const head=document.createElement('div');head.className='pc-head';
+  const title=document.createElement('b');title.textContent='探针';
+  const where=document.createElement('span');where.className='pc-where';where.textContent=bn(PS[i])+' · 弧长 '+fmt(P_S[i],1)+' mm · 半径 '+fmt(P_R[i],1)+' mm';
+  const acts=document.createElement('span');acts.className='pc-actions';
+  const add=document.createElement('button');add.type='button';add.className='pc-rec';add.textContent='记录';add.title='把此点与截面均值加入探针记录表';add.onclick=recordProbe;
+  const close=document.createElement('button');close.type='button';close.className='pc-x';close.textContent='×';close.title='关闭探针（P）';close.setAttribute('aria-label','关闭探针');close.onclick=closeProbe;
+  acts.append(add,close);head.append(title,where,acts);
+  const rows=ids.map(id=>{const F=fieldArrays(id),u=F.isPa?ul():unitText(F.units),x=F.p[i],m=ok?sec.means[id]:null,v=y=>Number.isFinite(y)?(F.isPa?fqu(y):fq(y)):'—';
+   return '<tr data-field="'+esc(id)+'"'+(id===activeField?' class="on"':'')+' title="按 '+esc(F.short)+' 着色"><th>'+esc(id==='wss'&&ids.length>1?FIELD_SHORT.wss:F.short)+(u?'<small>'+esc(u)+'</small>':'')+'</th><td>'+v(x)+'</td>'
+    +(ok?'<td class="pc-sec">'+v(m&&m.mean)+'</td><td>'+rangeBar(x,m,F,u)+'</td>':'')+'</tr>';}).join('');
+  const table=document.createElement('table');table.className='pc-table';
+  table.innerHTML='<thead><tr><th></th><th title="离点击处最近的预测点">此点</th>'+(ok?'<th title="截面环上逐段取最近预测点，按长度加权平均（∮f dl / 周长）">截面均值</th><th title="截面环上最小 → 最大；竖线 = 截面均值，圆点 = 此点">环上范围</th>':'')+'</tr></thead><tbody>'+rows+'</tbody>';
+  table.addEventListener('click',ev=>{let t=ev&&ev.target;while(t&&t!==table&&!(t.dataset&&t.dataset.field))t=t.parentNode;const id=t&&t.dataset&&t.dataset.field;if(id&&id!==activeField)setField(id);});
+  const foot=document.createElement('div');foot.className='pc-foot';
+  const a=document.createElement('span');a.textContent=sectionNote(sec);
+  const b=document.createElement('span');b.textContent='此点 ('+[0,1,2].map(k=>fmt(PV[3*i+k],1)).join(', ')+') mm';
+  if(ok){const lg=document.createElement('span');lg.className='pc-legend';lg.innerHTML='范围条<i class="pc-lg-mean"></i>截面均值<i class="pc-lg-pt"></i>此点';b.appendChild(lg);}
+  foot.append(a,b);card.append(head,table,foot);
+  card.setAttribute('role','group');card.setAttribute('aria-label',probeSummary(i,sec));card.hidden=false;}
+ function closeProbe(){el('probe-card').hidden=true;probeSel=-1;if(SECTION){SECTION=null;redrawOverlays();}}
+ function lockProbe(p){const i=CORE.nearestIndex(PV,new Float32Array([p[0],p[1],p[2]]),Math.max(.5,(Number((META.cloud||{}).spacing_mm)||.5)*3))[0];
+  if(!(i>=0)){closeProbe();return;}
+  probeSel=i;SECTION=sectionAtPick(p);redrawOverlays();renderProbeCard();}
  function recordProbe(){if(!(probeSel>=0))return;const i=probeSel;
   const values={wss_pa:+PW[i].toFixed(4)};for(const id of supportedFields())if(id!=='wss'){const F=fieldArrays(id);if(Number.isFinite(F.p[i]))values[FIELD_SCHEMA[id].array_key]=+F.p[i].toFixed(4);}
+  if(SECTION&&SECTION.found){for(const id of supportedFields()){const m=SECTION.means[id];if(m&&Number.isFinite(m.mean))values[sectionKey(id)]=+m.mean.toFixed(4);}
+   values.section_s_from_root_mm=+SECTION.s_from_root_mm.toFixed(2);values.section_perimeter_mm=+SECTION.wall_length_mm.toFixed(2);}
   PROBES.push({id:COMMON.newId('P',PROBES),xyz_mm:[0,1,2].map(k=>+PV[3*i+k].toFixed(3)),branch:branchName(PS[i]),segment_id:PS[i],s_from_root_mm:+P_S[i].toFixed(2),radius_mm:+P_R[i].toFixed(3),values,created_at:new Date().toISOString()});
   renderProbeLog();measStatus('已记录 '+PROBES.length+' 行探针。');}
  function renderProbeLog(){const box=el('probe-log');box.replaceChildren();
@@ -1319,6 +1380,8 @@ function initViewer(){
   const t=document.createElement('table');t.className='probe-table';
   // Extra cycle columns (M1: tawss_pa / osi) appear only when a recorded row carries them.
   const xcols=supportedFields().filter(id=>id!=='wss').map(id=>{const F=fieldArrays(id);return [FIELD_SCHEMA[id].array_key,F.short+(F.isPa?' '+ul():unitText(F.units)?' '+unitText(F.units):''),F.isPa];})
+    // §25 截面均值 columns follow the point columns, again only when a recorded row carries them.
+    .concat(supportedFields().map(id=>{const F=fieldArrays(id);return [sectionKey(id),'截面 '+(id==='wss'?'WSS':F.short)+(F.isPa?' '+ul():unitText(F.units)?' '+unitText(F.units):''),F.isPa];}))
     .filter(([k])=>PROBES.some(r=>r.values&&r.values[k]!=null));
   t.innerHTML='<thead><tr><th>编号</th><th>分支</th><th>s mm</th><th>r mm</th><th>WSS '+esc(ul())+'</th>'+xcols.map(c=>'<th>'+esc(c[1])+'</th>').join('')+'<th></th></tr></thead><tbody>'+PROBES.map(r=>`<tr><td>${esc(r.id)}</td><td>${esc(r.branch)}</td><td>${fmt(r.s_from_root_mm,1)}</td><td>${fmt(r.radius_mm,1)}</td><td>${fqu(r.values.wss_pa)}</td>${xcols.map(c=>'<td>'+(c[2]?fqu(r.values[c[0]]):fq(r.values[c[0]]))+'</td>').join('')}<td><button type="button" data-del="${esc(r.id)}">×</button></td></tr>`).join('')+'</tbody>';
   t.addEventListener('click',ev=>{const id=ev&&ev.target&&ev.target.dataset&&ev.target.dataset.del;if(!id)return;PROBES=PROBES.filter(x=>x.id!==id);renderProbeLog();});
@@ -1436,7 +1499,8 @@ function initViewer(){
  // v0.14 (F1): tell a parent page (the compare page) that the display changed, so its sync does not wait for a camera move.
  function announceChange(){if(!ANNOUNCE||announceTimer||window.parent===window)return;announceTimer=setTimeout(()=>{announceTimer=null;postToParent({type:'wss-view:changed',family:'wall',run_identity:META.run_identity||null});},120);}
  function recolor(){requestRender();announceChange();if(paintedField!==activeField)fieldChanged();const AF=fieldArrays(activeField),LGS=logScale&&AF.log!==false;vmax=scaleMode==='fixed'&&(!fixedField||fixedField===activeField)?fixedMax:Math.max(Number(AF.p99)||0,.01);el('fixed-control').hidden=scaleMode!=='fixed';el('scale-description').textContent=(activeField==='wss'?'':AF.short+' · ')+(LGS?'对数 ':'')+fq((LGS?.05:0)*af())+' – '+fq(vmax*af())+(al()?' '+al():'')+' · '+(scaleMode==='fixed'&&(!fixedField||fixedField===activeField)?(fixedShared?'并排比较共用上限':'固定色标'):'本例空间 p99')+'；超限按上限着色'+(bands?' · '+bands+' 段':'');rebuildTop();colorArray(AF.m,MS,mcol,viewMode==='wss'?'wss':'grey',0,vmax,true);const f=feature();colorArray(f.values,PS,pcol,f.mode,f.lo,f.hi,false);updateColors();el('display-readout').textContent='当前视图：'+({wss:'WSS 壁面',stl:'输入 STL',cl:'中心线',cloud:'预测点云'}[viewMode]||viewMode)+' · '+(viewMode==='wss'?(activeField==='wss'?'统计：预测点云 · 壁面：Gaussian 插值':AF.short+'（壁面着色）· 对应统计卡在「统计与口径」顶部'):f.label)+(branchSel>=0?' · 分支：'+branchName(branchSel):'')+(hl.label?' · '+hl.label:'');
-  if(viewMode==='cloud')drawBar(f.mode,f.lo,f.hi,f.label);else if(viewMode==='cl')drawBar('vir',rmin,rmax,COMMON.englishLabel('centerline_radius',LANG)+' · mm');else drawBar('wss',0,vmax,fieldTitle(LANG));placePeak();renderTrustLegend();renderLegendNote();if(contourObj)contourObj.visible=viewMode==='wss'&&showContours;drawUnroll();}
+  if(viewMode==='cloud')drawBar(f.mode,f.lo,f.hi,f.label);else if(viewMode==='cl')drawBar('vir',rmin,rmax,COMMON.englishLabel('centerline_radius',LANG)+' · mm');else drawBar('wss',0,vmax,fieldTitle(LANG));placePeak();renderTrustLegend();renderLegendNote();if(contourObj)contourObj.visible=viewMode==='wss'&&showContours;drawUnroll();
+  if(probeSel>=0&&!el('probe-card').hidden)renderProbeCard();}
  recolorActive=recolor;
  function updateColors(){mg.attributes.color.needsUpdate=true;pg.attributes.color.needsUpdate=true;}
  function visibility(){requestRender();announceChange();mesh.visible=viewMode!=='cloud';mmat.transparent=viewMode==='cl'||opacity<1;mmat.opacity=viewMode==='cl'?.18:opacity;pts.visible=viewMode==='cloud'||el('showpts').checked;cl.visible=viewMode==='cl'||el('showcl').checked;peak.visible=viewMode==='wss'&&el('showpeak').checked&&peakOK;trough.visible=viewMode==='wss'&&el('showpeak').checked&&troughOK;top.visible=(viewMode==='wss'||viewMode==='cloud')&&el('showtop').checked;if(hlPts)hlPts.visible=viewMode==='wss'||viewMode==='cloud';if(contourObj)contourObj.visible=viewMode==='wss'&&showContours;for(const item of labels)if(item.kind==='endpoint')item.obj.visible=viewMode==='cl';}
@@ -1872,7 +1936,7 @@ function initViewer(){
  // ---- A9 keyboard shortcuts (§19.9); every report document listens on its own, so each compare-page iframe works when focused ----
  function toggleLabels(){const on=normLabelCount(LBL.findings)>0||!!LBL.branches;LBL.findings=on?0:5;LBL.branches=!on;
   el('lbl-findings').value=labelSelectValue(LBL.findings);el('lbl-branches').checked=LBL.branches;redrawOverlays();setTip(on?'自动标注已关闭':'自动标注：前 5 条发现 + 分支名');}
- function probeKey(){const card=el('probe-card');if(!card.hidden){card.hidden=true;probeSel=-1;return;}if(lastHover)lockProbe(lastHover);else setTip('把鼠标移到壁面上再按 P 锁定探针');}
+ function probeKey(){const card=el('probe-card');if(!card.hidden){closeProbe();return;}if(lastHover)lockProbe(lastHover);else setTip('把鼠标移到壁面上再按 P 锁定探针');}
  const KEYS=['front','back','left','right','top','bottom'].map((name,k)=>({keys:[String(k+1)],label:VIEW_CN[name],group:'视角',when:()=>!!FRAME,run:()=>goView(name,true)}))
   .concat([{keys:['0','r'],label:'复位视角（前视撑满）',group:'视角',run:()=>resetCamera(true)}],
    supportedFields().length>1?[{keys:['f'],label:'循环字段：'+supportedFields().map(id=>fieldArrays(id).short).join(' → '),group:'显示',run:()=>cycleField()}]:[],
