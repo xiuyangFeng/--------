@@ -78,9 +78,14 @@ def self_intersections(points: np.ndarray, faces: np.ndarray) -> np.ndarray:
     return pairs[hit]
 
 
-def repair_self_intersections(points: np.ndarray, faces: np.ndarray, fixed: np.ndarray, rings: int = 2, max_iter: int = 50, max_move_mm: float = 0.5) -> tuple[np.ndarray, dict]:
+REPAIR_MAX_MOVE_MM = 0.5     # default limit; a caller may raise it for one case with a recorded reason (cfd_auto.recover)
+
+
+def repair_self_intersections(points: np.ndarray, faces: np.ndarray, fixed: np.ndarray, rings: int = 2, max_iter: int = 50, max_move_mm: float | None = None) -> tuple[np.ndarray, dict]:
     """Local Laplacian smoothing of the vertices around intersecting triangles (``rings`` neighbourhood; ``fixed`` vertices,
-    e.g. opening rims, never move) until no intersection remains. Raises if a vertex would move more than ``max_move_mm``."""
+    e.g. opening rims, never move) until no intersection remains. Raises if a vertex would move more than ``max_move_mm``
+    (default ``REPAIR_MAX_MOVE_MM``)."""
+    max_move_mm = REPAIR_MAX_MOVE_MM if max_move_mm is None else max_move_mm
     P = points.copy()
     nbr = [set() for _ in range(len(P))]
     for a, b, c in faces:

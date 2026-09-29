@@ -35,13 +35,16 @@ def meshing(workdir: Path, surface: Path, walls: list[str], all_zones: list[str]
 
 def meshing_poly(workdir: Path, surface: Path, walls: list[str], all_zones: list[str], out_mesh: Path, min_size: float, max_size: float,
                  size_growth: float = 1.2, curvature_angle: float = 18, n_layers: int = 10, first_aspect_ratio: float = 20, growth: float = 1.2,
-                 tet_volume_growth: float = 1.2) -> str:
+                 tet_volume_growth: float = 1.2, improve_skew: float | None = None) -> str:
     """Library 'P' family (ILO and the larger AAA): the wall is remeshed on a curvature size field (not the STL facets),
     10 aspect-ratio prism layers, tet fill; the solver then converts the whole domain to polyhedra (``finalize(...,
     to_poly=True)``). The library meshes are poly-hexcore (1-2 % octree hexes in the core); v231 auto-mesh has no
     poly-hexcore fill and its octree 'hexcore' fill marks all but one region dead (tried 2026-09-28), so the core is tet->poly.
-    Sizes in metres."""
+    Sizes in metres. ``improve_skew``: optional wall-face skewness improvement after the remesh (a few sliver faces on
+    LI_FA_XIANG-1/before stopped the first prism layer, which Fluent then deleted -> a mesh with no boundary layer).
+    Call template from Fluent's own scheme: ``/boundary improve improve <zones> skewness <limit> 180 5 no``."""
     zones = f"({' '.join(all_zones)})"
+    improve = [f"/boundary/improve/improve ({' '.join(walls)}) skewness {improve_skew:g} 180 5 no"] if improve_skew else []
     return _finish([
         f"/file/read-boundary-mesh {surface}",
         f"/size-functions/set-global-controls {min_size:g} {max_size:g} {size_growth:g}",
@@ -50,6 +53,7 @@ def meshing_poly(workdir: Path, surface: Path, walls: list[str], all_zones: list
         "/size-functions/compute",
         f"/boundary/remesh/remesh-face-zones-conformally {zones} () 40 20 yes",
         "/boundary/manage/delete (*-orig-*) yes",
+        *improve,
         "/boundary/manage/list",
         f"/boundary/mark-face-intersection {zones} 56",
         f"/mesh/prism/controls/zone-specific-growth/apply-growth ({' '.join(walls)}) aspect-ratio geometric {n_layers} {first_aspect_ratio:g} {growth:g} no",
@@ -59,6 +63,34 @@ def meshing_poly(workdir: Path, surface: Path, walls: list[str], all_zones: list
         f"/file/write-mesh {out_mesh}",
         "/exit yes",
     ], workdir)
+
+
+def surface_remesh(workdir: Path, surface: Path, all_zones: list[str], out_mesh: Path, min_size: float, max_size: float, size_growth: float = 1.2,
+                   curvature_angle: float = 18) -> str:
+    """The surface half of :func:`meshing_poly` only (size-field calibration of new cases; sizes in metres)."""
+    zones = f"({' '.join(all_zones)})"
+    return _finish([
+        f"/file/read-boundary-mesh {surface}",
+        f"/size-functions/set-global-controls {min_size:g} {max_size:g} {size_growth:g}",
+        f"/size-functions/create curvature face {zones} sf-curv {min_size:g} {max_size:g} {size_growth:g} {curvature_angle:g}",
+        "/size-functions/compute",
+        f"/boundary/remesh/remesh-face-zones-conformally {zones} () 40 20 yes",
+        "/boundary/manage/delete (*-orig-*) yes",
+        f"/file/write-mesh {out_mesh}",
+        "/exit yes",
+    ], workdir)
+
+
+def rename_zones(workdir: Path, case_in: Path, renames: dict[str, str], case_out: Path, zone_types: dict[str, str] | None = None) -> str:
+    """Solver: read a case, rename zones in two phases (via unique temporaries, so swaps like blood2<->blood4 cannot
+    collide), optionally change boundary types (keys = final names, e.g. outflow -> pressure-outlet), check, write."""
+    tmp = {old: f"cfdauto-tmp-{i}" for i, old in enumerate(renames)}
+    lines = [f"/file/read-case {case_in}"]
+    lines += [f"/mesh/modify-zones/zone-name {old} {tmp[old]}" for old in renames]
+    lines += [f"/mesh/modify-zones/zone-name {tmp[old]} {new}" for old, new in renames.items()]
+    lines += [f"/define/boundary-conditions/zone-type {z} {typ}" for z, typ in (zone_types or {}).items()]
+    lines += ["/mesh/modify-zones/list-zones", "/mesh/check", f"/file/write-case {case_out}", "/exit yes"]
+    return _finish(lines, workdir)
 
 
 def finalize(workdir: Path, mesh_in: Path, renames: dict[str, str], case_out: Path, to_poly: bool = False) -> str:
@@ -91,6 +123,26 @@ def smoke(workdir: Path, case: Path) -> str:
         "/mesh/check",
         "/define/boundary-conditions/list-zones",
         "/exit yes",
+    ], workdir)
+
+
+def run_gentle_start(workdir: Path, case: Path, time_step: float = 0.005, n_steps: int = 1280, max_iter: int = 20, period_s: float = 0.8, refine: int = 2) -> str:
+    """The library run with the FIRST cardiac cycle at ``time_step / refine`` (cold start from rest with uncharged
+    windkessels diverged for WANG_CAI-0/before, 2026-09-29). The fine cycle covers exactly one period, so from its end
+    the step index N has the library phase (t = N*dt - period); the step count stays ``n_steps`` so the exported frames
+    1120..1280 and the peak step 1162 keep their library phases. Cost: one cycle fewer of windkessel settling (7 vs 8)."""
+    fine = int(round(period_s / (time_step / refine)))
+    coarse = n_steps - fine
+    if coarse <= 0 or abs(fine * time_step / refine - period_s) > 1e-9:
+        raise ValueError("fine stage must be one whole period and shorter than the run")
+    return _finish([
+        f"/file/read-case {case}",
+        "/solve/initialize/initialize-flow",
+        f"/solve/set/time-step {time_step / refine:g}",
+        f"/solve/dual-time-iterate {fine} {max_iter}",
+        f"/solve/set/time-step {time_step:g}",
+        f"/solve/dual-time-iterate {coarse} {max_iter}",
+        "/exit y",
     ], workdir)
 
 

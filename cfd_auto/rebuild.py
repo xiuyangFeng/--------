@@ -70,10 +70,10 @@ def name_openings(stl: Path, tprof: dict, printed_mm2: dict[str, float]) -> tupl
     return names, {"inlet_loop": inlet, "inlet_area_mm2": round(info[inlet]["area_mm2"], 2), "assignment": rows, "cost": round(float(best_cost), 4)}
 
 
-def lost_case_profile(case_dir: Path, tprof: dict, names: dict[int, tuple[str, str]], udf_path: Path) -> dict:
+def lost_case_profile(case_dir: Path, tprof: dict, names: dict[int, tuple[str, str]], udf_path: Path, stl: Path | None = None) -> dict:
     """A reference_profile-like dict for the lost case: openings from the STL, extension naming from the template."""
-    pts, tri = surface.read_stl(sorted(case_dir.glob("*.stl"))[0])
-    surf, _ = surface.close_surface(sorted(case_dir.glob("*.stl"))[0], names)
+    stl = stl or sorted(case_dir.glob("*.stl"))[0]
+    surf, _ = surface.close_surface(stl, names)
     t_ext = {e["opening"]: e for e in tprof["extensions"]}
     openings, extensions = [], []
     for c in surf.caps:

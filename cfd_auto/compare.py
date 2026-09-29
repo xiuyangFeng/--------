@@ -38,7 +38,7 @@ GATES = {
 
 def read_export(path: Path) -> tuple[list[str], np.ndarray]:
     with open(path) as fh:
-        header = [h.strip() for h in fh.readline().split(",")]
+        header = [h for h in re.split(r"[,\s]+", fh.readline().strip()) if h]     # 4 AG cases: space-separated header too
         sep = "," if "," in fh.readline() else None      # 4 library cases export space-separated
     return header, np.loadtxt(path, skiprows=1, delimiter=sep)
 
@@ -233,7 +233,18 @@ def compare(ref_dir: Path, new_dir: Path, criteria: str = "v2", ref_log: Path | 
             if m.sum() > 10:
                 res["by_distance_to_opening_mm"][f"{lo}-{hi if hi < 1e9 else 'inf'}"] = {"nodes": int(m.sum()), "wss_r2": r2(ws_r[m], ws_n[m]),
                                                                                         "wss_mean_rel": float(ws_n[m].mean() / ws_r[m].mean() - 1)}
-    ur, un = udf_prints(ref_log or solver_log(ref_dir)), udf_prints(solver_log(new_dir))
+    try:
+        ref_transcript = ref_log or solver_log(ref_dir)
+    except FileNotFoundError as exc:     # only the wall exports survive (e.g. LI_FA_XIANG-1/before): no flow/pressure reference
+        ref_transcript = None; res["P6_flow_share_abs_max"] = res["P6_outlet_pressure_rel_max"] = None; res["P6_skipped"] = str(exc)
+    if ref_transcript is not None:
+        _flow_pressure(res, udf_prints(ref_transcript), udf_prints(solver_log(new_dir)))
+    _cycle(res, ref_dir, new_dir, ref_xyz, new_xyz, col, to_ref, w)
+    _volume(res, ref_dir, new_dir, volume)
+    return _verdict(res, criteria)
+
+
+def _flow_pressure(res: dict, ur: dict, un: dict) -> None:
     common = sorted(set(ur) & set(un))
     last = [s for s in common if s > common[-1] - 160]
     def share(u):
@@ -247,6 +258,9 @@ def compare(ref_dir: Path, new_dir: Path, criteria: str = "v2", ref_log: Path | 
     pr = {o: ur[PEAK_STEP][f"P_ave_{o}"] for o in OUTLETS}; pn = {o: un[PEAK_STEP][f"P_ave_{o}"] for o in OUTLETS}
     res["outlet_pressure_peak_pa"] = {o: [pr[o], pn[o]] for o in OUTLETS}
     res["P6_outlet_pressure_rel_max"] = float(max((abs(pn[o] / pr[o] - 1) for o in OUTLETS)))
+
+
+def _cycle(res: dict, ref_dir: Path, new_dir: Path, ref_xyz, new_xyz, col: dict, to_ref, w) -> None:
     # cycle: per-frame R2, TAWSS, OSI (frames re-ordered to the peak-frame rows by coordinates)
     cols = [col["wall-shear"], col["x-wall-shear"], col["y-wall-shear"], col["z-wall-shear"]]
     Fr, Fn, tr_ref, tr_new = [], [], cKDTree(ref_xyz), cKDTree(new_xyz)
@@ -264,6 +278,9 @@ def compare(ref_dir: Path, new_dir: Path, criteria: str = "v2", ref_log: Path | 
     res["secondary"] = {"per_frame_wss_r2_min_median": [float(np.min(per_frame)), float(np.median(per_frame))],
                         "tawss_r2": r2(tawss_r, tawss_n), "tawss_mean_rel": float(np.average(tawss_n, weights=w) / np.average(tawss_r, weights=w) - 1),
                         "osi_r2": r2(osi_r, osi_n), "osi_mae": float(np.mean(np.abs(osi_n - osi_r))), "osi_mean": [float(osi_r.mean()), float(osi_n.mean())]}
+
+
+def _volume(res: dict, ref_dir: Path, new_dir: Path, volume: bool) -> None:
     if volume:
         try:
             vh, vr = read_export(frame_file(ref_dir, "ascii_in", PEAK_STEP)); _, vn = read_export(frame_file(new_dir, "ascii_in", PEAK_STEP))
@@ -275,12 +292,19 @@ def compare(ref_dir: Path, new_dir: Path, criteria: str = "v2", ref_log: Path | 
             res["secondary"]["volume_match_distance_mm_p50_p99"] = (np.percentile(dv, [50, 99]) * 1e3).round(3).tolist()
         except FileNotFoundError as exc:
             res["secondary"]["volume"] = f"skipped: {exc}"
+
+
+def _verdict(res: dict, criteria: str) -> dict:
+    """Gates with no reference value (P6 without the original transcript) are reported as skipped, not passed."""
     verdict = {}
     for key, (op, thr) in GATES[criteria].items():
         v = res[key]
+        if v is None:
+            verdict[key] = {"value": None, "threshold": f"{op} {thr}", "pass": None, "skipped": True}; continue
         verdict[key] = {"value": v, "threshold": f"{op} {thr}", "pass": bool(v >= thr if op == ">=" else v <= thr if op == "<=" else abs(v) <= thr)}
     res["gates"] = verdict
-    res["all_pass"] = all(g["pass"] for g in verdict.values())
+    res["all_pass"] = all(g["pass"] for g in verdict.values() if not g.get("skipped"))
+    res["gates_skipped"] = [k for k, g in verdict.items() if g.get("skipped")]
     return res
 
 
@@ -293,7 +317,7 @@ def main() -> None:
     res = compare(a.ref_dir, a.new_dir, a.criteria, a.ref_log, a.ref_case, not a.no_volume, a.wall_zone, not a.no_ref_case)
     (a.out or a.new_dir / "comparison.json").write_text(json.dumps(res, indent=1))
     for k, g in res["gates"].items():
-        print(f"{k:28s} {g['value']:+.4f}  {g['threshold']:10s} {'PASS' if g['pass'] else 'FAIL'}")
+        print(f"{k:28s} " + ("  (no reference)  skipped" if g.get("skipped") else f"{g['value']:+.4f}  {g['threshold']:10s} {'PASS' if g['pass'] else 'FAIL'}"))
     print("ALL PASS" if res["all_pass"] else "NOT ALL PASS")
 
 

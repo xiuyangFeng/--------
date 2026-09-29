@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -60,8 +61,16 @@ def wait(job_id: str, poll_s: float = 5.0, timeout_s: float = 7200) -> str:
         time.sleep(poll_s)
     else:
         raise TimeoutError(f"job {job_id} still queued after {timeout_s} s")
-    st = subprocess.run(["sacct", "-j", job_id, "-n", "-X", "-o", "State"], capture_output=True, text=True, env=_env()).stdout.split()
-    return st[0] if st else "UNKNOWN"
+    # the accounting record can lag the queue by tens of seconds (seen from compute nodes, 2026-09-29): retry, then ask
+    # the controller, which keeps finished jobs for a few minutes
+    for _ in range(12):
+        st = subprocess.run(["sacct", "-j", job_id, "-n", "-X", "-o", "State"], capture_output=True, text=True, env=_env()).stdout.split()
+        if st and st[0] not in ("RUNNING", "PENDING", "COMPLETING"):
+            return st[0]
+        time.sleep(5)
+    sc = subprocess.run(["scontrol", "show", "job", job_id], capture_output=True, text=True, env=_env()).stdout
+    m = re.search(r"JobState=(\w+)", sc)
+    return m.group(1) if m else "UNKNOWN"
 
 
 def run(workdir: Path, journal: Path, mode: str = "solver", ntasks: int = 4, time_limit: str = "01:00:00") -> Path:

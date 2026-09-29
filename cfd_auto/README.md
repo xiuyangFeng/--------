@@ -17,6 +17,13 @@ python -m cfd_auto.pipeline "ILO/GUO_YU_SHU-0/before" --work-root <dir> \
 python -m cfd_auto.rebuild AAA/ruputer/YANG_BAO_KUI --template AAA/ruputer/YU_TIAN_HAI \
     --original-log Global_conditions/Fluent_14165.out --work-root <dir> --mesh-params '{...}'
 
+# library units outside v5.2 recovered with a fresh protocol CFD (plan file: template, mode own-mesh | stl, naming, density ref)
+python -m cfd_auto.recover ILO/LI_JIE-1/before --plan <dir>/plan.json --work-root <dir>/units --cores 92 --submit
+
+# numerical checks of a finished run without an original solution (flow ratio, L/R and Murray split, outlet pressure,
+# periodicity, solver, exports) -> <work>/sanity.json
+python -m cfd_auto.sanity <work dir>
+
 # pre-registered comparison against the library (criteria v2)
 python -m cfd_auto.compare data_new/<case> <work-root>/<case> --criteria v2 [--ref-log ...] [--no-ref-case] [--no-volume]
 
@@ -41,7 +48,9 @@ python -m pytest -q cfd_auto/tests
 `refcase.py` (library profile, path-rewritten copy) · `udf.py` (UDF render / byte-preserving IO / RCR protocol) ·
 `settings_diff.py` (case-settings comparison) · `meshcheck.py` (mesh statistics, gate, surface-mesh reader) ·
 `slurm.py` (Fluent batch jobs) · `guard.py` (library read-only guard) · `compare.py` (label comparison) ·
-`rebuild.py` (lost-case rebuild).
+`rebuild.py` (lost-case rebuild) · `recover.py` (protocol recovery of units: own mesh renamed to a template, or STL
+rebuild with calibrated surface density; opening naming by partner centres / rigid registration / deployment proposal) ·
+`sanity.py` (after-run numerical checks, gates calibrated on YU/GUO/YANG).
 
 ## Requirements and rules
 
@@ -50,5 +59,9 @@ python -m pytest -q cfd_auto/tests
 - The library (`data/`, `data_new/`) is read-only: Fluent only ever reads copies in the work directory (reading a library
   `.cas` makes Fluent auto-compile libudf inside the library directory); `guard.check_journal` refuses library paths.
 - Known limits: v231 classic TUI has no poly / poly-hexcore fill, so poly-family cases are rebuilt as tet/prism at matched
-  dual resolution; poly-family surface sizes must be calibrated per case; `udf.protocol_rcr` differs 1–7 % from library UDFs
-  and is not used yet; brand-new cases still need automatic opening naming.
+  dual resolution; poly-family surface sizes must be calibrated per case (`recover.calibrate` does it against a target
+  dual wall-face density). `udf.protocol_rcr` on the mesh cut-face areas reproduces AAA/ILO library UDFs to 0.01–0.03 %
+  (AG uses a per-case total inflow). Cold start at 0.005 s diverged once on a 5.9 mm² outlet (WANG_CAI-0/before):
+  `journals.run_gentle_start` runs the first cycle at half step and keeps the library phase of steps 1120–1280.
+- After editing code or a plan, wait ≥ 60 s before submitting: compute nodes can read the previous version (NFS caching,
+  node06 clock ~3 min behind).

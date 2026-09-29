@@ -35,8 +35,8 @@ def _dump(path: Path, obj) -> None:
     path.write_text(json.dumps(obj, indent=1, default=lambda o: o.tolist() if isinstance(o, np.ndarray) else str(o)))
 
 
-def stage_surface(case_dir: Path, work: Path, prof: dict) -> dict:
-    stl = sorted(case_dir.glob("*.stl"))
+def stage_surface(case_dir: Path, work: Path, prof: dict, stl_path: Path | None = None) -> dict:
+    stl = [Path(stl_path)] if stl_path is not None else sorted(case_dir.glob("*.stl"))
     if len(stl) != 1:
         raise FileNotFoundError(f"{case_dir}: expected one STL, found {[p.name for p in stl]}")
     pts, wall = surface.read_stl(stl[0])
@@ -170,9 +170,10 @@ def stage_smoke(work: Path, final: Path) -> None:
         raise RuntimeError(f"smoke: UDF hooks loaded {hooks}")
 
 
-def stage_run_files(case_dir: Path, work: Path, final: Path, cores: int) -> None:
+def stage_run_files(case_dir: Path, work: Path, final: Path, cores: int, slurm_from: Path | None = None) -> None:
+    """``slurm_from``: library unit whose fluent.slurm is adapted (default ``case_dir``)."""
     (work / "2.jou").write_text(journals.run(work, final))
-    lib = (case_dir / "fluent.slurm").read_text()
+    lib = ((slurm_from or case_dir) / "fluent.slurm").read_text()
     s = re.sub(r"^#SBATCH -w .*\n", "", lib, flags=re.M)
     s = re.sub(r"^#SBATCH --ntasks-per-node=.*$", f"#SBATCH --ntasks-per-node={cores}\n#SBATCH --exclude={slurm.EXCLUDE}", s, flags=re.M)
     s = re.sub(r"^#SBATCH --job-name=.*$", "#SBATCH --job-name=Fluent_cfdauto", s, flags=re.M)
