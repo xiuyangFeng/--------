@@ -1,4 +1,4 @@
-# wss_deploy — 从 STL 到 WSS / TAWSS / OSI / RRT / ECAP、压力与速度体场（v0.15，2026-09-26）
+# wss_deploy — 从 STL 到 WSS / TAWSS / OSI / RRT / ECAP、压力与速度体场（v0.16，2026-09-30）
 
 只做推理。链路：`ingest`（单位/拓扑检查）→ `centerline`（vessel_geom/VMTK 子进程 + 出口自动命名 + 人工确认）→ `geometry`（1 mm Taubin 平滑 → 0.5 mm 重采样 → 27 维特征，全部来自冻结特征库 `wss_features/`）→ `infer`（可替换的发布包，按模型族适配器 `families.py` 推理与集成）→ `metrics` + `report`（summary.json / run_manifest.json / report.html / wall_wss.vtp / points_wss.csv / field.npz）。
 
@@ -55,10 +55,31 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 | `timeline.py` | 患者随访时间线（按输入几何合并扫描、年增长率） | `GET /api/patients/<id>/timeline` |
 | `report_freshness.py` | 报告模板指纹与按需 UI-only 刷新 | 打开报告时自动；`cli reports refresh` |
 | `report_template.py` | 机构报告模板 `report_template.json` | 一页纸页眉 / 签字栏 / 术语范围 |
+| `v2_data.py` / `v2_offline.py` | 新工作区的数据清单与数组接口（从 report.html 内嵌数据读，逐字节同旧查看器）、单文件离线报告打包 | `/api/v2/*`，合同 `WORKSPACE_V2_CONTRACT.md` |
+| `v2_examples.py` | 在服务机上生成示例 STL（去文件头病例名）与示例离线报告（隐藏病例名） | 两个文件不入库 |
+| `model_cards.py` + `model_cards/` | 每个发布包一张模型说明卡（验证数字、协议假设、薄弱处、暂定色标窗） | 不改发布包指纹 |
+| `static/v2/` | 新工作区 `/v2/`：查看器内核（`core_*`、`adapter_*`）+ 工作区（`ws_*`）+ 帮助页 | 加载顺序 `bundle.json` |
 | `devshot.py` | 无头 Firefox 截图、页面 JS 错误收集、沙箱服务、标准页面套件 | 开发自查用，不参与服务 |
 | `server.py` / `jobs.py` | 本地优先 HTTP 服务：上传 → 输入确认 → 三维出口确认 → B 段 → 报告；状态机、事件、取消、重试和重启恢复 | 默认回环；共享需 token；任务落盘 `outputs/wss_deploy_jobs/<job>/job.json` |
 
 验收与计时：`training_wss_min/experiments/wss_deploy_timing_20260917/`（分段计时、指标演示、`acceptance_test34/` 34 例回归）。设计与讨论：`docs/02-推进与变更/05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md`。
+
+## v0.16（2026-09-30）：新工作区 `/v2/` 与内容口径（分支 `wss-ui-v2`，待验收）
+
+- **新工作区 `/v2/`**（旧工作台 `/` 与旧报告照常可用）：
+  - 病例栏 → 视口 → 检查器一页看完；首屏带场的血管 + 解剖分区表 + 左右对比。
+  - 证据透镜：点一个数，看到值、口径、支撑和留出集一致性。
+  - 按问题打开、书签（本机保存，可导入导出，可带进离线报告）。
+  - 比较前核对条件、双视口、沿血管游标（单支，读分析层 2 mm 分箱）、命名色标窗（暂定）、方位标（推断方向标明）。
+  - 基本 / 完整两档；出口确认进主视口；失败页三维标出每个开口；按用途导出；单文件离线报告（`file://` 可开）。
+  - 还没迁移的工具给「在经典报告中打开」。
+- **内容口径（C 线，分析版本 2026-09-30）**：
+  - 直径一律称管腔；无瘤句加「不能据此排除动脉瘤」。
+  - 三头结果先写 TAWSS / OSI；热点句写明是本例 p99 以上。
+  - 解剖分区统计 `zones`；全场最大值并入高值簇；面积型簇小于 1 cm² 不列；高值按队列 P90 定级（无参照标「提示」）。
+  - 模型说明卡；一页纸加来源档、模型验证表、标准血流与管腔两条局限；显示名 `display_name`；集成质量显示为「多模型一致（一致不代表准确）」（数据不变）。
+- **帮助页**：输入说明、一页操作卡、报错对照表（`/static/v2/help_*.html`），示例 STL 由 `python -m wss_deploy.v2_examples` 在服务机生成。
+- **验收**：877 测试通过；黄金回归 6/6（数值逐位不变）；旧页面截图 11 页 0 JS 错误。验收说明见 `docs/02-推进与变更/05-部署工具/前端重构_验收说明_2026-09-30.md`。
 
 ## v0.15.12（2026-09-29）：补全截面外沿变薄、颜色均匀
 
