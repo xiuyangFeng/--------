@@ -45,9 +45,13 @@ def test_wall_narrative_states_shape_wss_and_the_population_percentile():
     assert out["edited"] is None and out["edited_by"] is None and out["edited_at"] is None
     zh = out["zh"]
     assert len(zh) == 4 and zh[-1] == N.DISCLAIMER_ZH and out["en"][-1] == N.DISCLAIMER_EN
-    assert zh[0] == ("主动脉最大直径 63.4 mm（截面最大 Feret 直径），位于入口下 120.0 mm；"
+    # C1 (2026-09-30): lumen diameter wording; C2: the hotspot sentence states its real definition (≥ the case p99).
+    assert zh[0] == ("主动脉管腔最大直径 63.4 mm（截面最大 Feret 直径，不含附壁血栓与管壁），位于入口下 120.0 mm；"
                      "瘤体长 85.0 mm；体积约 96 mL；近端瘤颈长 80.0 mm、平均直径 19.1 mm。")
-    assert zh[1] == "低 WSS（< 0.4 Pa）区占壁面 34%，主要位于主动脉；高 WSS（> 4 Pa）热点 2 处，最高 21.9 Pa 位于左髂内。"
+    assert zh[1] == "低 WSS（< 0.4 Pa）区占壁面 34%，主要位于主动脉；峰值 WSS 最高的区域（不低于本例 p99，16.6 Pa）2 处，最高 21.9 Pa 位于左髂内。"
+    assert out["en"][0].startswith("Largest aortic lumen diameter 63.4 mm (maximum Feret diameter of the cross-section, "
+                                   "excluding mural thrombus and the wall)")
+    assert "2 region(s) of highest peak WSS (at or above this case's p99, 16.6 Pa)" in out["en"][1]
     assert zh[2] == "壁面 WSS 空间 p99 为 16.6 Pa，处于 136 例参照人群第 32 百分位。"
     assert "63.4 mm" in out["en"][0] and "left internal iliac" in out["en"][1]
     assert "at the 32nd percentile of the 136-case reference cohort" in out["en"][2]
@@ -73,7 +77,10 @@ def test_narrative_states_only_what_exists():
     no_sac["morphology"]["aorta"]["neck"] = {"present": False}
     del no_sac["reference_assessment"]
     out = N.build_narrative(no_sac)
-    assert out["zh"][0] == "主动脉最大直径 63.4 mm（截面最大 Feret 直径），位于入口下 120.0 mm，未见瘤样扩张（< 1.5 × 参考直径 18.2 mm）。"
+    assert out["zh"][0] == ("主动脉管腔最大直径 63.4 mm（截面最大 Feret 直径，不含附壁血栓与管壁），位于入口下 120.0 mm，"
+                            "管腔未见瘤样扩张（< 1.5 × 参考直径 18.2 mm），不能据此排除动脉瘤。")
+    assert out["en"][0].endswith("; no aneurysmal dilatation of the lumen (< 1.5 × the reference diameter of 18.2 mm); "
+                                 "an aneurysm cannot be excluded on this basis.")
     assert out["zh"][2] == "壁面 WSS 空间 p99 为 16.6 Pa。"   # no cohort clause without a percentile
 
 
@@ -84,8 +91,8 @@ def test_merge_edit_and_display_text():
     assert N.display_text(edited) == "审阅人重写"
     restored = N.merge_edit(auto, "")
     assert restored["edited"] is None and restored["edited_by"] is None and restored["edited_at"] is None
-    assert N.display_text(restored).startswith("主动脉最大直径")
-    assert N.display_text(restored, "en").startswith("Largest aorta diameter")
+    assert N.display_text(restored).startswith("主动脉管腔最大直径")
+    assert N.display_text(restored, "en").startswith("Largest aortic lumen diameter")
     assert N.display_text(None) == ""
 
 

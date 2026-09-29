@@ -1,0 +1,118 @@
+{
+ "schema_version": "wss-deploy.model-card/v1",
+ "release_id": "X5D_v51_5seed_20260916",
+ "display_name": "峰值 WSS",
+ "short_name": "峰值 WSS",
+ "version_date": "2026-09-17",
+ "purpose": "预测收缩期峰值时刻（周期内 0.21 s）的壁面切应力 WSS",
+ "training": {
+  "n_train": 136,
+  "n_holdout": 34,
+  "n_total": 170,
+  "cohorts": [
+   "AAA",
+   "AG",
+   "ILO"
+  ],
+  "centers": null,
+  "note": "release.json data：v5.1 共 170 例（训练 136 / 留出 34），其中 26 例按更正后的出口面积重算 RCR，剔除 2 例重复病例；三个队列名取自 metrics/x5d_v51_five_seed_test34.json 的 test34_cohort。中心数 release.json 未记录，写 null。"
+ },
+ "protocol": [
+  "所有病例用同一条入口流量波形（协议平均 30.38 mL/s，约 1.8 L/min；周期 0.8 s），不是该患者实测。预测的是这副几何在标准血流下的 WSS；心输出量、心率不同时绝对值会变。",
+  "预测对象是收缩期峰值单帧（Fluent step 1162，周期内 0.21 s），不是全周期。",
+  "四个出口为 RCR 边界：左右各半，同侧按出口口径的 Murray 规律分配，不是患者实测。",
+  "血液黏度按 Carreau 非牛顿模型，密度 1060 kg/m³。",
+  "壁面是否按刚性处理：待核对。"
+ ],
+ "protocol_sources": {
+  "inlet_mean_flow": "cfd_auto/sanity.py PROTOCOL_Q_M3S = 30.38e-6 m³/s（该文件同时记录库内求解的末周期平均出流约为协议值的 1.103 倍，来自截断波形）",
+  "period": "cfd_auto/journals.py period_s = 0.8；release.json target「0.8 s cycle」",
+  "peak_frame": "release.json target：step 1162 = 0.21 s into the 0.8 s cycle",
+  "outlets": "cfd_auto/sanity.py 文档：left share (protocol 50/50)，within-side shares vs the Murray d^3 split",
+  "blood": "cfd_auto/__init__.py 与 udf.py：Carreau viscosity（照抄库内参考 UDF）；密度 RHO = 1060.0（cfd_auto/sanity.py、preflight.py）",
+  "wall": "未在 cfd_auto 或发布包中找到明确记录，待核对"
+ },
+ "validation": {
+  "holdout_n": 34,
+  "r2_note": "R² 为 1 表示与 CFD 完全一致；按 Pa 口径、把 34 例留出病例的全部壁面节点合并计算。",
+  "fields": {
+   "wss": {
+    "r2_pa": 0.7749,
+    "r2_case_mean": 0.7906,
+    "r2_case_p10": 0.68,
+    "cv3_oof_r2_pa": 0.71,
+    "cv3_n": 136,
+    "top10_pred_over_cfd": 0.75,
+    "extra": "逐例均值 0.79；三折交叉验证折外 0.71",
+    "summary": "R² 0.77（逐例均值 0.79）；三折交叉验证折外 0.71",
+    "source": "release.json metrics.test34_pa_r2_cb_ensemble、metrics.cv3_v51_out_of_fold_pooled；metrics/x5d_v51_five_seed_test34.json values.test34_summary.case_r2_mean / case_r2_p10 / calibration_pooled.top10_pred_true_ratio、values.cv3_summary.n"
+   },
+   "max_diameter": {
+    "summary": "几何测量，不经过模型",
+    "source": "输入表面截面测量"
+   }
+  },
+  "expected_new_case_range": "0.71–0.77",
+  "source": "release.json 的 metrics 块（test34 留出集五模型集成；cv3 折外合并）与 metrics/x5d_v51_five_seed_test34.json"
+ },
+ "field_labels": {
+  "max_diameter": "管腔最大直径、瘤体体积",
+  "wss": "峰值 WSS"
+ },
+ "field_tiers": {
+  "wss": "model",
+  "max_diameter": "geometry",
+  "sac_volume": "geometry",
+  "lumen_volume": "geometry"
+ },
+ "usage": {
+  "max_diameter": "可以直接引用，注意是管腔（不含附壁血栓与管壁）",
+  "wss": "高低分布可信，绝对值有误差；最高值一侧整体偏低"
+ },
+ "usage_note": "「怎么用」一栏的措辞待导师或医生过目。",
+ "weaknesses": [
+  "最高 10% 的高值整体偏低：留出集上这部分预测均值约为 CFD 的 0.75。",
+  "三折交叉验证折外 R² 0.71，低于留出集的 0.77；新病例预期在 0.71–0.77 之间。",
+  "ILO（髂支闭塞）队列的折外 R² 0.62，低于 AAA 0.74 与 AG 0.76。",
+  "全场单点最大值对噪声敏感，只作参考；空间 p99 是主指标。",
+  "小口径髂支的高值容易被低估（09-21 最差病例分析，定性结论）。"
+ ],
+ "weakness_sources": [
+  "metrics/x5d_v51_five_seed_test34.json values.test34_summary.calibration_pooled.top10_pred_true_ratio = 0.750",
+  "release.json metrics.cv3_v51_out_of_fold_pooled = 0.71、metrics.test34_pa_r2_cb_ensemble = 0.7749、metrics.expected_new_case_range",
+  "metrics/x5d_v51_five_seed_test34.json values.cv3_cohort = {AAA 0.742, AG 0.756, ILO 0.624}",
+  "wss_deploy/analysis.py max_wss 定义",
+  "docs 最差病例分析（2026-09-21），无单独数字"
+ ],
+ "not_applicable": [
+  "开口数不是 5 的输入（入口 + 四个髂支出口；三出口不支持）",
+  "腹主—髂动脉以外的血管",
+  "含附壁血栓或管壁的外轮廓（输入必须是管腔面）",
+  "髂支切口位置与 CFD 协议相差超过 ±5 mm",
+  "表面不是单个连通流形（除五个开口外应处处封闭）"
+ ],
+ "display_windows": {
+  "wss": [
+   {
+    "id": "low",
+    "label": "低值窗",
+    "range": [
+     0,
+     1
+    ],
+    "provisional": true
+   },
+   {
+    "id": "standard",
+    "label": "常规窗",
+    "range": [
+     0,
+     10
+    ],
+    "provisional": true
+   }
+  ]
+ },
+ "population_reference": "有：train136 三折交叉验证折外预测的空间 p99（136 例，reference.json population_reference）",
+ "caveat": "研究用途，不是诊断"
+}

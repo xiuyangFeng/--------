@@ -82,11 +82,13 @@ def test_redact_paths_strips_project_root_and_home_everywhere():
     assert meta["source_runs"][0]["path"] == "<project>/training_wss_min/runs/x/M1_s7"
     assert str(PROJECT_ROOT) not in repr(meta)
     # the analysis version moved so every finished job is rebuilt (and cleaned) by the next service upgrade
-    assert ANALYSIS_VERSION == "2026-09-26" and needs_rebuild({"analysis_version": "2026-09-24"}) and not needs_rebuild({"analysis_version": ANALYSIS_VERSION})
+    # 2026-09-30 (C line) bumped the analysis version; every older summary, including 2026-09-26, is rebuilt.
+    assert ANALYSIS_VERSION == "2026-09-30" and needs_rebuild({"analysis_version": "2026-09-26"}) and not needs_rebuild({"analysis_version": ANALYSIS_VERSION})
 
 
 def test_pre_v014_summaries_with_server_paths_are_queued_for_rebuild():
     from wss_deploy.paths import PROJECT_ROOT
+    from wss_deploy.schema import ANALYSIS_VERSION
     from wss_deploy.service import needs_rebuild
     old = {"peak": {}, "model_release": {"source_runs": [{"path": str(PROJECT_ROOT / "training_wss_min/runs/x")}]}}
     assert needs_rebuild(old) is True                                   # no analysis_version + absolute path
@@ -94,4 +96,4 @@ def test_pre_v014_summaries_with_server_paths_are_queued_for_rebuild():
     assert needs_rebuild(clean) is False                                # no analysis_version, already redacted, no cycle probe
     legacy = {"peak": {}, "input_check": {"clean_stl": str(PROJECT_ROOT / "outputs/wss_deploy_jobs/j/input_clean_mm.stl")}}
     assert needs_rebuild(legacy) is True                                # v0.3-era record: the input paths qualify too
-    assert needs_rebuild({"analysis_version": "2026-09-26", "model_release": old["model_release"]}) is False   # version wins
+    assert needs_rebuild({"analysis_version": ANALYSIS_VERSION, "model_release": old["model_release"]}) is False   # version wins

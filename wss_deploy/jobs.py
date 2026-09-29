@@ -881,9 +881,12 @@ class JobManager:
     def _labels(job: dict) -> dict:
         """Display labels the workbench shows as-is (§19.2): family text, short release name, cycle flag."""
         from .timeline import family_label
+        from .schema import display_name
         summary = job.get("summary") if isinstance(job.get("summary"), dict) else {}
+        # C7 (2026-09-30): the patient id when one was entered, else the case id (which may be a file-name person name).
         return {"family_label": family_label(job), "release_short": release_short(job.get("model_release")),
-                "has_cycle": bool(summary.get("cycle"))}
+                "has_cycle": bool(summary.get("cycle")),
+                "display_name": display_name(job.get("case_id"), job.get("patient_id"))}
 
     def releases(self) -> list[dict]:
         if self.registry is None:
@@ -1135,6 +1138,12 @@ class JobManager:
             job = self._sidecar_target(job_id, owner, payload, "编辑发现判定")
             document = {"schema_version": "wss-deploy.findings_review/v1", "items": items, "added": added,
                         "updated_at": _date(time.time()), "updated_by": owner}
+            # 2026-09-30: decisions kept as 「规则更新前的判定」 after a findings-rule change (rebuild_report
+            # remap) are not part of the editor payload; carry them over so a later save does not drop them.
+            previous = job.get("findings_review") if isinstance(job.get("findings_review"), dict) else {}
+            for key in ("legacy", "remap"):
+                if previous.get(key):
+                    document[key] = previous[key]
             job["findings_review"] = document
 
             def apply(meta: dict) -> None:
@@ -1294,13 +1303,17 @@ class JobManager:
                              if key in payload and (metadata | {"case_id": case_id})[key] != job.get(key))
             job.update(metadata)
             job["case_id"] = case_id
+            from .schema import display_name
+            shown = display_name(case_id, metadata.get("patient_id"))     # C7: keep summary.display_name in step
             if isinstance(job.get("summary"), dict):
                 job["summary"]["case_metadata"] = dict(metadata)
                 job["summary"]["case_id"] = case_id
+                job["summary"]["display_name"] = shown
 
             def apply(meta: dict) -> None:
                 meta["case_metadata"] = dict(metadata)
                 meta["case_id"] = case_id
+                meta["display_name"] = shown
             self._event(job, "metadata_updated", actor=owner, changed=changed)
             self._persist_summary(self.root / job_id, apply, what="case_metadata")
             return self._snapshot(job)

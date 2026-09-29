@@ -30,7 +30,13 @@ FIELD_SCHEMA_VERSION = "wss-deploy.field/v1"
 # v0.14 (J9): version of the post-inference analysis (findings, derived indices, morphology, narrative) a
 # summary was written with.  Bump it whenever that analysis changes; ``service upgrade`` then rebuilds every
 # finished job whose ``summary.analysis_version`` is older (records without the field use the key probes).
-ANALYSIS_VERSION = "2026-09-26"   # v0.15.1: model_release provenance paths are redacted (<project> / ~)
+# 2026-09-26 (v0.15.1): model_release provenance paths are redacted (<project> / ~).
+# 2026-09-30 (C line, WORKSPACE_V2_CONTRACT.md §5): new ``zones`` block (U10 anatomical zones, wall family);
+#   findings listing rules — the global maximum joins its high-WSS cluster, area-type clusters under 1 cm² are
+#   not listed, high-WSS items graded against the cohort p90 instead of 7 Pa (U11/U12), reviewer decisions
+#   re-matched by kind + position; narrative/one-page wording (lumen diameter, three-head order, hotspot
+#   definition); summary ``display_name``.  No prediction, field.npz or golden-regression block changes.
+ANALYSIS_VERSION = "2026-09-30"
 PACKAGE_DIR = Path(__file__).resolve().parent
 TRAINING_PACKAGE = "training_wss_min"
 _PROVENANCE_TTL_S = 60.0
@@ -375,6 +381,23 @@ def code_provenance(*, refresh: bool = False) -> dict[str, Any]:
         return dict(value)
 
 
+def display_name(case_id: Any, patient_id: Any = None) -> str:
+    """C7 (2026-09-30): the name a result is shown under — the patient id when one was entered, else the case id.
+
+    The case id comes from the upload's file name and may be a person's name; a patient id is what the
+    operator typed on purpose.  Empty / non-text values fall through; never raises."""
+    for value in (patient_id, case_id):
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
+def summary_display_name(meta: Mapping[str, Any]) -> str:
+    """``display_name`` of a summary: ``case_metadata.patient_id`` when non-empty, else ``case_id``."""
+    metadata = meta.get("case_metadata") if isinstance(meta.get("case_metadata"), Mapping) else {}
+    return display_name(meta.get("case_id"), metadata.get("patient_id"))
+
+
 def summary_provenance() -> dict[str, Any]:
     """Keys a stage-B summary should carry (v0.14): analysis version, deployment version and whether the
     working tree was dirty.  ``pipeline`` / ``volume_pipeline`` / ``rebuild_report`` merge this into ``meta``."""
@@ -459,7 +482,8 @@ def write_run_manifest(job_dir: Path, meta: Mapping[str, Any], *, outputs: Seque
     return manifest
 
 
-__all__ = ["SCHEMA_VERSION", "RESULT_SCHEMA_VERSION", "FIELD_SCHEMA_VERSION", "ANALYSIS_VERSION", "code_provenance",
+__all__ = ["SCHEMA_VERSION", "RESULT_SCHEMA_VERSION", "FIELD_SCHEMA_VERSION", "ANALYSIS_VERSION", "code_provenance", "display_name",
+           "summary_display_name",
            "code_source_files", "code_source_hash", "summary_provenance", "training_modules", "stable_run_identity", "model_release_metadata",
            "single_frame_time_axis", "field_descriptor", "wss_compatibility",
            "build_results", "build_run_manifest", "write_run_manifest"]

@@ -24,6 +24,7 @@ three contracts must match the current result; CFD distributions are rejected.
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Mapping
 from typing import Any
 
@@ -243,7 +244,10 @@ def evaluate_population(meta: Mapping, release_info: Mapping) -> dict:
                   reference_count=len(values), value_pa=value,
                   rank_method="100 * (count_below + 0.5 * count_equal) / reference_count",
                   reference_set=profile["reference_set"], source=profile["source"],
-                  reference_median_pa=float(sorted(values)[len(values) // 2]))
+                  reference_median_pa=float(sorted(values)[len(values) // 2]),
+                  # 2026-09-30 (U11): the cohort's 90th percentile grades the high-WSS findings; same
+                  # linear quantile rule as the statistic itself (statistics_protocol.quantile_method).
+                  reference_p90_pa=quantile(values, 0.90), grading_quantile=0.90)
     # Declared limits travel with the result so a report can show them next to the percentile.
     for key in ("reference_support", "caveats", "validation"):
         if profile.get(key) is not None:
@@ -256,10 +260,171 @@ def evaluate(meta: Mapping, release_info: Mapping) -> dict:
 
     The top-level status is the geometry assessment. Population-reference
     eligibility has its own status and cannot promote a geometry result.
+    v2 ``population_references`` bound to the result's release are listed (without their values) under
+    ``population_references`` so a reader can see which cohort statistics exist; they never change the
+    v1 percentile above.
     """
     meta, release_info = _map(meta), _map(release_info)
-    return {"schema_version": SCHEMA_VERSION, **_geometry(meta, release_info),
-            "population": evaluate_population(meta, release_info)}
+    out = {"schema_version": SCHEMA_VERSION, **_geometry(meta, release_info),
+           "population": evaluate_population(meta, release_info)}
+    result_rid = _release_id(_map(meta.get("model_release"))) or meta.get("release")
+    listed = [{key: entry.get(key) for key in _V2_LISTED if key in entry}
+              for entry in population_references(release_info, include_v1=False)
+              if entry.get("model_release") == result_rid]
+    if listed:
+        out["population_references"] = listed
+    return out
 
 
-__all__ = ["SCHEMA_VERSION", "evaluate", "evaluate_population"]
+# ----------------------------------------------------------------------------- v2 population references (E4)
+POPULATION_V2_KEY = "population_references"
+SUBGROUPS = ("all", "AAA", "AG", "ILO")
+_V2_REQUIRED = ("id", "metric", "field", "statistic", "units", "subgroup", "source", "model_release")
+_V2_LISTED = ("id", "metric", "field", "statistic", "units", "n", "subgroup", "source", "model_release",
+              "data_version", "built_on", "schema")
+
+
+def quantile(values, q: float) -> float | None:
+    """Linear-interpolation quantile (numpy's default, the protocol's ``quantile_method: linear``) of finite values."""
+    clean = sorted(float(v) for v in values if _number(v) is not None)
+    if not clean or not (0.0 <= float(q) <= 1.0):
+        return None
+    position = (len(clean) - 1) * float(q)
+    lower = int(math.floor(position))
+    upper = min(lower + 1, len(clean) - 1)
+    return clean[lower] + (clean[upper] - clean[lower]) * (position - lower)
+
+
+def _quantile_key(q: float) -> str:
+    return f"p{round(100 * float(q)):d}"
+
+
+def _v2_entry(raw: Any) -> dict | None:
+    """A normalised ``population_references`` entry, or None when it is malformed (fails closed)."""
+    entry = _map(raw)
+    if any(not isinstance(entry.get(key), str) or not entry.get(key).strip() for key in _V2_REQUIRED):
+        return None
+    if entry["subgroup"] not in SUBGROUPS:
+        return None
+    out = {key: entry[key] for key in _V2_LISTED if key in entry}
+    values = entry.get("values")
+    quantiles = entry.get("quantiles")
+    if values is not None:
+        if not isinstance(values, list) or len(values) < 2 or any(_number(v) is None for v in values):
+            return None
+        out["values"] = [float(v) for v in values]
+        n = entry.get("n")
+        if n is not None and (type(n) is not int or n != len(values)):
+            return None
+        out["n"] = len(values)
+    elif isinstance(quantiles, Mapping) and quantiles:
+        parsed = {}
+        for key, value in quantiles.items():
+            if not isinstance(key, str) or not re.fullmatch(r"p(100|[1-9]?[0-9])", key) or _number(value) is None:
+                return None
+            parsed[key] = float(value)
+        out["quantiles"] = parsed
+        if entry.get("n") is not None and (type(entry.get("n")) is not int or entry["n"] < 2):
+            return None
+    else:
+        return None
+    out["schema"] = "v2"
+    return out
+
+
+def _v1_entry(release_info: Mapping) -> dict | None:
+    """The v1 ``population_reference`` (CV3 OOF p99 of peak WSS) in the v2 shape, when it is well formed."""
+    profile = _map(release_info.get("population_reference") or release_info.get("population_reference_profile"))
+    if not profile or profile.get("schema_version") != "wss-deploy.population-reference/v1" or profile.get("status") != "validated":
+        return None
+    raw = profile.get("values_pa")
+    for key in ("p99_values_pa", "values", "p99_values", "p99_pa"):
+        if raw is None:
+            raw = profile.get(key)
+    values = ([_number(item) if not isinstance(item, Mapping) else _number(item.get("p99_pa")) for item in raw]
+              if isinstance(raw, list) else [])
+    if len(values) < 2 or any(value is None for value in values):
+        return None
+    return {"id": profile.get("id") or profile.get("profile_id"), "metric": str(profile.get("metric") or "p99_pa"),
+            "field": "wss", "statistic": "p99", "units": "Pa", "n": len(values), "subgroup": "all",
+            "source": profile.get("source"), "model_release": profile.get("release") or profile.get("release_id"),
+            "built_on": profile.get("built_on"), "values": values, "schema": "v1"}
+
+
+def population_references(release_info: Mapping | None, *, include_v1: bool = True) -> list[dict]:
+    """Every well-formed cohort reference the release declares: v2 ``population_references`` (list of
+    ``{id, metric, field, statistic, units, n, subgroup, source, model_release, data_version, built_on,
+    values | quantiles}``) plus, with ``include_v1``, the v1 ``population_reference`` in the same shape.
+    Malformed v2 entries are skipped (never guessed)."""
+    info = _map(release_info)
+    out = []
+    if include_v1:
+        legacy = _v1_entry(info)
+        if legacy is not None:
+            out.append(legacy)
+    raw = info.get(POPULATION_V2_KEY)
+    for item in raw if isinstance(raw, list) else []:
+        entry = _v2_entry(item)
+        if entry is not None:
+            out.append(entry)
+    return out
+
+
+def find_population_reference(release_info: Mapping | None, *, metric: str, field: str | None = None,
+                              subgroup: str = "all", release_id: str | None = None) -> dict | None:
+    """The first reference of ``metric`` (+ ``field``, ``subgroup``, bound release); v2 entries win over v1."""
+    matches = [entry for entry in population_references(release_info)
+               if entry.get("metric") == metric and entry.get("subgroup") == subgroup
+               and (field is None or entry.get("field") == field)
+               and (release_id is None or entry.get("model_release") == release_id)]
+    matches.sort(key=lambda entry: 0 if entry.get("schema") == "v2" else 1)
+    return matches[0] if matches else None
+
+
+def reference_quantile(entry: Mapping | None, q: float) -> float | None:
+    """Quantile ``q`` of a reference entry: interpolated from ``values``, or the exact ``p<NN>`` of ``quantiles``."""
+    entry = _map(entry)
+    if isinstance(entry.get("values"), list):
+        return quantile(entry["values"], q)
+    quantiles = _map(entry.get("quantiles"))
+    return _number(quantiles.get(_quantile_key(q)))
+
+
+def population_p90(population: Mapping | None) -> float | None:
+    """U11 grading threshold: the 90th percentile of the same-protocol cohort reference of peak-WSS p99.
+
+    ``population`` is ``reference_assessment["population"]`` (the v1 evaluation).  Only a reference that
+    passed every same-protocol check (``status == "pass"``) grades; otherwise None (= no reference).
+    """
+    block = _map(population)
+    if block.get("status") != "pass":
+        return None
+    return _number(block.get("reference_p90_pa"))
+
+
+def merge_sidecar_v2(release_info: Mapping | None, release_dir, release_id: str | None = None) -> dict:
+    """``release_info`` plus the v2 ``population_references`` of ``<release_dir>/reference.json`` (when present).
+
+    ``infer.load_reference_sidecar`` copies only the v1 keys; this adds the v2 list without touching them.
+    Entries not bound to ``release_id`` (or the info's own id) are dropped; the input mapping is not mutated.
+    """
+    from pathlib import Path
+    import json
+    info = dict(_map(release_info))
+    if release_dir is None or POPULATION_V2_KEY in info:
+        return info
+    path = Path(release_dir) / "reference.json"
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
+    except (OSError, ValueError):
+        doc = None
+    raw = _map(doc).get(POPULATION_V2_KEY)
+    if not isinstance(raw, list):
+        return info
+    rid = release_id or _release_id(info)
+    info[POPULATION_V2_KEY] = [item for item in raw if _map(item).get("model_release") == rid]
+    return info
+
+
+__all__ = ["POPULATION_V2_KEY", "SCHEMA_VERSION", "SUBGROUPS", "evaluate", "evaluate_population", "find_population_reference",
+           "merge_sidecar_v2", "population_p90", "population_references", "quantile", "reference_quantile"]

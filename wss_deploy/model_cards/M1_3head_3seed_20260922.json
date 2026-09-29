@@ -1,0 +1,143 @@
+{
+ "schema_version": "wss-deploy.model-card/v1",
+ "release_id": "M1_3head_3seed_20260922",
+ "display_name": "周期指标 TAWSS · OSI",
+ "short_name": "周期指标",
+ "version_date": "2026-09-22",
+ "purpose": "一次预测峰值 WSS、TAWSS、OSI；RRT、ECAP 与滞留区由预测的 TAWSS / OSI 逐点算出",
+ "training": {
+  "n_train": 136,
+  "n_holdout": 34,
+  "n_total": 170,
+  "cohorts": ["AAA", "AG", "ILO"],
+  "centers": null,
+  "note": "release.json data：与峰值 WSS 发布包同一份 v5.1 数据（训练 136 / 留出 34）；三个队列名同峰值 WSS 发布包。TAWSS / OSI 标签取自 81 帧 CFD 壁面切应力向量的第 0–79 帧（release.json cycle），没有额外 CFD。中心数 release.json 未记录，写 null。"
+ },
+ "protocol": [
+  "所有病例用同一条入口流量波形（协议平均 30.38 mL/s，约 1.8 L/min；周期 0.8 s），不是该患者实测。预测的是这副几何在标准血流下的量；心输出量、心率不同时绝对值会变。",
+  "峰值 WSS 是收缩期峰值单帧（Fluent step 1162，周期内 0.21 s）；TAWSS / OSI 是单个 0.8 s 周期、80 帧等权积分量的直接回归预测，不是逐帧推演。",
+  "四个出口为 RCR 边界：左右各半，同侧按出口口径的 Murray 规律分配，不是患者实测。",
+  "血液黏度按 Carreau 非牛顿模型，密度 1060 kg/m³。",
+  "壁面是否按刚性处理：待核对。"
+ ],
+ "protocol_sources": {
+  "inlet_mean_flow": "cfd_auto/sanity.py PROTOCOL_Q_M3S = 30.38e-6 m³/s（该文件同时记录库内求解的末周期平均出流约为协议值的 1.103 倍，来自截断波形）",
+  "period": "release.json cycle.period_s = 0.8；cycle.frames / cycle.weight",
+  "peak_frame": "release.json time_axis[0]（step 1162，time_s 0.21）",
+  "outlets": "cfd_auto/sanity.py 文档：left share (protocol 50/50)，within-side shares vs the Murray d^3 split",
+  "blood": "cfd_auto/__init__.py 与 udf.py：Carreau viscosity（照抄库内参考 UDF）；密度 RHO = 1060.0（cfd_auto/sanity.py、preflight.py）",
+  "wall": "未在 cfd_auto 或发布包中找到明确记录，待核对"
+ },
+ "validation": {
+  "holdout_n": 34,
+  "r2_note": "R² 为 1 表示与 CFD 完全一致；按 Pa 口径、把 34 例留出病例的全部壁面节点合并计算。一致性系数（CCC）同样以 1 为完全一致。",
+  "fields": {
+   "wss": {
+    "r2_pa": 0.7399,
+    "r2_case_mean": 0.7729,
+    "r2_case_p10": 0.6225,
+    "extra": "逐例均值 0.77",
+    "summary": "R² 0.74（逐例均值 0.77）",
+    "source": "release.json metrics.test34_ensemble.wss.pa_r2cb / r2_casemean / r2_casep10"
+   },
+   "tawss": {
+    "r2_pa": 0.7391,
+    "ccc": 0.9285,
+    "r2_case_mean": 0.778,
+    "r2_case_p10": 0.6464,
+    "extra": "一致性系数 0.93",
+    "summary": "R² 0.74，一致性系数 0.93",
+    "source": "release.json metrics.test34_ensemble.tawss.pa_r2cb / ccc / r2_casemean / r2_casep10"
+   },
+   "osi": {
+    "r2_pa": 0.5648,
+    "ccc": 0.7381,
+    "r2_case_mean": 0.5444,
+    "r2_case_p10": 0.3582,
+    "extra": "最差十分之一病例 0.36",
+    "summary": "R² 0.56（最差十分之一病例 0.36）",
+    "source": "release.json metrics.test34_ensemble.osi.pa_r2cb / ccc / r2_casemean / r2_casep10"
+   },
+   "stagnation": {
+    "r2_pa": null,
+    "iou_case_mean": 0.5629,
+    "dice_median": 0.775,
+    "extra": "与 CFD 的重叠度（IoU）0.56",
+    "summary": "重叠度（IoU）0.56",
+    "source": "release.json metrics.test34_stagnation.iou_casemean / dice_med"
+   },
+   "rrt": {
+    "r2_pa": null,
+    "summary": "没有单独验证",
+    "source": "由预测的 TAWSS / OSI 逐点算出（wss_deploy/cycle_fields.py），发布包没有该量的验证数字"
+   },
+   "ecap": {
+    "r2_pa": null,
+    "summary": "没有单独验证",
+    "source": "由预测的 TAWSS / OSI 逐点算出（wss_deploy/cycle_fields.py），发布包没有该量的验证数字"
+   },
+   "max_diameter": {
+    "summary": "几何测量，不经过模型",
+    "source": "输入表面截面测量"
+   }
+  },
+  "source": "release.json 的 metrics 块（test34 留出集三模型集成）"
+ },
+ "field_labels": {"max_diameter": "管腔最大直径、瘤体体积", "tawss": "TAWSS", "wss": "峰值 WSS", "osi": "OSI",
+                  "stagnation": "滞留区", "rrt": "RRT", "ecap": "ECAP"},
+ "field_tiers": {"max_diameter": "geometry", "tawss": "model", "wss": "model", "osi": "model", "stagnation": "derived",
+                 "rrt": "derived", "ecap": "derived", "sac_volume": "geometry", "lumen_volume": "geometry"},
+ "usage": {
+  "max_diameter": "可以直接引用，注意是管腔（不含附壁血栓与管壁）",
+  "tawss": "高低分布可信，绝对值有误差",
+  "wss": "高低分布可信，绝对值有误差；小口径髂支的高值偏低",
+  "osi": "只用来定位，边界不准",
+  "stagnation": "只用来定位",
+  "rrt": "只作分级显示",
+  "ecap": "只作分级显示"
+ },
+ "usage_note": "「怎么用」一栏的措辞待导师或医生过目。",
+ "weaknesses": [
+  "峰值 WSS 通道比单独的峰值 WSS 模型（同样三个种子）低 0.034（Pa 口径 R²），差距全部在最高 10% 的尾部。",
+  "OSI 的一致性明显低于 TAWSS：R² 0.56，最差十分之一病例 0.36；OSI 与滞留区的边界只能用来定位。",
+  "没有三折交叉验证折外预测，因此峰值 WSS、TAWSS、OSI 都没有人群参照分位。",
+  "RRT、ECAP 由预测的 TAWSS / OSI 逐点算出，没有单独验证。",
+  "小口径髂支的高值容易被低估；瘤腔内绝对误差小但相对误差大（09-21 最差病例分析，定性结论）。"
+ ],
+ "weakness_sources": [
+  "release.json metrics.known_cost 与 metrics.references.peak_wss_ensemble_X5D_v51_3seed.pa_r2cb = 0.7736 对 metrics.test34_ensemble.wss.pa_r2cb = 0.7399",
+  "release.json metrics.test34_ensemble.osi",
+  "reference.json population.reason",
+  "wss_deploy/cycle_fields.py",
+  "docs 最差病例分析（2026-09-21），无单独数字"
+ ],
+ "not_applicable": [
+  "开口数不是 5 的输入（入口 + 四个髂支出口；三出口不支持）",
+  "腹主—髂动脉以外的血管",
+  "含附壁血栓或管壁的外轮廓（输入必须是管腔面）",
+  "髂支切口位置与 CFD 协议相差超过 ±5 mm",
+  "表面不是单个连通流形（除五个开口外应处处封闭）"
+ ],
+ "display_windows": {
+  "wss": [
+   {"id": "low", "label": "低值窗", "range": [0, 1], "provisional": true},
+   {"id": "standard", "label": "常规窗", "range": [0, 10], "provisional": true}
+  ],
+  "tawss": [
+   {"id": "low", "label": "低剪切窗", "range": [0, 1], "provisional": true},
+   {"id": "standard", "label": "常规窗", "range": [0, 4], "provisional": true}
+  ],
+  "osi": [
+   {"id": "full", "label": "全范围", "range": [0, 0.5], "provisional": true},
+   {"id": "high", "label": "高振荡窗", "range": [0.1, 0.5], "provisional": true}
+  ],
+  "rrt": [
+   {"id": "standard", "label": "常规窗", "range": [0, 20], "provisional": true}
+  ],
+  "ecap": [
+   {"id": "standard", "label": "常规窗", "range": [0, 3], "provisional": true}
+  ]
+ },
+ "population_reference": "无：三头模型没有按折训练的模型，不提供人群分位（reference.json population.status = unknown）",
+ "caveat": "研究用途，不是诊断"
+}

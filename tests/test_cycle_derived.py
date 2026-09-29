@@ -103,6 +103,8 @@ def test_one_pager_shows_one_rrt_ecap_card():
     cards = OP._cycle_cards({"cycle": json.loads(json.dumps(block))})
     titles = [c[0] for c in cards]
     assert len(cards) == 4 and 'data-gloss="rrt"' in titles[2] and 'data-gloss="ecap"' in titles[2]
-    assert cards[2][1].endswith(" Pa⁻¹") and "ECAP &gt; 1.4" in cards[2][2] and "RRT &gt; 5.0" in cards[2][2]
+    # U13 (2026-09-30): thresholds are printed as given (5, not 5.0); the tier tag follows the card title.
+    assert cards[2][1].endswith(" Pa⁻¹") and "ECAP &gt; 1.4" in cards[2][2] and "RRT &gt; 5：" in cards[2][2]
+    assert '<span class="tier">派生</span>' in titles[2]
     legacy = CF.cycle_block({"tawss": {"values": tawss}, "osi": {"values": osi}}, seg, {1: "a", 2: "b"}, 1000.0)
     assert len(OP._cycle_cards({"cycle": legacy})) == 3            # older summaries: unchanged card set

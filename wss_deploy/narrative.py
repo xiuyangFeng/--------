@@ -5,6 +5,11 @@ English description (three-head releases add one TAWSS / OSI / stagnation senten
 interpretation beyond the stored definitions, and always ends with the fixed disclaimer.  Reviewers
 may replace the whole text through ``PUT /api/jobs/<id>/narrative``; the generated version is kept
 next to the edit so the two can be compared.
+
+2026-09-30 (C1 / C2, WORKSPACE_V2_CONTRACT.md §5.3): diameters are called lumen diameters (the input is the
+lumen surface, without mural thrombus and wall) and the no-sac sentence says an aneurysm cannot be excluded;
+a three-head result reads morphology → cycle quantities → one peak-frame sentence (the peak-frame low-WSS
+fraction is no longer narrated); the hotspot sentence states its real definition (≥ the case's own p99).
 """
 from __future__ import annotations
 
@@ -13,12 +18,12 @@ from typing import Any, Mapping
 
 NARRATIVE_SCHEMA = "wss-deploy.narrative/v1"
 MAX_NARRATIVE_CHARS = 4000
-DISCLAIMER_ZH = "以上为固定收缩期单帧预测的参考描述，非诊断结论。"
-DISCLAIMER_EN = ("The statements above describe a single fixed peak-systolic prediction frame for reference "
-                 "only; they are not a diagnosis.")
-CYCLE_DISCLAIMER_ZH = "以上为收缩期峰值 WSS 与单周期 TAWSS / OSI 预测的参考描述，非诊断结论。"
-CYCLE_DISCLAIMER_EN = ("The statements above describe the predicted peak-systolic WSS and single-cycle TAWSS / OSI "
-                       "for reference only; they are not a diagnosis.")
+DISCLAIMER_ZH = "以上为标准血流条件下固定收缩期单帧预测的参考描述，非诊断结论。"
+DISCLAIMER_EN = ("The statements above describe a single fixed peak-systolic prediction frame under the standard "
+                 "inflow condition, for reference only; they are not a diagnosis.")
+CYCLE_DISCLAIMER_ZH = "以上为标准血流条件下单周期 TAWSS / OSI 与收缩期峰值 WSS 预测的参考描述，非诊断结论。"
+CYCLE_DISCLAIMER_EN = ("The statements above describe the predicted single-cycle TAWSS / OSI and peak-systolic WSS "
+                       "under the standard inflow condition, for reference only; they are not a diagnosis.")
 AORTA_ZH, AORTA_EN = "主动脉", "aorta"
 BRANCH_EN = {"主动脉": "aorta", "左髂总": "left common iliac", "左髂外": "left external iliac",
              "左髂内": "left internal iliac", "右髂总": "right common iliac",
@@ -83,8 +88,9 @@ def _morphology_sentences(summary: Mapping[str, Any]) -> tuple[list[str], list[s
     if diameter is None:
         return [], []
     where = _d(largest.get("distance_from_inlet_mm"))
-    zh = [f"{AORTA_ZH}最大直径 {diameter} mm（截面最大 Feret 直径）"]
-    en = [f"Largest {AORTA_EN} diameter {diameter} mm (maximum Feret diameter of the cross-section)"]
+    zh = [f"{AORTA_ZH}管腔最大直径 {diameter} mm（截面最大 Feret 直径，不含附壁血栓与管壁）"]
+    en = [f"Largest aortic lumen diameter {diameter} mm (maximum Feret diameter of the cross-section, "
+          "excluding mural thrombus and the wall)"]
     if where is not None:
         zh.append(f"位于入口下 {where} mm")
         en.append(f"{where} mm below the inlet")
@@ -109,24 +115,64 @@ def _morphology_sentences(summary: Mapping[str, Any]) -> tuple[list[str], list[s
         sentence_en = "; ".join([", ".join(en)] + parts_en) + "."
     else:
         reference = _d(aorta.get("reference_diameter_mm"))
-        tail_zh = "未见瘤样扩张（< 1.5 × 参考直径"
-        tail_en = "no aneurysmal dilatation (< 1.5 × the reference diameter"
+        tail_zh = "管腔未见瘤样扩张（< 1.5 × 参考直径"
+        tail_en = "no aneurysmal dilatation of the lumen (< 1.5 × the reference diameter"
         tail_zh += f" {reference} mm）" if reference else "）"
         tail_en += f" of {reference} mm)" if reference else ")"
+        tail_zh += "，不能据此排除动脉瘤"
+        tail_en += "; an aneurysm cannot be excluded on this basis"
         sentence_zh = "，".join(zh) + "，" + tail_zh + "。"
         sentence_en = ", ".join(en) + "; " + tail_en + "."
     return [sentence_zh], [sentence_en]
 
 
+def _hotspot_parts(summary: Mapping[str, Any]) -> tuple[str, str] | tuple[None, None]:
+    """「峰值 WSS 最高的区域（不低于本例 p99，X Pa）N 处，最高 Y Pa 位于…」 from the high-WSS clusters.
+
+    The clusters are defined by the case's own spatial p99 (analysis.findings_wall), not by 4 Pa.
+    """
+    items = [item for item in (_map(summary.get("findings")).get("items") or []) if isinstance(item, Mapping)]
+    clusters = [item for item in items if item.get("kind") == "high_wss_cluster"]
+    if not clusters:
+        return None, None
+    level = _pa(_map(summary.get("findings")).get("p99_threshold_pa"))
+    if level is None:
+        level = _pa(_map(summary.get("peak")).get("p99_pa"))
+    strongest = max(clusters, key=lambda item: _num(item.get("value")) or float("-inf"))
+    value = _pa(strongest.get("value"))
+    where = str(strongest.get("branch") or "")
+    tail_zh = f"，最高 {value} Pa" + (f" 位于{where}" if where else "") if value else ""
+    tail_en = f", the strongest {value} Pa" + (f" in the {_english_branch(where)}" if where else "") if value else ""
+    level_zh = f"（不低于本例 p99，{level} Pa）" if level is not None else "（不低于本例 p99）"
+    level_en = f" (at or above this case's p99, {level} Pa)" if level is not None else " (at or above this case's p99)"
+    return (f"峰值 WSS 最高的区域{level_zh}{len(clusters)} 处" + tail_zh,
+            f"{len(clusters)} region(s) of highest peak WSS{level_en}" + tail_en)
+
+
+def _cohort_phrase(summary: Mapping[str, Any]) -> tuple[str, str]:
+    population = _map(_map(summary.get("reference_assessment")).get("population"))
+    # ``percentile`` is already on a 0-100 scale (reference.evaluate), unlike the area fractions.
+    rank = _num(population.get("percentile"))
+    if rank is None:
+        return "", ""
+    percentile = f"{rank:.0f}"
+    count = population.get("reference_count")
+    if not isinstance(count, int):
+        count = population.get("case_count")
+    if isinstance(count, int):
+        return (f"，处于 {count} 例参照人群第 {percentile} 百分位",
+                f", at the {_ordinal(percentile)} percentile of the {count}-case reference cohort")
+    return (f"，处于参照人群第 {percentile} 百分位", f", at the {_ordinal(percentile)} percentile of the reference cohort")
+
+
 def _wall_sentences(summary: Mapping[str, Any]) -> tuple[list[str], list[str]]:
+    """Single-head peak-WSS result: (low WSS fraction; hotspots) then the p99 sentence (order unchanged)."""
     zh: list[str] = []
     en: list[str] = []
     field = _map(summary.get("wss_field_pa"))
     thresholds = field.get("thresholds_pa") if isinstance(field.get("thresholds_pa"), list) else [0.4, 4.0, 7.0]
     low_threshold = _num(thresholds[0]) if thresholds else 0.4
-    high_threshold = _num(thresholds[1]) if len(thresholds) > 1 else 4.0
     items = [item for item in (_map(summary.get("findings")).get("items") or []) if isinstance(item, Mapping)]
-    clusters = [item for item in items if item.get("kind") == "high_wss_cluster"]
     low_fraction = _percent(field.get("area_frac_low"))
     parts_zh, parts_en = [], []
     if low_fraction is not None and low_threshold is not None:
@@ -135,35 +181,36 @@ def _wall_sentences(summary: Mapping[str, Any]) -> tuple[list[str], list[str]]:
         parts_zh.append(f"低 WSS（< {low_threshold:g} Pa）区占壁面 {low_fraction}%" + (f"，主要位于{where}" if where else ""))
         parts_en.append(f"Low WSS (< {low_threshold:g} Pa) covers {low_fraction}% of the wall"
                         + (f", mostly in the {_english_branch(where)}" if where else ""))
-    if clusters and high_threshold is not None:
-        strongest = max(clusters, key=lambda item: _num(item.get("value")) or float("-inf"))
-        value = _pa(strongest.get("value"))
-        where = str(strongest.get("branch") or "")
-        tail_zh = f"，最高 {value} Pa" + (f" 位于{where}" if where else "") if value else ""
-        tail_en = f", the strongest {value} Pa" + (f" in the {_english_branch(where)}" if where else "") if value else ""
-        parts_zh.append(f"高 WSS（> {high_threshold:g} Pa）热点 {len(clusters)} 处" + tail_zh)
-        parts_en.append(f"{len(clusters)} high-WSS hotspot(s) (> {high_threshold:g} Pa)" + tail_en)
+    hot_zh, hot_en = _hotspot_parts(summary)
+    if hot_zh:
+        parts_zh.append(hot_zh)
+        parts_en.append(hot_en)
     if parts_zh:
         zh.append("；".join(parts_zh) + "。")
         en.append("; ".join(parts_en) + ".")
     p99 = _pa(_map(summary.get("peak")).get("p99_pa"))
     if p99 is not None:
-        population = _map(_map(summary.get("reference_assessment")).get("population"))
-        # ``percentile`` is already on a 0-100 scale (reference.evaluate), unlike the area fractions.
-        rank = _num(population.get("percentile"))
-        percentile = None if rank is None else f"{rank:.0f}"
-        count = population.get("reference_count")
-        if not isinstance(count, int):
-            count = population.get("case_count")
-        if percentile is not None:
-            cohort_zh = f"，处于 {count} 例参照人群第 {percentile} 百分位" if isinstance(count, int) else f"，处于参照人群第 {percentile} 百分位"
-            cohort_en = (f", at the {_ordinal(percentile)} percentile of the {count}-case reference cohort"
-                         if isinstance(count, int) else f", at the {_ordinal(percentile)} percentile of the reference cohort")
-        else:
-            cohort_zh = cohort_en = ""
+        cohort_zh, cohort_en = _cohort_phrase(summary)
         zh.append(f"壁面 WSS 空间 p99 为 {p99} Pa{cohort_zh}。")
         en.append(f"The spatial p99 of wall shear stress is {p99} Pa{cohort_en}.")
     return zh, en
+
+
+def _peak_frame_sentence(summary: Mapping[str, Any]) -> tuple[list[str], list[str]]:
+    """Three-head result (C2): one sentence on the peak frame — hotspots by the case p99, no low-WSS fraction."""
+    hot_zh, hot_en = _hotspot_parts(summary)
+    cohort_zh, cohort_en = _cohort_phrase(summary)
+    if hot_zh:
+        # the cohort rank belongs to the p99, not to the hottest region
+        rank_zh = f"；p99 {cohort_zh[1:]}" if cohort_zh else ""
+        rank_en = f"; the p99 is {cohort_en[2:]}" if cohort_en else ""
+        return ([f"收缩期峰值帧：{hot_zh}{rank_zh}。"],
+                [f"At the peak-systolic frame there are {hot_en}{rank_en}."])
+    p99 = _pa(_map(summary.get("peak")).get("p99_pa"))
+    if p99 is None:
+        return [], []
+    return ([f"收缩期峰值帧：壁面 WSS 空间 p99 为 {p99} Pa{cohort_zh}。"],
+            [f"At the peak-systolic frame, the spatial p99 of wall shear stress is {p99} Pa{cohort_en}."])
 
 
 def _largest_branch(rows: Mapping[str, Any], area) -> str:
@@ -256,10 +303,17 @@ def build_narrative(summary: Mapping[str, Any] | None, *, generated_at: str | No
     summary = _map(summary)
     family = family_of(summary)
     zh, en = _morphology_sentences(summary)
-    body_zh, body_en = (_volume_sentences(summary) if family == "volume" else _wall_sentences(summary))
     cycle_zh, cycle_en = _cycle_sentences(summary) if family == "wall" else ([], [])
+    if family == "volume":
+        body_zh, body_en = _volume_sentences(summary)
+    elif cycle_zh:
+        # C2: a three-head result reads morphology → cycle quantities → one peak-frame sentence.
+        peak_zh, peak_en = _peak_frame_sentence(summary)
+        body_zh, body_en = [*cycle_zh, *peak_zh], [*cycle_en, *peak_en]
+    else:
+        body_zh, body_en = _wall_sentences(summary)
     disclaimer_zh, disclaimer_en = (CYCLE_DISCLAIMER_ZH, CYCLE_DISCLAIMER_EN) if cycle_zh else (DISCLAIMER_ZH, DISCLAIMER_EN)
-    zh, en = [*zh, *body_zh, *cycle_zh, disclaimer_zh], [*en, *body_en, *cycle_en, disclaimer_en]
+    zh, en = [*zh, *body_zh, disclaimer_zh], [*en, *body_en, disclaimer_en]
     if not generated_at:
         from .clock import now_iso
         generated_at = now_iso()

@@ -8,6 +8,14 @@ details, input check, trust coverage, limitations, timing, identity hashes and t
 the page.  It is rendered on demand by the service (``GET /api/jobs/<id>/onepage``) and never
 written to the job directory, so the exported result files stay exactly what the pipeline produced.
 Everything is escaped with :func:`html.escape`; the page contains no scripts.
+
+2026-09-30 (C line, WORKSPACE_V2_CONTRACT.md §5.3): lumen wording (C1); a three-head page leads with the cycle
+quantities (C2); every key number carries its evidence tier 几何 / 模型 / 派生 and the appendix has a
+「模型验证」 table read from the release's model card (C3); the limitations start with the standard inflow
+condition and state that every diameter / length / volume is of the lumen (C4); the ensemble card reads
+「多模型一致（一致不代表准确）」 while ``quality.label`` stays as stored (C5); numbers use three significant
+digits and percentages whole numbers (U13); the page names the case by its display name — the patient id when
+entered, else the case name, which comes from the file name and may be a person's name (C7).
 """
 from __future__ import annotations
 
@@ -26,6 +34,12 @@ FIRST_PAGE_FINDINGS = 5
 TIMELINE_ROWS = 4
 NO_SNAPSHOTS_HINT = "在三维报告「导出」菜单点「生成一页纸配图」可为本页配图。"
 
+# C4 (2026-09-30): the standard inflow condition comes first.  Protocol mean inflow 30.38 mL/s = cfd_auto/sanity.py
+# PROTOCOL_Q_M3S; period 0.8 s = release.json cycle.period_s / cfd_auto journals.
+LIMIT_FLOW = ("标准血流条件：所有病例用同一条入口流量波形（平均 30.38 mL/s，约 1.8 L/min；周期 0.8 s），不是该患者实测。"
+              "预测的是这副几何在标准血流下的量；心输出量、心率不同时绝对值会变，空间分布的形态相对稳定；"
+              "0.4 / 4 Pa 这类界值也以标准血流为前提。")
+LIMIT_LUMEN = "所有直径、长度和体积都是管腔的：输入是管腔面，不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径。"
 LIMIT_SINGLE_FRAME = "预测对象是固定收缩期单帧（step 1162，约 0.21 s），不是全周期；没有 TAWSS、OSI 等周期量。"
 LIMIT_CYCLE_FRAME = "峰值 WSS 为固定收缩期帧（step 1162，约 0.21 s）；TAWSS / OSI 为单周期（0.8 s、80 帧）积分量的直接回归预测，不是逐帧推演。"
 LIMIT_PRESSURE = "压力为相对量（相对于该帧体积平均压力），不能解释为绝对血压；只有压差有意义。"
@@ -35,11 +49,15 @@ LIMIT_ORIENTATION = "输入 STL 不含患者方向；左右语义按解剖坐标
 LIMIT_CYCLE_REFERENCE = ("TAWSS / OSI 没有人群参照分位（该发布包没有 CV3 折外预测）；OSI 的预测一致性低于 TAWSS 与峰值 WSS，"
                          "滞留区与高 OSI 区的边界只作定位参考。")
 # Full historical list (single-frame wording, every family); ``limitations(summary)`` picks the lines per field.
-LIMITATIONS = (LIMIT_SINGLE_FRAME, LIMIT_PRESSURE, LIMIT_AREA, LIMIT_DOMAIN, LIMIT_ORIENTATION)
+LIMITATIONS = (LIMIT_FLOW, LIMIT_SINGLE_FRAME, LIMIT_PRESSURE, LIMIT_LUMEN, LIMIT_AREA, LIMIT_DOMAIN, LIMIT_ORIENTATION)
 FOOTER_STATEMENT = "仅供研究参考，不作临床诊断依据"
 
 REVIEW_LABELS = {"unreviewed": "未审阅", "reviewed": "已审阅签字", "reopened": "已重新打开"}
 SEVERITY_LABELS = {"attention": "关注", "note": "提示", "info": "参考"}
+QUALITY_DISPLAY = {"good": "多模型一致", "review": "多模型分歧偏大，建议复核", "poor": "多模型分歧大，建议复核"}
+QUALITY_CAVEAT = "一致不代表准确"
+TIER_NOTE = "来源档：几何 = 从输入表面量出，不经过模型；模型 = 模型预测（与 CFD 的一致性见附录「模型验证」）；派生 = 由预测量算出，没有单独验证。"
+UNNAMED_CASE = "未命名病例"
 SEVERITY_ORDER = {"attention": 0, "note": 1, "info": 2}
 GEOMETRY_KINDS = {"max_diameter", "min_radius"}
 TRUST_LABELS = {"interpolation_uncovered": "插值无支撑", "rough_surface": "表面粗糙", "geometry_out_of_range": "几何越界",
@@ -67,13 +85,41 @@ def _num(value: Any, digits: int = 2, suffix: str = "") -> str:
     return f"{number:.{digits}f}{suffix}"
 
 
-def _pct(value: Any, digits: int = 1) -> str:
+def _sig(value: Any, suffix: str = "", sig: int = 3) -> str:
+    """U13: three significant digits (whole numbers from 100 up, no exponent); ``—`` for a missing value."""
+    if isinstance(value, bool):
+        return "—"
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return "—"
+    if number != number or number in (float("inf"), float("-inf")):
+        return "—"
+    if number == 0:
+        text = "0"
+    elif abs(number) >= 10 ** (sig - 1):
+        text = f"{number:.0f}"
+    else:
+        text = f"{number:#.{sig}g}"
+        if "e" in text:
+            text = f"{number:.{sig - 1}e}"
+        text = text.rstrip(".")
+    return text + suffix
+
+
+def _pct(value: Any, digits: int | None = None) -> str:
+    """U13: whole-number percentages; one decimal below 1 % (``digits`` is kept for older callers, ignored)."""
     if isinstance(value, bool) or value is None:
         return "—"
     try:
-        return f"{100.0 * float(value):.{digits}f}%"
+        number = 100.0 * float(value)
     except (TypeError, ValueError):
         return "—"
+    if number != number or number in (float("inf"), float("-inf")):
+        return "—"
+    if number != 0 and abs(number) < 1:
+        return f"{number:.1f}%"
+    return f"{number:.0f}%"
 
 
 def _map(value: Any) -> Mapping[str, Any]:
@@ -104,13 +150,50 @@ def model_count(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None
     return None
 
 
+def display_name(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None) -> str:
+    """C7: the job's ``display_name``, else the summary's, else patient id → case id; ``未命名病例`` without any."""
+    from .schema import display_name as shown
+    job = _map(job)
+    meta = _map(summary.get("case_metadata"))
+    for value in (job.get("display_name"), summary.get("display_name"),
+                  shown(summary.get("case_id") or job.get("case_id"), meta.get("patient_id") or job.get("patient_id"))):
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return UNNAMED_CASE
+
+
+def model_card_for(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None) -> dict | None:
+    """The model card of the result's release (``model_cards.load``; repository copy), or None."""
+    from . import model_cards
+    try:
+        return model_cards.load(_release_id(summary, job) or None)
+    except Exception:  # noqa: BLE001 — a missing / unreadable card only removes the validation table
+        return None
+
+
+DEFAULT_TIERS = {"wss": "model", "tawss": "model", "osi": "model", "rrt": "derived", "ecap": "derived",
+                 "stagnation": "derived", "max_diameter": "geometry", "sac_volume": "geometry", "lumen_volume": "geometry",
+                 "pressure": "model", "speed": "model", "wall_pressure": "model", "delta_p": "derived",
+                 "streamlines": "derived"}
+TIER_LABELS = {"geometry": "几何", "model": "模型", "derived": "派生"}
+
+
+def _tier(card: Mapping[str, Any] | None, field_id: str) -> str:
+    """C3: the evidence-tier tag of a key number (from the model card, else the documented default)."""
+    tiers = _map(_map(card).get("field_tiers"))
+    tier = tiers.get(field_id) if tiers.get(field_id) in TIER_LABELS else DEFAULT_TIERS.get(field_id)
+    return f' <span class="tier">{TIER_LABELS[tier]}</span>' if tier in TIER_LABELS else ""
+
+
 def limitations(summary: Mapping[str, Any]) -> list[str]:
-    """Limitation lines for the fields this result actually carries (§19.2), plus the summary's own notes."""
+    """Limitation lines for the fields this result actually carries (§19.2), plus the summary's own notes.
+
+    C4 (2026-09-30): the standard inflow condition comes first and a lumen line follows the frame lines."""
     cycle = has_cycle(summary)
-    items = [LIMIT_CYCLE_FRAME if cycle else LIMIT_SINGLE_FRAME]
+    items = [LIMIT_FLOW, LIMIT_CYCLE_FRAME if cycle else LIMIT_SINGLE_FRAME]
     if family_of(summary) == "volume":
         items.append(LIMIT_PRESSURE)
-    items += [LIMIT_AREA, LIMIT_DOMAIN, LIMIT_ORIENTATION]
+    items += [LIMIT_LUMEN, LIMIT_AREA, LIMIT_DOMAIN, LIMIT_ORIENTATION]
     if cycle:
         items.append(LIMIT_CYCLE_REFERENCE)
     items += [str(item) for item in (summary.get("notes") or []) if isinstance(item, str)]
@@ -128,6 +211,12 @@ def _release_short(summary: Mapping[str, Any], job: Mapping[str, Any] | None = N
     rid = _release_id(summary, job)
     what = "压力 + 速度" if family_of(summary) == "volume" else ("WSS + TAWSS + OSI" if has_cycle(summary) else "壁面 WSS")
     return f"{rid.split('_')[0]} · {what}" if rid else what
+
+
+def _model_name(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None, card: Mapping[str, Any] | None = None) -> str:
+    """U14: the reader-facing model name (model card ``display_name``); the release code only without a card."""
+    name = _map(card).get("display_name")
+    return str(name) if isinstance(name, str) and name.strip() else _release_short(summary, job)
 
 
 def _template(job_dir: Path | str | None, template: Mapping[str, Any] | None) -> dict:
@@ -160,11 +249,9 @@ def _cards(cards: list[tuple[str, str, str]], *, klass: str = "") -> str:
 
 
 def _value_text(value: Any, units: Any) -> str:
+    """A finding value with its units, three significant digits (U13)."""
     units = str(units or "")
-    digits = {"Pa": 2, "mm": 1, "cm²": 1, "m/s": 3, "1": 2, "mL": 0}.get(units, 2)
-    if units == "Pa" and isinstance(value, (int, float)) and abs(value) >= 10:
-        digits = 0 if abs(value) >= 100 else 1   # relative pressures reach thousands of Pa
-    text = _num(value, digits)
+    text = _sig(value)
     return text if units in ("", "1") or text == "—" else f"{text} {units}"
 
 
@@ -173,7 +260,8 @@ def _header(summary: Mapping[str, Any], job: Mapping[str, Any], template: Mappin
     review = _map(summary.get("review")) or _map(job.get("review"))
     status = str(review.get("status") or "unreviewed")
     institution = " · ".join(str(x) for x in (template.get("institution"), template.get("department")) if x)
-    frame = "收缩期峰值 WSS + 单周期 TAWSS / OSI 预测" if has_cycle(summary) else "固定收缩期单帧预测"
+    frame = ("单周期 TAWSS / OSI 与收缩期峰值 WSS 预测（标准血流条件）" if has_cycle(summary)
+             else "固定收缩期单帧预测（标准血流条件）")
     inst = f'<p class="inst">{_e(institution)}</p>' if institution else ""
     return (f'<header class="top"><div>{inst}<h1>{_e(title)}</h1>'
             f'<p class="sub">{_e(frame)} · {_e(FOOTER_STATEMENT)}</p></div>'
@@ -192,13 +280,16 @@ def _full_time(value: Any) -> str:
     return text.replace("T", " ")[:19] if text else "—"
 
 
-def _identity_line(summary: Mapping[str, Any], job: Mapping[str, Any]) -> str:
+def _identity_line(summary: Mapping[str, Any], job: Mapping[str, Any], card: Mapping[str, Any] | None = None) -> str:
+    """C7: the page names the case by its display name — the patient id when entered (then the file-derived case
+    name is not repeated on page 1), else the case name."""
     meta = _map(summary.get("case_metadata"))
     scan = " / ".join(x for x in (str(meta.get("scan_label") or job.get("scan_label") or ""),
                                   str(meta.get("scan_date") or job.get("scan_date") or "")) if x)
-    parts = [("病例", summary.get("case_id") or job.get("case_id") or "匿名病例"),
-             ("患者", meta.get("patient_id") or job.get("patient_id")), ("扫描", scan),
-             (_g("release", "发布包"), _release_short(summary, job)), ("生成", _short_time(summary.get("created_at") or job.get("created_at")))]
+    patient = str(meta.get("patient_id") or job.get("patient_id") or "").strip()
+    first = ("患者编号", patient) if patient else ("病例", display_name(summary, job))
+    parts = [first, ("扫描", scan),
+             (_g("release", "模型"), _model_name(summary, job, card)), ("生成", _short_time(summary.get("created_at") or job.get("created_at")))]
     return '<p class="idline">' + " · ".join(f"{label if label.startswith('<') else _e(label)} <b>{_e(value)}</b>"
                                            for label, value in parts if value) + "</p>"
 
@@ -223,13 +314,17 @@ def _narrative_section(summary: Mapping[str, Any]) -> str:
 
 
 def _quality_card(summary: Mapping[str, Any], job: Mapping[str, Any]) -> tuple[str, str, str]:
+    """C5: shown as 「多模型一致（一致不代表准确）」; ``quality.label`` in summary.json is not changed."""
     from .quality import model_count_phrase
     quality = _map(summary.get("quality"))
+    level = str(quality.get("level") or "")
     note = "；".join(str(x) for x in quality.get("reasons") or []) or f"{model_count_phrase(model_count(summary, job))}离散度在常规范围内"
-    return (_g("quality_grade", "集成质量"), _e(quality.get("label") or quality.get("level") or "未评估"), _e(note))
+    value = QUALITY_DISPLAY.get(level) or quality.get("label") or quality.get("level") or "未评估"
+    return (_g("quality_grade", "多模型一致性"), _e(value), _e(f"{QUALITY_CAVEAT}；{note}"))
 
 
-def _wall_cards(summary: Mapping[str, Any], job: Mapping[str, Any]) -> list[tuple[str, str, str]]:
+def _wall_cards(summary: Mapping[str, Any], job: Mapping[str, Any], card: Mapping[str, Any] | None = None,
+                *, peak_prefix: str = "") -> list[tuple[str, str, str]]:
     peak = _map(summary.get("peak"))
     field = _map(summary.get("wss_field_pa"))
     thresholds = field.get("thresholds_pa") if isinstance(field.get("thresholds_pa"), list) else [0.4, 4.0, 7.0]
@@ -238,13 +333,16 @@ def _wall_cards(summary: Mapping[str, Any], job: Mapping[str, Any]) -> list[tupl
     rank = population.get("percentile")
     p99_note = (_e(f"人群第 {_num(rank, 0)} 百分位（{population.get('reference_count') or '—'} 例）") if rank is not None
                 else "预测点云空间第 99 百分位")
+    tier = _tier(card, "wss")
+    lead = lambda text: f"{peak_prefix}{' ' if peak_prefix and text[:1].isascii() else ''}{text}"
     return [
-        (_g("p99", "WSS 全场 p99"), _num(peak.get("p99_pa"), 2, " Pa"), p99_note),
-        (_g("max", "全场最大值"), _num(peak.get("max_pa"), 2, " Pa"), _e(f"{peak.get('branch') or '—'}，距入口 {_num(peak.get('s_from_inlet_mm'), 0)} mm")),
-        (_g("area_fraction", f"低 WSS 面积 (&lt; {_num(thresholds[0], 1)} Pa)"), _pct(field.get("area_frac_low")),
-         _num(area_low / 100.0 if isinstance(area_low, (int, float)) else None, 0, " cm²")),
-        (_g("thresholds", f"高 WSS 面积 (&gt; {_num(thresholds[1], 0)} Pa)"), _pct(field.get("area_frac_high")),
-         _e(f"> {_num(thresholds[2], 0)} Pa：{_pct(field.get('area_frac_very_high'))}")),
+        (_g("p99", _e(lead("WSS 全场 p99"))) + tier, _sig(peak.get("p99_pa"), " Pa"), p99_note),
+        (_g("max", _e(lead("全场最大值"))) + tier, _sig(peak.get("max_pa"), " Pa"),
+         _e(f"{peak.get('branch') or '—'}，距入口 {_sig(peak.get('s_from_inlet_mm'))} mm；单点值，仅作参考")),
+        (_g("area_fraction", f"{_e(lead('低 WSS 面积'))} (&lt; {_e(f'{float(thresholds[0]):g}')} Pa)") + tier, _pct(field.get("area_frac_low")),
+         _sig(area_low / 100.0 if isinstance(area_low, (int, float)) else None, " cm²")),
+        (_g("thresholds", f"{_e(lead('高 WSS 面积'))} (&gt; {_e(f'{float(thresholds[1]):g}')} Pa)") + tier, _pct(field.get("area_frac_high")),
+         _e(f"> {float(thresholds[2]):g} Pa：{_pct(field.get('area_frac_very_high'))}")),
     ]
 
 
@@ -260,7 +358,7 @@ def _largest(rows: Mapping[str, Any], area) -> str:
     return name
 
 
-def _cycle_cards(summary: Mapping[str, Any]) -> list[tuple[str, str, str]]:
+def _cycle_cards(summary: Mapping[str, Any], card: Mapping[str, Any] | None = None) -> list[tuple[str, str, str]]:
     """The §19.2 cards (+ the v0.13 RRT / ECAP card); every number comes from ``summary["cycle"]``."""
     cycle = _map(summary.get("cycle"))
     fields = _map(cycle.get("fields"))
@@ -268,27 +366,27 @@ def _cycle_cards(summary: Mapping[str, Any]) -> list[tuple[str, str, str]]:
     cards = []
     if tawss:
         t = tawss.get("thresholds") if isinstance(tawss.get("thresholds"), list) and tawss.get("thresholds") else [0.4]
-        cards.append((_g("tawss", "TAWSS 均值"), _num(tawss.get("mean"), 2, " Pa"),
-                      _e(f"低 TAWSS (< {_num(t[0], 1)} Pa) {_pct(_map(tawss.get('area_frac')).get('low'))}；p99 {_num(tawss.get('p99'), 2)} Pa")))
+        cards.append((_g("tawss", "TAWSS 均值") + _tier(card, "tawss"), _sig(tawss.get("mean"), " Pa"),
+                      _e(f"低 TAWSS (< {float(t[0]):g} Pa) {_pct(_map(tawss.get('area_frac')).get('low'))}；p99 {_sig(tawss.get('p99'))} Pa")))
     if osi:
         t = osi.get("thresholds") if isinstance(osi.get("thresholds"), list) and len(osi.get("thresholds")) == 3 else [0.1, 0.2, 0.3]
         frac = _map(osi.get("area_frac"))
-        cards.append((_g("osi", "OSI 均值"), _num(osi.get("mean"), 3),
+        cards.append((_g("osi", "OSI 均值") + _tier(card, "osi"), _sig(osi.get("mean")),
                       _e(f"OSI > {t[0]:g}：{_pct(frac.get('above_t0'))}；> {t[2]:g}：{_pct(frac.get('above_t2'))}")))
     rrt, ecap = _map(fields.get("rrt")), _map(fields.get("ecap"))
     if rrt or ecap:
         # v0.13 derived indices share one card (1/Pa); thresholds come from the summary block.
         def above(block, fallback):
             t = block.get("thresholds") if isinstance(block.get("thresholds"), list) and block.get("thresholds") else [fallback]
-            return f"> {_num(t[0], 1)}：{_pct(_map(block.get('area_frac')).get('above_t0'))}"
-        value = " / ".join(_num(block.get("mean"), 2) for block in (rrt, ecap) if block)
+            return f"> {float(t[0]):g}：{_pct(_map(block.get('area_frac')).get('above_t0'))}"
+        value = " / ".join(_sig(block.get("mean")) for block in (rrt, ecap) if block)
         note = "；".join(part for part in ((f"RRT {above(rrt, 5.0)}" if rrt else ""), (f"ECAP {above(ecap, 1.4)}" if ecap else "")) if part)
         title = _g("rrt", "RRT") + " / " + _g("ecap", "ECAP") + " 均值" if rrt and ecap else (_g("rrt", "RRT 均值") if rrt else _g("ecap", "ECAP 均值"))
-        cards.append((title, value + " Pa⁻¹", _e(note)))
+        cards.append((title + _tier(card, "rrt" if rrt else "ecap"), value + " Pa⁻¹", _e(note)))
     if stagnation:
         area = stagnation.get("area_mm2")
         where = _largest(_map(stagnation.get("per_branch")), lambda row: row.get("area_mm2"))
-        cards.append((_g("stagnation", "滞留区面积"), _num(area / 100.0 if isinstance(area, (int, float)) else None, 0, " cm²"),
+        cards.append((_g("stagnation", "滞留区面积") + _tier(card, "stagnation"), _sig(area / 100.0 if isinstance(area, (int, float)) else None, " cm²"),
                       _e(f"占壁面 {_pct(stagnation.get('area_frac'))}" + (f"；主要位于{where}" if where else "") + "；TAWSS < 0.4 Pa 且 OSI > 0.1")))
     return cards
 
@@ -297,29 +395,36 @@ def _drops(summary: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     return [item for item in _findings(summary) if item.get("kind") == "pressure_drop"]
 
 
-def _volume_cards(summary: Mapping[str, Any]) -> list[tuple[str, str, str]]:
+def _volume_cards(summary: Mapping[str, Any], card: Mapping[str, Any] | None = None) -> list[tuple[str, str, str]]:
     stats = _map(summary.get("volume_statistics"))
     speed, interior, wall = _map(stats.get("speed_m_s")), _map(stats.get("pressure_interior_pa")), _map(stats.get("pressure_wall_pa"))
-    cards = [(_g("speed", "体内速度 p99"), _num(speed.get("p99"), 3, " m/s"), _e(f"均值 {_num(speed.get('mean'), 3)}，最大 {_num(speed.get('max'), 3)} m/s"))]
+    cards = [(_g("speed", "体内速度 p99") + _tier(card, "speed"), _sig(speed.get("p99"), " m/s"),
+              _e(f"均值 {_sig(speed.get('mean'))}，最大 {_sig(speed.get('max'))} m/s"))]
     aorta = next((item for item in _drops(summary) if item.get("branch") == "主动脉"), None)
     if aorta is not None:
         value = aorta.get("value")
-        mmhg = _num(float(value) / 133.322, 2) if isinstance(value, (int, float)) else "—"
-        cards.append((_g("delta_p", "主动脉近远端压差"), _num(value, 1, " Pa"), _e(f"≈ {mmhg} mmHg；近端 10% − 远端 10%")))
-    cards += [(_g("relative_pressure", "体内相对压力范围"), _e(f"{_num(interior.get('min'), 0)} ～ {_num(interior.get('max'), 0)} Pa"), "相对于该帧体积平均压力"),
-              ("壁面相对压力范围", _e(f"{_num(wall.get('min'), 0)} ～ {_num(wall.get('max'), 0)} Pa"), "壁面查询点，Gaussian 插值到顶点")]
+        mmhg = _sig(float(value) / 133.322) if isinstance(value, (int, float)) else "—"
+        cards.append((_g("delta_p", "主动脉近远端压差") + _tier(card, "delta_p"), _sig(value, " Pa"), _e(f"≈ {mmhg} mmHg；近端 10% − 远端 10%")))
+    cards += [(_g("relative_pressure", "体内相对压力范围") + _tier(card, "pressure"),
+               _e(f"{_sig(interior.get('min'))} ～ {_sig(interior.get('max'))} Pa"), "相对于该帧体积平均压力"),
+              ("壁面相对压力范围" + _tier(card, "wall_pressure"), _e(f"{_sig(wall.get('min'))} ～ {_sig(wall.get('max'))} Pa"), "壁面查询点，插值到顶点")]
     lines = _map(summary.get("streamlines"))
     if lines:
-        cards.append((_g("streamlines", "流线"), _e(f"{lines.get('line_count', '—')} 条"), "固定帧稳态积分，非粒子轨迹"))
+        cards.append((_g("streamlines", "流线") + _tier(card, "streamlines"), _e(f"{lines.get('line_count', '—')} 条"), "固定帧稳态积分，非粒子轨迹"))
     return cards
 
 
-def _numbers_section(summary: Mapping[str, Any], job: Mapping[str, Any]) -> str:
+def _numbers_section(summary: Mapping[str, Any], job: Mapping[str, Any], card: Mapping[str, Any] | None = None) -> str:
+    """「关键数字」: C2 — a three-head result leads with the cycle quantities, then the peak frame; C3 — tiers."""
     if family_of(summary) == "volume":
-        cards = _volume_cards(summary)
+        cards = _volume_cards(summary, card)
+    elif has_cycle(summary):
+        # C2: the peak-frame low-WSS share is not a headline next to the low-TAWSS share (the tables keep it).
+        peak = [c for c in _wall_cards(summary, job, card, peak_prefix="峰值帧") if 'data-gloss="area_fraction"' not in c[0]]
+        cards = _cycle_cards(summary, card) + peak + [_quality_card(summary, job)]
     else:
-        cards = _wall_cards(summary, job) + _cycle_cards(summary) + [_quality_card(summary, job)]
-    return "<h2>关键数字</h2>" + _cards(cards)
+        cards = _wall_cards(summary, job, card) + [_quality_card(summary, job)]
+    return "<h2>关键数字</h2>" + _cards(cards) + f'<p class="muted tiers">{_e(TIER_NOTE)}</p>'
 
 
 def _reliability(morphology: Mapping[str, Any]) -> tuple[str, list[str], list[str]]:
@@ -336,28 +441,30 @@ def _reliability(morphology: Mapping[str, Any]) -> tuple[str, list[str], list[st
     return line, detail, other
 
 
-def _morphology_section(summary: Mapping[str, Any]) -> str:
-    """「瘤体形态」: largest section, sac, neck, lumen volume and the reference diameter."""
+def _morphology_section(summary: Mapping[str, Any], card: Mapping[str, Any] | None = None) -> str:
+    """「瘤体形态」: largest section, sac, neck, lumen volume and the reference diameter (all of the lumen, C1)."""
     morphology = _map(summary.get("morphology"))
     aorta = _map(morphology.get("aorta"))
     largest, sac, neck = _map(aorta.get("max")), _map(aorta.get("sac")), _map(aorta.get("neck"))
     if not largest:
         return ""
+    tier = _tier(card, "max_diameter")
     cards = [
-        (_g("max_diameter", "最大直径"), _num(largest.get("max_diameter_mm"), 1, " mm"),
-         _e(f"距入口 {_num(largest.get('distance_from_inlet_mm'), 0)} mm；等效直径 {_num(largest.get('equivalent_diameter_mm'), 1)} mm")),
-        (_g("aneurysm_sac", "瘤体"), (_e(f"{_num(sac.get('length_mm'), 0)} mm") if sac.get("present") else "未见"),
-         _e(f"体积约 {_num(sac.get('volume_ml'), 0)} mL；判据 ≥ {_num(sac.get('threshold_mm'), 1)} mm" if sac.get("present")
-            else f"主动脉最大等效直径 < 1.5 × 参考直径 {_num(aorta.get('reference_diameter_mm'), 1)} mm")),
-        (_g("aneurysm_neck", "近端瘤颈"), (_e(f"{_num(neck.get('length_mm'), 0)} mm") if neck.get("present") else "未给出"),
-         _e(f"平均直径 {_num(neck.get('diameter_mean_mm'), 1)} mm（{_num(neck.get('diameter_min_mm'), 1)}–{_num(neck.get('diameter_max_mm'), 1)}）"
+        (_g("max_diameter", "管腔最大直径") + tier, _sig(largest.get("max_diameter_mm"), " mm"),
+         _e(f"距入口 {_sig(largest.get('distance_from_inlet_mm'))} mm；等效直径 {_sig(largest.get('equivalent_diameter_mm'))} mm；不含附壁血栓与管壁")),
+        (_g("aneurysm_sac", "瘤体") + tier, (_e(_sig(sac.get("length_mm"), " mm")) if sac.get("present") else "管腔未见"),
+         _e(f"体积约 {_sig(sac.get('volume_ml'))} mL；判据 ≥ {_sig(sac.get('threshold_mm'))} mm（管腔）" if sac.get("present")
+            else f"管腔最大等效直径 < 1.5 × 参考直径 {_sig(aorta.get('reference_diameter_mm'))} mm；不能据此排除动脉瘤")),
+        (_g("aneurysm_neck", "近端瘤颈") + tier, (_e(_sig(neck.get("length_mm"), " mm")) if neck.get("present") else "未给出"),
+         _e(f"平均管腔直径 {_sig(neck.get('diameter_mean_mm'))} mm（{_sig(neck.get('diameter_min_mm'))}–{_sig(neck.get('diameter_max_mm'))}）"
             if neck.get("present") else "瘤体近端无持续 < 1.2 × 参考直径的区段")),
-        (_g("lumen_volume", "全腔体积"), _num(morphology.get("lumen_volume_ml"), 0, " mL"),
-         _g("reference_diameter", _e(f"参考直径 {_num(aorta.get('reference_diameter_mm'), 1)} mm（等效直径第 10 百分位）"))),
+        (_g("lumen_volume", "全腔体积") + tier, _sig(morphology.get("lumen_volume_ml"), " mL"),
+         _g("reference_diameter", _e(f"参考直径 {_sig(aorta.get('reference_diameter_mm'))} mm（等效直径第 10 百分位）"))),
     ]
     line, _, other = _reliability(morphology)
     notes = "；".join(([line] if line else []) + other)
-    return f'<h2>瘤体形态<small>逐分支明细与方法见附录</small></h2>{_cards(cards, klass="morph")}' + (f'<p class="muted">{_e(notes)}</p>' if notes else "")
+    return (f'<h2>瘤体形态（管腔）<small>输入是管腔面，不含附壁血栓与管壁；逐分支明细与方法见附录</small></h2>{_cards(cards, klass="morph")}'
+            + (f'<p class="muted">{_e(notes)}</p>' if notes else ""))
 
 
 def _findings(summary: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -379,6 +486,8 @@ def _findings_review(summary: Mapping[str, Any]) -> tuple[Mapping[str, Any], lis
 def _severity(item: Mapping[str, Any]) -> str:
     severity = str(item.get("severity") or "")
     label = "几何" if item.get("kind") in GEOMETRY_KINDS else SEVERITY_LABELS.get(severity, severity)
+    if label and item.get("grading") == "no_reference":
+        label += "（无队列参照，不定级）"      # U11: high-WSS items without a same-protocol cohort reference
     return f'<span class="sev {_e(severity)}">{_e(label)}</span>' if label else ""
 
 
@@ -479,7 +588,7 @@ def _timeline_section(timeline: Mapping[str, Any] | None, summary: Mapping[str, 
               else ("wss_p99_pa", "stagnation_frac") if has_cycle(summary) else ("wss_p99_pa",))
     models = [_map(_map(scan.get("models")).get(rid)) for scan in scans]
     metrics = [key for key in wanted if any(model.get(key) is not None for model in models)]
-    headers = ["扫描", _g("max_diameter", "最大直径 mm"), _g("aneurysm_sac", "瘤体体积 mL")]
+    headers = ["扫描", _g("max_diameter", "管腔最大直径 mm"), _g("aneurysm_sac", "瘤体体积 mL")]
     headers += [_e(f"{TIMELINE_METRICS[key][0]}{'' if TIMELINE_METRICS[key][1] == '%' else ' ' + TIMELINE_METRICS[key][1]}") for key in metrics]
     rows = []
     shown = list(zip(scans, models))[-TIMELINE_ROWS:]
@@ -492,13 +601,13 @@ def _timeline_section(timeline: Mapping[str, Any] | None, summary: Mapping[str, 
         values = []
         for key in metrics:
             _, units, digits = TIMELINE_METRICS[key]
-            values.append(_pct(model.get(key), 0) if units == "%" else _num(model.get(key), digits))
-        rows.append([cell, _num(geometry.get("max_diameter_mm"), 1),
-                     _num(geometry.get("sac_volume_ml"), 0) if geometry.get("sac_present", True) else "未见", *values])
+            values.append(_pct(model.get(key), 0) if units == "%" else _sig(model.get(key)))
+        rows.append([cell, _sig(geometry.get("max_diameter_mm")),
+                     _sig(geometry.get("sac_volume_ml")) if geometry.get("sac_present", True) else "未见", *values])
     growth_parts = []
     for block_key, label in (("growth", "首末"), ("growth_recent", "最近两次")):
         growth = _map(data.get(block_key))
-        for key, name, units in (("max_diameter_mm", "最大直径", "mm/年"), ("sac_volume_ml", "瘤体体积", "mL/年")):
+        for key, name, units in (("max_diameter_mm", "管腔最大直径", "mm/年"), ("sac_volume_ml", "瘤体体积", "mL/年")):
             item = _map(growth.get(key))
             rate = item.get("per_year")
             if isinstance(rate, (int, float)) and not isinstance(rate, bool):
@@ -528,11 +637,12 @@ def _signature_section(summary: Mapping[str, Any], job: Mapping[str, Any], templ
     return f'<section class="sign">{body}</section>{record}'
 
 
-def _footer(summary: Mapping[str, Any], job: Mapping[str, Any], template: Mapping[str, Any], page: str) -> str:
+def _footer(summary: Mapping[str, Any], job: Mapping[str, Any], template: Mapping[str, Any], page: str,
+            card: Mapping[str, Any] | None = None) -> str:
     note = str(template.get("footer_note") or "").strip()
     note_html = ("；" + "<br>".join(_e(line) for line in note.splitlines() if line.strip())) if note else ""
     return (f'<footer class="pf"><span>{_e(FOOTER_STATEMENT)}{note_html}</span>'
-            f'<span>{_e(_release_short(summary, job))} · 任务 {_e(job.get("id") or "—")} · {_e(page)}</span></footer>')
+            f'<span>{_e(_model_name(summary, job, card))} · 任务 {_e(job.get("id") or "—")} · {_e(page)}</span></footer>')
 
 
 # ----------------------------------------------------------------------------- appendix
@@ -547,7 +657,7 @@ def _branch_table(summary: Mapping[str, Any]) -> str:
     stag_b = _map(_map(cycle.get("stagnation")).get("per_branch"))
     drops = {str(item.get("branch")): item for item in _drops(summary)}
     names = list(dict.fromkeys([*morphology, *(per_branch if family == "wall" else drops), *geometry]))
-    headers = ["分支", "长度 mm", _g("tortuosity", "扭曲度"), _g("max_diameter", "直径 mm"), "狭窄指数"]
+    headers = ["分支", "长度 mm", _g("tortuosity", "扭曲度"), _g("max_diameter", "管腔直径 mm"), "狭窄指数"]
     if family == "wall":
         headers += ["面积 cm²", "WSS 均值", "WSS p99", "WSS 最大", "低 WSS", "高 WSS"]
         if tawss_b or osi_b or stag_b:
@@ -560,27 +670,27 @@ def _branch_table(summary: Mapping[str, Any]) -> str:
         length = m.get("length_mm") if m.get("length_mm") is not None else g.get("length_mm")
         tortuosity = m.get("tortuosity") if m.get("tortuosity") is not None else g.get("tortuosity")
         if m.get("diameter_min_mm") is not None:
-            diameter = f"{_num(m.get('diameter_min_mm'), 1)}–{_num(m.get('diameter_max_mm'), 1)}"
+            diameter = f"{_sig(m.get('diameter_min_mm'))}–{_sig(m.get('diameter_max_mm'))}"
         else:
-            diameter = f"{_num(2 * g['radius_min_mm'] if isinstance(g.get('radius_min_mm'), (int, float)) else None, 1)}–{_num(g.get('max_diameter_mm'), 1)}"
-        row = [_e(name), _num(length, 0), _num(tortuosity, 2), _e(diameter), _num(g.get("stenosis_index"), 2)]
+            diameter = f"{_sig(2 * g['radius_min_mm'] if isinstance(g.get('radius_min_mm'), (int, float)) else None)}–{_sig(g.get('max_diameter_mm'))}"
+        row = [_e(name), _sig(length), _sig(tortuosity), _e(diameter), _sig(g.get("stenosis_index"))]
         if family == "wall":
             area = w.get("area_mm2")
-            row += [_num(area / 100.0 if isinstance(area, (int, float)) else None, 0),
-                    _num(w.get("wss_mean_pa") if w.get("wss_mean_pa") is not None else m.get("wss_mean_pa"), 2),
-                    _num(w.get("wss_p99_pa") if w.get("wss_p99_pa") is not None else m.get("wss_p99_pa"), 2), _num(w.get("wss_max_pa"), 1),
+            row += [_sig(area / 100.0 if isinstance(area, (int, float)) else None),
+                    _sig(w.get("wss_mean_pa") if w.get("wss_mean_pa") is not None else m.get("wss_mean_pa")),
+                    _sig(w.get("wss_p99_pa") if w.get("wss_p99_pa") is not None else m.get("wss_p99_pa")), _sig(w.get("wss_max_pa")),
                     _pct(w.get("frac_low") if w.get("frac_low") is not None else m.get("area_frac_low"), 0),
                     _pct(w.get("frac_high") if w.get("frac_high") is not None else m.get("area_frac_high"), 0)]
             if tawss_b or osi_b or stag_b:
-                row += [_num(_map(tawss_b.get(name)).get("mean"), 2), _num(_map(osi_b.get(name)).get("mean"), 3),
+                row += [_sig(_map(tawss_b.get(name)).get("mean")), _sig(_map(osi_b.get(name)).get("mean")),
                         _pct(_map(stag_b.get(name)).get("frac"), 0)]
         else:
             drop = _map(drops.get(name))
             value = drop.get("value") if drop.get("value") is not None else m.get("delta_p_pa")
-            row += [_num(value, 1), _num(float(value) / 133.322, 2) if isinstance(value, (int, float)) else "—",
-                    _num(m.get("speed_mean_m_s"), 3), _num(m.get("speed_max_m_s"), 3)]
+            row += [_sig(value), _sig(float(value) / 133.322) if isinstance(value, (int, float)) else "—",
+                    _sig(m.get("speed_mean_m_s")), _sig(m.get("speed_max_m_s"))]
         rows.append(row)
-    notes = ["直径为壁面网格截面的最大 Feret 直径（没有形态测量时为中心线内切直径）；扭曲度 = 中心线弧长 / 两端直线距离；分叉附近的截面会同时切到母血管，该处直径偏大。"]
+    notes = ["直径为管腔截面的最大 Feret 直径（没有形态测量时为中心线内切直径），不含附壁血栓与管壁；扭曲度 = 中心线弧长 / 两端直线距离；分叉附近的截面会同时切到母血管，该处直径偏大。"]
     if family == "volume" and drops:
         first = next(iter(drops.values()))
         notes.append(f"各分支近远端压差：{first.get('definition') or '近端与远端弧长段相对压力均值之差'}")
@@ -616,6 +726,15 @@ def _findings_section(summary: Mapping[str, Any]) -> str:
         out += '<p class="muted">☑ 审阅人已确认；☐ 尚未判定；【人工】为审阅人手动添加；驳回项单列在下方。</p>'
     if rejected:
         out += '<h3>附录：已驳回的自动发现</h3>' + _table(headers, [_finding_row(item, decision) for item, decision in rejected], klass="findings")
+    legacy = [item for item in (_map(_map(summary.get("findings")).get("review")).get("legacy") or []) if isinstance(item, Mapping)]
+    if legacy:
+        # 2026-09-30: decisions made under the previous listing rules that no longer match a finding; kept, not applied.
+        rows = [[_e(item.get("id") or ""), _e(str(item.get("label") or item.get("kind") or "")), _e(item.get("branch") or "—"),
+                 _e(_value_text(item.get("value"), item.get("units"))) if item.get("value") is not None else "—",
+                 _e(DECISION_LABELS.get(item.get("decision"), "☐ 未判定")), _e(str(item.get("reason") or "") + ("；备注：" + str(item["note"]) if item.get("note") else ""))]
+                for item in legacy]
+        out += ('<h3>规则更新前的判定<small>发现规则更新后找不到对应发现，保留原判定但不套用</small></h3>'
+                + _table(["原编号", "发现", "分支", "数值", "原判定", "说明"], rows, klass="findings"))
     return out
 
 
@@ -659,11 +778,13 @@ def _morphology_details(summary: Mapping[str, Any]) -> str:
         return ""
     method = _map(morphology.get("method"))
     station = morphology.get("station_mm") or 1.0
+    equivalent = str(method.get("equivalent_diameter") or "2·sqrt(面积/π)")
+    equivalent = equivalent if equivalent.startswith("等效直径") else f"等效直径 = {equivalent}"
     explanation = (f"沿中心线每 {_num(station, 0)} mm 取一站，以局部切线为法向切壁面网格；"
-                   f"{method.get('max_diameter') or '最大直径为轮廓上最远两点的距离'}，"
-                   f"{method.get('equivalent_diameter') or '等效直径 = 2·sqrt(面积/π)'}。")
+                   f"管腔最大直径 = {method.get('max_diameter') or '轮廓上最远两点的距离'}；{equivalent}。"
+                   "输入是管腔面，所有直径、长度和体积都是管腔的，不含附壁血栓与管壁。")
     line, detail, _ = _reliability(morphology)
-    return ('<h2>瘤体形态方法与截面可靠性</h2>'
+    return ('<h2>瘤体形态（管腔）方法与截面可靠性</h2>'
             + f'<p class="muted">{_g("equivalent_diameter", _e(explanation))}</p>'
             + (f'<p class="muted">{_e(line)}：{_e("；".join(detail))}</p>' if detail else (f'<p class="muted">{_e(line)}</p>' if line else "")))
 
@@ -708,8 +829,11 @@ def _identity_section(summary: Mapping[str, Any], job: Mapping[str, Any]) -> str
     tags = meta.get("tags") if isinstance(meta.get("tags"), list) else []
     frame = "收缩期峰值帧（step 1162，约 0.21 s）" + ("；TAWSS / OSI：单周期 0.8 s、80 帧" if has_cycle(summary) else "")
     pairs = [
-        ("匿名病例编号", _e(summary.get("case_id") or job.get("case_id") or "—")),
-        ("匿名患者编号", _e(meta.get("patient_id") or job.get("patient_id") or "—")),
+        # C7 (2026-09-30): the case name comes from the uploaded file name and may be a person's name — it is
+        # not an anonymous id; the page is titled by the display name (patient id when entered).
+        ("显示名", _e(display_name(summary, job))),
+        ("病例名（取自上传文件名，可能含姓名）", _e(summary.get("case_id") or job.get("case_id") or "—")),
+        ("患者编号", _e(meta.get("patient_id") or job.get("patient_id") or "—")),
         ("扫描标签 / 日期", _e(" / ".join(x for x in (meta.get("scan_label") or job.get("scan_label") or "", meta.get("scan_date") or job.get("scan_date") or "") if x) or "—")),
         ("标签", _e("、".join(str(t) for t in tags) or "—")),
         ("任务编号", _e(job.get("id") or "—")),
@@ -722,6 +846,38 @@ def _identity_section(summary: Mapping[str, Any], job: Mapping[str, Any]) -> str
         (_g("cycle_period" if has_cycle(summary) else "fixed_frame", "时间帧"), _e(frame)),
     ]
     return "<h2>身份与哈希</h2>" + _kv(pairs)
+
+
+def _validation_section(card: Mapping[str, Any] | None, summary: Mapping[str, Any]) -> str:
+    """C3: 「模型验证」 — one row per quantity from the release's model card (tier, held-out agreement, usage)."""
+    from .model_cards import validation_rows
+    if not isinstance(card, Mapping):
+        return ('<h2>模型验证</h2><p class="muted">该发布包没有模型说明卡；与 CFD 的一致性未在本页列出。'
+                '多模型一致只说明几个模型之间差异小，一致不代表准确。</p>')
+    validation = _map(card.get("validation"))
+    holdout = validation.get("holdout_n")
+    agree_head = f"与 CFD 的一致性（{holdout} 例留出）" if isinstance(holdout, int) else "与 CFD 的一致性"
+    rows = [[_e(row["label"]), f'<span class="tier">{_e(row["tier_label"])}</span>', _e(row.get("agreement") or "—"),
+             _e(row.get("usage") or "—")] for row in validation_rows(card)]
+    training = _map(card.get("training"))
+    parts = []
+    if isinstance(training.get("n_train"), int):
+        cohorts = "、".join(str(c) for c in training.get("cohorts") or [])
+        parts.append(f"训练 {training['n_train']} 例" + (f"（{cohorts}）" if cohorts else "")
+                     + (f"，留出 {training['n_holdout']} 例" if isinstance(training.get("n_holdout"), int) else ""))
+    notes = [str(validation.get("r2_note") or ""), str(validation.get("note") or ""), "；".join(parts),
+             "多模型一致只说明几个模型之间差异小，一致不代表准确；与 CFD 的一致性以上表为准。",
+             str(card.get("usage_note") or "")]
+    protocol = [str(item) for item in card.get("protocol") or [] if isinstance(item, str)]
+    weak = [str(item) for item in card.get("weaknesses") or [] if isinstance(item, str)]
+    body = _table(["量", "来源", agree_head, "怎么用"], rows, klass="validation", raw_headers=False)
+    body += "".join(f'<p class="muted">{_e(note)}</p>' for note in notes if note.strip())
+    if protocol:
+        body += '<h3>CFD 协议假设</h3><ul class="limits">' + "".join(f"<li>{_e(item)}</li>" for item in protocol) + "</ul>"
+    if weak:
+        body += '<h3>已知薄弱处</h3><ul class="limits">' + "".join(f"<li>{_e(item)}</li>" for item in weak) + "</ul>"
+    title = " · ".join(str(x) for x in (card.get("display_name"), card.get("version_date")) if x)
+    return f'<h2>模型验证<small>{_e(title)}</small></h2>' + body
 
 
 def _glossary_section(mode: str, used: list[str]) -> str:
@@ -759,6 +915,8 @@ table.wide{font-size:8.5px}table.wide td,table.wide th{padding:2px 3px}table.nar
 table.top td:nth-child(4){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}table.top td:nth-child(1){width:7mm;color:var(--muted)}
 table.findings td:nth-child(7){font-size:8.5px;color:#3f5a72}table.findings td:nth-child(n+3):nth-child(-n+6){white-space:nowrap}
 table.glossary{font-size:8.5px}table.glossary td:first-child{width:24%;white-space:nowrap;color:#2c4a66}
+.tier{display:inline-block;margin-left:3px;padding:0 3px;border:1px solid #c6ccd2;border-radius:2px;font-size:8px;line-height:1.3;color:#465361;background:none;vertical-align:1px;white-space:nowrap}
+p.tiers{font-size:8.5px}table.validation td:nth-child(2){white-space:nowrap}ul.limits{margin:2px 0 0 16px;padding:0;font-size:9.5px;color:#3f5a72}ul.limits li{margin:1px 0}
 .sev{display:inline-block;padding:0 5px;border-radius:7px;font-size:8.5px;white-space:nowrap}.sev.attention{background:#fbe3dc;color:#9c3a22}.sev.note{background:#fdf0dc;color:var(--warn)}.sev.info{background:#e8f1f7;color:var(--accent)}
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:2px 0}.card{background:var(--soft);border-radius:5px;padding:3px 7px 4px;min-width:0}
 .card .label{display:block;font-size:9px;color:var(--muted)}.card strong{display:block;font-size:13px;line-height:1.3;white-space:nowrap}.card small{display:block;font-size:8.5px;line-height:1.3;color:var(--muted);overflow-wrap:anywhere}
@@ -793,44 +951,48 @@ def _auto_title(summary: Mapping[str, Any]) -> str:
 
 def render_onepage(summary: Mapping[str, Any], job: Mapping[str, Any] | None = None, *,
                    job_dir: Path | str | None = None, snapshots: Mapping[str, Any] | None = None,
-                   template: Mapping[str, Any] | None = None, timeline: Mapping[str, Any] | None = None) -> str:
+                   template: Mapping[str, Any] | None = None, timeline: Mapping[str, Any] | None = None,
+                   model_card: Mapping[str, Any] | None = None) -> str:
     """Render the A4 page (+ appendix) as a self-contained HTML string (no scripts, no external resources).
 
     ``job_dir`` enables the 配图 section (PNGs listed in ``snapshots.json`` are embedded as data URIs) and
     selects the institution template (``report_template.load_for_job``); ``template`` overrides it.
     ``timeline`` is the §19.3 patient timeline; with ≥ 2 scans page 1 carries a 「随访变化」 table.
+    ``model_card`` (C3) overrides the release's card (``model_cards.load``) for the tiers and the 「模型验证」 table.
     """
     summary = _map(summary)
     job = _map(job)
     template = _template(job_dir, template)
     title = template.get("report_title") or _auto_title(summary)
-    case_id = summary.get("case_id") or job.get("case_id") or "匿名病例"
+    case_name = display_name(summary, job)          # C7: patient id when entered, else the case name
+    card = model_card if isinstance(model_card, Mapping) else model_card_for(summary, job)
     figures = _snapshot_figures(Path(job_dir) if job_dir else None, snapshots)
     first = "".join([
-        _header(summary, job, template, title), _identity_line(summary, job), _narrative_section(summary),
-        _numbers_section(summary, job), _snapshots_section(figures), _morphology_section(summary),
+        _header(summary, job, template, title), _identity_line(summary, job, card), _narrative_section(summary),
+        _numbers_section(summary, job, card), _snapshots_section(figures), _morphology_section(summary, card),
         _timeline_section(timeline, summary), _top_findings_section(summary),
-        _signature_section(summary, job, template), _footer(summary, job, template, "第 1 页"),
+        _signature_section(summary, job, template), _footer(summary, job, template, "第 1 页", card),
     ])
     pages = [f'<article class="page first">{first}</article>']
     if template.get("appendix", True):
         more = figures[FIRST_PAGE_SNAPSHOTS:]
         body = "".join([
-            f'<h1 class="appendix-title">附录 · {_e(case_id)}</h1>', _branch_table(summary), _findings_section(summary),
+            f'<h1 class="appendix-title">附录 · {_e(case_name)}</h1>', _branch_table(summary), _findings_section(summary),
             _annotations_section(summary), ("<h2>更多配图</h2>" + _shots(more)) if more else "",
             _input_section(summary), _morphology_details(summary), _trust_section(summary),
+            _validation_section(card, summary),
             '<h2>局限性声明</h2><ol class="limits">' + "".join(f"<li>{_e(item)}</li>" for item in limitations(summary)) + "</ol>",
             _timing_section(summary), _identity_section(summary, job),
         ])
         used = re.findall(r'data-gloss="([a-z0-9_]+)"', first + body)
         body += _glossary_section(str(template.get("show_glossary") or "used"), used)
-        pages.append(f'<article class="page appendix">{body}{_footer(summary, job, template, "附录")}</article>')
+        pages.append(f'<article class="page appendix">{body}{_footer(summary, job, template, "附录", card)}</article>')
     toolbar = '<div class="toolbar"><button type="button" onclick="window.print()">打印 / 保存 PDF</button></div>'
     # Layout with pictures is unchanged: page 1 is a full A4 sheet and the appendix starts on a new one.
     body_class = ' class="flow"' if not figures and len(pages) > 1 else ""
     return ('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            f'<title>{_e(title)} · {_e(case_id)}</title><style>{CSS}</style></head><body{body_class}>{toolbar}{"".join(pages)}</body></html>')
+            f'<title>{_e(title)} · {_e(case_name)}</title><style>{CSS}</style></head><body{body_class}>{toolbar}{"".join(pages)}</body></html>')
 
 
-__all__ = ["DECISION_LABELS", "LIMITATIONS", "NO_SNAPSHOTS_HINT", "family_of", "has_cycle", "limitations", "model_count",
-           "render_onepage", "top_findings"]
+__all__ = ["DECISION_LABELS", "LIMITATIONS", "LIMIT_FLOW", "LIMIT_LUMEN", "NO_SNAPSHOTS_HINT", "QUALITY_CAVEAT", "QUALITY_DISPLAY",
+           "display_name", "family_of", "has_cycle", "limitations", "model_card_for", "model_count", "render_onepage", "top_findings"]
