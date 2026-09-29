@@ -118,9 +118,17 @@ class _AuditLog:
     ``<jobs_root>/server.log`` — created 0600 and never rotated from here.  Passwords are never logged."""
     def __init__(self, root: Path):
         self.root, self.handler, self.logger, self.level = Path(root), None, None, None
+        self.operations = None
     def __enter__(self):
         import logging
         from . import server as srv
+        try:
+            from .operations import OperationsStore
+            self.operations = OperationsStore(self.root)
+        except Exception:
+            # Account recovery must still work if the operations disk/database
+            # is damaged. Keep the original service-log audit and say so.
+            print("警告：运维审计库不可用；本次账号操作仍尝试写入服务日志。", file=sys.stderr)
         try:
             from .service import load_config
             path = Path(load_config(self.root).get("log_file") or self.root / "server.log")
@@ -140,13 +148,19 @@ class _AuditLog:
         self.logger = logging.getLogger("wss_deploy.audit"); self.level = self.logger.level
         self.logger.addHandler(self.handler); self.logger.setLevel(logging.INFO)
         return self
-    @staticmethod
-    def line(action: str, **fields) -> None:
+    def line(self, action: str, **fields) -> None:
         import getpass, logging
         try: actor = getpass.getuser()
         except Exception: actor = str(os.getuid())  # noqa: BLE001
         logging.getLogger("wss_deploy.audit").info("cli %s", json.dumps({"action": action, "actor": "cli:" + actor, **fields},
                                                                          ensure_ascii=False, separators=(",", ":"), default=str))
+        if self.operations is not None:
+            try:
+                self.operations.record_event({"action": action, "actor": "cli:" + actor,
+                    "owner": fields.get("target") or fields.get("user"),
+                    "job": (fields.get("jobs") or [None])[0], "source": "cli", "details": fields})
+            except Exception:
+                print("警告：操作已完成，但未能写入运维审计库；请检查服务日志和存储状态。", file=sys.stderr)
     def __exit__(self, *_exc):
         if self.handler is not None:
             self.logger.removeHandler(self.handler); self.logger.setLevel(self.level); self.handler.close()

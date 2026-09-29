@@ -47,7 +47,8 @@ SESSION_SECONDS = 7 * 24 * 3600
 SSE_KEEPALIVE_SECONDS = 15
 SSE_MAX_SECONDS = 3600  # the browser reconnects transparently; bounds a forgotten tab's thread
 STATIC_FILES = {"index.html", "app.js", "app.css", "three.min.js", "OrbitControls.js", "compare.html", "compare.js",
-                "batch_export.js", "report_common.js", "workbench_core.js", "glossary.json"}
+                "batch_export.js", "report_common.js", "workbench_core.js", "glossary.json",
+                "ops.html", "ops.js", "ops.css", "support.html", "support.js"}
 # Responses that may be embedded by our own pages (side-by-side comparison, one-page preview).
 EMBEDDABLE_HTML = {"report.html", "onepage.html"}
 _STATIC_BUILD: dict = {}
@@ -677,9 +678,14 @@ class SessionStore:
 
 class ServiceHTTPServer(ThreadingHTTPServer):
     daemon_threads = True
-    def __init__(self, address, manager, sessions, preferences: PreferenceStore | None = None):
+    def __init__(self, address, manager, sessions, preferences: PreferenceStore | None = None, *, operations=None):
         if ":" in address[0]: self.address_family = socket.AF_INET6
         self.manager, self.sessions = manager, sessions
+        # The operations store is intentionally separate from job.json and the 30-day trash.  It contains
+        # support tickets, a persistent audit journal and explicitly archived STL assets only.
+        from .operations import OperationsStore
+        self.operations = operations or OperationsStore(Path(manager.root))
+        manager.audit_sink = self.operations.record_event
         self.preferences = preferences or PreferenceStore(Path(manager.root) / "preferences")
         self.started_ts = time.time()
         self._stale_cache: tuple[float, int | None] = (0.0, None)
@@ -974,6 +980,15 @@ class Handler(BaseHTTPRequestHandler):
         record = {"action": action, "actor": self._actor(row), "role": row.get("role") or ("local" if not self.server.sessions.shared else None),
                   "ip": self._client_ip(), "jobs": list(job_ids) if isinstance(job_ids, (list, tuple)) else [str(job_ids)], **extra}
         AUDIT.info("http %s", json.dumps(record, ensure_ascii=False, separators=(",", ":"), default=str))
+        self._operations_audit(record, owner=row.get("owner"))
+    def _operations_audit(self, record: dict, *, owner=None) -> None:
+        try:
+            self.server.operations.record_event({"at": _date(time.time()), "action": record["action"],
+                "actor": record.get("actor") or record.get("username"), "owner": owner or record.get("username"),
+                "job": (record.get("jobs") or [None])[0], "source": "http",
+                "details": {key: value for key, value in record.items() if key not in {"action", "actor", "username"}}})
+        except Exception:
+            LOG.exception("Operations journal write failed for %s", record.get("action"))
     def _login_budget(self, client: str, username: str | None, *, method: str) -> None:
         """v0.15: one token from the client-address budget and, when a user name is given, one from that name's budget;
         a refusal answers 429 with ``retry_after`` (body and Retry-After header) and is audited once a minute per key."""
@@ -992,6 +1007,8 @@ class Handler(BaseHTTPRequestHandler):
             name = username if username and self.server.sessions._registered(username) else ("<unknown>" if username else None)
             AUDIT.info("http %s", json.dumps({"action": "login_throttled", "scope": scope, "method": method, "username": name,
                                               "ip": self._client_ip(), "retry_after": wait}, ensure_ascii=False, separators=(",", ":")))
+            self._operations_audit({"action": "login_throttled", "username": name, "scope": scope,
+                                    "method": method, "ip": self._client_ip(), "retry_after": wait})
         raise JobError(message.format(wait=wait), 429, {"retry_after": wait})
     def _content_length(self, limit, message=None) -> int:
         lengths = self.headers.get_all("Content-Length", [])
@@ -1229,16 +1246,30 @@ class Handler(BaseHTTPRequestHandler):
                 from .service import server_summary   # O3: the ``service status`` facts, for administrators only
                 health["summary"] = server_summary(self.server)
             return self._json(health, 200 if path == "/api/health" or health.get("ok") else 503)
-        if path in {"/", "/compare"} or path.startswith("/static/"):
-            name = {"/": "index.html", "/compare": "compare.html"}.get(path) or path.removeprefix("/static/"); file = contained_file(STATIC_DIR, name, STATIC_FILES)
+        if path in {"/", "/compare", "/ops", "/ops/", "/support", "/support/"} or path.startswith("/static/"):
+            # Page shells contain no user data and provide their own login. Every operations API is admin-gated.
+            name = {"/": "index.html", "/compare": "compare.html", "/ops": "ops.html", "/ops/": "ops.html",
+                    "/support": "support.html", "/support/": "support.html"}.get(path) or path.removeprefix("/static/"); file = contained_file(STATIC_DIR, name, STATIC_FILES)
             if not file: raise JobError("文件不存在。", 404)
-            sid, _, fresh = self._session(local_create=path in {"/", "/compare"}); ctype = {".js": "application/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".html": "text/html; charset=utf-8", ".json": "application/json; charset=utf-8"}.get(file.suffix, "application/octet-stream")
+            sid, _, fresh = self._session(local_create=not path.startswith("/static/")); ctype = {".js": "application/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".html": "text/html; charset=utf-8", ".json": "application/json; charset=utf-8"}.get(file.suffix, "application/octet-stream")
             # S10: revalidated with ETag (304) and gzipped; S6: workbench pages allow no inline script.
             return self._send_path(file, ctype, cookie=sid if fresh else None, cache=STATIC_CACHE, etag_prefix="s",
                                    compress=ctype.split(";", 1)[0] in GZIP_TYPES)
         row = self._require_session(); manager = self.server.manager; admin = self._admin(row)
         query, one, integer = self._query(parsed_request)
         all_owners = admin and one("all", "0") == "1"
+        # The console and support store are mounted before the legacy job routes.  They are deliberately
+        # implemented outside the workbench API so its behaviour and owner scoping remain unchanged.
+        if path.startswith("/api/ops/"):
+            if sessions.shared and not admin:
+                raise JobError("运维接口仅限管理员访问。", 403)
+            from .operations_http import handle_get
+            if handle_get(self, row, path, one, integer):
+                return
+        if path.startswith("/api/support/tickets"):
+            from .operations_http import handle_get
+            if handle_get(self, row, path, one, integer):
+                return
         if path == "/api/releases":
             return self._json({"releases": manager.releases()})
         if path == "/api/compare":
@@ -1367,6 +1398,8 @@ class Handler(BaseHTTPRequestHandler):
                     name = typed if valid_username(typed) and sessions._registered(typed) else ("<unknown>" if typed else None)
                     AUDIT.info("http %s", json.dumps({"action": "login_failed", "method": method, "username": name, "ip": client,
                                                       "status": exc.status}, ensure_ascii=False, separators=(",", ":")))
+                    self._operations_audit({"action": "login_failed", "method": method, "username": name,
+                                            "ip": client, "status": exc.status})
                 raise
             if sessions.shared:
                 self.server.login_throttle.refund(client)
@@ -1379,6 +1412,16 @@ class Handler(BaseHTTPRequestHandler):
             if row and sessions.shared: self._audit("logout", row, [])
             return self._json({"authenticated": False}, clear_cookie=True)
         row = self._require_session(mutation=True); admin = self._admin(row)
+        if path.startswith("/api/ops/"):
+            if sessions.shared and not admin:
+                raise JobError("运维接口仅限管理员访问。", 403)
+            from .operations_http import handle_post
+            if handle_post(self, row, path):
+                return
+        if path.startswith("/api/support/tickets"):
+            from .operations_http import handle_post
+            if handle_post(self, row, path):
+                return
         if path == "/api/session/password":
             payload = self._payload()
             if not row.get("username") or sessions.users is None: raise JobError("当前会话不是用户名登录，不能改口令。", 409)
@@ -1690,7 +1733,10 @@ def serve(host: str = "127.0.0.1", port: int = 8765, jobs_root: Path | None = No
         LOG.exception("报告模板代码快照失败；运行中的自动刷新不做代码一致性检查")
     from .registry import preload_all
     threading.Thread(target=preload_all, args=(registry,), name="wss-preload", daemon=True).start()   # releases resident before the first job
-    manager = JobManager(root, registry=registry, legacy_owner=legacy_owner); httpd = ServiceHTTPServer((host, port), manager, sessions); manager.start(); LOG.info("Serving wss_deploy %s on http://%s:%s; pid=%s; jobs=%s; shared=%s; login=%s; releases=%s; default=%s", __version__, host, port, os.getpid(), root, shared, sessions.login_mode(), registry.root, registry.default_id)
+    from .operations import OperationsStore
+    operations = OperationsStore(root)
+    manager = JobManager(root, registry=registry, legacy_owner=legacy_owner, audit_sink=operations.record_event)
+    httpd = ServiceHTTPServer((host, port), manager, sessions, operations=operations); manager.start(); LOG.info("Serving wss_deploy %s on http://%s:%s; pid=%s; jobs=%s; shared=%s; login=%s; releases=%s; default=%s", __version__, host, port, os.getpid(), root, shared, sessions.login_mode(), registry.root, registry.default_id)
     if trust_proxy or cookie_secure_mode() != "auto" or os.environ.get(UMASK_ENV):
         LOG.info("Network options: trust_proxy=%s (loopback peers only); cookie_secure=%s; umask=%s", trust_proxy, cookie_secure_mode(),
                  os.environ.get(UMASK_ENV) or "unchanged")

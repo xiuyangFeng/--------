@@ -23,6 +23,8 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 
 浏览器打开 `http://master:8765/`（校园网内直接访问 master 的地址，或本机 `ssh -L 8765:localhost:8765 <user>@master` 后打开 `http://localhost:8765/`）。
 
+独立运维中心：同一服务下打开 `/ops`，管理员可跨账号查看任务、回收站、审计、工单和 STL 素材库；用户通过 `/support` 提交与跟进工单。现有主页保持原样。使用、权限、素材留存及备份见 [运维中心说明](OPERATIONS.md)。
+
 | 模块 | 作用 | 备注 |
 |---|---|---|
 | `paths.py` | 发布包、vessel_geom、VMTK 解释器路径（可用环境变量 `WSS_DEPLOY_RELEASE / WSS_DEPLOY_VESSEL_GEOM / WSS_DEPLOY_VMTK_PYTHON` 覆盖） | 权重只从 `outputs/wss_deploy_release/<release>/` 读 |

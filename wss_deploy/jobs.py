@@ -296,7 +296,7 @@ def _validate_mapping(job_dir: Path, mapping: dict) -> list[str]:
 class JobManager:
     def __init__(self, root: Path, *, release=None, registry=None, stage_a_fn=None, stage_b_fn=None,
                  mapping_validator=None, legacy_owner: str | None = None, clock=None, offline: bool = False,
-                 precompute_fn=None):
+                 precompute_fn=None, audit_sink=None):
         """``offline`` (v0.14, J3): a maintenance process (``cli jobs claim``) that must not act as the service —
         nothing is marked interrupted or re-queued, no trash / unfinished deletion is purged, and ``start()`` is
         refused.  ``precompute_fn`` overrides ``pipeline.precompute_geometry_cache`` (J2); managers built with
@@ -304,6 +304,8 @@ class JobManager:
         self.root = Path(root).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
         self.offline = bool(offline)
+        # Optional independent operations journal; regular CLI/offline managers keep their existing behaviour.
+        self.audit_sink = audit_sink
         self.release = release
         self.registry = registry
         self.stage_a_fn, self.stage_b_fn = stage_a_fn, stage_b_fn
@@ -377,8 +379,7 @@ class JobManager:
             self._audit(job, action, actor=actor)
         self._publish(job, action)
 
-    @classmethod
-    def _audit(cls, job: dict, action: str, *, actor: str | None = None, **extra) -> None:
+    def _audit(self, job: dict, action: str, *, actor: str | None = None, **extra) -> None:
         """One structured ``wss_deploy.audit`` line per state change (J8): who, what, which release and device."""
         try:
             release = job.get("model_release") if isinstance(job.get("model_release"), dict) else {}
@@ -395,6 +396,11 @@ class JobManager:
                 record["error"] = {key: job["error"].get(key) for key in ("category", "retryable", "diagnostic_id")}
             record.update(extra)
             AUDIT.info("job %s", json.dumps(record, ensure_ascii=False, separators=(",", ":"), default=str))
+            if self.audit_sink is not None:
+                self.audit_sink({"at": _date(time.time()), "action": action, "actor": actor or "system",
+                                 "owner": job.get("owner"), "job": job.get("id"), "status": job.get("status"),
+                                 "source": "job", "details": {k: v for k, v in record.items()
+                                                                  if k not in {"action", "actor", "owner", "job", "status"}}})
         except Exception:  # noqa: BLE001 — logging must never break a state change
             LOG.exception("Audit line for %s failed", job.get("id"))
 

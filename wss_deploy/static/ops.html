@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>运维中心 · WSS 工作台</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/ops.css">
+  <script src="/static/ops.js" defer></script>
+</head>
+<body class="ops-body">
+  <header class="topbar ops-topbar">
+    <a class="brand" href="/" aria-label="返回 WSS 工作台"><span class="brand-mark" aria-hidden="true">W</span><span>WSS <span class="brand-sub">运维中心</span></span></a>
+    <div class="topbar-tools">
+      <span id="ops-connection" class="connection" role="status">正在连接服务…</span>
+      <span id="ops-actor" class="ops-actor" hidden></span>
+      <button id="ops-refresh" type="button" class="text-button">立即刷新</button>
+      <button id="ops-logout" type="button" class="text-button" hidden>退出</button>
+      <a href="/support" class="text-button ops-back">工单入口</a>
+      <a href="/" class="text-button ops-back">返回工作台</a>
+    </div>
+  </header>
+
+  <div id="ops-notice" class="notice" role="alert" hidden></div>
+  <main class="ops-main">
+    <section class="ops-heading">
+      <div>
+        <p class="eyebrow">Operations · 审计与资产</p>
+        <h1>运维和管理系统</h1>
+        <p class="help">跨账号查看任务、工单和操作日志，统一管理可回收的 STL 素材。数据每 10 秒自动刷新。</p>
+      </div>
+      <div class="ops-refresh-state" aria-live="polite"><span id="ops-refresh-dot" class="ops-refresh-dot" aria-hidden="true"></span><span id="ops-last-refresh">尚未刷新</span></div>
+    </section>
+
+    <section id="ops-login" class="card ops-login" hidden aria-labelledby="login-title">
+      <h2 id="login-title">登录运维中心</h2><p id="login-help" class="help">请输入管理员账号和口令。</p>
+      <form id="ops-login-form"><label id="login-mode-wrap">登录方式<select id="login-mode"><option value="password">账号与口令</option><option value="token">访问令牌</option></select></label><div id="login-user-fields"><label>用户名<input id="login-user" autocomplete="username" maxlength="64"></label><label>口令<input id="login-password" type="password" autocomplete="current-password"></label></div><label id="login-token-wrap" hidden>访问令牌<input id="login-token" type="password" autocomplete="current-password"></label><p id="login-error" class="ops-error" role="alert" hidden></p><button id="login-submit" type="submit" class="primary">登录</button></form>
+    </section>
+    <div id="ops-content" class="ops-content" hidden>
+    <nav id="ops-nav" class="ops-nav" aria-label="运维功能">
+      <button type="button" data-view="overview" aria-controls="view-overview" aria-current="page">概览</button>
+      <button type="button" data-view="events" aria-controls="view-events">事件流 <span id="events-nav-dot" hidden aria-label="有新动态">●</span></button>
+      <button type="button" data-view="jobs" aria-controls="view-jobs">任务与回收</button>
+      <button type="button" data-view="tickets" aria-controls="view-tickets">工单</button>
+      <button type="button" data-view="assets" aria-controls="view-assets">STL 素材</button>
+      <button type="button" data-view="users" aria-controls="view-users">用户</button>
+    </nav>
+    <section id="view-overview" class="card ops-overview ops-view" data-panel="overview" aria-labelledby="overview-title">
+      <div class="section-head"><h2 id="overview-title">服务概览</h2><span id="overview-updated" class="help">—</span></div>
+      <div id="overview-cards" class="overview-tiles ops-overview-cards">
+        <div class="ops-loading">读取概览…</div>
+      </div>
+      <div id="overview-warnings" class="ops-attention" hidden></div>
+      <p class="help">点击指标查看对应记录。任务、工单和素材的处理意见会在切换视图时保留。</p>
+      <p id="ops-health" class="help" role="status">正在读取服务状态…</p>
+    </section>
+
+      <section id="view-jobs" class="card ops-panel ops-jobs ops-view" data-panel="jobs" aria-labelledby="jobs-title" hidden>
+        <div class="section-head"><div><h2 id="jobs-title">跨账号任务</h2><p class="help">检索各账号提交记录，选择任务后归档原始 STL；回收站素材需在到期清理前归档。</p></div><button type="button" class="text-button" data-refresh="jobs">刷新</button></div>
+        <form id="jobs-filter" class="ops-filter">
+          <label><span>关键词</span><input id="jobs-query" type="search" placeholder="任务、病例、STL 或备注" maxlength="160"></label>
+          <label><span>提交账号</span><input id="jobs-user" type="text" placeholder="用户名（可选）" maxlength="64"></label>
+          <label><span>任务位置</span><select id="jobs-location"><option value="active">当前任务</option><option value="trash">回收站</option></select></label>
+          <label><span>状态</span><select id="jobs-status"><option value="">全部状态</option><option value="queued">排队中</option><option value="running">计算中</option><option value="awaiting_input">待补充输入</option><option value="awaiting_confirmation">待确认</option><option value="done">已完成</option><option value="failed">失败</option><option value="interrupted">已中断</option><option value="cancelled">已取消</option></select></label>
+          <label><span>回收站到期范围</span><select id="jobs-expiring"><option value="">不限</option><option value="7">7 天内到期</option></select></label>
+          <button class="primary" type="submit">检索</button>
+        </form>
+        <div class="ops-batch-bar"><label class="ops-check"><input id="jobs-select-page" type="checkbox">选择本页</label><span id="jobs-selection-count" role="status">未选择任务</span><button id="jobs-archive-selected" class="primary" type="button" disabled>归档所选 STL</button><button id="jobs-clear-selection" type="button" class="text-button" disabled>清除选择</button></div>
+        <div id="jobs-batch-status" class="help" role="status" hidden></div><ul id="jobs-batch-results" class="ops-batch-results" hidden></ul>
+        <div class="table-wrap"><table class="ops-table"><thead><tr><th>选择</th><th>任务 / 病例</th><th>账号</th><th>状态</th><th>提交时间</th><th>回收站到期</th><th>操作</th></tr></thead><tbody id="jobs-rows"><tr><td colspan="7" class="ops-empty">暂无任务</td></tr></tbody></table></div>
+        <div class="ops-pager"><button id="jobs-prev" type="button" disabled>上一页</button><span id="jobs-page">—</span><button id="jobs-next" type="button" disabled>下一页</button></div>
+      </section>
+
+      <section id="view-tickets" class="card ops-panel ops-tickets ops-view" data-panel="tickets" aria-labelledby="tickets-title" hidden>
+        <div class="section-head"><div><h2 id="tickets-title">工单</h2><p class="help">处理用户反馈、输入确认和数据回收请求。</p></div><button type="button" class="text-button" data-refresh="tickets">刷新</button></div>
+        <form id="tickets-filter" class="ops-filter"><label><span>关键词</span><input id="tickets-query" type="search" maxlength="200" placeholder="主题、工单或任务 ID"></label><label><span>账号</span><input id="tickets-user" maxlength="64"></label><label><span>状态</span><select id="tickets-status"><option value="">全部</option><option value="unresolved">未结工单</option><option value="open">待处理</option><option value="in_progress">处理中</option><option value="resolved">已解决</option><option value="closed">已关闭</option></select></label><label><span>分派情况</span><select id="tickets-unassigned"><option value="">全部</option><option value="true">未分派的未结工单</option></select></label><button type="submit">筛选</button></form>
+        <div class="ticket-layout">
+          <div class="table-wrap"><table class="ops-table"><thead><tr><th>主题</th><th>提交人</th><th>状态</th><th>更新时间</th></tr></thead><tbody id="tickets-rows"><tr><td colspan="4" class="ops-empty">暂无工单</td></tr></tbody></table></div>
+          <aside id="ticket-detail" class="ticket-detail" aria-live="polite"><p class="help">选择工单查看详情。</p></aside>
+        </div>
+        <div class="ops-pager"><button id="tickets-prev" type="button" disabled>上一页</button><span id="tickets-page">—</span><button id="tickets-next" type="button" disabled>下一页</button></div>
+      </section>
+
+    <section id="view-events" class="card ops-panel ops-events ops-view" data-panel="events" aria-labelledby="events-title" hidden>
+      <div class="section-head"><div><h2 id="events-title">事件流</h2><p class="help">按时间查看动态，点开一条查看详情。每 10 秒检查新记录。</p></div><button type="button" class="text-button" data-refresh="events">刷新当前页</button></div>
+      <form id="events-filter" class="ops-filter ops-event-filters">
+        <label><span>关键词</span><input id="events-query" type="search" placeholder="任务、工单、操作或内容" maxlength="200"></label>
+        <label><span>所属账号</span><input id="events-user" type="text" placeholder="全部账号" maxlength="128"></label>
+        <label><span>类别</span><select id="events-category"><option value="">全部类别</option><option value="job">任务</option><option value="auth">登录与认证</option><option value="ticket">工单</option><option value="asset">STL 素材</option><option value="user">用户管理</option></select></label>
+        <label><span>级别</span><select id="events-severity"><option value="">全部级别</option><option value="info">一般</option><option value="warning">需关注</option><option value="error">错误</option></select></label>
+        <details id="events-advanced" class="ops-event-advanced"><summary>更多筛选：时间与操作代码</summary><div class="ops-event-advanced-grid">
+        <label class="ops-event-date"><span>起始时间（本地）</span><input id="events-since" type="datetime-local" step="1"></label>
+        <label class="ops-event-date"><span>截止时间（本地）</span><input id="events-until" type="datetime-local" step="1"></label>
+        <label><span>操作代码（可选）</span><input id="events-action" type="text" placeholder="例如 deleted" maxlength="80"></label>
+        <label><span>每页记录</span><select id="events-limit"><option value="25">25</option><option value="50" selected>50</option><option value="100">100</option></select></label>
+        </div></details>
+        <div class="ops-filter-actions"><button type="submit" class="primary">应用筛选</button><button id="events-reset" type="button">重置</button><button id="events-export" type="button">导出筛选结果 JSON</button></div>
+      </form>
+      <div class="ops-feed-toolbar"><div class="ops-feed-state"><span id="events-live-dot" class="ops-refresh-dot" aria-hidden="true"></span><span id="events-stream-status" role="status">等待连接</span></div><div class="ops-feed-controls"><button id="events-pause" type="button" aria-pressed="false">暂停更新</button><button id="events-latest" type="button">回到最新</button></div></div>
+      <button id="events-new" type="button" class="ops-new-events" hidden>有新动态 · 查看最新</button>
+      <p id="events-window-note" class="help" hidden></p>
+      <div id="events-rows" class="ops-event-feed" aria-label="按时间排列的事件"><p class="ops-empty">正在读取事件…</p></div>
+      <div class="ops-pager"><button id="events-prev" type="button" disabled>上一页</button><span id="events-page">—</span><button id="events-next" type="button" disabled>下一页</button></div>
+    </section>
+
+      <section id="view-assets" class="card ops-panel ops-assets ops-view" data-panel="assets" aria-labelledby="assets-title" hidden>
+        <div class="section-head"><div><h2 id="assets-title">STL 素材库</h2><p class="help">归档原始几何并记录来源，先审阅再决定是否用于后续模型优化。</p></div><button type="button" class="text-button" data-refresh="assets">刷新</button></div>
+        <form id="asset-reclaim" class="asset-reclaim"><label><span>关联任务 ID</span><input id="asset-job" type="text" maxlength="128" placeholder="输入要归档 STL 的任务 ID"></label><label><span>任务位置</span><select id="asset-location"><option value="active">当前任务</option><option value="trash">回收站任务</option></select></label><button type="submit">归档 STL</button></form>
+        <form id="assets-filter" class="ops-filter ops-assets-filter"><label><span>关键词</span><input id="assets-query" type="search" maxlength="200" placeholder="SHA 或备注"></label><label><span>审阅状态</span><select id="assets-status"><option value="">全部</option><option value="candidate">待审阅</option><option value="approved">可复用</option><option value="excluded">已排除</option></select></label><button type="submit">筛选</button></form>
+        <div class="table-wrap"><table class="ops-table"><thead><tr><th>素材 / 来源</th><th>账号</th><th>大小</th><th>审阅状态</th><th>操作</th></tr></thead><tbody id="assets-rows"><tr><td colspan="5" class="ops-empty">暂无素材</td></tr></tbody></table></div>
+        <div class="ops-pager"><button id="assets-prev" type="button" disabled>上一页</button><span id="assets-page">—</span><button id="assets-next" type="button" disabled>下一页</button></div>
+      </section>
+
+      <section id="view-users" class="card ops-panel ops-users ops-view" data-panel="users" aria-labelledby="users-title" hidden>
+        <div class="section-head"><div><h2 id="users-title">用户与权限</h2><p class="help">查看注册信息与任务数量，必要时暂停账号或恢复访问。</p></div><button type="button" class="text-button" data-refresh="users">刷新</button></div>
+        <form id="users-filter" class="ops-filter ops-users-filter"><label><span>用户搜索</span><input id="users-query" type="search" maxlength="200" placeholder="用户名或显示名"></label><label><span>账号状态</span><select id="users-disabled"><option value="">全部账号</option><option value="false">正常账号</option><option value="true">已停用账号</option></select></label><button type="submit">筛选</button></form>
+        <div class="table-wrap"><table class="ops-table"><thead><tr><th>用户</th><th>角色</th><th>注册时间</th><th>任务 / 失败</th><th>状态</th><th></th></tr></thead><tbody id="users-rows"><tr><td colspan="6" class="ops-empty">暂无用户</td></tr></tbody></table></div>
+        <div class="ops-pager"><button id="users-prev" type="button" disabled>上一页</button><span id="users-page">—</span><button id="users-next" type="button" disabled>下一页</button></div>
+      </section>
+    </div>
+  </main>
+  <noscript><p class="notice error">运维中心需要启用 JavaScript。</p></noscript>
+</body>
+</html>
