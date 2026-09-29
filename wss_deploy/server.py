@@ -18,7 +18,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import base64, gzip, hashlib, inspect, ipaddress, json, logging, math, os, re, secrets, shutil, signal, socket, tempfile, threading, time
+import base64, copy, gzip, hashlib, inspect, ipaddress, json, logging, math, os, re, secrets, shutil, signal, socket, tempfile, threading, time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
@@ -52,23 +52,76 @@ STATIC_FILES = {"index.html", "app.js", "app.css", "three.min.js", "OrbitControl
 # Responses that may be embedded by our own pages (side-by-side comparison, one-page preview).
 EMBEDDABLE_HTML = {"report.html", "onepage.html"}
 _STATIC_BUILD: dict = {}
+# Workspace v2 (WORKSPACE_V2_CONTRACT.md §1–§2): files under static/v2/ are served from the lists in its bundle.json;
+# ``generated`` files (the example offline report) only through their own route.
+V2_DIR = STATIC_DIR / "v2"
+V2_SERVED_LISTS = ("scripts", "styles", "pages", "assets", "dev")
+V2_EXAMPLE = "example_report.html"
+V2_EXAMPLE_ROUTE = "/v2/example"
+MAX_OFFLINE_REQUEST_BYTES = 512 * 1024
+MAX_OFFLINE_BOOKMARKS = 200
+_V2_BUNDLE: dict = {}
+STATIC_TYPES = {".js": "application/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".html": "text/html; charset=utf-8",
+                ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".stl": "model/stl"}
 
 
-def static_build_id() -> str:
+def v2_bundle() -> dict:
+    """``static/v2/bundle.json`` (cached by its stat signature); ``{}`` when it is missing or not a JSON object."""
+    path = V2_DIR / "bundle.json"
+    try:
+        stat = path.stat()
+    except OSError:
+        return {}
+    signature = (stat.st_size, stat.st_mtime_ns)
+    if _V2_BUNDLE.get("key") != signature:
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            LOG.warning("static/v2/bundle.json is not readable JSON; the v2 static whitelist is empty")
+            value = {}
+        _V2_BUNDLE.update(key=signature, value=value if isinstance(value, dict) else {})
+    return _V2_BUNDLE.get("value") or {}
+
+
+def v2_static_files() -> set[str]:
+    """Flat file names ``/static/v2/<name>`` may serve: bundle.json's scripts, styles, pages, assets and dev lists."""
+    bundle = v2_bundle()
+    names = set()
+    for key in V2_SERVED_LISTS:
+        value = bundle.get(key)
+        if isinstance(value, list):
+            names.update(name for name in value if isinstance(name, str) and name and "/" not in name and "\\" not in name
+                         and name not in {".", ".."})
+    return names
+
+
+def _build_files(scope: str) -> list[Path]:
+    if scope == "v2":
+        names = sorted(v2_static_files() | {"bundle.json"})
+        legacy = v2_bundle().get("legacy_scripts") if isinstance(v2_bundle().get("legacy_scripts"), list) else []
+        return [V2_DIR / name for name in names] + [STATIC_DIR / name for name in sorted(set(legacy) & STATIC_FILES)]
+    return [STATIC_DIR / name for name in sorted(STATIC_FILES)]
+
+
+def static_build_id(scope: str = "classic") -> str:
     """Short content digest of the workbench's static files (v0.15).  Logged-in pages compare it with the one they
     booted with, so a redeploy that changes only static files (same ``__version__``) still prompts a reload.
-    Cached by the files' stat signature; empty when the directory cannot be read."""
+    Cached by the files' stat signature; empty when the directory cannot be read.
+
+    ``scope="v2"`` digests the workspace v2 files (bundle.json, everything it serves and the legacy scripts it loads)
+    separately, so a v2-only change does not ask users of the classic workbench to reload (and vice versa)."""
     try:
-        names = sorted(name for name in STATIC_FILES if (STATIC_DIR / name).is_file())
-        if not names:
+        files = [path for path in _build_files(scope) if path.is_file()]
+        if not files:
             return ""
-        signature = tuple((name, os.stat(STATIC_DIR / name).st_size, os.stat(STATIC_DIR / name).st_mtime_ns) for name in names)
-        if _STATIC_BUILD.get("key") != signature:
+        signature = tuple((str(path), os.stat(path).st_size, os.stat(path).st_mtime_ns) for path in files)
+        cached = _STATIC_BUILD.get(scope) or {}
+        if cached.get("key") != signature:
             digest = hashlib.sha256()
-            for name in names:
-                digest.update(name.encode("utf-8")); digest.update(b"\0"); digest.update((STATIC_DIR / name).read_bytes())
-            _STATIC_BUILD.update(key=signature, value=digest.hexdigest()[:12])
-        return _STATIC_BUILD.get("value", "")
+            for path in files:
+                digest.update(path.name.encode("utf-8")); digest.update(b"\0"); digest.update(path.read_bytes())
+            _STATIC_BUILD[scope] = {"key": signature, "value": digest.hexdigest()[:12]}
+        return _STATIC_BUILD[scope].get("value", "")
     except OSError:
         return ""
 OUTPUT_FILES = {"report.html", "summary.json", "run_manifest.json", "quality_audit.json", "wall_wss.vtp", "points_wss.csv", "field.npz",
@@ -702,6 +755,8 @@ class ServiceHTTPServer(ThreadingHTTPServer):
         self.cookie_secure = cookie_secure_mode()
         self.gzip_cache = GzipCache(_env_number("WSS_DEPLOY_GZIP_CACHE_MB", DEFAULT_GZIP_CACHE_MB, minimum=0) * 1024 * 1024)
         self.sse_lock = threading.Lock(); self.sse_streams: dict[str, list[dict]] = {}
+        # Workspace v2: serialised (and gzipped) manifests by (job, ETag, encoding); the ETag covers every input.
+        self.v2_bodies: OrderedDict = OrderedDict(); self.v2_bodies_lock = threading.Lock()
         self.tmp_dir = Path(manager.root) / TMP_DIR_NAME
         self._clean_tmp()
         super().__init__(address, Handler)
@@ -780,6 +835,7 @@ class ServiceHTTPServer(ThreadingHTTPServer):
         if not row:
             return out
         out["ui_build"] = static_build_id()   # v0.15: lets an open page notice a static-only redeploy
+        out["ui_build_v2"] = static_build_id("v2")   # the same signal for the workspace v2 files
         if probe is not None:
             checks = probe.get("checks") or {}
             if self.sessions.shared and row.get("role") != "admin" and isinstance(checks, dict):
@@ -1218,6 +1274,187 @@ class Handler(BaseHTTPRequestHandler):
         if len(ids) > limit: raise JobError(f"一次最多处理 {limit} 个任务。")
         if any(not re.fullmatch(JOB_ID_PATTERN, item) for item in ids): raise JobError("任务编号无效。")
         return ids
+    # ------------------------------------------------------------------ workspace v2 (WORKSPACE_V2_CONTRACT.md §1–§2)
+    def _v2_static(self, path: str) -> None:
+        """``/v2/`` (the workspace page, session handling as ``/``), ``/static/v2/<name>`` (bundle.json whitelist,
+        flat) and ``/v2/example`` (the generated example offline report, CSP ``report``, logged-in only)."""
+        if path == V2_EXAMPLE_ROUTE:
+            sid, row, fresh = self._session(local_create=True)
+            if not row:
+                raise JobError("会话已失效，请刷新页面或重新输入访问口令。", 401)
+            file = contained_file(V2_DIR, V2_EXAMPLE, {V2_EXAMPLE})
+            if not file:
+                raise JobError("示例报告尚未生成。", 404)
+            return self._send_path(file, "text/html; charset=utf-8", cookie=sid if fresh else None, csp="report",
+                                   cache=STATIC_CACHE, etag_prefix="x", compress=True)
+        page = path == "/v2/"
+        name = "index.html" if page else path.removeprefix("/static/v2/")
+        file = contained_file(V2_DIR, name, {"index.html"} if page else v2_static_files())
+        if not file:
+            raise JobError("文件不存在。", 404)
+        sid, _, fresh = self._session(local_create=page)
+        ctype = STATIC_TYPES.get(file.suffix.lower(), "application/octet-stream")
+        return self._send_path(file, ctype, cookie=sid if fresh else None, cache=STATIC_CACHE, etag_prefix="s",
+                               compress=ctype.split(";", 1)[0] in GZIP_TYPES)
+
+    V2_RECORD_KEYS = ("id", "status", "stage", "phase", "detail", "version", "error", "case_id", "patient_id", "scan_label",
+                      "scan_date", "created_at", "review", "companions", "companion_of", "narrative", "display_name",
+                      "source_filename", "model_release", "run_identity", "mapping_history", "mapping")
+
+    def _v2_record(self, job_id: str, row: dict) -> tuple[dict, str | None]:
+        """The owner-checked job record fields the v2 data layer reads (administrators read any owner's job, as with
+        ``GET /api/jobs/<id>``), without copying the whole record (events, stage A); plus the stored upload name."""
+        manager = self.server.manager
+        with manager.lock:
+            job = manager._owned(job_id, row["owner"], any_owner=self._admin(row))
+            record = copy.deepcopy({key: job.get(key) for key in self.V2_RECORD_KEYS if key in job})
+            record["input_sha256"] = manager._input_sha256(job) if hasattr(manager, "_input_sha256") else job.get("input_sha256")
+            filename = job.get("filename")
+        return record, filename if isinstance(filename, str) else None
+
+    @staticmethod
+    def _v2_require_done(record: dict) -> None:
+        if record.get("status") != "done":
+            raise JobError("任务完成后才能读取结果数据。", 409, {"status": record.get("status")})
+
+    def _v2_data(self, job_id: str):
+        from . import v2_data
+        try:
+            return v2_data.load(self._job_dir(job_id))
+        except v2_data.DataError as exc:
+            raise JobError(str(exc), exc.status)
+
+    def _v2_card(self, release_id):
+        from . import v2_data
+        registry = getattr(self.server.manager, "registry", None)
+        return v2_data.load_card(release_id, v2_data.release_dir(registry, release_id) if registry is not None and release_id else None)
+
+    def _v2_companions(self, record: dict, row: dict) -> list[dict]:
+        """``companions`` of the record plus, for a companion task, the primary it was spawned from (owner-checked)."""
+        out = [{**item, "role": "companion"} for item in (record.get("companions") or []) if isinstance(item, dict)]
+        primary = record.get("companion_of")
+        if isinstance(primary, str) and re.fullmatch(JOB_ID_PATTERN, primary):
+            try:
+                other, _ = self._v2_record(primary, row)
+                out.insert(0, {"release_id": (other.get("model_release") or {}).get("id"), "job_id": primary, "role": "primary"})
+            except JobError:
+                pass
+        return out
+
+    def _v2_manifest(self, job_id: str, row: dict):
+        from . import v2_data
+        record, filename = self._v2_record(job_id, row)
+        self._v2_require_done(record)
+        data = self._v2_data(job_id)
+        release = record.get("model_release") if isinstance(record.get("model_release"), dict) else {}
+        card = self._v2_card(release.get("id") or release.get("release") or data.report.meta.get("release"))
+        try:
+            manifest = v2_data.build_manifest(data, record, card=card, companions=self._v2_companions(record, row))
+        except v2_data.DataError as exc:
+            raise JobError(str(exc), exc.status)
+        return data, record, manifest, filename
+
+    def _v2_get(self, path: str, row: dict) -> None:
+        from . import v2_data
+        manager = self.server.manager
+        if path == "/api/v2/model-cards":
+            registry = getattr(manager, "registry", None)
+            ids = [item.get("id") for item in manager.releases()] if registry is not None else \
+                [item.get("id") for item in getattr(manager, "_known_releases", lambda: [])()]
+            return self._json({"cards": v2_data.all_cards(registry, ids)})
+        match = re.fullmatch(rf"/api/v2/jobs/({JOB_ID_PATTERN})/manifest", path)
+        if match:
+            _, _, manifest, _ = self._v2_manifest(match[1], row)
+            body = self._serialize(manifest)
+            etag = v2_data.manifest_etag(manifest, body)
+            if etag_matches(self.headers.get("If-None-Match"), etag):
+                return self._not_modified(etag, REPORT_CACHE, vary=True)
+            return self._v2_send_manifest(match[1], body, etag)
+        match = re.fullmatch(rf"/api/v2/jobs/({JOB_ID_PATTERN})/arrays/([^/]+)", path)
+        if match:
+            record, _ = self._v2_record(match[1], row)
+            self._v2_require_done(record)
+            key = match[2]
+            data = self._v2_data(match[1])
+            spec = data.report.specs.get(key) if re.fullmatch(v2_data.ARRAY_KEY_PATTERN, key) else None
+            if spec is None:
+                raise JobError("数组不存在。", 404)
+            etag = data.array_etag(key)
+            if etag_matches(self.headers.get("If-None-Match"), etag):
+                return self._not_modified(etag, REPORT_CACHE)
+            try:
+                body = data.report.raw(key)
+            except v2_data.DataError as exc:
+                raise JobError(str(exc), exc.status)
+            # Raw little-endian bytes, never gzipped (contract §2); dtype and shape repeat the manifest entry.
+            return self._send(200, body, "application/octet-stream", etag=etag, cache=REPORT_CACHE,
+                              headers={"X-WSS-Dtype": spec.dtype, "X-WSS-Shape": ",".join(str(n) for n in spec.shape)})
+        match = re.fullmatch(rf"/api/v2/jobs/({JOB_ID_PATTERN})/inputcheck", path)
+        if match:
+            record, filename = self._v2_record(match[1], row)
+            stage_a = manager.stage_a(match[1]) if hasattr(manager, "stage_a") else None
+            return self._json(v2_data.build_inputcheck(self._job_dir(match[1]), record, stage_a, input_filename=filename))
+        raise JobError("接口不存在。", 404)
+
+    V2_BODY_CACHE = 12
+
+    def _v2_send_manifest(self, job_id: str, body: bytes, etag: str) -> None:
+        """The serialised manifest, gzipped once per ETag (a three-head manifest is ~260 kB and gzip was three quarters
+        of a warm request; the ETag digests the serialised body, so equal tags mean equal bytes)."""
+        gz = self._gzip_ok()
+        key = (job_id, etag, gz)
+        with self.server.v2_bodies_lock:
+            cached = self.server.v2_bodies.get(key)
+            if cached is not None:
+                self.server.v2_bodies.move_to_end(key)
+        if cached is None:
+            encoded = gz and len(body) > GZIP_MIN_BYTES
+            cached = (gzip.compress(body, GZIP_LEVEL, mtime=0) if encoded else body, encoded)
+            with self.server.v2_bodies_lock:
+                self.server.v2_bodies[key] = cached
+                while len(self.server.v2_bodies) > self.V2_BODY_CACHE:
+                    self.server.v2_bodies.popitem(last=False)
+        body, encoded = cached
+        self._write_headers(200, "application/json; charset=utf-8", len(body), cache=REPORT_CACHE, etag=etag,
+                            encoding="gzip" if encoded else None, vary=True)
+        self.wfile.write(body); self._sent = len(body)
+
+    def _v2_offline(self, job_id: str, row: dict) -> None:
+        """``POST /api/v2/jobs/<id>/offline``: the single-file offline page as a download (contract §2, §6.3)."""
+        from . import v2_data, v2_offline
+        payload = self._payload(MAX_OFFLINE_REQUEST_BYTES)
+        hide = payload.get("hide_name", False)
+        if type(hide) is not bool:
+            raise JobError("hide_name 必须是布尔值。")
+        bookmarks = payload.get("bookmarks") if payload.get("bookmarks") is not None else []
+        if not isinstance(bookmarks, list) or len(bookmarks) > MAX_OFFLINE_BOOKMARKS or any(not isinstance(item, dict) for item in bookmarks):
+            raise JobError(f"bookmarks 必须是最多 {MAX_OFFLINE_BOOKMARKS} 个对象的列表。")
+        view = payload.get("view")
+        if view is not None and not isinstance(view, dict):
+            raise JobError("view 必须是对象或 null。")
+        try:
+            json.dumps([bookmarks, view], allow_nan=False)
+        except ValueError:
+            raise JobError("书签或视图含有非有限数值。")
+        data, record, manifest, filename = self._v2_manifest(job_id, row)
+        slots = self.server.bundle_slots
+        if not slots.acquire(timeout=BUNDLE_WAIT_SECONDS):
+            raise JobError("正在生成其他下载，请稍后重试。", 429)
+        try:
+            page = v2_offline.build_offline_html(data, manifest, record={**record, "filename": filename}, hide_name=hide,
+                                                 bookmarks=bookmarks, view=view)
+        except v2_offline.OfflineBuildError as exc:
+            LOG.warning("Offline package of %s not built: %s", job_id, exc)
+            raise JobError(str(exc), 503)
+        except v2_data.DataError as exc:
+            raise JobError(str(exc), exc.status)
+        finally:
+            slots.release()
+        body = page.encode("utf-8")
+        self._audit("offline_export", row, [job_id], hide_name=hide, bytes=len(body))
+        return self._send(200, body, "text/html; charset=utf-8", download=v2_offline.offline_filename(manifest, hide_name=hide),
+                          csp="report", compress=True)
+
     @staticmethod
     def _query(parsed_request):
         query = parse_qs(parsed_request.query, keep_blank_values=True)
@@ -1246,6 +1483,11 @@ class Handler(BaseHTTPRequestHandler):
                 from .service import server_summary   # O3: the ``service status`` facts, for administrators only
                 health["summary"] = server_summary(self.server)
             return self._json(health, 200 if path == "/api/health" or health.get("ok") else 503)
+        if path == "/v2":
+            location = "/v2/" + ("?" + parsed_request.query if parsed_request.query else "")
+            return self._send(301, b"", "text/plain; charset=utf-8", headers={"Location": location})
+        if path in {"/v2/", V2_EXAMPLE_ROUTE} or path.startswith("/static/v2/"):
+            return self._v2_static(path)
         if path in {"/", "/compare", "/ops", "/ops/", "/support", "/support/"} or path.startswith("/static/"):
             # Page shells contain no user data and provide their own login. Every operations API is admin-gated.
             name = {"/": "index.html", "/compare": "compare.html", "/ops": "ops.html", "/ops/": "ops.html",
@@ -1270,6 +1512,8 @@ class Handler(BaseHTTPRequestHandler):
             from .operations_http import handle_get
             if handle_get(self, row, path, one, integer):
                 return
+        if path.startswith("/api/v2/"):
+            return self._v2_get(path, row)
         if path == "/api/releases":
             return self._json({"releases": manager.releases()})
         if path == "/api/compare":
@@ -1422,6 +1666,9 @@ class Handler(BaseHTTPRequestHandler):
             from .operations_http import handle_post
             if handle_post(self, row, path):
                 return
+        match = re.fullmatch(rf"/api/v2/jobs/({JOB_ID_PATTERN})/offline", path)
+        if match:
+            return self._v2_offline(match[1], row)
         if path == "/api/session/password":
             payload = self._payload()
             if not row.get("username") or sessions.users is None: raise JobError("当前会话不是用户名登录，不能改口令。", 409)
