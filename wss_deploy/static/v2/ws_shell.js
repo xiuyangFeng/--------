@@ -981,6 +981,9 @@
     if (!cur || !cur.runIdentity || !cur.result) return;
     var st = null;
     try { st = S.viewerA && S.viewerA.getState ? S.viewerA.getState() : null; } catch (_) { st = null; }
+    // A comparison paints both sides on a shared range; that range belongs to the comparison, not to this result's
+    // reading position (reopening the result alone must not come back on 「固定范围」).
+    if (st && cur.compare) { delete st.scale; delete st.field; }
     store().writeView(cur.runIdentity, {field: cur.field, window: cur.window, viewer: st, split: cur.split ? {field: cur.split.field, window: cur.split.window} : null});
   }
 
