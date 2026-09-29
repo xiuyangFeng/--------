@@ -781,3 +781,20 @@ body `{"version": n, "case_id": "…", "patient_id": "…", "scan_label": "…",
 ### 26.5 VTK 射线测试的随机性（约定）
 - `vtkSelectEnclosedPoints.IsInsideSurface` 的射线方向取自 VTK 全局随机序列，服务进程里每个任务的射线取决于此前跑过的任务，所以「逐位相同」对 VTK 内判只在「结果对射线方向不敏感」的前提下成立；5 个真实几何约 72 万次查询在逐点（全局随机序列）与批量（`vtkRandomPool`）两种射线来源下无一处翻转，流线在 4 个 VTK 随机种子下输出不变。改动 VTK 调用次数或顺序（26.4 的锚点证书）按此约定验收：整例 `build_volume_case` 输出与旧实现逐位比较。
 - 不采用：`vtkSMPTools` STDThread 后端（批量内判快约 15 倍，但后端是进程全局状态，会影响并发的 A 段 VTK / VMTK）；流线里省掉重复的 `inside()` 调用（可再省 0.35–0.75 s，但改变全局随机序列位置、无法证明逐位相同，留待用户裁定）。
+
+## 27. v0.15.12 补全截面：只让壁面条件作用于贴壁一层，逐像素抗锯齿绘制（2026-09-29）
+
+用户反馈「补全截面外沿太厚、颜色不均」。只改截面平面图的显示层（侧栏、放大图、系列拼图、一页纸截面图）；截面统计、截面积分（§25 Voronoi）和数值结果不变。
+
+### 27.1 填充（`fillSection(points, values, boundary, bounds, nx, ny, inside, options)`）
+- `boundary` 元素为壁面线段 `[x0, y0, x1, y1, value]`（`sliceGrid` 传真实交线段）或点 `[x, y, value]`（零长线段）；`value` 为 NaN 的段（开口处直线封闭段、壁面压力无支撑处）不施加条件，也不计入离壁距离。
+- 体内场 v_int：只用体内预测点。每点带宽 h_i = max(0.5 × 中位最近邻间距, 0.6 × 到第 5 近邻的距离)；核为截断高斯 exp(−u²/2) − exp(−4.5)（u < 3），外加 3 倍带宽、权重 0.005 的宽核，以及 1e-9 × 全局均值项（无样本角落不为 NaN）。第二遍在样本处算残差，按 0.5 × h_i 的核加回，分母为 (1 + Σw₂⁴)^¼，结果限制在样本值域内。计算方式是逐样本把核叠加到需要的格子上。
+- 壁面层：d = 格子到最近条件段的距离；δ = (Σw / Σ w·d_i⁻²)^½（附近样本离壁距离的软最小），上限 `SECTION_KERNEL.wallLayer` = 0.5 mm。d < δ 时 v = v_wall + (v_int − v_wall)·t(2 − t)，t = d/δ；否则 v = v_int。
+- 返回：`values`（轮廓外 NaN）、`low`（最近体内点 > `directRadius` = 3.2 × 中位间距，定义同前，CSV `filled_from_wall` 即此位）、`filled` / `direct` / `directCells`，另有 `display`（`values` 加轮廓外两格：取最近壁面值，无条件处取 v_int）、`support`（到最近体内点距离）和 `directRadius`。
+- 没有体内点时退回壁面段 8 近邻 IDW，全部标 low。
+
+### 27.2 绘制（`paintSection`）
+- 仅限补全模式。在轮廓外包盒内 `getImageData` → 逐像素写 → `putImageData`；数值从 `display` 双线性读取（`bilinearGrid`，NaN 角点剔除后重新归一），经 1024 级 `colorAtT` 色表上色，色带、对数、发散色标照常。
+- 覆盖率：每像素行 4 条子扫描线，对轮廓线段做奇偶填充，得到水平方向的分数覆盖率，按覆盖率与底色混合。
+- 淡色：`lowFade(support, directRadius)` = 0.28 × smoothstep((s − 0.8R)/(0.6R))，向白混合，连续变化。
+- 没有 `getImageData` / `putImageData` 的上下文（Node 桩）画不透明格子，low 格混白 0.28；严格模式（关补全）照旧画格子。放大图悬停读数取 `display` 的双线性值，与像素一致。

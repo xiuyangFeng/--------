@@ -617,35 +617,128 @@
     }
     return mask;
   }
-  // IDW over interior samples plus boundary samples, evaluated on every cell the contour encloses.
-  // ``low`` marks cells farther than ``directRadius`` from any interior sample (filled from the wall condition).
+  // Filled section (v0.15.12, 用户反馈「补全截面外沿太厚、颜色不均」).  The interior samples alone define a smooth
+  // field: a two-pass Barnes (Gaussian) analysis in which every sample carries its own bandwidth, 0.6 × the distance
+  // to its 5th nearest neighbour, so dense and sparse parts of a section are both smooth and the field is a sum of
+  // smooth kernels (no seams where a neighbour set changes).  A wide, faint copy of each kernel and a vanishing
+  // global mean keep the field defined in sample-free corners; the second pass pulls the map back to the samples.
+  // The wall condition (no-slip 0, or the interpolated wall pressure) only enters the layer next to the wall:
+  // v = v_wall + (v_int − v_wall)·s(d/δ), s(t) = t(2 − t) below t = 1, with d the distance to the wall and δ the wall
+  // distance of the nearby samples (a soft minimum), capped at ``wallLayer`` = 1 mm, the Stokes layer √(2ν/ω) of blood
+  // at 72 /min.  Until v0.15.11 every contour midpoint was an IDW sample of its own among 8 neighbours: the wall
+  // outnumbered the interior, painted a band several mm thick and left facets wherever the neighbour set changed.
+  // ``boundary``: wall segments [x0, y0, x1, y1, value] or points [x, y, value]; a NaN value carries no condition.
+  // Returns grid ``values`` (NaN outside ``inside``) and ``low`` (no interior sample within ``directRadius``), and for
+  // the renderer ``display`` (the values plus a two-cell rim outside the outline) and ``support`` (distance to the
+  // nearest interior sample).
+  const SECTION_KERNEL={neighbors:5,alpha:.6,gamma:.5,cut:3,far:3,farWeight:.005,wallLayer:.5};
   function fillSection(points,values,boundary,bounds,nx,ny,inside,options={}) {
-    const support=[];
-    for(let i=0;i<points.length;i++){const v=Number(values[i]);if(points[i]&&Number.isFinite(points[i][0])&&Number.isFinite(points[i][1])&&Number.isFinite(v))support.push({x:points[i][0],y:points[i][1],v,wall:false});}
-    const direct=support.length;
-    for(const b of (boundary||[])){if(b&&Number.isFinite(b[0])&&Number.isFinite(b[1])&&Number.isFinite(b[2]))support.push({x:b[0],y:b[1],v:b[2],wall:true});}
-    const [xmin,xmax,ymin,ymax]=bounds,dx=(xmax-xmin)/nx,dy=(ymax-ymin)/ny,out=new Array(nx*ny).fill(NaN),low=new Uint8Array(nx*ny);
-    if(!support.length)return {values:out,low,filled:0,direct:0,directCells:0};
-    const k=Math.max(3,Math.floor(options.neighbors||8)),directRadius=Number(options.directRadius)>0?Number(options.directRadius):Infinity;
-    const h=Math.max(Number(options.cell)||0,Math.max(dx,dy)),gx=Math.max(1,Math.ceil((xmax-xmin)/h)),gy=Math.max(1,Math.ceil((ymax-ymin)/h)),grid=new Map();
-    const cellOf=(x,y)=>[Math.max(0,Math.min(gx-1,Math.floor((x-xmin)/h))),Math.max(0,Math.min(gy-1,Math.floor((y-ymin)/h)))];
-    support.forEach((sp,i)=>{const [cx,cy]=cellOf(sp.x,sp.y),key=cx+gx*cy;let a=grid.get(key);if(!a){a=[];grid.set(key,a);}a.push(i);});
-    const maxRing=Math.max(gx,gy);let filled=0,directCells=0;
-    for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
-      const at=iy*nx+ix;if(!inside[at])continue;
-      const qx=xmin+(ix+.5)*dx,qy=ymin+(iy+.5)*dy,[cx,cy]=cellOf(qx,qy),found=[];
-      for(let r=0;r<=maxRing;r++){
-        for(let gxi=cx-r;gxi<=cx+r;gxi++){if(gxi<0||gxi>=gx)continue;for(let gyi=cy-r;gyi<=cy+r;gyi++){if(gyi<0||gyi>=gy)continue;if(Math.max(Math.abs(gxi-cx),Math.abs(gyi-cy))!==r)continue;const a=grid.get(gxi+gx*gyi);if(!a)continue;for(const i of a){const sp=support[i];found.push({sp,d:Math.hypot(sp.x-qx,sp.y-qy)});}}}
-        if(found.length>=k){found.sort((a,b)=>a.d-b.d);if(found[k-1].d<=r*h)break;}
-      }
-      if(!found.length)continue;
-      found.sort((a,b)=>a.d-b.d);const near=found.slice(0,k);
-      let num=0,den=0;for(const x of near){const w=1/(x.d*x.d+1e-9);num+=w*x.sp.v;den+=w;}
-      out[at]=num/den;filled++;
-      const nearestDirect=found.find(x=>!x.sp.wall);
-      if(nearestDirect&&nearestDirect.d<=directRadius)directCells++;else low[at]=1;
+    const [xmin,xmax,ymin,ymax]=bounds,dx=(xmax-xmin)/nx,dy=(ymax-ymin)/ny,N=nx*ny;
+    const out=new Array(N).fill(NaN),low=new Uint8Array(N),display=new Float32Array(N).fill(NaN),support=new Float32Array(N).fill(NaN);
+    const sx=[],sy=[],sv=[],walls=[];
+    for(let i=0;i<points.length;i++){const p=points[i],v=Number(values[i]);if(p&&Number.isFinite(p[0])&&Number.isFinite(p[1])&&Number.isFinite(v)){sx.push(p[0]);sy.push(p[1]);sv.push(v);}}
+    for(const b of (boundary||[])){if(!b)continue;const s=b.length>=5?[b[0],b[1],b[2],b[3],b[4]]:[b[0],b[1],b[0],b[1],b[2]];if(s.every(Number.isFinite))walls.push(s.map(Number));}
+    const n=sx.length,directRadius=Number(options.directRadius)>0?Number(options.directRadius):Infinity;
+    const result={values:out,low,filled:0,direct:n,directCells:0,display,support,directRadius};
+    if(!n&&!walls.length)return result;
+    const {neighbors,alpha,gamma,cut,far,farWeight,wallLayer}={...SECTION_KERNEL,...(options.kernel||{})};
+    // one hash geometry for samples (by position) and wall segments (every bucket their bounding box touches)
+    const h=Math.max(Number(options.cell)||0,dx,dy,1e-9),gx=Math.max(1,Math.ceil((xmax-xmin)/h)),gy=Math.max(1,Math.ceil((ymax-ymin)/h)),maxRing=Math.max(gx,gy);
+    const bx=x=>Math.max(0,Math.min(gx-1,Math.floor((x-xmin)/h))),by=y=>Math.max(0,Math.min(gy-1,Math.floor((y-ymin)/h)));
+    const sGrid=new Array(gx*gy),wGrid=new Array(gx*gy),put=(g,k,i)=>{(g[k]||(g[k]=[])).push(i);};
+    for(let i=0;i<n;i++)put(sGrid,bx(sx[i])+gx*by(sy[i]),i);
+    walls.forEach((s,k)=>{const i0=bx(Math.min(s[0],s[2])),i1=bx(Math.max(s[0],s[2])),j0=by(Math.min(s[1],s[3])),j1=by(Math.max(s[1],s[3]));for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)put(wGrid,i+gx*j,k);});
+    const ring=(g,cx,cy,r,fn)=>{
+      if(!r){const a=g[cx+gx*cy];if(a)for(const i of a)fn(i);return;}
+      for(let x=cx-r;x<=cx+r;x++){if(x<0||x>=gx)continue;for(const y of [cy-r,cy+r]){if(y<0||y>=gy)continue;const b=g[x+gx*y];if(b)for(const i of b)fn(i);}}
+      for(let y=cy-r+1;y<cy+r;y++){if(y<0||y>=gy)continue;for(const x of [cx-r,cx+r]){if(x<0||x>=gx)continue;const b=g[x+gx*y];if(b)for(const i of b)fn(i);}}
+    };
+    const segDist=(qx,qy,s)=>{const ex=s[2]-s[0],ey=s[3]-s[1],L=ex*ex+ey*ey,t=L>0?Math.max(0,Math.min(1,((qx-s[0])*ex+(qy-s[1])*ey)/L)):0;return Math.hypot(qx-s[0]-t*ex,qy-s[1]-t*ey);};
+    // the nearest condition-carrying wall segment within ``limit``: [distance, value] or null
+    const nearestWall=(qx,qy,limit)=>{
+      if(!walls.length)return null;let best=Infinity,val=NaN;const cx=bx(qx),cy=by(qy);
+      for(let r=0;r<=maxRing;r++){ring(wGrid,cx,cy,r,k=>{const d=segDist(qx,qy,walls[k]);if(d<best){best=d;val=walls[k][4];}});if(r*h>=Math.min(best,limit))break;}
+      return best<=limit?[best,val]:null;
+    };
+    // squared distances of the k nearest samples, ascending
+    const kNearest=(qx,qy,k)=>{
+      const cx=bx(qx),cy=by(qy),found=[];
+      for(let r=0;r<=maxRing;r++){ring(sGrid,cx,cy,r,i=>{const ex=sx[i]-qx,ey=sy[i]-qy;found.push(ex*ex+ey*ey);});if(found.length>=k){found.sort((a,b)=>a-b);if(found[k-1]<=(r*h)*(r*h))break;}}
+      found.sort((a,b)=>a-b);return found.slice(0,k);
+    };
+    // cells to evaluate: inside the outline plus a two-cell rim, so the renderer's bilinear read at the wall
+    // never mixes with nothing
+    const need=new Uint8Array(N);for(let at=0;at<N;at++)if(inside[at])need[at]=1;
+    for(let pass=0;pass<2;pass++){const grow=[];for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){const at=iy*nx+ix;if(need[at])continue;
+      let edge=false;for(let j=Math.max(0,iy-1);j<=Math.min(ny-1,iy+1)&&!edge;j++)for(let i=Math.max(0,ix-1);i<=Math.min(nx-1,ix+1);i++)if(need[j*nx+i]){edge=true;break;}
+      if(edge)grow.push(at);}for(const at of grow)need[at]=2;}
+    const cellX=at=>xmin+(at%nx+.5)*dx,cellY=at=>ymin+(Math.floor(at/nx)+.5)*dy;
+    const valueOut=(at,vi)=>{
+      if(!Number.isFinite(vi))return NaN;const qx=cellX(at),qy=cellY(at);
+      if(need[at]===2){const w=nearestWall(qx,qy,3*Math.max(dx,dy));return w?w[1]:vi;}
+      return vi;
+    };
+    let filled=0,directCells=0;
+    const finish=(at,v)=>{
+      if(need[at]===2){display[at]=v;return;}
+      if(!Number.isFinite(v))return;out[at]=v;display[at]=v;filled++;
+      if(support[at]<=directRadius)directCells++;else low[at]=1;
+    };
+    if(!n){
+      // wall-only fallback (no interior sample in this section): IDW over the 8 nearest wall segments
+      for(let at=0;at<N;at++){if(!need[at])continue;const qx=cellX(at),qy=cellY(at),cx=bx(qx),cy=by(qy),found=[];
+        for(let r=0;r<=maxRing;r++){ring(wGrid,cx,cy,r,k=>found.push([segDist(qx,qy,walls[k]),walls[k][4]]));if(found.length>=8){found.sort((a,b)=>a[0]-b[0]);if(found[7][0]<=r*h)break;}}
+        found.sort((a,b)=>a[0]-b[0]);let num=0,den=0;for(const [d,v] of found.slice(0,8)){const w=1/(d*d+1e-9);num+=w*v;den+=w;}
+        support[at]=Infinity;finish(at,valueOut(at,den>0?num/den:NaN));}
+      return Object.assign(result,{filled,directCells});
     }
-    return {values:out,low,filled,direct,directCells};
+    // per-sample bandwidth, wall distance (for the soft minimum δ) and value range
+    const K=Math.min(n,Math.max(1,Math.floor(neighbors))+1),bw=new Float64Array(n),invD2=new Float64Array(n),nn=[];
+    for(let i=0;i<n;i++){const d=kNearest(sx[i],sy[i],K);bw[i]=Math.sqrt(d[d.length-1]);if(d.length>1)nn.push(Math.sqrt(d[1]));}
+    nn.sort((a,b)=>a-b);const hMin=nn.length?.5*nn[Math.floor(nn.length/2)]:Math.max(xmax-xmin,ymax-ymin)/6;
+    for(let i=0;i<n;i++)bw[i]=Math.max(hMin,alpha*bw[i],1e-6);
+    for(let i=0;i<n;i++){const w=nearestWall(sx[i],sy[i],Infinity);invD2[i]=w?1/Math.max(w[0]*w[0],1e-12):0;}
+    let vmin=Infinity,vmax=-Infinity,sumV=0,sumInvD2=0;for(let i=0;i<n;i++){vmin=Math.min(vmin,sv[i]);vmax=Math.max(vmax,sv[i]);sumV+=sv[i];sumInvD2+=invD2[i];}
+    const tail=Math.exp(-cut*cut/2),cut2=cut*cut,eps2=1e-9;
+    const kern=(d2,hh)=>{const u=d2/(hh*hh);return u>=cut2?0:Math.exp(-u/2)-tail;};
+    const weight=(d2,i)=>kern(d2,bw[i])+farWeight*kern(d2,far*bw[i]);
+    // first pass at the samples themselves → residuals for the second pass
+    const res=new Float64Array(n);
+    for(let j=0;j<n;j++){let a=0,b=0;for(let i=0;i<n;i++){const ex=sx[i]-sx[j],ey=sy[i]-sy[j],w=weight(ex*ex+ey*ey,i);if(w>0){a+=w*sv[i];b+=w;}}res[j]=sv[j]-(a+eps2*sumV)/(b+eps2*n);}
+    // splat every sample's kernels onto the cells that need a value
+    const A=new Float64Array(N),B=new Float64Array(N),D=new Float64Array(N),C=new Float64Array(N),E=new Float64Array(N);
+    for(let i=0;i<n;i++){
+      const R=cut*far*bw[i],i0=Math.max(0,Math.floor((sx[i]-R-xmin)/dx)),i1=Math.min(nx-1,Math.floor((sx[i]+R-xmin)/dx)),j0=Math.max(0,Math.floor((sy[i]-R-ymin)/dy)),j1=Math.min(ny-1,Math.floor((sy[i]+R-ymin)/dy)),h2=gamma*bw[i];
+      for(let j=j0;j<=j1;j++){const ey=ymin+(j+.5)*dy-sy[i];for(let k=i0;k<=i1;k++){const at=j*nx+k;if(!need[at])continue;const ex=xmin+(k+.5)*dx-sx[i],d2=ex*ex+ey*ey,w=weight(d2,i);if(!(w>0))continue;
+        A[at]+=w*sv[i];B[at]+=w;D[at]+=w*invD2[i];const w2=kern(d2,h2);if(w2>0){C[at]+=w2*res[i];E[at]+=w2;}}}
+    }
+    for(let at=0;at<N;at++){
+      if(!need[at])continue;const qx=cellX(at),qy=cellY(at),near=kNearest(qx,qy,1);support[at]=near.length?Math.sqrt(near[0]):Infinity;
+      // the correction is a residual average whose denominator stays ≥ ~1, so it fades out between samples
+      const vi=Math.min(vmax,Math.max(vmin,(A[at]+eps2*sumV)/(B[at]+eps2*n)+C[at]/Math.pow(1+E[at]**4,.25)));
+      if(need[at]===2){finish(at,valueOut(at,vi));continue;}
+      let delta=D[at]+eps2*sumInvD2>0?Math.sqrt((B[at]+eps2*n)/(D[at]+eps2*sumInvD2)):Infinity;delta=Math.min(delta,wallLayer>0?wallLayer:Infinity);
+      let v=vi;
+      if(delta>1e-9&&Number.isFinite(delta)){const w=nearestWall(qx,qy,delta);if(w){const t=w[0]/delta;v=w[1]+(vi-w[1])*t*(2-t);}}
+      finish(at,v);
+    }
+    return Object.assign(result,{filled,directCells});
+  }
+  // Bilinear read of a cell-centred grid at fractional cell coordinates (fx, fy); non-finite corners are left out
+  // and the rest renormalised, NaN when none is finite.
+  function bilinearGrid(arr,nx,ny,fx,fy) {
+    const i0=Math.floor(fx),j0=Math.floor(fy),tx=fx-i0,ty=fy-j0;let sw=0,sv=0;
+    for(let dj=0;dj<2;dj++){const j=j0+dj;if(j<0||j>=ny)continue;const wy=dj?ty:1-ty;
+      for(let di=0;di<2;di++){const i=i0+di;if(i<0||i>=nx)continue;const v=arr[j*nx+i];if(!Number.isFinite(v))continue;const w=(di?tx:1-tx)*wy;sw+=w;sv+=w*v;}}
+    return sw>1e-9?sv/sw:NaN;
+  }
+  // Low-support shading: mixed towards white by up to LOW_FADE, ramping in smoothly between 0.8× and 1.4× the
+  // direct-support radius (a hard per-cell switch drew the old blocky pale band).
+  const LOW_FADE=.28;
+  function lowFade(nearest,directRadius) {
+    if(!(directRadius>0)||!Number.isFinite(directRadius))return 0;
+    const x=(Number(nearest)-.8*directRadius)/(.6*directRadius);
+    return Number.isNaN(x)?0:LOW_FADE*(x<=0?0:x>=1?1:x*x*(3-2*x));
   }
   // ---- §15 slice CSV + station series (pure; exported for Node tests) ----
   // Every grid cell the contour mask keeps and that carries a finite value, as
@@ -830,7 +923,7 @@
     const all=auto.concat(added),rank=x=>reviewDecision(review,x.id)==='rejected'?1:0;
     return all.map((x,i)=>({x,i})).sort((a,b)=>rank(a.x)-rank(b.x)||a.i-b.i).map(o=>o.x);
   }
-  const core={planeBasis,rotatePlane,groupCenterline,centerlinePlane,automaticPlanes,nearestTangent,planeFromPicks,slabIndices,insideIndices,moduleSummary,moduleIndices,sideIndices,interactionDelta,dragAlong,positionStep,planeContour,contourLoops,selectLoop,closeChain,pointInLoop,scaleBarLength,scanlineInside,fillSection,speedField,statistics,
+  const core={planeBasis,rotatePlane,groupCenterline,centerlinePlane,automaticPlanes,nearestTangent,planeFromPicks,slabIndices,insideIndices,moduleSummary,moduleIndices,sideIndices,interactionDelta,dragAlong,positionStep,planeContour,contourLoops,selectLoop,closeChain,pointInLoop,scaleBarLength,scanlineInside,fillSection,bilinearGrid,lowFade,speedField,statistics,
     color,setColormap,setBands,colormapNames,colormapCSS,desaturate,convertUnit,unitOptions,frameFromMeta,dirFromAligned,dirToAligned,worldFromAligned,alignedFromWorld,STANDARD_VIEWS,standardCamera,cameraToAligned,cameraFromAligned,
     viewDirections,fittedStandardCamera,formatNumber,frameText,releaseShort,withOffset,referenceLabel,warningItems,warningText,
     scaleEnds,scaleT,scaleValueAt,scaleColor,colorAtT,quantile,robustRange,symmetricRange,throughPlane,inPlane,arrowSamples,
@@ -1667,12 +1760,14 @@
     const {finite,contour,bounds,median,fillOn,isVelocityField}=data;
     if(fillOn&&contour.length>=3&&!(data.loop&&data.loop.open)){
       const inside=scanlineInside(contour,bounds,nx,ny);
-      const boundary=contour.map(sg=>[(sg[0]+sg[2])/2,(sg[1]+sg[3])/2,sg[5]<0?NaN:(isVelocityField?0:sg[4])]);
+      // the wall as segments: the ramp to the wall condition measures true distances to the outline
+      const boundary=contour.map(sg=>[sg[0],sg[1],sg[2],sg[3],sg[5]<0?NaN:(isVelocityField?0:sg[4])]);
       // With no interior samples (a station beyond the sampled region) the median spacing is 0; a hash cell
       // of one grid step would then make the neighbour search walk ~n rings per cell, so scale it to the outline.
       const cell=median>0?median*1.5:Math.max((bounds[1]-bounds[0])/12,1e-6);
       const filled=fillSection(finite.map(x=>x.p),finite.map(x=>x.v),boundary,bounds,nx,ny,inside,{directRadius:median>0?median*3.2:Infinity,cell});
-      return {values:filled.values,mask:inside,nx,ny,validCount:filled.filled,low:filled.low,stats:{inside:filled.filled,directCells:filled.directCells,wallSamples:boundary.filter(b=>Number.isFinite(b[2])).length}};
+      return {values:filled.values,mask:inside,nx,ny,validCount:filled.filled,low:filled.low,display:filled.display,support:filled.support,directRadius:filled.directRadius,
+        stats:{inside:filled.filled,directCells:filled.directCells,wallSamples:boundary.filter(b=>Number.isFinite(b[4])).length}};
     }
     const g=interpolateIDW(finite.map(x=>x.p),finite.map(x=>x.v),{bounds,nx,ny,minNeighbors:Math.min(4,finite.length),maxDistance:median>0?median*3.2:0});
     g.stats=null;return g;
@@ -1681,6 +1776,51 @@
     if(!stats)return null;const en=(language||lang)==='en',pct=stats.inside?Math.round(100*stats.directCells/stats.inside):0;
     return en?`${stats.inside} cells inside the wall contour · ${pct}% directly supported by samples · rest filled from the wall ${isVelocityField?'no-slip (0)':'pressure'} condition (faded)`
              :`壁面轮廓内 ${stats.inside} 格 · 邻点直接支撑 ${pct}% · 其余按壁面${isVelocityField?'无滑移（0）':'压力'}边界补全（淡色）`;
+  }
+  // Per-pixel paint of a filled section (v0.15.12): values (not colours) are read bilinearly from the grid, coloured
+  // through a 1024-entry table of the current scale, shaded where no interior sample is near, and clipped to the
+  // wall outline with 4 sub-scanlines of coverage, so the lumen edge is anti-aliased instead of a staircase of cells.
+  // Returns false when the context has no pixel access (Node stubs); the caller then draws cells.
+  function paintSection(ctx,width,height,grid,contour,bounds,range,scale,cx,cy) {
+    if(typeof ctx.getImageData!=='function'||typeof ctx.putImageData!=='function'||!contour.length)return false;
+    const px=contour.map(sg=>[cx+sg[0]*scale,cy-sg[1]*scale,cx+sg[2]*scale,cy-sg[3]*scale]);
+    let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+    for(const s of px){x0=Math.min(x0,s[0],s[2]);x1=Math.max(x1,s[0],s[2]);y0=Math.min(y0,s[1],s[3]);y1=Math.max(y1,s[1],s[3]);}
+    const X0=Math.max(0,Math.floor(x0)-1),X1=Math.min(width,Math.ceil(x1)+1),Y0=Math.max(0,Math.floor(y0)-1),Y1=Math.min(height,Math.ceil(y1)+1),W=X1-X0,H=Y1-Y0;
+    if(!(W>0&&H>0))return false;
+    let img=null;try{img=ctx.getImageData(X0,Y0,W,H);}catch(_){img=null;}
+    if(!img||!img.data||img.data.length<4*W*H)return false;
+    const SS=4,rows=Array.from({length:H},()=>[]);
+    px.forEach((s,k)=>{const r0=Math.max(0,Math.floor(Math.min(s[1],s[3]))-Y0),r1=Math.min(H-1,Math.floor(Math.max(s[1],s[3]))-Y0);for(let r=r0;r<=r1;r++)rows[r].push(k);});
+    const lut=new Uint8ClampedArray(3*1024);for(let i=0;i<1024;i++){const c=colorAtT(i/1023,range);lut[3*i]=c[0]*255;lut[3*i+1]=c[1]*255;lut[3*i+2]=c[2]*255;}
+    const [lo,hi]=scaleEnds(range),log=Boolean(range&&range.log),la=log?Math.log(lo):0,lb=log?Math.log(hi):1;
+    const {nx,ny,display,support,directRadius}=grid,[xmin,xmax,ymin,ymax]=bounds,gdx=(xmax-xmin)/nx,gdy=(ymax-ymin)/ny;
+    const cov=new Float32Array(W),xs=[],d=img.data;
+    for(let r=0;r<H;r++){
+      cov.fill(0);let any=false;
+      for(let s=0;s<SS;s++){
+        const yy=Y0+r+(s+.5)/SS;xs.length=0;
+        for(const k of rows[r]){const g=px[k];if((g[1]<=yy)!==(g[3]<=yy))xs.push(g[0]+(g[2]-g[0])*(yy-g[1])/(g[3]-g[1]));}
+        if(xs.length<2)continue;xs.sort((a,b)=>a-b);
+        for(let q=0;q+1<xs.length;q+=2){
+          const a=Math.max(0,xs[q]-X0),b=Math.min(W,xs[q+1]-X0);if(!(b>a))continue;any=true;
+          const ia=Math.floor(a),ib=Math.min(W-1,Math.floor(b));
+          if(ia===ib)cov[ia]+=(b-a)/SS;else{cov[ia]+=(ia+1-a)/SS;for(let c=ia+1;c<ib;c++)cov[c]+=1/SS;cov[ib]+=(b-ib)/SS;}
+        }
+      }
+      if(!any)continue;
+      const fy=((cy-(Y0+r+.5))/scale-ymin)/gdy-.5;
+      for(let c=0;c<W;c++){
+        const a=Math.min(1,cov[c]);if(a<=0)continue;
+        const fx=((X0+c+.5-cx)/scale-xmin)/gdx-.5,v=bilinearGrid(display,nx,ny,fx,fy);if(!Number.isFinite(v))continue;
+        let t=log?(Math.log(Math.max(v,lo))-la)/(lb-la):(v-lo)/(hi-lo);t=t<0?0:t>1?1:t;
+        const li=3*Math.round(t*1023),f=lowFade(bilinearGrid(support,nx,ny,fx,fy),directRadius),o=4*(r*W+c);
+        for(let k=0;k<3;k++){const col=lut[li+k]+(255-lut[li+k])*f;d[o+k]=d[o+k]+(col-d[o+k])*a;}
+        d[o+3]=d[o+3]+(255-d[o+3])*a;
+      }
+    }
+    ctx.putImageData(img,X0,Y0);
+    return true;
   }
   // Draws one slice map into ``ctx``; returns the mapping (for hover read-outs) and the footer text.
   function renderSliceMap(ctx,width,height,data,range,field,opts={}) {
@@ -1693,9 +1833,12 @@
     const nx=Math.min(opts.gridMax||120,Math.max(48,Math.floor(plot.width/(opts.cellPx||4)))),ny=Math.min(opts.gridMax||120,Math.max(48,Math.floor(plot.height/(opts.cellPx||4))));
     const grid=sliceGrid(data,nx,ny);
     const cellW=(xmax-xmin)/nx*scale,cellH=(ymax-ymin)/ny*scale;
-    for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
+    // a filled section is painted per pixel; cells remain for the strict map and for 2-D contexts without pixel access
+    const painted=Boolean(grid.stats&&grid.display)&&paintSection(ctx,width,height,grid,contour,bounds,range,scale,cx,cy);
+    if(!painted)for(let iy=0;iy<ny;iy++)for(let ix=0;ix<nx;ix++){
       const at=iy*nx+ix,x=toX(xmin+ix*(xmax-xmin)/nx),y=toY(ymin+(iy+1)*(ymax-ymin)/ny);
-      if(grid.mask[at]&&Number.isFinite(grid.values[at])){const c=scaleColor(grid.values[at],range);ctx.fillStyle=`rgb(${c.map(v=>Math.round(v*255)).join(',')})`;if(grid.low&&grid.low[at])ctx.globalAlpha=.78;ctx.fillRect(x,y,cellW+1,cellH+1);ctx.globalAlpha=1;}
+      // opaque cells: a translucent low-support cell double-painted its 1 px overlaps into a visible grid
+      if(grid.mask[at]&&Number.isFinite(grid.values[at])){let c=scaleColor(grid.values[at],range);if(grid.low&&grid.low[at])c=c.map(v=>v+(1-v)*LOW_FADE);ctx.fillStyle=`rgb(${c.map(v=>Math.round(v*255)).join(',')})`;ctx.fillRect(x,y,cellW+1,cellH+1);}
       else if(!grid.stats){ctx.fillStyle='#e1e7ec';ctx.globalAlpha=.38;ctx.fillRect(x,y,cellW+1,cellH+1);ctx.globalAlpha=1;}
     }
     if(contour.length){ctx.strokeStyle='#33475b';ctx.lineWidth=opts.lineWidth||1.4;ctx.beginPath();for(const sg of contour)if(sg[5]>=0){ctx.moveTo(toX(sg[0]),toY(sg[1]));ctx.lineTo(toX(sg[2]),toY(sg[3]));}ctx.stroke();
@@ -1834,7 +1977,8 @@
     const m=sliceZoomLast,wx=(x-m.cx)/m.scale,wy=(m.cy-y)/m.scale,[xmin,xmax,ymin,ymax]=m.bounds;
     const ix=Math.floor((wx-xmin)/(xmax-xmin)*m.nx),iy=Math.floor((wy-ymin)/(ymax-ymin)*m.ny);
     if(ix<0||iy<0||ix>=m.nx||iy>=m.ny){setText('slice-zoom-readout','');return;}
-    const at=iy*m.nx+ix,v=m.grid.mask[at]?m.grid.values[at]:NaN,field=sliceLast.field;
+    // a filled map reads the same bilinear value the pixel was painted with
+    const at=iy*m.nx+ix,field=sliceLast.field,v=!m.grid.mask[at]?NaN:m.grid.display?bilinearGrid(m.grid.display,m.nx,m.ny,(wx-xmin)/(xmax-xmin)*m.nx-.5,(wy-ymin)/(ymax-ymin)*m.ny-.5):m.grid.values[at];
     setText('slice-zoom-readout',Number.isFinite(v)?`${lang==='en'?'in-plane':'面内坐标'} (${wx.toFixed(1)}, ${wy.toFixed(1)}) mm · ${fmtField(v,field)}${m.grid.low&&m.grid.low[at]?(lang==='en'?' · filled from the wall condition':' · 壁面边界补全值'):''}`:'');
   }
   // ---- §25 截面积分: the section perpendicular to the centreline at a pinned probe's station, integrated over the

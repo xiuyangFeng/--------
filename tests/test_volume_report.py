@@ -926,17 +926,67 @@ def test_slice_fill_uses_wall_contour_and_no_slip_boundary():
       const inside=core.scanlineInside(segs,[-12,12,-12,12],24,24);
       let count=0;for(const m of inside)count+=m;
       const centre=inside[12*24+12],corner=inside[0];
-      // three interior samples with speed 1 near the centre; the wall contributes speed 0
+      // three interior samples with speed 1 near the centre; the wall contributes speed 0 (point form of the boundary)
       const filled=core.fillSection([[0,0],[2,0],[0,2]],[1,1,1],segs.map(s=>[(s[0]+s[2])/2,(s[1]+s[3])/2,0]),[-12,12,-12,12],24,24,inside,{directRadius:3,cell:1.5});
       const at=(x,y)=>Math.floor((y+12)/1)*24+Math.floor((x+12)/1);
+      // the same with the wall as segments at 0.1 mm cells: the edge cell sits ~0.05 mm from the wall
+      const fine=core.fillSection([[0,0],[2,0],[0,2]],[1,1,1],segs.map(s=>[s[0],s[1],s[2],s[3],0]),[-12,12,-12,12],240,240,core.scanlineInside(segs,[-12,12,-12,12],240,240),{directRadius:3,cell:1.5});
+      const atF=(x,y)=>Math.floor((y+12)/.1)*240+Math.floor((x+12)/.1),edge=fine.values[atF(9.93,0.05)];
       console.log(JSON.stringify({nseg:segs.length,rmin:Math.min(...radii),rmax:Math.max(...radii),wallVal:segs[0][4],count,centre,corner,
-        vCentre:filled.values[at(0.5,0.5)],vNearWall:filled.values[at(9.5,0.5)],lowCentre:filled.low[at(0.5,0.5)],lowNearWall:filled.low[at(9.5,0.5)],filled:filled.filled,directCells:filled.directCells}));
+        vCentre:filled.values[at(0.5,0.5)],vNearWall:filled.values[at(9.5,0.5)],lowCentre:filled.low[at(0.5,0.5)],lowNearWall:filled.low[at(9.5,0.5)],filled:filled.filled,directCells:filled.directCells,
+        edge,rimPad:fine.display[atF(10.15,0.05)]}));
     """)
     assert result["nseg"] == 48 and abs(result["rmin"] - 10) < 0.2 and abs(result["rmax"] - 10) < 0.2 and result["wallVal"] == 5
     # π·10² ≈ 314 cells of 1 mm²; the scanline count must be close, the centre inside, the corner outside
     assert 290 <= result["count"] <= 330 and result["centre"] == 1 and result["corner"] == 0
     assert result["filled"] == result["count"] and 0 < result["directCells"] < result["filled"]
-    assert result["vCentre"] > 0.9 and result["vNearWall"] < 0.2 and result["lowCentre"] == 0 and result["lowNearWall"] == 1
+    # v0.15.12: the wall only acts inside a ≤ 0.5 mm layer (v = v_int·t(2 − t), t = d/0.5); with the point form the
+    # nearest wall point of (9.5, 0.5) is an edge midpoint 0.86 mm away, so that cell keeps the interior value …
+    assert result["vCentre"] > 0.99 and 0.9 < result["vNearWall"] <= 1 and result["lowCentre"] == 0 and result["lowNearWall"] == 1
+    # … and pulls the speed to no-slip at the wall itself; the rim outside the outline carries the wall value
+    assert result["edge"] < 0.3 and result["rimPad"] == 0
+
+
+def test_v01512_slice_fill_keeps_the_wall_layer_thin_and_the_field_smooth():
+    """用户反馈「补全截面外沿太厚、颜色不均」: interior samples out to r = 8 in a 96-gon of r = 10 (a 2 mm sample-free
+    layer).  Up to v0.15.11 the wall's midpoints were IDW samples of their own and outnumbered the interior: a uniform
+    speed of 1 fell below 0.99 up to 3.4 mm from the wall (0 at 0.6 mm), and v = x showed gradient jumps of 4.9×
+    between neighbouring cells (facets).  Now the ramp stays within the 0.5 mm wall layer and the map is smooth."""
+    result = node_json("""
+      const R=10,M=96,segs=[];for(let k=0;k<M;k++){const a=2*Math.PI*k/M,b=2*Math.PI*(k+1)/M;segs.push([R*Math.cos(a),R*Math.sin(a),R*Math.cos(b),R*Math.sin(b),0]);}
+      let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+      const pts=[];for(let x=-8;x<=8;x+=1.6)for(let y=-8;y<=8;y+=1.6){const p=[x+(rnd()-.5)*.8,y+(rnd()-.5)*.8];if(Math.hypot(...p)<=8)pts.push(p);}
+      const n=100,b=[-10.5,10.5,-10.5,10.5],dx=21/n,cen=i=>b[0]+(i+.5)*dx,inside=core.scanlineInside(segs,b,n,n);
+      const uni=core.fillSection(pts,pts.map(()=>1),segs,b,n,n,inside,{directRadius:5,cell:2.4});
+      // v = x with a wall that carries no condition (NaN): only the interpolation itself is judged
+      const lin=core.fillSection(pts,pts.map(p=>p[0]),segs.map(s=>[s[0],s[1],s[2],s[3],NaN]),b,n,n,inside,{directRadius:5,cell:2.4});
+      let deepMin=Infinity,rim=0,edgeMax=0,jump=0,err=0,vmin=Infinity,vmax=-Infinity;
+      for(let j=0;j<n;j++)for(let i=0;i<n;i++){const at=j*n+i;if(!inside[at])continue;const r=Math.hypot(cen(i),cen(j)),d=R-r,v=uni.values[at];
+        vmin=Math.min(vmin,lin.values[at]);vmax=Math.max(vmax,lin.values[at]);
+        if(d>0.6)deepMin=Math.min(deepMin,v);if(v<0.99)rim=Math.max(rim,d);if(d<0.1)edgeMax=Math.max(edgeMax,v);
+        if(d>1){if(r<6)err=Math.max(err,Math.abs(lin.values[at]-cen(i)));
+          for(const [di,dj] of [[1,0],[0,1]]){const a2=(j+dj)*n+i+di;if(inside[a2]&&R-Math.hypot(cen(i+di),cen(j+dj))>1)jump=Math.max(jump,Math.abs(lin.values[a2]-lin.values[at])/dx);}}}
+      console.log(JSON.stringify({deepMin,rim,edgeMax,jump,err,vmin,vmax,filled:uni.filled,low:Array.from(uni.low).reduce((a,x)=>a+x,0)}));
+    """)
+    assert result["deepMin"] == pytest.approx(1)          # nothing deeper than 0.6 mm is pulled towards the wall
+    assert result["rim"] <= 0.5 and result["edgeMax"] < 0.4  # the no-slip ramp: ≤ 0.5 mm thick, near 0 at the wall
+    assert result["jump"] < 2.0 and result["err"] < 0.35   # true gradient 1: no facets; close to v = x in the core
+    assert -8.5 < result["vmin"] and result["vmax"] < 8.5  # never outside the samples' range
+    assert result["filled"] > 0 and result["low"] == 0
+
+
+def test_v01512_slice_paint_helpers_read_values_bilinearly_and_fade_low_support_smoothly():
+    result = node_json("""
+      const g=[0,1,2,3],nan=[0,NaN,2,3];
+      console.log(JSON.stringify({mid:core.bilinearGrid(g,2,2,.5,.5),corner:core.bilinearGrid(g,2,2,0,0),edge:core.bilinearGrid(g,2,2,.5,0),
+        skip:core.bilinearGrid(nan,2,2,.5,0),none:core.bilinearGrid([NaN,NaN,NaN,NaN],2,2,.5,.5),
+        fade:[0,.8,1,1.1,1.4,3].map(x=>core.lowFade(x*2,2)),noRadius:core.lowFade(9,Infinity)}));
+    """)
+    assert result["mid"] == pytest.approx(1.5) and result["corner"] == 0 and result["edge"] == pytest.approx(0.5)
+    assert result["skip"] == 0 and result["none"] is None          # NaN corners are left out, all-NaN gives NaN
+    f = result["fade"]
+    assert f[0] == 0 and f[1] == 0 and 0 < f[2] < f[3] < f[4] and f[4] == pytest.approx(0.28) and f[5] == pytest.approx(0.28)
+    assert result["noRadius"] == 0
 
 
 def test_volume_template_has_slice_fill_toggle():
