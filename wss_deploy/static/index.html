@@ -19,6 +19,7 @@
     <div class="topbar-tools">
       <button class="primary new-prediction" type="button" id="new-prediction" aria-haspopup="dialog" aria-controls="upload-dialog" title="新建预测（快捷键 N，也可以把 STL 拖到页面上）" hidden>＋ 新建预测</button>
       <span class="connection" id="connection" role="status" tabindex="0" aria-describedby="health-pop">正在连接服务…</span>
+      <a class="v2-link" id="v2-link" href="/v2/" title="打开新版工作区">新版工作区</a>
       <button type="button" class="text-button settings-button" id="settings-button" aria-haspopup="menu" aria-expanded="false" title="设置：快捷键、报告模板、队列总览、回收站" hidden>设置</button>
       <div id="user-menu" class="user-menu" hidden><span id="user-name" class="user-name"></span><button type="button" class="text-button" id="change-password">改口令</button><button type="button" class="text-button" id="logout">退出</button></div>
     </div>
@@ -73,14 +74,14 @@
               <label for="cohort-high">高 WSS 占比 ≥ %</label><input id="cohort-high" type="number" min="0" step="0.1" inputmode="decimal" placeholder="不限">
               <label for="cohort-very-high">极高 ≥ %</label><input id="cohort-very-high" type="number" min="0" step="0.1" inputmode="decimal" placeholder="不限">
               <label for="cohort-speed">速度 p99 ≥ m/s</label><input id="cohort-speed" type="number" min="0" step="0.01" inputmode="decimal" placeholder="不限">
-              <label for="cohort-diameter">最大直径 ≥ mm</label><input id="cohort-diameter" type="number" min="0" step="0.5" inputmode="decimal" placeholder="不限">
+              <label for="cohort-diameter">管腔最大直径 ≥ mm</label><input id="cohort-diameter" type="number" min="0" step="0.5" inputmode="decimal" placeholder="不限">
             </div>
           </div>
           <div class="cohort-charts">
             <figure><figcaption id="cohort-cap-p99">壁面 p99 分布 · Pa</figcaption><canvas id="cohort-hist-p99" width="560" height="140" role="img" aria-label="壁面 p99 分布直方图"></canvas></figure>
             <figure><figcaption id="cohort-cap-high">高 WSS 面积占比分布 · %</figcaption><canvas id="cohort-hist-high" width="560" height="140" role="img" aria-label="高 WSS 面积占比分布直方图"></canvas></figure>
             <figure><figcaption id="cohort-cap-speed">体场速度 p99 分布 · m/s</figcaption><canvas id="cohort-hist-speed" width="560" height="140" role="img" aria-label="体场速度 p99 分布直方图"></canvas></figure>
-            <figure><figcaption id="cohort-cap-diameter">最大直径分布 · mm</figcaption><canvas id="cohort-hist-diameter" width="560" height="140" role="img" aria-label="最大直径分布直方图"></canvas></figure>
+            <figure><figcaption id="cohort-cap-diameter">管腔最大直径分布 · mm</figcaption><canvas id="cohort-hist-diameter" width="560" height="140" role="img" aria-label="管腔最大直径分布直方图"></canvas></figure>
           </div>
           <p class="help" id="cohort-status">展开后读取队列数据。</p>
           <div class="cohort-table-wrap"><table class="cohort-table"><thead><tr id="cohort-head"></tr></thead><tbody id="cohort-rows"></tbody></table></div>
@@ -96,9 +97,10 @@
         <div class="upload-dialog-head"><div><p class="eyebrow">新建预测</p><h2 id="upload-title">上传单例或一组 STL</h2></div><button type="button" id="close-upload" aria-label="关闭新建预测">关闭</button></div>
         <form id="upload-form">
           <label class="file-field" for="stl-file"><span class="file-icon" aria-hidden="true">↑</span><strong>选择血管壁面 STL · 可多选</strong><span id="file-name">支持单个或多个 STL；上传后自动检查开口</span><input id="stl-file" name="stl" type="file" accept=".stl" multiple required></label>
+          <p class="help input-req" id="input-requirements">输入要求：腹主—髂动脉管腔面 STL，主动脉入口和四个髂支出口切开（共 5 个开口），其余分支封闭。<a href="/static/v2/help_input.html" target="_blank" rel="noopener">输入说明</a> · <a href="/static/v2/example_aaa.stl" download="example_aaa.stl">下载示例 STL</a></p>
           <label for="case-id">匿名病例编号 <span class="optional">可选</span></label>
           <input id="case-id" name="case_id" maxlength="160" placeholder="例如 CASE-001" autocomplete="off">
-          <p class="help" id="case-id-help">留空时用文件名作为病例编号；请使用匿名文件名。</p>
+          <p class="help" id="case-id-help">留空时用文件名作为病例编号；请使用匿名文件名。填写患者编号后，列表和报告标题改用患者编号显示。</p>
           <p class="field-issue" id="case-id-issue" role="alert" hidden></p>
           <div id="upload-files" class="upload-files" aria-live="polite" hidden></div>
           <details class="upload-metadata"><summary>患者、扫描与检索标签</summary>

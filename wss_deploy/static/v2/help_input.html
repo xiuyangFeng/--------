@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>输入说明 · WSS</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<nav class="help-top" aria-label="帮助页">
+  <a class="help-mark" href="/v2/">WSS</a>
+  <div class="help-nav">
+    <a href="help_input.html" aria-current="page">输入说明</a>
+    <a href="help_quickstart.html">操作卡</a>
+    <a href="help_errors.html">报错对照表</a>
+  </div>
+</nav>
+<main class="help-page">
+<header>
+  <h1>输入说明：上传什么样的 STL</h1>
+  <p class="lead">工具只接受一种输入：腹主动脉到髂动脉的<strong>管腔面</strong> STL，主动脉入口和四个髂支出口切开，其余分支封闭，一共恰好 5 个开口。下面逐条说明，并给出程序实际执行的检查。</p>
+</header>
+
+<section class="block" aria-labelledby="s-shape">
+  <h2 id="s-shape">1. 几何长什么样</h2>
+  <figure class="diagram">
+      <svg viewBox="0 0 640 450" role="img" aria-labelledby="dg-title dg-desc" xmlns="http://www.w3.org/2000/svg">
+        <title id="dg-title">腹主—髂动脉管腔面示意</title>
+        <desc id="dg-desc">主动脉自上而下，中段为瘤体，下端分成左右髂总动脉，每侧再分成髂外和髂内动脉。主动脉入口与四个髂支末端为切开的开口，肾动脉等分支残端封闭。</desc>
+        <text class="dg-s" x="16" y="24">前面观 · 患者右侧在图左</text>
+        <!-- layer 1: outline -->
+        <g class="dg-out" stroke-width="43">
+          <path d="M300,48 L300,258"/>
+        </g>
+        <ellipse class="dg-body" cx="300" cy="172" rx="51.5" ry="61.5"/>
+        <g class="dg-out cap">
+          <path stroke-width="16" d="M300,92 L244,86"/>
+          <path stroke-width="16" d="M300,98 L356,92"/>
+          <path stroke-width="11" d="M338,214 L366,222"/>
+        </g>
+        <g class="dg-out">
+          <path stroke-width="29" d="M300,248 Q284,284 250,322"/>
+          <path stroke-width="29" d="M300,248 Q316,284 350,322"/>
+          <path stroke-width="22" d="M250,322 Q228,356 204,404"/>
+          <path stroke-width="17" d="M250,322 Q258,356 266,398"/>
+          <path stroke-width="22" d="M350,322 Q372,356 396,404"/>
+          <path stroke-width="17" d="M350,322 Q342,356 334,398"/>
+        </g>
+        <!-- layer 2: lumen -->
+        <g class="dg-in" stroke-width="40">
+          <path d="M300,48 L300,258"/>
+        </g>
+        <ellipse class="dg-inbody" cx="300" cy="172" rx="50" ry="60"/>
+        <g class="dg-in cap">
+          <path stroke-width="13" d="M300,92 L244,86"/>
+          <path stroke-width="13" d="M300,98 L356,92"/>
+          <path stroke-width="8" d="M330,212 L366,222"/>
+        </g>
+        <g class="dg-in">
+          <path stroke-width="26" d="M300,246 Q284,284 250,322"/>
+          <path stroke-width="26" d="M300,246 Q316,284 350,322"/>
+          <path stroke-width="19" d="M250,322 Q228,356 204,404"/>
+          <path stroke-width="14" d="M250,322 Q258,356 266,398"/>
+          <path stroke-width="19" d="M350,322 Q372,356 396,404"/>
+          <path stroke-width="14" d="M350,322 Q342,356 334,398"/>
+        </g>
+        <!-- the five openings -->
+        <ellipse class="dg-open" cx="300" cy="48" rx="21.5" ry="6"/>
+        <ellipse class="dg-open" cx="204" cy="404" rx="11" ry="4" transform="rotate(26.6 204 404)"/>
+        <ellipse class="dg-open" cx="266" cy="398" rx="8.5" ry="3.5" transform="rotate(-10.8 266 398)"/>
+        <ellipse class="dg-open" cx="396" cy="404" rx="11" ry="4" transform="rotate(-26.6 396 404)"/>
+        <ellipse class="dg-open" cx="334" cy="398" rx="8.5" ry="3.5" transform="rotate(10.8 334 398)"/>
+        <!-- leaders and labels -->
+        <path class="dg-lead" d="M324,48 H434"/>
+        <text class="dg-t acc" x="440" y="44">入口 · 切开</text>
+        <text class="dg-s" x="440" y="60">主动脉近端，面积最大的开口</text>
+        <path class="dg-lead" d="M364,92 H434"/>
+        <text class="dg-t" x="440" y="88">分支残端 · 封闭</text>
+        <text class="dg-s" x="440" y="104">肾动脉、肠系膜下动脉、腰动脉等</text>
+        <path class="dg-lead" d="M372,222 L434,222"/>
+        <text class="dg-t" x="440" y="226">封闭</text>
+        <path class="dg-lead" d="M238,86 L176,86"/>
+        <text class="dg-t" x="170" y="90" text-anchor="end">封闭</text>
+        <path class="dg-lead" d="M351,160 H434"/>
+        <text class="dg-t" x="440" y="156">瘤体：按管腔面</text>
+        <text class="dg-s" x="440" y="172">不含附壁血栓与管壁</text>
+        <path class="dg-lead" d="M407,408 L434,408"/>
+        <text class="dg-t acc" x="440" y="412">左髂外 · 切开</text>
+        <path class="dg-lead" d="M194,409 L170,420"/>
+        <text class="dg-t acc" x="166" y="428" text-anchor="end">右髂外 · 切开</text>
+        <path class="dg-lead" d="M268,404 L288,424"/>
+        <path class="dg-lead" d="M332,404 L312,424"/>
+        <text class="dg-t acc" x="300" y="440" text-anchor="middle">左右髂内 · 切开</text>
+        <!-- legend -->
+        <ellipse class="dg-open" cx="30" cy="300" rx="12" ry="4.5"/>
+        <text class="dg-t" x="50" y="304">开口：切开，共 5 个</text>
+        <path class="dg-out cap" stroke-width="11" d="M22,326 L38,326"/>
+        <path class="dg-in cap" stroke-width="8" d="M22,326 L38,326"/>
+        <text class="dg-t" x="50" y="330">其余分支：封闭或去除</text>
+      </svg>
+      <figcaption>示意图，不按比例。开口数是程序检查的硬条件：多一个、少一个都会被拒绝。</figcaption>
+    </figure>
+  <div class="two-col">
+    <div>
+      <h3>要</h3>
+      <ul>
+        <li>血流所在的<strong>管腔面</strong>（造影剂充盈的腔），不是含附壁血栓或管壁的外轮廓。</li>
+        <li>范围从主动脉近端到两侧髂外、髂内动脉远端。瘤体上方最好留一段管径正常的主动脉，否则测不出瘤颈。</li>
+        <li><strong>恰好 5 个开口</strong>：主动脉入口 1 个，左髂外、左髂内、右髂外、右髂内出口各 1 个。每个开口是一圈完整的开放边界。</li>
+        <li>其余分支（肾动脉、肠系膜下动脉、腰动脉、骶正中动脉等）封闭，或在分割时去掉。</li>
+        <li>切口大致垂直于血管走向、尽量平整。</li>
+        <li>一整块连通的表面。</li>
+      </ul>
+    </div>
+    <div>
+      <h3>不适用</h3>
+      <ul>
+        <li><strong>三出口几何目前不支持</strong>：一侧髂内动脉闭塞或已栓塞、只剩 3 个出口时，开口数是 4，会被拒绝。不要为了凑数保留一个不通的残端。</li>
+        <li>胸主动脉、颈动脉、颅内动脉等其他血管。</li>
+        <li>包含附壁血栓或管壁的外轮廓。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="block" aria-labelledby="s-checks">
+  <h2 id="s-checks">2. 程序怎么检查</h2>
+  <p>上传后先做输入检查，再提取中心线。<span class="tag stop">拒绝</span> 表示任务失败，需要修正 STL 后重新上传；<span class="tag ask">确认</span> 表示暂停，等你在页面上确认后继续；<span class="tag info">提示</span> 不阻断计算。</p>
+  <div class="table-wrap"><table class="checks">
+    <thead><tr><th>检查项</th><th>判据</th><th>不满足时</th></tr></thead>
+    <tbody>
+      <tr><td>文件</td><td>二进制或 ASCII STL；不超过 128 MiB；面片数 1 到 2,000,000；坐标都是有限数</td><td><span class="tag stop">拒绝</span></td></tr>
+      <tr><td>整体尺寸</td><td>换算成 mm 后，包围盒对角线在 50–1500 mm 之间</td><td><span class="tag stop">拒绝</span></td></tr>
+      <tr><td>退化面片</td><td>每个三角面面积为有限正数</td><td><span class="tag stop">拒绝</span></td></tr>
+      <tr><td>重复面片</td><td>没有顶点完全相同的两个三角面</td><td><span class="tag stop">拒绝</span></td></tr>
+      <tr><td>非流形边</td><td>每条内部边恰好连接两个面片</td><td><span class="tag stop">拒绝</span></td></tr>
+      <tr><td>开口边界</td><td>开口边界上每个点只连两条边界边（边界是简单的环）</td><td><span class="tag stop">拒绝</span></td></tr>
+      <tr><td>开口数</td><td>恰好 5 个开放的边界环</td><td><span class="tag stop">拒绝</span></td></tr>
+      <tr><td>连通片</td><td>只有一个连通片。多出的小片面积合计不超过总面积的 1% 时，可以在确认页勾选删除；超过 1% 视为可能断开的分支，不能自动删除</td><td>≤ 1%：<span class="tag ask">确认</span><br>&gt; 1%：<span class="tag stop">拒绝</span></td></tr>
+      <tr><td>单位</td><td>见下一节</td><td><span class="tag ask">确认</span></td></tr>
+      <tr><td>法向一致性</td><td>相邻面片绕序一致</td><td><span class="tag info">提示</span></td></tr>
+      <tr><td>狭长面片</td><td>形状质量 4√3 × 面积 / 边长平方和不低于 0.01</td><td><span class="tag info">提示</span></td></tr>
+      <tr><td>切口大小</td><td>每个开口的投影等效半径不小于 0.5 mm</td><td><span class="tag info">提示</span></td></tr>
+      <tr><td>切口平面性</td><td>开口到拟合平面的均方根距离不超过其等效半径的 5%</td><td><span class="tag info">提示</span></td></tr>
+      <tr><td>中心线</td><td>从入口到四个出口提取出完整的中心线树，拓扑为 1 个入口 → 2 条髂总 → 每侧 2 个出口</td><td>提取失败：<span class="tag stop">拒绝</span><br>拓扑不符：不能自动命名，需人工核对</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">表面自交目前没有检查；程序也不判断法向朝内还是朝外。检查通过只说明几何能进入计算，不说明预测准确。</p>
+</section>
+
+<section class="block" aria-labelledby="s-units">
+  <h2 id="s-units">3. 单位</h2>
+  <p>STL 文件不记录单位。上传时可以直接选毫米、厘米或米，也可以选「不确定，先检查尺寸」。</p>
+  <ul>
+    <li><strong>直接选了单位</strong>：按所选单位换算成 mm，不再暂停；换算后的包围盒对角线仍须在 50–1500 mm 之间。</li>
+    <li><strong>选了「先检查尺寸」</strong>：程序用原始坐标的包围盒对角线 D 给出建议——D &lt; 2 按米，2 ≤ D &lt; 100 按厘米，D ≥ 100 按毫米。只有当 mm、cm、m 三者中恰好一个能让尺寸落进 50–1500 mm，且离两端足够远（换算后约 87–861 mm）时才自动采用；否则暂停，请你选择实际单位。原始 D 在 50–150 之间时，按毫米和按厘米都说得通，一定会暂停。</li>
+  </ul>
+  <p>核对方法：看确认页上「换算后尺寸 · mm」，与影像中的血管尺寸比较。单位错一档，尺寸差 10 倍，预测不能用。示例文件换算后约 97 × 113 × 261 mm。</p>
+</section>
+
+<section class="block" aria-labelledby="s-export">
+  <h2 id="s-export">4. 从分割软件导出（通用步骤）</h2>
+  <p class="note">不同软件的菜单名称不同，下面只写要做的事。</p>
+  <ol>
+    <li>分割血流腔（造影剂充盈的部分）。附壁血栓和管壁不要并进来。</li>
+    <li>保留主动脉近端到两侧髂外、髂内动脉远端；其余分支在分割时去掉，或留短残端并封闭。</li>
+    <li>生成表面网格，适度平滑，不要改变管径。面片数一般几万到几十万即可，上限 2,000,000（示例文件 23,184 个三角面）。</li>
+    <li>在入口和四个出口处用大致垂直于血管的平面切开。很多软件导出的是封闭面，这一步必须做，否则开口数是 0。</li>
+    <li>检查表面是一整块、没有破洞、没有重复或退化面片，然后导出 STL，记下导出单位。</li>
+    <li>文件名不要用患者姓名。上传时在「患者、扫描与检索标签」里填写匿名患者编号，列表和报告标题会显示患者编号。</li>
+  </ol>
+</section>
+
+<section class="block" aria-labelledby="s-orient">
+  <h2 id="s-orient">5. 入口与出口命名</h2>
+  <ul>
+    <li>入口默认取<strong>面积最大的开口</strong>。取错时，在出口确认页选择「入口选错了？重新选择入口」。</li>
+    <li>STL 不带患者方向。左右由程序按坐标推断，出口名称（左髂外、左髂内、右髂外、右髂内）要对照原始影像核对；名称错了，左右分支的结果会对调。</li>
+    <li>所有直径、长度和体积都是在管腔面上量的，通常小于 CT 报告里的瘤体直径。</li>
+  </ul>
+</section>
+
+<section class="block" aria-labelledby="s-fail">
+  <h2 id="s-fail">6. 常见失败与处理</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>现象</th><th>常见原因</th><th>处理</th></tr></thead>
+    <tbody>
+      <tr><td>开口数大于 5</td><td>肾动脉、腰动脉等分支残端没有封闭；表面上有破洞</td><td>封闭或去掉多余残端，补洞后重新导出</td></tr>
+      <tr><td>开口数小于 5</td><td>导出的是封闭面，端口没切开；一侧髂内闭塞只剩 3 个出口</td><td>在 5 个端口处切开；三出口几何目前不支持</td></tr>
+      <tr><td>开口数为 5 但某个开口很小</td><td>某个分支残端没封闭，而一个髂支端口没切开</td><td>核对 5 个开口的位置，封闭残端、切开髂支</td></tr>
+      <tr><td>有多个连通片</td><td>分割时留下的碎片，或分支在某处断开</td><td>碎片面积 ≤ 1% 可在确认页删除；否则修复断开处</td></tr>
+      <tr><td>尺寸超出 50–1500 mm</td><td>单位选错，或导出范围不对</td><td>核对导出单位后重新选择；检查裁剪范围</td></tr>
+      <tr><td>中心线提取失败或超时</td><td>面片过多、碎片多、表面自交或局部塌陷</td><td>抽稀、平滑、修复表面后重新上传</td></tr>
+    </tbody>
+  </table></div>
+  <p>全部报错原文和处理办法见<a href="help_errors.html">报错对照表</a>。</p>
+</section>
+
+<section class="block" aria-labelledby="s-example">
+  <h2 id="s-example">7. 示例文件</h2>
+  <p><a href="example_aaa.stl" download="example_aaa.stl">下载示例 STL</a>（1.1 MB）：一例腹主动脉瘤的管腔面，单位 mm，23,184 个三角面，5 个开口，可以直接上传，用来熟悉流程。</p>
+</section>
+</main>
+</body>
+</html>

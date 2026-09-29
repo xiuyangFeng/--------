@@ -224,7 +224,7 @@ const LABELS={wss:['WSS · 壁面切应力','WSS · wall shear stress'],wss_shor
   legend_note:['统计：预测点云 · 壁面：Gaussian 插值','Statistics on prediction points · wall colours: Gaussian interpolation'],units_pa:['Pa','Pa'],units_dyn:['dyn/cm²','dyn/cm²'],units_mmhg:['mmHg','mmHg'],units_ms:['m/s','m/s'],units_cms:['cm/s','cm/s'],mm:['mm','mm'],
   view_front:['前','Front'],view_back:['后','Back'],view_left:['左','Left'],view_right:['右','Right'],view_top:['上','Top'],view_bottom:['下','Bottom'],manual:['人工','Manual'],inlet:['入口','Inlet']};
 const ZH2EN={'主动脉入口':'Aortic inlet','入口（主动脉）':'Inlet (aorta)','主动脉':'Aorta','左髂总':'Left CIA','右髂总':'Right CIA','左髂外':'Left EIA','右髂外':'Right EIA','左髂内':'Left IIA','右髂内':'Right IIA','入口':'Inlet',
-  '高 WSS 区':'high-WSS region','低 WSS 区':'low-WSS region','全场最大值':'Field maximum','全场最大 WSS':'Field maximum WSS','最大直径':'Max diameter','最小半径':'Min radius','最大速度':'Max speed','最低压力':'Min pressure','压降':'Pressure drop','低速区':'Low-speed region',
+  '高 WSS 区':'high-WSS region','低 WSS 区':'low-WSS region','全场最大值':'Field maximum','全场最大 WSS':'Field maximum WSS','管腔最大直径':'Max lumen diameter','最大直径':'Max lumen diameter','最小半径':'Min radius','最大速度':'Max speed','最低压力':'Min pressure','压降':'Pressure drop','低速区':'Low-speed region',
   '前':'Front','后':'Back','左':'Left','右':'Right','上':'Top','下':'Bottom','人工':'Manual','标注':'Annotation','测量':'Measurement','探针':'Probe','分支':'Branch','半径':'Radius','弧长':'Arc length','管径':'Diameter'};
 const ZH2EN_SORTED=Object.entries(ZH2EN).sort((a,b)=>b[0].length-a[0].length);
 function englishLabel(key,lang){

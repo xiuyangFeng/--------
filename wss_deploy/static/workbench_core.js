@@ -132,7 +132,10 @@
     }
     const wall = byFamily.wall || null, volume = byFamily.volume || null;
     return {
-      title: (card.case_ids || []).join(' / ') || '匿名病例',
+      // C7 (§5.4): the service's display name (patient id when filled, else the case name); older services
+      // send none, and then the case names are shown as before.
+      title: (typeof card.display_name === 'string' && card.display_name.trim()) || (card.case_ids || []).join(' / ') || '未命名病例',
+      caseIds: (card.case_ids || []).join(' / '),
       subtitle: [card.patient_id && `患者 ${card.patient_id}`, card.scan_label, card.scan_date].filter(Boolean).join(' · '),
       tags: Array.isArray(card.tags) ? card.tags : [],
       runs, pendingReview: Number(card.pending_review || 0),
@@ -800,7 +803,7 @@
 
   // ---- patient timeline (§19.3) ----
   const TIMELINE_METRICS = {
-    max_diameter_mm: {label: '最大直径', units: 'mm', group: 'geometry'},
+    max_diameter_mm: {label: '管腔最大直径', units: 'mm', group: 'geometry'},
     sac_volume_ml: {label: '瘤体体积', units: 'mL', group: 'geometry'},
     wss_p99_pa: {label: 'WSS p99', units: 'Pa', group: 'model'},
     speed_p99_m_s: {label: '速度 p99', units: 'm/s', group: 'model'},
@@ -839,7 +842,7 @@
       const usable = lines.filter(line => line.points.length >= 2);
       if (usable.length) charts.push({key, ...TIMELINE_METRICS[key], lines: usable});
     };
-    chart('max_diameter_mm', [{id: 'geometry', label: '最大直径', color: '#18324b', points: pointsFor(row => row.maxDiameter)}]);
+    chart('max_diameter_mm', [{id: 'geometry', label: '管腔最大直径', color: '#18324b', points: pointsFor(row => row.maxDiameter)}]);
     chart('sac_volume_ml', [{id: 'geometry', label: '瘤体体积', color: '#18324b', points: pointsFor(row => row.sacVolume)}]);
     for (const key of ['wss_p99_pa', 'speed_p99_m_s']) {
       chart(key, releases.filter(release => release.metric === key).map(release => ({id: release.id, label: release.label, color: release.color, points: pointsFor(row => row.metrics[release.id])})));
@@ -919,7 +922,7 @@
       else if (!size) reason = '文件是空的（0 字节），不会上传';
       else if (size > maxBytes) reason = `超过单个文件上限 ${formatBytes(maxBytes)}，不会上传；请先在建模软件中抽稀网格`;
       else if (seen.has(name.toLowerCase())) warn = `与第 ${seen.get(name.toLowerCase()) + 1} 个文件同名，两例会得到相同的病例编号`;
-      else seen.set(name.toLowerCase(), index);
+      else { seen.set(name.toLowerCase(), index); if (o.nameHint !== false && nameLikeFilename(name)) warn = NAME_LIKE_TEXT; }
       rows.push({index, name, size, ok: !reason, reason, warn});
     });
     return {rows, valid: rows.filter(row => row.ok).map(row => list[row.index]), invalid: rows.filter(row => !row.ok).length};
@@ -951,6 +954,28 @@
     if (/^[一-龥·]{2,4}$/.test(text.trim())) return {level: 'warn', text: `「${text.trim()}」看起来像真实姓名，请改用匿名编号。`};
     return null;
   }
+  // C7 (§5.4): a file name made only of two to four letter groups (LV_GUO_YOU, Zhang San) may be a pinyin name.
+  // Only a reminder; the upload is never blocked.
+  const NAME_LIKE = /^[A-Za-z]+(?:[_ -][A-Za-z]+){1,3}$/;
+  const NAME_LIKE_TEXT = '文件名可能是姓名，建议填写患者编号';
+  function nameLikeFilename(name) {
+    const stem = String(name === null || name === undefined ? '' : name).replace(/\.stl$/i, '').trim();
+    return NAME_LIKE.test(stem);
+  }
+  // C7: the name shown for a job — the service's display_name (patient id when filled, else the case name);
+  // older services send none, and then the case name is used.
+  function displayName(job, fallback) {
+    const j = isObject(job) ? job : {};
+    const name = typeof j.display_name === 'string' ? j.display_name.trim() : '';
+    return name || (typeof j.case_id === 'string' && j.case_id.trim()) || (fallback === undefined ? '未命名病例' : fallback);
+  }
+  // C5 (§5.4): the stored quality.label stays as it is (golden regression); only the wording shown changes.
+  const QUALITY_GOOD_TEXT = '多模型一致（一致不代表准确）';
+  function qualityDisplayLabel(quality) {
+    const q = isObject(quality) ? quality : {};
+    if (q.level === 'good' || q.label === '模型集成稳定') return QUALITY_GOOD_TEXT;
+    return q.label || q.level || '未评估';
+  }
 
   const core = {FINAL, NOTIFY_STATUSES, FAMILY_TEXT, BUILTIN_PRESETS, unreadParse, unreadSerialize, unreadKey, unreadAdd, unreadRemove, unreadHas, unreadJobs, unreadCount, unreadPrune, titleWithUnread,
     shouldNotify, notificationText, mergePreferences, uploadPreferencesFrom, isPendingReview, isReviewed, splitByReview, familyOfRelease, caseCardModel, latestMaxDiameter, narrativeModel, releaseLabel,
@@ -963,7 +988,8 @@
     cycleSummary, modelCount, ensembleWord, qualityNote, referencePathLabel, alertModel, reliabilitySummary, humanOutletReason, outletReview,
     TIMELINE_METRICS, timelineModel, sparkGeometry, GEOMETRY_FINDINGS, findingChip, findingsForCard, findingUnits,
     formatDuration, stageRemaining, etaView, etaRowSummary,
-    waitText, formatBytes, checkUploadFiles, uploadChunks, identifierIssue, UPLOAD_MAX_BYTES};
+    waitText, formatBytes, checkUploadFiles, uploadChunks, identifierIssue, UPLOAD_MAX_BYTES,
+    nameLikeFilename, NAME_LIKE_TEXT, displayName, qualityDisplayLabel, QUALITY_GOOD_TEXT};
   root.WssWorkbenchCore = core;
   if (typeof module !== 'undefined' && module.exports) module.exports = core;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

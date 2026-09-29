@@ -362,7 +362,7 @@ body:not(.compact) #right-dock{top:52px;right:6px;width:clamp(140px,44cqw,190px)
 <details id="menu-measure" class="menu-card"><summary>测量 <button type="button" class="gloss" data-gloss="local_diameter" aria-label="术语解释">?</button></summary><div class="body">
 <div id="measure-tools">
 <div class="row mode-row" id="measure-modes"><button type="button" id="measure-distance">距离</button><button type="button" id="measure-arc">弧长</button><button type="button" id="measure-diameter">管径</button><button type="button" id="measure-segment">分段</button></div>
-<p id="measure-hint" class="note">选择模式后在壁面或体内点上点击取点（距离 / 弧长 / 分段各两点，管径一点）；再次点击该模式按钮退出。管径 = 中心线内切半径 × 2 <button type="button" class="gloss" data-gloss="local_diameter" aria-label="术语解释">?</button>，不是该处截面的最大直径；弧长沿中心线树计算 <button type="button" class="gloss" data-gloss="arc_distance" aria-label="术语解释">?</button>。</p>
+<p id="measure-hint" class="note">选择模式后在壁面或体内点上点击取点（距离 / 弧长 / 分段各两点，管径一点）；再次点击该模式按钮退出。管径 = 中心线内切半径 × 2 <button type="button" class="gloss" data-gloss="local_diameter" aria-label="术语解释">?</button>，不是该处截面的管腔最大直径；弧长沿中心线树计算 <button type="button" class="gloss" data-gloss="arc_distance" aria-label="术语解释">?</button>。</p>
 <ul id="measure-list" class="item-list"></ul>
 <div class="row"><button type="button" id="measure-copy">复制列表</button><button type="button" id="measure-clear">清空</button></div>
 <p id="measure-note" class="note"></p></div>
@@ -407,10 +407,10 @@ body:not(.compact) #right-dock{top:52px;right:6px;width:clamp(140px,44cqw,190px)
 <p class="note">术语：<button type="button" class="gloss chip" data-gloss="relative_pressure">相对压力</button><button type="button" class="gloss chip" data-gloss="delta_p">ΔP 压差</button><button type="button" class="gloss chip" data-gloss="speed">速度大小</button><button type="button" class="gloss chip" data-gloss="trust_low_sample_support">采样支撑</button><button type="button" class="gloss chip" data-gloss="trust_near_opening">近切口</button><button type="button" class="gloss chip" data-gloss="trust_geometry_out_of_range">几何越界</button><button type="button" class="gloss chip" data-gloss="trust_interpolation_uncovered">插值无支撑</button></p><p id="pressure-reference" class="note"></p><p id="volume-protocol" class="note"></p><p class="warning">速度主要查看体内点、向量和流线；壁面无滑移速度不作为主要展示。压力可以同时查看体内与壁面。单个预测时相的流线不是粒子随时间运动的轨迹。</p>
 <div class="row"><button type="button" id="tech-info-menu" aria-expanded="false" aria-controls="tech-info">技术信息（发布包、特征合同、run_identity、哈希）</button></div></div></details>
 <details id="menu-profiles" class="menu-card" hidden><summary>沿程</summary><div class="body">
-<div id="profile-morphology" hidden><span id="max-diameter-text"></span><button type="button" id="max-diameter-fly">飞到</button><label class="inline" style="margin:0"><input type="checkbox" id="labels-max-diameter" checked>显示最大直径环</label><button type="button" class="gloss" data-gloss="max_diameter" aria-label="术语解释">?</button></div>
+<div id="profile-morphology" hidden><span id="max-diameter-text"></span><button type="button" id="max-diameter-fly">飞到</button><label class="inline" style="margin:0"><input type="checkbox" id="labels-max-diameter" checked>显示管腔最大直径环</label><button type="button" class="gloss" data-gloss="max_diameter" aria-label="术语解释">?</button></div>
 <div class="two-col"><label>分支<select id="profile-branch"></select></label><label>物理量<select id="profile-quantity"></select></label></div>
 <canvas id="profile-canvas" width="560" height="460" aria-label="沿分支弧长的截面平均值曲线"></canvas>
-<p class="note">实线为截面平均，虚线为最大 / 最低；下图为局部半径，有形态数据时叠加截面最大直径（实线）与等效直径（虚线）。点击曲线任一处，三维截面跳到该弧长。压力为相对量，只用于差值。</p><div class="row"><button type="button" id="profile-svg">导出曲线 SVG</button></div><p id="profile-svg-note" class="note">导出当前分支的两张矢量图：所选物理量（按当前显示单位）一张、半径一张（有形态数据时同图含最大 / 等效直径）；横轴为距入口弧长。</p>
+<p class="note">实线为截面平均，虚线为最大 / 最低；下图为局部半径，有形态数据时叠加截面管腔最大直径（实线）与等效直径（虚线）；直径均为管腔直径，不含附壁血栓与管壁。点击曲线任一处，三维截面跳到该弧长。压力为相对量，只用于差值。</p><div class="row"><button type="button" id="profile-svg">导出曲线 SVG</button></div><p id="profile-svg-note" class="note">导出当前分支的两张矢量图：所选物理量（按当前显示单位）一张、半径一张（有形态数据时同图含管腔最大 / 等效直径）；横轴为距入口弧长。</p>
 <details class="sub-details"><summary>两截面之间的区域统计</summary>
 <label>分支<select id="region-branch"></select></label>
 <label>近端位置<div class="range-row"><input id="region-smin" type="range" min="0" max="100" step="1" value="10"><output id="region-smin-value">10%</output></div></label>

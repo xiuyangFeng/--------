@@ -481,7 +481,7 @@
     }
     return out;
   }
-  const FINDING_KINDS={high_wss_cluster:'高 WSS 区',low_wss_cluster:'低 WSS 区',max_wss:'WSS 最大值',max_diameter:'最大直径',min_radius:'最小半径',
+  const FINDING_KINDS={high_wss_cluster:'高 WSS 区',low_wss_cluster:'低 WSS 区',max_wss:'WSS 最大值',max_diameter:'管腔最大直径',min_radius:'最小半径',
     max_speed:'速度最大值',min_pressure:'压力最低点',pressure_drop:'分支压降',low_speed_region:'低速区'};
   const SEVERITY_LABELS={attention:'关注',note:'提示',info:'几何'};
   function findingsSorted(items) {
@@ -855,7 +855,7 @@
   // English labels (C12).  Minimal local dictionary; WssReportCommon.englishLabel takes over in phase 2.
   const LABELS_EN={'速度':'Speed','速度大小':'Speed','压力':'Pressure','相对压力':'Relative pressure','主动脉':'Aorta','左髂总':'Left CIA','右髂总':'Right CIA','左髂外':'Left EIA','右髂外':'Right EIA','左髂内':'Left IIA','右髂内':'Right IIA',
     '前':'Front','后':'Back','左':'Left','右':'Right','上':'Top','下':'Bottom','探针':'Probe','发现':'Finding','连续色标':'continuous','段离散色带':'bands','壁面压力':'Wall pressure','流线':'Streamlines','截面':'Slice',
-    '半径':'Radius','直径':'Diameter','最大直径':'Max diameter','等效直径':'Equivalent diameter','结论（参考）':'Summary (for reference)'};
+    '半径':'Radius','直径':'Diameter','管腔最大直径':'Max lumen diameter','最大直径':'Max lumen diameter','等效直径':'Equivalent diameter','结论（参考）':'Summary (for reference)'};
   function labelText(text,lang) {
     if(lang!=='en')return text;
     const common=root.WssReportCommon;
@@ -1962,13 +1962,13 @@
   }
   function sectionRows() {
     const m=sliceSection;if(!m)return [];
-    return [['轮廓面积',fmt(m.area_mm2)+' mm²'],['最大直径',fmt(m.max_diameter_mm)+' mm'],['等效直径',fmt(m.equivalent_diameter_mm)+' mm']];
+    return [['轮廓面积',fmt(m.area_mm2)+' mm²'],['管腔最大直径',fmt(m.max_diameter_mm)+' mm'],['等效直径',fmt(m.equivalent_diameter_mm)+' mm']];
   }
   function sectionCaption(language) {
     const m=sliceSection;if(!m)return '';
     const en=(language||lang)==='en';
-    return (en?` · outline area ${fmt(m.area_mm2)} mm² · max diameter ${fmt(m.max_diameter_mm)} mm · equivalent diameter ${fmt(m.equivalent_diameter_mm)} mm`
-              :` · 轮廓面积 ${fmt(m.area_mm2)} mm² · 最大直径 ${fmt(m.max_diameter_mm)} mm · 等效直径 ${fmt(m.equivalent_diameter_mm)} mm`)
+    return (en?` · outline area ${fmt(m.area_mm2)} mm² · max lumen diameter ${fmt(m.max_diameter_mm)} mm · equivalent diameter ${fmt(m.equivalent_diameter_mm)} mm`
+              :` · 轮廓面积 ${fmt(m.area_mm2)} mm² · 管腔最大直径 ${fmt(m.max_diameter_mm)} mm · 等效直径 ${fmt(m.equivalent_diameter_mm)} mm`)
          +(m.synthetic?(en?' (outline closed by a straight edge)':'（轮廓缺口以直线封闭）'):'');
   }
   function sliceZoomReadout(clientX,clientY) {
@@ -2421,7 +2421,7 @@
     } catch(_){return null;}
   }
   // §17.3 chips: compact kind names that the shared English dictionary can translate verbatim.
-  const FINDING_SHORT={high_wss_cluster:'高 WSS 区',low_wss_cluster:'低 WSS 区',max_wss:'全场最大 WSS',max_diameter:'最大直径',
+  const FINDING_SHORT={high_wss_cluster:'高 WSS 区',low_wss_cluster:'低 WSS 区',max_wss:'全场最大 WSS',max_diameter:'管腔最大直径',
     min_radius:'最小半径',max_speed:'最大速度',min_pressure:'最低压力',pressure_drop:'压降',low_speed_region:'低速区'};
   function findingChipText(item,language) {
     if(item.manual)return `${item.id} ${String(item.text||'').slice(0,40)}`.trim();
@@ -2475,7 +2475,7 @@
     // §17.3 max-diameter station label, pinned with the ring.
     if(labelState.max_diameter&&morphMax&&morphMax.xyz_mm) {
       out.push({kind:'dlabel',anchor:morphMax.xyz_mm,xyz:add(morphMax.xyz_mm,[0,0,diagonal*0.04]),
-        text:`${labelText('最大直径',language)} ${fmtTick(Number(morphMax.max_diameter_mm))} mm`});
+        text:`${labelText('管腔最大直径',language)} ${fmtTick(Number(morphMax.max_diameter_mm))} mm`});
     }
     return out;
   }
@@ -2602,7 +2602,7 @@
     const d=Number(morphMax.max_diameter_mm),eq=Number(morphMax.equivalent_diameter_mm);
     const at=Number.isFinite(Number(morphMax.distance_from_inlet_mm))?Number(morphMax.distance_from_inlet_mm)
       :Number.isFinite(Number(morphMax.s_from_root_mm))?Number(morphMax.s_from_root_mm):null;
-    setText('max-diameter-text',`最大直径 ${fmtTick(d)} mm${Number.isFinite(eq)?`（等效 ${fmtTick(eq)} mm）`:''}`
+    setText('max-diameter-text',`管腔最大直径 ${fmtTick(d)} mm${Number.isFinite(eq)?`（等效 ${fmtTick(eq)} mm）`:''}`
       +`${at===null?'':` · 入口下 ${fmtTick(at)} mm`}`);
     const fly=$('max-diameter-fly');if(fly)fly.disabled=!morphMax.xyz_mm;
     const ring=$('labels-max-diameter');if(ring)ring.disabled=!morphMax.polygon_world;
@@ -3305,7 +3305,7 @@
     const morph=morphSeriesFor(branch),mx=morph?(usedRoot?morph.xRoot:morph.x):null;
     const radiusSeries=[];
     if(radius&&xs.length&&radius.some(Number.isFinite))radiusSeries.push({name:labelText('半径',lang),x:xs,y:radius,color:'#3f8f6b'});
-    if(morph&&morph.max&&morph.max.some(Number.isFinite))radiusSeries.push({name:labelText('最大直径',lang),x:mx,y:morph.max,color:'#8e44ad'});
+    if(morph&&morph.max&&morph.max.some(Number.isFinite))radiusSeries.push({name:labelText('管腔最大直径',lang),x:mx,y:morph.max,color:'#8e44ad'});
     if(morph&&morph.equiv&&morph.equiv.some(Number.isFinite))radiusSeries.push({name:labelText('等效直径',lang),x:mx,y:morph.equiv,color:'#b07cc6',dash:'6 3'});
     if(radiusSeries.length)out.radius={
       name:`${safeFile(caseName())}_profile_${safeFile(name)}_radius.svg`,

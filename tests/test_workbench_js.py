@@ -442,7 +442,7 @@ const keydown=async key=>{const ev={key,target:document.body,defaultPrevented:fa
   // §17.1 / §17.4: morphology facts, the maximum-diameter chip and the narrative card
   const factLabels=walk(g('detail'),e=>String(e.className||'').includes('fact-label')).map(e=>(e.children||[]).map(c=>(c&&c.nodeValue)||'').join(''));
   const morphology={heading:Boolean(byText(g('detail'),'瘤体形态')),value:Boolean(byText(g('detail'),'63.4 mm')),
-    labels:factLabels.filter(t=>['最大直径','瘤体长度 / 体积','瘤颈直径 / 长度','全腔体积'].includes(t)).sort(),
+    labels:factLabels.filter(t=>['管腔最大直径','瘤体长度 / 体积','瘤颈直径 / 长度','全腔体积'].includes(t)).sort(),
     note:Boolean(byText(g('detail'),'瘤体位于肾下主动脉段。')),
     chips:walk(g('detail'),e=>String(e.className||'').includes('diameter-chip')).length,
     gloss:[...new Set(walk(g('detail'),e=>e.attrs&&e.attrs['data-gloss']).map(e=>e.attrs['data-gloss']))].sort()};
@@ -563,12 +563,12 @@ def test_workbench_boots_against_stub_dom_and_canned_service(tmp_path):
     assert "GET /api/jobs/export" in out["calls"]
     assert out["cohort"]["head"] == 7 and out["cohort"]["rows"] == 2 and out["cohort"]["count"] == "· 2 / 3"
     assert "筛选出 2 个" in out["cohort"]["status"]
-    # §17.4: maximum-diameter column, histogram caption and `最大直径 ≥` filter
-    assert out["cohort"]["diameterCaption"] == "最大直径分布 · mm · 2 例"
+    # §17.4 / C1: maximum-diameter column, histogram caption and `管腔最大直径 ≥` filter
+    assert out["cohort"]["diameterCaption"] == "管腔最大直径分布 · mm · 2 例"
     assert out["cohortDiameter"] == {"rows": 1, "count": "· 1 / 3"}
     assert out["caseChips"] == 1                     # case card chip from the latest done run's snapshot
     assert out["morphology"]["heading"] is True and out["morphology"]["value"] is True and out["morphology"]["note"] is True
-    assert out["morphology"]["labels"] == sorted(["最大直径", "瘤体长度 / 体积", "瘤颈直径 / 长度", "全腔体积"])
+    assert out["morphology"]["labels"] == sorted(["管腔最大直径", "瘤体长度 / 体积", "瘤颈直径 / 长度", "全腔体积"])
     assert out["morphology"]["chips"] == 1
     # the §17 glossary keys the backend adds must be exactly these
     assert {"max_diameter", "aneurysm_sac", "aneurysm_neck", "lumen_volume", "narrative"} <= set(out["morphology"]["gloss"])
@@ -1312,3 +1312,36 @@ canned['/api/session'].max_upload_bytes=128*1024*1024;
     assert out["sent"][0] == {"release": "M1_3head_3seed_20260922", "companions": "PF6_VF6_peak_3seed_20260920"}
     assert len(out["single"]["seeds"]) > 1
     assert out["sent"][1] == {"release": "M1_3head_3seed_20260922", "companions": None}
+
+
+def test_c_line_display_name_quality_wording_and_name_like_files():
+    """WORKSPACE_V2_CONTRACT §5.4: C7 display name (fallback case_id), C5 「多模型一致」 wording, C7 filename reminder."""
+    out = _node("""
+      const names=[WB.displayName({display_name:'P-001',case_id:'LV_GUO_YOU'}),WB.displayName({case_id:'LV_GUO_YOU'}),WB.displayName({display_name:'  ',case_id:'C1'}),
+        WB.displayName({id:'j1'}),WB.displayName({id:'j1'},'j1'),WB.displayName(null)];
+      const labels=[WB.qualityDisplayLabel({level:'good',label:'模型集成稳定'}),WB.qualityDisplayLabel({label:'模型集成稳定'}),
+        WB.qualityDisplayLabel({level:'review',label:'存在不确定性，建议复核'}),WB.qualityDisplayLabel({level:'poor'}),WB.qualityDisplayLabel(null)];
+      const like=['LV_GUO_YOU.stl','Zhang San.STL','wang-kui-wu.stl','AB_CD_EF_GH_IJ.stl','P001.stl','CASE_001.stl','aaa.stl','李四.stl'].map(WB.nameLikeFilename);
+      const rows=WB.checkUploadFiles([{name:'LV_GUO_YOU.stl',size:10},{name:'P001.stl',size:10}]).rows.map(r=>[r.ok,r.warn]);
+      const quiet=WB.checkUploadFiles([{name:'LV_GUO_YOU.stl',size:10}],{nameHint:false}).rows[0].warn;
+      const card=WB.caseCardModel({case_ids:['LV_GUO_YOU'],display_name:'P-001',runs:[],latest:{}},[]);
+      const old=WB.caseCardModel({case_ids:['LV_GUO_YOU'],runs:[],latest:{}},[]);
+      console.log(JSON.stringify({names,labels,like,rows,quiet,card:[card.title,card.caseIds],old:old.title}));
+    """)
+    assert out["names"] == ["P-001", "LV_GUO_YOU", "C1", "未命名病例", "j1", "未命名病例"]
+    assert out["labels"] == ["多模型一致（一致不代表准确）", "多模型一致（一致不代表准确）", "存在不确定性，建议复核", "poor", "未评估"]
+    assert out["like"] == [True, True, True, False, False, False, False, False]
+    assert out["rows"] == [[True, "文件名可能是姓名，建议填写患者编号"], [True, ""]] and out["quiet"] == ""
+    assert out["card"] == ["P-001", "LV_GUO_YOU"] and out["old"] == "LV_GUO_YOU"
+
+
+def test_c_line_workbench_entry_links_and_lumen_wording():
+    """§5.4 C1 / C7 / C8: the new-workspace link, the upload dialog's input line and links, lumen wording on the page."""
+    html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+    assert 'href="/v2/"' in html and ">新版工作区</a>" in html
+    assert 'href="/static/v2/help_input.html"' in html and ">输入说明</a>" in html
+    assert 'href="/static/v2/example_aaa.stl"' in html and ">下载示例 STL</a>" in html
+    assert "管腔最大直径 ≥ mm" in html and ">最大直径" not in html
+    app = (STATIC_DIR / "app.js").read_text(encoding="utf-8")
+    assert "title:'管腔最大直径（" in app and "'⌀ '" in app          # the list chip keeps ⌀, its hover names the lumen
+    assert "'最大直径" not in app and "模型集成稳定" not in app

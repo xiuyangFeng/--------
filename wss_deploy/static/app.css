@@ -569,3 +569,8 @@ input.has-issue{border-color:#d9826f;box-shadow:0 0 0 2px #fbe3dd}
 }
 /* v0.15.7: inline links to a companion task in the provenance line */
 .job-origin .link-button{border:0;background:none;box-shadow:none;padding:0 2px;min-height:0;min-width:0;font:inherit;color:var(--blue,#176caa);text-decoration:underline;cursor:pointer}
+/* C7 / C8 (WORKSPACE_V2_CONTRACT §5.4): link to the new workspace, the upload dialog's input line, the lumen note */
+.v2-link{font-size:13px;color:#446782;text-decoration:none;padding:4px 8px;border-radius:3px;white-space:nowrap}.v2-link:hover{background:#ecf5fb;text-decoration:underline}
+.input-req{margin:10px 0 0;line-height:1.7}.input-req a{white-space:nowrap}
+.morphology-card .lumen-note{display:block;margin-top:4px}
+@media(max-width:760px){.v2-link{padding:3px 4px;font-size:12px}}

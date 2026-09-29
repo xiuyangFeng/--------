@@ -524,8 +524,8 @@ body:not(.compact) #view.has-banner #cbar-unit{top:74px}body:not(.compact) #view
 <label>分支 <select id="prof-branch"><option value="">全部叠加</option></select></label>
 <label>横轴 <select id="prof-x"><option value="s_from_root_mm">距入口弧长</option><option value="s_local_mm">分支内弧长</option></select></label>
 <div class="row" id="maxd-row" hidden><span id="maxd-text"></span><button type="button" id="maxd-fly">飞到</button></div>
-<label id="maxd-toggle" hidden><input type="checkbox" id="maxd-ring" checked> 显示最大直径环</label>
-<small id="maxd-note" class="hint" hidden>最大直径为该站壁面截面的最大 Feret 直径，等效直径 = 2√(面积/π)；三维上画出该站轮廓环。</small>
+<label id="maxd-toggle" hidden><input type="checkbox" id="maxd-ring" checked> 显示管腔最大直径环</label>
+<small id="maxd-note" class="hint" hidden>管腔最大直径为该站壁面截面的最大 Feret 直径，等效直径 = 2√(面积/π)；三维上画出该站轮廓环。输入是管腔面，直径不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径。</small>
 <div class="prof-legend" id="prof-legend"></div>
 <canvas id="prof-wss" height="300" aria-label="沿程 WSS 曲线"></canvas>
 <canvas id="prof-r" height="140" aria-label="沿程半径曲线"></canvas>
@@ -726,7 +726,7 @@ const FINDINGS=META.findings&&Array.isArray(META.findings.items)?META.findings.i
 const FRAME=CORE.validFrame(META.frame_transform)?META.frame_transform:null;
 const TRUST=META.trust&&typeof META.trust==='object'?META.trust:null;
 let thresholdsPa=CORE.validThresholds((META.wss_field_pa||{}).thresholds_pa)||[.4,4,7];
-const KIND_CN={high_wss_cluster:'高 WSS 区',low_wss_cluster:'低 WSS 区',max_wss:'全场最大值',max_diameter:'最大直径',min_radius:'最小半径',max_speed:'最大速度',min_pressure:'最低压力',pressure_drop:'压降',low_speed_region:'低速区',
+const KIND_CN={high_wss_cluster:'高 WSS 区',low_wss_cluster:'低 WSS 区',max_wss:'全场最大值',max_diameter:'管腔最大直径',min_radius:'最小半径',max_speed:'最大速度',min_pressure:'最低压力',pressure_drop:'压降',low_speed_region:'低速区',
  stagnation_cluster:'滞留区',high_osi_cluster:'高 OSI 区'};
 // Unit-aware finding value: Pa follows the unit switch, cm² / mm / dimensionless (OSI "1") are printed as they are.
 function findingValue(f){if(!f||f.value==null||!Number.isFinite(+f.value))return '';if(f.units==='Pa')return fqu(f.value)+' '+ul();const u=unitText(f.units);return fq(f.value)+(u?' '+u:'');}
@@ -744,7 +744,7 @@ const STATIONS=(()=>{const m=new Map();for(const b of (MORPH&&Array.isArray(MORP
   m.set(Number(b.segment_id),{s:st.s_from_root_mm.map(Number),max:Array.from(st.max_diameter_mm||[],Number),eq:Array.from(st.equivalent_diameter_mm||[],Number)});}
  return m;})();
 // §17.3 automatic labels: short bilingual finding captions, severity colours and the count control steps.
-const KIND_SHORT={high_wss_cluster:['高 WSS','High WSS'],low_wss_cluster:['低 WSS','Low WSS'],max_wss:['最大 WSS','Max WSS'],max_diameter:['最大直径','Max diameter'],
+const KIND_SHORT={high_wss_cluster:['高 WSS','High WSS'],low_wss_cluster:['低 WSS','Low WSS'],max_wss:['最大 WSS','Max WSS'],max_diameter:['管腔最大直径','Max lumen diameter'],
  min_radius:['最小半径','Min radius'],max_speed:['最大速度','Max speed'],min_pressure:['最低压力','Min pressure'],pressure_drop:['压降','Pressure drop'],
  low_speed_region:['低速区','Low-speed region'],stagnation_cluster:['滞留区','Stagnation'],high_osi_cluster:['高 OSI','High OSI'],manual:['人工','Manual']};
 const FLABEL_FILL={attention:'#fde7e3f0',note:'#fff2d5f0',info:'#e5f0faf0'},FLABEL_STROKE={attention:'#e2a294',note:'#e6c47a',info:'#9dc3e6'};
@@ -877,7 +877,7 @@ function cycleCard(bar){const ids=supportedFields().filter(isCycleField);if(!ids
   return h+`<small>${derivedNote||'一个心动周期（'+per+' s）积分量的直接回归预测，不是逐帧推演；'}面积 = 点占比 × 输入壁面面积。</small></section>`;}
 // ---- B4 warning banner: geometry outside the release's reference range, population review or a non-good ensemble ----
 let BANNER_OFF=false;
-const REF_FIELDS={length_mm:'长度',radius_min_mm:'最小半径',radius_median_mm:'中位半径',radius_max_mm:'最大半径',max_diameter_mm:'最大直径',tortuosity:'迂曲度',spacing_mm:'点间距',surface_variation_median:'表面变化度',variation:'表面变化度'};
+const REF_FIELDS={length_mm:'长度',radius_min_mm:'最小半径',radius_median_mm:'中位半径',radius_max_mm:'最大半径',max_diameter_mm:'最大内切直径',tortuosity:'迂曲度',spacing_mm:'点间距',surface_variation_median:'表面变化度',variation:'表面变化度'};
 function referenceLabel(path){const p=String(path||'');if(p.startsWith('cloud.'))return '点云'+(REF_FIELDS[p.slice(6)]||p.slice(6));
   if(p.startsWith('geometry.')){const rest=p.slice(9),at=rest.lastIndexOf('.');if(at>0){const f=rest.slice(at+1);return rest.slice(0,at)+(REF_FIELDS[f]||f);}}return p;}
 function bannerInfo(){const ref=META.reference_assessment||{},pop=ref.population||{},q=META.quality||{},msgs=[];let target='';
@@ -920,7 +920,7 @@ function renderPanel(){const m=META,p=PEAK,ic=m.input_check||{},cloud=m.cloud||{
  const ss=m.surface_statistics||{};
  if(ss.p99_pa!=null) h+=`<section class="card"><h3>壁面面积加权参考<button type="button" class="gloss" data-gloss="area_weighted_p99">?</button></h3><div class="kv"><b>面积加权 p99</b><span>${fqu(ss.p99_pa)} ${ul()}</span><b>最高 1% 面积均值</b><span>${fqu(ss.top_area_mean_pa)} ${ul()}</span><b>有效覆盖面积</b><span>${fmt(ss.effective_area_mm2/100,1)} cm² / ${fmt(ss.covered_area_fraction*100,1)}%</span></div><small>基于 Gaussian 插值后的完整三角面；未覆盖或部分覆盖面片不外推。主指标仍是预测点云 p99。</small></section>`;
  const quality=m.quality||{},nModels=Array.isArray(model.models)?model.models.length:Array.isArray(model.weights)?model.weights.length:5;
- if(quality.level){const qclass=quality.level==='good'?'ok':'flag';h+=`<section class="card" id="quality-card"><h3>${nModels===5?'五模型':nModels+' 个模型'}集成质量<button type="button" class="gloss" data-gloss="quality_grade">?</button></h3><div class="flag ${qclass}">${esc(quality.label||quality.level)}</div>${(quality.reasons||[]).map(x=>`<small>${esc(x)}</small>`).join('<br>')}<p><small>逐点 seed 标准差仅写入 quality_audit.json，避免把分散度误读为预测概率。</small></p></section>`;}
+ if(quality.level){const qclass=quality.level==='good'?'ok':'flag';h+=`<section class="card" id="quality-card"><h3>${nModels===5?'五模型':nModels+' 个模型'}一致性<button type="button" class="gloss" data-gloss="quality_grade">?</button></h3><div class="flag ${qclass}">${esc(quality.level==='good'||quality.label==='模型集成稳定'?'多模型一致（一致不代表准确）':(quality.label||quality.level))}</div>${(quality.reasons||[]).map(x=>`<small>${esc(x)}</small>`).join('<br>')}<p><small>逐点 seed 标准差仅写入 quality_audit.json，避免把分散度误读为预测概率。</small></p></section>`;}
  const gate=m.proposal_confidence_gate||{};
  if(gate.status||gate.confirmation_required!=null){const gateText=gate.confirmation_required?'需要人工确认':'已通过自动门控';h+=`<section class="card"><h3>出口命名门控<button type="button" class="gloss" data-gloss="confidence_proxy">?</button></h3><div class="flag ${gate.confirmation_required?'':'ok'}">${esc(gateText)}</div><small>${esc(gate.calibration_status==='validated'?'已绑定独立校准 profile。':'当前几何置信度只是代理值，未作为统计概率使用。')}</small></section>`;}
  const reference=m.reference_assessment||{}, population=reference.population||{};
@@ -945,7 +945,7 @@ function renderPanel(){const m=META,p=PEAK,ic=m.input_check||{},cloud=m.cloud||{
  for(const e of m.endpoints||[])h+=`<b>${esc(e.name_cn)}</b><span>盖面半径 ${fmt(e.radius_mm,1)} mm${e.share!=null?' · 分流 '+fmt(e.share*100,0)+'%':''}</span>`;
  h+=`</div><small>${m.outlets_confirmed?'出口映射已人工确认':'出口映射为自动建议'}</small>`;
  h+=`<h3>输入与采样</h3><div class="kv"><b>单位</b><span>${esc(ic.unit)}</span><b>顶点 / 面</b><span>${fmt(ic.vertices,0)} / ${fmt(ic.faces,0)}</span><b>输入面积</b><span>${fmt(ic.area_mm2/100,1)} cm²</span><b>开口</b><span>${fmt(ic.openings,0)}</span><b>点云</b><span>${fmt(cloud.n_points,0)} 点 · 间距 ${fmt(cloud.spacing_mm,3)} mm · 平滑 ${fmt(cloud.smooth_mm,2)} mm</span></div></div></details>`;
- h+='<details class="card process-only"><summary>几何参数</summary><div><table><tr><th>分支</th><th>长 mm</th><th>最小 r</th><th>中位 r</th><th>最大直径</th><th>迂曲</th></tr>';
+ h+='<details class="card process-only"><summary>几何参数</summary><div><table><tr><th>分支</th><th>长 mm</th><th>最小 r</th><th>中位 r</th><th title="2 × 最大内切半径（管腔）">最大内切直径</th><th>迂曲</th></tr>';
  for(const [name,g] of Object.entries(m.geometry||{}))h+=`<tr><td>${esc(name)}</td><td>${fmt(g.length_mm,0)}</td><td>${fmt(g.radius_min_mm,1)}</td><td>${fmt(g.radius_median_mm,1)}</td><td>${fmt(g.max_diameter_mm,1)}</td><td>${fmt(g.tortuosity)}</td></tr>`;
  h+='</table></div></details>';
  h+=`<details class="card process-only"><summary>耗时与运行记录</summary><div><small>${esc(m.device)}${m.gpu?' · '+esc(m.gpu):''}</small><table>`;
@@ -1149,7 +1149,7 @@ function initViewer(){
  function diameterLabel(m,lang){const en=lang==='en',head=COMMON.englishLabel('diameter',lang);
   const where=m.branch?' · '+(en?COMMON.englishLabel(m.branch,'en'):m.branch):'';
   if(m.method!=='contour')return head+' ≈ '+fmt(m.value_mm,1)+' mm'+(en?' (2 × inscribed radius)':'（内切半径×2）')+where;
-  return (en?'Max diameter ':'最大直径 ')+fmt(m.max_diameter_mm,1)+(en?' / min ':' / 最小 ')+fmt(m.min_diameter_mm,1)
+  return (en?'Max lumen diameter ':'管腔最大直径 ')+fmt(m.max_diameter_mm,1)+(en?' / min ':' / 最小 ')+fmt(m.min_diameter_mm,1)
    +(en?' / equiv ':' / 等效 ')+fmt(m.equivalent_diameter_mm,1)+' mm · '+(en?'area ':'面积 ')+fmt(m.area_mm2,1)+' mm²'+where
    +(m.synthetic?(en?' · gap closed':'（轮廓有缺口，已闭合）'):'');}
  function labelFor(m,lang){if(m&&m.kind==='diameter'&&m.method)return diameterLabel(m,lang);
@@ -1249,7 +1249,7 @@ function initViewer(){
   if(AMAX&&LBL.max_diameter){const ring=maxDiameterRing();
    if(ring.length>2)loopLine(ring,MAXD_COLOR);
    const at=Array.isArray(AMAX.xyz_mm)&&AMAX.xyz_mm.length===3&&AMAX.xyz_mm.every(v=>Number.isFinite(+v))?AMAX.xyz_mm.map(Number):(ring.length?ring[0]:null);
-   if(at){const text=(LANG==='en'?'Max diameter ':'最大直径 ')+fmt(AMAX.max_diameter_mm,1)+' mm';
+   if(at){const text=(LANG==='en'?'Max lumen diameter ':'管腔最大直径 ')+fmt(AMAX.max_diameter_mm,1)+' mm';
     makeLabel('maxd',text,anchorAt(at),'maxd',LABEL_PRIORITY.maxd);AUTO_CHIPS.push({kind:'maxd',p:at,text,fill:'#f5ecfbf0',stroke:'#b98fe0',ring:ring.length>2?ring:null,priority:LABEL_PRIORITY.maxd});}}
   requestLabelLayout();}
  el('lbl-findings').value=labelSelectValue(normLabelCount(LBL.findings));el('lbl-branches').checked=!!LBL.branches;
@@ -1258,11 +1258,11 @@ function initViewer(){
  if(AMAX){const at=Array.isArray(AMAX.xyz_mm)?AMAX.xyz_mm.map(Number):null;
   const from=Number.isFinite(+AMAX.distance_from_inlet_mm)?+AMAX.distance_from_inlet_mm:+AMAX.s_from_root_mm;
   el('maxd-row').hidden=false;el('maxd-toggle').hidden=false;el('maxd-note').hidden=false;
-  el('maxd-text').textContent='最大直径 '+fmt(AMAX.max_diameter_mm,1)+' mm（等效 '+fmt(AMAX.equivalent_diameter_mm,1)+' mm）· 入口下 '+fmt(from,0)+' mm ·';
+  el('maxd-text').textContent='管腔最大直径 '+fmt(AMAX.max_diameter_mm,1)+' mm（等效 '+fmt(AMAX.equivalent_diameter_mm,1)+' mm）· 入口下 '+fmt(from,0)+' mm ·';
   el('maxd-ring').checked=!!LBL.max_diameter;
   el('maxd-ring').onchange=e=>{LBL.max_diameter=!!e.target.checked;redrawOverlays();};
   el('maxd-fly').onclick=()=>{if(at&&at.length===3&&at.every(Number.isFinite))flyTo(at,Math.max((Number(AMAX.max_diameter_mm)||6)/2,3));
-   setTip('最大直径站 '+fmt(AMAX.max_diameter_mm,1)+' mm · 距入口 '+fmt(from,0)+' mm');};}
+   setTip('管腔最大直径站 '+fmt(AMAX.max_diameter_mm,1)+' mm · 距入口 '+fmt(from,0)+' mm');};}
  // ---- C7 measurement modes ----
  const NEED={distance:2,arc:2,diameter:1,segment:2},MODE_HINT={distance:'距离：在壁面点击两点。',arc:'弧长：在壁面点击两点，沿中心线树求和。',diameter:'管径：在壁面点击一点，按中心线切线切出真实截面。',segment:'分段：在同一分支上点击两点。'};
  let measureMode='',pendingPts=[],pickTask='';
@@ -1599,7 +1599,7 @@ function initViewer(){
    label:'WSS · '+ul(),scale:uf(),pa:true,hlines:null,legend:'实线：p99 · 虚线：均值 · 阴影：均值–p99',missing:isCycleField(want)?fieldArrays(want).short:null};}
  function drawProfiles(){if(!PROFILES||!el('menu-profiles').open)return;const branches=profBranches(),xkey=el('prof-x').value,sp=profSpec();
   const diam=STATIONS.size&&branches.some(hasStations);
-  el('prof-legend').innerHTML=branches.map((b,bi)=>`<span><i style="background:${profColor(b,bi)}"></i>${esc(b.name||branchName(b.segment_id))}${HIDDEN.has(Number(b.segment_id))?' · 已隐藏':''}</span>`).join('')+'<span>'+esc(sp.legend)+'</span>'+(sp.missing?'<span>本报告的沿程数据不含 '+esc(sp.missing)+'，上图仍为峰值 WSS</span>':'')+(diam?'<span>下图 实线：半径 · 长虚线：最大直径 · 点线：等效直径</span>':'');
+  el('prof-legend').innerHTML=branches.map((b,bi)=>`<span><i style="background:${profColor(b,bi)}"></i>${esc(b.name||branchName(b.segment_id))}${HIDDEN.has(Number(b.segment_id))?' · 已隐藏':''}</span>`).join('')+'<span>'+esc(sp.legend)+'</span>'+(sp.missing?'<span>本报告的沿程数据不含 '+esc(sp.missing)+'，上图仍为峰值 WSS</span>':'')+(diam?'<span>下图 实线：半径 · 长虚线：管腔最大直径 · 点线：等效直径</span>':'');
   profHits=drawCurve(el('prof-wss'),branches,xkey,[sp.primary,sp.secondary],sp.label,sp.scale,profSel,sp.hlines)||[];
   el('prof-wss').setAttribute('aria-label','沿程 '+sp.label+' 曲线');
   drawCurve(el('prof-r'),branches,xkey,radiusSeries(),diam?'半径 / 直径 · mm':'半径 · mm',1,profSel);}
@@ -1855,7 +1855,7 @@ function initViewer(){
   if(radius.some(Number.isFinite))rSeries.push({name:lang==='en'?'Radius':'半径',x:xs,y:radius,color:'#5a4fa3'});
   // §17.3: the morphology diameters ride along on the radius plot, in the same millimetre axis.
   const dmax=stationSeries(b,'max'),deq=stationSeries(b,'eq');
-  if(dmax)rSeries.push({name:lang==='en'?'Max diameter':'最大直径',x:xs,y:dmax,color:'#8e44ad',dash:'6 5'});
+  if(dmax)rSeries.push({name:lang==='en'?'Max lumen diameter':'管腔最大直径',x:xs,y:dmax,color:'#8e44ad',dash:'6 5'});
   if(deq)rSeries.push({name:lang==='en'?'Equivalent diameter':'等效直径',x:xs,y:deq,color:'#c39bd3',dash:'2 4'});
   const rTitle=(dmax||deq)?(lang==='en'?'Radius / diameter':'半径 / 直径'):(lang==='en'?'Radius':'半径');
   if(rSeries.length)out.push({key:'radius',branch:name,filename:stem+'_radius.svg',

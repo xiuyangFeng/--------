@@ -66,7 +66,7 @@
   const callout = (text,kind = '') => node('div',{class:`callout ${kind}`,text});
   // §17.4 maximum-diameter chip: `null` (an older job without morphology) renders nothing at all.
   const maxDiameterMm = summary => { const value = Number(summary?.morphology?.aorta?.max?.max_diameter_mm); return Number.isFinite(value) ? value : null; };
-  const diameterChip = value => value === null || value === undefined ? null : node('span',{class:'chip diameter-chip',title:'中心线站位截面的最大 Feret 直径'},'最大直径 ',node('strong',{text:`${fmt(value,1)} mm`}));
+  const diameterChip = value => value === null || value === undefined ? null : node('span',{class:'chip diameter-chip',title:'管腔最大直径：中心线站位截面的最大 Feret 直径，不含附壁血栓与管壁'},'管腔最大直径 ',node('strong',{text:`${fmt(value,1)} mm`}));
   const getA = job => job.a || job.stage_a || {};
   const jobUrl = (job, suffix = '') => `/api/jobs/${encodeURIComponent(job.id)}${suffix}`;
   // v0.13: every notice carries a × and optional action buttons (e.g. 「撤销」 after a delete).  Success notices
@@ -749,7 +749,13 @@
   // ---------------------------------------------------------------------------------------------
   // v0.15: every chosen file is checked in the browser first (extension, empty, size limit, duplicate name) and
   // shows its size and the reason it will not be sent; only the valid ones are uploaded.  The service checks again.
-  const uploadCheck = () => WB.checkUploadFiles([...($('stl-file').files || [])],{maxBytes:state.session?.max_upload_bytes});
+  // C7: a letters-only file name (LV_GUO_YOU) gets the 「可能是姓名」 reminder unless a patient id is filled (the
+  // display name then comes from it) or a single file gets its own case name.
+  const uploadCheck = () => {
+    const files = [...($('stl-file').files || [])];
+    const named = Boolean($('patient-id')?.value?.trim()) || (files.length === 1 && Boolean($('case-id')?.value?.trim()));
+    return WB.checkUploadFiles(files,{maxBytes:state.session?.max_upload_bytes,nameHint:!named});
+  };
   function renderUploadFiles() {
     const files = [...($('stl-file').files || [])], check = uploadCheck();
     $('file-name').textContent = files.length ? `${files.length} 个文件：${files.slice(0,2).map(file => file.name).join('、')}${files.length > 2 ? '…' : ''}` : '支持单个或多个 STL；上传后自动检查开口';
@@ -776,7 +782,7 @@
     }
     return blocking;
   }
-  for (const [inputId] of ID_FIELDS) $(inputId)?.addEventListener('input',identifierIssues);
+  for (const [inputId] of ID_FIELDS) $(inputId)?.addEventListener('input',() => { identifierIssues(); if ([...($('stl-file').files || [])].length) renderUploadFiles(); });
   // Uploads go through XMLHttpRequest when the browser has it, for a byte-level progress bar (fetch cannot report
   // upload progress); errors are shaped exactly like request()'s.  Without XHR (tests) it falls back to request().
   function sendUpload(url, data, {timeout = 120000, onProgress = null} = {}) {
@@ -970,8 +976,10 @@
     } catch (error) { if (error.status === 401 || !state.authenticated) return; if (showError) notify(error.message); setConnection('连接暂时中断 · 自动重试'); }
     finally { state.listBusy = false; }
   }
-  const compactDiameter = value => value === null || value === undefined ? null : node('span',{class:'chip diameter-mini',title:'最大直径（中心线站位截面的最大 Feret 直径）'},'⌀ ',node('strong',{text:`${fmt(value,1)} mm`}));
+  const compactDiameter = value => value === null || value === undefined ? null : node('span',{class:'chip diameter-mini',title:'管腔最大直径（中心线站位截面的最大 Feret 直径，不含附壁血栓与管壁）'},'⌀ ',node('strong',{text:`${fmt(value,1)} mm`}));
   const jobTags = job => (Array.isArray(job.tags) ? job.tags : String(job.tags || '').split(',')).map(tag => String(tag).trim()).filter(Boolean);
+  // C7: hover text of a displayed name; the case name (from the file name) is added when the display name differs.
+  const nameTitle = job => { const shown = WB.displayName(job), caseId = String(job?.case_id || '').trim(); return caseId && caseId !== shown ? `${shown} · 病例 ${caseId}` : shown; };
   const jobMenuItems = job => [
     job.status === 'done' && {label:'打开三维报告',run:() => openReport(job)},
     job.status === 'done' && {label:'一页纸报告',run:() => openOnepage(job)},
@@ -985,7 +993,7 @@
     const b = button('', () => selectJob(ref.job.id),'job-button'); b.setAttribute('aria-current',String(job.id === state.current)); b.dataset.jobId = job.id;
     const name = node('span',{class:'job-name'});
     if (WB.unreadHas(state.unread, job.id)) name.append(node('span',{class:'unread-dot','aria-label':'未读',title:'任务状态有更新'}));
-    name.append(node('span',{class:'job-case',text:job.case_id || '匿名病例',title:job.case_id || ''}));   // v0.15: truncated → full name on hover
+    name.append(node('span',{class:'job-case',text:WB.displayName(job),title:nameTitle(job)}));   // v0.15: truncated → full name on hover; C7: display name
     // A finished task shows its review state (待审阅 / 已审阅); anything else shows its run status.
     const status = job.status === 'done' ? reviewBadge(job) : badge(job.eta?.waiting ? 'queued' : job.status);
     const who = [job.patient_id && `患者 ${job.patient_id}`,job.scan_label].filter(Boolean).join(' · ');
@@ -996,11 +1004,11 @@
       node('span',{class:'job-foot'},timeNode(job.created_at),eta || compactDiameter(WB.numberOrNull(job.max_diameter_mm))));
     const row = node('li',{class:`job-row${state.selectMode && state.selected.has(job.id) ? ' selected' : ''}`}); row.dataset.rowId = job.id;
     if (state.selectMode) {
-      const box = node('input',{type:'checkbox','aria-label':`选择 ${job.case_id || job.id}`,checked:state.selected.has(job.id),disabled:isRunning(job),title:isRunning(job) ? '计算中的任务不能选择' : ''});
+      const box = node('input',{type:'checkbox','aria-label':`选择 ${WB.displayName(job,job.id)}`,checked:state.selected.has(job.id),disabled:isRunning(job),title:isRunning(job) ? '计算中的任务不能选择' : ''});
       box.addEventListener('change',() => { if (box.checked) state.selected.set(ref.job.id,ref.job); else state.selected.delete(ref.job.id); row.classList?.toggle('selected',box.checked); updateSelectionBar(); });
       row.append(node('span',{class:'job-select'},box));
     }
-    row.append(b,moreButton(`${job.case_id || job.id} 的更多操作`,() => jobMenuItems(ref.job)));
+    row.append(b,moreButton(`${WB.displayName(job,job.id)} 的更多操作`,() => jobMenuItems(ref.job)));
     row._wss = {ref, button:b, eta};
     return row;
   }
@@ -1008,7 +1016,7 @@
   // status, review, identity, tags, release, relative time, selection, unread …); unchanged rows keep their DOM node,
   // so keyboard focus (↑ / ↓ navigation) and the scroll position survive a refresh.
   const rowCache = new Map(), groupEls = new Map();
-  const rowKey = job => JSON.stringify([job.version ?? null, job.status || '', job.review?.status || '', Boolean(job.eta), Boolean(job.eta?.waiting), job.case_id || '', job.patient_id || '',
+  const rowKey = job => JSON.stringify([job.version ?? null, job.status || '', job.review?.status || '', Boolean(job.eta), Boolean(job.eta?.waiting), job.case_id || '', job.display_name || '', job.patient_id || '',
     job.scan_label || '', jobTags(job).join(','), job.release_short || job.model_release?.id || '', jobKind(job) || '', job.created_at || '', job.created_at ? friendlyTime(job.created_at) : '',
     job.max_diameter_mm ?? null, state.selectMode, state.selected.has(job.id), WB.unreadHas(state.unread, job.id)]);
   function cachedRow(job) {
@@ -1069,7 +1077,7 @@
       const result = await request(`/api/cases?${query.toString()}`);
       state.cases = Array.isArray(result.cases) ? result.cases : []; state.caseReleases = Array.isArray(result.releases) ? result.releases : [];
       state.history.total = Number(result.total || state.cases.length); state.history.page = Number(result.page || state.history.page); state.history.page_size = Number(result.page_size || state.history.page_size);
-      state.jobs = state.cases.flatMap(card => (card.runs || []).map(run => ({id:run.job_id, case_id:(card.case_ids || [])[0] || '', patient_id:card.patient_id || '', scan_label:card.scan_label || '', scan_date:card.scan_date || '', tags:card.tags || [], status:run.status, review:{status:run.review}, version:run.version, family:run.family, model_release:{id:run.release_id}, created_at:run.created_at, run_identity:run.run_identity})));
+      state.jobs = state.cases.flatMap(card => (card.runs || []).map(run => ({id:run.job_id, case_id:(card.case_ids || [])[0] || '', display_name:card.display_name || '', patient_id:card.patient_id || '', scan_label:card.scan_label || '', scan_date:card.scan_date || '', tags:card.tags || [], status:run.status, review:{status:run.review}, version:run.version, family:run.family, model_release:{id:run.release_id}, created_at:run.created_at, run_identity:run.run_identity})));
       $('jobs-empty').hidden = state.cases.length > 0;
       host.replaceChildren(...state.cases.map(caseCard)); markCurrent(); updatePagination();
     } catch (error) {
@@ -1079,7 +1087,7 @@
   }
   function caseCard(card) {
     const model = WB.caseCardModel(card, state.caseReleases.length ? state.caseReleases : state.releases.map(item => ({id:item.id || item.release, family:releaseFamily(item.id || item.release)})));
-    const head = node('div',{class:'case-head'},node('strong',{text:model.title}));
+    const head = node('div',{class:'case-head'},node('strong',{text:model.title,title:model.caseIds && model.caseIds !== model.title ? `${model.title} · 病例 ${model.caseIds}` : model.title}));
     // §17.4: the chip comes from the latest finished run's light snapshot; no extra request is made.
     const chip = diameterChip(model.maxDiameterMm); if (chip) head.append(chip);
     if (model.pendingReview) head.append(node('span',{class:'badge pending',text:`待审阅 ${model.pendingReview}`}));
@@ -1177,7 +1185,7 @@
         submit.disabled = false;
       }
     },'primary');
-    openModal(`编辑病例信息 · ${job.case_id || job.id}`,[
+    openModal(`编辑病例信息 · ${WB.displayName(job,job.id)}`,[
       help('只修改检索与展示用的标识信息，不影响已计算的几何、预测数值和运行清单。请使用匿名编号。'),
       node('div',{class:'meta-form'},
         field('病例编号',caseId,'已有病例编号不能清空。'),
@@ -1203,7 +1211,7 @@
     }));
     const preferred = state.releases.find(item => item.default) || state.releases[0];
     if (preferred) select.value = preferred.id || preferred.release;
-    const progress = node('p',{class:'help','aria-live':'polite',text:jobs.length === 1 ? `为 ${jobs[0].case_id || jobs[0].id} 新建一个任务，复用它的中心线与出口确认，原结果保留。` : `已选择 ${jobs.length} 个任务。只有已完成且已确认出口的任务会被重跑，其余会跳过并说明原因。`});
+    const progress = node('p',{class:'help','aria-live':'polite',text:jobs.length === 1 ? `为 ${WB.displayName(jobs[0],jobs[0].id)} 新建一个任务，复用它的中心线与出口确认，原结果保留。` : `已选择 ${jobs.length} 个任务。只有已完成且已确认出口的任务会被重跑，其余会跳过并说明原因。`});
     const log = node('ul',{class:'batch-log'});
     const bar = node('progress',{max:jobs.length,value:0}); bar.hidden = true;
     const start = button('开始重跑',async () => {
@@ -1214,7 +1222,7 @@
       const created = [], skipped = [], failed = [];
       log.replaceChildren();
       for (const [index, job] of jobs.entries()) {
-        const name = job.case_id || job.id;
+        const name = WB.displayName(job,job.id);
         progress.textContent = `正在提交 ${index + 1} / ${jobs.length}：${name}`;
         const line = node('li',{text:`${name}：读取任务…`}); log.append(line);
         try {
@@ -1382,14 +1390,14 @@
       catch (error) { notify(error.message); return; }
       if (!viewState) { notify('请选择内置预设或粘贴视图状态。'); return; }
       const plan = WB.planBatchExport(jobs, viewState);
-      log.replaceChildren(...plan.skipped.map(item => node('li',{class:'failed',text:`${item.case_id || item.id}：跳过（${item.message}）`})));
+      log.replaceChildren(...plan.skipped.map(item => node('li',{class:'failed',text:`${WB.displayName(item,item.id)}：跳过（${item.message}）`})));
       if (!plan.selected.length) { notify('没有可以应用该视图状态的任务。'); return; }
       start.disabled = true; cancel.disabled = true; progress.hidden = false; progress.value = 0; state.busy = true; state.modalLocked = true; updateSelectionBar();
       const options = {scale:Number(scale.value),background:background.value,colorbar:colorbar.value,ui:false,lang:lang.value};
       try {
         const result = await Batch.run({jobs:plan.selected,state:viewState,options,onProgress:info => {
-          if (info.phase === 'start') log.append(node('li',{text:`${info.job.case_id || info.job.id}：渲染中…`,id:`batch-${info.job.id}`}));
-          else { const item = document.getElementById(`batch-${info.job.id}`); if (item) { item.textContent = `${info.job.case_id || info.job.id}：${info.ok ? '已导出' : `失败 · ${info.message}`}`; item.classList.toggle('failed',!info.ok); } progress.value = info.index + 1; }
+          if (info.phase === 'start') log.append(node('li',{text:`${WB.displayName(info.job,info.job.id)}：渲染中…`,id:`batch-${info.job.id}`}));
+          else { const item = document.getElementById(`batch-${info.job.id}`); if (item) { item.textContent = `${WB.displayName(info.job,info.job.id)}：${info.ok ? '已导出' : `失败 · ${info.message}`}`; item.classList.toggle('failed',!info.ok); } progress.value = info.index + 1; }
         }});
         const stamp = new Date().toISOString().replace(/[-:]/g,'').slice(0,13).replace('T','_');
         if (result.count) saveBlob(new Blob([result.zip],{type:'application/zip'}),`wss_batch_export_${stamp}.zip`);
@@ -1419,7 +1427,7 @@
   async function deleteJobs(jobs) {
     if (state.busy || !jobs.length) return;
     if (jobs.length > DELETE_LIMIT) { notify(`一次最多删除 ${DELETE_LIMIT} 个任务，请分批操作。`); return; }
-    const names = jobs.slice(0,5).map(job => job.case_id || job.id).join('、') + (jobs.length > 5 ? ` 等 ${jobs.length} 个` : '');
+    const names = jobs.slice(0,5).map(job => WB.displayName(job,job.id)).join('、') + (jobs.length > 5 ? ` 等 ${jobs.length} 个` : '');
     const message = `将删除 ${jobs.length} 个任务（${names}）及其全部文件：输入 STL、中心线、报告、导出结果与历史记录。\n任务会进入回收站，30 天内可恢复；到期后自动彻底清除。`;
     if (!await confirmDialog(`删除 ${jobs.length} 个任务`,message,{confirmLabel:'移入回收站',danger:true})) return;
     if (state.busy) return;
@@ -1429,12 +1437,12 @@
       let deleted = [], failures = [], trashed = false;
       if (jobs.length === 1) {
         try { const result = await request(jobUrl(jobs[0],'/delete'),{method:'POST',body:{version:jobs[0].version}}); deleted.push(result.id || jobs[0].id); trashed = Boolean(result.trashed); }
-        catch (error) { failures.push(`${jobs[0].case_id || jobs[0].id}：${error.message}`); }
+        catch (error) { failures.push(`${WB.displayName(jobs[0],jobs[0].id)}：${error.message}`); }
       } else {
         const result = await request('/api/jobs/delete',{method:'POST',body:{jobs:jobs.map(job => ({id:job.id,version:job.version}))},timeout:120000});
         for (const item of result.results || []) {
           if (item.deleted) { deleted.push(item.id); if (item.trashed) trashed = true; }
-          else { const job = jobs.find(j => j.id === item.id); failures.push(`${job?.case_id || item.id}：${item.error?.message || '未删除'}`); }
+          else { const job = jobs.find(j => j.id === item.id); failures.push(`${WB.displayName(job,item.id)}：${item.error?.message || '未删除'}`); }
         }
       }
       for (const id of deleted) { state.selected.delete(id); WB.unreadRemove(state.unread, id); }
@@ -1480,16 +1488,16 @@
     const meta = [item.family && FAMILY_TEXT[item.family], item.release_id && releaseDisplay(item.release_id), item.patient_id && `患者 ${item.patient_id}`, item.scan_label, `删除于 ${item.deleted_at ? friendlyTime(item.deleted_at) : '—'}`, Number.isFinite(Number(item.days_left)) ? `剩余 ${Math.max(0, Math.ceil(Number(item.days_left)))} 天` : null].filter(Boolean).join(' · ');
     const restore = button('恢复',async () => {
       restore.disabled = true;
-      try { const result = await request(`/api/trash/${encodeURIComponent(item.id)}/restore`,{method:'POST',body:{}}); notify(`已恢复任务 ${item.case_id || item.id}。`,false); await refreshJobs(true); await refreshTrash(); const job = result.job || result; if (job?.id) await selectJob(job.id); }
+      try { const result = await request(`/api/trash/${encodeURIComponent(item.id)}/restore`,{method:'POST',body:{}}); notify(`已恢复任务 ${WB.displayName(item,item.id)}。`,false); await refreshJobs(true); await refreshTrash(); const job = result.job || result; if (job?.id) await selectJob(job.id); }
       catch (error) { notify(error.message); restore.disabled = false; }
     },'primary');
     const purge = button('彻底删除',async () => {
-      if (!await confirmDialog('彻底删除',`彻底删除任务 ${item.case_id || item.id} 及其全部文件？此操作无法恢复。`,{confirmLabel:'彻底删除',danger:true})) return;
+      if (!await confirmDialog('彻底删除',`彻底删除任务 ${WB.displayName(item,item.id)} 及其全部文件？此操作无法恢复。`,{confirmLabel:'彻底删除',danger:true})) return;
       purge.disabled = true;
-      try { await request(`/api/trash/${encodeURIComponent(item.id)}/purge`,{method:'POST',body:{}}); notify(`已彻底删除任务 ${item.case_id || item.id}。`,false); await refreshTrash(); }
+      try { await request(`/api/trash/${encodeURIComponent(item.id)}/purge`,{method:'POST',body:{}}); notify(`已彻底删除任务 ${WB.displayName(item,item.id)}。`,false); await refreshTrash(); }
       catch (error) { notify(error.message); purge.disabled = false; }
     },'danger');
-    return node('li',{class:'trash-item'},node('strong',{},item.case_id || '匿名病例',' ',badge(item.status_before)),node('span',{class:'trash-meta',text:meta}),node('div',{class:'trash-actions'},restore,purge));
+    return node('li',{class:'trash-item'},node('strong',{},WB.displayName(item),' ',badge(item.status_before)),node('span',{class:'trash-meta',text:meta}),node('div',{class:'trash-actions'},restore,purge));
   }
   $('trash-panel').addEventListener('toggle',() => { if ($('trash-panel').open) refreshTrash(true); });
   $('trash-refresh').addEventListener('click',() => refreshTrash(true));
@@ -1501,7 +1509,7 @@
   const COHORT_COLUMNS = [
     {key:'case_id',label:'病例'},
     {key:'release_id',label:'发布包'},
-    {key:'max_diameter_mm',label:'最大直径 mm',kind:'number',gloss:'max_diameter'},
+    {key:'max_diameter_mm',label:'管腔最大直径 mm',kind:'number',gloss:'max_diameter'},
     {key:'wss_p99_pa',label:'p99 Pa',kind:'number',gloss:'p99'},
     {key:'area_frac_high',label:'高占比 %',kind:'percent',gloss:'area_fraction'},
     {key:'population_percentile',label:'人群分位',kind:'number',gloss:'population_percentile'},
@@ -1577,7 +1585,7 @@
     $('cohort-cap-p99').textContent = `壁面 p99 分布 · Pa · ${wall.length} 例${population ? `；浅色为人群参照 ${population.release_id}（${population.case_count} 例，各自按峰值归一化）` : ''}`;
     $('cohort-cap-high').textContent = `高 WSS 面积占比分布 · % · ${wall.length} 例`;
     $('cohort-cap-speed').textContent = `体场速度 p99 分布 · m/s · ${volume.length} 例`;
-    $('cohort-cap-diameter').textContent = `最大直径分布 · mm · ${diameters.length} 例${diameters.length ? '' : '（当前结果没有形态数据）'}`;
+    $('cohort-cap-diameter').textContent = `管腔最大直径分布 · mm · ${diameters.length} 例${diameters.length ? '' : '（当前结果没有形态数据）'}`;
     head.replaceChildren(...COHORT_COLUMNS.map(column => {
       const active = state.cohortSort.key === column.key;
       const sortButton = button(`${column.label}${active ? (state.cohortSort.direction === 'desc' ? ' ↓' : ' ↑') : ''}`,() => {
@@ -1702,7 +1710,7 @@
     const jobs = state.overview?.jobs || [];
     const model = WB.overviewModel(jobs);
     const loaded = Boolean(state.overview);
-    const signature = JSON.stringify([loaded,model.counts,model.recent.map(job => [job.id,job.version,job.review?.status,job.finished_at || job.created_at,job.case_id]),state.quickFilter,jobs.length === 0,new Date().getHours() < 6 ? 0 : new Date().getHours() < 12 ? 1 : new Date().getHours() < 18 ? 2 : 3]);
+    const signature = JSON.stringify([loaded,model.counts,model.recent.map(job => [job.id,job.version,job.review?.status,job.finished_at || job.created_at,job.case_id,job.display_name]),state.quickFilter,jobs.length === 0,new Date().getHours() < 6 ? 0 : new Date().getHours() < 12 ? 1 : new Date().getHours() < 18 ? 2 : 3]);
     if (signature === state.overviewKey && detail.querySelector?.('.overview-card')) { renderOverviewStatus(); return; }
     state.overviewKey = signature;
     const card = node('section',{class:'card overview-card','aria-labelledby':'overview-title'});
@@ -1726,7 +1734,7 @@
     if (model.recent.length) {
       recent.append(node('ul',{class:'recent-list'},model.recent.map(job => {
         const row = button('',() => selectJob(job.id),'recent-item');
-        row.append(node('span',{class:'recent-name',text:job.case_id || '匿名病例',title:job.case_id || ''}),kindChip(jobKind(job)),job.review?.status === 'reviewed' ? node('span',{class:'badge reviewed',text:'已审阅'}) : node('span',{class:'badge pending',text:'待审阅'}),timeNode(job.finished_at || job.created_at));
+        row.append(node('span',{class:'recent-name',text:WB.displayName(job),title:nameTitle(job)}),kindChip(jobKind(job)),job.review?.status === 'reviewed' ? node('span',{class:'badge reviewed',text:'已审阅'}) : node('span',{class:'badge pending',text:'待审阅'}),timeNode(job.finished_at || job.created_at));
         return node('li',{},row);
       })));
     } else recent.append(help(loaded ? '还没有完成的任务。上传 STL 后，结果会出现在这里。' : '正在读取…'));
@@ -1819,7 +1827,7 @@
   async function cancelJob(job) {
     const running = /^running/.test(job.status || '');
     const message = `${running ? '正在执行的步骤会在安全停止点结束。' : '任务会停止，不再排队或等待确认。'}\n已上传的 STL、中心线和已确认的出口都会保留；之后在详情页点「重试任务」即可从可用的阶段继续，不必重新上传。`;
-    if (!await confirmDialog(`取消任务 · ${job.case_id || job.id}`,message,{confirmLabel:'取消任务',cancelLabel:'不取消，继续',danger:true})) return false;
+    if (!await confirmDialog(`取消任务 · ${WB.displayName(job,job.id)}`,message,{confirmLabel:'取消任务',cancelLabel:'不取消，继续',danger:true})) return false;
     return mutate(job,'/cancel');
   }
   // After confirming outlets / signing a review, offer the next case of the same kind (A7).
@@ -1832,7 +1840,7 @@
     const next = kind === 'review' ? WB.nextToReview(jobs, doneId) : WB.nextToConfirm(jobs, doneId);
     const done = kind === 'review' ? '已签字通过并锁定。' : '出口已确认，开始预测。';
     if (!next) { notify(`${done}${kind === 'review' ? '没有其他待审阅的任务。' : '没有其他等待确认的任务。'}`,false); return; }
-    notifyAction(`${done}还有${kind === 'review' ? '待审阅' : '等待确认'}的任务：${next.case_id || next.id}。`,kind === 'review' ? '下一例待审阅' : '处理下一例',() => selectJob(next.id));
+    notifyAction(`${done}还有${kind === 'review' ? '待审阅' : '等待确认'}的任务：${WB.displayName(next,next.id)}。`,kind === 'review' ? '下一例待审阅' : '处理下一例',() => selectJob(next.id));
   }
   async function compareWith(job, otherId) {
     try {
@@ -1894,7 +1902,7 @@
     const mapping = [...(job.mapping_history || [])].reverse()[0];
     items.push(['出口命名',mapping?.source === 'automatic_high_confidence' ? `自动确认（置信度 ${fmt(Number(mapping.confidence) * 100,1)}%）` : mapping ? '已人工确认' : '—']);
     const quality = summary.quality;
-    if (quality) items.push(['结果质量',quality.label || quality.level || '未评估']);
+    if (quality) items.push(['结果质量',WB.qualityDisplayLabel(quality)]);
     const ref = summary.reference_assessment || {};
     items.push(['几何参考范围',ref.status === 'pass' ? '在参考范围内' : ref.status === 'review' ? '有超出范围的测量，请看结果页提示' : '当前发布包未配置']);
     const alert = WB.alertModel(summary);
@@ -1903,7 +1911,7 @@
   }
   function reviewDialog(job) {
     const section = reviewSection(job,{onDone:async decision => { closeModal(); if (decision === 'approve') await offerNext('review',job.id); else notify('已重新打开，可再次修改出口命名或重算。',false); }});
-    openModal(`审阅签字 · ${job.case_id || job.id}`,[help('签字前请核对下面几项；签字后结果锁定，报告与一页纸会记录审阅人和时间。'),reviewChecklist(job),section],[button('关闭',closeModal)]);
+    openModal(`审阅签字 · ${WB.displayName(job,job.id)}`,[help('签字前请核对下面几项；签字后结果锁定，报告与一页纸会记录审阅人和时间。'),reviewChecklist(job),section],[button('关闭',closeModal)]);
     section.querySelector?.('input')?.focus();
   }
   const ERROR_TITLES = {input_geometry:'输入几何无法计算',toolchain:'计算工具出错',resource:'计算资源不足',internal:'本次计算未完成'};
@@ -1940,7 +1948,7 @@
       actions.append(button('取消任务',() => cancelJob(job),'danger'));
     }
     actions.append(moreButton('更多操作',() => detailMenuItems(job)));
-    const heading = node('section',{class:`card detail-head${confirming ? ' compact-head' : ''}`},node('div',{class:'job-heading'},node('div',{class:'job-heading-main'},node('h1',{text:job.case_id || '匿名病例'}),headBadges),actions),identity);
+    const heading = node('section',{class:`card detail-head${confirming ? ' compact-head' : ''}`},node('div',{class:'job-heading'},node('div',{class:'job-heading-main'},node('h1',{text:WB.displayName(job),title:nameTitle(job)}),headBadges),actions),identity);
     const back = button('← 返回病例列表',() => { const list = $('jobs-title'); list.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',block:'start'}); $('jobs-query').focus({preventScroll:true}); },'text-button back-to-cases');
     heading.prepend(back);
     const companions = Array.isArray(job.companions) ? job.companions.filter(entry => entry && entry.release_id) : [];
@@ -2755,10 +2763,10 @@
     const largest = Number(max.max_diameter_mm);
     if (Number.isFinite(largest)) {
       const position = Number(max.distance_from_inlet_mm ?? max.s_from_root_mm);
-      facts.push(factPair('最大直径',`${fmt(largest,1)} mm`,Number.isFinite(Number(max.equivalent_diameter_mm)) ? `等效 ${fmt(max.equivalent_diameter_mm,1)} mm` : null,Number.isFinite(position) ? `入口下 ${fmt(position,0)} mm` : '位置见三维报告','max_diameter'));
+      facts.push(factPair('管腔最大直径',`${fmt(largest,1)} mm`,Number.isFinite(Number(max.equivalent_diameter_mm)) ? `等效 ${fmt(max.equivalent_diameter_mm,1)} mm` : null,Number.isFinite(position) ? `入口下 ${fmt(position,0)} mm` : '位置见三维报告','max_diameter'));
     }
     if (sac.present) facts.push(factPair('瘤体长度 / 体积',`${fmt(sac.length_mm,1)} mm`,`${fmt(sac.volume_ml,0)} mL`,Number.isFinite(Number(sac.threshold_mm)) ? `判定阈值 ${fmt(sac.threshold_mm,1)} mm` : '截面面积沿弧长积分','aneurysm_sac'));
-    if (neck.present) facts.push(factPair('瘤颈直径 / 长度',`${fmt(neck.diameter_mean_mm,1)} mm`,`长 ${fmt(neck.length_mm,1)} mm`,'近端瘤颈平均直径与长度','aneurysm_neck'));
+    if (neck.present) facts.push(factPair('瘤颈直径 / 长度',`${fmt(neck.diameter_mean_mm,1)} mm`,`长 ${fmt(neck.length_mm,1)} mm`,'近端瘤颈平均管腔直径与长度','aneurysm_neck'));
     const lumen = Number(morphology.lumen_volume_ml);
     if (Number.isFinite(lumen)) facts.push(factPair('全腔体积',`${fmt(lumen,0)} mL`,null,'开口封盖后的管腔体积','lumen_volume'));
     if (!facts.length) return null;
@@ -2775,6 +2783,8 @@
     } else if (reliability?.details.length) block.append(node('small',{text:reliability.details.join('；')}));
     const other = reliability?.other || [];
     block.append(node('small',{text:other.length ? other.join('；') : '直径取中心线每站截面的最大 Feret 直径，由壁面网格求交得到，不依赖预测数值。'}));
+    // C1 (§15.1): every diameter, length and volume here is measured on the lumen surface.
+    block.append(node('small',{class:'lumen-note',text:'所有直径、长度和体积都是管腔的：输入是管腔面，不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径。'}));
     return block;
   }
   async function saveNarrative(job, text, status) {
@@ -2802,7 +2812,7 @@
       submit.disabled = true; status.textContent = '正在保存…';
       if (!await saveNarrative(job,text,status)) submit.disabled = false;
     },'primary');
-    openModal(`编辑结论 · ${job.case_id || job.id}`,[
+    openModal(`编辑结论 · ${WB.displayName(job,job.id)}`,[
       help('修改后的文字会替代自动结论，并在报告、一页纸与打包文件中标注「审阅人已修改」。最多 4000 字符；请只写可核对的描述，不要写诊断结论。'),
       area, status,
     ],[button('取消',closeModal),restore,submit]);
@@ -2940,7 +2950,7 @@
     const quality = summary.quality;
     if (quality) {
       const qualityCard = node('div',{class:'quality-card result-quality'},
-        node('div',{class:'quality-head'},node('strong',{},'集成质量与复核提示',gloss('quality_grade')),node('span',{class:`quality-status ${quality.level || ''}`,text:quality.label || quality.level || '未评估'})));
+        node('div',{class:'quality-head'},node('strong',{},'多模型一致性与复核提示',gloss('quality_grade')),node('span',{class:`quality-status ${quality.level || ''}`,text:WB.qualityDisplayLabel(quality)})));
       qualityCard.append(node('small',{text:WB.qualityNote(quality,WB.modelCount(summary,job))}));
       supplemental.append(qualityCard);
     }
@@ -2971,7 +2981,7 @@
     const family = volume ? 'volume' : 'wall';
     const comparable = state.jobs.filter(item => item.id !== job.id && item.status === 'done' && (item.family ? item.family === family : true));
     if (comparable.length) {
-      const compareSelect = node('select',{class:'inline-select','aria-label':'选择比较任务'},...comparable.map(item => node('option',{value:item.id,text:`${item.case_id || '匿名病例'} · ${item.scan_label || friendlyTime(item.created_at) || item.id}`})));
+      const compareSelect = node('select',{class:'inline-select','aria-label':'选择比较任务'},...comparable.map(item => node('option',{value:item.id,text:`${WB.displayName(item)} · ${item.scan_label || friendlyTime(item.created_at) || item.id}`})));
       actions.push(compareSelect);
       if (!volume) actions.push(button('比较结果',() => compareWith(job,compareSelect.value)));
       actions.push(button('并排比较',() => { const params = new URLSearchParams({left:job.id,right:compareSelect.value}); window.open(`/compare?${params.toString()}`,'_blank','noopener'); }));
@@ -3084,7 +3094,7 @@
     compare.disabled = true;
     const boxes = new Map();
     const sync = () => { compare.disabled = selected.length !== 2; for (const [sha,box] of boxes) box.checked = selected.includes(sha); };
-    const head = ['比较','扫描日期','扫描','最大直径 mm','瘤体体积 mL',...model.releases.map(release => `${release.label} · ${WB.TIMELINE_METRICS[release.metric].label} ${WB.TIMELINE_METRICS[release.metric].units}`)];
+    const head = ['比较','扫描日期','扫描','管腔最大直径 mm','瘤体体积 mL',...model.releases.map(release => `${release.label} · ${WB.TIMELINE_METRICS[release.metric].label} ${WB.TIMELINE_METRICS[release.metric].units}`)];
     const body = model.rows.map(row => {
       const box = node('input',{type:'checkbox','aria-label':`选择 ${row.date || row.label || row.sha} 这次扫描`,disabled:!row.compareJobId});
       box.addEventListener('change',() => {
@@ -3117,7 +3127,7 @@
     }
     const parts = [];
     const g = model.growth, growth = [];
-    if (g.diameter) growth.push(growthFact('最大直径年增长',g.diameter,'mm',g.diameterRecent));
+    if (g.diameter) growth.push(growthFact('管腔最大直径年增长',g.diameter,'mm',g.diameterRecent));
     if (g.volume) growth.push(growthFact('瘤体体积年增长',g.volume,'mL',g.volumeRecent));
     parts.push(node('p',{class:'timeline-summary',text:`共 ${model.nScans} 次扫描${model.rows[0]?.date ? `，${model.rows[0].date} 至 ${model.rows[model.rows.length - 1].date || '—'}` : ''}。`}));
     if (growth.length) parts.push(node('div',{class:'growth-row'},growth));

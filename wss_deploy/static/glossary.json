@@ -3,15 +3,15 @@
  "terms": {
   "aneurysm_neck": {
    "en": "Aneurysm neck",
-   "en_desc": "The contiguous run proximal to the sac whose equivalent diameter stays below 1.2 × the reference diameter; the few-millimetre shoulder between neck and sac belongs to neither.",
+   "en_desc": "The contiguous run proximal to the sac whose equivalent diameter stays below 1.2 × the reference diameter; the few-millimetre shoulder between neck and sac belongs to neither. Judged on the lumen.",
    "zh": "瘤颈",
-   "zh_desc": "瘤体近端、等效直径 < 1.2 × 参考直径的连续区段；瘤体与瘤颈之间常有几毫米过渡肩部，不计入两者。"
+   "zh_desc": "瘤体近端、等效直径 < 1.2 × 参考直径的连续区段；瘤体与瘤颈之间常有几毫米过渡肩部，不计入两者。按管腔判定。"
   },
   "aneurysm_sac": {
    "en": "Aneurysm sac",
-   "en_desc": "The contiguous run of stations whose equivalent diameter is at least 1.5 × the reference diameter (the usual AAA definition); its volume is the trapezoidal integral of section area along the arc length and is overestimated where a section is oblique.",
+   "en_desc": "The contiguous run of stations whose equivalent diameter is at least 1.5 × the reference diameter (the usual AAA definition); its volume is the trapezoidal integral of section area along the arc length and is overestimated where a section is oblique. Judged on the lumen: mural thrombus is not counted in the diameter or the volume, and a sac largely filled by thrombus may not be detected.",
    "zh": "瘤体（瘤囊）",
-   "zh_desc": "等效直径 ≥ 1.5 × 参考直径的连续区段（AAA 常用定义）；体积按截面面积沿弧长梯形积分，斜切站会偏大。"
+   "zh_desc": "等效直径 ≥ 1.5 × 参考直径的连续区段（AAA 常用定义）；体积按截面面积沿弧长梯形积分，斜切站会偏大。按管腔判定：附壁血栓不计入直径和体积，血栓占据大部分瘤腔时可能判不出瘤体。"
   },
   "arc_distance": {
    "en": "Arc distance",
@@ -111,9 +111,9 @@
   },
   "local_diameter": {
    "en": "Local diameter",
-   "en_desc": "Twice the centreline inscribed radius, not the largest diameter of the cross-section at that point.",
+   "en_desc": "Twice the centreline inscribed radius, not the largest lumen diameter of the cross-section at that point.",
    "zh": "局部管径",
-   "zh_desc": "中心线内切半径的两倍，不是该点截面的最大直径。"
+   "zh_desc": "中心线内切半径的两倍，不是该点截面的管腔最大直径。"
   },
   "lumen_volume": {
    "en": "Lumen volume",
@@ -128,10 +128,10 @@
    "zh_desc": "预测点云上的单点最大 WSS，仅作参考并标出位置；与 p99 不是同一统计量。"
   },
   "max_diameter": {
-   "en": "Maximum diameter",
-   "en_desc": "At stations 1 mm apart the wall mesh is cut perpendicular to the centreline; the value is the largest distance between two points of that contour (maximum Feret diameter), not the inscribed diameter.",
-   "zh": "最大直径",
-   "zh_desc": "中心线每 1 mm 取一站，用局部切线为法向切壁面网格得到管腔轮廓，取轮廓上最远两点的距离（最大 Feret 直径）；不是中心线内切直径。"
+   "en": "Maximum lumen diameter",
+   "en_desc": "At stations 1 mm apart the wall mesh is cut perpendicular to the centreline; the value is the largest distance between two points of that contour (maximum Feret diameter), not the inscribed diameter. The input is the lumen surface, excluding mural thrombus and the wall, so the value is usually smaller than the aneurysm diameter in a CT report.",
+   "zh": "管腔最大直径",
+   "zh_desc": "中心线每 1 mm 取一站，用局部切线为法向切壁面网格得到管腔轮廓，取轮廓上最远两点的距离（最大 Feret 直径）；不是中心线内切直径。输入是管腔面，不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径。"
   },
   "mean": {
    "en": "Mean",
@@ -170,10 +170,10 @@
    "zh_desc": "1 mmHg = 133.322 Pa；换算只在显示层。"
   },
   "quality_grade": {
-   "en": "Ensemble quality",
-   "en_desc": "Three levels (stable / some uncertainty / unstable) from the spread between the ensemble's models; a confidence hint, not a correction.",
-   "zh": "集成质量",
-   "zh_desc": "按集成中各模型预测之间的离散度给出三档：模型集成稳定 / 存在不确定性 / 不稳定；只提示可信程度，不改数值。"
+   "en": "Model agreement",
+   "en_desc": "Three levels (models agree / some uncertainty / unstable) from the spread between the ensemble's models; a confidence hint, not a correction. Agreement only means the models give similar predictions, not that they match CFD: agreement does not mean accuracy.",
+   "zh": "多模型一致性",
+   "zh_desc": "按集成中各模型预测之间的离散度给出三档：多模型一致 / 存在不确定性 / 不稳定；只提示可信程度，不改数值。一致只说明几个模型的预测彼此接近，不代表与 CFD 相符：一致不代表准确。"
   },
   "reference_diameter": {
    "en": "Reference diameter",

@@ -1,0 +1,110 @@
+/* Help pages (help_input / help_quickstart / help_errors) — WORKSPACE_V2_CONTRACT §5.4 C8 and §7.
+   Same colour variables as v2.css; no scripts, no gradients, no decorative shadows. */
+:root{
+  --bg:#f3f4f5; --panel:#ffffff; --ink:#1b2430; --ink-2:#465361; --ink-3:#77828e;
+  --line:#dfe3e7; --line-2:#c6ccd2; --accent:#1d5d95; --accent-weak:#e9f0f7;
+  --warn:#8a5a00; --warn-bg:#fbf3e2; --error:#9c3326; --error-bg:#faece9; --ok:#2c6a4b;
+  --viewport:#eceef0; --missing:#a7adb3;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.65 system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code,var{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;font-style:normal}
+var{color:var(--accent)}
+
+/* page frame */
+.help-top{background:var(--panel);border-bottom:1px solid var(--line);height:40px;display:flex;align-items:center;gap:16px;padding:0 16px}
+.help-mark{font-weight:650;letter-spacing:.5px;color:var(--ink);text-decoration:none}
+.help-nav{display:flex;gap:4px;flex-wrap:wrap;min-width:0}
+.help-nav a{font-size:12px;color:var(--ink-2);text-decoration:none;padding:3px 8px;border-radius:3px;white-space:nowrap}
+.help-nav a:hover{background:var(--accent-weak);color:var(--accent)}
+.help-nav a[aria-current=page]{color:var(--accent);background:var(--accent-weak)}
+.help-page{max-width:920px;margin:0 auto;padding:24px 16px 48px}
+.help-page>header{margin-bottom:16px}
+h1{font-size:18px;line-height:1.4;margin:0 0 6px;font-weight:650}
+h2{font-size:15px;line-height:1.45;margin:0 0 8px;font-weight:650}
+h3{font-size:13px;margin:12px 0 4px;font-weight:650}
+p{margin:0 0 8px}
+.lead{color:var(--ink-2);margin:0}
+.meta{font-size:12px;color:var(--ink-3)}
+section.block{background:var(--panel);border:1px solid var(--line);padding:16px;margin:0 0 12px}
+section.block>:last-child{margin-bottom:0}
+ul,ol{margin:0 0 8px;padding-left:20px}
+li{margin:2px 0}
+.note{font-size:12px;color:var(--ink-2)}
+.callout{border:1px solid var(--line-2);border-left:3px solid var(--warn);background:var(--warn-bg);color:var(--ink);padding:8px 12px;margin:8px 0}
+.callout.stop{border-left-color:var(--error);background:var(--error-bg)}
+.tag{display:inline-block;font-size:12px;line-height:18px;padding:0 5px;border:1px solid var(--line-2);border-radius:2px;color:var(--ink-2);white-space:nowrap}
+.tag.stop{color:var(--error);border-color:var(--error)}
+.tag.ask{color:var(--warn);border-color:var(--warn)}
+.tag.info{color:var(--ink-2)}
+
+/* tables: 28 px rows, 12 px header in --ink-3, 1 px rules, no zebra */
+.table-wrap{overflow-x:auto;margin:4px 0 8px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;vertical-align:top;padding:5px 8px;border-bottom:1px solid var(--line);min-height:28px;line-height:1.55}
+th{font-size:12px;font-weight:500;color:var(--ink-3);border-bottom:1px solid var(--line-2);white-space:nowrap}
+td.num,th.num{text-align:right;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+.msg{font-family:inherit;color:var(--ink);font-weight:500}
+tr.group td{padding-top:14px;font-size:12px;color:var(--ink-3);font-weight:600;border-bottom:1px solid var(--line-2)}
+
+/* input diagram */
+figure.diagram{margin:0 0 8px}
+figure.diagram svg{display:block;width:100%;height:auto;max-width:640px;margin:0 auto;background:var(--viewport)}
+figure.diagram figcaption{font-size:12px;color:var(--ink-3);margin-top:6px}
+.two-col{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+
+/* quick-start card */
+.steps{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.steps>li{background:var(--panel);border:1px solid var(--line);padding:12px 16px 12px 52px;position:relative;margin:0}
+.steps .n{position:absolute;left:16px;top:12px;width:24px;height:24px;border:1px solid var(--accent);color:var(--accent);border-radius:2px;display:flex;align-items:center;justify-content:center;font-weight:650}
+.steps h2{margin-bottom:4px}
+.steps p{margin:0 0 4px}
+.steps ul{margin:4px 0 0}
+.check{font-size:12px;color:var(--ink-2)}
+.card-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--ink-3)}
+
+@media (max-width:720px){
+  .two-col{grid-template-columns:minmax(0,1fr)}
+  .help-top{height:auto;min-height:40px;flex-wrap:wrap;padding:6px 16px;gap:8px}
+  .help-page{padding:16px 16px 40px}
+  th,td{padding:5px 6px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* print: the quick-start card fits one A4 page */
+@page{size:A4;margin:12mm}
+@media print{
+  body{background:#fff;font-size:12.5px;line-height:1.6}
+  .help-top{display:none}
+  .help-page{max-width:none;padding:0}
+  section.block,.steps>li{border-color:#bbb;break-inside:avoid}
+  a{color:var(--ink);text-decoration:none}
+  .no-print{display:none}
+  .quickstart .steps{gap:10px}
+  .quickstart .steps>li{padding:12px 14px 12px 50px}
+  .quickstart .steps .n{top:12px;left:14px}
+  .quickstart h1{font-size:18px}
+  .quickstart h2{font-size:15px}
+}
+
+/* inline SVG of help_input.html: two stroke layers give one clean lumen silhouette */
+.dg-out{fill:none;stroke:var(--ink-3);stroke-linecap:butt;stroke-linejoin:round}
+.dg-out.cap{stroke-linecap:round}
+.dg-body{fill:var(--ink-3)}
+.dg-in{fill:none;stroke:var(--panel);stroke-linecap:butt;stroke-linejoin:round}
+.dg-in.cap{stroke-linecap:round}
+.dg-inbody{fill:var(--panel)}
+.dg-open{fill:var(--accent-weak);stroke:var(--accent);stroke-width:2}
+.dg-lead{fill:none;stroke:var(--line-2);stroke-width:1}
+.dg-t{font-size:12px;fill:var(--ink-2)}
+.dg-t.acc{fill:var(--accent);font-weight:600}
+.dg-s{font-size:11px;fill:var(--ink-3)}
+table.checks td:first-child,table.checks td:last-child{white-space:nowrap}
+table.errtab{table-layout:fixed}
+table.errtab th:nth-child(1){width:40%}table.errtab th:nth-child(2){width:30%}table.errtab th:nth-child(3){width:30%}
+table.errtab td{overflow-wrap:anywhere}
