@@ -690,7 +690,7 @@ def _branch_table(summary: Mapping[str, Any]) -> str:
             row += [_sig(value), _sig(float(value) / 133.322) if isinstance(value, (int, float)) else "—",
                     _sig(m.get("speed_mean_m_s")), _sig(m.get("speed_max_m_s"))]
         rows.append(row)
-    notes = ["直径为管腔截面的最大 Feret 直径（没有形态测量时为中心线内切直径），不含附壁血栓与管壁；扭曲度 = 中心线弧长 / 两端直线距离；分叉附近的截面会同时切到母血管，该处直径偏大。"]
+    notes = ["直径为中心线垂直截面上管腔的最长径（即最大 Feret 直径；没有形态测量时为中心线内切直径），不含附壁血栓与管壁；扭曲度 = 中心线弧长 / 两端直线距离；分叉附近的截面会同时切到母血管，该处直径偏大。"]
     if family == "volume" and drops:
         first = next(iter(drops.values()))
         notes.append(f"各分支近远端压差：{first.get('definition') or '近端与远端弧长段相对压力均值之差'}")

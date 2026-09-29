@@ -86,7 +86,9 @@
   }
   function range(lo, hi, units) {
     var u = unitText(units);
-    return trim(lo) + '–' + trim(hi) + (u ? ' ' + u : '');
+    // A dash between signed numbers reads as a minus sign (−1400–131): use 「至」 when the range goes below zero.
+    var sep = Number(lo) < 0 || Number(hi) < 0 ? ' 至 ' : '–';
+    return trim(lo) + sep + trim(hi) + (u ? ' ' + u : '');
   }
   function pad(n) { return n < 10 ? '0' + n : String(n); }
   function time(iso, withTime) {

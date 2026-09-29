@@ -534,3 +534,19 @@ def test_volume_adapter_colours_interior_points_and_reads_wall_pressure_vertices
     assert out["pick"] == [0, -5, "read"]
     assert out["wall"][0] is None and out["wall"][2] == out["wall"][1] + 1 and out["wall"][3] == "display"
     assert out["cloudVisible"] is False                                         # opaque coloured wall hides the cloud
+
+
+def test_adaptive_window_follows_the_release_log_hint():
+    # TAWSS / RRT / ECAP declare display.log_scale: the adaptive window is logarithmic by default (as in the
+    # classic report); an explicit log:false, a named window, or a field that crosses zero stays linear.
+    out = _node("""
+      const f={id:'tawss', units:'Pa', display:{log_scale:true, p99:4.36}, windows:[{id:'low', label:'低剪切窗', range:[0,1], provisional:true}]};
+      const st={p99:4.36, min:0.09, max:11.9};
+      const a=ns.colormap.resolve(f, {window:'adaptive', log:null}, st);
+      const lin=ns.colormap.resolve(f, {window:'adaptive', log:false}, st);
+      const named=ns.colormap.resolve(f, {window:'low', log:null}, st);
+      const plain=ns.colormap.resolve({id:'wss', units:'Pa', display:{p99:17}}, {window:'adaptive', log:null}, {p99:17, min:0.1, max:52});
+      const pz=ns.colormap.resolve({id:'pressure', units:'Pa', display:{log_scale:true}}, {window:'adaptive', log:null}, {p99:900, p1:-800, min:-1200, max:1300});
+      console.log(JSON.stringify({a:a.scale.log, aLabel:a.window.label, lin:lin.scale.log, named:named.scale.log, plain:plain.scale.log, pz:pz.scale.log}));
+    """)
+    assert out == {"a": True, "aLabel": "本例自适应", "lin": False, "named": False, "plain": False, "pz": False}

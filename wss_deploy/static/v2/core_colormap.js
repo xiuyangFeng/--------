@@ -187,7 +187,9 @@
   //             p1 … p99 when it does (relative pressure: 本例自适应, no fixed window).
   //   named:    field.windows[id].range (provisional windows are flagged).
   //   fixed:    the given range.
-  // log = null → the field default: linear (log is an explicit choice, V7).
+  // log = null → the field default: the adaptive window follows the release's display hint
+  //   (field.display.log_scale, e.g. TAWSS / RRT / ECAP — the classic report shows them on a log
+  //   scale, otherwise a sac full of low values paints as one colour); named and fixed windows stay linear.
   function resolve(field, spec, stats) {
     field = field || {};
     spec = spec || {};
@@ -221,7 +223,9 @@
         note: crossesZero ? '本例 p1–p99' : '0 至本例 p99' };
       if (typeof win === 'string' && win !== 'adaptive') info.fallback = '窗「' + win + '」不适用于该量，已用本例自适应';
     }
-    var wantLog = spec.log === true;
+    var wantLog = spec.log === true ||
+      (spec.log !== false && (spec.log === null || spec.log === undefined) && info.kind === 'adaptive' &&
+       !crossesZero && field.display && field.display.log_scale === true);
     var sc = scale({ range: range, log: wantLog, bands: spec.bands, cmap: spec.cmap, units: field.units, fieldMin: fieldMin, floor: spec.floor, trim: info.kind !== 'adaptive' });
     info.text = info.label + (info.provisional ? '（暂定）' : '') + ' ' + (U ? U.fmtRange(sc.log ? sc.floor : sc.range[0], sc.range[1], field.units, { trim: info.kind !== 'adaptive', trimLo: sc.log || info.kind !== 'adaptive' }) : '');
     return {

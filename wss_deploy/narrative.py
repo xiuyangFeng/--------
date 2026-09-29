@@ -88,8 +88,8 @@ def _morphology_sentences(summary: Mapping[str, Any]) -> tuple[list[str], list[s
     if diameter is None:
         return [], []
     where = _d(largest.get("distance_from_inlet_mm"))
-    zh = [f"{AORTA_ZH}管腔最大直径 {diameter} mm（截面最大 Feret 直径，不含附壁血栓与管壁）"]
-    en = [f"Largest aortic lumen diameter {diameter} mm (maximum Feret diameter of the cross-section, "
+    zh = [f"{AORTA_ZH}管腔最大直径 {diameter} mm（中心线垂直截面上管腔的最长径，不含附壁血栓与管壁）"]
+    en = [f"Largest aortic lumen diameter {diameter} mm (longest chord of the cross-section perpendicular to the centreline, "
           "excluding mural thrombus and the wall)"]
     if where is not None:
         zh.append(f"位于入口下 {where} mm")

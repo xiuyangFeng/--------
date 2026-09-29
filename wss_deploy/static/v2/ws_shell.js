@@ -52,7 +52,9 @@
   function fieldById(m, id) { return visibleFields(m).filter(function (f) { return f.id === id; })[0] || null; }
   function fieldName(m, id) { var f = fieldById(m, id) || ((m && m.fields) || []).filter(function (x) { return x && x.id === id; })[0]; return f ? (f.short_label || f.label || f.id) : (id || ''); }
   function windowOptions(f) {
-    var opts = [{value: 'adaptive', label: '本例自适应'}];
+    var logHint = Boolean(f && f.display && f.display.log_scale === true);
+    var opts = [{value: 'adaptive', label: logHint ? '本例自适应（对数）' : '本例自适应'}];
+    if (logHint) opts.push({value: 'adaptive-linear', label: '本例自适应（线性）'});
     ((f && f.windows) || []).forEach(function (w) {
       if (!w || !w.id || !Array.isArray(w.range)) return;
       opts.push({value: w.id, label: w.label + ' ' + ui().range(w.range[0], w.range[1], f.units) + (w.provisional ? '（暂定）' : '')});
@@ -60,11 +62,12 @@
     return opts;
   }
   function windowLabel(f, spec) {
-    if (!spec || spec === 'adaptive') {
+    if (!spec || spec === 'adaptive' || spec === 'adaptive-linear') {
       var d = f && f.display || {};
       var hi = Array.isArray(d.range) ? d.range[1] : d.p99;
       var lo = Array.isArray(d.range) ? d.range[0] : 0;
-      return '本例自适应' + (hi !== undefined && hi !== null ? ' ' + ui().range(lo, hi, f && f.units) : '');
+      var mode = spec === 'adaptive-linear' ? '（线性）' : (d.log_scale === true ? '（对数）' : '');
+      return '本例自适应' + mode + (hi !== undefined && hi !== null ? ' ' + ui().range(lo, hi, f && f.units) : '');
     }
     if (typeof spec === 'object' && Array.isArray(spec.range)) return '固定范围 ' + ui().range(spec.range[0], spec.range[1], f && f.units);
     var w = ((f && f.windows) || []).filter(function (x) { return x && x.id === spec; })[0];
@@ -336,7 +339,7 @@
     var fid = (r && r.f && fieldById(cur.manifest, r.f)) ? r.f : (saved && saved.field && fieldById(cur.manifest, saved.field)) ? saved.field : defaultField(cur.manifest);
     cur.field = fid;
     cur.window = saved && saved.field === fid && saved.window ? saved.window : 'adaptive';
-    if (cur.window !== 'adaptive' && typeof cur.window === 'string' && !((fieldById(cur.manifest, fid) || {}).windows || []).some(function (w) { return w.id === cur.window; })) cur.window = 'adaptive';
+    if (cur.window !== 'adaptive' && cur.window !== 'adaptive-linear' && typeof cur.window === 'string' && !((fieldById(cur.manifest, fid) || {}).windows || []).some(function (w) { return w.id === cur.window; })) cur.window = 'adaptive';
     renderToolbar(); renderInspector(); renderStatusLine(); renderTimebar();
     var v = ensureViewerA();
     if (!v) {
@@ -479,6 +482,8 @@
     ui().fill(E.toolbar, kids);
   }
   function scaleSpec(windowSpec) {
+    // 'adaptive-linear' is a workspace-only choice: the adaptive window with the log hint switched off.
+    if (windowSpec === 'adaptive-linear') return {window: 'adaptive', log: false, bands: null, cmap: store().prefs().cmap};
     return {window: windowSpec || 'adaptive', log: null, bands: null, cmap: store().prefs().cmap};
   }
   function applyField(fieldId, windowSpec, opts) {

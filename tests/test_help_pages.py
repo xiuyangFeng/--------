@@ -96,6 +96,8 @@ def test_error_table_quotes_the_service_messages_verbatim():
 
 def test_example_stl_is_anonymous_and_passes_the_input_check(tmp_path):
     path = V2 / "example_aaa.stl"
+    if not path.is_file():   # patient-derived: not in git, written on the server by `python -m wss_deploy.v2_examples`
+        pytest.skip("example_aaa.stl has not been generated on this machine")
     data = path.read_bytes()
     assert b"LV_GUO_YOU" not in data[:80] and not data[:5].lower().startswith(b"solid")
     from wss_deploy.ingest import ingest
@@ -107,4 +109,6 @@ def test_example_stl_is_anonymous_and_passes_the_input_check(tmp_path):
 def test_workbench_links_resolve_to_files():
     html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
     for name in re.findall(r'href="/static/v2/([^"]+)"', html):
+        if name.startswith("example_") and not (V2 / name).is_file():
+            continue   # generated on the server (wss_deploy.v2_examples), never committed
         assert (V2 / name).is_file(), name
