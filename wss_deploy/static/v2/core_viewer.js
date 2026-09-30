@@ -897,6 +897,91 @@
     }
 
     // ==== lane A ==== (second phase: figure exports; PHASE2_LANES.md §3)
+    // A pose is {position, target, up, fov}.  exportPose(name) is a standard view fitted to the whole export frame
+    // (small even margins, no HUD insets); renderPose(o) draws the scene from a pose (the live camera when none is
+    // given) offscreen at o.scale × the viewport's CSS size.  The live camera is posed, rendered and put back within
+    // the call — no 'camera' event, the fitted view and the controls are untouched, and the canvas is redrawn from the
+    // live camera before the browser shows it.  Outline and hatch widths follow the export scale (as they follow the
+    // device pixel ratio on screen).  The HTML label chips (finding markers, tool labels) are not in the WebGL image:
+    // they come back projected for that pose in CSS px of the export frame, for the caller to draw on its 2-D canvas.
+    var EXPORT_INSETS = { top: 14, right: 14, bottom: 14, left: 14, corner: null };
+    function exportPose(name, o) {
+      o = o || {};
+      if (!S.handle) return null;
+      var d = viewDirection(name, frameOf());
+      if (!d) return null;
+      var f = insetFit(S.handle.fitPoints(), { dir: d.dir, up: d.up, fov: camera.fov, width: o.width || size.w, height: o.height || size.h, insets: o.insets || EXPORT_INSETS, margin: o.margin || 1.04 });
+      return { position: f.position, target: f.target, up: f.up, fov: camera.fov };
+    }
+    function exportWidths(k) {
+      content.traverse(function (o) {
+        var m = o.material;
+        if (m && m.uniforms && m.uniforms.uResolution) m.uniforms.uResolution.value.set(size.w * k, size.h * k);
+        if (m && m.uniforms && m.uniforms.uSpacing && m.userData.basePx) { m.uniforms.uSpacing.value = m.userData.basePx.spacing * k; m.uniforms.uLine.value = m.userData.basePx.line * k; }
+        if (m && m.uniforms && m.uniforms.uWidth && m.userData.baseWidth) m.uniforms.uWidth.value = m.userData.baseWidth * k;
+      });
+    }
+    function exportLabels() {
+      var out = [];
+      vtmp = vtmp || new THREE.Vector3();
+      allChips().forEach(function (c) {
+        var text = c.el && c.el.textContent ? String(c.el.textContent) : '';
+        if (!text) return;
+        vtmp.set(c.m.xyz[0], c.m.xyz[1], c.m.xyz[2]).project(camera);
+        if (!(vtmp.z < 1 && vtmp.z > -1)) return;
+        var cls = String(c.el.className || '');
+        out.push({ x: (vtmp.x + 1) / 2 * size.w, y: (1 - vtmp.y) / 2 * size.h, text: text, kind: cls.indexOf('wssv2-toollabel') >= 0 ? 'tool' : 'marker', xyz: c.m.xyz.slice() });
+      });
+      return out;
+    }
+    function renderPose(o) {
+      o = o || {};
+      return new Promise(function (resolve, reject) {
+        if (!S.handle || disposed) { reject(new Error('no result')); return; }
+        var pose = o.camera ? cleanCamera(o.camera) : null;
+        if (o.camera && !pose) { reject(new Error('invalid camera')); return; }
+        var k = Math.max(1, Math.min(4, +o.scale || 2));
+        var saved = { p: camera.position.clone(), q: camera.quaternion.clone(), u: camera.up.clone(), fov: camera.fov, near: camera.near, far: camera.far };
+        var used = pose ? { position: pose.position.slice(), target: pose.target.slice(), up: pose.up.slice(), fov: pose.fov || camera.fov } : cameraState();
+        var prevBg = scene.background, out = null, err = null;
+        try {
+          if (pose) {
+            var tgt = new THREE.Vector3().fromArray(pose.target), sz = S.handle.bounds ? S.handle.bounds.size : 300;
+            camera.position.fromArray(pose.position);
+            camera.up.fromArray(pose.up).normalize();
+            if (pose.fov) camera.fov = pose.fov;
+            camera.lookAt(tgt);
+            var dist = camera.position.distanceTo(tgt);
+            camera.near = Math.max(0.01, Math.min(sz * 0.002, dist * 0.01));
+            camera.far = Math.max(sz * 20, dist * 4);
+            camera.updateProjectionMatrix();
+            camera.updateMatrixWorld(true);
+            updateScreenSized();
+          }
+          applyClip();
+          exportWidths(k);
+          var bg = o.background === 'transparent' ? null : (o.background === 'white' ? '#ffffff' : (typeof o.background === 'string' && /^#[0-9a-f]{6}$/i.test(o.background) ? o.background : cssVar(wrap, '--snapshot-bg', '#ffffff')));
+          scene.background = bg ? new THREE.Color(bg) : null;
+          var r = root.WssReportCommon.renderOffscreen({ renderer: renderer, scene: scene, camera: camera, THREE: THREE, scale: k, width: size.w, height: size.h, background: bg ? undefined : 'transparent' });
+          out = { dataURL: r.dataURL, width: r.width, height: r.height, scale: r.scale, downgraded: !!r.downgraded, css: { w: size.w, h: size.h },
+            camera: used, labels: o.labels === false ? [] : exportLabels() };
+        } catch (e) { err = e; }
+        finally {
+          scene.background = prevBg;
+          if (pose) {
+            camera.position.copy(saved.p); camera.quaternion.copy(saved.q); camera.up.copy(saved.u);
+            camera.fov = saved.fov; camera.near = saved.near; camera.far = saved.far;
+            camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
+          }
+          updateOutlineResolution();
+          // redraw from the live camera now, so the posed frame never reaches the screen
+          if (rafId) { (root.cancelAnimationFrame || clearTimeout)(rafId); rafId = 0; }
+          dirty = true;
+          try { frame(); } catch (_) { requestRender(); }
+        }
+        if (err) reject(err); else resolve(out);
+      });
+    }
     // ==== end lane A ====
 
     // ---- result lifecycle
@@ -1170,6 +1255,7 @@
       setClipPlane: setClipPlane,
       setToolLabels: setToolLabels,
       // lane A exports
+      exportPose: exportPose, renderPose: renderPose,
       resize: function () { size = { w: 0, h: 0 }; resize(); },
       render: function () { requestRender(); },
       renderNow: function () { if (rafId) { (root.cancelAnimationFrame || clearTimeout)(rafId); rafId = 0; } frame(); },

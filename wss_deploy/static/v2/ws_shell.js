@@ -64,6 +64,7 @@
       parseHash: parseHash, buildHash: buildHash, replaceRoute: function (patch) { replaceRoute(patch); }, session: function () { return S && S.session; },
       jobs: function () { return (S && S.jobs) || []; }, cards: function () { return (S && S.cards) || {}; }, releases: function () { return (S && S.releases) || []; },
       // lane A
+      toggleCursor: function () { toggleCursor(); }, cursorMoved: function () { cursorMoved(); }, toggleSlice: function () { toggleSlice(); }, exitSlice: function () { exitSlice(); },
       // lane B
       // lane C
       // lane D
