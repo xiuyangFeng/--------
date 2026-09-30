@@ -78,5 +78,7 @@
     return svg;
   }
 
-  return {icon: icon, names: Object.keys(ICONS), has: function (name) { return Object.prototype.hasOwnProperty.call(ICONS, name); }};
+  // Extensions add their own icons (same primitive format: [['path', {d}], ['circle', {…}], ['rect', {…}]]); an existing name is kept.
+  function register(name, spec) { if (!name || Object.prototype.hasOwnProperty.call(ICONS, name) || !Array.isArray(spec)) return false; ICONS[name] = spec; return true; }
+  return {icon: icon, names: Object.keys(ICONS), register: register, P: P, C: C, R: R, has: function (name) { return Object.prototype.hasOwnProperty.call(ICONS, name); }};
 });

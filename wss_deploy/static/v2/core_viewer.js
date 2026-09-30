@@ -896,6 +896,9 @@
       clipSeen = Boolean(clipList);
     }
 
+    // ==== lane A ==== (second phase: figure exports; PHASE2_LANES.md §3)
+    // ==== end lane A ====
+
     // ---- result lifecycle
     function clearResult() {
       if (S.handle) { try { S.handle.dispose(); } catch (err) { ev.emit('error', err); } }
@@ -944,6 +947,9 @@
         return result;
       }, function (err) { if (token === S.token) ev.emit('error', err); throw err; });
     }
+
+    // ==== lane E ==== (second phase: display options; PHASE2_LANES.md §3)
+    // ==== end lane E ====
 
     // ---- state
     function getState() {
@@ -1060,10 +1066,12 @@
       setControlsEnabled: setControlsEnabled,
       setClipPlane: setClipPlane,
       setToolLabels: setToolLabels,
+      // lane A exports
       resize: function () { size = { w: 0, h: 0 }; resize(); },
       render: function () { requestRender(); },
       renderNow: function () { if (rafId) { (root.cancelAnimationFrame || clearTimeout)(rafId); rafId = 0; } frame(); },
       stats: function () { var i = renderer.info; return { geometries: i.memory.geometries, textures: i.memory.textures, calls: i.render.calls, triangles: i.render.triangles, programs: (i.programs || []).length }; },
+      // lane E exports
       dispose: dispose,
       isDisposed: function () { return disposed; }
     };

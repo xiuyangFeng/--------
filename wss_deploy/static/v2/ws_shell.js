@@ -15,6 +15,63 @@
   var VIEWS = ['wall', 'volume', 'compare', 'input'];
   var CLASSIC_TOOLS = '六视角、出版级导图、分支展开图';
 
+  // ------------------------------------------------------------------ extensions (second phase, parallel lanes)
+  // Other modules add toolbar buttons, inspector tabs, menu items, sections of the 工具 tab, keys, pages (#/name) and
+  // result hooks without editing this file:
+  //   (ns.ext = ns.ext || []).push({id, toolbar(api) → [buttons], tabs(api) → [{id, label}], renderTab(tabId, body, api) → true,
+  //     layers(api) / userMenu(api) → [menu items], tools(api) → [sections], key(event, api) → true, page(name, container, api) → true,
+  //     onResult(api), onClose(api), onField(api)})
+  // `api` (shellApi below) is the last argument of every hook.  A hook that handles the call returns true; errors are
+  // caught and logged, so one extension cannot break the page.
+  function exts() { return Array.isArray(ns.ext) ? ns.ext : []; }
+  function extCall(hook) {
+    var args = Array.prototype.slice.call(arguments, 1).concat([shellApi()]), out = [];
+    exts().forEach(function (x) {
+      if (!x || typeof x[hook] !== 'function') return;
+      try { var r = x[hook].apply(x, args); if (Array.isArray(r)) out = out.concat(r.filter(Boolean)); else if (r && r !== true) out.push(r); }
+      catch (e) { if (root.console && root.console.error) root.console.error('extension ' + (x.id || '?') + '.' + hook + ': ' + (e && e.stack || e)); }
+    });
+    return out;
+  }
+  function extHandled(hook) {
+    var args = Array.prototype.slice.call(arguments, 1).concat([shellApi()]), done = false;
+    exts().forEach(function (x) {
+      if (done || !x || typeof x[hook] !== 'function') return;
+      try { done = x[hook].apply(x, args) === true; }
+      catch (e) { if (root.console && root.console.error) root.console.error('extension ' + (x.id || '?') + '.' + hook + ': ' + (e && e.stack || e)); }
+    });
+    return done;
+  }
+  function extMenuItems(hook) { var items = extCall(hook); return items.length ? [{separator: true}].concat(items) : []; }
+  var SHELL_API = null;
+  function shellApi() {
+    if (SHELL_API) return SHELL_API;
+    SHELL_API = {
+      state: function () { return S; }, cur: function () { return S && S.cur; }, viewer: function () { return S && S.viewerA; }, offline: function () { return Boolean(S && S.offline); },
+      ui: ui, api: api, store: store, h: h,
+      renderInspector: function () { renderInspector(); }, renderToolbar: function () { renderToolbar(); }, renderHome: function () { renderHome(); }, renderTop: function () { renderTop(); },
+      setTab: function (id) { setTab(id); }, currentTab: function () { return currentTab(); }, showMode: function (m) { showMode(m); },
+      applyField: function (id, win) { return applyField(id, win); }, updateColorbar: function () { updateColorbar('a'); }, setLayers: function () { setLayers(); },
+      flyTo: function (xyz, extent) { flyTo(xyz, extent); }, selectFinding: function (it) { selectFinding(it); }, drawLabels: function () { drawLabels(); },
+      pickOnce: function (msg, cb) { pickOnce(msg, cb); }, cancelPickOnce: function () { cancelPickOnce(); },
+      conflictOr: function (e, what) { conflictOr(e, what); }, reloadCurrent: function () { reloadCurrent(); }, go: function (id, extra) { go(id, extra); },
+      refreshJobs: function () { refreshJobs(); }, scheduleRefresh: function () { scheduleRefresh(); }, openExport: function () { openExport(); }, openSliceAt: function (p) { openSliceAt(p); },
+      saveViewSoon: function () { saveViewSoon(); }, hideName: function () { return hideName(); }, fieldById: fieldById, fieldName: fieldName, visibleFields: visibleFields,
+      isLocked: function () { return Boolean(S.cur && S.cur.manifest && isLocked(S.cur)); }, editable: function () { return Boolean(S.cur && S.cur.manifest && editable(S.cur)); },
+      withCenterline: function (fn) { if (S.cur && S.cur.result) withCenterline(S.cur, fn); }, copyText: function (t, done) { copyText(t, done); },
+      fileBase: function () { return S.cur && S.cur.manifest ? fileBase(S.cur) : 'case'; }, stageMessage: function (t, err, keep) { stageMessage(t, err, keep); },
+      parseHash: parseHash, buildHash: buildHash, replaceRoute: function (patch) { replaceRoute(patch); }, session: function () { return S && S.session; },
+      jobs: function () { return (S && S.jobs) || []; }, cards: function () { return (S && S.cards) || {}; }, releases: function () { return (S && S.releases) || []; },
+      // lane A
+      // lane B
+      // lane C
+      // lane D
+      // lane E
+      _: null
+    };
+    return SHELL_API;
+  }
+
   // ------------------------------------------------------------------ routing (pure)
   function parseHash(hash) {
     var raw = String(hash || '').replace(/^#/, '');
@@ -185,10 +242,11 @@
         {label: '深色视口', checked: stage !== 'light', run: function () { setStage('dark'); }},
         {label: '浅色视口', checked: stage === 'light', run: function () { setStage('light'); }},
         {separator: true},
+      ].concat(extMenuItems('userMenu'), [
         {label: '经典工作台', href: classicHref},
         sess.login && sess.login !== 'none' ? {separator: true} : null,
         sess.login && sess.login !== 'none' ? {label: '退出登录', run: logout} : null
-      ]);
+      ]));
     });
     ui().fill(E.topRight, full ? h('span', {'class': 'top-tier', text: '完整档'}) : null, upload, helpBtn, userBtn);
   }
@@ -254,6 +312,11 @@
   function route() {
     var r = parseHash(root.location.hash);
     if (S.offline) return;
+    var page = /^#\/([a-z][a-z0-9-]{1,30})\/?$/.exec(root.location.hash || '');   // #/trash, #/cohort … : a page of an extension
+    if (!r.jobId && page && page[1] !== 'job') {
+      closeCurrent(); showMode('home'); if (S.rail) S.rail.setCurrent(null);
+      if (extHandled('page', page[1], S.els.home)) { renderTop(); return; }
+    }
     if (!r.jobId) { closeCurrent(); renderHome(); if (S.rail) S.rail.setCurrent(null); return; }
     if (S.cur && S.cur.jobId === r.jobId && S.cur.result && r.v !== 'input') { applyRouteExtras(r); return; }
     openJob(r.jobId, r);
@@ -261,6 +324,7 @@
 
   // ------------------------------------------------------------------ opening a result
   function closeCurrent() {
+    if (S.cur) extCall('onClose');
     if (S.abort) { try { S.abort.abort(); } catch (_) {} S.abort = null; }
     stopPoll();
     if (S.inputView) { S.inputView.dispose(); S.inputView = null; }
@@ -389,6 +453,7 @@
     var cur = S.cur;
     loadTimeline(cur);
     drawLabels();
+    extCall('onResult');
     if (r) applyRouteExtras(r);
   }
   function safeFit(v) { try { v.fit(); } catch (_) {} }
@@ -515,6 +580,7 @@
       regBtn.disabled = !S.viewerA || Boolean(cur.compare || cur.split);
       tools.push(regBtn);
     }
+    extCall('toolbar').forEach(function (b) { tools.push(b); });
     tools.push(ui().iconButton('light', p.lighting === 'soft' ? '光照：柔和（L 切换为平涂，读色更准）' : '光照：平涂（L 切换为柔和光照）', toggleLighting, {pressed: p.lighting === 'soft'}));
     var layerBtn = ui().iconButton('layers', '图层、色表与背景', null);
     layerBtn.setAttribute('aria-haspopup', 'menu');   // the document click that closes menus lets this one open
@@ -552,6 +618,7 @@
       else cur.slice.refresh();
     }
     if (cur.region) cur.region.refresh();
+    extCall('onField');
     updateColorbar('a');
     renderToolbar(); renderStatusLine();
     if (currentTab() === 'reading' || currentTab() === 'overview') renderInspector();
@@ -603,7 +670,7 @@
       {label: '彩虹（默认）', checked: cm === 'rainbow', run: function () { setCmap('rainbow'); }},
       {label: 'viridis', checked: cm === 'viridis', run: function () { setCmap('viridis'); }},
       {label: 'turbo', checked: cm === 'turbo', run: function () { setCmap('turbo'); }}
-    ]);
+    ].concat(extMenuItems('layers')));
   }
   // Branch visibility (classic 分支显隐 / 血管模块): display only, every statistic keeps all branches.
   function branchDialog() {
@@ -699,6 +766,7 @@
     if (S.cur && S.cur.measure) tabs.push({id: 'measure', label: '测量'});
     if (S.cur && S.cur.region) tabs.push({id: 'region', label: '区域'});
     if (S.cur && S.cur.annotTool) tabs.push({id: 'annot', label: '标注'});
+    extCall('tabs').forEach(function (t) { if (t && t.id && t.label) tabs.push(t); });
     tabs.push({id: 'reading', label: '读数'}, {id: 'bookmarks', label: '书签'});
     if (!S.offline) tabs.push({id: 'tools', label: '工具'});
     if (S.cur && S.cur.compare) tabs.push({id: 'compare', label: '比较'});
@@ -720,6 +788,7 @@
     }), h('span', {'class': 'sec-fill'}), ui().iconButton('chevron-right', '收起检查器', function () { setInspector(false); }, {cls: 'tab-collapse'}));
     var body = E.inspBody;
     if (tab === 'overview') ns.overview.render(body, overviewCtx());
+    else if (extHandled('renderTab', tab, body)) { /* an extension's tab */ }
     else if (tab === 'slice') renderSlice(body);
     else if (tab === 'measure') renderMeasure(body);
     else if (tab === 'region') renderRegion(body);
@@ -1716,6 +1785,7 @@
     } else {
       parts.push(ui().note('换模型重跑、技术信息和完整统计在「完整」档。'));
     }
+    parts = parts.concat(extCall('tools'));
     ui().fill(body, parts);
   }
   function metadataDialog() {
@@ -1771,6 +1841,7 @@
       return;
     }
     if (ui().dialog.isOpen() || ui().isTyping(e.target)) return;
+    if (extHandled('key', e)) { if (e.preventDefault) e.preventDefault(); return; }
     var done = true;
     var cur = S.cur;
     if (cur && cur.slice && cur.slice.key(e)) { if (e.preventDefault) e.preventDefault(); return; }
