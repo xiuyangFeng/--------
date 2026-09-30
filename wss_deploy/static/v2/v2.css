@@ -642,3 +642,49 @@ ellipse.zmap-edge { fill: rgba(16, 24, 40, .22); stroke: none; }
 .series-cap b { font-size: 14px; color: var(--ink); }
 .series-bar { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 12px; font-variant-numeric: tabular-nums; }
 .series-grad { flex: 0 0 220px; height: 10px; border-radius: 2px; border: 1px solid var(--line-2); }
+/* second phase S3: probe card, probe log, measurement, regions, branch visibility */
+.sec-probe .sec-head { flex-wrap: wrap; }
+.pc-where { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.pc-table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.pc-table th, .pc-table td { padding: 5px 4px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.pc-table thead th { color: var(--ink-3); font-weight: 500; }
+.pc-table tbody th { text-align: left; font-weight: 600; color: var(--ink-2); }
+.pc-table tbody th small { margin-left: 4px; color: var(--ink-3); font-weight: 400; }
+.pc-table tbody tr { cursor: pointer; }
+.pc-table tbody tr:hover td, .pc-table tbody tr:hover th { background: var(--panel-2); }
+.pc-table tbody tr.on th, .pc-table tbody tr.on td { color: var(--ink); font-weight: 700; }
+.pc-table td.pc-sec { color: var(--accent-2); }
+.pc-range-wrap { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ink-3); }
+.pc-range { position: relative; display: inline-block; width: 56px; height: 6px; border-radius: 3px; background: var(--line); }
+.pc-range i { position: absolute; top: 50%; transform: translate(-50%, -50%); }
+.pc-mean { width: 2px; height: 12px; background: var(--ink); }
+.pc-pt { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); border: 1.5px solid var(--panel); }
+.pc-pt.out { background: var(--panel); border-color: var(--accent); }
+.pc-kv { display: grid; gap: 4px; }
+.pc-kv .slice-row-k { width: 84px; }
+.pc-foot { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.lens-toggle { display: inline-flex; align-items: center; gap: 4px; margin: 10px 0 0; padding: 4px 0; border: 0; background: none; color: var(--ink-3); font-size: 12px; font-weight: 600; cursor: pointer; }
+.lens-toggle:hover { color: var(--ink); }
+.lens-box.folded { display: none; }
+.probe-log { width: 100%; font-size: 12px; }
+.probe-log td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.probe-log td, .probe-log th { padding: 4px; white-space: nowrap; }
+.tscroll { overflow-x: auto; }
+.badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--panel-2); color: var(--ink-2); font-size: 11px; font-weight: 700; }
+.btn-xs { width: 22px; height: 22px; min-width: 22px; padding: 0; }
+.meas-status { margin: 10px 0 8px; font-size: 12px; color: var(--ink-3); }
+.meas-status.on { color: var(--accent-2); font-weight: 600; }
+.meas-list { display: grid; gap: 2px; }
+.meas-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12px; min-width: 0; }
+.meas-id { flex: none; min-width: 26px; color: var(--accent-2); }
+.meas-text { flex: 1 1 auto; min-width: 0; color: var(--ink-2); line-height: 1.4; }
+.meas-acts { flex: none; display: inline-flex; gap: 2px; }
+.meas-acts .btn-icon { width: 24px; height: 24px; }
+.region-ctrls { display: grid; gap: 8px; margin-bottom: 10px; }
+.region-label { margin: 4px 0 2px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.region-out .kpi-num { font-size: 20px; }
+.btn.on { background: var(--accent-weak); color: var(--accent-2); border-color: var(--accent); }
+.branch-list { display: grid; gap: 4px; margin-bottom: 8px; }
+.branch-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; cursor: pointer; }
+.branch-row input { accent-color: var(--accent); }
+.branch-row .muted { margin-left: auto; font-size: 12px; }

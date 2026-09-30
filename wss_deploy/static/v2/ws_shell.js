@@ -13,7 +13,7 @@
   var store = function () { return ns.store; };
   var api = function () { return ns.api; };
   var VIEWS = ['wall', 'volume', 'compare', 'input'];
-  var CLASSIC_TOOLS = '测量、标注、区域统计、六视角、出版级导图、截面系列、按截面切割、分支展开图';
+  var CLASSIC_TOOLS = '标注、六视角、出版级导图、分支展开图';
 
   // ------------------------------------------------------------------ routing (pure)
   function parseHash(hash) {
@@ -266,6 +266,9 @@
     if (S.inputView) { S.inputView.dispose(); S.inputView = null; }
     exitSplit(true); exitCompare(true);
     if (S.cur && S.cur.slice) { try { S.cur.slice.dispose(); } catch (_) {} S.cur.slice = null; S.els.vpA.hud.hidden = true; }
+    if (S.cur && S.cur.measure) { try { S.cur.measure.dispose(); } catch (_) {} S.cur.measure = null; }
+    if (S.cur && S.cur.region) { try { S.cur.region.dispose(); } catch (_) {} S.cur.region = null; }
+    if (S.cur && S.cur.probe && ns.probe) { try { ns.probe.clear(S.viewerA); } catch (_) {} S.cur.probe = null; }
     if (S.cur && S.cur.cursor) { try { S.viewerA.setCursor(null); } catch (_) {} }
     S.cur = null; S.lensRef = null; S.question = null;
     ns.questions && ns.questions.bar(S.els.qbar, null, {});
@@ -276,7 +279,7 @@
     S.abort = typeof root.AbortController === 'function' ? new root.AbortController() : null;
     var signal = S.abort ? S.abort.signal : undefined;
     S.cur = {seq: seq, jobId: jobId, job: null, result: null, manifest: null};
-    if (S.tab === 'reading' || S.tab === 'compare' || S.tab === 'slice') S.tab = null;
+    if (S.tab === 'reading' || S.tab === 'compare' || S.tab === 'slice' || S.tab === 'measure' || S.tab === 'region') S.tab = null;
     S.lensRef = null;
     if (S.rail) S.rail.setCurrent(jobId);
     showMode('result');
@@ -489,8 +492,19 @@
       sliceBtn.disabled = !S.viewerA || Boolean(cur.compare || cur.split);
       tools.push(sliceBtn);
     }
+    if (ns.measure && S.viewerA && toolSupported('measure')) {
+      var measBtn = ui().iconButton('ruler', cur.measure ? '关闭测量（M）' : '测量（M）：距离、沿中心线弧长、管径', toggleMeasure, {pressed: Boolean(cur.measure)});
+      measBtn.disabled = Boolean(cur.compare || cur.split);
+      tools.push(measBtn);
+    }
+    if (ns.region && cur.result && ns.region.supported(cur.result)) {
+      var regBtn = ui().iconButton('region', cur.region ? '关闭区域统计' : '区域统计：分支上一段或球形区域的均值、p99、最大', toggleRegion, {pressed: Boolean(cur.region)});
+      regBtn.disabled = !S.viewerA || Boolean(cur.compare || cur.split);
+      tools.push(regBtn);
+    }
     tools.push(ui().iconButton('light', p.lighting === 'soft' ? '光照：柔和（L 切换为平涂，读色更准）' : '光照：平涂（L 切换为柔和光照）', toggleLighting, {pressed: p.lighting === 'soft'}));
     var layerBtn = ui().iconButton('layers', '图层、色表与背景', null);
+    layerBtn.setAttribute('aria-haspopup', 'menu');   // the document click that closes menus lets this one open
     layerBtn.addEventListener('click', function () { layersMenu(layerBtn); });
     tools.push(layerBtn);
     tools.push(ui().iconButton('bookmark', '保存书签（B）', saveBookmark));
@@ -524,6 +538,7 @@
       if (want !== sq) cur.slice.set({quantity: want});
       else cur.slice.refresh();
     }
+    if (cur.region) cur.region.refresh();
     updateColorbar('a');
     renderToolbar(); renderStatusLine();
     if (currentTab() === 'reading' || currentTab() === 'overview') renderInspector();
@@ -562,6 +577,7 @@
       {heading: '图层'},
       item('outline', '轮廓线'), item('centerline', '中心线'), item('points', '预测点'), item('trust', '可信度标记（斜纹）'),
       volume ? item('streamlines', '流线') : null, volume ? item('wall', '血管外壁') : null, volume ? item('interior', '体内点') : null,
+      {label: '分支显隐…', run: function () { branchDialog(); }},
       {separator: true}, {heading: '视口背景'},
       {label: '深色', checked: store().prefs().stage !== 'light', run: function () { setStage('dark'); }},
       {label: '浅色', checked: store().prefs().stage === 'light', run: function () { setStage('light'); }},
@@ -570,6 +586,30 @@
       {label: 'viridis', checked: cm === 'viridis', run: function () { setCmap('viridis'); }},
       {label: 'turbo', checked: cm === 'turbo', run: function () { setCmap('turbo'); }}
     ]);
+  }
+  // Branch visibility (classic 分支显隐 / 血管模块): display only, every statistic keeps all branches.
+  function branchDialog() {
+    var cur = S.cur, v = S.viewerA;
+    if (!cur || !cur.manifest || !v) return;
+    var list = (cur.manifest.geometry && cur.manifest.geometry.branches) || [];
+    if (list.length < 2) { ui().toast('这份结果只有一条分支。', {kind: 'info'}); return; }
+    var visible = null;
+    try { visible = v.getState().branches; } catch (_) { visible = null; }
+    var on = function (id) { return !visible || visible.indexOf(Number(id)) >= 0; };
+    var apply = function () {
+      var ids = boxes.filter(function (b) { return b.input.checked; }).map(function (b) { return b.id; });
+      try { v.setBranchVisibility(ids.length === boxes.length ? null : ids); } catch (_) {}
+      saveViewSoon();
+    };
+    var boxes = list.map(function (b) {
+      var input = h('input', {type: 'checkbox', checked: on(b.id)});
+      input.addEventListener('change', apply);
+      return {id: Number(b.id), input: input, el: h('label', {'class': 'branch-row'}, input, h('span', {text: b.name || ('分支 ' + b.id)}), b.length_mm ? h('span', {'class': 'muted', text: ui().num(b.length_mm, 'mm')}) : null)};
+    });
+    ui().dialog.open({title: '分支显隐', body: [h('div', {'class': 'branch-list'}, boxes.map(function (b) { return b.el; })),
+      ui().note('只影响三维显示；所有统计、探针和截面仍按全部分支计算。')],
+      actions: [ui().button('全部显示', function () { boxes.forEach(function (b) { b.input.checked = true; }); apply(); }, {kind: 'link'}), h('span', {'class': 'sec-fill'}),
+        ui().button('完成', function () { ui().dialog.close('done'); }, {kind: 'primary'})]});
   }
   function setLayers() {
     [S.viewerA, S.viewerB].forEach(function (v) {
@@ -638,6 +678,8 @@
   function tabList() {
     var tabs = [{id: 'overview', label: '概览'}];
     if (S.cur && S.cur.slice) tabs.push({id: 'slice', label: '截面'});
+    if (S.cur && S.cur.measure) tabs.push({id: 'measure', label: '测量'});
+    if (S.cur && S.cur.region) tabs.push({id: 'region', label: '区域'});
     tabs.push({id: 'reading', label: '读数'}, {id: 'bookmarks', label: '书签'});
     if (!S.offline) tabs.push({id: 'tools', label: '工具'});
     if (S.cur && S.cur.compare) tabs.push({id: 'compare', label: '比较'});
@@ -645,7 +687,7 @@
   }
   function setInspector(open) { store().setPrefs({inspector: open}); applyPanels(); renderToolbar(); if (open) renderInspector(); }
   // The reading tab is a transient answer to one click; a new result opens on the overview again.
-  function setTab(id) { S.tab = id; if (id !== 'compare' && id !== 'reading' && id !== 'slice') store().setPrefs({tab: id}); renderInspector(); }
+  function setTab(id) { S.tab = id; if (['compare', 'reading', 'slice', 'measure', 'region'].indexOf(id) < 0) store().setPrefs({tab: id}); renderInspector(); }
   function renderInspector() {
     var cur = S.cur;
     var E = S.els;
@@ -660,6 +702,8 @@
     var body = E.inspBody;
     if (tab === 'overview') ns.overview.render(body, overviewCtx());
     else if (tab === 'slice') renderSlice(body);
+    else if (tab === 'measure') renderMeasure(body);
+    else if (tab === 'region') renderRegion(body);
     else if (tab === 'reading') renderReading(body);
     else if (tab === 'bookmarks') renderBookmarks(body);
     else if (tab === 'tools') renderTools(body);
@@ -715,15 +759,144 @@
     var cur = S.cur;
     var parts = [];
     if (cur.cursor) parts.push(cursorPanel());
-    var lensBox = h('div', {'class': 'lens-box'});
+    var probeOn = Boolean(cur.probe && ns.probe && S.lensRef && S.lensRef.kind === 'point' && S.lensRef.side !== 'b');
+    if (probeOn) { try { parts.push(ns.probe.card(cur.result, cur.probe, probeCtx())); } catch (e) { parts.push(ui().note('探针读数失败：' + (e && e.message || e))); } }
+    var lensBox = h('div', {'class': 'lens-box' + (probeOn && !S.lensOpen ? ' folded' : '')});
     // A value picked in the right-hand viewport of a comparison belongs to the other result: read it against that manifest.
     var rightSide = Boolean(S.lensRef && S.lensRef.side === 'b' && cur.compare);
     var res = rightSide ? cur.compare.result : cur.result;
     ns.lens.render(lensBox, S.lensRef, {manifest: rightSide ? cur.compare.manifest : cur.manifest, hideName: hideName() && !rightSide,
-      trustAt: function (vi) { return trustAt(res, vi); }, onClear: S.lensRef ? function () { S.lensRef = null; renderInspector(); } : null});
+      trustAt: function (vi) { return trustAt(res, vi); }, onClear: S.lensRef ? function () { unpinProbe(); S.lensRef = null; renderInspector(); } : null});
     if (rightSide) parts.push(ui().note('右侧结果：' + cur.compare.manifest.job.display_name + ' · ' + cur.compare.manifest.result.display_name));
+    if (probeOn) parts.push(h('button', {type: 'button', 'class': 'lens-toggle', 'aria-expanded': String(Boolean(S.lensOpen)), onclick: function () { S.lensOpen = !S.lensOpen; renderInspector(); }},
+      ui().icon(S.lensOpen ? 'chevron-down' : 'chevron-right'), h('span', {text: '这个数怎么来的'})));
     parts.push(lensBox);
+    var log = probeLog(cur);
+    if (log.length && ns.probe) parts.push(ns.probe.logSection(cur.result, {ui: ui(), rows: log, fieldId: cur.field,
+      onDelete: function (id) { setProbeLog(cur, log.filter(function (r) { return r.id !== id; })); },
+      onClear: function () { setProbeLog(cur, []); },
+      onCopy: function () { copyText(ns.probe.tsv(probeLog(cur)), '已复制 ' + log.length + ' 行探针记录（TSV）。'); },
+      onCsv: function () { if (typeof root.Blob === 'function') ui().downloadBlob(new root.Blob([ns.probe.csv(probeLog(cur))], {type: 'text/csv;charset=utf-8'}), fileBase(cur) + '_probes.csv'); }}));
     ui().fill(body, parts);
+  }
+  // ------------------------------------------------------------------ probe (S3): pinned on a click, section readings, log
+  function pinProbe(e) {
+    var cur = S.cur;
+    if (!cur || !cur.result || !ns.probe || !e) return;
+    try { ns.probe.clear(S.viewerA); } catch (_) {}
+    cur.probe = null;
+    var keys = ns.probe.requiredArrays(cur.result).filter(function (k) { return !cur.result.has(k); });
+    var myCur = cur;
+    Promise.resolve(keys.length ? cur.result.preload(keys) : null).then(function () {
+      if (S.cur !== myCur) return;
+      var thickness = myCur.slice ? myCur.slice.state().thickness : 2;
+      myCur.probe = ns.probe.pick(myCur.result, e, {thickness: thickness});
+      if (myCur.probe) ns.probe.draw(S.viewerA, myCur.result, myCur.probe);
+      if (currentTab() === 'reading') renderInspector();
+    }).catch(function (err) { if (S.cur === myCur) ui().toast('探针读数失败：' + (err && err.message || err), {kind: 'error'}); });
+  }
+  function unpinProbe() {
+    var cur = S.cur;
+    if (!cur) return;
+    try { ns.probe.clear(S.viewerA); } catch (_) {}
+    cur.probe = null;
+  }
+  function probeCtx() {
+    var cur = S.cur;
+    return {ui: ui(), manifest: cur.manifest, field: cur.field,
+      onField: function (id) { applyField(id, 'adaptive'); },
+      onRecord: function () { var log = probeLog(cur); var r = ns.probe.row(cur.result, cur.probe, log); setProbeLog(cur, log.concat([r])); ui().toast('已记录 ' + r.id + '（共 ' + (log.length + 1) + ' 行）。', {kind: 'ok', ms: 2500}); },
+      onClose: function () { unpinProbe(); S.lensRef = null; renderInspector(); },
+      onSlice: function (plane) { openSliceAt(plane); }};
+  }
+  function probeLog(cur) {
+    if (!cur.probeLog) cur.probeLog = ns.probe ? ns.probe.loadLog(cur.runIdentity) : [];
+    return cur.probeLog;
+  }
+  function setProbeLog(cur, rows) { cur.probeLog = rows; if (ns.probe) ns.probe.saveLog(cur.runIdentity, rows); renderInspector(); }
+  function fileBase(cur) { var name = (cur.manifest.job && cur.manifest.job.display_name) || ''; return hideName() || !name ? 'case' : name; }
+  function copyText(text, done) {
+    var ok = function () { ui().toast(done || '已复制。', {kind: 'ok', ms: 2500}); };
+    var fail = function () { ui().toast('浏览器不允许复制；可以用导出。', {kind: 'error'}); };
+    try { if (root.navigator && root.navigator.clipboard && root.navigator.clipboard.writeText) { root.navigator.clipboard.writeText(text).then(ok, fail); return; } } catch (_) {}
+    fail();
+  }
+  // The section tool opened on a given plane (the volume probe's 「看截面」).
+  function openSliceAt(plane) {
+    var cur = S.cur;
+    if (!cur || !plane) return;
+    var st = {basis: 'pick', pick: {origin: plane.origin, normal: plane.normal, picks: 1}, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0};
+    if (cur.slice) { cur.slice.set(st); cur.slice.look(true); setTab('slice'); return; }
+    cur.sliceState = Object.assign({}, cur.sliceState || {}, st);
+    toggleSlice();
+  }
+
+  // ------------------------------------------------------------------ measurement and regions (S3)
+  function toolSupported(name) {
+    try { return S.viewerA && S.viewerA.supports().tools.indexOf(name) >= 0; } catch (_) { return false; }
+  }
+  function toggleMeasure() {
+    var cur = S.cur;
+    if (!cur || !cur.result || !ns.measure || !S.viewerA) return;
+    if (cur.measure) { exitMeasure(); return; }
+    if (cur.compare || cur.split) { ui().toast('测量在单视口里用。请先退出比较或并排。', {kind: 'info'}); return; }
+    if (cur.region && cur.region.picking()) cur.region.setPicking(false);
+    if (cur.slice && cur.slice.picking()) cur.slice.setPicking(false);
+    var myCur = cur, keys = ns.measure.requiredArrays(cur.result).filter(function (k) { return !cur.result.has(k); });
+    Promise.resolve(keys.length ? cur.result.preload(keys) : null).then(function () {
+      if (S.cur !== myCur || myCur.measure) return;
+      myCur.measure = ns.measure.create(S.viewerA, myCur.result, {runIdentity: myCur.runIdentity,
+        onChange: function () { if (S.cur === myCur && currentTab() === 'measure') renderInspector(); },
+        onNote: function (t) { ui().toast(t, {kind: 'info', ms: 3000}); }});
+      if (!myCur.measure.items().length) myCur.measure.setMode('distance');
+      setTab('measure'); renderToolbar();
+    }).catch(function (e) { if (S.cur === myCur) ui().toast('测量不可用：' + (e && e.message || e), {kind: 'error'}); });
+  }
+  function exitMeasure() {
+    var cur = S.cur;
+    if (!cur || !cur.measure) return;
+    try { cur.measure.dispose(); } catch (_) {}
+    cur.measure = null;
+    if (S.tab === 'measure') S.tab = null;
+    renderToolbar(); renderInspector();
+  }
+  function renderMeasure(body) {
+    var cur = S.cur;
+    if (!cur.measure) { ui().fill(body, ui().empty('测量已关闭。')); return; }
+    ns.measure.panel(body, cur.measure, {ui: ui(), onClose: exitMeasure, onFly: function (xyz) { flyTo(xyz, 20); },
+      onCopy: function (t) { copyText(t, '已复制测量。'); }});
+  }
+  function toggleRegion() {
+    var cur = S.cur;
+    if (!cur || !cur.result || !ns.region || !S.viewerA) return;
+    if (cur.region) { exitRegion(); return; }
+    if (cur.compare || cur.split) { ui().toast('区域统计在单视口里用。请先退出比较或并排。', {kind: 'info'}); return; }
+    if (cur.measure && cur.measure.mode()) cur.measure.setMode(null);
+    var myCur = cur, keys = ns.region.requiredArrays(cur.result).filter(function (k) { return !cur.result.has(k); });
+    Promise.resolve(keys.length ? cur.result.preload(keys) : null).then(function () {
+      if (S.cur !== myCur || myCur.region) return;
+      myCur.region = ns.region.create(S.viewerA, myCur.result, {
+        field: function () { return myCur.field; },
+        values: function (fid) { var f = fieldById(myCur.manifest, fid); return f && f.arrays && f.arrays.read && myCur.result.has(f.arrays.read) ? myCur.result.array(f.arrays.read) : null; },
+        onChange: function (what) { if (S.cur !== myCur || currentTab() !== 'region') return; if (what === 'region' && myCur.regionPanel) myCur.regionPanel.update(); else renderInspector(); },
+        onNote: function (t) { ui().toast(t, {kind: 'info', ms: 3000}); }});
+      setTab('region'); renderToolbar();
+    }).catch(function (e) { if (S.cur === myCur) ui().toast('区域统计不可用：' + (e && e.message || e), {kind: 'error'}); });
+  }
+  function exitRegion() {
+    var cur = S.cur;
+    if (!cur || !cur.region) return;
+    try { cur.region.dispose(); } catch (_) {}
+    cur.region = null; cur.regionPanel = null;
+    if (S.tab === 'region') S.tab = null;
+    renderToolbar(); renderInspector();
+  }
+  function renderRegion(body) {
+    var cur = S.cur;
+    if (!cur.region) { ui().fill(body, ui().empty('区域统计已关闭。')); return; }
+    cur.regionPanel = ns.region.panel(body, cur.region, {ui: ui(), onClose: exitRegion,
+      fieldLabel: function () { return fieldName(cur.manifest, cur.field); },
+      units: function () { var f = fieldById(cur.manifest, cur.field); return f ? ui().unitText(f.units) : ''; }});
   }
   function trustAt(result, vertexIndex) {
     var m = result && result.manifest;
@@ -768,6 +941,8 @@
     var cur = S.cur;
     if (!cur || !cur.manifest) return;
     if (side !== 'b' && cur.slice && cur.slice.clickTaken()) return;   // the click placed a section point
+    if (side !== 'b' && ((cur.measure && cur.measure.clickTaken()) || (cur.region && cur.region.clickTaken()))) return;   // a measuring / region point
+    if (side !== 'b') pinProbe(e);
     var fid = side === 'b' ? (cur.compare ? cur.compare.field : cur.split && cur.split.field) : cur.field;
     if (side !== 'b') cur.selection = e.pointIndex === undefined ? null : e.pointIndex;
     var pv = side === 'b' ? S.viewerB : S.viewerA;
@@ -1062,7 +1237,7 @@
   }
   function shortcutsDialog() {
     var rows = [['J / K', '下一例 / 上一例'], ['1–9', '切换字段（按工具栏顺序）'], ['← / →', '游标打开时沿血管移动 1 mm，Shift 5 mm'], ['[ / ]', '上一个 / 下一个发现'],
-      ['L', '光照：平涂 / 柔和'], ['B', '保存书签'], ['G', '沿血管游标开关'], ['S', '截面开关（体场结果）'],
+      ['L', '光照：平涂 / 柔和'], ['B', '保存书签'], ['G', '沿血管游标开关'], ['S', '截面开关（体场结果）'], ['M', '测量开关'],
       ['↑ / ↓', '截面打开时沿中心线（或法向）移动 1 mm，Shift 5 mm'], ['← / → · PgUp / PgDn', '截面打开时转动截面 2°，Shift 10°'], ['[ / ]（截面）', '截面打开时改厚度 0.4 mm'], ['Esc', '退出当前工具或关闭对话框'], ['?', '这张表']];
     ui().dialog.open({title: '快捷键', body: [ui().table([{key: 'k', label: '键'}, {key: 'v', label: '作用'}], rows.map(function (r) { return {k: r[0], v: r[1]}; }), {cls: 'tbl-keys'}),
       ui().note('在输入框和对话框里不响应；不占用浏览器自己的组合键。')], actions: [ui().button('关闭', function () { ui().dialog.close('done'); })]});
@@ -1382,6 +1557,8 @@
     if (key === 'Escape') {
       if (ui().menuOpen()) { ui().closeMenu(); return; }
       if (ui().dialog.isOpen()) return;          // the <dialog> handles its own Esc
+      if (S.cur && S.cur.measure && S.cur.measure.cancelPending()) { if (currentTab() === 'measure') renderInspector(); return; }
+      if (S.cur && S.cur.region && S.cur.region.picking()) { S.cur.region.setPicking(false); return; }
       if (S.cur && S.cur.slice) { if (S.cur.slice.picking()) S.cur.slice.setPicking(false); else exitSlice(); return; }
       if (S.cur && S.cur.cursor) { toggleCursor(); return; }
       if (S.question) { S.question = null; ns.questions.bar(S.els.qbar, null, {}); return; }
@@ -1393,7 +1570,10 @@
     var done = true;
     var cur = S.cur;
     if (cur && cur.slice && cur.slice.key(e)) { if (e.preventDefault) e.preventDefault(); return; }
-    if (key === 's' || key === 'S') {
+    if (key === 'm' || key === 'M') {
+      if (!cur || !cur.result || !ns.measure || !toolSupported('measure')) return;
+      toggleMeasure();
+    } else if (key === 's' || key === 'S') {
       if (!cur || !cur.result || !ns.slice || !ns.slice.supported(cur.result)) return;
       toggleSlice();
     } else if (key === 'j' || key === 'J' || key === 'k' || key === 'K') {

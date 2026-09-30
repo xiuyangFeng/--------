@@ -645,7 +645,7 @@
       ev.emit('change', { what: 'selection' });
     }
     function highlight(indices, o) {
-      S.highlight = indices ? { indices: indices, color: o && o.color || null, size: o && o.size || null, opacity: o && o.opacity || null } : null;
+      S.highlight = indices ? { indices: indices, color: o && o.color || null, size: o && o.size || null, opacity: o && o.opacity || null, vertexMask: o && o.vertexMask || null } : null;
       if (S.handle) S.handle.highlight(S.highlight ? S.highlight.indices : null, S.highlight || {});
       requestRender();
     }
@@ -690,11 +690,29 @@
       overlay.add(markerGroup);
     }
     var vtmp = null;
+    // Text labels of the tools (measurements): DOM chips placed with the marker chips, keyed by tool.
+    var toolChips = {};
+    function setToolLabels(key, list) {
+      (toolChips[key] || []).forEach(function (c) { if (c.el.parentNode) c.el.parentNode.removeChild(c.el); });
+      toolChips[key] = (Array.isArray(list) ? list : []).filter(function (it) { return it && Array.isArray(it.xyz) && it.xyz.length === 3 && it.xyz.every(function (x) { return Number.isFinite(+x); }); }).map(function (it) {
+        var el = doc.createElement('span');
+        el.className = 'wssv2-toollabel wssv2-toollabel-' + String(key).replace(/[^a-z0-9_-]/gi, '');
+        el.textContent = it.text == null ? '' : String(it.text);
+        el.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap;' +
+          'font:600 12px/1.3 system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-variant-numeric:tabular-nums;' +
+          'color:var(--hud-ink,#1b2430);background:var(--hud-chip,#fff);border:1px solid var(--hud-line,#c6ccd2);border-radius:6px;padding:2px 7px;';
+        labels.appendChild(el);
+        return { el: el, m: { xyz: it.xyz.map(Number) } };
+      });
+      requestRender();
+    }
+    function allChips() { var out = markerChips.slice(); Object.keys(toolChips).forEach(function (k) { out = out.concat(toolChips[k]); }); return out; }
     function placeLabels() {
-      if (!markerChips.length) return;
+      var chips = allChips();
+      if (!chips.length) return;
       vtmp = vtmp || new THREE.Vector3();
       var items = [];
-      markerChips.forEach(function (c) {
+      chips.forEach(function (c) {
         vtmp.set(c.m.xyz[0], c.m.xyz[1], c.m.xyz[2]).project(camera);
         var inFront = vtmp.z < 1 && vtmp.z > -1;
         var x = (vtmp.x + 1) / 2 * size.w, y = (1 - vtmp.y) / 2 * size.h;
@@ -887,6 +905,8 @@
       selGroup = cursorGroup = markerGroup = toolGroup = null;
       markerChips.forEach(function (c) { if (c.el.parentNode) c.el.parentNode.removeChild(c.el); });
       markerChips = [];
+      Object.keys(toolChips).forEach(function (k) { toolChips[k].forEach(function (c) { if (c.el.parentNode) c.el.parentNode.removeChild(c.el); }); });
+      toolChips = {};
       while (content.children.length) gfx.disposeObject(content.children[content.children.length - 1]);
     }
     function setResult(result) {
@@ -1039,6 +1059,7 @@
       surfaceAt: surfaceAt,
       setControlsEnabled: setControlsEnabled,
       setClipPlane: setClipPlane,
+      setToolLabels: setToolLabels,
       resize: function () { size = { w: 0, h: 0 }; resize(); },
       render: function () { requestRender(); },
       renderNow: function () { if (rafId) { (root.cancelAnimationFrame || clearTimeout)(rafId); rafId = 0; } frame(); },

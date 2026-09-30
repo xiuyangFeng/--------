@@ -395,6 +395,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 - **调试页**：第 4 路可在 `static/v2/dev_viewer.html` + `dev_viewer.js` 做一个只加载内核的页面（`?job=<id>`），用来自己截图检查。
 - **工具接口**（第二期 S1，截面工具用）：`viewer.canvasElement`；`toolOverlay()` 给工具放自己三维对象的组（换结果时随结果释放）；`rayAt(clientX, clientY)` → 已按该点设置好的 Raycaster；`projectPoint(xyz)` → 视口内 CSS 像素 `{x, y, inFront}`；`mmPerPixelAt(xyz)`；`setControlsEnabled(bool)`（工具拖动期间关掉旋转缩放）；`surfaceAt(clientX, clientY)` → 适配器的 `pickSurface`（体场：半透明管壁上的点 `{xyz, vertexIndex}`，与当前字段无关）。体场适配器 `supports.tools` 加 `slice`。
   第二期 S2：`setClipPlane({normal, origin, side, pointGap} | null)` 在一个平面处切开结果自己的对象（不切工具覆盖层），保留 `side·normal·(p − origin) ≥ 0` 一侧；点精灵的裁剪面再往保留侧让 `pointGap` mm，免得贴面的点盖住截面图；平面对象复用，移动时不重编着色器。体场半透明管壁的着色器带 three.js 裁剪片段。`highlight(indices, {color, size, opacity})`：`size` 为相对体内点的直径倍数，`opacity < 1` 时半透明。
+  第二期 S3：`highlight([], {vertexMask})`（壁面：按显示顶点直接标区域，其余变淡）；`setToolLabels(key, [{xyz, text}])` 工具的三维文字标签（与发现标记一起防重叠）；壁面适配器也有 `pickSurface`（原始命中点）；体场 `setBranchVisibility` 连管壁面（顶点归最近的壁面预测点分支，无壁面点时用中心线）和流线（中段最近体内点的分支）一起藏；两个适配器 `supports.tools` 加 `measure`，壁面再加 `region`。
 
 ### 6.3 工作区（第 5 路）
 
@@ -422,6 +423,9 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 | `ws_rail.js` | 病例栏：病例 → 扫描 → 结果三层；搜索、状态筛选；没选病例时主区显示待办（待确认出口、失败、未复核） |
 | `ws_overview.js` | 概览检查器，按顺序：<br>1. 显示名、扫描、结果切换（同输入的其他结果，含 companions）、状态行；<br>2. 结论（标注是否人工编辑）；<br>3. 分区表（U10，列按 `zones.primary_fields` 选三个量）；<br>4. 左右对比；<br>5. 形态（管腔最大直径等，来源档「几何」）；<br>6. 发现：每类最重一条，「全部 N 条」可展开，「其余按自动结果确认」按钮调用现有 findings_review；<br>7. 随访表（同一 patient_id 有两次以上扫描时，U17）；<br>8. 模型说明入口与「研究用途，非诊断」一句。<br>每个数都可点，点了进证据透镜 |
 | `ws_slice.js` | 体场截面（第二期 S1）：平面定义与经典体场报告相同（中心线分支 + 位置、1 点垂直中心线 / 2 点斜截面、俯仰 / 偏航、面内偏移、厚度 0.2–12 mm）；数值全部调用 `VolumeViewerCore`（取片层、壁面轮廓、补全、按点统计、Voronoi 面积积分），同一平面与经典报告逐项一致；三维里画截面框、法向箭头和贴在平面上的补全图，拖动框移动（Shift 旋转、Alt 平移），滚轮移动（Shift 改厚度），点选模式在管壁上放点；检查器「截面」页：补全图（悬停读数）、物理量（速度 / 穿面速度 / 压力）、关键数字（面积、等效直径、面积平均、流量 Q）、色标（本截面 p2–p98 / 与三维同 / 手动）、补全与箭头开关；放大图可导出 PNG / CSV。截面打开时体内点隐藏，舞台色条换成截面色标。第二期 S2：「截面系列」（`seriesFractions` 站位、全系列共用色标、对话框并排看、点选跳转、导出拼图 PNG）、「两截面之间」（`arcAlongBranch` + `regionIndices` + `statistics` + `regionPressureDrop`，三维绿点 + 两端轮廓）、「切开」（`setClipPlane`，保留上游 / 下游，截面图盖住切口，切开时体内点重新显示） |
+| `ws_probe.js` | 探针（第二期 S3）：点一下血管钉住探针。壁面：离命中点精确最近的预测点，过命中点、垂直中心线的截面上各字段环上均值（`WssReportCommon.sectionMeans`，逐段取最近预测点、按长度加权）与环上最低 → 最高；体场：体内点记录与该截面的面积积分（`stationSection` + `ws_slice.integrate`）。中心线分支组按经典报告的方式建（不用游标的）。「记录」按经典行格式存本机，`probeToTSV` / `probeToCSV` 导出；三维画截面环 |
+| `ws_measure.js` | 测量（S3，M 键）：距离、弧长、管径、分段，经典 `buildMeasurement` 的算法与标签（管径两族都用真实截面，退回 2 × 内切半径时注明）；点击取管壁原始命中点；三维线、点、截面轮廓与文字标签；列表可定位 / 复制 / 删除，复制全部用经典体场报告的列；按结果存本机 |
+| `ws_region.js` | 壁面区域统计（S3）：分支上一段（距入口 mm，按预测点 `s_from_root`）或球形区域；当前字段的等权均值 / p99 / 最大（`VolumeViewerCore.statistics`），顶点按经典规则归属后高亮、其余变淡；面积为显示网格面积 |
 | `ws_lens.js` | 证据透镜 D9：结果 → 位置 / 区域 → 值（预测 / 派生 / 几何）→ 映射与聚合方法（显示插值、2 mm 分箱、点等权、面积估计）→ 支撑（trust 位、几何参照、插值覆盖）→ 该量留出集一致性（卡片）→ 人群位置（只在同口径参照存在时）。未知就写未知 |
 | `ws_bookmarks.js` | 书签 D10：保存（名称 + 一句备注）、列表、恢复、排序、删除、导入 / 导出 JSON；随离线导出。记录 `run_identity` / `data_version` / `viewer_version` / 字段 / 窗 / 相机 / 游标 / 选中点 / `time_index`。结果或数据版本不符时提示不兼容，不强行套用 |
 | `ws_questions.js` | 按问题打开 D8，三个问题：<br>「低值区域在哪里」：TAWSS（无则 WSS）+ 低值窗 + 低值发现；<br>「同一位置的 TAWSS 与 OSI」：双视口联动；<br>「比较两次结果」：进比较。<br>显示当前套用了什么，可撤销，回到自由浏览 |
@@ -439,7 +443,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 - 顶部写「离线报告 · 导出于 … · 导出时复核状态 …」。
 - 数据来自 `createEmbeddedSource(document)`；`wssv2-offline` JSON 里带 `bookmarks`、`view`、`hide_name`、`exported_at`。
 
-**未迁移的工具**：在检查器「工具」区给「在经典报告中打开」（`/api/jobs/<id>/report`，新窗口）。包括测量、标注、区域统计、六视角、出版级导图、截面系列、按截面切割、分支展开图（截面 gizmo 与补全已在第二期 S1 迁入，见 `ws_slice.js`）。
+**未迁移的工具**：在检查器「工具」区给「在经典报告中打开」（`/api/jobs/<id>/report`，新窗口）。还没迁的：标注、六视角、出版级导图、分支展开图（截面在 S1、S2，测量、探针、区域统计、分支显隐在 S3 迁入）。
 
 ### 6.4 状态合同 A8（`ws_store.js`）
 
@@ -465,6 +469,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 | L | 光照 |
 | B | 存书签 |
 | G | 游标开关 |
+| M | 测量开关；Esc 先取消未完成的取点，再退出测量方式 |
 | S | 截面开关（体场结果）；截面打开时 ↑ / ↓ 沿中心线或法向移动 1 mm（Shift 5 mm），← / → 偏航、PgUp / PgDn 俯仰 2°（Shift 10°），[ / ] 厚度 ∓0.4 mm，Esc 先结束点选再关截面 |
 | Esc | 退出当前工具或关闭对话框 |
 | ? | 快捷键说明 |

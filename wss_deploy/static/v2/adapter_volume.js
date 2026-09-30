@@ -138,11 +138,12 @@
       lineSpeed = S && S.length === nL ? S : null;
       lines = new THREE.LineSegments(lg, neutralLine); lines.name = 'volume-streamlines'; lines.renderOrder = 2; lines.visible = false;
       group.add(lines);
+      if (hidden) applyLineFilter();
       return true;
     }
 
     // centreline
-    var clObj = null, clKeys = geo(m).centerline || {}, CV = opt(result, clKeys.xyz), CE = opt(result, clKeys.edges);
+    var clObj = null, clKeys = geo(m).centerline || {}, CV = opt(result, clKeys.xyz), CE = opt(result, clKeys.edges), CS = opt(result, clKeys.segment);
     if (CV && CE) {
       var cg = new THREE.BufferGeometry();
       cg.setAttribute('position', new THREE.BufferAttribute(CV, 3));
@@ -197,8 +198,53 @@
       var hasLines = !!(k.slxyz && k.sloff);
       return { streamlines: !!L.streamlines && hasLines, trust: !!L.trust && !!MT, centerline: !!L.centerline && !!clObj, points: false };
     }
+    // Hidden branches (classic volume report): the interior points of those branches, the wall faces whose three
+    // vertices all belong to them (vertex branch = that of the nearest wall prediction point, else of the nearest
+    // centreline sample) and the streamlines whose middle vertex is nearest an interior point of them.
+    var vertexSeg = null, lineSeg = null;
+    function vertexSegments() {
+      var VC = root.VolumeViewerCore;
+      if (vertexSeg || !VC || typeof VC.nearestLabels !== 'function') return vertexSeg;
+      var wallIdx = [];
+      if (PWALL && PSEG) for (var j = 0; j < nP; j++) if (PWALL[j]) wallIdx.push(j);
+      if (wallIdx.length) {
+        var src = new Float32Array(wallIdx.length * 3), lab = new Int32Array(wallIdx.length);
+        wallIdx.forEach(function (q, k) { src[3 * k] = P[3 * q]; src[3 * k + 1] = P[3 * q + 1]; src[3 * k + 2] = P[3 * q + 2]; lab[k] = PSEG[q]; });
+        vertexSeg = VC.nearestLabels(src, lab, V);
+      } else if (CV && CS) vertexSeg = VC.nearestLabels(CV, CS, V);
+      return vertexSeg;
+    }
+    function lineSegments() {
+      if (lineSeg || !lines || !PSEG) return lineSeg;
+      var X = opt(result, k.slxyz), O = opt(result, k.sloff), nL = X ? Math.floor(X.length / 3) : 0, g = util.gridIndex(ipos);
+      lineSeg = [];
+      for (var l = 0; l + 1 < O.length; l++) {
+        var a = O[l], b = Math.min(O[l + 1], nL), n = b - a;
+        if (n <= 0) { lineSeg.push(-1); continue; }
+        var mid = a + Math.floor(n / 2), q = g.nearest(X[3 * mid], X[3 * mid + 1], X[3 * mid + 2]);
+        lineSeg.push(q >= 0 ? Number(PSEG[interiorIdx[q]]) : -1);
+      }
+      return lineSeg;
+    }
+    function applyLineFilter() {
+      if (!lines) return;
+      var X = opt(result, k.slxyz), O = opt(result, k.sloff), nL = Math.floor(X.length / 3), idx = [], ls = hidden ? lineSegments() : null;
+      for (var l = 0; l + 1 < O.length; l++) {
+        if (ls && ls[l] >= 0 && hidden(ls[l])) continue;
+        var a = O[l], b = Math.min(O[l + 1], nL); for (var j = a; j + 1 < b; j++) idx.push(j, j + 1);
+      }
+      lines.geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(idx), 1));
+    }
     function setBranchVisibility(set) {
       hidden = set && PSEG ? function (sid) { return !set.has(Number(sid)); } : null;
+      var vs = hidden ? vertexSegments() : null;
+      if (!hidden || !vs) geom.setIndex(new THREE.BufferAttribute(F, 1));
+      else {
+        var kf = [];
+        for (var t = 0; t < F.length; t += 3) { if (hidden(vs[F[t]]) && hidden(vs[F[t + 1]]) && hidden(vs[F[t + 2]])) continue; kf.push(F[t], F[t + 1], F[t + 2]); }
+        geom.setIndex(new THREE.BufferAttribute(new Uint32Array(kf), 1));
+      }
+      applyLineFilter();
       if (!hidden) { pgeom.setIndex(null); pointMask = null; }
       else {
         var keep = []; pointMask = new Uint8Array(nP);
@@ -280,7 +326,7 @@
   }
 
   return {
-    supports: { fields: ['interior', 'wall'], tools: ['pick', 'cursor', 'streamlines', 'outline', 'lighting', 'markers', 'highlight', 'branches', 'trust', 'slice'] },
+    supports: { fields: ['interior', 'wall'], tools: ['pick', 'cursor', 'streamlines', 'outline', 'lighting', 'markers', 'highlight', 'branches', 'trust', 'slice', 'measure'] },
     displayable: displayable, defaultField: defaultField, requiredArrays: requiredArrays, optionalArrays: optionalArrays, build: build
   };
 });

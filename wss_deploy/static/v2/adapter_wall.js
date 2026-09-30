@@ -191,6 +191,15 @@
       });
       return out;
     }
+    // The wall under a ray, the raw hit (measurement and region centres; the classic report used hit.point).
+    function pickSurface(raycaster) {
+      if (!mesh.visible) return null;
+      var hits = raycaster.intersectObject(mesh, false);
+      if (!hits.length) return null;
+      var h = hits[0], p = h.point, best = h.face.a, bd = Infinity;
+      [h.face.a, h.face.b, h.face.c].forEach(function (vi) { var dx = V[3 * vi] - p.x, dy = V[3 * vi + 1] - p.y, dz = V[3 * vi + 2] - p.z, d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = vi; } });
+      return { xyz: [p.x, p.y, p.z], vertexIndex: best };
+    }
     function pick(raycaster) {
       if (!mesh.visible) return null;
       var hits = raycaster.intersectObject(mesh, false);
@@ -213,8 +222,15 @@
       else if (!cur.read && cur.disp) { out.value = Number.isFinite(cur.disp[best]) ? cur.disp[best] : NaN; out.valueSource = 'display'; }
       return out;
     }
+    // o.vertexMask (Uint8Array per display vertex) marks the vertices directly (the region tool); otherwise the
+    // highlighted prediction points are carried to the vertices by their nearest point.
     function highlight(indices, o) {
       if (!indices) { hl = null; hlMask = null; recolor(); return; }
+      if (o && o.vertexMask && o.vertexMask.length === nV) {
+        hlMask = o.vertexMask; hl = { set: null, color: o.color || null }; recolor();
+        if (hl.color) { var c0 = new THREE.Color(hl.color); for (var t0 = 0; t0 < nV; t0++) if (hlMask[t0]) { colors[3 * t0] = colors[3 * t0] * 0.65 + c0.r * 0.35; colors[3 * t0 + 1] = colors[3 * t0 + 1] * 0.65 + c0.g * 0.35; colors[3 * t0 + 2] = colors[3 * t0 + 2] * 0.65 + c0.b * 0.35; } colorAttr.needsUpdate = true; }
+        return;
+      }
       var set = new Uint8Array(nP);
       for (var j = 0; j < indices.length; j++) { var q = indices[j]; if (q >= 0 && q < nP) set[q] = 1; }
       var map = vertexToPoint();
@@ -239,7 +255,7 @@
       fields: displayable(result),
       bounds: bounds,
       setField: setField, setLighting: setLighting, setLayers: setLayers, setBranchVisibility: setBranchVisibility,
-      pick: pick, highlight: highlight, histogramValues: histogramValues,
+      pick: pick, pickSurface: pickSurface, highlight: highlight, histogramValues: histogramValues,
       fitPoints: function () { return visibleVerts || V; },
       pointXYZ: function (q) { return q >= 0 && q < nP ? [PV[3 * q], PV[3 * q + 1], PV[3 * q + 2]] : null; },
       sectionMesh: function () { return { vertices: V, faces: geom.index.array }; },
@@ -254,7 +270,7 @@
   }
 
   return {
-    supports: { fields: ['wall'], tools: ['pick', 'cursor', 'trust', 'centerline', 'points', 'outline', 'lighting', 'markers', 'highlight', 'branches'] },
+    supports: { fields: ['wall'], tools: ['pick', 'cursor', 'trust', 'centerline', 'points', 'outline', 'lighting', 'markers', 'highlight', 'branches', 'measure', 'region'] },
     displayable: displayable, defaultField: defaultField, requiredArrays: requiredArrays, build: build
   };
 });
