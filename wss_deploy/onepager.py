@@ -16,6 +16,11 @@ condition and state that every diameter / length / volume is of the lumen (C4); 
 「多模型一致（一致不代表准确）」 while ``quality.label`` stays as stored (C5); numbers use three significant
 digits and percentages whole numbers (U13); the page names the case by its display name — the patient id when
 entered, else the case name, which comes from the file name and may be a person's name (C7).
+
+2026-09-30 (second phase S5b, lane B): the page takes the workspace v2 look — v2 colour tokens and type, a ruled key-number
+strip instead of tinted cards, status words with a dot (review state, severity, ensemble agreement), decision marks
+coloured by state, a patient banner, light print styles with the footer held at the foot of sheet 1.  Presentation only:
+every word and number on the page is unchanged (same text in the same order; the markup around it gained classes).
 """
 from __future__ import annotations
 
@@ -53,6 +58,15 @@ LIMITATIONS = (LIMIT_FLOW, LIMIT_SINGLE_FRAME, LIMIT_PRESSURE, LIMIT_LUMEN, LIMI
 FOOTER_STATEMENT = "仅供研究参考，不作临床诊断依据"
 
 REVIEW_LABELS = {"unreviewed": "未审阅", "reviewed": "已审阅签字", "reopened": "已重新打开"}
+REVIEW_TONES = {"reviewed": "ok", "reopened": "warn", "unreviewed": "idle"}      # S5b: ws_ui.reviewInfo tones
+# S5b: the workspace mark and the print icon (ws_icons.js 'logo' / 'print', 16 px grid, 1.5 px stroke), inline and
+# decorative; the page stays script-free.
+_SVG = ('<svg class="{cls}" viewBox="0 0 16 16" width="{size}" height="{size}" fill="none" stroke="currentColor" stroke-width="1.5" '
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">{body}</svg>')
+LOGO_SVG = _SVG.format(cls="logo", size=22, body='<path d="M8 1.25v3.1"/><ellipse cx="8" cy="6.55" rx="2.55" ry="2.2"/><path d="M8 8.75v1.35"/>'
+                                                '<path d="M8 10.1 4.4 14.75"/><path d="M8 10.1l3.6 4.65"/><path d="M5.75 12.35 6.9 14.75"/>')
+PRINT_SVG = _SVG.format(cls="ic", size=16, body='<path d="M4 5.75V2.25h8v3.5"/><rect x="1.75" y="5.75" width="12.5" height="5.75" rx="1"/>'
+                                               '<rect x="4" y="9.5" width="8" height="4.25"/>')
 SEVERITY_LABELS = {"attention": "关注", "note": "提示", "info": "参考"}
 QUALITY_DISPLAY = {"good": "多模型一致", "review": "多模型分歧偏大，建议复核", "poor": "多模型分歧大，建议复核"}
 QUALITY_CAVEAT = "一致不代表准确"
@@ -229,11 +243,14 @@ def _template(job_dir: Path | str | None, template: Mapping[str, Any] | None) ->
     return RT.load_for_job(Path(job_dir)) if job_dir else copy.deepcopy(RT.DEFAULTS)
 
 
-def _table(headers: list[str], rows: list[list[str]], *, klass: str = "", raw_headers: bool = False) -> str:
+def _table(headers: list[str], rows: list[list[str]], *, klass: str = "", raw_headers: bool = False,
+           row_classes: list[str] | None = None) -> str:
     if not rows:
         return '<p class="muted">无数据</p>'
     head = "".join(f"<th>{h if raw_headers else _e(h)}</th>" for h in headers)
-    body = "".join("<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in rows)
+    classes = list(row_classes or [])
+    tr = lambda i: f'<tr class="{_e(classes[i])}">' if i < len(classes) and classes[i] else "<tr>"
+    body = "".join(tr(i) + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for i, row in enumerate(rows))
     return f'<table class="{_e(klass)}"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>'
 
 
@@ -241,10 +258,23 @@ def _kv(pairs: list[tuple[str, str]]) -> str:
     return '<dl class="kv">' + "".join(f"<dt>{k}</dt><dd>{v}</dd>" for k, v in pairs) + "</dl>"
 
 
+def _columns(count: int) -> int:
+    """S5b: columns of a key-number strip — one row up to five numbers, else rows of three (6) or four."""
+    return count if count <= 5 else (3 if count == 6 else 4)
+
+
+def _card_tone(label: str, value: str) -> str:
+    """S5b: the ensemble-agreement card reads as a status word (dot + text) like the workspace status line."""
+    if 'data-gloss="quality_grade"' not in label:
+        return ""
+    return " q ok" if value == _e(QUALITY_DISPLAY["good"]) else (" q warn" if "复核" in value else " q")
+
+
 def _cards(cards: list[tuple[str, str, str]], *, klass: str = "") -> str:
-    """Cards: (label HTML, value HTML, note HTML); callers escape their text."""
-    return f'<div class="cards {klass}">' + "".join(
-        f'<div class="card"><span class="label">{label}</span><strong>{value}</strong><small>{note}</small></div>'
+    """Cards: (label HTML, value HTML, note HTML); callers escape their text.  S5b: a ruled strip of key numbers
+    (``c<n>`` = columns, see :func:`_columns`)."""
+    return f'<div class="cards c{_columns(len(cards))} {klass}">' + "".join(
+        f'<div class="card{_card_tone(label, value)}"><span class="label">{label}</span><strong>{value}</strong><small>{note}</small></div>'
         for label, value, note in cards) + "</div>"
 
 
@@ -263,9 +293,10 @@ def _header(summary: Mapping[str, Any], job: Mapping[str, Any], template: Mappin
     frame = ("单周期 TAWSS / OSI 与收缩期峰值 WSS 预测（标准血流条件）" if has_cycle(summary)
              else "固定收缩期单帧预测（标准血流条件）")
     inst = f'<p class="inst">{_e(institution)}</p>' if institution else ""
-    return (f'<header class="top"><div>{inst}<h1>{_e(title)}</h1>'
+    tone = REVIEW_TONES.get(status, "idle")      # S5b: status word with a dot, the workspace review tones
+    return (f'<header class="top">{LOGO_SVG}<div class="head-main">{inst}<h1>{_e(title)}</h1>'
             f'<p class="sub">{_e(frame)} · {_e(FOOTER_STATEMENT)}</p></div>'
-            f'<div class="status">{_g("review_status", "审阅状态")}<br><strong class="{"ok" if status == "reviewed" else ""}">'
+            f'<div class="status">{_g("review_status", "审阅状态")}<br><strong class="{tone}">'
             f'{_e(REVIEW_LABELS.get(status, status))}</strong><br>{_e(_short_time(summary.get("created_at") or job.get("created_at")))}</div></header>')
 
 
@@ -290,8 +321,9 @@ def _identity_line(summary: Mapping[str, Any], job: Mapping[str, Any], card: Map
     first = ("患者编号", patient) if patient else ("病例", display_name(summary, job))
     parts = [first, ("扫描", scan),
              (_g("release", "模型"), _model_name(summary, job, card)), ("生成", _short_time(summary.get("created_at") or job.get("created_at")))]
-    return '<p class="idline">' + " · ".join(f"{label if label.startswith('<') else _e(label)} <b>{_e(value)}</b>"
-                                           for label, value in parts if value) + "</p>"
+    # S5b: a patient banner; the " · " separators stay in the text (drawn as thin rules).
+    return '<p class="idline">' + '<span class="sep"> · </span>'.join(
+        f'<span class="idf">{label if label.startswith("<") else _e(label)} <b>{_e(value)}</b></span>' for label, value in parts if value) + "</p>"
 
 
 def _narrative_section(summary: Mapping[str, Any]) -> str:
@@ -488,7 +520,19 @@ def _severity(item: Mapping[str, Any]) -> str:
     label = "几何" if item.get("kind") in GEOMETRY_KINDS else SEVERITY_LABELS.get(severity, severity)
     if label and item.get("grading") == "no_reference":
         label += "（无队列参照，不定级）"      # U11: high-WSS items without a same-protocol cohort reference
-    return f'<span class="sev {_e(severity)}">{_e(label)}</span>' if label else ""
+    geo = " geo" if item.get("kind") in GEOMETRY_KINDS else ""
+    return f'<span class="sev {_e(severity)}{geo}">{_e(label)}</span>' if label else ""
+
+
+def _decision(decision: Any) -> str:
+    """S5b: the reviewer's mark (☑ / ✕ / ☐ + word) coloured by state; the text is :data:`DECISION_LABELS`."""
+    decision = decision if isinstance(decision, str) else None
+    key = decision if decision in ("confirmed", "rejected") else "none"
+    return f'<span class="dec {key}">{_e(DECISION_LABELS.get(decision, "☐ 未判定"))}</span>'
+
+
+def _row_class(decision: Any, *, manual: bool = False) -> str:
+    return "manual" if manual else (f"d-{decision}" if decision in ("confirmed", "rejected") else "")
 
 
 def top_findings(summary: Mapping[str, Any], limit: int = FIRST_PAGE_FINDINGS) -> list[Mapping[str, Any]]:
@@ -516,15 +560,17 @@ def _top_findings_section(summary: Mapping[str, Any]) -> str:
     chosen = top_findings(summary)
     if not chosen and not added:
         return ""
+    decided = [_map(decisions.get(str(item.get("id")))).get("decision") for item in chosen]
     rows = [[_e(item.get("id") or ""), _e(item.get("label") or item.get("kind") or ""), _e(item.get("branch") or "—"),
              _e(_value_text(item.get("value"), item.get("units"))) if item.get("value") is not None else "—", _severity(item),
-             _e(DECISION_LABELS.get(_map(decisions.get(str(item.get("id")))).get("decision"), "☐ 未判定"))] for item in chosen]
+             _decision(decision)] for item, decision in zip(chosen, decided)]
     rows += [[_e(item.get("id") or ""), _e("【人工】" + str(item.get("text") or item.get("label") or "")), _e(item.get("branch") or "—"),
-              "—", _severity(item), _e(DECISION_LABELS["confirmed"])] for item in added]
+              "—", _severity(item), _decision("confirmed")] for item in added]
+    classes = [_row_class(decision) for decision in decided] + [_row_class("confirmed", manual=True)] * len(added)
     total = len(_findings(summary))
     more = f"共 {total} 条自动发现，完整列表与口径见附录" if total > len(chosen) else "口径见附录"
     return (f'<h2>重点发现<small>{_e(more)}</small></h2>'
-            + _table(["#", "发现", "分支", "数值", "级别", _g("finding_decision", "判定")], rows, klass="top", raw_headers=True))
+            + _table(["#", "发现", "分支", "数值", "级别", _g("finding_decision", "判定")], rows, klass="top", raw_headers=True, row_classes=classes))
 
 
 def _snapshot_figures(job_dir: Path | None, snapshots: Any) -> list[str]:
@@ -629,7 +675,7 @@ def _signature_section(summary: Mapping[str, Any], job: Mapping[str, Any], templ
         parts = [REVIEW_LABELS[str(review["status"])]] + [str(review[key]) for key in ("by", "at", "note") if review.get(key)]
         if review.get("version") is not None:
             parts.append(f"锁定版本 {review['version']}")
-        record = f'<p class="muted">电子审阅记录：{_e(" · ".join(parts))}</p>'
+        record = f'<p class="muted record {REVIEW_TONES.get(str(review["status"]), "idle")}">电子审阅记录：{_e(" · ".join(parts))}</p>'
     if not lines:
         return record
     body = "".join(f'<div class="line"><span class="who">{_e(line)}</span><span class="blank"></span>'
@@ -705,7 +751,7 @@ def _finding_row(item: Mapping[str, Any], decision: Mapping[str, Any] | None, *,
     value = item.get("value")
     return [_e(item.get("id") or ""), _e(("【人工】" if manual else "") + str(label)), _e(item.get("branch") or "—"),
             _e(_value_text(value, item.get("units"))) if value is not None else "—", _severity(item),
-            _e(DECISION_LABELS.get((decision or {}).get("decision"), "☐ 未判定")),
+            _decision((decision or {}).get("decision")),
             _e((definition + ("；备注：" + note if note else "")) if not manual else (note or definition))]
 
 
@@ -721,20 +767,22 @@ def _findings_section(summary: Mapping[str, Any]) -> str:
         (rejected if decision.get("decision") == "rejected" else body).append((item, decision))
     rows = [_finding_row(item, decision) for item, decision in body]
     rows += [_finding_row(item, {"decision": "confirmed", "note": ""}, manual=True) for item in added]
-    out = '<h2>发现详情</h2>' + _table(headers, rows, klass="findings")
+    classes = [_row_class(decision.get("decision")) for _, decision in body] + [_row_class("confirmed", manual=True)] * len(added)
+    out = '<h2>发现详情</h2>' + _table(headers, rows, klass="findings", row_classes=classes)
     if decisions or added:
         out += '<p class="muted">☑ 审阅人已确认；☐ 尚未判定；【人工】为审阅人手动添加；驳回项单列在下方。</p>'
     if rejected:
-        out += '<h3>附录：已驳回的自动发现</h3>' + _table(headers, [_finding_row(item, decision) for item, decision in rejected], klass="findings")
+        out += ('<h3>附录：已驳回的自动发现</h3>'
+                + _table(headers, [_finding_row(item, decision) for item, decision in rejected], klass="findings", row_classes=["d-rejected"] * len(rejected)))
     legacy = [item for item in (_map(_map(summary.get("findings")).get("review")).get("legacy") or []) if isinstance(item, Mapping)]
     if legacy:
         # 2026-09-30: decisions made under the previous listing rules that no longer match a finding; kept, not applied.
         rows = [[_e(item.get("id") or ""), _e(str(item.get("label") or item.get("kind") or "")), _e(item.get("branch") or "—"),
                  _e(_value_text(item.get("value"), item.get("units"))) if item.get("value") is not None else "—",
-                 _e(DECISION_LABELS.get(item.get("decision"), "☐ 未判定")), _e(str(item.get("reason") or "") + ("；备注：" + str(item["note"]) if item.get("note") else ""))]
+                 _decision(item.get("decision")), _e(str(item.get("reason") or "") + ("；备注：" + str(item["note"]) if item.get("note") else ""))]
                 for item in legacy]
         out += ('<h3>规则更新前的判定<small>发现规则更新后找不到对应发现，保留原判定但不套用</small></h3>'
-                + _table(["原编号", "发现", "分支", "数值", "原判定", "说明"], rows, klass="findings"))
+                + _table(["原编号", "发现", "分支", "数值", "原判定", "说明"], rows, klass="findings legacy"))
     return out
 
 
@@ -894,52 +942,94 @@ def _glossary_section(mode: str, used: list[str]) -> str:
 
 # ----------------------------------------------------------------------------- page
 CSS = """
-:root{--ink:#20374d;--muted:#5d7488;--line:#d8e2ea;--soft:#f4f7fa;--ok:#236956;--warn:#8b6519;--accent:#176ea2;--attn:#b4462b}
-*{box-sizing:border-box}body{margin:0;background:#eef3f7;color:var(--ink);font:10.5px/1.42 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
-.page{width:210mm;min-height:297mm;margin:8mm auto;background:#fff;padding:11mm 12mm 9mm;box-shadow:0 4px 18px #16334b14;display:flex;flex-direction:column}
-.page>footer.pf{margin-top:auto}.page>:nth-last-child(2){margin-bottom:8px}
-header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:4px}
-.inst{margin:0;font-size:10px;font-weight:650;color:var(--accent);letter-spacing:.4px}h1{margin:1px 0 0;font-size:16px;line-height:1.25}
-.sub{margin:1px 0 0;font-size:9.5px;color:var(--muted)}.status{text-align:right;font-size:9px;color:var(--muted);line-height:1.5;white-space:nowrap}
-.status strong{display:inline-block;padding:0 8px;border-radius:9px;background:#fdf0dc;color:var(--warn);font-size:10.5px}.status strong.ok{background:#e3f3ec;color:var(--ok)}
-.idline{margin:4px 0 0;font-size:9.5px;color:var(--muted)}.idline b{color:var(--ink);font-weight:600}
-h2{display:flex;align-items:baseline;gap:6px;font-size:11.5px;margin:7px 0 3px;color:#2c4a66;border-bottom:1px solid var(--line);padding-bottom:1px}
-h2 small{margin-left:auto;font-size:8.5px;font-weight:400;color:var(--muted)}h3{font-size:10.5px;margin:6px 0 2px;color:#3f5a72}
-.muted{color:var(--muted);font-size:9.5px;margin:2px 0}
-.g{text-decoration:underline dotted #9fb3c4;text-underline-offset:2px}
-dl.kv{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:1px 10px;margin:0;font-size:9.5px}dl.kv dt{color:var(--muted);white-space:nowrap}dl.kv dd{margin:0;overflow-wrap:anywhere}
-table{width:100%;border-collapse:collapse;font-size:9.5px;margin:2px 0}th,td{padding:2px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-th{background:var(--soft);color:var(--muted);font-weight:500;white-space:nowrap}
-table.num td:not(:first-child),table.num th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
-table.wide{font-size:8.5px}table.wide td,table.wide th{padding:2px 3px}table.narrow{width:auto;min-width:45%}
-table.top td:nth-child(4){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}table.top td:nth-child(1){width:7mm;color:var(--muted)}
-table.findings td:nth-child(7){font-size:8.5px;color:#3f5a72}table.findings td:nth-child(n+3):nth-child(-n+6){white-space:nowrap}
-table.glossary{font-size:8.5px}table.glossary td:first-child{width:24%;white-space:nowrap;color:#2c4a66}
-.tier{display:inline-block;margin-left:3px;padding:0 3px;border:1px solid #c6ccd2;border-radius:2px;font-size:8px;line-height:1.3;color:#465361;background:none;vertical-align:1px;white-space:nowrap}
-p.tiers{font-size:8.5px}table.validation td:nth-child(2){white-space:nowrap}ul.limits{margin:2px 0 0 16px;padding:0;font-size:9.5px;color:#3f5a72}ul.limits li{margin:1px 0}
-.sev{display:inline-block;padding:0 5px;border-radius:7px;font-size:8.5px;white-space:nowrap}.sev.attention{background:#fbe3dc;color:#9c3a22}.sev.note{background:#fdf0dc;color:var(--warn)}.sev.info{background:#e8f1f7;color:var(--accent)}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:2px 0}.card{background:var(--soft);border-radius:5px;padding:3px 7px 4px;min-width:0}
-.card .label{display:block;font-size:9px;color:var(--muted)}.card strong{display:block;font-size:13px;line-height:1.3;white-space:nowrap}.card small{display:block;font-size:8.5px;line-height:1.3;color:var(--muted);overflow-wrap:anywhere}
-.narrative{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:5px;padding:4px 8px;background:#f7fbfd}.narrative p{margin:1px 0;font-size:10.5px}
-.badge{display:inline-block;padding:0 6px;border-radius:8px;font-size:8.5px;font-weight:600;vertical-align:middle;background:#fdf0dc;color:#8b6519}.badge.auto{background:#e8f1f7;color:#176ea2}
-.shots{display:grid;gap:4px 6px;margin:3px 0}.shots.cols2{grid-template-columns:repeat(2,1fr)}.shots.cols3{grid-template-columns:repeat(3,1fr)}.shots.cols4{grid-template-columns:repeat(4,1fr)}
-.shots figure{margin:0;min-width:0;page-break-inside:avoid;break-inside:avoid}.shots img{display:block;width:100%;max-width:100%;height:auto;max-height:40mm;object-fit:contain;border:1px solid var(--line);border-radius:4px;background:#fff}
+/* S5b (2026-09-30): the workspace v2 look on paper — v2 tokens and type, ruled strips instead of tinted cards, status words
+   with a dot, one accent.  --ink-3 / --line are a step darker than on screen so 8 px notes and hairlines survive printing. */
+:root{--ink:#101828;--ink-2:#475467;--ink-3:#6b7587;--line:#e4e7ec;--line-2:#d0d5dd;--panel-2:#f7f8fa;--bg:#f2f4f7;
+--accent:#0e6e8a;--accent-2:#0a566c;--warn:#c4570d;--error:#b42318;--ok:#0f8a5f;
+--font:"Inter","SF Pro Text","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:10px/1.45 var(--font);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.page{width:210mm;min-height:297mm;margin:0 auto 10mm;background:#fff;padding:12mm 13mm 9mm;border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.05);display:flex;flex-direction:column}
+.page>footer.pf{margin-top:auto}.page>:nth-last-child(2){margin-bottom:10px}
+header.top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:10px;align-items:end;padding-bottom:7px;border-bottom:1.5px solid var(--ink)}
+header.top .logo{align-self:center;color:var(--accent)}
+.inst{margin:0 0 1px;font-size:9.5px;font-weight:600;color:var(--accent-2);letter-spacing:.02em}
+h1{margin:0;font-size:17px;line-height:1.25;font-weight:700;letter-spacing:-.005em}
+.sub{margin:2px 0 0;font-size:9px;color:var(--ink-3)}
+.status{text-align:right;font-size:8.5px;color:var(--ink-3);line-height:1.65;white-space:nowrap}
+.status strong{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--ink-2)}
+.status strong::before,.card.q strong::before,.record::before,.sev::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;border:1.5px solid var(--ink-3);box-sizing:border-box}
+.status strong.ok{color:var(--ok)}.status strong.ok::before{background:var(--ok);border-color:var(--ok)}
+.status strong.warn{color:var(--warn)}.status strong.warn::before{background:var(--warn);border-color:var(--warn)}
+.idline{display:flex;flex-wrap:wrap;align-items:center;row-gap:2px;margin:6px 0 0;padding:5px 10px;background:var(--panel-2);font-size:9px;color:var(--ink-3)}
+.idline .idf{white-space:nowrap}.idline b{margin-left:2px;color:var(--ink);font-size:10px;font-weight:600}
+.idline .sep{display:inline-block;flex:none;width:1px;height:10px;margin:0 10px;background:var(--line-2);font-size:0;line-height:0;overflow:hidden}
+h2{display:flex;align-items:baseline;gap:6px;margin:12px 0 4px;font-size:11.5px;font-weight:700;color:var(--ink);break-after:avoid;page-break-after:avoid}
+h2 small{margin-left:auto;font-size:8px;font-weight:400;color:var(--ink-3);text-align:right}
+h3{display:flex;align-items:baseline;gap:6px;font-size:10px;font-weight:700;margin:9px 0 3px;color:var(--ink-2);break-after:avoid;page-break-after:avoid}
+h3 small{font-size:8px;font-weight:400;color:var(--ink-3)}
+.muted{color:var(--ink-3);font-size:9px;margin:3px 0}
+.g{text-decoration:underline dotted var(--line-2);text-underline-offset:2px}
+.badge{display:inline-block;padding:0 5px;border:1px solid currentColor;border-radius:2px;font-size:8px;font-weight:500;line-height:1.5;color:var(--warn);vertical-align:1px;white-space:nowrap}
+.badge.auto{color:var(--ink-3);border-color:var(--line-2)}
+.narrative{padding:1px 0 1px 10px;border-left:2px solid var(--accent)}.narrative p{margin:0 0 2px;font-size:10.5px;line-height:1.65}.narrative p.muted{font-size:8.5px;margin-top:3px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:2px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cards.c1{grid-template-columns:minmax(0,1fr)}.cards.c2{grid-template-columns:repeat(2,minmax(0,1fr))}.cards.c3{grid-template-columns:repeat(3,minmax(0,1fr))}.cards.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.card{min-width:0;padding:6px 10px 7px;border-left:1px solid var(--line)}
+.cards.c1 .card,.cards.c2 .card:nth-child(2n+1),.cards.c3 .card:nth-child(3n+1),.cards.c4 .card:nth-child(4n+1),.cards.c5 .card:nth-child(5n+1){border-left:0;padding-left:0}
+.cards.c3 .card:nth-child(n+4),.cards.c4 .card:nth-child(n+5){border-top:1px solid var(--line)}
+.card .label{display:block;font-size:8.5px;font-weight:500;color:var(--ink-3)}
+.card strong{display:block;margin:2px 0 1px;font-size:16px;line-height:1.2;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.card small{display:block;font-size:8px;line-height:1.4;color:var(--ink-3);overflow-wrap:anywhere}
+.card.q strong{display:flex;align-items:center;gap:5px;margin:5px 0 3px;font-size:12px;font-weight:600;letter-spacing:0}
+.card.q.ok strong{color:var(--ok)}.card.q.ok strong::before{background:var(--ok);border-color:var(--ok)}
+.card.q.warn strong{color:var(--warn)}.card.q.warn strong::before{background:var(--warn);border-color:var(--warn)}
+.tier{display:inline-block;margin-left:4px;padding:0 3px;border:1px solid var(--line-2);border-radius:2px;font-size:7.5px;line-height:1.4;font-weight:500;color:var(--ink-2);background:none;vertical-align:1px;white-space:nowrap}
+p.tiers{font-size:8px}
+.shots{display:grid;gap:6px 8px;margin:3px 0}.shots.cols2{grid-template-columns:repeat(2,1fr)}.shots.cols3{grid-template-columns:repeat(3,1fr)}.shots.cols4{grid-template-columns:repeat(4,1fr)}
+.shots figure{margin:0;min-width:0;page-break-inside:avoid;break-inside:avoid}.shots img{display:block;width:100%;max-width:100%;height:auto;max-height:40mm;object-fit:contain;border:1px solid var(--line);border-radius:2px;background:#fff}
 .shots.cols2 img{max-height:41mm}.shots.cols4 img{max-height:31mm}
-.shots figcaption{font-size:8.5px;color:var(--muted);margin-top:1px;overflow-wrap:anywhere}
-.sign{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 18px;margin:10px 0 2px;font-size:10px}.sign .line{display:flex;align-items:flex-end;gap:6px}
-.sign .who{white-space:nowrap;color:var(--muted)}.sign .blank{flex:1;border-bottom:1px solid var(--ink);height:15px}.sign .blank.short{flex:0 0 26mm}
-ol.limits{margin:2px 0 0 16px;padding:0;font-size:9.5px;color:#3f5a72}ol.limits li{margin:1px 0}
-footer.pf{border-top:1px solid var(--line);padding-top:3px;font-size:8.5px;color:var(--muted);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.appendix-title{font-size:13px;margin:0 0 2px;border-bottom:2px solid var(--ink);padding-bottom:3px}
-.toolbar{width:210mm;margin:8mm auto 0;display:flex;justify-content:flex-end}@media screen and (max-width:830px){.toolbar{width:auto;margin:8px 8px 0;justify-content:flex-start}}@media (pointer:coarse){.toolbar button{min-height:44px}}.toolbar button{font:inherit;padding:6px 12px;border:1px solid #b9cbd8;border-radius:7px;background:#fff;color:#176ea2;cursor:pointer}
-@page{size:A4;margin:10mm 10mm 11mm;@bottom-right{content:"第 " counter(page) " 页";font-size:8px;color:#5d7488}}
-@media print{body{background:#fff}.page{width:auto;min-height:0;margin:0;padding:0;box-shadow:none;display:block}.page>footer.pf{margin-top:8px}.page+.page{break-before:page;page-break-before:always}
-.toolbar,.noprint{display:none}tr,.card,.sign{break-inside:avoid;page-break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.shots figcaption{margin-top:2px;font-size:8px;color:var(--ink-3);overflow-wrap:anywhere}
+table{width:100%;border-collapse:collapse;font-size:9px;margin:2px 0}
+th,td{padding:3px 8px 3px 0;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th:last-child,td:last-child{padding-right:0}
+th{font-size:8px;font-weight:500;color:var(--ink-3);white-space:nowrap;border-bottom-color:var(--line-2)}
+table.num td:not(:first-child),table.num th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+table.wide{font-size:8px}table.wide td,table.wide th{padding:2px 5px 2px 0}table.narrow{width:auto;min-width:45%;align-self:flex-start}
+table.top td{vertical-align:middle}table.top td:nth-child(1){width:8mm;color:var(--ink-3);font-size:8.5px}table.top td:nth-child(2){font-weight:500;color:var(--ink)}table.top td:nth-child(3){color:var(--ink-2)}
+table.top td:nth-child(4),table.top th:nth-child(4){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}table.top td:nth-child(n+5){white-space:nowrap}
+table.findings td:nth-child(2){min-width:30mm}table.findings td:nth-child(7){font-size:8px;color:var(--ink-2)}table.findings td:nth-child(n+3):nth-child(-n+6){white-space:nowrap}table.findings.legacy td:nth-child(6){white-space:normal;font-size:8px;color:var(--ink-2)}
+tr.manual td:nth-child(2){color:var(--accent-2)}tr.d-rejected td{color:var(--ink-3)}
+table.glossary{font-size:8px}table.glossary td:first-child{width:24%;white-space:nowrap;color:var(--ink)}
+table.validation td:nth-child(2){white-space:nowrap}td>.tier:first-child{margin-left:0}
+.sev{display:inline-flex;align-items:center;gap:4px;font-size:8.5px;color:var(--ink-2);white-space:nowrap}.sev::before{width:6px;height:6px;border-width:1.3px}
+.sev.attention{color:var(--warn)}.sev.attention::before{background:var(--warn);border-color:var(--warn)}.sev.note::before{border-color:var(--ink-2)}
+.sev.info{color:var(--ink-3)}.sev.info::before{background:var(--line-2);border-color:var(--line-2)}.sev.geo::before{border-radius:1px}
+.dec{white-space:nowrap;color:var(--ink-3)}.dec.confirmed{color:var(--ok);font-weight:600}.dec.rejected{color:var(--ink-2)}
+dl.kv{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:2px 12px;margin:2px 0;font-size:9px}dl.kv dt{color:var(--ink-3);white-space:nowrap}dl.kv dd{margin:0;overflow-wrap:anywhere}
+ol.limits,ul.limits{margin:2px 0 0 16px;padding:0;font-size:9px;line-height:1.5;color:var(--ink-2)}ol.limits li,ul.limits li{margin:1px 0}
+.sign{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 24px;margin:18px 0 2px;font-size:9.5px;break-inside:avoid}.sign .line{display:flex;align-items:flex-end;gap:6px}
+.sign .who{white-space:nowrap;color:var(--ink-2)}.sign .blank{flex:1;border-bottom:1px solid var(--ink);height:16px}.sign .blank.short{flex:0 0 24mm}
+.record{display:flex;align-items:center;gap:6px}.record.ok{color:var(--ok)}.record.ok::before{background:var(--ok);border-color:var(--ok)}.record.warn{color:var(--warn)}.record.warn::before{background:var(--warn);border-color:var(--warn)}
+footer.pf{border-top:1px solid var(--line);padding-top:4px;font-size:8px;color:var(--ink-3);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.appendix-title{margin:0 0 2px;padding-bottom:6px;font-size:14px;border-bottom:1.5px solid var(--ink)}
+.toolbar{position:sticky;top:0;z-index:2;display:flex;justify-content:flex-end;padding:10px max(12px,calc((100% - 210mm) / 2));background:rgba(242,244,247,.92)}
+.toolbar button{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 14px;border:1px solid var(--accent);border-radius:6px;background:var(--accent);color:#fff;font:500 12px/1 var(--font);cursor:pointer}
+.toolbar button:hover{background:var(--accent-2);border-color:var(--accent-2)}.toolbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.toolbar .ic{flex:none}
+@media (pointer:coarse){.toolbar button{min-height:44px}}
+@media screen and (max-width:840px){.page{width:auto;min-height:0;margin:0 0 12px;padding:16px;border-left:0;border-right:0}
+.cards.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.cards .card{border-left:0!important;padding-left:0!important;border-top:1px solid var(--line)!important}
+.cards .card:nth-child(-n+2){border-top:0!important}.cards .card:nth-child(2n){padding-left:10px!important;border-left:1px solid var(--line)!important}
+.shots.cols3,.shots.cols4{grid-template-columns:repeat(2,1fr)}dl.kv{grid-template-columns:auto 1fr}table.wide,table.findings{display:block;overflow-x:auto}.sign{grid-template-columns:1fr}}
+@page{size:A4;margin:10mm 10mm 11mm;@bottom-right{content:"第 " counter(page) " 页";font-size:8px;color:#6b7587}}
+@media print{body{background:#fff}.page{width:auto;min-height:0;margin:0;padding:0;border:0;box-shadow:none;display:block}.page>footer.pf{margin-top:8px}.page+.page{break-before:page;page-break-before:always}
+.page.first{display:flex;min-height:272mm}.page.first>footer.pf{margin-top:auto}
+h2{margin:9px 0 3px}th,td{padding-top:2px;padding-bottom:2px}.sign{margin-top:14px}
+.toolbar,.noprint{display:none}tr,.card,.sign,figure,.more-shots{break-inside:avoid;page-break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 /* v0.14 (F6): no pictures on page 1 → the appendix continues right below page 1 instead of leaving half a page blank */
-.snap-hint{display:flex;align-items:baseline;gap:10px;margin:6px 0 2px}.snap-hint h2{border:0;margin:0;padding:0;flex:0 0 auto}.snap-hint p{margin:0}
+.snap-hint{display:flex;align-items:baseline;gap:10px;margin:8px 0 2px}.snap-hint h2{margin:0;flex:0 0 auto}.snap-hint p{margin:0}
 body.flow .page.first{min-height:0;margin-bottom:0;padding-bottom:5mm}body.flow .page.first>footer.pf{display:none}
-body.flow .page.appendix{margin-top:0;padding-top:5mm;min-height:0;border-top:1px dashed var(--line)}
-@media print{body.flow .page+.page{break-before:auto;page-break-before:auto}body.flow .page.appendix{border-top:0;padding-top:4mm}}
+body.flow .page.appendix{margin-top:0;padding-top:5mm;min-height:0;border-top:1px dashed var(--line-2)}
+@media print{body.flow .page+.page{break-before:auto;page-break-before:auto}body.flow .page.first{display:block}body.flow .page.appendix{border-top:0;padding-top:4mm}}
 """
 
 
@@ -978,7 +1068,7 @@ def render_onepage(summary: Mapping[str, Any], job: Mapping[str, Any] | None = N
         more = figures[FIRST_PAGE_SNAPSHOTS:]
         body = "".join([
             f'<h1 class="appendix-title">附录 · {_e(case_name)}</h1>', _branch_table(summary), _findings_section(summary),
-            _annotations_section(summary), ("<h2>更多配图</h2>" + _shots(more)) if more else "",
+            _annotations_section(summary), ('<section class="more-shots"><h2>更多配图</h2>' + _shots(more) + "</section>") if more else "",
             _input_section(summary), _morphology_details(summary), _trust_section(summary),
             _validation_section(card, summary),
             '<h2>局限性声明</h2><ol class="limits">' + "".join(f"<li>{_e(item)}</li>" for item in limitations(summary)) + "</ol>",
@@ -987,7 +1077,8 @@ def render_onepage(summary: Mapping[str, Any], job: Mapping[str, Any] | None = N
         used = re.findall(r'data-gloss="([a-z0-9_]+)"', first + body)
         body += _glossary_section(str(template.get("show_glossary") or "used"), used)
         pages.append(f'<article class="page appendix">{body}{_footer(summary, job, template, "附录", card)}</article>')
-    toolbar = '<div class="toolbar"><button type="button" onclick="window.print()">打印 / 保存 PDF</button></div>'
+    # The handler text must stay exactly "window.print()": the one-page CSP allows only its hash (server.ONEPAGE_HANDLER_HASH).
+    toolbar = f'<div class="toolbar"><button type="button" onclick="window.print()">{PRINT_SVG}打印 / 保存 PDF</button></div>'
     # Layout with pictures is unchanged: page 1 is a full A4 sheet and the appendix starts on a new one.
     body_class = ' class="flow"' if not figures and len(pages) > 1 else ""
     return ('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
