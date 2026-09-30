@@ -3,7 +3,11 @@
  * trash (#/trash), cohort overview (#/cohort: sortable key numbers + one histogram), service state (health, reconnect
  * banner, 「服务已更新」), password change, the administrator's 「看全部用户」, finished-job notices with unread marks,
  * and the account preferences the upload dialog remembers.  Same endpoints and documents as the classic workbench
- * (app.js / workbench_core.js); numbers come from the service as stored.  Excluded from offline packages. */
+ * (app.js / workbench_core.js); numbers come from the service as stored.  Excluded from offline packages.
+ * Phase 3 lane 2 (工作台): the task rows' 「⋯」 menu (一页纸 / 编辑信息 / 换模型重跑 / 患者时间线 / 删除), their live
+ * remaining time and lumen diameter, 「批量出图」 on the selection bar (lane 5's ns.batch when present), 「补跑缺少的
+ * 结果」 from a case card, the queue's 「已重新打开」 review filter and value ranges per metric, and the 「服务正在启动或
+ * 维护」 banner on a 503. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -38,7 +42,7 @@
     tasks: {q: '', status: '', patient: '', tag: '', quick: '', sort: {key: 'created', dir: 'desc'}, page: 1, size: 50, selected: {},
       server: {key: null, at: 0, jobs: [], total: 0, busy: false, error: null, stale: false}},
     trash: {items: null, busy: false, error: null},
-    cohort: {data: null, busy: false, error: null, stale: false, family: '', release: '', review: '', sort: {key: 'created_at', dir: 'desc'}, metric: '', bin: null}};
+    cohort: {data: null, busy: false, error: null, stale: false, family: '', release: '', review: '', sort: {key: 'created_at', dir: 'desc'}, metric: '', bin: null, ranges: {}}};
 
   // ------------------------------------------------------------------ small helpers
   function session() { return (A.sh && A.sh.session && A.sh.session()) || (store() && store().state.session) || {}; }
@@ -223,7 +227,7 @@
   function paintBanners() {
     if (!root.document) return;
     var host = bannerHost();
-    var kinds = Object.keys(A.banners);
+    var kinds = Object.keys(A.banners).filter(function (k) { return !(k === 'conn' && A.banners.maint); });   // P3 lane 2: one line during maintenance
     host.hidden = kinds.length === 0;
     ui().fill(host, kinds.map(function (k) {
       var b = A.banners[k];
@@ -270,11 +274,32 @@
   }
   function stopDownPoll() { if (A.downPoll) { clearInterval(A.downPoll); A.downPoll = null; } }
   // /api/health through fetch (not api().request): a logged-out answer is not a session expiry.
+  // P3 lane 2: a 503 (or a gateway's 502 / 504) means the service is starting or under maintenance — said once in a
+  // banner (classic refreshHealth 「服务正在启动或维护 · 自动重试」), probed every few seconds, cleared when it answers.
   function healthFetch() {
     if (typeof root.fetch !== 'function') return Promise.resolve(null);
     return Promise.resolve(root.fetch('/api/health', {credentials: 'same-origin', headers: {Accept: 'application/json'}})).then(function (r) {
-      return r && r.ok ? r.json() : null;
+      if (r && MAINT_STATUS.indexOf(r.status) >= 0) { maintenance(true); return null; }
+      if (r && r.ok) { maintenance(false); return r.json(); }
+      return null;
     }).catch(function () { return null; });
+  }
+  var MAINT_STATUS = [502, 503, 504], MAINT_POLL_MS = 5000;
+  function maintenance(on) {
+    if (on) {
+      if (!A.maint) { A.maint = true; showBanner('maint', '服务正在启动或维护，自动重试…', 'warn'); }
+      if (!A.maintPoll) {
+        A.maintPoll = setInterval(function () { if (!A.maint) { clearInterval(A.maintPoll); A.maintPoll = null; return; } healthFetch(); }, MAINT_POLL_MS);
+        if (A.maintPoll && A.maintPoll.unref) A.maintPoll.unref();
+      }
+      return;
+    }
+    if (!A.maint) return;
+    A.maint = false;
+    if (A.maintPoll) { clearInterval(A.maintPoll); A.maintPoll = null; }
+    hideBanner('maint');
+    ui().toast('服务已恢复。', {kind: 'ok', ms: 2500});
+    A.tasks.server.stale = true; refreshJobs();
   }
   function checkHealth() {
     return healthFetch().then(function (hl) {
@@ -360,6 +385,7 @@
     if (s.username && s.login === 'password') items.push({label: '修改口令…', run: passwordDialog});
     if (isAdmin()) items.push({label: '看全部用户', checked: Boolean(A.viewAll), run: toggleViewAll});
     items.push({label: '完成时桌面提醒', checked: notificationsOn(), run: toggleNotifications});
+    if (ns.rail && ns.rail.setGuideClosed) items.push({label: '三步上手', run: openGuide});   // P3 lane 2
     return items;
   }
 
@@ -408,6 +434,7 @@
     return api().request('/api/jobs' + (all ? '?all=1' : ''), {timeout: 60000}).then(function (r) {
       var list = Array.isArray(r) ? r : ((r && r.jobs) || []);
       pruneUnread(list);
+      stampEta(list);
       return {jobs: list};
     });
   }
@@ -459,7 +486,7 @@
     s.key = key; s.busy = true; s.error = null; s.stale = false;
     fetchAllPages(params).then(function (r) {
       if (s.key !== key) return;
-      s.jobs = r.jobs; s.total = r.total; s.at = nowMs(); s.busy = false;
+      s.jobs = stampEta(r.jobs); s.total = r.total; s.at = nowMs(); s.busy = false;
       if (A.mounted === 'tasks') updateTasks();
     }, function (e) {
       if (s.key !== key) return;
@@ -473,7 +500,8 @@
     result: function (j) { return ui().resultName(j, cards(), {short: true}); },
     status: function (j) { return ['confirm', 'failed', 'running', 'unreviewed', 'reviewed', 'cancelled', 'other'].indexOf(bucket(j)); },
     created: function (j) { return timeMs(j.created_at) || 0; },
-    owner: function (j) { return String(j.owner_name || ''); }
+    owner: function (j) { return String(j.owner_name || ''); },
+    diameter: function (j) { return num(j.max_diameter_mm); }   // P3 lane 2: blanks sink
   };
   // Pure: jobs + task state → {all (filtered, sorted), rows (this page), total, page, pages, size}
   function taskModel(list, t, now) {
@@ -607,7 +635,8 @@
       updateTasks();
     });
     var headRow = h('tr', {}, h('th', {'class': 'wsc-cb', scope: 'col'}, master), sortHead('病例', 'name'), sortHead('患者 / 扫描', 'patient', 'wsc-hide-sm'), sortHead('结果', 'result'),
-      sortHead('状态', 'status'), h('th', {scope: 'col', 'class': 'wsc-hide-sm', text: '标签'}), sortHead('创建', 'created', 'num'), all ? sortHead('属主', 'owner') : null);
+      sortHead('状态', 'status'), h('th', {scope: 'col', 'class': 'wsc-hide-sm', text: '标签'}), sortHead('直径 mm', 'diameter', 'num wsc-hide-sm'), sortHead('创建', 'created', 'num'),
+      all ? sortHead('属主', 'owner') : null, h('th', {scope: 'col', 'class': 'wsc-more-col', 'aria-label': '操作'}));
     var body = h('tbody');
     m.rows.forEach(function (j) {
       var st = statusLabel(j), mine = own(j), shown = ui().displayName(j);
@@ -620,16 +649,24 @@
       name.addEventListener('click', function (e) { if (e && e.stopPropagation) e.stopPropagation(); });
       var tags = (j.tags || []).filter(Boolean);
       var who = [j.patient_id && j.patient_id !== shown ? j.patient_id : '', j.scan_label || ''].filter(Boolean).join(' · ');
+      // P3 lane 2: live remaining time next to the status, the lumen diameter, and the row's 「⋯」 menu
+      var eta = ns.rail && ns.rail.etaBadge && FINAL.indexOf(j.status) < 0 ? ns.rail.etaBadge(j, {cls: 'wsc-eta'}) : null;
+      var dia = num(j.max_diameter_mm);
+      var more = ui().iconButton('more', '更多操作', function (e) { if (e && e.stopPropagation) e.stopPropagation(); ui().menu(more, rowMenu(j)); }, {cls: 'wsc-more'});
+      more.setAttribute('aria-haspopup', 'menu');
+      more.addEventListener('keydown', function (e) { if (e && e.stopPropagation) e.stopPropagation(); });
       tr = h('tr', {'class': 'wsc-row' + (t.selected[j.id] ? ' sel' : '') + (mine ? '' : ' not-mine'), dataset: {jobId: j.id}},
         h('td', {'class': 'wsc-cb'}, cb),
         h('td', {'class': 'wsc-td-name'}, name),
         h('td', {'class': 'wsc-hide-sm wsc-muted', text: who}),
         h('td', {text: ui().resultName(j, cards(), {short: true}), title: ui().resultName(j, cards())}),
-        h('td', {}, ui().dot(st.tone, st.label)),
+        h('td', {'class': 'wsc-td-status'}, ui().dot(st.tone, st.label), eta ? eta.el : null),
         h('td', {'class': 'wsc-hide-sm wsc-tags', text: tags.map(function (g) { return '#' + g; }).join(' ')}),
+        h('td', {'class': 'num wsc-hide-sm', text: dia === null ? '' : ui().sig(dia), title: dia === null ? null : '管腔最大直径'}),
         h('td', {'class': 'num wsc-muted', text: shortTime(j.created_at), title: ui().time(j.created_at)}),
-        all ? h('td', {'class': 'wsc-muted', text: j.owner_name || '旧会话'}) : null);
-      tr.addEventListener('click', function (e) { if (e && e.target && e.target.tagName === 'INPUT') return; go(j.id); });
+        all ? h('td', {'class': 'wsc-muted wsc-owner', text: j.owner_name || '旧会话'}) : null,
+        h('td', {'class': 'wsc-more-col'}, more));
+      tr.addEventListener('click', function (e) { if (e && e.target && (e.target.tagName === 'INPUT' || (e.target.closest && e.target.closest('.wsc-more')))) return; go(j.id); });
       body.appendChild(tr);
     });
     var table = h('table', {'class': 'tbl wsc-table'}, h('thead', {}, headRow), body);
@@ -670,6 +707,8 @@
       b('汇总表 CSV', function () { exportSummary(done, 'csv'); }, done.length, '只对已完成的任务可用', {icon: 'download'}),
       b('Excel', function () { exportSummary(done, 'xlsx'); }, done.length, '只对已完成的任务可用'),
       b('打包 zip', function () { bundleJobs(done); }, done.length, '只对已完成的任务可用'),
+      // P3 lane 2 → lane 5: figures of many results at once, when the batch module is there (PHASE3_LANES.md §2)
+      batchAvailable() ? b('批量出图…', function () { openBatch(done); }, done.length, '只对已完成的任务可用', {icon: 'snapshot'}) : null,
       h('span', {'class': 'sec-fill'}),
       ui().button('取消选择', function () { A.tasks.selected = {}; updateTasks(); }, {kind: 'link', cls: 'btn-sm'}));
   }
@@ -785,6 +824,96 @@
       function (e) { ui().toast('打包失败：' + errText(e), {kind: 'error'}); });
   }
 
+  // ------------------------------------------------------------------ P3 lane 2: row menu, 补跑, 批量出图, 三步上手
+  // The list arrival time of each estimate: a running stage keeps advancing from there on the browser clock.
+  function stampEta(list) { var at = nowMs(); (list || []).forEach(function (j) { if (j && j.eta) j._etaAt = at; }); return list; }
+  function canChange(job) { return own(job); }
+  function batchAvailable() { return Boolean(ns.batch && typeof ns.batch.open === 'function'); }
+  function openBatch(list) {
+    var ids = (list || []).filter(function (j) { return j && j.status === 'done'; }).map(function (j) { return j.id; });
+    if (!ids.length || !batchAvailable()) return;
+    try { ns.batch.open(ids, A.sh); } catch (e) { ui().toast('批量出图没有打开：' + errText(e), {kind: 'error'}); }
+  }
+  function openGuide() {
+    if (ns.rail && ns.rail.setGuideClosed) ns.rail.setGuideClosed(false);
+    var home = !(root.location.hash || '').replace(/^#\/?/, '');
+    if (home) { if (A.sh) A.sh.renderHome(); }
+    else root.location.hash = '#/';
+    try { if (root.scrollTo) root.scrollTo(0, 0); } catch (_) {}
+  }
+  // Classic rerunFromCase: the chosen release on the confirmed outlets of the newest finished job of the scan
+  // (POST /api/jobs/<id>/rerun {version, release_id}); a new task, the existing results stay.
+  function fillMissing(source, releaseId, label) {
+    if (!source || !releaseId) return Promise.resolve(null);
+    var name = label || ui().resultName({model_release: {id: releaseId}}, cards());
+    return ui().confirm('补跑' + name, ['沿用 ' + ui().displayName(source) + ' 这次扫描已确认的中心线和出口，新建一个「' + name + '」任务。', '原有结果不变。'],
+      {confirmLabel: '开始'}).then(function (yes) {
+      if (!yes) return null;
+      return api().job(source.id).then(function (r) {
+        var full = (r && r.job) || r, why = rerunSkipReason(full);
+        if (why) throw new Error(why);
+        return api().rerun(source.id, {version: full.version, release_id: releaseId});
+      }).then(function (x) {
+        var fresh = (x && x.job) || x || {};
+        ui().toast('已建立补跑任务：' + name + '。', {kind: 'ok', actions: fresh.id ? [{label: '查看', run: function () { go(fresh.id); }}] : []});
+        A.tasks.server.stale = true; refreshJobs();
+        return fresh;
+      }).catch(function (e) { ui().toast('没有补跑：' + errText(e), {kind: 'error'}); return null; });
+    });
+  }
+  // Classic jobMenuItems: a task row's own actions, each with the same rule as its full version elsewhere.
+  function scansOf(patientId) {
+    var seen = {};
+    jobs().forEach(function (j) { if (j && j.patient_id === patientId) seen[j.input_sha256 || j.id] = true; });
+    return Object.keys(seen).length;
+  }
+  function rowMenu(job) {
+    var done = job.status === 'done', mine = own(job), lock = locked(job);
+    var items = [{label: '打开', run: function () { go(job.id); }}];
+    if (done) items.push({label: '一页纸', run: function () { if (typeof root.open === 'function') root.open(api().urls.onepage(job.id), '_blank', 'noopener'); }});
+    if (ns.detail && ns.detail.metadataDialog) items.push({label: '编辑信息…', disabled: lock || !mine, hint: lock ? '已复核锁定' : !mine ? '别人的任务' : '', run: function () { editInfo(job); }});
+    if (done) items.push({label: '换模型重跑…', disabled: !mine, hint: !mine ? '别人的任务' : '', run: function () { rerunDialog([job]); }});
+    if (job.patient_id) { var n = scansOf(job.patient_id); items.push({label: '患者时间线', disabled: n < 2, hint: n < 2 ? '只有一次扫描' : n + ' 次扫描', run: function () { openTimeline(job); }}); }
+    items.push({separator: true});
+    items.push({label: '删除…', disabled: !deletable(job), hint: isRunning(job) ? '计算中' : lock ? '已复核锁定' : !mine ? '别人的任务' : '', run: function () { deleteJobs([job]); }});
+    return items;
+  }
+  // 编辑信息 on a task that is not open: the result page's own dialog (ws_detail.metadataDialog, same fields, checks
+  // and POST /api/jobs/<id>/metadata) sees this job as the current one while it is open, the real one afterwards.
+  function editInfo(job) {
+    if (!(ns.detail && ns.detail.metadataDialog) || !A.sh) return Promise.resolve(null);
+    return api().job(job.id).then(function (r) {
+      var full = (r && r.job) || r;
+      var cur = {jobId: job.id, job: full}, opening = true, fields = null, real = A.sh;
+      var live = function () { return opening || Boolean(fields && fields.case_id && fields.case_id.input && fields.case_id.input.isConnected !== false); };
+      var proxy = Object.assign({}, real, {cur: function () { return live() ? cur : real.cur(); },
+        reloadCurrent: function () { if (!live()) real.reloadCurrent(); },
+        scheduleRefresh: function () { A.tasks.server.stale = true; real.scheduleRefresh(); }});
+      fields = ns.detail.metadataDialog(proxy);
+      opening = false;
+      return fields;
+    }, function (e) { ui().toast('没有打开：' + errText(e), {kind: 'error'}); return null; });
+  }
+  // 患者时间线: the result's own 随访 section (overview), scrolled into view once the result and its timeline are in.
+  function openTimeline(job) {
+    go(job.id);
+    var tries = 0, timer = setInterval(function () {
+      tries += 1;
+      var S = ns.shell && ns.shell.state ? ns.shell.state() : null, d = root.document;
+      if (tries > 80) { clearInterval(timer); return; }
+      if (!S || !S.cur || S.cur.jobId !== job.id) { if (tries > 8 && S && S.cur && S.cur.jobId && S.cur.jobId !== job.id) clearInterval(timer); return; }   // opened something else meanwhile
+      if (!S.cur.manifest) return;
+      if (A.sh && A.sh.currentTab && A.sh.currentTab() !== 'overview') A.sh.setTab('overview');
+      var sec = d && typeof d.querySelector === 'function' ? d.querySelector('.ws-inspector .sec-follow') : null;
+      if (sec) {
+        clearInterval(timer);
+        try { sec.scrollIntoView({block: 'start', behavior: 'smooth'}); } catch (_) {}
+        if (sec.classList) { sec.classList.add('wsc-flash'); setTimeout(function () { sec.classList.remove('wsc-flash'); }, 1600); }
+      } else if (tries > 24) { clearInterval(timer); ui().toast('这位患者还没有可比较的随访扫描。', {kind: 'info', ms: 4000}); }
+    }, 250);
+    if (timer && timer.unref) timer.unref();
+  }
+
   // ------------------------------------------------------------------ #/trash
   function loadTrash(force) {
     var T = A.trash;
@@ -865,6 +994,7 @@
     {key: 'max_diameter_mm', label: '管腔最大直径', units: 'mm', tip: '中心线站位截面的最大直径，不含附壁血栓与管壁'},
     {key: 'wss_p99_pa', label: 'WSS p99', units: 'Pa'},
     {key: 'area_frac_high', label: '高 WSS 占比', pct: true},
+    {key: 'area_frac_very_high', label: '极高 WSS 占比', pct: true},   // P3 lane 2 (classic filter 「极高占比 ≥」)
     {key: 'population_percentile', label: '人群分位', tip: '在同口径人群参照中的百分位（只有带人群参照的模型有）'},
     {key: 'tawss_mean_pa', label: 'TAWSS 均值', units: 'Pa'},
     {key: 'tawss_low_frac', label: '低 TAWSS 占比', pct: true},
@@ -897,6 +1027,7 @@
         var v = num(r[c.bin.metric]);
         if (v === null || v < c.bin.lo || v > c.bin.hi || (v === c.bin.hi && !c.bin.last)) return false;
       }
+      if (!inRanges(r, c.ranges)) return false;   // P3 lane 2
       return true;
     });
     var sort = c.sort || {key: 'created_at', dir: 'desc'};
@@ -911,6 +1042,28 @@
       if (typeof a.v === 'number' && typeof b.v === 'number') return (a.v - b.v) * sign || a.i - b.i;
       return String(a.v).localeCompare(String(b.v), 'zh') * sign || a.i - b.i;
     }).map(function (x) { return x.r; });
+  }
+  // P3 lane 2: value ranges per metric (classic cohortFilter lower bounds 「p99 ≥ …」, here with an optional upper bound
+  // too).  ranges = {metricKey: {lo, hi}} in the stored units (fractions for the area shares); a row without the value
+  // is left out while its metric has a bound, as the classic filter did.  ``skip`` leaves one metric's range out.
+  function inRange(v, rg) {
+    if (!rg) return true;
+    var lo = num(rg.lo), hi = num(rg.hi);
+    if (lo === null && hi === null) return true;
+    if (v === null) return false;
+    return (lo === null || v >= lo) && (hi === null || v <= hi);
+  }
+  function inRanges(r, ranges, skip) {
+    if (!isObj(ranges)) return true;
+    return Object.keys(ranges).every(function (k) { return k === skip || inRange(num(r[k]), ranges[k]); });
+  }
+  function activeRanges(ranges) {
+    return Object.keys(isObj(ranges) ? ranges : {}).filter(function (k) { var rg = ranges[k]; return rg && (num(rg.lo) !== null || num(rg.hi) !== null); });
+  }
+  function rangeText(col, rg) {
+    var f = function (v) { return showBound(v, col) + (col.pct ? '%' : ''); }, lo = num(rg.lo), hi = num(rg.hi);   // the bound as typed
+    var unit = col.units && !col.pct ? ' ' + ui().unitText(col.units) : '';
+    return col.label + (lo !== null && hi !== null ? ' ' + f(lo) + '–' + f(hi) : lo !== null ? ' ≥ ' + f(lo) : ' ≤ ' + f(hi)) + unit;
   }
   // workbench_core.binEdges / histogram: the same edges and counting rule as the classic cohort panel.
   function binEdges(values, count) {
@@ -969,12 +1122,21 @@
     if (!(A.els && A.els.kind === 'cohort' && A.els.wrap.parentNode === el)) {
       var E = A.els = {kind: 'cohort'};
       E.count = h('span', {'class': 'sec-count'});
-      E.head = head('cohort', E.count, h('span', {'class': 'wsc-head-note'}, ui().infoTip('已完成任务的关键数字，来自汇总表（与导出的 CSV 同源）。筛选作用于下面的卡片、图和表；点分布图的柱子只看那一段，点散点打开那个结果。'),
+      E.head = head('cohort', E.count, h('span', {'class': 'wsc-head-note'}, ui().infoTip('已完成任务的关键数字，来自汇总表（与导出的 CSV 同源）。筛选作用于下面的卡片、图和表；「指标」旁填上下限只留范围内的结果（占比按 %，每个指标各记一组，换指标后留在筛选条上）；点分布图的柱子只看那一段，点散点打开那个结果。'),
         ui().iconButton('refresh', '刷新', function () { loadCohort(true); })));
       E.filters = h('div', {'class': 'wsc-filters'});
       E.kpis = h('div', {'class': 'wsc-kpis'});
       E.chart = h('div', {'class': 'wsc-charts'});
       E.body = h('div', {'class': 'wsc-tablewrap'});
+      // P3 lane 2: the range of the metric on show; the inputs live across redraws so typing keeps its place
+      E.lo = h('input', {type: 'number', step: 'any', 'class': 'wsc-num', placeholder: '下限', 'aria-label': '下限'});
+      E.hi = h('input', {type: 'number', step: 'any', 'class': 'wsc-num', placeholder: '上限', 'aria-label': '上限'});
+      E.rangeUnit = h('span', {'class': 'wsc-range-unit'});
+      var rangeTimer = null;
+      [E.lo, E.hi].forEach(function (inp) {
+        inp.addEventListener('input', function () { if (rangeTimer) clearTimeout(rangeTimer); rangeTimer = setTimeout(function () { rangeTimer = null; readRange(); }, 350); });
+        inp.addEventListener('change', function () { if (rangeTimer) { clearTimeout(rangeTimer); rangeTimer = null; } readRange(); });
+      });
       E.wrap = h('div', {'class': 'home wsc-page wsc-cohort'}, E.head, E.filters, E.kpis, E.chart, E.body);
       el.replaceChildren(E.wrap);
     }
@@ -994,6 +1156,25 @@
     });
   }
   function metricCols(rows) { return COHORT_COLS.filter(function (c) { return !c.text && rows.some(function (r) { return num(r[c.key]) !== null; }); }); }
+  // P3 lane 2: the typed bounds → C.ranges[metric] (percent → fraction for the area shares); an unchanged range redraws nothing.
+  function colOf(key) { return COHORT_COLS.filter(function (c) { return c.key === key; })[0] || null; }
+  function parseBound(text, col) {
+    var t = String(text === null || text === undefined ? '' : text).trim();
+    if (!t) return null;
+    var v = Number(t);
+    if (!isFinite(v)) return null;
+    return col && col.pct ? v / 100 : v;
+  }
+  function showBound(v, col) { return v === null || v === undefined ? '' : String(+(col && col.pct ? v * 100 : v).toPrecision(6)); }
+  function readRange() {
+    var E = A.els, C = A.cohort, col = colOf(C.metric);
+    if (!E || E.kind !== 'cohort' || !col) return;
+    var lo = parseBound(E.lo.value, col), hi = parseBound(E.hi.value, col), was = C.ranges[col.key] || {};
+    if (num(was.lo) === lo && num(was.hi) === hi) return;
+    if (lo === null && hi === null) delete C.ranges[col.key]; else C.ranges[col.key] = {lo: lo, hi: hi};
+    C.bin = null;
+    renderCohort();
+  }
   function renderCohort() {
     var E = A.els, C = A.cohort;
     if (!E || E.kind !== 'cohort') return;
@@ -1004,23 +1185,42 @@
     if (C.release && !releases[C.release]) C.release = '';
     var fam = ui().select([{value: '', label: '全部结果'}, {value: 'wall', label: '壁面'}, {value: 'volume', label: '体场'}], C.family, function (v) { C.family = v; C.bin = null; renderCohort(); }, {'class': 'wsc-select', 'aria-label': '结果类型'});
     var rel = ui().select(relOpts, C.release, function (v) { C.release = v; C.bin = null; renderCohort(); }, {'class': 'wsc-select', 'aria-label': '模型'});
-    var rev = ui().select([{value: '', label: '全部复核状态'}, {value: 'unreviewed', label: '未复核'}, {value: 'reviewed', label: '已复核'}], C.review, function (v) { C.review = v; renderCohort(); }, {'class': 'wsc-select', 'aria-label': '复核状态'});
-    var rowsNoBin = cohortModel(all, Object.assign({}, C, {bin: null}));
+    var rev = ui().select([{value: '', label: '全部复核状态'}, {value: 'unreviewed', label: '未复核'}, {value: 'reviewed', label: '已复核'}, {value: 'reopened', label: '已重新打开'}],
+      C.review, function (v) { C.review = v; renderCohort(); }, {'class': 'wsc-select', 'aria-label': '复核状态'});   // P3 lane 2: 「已重新打开」 (classic #cohort-review)
+    // the metric the two charts show sits with the other filters (one row scopes everything below it); its list does
+    // not depend on the value ranges, so a range never takes away the metric being edited
+    var metrics = metricCols(cohortModel(all, Object.assign({}, C, {bin: null, ranges: null})));
+    if (metrics.length && !metrics.some(function (c) { return c.key === C.metric; })) C.metric = (metrics.filter(function (c) { return c.key === 'wss_p99_pa'; })[0] || metrics[0]).key;
+    var col = metrics.filter(function (c) { return c.key === C.metric; })[0] || null;
+    // the charts keep the context of the range on show (bars and points outside it step back); every other filter applies
+    var ctxRanges = Object.assign({}, C.ranges); if (col) delete ctxRanges[col.key];
+    var rowsNoBin = cohortModel(all, Object.assign({}, C, {bin: null, ranges: ctxRanges}));
     var rows = cohortModel(all, C);
     E.count.textContent = rows.length === all.length ? String(all.length) : rows.length + ' / ' + all.length;
     var picked = rows.filter(function (r) { return r.job_id; }).map(function (r) { return {id: r.job_id, status: 'done'}; });
-    // the metric the two charts show sits with the other filters (one row scopes everything below it)
-    var metrics = metricCols(rowsNoBin);
-    if (metrics.length && !metrics.some(function (c) { return c.key === C.metric; })) C.metric = (metrics.filter(function (c) { return c.key === 'wss_p99_pa'; })[0] || metrics[0]).key;
-    var col = metrics.filter(function (c) { return c.key === C.metric; })[0] || null;
     var pickMetric = metrics.length ? h('label', {'class': 'wsc-field'}, h('span', {text: '指标'}),
       ui().select(metrics.map(function (c) { return {value: c.key, label: c.label}; }), C.metric, function (v) { C.metric = v; C.bin = null; renderCohort(); }, {'class': 'wsc-select', 'aria-label': '图上的量'})) : null;
-    ui().fill(E.filters, fam, rel, rev, pickMetric ? h('span', {'class': 'wsc-sep', 'aria-hidden': 'true'}) : null, pickMetric,
+    var d = root.document, typing = d && (d.activeElement === E.lo || d.activeElement === E.hi) ? d.activeElement : null;
+    var range = null;
+    if (col && E.lo) {
+      var cur = C.ranges[col.key] || {};
+      if (!typing) { E.lo.value = showBound(num(cur.lo), col); E.hi.value = showBound(num(cur.hi), col); }
+      E.rangeUnit.textContent = col.pct ? '%' : col.units ? ui().unitText(col.units) : '';
+      var on = activeRanges(C.ranges).indexOf(col.key) >= 0;
+      range = h('span', {'class': 'wsc-range' + (on ? ' on' : ''), role: 'group', 'aria-label': col.label + ' 范围'}, E.lo, h('span', {'class': 'wsc-range-dash', 'aria-hidden': 'true', text: '–'}), E.hi, E.rangeUnit,
+        on ? ui().iconButton('close', '清除范围', function () { delete C.ranges[col.key]; E.lo.value = ''; E.hi.value = ''; renderCohort(); }, {cls: 'wsc-chip-x'}) : null);
+    }
+    var rangeChips = activeRanges(C.ranges).filter(function (k) { return !col || k !== col.key; }).map(function (k) {
+      var c = colOf(k);
+      return c ? h('span', {'class': 'wsc-chip'}, h('span', {text: rangeText(c, C.ranges[k])}), ui().iconButton('close', '清除', function () { delete C.ranges[k]; renderCohort(); }, {cls: 'wsc-chip-x'})) : null;
+    });
+    ui().fill(E.filters, fam, rel, rev, pickMetric ? h('span', {'class': 'wsc-sep', 'aria-hidden': 'true'}) : null, pickMetric, range, rangeChips,
       C.bin ? h('span', {'class': 'wsc-chip'}, h('span', {text: C.bin.label}), ui().iconButton('close', '清除', function () { C.bin = null; renderCohort(); }, {cls: 'wsc-chip-x'})) : null,
       h('span', {'class': 'sec-fill'}),
       h('span', {'class': 'wsc-exports'},
         ui().button('CSV', function () { exportSummary(picked, 'csv'); }, {cls: 'btn-sm', icon: 'download', disabled: !picked.length}),
         ui().button('Excel', function () { exportSummary(picked, 'xlsx'); }, {cls: 'btn-sm', disabled: !picked.length})));
+    if (typing && d.activeElement !== typing) { try { typing.focus(); } catch (_) {} }
     if (C.error) { E.kpis.replaceChildren(); E.chart.replaceChildren(); ui().fill(E.body, ui().empty(C.error)); return; }
     if (!all.length) { E.kpis.replaceChildren(); E.chart.replaceChildren(); ui().fill(E.body, ui().empty('还没有已完成的任务。')); return; }
     renderKpis(E.kpis, cohortStats(rows));
@@ -1147,6 +1347,11 @@
     var decimals = (String(+step.toPrecision(6)).split('.')[1] || '').length;
     return {lo: a, hi: b, step: step, ticks: ticks, decimals: decimals, fmt: function (v) { return Number(v).toFixed(decimals); }};
   }
+  function binOutside(lo, hi, rg) {
+    if (!rg) return false;
+    var a = num(rg.lo), b = num(rg.hi);
+    return (a !== null && hi < a) || (b !== null && lo > b);
+  }
   function inBin(r, bin) {
     var v = num(r[bin.metric]);
     return v !== null && v >= bin.lo && (v < bin.hi || (bin.last && v <= bin.hi));
@@ -1210,6 +1415,7 @@
       var lo = edges[i], hi = edges[i + 1], x = pad.l + i * slot + (slot - bw) / 2;
       var hgt = c ? Math.max(2, share[i] / yt.hi * ph) : 0, y = pad.t + ph - hgt, r = Math.min(4, hgt, bw / 2);
       var active = Boolean(C.bin && C.bin.metric === col.key && Math.abs(C.bin.lo - lo) < 1e-12);
+      var outside = binOutside(lo, hi, C.ranges && C.ranges[col.key]);   // P3 lane 2
       var d = 'M' + x + ',' + (pad.t + ph) + 'V' + (y + r) + 'Q' + x + ',' + y + ' ' + (x + r) + ',' + y + 'H' + (x + bw - r) + 'Q' + (x + bw) + ',' + y + ' ' + (x + bw) + ',' + (y + r) + 'V' + (pad.t + ph) + 'Z';
       var range = fmt(lo) + '–' + fmt(hi) + unit;
       var valueText = c + ' 例 · ' + Math.round(share[i] * 100) + '%';
@@ -1223,7 +1429,7 @@
       hit.addEventListener('click', choose);
       hit.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { if (e.preventDefault) e.preventDefault(); choose(); } });
       if (tip) tip.bind(hit, valueText, label);
-      kids.push(svg('g', {'class': 'wsc-bin' + (active ? ' on' : '') + (C.bin && !active ? ' dim' : '')}, [c ? svg('path', {d: d, 'class': 'wsc-bar'}) : null, hit]));
+      kids.push(svg('g', {'class': 'wsc-bin' + (active ? ' on' : '') + ((C.bin && !active) || outside ? ' dim' : '')}, [c ? svg('path', {d: d, 'class': 'wsc-bar'}) : null, hit]));
     });
     if (rshare) {
       var pts = [];
@@ -1259,8 +1465,9 @@
       kids.push(svgText(X(t), H - 8, xt.fmt(t) + (last ? ' mm' : ''), {'class': 'wsc-tick', 'text-anchor': last ? 'end' : 'middle'}));
     });
     // points in the chosen distribution bin stay blue, the rest step back; the hit area is 24 px
+    var rgCur = C.metric && activeRanges(C.ranges).indexOf(C.metric) >= 0 ? C.ranges[C.metric] : null;   // P3 lane 2
     pts.sort(function (a, b) { return b.x - a.x; }).forEach(function (p) {
-      var sel = C.bin ? inBin(p.r, C.bin) : null;
+      var sel = C.bin || rgCur ? (!C.bin || inBin(p.r, C.bin)) && (!rgCur || inRange(num(p.r[C.metric]), rgCur)) : null;
       var hit = svg('circle', {cx: X(p.x), cy: Y(p.y), r: 12, 'class': 'wsc-pt-hit', tabindex: p.r.job_id ? '0' : null, role: p.r.job_id ? 'link' : null,
         'aria-label': rowName(p.r) + '：' + fy(p.y) + yunit + '，' + ui().sig(p.x) + ' mm'});
       if (p.r.job_id) {
@@ -1302,6 +1509,9 @@
     prefs: prefs, savePrefs: savePrefs, openTasks: openTasks, resumed: resumed, start: start, onEvent: onEvent, onConnection: onConnection, checkVersion: checkVersion, checkHealth: checkHealth,
     // pure helpers (tests)
     taskModel: taskModel, cohortModel: cohortModel, binEdges: binEdges, histogram: histogram, histModel: histModel, populationValues: populationValues, cohortStats: cohortStats, niceTicks: niceTicks,
-    rerunSkipReason: rerunSkipReason, mergePrefs: mergePrefs, quickMatch: quickMatch, shouldNotify: shouldNotify, STATUS_FILTERS: STATUS_FILTERS, _state: A
+    rerunSkipReason: rerunSkipReason, mergePrefs: mergePrefs, quickMatch: quickMatch, shouldNotify: shouldNotify, STATUS_FILTERS: STATUS_FILTERS, _state: A,
+    // P3 lane 2
+    fillMissing: fillMissing, canChange: canChange, rowMenu: rowMenu, editInfo: editInfo, openTimeline: openTimeline, openGuide: openGuide, openBatch: openBatch,
+    inRanges: inRanges, rangeText: rangeText, parseBound: parseBound, COHORT_COLS: COHORT_COLS
   };
 });

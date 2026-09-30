@@ -271,3 +271,92 @@ th.num .wsc-sort { flex-direction: row-reverse; }
   .form-grid-3 { grid-template-columns: minmax(0, 1fr); }
   .wsc-selbar { position: fixed; left: 8px; right: 8px; bottom: 8px; margin: 0; }
 }
+
+/* ================================================================ phase 3 lane 2 (工作台) */
+/* login: the secret with its show / hide button, the Caps Lock hint, 记住用户名 */
+.login-secret { position: relative; display: block; }
+.login-secret input { padding-right: 38px; }
+.login-reveal { position: absolute; top: 1px; right: 1px; width: 30px !important; height: 30px !important; border-radius: 7px; color: var(--ink-3); }
+.login-reveal:hover, .login-reveal[aria-pressed="true"] { color: var(--accent); background: transparent; }
+.login-caps { margin: -4px 0 2px; font-size: 12px; color: var(--warn); }
+.login-caps[hidden] { display: none; }
+.login-remember { margin: 2px 0 0; align-items: center; font-size: 12px; color: var(--ink-2); }
+.login-remember input { margin-top: 0; }
+.login-form .btn-primary[disabled] { opacity: .6; cursor: default; }
+
+/* live remaining time: a short text and a thin bar (running only) */
+.eta-live { display: inline-flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.eta-live[hidden] { display: none; }
+.eta-thin { position: relative; display: inline-block; width: 44px; height: 4px; flex: none; border-radius: 2px; background: var(--viz-1-track); overflow: hidden; }
+.eta-thin[hidden] { display: none; }
+.eta-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 2px; background: var(--accent); transition: width .9s linear; }
+.eta-live.eta-waiting { color: var(--warn); }
+.wsc-td-status .st + .eta-live { margin-left: 10px; }
+/* the rail: the text replaces the status word, the bar runs along the row's foot */
+.rail-result.has-eta { position: relative; }
+.rail-result .rail-eta { gap: 0; color: var(--ink-2); }
+.rail-result .rail-eta .eta-thin { position: absolute; left: 10px; right: 8px; bottom: 2px; width: auto; height: 2px; background: var(--line); }
+.rail-result .rail-st.st-busy .eta-live, .rail-result .rail-st .eta-txt { overflow: hidden; text-overflow: ellipsis; }
+.attn-what .eta-live { font-size: inherit; color: inherit; }
+.ov-run .eta-live.ov-run-what { color: var(--ink-3); }
+
+/* task rows: the 「⋯」 menu at the end */
+.wsc-table th.wsc-more-col, .wsc-table td.wsc-more-col { width: 40px; padding-left: 0; text-align: right; }
+.wsc-more { width: 28px !important; height: 28px !important; color: var(--ink-3); opacity: .7; }
+.wsc-row:hover .wsc-more, .wsc-more:focus-visible, .wsc-more[aria-expanded="true"] { opacity: 1; color: var(--ink); }
+
+/* home: 三步上手 */
+.home-guide .home-sub-row { margin-bottom: 8px; }
+.guide-note { font-size: 12px; color: var(--ink-3); }
+.guide-close { width: 26px !important; height: 26px !important; }
+.guide-card { display: grid; gap: 12px; padding: 16px 18px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+.guide-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 0; padding: 0; list-style: none; }
+.guide-step { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.guide-n { display: inline-grid; place-items: center; width: 24px; height: 24px; flex: none; border-radius: 50%; background: var(--accent-weak); color: var(--accent-2); font-weight: 700; font-size: 12px; }
+.guide-text { display: grid; gap: 2px; min-width: 0; font-size: 12px; line-height: 1.5; color: var(--ink-2); }
+.guide-text strong { font-size: 13px; color: var(--ink); }
+.guide-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; }
+
+/* home: 需要处理 and 最近完成 side by side; 最近完成 as a compact two-line list */
+.home-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: 20px; align-items: start; }
+.home-split .attn { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.recent { display: grid; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); overflow: hidden; }
+.recent-row { display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 6px 14px;
+  border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
+.recent-row:first-child { border-top: 0; }
+.recent-row:hover { background: var(--panel-2); }
+.recent-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.recent-main { display: grid; flex: 1 1 auto; min-width: 0; }
+.recent-name { display: flex; align-items: center; gap: 7px; min-width: 0; font-weight: 600; }
+.recent-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent-what { min-width: 0; font-size: 12px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.recent-st { flex: none; }
+
+/* case cards: diameter, tags, 补跑 chips */
+.case-name-row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.case-name-row .case-name { flex: 1 1 auto; min-width: 0; }
+.case-dia { flex: none; font-size: 12px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.case-tags { font-size: 12px; color: var(--accent-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.res-chip.res-add { background: transparent; box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink-3); gap: 3px; padding: 0 9px 0 6px; }
+.res-chip.res-add:hover, .res-chip.res-add:focus-visible { box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-weak); color: var(--accent-2); }
+
+/* queue: the value range of the metric on show */
+.wsc-range { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-3); }
+.wsc-range.on .wsc-num { border-color: var(--accent); }
+.wsc-num { width: 76px; height: 32px; padding: 0 8px; border: 1px solid var(--line-2); border-radius: var(--r-md); background: var(--panel); color: var(--ink); font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; }
+.wsc-num::placeholder { color: var(--ink-3); }
+.wsc-num { -moz-appearance: textfield; appearance: textfield; }
+.wsc-num::-webkit-outer-spin-button, .wsc-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.wsc-range-unit:empty { display: none; }
+.wsc-range .wsc-chip-x { color: var(--ink-3); }
+
+/* 患者时间线: the 随访 section it scrolls to lights up for a moment */
+.sec-follow.wsc-flash { animation: wsc-flash 1.6s ease-out; border-radius: var(--r-md); }
+@keyframes wsc-flash { 0% { box-shadow: 0 0 0 3px rgba(14, 110, 138, .35); } 100% { box-shadow: 0 0 0 3px rgba(14, 110, 138, 0); } }
+
+@media (max-width: 1100px) {
+  .home-split { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+@media (max-width: 900px) {
+  .guide-steps { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+}

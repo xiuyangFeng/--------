@@ -1978,39 +1978,96 @@
       return showResult(result, seq, null);
     }).then(function () { return S; }, function (e) { stageMessage('离线数据读取失败：' + (e && e.message || e), true); return S; });
   }
+  // P3 lane 2 (the lane's only function in this file): the login page — show / hide the secret, a Caps Lock hint,
+  // 「记住用户名」 (classic keys wss-login-remember / wss-login-user; never the password), the wait a 429 names
+  // (retry_after, the button counts down) and a 503 said as maintenance (classic app.js renderLoginPanel / loginCooldown).
   function showLogin(session, onDone) {
     var E = S ? S.els : null;
     var app = ui().host('ws-app', 'div', 'ws-app');
     var mode = session && session.login === 'password' ? 'password' : 'token';
-    var user = h('input', {type: 'text', autocomplete: 'username', 'aria-label': '用户名', id: 'wsl-user'});
-    var pass = h('input', {type: 'password', autocomplete: mode === 'password' ? 'current-password' : 'off', 'aria-label': mode === 'password' ? '口令' : '访问令牌', id: 'wsl-pass'});
-    try { var remembered = root.localStorage && root.localStorage.getItem('wss-login-user'); if (remembered) user.value = remembered; } catch (_) {}
+    var noun = mode === 'password' ? '口令' : '访问令牌', verb = '登录';
+    var ls = function (key, value) {
+      try {
+        if (!root.localStorage) return null;
+        if (value === undefined) return root.localStorage.getItem(key);
+        if (value === null) root.localStorage.removeItem(key); else root.localStorage.setItem(key, value);
+      } catch (_) {}
+      return null;
+    };
+    var keepOn = mode === 'password' && ls('wss-login-remember') !== '0';
+    var user = h('input', {type: 'text', autocomplete: 'username', autocapitalize: 'none', maxLength: 64, 'aria-label': '用户名', id: 'wsl-user'});
+    user.setAttribute('spellcheck', 'false');
+    var pass = h('input', {type: 'password', autocomplete: mode === 'password' ? 'current-password' : 'off', 'aria-label': noun, id: 'wsl-pass', 'aria-describedby': 'wsl-caps'});
+    if (keepOn) { var remembered = ls('wss-login-user'); if (remembered) user.value = remembered; }
+    var reveal = ui().iconButton('eye', '显示' + noun, function () {
+      var show = pass.type === 'password';
+      pass.type = show ? 'text' : 'password';
+      ui().fill(reveal, ui().icon(show ? 'eye-off' : 'eye'));
+      reveal.setAttribute('aria-label', (show ? '隐藏' : '显示') + noun); reveal.title = (show ? '隐藏' : '显示') + noun;
+      reveal.setAttribute('aria-pressed', String(show));
+      try { pass.focus(); } catch (_) {}
+    }, {cls: 'login-reveal', pressed: false});
+    var caps = h('p', {'class': 'login-caps', id: 'wsl-caps', role: 'status', hidden: true, text: '大写锁定已打开，' + noun + '区分大小写。'});
+    var capsCheck = function (ev) { caps.hidden = !(ev && typeof ev.getModifierState === 'function' && ev.getModifierState('CapsLock')); };
+    pass.addEventListener('keydown', capsCheck); pass.addEventListener('keyup', capsCheck);
+    pass.addEventListener('blur', function () { caps.hidden = true; });
+    var keep = h('input', {type: 'checkbox', id: 'wsl-remember', checked: keepOn});
     var err = h('p', {'class': 'login-err', role: 'alert', hidden: true});
-    var submit = h('button', {type: 'submit', 'class': 'btn btn-primary', text: '登录'});
+    var submit = h('button', {type: 'submit', 'class': 'btn btn-primary', text: verb});
+    var waitUntil = 0, waitTimer = null;
+    var waiting = function () { return waitUntil > 0 && Date.now() < waitUntil; };
+    var say = function (text) { err.textContent = text || ''; err.hidden = !text; };
+    var cooldown = function (seconds, message) {
+      if (waitTimer) clearInterval(waitTimer);
+      waitUntil = Date.now() + Math.max(1, Math.round(seconds)) * 1000;
+      var paint = function () {
+        var left = Math.ceil((waitUntil - Date.now()) / 1000);
+        if (left > 0) { submit.disabled = true; submit.textContent = left + ' 秒后可再试'; say((message || '尝试过于频繁。') + '（' + left + ' 秒后可再试）'); return; }
+        clearInterval(waitTimer); waitTimer = null; waitUntil = 0; submit.disabled = false; submit.textContent = verb; say('');
+      };
+      paint();
+      waitTimer = setInterval(paint, 1000);
+      if (waitTimer && waitTimer.unref) waitTimer.unref();
+    };
+    [user, pass].forEach(function (inp) { inp.addEventListener('input', function () { if (!waiting()) say(''); }); });
     var form = h('form', {'class': 'login-form'},
       h('div', {'class': 'login-mark'}, h('span', {'class': 'mark', text: 'WSS'}), h('span', {'class': 'muted', text: '血流场预测 · 工作区'})),
       mode === 'password' ? h('label', {'class': 'fld'}, h('span', {text: '用户名'}), user) : null,
-      h('label', {'class': 'fld'}, h('span', {text: mode === 'password' ? '口令' : '访问令牌'}), pass),
-      err, submit,
-      h('p', {'class': 'muted login-foot'}, '也可以回到 ', h('a', {href: '/', text: '经典工作台'}), '。'));
+      h('label', {'class': 'fld'}, h('span', {text: noun}), h('span', {'class': 'login-secret'}, pass, reveal)),
+      caps,
+      mode === 'password' ? h('label', {'class': 'check login-remember', title: '只在这台电脑上记住用户名，不记口令'}, keep, h('span', {text: '记住用户名'})) : null,
+      err, submit);
     form.addEventListener('submit', function (ev) {
       if (ev && ev.preventDefault) ev.preventDefault();
-      submit.disabled = true; err.hidden = true;
+      if (waiting()) return;
+      if (mode === 'password' && !user.value.trim()) { say('请输入用户名。'); try { user.focus(); } catch (_) {} return; }
+      submit.disabled = true; say('');
       var body = mode === 'password' ? {username: user.value.trim(), password: pass.value} : {token: pass.value};
       api().login(body).then(function (s) {
         pass.value = '';
-        try { if (mode === 'password' && root.localStorage) root.localStorage.setItem('wss-login-user', user.value.trim()); } catch (_) {}
+        if (mode === 'password') {
+          ls('wss-login-remember', keep.checked ? '1' : '0');
+          ls('wss-login-user', keep.checked ? user.value.trim() : null);
+        }
         if (onDone) onDone(s);
       }, function (e) {
-        submit.disabled = false; err.hidden = false;
-        err.textContent = e.status === 401 ? '用户名或口令不正确（区分大小写）。' : e.status === 429 ? '尝试过于频繁，请一分钟后再试。' : e.message;
+        var status = e && e.status;
+        if (status === 429) {
+          var after = Number(e.body && e.body.retry_after);
+          cooldown(isFinite(after) && after > 0 ? Math.ceil(after) : 60, '尝试过于频繁。');
+          return;
+        }
+        submit.disabled = false;
+        if (status === 503 || status === 502 || status === 504) { say('服务正在启动或维护，请稍后再试。'); return; }
+        say(status === 401 ? (mode === 'password' ? '用户名或口令不正确（区分大小写）。' : '访问令牌不正确。') : (e && e.message) || '没有登录成功。');
+        if (status === 401) { try { pass.focus(); if (pass.select) pass.select(); } catch (_) {} }
       });
     });
     var box = h('section', {'class': 'ws-login'}, form);
     app.className = 'ws-app is-login';
     app.replaceChildren(box);
     try { (mode === 'password' && !user.value ? user : pass).focus(); } catch (_) {}
-    return {form: form, user: user, pass: pass, err: err, submit: submit, el: E};
+    return {form: form, user: user, pass: pass, err: err, submit: submit, el: E, reveal: reveal, caps: caps, remember: keep};
   }
 
   function state() { return S; }

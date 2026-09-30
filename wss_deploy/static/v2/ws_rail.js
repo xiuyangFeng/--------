@@ -3,7 +3,10 @@
  * titles come from the job records and model cards; no release code is shown.
  * Lane C (S6c): the home carries a head with the four home pages (病例 / 任务 / 队列 / 回收站, the last three live in
  * ws_admin.js), four counts (今日 / 进行中 / 待处理 / 失败), 待复核 in 「需要处理」, unread marks and, in the
- * administrator's all-users view, the owner of each case. */
+ * administrator's all-users view, the owner of each case.
+ * Phase 3 lane 2 (工作台): live remaining time on running rows (classic etaRowSummary, one shared 1 s ticker), the
+ * 「最近完成」 list and the 「三步上手」 guide on the home, and on each case card the lumen diameter, the tags and
+ * 「补跑缺少的结果」 (the releases this scan has no finished result of, rerun from its confirmed outlets). */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -100,6 +103,162 @@
     return {tone: s.tone, label: s.label};
   }
 
+  // ------------------------------------------------------------------ P3 lane 2: remaining time (classic §21.2 / §21.3)
+  // Same rules as workbench_core formatDuration / stageRemaining / etaView / etaRowSummary (ported: the classic file
+  // leaves with S7).  Snapshots carry ``eta``; between list updates the running stage advances on the browser clock.
+  function numOrNull(v) {
+    if (v === null || v === undefined || v === '' || typeof v === 'boolean') return null;
+    var n = Number(v);
+    return isFinite(n) ? n : null;
+  }
+  function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
+  function formatDuration(seconds) {
+    var s = numOrNull(seconds);
+    if (s === null) return '';
+    if (s < 10) return '几秒';
+    if (s < 57.5) return '约 ' + Math.max(10, Math.round(s / 5) * 5) + ' 秒';
+    if (s >= 570) return '约 ' + Math.round(s / 60) + ' 分钟';
+    var total = Math.round(s / 5) * 5, minutes = Math.floor(total / 60), rest = total % 60;
+    return rest ? '约 ' + minutes + ' 分 ' + rest + ' 秒' : '约 ' + minutes + ' 分钟';
+  }
+  function stageRemaining(expected, elapsed) {
+    var e = Math.max(0, numOrNull(expected) || 0), t = Math.max(0, numOrNull(elapsed) || 0), knee = 0.8 * e;
+    if (t <= knee || e <= 0) return Math.max(0, e - t);
+    return 0.2 * e * (knee / t);
+  }
+  function etaView(eta, opts) {
+    if (!isObj(eta) || !Array.isArray(eta.stages) || !eta.stages.length) return null;
+    var age = Math.max(0, numOrNull(isObj(opts) ? opts.ageS : null) || 0);
+    var minPct = isObj(opts) && numOrNull(opts.minPct) !== null ? numOrNull(opts.minPct) : 2.5;
+    var pre = {};
+    (Array.isArray(eta.precomputed) ? eta.precomputed : []).forEach(function (k) { pre[String(k)] = true; });
+    var rows = eta.stages.filter(isObj).map(function (stage) {
+      var expected = Math.max(0, numOrNull(stage.expected_s) || 0);
+      var state = ['done', 'running', 'pending'].indexOf(stage.state) >= 0 ? stage.state : 'pending';
+      var elapsed = numOrNull(stage.elapsed_s);
+      if (state === 'running') elapsed = (elapsed || 0) + age;
+      return {key: String(stage.key || ''), label: String(stage.label || stage.key || '阶段'), expected: expected, elapsed: elapsed, state: state,
+        overdue: state === 'running' && elapsed > expected && expected > 0, precomputed: Boolean(pre[String(stage.key || '')])};
+    });
+    var rawStatus = eta.status || (rows.some(function (r) { return r.state === 'running'; }) ? 'running' : null);
+    var waiting = eta.waiting === true && rawStatus === 'running';
+    var status = waiting ? 'queued' : rawStatus;
+    var total = rows.reduce(function (s, r) { return s + r.expected; }, 0);
+    var widths = rows.map(function (r) { return total > 0 ? r.expected / total * 100 : 100 / rows.length; }).map(function (w) { return Math.max(minPct, w); });
+    var scale = 100 / widths.reduce(function (s, w) { return s + w; }, 0);
+    var filled = 0, currentIndex = -1;
+    var segments = rows.map(function (r, i) {
+      var width = +(widths[i] * scale).toFixed(3), fill = r.state === 'done' ? 100 : 0;
+      if (r.state === 'running' && !waiting) { currentIndex = i; fill = r.expected > 0 ? Math.min(96, r.elapsed / r.expected * 100) : 50; }
+      filled += width * fill / 100;
+      return Object.assign({}, r, {state: waiting && r.state === 'running' ? 'pending' : r.state, width: width, fill: +fill.toFixed(1)});
+    });
+    var remaining;
+    if (status === 'running' && !waiting) remaining = rows.reduce(function (s, r) { return s + (r.state === 'running' ? stageRemaining(r.expected, r.elapsed) : r.state === 'pending' ? r.expected : 0); }, 0);
+    else remaining = numOrNull(eta.remaining_s);
+    var segmentRemaining = numOrNull(eta.segment_remaining_s), queueAhead = numOrNull(eta.queue_ahead), queueWait = numOrNull(eta.queue_ahead_s);
+    var headline = '', manual = eta.segment === 'A' ? '，不含人工确认出口' : '';
+    if (status === 'queued') {
+      var wait = queueWait === null ? null : Math.max(0, queueWait - age);
+      headline = queueAhead ? '前面 ' + queueAhead + ' 个，' + (wait === null ? '稍后' : formatDuration(wait) + '后') + '开始' : waiting ? '等前一个任务算完后开始' : '即将开始';
+    } else if (status === 'running') {
+      var over = currentIndex >= 0 && segments[currentIndex].overdue;
+      headline = over && remaining < 10 ? '即将完成' : '预计还需' + formatDuration(remaining) + (manual ? '（' + manual.slice(1) + '）' : '');
+    } else if (status === 'awaiting_confirmation') {
+      headline = remaining !== null ? '确认后' + formatDuration(remaining) + '出结果' : '';
+    } else if (status === 'awaiting_input') {
+      var a = segmentRemaining !== null ? segmentRemaining : remaining;
+      headline = a !== null ? '确认后' + formatDuration(a) + '完成中心线提取' : '';
+    }
+    return {status: status, waiting: waiting, segments: segments, currentIndex: currentIndex, remaining: remaining, progress: Math.round(Math.min(100, filled)),
+      headline: headline, queueAhead: queueAhead, queueWait: queueWait};
+  }
+  // One short line for a list row: a thin bar (running only) and the remaining time.
+  function etaRowSummary(eta, opts) {
+    var view = etaView(eta, opts);
+    if (!view) return null;
+    if (view.status === 'running') return {pct: view.progress, text: view.headline === '即将完成' ? '即将完成' : '还需' + formatDuration(view.remaining), state: 'running'};
+    if (view.status === 'queued') return {pct: null, text: view.queueAhead ? '前面 ' + view.queueAhead + ' 个' : isObj(eta) && eta.waiting ? '等待前一个任务' : '即将开始', state: 'queued'};
+    if (view.status === 'awaiting_confirmation' && view.remaining !== null) return {pct: null, text: '确认后' + formatDuration(view.remaining), state: 'waiting'};
+    return null;
+  }
+  // Live readouts share one 1 s ticker; a readout whose element left the page drops out.
+  var etaEntries = [], etaTimer = null;
+  function etaTick() {
+    etaEntries = etaEntries.filter(function (e) {
+      if (e.host.isConnected === false) return false;
+      try { e.paint(); return true; } catch (_) { return false; }
+    });
+    if (!etaEntries.length && etaTimer) { clearInterval(etaTimer); etaTimer = null; }
+  }
+  function etaTrack(entry) {
+    etaEntries.push(entry);
+    if (!etaTimer && typeof setInterval === 'function') { etaTimer = setInterval(etaTick, 1000); if (etaTimer && etaTimer.unref) etaTimer.unref(); }
+  }
+  // The job's remaining time as a small live readout (text, and a thin bar while running); null when the job has no
+  // estimate to show (a finished job, an older service, an input check).  ``_etaAt`` is stamped when the list arrives.
+  function etaBadge(job, opts) {
+    if (!job || !isObj(job.eta)) return null;
+    opts = opts || {};
+    var h = ui().h, at = Date.now(), extra = opts.cls ? ' ' + opts.cls : '';
+    var text = h('span', {'class': 'eta-txt'}), fill = h('span', {'class': 'eta-fill'});
+    var bar = opts.bar === false ? null : h('span', {'class': 'eta-thin', 'aria-hidden': 'true'}, fill);
+    var el = h('span', {'class': 'eta-live' + extra}, bar, text);
+    var entry = {host: el, paint: function () {
+      var s = etaRowSummary(job.eta, {ageS: Math.max(0, (Date.now() - (job._etaAt || at)) / 1000)});
+      el.hidden = !s;
+      if (!s) return;
+      if (text.textContent !== s.text) text.textContent = s.text;
+      el.className = 'eta-live eta-' + s.state + extra;
+      if (bar) { bar.hidden = s.pct === null; if (s.pct !== null) fill.style.width = s.pct + '%'; }
+    }};
+    entry.paint();
+    if (el.hidden) return null;
+    etaTrack(entry);
+    return {el: el, text: text};
+  }
+
+  // ------------------------------------------------------------------ P3 lane 2: case facts (classic caseCard)
+  var FINAL = ['done', 'failed', 'cancelled', 'interrupted'];
+  // Pure: the releases a scan has no finished result of, and the job to rerun them from — the newest finished job of
+  // the scan whose centreline and confirmed outlets can be reused (classic /api/cases missing_releases +
+  // reusable_job_id, with the rerun rule of the service: done + confirmed outlets).  A release with a job still on its
+  // way (queued, running, waiting for a person) is not offered again.  ``canRun(job)`` limits the source (the
+  // administrator's all-users view: only the user's own jobs).
+  function missingResults(jobs, releases, opts) {
+    opts = opts || {};
+    var have = {}, busy = {};
+    (jobs || []).forEach(function (j) {
+      var rid = j ? ui().releaseIdOf(j) : '';
+      if (!rid) return;
+      if (j.status === 'done') have[rid] = true;
+      else if (FINAL.indexOf(j.status) < 0) busy[rid] = true;
+    });
+    var source = (jobs || []).filter(function (j) { return j && j.status === 'done' && j.reusable === true && (!opts.canRun || opts.canRun(j)); })[0] || null;
+    var missing = (releases || []).filter(function (r) { var id = r && (r.id || r.release); return id && !have[id] && !busy[id]; })
+      .map(function (r) { return {releaseId: r.id || r.release, release: r}; });
+    return {source: source, missing: source ? missing : [], unavailable: source ? [] : missing};
+  }
+  // Pure: what a case card adds under its name — the lumen diameter of the newest finished result of the latest scan
+  // that has one (classic latestMaxDiameter), and the tags of every job of the case (first seen first).
+  function caseFacts(c) {
+    var scan = c && c.scans && c.scans[0], diameter = null, tags = [];
+    ((scan && scan.jobs) || []).some(function (j) { var v = j.status === 'done' ? numOrNull(j.max_diameter_mm) : null; if (v !== null) { diameter = v; return true; } return false; });
+    ((c && c.scans) || []).forEach(function (s) { s.jobs.forEach(function (j) { (j.tags || []).forEach(function (t) { if (t && tags.indexOf(t) < 0) tags.push(t); }); }); });
+    return {diameter: diameter, tags: tags};
+  }
+  // Pure: the newest finished results (classic overviewModel.recent: by finish time, the creation time standing in).
+  function finishedMs(job) {
+    var list = [job.finished_at, job.created_at, job.updated_at];
+    for (var i = 0; i < list.length; i++) { var t = Date.parse(list[i] || ''); if (!isNaN(t)) return t; }
+    return 0;
+  }
+  function recentDone(jobs, n) {
+    return (jobs || []).filter(function (j) { return j && j.status === 'done'; })
+      .map(function (j, i) { return {j: j, t: finishedMs(j), i: i}; })
+      .sort(function (a, b) { return b.t - a.t || a.i - b.i; }).slice(0, n === undefined ? 5 : n).map(function (x) { return x.j; });
+  }
+
   function create(el, opts) {
     opts = opts || {};
     var h = ui().h;
@@ -136,11 +295,13 @@
             var rname = ui().resultName(job, st.cards);
             var sname = ui().resultName(job, st.cards, {short: true});
             var label = names[sname] > 1 && job.created_at ? sname + ' · ' + ui().time(job.created_at).slice(5) : sname;
-            var row = h('button', {type: 'button', 'class': 'rail-result' + (job.id === st.current ? ' current' : ''), dataset: {jobId: job.id},
+            // P3 lane 2: a running (or queued) result shows its remaining time and a thin progress line
+            var eta = FINAL.indexOf(job.status) < 0 ? etaBadge(job, {cls: 'rail-eta'}) : null;
+            var row = h('button', {type: 'button', 'class': 'rail-result' + (job.id === st.current ? ' current' : '') + (eta ? ' has-eta' : ''), dataset: {jobId: job.id},
               'aria-current': job.id === st.current ? 'true' : null, title: rname + ' · ' + status.label + (job.created_at ? ' · ' + ui().time(job.created_at) : '')},
               unread(job.id) ? h('span', {'class': 'rail-unread', title: '有新状态', 'aria-label': '未读'}) : null,
               h('span', {'class': 'rail-result-name', text: label}),
-              ui().dot(status.tone, status.label, 'rail-st'));
+              eta ? h('span', {'class': 'st st-' + status.tone + ' rail-st'}, h('span', {'class': 'st-dot', 'aria-hidden': 'true'}), eta.el) : ui().dot(status.tone, status.label, 'rail-st'));
             row.addEventListener('click', function () { if (ns.admin && ns.admin.markRead) ns.admin.markRead(job.id); if (opts.onOpen) opts.onOpen(job.id); });
             box.appendChild(row);
           });
@@ -270,7 +431,8 @@
     // 进行中: the running jobs by name
     var runBody = n.running.length || n.queued
       ? h('div', {'class': 'ov-list'}, n.running.slice(0, 2).map(function (j) {
-          return h('div', {'class': 'ov-run'}, h('span', {'class': 'ov-run-name', text: ui().displayName(j)}), h('span', {'class': 'ov-run-what', text: j.phase || '计算中'}));
+          var eta = etaBadge(j, {bar: false, cls: 'ov-run-what'});   // P3 lane 2: the remaining time when the service estimates it
+          return h('div', {'class': 'ov-run'}, h('span', {'class': 'ov-run-name', text: ui().displayName(j)}), eta ? eta.el : h('span', {'class': 'ov-run-what', text: j.phase || '计算中'}));
         }), n.running.length > 2 ? h('div', {'class': 'ov-sub', text: '另有 ' + (n.running.length - 2) + ' 个在算'}) : null,
           n.queued ? h('div', {'class': 'ov-sub', text: '排队 ' + n.queued + ' 个'}) : null)
       : h('div', {'class': 'ov-sub', text: '当前空闲'});
@@ -320,6 +482,47 @@
     }
     return [].concat.apply([], groups.map(function (list, g) { return list.slice(0, take[g]); }));
   }
+  // ------------------------------------------------------------------ P3 lane 2: 三步上手, 最近完成
+  var RECENT_MAX = 5, GUIDE_KEY = 'wss-guide-closed';   // the classic workbench's key: closed there = closed here
+  function guideClosed() { try { return Boolean(root.localStorage) && root.localStorage.getItem(GUIDE_KEY) === '1'; } catch (_) { return false; } }
+  function setGuideClosed(on) {
+    try { if (!root.localStorage) return; if (on) root.localStorage.setItem(GUIDE_KEY, '1'); else root.localStorage.removeItem(GUIDE_KEY); } catch (_) {}
+  }
+  var GUIDE = [
+    ['上传 STL', '顶栏「上传 STL」，或把文件拖进页面；选单位和要算的结果。'],
+    ['核对单位和出口', '需要时会停下来：对照影像核对尺寸和四个髂支出口的名称。'],
+    ['看结果、复核、出报告', '读结论和关键数字，核对后签字复核，再导出一页纸。']];
+  function guideCard(opts, empty, onClose) {
+    var h = ui().h;
+    var steps = h('ol', {'class': 'guide-steps'}, GUIDE.map(function (s, i) {
+      return h('li', {'class': 'guide-step'}, h('span', {'class': 'guide-n', 'aria-hidden': 'true', text: String(i + 1)}),
+        h('span', {'class': 'guide-text'}, h('strong', {text: s[0]}), h('span', {text: s[1]})));
+    }));
+    var actions = h('div', {'class': 'guide-actions'},
+      empty && opts.onUpload ? ui().button('上传 STL', opts.onUpload, {icon: 'upload', kind: 'primary', cls: 'btn-sm'}) : null,
+      ui().link('操作卡', '/static/v2/help_quickstart.html', {newTab: true}),
+      ui().link('输入要求', '/static/v2/help_input.html', {newTab: true}),
+      empty ? ui().link('示例报告', '/v2/example', {newTab: true}) : null);
+    return h('section', {'class': 'home-sec home-guide', 'aria-label': '三步上手'},
+      h('div', {'class': 'home-sub-row'}, h('h3', {'class': 'home-sub', text: '三步上手'}), empty ? h('span', {'class': 'guide-note', text: '还没有病例'}) : null,
+        h('span', {'class': 'sec-fill'}), empty ? null : ui().iconButton('close', '收起（头像菜单里可以再打开）', onClose, {cls: 'guide-close'})),
+      h('div', {'class': 'guide-card'}, steps, actions));
+  }
+  // The service's release list (the shell has it before the first home is drawn; the workbench module after start).
+  function releasesNow() {
+    var S = ns.shell && ns.shell.state ? ns.shell.state() : null;
+    if (S && Array.isArray(S.releases)) return S.releases;
+    var sa = ns.admin && ns.admin.shellApi ? ns.admin.shellApi() : null;
+    return (sa && sa.releases && sa.releases()) || [];
+  }
+  function shortWhen(iso) {
+    var t = Date.parse(iso || '');
+    if (isNaN(t)) return '';
+    var d = new Date(t), now = new Date(), pad = function (n) { return n < 10 ? '0' + n : String(n); };
+    var hm = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()) return hm;
+    return (d.getFullYear() === now.getFullYear() ? '' : d.getFullYear() + '-') + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + hm;
+  }
   function todo(el, jobs, opts) {
     opts = opts || {};
     var h = ui().h;
@@ -337,29 +540,55 @@
     wrap.appendChild(homeHead('', String(tree.length), h('label', {'class': 'home-search-wrap'}, ui().icon('search'), search)));
     // overview band (lane C counts): each card opens the task list with that filter
     if (ns.admin && ns.admin.openTasks && (jobs || []).length) wrap.appendChild(overview(homeStats(jobs)));
+    // P3 lane 2: 「三步上手」 — open while the library is empty and until it is closed once (classic 'wss-guide-closed')
+    var emptyLib = !(jobs || []).length;
+    if (!q && (emptyLib || !guideClosed())) wrap.appendChild(guideCard(opts, emptyLib, function () { setGuideClosed(true); todo(el, jobs, opts); }));
     // needs an action (待复核 included); when there are more than fit, every kind keeps a place (round robin in this order)
     var groups = [m.confirm.map(function (j) { return {job: j, tone: 'warn', what: j.status === 'awaiting_input' ? '核对单位与尺寸' : '确认出口', action: '去确认'}; }),
       m.failed.map(function (j) { return {job: j, tone: 'error', what: '失败', action: '查看原因'}; }),
       m.running.map(function (j) { return {job: j, tone: 'busy', what: j.phase || '计算中', action: '查看进度'}; }),
       m.review.map(function (j) { return {job: j, tone: 'idle', what: '待复核', action: '去复核'}; })];
-    var attn = [].concat.apply([], groups), shownAttn = attnPick(groups, ATTN_MAX);
+    var attn = [].concat.apply([], groups), shownAttn = attnPick(groups, ATTN_MAX), attnSec = null, recentSec = null;
     if (attn.length) {
       var strip = h('div', {'class': 'attn'});
       shownAttn.forEach(function (a) {
+        var eta = a.tone === 'busy' || a.tone === 'warn' ? etaBadge(a.job, {bar: false}) : null;   // P3 lane 2: remaining time instead of the phase
         var card = h('button', {type: 'button', 'class': 'attn-card tone-' + a.tone, title: a.action},
           ui().dot(a.tone, '', 'attn-dot'),
           h('span', {'class': 'attn-text'}, h('span', {'class': 'attn-name'}, unread(a.job.id) ? h('span', {'class': 'rail-unread', 'aria-label': '未读'}) : null, h('span', {text: ui().displayName(a.job)})),
-            h('span', {'class': 'attn-what', text: a.what + ' · ' + ui().resultName(a.job, cards, {short: true})})),
+            eta && a.tone === 'busy' ? h('span', {'class': 'attn-what'}, eta.el, ' · ' + ui().resultName(a.job, cards, {short: true}))
+              : h('span', {'class': 'attn-what', text: a.what + ' · ' + ui().resultName(a.job, cards, {short: true})})),
           h('span', {'class': 'attn-go', text: a.action}));
         card.addEventListener('click', function () { if (ns.admin && ns.admin.markRead) ns.admin.markRead(a.job.id); if (opts.onOpen) opts.onOpen(a.job.id); });
         strip.appendChild(card);
       });
       var more = attn.length > ATTN_MAX && ns.admin && ns.admin.openTasks
         ? ui().button('全部 ' + attn.length + ' 条', function () { ns.admin.openTasks({quick: 'attn'}); }, {kind: 'link', cls: 'btn-sm', iconAfter: 'chevron-right'}) : null;
-      wrap.appendChild(h('section', {'class': 'home-sec'}, h('div', {'class': 'home-sub-row'}, h('h3', {'class': 'home-sub', text: '需要处理'}), h('span', {'class': 'sec-fill'}), more), strip));
+      attnSec = h('section', {'class': 'home-sec'}, h('div', {'class': 'home-sub-row'}, h('h3', {'class': 'home-sub', text: '需要处理'}), h('span', {'class': 'sec-fill'}), more), strip);
     }
+    // P3 lane 2: the newest finished results with their review state (classic 今日概览「最近完成」)
+    var recent = q ? [] : recentDone(jobs, RECENT_MAX);
+    if (recent.length) {
+      var rlist = h('div', {'class': 'recent', role: 'list'});
+      recent.forEach(function (j) {
+        var rv = bucket(j) === 'reviewed' ? {tone: 'ok', label: '已复核'} : {tone: 'idle', label: '待复核'};
+        var at = j.finished_at || j.created_at;
+        var row = h('button', {type: 'button', 'class': 'recent-row', role: 'listitem', title: ui().resultName(j, cards) + (at ? ' · 完成于 ' + ui().time(at) : '')},
+          h('span', {'class': 'recent-main'},
+            h('span', {'class': 'recent-name'}, unread(j.id) ? h('span', {'class': 'rail-unread', 'aria-label': '未读'}) : null, h('span', {text: ui().displayName(j)})),
+            h('span', {'class': 'recent-what', text: ui().resultName(j, cards, {short: true}) + (at ? ' · ' + shortWhen(at) : '')})),
+          ui().dot(rv.tone, rv.label, 'recent-st'));
+        row.addEventListener('click', function () { if (ns.admin && ns.admin.markRead) ns.admin.markRead(j.id); if (opts.onOpen) opts.onOpen(j.id); });
+        rlist.appendChild(row);
+      });
+      recentSec = h('section', {'class': 'home-sec home-recent'}, h('div', {'class': 'home-sub-row'}, h('h3', {'class': 'home-sub', text: '最近完成'}), h('span', {'class': 'sec-fill'})), rlist);
+    }
+    // 需要处理 and 最近完成 side by side (stacked on narrow screens)
+    if (attnSec && recentSec) wrap.appendChild(h('div', {'class': 'home-split'}, attnSec, recentSec));
+    else if (attnSec || recentSec) wrap.appendChild(attnSec || recentSec);
     // gallery: the newest cases first; more on request (every card queues a thumbnail, so a long history is not all drawn at once)
     var grid = h('div', {'class': 'gallery'});
+    var releases = releasesNow();
     var limit = q ? tree.length : Math.max(GALLERY_STEP, galleryShown);
     tree.slice(0, limit).forEach(function (c) {
       var all = [];
@@ -377,10 +606,26 @@
         chip.addEventListener('click', function (e) { e.stopPropagation(); if (ns.admin && ns.admin.markRead) ns.admin.markRead(j.id); if (opts.onOpen) opts.onOpen(j.id); });
         chips.appendChild(chip);
       });
+      // P3 lane 2: 「补跑缺少的结果」 — one dashed chip per release this scan has no finished result of
+      if (ns.admin && ns.admin.fillMissing) {
+        var miss = missingResults(c.scans[0].jobs, releases, {canRun: ns.admin.canChange});
+        miss.missing.forEach(function (x) {
+          var short = ui().resultName({model_release: x.release}, cards, {short: true}), full = ui().resultName({model_release: x.release}, cards);
+          var add = h('button', {type: 'button', 'class': 'res-chip res-add', title: '补跑「' + full + '」：沿用这次扫描已确认的中心线和出口', 'aria-label': '补跑' + full},
+            ui().icon('plus', {size: 12}), h('span', {text: short}));
+          add.addEventListener('click', function (e) { e.stopPropagation(); ns.admin.fillMissing(miss.source, x.releaseId, full); });
+          add.addEventListener('keydown', function (e) { if (e && e.stopPropagation) e.stopPropagation(); });
+          chips.appendChild(add);
+        });
+      }
+      var facts = caseFacts(c);
       card.appendChild(thumb);
       card.appendChild(h('div', {'class': 'case-body'},
-        h('div', {'class': 'case-name', text: c.name}),
+        h('div', {'class': 'case-name-row'}, h('div', {'class': 'case-name', text: c.name}),
+          facts.diameter !== null ? h('span', {'class': 'case-dia', title: '管腔最大直径（最近一次扫描的完成结果）', text: ui().sig(facts.diameter) + ' mm'}) : null),
         h('div', {'class': 'case-meta', text: [c.patientId && c.patientId !== c.name ? c.patientId : '', scanText, c.owner !== undefined ? (c.owner || '旧会话') : ''].filter(Boolean).join(' · ')}),
+        facts.tags.length ? h('div', {'class': 'case-tags', title: facts.tags.map(function (t) { return '#' + t; }).join(' '),
+          text: facts.tags.slice(0, 4).map(function (t) { return '#' + t; }).join(' ') + (facts.tags.length > 4 ? ' …' : '')}) : null,
         chips));
       var open = function () { if (opts.onOpen && primary) opts.onOpen(primary.id); };
       card.addEventListener('click', open);
@@ -390,17 +635,18 @@
       var rank = function (j) { var k = ui().kindOf ? ui().kindOf(j) : null; return k === 'cycle' ? 0 : k === 'wall' ? 1 : 2; };
       var tj = done.slice().sort(function (a, b) { return rank(a) - rank(b); })[0] || thumbJob;
       if (ns.thumbs && opts.fetchThumb && tj && tj.status !== 'failed') {
-        var cached = ns.thumbs.cached(tj.id);
+        var tkey = ns.thumbs.keyFor ? ns.thumbs.keyFor(tj) : tj.id;   // P3 lane 2: job + run identity (persistent cache)
+        var cached = ns.thumbs.cached(tkey);
         var put = function (url) { if (url) thumb.replaceChildren(h('img', {src: url, alt: '', draggable: 'false'})); else thumb.classList.add('no-thumb'); };
         if (cached) put(cached);
-        else ns.thumbs.request(tj.id, function () { return opts.fetchThumb(tj); }, put);
+        else ns.thumbs.request(tkey, function () { return opts.fetchThumb(tj); }, put);
       } else thumb.classList.add('no-thumb');
     });
     var moreCases = tree.length > limit ? ui().button('再显示 ' + Math.min(GALLERY_STEP, tree.length - limit) + ' 个病例（共 ' + tree.length + ' 个）', function () {
       galleryShown = limit + GALLERY_STEP; todo(el, jobs, opts);
     }, {cls: 'gallery-more'}) : null;
-    if (tree.length) wrap.appendChild(h('section', {'class': 'home-sec'}, attn.length ? h('h3', {'class': 'home-sub', text: '全部病例'}) : null, grid, moreCases));
-    else wrap.appendChild(ui().empty(q ? '没有符合搜索的病例。' : '还没有病例。上传一份管腔 STL，或把 STL 拖进页面。', [
+    if (tree.length) wrap.appendChild(h('section', {'class': 'home-sec'}, attn.length || recent.length ? h('h3', {'class': 'home-sub', text: '全部病例'}) : null, grid, moreCases));
+    else if (!(emptyLib && !q)) wrap.appendChild(ui().empty(q ? '没有符合搜索的病例。' : '还没有病例。上传一份管腔 STL，或把 STL 拖进页面。', [
       opts.onUpload ? ui().button('上传 STL', opts.onUpload, {icon: 'upload', kind: 'primary'}) : null,
       ui().link('输入要求', '/static/v2/help_input.html', {newTab: true}),
       ui().link('示例报告', '/v2/example', {newTab: true})
@@ -410,5 +656,8 @@
     return m;
   }
 
-  return {create: create, model: model, order: order, todo: todo, todoModel: todoModel, bucket: bucket, FILTERS: FILTERS, homeHead: homeHead, homeCounts: homeCounts, homeStats: homeStats, attnPick: attnPick, PAGES: PAGES};
+  return {create: create, model: model, order: order, todo: todo, todoModel: todoModel, bucket: bucket, FILTERS: FILTERS, homeHead: homeHead, homeCounts: homeCounts, homeStats: homeStats, attnPick: attnPick, PAGES: PAGES,
+    // P3 lane 2
+    etaView: etaView, etaRowSummary: etaRowSummary, formatDuration: formatDuration, stageRemaining: stageRemaining, etaBadge: etaBadge,
+    missingResults: missingResults, caseFacts: caseFacts, recentDone: recentDone, guideClosed: guideClosed, setGuideClosed: setGuideClosed, GUIDE: GUIDE};
 });

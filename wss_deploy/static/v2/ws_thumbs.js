@@ -1,7 +1,10 @@
 /* WSS workspace v2 — vessel thumbnails for the case gallery.
  * One shared off-screen renderer draws the stage-A preview surface (GET /api/jobs/<id>/geometry) of a job as a lit
  * grey vessel in the anterior view (inlet up, patient left on the right of the picture) and caches the PNG data URL.
- * Requests are queued and drawn one at a time so a long gallery never blocks the page.  Display only. */
+ * Requests are queued and drawn one at a time so a long gallery never blocks the page.  Display only.
+ * Phase 3 lane 2: the drawn pictures also go to IndexedDB (keyed by job id + run identity + a drawing revision), so a
+ * reload of the home draws a known case without its manifest and arrays; without IndexedDB (private window, blocked
+ * storage, quota) everything works as before from memory. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -126,6 +129,81 @@
     return render(pos, F instanceof Uint32Array ? F : Uint32Array.from(F), colors);
   }
 
+  // ------------------------------------------------------------------ P3 lane 2: persistent cache (IndexedDB)
+  // One object store of {url, at}; the newest MAX_KEEP pictures are kept.  Every call is guarded: a browser without
+  // IndexedDB, a failed open or a failed write only means the picture is drawn again next time.
+  var DB_NAME = 'wssv2-thumbs', STORE = 'thumbs', DB_VERSION = 1, MAX_KEEP = 400, REV = 'd1';
+  var dbp = null, puts = 0;
+  function db() {
+    if (dbp) return dbp;
+    dbp = new Promise(function (resolve) {
+      var settled = false, done = function (v) { if (!settled) { settled = true; resolve(v); } };
+      var factory = null;
+      try { factory = root.indexedDB || null; } catch (_) { factory = null; }
+      if (!factory || typeof factory.open !== 'function') { done(null); return; }
+      var req;
+      try { req = factory.open(DB_NAME, DB_VERSION); } catch (_) { done(null); return; }
+      req.onupgradeneeded = function () {
+        try { var d = req.result; if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE).createIndex('at', 'at'); } catch (_) {}
+      };
+      req.onsuccess = function () {
+        var d = req.result;
+        try { d.onversionchange = function () { try { d.close(); } catch (_) {} dbp = Promise.resolve(null); }; } catch (_) {}
+        done(d);
+      };
+      req.onerror = function () { done(null); };
+      req.onblocked = function () { done(null); };
+      var guard = setTimeout(function () { done(null); }, 4000);   // a hung open never holds the gallery back
+      if (guard && guard.unref) guard.unref();
+    });
+    return dbp;
+  }
+  function tx(d, mode) { try { return d.transaction(STORE, mode).objectStore(STORE); } catch (_) { return null; } }
+  function stored(key) {
+    return db().then(function (d) {
+      if (!d) return null;
+      return new Promise(function (resolve) {
+        var st = tx(d, 'readonly'), req;
+        if (!st) { resolve(null); return; }
+        try { req = st.get(key); } catch (_) { resolve(null); return; }
+        req.onsuccess = function () { var v = req.result; resolve(v && typeof v.url === 'string' && v.url.indexOf('data:image/') === 0 ? v.url : null); };
+        req.onerror = function () { resolve(null); };
+      });
+    }).catch(function () { return null; });
+  }
+  function store(key, url) {
+    return db().then(function (d) {
+      if (!d || !url) return false;
+      var st = tx(d, 'readwrite');
+      if (!st) return false;
+      try { st.put({url: url, at: Date.now()}, key); } catch (_) { return false; }
+      puts += 1;
+      if (puts === 1 || puts % 25 === 0) prune(d);
+      return true;
+    }).catch(function () { return false; });
+  }
+  // Keep the newest MAX_KEEP pictures (oldest first out); a stale key (another run identity) simply ages out.
+  function prune(d) {
+    try {
+      var st = tx(d, 'readwrite');
+      if (!st) return;
+      var countReq = st.count();
+      countReq.onsuccess = function () {
+        var extra = (countReq.result || 0) - MAX_KEEP;
+        if (extra <= 0) return;
+        var cur = st.index('at').openCursor();
+        cur.onsuccess = function () { var c = cur.result; if (!c || extra <= 0) return; try { c.delete(); } catch (_) {} extra -= 1; c.continue(); };
+      };
+    } catch (_) {}
+  }
+  // The cache key of a job's picture: a finished job by its run identity (changes with a rerun or an outlet
+  // override), an unfinished one by its record version (the stage-A preview changes only with a new version).
+  function keyFor(job) {
+    if (!job || !job.id) return '';
+    var what = job.status === 'done' ? 'r:' + (job.run_identity || job.version || '') : 'g:' + (job.version === undefined ? '' : job.version);
+    return job.id + '|' + what + '|' + REV;
+  }
+
   function pump() {
     if (busy || !queue.length) return;
     busy = true;
@@ -140,7 +218,7 @@
       }
       return draw(got);
     }).then(function (url) {
-      if (url) cache[it.key] = url;
+      if (url) { cache[it.key] = url; store(it.key, url); }
       finish(it, url || null);
     }, function () { finish(it, null); });
   }
@@ -150,10 +228,16 @@
     (root.setTimeout || function (f) { f(); })(pump, 16);
   }
   // key: a stable id (the job id of the scan); fetch(): Promise<geometry>; done(url|null)
+  // A picture already in memory answers at once; one in IndexedDB answers without drawing; otherwise it is queued.
   function request(key, fetch, done) {
     if (cache[key]) { done(cache[key]); return; }
-    queue.push({key: key, fetch: fetch, done: done});
-    pump();
+    stored(key).then(function (url) {
+      if (url) { cache[key] = url; try { done(url); } catch (_) {} return; }
+      if (cache[key]) { try { done(cache[key]); } catch (_) {} return; }
+      queue.push({key: key, fetch: fetch, done: done});
+      pump();
+    });
   }
-  return {request: request, draw: draw, drawResult: drawResult, basis: basis, cached: function (key) { return cache[key] || null; }, size: {width: W, height: H}};
+  return {request: request, draw: draw, drawResult: drawResult, basis: basis, cached: function (key) { return cache[key] || null; }, size: {width: W, height: H},
+    keyFor: keyFor, stored: stored, store: store, _reset: function () { cache = {}; queue = []; busy = false; dbp = null; puts = 0; }};
 });
