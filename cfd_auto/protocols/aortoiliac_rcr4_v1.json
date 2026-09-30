@@ -1,0 +1,383 @@
+{
+ "name": "aortoiliac_rcr4_v1",
+ "notes": "库内协议（AG/AAA/ILO 腹主动脉-髂动脉）：入口波形 UDF + 四出口 RCR（左右 50/50、同侧 Murray d^3）+ Carreau；Fluent 2023R1，0.005 s x 1280 步 x 20 迭代；导出末周期 1120-1280 每 2 步共 81 帧。数值与 cfd_auto.udf / cfd_auto.sanity / cfd_auto.rebuild 的模块常量一致（tests 核对）。换血管床 = 复制本文件改参数 + 提供该床的设置模板与 UDF 模板。",
+ "solver": {
+  "fluent_module": "fluent/231",
+  "time_step_s": 0.005,
+  "n_steps": 1280,
+  "max_iter": 20,
+  "period_s": 0.8,
+  "cycle_steps": 160
+ },
+ "exports": {
+  "first_step": 1120,
+  "last_step": 1280,
+  "every": 2,
+  "peak_step": 1162,
+  "wall_dir": "ascii",
+  "volume_dir": "ascii_in",
+  "window_only": true,
+  "window_note": "2026-09-30 探针：journal 里 (rpsetvar 'export/automatic ...) 可随时关/开自动导出；导出频率按全局时间步序号取模（freq 2 -> 偶数步，freq 4 -> 4 的倍数）；把 1280 步拆成 1119 + 161 两次 dual-time-iterate，导出文件与连续算逐字节相同"
+ },
+ "schedules": {
+  "ladder": [
+   "library",
+   "gentle",
+   "dt2"
+  ],
+  "gentle_refine": 2,
+  "dt2_refine": 2,
+  "infra_retries": 2,
+  "note": "发散自动降级：库内步长 -> 首周期半步长（相位不变）-> 全程半步长（2560 步，末周期每 4 步一帧重编号为 1120-1280；WANG_CAI-0/before 定稿方案）"
+ },
+ "divergence": {
+  "fatal_patterns": [
+   "floating point exception",
+   "Divergence detected",
+   "divergence detected"
+  ],
+  "continuity_blowup": 1.0,
+  "continuity_high": 0.1,
+  "continuity_high_steps": 3,
+  "note": "WANG_CAI-0/before 发散过程：末步连续性残差 3e-4 -> 1e-2 -> 0.24 -> 130 -> 浮点异常（作业仍以 COMPLETED 结束，只能看日志判定）"
+ },
+ "openings": {
+  "count": 5,
+  "outlet_keys": [
+   "outle",
+   "outli",
+   "outri",
+   "outre"
+  ],
+  "side_pairs": [
+   [
+    "outle",
+    "outli"
+   ],
+   [
+    "outre",
+    "outri"
+   ]
+  ],
+  "naming_min_confidence": 0.95
+ },
+ "extension": {
+  "inlet_length_mm": {
+   "AG": 200.0,
+   "AAA": 100.0,
+   "ILO": 100.0
+  },
+  "outlet_L_over_D": 10.2,
+  "direction": "normal",
+  "direction_for_new_cases": "auto",
+  "oblique_deg": 10.0,
+  "note": "direction: normal = 沿封口法向（库内 SpaceClaim 做法，回归口径）；axis = 沿开口处血管轴线（截面投影成垂直截面，远端封口垂直于轴线）；auto = 封口法向与轴线夹角 > oblique_deg 时用 axis。库内病例复算保持 normal，新数据默认 auto"
+ },
+ "mesh": {
+  "prism_layers": 10,
+  "first_aspect_ratio": 20,
+  "prism_growth": 1.2,
+  "tet_volume_growth": 1.2,
+  "bl_full_fraction_min": 0.95,
+  "quality": {
+   "min_orthogonal_fail": 0.02,
+   "min_orthogonal_warn": 0.05,
+   "max_aspect_ratio_fail": 500.0,
+   "max_aspect_ratio_warn": 150.0,
+   "note": "cfd_auto 已跑网格：正常 0.10-0.16 / AR 38-78；LIU_YU_MING 0.046 正常求解；LI_FA_XIANG 棱柱被删光的网格 1.3e-4 / AR 1508"
+  },
+  "repair_ladder": [
+   {},
+   {
+    "improve_skew": 0.7
+   },
+   {
+    "improve_skew": 0.6
+   }
+  ],
+  "volume_fill": {
+   "tet-prism": "tet",
+   "poly": "tet"
+  },
+  "volume_fill_note": "P 族可选 poly-hexcore（journals.meshing_polyhexcore，2026-09-30 v231 探针：网格对象 + scoped 棱柱 + poly-hexcore，YU_TIAN_HAI 解剖区单元 +0.9 %、对偶壁面 +4.5 %、10 层、六面体 0.5/1/2 mm 与库内相同）；默认仍为四面体（09-28 回归已验证），poly-hexcore 经 CFD 回归后再改默认；单元 spec 可设 mesh_volume_fill"
+ },
+ "bc": {
+  "kind": "rcr_murray_sides",
+  "mean_pressure_mmHg": 93.33,
+  "mmHg_to_Pa": 133.0,
+  "A1_kg_s": {
+   "AAA": 0.033,
+   "ILO": 0.033,
+   "AG": 0.028421
+  },
+  "A1_note": "2026-09-30 AG 研究（_protocol_study/ag_inflow，87 个 AG 单元）：AG 总流量不逐例变化，全队列 A1 = 0.028421 kg/s（中位 0.02842097，±2.3e-5）；AG 操作者按出口边界面（延伸段末端）面积算 RCR，AAA/ILO 按切口面；按此规则 R1/R2/C 复现到 5e-5。入口波形全库相同（a0 30.38 ml/s，按体积流量）。cfd_auto 延伸段按开口多边形扫掠，出口面 ≈ 切口面，与库内 SpaceClaim 光滑截面系统性差 R1 中位 2.7 %（无法从开口多边形还原）",
+  "murray_exponent": 3,
+  "R1_coeff": 13.3,
+  "R1_diameter_exp": 0.3,
+  "C_coeff": 1.79,
+  "area_source": {
+   "AG": "outlet_bc",
+   "AAA": "cut",
+   "ILO": "cut"
+  }
+ },
+ "risk": {
+  "small_outlet_mm2": 7.0,
+  "r1_fraction_warn": 0.5,
+  "path_resistance_ratio_warn": 0.02,
+  "note": "设置阶段预警：出口 < 7 mm²（WANG_CAI 5.9 mm² 发散）；协议 R2 <= 0 不可用（YANG_QING_REN 7.3/5.1 mm²）；解剖通路 Poiseuille 阻力 / RCR 总阻力 > 0.02 -> 左右分流会偏离 50/50（WANG_CAI 0.025，预测左 0.496 实际 0.451：稳态估计只排序、低估偏移约 10 倍；其余 4 例 ≤ 0.012）；库内 249 例标定：Poiseuille 预测左份额偏差与实测 Pearson 0.72，幅度低估 9.4 倍 -> 预警量 = 9.415 x (预测左份额 - 0.5)，|.| > 0.015 预警（库内只标出 2 例；WANG_CAI-0/before 校正后 -0.033，实测 -0.049）",
+  "split_dev_slope": 9.415,
+  "split_dev_warn": 0.015
+ },
+ "templates": {
+  "note": "新病例（库外 STL）的设置模板：同队列、已回归验证的库内单元；family 决定 T（STL 面作壁面）或 P（曲率重划）",
+  "AAA": {
+   "template": "AAA/ruputer/YU_TIAN_HAI",
+   "family": "poly",
+   "density_ref": [
+    "AAA/ruputer/YU_TIAN_HAI",
+    "AAA/ruputer/SHI_YUN_XI"
+   ]
+  },
+  "ILO": {
+   "template": "ILO/XUE_YOU_TANG-0/before",
+   "family": "poly",
+   "density_ref": [
+    "ILO/XUE_YOU_TANG-0/before",
+    "ILO/GUO_YU_SHU-0/before"
+   ]
+  },
+  "AG": {
+   "template": "AG/slow/QIN_SI_FU",
+   "family": "tet-prism",
+   "density_ref": []
+  }
+ },
+ "sanity_gates": {
+  "flow_ratio": {
+   "fail": [
+    1.098,
+    1.108
+   ]
+  },
+  "left_share": {
+   "fail": [
+    0.45,
+    0.55
+   ]
+  },
+  "side_share_abs_dev_max": {
+   "fail": [
+    0.0,
+    0.1
+   ]
+  },
+  "outlet_p_rel_mean": {
+   "fail": [
+    0.03,
+    0.09
+   ]
+  },
+  "periodicity_share_abs_max": {
+   "fail": [
+    0.0,
+    0.003
+   ]
+  },
+  "periodicity_p_rel_max": {
+   "fail": [
+    0.0,
+    0.025
+   ]
+  }
+ },
+ "sanity_gates_by_cohort": {
+  "AAA": {
+   "flow_ratio": {
+    "warn": [
+     1.1,
+     1.106
+    ],
+    "fail": [
+     1.09,
+     1.116
+    ]
+   },
+   "left_share": {
+    "warn": [
+     0.48,
+     0.52
+    ],
+    "fail": [
+     0.44,
+     0.56
+    ]
+   },
+   "side_share_abs_dev_max": {
+    "warn": [
+     0.0,
+     0.02
+    ],
+    "fail": [
+     0.0,
+     0.05
+    ]
+   },
+   "outlet_p_rel_mean": {
+    "warn": [
+     0.03,
+     0.075
+    ],
+    "fail": [
+     0.0,
+     0.09
+    ]
+   },
+   "periodicity_share_abs_max": {
+    "warn": [
+     0.0,
+     0.001
+    ],
+    "fail": [
+     0.0,
+     0.003
+    ]
+   },
+   "periodicity_p_rel_max": {
+    "warn": [
+     0.0,
+     0.02
+    ],
+    "fail": [
+     0.0,
+     0.03
+    ]
+   }
+  },
+  "ILO": {
+   "flow_ratio": {
+    "warn": [
+     1.1,
+     1.106
+    ],
+    "fail": [
+     1.09,
+     1.116
+    ]
+   },
+   "left_share": {
+    "warn": [
+     0.48,
+     0.52
+    ],
+    "fail": [
+     0.44,
+     0.56
+    ]
+   },
+   "side_share_abs_dev_max": {
+    "warn": [
+     0.0,
+     0.02
+    ],
+    "fail": [
+     0.0,
+     0.05
+    ]
+   },
+   "outlet_p_rel_mean": {
+    "warn": [
+     0.03,
+     0.075
+    ],
+    "fail": [
+     0.0,
+     0.09
+    ]
+   },
+   "periodicity_share_abs_max": {
+    "warn": [
+     0.0,
+     0.001
+    ],
+    "fail": [
+     0.0,
+     0.003
+    ]
+   },
+   "periodicity_p_rel_max": {
+    "warn": [
+     0.0,
+     0.02
+    ],
+    "fail": [
+     0.0,
+     0.03
+    ]
+   }
+  },
+  "AG": {
+   "flow_ratio": {
+    "warn": [
+     1.1,
+     1.106
+    ],
+    "fail": [
+     1.09,
+     1.116
+    ]
+   },
+   "left_share": {
+    "warn": [
+     0.48,
+     0.52
+    ],
+    "fail": [
+     0.44,
+     0.56
+    ]
+   },
+   "side_share_abs_dev_max": {
+    "warn": [
+     0.0,
+     0.02
+    ],
+    "fail": [
+     0.0,
+     0.05
+    ]
+   },
+   "outlet_p_rel_mean": {
+    "warn": [
+     0.205,
+     0.26
+    ],
+    "fail": [
+     0.17,
+     0.3
+    ]
+   },
+   "periodicity_share_abs_max": {
+    "warn": [
+     0.0,
+     0.003
+    ],
+    "fail": [
+     0.0,
+     0.006
+    ]
+   },
+   "periodicity_p_rel_max": {
+    "warn": [
+     0.0,
+     0.02
+    ],
+    "fail": [
+     0.0,
+     0.03
+    ]
+   }
+  }
+ },
+ "sanity_gates_note": "2026-09-30 按库内 322 份带 UDF 打印的日志重标定（_protocol_study/sanity_calibration）：warn ≈ p2.5–p97.5、fail ≈ p0.5–p99.5 外扩；v5.2 261 例 242 过 / 10 warn / 9 fail（9 个 fail 全是真缺陷）；AG 出口压力 +21…+25 %（A1 0.028421 设计、入流同 AAA/ILO 波形）单独成门。sanity_gates = 旧的三例单级门（sanity.GATES，回归口径）"
+}

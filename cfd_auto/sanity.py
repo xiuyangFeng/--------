@@ -95,7 +95,10 @@ def frame_stats(work: Path, sub: str, step: int, col: str) -> dict:
     return {"rows": int(len(x)), "nonfinite": bad, "p50": float(np.percentile(v, 50)), "p99": float(np.percentile(v, 99)), "max": float(v.max()), "min": float(v.min())}
 
 
-def check(work: Path, library_refs: list[Path] | None = None) -> dict:
+def check(work: Path, library_refs: list[Path] | None = None, gates: dict | None = None, protocol_q_m3s: float | None = None) -> dict:
+    """``gates`` (managed runs, protocol['sanity_gates']): {metric: {"warn": [lo, hi], "fail": [lo, hi]}} -> values outside
+    'fail' are flags (``ok`` False), outside 'warn' only ``warnings``; default: the single-level ``GATES`` (all flags).
+    ``protocol_q_m3s``: the protocol mean inflow for the flow ratio (default the AAA/ILO value)."""
     work = Path(work)
     rep: dict = {"work": str(work)}
     # exports
@@ -111,7 +114,7 @@ def check(work: Path, library_refs: list[Path] | None = None) -> dict:
     keys = udf.OUTLETS
     q = {k: _q(cyc, k).mean() for k in keys}; tot = sum(q.values())
     share = {k: q[k] / tot for k in keys}
-    rep["flow"] = {"flow_ratio": tot / RHO / PROTOCOL_Q_M3S, "share": share, "left_share": share["outle"] + share["outli"]}
+    rep["flow"] = {"flow_ratio": tot / RHO / (protocol_q_m3s or PROTOCOL_Q_M3S), "share": share, "left_share": share["outle"] + share["outli"]}
     prot = json.loads((work / "protocol_bc.json").read_text()) if (work / "protocol_bc.json").exists() else None
     if prot:
         d3 = {k: (2 * np.sqrt(prot["cut_area_mm2"][k] / np.pi)) ** 3 for k in keys}
@@ -155,10 +158,14 @@ def check(work: Path, library_refs: list[Path] | None = None) -> dict:
     flags = []
     vals = {"flow_ratio": rep["flow"]["flow_ratio"], "left_share": rep["flow"]["left_share"], "side_share_abs_dev_max": rep["flow"].get("side_share_abs_dev_max"),
             "outlet_p_rel_mean": rep["pressure"]["outlet_p_rel_mean"], **{k: rep.get("periodicity", {}).get(k) for k in ("periodicity_share_abs_max", "periodicity_p_rel_max")}}
-    for k, (lo, hi) in GATES.items():
+    warnings = []
+    for k, g in (gates or {k: {"fail": list(v)} for k, v in GATES.items()}).items():
         v = vals.get(k)
+        lo, hi = g["fail"]
         if v is None or not (lo <= v <= hi):
             flags.append(f"{k}={v} outside [{lo}, {hi}]")
+        elif "warn" in g and not (g["warn"][0] <= v <= g["warn"][1]):
+            warnings.append(f"{k}={v} outside warn [{g['warn'][0]}, {g['warn'][1]}]")
     if not rep["exports"]["ok"]:
         flags.append(f"exports {rep['exports']}")
     for f in ("wall_wss_1162", "volume_speed_1162"):
@@ -168,7 +175,9 @@ def check(work: Path, library_refs: list[Path] | None = None) -> dict:
         flags.append(f"last step {last} != 1280")
     if prot and not rep["rcr_R2_positive"]:
         flags.append("protocol R2 <= 0")
-    rep["gates"] = {k: list(v) for k, v in GATES.items()}
+    rep["gates"] = gates if gates is not None else {k: list(v) for k, v in GATES.items()}
+    if gates is not None:
+        rep["warnings"] = warnings
     rep["flags"] = flags
     rep["ok"] = not flags
     return rep

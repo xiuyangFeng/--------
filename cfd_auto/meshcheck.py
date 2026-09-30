@@ -258,3 +258,42 @@ def read_boundary_msh(path) -> tuple[np.ndarray, dict[str, np.ndarray]]:
         if np.all(cnt == 3):
             out[names.get(zid, str(zid))] = fn.reshape(-1, 3)
     return P, out
+
+
+def fluent_quality(log_text: str) -> dict:
+    """Last '/mesh/quality' report of a Fluent solver transcript: minimum orthogonal quality, maximum aspect ratio."""
+    import re
+    oq = re.findall(r"Minimum Orthogonal Quality =\s*([-+0-9.eE]+)", log_text)
+    ar = re.findall(r"Maximum Aspect Ratio =\s*([-+0-9.eE]+)", log_text)
+    return {"min_orthogonal_quality": float(oq[-1]) if oq else None, "max_aspect_ratio": float(ar[-1]) if ar else None}
+
+
+def quality_gate(q: dict, gate_summary_new: dict | None, mesh_proto: dict) -> dict:
+    """Mesh gate of a managed build: boundary layer complete (mode == prism_layers and at least ``bl_full_fraction_min``
+    of the sampled wall faces carry every layer) and Fluent's worst-cell numbers within the fail limits; warnings for the
+    softer limits. (Fluent Meshing silently deletes a prism layer that fails its own check and stops growing: LI_FA_XIANG-1/
+    before 2026-09-29 came out as a tet-only mesh with minimum orthogonal quality 1.3e-4.)"""
+    qp = mesh_proto["quality"]
+    fails, warns = [], []
+    if gate_summary_new is not None:
+        n = int(mesh_proto["prism_layers"])
+        hist = {int(k): v for k, v in gate_summary_new.get("bl_layer_hist", {}).items()}
+        tot = sum(hist.values()) or 1
+        # at least n: in polyhedral meshes the stack walker often continues one or two cells into the core (library
+        # YU_TIAN_HAI: 92.5 % exactly 10, 96.8 % >= 10); a mesh that lost its prisms scores ~0 either way
+        full = sum(v for k, v in hist.items() if k >= n) / tot
+        if gate_summary_new.get("bl_layers_mode") != n or full < mesh_proto["bl_full_fraction_min"]:
+            fails.append(f"boundary layer: mode {gate_summary_new.get('bl_layers_mode')} layers, {full:.3f} of wall faces with >= {n}")
+    oq, ar = q.get("min_orthogonal_quality"), q.get("max_aspect_ratio")
+    if oq is None or ar is None:
+        fails.append("no /mesh/quality report in the log")
+    else:
+        if oq < qp["min_orthogonal_fail"]:
+            fails.append(f"min orthogonal quality {oq:.3g} < {qp['min_orthogonal_fail']}")
+        elif oq < qp["min_orthogonal_warn"]:
+            warns.append(f"min orthogonal quality {oq:.3g} < {qp['min_orthogonal_warn']}")
+        if ar > qp["max_aspect_ratio_fail"]:
+            fails.append(f"max aspect ratio {ar:.3g} > {qp['max_aspect_ratio_fail']}")
+        elif ar > qp["max_aspect_ratio_warn"]:
+            warns.append(f"max aspect ratio {ar:.3g} > {qp['max_aspect_ratio_warn']}")
+    return {**q, "failures": fails, "warnings": warns, "ok": not fails}

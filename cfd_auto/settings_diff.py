@@ -27,6 +27,15 @@ ZONE_FIELDS_EXPECTED = {"parallel-collimated-beam?": "radiation beam flag; radia
                         "pb-qmom-bc": "population-balance BC list; model off", "pb-smm-bc": "population-balance BC list; model off",
                         "tss-scalar": "pollutant-model scalar (listed among pollut_*); model off"}
 SOLUTION_ZONES_RE = re.compile(r"\(solution-zones ([0-9 ]+)\)")
+# rp keys that replace-mesh / case writing flips without effect on this protocol (2026-09-30, library ILO cases)
+RP_EXPECTED = {"dpm/subtet/check-subtet-validity?": "particle-tracking sub-tet check flag; DPM is off in the protocol (no injections)"}
+_NUM_RE = re.compile(r"^\(([-+]?[0-9.]+(?:[eE][-+]?[0-9]+)?)\)$")
+
+
+def _same_number(va: str | None, vb: str | None) -> bool:
+    """'(0.)' vs '(0)': the same number written as float / integer (flow-time of an unrun case)."""
+    ma, mb = _NUM_RE.match(va or ""), _NUM_RE.match(vb or "")
+    return bool(ma and mb and float(ma.group(1)) == float(mb.group(1)))
 
 
 def _norm(v: str | None) -> str | None:
@@ -118,9 +127,13 @@ def compare(ref_case: str | Path, new_case: str | Path, workdir: str | Path, lib
     unexpected, expected = [], []
     for key in sorted(set(a["rp"]) | set(b["rp"])):
         va, vb = _norm(a["rp"].get(key)), _norm(b["rp"].get(key))
-        if va == vb:
+        if va == vb or _same_number(va, vb):
             continue
-        (expected if key.startswith(EXPECTED_PREFIXES) else unexpected).append({"section": "rp", "key": key, "ref": (va or "<absent>")[:300], "new": (vb or "<absent>")[:300]})
+        row = {"section": "rp", "key": key, "ref": (va or "<absent>")[:300], "new": (vb or "<absent>")[:300]}
+        if key in RP_EXPECTED:
+            expected.append({**row, "reason": RP_EXPECTED[key]})
+        else:
+            (expected if key.startswith(EXPECTED_PREFIXES) else unexpected).append(row)
     for key in sorted(set(a["domain"]) | set(b["domain"])):
         va, vb = a["domain"].get(key), b["domain"].get(key)
         if va != vb:

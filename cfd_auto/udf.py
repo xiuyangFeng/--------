@@ -27,10 +27,11 @@ def write_udf(path: str | Path, text: str) -> None:
         fh.write(text)
 
 
-def protocol_rcr(areas_m2: dict[str, float], cohort: str) -> dict[str, dict[str, float]]:
+def protocol_rcr(areas_m2: dict[str, float], cohort: str, a1_kg_s: float | None = None) -> dict[str, dict[str, float]]:
     """Murray r^3 split within each side (le/li, re/ri), half of A1 per side; Rt = P/flow, C = 1.79/Rt,
-    R1 = 13.3/(2r)^0.3/s (r in mm, s in m^2), R2 = Rt - R1."""
-    a1 = A1_KG_S[cohort]
+    R1 = 13.3/(2r)^0.3/s (r in mm, s in m^2), R2 = Rt - R1. ``a1_kg_s`` overrides the cohort's A1 (protocol files;
+    AG: 0.028421 for every unit, with the outlet BOUNDARY-face areas — 2026-09-30 study of 87 AG units, R1/R2/C to 5e-5)."""
+    a1 = A1_KG_S[cohort] if a1_kg_s is None else a1_kg_s
     out = {}
     for ext, inte in (("outle", "outli"), ("outre", "outri")):
         d_mm = {k: 2 * (areas_m2[k] / 3.141592653589793) ** 0.5 * 1e3 for k in (ext, inte)}

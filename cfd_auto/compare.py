@@ -177,7 +177,7 @@ def _case_file(d: Path) -> Path | None:
 
 def compare(ref_dir: Path, new_dir: Path, criteria: str = "v2", ref_log: Path | None = None, ref_case: Path | None = None,
             volume: bool = True, wall_zone: str = "wall", use_ref_case: bool = True) -> dict:
-    stl = sorted(ref_dir.glob("*.stl"))[0]
+    stls = sorted(ref_dir.glob("*.stl"))           # vertex-area weights only; a cfd_auto work dir as reference has none
     hdr, ref = read_export(frame_file(ref_dir, "ascii", PEAK_STEP))
     _, new = read_export(frame_file(new_dir, "ascii", PEAK_STEP))
     col = {h: i for i, h in enumerate(hdr)}
@@ -194,7 +194,7 @@ def compare(ref_dir: Path, new_dir: Path, criteria: str = "v2", ref_log: Path | 
         match["projection_distance_mm_p50_p99_max"] = (np.percentile(dist, [50, 99, 100]) * 1e3).round(4).tolist()
         to_ref = lambda vals_new, _r=rows, _b=bary: sample(vals_new, _r, _b)
     ref_case = ref_case if ref_case is not None else (_case_file(ref_dir) if use_ref_case else None)
-    w = stl_vertex_areas(stl, ref_xyz)
+    w = stl_vertex_areas(stls[0], ref_xyz) if stls else None
     weights_source = "stl"
     rs = None
     if w is None and ref_case is not None:

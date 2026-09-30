@@ -5,7 +5,49 @@ Rebuilds a patient CFD case from its wall STL with the library's protocol (Fluen
 Design notes, the reverse-engineered library protocol, pitfalls and all comparison results:
 `docs/02-推进与变更/04-数据处理与CFD/STL全自动CFD工程cfd_auto_试算_2026-09-27.md`.
 
-## Usage
+## Managed batches (2026-09-30): `orchestrate` + protocol files
+
+One resumable queue from STL (or a library mesh) to checked exports; replaces the hand-made watch / janitor / restage
+scripts of the 2026-09-29 batch. State is on disk, every decision is re-derived from files, so stopping and restarting is
+always safe (`run` again after a logout or a cluster reboot).
+
+```bash
+python -m cfd_auto.orchestrate run    <batch.json> [--interval 120]   # nohup-able loop until every unit is terminal
+python -m cfd_auto.orchestrate tick   <batch.json> [--dry-run]        # one pass
+python -m cfd_auto.orchestrate status <batch.json>
+python -m cfd_auto.orchestrate confirm <batch.json> <unit> --accept | --keys '{"0": "inlet", "1": "outle", ...}'
+python -m cfd_auto.orchestrate retry  <batch.json> <unit> --stage prepare|cfd|post
+python -m cfd_auto.orchestrate release <batch.json> <unit>            # unit held before CFD (spec hold_before_cfd)
+```
+
+Batch file: `{"batch", "protocol", "library", "work_root", "profiles", "resources": {cfd_cores, max_parallel_cfd, ...},
+"units": {unit: spec}, "hooks": [...]}`. A NEW case needs only `{"mode": "stl", "stl": "/abs/path/case.stl"}` under a unit
+id that starts with its cohort (e.g. `AAA/new/CASE`): template, mesh family, density reference, naming (deployment
+proposal + confidence gate), extension rule and direction come from the protocol. Library units take the recover-plan
+specs (`"plan": ".../plan.json"` imports them). Example: `outputs/cfd_auto_trial_20260927/_orch_validation/batch.json`.
+
+Unit states: pending → preparing → ready → cfd → post_pending → post → checked | flagged; side exits
+needs_confirmation (opening names below the protocol confidence: look at `naming.png`, then `confirm`), blocked (set-up
+check failed, e.g. protocol R2 ≤ 0, or mesh gate failed after every repair), held, failed.
+
+What the managed path adds (docs §11): exports only for the kept frames (journal switches Fluent's automatic export
+off until step 1120, then every 2nd step — byte-identical to an unsplit run; 81 + 81 frames instead of 1280 + 1280);
+requeue-safe `fluent.slurm` (clears every output of a previous attempt first; refuses non-work directories); divergence
+read from the transcript (a diverged Fluent run still ends COMPLETED) with the ladder library → gentle (first cycle at
+half step) → dt2 (whole run at half step, relabelled by `cfd_auto.relabel`), early `scancel` of a diverging run; mesh
+repair ladder (+ `/boundary/improve/improve skewness 0.7`, 0.6) behind a boundary-layer / orthogonal-quality /
+aspect-ratio gate; `preflight.json` (R2 > 0, R1/Rt, outlets < 7 mm², oblique cuts, anatomy split estimate calibrated on
+the library, naming confidence); oblique cuts extended along the vessel axis (`extension.direction` auto for new cases;
+library reproduction keeps the cap normal); two-level after-run gates per cohort recalibrated on 322 library runs; AG
+boundary conditions by rule (A1 = 0.028421 kg/s, outlet boundary-face areas); code fingerprint checked by every driver
+(NFS lag); `MANIFEST.json` per unit (STL sha256, protocol, schedule, jobs, gates).
+
+Protocol file `protocols/aortoiliac_rcr4_v1.json`: solver schedule, exported frames, divergence ladder and thresholds,
+opening keys, extension rules, mesh parameters and gates, BC rule per cohort, set-up risk thresholds, settings templates
+for new cases, after-run gates. Another vessel bed = another protocol file plus that bed's settings template and UDF
+template (see docs §11.6 for what a cerebral protocol still needs).
+
+## Usage (single-case CLIs of 2026-09-27/29, unchanged)
 
 ```bash
 # library case -> rebuilt case ready to run (optionally submitted); every stage has a gate and writes a JSON report
@@ -50,7 +92,11 @@ python -m pytest -q cfd_auto/tests
 `slurm.py` (Fluent batch jobs) · `guard.py` (library read-only guard) · `compare.py` (label comparison) ·
 `rebuild.py` (lost-case rebuild) · `recover.py` (protocol recovery of units: own mesh renamed to a template, or STL
 rebuild with calibrated surface density; opening naming by partner centres / rigid registration / deployment proposal) ·
-`sanity.py` (after-run numerical checks, gates calibrated on YU/GUO/YANG).
+`sanity.py` (after-run numerical checks; default gates calibrated on YU/GUO/YANG, `gates=` two-level per protocol) ·
+`protocol.py` + `protocols/*.json` (protocol definitions) · `schedule.py` (run schedules: journal with export window,
+kept frames, requeue-safe Slurm script) · `runlog.py` (transcript health: completed / diverged / diverging / ended early) ·
+`relabel.py` (refined-step runs into the library layout) · `preflight.py` (set-up checks, anatomy split estimate) ·
+`prepare.py` (managed build of one unit) · `orchestrate.py` (batch state machine, drivers, CLI).
 
 ## Requirements and rules
 

@@ -254,12 +254,16 @@ class Extension:
     length_mm: float
     wall_zone: str              # e.g. wall1
     interface_zone: str         # e.g. in+ (the original cap, now internal)
+    direction: np.ndarray | None = None   # sweep direction (outward); None = the cap normal (library)
 
 
 def extend_surface(surf: ClosedSurface, extensions: list[Extension], wall_name: str = "wall") -> tuple[np.ndarray, list[tuple[str, str, np.ndarray]], list[dict]]:
     """Straight flow extensions: each cap's rim is swept along its outward normal (opening-shaped tube, as the
     library's SpaceClaim extensions: constant cross-section, library lengths), the swept cap closes the tube and keeps the
     boundary name; the original cap becomes the internal interface zone. Axial spacing = median rim edge length.
+    An extension with a ``direction`` (vessel axis at an oblique cut, :func:`opening_axis`) is swept along it instead
+    (:func:`_sheared_tube`): the tube's cross-section is the rim projected perpendicular to the axis and the distal cap
+    is perpendicular to the axis, ``length_mm`` beyond the most distal rim point.
     Returns (points_mm, zones [(name, type, faces)], stats)."""
     pts = [surf.points_mm]
     nxt = len(surf.points_mm)
@@ -268,6 +272,12 @@ def extend_surface(surf: ClosedSurface, extensions: list[Extension], wall_name: 
     stats = []
     for ext in extensions:
         cap = caps[ext.opening]
+        if ext.direction is not None:
+            new_pts, side, distal, st = _sheared_tube(np.vstack(pts), cap, ext, nxt)    # every point so far (earlier tubes included)
+            pts.extend(new_pts); nxt += sum(len(x) for x in new_pts)
+            zones += [(ext.wall_zone, "wall", side), (ext.interface_zone, "internal", cap.faces), (cap.name, cap.bc_type, distal)]
+            stats.append(st)
+            continue
         loop = cap.loop; m = len(loop); n = cap.normal
         rim = surf.points_mm[loop]
         h = float(np.median(np.linalg.norm(np.roll(rim, -1, 0) - rim, axis=1)))
@@ -303,6 +313,128 @@ def extend_surface(surf: ClosedSurface, extensions: list[Extension], wall_name: 
         stats.append({"opening": cap.name, "length_mm": ext.length_mm, "axial_segments": N, "axial_spacing_mm": round(ext.length_mm / N, 4),
                       "rim_edge_mm": round(h, 4), "wall_faces": int(len(side)), "wall_zone": ext.wall_zone, "interface_zone": ext.interface_zone})
     return np.vstack(pts), zones, stats
+
+
+def _sheared_tube(points_mm: np.ndarray, cap: Cap, ext: Extension, first_id: int) -> tuple[list[np.ndarray], np.ndarray, np.ndarray, dict]:
+    """Extension swept along ``ext.direction`` d from an oblique cut: rim point p_i (axial coordinate a_i = (p_i - c) . d)
+    travels s (L + a_max - a_i) along d at ring s in [0, 1], so every generator is parallel to d, the last ring is planar and
+    perpendicular to d at a_max + L, and the tube cross-section is the rim projected perpendicular to d (for a round
+    vessel cut obliquely: its true circular section). The distal cap is a new planar triangulation of the last ring."""
+    loop = cap.loop; m = len(loop)
+    if len(points_mm) != first_id:
+        raise ValueError("points_mm must hold every point created so far (ids continue at first_id)")
+    d = np.asarray(ext.direction, float); d = d / np.linalg.norm(d)
+    if float(d @ cap.normal) <= 0:
+        raise ValueError(f"{cap.name}: sweep direction points into the anatomy")
+    rim = points_mm[loop]
+    a = (rim - rim.mean(0)) @ d
+    travel = ext.length_mm + a.max() - a
+    h = float(np.median(np.linalg.norm(np.roll(rim, -1, 0) - rim, axis=1)))
+    N = max(1, int(round(travel.max() / h)))
+    new_pts, rings, nxt = [], [loop], first_id
+    for j in range(1, N + 1):
+        new_pts.append(rim + (j / N) * travel[:, None] * d); rings.append(nxt + np.arange(m)); nxt += m
+    side = []
+    for j in range(N):
+        a0, b0 = rings[j], rings[j + 1]
+        a1, b1 = np.roll(a0, -1), np.roll(b0, -1)
+        side += [np.c_[a0, a1, b1], np.c_[a0, b1, b0]] if j % 2 == 0 else [np.c_[a0, a1, b0], np.c_[a1, b1, b0]]
+    side = np.vstack(side)
+    allp = np.vstack([points_mm] + new_pts)
+    v = allp[side]; nrm = np.cross(v[:, 1] - v[:, 0], v[:, 2] - v[:, 0]); cen = v.mean(1)
+    axis_pt = rim.mean(0) + ((cen - rim.mean(0)) @ d)[:, None] * d
+    if np.mean(np.einsum("ij,ij->i", nrm, cen - axis_pt) > 0) < 0.5:
+        side = side[:, ::-1]
+    cap_pts, distal, cst = cap_loop(allp, rings[-1], nxt)
+    new_pts.append(cap_pts)
+    w = np.vstack([allp, cap_pts])[distal]
+    if float(np.cross(w[:, 1] - w[:, 0], w[:, 2] - w[:, 0]).sum(0) @ d) < 0:
+        distal = distal[:, ::-1]
+    cos = float(d @ cap.normal)
+    st = {"opening": cap.name, "length_mm": ext.length_mm, "direction": d.round(6).tolist(), "angle_to_cap_normal_deg": round(float(np.degrees(np.arccos(min(1.0, cos)))), 3),
+          "axial_segments": N, "rim_edge_mm": round(h, 4), "wall_faces": int(len(side)), "wall_zone": ext.wall_zone, "interface_zone": ext.interface_zone,
+          "cut_area_mm2": round(cap.area_mm2, 4), "distal_area_mm2": round(cst["area_mm2"], 4), "distal_planarity_mm": round(cst["planarity_mm"], 6)}
+    return new_pts, side, distal, st
+
+
+def _polyline_components(points: np.ndarray, lines: np.ndarray) -> list[tuple[np.ndarray, bool]]:
+    """Connected components of a VTK line/polyline cell array: (segments (k, 2) point ids, closed = every point of degree 2)."""
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
+    segs, i = [], 0
+    while i < len(lines):
+        n = int(lines[i]); ids = lines[i + 1:i + 1 + n]; i += n + 1
+        segs += [(ids[j], ids[j + 1]) for j in range(n - 1)]
+    if not segs:
+        return []
+    segs = np.asarray(segs, np.int64)
+    n = len(points)
+    _, lab = connected_components(coo_matrix((np.ones(len(segs)), (segs[:, 0], segs[:, 1])), shape=(n, n)), directed=False)
+    deg = np.bincount(segs.ravel(), minlength=n)
+    out = []
+    for c in np.unique(lab[segs[:, 0]]):
+        s = segs[lab[segs[:, 0]] == c]
+        out.append((s, bool(np.all(deg[np.unique(s)] == 2))))
+    return out
+
+
+def opening_axis(points_mm: np.ndarray, wall_faces: np.ndarray, cap: Cap, start_d: float = 0.6, depth_d: float = 2.0, n_slices: int = 5,
+                 iterations: int = 2) -> dict:
+    """Vessel axis at an opening (outward unit vector): cross-sections of the wall perpendicular to the current axis
+    estimate, marching inward from the cut centre over ``start_d``..``depth_d`` equivalent diameters; the axis is the
+    principal direction of their centroids and the cut's area centroid (which lies on the axis of a round vessel cut at
+    any angle). A section that is open, far off-centre or much larger than the cut (bifurcation, aneurysm sac) ends the
+    march. Falls back to the cap normal with fewer than two sections."""
+    import pyvista as pv
+    poly = pv.PolyData(points_mm, np.hstack([np.full((len(wall_faces), 1), 3), wall_faces]).ravel())
+    rim = points_mm[cap.loop]
+    c0 = rim.mean(0)
+    fan = np.cross(rim - c0, np.roll(rim, -1, 0) - c0)
+    w = np.linalg.norm(fan, axis=1)
+    c0 = ((rim + np.roll(rim, -1, 0) + c0) / 3 * w[:, None]).sum(0) / w.sum()      # area centroid of the rim polygon
+    D = 2 * np.sqrt(cap.area_mm2 / np.pi)
+    perim = float(np.linalg.norm(np.roll(rim, -1, 0) - rim, axis=1).sum())
+    axis = cap.normal.copy()
+    cents = []
+    for _ in range(iterations):
+        cents = []
+        for t in np.linspace(start_d * D, depth_d * D, n_slices):
+            origin = c0 - axis * t
+            sl = poly.slice(normal=axis, origin=origin)
+            if sl.n_points < 3:
+                break
+            best = None
+            for segs, closed in _polyline_components(np.asarray(sl.points), np.asarray(sl.lines)):
+                seg = np.asarray(sl.points)[segs]; L = np.linalg.norm(seg[:, 1] - seg[:, 0], axis=1)
+                cen = (seg.mean(1) * L[:, None]).sum(0) / L.sum()
+                dist = float(np.linalg.norm(cen - origin))
+                if best is None or dist < best[0]:
+                    best = (dist, cen, closed, float(L.sum()))
+            if best is None or not best[2] or best[0] > 0.5 * D or best[3] > 1.6 * perim:
+                break
+            cents.append(best[1])
+        if len(cents) < 2:
+            return {"axis": cap.normal.tolist(), "angle_deg": 0.0, "sections": len(cents), "fallback": True}
+        X = np.vstack([c0] + cents)
+        _, _, vt = np.linalg.svd(X - X.mean(0))
+        axis = vt[0] if vt[0] @ cap.normal > 0 else -vt[0]
+    ang = float(np.degrees(np.arccos(np.clip(axis @ cap.normal, -1, 1))))
+    return {"axis": axis.round(6).tolist(), "angle_deg": round(ang, 3), "sections": len(cents), "fallback": False, "diameter_mm": round(float(D), 3),
+            "centroid_offsets_mm": [round(float(np.linalg.norm(np.cross(c - c0, axis))), 3) for c in cents]}
+
+
+def extension_directions(surf: ClosedSurface, mode: str, oblique_deg: float) -> dict[str, dict]:
+    """Per cap: the sweep direction for ``mode`` 'normal' (None), 'axis' (always the vessel axis) or 'auto' (the axis when
+    it is more than ``oblique_deg`` off the cap normal)."""
+    out = {}
+    for c in surf.caps:
+        if mode == "normal":
+            out[c.name] = {"direction": None, "mode": mode}
+            continue
+        ax = opening_axis(surf.points_mm, surf.wall_faces, c)
+        use = mode == "axis" or (mode == "auto" and ax["angle_deg"] > oblique_deg)
+        out[c.name] = {**ax, "mode": mode, "direction": ax["axis"] if use and not ax["fallback"] else None}
+    return out
 
 
 def check_regions(points_mm: np.ndarray, zones: list[tuple[str, str, np.ndarray]], extensions: list[Extension], wall_name: str = "wall") -> dict:

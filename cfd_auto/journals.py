@@ -15,11 +15,14 @@ def _finish(lines: list[str], workdir: Path) -> str:
 
 
 def meshing(workdir: Path, surface: Path, walls: list[str], all_zones: list[str], out_mesh: Path, n_layers: int = 10,
-            first_aspect_ratio: float = 20, growth: float = 1.2, tet_volume_growth: float = 1.2) -> str:
+            first_aspect_ratio: float = 20, growth: float = 1.2, tet_volume_growth: float = 1.2, improve_skew: float | None = None) -> str:
     """Boundary mesh -> prisms (aspect-ratio offsets, geometric growth) on every wall + tet fill; one cell zone per region
-    (``merge cell zones? yes`` puts each region's prisms into its tet zone and folds the prism side quads into the caps)."""
+    (``merge cell zones? yes`` puts each region's prisms into its tet zone and folds the prism side quads into the caps).
+    ``improve_skew``: wall-face skewness improvement before the prisms (managed repair ladder; moves STL nodes)."""
+    improve = [f"/boundary/improve/improve ({' '.join(walls)}) skewness {improve_skew:g} 180 5 no"] if improve_skew else []
     return _finish([
         f"/file/read-boundary-mesh {surface}",
+        *improve,
         f"/boundary/check-boundary-mesh ({' '.join(all_zones)})",
         "/boundary/manage/list",
         f"/mesh/prism/controls/zone-specific-growth/apply-growth ({' '.join(walls)}) aspect-ratio geometric {n_layers} {first_aspect_ratio:g} {growth:g} no",
@@ -60,6 +63,45 @@ def meshing_poly(workdir: Path, surface: Path, walls: list[str], all_zones: list
         f"/mesh/tet/controls/cell-sizing geometric {tet_volume_growth:g}",
         '/mesh/auto-mesh "" zone-specific pyramids tet yes yes',
         "/mesh/manage/list",
+        f"/file/write-mesh {out_mesh}",
+        "/exit yes",
+    ], workdir)
+
+
+def meshing_polyhexcore(workdir: Path, surface: Path, walls: list[str], all_zones: list[str], out_mesh: Path, min_size: float, max_size: float,
+                        size_growth: float = 1.2, curvature_angle: float = 18, n_layers: int = 10, first_aspect_ratio: float = 20, growth: float = 1.2,
+                        improve_skew: float | None = None, buffer_layers: int = 2, peel_layers: int = 2, object_name: str = "anatomy", **_) -> str:
+    """The library P family as the operator built it: curvature remesh, then a mesh OBJECT over all zones (6 fluid
+    volumetric regions), SCOPED aspect-ratio prisms on the walls, poly-hexcore fill (2026-09-30 probe on v231,
+    ``_protocol_study/poly_probe``; poly / poly-hexcore fills exist only for object-based meshing with scoped prisms, which
+    is why ``auto-mesh ""`` with zone-specific prisms never offered them). The size field is deleted after the remesh so
+    the octree refines to the surface sizes (finest hex = ``min_size``; YU_TIAN_HAI library levels 0.5 / 1 / 2 mm ->
+    min 0.5 mm). Cell zones come out as ``<object>`` and ``<object>:1..5`` (renamed by the finalize stage). Every
+    prompt of /objects/create and /mesh/scoped-prisms/create is answered on its own line (v231 prompt order)."""
+    zones = f"({' '.join(all_zones)})"
+    improve = [f"/boundary/improve/improve ({' '.join(walls)}) skewness {improve_skew:g} 180 5 no"] if improve_skew else []
+    return _finish([
+        f"/file/read-boundary-mesh {surface}",
+        f"/size-functions/set-global-controls {min_size:g} {max_size:g} {size_growth:g}",
+        f"/size-functions/create curvature face {zones} sf-curv {min_size:g} {max_size:g} {size_growth:g} {curvature_angle:g}",
+        "/size-functions/compute",
+        f"/boundary/remesh/remesh-face-zones-conformally {zones} () 40 20 yes",
+        "/boundary/manage/delete (*-orig-*) yes",
+        "/size-functions/delete",
+        *improve,
+        f"/boundary/mark-face-intersection {zones} 56",
+        "/boundary/manage/list",
+        "/objects/create", object_name, "fluid", "3", zones, "()", "mesh", "yes",
+        "/objects/volumetric-regions/compute", object_name, "no",
+        f"/objects/volumetric-regions/list {object_name} (*)",
+        "/mesh/scoped-prisms/create", "bl", "aspect-ratio", f"{first_aspect_ratio:g}", f"{n_layers:d}", f"{growth:g}", object_name, "fluid-regions", "only-walls",
+        "/mesh/scoped-prisms/list",
+        f"/mesh/hexcore/controls/buffer-layers {buffer_layers:d}",
+        f"/mesh/hexcore/controls/peel-layers {peel_layers:d}",
+        "/mesh/poly-hexcore/controls/mark-core-region-cell-type-as-hex? yes",
+        "/mesh/auto-mesh", object_name, "no", "scoped", "pyramids", "poly-hexcore", "yes",
+        "/mesh/manage/list",
+        "/mesh/check-mesh",
         f"/file/write-mesh {out_mesh}",
         "/exit yes",
     ], workdir)
@@ -115,12 +157,14 @@ def setup(workdir: Path, reference_copy: Path, mesh_case: Path, case_out: Path) 
     ], workdir)
 
 
-def smoke(workdir: Path, case: Path) -> str:
-    """Solver: read the final case (auto-compiles libudf), report zones, BCs and mesh check; nothing is written."""
+def smoke(workdir: Path, case: Path, quality: bool = False) -> str:
+    """Solver: read the final case (auto-compiles libudf), report zones, BCs and mesh check (``quality``: also the
+    worst-cell report for the managed mesh gate); nothing is written."""
     return _finish([
         f"/file/read-case {case}",
         "/mesh/modify-zones/list-zones",
         "/mesh/check",
+        *(["/mesh/quality"] if quality else []),
         "/define/boundary-conditions/list-zones",
         "/exit yes",
     ], workdir)

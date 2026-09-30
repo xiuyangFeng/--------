@@ -144,14 +144,36 @@ def cut_areas(case: Path, key_zone: dict[str, str]) -> dict[str, float]:
     return {k: float(by[z]) for k, z in key_zone.items()}
 
 
-def protocol_udf_text(tprof: dict, case: Path, unit: str) -> tuple[str, dict]:
-    areas = cut_areas(case, tprof["udf_thread_zones"])
-    rcr = udf.protocol_rcr(areas, cohort(unit))
+def bc_areas(case: Path, key_zone: dict[str, str]) -> dict[str, float]:
+    """Area (m^2) of each outlet's BOUNDARY zone (the extension's distal face; the AG protocol's area)."""
+    import numpy as np
+    from wss_pinn.v4.fluent_topology import read_fluent_mesh
+    m = read_fluent_mesh(case, keep_interior=False)
+    out = {}
+    for k, z in key_zone.items():
+        a = [float(np.linalg.norm(m.face_geometry(s)[1], axis=1).sum()) for s in m.face_sections if m.zone_name(s.zone_id) == z]
+        if len(a) != 1:
+            raise RuntimeError(f"outlet zone {z!r}: {len(a)} face sections")
+        out[k] = a[0]
+    return out
+
+
+def protocol_areas(case: Path, key_zone: dict[str, str], area_source: str = "cut") -> dict[str, float]:
+    return cut_areas(case, key_zone) if area_source == "cut" else bc_areas(case, key_zone)
+
+
+def protocol_udf_text(tprof: dict, case: Path, unit: str, cohort_name: str | None = None, area_source: str = "cut", a1_kg_s: float | None = None) -> tuple[str, dict]:
+    coh = cohort_name or cohort(unit)
+    areas = protocol_areas(case, tprof["udf_thread_zones"], area_source)
+    rcr = udf.protocol_rcr(areas, coh, a1_kg_s)
     text = udf.render(udf.read_udf(tprof["udf"]), tprof["udf_constants"]["threads"], rcr=rcr)
-    return text, {"cut_area_mm2": {k: round(v * 1e6, 4) for k, v in areas.items()}, "rcr": rcr, "cohort": cohort(unit), "A1_kg_s": udf.A1_KG_S[cohort(unit)]}
+    out = {"cut_area_mm2": {k: round(v * 1e6, 4) for k, v in areas.items()}, "rcr": rcr, "cohort": coh, "A1_kg_s": udf.A1_KG_S[coh] if a1_kg_s is None else a1_kg_s}
+    if area_source != "cut":            # keep the key name the checks read; record which faces it means
+        out.update(area_source=area_source, cut_face_area_mm2={k: round(v * 1e6, 4) for k, v in cut_areas(case, tprof["udf_thread_zones"]).items()})
+    return text, out
 
 
-def check_final_udf(work: Path, tprof: dict, final: Path, unit: str) -> dict:
+def check_final_udf(work: Path, tprof: dict, final: Path, unit: str, cohort_name: str | None = None, area_source: str = "cut", a1_kg_s: float | None = None) -> dict:
     """The UDF next to the final case: thread ids = final zone ids, inlet divisor = final inlet area, RCR = protocol on
     the final cut faces."""
     from wss_pinn.v4.fluent_topology import read_fluent_mesh
@@ -159,7 +181,7 @@ def check_final_udf(work: Path, tprof: dict, final: Path, unit: str) -> dict:
     m = read_fluent_mesh(final, keep_interior=False)
     ids = {m.zone_name(z): int(z) for z in m.zone_names}
     want_ids = {k: ids[z] for k, z in tprof["udf_thread_zones"].items()}
-    rcr = udf.protocol_rcr(cut_areas(final, tprof["udf_thread_zones"]), cohort(unit))
+    rcr = udf.protocol_rcr(protocol_areas(final, tprof["udf_thread_zones"], area_source), cohort_name or cohort(unit), a1_kg_s)
     worst = max(abs(c["rcr"][k][n] / rcr[k][n] - 1) for k in KEYS for n in ("R1", "R2", "C"))
     a_in = pipeline.inlet_bc_area(m, tprof)
     out = {"threads_ok": c["threads"] == want_ids, "threads": c["threads"], "inlet_divisor_rel": c["inlet_area_m2"] / a_in - 1,

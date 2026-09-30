@@ -43,12 +43,16 @@ def stage_surface(case_dir: Path, work: Path, prof: dict, stl_path: Path | None 
     loops = surface.boundary_loops(wall)
     names = surface.name_caps_by_reference(np.array([pts[l].mean(0) for l in loops]), prof["openings"])
     surf, cap_stats = surface.close_surface(stl[0], names)
-    exts = [surface.Extension(e["opening"], e["length_mm"], e["wall_zone"], e["interface_zone"][0]) for e in prof["extensions"]]
+    # an optional per-extension "direction" (managed builds of oblique cuts, surface.extension_directions); absent = cap normal
+    exts = [surface.Extension(e["opening"], e["length_mm"], e["wall_zone"], e["interface_zone"][0], np.asarray(e["direction"], float) if e.get("direction") is not None else None)
+            for e in prof["extensions"]]
     P, zones, ext_stats = surface.extend_surface(surf, exts)
     check = surface.check_regions(P, zones, exts)
     info = surface.write_fluent_zones(P, zones, work / "surface_extended.msh.gz")
     rep = {"stl": str(stl[0]), "wall_nodes_equal_stl": bool(np.array_equal(surf.points_mm[: surf.n_wall_nodes], pts)), "self_intersection_repair": surf.repair, "caps": cap_stats,
            "extensions": ext_stats, "regions": check, "boundary_mesh": info}
+    if prof.get("extension_directions"):
+        rep["extension_directions"] = prof["extension_directions"]
     _dump(work / "surface_report.json", rep)
     if not check["ok"]:
         raise RuntimeError(f"surface gate failed: {check}")
@@ -64,10 +68,15 @@ def stage_mesh(case_dir: Path, work: Path, surf: dict, prof: dict, mesh_params: 
     if prof["family"] == "poly":
         est = prof["poly_mesh_estimate"]
         params = {"min_size": est["min_size_mm"] * 1e-3, "max_size": est["max_size_mm"] * 1e-3, **(mesh_params or {})}
-        jou.write_text(journals.meshing_poly(work, work / "surface_extended.msh.gz", surf["walls"], surf["zones"], out, **params))
+        # volume_fill "poly-hexcore" (managed builds that ask for it): the operator's cell type; default tet (09-28 regression)
+        fill = params.pop("volume_fill", "tet")
+        build = journals.meshing_polyhexcore if fill == "poly-hexcore" else journals.meshing_poly
+        jou.write_text(build(work, work / "surface_extended.msh.gz", surf["walls"], surf["zones"], out, **params))
+        params["volume_fill"] = fill
     else:
-        params = {}
-        jou.write_text(journals.meshing(work, work / "surface_extended.msh.gz", surf["walls"], surf["zones"], out))
+        # tet-prism: the STL facets are the wall; only prism/tet controls and the managed repair option apply
+        params = {k: v for k, v in (mesh_params or {}).items() if k in ("n_layers", "first_aspect_ratio", "growth", "tet_volume_growth", "improve_skew")}
+        jou.write_text(journals.meshing(work, work / "surface_extended.msh.gz", surf["walls"], surf["zones"], out, **params))
     slurm.run(work, jou, mode="meshing", ntasks=4, time_limit="02:00:00")
     new = read_fluent_mesh(out, keep_interior=True)
     new_mask = new.cell_zone_array() == _zone_adjacent_to(new, wall)
@@ -121,6 +130,7 @@ def stage_setup(case_dir: Path, work: Path, prof: dict, mesh_case: Path, case_na
     from wss_pinn.v4.fluent_topology import read_fluent_mesh
     template = refcase.find_case_file(case_dir).name.split(".cas")[0]
     copy = refcase.copy_for_fluent(case_dir, work, rename_to=case_name if case_name != template else None)
+    export_fix = refcase.fix_export_layout(copy["copy"], work)      # no-op unless the template's exports collide / miss ascii/
     ref_udf = udf_text if udf_text is not None else udf.read_udf(prof["udf"])
     udf_name = Path(prof["udf"]).name            # the case's compile list names this file; auto-compile looks for it next to the case
     zones_of = udf_zones or prof["udf_thread_zones"]
@@ -145,7 +155,8 @@ def stage_setup(case_dir: Path, work: Path, prof: dict, mesh_case: Path, case_na
     diff = settings_diff.compare(Path(copy["copy"]), final, work, case_dir)
     _dump(work / "settings_diff.json", {**diff, "thread_ids": tid, "thread_zones": zones_of, "udf_file": udf_name,
                                          "inlet_area_m2": {"udf_source": refcase.parse_udf(ref_udf)["inlet_area_m2"], "mesh": inlet_area},
-                                         "udf_identical_to_source": udf.read_udf(work / udf_name) == ref_udf, "paths_rewritten": copy["paths_rewritten"]})
+                                         "udf_identical_to_source": udf.read_udf(work / udf_name) == ref_udf, "paths_rewritten": copy["paths_rewritten"],
+                                         "export_layout_fix": export_fix})
     if diff["unexpected"]:
         raise RuntimeError(f"settings gate failed: {diff['unexpected'][:3]}")
     return final
@@ -160,14 +171,15 @@ def inlet_bc_area(mesh, prof: dict) -> float:
     return area[0]
 
 
-def stage_smoke(work: Path, final: Path) -> None:
+def stage_smoke(work: Path, final: Path, quality: bool = False) -> Path:
     jou = work / "smoke.jou"
-    jou.write_text(journals.smoke(work, final))
+    jou.write_text(journals.smoke(work, final, quality=quality))
     log = slurm.run(work, jou, ntasks=4)
     text = log.read_text(errors="replace")
     hooks = [h for h in UDF_HOOKS if re.search(rf"^\s+{h}\s*$", text, re.M)]
     if len(hooks) != len(UDF_HOOKS):
         raise RuntimeError(f"smoke: UDF hooks loaded {hooks}")
+    return log
 
 
 def stage_run_files(case_dir: Path, work: Path, final: Path, cores: int, slurm_from: Path | None = None) -> None:

@@ -130,3 +130,45 @@ def copy_for_fluent(case_dir: str | Path, workdir: str | Path, dest_name: str = 
     with gzip.open(dest, "wb", compresslevel=6) as fh:
         fh.write(data)
     return {"source": str(cas), "copy": str(dest), "paths_rewritten": replaced}
+
+
+def fix_export_layout(case_copy: str | Path, workdir: str | Path) -> dict:
+    """The library layout needs the wall export in ``<work>/ascii/<name>`` and the volume export in ``<work>/<name>``.
+    Some library cases write both to the same file name (ILO/ZHANG_YAN_SHAN-0/before since its 09-04 re-save): Fluent then
+    skips the second export of every step (it never overwrites), so a rerun produces no wall frames. Rewrites, in the
+    work-directory copy only, the file-name of an export with surfaces that shares its name with another export or does
+    not write into ascii/. Returns what was changed (empty when the layout is already right)."""
+    from cfd_auto import settings_diff
+    case_copy, workdir = Path(case_copy), Path(workdir)
+    guard.assert_inside(case_copy, workdir)
+    data = gzip.open(case_copy, "rb").read() if case_copy.suffix == ".gz" else case_copy.read_bytes()
+    exports = settings_diff._exports(settings_diff.sections(settings_diff.case_text(case_copy))["rp"])
+    names = {k: re.findall(r'"([^"]*)"', v.get("file-name", "")) for k, v in exports.items()}
+    names = {k: v[0] for k, v in names.items() if v}
+    changed = []
+    for k, e in exports.items():
+        if e.get("surfaces", "()") in ("()", "") or k not in names:
+            continue
+        fn = names[k]
+        clash = any(o != k and names.get(o) == fn for o in names)
+        if "/ascii/" in fn and not clash:
+            continue
+        new = str(workdir / "ascii" / Path(fn).name)
+        start = data.find(b"(" + k.encode() + b" (")
+        if start < 0:
+            raise RuntimeError(f"export {k}: definition not found in the case text")
+        old_b = b'(file-name . "' + fn.encode() + b'")'
+        j = data.find(old_b, start)
+        if j < 0 or j - start > 20000:
+            raise RuntimeError(f"export {k}: file-name not found near its definition")
+        data = data[:j] + b'(file-name . "' + new.encode() + b'")' + data[j + len(old_b):]
+        changed.append({"export": k, "from": fn, "to": new, "reason": "shared file name" if clash else "wall export outside ascii/"})
+    if changed:
+        with gzip.open(case_copy, "wb", compresslevel=6) as fh:
+            fh.write(data)
+        after = settings_diff._exports(settings_diff.sections(settings_diff.case_text(case_copy))["rp"])
+        for c in changed:
+            got = re.findall(r'"([^"]*)"', after[c["export"]]["file-name"])[0]
+            if got != c["to"]:
+                raise RuntimeError(f"export {c['export']}: rewrite did not take ({got})")
+    return {"changed": changed}
