@@ -1,0 +1,926 @@
+{
+  "audit_date": "2026-09-28",
+  "scope": "Existing deployment jobs, no rerun or CFD/test metrics; historical timings are observational, not paired speed benchmarks.",
+  "jobs": [
+    {
+      "path": "outputs/wss_deploy_jobs/20260920_174150_e0502f7ea512/summary.json",
+      "sha256": "367ffffd94e94cd9d7ab93962b4cb88e27d3c6d76625d7e8c1426810be162d4c",
+      "job_id": "20260920_174150_e0502f7ea512",
+      "release": "PF6_VF6_peak_3seed_20260920",
+      "device": "cuda",
+      "cloud": {
+        "n_wall": 76426,
+        "n_internal": 20000,
+        "spacing_mm": 0.5
+      },
+      "timing_s": {
+        "ingest": 0.13,
+        "centerline": 3.34,
+        "smooth_resample": 12.62,
+        "volume_features": 21.32,
+        "inference_volume": 0.67,
+        "streamlines_and_interpolation": 2.42,
+        "export": 0.39,
+        "total": 40.89,
+        "morphology": 1.68
+      },
+      "geometry_cache": null,
+      "seconds_per_model": [
+        0.13272531586699188,
+        0.11952338786795735,
+        0.11922911484725773,
+        0.10454493411816657,
+        0.09743779595009983,
+        0.09055511793121696
+      ],
+      "source_job_id": null,
+      "precompute": null,
+      "clock": {
+        "created_ts": 1789897310.6026952,
+        "finished_ts": 1789897359.7654366,
+        "compute_seconds": 43.79089689254761,
+        "attempt_seconds": null,
+        "confirmation_seconds": 5.145900249481201,
+        "queue_seconds": 0.22590899467468262
+      },
+      "events": [
+        {
+          "at": "2026-09-20T17:41:50+08:00",
+          "action": "created",
+          "stage": "A"
+        },
+        {
+          "at": "2026-09-20T17:41:50+08:00",
+          "action": "started",
+          "stage": "A"
+        },
+        {
+          "at": "2026-09-20T17:41:50+08:00",
+          "action": "progress",
+          "stage": "A",
+          "phase": "ingest",
+          "detail": "正在读取并检查 STL"
+        },
+        {
+          "at": "2026-09-20T17:41:50+08:00",
+          "action": "progress",
+          "stage": "A",
+          "phase": "centerline",
+          "detail": "正在提取中心线和开口"
+        },
+        {
+          "at": "2026-09-20T17:41:54+08:00",
+          "action": "finished",
+          "stage": "A"
+        },
+        {
+          "at": "2026-09-20T17:41:59+08:00",
+          "action": "outlets_confirmed",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-20T17:41:59+08:00",
+          "action": "started",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-20T17:42:01+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "geometry",
+          "detail": "正在构建壁面支持点和封闭管腔"
+        },
+        {
+          "at": "2026-09-20T17:42:13+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "features",
+          "detail": "正在生成管腔内部采样点和 PF6 / VF6 特征"
+        },
+        {
+          "at": "2026-09-20T17:42:35+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "inference",
+          "detail": "正在分别预测相对压力与体内速度"
+        },
+        {
+          "at": "2026-09-20T17:42:36+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在积分体内稳态流线并汇总压力与速度"
+        },
+        {
+          "at": "2026-09-20T17:42:39+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "export",
+          "detail": "正在导出体场、壁面压力、流线和交互截面报告"
+        },
+        {
+          "at": "2026-09-20T17:42:39+08:00",
+          "action": "finished",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-23T21:31:24+08:00",
+          "action": "restored",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-24T03:23:40-07:00",
+          "action": "owner_claimed",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-26T21:19:32+08:00",
+          "action": "analysis_rebuilt",
+          "stage": "B"
+        }
+      ]
+    },
+    {
+      "path": "outputs/wss_deploy_jobs/20260922_173705_27065942b465/summary.json",
+      "sha256": "b0000b55e733c2a1a5b3afcdf85fd7d952b8535147cf6d4a00afff786797064f",
+      "job_id": "20260922_173705_27065942b465",
+      "release": "M1_3head_3seed_20260922",
+      "device": "cuda",
+      "cloud": {
+        "n_points": 76426,
+        "spacing_mm": 0.4960934075563731,
+        "smooth_mm": 1.0,
+        "surface_variation_median": 0.0005027543550517125,
+        "junction_ambiguous_fraction": 0.02590741370737707
+      },
+      "timing_s": {
+        "ingest": 0.13,
+        "centerline": 3.34,
+        "smooth_resample": 18.85,
+        "features": 12.01,
+        "inference_5_models": 4.6,
+        "metrics_and_interpolation": 0.2,
+        "morphology": 1.67,
+        "export": 1.01,
+        "total": 41.69
+      },
+      "geometry_cache": null,
+      "seconds_per_model": [
+        2.22,
+        1.18,
+        1.19
+      ],
+      "source_job_id": "20260920_174150_e0502f7ea512",
+      "precompute": null,
+      "clock": {
+        "created_ts": 1790069826.0669692,
+        "finished_ts": 1790069874.706441,
+        "compute_seconds": 48.246750354766846,
+        "attempt_seconds": 48.246750354766846,
+        "confirmation_seconds": null,
+        "queue_seconds": 0.392531156539917
+      },
+      "events": [
+        {
+          "at": "2026-09-22T17:37:06+08:00",
+          "action": "rerun_created",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-22T17:37:06+08:00",
+          "action": "started",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-22T17:37:14+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "geometry",
+          "detail": "正在平滑表面并重采样"
+        },
+        {
+          "at": "2026-09-22T17:37:33+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "features",
+          "detail": "正在构建 27 维几何特征"
+        },
+        {
+          "at": "2026-09-22T17:37:45+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "inference",
+          "detail": "正在运行五模型集成"
+        },
+        {
+          "at": "2026-09-22T17:37:50+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在汇总预测点云统计"
+        },
+        {
+          "at": "2026-09-22T17:37:50+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在测量沿程管腔截面与瘤体形态"
+        },
+        {
+          "at": "2026-09-22T17:37:53+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "export",
+          "detail": "正在写入 CSV、VTP 和 HTML 报告"
+        },
+        {
+          "at": "2026-09-22T17:37:54+08:00",
+          "action": "finished",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-24T03:23:40-07:00",
+          "action": "owner_claimed",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-26T21:19:37+08:00",
+          "action": "analysis_rebuilt",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T11:53:20+08:00",
+          "action": "findings_review_updated",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T11:53:21+08:00",
+          "action": "findings_review_updated",
+          "stage": "B"
+        }
+      ]
+    },
+    {
+      "path": "outputs/wss_deploy_jobs/20260927_145732_67eba52ab03c/summary.json",
+      "sha256": "9c676ab4f19195da891592f7c23063b9cdd74e0326a08400ccfaefc8f91f0791",
+      "job_id": "20260927_145732_67eba52ab03c",
+      "release": "M1_3head_3seed_20260922",
+      "device": "cuda",
+      "cloud": {
+        "n_points": 57952,
+        "spacing_mm": 0.49862362874525457,
+        "smooth_mm": 1.0,
+        "surface_variation_median": 0.0009944327840307188,
+        "junction_ambiguous_fraction": 0.03178492545554942
+      },
+      "timing_s": {
+        "ingest": 0.11,
+        "centerline": 3.51,
+        "smooth_resample": 0.0,
+        "features": 0.73,
+        "inference_5_models": 3.26,
+        "metrics_and_interpolation": 0.21,
+        "morphology": 0.01,
+        "export": 0.83,
+        "total": 8.67
+      },
+      "geometry_cache": {
+        "enabled": true,
+        "reused": [
+          "mesh",
+          "morph",
+          "morphvol",
+          "pointgeom",
+          "resample"
+        ],
+        "computed": []
+      },
+      "seconds_per_model": [
+        1.54,
+        1.0,
+        0.71
+      ],
+      "source_job_id": null,
+      "precompute": {
+        "status": "done",
+        "seconds": 5.45,
+        "finished_at": "2026-09-27T14:57:42+08:00",
+        "ok": true,
+        "cancelled": false,
+        "steps": [
+          "mesh",
+          "resample",
+          "point_geometry",
+          "morphology"
+        ],
+        "timing_s": {
+          "smooth_resample": 2.62,
+          "features": 1.31,
+          "morphology": 1.47
+        },
+        "family": "wall"
+      },
+      "clock": {
+        "created_ts": 1790492252.291042,
+        "finished_ts": 1790492272.7562594,
+        "compute_seconds": 9.860628366470337,
+        "attempt_seconds": 5.652662515640259,
+        "confirmation_seconds": 9.838079929351807,
+        "queue_seconds": 0.7668313980102539
+      },
+      "events": [
+        {
+          "at": "2026-09-27T14:57:32+08:00",
+          "action": "created",
+          "stage": "A"
+        },
+        {
+          "at": "2026-09-27T14:57:32+08:00",
+          "action": "started",
+          "stage": "A"
+        },
+        {
+          "at": "2026-09-27T14:57:32+08:00",
+          "action": "progress",
+          "stage": "A",
+          "phase": "ingest",
+          "detail": "正在读取并检查 STL"
+        },
+        {
+          "at": "2026-09-27T14:57:32+08:00",
+          "action": "progress",
+          "stage": "A",
+          "phase": "centerline",
+          "detail": "正在提取中心线和开口"
+        },
+        {
+          "at": "2026-09-27T14:57:36+08:00",
+          "action": "finished",
+          "stage": "A"
+        },
+        {
+          "at": "2026-09-27T14:57:42+08:00",
+          "action": "precompute_done",
+          "stage": "A",
+          "seconds": 5.45
+        },
+        {
+          "at": "2026-09-27T14:57:46+08:00",
+          "action": "outlets_confirmed",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T14:57:47+08:00",
+          "action": "companion_created",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T14:57:47+08:00",
+          "action": "started",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T14:57:47+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "geometry",
+          "detail": "正在平滑表面并重采样"
+        },
+        {
+          "at": "2026-09-27T14:57:47+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "features",
+          "detail": "正在构建 27 维几何特征"
+        },
+        {
+          "at": "2026-09-27T14:57:47+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "inference",
+          "detail": "正在运行 3 个模型集成"
+        },
+        {
+          "at": "2026-09-27T14:57:51+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在汇总预测点云统计"
+        },
+        {
+          "at": "2026-09-27T14:57:51+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在测量沿程管腔截面与瘤体形态"
+        },
+        {
+          "at": "2026-09-27T14:57:51+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "export",
+          "detail": "正在写入 CSV、VTP 和 HTML 报告"
+        },
+        {
+          "at": "2026-09-27T14:57:52+08:00",
+          "action": "finished",
+          "stage": "B"
+        }
+      ]
+    },
+    {
+      "path": "outputs/wss_deploy_jobs/20260927_145746_fca1c7ae7991/summary.json",
+      "sha256": "ea04f6689f67a9cec7aa8ae223e98ae64052f595109d5df136ef6168d04ba9e4",
+      "job_id": "20260927_145746_fca1c7ae7991",
+      "release": "PF6_VF6_peak_3seed_20260920",
+      "device": "cuda",
+      "cloud": {
+        "n_wall": 57952,
+        "n_internal": 20000,
+        "spacing_mm": 0.5
+      },
+      "timing_s": {
+        "ingest": 0.11,
+        "centerline": 3.51,
+        "smooth_resample": 0.0,
+        "volume_features": 6.0,
+        "inference_volume": 3.55,
+        "streamlines_and_interpolation": 2.58,
+        "morphology": 0.01,
+        "export": 0.41,
+        "total": 16.16
+      },
+      "geometry_cache": {
+        "enabled": true,
+        "reused": [
+          "mesh",
+          "morph",
+          "morphvol",
+          "resample"
+        ],
+        "computed": []
+      },
+      "seconds_per_model": [
+        0.43786456482484937,
+        0.894981357967481,
+        0.49418193101882935,
+        0.4558287530671805,
+        0.6545152319595218,
+        0.6010992850642651
+      ],
+      "source_job_id": "20260927_145732_67eba52ab03c",
+      "precompute": null,
+      "clock": {
+        "created_ts": 1790492267.054947,
+        "finished_ts": 1790492285.9658155,
+        "compute_seconds": 18.83191990852356,
+        "attempt_seconds": 18.83191990852356,
+        "confirmation_seconds": null,
+        "queue_seconds": 0.07863712310791016
+      },
+      "events": [
+        {
+          "at": "2026-09-27T14:57:47+08:00",
+          "action": "rerun_created",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T14:57:47+08:00",
+          "action": "started",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T14:57:53+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "geometry",
+          "detail": "正在构建壁面支持点和封闭管腔"
+        },
+        {
+          "at": "2026-09-27T14:57:53+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "features",
+          "detail": "正在生成管腔内部采样点和 PF6 / VF6 特征"
+        },
+        {
+          "at": "2026-09-27T14:57:59+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "inference",
+          "detail": "正在分别预测相对压力与体内速度"
+        },
+        {
+          "at": "2026-09-27T14:58:02+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在积分体内稳态流线并汇总压力与速度"
+        },
+        {
+          "at": "2026-09-27T14:58:05+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在测量沿程管腔截面与瘤体形态"
+        },
+        {
+          "at": "2026-09-27T14:58:05+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "export",
+          "detail": "正在导出体场、壁面压力、流线和交互截面报告"
+        },
+        {
+          "at": "2026-09-27T14:58:05+08:00",
+          "action": "finished",
+          "stage": "B"
+        }
+      ]
+    },
+    {
+      "path": "outputs/wss_deploy_jobs/20260927_173546_79aaf41ce5f9/summary.json",
+      "sha256": "acb93fdfb2f4f9ecedca40b50d35d513872d5c008ad0c390c85151cf2a2b61af",
+      "job_id": "20260927_173546_79aaf41ce5f9",
+      "release": "M1_3head_3seed_20260922",
+      "device": "cuda",
+      "cloud": {
+        "n_points": 72815,
+        "spacing_mm": 0.4966291691500682,
+        "smooth_mm": 1.0,
+        "surface_variation_median": 0.0011713726929835013,
+        "junction_ambiguous_fraction": 0.02798873858408295
+      },
+      "timing_s": {
+        "ingest": 3.98,
+        "centerline": 35.05,
+        "smooth_resample": 0.01,
+        "features": 0.93,
+        "inference_5_models": 3.54,
+        "metrics_and_interpolation": 0.6,
+        "morphology": 0.04,
+        "export": 1.21,
+        "total": 45.37
+      },
+      "geometry_cache": {
+        "enabled": true,
+        "reused": [
+          "mesh",
+          "morph",
+          "morphvol",
+          "pointgeom",
+          "resample"
+        ],
+        "computed": []
+      },
+      "seconds_per_model": [
+        1.65,
+        1.01,
+        0.87
+      ],
+      "source_job_id": null,
+      "precompute": {
+        "status": "done",
+        "seconds": 17.89,
+        "finished_at": "2026-09-27T17:36:44+08:00",
+        "ok": true,
+        "cancelled": false,
+        "steps": [
+          "mesh",
+          "resample",
+          "point_geometry",
+          "morphology"
+        ],
+        "timing_s": {
+          "smooth_resample": 11.38,
+          "features": 1.6,
+          "morphology": 4.8
+        },
+        "family": "wall"
+      },
+      "clock": {
+        "created_ts": 1790501746.101807,
+        "finished_ts": 1790501812.09887,
+        "compute_seconds": 56.584304094314575,
+        "attempt_seconds": 15.954876184463501,
+        "confirmation_seconds": 8.833655595779419,
+        "queue_seconds": 0.5793659687042236
+      },
+      "events": [
+        {
+          "at": "2026-09-27T17:35:46+08:00",
+          "action": "created",
+          "stage": "A"
+        },
+        {
+          "at": "2026-09-27T17:35:46+08:00",
+          "action": "started",
+          "stage": "A"
+        },
+        {
+          "at": "2026-09-27T17:35:46+08:00",
+          "action": "progress",
+          "stage": "A",
+          "phase": "ingest",
+          "detail": "正在读取并检查 STL"
+        },
+        {
+          "at": "2026-09-27T17:35:50+08:00",
+          "action": "progress",
+          "stage": "A",
+          "phase": "centerline",
+          "detail": "正在提取中心线和开口"
+        },
+        {
+          "at": "2026-09-27T17:36:26+08:00",
+          "action": "finished",
+          "stage": "A"
+        },
+        {
+          "at": "2026-09-27T17:36:35+08:00",
+          "action": "outlets_confirmed",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T17:36:36+08:00",
+          "action": "companion_created",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T17:36:36+08:00",
+          "action": "started",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T17:36:36+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "geometry",
+          "detail": "等待后台几何预计算完成"
+        },
+        {
+          "at": "2026-09-27T17:36:44+08:00",
+          "action": "precompute_done",
+          "stage": "B",
+          "seconds": 17.89
+        },
+        {
+          "at": "2026-09-27T17:36:45+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "geometry",
+          "detail": "正在平滑表面并重采样"
+        },
+        {
+          "at": "2026-09-27T17:36:45+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "features",
+          "detail": "正在构建 27 维几何特征"
+        },
+        {
+          "at": "2026-09-27T17:36:46+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "inference",
+          "detail": "正在运行 3 个模型集成"
+        },
+        {
+          "at": "2026-09-27T17:36:49+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在汇总预测点云统计"
+        },
+        {
+          "at": "2026-09-27T17:36:50+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在测量沿程管腔截面与瘤体形态"
+        },
+        {
+          "at": "2026-09-27T17:36:50+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "export",
+          "detail": "正在写入 CSV、VTP 和 HTML 报告"
+        },
+        {
+          "at": "2026-09-27T17:36:52+08:00",
+          "action": "finished",
+          "stage": "B"
+        }
+      ]
+    },
+    {
+      "path": "outputs/wss_deploy_jobs/20260927_173635_38d9c5f3ec64/summary.json",
+      "sha256": "c6860a44f54f5261ca2b5762f2d541270b9c4da0212a7aa7fd30396a9270623c",
+      "job_id": "20260927_173635_38d9c5f3ec64",
+      "release": "PF6_VF6_peak_3seed_20260920",
+      "device": "cuda",
+      "cloud": {
+        "n_wall": 72815,
+        "n_internal": 20000,
+        "spacing_mm": 0.5
+      },
+      "timing_s": {
+        "ingest": 3.98,
+        "centerline": 35.05,
+        "smooth_resample": 10.77,
+        "volume_features": 12.32,
+        "inference_volume": 4.12,
+        "streamlines_and_interpolation": 5.99,
+        "morphology": 4.97,
+        "export": 0.89,
+        "total": 78.08
+      },
+      "geometry_cache": {
+        "enabled": true,
+        "reused": [],
+        "computed": [
+          "mesh",
+          "morph",
+          "morphvol",
+          "resample"
+        ]
+      },
+      "seconds_per_model": [
+        0.7251151339150965,
+        0.7593632400967181,
+        0.9429533081129193,
+        0.44370708195492625,
+        0.5517384030390531,
+        0.6869909600354731
+      ],
+      "source_job_id": "20260927_173546_79aaf41ce5f9",
+      "precompute": null,
+      "clock": {
+        "created_ts": 1790501796.108488,
+        "finished_ts": 1790501852.8576086,
+        "compute_seconds": 56.70355439186096,
+        "attempt_seconds": 56.70355439186096,
+        "confirmation_seconds": null,
+        "queue_seconds": 0.04525351524353027
+      },
+      "events": [
+        {
+          "at": "2026-09-27T17:36:36+08:00",
+          "action": "rerun_created",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T17:36:36+08:00",
+          "action": "started",
+          "stage": "B"
+        },
+        {
+          "at": "2026-09-27T17:36:53+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "geometry",
+          "detail": "正在构建壁面支持点和封闭管腔"
+        },
+        {
+          "at": "2026-09-27T17:37:04+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "features",
+          "detail": "正在生成管腔内部采样点和 PF6 / VF6 特征"
+        },
+        {
+          "at": "2026-09-27T17:37:16+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "inference",
+          "detail": "正在分别预测相对压力与体内速度"
+        },
+        {
+          "at": "2026-09-27T17:37:20+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在积分体内稳态流线并汇总压力与速度"
+        },
+        {
+          "at": "2026-09-27T17:37:26+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "metrics",
+          "detail": "正在测量沿程管腔截面与瘤体形态"
+        },
+        {
+          "at": "2026-09-27T17:37:31+08:00",
+          "action": "progress",
+          "stage": "B",
+          "phase": "export",
+          "detail": "正在导出体场、壁面压力、流线和交互截面报告"
+        },
+        {
+          "at": "2026-09-27T17:37:32+08:00",
+          "action": "finished",
+          "stage": "B"
+        }
+      ]
+    },
+    {
+      "path": "outputs/wss_deploy_jobs/test_KANG_YONG/summary.json",
+      "sha256": "cbcfbdef9b1d34d09160e67dcaffd3e6357cc2b6da418b308d2130a2a55f21c8",
+      "job_id": "test_KANG_YONG",
+      "release": "X5D_v51_5seed_20260916",
+      "device": "cuda",
+      "cloud": {
+        "n_points": 89954,
+        "spacing_mm": 0.49441371305525816,
+        "smooth_mm": 1.0,
+        "surface_variation_median": 0.0005925546998849578,
+        "junction_ambiguous_fraction": 0.023434199702069947
+      },
+      "timing_s": {
+        "ingest": 0.18,
+        "centerline": 4.88,
+        "smooth_resample": 19.34,
+        "features": 9.63,
+        "inference_5_models": 12.12,
+        "metrics_and_export": 0.13,
+        "total": 46.29
+      },
+      "geometry_cache": null,
+      "seconds_per_model": [
+        4.49,
+        2.01,
+        1.81,
+        1.92,
+        1.9
+      ],
+      "source_job_id": null,
+      "precompute": null,
+      "clock": {
+        "created_ts": null,
+        "finished_ts": null,
+        "compute_seconds": null,
+        "attempt_seconds": null,
+        "confirmation_seconds": null,
+        "queue_seconds": null
+      },
+      "events": []
+    },
+    {
+      "path": "outputs/wss_deploy_jobs/test_KANG_YONG_cpu/summary.json",
+      "sha256": "862336e42ca216ba7826e4a91e87c2b3fe0e7cfe0591e8e2faac808bbb188b78",
+      "job_id": "test_KANG_YONG_cpu",
+      "release": "X5D_v51_5seed_20260916",
+      "device": "cpu",
+      "cloud": {
+        "n_points": 89954,
+        "spacing_mm": 0.49441371305525816,
+        "smooth_mm": 1.0,
+        "surface_variation_median": 0.0005925546998849578,
+        "junction_ambiguous_fraction": 0.023434199702069947
+      },
+      "timing_s": {
+        "ingest": 0.1,
+        "centerline": 4.83,
+        "smooth_resample": 18.63,
+        "features": 7.35,
+        "inference_5_models": 69.26,
+        "metrics_and_export": 0.13,
+        "total": 100.3
+      },
+      "geometry_cache": null,
+      "seconds_per_model": [
+        13.72,
+        13.76,
+        13.97,
+        13.87,
+        13.94
+      ],
+      "source_job_id": null,
+      "precompute": null,
+      "clock": {
+        "created_ts": null,
+        "finished_ts": null,
+        "compute_seconds": null,
+        "attempt_seconds": null,
+        "confirmation_seconds": null,
+        "queue_seconds": null
+      },
+      "events": []
+    }
+  ],
+  "source_sha256": {
+    "wss_deploy/jobs.py": "a56651a265e8432086a5585ef6660d9852844d8bbd6bd558a5e823b9facdc8e5",
+    "wss_deploy/pipeline.py": "311700c7620429dea03f08b74cc31f1ee2f24498adf64388fb3f2caf1e886b16",
+    "wss_deploy/volume_pipeline.py": "3c063eacafefcd70d4208731da3e767a06949078fbb2a7da00bf01719f62d772",
+    "wss_deploy/volume_geometry.py": "6fe4d084a31a9d30039b92f9dc8e0c8ababfb3e11653738d911bbc09d1deb88b",
+    "wss_deploy/geometry.py": "520529aaf887738cafdf703030691f11e0b04386108a0f73600b6df002d7cbd8",
+    "wss_deploy/streamlines.py": "abb614396669c8fbac0410636220f1017c3e649bbdac93d10c4cc99838c8850c",
+    "wss_deploy/input_memo.py": "6fe89d14ed123df254393a868dd642c05d876ba70f71f4a070148c22eef8344f",
+    "wss_deploy/knn_memo.py": "4bcecdafc34fec57d1b22cf432ef1fd0b2dd87e51701d56e9d65edbdc0cb7323",
+    "training_wss_min/evaluate.py": "06a364883b69f35d0dd6a5922818ab7775cb696be27e07bd42271b3088fee44d",
+    "training_wss_min/baseline_models.py": "af934d4b2b87b8c90e0afc8d11b322d24073d91d1a2281aec468dec0e4bb076c",
+    "training_wss_min/local_refinement.py": "4ad75967e88e9e1469ff8d2434e467a2d8f582c0b3443be742e6c6d95c285ee1",
+    "wss_features/cloud.py": "e2a791061dcbec48c956fa051f4eeea378769edf6e1f24136a6f1d641ed74faa",
+    "wss_features/sampling.py": "272abf5ba9b2b5f1c8fad9c8e1c9cf27c92b109fe79bb82d5235ad1495441531"
+  }
+}

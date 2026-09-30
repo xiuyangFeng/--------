@@ -85,9 +85,13 @@ V7_FLOW_FEATURE_KEYS = (
 # 波 5 T3 级联：一阶段（部署可得）模型的 ln(WSS_pred) 作为二阶段的输入与残差偏移，来自 wss_min_cascade_v1 sidecar
 # （train138 为患者分组 3-fold 的折外预测，test34 为折模型预测；见 tools/make_cascade_sidecar.py）
 V8_CASCADE_FEATURE_KEYS = ("log_wss_base",)
+# 2026-09-26 一维物理先验 sidecar（wss_v5.views.wall_phys1d_v1）：协议常量（峰值入口流量、Carreau 高剪切黏度）+ 开口半径版
+# Murray 分流 + 点的 atlas 半径 → 泊肃叶壁面剪切 log τ₁D（Pa）；wom = 同一 1D 管在协议波形下的 Womersley 脉动解在峰值步的壁面剪切
+# （随半径的相位/幅值修正）；可作输入或残差目标（data.target_log_offset_feature）。
+V9_PHYS1D_FEATURE_KEYS = ("log_tau_1d_pois", "log_tau_1d_wom", "log_wom_alpha", "log_re_1d")
 # 需要从 sidecar 读取的逐点特征（按 data.point_features_root 的顺序查找）
 LONGITUDINAL_FEATURE_KEYS = LG.FEATURE_KEYS
-SIDECAR_FEATURE_KEYS = V6_SURFACE_FEATURE_KEYS + V7_FLOW_FEATURE_KEYS + V8_CASCADE_FEATURE_KEYS + LONGITUDINAL_FEATURE_KEYS
+SIDECAR_FEATURE_KEYS = V6_SURFACE_FEATURE_KEYS + V7_FLOW_FEATURE_KEYS + V8_CASCADE_FEATURE_KEYS + LONGITUDINAL_FEATURE_KEYS + V9_PHYS1D_FEATURE_KEYS
 # 体场目标（support=壁面，query=内部单元）可用的 sidecar 键：分支流量份额按 vol_segment_id 广播到内部单元，
 # log_tau0 = log_q - 3 log(内部单元的 atlas 半径)。其余 sidecar 键是壁面专属，不能用于体场目标。
 VOLUME_EXTENDABLE_SIDECAR_KEYS = (
@@ -110,6 +114,7 @@ FEATURE_KEYS = (
     *V7_FLOW_FEATURE_KEYS,
     *V8_CASCADE_FEATURE_KEYS,
     *LONGITUDINAL_FEATURE_KEYS,
+    *V9_PHYS1D_FEATURE_KEYS,
     *TIME_FEATURE_KEYS,
     *COHORT_FEATURE_KEYS,
     *CASE_FEATURE_KEYS,
@@ -120,6 +125,21 @@ FORBIDDEN_FEATURE_KEYS = ("dist_to_wall",)
 
 # targets whose query set comes from the volume view (support stays the wall point cloud)
 VOLUME_TARGETS = ("pressure_mixed", "velocity", "velocity_pressure")
+# 2026-09-20 周期积分量标量目标（wss_min_cycle_v1 视图：从 81 帧向量 WSS 派生，帧 0–79 各权 1/80）：
+# 'tawss' = 周期平均 |τ|（Pa，log_z 统计量）；'osi' = 振荡剪切指数 ∈ [0, 0.5]（linear 或 logit_z 统计量）。
+# 与峰值帧标量 WSS 共用同一套单帧训练/评估路径，只换标签来源与统计量文件。
+CYCLE_TARGETS = ("tawss", "osi")
+OSI_MAX = 0.5
+# 2026-09-21 M1 三头单模型：一次输出 [峰值帧 WSS(log_z), TAWSS(log_z), OSI(logit_z 或 linear)]，out_dim=3，各通道各自统计量
+# （stats 文件 method='multi'，含 channels 与逐通道子统计），损失 = 三通道等权 MSE（objectives 的向量分支），评估逐通道走单目标路径，
+# 顶层结果 = 峰值帧通道（与 X5D 同口径），另两头在 result["heads"]。
+MULTI_TARGET = "wss_cycle_multi"
+MULTI_CHANNELS = ("wss", "tawss", "osi")
+# 2026-09-25 M1 辅助通道（data.multi_aux_channels，缺省空 = 历史三通道，逐位不变）：追加在三通道之后，线性 z（训练折统计量），
+# 只进等权 MSE 与评估，不进部署输出。rev_frac = 与峰值帧方向反向的帧份额（cycle.npz）；mean_axial / mean_circ =
+# 帧 0–79 平均 WSS 向量在局部 (轴向, 周向) 架上的分量 ÷ 同帧 Σ‖τ‖/80（与方向头同一坐标架，部署可得几何），
+# 两者同开时评估另报派生 OSI = ½(1 − min(1, ‖(r_a, r_c)‖))（result["heads"]["osi_derived"]）。
+MULTI_AUX_CHANNELS = ("rev_frac", "mean_axial", "mean_circ")
 
 
 @dataclass
@@ -222,7 +242,12 @@ class DataConfig:
     # 81 帧体场标签太大不入内存，训练/评估按帧从 case.h5 懒读，见 dataset.VolumeFrameSource。
     volume_time_sidecar_root: Optional[str] = None
     volume_h5_root: Optional[str] = None
-    target: str = "wss"                   # 'wss' | 'pressure'（均为标量）
+    target: str = "wss"                   # 'wss' | 'pressure'（均为标量）| 'tawss' | 'osi'（周期积分标量，见 CYCLE_TARGETS）
+    # 周期积分量视图根目录（wss_v5.views.wall_cycle_v1 的 wss_min_cycle_v1）；仅 target ∈ CYCLE_TARGETS 时必填，
+    # 逐点标签 wall_tawss / wall_osi 按视图 bundle 行序读取并用 wall_node_id_cas 校验。None = 旧行为。
+    cycle_view_root: Optional[str] = None
+    # 2026-09-25 M1 辅助通道（仅 target=wss_cycle_multi；取值见 MULTI_AUX_CHANNELS）；缺省空 = 历史三通道。
+    multi_aux_channels: Tuple[str, ...] = ()
     # 目标标准化；global_stats 保持历史行为，case_max 用逐病例完整壁面 WSS 最大值；
     # frame_stats = 逐帧 log 均值/标准差（stats 文件 'frame' 块，训练折），仅多帧模式（random_frame / time_basis）可用。
     target_normalization: str = "global_stats"  # 'global_stats' | 'case_max' | 'frame_stats'
@@ -410,6 +435,8 @@ class TrainConfig:
     # 按目标幅值加权 loss
     loss_weight_target: bool = False
     loss_weight_target_alpha: float = 2.0
+    # 2026-09-26 尾部方向性损失：预测 < 真值（低估）的逐点损失乘以该系数；1.0 = 关闭（旧行为逐位不变）。标量 log 空间目标专用。
+    loss_asym_under_weight: float = 1.0
     # 固定 train-only 分位阈值；None 表示回退 batch 分位（仅 B0 行为对照）
     loss_weight_fixed_quantiles: bool = True
     y_norm_q02: Optional[float] = None
@@ -449,6 +476,15 @@ class TrainConfig:
     hotspot_quantile: float = 0.90
     loss_pinball_lambda: float = 0.0
     pinball_quantile: float = 0.90
+    # 2026-09-24 OSI 尾部辅助项（仅 target='wss_cycle_multi'，作用在 OSI 通道；跟踪 §34.11 / P0c：误差集中在高 OSI 且为幅值压缩）。
+    # tail：OSI 通道逐点平方误差乘 w = 1 + alpha·1[OSI_true > osi_tail_threshold]，批内按 w 均值归一（通道总权重不变）。
+    # mask：逐阈值软掩膜 BCE，logit = (ẑ_osi − z(T)) / osi_mask_temperature（z 为 OSI 通道归一化空间），标签 1[OSI_true > T]，阈值间平均。
+    # 0 = 关闭，旧配置逐位不变。
+    loss_osi_tail_alpha: float = 0.0
+    osi_tail_threshold: float = 0.2
+    loss_osi_mask_lambda: float = 0.0
+    osi_mask_thresholds: Tuple[float, ...] = (0.2, 0.3)
+    osi_mask_temperature: float = 0.25
     # 波 1：切平面 WSS 方向辅助损失（1 - cos），作用在 direction_head 的两个通道上；0 = 关闭
     loss_direction_lambda: float = 0.0
     # 波 1：权重 EMA（0 = 关闭；>0 时每步更新影子权重并另存 ckpt_ema.pt，best/last 不变）
@@ -497,6 +533,18 @@ class EvalConfig:
     # 波 5 T3 级联评估门控：二阶段残差只在偏移特征（一阶段预测）的逐例 top-(1-q) 区域生效，区外回退为
     # 一阶段预测（残差 0）。需要 data.target_log_offset_feature；None = 关闭（旧行为逐位不变）。
     residual_gate_quantile: Optional[float] = None
+    # 2026-09-20 物理空间阈值掩膜指标（周期积分量矩阵 §7）：对每个阈值算 真值>阈 与 预测>阈（above）/ <阈（below）
+    # 的逐例 IoU / precision / recall / 面积份额误差，写入 result["threshold_masks"]。空 = 旧输出逐位不变。
+    threshold_masks_above: Tuple[float, ...] = ()
+    threshold_masks_below: Tuple[float, ...] = ()
+    # 2026-09-21 周期积分量落地一致性块 result["cycle_agreement"]（仅 target ∈ CYCLE_TARGETS 时计算；wss 口径不变）：
+    # 逐例 Lin CCC（TAWSS 在 ln 空间、OSI 线性）、逐点相对误差中位与 ≤ 容差份额、top10% 热点 Dice、阈值掩膜 Dice、
+    # 按语义血管段（bundle wall_semantic_id）的段均值相对误差；病例级 Bland–Altman（病例均值、掩膜面积份额）。
+    cycle_agreement: bool = True
+    cycle_rel_tolerance: float = 0.3
+    cycle_min_segment_points: int = 200
+    # 相对误差分母下限：TAWSS 用统计量文件的 floor（0.05 Pa）；OSI 是 [0, 0.5] 的有界量，近零点相对误差无意义，用 0.01
+    cycle_osi_rel_floor: float = 0.01
 
 
 @dataclass
@@ -665,8 +713,9 @@ def validate_features(cfg: ExpConfig) -> None:
             raise ValueError("density augmentation requires density_aug_root and density_aug_levels")
         if any(int(l) <= 0 or int(l) >= 100 for l in cfg.data.density_aug_levels):
             raise ValueError("density_aug_levels are percentages strictly between 0 and 100")
-        if cfg.data.target != "wss":
-            raise ValueError("density augmentation supports WSS targets only")
+        if cfg.data.target not in ("wss", *CYCLE_TARGETS, MULTI_TARGET):
+            # 周期积分量（tawss/osi/多头）是逐点壁面标量，抽稀行索引同样切标签（dataset.subset_case），与 wss 同路径
+            raise ValueError("density augmentation supports wall scalar targets only (wss / tawss / osi / wss_cycle_multi)")
         # 多帧模式（random_frame / time_basis）：抽稀 sidecar 的行索引同样切多帧标签（dataset.subset_case），几何覆盖不变
         for sampling in ((cfg.data.support_sampling or cfg.data.sampling), (cfg.data.query_sampling or cfg.data.support_sampling or cfg.data.sampling)):
             if sampling != "random":
@@ -720,8 +769,8 @@ def validate_features(cfg: ExpConfig) -> None:
     if cfg.train.loss_pairwise_rank_lambda and (cfg.train.pairwise_rank_max_pairs <= 0
             or not math.isfinite(cfg.train.pairwise_rank_margin) or cfg.train.pairwise_rank_margin < 0):
         raise ValueError("ranking requires a positive per-case pair budget and nonnegative finite margin")
-    if (need_geometry or cfg.model.query_patch_film) and cfg.data.target != "wss":
-        raise ValueError("new local geometry/patch experiments currently require scalar WSS")
+    if (need_geometry or cfg.model.query_patch_film) and cfg.data.target not in ("wss", *CYCLE_TARGETS, MULTI_TARGET):
+        raise ValueError("new local geometry/patch experiments currently require a wall scalar target (wss / tawss / osi / wss_cycle_multi)")
     if cfg.model.output_head not in {"single", "velocity_pressure"}:
         raise ValueError("output_head must be single or velocity_pressure")
     if cfg.model.output_head == "velocity_pressure" and cfg.data.target != "velocity_pressure":
@@ -1054,6 +1103,20 @@ def validate_features(cfg: ExpConfig) -> None:
         raise ValueError("hotspot_quantile must be in (0, 1)")
     if not (0.0 < float(cfg.train.pinball_quantile) < 1.0):
         raise ValueError("pinball_quantile must be in (0, 1)")
+    osi_tail_alpha = float(getattr(cfg.train, "loss_osi_tail_alpha", 0.0) or 0.0)
+    osi_mask_lambda = float(getattr(cfg.train, "loss_osi_mask_lambda", 0.0) or 0.0)
+    if osi_tail_alpha < 0 or osi_mask_lambda < 0:
+        raise ValueError("loss_osi_tail_alpha and loss_osi_mask_lambda must be non-negative")
+    if (osi_tail_alpha > 0 or osi_mask_lambda > 0) and cfg.data.target != MULTI_TARGET:
+        raise ValueError("OSI tail / mask losses act on the OSI channel of target='wss_cycle_multi' only")
+    if osi_tail_alpha > 0 and not (0.0 < float(cfg.train.osi_tail_threshold) < OSI_MAX):
+        raise ValueError("osi_tail_threshold must be in (0, 0.5)")
+    if osi_mask_lambda > 0:
+        thresholds = tuple(cfg.train.osi_mask_thresholds or ())
+        if not thresholds or any(not (0.0 < float(t) < OSI_MAX) for t in thresholds):
+            raise ValueError("osi_mask_thresholds must be a non-empty list of OSI values in (0, 0.5)")
+        if not (float(cfg.train.osi_mask_temperature) > 0):
+            raise ValueError("osi_mask_temperature must be positive")
     if cfg.train.loss == "gaussian_nll" and (
         float(cfg.train.loss_hotspot_bce_lambda) > 0
         or float(cfg.train.loss_pinball_lambda) > 0
@@ -1063,7 +1126,44 @@ def validate_features(cfg: ExpConfig) -> None:
         )
     if float(cfg.train.loss_hotspot_bce_lambda) > 0 and int(cfg.model.out_dim) != 2:
         raise ValueError("hotspot BCE requires model.out_dim=2")
-    expected_out = {"velocity": 3, "velocity_pressure": 4}.get(cfg.data.target, 1)
+    if cfg.data.target in CYCLE_TARGETS or cfg.data.target == MULTI_TARGET:
+        if not cfg.data.cycle_view_root:
+            raise ValueError(f"target={cfg.data.target!r} requires data.cycle_view_root (wss_min_cycle_v1 view)")
+        if cfg.data.timesteps != "peak" or cfg.data.target_normalization != "global_stats":
+            raise ValueError("cycle targets (tawss/osi/wss_cycle_multi) are single-frame scalars: timesteps='peak' with global_stats only")
+        if (cfg.train.loss == "gaussian_nll" or float(cfg.train.loss_hotspot_bce_lambda) > 0 or cfg.model.direction_head
+                or cfg.data.target_log_offset_feature or cfg.eval.pointwise_jensen or cfg.data.direction_target):
+            raise ValueError("cycle targets support plain scalar heads only (no NLL/Jensen, hotspot BCE, direction head or residual offset)")
+        if cfg.data.target == MULTI_TARGET:
+            if (cfg.train.loss != "mse" or float(cfg.train.loss_pinball_lambda) > 0 or cfg.train.loss_weight_target
+                    or float(cfg.train.loss_raw_huber_lambda or 0) > 0
+                    or float(getattr(cfg.train, "loss_raw_mse_lambda", 0) or 0) > 0 or cfg.train.loss_geom_weight
+                    or cfg.model.output_head not in (None, "single")):
+                raise ValueError("wss_cycle_multi supports plain equal-weight channel MSE with a single head only "
+                                 "(no pinball / target weighting / raw losses / geometry weighting)")
+            aux = tuple(getattr(cfg.data, "multi_aux_channels", ()) or ())
+            if len(set(aux)) != len(aux) or any(a not in MULTI_AUX_CHANNELS for a in aux):
+                raise ValueError(f"data.multi_aux_channels must be distinct names from {MULTI_AUX_CHANNELS}")
+            if ("mean_axial" in aux) != ("mean_circ" in aux):
+                raise ValueError("mean_axial and mean_circ must be enabled together (the derived OSI needs both components)")
+            if int(cfg.model.out_dim) != len(MULTI_CHANNELS) + len(aux):
+                raise ValueError(f"wss_cycle_multi requires model.out_dim={len(MULTI_CHANNELS) + len(aux)} "
+                                 f"({len(MULTI_CHANNELS)} channels + {len(aux)} auxiliary)")
+    elif cfg.data.cycle_view_root:
+        raise ValueError("data.cycle_view_root is only meaningful with target='tawss'|'osi'|'wss_cycle_multi'")
+    if tuple(getattr(cfg.data, "multi_aux_channels", ()) or ()) and cfg.data.target != MULTI_TARGET:
+        raise ValueError("data.multi_aux_channels requires target='wss_cycle_multi'")
+    if not (0.0 < float(getattr(cfg.eval, "cycle_rel_tolerance", 0.3)) < 10.0) or int(getattr(cfg.eval, "cycle_min_segment_points", 200)) < 1 \
+            or not (0.0 < float(getattr(cfg.eval, "cycle_osi_rel_floor", 0.01)) < 0.5):
+        raise ValueError("eval.cycle_rel_tolerance must be in (0, 10), cycle_min_segment_points positive, cycle_osi_rel_floor in (0, 0.5)")
+    for name in ("threshold_masks_above", "threshold_masks_below"):
+        values = tuple(getattr(cfg.eval, name, ()) or ())
+        if values and (cfg.data.target in VOLUME_TARGETS or cfg.data.target == "pressure"):
+            raise ValueError(f"eval.{name} is defined for scalar wall targets (wss/tawss/osi) only")
+        if any((not isinstance(v, (int, float))) or not math.isfinite(float(v)) for v in values):
+            raise ValueError(f"eval.{name} must be finite numbers")
+    expected_out = {"velocity": 3, "velocity_pressure": 4,
+                    MULTI_TARGET: len(MULTI_CHANNELS) + len(tuple(getattr(cfg.data, "multi_aux_channels", ()) or ()))}.get(cfg.data.target, 1)
     if cfg.data.timesteps == "time_basis":
         # 时间基头：每个目标分量各出一套 [b0, a_1..a_K]（速度 3 分量共用同一组基向量）
         expected_out = expected_out * (int(cfg.model.time_basis_k) + 1)
@@ -1166,7 +1266,7 @@ def v6_point_features(cfg: ExpConfig) -> Tuple[str, ...]:
     """input_features 中需要额外加载/派生的 V6/V7 逐点特征（空 tuple = 旧数据路径）。"""
     return tuple(f for f in cfg.data.input_features
                  if f in V6_POINT_FEATURE_KEYS or f in V7_FLOW_FEATURE_KEYS or f in V8_CASCADE_FEATURE_KEYS
-                 or f in LONGITUDINAL_FEATURE_KEYS)
+                 or f in LONGITUDINAL_FEATURE_KEYS or f in V9_PHYS1D_FEATURE_KEYS)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,91 @@
+{
+  "method": "gaussian",
+  "params": {
+    "radius_mm": 3.0,
+    "sharpness": 2.0,
+    "max_dist_mm": 3.0,
+    "fallback": "mask"
+  },
+  "kernel": "exp(-2*(d/3 mm)^2) inside 3 mm; normalized; same stencil for CFD and Pred",
+  "coverage": {
+    "target_points": 10806,
+    "valid_points": 10806,
+    "valid_ratio": 1.0
+  },
+  "distance_mm": {
+    "p50": 3.2081577810941554e-06,
+    "p95": 1.0983489194134643e-05,
+    "max": 1.546565168273236e-05
+  },
+  "independent_kernel_check": {
+    "n_queries": 32,
+    "implementation": "tools.cfdpost_cloud_export.map_to_stl_surface._interp_gaussian",
+    "passed": true
+  },
+  "metric_basis": "original cache only, not smoothed STL",
+  "surface_area_metric_gate": "not requested; coverage is not area-mapping validation",
+  "cross_wall_checks": {
+    "interpretation": "volume Euclidean projection can mix nearby branches; no wall-velocity or derivative claim"
+  },
+  "purpose": "Wall relative pressure interpolated to original STL vertices",
+  "source_points": 10806,
+  "source_csv": "_export/pressure_gaussian_source.csv.gz",
+  "target_geometry": "aligned_geometry.vtp",
+  "geometry": {
+    "stl_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/LOU_YANG/LOU_YANG.stl",
+    "stl_sha256": "36dc47ccf6b422462cc352f906b7156d6864c34db3f42dca4e5f02ef921c54d7",
+    "stl_to_mm_scale": 1.0,
+    "scale_source": "identity millimetre units by matching bounding-box diagonal; raw CFD frame, not V5 atlas",
+    "stl_cfd_identity": true,
+    "stl_wall_identity_max_distance_mm": 1.546565168273236e-05,
+    "bijective_node_count": 10806,
+    "n_stl_vertices": 10806,
+    "n_stl_triangles": 21491,
+    "n_cfd_wall": 10806,
+    "coordinate_unit": "mm",
+    "coordinate_frame": "raw CFD millimetres",
+    "tolerance_mm": 0.001
+  },
+  "units": "Pa",
+  "topology": {
+    "triangles": 21491,
+    "valid_triangles": 21491
+  },
+  "errors": "signed error = interpolated Pred - interpolated CFD; absolute = abs(signed)",
+  "display_normalization": {
+    "version": 1,
+    "kind": "selfmax",
+    "prefix": "pressure",
+    "unit": "dimensionless",
+    "source_unit": "Pa",
+    "denominator_scope": "wall_union_interior",
+    "source_point_count": 757670,
+    "cfd_max": 424.65130615234375,
+    "pred_max": 100.1386489868164,
+    "cfd_denominator": {
+      "max": 424.65130615234375,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 1.36524072265625e-09
+    },
+    "pred_denominator": {
+      "max": 100.1386489868164,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 1.5168402099609374e-10
+    },
+    "formula": {
+      "pressure_cfd_selfmax": "CFD / max(original CFD)",
+      "pressure_pred_selfmax": "Pred / max(original Pred)",
+      "pressure_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+      "pressure_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+    },
+    "denominator_basis": "original full colocated case at selected frame, before interpolation",
+    "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+    "amplitude_difference_removed": true,
+    "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+    "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+    "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+  },
+  "official_pressure_domain": "strict interior; wall is visualization-only"
+}

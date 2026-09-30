@@ -1,0 +1,123 @@
+{
+  "method": "gaussian",
+  "params": {
+    "radius_mm": 3.0,
+    "sharpness": 2.0,
+    "max_dist_mm": 3.0,
+    "fallback": "mask"
+  },
+  "kernel": "exp(-2*(d/3 mm)^2) inside 3 mm; normalized; same stencil for CFD and Pred",
+  "coverage": {
+    "target_points": 14958,
+    "valid_points": 14958,
+    "valid_ratio": 1.0
+  },
+  "distance_mm": {
+    "p50": 5.5659089455782195e-06,
+    "p95": 1.3162271861660222e-05,
+    "max": 2.1701294482780433e-05
+  },
+  "independent_kernel_check": {
+    "n_queries": 32,
+    "implementation": "tools.cfdpost_cloud_export.map_to_stl_surface._interp_gaussian",
+    "passed": true
+  },
+  "metric_basis": "original cache only, not smoothed STL",
+  "surface_area_metric_gate": "not requested; coverage is not area-mapping validation",
+  "cross_wall_checks": {
+    "definition": "disconnected = Gaussian neighbors not connected to nearest CFD node inside local wall triangle graph; opposite = negative wall-normal dot",
+    "disconnected_stencil_count": 0,
+    "max_disconnected_weight": 0.0,
+    "opposite_normal_stencil_count": 153,
+    "max_opposite_normal_weight": 0.2917978065614379,
+    "interpretation": "geometric diagnostics, not proof of no cross-wall mixing; use native CFD surface to check smoothing"
+  },
+  "purpose": "Wall scalar interpolated to original STL vertices",
+  "source_points": 14958,
+  "source_csv": "_export/gaussian_source.csv.gz",
+  "target_geometry": "aligned_geometry.vtp",
+  "geometry": {
+    "stl_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/SUN_SHU_MING/SUN_SHU_MING.stl",
+    "stl_sha256": "d8a136659229d6e7780c17ce5fbeb7b0e6205955ba22f52be8b3ba65dc3a874f",
+    "snapshot_source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__SUN_SHU_MING/case.h5",
+    "stl_to_mm_scale": 1.0,
+    "scale_source": "identity units verified by bijective STL-to-CFD wall mapping; bbox not fitted",
+    "bbox_ratio_qc_only": 1.0,
+    "rotation_convention": "(raw_mm - centroid) @ rotation.T",
+    "rotation_determinant": 0.9999999999999999,
+    "centroid_mm": [
+      9.081293534323036,
+      108.74522799322341,
+      -53.48026432691931
+    ],
+    "rotation": [
+      [
+        -0.9988091940393843,
+        -0.023291582433641028,
+        0.0428683576794411
+      ],
+      [
+        0.033286540623463555,
+        -0.9677353959365901,
+        0.24976030442160657
+      ],
+      [
+        0.03566791437297815,
+        0.250889827691734,
+        0.9673583070636722
+      ]
+    ],
+    "reconstruction_max_abs_mm": 1.2498058964638403e-05,
+    "stl_wall_identity_max_distance_mm": 2.288818359375e-05,
+    "aligned_max_distance_mm": 2.1701294482780433e-05,
+    "bijective_node_count": 14958,
+    "n_stl_triangles": 29737,
+    "n_cfd_triangles": 29737,
+    "triangles_dropped_invalid": 0,
+    "wall_crop_applied": false,
+    "frame_version": "v5_atlas_frame_v1",
+    "coordinate_unit": "mm",
+    "tolerance_mm": 0.001
+  },
+  "units": "Pa",
+  "topology": {
+    "triangles": 29737,
+    "valid_triangles": 29737
+  },
+  "errors": "signed error = interpolated Pred - interpolated CFD; absolute = abs(signed)",
+  "display_normalization": {
+    "version": 1,
+    "kind": "selfmax",
+    "prefix": "wss",
+    "unit": "dimensionless",
+    "source_unit": "Pa",
+    "denominator_scope": "wall",
+    "source_point_count": 14958,
+    "cfd_max": 12.614700317382812,
+    "pred_max": 11.18199039346823,
+    "cfd_denominator": {
+      "max": 12.614700317382812,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 1.2614700317382813e-11
+    },
+    "pred_denominator": {
+      "max": 11.18199039346823,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 1.1181990393468229e-11
+    },
+    "formula": {
+      "wss_cfd_selfmax": "CFD / max(original CFD)",
+      "wss_pred_selfmax": "Pred / max(original Pred)",
+      "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+      "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+    },
+    "denominator_basis": "original full colocated case at selected frame, before interpolation",
+    "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+    "amplitude_difference_removed": true,
+    "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+    "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+    "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+  }
+}

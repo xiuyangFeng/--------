@@ -1,0 +1,505 @@
+{
+  "schema": "joint_cycle_round2_v52_matrix_v1",
+  "config_schema": "joint_cycle_round2_v52_v1",
+  "created_date": "2026-09-29",
+  "purpose": "Single-seed paired temporal, query spatial, wall local, pressure-only and shared-gradient optimization screening",
+  "preregistration": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/joint_cycle_round2_v52_20260929/PREREG.md",
+  "experiment_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+  "seed": 1234,
+  "fold": 0,
+  "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+  "split_version": "cv5_v52/fold0",
+  "split_sha256": "57862a4f09de4c4bec9adf0eed66cf2ce0d9e7da0528c0ee1d38e0fb0f202269",
+  "partition_counts": {
+    "train": 206,
+    "val": 0,
+    "test": 55
+  },
+  "structure_count": 10,
+  "expected_training_runs": 10,
+  "geometry_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/joint_cycle_round2_v52_20260929/geometry_x5d.json",
+  "geometry_config_sha256": "38517c19cb0de046a4f7ec141ab0c38a91dba63d2c00d9bbe7af7d7bc2d20abb",
+  "geometry_architecture_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys_20260926/X5Dcap_asym2_s1234.json",
+  "initialization": "fresh paired initialization, no checkpoint transfer",
+  "arms": [
+    {
+      "arm": "UT0",
+      "variant": "I",
+      "tasks": [
+        "velocity"
+      ],
+      "round2_module": "temporal_ffn",
+      "gradient_method": "mean",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 0,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/UT0_f0_s1234.json",
+      "config_sha256": "1edc8f86f0523e7de0a96163fb36225c50f3d32284e09f21ca100ac6e1a4a3b3",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/UT0_f0_s1234",
+      "primary_control": "Iu",
+      "hypothesis": "phasewise FFN capacity control",
+      "parameter_validation": {
+        "total_trainable_parameters": 679391,
+        "added_parameters": 20598,
+        "module_contract": {
+          "module": "temporal_ffn",
+          "task": "velocity",
+          "support_pool": "encoder_sample_only",
+          "zero_initial_residual": true,
+          "bottleneck": 46,
+          "layers": 4,
+          "kernel": 1,
+          "dilations": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "receptive_field": 1,
+          "boundary": "pointwise",
+          "phase_chunk_behavior": "entire_supplied_sequence",
+          "residual_parameters": 20598,
+          "paired_reference_parameters": 20768,
+          "relative_parameter_mismatch": 0.008185670261941448
+        }
+      }
+    },
+    {
+      "arm": "UT1",
+      "variant": "I",
+      "tasks": [
+        "velocity"
+      ],
+      "round2_module": "temporal_tcn",
+      "gradient_method": "mean",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 1,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/UT1_f0_s1234.json",
+      "config_sha256": "9eaedb422b9d59d2c80792774e62e9029ec7cd77a6df565a18760da359de1ab4",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/UT1_f0_s1234",
+      "primary_control": "UT0",
+      "hypothesis": "31-frame temporal convolution",
+      "parameter_validation": {
+        "total_trainable_parameters": 679561,
+        "added_parameters": 20768,
+        "module_contract": {
+          "module": "temporal_tcn",
+          "task": "velocity",
+          "support_pool": "encoder_sample_only",
+          "zero_initial_residual": true,
+          "bottleneck": 32,
+          "layers": 4,
+          "kernel": 3,
+          "dilations": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "receptive_field": 31,
+          "boundary": "reflect",
+          "phase_chunk_behavior": "entire_supplied_sequence",
+          "residual_parameters": 20768,
+          "paired_reference_parameters": 20768,
+          "relative_parameter_mismatch": 0.0
+        }
+      }
+    },
+    {
+      "arm": "WT0",
+      "variant": "I",
+      "tasks": [
+        "wss"
+      ],
+      "round2_module": "temporal_ffn",
+      "gradient_method": "mean",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 2,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/WT0_f0_s1234.json",
+      "config_sha256": "cfa0dccffe61c08209b6b68916edb482bb985dd00d2cba0abdd502a6d464f63f",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/WT0_f0_s1234",
+      "primary_control": "Iw",
+      "hypothesis": "phasewise FFN capacity control",
+      "parameter_validation": {
+        "total_trainable_parameters": 680029,
+        "added_parameters": 20598,
+        "module_contract": {
+          "module": "temporal_ffn",
+          "task": "wss",
+          "support_pool": "encoder_sample_only",
+          "zero_initial_residual": true,
+          "bottleneck": 46,
+          "layers": 4,
+          "kernel": 1,
+          "dilations": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "receptive_field": 1,
+          "boundary": "pointwise",
+          "phase_chunk_behavior": "entire_supplied_sequence",
+          "residual_parameters": 20598,
+          "paired_reference_parameters": 20768,
+          "relative_parameter_mismatch": 0.008185670261941448
+        }
+      }
+    },
+    {
+      "arm": "WT1",
+      "variant": "I",
+      "tasks": [
+        "wss"
+      ],
+      "round2_module": "temporal_tcn",
+      "gradient_method": "mean",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 3,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/WT1_f0_s1234.json",
+      "config_sha256": "15ea829a4cfc5481e3178ee08c7d5ade7aa5bbd64aa27823fd8bd21e971bdd27",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/WT1_f0_s1234",
+      "primary_control": "WT0",
+      "hypothesis": "31-frame temporal convolution",
+      "parameter_validation": {
+        "total_trainable_parameters": 680199,
+        "added_parameters": 20768,
+        "module_contract": {
+          "module": "temporal_tcn",
+          "task": "wss",
+          "support_pool": "encoder_sample_only",
+          "zero_initial_residual": true,
+          "bottleneck": 32,
+          "layers": 4,
+          "kernel": 3,
+          "dilations": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "receptive_field": 31,
+          "boundary": "reflect",
+          "phase_chunk_behavior": "entire_supplied_sequence",
+          "residual_parameters": 20768,
+          "paired_reference_parameters": 20768,
+          "relative_parameter_mismatch": 0.0
+        }
+      }
+    },
+    {
+      "arm": "U0",
+      "variant": "I",
+      "tasks": [
+        "velocity"
+      ],
+      "round2_module": "query_mean",
+      "gradient_method": "mean",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 4,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/U0_f0_s1234.json",
+      "config_sha256": "fb34372c1efdc30fc063a365660920632628f7c648d6d28771b32184cd10c006",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234",
+      "primary_control": "Iu",
+      "hypothesis": "16-neighbor mean geometry query aggregation",
+      "parameter_validation": {
+        "total_trainable_parameters": 682143,
+        "added_parameters": 23350,
+        "module_contract": {
+          "module": "query_mean",
+          "task": "velocity",
+          "support_pool": "encoder_sample_only",
+          "zero_initial_residual": true,
+          "hidden": 89,
+          "neighbours": 16,
+          "aggregation": "mean",
+          "heads": 0,
+          "residual_parameters": 23350,
+          "paired_reference_parameters": 23520,
+          "relative_parameter_mismatch": 0.007227891156462585
+        }
+      }
+    },
+    {
+      "arm": "U1",
+      "variant": "I",
+      "tasks": [
+        "velocity"
+      ],
+      "round2_module": "query_attention",
+      "gradient_method": "mean",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 5,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/U1_f0_s1234.json",
+      "config_sha256": "d95df90a1684ad3dfb72fbb58aaa2d5c901a7f1e1482ea18d151967e289f4187",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U1_f0_s1234",
+      "primary_control": "U0",
+      "hypothesis": "16-neighbor query cross-attention",
+      "parameter_validation": {
+        "total_trainable_parameters": 682313,
+        "added_parameters": 23520,
+        "module_contract": {
+          "module": "query_attention",
+          "task": "velocity",
+          "support_pool": "encoder_sample_only",
+          "zero_initial_residual": true,
+          "hidden": 64,
+          "neighbours": 16,
+          "aggregation": "attention",
+          "heads": 4,
+          "residual_parameters": 23520,
+          "paired_reference_parameters": 23520,
+          "relative_parameter_mismatch": 0.0
+        }
+      }
+    },
+    {
+      "arm": "W0",
+      "variant": "I",
+      "tasks": [
+        "wss"
+      ],
+      "round2_module": "wall_pointwise",
+      "gradient_method": "mean",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 6,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/W0_f0_s1234.json",
+      "config_sha256": "0169405f7ffccccd653a483ed7ccfd91b8ba80bd8e4069c0ea26c0c68a33f653",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/W0_f0_s1234",
+      "primary_control": "Iw",
+      "hypothesis": "pointwise residual capacity control",
+      "parameter_validation": {
+        "total_trainable_parameters": 675655,
+        "added_parameters": 16224,
+        "module_contract": {
+          "module": "wall_pointwise",
+          "task": "wss",
+          "support_pool": "encoder_sample_only",
+          "zero_initial_residual": true,
+          "hidden": 88,
+          "neighbours": 0,
+          "aggregation": "pointwise",
+          "residual_parameters": 16224,
+          "paired_reference_parameters": 16096,
+          "relative_parameter_mismatch": 0.007952286282306162
+        }
+      }
+    },
+    {
+      "arm": "W1",
+      "variant": "I",
+      "tasks": [
+        "wss"
+      ],
+      "round2_module": "wall_patch",
+      "gradient_method": "mean",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 7,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/W1_f0_s1234.json",
+      "config_sha256": "81f8111ce79b363c0de903184b68824cf465f8a3d59174f2aaeb34fb33c0704b",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/W1_f0_s1234",
+      "primary_control": "W0",
+      "hypothesis": "16-neighbor local wall patch residual",
+      "parameter_validation": {
+        "total_trainable_parameters": 675527,
+        "added_parameters": 16096,
+        "module_contract": {
+          "module": "wall_patch",
+          "task": "wss",
+          "support_pool": "encoder_sample_only",
+          "zero_initial_residual": true,
+          "hidden": 64,
+          "neighbours": 16,
+          "aggregation": "mean",
+          "heads": 0,
+          "residual_parameters": 16096,
+          "paired_reference_parameters": 16096,
+          "relative_parameter_mismatch": 0.0
+        }
+      }
+    },
+    {
+      "arm": "P1",
+      "variant": "J1",
+      "tasks": [
+        "pressure"
+      ],
+      "round2_module": "none",
+      "gradient_method": "mean",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 8,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/P1_f0_s1234.json",
+      "config_sha256": "a0cba81e9f6b5a32686f888a542d25d3cad86dfb65ad251cbb9b8cfd8a9004b4",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/P1_f0_s1234",
+      "primary_control": "Ip",
+      "hypothesis": "pressure-only phase spatial interaction",
+      "parameter_validation": {
+        "total_trainable_parameters": 681579,
+        "added_parameters": 0,
+        "module_contract": {
+          "module": "none",
+          "residual_parameters": 0
+        }
+      }
+    },
+    {
+      "arm": "J2",
+      "variant": "J1",
+      "tasks": [
+        "velocity",
+        "pressure",
+        "wss"
+      ],
+      "round2_module": "none",
+      "gradient_method": "pcgrad",
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 9,
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/J2_f0_s1234.json",
+      "config_sha256": "09fb3be789a08906c9e88194aebf53abfbcf4ec4afec335869c6d0476f772c49",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/J2_f0_s1234",
+      "primary_control": "J1",
+      "hypothesis": "PCGrad on shared parameters",
+      "parameter_validation": {
+        "total_trainable_parameters": 835823,
+        "added_parameters": 0,
+        "module_contract": {
+          "module": "none",
+          "residual_parameters": 0
+        }
+      }
+    }
+  ],
+  "gpu_queue_order": [
+    "UT0",
+    "UT1",
+    "WT0",
+    "WT1",
+    "U0",
+    "U1",
+    "W0",
+    "W1",
+    "P1",
+    "J2"
+  ],
+  "planned_waves": [
+    [
+      "UT0",
+      "UT1",
+      "WT0",
+      "WT1"
+    ],
+    [
+      "U0",
+      "U1",
+      "W0",
+      "W1"
+    ],
+    [
+      "P1",
+      "J2"
+    ]
+  ],
+  "scheduling": {
+    "mechanism": "Slurm array 0-9%4; dynamic backfill, no strict wave barrier",
+    "partition": "GPU",
+    "gres_per_task": "gpu:4090:1",
+    "cpus_per_task": 8,
+    "memory_per_task": "32G",
+    "max_parallel": 4,
+    "dependency_chain": [
+      "reuse validated 261-case cache; verify original split/statistics/audit hashes",
+      "ten-arm real-data GPU smoke using train cases only",
+      "ten independent single-GPU training jobs",
+      "afterany CPU report on node03"
+    ]
+  },
+  "fixed_budget": {
+    "epochs_per_run": 150,
+    "batch_cases": 4,
+    "expected_updates_per_run": 7800,
+    "all_phase_count": 80,
+    "selection": "last",
+    "train_query_n_per_task": 1024,
+    "amp_init_scale": 1024
+  },
+  "interpretation_limits": [
+    "One patient-group fold and one seed; no complete CV5 or seed uncertainty",
+    "Same 55 units already informed research design: development holdout, not blind test",
+    "Fixed disjoint query subsamples, not complete original clouds",
+    "Scalar WSS/TAWSS only; no OSI",
+    "Temporal TCN has 31-frame local receptive field, not global temporal attention",
+    "No unseen-waveform or external clinical validation",
+    "P1 is pressure-only J1; J2 retains three equal-weight heads and changes shared gradient combination only"
+  ],
+  "baseline_report": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_v52_20260929/report.json",
+  "stats_sha256": "456cfb916a96d07c2f51f72549ff2e09fb671b4bb4043da9c69ac8d77ea8ced8",
+  "parameter_matching": {
+    "status": "passed_cpu",
+    "target_added_parameter_relative_difference_max": 0.05,
+    "definition": "abs(control-treatment) / max(control,treatment), active new module parameters only",
+    "pairs": [
+      [
+        "UT0",
+        "UT1"
+      ],
+      [
+        "WT0",
+        "WT1"
+      ],
+      [
+        "U0",
+        "U1"
+      ],
+      [
+        "W0",
+        "W1"
+      ]
+    ],
+    "artifact": "frozen/<tag>/parameter_validation.json",
+    "compute_budget": "same data and epochs; FLOPs and wall-clock are reported, not matched",
+    "gpu_smoke": "pending",
+    "actual_pairs": [
+      {
+        "control": "UT0",
+        "treatment": "UT1",
+        "control_added_parameters": 20598,
+        "treatment_added_parameters": 20768,
+        "relative_difference": 0.008185670261941448,
+        "passed": true
+      },
+      {
+        "control": "WT0",
+        "treatment": "WT1",
+        "control_added_parameters": 20598,
+        "treatment_added_parameters": 20768,
+        "relative_difference": 0.008185670261941448,
+        "passed": true
+      },
+      {
+        "control": "U0",
+        "treatment": "U1",
+        "control_added_parameters": 23350,
+        "treatment_added_parameters": 23520,
+        "relative_difference": 0.007227891156462585,
+        "passed": true
+      },
+      {
+        "control": "W0",
+        "treatment": "W1",
+        "control_added_parameters": 16224,
+        "treatment_added_parameters": 16096,
+        "relative_difference": 0.007889546351084813,
+        "passed": true
+      }
+    ]
+  }
+}

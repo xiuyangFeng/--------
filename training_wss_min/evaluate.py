@@ -20,7 +20,7 @@ import csv
 import json
 import time
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -367,6 +367,10 @@ def _evaluate_partition_frame(model, cases: List[Dict], cfg: C.ExpConfig, feat_s
                               pred_norm_by_case: List[np.ndarray] | None = None) -> Dict:
     """pred_norm_by_case 给定时跳过前向，直接用外部预测装配指标（体场时间基头的峰值帧由系数重建）。"""
     model.eval()
+    if cfg.data.target == C.MULTI_TARGET and pred_norm_by_case is None:
+        return _evaluate_partition_multi(model, cases, cfg, feat_stats, wss_stats, device, save_dir=save_dir,
+                                         make_plots=make_plots, frame_index=frame_index, return_predictions=return_predictions,
+                                         predictions_dir=predictions_dir)
     include_area = cfg.eval.surface_metric_mode == "both_strict"
     for case in cases:
         case.setdefault("unit_id", f"{case.get('cohort', 'AG/unknown')}/{case.get('case', 'unknown')}")
@@ -406,12 +410,13 @@ def _evaluate_partition_frame(model, cases: List[Dict], cfg: C.ExpConfig, feat_s
         pred_norm_by_case.append(y_pred_norm)
 
     if predictions_dir is not None:
-        if cfg.data.target not in (*C.VOLUME_TARGETS, "wss"):
-            raise ValueError("--save-predictions supports WSS and volume targets")
-        if cfg.data.target == "wss" and (pointwise_jensen or cfg.data.target_normalization != "global_stats"):
-            raise ValueError("saved WSS predictions require global_stats without Jensen correction")
+        scalar_wall = cfg.data.target in ("wss", *C.CYCLE_TARGETS)
+        if not scalar_wall and cfg.data.target not in C.VOLUME_TARGETS:
+            raise ValueError("--save-predictions supports WSS / cycle (tawss, osi) and volume targets")
+        if scalar_wall and (pointwise_jensen or cfg.data.target_normalization != "global_stats"):
+            raise ValueError("saved wall predictions require global_stats without Jensen correction")
         predictions_dir.mkdir(parents=True, exist_ok=True)
-        save_prediction = _save_wss_prediction if cfg.data.target == "wss" else _save_volume_prediction
+        save_prediction = _save_wss_prediction if scalar_wall else _save_volume_prediction
         entries = [save_prediction(c, p, cfg.data.target, wss_stats, predictions_dir)
                    for c, p in zip(cases, pred_norm_by_case)]
         (predictions_dir / "manifest.json").write_text(json.dumps({
@@ -463,6 +468,8 @@ def _evaluate_partition_frame(model, cases: List[Dict], cfg: C.ExpConfig, feat_s
             pred_raw = D.denormalize_wss(pred_norm, wss_stats)
         if wss_stats.get("method") == "log_z":
             pred_raw = np.clip(pred_raw, 0, None)
+        if cfg.data.target == "osi":
+            pred_raw = np.clip(pred_raw, 0.0, C.OSI_MAX)   # 有界目标：线性 z 反变换可能越界；logit_z 已在界内
         pred_raw_by_case.append(np.asarray(pred_raw, dtype=np.float64))
     true_raw_by_case = [np.asarray(c["y_raw"], dtype=np.float64) for c in cases]
     if cfg.data.target == "pressure_mixed":
@@ -477,23 +484,165 @@ def _evaluate_partition_frame(model, cases: List[Dict], cfg: C.ExpConfig, feat_s
         physical["query_groups"] = _query_group_breakdown(cases, true_raw_by_case, pred_raw_by_case,
                                                           true_norm_by_case, pred_norm_by_case)
         return physical
+    masks_above = tuple(float(v) for v in (getattr(cfg.eval, "threshold_masks_above", ()) or ()))
+    masks_below = tuple(float(v) for v in (getattr(cfg.eval, "threshold_masks_below", ()) or ()))
     physical = _evaluate_space(
         cases, true_raw_by_case, pred_raw_by_case,
         save_dir=None, make_plots=False, plot_space="physical target",
         include_area=include_area,
+        threshold_masks=(masks_above, masks_below) if (masks_above or masks_below) else None,
     )
     physical["metric_space"] = "physical_target"
     physical["back_transform"] = (
-        "pointwise_lognormal_mean_exp(mu+sigma^2/2)" if pointwise_jensen else "exp(mu)"
+        "pointwise_lognormal_mean_exp(mu+sigma^2/2)" if pointwise_jensen
+        else {"log_z": "exp(mu)", "logit_z": "scale*sigmoid(x)"}.get(wss_stats.get("method"), "linear")
     )
+    if cfg.data.target in C.CYCLE_TARGETS:
+        physical["target"] = cfg.data.target
+        physical["target_units"] = "Pa (cycle-averaged |WSS|, frames 0-79)" if cfg.data.target == "tawss" else "OSI in [0, 0.5]"
     physical["surface_metric_mode"] = cfg.eval.surface_metric_mode
     physical["surface_area_metrics_status"] = (
         "complete_strict" if include_area else "not_requested"
     )
     physical["normalized"] = normalized
+    if cfg.data.target in C.CYCLE_TARGETS and bool(getattr(cfg.eval, "cycle_agreement", True)):
+        physical["cycle_agreement"] = _cycle_agreement_block(cases, true_raw_by_case, pred_raw_by_case, cfg, wss_stats)
     if return_predictions:
         physical["_pred_norm_by_case"] = pred_norm_by_case
     return physical
+
+
+def _evaluate_partition_multi(model, cases, cfg, feat_stats, wss_stats, device, *, save_dir, make_plots, frame_index,
+                              return_predictions, predictions_dir) -> Dict:
+    """M1 三头（2026-09-21）：一次前向得到 (N, 3) = [峰值帧 WSS, TAWSS, OSI]，每个通道用各自的统计量与单目标评估路径；
+    顶层结果 = 峰值帧通道（与 X5D 同口径，含 normalized / physical 全套），其余两头在 result["heads"]。"""
+    import copy as _copy
+    channels = list(wss_stats["channels"])
+    for case in cases:
+        case.setdefault("unit_id", f"{case.get('cohort', 'AG/unknown')}/{case.get('case', 'unknown')}")
+    preds = [np.asarray(predict_case_norm(model, case, cfg.data.input_features, feat_stats, device, cfg=cfg,
+                                          return_all_channels=True, frame_index=frame_index), dtype=np.float64) for case in cases]
+    for p in preds:
+        if p.ndim != 2 or p.shape[1] != len(channels):
+            raise ValueError(f"wss_cycle_multi head must output (N, {len(channels)}), got {p.shape}")
+    base = [c for c in channels if c in C.MULTI_CHANNELS]
+    aux = [c for c in channels if c not in C.MULTI_CHANNELS]
+    if tuple(base) != tuple(C.MULTI_CHANNELS) or channels[:len(base)] != base:
+        raise ValueError(f"multi channels must start with {C.MULTI_CHANNELS}, got {channels}")
+    results: Dict[str, Dict] = {}
+    for j, name in enumerate(base):
+        sub = _copy.deepcopy(cfg)
+        sub.data.target = name
+        sub.eval.threshold_masks_above = tuple(cfg.eval.threshold_masks_above) if name == "osi" else ()
+        sub.eval.threshold_masks_below = tuple(cfg.eval.threshold_masks_below) if name == "tawss" else ()
+        sub_cases = [dict(case, y_raw=np.asarray(case["y_raw"])[:, j], y_norm=np.asarray(case["y_norm"])[:, j]) for case in cases]
+        results[name] = _evaluate_partition_frame(
+            model, sub_cases, sub, feat_stats, wss_stats[name], device,
+            save_dir=save_dir if j == 0 else None, make_plots=make_plots and j == 0, frame_index=frame_index,
+            return_predictions=return_predictions,
+            predictions_dir=(Path(predictions_dir) / name) if predictions_dir is not None else None,
+            pred_norm_by_case=[p[:, j] for p in preds])
+    top = results[channels[0]]
+    top["heads"] = {name: results[name] for name in base[1:]}
+    top["multi_target"] = {"target": C.MULTI_TARGET, "channels": channels, "top_level_channel": channels[0],
+                           "definition": "one forward pass, out_dim=3; channel 0 = peak-frame WSS (log_z, comparable with X5D), "
+                                         "heads = TAWSS (log_z) and OSI (stats method of the multi file); equal-weight channel MSE"}
+    manifest_channels = list(base)
+    if aux:
+        aux_heads = _evaluate_multi_aux(model, cases, preds, channels, aux, cfg, feat_stats, wss_stats, device,
+                                        frame_index=frame_index, predictions_dir=predictions_dir)
+        top["heads"].update(aux_heads)
+        top["multi_target"].update(aux_channels=aux, definition=(
+            f"one forward pass, out_dim={len(channels)}; channel 0 = peak-frame WSS (log_z), heads = TAWSS (log_z), OSI and the auxiliary "
+            f"channels {aux} (linear z; loss only, never a deployment output); 'osi_derived' = 0.5(1 - min(1, |(r_axial, r_circ)|)) "
+            f"from the mean-vector channels when both are present; equal-weight channel MSE"))
+        if "osi_derived" in aux_heads:
+            manifest_channels.append("osi_derived")
+    if predictions_dir is not None:
+        # 每个通道各自写了 <predictions_dir>/<channel>/manifest.json；CLI 回读的是分区顶层 manifest，这里汇总成同一合同
+        # （cases 条目的 file 相对 predictions_dir，即 <channel>/<unit_id>/predictions.npz），并附逐通道清单路径。
+        # 辅助通道另存在 <predictions_dir>/aux_<name>/ 下（不进顶层清单）；派生 OSI 与三通道同合同。
+        root = Path(predictions_dir)
+        per_channel = {name: json.loads((root / name / "manifest.json").read_text()) for name in manifest_channels}
+        cases_entries = [{**entry, "file": str(Path(name) / entry["file"]), "channel": name}
+                         for name in manifest_channels for entry in per_channel[name]["cases"]]
+        (root / "manifest.json").write_text(json.dumps({
+            "schema_version": 1, "target": C.MULTI_TARGET, "channels": manifest_channels if aux else channels,
+            "channel_manifests": {name: str(Path(name) / "manifest.json") for name in manifest_channels},
+            "cases": cases_entries,
+        }, indent=2, ensure_ascii=False))
+    if return_predictions:
+        top["_pred_norm_by_case"] = preds
+    return top
+
+
+def _evaluate_multi_aux(model, cases, preds, channels, aux, cfg, feat_stats, wss_stats, device, *, frame_index, predictions_dir) -> Dict:
+    """M1 辅助通道（2026-09-25）：逐通道 R²_cb（归一化 / 原始空间）+ 可选保存；mean_axial & mean_circ 同在时，
+    派生 OSI 走 OSI 单目标评估全套（阈值掩膜、cycle_agreement、同合同保存），另报标签自洽（真值分量派生 OSI 对真值 OSI）。"""
+    import copy as _copy
+    out: Dict[str, Dict] = {}
+    for name in aux:
+        j = channels.index(name)
+        st = wss_stats[name]
+        t_norm = [np.asarray(c["y_norm"], dtype=np.float64)[:, j] for c in cases]
+        p_norm = [np.asarray(p, dtype=np.float64)[:, j] for p in preds]
+        t_raw = [np.asarray(c["y_raw"], dtype=np.float64)[:, j] for c in cases]
+        p_raw = [np.asarray(D.denormalize_wss(p, st), dtype=np.float64) for p in p_norm]
+        out[f"aux_{name}"] = {
+            "normalized": {"field_casebalanced": M.casebalanced_field_metrics(t_norm, p_norm)},
+            "field_casebalanced": M.casebalanced_field_metrics(t_raw, p_raw),
+            "per_case_r2": {c["unit_id"]: float(M.r2_score(t, p)) for c, t, p in zip(cases, t_raw, p_raw)},
+        }
+        if predictions_dir is not None:
+            root = Path(predictions_dir) / f"aux_{name}"
+            for case, tn, pn, tr, pr in zip(cases, t_norm, p_norm, t_raw, p_raw):
+                target = root / case["unit_id"]
+                target.mkdir(parents=True, exist_ok=True)
+                np.savez_compressed(target / "predictions.npz", pred_norm=pn, true_norm=tn.astype(np.float32), pred_raw=pr,
+                                    true_raw=tr.astype(np.float32), row_index=np.arange(len(tr), dtype=np.int64), channel=np.array(name))
+    if {"mean_axial", "mean_circ"} <= set(aux):
+        ja, jc, jo = channels.index("mean_axial"), channels.index("mean_circ"), channels.index("osi")
+        d_pred = [D.derived_osi(D.denormalize_wss(np.asarray(p, dtype=np.float64)[:, ja], wss_stats["mean_axial"]),
+                                D.denormalize_wss(np.asarray(p, dtype=np.float64)[:, jc], wss_stats["mean_circ"])) for p in preds]
+        d_true = [D.derived_osi(np.asarray(c["y_raw"], dtype=np.float64)[:, ja], np.asarray(c["y_raw"], dtype=np.float64)[:, jc]) for c in cases]
+        osi_true = [np.asarray(c["y_raw"], dtype=np.float64)[:, jo] for c in cases]
+        sub = _copy.deepcopy(cfg)
+        sub.data.target = "osi"
+        sub.eval.threshold_masks_above = tuple(cfg.eval.threshold_masks_above)
+        sub.eval.threshold_masks_below = ()
+        sub_cases = [dict(case, y_raw=np.asarray(case["y_raw"])[:, jo], y_norm=np.asarray(case["y_norm"])[:, jo]) for case in cases]
+        res = _evaluate_partition_frame(
+            model, sub_cases, sub, feat_stats, wss_stats["osi"], device, save_dir=None, make_plots=False, frame_index=frame_index,
+            return_predictions=False, predictions_dir=(Path(predictions_dir) / "osi_derived") if predictions_dir is not None else None,
+            pred_norm_by_case=[D.normalize_wss(x, wss_stats["osi"]) for x in d_pred])
+        res["label_consistency"] = {
+            "definition": "true OSI vs 0.5(1 - min(1, |(r_axial, r_circ)|)) from the true mean-vector channels (tangent-plane projection loss)",
+            "field_casebalanced": M.casebalanced_field_metrics(osi_true, d_true),
+            "mean_abs_diff_casemean": float(np.mean([np.mean(np.abs(a - b)) for a, b in zip(osi_true, d_true)])),
+        }
+        out["osi_derived"] = res
+    return out
+
+
+def _cycle_agreement_block(cases, true_by_case, pred_by_case, cfg, wss_stats) -> Dict:
+    """周期积分量落地一致性（矩阵 §7 补充，2026-09-21）：逐例 CCC / 相对误差 / 热点与阈值 Dice / 分段均值误差 + 病例级 Bland–Altman。"""
+    log_space = cfg.data.target == "tawss"
+    floor = float(wss_stats.get("floor", 0.05)) if log_space else float(getattr(cfg.eval, "cycle_osi_rel_floor", 0.01))
+    above = tuple(float(v) for v in (getattr(cfg.eval, "threshold_masks_above", ()) or ()))
+    below = tuple(float(v) for v in (getattr(cfg.eval, "threshold_masks_below", ()) or ()))
+    per_case: Dict[str, Dict] = {}
+    for case, yt, yp in zip(cases, true_by_case, pred_by_case):
+        per_case[case["unit_id"]] = M.cycle_agreement_case_metrics(
+            yt, yp, log_space=log_space, floor=floor, rel_tolerance=float(getattr(cfg.eval, "cycle_rel_tolerance", 0.3)),
+            segment_ids=case.get("_wall_semantic_id"), min_segment_points=int(getattr(cfg.eval, "cycle_min_segment_points", 200)),
+            masks_above=above, masks_below=below)
+    summary = M.cycle_agreement_aggregate(per_case)
+    summary["definition"] = ("per-case Lin CCC (" + ("ln(max(y,floor)) for TAWSS" if log_space else "linear for OSI") + "), median relative error "
+                             "|pred-true|/max(true,floor) and share within tolerance, top-10% Dice, threshold-mask Dice with true/pred area shares, "
+                             "semantic-segment mean relative error (segments with >= min points); case-level Bland-Altman (bias, 95% LoA) of the case "
+                             "mean (relative) and of mask area shares (absolute); segments keyed by wss_v5 SEMANTIC_LABELS id")
+    summary["per_case"] = per_case
+    return summary
 
 
 def _evaluate_partition_volume_time(model, cases, cfg, feat_stats, wss_stats, device, *,
@@ -566,7 +715,9 @@ def _evaluate_partition_volume_time(model, cases, cfg, feat_stats, wss_stats, de
         met.add(y_true, y_pred)
         one = VT.VolumeTimeMetrics(_cycle_q_norm(case, n_frames), kind)
         one.add(y_true, y_pred)
-        per_case[case["unit_id"]] = {k: v for k, v in one.summary().items() if k != "frame_r2cb"}
+        per_case[case["unit_id"]] = {k: v for k, v in one.summary().items()
+                                     if k not in ("frame_r2cb", "frame_nmae_range")}
+        print(f"  [cycle] {case['unit_id']} points={len(rows)}", flush=True)
 
     cycle = met.summary()
     cycle.update(
@@ -628,14 +779,19 @@ def _save_wss_prediction(case, pred_norm, target, stats, predictions_dir):
     output = predictions_dir / relative
     output.parent.mkdir(parents=True, exist_ok=True)
     raw = D.denormalize_wss(np.asarray(pred_norm, dtype=np.float64), stats)
-    clipped = np.clip(raw, 0, None) if stats.get("method") == "log_z" else raw
+    if target == "osi":
+        clipped, clipping = np.clip(raw, 0.0, C.OSI_MAX), f"clipped to [0, {C.OSI_MAX}] (OSI)"
+    elif stats.get("method") == "log_z":
+        clipped, clipping = np.clip(raw, 0, None), "nonnegative after inverse log_z"
+    else:
+        clipped, clipping = raw, "none"
     np.savez_compressed(output, pred_norm=pred_norm, true_norm=case.get("y_norm_standard", case["y_norm"]),
                         pred_pa_unclipped=raw, pred_pa=clipped, true_pa=case["y_raw"],
-                        row_index=np.arange(len(pred_norm), dtype=np.int64))
+                        row_index=np.arange(len(pred_norm), dtype=np.int64), target=np.array(str(target)))
     import hashlib
     return {"unit_id": case["unit_id"], "file": str(relative), "n_points": len(pred_norm),
-            "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
-            "metric_clipping": "nonnegative after inverse log_z" if stats.get("method") == "log_z" else "none"}
+            "sha256": hashlib.sha256(output.read_bytes()).hexdigest(), "target": str(target),
+            "metric_clipping": clipping}
 
 
 def denormalize_volume_prediction(pred_norm: np.ndarray, target: str, stats: Dict) -> np.ndarray:
@@ -807,10 +963,27 @@ def _evaluate_velocity(cases, true_norm_by_case, pred_norm_by_case, cfg, wss_sta
     return physical
 
 
+def _threshold_mask_block(true_by_case, pred_by_case, above, below) -> Dict[str, Dict]:
+    """物理空间阈值掩膜（周期积分量矩阵 §7）：逐例 IoU/precision/recall/面积份额误差的病例均值与中位。"""
+    out: Dict[str, Dict] = {}
+    specs = [(f"above_{thr:g}", float(thr), True) for thr in above] + [(f"below_{thr:g}", float(thr), False) for thr in below]
+    for name, thr, is_above in specs:
+        rows = [M.threshold_mask_metrics(t, p, thr, above=is_above) for t, p in zip(true_by_case, pred_by_case)]
+        block: Dict[str, float] = {"threshold": thr, "direction": "above" if is_above else "below", "n_cases": len(rows)}
+        for key in ("iou", "precision", "recall", "true_frac", "pred_frac", "frac_abs_err"):
+            vals = np.asarray([r[key] for r in rows], dtype=np.float64)
+            vals = vals[np.isfinite(vals)]
+            block[f"{key}_casemean"] = float(vals.mean()) if vals.size else float("nan")
+            block[f"{key}_casemed"] = float(np.median(vals)) if vals.size else float("nan")
+        out[name] = block
+    return out
+
+
 def _evaluate_space(cases: List[Dict], true_by_case: List[np.ndarray],
                     pred_by_case: List[np.ndarray], *, save_dir: Path | None,
                     make_plots: bool, plot_space: str,
-                    include_area: bool = True) -> Dict:
+                    include_area: bool = True,
+                    threshold_masks: Tuple[Tuple[float, ...], Tuple[float, ...]] | None = None) -> Dict:
     per_case: Dict[str, Dict] = {}
     for case, y_true, y_pred in zip(cases, true_by_case, pred_by_case):
         reg = M.regional_metrics(case["pos"], case["local_radius"], y_true, y_pred)
@@ -818,6 +991,11 @@ def _evaluate_space(cases: List[Dict], true_by_case: List[np.ndarray],
         reg["distribution"] = M.distribution_metrics(y_true, y_pred)
         reg["hotspot"] = M.hotspot_localization_metrics(y_true, y_pred, case["pos"])
         reg["legacy_vertex_hotspot"] = dict(reg["hotspot"])
+        if threshold_masks and (threshold_masks[0] or threshold_masks[1]):
+            reg["threshold_masks"] = {
+                **{f"above_{thr:g}": M.threshold_mask_metrics(y_true, y_pred, thr, above=True) for thr in threshold_masks[0]},
+                **{f"below_{thr:g}": M.threshold_mask_metrics(y_true, y_pred, thr, above=False) for thr in threshold_masks[1]},
+            }
         if include_area:
             reg["area_overall"] = M.weighted_basic_metrics(
                 y_true, y_pred, case["surface_area_weights"]
@@ -850,6 +1028,8 @@ def _evaluate_space(cases: List[Dict], true_by_case: List[np.ndarray],
         "group_casebalanced": _group_casebalanced(cases, true_by_case, pred_by_case),
         "per_case": per_case,
     }
+    if threshold_masks and (threshold_masks[0] or threshold_masks[1]):
+        result["threshold_masks"] = _threshold_mask_block(true_by_case, pred_by_case, threshold_masks[0], threshold_masks[1])
     if include_area:
         area_hotspot = {}
         for key in ("area_top10_iou", "area_top10_precision", "area_top10_recall",
@@ -1142,6 +1322,10 @@ def main():
                          "jensen=逐点 exp(mu+sigma^2/2)，需 gaussian_nll 双通道头）")
     ap.add_argument("--output-dir", type=str, default=None,
                     help="默认 run_dir/eval/ckpt_<best|last>，用于隔离 checkpoint 结果")
+    ap.add_argument("--data-root", type=str, default=None,
+                    help="只读评估覆盖 bundle 根（2026-09-22：评估不在 run 视图根里的新病例）；不改 run config")
+    ap.add_argument("--point-features-root", type=str, nargs="*", default=None,
+                    help="只读评估覆盖 sidecar 根列表（与 --data-root 配套）")
     args = ap.parse_args()
 
     if args.run_dir:
@@ -1172,15 +1356,17 @@ def main():
         cases = D.load_partition(
             eval_split_path, part, wss_stats, target=cfg.data.target,
             target_normalization=cfg.data.target_normalization,
-            data_root=cfg.data.data_root,
+            data_root=args.data_root or cfg.data.data_root,
             required_frame_version=cfg.data.required_frame_version,
             case_features_path=cfg.data.case_features_path,
             timesteps=getattr(cfg.data, "timesteps", "peak"), waveform_path=getattr(cfg.data, "waveform_path", None),
             extra_point_features=C.v6_point_features(cfg),
-            point_features_root=getattr(cfg.data, "point_features_root", None),
+            point_features_root=args.point_features_root or getattr(cfg.data, "point_features_root", None),
             time_basis_path=getattr(cfg.data, "time_basis_path", None), time_basis_k=int(getattr(cfg.model, "time_basis_k", 0)),
             volume_time_sidecar_root=getattr(cfg.data, "volume_time_sidecar_root", None),
             volume_h5_root=getattr(cfg.data, "volume_h5_root", None),
+            cycle_view_root=getattr(cfg.data, "cycle_view_root", None),
+            multi_aux_channels=tuple(getattr(cfg.data, "multi_aux_channels", ()) or ()),
         )
         if device == "cuda":
             torch.cuda.reset_peak_memory_stats()
@@ -1215,6 +1401,10 @@ def main():
               f"R2_fit_casebalanced={cb['r2_linear_fit']:.4f}  "
               f"NRMSE_field={fld['nrmse_range']:.4f}  "
               f"MAE={fld['mae']:.4f}")
+        cyc = res.get("cycle")
+        if cyc:
+            print(f"    cycle R2cb={cyc['cycle_r2cb']:.4f} nmae={cyc.get('cycle_nmae_range', float('nan')):.4f} "
+                  f"peak_nmae={cyc.get('peak_nmae_range', float('nan')):.4f}", flush=True)
         for rname, rm in report["regional_field"].items():
             print(f"    {rname:12s} R2={rm['r2']:.4f} NRMSE={rm['nrmse_range']:.4f} n={rm['n']}")
 

@@ -1,0 +1,196 @@
+{
+ "schema_version": 1,
+ "experiment": "wss_time_adapter_v51_20260923",
+ "created": "2026-09-23",
+ "question": "teacher idea P0.8: does a frozen peak-trained X5D representation support an anchored time adapter on v5.1 cv3?",
+ "protocol": "cv3_v51 folds 0-2 (train 90/90/92, held-out 46/46/44), seed 1234, one run per arm; donor = same-fold X5D_v51_f{k}_s1234 ckpt_best; frame stats / waveform = wss_time_ecc_20260918 offline",
+ "references": {
+  "stage2": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/stage2_report_best.json",
+  "d2_tnull": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/d2_tnull.json"
+ },
+ "execution": "node04 2 x A100 over ssh (outside Slurm), frozen copy GNN_timeadapter_frozen_20260923",
+ "cache_jobs": [
+  {
+   "id": "cache_f0",
+   "config": "cache_f0.json",
+   "fold": 0,
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_v51_20260923/cache/fold0/manifest.json"
+  },
+  {
+   "id": "cache_f1",
+   "config": "cache_f1.json",
+   "fold": 1,
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_v51_20260923/cache/fold1/manifest.json"
+  },
+  {
+   "id": "cache_f2",
+   "config": "cache_f2.json",
+   "fold": 2,
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_v51_20260923/cache/fold2/manifest.json"
+  }
+ ],
+ "arms": [
+  {
+   "id": "Tnull_f0_s1234",
+   "arm": "Tnull",
+   "fold": 0,
+   "seed": 1234,
+   "config": "Tnull_f0_s1234.json",
+   "depends_on": "cache_f0",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/Tnull_f0_s1234/metrics.json"
+  },
+  {
+   "id": "P-lin_f0_s1234",
+   "arm": "P-lin",
+   "fold": 0,
+   "seed": 1234,
+   "config": "P-lin_f0_s1234.json",
+   "depends_on": "cache_f0",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/P-lin_f0_s1234/metrics.json"
+  },
+  {
+   "id": "P-mlp_f0_s1234",
+   "arm": "P-mlp",
+   "fold": 0,
+   "seed": 1234,
+   "config": "P-mlp_f0_s1234.json",
+   "depends_on": "cache_f0",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/P-mlp_f0_s1234/metrics.json"
+  },
+  {
+   "id": "P-mlp-qx_f0_s1234",
+   "arm": "P-mlp-qx",
+   "fold": 0,
+   "seed": 1234,
+   "config": "P-mlp-qx_f0_s1234.json",
+   "depends_on": "cache_f0",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/P-mlp-qx_f0_s1234/metrics.json"
+  },
+  {
+   "id": "C-scalar_f0_s1234",
+   "arm": "C-scalar",
+   "fold": 0,
+   "seed": 1234,
+   "config": "C-scalar_f0_s1234.json",
+   "depends_on": "cache_f0",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/C-scalar_f0_s1234/metrics.json"
+  },
+  {
+   "id": "C-raw_f0_s1234",
+   "arm": "C-raw",
+   "fold": 0,
+   "seed": 1234,
+   "config": "C-raw_f0_s1234.json",
+   "depends_on": "cache_f0",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/C-raw_f0_s1234/metrics.json"
+  },
+  {
+   "id": "Tnull_f1_s1234",
+   "arm": "Tnull",
+   "fold": 1,
+   "seed": 1234,
+   "config": "Tnull_f1_s1234.json",
+   "depends_on": "cache_f1",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/Tnull_f1_s1234/metrics.json"
+  },
+  {
+   "id": "P-lin_f1_s1234",
+   "arm": "P-lin",
+   "fold": 1,
+   "seed": 1234,
+   "config": "P-lin_f1_s1234.json",
+   "depends_on": "cache_f1",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/P-lin_f1_s1234/metrics.json"
+  },
+  {
+   "id": "P-mlp_f1_s1234",
+   "arm": "P-mlp",
+   "fold": 1,
+   "seed": 1234,
+   "config": "P-mlp_f1_s1234.json",
+   "depends_on": "cache_f1",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/P-mlp_f1_s1234/metrics.json"
+  },
+  {
+   "id": "P-mlp-qx_f1_s1234",
+   "arm": "P-mlp-qx",
+   "fold": 1,
+   "seed": 1234,
+   "config": "P-mlp-qx_f1_s1234.json",
+   "depends_on": "cache_f1",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/P-mlp-qx_f1_s1234/metrics.json"
+  },
+  {
+   "id": "C-scalar_f1_s1234",
+   "arm": "C-scalar",
+   "fold": 1,
+   "seed": 1234,
+   "config": "C-scalar_f1_s1234.json",
+   "depends_on": "cache_f1",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/C-scalar_f1_s1234/metrics.json"
+  },
+  {
+   "id": "C-raw_f1_s1234",
+   "arm": "C-raw",
+   "fold": 1,
+   "seed": 1234,
+   "config": "C-raw_f1_s1234.json",
+   "depends_on": "cache_f1",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/C-raw_f1_s1234/metrics.json"
+  },
+  {
+   "id": "Tnull_f2_s1234",
+   "arm": "Tnull",
+   "fold": 2,
+   "seed": 1234,
+   "config": "Tnull_f2_s1234.json",
+   "depends_on": "cache_f2",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/Tnull_f2_s1234/metrics.json"
+  },
+  {
+   "id": "P-lin_f2_s1234",
+   "arm": "P-lin",
+   "fold": 2,
+   "seed": 1234,
+   "config": "P-lin_f2_s1234.json",
+   "depends_on": "cache_f2",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/P-lin_f2_s1234/metrics.json"
+  },
+  {
+   "id": "P-mlp_f2_s1234",
+   "arm": "P-mlp",
+   "fold": 2,
+   "seed": 1234,
+   "config": "P-mlp_f2_s1234.json",
+   "depends_on": "cache_f2",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/P-mlp_f2_s1234/metrics.json"
+  },
+  {
+   "id": "P-mlp-qx_f2_s1234",
+   "arm": "P-mlp-qx",
+   "fold": 2,
+   "seed": 1234,
+   "config": "P-mlp-qx_f2_s1234.json",
+   "depends_on": "cache_f2",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/P-mlp-qx_f2_s1234/metrics.json"
+  },
+  {
+   "id": "C-scalar_f2_s1234",
+   "arm": "C-scalar",
+   "fold": 2,
+   "seed": 1234,
+   "config": "C-scalar_f2_s1234.json",
+   "depends_on": "cache_f2",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/C-scalar_f2_s1234/metrics.json"
+  },
+  {
+   "id": "C-raw_f2_s1234",
+   "arm": "C-raw",
+   "fold": 2,
+   "seed": 1234,
+   "config": "C-raw_f2_s1234.json",
+   "depends_on": "cache_f2",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/C-raw_f2_s1234/metrics.json"
+  }
+ ]
+}

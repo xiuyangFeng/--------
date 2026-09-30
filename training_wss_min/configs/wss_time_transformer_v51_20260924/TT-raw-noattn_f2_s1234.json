@@ -1,0 +1,55 @@
+{
+ "schema": "time_transformer_v51_v1",
+ "name": "wss_time_transformer_v51_20260924/TT-raw-noattn_f2_s1234",
+ "experiment": "wss_time_transformer_v51_20260924",
+ "arm": "TT-raw-noattn",
+ "fold": 2,
+ "seed": 1234,
+ "title": "capacity/control: raw geometry + peak anchor + frame-independent time MLP",
+ "cache_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_v51_20260923/cache/fold2",
+ "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold2.json",
+ "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1",
+ "frame_stats_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold2.json",
+ "waveform_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json",
+ "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-raw-noattn_f2_s1234",
+ "peak_index": 21,
+ "inputs": [
+  "raw",
+  "peak_ln"
+ ],
+ "architecture": {
+  "temporal": "frame_mlp",
+  "d_model": 64,
+  "nhead": 4,
+  "num_layers": 2,
+  "dim_feedforward": 128,
+  "dropout": 0.0,
+  "spatial_hidden": 128,
+  "decoder_hidden": [
+   128,
+   128
+  ],
+  "global_pool": "mean"
+ },
+ "train": {
+  "epochs": 60,
+  "steps_per_epoch": 30,
+  "batch_cases": 4,
+  "query_points": 1024,
+  "train_pool_points": 8192,
+  "stats_points": 4096,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "warmup_steps": 100,
+  "min_lr_ratio": 0.01,
+  "grad_clip": 1.0,
+  "selection": "last",
+  "allow_tf32": true,
+  "log_every_epochs": 5
+ },
+ "eval": {
+  "partition": "test",
+  "chunk_points": 4096
+ },
+ "notes": "V5.1 cv3 development probe; static geometry is encoded once via cache, no dynamic pressure/velocity input."
+}

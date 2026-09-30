@@ -1,0 +1,143 @@
+{
+  "generated_at": "2026-09-27T10:57:22+0800",
+  "anchor": {
+    "pa_r2_cb": 0.7461090296994921,
+    "norm_r2_cb": 0.8684442102006644,
+    "pa_mae": 1.6071385707260173,
+    "case_mean_r2": 0.7572922325395098,
+    "case_p10_r2": 0.6537395414637284,
+    "high_wss_r2": 0.4892496038836113,
+    "top10_ratio": 0.754320887933043,
+    "p99_ratio": 0.7689272931046535,
+    "top10_iou": 0.5275224187443619,
+    "target": "wss",
+    "negative_r2_cases": [],
+    "domains_pa_r2_cb": {
+      "AG": 0.7854666186240397,
+      "AAA": 0.7160231791337319,
+      "ILO": 0.7180072687605458
+    },
+    "per_case_pa_r2": {
+      "AAA/ruputer/KANG_YONG": 0.7780804844059391,
+      "AAA/ruputer/LI_ZHEN_HUA": 0.8933860775539335,
+      "AAA/ruputer/WANG_FU_SHUN": 0.6730456786020116,
+      "AAA/ruputer/YU_TIAN_HAI": 0.7414509251489656,
+      "AAA/unruputer/GAO_DIAN_WEN": 0.837509683370619,
+      "AAA/unruputer/LIU_KANG_WEN": 0.8373405732738004,
+      "AAA/unruputer/MA_JIN_HE": 0.6677719285282281,
+      "AAA/unruputer/SUN_SHU_MING": 0.7608569751194393,
+      "AAA/unruputer/WANG_MAN_TIAN": 0.6210206582618767,
+      "AAA/unruputer/ZHANG_YONG_ZHI": 0.661235265719301,
+      "AG/fast/FAN_JIAN_MING": 0.7788032729085589,
+      "AG/fast/LOU_YANG": 0.869862393655782,
+      "AG/fast/RAN_QING_BO": 0.9125023172923042,
+      "AG/fast/SUN_ZHI_YU": 0.7781003953122656,
+      "AG/fast/YAO_CUN_HONG": 0.8189800699391352,
+      "AG/fast/ZHANG_CHUN": 0.6942461731105949,
+      "AG/fast/ZHANG_LIANG": 0.8837962352572435,
+      "AG/slow/BAI_WEN_JIE": 0.7889830551624241,
+      "AG/slow/CHEN_JING_RU": 0.80780807456507,
+      "AG/slow/GUO_XI_JIANG": 0.8649986318452909,
+      "AG/slow/HE_SHU_ZHEN": 0.7351971260741956,
+      "AG/slow/LI_HUAN_GE": 0.6373339933394226,
+      "AG/slow/MA_TIAN_YI": 0.7368231750138439,
+      "AG/slow/MA_YU": 0.7093789067236084,
+      "AG/slow/ZHANG_WEI_XIAN": 0.6956526941390822,
+      "ILO/LI_YOU_ZHI-0/before": 0.7663596747472547,
+      "ILO/LU_FU_SHAN-0/before": 0.7924970591175455,
+      "ILO/SUN_DONG_XIN-0/before": 0.7730971086324872,
+      "ILO/SUN_XU_XIA-1/before": 0.6505270882113401,
+      "ILO/YANG_WEN_TAI-0/before": 0.7220146502154319,
+      "ILO/YU_XIANG_SHENG-1/before": 0.816771448468737,
+      "ILO/ZHANG_HE_PING-0/before": 0.7597817863869223,
+      "ILO/ZHANG_JIN_CHUN-1/before": 0.6731936449548442,
+      "ILO/ZHANG_YONG_SHENG-0/before": 0.6095286812858356
+    },
+    "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json"
+  },
+  "arms": {
+    "X5Dcap_asym15_s1234": {
+      "id": "X5Dcap_asym15_s1234",
+      "title": "dose control: asym under-weight 1.5, IND, seed 1234",
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "status": "not_started",
+      "single_change": true,
+      "checkpoints": {}
+    },
+    "X5Dcap_asym3_s1234": {
+      "id": "X5Dcap_asym3_s1234",
+      "title": "dose control: asym under-weight 3.0, IND, seed 1234",
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "status": "not_started",
+      "single_change": true,
+      "checkpoints": {}
+    },
+    "X5Dcap_asym15_s7": {
+      "id": "X5Dcap_asym15_s7",
+      "title": "dose control: asym under-weight 1.5, IND, seed 7",
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "status": "not_started",
+      "single_change": true,
+      "checkpoints": {}
+    },
+    "X5Dcap_asym3_s7": {
+      "id": "X5Dcap_asym3_s7",
+      "title": "dose control: asym under-weight 3.0, IND, seed 7",
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "status": "not_started",
+      "single_change": true,
+      "checkpoints": {}
+    },
+    "X5Dcap_asym15_s2025": {
+      "id": "X5Dcap_asym15_s2025",
+      "title": "dose control: asym under-weight 1.5, IND, seed 2025",
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "status": "not_started",
+      "single_change": true,
+      "checkpoints": {}
+    },
+    "X5Dcap_asym3_s2025": {
+      "id": "X5Dcap_asym3_s2025",
+      "title": "dose control: asym under-weight 3.0, IND, seed 2025",
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "status": "not_started",
+      "single_change": true,
+      "checkpoints": {}
+    }
+  },
+  "bands": {
+    "pa_r2_cb": 0.034,
+    "norm_r2_cb": 0.009
+  },
+  "queue_status": null
+}

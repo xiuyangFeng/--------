@@ -109,7 +109,7 @@ FPS center 在空间外围偏多，所以当前 1.5 mm 占比到了 88.28%；但
 - PointNet / PointNet++ 编码器：`wss_pinn/v4/models.py:48-107`。
 - region 只用于评估：`wss_pinn/v4/evaluate.py:238-264,411-414`。
 - Centerline-V2 无 cap 定义：`wss_pinn/v4/build_centerline_v2.py:315-375`。
-- 长度单位核查：`docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md:31-90`。
+- 长度单位核查：`docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md:31-90`。
 - RAN 单位机器证据：`outputs/wss_pinn/volume_uvwp_bc_rcr_v4_anatomy_prep_20260903/audits/topology/cases/AG__fast__RAN_QING_BO.json`。
 - 早期 PointNet 采样：`training_wss_min/runs/r4_dev1_b0_tgtw_batchq_s1234/sampling_viz/fast__RAN_QING_BO/`。
 - 早期 PointNet++ SA3：`例子/06_PointNet++_SA三层采样与分组/Q2V-10477_vertex-random5000_FPS-center_fast_RAN_QING_BO_ParaView/`。

@@ -34,7 +34,8 @@ class Q2VILOMatrixTests(unittest.TestCase):
         canonical, bundle = _resolve_bundle_path(P.DATA_ROOT, unit)
         self.assertEqual(canonical, unit)
         self.assertEqual(bundle, P.DATA_ROOT / unit / "bundle.npz")
-        for bad in ("ILO/CASE_001-0/after", "ILO/CASE_001-2/before", "ILO/CASE_001/before"):
+        self.assertEqual(D.canonical_unit_id("ILO/CASE_001-0/after"), "ILO/CASE_001-0/after")  # admitted 2026-09-22
+        for bad in ("ILO/CASE_001-2/before", "ILO/CASE_001/before", "ILO/CASE_001-0/during"):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 D.canonical_unit_id(bad)
 

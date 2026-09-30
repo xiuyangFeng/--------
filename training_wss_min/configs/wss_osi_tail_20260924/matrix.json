@@ -1,0 +1,471 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_osi_tail_20260924",
+  "parent_experiment": "wss_cycle_m1_20260921",
+  "parent_runs": {
+    "M1_f0_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_20260921/M1_f0_s1234",
+    "M1_f1_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_20260921/M1_f1_s1234",
+    "M1_f2_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_20260921/M1_f2_s1234"
+  },
+  "parent_configs_sha256": {
+    "M1_f0_s1234": "49dcf59c1085d0e908dccf51f5de8eb4ee392dea9d948b220a95319f37a50851",
+    "M1_f1_s1234": "ff2459898cb650aeb2f45e8cdfb34512b7681d1b9fff2e9392c001ee78d6cc42",
+    "M1_f2_s1234": "616063c3112c66445b722d06bb6d7bf7f418cffc1eff6e2bdb3c66fa2ca29a83"
+  },
+  "execution": "node04 (2x A100-40GB, outside Slurm) via tools/run_local_train_queue.py; train -> eval best -> eval last (--save-predictions)",
+  "expected_training_runs": 12,
+  "expected_evaluations": 24,
+  "arms": [
+    {
+      "id": "M1r_f0_s1234",
+      "arm": "M1r",
+      "fold": 0,
+      "seed": 1234,
+      "config": "M1r_f0_s1234.json",
+      "run_name": "wss_osi_tail_20260924/M1r_f0_s1234",
+      "title": "same-hardware control: M1 unchanged",
+      "parent": "M1_f0_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {},
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/M1r_f0_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "M1r_f1_s1234",
+      "arm": "M1r",
+      "fold": 1,
+      "seed": 1234,
+      "config": "M1r_f1_s1234.json",
+      "run_name": "wss_osi_tail_20260924/M1r_f1_s1234",
+      "title": "same-hardware control: M1 unchanged",
+      "parent": "M1_f1_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {},
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/M1r_f1_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "M1r_f2_s1234",
+      "arm": "M1r",
+      "fold": 2,
+      "seed": 1234,
+      "config": "M1r_f2_s1234.json",
+      "run_name": "wss_osi_tail_20260924/M1r_f2_s1234",
+      "title": "same-hardware control: M1 unchanged",
+      "parent": "M1_f2_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {},
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/M1r_f2_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "K1_f0_s1234",
+      "arm": "K1",
+      "fold": 0,
+      "seed": 1234,
+      "config": "K1_f0_s1234.json",
+      "run_name": "wss_osi_tail_20260924/K1_f0_s1234",
+      "title": "OSI soft-mask BCE (lambda 0.1, OSI > 0.2 / 0.3, temperature 0.25)",
+      "parent": "M1_f0_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {
+        "train.loss_osi_mask_lambda": {
+          "anchor": null,
+          "arm": 0.1
+        },
+        "train.osi_mask_temperature": {
+          "anchor": null,
+          "arm": 0.25
+        },
+        "train.osi_mask_thresholds": {
+          "anchor": null,
+          "arm": [
+            0.2,
+            0.3
+          ]
+        }
+      },
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/K1_f0_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "K1_f1_s1234",
+      "arm": "K1",
+      "fold": 1,
+      "seed": 1234,
+      "config": "K1_f1_s1234.json",
+      "run_name": "wss_osi_tail_20260924/K1_f1_s1234",
+      "title": "OSI soft-mask BCE (lambda 0.1, OSI > 0.2 / 0.3, temperature 0.25)",
+      "parent": "M1_f1_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {
+        "train.loss_osi_mask_lambda": {
+          "anchor": null,
+          "arm": 0.1
+        },
+        "train.osi_mask_temperature": {
+          "anchor": null,
+          "arm": 0.25
+        },
+        "train.osi_mask_thresholds": {
+          "anchor": null,
+          "arm": [
+            0.2,
+            0.3
+          ]
+        }
+      },
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/K1_f1_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "K1_f2_s1234",
+      "arm": "K1",
+      "fold": 2,
+      "seed": 1234,
+      "config": "K1_f2_s1234.json",
+      "run_name": "wss_osi_tail_20260924/K1_f2_s1234",
+      "title": "OSI soft-mask BCE (lambda 0.1, OSI > 0.2 / 0.3, temperature 0.25)",
+      "parent": "M1_f2_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {
+        "train.loss_osi_mask_lambda": {
+          "anchor": null,
+          "arm": 0.1
+        },
+        "train.osi_mask_temperature": {
+          "anchor": null,
+          "arm": 0.25
+        },
+        "train.osi_mask_thresholds": {
+          "anchor": null,
+          "arm": [
+            0.2,
+            0.3
+          ]
+        }
+      },
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/K1_f2_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "K2_f0_s1234",
+      "arm": "K2",
+      "fold": 0,
+      "seed": 1234,
+      "config": "K2_f0_s1234.json",
+      "run_name": "wss_osi_tail_20260924/K2_f0_s1234",
+      "title": "OSI tail-weighted channel MSE (alpha 2 above OSI 0.2)",
+      "parent": "M1_f0_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {
+        "train.loss_osi_tail_alpha": {
+          "anchor": null,
+          "arm": 2.0
+        },
+        "train.osi_tail_threshold": {
+          "anchor": null,
+          "arm": 0.2
+        }
+      },
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/K2_f0_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "K2_f1_s1234",
+      "arm": "K2",
+      "fold": 1,
+      "seed": 1234,
+      "config": "K2_f1_s1234.json",
+      "run_name": "wss_osi_tail_20260924/K2_f1_s1234",
+      "title": "OSI tail-weighted channel MSE (alpha 2 above OSI 0.2)",
+      "parent": "M1_f1_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {
+        "train.loss_osi_tail_alpha": {
+          "anchor": null,
+          "arm": 2.0
+        },
+        "train.osi_tail_threshold": {
+          "anchor": null,
+          "arm": 0.2
+        }
+      },
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/K2_f1_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "K2_f2_s1234",
+      "arm": "K2",
+      "fold": 2,
+      "seed": 1234,
+      "config": "K2_f2_s1234.json",
+      "run_name": "wss_osi_tail_20260924/K2_f2_s1234",
+      "title": "OSI tail-weighted channel MSE (alpha 2 above OSI 0.2)",
+      "parent": "M1_f2_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {
+        "train.loss_osi_tail_alpha": {
+          "anchor": null,
+          "arm": 2.0
+        },
+        "train.osi_tail_threshold": {
+          "anchor": null,
+          "arm": 0.2
+        }
+      },
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/K2_f2_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "K5_f0_s1234",
+      "arm": "K5",
+      "fold": 0,
+      "seed": 1234,
+      "config": "K5_f0_s1234.json",
+      "run_name": "wss_osi_tail_20260924/K5_f0_s1234",
+      "title": "8 appended flow-separation geometry inputs",
+      "parent": "M1_f0_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave2a_20260916/feature_stats/fold0_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_osi_tail_20260924/feature_stats/K5_fold0_train.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "s_over_d",
+            "up_min_r_ratio_2d",
+            "up_min_r_ratio_5d",
+            "up_max_r_ratio_5d",
+            "up_kappa_5d",
+            "bif_angle_cos",
+            "carina_cos",
+            "log_r_over_rdistal"
+          ]
+        }
+      },
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/K5_f0_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "K5_f1_s1234",
+      "arm": "K5",
+      "fold": 1,
+      "seed": 1234,
+      "config": "K5_f1_s1234.json",
+      "run_name": "wss_osi_tail_20260924/K5_f1_s1234",
+      "title": "8 appended flow-separation geometry inputs",
+      "parent": "M1_f1_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave2a_20260916/feature_stats/fold1_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_osi_tail_20260924/feature_stats/K5_fold1_train.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "s_over_d",
+            "up_min_r_ratio_2d",
+            "up_min_r_ratio_5d",
+            "up_max_r_ratio_5d",
+            "up_kappa_5d",
+            "bif_angle_cos",
+            "carina_cos",
+            "log_r_over_rdistal"
+          ]
+        }
+      },
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/K5_f1_s1234/eval/ckpt_last/metrics.json"
+    },
+    {
+      "id": "K5_f2_s1234",
+      "arm": "K5",
+      "fold": 2,
+      "seed": 1234,
+      "config": "K5_f2_s1234.json",
+      "run_name": "wss_osi_tail_20260924/K5_f2_s1234",
+      "title": "8 appended flow-separation geometry inputs",
+      "parent": "M1_f2_s1234 (wss_cycle_m1_20260921)",
+      "single_change": true,
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v51_wave2a_20260916/feature_stats/fold2_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_osi_tail_20260924/feature_stats/K5_fold2_train.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray",
+            "s_over_d",
+            "up_min_r_ratio_2d",
+            "up_min_r_ratio_5d",
+            "up_max_r_ratio_5d",
+            "up_kappa_5d",
+            "bif_angle_cos",
+            "carina_cos",
+            "log_r_over_rdistal"
+          ]
+        }
+      },
+      "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_osi_tail_20260924/K5_f2_s1234/eval/ckpt_last/metrics.json"
+    }
+  ],
+  "reading_rule": "fold arms read only on their held-out fold; primary = OSI IoU@0.3 and OSI R2_cb vs same-fold M1r (same hardware); guards = peak / TAWSS channel normalized R2_cb within 0.01 of M1r; test34 unused (see PREREG.md)"
+}

@@ -1,0 +1,317 @@
+{
+  "schema_version": 3,
+  "purpose": "one interior VTP per case: keep points farther than 1 mm from the wall",
+  "peel_mm": 1.0,
+  "halfcut": false,
+  "cases": [
+    {
+      "schema_version": 3,
+      "model": "VF6",
+      "role": "best",
+      "case_id": "AG/fast/ZHANG_LIANG",
+      "seed": 1234,
+      "peak_step": 1162,
+      "frame": "v5_atlas_frame_v1",
+      "coordinate_unit": "mm",
+      "velocity_unit": "m/s",
+      "selection": {
+        "basis": "fixed three-seed mean of per-case R2 (1234,7,2025); not ensemble",
+        "r2_case_mean": 0.916770543993211,
+        "statistical_median": 0.8036596560678764,
+        "median_rule": "closest actual case to statistical median; selected IDs retained from original package"
+      },
+      "official_full_case_metrics": {
+        "r2": 0.9163681618454015,
+        "nrmse_range": 0.0634365384714653,
+        "nrmse_mean": 0.2464360113535906,
+        "mae": 0.056154741584421825,
+        "nmae_range": 0.042061889187116494,
+        "rmse": 0.0846909754582893,
+        "n": 426057,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/metrics.json",
+        "metric_key": "test.per_case[AG/fast/ZHANG_LIANG].overall",
+        "basis": "whole evaluated case, not smoothed surface",
+        "cache_recomputed": {
+          "r2": 0.9163681618570033,
+          "mae": 0.0561547415541382,
+          "n": 426057
+        }
+      },
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 426057,
+        "cfd_max": 1.3350822045440662,
+        "pred_max": 1.4262983308216952,
+        "cfd_denominator": {
+          "max": 1.3350822045440662,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.3350822045440663e-12
+        },
+        "pred_denominator": {
+          "max": 1.4262983308216952,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.4262983308216953e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "files": {
+        "interior": {
+          "vtp": "VF6__best__AG__fast__ZHANG_LIANG__interior.vtp",
+          "csv": "VF6__best__AG__fast__ZHANG_LIANG__interior.csv.gz",
+          "points": 210412,
+          "vtp_sha256": "b0e945b0a962a71eff06da19e641a981e9f37e438205e4258ec9220cf017c8f2",
+          "csv_sha256": "22a8b533bb76f929db399ac08216c841636d84125a98452c8b69e35e0fbcaedc"
+        }
+      },
+      "contract": {
+        "selection": "dist_to_wall_mm > 1.0",
+        "peel_mm": 1.0,
+        "original_full_count": 426057,
+        "near_wall_dropped": 215645,
+        "selected_count": 210412,
+        "halfcut": false,
+        "filter_uses_velocity": false,
+        "official_metrics_scope": "original full case; no new subset R2"
+      },
+      "audit": {
+        "min_dist_to_wall_mm_kept": 1.0000053644180298,
+        "near_wall_le_1mm_dropped": 215645
+      },
+      "sources": [
+        {
+          "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/best/VF6__best__AG__fast__ZHANG_LIANG__volume_velocity.vtp",
+          "sha256": "8a8f00fba40b0111fcfb44cf901472ebd63b9831de828254be0f112d7c5f39c5"
+        },
+        {
+          "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/best/manifest.json",
+          "sha256": "f9fa2111ee7f8a014ed79c8368c5d84b68892e3a4d7f34b9148cf57fa600ab6a"
+        }
+      ]
+    },
+    {
+      "schema_version": 3,
+      "model": "VF6",
+      "role": "median",
+      "case_id": "AG/slow/LI_HUAN_GE",
+      "seed": 1234,
+      "peak_step": 1162,
+      "frame": "v5_atlas_frame_v1",
+      "coordinate_unit": "mm",
+      "velocity_unit": "m/s",
+      "selection": {
+        "basis": "fixed three-seed mean of per-case R2 (1234,7,2025); not ensemble",
+        "r2_case_mean": 0.7996790670872551,
+        "statistical_median": 0.8036596560678764,
+        "median_rule": "closest actual case to statistical median; selected IDs retained from original package"
+      },
+      "official_full_case_metrics": {
+        "r2": 0.771183035816835,
+        "nrmse_range": 0.10316950670878479,
+        "nrmse_mean": 0.36632003071831437,
+        "mae": 0.11781651081893614,
+        "nmae_range": 0.06722249851012264,
+        "rmse": 0.18081849935270536,
+        "n": 367250,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/metrics.json",
+        "metric_key": "test.per_case[AG/slow/LI_HUAN_GE].overall",
+        "basis": "whole evaluated case, not smoothed surface",
+        "cache_recomputed": {
+          "r2": 0.7711830357048868,
+          "mae": 0.1178165108519691,
+          "n": 367250
+        }
+      },
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 367250,
+        "cfd_max": 1.752716853410338,
+        "pred_max": 1.867390857897593,
+        "cfd_denominator": {
+          "max": 1.752716853410338,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.7527168534103379e-12
+        },
+        "pred_denominator": {
+          "max": 1.867390857897593,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.867390857897593e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "files": {
+        "interior": {
+          "vtp": "VF6__median__AG__slow__LI_HUAN_GE__interior.vtp",
+          "csv": "VF6__median__AG__slow__LI_HUAN_GE__interior.csv.gz",
+          "points": 146581,
+          "vtp_sha256": "7a4bfcbc9497d758cca43f6afc591890c36ace17d3496185c5ca5c29045d01af",
+          "csv_sha256": "bbe60abd3d44a7efd5a538b12a5235f12a6d74a17bf4a67566caf130e8734d04"
+        }
+      },
+      "contract": {
+        "selection": "dist_to_wall_mm > 1.0",
+        "peel_mm": 1.0,
+        "original_full_count": 367250,
+        "near_wall_dropped": 220669,
+        "selected_count": 146581,
+        "halfcut": false,
+        "filter_uses_velocity": false,
+        "official_metrics_scope": "original full case; no new subset R2"
+      },
+      "audit": {
+        "min_dist_to_wall_mm_kept": 1.0000032186508179,
+        "near_wall_le_1mm_dropped": 220669
+      },
+      "sources": [
+        {
+          "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/median/VF6__median__AG__slow__LI_HUAN_GE__volume_velocity.vtp",
+          "sha256": "3ccde494809868d358390e7f765f5f87a0674fb0ede3a1ce1ef350f2a9afb47e"
+        },
+        {
+          "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/median/manifest.json",
+          "sha256": "0486c807c4ef5a2a7fd4ffaa7784c85a83264c5b1dc8b849def778d05d5d44ec"
+        }
+      ]
+    },
+    {
+      "schema_version": 3,
+      "model": "VF6",
+      "role": "worst",
+      "case_id": "AAA/unruputer/SUN_SHU_MING",
+      "seed": 1234,
+      "peak_step": 1162,
+      "frame": "v5_atlas_frame_v1",
+      "coordinate_unit": "mm",
+      "velocity_unit": "m/s",
+      "selection": {
+        "basis": "fixed three-seed mean of per-case R2 (1234,7,2025); not ensemble",
+        "r2_case_mean": 0.4812790945710115,
+        "statistical_median": 0.8036596560678764,
+        "median_rule": "closest actual case to statistical median; selected IDs retained from original package"
+      },
+      "official_full_case_metrics": {
+        "r2": 0.4376894162206607,
+        "nrmse_range": 0.15594512306452085,
+        "nrmse_mean": 0.7348554570363981,
+        "mae": 0.07713315501918826,
+        "nmae_range": 0.09731652640238006,
+        "rmse": 0.12360222663607007,
+        "n": 463947,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/metrics.json",
+        "metric_key": "test.per_case[AAA/unruputer/SUN_SHU_MING].overall",
+        "basis": "whole evaluated case, not smoothed surface",
+        "cache_recomputed": {
+          "r2": 0.43768941618463175,
+          "mae": 0.07713315502374068,
+          "n": 463947
+        }
+      },
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 463947,
+        "cfd_max": 0.7926372757660343,
+        "pred_max": 0.7023988571699061,
+        "cfd_denominator": {
+          "max": 0.7926372757660343,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "pred_denominator": {
+          "max": 0.7023988571699061,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "files": {
+        "interior": {
+          "vtp": "VF6__worst__AAA__unruputer__SUN_SHU_MING__interior.vtp",
+          "csv": "VF6__worst__AAA__unruputer__SUN_SHU_MING__interior.csv.gz",
+          "points": 263396,
+          "vtp_sha256": "258108604ab0d3cf762be40ee393fd9d028a93983c3ea31381cde9a9a836f502",
+          "csv_sha256": "33b1ec3743c265b8bbbddbc035c128a63dc26c818b09acbda9e3fe7dc1650354"
+        }
+      },
+      "contract": {
+        "selection": "dist_to_wall_mm > 1.0",
+        "peel_mm": 1.0,
+        "original_full_count": 463947,
+        "near_wall_dropped": 200551,
+        "selected_count": 263396,
+        "halfcut": false,
+        "filter_uses_velocity": false,
+        "official_metrics_scope": "original full case; no new subset R2"
+      },
+      "audit": {
+        "min_dist_to_wall_mm_kept": 1.000015139579773,
+        "near_wall_le_1mm_dropped": 200551
+      },
+      "sources": [
+        {
+          "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/worst/VF6__worst__AAA__unruputer__SUN_SHU_MING__volume_velocity.vtp",
+          "sha256": "70eb0b537967de3735134b51c02616c8754147ff7c8e616176b6e9c828211b43"
+        },
+        {
+          "path": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/worst/manifest.json",
+          "sha256": "31d66c09658c7820e422eba90e92d5e2eacc67006fb15de3447fecfedce44b5e"
+        }
+      ]
+    }
+  ]
+}

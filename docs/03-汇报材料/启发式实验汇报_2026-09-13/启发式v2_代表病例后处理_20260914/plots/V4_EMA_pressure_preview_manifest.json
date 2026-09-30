@@ -1,0 +1,455 @@
+{
+  "generator": "render_surface_previews.py",
+  "case_count": 3,
+  "preview_count": 6,
+  "contact_sheets": {
+    "physical": "plots/V4_EMA_pressure_surface_triptychs_contact_sheet.png",
+    "selfmax": "plots/V4_EMA_pressure_surface_selfmax_triptychs_contact_sheet.png"
+  },
+  "previews": [
+    {
+      "model": "V4_EMA_pressure",
+      "role": "best",
+      "case_id": "AG/fast/RAN_QING_BO",
+      "source_mesh": "V4_EMA/best/pressure_surface_gaussian.vtp",
+      "source_mesh_sha256": "9a3842555278be338d7ab5ad16aa7fcc26abb9f89932428257603271c8b2b189",
+      "source_manifest": "V4_EMA/best/manifest.json",
+      "source_manifest_sha256": "a4b956c314106db2c02694867698927bc4d02c2bc2f4098b9a343528fe4eaa5b",
+      "preview": "plots/V4_EMA_pressure_best_surface_triptych.png",
+      "field_keys": [
+        "pressure_cfd_pa",
+        "pressure_pred_pa",
+        "pressure_error_pred_minus_cfd_pa"
+      ],
+      "mode": "physical",
+      "display_normalization": null,
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        -1517.9338656462621,
+        301.16916063151047
+      ],
+      "signed_error_range": [
+        -1391.5283044063613,
+        1391.5283044063613
+      ],
+      "metric_value": 0.1446024140302925,
+      "metric_source": "manifest.visualization_metrics_pressure.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 17682,
+      "n_triangles": 35232,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          12.241729736328125,
+          -152.98338317871094,
+          926.1944885253906
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA_pressure",
+      "role": "median",
+      "case_id": "ILO/LI_YOU_ZHI-0/before",
+      "source_mesh": "V4_EMA/median/pressure_surface_gaussian.vtp",
+      "source_mesh_sha256": "8e6bcfda08ff659fff9162a4bcf606495211317aeb42c319b6c55be84bab3fa5",
+      "source_manifest": "V4_EMA/median/manifest.json",
+      "source_manifest_sha256": "d5af1911944fc7547860efd981e0221cfd535051424ab622f827b858428ae1b8",
+      "preview": "plots/V4_EMA_pressure_median_surface_triptych.png",
+      "field_keys": [
+        "pressure_cfd_pa",
+        "pressure_pred_pa",
+        "pressure_error_pred_minus_cfd_pa"
+      ],
+      "mode": "physical",
+      "display_normalization": null,
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        -362.9009897366661,
+        169.24206549365246
+      ],
+      "signed_error_range": [
+        -349.9585425734483,
+        349.9585425734483
+      ],
+      "metric_value": 0.010842034724875882,
+      "metric_source": "manifest.visualization_metrics_pressure.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 101654,
+      "n_triangles": 202991,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          1.4475517272949219,
+          125.65585327148438,
+          235.59819412231445
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA_pressure",
+      "role": "worst",
+      "case_id": "AG/fast/LOU_YANG",
+      "source_mesh": "V4_EMA/worst/pressure_surface_gaussian.vtp",
+      "source_mesh_sha256": "2675035879ad86df95527f06643912bf2a553916a9890979832947689127c122",
+      "source_manifest": "V4_EMA/worst/manifest.json",
+      "source_manifest_sha256": "e1a68e83518b4a66b96c07bb7023b91e9b780697afacbbb4244ba70a149dbbc8",
+      "preview": "plots/V4_EMA_pressure_worst_surface_triptych.png",
+      "field_keys": [
+        "pressure_cfd_pa",
+        "pressure_pred_pa",
+        "pressure_error_pred_minus_cfd_pa"
+      ],
+      "mode": "physical",
+      "display_normalization": null,
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        -886.0301424492354,
+        344.31615056467405
+      ],
+      "signed_error_range": [
+        -831.1514270144957,
+        831.1514270144957
+      ],
+      "metric_value": 0.2556203677010922,
+      "metric_source": "manifest.visualization_metrics_pressure.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 10806,
+      "n_triangles": 21491,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          1.5090103149414062,
+          18.557480335235596,
+          -122.2407774925232
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA_pressure",
+      "role": "best",
+      "case_id": "AG/fast/RAN_QING_BO",
+      "source_mesh": "V4_EMA/best/pressure_surface_gaussian.vtp",
+      "source_mesh_sha256": "9a3842555278be338d7ab5ad16aa7fcc26abb9f89932428257603271c8b2b189",
+      "source_manifest": "V4_EMA/best/manifest.json",
+      "source_manifest_sha256": "a4b956c314106db2c02694867698927bc4d02c2bc2f4098b9a343528fe4eaa5b",
+      "preview": "plots/V4_EMA_pressure_best_surface_selfmax_triptych.png",
+      "field_keys": [
+        "pressure_cfd_selfmax",
+        "pressure_pred_selfmax",
+        "pressure_selfmax_error_pred_minus_cfd"
+      ],
+      "mode": "selfmax",
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "pressure",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall_union_interior",
+        "source_point_count": 1008295,
+        "cfd_max": 363.367431640625,
+        "pred_max": 66.07071685791016,
+        "cfd_denominator": {
+          "max": 363.367431640625,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 2.055482666015625e-09
+        },
+        "pred_denominator": {
+          "max": 66.07071685791016,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.4380059814453126e-10
+        },
+        "formula": {
+          "pressure_cfd_selfmax": "CFD / max(original CFD)",
+          "pressure_pred_selfmax": "Pred / max(original Pred)",
+          "pressure_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "pressure_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        -4.177407586565209,
+        0.942277549560102
+      ],
+      "signed_error_range": [
+        -2.3969566373348963,
+        2.3969566373348963
+      ],
+      "metric_value": 0.1446024140302925,
+      "metric_source": "manifest.visualization_metrics_pressure.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 17682,
+      "n_triangles": 35232,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          12.241729736328125,
+          -152.98338317871094,
+          926.1944885253906
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA_pressure",
+      "role": "median",
+      "case_id": "ILO/LI_YOU_ZHI-0/before",
+      "source_mesh": "V4_EMA/median/pressure_surface_gaussian.vtp",
+      "source_mesh_sha256": "8e6bcfda08ff659fff9162a4bcf606495211317aeb42c319b6c55be84bab3fa5",
+      "source_manifest": "V4_EMA/median/manifest.json",
+      "source_manifest_sha256": "d5af1911944fc7547860efd981e0221cfd535051424ab622f827b858428ae1b8",
+      "preview": "plots/V4_EMA_pressure_median_surface_selfmax_triptych.png",
+      "field_keys": [
+        "pressure_cfd_selfmax",
+        "pressure_pred_selfmax",
+        "pressure_selfmax_error_pred_minus_cfd"
+      ],
+      "mode": "selfmax",
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "pressure",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall_union_interior",
+        "source_point_count": 791225,
+        "cfd_max": 199.6083526611328,
+        "pred_max": -4.946694374084473,
+        "cfd_denominator": {
+          "max": 199.6083526611328,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 5.47024169921875e-10
+        },
+        "pred_denominator": {
+          "max": -4.946694374084473,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 2.978226852416992e-11
+        },
+        "formula": {
+          "pressure_cfd_selfmax": "CFD / max(original CFD)",
+          "pressure_pred_selfmax": "Pred / max(original Pred)",
+          "pressure_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "pressure_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        -1.8180651505738776,
+        2.7205217940917676
+      ],
+      "signed_error_range": [
+        -4.439208355133533,
+        4.439208355133533
+      ],
+      "metric_value": 0.010842034724875882,
+      "metric_source": "manifest.visualization_metrics_pressure.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 101654,
+      "n_triangles": 202991,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          1.4475517272949219,
+          125.65585327148438,
+          235.59819412231445
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA_pressure",
+      "role": "worst",
+      "case_id": "AG/fast/LOU_YANG",
+      "source_mesh": "V4_EMA/worst/pressure_surface_gaussian.vtp",
+      "source_mesh_sha256": "2675035879ad86df95527f06643912bf2a553916a9890979832947689127c122",
+      "source_manifest": "V4_EMA/worst/manifest.json",
+      "source_manifest_sha256": "e1a68e83518b4a66b96c07bb7023b91e9b780697afacbbb4244ba70a149dbbc8",
+      "preview": "plots/V4_EMA_pressure_worst_surface_selfmax_triptych.png",
+      "field_keys": [
+        "pressure_cfd_selfmax",
+        "pressure_pred_selfmax",
+        "pressure_selfmax_error_pred_minus_cfd"
+      ],
+      "mode": "selfmax",
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "pressure",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall_union_interior",
+        "source_point_count": 757670,
+        "cfd_max": 424.65130615234375,
+        "pred_max": 100.1386489868164,
+        "cfd_denominator": {
+          "max": 424.65130615234375,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.36524072265625e-09
+        },
+        "pred_denominator": {
+          "max": 100.1386489868164,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.5168402099609374e-10
+        },
+        "formula": {
+          "pressure_cfd_selfmax": "CFD / max(original CFD)",
+          "pressure_pred_selfmax": "Pred / max(original Pred)",
+          "pressure_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "pressure_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        -2.0864886781517913,
+        0.9268025374375073
+      ],
+      "signed_error_range": [
+        -1.5822441997958365,
+        1.5822441997958365
+      ],
+      "metric_value": 0.2556203677010922,
+      "metric_source": "manifest.visualization_metrics_pressure.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 10806,
+      "n_triangles": 21491,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          1.5090103149414062,
+          18.557480335235596,
+          -122.2407774925232
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    }
+  ]
+}

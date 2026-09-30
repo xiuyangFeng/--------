@@ -519,3 +519,161 @@ def aggregate_case_metrics(per_case: Dict[str, Dict]) -> Dict[str, float]:
         "rmse_casemean": float(np.mean(rmses)) if rmses else float("nan"),
         "n_cases": len(r2s),
     }
+
+
+def threshold_mask_metrics(y_true: np.ndarray, y_pred: np.ndarray, threshold: float,
+                           above: bool = True) -> Dict[str, float]:
+    """Vertex-count agreement of a physical-space threshold mask (2026-09-20 cycle-quantity matrix §7).
+
+    ``above=True`` compares ``y > threshold`` (e.g. OSI > 0.1); ``above=False`` compares ``y < threshold``
+    (e.g. TAWSS < 0.4 Pa).  Reports IoU / precision / recall plus the true and predicted mask fractions and
+    their absolute difference (area-share calibration).  Vertex counting matches the legacy_vertex metric mode.
+    """
+    yt = np.asarray(y_true, dtype=np.float64).reshape(-1)
+    yp = np.asarray(y_pred, dtype=np.float64).reshape(-1)
+    if yt.shape != yp.shape:
+        raise ValueError("y_true and y_pred must have the same shape")
+    thr = float(threshold)
+    true_mask = (yt > thr) if above else (yt < thr)
+    pred_mask = (yp > thr) if above else (yp < thr)
+    inter = float(np.count_nonzero(true_mask & pred_mask))
+    union = float(np.count_nonzero(true_mask | pred_mask))
+    n_true = float(np.count_nonzero(true_mask))
+    n_pred = float(np.count_nonzero(pred_mask))
+    n = float(yt.size) if yt.size else float("nan")
+    true_frac = n_true / n if yt.size else float("nan")
+    pred_frac = n_pred / n if yt.size else float("nan")
+    return {
+        "iou": inter / union if union else float("nan"),
+        "precision": inter / n_pred if n_pred else float("nan"),
+        "recall": inter / n_true if n_true else float("nan"),
+        "true_frac": true_frac, "pred_frac": pred_frac,
+        "frac_abs_err": abs(pred_frac - true_frac) if yt.size else float("nan"),
+        "n": int(yt.size),
+    }
+
+
+# ---------------------------------------------------------------------------------------------
+# 2026-09-21 周期积分量（TAWSS / OSI）落地一致性指标（矩阵 §7 补充；只对 tawss/osi 目标计算，WSS 口径不变）
+# ---------------------------------------------------------------------------------------------
+def lin_ccc(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Lin's concordance correlation coefficient: 2·cov / (var_t + var_p + (mean_t − mean_p)²)."""
+    yt = np.asarray(y_true, dtype=np.float64).reshape(-1)
+    yp = np.asarray(y_pred, dtype=np.float64).reshape(-1)
+    m = np.isfinite(yt) & np.isfinite(yp)
+    yt, yp = yt[m], yp[m]
+    if yt.size < 2:
+        return float("nan")
+    den = yt.var() + yp.var() + (yt.mean() - yp.mean()) ** 2
+    return float(2.0 * np.mean((yt - yt.mean()) * (yp - yp.mean())) / den) if den > 1e-18 else float("nan")
+
+
+def dice_masks(true_mask: np.ndarray, pred_mask: np.ndarray) -> float:
+    s = int(np.count_nonzero(true_mask)) + int(np.count_nonzero(pred_mask))
+    return float(2.0 * np.count_nonzero(true_mask & pred_mask) / s) if s else float("nan")
+
+
+def cycle_agreement_case_metrics(y_true: np.ndarray, y_pred: np.ndarray, *, log_space: bool, floor: float,
+                                 rel_tolerance: float = 0.3, segment_ids: np.ndarray | None = None,
+                                 min_segment_points: int = 200, masks_above: Sequence[float] = (),
+                                 masks_below: Sequence[float] = (), high_pctl: float = 90.0) -> Dict[str, object]:
+    """Per-case deployment agreement for a cycle-integrated scalar (physical space).
+
+    ccc            Lin CCC in ln(max(y, floor)) when ``log_space`` (TAWSS) else linear (OSI); ``ccc_linear`` always linear.
+    rel_err_med    median |pred − true| / max(true, floor); ``within_tol`` = share of points with relative error ≤ rel_tolerance.
+    top_dice       Dice of the top-(100 − high_pctl)% masks of truth and prediction (hotspot localisation).
+    masks          per threshold: Dice + true/pred fractions (companion of threshold_mask_metrics IoU).
+    segments       per semantic segment (≥ min_segment_points points): mean true/pred and relative error of the segment mean;
+                   ``seg_rel_err_med`` / ``seg_rel_err_max`` summarise the case (report granularity = vessel segment).
+    """
+    yt = np.asarray(y_true, dtype=np.float64).reshape(-1)
+    yp = np.asarray(y_pred, dtype=np.float64).reshape(-1)
+    if yt.shape != yp.shape:
+        raise ValueError("y_true and y_pred must have the same shape")
+    fl = float(floor)
+    if log_space:
+        ccc = lin_ccc(np.log(np.clip(yt, fl, None)), np.log(np.clip(yp, fl, None)))
+    else:
+        ccc = lin_ccc(yt, yp)
+    rel = np.abs(yp - yt) / np.clip(yt, fl if fl > 0 else 1e-12, None)
+    out: Dict[str, object] = {
+        "ccc": ccc, "ccc_linear": lin_ccc(yt, yp), "ccc_space": "log" if log_space else "linear",
+        "rel_err_med": float(np.median(rel)) if rel.size else float("nan"),
+        "within_tol": float(np.mean(rel <= rel_tolerance)) if rel.size else float("nan"), "rel_tolerance": float(rel_tolerance),
+        "mean_true": float(yt.mean()) if yt.size else float("nan"), "mean_pred": float(yp.mean()) if yp.size else float("nan"),
+        "n": int(yt.size),
+    }
+    if yt.size:
+        thr_t, thr_p = np.percentile(yt, high_pctl), np.percentile(yp, high_pctl)
+        out["top_dice"] = dice_masks(yt >= thr_t, yp >= thr_p)
+    masks: Dict[str, Dict[str, float]] = {}
+    for thr in masks_above:
+        tm, pm = yt > float(thr), yp > float(thr)
+        masks[f"above_{float(thr):g}"] = {"dice": dice_masks(tm, pm), "true_frac": float(tm.mean()), "pred_frac": float(pm.mean())}
+    for thr in masks_below:
+        tm, pm = yt < float(thr), yp < float(thr)
+        masks[f"below_{float(thr):g}"] = {"dice": dice_masks(tm, pm), "true_frac": float(tm.mean()), "pred_frac": float(pm.mean())}
+    out["masks"] = masks
+    segments: Dict[str, Dict[str, float]] = {}
+    if segment_ids is not None:
+        sid = np.asarray(segment_ids).reshape(-1)
+        if sid.shape != yt.shape:
+            raise ValueError("segment_ids must align with the points")
+        for s in np.unique(sid):
+            rows = sid == s
+            if int(rows.sum()) < int(min_segment_points) or int(s) < 0:
+                continue
+            mt, mp = float(yt[rows].mean()), float(yp[rows].mean())
+            segments[str(int(s))] = {"n": int(rows.sum()), "mean_true": mt, "mean_pred": mp,
+                                     "rel_err": abs(mp - mt) / max(mt, fl if fl > 0 else 1e-12)}
+    out["segments"] = segments
+    errs = [v["rel_err"] for v in segments.values()]
+    out["seg_rel_err_med"] = float(np.median(errs)) if errs else float("nan")
+    out["seg_rel_err_max"] = float(np.max(errs)) if errs else float("nan")
+    out["n_segments"] = len(errs)
+    return out
+
+
+def _bland_altman(true_vals: Sequence[float], pred_vals: Sequence[float], relative: bool) -> Dict[str, float]:
+    t = np.asarray(true_vals, dtype=np.float64); p = np.asarray(pred_vals, dtype=np.float64)
+    m = np.isfinite(t) & np.isfinite(p)
+    t, p = t[m], p[m]
+    if t.size < 2:
+        return {"bias": float("nan"), "loa_low": float("nan"), "loa_high": float("nan"), "ccc": float("nan"), "n": int(t.size)}
+    d = (p - t) / np.clip(t, 1e-12, None) if relative else (p - t)
+    sd = float(d.std(ddof=1))
+    return {"bias": float(d.mean()), "loa_low": float(d.mean() - 1.96 * sd), "loa_high": float(d.mean() + 1.96 * sd),
+            "sd": sd, "ccc": lin_ccc(t, p), "n": int(t.size), "relative": bool(relative)}
+
+
+def cycle_agreement_aggregate(per_case: Dict[str, Dict[str, object]]) -> Dict[str, object]:
+    """Case-level summary of cycle_agreement_case_metrics: distributions (median / p10 / p90 / min) and
+    Bland–Altman agreement of the case-level report numbers (case mean, mask area shares)."""
+    rows = list(per_case.values())
+
+    def dist(key, sub=None):
+        vals = np.asarray([(r[sub][key] if sub else r[key]) for r in rows if (r.get(sub, {}).get(key) if sub else r.get(key)) is not None],
+                          dtype=np.float64)
+        vals = vals[np.isfinite(vals)]
+        if not vals.size:
+            return {"med": float("nan"), "p10": float("nan"), "p90": float("nan"), "min": float("nan"), "mean": float("nan"), "n": 0}
+        return {"med": float(np.median(vals)), "p10": float(np.quantile(vals, .1)), "p90": float(np.quantile(vals, .9)),
+                "min": float(vals.min()), "mean": float(vals.mean()), "n": int(vals.size)}
+
+    out: Dict[str, object] = {"n_cases": len(rows), "ccc_space": rows[0]["ccc_space"] if rows else None,
+                              "rel_tolerance": rows[0]["rel_tolerance"] if rows else None}
+    for key in ("ccc", "ccc_linear", "rel_err_med", "within_tol", "top_dice", "seg_rel_err_med", "seg_rel_err_max"):
+        out[key] = dist(key)
+    out["case_mean"] = _bland_altman([r["mean_true"] for r in rows], [r["mean_pred"] for r in rows], relative=True)
+    mask_names = sorted({name for r in rows for name in r.get("masks", {})})
+    out["masks"] = {}
+    for name in mask_names:
+        have = [r["masks"][name] for r in rows if name in r.get("masks", {})]
+        dice = np.asarray([h["dice"] for h in have], dtype=np.float64); dice = dice[np.isfinite(dice)]
+        out["masks"][name] = {
+            "dice_med": float(np.median(dice)) if dice.size else float("nan"), "dice_p10": float(np.quantile(dice, .1)) if dice.size else float("nan"),
+            "dice_min": float(dice.min()) if dice.size else float("nan"), "n_dice": int(dice.size),
+            "true_frac_med": float(np.median([h["true_frac"] for h in have])) if have else float("nan"),
+            "area_share": _bland_altman([h["true_frac"] for h in have], [h["pred_frac"] for h in have], relative=False),
+        }
+    return out

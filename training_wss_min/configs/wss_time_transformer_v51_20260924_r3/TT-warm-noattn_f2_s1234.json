@@ -1,0 +1,57 @@
+{
+ "schema": "time_transformer_v51_v2",
+ "name": "wss_time_transformer_v51_20260924_r3/TT-warm-noattn_f2_s1234",
+ "experiment": "wss_time_transformer_v51_20260924_r3",
+ "arm": "TT-warm-noattn",
+ "fold": 2,
+ "seed": 1234,
+ "title": "attention ablation: identical Transformer and weights, strictly diagonal attention mask",
+ "cache_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_v51_20260923/cache/fold2",
+ "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold2.json",
+ "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1",
+ "frame_stats_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold2.json",
+ "waveform_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json",
+ "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r3/TT-warm-noattn_f2_s1234",
+ "peak_index": 21,
+ "inputs": [
+  "query_x",
+  "raw",
+  "peak_ln"
+ ],
+ "architecture": {
+  "temporal": "frame_mlp",
+  "d_model": 64,
+  "nhead": 4,
+  "num_layers": 2,
+  "dim_feedforward": 128,
+  "dropout": 0.0,
+  "spatial_hidden": 128,
+  "decoder_hidden": [
+   128,
+   128
+  ],
+  "global_pool": "mean"
+ },
+ "train": {
+  "epochs": 60,
+  "steps_per_epoch": 30,
+  "batch_cases": 4,
+  "query_points": 1024,
+  "train_pool_points": 8192,
+  "stats_points": 4096,
+  "context_points": 1024,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "warmup_steps": 100,
+  "min_lr_ratio": 0.01,
+  "grad_clip": 1.0,
+  "selection": "last",
+  "allow_tf32": true,
+  "log_every_epochs": 1
+ },
+ "eval": {
+  "partition": "test",
+  "chunk_points": 4096
+ },
+ "notes": "v2 repair protocol: all 60D / same initial tensors / diagonal-mask noattn / fixed context / raw Pa truth / FP64 peak anchor. Prior v1 and r2 are invalidated; no result-driven hyperparameter tuning. Static geometry+phase only; encoder remains frozen."
+}

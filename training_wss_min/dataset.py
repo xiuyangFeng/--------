@@ -47,6 +47,17 @@ def normalize_wss(wss: np.ndarray, stats: Dict, offset: np.ndarray | None = None
                 raise ValueError("residual-target statistics require the per-point offset array")
             return (lg - np.asarray(offset, dtype=np.float64) - stats["offset"]["mean"]) / stats["offset"]["std"]
         return (lg - stats["log"]["mean"]) / stats["log"]["std"]
+    if stats["method"] == "logit_z":
+        # 有界目标（OSI ∈ [0, scale]）：z = (logit(clip(v/scale, c, 1−c)) − mean) / std；stats['logit'] 只用训练折
+        lp = stats["logit"]
+        u = np.clip(np.asarray(wss, dtype=np.float64) / float(lp["scale"]), float(lp["clip"]), 1.0 - float(lp["clip"]))
+        return (np.log(u) - np.log1p(-u) - lp["mean"]) / lp["std"]
+    if stats["method"] == "multi":
+        # M1 多头：(N, C) 逐列用各通道子统计量归一化（通道顺序 = stats['channels']）
+        arr = np.asarray(wss, dtype=np.float64)
+        if arr.ndim != 2 or arr.shape[1] != len(stats["channels"]):
+            raise ValueError(f"multi-channel target must be (N, {len(stats['channels'])}), got {arr.shape}")
+        return np.stack([normalize_wss(arr[:, j], stats[name]) for j, name in enumerate(stats["channels"])], axis=1)
     return (wss - stats["linear"]["mean"]) / stats["linear"]["std"]
 
 
@@ -113,6 +124,15 @@ def denormalize_wss(y: np.ndarray, stats: Dict) -> np.ndarray:
     if stats["method"] == "log_z":
         lg = y * stats["log"]["std"] + stats["log"]["mean"]
         return np.exp(lg) - stats["eps"]
+    if stats["method"] == "logit_z":
+        lp = stats["logit"]
+        x = np.asarray(y, dtype=np.float64) * lp["std"] + lp["mean"]
+        return float(lp["scale"]) / (1.0 + np.exp(-x))
+    if stats["method"] == "multi":
+        arr = np.asarray(y, dtype=np.float64)
+        if arr.ndim != 2 or arr.shape[1] != len(stats["channels"]):
+            raise ValueError(f"multi-channel prediction must be (N, {len(stats['channels'])}), got {arr.shape}")
+        return np.stack([denormalize_wss(arr[:, j], stats[name]) for j, name in enumerate(stats["channels"])], axis=1)
     return y * stats["linear"]["std"] + stats["linear"]["mean"]
 
 
@@ -182,13 +202,15 @@ def canonical_unit_id(label: str) -> str:
             raise ValueError(f"invalid AAA subset in split ID: {label!r}")
         return "/".join(parts)
     if len(parts) == 3 and parts[0] == "ILO" and parts[1] and parts[2]:
-        if not re.fullmatch(r".+-(?:0|1)", parts[1]):
+        # 2026-09-27: synthetic children carry a "~m<NN>" tag after the patient suffix (ILO/NAME-0~m24/before);
+        # library IDs are unchanged (the optional group never matches them).
+        if not re.fullmatch(r".+-(?:0|1)(?:~m\d+)?", parts[1]):
             raise ValueError(f"invalid ILO patient suffix in split ID: {label!r}")
-        if parts[2] != "before":
-            raise ValueError(f"active ILO split only permits before, got: {label!r}")
+        if parts[2] not in {"before", "after"}:  # 2026-09-22: post-operative (after) units admitted (user decision 09-21)
+            raise ValueError(f"ILO case must be before|after, got: {label!r}")
         return "/".join(parts)
     raise ValueError(
-        "invalid split case ID (expect legacy AG or canonical AG/AAA/ILO-before): "
+        "invalid split case ID (expect legacy AG or canonical AG/AAA/ILO-before|after): "
         f"{label!r}"
     )
 
@@ -815,6 +837,32 @@ class VolumeFrameSource:
             self._h5 = None
 
 
+CYCLE_LABEL_KEYS = {"tawss": "wall_tawss", "osi": "wall_osi", "rev_frac": "wall_rev_frac"}
+
+
+def load_cycle_label(cycle_view_root: str | Path | None, cohort_rel: str, case_name: str, target: str,
+                     node_id: np.ndarray) -> np.ndarray:
+    """周期积分量标签（wss_v5.views.wall_cycle_v1 的 cycle.npz）：行序 = 视图 bundle 行序，用 wall_node_id_cas 逐位校验。"""
+    if not cycle_view_root:
+        raise ValueError(f"target={target!r} requires data.cycle_view_root")
+    key = CYCLE_LABEL_KEYS[target]
+    path = Path(cycle_view_root) / cohort_rel / case_name / "cycle.npz"
+    if not path.is_file():
+        raise FileNotFoundError(f"missing cycle label view: {path}")
+    with np.load(path, allow_pickle=False) as z:
+        if key not in z.files:
+            raise KeyError(f"{path}: missing {key}")
+        rows = np.asarray(z["wall_node_id_cas"]).astype(np.int64)
+        y = np.asarray(z[key], dtype=np.float32)
+    if rows.shape != node_id.shape or not np.array_equal(rows, node_id):
+        raise ValueError(f"{cohort_rel}/{case_name}: cycle label rows do not match the view bundle rows")
+    if y.shape != node_id.shape or not np.isfinite(y).all():
+        raise ValueError(f"{cohort_rel}/{case_name}: invalid {key} labels")
+    if target == "osi" and (float(y.min()) < 0.0 or float(y.max()) > C.OSI_MAX + 1e-6):
+        raise ValueError(f"{cohort_rel}/{case_name}: OSI labels outside [0, {C.OSI_MAX}]")
+    return y
+
+
 def load_volume_time_sidecar(sidecar_root: str | Path, cohort_rel: str, case_name: str) -> Dict[str, np.ndarray]:
     path = Path(sidecar_root) / cohort_rel / case_name / "sidecar.npz"
     if not path.is_file():
@@ -1125,6 +1173,64 @@ def noise_view(case: Dict, level_data: Dict, tag: str) -> Dict:
     return sub
 
 
+def tangent_plane_axes(geometry: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """(轴向, 周向) 单位向量 [N,3] ×2：轴向 = 中心线切向投到壁面切平面，周向 = 法向 × 轴向；
+    切向与法向平行时退化为与法向最不平行的坐标轴（与 attach_direction_target 同一规则，部署可得几何）。"""
+    geometry = np.asarray(geometry, dtype=np.float64)
+    normal = geometry[:, :3] / np.clip(np.linalg.norm(geometry[:, :3], axis=1, keepdims=True), 1e-12, None)
+    tangent = geometry[:, 3:6]
+    axial = tangent - (tangent * normal).sum(1, keepdims=True) * normal
+    basis = np.eye(3)[np.argmin(np.abs(normal), axis=1)]
+    fallback = basis - (basis * normal).sum(1, keepdims=True) * normal
+    axial = np.where(np.linalg.norm(axial, axis=1, keepdims=True) < 1e-6, fallback, axial)
+    axial = axial / np.clip(np.linalg.norm(axial, axis=1, keepdims=True), 1e-12, None)
+    return axial, np.cross(normal, axial)
+
+
+def cycle_mean_vector_ratios(vec80: np.ndarray, geometry: np.ndarray) -> np.ndarray:
+    """帧 0–79 平均 WSS 向量在 (轴向, 周向) 上的分量 ÷ 平均幅值 (1/80)Σ‖τ‖ → (N, 2)，范数 ≤ 1；vec80 须已在对齐坐标架。"""
+    vec80 = np.asarray(vec80, dtype=np.float64)
+    if vec80.ndim != 3 or vec80.shape[0] != 80 or vec80.shape[2] != 3:
+        raise ValueError(f"expected (80, N, 3) wall shear vectors, got {vec80.shape}")
+    mean = vec80.mean(axis=0)
+    mag = np.linalg.norm(vec80, axis=2).mean(axis=0)
+    axial, circ = tangent_plane_axes(geometry)
+    denom = np.clip(mag, 1e-12, None)
+    return np.stack([(mean * axial).sum(1) / denom, (mean * circ).sum(1) / denom], axis=1)
+
+
+def derived_osi(ratio_axial: np.ndarray, ratio_circ: np.ndarray) -> np.ndarray:
+    """OSI = ½(1 − min(1, ‖(r_a, r_c)‖))：与 OSI 定义同式，只是 ‖Σ τ‖ / Σ‖τ‖ 由切平面两分量给出。"""
+    r = np.sqrt(np.asarray(ratio_axial, dtype=np.float64) ** 2 + np.asarray(ratio_circ, dtype=np.float64) ** 2)
+    return 0.5 * (1.0 - np.clip(r, 0.0, 1.0))
+
+
+def multi_aux_columns(bundle_path: str | Path, aux: Tuple[str, ...], cycle_view_root: str | Path | None,
+                      cohort_rel: str, case_name: str) -> Tuple[Dict[str, np.ndarray], Dict]:
+    """M1 辅助通道原始标签（2026-09-25，data.multi_aux_channels）。返回 ({通道: (N,)}, {'local_geometry': …} 或 {})。
+    rev_frac 取 cycle.npz；mean_axial / mean_circ 用帧 0–79 wall_wss_vec（旋到对齐架）与 case_geometry 的法向 / 中心线切向。"""
+    bundle_path = Path(bundle_path)
+    with np.load(bundle_path, allow_pickle=True) as z:
+        node_id = np.asarray(z["wall_node_id_cas"]).astype(np.int64)
+        pos = z["wall_coords_norm"].astype(np.float32)
+        need_vec = any(a in ("mean_axial", "mean_circ") for a in aux)
+        if need_vec:
+            steps = z["steps"].tolist()
+            if len(steps) != 81 or steps[0] != 1120 or steps[-1] != 1280:
+                raise ValueError(f"{bundle_path}: cycle vector labels need the 81-frame 1120..1280 layout")
+            vec80 = np.asarray(z["wall_wss_vec"][:80], dtype=np.float64) @ np.asarray(z["transform_rotation"], dtype=np.float64).T
+    cols: Dict[str, np.ndarray] = {}
+    geo: Dict = {}
+    if "rev_frac" in aux:
+        cols["rev_frac"] = load_cycle_label(cycle_view_root, cohort_rel, case_name, "rev_frac", node_id)
+    if need_vec:
+        holder = {"bundle_path": str(bundle_path), "pos": pos}
+        ratios = cycle_mean_vector_ratios(vec80, case_geometry(holder))
+        cols["mean_axial"], cols["mean_circ"] = ratios[:, 0].astype(np.float32), ratios[:, 1].astype(np.float32)
+        geo = {"local_geometry": holder["local_geometry"], "local_geometry_source": holder["local_geometry_source"]}
+    return cols, geo
+
+
 def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
               target: str = "wss", target_normalization: str = "global_stats",
               data_root: str | Path = C.DATA_ROOT,
@@ -1135,8 +1241,12 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
               point_features_root: str | Path | None = None,
               time_basis_path: str | Path | None = None, time_basis_k: int = 0,
               volume_time_sidecar_root: str | Path | None = None,
-              volume_h5_root: str | Path | None = None) -> Dict:
+              volume_h5_root: str | Path | None = None,
+              cycle_view_root: str | Path | None = None,
+              multi_aux_channels: Tuple[str, ...] = ()) -> Dict:
     p = Path(data_root) / cohort_rel / case_name / "bundle.npz"
+    multi_aux_channels = tuple(multi_aux_channels or ())
+    aux_geometry: Dict = {}
     with np.load(p, allow_pickle=True) as d:
         if required_frame_version is not None:
             if "transform_frame_version" not in d.files:
@@ -1169,8 +1279,25 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
                 y_raw[:, 3] = volume["wall_pressure_rel_peak"].astype(np.float32)
             else:
                 y_raw = np.zeros((len(pos), 3), dtype=np.float32)  # 无滑移；壁面行不会成为速度 query
+        elif target in C.CYCLE_TARGETS:
+            # 周期积分量（wss_min_cycle_v1）：逐点标签按视图行序存放，用 wall_node_id_cas 校验后直接取用
+            y_raw = load_cycle_label(cycle_view_root, cohort_rel, case_name, target,
+                                     np.asarray(d["wall_node_id_cas"]).astype(np.int64))
+        elif target == C.MULTI_TARGET:
+            # M1 三头：[峰值帧 WSS, TAWSS, OSI] 逐点拼成 (N, 3)；统计量文件 method='multi' 逐列归一化
+            node_id = np.asarray(d["wall_node_id_cas"]).astype(np.int64)
+            columns = {"wss": d["wall_wss"][si].astype(np.float32)}
+            for name in C.MULTI_CHANNELS[1:]:
+                columns[name] = load_cycle_label(cycle_view_root, cohort_rel, case_name, name, node_id)
+            channels = tuple(C.MULTI_CHANNELS) + multi_aux_channels
+            if multi_aux_channels:
+                aux_cols, aux_geometry = multi_aux_columns(p, multi_aux_channels, cycle_view_root, cohort_rel, case_name)
+                columns.update(aux_cols)
+            if tuple(wss_stats.get("channels", ())) != channels or wss_stats.get("method") != "multi":
+                raise ValueError(f"wss_cycle_multi requires a method='multi' statistics file with channels {channels}")
+            y_raw = np.stack([columns[name] for name in channels], axis=1).astype(np.float32)
         else:
-            raise ValueError(f"unsupported target={target!r} (expect 'wss'|'pressure'|{C.VOLUME_TARGETS})")
+            raise ValueError(f"unsupported target={target!r} (expect 'wss'|'pressure'|{C.CYCLE_TARGETS}|{C.VOLUME_TARGETS})")
         if volume is None:
             # residual-target stats: provisional standard log_z here, replaced after the offset feature is attached
             provisional = ({k: v for k, v in wss_stats.items() if k != "offset"} if "offset" in wss_stats else wss_stats)
@@ -1228,6 +1355,11 @@ def load_case(cohort_rel: str, case_name: str, wss_stats: Dict,
             case["nx_aligned"], case["ny_aligned"], case["nz_aligned"] = normals[:, 0], normals[:, 1], normals[:, 2]
         if "wall_segment_id" in d.files:
             case["_wall_segment_id"] = np.asarray(d["wall_segment_id"]).astype(np.int64)
+        if aux_geometry:
+            case.update(aux_geometry)   # 与 case_geometry 懒算结果相同，只省一次 h5 读取
+        if (target in C.CYCLE_TARGETS or target == C.MULTI_TARGET) and "wall_semantic_id" in d.files:
+            # 周期积分量落地一致性块按语义血管段（trunk / CIA / 四末支）报段均值误差；只在周期目标下附带，旧目标的 case 逐位不变
+            case["_wall_semantic_id"] = np.asarray(d["wall_semantic_id"]).astype(np.int64)
         if extra_point_features:
             _attach_v6_point_features(case, d, tuple(extra_point_features),
                                       point_features_root, cohort_rel, case_name)
@@ -1385,7 +1517,9 @@ def load_partition(split_path: str, partition: str, wss_stats: Dict,
                    point_features_root: str | Path | None = None,
                    time_basis_path: str | Path | None = None, time_basis_k: int = 0,
                    volume_time_sidecar_root: str | Path | None = None,
-                   volume_h5_root: str | Path | None = None) -> List[Dict]:
+                   volume_h5_root: str | Path | None = None,
+                   cycle_view_root: str | Path | None = None,
+                   multi_aux_channels: Tuple[str, ...] = ()) -> List[Dict]:
     labels = load_split_cases(split_path, partition)
     case_feature_table = (
         load_case_feature_table(case_features_path) if case_features_path else None
@@ -1414,6 +1548,7 @@ def load_partition(split_path: str, partition: str, wss_stats: Dict,
             point_features_root=point_features_root,
             time_basis_path=time_basis_path, time_basis_k=time_basis_k,
             volume_time_sidecar_root=volume_time_sidecar_root, volume_h5_root=volume_h5_root,
+            cycle_view_root=cycle_view_root, multi_aux_channels=multi_aux_channels,
         ))
         if set(extra_point_features) & set(LG.FEATURE_KEYS):
             cases[-1]["_longitudinal_partition"] = partition

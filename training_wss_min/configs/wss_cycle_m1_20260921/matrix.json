@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_cycle_m1_20260921",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5D_v51_f0_s1234 (wave 2a, peak-frame base)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234/eval/ckpt_best/metrics.json",
+    "X5D_v51_f1_s1234 (wave 2a, peak-frame base)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234/eval/ckpt_best/metrics.json",
+    "X5D_v51_f2_s1234 (wave 2a, peak-frame base)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234/eval/ckpt_best/metrics.json",
+    "A1_f0_s1234 (stage 1 TAWSS single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/A1_f0_s1234/eval/ckpt_best/metrics.json",
+    "A1_f1_s1234 (stage 1 TAWSS single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/A1_f1_s1234/eval/ckpt_best/metrics.json",
+    "A1_f2_s1234 (stage 1 TAWSS single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/A1_f2_s1234/eval/ckpt_best/metrics.json",
+    "O2_f0_s1234 (stage 1 OSI logit single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/O2_f0_s1234/eval/ckpt_best/metrics.json",
+    "O2_f1_s1234 (stage 1 OSI logit single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/O2_f1_s1234/eval/ckpt_best/metrics.json",
+    "O2_f2_s1234 (stage 1 OSI logit single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/O2_f2_s1234/eval/ckpt_best/metrics.json"
+  },
+  "cycle_view": {
+    "root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1",
+    "manifest_sha256": "7c22c1b48d2304f4d2b3b63e738b40c660c1e31c73d8da2fed4b309f8838f2c7"
+  },
+  "expected_training_runs": 3,
+  "expected_evaluations": 6,
+  "arms": [
+    {
+      "id": "M1_f0_s1234",
+      "title": "X5D_v51 fold-0 recipe with a three-channel head (out_dim 3 = peak-frame WSS log_z, TAWSS log_z, OSI logit_z",
+      "config": "M1_f0_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "multi_head_3",
+        "pinball_off",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "parent": "X5D_v51_f0_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_20260921/stats/multi_stats_fold0.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "M1_f1_s1234",
+      "title": "X5D_v51 fold-1 recipe with a three-channel head (out_dim 3 = peak-frame WSS log_z, TAWSS log_z, OSI logit_z",
+      "config": "M1_f1_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "multi_head_3",
+        "pinball_off",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 1234,
+      "fold": 1,
+      "parent": "X5D_v51_f1_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_20260921/stats/multi_stats_fold1.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "M1_f2_s1234",
+      "title": "X5D_v51 fold-2 recipe with a three-channel head (out_dim 3 = peak-frame WSS log_z, TAWSS log_z, OSI logit_z",
+      "config": "M1_f2_s1234.json",
+      "phase": 2,
+      "modules": [
+        "F6",
+        "density_aug",
+        "multi_head_3",
+        "pinball_off",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 1234,
+      "fold": 2,
+      "parent": "X5D_v51_f2_s1234 (wave 2a)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_20260921/stats/multi_stats_fold2.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      }
+    }
+  ],
+  "reading_rule": "fold arms read only on their held-out fold; gate = peak-frame normalized R2_cb drop vs same-fold X5D_v51 <= 0.02 (3/3) and heads within 0.01 of A1 / O2 (normalized R2_cb); test34 unused"
+}

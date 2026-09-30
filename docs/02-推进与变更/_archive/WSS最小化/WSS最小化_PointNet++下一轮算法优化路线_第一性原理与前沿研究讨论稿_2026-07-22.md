@@ -37,7 +37,7 @@ D2 c125×k64 的 ILO 两协议和 mixed test36 结构矩阵已经按本文“单
 
 因此，本文原先设想的 `PointNeXt-R + attention + SEP` 混合终态应暂缓。当前更精确的候选是 **D2-K64 + PointNeXt-R + LocalGeoPE**；关键贡献来自 LocalGeoPE 对残差核心的补偿，而不是 PointNeXt-R 本身。三种子结果为：S2−M1 mean ΔR²_cb=`+0.0086±0.0221`但不稳定；S3−S2=`+0.0138±0.0227`、2/3正且 MAE三 seed全降；S3−M1=`+0.0224±0.0143`、3/3正。S3 通过，只进入 `DropPath 0.05/0.10` 或 `NeighborDrop 0.05` 的互不组合单变量计划；S4、SEP 与 S3 的组合仍排在其后。
 
-需要保留的物理限制没有改变：S3 的 high-WSS R² 仍为 `-0.4495`，只是从 S2 的 `-0.5043` 改善，不能称为高 WSS 已解决。完整结果见 [训练实验跟踪](../../WSS最小化_训练实验跟踪.md) 和 [D2-K64 终审与执行结果](WSS最小化_D2-c125-k64_ILO两协议对照_终审与执行计划_2026-07-23.md)。
+需要保留的物理限制没有改变：S3 的 high-WSS R² 仍为 `-0.4495`，只是从 S2 的 `-0.5043` 改善，不能称为高 WSS 已解决。完整结果见 [训练实验跟踪](WSS最小化_训练实验跟踪.md) 和 [D2-K64 终审与执行结果](WSS最小化_D2-c125-k64_ILO两协议对照_终审与执行计划_2026-07-23.md)。
 
 ---
 
@@ -654,9 +654,9 @@ Surface diffusion流 ─┘
 ## 18. 项目内依据
 
 文档：
-- `docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md`
+- `docs/02-推进与变更/_archive/WSS最小化/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md`
 - `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`
-- `docs/02-推进与变更/WSS最小化_训练实验跟踪.md`
+- `docs/02-推进与变更/_archive/WSS最小化/WSS最小化_训练实验跟踪.md`
 - `docs/02-推进与变更/WSS最小化_PointNet++架构精度优化_第一性原理方案与交叉论证工作稿_2026-07-18.md`
 - `docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx`
 

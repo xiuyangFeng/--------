@@ -55,7 +55,7 @@
 | SHA256 | `964d7021f2d12baadd630e7b936456a4e62294fa72c5ada4fc70abe4d9361f2b` |
 | 计数 | train **138** + test **35** = **173** |
 | 排除 | `AAA/ruputer/SHI_YUN_XI`（体域速度全零，PINN 不可用） |
-| 上位记录 | `docs/02-推进与变更/WSS_PINN/README.md`（D-014 / source audit 173/173） |
+| 上位记录 | `docs/02-推进与变更/_archive/WSS_PINN/README.md`（D-014 / source audit 173/173） |
 
 `batch_validate_cfd.py` **默认绑定上述 split**；只有显式加 `--discover-all`
 才会扫描全库（仅用于找坏导出，**不能**写成正式 raw R²）。

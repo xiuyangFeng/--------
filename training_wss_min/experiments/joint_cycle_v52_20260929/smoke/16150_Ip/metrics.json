@@ -1,0 +1,75 @@
+{
+  "schema": "joint_cycle_v52_v1",
+  "arm": "Ip",
+  "seed": 1234,
+  "variant": "I",
+  "status": "smoke_passed",
+  "partition": "train",
+  "n_units": 2,
+  "phase_count": 80,
+  "selection": "last",
+  "parameter_count": 658535,
+  "aggregation": "equal data-unit mean of area/volume weighted metrics; internal development only",
+  "tasks": {
+    "pressure": {
+      "cycle": {
+        "rmse": 188.49409003714965,
+        "mae": 88.55792135646689,
+        "relative_l2": 2.3106342575066745,
+        "r2": -5.701589806152565,
+        "mse": 39816.54817534022,
+        "truth_energy": 25291.744131431176
+      },
+      "peak": {
+        "rmse": 415.11980015815084,
+        "mae": 311.30282831441855,
+        "relative_l2": 2.5211305612338366,
+        "r2": -7.339192614926391,
+        "mse": 199720.3162752415,
+        "truth_energy": 137996.9225119164
+      },
+      "accel": {
+        "rmse": 335.1482191374711,
+        "mae": 284.1649186295071,
+        "relative_l2": 2.3215961679588,
+        "r2": -5.321955350348513,
+        "mse": 116187.98970802568,
+        "truth_energy": 46340.69181056149
+      },
+      "decel": {
+        "rmse": 120.9805692513252,
+        "mae": 56.9830560940147,
+        "relative_l2": 1.6273251996514038,
+        "r2": -2.011989755537181,
+        "mse": 20416.911093491526,
+        "truth_energy": 18704.683458551583
+      },
+      "plateau": {
+        "rmse": 19.046748772286197,
+        "mae": 14.570013902044057,
+        "relative_l2": 2.146785812480261,
+        "r2": -4.473589694716087,
+        "mse": 384.88732376521784,
+        "truth_energy": 201.30340478439354
+      },
+      "trough": {
+        "rmse": 43.08655027548721,
+        "mae": 33.86658610535936,
+        "relative_l2": 1.9702915068239886,
+        "r2": -3.20942225448324,
+        "mse": 1887.1114040549098,
+        "truth_energy": 713.7667727697611
+      },
+      "numeric_exp_clipped_count": 0.0
+    }
+  },
+  "train_seconds": 1.3714391029998296,
+  "peak_cuda_memory_bytes": 1187882496,
+  "inference": {
+    "definition": "audited cache load + tensor transfer + geometry encode + all task/80-phase decode; excludes original geometry preprocessing and file export",
+    "median_s": 0.14750745950004784,
+    "p95_s": 0.15487446754950723,
+    "cold_first_case_s": 0.15569302399944718,
+    "n_units": 2
+  }
+}

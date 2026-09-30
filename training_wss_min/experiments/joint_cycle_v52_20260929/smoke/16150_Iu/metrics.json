@@ -1,0 +1,155 @@
+{
+  "schema": "joint_cycle_v52_v1",
+  "arm": "Iu",
+  "seed": 1234,
+  "variant": "I",
+  "status": "smoke_passed",
+  "partition": "train",
+  "n_units": 2,
+  "phase_count": 80,
+  "selection": "last",
+  "parameter_count": 658793,
+  "aggregation": "equal data-unit mean of area/volume weighted metrics; internal development only",
+  "tasks": {
+    "velocity": {
+      "cycle": {
+        "rmse": 0.07819455154283704,
+        "mae": 0.05142123759282726,
+        "relative_l2": 1.272408791423597,
+        "r2": -0.7736994853441927,
+        "mse": 0.006416076300423677,
+        "truth_energy": 0.005587091877630252,
+        "component_rmse_m_s": 0.07819455154283704,
+        "vector_rmse_m_s": 0.13543693614725708,
+        "direction_cosine": 0.1650188656564737,
+        "direction_truth_speed_floor_m_s": 0.01,
+        "direction_weight_coverage": 0.9409586723223902
+      },
+      "peak": {
+        "rmse": 0.14270301864033835,
+        "mae": 0.10159722479544878,
+        "relative_l2": 1.462841822718468,
+        "r2": -1.7126326724996574,
+        "mse": 0.02088813086579884,
+        "truth_energy": 0.016726733712253892,
+        "component_rmse_m_s": 0.14270301864033835,
+        "vector_rmse_m_s": 0.24716887867851456,
+        "direction_cosine": 0.4720734972108305,
+        "direction_truth_speed_floor_m_s": 0.01,
+        "direction_weight_coverage": 0.9694432588282307
+      },
+      "accel": {
+        "rmse": 0.07590196246723843,
+        "mae": 0.054524877061672805,
+        "relative_l2": 1.4138908731098905,
+        "r2": -1.385268445076592,
+        "mse": 0.005887853700118665,
+        "truth_energy": 0.00462415579885956,
+        "component_rmse_m_s": 0.07590196246723843,
+        "vector_rmse_m_s": 0.13146605538744294,
+        "direction_cosine": 0.3033703813681058,
+        "direction_truth_speed_floor_m_s": 0.01,
+        "direction_weight_coverage": 0.941926222876641
+      },
+      "decel": {
+        "rmse": 0.09375767289940112,
+        "mae": 0.06558272923002581,
+        "relative_l2": 1.2193859673706129,
+        "r2": -0.6412880865216363,
+        "mse": 0.00938777981748821,
+        "truth_energy": 0.008582603387837142,
+        "component_rmse_m_s": 0.09375767289940112,
+        "vector_rmse_m_s": 0.16239305306118634,
+        "direction_cosine": 0.20813193281045175,
+        "direction_truth_speed_floor_m_s": 0.01,
+        "direction_weight_coverage": 0.9511590467909672
+      },
+      "plateau": {
+        "rmse": 0.04542649895372618,
+        "mae": 0.03528429815582863,
+        "relative_l2": 1.063767741425289,
+        "r2": -0.16081852704427313,
+        "mse": 0.002257756686801374,
+        "truth_energy": 0.0021789709353749838,
+        "component_rmse_m_s": 0.04542649895372618,
+        "vector_rmse_m_s": 0.07868100419782818,
+        "direction_cosine": 0.09917457345097032,
+        "direction_truth_speed_floor_m_s": 0.01,
+        "direction_weight_coverage": 0.929026094073347
+      },
+      "trough": {
+        "rmse": 0.048126527924046675,
+        "mae": 0.0357026451076108,
+        "relative_l2": 1.024875519058401,
+        "r2": -0.05521301468678941,
+        "mse": 0.0026012955925808897,
+        "truth_energy": 0.002558852651766551,
+        "component_rmse_m_s": 0.048126527924046675,
+        "vector_rmse_m_s": 0.08335759155633116,
+        "direction_cosine": 0.009264973407264232,
+        "direction_truth_speed_floor_m_s": 0.01,
+        "direction_weight_coverage": 0.9343264174368313
+      },
+      "speed": {
+        "cycle": {
+          "rmse": 0.10714348972041114,
+          "mae": 0.0690651418526688,
+          "relative_l2": 1.0013027788211821,
+          "r2": -0.9707985364136132,
+          "mse": 0.012103084939666383,
+          "truth_energy": 0.016761275632890017
+        },
+        "peak": {
+          "rmse": 0.20260404911525914,
+          "mae": 0.1489762268747069,
+          "relative_l2": 1.2153196901412318,
+          "r2": -1.646502043399705,
+          "mse": 0.041788118942963734,
+          "truth_energy": 0.05018020113676155
+        },
+        "accel": {
+          "rmse": 0.0952444319627268,
+          "mae": 0.06342593731329504,
+          "relative_l2": 1.0381897901049553,
+          "r2": -1.4845335978349645,
+          "mse": 0.009201270262376767,
+          "truth_energy": 0.013872467396578488
+        },
+        "decel": {
+          "rmse": 0.12396498160425504,
+          "mae": 0.07978127058941736,
+          "relative_l2": 0.9159451285356427,
+          "r2": -0.5926112139508031,
+          "mse": 0.016682386775395665,
+          "truth_energy": 0.025747810163510385
+        },
+        "plateau": {
+          "rmse": 0.05557074899240136,
+          "mae": 0.04442276021309778,
+          "relative_l2": 0.7065408042324481,
+          "r2": -0.9401531310009091,
+          "mse": 0.003714952488735724,
+          "truth_energy": 0.006536912806125029
+        },
+        "trough": {
+          "rmse": 0.07124296182812812,
+          "mae": 0.055777633154452604,
+          "relative_l2": 0.8530031350413889,
+          "r2": -1.3995282498922061,
+          "mse": 0.005936740415242032,
+          "truth_energy": 0.00767655795529971
+        }
+      },
+      "numeric_exp_clipped_count": 0.0
+    }
+  },
+  "train_seconds": 2.2626176040002974,
+  "peak_cuda_memory_bytes": 1191011328,
+  "inference": {
+    "definition": "audited cache load + tensor transfer + geometry encode + all task/80-phase decode; excludes original geometry preprocessing and file export",
+    "median_s": 0.23615218599979926,
+    "p95_s": 0.30005092779952064,
+    "cold_first_case_s": 0.16515358400010882,
+    "n_units": 2
+  }
+}

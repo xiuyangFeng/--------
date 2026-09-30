@@ -1,0 +1,598 @@
+{
+  "schema_version": 3,
+  "model": "V4_EMA",
+  "arm": "V4-SP-PN-BC-PDE-EMA-s1234",
+  "note": "Historical V4 EMA: derived WSS from full-wall cache; speed/pressure from GPU re-inference of the same three WSS-selected cases.",
+  "selection_source": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/selection.json",
+  "selection_sha256": "2c0249c0b1d088f7fcb5f79c4b614fa85361d577d36bb632e459224e240ea544",
+  "cases": [
+    {
+      "schema_version": 3,
+      "model": "V4_EMA",
+      "role": "best",
+      "case_id": "AG/fast/RAN_QING_BO",
+      "arm": "V4-SP-PN-BC-PDE-EMA-s1234",
+      "seed": 1234,
+      "split": "test35",
+      "checkpoint": "last_converged",
+      "coordinate_unit": "mm",
+      "coordinate_frame": "raw CFD millimetres",
+      "peak_step": "V4 steady peak (historical, not V5 1162 atlas)",
+      "selection": {
+        "basis": "full-wall derived WSS physical per-case R2; single seed 1234; not ensemble",
+        "r2_case_mean": 0.2599162777733912,
+        "mae": 3.4997840025018623,
+        "points": 17682
+      },
+      "visualization_metrics": {
+        "r2": 0.2599162777733912,
+        "mae": 3.4997840025018623,
+        "n": 17682,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/wss_metrics.json",
+        "metric_key": "cases[case_id].wss_r2",
+        "basis": "whole evaluated wall, not smoothed surface"
+      },
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "wss",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall",
+        "source_point_count": 17682,
+        "cfd_max": 51.299537658691406,
+        "pred_max": 20.314324603863987,
+        "cfd_denominator": {
+          "max": 51.299537658691406,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 5.12995376586914e-11
+        },
+        "pred_denominator": {
+          "max": 20.314324603863987,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 2.0314324603863988e-11
+        },
+        "formula": {
+          "wss_cfd_selfmax": "CFD / max(original CFD)",
+          "wss_pred_selfmax": "Pred / max(original Pred)",
+          "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "files": {
+        "pointcloud": "V4_EMA__best__AG__fast__RAN_QING_BO__wall_wss.vtp",
+        "gaussian_surface": "surface_gaussian.vtp",
+        "mapping_report": "mapping_report.json",
+        "native_cfd_wall": null,
+        "aligned_geometry": "aligned_geometry.vtp",
+        "original_points_csv": "_export/same_point_fields.csv.gz",
+        "interior_velocity": "V4_EMA__best__AG__fast__RAN_QING_BO__interior_velocity.vtp",
+        "volume_pressure": "V4_EMA__best__AG__fast__RAN_QING_BO__volume_pressure.vtp",
+        "pressure_gaussian_surface": "pressure_surface_gaussian.vtp",
+        "pressure_mapping_report": "pressure_mapping_report.json",
+        "speed_points_csv": "_export/same_point_speed.csv.gz",
+        "pressure_points_csv": "_export/same_point_pressure.csv.gz"
+      },
+      "surface_display_purpose": "Derived WSS interpolated to original STL vertices",
+      "source_files": {
+        "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/wss_metrics.json": "0b3e299d3573075382f726a76f471036abc36340f243f8258b6fefc30f51bca8",
+        "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/point_cache_s0/AG__fast__RAN_QING_BO.npz": "69608df767ed0c2423ce09f7c92b09758244b930f986aae993374043cae49c55"
+      },
+      "visualization_metrics_speed": {
+        "r2": -0.1695195123757003,
+        "mae": 0.21360599400059177,
+        "n": 990613,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/volume_uvwp_bc_rcr_v4/steady_peak/V4-SP-PN-BC-PDE-EMA-s1234/evaluation_official_last_converged_full.json",
+        "metric_key": "cases[case_id].metrics.speed.r2",
+        "basis": "official test35 strict-interior speed; not smoothed mesh",
+        "official_json": {
+          "r2": -0.1695194908649218,
+          "mae": 0.21360599260404467,
+          "n": 990613
+        },
+        "cache_recomputed": {
+          "r2": -0.1695195123757003,
+          "mae": 0.21360599400059177,
+          "n": 990613
+        }
+      },
+      "visualization_metrics_pressure": {
+        "r2": 0.1446024140302925,
+        "mae": 408.5895318320085,
+        "n": 990613,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/volume_uvwp_bc_rcr_v4/steady_peak/V4-SP-PN-BC-PDE-EMA-s1234/evaluation_official_last_converged_full.json",
+        "metric_key": "cases[case_id].metrics.pressure.r2",
+        "basis": "official test35 strict-interior relative pressure; visualization also writes wall",
+        "official_json": {
+          "r2": 0.1446023999132765,
+          "mae": 408.5895350059485,
+          "n": 990613
+        },
+        "cache_recomputed": {
+          "r2": 0.1446024140302925,
+          "mae": 408.5895318320085,
+          "n": 990613
+        }
+      },
+      "display_normalization_speed": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 990613,
+        "cfd_max": 1.8196236419665952,
+        "pred_max": 0.30058523955260047,
+        "cfd_denominator": {
+          "max": 1.8196236419665952,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.819623641966595e-12
+        },
+        "pred_denominator": {
+          "max": 0.30058523955260047,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "display_normalization_pressure": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "pressure",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall_union_interior",
+        "source_point_count": 1008295,
+        "cfd_max": 363.367431640625,
+        "pred_max": 66.07071685791016,
+        "cfd_denominator": {
+          "max": 363.367431640625,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 2.055482666015625e-09
+        },
+        "pred_denominator": {
+          "max": 66.07071685791016,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.4380059814453126e-10
+        },
+        "formula": {
+          "pressure_cfd_selfmax": "CFD / max(original CFD)",
+          "pressure_pred_selfmax": "Pred / max(original Pred)",
+          "pressure_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "pressure_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "pressure_reference": {
+        "p_ref_pa": 16898.376370970378,
+        "kind": "V4 volume manifest scales.pressure_reference_pa",
+        "posthoc_offset_correction": false
+      },
+      "volume_note": "Speed/pressure inferred for the WSS-selected cases; not independent speed ranking. Official R² is test35 strict-interior. Pressure VTP adds wall for visualization."
+    },
+    {
+      "schema_version": 3,
+      "model": "V4_EMA",
+      "role": "median",
+      "case_id": "ILO/LI_YOU_ZHI-0/before",
+      "arm": "V4-SP-PN-BC-PDE-EMA-s1234",
+      "seed": 1234,
+      "split": "test35",
+      "checkpoint": "last_converged",
+      "coordinate_unit": "mm",
+      "coordinate_frame": "raw CFD millimetres",
+      "peak_step": "V4 steady peak (historical, not V5 1162 atlas)",
+      "selection": {
+        "basis": "full-wall derived WSS physical per-case R2; single seed 1234; not ensemble",
+        "r2_case_mean": -0.04027212297224936,
+        "mae": 1.1626994194029912,
+        "points": 67760
+      },
+      "visualization_metrics": {
+        "r2": -0.04027212297224936,
+        "mae": 1.1626994194029912,
+        "n": 67760,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/wss_metrics.json",
+        "metric_key": "cases[case_id].wss_r2",
+        "basis": "whole evaluated wall, not smoothed surface"
+      },
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "wss",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall",
+        "source_point_count": 67760,
+        "cfd_max": 26.673507690429688,
+        "pred_max": 8.680407967133519,
+        "cfd_denominator": {
+          "max": 26.673507690429688,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 2.6673507690429687e-11
+        },
+        "pred_denominator": {
+          "max": 8.680407967133519,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 8.680407967133519e-12
+        },
+        "formula": {
+          "wss_cfd_selfmax": "CFD / max(original CFD)",
+          "wss_pred_selfmax": "Pred / max(original Pred)",
+          "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "files": {
+        "pointcloud": "V4_EMA__median__ILO__LI_YOU_ZHI-0__before__wall_wss.vtp",
+        "gaussian_surface": "surface_gaussian.vtp",
+        "mapping_report": "mapping_report.json",
+        "native_cfd_wall": null,
+        "aligned_geometry": "aligned_geometry.vtp",
+        "original_points_csv": "_export/same_point_fields.csv.gz",
+        "interior_velocity": "V4_EMA__median__ILO__LI_YOU_ZHI-0__before__interior_velocity.vtp",
+        "volume_pressure": "V4_EMA__median__ILO__LI_YOU_ZHI-0__before__volume_pressure.vtp",
+        "pressure_gaussian_surface": "pressure_surface_gaussian.vtp",
+        "pressure_mapping_report": "pressure_mapping_report.json",
+        "speed_points_csv": "_export/same_point_speed.csv.gz",
+        "pressure_points_csv": "_export/same_point_pressure.csv.gz"
+      },
+      "surface_display_purpose": "Derived WSS interpolated to original STL vertices",
+      "source_files": {
+        "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/wss_metrics.json": "0b3e299d3573075382f726a76f471036abc36340f243f8258b6fefc30f51bca8",
+        "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/point_cache_s0/ILO__LI_YOU_ZHI-0__before.npz": "af99be9b3abfa0a62a2510f3745ef12100ad75b3847332e9b7b0b3afe32b2d40"
+      },
+      "visualization_metrics_speed": {
+        "r2": -0.6142683650668441,
+        "mae": 0.13148872542673337,
+        "n": 723465,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/volume_uvwp_bc_rcr_v4/steady_peak/V4-SP-PN-BC-PDE-EMA-s1234/evaluation_official_last_converged_full.json",
+        "metric_key": "cases[case_id].metrics.speed.r2",
+        "basis": "official test35 strict-interior speed; not smoothed mesh",
+        "official_json": {
+          "r2": -0.6142683497147212,
+          "mae": 0.1314887248313487,
+          "n": 723465
+        },
+        "cache_recomputed": {
+          "r2": -0.6142683650668441,
+          "mae": 0.13148872542673337,
+          "n": 723465
+        }
+      },
+      "visualization_metrics_pressure": {
+        "r2": 0.010842034724875882,
+        "mae": 160.11055921707938,
+        "n": 723465,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/volume_uvwp_bc_rcr_v4/steady_peak/V4-SP-PN-BC-PDE-EMA-s1234/evaluation_official_last_converged_full.json",
+        "metric_key": "cases[case_id].metrics.pressure.r2",
+        "basis": "official test35 strict-interior relative pressure; visualization also writes wall",
+        "official_json": {
+          "r2": 0.010842031154579046,
+          "mae": 160.11055949254578,
+          "n": 723465
+        },
+        "cache_recomputed": {
+          "r2": 0.010842034724875882,
+          "mae": 160.11055921707938,
+          "n": 723465
+        }
+      },
+      "display_normalization_speed": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 723465,
+        "cfd_max": 0.8198592526743264,
+        "pred_max": 0.1966386394970401,
+        "cfd_denominator": {
+          "max": 0.8198592526743264,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "pred_denominator": {
+          "max": 0.1966386394970401,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "display_normalization_pressure": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "pressure",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall_union_interior",
+        "source_point_count": 791225,
+        "cfd_max": 199.6083526611328,
+        "pred_max": -4.946694374084473,
+        "cfd_denominator": {
+          "max": 199.6083526611328,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 5.47024169921875e-10
+        },
+        "pred_denominator": {
+          "max": -4.946694374084473,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 2.978226852416992e-11
+        },
+        "formula": {
+          "pressure_cfd_selfmax": "CFD / max(original CFD)",
+          "pressure_pred_selfmax": "Pred / max(original Pred)",
+          "pressure_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "pressure_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "pressure_reference": {
+        "p_ref_pa": 13018.126238149858,
+        "kind": "V4 volume manifest scales.pressure_reference_pa",
+        "posthoc_offset_correction": false
+      },
+      "volume_note": "Speed/pressure inferred for the WSS-selected cases; not independent speed ranking. Official R² is test35 strict-interior. Pressure VTP adds wall for visualization."
+    },
+    {
+      "schema_version": 3,
+      "model": "V4_EMA",
+      "role": "worst",
+      "case_id": "AG/fast/LOU_YANG",
+      "arm": "V4-SP-PN-BC-PDE-EMA-s1234",
+      "seed": 1234,
+      "split": "test35",
+      "checkpoint": "last_converged",
+      "coordinate_unit": "mm",
+      "coordinate_frame": "raw CFD millimetres",
+      "peak_step": "V4 steady peak (historical, not V5 1162 atlas)",
+      "selection": {
+        "basis": "full-wall derived WSS physical per-case R2; single seed 1234; not ensemble",
+        "r2_case_mean": -0.8892651028000789,
+        "mae": 4.856450124587293,
+        "points": 10806
+      },
+      "visualization_metrics": {
+        "r2": -0.8892651028000789,
+        "mae": 4.856450124587293,
+        "n": 10806,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/wss_metrics.json",
+        "metric_key": "cases[case_id].wss_r2",
+        "basis": "whole evaluated wall, not smoothed surface"
+      },
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "wss",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall",
+        "source_point_count": 10806,
+        "cfd_max": 36.088890075683594,
+        "pred_max": 34.72071416739938,
+        "cfd_denominator": {
+          "max": 36.088890075683594,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 3.6088890075683595e-11
+        },
+        "pred_denominator": {
+          "max": 34.72071416739938,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 3.472071416739938e-11
+        },
+        "formula": {
+          "wss_cfd_selfmax": "CFD / max(original CFD)",
+          "wss_pred_selfmax": "Pred / max(original Pred)",
+          "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "files": {
+        "pointcloud": "V4_EMA__worst__AG__fast__LOU_YANG__wall_wss.vtp",
+        "gaussian_surface": "surface_gaussian.vtp",
+        "mapping_report": "mapping_report.json",
+        "native_cfd_wall": null,
+        "aligned_geometry": "aligned_geometry.vtp",
+        "original_points_csv": "_export/same_point_fields.csv.gz",
+        "interior_velocity": "V4_EMA__worst__AG__fast__LOU_YANG__interior_velocity.vtp",
+        "volume_pressure": "V4_EMA__worst__AG__fast__LOU_YANG__volume_pressure.vtp",
+        "pressure_gaussian_surface": "pressure_surface_gaussian.vtp",
+        "pressure_mapping_report": "pressure_mapping_report.json",
+        "speed_points_csv": "_export/same_point_speed.csv.gz",
+        "pressure_points_csv": "_export/same_point_pressure.csv.gz"
+      },
+      "surface_display_purpose": "Derived WSS interpolated to original STL vertices",
+      "source_files": {
+        "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/wss_metrics.json": "0b3e299d3573075382f726a76f471036abc36340f243f8258b6fefc30f51bca8",
+        "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/point_cache_s0/AG__fast__LOU_YANG.npz": "9ac34219d8bfcae2844c34477a2c0acaaa7fe560042a1e10eb9a5ab9bb258f87"
+      },
+      "visualization_metrics_speed": {
+        "r2": -0.050013512203643584,
+        "mae": 0.23584027298289886,
+        "n": 746864,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/volume_uvwp_bc_rcr_v4/steady_peak/V4-SP-PN-BC-PDE-EMA-s1234/evaluation_official_last_converged_full.json",
+        "metric_key": "cases[case_id].metrics.speed.r2",
+        "basis": "official test35 strict-interior speed; not smoothed mesh",
+        "official_json": {
+          "r2": -0.05001352023185346,
+          "mae": 0.23584027596966295,
+          "n": 746864
+        },
+        "cache_recomputed": {
+          "r2": -0.050013512203643584,
+          "mae": 0.23584027298289886,
+          "n": 746864
+        }
+      },
+      "visualization_metrics_pressure": {
+        "r2": 0.2556203677010922,
+        "mae": 354.56877689805737,
+        "n": 746864,
+        "seed": 1234,
+        "metric_source": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/volume_uvwp_bc_rcr_v4/steady_peak/V4-SP-PN-BC-PDE-EMA-s1234/evaluation_official_last_converged_full.json",
+        "metric_key": "cases[case_id].metrics.pressure.r2",
+        "basis": "official test35 strict-interior relative pressure; visualization also writes wall",
+        "official_json": {
+          "r2": 0.2556203678950687,
+          "mae": 354.5687761380723,
+          "n": 746864
+        },
+        "cache_recomputed": {
+          "r2": 0.2556203677010922,
+          "mae": 354.56877689805737,
+          "n": 746864
+        }
+      },
+      "display_normalization_speed": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 746864,
+        "cfd_max": 1.4145151392453221,
+        "pred_max": 0.6099518657164192,
+        "cfd_denominator": {
+          "max": 1.4145151392453221,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.4145151392453221e-12
+        },
+        "pred_denominator": {
+          "max": 0.6099518657164192,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "display_normalization_pressure": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "pressure",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall_union_interior",
+        "source_point_count": 757670,
+        "cfd_max": 424.65130615234375,
+        "pred_max": 100.1386489868164,
+        "cfd_denominator": {
+          "max": 424.65130615234375,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.36524072265625e-09
+        },
+        "pred_denominator": {
+          "max": 100.1386489868164,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.5168402099609374e-10
+        },
+        "formula": {
+          "pressure_cfd_selfmax": "CFD / max(original CFD)",
+          "pressure_pred_selfmax": "Pred / max(original Pred)",
+          "pressure_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "pressure_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "pressure_reference": {
+        "p_ref_pa": 16169.73113914089,
+        "kind": "V4 volume manifest scales.pressure_reference_pa",
+        "posthoc_offset_correction": false
+      },
+      "volume_note": "Speed/pressure inferred for the WSS-selected cases; not independent speed ranking. Official R² is test35 strict-interior. Pressure VTP adds wall for visualization."
+    }
+  ]
+}

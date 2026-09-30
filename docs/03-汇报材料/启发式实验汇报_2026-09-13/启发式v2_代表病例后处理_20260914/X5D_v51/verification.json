@@ -1,0 +1,77 @@
+{
+  "status": "passed",
+  "schema_version": 3,
+  "verified_at": "2026-09-17T05:03:14.166015+00:00",
+  "scope": "Finished v5.1 X5D_v51 three-case wall postview from caches; no inference",
+  "verifier": "verify_x5d_postview.py",
+  "verifier_sha256": "e53cf5f5b22f91e98356ccc034e752eefa300a89dc9693470d54abc64e84c885",
+  "case_count": 3,
+  "check_count": 358,
+  "failed_check_count": 0,
+  "cases": [
+    {
+      "model": "X5D_v51",
+      "role": "best",
+      "case_id": "AG/fast/ZHANG_LIANG",
+      "point_count": 14399,
+      "s1234_r2": 0.8837962352572435,
+      "five_seed_selection_r2": 0.9042640595121249,
+      "surface": {
+        "points": 14399,
+        "triangles": 28678,
+        "coverage": 1.0,
+        "nearest_max_mm": 3.389272144602394e-05,
+        "independent_kernel_max_error": 3.552713678800501e-15,
+        "disconnected_stencils": 0,
+        "max_disconnected_weight": 0.0,
+        "opposite_normal_stencils": 42,
+        "max_opposite_normal_weight": 0.1620914013592428
+      },
+      "checks": 114,
+      "passed": true
+    },
+    {
+      "model": "X5D_v51",
+      "role": "median",
+      "case_id": "AAA/ruputer/KANG_YONG",
+      "point_count": 16448,
+      "s1234_r2": 0.7780804844059391,
+      "five_seed_selection_r2": 0.7607525450657214,
+      "surface": {
+        "points": 16448,
+        "triangles": 32694,
+        "coverage": 1.0,
+        "nearest_max_mm": 2.1457040694143975e-05,
+        "independent_kernel_max_error": 1.7763568394002505e-15,
+        "disconnected_stencils": 0,
+        "max_disconnected_weight": 0.0,
+        "opposite_normal_stencils": 0,
+        "max_opposite_normal_weight": 0.0
+      },
+      "checks": 114,
+      "passed": true
+    },
+    {
+      "model": "X5D_v51",
+      "role": "worst",
+      "case_id": "ILO/ZHANG_YONG_SHENG-0/before",
+      "point_count": 60329,
+      "s1234_r2": 0.6095286812858356,
+      "five_seed_selection_r2": 0.6021192706995688,
+      "surface": {
+        "points": 62851,
+        "triangles": 125405,
+        "coverage": 1.0,
+        "nearest_max_mm": 1.3222489451382002,
+        "independent_kernel_max_error": 7.105427357601002e-15,
+        "disconnected_stencils": 1,
+        "max_disconnected_weight": 0.0029379209038092316,
+        "opposite_normal_stencils": 216,
+        "max_opposite_normal_weight": 0.20950794551317947
+      },
+      "checks": 114,
+      "passed": true
+    }
+  ],
+  "errors": []
+}

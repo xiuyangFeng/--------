@@ -1,0 +1,491 @@
+{
+  "status": "passed",
+  "partition": "train",
+  "seed": 1234,
+  "n_batches": 32,
+  "direction_lambda": 0.08607029602194903,
+  "base_gradient_norm_median": 0.24420317262411118,
+  "direction_gradient_norm_median": 0.2837252616882324,
+  "config_sha256": "ad0225e8ed278ffb181588e75047b99d4f5f5d87db5551a93850451a68bd2090",
+  "stats_sha256": "456cfb916a96d07c2f51f72549ff2e09fb671b4bb4043da9c69ac8d77ea8ced8",
+  "split_sha256": "57862a4f09de4c4bec9adf0eed66cf2ce0d9e7da0528c0ee1d38e0fb0f202269",
+  "optimizer_updates": 0,
+  "model_mode": "eval_with_gradients",
+  "epoch_sampling": 0,
+  "slurm_job_id": "16264",
+  "records": [
+    {
+      "batch": 0,
+      "unit_ids": [
+        "AAA/ruputer/HUO_SHI_LIANG",
+        "AG/fast/PENG_JI_MING",
+        "AG/fast/SUN_ZHI_YU",
+        "ILO/LI_SHENG_WEN-0/before"
+      ],
+      "z_mse": 0.9018950462341309,
+      "direction_loss": 0.4741186797618866,
+      "base_gradient_norm": 0.2419428825378418,
+      "direction_gradient_norm": 0.24549737572669983,
+      "phase_probe": {
+        "cycle": {
+          "z_mse": 0.9018951058387756,
+          "decoder_gradient_norm": 0.2419428676366806
+        },
+        "peak": {
+          "z_mse": 0.5187263488769531,
+          "decoder_gradient_norm": 0.2575281262397766
+        },
+        "accel": {
+          "z_mse": 0.6057338714599609,
+          "decoder_gradient_norm": 0.276516854763031
+        },
+        "decel": {
+          "z_mse": 0.6727208495140076,
+          "decoder_gradient_norm": 0.25665831565856934
+        },
+        "plateau": {
+          "z_mse": 1.063819169998169,
+          "decoder_gradient_norm": 0.27282094955444336
+        },
+        "trough": {
+          "z_mse": 1.1618777513504028,
+          "decoder_gradient_norm": 0.19763785600662231
+        }
+      }
+    },
+    {
+      "batch": 1,
+      "unit_ids": [
+        "AG/slow/ZHANG_SONG_TIAN",
+        "AAA/ruputer/WANG_FU_SHUN",
+        "ILO/YANG_QING_REN-1/before",
+        "ILO/SUN_CHUN_PU-0/before"
+      ],
+      "z_mse": 1.238200068473816,
+      "direction_loss": 0.5058507919311523,
+      "base_gradient_norm": 0.18682199716567993,
+      "direction_gradient_norm": 0.23179103434085846,
+      "phase_probe": {}
+    },
+    {
+      "batch": 2,
+      "unit_ids": [
+        "ILO/WEI_QING_FENG-1/before",
+        "ILO/LI_YU_GANG-0/before",
+        "ILO/AN_GUANG_JIE-0/after",
+        "ILO/LIU_CHUN_YANG-1/after"
+      ],
+      "z_mse": 0.6481674909591675,
+      "direction_loss": 0.4623390734195709,
+      "base_gradient_norm": 0.23799999058246613,
+      "direction_gradient_norm": 0.27484211325645447,
+      "phase_probe": {}
+    },
+    {
+      "batch": 3,
+      "unit_ids": [
+        "AG/slow/WANG_BAO_SHAN",
+        "ILO/YANG_WANG_QI-1/before",
+        "ILO/DONG_JIA_JU-1/after",
+        "AG/slow/ZHANG_ZHI_JUN"
+      ],
+      "z_mse": 0.9908998608589172,
+      "direction_loss": 0.44442588090896606,
+      "base_gradient_norm": 0.2845994532108307,
+      "direction_gradient_norm": 0.32952404022216797,
+      "phase_probe": {}
+    },
+    {
+      "batch": 4,
+      "unit_ids": [
+        "AAA/unruputer/GAO_DIAN_WEN",
+        "ILO/SUN_CHUN_PU-0/after",
+        "ILO/YANG_WEN_TAI-0/after",
+        "ILO/XIE_ZHI_FU-0/before"
+      ],
+      "z_mse": 0.471353143453598,
+      "direction_loss": 0.4464251399040222,
+      "base_gradient_norm": 0.1826242059469223,
+      "direction_gradient_norm": 0.3113647997379303,
+      "phase_probe": {}
+    },
+    {
+      "batch": 5,
+      "unit_ids": [
+        "ILO/LI_YOU_ZHI-0/before",
+        "AG/slow/YIN_YU_RONG",
+        "ILO/WANG_CAI-0/after",
+        "AAA/ruputer/LI_BING_JIANG"
+      ],
+      "z_mse": 0.8889145255088806,
+      "direction_loss": 0.5180335640907288,
+      "base_gradient_norm": 0.2847859859466553,
+      "direction_gradient_norm": 0.3430842459201813,
+      "phase_probe": {}
+    },
+    {
+      "batch": 6,
+      "unit_ids": [
+        "AG/slow/ZHANG_WEI_XIAN",
+        "ILO/GONG_HAI_ZENG-1/before",
+        "AG/slow/BAI_WEN_JIE",
+        "AAA/ruputer/LI_LAO_PING"
+      ],
+      "z_mse": 1.503426194190979,
+      "direction_loss": 0.6015747785568237,
+      "base_gradient_norm": 0.3334464430809021,
+      "direction_gradient_norm": 0.3148360848426819,
+      "phase_probe": {}
+    },
+    {
+      "batch": 7,
+      "unit_ids": [
+        "ILO/GAO_SHU_CAI-0/before",
+        "AAA/unruputer/CAO_DIAN_HE",
+        "ILO/WENG_ZHAO_GUANG-0/after",
+        "ILO/GUO_QING_SHAN-0/before"
+      ],
+      "z_mse": 0.7197834253311157,
+      "direction_loss": 0.4835713505744934,
+      "base_gradient_norm": 0.2334355264902115,
+      "direction_gradient_norm": 0.2726217806339264,
+      "phase_probe": {}
+    },
+    {
+      "batch": 8,
+      "unit_ids": [
+        "ILO/LIU_YUN_ZHANG-0/after",
+        "AAA/unruputer/CHEN_LIANG_FU",
+        "AAA/unruputer/FENG_ZHI_YING",
+        "AG/slow/ZHANG_QING_SHUI"
+      ],
+      "z_mse": 0.8503861427307129,
+      "direction_loss": 0.5269157886505127,
+      "base_gradient_norm": 0.15049344301223755,
+      "direction_gradient_norm": 0.2476271241903305,
+      "phase_probe": {}
+    },
+    {
+      "batch": 9,
+      "unit_ids": [
+        "AG/slow/XI_CHENG_JIANG",
+        "AG/slow/HE_SHU_ZHEN",
+        "AAA/unruputer/CAO_HONG_TAI",
+        "AAA/unruputer/ZHANG_GUI_HUA"
+      ],
+      "z_mse": 0.9166004657745361,
+      "direction_loss": 0.5439711809158325,
+      "base_gradient_norm": 0.21293923258781433,
+      "direction_gradient_norm": 0.1585482507944107,
+      "phase_probe": {}
+    },
+    {
+      "batch": 10,
+      "unit_ids": [
+        "ILO/ZHANG_JIAN_JUN-1/after",
+        "ILO/AN_GUANG_JIE-0/before",
+        "AAA/unruputer/ZHANG_YONG_ZHI",
+        "ILO/WANG_XIAO_LIN-0/after"
+      ],
+      "z_mse": 0.7410078048706055,
+      "direction_loss": 0.510256826877594,
+      "base_gradient_norm": 0.17580606043338776,
+      "direction_gradient_norm": 0.3033384680747986,
+      "phase_probe": {}
+    },
+    {
+      "batch": 11,
+      "unit_ids": [
+        "AG/fast/RAN_QING_BO",
+        "ILO/CUI_WEI_PING-0/after",
+        "ILO/ZHANG_JIN_CHUN-1/before",
+        "ILO/SUN_DE_QI-1/before"
+      ],
+      "z_mse": 0.6653705835342407,
+      "direction_loss": 0.4679085314273834,
+      "base_gradient_norm": 0.187540203332901,
+      "direction_gradient_norm": 0.27301374077796936,
+      "phase_probe": {}
+    },
+    {
+      "batch": 12,
+      "unit_ids": [
+        "ILO/SUN_XU_XIA-1/after",
+        "ILO/WANG_XIAO_LIN-0/before",
+        "AAA/ruputer/WU_GUANG_CUN",
+        "AG/slow/WANG_GUANG_CHAO"
+      ],
+      "z_mse": 0.9126913547515869,
+      "direction_loss": 0.5664400458335876,
+      "base_gradient_norm": 0.24077613651752472,
+      "direction_gradient_norm": 0.2833966314792633,
+      "phase_probe": {}
+    },
+    {
+      "batch": 13,
+      "unit_ids": [
+        "AAA/unruputer/SUN_SHU_MING",
+        "AAA/ruputer/GAO_FENG_SHAN",
+        "ILO/WANG_JIN_MING-0/after",
+        "AAA/unruputer/LIU_XING_GUO"
+      ],
+      "z_mse": 0.4520649313926697,
+      "direction_loss": 0.6150195002555847,
+      "base_gradient_norm": 0.3196766972541809,
+      "direction_gradient_norm": 0.16155032813549042,
+      "phase_probe": {}
+    },
+    {
+      "batch": 14,
+      "unit_ids": [
+        "AG/slow/MA_TIAN_YI",
+        "AAA/unruputer/YAN_FU_TANG",
+        "ILO/LV_JIAN_HUA-0/before",
+        "ILO/GONG_HAI_ZENG-1/after"
+      ],
+      "z_mse": 0.8393807411193848,
+      "direction_loss": 0.414750337600708,
+      "base_gradient_norm": 0.29158204793930054,
+      "direction_gradient_norm": 0.3609256148338318,
+      "phase_probe": {}
+    },
+    {
+      "batch": 15,
+      "unit_ids": [
+        "AG/slow/ZANG_YU_SHU",
+        "ILO/GAO_SHU_CAI-0/after",
+        "ILO/GENG_CHUN_LAI-1/before",
+        "AG/slow/ZHAO_XIU_XUAN"
+      ],
+      "z_mse": 0.815182089805603,
+      "direction_loss": 0.4509185254573822,
+      "base_gradient_norm": 0.2858896553516388,
+      "direction_gradient_norm": 0.37626412510871887,
+      "phase_probe": {}
+    },
+    {
+      "batch": 16,
+      "unit_ids": [
+        "AG/slow/LIU_FA_CHUN",
+        "AG/fast/LI_ZHI_LIN",
+        "AG/fast/LI_SHI_QIANG",
+        "AAA/ruputer/WANG_KUI_WU"
+      ],
+      "z_mse": 1.0383710861206055,
+      "direction_loss": 0.45956453680992126,
+      "base_gradient_norm": 0.4034896492958069,
+      "direction_gradient_norm": 0.48198792338371277,
+      "phase_probe": {}
+    },
+    {
+      "batch": 17,
+      "unit_ids": [
+        "ILO/WENG_ZHAO_GUANG-0/before",
+        "AG/slow/LIU_ZONG_YANG",
+        "AG/fast/LIU_YI_BING",
+        "ILO/XUE_YOU_TANG-0/before"
+      ],
+      "z_mse": 0.9853506684303284,
+      "direction_loss": 0.4105715751647949,
+      "base_gradient_norm": 0.3545571565628052,
+      "direction_gradient_norm": 0.4039945900440216,
+      "phase_probe": {}
+    },
+    {
+      "batch": 18,
+      "unit_ids": [
+        "AG/slow/WU_FENG_YAN",
+        "AG/fast/LIU_FENG_MING",
+        "AAA/ruputer/ZHOU_KE_XUN",
+        "ILO/ZHANG_HE_PING-0/before"
+      ],
+      "z_mse": 0.9841296672821045,
+      "direction_loss": 0.5210781097412109,
+      "base_gradient_norm": 0.24989016354084015,
+      "direction_gradient_norm": 0.2139560878276825,
+      "phase_probe": {}
+    },
+    {
+      "batch": 19,
+      "unit_ids": [
+        "AAA/unruputer/CHEN_SHU_LIN",
+        "ILO/LIN_CHUN_YANG-1/before",
+        "ILO/DONG_JIA_JU-1/before",
+        "AG/slow/LI_BING_YI"
+      ],
+      "z_mse": 1.035893201828003,
+      "direction_loss": 0.573273777961731,
+      "base_gradient_norm": 0.2796296775341034,
+      "direction_gradient_norm": 0.2934381067752838,
+      "phase_probe": {}
+    },
+    {
+      "batch": 20,
+      "unit_ids": [
+        "ILO/LIU_CHUN_YANG-1/before",
+        "AAA/unruputer/HAN_JIAN_FU",
+        "ILO/YANG_YU_QING-1/after",
+        "AAA/unruputer/SHEN_FANG_JIN"
+      ],
+      "z_mse": 0.6853369474411011,
+      "direction_loss": 0.5027772188186646,
+      "base_gradient_norm": 0.2009848803281784,
+      "direction_gradient_norm": 0.22453713417053223,
+      "phase_probe": {}
+    },
+    {
+      "batch": 21,
+      "unit_ids": [
+        "AG/slow/ZHANG_JING_SHUN",
+        "AAA/unruputer/ZHOU_XI_SHENG",
+        "AG/slow/CHEN_JING_RU",
+        "ILO/ZHANG_YAN_SHAN-0/after"
+      ],
+      "z_mse": 0.7563859224319458,
+      "direction_loss": 0.4904497265815735,
+      "base_gradient_norm": 0.20474834740161896,
+      "direction_gradient_norm": 0.2861984670162201,
+      "phase_probe": {}
+    },
+    {
+      "batch": 22,
+      "unit_ids": [
+        "ILO/GENG_CHUN_LAI-1/after",
+        "ILO/ZHANG_JIAN_JUN-1/before",
+        "ILO/SUN_YU_SHENG-0/after",
+        "ILO/ZHAO_CHANG_SHAN-0/after"
+      ],
+      "z_mse": 0.5532651543617249,
+      "direction_loss": 0.41727903485298157,
+      "base_gradient_norm": 0.27625951170921326,
+      "direction_gradient_norm": 0.3884618580341339,
+      "phase_probe": {}
+    },
+    {
+      "batch": 23,
+      "unit_ids": [
+        "ILO/LU_FU_SHAN-0/before",
+        "ILO/ZHANG_YONG_SHENG-0/before",
+        "ILO/ZHANG_HE_PING-0/after",
+        "ILO/BAO_EN_YUN-0/before"
+      ],
+      "z_mse": 0.6841437816619873,
+      "direction_loss": 0.40244442224502563,
+      "base_gradient_norm": 0.22517675161361694,
+      "direction_gradient_norm": 0.3335559666156769,
+      "phase_probe": {}
+    },
+    {
+      "batch": 24,
+      "unit_ids": [
+        "AAA/ruputer/MENG_GUANG_QIN",
+        "AG/slow/WANG_YONG_LI",
+        "AAA/unruputer/LIU_CHENG_ZHANG",
+        "AG/slow/ZHANG_QUAN_YOU"
+      ],
+      "z_mse": 1.0207151174545288,
+      "direction_loss": 0.5801786780357361,
+      "base_gradient_norm": 0.255230575799942,
+      "direction_gradient_norm": 0.20224474370479584,
+      "phase_probe": {}
+    },
+    {
+      "batch": 25,
+      "unit_ids": [
+        "AG/slow/MA_YU",
+        "AG/slow/WANG_YAN_LING",
+        "ILO/LI_YU_GANG-0/after",
+        "AG/slow/GUAN_TONG_XIANG"
+      ],
+      "z_mse": 1.0321028232574463,
+      "direction_loss": 0.5136829614639282,
+      "base_gradient_norm": 0.17878791689872742,
+      "direction_gradient_norm": 0.246824711561203,
+      "phase_probe": {}
+    },
+    {
+      "batch": 26,
+      "unit_ids": [
+        "AG/slow/ZHANG_HUAN_LI",
+        "AG/slow/SUN_ZONG_GE",
+        "ILO/SUN_YU_SHENG-0/before",
+        "ILO/YANG_WANG_QI-1/after"
+      ],
+      "z_mse": 0.9928821921348572,
+      "direction_loss": 0.4609043598175049,
+      "base_gradient_norm": 0.209914430975914,
+      "direction_gradient_norm": 0.28405389189720154,
+      "phase_probe": {}
+    },
+    {
+      "batch": 27,
+      "unit_ids": [
+        "AAA/unruputer/LIU_JIE",
+        "ILO/LI_YOU_ZHI-0/after",
+        "AAA/ruputer/DING_JUN_FENG",
+        "AAA/unruputer/GUO_BAO_CHUN"
+      ],
+      "z_mse": 0.7861101031303406,
+      "direction_loss": 0.5600946545600891,
+      "base_gradient_norm": 0.3469986021518707,
+      "direction_gradient_norm": 0.27299726009368896,
+      "phase_probe": {}
+    },
+    {
+      "batch": 28,
+      "unit_ids": [
+        "AAA/ruputer/ZHANG_MAO_JIN",
+        "ILO/LI_FA_XIANG-1/after",
+        "AG/fast/WANG_DAO_CHUN",
+        "ILO/GUO_YU_SHU-0/after"
+      ],
+      "z_mse": 0.9709153175354004,
+      "direction_loss": 0.5017516016960144,
+      "base_gradient_norm": 0.1929914653301239,
+      "direction_gradient_norm": 0.2589641809463501,
+      "phase_probe": {}
+    },
+    {
+      "batch": 29,
+      "unit_ids": [
+        "AAA/unruputer/QIAO_XIU_YUN",
+        "AG/slow/WEI_BAO_XING",
+        "ILO/WANG_SHU_SHENG-0/before",
+        "ILO/WU_JUN-0/after"
+      ],
+      "z_mse": 0.7554486393928528,
+      "direction_loss": 0.47833555936813354,
+      "base_gradient_norm": 0.25381067395210266,
+      "direction_gradient_norm": 0.3685922622680664,
+      "phase_probe": {}
+    },
+    {
+      "batch": 30,
+      "unit_ids": [
+        "ILO/PAN_YIN_GEN-1/after",
+        "AG/slow/LU_ZHEN_QING",
+        "ILO/LI_SHENG_WEN-0/after",
+        "ILO/SUN_DE_QI-1/after"
+      ],
+      "z_mse": 0.8285159468650818,
+      "direction_loss": 0.41454750299453735,
+      "base_gradient_norm": 0.2633991837501526,
+      "direction_gradient_norm": 0.30688032507896423,
+      "phase_probe": {}
+    },
+    {
+      "batch": 31,
+      "unit_ids": [
+        "AG/slow/WANG_GUI",
+        "ILO/GUO_QING_SHAN-0/after",
+        "AAA/ruputer/WANG_AN",
+        "AG/slow/YANG_YOU_SHENG"
+      ],
+      "z_mse": 0.7071572542190552,
+      "direction_loss": 0.5295818448066711,
+      "base_gradient_norm": 0.24646346271038055,
+      "direction_gradient_norm": 0.24566589295864105,
+      "phase_probe": {}
+    }
+  ]
+}

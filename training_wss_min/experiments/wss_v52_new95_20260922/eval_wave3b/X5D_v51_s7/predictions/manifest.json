@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "target": "wss",
+  "checkpoint": "best",
+  "evaluation_split_path": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/splits/split_new95_wave3b_eval_only_20260922.json",
+  "partitions": {
+    "test": [
+      {
+        "unit_id": "AG/fast/PENG_JI_MING",
+        "file": "test/AG/fast/PENG_JI_MING/predictions.npz",
+        "n_points": 14713,
+        "sha256": "a6983e5a20d06bea8585deae5d03df2d0d912e7984087726cc520805dc087d90",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z"
+      },
+      {
+        "unit_id": "ILO/AN_GUANG_JIE-0/after",
+        "file": "test/ILO/AN_GUANG_JIE-0/after/predictions.npz",
+        "n_points": 70636,
+        "sha256": "3cd82775c7b40e66a29f239cbbf00d6f54c6d9f1c9b924139fc3a6a00e3129f6",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z"
+      }
+    ]
+  },
+  "checkpoint_sha256": "760a50e3c4b7396b08007737ba2d1d13dd926cbf2d43785dd93f6e987273a740",
+  "config_sha256": "c44c3ac51535cfb42e0883e88b7ed114674d93e655330a05ba6971502e110d3c",
+  "wss_stats_sha256": "5caaaedeadff36c19c43a67bf35d2e78b840278c928037ffebc1ece105e27f65"
+}

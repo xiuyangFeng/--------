@@ -1,0 +1,646 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_cycle_stage3_20260921",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5D_v51_s1234 (deployed peak-frame, same seed)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json",
+    "X5D_v51_s7 (deployed peak-frame, same seed)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s7/eval/ckpt_best/metrics.json",
+    "X5D_v51_s2025 (deployed peak-frame, same seed)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s2025/eval/ckpt_best/metrics.json"
+  },
+  "cycle_view": {
+    "root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1",
+    "manifest_sha256": "7c22c1b48d2304f4d2b3b63e738b40c660c1e31c73d8da2fed4b309f8838f2c7",
+    "n_cases": 170,
+    "definition": "TAWSS=(1/80)sum_k|tau_k| over frames 0..79 (steps 1120..1278; frame 80 = frame 0 + T); OSI=0.5*(1-|sum_k tau_k|/sum_k|tau_k|); RRT=1/((1-2*OSI)*max(TAWSS,0.05Pa)); rev_frac=(1/80)sum_k[tau_k.tau_peak<0]"
+  },
+  "stage1_gates": {
+    "G1.1": {
+      "delta_norm_vs_base": [
+        -0.002463302168111081,
+        0.00887930815644089,
+        0.00578322920420804
+      ],
+      "mean": 0.0040664117308459495,
+      "pass": true
+    },
+    "G1.2": {
+      "delta_pa_vs_best_baseline": [
+        0.011459693238909496,
+        0.025252528326177193,
+        0.023175045743099143
+      ],
+      "mean": 0.019962422436061944,
+      "pass": false,
+      "low_tawss_iou_delta": [
+        0.05803029565209439,
+        0.09954268592371385,
+        0.12598801482374122
+      ],
+      "low_iou_not_worse": true
+    },
+    "O1.G2.1": true,
+    "O1.G2.2": {
+      "delta_iou_0p1": [
+        0.02189272260702435,
+        0.028365914312457385,
+        0.021410667874307676
+      ],
+      "pass": false
+    },
+    "O1.G2.3": {
+      "frac_err_med": [
+        0.07064069292289893,
+        0.05502166632984312,
+        0.05386929431341694
+      ],
+      "pass": false
+    },
+    "O2.G2.1": true,
+    "O2.G2.2": {
+      "delta_iou_0p1": [
+        0.014631925486381148,
+        0.023281866150258623,
+        0.023004498224938885
+      ],
+      "pass": false
+    },
+    "O2.G2.3": {
+      "frac_err_med": [
+        0.0322826725870648,
+        0.025188221638957925,
+        0.031050299192633496
+      ],
+      "pass": true
+    },
+    "G3.A1xO1": {
+      "iou": [
+        0.5186185435374447,
+        0.5071728322161312,
+        0.5276813156897945
+      ],
+      "baseline": [
+        0.4440060905993435,
+        0.3958910250759797,
+        0.4010768221230217
+      ],
+      "pass": true
+    },
+    "G3.A1xO2": {
+      "iou": [
+        0.5135420815293771,
+        0.5050439121648423,
+        0.5295925959745266
+      ],
+      "baseline": [
+        0.4440060905993435,
+        0.3958910250759797,
+        0.4010768221230217
+      ],
+      "pass": true
+    }
+  },
+  "test34_free_baselines": {
+    "TAWSS_null": {
+      "r2_cb": 0.7545158218315211,
+      "r2_fit_cb": 0.7603039288198802,
+      "slope_cb": 0.7032546648850981,
+      "mae_cb": 0.41390874962980134,
+      "r2_casemean": 0.7437088255753401,
+      "r2_casemed": 0.7615008534960328,
+      "r2_casep10": 0.6054618858136176,
+      "r2_negative_cases": 0,
+      "spearman_casemean": 0.8658076856043948,
+      "n_cases": 34,
+      "log_r2_cb": 0.7525888489326731,
+      "log_r2_fit_cb": 0.7928294287917731,
+      "log_slope_cb": 0.9576859231140138,
+      "log_r2_casemean": 0.6591527586926729,
+      "threshold_masks": {
+        "below_0.4": {
+          "iou": 0.40845335108363406,
+          "precision": 0.5121105625216446,
+          "recall": 0.6328124624791023,
+          "true_frac": 0.2160462473775009,
+          "pred_frac": 0.24443161448396178,
+          "frac_abs_err": 0.052345193730679834,
+          "frac_abs_err_casemed": 0.041045895009016856
+        }
+      }
+    },
+    "TAWSS_ratio": {
+      "r2_cb": 0.7616651549881712,
+      "r2_fit_cb": 0.7670976205275208,
+      "slope_cb": 0.8315876254048763,
+      "mae_cb": 0.4415618967255818,
+      "r2_casemean": 0.7058339308262541,
+      "r2_casemed": 0.6959344398001768,
+      "r2_casep10": 0.5905981304347654,
+      "r2_negative_cases": 0,
+      "spearman_casemean": 0.8658076856043948,
+      "n_cases": 34,
+      "log_r2_cb": 0.6528674890217374,
+      "log_r2_fit_cb": 0.7874852086293621,
+      "log_slope_cb": 1.0825665797009028,
+      "log_r2_casemean": 0.5251993083671085,
+      "threshold_masks": {
+        "below_0.4": {
+          "iou": 0.4657862730699,
+          "precision": 0.5179925040348505,
+          "recall": 0.7810856049188013,
+          "true_frac": 0.2160462473775009,
+          "pred_frac": 0.29511124152126517,
+          "frac_abs_err": 0.08053428123925996,
+          "frac_abs_err_casemed": 0.08207814249612527
+        }
+      },
+      "ratio_c": 0.31714282315134246,
+      "ratio_meta": {
+        "per_case_median_ratio_med": 0.31714282315134246,
+        "p10": 0.29675214516981674,
+        "p90": 0.36490292163606375
+      }
+    },
+    "OSI_null": {
+      "r2_cb": 0.3833241647104272,
+      "r2_fit_cb": 0.38424218313357195,
+      "slope_cb": 0.37001152718795943,
+      "mae_cb": 0.07143236868071873,
+      "r2_casemean": 0.3529747282376548,
+      "r2_casemed": 0.39457048409279283,
+      "r2_casep10": 0.19610143907503771,
+      "r2_negative_cases": 1,
+      "spearman_casemean": 0.6540503775178579,
+      "n_cases": 34,
+      "threshold_masks": {
+        "above_0.1": {
+          "iou": 0.6419928041088514,
+          "precision": 0.717106772252099,
+          "recall": 0.8682885029106204,
+          "true_frac": 0.4779288790947484,
+          "pred_frac": 0.5914682590891395,
+          "frac_abs_err": 0.11974707000432024,
+          "frac_abs_err_casemed": 0.08967144222444301
+        },
+        "above_0.3": {
+          "iou": 0.0,
+          "precision": NaN,
+          "recall": 0.0,
+          "true_frac": 0.12087843502195449,
+          "pred_frac": 0.0,
+          "frac_abs_err": 0.12087843502195449,
+          "frac_abs_err_casemed": 0.11587118978120217
+        }
+      },
+      "isotonic": {
+        "n_fit_points": 600000,
+        "increasing": false,
+        "n_train_cases": 136
+      }
+    },
+    "stagnation_null_null": {
+      "iou": 0.3655924466359948,
+      "true_frac": 0.18844682356192655,
+      "pred_frac": 0.24443161448396178,
+      "frac_abs_err": 0.06674711567505429,
+      "iou_casemed": 0.4070126863110061,
+      "n_cases": 34
+    },
+    "stagnation_ratio_null": {
+      "iou": 0.4180586347581833,
+      "true_frac": 0.18844682356192655,
+      "pred_frac": 0.29511124152126517,
+      "frac_abs_err": 0.10666441795933865,
+      "iou_casemed": 0.4446893379141676,
+      "n_cases": 34
+    },
+    "n_cases": 34,
+    "tag": "test34 (five-seed ensemble)"
+  },
+  "expected_training_runs": 9,
+  "expected_evaluations": 18,
+  "arms": [
+    {
+      "id": "A1_s1234",
+      "title": "deployed X5D_v51 seed-1234 recipe (train136) with target=tawss from wss_min_cycle_v1 (frames 0-79)",
+      "config": "A1_s1234.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "target_tawss",
+        "stats_tawss",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 1234,
+      "parent": "X5D_v51_s1234 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "tawss"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1/stats/cycle_stats_tawss_train136.json"
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": []
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "A1_s7",
+      "title": "deployed X5D_v51 seed-7 recipe (train136) with target=tawss from wss_min_cycle_v1 (frames 0-79)",
+      "config": "A1_s7.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "target_tawss",
+        "stats_tawss",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 7,
+      "parent": "X5D_v51_s7 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "tawss"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1/stats/cycle_stats_tawss_train136.json"
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": []
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "A1_s2025",
+      "title": "deployed X5D_v51 seed-2025 recipe (train136) with target=tawss from wss_min_cycle_v1 (frames 0-79)",
+      "config": "A1_s2025.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "target_tawss",
+        "stats_tawss",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 2025,
+      "parent": "X5D_v51_s2025 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "tawss"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1/stats/cycle_stats_tawss_train136.json"
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": []
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "O1_s1234",
+      "title": "deployed X5D_v51 seed-1234 recipe (train136) with target=osi from wss_min_cycle_v1 (frames 0-79)",
+      "config": "O1_s1234.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "target_osi",
+        "stats_osi_linear",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 1234,
+      "parent": "X5D_v51_s1234 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "osi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1/stats/cycle_stats_osi_linear_train136.json"
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": []
+        }
+      }
+    },
+    {
+      "id": "O1_s7",
+      "title": "deployed X5D_v51 seed-7 recipe (train136) with target=osi from wss_min_cycle_v1 (frames 0-79)",
+      "config": "O1_s7.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "target_osi",
+        "stats_osi_linear",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 7,
+      "parent": "X5D_v51_s7 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "osi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1/stats/cycle_stats_osi_linear_train136.json"
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": []
+        }
+      }
+    },
+    {
+      "id": "O1_s2025",
+      "title": "deployed X5D_v51 seed-2025 recipe (train136) with target=osi from wss_min_cycle_v1 (frames 0-79)",
+      "config": "O1_s2025.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "target_osi",
+        "stats_osi_linear",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 2025,
+      "parent": "X5D_v51_s2025 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "osi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1/stats/cycle_stats_osi_linear_train136.json"
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": []
+        }
+      }
+    },
+    {
+      "id": "O2_s1234",
+      "title": "deployed X5D_v51 seed-1234 recipe (train136) with target=osi from wss_min_cycle_v1 (frames 0-79)",
+      "config": "O2_s1234.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "target_osi",
+        "stats_osi_logit",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 1234,
+      "parent": "X5D_v51_s1234 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "osi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1/stats/cycle_stats_osi_logit_train136.json"
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": []
+        }
+      }
+    },
+    {
+      "id": "O2_s7",
+      "title": "deployed X5D_v51 seed-7 recipe (train136) with target=osi from wss_min_cycle_v1 (frames 0-79)",
+      "config": "O2_s7.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "target_osi",
+        "stats_osi_logit",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 7,
+      "parent": "X5D_v51_s7 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "osi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1/stats/cycle_stats_osi_logit_train136.json"
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": []
+        }
+      }
+    },
+    {
+      "id": "O2_s2025",
+      "title": "deployed X5D_v51 seed-2025 recipe (train136) with target=osi from wss_min_cycle_v1 (frames 0-79)",
+      "config": "O2_s2025.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "target_osi",
+        "stats_osi_logit",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 2025,
+      "parent": "X5D_v51_s2025 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "osi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1/stats/cycle_stats_osi_logit_train136.json"
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": []
+        }
+      }
+    }
+  ],
+  "reading_rule": "train136 → test34 read once (locked); per-seed rows plus the three-seed Pa-mean ensemble per target, compared with the same-seed deployed X5D_v51 peak model (normalized R2_cb) and the C1 test34 free baselines (TAWSS-null / ratio / OSI-null); no selection on test34; stage-1 gate verdicts are carried unchanged"
+}

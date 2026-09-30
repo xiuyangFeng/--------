@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from scipy.spatial import cKDTree
 
 from wss_pinn.data.raw_io import read_interior, read_wall, step_file
 from wss_pinn.utils import ROOT, sha256_file, utc_now
@@ -40,10 +41,13 @@ from wss_pinn.v4.fluent_topology import (
     read_fluent_mesh,
 )
 from wss_pinn.v4.geometry_v2 import OUTLET_ORDER
+from wss_pinn.v4 import new_case_sources as ncs
 
 SOURCE_MANIFEST = ROOT / "data_wss_pinn/volume_uvwp_bc_rcr_v4_train138_test35/manifest.json"
 BOUNDARY_ROOT = ROOT / "data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/cases"
 CENTERLINE_ROOT = ROOT / "outputs/centerline_v2_full_173_20260828/cases"
+CENTERLINE_ROOTS: list[Path] = [CENTERLINE_ROOT]  # extra roots (e.g. mesh-wall runs) appended via --centerline-root
+EXTRA_CASES: list[str] = []
 PREP_ROOT = ROOT / "outputs/wss_pinn/volume_uvwp_bc_rcr_v4_anatomy_prep_20260903"
 AUDIT_ROOT = PREP_ROOT / "audits/topology"
 TRANSIENT_POOL_SIZE = 15_000
@@ -55,18 +59,24 @@ REFERENCE_STEP = 1120
 
 
 def _case_ids() -> list[dict[str, Any]]:
-    payload = json.loads(SOURCE_MANIFEST.read_text(encoding="utf-8"))
-    return [{"canonical_id": row["canonical_id"], "role": row["role"]} for row in payload["cases"]]
+    # legacy source manifest when it exists; else the frozen split (+ --extra-cases), see new_case_sources
+    return ncs.case_entries(extra=EXTRA_CASES)
 
 
 def _outlet_semantics(canonical_id: str) -> dict[int, str]:
-    manifest = json.loads((BOUNDARY_ROOT / canonical_id / "manifest.json").read_text(encoding="utf-8"))
-    mapping = {int(row["mesh_zone_id"]): label for label, row in manifest["outlets"].items()}
-    return mapping
+    return ncs.outlet_semantics(canonical_id)
+
+
+def _selection_path(canonical_id: str) -> Path:
+    for root in CENTERLINE_ROOTS:
+        candidate = Path(root) / canonical_id / "surface_selection.json"
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError(f"{canonical_id}: surface_selection.json not found under {[str(r) for r in CENTERLINE_ROOTS]}")
 
 
 def _stl_unit_check(canonical_id: str, wall_coords_m: np.ndarray) -> dict[str, Any]:
-    selection = json.loads((CENTERLINE_ROOT / canonical_id / "surface_selection.json").read_text(encoding="utf-8"))
+    selection = json.loads(_selection_path(canonical_id).read_text(encoding="utf-8"))
     import vtk  # noqa: WPS433  (only needed for the STL bbox check)
     from vtk.util.numpy_support import vtk_to_numpy
 
@@ -102,8 +112,7 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
         return json.loads(output.read_text(encoding="utf-8"))
     started = time.time()
     raw_dir = ROOT / "data_new" / canonical_id
-    boundary_manifest = json.loads((BOUNDARY_ROOT / canonical_id / "manifest.json").read_text(encoding="utf-8"))
-    case_path = Path(boundary_manifest["provenance"]["fluent_case"]["path"])
+    case_path = ncs.fluent_case(canonical_id)
     if not case_path.is_file():
         raise FileNotFoundError(f"{canonical_id}: frozen Fluent case is missing: {case_path}")
     other_case_files = sorted(str(p) for p in raw_dir.glob("*.cas.gz") if p.resolve() != case_path.resolve())
@@ -112,8 +121,8 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
     centroids, volumes = mesh.cell_centroids_and_volumes()
     cell_size = np.cbrt(volumes[1:])
     cell_zone = mesh.cell_zone_array()
-    anatomy_zone_id = mesh.fluid_zone_by_name()["blood"]
     topology = anatomy_topology(mesh)
+    anatomy_zone_id = int(topology["anatomy_zone_id"])  # 'blood' when it is the hub zone (all library cases), else the unique hub (2026-09-22)
 
     frame_path = step_file(raw_dir, REFERENCE_STEP, "ascii_in")
     frame = read_interior(frame_path)
@@ -216,9 +225,14 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
         # match against the anatomy wall nodes only, so coincident twin nodes
         # that are not on the wall can never be picked
         wall_node_ids = np.asarray(sorted(anatomy_nodes), dtype=np.int64)
+        # 2026-09-22: some exports list every mesh node (interior rows carry WSS 0); rows that are not
+        # anatomy wall nodes are counted and excluded before identity matching (scope recorded below)
+        _dist, _ = cKDTree(mesh.nodes_m[wall_node_ids]).query(export_unique, k=1)
+        export_inside = _dist <= NODE_TOLERANCE_M
+        export_rows_outside = int(np.sum(~export_inside))
         wall_index, node_diag = match_points(
             mesh.nodes_m[wall_node_ids],
-            export_unique,
+            export_unique[export_inside],
             label=f"{canonical_id}:wall-nodes",
             tolerance_m=NODE_TOLERANCE_M,
         )
@@ -231,9 +245,20 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
             tolerance_m=FACE_CENTRE_TOLERANCE_M,
         )
         export_nodes = set()
+        export_rows_outside = 0
+    wall_export_scope = (
+        "anatomy_wall" if export_rows_outside == 0
+        else "whole_domain" if export_rows_outside >= 0.5 * len(export_unique)
+        else "anatomy_wall_plus_extra_rows"
+    )
     main_wall_zone_ids = {
         zone_id for zone_id, row in topology["wall_by_zone"].items() if row["name"] == "wall"
     }
+    if not main_wall_zone_ids:  # auto-named meshes (2026-09-22, WANG_CAI-0/before): the wall zone with the most anatomy-adjacent faces
+        anatomy_name = mesh.zone_name(anatomy_zone_id)
+        adjacency = {zone_id: int(row["adjacent_cell_zones"].get(anatomy_name, 0)) for zone_id, row in topology["wall_by_zone"].items()}
+        if adjacency and max(adjacency.values()) > 0:
+            main_wall_zone_ids = {max(adjacency, key=adjacency.get)}
     side_zone_nodes = set(
         wall["face_nodes"][
             np.repeat(~np.isin(wall["face_zone_ids"], list(main_wall_zone_ids)), np.diff(wall["face_offsets"]))
@@ -243,10 +268,15 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
         interface.extension_zone_name: int(len(set(interface.node_ids.tolist()) & anatomy_nodes))
         for interface in topology["interfaces"]
     }
-    unit = _stl_unit_check(canonical_id, wall_export["coords"])
+    # whole-domain exports also contain extension-segment nodes: compare the STL against the anatomy-wall rows only
+    _unit_rows = export_inside[export_inverse] if wall_export_kind == "node" else np.ones(len(wall_export["coords"]), dtype=bool)
+    unit = _stl_unit_check(canonical_id, np.asarray(wall_export["coords"])[_unit_rows])
 
     gates = {
-        "six_fluid_zones_blood_blood1_5": sorted(summary["cell_zones"]) == ["blood", "blood1", "blood2", "blood3", "blood4", "blood5"],
+        "six_fluid_zones_blood_blood1_5": (
+            sorted(summary["cell_zones"]) == ["blood", "blood1", "blood2", "blood3", "blood4", "blood5"]
+            or (len(summary["cell_zones"]) == 6 and topology["anatomy_zone_resolution"]["method"] == "hub_topology")  # same one-hub-five-extensions structure, zones not named by the convention (2026-09-22)
+        ),
         "export_rows_equal_case_entities": (
             int(len(frame["coords"])) == int(mesh.cell_count)
             if volume_export_kind == "cell"
@@ -259,7 +289,8 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
         "each_extension_closes_on_one_flow_bc": True,
         "anatomy_has_no_direct_flow_bc": len(topology["anatomy_direct_flow_bc"]) == 0,
         "wall_export_covers_anatomy_wall": (
-            (export_nodes <= anatomy_nodes and (anatomy_nodes - export_nodes) <= side_zone_nodes)
+            (export_nodes <= anatomy_nodes and (anatomy_nodes - export_nodes) <= side_zone_nodes
+             and (export_rows_outside == 0 or wall_export_scope == "whole_domain"))
             if wall_export_kind == "node"
             else int(len(export_unique)) == int(len(wall["adjacent_cells"]))
         ),
@@ -275,6 +306,7 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
         "canonical_id": canonical_id,
         "role": entry["role"],
         "created_at": utc_now(),
+        "anatomy_zone_resolution": topology["anatomy_zone_resolution"],
         "elapsed_s": round(time.time() - started, 1),
         "fluent_case": {"path": str(case_path), "sha256": sha256_file(case_path), "size_bytes": case_path.stat().st_size, "other_case_files_in_raw_dir": other_case_files},
         "reference_frame": {"step": REFERENCE_STEP, "path": str(frame_path), "rows": int(len(frame["coords"])), "export_kind": volume_export_kind, "id_column": frame["id_column"], "blood_and_extension_shared_rows": interface_rows},
@@ -305,6 +337,8 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
                 for zone, count in zip(*np.unique(wall["face_zone_ids"], return_counts=True))
             },
             "export_kind": wall_export_kind,
+            "export_scope": wall_export_scope,
+            "export_rows_outside_anatomy_wall": export_rows_outside,
             "export_rows": int(len(wall_export["coords"])),
             "duplicate_export_rows": duplicate_export_rows,
             "export_minus_anatomy": int(len(export_nodes - anatomy_nodes)) if wall_export_kind == "node" else None,
@@ -346,7 +380,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--cases", nargs="*", default=None)
+    parser.add_argument("--extra-cases", nargs="*", default=None, help="new canonical ids to append to the case list (no legacy manifest needed)")
+    parser.add_argument("--cases-file", type=Path, default=None, help="text file of extra canonical ids, one per line")
+    parser.add_argument("--centerline-root", type=Path, action="append", default=None, help="additional Centerline-V2-layout root(s) searched for surface_selection.json")
     args = parser.parse_args()
+    EXTRA_CASES.extend(list(args.extra_cases or []) + ncs.read_case_list(args.cases_file))
+    for root in args.centerline_root or []:
+        CENTERLINE_ROOTS.append(root / "cases" if (root / "cases").is_dir() else root)
     entries = _case_ids()
     if args.cases:
         wanted = set(args.cases)

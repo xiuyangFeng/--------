@@ -1,0 +1,319 @@
+{
+  "protocol": {
+    "data": "v5.1",
+    "target": "peak frame 1162 WSS magnitude in Pa",
+    "inputs": "Saved true_pa/pred_pa/row_index only; no inference or training",
+    "spatial_weighting": "legacy_vertex: equal weight per wall point within each case",
+    "primary": "Pearson r calculated separately per case, arithmetic mean and sample SD (ddof=1)",
+    "ensemble": "Five fixed seeds, arithmetic average of pred_pa at identical row_index",
+    "comparison": "WSSNet reports r=0.92 +/- 0.05 on 6 CFD cases x 72 frames; ours is peak only",
+    "limitations": "test34 development-exposed; cv3 used in method screening; different anatomy/input/phase",
+    "numpy_version": "1.17.4"
+  },
+  "source_runs": [
+    {
+      "run": "training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/split_V5_train136_test34.json",
+      "selection_rule": "train_loss",
+      "checkpoint": "ckpt_best",
+      "partition": "test",
+      "n_cases": 34,
+      "verified_existing_r2": true
+    },
+    {
+      "run": "training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s7",
+      "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/split_V5_train136_test34.json",
+      "selection_rule": "train_loss",
+      "checkpoint": "ckpt_best",
+      "partition": "test",
+      "n_cases": 34,
+      "verified_existing_r2": true
+    },
+    {
+      "run": "training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s2025",
+      "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/split_V5_train136_test34.json",
+      "selection_rule": "train_loss",
+      "checkpoint": "ckpt_best",
+      "partition": "test",
+      "n_cases": 34,
+      "verified_existing_r2": true
+    },
+    {
+      "run": "training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s11",
+      "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/split_V5_train136_test34.json",
+      "selection_rule": "train_loss",
+      "checkpoint": "ckpt_best",
+      "partition": "test",
+      "n_cases": 34,
+      "verified_existing_r2": true
+    },
+    {
+      "run": "training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s2026",
+      "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/split_V5_train136_test34.json",
+      "selection_rule": "train_loss",
+      "checkpoint": "ckpt_best",
+      "partition": "test",
+      "n_cases": 34,
+      "verified_existing_r2": true
+    },
+    {
+      "run": "training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold0.json",
+      "selection_rule": "train_loss",
+      "checkpoint": "ckpt_best",
+      "partition": "test",
+      "n_cases": 46,
+      "verified_existing_r2": true
+    },
+    {
+      "run": "training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold1.json",
+      "selection_rule": "train_loss",
+      "checkpoint": "ckpt_best",
+      "partition": "test",
+      "n_cases": 46,
+      "verified_existing_r2": true
+    },
+    {
+      "run": "training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234",
+      "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold2.json",
+      "selection_rule": "train_loss",
+      "checkpoint": "ckpt_best",
+      "partition": "test",
+      "n_cases": 44,
+      "verified_existing_r2": true
+    }
+  ],
+  "results": {
+    "X5D_v51_s1234": {
+      "n_cases": 34,
+      "n_points": 1231295,
+      "case_pearson_mean": 0.8811205479243625,
+      "case_pearson_sd": 0.04422675181433049,
+      "case_pearson_median": 0.8886366691268215,
+      "case_pearson_p10": 0.8225368827372304,
+      "case_pearson_min": 0.7807789639387643,
+      "casebalanced_field": {
+        "pearson_r": 0.8673504638592703,
+        "predictive_r2": 0.7461090296994921,
+        "mae_pa": 1.4721257471686948,
+        "fit_slope": 0.691744179704598,
+        "fit_intercept_pa": 1.2302430406426241
+      },
+      "pooled_field": {
+        "pearson_r": 0.850372545850734,
+        "predictive_r2": 0.7133547399757862,
+        "mae_pa": 1.607138570726017,
+        "fit_slope": 0.6482800540622385,
+        "fit_intercept_pa": 1.2666724298614014
+      }
+    },
+    "X5D_v51_s7": {
+      "n_cases": 34,
+      "n_points": 1231295,
+      "case_pearson_mean": 0.8811969211531734,
+      "case_pearson_sd": 0.04841209217309437,
+      "case_pearson_median": 0.8910876099180876,
+      "case_pearson_p10": 0.81773349827033,
+      "case_pearson_min": 0.7705296409398589,
+      "casebalanced_field": {
+        "pearson_r": 0.8732760895416252,
+        "predictive_r2": 0.7571042037280103,
+        "mae_pa": 1.4567738348814516,
+        "fit_slope": 0.7072589421518634,
+        "fit_intercept_pa": 1.136947847194544
+      },
+      "pooled_field": {
+        "pearson_r": 0.8533730288999183,
+        "predictive_r2": 0.7194673209253926,
+        "mae_pa": 1.6112554290029097,
+        "fit_slope": 0.6593018656484894,
+        "fit_intercept_pa": 1.196101432202997
+      }
+    },
+    "X5D_v51_s2025": {
+      "n_cases": 34,
+      "n_points": 1231295,
+      "case_pearson_mean": 0.8870510033856635,
+      "case_pearson_sd": 0.043626293782192384,
+      "case_pearson_median": 0.893789649697659,
+      "case_pearson_p10": 0.8332121946988337,
+      "case_pearson_min": 0.7845043325041307,
+      "casebalanced_field": {
+        "pearson_r": 0.8797216292132483,
+        "predictive_r2": 0.7657283591579669,
+        "mae_pa": 1.4227557345844153,
+        "fit_slope": 0.703487165283054,
+        "fit_intercept_pa": 1.1288312214878755
+      },
+      "pooled_field": {
+        "pearson_r": 0.8598582404790658,
+        "predictive_r2": 0.7303166382188737,
+        "mae_pa": 1.5684236549290043,
+        "fit_slope": 0.6673961751882199,
+        "fit_intercept_pa": 1.1774369425533684
+      }
+    },
+    "X5D_v51_s11": {
+      "n_cases": 34,
+      "n_points": 1231295,
+      "case_pearson_mean": 0.8854306157234048,
+      "case_pearson_sd": 0.045959676075870336,
+      "case_pearson_median": 0.8919591509672877,
+      "case_pearson_p10": 0.8226494939478638,
+      "case_pearson_min": 0.7715343715842703,
+      "casebalanced_field": {
+        "pearson_r": 0.8731351740850181,
+        "predictive_r2": 0.7510279521607568,
+        "mae_pa": 1.4483327499069263,
+        "fit_slope": 0.6780083228231907,
+        "fit_intercept_pa": 1.2331954640361764
+      },
+      "pooled_field": {
+        "pearson_r": 0.8564041546773373,
+        "predictive_r2": 0.7153432539899327,
+        "mae_pa": 1.5964100625358264,
+        "fit_slope": 0.628625451802753,
+        "fit_intercept_pa": 1.27095886060123
+      }
+    },
+    "X5D_v51_s2026": {
+      "n_cases": 34,
+      "n_points": 1231295,
+      "case_pearson_mean": 0.8808391597042808,
+      "case_pearson_sd": 0.045528293149561624,
+      "case_pearson_median": 0.8923951357801163,
+      "case_pearson_p10": 0.8204746723645632,
+      "case_pearson_min": 0.7782074022356414,
+      "casebalanced_field": {
+        "pearson_r": 0.8736343531993702,
+        "predictive_r2": 0.754161948047911,
+        "mae_pa": 1.459143673005417,
+        "fit_slope": 0.6898757875208427,
+        "fit_intercept_pa": 1.1735868756612087
+      },
+      "pooled_field": {
+        "pearson_r": 0.8553422876376955,
+        "predictive_r2": 0.7186464766807262,
+        "mae_pa": 1.5975735055082712,
+        "fit_slope": 0.6453367017119884,
+        "fit_intercept_pa": 1.2172410162276304
+      }
+    },
+    "X5D_v51_5seed_pa_mean": {
+      "n_cases": 34,
+      "n_points": 1231295,
+      "case_pearson_mean": 0.8974582988699362,
+      "case_pearson_sd": 0.04379921215827982,
+      "case_pearson_median": 0.9056118393301139,
+      "case_pearson_p10": 0.8344305795788769,
+      "case_pearson_min": 0.7907366761560284,
+      "casebalanced_field": {
+        "pearson_r": 0.8875162318081793,
+        "predictive_r2": 0.7748513641426353,
+        "mae_pa": 1.3571371694122236,
+        "fit_slope": 0.69407487949671,
+        "fit_intercept_pa": 1.1805608898044841
+      },
+      "pooled_field": {
+        "pearson_r": 0.8696316805242954,
+        "predictive_r2": 0.7388447412242429,
+        "mae_pa": 1.5104536647614,
+        "fit_slope": 0.649788049682738,
+        "fit_intercept_pa": 1.225682136289326
+      }
+    },
+    "X5D_v51_f0_s1234": {
+      "n_cases": 46,
+      "n_points": 1840727,
+      "case_pearson_mean": 0.8689215332997204,
+      "case_pearson_sd": 0.04491557052148176,
+      "case_pearson_median": 0.8665629406210014,
+      "case_pearson_p10": 0.8290297864870748,
+      "case_pearson_min": 0.7052748465731064,
+      "casebalanced_field": {
+        "pearson_r": 0.8615287329195371,
+        "predictive_r2": 0.7365829804532691,
+        "mae_pa": 1.4039219309216697,
+        "fit_slope": 0.6857106443369957,
+        "fit_intercept_pa": 1.1439041851366007
+      },
+      "pooled_field": {
+        "pearson_r": 0.8634920027492479,
+        "predictive_r2": 0.7339810651554515,
+        "mae_pa": 1.455102148681159,
+        "fit_slope": 0.6608505745081744,
+        "fit_intercept_pa": 1.1249376240518827
+      }
+    },
+    "X5D_v51_f1_s1234": {
+      "n_cases": 46,
+      "n_points": 1699672,
+      "case_pearson_mean": 0.8642937064422845,
+      "case_pearson_sd": 0.05238853091303984,
+      "case_pearson_median": 0.8822805581547177,
+      "case_pearson_p10": 0.7860533422294,
+      "case_pearson_min": 0.7288854346025928,
+      "casebalanced_field": {
+        "pearson_r": 0.8259479410989627,
+        "predictive_r2": 0.6701460377624848,
+        "mae_pa": 1.6796998890838077,
+        "fit_slope": 0.6079346789447827,
+        "fit_intercept_pa": 1.5507413775362182
+      },
+      "pooled_field": {
+        "pearson_r": 0.7941381615413342,
+        "predictive_r2": 0.6149275641568459,
+        "mae_pa": 1.6636570892322418,
+        "fit_slope": 0.5421234506738578,
+        "fit_intercept_pa": 1.633932861746715
+      }
+    },
+    "X5D_v51_f2_s1234": {
+      "n_cases": 44,
+      "n_points": 1860276,
+      "case_pearson_mean": 0.8661868945502683,
+      "case_pearson_sd": 0.04736939890483517,
+      "case_pearson_median": 0.8710733155558539,
+      "case_pearson_p10": 0.8222875039771075,
+      "case_pearson_min": 0.667624322623073,
+      "casebalanced_field": {
+        "pearson_r": 0.8565761033940835,
+        "predictive_r2": 0.7323029396897263,
+        "mae_pa": 1.4249394514555678,
+        "fit_slope": 0.7184964410002698,
+        "fit_intercept_pa": 1.0221647877914593
+      },
+      "pooled_field": {
+        "pearson_r": 0.8486048879787034,
+        "predictive_r2": 0.7188607277701398,
+        "mae_pa": 1.4101298006178418,
+        "fit_slope": 0.7066945467339277,
+        "fit_intercept_pa": 0.969298390157928
+      }
+    },
+    "X5D_v51_cv3_oof136": {
+      "n_cases": 136,
+      "n_points": 5400675,
+      "case_pearson_mean": 0.8664715028554708,
+      "case_pearson_sd": 0.04801792348014645,
+      "case_pearson_median": 0.8747999788892189,
+      "case_pearson_p10": 0.8105098683875698,
+      "case_pearson_min": 0.667624322623073,
+      "casebalanced_field": {
+        "pearson_r": 0.8459623976696624,
+        "predictive_r2": 0.7099926844666034,
+        "mae_pa": 1.5039995557668893,
+        "fit_slope": 0.6646953766968774,
+        "fit_intercept_pa": 1.2512674778801673
+      },
+      "pooled_field": {
+        "pearson_r": 0.8329464256874778,
+        "predictive_r2": 0.6859596236059811,
+        "mae_pa": 1.5052466237977882,
+        "fit_slope": 0.6302304545194295,
+        "fit_intercept_pa": 1.255943222849612
+      }
+    }
+  }
+}

@@ -1,0 +1,662 @@
+{
+ "schema_version": 1,
+ "canonical_id": "ILO/LI_BO_JUN-1/before",
+ "role": "new",
+ "created_at": "2026-09-22T02:32:34.409622+00:00",
+ "elapsed_s": 43.5,
+ "fluent_case": {
+  "path": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/LI_BO_JUN-1/before/LI_BO_JUN.cas.gz",
+  "sha256": "f92e84d2c8bed5099edc258f321bfdb4912d7cf016dcefc20ea24648f40fb42b",
+  "size_bytes": 81666987,
+  "other_case_files_in_raw_dir": []
+ },
+ "reference_frame": {
+  "step": 1120,
+  "path": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/LI_BO_JUN-1/before/ascii_in/LI_BO_JUN-1120",
+  "rows": 717494,
+  "export_kind": "cell",
+  "id_column": "cellnumber",
+  "blood_and_extension_shared_rows": 0
+ },
+ "mesh": {
+  "cells": 717494,
+  "nodes": 2037137,
+  "faces": 3511466,
+  "declared_faces": 3511466,
+  "cell_types": {
+   "hexahedron": 1556,
+   "polyhedron": 715938
+  },
+  "cell_zones": {
+   "blood1": {
+    "zone_id": 6163,
+    "first": 1,
+    "last": 76199,
+    "count": 76199
+   },
+   "blood": {
+    "zone_id": 6173,
+    "first": 76200,
+    "last": 623453,
+    "count": 547254
+   },
+   "blood2": {
+    "zone_id": 6955,
+    "first": 623454,
+    "last": 654367,
+    "count": 30914
+   },
+   "blood5": {
+    "zone_id": 6168,
+    "first": 654368,
+    "last": 691360,
+    "count": 36993
+   },
+   "blood3": {
+    "zone_id": 6958,
+    "first": 691361,
+    "last": 706355,
+    "count": 14995
+   },
+   "blood4": {
+    "zone_id": 6952,
+    "first": 706356,
+    "last": 717494,
+    "count": 11139
+   }
+  },
+  "face_zones": [
+   {
+    "zone_id": 16167,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "interior-7115",
+    "faces": 339524,
+    "attached": true
+   },
+   {
+    "zone_id": 16166,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "interior-7092",
+    "faces": 45453,
+    "attached": true
+   },
+   {
+    "zone_id": 16165,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "interior-7089",
+    "faces": 62099,
+    "attached": true
+   },
+   {
+    "zone_id": 16164,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "interior-7083",
+    "faces": 158405,
+    "attached": true
+   },
+   {
+    "zone_id": 16163,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "interior-7077",
+    "faces": 132090,
+    "attached": true
+   },
+   {
+    "zone_id": 16162,
+    "type_code": 3,
+    "type": "wall",
+    "declared_type": "wall",
+    "name": "wall-extending3",
+    "faces": 1300,
+    "attached": true
+   },
+   {
+    "zone_id": 16161,
+    "type_code": 3,
+    "type": "wall",
+    "declared_type": "wall",
+    "name": "wall-extending4",
+    "faces": 977,
+    "attached": true
+   },
+   {
+    "zone_id": 16160,
+    "type_code": 3,
+    "type": "wall",
+    "declared_type": "wall",
+    "name": "wall-extending2",
+    "faces": 2564,
+    "attached": true
+   },
+   {
+    "zone_id": 16159,
+    "type_code": 3,
+    "type": "wall",
+    "declared_type": "wall",
+    "name": "wall-extending5",
+    "faces": 3059,
+    "attached": true
+   },
+   {
+    "zone_id": 15823,
+    "type_code": 3,
+    "type": "wall",
+    "declared_type": "wall",
+    "name": "wall",
+    "faces": 42738,
+    "attached": true
+   },
+   {
+    "zone_id": 16157,
+    "type_code": 3,
+    "type": "wall",
+    "declared_type": "wall",
+    "name": "wall-extending1",
+    "faces": 5862,
+    "attached": true
+   },
+   {
+    "zone_id": 6061,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "inlet1",
+    "faces": 1415,
+    "attached": true
+   },
+   {
+    "zone_id": 16156,
+    "type_code": 5,
+    "type": "pressure-outlet",
+    "declared_type": "pressure-outlet",
+    "name": "outlet-leftwai",
+    "faces": 329,
+    "attached": true
+   },
+   {
+    "zone_id": 16148,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "outlet-leftwai1",
+    "faces": 443,
+    "attached": true
+   },
+   {
+    "zone_id": 16149,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "outlet-leftnei1",
+    "faces": 292,
+    "attached": true
+   },
+   {
+    "zone_id": 16155,
+    "type_code": 5,
+    "type": "pressure-outlet",
+    "declared_type": "pressure-outlet",
+    "name": "outlet-leftnei",
+    "faces": 229,
+    "attached": true
+   },
+   {
+    "zone_id": 16154,
+    "type_code": 5,
+    "type": "pressure-outlet",
+    "declared_type": "pressure-outlet",
+    "name": "outlet-rightnei",
+    "faces": 193,
+    "attached": true
+   },
+   {
+    "zone_id": 16147,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "outlet-rightnei1",
+    "faces": 233,
+    "attached": true
+   },
+   {
+    "zone_id": 16146,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "outlet-rightwai1",
+    "faces": 455,
+    "attached": true
+   },
+   {
+    "zone_id": 16153,
+    "type_code": 5,
+    "type": "pressure-outlet",
+    "declared_type": "pressure-outlet",
+    "name": "outlet-rightwai",
+    "faces": 316,
+    "attached": true
+   },
+   {
+    "zone_id": 6070,
+    "type_code": 10,
+    "type": "velocity-inlet",
+    "declared_type": "velocity-inlet",
+    "name": "inlet",
+    "faces": 933,
+    "attached": true
+   },
+   {
+    "zone_id": 16151,
+    "type_code": 2,
+    "type": "interior",
+    "declared_type": "interior",
+    "name": "interior-5809",
+    "faces": 2427438,
+    "attached": true
+   },
+   {
+    "zone_id": 7,
+    "type_code": 40,
+    "type": "unattached-geometry",
+    "declared_type": "?",
+    "name": "zone-7",
+    "faces": 1381,
+    "attached": false
+   },
+   {
+    "zone_id": 6,
+    "type_code": 40,
+    "type": "unattached-geometry",
+    "declared_type": "?",
+    "name": "zone-6",
+    "faces": 512,
+    "attached": false
+   },
+   {
+    "zone_id": 5,
+    "type_code": 40,
+    "type": "unattached-geometry",
+    "declared_type": "?",
+    "name": "zone-5",
+    "faces": 512,
+    "attached": false
+   },
+   {
+    "zone_id": 4,
+    "type_code": 40,
+    "type": "unattached-geometry",
+    "declared_type": "?",
+    "name": "zone-4",
+    "faces": 264940,
+    "attached": false
+   },
+   {
+    "zone_id": 3,
+    "type_code": 40,
+    "type": "unattached-geometry",
+    "declared_type": "?",
+    "name": "zone-3",
+    "faces": 16384,
+    "attached": false
+   },
+   {
+    "zone_id": 2,
+    "type_code": 40,
+    "type": "unattached-geometry",
+    "declared_type": "?",
+    "name": "zone-2",
+    "faces": 1390,
+    "attached": false
+   }
+  ],
+  "warnings": [],
+  "c0_sign": -1.0,
+  "total_volume_m3": 0.0002586124884708643,
+  "anatomy_volume_m3": 0.00019526490020840647
+ },
+ "cell_identity": {
+  "label": "ILO/LI_BO_JUN-1/before:cells",
+  "query_rows": 717494,
+  "reference_rows": 717494,
+  "max_match_distance_m": 4.616138377205566e-06,
+  "p99_match_distance_m": 2.1997812176453813e-07,
+  "max_match_over_tolerance": 0.1368574286746546,
+  "max_first_second_neighbour_ratio": 0.07421356465805849,
+  "coincident_duplicates_resolved": 0,
+  "mutual_nearest_resolved": 0,
+  "unique_reference_rows": 717494,
+  "bijective": true,
+  "within_tolerance": true,
+  "unambiguous": true
+ },
+ "export_zone_counts": {
+  "blood1": 76199,
+  "blood5": 36993,
+  "blood": 547254,
+  "blood4": 11139,
+  "blood2": 30914,
+  "blood3": 14995
+ },
+ "anatomy_rows": 547254,
+ "anatomy_fraction": 0.7627297231753855,
+ "wall_by_zone": {
+  "16162": {
+   "name": "wall-extending3",
+   "faces": 1300,
+   "adjacent_cell_zones": {
+    "blood3": 1300
+   }
+  },
+  "16161": {
+   "name": "wall-extending4",
+   "faces": 977,
+   "adjacent_cell_zones": {
+    "blood4": 977
+   }
+  },
+  "16160": {
+   "name": "wall-extending2",
+   "faces": 2564,
+   "adjacent_cell_zones": {
+    "blood2": 2564
+   }
+  },
+  "16159": {
+   "name": "wall-extending5",
+   "faces": 3059,
+   "adjacent_cell_zones": {
+    "blood5": 3059
+   }
+  },
+  "15823": {
+   "name": "wall",
+   "faces": 42738,
+   "adjacent_cell_zones": {
+    "blood": 42738
+   }
+  },
+  "16157": {
+   "name": "wall-extending1",
+   "faces": 5862,
+   "adjacent_cell_zones": {
+    "blood1": 5862
+   }
+  }
+ },
+ "anatomy_wall": {
+  "faces": 42738,
+  "nodes": 85356,
+  "area_m2": 0.03226715078838273,
+  "face_zones": {
+   "wall": 42738
+  },
+  "export_kind": "node",
+  "export_scope": "whole_domain",
+  "export_rows_outside_anatomy_wall": 1808924,
+  "export_rows": 1894280,
+  "duplicate_export_rows": 0,
+  "export_minus_anatomy": 0,
+  "anatomy_minus_export": 0,
+  "anatomy_minus_export_all_in_side_zones": true,
+  "side_wall_zone_nodes": 0,
+  "identity": {
+   "label": "ILO/LI_BO_JUN-1/before:wall-nodes",
+   "query_rows": 85356,
+   "reference_rows": 85356,
+   "max_match_distance_m": 7.059827112209819e-11,
+   "p99_match_distance_m": 6.592208376427842e-11,
+   "max_match_over_tolerance": 0.0007059827112209819,
+   "max_first_second_neighbour_ratio": 1.5076450125556504e-06,
+   "coincident_duplicates_resolved": 0,
+   "mutual_nearest_resolved": 0,
+   "unique_reference_rows": 85356,
+   "bijective": true,
+   "within_tolerance": true,
+   "unambiguous": true
+  },
+  "min_interface_planarity": 0.9999999993116925,
+  "rim_nodes_shared_with_interface": {
+   "blood1": 102,
+   "blood5": 37,
+   "blood4": 20,
+   "blood2": 36,
+   "blood3": 25
+  }
+ },
+ "interfaces": [
+  {
+   "extension_zone": "blood1",
+   "extension_zone_id": 6163,
+   "face_zone_ids": [
+    6061
+   ],
+   "face_zone_names": [
+    "inlet1"
+   ],
+   "faces": 1415,
+   "nodes": 1806,
+   "area_m2": 0.0005594873882945244,
+   "planarity": 0.9999999998801622,
+   "outward_normal": [
+    0.12497932513711452,
+    0.2198140058156069,
+    0.9675029566546903
+   ],
+   "centre_m": [
+    0.02457164054258069,
+    -0.1155454260676739,
+    -0.21067159272429128
+   ],
+   "distal_bc_zone_id": 6070,
+   "distal_bc_name": "inlet",
+   "distal_bc_type": "velocity-inlet",
+   "semantic_label": "inlet",
+   "extension_cells": 76199
+  },
+  {
+   "extension_zone": "blood5",
+   "extension_zone_id": 6168,
+   "face_zone_ids": [
+    16146
+   ],
+   "face_zone_names": [
+    "outlet-rightwai1"
+   ],
+   "faces": 455,
+   "nodes": 537,
+   "area_m2": 4.378789581257249e-05,
+   "planarity": 0.9999999993993741,
+   "outward_normal": [
+    0.4293827516113753,
+    0.0746363014013744,
+    -0.9000332633473983
+   ],
+   "centre_m": [
+    0.051390446368068415,
+    -0.11495687374472408,
+    -0.5074949752297069
+   ],
+   "distal_bc_zone_id": 16153,
+   "distal_bc_name": "outlet-rightwai",
+   "distal_bc_type": "pressure-outlet",
+   "semantic_label": "out-re",
+   "extension_cells": 36993
+  },
+  {
+   "extension_zone": "blood4",
+   "extension_zone_id": 6952,
+   "face_zone_ids": [
+    16147
+   ],
+   "face_zone_names": [
+    "outlet-rightnei1"
+   ],
+   "faces": 233,
+   "nodes": 264,
+   "area_m2": 1.1201922089219782e-05,
+   "planarity": 0.9999999998422539,
+   "outward_normal": [
+    0.06391794962614866,
+    0.9181531763021398,
+    0.3910361115829086
+   ],
+   "centre_m": [
+    0.03414039741539368,
+    -0.10424003862106737,
+    -0.5023148381746235
+   ],
+   "distal_bc_zone_id": 16154,
+   "distal_bc_name": "outlet-rightnei",
+   "distal_bc_type": "pressure-outlet",
+   "semantic_label": "out-ri",
+   "extension_cells": 11139
+  },
+  {
+   "extension_zone": "blood2",
+   "extension_zone_id": 6955,
+   "face_zone_ids": [
+    16148
+   ],
+   "face_zone_names": [
+    "outlet-leftwai1"
+   ],
+   "faces": 443,
+   "nodes": 524,
+   "area_m2": 3.916798056555002e-05,
+   "planarity": 0.9999999995667059,
+   "outward_normal": [
+    -0.3751725680205126,
+    0.7289255277912481,
+    -0.5726369872258903
+   ],
+   "centre_m": [
+    -0.047811689920552874,
+    -0.11760692925066533,
+    -0.4939528886036508
+   ],
+   "distal_bc_zone_id": 16156,
+   "distal_bc_name": "outlet-leftwai",
+   "distal_bc_type": "pressure-outlet",
+   "semantic_label": "out-le",
+   "extension_cells": 30914
+  },
+  {
+   "extension_zone": "blood3",
+   "extension_zone_id": 6958,
+   "face_zone_ids": [
+    16149
+   ],
+   "face_zone_names": [
+    "outlet-leftnei1"
+   ],
+   "faces": 292,
+   "nodes": 333,
+   "area_m2": 1.6899883131220343e-05,
+   "planarity": 0.9999999993116925,
+   "outward_normal": [
+    -0.14273651354464462,
+    0.25791922996287264,
+    -0.9555647327714005
+   ],
+   "centre_m": [
+    -0.028807809756610722,
+    -0.11600230738085715,
+    -0.5035037528649383
+   ],
+   "distal_bc_zone_id": 16155,
+   "distal_bc_name": "outlet-leftnei",
+   "distal_bc_type": "pressure-outlet",
+   "semantic_label": "out-li",
+   "extension_cells": 14995
+  }
+ ],
+ "anatomy_direct_flow_bc": [],
+ "extension_flow_bc": {
+  "blood2": [
+   {
+    "zone_id": 16156,
+    "type_code": 5,
+    "type": "pressure-outlet",
+    "name": "outlet-leftwai",
+    "faces": 329
+   }
+  ],
+  "blood3": [
+   {
+    "zone_id": 16155,
+    "type_code": 5,
+    "type": "pressure-outlet",
+    "name": "outlet-leftnei",
+    "faces": 229
+   }
+  ],
+  "blood4": [
+   {
+    "zone_id": 16154,
+    "type_code": 5,
+    "type": "pressure-outlet",
+    "name": "outlet-rightnei",
+    "faces": 193
+   }
+  ],
+  "blood5": [
+   {
+    "zone_id": 16153,
+    "type_code": 5,
+    "type": "pressure-outlet",
+    "name": "outlet-rightwai",
+    "faces": 316
+   }
+  ],
+  "blood1": [
+   {
+    "zone_id": 6070,
+    "type_code": 10,
+    "type": "velocity-inlet",
+    "name": "inlet",
+    "faces": 933
+   }
+  ]
+ },
+ "unit_check": {
+  "authoritative_stl": "/public/newhome/cy/Digital_twin/GNN/outputs/centerline_v2_meshwall_20260922_pilot/cases/ILO/LI_BO_JUN-1/before/surface_meshwall_true_mm.stl",
+  "authoritative_stl_sha256": "2c5d20cee29357f76c78a89f6cbd727e94f4f3ca1dfb5b668d630467c3165e81",
+  "frozen_fluent_to_mm_unit_factor": 1000.0,
+  "frozen_stl_scale_to_mm": 1.0,
+  "stl_over_fluent_span_ratio": [
+   645.4879530180805,
+   722.7428526595055,
+   642.0600074121212
+  ],
+  "max_deviation_from_1000": 0.3579399925878788,
+  "stl_points": 128089,
+  "unit_verdict": "stl_not_the_cfd_wall_surface",
+  "true_mm_rescale_of_legacy_frame": 1.0
+ },
+ "gates": {
+  "six_fluid_zones_blood_blood1_5": true,
+  "export_rows_equal_case_entities": true,
+  "cell_identity_bijective_unambiguous": true,
+  "five_interfaces": true,
+  "interfaces_planar": true,
+  "interface_semantics_complete": true,
+  "each_extension_closes_on_one_flow_bc": true,
+  "anatomy_has_no_direct_flow_bc": true,
+  "wall_export_covers_anatomy_wall": true,
+  "wall_identity_bijective": true,
+  "anatomy_cells_at_least_pool": true,
+  "parser_warnings_empty": true,
+  "unattached_faces_ignored": true
+ },
+ "gate_pass": true
+}

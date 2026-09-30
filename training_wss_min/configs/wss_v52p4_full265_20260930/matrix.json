@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_v52p4_full265_20260930",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5Dcap_asym2_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_asym2_s1234",
+    "X5Dcap_asym2_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_asym2_s7",
+    "X5Dcap_asym2_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_asym2_s2025"
+  },
+  "section": "v5.2p4 full265 base training (2026-09-30)",
+  "data": {
+    "views_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930",
+    "train": 265,
+    "test": "recover8",
+    "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/split_v52p4_full265_train265_test8.json",
+    "wss_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/wss_global_stats_full265_train265.json",
+    "feature_stats": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52p4_full265_20260930/feature_stats/full265_X5Dcap_train_feature_stats.json",
+    "density": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_density_v1",
+    "new_train_units": [
+      "AAA/ruputer/YANG_BAO_KUI",
+      "ILO/LI_FA_XIANG-1/before",
+      "ILO/WANG_CAI-0/before",
+      "ILO/XUE_YOU_TANG-0/after"
+    ]
+  },
+  "expected_training_runs": 3,
+  "expected_evaluations": 6,
+  "arms": [
+    {
+      "id": "X5Dcap_asym2_full265_s1234",
+      "title": "X5Dcap_asym2 recipe on full265 (v5.2 261 + 4), seed 1234; test = recover8",
+      "config": "X5Dcap_asym2_full265_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "seed": 1234,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "X5Dcap_asym2_full265",
+      "parent": "X5Dcap_asym2_s1234 (wss_v52_phys_20260926)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.data_root": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1"
+        },
+        "data.density_aug_root": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/ind_X5Dcap_train_feature_stats.json",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52p4_full265_20260930/feature_stats/full265_X5Dcap_train_feature_stats.json"
+        },
+        "data.point_features_root": {
+          "source": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ],
+          "full265": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/split_v52p4_full265_train265_test8.json"
+        },
+        "data.wss_stats_path": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/wss_global_stats_full265_train265.json"
+        },
+        "name": {
+          "source": "wss_v52_phys_20260926/X5Dcap_asym2_s1234",
+          "full265": "wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s1234"
+        },
+        "notes": {
+          "source": "§36 X5Dcap_asym2_s1234: X5Dcap + asymmetric under-prediction loss weight 2.0; base = wss_v52_20260923/X5Dcap_v52ind_s1234 (IND protocol); single declared change.",
+          "full265": "v5.2p4 full265 X5Dcap_asym2 seed 1234: recipe = wss_v52_phys_20260926/X5Dcap_asym2_s1234.json verbatim; only data paths changed (full265 view root: v5.2 261 + YANG_BAO_KUI + 3 returned recover units; test = recover8; WSS stats / feature z-scores refitted on the 265 training cases)."
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_asym2_full265_s7",
+      "title": "X5Dcap_asym2 recipe on full265 (v5.2 261 + 4), seed 7; test = recover8",
+      "config": "X5Dcap_asym2_full265_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "seed": 7,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "X5Dcap_asym2_full265",
+      "parent": "X5Dcap_asym2_s7 (wss_v52_phys_20260926)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.data_root": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1"
+        },
+        "data.density_aug_root": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/ind_X5Dcap_train_feature_stats.json",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52p4_full265_20260930/feature_stats/full265_X5Dcap_train_feature_stats.json"
+        },
+        "data.point_features_root": {
+          "source": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ],
+          "full265": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/split_v52p4_full265_train265_test8.json"
+        },
+        "data.wss_stats_path": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/wss_global_stats_full265_train265.json"
+        },
+        "name": {
+          "source": "wss_v52_phys_20260926/X5Dcap_asym2_s7",
+          "full265": "wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s7"
+        },
+        "notes": {
+          "source": "§36 X5Dcap_asym2_s7: X5Dcap + asymmetric under-prediction loss weight 2.0; base = wss_v52_20260923/X5Dcap_v52ind_s7 (IND protocol); single declared change.",
+          "full265": "v5.2p4 full265 X5Dcap_asym2 seed 7: recipe = wss_v52_phys_20260926/X5Dcap_asym2_s7.json verbatim; only data paths changed (full265 view root: v5.2 261 + YANG_BAO_KUI + 3 returned recover units; test = recover8; WSS stats / feature z-scores refitted on the 265 training cases)."
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_asym2_full265_s2025",
+      "title": "X5Dcap_asym2 recipe on full265 (v5.2 261 + 4), seed 2025; test = recover8",
+      "config": "X5Dcap_asym2_full265_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "seed": 2025,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "X5Dcap_asym2_full265",
+      "parent": "X5Dcap_asym2_s2025 (wss_v52_phys_20260926)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.data_root": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1"
+        },
+        "data.density_aug_root": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/ind_X5Dcap_train_feature_stats.json",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52p4_full265_20260930/feature_stats/full265_X5Dcap_train_feature_stats.json"
+        },
+        "data.point_features_root": {
+          "source": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ],
+          "full265": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/split_v52p4_full265_train265_test8.json"
+        },
+        "data.wss_stats_path": {
+          "source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json",
+          "full265": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/wss_global_stats_full265_train265.json"
+        },
+        "name": {
+          "source": "wss_v52_phys_20260926/X5Dcap_asym2_s2025",
+          "full265": "wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s2025"
+        },
+        "notes": {
+          "source": "§36 X5Dcap_asym2_s2025: X5Dcap + asymmetric under-prediction loss weight 2.0; base = wss_v52_20260923/X5Dcap_v52ind_s2025 (IND protocol); single declared change.",
+          "full265": "v5.2p4 full265 X5Dcap_asym2 seed 2025: recipe = wss_v52_phys_20260926/X5Dcap_asym2_s2025.json verbatim; only data paths changed (full265 view root: v5.2 261 + YANG_BAO_KUI + 3 returned recover units; test = recover8; WSS stats / feature z-scores refitted on the 265 training cases)."
+        }
+      }
+    }
+  ],
+  "reading_rule": "recover8 physical Pa R2_cb of the three-seed Pa-mean ensemble (evaluate_recover8.sh), compared with the X5Dcap_asym2 IND models on recover8: five-seed 0.8393, seeds 1234/7/2025 0.8352 (singles 0.8194/0.8239/0.8188), median unit R2 0.830/0.827. test91 is inside the full265 training set and cannot be used. Descriptive (n=8), not a gate."
+}

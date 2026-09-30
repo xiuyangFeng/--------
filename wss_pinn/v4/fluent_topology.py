@@ -205,8 +205,9 @@ class FluentMesh:
 
         return _face_geometry(self.nodes_m, section.offsets, section.nodes)
 
-    def cell_centroids_and_volumes(self) -> tuple[np.ndarray, np.ndarray]:
-        """Fluent-compatible cell centroids and volumes (index 0 is NaN)."""
+    def cell_centroids_and_volumes(self, strict: bool = True) -> tuple[np.ndarray, np.ndarray]:
+        """Fluent-compatible cell centroids and volumes (index 0 is NaN). ``strict=False`` (2026-09-26, mesh morphing
+        validity checks) returns signed volumes instead of raising on non-positive cells; default behaviour unchanged."""
 
         count = self.cell_count
         face_cache = []
@@ -249,7 +250,7 @@ class FluentMesh:
                         weights=pyramid_volume * pyramid_centre[:, axis],
                         minlength=count + 1,
                     )
-        if np.any(volume[1:] <= 0.0):
+        if strict and np.any(volume[1:] <= 0.0):
             bad = int(np.sum(volume[1:] <= 0.0))
             raise ValueError(f"{self.path}: {bad} cells have non-positive signed volume")
         with np.errstate(invalid="ignore", divide="ignore"):
@@ -585,6 +586,8 @@ def match_points(
     tolerance_m: float | np.ndarray,
     max_neighbour_ratio: float = 0.1,
     exact_fraction: float = 1.0e-3,
+    max_tolerance_exceptions: int = 10,
+    exception_ceiling: float = 5.0,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     """Match every query point to a distinct reference point.
 
@@ -595,6 +598,12 @@ def match_points(
     meshes may carry duplicated nodes on seams); coincident candidates are
     assigned greedily so that the final mapping is a bijection onto the used
     reference rows.
+
+    2026-09-22: up to ``max_tolerance_exceptions`` rows may exceed the tolerance by at most
+    ``exception_ceiling`` x (sliver cells whose Fluent centroid differs from the node-average one by a
+    fraction of the cell size, e.g. 2 of 690 243 cells in WANG_SHU_SHENG-0/after) provided the mapping
+    stays unambiguous and one-to-one; they are listed in ``tolerance_exception_rows``. Cases with no such
+    row (all 172 library cases) are unaffected.
     """
 
     reference = np.asarray(reference_m, dtype=np.float64)
@@ -613,8 +622,10 @@ def match_points(
     ambiguous = ratio > max_neighbour_ratio
     coincident_resolved = 0
     if np.any(ambiguous):
-        # candidates that are coincident with the nearest one (within tolerance)
-        used = set()
+        # candidates that are coincident with the nearest one (within tolerance).
+        # 2026-09-22: references already claimed by an unambiguous row are not free (otherwise a
+        # near-coincident small-cell pair can be assigned twice and the mapping stops being a bijection)
+        used = set(chosen[~ambiguous].tolist())
         order = np.argsort(nearest)
         for row in order:
             if not ambiguous[row]:
@@ -647,6 +658,25 @@ def match_points(
         mutual = np.asarray(reverse_index, dtype=np.int64) == rows
         ambiguous[rows[mutual]] = False
         mutual_resolved = int(np.sum(mutual))
+    sliver_reassigned = 0
+    if np.any(ambiguous) and int(np.sum(ambiguous)) <= max_tolerance_exceptions:
+        # 2026-09-22: a handful of sliver cells whose Fluent centroid lands nearer to a neighbour's node-average
+        # centroid than to its own: give each such row the nearest reference that no other row claims, within
+        # exception_ceiling x tolerance (2 of 690 243 cells in WANG_SHU_SHENG-0/after); listed as exceptions below
+        claimed = set(chosen[~ambiguous].tolist())
+        for row in np.flatnonzero(ambiguous):
+            for j in range(k):
+                cand = int(index[row, j])
+                cand_tol = float(tolerance[cand]) if tolerance.ndim else float(tolerance)
+                if cand in claimed or distance[row, j] > exception_ceiling * cand_tol:
+                    continue
+                chosen[row] = cand
+                nearest[row] = float(distance[row, j])
+                local_tolerance[row] = cand_tol
+                claimed.add(cand)
+                ambiguous[row] = False
+                sliver_reassigned += 1
+                break
     unique = np.unique(chosen)
     diagnostics = {
         "label": label,
@@ -660,17 +690,27 @@ def match_points(
         "max_first_second_neighbour_ratio": float(np.max(ratio)) if len(ratio) else 0.0,
         "coincident_duplicates_resolved": int(coincident_resolved),
         "mutual_nearest_resolved": int(mutual_resolved),
+        "sliver_reassigned": int(sliver_reassigned),
         "unique_reference_rows": int(len(unique)),
         "bijective": bool(len(unique) == len(chosen)),
         "within_tolerance": bool(np.all(nearest <= local_tolerance)),
         "unambiguous": bool(not np.any(ambiguous)),
+        "tolerance_exception_rows": [],
     }
     if not diagnostics["within_tolerance"]:
-        bad = int(np.sum(nearest > local_tolerance))
-        raise ValueError(
-            f"{label}: {bad} rows exceed the identity tolerance "
-            f"(max distance {diagnostics['max_match_distance_m']:.3e} m)"
-        )
+        over = np.flatnonzero(nearest > local_tolerance)
+        if len(over) <= max_tolerance_exceptions and bool(np.all(nearest[over] <= exception_ceiling * local_tolerance[over])) and not np.any(ambiguous[over]):
+            diagnostics["within_tolerance"] = True
+            diagnostics["tolerance_exception_rows"] = [
+                {"row": int(r), "reference": int(chosen[r]), "distance_m": float(nearest[r]), "over_tolerance": float(nearest[r] / max(local_tolerance[r], 1.0e-300))}
+                for r in over.tolist()
+            ]
+        else:
+            bad = int(len(over))
+            raise ValueError(
+                f"{label}: {bad} rows exceed the identity tolerance "
+                f"(max distance {diagnostics['max_match_distance_m']:.3e} m)"
+            )
     if not diagnostics["unambiguous"]:
         raise ValueError(f"{label}: {int(np.sum(ambiguous))} rows are ambiguous between two reference entities")
     if not diagnostics["bijective"]:
@@ -714,14 +754,61 @@ class InterfaceZone:
         return float(np.linalg.norm(self.area_vectors_m2.sum(axis=0)) / max(self.area_m2, 1.0e-300))
 
 
+def fluid_zone_adjacency(mesh: FluentMesh, cell_zone: np.ndarray | None = None) -> set[tuple[int, int]]:
+    """Unordered pairs of cell zones that share two-sided faces (wall / flow-BC / unattached sections excluded)."""
+    cell_zone = mesh.cell_zone_array() if cell_zone is None else cell_zone
+    pairs: set[tuple[int, int]] = set()
+    for section in mesh.face_sections:
+        if section.bc_type == 3 or section.bc_type in FLOW_BC_FACE_TYPES or not section.attached:
+            continue
+        two_sided = (section.c0 > 0) & (section.c1 > 0)
+        if not np.any(two_sided):
+            continue
+        z0 = cell_zone[section.c0]
+        z1 = cell_zone[section.c1]
+        mixed = two_sided & (z0 != z1)
+        if np.any(mixed):
+            pairs.update(tuple(sorted(pair)) for pair in zip(z0[mixed].tolist(), z1[mixed].tolist()))
+    return {(int(a), int(b)) for a, b in pairs}
+
+
+def resolve_anatomy_zone(
+    mesh: FluentMesh, anatomy_zone_name: str = "blood", cell_zone: np.ndarray | None = None
+) -> tuple[int, dict[str, Any]]:
+    """The anatomy cell zone.
+
+    Rule (2026-09-22): the zone named ``anatomy_zone_name`` when it is the hub that every other fluid zone
+    touches (true for all 172 library cases, so their result is unchanged), else the unique hub zone
+    (``WANG_CAI-0/before`` only has auto-named ``fluid-NNNN`` zones; ``NIE_QUAN_ZHONG``'s zone named
+    ``blood`` is its inlet extension and the anatomy is ``blood2``). When the named zone exists but neither
+    rule identifies a unique hub the named zone is returned as before (the caller then reports the
+    touching extension zones)."""
+    fluid = mesh.fluid_zone_by_name()
+    pairs = fluid_zone_adjacency(mesh, cell_zone)
+    hubs = sorted(zone for zone in fluid.values() if pairs and all(zone in pair for pair in pairs))
+    named = fluid.get(anatomy_zone_name)
+    if named is not None and (not pairs or named in hubs):
+        return int(named), {"method": "name", "zone_name": anatomy_zone_name, "zone_id": int(named)}
+    if len(hubs) == 1:
+        why = f"zone named {anatomy_zone_name!r} is absent" if named is None else f"zone named {anatomy_zone_name!r} (id {int(named)}) is not the hub of the fluid-zone interfaces"
+        return int(hubs[0]), {
+            "method": "hub_topology",
+            "zone_name": mesh.zone_name(hubs[0]),
+            "zone_id": int(hubs[0]),
+            "note": f"{why}; all {len(pairs)} fluid-zone interfaces touch {mesh.zone_name(hubs[0])!r}",
+        }
+    if named is None:
+        raise ValueError(
+            f"{mesh.path}: no fluid zone named {anatomy_zone_name!r} and no unique hub zone (hubs={[mesh.zone_name(z) for z in hubs]})"
+        )
+    return int(named), {"method": "name", "zone_name": anatomy_zone_name, "zone_id": int(named)}
+
+
 def anatomy_topology(mesh: FluentMesh, anatomy_zone_name: str = "blood") -> dict[str, Any]:
     """Derive anatomy wall faces, interfaces and extension roles from topology."""
 
-    fluid = mesh.fluid_zone_by_name()
-    if anatomy_zone_name not in fluid:
-        raise ValueError(f"{mesh.path}: no fluid zone named {anatomy_zone_name!r}")
-    anatomy_zone = fluid[anatomy_zone_name]
     cell_zone = mesh.cell_zone_array()
+    anatomy_zone, anatomy_zone_resolution = resolve_anatomy_zone(mesh, anatomy_zone_name, cell_zone)
 
     wall_by_zone: dict[int, dict[str, Any]] = {}
     anatomy_wall_sections: list[tuple[FaceSection, np.ndarray]] = []
@@ -837,6 +924,7 @@ def anatomy_topology(mesh: FluentMesh, anatomy_zone_name: str = "blood") -> dict
 
     return {
         "anatomy_zone_id": int(anatomy_zone),
+        "anatomy_zone_resolution": anatomy_zone_resolution,
         "cell_zone": cell_zone,
         "wall_by_zone": wall_by_zone,
         "anatomy_wall_sections": anatomy_wall_sections,

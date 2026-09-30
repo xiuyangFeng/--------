@@ -1,0 +1,64 @@
+{
+  "task": "User-authorized evaluation of existing temporal weights/caches to fill full-cycle MAE",
+  "created_at": "2026-09-27T14:04:57+0800",
+  "new_training": false,
+  "original_runs_read_only": true,
+  "output_root": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_mae_20260927",
+  "jobs": {
+    "15813": "CPU pilots; TT first attempt missing phase_features and failed; TL CPU reproduces outside tolerance",
+    "15815": "TT CPU pilot after explicit phase keys restoration",
+    "15816": "cancelled: dependency included failed pilot; no evaluations started",
+    "15817": "CPU array for cache heads and TT; afterok15815_0"
+  },
+  "initial_gpu_pilot": {
+    "host": "node04",
+    "gpu_uuid": "GPU-d0c62ff2-6402-879c-49a1-d231608df543",
+    "pid": 2129780,
+    "arm": "C-raw_f0_s1234",
+    "status": "completed",
+    "note": "GPU had become occupied between initial inspection and launch; pilot ended in6.3s; remaining jobs moved to Slurm CPU; further shared GPU execution awaits explicit user answer"
+  },
+  "acceptance": {
+    "max_abs_original_metric_difference": 5e-05,
+    "fields": [
+      "cycle_r2cb_pa",
+      "trough_r2cb_pa",
+      "peak_r2cb_pa",
+      "tawss_r2cb_pa",
+      "tawss_mae_pa"
+    ]
+  },
+  "metric": "physical Pa, raw truth, point mean per case/frame then 81-frame and case means; arithmetic mean of three folds",
+  "scripts": {
+    "evaluate_saved.py": "2ebddb57b68769c6e2e89442db3f5012645078e2f122cfe4f8daef3e8e0ed5cb",
+    "aggregate.py": "84698d9a1f2fc57a2aa540e529c7cafae85f90743dc2be641a356970a6d95913"
+  },
+  "shared_gpu_authorization": {
+    "user_answer": "允许",
+    "scope": "node04 GPU1 short shared evaluation for six TL fold runs",
+    "recorded_at": "2026-09-27T14:06:40+0800"
+  },
+  "shared_gpu_run": {
+    "host": "node04",
+    "gpu_index": 1,
+    "gpu_uuid": "GPU-d0c62ff2-6402-879c-49a1-d231608df543",
+    "queue_shell_pid": 2136027,
+    "initial_worker_pid": 2136033,
+    "command": "bash training_wss_min/experiments/wss_time_mae_20260927/run_ft_gpu.sh",
+    "log": "logs/ft_gpu_node04.log",
+    "status": "completed",
+    "completed_at": "2026-09-27T14:19:30+0800"
+  },
+  "status": "completed",
+  "final_validation": {
+    "n_methods": 13,
+    "n_fold_rows": 39,
+    "new_evaluation_fold_rows": 30,
+    "existing_fold_rows": 9,
+    "max_original_metric_abs_difference": 1.1128930333115239e-05
+  },
+  "cpu_jobs_status": {
+    "15815_0": "COMPLETED",
+    "15817_0..5": "COMPLETED"
+  }
+}

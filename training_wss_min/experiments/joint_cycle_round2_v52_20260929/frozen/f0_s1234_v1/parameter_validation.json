@@ -1,0 +1,225 @@
+{
+  "status": "passed",
+  "device": "cpu",
+  "seed": 1234,
+  "arms": {
+    "UT0": {
+      "total_trainable_parameters": 679391,
+      "added_parameters": 20598,
+      "module_contract": {
+        "module": "temporal_ffn",
+        "task": "velocity",
+        "support_pool": "encoder_sample_only",
+        "zero_initial_residual": true,
+        "bottleneck": 46,
+        "layers": 4,
+        "kernel": 1,
+        "dilations": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "receptive_field": 1,
+        "boundary": "pointwise",
+        "phase_chunk_behavior": "entire_supplied_sequence",
+        "residual_parameters": 20598,
+        "paired_reference_parameters": 20768,
+        "relative_parameter_mismatch": 0.008185670261941448
+      }
+    },
+    "UT1": {
+      "total_trainable_parameters": 679561,
+      "added_parameters": 20768,
+      "module_contract": {
+        "module": "temporal_tcn",
+        "task": "velocity",
+        "support_pool": "encoder_sample_only",
+        "zero_initial_residual": true,
+        "bottleneck": 32,
+        "layers": 4,
+        "kernel": 3,
+        "dilations": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "receptive_field": 31,
+        "boundary": "reflect",
+        "phase_chunk_behavior": "entire_supplied_sequence",
+        "residual_parameters": 20768,
+        "paired_reference_parameters": 20768,
+        "relative_parameter_mismatch": 0.0
+      }
+    },
+    "WT0": {
+      "total_trainable_parameters": 680029,
+      "added_parameters": 20598,
+      "module_contract": {
+        "module": "temporal_ffn",
+        "task": "wss",
+        "support_pool": "encoder_sample_only",
+        "zero_initial_residual": true,
+        "bottleneck": 46,
+        "layers": 4,
+        "kernel": 1,
+        "dilations": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "receptive_field": 1,
+        "boundary": "pointwise",
+        "phase_chunk_behavior": "entire_supplied_sequence",
+        "residual_parameters": 20598,
+        "paired_reference_parameters": 20768,
+        "relative_parameter_mismatch": 0.008185670261941448
+      }
+    },
+    "WT1": {
+      "total_trainable_parameters": 680199,
+      "added_parameters": 20768,
+      "module_contract": {
+        "module": "temporal_tcn",
+        "task": "wss",
+        "support_pool": "encoder_sample_only",
+        "zero_initial_residual": true,
+        "bottleneck": 32,
+        "layers": 4,
+        "kernel": 3,
+        "dilations": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "receptive_field": 31,
+        "boundary": "reflect",
+        "phase_chunk_behavior": "entire_supplied_sequence",
+        "residual_parameters": 20768,
+        "paired_reference_parameters": 20768,
+        "relative_parameter_mismatch": 0.0
+      }
+    },
+    "U0": {
+      "total_trainable_parameters": 682143,
+      "added_parameters": 23350,
+      "module_contract": {
+        "module": "query_mean",
+        "task": "velocity",
+        "support_pool": "encoder_sample_only",
+        "zero_initial_residual": true,
+        "hidden": 89,
+        "neighbours": 16,
+        "aggregation": "mean",
+        "heads": 0,
+        "residual_parameters": 23350,
+        "paired_reference_parameters": 23520,
+        "relative_parameter_mismatch": 0.007227891156462585
+      }
+    },
+    "U1": {
+      "total_trainable_parameters": 682313,
+      "added_parameters": 23520,
+      "module_contract": {
+        "module": "query_attention",
+        "task": "velocity",
+        "support_pool": "encoder_sample_only",
+        "zero_initial_residual": true,
+        "hidden": 64,
+        "neighbours": 16,
+        "aggregation": "attention",
+        "heads": 4,
+        "residual_parameters": 23520,
+        "paired_reference_parameters": 23520,
+        "relative_parameter_mismatch": 0.0
+      }
+    },
+    "W0": {
+      "total_trainable_parameters": 675655,
+      "added_parameters": 16224,
+      "module_contract": {
+        "module": "wall_pointwise",
+        "task": "wss",
+        "support_pool": "encoder_sample_only",
+        "zero_initial_residual": true,
+        "hidden": 88,
+        "neighbours": 0,
+        "aggregation": "pointwise",
+        "residual_parameters": 16224,
+        "paired_reference_parameters": 16096,
+        "relative_parameter_mismatch": 0.007952286282306162
+      }
+    },
+    "W1": {
+      "total_trainable_parameters": 675527,
+      "added_parameters": 16096,
+      "module_contract": {
+        "module": "wall_patch",
+        "task": "wss",
+        "support_pool": "encoder_sample_only",
+        "zero_initial_residual": true,
+        "hidden": 64,
+        "neighbours": 16,
+        "aggregation": "mean",
+        "heads": 0,
+        "residual_parameters": 16096,
+        "paired_reference_parameters": 16096,
+        "relative_parameter_mismatch": 0.0
+      }
+    },
+    "P1": {
+      "total_trainable_parameters": 681579,
+      "added_parameters": 0,
+      "module_contract": {
+        "module": "none",
+        "residual_parameters": 0
+      }
+    },
+    "J2": {
+      "total_trainable_parameters": 835823,
+      "added_parameters": 0,
+      "module_contract": {
+        "module": "none",
+        "residual_parameters": 0
+      }
+    }
+  },
+  "pairs": [
+    {
+      "control": "UT0",
+      "treatment": "UT1",
+      "control_added_parameters": 20598,
+      "treatment_added_parameters": 20768,
+      "relative_difference": 0.008185670261941448,
+      "passed": true
+    },
+    {
+      "control": "WT0",
+      "treatment": "WT1",
+      "control_added_parameters": 20598,
+      "treatment_added_parameters": 20768,
+      "relative_difference": 0.008185670261941448,
+      "passed": true
+    },
+    {
+      "control": "U0",
+      "treatment": "U1",
+      "control_added_parameters": 23350,
+      "treatment_added_parameters": 23520,
+      "relative_difference": 0.007227891156462585,
+      "passed": true
+    },
+    {
+      "control": "W0",
+      "treatment": "W1",
+      "control_added_parameters": 16224,
+      "treatment_added_parameters": 16096,
+      "relative_difference": 0.007889546351084813,
+      "passed": true
+    }
+  ],
+  "scope": "parameter/config construction only; GPU smoke still required"
+}

@@ -1,0 +1,32 @@
+{
+ "schema_version": 1,
+ "created": "2026-09-30",
+ "purpose": "Outlet semantic labels (mesh zone id -> out-le/out-li/out-ri/out-re) that the v5.1/v5.2 datasets used for these units. They came from the legacy qs-smooth-v3 boundary manifest (data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_*/cases/*/manifest.json, since removed), which crosses the operator's UDF keys on one side for exactly these 4 units (all 265 v5.2p4 units checked: no other differs). outlet_semantics() uses this table before the UDF fallback so a rebuild reproduces the dataset naming (feature inputs such as wall_semantic_id and the capfit flow features stay as in v5.2). The CFD boundary conditions do not depend on these names (protocol RCR = f(area of the face each UDF thread points at)).",
+ "source": "topology audit reports used by the v5.2 build (audits/topology/_stale_20260930_labelfix/)",
+ "cases": {
+  "AAA/ruputer/MENG_GUANG_QIN": {
+   "15958": "out-re",
+   "15957": "out-ri",
+   "15971": "out-li",
+   "15959": "out-le"
+  },
+  "AAA/unruputer/CHEN_SHU_LIN": {
+   "15958": "out-re",
+   "15957": "out-ri",
+   "15971": "out-le",
+   "15959": "out-li"
+  },
+  "AG/slow/LIU_ZONG_YANG": {
+   "4396": "out-le",
+   "4393": "out-li",
+   "4395": "out-ri",
+   "4391": "out-re"
+  },
+  "ILO/ZHANG_YONG_SHENG-0/before": {
+   "6066": "out-re",
+   "6067": "out-ri",
+   "6068": "out-li",
+   "6069": "out-le"
+  }
+ }
+}

@@ -281,6 +281,40 @@ def joint_volume_loss(
     return total
 
 
+def _osi_channel_stats(target_stats: dict | None) -> tuple[int, dict]:
+    """OSI 通道在 method='multi' 统计量里的列号与子统计量（只支持 wss_cycle_multi）。"""
+    if not target_stats or target_stats.get("method") != "multi" or "osi" not in tuple(target_stats.get("channels", ())):
+        raise ValueError("OSI tail / mask losses require method='multi' target statistics with an 'osi' channel")
+    return list(target_stats["channels"]).index("osi"), target_stats["osi"]
+
+
+def osi_threshold_z(threshold: float, osi_stats: dict) -> float:
+    """物理 OSI 阈值 → OSI 通道归一化空间（与 dataset.normalize_wss 同口径：logit_z 或 linear）。"""
+    if osi_stats["method"] == "logit_z":
+        lp = osi_stats["logit"]
+        u = min(max(float(threshold) / float(lp["scale"]), float(lp["clip"])), 1.0 - float(lp["clip"]))
+        return (math.log(u) - math.log1p(-u) - float(lp["mean"])) / float(lp["std"])
+    if osi_stats["method"] == "linear":
+        return (float(threshold) - float(osi_stats["linear"]["mean"])) / float(osi_stats["linear"]["std"])
+    raise ValueError(f"unsupported OSI normalization {osi_stats['method']!r}")
+
+
+def osi_tail_weights(osi_true: torch.Tensor, threshold: float, alpha: float) -> torch.Tensor:
+    """w = 1 + alpha·1[OSI > threshold]，按批内均值归一（只改 OSI 通道内的相对权重）。"""
+    w = 1.0 + float(alpha) * (osi_true.float() > float(threshold)).float()
+    return w / w.mean()
+
+
+def osi_soft_mask_bce(osi_pred_z: torch.Tensor, osi_true: torch.Tensor, osi_stats: dict,
+                      thresholds, temperature: float) -> torch.Tensor:
+    """逐阈值 BCE(sigmoid((ẑ − z(T)) / τ), 1[OSI > T])，阈值间平均；直接作用在回归输出上，不加通道。"""
+    terms = []
+    for t in thresholds:
+        logits = (osi_pred_z.float() - osi_threshold_z(t, osi_stats)) / float(temperature)
+        terms.append(torch.nn.functional.binary_cross_entropy_with_logits(logits, (osi_true.float() > float(t)).float()))
+    return torch.stack(terms).mean()
+
+
 def region_focus_weights(values: torch.Tensor, batch_index: torch.Tensor, quantile: float,
                          outside_weight: float) -> torch.Tensor:
     """T3 cascade focus: weight 1 where ``values`` is at or above its per-case ``quantile``, else ``outside_weight``.
@@ -321,7 +355,8 @@ def compute_loss(
             pred, y, batch["batch"].to(device), batch["velocity_mask"].to(device),
             batch["pressure_mask"].to(device), components,
         )
-    if y.ndim == 2 and y.shape[-1] == 4:
+    if y.ndim == 2 and y.shape[-1] == 4 and not (target_stats and target_stats.get("method") == "multi"):
+        # 4 列 = 体场速度 + 压力联合目标；M1 三头 + 1 个辅助通道（method='multi'）也是 4 列，走下方向量分支
         raise ValueError("joint volume targets require explicit supervision masks")
     hotspot_logits = None
     # 波 1：切平面方向辅助头 -> 预测形状 [N,3] = (WSS 通道, 轴向, 周向)；只有通道 0 进入其余全部损失项
@@ -346,6 +381,15 @@ def compute_loss(
             per_point = torch.nn.functional.huber_loss(
                 pred, y, delta=cfg.huber_delta, reduction="none"
             ).mean(-1)
+        elif float(getattr(cfg, "loss_osi_tail_alpha", 0.0) or 0.0) > 0:
+            osi_col, _ = _osi_channel_stats(target_stats)
+            squared = (pred - y).square()
+            weights_osi = osi_tail_weights(batch["y_raw"].to(device)[:, osi_col], cfg.osi_tail_threshold, cfg.loss_osi_tail_alpha)
+            squared = torch.cat([squared[:, :osi_col], squared[:, osi_col:osi_col + 1] * weights_osi[:, None].to(squared.dtype),
+                                 squared[:, osi_col + 1:]], dim=1)
+            per_point = squared.mean(-1)
+            if components is not None:
+                components["osi_tail_fraction"] = (batch["y_raw"][:, osi_col] > float(cfg.osi_tail_threshold)).float().mean().detach()
         else:
             per_point = (pred - y).square().mean(-1)
         pred_for_raw_loss = pred
@@ -370,6 +414,11 @@ def compute_loss(
             )
         else:
             per_point = (pred - y).square()
+        under_weight = float(getattr(cfg, "loss_asym_under_weight", 1.0) or 1.0)
+        if under_weight != 1.0:  # 2026-09-26: penalise under-prediction harder (jet tail is 72 % under-predicted)
+            per_point = per_point * torch.where(pred < y, torch.full_like(per_point, under_weight), torch.ones_like(per_point))
+            if components is not None:
+                components["under_fraction"] = (pred < y).float().mean().detach()
         pred_for_raw_loss = pred
 
     region_weights = None
@@ -486,6 +535,18 @@ def compute_loss(
         if components is not None:
             components["hotspot_bce"] = hotspot.detach()
             components["hotspot_bce_weighted"] = (hotspot_weight * hotspot).detach()
+
+    osi_mask_weight = float(getattr(cfg, "loss_osi_mask_lambda", 0.0) or 0.0)
+    if osi_mask_weight > 0:
+        if pred_for_raw_loss.ndim != 2:
+            raise ValueError("OSI mask loss requires the wss_cycle_multi channel vector")
+        osi_col, osi_stats = _osi_channel_stats(target_stats)
+        osi_mask = osi_soft_mask_bce(pred_for_raw_loss[:, osi_col], batch["y_raw"].to(device)[:, osi_col], osi_stats,
+                                     cfg.osi_mask_thresholds, cfg.osi_mask_temperature)
+        loss = loss + osi_mask_weight * osi_mask
+        if components is not None:
+            components["osi_mask_bce"] = osi_mask.detach()
+            components["osi_mask_bce_weighted"] = (osi_mask_weight * osi_mask).detach()
 
     # Optional local / ranking auxiliaries.  They are deliberately discovered
     # via getattr so older TrainConfig objects and JSON files retain identical

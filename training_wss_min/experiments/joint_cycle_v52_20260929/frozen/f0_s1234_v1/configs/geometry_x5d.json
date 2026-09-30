@@ -1,0 +1,83 @@
+{
+  "name": "pointnetpp",
+  "width": 32,
+  "sa_ratios": [
+    0.25,
+    0.25,
+    0.25
+  ],
+  "sa_radius": [
+    0.05,
+    0.1,
+    0.2
+  ],
+  "sa_nsample": [
+    64,
+    16,
+    16
+  ],
+  "sa_blocks": [
+    1,
+    1,
+    0
+  ],
+  "sa_center_sampling": "fps",
+  "sa_center_counts": [
+    125,
+    125,
+    32
+  ],
+  "fp_knn": 3,
+  "head_hidden": 64,
+  "out_dim": 1,
+  "dropout": 0,
+  "sa_grouping": [
+    "knn_cover",
+    "ball",
+    "ball"
+  ],
+  "invres_expansion": 2,
+  "residual_scale_init": 0.001,
+  "invres_radius_scale": 1.0,
+  "query_decoder": "interpolate",
+  "local_geope": true,
+  "local_geope_feature_indices": [
+    3,
+    4,
+    5
+  ],
+  "drop_path_rate": 0.1,
+  "local_transformer_stages": [
+    2
+  ],
+  "coarse_attention": false,
+  "coarse_attention_heads": 4,
+  "sep_hidden": 32,
+  "sep_beta_init": 2.0,
+  "neighbor_drop_rate": 0.0,
+  "local_transformer_heads": 4,
+  "local_transformer_ffn_ratio": 2,
+  "local_transformer_dropout": 0.0,
+  "edgeconv_stages": [],
+  "local_branch": true,
+  "local_branch_radii": [
+    0.015,
+    0.03,
+    0.06
+  ],
+  "local_branch_nsample": [
+    16,
+    16,
+    16
+  ],
+  "local_branch_channels": 32,
+  "local_branch_feature_indices": [
+    14,
+    15,
+    16
+  ],
+  "local_branch_directional": true,
+  "query_patch_film": true,
+  "query_patch_k": 16,
+  "query_patch_hidden": 64
+}

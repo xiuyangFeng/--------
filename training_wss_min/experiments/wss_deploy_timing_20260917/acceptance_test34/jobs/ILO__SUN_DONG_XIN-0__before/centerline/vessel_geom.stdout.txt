@@ -1,0 +1,106 @@
+{
+  "vessel_geom_version": "1.0.0",
+  "python": "3.10.14",
+  "numpy": "1.26.4",
+  "preset": "frozen-aortoiliac",
+  "surface_sha256": "4e329266565124a2056ee1b9e3a0ce8c5dedff7c14d673d5ed4ac1fb1ceee2be",
+  "extraction": {
+    "hard_pass": true,
+    "selected_attempt": "shift0_all_targets",
+    "topology": {
+      "points": 2072,
+      "edges": 2071,
+      "endpoints": 5,
+      "junctions": 3,
+      "max_degree": 3,
+      "cycle_rank": 0
+    },
+    "soft_metrics": {
+      "endpoint_to_opening_mm_max": 0.9955015014283219,
+      "endpoint_to_opening_over_radius_max": 0.1764987300807767,
+      "wall_distance_over_radius_p95": 1.3992582640348703,
+      "wall_distance_over_radius_fraction_gt_2": 0.0034,
+      "coverage_pass": true,
+      "inside_fraction": 0.9983201343892488,
+      "capped_surface_closed": true,
+      "max_edge_mm": 8.952164422119992,
+      "p95_edge_mm": 0.8030792783208761,
+      "median_radius_mm": 5.5522369655045205
+    }
+  },
+  "graph_topology": {
+    "nodes": 2072,
+    "edges": 2071,
+    "endpoints": 5,
+    "junctions": 3,
+    "max_degree": 3,
+    "components": 1,
+    "cycle_rank": 0,
+    "isolated_nodes": 0,
+    "median_radius_mm": 5.5522369655045205
+  },
+  "atlas": {
+    "unique_samples": 1146,
+    "total_length_mm": 570.0589137482367,
+    "max_s_from_root_mm": 323.472686832995,
+    "curvature_per_mm": {
+      "p50": 0.037130932635007316,
+      "p99": 0.162342492229834,
+      "max": 0.20060526551411384
+    },
+    "fit_residual_mm": {
+      "p50": 0.019960855713644136,
+      "max": 0.22357149171934323
+    },
+    "radius_mm": {
+      "min": 3.5001610126374887,
+      "median": 7.389795157844668,
+      "max": 14.3436345095516
+    },
+    "sg_window_samples": {
+      "min": 11,
+      "p50": 15.0,
+      "max": 29
+    },
+    "end_zone_fraction": 0.12216404886561955
+  },
+  "kinks": {
+    "rule": "curvature > max(8.0 x segment median, 0.2702 /mm)",
+    "interior": 0,
+    "junction": 0,
+    "endpoint": 0
+  },
+  "alignment": {
+    "median_rel_gap": 0.052632033824920654,
+    "median_abs_rel_gap": 0.05340873822569847,
+    "p90_abs_rel_gap": 0.21401501893997185,
+    "junction_ambiguous_fraction": 0.020819987187700194
+  },
+  "point_features": {
+    "n_points": 62440,
+    "keys": [
+      "atlas_row",
+      "axial_offset_mm",
+      "curvature_per_mm",
+      "dist_to_endpoint_mm",
+      "dist_to_junction_mm",
+      "dr_ds",
+      "end_zone",
+      "endpoint_mask",
+      "junction_ambiguous",
+      "junction_mask",
+      "points_mm",
+      "r_mm",
+      "radius_mm",
+      "rho",
+      "s_from_root_mm",
+      "s_local_mm",
+      "segment_depth",
+      "segment_id",
+      "theta_rad"
+    ]
+  },
+  "seconds": 17.03
+}
+
+--- stderr ---

@@ -257,7 +257,7 @@ train138/test34；seed1234；400 epoch；batch8；AdamW，lr=1e-3，warmup10 后
 - `training_wss_min/objectives.py`：MSE + pinball
 - `wss_v5/views/wss_min_view.py`、`wss_v5/centerline_features.py`、`wss_pinn/v4/centerline_atlas.py`：几何定义
 - 该 run 的 `config.json`、`feature_stats.json`、`wss_global_stats.json` 与 `ckpt_best.pt`
-- `docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md` §4
+- `docs/02-推进与变更/00-V5设计与历史跟踪/WSS_V5_训练实验跟踪_历史卷_2026-09-06至09-20.md` §4
 - 用户提供工作簿中的 R4 s1234 对应行
 '''
 (OUT/'README.md').write_text(notes,encoding='utf-8')

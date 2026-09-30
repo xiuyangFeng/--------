@@ -1,0 +1,499 @@
+{
+ "case_id": "AG__fast__RAN_QING_BO",
+ "release": "X5D_v51_5seed_20260916",
+ "device": "cuda",
+ "gpu": "NVIDIA GeForce RTX 4090",
+ "created_at": "2026-09-17 20:59:21",
+ "input_sha256": "d84b48b0bf6e09d47009add1ed9d9f8da18efa374fc60e05672048b699cb0c7a",
+ "input_check": {
+  "source_stl": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/RAN_QING_BO/RAN_QING_BO.stl",
+  "clean_stl": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_test34/jobs/AG__fast__RAN_QING_BO/input_clean_mm.stl",
+  "unit": "mm",
+  "scale_factor": 1.0,
+  "bbox_diag_mm": 325.0030198023309,
+  "vertices": 17682,
+  "faces": 35232,
+  "area_mm2": 35201.79892664662,
+  "components": 1,
+  "openings": 5,
+  "nonmanifold_edges": 0,
+  "flags": [],
+  "ok": true
+ },
+ "centerline": {
+  "seconds": 4.431339641101658,
+  "hard_pass": true,
+  "attempt": "shift0_all_targets",
+  "topology": {
+   "nodes": 1426,
+   "edges": 1425,
+   "endpoints": 5,
+   "junctions": 3,
+   "max_degree": 3,
+   "components": 1,
+   "cycle_rank": 0,
+   "isolated_nodes": 0,
+   "median_radius_mm": 5.180259681962612
+  },
+  "openings": [
+   {
+    "opening_id": 0,
+    "center_mm": [
+     -33.985116785222836,
+     -171.78684789484197,
+     782.727519642223
+    ],
+    "inward_normal": [
+     0.4924078155088557,
+     0.839676938726878,
+     -0.22907898593292272
+    ],
+    "area_mm2": 34.907541168359195,
+    "radius_mm": 3.333378984792519,
+    "perimeter_mm": 21.076572976476935,
+    "boundary_points": 22,
+    "role": "outlet",
+    "outlet_id": 2,
+    "outlet_name": "outlet-2"
+   },
+   {
+    "opening_id": 1,
+    "center_mm": [
+     -29.352626653817985,
+     -123.37233029879056,
+     782.210463303786
+    ],
+    "inward_normal": [
+     -0.6638133955606645,
+     -0.6037109355351747,
+     0.4414576788203653
+    ],
+    "area_mm2": 11.282448792756975,
+    "radius_mm": 1.8950765132566334,
+    "perimeter_mm": 12.074692086700045,
+    "boundary_points": 13,
+    "role": "outlet",
+    "outlet_id": 3,
+    "outlet_name": "outlet-3"
+   },
+   {
+    "opening_id": 2,
+    "center_mm": [
+     27.212233167299082,
+     -130.20941903557576,
+     1074.758379869058
+    ],
+    "inward_normal": [
+     -0.11341424305228347,
+     -0.11631413409552638,
+     -0.9867158819449934
+    ],
+    "area_mm2": 524.9855726967601,
+    "radius_mm": 12.927029739783144,
+    "perimeter_mm": 81.39036975877016,
+    "boundary_points": 71,
+    "role": "inlet",
+    "outlet_id": -1,
+    "outlet_name": "inlet"
+   },
+   {
+    "opening_id": 3,
+    "center_mm": [
+     53.96284920828683,
+     -118.01664679391044,
+     788.7710963657925
+    ],
+    "inward_normal": [
+     -0.3381884685523255,
+     -0.8348143787813245,
+     0.4344116857523332
+    ],
+    "area_mm2": 14.200742296814681,
+    "radius_mm": 2.1260848205620637,
+    "perimeter_mm": 13.496655651061994,
+    "boundary_points": 14,
+    "role": "outlet",
+    "outlet_id": 0,
+    "outlet_name": "outlet-0"
+   },
+   {
+    "opening_id": 4,
+    "center_mm": [
+     58.77137205335829,
+     -186.80381944444446,
+     789.7284511990017
+    ],
+    "inward_normal": [
+     -0.5229730274469063,
+     0.7580719884332009,
+     0.3896486531684033
+    ],
+    "area_mm2": 30.150515513163498,
+    "radius_mm": 3.0979359517875267,
+    "perimeter_mm": 19.62107464739499,
+    "boundary_points": 18,
+    "role": "outlet",
+    "outlet_id": 1,
+    "outlet_name": "outlet-1"
+   }
+  ],
+  "surface_report": {
+   "surface_points": 17682,
+   "surface_triangles": 35232,
+   "connected_regions": 1,
+   "nonmanifold_edges": 0,
+   "boundary_edges": 138,
+   "opening_count": 5,
+   "single_region": true,
+   "manifold": true
+  }
+ },
+ "outlets_confirmed": false,
+ "mapping": {
+  "4": "out-li",
+  "3": "out-le",
+  "5": "out-ri",
+  "6": "out-re"
+ },
+ "flags": [],
+ "cloud": {
+  "n_points": 78863,
+  "spacing_mm": 0.4935389517507711,
+  "smooth_mm": 1.0,
+  "surface_variation_median": 0.000667973276028988,
+  "junction_ambiguous_fraction": 0.023597884939705566
+ },
+ "caps": {
+  "inlet": {
+   "radius_mm": 13.392380577386161,
+   "atlas_radius_mm": 12.734018421331385
+  },
+  "out-le": {
+   "radius_mm": 3.5545722646637135,
+   "atlas_radius_mm": 3.261958122082958
+  },
+  "out-li": {
+   "radius_mm": 1.8444321199255007,
+   "atlas_radius_mm": 1.8244471939762725
+  },
+  "out-ri": {
+   "radius_mm": 2.1893887147191116,
+   "atlas_radius_mm": 2.1137418657336333
+  },
+  "out-re": {
+   "radius_mm": 3.2867335399638273,
+   "atlas_radius_mm": 3.081336312909957
+  }
+ },
+ "murray_shares": {
+  "0": 1.0,
+  "1": 0.5,
+  "2": 0.5,
+  "5": 0.10754063474290018,
+  "6": 0.39245936525709985,
+  "3": 0.41832035059213346,
+  "4": 0.08167964940786655
+ },
+ "endpoints": [
+  {
+   "kind": "inlet",
+   "name": "inlet",
+   "name_cn": "入口（主动脉）",
+   "radius_mm": 13.392380577386161,
+   "center_mm": [
+    26.75,
+    -130.56,
+    1071.96
+   ],
+   "segment_id": 0
+  },
+  {
+   "kind": "outlet",
+   "name": "out-le",
+   "name_cn": "左髂外",
+   "radius_mm": 3.5545722646637135,
+   "center_mm": [
+    -33.82,
+    -171.53,
+    782.55
+   ],
+   "segment_id": 3,
+   "share": 0.41832035059213346
+  },
+  {
+   "kind": "outlet",
+   "name": "out-li",
+   "name_cn": "左髂内",
+   "radius_mm": 1.8444321199255007,
+   "center_mm": [
+    -29.58,
+    -123.4,
+    782.26
+   ],
+   "segment_id": 4,
+   "share": 0.08167964940786655
+  },
+  {
+   "kind": "outlet",
+   "name": "out-ri",
+   "name_cn": "右髂内",
+   "radius_mm": 2.1893887147191116,
+   "center_mm": [
+    53.81,
+    -118.17,
+    788.86
+   ],
+   "segment_id": 5,
+   "share": 0.10754063474290018
+  },
+  {
+   "kind": "outlet",
+   "name": "out-re",
+   "name_cn": "右髂外",
+   "radius_mm": 3.2867335399638273,
+   "center_mm": [
+    58.36,
+    -186.31,
+    789.98
+   ],
+   "segment_id": 6,
+   "share": 0.39245936525709985
+  }
+ ],
+ "per_branch_s": {
+  "0": 96.45954895019531,
+  "1": 228.28883361816406,
+  "2": 226.31256103515625,
+  "3": 308.5785217285156,
+  "4": 296.0549621582031,
+  "5": 300.6537170410156,
+  "6": 303.5519104003906
+ },
+ "timing_s": {
+  "ingest": 0.14,
+  "centerline": 4.43,
+  "smooth_resample": 13.16,
+  "features": 5.82,
+  "inference_5_models": 9.15,
+  "metrics_and_export": 0.11,
+  "total": 32.81
+ },
+ "seconds_per_model": [
+  1.74,
+  1.81,
+  1.73,
+  2.03,
+  1.83
+ ],
+ "wss_field_pa": {
+  "n": 78863,
+  "mean": 2.5836259990675416,
+  "median": 0.9763088171677529,
+  "p95": 13.464616375742056,
+  "p99": 22.8961324563902,
+  "max": 44.288457268006844,
+  "min": 0.17818200636442,
+  "top10_threshold_pa": 7.611657506691299,
+  "top5_threshold_pa": 13.464616375742056,
+  "area_frac_low": 0.08545198635608588,
+  "area_frac_high": 0.1418535942076766,
+  "area_frac_very_high": 0.10558817189302969,
+  "area_low_mm2": 3008.063641589485,
+  "area_high_mm2": 4993.501700320755,
+  "thresholds_pa": [
+   0.4,
+   4.0,
+   7.0
+  ]
+ },
+ "peak": {
+  "definition": "p99 为主、最大值为参考（2026-09-17 裁定）",
+  "p99_pa": 22.8961324563902,
+  "max_pa": 44.288457268006844,
+  "branch": "左髂外",
+  "s_from_inlet_mm": 315.0549621582031,
+  "dist_to_junction_mm": 43.342403411865234,
+  "local_radius_mm": 3.191628932952881,
+  "xyz_mm": [
+   -15.58,
+   -145.13,
+   786.03
+  ],
+  "index": 3259,
+  "top5_clusters_ge20": 8,
+  "top5_cluster_sizes": [
+   1939,
+   1232,
+   406,
+   238,
+   37
+  ]
+ },
+ "per_branch": {
+  "主动脉": {
+   "segment_id": 0,
+   "n_points": 34602,
+   "area_mm2": 15445.172596272349,
+   "wss_mean_pa": 0.9725323647814554,
+   "wss_p99_pa": 3.614588351363578,
+   "wss_max_pa": 6.53058436950929,
+   "frac_low": 0.05129761285474828,
+   "frac_high": 0.00702271544997399,
+   "share_of_top10": 0.0,
+   "radius_mean_mm": 12.94238567352295
+  },
+  "右髂总": {
+   "segment_id": 1,
+   "n_points": 11898,
+   "area_mm2": 5310.868260518132,
+   "wss_mean_pa": 1.3359114564431769,
+   "wss_p99_pa": 5.0842654171383215,
+   "wss_max_pa": 8.217108380928849,
+   "frac_low": 0.022524794083039167,
+   "frac_high": 0.0226928895612708,
+   "share_of_top10": 0.0007607455306200076,
+   "radius_mean_mm": 8.762388229370117
+  },
+  "左髂总": {
+   "segment_id": 2,
+   "n_points": 17406,
+   "area_mm2": 7769.454777490218,
+   "wss_mean_pa": 0.9076197794475444,
+   "wss_p99_pa": 5.031429963617594,
+   "wss_max_pa": 10.819609829960624,
+   "frac_low": 0.26961967137768583,
+   "frac_high": 0.023727450304492703,
+   "share_of_top10": 0.0030429821224800305,
+   "radius_mean_mm": 12.457036018371582
+  },
+  "左髂外": {
+   "segment_id": 3,
+   "n_points": 4363,
+   "area_mm2": 1947.496908777997,
+   "wss_mean_pa": 12.002385662729441,
+   "wss_p99_pa": 36.94113219475908,
+   "wss_max_pa": 44.288457268006844,
+   "frac_low": 0.0,
+   "frac_high": 0.7031858812743526,
+   "share_of_top10": 0.34613921643210344,
+   "radius_mean_mm": 4.684168338775635
+  },
+  "左髂内": {
+   "segment_id": 4,
+   "n_points": 4105,
+   "area_mm2": 1832.3343595080628,
+   "wss_mean_pa": 4.985328084877358,
+   "wss_p99_pa": 27.366658442212568,
+   "wss_max_pa": 40.417695132536004,
+   "frac_low": 0.000730816077953715,
+   "frac_high": 0.46163215590742995,
+   "share_of_top10": 0.1200710029161912,
+   "radius_mean_mm": 4.977324485778809
+  },
+  "右髂内": {
+   "segment_id": 5,
+   "n_points": 2853,
+   "area_mm2": 1273.4835390198548,
+   "wss_mean_pa": 8.296907333347994,
+   "wss_p99_pa": 29.122589101006618,
+   "wss_max_pa": 37.34753315025945,
+   "frac_low": 0.0,
+   "frac_high": 0.7539432176656151,
+   "share_of_top10": 0.1701534170153417,
+   "radius_mean_mm": 3.3999764919281006
+  },
+  "右髂外": {
+   "segment_id": 6,
+   "n_points": 3636,
+   "area_mm2": 1622.988485060004,
+   "wss_mean_pa": 11.525294508118481,
+   "wss_p99_pa": 33.166305976687426,
+   "wss_max_pa": 44.12396202938801,
+   "frac_low": 0.0,
+   "frac_high": 0.8655115511551155,
+   "share_of_top10": 0.3598326359832636,
+   "radius_mean_mm": 4.119750499725342
+  }
+ },
+ "geometry": {
+  "主动脉": {
+   "length_mm": 174.4268548335062,
+   "radius_min_mm": 9.87816148590212,
+   "radius_median_mm": 12.694701318574872,
+   "radius_max_mm": 15.872166450465732,
+   "max_diameter_mm": 31.744332900931465,
+   "stenosis_index": 0.22186735725334417,
+   "tortuosity": 1.0250915398037768,
+   "curvature_max_per_mm": 0.049177699100589306
+  },
+  "右髂总": {
+   "length_mm": 95.25591869528384,
+   "radius_min_mm": 6.8701581817444515,
+   "radius_median_mm": 8.674910791305603,
+   "radius_max_mm": 12.836763791565584,
+   "max_diameter_mm": 25.67352758313117,
+   "stenosis_index": 0.208042786027259,
+   "tortuosity": 1.0676906999636382,
+   "curvature_max_per_mm": 0.12281479419240146
+  },
+  "左髂总": {
+   "length_mm": 97.28571069366704,
+   "radius_min_mm": 6.081673722350621,
+   "radius_median_mm": 11.982028779752103,
+   "radius_max_mm": 16.779732701949523,
+   "max_diameter_mm": 33.55946540389905,
+   "stenosis_index": 0.4924337243599538,
+   "tortuosity": 1.0297872679819313,
+   "curvature_max_per_mm": 0.10392458539070466
+  },
+  "左髂外": {
+   "length_mm": 80.20835907156885,
+   "radius_min_mm": 3.1499993486754057,
+   "radius_median_mm": 3.486380368701935,
+   "radius_max_mm": 9.148220564999093,
+   "max_diameter_mm": 18.296441129998186,
+   "stenosis_index": 0.09648431451894968,
+   "tortuosity": 2.1165195556518883,
+   "curvature_max_per_mm": 0.1370691056610956
+  },
+  "左髂内": {
+   "length_mm": 74.02076889387726,
+   "radius_min_mm": 1.8244471939762725,
+   "radius_median_mm": 2.5698671112778912,
+   "radius_max_mm": 9.748144464656647,
+   "max_diameter_mm": 19.496288929313295,
+   "stenosis_index": 0.2900616588423327,
+   "tortuosity": 1.3178321665638386,
+   "curvature_max_per_mm": 0.18684003995651963
+  },
+  "右髂内": {
+   "length_mm": 69.43485713890409,
+   "radius_min_mm": 1.975049243205278,
+   "radius_median_mm": 2.8038037480753233,
+   "radius_max_mm": 7.481013708745927,
+   "max_diameter_mm": 14.962027417491853,
+   "stenosis_index": 0.2955822087900929,
+   "tortuosity": 1.2997657248814602,
+   "curvature_max_per_mm": 0.19261730582615635
+  },
+  "右髂外": {
+   "length_mm": 67.73825894058682,
+   "radius_min_mm": 3.081336312909957,
+   "radius_median_mm": 3.7954384228872877,
+   "radius_max_mm": 7.482270746868245,
+   "max_diameter_mm": 14.96454149373649,
+   "stenosis_index": 0.18814746293106632,
+   "tortuosity": 1.2876963115229434,
+   "curvature_max_per_mm": 0.14776293977626961
+  }
+ },
+ "branch_names": {
+  "0": "主动脉",
+  "1": "右髂总",
+  "2": "左髂总",
+  "3": "左髂外",
+  "4": "左髂内",
+  "5": "右髂内",
+  "6": "右髂外"
+ }
+}

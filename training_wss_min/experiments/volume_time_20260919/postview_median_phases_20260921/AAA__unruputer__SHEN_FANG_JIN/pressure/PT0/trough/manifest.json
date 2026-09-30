@@ -1,0 +1,112 @@
+{
+  "case": "AAA/unruputer/SHEN_FANG_JIN",
+  "arm": "PT0",
+  "field": "pressure",
+  "phase": "trough",
+  "frame_index": 48,
+  "step": 1216,
+  "q_norm": 0.0030448632687025755,
+  "n_query_points": 762386,
+  "n_wall_points": 85304,
+  "n_interior_points": 677082,
+  "n_surface_vertices": 127985,
+  "n_triangles": 255672,
+  "n_native_triangles": 170310,
+  "interpolation": {
+    "method": "gaussian",
+    "max_dist": 3.0,
+    "radius": 3.0,
+    "sharpness": 2.0,
+    "k": 12,
+    "power": 2.0,
+    "fallback": "mask"
+  },
+  "selfmax": {
+    "version": 1,
+    "kind": "selfmax",
+    "prefix": "pressure",
+    "unit": "dimensionless",
+    "source_unit": "Pa",
+    "denominator_scope": "original colocated wall∪interior, this case this frame",
+    "source_point_count": 762386,
+    "cfd_max": 65.88380432128906,
+    "pred_max": 26.741464709749508,
+    "cfd_denominator": {
+      "max": 65.88380432128906,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 6.588380432128906e-11
+    },
+    "pred_denominator": {
+      "max": 26.741464709749508,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 2.6741464709749508e-11
+    },
+    "formula": {
+      "pressure_cfd_selfmax": "CFD / max(original CFD)",
+      "pressure_pred_selfmax": "Pred / max(original Pred)",
+      "pressure_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+      "pressure_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+    },
+    "denominator_basis": "original full colocated case at selected frame, before interpolation",
+    "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+    "amplitude_difference_removed": true,
+    "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+    "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+    "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+  },
+  "pointcloud_metrics": {
+    "overall": {
+      "r2": -0.14254619032654103,
+      "mae": 10.417443130165061,
+      "rmse": 14.176918100863864
+    },
+    "wall": {
+      "r2": -0.0970752481277386,
+      "mae": 10.932231498982603
+    },
+    "interior": {
+      "r2": -0.14978064381041212,
+      "mae": 10.352586130549636
+    },
+    "metric_basis": "same-point wall∪interior; not STL-mapped surface"
+  },
+  "mapping_coverage": {
+    "target_points": 127985,
+    "valid_points": 127985,
+    "valid_ratio": 1.0
+  },
+  "files": {
+    "surface_gaussian": "surface_gaussian.vtp",
+    "cfd_wall_native": "cfd_wall_native.vtp",
+    "full_pointcloud": "full_pointcloud.vtp",
+    "wall_pointcloud": "wall_pointcloud.vtp",
+    "interior_pointcloud": "interior_pointcloud.vtp",
+    "interior_3mm_slab": "interior_3mm_slab.vtp",
+    "same_point_csv": "_export/same_point_fields.csv.gz",
+    "gaussian_source": "_export/gaussian_source_wall.csv",
+    "mapping_report": "mapping_report.json",
+    "pa_preview": "plots/fig_pressure_pa_triptych.png",
+    "selfmax_preview": "plots/fig_pressure_selfmax_triptych.png",
+    "interior_preview": "plots/fig_pressure_interior_projection.png"
+  },
+  "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_time_20260919/PT0_f2_s1234",
+  "checkpoint": "ckpt_best.pt",
+  "ckpt_epoch": 392,
+  "definition": "phase-query PointNet++ pressure, ckpt_best, frame_stats denorm",
+  "geometry": {
+    "stl_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/SHEN_FANG_JIN/SHEN_FANG_JIN.stl",
+    "stl_scale_to_mm": 1.0000000041524866,
+    "rotation_convention": "@R.T",
+    "repro_err_mm": 2.2254036238678054e-05,
+    "crop": {
+      "applied": false
+    },
+    "coord_scale": 157.32528686523438,
+    "n_wall": 85304,
+    "n_full": 762386
+  },
+  "p_ref": 13754.591780226221,
+  "skill": "postview-surface-viz"
+}

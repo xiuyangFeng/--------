@@ -2,7 +2,7 @@
 """把 anatomy-only 审查图收进汇报目录，并生成压力/WSS 重算对照图与三例网格壁面中心线拼图。
 
 数字来自
-docs/02-推进与变更/WSS_PINN/WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md
+docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md
 §13 / §23 / §26 / §27。只读复制，不改 outputs。
 """
 from __future__ import annotations

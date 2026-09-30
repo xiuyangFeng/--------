@@ -1,0 +1,66 @@
+| 子例 | 作业 | 提交时间 | 依赖 |
+|---|---|---|---|
+| `AG/fast/PENG_JI_MING~m25` | 15712 | 2026-09-26T16:36:54+08:00 | none |
+| `AG/slow/KANG_XI_MING~m18` | 15713 | 2026-09-26T16:36:54+08:00 | none |
+| `AG/slow/LI_BING_YI~m42` | 15714 | 2026-09-26T16:36:54+08:00 | none |
+| `AAA/ruputer/LV_GUO_YOU~m32` | 15715 | 2026-09-26T16:36:54+08:00 | none |
+| `AAA/unruputer/CHEN_SHU_LIN~m25` | 15716 | 2026-09-26T16:36:54+08:00 | none |
+| `ILO/ZHANG_YONG_SHENG-0~m52/after` | 15717 | 2026-09-26T16:36:54+08:00 | none |
+| `ILO/LU_FU_SHAN-0~m21/after` | 15718 | 2026-09-26T16:36:55+08:00 | none |
+| `ILO/WANG_JIN_MING-0~m54/after` | 15719 | 2026-09-26T16:36:55+08:00 | none |
+| `ILO/AN_GUANG_JIE-0~m37/after` | 15720 | 2026-09-26T16:36:55+08:00 | none |
+| `ILO/LI_FA_XIANG-1~m42/after` | 15721 | 2026-09-26T16:36:55+08:00 | none |
+| `ILO/LI_YU_GANG-0~m01/after` | 15722 | 2026-09-26T16:36:55+08:00 | --dependency=afterany:15712 |
+| `ILO/WANG_SHU_SHENG-0~m36/before` | 15723 | 2026-09-26T16:36:55+08:00 | --dependency=afterany:15713 |
+| `ILO/XUE_YOU_TANG-0~m19/before` | 15724 | 2026-09-26T16:36:55+08:00 | --dependency=afterany:15714 |
+| `ILO/PAN_YIN_GEN-1~m45/before` | 15725 | 2026-09-26T16:36:55+08:00 | --dependency=afterany:15715 |
+| `ILO/LIU_YUE_DONG-0~m29/before` | 15726 | 2026-09-26T16:36:55+08:00 | --dependency=afterany:15716 |
+| `ILO/ZHAO_CHANG_SHAN-0~m06/before` | 15727 | 2026-09-26T16:36:55+08:00 | --dependency=afterany:15717 |
+| `ILO/LIU_BAO_JUN-0~m39/before` | 15728 | 2026-09-26T16:36:55+08:00 | --dependency=afterany:15718 |
+| `AG/slow/QU_HE_PING~m38` | 15731 | 2026-09-26T17:15:20+08:00 | none |
+| `AG/slow/ZHANG_LING_GUANG~m22` | 15732 | 2026-09-26T17:15:20+08:00 | none |
+| `AG/slow/ZHANG_HUAN_LI~m48` | 15733 | 2026-09-26T17:15:20+08:00 | none |
+| `AG/slow/MI_DE_XI~m32` | 15734 | 2026-09-26T17:15:20+08:00 | none |
+| `AG/slow/LI_HUAN_GE~m26` | 15735 | 2026-09-26T17:15:20+08:00 | none |
+| `AG/slow/LU_ZHEN_QING~m29` | 15736 | 2026-09-26T17:15:20+08:00 | none |
+| `AG/slow/BAI_WEN_JIE~m16` | 15737 | 2026-09-26T17:15:20+08:00 | none |
+| `AG/slow/YIN_YU_RONG~m44` | 15738 | 2026-09-26T17:15:20+08:00 | none |
+| `AG/fast/RAN_QING_BO~m06` | 15739 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15731 |
+| `AG/slow/SUN_ZONG_GE~m43` | 15740 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15732 |
+| `AG/slow/CHENG_LU_LI~m10` | 15741 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15733 |
+| `AG/slow/NI_YAN_BIN~m49` | 15742 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15734 |
+| `AG/slow/GUO_XI_JIANG~m35` | 15743 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15735 |
+| `AG/slow/ZHANG_SONG_TIAN~m45` | 15744 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15736 |
+| `AG/slow/LIN_SHU_TIAN~m33` | 15745 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15737 |
+| `AG/slow/SUN_WEN_QING~m15` | 15746 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15738 |
+| `AAA/ruputer/CHEN_FU~m26` | 15747 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15739 |
+| `AAA/ruputer/HUO_SHI_LIANG~m28` | 15748 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15740 |
+| `AAA/unruputer/SHEN_CHUN_WANG~m11` | 15749 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15741 |
+| `AAA/unruputer/LI_YOU_YU~m27` | 15750 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15742 |
+| `AAA/unruputer/HAN_JIAN_FU~m36` | 15751 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15743 |
+| `AAA/ruputer/KANG_YONG~m01` | 15752 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15744 |
+| `AAA/unruputer/ZHANG_ZHI_HUA~m14` | 15753 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15745 |
+| `AAA/ruputer/LIN_LIANG_XIAO~m10` | 15754 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15746 |
+| `AAA/ruputer/FENG_LI_XIN~m38` | 15755 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15747 |
+| `AAA/unruputer/GAO_DIAN_WEN~m07` | 15756 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15748 |
+| `AAA/unruputer/YAN_FU_TANG~m34` | 15757 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15749 |
+| `AAA/ruputer/LIU_JI_XIN~m31` | 15758 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15750 |
+| `AAA/unruputer/ZHOU_XI_SHENG~m22` | 15759 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15751 |
+| `ILO/XIONG_DONG_SUO-0~m49/after` | 15760 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15752 |
+| `ILO/GENG_CHUN_LAI-1~m46/after` | 15761 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15753 |
+| `ILO/ZHANG_JIAN_JUN-1~m31/after` | 15762 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15754 |
+| `ILO/GONG_HAI_ZENG-1~m34/after` | 15763 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15755 |
+| `ILO/GAO_SHU_CAI-0~m24/before` | 15764 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15756 |
+| `ILO/WENG_ZHAO_GUANG-0~m03/before` | 15765 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15757 |
+| `ILO/ZHANG_JIAN_JUN-1~m57/before` | 15766 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15758 |
+| `ILO/YAO_GUO_CHEN-0~m10/before` | 15767 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15759 |
+| `ILO/LIN_CHUN_YANG-1~m12/before` | 15768 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15760 |
+| `ILO/LI_YOU_ZHI-0~m48/before` | 15769 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15761 |
+| `ILO/WAGN_LI_JUN-1~m25/before` | 15770 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15762 |
+| `ILO/WU_JUN-0~m05/before` | 15771 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15763 |
+| `ILO/SUN_CHUN_PU-0~m53/before` | 15772 | 2026-09-26T17:15:20+08:00 | --dependency=afterany:15764 |
+| `AG/fast/WANG_YONG_FAN~m19` | 15774 | 2026-09-26T17:18:32+08:00 | none |
+
+> 2026-09-26 20:03 节流器修正：(1) `pend_free` 不再把 `Dependency` 挂起计入，(2) 释放顺序改为作业号升序（afterany 链依赖的是更早的 held 作业，之前从最新往前放导致放出的作业全部卡在 Dependency）。修正后 20:01–20:03 连续放出 15726–15728，运行数 1→4。
+| `ILO/WANG_SHU_SHENG-0~m36/before` | 15775 | 2026-09-26T21:56:29+08:00 | none（重跑：export-2 壁面导出文件名与体场导出同名相撞→改指向 ascii/，旧 ascii_in 已清） |
+| `AAA/unruputer/HAN_JIAN_FU~m36` | 15777 | 2026-09-27T00:16:32+08:00 | none（重生成：原 15751 幅值 0.40 形变 5 步即浮点异常；改 seed 20260927、幅值 0.10–0.25，位移 ≤2.8 mm，体积比 0.54–1.63；冒烟 15776 过） |

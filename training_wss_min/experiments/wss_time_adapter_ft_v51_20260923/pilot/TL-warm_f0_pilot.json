@@ -1,0 +1,57 @@
+{
+ "schema": "time_adapter_finetune_v1",
+ "name": "wss_time_adapter_ft_v51_20260923/TL-warm_f0_pilot",
+ "experiment": "wss_time_adapter_ft_v51_20260923",
+ "arm": "TL-warm",
+ "fold": 0,
+ "seed": 1234,
+ "title": "teacher step 2: time geometry branch initialised from the same-fold X5D checkpoint; fp + local_wall_branch unfrozen (lr 1e-4)",
+ "donor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234",
+ "donor_checkpoint": "best",
+ "geometry_init": "donor",
+ "trainable_modules": [
+  "fp",
+  "local_wall_branch"
+ ],
+ "cache_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_v51_20260923/cache/fold0",
+ "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold0.json",
+ "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1",
+ "frame_stats_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold0.json",
+ "waveform_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json",
+ "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_ft_v51_20260923/pilot/TL-warm_f0_pilot",
+ "peak_index": 21,
+ "phase_features": [
+  "q_norm",
+  "dq_norm",
+  "t_sin",
+  "t_cos"
+ ],
+ "head": {
+  "inputs": [
+   "query_x",
+   "peak_ln"
+  ],
+  "geom_hidden": 128,
+  "time_hidden": 64,
+  "decoder_hidden": [
+   128,
+   128
+  ],
+  "zero_init_output": true
+ },
+ "train": {
+  "epochs": 2,
+  "batch_cases": 8,
+  "query_points": 2048,
+  "lr_head": 0.001,
+  "lr_geometry": 0.0001,
+  "weight_decay": 0.0001,
+  "warmup_epochs": 5,
+  "min_lr_ratio": 0.01,
+  "grad_clip": 1.0,
+  "selection": "last",
+  "num_workers": 4,
+  "input_stats_batches": 4,
+  "allow_tf32": true
+ }
+}

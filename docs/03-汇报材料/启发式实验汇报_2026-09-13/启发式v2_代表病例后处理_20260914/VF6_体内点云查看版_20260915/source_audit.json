@@ -1,0 +1,278 @@
+{
+  "status": "completed_with_warning",
+  "audited_at": "2026-09-15T03:52:02.580589+00:00",
+  "scope": "Independent source audit of original VF6 complete interior cell-centre point clouds; no data/model changes",
+  "conclusion": "The three original velocity VTPs contain anatomy volume cell centres only. No wall nodes or exact zero-speed CFD/prediction values were found. Dense near-wall interior points can obscure the core in an opaque whole-volume projection.",
+  "case_count": 3,
+  "total_source_points": 1257254,
+  "total_excluded_wall_points": 0,
+  "cases": [
+    {
+      "role": "best",
+      "case_id": "AG/fast/ZHANG_LIANG",
+      "point_count": 426057,
+      "wall_node_count": 14399,
+      "kept_by_strict_wall_exclusion": 426057,
+      "excluded_by_strict_wall_exclusion": 0,
+      "strict_wall_tolerance_mm": 0.001,
+      "exact_distance_method": "vtkStaticCellLocator global nearest point on all original raw CFD wall triangles; every volume cell centre evaluated",
+      "exact_surface_distance_mm": {
+        "min": 0.012141359623074213,
+        "p01": 0.029575834559942213,
+        "p50": 0.967171278845114,
+        "max": 15.080587733600076
+      },
+      "stored_surface_distance_max_difference_mm": 4.7681851356173865e-07,
+      "nearest_wall_node_distance_min_mm": 0.22935905951390062,
+      "cfd_speed_m_s": {
+        "min": 3.181404420375864e-05,
+        "max": 1.3350822045440662,
+        "zero_count": 0
+      },
+      "pred_speed_m_s": {
+        "min": 0.000800030853859886,
+        "max": 1.4262983308216952,
+        "zero_count": 0
+      },
+      "adjacent_to_wall_cell_count": 28678,
+      "near_wall_interior_counts": {
+        "0.05": 27588,
+        "0.1": 41051,
+        "0.5": 139784,
+        "1.0": 215645
+      },
+      "id_namespace_caution": {
+        "cell_namespace": "1-based Fluent cell id",
+        "wall_namespace": "1-based Fluent node id",
+        "integer_intersection_count_not_identity": 0,
+        "interpretation": "Separate namespaces; integer overlap is not evidence of shared physical points and must not drive filtering."
+      },
+      "source_descriptions": {
+        "volume_static/xyz_mm": "anatomy cell centres in export order",
+        "volume_static/dist_to_wall_mm": "exact distance to anatomy wall triangles"
+      },
+      "checks": {
+        "all_volume_coordinates_reconstructed_exact_float32": true,
+        "all_velocity_vectors_reconstructed_exact_float32": true,
+        "all_cache_query_ids_are_complete_interior": true,
+        "cache_has_no_wall_query": true,
+        "point_kind_matches_query_identity": true,
+        "vtp_xyz_matches_full_volume": true,
+        "vtp_true_vector_matches_cache": true,
+        "vtp_pred_vector_matches_cache": true,
+        "no_zero_cfd_velocity": true,
+        "no_zero_predicted_velocity": true,
+        "all_cell_volumes_positive": true,
+        "all_exact_surface_distances_above_1um": true,
+        "stored_distance_matches_independent_surface_locator": true,
+        "no_wall_node_coordinate_match_1um": true,
+        "all_wall_nodes_valid": true
+      },
+      "passed": true,
+      "source_files": {
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_LIANG/bundle.npz",
+        "volume": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_LIANG/volume.npz",
+        "cache": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/predictions/test/AG/fast/ZHANG_LIANG/predictions.npz",
+        "snapshot": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__ZHANG_LIANG/case.h5",
+        "original_vtp": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/best/VF6__best__AG__fast__ZHANG_LIANG__volume_velocity.vtp"
+      },
+      "source_sha256": {
+        "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_LIANG/bundle.npz": "7d50305af2a0dd792d957dfad69e0eecbc1f2a1eb789bee999fa0e4319de93a9",
+        "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_LIANG/volume.npz": "bc464eb7b6de413881e270984be2bf6d937cf655ed59ae47193566b0e3a7ba6b",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/predictions/test/AG/fast/ZHANG_LIANG/predictions.npz": "e0a6482bba025a28cba88be28f84973e3838979d24ca77c7a28b59f9aede8076",
+        "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/best/VF6__best__AG__fast__ZHANG_LIANG__volume_velocity.vtp": "8a8f00fba40b0111fcfb44cf901472ebd63b9831de828254be0f112d7c5f39c5"
+      },
+      "elapsed_seconds": 5.779311418533325,
+      "source_membership_passed": true
+    },
+    {
+      "role": "median",
+      "case_id": "AG/slow/LI_HUAN_GE",
+      "point_count": 367250,
+      "wall_node_count": 12691,
+      "kept_by_strict_wall_exclusion": 367250,
+      "excluded_by_strict_wall_exclusion": 0,
+      "strict_wall_tolerance_mm": 0.001,
+      "exact_distance_method": "vtkStaticCellLocator global nearest point on all original raw CFD wall triangles; every volume cell centre evaluated",
+      "exact_surface_distance_mm": {
+        "min": 0.012158879964669187,
+        "p01": 0.01781925749528104,
+        "p50": 0.7070672302591335,
+        "max": 14.252787059613626
+      },
+      "stored_surface_distance_max_difference_mm": 4.764339198715106e-07,
+      "nearest_wall_node_distance_min_mm": 0.2253821348570186,
+      "cfd_speed_m_s": {
+        "min": 8.174715651661171e-05,
+        "max": 1.752716853410338,
+        "zero_count": 0
+      },
+      "pred_speed_m_s": {
+        "min": 0.0012597146381638303,
+        "max": 1.867390857897593,
+        "zero_count": 0
+      },
+      "adjacent_to_wall_cell_count": 25208,
+      "near_wall_interior_counts": {
+        "0.05": 22265,
+        "0.1": 44082,
+        "0.5": 149090,
+        "1.0": 220669
+      },
+      "id_namespace_caution": {
+        "cell_namespace": "1-based Fluent cell id",
+        "wall_namespace": "1-based Fluent node id",
+        "integer_intersection_count_not_identity": 12571,
+        "interpretation": "Separate namespaces; integer overlap is not evidence of shared physical points and must not drive filtering."
+      },
+      "source_descriptions": {
+        "volume_static/xyz_mm": "anatomy cell centres in export order",
+        "volume_static/dist_to_wall_mm": "exact distance to anatomy wall triangles"
+      },
+      "checks": {
+        "all_volume_coordinates_reconstructed_exact_float32": true,
+        "all_velocity_vectors_reconstructed_exact_float32": true,
+        "all_cache_query_ids_are_complete_interior": true,
+        "cache_has_no_wall_query": true,
+        "point_kind_matches_query_identity": true,
+        "vtp_xyz_matches_full_volume": true,
+        "vtp_true_vector_matches_cache": true,
+        "vtp_pred_vector_matches_cache": true,
+        "no_zero_cfd_velocity": true,
+        "no_zero_predicted_velocity": true,
+        "all_cell_volumes_positive": true,
+        "all_exact_surface_distances_above_1um": true,
+        "stored_distance_matches_independent_surface_locator": true,
+        "no_wall_node_coordinate_match_1um": true,
+        "all_wall_nodes_valid": true
+      },
+      "passed": true,
+      "source_files": {
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LI_HUAN_GE/bundle.npz",
+        "volume": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LI_HUAN_GE/volume.npz",
+        "cache": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/predictions/test/AG/slow/LI_HUAN_GE/predictions.npz",
+        "snapshot": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__slow__LI_HUAN_GE/case.h5",
+        "original_vtp": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/median/VF6__median__AG__slow__LI_HUAN_GE__volume_velocity.vtp"
+      },
+      "source_sha256": {
+        "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LI_HUAN_GE/bundle.npz": "1661e8f45d5f9e461b37a01d94be8dd6ec15bb6ec27339133fe5a123f0c6712d",
+        "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/slow/LI_HUAN_GE/volume.npz": "b9985ae364c37686c41e15909b8b8da7e3096a854adcb22d4626436ca063fb86",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/predictions/test/AG/slow/LI_HUAN_GE/predictions.npz": "e1d99e17d187ec756d183d583b527a1cee97174d8c13b4d737fb1798819d2193",
+        "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/median/VF6__median__AG__slow__LI_HUAN_GE__volume_velocity.vtp": "3ccde494809868d358390e7f765f5f87a0674fb0ede3a1ce1ef350f2a9afb47e"
+      },
+      "elapsed_seconds": 5.409874200820923,
+      "source_membership_passed": true
+    },
+    {
+      "role": "worst",
+      "case_id": "AAA/unruputer/SUN_SHU_MING",
+      "point_count": 463947,
+      "wall_node_count": 14958,
+      "kept_by_strict_wall_exclusion": 463947,
+      "excluded_by_strict_wall_exclusion": 0,
+      "strict_wall_tolerance_mm": 0.001,
+      "exact_distance_method": "vtkStaticCellLocator global nearest point on all original raw CFD wall triangles; every volume cell centre evaluated",
+      "exact_surface_distance_mm": {
+        "min": 0.011604876073956936,
+        "p01": 0.02657556934101355,
+        "p50": 1.3152455640130198,
+        "max": 35.37255594611217
+      },
+      "stored_surface_distance_max_difference_mm": 0.041908338393755074,
+      "nearest_wall_node_distance_min_mm": 0.32419408891949114,
+      "cfd_speed_m_s": {
+        "min": 3.6492829521496464e-05,
+        "max": 0.7926372757660343,
+        "zero_count": 0
+      },
+      "pred_speed_m_s": {
+        "min": 0.0004532091762325467,
+        "max": 0.7023988571699061,
+        "zero_count": 0
+      },
+      "adjacent_to_wall_cell_count": 29737,
+      "near_wall_interior_counts": {
+        "0.05": 18603,
+        "0.1": 36529,
+        "0.5": 129244,
+        "1.0": 200551
+      },
+      "id_namespace_caution": {
+        "cell_namespace": "1-based Fluent cell id",
+        "wall_namespace": "1-based Fluent node id",
+        "integer_intersection_count_not_identity": 11131,
+        "interpretation": "Separate namespaces; integer overlap is not evidence of shared physical points and must not drive filtering."
+      },
+      "source_descriptions": {
+        "volume_static/xyz_mm": "anatomy cell centres in export order",
+        "volume_static/dist_to_wall_mm": "exact distance to anatomy wall triangles"
+      },
+      "checks": {
+        "all_volume_coordinates_reconstructed_exact_float32": true,
+        "all_velocity_vectors_reconstructed_exact_float32": true,
+        "all_cache_query_ids_are_complete_interior": true,
+        "cache_has_no_wall_query": true,
+        "point_kind_matches_query_identity": true,
+        "vtp_xyz_matches_full_volume": true,
+        "vtp_true_vector_matches_cache": true,
+        "vtp_pred_vector_matches_cache": true,
+        "no_zero_cfd_velocity": true,
+        "no_zero_predicted_velocity": true,
+        "all_cell_volumes_positive": true,
+        "all_exact_surface_distances_above_1um": true,
+        "stored_distance_matches_independent_surface_locator": false,
+        "no_wall_node_coordinate_match_1um": true,
+        "all_wall_nodes_valid": true
+      },
+      "passed": false,
+      "source_files": {
+        "bundle": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/SUN_SHU_MING/bundle.npz",
+        "volume": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/SUN_SHU_MING/volume.npz",
+        "cache": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/predictions/test/AAA/unruputer/SUN_SHU_MING/predictions.npz",
+        "snapshot": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AAA__unruputer__SUN_SHU_MING/case.h5",
+        "original_vtp": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/worst/VF6__worst__AAA__unruputer__SUN_SHU_MING__volume_velocity.vtp"
+      },
+      "source_sha256": {
+        "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/SUN_SHU_MING/bundle.npz": "cb1c3936fd366c7a8140f4a3044209830636a6546c6d57a7e626800097ed6fe2",
+        "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AAA/unruputer/SUN_SHU_MING/volume.npz": "189d92d2fade5382699e21344dc0d8b0369d0b25606559ec63dd355c015771f4",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/VF6_s1234/eval/ckpt_best/predictions/test/AAA/unruputer/SUN_SHU_MING/predictions.npz": "c61ee644c456688325e9f9f1ddc5b5def4c0f20940600c110bb8a056defeaf2a",
+        "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/worst/VF6__worst__AAA__unruputer__SUN_SHU_MING__volume_velocity.vtp": "70eb0b537967de3735134b51c02616c8754147ff7c8e616176b6e9c828211b43"
+      },
+      "elapsed_seconds": 6.287691354751587,
+      "stored_distance_approximation": {
+        "reason": "Historical builder tests only k=12 nearest triangle-centroid candidates; its per-triangle distances are exact but global nearest coverage is not guaranteed.",
+        "source": "wss_v5/mesh_topology.py:178",
+        "difference_definition": "stored distance minus independently computed global surface distance, mm",
+        "counts_abs_difference_gt_mm": {
+          "1e-06": 60,
+          "5e-06": 2,
+          "1e-05": 2,
+          "0.0001": 2,
+          "0.001": 2,
+          "0.01": 2
+        },
+        "positive_overestimation_count_gt_5e_6_mm": 2,
+        "negative_difference_count_below_minus5e_6_mm": 0,
+        "global_max_difference_mm": 0.041908338393755074,
+        "max_difference_row": 101315,
+        "global_exact_distance_at_max_difference_mm": 10.63861648765605,
+        "stored_distance_at_max_difference_mm": 10.680524826049805,
+        "does_not_change_wall_exclusion_at_1um": true,
+        "affected_volume_rows": [
+          101233,
+          101315
+        ]
+      },
+      "source_membership_passed": true
+    }
+  ],
+  "source_pipeline_evidence": {
+    "raw_volume_loader": "wss_v5/raw_frames.py: requires cellnumber, matches mesh cell centres, retains anatomy cell zone; does not load wall-node exports",
+    "volume_snapshot": "wss_v5/build_case.py: volume_static/xyz_mm stores anatomy cell centres; wall nodes are separate wall_static/xyz_mm",
+    "registered_view": "wss_v5/views/volume_view.py: applies the same atlas rigid transform to cell coordinates and velocity vectors"
+  },
+  "recommendation": "Retain every complete interior point. Provide separately labelled purely geometric half-cloud and 1 mm slab views to expose the interior; keep original full-domain selfmax denominators and official scores. Do not remove valid near-wall cells by velocity value, colour, node/cell integer-ID overlap, or an arbitrary erosion distance.",
+  "boundary": "This audit verifies original source geometry and field membership. It does not yet validate newly created viewing subsets.",
+  "source_membership_status": "passed",
+  "warning": "SUN_SHU_MING stored wall-distance feature has a historical k=12 candidate-search approximation; full global triangle search still confirms no wall point in the exported velocity cloud. The discrepancy remains unmodified in all training/evaluation source data."
+}

@@ -55,6 +55,7 @@ class WallFrames:
     duplicate_rows: int = 0
     rows_outside_anatomy: int = 0
     seconds: float = 0.0
+    export_scope: str = "anatomy_wall"  # anatomy_wall | whole_domain (node export of the entire mesh; interior rows carry WSS 0) | anatomy_wall_plus_extra_rows
 
 
 def _header(path: Path) -> str:
@@ -180,6 +181,12 @@ def read_wall_frames(raw_dir: Path, md: MeshData, *, hash_files: bool = True) ->
         files.append({"step": int(step), "file": path.name, "bytes": path.stat().st_size, "mtime": path.stat().st_mtime,
                       "sha256": sha256_of(path) if hash_files else None})
     valid = np.isfinite(wss).all(axis=0)
+    if outside_total == 0:
+        scope = "anatomy_wall"
+    elif outside_total >= 0.5 * len(ref["coords"]):
+        scope = "whole_domain"  # 2026-09-22: mixed-zone exports (whole mesh node set); wall rows are matched by coordinate, the rest dropped
+    else:
+        scope = "anatomy_wall_plus_extra_rows"
     return WallFrames(
         valid=valid,
         source_row=source_row,
@@ -194,4 +201,5 @@ def read_wall_frames(raw_dir: Path, md: MeshData, *, hash_files: bool = True) ->
         duplicate_rows=duplicates,
         rows_outside_anatomy=outside_total,
         seconds=time.time() - started,
+        export_scope=scope,
     )

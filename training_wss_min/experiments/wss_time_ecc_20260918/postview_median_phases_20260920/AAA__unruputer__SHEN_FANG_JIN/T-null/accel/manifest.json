@@ -1,0 +1,89 @@
+{
+  "case": "AAA/unruputer/SHEN_FANG_JIN",
+  "arm": "T-null",
+  "phase": "accel",
+  "frame_index": 13,
+  "step": 1146,
+  "q_norm": 0.4061965528497471,
+  "n_wall_points": 85304,
+  "n_surface_vertices": 127985,
+  "n_triangles": 255672,
+  "interpolation": {
+    "method": "gaussian",
+    "max_dist": 3.0,
+    "radius": 3.0,
+    "sharpness": 2.0,
+    "k": 12,
+    "power": 2.0,
+    "fallback": "mask"
+  },
+  "selfmax": {
+    "version": 1,
+    "kind": "selfmax",
+    "prefix": "wss",
+    "unit": "dimensionless",
+    "source_unit": "Pa",
+    "denominator_scope": "original colocated wall, this case this frame",
+    "source_point_count": 85304,
+    "cfd_max": 11.56743049621582,
+    "pred_max": 8.466803558380452,
+    "cfd_denominator": {
+      "max": 11.56743049621582,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 1.156743049621582e-11
+    },
+    "pred_denominator": {
+      "max": 8.466803558380452,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 8.466803558380452e-12
+    },
+    "formula": {
+      "wss_cfd_selfmax": "CFD / max(original CFD)",
+      "wss_pred_selfmax": "Pred / max(original Pred)",
+      "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+      "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+    },
+    "denominator_basis": "original full colocated case at selected frame, before interpolation",
+    "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+    "amplitude_difference_removed": true,
+    "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+    "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+    "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+  },
+  "pointcloud_metrics": {
+    "r2": 0.6634666833081386,
+    "mae": 0.27800077235795506,
+    "rmse": 0.460981877942904,
+    "metric_basis": "same-point wall CSV; not STL-mapped surface"
+  },
+  "mapping_coverage": {
+    "target_points": 127985,
+    "valid_points": 127985,
+    "valid_ratio": 1.0
+  },
+  "files": {
+    "surface_gaussian": "surface_gaussian.vtp",
+    "pointcloud": "pointcloud.vtp",
+    "same_point_csv": "_export/same_point_fields.csv",
+    "mapping_report": "mapping_report.json",
+    "pa_preview": "plots/fig_wss_pa_triptych.png",
+    "selfmax_preview": "plots/fig_wss_selfmax_triptych.png"
+  },
+  "run": null,
+  "checkpoint": "ckpt_best.pt",
+  "ckpt_epoch": null,
+  "definition": "D2 B_scale: cascade OOF peak ln × fold train frame μ/σ",
+  "geometry": {
+    "stl_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/SHEN_FANG_JIN/SHEN_FANG_JIN.stl",
+    "stl_scale_to_mm": 1.0000000041524866,
+    "rotation_convention": "@R.T",
+    "repro_err_mm": 2.2254036238678054e-05,
+    "crop": {
+      "applied": false
+    },
+    "coord_scale": 157.32528686523438
+  },
+  "skill": "postview-surface-viz"
+}

@@ -1,0 +1,124 @@
+{
+ "host": "node04",
+ "pid": 13056,
+ "package_dir": "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min",
+ "started_at": "2026-09-23T22:27:34+0800",
+ "executed_outside_slurm": true,
+ "gpus": [
+  "0",
+  "1"
+ ],
+ "slots_per_gpu": 3,
+ "fingerprint_files": 27,
+ "jobs": {
+  "TL-warm_f0_s1234": {
+   "kind": "finetune",
+   "state": "done",
+   "gpu": "0",
+   "pid": 13106,
+   "log": "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/experiments/wss_time_adapter_ft_v51_20260923/logs/TL-warm_f0_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_adapter_finetune",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/configs/wss_time_adapter_ft_v51_20260923/TL-warm_f0_s1234.json"
+   ],
+   "started_at": "2026-09-23T22:27:34+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T03:14:52+0800"
+  },
+  "TL-random_f0_s1234": {
+   "kind": "finetune",
+   "state": "done",
+   "gpu": "0",
+   "pid": 13109,
+   "log": "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/experiments/wss_time_adapter_ft_v51_20260923/logs/TL-random_f0_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_adapter_finetune",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/configs/wss_time_adapter_ft_v51_20260923/TL-random_f0_s1234.json"
+   ],
+   "started_at": "2026-09-23T22:27:34+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T03:12:52+0800"
+  },
+  "TL-warm_f1_s1234": {
+   "kind": "finetune",
+   "state": "done",
+   "gpu": "0",
+   "pid": 13112,
+   "log": "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/experiments/wss_time_adapter_ft_v51_20260923/logs/TL-warm_f1_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_adapter_finetune",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/configs/wss_time_adapter_ft_v51_20260923/TL-warm_f1_s1234.json"
+   ],
+   "started_at": "2026-09-23T22:27:35+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T03:12:52+0800"
+  },
+  "TL-random_f1_s1234": {
+   "kind": "finetune",
+   "state": "done",
+   "gpu": "1",
+   "pid": 13115,
+   "log": "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/experiments/wss_time_adapter_ft_v51_20260923/logs/TL-random_f1_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_adapter_finetune",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/configs/wss_time_adapter_ft_v51_20260923/TL-random_f1_s1234.json"
+   ],
+   "started_at": "2026-09-23T22:27:35+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T03:17:22+0800"
+  },
+  "TL-warm_f2_s1234": {
+   "kind": "finetune",
+   "state": "done",
+   "gpu": "1",
+   "pid": 13117,
+   "log": "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/experiments/wss_time_adapter_ft_v51_20260923/logs/TL-warm_f2_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_adapter_finetune",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/configs/wss_time_adapter_ft_v51_20260923/TL-warm_f2_s1234.json"
+   ],
+   "started_at": "2026-09-23T22:27:35+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T03:17:52+0800"
+  },
+  "TL-random_f2_s1234": {
+   "kind": "finetune",
+   "state": "done",
+   "gpu": "1",
+   "pid": 13118,
+   "log": "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/experiments/wss_time_adapter_ft_v51_20260923/logs/TL-random_f2_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_adapter_finetune",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN_timeadapter_ft_frozen_20260923/training_wss_min/configs/wss_time_adapter_ft_v51_20260923/TL-random_f2_s1234.json"
+   ],
+   "started_at": "2026-09-23T22:27:35+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T03:18:22+0800"
+  }
+ },
+ "finished_at": "2026-09-24T03:18:22+0800"
+}

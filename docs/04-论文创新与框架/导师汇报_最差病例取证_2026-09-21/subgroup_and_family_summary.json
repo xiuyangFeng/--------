@@ -1,0 +1,96 @@
+{
+ "source": {
+  "cv3": "training_wss_min/runs/wss_v51_wave2a_20260916",
+  "residuals": "training_wss_min/experiments/wss_v51_wave1_20260916/analysis_20260917/current_residuals.json"
+ },
+ "subgroups": {
+  "AAA/ruputer": {
+   "n": 21,
+   "mean_r2": 0.696719011357275,
+   "median_r2": 0.7235910147513094,
+   "min_r2": 0.3095950403125928,
+   "n_below_0p6": 3
+  },
+  "AAA/unruputer": {
+   "n": 23,
+   "mean_r2": 0.7324965679613444,
+   "median_r2": 0.7381170225489936,
+   "min_r2": 0.4296322267139371,
+   "n_below_0p6": 2
+  },
+  "AG/fast": {
+   "n": 17,
+   "mean_r2": 0.7282403858803882,
+   "median_r2": 0.7321370504636521,
+   "min_r2": 0.5999341599832062,
+   "n_below_0p6": 1
+  },
+  "AG/slow": {
+   "n": 43,
+   "mean_r2": 0.7496600119544659,
+   "median_r2": 0.7691978830182383,
+   "min_r2": 0.5818448191182506,
+   "n_below_0p6": 4
+  },
+  "ILO/0 未发生髂支闭塞": {
+   "n": 22,
+   "mean_r2": 0.6724672205792939,
+   "median_r2": 0.7084651483835038,
+   "min_r2": 0.3752293905747349,
+   "n_below_0p6": 4
+  },
+  "ILO/1 发生髂支闭塞": {
+   "n": 10,
+   "mean_r2": 0.7082203851460508,
+   "median_r2": 0.7188047927691297,
+   "min_r2": 0.5774282714211678,
+   "n_below_0p6": 1
+  }
+ },
+ "families": {
+  "A_jet_high_amplitude(p99>35Pa & top10_ratio<0.7)": {
+   "n": 21,
+   "mean_r2": 0.6486881921844118,
+   "sse_share": 0.5981332800476281,
+   "cases": [
+    "ILO/WANG_JIN_MING-0/before",
+    "ILO/ZHAO_CHANG_SHAN-0/before",
+    "AAA/ruputer/MENG_GUANG_QIN",
+    "AG/slow/WANG_KE",
+    "AG/slow/SUN_ZONG_GE",
+    "ILO/YANG_YU_QING-1/before",
+    "AG/slow/LI_GUI_YING",
+    "AAA/ruputer/WANG_KUI_WU",
+    "AAA/ruputer/DING_JUN_FENG",
+    "AG/slow/NI_YAN_BIN",
+    "AAA/ruputer/WANG_AN",
+    "ILO/WANG_XIAO_LIN-0/before",
+    "AG/fast/LI_ZHI_LIN",
+    "ILO/GONG_HAI_ZENG-1/before",
+    "AG/fast/WANG_DAO_CHUN",
+    "AG/slow/LIU_FA_CHUN",
+    "AAA/unruputer/CHEN_FU_YE",
+    "ILO/HOU_SHI_GUO-0/before",
+    "AAA/ruputer/ZHOU_KE_XUN",
+    "ILO/YANG_WANG_QI-1/before",
+    "AG/slow/MI_DE_XI"
+   ]
+  },
+  "B_low_wss_sac(p99<20Pa & MAE<1.5Pa)": {
+   "n": 61,
+   "mean_r2": 0.7217701526515841,
+   "sse_share": 0.07515617425334449
+  },
+  "C_branch_offset(branch_mean_share>0.35)": {
+   "n": 5,
+   "cases": [
+    "AAA/ruputer/MENG_GUANG_QIN",
+    "AAA/unruputer/GUO_BAO_CHUN",
+    "ILO/WANG_JIN_MING-0/before",
+    "AAA/ruputer/LI_BING_JIANG",
+    "AG/fast/CHEN_SHI_MING"
+   ],
+   "median_branch_share_all": 0.08148223268358885
+  }
+ }
+}

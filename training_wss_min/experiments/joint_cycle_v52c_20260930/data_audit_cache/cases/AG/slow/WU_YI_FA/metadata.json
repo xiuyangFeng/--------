@@ -1,0 +1,127 @@
+{
+  "canonical_id": "AG/slow/WU_YI_FA",
+  "assembly_source": "v5.1",
+  "n_wall": 21452,
+  "n_volume": 648093,
+  "sources": {
+    "h5": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_2c_20260930/cases/AG__slow__WU_YI_FA/case.h5",
+      "size": 935603200,
+      "mtime_ns": 1789507188875831000
+    },
+    "bundle": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AG/slow/WU_YI_FA/bundle.npz",
+      "size": 37639648,
+      "mtime_ns": 1789512680056108494
+    },
+    "volume": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AG/slow/WU_YI_FA/volume.npz",
+      "size": 81192703,
+      "mtime_ns": 1789512808728864838
+    },
+    "geom": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_geom_v2/AG/slow/WU_YI_FA/features.npz",
+      "size": 1376880,
+      "mtime_ns": 1789512760300580175
+    },
+    "flowref": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/slow/WU_YI_FA/features.npz",
+      "size": 2151728,
+      "mtime_ns": 1790760137341226860
+    }
+  },
+  "boundary_conditions": {
+    "udf": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/WU_YI_FA/udf-inlet.c",
+      "sha256": "2eff0f23e0562ca8ac7aeb3a032abf4d73b7ab8df11e171939192447fc806436"
+    },
+    "rcr": [
+      {
+        "outlet": "out-le",
+        "R1": 164170.0,
+        "R2": 857260.0,
+        "C": 1.7525e-06
+      },
+      {
+        "outlet": "out-li",
+        "R1": 640570.0,
+        "R2": 5391100.0,
+        "C": 2.9677e-07
+      },
+      {
+        "outlet": "out-ri",
+        "R1": 534710.0,
+        "R2": 4544100.0,
+        "C": 3.5245e-07
+      },
+      {
+        "outlet": "out-re",
+        "R1": 160270.0,
+        "R2": 894680.0,
+        "C": 1.6968e-06
+      }
+    ],
+    "rheology": {
+      "mu_inf_pa_s": 0.0035,
+      "mu_zero_pa_s": 0.16,
+      "lambda_s": 8.2,
+      "a": 0.64,
+      "n": 0.2128
+    },
+    "period_s": 0.8,
+    "rho_kg_m3": 1060.0,
+    "A_inlet_udf_m2": 0.0004343582,
+    "resistance_units": "Pa*s/kg",
+    "capacitance_units": "kg/Pa",
+    "source": "case.h5 conditions attributes; frozen prescribed inputs, no CFD labels"
+  },
+  "schema": "joint_cycle_v52_v1",
+  "settings": {
+    "seed": 1234,
+    "train_volume": 8192,
+    "train_wall": 8192,
+    "eval_volume": 16384,
+    "eval_wall": 8192
+  },
+  "peak_consistency": {
+    "peak_velocity_abs_max": 0.0,
+    "peak_pressure_abs_max": 0.0,
+    "peak_wss_abs_max": 0.0
+  },
+  "endpoint_80_vs_0_abs_max": {
+    "train": {
+      "velocity": 0.21583625674247742,
+      "pressure": 25.222930908203125,
+      "wss": 2.4216256141662598
+    },
+    "eval": {
+      "velocity": 0.22871139645576477,
+      "pressure": 25.226837158203125,
+      "wss": 1.9779669046401978
+    }
+  },
+  "actual_pool_counts": {
+    "train_wall": 8192,
+    "eval_wall": 8192,
+    "train_volume": 8192,
+    "eval_volume": 16384
+  },
+  "normalization_input": "raw physical labels; WSS floor is applied only by normalizer",
+  "bc_note": "20 frozen prescribed input channels from conditions attrs; RCR resistance Pa*s/kg and capacitance kg/Pa; train-only normalization",
+  "signature_refreshed_20260930": [
+    {
+      "source": "flowref",
+      "old": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/slow/WU_YI_FA/features.npz",
+        "size": 2238081,
+        "mtime_ns": 1789512775964672249
+      },
+      "new": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/slow/WU_YI_FA/features.npz",
+        "size": 2151728,
+        "mtime_ns": 1790760137341226860
+      },
+      "reason": "flowref rebuilt with the refitted cap-area rule; only the capfit arrays changed (cached features use *_murray_cap)"
+    }
+  ]
+}

@@ -100,7 +100,7 @@ AG/AAA/ILO 各 1 例、每例 256 个 strict-core 点的 CFD 数值导数审计�
 - 可运行适配：`external_baselines/crown_beihang/`
 - 非 PINN/PINN 合并汇报：
   `external_baselines/crown_beihang/experiments/CROWN_非PINN与PINN复现汇报_合并.md`
-- 当前 V2 路线真源：`docs/02-推进与变更/WSS_PINN/README.md`
+- 当前 V2 路线真源：`docs/02-推进与变更/_archive/WSS_PINN/README.md`
 - 零重训工具：`wss_pinn/tools/diagnose_v2_physics.py`
 - 审计结果：
   `outputs/wss_pinn/audits/volume_uvwp_peak_same5k_e7500_v2_residual_diagnosis/`

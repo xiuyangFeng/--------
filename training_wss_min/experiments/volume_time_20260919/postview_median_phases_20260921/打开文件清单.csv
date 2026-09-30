@@ -1,0 +1,20 @@
+﻿优先级,用途,软件,路径,说明
+1,切截面看速度/压力（4 相位 × CFD/预测/误差）,EnSight 2023 / ParaView,AAA__unruputer__SHEN_FANG_JIN/ensight/SHEN_FANG_JIN_flow.case,点云已插到该例 Fluent blood 体网格节点；拖时间条换相位、拖 Clip 换截面；整个 ensight/ 文件夹拷到纯英文路径再打开
+1,打开步骤与核对,文本,AAA__unruputer__SHEN_FANG_JIN/README_打开说明.md,变量表、建议色标、插值方法、注意事项
+2,切面效果预览,图片,AAA__unruputer__SHEN_FANG_JIN/ensight/preview/,VTK 回读 case 后切的横截面 Z=24.5 mm / 纵剖面 Y=10.5 mm
+3,压力原始点云 PT0 accel,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/pressure/PT0/accel/full_pointcloud.vtp,壁面∪体内 762386 点；同点 R² 0.954；同目录 surface_gaussian.vtp / cfd_wall_native.vtp 是壁面面片
+3,压力原始点云 PT0 peak,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/pressure/PT0/peak/full_pointcloud.vtp,壁面∪体内 762386 点；同点 R² 0.654；同目录 surface_gaussian.vtp / cfd_wall_native.vtp 是壁面面片
+3,压力原始点云 PT0 decel,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/pressure/PT0/decel/full_pointcloud.vtp,壁面∪体内 762386 点；同点 R² 0.718；同目录 surface_gaussian.vtp / cfd_wall_native.vtp 是壁面面片
+3,压力原始点云 PT0 trough,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/pressure/PT0/trough/full_pointcloud.vtp,壁面∪体内 762386 点；同点 R² -0.143；同目录 surface_gaussian.vtp / cfd_wall_native.vtp 是壁面面片
+3,压力原始点云 PTB8 accel,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/pressure/PTB8/accel/full_pointcloud.vtp,壁面∪体内 762386 点；同点 R² 0.985；同目录 surface_gaussian.vtp / cfd_wall_native.vtp 是壁面面片
+3,压力原始点云 PTB8 peak,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/pressure/PTB8/peak/full_pointcloud.vtp,壁面∪体内 762386 点；同点 R² 0.602；同目录 surface_gaussian.vtp / cfd_wall_native.vtp 是壁面面片
+3,压力原始点云 PTB8 decel,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/pressure/PTB8/decel/full_pointcloud.vtp,壁面∪体内 762386 点；同点 R² 0.859；同目录 surface_gaussian.vtp / cfd_wall_native.vtp 是壁面面片
+3,压力原始点云 PTB8 trough,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/pressure/PTB8/trough/full_pointcloud.vtp,壁面∪体内 762386 点；同点 R² 0.533；同目录 surface_gaussian.vtp / cfd_wall_native.vtp 是壁面面片
+3,速度原始点云 VT0 accel,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/velocity/VT0/accel/interior_pointcloud.vtp,体内 677082 点；同点 R² 0.798
+3,速度原始点云 VT0 peak,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/velocity/VT0/peak/interior_pointcloud.vtp,体内 677082 点；同点 R² 0.828
+3,速度原始点云 VT0 decel,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/velocity/VT0/decel/interior_pointcloud.vtp,体内 677082 点；同点 R² 0.578
+3,速度原始点云 VT0 trough,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/velocity/VT0/trough/interior_pointcloud.vtp,体内 677082 点；同点 R² -0.154
+3,速度原始点云 VTB4 accel,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/velocity/VTB4/accel/interior_pointcloud.vtp,体内 677082 点；同点 R² 0.765
+3,速度原始点云 VTB4 peak,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/velocity/VTB4/peak/interior_pointcloud.vtp,体内 677082 点；同点 R² 0.770
+3,速度原始点云 VTB4 decel,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/velocity/VTB4/decel/interior_pointcloud.vtp,体内 677082 点；同点 R² 0.556
+3,速度原始点云 VTB4 trough,ParaView（Points）,AAA__unruputer__SHEN_FANG_JIN/velocity/VTB4/trough/interior_pointcloud.vtp,体内 677082 点；同点 R² 0.041

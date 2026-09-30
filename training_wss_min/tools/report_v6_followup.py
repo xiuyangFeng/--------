@@ -14,7 +14,7 @@ EXP = ROOT / "training_wss_min/experiments/v6_followup_20260909"
 MATRIX = ROOT / "training_wss_min/configs/v6_followup_20260909/matrix.json"
 RUNS = ROOT / "training_wss_min/runs"
 ANCHOR = "v6_singleframe_20260909/A5_r4_localbranch_diffgeom_s1234"
-TRACKER = ROOT / "docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md"
+TRACKER = ROOT / "docs/02-推进与变更/00-V5设计与历史跟踪/WSS_V5_训练实验跟踪_历史卷_2026-09-06至09-20.md"
 PATHS = {
     "physical_r2_cb": ("field_casebalanced", "r2"),
     "normalized_r2_cb": ("normalized", "field_casebalanced", "r2"),

@@ -1,0 +1,260 @@
+{
+  "case_id": "input_clean_mm",
+  "status": "passed",
+  "surface": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_test34/jobs/AG__slow__GUO_XI_JIANG/input_clean_mm.stl",
+  "scale_to_mm": 1.0,
+  "seconds": 2.23,
+  "surface_report": {
+    "surface_points": 10236,
+    "surface_triangles": 20334,
+    "connected_regions": 1,
+    "nonmanifold_edges": 0,
+    "boundary_edges": 144,
+    "opening_count": 5,
+    "openings": [
+      {
+        "opening_id": 0,
+        "center_mm": [
+          -34.496525870429146,
+          47.90396372477213,
+          -557.3390943739149
+        ],
+        "inward_normal": [
+          0.1960403578068018,
+          -0.6314536535529167,
+          0.7502229412152454
+        ],
+        "area_mm2": 22.449591219511905,
+        "radius_mm": 2.673186642558926,
+        "perimeter_mm": 16.898322634729855,
+        "boundary_points": 18,
+        "role": "outlet",
+        "outlet_id": 2,
+        "outlet_name": "outlet-2"
+      },
+      {
+        "opening_id": 1,
+        "center_mm": [
+          -29.912329240278765,
+          57.9504319971258,
+          -548.0177612304688
+        ],
+        "inward_normal": [
+          0.4005654596392089,
+          -0.7128970107691306,
+          0.5756085167720045
+        ],
+        "area_mm2": 34.70793287614072,
+        "radius_mm": 3.3238348580335635,
+        "perimeter_mm": 21.002231635755447,
+        "boundary_points": 22,
+        "role": "outlet",
+        "outlet_id": 3,
+        "outlet_name": "outlet-3"
+      },
+      {
+        "opening_id": 2,
+        "center_mm": [
+          6.212118491530418,
+          47.21849626653335,
+          -310.3945016299977
+        ],
+        "inward_normal": [
+          0.16559557763224794,
+          0.07801264242372563,
+          -0.9831033172005423
+        ],
+        "area_mm2": 445.29547445727746,
+        "radius_mm": 11.905542902054197,
+        "perimeter_mm": 74.95358564855444,
+        "boundary_points": 68,
+        "role": "inlet",
+        "outlet_id": -1,
+        "outlet_name": "inlet"
+      },
+      {
+        "opening_id": 3,
+        "center_mm": [
+          38.63149325052897,
+          64.45297389560275,
+          -546.0344984266493
+        ],
+        "inward_normal": [
+          -0.05148308135874705,
+          -0.9583299889497463,
+          0.28098598650713363
+        ],
+        "area_mm2": 22.956990207863498,
+        "radius_mm": 2.7032271344057324,
+        "perimeter_mm": 17.09805496277774,
+        "boundary_points": 18,
+        "role": "outlet",
+        "outlet_id": 0,
+        "outlet_name": "outlet-0"
+      },
+      {
+        "opening_id": 4,
+        "center_mm": [
+          50.508154975043404,
+          53.24918301900228,
+          -563.2286139594185
+        ],
+        "inward_normal": [
+          -0.03461444420495592,
+          -0.5470001513930759,
+          0.8364165676433807
+        ],
+        "area_mm2": 21.565091625632427,
+        "radius_mm": 2.6199965383370407,
+        "perimeter_mm": 16.55739139276707,
+        "boundary_points": 18,
+        "role": "outlet",
+        "outlet_id": 1,
+        "outlet_name": "outlet-1"
+      }
+    ],
+    "single_region": true,
+    "manifold": true
+  },
+  "selected_attempt": "shift0_all_targets",
+  "hard_pass": true,
+  "hard_checks": {
+    "one_endpoint_per_opening": true,
+    "all_openings_uniquely_matched": true,
+    "graph_connected": true,
+    "graph_acyclic": true,
+    "no_over_long_edge": true,
+    "no_target_not_reached": true,
+    "inside_capped_surface": true
+  },
+  "soft_metrics": {
+    "endpoint_to_opening_mm_max": 0.4554810360253606,
+    "endpoint_to_opening_over_radius_max": 0.16777255792013115,
+    "wall_distance_over_radius_p95": 1.2181672825186252,
+    "wall_distance_over_radius_fraction_gt_2": 0.0,
+    "coverage_pass": true,
+    "inside_fraction": 0.9996190476190476,
+    "capped_surface_closed": true,
+    "max_edge_mm": 3.065313926123539,
+    "p95_edge_mm": 1.144269315067191,
+    "median_radius_mm": 4.638612258924398
+  },
+  "topology": {
+    "points": 1249,
+    "edges": 1248,
+    "endpoints": 5,
+    "junctions": 3,
+    "max_degree": 3,
+    "cycle_rank": 0
+  },
+  "root_node": 0,
+  "attempts": [
+    {
+      "tag": "shift0_all_targets",
+      "mode": "all_targets",
+      "seed_shift": 0.0,
+      "error": null,
+      "hard_pass": true,
+      "hard_checks": {
+        "one_endpoint_per_opening": true,
+        "all_openings_uniquely_matched": true,
+        "graph_connected": true,
+        "graph_acyclic": true,
+        "no_over_long_edge": true,
+        "no_target_not_reached": true,
+        "inside_capped_surface": true
+      },
+      "soft_metrics": {
+        "endpoint_to_opening_mm_max": 0.4554810360253606,
+        "endpoint_to_opening_over_radius_max": 0.16777255792013115,
+        "wall_distance_over_radius_p95": 1.2181672825186252,
+        "wall_distance_over_radius_fraction_gt_2": 0.0,
+        "coverage_pass": true,
+        "inside_fraction": 0.9996190476190476,
+        "capped_surface_closed": true,
+        "max_edge_mm": 3.065313926123539,
+        "p95_edge_mm": 1.144269315067191,
+        "median_radius_mm": 4.638612258924398
+      },
+      "topology": {
+        "points": 1249,
+        "edges": 1248,
+        "endpoints": 5,
+        "junctions": 3,
+        "max_degree": 3,
+        "cycle_rank": 0
+      },
+      "prune": {
+        "applied": false,
+        "n_pruned": 0,
+        "threshold_mm": 9.277224517848795,
+        "actions": [],
+        "final_max_edge_mm": 3.065313926123539
+      },
+      "resample": {
+        "applied": false,
+        "n_edges_resampled": 0,
+        "inserted_points": 0,
+        "threshold_mm": 9.277224517848795,
+        "target_mm": 1.855444903569759,
+        "actions": [],
+        "skipped": [],
+        "final_max_edge_mm": 3.065313926123539
+      },
+      "resolved_params_mm": {
+        "median_radius_mm": 4.638612258924398,
+        "step_mm": 0.5,
+        "mask_half_width_mm": 2.5,
+        "end_zone_max_radius_mm": 12.0,
+        "max_graph_edge_mm": 9.277224517848795,
+        "spike_max_edge_mm": 9.277224517848795,
+        "resample_target_mm": 1.855444903569759,
+        "curvature_neighbourhood_mm": [
+          1.2060391873203435,
+          2.412078374640687
+        ],
+        "curvature_clip_per_mm": 2.155817180183713
+      }
+    }
+  ],
+  "params": {
+    "step_over_radius": 0.1,
+    "step_min_mm": 0.05,
+    "step_max_mm": 0.5,
+    "step_mm": 0.5,
+    "step_at_least_input_spacing": true,
+    "sg_polyorder": 3,
+    "sg_fixed_window": 11,
+    "sg_half_window_min": 5,
+    "sg_half_window_max": 30,
+    "sg_window_radius_factor": 1.0,
+    "mask_half_width_over_radius": 0.5,
+    "mask_half_width_mm": 2.5,
+    "end_zone_radius_factor": 1.0,
+    "end_zone_min_samples": 11,
+    "end_zone_max_radius_over_median": 2.5,
+    "end_zone_max_radius_mm": 12.0,
+    "end_hold": true,
+    "max_graph_edge_over_radius": 2.0,
+    "spike_max_edge_over_radius": 2.0,
+    "resample_target_over_radius": 0.4,
+    "resample_min_alignment_cos": 0.85,
+    "resample_max_length_over_local_radius": 2.0,
+    "inside_fraction_min": 0.95,
+    "coverage_ratio_p95_max": 1.5,
+    "seed_shift_over_opening_radius": [
+      0.0,
+      0.25,
+      0.5
+    ],
+    "curvature_neighbourhood_over_radius": [
+      0.26,
+      0.52
+    ],
+    "curvature_min_neighbours": 12,
+    "curvature_max_neighbours": 256,
+    "min_feature_radius_over_median": 0.1,
+    "pca_normal_k": 16,
+    "section_bins": 36
+  }
+}

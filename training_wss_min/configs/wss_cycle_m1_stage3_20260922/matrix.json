@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_cycle_m1_stage3_20260922",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_direct_recovery_20260912/C1_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5D_v51_s1234 (deployed peak-frame, same seed)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json",
+    "X5D_v51_s7 (deployed peak-frame, same seed)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s7/eval/ckpt_best/metrics.json",
+    "X5D_v51_s2025 (deployed peak-frame, same seed)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s2025/eval/ckpt_best/metrics.json",
+    "A1_s1234 (stage 3 TAWSS single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/A1_s1234/eval/ckpt_best/metrics.json",
+    "A1_s7 (stage 3 TAWSS single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/A1_s7/eval/ckpt_best/metrics.json",
+    "A1_s2025 (stage 3 TAWSS single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/A1_s2025/eval/ckpt_best/metrics.json",
+    "O2_s1234 (stage 3 OSI logit single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/O2_s1234/eval/ckpt_best/metrics.json",
+    "O2_s7 (stage 3 OSI logit single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/O2_s7/eval/ckpt_best/metrics.json",
+    "O2_s2025 (stage 3 OSI logit single head)": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/O2_s2025/eval/ckpt_best/metrics.json"
+  },
+  "cycle_view": {
+    "root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1",
+    "manifest_sha256": "7c22c1b48d2304f4d2b3b63e738b40c660c1e31c73d8da2fed4b309f8838f2c7"
+  },
+  "stage3_single_head_report": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_stage3_20260921/offline/stage3_report_best.json",
+  "peak_ensemble_reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_stage3_20260921/offline/peak_ensemble_reference.json",
+  "expected_training_runs": 3,
+  "expected_evaluations": 6,
+  "arms": [
+    {
+      "id": "M1_s1234",
+      "title": "deployed X5D_v51 seed-1234 recipe (train136) with out_dim 3 = [peak WSS log_z, TAWSS log_z, OSI logit_z] (train136 multi statistics)",
+      "config": "M1_s1234.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "multi_head_3",
+        "pinball_off",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 1234,
+      "parent": "X5D_v51_s1234 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_stage3_20260922/stats/multi_stats_train136.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "M1_s7",
+      "title": "deployed X5D_v51 seed-7 recipe (train136) with out_dim 3 = [peak WSS log_z, TAWSS log_z, OSI logit_z] (train136 multi statistics)",
+      "config": "M1_s7.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "multi_head_3",
+        "pinball_off",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 7,
+      "parent": "X5D_v51_s7 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_stage3_20260922/stats/multi_stats_train136.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      }
+    },
+    {
+      "id": "M1_s2025",
+      "title": "deployed X5D_v51 seed-2025 recipe (train136) with out_dim 3 = [peak WSS log_z, TAWSS log_z, OSI logit_z] (train136 multi statistics)",
+      "config": "M1_s2025.json",
+      "phase": 3,
+      "modules": [
+        "F6",
+        "density_aug",
+        "multi_head_3",
+        "pinball_off",
+        "threshold_masks",
+        "cycle_agreement"
+      ],
+      "seed": 2025,
+      "parent": "X5D_v51_s2025 (deployed peak-frame model, same seed)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/wss_global_stats_train136.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_stage3_20260922/stats/multi_stats_train136.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      }
+    }
+  ],
+  "reading_rule": "train136 → test34 read once; per-seed rows and the three-seed Pa-mean ensemble per channel, compared with the deployed peak three-seed ensemble (channel 0), A1_ens3 / O2_ens3 (channels 1 / 2) and the C1 test34 free baselines; no selection on test34"
+}

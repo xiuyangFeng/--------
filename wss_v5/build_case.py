@@ -16,7 +16,7 @@ from . import contract as C
 from .centerline_features import POINT_FEATURES, alignment_metrics, load_atlas, map_points, relabel_outlets
 from .conditions import read_conditions, waveform_samples
 from .mesh_topology import MeshData, distance_to_wall, load_mesh, wall_triangles
-from .pointcloud import build_oriented_cloud, generate_internal_queries, inside_hybrid, inside_score_vote, winding_number
+from .pointcloud import build_oriented_cloud, generate_internal_queries, inside_hybrid, inside_score_vote, patch_atlas_end_radius, winding_number
 from .raw_frames import VolumeFrames, WallFrames, read_volume_frames, read_wall_frames
 from .sources import CaseSources, Registry, locate
 from .store import CaseWriter, aggregate_digest
@@ -112,7 +112,16 @@ def _pointcloud_gate(md: MeshData, vol: VolumeFrames, atlas, wall_xyz_mm: np.nda
         return a[rng.choice(len(a), size=min(n_sub, len(a)), replace=False)] if len(a) else a
 
     sets = {"anatomy_cells": sub(anatomy_mm), "extension_cells_near_interface": sub(ext_mm),
-            "extension_cells_within_2mm_of_cut": sub(ext_band_mm), "shell_1_3mm_outside": sub(shell_mm)}
+            "extension_cells_within_2mm_of_cut": sub(ext_band_mm), "shell_1_3mm_outside": sub(shell_mm)}  # rng draw order unchanged
+    # 2026-09-22: a shell point 1-3 mm outside one wall can lie inside another segment of the same lumen (post-op
+    # ILO limbs running side by side: 2-5 % of the shell). Those points are inside by ground truth (they fall in a
+    # CFD cell), so they are not "false inside" samples; the gate judges the true-outside subset. Library cases
+    # only move down (their max was 1.9 %), the original metric is kept for comparability.
+    shell_sub = sets["shell_1_3mm_outside"]
+    cell_size_mm = np.cbrt(md.volumes_m3[1:]) * MM
+    d_cell, i_cell = cKDTree(all_c * MM).query(shell_sub, k=1) if len(shell_sub) else (np.zeros(0), np.zeros(0, dtype=int))
+    shell_in_volume = d_cell <= 0.8 * cell_size_mm[i_cell] if len(shell_sub) else np.zeros(0, dtype=bool)
+    sets["shell_1_3mm_outside_true_outside"] = shell_sub[~shell_in_volume]
     results: dict[str, Any] = {}
     for name, pts in sets.items():
         if not len(pts):
@@ -129,6 +138,7 @@ def _pointcloud_gate(md: MeshData, vol: VolumeFrames, atlas, wall_xyz_mm: np.nda
             "winding_median": float(np.median(w)),
             **hdiag,
         }
+    results["shell_in_cfd_volume_fraction"] = float(np.mean(shell_in_volume)) if len(shell_sub) else 0.0  # 2026-09-22 judging only
     results["cap_offsets"] = cap_offsets
     generated, gdiag = generate_internal_queries(atlas, cloud, n_target=n_generate, seed=seed)
     # leak check of generated points against the true cell zones (nearest cell, distance-limited)
@@ -183,7 +193,10 @@ def _gates(report: dict[str, Any], src: CaseSources) -> dict[str, Any]:
         "volume_identity_bijective": bool(m["identity"]["volume"].get("bijective", False)),
         "anatomy_rows_match_audit": m["counts"]["n_volume"] == int(src.topology_audit["anatomy_rows"]),
         "wall_missing_nodes_within_limit": m["counts"]["n_wall_missing"] <= g["wall_missing_nodes_max"],
-        "wall_rows_outside_anatomy_zero": report["frames"]["wall"]["rows_outside_anatomy"] == 0,
+        # whole-domain node exports (mixed-zone cases, 2026-09-22) legitimately carry interior/extension rows: they are
+        # dropped by coordinate matching and the anatomy coverage is still enforced by wall_missing_nodes_within_limit
+        "wall_rows_outside_anatomy_zero": report["frames"]["wall"]["rows_outside_anatomy"] == 0
+                                          or report["frames"]["wall"].get("export_scope") == "whole_domain",
         "labels_finite": bool(m["labels"]["all_finite"]),
         "wss_non_negative": m["labels"]["wss_negative_rows"] == 0,
         "wall_same_solution_as_volume": abs(m["labels"]["wall_pressure_minus_adjacent_cell_median_pa"]) <= g["wall_pressure_delta_median_pa_max"],
@@ -197,13 +210,16 @@ def _gates(report: dict[str, Any], src: CaseSources) -> dict[str, Any]:
                            and m["pointcloud"]["normals_pca_vs_mesh"]["flipped_fraction"] <= g["pca_normal_flipped_fraction_max"]),
         "domain_inside_recall": m["pointcloud"]["inside_test"]["anatomy_cells"].get("inside_fraction_hybrid", 0.0) >= g["inside_recall_min"],
         "domain_extension_rejected": m["pointcloud"]["inside_test"]["extension_cells_near_interface"].get("inside_fraction_hybrid", 1.0) <= g["extension_false_inside_max"],
-        "domain_shell_rejected": m["pointcloud"]["inside_test"]["shell_1_3mm_outside"].get("inside_fraction_hybrid", 1.0) <= g["shell_false_inside_max"],
+        "domain_shell_rejected": m["pointcloud"]["inside_test"].get("shell_1_3mm_outside_true_outside", m["pointcloud"]["inside_test"]["shell_1_3mm_outside"]).get("inside_fraction_hybrid", 1.0) <= g["shell_false_inside_max"],
     }
     waiver_map = {"wall_same_solution_as_volume": "same_solution_as_volume"}
     applied = {}
     for name, audit_gate in waiver_map.items():
         if not checks[name] and audit_gate in waived:
             applied[name] = f"waived: signed-off wall audit already records '{audit_gate}' for this case (constant gauge offset)"
+    for name, reason in getattr(C, "CASE_GATE_WAIVERS", {}).get(report["canonical_id"], {}).items():  # 2026-09-22 user sign-offs
+        if name in checks and not checks[name]:
+            applied[name] = f"waived (case sign-off): {reason}"
     required_pass = all(v or (k in applied) for k, v in checks.items())
     return {"checks": checks, "waivers": applied, "pass": required_pass}
 
@@ -229,6 +245,7 @@ def build_case(canonical_id: str, registry: Registry, out_root: Path, *, hash_fi
         t = time.time()
         atlas, relabel = relabel_outlets(load_atlas(src.atlas_npz, src.atlas_summary), {k: v["center_mm"] for k, v in interfaces.items()})
         wall_xyz_mm = md.wall_node_coords_m * MM
+        atlas_end_patch = patch_atlas_end_radius(atlas, wall_xyz_mm)  # 2026-09-22: escaped-sphere endpoint radius -> held at the measured opening
         vol_xyz_mm = vol.xyz_m * MM
         wall_feats = map_points(wall_xyz_mm, atlas)
         vol_feats = map_points(vol_xyz_mm, atlas)
@@ -256,7 +273,8 @@ def build_case(canonical_id: str, registry: Registry, out_root: Path, *, hash_fi
             "frames": {
                 "volume": {"files": vol.frame_files, "reordered_steps": vol.frames_reordered, "export_rows_total": vol.export_rows_total, "zone_counts": vol.zone_counts},
                 "wall": {"files": wall.frame_files, "rematched_steps": wall.frames_rematched, "duplicate_rows": wall.duplicate_rows,
-                         "rows_outside_anatomy": wall.rows_outside_anatomy, "export_kind": wall.export_kind, "delimiter": wall.delimiter},
+                         "rows_outside_anatomy": wall.rows_outside_anatomy, "export_kind": wall.export_kind, "delimiter": wall.delimiter,
+                         "export_scope": wall.export_scope},
             },
             "metrics": {
                 "counts": {"n_volume": int(len(vol.cell_id_cas)), "n_wall": int(len(md.wall_node_ids)), "n_wall_missing": n_missing, "n_frames": len(C.EXPECTED_STEPS),
@@ -273,6 +291,7 @@ def build_case(canonical_id: str, registry: Registry, out_root: Path, *, hash_fi
                                                      / max(abs(interfaces["inlet"]["flux_outward_m3s"][C.EXPECTED_STEPS.index(PEAK_STEP)]), 1e-12)) if "inlet" in interfaces else None,
                 "atlas_alignment": align,
                 "atlas_relabel": relabel,
+                "atlas_end_radius_patch": atlas_end_patch,
                 "pointcloud": {k: v for k, v in pc.items() if k not in ("generated_sample_mm", "pca_normals_out")},
                 "labels": labels,
                 "pressure_reference": {"p_volume_mean_peak_pa": float(p_vol_mean[C.EXPECTED_STEPS.index(PEAK_STEP)]), "p_case_cycle_mean_pa": p_cycle,
@@ -302,7 +321,8 @@ def build_case(canonical_id: str, registry: Registry, out_root: Path, *, hash_fi
         caps = pc["cloud"]["caps"]
         writer.write("geometry/cap_center_mm", np.array([c["center_mm"] for c in caps]), units="mm", tag=C.TAG_MODEL_FEATURE)
         writer.write("geometry/cap_radius_mm", np.array([c["radius_mm"] for c in caps]), units="mm", tag=C.TAG_MODEL_FEATURE)
-        writer.attrs("geometry", {"cap_labels": [c["label"] for c in caps], "wall_point_spacing_mm": pc["cloud"]["spacing_mm"]})
+        writer.attrs("geometry", {"cap_labels": [c["label"] for c in caps], "wall_point_spacing_mm": pc["cloud"]["spacing_mm"],
+                                  "atlas_end_radius_patch": atlas_end_patch, "geometry_program_patches": ["end-radius-hold-2026-09-22"] if atlas_end_patch else []})
         # wall static
         writer.write("wall_static/xyz_mm", wall_xyz_mm, units="mm", tag=C.TAG_MODEL_FEATURE, description="anatomy wall nodes (all, incl. non-exported)")
         writer.write("wall_static/node_id_cas", md.wall_node_ids, units="1-based Fluent node id", tag=C.TAG_AUDIT)

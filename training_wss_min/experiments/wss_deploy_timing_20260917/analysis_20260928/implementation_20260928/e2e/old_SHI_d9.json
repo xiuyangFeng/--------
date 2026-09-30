@@ -1,0 +1,77 @@
+{
+ "code_root": "HEAD(v0.15.10)",
+ "stl": "input.stl",
+ "confirm_delay_s": 9.0,
+ "marks_s": {
+  "awaiting": 40.23893141746521,
+  "confirmed": 49.64056944847107,
+  "primary_done": 68.55107736587524,
+  "companion_done": 112.86485576629639
+ },
+ "primary": {
+  "timing_s": {
+   "ingest": 4.46,
+   "centerline": 34.04,
+   "smooth_resample": 0.02,
+   "features": 1.02,
+   "inference_5_models": 1.09,
+   "metrics_and_interpolation": 0.69,
+   "morphology": 0.04,
+   "export": 1.43,
+   "total": 42.79
+  },
+  "geometry_cache": {
+   "enabled": true,
+   "reused": [
+    "mesh",
+    "morph",
+    "morphvol",
+    "pointgeom",
+    "resample"
+   ],
+   "computed": []
+  },
+  "precompute": {
+   "status": "done",
+   "seconds": 22.68,
+   "finished_at": "2026-09-28T17:40:42+08:00",
+   "ok": true,
+   "cancelled": false,
+   "steps": [
+    "mesh",
+    "resample",
+    "point_geometry",
+    "morphology"
+   ],
+   "timing_s": {
+    "smooth_resample": 15.15,
+    "features": 1.92,
+    "morphology": 5.53
+   },
+   "family": "wall"
+  }
+ },
+ "companion": {
+  "timing_s": {
+   "ingest": 4.46,
+   "centerline": 34.04,
+   "smooth_resample": 13.81,
+   "volume_features": 13.52,
+   "inference_volume": 0.25,
+   "streamlines_and_interpolation": 7.47,
+   "morphology": 6.3,
+   "export": 1.02,
+   "total": 80.87
+  },
+  "geometry_cache": {
+   "enabled": true,
+   "reused": [],
+   "computed": [
+    "mesh",
+    "morph",
+    "morphvol",
+    "resample"
+   ]
+  }
+ }
+}

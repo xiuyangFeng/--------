@@ -75,14 +75,18 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+_ncs_spec = importlib.util.spec_from_file_location("new_case_sources", PROJECT / "wss_pinn" / "v4" / "new_case_sources.py")
+new_case_sources = importlib.util.module_from_spec(_ncs_spec)
+_ncs_spec.loader.exec_module(new_case_sources)
+
+
 def _outlet_semantics(canonical_id: str) -> dict[int, str]:
-    manifest = json.loads((BOUNDARY_ROOT / canonical_id / "manifest.json").read_text(encoding="utf-8"))
-    return {int(row["mesh_zone_id"]): label for label, row in manifest["outlets"].items()}
+    # 2026-09-22: legacy qs-smooth-v3 manifest when it exists (unchanged for the 173), else the UDF thread ids
+    return new_case_sources.outlet_semantics(canonical_id)
 
 
 def _case_file(canonical_id: str) -> Path:
-    manifest = json.loads((BOUNDARY_ROOT / canonical_id / "manifest.json").read_text(encoding="utf-8"))
-    return Path(manifest["provenance"]["fluent_case"]["path"])
+    return new_case_sources.fluent_case(canonical_id)
 
 
 def build_wall_surface(mesh, wall: dict) -> tuple[vtk.vtkPolyData, dict]:

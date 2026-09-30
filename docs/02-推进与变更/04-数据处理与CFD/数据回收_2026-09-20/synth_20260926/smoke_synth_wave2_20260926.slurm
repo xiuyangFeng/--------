@@ -1,0 +1,20 @@
+#!/bin/bash
+#SBATCH --partition=CPU
+#SBATCH --exclude=node05
+#SBATCH --ntasks-per-node=8
+#SBATCH --job-name=syn_smoke2
+#SBATCH --output=/public/newhome/cy/Digital_twin/GNN/docs/02-推进与变更/04-数据处理与CFD/数据回收_2026-09-20/synth_20260926/smoke_synth_wave2_%j.out
+#SBATCH --error=/public/newhome/cy/Digital_twin/GNN/docs/02-推进与变更/04-数据处理与CFD/数据回收_2026-09-20/synth_20260926/smoke_synth_wave2_%j.err
+#SBATCH --time=06:00:00
+export I_MPI_SHM_LMT=shm
+module purge
+module load fluent/231
+for d in /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/QU_HE_PING~m38 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/ZHANG_LING_GUANG~m22 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/ZHANG_HUAN_LI~m48 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/MI_DE_XI~m32 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/LI_HUAN_GE~m26 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/LU_ZHEN_QING~m29 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/BAI_WEN_JIE~m16 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/YIN_YU_RONG~m44 /public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/RAN_QING_BO~m06 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/SUN_ZONG_GE~m43 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/CHENG_LU_LI~m10 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/NI_YAN_BIN~m49 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/GUO_XI_JIANG~m35 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/ZHANG_SONG_TIAN~m45 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/LIN_SHU_TIAN~m33 /public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/SUN_WEN_QING~m15 /public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/WANG_YONG_FAN~m19 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/CHEN_FU~m26 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/HUO_SHI_LIANG~m28 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/SHEN_CHUN_WANG~m11 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/LI_YOU_YU~m27 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/HAN_JIAN_FU~m36 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/KANG_YONG~m01 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/ZHANG_ZHI_HUA~m14 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/LIN_LIANG_XIAO~m10 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/FENG_LI_XIN~m38 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/GAO_DIAN_WEN~m07 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/YAN_FU_TANG~m34 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/ruputer/LIU_JI_XIN~m31 /public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/ZHOU_XI_SHENG~m22 /public/newhome/cy/Digital_twin/GNN/data_new/ILO/XIONG_DONG_SUO-0~m49/after /public/newhome/cy/Digital_twin/GNN/data_new/ILO/GENG_CHUN_LAI-1~m46/after /public/newhome/cy/Digital_twin/GNN/data_new/ILO/ZHANG_JIAN_JUN-1~m31/after /public/newhome/cy/Digital_twin/GNN/data_new/ILO/GONG_HAI_ZENG-1~m34/after /public/newhome/cy/Digital_twin/GNN/data_new/ILO/GAO_SHU_CAI-0~m24/before /public/newhome/cy/Digital_twin/GNN/data_new/ILO/WENG_ZHAO_GUANG-0~m03/before /public/newhome/cy/Digital_twin/GNN/data_new/ILO/ZHANG_JIAN_JUN-1~m57/before /public/newhome/cy/Digital_twin/GNN/data_new/ILO/YAO_GUO_CHEN-0~m10/before /public/newhome/cy/Digital_twin/GNN/data_new/ILO/LIN_CHUN_YANG-1~m12/before /public/newhome/cy/Digital_twin/GNN/data_new/ILO/LI_YOU_ZHI-0~m48/before /public/newhome/cy/Digital_twin/GNN/data_new/ILO/WAGN_LI_JUN-1~m25/before /public/newhome/cy/Digital_twin/GNN/data_new/ILO/WU_JUN-0~m05/before /public/newhome/cy/Digital_twin/GNN/data_new/ILO/SUN_CHUN_PU-0~m53/before ; do
+  cd "$d" || exit 1
+  echo "===== SMOKE $d ====="
+  { grep -v "^/solve\|^/exit" 2.jou; echo "/mesh/check"; echo "/exit y"; } > smoke_readcase.jou
+  fluent 3ddp -g -t8 -mpi=intel -platform=intel -i smoke_readcase.jou -ssh 2>&1 | grep -v "^ *$" | grep -i "Reading\|Error\|error\|warning: \|libudf\|Done\|domain extents\|coordinate\|Checking mesh\|Mesh Check\|quality\|skew" | head -60
+  echo "===== fluent exit code ${PIPESTATUS[0]} ====="
+  rm -f smoke_readcase.jou *.trn cleanup-fluent-*.sh
+  mv -f libudf libudf_smoke_20260926b 2>/dev/null
+done

@@ -1,0 +1,3909 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_v52_20260923_cv5",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5D_v52ind_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5D_v52ind_s1234/eval/ckpt_best/metrics.json",
+    "X5D_v52ind_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5D_v52ind_s7/eval/ckpt_best/metrics.json",
+    "X5D_v52ind_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5D_v52ind_s2025/eval/ckpt_best/metrics.json",
+    "X5D_v52ind_s11": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5D_v52ind_s11/eval/ckpt_best/metrics.json",
+    "X5D_v52ind_s2026": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5D_v52ind_s2026/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s11": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s11/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s2026": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s2026/eval/ckpt_best/metrics.json"
+  },
+  "data": {
+    "views_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923",
+    "library": 170,
+    "recovered": 91,
+    "rebuilt_library_cases": 11,
+    "geometry_program": "pc-v3 + end-radius-hold-2026-09-22"
+  },
+  "protocols": {
+    "IND": {
+      "split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json",
+      "wss_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json",
+      "seeds": [
+        1234,
+        7,
+        2025,
+        11,
+        2026
+      ]
+    },
+    "CV5": {
+      "folds": {
+        "0": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+        "1": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json",
+        "2": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json",
+        "3": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json",
+        "4": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json"
+      },
+      "seeds": [
+        1234,
+        7,
+        2025
+      ],
+      "summary": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/cv5_summary.json"
+    }
+  },
+  "recipes": {
+    "X5D": "X5D_v51 recipe (Murray prior on atlas distal radius)",
+    "X5Dcap": "X5D with protocol-cap Murray keys (log_q/log_tau0 on virtual-cap radii)"
+  },
+  "expected_training_runs": 30,
+  "expected_evaluations": 60,
+  "arms": [
+    {
+      "id": "X5D_v52cv_f0_s1234",
+      "title": "X5D recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 1234",
+      "config": "X5D_v52cv_f0_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f0_s7",
+      "title": "X5D recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 7",
+      "config": "X5D_v52cv_f0_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 7,
+      "fold": 0,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f0_s2025",
+      "title": "X5D recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 2025",
+      "config": "X5D_v52cv_f0_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 2025,
+      "fold": 0,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f1_s1234",
+      "title": "X5D recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 1234",
+      "config": "X5D_v52cv_f1_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 1234,
+      "fold": 1,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold1_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f1_s7",
+      "title": "X5D recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 7",
+      "config": "X5D_v52cv_f1_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 7,
+      "fold": 1,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold1_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f1_s2025",
+      "title": "X5D recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 2025",
+      "config": "X5D_v52cv_f1_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 2025,
+      "fold": 1,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold1_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f2_s1234",
+      "title": "X5D recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 1234",
+      "config": "X5D_v52cv_f2_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 1234,
+      "fold": 2,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold2_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f2_s7",
+      "title": "X5D recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 7",
+      "config": "X5D_v52cv_f2_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 7,
+      "fold": 2,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold2_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f2_s2025",
+      "title": "X5D recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 2025",
+      "config": "X5D_v52cv_f2_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 2025,
+      "fold": 2,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold2_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f3_s1234",
+      "title": "X5D recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 1234",
+      "config": "X5D_v52cv_f3_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 1234,
+      "fold": 3,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold3_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f3_s7",
+      "title": "X5D recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 7",
+      "config": "X5D_v52cv_f3_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 7,
+      "fold": 3,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold3_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f3_s2025",
+      "title": "X5D recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 2025",
+      "config": "X5D_v52cv_f3_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 2025,
+      "fold": 3,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold3_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f4_s1234",
+      "title": "X5D recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 1234",
+      "config": "X5D_v52cv_f4_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 1234,
+      "fold": 4,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold4_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f4_s7",
+      "title": "X5D recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 7",
+      "config": "X5D_v52cv_f4_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 7,
+      "fold": 4,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold4_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5D_v52cv_f4_s2025",
+      "title": "X5D recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 2025",
+      "config": "X5D_v52cv_f4_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug"
+      ],
+      "seed": 2025,
+      "fold": 4,
+      "protocol": "CV5",
+      "recipe": "X5D",
+      "parent": "X5D_v51_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold4_X5D_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray",
+            "log_tau0_murray"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f0_s1234",
+      "title": "X5Dcap recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 1234",
+      "config": "X5Dcap_v52cv_f0_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f0_s7",
+      "title": "X5Dcap recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 7",
+      "config": "X5Dcap_v52cv_f0_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 7,
+      "fold": 0,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f0_s2025",
+      "title": "X5Dcap recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 2025",
+      "config": "X5Dcap_v52cv_f0_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 2025,
+      "fold": 0,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f1_s1234",
+      "title": "X5Dcap recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 1234",
+      "config": "X5Dcap_v52cv_f1_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 1234,
+      "fold": 1,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold1_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f1_s7",
+      "title": "X5Dcap recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 7",
+      "config": "X5Dcap_v52cv_f1_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 7,
+      "fold": 1,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold1_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f1_s2025",
+      "title": "X5Dcap recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 2025",
+      "config": "X5Dcap_v52cv_f1_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 2025,
+      "fold": 1,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold1_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f2_s1234",
+      "title": "X5Dcap recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 1234",
+      "config": "X5Dcap_v52cv_f2_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 1234,
+      "fold": 2,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold2_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f2_s7",
+      "title": "X5Dcap recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 7",
+      "config": "X5Dcap_v52cv_f2_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 7,
+      "fold": 2,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold2_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f2_s2025",
+      "title": "X5Dcap recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 2025",
+      "config": "X5Dcap_v52cv_f2_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 2025,
+      "fold": 2,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold2_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f3_s1234",
+      "title": "X5Dcap recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 1234",
+      "config": "X5Dcap_v52cv_f3_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 1234,
+      "fold": 3,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold3_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f3_s7",
+      "title": "X5Dcap recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 7",
+      "config": "X5Dcap_v52cv_f3_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 7,
+      "fold": 3,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold3_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f3_s2025",
+      "title": "X5Dcap recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 2025",
+      "config": "X5Dcap_v52cv_f3_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 2025,
+      "fold": 3,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold3_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f4_s1234",
+      "title": "X5Dcap recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 1234",
+      "config": "X5Dcap_v52cv_f4_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 1234,
+      "fold": 4,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s1234 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold4_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f4_s7",
+      "title": "X5Dcap recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 7",
+      "config": "X5Dcap_v52cv_f4_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 7,
+      "fold": 4,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s7 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold4_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_v52cv_f4_s2025",
+      "title": "X5Dcap recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 2025",
+      "config": "X5Dcap_v52cv_f4_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior"
+      ],
+      "seed": 2025,
+      "fold": 4,
+      "protocol": "CV5",
+      "recipe": "X5Dcap",
+      "parent": "X5Dcap_s2025 (wss_v51_wave1)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold4_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      }
+    }
+  ],
+  "reading_rule": "IND: physical Pa R2_cb on the 91 recovered units, five-seed Pa-mean ensemble per recipe (compare with frozen X5D_v51 0.749); CV5: held-out-fold R2_cb pooled over five folds per seed (every case once), three seeds -> mean +- sd; X5Dcap vs X5D read as paired deltas per (fold, seed); no single reading is ranked; test34 is not a protocol set any more",
+  "note": "2026-09-23 11:xx: CV5 arms split out of wss_v52_20260923 into their own queue so the fourth GPU (freed at ~10:30) can be used (4 x 2 slots); configs are byte-identical copies, run names unchanged (runs/wss_v52_20260923/<arm>); the IND arms stay in queue 15618 (phase 0) and are listed here as external references."
+}

@@ -16,7 +16,7 @@ EXP = ROOT / "training_wss_min/experiments/v6_multiradius_bt_20260909"
 MATRIX = ROOT / "training_wss_min/configs/v6_multiradius_bt_20260909/matrix.json"
 RUNS = ROOT / "training_wss_min/runs"
 ANCHOR = "v6_followup_20260909/M2_a5_independent_k3_s1234"
-TRACKER = ROOT / "docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md"
+TRACKER = ROOT / "docs/02-推进与变更/00-V5设计与历史跟踪/WSS_V5_训练实验跟踪_历史卷_2026-09-06至09-20.md"
 LABELS = {
     "MS1": "单半径新SA3桥接与中心条件，无新增全局BT",
     "MS2": "MS1加单路全局BT",

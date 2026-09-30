@@ -13,8 +13,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 SUBMISSION = REPO / "training_wss_min/preflight/q2v_ilo_arch_matrix_submission.json"
 CODE_LOG = REPO / "docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md"
-TRAIN_LOG = REPO / "docs/02-推进与变更/WSS最小化_训练实验跟踪.md"
-MATRIX_LOG = REPO / "docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md"
+TRAIN_LOG = REPO / "docs/02-推进与变更/_archive/WSS最小化/WSS最小化_训练实验跟踪.md"
+MATRIX_LOG = REPO / "docs/02-推进与变更/_archive/WSS最小化/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md"
 START = "<!-- Q2V_ILO_20260718_START -->"
 END = "<!-- Q2V_ILO_20260718_END -->"
 

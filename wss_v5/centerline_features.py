@@ -48,22 +48,49 @@ class Atlas:
         t = np.stack([self.col("tangent_x"), self.col("tangent_y"), self.col("tangent_z")], axis=1)
         return t / np.maximum(np.linalg.norm(t, axis=1, keepdims=True), 1.0e-12)
 
+    def end_zone_samples(self, segment_id: int, side: str) -> tuple[int, int]:
+        """(zone, band) sample counts of an opening end: the atlas end-zone recipe (provenance when recorded, else the
+        frozen formula: zone = max(SG window, rint(min(R_end, median R, 12 mm) / step)), band = max(zone, SG window))."""
+        info = ((self.provenance.get("end_zone") or {}).get(str(int(segment_id))) or {}).get(side) or {}
+        if info.get("zone_samples") and info.get("band_samples"):
+            return int(info["zone_samples"]), int(info["band_samples"])
+        seg = self.col("segment_id").astype(int)
+        radius = self.col("radius_mm")[seg == int(segment_id)]
+        step = float(self.provenance.get("step_mm", 0.5))
+        window = int(self.provenance.get("sg_window", 11))
+        r_end = float(radius[0] if side == "start" else radius[-1])
+        r_zone = min(r_end, float(np.median(radius)), 12.0)
+        zone = max(window, int(np.rint(max(r_zone, 0.0) / step)))
+        return zone, max(zone, window)
+
     def endpoints(self) -> list[dict[str, Any]]:
-        """Root start + leaf ends with outward direction and radius (virtual cap recipe)."""
+        """Root start + leaf ends with outward direction and radius (virtual cap recipe).
+
+        ``radius_band_mm`` (2026-09-22) is the median atlas radius over the band just inside the end zone: the
+        inscribed-sphere radius at an opening endpoint can blow up when the sphere escapes through the opening
+        (LIN_SHU_TIAN out-ri 8.5 mm vs 2.9 mm true), the band is the robust interior value.
+        """
         seg = self.col("segment_id").astype(int)
         idx = self.col("sample_index").astype(int)
+        radius_col = self.col("radius_mm")
         out = []
         for s in self.segments:
             rows = np.flatnonzero(seg == s["segment_id"])
             rows = rows[np.argsort(idx[rows])]
-            if s.get("starts_at_root"):
-                r = rows[0]
-                out.append({"label": "inlet", "atlas_row": int(r), "center_mm": self.xyz[r], "outward": -self.tangent[r],
-                            "radius_mm": float(self.col("radius_mm")[r]), "segment_id": int(s["segment_id"])})
-            if s.get("ends_at_leaf"):
-                r = rows[-1]
-                out.append({"label": s.get("outlet_name", ""), "atlas_row": int(r), "center_mm": self.xyz[r], "outward": self.tangent[r],
-                            "radius_mm": float(self.col("radius_mm")[r]), "segment_id": int(s["segment_id"])})
+            radius = radius_col[rows]
+            for side, active, label in (("start", bool(s.get("starts_at_root")), "inlet"), ("end", bool(s.get("ends_at_leaf")), s.get("outlet_name", ""))):
+                if not active:
+                    continue
+                r = rows[0] if side == "start" else rows[-1]
+                zone, band = self.end_zone_samples(int(s["segment_id"]), side)
+                if zone + band <= len(rows):
+                    band_rows = radius[zone:zone + band] if side == "start" else radius[len(rows) - zone - band:len(rows) - zone]
+                    band_radius = float(np.median(band_rows))
+                else:
+                    band_radius = float("nan")
+                out.append({"label": label, "atlas_row": int(r), "center_mm": self.xyz[r], "outward": -self.tangent[r] if side == "start" else self.tangent[r],
+                            "radius_mm": float(radius_col[r]), "radius_band_mm": band_radius, "end_zone_samples": int(zone), "side": side,
+                            "segment_id": int(s["segment_id"])})
         return out
 
 

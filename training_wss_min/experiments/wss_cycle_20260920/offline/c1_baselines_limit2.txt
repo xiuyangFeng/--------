@@ -1,0 +1,7 @@
+=== C1 自由基线（80 帧定义；指标与训练臂同定义）===
+[fold0 n=2] TAWSS-null Pa R2cb 0.7267 (log 0.6906, casemean 0.7202, sp 0.874, low<0.4 IoU 0.570) | TAWSS-ratio Pa 0.7578 (log 0.5398, c=0.317, low IoU 0.579) | OSI-null R2cb 0.0381 (casemean 0.0273, sp 0.454, >0.1 IoU 0.542, >0.3 IoU 0.000, frac err med 0.216) | stagnation IoU null/null 0.393 ratio/null 0.408
+[fold1 n=2] TAWSS-null Pa R2cb 0.7635 (log 0.8164, casemean 0.5567, sp 0.902, low<0.4 IoU 0.738) | TAWSS-ratio Pa 0.7348 (log 0.7550, c=0.320, low IoU 0.801) | OSI-null R2cb 0.1906 (casemean 0.1576, sp 0.523, >0.1 IoU 0.580, >0.3 IoU 0.000, frac err med 0.168) | stagnation IoU null/null 0.517 ratio/null 0.571
+[fold2 n=2] TAWSS-null Pa R2cb 0.7929 (log 0.6576, casemean 0.7805, sp 0.869, low<0.4 IoU 0.634) | TAWSS-ratio Pa 0.7603 (log 0.4576, c=0.314, low IoU 0.626) | OSI-null R2cb 0.0322 (casemean 0.0021, sp 0.439, >0.1 IoU 0.558, >0.3 IoU 0.000, frac err med 0.264) | stagnation IoU null/null 0.382 ratio/null 0.379
+[test34 n=2] TAWSS-null Pa R2cb 0.9153 (log 0.8820, casemean 0.6914, sp 0.941, low<0.4 IoU 0.721) | TAWSS-ratio Pa 0.8673 (log 0.8294, c=0.317, low IoU 0.782) | OSI-null R2cb 0.4429 (casemean 0.4292, sp 0.714, >0.1 IoU 0.658, >0.3 IoU 0.000, frac err med 0.185) | stagnation IoU null/null 0.656 ratio/null 0.701
+[fold mean] TAWSS-null 0.7610 / ratio 0.7510 (log 0.7215 / 0.5841); OSI-null R2cb 0.0870, >0.1 IoU 0.560, >0.3 IoU 0.000; stagnation IoU 0.430/0.453
+[gates] G1.2 TAWSS Pa R2cb ≥ 0.8110; G2.2 OSI>0.1 IoU ≥ 0.610; G3 stagnation IoU ≥ 0.503

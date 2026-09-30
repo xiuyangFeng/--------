@@ -31,6 +31,7 @@ EXP = ROOT / "training_wss_min/experiments" / NAME
 RUNS = ROOT / "training_wss_min/runs"
 BOOK = ROOT / "docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx"
 GROUP = "WSS局部信息筛选矩阵｜2026-09-12（17臂）"
+EXTRA_EXPERIMENTS: list[str] = []
 MISSING = "—"
 DESCRIPTIONS = {
     "X0": "C1同配置同期重跑（同期对照）", "X1": "权重EMA 0.999（另评ckpt_ema）",
@@ -77,6 +78,9 @@ DESCRIPTIONS = {
     **{f"X5Dcap_s{s}": f"协议版 capfit：X5D 的两列 Murray 输入换成按出口盖面半径的 Murray 份额与 log_tau0（sidecar v1.4，照抄 CFD 出口协议），seed {s}（与同 seed X5D_v51 配对）" for s in (1234, 7, 2025)},
     **{f"X5Ddual_s{s}": f"双尺度 query patch：K16 偏移按局部中位间距归一 + 固定 4 mm 球内 16 个覆盖采样点（mask），零初始化第二分支，seed {s}（与同 seed X5D_v51 配对）" for s in (1234, 7, 2025)},
     **{f"X5Dnoise_s{s}": f"边界噪声增广：每例每轮 p=0.5 换成沿法向相关噪声（σ 0.1/0.2/0.3 mm，corr 2 mm）的点云并重算法向/曲率族，密度增广仍 p=0.6，seed {s}（与同 seed X5D_v51 配对）" for s in (1234, 7, 2025)},
+    # learning curve (2026-09-20): X5D_v51 recipe on nested 25/50/75/100 % subsets of each cv3_v51 fold, 3 seeds
+    **{f"wss_learning_curve_20260920:LC{p}_f{k}_s{sd}": (f"Learning curve：X5D_v51 配方只用 cv3_v51 fold{k} 训练例的 {p} %（嵌套分层子集，子集自算 log_z 统计与特征 z-score），seed {sd}；指标为留出折折外（非 test34），三折合并后与同 seed 其他分数配对读斜率" if p < 100 else f"Learning curve 100 % 档：X5D_v51 配方用 cv3_v51 fold{k} 全部训练例，seed {sd}（seed 1234 的 100 % 档 = 波 2a 折模型，不重训）；指标为留出折折外（非 test34）")
+      for p in (25, 50, 75, 100) for k in range(3) for sd in (1234, 7, 2025) if not (p == 100 and sd == 1234)},
     # v5.1 wave 2a/2b (2026-09-16): cv3_v51 fold models and T3n out-of-fold check
     **{f"X5D_v51_f{k}_s1234": f"X5D_v51 在 cv3_v51 第 {k} 折上训练（折训统计与 z-score），只读留出折；作 T3n 的阶段一" for k in range(3)},
     "wss_v51_wave2b_20260916:T3n_s1234": "T3n 残差堆叠（X5D_v51 + 阶段一折外预测 log_wss_base 输入，残差目标，不聚焦不门控），seed 1234（与同 seed X5D_v51 配对）",
@@ -105,7 +109,20 @@ DESCRIPTIONS = {
     **{f"wss_time_ecc_20260918:T0_f{k}_s1234": f"T0 直接相位查询：X5D_v51 fold{k} + 4 相位列（q_norm/dq_norm/t_sin/t_cos），random_frame + 峰值保底 1/9，frame_stats，EMA(train_loss, α0.2) 选模；只评留出折 81 帧，不用 test34" for k in range(3)},
     **{f"wss_time_ecc_20260918:TB8_f{k}_s1234": f"时间基头 K*=8（out_dim=9），无时间输入，系数 MSE；fold{k} 只评留出折 81 帧" for k in range(3)},
     **{f"wss_time_ecc_20260918:TB16_f{k}_s1234": f"时间基头 2K*=16（out_dim=17），无时间输入，系数 MSE；fold{k} 只评留出折 81 帧" for k in range(3)},
+    # 周期积分量 TAWSS / OSI 直接回归阶段 1（cv3 三折 × seed 1234，作业 15335；标签 wss_min_cycle_v1 帧 0–79）
+    **{f"wss_cycle_20260920:A1_f{k}_s1234": f"A1 TAWSS 直接回归：X5D_v51 fold{k} 配方只换标签为周期平均 |τ|（log_z，训练折统计）；表内 Pa 列 = TAWSS(Pa)；只读留出折" for k in range(3)},
+    **{f"wss_cycle_20260920:O1_f{k}_s1234": f"O1 OSI 直接回归（线性 z，评估裁 [0,0.5]）：X5D_v51 fold{k} 配方只换标签；表内「Pa」列实为 OSI 无量纲；只读留出折" for k in range(3)},
+    **{f"wss_cycle_20260920:O2_f{k}_s1234": f"O2 OSI 直接回归（logit_z 目标空间，反变换 0.5·sigmoid）：与 O1 只差目标空间；表内「Pa」列实为 OSI 无量纲；只读留出折" for k in range(3)},
+    # 周期积分量阶段 3 确认（train136 → test34 读一次，seed 1234/7/2025，作业 15394）与 M1 三头（cv3 作业 15452；三 seed 作业 15476）
+    **{f"wss_cycle_stage3_20260921:A1_s{sd}": f"A1 TAWSS 直接回归：已部署 X5D_v51_s{sd} 配方只换标签为周期平均 |τ|（log_z，train136 统计）；test34 读一次" for sd in (1234, 7, 2025)},
+    **{f"wss_cycle_stage3_20260921:O1_s{sd}": f"O1 OSI 直接回归（线性 z，裁 [0,0.5]）：已部署 X5D_v51_s{sd} 配方只换标签；test34 读一次" for sd in (1234, 7, 2025)},
+    **{f"wss_cycle_stage3_20260921:O2_s{sd}": f"O2 OSI 直接回归（logit_z）：已部署 X5D_v51_s{sd} 配方只换标签；test34 读一次" for sd in (1234, 7, 2025)},
+    **{f"wss_cycle_m1_20260921:M1_f{k}_s1234": f"M1 三头：X5D_v51 fold{k} 配方 out_dim 3 = [峰值 WSS log_z, TAWSS log_z, OSI logit_z]，等权 MSE，pinball 关，输出层配对重建；只读留出折" for k in range(3)},
+    **{f"wss_cycle_m1_stage3_20260922:M1_s{sd}": f"M1 三头三 seed 确认：已部署 X5D_v51_s{sd} 配方 out_dim 3 = [峰值 WSS log_z, TAWSS log_z, OSI logit_z]（train136 多通道统计），等权 MSE，pinball 关；test34 读一次" for sd in (1234, 7, 2025)},
+    # v5.2p4 全量 265 例训练（2026-09-30，队列 16192）：X5Dcap_asym2 配方只换数据，test = recover8
+    **{f"wss_v52p4_full265_20260930:X5Dcap_asym2_full265_s{sd}": f"全量 265 例 X5Dcap_asym2 seed {sd}：配方 = wss_v52_phys_20260926/X5Dcap_asym2_s{sd} 逐位不变，只换数据（v5.2 261 + YANG_BAO_KUI + 3 个同病人搭档单元；val 空、按训练损失选模）；test = recover8（8 例，病人不在训练集）" for sd in (1234, 7, 2025)},
 }
+FULL265 = "wss_v52p4_full265"  # 2026-09-30: rows of the full265 data-version training (protocol / note / paired IND reference)
 
 
 def describe(aid):
@@ -115,6 +132,12 @@ def describe(aid):
 
 def external_refs_for(arm, matrix):
     """Paired references declared in matrix.json (wave 2): same-seed X5 for X5X11, X5q/X5 for the F6 variants."""
+    if NAME.startswith(FULL265):
+        # the X5Dcap_asym2 IND (train170) run of the same seed, evaluated on recover8 like the queue evaluated this arm
+        # (frozen copy, GPU, best checkpoint, full265 view root; experiments/<name>/ref_ind_recover8.slurm)
+        seed = arm.get("seed", 1234)
+        ref = EXP / "ref_ind_recover8" / f"X5Dcap_asym2_s{seed}" / "metrics.json"
+        return [(f"IND同seed{seed}（train170，同一recover8）", str(ref))] if ref.is_file() else []
     runs = {key.split(" (")[0]: value for key, value in matrix.get("external_reference_runs", {}).items()}
     for other in matrix.get("arms", []):  # 2026-09-16: same-experiment references (e.g. X5Dcap vs X5D_v51 of the same seed)
         runs.setdefault(other["id"], str(ROOT / "training_wss_min/runs" / NAME / other["id"] / "eval/ckpt_best/metrics.json"))
@@ -146,6 +169,12 @@ def external_refs_for(arm, matrix):
         wanted = [(f"X5D_v51同折峰值底座", f"X5D_v51_f{fold}_s1234")]
         if aid.startswith(("TB8_f", "TB16_f")):
             wanted.append((f"T0同折", f"T0_f{fold}_s1234"))
+    elif NAME.startswith("wss_cycle") or aid.startswith(("A1_f", "O1_f", "O2_f")):
+        # 周期线：第一参照 = 同折峰值底座（G1.1 用归一化 Δ；对 OSI 臂只是跨目标并列）；O2 另配 O1 同折（目标空间对照）
+        fold = arm.get("fold")
+        wanted = [(f"X5D_v51同折峰值底座", f"X5D_v51_f{fold}_s1234")]
+        if aid.startswith("O2_f"):
+            wanted.append((f"O1同折（线性目标空间）", f"O1_f{fold}_s1234"))
     else:
         wanted = []
     return [(name, runs[key]) for name, key in wanted if key in runs and Path(runs[key]).is_file()]
@@ -165,6 +194,13 @@ def read_json(path, default=None):
 def arm_records():
     matrix = read_json(CONFIGS / "matrix.json")
     queue = read_json(EXP / "queue_status.json", {"arms": {}})
+    # 2026-09-29: a matrix may have been executed by several queues (e.g. wss_v52_20260923 IND in 15618, its CV5
+    # arms in experiments/wss_v52_20260923_cv5 by 15636); records missing/incomplete here are taken from EXTRA_EXPERIMENTS.
+    for extra in EXTRA_EXPERIMENTS:
+        other = read_json(ROOT / "training_wss_min/experiments" / extra / "queue_status.json", {"arms": {}})["arms"]
+        for aid, rec in other.items():
+            if queue["arms"].get(aid, {}).get("status") != "complete" and rec.get("status") == "complete":
+                queue["arms"][aid] = rec
     for arm in matrix["arms"]:
         DESCRIPTIONS.setdefault(arm["id"], arm["title"])
     anchor = read_json(Path(matrix["anchor_run"]) / "eval/ckpt_best/metrics.json")["test"]
@@ -201,7 +237,8 @@ def update_workbook(book: Path):
     matrix, queue, anchor, arms = arm_records()
     before = sha(book)
     wb = load_workbook(book)
-    if wb.sheetnames[:3] != ["WSS实验矩阵", "速度与压力实验矩阵", "指标说明"]:
+    # 2026-09-29: the workbook gained sheets (TAWSS_OSI周期量矩阵 at index 2, 方法说明对照); require presence, not position
+    if not {"WSS实验矩阵", "速度与压力实验矩阵", "指标说明"} <= set(wb.sheetnames):
         raise ValueError("unexpected workbook sheet schema")
     ws = wb["WSS实验矩阵"]
     if ws.max_column != 168 or ws["FI5"].value != "原始实验 ID" or "WSSResults" not in ws.tables:
@@ -224,10 +261,18 @@ def update_workbook(book: Path):
     for i, arm in enumerate(arms):
         row = locations[arm["run_name"]]
         values = [MISSING] * 168
-        protocol = ("V5.1 cv3 留出折 81 帧；test34 未用；表内 R²_cb=峰值帧 1162，周期指标见备注"
+        is_cycle = NAME.startswith("wss_cycle")
+        is_osi = is_cycle and arm["id"].startswith("O")
+        protocol = ("v5.2p4 full265：train 265 / val 0 → test recover8（8 例，病人不在训练集）；峰值1162；n=8 描述性读数"
+                    if NAME.startswith(FULL265) else
+                    "V5.1 cv3 留出折 81 帧；test34 未用；表内 R²_cb=峰值帧 1162，周期指标见备注"
                     if NAME.startswith("wss_time_ecc") else
+                    ("V5.1 cv3 留出折；test34 未用；目标 = 周期积分量（wss_min_cycle_v1，帧 0–79）：表内物理列 = "
+                     + ("OSI∈[0,0.5]（无量纲，非 Pa）" if is_osi else "TAWSS(Pa)") + "；阈值掩膜与自由基线见备注")
+                    if is_cycle else
                     "V5 train138/test34；峰值1162；test34开发筛选")
-        values[:5] = [GROUP, f"{arm['id']}｜{describe(arm['id'])}｜{arm['status']}", "WSS · Pa",
+        values[:5] = [GROUP, f"{arm['id']}｜{describe(arm['id'])}｜{arm['status']}",
+                      ("OSI · 无量纲" if is_osi else "TAWSS · Pa") if is_cycle else "WSS · Pa",
                       "best主结果；last/ema见逐指标批注" if arm["accepted"] else "尚无完整结果",
                       protocol]
         values[13] = "X0（同期对照）；C1（历史锚点）" if (arm["id"] != "X0" and control_best is not None) else "C1（历史锚点）"
@@ -235,6 +280,17 @@ def update_workbook(book: Path):
             note = (f"Job {queue.get('job_id', '尚未提交')}；{arm['status']}；history {arm['history_rows']}/{arm['epochs']}。"
                     f"cv3_v51 fold{arm.get('fold')} 留出折 81 帧，test34 未用；表内物理/归一化 R²_cb 是峰值帧 1162，不是全周期。"
                     f"单seed{arm.get('seed', 1234)}，只作阶段 2 筛选；{arm['title']}。")
+        elif is_cycle:
+            note = (f"Job {queue.get('job_id', '尚未提交')}；{arm['status']}；history {arm['history_rows']}/{arm['epochs']}。"
+                    f"cv3_v51 fold{arm.get('fold')} 留出折，test34 未用；目标 = {'OSI（无量纲，表内「Pa」列实为 OSI）' if is_osi else 'TAWSS（Pa）'}，"
+                    f"标签 wss_min_cycle_v1（wall_wss_vec 帧 0–79 各权 1/80）。单seed{arm.get('seed', 1234)}，只作阶段 1 筛选；{arm['title']}。")
+        elif NAME.startswith(FULL265):
+            note = (f"Job {queue.get('job_id', '尚未提交')}；{arm['status']}；history {arm['history_rows']}/{arm['epochs']}。"
+                    f"全量训练 train 265（v5.2 261 + YANG_BAO_KUI + 3 个同病人搭档单元），val 空（按训练损失选模），test = recover8；"
+                    f"test91 已在训练集内，recover8 是唯一留出集，仅 8 例只作描述。单seed{arm.get('seed', 1234)}；"
+                    f"配方 = wss_v52_phys_20260926/X5Dcap_asym2_s{arm.get('seed', 1234)} 逐位不变（只改数据路径），init_reference_config=C1_s{arm.get('seed', 1234)}。"
+                    f"ΔR²列相对 IND 同 seed（train170）在同一 recover8 上的读数（同冻结代码、GPU、best）。"
+                    f"三 seed 集成读数（CPU，evaluate_recover8.sh）：full265 0.8393 对 IND 三 seed 0.8352 / 五 seed 0.8393，见 outputs/cfd_auto_trial_20260927/_recover/eval/readout_recover8_full265_vs_ind.md；{arm['title']}。")
         else:
             note = (f"Job {queue.get('job_id', '尚未提交')}；{arm['status']}；history {arm['history_rows']}/{arm['epochs']}。"
                     f"单seed{arm.get('seed', 1234)}、已暴露test34：只作筛选，不作显著性或泛化结论；单seed对单seed 95%带约±0.034 Pa R²/±0.009归一化。"
@@ -280,7 +336,22 @@ def update_workbook(book: Path):
                 note += (f" 周期 best：cycle_R²_cb={cyc.get('cycle_r2cb_pa')} trough={cyc.get('trough_r2cb_pa')} "
                          f"TAWSS_R²_cb={tawss.get('r2')} peak_time_err_med={cyc.get('peak_time_err_med_frames')}。"
                          f"ΔR²列相对同折 X5D_v51 峰值底座（G2.3）；TB 第二参照为同折 T0。")
-        values[159:] = ["Pa", "PointNeXt-R＋LocalGeoPE＋L-SA2＋local branch＋E2方向邻域＋E3 patch/FiLM（C1）",
+            elif is_cycle:
+                masks = best.get("threshold_masks") or {}
+                mask_text = "；".join(f"{name}: IoU={blk.get('iou_casemean'):.3f} 面积份额误差med={blk.get('frac_abs_err_casemed'):.3f}"
+                                     for name, blk in masks.items())
+                c1 = (read_json(EXP / "offline/c1_baselines.json") or {}).get(f"fold{arm.get('fold')}", {})
+                if is_osi:
+                    on = c1.get("OSI_null", {})
+                    base_text = (f"OSI-null（训练折等渗 OSI~ln τ̂_peak）同折：R²_cb={on.get('r2_cb')} "
+                                 f">0.1 IoU={(on.get('threshold_masks') or {}).get('above_0.1', {}).get('iou')}")
+                else:
+                    tn, tr = c1.get("TAWSS_null", {}), c1.get("TAWSS_ratio", {})
+                    base_text = (f"TAWSS-null（峰值折外预测×波形，80 帧）同折 Pa R²_cb={tn.get('r2_cb')} log={tn.get('log_r2_cb')}；"
+                                 f"TAWSS-ratio Pa={tr.get('r2_cb')}")
+                note += (f" 阈值掩膜 best：{mask_text}。自由基线 {base_text}。"
+                         f"ΔR²列相对同折 X5D_v51 峰值底座（跨目标并列，G1.1 用归一化 Δ）；门控读数见 experiments/wss_cycle_20260920/offline/gate_report_best.txt。")
+        values[159:] = ["OSI（无量纲）" if is_osi else "Pa", "PointNeXt-R＋LocalGeoPE＋L-SA2＋local branch＋E2方向邻域＋E3 patch/FiLM（C1）",
                         describe(arm["id"]),
                         f"seed{arm.get('seed', 1234)} / {arm['epochs']}ep / {arm['input_dim']}D / support5000 / query5000 independent",
                         5000, arm["run_name"], note[:32000], "\n".join(sources),
@@ -336,13 +407,15 @@ def update_workbook(book: Path):
 
 
 def main(argv=None):
-    global NAME, CONFIGS, EXP, GROUP
+    global NAME, CONFIGS, EXP, GROUP, EXTRA_EXPERIMENTS
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workbook", type=Path, default=BOOK)
     parser.add_argument("--name", default=NAME, help="experiment name (configs/<name>, experiments/<name>)")
     parser.add_argument("--group", default=GROUP, help="workbook column-A group label that owns the rows")
+    parser.add_argument("--extra-experiment", action="append", default=[], help="experiments/<name> whose complete queue records fill arms not completed in the primary experiment")
     args = parser.parse_args(argv)
     NAME, GROUP = args.name, args.group
+    EXTRA_EXPERIMENTS = list(args.extra_experiment)
     CONFIGS = ROOT / "training_wss_min/configs" / NAME
     EXP = ROOT / "training_wss_min/experiments" / NAME
     print(json.dumps(update_workbook(args.workbook), ensure_ascii=False, indent=1))

@@ -1,0 +1,873 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_v52_phys2n_20260927",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234",
+  "control_id": null,
+  "external_reference_runs": {
+    "X5Dcap_v52cv_f0_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f1_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f1_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f2_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f2_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f3_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f3_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f4_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f4_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f0_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f1_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f1_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f2_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f2_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f3_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f3_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f4_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f4_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f0_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f1_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f1_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f2_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f2_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f3_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f3_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f4_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f4_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s2025/eval/ckpt_best/metrics.json"
+  },
+  "section": "§36 stage 2",
+  "screening_readout": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys_20260926/readout_phys_ckpt_best.md",
+  "expected_training_runs": 6,
+  "expected_evaluations": 12,
+  "arms": [
+    {
+      "id": "X5Dcap_asym15_s1234",
+      "title": "dose control: asym under-weight 1.5, IND, seed 1234",
+      "config": "X5Dcap_asym15_s1234.json",
+      "phase": 1,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "seed": 1234,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym15",
+      "parent": "X5Dcap_v52ind_s1234 (wss_v52_20260923)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/ind_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        },
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 1.5
+        }
+      },
+      "config_diff_vs_parent": {
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 1.5
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_asym3_s1234",
+      "title": "dose control: asym under-weight 3.0, IND, seed 1234",
+      "config": "X5Dcap_asym3_s1234.json",
+      "phase": 1,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "seed": 1234,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym3",
+      "parent": "X5Dcap_v52ind_s1234 (wss_v52_20260923)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/ind_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        },
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 3.0
+        }
+      },
+      "config_diff_vs_parent": {
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 3.0
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_asym15_s7",
+      "title": "dose control: asym under-weight 1.5, IND, seed 7",
+      "config": "X5Dcap_asym15_s7.json",
+      "phase": 1,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "seed": 7,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym15",
+      "parent": "X5Dcap_v52ind_s7 (wss_v52_20260923)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/ind_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 1.5
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      },
+      "config_diff_vs_parent": {
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 1.5
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_asym3_s7",
+      "title": "dose control: asym under-weight 3.0, IND, seed 7",
+      "config": "X5Dcap_asym3_s7.json",
+      "phase": 1,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "seed": 7,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym3",
+      "parent": "X5Dcap_v52ind_s7 (wss_v52_20260923)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/ind_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 3.0
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      },
+      "config_diff_vs_parent": {
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 3.0
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_asym15_s2025",
+      "title": "dose control: asym under-weight 1.5, IND, seed 2025",
+      "config": "X5Dcap_asym15_s2025.json",
+      "phase": 1,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "seed": 2025,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym15",
+      "parent": "X5Dcap_v52ind_s2025 (wss_v52_20260923)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/ind_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 1.5
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      },
+      "config_diff_vs_parent": {
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 1.5
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_asym3_s2025",
+      "title": "dose control: asym under-weight 3.0, IND, seed 2025",
+      "config": "X5Dcap_asym3_s2025.json",
+      "phase": 1,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "seed": 2025,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym3",
+      "parent": "X5Dcap_v52ind_s2025 (wss_v52_20260923)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/ind_X5Dcap_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/split_v52_ind_train170_test91.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/wss_global_stats_ind_train170.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 3.0
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      },
+      "config_diff_vs_parent": {
+        "train.loss_asym_under_weight": {
+          "anchor": null,
+          "arm": 3.0
+        }
+      }
+    }
+  ],
+  "reading_rule": "CV5: 15 paired (fold, seed) R2_cb deltas vs X5Dcap_v52cv: mean > +0.005 and >= 11/15 positive -> T2 confirmed; pooled OOF per seed mean +- sd; IND dose controls read as three paired deltas each (not a gate)",
+  "split_note": "2026-09-27 11:05 split of wss_v52_phys2_20260927 (queue 15785 cancelled after ~20 min to free arms for node04): node04 2xA100 (manual, no Slurm): dose controls asym 1.5/3.0 x 3 seeds"
+}

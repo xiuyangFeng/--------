@@ -1,14 +1,14 @@
 # Centerline V2 全队列修复与切换记录（2026-08-28）
 
-> 🧊 **结案说明（2026-09-13 归档）**：本文记录的三轮 VMTK 提取、保守自动修复与 173 例全队列 Gate 已于 2026-08-28 完成，下游切换由 V5 数据母库（2026-09-06，172/172 `dataset_ready`）实施；V5 对中心线/atlas 的消费合同与此后的发现、修正自 2026-09-07 起只记录在 [Centerline V5 记录](../Centerline_V5_点云atlas接入与出口命名修正记录_2026-09-07.md)。本文冻结为 V2 切换史，不再追加；证据目录 `outputs/centerline_v2_full_173_20260828/` 不动。文内相对链接按原目录 `02-推进与变更/` 书写的已改写为归档位置。
+> 🧊 **结案说明（2026-09-13 归档）**：本文记录的三轮 VMTK 提取、保守自动修复与 173 例全队列 Gate 已于 2026-08-28 完成，下游切换由 V5 数据母库（2026-09-06，172/172 `dataset_ready`）实施；V5 对中心线/atlas 的消费合同与此后的发现、修正自 2026-09-07 起只记录在 [Centerline V5 记录](../04-数据处理与CFD/Centerline_V5_点云atlas接入与出口命名修正记录_2026-09-07.md)。本文冻结为 V2 切换史，不再追加；证据目录 `outputs/centerline_v2_full_173_20260828/` 不动。文内相对链接按原目录 `02-推进与变更/` 书写的已改写为归档位置。
 
-> **2026-09-07 冻结说明**：本文自此冻结为 Centerline V2 切换史。V5 起对中心线/atlas 的接入合同、8 例出口命名修正、盖面与坐标架记录见 [Centerline V5：点云 atlas 接入与出口命名修正记录](../Centerline_V5_点云atlas接入与出口命名修正记录_2026-09-07.md)。文中指向 WSS_PINN V4 文档的链接已随 2026-09-07 归档改指 `WSS_PINN/_archive/`。
+> **2026-09-07 冻结说明**：本文自此冻结为 Centerline V2 切换史。V5 起对中心线/atlas 的接入合同、8 例出口命名修正、盖面与坐标架记录见 [Centerline V5：点云 atlas 接入与出口命名修正记录](../04-数据处理与CFD/Centerline_V5_点云atlas接入与出口命名修正记录_2026-09-07.md)。文中指向 WSS_PINN V4 文档的链接已随 2026-09-07 归档改指 `_archive/WSS_PINN/_archive/`。
 
 > 2026-08-31 addendum：WSS_PINN 已在独立 staging root 完成 173/173 Centerline V2
 > rawfull 重建与工程 Gate，未覆盖旧 `data_wss_pinn`，且 manifest 保持
 > `training_ready=false`。`data_wss_min`、pipeline 默认输入、其他旧 bundle 和正式训练
 > route 仍未 cutover；详见
-> [WSS_PINN V4 173 例审阅与修复计划](../WSS_PINN/_archive/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)。
+> [WSS_PINN V4 173 例审阅与修复计划](WSS_PINN/_archive/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)。
 
 ## 1. 最终结论
 

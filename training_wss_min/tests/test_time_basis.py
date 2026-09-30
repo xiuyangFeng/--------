@@ -110,3 +110,31 @@ def test_subset_case_slices_multiframe_labels():
     sub = D.subset_case(case, rows)
     assert sub["y_norm"].shape == (3, 3) and sub["y_raw_frames"].shape == (81, 3) and sub["y_norm_frames"].shape == (81, 3)
     assert np.array_equal(sub["y_raw_frames"][:, 1], case["y_raw_frames"][:, 4]) and sub["steps"].shape == (81,)
+
+
+def test_volume_time_metrics_pooled_nmae_range():
+    from training_wss_min.volume_time import VolumeTimeMetrics, PEAK_INDEX
+    q = np.linspace(0.2, 1.0, 81)
+    rng = np.random.default_rng(0)
+    yt1 = rng.normal(size=(81, 40))
+    yt2 = rng.normal(size=(81, 25)) + 3.0
+    yp1 = yt1 + 0.1
+    yp2 = yt2.copy()
+    yp2[PEAK_INDEX] = yt2[PEAK_INDEX]
+    met = VolumeTimeMetrics(q, "pressure")
+    met.add(yt1, yp1)
+    met.add(yt2, yp2)
+    st = np.concatenate([yt1, yt2], axis=1)
+    sp = np.concatenate([yp1, yp2], axis=1)
+    expect = np.mean(np.abs(st - sp), axis=1) / np.maximum(st.max(axis=1) - st.min(axis=1), 1e-12)
+    got = np.asarray(met.summary()["frame_nmae_range"])
+    assert np.allclose(got, expect)
+    assert got[PEAK_INDEX] == pytest.approx(expect[PEAK_INDEX])
+    vel = VolumeTimeMetrics(q, "velocity")
+    yt = rng.normal(size=(81, 30, 3))
+    yp = yt + 0.05
+    vel.add(yt, yp)
+    st = np.linalg.norm(yt, axis=2)
+    sp = np.linalg.norm(yp, axis=2)
+    expect_v = np.mean(np.abs(st - sp), axis=1) / np.maximum(st.max(axis=1) - st.min(axis=1), 1e-12)
+    assert np.allclose(vel.summary()["frame_nmae_range"], expect_v)

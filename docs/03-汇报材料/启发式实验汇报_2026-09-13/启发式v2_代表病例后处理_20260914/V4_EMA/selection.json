@@ -1,0 +1,285 @@
+{
+  "model": "V4_EMA",
+  "arm": "V4-SP-PN-BC-PDE-EMA-s1234",
+  "protocol": "历史 V4 PointNet BC+PDE-EMA，seed1234，last_converged（epoch9999，converged:false）。选例按 full-wall 派生 WSS 物理预测 R²；Median 是距分布中位最近的真实病例。不是正在训练的 X5D_long，也不是 formal P2V/D2 V4。",
+  "n_cases": 35,
+  "seeds": [
+    1234
+  ],
+  "stats": {
+    "case_mean": -0.10510373475712288,
+    "case_median": -0.04027212297224936,
+    "case_p10": -0.43999000298237206,
+    "negative_count": 20
+  },
+  "source_metrics": "/public/newhome/cy/Digital_twin/GNN/outputs/wss_pinn/audits/v4_fullwall_20260901/arms/V4-SP-PN-BC-PDE-EMA-s1234/wss_metrics.json",
+  "source_field": "cases[].wss_r2",
+  "best": {
+    "case_id": "AG/fast/RAN_QING_BO",
+    "r2": 0.2599162777733912,
+    "mae": 3.4997840025018623,
+    "nmae_range": 0.06827154721394912,
+    "points": 17682
+  },
+  "median": {
+    "case_id": "ILO/LI_YOU_ZHI-0/before",
+    "r2": -0.04027212297224936,
+    "mae": 1.1626994194029912,
+    "nmae_range": 0.043618108781575404,
+    "points": 67760
+  },
+  "worst": {
+    "case_id": "AG/fast/LOU_YANG",
+    "r2": -0.8892651028000789,
+    "mae": 4.856450124587293,
+    "nmae_range": 0.13490659773531585,
+    "points": 10806
+  },
+  "all_cases": [
+    {
+      "case_id": "AAA/ruputer/KANG_YONG",
+      "r2": -0.12315364453463329,
+      "mae": 1.0525910038240596,
+      "nmae_range": 0.12239531577125083,
+      "points": 16448
+    },
+    {
+      "case_id": "AAA/ruputer/LI_ZHEN_HUA",
+      "r2": -0.031108966224329127,
+      "mae": 3.8622286161566444,
+      "nmae_range": 0.08951700624368052,
+      "points": 12599
+    },
+    {
+      "case_id": "AAA/ruputer/WANG_FU_SHUN",
+      "r2": -0.7644475363604561,
+      "mae": 6.063829967156197,
+      "nmae_range": 0.049504696640106025,
+      "points": 95287
+    },
+    {
+      "case_id": "AAA/ruputer/YANG_BAO_KUI",
+      "r2": -0.05716330549280291,
+      "mae": 1.4371068281242323,
+      "nmae_range": 0.03564688551093744,
+      "points": 96719
+    },
+    {
+      "case_id": "AAA/ruputer/YU_TIAN_HAI",
+      "r2": 0.10469800622958891,
+      "mae": 3.776513775573712,
+      "nmae_range": 0.03968136946160279,
+      "points": 54654
+    },
+    {
+      "case_id": "AAA/unruputer/GAO_DIAN_WEN",
+      "r2": 0.09322398218042682,
+      "mae": 1.870030244538529,
+      "nmae_range": 0.042279589586018324,
+      "points": 14693
+    },
+    {
+      "case_id": "AAA/unruputer/LIU_KANG_WEN",
+      "r2": 0.2103045488251658,
+      "mae": 2.7923344696008043,
+      "nmae_range": 0.10021987304918163,
+      "points": 14115
+    },
+    {
+      "case_id": "AAA/unruputer/MA_JIN_HE",
+      "r2": 0.027033381368760434,
+      "mae": 2.979678756322354,
+      "nmae_range": 0.010245244193936347,
+      "points": 76729
+    },
+    {
+      "case_id": "AAA/unruputer/SUN_SHU_MING",
+      "r2": 0.08666852260397251,
+      "mae": 1.1747741149594042,
+      "nmae_range": 0.09337820037373173,
+      "points": 14958
+    },
+    {
+      "case_id": "AAA/unruputer/WANG_MAN_TIAN",
+      "r2": 0.10908011431214071,
+      "mae": 3.5155026787346317,
+      "nmae_range": 0.023113992073589315,
+      "points": 72502
+    },
+    {
+      "case_id": "AAA/unruputer/ZHANG_YONG_ZHI",
+      "r2": -0.10626316945875791,
+      "mae": 5.956886408072291,
+      "nmae_range": 0.02105212726205439,
+      "points": 57531
+    },
+    {
+      "case_id": "AG/fast/FAN_JIAN_MING",
+      "r2": -0.20114222165616646,
+      "mae": 1.920413125434186,
+      "nmae_range": 0.07826467663255289,
+      "points": 10627
+    },
+    {
+      "case_id": "AG/fast/LOU_YANG",
+      "r2": -0.8892651028000789,
+      "mae": 4.856450124587293,
+      "nmae_range": 0.13490659773531585,
+      "points": 10806
+    },
+    {
+      "case_id": "AG/fast/RAN_QING_BO",
+      "r2": 0.2599162777733912,
+      "mae": 3.4997840025018623,
+      "nmae_range": 0.06827154721394912,
+      "points": 17682
+    },
+    {
+      "case_id": "AG/fast/SUN_ZHI_YU",
+      "r2": -0.4509405580746575,
+      "mae": 1.7878400524971605,
+      "nmae_range": 0.07481330477100387,
+      "points": 11696
+    },
+    {
+      "case_id": "AG/fast/YAO_CUN_HONG",
+      "r2": 0.16253777362145194,
+      "mae": 4.089104893035133,
+      "nmae_range": 0.04534451951506708,
+      "points": 9704
+    },
+    {
+      "case_id": "AG/fast/ZHANG_CHUN",
+      "r2": -0.05568281051604074,
+      "mae": 6.2254928538960295,
+      "nmae_range": 0.05113388319159769,
+      "points": 13850
+    },
+    {
+      "case_id": "AG/fast/ZHANG_LIANG",
+      "r2": 0.08796751236153821,
+      "mae": 2.8730534282047264,
+      "nmae_range": 0.061454695625033355,
+      "points": 14399
+    },
+    {
+      "case_id": "AG/slow/BAI_WEN_JIE",
+      "r2": 0.19958946950955725,
+      "mae": 2.1058191075021524,
+      "nmae_range": 0.05041322415119932,
+      "points": 10595
+    },
+    {
+      "case_id": "AG/slow/CHEN_JING_RU",
+      "r2": -0.10397875484971753,
+      "mae": 2.34629432421277,
+      "nmae_range": 0.09378036154285072,
+      "points": 12477
+    },
+    {
+      "case_id": "AG/slow/GUO_XI_JIANG",
+      "r2": 0.056729280672678795,
+      "mae": 3.153406516372402,
+      "nmae_range": 0.037333611918880044,
+      "points": 10236
+    },
+    {
+      "case_id": "AG/slow/HE_SHU_ZHEN",
+      "r2": -0.4235641703439439,
+      "mae": 3.194176665191353,
+      "nmae_range": 0.07176010477133696,
+      "points": 10244
+    },
+    {
+      "case_id": "AG/slow/LI_HUAN_GE",
+      "r2": -0.07327309148626782,
+      "mae": 5.0999253121166435,
+      "nmae_range": 0.06689698276786467,
+      "points": 12691
+    },
+    {
+      "case_id": "AG/slow/MA_TIAN_YI",
+      "r2": 0.016501399966412866,
+      "mae": 9.115786617501854,
+      "nmae_range": 0.07289179217222563,
+      "points": 12636
+    },
+    {
+      "case_id": "AG/slow/MA_YU",
+      "r2": -0.5109859128512719,
+      "mae": 3.733782958397193,
+      "nmae_range": 0.10474101044124855,
+      "points": 17282
+    },
+    {
+      "case_id": "AG/slow/ZHANG_WEI_XIAN",
+      "r2": -0.32820321806604724,
+      "mae": 4.787801007944644,
+      "nmae_range": 0.09351472379423506,
+      "points": 18551
+    },
+    {
+      "case_id": "ILO/LI_YOU_ZHI-0/before",
+      "r2": -0.04027212297224936,
+      "mae": 1.1626994194029912,
+      "nmae_range": 0.043618108781575404,
+      "points": 67760
+    },
+    {
+      "case_id": "ILO/LU_FU_SHAN-0/before",
+      "r2": -0.3847142782136339,
+      "mae": 5.005671686837599,
+      "nmae_range": 0.09113548334965961,
+      "points": 79580
+    },
+    {
+      "case_id": "ILO/SUN_DONG_XIN-0/before",
+      "r2": -0.29798627457141547,
+      "mae": 1.7118218533304772,
+      "nmae_range": 0.03218309851143723,
+      "points": 41619
+    },
+    {
+      "case_id": "ILO/SUN_XU_XIA-1/before",
+      "r2": 0.006929932051637722,
+      "mae": 9.271806577080897,
+      "nmae_range": 0.03390782621429464,
+      "points": 60282
+    },
+    {
+      "case_id": "ILO/YANG_WEN_TAI-0/before",
+      "r2": 0.19631044088398897,
+      "mae": 1.7841725157439077,
+      "nmae_range": 0.04812038029876061,
+      "points": 81868
+    },
+    {
+      "case_id": "ILO/YU_XIANG_SHENG-1/before",
+      "r2": -0.20382766640977912,
+      "mae": 3.02975255608372,
+      "nmae_range": 0.030124745009287492,
+      "points": 57231
+    },
+    {
+      "case_id": "ILO/ZHANG_HE_PING-0/before",
+      "r2": -0.036604929570943856,
+      "mae": 1.762214575244567,
+      "nmae_range": 0.03522869267940629,
+      "points": 85234
+    },
+    {
+      "case_id": "ILO/ZHANG_JIN_CHUN-1/before",
+      "r2": 0.1018860111841956,
+      "mae": 5.56637278116168,
+      "nmae_range": 0.031253697228793356,
+      "points": 74403
+    },
+    {
+      "case_id": "ILO/ZHANG_YONG_SHENG-0/before",
+      "r2": -0.31542963559101556,
+      "mae": 1.6150887570788885,
+      "nmae_range": 0.03865855595733456,
+      "points": 60329
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "case": "AAA/unruputer/SHEN_FANG_JIN",
+  "arm": "VT0",
+  "field": "velocity",
+  "phase": "decel",
+  "frame_index": 35,
+  "step": 1190,
+  "q_norm": 0.4313764633076023,
+  "n_interior_points": 677082,
+  "interpolation": "none (interior point cloud only)",
+  "selfmax": {
+    "version": 1,
+    "kind": "selfmax",
+    "prefix": "speed",
+    "unit": "dimensionless",
+    "source_unit": "m/s",
+    "denominator_scope": "original colocated interior, this case this frame",
+    "source_point_count": 677082,
+    "cfd_max": 0.5250054597268119,
+    "pred_max": 0.4741092449509627,
+    "cfd_denominator": {
+      "max": 0.5250054597268119,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 1e-12
+    },
+    "pred_denominator": {
+      "max": 0.4741092449509627,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 1e-12
+    },
+    "formula": {
+      "speed_cfd_selfmax": "CFD / max(original CFD)",
+      "speed_pred_selfmax": "Pred / max(original Pred)",
+      "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+      "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+    },
+    "denominator_basis": "original full colocated case at selected frame, before interpolation",
+    "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+    "amplitude_difference_removed": true,
+    "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+    "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+    "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+  },
+  "identity": {
+    "n_interior": 677082,
+    "query_idx_min": 85304,
+    "query_idx_max": 762385,
+    "n_wall": 85304,
+    "wall_node_distance_mm": {
+      "min": 0.0795026064917495,
+      "p01": 0.3662493624115541,
+      "p50": 0.9470115959078205,
+      "note": "nearest wall node, not face distance; near-wall low speed kept"
+    }
+  },
+  "pointcloud_metrics": {
+    "r2": 0.5784771221622151,
+    "mae": 0.03210676319785229,
+    "rmse": 0.05350909564083652,
+    "metric_basis": "same-point interior |u|; not a wall projection"
+  },
+  "files": {
+    "interior_pointcloud": "interior_pointcloud.vtp",
+    "interior_3mm_slab": "interior_3mm_slab.vtp",
+    "wall_geometry_only": "wall_geometry_only.vtp",
+    "same_point_csv": "_export/same_point_fields.csv.gz",
+    "speed_preview": "plots/fig_speed_triptych.png",
+    "selfmax_preview": "plots/fig_speed_selfmax_triptych.png"
+  },
+  "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/volume_time_20260919/VT0_f2_s1234",
+  "checkpoint": "ckpt_best.pt",
+  "ckpt_epoch": 339,
+  "definition": "phase-query PointNet++ velocity, ckpt_best, frame_stats denorm",
+  "geometry": {
+    "stl_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/SHEN_FANG_JIN/SHEN_FANG_JIN.stl",
+    "stl_scale_to_mm": 1.0000000041524866,
+    "rotation_convention": "@R.T",
+    "repro_err_mm": 2.2254036238678054e-05,
+    "crop": {
+      "applied": false
+    },
+    "coord_scale": 157.32528686523438,
+    "n_wall": 85304,
+    "n_full": 762386
+  },
+  "p_ref": 14026.144059794902,
+  "skill": "postview-surface-viz"
+}

@@ -1,0 +1,196 @@
+{
+  "host": "master",
+  "slurm_job_id": "15686",
+  "cuda_visible_devices": "0",
+  "package_root": "/public/newhome/cy/Digital_twin/GNN_m1_v52_frozen_20260925",
+  "started_at": "2026-09-24T21:53:30-0700",
+  "passed": true,
+  "anchors": [
+    {
+      "anchor_run": "/public/newhome/cy/Digital_twin/GNN_m1_v52_frozen_20260925/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s1234",
+      "output_dir": "/public/newhome/cy/Digital_twin/GNN_m1_v52_frozen_20260925/training_wss_min/experiments/wss_cycle_m1_v52_20260925/preflight/20260924_215330/anchor_wss_v52_20260923_X5Dcap_v52cv_f0_s1234_best",
+      "compared_fields": 8943,
+      "only_in_stored": 0,
+      "only_in_fresh": 0,
+      "max_abs_diff": 3.652348723903742e-05,
+      "max_abs_diff_field": "test.per_case.ILO/YU_XIANG_SHENG-1/before.distribution.pred_dynamic_range",
+      "top5": [
+        [
+          3.652348723903742e-05,
+          "test.per_case.ILO/YU_XIANG_SHENG-1/before.distribution.pred_dynamic_range"
+        ],
+        [
+          3.15940054491648e-05,
+          "test.per_case.ILO/WANG_TIAN_QING-1/before.distribution.pred_dynamic_range"
+        ],
+        [
+          3.0143635711965544e-05,
+          "test.per_case.ILO/LIU_BAO_JUN-0/after.distribution.pred_dynamic_range"
+        ],
+        [
+          2.7974574784650486e-05,
+          "test.per_case.ILO/LIU_YUE_DONG-0/after.distribution.pred_dynamic_range"
+        ],
+        [
+          2.520756338242336e-05,
+          "test.per_case.ILO/XIONG_DONG_SUO-0/after.distribution.pred_dynamic_range"
+        ]
+      ],
+      "nan_mismatch": [],
+      "tolerance": 0.0005,
+      "passed": true
+    },
+    {
+      "anchor_run": "/public/newhome/cy/Digital_twin/GNN_m1_v52_frozen_20260925/training_wss_min/runs/wss_cycle_m1_20260921/M1_f0_s1234",
+      "output_dir": "/public/newhome/cy/Digital_twin/GNN_m1_v52_frozen_20260925/training_wss_min/experiments/wss_cycle_m1_v52_20260925/preflight/20260924_215330/anchor_wss_cycle_m1_20260921_M1_f0_s1234_best",
+      "compared_fields": 27784,
+      "only_in_stored": 0,
+      "only_in_fresh": 0,
+      "max_abs_diff": 4.6629426407207575e-05,
+      "max_abs_diff_field": "test.per_case.AAA/ruputer/DING_JUN_FENG.distribution.pred_dynamic_range",
+      "top5": [
+        [
+          4.6629426407207575e-05,
+          "test.per_case.AAA/ruputer/DING_JUN_FENG.distribution.pred_dynamic_range"
+        ],
+        [
+          4.6629426407207575e-05,
+          "test.distribution.pred_dynamic_range"
+        ],
+        [
+          1.778677235364512e-05,
+          "test.per_case.AG/slow/ZHANG_QING_SHUI.distribution.pred_dynamic_range"
+        ],
+        [
+          1.740418151285894e-05,
+          "test.per_case.AAA/ruputer/GAO_FENG_SHAN.distribution.pred_dynamic_range"
+        ],
+        [
+          1.2967105519123834e-05,
+          "test.per_case.AG/slow/WANG_GUI.distribution.pred_dynamic_range"
+        ]
+      ],
+      "nan_mismatch": [],
+      "tolerance": 0.0005,
+      "passed": true
+    }
+  ],
+  "paired_construction": {
+    "M1cap_v52cv_f0_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f0_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f0_s2025.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f0_s2025.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f0_s7.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f0_s7.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f1_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f1_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f1_s2025.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f1_s2025.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f1_s7.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f1_s7.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f2_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f2_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f2_s2025.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f2_s2025.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f2_s7.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f2_s7.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f3_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f3_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f3_s2025.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f3_s2025.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f3_s7.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f3_s7.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f4_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f4_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f4_s2025.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f4_s2025.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1cap_v52cv_f4_s7.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f4_s7.json",
+      "n_params": 629676,
+      "input_dim": 27
+    }
+  },
+  "smoke": {
+    "M1cap_v52cv_f0_s1234.json": {
+      "run": "/public/newhome/cy/Digital_twin/GNN_m1_v52_frozen_20260925/training_wss_min/runs/wss_cycle_m1_v52_20260925_smoke/20260924_215330_M1cap_v52cv_f0_s1234",
+      "loss_components": [
+        "base",
+        "total"
+      ],
+      "n_prediction_files": 6
+    }
+  },
+  "finished_at": "2026-09-24T21:56:07-0700"
+}

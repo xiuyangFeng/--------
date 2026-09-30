@@ -1,0 +1,17 @@
+=== M1 三 seed 确认 test34（last）===
+--- 通道 wss ---
+M1_s1234[wss]    norm 0.8650 Pa 0.7201 casemean 0.7479 p10 0.5965 neg 0 sp 0.915 slope 0.649 top10 IoU 0.528 |  | 同seed峰值 norm 0.8684 Δ -0.0034, Pa 0.7461 Δ -0.0260
+M1_s7[wss]       norm 0.8641 Pa 0.7090 casemean 0.7454 p10 0.6212 neg 0 sp 0.915 slope 0.623 top10 IoU 0.524 |  | 同seed峰值 norm 0.8693 Δ -0.0052, Pa 0.7571 Δ -0.0481
+M1_s2025[wss]    norm 0.8654 Pa 0.7291 casemean 0.7492 p10 0.6373 neg 0 sp 0.914 slope 0.642 top10 IoU 0.525 |  | 同seed峰值 norm 0.8745 Δ -0.0090, Pa 0.7657 Δ -0.0367
+M1_ens3[wss]     norm 0.8775 Pa 0.7367 casemean 0.7718 p10 0.6225 neg 0 sp 0.923 slope 0.638 top10 IoU 0.551 |  | 峰值三seed集成 norm 0.8818 Δ -0.0043, Pa 0.7736 Δ -0.0369 (三seed均值 Pa 0.7194 ± 0.0100)
+--- 通道 tawss ---
+M1_s1234[tawss]  norm 0.8681 Pa 0.7181 casemean 0.7565 p10 0.6028 neg 0 sp 0.904 slope 0.617 CCC 0.921 seg 0.104 | below_0.4:IoU 0.573/err 0.022 | 同seed单头 norm 0.8687 Δ -0.0006, Pa 0.7436 Δ -0.0255
+M1_s7[tawss]     norm 0.8692 Pa 0.7249 casemean 0.7589 p10 0.6271 neg 0 sp 0.906 slope 0.620 CCC 0.924 seg 0.086 | below_0.4:IoU 0.588/err 0.020 | 同seed单头 norm 0.8708 Δ -0.0015, Pa 0.7520 Δ -0.0271
+M1_s2025[tawss]  norm 0.8687 Pa 0.7299 casemean 0.7533 p10 0.6197 neg 0 sp 0.905 slope 0.618 CCC 0.920 seg 0.102 | below_0.4:IoU 0.579/err 0.024 | 同seed单头 norm 0.8680 Δ +0.0008, Pa 0.7506 Δ -0.0208
+M1_ens3[tawss]   norm 0.8815 Pa 0.7368 casemean 0.7767 p10 0.6424 neg 0 sp 0.914 slope 0.618 CCC 0.928 seg 0.101 | below_0.4:IoU 0.595/err 0.022 | A1_ens3 norm 0.8806 Δ +0.0009, Pa 0.7621 Δ -0.0253 (三seed均值 Pa 0.7243 ± 0.0059)
+--- 通道 osi ---
+M1_s1234[osi]    norm 0.5460 Pa 0.5055 casemean 0.4835 p10 0.2959 neg 0 sp 0.744 slope 0.620 CCC 0.700 seg 0.155 | above_0.1:IoU 0.671/err 0.037 above_0.3:IoU 0.259/err 0.041 | 同seed单头 norm 0.5402 Δ +0.0058, Pa 0.4934 Δ +0.0121
+M1_s7[osi]       norm 0.5557 Pa 0.5182 casemean 0.4929 p10 0.2596 neg 0 sp 0.752 slope 0.629 CCC 0.725 seg 0.180 | above_0.1:IoU 0.683/err 0.034 above_0.3:IoU 0.264/err 0.042 | 同seed单头 norm 0.5439 Δ +0.0118, Pa 0.4921 Δ +0.0261
+M1_s2025[osi]    norm 0.5524 Pa 0.5171 casemean 0.4935 p10 0.2716 neg 0 sp 0.749 slope 0.627 CCC 0.720 seg 0.180 | above_0.1:IoU 0.675/err 0.043 above_0.3:IoU 0.269/err 0.047 | 同seed单头 norm 0.5450 Δ +0.0073, Pa 0.5052 Δ +0.0119
+M1_ens3[osi]     norm 0.5898 Pa 0.5642 casemean 0.5437 p10 0.3577 neg 0 sp 0.773 slope 0.625 CCC 0.736 seg 0.161 | above_0.1:IoU 0.695/err 0.037 above_0.3:IoU 0.266/err 0.056 | O2_ens3 norm 0.5833 Δ +0.0065, Pa 0.5543 Δ +0.0098 (三seed均值 Pa 0.5136 ± 0.0071)
+滞留区 M1 集成 TAWSS×OSI: IoU 0.560 (基线 0.418; 单头 A1×O2 集成 0.5363327757978033) Dice med 0.771 面积份额 BA -0.002[-0.075,+0.071]

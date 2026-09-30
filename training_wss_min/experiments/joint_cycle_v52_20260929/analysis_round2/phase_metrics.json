@@ -1,0 +1,1089 @@
+{
+  "source": {
+    "Iu": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/Iu_f0_s1234/metrics.json",
+    "Ip": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/Ip_f0_s1234/metrics.json",
+    "Iw": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/Iw_f0_s1234/metrics.json",
+    "J0": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/J0_f0_s1234/metrics.json",
+    "J1c": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/J1c_f0_s1234/metrics.json",
+    "J1": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/J1_f0_s1234/metrics.json"
+  },
+  "aggregation": "equal unit mean; within-unit volume/area weighted",
+  "phase_ranges_zero_based_right_exclusive": {
+    "peak": [
+      [
+        17,
+        27
+      ]
+    ],
+    "trough": [
+      [
+        5,
+        10
+      ],
+      [
+        43,
+        58
+      ]
+    ],
+    "cycle": [
+      [
+        0,
+        80
+      ]
+    ],
+    "accel": [
+      [
+        10,
+        17
+      ]
+    ],
+    "decel": [
+      [
+        27,
+        43
+      ]
+    ],
+    "plateau": [
+      [
+        0,
+        5
+      ],
+      [
+        58,
+        80
+      ]
+    ]
+  },
+  "rows": [
+    {
+      "arm": "Iu",
+      "task": "velocity",
+      "phase": "peak",
+      "r2": 0.7941424411337518,
+      "mae": 0.033693075441261607,
+      "rmse": 0.055758889606020344,
+      "relative_l2": 0.3344085416017997,
+      "direction_cosine": 0.8941512611973964,
+      "direction_weight_coverage": 0.9867279377784101,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Iu",
+      "task": "velocity",
+      "phase": "trough",
+      "r2": 0.3048115395538933,
+      "mae": 0.020260017534285135,
+      "rmse": 0.03222960835890982,
+      "relative_l2": 0.8034276957581847,
+      "direction_cosine": 0.6352787942189674,
+      "direction_weight_coverage": 0.8989322483055827,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Iu",
+      "task": "velocity",
+      "phase": "cycle",
+      "r2": 0.7431826171147365,
+      "mae": 0.022682121886542325,
+      "rmse": 0.038603354787988424,
+      "relative_l2": 0.44906954431143203,
+      "direction_cosine": 0.7498301285333607,
+      "direction_weight_coverage": 0.9235669005165976,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Iu",
+      "task": "velocity",
+      "phase": "accel",
+      "r2": 0.8181067888047348,
+      "mae": 0.01747447844043067,
+      "rmse": 0.026552445945848525,
+      "relative_l2": 0.3296645087875172,
+      "direction_cosine": 0.8762302883955693,
+      "direction_weight_coverage": 0.9684500222238435,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Iu",
+      "task": "velocity",
+      "phase": "decel",
+      "r2": 0.6725678376505194,
+      "mae": 0.03173424573147686,
+      "rmse": 0.05254351380767568,
+      "relative_l2": 0.4840750847711154,
+      "direction_cosine": 0.7731703664838651,
+      "direction_weight_coverage": 0.9575213308599705,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Iu",
+      "task": "velocity",
+      "phase": "plateau",
+      "r2": 0.4283726472823627,
+      "mae": 0.016384050556978055,
+      "rmse": 0.0248621750499188,
+      "relative_l2": 0.6513786531336828,
+      "direction_cosine": 0.7258051344255538,
+      "direction_weight_coverage": 0.8866643054853941,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Ip",
+      "task": "pressure",
+      "phase": "peak",
+      "r2": 0.8311402927896875,
+      "mae": 49.3811812144682,
+      "rmse": 77.1197639462888,
+      "relative_l2": 0.37214471806111926,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Ip",
+      "task": "pressure",
+      "phase": "trough",
+      "r2": 0.8667599171157283,
+      "mae": 8.887646157728467,
+      "rmse": 15.698128062088964,
+      "relative_l2": 0.3342528723619919,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Ip",
+      "task": "pressure",
+      "phase": "cycle",
+      "r2": 0.8689740205989246,
+      "mae": 18.327259228973894,
+      "rmse": 39.018831057450896,
+      "relative_l2": 0.32840612192853963,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Ip",
+      "task": "pressure",
+      "phase": "accel",
+      "r2": 0.9419167682901324,
+      "mae": 35.45707544681516,
+      "rmse": 54.18279736783341,
+      "relative_l2": 0.2145601722977389,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Ip",
+      "task": "pressure",
+      "phase": "decel",
+      "r2": 0.7333271104992639,
+      "mae": 24.805618184101345,
+      "rmse": 42.82005604592102,
+      "relative_l2": 0.4768364218098923,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Ip",
+      "task": "pressure",
+      "phase": "plateau",
+      "r2": 0.6067081813896705,
+      "mae": 5.538021627604916,
+      "rmse": 9.965392750694873,
+      "relative_l2": 0.6098443598680633,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "Iw",
+      "task": "wss",
+      "phase": "peak",
+      "r2": 0.7500223895865116,
+      "mae": 0.781802512532926,
+      "rmse": 1.73396054972148,
+      "relative_l2": 0.3864838165788346,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.8910056432779362
+    },
+    {
+      "arm": "Iw",
+      "task": "wss",
+      "phase": "trough",
+      "r2": 0.4630087739730096,
+      "mae": 0.16436126562460615,
+      "rmse": 0.3105498570070964,
+      "relative_l2": 0.49773025982515706,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.6572932926447568
+    },
+    {
+      "arm": "Iw",
+      "task": "wss",
+      "phase": "cycle",
+      "r2": 0.7816725244760611,
+      "mae": 0.30409963106427074,
+      "rmse": 0.8442878143441711,
+      "relative_l2": 0.407307713751048,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.769932075565173
+    },
+    {
+      "arm": "Iw",
+      "task": "wss",
+      "phase": "accel",
+      "r2": 0.8671016917063291,
+      "mae": 0.24466483228437186,
+      "rmse": 0.5820198150919484,
+      "relative_l2": 0.2617995965561522,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.9262992550122109
+    },
+    {
+      "arm": "Iw",
+      "task": "wss",
+      "phase": "decel",
+      "r2": 0.6669070966870638,
+      "mae": 0.5096993486416825,
+      "rmse": 1.139885325125975,
+      "relative_l2": 0.4768239169582675,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7676656814031749
+    },
+    {
+      "arm": "Iw",
+      "task": "wss",
+      "phase": "plateau",
+      "r2": 0.5794603654755522,
+      "mae": 0.12425469048380566,
+      "rmse": 0.2144066757582203,
+      "relative_l2": 0.45203217604671503,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7693295582223356
+    },
+    {
+      "arm": "J0",
+      "task": "velocity",
+      "phase": "peak",
+      "r2": 0.7762810637661027,
+      "mae": 0.03533930954026922,
+      "rmse": 0.05769008706237121,
+      "relative_l2": 0.34815931557515856,
+      "direction_cosine": 0.8835959518840114,
+      "direction_weight_coverage": 0.9867279377784101,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "velocity",
+      "phase": "trough",
+      "r2": 0.2775790478256819,
+      "mae": 0.0206383902264939,
+      "rmse": 0.03269084377390797,
+      "relative_l2": 0.8181964593787812,
+      "direction_cosine": 0.6139147989116792,
+      "direction_weight_coverage": 0.8989322483055827,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "velocity",
+      "phase": "cycle",
+      "r2": 0.7244685707280798,
+      "mae": 0.023377406724613435,
+      "rmse": 0.039587708297660396,
+      "relative_l2": 0.4634812136931863,
+      "direction_cosine": 0.7334420481707958,
+      "direction_weight_coverage": 0.9235669005165976,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "velocity",
+      "phase": "accel",
+      "r2": 0.7966074162383091,
+      "mae": 0.018357023929204623,
+      "rmse": 0.02779452627770102,
+      "relative_l2": 0.3469316222849407,
+      "direction_cosine": 0.8651284414529228,
+      "direction_weight_coverage": 0.9684500222238435,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "velocity",
+      "phase": "decel",
+      "r2": 0.6496925996250638,
+      "mae": 0.03269244183499923,
+      "rmse": 0.053878870411012116,
+      "relative_l2": 0.49959758977277235,
+      "direction_cosine": 0.7566951157873463,
+      "direction_weight_coverage": 0.9575213308599705,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "velocity",
+      "phase": "plateau",
+      "r2": 0.39945413241687205,
+      "mae": 0.016757533376744193,
+      "rmse": 0.02528081341122888,
+      "relative_l2": 0.6668877339330157,
+      "direction_cosine": 0.7092271965578637,
+      "direction_weight_coverage": 0.8866643054853941,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "pressure",
+      "phase": "peak",
+      "r2": 0.8154279116839716,
+      "mae": 51.90466319037018,
+      "rmse": 79.7274156874578,
+      "relative_l2": 0.3921373557248738,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "pressure",
+      "phase": "trough",
+      "r2": 0.8523636893517105,
+      "mae": 9.41899201455735,
+      "rmse": 16.434957913721984,
+      "relative_l2": 0.34976444374274185,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "pressure",
+      "phase": "cycle",
+      "r2": 0.8550507897922536,
+      "mae": 19.39195467297716,
+      "rmse": 40.83830967663321,
+      "relative_l2": 0.3481969919618832,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "pressure",
+      "phase": "accel",
+      "r2": 0.9390268968099973,
+      "mae": 38.332670380878376,
+      "rmse": 56.422465057202814,
+      "relative_l2": 0.22402251099256448,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "pressure",
+      "phase": "decel",
+      "r2": 0.6643491840592934,
+      "mae": 26.605652959068802,
+      "rmse": 45.97505522778185,
+      "relative_l2": 0.5206039027162471,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "pressure",
+      "phase": "plateau",
+      "r2": 0.6218249695735746,
+      "mae": 5.552250430817591,
+      "rmse": 9.982711587707225,
+      "relative_l2": 0.6004397932738186,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J0",
+      "task": "wss",
+      "phase": "peak",
+      "r2": 0.7381588108561622,
+      "mae": 0.813016947935125,
+      "rmse": 1.7754552295814674,
+      "relative_l2": 0.39748672320816586,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.8838053265257563
+    },
+    {
+      "arm": "J0",
+      "task": "wss",
+      "phase": "trough",
+      "r2": 0.44938795164333944,
+      "mae": 0.16758365519180812,
+      "rmse": 0.31540117562070424,
+      "relative_l2": 0.5044083774821152,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.6504539354919878
+    },
+    {
+      "arm": "J0",
+      "task": "wss",
+      "phase": "cycle",
+      "r2": 0.7724707293149722,
+      "mae": 0.3132847477091647,
+      "rmse": 0.8620427400820494,
+      "relative_l2": 0.41720251403628994,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7635931422328787
+    },
+    {
+      "arm": "J0",
+      "task": "wss",
+      "phase": "accel",
+      "r2": 0.8551352074433849,
+      "mae": 0.2594544845466733,
+      "rmse": 0.6074614895422399,
+      "relative_l2": 0.2745187255616712,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.9210235148065135
+    },
+    {
+      "arm": "J0",
+      "task": "wss",
+      "phase": "decel",
+      "r2": 0.6591723059784406,
+      "mae": 0.5220688111003927,
+      "rmse": 1.155999386501031,
+      "relative_l2": 0.4832769709243341,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7593879630563709
+    },
+    {
+      "arm": "J0",
+      "task": "wss",
+      "phase": "plateau",
+      "r2": 0.5745985249340934,
+      "mae": 0.12635758755973198,
+      "rmse": 0.2155250089676624,
+      "relative_l2": 0.45673770625408444,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7645536070735357
+    },
+    {
+      "arm": "J1c",
+      "task": "velocity",
+      "phase": "peak",
+      "r2": 0.7782356512756499,
+      "mae": 0.03524925340729719,
+      "rmse": 0.057790601238403225,
+      "relative_l2": 0.34747653897509134,
+      "direction_cosine": 0.8834327757237551,
+      "direction_weight_coverage": 0.9867279377784101,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "velocity",
+      "phase": "trough",
+      "r2": 0.28013872643212606,
+      "mae": 0.02057104231827048,
+      "rmse": 0.03263792179001499,
+      "relative_l2": 0.8163684537819282,
+      "direction_cosine": 0.6200864698121169,
+      "direction_weight_coverage": 0.8989322483055827,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "velocity",
+      "phase": "cycle",
+      "r2": 0.7272537420034387,
+      "mae": 0.023304607939665486,
+      "rmse": 0.039592668507487015,
+      "relative_l2": 0.4620053086858173,
+      "direction_cosine": 0.7363680904260363,
+      "direction_weight_coverage": 0.9235669005165976,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "velocity",
+      "phase": "accel",
+      "r2": 0.8014081638836912,
+      "mae": 0.018239998318321255,
+      "rmse": 0.027588054669844608,
+      "relative_l2": 0.34365997229312756,
+      "direction_cosine": 0.866830231469465,
+      "direction_weight_coverage": 0.9684500222238435,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "velocity",
+      "phase": "decel",
+      "r2": 0.6512668959868132,
+      "mae": 0.032711196628914384,
+      "rmse": 0.05405510861396795,
+      "relative_l2": 0.4991696151250096,
+      "direction_cosine": 0.7571995061096968,
+      "direction_weight_coverage": 0.9575213308599705,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "velocity",
+      "phase": "plateau",
+      "r2": 0.41076934741514115,
+      "mae": 0.016644300757183948,
+      "rmse": 0.02512727134613504,
+      "relative_l2": 0.6606118331784762,
+      "direction_cosine": 0.7136107863742207,
+      "direction_weight_coverage": 0.8866643054853941,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "pressure",
+      "phase": "peak",
+      "r2": 0.8584947796103324,
+      "mae": 46.35378857838583,
+      "rmse": 74.48562378335615,
+      "relative_l2": 0.3457731481366112,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "pressure",
+      "phase": "trough",
+      "r2": 0.89125649457484,
+      "mae": 8.357097797934593,
+      "rmse": 14.63333222231241,
+      "relative_l2": 0.30214776482026195,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "pressure",
+      "phase": "cycle",
+      "r2": 0.8939665698857537,
+      "mae": 17.12745079670201,
+      "rmse": 37.34204978514287,
+      "relative_l2": 0.30145560915783964,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "pressure",
+      "phase": "accel",
+      "r2": 0.9594552622838298,
+      "mae": 33.34056064178451,
+      "rmse": 50.58731927685743,
+      "relative_l2": 0.18838599305131448,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "pressure",
+      "phase": "decel",
+      "r2": 0.7815479197017398,
+      "mae": 22.85192073576451,
+      "rmse": 40.85130228518921,
+      "relative_l2": 0.4378407398781496,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "pressure",
+      "phase": "plateau",
+      "r2": 0.6701277892893845,
+      "mae": 5.203761693662481,
+      "rmse": 9.419834281591353,
+      "relative_l2": 0.5622476205151729,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1c",
+      "task": "wss",
+      "phase": "peak",
+      "r2": 0.739889399315172,
+      "mae": 0.810289724257939,
+      "rmse": 1.7752974005483007,
+      "relative_l2": 0.3958333003335439,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.8846223856975054
+    },
+    {
+      "arm": "J1c",
+      "task": "wss",
+      "phase": "trough",
+      "r2": 0.4619503379062181,
+      "mae": 0.16668421931149488,
+      "rmse": 0.3119822310226656,
+      "relative_l2": 0.4979670331211306,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.6534721261919586
+    },
+    {
+      "arm": "J1c",
+      "task": "wss",
+      "phase": "cycle",
+      "r2": 0.7736158822754972,
+      "mae": 0.3127253124488175,
+      "rmse": 0.8626949099697232,
+      "relative_l2": 0.415839424009411,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7655957269591335
+    },
+    {
+      "arm": "J1c",
+      "task": "wss",
+      "phase": "accel",
+      "r2": 0.8582189787614558,
+      "mae": 0.25749006285278725,
+      "rmse": 0.6035825185470469,
+      "relative_l2": 0.27163640968663677,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.9221722838479307
+    },
+    {
+      "arm": "J1c",
+      "task": "wss",
+      "phase": "decel",
+      "r2": 0.6569876567193534,
+      "mae": 0.5251461680459847,
+      "rmse": 1.162983016371336,
+      "relative_l2": 0.48439525586216764,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7586741097484367
+    },
+    {
+      "arm": "J1c",
+      "task": "wss",
+      "phase": "plateau",
+      "r2": 0.5866440749850045,
+      "mae": 0.12506200882929058,
+      "rmse": 0.21308366406741094,
+      "relative_l2": 0.4504105791549485,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7680740752965172
+    },
+    {
+      "arm": "J1",
+      "task": "velocity",
+      "phase": "peak",
+      "r2": 0.7810239317775008,
+      "mae": 0.03462155199323599,
+      "rmse": 0.05725790179104293,
+      "relative_l2": 0.34442149813213274,
+      "direction_cosine": 0.8947818506850852,
+      "direction_weight_coverage": 0.9867279377784101,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "velocity",
+      "phase": "trough",
+      "r2": 0.2728883950533751,
+      "mae": 0.020562184343276838,
+      "rmse": 0.0326350685660506,
+      "relative_l2": 0.817306225686311,
+      "direction_cosine": 0.6263340430272751,
+      "direction_weight_coverage": 0.8989322483055827,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "velocity",
+      "phase": "cycle",
+      "r2": 0.7273923171258933,
+      "mae": 0.023168816417473502,
+      "rmse": 0.03944501846832084,
+      "relative_l2": 0.4607492521447409,
+      "direction_cosine": 0.7451364857144981,
+      "direction_weight_coverage": 0.9235669005165976,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "velocity",
+      "phase": "accel",
+      "r2": 0.8051331244434395,
+      "mae": 0.018036513042400452,
+      "rmse": 0.02742626852554866,
+      "relative_l2": 0.3406318565789789,
+      "direction_cosine": 0.8755968789137765,
+      "direction_weight_coverage": 0.9684500222238435,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "velocity",
+      "phase": "decel",
+      "r2": 0.648987059290227,
+      "mae": 0.03250912090593455,
+      "rmse": 0.053869200522688857,
+      "relative_l2": 0.49896646929164773,
+      "direction_cosine": 0.7666720966489914,
+      "direction_weight_coverage": 0.9575213308599705,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "velocity",
+      "phase": "plateau",
+      "r2": 0.40330239223082004,
+      "mae": 0.01665350299289793,
+      "rmse": 0.025163030509886053,
+      "relative_l2": 0.6635651099284312,
+      "direction_cosine": 0.722074192290025,
+      "direction_weight_coverage": 0.8866643054853941,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "pressure",
+      "phase": "peak",
+      "r2": 0.883016472287079,
+      "mae": 42.98257732774973,
+      "rmse": 69.60535448493552,
+      "relative_l2": 0.3202611176252859,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "pressure",
+      "phase": "trough",
+      "r2": 0.8856274903910109,
+      "mae": 8.711279687752782,
+      "rmse": 15.11659553651073,
+      "relative_l2": 0.3117230819516601,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "pressure",
+      "phase": "cycle",
+      "r2": 0.9048003318148214,
+      "mae": 16.61925000041763,
+      "rmse": 35.6275777499699,
+      "relative_l2": 0.28806770746690336,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "pressure",
+      "phase": "accel",
+      "r2": 0.9581924869652392,
+      "mae": 33.385582654134176,
+      "rmse": 48.75232614577633,
+      "relative_l2": 0.18745995739561416,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "pressure",
+      "phase": "decel",
+      "r2": 0.7909533750038482,
+      "mae": 21.81242394857047,
+      "rmse": 39.61297113700492,
+      "relative_l2": 0.42684646151171546,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "pressure",
+      "phase": "plateau",
+      "r2": 0.6546251422794457,
+      "mae": 5.2885470831403865,
+      "rmse": 9.530071284268086,
+      "relative_l2": 0.573327458049292,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": null
+    },
+    {
+      "arm": "J1",
+      "task": "wss",
+      "phase": "peak",
+      "r2": 0.7249673409021722,
+      "mae": 0.8190138635859622,
+      "rmse": 1.8226355932173894,
+      "relative_l2": 0.40673961629783767,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.8839605086607406
+    },
+    {
+      "arm": "J1",
+      "task": "wss",
+      "phase": "trough",
+      "r2": 0.4579423097992163,
+      "mae": 0.1667178442947771,
+      "rmse": 0.3124223977514074,
+      "relative_l2": 0.5002269258006995,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.6471280567816653
+    },
+    {
+      "arm": "J1",
+      "task": "wss",
+      "phase": "cycle",
+      "r2": 0.7619207672723467,
+      "mae": 0.31463746685656646,
+      "rmse": 0.8809178640289371,
+      "relative_l2": 0.4254910386879031,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7628683269992529
+    },
+    {
+      "arm": "J1",
+      "task": "wss",
+      "phase": "accel",
+      "r2": 0.8587438543976226,
+      "mae": 0.2560959561932026,
+      "rmse": 0.6004589624501824,
+      "relative_l2": 0.27105122893640454,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.9221531783405676
+    },
+    {
+      "arm": "J1",
+      "task": "wss",
+      "phase": "decel",
+      "r2": 0.6414356436087839,
+      "mae": 0.529158656855904,
+      "rmse": 1.184830756025013,
+      "relative_l2": 0.4959007104472416,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7574251406655802
+    },
+    {
+      "arm": "J1",
+      "task": "wss",
+      "phase": "plateau",
+      "r2": 0.5789505158851823,
+      "mae": 0.12545524532308408,
+      "rmse": 0.21469071968703834,
+      "relative_l2": 0.4538845463668015,
+      "direction_cosine": null,
+      "direction_weight_coverage": null,
+      "spatial_spearman": 0.7656824236543062
+    }
+  ],
+  "paired": [
+    {
+      "comparison": "J1-Iu",
+      "task": "velocity",
+      "phase": "peak",
+      "delta_r2": -0.013118509356251007,
+      "relative_mae_change": 0.0275568952912304,
+      "r2_improved": 11,
+      "mae_improved": 16,
+      "n": 55
+    },
+    {
+      "comparison": "J1-Iu",
+      "task": "velocity",
+      "phase": "trough",
+      "delta_r2": -0.03192314450051809,
+      "relative_mae_change": 0.01491443965832473,
+      "r2_improved": 21,
+      "mae_improved": 20,
+      "n": 55
+    },
+    {
+      "comparison": "J1-Iu",
+      "task": "velocity",
+      "phase": "cycle",
+      "delta_r2": -0.015790299988843147,
+      "relative_mae_change": 0.0214571870024185,
+      "r2_improved": 12,
+      "mae_improved": 18,
+      "n": 55
+    },
+    {
+      "comparison": "J1-Ip",
+      "task": "pressure",
+      "phase": "peak",
+      "delta_r2": 0.051876179497391484,
+      "relative_mae_change": -0.1295757559732843,
+      "r2_improved": 41,
+      "mae_improved": 39,
+      "n": 55
+    },
+    {
+      "comparison": "J1-Ip",
+      "task": "pressure",
+      "phase": "trough",
+      "delta_r2": 0.01886757327528271,
+      "relative_mae_change": -0.01984400220775262,
+      "r2_improved": 35,
+      "mae_improved": 32,
+      "n": 55
+    },
+    {
+      "comparison": "J1-Ip",
+      "task": "pressure",
+      "phase": "cycle",
+      "delta_r2": 0.03582631121589666,
+      "relative_mae_change": -0.09319501662616536,
+      "r2_improved": 41,
+      "mae_improved": 40,
+      "n": 55
+    },
+    {
+      "comparison": "J1-Iw",
+      "task": "wss",
+      "phase": "peak",
+      "delta_r2": -0.025055048684339366,
+      "relative_mae_change": 0.04759686807922492,
+      "r2_improved": 12,
+      "mae_improved": 7,
+      "n": 55
+    },
+    {
+      "comparison": "J1-Iw",
+      "task": "wss",
+      "phase": "trough",
+      "delta_r2": -0.005066464173793265,
+      "relative_mae_change": 0.014337798271481184,
+      "r2_improved": 21,
+      "mae_improved": 20,
+      "n": 55
+    },
+    {
+      "comparison": "J1-Iw",
+      "task": "wss",
+      "phase": "cycle",
+      "delta_r2": -0.019751757203714266,
+      "relative_mae_change": 0.034652576707890015,
+      "r2_improved": 11,
+      "mae_improved": 11,
+      "n": 55
+    }
+  ],
+  "training_loss_windows": {
+    "Iu": {
+      "velocity": {
+        "epochs111_130": 0.2996876566300114,
+        "epochs131_150": 0.2951333727868436,
+        "relative_change": -0.015196768176509945
+      }
+    },
+    "Ip": {
+      "pressure": {
+        "epochs111_130": 0.041291916926472806,
+        "epochs131_150": 0.038897439904366296,
+        "relative_change": -0.05798900124618289
+      }
+    },
+    "Iw": {
+      "wss": {
+        "epochs111_130": 0.20571715313832734,
+        "epochs131_150": 0.20241920209480718,
+        "relative_change": -0.016031483000849
+      }
+    },
+    "J0": {
+      "velocity": {
+        "epochs111_130": 0.31703591751820837,
+        "epochs131_150": 0.31235358320827633,
+        "relative_change": -0.014769097288994448
+      },
+      "pressure": {
+        "epochs111_130": 0.05421756149351018,
+        "epochs131_150": 0.05218447468071742,
+        "relative_change": -0.037498676753216165
+      },
+      "wss": {
+        "epochs111_130": 0.22507816063402925,
+        "epochs131_150": 0.22184312951940935,
+        "relative_change": -0.014372923190357656
+      }
+    },
+    "J1c": {
+      "velocity": {
+        "epochs111_130": 0.3066723003187805,
+        "epochs131_150": 0.302277367301647,
+        "relative_change": -0.014331040046867805
+      },
+      "pressure": {
+        "epochs111_130": 0.043161408160135,
+        "epochs131_150": 0.041505144037830746,
+        "relative_change": -0.038373727663362556
+      },
+      "wss": {
+        "epochs111_130": 0.218295017543059,
+        "epochs131_150": 0.2151427911540258,
+        "relative_change": -0.014440212261882857
+      }
+    },
+    "J1": {
+      "velocity": {
+        "epochs111_130": 0.3111464757363774,
+        "epochs131_150": 0.3061729935766424,
+        "relative_change": -0.015984375680182294
+      },
+      "pressure": {
+        "epochs111_130": 0.04149860029642298,
+        "epochs131_150": 0.03970599286710318,
+        "relative_change": -0.043196816676111194
+      },
+      "wss": {
+        "epochs111_130": 0.22199364994625442,
+        "epochs131_150": 0.21866565312720038,
+        "relative_change": -0.014991405474254593
+      }
+    }
+  }
+}

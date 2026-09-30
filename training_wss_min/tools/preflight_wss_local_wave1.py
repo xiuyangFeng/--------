@@ -50,7 +50,8 @@ def load_cases(cfg, pairs):
                         time_basis_path=getattr(cfg.data, "time_basis_path", None),
                         time_basis_k=int(getattr(cfg.model, "time_basis_k", 0)),
                         volume_time_sidecar_root=getattr(cfg.data, "volume_time_sidecar_root", None),
-                        volume_h5_root=getattr(cfg.data, "volume_h5_root", None)) for cohort, name in pairs]
+                        volume_h5_root=getattr(cfg.data, "volume_h5_root", None),
+                        cycle_view_root=getattr(cfg.data, "cycle_view_root", None)) for cohort, name in pairs]
 
 
 def forward(model, batch, training=True):
@@ -149,7 +150,8 @@ def main(argv=None):
         cache_key = (cfg.data.target, cfg.data.timesteps, tuple(cfg.data.input_features), cfg.data.wss_stats_path,
                      str(cfg.data.point_features_root), float(cfg.data.query_wall_fraction),
                       cfg.data.target_normalization, getattr(cfg.data, "time_basis_path", None), int(getattr(cfg.model, "time_basis_k", 0)),
-                      getattr(cfg.data, "volume_time_sidecar_root", None), getattr(cfg.data, "volume_h5_root", None))
+                      getattr(cfg.data, "volume_time_sidecar_root", None), getattr(cfg.data, "volume_h5_root", None),
+                      getattr(cfg.data, "cycle_view_root", None))
         if cache_key not in case_cache:
             case_cache[cache_key] = load_cases(cfg, chosen)
         cases = case_cache[cache_key]

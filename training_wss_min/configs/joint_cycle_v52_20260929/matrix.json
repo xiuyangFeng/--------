@@ -1,0 +1,160 @@
+{
+  "schema": "joint_cycle_v52_matrix_v1",
+  "config_schema": "joint_cycle_v52_v1",
+  "created_date": "2026-09-29",
+  "purpose": "Single-fold, single-seed internal engineering comparison of separate/shared/phase-conditioned spatial models",
+  "preregistration": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/joint_cycle_v52_20260929/PREREG.md",
+  "experiment_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_v52_20260929",
+  "seed": 1234,
+  "fold": 0,
+  "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+  "split_version": "cv5_v52/fold0",
+  "split_sha256": "57862a4f09de4c4bec9adf0eed66cf2ce0d9e7da0528c0ee1d38e0fb0f202269",
+  "partition_counts": {
+    "train": 206,
+    "val": 0,
+    "test": 55
+  },
+  "structure_count": 4,
+  "expected_training_runs": 6,
+  "geometry_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/joint_cycle_v52_20260929/geometry_x5d.json",
+  "geometry_config_sha256": "38517c19cb0de046a4f7ec141ab0c38a91dba63d2c00d9bbe7af7d7bc2d20abb",
+  "geometry_architecture_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys_20260926/X5Dcap_asym2_s1234.json",
+  "initialization": "fresh paired initialization, no checkpoint transfer",
+  "arms": [
+    {
+      "arm": "Iu",
+      "variant": "I",
+      "tasks": [
+        "velocity"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 0,
+      "config": "Iu_f0_s1234.json",
+      "config_sha256": "3442ac4908303dfbb65eb094ed3943ba562009aff44d37850ac8f44ad082ca80",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/Iu_f0_s1234"
+    },
+    {
+      "arm": "Ip",
+      "variant": "I",
+      "tasks": [
+        "pressure"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 1,
+      "config": "Ip_f0_s1234.json",
+      "config_sha256": "25c10fc3f61c43d7d03cd89d7d6e4d8229ef75bad46256e3c00bba5089f0460d",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/Ip_f0_s1234"
+    },
+    {
+      "arm": "Iw",
+      "variant": "I",
+      "tasks": [
+        "wss"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 2,
+      "config": "Iw_f0_s1234.json",
+      "config_sha256": "8b7eca8fe96432bf24ed6c19d319d07819ed897c9e510cd2ebb207d6a5359ff8",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/Iw_f0_s1234"
+    },
+    {
+      "arm": "J0",
+      "variant": "J0",
+      "tasks": [
+        "velocity",
+        "pressure",
+        "wss"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 3,
+      "config": "J0_f0_s1234.json",
+      "config_sha256": "46abba1109d539d988ea825e6291d406208a401eadefcd9bf7d2ac94a52e3d61",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/J0_f0_s1234"
+    },
+    {
+      "arm": "J1c",
+      "variant": "J1c",
+      "tasks": [
+        "velocity",
+        "pressure",
+        "wss"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 4,
+      "config": "J1c_f0_s1234.json",
+      "config_sha256": "f69e4c4688b629ca40feb1f9db179221b087dc3a9c9e23ab6949e45cd87982e6",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/J1c_f0_s1234"
+    },
+    {
+      "arm": "J1",
+      "variant": "J1",
+      "tasks": [
+        "velocity",
+        "pressure",
+        "wss"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "array_index": 5,
+      "config": "J1_f0_s1234.json",
+      "config_sha256": "9041382f1a5df3663dc357eb65893f25d83d8a39bb49170ca6917d19d9193300",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/J1_f0_s1234"
+    }
+  ],
+  "gpu_queue_order": [
+    "Iu",
+    "Ip",
+    "Iw",
+    "J0",
+    "J1c",
+    "J1"
+  ],
+  "planned_waves": [
+    [
+      "Iu",
+      "Ip",
+      "Iw",
+      "J0"
+    ],
+    [
+      "J1c",
+      "J1"
+    ]
+  ],
+  "scheduling": {
+    "mechanism": "Slurm array 0-5%4; dynamic backfill, no strict wave barrier",
+    "partition": "GPU",
+    "gres_per_task": "gpu:4090:1",
+    "cpus_per_task": 8,
+    "memory_per_task": "32G",
+    "max_parallel": 4,
+    "dependency_chain": [
+      "CPU cache preparation and training-only statistics",
+      "six-arm GPU smoke using train cases only",
+      "six independent GPU training jobs"
+    ]
+  },
+  "fixed_budget": {
+    "epochs_per_run": 150,
+    "batch_cases": 4,
+    "expected_updates_per_run": 7800,
+    "all_phase_count": 80,
+    "selection": "last",
+    "train_query_n_per_task": 1024,
+    "amp_init_scale": 1024
+  },
+  "interpretation_limits": [
+    "One fold only, not completed CV5",
+    "One seed only; no run-to-run uncertainty estimate",
+    "Fixed disjoint query subsamples, not whole original clouds",
+    "Scalar WSS and TAWSS; no OSI",
+    "No unseen-waveform or external clinical validation",
+    "Attention is spatial within each phase, not temporal self-attention"
+  ]
+}

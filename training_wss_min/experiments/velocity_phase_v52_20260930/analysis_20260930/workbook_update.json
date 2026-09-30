@@ -1,0 +1,1966 @@
+{
+  "schema": "velocity_phase_workbook_update_v1",
+  "passed": true,
+  "updated_at": "2026-09-30T04:27:22.665394+00:00",
+  "workbook": "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx",
+  "sheet": "V52速度周期优化",
+  "table_ref": "A5:AZ15",
+  "rows": {
+    "Iu": 6,
+    "U0": 7,
+    "D1": 8,
+    "D2": 9,
+    "A0": 10,
+    "A1": 11,
+    "G00": 12,
+    "G01": 13,
+    "G10": 14,
+    "G11": 15
+  },
+  "record_count": 10,
+  "new_training_runs": 8,
+  "historical_reference_runs": 2,
+  "index_sheet": "指标说明",
+  "index_changed_cells": [
+    "C6",
+    "D6",
+    "E6"
+  ],
+  "index_glossary_rows": [
+    61,
+    62,
+    63,
+    64,
+    65
+  ],
+  "historical_cells_verified": 141300,
+  "historical_formulas_verified": 0,
+  "historical_dimensions_and_merges_verified": true,
+  "reopen_numeric_cells_verified": 200,
+  "agreement_tolerance": {
+    "absolute": 1e-12,
+    "relative": 1e-10
+  },
+  "maximum_raw_report_per_case_abs_difference": 3.3306690738754696e-16,
+  "report": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/report.json",
+  "report_sha256": "9b0294bedc2ec462f9f6dcdbfb9951836fe32b34e61ce550e4fc0ce1a4877e4d",
+  "report_generated_at": "2026-09-30T04:22:31.437124+00:00",
+  "backup": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/analysis_20260930/workbook_before_velocity_phase_20260930_122717_374710.xlsx",
+  "before_sha256": "0b99714d495a3e69992a54b4cf7e89678a2d62994c78a6ed591e967f9a386022",
+  "after_sha256": "ec50fad4222091af4e1773c8ed2cbbd2a6a6add951f53e9db19584add7515c75",
+  "source_audits": [
+    {
+      "arm": "Iu",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/Iu_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_v52_20260929/Iu_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "54edf7aef8d76e68b9d03cba817de2d322553932c5af1a5d86e92ddf914e6579",
+      "per_case_sha256": "4385a6761eab3cc6dddab6c23b8bd016d4e5fc0b9f09edcb6b816b19c7663ab0",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.7431826171147364,
+          "raw_metrics_value": 0.7431826171147365,
+          "report_value": 0.7431826171147364,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "E6"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.022682121886542325,
+          "raw_metrics_value": 0.022682121886542325,
+          "report_value": 0.022682121886542325,
+          "max_abs_difference": 0.0,
+          "cell": "I6"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.038603354787988424,
+          "raw_metrics_value": 0.038603354787988424,
+          "report_value": 0.038603354787988424,
+          "max_abs_difference": 0.0,
+          "cell": "J6"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06686297183540323,
+          "raw_metrics_value": 0.06686297183540323,
+          "report_value": 0.06686297183540323,
+          "max_abs_difference": 0.0,
+          "cell": "K6"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.7498301285333607,
+          "raw_metrics_value": 0.7498301285333607,
+          "report_value": 0.7498301285333607,
+          "max_abs_difference": 0.0,
+          "cell": "L6"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.7941424411337518,
+          "raw_metrics_value": 0.7941424411337518,
+          "report_value": 0.7941424411337518,
+          "max_abs_difference": 0.0,
+          "cell": "F6"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.03369307544126161,
+          "raw_metrics_value": 0.033693075441261607,
+          "report_value": 0.03369307544126161,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "M6"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.05575888960602036,
+          "raw_metrics_value": 0.055758889606020344,
+          "report_value": 0.05575888960602036,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "N6"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.09657722977125142,
+          "raw_metrics_value": 0.09657722977125144,
+          "report_value": 0.09657722977125142,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "O6"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.8941512611973961,
+          "raw_metrics_value": 0.8941512611973964,
+          "report_value": 0.8941512611973961,
+          "max_abs_difference": 3.3306690738754696e-16,
+          "cell": "P6"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.30481153955389323,
+          "raw_metrics_value": 0.3048115395538933,
+          "report_value": 0.30481153955389323,
+          "max_abs_difference": 5.551115123125783e-17,
+          "cell": "G6"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.020260017534285135,
+          "raw_metrics_value": 0.020260017534285135,
+          "report_value": 0.020260017534285135,
+          "max_abs_difference": 0.0,
+          "cell": "Q6"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.03222960835890982,
+          "raw_metrics_value": 0.03222960835890982,
+          "report_value": 0.03222960835890982,
+          "max_abs_difference": 0.0,
+          "cell": "R6"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.05582331918567839,
+          "raw_metrics_value": 0.05582331918567839,
+          "report_value": 0.05582331918567839,
+          "max_abs_difference": 0.0,
+          "cell": "S6"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.6352787942189674,
+          "raw_metrics_value": 0.6352787942189674,
+          "report_value": 0.6352787942189674,
+          "max_abs_difference": 0.0,
+          "cell": "T6"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.6725678376505196,
+          "raw_metrics_value": 0.6725678376505194,
+          "report_value": 0.6725678376505196,
+          "max_abs_difference": 2.220446049250313e-16,
+          "cell": "H6"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.03173424573147686,
+          "raw_metrics_value": 0.03173424573147686,
+          "report_value": 0.03173424573147686,
+          "max_abs_difference": 0.0,
+          "cell": "U6"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.05254351380767568,
+          "raw_metrics_value": 0.05254351380767568,
+          "report_value": 0.05254351380767568,
+          "max_abs_difference": 0.0,
+          "cell": "V6"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.09100803552309113,
+          "raw_metrics_value": 0.09100803552309109,
+          "report_value": 0.09100803552309113,
+          "max_abs_difference": 4.163336342344337e-17,
+          "cell": "W6"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.773170366483865,
+          "raw_metrics_value": 0.7731703664838651,
+          "report_value": 0.773170366483865,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "X6"
+        }
+      ],
+      "sheet_row": 6
+    },
+    {
+      "arm": "U0",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "7ac9d3e2d27554f2b1bc513c9d4977948a0ae22cd76891c38e04d9d4d5081082",
+      "per_case_sha256": "737ec70bcf56b424e13bf0f81c5e86fd699da65997eed4d411fa33d8de72655c",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.7479584864139309,
+          "raw_metrics_value": 0.7479584864139309,
+          "report_value": 0.7479584864139309,
+          "max_abs_difference": 0.0,
+          "cell": "E7"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.022414289779644787,
+          "raw_metrics_value": 0.022414289779644797,
+          "report_value": 0.022414289779644787,
+          "max_abs_difference": 1.0408340855860843e-17,
+          "cell": "I7"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.038113032064681696,
+          "raw_metrics_value": 0.038113032064681696,
+          "report_value": 0.038113032064681696,
+          "max_abs_difference": 0.0,
+          "cell": "J7"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06601370796653044,
+          "raw_metrics_value": 0.06601370796653044,
+          "report_value": 0.06601370796653044,
+          "max_abs_difference": 0.0,
+          "cell": "K7"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.754419290217294,
+          "raw_metrics_value": 0.7544192902172939,
+          "report_value": 0.754419290217294,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "L7"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.8032794777263753,
+          "raw_metrics_value": 0.8032794777263755,
+          "report_value": 0.8032794777263753,
+          "max_abs_difference": 2.220446049250313e-16,
+          "cell": "F7"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.0329373941857889,
+          "raw_metrics_value": 0.0329373941857889,
+          "report_value": 0.0329373941857889,
+          "max_abs_difference": 0.0,
+          "cell": "M7"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.054354491325542126,
+          "raw_metrics_value": 0.05435449132554214,
+          "report_value": 0.054354491325542126,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "N7"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.09414474059540077,
+          "raw_metrics_value": 0.09414474059540079,
+          "report_value": 0.09414474059540077,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "O7"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.8968926354518453,
+          "raw_metrics_value": 0.8968926354518453,
+          "report_value": 0.8968926354518453,
+          "max_abs_difference": 0.0,
+          "cell": "P7"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.3002557660292484,
+          "raw_metrics_value": 0.30025576602924836,
+          "report_value": 0.3002557660292484,
+          "max_abs_difference": 5.551115123125783e-17,
+          "cell": "G7"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.020175884094515775,
+          "raw_metrics_value": 0.020175884094515775,
+          "report_value": 0.020175884094515775,
+          "max_abs_difference": 0.0,
+          "cell": "Q7"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.032232609770403986,
+          "raw_metrics_value": 0.03223260977040398,
+          "report_value": 0.032232609770403986,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "R7"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.055828517782880706,
+          "raw_metrics_value": 0.055828517782880706,
+          "report_value": 0.055828517782880706,
+          "max_abs_difference": 0.0,
+          "cell": "S7"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.6413115880795901,
+          "raw_metrics_value": 0.6413115880795901,
+          "report_value": 0.6413115880795901,
+          "max_abs_difference": 0.0,
+          "cell": "T7"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.6782343922342163,
+          "raw_metrics_value": 0.6782343922342162,
+          "report_value": 0.6782343922342163,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "H7"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.03127101387058393,
+          "raw_metrics_value": 0.03127101387058394,
+          "report_value": 0.03127101387058393,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "U7"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.05186932032448713,
+          "raw_metrics_value": 0.051869320324487156,
+          "report_value": 0.05186932032448713,
+          "max_abs_difference": 2.7755575615628914e-17,
+          "cell": "V7"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.0898402981560767,
+          "raw_metrics_value": 0.08984029815607673,
+          "report_value": 0.0898402981560767,
+          "max_abs_difference": 2.7755575615628914e-17,
+          "cell": "W7"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.7779559559511626,
+          "raw_metrics_value": 0.7779559559511626,
+          "report_value": 0.7779559559511626,
+          "max_abs_difference": 0.0,
+          "cell": "X7"
+        }
+      ],
+      "sheet_row": 7
+    },
+    {
+      "arm": "D1",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D1_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D1_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "13862c18414053aab189ebdba34c8324b9bcebd67ff07f22ae52ce3f81660e9c",
+      "per_case_sha256": "3c01ea289e3a9ef6069e7af4a4a1d5aaf869cd1f594bfbb99a7be9f790df3b3f",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.7490452640895541,
+          "raw_metrics_value": 0.7490452640895543,
+          "report_value": 0.7490452640895541,
+          "max_abs_difference": 2.220446049250313e-16,
+          "cell": "E8"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.02228886899002713,
+          "raw_metrics_value": 0.022288868990027126,
+          "report_value": 0.02228886899002713,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "I8"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.038016257309607816,
+          "raw_metrics_value": 0.03801625730960781,
+          "report_value": 0.038016257309607816,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "J8"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06584608917385244,
+          "raw_metrics_value": 0.06584608917385246,
+          "report_value": 0.06584608917385244,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "K8"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.7586170514268568,
+          "raw_metrics_value": 0.7586170514268569,
+          "report_value": 0.7586170514268568,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "L8"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.8039154372691523,
+          "raw_metrics_value": 0.8039154372691524,
+          "report_value": 0.8039154372691523,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "F8"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.0326166814797392,
+          "raw_metrics_value": 0.0326166814797392,
+          "report_value": 0.0326166814797392,
+          "max_abs_difference": 0.0,
+          "cell": "M8"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.05412465798697103,
+          "raw_metrics_value": 0.05412465798697102,
+          "report_value": 0.05412465798697103,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "N8"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.09374665757572247,
+          "raw_metrics_value": 0.0937466575757225,
+          "report_value": 0.09374665757572247,
+          "max_abs_difference": 2.7755575615628914e-17,
+          "cell": "O8"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.9031031891260393,
+          "raw_metrics_value": 0.9031031891260393,
+          "report_value": 0.9031031891260393,
+          "max_abs_difference": 0.0,
+          "cell": "P8"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.3045487105499067,
+          "raw_metrics_value": 0.30454871054990673,
+          "report_value": 0.3045487105499067,
+          "max_abs_difference": 5.551115123125783e-17,
+          "cell": "G8"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.02007083499594725,
+          "raw_metrics_value": 0.02007083499594725,
+          "report_value": 0.02007083499594725,
+          "max_abs_difference": 0.0,
+          "cell": "Q8"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.032094843169613224,
+          "raw_metrics_value": 0.032094843169613224,
+          "report_value": 0.032094843169613224,
+          "max_abs_difference": 0.0,
+          "cell": "R8"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.055589899030725046,
+          "raw_metrics_value": 0.055589899030725046,
+          "report_value": 0.055589899030725046,
+          "max_abs_difference": 0.0,
+          "cell": "S8"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.6460451053426676,
+          "raw_metrics_value": 0.6460451053426676,
+          "report_value": 0.6460451053426676,
+          "max_abs_difference": 0.0,
+          "cell": "T8"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.6803291303393236,
+          "raw_metrics_value": 0.6803291303393235,
+          "report_value": 0.6803291303393236,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "H8"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.031079372075854008,
+          "raw_metrics_value": 0.031079372075854015,
+          "report_value": 0.031079372075854008,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "U8"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.051724513365295904,
+          "raw_metrics_value": 0.051724513365295904,
+          "report_value": 0.051724513365295904,
+          "max_abs_difference": 0.0,
+          "cell": "V8"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.08958948514546795,
+          "raw_metrics_value": 0.08958948514546795,
+          "report_value": 0.08958948514546795,
+          "max_abs_difference": 0.0,
+          "cell": "W8"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.7842237171893782,
+          "raw_metrics_value": 0.7842237171893782,
+          "report_value": 0.7842237171893782,
+          "max_abs_difference": 0.0,
+          "cell": "X8"
+        }
+      ],
+      "sheet_row": 8
+    },
+    {
+      "arm": "D2",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D2_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D2_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "22a85c9deac17315fff9a143f97bf779ee7958c34b5787ac632e1ee39d5d7b1e",
+      "per_case_sha256": "4e66482f4ec56acb8e3323f9d8f363a7368bb209960436197056a43c1979fcd3",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.7335848760119068,
+          "raw_metrics_value": 0.7335848760119069,
+          "report_value": 0.7335848760119068,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "E9"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.02297621639114746,
+          "raw_metrics_value": 0.022976216391147455,
+          "report_value": 0.02297621639114746,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "I9"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.03868318914181435,
+          "raw_metrics_value": 0.038683189141814345,
+          "report_value": 0.03868318914181435,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "J9"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06700124899241917,
+          "raw_metrics_value": 0.06700124899241917,
+          "report_value": 0.06700124899241917,
+          "max_abs_difference": 0.0,
+          "cell": "K9"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.7487576687294771,
+          "raw_metrics_value": 0.7487576687294771,
+          "report_value": 0.7487576687294771,
+          "max_abs_difference": 0.0,
+          "cell": "L9"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.7901454062419049,
+          "raw_metrics_value": 0.790145406241905,
+          "report_value": 0.7901454062419049,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "F9"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.03423240924594356,
+          "raw_metrics_value": 0.03423240924594356,
+          "report_value": 0.03423240924594356,
+          "max_abs_difference": 0.0,
+          "cell": "M9"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.05533125669192272,
+          "raw_metrics_value": 0.05533125669192272,
+          "report_value": 0.05533125669192272,
+          "max_abs_difference": 0.0,
+          "cell": "N9"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.0958365478370456,
+          "raw_metrics_value": 0.09583654783704561,
+          "report_value": 0.0958365478370456,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "O9"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.8904016349436457,
+          "raw_metrics_value": 0.8904016349436457,
+          "report_value": 0.8904016349436457,
+          "max_abs_difference": 0.0,
+          "cell": "P9"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.2722040432327072,
+          "raw_metrics_value": 0.27220404323270714,
+          "report_value": 0.2722040432327072,
+          "max_abs_difference": 5.551115123125783e-17,
+          "cell": "G9"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.020562712466568264,
+          "raw_metrics_value": 0.020562712466568264,
+          "report_value": 0.020562712466568264,
+          "max_abs_difference": 0.0,
+          "cell": "Q9"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.032604411896663646,
+          "raw_metrics_value": 0.03260441189666364,
+          "report_value": 0.032604411896663646,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "R9"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.05647249795592458,
+          "raw_metrics_value": 0.05647249795592458,
+          "report_value": 0.05647249795592458,
+          "max_abs_difference": 0.0,
+          "cell": "S9"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.6349246587708177,
+          "raw_metrics_value": 0.6349246587708177,
+          "report_value": 0.6349246587708177,
+          "max_abs_difference": 0.0,
+          "cell": "T9"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.6601960048108287,
+          "raw_metrics_value": 0.6601960048108289,
+          "report_value": 0.6601960048108287,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "H9"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.032087181710563184,
+          "raw_metrics_value": 0.032087181710563184,
+          "report_value": 0.032087181710563184,
+          "max_abs_difference": 0.0,
+          "cell": "U9"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.05269723052094123,
+          "raw_metrics_value": 0.05269723052094123,
+          "report_value": 0.05269723052094123,
+          "max_abs_difference": 0.0,
+          "cell": "V9"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.09127428068043955,
+          "raw_metrics_value": 0.09127428068043952,
+          "report_value": 0.09127428068043955,
+          "max_abs_difference": 2.7755575615628914e-17,
+          "cell": "W9"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.7684617096842301,
+          "raw_metrics_value": 0.76846170968423,
+          "report_value": 0.7684617096842301,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "X9"
+        }
+      ],
+      "sheet_row": 9
+    },
+    {
+      "arm": "A0",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A0_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A0_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "44d160f639eff4c48e0f42feb163ba190828736e464d7715205cd1d9d3c90ebb",
+      "per_case_sha256": "aecee772fd934fdf9bf934f40f71c7a37f528f065c0e0786838b1506a4b6b0f3",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.7514688257487816,
+          "raw_metrics_value": 0.7514688257487818,
+          "report_value": 0.7514688257487816,
+          "max_abs_difference": 2.220446049250313e-16,
+          "cell": "E10"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.02235142612431557,
+          "raw_metrics_value": 0.022351426124315565,
+          "report_value": 0.02235142612431557,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "I10"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.03791448225688785,
+          "raw_metrics_value": 0.03791448225688785,
+          "report_value": 0.03791448225688785,
+          "max_abs_difference": 0.0,
+          "cell": "J10"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06566980961159848,
+          "raw_metrics_value": 0.06566980961159848,
+          "report_value": 0.06566980961159848,
+          "max_abs_difference": 0.0,
+          "cell": "K10"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.7503139424476102,
+          "raw_metrics_value": 0.7503139424476102,
+          "report_value": 0.7503139424476102,
+          "max_abs_difference": 0.0,
+          "cell": "L10"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.8149550190390661,
+          "raw_metrics_value": 0.8149550190390662,
+          "report_value": 0.8149550190390661,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "F10"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.032118550525069456,
+          "raw_metrics_value": 0.032118550525069456,
+          "report_value": 0.032118550525069456,
+          "max_abs_difference": 0.0,
+          "cell": "M10"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.05304053793324383,
+          "raw_metrics_value": 0.05304053793324383,
+          "report_value": 0.05304053793324383,
+          "max_abs_difference": 0.0,
+          "cell": "N10"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.09186890656116264,
+          "raw_metrics_value": 0.09186890656116263,
+          "report_value": 0.09186890656116264,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "O10"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.8966495616940368,
+          "raw_metrics_value": 0.896649561694037,
+          "report_value": 0.8966495616940368,
+          "max_abs_difference": 2.220446049250313e-16,
+          "cell": "P10"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.29250010402084514,
+          "raw_metrics_value": 0.29250010402084503,
+          "report_value": 0.29250010402084514,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "G10"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.020323399527292767,
+          "raw_metrics_value": 0.020323399527292767,
+          "report_value": 0.020323399527292767,
+          "max_abs_difference": 0.0,
+          "cell": "Q10"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.03240211392836319,
+          "raw_metrics_value": 0.03240211392836318,
+          "report_value": 0.03240211392836319,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "R10"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.05612210759656022,
+          "raw_metrics_value": 0.05612210759656022,
+          "report_value": 0.05612210759656022,
+          "max_abs_difference": 0.0,
+          "cell": "S10"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.6358433542530111,
+          "raw_metrics_value": 0.6358433542530111,
+          "report_value": 0.6358433542530111,
+          "max_abs_difference": 0.0,
+          "cell": "T10"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.6823775171596818,
+          "raw_metrics_value": 0.6823775171596819,
+          "report_value": 0.6823775171596818,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "H10"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.03110176565232433,
+          "raw_metrics_value": 0.031101765652324333,
+          "report_value": 0.03110176565232433,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "U10"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.05172617586515354,
+          "raw_metrics_value": 0.05172617586515354,
+          "report_value": 0.05172617586515354,
+          "max_abs_difference": 0.0,
+          "cell": "V10"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.08959236467968895,
+          "raw_metrics_value": 0.08959236467968891,
+          "report_value": 0.08959236467968895,
+          "max_abs_difference": 4.163336342344337e-17,
+          "cell": "W10"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.775282555518775,
+          "raw_metrics_value": 0.7752825555187747,
+          "report_value": 0.775282555518775,
+          "max_abs_difference": 3.3306690738754696e-16,
+          "cell": "X10"
+        }
+      ],
+      "sheet_row": 10
+    },
+    {
+      "arm": "A1",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A1_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A1_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "4a67014862a673807b5908e64f5c7c907be4d2ab52434ef123c3178a40867ce6",
+      "per_case_sha256": "3e67b1c10347b54204ddfdd01ef7ed9df38e1ea69f4f9f648f908ccc915b5e66",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.7389926459991198,
+          "raw_metrics_value": 0.7389926459991198,
+          "report_value": 0.7389926459991198,
+          "max_abs_difference": 0.0,
+          "cell": "E11"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.02265229284991816,
+          "raw_metrics_value": 0.02265229284991816,
+          "report_value": 0.02265229284991816,
+          "max_abs_difference": 0.0,
+          "cell": "I11"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.03828517429966955,
+          "raw_metrics_value": 0.03828517429966955,
+          "report_value": 0.03828517429966955,
+          "max_abs_difference": 0.0,
+          "cell": "J11"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06631186706365787,
+          "raw_metrics_value": 0.06631186706365787,
+          "report_value": 0.06631186706365787,
+          "max_abs_difference": 0.0,
+          "cell": "K11"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.7417485829410371,
+          "raw_metrics_value": 0.7417485829410372,
+          "report_value": 0.7417485829410371,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "L11"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.8001058782975128,
+          "raw_metrics_value": 0.8001058782975128,
+          "report_value": 0.8001058782975128,
+          "max_abs_difference": 0.0,
+          "cell": "F11"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.03303405536989468,
+          "raw_metrics_value": 0.03303405536989467,
+          "report_value": 0.03303405536989468,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "M11"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.054150377279362304,
+          "raw_metrics_value": 0.05415037727936232,
+          "report_value": 0.054150377279362304,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "N11"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.09379120469687885,
+          "raw_metrics_value": 0.09379120469687888,
+          "report_value": 0.09379120469687885,
+          "max_abs_difference": 2.7755575615628914e-17,
+          "cell": "O11"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.8861353169391792,
+          "raw_metrics_value": 0.8861353169391789,
+          "report_value": 0.8861353169391792,
+          "max_abs_difference": 3.3306690738754696e-16,
+          "cell": "P11"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.27928820644076346,
+          "raw_metrics_value": 0.27928820644076346,
+          "report_value": 0.27928820644076346,
+          "max_abs_difference": 0.0,
+          "cell": "G11"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.02040869840907091,
+          "raw_metrics_value": 0.020408698409070905,
+          "report_value": 0.02040869840907091,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "Q11"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.03242763869936842,
+          "raw_metrics_value": 0.03242763869936842,
+          "report_value": 0.03242763869936842,
+          "max_abs_difference": 0.0,
+          "cell": "R11"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.05616631779679284,
+          "raw_metrics_value": 0.05616631779679284,
+          "report_value": 0.05616631779679284,
+          "max_abs_difference": 0.0,
+          "cell": "S11"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.629186162035356,
+          "raw_metrics_value": 0.629186162035356,
+          "report_value": 0.629186162035356,
+          "max_abs_difference": 0.0,
+          "cell": "T11"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.664943456851021,
+          "raw_metrics_value": 0.6649434568510211,
+          "report_value": 0.664943456851021,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "H11"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.0317999294618272,
+          "raw_metrics_value": 0.0317999294618272,
+          "report_value": 0.0317999294618272,
+          "max_abs_difference": 0.0,
+          "cell": "U11"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.05242001468638088,
+          "raw_metrics_value": 0.05242001468638088,
+          "report_value": 0.05242001468638088,
+          "max_abs_difference": 0.0,
+          "cell": "V11"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.0907941287703184,
+          "raw_metrics_value": 0.09079412877031844,
+          "report_value": 0.0907941287703184,
+          "max_abs_difference": 4.163336342344337e-17,
+          "cell": "W11"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.7623151623196806,
+          "raw_metrics_value": 0.7623151623196806,
+          "report_value": 0.7623151623196806,
+          "max_abs_difference": 0.0,
+          "cell": "X11"
+        }
+      ],
+      "sheet_row": 11
+    },
+    {
+      "arm": "G00",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G00_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G00_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "c919348a7b0f76b59be2323e8986d6eed8b0f1e685096963b130e9442e47ecfe",
+      "per_case_sha256": "8140aabfffaf3957bc390fd298fd74a02b1ebab89ef8db546f0338dac53213a3",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.7436058144703747,
+          "raw_metrics_value": 0.7436058144703744,
+          "report_value": 0.7436058144703747,
+          "max_abs_difference": 2.220446049250313e-16,
+          "cell": "E12"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.02249632060813253,
+          "raw_metrics_value": 0.022496320608132527,
+          "report_value": 0.02249632060813253,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "I12"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.03802467073682607,
+          "raw_metrics_value": 0.03802467073682607,
+          "report_value": 0.03802467073682607,
+          "max_abs_difference": 0.0,
+          "cell": "J12"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06586066165726023,
+          "raw_metrics_value": 0.06586066165726023,
+          "report_value": 0.06586066165726023,
+          "max_abs_difference": 0.0,
+          "cell": "K12"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.7528114003642628,
+          "raw_metrics_value": 0.7528114003642628,
+          "report_value": 0.7528114003642628,
+          "max_abs_difference": 0.0,
+          "cell": "L12"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.8067044973969034,
+          "raw_metrics_value": 0.8067044973969035,
+          "report_value": 0.8067044973969034,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "F12"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.03263238411517795,
+          "raw_metrics_value": 0.03263238411517795,
+          "report_value": 0.03263238411517795,
+          "max_abs_difference": 0.0,
+          "cell": "M12"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.05340649678338564,
+          "raw_metrics_value": 0.053406496783385646,
+          "report_value": 0.05340649678338564,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "N12"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.09250276588308774,
+          "raw_metrics_value": 0.09250276588308774,
+          "report_value": 0.09250276588308774,
+          "max_abs_difference": 0.0,
+          "cell": "O12"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.8959167931629246,
+          "raw_metrics_value": 0.8959167931629245,
+          "report_value": 0.8959167931629246,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "P12"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.28434328279498433,
+          "raw_metrics_value": 0.28434328279498433,
+          "report_value": 0.28434328279498433,
+          "max_abs_difference": 0.0,
+          "cell": "G12"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.020369271912367034,
+          "raw_metrics_value": 0.020369271912367034,
+          "report_value": 0.020369271912367034,
+          "max_abs_difference": 0.0,
+          "cell": "Q12"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.03238486064257622,
+          "raw_metrics_value": 0.03238486064257622,
+          "report_value": 0.03238486064257622,
+          "max_abs_difference": 0.0,
+          "cell": "R12"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.0560922240289797,
+          "raw_metrics_value": 0.05609222402897968,
+          "report_value": 0.0560922240289797,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "S12"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.640697141166619,
+          "raw_metrics_value": 0.6406971411666191,
+          "report_value": 0.640697141166619,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "T12"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.6719732913338587,
+          "raw_metrics_value": 0.6719732913338587,
+          "report_value": 0.6719732913338587,
+          "max_abs_difference": 0.0,
+          "cell": "H12"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.031458506752002194,
+          "raw_metrics_value": 0.03145850675200219,
+          "report_value": 0.031458506752002194,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "U12"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.05201602518445957,
+          "raw_metrics_value": 0.052016025184459566,
+          "report_value": 0.05201602518445957,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "V12"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.09009439842726626,
+          "raw_metrics_value": 0.09009439842726626,
+          "report_value": 0.09009439842726626,
+          "max_abs_difference": 0.0,
+          "cell": "W12"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.7744064338375205,
+          "raw_metrics_value": 0.7744064338375204,
+          "report_value": 0.7744064338375205,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "X12"
+        }
+      ],
+      "sheet_row": 12
+    },
+    {
+      "arm": "G01",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G01_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G01_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "2392f0eb5b89e8b57df6ee93f5776a64dd1715ca4772f2dd64c78b4409888a73",
+      "per_case_sha256": "e02e02e58cb6d82e5ed230b0838f0e0c95c1967a54430cc70541819dd56a850e",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.745420495328445,
+          "raw_metrics_value": 0.745420495328445,
+          "report_value": 0.745420495328445,
+          "max_abs_difference": 0.0,
+          "cell": "E13"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.02238618087792995,
+          "raw_metrics_value": 0.022386180877929943,
+          "report_value": 0.02238618087792995,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "I13"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.03793232484949551,
+          "raw_metrics_value": 0.0379323248494955,
+          "report_value": 0.03793232484949551,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "J13"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06570071388853368,
+          "raw_metrics_value": 0.06570071388853367,
+          "report_value": 0.06570071388853368,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "K13"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.7533364671656099,
+          "raw_metrics_value": 0.75333646716561,
+          "report_value": 0.7533364671656099,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "L13"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.8091729395927928,
+          "raw_metrics_value": 0.8091729395927929,
+          "report_value": 0.8091729395927928,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "F13"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.03218948928596484,
+          "raw_metrics_value": 0.03218948928596484,
+          "report_value": 0.03218948928596484,
+          "max_abs_difference": 0.0,
+          "cell": "M13"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.05314965112613175,
+          "raw_metrics_value": 0.053149651126131764,
+          "report_value": 0.05314965112613175,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "N13"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.09205789615502058,
+          "raw_metrics_value": 0.0920578961550206,
+          "report_value": 0.09205789615502058,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "O13"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.8952749867155072,
+          "raw_metrics_value": 0.8952749867155072,
+          "report_value": 0.8952749867155072,
+          "max_abs_difference": 0.0,
+          "cell": "P13"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.2810189860352565,
+          "raw_metrics_value": 0.2810189860352565,
+          "report_value": 0.2810189860352565,
+          "max_abs_difference": 0.0,
+          "cell": "G13"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.020310633921176744,
+          "raw_metrics_value": 0.02031063392117674,
+          "report_value": 0.020310633921176744,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "Q13"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.032345561849467276,
+          "raw_metrics_value": 0.032345561849467276,
+          "report_value": 0.032345561849467276,
+          "max_abs_difference": 0.0,
+          "cell": "R13"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.056024156522638854,
+          "raw_metrics_value": 0.056024156522638854,
+          "report_value": 0.056024156522638854,
+          "max_abs_difference": 0.0,
+          "cell": "S13"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.6396430019412127,
+          "raw_metrics_value": 0.6396430019412126,
+          "report_value": 0.6396430019412127,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "T13"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.6746794302284781,
+          "raw_metrics_value": 0.6746794302284781,
+          "report_value": 0.6746794302284781,
+          "max_abs_difference": 0.0,
+          "cell": "H13"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.03133453239325164,
+          "raw_metrics_value": 0.03133453239325164,
+          "report_value": 0.03133453239325164,
+          "max_abs_difference": 0.0,
+          "cell": "U13"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.05188276570539282,
+          "raw_metrics_value": 0.05188276570539283,
+          "report_value": 0.05188276570539282,
+          "max_abs_difference": 1.3877787807814457e-17,
+          "cell": "V13"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.0898635862389325,
+          "raw_metrics_value": 0.0898635862389325,
+          "report_value": 0.0898635862389325,
+          "max_abs_difference": 0.0,
+          "cell": "W13"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.7734001347531262,
+          "raw_metrics_value": 0.7734001347531262,
+          "report_value": 0.7734001347531262,
+          "max_abs_difference": 0.0,
+          "cell": "X13"
+        }
+      ],
+      "sheet_row": 13
+    },
+    {
+      "arm": "G10",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G10_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G10_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "bef00d0812c191ff8d8bc7ebea53dabaca7e014c9affc5fe072acf3824798a9a",
+      "per_case_sha256": "6a7cbe00bdb837aa4584d884a41a9475a2d2692ab23bcb8e3c36b23e0cbb21aa",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.7501006408625464,
+          "raw_metrics_value": 0.7501006408625464,
+          "report_value": 0.7501006408625464,
+          "max_abs_difference": 0.0,
+          "cell": "E14"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.022283622311639287,
+          "raw_metrics_value": 0.022283622311639287,
+          "report_value": 0.022283622311639287,
+          "max_abs_difference": 0.0,
+          "cell": "I14"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.037785115880601725,
+          "raw_metrics_value": 0.03778511588060172,
+          "report_value": 0.037785115880601725,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "J14"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06544574047507982,
+          "raw_metrics_value": 0.06544574047507982,
+          "report_value": 0.06544574047507982,
+          "max_abs_difference": 0.0,
+          "cell": "K14"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.7558889124790881,
+          "raw_metrics_value": 0.7558889124790882,
+          "report_value": 0.7558889124790881,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "L14"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.8107169431268048,
+          "raw_metrics_value": 0.8107169431268048,
+          "report_value": 0.8107169431268048,
+          "max_abs_difference": 0.0,
+          "cell": "F14"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.03226682196413174,
+          "raw_metrics_value": 0.03226682196413174,
+          "report_value": 0.03226682196413174,
+          "max_abs_difference": 0.0,
+          "cell": "M14"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.053217394446852785,
+          "raw_metrics_value": 0.05321739444685278,
+          "report_value": 0.053217394446852785,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "N14"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.09217523102838285,
+          "raw_metrics_value": 0.09217523102838285,
+          "report_value": 0.09217523102838285,
+          "max_abs_difference": 0.0,
+          "cell": "O14"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.8982591226818815,
+          "raw_metrics_value": 0.8982591226818814,
+          "report_value": 0.8982591226818815,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "P14"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.29972650434702536,
+          "raw_metrics_value": 0.29972650434702525,
+          "report_value": 0.29972650434702536,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "G14"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.020141695471059103,
+          "raw_metrics_value": 0.020141695471059103,
+          "report_value": 0.020141695471059103,
+          "max_abs_difference": 0.0,
+          "cell": "Q14"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.03210964858520701,
+          "raw_metrics_value": 0.03210964858520702,
+          "report_value": 0.03210964858520701,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "R14"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.055615542762760664,
+          "raw_metrics_value": 0.055615542762760664,
+          "report_value": 0.055615542762760664,
+          "max_abs_difference": 0.0,
+          "cell": "S14"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.6441056029712463,
+          "raw_metrics_value": 0.6441056029712463,
+          "report_value": 0.6441056029712463,
+          "max_abs_difference": 0.0,
+          "cell": "T14"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.677176905860113,
+          "raw_metrics_value": 0.677176905860113,
+          "report_value": 0.677176905860113,
+          "max_abs_difference": 0.0,
+          "cell": "H14"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.031212517066791994,
+          "raw_metrics_value": 0.031212517066791994,
+          "report_value": 0.031212517066791994,
+          "max_abs_difference": 0.0,
+          "cell": "U14"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.05171373395608813,
+          "raw_metrics_value": 0.05171373395608814,
+          "report_value": 0.05171373395608813,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "V14"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.08957081466104451,
+          "raw_metrics_value": 0.08957081466104448,
+          "report_value": 0.08957081466104451,
+          "max_abs_difference": 2.7755575615628914e-17,
+          "cell": "W14"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.7786057435804402,
+          "raw_metrics_value": 0.77860574358044,
+          "report_value": 0.7786057435804402,
+          "max_abs_difference": 2.220446049250313e-16,
+          "cell": "X14"
+        }
+      ],
+      "sheet_row": 14
+    },
+    {
+      "arm": "G11",
+      "metrics_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G11_f0_s1234/metrics.json",
+      "per_case_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G11_f0_s1234/per_case.jsonl",
+      "metrics_sha256": "6a4cce0f4622604bdc615db1841454fb61810df1bd1bf78da07a98f26c380e75",
+      "per_case_sha256": "ef0de70176bb407cd7c85697ec5607b5242f23e22df7867c50ddc98aea0c59bf",
+      "n_units": 55,
+      "metric_checks": [
+        {
+          "header": "整周期 vector R²均值",
+          "field": "tasks.velocity.cycle.r2",
+          "value": 0.757064472647684,
+          "raw_metrics_value": 0.757064472647684,
+          "report_value": 0.757064472647684,
+          "max_abs_difference": 0.0,
+          "cell": "E15"
+        },
+        {
+          "header": "整周期 分量MAE m/s",
+          "field": "tasks.velocity.cycle.mae",
+          "value": 0.0221216907224682,
+          "raw_metrics_value": 0.022121690722468203,
+          "report_value": 0.0221216907224682,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "I15"
+        },
+        {
+          "header": "整周期 分量RMSE m/s",
+          "field": "tasks.velocity.cycle.rmse",
+          "value": 0.03758252959766024,
+          "raw_metrics_value": 0.03758252959766024,
+          "report_value": 0.03758252959766024,
+          "max_abs_difference": 0.0,
+          "cell": "J15"
+        },
+        {
+          "header": "整周期 向量RMSE m/s",
+          "field": "tasks.velocity.cycle.vector_rmse_m_s",
+          "value": 0.06509485074010865,
+          "raw_metrics_value": 0.06509485074010865,
+          "report_value": 0.06509485074010865,
+          "max_abs_difference": 0.0,
+          "cell": "K15"
+        },
+        {
+          "header": "整周期 方向余弦",
+          "field": "tasks.velocity.cycle.direction_cosine",
+          "value": 0.7536416260831674,
+          "raw_metrics_value": 0.7536416260831675,
+          "report_value": 0.7536416260831674,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "L15"
+        },
+        {
+          "header": "峰值窗 vector R²均值",
+          "field": "tasks.velocity.peak.r2",
+          "value": 0.8167391191865989,
+          "raw_metrics_value": 0.8167391191865989,
+          "report_value": 0.8167391191865989,
+          "max_abs_difference": 0.0,
+          "cell": "F15"
+        },
+        {
+          "header": "峰值窗 分量MAE m/s",
+          "field": "tasks.velocity.peak.mae",
+          "value": 0.03182837986652569,
+          "raw_metrics_value": 0.03182837986652569,
+          "report_value": 0.03182837986652569,
+          "max_abs_difference": 0.0,
+          "cell": "M15"
+        },
+        {
+          "header": "峰值窗 分量RMSE m/s",
+          "field": "tasks.velocity.peak.rmse",
+          "value": 0.052869797674455266,
+          "raw_metrics_value": 0.052869797674455266,
+          "report_value": 0.052869797674455266,
+          "max_abs_difference": 0.0,
+          "cell": "N15"
+        },
+        {
+          "header": "峰值窗 向量RMSE m/s",
+          "field": "tasks.velocity.peak.vector_rmse_m_s",
+          "value": 0.0915731757580434,
+          "raw_metrics_value": 0.0915731757580434,
+          "report_value": 0.0915731757580434,
+          "max_abs_difference": 0.0,
+          "cell": "O15"
+        },
+        {
+          "header": "峰值窗 方向余弦",
+          "field": "tasks.velocity.peak.direction_cosine",
+          "value": 0.8952480557846317,
+          "raw_metrics_value": 0.8952480557846317,
+          "report_value": 0.8952480557846317,
+          "max_abs_difference": 0.0,
+          "cell": "P15"
+        },
+        {
+          "header": "谷底窗 vector R²均值",
+          "field": "tasks.velocity.trough.r2",
+          "value": 0.31593918768830553,
+          "raw_metrics_value": 0.31593918768830553,
+          "report_value": 0.31593918768830553,
+          "max_abs_difference": 0.0,
+          "cell": "G15"
+        },
+        {
+          "header": "谷底窗 分量MAE m/s",
+          "field": "tasks.velocity.trough.mae",
+          "value": 0.02006568301343969,
+          "raw_metrics_value": 0.020065683013439688,
+          "report_value": 0.02006568301343969,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "Q15"
+        },
+        {
+          "header": "谷底窗 分量RMSE m/s",
+          "field": "tasks.velocity.trough.rmse",
+          "value": 0.03193549396539746,
+          "raw_metrics_value": 0.03193549396539746,
+          "report_value": 0.03193549396539746,
+          "max_abs_difference": 0.0,
+          "cell": "R15"
+        },
+        {
+          "header": "谷底窗 向量RMSE m/s",
+          "field": "tasks.velocity.trough.vector_rmse_m_s",
+          "value": 0.05531389811287768,
+          "raw_metrics_value": 0.05531389811287767,
+          "report_value": 0.05531389811287768,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "S15"
+        },
+        {
+          "header": "谷底窗 方向余弦",
+          "field": "tasks.velocity.trough.direction_cosine",
+          "value": 0.6423448203763195,
+          "raw_metrics_value": 0.6423448203763196,
+          "report_value": 0.6423448203763195,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "T15"
+        },
+        {
+          "header": "减速段 vector R²均值",
+          "field": "tasks.velocity.decel.r2",
+          "value": 0.687641327914868,
+          "raw_metrics_value": 0.6876413279148681,
+          "report_value": 0.687641327914868,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "H15"
+        },
+        {
+          "header": "减速段 分量MAE m/s",
+          "field": "tasks.velocity.decel.mae",
+          "value": 0.03086172363810071,
+          "raw_metrics_value": 0.030861723638100705,
+          "report_value": 0.03086172363810071,
+          "max_abs_difference": 3.469446951953614e-18,
+          "cell": "U15"
+        },
+        {
+          "header": "减速段 分量RMSE m/s",
+          "field": "tasks.velocity.decel.rmse",
+          "value": 0.05138081541976834,
+          "raw_metrics_value": 0.05138081541976835,
+          "report_value": 0.05138081541976834,
+          "max_abs_difference": 6.938893903907228e-18,
+          "cell": "V15"
+        },
+        {
+          "header": "减速段 向量RMSE m/s",
+          "field": "tasks.velocity.decel.vector_rmse_m_s",
+          "value": 0.08899418284135717,
+          "raw_metrics_value": 0.08899418284135717,
+          "report_value": 0.08899418284135717,
+          "max_abs_difference": 0.0,
+          "cell": "W15"
+        },
+        {
+          "header": "减速段 方向余弦",
+          "field": "tasks.velocity.decel.direction_cosine",
+          "value": 0.7771159150957786,
+          "raw_metrics_value": 0.7771159150957787,
+          "report_value": 0.7771159150957786,
+          "max_abs_difference": 1.1102230246251565e-16,
+          "cell": "X15"
+        }
+      ],
+      "sheet_row": 15
+    }
+  ],
+  "idempotence_verified_on_copy": true,
+  "idempotence_existing_row_count": 10,
+  "writer_script_sha256": "890cd4d25c3818d86985b41e823028b286ec9ca2cef98e8204b87a831a7cc7c2"
+}

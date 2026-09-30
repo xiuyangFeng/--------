@@ -1,0 +1,91 @@
+{
+  "method": "gaussian",
+  "params": {
+    "radius_mm": 3.0,
+    "sharpness": 2.0,
+    "max_dist_mm": 3.0,
+    "fallback": "mask"
+  },
+  "kernel": "exp(-2*(d/3 mm)^2) inside 3 mm; normalized; same stencil for CFD and Pred",
+  "coverage": {
+    "target_points": 101654,
+    "valid_points": 101654,
+    "valid_ratio": 1.0
+  },
+  "distance_mm": {
+    "p50": 1.52587890625e-05,
+    "p95": 0.8213102510361957,
+    "max": 2.013788402249947
+  },
+  "independent_kernel_check": {
+    "n_queries": 32,
+    "implementation": "tools.cfdpost_cloud_export.map_to_stl_surface._interp_gaussian",
+    "passed": true
+  },
+  "metric_basis": "original cache only, not smoothed STL",
+  "surface_area_metric_gate": "not requested; coverage is not area-mapping validation",
+  "cross_wall_checks": {
+    "interpretation": "volume Euclidean projection can mix nearby branches; no wall-velocity or derivative claim"
+  },
+  "purpose": "Wall scalar interpolated to original STL vertices",
+  "source_points": 67760,
+  "source_csv": "_export/gaussian_source.csv.gz",
+  "target_geometry": "aligned_geometry.vtp",
+  "geometry": {
+    "stl_source": "/public/newhome/cy/Digital_twin/GNN/data_new/ILO/LI_YOU_ZHI-0/before/LI_YOU_ZHI.stl",
+    "stl_sha256": "349473d89cf287234082605970d01183196124c79bc7cc6e39b556d7c37e6037",
+    "stl_to_mm_scale": 1.0,
+    "scale_source": "identity millimetre units by matching bounding-box diagonal; raw CFD frame, not V5 atlas",
+    "stl_cfd_identity": false,
+    "stl_wall_identity_max_distance_mm": 2.013788402249947,
+    "bijective_node_count": 67760,
+    "n_stl_vertices": 101654,
+    "n_stl_triangles": 202991,
+    "n_cfd_wall": 67760,
+    "coordinate_unit": "mm",
+    "coordinate_frame": "raw CFD millimetres",
+    "tolerance_mm": 3.0
+  },
+  "units": "Pa",
+  "topology": {
+    "triangles": 202991,
+    "valid_triangles": 202991
+  },
+  "errors": "signed error = interpolated Pred - interpolated CFD; absolute = abs(signed)",
+  "display_normalization": {
+    "version": 1,
+    "kind": "selfmax",
+    "prefix": "wss",
+    "unit": "dimensionless",
+    "source_unit": "Pa",
+    "denominator_scope": "wall",
+    "source_point_count": 67760,
+    "cfd_max": 26.673507690429688,
+    "pred_max": 8.680407967133519,
+    "cfd_denominator": {
+      "max": 26.673507690429688,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 2.6673507690429687e-11
+    },
+    "pred_denominator": {
+      "max": 8.680407967133519,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 8.680407967133519e-12
+    },
+    "formula": {
+      "wss_cfd_selfmax": "CFD / max(original CFD)",
+      "wss_pred_selfmax": "Pred / max(original Pred)",
+      "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+      "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+    },
+    "denominator_basis": "original full colocated case at selected frame, before interpolation",
+    "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+    "amplitude_difference_removed": true,
+    "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+    "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+    "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+  },
+  "native_cfd_wall": "not written; V4 cache has wall nodes without native triangle identity in this pack"
+}

@@ -1,0 +1,1045 @@
+{
+ "sample_seed": 20260928,
+ "sample": [
+  "AG/fast/RAN_QING_BO~m06",
+  "AG/slow/BAI_WEN_JIE~m16",
+  "AG/slow/LI_HUAN_GE~m26",
+  "AG/slow/NI_YAN_BIN~m49",
+  "AG/slow/YIN_YU_RONG~m44",
+  "AAA/ruputer/KANG_YONG~m01",
+  "AAA/ruputer/LIN_LIANG_XIAO~m10",
+  "AAA/ruputer/LV_GUO_YOU~m32",
+  "AAA/unruputer/HAN_JIAN_FU~m36",
+  "ILO/AN_GUANG_JIE-0~m37/after",
+  "ILO/GENG_CHUN_LAI-1~m46/after",
+  "ILO/LIN_CHUN_YANG-1~m12/before",
+  "ILO/LI_FA_XIANG-1~m42/after",
+  "ILO/LU_FU_SHAN-0~m21/after",
+  "ILO/WANG_SHU_SHENG-0~m36/before"
+ ],
+ "split_notes": [],
+ "n_all": 60,
+ "n_ok": 59,
+ "excluded": [
+  [
+   "ILO/XIONG_DONG_SUO-0~m49/after",
+   "pca_normals_ok"
+  ]
+ ],
+ "counts": {
+  "形变体积检查": {
+   "good": 60,
+   "warn": 0,
+   "serious": 0,
+   "crit": 0
+  },
+  "Fluent网格检查": {
+   "good": 56,
+   "warn": 1,
+   "serious": 0,
+   "crit": 3
+  },
+  "81 帧导出": {
+   "good": 60,
+   "warn": 0,
+   "serious": 0,
+   "crit": 0
+  },
+  "RCR运行态": {
+   "good": 60,
+   "warn": 0,
+   "serious": 0,
+   "crit": 0
+  },
+  "中心线": {
+   "good": 57,
+   "warn": 3,
+   "serious": 0,
+   "crit": 0
+  },
+  "拓扑审计": {
+   "good": 60,
+   "warn": 0,
+   "serious": 0,
+   "crit": 0
+  },
+  "出口标签同母例": {
+   "good": 59,
+   "warn": 1,
+   "serious": 0,
+   "crit": 0
+  },
+  "壁面审计": {
+   "good": 60,
+   "warn": 0,
+   "serious": 0,
+   "crit": 0
+  },
+  "求解层级": {
+   "good": 52,
+   "warn": 5,
+   "serious": 3,
+   "crit": 0
+  },
+  "V5 门(19 项)": {
+   "good": 59,
+   "warn": 0,
+   "serious": 0,
+   "crit": 1
+  },
+  "划分合规": {
+   "good": 60,
+   "warn": 0,
+   "serious": 0,
+   "crit": 0
+  },
+  "入库": {
+   "good": 59,
+   "warn": 0,
+   "serious": 0,
+   "crit": 1
+  }
+ },
+ "centerline_review": [
+  "AG/slow/LIN_SHU_TIAN~m33",
+  "AG/slow/YIN_YU_RONG~m44",
+  "ILO/LIU_YUE_DONG-0~m29/before"
+ ],
+ "solver_tiers": {
+  "A": 43,
+  "B": 9,
+  "C": 5,
+  "D": 3
+ },
+ "wall_nodes_identical_order": 60,
+ "labels_finite": 60,
+ "wss_min_child_min": 0.00031261364347301424,
+ "ranges": {
+  "cell_volume_ratio_min": [
+   0.27148695622269176,
+   0.46551577090674556,
+   0.9992356074093289
+  ],
+  "cell_volume_ratio_max": [
+   1.0051425634270037,
+   1.8034427113422558,
+   3.1859015573132217
+  ],
+  "anatomy_volume_ratio": [
+   0.882556460863307,
+   0.9878949706629705,
+   1.1683092157142208
+  ],
+  "f_min": [
+   0.41025253967562625,
+   0.7204514429303438,
+   1.0
+  ],
+  "f_max": [
+   1.0,
+   1.2237621804367054,
+   1.5059862412575034
+  ],
+  "max_displacement_mm": [
+   0.7660888215099039,
+   3.3237706097901576,
+   7.126424987619817
+  ],
+  "rcr_L": [
+   0.4788449716252085,
+   0.5000140330709737,
+   0.5429992603765058
+  ],
+  "rcr_mass_balance": [
+   0.9997268895133756,
+   0.9999982027903356,
+   1.0011596924331363
+  ],
+  "rcr_p_out_kpa_min": [
+   10.9224268549625,
+   13.011692265275,
+   15.4605183400375
+  ],
+  "rcr_p_out_kpa_max": [
+   11.669237587725002,
+   13.170905833709373,
+   15.625995890299999
+  ],
+  "wss_p99_child": [
+   6.593306045532228,
+   21.019315958023103,
+   84.12436218261705
+  ],
+  "wss_max_child": [
+   12.921126365661621,
+   58.63320350646973,
+   309.4841613769531
+  ],
+  "continuity_last_max": [
+   0.00034029,
+   0.00099415,
+   0.0098365
+  ]
+ },
+ "pwall_p99_rel_pct": [
+  [
+   -1.03,
+   "AG/slow/BAI_WEN_JIE~m16"
+  ],
+  [
+   -0.72,
+   "AG/slow/SUN_ZONG_GE~m43"
+  ],
+  [
+   -0.37,
+   "AG/slow/YIN_YU_RONG~m44"
+  ],
+  [
+   -0.22,
+   "AAA/unruputer/GAO_DIAN_WEN~m07"
+  ],
+  [
+   -0.18,
+   "ILO/ZHANG_YONG_SHENG-0~m52/after"
+  ],
+  [
+   -0.16,
+   "ILO/LU_FU_SHAN-0~m21/after"
+  ],
+  [
+   -0.12,
+   "AG/slow/GUO_XI_JIANG~m35"
+  ],
+  [
+   -0.11,
+   "ILO/WAGN_LI_JUN-1~m25/before"
+  ],
+  [
+   -0.08,
+   "AG/slow/QU_HE_PING~m38"
+  ],
+  [
+   -0.07,
+   "ILO/GONG_HAI_ZENG-1~m34/after"
+  ],
+  [
+   -0.05,
+   "AAA/unruputer/ZHOU_XI_SHENG~m22"
+  ],
+  [
+   -0.04,
+   "ILO/LI_YOU_ZHI-0~m48/before"
+  ],
+  [
+   -0.04,
+   "ILO/PAN_YIN_GEN-1~m45/before"
+  ],
+  [
+   -0.03,
+   "ILO/YAO_GUO_CHEN-0~m10/before"
+  ],
+  [
+   -0.02,
+   "AG/slow/SUN_WEN_QING~m15"
+  ],
+  [
+   0.0,
+   "AAA/unruputer/ZHANG_ZHI_HUA~m14"
+  ],
+  [
+   0.01,
+   "AAA/ruputer/CHEN_FU~m26"
+  ],
+  [
+   0.02,
+   "AAA/unruputer/SHEN_CHUN_WANG~m11"
+  ],
+  [
+   0.02,
+   "AG/slow/ZHANG_HUAN_LI~m48"
+  ],
+  [
+   0.02,
+   "ILO/XIONG_DONG_SUO-0~m49/after"
+  ],
+  [
+   0.03,
+   "ILO/LIU_YUE_DONG-0~m29/before"
+  ],
+  [
+   0.12,
+   "AAA/unruputer/CHEN_SHU_LIN~m25"
+  ],
+  [
+   0.12,
+   "AAA/unruputer/LI_YOU_YU~m27"
+  ],
+  [
+   0.14,
+   "ILO/WU_JUN-0~m05/before"
+  ],
+  [
+   0.16,
+   "AAA/ruputer/LIU_JI_XIN~m31"
+  ],
+  [
+   0.17,
+   "ILO/ZHANG_JIAN_JUN-1~m31/after"
+  ],
+  [
+   0.19,
+   "ILO/SUN_CHUN_PU-0~m53/before"
+  ],
+  [
+   0.23,
+   "AAA/ruputer/KANG_YONG~m01"
+  ],
+  [
+   0.24,
+   "AAA/ruputer/HUO_SHI_LIANG~m28"
+  ],
+  [
+   0.28,
+   "ILO/LIU_BAO_JUN-0~m39/before"
+  ],
+  [
+   0.29,
+   "ILO/WANG_JIN_MING-0~m54/after"
+  ],
+  [
+   0.33,
+   "ILO/LI_YU_GANG-0~m01/after"
+  ],
+  [
+   0.34,
+   "AAA/ruputer/FENG_LI_XIN~m38"
+  ],
+  [
+   0.4,
+   "ILO/LI_FA_XIANG-1~m42/after"
+  ],
+  [
+   0.47,
+   "ILO/GENG_CHUN_LAI-1~m46/after"
+  ],
+  [
+   0.51,
+   "AG/slow/ZHANG_SONG_TIAN~m45"
+  ],
+  [
+   0.51,
+   "ILO/ZHANG_JIAN_JUN-1~m57/before"
+  ],
+  [
+   0.54,
+   "AG/fast/RAN_QING_BO~m06"
+  ],
+  [
+   0.58,
+   "AAA/ruputer/LIN_LIANG_XIAO~m10"
+  ],
+  [
+   0.63,
+   "AG/slow/NI_YAN_BIN~m49"
+  ],
+  [
+   0.7,
+   "ILO/WANG_SHU_SHENG-0~m36/before"
+  ],
+  [
+   0.79,
+   "ILO/WENG_ZHAO_GUANG-0~m03/before"
+  ],
+  [
+   0.91,
+   "AG/slow/LI_BING_YI~m42"
+  ],
+  [
+   0.92,
+   "AG/slow/LIN_SHU_TIAN~m33"
+  ],
+  [
+   0.98,
+   "AG/slow/LU_ZHEN_QING~m29"
+  ],
+  [
+   0.99,
+   "AG/fast/WANG_YONG_FAN~m19"
+  ],
+  [
+   1.03,
+   "AAA/unruputer/YAN_FU_TANG~m34"
+  ],
+  [
+   1.03,
+   "ILO/AN_GUANG_JIE-0~m37/after"
+  ],
+  [
+   1.27,
+   "ILO/GAO_SHU_CAI-0~m24/before"
+  ],
+  [
+   1.3,
+   "AG/slow/CHENG_LU_LI~m10"
+  ],
+  [
+   1.45,
+   "ILO/XUE_YOU_TANG-0~m19/before"
+  ],
+  [
+   1.56,
+   "AG/slow/KANG_XI_MING~m18"
+  ],
+  [
+   1.99,
+   "AG/fast/PENG_JI_MING~m25"
+  ],
+  [
+   3.15,
+   "AG/slow/MI_DE_XI~m32"
+  ],
+  [
+   3.19,
+   "ILO/LIN_CHUN_YANG-1~m12/before"
+  ],
+  [
+   3.7,
+   "ILO/ZHAO_CHANG_SHAN-0~m06/before"
+  ],
+  [
+   4.1,
+   "AAA/ruputer/LV_GUO_YOU~m32"
+  ],
+  [
+   4.14,
+   "AG/slow/ZHANG_LING_GUANG~m22"
+  ],
+  [
+   10.83,
+   "AG/slow/LI_HUAN_GE~m26"
+  ],
+  [
+   7974.21,
+   "AAA/unruputer/HAN_JIAN_FU~m36"
+  ]
+ ],
+ "bump_radius_ratio_vs_design": {
+  "median_abs_err": 0.005354685652196933,
+  "p90_abs_err": 0.023950430850207684,
+  "corr": 0.9983727886085529
+ },
+ "bump_tawss": {
+  "n": 118,
+  "stenosis_up": 71,
+  "stenosis_n": 72,
+  "dilation_down": 43,
+  "dilation_n": 43,
+  "spearman_log": -0.9462783809742934
+ },
+ "mesh_check_failed": [
+  [
+   "ILO/GONG_HAI_ZENG-1~m34/after",
+   2,
+   1,
+   0
+  ],
+  [
+   "ILO/LI_YOU_ZHI-0~m48/before",
+   9,
+   9,
+   0
+  ],
+  [
+   "ILO/SUN_CHUN_PU-0~m53/before",
+   0,
+   1,
+   0
+  ],
+  [
+   "ILO/WENG_ZHAO_GUANG-0~m03/before",
+   1,
+   1,
+   0
+  ]
+ ],
+ "outlet_label_mismatch": [
+  [
+   "AAA/unruputer/CHEN_SHU_LIN~m25",
+   "blood2:out-le->out-li;blood3:out-li->out-le"
+  ]
+ ],
+ "tier_pairs": [
+  [
+   "AG/fast/PENG_JI_MING~m25",
+   "C",
+   "A"
+  ],
+  [
+   "AG/slow/BAI_WEN_JIE~m16",
+   "A",
+   "C"
+  ],
+  [
+   "AG/slow/LI_BING_YI~m42",
+   "C",
+   "A"
+  ],
+  [
+   "AG/slow/SUN_ZONG_GE~m43",
+   "B",
+   "D"
+  ],
+  [
+   "AG/slow/ZHANG_LING_GUANG~m22",
+   "C",
+   "D"
+  ],
+  [
+   "ILO/AN_GUANG_JIE-0~m37/after",
+   "B",
+   "A"
+  ],
+  [
+   "ILO/LIN_CHUN_YANG-1~m12/before",
+   "B",
+   "C"
+  ],
+  [
+   "ILO/LIU_BAO_JUN-0~m39/before",
+   "B",
+   "A"
+  ],
+  [
+   "ILO/ZHAO_CHANG_SHAN-0~m06/before",
+   "C",
+   "D"
+  ]
+ ],
+ "sample_rows": {
+  "AG/fast/RAN_QING_BO~m06": {
+   "max_displacement_mm": 4.129862098679755,
+   "anatomy_volume_ratio": 1.078935369320315,
+   "cell_volume_ratio_min": 0.6801951000511731,
+   "f_min": 1.0,
+   "f_max": 1.3152531278830757,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 27.87703701019287,
+   "wss_p99_child": 27.860209522247278,
+   "pwall_p99_child": 17289.61587890625,
+   "pwall_p99_parent": 17196.44744140625,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": 0.17506758144242743,
+     "sigma_mm": 13.701218870906327,
+     "radius_parent_mm": 10.786347451338708,
+     "f_design_center": 1.214461078826486,
+     "radius_ratio_child_atlas": 1.2158726717975856,
+     "tawss_ratio_region": 0.5674213767051697,
+     "region_nodes": 1073
+    },
+    {
+     "segment": "主干",
+     "amplitude": 0.2815711609251475,
+     "sigma_mm": 13.607807848253401,
+     "radius_parent_mm": 10.851801996030725,
+     "f_design_center": 1.306727607057157,
+     "radius_ratio_child_atlas": 1.272938174837609,
+     "tawss_ratio_region": 0.6545490622520447,
+     "region_nodes": 893
+    }
+   ]
+  },
+  "AG/slow/BAI_WEN_JIE~m16": {
+   "max_displacement_mm": 2.310063976249692,
+   "anatomy_volume_ratio": 1.0128464530274655,
+   "cell_volume_ratio_min": 0.6820470450097444,
+   "f_min": 0.847112117212819,
+   "f_max": 1.2113579345204213,
+   "solver_tier": "C",
+   "centerline": "pass",
+   "wss_p99_parent": 14.811350326538074,
+   "wss_p99_child": 14.535251941680897,
+   "pwall_p99_child": 15801.9501953125,
+   "pwall_p99_parent": 15966.39564453125,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": 0.26652264535501413,
+     "sigma_mm": 11.821345070038523,
+     "radius_parent_mm": 10.159602477575278,
+     "f_design_center": 1.1556658465830754,
+     "radius_ratio_child_atlas": 1.1537325175267958,
+     "tawss_ratio_region": 0.9817861914634705,
+     "region_nodes": 798
+    },
+    {
+     "segment": "主干",
+     "amplitude": -0.30692394742433826,
+     "sigma_mm": 7.7006142737362335,
+     "radius_parent_mm": 11.616992059597635,
+     "f_design_center": 0.8660818423934523,
+     "radius_ratio_child_atlas": 0.8721432770936379,
+     "tawss_ratio_region": 1.065582513809204,
+     "region_nodes": 538
+    }
+   ]
+  },
+  "AG/slow/LI_HUAN_GE~m26": {
+   "max_displacement_mm": 4.131286889169228,
+   "anatomy_volume_ratio": 0.9216329642771734,
+   "cell_volume_ratio_min": 0.27148695622269176,
+   "f_min": 0.544088312617041,
+   "f_max": 1.0,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 33.11663284301763,
+   "wss_p99_child": 39.349581527709994,
+   "pwall_p99_child": 18446.670703125,
+   "pwall_p99_parent": 16644.299609375,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": -0.36269920081417356,
+     "sigma_mm": 12.187085892927938,
+     "radius_parent_mm": 7.14778972793292,
+     "f_design_center": 0.6076880556621024,
+     "radius_ratio_child_atlas": 0.6075524112061185,
+     "tawss_ratio_region": 4.327498912811279,
+     "region_nodes": 517
+    },
+    {
+     "segment": "主干",
+     "amplitude": -0.29923378120089805,
+     "sigma_mm": 8.133913844335684,
+     "radius_parent_mm": 7.755632032221497,
+     "f_design_center": 0.5713235708423623,
+     "radius_ratio_child_atlas": 0.5779385666509518,
+     "tawss_ratio_region": 5.996429920196533,
+     "region_nodes": 356
+    }
+   ]
+  },
+  "AG/slow/NI_YAN_BIN~m49": {
+   "max_displacement_mm": 4.71897978064325,
+   "anatomy_volume_ratio": 0.907109270583858,
+   "cell_volume_ratio_min": 0.2999288475679876,
+   "f_min": 0.5599438219331969,
+   "f_max": 1.0,
+   "solver_tier": "B",
+   "centerline": "pass",
+   "wss_p99_parent": 42.737151184082045,
+   "wss_p99_child": 42.89340530395526,
+   "pwall_p99_child": 17633.65328125,
+   "pwall_p99_parent": 17523.644453125,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": -0.21193845985636933,
+     "sigma_mm": 12.650458800438578,
+     "radius_parent_mm": 9.753205643222085,
+     "f_design_center": 0.6160488101519157,
+     "radius_ratio_child_atlas": 0.6166513488647992,
+     "tawss_ratio_region": 2.059943675994873,
+     "region_nodes": 857
+    },
+    {
+     "segment": "主干",
+     "amplitude": -0.2968381629212664,
+     "sigma_mm": 13.878577092567372,
+     "radius_parent_mm": 10.113941901577125,
+     "f_design_center": 0.593258993637409,
+     "radius_ratio_child_atlas": 0.5933302820303629,
+     "tawss_ratio_region": 4.8289618492126465,
+     "region_nodes": 1036
+    }
+   ]
+  },
+  "AG/slow/YIN_YU_RONG~m44": {
+   "max_displacement_mm": 3.5988867120441137,
+   "anatomy_volume_ratio": 1.1215935371376877,
+   "cell_volume_ratio_min": 0.29190070991724193,
+   "f_min": 1.0,
+   "f_max": 1.431079118753605,
+   "solver_tier": "C",
+   "centerline": "review",
+   "wss_p99_parent": 16.664454231262205,
+   "wss_p99_child": 16.663921070098805,
+   "pwall_p99_child": 15964.829208984374,
+   "pwall_p99_parent": 16023.359150390625,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": 0.33161201938107804,
+     "sigma_mm": 7.099776078266438,
+     "radius_parent_mm": 7.073323204109063,
+     "f_design_center": 1.3966032050397637,
+     "radius_ratio_child_atlas": 1.388616853316862,
+     "tawss_ratio_region": 0.6339592933654785,
+     "region_nodes": 378
+    },
+    {
+     "segment": "主干",
+     "amplitude": 0.3969660425039875,
+     "sigma_mm": 9.169582898778007,
+     "radius_parent_mm": 7.110767588828253,
+     "f_design_center": 1.4131732879285073,
+     "radius_ratio_child_atlas": 1.4072646790891068,
+     "tawss_ratio_region": 0.6018347144126892,
+     "region_nodes": 484
+    }
+   ]
+  },
+  "AAA/ruputer/KANG_YONG~m01": {
+   "max_displacement_mm": 5.012206966863887,
+   "anatomy_volume_ratio": 0.9226801788120574,
+   "cell_volume_ratio_min": 0.4981884331682592,
+   "f_min": 0.7911562029940926,
+   "f_max": 1.0,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 5.8433739376068194,
+   "wss_p99_child": 6.593306045532228,
+   "pwall_p99_child": 13090.604267578125,
+   "pwall_p99_parent": 13060.0405078125,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": -0.2029816159893047,
+     "sigma_mm": 11.737541316442353,
+     "radius_parent_mm": 11.31778933612152,
+     "f_design_center": 0.7958329499647743,
+     "radius_ratio_child_atlas": 0.8379986018983128,
+     "tawss_ratio_region": 1.4961620569229126,
+     "region_nodes": 878
+    },
+    {
+     "segment": "主干",
+     "amplitude": -0.18820336418471467,
+     "sigma_mm": 13.17185984197803,
+     "radius_parent_mm": 22.745489281784547,
+     "f_design_center": 0.8114530907041213,
+     "radius_ratio_child_atlas": 0.833163360927361,
+     "tawss_ratio_region": 1.9177213907241821,
+     "region_nodes": 1224
+    }
+   ]
+  },
+  "AAA/ruputer/LIN_LIANG_XIAO~m10": {
+   "max_displacement_mm": 3.393313667646305,
+   "anatomy_volume_ratio": 0.9747847722214169,
+   "cell_volume_ratio_min": 0.4292505907946027,
+   "f_min": 0.6796015571321153,
+   "f_max": 1.1703156536611978,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 31.661324386596682,
+   "wss_p99_child": 31.784552001953205,
+   "pwall_p99_child": 14169.15048828125,
+   "pwall_p99_parent": 14087.6014453125,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": -0.3065971301615084,
+     "sigma_mm": 13.62705968075298,
+     "radius_parent_mm": 8.950484418289996,
+     "f_design_center": 0.6934173815194313,
+     "radius_ratio_child_atlas": 0.7058363297932788,
+     "tawss_ratio_region": 1.6988765001296997,
+     "region_nodes": 5676
+    },
+    {
+     "segment": "主干",
+     "amplitude": 0.17032396975511116,
+     "sigma_mm": 10.044944753699859,
+     "radius_parent_mm": 8.322185352712973,
+     "f_design_center": 1.1684389447609578,
+     "radius_ratio_child_atlas": 1.1633756269477407,
+     "tawss_ratio_region": 0.6962565183639526,
+     "region_nodes": 3258
+    }
+   ]
+  },
+  "AAA/ruputer/LV_GUO_YOU~m32": {
+   "max_displacement_mm": 4.011346078442986,
+   "anatomy_volume_ratio": 0.9644895515616693,
+   "cell_volume_ratio_min": 0.4667820227217265,
+   "f_min": 0.6830363535617481,
+   "f_max": 1.0592110562730612,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 23.640358734130842,
+   "wss_p99_child": 33.51976013183593,
+   "pwall_p99_child": 14602.1025,
+   "pwall_p99_parent": 14026.48953125,
+   "bumps": [
+    {
+     "segment": "右髂外",
+     "amplitude": -0.2987135756270143,
+     "sigma_mm": 7.6951359760647575,
+     "radius_parent_mm": 3.3117106050078124,
+     "f_design_center": 0.7012864243729857,
+     "radius_ratio_child_atlas": 0.704514796878483,
+     "tawss_ratio_region": 3.156024932861328,
+     "region_nodes": 380
+    },
+    {
+     "segment": "主干",
+     "amplitude": -0.30949319216875404,
+     "sigma_mm": 12.722701703280077,
+     "radius_parent_mm": 8.37246143556114,
+     "f_design_center": 0.690506807831246,
+     "radius_ratio_child_atlas": 0.7249190535527883,
+     "tawss_ratio_region": 1.7858854532241821,
+     "region_nodes": 739
+    }
+   ]
+  },
+  "AAA/unruputer/HAN_JIAN_FU~m36": {
+   "max_displacement_mm": 2.817849377232981,
+   "anatomy_volume_ratio": 0.9354816883370615,
+   "cell_volume_ratio_min": 0.5423362412663408,
+   "f_min": 0.7525775109696955,
+   "f_max": 1.0,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 12.376381301879876,
+   "wss_p99_child": 12.380920829772943,
+   "pwall_p99_child": 13565.9637109375,
+   "pwall_p99_parent": 168.0160675048828,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": -0.10701342735832768,
+     "sigma_mm": 8.585111964320806,
+     "radius_parent_mm": 12.74734641033666,
+     "f_design_center": 0.8929791188179874,
+     "radius_ratio_child_atlas": 0.9181358750524168,
+     "tawss_ratio_region": 1.1106363534927368,
+     "region_nodes": 4621
+    },
+    {
+     "segment": "主干",
+     "amplitude": -0.23521341104740967,
+     "sigma_mm": 13.389928648161895,
+     "radius_parent_mm": 9.71570764828892,
+     "f_design_center": 0.7647865889513737,
+     "radius_ratio_child_atlas": 0.7712933547149613,
+     "tawss_ratio_region": 1.664980173110962,
+     "region_nodes": 5337
+    }
+   ]
+  },
+  "ILO/AN_GUANG_JIE-0~m37/after": {
+   "max_displacement_mm": 1.1839044946751436,
+   "anatomy_volume_ratio": 0.9984918142852803,
+   "cell_volume_ratio_min": 0.43841581415851955,
+   "f_min": 0.659460220385981,
+   "f_max": 1.2326603871799613,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 25.403075218200534,
+   "wss_p99_child": 34.491104316711386,
+   "pwall_p99_child": 14760.405908203125,
+   "pwall_p99_parent": 14609.9345703125,
+   "bumps": [
+    {
+     "segment": "左髂外",
+     "amplitude": 0.22152916299765155,
+     "sigma_mm": 12.587718149647792,
+     "radius_parent_mm": 2.877020167046976,
+     "f_design_center": 1.2215291629976515,
+     "radius_ratio_child_atlas": 1.2185162095445052,
+     "tawss_ratio_region": 0.6509524583816528,
+     "region_nodes": 1691
+    },
+    {
+     "segment": "右髂外",
+     "amplitude": -0.3229762416963414,
+     "sigma_mm": 11.343132553579409,
+     "radius_parent_mm": 3.393735892576865,
+     "f_design_center": 0.6770237583036586,
+     "radius_ratio_child_atlas": 0.6800416508901492,
+     "tawss_ratio_region": 2.6027565002441406,
+     "region_nodes": 1461
+    }
+   ]
+  },
+  "ILO/GENG_CHUN_LAI-1~m46/after": {
+   "max_displacement_mm": 4.931095826685291,
+   "anatomy_volume_ratio": 0.9730988157771769,
+   "cell_volume_ratio_min": 0.3519770298150252,
+   "f_min": 0.6103890470943079,
+   "f_max": 1.2741565582051684,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 17.31283805847172,
+   "wss_p99_child": 17.302915000915537,
+   "pwall_p99_child": 13936.0259765625,
+   "pwall_p99_parent": 13870.9224609375,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": -0.38611882099559114,
+     "sigma_mm": 10.723849515886279,
+     "radius_parent_mm": 11.105691806528998,
+     "f_design_center": 0.6138816676510933,
+     "radius_ratio_child_atlas": 0.6218938607652791,
+     "tawss_ratio_region": 2.514616012573242,
+     "region_nodes": 1549
+    },
+    {
+     "segment": "主干",
+     "amplitude": 0.2711643176393934,
+     "sigma_mm": 6.895209244369082,
+     "radius_parent_mm": 11.387454716086216,
+     "f_design_center": 1.2695352941016966,
+     "radius_ratio_child_atlas": 1.2586346312461916,
+     "tawss_ratio_region": 0.8845134377479553,
+     "region_nodes": 817
+    }
+   ]
+  },
+  "ILO/LIN_CHUN_YANG-1~m12/before": {
+   "max_displacement_mm": 2.664220842595328,
+   "anatomy_volume_ratio": 0.9620597984355771,
+   "cell_volume_ratio_min": 0.48239402923288777,
+   "f_min": 0.702956448773072,
+   "f_max": 1.0,
+   "solver_tier": "C",
+   "centerline": "pass",
+   "wss_p99_parent": 34.04793483734125,
+   "wss_p99_child": 35.610797004699684,
+   "pwall_p99_child": 15320.105283203126,
+   "pwall_p99_parent": 14846.998095703126,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": -0.2508948948993868,
+     "sigma_mm": 6.724440950588865,
+     "radius_parent_mm": 8.583978091164258,
+     "f_design_center": 0.7485246047005324,
+     "radius_ratio_child_atlas": 0.7742633280067357,
+     "tawss_ratio_region": 2.0236775875091553,
+     "region_nodes": 2971
+    },
+    {
+     "segment": "主干",
+     "amplitude": -0.2903719637097137,
+     "sigma_mm": 7.931773636435393,
+     "radius_parent_mm": 5.851463767352399,
+     "f_design_center": 0.7095839709792517,
+     "radius_ratio_child_atlas": 0.7187426482988999,
+     "tawss_ratio_region": 2.842966318130493,
+     "region_nodes": 2738
+    }
+   ]
+  },
+  "ILO/LI_FA_XIANG-1~m42/after": {
+   "max_displacement_mm": 5.335958876320527,
+   "anatomy_volume_ratio": 1.0205532796163392,
+   "cell_volume_ratio_min": 0.35465202624925546,
+   "f_min": 0.6101607583883242,
+   "f_max": 1.2922284461036178,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 20.79548339843751,
+   "wss_p99_child": 20.790238685607974,
+   "pwall_p99_child": 14418.7724609375,
+   "pwall_p99_parent": 14361.40033203125,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": 0.2824776415315311,
+     "sigma_mm": 10.561842403434131,
+     "radius_parent_mm": 11.925064277813508,
+     "f_design_center": 1.2824776415313033,
+     "radius_ratio_child_atlas": 1.2789063717193547,
+     "tawss_ratio_region": 0.7698789834976196,
+     "region_nodes": 2222
+    },
+    {
+     "segment": "主干",
+     "amplitude": -0.3704446064187771,
+     "sigma_mm": 6.2659216151653405,
+     "radius_parent_mm": 12.04884058614861,
+     "f_design_center": 0.6295696235267948,
+     "radius_ratio_child_atlas": 0.6407900507259805,
+     "tawss_ratio_region": 3.435831308364868,
+     "region_nodes": 1054
+    }
+   ]
+  },
+  "ILO/LU_FU_SHAN-0~m21/after": {
+   "max_displacement_mm": 3.3041629156096466,
+   "anatomy_volume_ratio": 1.0331438002101088,
+   "cell_volume_ratio_min": 0.40212266054094725,
+   "f_min": 0.9980279080446663,
+   "f_max": 1.372939228298661,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 17.21978004455571,
+   "wss_p99_child": 17.220857658386315,
+   "pwall_p99_child": 13690.595693359375,
+   "pwall_p99_parent": 13712.71287109375,
+   "bumps": [
+    {
+     "segment": "左髂总",
+     "amplitude": 0.3628652387104866,
+     "sigma_mm": 8.799492290640293,
+     "radius_parent_mm": 7.38765211907363,
+     "f_design_center": 1.3628652387104867,
+     "radius_ratio_child_atlas": 1.240800636274024,
+     "tawss_ratio_region": 0.7637730240821838,
+     "region_nodes": 3471
+    },
+    {
+     "segment": "左髂外",
+     "amplitude": 0.20692051200470818,
+     "sigma_mm": 10.941677945522178,
+     "radius_parent_mm": 3.14113931061212,
+     "f_design_center": 1.2069205120047082,
+     "radius_ratio_child_atlas": 1.2025746393516976,
+     "tawss_ratio_region": 0.6527181267738342,
+     "region_nodes": 1635
+    }
+   ]
+  },
+  "ILO/WANG_SHU_SHENG-0~m36/before": {
+   "max_displacement_mm": 4.442263711642091,
+   "anatomy_volume_ratio": 0.9404433786369694,
+   "cell_volume_ratio_min": 0.37494302690032155,
+   "f_min": 0.6405783389292585,
+   "f_max": 1.0,
+   "solver_tier": "A",
+   "centerline": "pass",
+   "wss_p99_parent": 27.02907085418701,
+   "wss_p99_child": 27.01439380645752,
+   "pwall_p99_child": 14369.84716796875,
+   "pwall_p99_parent": 14270.1494140625,
+   "bumps": [
+    {
+     "segment": "主干",
+     "amplitude": -0.3543949669064684,
+     "sigma_mm": 7.188542729647814,
+     "radius_parent_mm": 10.947486863398119,
+     "f_design_center": 0.6456050330927631,
+     "radius_ratio_child_atlas": 0.6484685084714089,
+     "tawss_ratio_region": 3.551727771759033,
+     "region_nodes": 1240
+    },
+    {
+     "segment": "主干",
+     "amplitude": -0.1743829143825233,
+     "sigma_mm": 11.181723626978208,
+     "radius_parent_mm": 9.354515663312743,
+     "f_design_center": 0.8256170856174767,
+     "radius_ratio_child_atlas": 0.8303619695391092,
+     "tawss_ratio_region": 1.5736510753631592,
+     "region_nodes": 2826
+    }
+   ]
+  }
+ }
+}

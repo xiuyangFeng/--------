@@ -1,0 +1,127 @@
+{
+  "canonical_id": "AG/slow/DING_LIAN_ZHONG",
+  "assembly_source": "v5.1",
+  "n_wall": 10958,
+  "n_volume": 315261,
+  "sources": {
+    "h5": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_2c_20260930/cases/AG__slow__DING_LIAN_ZHONG/case.h5",
+      "size": 458477594,
+      "mtime_ns": 1789505463661690127
+    },
+    "bundle": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AG/slow/DING_LIAN_ZHONG/bundle.npz",
+      "size": 19233228,
+      "mtime_ns": 1789512674460075601
+    },
+    "volume": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AG/slow/DING_LIAN_ZHONG/volume.npz",
+      "size": 39504779,
+      "mtime_ns": 1789512798744806151
+    },
+    "geom": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_geom_v2/AG/slow/DING_LIAN_ZHONG/features.npz",
+      "size": 705264,
+      "mtime_ns": 1789512758168567643
+    },
+    "flowref": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/slow/DING_LIAN_ZHONG/features.npz",
+      "size": 1102328,
+      "mtime_ns": 1790760135825218261
+    }
+  },
+  "boundary_conditions": {
+    "udf": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/DING_LIAN_ZHONG/udf-inlet.c",
+      "sha256": "93d2dcf70a07bb5903931fd80eddc3db549b69a3fd66c032711e75e9166b6ef0"
+    },
+    "rcr": [
+      {
+        "outlet": "out-le",
+        "R1": 211070.0,
+        "R2": 1233600.0,
+        "C": 1.239e-06
+      },
+      {
+        "outlet": "out-li",
+        "R1": 292330.0,
+        "R2": 1917000.0,
+        "C": 8.1018e-07
+      },
+      {
+        "outlet": "out-ri",
+        "R1": 230190.0,
+        "R2": 1508100.0,
+        "C": 1.0298e-06
+      },
+      {
+        "outlet": "out-re",
+        "R1": 231970.0,
+        "R2": 1523900.0,
+        "C": 1.0195e-06
+      }
+    ],
+    "rheology": {
+      "mu_inf_pa_s": 0.0035,
+      "mu_zero_pa_s": 0.16,
+      "lambda_s": 8.2,
+      "a": 0.64,
+      "n": 0.2128
+    },
+    "period_s": 0.8,
+    "rho_kg_m3": 1060.0,
+    "A_inlet_udf_m2": 0.0004663757,
+    "resistance_units": "Pa*s/kg",
+    "capacitance_units": "kg/Pa",
+    "source": "case.h5 conditions attributes; frozen prescribed inputs, no CFD labels"
+  },
+  "schema": "joint_cycle_v52_v1",
+  "settings": {
+    "seed": 1234,
+    "train_volume": 8192,
+    "train_wall": 8192,
+    "eval_volume": 16384,
+    "eval_wall": 8192
+  },
+  "peak_consistency": {
+    "peak_velocity_abs_max": 0.0,
+    "peak_pressure_abs_max": 0.0,
+    "peak_wss_abs_max": 0.0
+  },
+  "endpoint_80_vs_0_abs_max": {
+    "train": {
+      "velocity": 0.0042675696313381195,
+      "pressure": 10.640609741210938,
+      "wss": 0.04954242706298828
+    },
+    "eval": {
+      "velocity": 0.004243403673171997,
+      "pressure": 10.640609741210938,
+      "wss": 0.04061150550842285
+    }
+  },
+  "actual_pool_counts": {
+    "train_wall": 5479,
+    "eval_wall": 5479,
+    "train_volume": 8192,
+    "eval_volume": 16384
+  },
+  "normalization_input": "raw physical labels; WSS floor is applied only by normalizer",
+  "bc_note": "20 frozen prescribed input channels from conditions attrs; RCR resistance Pa*s/kg and capacitance kg/Pa; train-only normalization",
+  "signature_refreshed_20260930": [
+    {
+      "source": "flowref",
+      "old": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/slow/DING_LIAN_ZHONG/features.npz",
+        "size": 1146705,
+        "mtime_ns": 1789512775560669874
+      },
+      "new": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/slow/DING_LIAN_ZHONG/features.npz",
+        "size": 1102328,
+        "mtime_ns": 1790760135825218261
+      },
+      "reason": "flowref rebuilt with the refitted cap-area rule; only the capfit arrays changed (cached features use *_murray_cap)"
+    }
+  ]
+}

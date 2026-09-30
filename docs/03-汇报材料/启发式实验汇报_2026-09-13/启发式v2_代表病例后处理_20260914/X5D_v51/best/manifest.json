@@ -1,0 +1,160 @@
+{
+  "schema_version": 3,
+  "model": "X5D_v51",
+  "role": "best",
+  "case_id": "AG/fast/ZHANG_LIANG",
+  "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234",
+  "checkpoint": "ckpt_best.pt",
+  "seed": 1234,
+  "split": "test",
+  "peak_step": 1162,
+  "peak_index": 21,
+  "frame": "v5_atlas_frame_v1",
+  "coordinate_unit": "mm",
+  "unit": "Pa",
+  "selection": {
+    "basis": "fixed five-seed mean of per-case R2 (1234,7,2025,11,2026); not ensemble; not X5D_long",
+    "r2_case_mean": 0.9042640595121249,
+    "r2_sd": 0.012063314287881226,
+    "seed_values": [
+      0.8837962352572435,
+      0.915805945897564,
+      0.906775220334124,
+      0.9062331781921616,
+      0.9087097178795309
+    ],
+    "statistical_median": 0.7611775557168168,
+    "median_rule": "closest actual case to the five-seed mean R² median; near-tie broken by smaller distance then case_id"
+  },
+  "visualization_metrics": {
+    "r2": 0.8837962352572435,
+    "nrmse_range": 0.029668171972760254,
+    "nrmse_mean": 0.3352186880802454,
+    "mae": 0.7467938470902613,
+    "nmae_range": 0.015973941910386716,
+    "rmse": 1.3870094437533058,
+    "n": 14399,
+    "seed": 1234,
+    "metric_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json",
+    "metric_key": "test.per_case[AG/fast/ZHANG_LIANG].overall",
+    "basis": "whole evaluated case, not smoothed surface",
+    "cache_recomputed": {
+      "r2": 0.8837962352572435,
+      "mae": 0.7467938470902613,
+      "n": 14399
+    }
+  },
+  "pressure_reference": null,
+  "geometry": {
+    "stl_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/ZHANG_LIANG/ZHANG_LIANG.stl",
+    "stl_sha256": "cadcf77b62ac520503a99e2b8a953e830c75d7c3c31216757a2faee337bb89d4",
+    "snapshot_source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases/AG__fast__ZHANG_LIANG/case.h5",
+    "stl_to_mm_scale": 1.0,
+    "scale_source": "identity units verified by bijective STL-to-CFD wall mapping; bbox not fitted",
+    "stl_cfd_identity": true,
+    "bbox_ratio_qc_only": 1.000000022611264,
+    "rotation_convention": "(raw_mm - centroid) @ rotation.T",
+    "rotation_determinant": 1.0000000000000002,
+    "centroid_mm": [
+      7.392953730099441,
+      -153.06816964043068,
+      -380.09822993582077
+    ],
+    "rotation": [
+      [
+        -0.8668549196551376,
+        -0.47294824074220115,
+        0.15774190897964255
+      ],
+      [
+        0.4979678878460557,
+        -0.8367668301654757,
+        0.22770431398847066
+      ],
+      [
+        0.024300842450889527,
+        0.27593701004700133,
+        0.9608684798360795
+      ]
+    ],
+    "reconstruction_max_abs_mm": 2.225692233537302e-05,
+    "stl_wall_identity_max_distance_mm": 3.4332275390625e-05,
+    "aligned_max_distance_mm": 3.389272144602394e-05,
+    "bijective_node_count": 14399,
+    "n_stl_vertices": 14399,
+    "n_stl_triangles": 28678,
+    "n_cfd_triangles": 28678,
+    "triangles_dropped_invalid": 0,
+    "wall_crop_applied": false,
+    "frame_version": "v5_atlas_frame_v1",
+    "coordinate_unit": "mm",
+    "tolerance_mm": 0.001
+  },
+  "source_sha256": {
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/predictions/test/AG/fast/ZHANG_LIANG/predictions.npz": "d3851a97fcc8096d8a79f692e60266760355139f7f7be6867f701077f882f8fd",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/AG/fast/ZHANG_LIANG/bundle.npz": "7d50305af2a0dd792d957dfad69e0eecbc1f2a1eb789bee999fa0e4319de93a9",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json": "b7c1a58b8f1d9e3a22767939a60cb91f4b7bc9fde85db0931346b3c51ba7dfe7",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/config.json": "cfd35d038b9c99cbc0380e3f374f2c123eb270752ad78600a679af9459a62ccc",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/ckpt_best.pt": "f51695024b9d2d4859ddcb3b9c75fa6ca4e10c0a9e2a79a4573a7699d05a00f9",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/predictions/manifest.json": "12d8757933f88b6583371aeef3395ad2cffd3a23ecd2fb6dd69eb2e6c7efa154",
+    "/public/newhome/cy/Digital_twin/GNN/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5D_v51/selection.json": "b18e888fb719d23d7fb0ebe8e2793f78e12003d4c72512eec37195a2f3a82754"
+  },
+  "display_normalization": {
+    "version": 1,
+    "kind": "selfmax",
+    "prefix": "wss",
+    "unit": "dimensionless",
+    "source_unit": "Pa",
+    "denominator_scope": "wall",
+    "source_point_count": 14399,
+    "cfd_max": 46.81153869628906,
+    "pred_max": 57.00956619545029,
+    "cfd_denominator": {
+      "max": 46.81153869628906,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 4.681153869628906e-11
+    },
+    "pred_denominator": {
+      "max": 57.00956619545029,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 5.700956619545029e-11
+    },
+    "formula": {
+      "wss_cfd_selfmax": "CFD / max(original CFD)",
+      "wss_pred_selfmax": "Pred / max(original Pred)",
+      "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+      "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+    },
+    "denominator_basis": "original full colocated case at selected frame, before interpolation",
+    "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+    "amplitude_difference_removed": true,
+    "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+    "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+    "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+  },
+  "verification": {
+    "truth_vs_mother_data": "exact",
+    "point_index_and_coordinate_identity": "exact",
+    "r2_matches_official_abs_tol": 1e-08,
+    "mae_matches_official_abs_tol": 1e-06,
+    "metric_tolerance_reason": "saved float32 raw cache versus evaluator precision",
+    "written_vtp_all_arrays_roundtrip": "exact"
+  },
+  "files": {
+    "pointcloud": "X5D_v51__best__AG__fast__ZHANG_LIANG__wall_wss.vtp",
+    "gaussian_surface": "surface_gaussian.vtp",
+    "mapping_report": "mapping_report.json",
+    "native_cfd_wall": "cfd_wall_native.vtp",
+    "aligned_geometry": "aligned_geometry.vtp",
+    "original_points_csv": "_export/same_point_fields.csv.gz"
+  },
+  "surface_display_purpose": "Wall scalar interpolated to original STL vertices",
+  "output_sha256": {
+    "X5D_v51__best__AG__fast__ZHANG_LIANG__wall_wss.vtp": "dfd96586da4046174c67cdf8a97708983f36472dc53b0bb10618c492ed90e67e",
+    "surface_gaussian.vtp": "6e8b232ab100d1d27fc90fd290fbf0cb08a4e9a69b5642955e2f956f76dc56dd",
+    "aligned_geometry.vtp": "9c3fb35e803f85ae8bac1112a742f296566dbeaa4e362089b1a8d1075459502f",
+    "cfd_wall_native.vtp": "4040d805f902ddf5b7e768e3672c1789da1e1c449f9b0b7f660ba00b4125437a"
+  }
+}

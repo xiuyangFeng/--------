@@ -1,0 +1,230 @@
+{
+  "read_at": "2026-09-27T15:37:33.149614+08:00",
+  "protocol": "V5.2 IND train170/test91; seed1234/7/2025; ckpt_best; physical casebalanced metrics; ± sample seed SD; no new inference",
+  "rows": [
+    {
+      "arm": "基线",
+      "recipe": "X5Dcap",
+      "description": "原方案",
+      "r2_mean": 0.740436521576424,
+      "r2_sd": 0.006912772445173192,
+      "mae_mean": 1.1324537275798716,
+      "mae_sd": 0.010401565437236492,
+      "delta_r2": 0.0,
+      "ensemble_r2": 0.7579501607592406,
+      "status": "同期对照",
+      "per_seed": [
+        {
+          "seed": 1234,
+          "r2": 0.7466078284863524,
+          "mae": 1.1285345815299213,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s1234/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 7,
+          "r2": 0.7329665037266646,
+          "mae": 1.144245532509378,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s7/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 2025,
+          "r2": 0.7417352325162552,
+          "mae": 1.1245810687003157,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s2025/eval/ckpt_best/metrics.json"
+        }
+      ]
+    },
+    {
+      "arm": "P1",
+      "recipe": "X5Dcap_womfeat",
+      "description": "Womersley特征",
+      "r2_mean": 0.7393908691408826,
+      "r2_sd": 0.002068227030122082,
+      "mae_mean": 1.1290040183151824,
+      "mae_sd": 0.0094609637267321,
+      "delta_r2": -0.0010456524355414443,
+      "ensemble_r2": 0.7579514275028487,
+      "status": "未通过预设增益门",
+      "per_seed": [
+        {
+          "seed": 1234,
+          "r2": 0.7370446736304708,
+          "mae": 1.139928583584653,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_womfeat_s1234/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 7,
+          "r2": 0.740950086072406,
+          "mae": 1.1235262471896834,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_womfeat_s7/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 2025,
+          "r2": 0.7401778477197711,
+          "mae": 1.1235572241712106,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_womfeat_s2025/eval/ckpt_best/metrics.json"
+        }
+      ]
+    },
+    {
+      "arm": "P2",
+      "recipe": "X5Dcap_womres",
+      "description": "Womersley残差学习",
+      "r2_mean": 0.7422451787888436,
+      "r2_sd": 0.007993633877586127,
+      "mae_mean": 1.124959198106872,
+      "mae_sd": 0.007134076185334646,
+      "delta_r2": 0.0018086572124195177,
+      "ensemble_r2": 0.7607373033567942,
+      "status": "未通过预设增益门",
+      "per_seed": [
+        {
+          "seed": 1234,
+          "r2": 0.7510678742378805,
+          "mae": 1.1243315706725516,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_womres_s1234/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 7,
+          "r2": 0.7354847426604862,
+          "mae": 1.1323863518180803,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_womres_s7/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 2025,
+          "r2": 0.740182919468164,
+          "mae": 1.118159671829984,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_womres_s2025/eval/ckpt_best/metrics.json"
+        }
+      ]
+    },
+    {
+      "arm": "P3",
+      "recipe": "X5Dcap_poisres",
+      "description": "泊肃叶残差学习",
+      "r2_mean": 0.7446284201369603,
+      "r2_sd": 0.002300614095650182,
+      "mae_mean": 1.127079398693753,
+      "mae_sd": 0.004521148060683261,
+      "delta_r2": 0.004191898560536256,
+      "ensemble_r2": 0.7630846456115832,
+      "status": "未通过预设增益门",
+      "per_seed": [
+        {
+          "seed": 1234,
+          "r2": 0.7440898347678542,
+          "mae": 1.1322056939298446,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_poisres_s1234/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 7,
+          "r2": 0.742644876927081,
+          "mae": 1.1236609133348476,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_poisres_s7/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 2025,
+          "r2": 0.7471505487159458,
+          "mae": 1.125371588816567,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_poisres_s2025/eval/ckpt_best/metrics.json"
+        }
+      ]
+    },
+    {
+      "arm": "T1",
+      "recipe": "X5Dcap_tw",
+      "description": "高目标值加权",
+      "r2_mean": 0.7453177051546469,
+      "r2_sd": 0.005373882407668186,
+      "mae_mean": 1.1241057830066092,
+      "mae_sd": 0.0019997397302497525,
+      "delta_r2": 0.00488118357822287,
+      "ensemble_r2": 0.7620158547959508,
+      "status": "未通过预设增益门",
+      "per_seed": [
+        {
+          "seed": 1234,
+          "r2": 0.7514217751673493,
+          "mae": 1.1264016767634568,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_tw_s1234/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 7,
+          "r2": 0.7432320339987508,
+          "mae": 1.1231714078531185,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_tw_s7/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 2025,
+          "r2": 0.7412993062978407,
+          "mae": 1.1227442644032526,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_tw_s2025/eval/ckpt_best/metrics.json"
+        }
+      ]
+    },
+    {
+      "arm": "T2",
+      "recipe": "X5Dcap_asym2",
+      "description": "低估时损失×2",
+      "r2_mean": 0.7522570064619301,
+      "r2_sd": 0.001980075154191621,
+      "mae_mean": 1.1489352757676916,
+      "mae_sd": 0.010823758715430246,
+      "delta_r2": 0.011820484885506022,
+      "ensemble_r2": 0.7710475111718547,
+      "status": "通过筛选，待CV5确认；MAE略升",
+      "per_seed": [
+        {
+          "seed": 1234,
+          "r2": 0.7534852712526834,
+          "mae": 1.1391558468546414,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_asym2_s1234/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 7,
+          "r2": 0.753312970416796,
+          "mae": 1.147085121506593,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_asym2_s7/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 2025,
+          "r2": 0.7499727777163108,
+          "mae": 1.1605648589418402,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_asym2_s2025/eval/ckpt_best/metrics.json"
+        }
+      ]
+    },
+    {
+      "arm": "T3",
+      "recipe": "X5Dcap_pin95",
+      "description": "pinball 0.90→0.95",
+      "r2_mean": 0.7411357217349192,
+      "r2_sd": 0.0029819591601261707,
+      "mae_mean": 1.129222635625956,
+      "mae_sd": 0.005100936328024929,
+      "delta_r2": 0.0006992001584951169,
+      "ensemble_r2": 0.7600329206345019,
+      "status": "未通过预设增益门",
+      "per_seed": [
+        {
+          "seed": 1234,
+          "r2": 0.7444392778855513,
+          "mae": 1.1235341698017498,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_pin95_s1234/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 7,
+          "r2": 0.7403247575524328,
+          "mae": 1.130743777895778,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_pin95_s7/eval/ckpt_best/metrics.json"
+        },
+        {
+          "seed": 2025,
+          "r2": 0.7386431297667733,
+          "mae": 1.1333899591803405,
+          "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_phys_20260926/X5Dcap_pin95_s2025/eval/ckpt_best/metrics.json"
+        }
+      ]
+    }
+  ]
+}

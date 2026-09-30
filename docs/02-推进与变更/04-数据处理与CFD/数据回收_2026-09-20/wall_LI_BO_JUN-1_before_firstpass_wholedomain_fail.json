@@ -1,0 +1,161 @@
+{
+ "schema_version": 1,
+ "canonical_id": "ILO/LI_BO_JUN-1/before",
+ "role": "new",
+ "created_at": "2026-09-22T02:55:13.967211+00:00",
+ "peak_step": 1162,
+ "files": {
+  "wall_files_in_directory": 81,
+  "wall_required_steps_present": 81,
+  "volume_frames": 81,
+  "extra_wall_files": 0,
+  "extra_wall_files_benign_same_run": false,
+  "ambiguous_steps": 0,
+  "ambiguous_steps_sample": [],
+  "ambiguous_candidates_sample": [],
+  "extra_wall_steps_sample": [],
+  "volume_steps_equal_expected": true,
+  "wall_steps_equal_expected": true,
+  "wall_sizes_uniform": true,
+  "wall_mtime_max": 1768415499.6552796,
+  "volume_mtime_min": 1768414388.7868795,
+  "wall_lag_days": -0.012857273149269599
+ },
+ "status": "parsed",
+ "export_kind": "node",
+ "export_scope": "whole_domain",
+ "rows_outside_anatomy_wall": 1808924,
+ "delimiter": "comma",
+ "columns": [
+  "nodenumber",
+  "x-coordinate",
+  "y-coordinate",
+  "z-coordinate",
+  "pressure",
+  "wall-shear",
+  "x-wall-shear",
+  "y-wall-shear",
+  "z-wall-shear"
+ ],
+ "rows": 1894280,
+ "anatomy_wall_entities": 85356,
+ "coordinate_identity_across_frames_m": 0.0,
+ "sampled_steps": [
+  1120,
+  1162,
+  1280
+ ],
+ "frame_formats": {
+  "1120": {
+   "file": "LI_BO_JUN-1120",
+   "id_column": "nodenumber"
+  },
+  "1162": {
+   "file": "LI_BO_JUN-1162",
+   "id_column": "nodenumber"
+  },
+  "1280": {
+   "file": "LI_BO_JUN-1280",
+   "id_column": "nodenumber"
+  }
+ },
+ "per_frame": {
+  "1120": {
+   "vector_norm_le_scalar_fraction": 1.0,
+   "scalar_minus_vector_rel_median": 0.0,
+   "scalar_minus_vector_rel_p95": 2.928249437712257e-05,
+   "scalar_minus_vector_rel_max": 0.9763390115880586,
+   "rows": 1894280,
+   "finite": true,
+   "wss_negative_rows": 0,
+   "wss_zero_fraction": 0.940528327385603,
+   "magnitude_vs_vector_max_rel": 2.500894818017431,
+   "wss_mean_pa": 0.023190911391859442,
+   "wss_p50_pa": 0.0,
+   "wss_p95_pa": 0.06296287459399971,
+   "wss_p99_pa": 0.801517716511999,
+   "wss_max_pa": 5.61401501,
+   "pressure_mean_pa": 12286.898497443164
+  },
+  "1162": {
+   "vector_norm_le_scalar_fraction": 1.0,
+   "scalar_minus_vector_rel_median": 0.0,
+   "scalar_minus_vector_rel_p95": 6.450117954322432e-05,
+   "scalar_minus_vector_rel_max": 0.9550789966826891,
+   "rows": 1894280,
+   "finite": true,
+   "wss_negative_rows": 0,
+   "wss_zero_fraction": 0.940528327385603,
+   "magnitude_vs_vector_max_rel": 4.7866191896777295,
+   "wss_mean_pa": 0.278137206675245,
+   "wss_p50_pa": 0.0,
+   "wss_p95_pa": 0.6309268695999898,
+   "wss_p99_pa": 8.36220947844999,
+   "wss_max_pa": 88.22026086,
+   "pressure_mean_pa": 14738.644592920578
+  },
+  "1280": {
+   "vector_norm_le_scalar_fraction": 1.0,
+   "scalar_minus_vector_rel_median": 0.0,
+   "scalar_minus_vector_rel_p95": 2.898108649970397e-05,
+   "scalar_minus_vector_rel_max": 0.9617626597309278,
+   "rows": 1894280,
+   "finite": true,
+   "wss_negative_rows": 0,
+   "wss_zero_fraction": 0.940528327385603,
+   "magnitude_vs_vector_max_rel": 2.540211283239715,
+   "wss_mean_pa": 0.02334098780343504,
+   "wss_p50_pa": 0.0,
+   "wss_p95_pa": 0.06375482047899951,
+   "wss_p99_pa": 0.7986524620809999,
+   "wss_max_pa": 5.792625727,
+   "pressure_mean_pa": 12400.212582738024
+  }
+ },
+ "identity": {
+  "label": "ILO/LI_BO_JUN-1/before:wss-nodes",
+  "query_rows": 85356,
+  "reference_rows": 85356,
+  "max_match_distance_m": 7.059827112209819e-11,
+  "p99_match_distance_m": 6.592208376427842e-11,
+  "max_match_over_tolerance": 0.0007059827112209819,
+  "max_first_second_neighbour_ratio": 1.5076450125556504e-06,
+  "coincident_duplicates_resolved": 0,
+  "mutual_nearest_resolved": 0,
+  "unique_reference_rows": 85356,
+  "bijective": true,
+  "within_tolerance": true,
+  "unambiguous": true
+ },
+ "tangency": {
+  "median": 0.004538015170577201,
+  "p95": 0.039252876470546955,
+  "max": 0.9969332631408319,
+  "rows_with_zero_wss": 1808924
+ },
+ "provenance": {
+  "wall_pressure_mean_pa": 14895.918552159777,
+  "volume_pressure_at_wall_mean_pa": 14896.708496649915,
+  "pressure_delta_median_pa": -0.04316999999991822,
+  "pressure_delta_p95_abs_pa": 29.77276499999971,
+  "pressure_delta_rel_to_volume": 2.8979556127869867e-06,
+  "nearest_cell_distance_p95_mm": 0.7186661976672308
+ },
+ "gates": {
+  "frames_same_format": true,
+  "wall_frames_81_matching_volume": true,
+  "no_stale_extra_wall_files": true,
+  "step_to_file_unambiguous": true,
+  "row_count_constant": true,
+  "coordinates_identical_across_frames": true,
+  "all_finite": true,
+  "wss_non_negative": true,
+  "magnitude_consistent_with_vector": true,
+  "wss_tangential_to_wall": true,
+  "covers_anatomy_wall_exactly": true,
+  "identity_bijective": true,
+  "same_solution_as_volume": true,
+  "wss_bulk_physiological": false
+ },
+ "gate_pass": false
+}

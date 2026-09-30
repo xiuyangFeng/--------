@@ -24,7 +24,7 @@ from training_wss_min.tools.tracker_section import replace_or_append
 from training_wss_min.tools.wss_recovery_common import ROOT, EXP, CONFIGS, RUNS
 
 BOOK = ROOT / "docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx"
-TRACKER = ROOT / "docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md"
+TRACKER = ROOT / "docs/02-推进与变更/00-V5设计与历史跟踪/WSS_V5_训练实验跟踪_历史卷_2026-09-06至09-20.md"
 GROUP = "WSS直接回归纠正矩阵｜2026-09-12（14臂）"
 HEADING = "## 18. 直接回归14臂矩阵：最终结果（2026-09-12）"
 MISSING = "—"

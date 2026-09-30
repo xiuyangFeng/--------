@@ -1,0 +1,50 @@
+{
+  "source_title": "Wall Shear Stress Estimation in Abdominal Aortic Aneurysms: Towards Generalisable Neural Surrogate Models",
+  "source_url": "https://arxiv.org/html/2507.22817v1#S3.T1",
+  "source_table": "Table 1",
+  "verified_date": "2026-09-27",
+  "notes": [
+    "论文周期量无R²、Spearman和余弦相似度；0.657/0.684的余弦为瞬态WSS向量方向相似度。",
+    "Approx. disp.为逐例相对L2误差。",
+    "论文各项±为样本间标准差，与本项目跨seed标准差不同。",
+    "TAWSS、OSI由瞬态向量WSS推导；本项目为直接回归；数据、划分、工况不同。"
+  ],
+  "rows": [
+    {
+      "target": "TAWSS",
+      "model": "LaB-GATr",
+      "dataset": "AAA-100 十折",
+      "mae": 0.136,
+      "mae_sd": 0.095,
+      "approx_disp": 0.387,
+      "approx_disp_sd": 0.102
+    },
+    {
+      "target": "TAWSS",
+      "model": "LaB-GATr",
+      "dataset": "AAA-L 外部集；十折模型集成",
+      "mae": 0.148,
+      "mae_sd": 0.103,
+      "approx_disp": 0.333,
+      "approx_disp_sd": 0.142
+    },
+    {
+      "target": "OSI",
+      "model": "LaB-GATr",
+      "dataset": "AAA-100 十折",
+      "mae": 0.064,
+      "mae_sd": 0.011,
+      "approx_disp": 0.381,
+      "approx_disp_sd": 0.079
+    },
+    {
+      "target": "OSI",
+      "model": "LaB-GATr",
+      "dataset": "AAA-L 外部集；十折模型集成",
+      "mae": 0.048,
+      "mae_sd": 0.007,
+      "approx_disp": 0.298,
+      "approx_disp_sd": 0.055
+    }
+  ]
+}

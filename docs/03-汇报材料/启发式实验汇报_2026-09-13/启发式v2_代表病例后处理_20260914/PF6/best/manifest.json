@@ -1,0 +1,159 @@
+{
+  "schema_version": 3,
+  "model": "PF6",
+  "role": "best",
+  "case_id": "AG/fast/YAO_CUN_HONG",
+  "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234",
+  "checkpoint": "ckpt_best.pt",
+  "seed": 1234,
+  "split": "test",
+  "peak_step": 1162,
+  "peak_index": 21,
+  "frame": "v5_atlas_frame_v1",
+  "coordinate_unit": "mm",
+  "unit": "Pa",
+  "selection": {
+    "basis": "fixed three-seed mean of per-case R2 (1234,7,2025); not ensemble",
+    "r2_case_mean": 0.9650403868125624,
+    "statistical_median": 0.8495959072676196,
+    "median_rule": "closest actual case to statistical median; selected IDs retained from original package"
+  },
+  "visualization_metrics": {
+    "r2": 0.9679598186234588,
+    "nrmse_range": 0.04380897955254587,
+    "nrmse_mean": 0.3035223006440792,
+    "mae": 69.74675643268466,
+    "nmae_range": 0.029456890832779664,
+    "rmse": 103.72901348487456,
+    "n": 283262,
+    "seed": 1234,
+    "metric_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/eval/ckpt_best/metrics.json",
+    "metric_key": "test.per_case[AG/fast/YAO_CUN_HONG].overall",
+    "basis": "whole evaluated case, not smoothed surface",
+    "cache_recomputed": {
+      "r2": 0.9679598186347558,
+      "mae": 69.74675641369411,
+      "n": 283262
+    },
+    "wall_only_reference": {
+      "r2": 0.9607745334130292,
+      "mae": 77.8031448305113,
+      "n": 9704
+    }
+  },
+  "pressure_reference": {
+    "p_ref_pa": 16558.26970788406,
+    "kind": "volume_mean_pressure_at_peak_step",
+    "posthoc_offset_correction": false
+  },
+  "geometry": {
+    "stl_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/YAO_CUN_HONG/YAO_CUN_HONG.stl",
+    "stl_sha256": "b985713ab507ec09db60e37c939d992afb5f64035e4d34f3f92aa53cfd478435",
+    "snapshot_source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__YAO_CUN_HONG/case.h5",
+    "stl_to_mm_scale": 1.0,
+    "scale_source": "identity units verified by bijective STL-to-CFD wall mapping; bbox not fitted",
+    "bbox_ratio_qc_only": 0.9999999048691071,
+    "rotation_convention": "(raw_mm - centroid) @ rotation.T",
+    "rotation_determinant": 1.0,
+    "centroid_mm": [
+      1.8260954190915983,
+      13.418787835186652,
+      -347.9783682650027
+    ],
+    "rotation": [
+      [
+        -0.9894984685434904,
+        -0.14389944655747777,
+        0.013628280542258458
+      ],
+      [
+        0.1424385106533799,
+        -0.9547138109549526,
+        0.2612141073041771
+      ],
+      [
+        -0.024577457820813917,
+        0.260412151122644,
+        0.9651846766887379
+      ]
+    ],
+    "reconstruction_max_abs_mm": 1.834592239902122e-05,
+    "stl_wall_identity_max_distance_mm": 3.099074708799729e-05,
+    "aligned_max_distance_mm": 3.2380528866121495e-05,
+    "bijective_node_count": 9704,
+    "n_stl_triangles": 19293,
+    "n_cfd_triangles": 19293,
+    "triangles_dropped_invalid": 0,
+    "wall_crop_applied": false,
+    "frame_version": "v5_atlas_frame_v1",
+    "coordinate_unit": "mm",
+    "tolerance_mm": 0.001
+  },
+  "source_sha256": {
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/eval/ckpt_best/predictions/test/AG/fast/YAO_CUN_HONG/predictions.npz": "122306542d870a0059988cf11e1f4b5f7f363d18c81f3385aeeeba3bee168a66",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/YAO_CUN_HONG/bundle.npz": "8b019c725b6514fd1e558f372dea5007647425a03f1b780c098dba75568ac78b",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/eval/ckpt_best/metrics.json": "3216eb585c07d4f720281d14a8ec98d58cfd6c918d90e9fb8eab8bd72754774a",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/config.json": "e7f19af7cf45921a28f6203bbe94874ac1556ee8abadc06f99177e23257e5174",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/ckpt_best.pt": "7323d121b88d3e66a7cf257bdc03a9f10eb4c6aefa6fd6dd37820e1e0ac71408",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/PF6_s1234/eval/ckpt_best/predictions/manifest.json": "d84eb11c42d5e373d94d56a877a1a760422082caac7e7f30ad9472a4569ecc70",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/YAO_CUN_HONG/volume.npz": "957cb087bde664c410895061327a2b8fc555d7f28d6ceacf52650c5f3947a601"
+  },
+  "display_normalization": {
+    "version": 1,
+    "kind": "selfmax",
+    "prefix": "pressure",
+    "unit": "dimensionless",
+    "source_unit": "Pa",
+    "denominator_scope": "wall_union_interior",
+    "source_point_count": 283262,
+    "cfd_max": 302.78302001953125,
+    "pred_max": 362.7912292480469,
+    "cfd_denominator": {
+      "max": 302.78302001953125,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 2.064973876953125e-09
+    },
+    "pred_denominator": {
+      "max": 362.7912292480469,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 1.9888470458984374e-09
+    },
+    "formula": {
+      "pressure_cfd_selfmax": "CFD / max(original CFD)",
+      "pressure_pred_selfmax": "Pred / max(original Pred)",
+      "pressure_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+      "pressure_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+    },
+    "denominator_basis": "original full colocated case at selected frame, before interpolation",
+    "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+    "amplitude_difference_removed": true,
+    "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+    "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+    "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+  },
+  "verification": {
+    "truth_vs_mother_data": "exact",
+    "point_index_and_coordinate_identity": "exact",
+    "r2_matches_official_abs_tol": 1e-08,
+    "mae_matches_official_abs_tol": 1e-06,
+    "metric_tolerance_reason": "saved float32 raw cache versus evaluator precision",
+    "written_vtp_all_arrays_roundtrip": "exact"
+  },
+  "files": {
+    "pointcloud": "PF6__best__AG__fast__YAO_CUN_HONG__volume_pressure.vtp",
+    "gaussian_surface": "surface_gaussian.vtp",
+    "mapping_report": "mapping_report.json",
+    "native_cfd_wall": "cfd_wall_native.vtp",
+    "aligned_geometry": "aligned_geometry.vtp",
+    "original_points_csv": "_export/same_point_fields.csv.gz"
+  },
+  "surface_display_purpose": "Wall scalar interpolated to original STL vertices",
+  "output_sha256": {
+    "PF6__best__AG__fast__YAO_CUN_HONG__volume_pressure.vtp": "25d0c1e4e0cd2613f437c323a982457823dc7fe1fd2147ad71ff45fb02974b9b",
+    "surface_gaussian.vtp": "987ef7b6c7bbbedbb97a62866b8160e0a8a317c875b2d03e61d992d408eb15d7",
+    "aligned_geometry.vtp": "0c9c48be98b13a2d6d9b982089834df38743cfd347fb4d031e070355be2bf57d",
+    "cfd_wall_native.vtp": "6f7bfd08785bc28e2ca93c30a70786757a7b6d06ad9218d48e540caa2b377951"
+  }
+}

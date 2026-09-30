@@ -1,0 +1,127 @@
+{
+  "canonical_id": "AG/fast/LIU_JUN_FENG",
+  "assembly_source": "v5.1",
+  "n_wall": 14100,
+  "n_volume": 429937,
+  "sources": {
+    "h5": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_2c_20260930/cases/AG__fast__LIU_JUN_FENG/case.h5",
+      "size": 615554008,
+      "mtime_ns": 1789511917399625573
+    },
+    "bundle": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AG/fast/LIU_JUN_FENG/bundle.npz",
+      "size": 24744272,
+      "mtime_ns": 1789512670732053688
+    },
+    "volume": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AG/fast/LIU_JUN_FENG/volume.npz",
+      "size": 53864403,
+      "mtime_ns": 1789512792704770648
+    },
+    "geom": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_geom_v2/AG/fast/LIU_JUN_FENG/features.npz",
+      "size": 906352,
+      "mtime_ns": 1789512756800559601
+    },
+    "flowref": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/fast/LIU_JUN_FENG/features.npz",
+      "size": 1416528,
+      "mtime_ns": 1790760134821212566
+    }
+  },
+  "boundary_conditions": {
+    "udf": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/LIU_JUN_FENG/udf-inlet.c",
+      "sha256": "0ffe94a34ecb04201c294994bb2b1a5ef2eed2f5a37a1daab7d8bf8049a21923"
+    },
+    "rcr": [
+      {
+        "outlet": "out-le",
+        "R1": 81811.0,
+        "R2": 1033500.0,
+        "C": 1.6049e-06
+      },
+      {
+        "outlet": "out-li",
+        "R1": 218990.0,
+        "R2": 3809600.0,
+        "C": 4.4433e-07
+      },
+      {
+        "outlet": "out-ri",
+        "R1": 504950.0,
+        "R2": 7634200.0,
+        "C": 2.1993e-07
+      },
+      {
+        "outlet": "out-re",
+        "R1": 99520.0,
+        "R2": 879000.0,
+        "C": 1.8293e-06
+      }
+    ],
+    "rheology": {
+      "mu_inf_pa_s": 0.0035,
+      "mu_zero_pa_s": 0.16,
+      "lambda_s": 8.2,
+      "a": 0.64,
+      "n": 0.2128
+    },
+    "period_s": 0.8,
+    "rho_kg_m3": 1060.0,
+    "A_inlet_udf_m2": 0.0005411591,
+    "resistance_units": "Pa*s/kg",
+    "capacitance_units": "kg/Pa",
+    "source": "case.h5 conditions attributes; frozen prescribed inputs, no CFD labels"
+  },
+  "schema": "joint_cycle_v52_v1",
+  "settings": {
+    "seed": 1234,
+    "train_volume": 8192,
+    "train_wall": 8192,
+    "eval_volume": 16384,
+    "eval_wall": 8192
+  },
+  "peak_consistency": {
+    "peak_velocity_abs_max": 0.0,
+    "peak_pressure_abs_max": 0.0,
+    "peak_wss_abs_max": 0.0
+  },
+  "endpoint_80_vs_0_abs_max": {
+    "train": {
+      "velocity": 0.0070622581988573074,
+      "pressure": 1.3907966613769531,
+      "wss": 0.023961246013641357
+    },
+    "eval": {
+      "velocity": 0.011561106890439987,
+      "pressure": 1.3898200988769531,
+      "wss": 0.023951560258865356
+    }
+  },
+  "actual_pool_counts": {
+    "train_wall": 7050,
+    "eval_wall": 7050,
+    "train_volume": 8192,
+    "eval_volume": 16384
+  },
+  "normalization_input": "raw physical labels; WSS floor is applied only by normalizer",
+  "bc_note": "20 frozen prescribed input channels from conditions attrs; RCR resistance Pa*s/kg and capacitance kg/Pa; train-only normalization",
+  "signature_refreshed_20260930": [
+    {
+      "source": "flowref",
+      "old": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/fast/LIU_JUN_FENG/features.npz",
+        "size": 1473473,
+        "mtime_ns": 1789512775220667875
+      },
+      "new": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/fast/LIU_JUN_FENG/features.npz",
+        "size": 1416528,
+        "mtime_ns": 1790760134821212566
+      },
+      "reason": "flowref rebuilt with the refitted cap-area rule; only the capfit arrays changed (cached features use *_murray_cap)"
+    }
+  ]
+}

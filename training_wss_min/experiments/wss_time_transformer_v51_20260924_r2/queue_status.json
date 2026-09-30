@@ -1,0 +1,184 @@
+{
+ "host": "node04",
+ "pid": 268369,
+ "gpu": "0",
+ "started_at": "2026-09-24T11:44:13+0800",
+ "executed_outside_slurm": true,
+ "fingerprints": {
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/time_transformer.py": "ef1c93e968207b485c1f110fa8b4a606c754d1e79033c25460662aee2aa61e19",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/tools/run_wss_time_transformer_queue.py": "c4dda6452421d0c67be90d524921876f74c7c5888550cacf44351b4a3b45e884",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/matrix.json": "4aa366d374e5be10549ab19f75396cae612553948e7c5ddd13dde262eed7f45a",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm_f0_s1234.json": "02709b230999cc154ed412ab332c3074e615a2d9a89d1dea64569ba89e58e837",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm-noattn_f0_s1234.json": "94383a31f6c081f944971130b2d7568ded3ac694dbf63c68aa62a521ccc28d18",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-raw_f0_s1234.json": "6a29845c7978677b74ee5e3e54f1c39bebe24664b7af16204b7ecf22197e6fd7",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-raw-noattn_f0_s1234.json": "9509d7bb63859a828dcce5b721026bf9200637018f7ef80f7cc8420682902f01",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm_f1_s1234.json": "1415f3ce2e165c2d4e0a6f006a227434b3aaa0c6ec6606fe6619190ec055b791",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm-noattn_f1_s1234.json": "9bc9929f59a96c19eb80e56e3003ef08742890079a29cbb180f98e12d64a81ec",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-raw_f1_s1234.json": "82d3c469edb83cb063579f2848e0e81f5223f1c8ca39ea21e9f9e8c17f9a71d6",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-raw-noattn_f1_s1234.json": "2bb0eecec4a15e7ee8b8f173ead18f12911f3bee1ca7742ab8d989beba19131e",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm_f2_s1234.json": "f3f400759668252aa5695569f7dd0686bd65a9edcdb420f027f2018901532c68",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm-noattn_f2_s1234.json": "839f6664b5c925cdd0e3c1b37fb4e3e22bfd91a2f716494a22889e6b889bffb3",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-raw_f2_s1234.json": "a09238b7ceb1e68a9c5bce2a2d4c8d3f0da0854a53243b94d9ce790d2fd6b446",
+  "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-raw-noattn_f2_s1234.json": "56a922f45ec8a1be8737acf69ee7fee3cbf7f9863c8524bb93c1bcb37e2a0907"
+ },
+ "jobs": {
+  "TT-warm_f0_s1234": {
+   "state": "done",
+   "config": "TT-warm_f0_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-warm_f0_s1234/metrics.json",
+   "pid": 268409,
+   "gpu": "0",
+   "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r2/logs/TT-warm_f0_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_transformer",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm_f0_s1234.json"
+   ],
+   "started_at": "2026-09-24T11:44:13+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T11:44:53+0800"
+  },
+  "TT-warm-noattn_f0_s1234": {
+   "state": "done",
+   "config": "TT-warm-noattn_f0_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-warm-noattn_f0_s1234/metrics.json",
+   "pid": 268508,
+   "gpu": "0",
+   "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r2/logs/TT-warm-noattn_f0_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_transformer",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm-noattn_f0_s1234.json"
+   ],
+   "started_at": "2026-09-24T11:44:53+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T11:45:33+0800"
+  },
+  "TT-raw_f0_s1234": {
+   "state": "done",
+   "config": "TT-raw_f0_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-raw_f0_s1234/metrics.json",
+   "pid": 268547,
+   "gpu": "0",
+   "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r2/logs/TT-raw_f0_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_transformer",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-raw_f0_s1234.json"
+   ],
+   "started_at": "2026-09-24T11:45:33+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T11:46:13+0800"
+  },
+  "TT-raw-noattn_f0_s1234": {
+   "state": "done",
+   "config": "TT-raw-noattn_f0_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-raw-noattn_f0_s1234/metrics.json",
+   "pid": 268580,
+   "gpu": "0",
+   "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r2/logs/TT-raw-noattn_f0_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_transformer",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-raw-noattn_f0_s1234.json"
+   ],
+   "started_at": "2026-09-24T11:46:13+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T11:46:53+0800"
+  },
+  "TT-warm_f1_s1234": {
+   "state": "done",
+   "config": "TT-warm_f1_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-warm_f1_s1234/metrics.json",
+   "pid": 268647,
+   "gpu": "0",
+   "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r2/logs/TT-warm_f1_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_transformer",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm_f1_s1234.json"
+   ],
+   "started_at": "2026-09-24T11:46:53+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T11:47:33+0800"
+  },
+  "TT-warm-noattn_f1_s1234": {
+   "state": "done",
+   "config": "TT-warm-noattn_f1_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-warm-noattn_f1_s1234/metrics.json",
+   "pid": 268661,
+   "gpu": "0",
+   "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r2/logs/TT-warm-noattn_f1_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_transformer",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-warm-noattn_f1_s1234.json"
+   ],
+   "started_at": "2026-09-24T11:47:33+0800",
+   "returncode": 0,
+   "ended_at": "2026-09-24T11:48:13+0800"
+  },
+  "TT-raw_f1_s1234": {
+   "state": "cancelled_for_repair",
+   "config": "TT-raw_f1_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-raw_f1_s1234/metrics.json",
+   "pid": 268679,
+   "gpu": "0",
+   "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r2/logs/TT-raw_f1_s1234.log",
+   "cmd": [
+    "/public/newhome/cy/.conda/envs/GNN/bin/python",
+    "-u",
+    "-m",
+    "training_wss_min.time_transformer",
+    "--config",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_time_transformer_v51_20260924_r2/TT-raw_f1_s1234.json"
+   ],
+   "started_at": "2026-09-24T11:48:13+0800"
+  },
+  "TT-raw-noattn_f1_s1234": {
+   "state": "cancelled_for_repair",
+   "config": "TT-raw-noattn_f1_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-raw-noattn_f1_s1234/metrics.json"
+  },
+  "TT-warm_f2_s1234": {
+   "state": "cancelled_for_repair",
+   "config": "TT-warm_f2_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-warm_f2_s1234/metrics.json"
+  },
+  "TT-warm-noattn_f2_s1234": {
+   "state": "cancelled_for_repair",
+   "config": "TT-warm-noattn_f2_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-warm-noattn_f2_s1234/metrics.json"
+  },
+  "TT-raw_f2_s1234": {
+   "state": "cancelled_for_repair",
+   "config": "TT-raw_f2_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-raw_f2_s1234/metrics.json"
+  },
+  "TT-raw-noattn_f2_s1234": {
+   "state": "cancelled_for_repair",
+   "config": "TT-raw-noattn_f2_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924_r2/TT-raw-noattn_f2_s1234/metrics.json"
+  }
+ },
+ "validity": "invalidated_for_formal_comparison",
+ "aborted": "Stopped own queue for implementation/experimental-control repairs before final v2 submission."
+}

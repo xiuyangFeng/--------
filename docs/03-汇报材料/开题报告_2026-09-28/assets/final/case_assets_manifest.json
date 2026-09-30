@@ -1,0 +1,79 @@
+{
+  "asset_type": "real-data anatomical and WSS images, not AI-generated concepts",
+  "case_alias": "匿名示例 A",
+  "model": "X5D_v51",
+  "seed": 1234,
+  "checkpoint": "ckpt_best.pt",
+  "purpose": "Opening-report illustration of geometry-to-mechanics and an existing CFD/prediction example",
+  "evidence_boundary": "Historical v5.1 illustration only; not v5.2 performance evidence, not an ensemble, not a clinical risk map",
+  "source_selection": "Existing median case selected by closest per-case five-seed mean R² to the test-set median; displayed fields are seed 1234",
+  "new_inference_or_evaluation": false,
+  "points": 16448,
+  "triangles": 32694,
+  "excluded_points": 0,
+  "excluded_triangles": 0,
+  "units": {
+    "coordinates": "mm",
+    "WSS": "Pa"
+  },
+  "peak_step": 1162,
+  "scalar_rendering": "Original same-point fields mapped bijectively onto original STL vertices; vertex-colour Gouraud rendering; no Gaussian smoothing",
+  "coordinate_mapping_max_distance_mm": 2.1457224804766455e-05,
+  "color_range_pa": [
+    0,
+    11.0
+  ],
+  "raw_field_range_pa": {
+    "cfd": [
+      0.040411029011,
+      8.64033985138
+    ],
+    "prediction": [
+      0.0790165215196,
+      10.1553598914
+    ]
+  },
+  "color_limits_policy": "shared full range rounded upward; no clipping; no selfmax normalization",
+  "camera": {
+    "orthographic": true,
+    "azimuth_deg": 135,
+    "elevation_deg": 0,
+    "basis": [
+      [
+        -0.7071067811865475,
+        0.0,
+        0.7071067811865476
+      ],
+      [
+        0.7071067811865476,
+        0.0,
+        0.7071067811865475
+      ],
+      [
+        0.0,
+        1.0,
+        -0.0
+      ]
+    ]
+  },
+  "geometry_lighting": "Area-weighted vertex normals; neutral geometry only. Field colors are not lighting-shaded.",
+  "source_sha256": {
+    "same_point_fields.csv.gz": "cfc506af3b1812a083e0ccfbb9d80f26d81458e4c2679f2d7dc73f3cc84c5e04",
+    "existing_mesh_npz": "0ece94a302b3ecb5e6b7033dc6bf35abdf92a3c98e10a25df6437f24b2d943c8"
+  },
+  "exports": [
+    "geometry_hero.png",
+    "wss_prediction_hero.png",
+    "wss_cfd_hero.png",
+    "wss_colorbar.png",
+    "case_cfd_vs_prediction.png",
+    "deployment_pair.png"
+  ],
+  "caption": "匿名病例的真实血管形态及既有 WSS 预测示例。CFD 与预测共用 Pa 色标；该图用于说明研究对象和输出形式，不能单独证明泛化性能或临床风险。",
+  "qa": {
+    "backend": "Python/matplotlib",
+    "panel_alignment": "automatic check passed; JSON retained",
+    "PDF_audits": "not applicable: no PDF requested or generated",
+    "visual_check": "passed: complete anatomy retained, matched pose and scale, legible labels and no detected cropping or overlap on PNGs"
+  }
+}

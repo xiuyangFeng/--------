@@ -1,0 +1,815 @@
+{
+  "meta": {
+    "checkpoint": "existing ckpt_best selected by configured train_loss rule, no new training or inference",
+    "aggregation": "r2_cb=1-mean_case(mean_point(error^2))/[mean_case(mean_point(y^2))-mean_case(mean_point(y))^2]; MAE mean_case(mean_point(abs(error)))",
+    "approx_disp": "mean_case(||pred-true||2 / ||true||2), matching paper scalar derived-map metric",
+    "cosine": "mean_case(dot(pred,true)/(||pred||2 ||true||2)); cosine of the complete spatial scalar field, NOT pointwise 3D-vector direction cosine",
+    "spearman": "mean of within-case Spearman rank correlations",
+    "case_sd": "sample sd between cases, seed sd is distinct",
+    "data_contract": "TAWSS and OSI are direct heads; labels computed from 80 vector WSS phases0..79; TAWSS Pa and OSI dimensionless; ensembles average physical predictions at matching rows",
+    "verified_against_original": "4 sample run/head aggregates reproduce metrics.json test.field_casebalanced or test.heads.<target>.field_casebalanced with absolute difference <=3.4e-16; see validation.json. test34 ensemble A1 and M1 all previously reported quantities reproduced exactly.",
+    "historical_aggregation_note": "This summary merges OOF cases before computing R2_cb. Historical matrices often report arithmetic mean of fold R2_cb; those are different. Some gate reports MAE use pooled test.field.mae; this summary exclusively uses case-balanced MAE. Historical lit_convention_metrics_oof.py used pooled-point true mean in R2 denominator; this summary uses formal case-balanced mean per training_wss_min/metrics.py."
+  },
+  "rows": [
+    {
+      "label": "v5.1 A1 cv3 s1234",
+      "target": "tawss",
+      "protocol": "v5.1 cv3 OOF train136; 3 folds merged; single seed1234",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/A1_f0_s1234/eval/ckpt_best/predictions/test",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/A1_f1_s1234/eval/ckpt_best/predictions/test",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/A1_f2_s1234/eval/ckpt_best/predictions/test"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.7090918933296275,
+      "mae_cb": 0.3911992064212974,
+      "mae_casesd": 0.2328815144212748,
+      "approx_disp_casemean": 0.3531722302274687,
+      "approx_disp_casesd": 0.09350306418404866,
+      "cosine_spatial_casemean": 0.937884083580919,
+      "cosine_spatial_casesd": 0.035691287243309756,
+      "spearman_casemean": 0.905030070695223,
+      "spearman_casesd": 0.035683991173613164
+    },
+    {
+      "label": "v5.1 O1 cv3 s1234",
+      "target": "osi",
+      "protocol": "v5.1 cv3 OOF train136; 3 folds merged; single seed1234",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/O1_f0_s1234/eval/ckpt_best/predictions/test",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/O1_f1_s1234/eval/ckpt_best/predictions/test",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/O1_f2_s1234/eval/ckpt_best/predictions/test"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.4835862519918229,
+      "mae_cb": 0.06167052834536386,
+      "mae_casesd": 0.010405679108523943,
+      "approx_disp_casemean": 0.4835313036619051,
+      "approx_disp_casesd": 0.0565121584661322,
+      "cosine_spatial_casemean": 0.8771335971938315,
+      "cosine_spatial_casesd": 0.030142857368949002,
+      "spearman_casemean": 0.7184310835542725,
+      "spearman_casesd": 0.07818334388627422
+    },
+    {
+      "label": "v5.1 O2 cv3 s1234",
+      "target": "osi",
+      "protocol": "v5.1 cv3 OOF train136; 3 folds merged; single seed1234",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/O2_f0_s1234/eval/ckpt_best/predictions/test",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/O2_f1_s1234/eval/ckpt_best/predictions/test",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_20260920/O2_f2_s1234/eval/ckpt_best/predictions/test"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.45741506751104455,
+      "mae_cb": 0.061121683954456135,
+      "mae_casesd": 0.010833260664835098,
+      "approx_disp_casemean": 0.4949293598639549,
+      "approx_disp_casesd": 0.05996177071676452,
+      "cosine_spatial_casemean": 0.8700087017639067,
+      "cosine_spatial_casesd": 0.03376203879225248,
+      "spearman_casemean": 0.722024039774181,
+      "spearman_casesd": 0.07809492970922974
+    },
+    {
+      "label": "v5.1 M1 cv3 s1234",
+      "target": "tawss",
+      "protocol": "v5.1 cv3 OOF train136; 3 folds merged; single seed1234",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_20260921/M1_f0_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_20260921/M1_f1_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_20260921/M1_f2_s1234/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.6903551975178435,
+      "mae_cb": 0.39902581109228535,
+      "mae_casesd": 0.2461984181546231,
+      "approx_disp_casemean": 0.3596260926954006,
+      "approx_disp_casesd": 0.09713293878497782,
+      "cosine_spatial_casemean": 0.9359898516803495,
+      "cosine_spatial_casesd": 0.038956370134742846,
+      "spearman_casemean": 0.904571571277134,
+      "spearman_casesd": 0.03549766003354297
+    },
+    {
+      "label": "v5.1 M1 cv3 s1234",
+      "target": "osi",
+      "protocol": "v5.1 cv3 OOF train136; 3 folds merged; single seed1234",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_20260921/M1_f0_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_20260921/M1_f1_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_20260921/M1_f2_s1234/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.46537958432202287,
+      "mae_cb": 0.060037750226708285,
+      "mae_casesd": 0.010834440637851864,
+      "approx_disp_casemean": 0.49121395204443996,
+      "approx_disp_casesd": 0.057968735455331724,
+      "cosine_spatial_casemean": 0.8716214183455722,
+      "cosine_spatial_casesd": 0.031901555799684046,
+      "spearman_casemean": 0.7272440402626086,
+      "spearman_casesd": 0.0763449659133378
+    },
+    {
+      "label": "v5.1 A1 test34 ens3",
+      "target": "tawss",
+      "protocol": "v5.1 train136 -> test34; seed1234/7/2025 physical mean ensemble",
+      "n_seed_ensemble": 3,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/A1_s1234/eval/ckpt_best/predictions/test"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/A1_s7/eval/ckpt_best/predictions/test"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/A1_s2025/eval/ckpt_best/predictions/test"
+        ]
+      ],
+      "n_cases": 34,
+      "n_points": 1231295,
+      "r2_cb": 0.7621040287930829,
+      "mae_cb": 0.3610789220693145,
+      "mae_casesd": 0.25132100067601987,
+      "approx_disp_casemean": 0.3105380381437508,
+      "approx_disp_casesd": 0.10547568607899026,
+      "cosine_spatial_casemean": 0.9489538947384204,
+      "cosine_spatial_casesd": 0.03621303826806773,
+      "spearman_casemean": 0.912620986189851,
+      "spearman_casesd": 0.05138256592783021
+    },
+    {
+      "label": "v5.1 O1 test34 ens3",
+      "target": "osi",
+      "protocol": "v5.1 train136 -> test34; seed1234/7/2025 physical mean ensemble",
+      "n_seed_ensemble": 3,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/O1_s1234/eval/ckpt_best/predictions/test"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/O1_s7/eval/ckpt_best/predictions/test"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/O1_s2025/eval/ckpt_best/predictions/test"
+        ]
+      ],
+      "n_cases": 34,
+      "n_points": 1231295,
+      "r2_cb": 0.5728005540102306,
+      "mae_cb": 0.05521917322083267,
+      "mae_casesd": 0.010820483158565954,
+      "approx_disp_casemean": 0.44348739262186604,
+      "approx_disp_casesd": 0.05982132649523523,
+      "cosine_spatial_casemean": 0.8961416911911341,
+      "cosine_spatial_casesd": 0.029873885566241584,
+      "spearman_casemean": 0.7688961629004312,
+      "spearman_casesd": 0.07980878019171017
+    },
+    {
+      "label": "v5.1 O2 test34 ens3",
+      "target": "osi",
+      "protocol": "v5.1 train136 -> test34; seed1234/7/2025 physical mean ensemble",
+      "n_seed_ensemble": 3,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/O2_s1234/eval/ckpt_best/predictions/test"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/O2_s7/eval/ckpt_best/predictions/test"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_stage3_20260921/O2_s2025/eval/ckpt_best/predictions/test"
+        ]
+      ],
+      "n_cases": 34,
+      "n_points": 1231295,
+      "r2_cb": 0.5543460464234337,
+      "mae_cb": 0.05456895861120642,
+      "mae_casesd": 0.01088860658196467,
+      "approx_disp_casemean": 0.4535032842830068,
+      "approx_disp_casesd": 0.06625397512658915,
+      "cosine_spatial_casemean": 0.8908947920552245,
+      "cosine_spatial_casesd": 0.03452497547833815,
+      "spearman_casemean": 0.7690604309713479,
+      "spearman_casesd": 0.08144223661466309
+    },
+    {
+      "label": "v5.1 M1 test34 ens3",
+      "target": "tawss",
+      "protocol": "v5.1 train136 -> test34; seed1234/7/2025 physical mean ensemble",
+      "n_seed_ensemble": 3,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_stage3_20260922/M1_s1234/eval/ckpt_best/predictions/test/tawss"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_stage3_20260922/M1_s7/eval/ckpt_best/predictions/test/tawss"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_stage3_20260922/M1_s2025/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 34,
+      "n_points": 1231295,
+      "r2_cb": 0.7391109494263202,
+      "mae_cb": 0.3674170477868771,
+      "mae_casesd": 0.2675147218531952,
+      "approx_disp_casemean": 0.31481889594689644,
+      "approx_disp_casesd": 0.11227938478578012,
+      "cosine_spatial_casemean": 0.9500915025078472,
+      "cosine_spatial_casesd": 0.036151885665047095,
+      "spearman_casemean": 0.9142432847895442,
+      "spearman_casesd": 0.05280756394639654
+    },
+    {
+      "label": "v5.1 M1 test34 ens3",
+      "target": "osi",
+      "protocol": "v5.1 train136 -> test34; seed1234/7/2025 physical mean ensemble",
+      "n_seed_ensemble": 3,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_stage3_20260922/M1_s1234/eval/ckpt_best/predictions/test/osi"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_stage3_20260922/M1_s7/eval/ckpt_best/predictions/test/osi"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_stage3_20260922/M1_s2025/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 34,
+      "n_points": 1231295,
+      "r2_cb": 0.5648398197149996,
+      "mae_cb": 0.053238886040959596,
+      "mae_casesd": 0.011267626115683028,
+      "approx_disp_casemean": 0.4466022205495418,
+      "approx_disp_casesd": 0.06531348344237797,
+      "cosine_spatial_casemean": 0.8933926826407416,
+      "cosine_spatial_casesd": 0.0333712704554596,
+      "spearman_casemean": 0.7738530084506188,
+      "spearman_casesd": 0.08067501851846652
+    },
+    {
+      "label": "v5.2 M1cap CV5 s1234",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; single seed",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s1234/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 261,
+      "n_points": 13966795,
+      "r2_cb": 0.7659362772170385,
+      "mae_cb": 0.3231843940090331,
+      "mae_casesd": 0.20325323921425756,
+      "approx_disp_casemean": 0.32068981149154685,
+      "approx_disp_casesd": 0.08130476359511148,
+      "cosine_spatial_casemean": 0.948259104692721,
+      "cosine_spatial_casesd": 0.030351765660184788,
+      "spearman_casemean": 0.9127349693217138,
+      "spearman_casesd": 0.03644456304499583
+    },
+    {
+      "label": "v5.2 M1cap CV5 s1234 common136",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 OOF restricted to same136 as v5.1 cv3",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s1234/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.7650131185551526,
+      "mae_cb": 0.34843483142555043,
+      "mae_casesd": 0.2132839748790834,
+      "approx_disp_casemean": 0.3177384734149408,
+      "approx_disp_casesd": 0.08337371280403189,
+      "cosine_spatial_casemean": 0.9490492840867479,
+      "cosine_spatial_casesd": 0.03357512067780333,
+      "spearman_casemean": 0.9202826085996927,
+      "spearman_casesd": 0.03081178157570797
+    },
+    {
+      "label": "v5.2 M1cap CV5 s7",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; single seed",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s7/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 261,
+      "n_points": 13966795,
+      "r2_cb": 0.7686347667227784,
+      "mae_cb": 0.3193672365252909,
+      "mae_casesd": 0.20089588642627898,
+      "approx_disp_casemean": 0.3182770924445227,
+      "approx_disp_casesd": 0.08301417059638216,
+      "cosine_spatial_casemean": 0.9487708950390731,
+      "cosine_spatial_casesd": 0.029093416773249767,
+      "spearman_casemean": 0.9132057186649138,
+      "spearman_casesd": 0.037411832181893076
+    },
+    {
+      "label": "v5.2 M1cap CV5 s7 common136",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 OOF restricted to same136 as v5.1 cv3",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s7/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.758670180363603,
+      "mae_cb": 0.34522312143988776,
+      "mae_casesd": 0.21525815171468293,
+      "approx_disp_casemean": 0.31604149361256423,
+      "approx_disp_casesd": 0.08623865326139053,
+      "cosine_spatial_casemean": 0.9495576658888605,
+      "cosine_spatial_casesd": 0.03145551184558511,
+      "spearman_casemean": 0.9211653413690561,
+      "spearman_casesd": 0.030754468975170365
+    },
+    {
+      "label": "v5.2 M1cap CV5 s2025",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; single seed",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s2025/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 261,
+      "n_points": 13966795,
+      "r2_cb": 0.7622348177313347,
+      "mae_cb": 0.3241729625960235,
+      "mae_casesd": 0.2052586583077465,
+      "approx_disp_casemean": 0.321425154030519,
+      "approx_disp_casesd": 0.0812341239032733,
+      "cosine_spatial_casemean": 0.9480613597916716,
+      "cosine_spatial_casesd": 0.029935071398613306,
+      "spearman_casemean": 0.9124922182809615,
+      "spearman_casesd": 0.03690056509819532
+    },
+    {
+      "label": "v5.2 M1cap CV5 s2025 common136",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 OOF restricted to same136 as v5.1 cv3",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s2025/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.7527803375118796,
+      "mae_cb": 0.3502882525534603,
+      "mae_casesd": 0.22003420299665244,
+      "approx_disp_casemean": 0.3181946996197172,
+      "approx_disp_casesd": 0.08450733972826957,
+      "cosine_spatial_casemean": 0.9488328679902572,
+      "cosine_spatial_casesd": 0.03310972791222257,
+      "spearman_casemean": 0.9199749857666109,
+      "spearman_casesd": 0.030460462267801264
+    },
+    {
+      "label": "v5.2 M1cap CV5 ens3",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; seed1234/7/2025 physical mean ensemble",
+      "n_seed_ensemble": 3,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s1234/eval/ckpt_best/predictions/test/tawss"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s7/eval/ckpt_best/predictions/test/tawss"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s2025/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 261,
+      "n_points": 13966795,
+      "r2_cb": 0.7800844100342632,
+      "mae_cb": 0.30586340847461224,
+      "mae_casesd": 0.1977607936330559,
+      "approx_disp_casemean": 0.30524827191771076,
+      "approx_disp_casesd": 0.0826500103429455,
+      "cosine_spatial_casemean": 0.9531244605638433,
+      "cosine_spatial_casesd": 0.028639799650244466,
+      "spearman_casemean": 0.9213042762028603,
+      "spearman_casesd": 0.03402197265138914
+    },
+    {
+      "label": "v5.2 M1cap CV5 ens3 common136",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 ensemble OOF restricted to same136 as v5.1 cv3",
+      "n_seed_ensemble": 3,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s1234/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s1234/eval/ckpt_best/predictions/test/tawss"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s7/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s7/eval/ckpt_best/predictions/test/tawss"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s2025/eval/ckpt_best/predictions/test/tawss",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s2025/eval/ckpt_best/predictions/test/tawss"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.7736619140861782,
+      "mae_cb": 0.32998067514162016,
+      "mae_casesd": 0.21117360281866154,
+      "approx_disp_casemean": 0.3022903230431726,
+      "approx_disp_casesd": 0.08531532697407702,
+      "cosine_spatial_casemean": 0.9538178802413538,
+      "cosine_spatial_casesd": 0.031763505501045355,
+      "spearman_casemean": 0.92833601844516,
+      "spearman_casesd": 0.028469181543119643
+    },
+    {
+      "label": "v5.2 M1cap CV5 s1234",
+      "target": "osi",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; single seed",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s1234/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 261,
+      "n_points": 13966795,
+      "r2_cb": 0.526540576848767,
+      "mae_cb": 0.05816327566189259,
+      "mae_casesd": 0.01095489884164011,
+      "approx_disp_casemean": 0.4521110725884272,
+      "approx_disp_casesd": 0.06425772838774907,
+      "cosine_spatial_casemean": 0.8912815855901093,
+      "cosine_spatial_casesd": 0.03291339785104904,
+      "spearman_casemean": 0.755315913193422,
+      "spearman_casesd": 0.07449076507613117
+    },
+    {
+      "label": "v5.2 M1cap CV5 s1234 common136",
+      "target": "osi",
+      "protocol": "v5.2 CV5 OOF restricted to same136 as v5.1 cv3",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s1234/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.5222913545772938,
+      "mae_cb": 0.05574630503615924,
+      "mae_casesd": 0.010639388302860707,
+      "approx_disp_casemean": 0.4640784379565845,
+      "approx_disp_casesd": 0.06585471627227554,
+      "cosine_spatial_casemean": 0.8855225916261101,
+      "cosine_spatial_casesd": 0.03428554840128707,
+      "spearman_casemean": 0.7630396940596936,
+      "spearman_casesd": 0.07404232512410241
+    },
+    {
+      "label": "v5.2 M1cap CV5 s7",
+      "target": "osi",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; single seed",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s7/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 261,
+      "n_points": 13966795,
+      "r2_cb": 0.5314485746504307,
+      "mae_cb": 0.0579183982574748,
+      "mae_casesd": 0.01063627170055084,
+      "approx_disp_casemean": 0.4502433385247531,
+      "approx_disp_casesd": 0.06466892216656304,
+      "cosine_spatial_casemean": 0.8923375544259813,
+      "cosine_spatial_casesd": 0.031948420375631024,
+      "spearman_casemean": 0.7561831195616984,
+      "spearman_casesd": 0.07231231455462356
+    },
+    {
+      "label": "v5.2 M1cap CV5 s7 common136",
+      "target": "osi",
+      "protocol": "v5.2 CV5 OOF restricted to same136 as v5.1 cv3",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s7/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.5295462066395681,
+      "mae_cb": 0.05537288029799304,
+      "mae_casesd": 0.01049930602306319,
+      "approx_disp_casemean": 0.46075192574465573,
+      "approx_disp_casesd": 0.06748533309795482,
+      "cosine_spatial_casemean": 0.8873436941918937,
+      "cosine_spatial_casesd": 0.03355724761223264,
+      "spearman_casemean": 0.7650179914544193,
+      "spearman_casesd": 0.0724185081440866
+    },
+    {
+      "label": "v5.2 M1cap CV5 s2025",
+      "target": "osi",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; single seed",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s2025/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 261,
+      "n_points": 13966795,
+      "r2_cb": 0.5273759608059063,
+      "mae_cb": 0.05811849109771438,
+      "mae_casesd": 0.010732972175279343,
+      "approx_disp_casemean": 0.45211456973797315,
+      "approx_disp_casesd": 0.06367389180263786,
+      "cosine_spatial_casemean": 0.8912295900270497,
+      "cosine_spatial_casesd": 0.03223481325144534,
+      "spearman_casemean": 0.7547141615374262,
+      "spearman_casesd": 0.07314777253543424
+    },
+    {
+      "label": "v5.2 M1cap CV5 s2025 common136",
+      "target": "osi",
+      "protocol": "v5.2 CV5 OOF restricted to same136 as v5.1 cv3",
+      "n_seed_ensemble": 1,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s2025/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.5269670963263429,
+      "mae_cb": 0.055526436424268126,
+      "mae_casesd": 0.010176402295564484,
+      "approx_disp_casemean": 0.46250643714335843,
+      "approx_disp_casesd": 0.06501566839711023,
+      "cosine_spatial_casemean": 0.886234790171302,
+      "cosine_spatial_casesd": 0.033532407448538915,
+      "spearman_casemean": 0.7643559405920581,
+      "spearman_casesd": 0.07004022404644938
+    },
+    {
+      "label": "v5.2 M1cap CV5 ens3",
+      "target": "osi",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; seed1234/7/2025 physical mean ensemble",
+      "n_seed_ensemble": 3,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s1234/eval/ckpt_best/predictions/test/osi"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s7/eval/ckpt_best/predictions/test/osi"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s2025/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 261,
+      "n_points": 13966795,
+      "r2_cb": 0.5735455431651977,
+      "mae_cb": 0.055085198238224095,
+      "mae_casesd": 0.010485930041853388,
+      "approx_disp_casemean": 0.4289890914916252,
+      "approx_disp_casesd": 0.06117442837424728,
+      "cosine_spatial_casemean": 0.9023623437379696,
+      "cosine_spatial_casesd": 0.02956020068197601,
+      "spearman_casemean": 0.7780666665925036,
+      "spearman_casesd": 0.06923210991046379
+    },
+    {
+      "label": "v5.2 M1cap CV5 ens3 common136",
+      "target": "osi",
+      "protocol": "v5.2 CV5 ensemble OOF restricted to same136 as v5.1 cv3",
+      "n_seed_ensemble": 3,
+      "sources": [
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s1234/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s1234/eval/ckpt_best/predictions/test/osi"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s7/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s7/eval/ckpt_best/predictions/test/osi"
+        ],
+        [
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s2025/eval/ckpt_best/predictions/test/osi",
+          "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s2025/eval/ckpt_best/predictions/test/osi"
+        ]
+      ],
+      "n_cases": 136,
+      "n_points": 5400675,
+      "r2_cb": 0.5732219210727487,
+      "mae_cb": 0.05259425041827076,
+      "mae_casesd": 0.010081675506783669,
+      "approx_disp_casemean": 0.43868748736310814,
+      "approx_disp_casesd": 0.06376995663990367,
+      "cosine_spatial_casemean": 0.8977897837308555,
+      "cosine_spatial_casesd": 0.03145076635349631,
+      "spearman_casemean": 0.7866641280171575,
+      "spearman_casesd": 0.06867423810265835
+    },
+    {
+      "label": "v5.2 M1cap CV5 seedmean3",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; single seed; mean/sample sd over three training seeds",
+      "n_cases": 261,
+      "n_seeds": 3,
+      "r2_cb": 0.7656019538903838,
+      "r2_cb_seedsd": 0.0032130461929965066,
+      "mae_cb": 0.32224153104344916,
+      "mae_cb_seedsd": 0.0025378127778920203,
+      "approx_disp_casemean": 0.32013068598886285,
+      "approx_disp_casemean_seedsd": 0.0016468269287087146,
+      "cosine_spatial_casemean": 0.9483637865078219,
+      "cosine_spatial_casemean_seedsd": 0.0003661676919607729,
+      "spearman_casemean": 0.9128109687558631,
+      "spearman_casemean_seedsd": 0.0003627707746887684
+    },
+    {
+      "label": "v5.2 M1cap CV5 seedmean3 common136",
+      "target": "tawss",
+      "protocol": "v5.2 CV5 OOF restricted to same136 as v5.1 cv3; mean/sample sd over three training seeds",
+      "n_cases": 136,
+      "n_seeds": 3,
+      "r2_cb": 0.758821212143545,
+      "r2_cb_seedsd": 0.006117788894860597,
+      "mae_cb": 0.34798206847296614,
+      "mae_cb_seedsd": 0.0025627395532602936,
+      "approx_disp_casemean": 0.3173248888824074,
+      "approx_disp_casemean_seedsd": 0.0011346202675226022,
+      "cosine_spatial_casemean": 0.9491466059886219,
+      "cosine_spatial_casemean_seedsd": 0.0003720707767256014,
+      "spearman_casemean": 0.9204743119117866,
+      "spearman_casemean_seedsd": 0.0006178990491731193
+    },
+    {
+      "label": "v5.2 M1cap CV5 seedmean3",
+      "target": "osi",
+      "protocol": "v5.2 CV5 OOF261; 5 folds merged; single seed; mean/sample sd over three training seeds",
+      "n_cases": 261,
+      "n_seeds": 3,
+      "r2_cb": 0.5284550374350346,
+      "r2_cb_seedsd": 0.002625912295552208,
+      "mae_cb": 0.05806672167236059,
+      "mae_cb_seedsd": 0.00013038899819269435,
+      "approx_disp_casemean": 0.4514896602837178,
+      "approx_disp_casemean_seedsd": 0.0010793477209247193,
+      "cosine_spatial_casemean": 0.8916162433477135,
+      "cosine_spatial_casemean_seedsd": 0.0006252144738954984,
+      "spearman_casemean": 0.7554043980975155,
+      "spearman_casemean_seedsd": 0.0007384657087216215
+    },
+    {
+      "label": "v5.2 M1cap CV5 seedmean3 common136",
+      "target": "osi",
+      "protocol": "v5.2 CV5 OOF restricted to same136 as v5.1 cv3; mean/sample sd over three training seeds",
+      "n_cases": 136,
+      "n_seeds": 3,
+      "r2_cb": 0.5262682191810683,
+      "r2_cb_seedsd": 0.0036775727809945135,
+      "mae_cb": 0.05554854058614014,
+      "mae_cb_seedsd": 0.00018769111392836777,
+      "approx_disp_casemean": 0.4624456002815329,
+      "approx_disp_casemean_seedsd": 0.001664090357175767,
+      "cosine_spatial_casemean": 0.8863670253297687,
+      "cosine_spatial_casemean_seedsd": 0.0009177244911338723,
+      "spearman_casemean": 0.7641378753687237,
+      "spearman_casemean_seedsd": 0.0010070151323170423
+    }
+  ]
+}

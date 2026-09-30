@@ -45,9 +45,12 @@ CURVATURE_HARD_MAX = 10.0
 WHITELIST_REVIEW_THRESHOLD = 0.5
 
 
+EXTRA_CASES: list[str] = []
+
+
 def _case_ids() -> list[dict[str, Any]]:
-    payload = json.loads(SOURCE_MANIFEST.read_text(encoding="utf-8"))
-    return [{"canonical_id": row["canonical_id"], "role": row["role"]} for row in payload["cases"]]
+    from wss_pinn.v4 import new_case_sources as ncs
+    return ncs.case_entries(extra=EXTRA_CASES)  # legacy manifest when present, else frozen split (+ extras)
 
 
 def build_case(entry: dict[str, Any]) -> dict[str, Any]:
@@ -131,7 +134,11 @@ def main() -> int:
         help="Centerline V2-layout root to read the selected cases from (default: frozen 2026-08-28 root)",
     )
     parser.add_argument("--summary-only", action="store_true", help="only rebuild the cohort summary from per-case summaries on disk")
+    parser.add_argument("--extra-cases", nargs="*", default=None, help="new canonical ids appended to the case list")
+    parser.add_argument("--cases-file", type=Path, default=None, help="text file of extra canonical ids, one per line")
     args = parser.parse_args()
+    from wss_pinn.v4 import new_case_sources as ncs
+    EXTRA_CASES.extend(list(args.extra_cases or []) + ncs.read_case_list(args.cases_file))
     entries = _case_ids()
     if args.cases:
         wanted = set(args.cases)

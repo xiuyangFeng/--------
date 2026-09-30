@@ -1,0 +1,452 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_v52c_labelfix_20260930",
+  "section": "mainline X5Dcap_asym2 retrained on the unified corrected data v5.2c (2026-09-30)",
+  "data": {
+    "v5.2c": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930",
+    "snapshot": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_2c_20260930",
+    "label_fix_doc": "docs/02-推进与变更/04-数据处理与CFD/库内标签问题核查_RCR挂错与入口除数_2026-09-30.md"
+  },
+  "expected_training_runs": 23,
+  "expected_evaluations": 46,
+  "reading_rule": "Re-establishes the reference numbers on the corrected labels; compare each protocol with its own predecessor arms (IND test91 five-seed ensemble, CV5 pooled out-of-fold, full265 on recover8). Differences combine the label change of 9 units (3 of them IND test units) and seed noise.",
+  "arms": [
+    {
+      "id": "X5Dcap_asym2_s1234",
+      "title": "X5Dcap_asym2 IND seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys_20260926/X5Dcap_asym2_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_s7",
+      "title": "X5Dcap_asym2 IND seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys_20260926/X5Dcap_asym2_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_s2025",
+      "title": "X5Dcap_asym2 IND seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys_20260926/X5Dcap_asym2_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_s11",
+      "title": "X5Dcap_asym2 IND seed 11 on the corrected data",
+      "config": "X5Dcap_asym2_s11.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_s11",
+      "phase": 0,
+      "seed": 11,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2e_20260928/X5Dcap_asym2_s11.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_s2026",
+      "title": "X5Dcap_asym2 IND seed 2026 on the corrected data",
+      "config": "X5Dcap_asym2_s2026.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_s2026",
+      "phase": 0,
+      "seed": 2026,
+      "fold": null,
+      "protocol": "IND",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2e_20260928/X5Dcap_asym2_s2026.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f0_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 0 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f0_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f0_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 0,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f0_s7",
+      "title": "X5Dcap_asym2 CV5 fold 0 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f0_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f0_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 0,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f0_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 0 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f0_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f0_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 0,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f1_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 1 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f1_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f1_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 1,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f1_s7",
+      "title": "X5Dcap_asym2 CV5 fold 1 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f1_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f1_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 1,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f1_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 1 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f1_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f1_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 1,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f2_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 2 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f2_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f2_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 2,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f2_s7",
+      "title": "X5Dcap_asym2 CV5 fold 2 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f2_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f2_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 2,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f2_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 2 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f2_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f2_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 2,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f3_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 3 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f3_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f3_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 3,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f3_s7",
+      "title": "X5Dcap_asym2 CV5 fold 3 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f3_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f3_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 3,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f3_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 3 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f3_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f3_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 3,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f4_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 4 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f4_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f4_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 4,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f4_s7",
+      "title": "X5Dcap_asym2 CV5 fold 4 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f4_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f4_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 4,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f4_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 4 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f4_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f4_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 4,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_full265_s1234",
+      "title": "X5Dcap_asym2 FULL265 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_full265_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_full265_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_full265_s7",
+      "title": "X5Dcap_asym2 FULL265 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_full265_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_full265_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    },
+    {
+      "id": "X5Dcap_asym2_full265_s2025",
+      "title": "X5Dcap_asym2 FULL265 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_full265_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_full265_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)"
+    }
+  ]
+}

@@ -1,0 +1,2283 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_v52_synm_20260927",
+  "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+  "anchor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234",
+  "control_id": null,
+  "section": "§36 direction 3",
+  "external_reference_runs": {
+    "X5Dcap_v52ind_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52ind_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f0_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f0_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f0_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f1_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f1_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f1_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f1_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f1_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f1_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f2_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f2_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f2_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f2_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f2_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f2_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f3_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f3_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f3_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f3_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f3_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f3_s2025/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f4_s1234": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f4_s1234/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f4_s7": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f4_s7/eval/ckpt_best/metrics.json",
+    "X5Dcap_v52cv_f4_s2025": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f4_s2025/eval/ckpt_best/metrics.json"
+  },
+  "synthetic": {
+    "children": [
+      "AG/fast/PENG_JI_MING~m25",
+      "AG/slow/KANG_XI_MING~m18",
+      "AG/slow/LI_BING_YI~m42",
+      "AAA/ruputer/LV_GUO_YOU~m32",
+      "AAA/unruputer/CHEN_SHU_LIN~m25",
+      "ILO/ZHANG_YONG_SHENG-0~m52/after",
+      "ILO/LU_FU_SHAN-0~m21/after",
+      "ILO/WANG_JIN_MING-0~m54/after",
+      "ILO/AN_GUANG_JIE-0~m37/after",
+      "ILO/LI_FA_XIANG-1~m42/after",
+      "ILO/LI_YU_GANG-0~m01/after",
+      "ILO/WANG_SHU_SHENG-0~m36/before",
+      "ILO/XUE_YOU_TANG-0~m19/before",
+      "ILO/PAN_YIN_GEN-1~m45/before",
+      "ILO/LIU_YUE_DONG-0~m29/before",
+      "ILO/ZHAO_CHANG_SHAN-0~m06/before",
+      "ILO/LIU_BAO_JUN-0~m39/before",
+      "AG/slow/QU_HE_PING~m38",
+      "AG/slow/ZHANG_LING_GUANG~m22",
+      "AG/slow/ZHANG_HUAN_LI~m48",
+      "AG/slow/MI_DE_XI~m32",
+      "AG/slow/LI_HUAN_GE~m26",
+      "AG/slow/LU_ZHEN_QING~m29",
+      "AG/slow/BAI_WEN_JIE~m16",
+      "AG/slow/YIN_YU_RONG~m44",
+      "AG/fast/RAN_QING_BO~m06",
+      "AG/slow/SUN_ZONG_GE~m43",
+      "AG/slow/CHENG_LU_LI~m10",
+      "AG/slow/NI_YAN_BIN~m49",
+      "AG/slow/GUO_XI_JIANG~m35",
+      "AG/slow/ZHANG_SONG_TIAN~m45",
+      "AG/slow/LIN_SHU_TIAN~m33",
+      "AG/slow/SUN_WEN_QING~m15",
+      "AG/fast/WANG_YONG_FAN~m19",
+      "AAA/ruputer/CHEN_FU~m26",
+      "AAA/ruputer/HUO_SHI_LIANG~m28",
+      "AAA/unruputer/SHEN_CHUN_WANG~m11",
+      "AAA/unruputer/LI_YOU_YU~m27",
+      "AAA/unruputer/HAN_JIAN_FU~m36",
+      "AAA/ruputer/KANG_YONG~m01",
+      "AAA/unruputer/ZHANG_ZHI_HUA~m14",
+      "AAA/ruputer/LIN_LIANG_XIAO~m10",
+      "AAA/ruputer/FENG_LI_XIN~m38",
+      "AAA/unruputer/GAO_DIAN_WEN~m07",
+      "AAA/unruputer/YAN_FU_TANG~m34",
+      "AAA/ruputer/LIU_JI_XIN~m31",
+      "AAA/unruputer/ZHOU_XI_SHENG~m22",
+      "ILO/GENG_CHUN_LAI-1~m46/after",
+      "ILO/ZHANG_JIAN_JUN-1~m31/after",
+      "ILO/GONG_HAI_ZENG-1~m34/after",
+      "ILO/GAO_SHU_CAI-0~m24/before",
+      "ILO/WENG_ZHAO_GUANG-0~m03/before",
+      "ILO/ZHANG_JIAN_JUN-1~m57/before",
+      "ILO/YAO_GUO_CHEN-0~m10/before",
+      "ILO/LIN_CHUN_YANG-1~m12/before",
+      "ILO/LI_YOU_ZHI-0~m48/before",
+      "ILO/WAGN_LI_JUN-1~m25/before",
+      "ILO/WU_JUN-0~m05/before",
+      "ILO/SUN_CHUN_PU-0~m53/before"
+    ],
+    "children_file": "/public/newhome/cy/Digital_twin/GNN/docs/02-推进与变更/04-数据处理与CFD/数据回收_2026-09-20/synth_20260926/synth_children_ok59.txt",
+    "ind_children": [
+      "AG/slow/KANG_XI_MING~m18",
+      "AG/slow/LI_BING_YI~m42",
+      "AAA/unruputer/CHEN_SHU_LIN~m25",
+      "ILO/WANG_SHU_SHENG-0~m36/before",
+      "ILO/PAN_YIN_GEN-1~m45/before",
+      "ILO/LIU_YUE_DONG-0~m29/before",
+      "ILO/ZHAO_CHANG_SHAN-0~m06/before",
+      "ILO/LIU_BAO_JUN-0~m39/before",
+      "AG/slow/QU_HE_PING~m38",
+      "AG/slow/ZHANG_LING_GUANG~m22",
+      "AG/slow/MI_DE_XI~m32",
+      "AG/slow/LI_HUAN_GE~m26",
+      "AG/slow/LU_ZHEN_QING~m29",
+      "AG/slow/BAI_WEN_JIE~m16",
+      "AG/slow/YIN_YU_RONG~m44",
+      "AG/fast/RAN_QING_BO~m06",
+      "AG/slow/SUN_ZONG_GE~m43",
+      "AG/slow/CHENG_LU_LI~m10",
+      "AG/slow/NI_YAN_BIN~m49",
+      "AG/slow/GUO_XI_JIANG~m35",
+      "AG/slow/ZHANG_SONG_TIAN~m45",
+      "AG/fast/WANG_YONG_FAN~m19",
+      "AAA/ruputer/HUO_SHI_LIANG~m28",
+      "AAA/unruputer/SHEN_CHUN_WANG~m11",
+      "AAA/unruputer/LI_YOU_YU~m27",
+      "AAA/unruputer/HAN_JIAN_FU~m36",
+      "AAA/ruputer/KANG_YONG~m01",
+      "AAA/unruputer/ZHANG_ZHI_HUA~m14",
+      "AAA/ruputer/LIN_LIANG_XIAO~m10",
+      "AAA/ruputer/FENG_LI_XIN~m38",
+      "AAA/unruputer/GAO_DIAN_WEN~m07",
+      "AAA/unruputer/YAN_FU_TANG~m34",
+      "AAA/ruputer/LIU_JI_XIN~m31",
+      "AAA/unruputer/ZHOU_XI_SHENG~m22",
+      "ILO/GAO_SHU_CAI-0~m24/before",
+      "ILO/WENG_ZHAO_GUANG-0~m03/before",
+      "ILO/ZHANG_JIAN_JUN-1~m57/before",
+      "ILO/YAO_GUO_CHEN-0~m10/before",
+      "ILO/LIN_CHUN_YANG-1~m12/before",
+      "ILO/LI_YOU_ZHI-0~m48/before",
+      "ILO/WAGN_LI_JUN-1~m25/before",
+      "ILO/WU_JUN-0~m05/before"
+    ]
+  },
+  "expected_training_runs": 15,
+  "expected_evaluations": 30,
+  "arms": [
+    {
+      "id": "X5Dcap_syn_v52cv_f0_s1234",
+      "title": "X5Dcap + synthetic (45) CV5 fold 0, seed 1234",
+      "config": "X5Dcap_syn_v52cv_f0_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 1234,
+      "fold": 0,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f0_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold0_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold0_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold0_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold0_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold0_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold0_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f0_s7",
+      "title": "X5Dcap + synthetic (45) CV5 fold 0, seed 7",
+      "config": "X5Dcap_syn_v52cv_f0_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 7,
+      "fold": 0,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f0_s7",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold0_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold0_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold0_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold0_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold0_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold0_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f0_s2025",
+      "title": "X5Dcap + synthetic (45) CV5 fold 0, seed 2025",
+      "config": "X5Dcap_syn_v52cv_f0_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 2025,
+      "fold": 0,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f0_s2025",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold0_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold0_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold0_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold0_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold0_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold0_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f1_s1234",
+      "title": "X5Dcap + synthetic (48) CV5 fold 1, seed 1234",
+      "config": "X5Dcap_syn_v52cv_f1_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 1234,
+      "fold": 1,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f1_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold1_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold1_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold1_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold1_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold1_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold1_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold1_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f1_s7",
+      "title": "X5Dcap + synthetic (48) CV5 fold 1, seed 7",
+      "config": "X5Dcap_syn_v52cv_f1_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 7,
+      "fold": 1,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f1_s7",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold1_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold1_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold1_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold1_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold1_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold1_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold1_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f1_s2025",
+      "title": "X5Dcap + synthetic (48) CV5 fold 1, seed 2025",
+      "config": "X5Dcap_syn_v52cv_f1_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 2025,
+      "fold": 1,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f1_s2025",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold1_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold1_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold1_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold1_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold1_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold1.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold1_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold1_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f2_s1234",
+      "title": "X5Dcap + synthetic (51) CV5 fold 2, seed 1234",
+      "config": "X5Dcap_syn_v52cv_f2_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 1234,
+      "fold": 2,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f2_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold2_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold2_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold2_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold2_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold2_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold2_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold2_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f2_s7",
+      "title": "X5Dcap + synthetic (51) CV5 fold 2, seed 7",
+      "config": "X5Dcap_syn_v52cv_f2_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 7,
+      "fold": 2,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f2_s7",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold2_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold2_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold2_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold2_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold2_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold2_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold2_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f2_s2025",
+      "title": "X5Dcap + synthetic (51) CV5 fold 2, seed 2025",
+      "config": "X5Dcap_syn_v52cv_f2_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 2025,
+      "fold": 2,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f2_s2025",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold2_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold2_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold2_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold2_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold2_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold2.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold2_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold2_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f3_s1234",
+      "title": "X5Dcap + synthetic (44) CV5 fold 3, seed 1234",
+      "config": "X5Dcap_syn_v52cv_f3_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 1234,
+      "fold": 3,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f3_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold3_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold3_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold3_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold3_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold3_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold3_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold3_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f3_s7",
+      "title": "X5Dcap + synthetic (44) CV5 fold 3, seed 7",
+      "config": "X5Dcap_syn_v52cv_f3_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 7,
+      "fold": 3,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f3_s7",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold3_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold3_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold3_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold3_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold3_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold3_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold3_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f3_s2025",
+      "title": "X5Dcap + synthetic (44) CV5 fold 3, seed 2025",
+      "config": "X5Dcap_syn_v52cv_f3_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 2025,
+      "fold": 3,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f3_s2025",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold3_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold3_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold3_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold3_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold3_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold3.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold3_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold3_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f4_s1234",
+      "title": "X5Dcap + synthetic (48) CV5 fold 4, seed 1234",
+      "config": "X5Dcap_syn_v52cv_f4_s1234.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 1234,
+      "fold": 4,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f4_s1234",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold4_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold4_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold4_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json"
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold4_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold4_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold4_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold4_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f4_s7",
+      "title": "X5Dcap + synthetic (48) CV5 fold 4, seed 7",
+      "config": "X5Dcap_syn_v52cv_f4_s7.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 7,
+      "fold": 4,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f4_s7",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold4_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold4_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold4_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 7
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold4_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold4_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold4_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold4_syn_train.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_syn_v52cv_f4_s2025",
+      "title": "X5Dcap + synthetic (48) CV5 fold 4, seed 2025",
+      "config": "X5Dcap_syn_v52cv_f4_s2025.json",
+      "phase": 0,
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "synthetic"
+      ],
+      "seed": 2025,
+      "fold": 4,
+      "protocol": "CV5",
+      "parent": "X5Dcap_v52cv_f4_s2025",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": true,
+      "config_diff_vs_anchor": {
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1"
+        },
+        "data.density_aug_levels": {
+          "anchor": null,
+          "arm": [
+            70,
+            50,
+            35,
+            25
+          ]
+        },
+        "data.density_aug_prob": {
+          "anchor": null,
+          "arm": 0.6
+        },
+        "data.density_aug_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/v6_followup_20260909/M2_a5_independent_k3_s1234/feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold4_syn_train_feature_stats.json"
+        },
+        "data.input_features": {
+          "anchor": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot"
+          ],
+          "arm": [
+            "x",
+            "y",
+            "z",
+            "abscissa_norm",
+            "local_radius",
+            "curvature",
+            "log_local_radius",
+            "rho",
+            "theta_sin",
+            "theta_cos",
+            "dr_ds",
+            "dist_to_junction_mm",
+            "dist_to_endpoint_mm",
+            "end_zone",
+            "nx_aligned",
+            "ny_aligned",
+            "nz_aligned",
+            "curv_k1",
+            "curv_k2",
+            "curv_gauss",
+            "curvedness",
+            "curv_k1_c",
+            "curv_k2_c",
+            "curv_gauss_c",
+            "tn_dot",
+            "log_q_branch_murray_cap",
+            "log_tau0_murray_cap"
+          ]
+        },
+        "data.point_features_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_geom_v2",
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/split_V5_train138_test34.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold4_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/wss_global_stats_train138.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold4_syn_train.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/v6_followup_20260909/M2_a5_independent_k3_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json"
+        },
+        "train.seed": {
+          "anchor": 1234,
+          "arm": 2025
+        }
+      },
+      "config_diff_vs_parent": {
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold4_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_syn_20260926/feature_stats/cv5_fold4_syn_train_feature_stats.json"
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold4.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/cv5_fold4_syn.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/syn_v52/wss_global_stats_cv5_fold4_syn_train.json"
+        }
+      }
+    }
+  ],
+  "reading_rule": "paired with the same (fold, seed) / seed arm of wss_v52_20260923: CV5 15 paired deltas (gate G3.1 mean > +0.010, >= 12/15 positive), IND 3 paired deltas (G3.2 > +0.010); held-out / test partitions contain real cases only",
+  "split_note": "subset of wss_v52_syn_20260926: rule 'protocol==CV5'; master Slurm 4x4090, frozen copy GNN_v52s_frozen_20260927",
+  "source_matrix": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_syn_20260926/matrix.json"
+}

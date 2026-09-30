@@ -1,0 +1,10 @@
+| 病例 | 2.jou | .cas.gz |
+|---|---|---|
+| `AAA/ruputer/LV_GUO_YOU` | read-case 已一致 | 旧前缀 `/public/newhome/cy/Digital_twin/GNN/data/AAA/ruputer/LV_GUO_YOU` → 当前目录（udf-inlet4.c，1 串） |
+| `AG/slow/LIU_XI_QUAN` | read-case /public/newhome/cy/Digital_twin/GNN/data/ag/slow/LIU_XI_QUAN/LIU_XI_QUAN.cas.gz → 当前目录/LIU_XI_QUAN.cas.gz | 旧前缀 `/public/newhome/cy/Digital_twin/GNN/data/ag/slow/LIU_XI_QUAN` → 当前目录（LIU_XI_QUAN, ascii/LIU_XI_QUAN，2 串）；`(surfaces wall) (cellzones blood) (qua…` → `(surfaces wall) (cellzones blood) (qua…` |
+| `AG/slow/WEI_JUN_WEN` | read-case /public/newhome/cy/Digital_twin/GNN/data/ag/slow/WEI_JUN_WEN/WEI_JUN_WEN.cas.gz → 当前目录/WEI_JUN_WEN.cas.gz | 旧前缀 `/public/newhome/cy/Digital_twin/GNN/data/ag/slow/WEI_JUN_WEN` → 当前目录（WEI_JUN_WEN, ascii/WEI_JUN_WEN，2 串）；`(surfaces wall) (cellzones blood) (qua…` → `(surfaces wall) (cellzones blood) (qua…` |
+| `AG/slow/TE_JIN_WANG` | read-case /public/newhome/cy/Digital_twin/GNN/data/ag/slow/TE_JIN_WANG/TE_JIN_WANG.cas.gz → 当前目录/TE_JIN_WANG.cas.gz | 旧前缀 `/public/newhome/cy/Digital_twin/GNN/data/ag/slow/TE_JIN_WANG` → 当前目录（TE_JIN_WANG, ascii/TE_JIN_WANG，2 串）；`(surfaces wall) (cellzones blood) (qua…` → `(surfaces wall) (cellzones blood) (qua…` |
+| `ILO/WANG_CAI-0/before` | read-case 已一致 | 无旧路径串；`(vmag (constant . 0) (profile "" ""))…` → `(vmag (profile "udf" "my_inlet::libudf…` |
+| `AG/fast/PENG_JI_MING` | read-case /public/newhome/cy/Digital_twin/GNN/data/ag/fast/PENG_JI_MING/PENG_JI_MING.cas.gz → 当前目录/PENG_JI_MING.cas.gz；插入 /mesh/scale 1000 1000 1000 | 旧前缀 `/public/newhome/cy/Digital_twin/GNN/data/ag/fast/PENG_JI_MING` → 当前目录（PENG_JI_MING, ascii/PENG_JI_MING, udf-inlet.c，3 串） |
+| `AAA/ruputer/SU_KAI_LI` | read-case /public/newhome/cy/Digital_twin/GNN/data/AAA/ruputer/SU_KAI_LI/SU_KAI_LI.cas.gz → 当前目录/SU_KAI_LI.cas.gz；udf-inlet4.c 入口面积常量 0.0001215525 → 0.001215525（网格实测 1215.52 mm²，原值小数点错一位 → 流量 10 倍） | 旧前缀 `/public/newhome/cy/Digital_twin/GNN/data/AAA/ruputer/SU_KAI_LI` → 当前目录（SU_KAI_LI, ascii/SU_KAI_LI, udf-inlet4.c，3 串） |
+| `AAA/ruputer/SU_KAI_LI`（补） | 09-21 首次补丁误写相对路径 → 已改回绝对路径（2.jou 1 处、cas 3 串）；冒烟 15321 通过 | | |

@@ -1,0 +1,115 @@
+# wss_v52_20260923_cv5 结果（自动生成 2026-09-24 16:51）
+
+单 run、已暴露 test34；参照 = 同期对照 无（同配置重跑）、matrix.json 的外部参照与历史 C1；单 seed 对单 seed 的 95% 带约 ±0.034 物理 R²_cb / ±0.009 归一化。只作筛选，不作显著性或泛化结论。
+
+| 臂 | 变化 | ckpt | Pa R²_cb | Δ vs X0 | Δ vs C1 | norm R²_cb | Δ vs X0 | MAE Pa | case P10 | high-WSS R² | top10 比 | p99 比 | IoU | 负R² |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| C1 历史 | 参照 | best | 0.7461 | — | — | 0.8684 | — | 1.607 | 0.6537 | 0.489 | 0.754 | 0.769 | 0.5275 | 0 |
+| X5D_v52ind_s1234 | 参照 | best | 0.7294 | — | -0.0168 | 0.8017 | — | 1.151 | 0.6173 | 0.510 | 0.807 | 0.865 | 0.5589 | 0 |
+| X5D_v52ind_s7 | 参照 | best | 0.7240 | — | -0.0221 | 0.8016 | — | 1.154 | 0.6278 | 0.493 | 0.801 | 0.843 | 0.5563 | 0 |
+| X5D_v52ind_s2025 | 参照 | best | 0.7346 | — | -0.0115 | 0.7990 | — | 1.154 | 0.6229 | 0.508 | 0.787 | 0.831 | 0.5547 | 0 |
+| X5D_v52ind_s11 | 参照 | best | 0.7306 | — | -0.0155 | 0.8102 | — | 1.137 | 0.6315 | 0.498 | 0.808 | 0.857 | 0.5640 | 0 |
+| X5D_v52ind_s2026 | 参照 | best | 0.7255 | — | -0.0206 | 0.8036 | — | 1.147 | 0.6335 | 0.497 | 0.786 | 0.834 | 0.5562 | 0 |
+| X5Dcap_v52ind_s1234 | 参照 | best | 0.7466 | — | +0.0005 | 0.8108 | — | 1.113 | 0.6780 | 0.521 | 0.788 | 0.826 | 0.5697 | 0 |
+| X5Dcap_v52ind_s7 | 参照 | best | 0.7330 | — | -0.0131 | 0.8077 | — | 1.127 | 0.6643 | 0.504 | 0.784 | 0.820 | 0.5664 | 0 |
+| X5Dcap_v52ind_s2025 | 参照 | best | 0.7417 | — | -0.0044 | 0.8128 | — | 1.109 | 0.6597 | 0.517 | 0.783 | 0.820 | 0.5713 | 0 |
+| X5Dcap_v52ind_s11 | 参照 | best | 0.7527 | — | +0.0066 | 0.8137 | — | 1.103 | 0.6577 | 0.545 | 0.823 | 0.869 | 0.5744 | 0 |
+| X5Dcap_v52ind_s2026 | 参照 | best | 0.7380 | — | -0.0081 | 0.8109 | — | 1.117 | 0.6515 | 0.520 | 0.815 | 0.860 | 0.5687 | 0 |
+| X5D_v52cv_f0_s1234 | X5D recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 1234 | best | 0.7848 | — | +0.0387 | 0.8651 | — | 1.024 | 0.6733 | 0.558 | 0.828 | 0.864 | 0.5620 | 0 |
+| X5D_v52cv_f0_s1234 | X5D recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 1234 | last | 0.7857 | — | +0.0395 | 0.8652 | — | 1.024 | 0.6764 | 0.561 | 0.831 | 0.870 | 0.5626 | 0 |
+| X5D_v52cv_f0_s7 | X5D recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 7 | best | 0.7830 | — | +0.0369 | 0.8694 | — | 1.016 | 0.6902 | 0.559 | 0.831 | 0.859 | 0.5687 | 0 |
+| X5D_v52cv_f0_s7 | X5D recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 7 | last | 0.7858 | — | +0.0397 | 0.8694 | — | 1.013 | 0.6955 | 0.569 | 0.839 | 0.868 | 0.5698 | 0 |
+| X5D_v52cv_f0_s2025 | X5D recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 2025 | best | 0.7848 | — | +0.0387 | 0.8681 | — | 1.007 | 0.6985 | 0.548 | 0.831 | 0.855 | 0.5656 | 0 |
+| X5D_v52cv_f0_s2025 | X5D recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 2025 | last | 0.7849 | — | +0.0388 | 0.8681 | — | 1.005 | 0.6983 | 0.547 | 0.827 | 0.851 | 0.5659 | 0 |
+| X5D_v52cv_f1_s1234 | X5D recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 1234 | best | 0.7662 | — | +0.0201 | 0.8680 | — | 1.280 | 0.6716 | 0.490 | 0.795 | 0.831 | 0.5669 | 0 |
+| X5D_v52cv_f1_s1234 | X5D recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 1234 | last | 0.7657 | — | +0.0196 | 0.8683 | — | 1.279 | 0.6677 | 0.487 | 0.793 | 0.826 | 0.5675 | 0 |
+| X5D_v52cv_f1_s7 | X5D recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 7 | best | 0.7469 | — | +0.0008 | 0.8673 | — | 1.293 | 0.6619 | 0.446 | 0.778 | 0.810 | 0.5681 | 0 |
+| X5D_v52cv_f1_s7 | X5D recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 7 | last | 0.7468 | — | +0.0007 | 0.8677 | — | 1.290 | 0.6609 | 0.438 | 0.771 | 0.802 | 0.5677 | 0 |
+| X5D_v52cv_f1_s2025 | X5D recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 2025 | best | 0.7507 | — | +0.0046 | 0.8670 | — | 1.288 | 0.6823 | 0.454 | 0.790 | 0.818 | 0.5597 | 0 |
+| X5D_v52cv_f1_s2025 | X5D recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 2025 | last | 0.7488 | — | +0.0026 | 0.8680 | — | 1.283 | 0.6863 | 0.444 | 0.772 | 0.800 | 0.5608 | 0 |
+| X5D_v52cv_f2_s1234 | X5D recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 1234 | best | 0.7617 | — | +0.0156 | 0.8521 | — | 1.152 | 0.6538 | 0.551 | 0.818 | 0.870 | 0.5486 | 0 |
+| X5D_v52cv_f2_s1234 | X5D recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 1234 | last | 0.7599 | — | +0.0138 | 0.8519 | — | 1.151 | 0.6515 | 0.545 | 0.808 | 0.857 | 0.5474 | 0 |
+| X5D_v52cv_f2_s7 | X5D recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 7 | best | 0.7630 | — | +0.0169 | 0.8486 | — | 1.159 | 0.6491 | 0.559 | 0.819 | 0.870 | 0.5479 | 0 |
+| X5D_v52cv_f2_s7 | X5D recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 7 | last | 0.7633 | — | +0.0172 | 0.8486 | — | 1.161 | 0.6539 | 0.560 | 0.821 | 0.873 | 0.5476 | 0 |
+| X5D_v52cv_f2_s2025 | X5D recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 2025 | best | 0.7564 | — | +0.0103 | 0.8489 | — | 1.164 | 0.6532 | 0.559 | 0.828 | 0.888 | 0.5509 | 0 |
+| X5D_v52cv_f2_s2025 | X5D recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 2025 | last | 0.7551 | — | +0.0090 | 0.8492 | — | 1.161 | 0.6466 | 0.554 | 0.815 | 0.871 | 0.5507 | 0 |
+| X5D_v52cv_f3_s1234 | X5D recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 1234 | best | 0.7552 | — | +0.0091 | 0.8675 | — | 1.291 | 0.6686 | 0.565 | 0.772 | 0.773 | 0.5720 | 0 |
+| X5D_v52cv_f3_s1234 | X5D recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 1234 | last | 0.7581 | — | +0.0120 | 0.8681 | — | 1.286 | 0.6629 | 0.571 | 0.776 | 0.780 | 0.5727 | 0 |
+| X5D_v52cv_f3_s7 | X5D recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 7 | best | 0.7550 | — | +0.0089 | 0.8674 | — | 1.307 | 0.6403 | 0.562 | 0.775 | 0.779 | 0.5695 | 0 |
+| X5D_v52cv_f3_s7 | X5D recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 7 | last | 0.7531 | — | +0.0070 | 0.8677 | — | 1.310 | 0.6361 | 0.558 | 0.771 | 0.779 | 0.5686 | 0 |
+| X5D_v52cv_f3_s2025 | X5D recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 2025 | best | 0.7663 | — | +0.0202 | 0.8709 | — | 1.277 | 0.6531 | 0.602 | 0.813 | 0.835 | 0.5737 | 0 |
+| X5D_v52cv_f3_s2025 | X5D recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 2025 | last | 0.7659 | — | +0.0198 | 0.8697 | — | 1.279 | 0.6532 | 0.601 | 0.813 | 0.837 | 0.5725 | 0 |
+| X5D_v52cv_f4_s1234 | X5D recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 1234 | best | 0.7233 | — | -0.0228 | 0.8659 | — | 1.421 | 0.6434 | 0.480 | 0.746 | 0.765 | 0.5353 | 0 |
+| X5D_v52cv_f4_s1234 | X5D recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 1234 | last | 0.7187 | — | -0.0274 | 0.8656 | — | 1.425 | 0.6380 | 0.464 | 0.734 | 0.752 | 0.5352 | 0 |
+| X5D_v52cv_f4_s7 | X5D recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 7 | best | 0.7249 | — | -0.0212 | 0.8657 | — | 1.416 | 0.6373 | 0.487 | 0.736 | 0.753 | 0.5391 | 0 |
+| X5D_v52cv_f4_s7 | X5D recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 7 | last | 0.7209 | — | -0.0252 | 0.8656 | — | 1.419 | 0.6345 | 0.476 | 0.729 | 0.744 | 0.5381 | 0 |
+| X5D_v52cv_f4_s2025 | X5D recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 2025 | best | 0.7300 | — | -0.0161 | 0.8669 | — | 1.412 | 0.6625 | 0.520 | 0.736 | 0.753 | 0.5419 | 0 |
+| X5D_v52cv_f4_s2025 | X5D recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 2025 | last | 0.7325 | — | -0.0136 | 0.8666 | — | 1.411 | 0.6634 | 0.528 | 0.748 | 0.765 | 0.5416 | 0 |
+| X5Dcap_v52cv_f0_s1234 | X5Dcap recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 1234 | best | 0.7975 | — | +0.0514 | 0.8691 | — | 1.003 | 0.6951 | 0.593 | 0.855 | 0.889 | 0.5818 | 0 |
+| X5Dcap_v52cv_f0_s1234 | X5Dcap recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 1234 | last | 0.7976 | — | +0.0515 | 0.8689 | — | 1.003 | 0.6939 | 0.597 | 0.859 | 0.895 | 0.5817 | 0 |
+| X5Dcap_v52cv_f0_s7 | X5Dcap recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 7 | best | 0.8046 | — | +0.0585 | 0.8711 | — | 0.996 | 0.7085 | 0.596 | 0.839 | 0.862 | 0.5811 | 0 |
+| X5Dcap_v52cv_f0_s7 | X5Dcap recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 7 | last | 0.8049 | — | +0.0588 | 0.8707 | — | 0.996 | 0.7093 | 0.597 | 0.841 | 0.862 | 0.5807 | 0 |
+| X5Dcap_v52cv_f0_s2025 | X5Dcap recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 2025 | best | 0.7908 | — | +0.0447 | 0.8685 | — | 1.012 | 0.6921 | 0.570 | 0.846 | 0.868 | 0.5770 | 0 |
+| X5Dcap_v52cv_f0_s2025 | X5Dcap recipe, CV5 protocol fold 0 (261 cases, patient-grouped), seed 2025 | last | 0.7917 | — | +0.0456 | 0.8699 | — | 1.008 | 0.7066 | 0.563 | 0.833 | 0.854 | 0.5769 | 0 |
+| X5Dcap_v52cv_f1_s1234 | X5Dcap recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 1234 | best | 0.7615 | — | +0.0154 | 0.8744 | — | 1.253 | 0.6910 | 0.452 | 0.786 | 0.813 | 0.5783 | 0 |
+| X5Dcap_v52cv_f1_s1234 | X5Dcap recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 1234 | last | 0.7622 | — | +0.0161 | 0.8745 | — | 1.255 | 0.6887 | 0.455 | 0.792 | 0.818 | 0.5785 | 0 |
+| X5Dcap_v52cv_f1_s7 | X5Dcap recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 7 | best | 0.7543 | — | +0.0082 | 0.8745 | — | 1.260 | 0.6863 | 0.451 | 0.802 | 0.844 | 0.5749 | 0 |
+| X5Dcap_v52cv_f1_s7 | X5Dcap recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 7 | last | 0.7552 | — | +0.0091 | 0.8750 | — | 1.259 | 0.6843 | 0.456 | 0.806 | 0.850 | 0.5760 | 0 |
+| X5Dcap_v52cv_f1_s2025 | X5Dcap recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 2025 | best | 0.7619 | — | +0.0158 | 0.8736 | — | 1.275 | 0.7001 | 0.481 | 0.813 | 0.863 | 0.5714 | 0 |
+| X5Dcap_v52cv_f1_s2025 | X5Dcap recipe, CV5 protocol fold 1 (261 cases, patient-grouped), seed 2025 | last | 0.7612 | — | +0.0151 | 0.8745 | — | 1.271 | 0.6971 | 0.476 | 0.802 | 0.851 | 0.5715 | 0 |
+| X5Dcap_v52cv_f2_s1234 | X5Dcap recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 1234 | best | 0.7665 | — | +0.0204 | 0.8554 | — | 1.116 | 0.6941 | 0.582 | 0.842 | 0.882 | 0.5652 | 0 |
+| X5Dcap_v52cv_f2_s1234 | X5Dcap recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 1234 | last | 0.7652 | — | +0.0191 | 0.8559 | — | 1.110 | 0.6990 | 0.573 | 0.821 | 0.858 | 0.5655 | 0 |
+| X5Dcap_v52cv_f2_s7 | X5Dcap recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 7 | best | 0.7677 | — | +0.0216 | 0.8559 | — | 1.118 | 0.6915 | 0.577 | 0.815 | 0.850 | 0.5584 | 0 |
+| X5Dcap_v52cv_f2_s7 | X5Dcap recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 7 | last | 0.7691 | — | +0.0230 | 0.8555 | — | 1.120 | 0.6892 | 0.585 | 0.826 | 0.861 | 0.5586 | 0 |
+| X5Dcap_v52cv_f2_s2025 | X5Dcap recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 2025 | best | 0.7690 | — | +0.0229 | 0.8560 | — | 1.115 | 0.6951 | 0.584 | 0.835 | 0.869 | 0.5606 | 0 |
+| X5Dcap_v52cv_f2_s2025 | X5Dcap recipe, CV5 protocol fold 2 (261 cases, patient-grouped), seed 2025 | last | 0.7705 | — | +0.0244 | 0.8561 | — | 1.112 | 0.6972 | 0.585 | 0.834 | 0.867 | 0.5614 | 0 |
+| X5Dcap_v52cv_f3_s1234 | X5Dcap recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 1234 | best | 0.7657 | — | +0.0196 | 0.8770 | — | 1.239 | 0.6861 | 0.582 | 0.774 | 0.764 | 0.5791 | 0 |
+| X5Dcap_v52cv_f3_s1234 | X5Dcap recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 1234 | last | 0.7675 | — | +0.0214 | 0.8774 | — | 1.236 | 0.6848 | 0.587 | 0.776 | 0.768 | 0.5787 | 0 |
+| X5Dcap_v52cv_f3_s7 | X5Dcap recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 7 | best | 0.7685 | — | +0.0224 | 0.8766 | — | 1.242 | 0.7047 | 0.583 | 0.759 | 0.755 | 0.5811 | 0 |
+| X5Dcap_v52cv_f3_s7 | X5Dcap recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 7 | last | 0.7670 | — | +0.0209 | 0.8763 | — | 1.246 | 0.6987 | 0.579 | 0.755 | 0.750 | 0.5795 | 0 |
+| X5Dcap_v52cv_f3_s2025 | X5Dcap recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 2025 | best | 0.7612 | — | +0.0151 | 0.8761 | — | 1.241 | 0.6805 | 0.579 | 0.757 | 0.744 | 0.5818 | 0 |
+| X5Dcap_v52cv_f3_s2025 | X5Dcap recipe, CV5 protocol fold 3 (261 cases, patient-grouped), seed 2025 | last | 0.7632 | — | +0.0171 | 0.8755 | — | 1.243 | 0.6828 | 0.583 | 0.760 | 0.743 | 0.5811 | 0 |
+| X5Dcap_v52cv_f4_s1234 | X5Dcap recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 1234 | best | 0.7300 | — | -0.0161 | 0.8671 | — | 1.402 | 0.6508 | 0.509 | 0.747 | 0.777 | 0.5502 | 0 |
+| X5Dcap_v52cv_f4_s1234 | X5Dcap recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 1234 | last | 0.7273 | — | -0.0188 | 0.8673 | — | 1.404 | 0.6561 | 0.501 | 0.740 | 0.769 | 0.5499 | 0 |
+| X5Dcap_v52cv_f4_s7 | X5Dcap recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 7 | best | 0.7370 | — | -0.0091 | 0.8689 | — | 1.392 | 0.6748 | 0.522 | 0.752 | 0.783 | 0.5524 | 0 |
+| X5Dcap_v52cv_f4_s7 | X5Dcap recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 7 | last | 0.7350 | — | -0.0111 | 0.8688 | — | 1.393 | 0.6775 | 0.515 | 0.745 | 0.772 | 0.5513 | 0 |
+| X5Dcap_v52cv_f4_s2025 | X5Dcap recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 2025 | best | 0.7284 | — | -0.0177 | 0.8659 | — | 1.405 | 0.6659 | 0.503 | 0.722 | 0.749 | 0.5456 | 0 |
+| X5Dcap_v52cv_f4_s2025 | X5Dcap recipe, CV5 protocol fold 4 (261 cases, patient-grouped), seed 2025 | last | 0.7352 | — | -0.0109 | 0.8658 | — | 1.398 | 0.6713 | 0.522 | 0.743 | 0.771 | 0.5470 | 0 |
+
+## 分域物理 R²_cb（best）
+
+| 臂 | AG | AAA | ILO |
+|---|---:|---:|---:|
+| C1 历史 | 0.7855 | 0.7160 | 0.7180 |
+| X5D_v52cv_f0_s1234 | 0.7955 | 0.7941 | 0.7612 |
+| X5D_v52cv_f0_s7 | 0.7930 | 0.8049 | 0.7528 |
+| X5D_v52cv_f0_s2025 | 0.7976 | 0.8160 | 0.7475 |
+| X5D_v52cv_f1_s1234 | 0.8296 | 0.8345 | 0.7062 |
+| X5D_v52cv_f1_s7 | 0.8284 | 0.7928 | 0.6887 |
+| X5D_v52cv_f1_s2025 | 0.8205 | 0.8085 | 0.6924 |
+| X5D_v52cv_f2_s1234 | 0.7570 | 0.7639 | 0.7598 |
+| X5D_v52cv_f2_s7 | 0.7575 | 0.7603 | 0.7650 |
+| X5D_v52cv_f2_s2025 | 0.7481 | 0.7556 | 0.7598 |
+| X5D_v52cv_f3_s1234 | 0.7823 | 0.7811 | 0.7390 |
+| X5D_v52cv_f3_s7 | 0.7881 | 0.7569 | 0.7433 |
+| X5D_v52cv_f3_s2025 | 0.7806 | 0.7831 | 0.7562 |
+| X5D_v52cv_f4_s1234 | 0.7824 | 0.7280 | 0.6386 |
+| X5D_v52cv_f4_s7 | 0.7840 | 0.7235 | 0.6458 |
+| X5D_v52cv_f4_s2025 | 0.7662 | 0.7263 | 0.6767 |
+| X5Dcap_v52cv_f0_s1234 | 0.8210 | 0.7990 | 0.7692 |
+| X5Dcap_v52cv_f0_s7 | 0.8286 | 0.8106 | 0.7737 |
+| X5Dcap_v52cv_f0_s2025 | 0.8138 | 0.8015 | 0.7574 |
+| X5Dcap_v52cv_f1_s1234 | 0.8373 | 0.8352 | 0.6937 |
+| X5Dcap_v52cv_f1_s7 | 0.8385 | 0.8194 | 0.6867 |
+| X5Dcap_v52cv_f1_s2025 | 0.8408 | 0.8314 | 0.6947 |
+| X5Dcap_v52cv_f2_s1234 | 0.7507 | 0.7649 | 0.7774 |
+| X5Dcap_v52cv_f2_s7 | 0.7490 | 0.7700 | 0.7789 |
+| X5Dcap_v52cv_f2_s2025 | 0.7560 | 0.7533 | 0.7869 |
+| X5Dcap_v52cv_f3_s1234 | 0.7989 | 0.7879 | 0.7486 |
+| X5Dcap_v52cv_f3_s7 | 0.7964 | 0.7973 | 0.7513 |
+| X5Dcap_v52cv_f3_s2025 | 0.7702 | 0.7828 | 0.7515 |
+| X5Dcap_v52cv_f4_s1234 | 0.7755 | 0.7267 | 0.6670 |
+| X5Dcap_v52cv_f4_s7 | 0.7871 | 0.7387 | 0.6652 |
+| X5Dcap_v52cv_f4_s2025 | 0.7778 | 0.7181 | 0.6675 |
+
+队列状态：complete；作业 15636；跳过的候选：

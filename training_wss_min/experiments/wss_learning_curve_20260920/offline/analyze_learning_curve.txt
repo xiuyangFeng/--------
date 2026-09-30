@@ -1,0 +1,29 @@
+# Learning curve readout (wss_learning_curve_20260920); jet = true p99 > 40 Pa; held-out folds pooled to 136 cases
+
+ frac  seed  n_train    R2cb     jet  nonjet  highR2  top10j  caseμ    P10  AG/AAA/ILO   f0/f1/f2
+   25     7     22.7  0.6384  0.5740  0.6895   0.268   0.607  0.648  0.507  0.676/0.695/0.535   0.686/0.575/0.669
+   25  1234     22.7  0.6445  0.5755  0.7020   0.281   0.599  0.655  0.551  0.688/0.675/0.562   0.668/0.604/0.671
+   25  2025     22.7  0.6576  0.6037  0.6971   0.327   0.610  0.653  0.514  0.691/0.686/0.589   0.684/0.633/0.659
+   50     7     44.7  0.6767  0.6137  0.7292   0.342   0.617  0.689  0.572  0.722/0.722/0.577   0.708/0.622/0.714
+   50  1234     44.7  0.6936  0.6335  0.7438   0.400   0.638  0.702  0.586  0.730/0.736/0.607   0.743/0.642/0.707
+   50  2025     44.7  0.6739  0.6048  0.7338   0.350   0.627  0.684  0.568  0.720/0.711/0.582   0.714/0.634/0.681
+   75     7     68.0  0.7030  0.6494  0.7459   0.407   0.628  0.708  0.592  0.739/0.736/0.626   0.725/0.663/0.730
+   75  1234     68.0  0.7004  0.6428  0.7480   0.395   0.632  0.707  0.576  0.745/0.736/0.612   0.739/0.652/0.721
+   75  2025     68.0  0.6916  0.6264  0.7481   0.385   0.653  0.698  0.601  0.743/0.712/0.612   0.725/0.661/0.693
+  100     7     90.7  0.7091  0.6480  0.7619   0.405   0.639  0.722  0.610  0.755/0.748/0.616   0.736/0.661/0.742
+  100  1234     90.7  0.7100  0.6510  0.7602   0.402   0.635  0.720  0.600  0.756/0.742/0.624   0.737/0.670/0.732
+  100  2025     90.7  0.7196  0.6667  0.7630   0.442   0.651  0.726  0.617  0.756/0.758/0.637   0.743/0.681/0.744
+
+## per fraction: mean ± sd over available seeds (pooled 136-case R2cb; jet; non-jet)
+   25%  n_train  22.7  R2cb 0.6468 ± 0.0098  jet 0.5844  non-jet 0.6962  ILO 0.5619  high-WSS 0.292  [3 seed]
+   50%  n_train  44.7  R2cb 0.6814 ± 0.0106  jet 0.6173  non-jet 0.7356  ILO 0.5889  high-WSS 0.364  [3 seed]
+   75%  n_train  68.0  R2cb 0.6983 ± 0.0060  jet 0.6395  non-jet 0.7473  ILO 0.6167  high-WSS 0.396  [3 seed]
+  100%  n_train  90.7  R2cb 0.7129 ± 0.0058  jet 0.6552  non-jet 0.7617  ILO 0.6260  high-WSS 0.416  [3 seed]
+
+## slope per doubling of n_train between consecutive fractions (same-seed paired where both exist)
+   25% →  50%  ΔR2cb per doubling: all +0.0353 (+0.050, +0.039, +0.017)   jet +0.0336   non-jet +0.0403   [3 paired seed]
+   50% →  75%  ΔR2cb per doubling: all +0.0279 (+0.011, +0.043, +0.029)   jet +0.0366   non-jet +0.0193   [3 paired seed]
+   75% → 100%  ΔR2cb per doubling: all +0.0351 (+0.023, +0.015, +0.067)   jet +0.0378   non-jet +0.0346   [3 paired seed]
+
+Pre-registered reading: 75→100 slope ≥ +0.02 per doubling → data volume still the bottleneck (B-tier CFD reruns worth it);
+jet slope ≫ overall → prioritise jet cases; flat → switch to model/objective side.  Single readings are not ranked.

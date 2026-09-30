@@ -1,0 +1,275 @@
+{
+  "generated_at": "2026-09-29T15:10:43-0700",
+  "anchor": {
+    "pa_r2_cb": 0.7461090296994921,
+    "norm_r2_cb": 0.8684442102006644,
+    "pa_mae": 1.6071385707260173,
+    "case_mean_r2": 0.7572922325395098,
+    "case_p10_r2": 0.6537395414637284,
+    "high_wss_r2": 0.4892496038836113,
+    "top10_ratio": 0.754320887933043,
+    "p99_ratio": 0.7689272931046535,
+    "top10_iou": 0.5275224187443619,
+    "target": "wss",
+    "negative_r2_cases": [],
+    "domains_pa_r2_cb": {
+      "AG": 0.7854666186240397,
+      "AAA": 0.7160231791337319,
+      "ILO": 0.7180072687605458
+    },
+    "per_case_pa_r2": {
+      "AAA/ruputer/KANG_YONG": 0.7780804844059391,
+      "AAA/ruputer/LI_ZHEN_HUA": 0.8933860775539335,
+      "AAA/ruputer/WANG_FU_SHUN": 0.6730456786020116,
+      "AAA/ruputer/YU_TIAN_HAI": 0.7414509251489656,
+      "AAA/unruputer/GAO_DIAN_WEN": 0.837509683370619,
+      "AAA/unruputer/LIU_KANG_WEN": 0.8373405732738004,
+      "AAA/unruputer/MA_JIN_HE": 0.6677719285282281,
+      "AAA/unruputer/SUN_SHU_MING": 0.7608569751194393,
+      "AAA/unruputer/WANG_MAN_TIAN": 0.6210206582618767,
+      "AAA/unruputer/ZHANG_YONG_ZHI": 0.661235265719301,
+      "AG/fast/FAN_JIAN_MING": 0.7788032729085589,
+      "AG/fast/LOU_YANG": 0.869862393655782,
+      "AG/fast/RAN_QING_BO": 0.9125023172923042,
+      "AG/fast/SUN_ZHI_YU": 0.7781003953122656,
+      "AG/fast/YAO_CUN_HONG": 0.8189800699391352,
+      "AG/fast/ZHANG_CHUN": 0.6942461731105949,
+      "AG/fast/ZHANG_LIANG": 0.8837962352572435,
+      "AG/slow/BAI_WEN_JIE": 0.7889830551624241,
+      "AG/slow/CHEN_JING_RU": 0.80780807456507,
+      "AG/slow/GUO_XI_JIANG": 0.8649986318452909,
+      "AG/slow/HE_SHU_ZHEN": 0.7351971260741956,
+      "AG/slow/LI_HUAN_GE": 0.6373339933394226,
+      "AG/slow/MA_TIAN_YI": 0.7368231750138439,
+      "AG/slow/MA_YU": 0.7093789067236084,
+      "AG/slow/ZHANG_WEI_XIAN": 0.6956526941390822,
+      "ILO/LI_YOU_ZHI-0/before": 0.7663596747472547,
+      "ILO/LU_FU_SHAN-0/before": 0.7924970591175455,
+      "ILO/SUN_DONG_XIN-0/before": 0.7730971086324872,
+      "ILO/SUN_XU_XIA-1/before": 0.6505270882113401,
+      "ILO/YANG_WEN_TAI-0/before": 0.7220146502154319,
+      "ILO/YU_XIANG_SHENG-1/before": 0.816771448468737,
+      "ILO/ZHANG_HE_PING-0/before": 0.7597817863869223,
+      "ILO/ZHANG_JIN_CHUN-1/before": 0.6731936449548442,
+      "ILO/ZHANG_YONG_SHENG-0/before": 0.6095286812858356
+    },
+    "source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s1234/eval/ckpt_best/metrics.json"
+  },
+  "arms": {
+    "X5Dcap_asym2_full265_s1234": {
+      "id": "X5Dcap_asym2_full265_s1234",
+      "title": "X5Dcap_asym2 recipe on full265 (v5.2 261 + 4), seed 1234; test = recover8",
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "status": "complete",
+      "single_change": false,
+      "checkpoints": {
+        "best": {
+          "pa_r2_cb": 0.8294675947606249,
+          "norm_r2_cb": 0.8910389891111821,
+          "pa_mae": 1.0026081948088752,
+          "case_mean_r2": 0.8006136829556004,
+          "case_p10_r2": 0.7287889732260862,
+          "high_wss_r2": 0.5525980880895085,
+          "top10_ratio": 0.9080564120077688,
+          "p99_ratio": 0.9252653972854923,
+          "top10_iou": 0.5786977893787482,
+          "target": "wss",
+          "negative_r2_cases": [],
+          "domains_pa_r2_cb": {
+            "AAA": 0.8239386048189501,
+            "ILO": 0.8482388217057444
+          },
+          "per_case_pa_r2": {
+            "AAA/ruputer/FU_GUO_JUN": 0.8777626927137286,
+            "AAA/ruputer/LIU_YU_MING": 0.6705360241692033,
+            "AAA/ruputer/SHI_YUN_XI": 0.7951608964377369,
+            "AAA/ruputer/WANG_SHUN_WEN": 0.8246471293294502,
+            "AAA/ruputer/ZHANG_ZAO_SHUAN": 0.7537545228218931,
+            "AAA/unruputer/LIU_WEN_QI": 0.8213836994846361,
+            "ILO/LI_JIE-1/after": 0.8140731620423041,
+            "ILO/LI_JIE-1/before": 0.8475913366458511
+          },
+          "source": "/public/newhome/cy/Digital_twin/GNN_v52p_frozen_20260926/training_wss_min/runs/wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s1234/eval/ckpt_best/metrics.json"
+        },
+        "last": {
+          "pa_r2_cb": 0.8318376611850363,
+          "norm_r2_cb": 0.8920635075001087,
+          "pa_mae": 0.9901670199141166,
+          "case_mean_r2": 0.8048999536450803,
+          "case_p10_r2": 0.7247194502586484,
+          "high_wss_r2": 0.5597947518987553,
+          "top10_ratio": 0.8929480506991112,
+          "p99_ratio": 0.9037001748850932,
+          "top10_iou": 0.5802052291836296,
+          "target": "wss",
+          "negative_r2_cases": [],
+          "domains_pa_r2_cb": {
+            "AAA": 0.8254509837372312,
+            "ILO": 0.8552329111289882
+          },
+          "per_case_pa_r2": {
+            "AAA/ruputer/FU_GUO_JUN": 0.8787250615368772,
+            "AAA/ruputer/LIU_YU_MING": 0.6698145174141215,
+            "AAA/ruputer/SHI_YUN_XI": 0.7996684490286154,
+            "AAA/ruputer/WANG_SHUN_WEN": 0.8414069915077786,
+            "AAA/ruputer/ZHANG_ZAO_SHUAN": 0.7482501357634457,
+            "AAA/unruputer/LIU_WEN_QI": 0.8255227663267541,
+            "ILO/LI_JIE-1/after": 0.8208947238112589,
+            "ILO/LI_JIE-1/before": 0.8549169837717907
+          },
+          "source": "/public/newhome/cy/Digital_twin/GNN_v52p_frozen_20260926/training_wss_min/runs/wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s1234/eval/ckpt_last/metrics.json"
+        }
+      }
+    },
+    "X5Dcap_asym2_full265_s7": {
+      "id": "X5Dcap_asym2_full265_s7",
+      "title": "X5Dcap_asym2 recipe on full265 (v5.2 261 + 4), seed 7; test = recover8",
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "status": "complete",
+      "single_change": false,
+      "checkpoints": {
+        "best": {
+          "pa_r2_cb": 0.8170890381226763,
+          "norm_r2_cb": 0.8905308129459922,
+          "pa_mae": 1.0145533528988455,
+          "case_mean_r2": 0.7942275137362511,
+          "case_p10_r2": 0.6956536355122628,
+          "high_wss_r2": 0.5002828088513489,
+          "top10_ratio": 0.8815536080453453,
+          "p99_ratio": 0.8900581293312249,
+          "top10_iou": 0.5662029008537032,
+          "target": "wss",
+          "negative_r2_cases": [],
+          "domains_pa_r2_cb": {
+            "AAA": 0.810247771582202,
+            "ILO": 0.8419844250568258
+          },
+          "per_case_pa_r2": {
+            "AAA/ruputer/FU_GUO_JUN": 0.8467002254652287,
+            "AAA/ruputer/LIU_YU_MING": 0.6460651574602485,
+            "AAA/ruputer/SHI_YUN_XI": 0.7588068921890838,
+            "AAA/ruputer/WANG_SHUN_WEN": 0.8859806823466954,
+            "AAA/ruputer/ZHANG_ZAO_SHUAN": 0.7169058403916975,
+            "AAA/unruputer/LIU_WEN_QI": 0.829158144597307,
+            "ILO/LI_JIE-1/after": 0.8335860021680819,
+            "ILO/LI_JIE-1/before": 0.8366171652716661
+          },
+          "source": "/public/newhome/cy/Digital_twin/GNN_v52p_frozen_20260926/training_wss_min/runs/wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s7/eval/ckpt_best/metrics.json"
+        },
+        "last": {
+          "pa_r2_cb": 0.8182429159510347,
+          "norm_r2_cb": 0.8893965981135393,
+          "pa_mae": 1.0192045679960497,
+          "case_mean_r2": 0.7939399032414881,
+          "case_p10_r2": 0.7000277662166652,
+          "high_wss_r2": 0.5092350633162799,
+          "top10_ratio": 0.8876554067403428,
+          "p99_ratio": 0.8944506541177265,
+          "top10_iou": 0.5669821484081989,
+          "target": "wss",
+          "negative_r2_cases": [],
+          "domains_pa_r2_cb": {
+            "AAA": 0.8116877306691452,
+            "ILO": 0.8417114590342144
+          },
+          "per_case_pa_r2": {
+            "AAA/ruputer/FU_GUO_JUN": 0.8475422576075915,
+            "AAA/ruputer/LIU_YU_MING": 0.647540893096126,
+            "AAA/ruputer/SHI_YUN_XI": 0.7594518905878915,
+            "AAA/ruputer/WANG_SHUN_WEN": 0.8856313018431136,
+            "AAA/ruputer/ZHANG_ZAO_SHUAN": 0.722522140411182,
+            "AAA/unruputer/LIU_WEN_QI": 0.8250561101446315,
+            "ILO/LI_JIE-1/after": 0.8262166924264254,
+            "ILO/LI_JIE-1/before": 0.8375579398149438
+          },
+          "source": "/public/newhome/cy/Digital_twin/GNN_v52p_frozen_20260926/training_wss_min/runs/wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s7/eval/ckpt_last/metrics.json"
+        }
+      }
+    },
+    "X5Dcap_asym2_full265_s2025": {
+      "id": "X5Dcap_asym2_full265_s2025",
+      "title": "X5Dcap_asym2 recipe on full265 (v5.2 261 + 4), seed 2025; test = recover8",
+      "modules": [
+        "F6",
+        "density_aug",
+        "cap_prior",
+        "tail_loss"
+      ],
+      "status": "complete",
+      "single_change": false,
+      "checkpoints": {
+        "best": {
+          "pa_r2_cb": 0.8311358864161968,
+          "norm_r2_cb": 0.8919501722493214,
+          "pa_mae": 0.9917138833281044,
+          "case_mean_r2": 0.8083028753640734,
+          "case_p10_r2": 0.7051973167059622,
+          "high_wss_r2": 0.547501682461982,
+          "top10_ratio": 0.8731471336348469,
+          "p99_ratio": 0.8734098208934972,
+          "top10_iou": 0.5830333635905698,
+          "target": "wss",
+          "negative_r2_cases": [],
+          "domains_pa_r2_cb": {
+            "AAA": 0.8277548399662951,
+            "ILO": 0.8387786326347992
+          },
+          "per_case_pa_r2": {
+            "AAA/ruputer/FU_GUO_JUN": 0.8785093661433331,
+            "AAA/ruputer/LIU_YU_MING": 0.6516740723618148,
+            "AAA/ruputer/SHI_YUN_XI": 0.8237785652470145,
+            "AAA/ruputer/WANG_SHUN_WEN": 0.8946928522034596,
+            "AAA/ruputer/ZHANG_ZAO_SHUAN": 0.7281358499963111,
+            "AAA/unruputer/LIU_WEN_QI": 0.8317604961831819,
+            "ILO/LI_JIE-1/after": 0.82339187877124,
+            "ILO/LI_JIE-1/before": 0.8344799220062319
+          },
+          "source": "/public/newhome/cy/Digital_twin/GNN_v52p_frozen_20260926/training_wss_min/runs/wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s2025/eval/ckpt_best/metrics.json"
+        },
+        "last": {
+          "pa_r2_cb": 0.8291427629903227,
+          "norm_r2_cb": 0.8907679569582776,
+          "pa_mae": 1.0014718962565088,
+          "case_mean_r2": 0.8067234600994586,
+          "case_p10_r2": 0.7032655433906245,
+          "high_wss_r2": 0.5470702160230805,
+          "top10_ratio": 0.8762098341523146,
+          "p99_ratio": 0.8774242188992204,
+          "top10_iou": 0.5812300140122572,
+          "target": "wss",
+          "negative_r2_cases": [],
+          "domains_pa_r2_cb": {
+            "AAA": 0.825214325956457,
+            "ILO": 0.8395283997859923
+          },
+          "per_case_pa_r2": {
+            "AAA/ruputer/FU_GUO_JUN": 0.8783499407005267,
+            "AAA/ruputer/LIU_YU_MING": 0.6606038261446836,
+            "AAA/ruputer/SHI_YUN_XI": 0.8212763682866713,
+            "AAA/ruputer/WANG_SHUN_WEN": 0.8891490789308932,
+            "AAA/ruputer/ZHANG_ZAO_SHUAN": 0.7215491364960278,
+            "AAA/unruputer/LIU_WEN_QI": 0.8291038553256839,
+            "ILO/LI_JIE-1/after": 0.8173143895722106,
+            "ILO/LI_JIE-1/before": 0.8364410853389721
+          },
+          "source": "/public/newhome/cy/Digital_twin/GNN_v52p_frozen_20260926/training_wss_min/runs/wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s2025/eval/ckpt_last/metrics.json"
+        }
+      }
+    }
+  },
+  "bands": {
+    "pa_r2_cb": 0.034,
+    "norm_r2_cb": 0.009
+  },
+  "queue_status": "complete"
+}

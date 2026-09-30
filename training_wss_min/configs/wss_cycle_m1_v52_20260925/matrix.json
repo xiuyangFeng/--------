@@ -1,0 +1,782 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_cycle_m1_v52_20260925",
+  "parent_experiment": "wss_v52_20260923_cv5",
+  "cycle_view": {
+    "root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1",
+    "manifest_sha256": "6e55c2760a4098e37f4c5d3d1212fbb2983c60f573763f9d5f6fbaaf0587956d",
+    "n_cases": 261,
+    "period_wrap_flagged": 53
+  },
+  "execution": "master 4x RTX 4090 (Slurm) via tools/run_local_train_queue.py; train -> eval best -> eval last (--save-predictions)",
+  "expected_training_runs": 15,
+  "expected_evaluations": 30,
+  "arms": [
+    {
+      "id": "M1cap_v52cv_f0_s1234",
+      "arm": "M1cap",
+      "fold": 0,
+      "seed": 1234,
+      "config": "M1cap_v52cv_f0_s1234.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f0_s1234 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold0.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f0_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s1234"
+    },
+    {
+      "id": "M1cap_v52cv_f1_s1234",
+      "arm": "M1cap",
+      "fold": 1,
+      "seed": 1234,
+      "config": "M1cap_v52cv_f1_s1234.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s1234",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f1_s1234 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold1.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f1_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f1_s1234"
+    },
+    {
+      "id": "M1cap_v52cv_f2_s1234",
+      "arm": "M1cap",
+      "fold": 2,
+      "seed": 1234,
+      "config": "M1cap_v52cv_f2_s1234.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s1234",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f2_s1234 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold2.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f2_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f2_s1234"
+    },
+    {
+      "id": "M1cap_v52cv_f3_s1234",
+      "arm": "M1cap",
+      "fold": 3,
+      "seed": 1234,
+      "config": "M1cap_v52cv_f3_s1234.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s1234",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f3_s1234 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold3.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f3_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f3_s1234"
+    },
+    {
+      "id": "M1cap_v52cv_f4_s1234",
+      "arm": "M1cap",
+      "fold": 4,
+      "seed": 1234,
+      "config": "M1cap_v52cv_f4_s1234.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s1234",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f4_s1234 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold4.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f4_s1234.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f4_s1234"
+    },
+    {
+      "id": "M1cap_v52cv_f0_s7",
+      "arm": "M1cap",
+      "fold": 0,
+      "seed": 7,
+      "config": "M1cap_v52cv_f0_s7.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f0_s7 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold0.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f0_s7.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s7"
+    },
+    {
+      "id": "M1cap_v52cv_f1_s7",
+      "arm": "M1cap",
+      "fold": 1,
+      "seed": 7,
+      "config": "M1cap_v52cv_f1_s7.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s7",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f1_s7 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold1.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f1_s7.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f1_s7"
+    },
+    {
+      "id": "M1cap_v52cv_f2_s7",
+      "arm": "M1cap",
+      "fold": 2,
+      "seed": 7,
+      "config": "M1cap_v52cv_f2_s7.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s7",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f2_s7 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold2.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f2_s7.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f2_s7"
+    },
+    {
+      "id": "M1cap_v52cv_f3_s7",
+      "arm": "M1cap",
+      "fold": 3,
+      "seed": 7,
+      "config": "M1cap_v52cv_f3_s7.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s7",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f3_s7 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold3.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f3_s7.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f3_s7"
+    },
+    {
+      "id": "M1cap_v52cv_f4_s7",
+      "arm": "M1cap",
+      "fold": 4,
+      "seed": 7,
+      "config": "M1cap_v52cv_f4_s7.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s7",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f4_s7 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold4.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f4_s7.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f4_s7"
+    },
+    {
+      "id": "M1cap_v52cv_f0_s2025",
+      "arm": "M1cap",
+      "fold": 0,
+      "seed": 2025,
+      "config": "M1cap_v52cv_f0_s2025.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f0_s2025 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold0_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold0.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f0_s2025.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f0_s2025"
+    },
+    {
+      "id": "M1cap_v52cv_f1_s2025",
+      "arm": "M1cap",
+      "fold": 1,
+      "seed": 2025,
+      "config": "M1cap_v52cv_f1_s2025.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f1_s2025",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f1_s2025 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold1_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold1.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f1_s2025.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f1_s2025"
+    },
+    {
+      "id": "M1cap_v52cv_f2_s2025",
+      "arm": "M1cap",
+      "fold": 2,
+      "seed": 2025,
+      "config": "M1cap_v52cv_f2_s2025.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f2_s2025",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f2_s2025 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold2_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold2.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f2_s2025.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f2_s2025"
+    },
+    {
+      "id": "M1cap_v52cv_f3_s2025",
+      "arm": "M1cap",
+      "fold": 3,
+      "seed": 2025,
+      "config": "M1cap_v52cv_f3_s2025.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f3_s2025",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f3_s2025 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold3_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold3.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f3_s2025.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f3_s2025"
+    },
+    {
+      "id": "M1cap_v52cv_f4_s2025",
+      "arm": "M1cap",
+      "fold": 4,
+      "seed": 2025,
+      "config": "M1cap_v52cv_f4_s2025.json",
+      "run_name": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f4_s2025",
+      "title": "M1 three-head on the v5.2 X5Dcap recipe",
+      "parent": "X5Dcap_v52cv_f4_s2025 (wss_v52_20260923_cv5)",
+      "single_change": false,
+      "config_diff_vs_parent": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/wss_global_stats_fold4_train.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold4.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f4_s2025.json"
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "paired_reference_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v52_20260923/X5Dcap_v52cv_f4_s2025"
+    }
+  ],
+  "reading_rule": "CV5 pooled out-of-fold over 261 units per seed (mean ± sd over 3 seeds) and three-seed OOF ensemble; like-for-like subset = the 136 v5.1 train units vs v5.1 cv3 M1 OOF; guard = peak channel normalized R2_cb vs the paired X5Dcap fold/seed run (drop <= 0.02, as the stage-2 M1 gate); see experiments/<exp>/PREREG.md"
+}

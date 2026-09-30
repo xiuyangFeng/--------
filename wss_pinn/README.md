@@ -2,7 +2,7 @@
 
 > **2026-09-18 数据根**：过期 V4 bundle 已腾盘，空壳目录 `data_wss_pinn/` 已撤。历史 checkpoint / 签收 atlas 在 `outputs/wss_pinn/runs/` 与 `volume_uvwp_bc_rcr_v4_anatomy_prep_20260903/`。现行训练数据是 `data_wss_v5/views_v5_1/`。若将来重建 V4，builder 会重新创建 `data_wss_pinn/`。
 
-> **2026-09-07 状态**：V4 正式重建线已于 2026-09-06 被 V5 取代（V5 设计/数据/训练文档入口：[`docs/02-推进与变更/WSS_PINN/README.md`](../docs/02-推进与变更/WSS_PINN/README.md)；四份 V4 文档已归档到 `docs/02-推进与变更/WSS_PINN/_archive/`）。本目录的 `v4/fluent_topology.py`、`v4/centerline_atlas.py`、`v4/waveform.py`、`data/raw_io.py`、`utils.py` 作为库被 V5 数据母库 `wss_v5/` 复用；`v4/build*.py`、`v4/train.py`、`v4/config.py`、`v4/models.py` 对应的 formal V4 route 不再推进，只作历史。下方 V4 状态说明按原日期保留。
+> **2026-09-07 状态**：V4 正式重建线已于 2026-09-06 被 V5 取代（V5 设计/数据/训练文档入口：[`docs/02-推进与变更/README.md`](../docs/02-推进与变更/README.md)（2026-09-24 起按块组织），体域 PINN 路线史已归档到 [`_archive/WSS_PINN/README.md`](../docs/02-推进与变更/_archive/WSS_PINN/README.md)；四份 V4 文档已归档到 `docs/02-推进与变更/_archive/WSS_PINN/_archive/`）。本目录的 `v4/fluent_topology.py`、`v4/centerline_atlas.py`、`v4/waveform.py`、`data/raw_io.py`、`utils.py` 作为库被 V5 数据母库 `wss_v5/` 复用；`v4/build*.py`、`v4/train.py`、`v4/config.py`、`v4/models.py` 对应的 formal V4 route 不再推进，只作历史。下方 V4 状态说明按原日期保留。
 
 > 当前工程活动：Centerline V2 anatomy-only formal 172 例重建前整改（源队列 173 例，
 > 排除 `YANG_BAO_KUI`）；pre-Centerline-V2
@@ -18,7 +18,7 @@
 > WSS `outputs/wss_pinn/audits/v4_wss_completed_20260827.json`。
 
 > 新 V4 设计真源：
-> [`WSS_PINN V4 大重构设计方案`](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
+> [`WSS_PINN V4 大重构设计方案`](../docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md)。
 > 历史提交链为 CPU `11970`（completed）→ GPU preflight `11971`（completed）→
 > `11972` / `12210` 与 node04 直启。当前可确认 46/48 有完成摘要、38/48 有 official
 > 场+WSS 评估；不得据此写成 48/48 完训。train-only 中期见
@@ -34,7 +34,7 @@
 > 08-31 staging 未包含这些更新且尚未排除 `blood1…blood5` 延长段。正式重建前必须完成
 > 曲率 feature atlas、全链 anatomy-only、5 个解剖 interface BC、train138 条件长尾、
 > ZHOU 收敛、raw SHA 和正式 bundle/Gate。执行真源见
-> [剩余整改与验收计划](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)。
+> [剩余整改与验收计划](../docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md)。
 
 > **2026-09-04 正式骨干决策**：用户选择 B。新的 Centerline-V2 formal V4 将恢复
 > PointNet=`P2V`、PointNet++=纯 `D2 c125-k128` 两个 V1/V2 provenance 锚点，并从
@@ -44,9 +44,9 @@
 > 旧 train138/test35 仅用于历史矩阵和 08-31 staging provenance。
 
 > **历史执行结果**：旧 field-v4 科学设计以
-> [`核心代码诊断与下一轮设计建议`](../docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)
+> [`核心代码诊断与下一轮设计建议`](../docs/02-推进与变更/_archive/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)
 > 的 `FROZEN FOR IMPLEMENTATION v1.0` 为准，并已在独立 route 完成。执行合同已归档：
-> [`冻结诊断后 Stage 0–1 提示词`](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)。
+> [`冻结诊断后 Stage 0–1 提示词`](../docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md)。
 > 新配置、派生合同和输出分别落到
 > `wss_pinn/configs/volume_uvwp_peak_field_v4/`、
 > `data_wss_pinn/volume_uvwp_peak_field_v4_train123_val15/` 和
@@ -58,10 +58,10 @@
 给定峰值时刻的患者体域点云，用 PointNet 或 PointNet++ 输出四通道
 `u,v,w,p`，并在严格配对实验中比较纯数据监督与非牛顿 PINN。
 
-活动路线真源见
-[WSS_PINN/README.md](../docs/02-推进与变更/WSS_PINN/README.md)。旧的 WSS-target
+路线史（2026-09-24 归档）见
+[_archive/WSS_PINN/README.md](../docs/02-推进与变更/_archive/WSS_PINN/README.md)；现行文档导航见 [docs/02-推进与变更/README.md](../docs/02-推进与变更/README.md)。旧的 WSS-target
 PINN 路线已冻结在
-[_archive/wss_target_v1_20260730](../docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/README.md)。
+[_archive/wss_target_v1_20260730](../docs/02-推进与变更/_archive/WSS_PINN/_archive/wss_target_v1_20260730/README.md)。
 对应历史源码位于
 [`archive/wss_target_v1_20260730/`](archive/wss_target_v1_20260730/README.md)。
 
@@ -113,7 +113,7 @@ ZHOU/ZUO 原 Q 长尾已在 raw 侧修复，但该 staging 已过期。正式训
 `0576854c9ee1864fe80db8fafe1a9f52b5d44d6bc9fe34a3c2b10abf9ba1dfef`。
 
 完整问题、修复状态和病例清单见
-[173 例训练数据数值与刚性配准审阅及修复计划](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)。
+[173 例训练数据数值与刚性配准审阅及修复计划](../docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md)。
 
 ## pre-Centerline-V2 V4 v1.2 历史实现与集群提交
 
@@ -207,7 +207,7 @@ patient-specific conditioning / 缺失可部署 BC，但 Stage 2 未在本轮启
 V3 已实现为“Fluent 瞬态 peak 标签 + Carreau–Yasuda 准稳态 PINN 正则”：使用无
 3NN/IDW 的条件 PointNet 平滑场，运行
 `xyz/xyz+geom × DATA/DATA+BC/DATA+BC+PDE` 六臂。完整预注册要求见
-[已归档的准稳态平滑场六臂预注册提示词](../docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)。
+[已归档的准稳态平滑场六臂预注册提示词](../docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_准稳态平滑场六臂实验_已完成_2026-08-05.md)。
 
 ## V3 六臂（完训并完成 test35 评估）
 
@@ -254,7 +254,7 @@ E5 `0.2336/0.3523`、E6 `0.1799/0.3144`。BC 未稳定提升总体速度；PDE �
 目标是当时冻结的 exact-timestep monitor-derived proxy，未证明等于真实
 pressure-outlet face 上的 RCR profile；test35 也已经因用于后续设计而成为
 development-exposed screen。详见
-[`docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md`](../docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)。
+[`docs/02-推进与变更/_archive/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md`](../docs/02-推进与变更/_archive/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md)。
 
 2026-08-06 起，下一轮开发不再围绕 WSS 算子、WSS loss 或 WSS 选模展开。near-wall
 仍是 `u/v/w` 场重建的困难区域，但其优化与验收直接使用速度分量、速度向量和区域误差；
@@ -329,7 +329,7 @@ development-exposed screen。详见
 ## 首轮结果入口
 
 - 完整数值、配对判读与下一轮候选协议：
-  [峰值体域 PINN 路线结果](../docs/02-推进与变更/WSS_PINN/README.md#9-首轮八实验结果2026-08-02)
+  [峰值体域 PINN 路线结果](../docs/02-推进与变更/_archive/WSS_PINN/README.md#9-首轮八实验结果2026-08-02)
 - 可复现汇总：`outputs/wss_pinn/volume_uvwp_peak_v1/summary/`
 - 8 个原始 run：`outputs/wss_pinn/volume_uvwp_peak_v1/runs/`
 
@@ -359,7 +359,7 @@ PointNet + `xyz+geom` 是唯一 `u/v/w/speed/p` 五项全部提高的配对。�
 完整体域协议下两者 speed R² 为 `0.1506/0.1820`，但 MAE/RMSE 几乎持平。PINN
 显著改善 physics residual 和压力，速度聚合 R² 小幅提高；近壁 speed R² 仍为负，
 因此当前结果不能直接支持可靠 velocity→WSS。完整八臂表、逐病例异常与下一步见
-[路线真源第 10 节](../docs/02-推进与变更/WSS_PINN/README.md#10-第二轮-same5k-e7500-v2)。
+[路线真源第 10 节](../docs/02-推进与变更/_archive/WSS_PINN/README.md#10-第二轮-same5k-e7500-v2)。
 
 ### V2 零重训 residual 诊断
 
@@ -373,7 +373,7 @@ RMS 仅 `1.84e-5 m/s`，动量 residual 已放大约 `120×`。根因是 PointNe
 另对 AG/AAA/ILO 各 1 例 CFD 真值做局部二次导数审计。`k=96` 下加入相邻时相的
 `rho·du/dt` 后，动量 residual 均值从 `1737` 降至 `1494 Pa/m`，说明 peak 并非严格
 稳态；但二阶导数对 `k=48/96` 仍敏感，绝对 residual 只作趋势诊断。完整结果和老师
-论文对照见[路线真源第 10.6–10.7 节](../docs/02-推进与变更/WSS_PINN/README.md)。
+论文对照见[路线真源第 10.6–10.7 节](../docs/02-推进与变更/_archive/WSS_PINN/README.md)。
 
 ## 代码结构
 

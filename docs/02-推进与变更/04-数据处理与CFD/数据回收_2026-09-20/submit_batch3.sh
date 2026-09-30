@@ -1,0 +1,24 @@
+#!/bin/bash
+# 第三批 13 例（RCR 协议重算后）分两波提交：第 1 波 8 例立即；第 2 波 5 例各自 afterany 依赖第 1 波的一例，
+# 同时在跑不超过 8 例（每例体场导出峰值约 170 GB，/public 剩 3.6 TB）。节点不指定（Slurm 自选空闲 CPU 节点）。用法：bash submit_batch3.sh
+set -u
+export PATH=/public/slurm/bin:$PATH
+R=/public/newhome/cy/Digital_twin/GNN/data_new
+HERE=$(cd "$(dirname "$0")" && pwd)
+mapfile -t CASES < "$HERE/rerun_batch3_cases.txt"
+LOG="$HERE/rerun_jobs.md"
+W1=(); i=0
+for c in "${CASES[@]}"; do
+  [ -f "$R/$c/fluent.slurm" ] || { echo "缺 fluent.slurm: $c"; exit 1; }
+  [ -d "$R/$c/libudf" ] && { echo "libudf 仍在（冒烟未改名？）: $c"; exit 1; }
+  if [ $i -lt 8 ]; then
+    J=$(cd "$R/$c" && sbatch --parsable fluent.slurm); W1+=("$J")
+    echo "| \`$c\`（第 3 批·波 1） | $J | $(date -Is) | (Slurm 自选) |" >> "$LOG"; echo "$c -> $J"
+  else
+    dep=${W1[$((i-8))]}
+    J=$(cd "$R/$c" && sbatch --parsable --dependency=afterany:$dep fluent.slurm)
+    echo "| \`$c\`（第 3 批·波 2，afterany:$dep） | $J | $(date -Is) | (Slurm 自选) |" >> "$LOG"; echo "$c -> $J (afterany:$dep)"
+  fi
+  i=$((i+1))
+done
+sleep 30; squeue -u cy -o "%.8i %.12j %.2t %.6M %.4C %R" | grep -v "lc_queue\|cycle"

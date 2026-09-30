@@ -123,6 +123,8 @@ def main():
         time_basis_path=getattr(cfg.data, "time_basis_path", None), time_basis_k=int(getattr(cfg.model, "time_basis_k", 0)),
         volume_time_sidecar_root=getattr(cfg.data, "volume_time_sidecar_root", None),
         volume_h5_root=getattr(cfg.data, "volume_h5_root", None),
+        cycle_view_root=getattr(cfg.data, "cycle_view_root", None),
+        multi_aux_channels=tuple(getattr(cfg.data, "multi_aux_channels", ()) or ()),
     )
     select_by_train_loss = cfg.train.selection_rule in ("train_loss", "train_loss_ema")
     select_by_ema = cfg.train.selection_rule == "train_loss_ema"
@@ -143,6 +145,8 @@ def main():
             time_basis_path=getattr(cfg.data, "time_basis_path", None), time_basis_k=int(getattr(cfg.model, "time_basis_k", 0)),
             volume_time_sidecar_root=getattr(cfg.data, "volume_time_sidecar_root", None),
             volume_h5_root=getattr(cfg.data, "volume_h5_root", None),
+            cycle_view_root=getattr(cfg.data, "cycle_view_root", None),
+            multi_aux_channels=tuple(getattr(cfg.data, "multi_aux_channels", ()) or ()),
         )
     joint_target = cfg.data.target == "velocity_pressure"
     if joint_target and not cfg.data.feature_stats_path:

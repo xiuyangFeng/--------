@@ -1,0 +1,308 @@
+{
+  "status": "passed",
+  "arms": {
+    "D1": {
+      "total_parameters": 682143,
+      "added_parameters": 0,
+      "graph_added_parameters": 0,
+      "module_contract": {
+        "arm": "D1",
+        "base": "round2_U0_query_mean",
+        "base_parameters": 682143,
+        "frame_parameters": 0,
+        "frame_input": "atlas_XYZ_columns_t_n_b_plus_validity",
+        "residual_coordinates": "XYZ",
+        "physical_scale": "sqrt(mean_XYZ(training_std_squared))",
+        "zero_initial_residual": true,
+        "anchor_parameters": 0,
+        "graph_readout_parameters": 0,
+        "graph_added_parameters": 0,
+        "relative_parameter_mismatch": 0.0,
+        "total_parameters": 682143,
+        "added_parameters": 0
+      }
+    },
+    "D2": {
+      "total_parameters": 682143,
+      "added_parameters": 0,
+      "graph_added_parameters": 0,
+      "module_contract": {
+        "arm": "D2",
+        "base": "round2_U0_query_mean",
+        "base_parameters": 682143,
+        "frame_parameters": 0,
+        "frame_input": "atlas_XYZ_columns_t_n_b_plus_validity",
+        "residual_coordinates": "XYZ",
+        "physical_scale": "sqrt(mean_XYZ(training_std_squared))",
+        "zero_initial_residual": true,
+        "anchor_parameters": 0,
+        "graph_readout_parameters": 0,
+        "graph_added_parameters": 0,
+        "relative_parameter_mismatch": 0.0,
+        "total_parameters": 682143,
+        "added_parameters": 0
+      }
+    },
+    "A0": {
+      "total_parameters": 704802,
+      "added_parameters": 22659,
+      "graph_added_parameters": 0,
+      "module_contract": {
+        "arm": "A0",
+        "base": "round2_U0_query_mean",
+        "base_parameters": 682143,
+        "frame_parameters": 22659,
+        "frame_input": "atlas_XYZ_columns_t_n_b_plus_validity",
+        "residual_coordinates": "XYZ",
+        "physical_scale": "sqrt(mean_XYZ(training_std_squared))",
+        "zero_initial_residual": true,
+        "anchor_parameters": 0,
+        "graph_readout_parameters": 0,
+        "graph_added_parameters": 0,
+        "relative_parameter_mismatch": 0.0,
+        "total_parameters": 704802,
+        "added_parameters": 22659
+      }
+    },
+    "A1": {
+      "total_parameters": 704802,
+      "added_parameters": 22659,
+      "graph_added_parameters": 0,
+      "module_contract": {
+        "arm": "A1",
+        "base": "round2_U0_query_mean",
+        "base_parameters": 682143,
+        "frame_parameters": 22659,
+        "frame_input": "atlas_XYZ_columns_t_n_b_plus_validity",
+        "residual_coordinates": "local_then_XYZ",
+        "physical_scale": "sqrt(mean_XYZ(training_std_squared))",
+        "zero_initial_residual": true,
+        "anchor_parameters": 0,
+        "graph_readout_parameters": 0,
+        "graph_added_parameters": 0,
+        "relative_parameter_mismatch": 0.0,
+        "total_parameters": 704802,
+        "added_parameters": 22659
+      }
+    },
+    "G00": {
+      "total_parameters": 761465,
+      "added_parameters": 79322,
+      "graph_added_parameters": 56663,
+      "module_contract": {
+        "arm": "G00",
+        "base": "round2_U0_query_mean",
+        "base_parameters": 682143,
+        "frame_parameters": 22659,
+        "frame_input": "atlas_XYZ_columns_t_n_b_plus_validity",
+        "residual_coordinates": "XYZ",
+        "physical_scale": "sqrt(mean_XYZ(training_std_squared))",
+        "zero_initial_residual": true,
+        "anchor_parameters": 34004,
+        "graph_readout_parameters": 22659,
+        "graph_added_parameters": 56663,
+        "relative_parameter_mismatch": 0.0003527751646284102,
+        "anchor_count": 256,
+        "anchor_neighbors": 16,
+        "graph_layers": 2,
+        "graph_hidden_actual": 76,
+        "graph_aggregation": "pointwise",
+        "anchor_condition": "BC_only",
+        "edge_geometry_dim": 7,
+        "node_edge_geometry_summary": "incoming_mean",
+        "paired_reference_anchor_parameters": 34016,
+        "graph_family_added_parameters": {
+          "G00": 56663,
+          "G01": 56967,
+          "G10": 56419,
+          "G11": 56675
+        },
+        "graph_family_relative_parameter_spread": 0.009619604332332754,
+        "graph_activation_checkpointing": true,
+        "constant_BC_static_cache": "one_phase_then_expand",
+        "phase_context": "prepared_once_reused_across_query_chunks",
+        "total_parameters": 761465,
+        "added_parameters": 79322
+      }
+    },
+    "G01": {
+      "total_parameters": 761769,
+      "added_parameters": 79626,
+      "graph_added_parameters": 56967,
+      "module_contract": {
+        "arm": "G01",
+        "base": "round2_U0_query_mean",
+        "base_parameters": 682143,
+        "frame_parameters": 22659,
+        "frame_input": "atlas_XYZ_columns_t_n_b_plus_validity",
+        "residual_coordinates": "XYZ",
+        "physical_scale": "sqrt(mean_XYZ(training_std_squared))",
+        "zero_initial_residual": true,
+        "anchor_parameters": 34308,
+        "graph_readout_parameters": 22659,
+        "graph_added_parameters": 56967,
+        "relative_parameter_mismatch": 0.008584195672624648,
+        "anchor_count": 256,
+        "anchor_neighbors": 16,
+        "graph_layers": 2,
+        "graph_hidden_actual": 76,
+        "graph_aggregation": "pointwise",
+        "anchor_condition": "phase_and_BC",
+        "edge_geometry_dim": 7,
+        "node_edge_geometry_summary": "incoming_mean",
+        "paired_reference_anchor_parameters": 34016,
+        "graph_family_added_parameters": {
+          "G00": 56663,
+          "G01": 56967,
+          "G10": 56419,
+          "G11": 56675
+        },
+        "graph_family_relative_parameter_spread": 0.009619604332332754,
+        "graph_activation_checkpointing": true,
+        "constant_BC_static_cache": "one_phase_then_expand",
+        "phase_context": "prepared_once_reused_across_query_chunks",
+        "total_parameters": 761769,
+        "added_parameters": 79626
+      }
+    },
+    "G10": {
+      "total_parameters": 761221,
+      "added_parameters": 79078,
+      "graph_added_parameters": 56419,
+      "module_contract": {
+        "arm": "G10",
+        "base": "round2_U0_query_mean",
+        "base_parameters": 682143,
+        "frame_parameters": 22659,
+        "frame_input": "atlas_XYZ_columns_t_n_b_plus_validity",
+        "residual_coordinates": "XYZ",
+        "physical_scale": "sqrt(mean_XYZ(training_std_squared))",
+        "zero_initial_residual": true,
+        "anchor_parameters": 33760,
+        "graph_readout_parameters": 22659,
+        "graph_added_parameters": 56419,
+        "relative_parameter_mismatch": 0.007525870178739417,
+        "anchor_count": 256,
+        "anchor_neighbors": 16,
+        "graph_layers": 2,
+        "graph_hidden_actual": 64,
+        "graph_aggregation": "mean",
+        "anchor_condition": "BC_only",
+        "edge_geometry_dim": 7,
+        "node_edge_geometry_summary": "incoming_mean",
+        "paired_reference_anchor_parameters": 34016,
+        "graph_family_added_parameters": {
+          "G00": 56663,
+          "G01": 56967,
+          "G10": 56419,
+          "G11": 56675
+        },
+        "graph_family_relative_parameter_spread": 0.009619604332332754,
+        "graph_activation_checkpointing": true,
+        "constant_BC_static_cache": "one_phase_then_expand",
+        "phase_context": "prepared_once_reused_across_query_chunks",
+        "total_parameters": 761221,
+        "added_parameters": 79078
+      }
+    },
+    "G11": {
+      "total_parameters": 761477,
+      "added_parameters": 79334,
+      "graph_added_parameters": 56675,
+      "module_contract": {
+        "arm": "G11",
+        "base": "round2_U0_query_mean",
+        "base_parameters": 682143,
+        "frame_parameters": 22659,
+        "frame_input": "atlas_XYZ_columns_t_n_b_plus_validity",
+        "residual_coordinates": "XYZ",
+        "physical_scale": "sqrt(mean_XYZ(training_std_squared))",
+        "zero_initial_residual": true,
+        "anchor_parameters": 34016,
+        "graph_readout_parameters": 22659,
+        "graph_added_parameters": 56675,
+        "relative_parameter_mismatch": 0.0,
+        "anchor_count": 256,
+        "anchor_neighbors": 16,
+        "graph_layers": 2,
+        "graph_hidden_actual": 64,
+        "graph_aggregation": "mean",
+        "anchor_condition": "phase_and_BC",
+        "edge_geometry_dim": 7,
+        "node_edge_geometry_summary": "incoming_mean",
+        "paired_reference_anchor_parameters": 34016,
+        "graph_family_added_parameters": {
+          "G00": 56663,
+          "G01": 56967,
+          "G10": 56419,
+          "G11": 56675
+        },
+        "graph_family_relative_parameter_spread": 0.009619604332332754,
+        "graph_activation_checkpointing": true,
+        "constant_BC_static_cache": "one_phase_then_expand",
+        "phase_context": "prepared_once_reused_across_query_chunks",
+        "total_parameters": 761477,
+        "added_parameters": 79334
+      }
+    }
+  },
+  "pairs": [
+    {
+      "arms": [
+        "A0",
+        "A1"
+      ],
+      "relative_difference": 0.0,
+      "passed": true
+    },
+    {
+      "arms": [
+        "G00",
+        "G01"
+      ],
+      "relative_difference": 0.0053364228412940825,
+      "passed": true
+    },
+    {
+      "arms": [
+        "G00",
+        "G10"
+      ],
+      "relative_difference": 0.004306160986887387,
+      "passed": true
+    },
+    {
+      "arms": [
+        "G00",
+        "G11"
+      ],
+      "relative_difference": 0.00021173356859285398,
+      "passed": true
+    },
+    {
+      "arms": [
+        "G01",
+        "G10"
+      ],
+      "relative_difference": 0.009619604332332754,
+      "passed": true
+    },
+    {
+      "arms": [
+        "G01",
+        "G11"
+      ],
+      "relative_difference": 0.005125774571243,
+      "passed": true
+    },
+    {
+      "arms": [
+        "G10",
+        "G11"
+      ],
+      "relative_difference": 0.004516982796647552,
+      "passed": true
+    }
+  ],
+  "scope": "CPU construction and active parameter gate; GPU smoke pending"
+}

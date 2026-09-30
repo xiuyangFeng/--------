@@ -1,0 +1,351 @@
+{
+  "schema": "velocity_phase_v52_matrix_v1",
+  "config_schema": "velocity_phase_v52_v1",
+  "created_date": "2026-09-30",
+  "purpose": "Velocity trough/deceleration mechanism screening; eight single-seed runs",
+  "experiment_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930",
+  "seed": 1234,
+  "fold": 0,
+  "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+  "split_sha256": "57862a4f09de4c4bec9adf0eed66cf2ce0d9e7da0528c0ee1d38e0fb0f202269",
+  "stats_sha256": "456cfb916a96d07c2f51f72549ff2e09fb671b4bb4043da9c69ac8d77ea8ced8",
+  "partition_counts": {
+    "train": 206,
+    "test": 55
+  },
+  "expected_training_runs": 8,
+  "arms": [
+    {
+      "arm": "D1",
+      "array_index": 0,
+      "batch": 1,
+      "seed": 1234,
+      "fold": 0,
+      "config": "D1_f0_s1234.json",
+      "config_sha256": "db632ac198c23796cfd05f1fd4c9222279a9a707403f688aeac5cde1b914032f",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D1_f0_s1234",
+      "primary_controls": [
+        "U0"
+      ],
+      "hypothesis": "bounded physical-direction auxiliary supervision"
+    },
+    {
+      "arm": "D2",
+      "array_index": 1,
+      "batch": 1,
+      "seed": 1234,
+      "fold": 0,
+      "config": "D2_f0_s1234.json",
+      "config_sha256": "0c19182427ede9f48de482b6300fbd6a29aa5249de5c75532c10828a5d635995",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D2_f0_s1234",
+      "primary_controls": [
+        "U0"
+      ],
+      "hypothesis": "phase-specific training speed-tail q80 supervision"
+    },
+    {
+      "arm": "A0",
+      "array_index": 2,
+      "batch": 1,
+      "seed": 1234,
+      "fold": 0,
+      "config": "A0_f0_s1234.json",
+      "config_sha256": "ca6b37b407763ac049a7a872840c41b509797d078eeafd124f2fbfc27698366c",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A0_f0_s1234",
+      "primary_controls": [
+        "U0"
+      ],
+      "hypothesis": "local anatomy frame input with XYZ residual control"
+    },
+    {
+      "arm": "A1",
+      "array_index": 3,
+      "batch": 1,
+      "seed": 1234,
+      "fold": 0,
+      "config": "A1_f0_s1234.json",
+      "config_sha256": "8dae48e01a4ca203dff28d28427f19945948b8819468f180addff836f713fe7d",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A1_f0_s1234",
+      "primary_controls": [
+        "A0"
+      ],
+      "hypothesis": "same input and scale; local-frame signed residual output"
+    },
+    {
+      "arm": "G00",
+      "array_index": 4,
+      "batch": 2,
+      "seed": 1234,
+      "fold": 0,
+      "config": "G00_f0_s1234.json",
+      "config_sha256": "4d6529def843a73cf06b2a5d0f715320e6acbe23200379e6e8ed101b2bdc254a",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G00_f0_s1234",
+      "primary_controls": [
+        "A0"
+      ],
+      "hypothesis": "static pointwise interior-anchor control"
+    },
+    {
+      "arm": "G01",
+      "array_index": 5,
+      "batch": 2,
+      "seed": 1234,
+      "fold": 0,
+      "config": "G01_f0_s1234.json",
+      "config_sha256": "ea12e7832a3a5626f723274f7fa367eeebbe374235b8b1812218760ea74af3dd",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G01_f0_s1234",
+      "primary_controls": [
+        "G00"
+      ],
+      "hypothesis": "phase-conditioned pointwise interior-anchor control"
+    },
+    {
+      "arm": "G10",
+      "array_index": 6,
+      "batch": 2,
+      "seed": 1234,
+      "fold": 0,
+      "config": "G10_f0_s1234.json",
+      "config_sha256": "eee8e225d9cf6604b967f84f4a770d6679be0f09cf9f68cea24a601f2c718cdb",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G10_f0_s1234",
+      "primary_controls": [
+        "G00"
+      ],
+      "hypothesis": "static branch-aware interior graph"
+    },
+    {
+      "arm": "G11",
+      "array_index": 7,
+      "batch": 2,
+      "seed": 1234,
+      "fold": 0,
+      "config": "G11_f0_s1234.json",
+      "config_sha256": "9b121c153ca951f1d1d5450513d1522947942f56211ca67b1c664ddfe306bfaa",
+      "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G11_f0_s1234",
+      "primary_controls": [
+        "G10",
+        "G01"
+      ],
+      "hypothesis": "phase-conditioned branch-aware interior graph"
+    }
+  ],
+  "geometry_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/velocity_phase_v52_20260930/geometry_x5d.json",
+  "geometry_config_sha256": "38517c19cb0de046a4f7ec141ab0c38a91dba63d2c00d9bbe7af7d7bc2d20abb",
+  "preregistration": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/velocity_phase_v52_20260930/PREREG.md",
+  "initialization": "fresh paired initialization; no checkpoint transfer; zero-initialized new residual outputs",
+  "fixed_budget": {
+    "epochs": 150,
+    "expected_updates": 7800,
+    "phases": 80,
+    "selection": "last",
+    "batch_cases": 4,
+    "support_n": 5000,
+    "train_velocity_queries": 1024,
+    "eval_velocity_queries": 16384
+  },
+  "baseline_configs": {
+    "Iu": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_v52_20260929/frozen/f0_s1234_v1/configs/Iu_f0_s1234.json",
+    "U0": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/U0_f0_s1234.json"
+  },
+  "parameter_matching": {
+    "relative_difference_max": 0.05,
+    "groups": [
+      [
+        "A0",
+        "A1"
+      ],
+      [
+        "G00",
+        "G01",
+        "G10",
+        "G11"
+      ]
+    ],
+    "definition": "active added parameters, max pairwise absolute difference divided by larger count"
+  },
+  "phase_windows": {
+    "cycle": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79
+    ],
+    "peak": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26
+    ],
+    "trough": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57
+    ],
+    "decel": [
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42
+    ],
+    "early_trough": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "late_trough": [
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57
+    ]
+  },
+  "scheduling": {
+    "cpu_node": "node03",
+    "gpu_partition": "GPU",
+    "gres_per_task": "gpu:4090:1",
+    "cpus_per_task": 8,
+    "memory_per_task": "32G",
+    "max_parallel": 4,
+    "chain": "CPU geometry -> one GPU training-only lambda calibration + 8-arm smoke -> array0-3%4 -> array4-7%4 afterany batch1 + afterok smoke -> afterany CPU report",
+    "existing_jobs": "No cancel/restart, no bypass Slurm; no full-data split/cache import"
+  },
+  "screening_gate": {
+    "trough_r2_delta_min": 0.02,
+    "decel_r2_delta_min": 0.01,
+    "peak_cycle_r2_delta_min": -0.005,
+    "trough_decel_vector_rmse_must_not_increase": true,
+    "trough_decel_direction_cosine_must_not_decrease": true,
+    "inference_cost_preference_u0_ratio_max": 1.5
+  },
+  "interpretation_limits": [
+    "Single patient-group fold and seed; development holdout already informed design",
+    "No unseen-waveform/external clinical evidence",
+    "No pressure/WSS retraining; velocity-only fixed sampled pool",
+    "Geometry generated only from deployment geometry; tail thresholds/probe only206 train units",
+    "No optional G-E,C1,memory,flux arms authorized by this matrix"
+  ]
+}

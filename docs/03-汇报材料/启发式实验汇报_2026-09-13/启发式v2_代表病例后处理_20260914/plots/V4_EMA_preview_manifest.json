@@ -1,0 +1,455 @@
+{
+  "generator": "render_surface_previews.py",
+  "case_count": 3,
+  "preview_count": 6,
+  "contact_sheets": {
+    "physical": "plots/V4_EMA_surface_triptychs_contact_sheet.png",
+    "selfmax": "plots/V4_EMA_surface_selfmax_triptychs_contact_sheet.png"
+  },
+  "previews": [
+    {
+      "model": "V4_EMA",
+      "role": "best",
+      "case_id": "AG/fast/RAN_QING_BO",
+      "source_mesh": "V4_EMA/best/surface_gaussian.vtp",
+      "source_mesh_sha256": "e5786b17a83fb7d05ca363b0f97519c8519cd441b9c72b6b3ad7684426c1f940",
+      "source_manifest": "V4_EMA/best/manifest.json",
+      "source_manifest_sha256": "a72099a6c0d32f0ae57b3bc68b3e11de074a2223c42a5ad3431e84463917fecf",
+      "preview": "plots/V4_EMA_best_surface_triptych.png",
+      "field_keys": [
+        "wss_cfd_pa",
+        "wss_pred_pa",
+        "wss_error_pred_minus_cfd_pa"
+      ],
+      "mode": "physical",
+      "display_normalization": null,
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        0.0,
+        37.35763517413493
+      ],
+      "signed_error_range": [
+        -29.284536589377666,
+        29.284536589377666
+      ],
+      "metric_value": 0.2599162777733912,
+      "metric_source": "manifest.visualization_metrics.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 17682,
+      "n_triangles": 35232,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          12.241729736328125,
+          -152.98338317871094,
+          926.1944885253906
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA",
+      "role": "median",
+      "case_id": "ILO/LI_YOU_ZHI-0/before",
+      "source_mesh": "V4_EMA/median/surface_gaussian.vtp",
+      "source_mesh_sha256": "31b658f7b03a1e45ecb007d0977d4ef6bd5a79bec0d503684ce27c7a2b90af36",
+      "source_manifest": "V4_EMA/median/manifest.json",
+      "source_manifest_sha256": "cb25287205a0371219cf74a9c995b0486688b037babbc8a888a3db47b6ad29c8",
+      "preview": "plots/V4_EMA_median_surface_triptych.png",
+      "field_keys": [
+        "wss_cfd_pa",
+        "wss_pred_pa",
+        "wss_error_pred_minus_cfd_pa"
+      ],
+      "mode": "physical",
+      "display_normalization": null,
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        0.0,
+        14.676414702948698
+      ],
+      "signed_error_range": [
+        -13.132389260127027,
+        13.132389260127027
+      ],
+      "metric_value": -0.04027212297224936,
+      "metric_source": "manifest.visualization_metrics.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 101654,
+      "n_triangles": 202991,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          1.4475517272949219,
+          125.65585327148438,
+          235.59819412231445
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA",
+      "role": "worst",
+      "case_id": "AG/fast/LOU_YANG",
+      "source_mesh": "V4_EMA/worst/surface_gaussian.vtp",
+      "source_mesh_sha256": "4bdb808e32d644868cf88d7a8f2c19eacd97fa5e51651e92e784c9105c8beacf",
+      "source_manifest": "V4_EMA/worst/manifest.json",
+      "source_manifest_sha256": "fffb3c5b48f1777e10a6a0f86eb3805f9989156abecddd5fcc3c67c4dc6f87ca",
+      "preview": "plots/V4_EMA_worst_surface_triptych.png",
+      "field_keys": [
+        "wss_cfd_pa",
+        "wss_pred_pa",
+        "wss_error_pred_minus_cfd_pa"
+      ],
+      "mode": "physical",
+      "display_normalization": null,
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        0.0,
+        32.97730307648675
+      ],
+      "signed_error_range": [
+        -22.870689364822624,
+        22.870689364822624
+      ],
+      "metric_value": -0.8892651028000789,
+      "metric_source": "manifest.visualization_metrics.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 10806,
+      "n_triangles": 21491,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          1.5090103149414062,
+          18.557480335235596,
+          -122.2407774925232
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA",
+      "role": "best",
+      "case_id": "AG/fast/RAN_QING_BO",
+      "source_mesh": "V4_EMA/best/surface_gaussian.vtp",
+      "source_mesh_sha256": "e5786b17a83fb7d05ca363b0f97519c8519cd441b9c72b6b3ad7684426c1f940",
+      "source_manifest": "V4_EMA/best/manifest.json",
+      "source_manifest_sha256": "a72099a6c0d32f0ae57b3bc68b3e11de074a2223c42a5ad3431e84463917fecf",
+      "preview": "plots/V4_EMA_best_surface_selfmax_triptych.png",
+      "field_keys": [
+        "wss_cfd_selfmax",
+        "wss_pred_selfmax",
+        "wss_selfmax_error_pred_minus_cfd"
+      ],
+      "mode": "selfmax",
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "wss",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall",
+        "source_point_count": 17682,
+        "cfd_max": 51.299537658691406,
+        "pred_max": 20.314324603863987,
+        "cfd_denominator": {
+          "max": 51.299537658691406,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 5.12995376586914e-11
+        },
+        "pred_denominator": {
+          "max": 20.314324603863987,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 2.0314324603863988e-11
+        },
+        "formula": {
+          "wss_cfd_selfmax": "CFD / max(original CFD)",
+          "wss_pred_selfmax": "Pred / max(original Pred)",
+          "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        0.0,
+        1.0
+      ],
+      "signed_error_range": [
+        -0.565839107219663,
+        0.565839107219663
+      ],
+      "metric_value": 0.2599162777733912,
+      "metric_source": "manifest.visualization_metrics.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 17682,
+      "n_triangles": 35232,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          12.241729736328125,
+          -152.98338317871094,
+          926.1944885253906
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA",
+      "role": "median",
+      "case_id": "ILO/LI_YOU_ZHI-0/before",
+      "source_mesh": "V4_EMA/median/surface_gaussian.vtp",
+      "source_mesh_sha256": "31b658f7b03a1e45ecb007d0977d4ef6bd5a79bec0d503684ce27c7a2b90af36",
+      "source_manifest": "V4_EMA/median/manifest.json",
+      "source_manifest_sha256": "cb25287205a0371219cf74a9c995b0486688b037babbc8a888a3db47b6ad29c8",
+      "preview": "plots/V4_EMA_median_surface_selfmax_triptych.png",
+      "field_keys": [
+        "wss_cfd_selfmax",
+        "wss_pred_selfmax",
+        "wss_selfmax_error_pred_minus_cfd"
+      ],
+      "mode": "selfmax",
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "wss",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall",
+        "source_point_count": 67760,
+        "cfd_max": 26.673507690429688,
+        "pred_max": 8.680407967133519,
+        "cfd_denominator": {
+          "max": 26.673507690429688,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 2.6673507690429687e-11
+        },
+        "pred_denominator": {
+          "max": 8.680407967133519,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 8.680407967133519e-12
+        },
+        "formula": {
+          "wss_cfd_selfmax": "CFD / max(original CFD)",
+          "wss_pred_selfmax": "Pred / max(original Pred)",
+          "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        0.0,
+        1.0
+      ],
+      "signed_error_range": [
+        -0.5090299501046787,
+        0.5090299501046787
+      ],
+      "metric_value": -0.04027212297224936,
+      "metric_source": "manifest.visualization_metrics.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 101654,
+      "n_triangles": 202991,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          1.4475517272949219,
+          125.65585327148438,
+          235.59819412231445
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    },
+    {
+      "model": "V4_EMA",
+      "role": "worst",
+      "case_id": "AG/fast/LOU_YANG",
+      "source_mesh": "V4_EMA/worst/surface_gaussian.vtp",
+      "source_mesh_sha256": "4bdb808e32d644868cf88d7a8f2c19eacd97fa5e51651e92e784c9105c8beacf",
+      "source_manifest": "V4_EMA/worst/manifest.json",
+      "source_manifest_sha256": "fffb3c5b48f1777e10a6a0f86eb3805f9989156abecddd5fcc3c67c4dc6f87ca",
+      "preview": "plots/V4_EMA_worst_surface_selfmax_triptych.png",
+      "field_keys": [
+        "wss_cfd_selfmax",
+        "wss_pred_selfmax",
+        "wss_selfmax_error_pred_minus_cfd"
+      ],
+      "mode": "selfmax",
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "wss",
+        "unit": "dimensionless",
+        "source_unit": "Pa",
+        "denominator_scope": "wall",
+        "source_point_count": 10806,
+        "cfd_max": 36.088890075683594,
+        "pred_max": 34.72071416739938,
+        "cfd_denominator": {
+          "max": 36.088890075683594,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 3.6088890075683595e-11
+        },
+        "pred_denominator": {
+          "max": 34.72071416739938,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 3.472071416739938e-11
+        },
+        "formula": {
+          "wss_cfd_selfmax": "CFD / max(original CFD)",
+          "wss_pred_selfmax": "Pred / max(original Pred)",
+          "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      },
+      "normalized_metrics_recomputed": false,
+      "color_range": [
+        0.0,
+        1.0
+      ],
+      "signed_error_range": [
+        -0.6662668013067732,
+        0.6662668013067732
+      ],
+      "metric_value": -0.8892651028000789,
+      "metric_source": "manifest.visualization_metrics.r2",
+      "metric_note": "original colocated s1234 predictions; not recomputed on interpolated mesh",
+      "n_vertices": 10806,
+      "n_triangles": 21491,
+      "camera": {
+        "type": "orthographic",
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          1.5090103149414062,
+          18.557480335235596,
+          -122.2407774925232
+        ]
+      },
+      "rendering": "complete VTP triangle topology; depth-sorted polygon projection; mean vertex scalar per triangle; no lighting"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "joint_cycle_round2_v52_v1",
+  "config_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/W1_f0_s1234.json",
+  "config_sha256": "81f8111ce79b363c0de903184b68824cf465f8a3d59174f2aaeb34fb33c0704b",
+  "stats_sha256": "456cfb916a96d07c2f51f72549ff2e09fb671b4bb4043da9c69ac8d77ea8ced8",
+  "host": "master",
+  "pid": 789191,
+  "slurm_job_id": "16164",
+  "slurm_array_task_id": null,
+  "cuda_visible_devices": "0",
+  "gpu_inventory": "index, uuid, name, memory.used [MiB]\n0, GPU-99ad58be-5459-6d50-0383-001595b234ab, NVIDIA GeForce RTX 4090, 2938 MiB\n",
+  "parameter_count": 675527,
+  "torch": "2.5.1+cu118",
+  "smoke": true,
+  "amp_init_scale": 1024,
+  "round2_contract": {
+    "module": "wall_patch",
+    "task": "wss",
+    "support_pool": "encoder_sample_only",
+    "zero_initial_residual": true,
+    "hidden": 64,
+    "neighbours": 16,
+    "aggregation": "mean",
+    "heads": 0,
+    "residual_parameters": 16096,
+    "paired_reference_parameters": 16096,
+    "relative_parameter_mismatch": 0.0
+  },
+  "gradient_method": "mean",
+  "code": {
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/training_wss_min/joint_cycle_round2_metrics.py": "621da3c2bad8dfb244cb51ad46f90d4f4b18beb2bcc75e5c4557ffba4e3c70c6",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/training_wss_min/joint_cycle_round2.py": "c2ca34b5cb09d9538147d8c678d7767ee1a0a60bbb5f1cda7891318c061e3e20",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/training_wss_min/joint_cycle_data.py": "305cd2c3e56913046e2ca4d127ff67236f01c00ecff567e3957788eae6feb823",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/training_wss_min/joint_cycle_model.py": "7c2d3177a92aacf3ad643fb423b637d637cc9c0079c20c9c9504b89e66b8ee92",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/training_wss_min/joint_cycle_round2_model.py": "52c3e0d2446f18af7c1ebfdb600dcb07d5fd06c0e39bd29607ff96c59b21136b",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/training_wss_min/joint_cycle_pcgrad.py": "1ba1fe2a6406e41a96d9f1dd657a0d7225c48fd31bb9ad894f94eda3c6ccf2f8",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/training_wss_min/joint_cycle.py": "d223c55c38b724035b6f901c02a5ed69e9aa2576adf6c3c44b994c0dece5f48a"
+  }
+}

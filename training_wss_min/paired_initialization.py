@@ -131,6 +131,8 @@ def _donor_config(cfg: C.ExpConfig, reference: C.ExpConfig, root: str):
         raise ValueError(f"no isolated fresh-initialization factory for new module {root!r}")
     if int(getattr(cfg.model, "time_basis_k", 0)) > 0:
         keys += ["out_dim", "time_basis_k"]   # 时间基头：任何输出层（head / qad_out / query_patch.out）的 donor 都要带 K+1 通道
+    if cfg.data.target == C.MULTI_TARGET and reference.data.target != C.MULTI_TARGET:
+        keys += ["out_dim"]                   # M1 三头：输出层 donor 带 3 通道，其余模块与参考逐位相同
     for key in keys:
         setattr(model_cfg, key, copy.deepcopy(getattr(cfg.model, key)))
     return model_cfg
@@ -207,6 +209,10 @@ def build_paired_model(cfg: C.ExpConfig, *, _reference_chain: tuple[Path, ...] =
         if (int(getattr(cfg.model, "time_basis_k", 0)) > 0
                 and int(getattr(reference_cfg.model, "time_basis_k", 0)) == 0):
             # 时间基头（out_dim = K+1）替换参考的单通道头：骨干/解码器全部共享，只有输出头按候选流重新构造
+            replacement_roots.update({"head", "qad_out", "query_patch.out"})
+            discarded_roots.update({"head", "qad_out", "query_patch.out"})
+        if cfg.data.target == C.MULTI_TARGET and reference_cfg.data.target != C.MULTI_TARGET:
+            # M1 三头（out_dim = 3）替换参考的单通道头：与时间基头同一套规则，骨干/解码器共享，只有输出层按候选流重新构造
             replacement_roots.update({"head", "qad_out", "query_patch.out"})
             discarded_roots.update({"head", "qad_out", "query_patch.out"})
         if (cfg.model.bottleneck_transformer and reference_cfg.model.bottleneck_transformer

@@ -80,6 +80,13 @@ training_wss_min/preflight/
 docs/**/figures/
 docs/**/preview/
 docs/**/assets_*/
+# Postview geometry/field exports and generated HTML reports (per-case viewers embed whole meshes).
+*.vtp
+*.html
+!wss_deploy/**/*.html
+!tests/fixtures/**/*.html
+# LibreOffice headless conversion profile
+**/.libreoffice_profile/
 
 # local orca tool drops
 .orca/

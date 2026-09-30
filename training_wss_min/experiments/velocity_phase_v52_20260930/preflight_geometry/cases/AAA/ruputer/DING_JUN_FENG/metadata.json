@@ -1,0 +1,190 @@
+{
+  "schema": "velocity_phase_geometry_v1",
+  "status": "passed",
+  "canonical_id": "AAA/ruputer/DING_JUN_FENG",
+  "settings": {
+    "seed": 1234,
+    "anchors": 256,
+    "neighbors": 16
+  },
+  "sources": {
+    "h5": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_1_20260916/cases/AAA__ruputer__DING_JUN_FENG/case.h5",
+      "size": 592829438,
+      "mtime_ns": 1789502568348671375
+    },
+    "bundle": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/AAA/ruputer/DING_JUN_FENG/bundle.npz",
+      "size": 97821202,
+      "mtime_ns": 1789512627015796722
+    },
+    "volume": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/AAA/ruputer/DING_JUN_FENG/volume.npz",
+      "size": 44739727,
+      "mtime_ns": 1789512780052696278
+    },
+    "flowref": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_flowref_v1/AAA/ruputer/DING_JUN_FENG/features.npz",
+      "size": 5806425,
+      "mtime_ns": 1789512773540658000
+    }
+  },
+  "original_cache_metadata_sha256": "e8194dbd4ba3de376ad61a63b3eb4c39b2bf578fe1a235caa6ce162a96f9df37",
+  "original_query_pools": {
+    "train": {
+      "count": 8192,
+      "row_sha256": "4b72868927008a35a60a6ced4b6819276f56f1828d294e0b1bb27e2cfddf303d",
+      "frame_valid_fraction": 1.0,
+      "invalid_frame_count": 0
+    },
+    "eval": {
+      "count": 16384,
+      "row_sha256": "435a27484a75a7be87cbeeeb79f2a776a89962d79958f56cf69fea91bddd2835",
+      "frame_valid_fraction": 1.0,
+      "invalid_frame_count": 0
+    }
+  },
+  "anchors": {
+    "source": "wall_static/xyz_mm + topology/wall_triangles + atlas; no CFD volume points or fields",
+    "sampling": "branch-stratified atlas tube proposals; exact capped triangle-surface rejection",
+    "seed": 7962762056902043663,
+    "count": 256,
+    "quotas": {
+      "0": 48,
+      "1": 34,
+      "2": 34,
+      "3": 34,
+      "4": 33,
+      "5": 35,
+      "6": 38
+    },
+    "branch_floor": 17,
+    "proposals": {
+      "0": 384,
+      "1": 272,
+      "2": 272,
+      "3": 272,
+      "4": 264,
+      "5": 280,
+      "6": 304
+    },
+    "accepted_candidates": {
+      "0": 381,
+      "1": 156,
+      "2": 158,
+      "3": 243,
+      "4": 250,
+      "5": 251,
+      "6": 229
+    },
+    "inside_fraction": 1.0,
+    "wall_distance_min_mm": 0.032272434693133775,
+    "closure": {
+      "closed_reference_valid": true,
+      "remaining_boundary_or_nonmanifold_edges": 0,
+      "method": "vtk_boundary_polygon_caps",
+      "caps": [
+        {
+          "loop": 0,
+          "label": "out-li",
+          "endpoint_distance_mm": 0.8402129792047734,
+          "vertices": 26
+        },
+        {
+          "loop": 1,
+          "label": "out-le",
+          "endpoint_distance_mm": 0.42926064523941665,
+          "vertices": 33
+        },
+        {
+          "loop": 2,
+          "label": "out-ri",
+          "endpoint_distance_mm": 0.9293520805977322,
+          "vertices": 32
+        },
+        {
+          "loop": 3,
+          "label": "inlet",
+          "endpoint_distance_mm": 0.9953185189425733,
+          "vertices": 83
+        },
+        {
+          "loop": 4,
+          "label": "out-re",
+          "endpoint_distance_mm": 0.5618565617076028,
+          "vertices": 36
+        }
+      ],
+      "source_edge_audit": {
+        "boundary_edges": 210,
+        "nonmanifold_edges": 0,
+        "boundary_branch_vertices": 0,
+        "boundary_cycles": 5
+      },
+      "zero_thickness_fin_cleanup": {
+        "removed_triangle_rows": [],
+        "removed_triangles": 0,
+        "pairs": [],
+        "frozen_source_modified": false
+      },
+      "fan_proofs": [],
+      "self_intersections": "not_evaluated",
+      "source_vertices_moved": false
+    }
+  },
+  "graph": {
+    "neighbors": 16,
+    "edges": 4096,
+    "parent_child_bridges": [
+      [
+        22,
+        52
+      ],
+      [
+        22,
+        103
+      ],
+      [
+        95,
+        136
+      ],
+      [
+        95,
+        179
+      ],
+      [
+        65,
+        202
+      ],
+      [
+        65,
+        235
+      ]
+    ],
+    "parent_child_edge_count": 191,
+    "same_branch_edge_count": 3905,
+    "edge_orientation": "target=edge_index[0], source=edge_index[1]",
+    "edge_columns": [
+      "source_minus_target_x",
+      "source_minus_target_y",
+      "source_minus_target_z",
+      "euclidean_distance",
+      "source_minus_target_root_path",
+      "same_branch",
+      "parent_child"
+    ],
+    "length_units": "original aligned query coord_scale (dimensionless)"
+  },
+  "anchor_frame_valid_fraction": 1.0,
+  "file_sha256": {
+    "anchors.npz": "89c8a3021e415b82f1fc79b39b7b9b5a3c0fc81682adbbfde10426bd9e6626ad",
+    "eval_frame.npy": "57b199221ec35c329d27a855d222b32e1a79f6930421def3f66a7be26f975443",
+    "eval_frame_valid.npy": "ca2aee9dd26c2891fff59277be44c14dc9b9d7fa53830ef6afaf5ecbbbfe81b9",
+    "eval_rows.npy": "e04e6133d89c347d8c17c36748d38c0a55ce1da1943ce2c0b646c75576bd1aad",
+    "train_frame.npy": "eda206067b0ac4127c5637c7565be02421620a5b25f40632087fbdb927499c1f",
+    "train_frame_valid.npy": "3f3f08b52329a6ee3831ab6f58f4a4fe07aca43a4f5f28c2b916233fec6678f3",
+    "train_rows.npy": "78aef3b9935e7305778cc1a6f50bf6ba0faecbda8ef7c41850596b37fae76263"
+  },
+  "seconds": 2.1769824028015137,
+  "fallback": "invalid source RMF => identity XYZ for both A0/A1; no rows dropped"
+}

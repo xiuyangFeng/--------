@@ -1,0 +1,68 @@
+{
+ "rule": "log(Q_ext/Q_int) = a * log((r_cap_ext / r_cap_int)^2) + b",
+ "a": 1.2645199673919005,
+ "b": 0.0961294675703845,
+ "feature": "virtual-cap radii of the geometry program (geometry/cap_radius_mm), external over internal iliac",
+ "target": "log(Q_ext/Q_int) at peak step 1162 from interfaces/*/flux_outward_m3s (labels only)",
+ "fit_on": "train136 sides only (v5.1 train136 = IND train170 minus nothing new; same protocol as the 09-15 rule)",
+ "n_train_sides": 272,
+ "n_test_sides": 68,
+ "train_r2": 0.9057188614405776,
+ "test_r2": 0.9031263830287872,
+ "murray_raw_r2_train": 0.8742158587390287,
+ "murray_raw_r2_test": 0.8106042970500775,
+ "residual_sd_train": 0.22597797090507207,
+ "residual_sd_test": 0.1947814436422782,
+ "target_sd": 0.7153604018272953,
+ "per_cohort": {
+  "AAA": {
+   "n_sides": 108,
+   "r2_rule": 0.906285443327651,
+   "r2_murray_raw": 0.8526138933773308
+  },
+  "AG": {
+   "n_sides": 150,
+   "r2_rule": 0.929620955277682,
+   "r2_murray_raw": 0.90129426121225
+  },
+  "ILO": {
+   "n_sides": 82,
+   "r2_rule": 0.8452010889919649,
+   "r2_murray_raw": 0.7937613960403473
+  }
+ },
+ "protocol_shares": {
+  "root": 1.0,
+  "common_iliac": 0.5
+ },
+ "cases_with_missing_sides": [],
+ "deployment_inputs_only_geometry": true,
+ "created_at": "2026-09-30T17:17:38+0800",
+ "sources": "each unit's current v5.2c case.h5 (view_report source); label-fixed and end-radius-rebuilt units differ from v5.1",
+ "units_with_new_source": [
+  "AAA/ruputer/LI_BING_JIANG",
+  "AAA/ruputer/MENG_GUANG_QIN",
+  "AAA/ruputer/WANG_FU_SHUN",
+  "AAA/unruputer/CHEN_SHU_LIN",
+  "AAA/unruputer/GUO_BAO_CHUN",
+  "AAA/unruputer/LIN_JIAN_RONG",
+  "AG/slow/HE_SHU_ZHEN",
+  "AG/slow/LIU_FENG",
+  "AG/slow/LIU_ZONG_YANG",
+  "AG/slow/LI_CHONG_ZENG",
+  "AG/slow/LI_GUI_YING",
+  "AG/slow/SUN_ZONG_GE",
+  "ILO/LIU_BAO_JUN-0/before",
+  "ILO/SUN_DE_QI-1/before",
+  "ILO/SUN_YU_SHENG-0/before",
+  "ILO/ZHANG_YAN_SHAN-0/before",
+  "ILO/ZHANG_YONG_SHENG-0/before"
+ ],
+ "supersedes": {
+  "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_flowref_v1/flow_split_rule_train136.json",
+  "a": 1.1504325542818956,
+  "b": 0.14732857530580903,
+  "reproduced_bit_exactly": true
+ },
+ "script": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_labelfix_20260930/refit_flow_split_rule.py"
+}

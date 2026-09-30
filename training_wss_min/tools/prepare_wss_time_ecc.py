@@ -1,6 +1,6 @@
 """Prepare the wss_time_ecc_20260918 stage-2 screening matrix (cv3_v51 folds, seed 1234): T0 / TB8 / TB16.
 
-Matrix: docs/02-推进与变更/WSS_PINN/WSS_V5_偏心与全周期时间实验矩阵_2026-09-18.md §5.
+Matrix: docs/02-推进与变更/02-时间建模/WSS_V5_偏心与全周期时间实验矩阵_2026-09-18.md §5.
 Base = wave-2a fold recipes (X5D_v51 on cv3_v51 fold k; train = other two folds, held-out fold = 'test'; test34 unused).
 Frozen stage-0 artifacts (experiments/wss_time_ecc_20260918/offline, job 15062): protocol_inlet_waveform_v51.json,
 wss_frame_stats_fold{k}.json (per-frame log statistics, train fold only), time_basis_fold{k}.npz (train-fold PCA).

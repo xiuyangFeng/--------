@@ -1,0 +1,209 @@
+{
+  "job_id": "909271058",
+  "started_at": "2026-09-27T10:59:00+0800",
+  "status": "failed",
+  "gpus": [
+    "0",
+    "1"
+  ],
+  "slots_per_gpu": 3,
+  "launch_interval_seconds": 45.0,
+  "arms": {
+    "X5Dcap_asym15_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym15_s1234.json",
+      "run_name": "wss_v52_phys2n_20260927/X5Dcap_asym15_s1234",
+      "phase": 1,
+      "status": "cancelled",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:59:00+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2n_20260927/logs/X5Dcap_asym15_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym15_s1234.json"
+          ],
+          "pid": 2057325,
+          "returncode": -15,
+          "ended_at": "2026-09-27T13:33:09+0800",
+          "interrupted": true
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0",
+      "failed_stage": "train"
+    },
+    "X5Dcap_asym3_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym3_s1234.json",
+      "run_name": "wss_v52_phys2n_20260927/X5Dcap_asym3_s1234",
+      "phase": 1,
+      "status": "cancelled",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:59:00+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2n_20260927/logs/X5Dcap_asym3_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym3_s1234.json"
+          ],
+          "pid": 2057328,
+          "returncode": -15,
+          "ended_at": "2026-09-27T13:33:09+0800",
+          "interrupted": true
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1",
+      "failed_stage": "train"
+    },
+    "X5Dcap_asym15_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym15_s7.json",
+      "run_name": "wss_v52_phys2n_20260927/X5Dcap_asym15_s7",
+      "phase": 1,
+      "status": "cancelled",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:59:45+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2n_20260927/logs/X5Dcap_asym15_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym15_s7.json"
+          ],
+          "pid": 2057883,
+          "returncode": -15,
+          "ended_at": "2026-09-27T13:33:09+0800",
+          "interrupted": true
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0",
+      "failed_stage": "train"
+    },
+    "X5Dcap_asym3_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym3_s7.json",
+      "run_name": "wss_v52_phys2n_20260927/X5Dcap_asym3_s7",
+      "phase": 1,
+      "status": "cancelled",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:59:45+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2n_20260927/logs/X5Dcap_asym3_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym3_s7.json"
+          ],
+          "pid": 2057886,
+          "returncode": -15,
+          "ended_at": "2026-09-27T13:33:09+0800",
+          "interrupted": true
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1",
+      "failed_stage": "train"
+    },
+    "X5Dcap_asym15_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym15_s2025.json",
+      "run_name": "wss_v52_phys2n_20260927/X5Dcap_asym15_s2025",
+      "phase": 1,
+      "status": "cancelled",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T11:00:30+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2n_20260927/logs/X5Dcap_asym15_s2025_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym15_s2025.json"
+          ],
+          "pid": 2058441,
+          "returncode": -15,
+          "ended_at": "2026-09-27T13:33:09+0800",
+          "interrupted": true
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0",
+      "failed_stage": "train"
+    },
+    "X5Dcap_asym3_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym3_s2025.json",
+      "run_name": "wss_v52_phys2n_20260927/X5Dcap_asym3_s2025",
+      "phase": 1,
+      "status": "cancelled",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T11:00:30+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2n_20260927/logs/X5Dcap_asym3_s2025_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2n_20260927/X5Dcap_asym3_s2025.json"
+          ],
+          "pid": 2058444,
+          "returncode": -15,
+          "ended_at": "2026-09-27T13:33:09+0800",
+          "interrupted": true
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1",
+      "failed_stage": "train"
+    }
+  },
+  "matrix": "wss_v52_phys2n_20260927",
+  "expected_training_runs": 6,
+  "expected_evaluations": 12,
+  "preflight_verification": {
+    "preflight": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2n_20260927/runtime_preflight.json",
+    "sha256": "c863d8d5aebde46f0aa798ffb9054c855fe2ee6591d2a9f39cad023103bf7519",
+    "job_id": "node04_manual_20260927T105338"
+  },
+  "stop_signal": 15,
+  "ended_at": "2026-09-27T13:33:09+0800"
+}

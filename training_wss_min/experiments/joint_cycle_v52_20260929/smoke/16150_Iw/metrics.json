@@ -1,0 +1,89 @@
+{
+  "schema": "joint_cycle_v52_v1",
+  "arm": "Iw",
+  "seed": 1234,
+  "variant": "I",
+  "status": "smoke_passed",
+  "partition": "train",
+  "n_units": 2,
+  "phase_count": 80,
+  "selection": "last",
+  "parameter_count": 659431,
+  "aggregation": "equal data-unit mean of area/volume weighted metrics; internal development only",
+  "tasks": {
+    "wss": {
+      "cycle": {
+        "rmse": 2.628481820413361,
+        "mae": 0.8832018790310298,
+        "relative_l2": 0.9895833050645091,
+        "r2": -0.15042280464811536,
+        "mse": 10.008201916755032,
+        "truth_energy": 11.25352024391385,
+        "spatial_spearman_unweighted": -0.41808619647480816
+      },
+      "peak": {
+        "rmse": 5.926218225124944,
+        "mae": 2.880108467017795,
+        "relative_l2": 1.0018470526989975,
+        "r2": -0.27471553979708496,
+        "mse": 51.57040698627397,
+        "truth_energy": 57.44844011910999,
+        "spatial_spearman_unweighted": -0.5902106804208206
+      },
+      "accel": {
+        "rmse": 2.439367698145327,
+        "mae": 1.2195826735740543,
+        "relative_l2": 1.0324121253054803,
+        "r2": -0.43988209288692953,
+        "mse": 7.584644757855889,
+        "truth_energy": 9.050687453457844,
+        "spatial_spearman_unweighted": -0.5660585681642891
+      },
+      "decel": {
+        "rmse": 3.015985956600701,
+        "mae": 1.2550693770220724,
+        "relative_l2": 0.9610452501090517,
+        "r2": -0.13895969568585953,
+        "mse": 13.50216810391289,
+        "truth_energy": 14.982461111632439,
+        "spatial_spearman_unweighted": -0.4559797936531703
+      },
+      "plateau": {
+        "rmse": 0.43277341182989054,
+        "mae": 0.25663306550299214,
+        "relative_l2": 0.7989982167621663,
+        "r2": -0.23360754799993022,
+        "mse": 0.2461844745405174,
+        "truth_energy": 0.36199190608541504,
+        "spatial_spearman_unweighted": -0.37996613575251537
+      },
+      "trough": {
+        "rmse": 0.5936461300502396,
+        "mae": 0.31538920681760463,
+        "relative_l2": 0.8590483654199083,
+        "r2": -0.300078879316665,
+        "mse": 0.4588949848735468,
+        "truth_energy": 0.6474623448688872,
+        "spatial_spearman_unweighted": -0.3013808286428894
+      },
+      "tawss_80": {
+        "rmse": 1.6501186685251252,
+        "mae": 0.7898443892864929,
+        "relative_l2": 0.9480831584111786,
+        "r2": -0.33794812065370416,
+        "mse": 3.907689644237742,
+        "truth_energy": 4.6481262072536875
+      },
+      "numeric_exp_clipped_count": 0.0
+    }
+  },
+  "train_seconds": 1.3571550440001374,
+  "peak_cuda_memory_bytes": 1185530880,
+  "inference": {
+    "definition": "audited cache load + tensor transfer + geometry encode + all task/80-phase decode; excludes original geometry preprocessing and file export",
+    "median_s": 0.13372361199981242,
+    "p95_s": 0.1455933988000652,
+    "cold_first_case_s": 0.12053495999953157,
+    "n_units": 2
+  }
+}

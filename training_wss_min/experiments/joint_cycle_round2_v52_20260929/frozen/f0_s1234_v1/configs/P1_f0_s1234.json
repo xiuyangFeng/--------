@@ -1,0 +1,73 @@
+{
+  "schema": "joint_cycle_round2_v52_v1",
+  "seed": 1234,
+  "experiment_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+  "data": {
+    "cache_root": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_v52_20260929/data_audit_cache",
+    "stats_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_v52_20260929/data_audit_cache/stats.json",
+    "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+    "split_version": "cv5_v52/fold0",
+    "split_sha256": "57862a4f09de4c4bec9adf0eed66cf2ce0d9e7da0528c0ee1d38e0fb0f202269",
+    "fold": 0,
+    "support_n": 5000,
+    "train_query_n": {
+      "velocity": 1024,
+      "pressure": 1024,
+      "wss": 1024
+    },
+    "eval_query_n": {
+      "velocity": 16384,
+      "pressure": 16384,
+      "wss": 8192
+    },
+    "stats_sha256": "456cfb916a96d07c2f51f72549ff2e09fb671b4bb4043da9c69ac8d77ea8ced8"
+  },
+  "model": {
+    "geometry_config_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/geometry_x5d.json",
+    "geometry": {
+      "local_branch_directional": false
+    },
+    "token_count": 128,
+    "token_hidden": 64,
+    "token_heads": 4,
+    "head_hidden": 128,
+    "activation_checkpointing": false,
+    "round2_hidden": 64,
+    "round2_neighbors": 16,
+    "round2_heads": 4,
+    "temporal_bottleneck": 32,
+    "round2_module": "none"
+  },
+  "train": {
+    "epochs": 150,
+    "batch_cases": 4,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 5,
+    "min_lr_ratio": 0.01,
+    "grad_clip": 1,
+    "num_workers": 2,
+    "torch_threads": 4,
+    "amp": true,
+    "allow_tf32": true,
+    "phases": 80,
+    "phase_chunk": 8,
+    "selection": "last",
+    "checkpoint_every": 5,
+    "amp_init_scale": 1024,
+    "gradient_method": "mean"
+  },
+  "eval": {
+    "partition": "test",
+    "query_chunk": 1024,
+    "angle_speed_floor_m_s": 0.01,
+    "save_predictions": true,
+    "extended_phase_metrics": true
+  },
+  "arm": "P1",
+  "variant": "J1",
+  "tasks": [
+    "pressure"
+  ],
+  "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/P1_f0_s1234"
+}

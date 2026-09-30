@@ -1,0 +1,18 @@
+{
+  "metric_definition": {
+    "r2": "physical Pa case-balanced R2_cb; each case contributes equally",
+    "mae": "physical Pa case-balanced MAE = mean over cases of pointwise MAE",
+    "checkpoint": "best"
+  },
+  "rows": [
+    {"data":"v5.0","recipe":"X5D","eval":"old test34","seeds":"5-seed Pa ensemble","r2_cb":0.7465168080,"mae_pa_casebalanced":1.4358533860,"source":"training_wss_min/runs/wss_local_wave6_20260915 + wss_local_wave6b_20260915"},
+    {"data":"v5.1","recipe":"X5D","eval":"new test34","seeds":"5-seed Pa ensemble","r2_cb":0.7748513641,"mae_pa_casebalanced":1.3571371694,"source":"training_wss_min/runs/wss_v51_wave1_20260916/X5D_v51_s{1234,7,2025,11,2026}/eval/ckpt_best/predictions"},
+    {"data":"v5.1","recipe":"X5Dcap","eval":"new test34","seeds":"3-seed Pa ensemble (1234,7,2025)","r2_cb":0.7770447074,"mae_pa_casebalanced":1.3347875288,"source":"training_wss_min/runs/wss_v51_wave1_20260916/X5Dcap_s{1234,7,2025}/eval/ckpt_best/predictions","caveat":"cap has 3 seeds only"},
+    {"data":"v5.1","recipe":"X5D","eval":"cv3 OOF 136","seeds":"seed1234, three folds pooled","r2_cb":0.7099926845,"mae_pa_casebalanced":1.5039995558,"source":"training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f{0,1,2}_s1234/eval/ckpt_best/predictions"},
+    {"data":"v5.2","recipe":"X5D","eval":"IND 91 recovered units","seeds":"5-seed Pa ensemble","r2_cb":0.7514128275,"mae_pa_casebalanced":1.0919291582,"source":"training_wss_min/runs/wss_v52_20260923/X5D_v52ind_s{1234,7,2025,11,2026}/eval/ckpt_best/predictions","caveat":"independent of training but not blind development holdout"},
+    {"data":"v5.2","recipe":"X5Dcap","eval":"IND 91 recovered units","seeds":"5-seed Pa ensemble","r2_cb":0.7643811238,"mae_pa_casebalanced":1.0607483368,"source":"training_wss_min/runs/wss_v52_20260923/X5Dcap_v52ind_s{1234,7,2025,11,2026}/eval/ckpt_best/predictions","caveat":"independent of training but not blind development holdout"},
+    {"data":"v5.2","recipe":"X5D","eval":"CV5 OOF 261","seeds":"3-seed mean±sd","r2_cb_mean":0.7538385316,"r2_cb_sd":0.0022478870,"mae_pa_casebalanced_mean":1.2810061143,"mae_pa_casebalanced_sd":0.0022978063,"source":"training_wss_min/experiments/wss_v52_20260923/readout_ckpt_best.{md,json} and runs/wss_v52_20260923/X5D_v52cv_f{0..4}_s{1234,7,2025}/eval/ckpt_best/predictions"},
+    {"data":"v5.2","recipe":"X5Dcap","eval":"CV5 OOF 261","seeds":"3-seed mean±sd","r2_cb_mean":0.7607643066,"r2_cb_sd":0.0019326074,"mae_pa_casebalanced_mean":1.2534133840,"mae_pa_casebalanced_sd":0.0058255684,"source":"training_wss_min/experiments/wss_v52_20260923/readout_ckpt_best.{md,json} and runs/wss_v52_20260923/X5Dcap_v52cv_f{0..4}_s{1234,7,2025}/eval/ckpt_best/predictions"},
+    {"data":"v5.2","recipe":"X5D","eval":"IND 91 same-set historical frozen v5.1","seeds":"5-seed Pa ensemble","r2_cb":0.749,"mae_pa_casebalanced":null,"source":"training_wss_min/experiments/wss_v52_20260923/readout_ckpt_best.md","caveat":"before end-radius rebuild; MAE not retained in historical readout; R2-only reference"}
+  ]
+}

@@ -1,7 +1,7 @@
 # AAA / WSS 数字孪生实验仓库
 
 本仓库包含血管几何预处理、WSS 场重建训练，以及 velocity→WSS 物理估算对照。
-**当前实验入口（2026-09-12）**是 V5 的几何点云直接 WSS/体场预测。直接 WSS 14臂矩阵已完成400轮及28份best/last评估；C1（方向邻域＋完整壁面patch/FiLM）本轮最优，Pa R²为0.6575/0.6593。单seed、test34开发筛选；详见[最终结果](docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md)与[结果工作簿](docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx)。
+**当前时间建模实验（2026-09-30）**：V5.2完整周期速度难段8臂全部完训完评，沿用206训练/55开发留出、fold0、seed1234、150轮last及80相位。G11峰/谷/减速/周期R²为0.8167/0.3159/0.6876/0.7571，平均精度最好但未满足完整预注册条件；D1改善方向，谷底仍是瓶颈。见[本轮分析与成绩](training_wss_min/experiments/velocity_phase_v52_20260930/README.md)、[时间建模入口](docs/02-推进与变更/02-时间建模/README.md)与[结果工作簿](docs/03-汇报材料/WSS_PointNet实验矩阵与结果汇总last.xlsx)。这是单折单seed开发筛选，未替换部署。09-12直接WSS 14臂结果保留在[历史跟踪](docs/02-推进与变更/00-V5设计与历史跟踪/WSS_V5_训练实验跟踪_历史卷_2026-09-06至09-20.md)。
 `wss_mri_calculator` 的 Profile-Secant V3 保持为下游验证器；下方2026-09-04的V4状态仅作版本历史。
 
 几何数据侧已于 2026-08-28 完成 **Centerline V2 173 例全队列修复**：173/173 通过硬
@@ -16,11 +16,14 @@ route 从未达到 `training_ready=true`。`data_wss_min` 和其他旧 bundle �
 
 | 路线 | 代码 | 数据 / 产物 | 说明入口 |
 | --- | --- | --- | --- |
+| **V5.2完整周期速度** | [`velocity_phase`](training_wss_min/velocity_phase.py) | `runs/velocity_phase_v52_20260930/`，8/8完训完评 | [分析、核验与完整矩阵](training_wss_min/experiments/velocity_phase_v52_20260930/README.md) |
 | **V5直接WSS** | [`training_wss_min/`](training_wss_min/) | `runs/wss_direct_recovery_20260912/`，14/14完整验收 | [14臂结果与判读](training_wss_min/experiments/wss_direct_recovery_20260912/README.md) |
-| **体域 `u,v,w,p` PINN** | [`wss_pinn/`](wss_pinn/) | 旧 BC/RCR V4 为 pre-Centerline-V2 容量配平历史矩阵；formal V4 已选 P2V/D2 `c125-k128`，但代码/配置与 anatomy-only 重建未完成，仍 `training_ready=false` | [剩余整改与验收计划](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md) · [173 例初审](docs/02-推进与变更/WSS_PINN/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md) · [`wss_pinn/README.md`](wss_pinn/README.md) · [路线真源](docs/02-推进与变更/WSS_PINN/README.md) |
+| **体域 `u,v,w,p` PINN** | [`wss_pinn/`](wss_pinn/) | 旧 BC/RCR V4 为 pre-Centerline-V2 容量配平历史矩阵；formal V4 已选 P2V/D2 `c125-k128`，但代码/配置与 anatomy-only 重建未完成，仍 `training_ready=false` | [剩余整改与验收计划](docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4正式重建前剩余整改问题与验收计划_2026-09-03.md) · [173 例初审](docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4_173例训练数据数值与刚性配准审阅及修复计划_2026-08-30.md) · [`wss_pinn/README.md`](wss_pinn/README.md) · [路线真源](docs/02-推进与变更/_archive/WSS_PINN/README.md) |
 | **WSS-min 预处理** | [`pipeline_wss_min/`](pipeline_wss_min/) | `data_wss_min/` | [`pipeline_wss_min/README.md`](pipeline_wss_min/README.md) |
 | **WSS-min 训练** | [`training_wss_min/`](training_wss_min/) | `outputs/wss_min/`（及本目录 `runs/`） | [`training_wss_min/README.md`](training_wss_min/README.md) |
 | velocity→WSS 冻结验证器 | [`wss_mri_calculator/`](wss_mri_calculator/) | `outputs/wss_mri_calculator/`、`outputs/wss_pinn/audits/…` | [V1–V4 总跟踪](wss_mri_calculator/experiments/README.md) · [CFD 适配说明](wss_mri_calculator/README_CFD_ADAPTATION.md) |
+
+时间建模仅维护两份主文档：[完整实验跟踪与结果](docs/02-推进与变更/02-时间建模/时间建模_实验跟踪.md) · [研究思路与文献](docs/02-推进与变更/02-时间建模/时间建模_研究思路与文献.md)。阶段原稿见块内归档。
 
 文档总索引：[`docs/README.md`](docs/README.md)。
 WSS-min 推进记录（专用，勿混入 V3 大日志）：[`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`](docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md)。
@@ -29,7 +32,7 @@ WSS-min 推进记录（专用，勿混入 V3 大日志）：[`docs/02-推进与�
 
 - **WSS-min 数据**：v4 活动口径；AG76（`stl_landmarks_v4`）；AAA 几何签核 63 / 训练白名单 57；ILO 术前审核通过 41（未进正式 split）。产物独立于 `data_new/`。
 - **Centerline V2**：2026-08-28 源几何曾为 173/173 通过；08-31 WSS_PINN staging 也曾通过当时工程 Gate，但因后续 raw/anatomy-only 合同更新已过期。formal split 现为 train138/test34；正式 bundle 尚未重建，训练仍 No-Go。
-- **WSS-min 训练**：单 seed 开发锚点为 **LSA2 SAME-H2 + `log(local_radius)`**（`R²_cb≈0.3506`）；暂不做多 seed。矩阵真源见 [PointNet baseline 进度跟踪](docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。
+- **WSS-min 训练**：单 seed 开发锚点为 **LSA2 SAME-H2 + `log(local_radius)`**（`R²_cb≈0.3506`）；暂不做多 seed。矩阵真源见 [PointNet baseline 进度跟踪](docs/02-推进与变更/_archive/WSS最小化/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。
 - **体域 PINN 新 V4**：旧 48-run 属于 pre-Centerline-V2 历史 screen。八例低压力族及
   ZHOU/ZUO 原 Q 长尾已完成 raw 修复；剩余阻断为曲率 atlas、全链 anatomy-only、解剖
   interface BC、train138 条件长尾、ZHOU 收敛、raw SHA 和正式 bundle/Gate 重建。正式
@@ -61,7 +64,7 @@ $PY -m training_wss_min.evaluate --config <config.json>
 
 - 预处理：[`pipeline_wss_min/README.md`](pipeline_wss_min/README.md) · Agent 约束：[`pipeline_wss_min/AGENTS.md`](pipeline_wss_min/AGENTS.md)
 - 训练：[`training_wss_min/README.md`](training_wss_min/README.md)
-- 进度：[PointNet baseline 矩阵](docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) · [训练实验跟踪](docs/02-推进与变更/WSS最小化_训练实验跟踪.md)
+- 进度：[PointNet baseline 矩阵](docs/02-推进与变更/_archive/WSS最小化/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md) · [训练实验跟踪](docs/02-推进与变更/_archive/WSS最小化/WSS最小化_训练实验跟踪.md)
 - 历史诊断归档：[`docs/02-推进与变更/_archive/WSS最小化/`](docs/02-推进与变更/_archive/WSS最小化/)
 
 ---

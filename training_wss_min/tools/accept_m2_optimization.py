@@ -722,7 +722,7 @@ def main():
         require(workbook["completed_best"] == workbook["completed_last"] == len(arms)
                 and workbook["row_deletion"] is False, "workbook result coverage differs")
         evidence["workbook"] = {**workbook, **verify_workbook_backup(workbook)}
-        tracker = ROOT / "docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md"
+        tracker = ROOT / "docs/02-推进与变更/00-V5设计与历史跟踪/WSS_V5_训练实验跟踪_历史卷_2026-09-06至09-20.md"
         content = tracker.read_text()
         heading = "## 16. M2优化：20项完整筛选与组合结论（2026-09-09–10）"
         require(content.count(heading + "\n") == 1, "tracker section missing/duplicated")

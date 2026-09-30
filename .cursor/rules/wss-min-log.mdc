@@ -1,6 +1,6 @@
 ---
 description: WSS 独立线（pipeline_wss_min/training_wss_min/wss_mri_calculator/wss_pinn）代码/文档变更须同步更新专用推进记录
-globs: pipeline_wss_min/**,training_wss_min/**,wss_mri_calculator/**,wss_pinn/**,docs/02-推进与变更/WSS最小化*.md,docs/02-推进与变更/WSS_PINN/**
+globs: pipeline_wss_min/**,training_wss_min/**,wss_mri_calculator/**,wss_pinn/**,docs/02-推进与变更/WSS最小化*.md,docs/02-推进与变更/0?-*/**
 alwaysApply: false
 ---
 
@@ -15,7 +15,7 @@ alwaysApply: false
 - 新增条目写在文档**开头**（最新在上），不得在文末追加。
 - 本文件已滚动切卷：只保留 2026-08 以来条目，2026-07 见 `_archive/WSS最小化_代码修改与实验推进记录_2026-07卷.md`；切卷规则见文首索引。
 - V3P / 训练主线 / 通用变更仍写 `docs/02-推进与变更/代码修改与实验推进记录.md`；重要 WSS 线节点在主日志加一条**指针/摘要**条目即可。
-- `WSS最小化_训练实验跟踪.md` 与 `WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md` 已 🧊 冻结，**不再续写**；`wss_pinn` 实验状态写入 `docs/02-推进与变更/WSS_PINN/README.md`。
+- `WSS最小化_训练实验跟踪.md` 与 `WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md` 已 🧊 冻结，**不再续写**（2026-09-24 移入 `docs/02-推进与变更/_archive/WSS最小化/`）；V5 各线实验结果写入所属块（`docs/02-推进与变更/0N-*/` 的实验跟踪或矩阵，导航 `docs/02-推进与变更/README.md`）；体域 PINN 已停，`docs/02-推进与变更/_archive/WSS_PINN/README.md` 只读。
 
 ## 记录内容（每条至少包含）
 
@@ -36,7 +36,8 @@ alwaysApply: false
 ## 上位入口（按需只读）
 
 - `pipeline_wss_min/README.md` · `wss_pinn/README.md`
-- `docs/02-推进与变更/WSS_PINN/README.md`（当前主线真源）
+- `docs/02-推进与变更/README.md`（V5 各块导航：00 设计与历史跟踪 / 01 X5D 主线与新数据 / 02 时间建模 / 03 周期量 TAWSS·OSI / 04 数据处理与 CFD / 05 部署工具）
+- `docs/02-推进与变更/_archive/WSS_PINN/README.md`（体域 PINN 路线史，2026-09-24 归档，只读）
 - `docs/02-推进与变更/_archive/WSS最小化/WSS最小化预处理流程_搭建与交接记录_2026-07-07.md`（已归档）
 - `docs/README.md` 中 WSS-only 最小化导航
 

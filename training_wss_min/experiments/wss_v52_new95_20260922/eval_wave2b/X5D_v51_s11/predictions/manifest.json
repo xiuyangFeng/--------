@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "target": "wss",
+  "checkpoint": "best",
+  "evaluation_split_path": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/splits/split_new95_wave2b_eval_only_20260922.json",
+  "partitions": {
+    "test": [
+      {
+        "unit_id": "ILO/SUN_XU_XIA-1/after",
+        "file": "test/ILO/SUN_XU_XIA-1/after/predictions.npz",
+        "n_points": 89708,
+        "sha256": "8c068d6a8fda22af2177c4f0ce9005fa80ab06e2c354016357e35f2a041a3ec6",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z"
+      }
+    ]
+  },
+  "checkpoint_sha256": "163e6f2c3c42c88bb88e9147678b0948918c742ee25a93c6e8454f80527eaf31",
+  "config_sha256": "c440861ecc6b6de045b0fc1117926cebcc943921603d94e17b9b46991fe3911b",
+  "wss_stats_sha256": "5caaaedeadff36c19c43a67bf35d2e78b840278c928037ffebc1ece105e27f65"
+}

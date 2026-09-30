@@ -14,7 +14,7 @@ from training_wss_min.tools.m2_optimization_common import EXP, ROOT, RUNS, COMBI
 from training_wss_min.tools.tracker_section import replace_or_append, split_section
 
 TRACKER_HEADING = "## 16. M2优化：20项完整筛选与组合结论（2026-09-09–10）"
-TRACKER = ROOT / "docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md"
+TRACKER = ROOT / "docs/02-推进与变更/00-V5设计与历史跟踪/WSS_V5_训练实验跟踪_历史卷_2026-09-06至09-20.md"
 LINK = "../../../training_wss_min/experiments/m2_optimization_20260909/"
 
 

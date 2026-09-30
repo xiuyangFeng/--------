@@ -1,0 +1,76 @@
+{
+  "case": "outputs/wss_deploy_jobs/20260927_145732_67eba52ab03c",
+  "n_points": 57952,
+  "dtype": "float64",
+  "environment": {
+    "host": "master",
+    "numpy": "1.26.4",
+    "scipy": "1.15.2",
+    "threads": 4
+  },
+  "input_files": {
+    "outputs/wss_deploy_jobs/20260927_145732_67eba52ab03c/geometry_cache/resample-870574827abfefa0f764afd24a765195011581dc.npz": "c21494dd8d3113e82d6dc851b7d20d797ec388af797743f247cec1611f77af4a",
+    "outputs/wss_deploy_jobs/20260927_145732_67eba52ab03c/geometry_cache/pointgeom-ba54b8943024bfd8b567b74b6f953ba0837b2436.npz": "bfae4661bddd767919659f3578e0facfeca1e2db5d9a6e27d6e2795fba4aeb3f"
+  },
+  "full_cloud": {
+    "samples_s": [
+      0.20765059581026435,
+      0.2068643718957901,
+      0.23047919804230332
+    ],
+    "median_s": 0.20765059581026435
+  },
+  "caps_with_spacing_query": {
+    "samples_s": [
+      0.09088642615824938,
+      0.0910944389179349,
+      0.09107726439833641
+    ],
+    "median_s": 0.09107726439833641
+  },
+  "caps_with_cached_spacing": {
+    "samples_s": [
+      0.0217342646792531,
+      0.03681323863565922,
+      0.021001192275434732
+    ],
+    "median_s": 0.0217342646792531
+  },
+  "caps_exact_equal": true,
+  "full_to_caps_ratio": 2.2799388758766588,
+  "map_all_features": {
+    "samples_s": [
+      0.08946096990257502,
+      0.0895523582585156,
+      0.0879449569620192
+    ],
+    "median_s": 0.08946096990257502
+  },
+  "nearest_only": {
+    "samples_s": [
+      0.043137132190167904,
+      0.043659967835992575,
+      0.043637553695589304
+    ],
+    "median_s": 0.043637553695589304
+  },
+  "nearest_row_mismatches": 0,
+  "knn16": {
+    "samples_s": [
+      0.26714004715904593,
+      0.25290467496961355,
+      0.15871101804077625
+    ],
+    "median_s": 0.25290467496961355
+  },
+  "knn129": {
+    "samples_s": [
+      0.5068510361015797,
+      0.3282808270305395,
+      0.23769698617979884
+    ],
+    "median_s": 0.3282808270305395
+  },
+  "knn16_prefix_mismatches": 0,
+  "scope": "One real cached wall cloud, warm-up + 3 CPU repetitions; no CFD/accuracy evaluation, no model inference, no production changes. kNN timing uses different worker counts and is NOT a standalone speed comparison. Ties can change order for other clouds."
+}

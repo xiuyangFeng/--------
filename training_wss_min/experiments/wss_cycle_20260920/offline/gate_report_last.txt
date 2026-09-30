@@ -1,0 +1,6 @@
+=== 阶段 1 门控（last；三折均值 + 折符号）===
+[A1] norm R2cb 0.8571 (base 0.8536, Δ +0.0036, 折 3/3 ≥−0.02) | Pa R2cb 0.7143 (基线 0.6962, Δ +0.0181, 3/3 同向) | r²fit 0.7267 slope 0.650 sp 0.905 | low<0.4 IoU 0.561 (基线 0.465) | G1.1 PASS G1.2 FAIL
+[O1] OSI R2cb 0.4828 (OSI-null 0.3703; casemed 0.4728, neg 0) | norm R2cb 0.4825 r²fit 0.4944 slope 0.568 sp 0.718 | >0.1 IoU 0.669 (null 0.645, Δ +0.024, 3/3) >0.3 IoU 0.254 | 面积份额误差 med 0.060 (true 0.493 pred 0.552) | G2.1 PASS G2.2 FAIL G2.3 FAIL
+[O2] OSI R2cb 0.4559 (OSI-null 0.3703; casemed 0.4356, neg 1) | norm R2cb 0.5133 r²fit 0.4854 slope 0.602 sp 0.722 | >0.1 IoU 0.666 (null 0.645, Δ +0.020, 3/3) >0.3 IoU 0.252 | 面积份额误差 med 0.031 (true 0.493 pred 0.513) | G2.1 PASS G2.2 FAIL G2.3 PASS
+[G3 A1×O1] 滞留区 IoU 0.520 (基线 0.414, Δ +0.106, 3/3) → PASS
+[G3 A1×O2] 滞留区 IoU 0.518 (基线 0.414, Δ +0.105, 3/3) → PASS

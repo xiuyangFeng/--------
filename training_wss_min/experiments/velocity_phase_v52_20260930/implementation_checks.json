@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-09-30T03:20:05+0800",
+  "status": "passed",
+  "tests_passed": 43,
+  "duration_s": 5.02,
+  "command": "OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 /public/newhome/cy/.conda/envs/GNN/bin/python -m pytest -q tests/test_velocity_phase_model.py training_wss_min/tests/test_velocity_phase_data.py training_wss_min/tests/test_velocity_phase_objectives.py training_wss_min/tests/test_velocity_phase_tail_metrics.py",
+  "test_sha256": {
+    "tests/test_velocity_phase_model.py": "5fa488c8f5a804192d4cf3ec2b0cc05208483dc27b6ba3bfd5ab4347adb41503",
+    "training_wss_min/tests/test_velocity_phase_data.py": "e08842dc9f99dd8a0cb037fa85f4a61aa1dd9c136ce6ec62ee56a34cede61a9c",
+    "training_wss_min/tests/test_velocity_phase_objectives.py": "312ace7bd8217f7501c50d52cd7e5d562fc22c433956974c1fdc618f8f34864b",
+    "training_wss_min/tests/test_velocity_phase_tail_metrics.py": "b121b2121102e303fc0a977423f546c391c97c62de4115bc5e69395ece7bd363"
+  },
+  "scope": "CPU model/objective/geometry contract checks; GPU validation is Slurm 16264 and must pass independently",
+  "source_manifest": "frozen/f0_s1234_v1/source_manifest.json"
+}

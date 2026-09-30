@@ -26,6 +26,6 @@ import surface 时，应检出冻结提交：
 
 相关文档归档：
 
-- [`docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/`](../../../docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/README.md)
+- [`docs/02-推进与变更/_archive/WSS_PINN/_archive/wss_target_v1_20260730/`](../../../docs/02-推进与变更/_archive/WSS_PINN/_archive/wss_target_v1_20260730/README.md)
 
 当前活动入口：[`wss_pinn/README.md`](../../README.md)。

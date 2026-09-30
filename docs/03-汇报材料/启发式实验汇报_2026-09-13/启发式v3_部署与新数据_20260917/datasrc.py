@@ -1,7 +1,7 @@
 """Read-only loaders for the v3 report figures.
 
 Every number drawn in this package is read from an experiment artefact under
-``training_wss_min/experiments`` or ``docs/02-推进与变更/WSS_PINN``.  No figure
+``training_wss_min/experiments`` or ``docs/02-推进与变更/_archive/WSS_PINN``.  No figure
 script hard-codes an experiment number; ``dump()`` writes what was actually
 used into ``source_data/<stem>.json`` so a reader can re-check a value without
 re-running the analysis.

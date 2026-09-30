@@ -1,0 +1,71 @@
+{
+  "no_training_or_inference": true,
+  "source": "saved physical predictions + audited raw eval cache",
+  "arms_point_diagnostics": [
+    "Iu",
+    "U0"
+  ],
+  "n_units": 55,
+  "coordinate_frame": "v5_atlas_frame_v1; y transformed by rotation.T, prediction physical m/s",
+  "weight": "eval_volume_weight, physical cell volumes, normalized within unit",
+  "row_mapping": "prediction velocity_rows exactly matched eval_volume_rows",
+  "max_point_decomposition_abs_error_m2_s2": 3.552713678800501e-15,
+  "max_cycle_mse_error_vs_stored_metric": 4.688533307255216e-12,
+  "prediction_rounding": "saved p is float32 while original metric used decoded float64",
+  "inventory": {
+    "Iu": {
+      "prediction_npz_count": 55,
+      "epochs": 150,
+      "final_loss": 0.29713806075957216,
+      "first10_loss_mean": 0.6440201246333354,
+      "last10_loss_mean": 0.2955265208789446
+    },
+    "UT0": {
+      "prediction_npz_count": 55,
+      "epochs": 150,
+      "final_loss": 0.2966297046073432,
+      "first10_loss_mean": 0.6429887031322544,
+      "last10_loss_mean": 0.2949984531668784
+    },
+    "UT1": {
+      "prediction_npz_count": 55,
+      "epochs": 150,
+      "final_loss": 0.29324323995020785,
+      "first10_loss_mean": 0.6442032067376433,
+      "last10_loss_mean": 0.2916873819764378
+    },
+    "U0": {
+      "prediction_npz_count": 55,
+      "epochs": 150,
+      "final_loss": 0.28570048988444136,
+      "first10_loss_mean": 0.6376650194664604,
+      "last10_loss_mean": 0.28467207276126716
+    },
+    "U1": {
+      "prediction_npz_count": 55,
+      "epochs": 150,
+      "final_loss": 0.28674416634642963,
+      "first10_loss_mean": 0.6386556107731699,
+      "last10_loss_mean": 0.28663790573194187
+    },
+    "J1": {
+      "prediction_npz_count": 55,
+      "epochs": 150,
+      "final_loss": 0.3073164930621397,
+      "first10_loss_mean": 0.6759605776337744,
+      "last10_loss_mean": 0.30626601678075144
+    },
+    "J2": {
+      "prediction_npz_count": 55,
+      "epochs": 150,
+      "final_loss": 0.3067150359014863,
+      "first10_loss_mean": 0.675748982446865,
+      "last10_loss_mean": 0.3053369904027402
+    }
+  },
+  "missing": [
+    "cached local centerline tangent for signed axial/reversal diagnosis",
+    "training per-phase losses and gradient norms",
+    "pointwise physical gradient/divergence; no mesh neighborhood quadrature in cache"
+  ]
+}

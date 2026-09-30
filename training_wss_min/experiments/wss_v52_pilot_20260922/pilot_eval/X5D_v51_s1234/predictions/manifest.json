@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "target": "wss",
+  "checkpoint": "best",
+  "evaluation_split_path": "/public/newhome/cy/Digital_twin/GNN/wss_pinn/configs/splits/split_pilot5_eval_only_test5_20260922.json",
+  "partitions": {
+    "test": [
+      {
+        "unit_id": "ILO/AN_GUANG_JIE-0/after",
+        "file": "test/ILO/AN_GUANG_JIE-0/after/predictions.npz",
+        "n_points": 70636,
+        "sha256": "dd1b4bddca9694f91d23e19cd4ce55c3b994da2881c40fc6fc3e80d0a0f86239",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z"
+      },
+      {
+        "unit_id": "ILO/LI_BO_JUN-1/before",
+        "file": "test/ILO/LI_BO_JUN-1/before/predictions.npz",
+        "n_points": 85356,
+        "sha256": "1df7166a11a4c49488e297a0e72db1a42b78451ff00ccf1cf55263c74dd93b26",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z"
+      },
+      {
+        "unit_id": "AG/slow/ZHAO_XIU_XUAN",
+        "file": "test/AG/slow/ZHAO_XIU_XUAN/predictions.npz",
+        "n_points": 13442,
+        "sha256": "946abc5718cba4f50d2de474a5e46fa674fa85c3aedfb3a86d34ce57cfa03db6",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z"
+      },
+      {
+        "unit_id": "AAA/unruputer/CAO_DIAN_HE",
+        "file": "test/AAA/unruputer/CAO_DIAN_HE/predictions.npz",
+        "n_points": 76321,
+        "sha256": "f8bd52c68cf66bccfc92d65caba77f11e54ea492325b455b68255973255cb7b8",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z"
+      },
+      {
+        "unit_id": "ILO/ZHAO_JIAN_PING-0/before",
+        "file": "test/ILO/ZHAO_JIAN_PING-0/before/predictions.npz",
+        "n_points": 56376,
+        "sha256": "a9e4d0e0c7d09891bbb4570c656ed8ed177742135513bbe5881fefbb6cb3dc48",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z"
+      }
+    ]
+  },
+  "checkpoint_sha256": "f51695024b9d2d4859ddcb3b9c75fa6ca4e10c0a9e2a79a4573a7699d05a00f9",
+  "config_sha256": "cfd35d038b9c99cbc0380e3f374f2c123eb270752ad78600a679af9459a62ccc",
+  "wss_stats_sha256": "5caaaedeadff36c19c43a67bf35d2e78b840278c928037ffebc1ece105e27f65"
+}

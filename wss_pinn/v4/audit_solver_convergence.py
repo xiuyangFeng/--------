@@ -34,13 +34,18 @@ from typing import Any
 import numpy as np
 
 from wss_pinn.utils import ROOT, sha256_file, utc_now
+from wss_pinn.v4 import new_case_sources as ncs
+
+EXTRA_CASES: list[str] = []
 
 SOURCE_MANIFEST = ROOT / "data_wss_pinn/volume_uvwp_bc_rcr_v4_train138_test35/manifest.json"
 PREP_ROOT = ROOT / "outputs/wss_pinn/volume_uvwp_bc_rcr_v4_anatomy_prep_20260903"
 AUDIT_ROOT = PREP_ROOT / "audits/solver_convergence"
 EXPORT_STEPS = list(range(1120, 1281, 2))
 ITERATION_RE = re.compile(
-    r"^\s*!?\s*(\d+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\s+\d+:\d+:\d+\s+(\d+)"
+    # continuity, x/y/z-velocity, then any extra residual columns (e.g. uds-0 when a UDS is solved as a transport
+    # equation, CAO_DIAN_HE 2026-09-22), then time/iter and the iteration counter
+    r"^\s*!?\s*(\d+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)(?:\s+[0-9.eE+-]+)*\s+\d+:\d+:\d+\s+(\d+)"
 )
 STEP_RE = re.compile(r"Flow time = ([0-9.eE+-]+)s, time step = (\d+)")
 JOURNAL_RE = re.compile(r"dual-time-iterate\s+(\d+)\s+(\d+)")
@@ -115,8 +120,7 @@ def annotate_solver_quality(report: dict[str, Any]) -> dict[str, Any]:
 
 
 def _case_ids() -> list[dict[str, Any]]:
-    payload = json.loads(SOURCE_MANIFEST.read_text(encoding="utf-8"))
-    return [{"canonical_id": row["canonical_id"], "role": row["role"]} for row in payload["cases"]]
+    return ncs.case_entries(extra=EXTRA_CASES)  # legacy manifest when present, else frozen split (+ extras)
 
 
 def _transcripts(raw_dir: Path) -> list[Path]:
@@ -240,7 +244,10 @@ def _safe(entry: dict[str, Any]) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument("--extra-cases", nargs="*", default=None, help="new canonical ids appended to the case list")
+    parser.add_argument("--cases-file", type=Path, default=None, help="text file of extra canonical ids, one per line")
     args = parser.parse_args()
+    EXTRA_CASES.extend(list(args.extra_cases or []) + ncs.read_case_list(args.cases_file))
     entries = _case_ids()
     AUDIT_ROOT.mkdir(parents=True, exist_ok=True)
     reports = []

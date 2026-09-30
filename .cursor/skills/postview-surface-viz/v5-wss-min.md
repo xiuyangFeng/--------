@@ -65,4 +65,4 @@ R5 历史合同：压力为 wall∪interior 的相对压力 `p-p_ref`（Pa），
 
 已有包仅用于查结构：`outputs/field/postview/wss_v5_r4_best_worst_20260907/`、`outputs/field/postview/wss_v5_r5_volume_best_worst_20260909/`。
 
-新矩阵状态读 `docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md` 对应节。已完成的直接 WSS 批次入口为 `training_wss_min/experiments/wss_direct_recovery_20260912/README.md`，不在技能内复制排名或自动重跑。
+新矩阵状态读 `docs/02-推进与变更/README.md` 指向的所属块实验跟踪（§0–§32 在 `00-V5设计与历史跟踪/` 历史卷）对应节。已完成的直接 WSS 批次入口为 `training_wss_min/experiments/wss_direct_recovery_20260912/README.md`，不在技能内复制排名或自动重跑。

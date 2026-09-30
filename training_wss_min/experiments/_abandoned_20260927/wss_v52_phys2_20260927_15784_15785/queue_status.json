@@ -1,0 +1,395 @@
+{
+  "job_id": "15785",
+  "started_at": "2026-09-27T10:33:47+0800",
+  "status": "running",
+  "gpus": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "slots_per_gpu": 2,
+  "launch_interval_seconds": 45.0,
+  "arms": {
+    "X5Dcap_asym2_v52cv_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s1234.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s1234",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:33:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2_20260927/logs/X5Dcap_asym2_v52cv_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s1234.json"
+          ],
+          "pid": 727705
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "X5Dcap_asym2_v52cv_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s1234.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s1234",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:33:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2_20260927/logs/X5Dcap_asym2_v52cv_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s1234.json"
+          ],
+          "pid": 727717
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "X5Dcap_asym2_v52cv_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s1234.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s1234",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:33:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2_20260927/logs/X5Dcap_asym2_v52cv_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s1234.json"
+          ],
+          "pid": 727722
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "X5Dcap_asym2_v52cv_f3_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s1234.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s1234",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:33:47+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2_20260927/logs/X5Dcap_asym2_v52cv_f3_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s1234.json"
+          ],
+          "pid": 727738
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "X5Dcap_asym2_v52cv_f4_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s1234.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s1234",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:34:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2_20260927/logs/X5Dcap_asym2_v52cv_f4_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s1234.json"
+          ],
+          "pid": 729360
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "X5Dcap_asym2_v52cv_f0_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s7.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s7",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:34:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2_20260927/logs/X5Dcap_asym2_v52cv_f0_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s7.json"
+          ],
+          "pid": 729364
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "X5Dcap_asym2_v52cv_f1_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s7.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s7",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:34:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2_20260927/logs/X5Dcap_asym2_v52cv_f1_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s7.json"
+          ],
+          "pid": 729368
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "X5Dcap_asym2_v52cv_f2_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s7.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s7",
+      "phase": 0,
+      "status": "train",
+      "stages": {
+        "train": {
+          "started_at": "2026-09-27T10:34:33+0800",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2_20260927/logs/X5Dcap_asym2_v52cv_f2_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s7.json"
+          ],
+          "pid": 729372
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "X5Dcap_asym2_v52cv_f3_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s7.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s7",
+      "phase": 0,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym2_v52cv_f4_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s7.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s7",
+      "phase": 0,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym2_v52cv_f0_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s2025.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s2025",
+      "phase": 0,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym2_v52cv_f1_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s2025.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s2025",
+      "phase": 0,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym2_v52cv_f2_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s2025.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s2025",
+      "phase": 0,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym2_v52cv_f3_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s2025.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s2025",
+      "phase": 0,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym2_v52cv_f4_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s2025.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s2025",
+      "phase": 0,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym15_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym15_s1234.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym15_s1234",
+      "phase": 1,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym3_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym3_s1234.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym3_s1234",
+      "phase": 1,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym15_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym15_s7.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym15_s7",
+      "phase": 1,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym3_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym3_s7.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym3_s7",
+      "phase": 1,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym15_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym15_s2025.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym15_s2025",
+      "phase": 1,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    },
+    "X5Dcap_asym3_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_phys2_20260927/X5Dcap_asym3_s2025.json",
+      "run_name": "wss_v52_phys2_20260927/X5Dcap_asym3_s2025",
+      "phase": 1,
+      "status": "pending",
+      "stages": {},
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ]
+    }
+  },
+  "matrix": "wss_v52_phys2_20260927",
+  "expected_training_runs": 21,
+  "expected_evaluations": 42,
+  "preflight_verification": {
+    "preflight": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_phys2_20260927/runtime_preflight.json",
+    "sha256": "a9c03818202c396c9707dd681bc8331a1d1a9c6ba2a01bc02fc90c3c12d2d593",
+    "job_id": "15784"
+  }
+}

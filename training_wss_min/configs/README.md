@@ -88,7 +88,7 @@ training_wss_min/configs/protocol_gates/b1_tgtw_fixedq_s1234.json
 配置生成器已在配置冻结后删除；后续如需新增实验，应直接新增经过审查的 JSON 与
 对应 manifest，避免重新引入一次性批量生成脚本。汇总和审计入口位于
 `training_wss_min/tools/`。实验指标与结论文档仍以
-[`WSS最小化_训练实验跟踪.md`](../../docs/02-推进与变更/WSS最小化_训练实验跟踪.md) 为准。
+[`WSS最小化_训练实验跟踪.md`](../../docs/02-推进与变更/_archive/WSS最小化/WSS最小化_训练实验跟踪.md) 为准。
 
 > 历史兼容说明：`baseline_sweep/feat_*` 与 `loss_aug_ablation/xyzgeom_*` 共 11 份
 > 早期配置仍记录壁面常量特征 `dist_to_wall`。这些 JSON 仅作为实验审计证据保留，

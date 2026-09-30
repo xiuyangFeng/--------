@@ -30,10 +30,10 @@ training_wss_min/
 ```
 
 主题对照与 manifest：[`configs/README.md`](configs/README.md)。
-实验结论与逐轮表：[`WSS最小化_训练实验跟踪.md`](../docs/02-推进与变更/WSS最小化_训练实验跟踪.md)。
+实验结论与逐轮表：[`WSS最小化_训练实验跟踪.md`](../docs/02-推进与变更/_archive/WSS最小化/WSS最小化_训练实验跟踪.md)。
 第六轮总调度：[`WSS最小化_第六轮XYZ尺度诊断计划与执行.md`](../docs/02-推进与变更/WSS最小化_第六轮XYZ尺度诊断计划与执行.md)。
 
-当前结构与信息筛选状态（2026-07-29）：REG-P10-LSA2 SAME/IND × MSE/H1/H2 六臂已全部完成。IND MSE 相对 SAME MSE 的 `ΔR²_cb=+0.0014`，未过 `+0.012` 主门；H1 在 SAME/IND 下的 `ΔIoU=+0.0175/-0.0018`，均 No-Go。H2 在 SAME/IND 内的 `Δhigh-WSS nRMSE=-0.00205/-0.00207` 均过门，但 IND-H2 相对 SAME-H2 的 R²、normalized R² 和 MAE更差，因此不晋级 IND。随后完成同 seed H2 精确并发 control 与唯一新增 train-only 标准化 `log(local_radius)` 输入列的两臂 Jobs `11032→11033_[0-1]`：处理臂 physical `R²_cb=0.3506`、MAE `2.5238 Pa`、high-WSS nRMSE `0.06611`，相对并发 control 分别为 `ΔR²_cb=+0.0436`、`ΔMAE=-0.0342 Pa`、`ΔnRMSE=-0.00295`，top10 IoU 仅下降 `0.0029`，全部预注册保护线通过。**LSA2 SAME-H2 + `log(local_radius)`** 现晋级为新的单 seed 开发锚点；暂不做多 seed，病例全场 R² 均值差 CI 跨零的边界必须保留。当前入口见 [`PointNet baseline 矩阵 §0Q`](../docs/02-推进与变更/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。
+当前结构与信息筛选状态（2026-07-29）：REG-P10-LSA2 SAME/IND × MSE/H1/H2 六臂已全部完成。IND MSE 相对 SAME MSE 的 `ΔR²_cb=+0.0014`，未过 `+0.012` 主门；H1 在 SAME/IND 下的 `ΔIoU=+0.0175/-0.0018`，均 No-Go。H2 在 SAME/IND 内的 `Δhigh-WSS nRMSE=-0.00205/-0.00207` 均过门，但 IND-H2 相对 SAME-H2 的 R²、normalized R² 和 MAE更差，因此不晋级 IND。随后完成同 seed H2 精确并发 control 与唯一新增 train-only 标准化 `log(local_radius)` 输入列的两臂 Jobs `11032→11033_[0-1]`：处理臂 physical `R²_cb=0.3506`、MAE `2.5238 Pa`、high-WSS nRMSE `0.06611`，相对并发 control 分别为 `ΔR²_cb=+0.0436`、`ΔMAE=-0.0342 Pa`、`ΔnRMSE=-0.00295`，top10 IoU 仅下降 `0.0029`，全部预注册保护线通过。**LSA2 SAME-H2 + `log(local_radius)`** 现晋级为新的单 seed 开发锚点；暂不做多 seed，病例全场 R² 均值差 CI 跨零的边界必须保留。当前入口见 [`PointNet baseline 矩阵 §0Q`](../docs/02-推进与变更/_archive/WSS最小化/WSS最小化_PointNet_baseline实验矩阵与进度跟踪.md)。
 
 2026-07-26 新增配置化的 SA 邻域内 Transformer：`model.local_transformer_stages` 用 1-based stage 列表控制，空列表保持历史结构；SA3 全局 Transformer 继续复用既有 `coarse_attention`。REG-P10 的 7 个局部非空 stage 子集与 1 个 SA3-global 对照已 `8/8` 完训、审计和回填；仅 `local_transformer_stages=[2]` 过单种子 Gate。后续决议不补其 seeds `7/2025`，改在该结构上完成 SAME/IND × H1/H2 矩阵。
 

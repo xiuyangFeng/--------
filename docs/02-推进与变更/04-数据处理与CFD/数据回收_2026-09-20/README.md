@@ -1,0 +1,434 @@
+# 数据回收 2026-09-20/21：CFD 侧逐例核查与修复记录
+
+配套名单：[数据回收名单_可直接入库与需重跑CFD_2026-09-20.md](../数据回收名单_可直接入库与需重跑CFD_2026-09-20.md)。本目录记录 2026-09-21 对"需重跑 CFD"病例的逐例核查、修复脚本与结果。用户裁定：`data_new` 已空的不处理，网格问题的（LIU_WEN_QI、YANG_BAO_KUI、HOU_SHEN_QIAN）暂从队列去掉。
+
+## 1. 核查结论：14 例"需重跑"里只有 7 例真要重跑，3 例是当年误判可直接入库
+
+| 病例 | 当年排除理由 | 实际核查（2026-09-21） | 处理 |
+|---|---|---|---|
+| `AAA/ruputer/CHEN_FU` | 入口波形 max 1.76e-5（低 6 倍） | V4 审计读的是 21 行的短监视文件（一次 20 步续跑覆盖了 `vf-in-rfile.out`）；完整文件 `vf-in-rfile_1_1.out` 1281 行 max **1.0727e-4 = 正常**；UDF 面积常量 = 网格入口面积 546.23 mm²；峰值步 1160 壁面 p99 15.0 Pa 正常 | **不重跑，直接入库**（V5 峰值步固定 1162，不依赖监视文件） |
+| `AAA/ruputer/SU_KAI_LI` | 全相位 WSS max 1387 Pa | 完整监视 max 1.0727e-3 = **恰好 10 倍**且小数位与正常例相同 → 不是网格（单位比 1001 正常，入口面积 1215.52 mm²），是 UDF 第 47 行入口面积常量写成 `0.0001215525`（小数点错一位）→ 入口速度 10 倍 → 出口压力 145 kPa、WSS 1348 Pa | **重跑**：常量改为 `0.001215525`（网格实测 1215.52 mm²），其余不动 |
+| `AAA/unruputer/GUO_YU_YING` | 入口波形 max≈13976 | 其 `vf-in` 报告定义是 `surface-areaavg pressure`（监视器命名错，值是压力）；真正的入口质量流 `report-def-2` 与 KANG_YONG 逐位相同 0.1137；UDF 常量 = 网格面积 719.11 mm²；壁面 p99 11.1 Pa 正常 | **不重跑，直接入库**（入库时 audit_only 的波形须改读 report-def-2 或忽略 vf-in） |
+| `AAA/unruputer/ZHANG_GUI_HUA` | 缺关键 Global_conditions 文件 | 缺的是 `p-outri-rfile.out`，实为文件名多打一个连字符 `p--outri-rfile.out`（内容正常）；入口 1.073e-4 正常；UDF 常量 = 网格 467.55 mm² | **不重跑，直接入库**（已复制一份正确名字的文件，原件保留） |
+| `AG/fast/PENG_JI_MING` | WSS 均值 1284 Pa、入口异常 | 导出坐标 bbox 9.6e-5 m 对 STL 96 mm → **网格比真实小 1000 倍**（其余例精确 1000:1，它是 1e6:1）；UDF 常量与（缩放后）网格面积一致 458.41 mm² | **重跑**：journal 在 read-case 后插 `/mesh/scale 1000 1000 1000`；cas/journal 旧路径已改 |
+| `AG/slow/LIU_XI_QUAN`、`WEI_JUN_WEN`、`TE_JIN_WANG` | 壁面 WSS 全零 | 解本身正常（压力 15 kPa、入口/出口监视完整）；**cas 里壁面导出 export-2 的变量表只有 `"Static Pressure"`**，没有 wall-shear 四列，所以导出文件根本没有 WSS 列；无 .dat 只能重算 | **重跑**：export-2 变量表补齐（与正常 AG 例逐字相同）；cas/journal 旧路径已改 |
+| `ILO/WANG_CAI-0/before` | 全步近零（死导出） | UDF 编译正常，但 cas 里入口 `vmag (constant . 0) (profile "" "")` —— **UDF 速度剖面从未挂到入口**，整场零流量；四个出口 RCR 都挂了 | **重跑**：入口挂 `my_inlet::libudf`（与其他 ILO 例逐字相同） |
+| `AAA/ruputer/LV_GUO_YOU` | 有 STL+cas 无导出 | 2.jou / export-1 / export-2（含 wall-shear 四列）路径全部正确，只有 cas 里 UDF 源路径指向已删的 `GNN/data/`；目录里没有任何 `Fluent_*.out/.err`、没有 Global_conditions → **2026-03-13 准备好后从未提交过作业** | **重跑**：UDF 路径已改；直接提交即可 |
+| `AAA/ruputer/FU_GUO_JUN` | 无导出 | 2026-01-25 跑过一次完整求解（Fluent_14046.out 6.3 MB），导出写到旧 `GNN/data/` 树已随清理丢失；03-11 再跑因 license 错误 12 s 退出；**无 STL** | 暂不投入：重跑可行，但入库还要从网格抽壁面 STL（有 ZHOU_KE_XUN 先例） |
+| `ILO/LI_JIE-1/before`、`/after` | 无导出 | 从未适配到集群：2.jou 的 read-case 指向**另一位患者** LI_FA_XIANG 的旧路径；cas 里 UDF 源是 Windows 路径 `C:/Users/admin/Desktop/qia-test/`；导出只有一条 Windows 时代的 `wss/LI JIE-sq`（相对路径带空格、无 export-2）；after 目录有两份 STL | 暂不投入：要在 Fluent 里重建导出设置并确认用哪份 STL，不是路径修一下的事 |
+
+## 2. 已做的修复（全部可逆，原件 `*.orig_20260921`）
+
+脚本 [`fix_cfd_cases.py`](fix_cfd_cases.py)（逐字节改 .cas.gz 的 scheme 文本，回读校验；日志 [`fix_cfd_cases_log.md`](fix_cfd_cases_log.md)）：
+
+| 病例 | 2.jou | .cas.gz | 其他 |
+|---|---|---|---|
+| LV_GUO_YOU | 已一致 | UDF 源路径 → 当前目录 | — |
+| LIU_XI_QUAN / WEI_JUN_WEN / TE_JIN_WANG | read-case → 当前目录 | 导出前缀 ×2 → 当前目录；export-2 变量表补 wall-shear 四列 | — |
+| WANG_CAI-0/before | 已一致 | 入口 vmag → `my_inlet::libudf` | — |
+| PENG_JI_MING | read-case → 当前目录；插 `/mesh/scale 1000 1000 1000` | 导出前缀 ×2 + UDF 源 → 当前目录 | — |
+| SU_KAI_LI | 已一致 | 已一致 | `udf-inlet4.c` 面积常量 0.0001215525 → 0.001215525 |
+| ZHANG_GUI_HUA | — | — | `Global_conditions/p--outri-rfile.out` 复制为 `p-outri-rfile.out` |
+
+全部 11 个待跑/待入库病例的 **UDF 入口面积常量 vs 网格入口面积**（`fluent_topology` 实测）已逐例核对：除 SU_KAI_LI（10.0000 倍）外全部 1.0000。
+
+重跑前准备 [`prepare_rerun_20260921.sh`](prepare_rerun_20260921.sh)：旧 `ascii/ ascii_in/ libudf/ Global_conditions/` 挪成 `*_old_20260921`（libudf 挪走后 Fluent 会从修正后的源码重编译），重建空 `ascii/`，`fluent.slurm` 统一 64 核（原件 `fluent.slurm.orig_20260921`）。节点分配：LV_GUO_YOU、LIU_XI_QUAN、WEI_JUN_WEN、SU_KAI_LI → node06；TE_JIN_WANG、WANG_CAI、PENG_JI_MING → node03（两节点各 192 核，当前 idle，各能并 3 例）。
+
+冒烟 [`smoke_readcase_20260921.slurm`](smoke_readcase_20260921.slurm)（作业 15320，3 min）：7 例逐个只 read-case（触发 UDF 重编译）+ `/mesh/check` 后退出，不迭代不导出。**6/7 通过**（libudf 全部从修正后的源码重编译成功，退出码 0）；SU_KAI_LI 失败是我单独打补丁时用了相对路径，journal 与 cas 里写成了 `data_new/…`，已改回绝对路径（cas 3 串）。补冒烟 [`smoke2_20260921.slurm`](smoke2_20260921.slurm)（作业 15321）：SU_KAI_LI 读入+编译通过；PENG_JI_MING `/mesh/scale 1000 1000 1000` 后域范围 x 0.160 m / y 0.115 m / z 0.599 m（含延伸段，与 SU_KAI_LI 的 0.13/0.18/0.36 m 同量级；缩放前壁面导出只有 0.1 mm 量级）。完整 Fluent 输出在各病例目录 `smoke_full_*.log`；冒烟编译出的 `libudf/` 已挪成 `libudf_smoke_20260921`，正式运行会再编一次。**7 例全部可提交。**
+
+## 3. 提交重跑（用户 2026-09-21 拍板"核查通过即提交，不限节点"；已于 01:25 提交，作业 15322–15328，见 [`rerun_jobs.md`](rerun_jobs.md)）
+
+```bash
+export PATH=/public/slurm/bin:$PATH
+cd /public/newhome/cy/Digital_twin/GNN/data_new
+for d in AAA/ruputer/LV_GUO_YOU AG/slow/LIU_XI_QUAN AG/slow/WEI_JUN_WEN AG/slow/TE_JIN_WANG ILO/WANG_CAI-0/before AG/fast/PENG_JI_MING AAA/ruputer/SU_KAI_LI; do
+  (cd $d && sbatch fluent.slurm)
+done
+```
+
+提交前去掉了 `#SBATCH -w` 让 Slurm 自选空闲节点（实际落在 node01 ×3、node02 ×1、node03 ×3，全部立即开跑）；提交前逐例复核：2.jou read-case 为病例目录绝对路径且文件存在、cas 内壁面导出前缀指向本目录 `ascii/`、`ascii/` 为空目录、`libudf/` 已挪走（强制从本目录 `udf-inlet*.c` 重编译；4 例 cas 里记录的 Windows 源路径不影响，Fluent 自动编译只认工作目录里的源文件，冒烟日志逐例可见 `Copy <病例目录>/udf-inlet.c`）、fluent.slurm 为 `cd $SLURM_SUBMIT_DIR` + `./2.jou` + 64 核。每例约 1.5–2 h（64 核）；跑完用 RCR 批次的 `check_rerun_flowshares.py <病例目录>` 复核分流，再核 `Global_conditions/vf-in-rfile.out` 峰值应为 1.0727e-4（SU_KAI_LI、PENG_JI_MING 尤其要看）。
+
+## 3a. 重跑结果与验收（2026-09-21 05:30；7 例 Slurm 全部 COMPLETED，1.1–2.8 h）
+
+| 病例 | 作业 | 帧数 ascii/ascii_in | vf-in 峰值 | 1162 步壁面 p50 / p99 / max（Pa） | 末周期 L/R 分流 | 四出口末步压力 | 结论 |
+|---|---|---|---|---|---|---|---|
+| LIU_XI_QUAN | 15323 | 161→81（thin）/81 | 1.0731e-4 | 3.74 / 21.2 / 60.9 | 0.504 / 0.496 | 14.2–14.6 kPa | ✅ 壁面 9 列含 wall-shear |
+| WEI_JUN_WEN | 15324 | 161→81 / 81 | 1.0728e-4 | 2.16 / 9.5 / 25.5 | 0.500 / 0.500 | 14.2–14.3 kPa | ✅ |
+| TE_JIN_WANG | 15325 | 161→81 / 81 | 1.0732e-4 | 3.42 / 25.8 / 70.5 | 0.498 / 0.502 | 14.2–14.5 kPa | ✅ |
+| WANG_CAI-0/before | 15326 | 81 / 81 | 1.0727e-4 | 1.23 / 36.6 / 170.1 | 0.487 / 0.513 | 12.0–12.3 kPa | ✅ 入口有流量（原全零）；髂内份额 2.8 % / 4.2 % 与其 10 / 16 mm² 出口按 Murray 一致 |
+| PENG_JI_MING | 15327 | 81 / 81 | 1.0727e-4 | 2.52 / 23.9 / 48.1 | 0.502 / 0.498 | 13.7–14.3 kPa | ✅ 壁面 x 范围 0.096 m 与 STL 一致（原 1284 Pa 均值作废） |
+| SU_KAI_LI | 15328 | 81 / 81 | 1.0727e-4 | 0.30 / 21.0 / 46.1 | 0.500 / 0.500 | 12.2–12.3 kPa | ✅ 原 p99 598 / max 1348 Pa → 正常 |
+| **LV_GUO_YOU** | 15322 → **重提 15350** | 81 / 81 | 1.0727e-4 | 首跑 2.84 / 31.4 / 71.1 → **重提 3.28 / 23.6 / 47.3** | 首跑 **0.800 / 0.200** → 重提 **0.496 / 0.504** | 首跑 le/li = 0 → 重提四出口 13.0–13.2 kPa | ✅ 重提通过（1 h 28 min；质量守恒 1.000，壁面 1162 步 p99 14.0 kPa）；首跑作废原因见下 |
+
+三例 AG 的 `fluent.slurm` 变体不清理 ascii/ 奇数步，已用 RCR 批次的 `thin_exports.sh` 瘦到 81 帧（ascii_in 本就 81）。质量守恒：六例 Σ|Q_out| 与入口质量流之比 0.999–1.001。
+
+**LV_GUO_YOU 首跑的问题（入口/导出/收敛全部正常，只有从运行态才能看到）**：UDF 每步打印 `P_ave_outle=0 / P_ave_outli=0`，右侧 1 kPa；p-outle 监视 8 个周期恒 147 Pa 无 RC 充电（KANG_YONG 3.4 → 13.0 kPa）。原因：cas 把 `pressure_outle::libudf` 挂在 15971（leftwai+）、`pressure_outli` 挂在 15959（leftnei+），与 KANG_YONG 完全相同；但 LV_GUO_YOU 的 `udf-inlet4.c` 里 `execute_at_end` 的线程号被写成 t1=15959 /*outle*/、t2=15971 /*outli*/（左侧两个互换），于是 outle 的 RCR 状态（UDS 0/1）写进了 leftnei 的邻胞，而挂在 leftwai 上的 `pressure_outle` 读自己邻胞的 UDS 0/1 永远是 0 → 左侧两出口压力 0 → 80 % 流量走左侧。右侧线程号与 KANG_YONG 一致所以正常。修复：把 t1/t2 换回 15971/15959（原件 `udf-inlet4.c.orig_20260921b`），坏跑产物挪成 `*_bad_rcr_20260921`，重提作业 **15350**（01:25 提交批次 + 4 h）。
+
+由此写了 [`rcr_runtime_audit.py`](rcr_runtime_audit.py)（只读 transcript：末周期 L/R 分流 ≠ 0.5±0.05、任一出口末步面压 < 3 kPa、Σ|Q_out| ≠ 入口 ±5 % 即标记），对 A 层 89 候选跑了一遍，结果 `rcr_runtime_audit_alayer.csv`（见 §4）。
+
+## 3b. 运行态 RCR 审计：A 层 89 单元里 15 个要重跑（2026-09-21）
+
+`rcr_runtime_audit.py`（取每例**最新**一次 transcript；在库病例目录里还留着 09-04/09-05 重跑前的旧 transcript，按大小选会误报）+ `wall_scan_1162.csv`（直接看壁面导出 1162 步的压力 p99 与 WSS p99，正常 13–20 kPa）两条线互相印证：
+
+- **在库 170 例全部正常**（`rcr_runtime_audit_formal170.csv`：169 ok + GUO_AI_JUN 已知协议例外 L/R 0.59/0.41；壁面压力 p99 全部 12.7–20.8 kPa，HAN_JIAN_FU 168 Pa 是已知量规偏置）。09-04 壁面标签审计重跑的"低压力族"就是这类 RCR 失效，当时已修。
+- **A 层 89 里 15 个单元的现有导出不可用**，根因分四类，全部已修（`fix_rcr_cases.py`，日志 `fix_rcr_cases_log.md`，原件 `*.orig_20260921c`）并做完重跑准备（旧输出 `*_old_20260921`）：
+
+| 类型 | 单元 | 症状（壁面 p99 / 末周期 L/R） | 修复 |
+|---|---|---|---|
+| UDF 左侧两出口线程号互换（与 LV_GUO_YOU 同） | WANG_JIN_MING-0/after、ZHANG_JIN_CHUN-1/after、ZHANG_YONG_SHENG-0/after、ZHAO_JIAN_PING-0/after、ZHAO_JIAN_PING-0/before、SHEN_CHUN_WANG-0/before | 1.5–3.6 kPa / 0.78–0.88 | t1/t2 换成 cas 上 pressure_outle/outli 各自挂的区号 |
+| cas 某出口没挂 RCR 函数 | ZHANG_YAN_SHAN-0/after（outlet_leftnei 15252 为常压 0） | 4.0 kPa / 0.81 | 区段内改挂 `pressure_outli::libudf` |
+| UDF outre 线程号写成非出口区 | YANG_QING_REN-1/before（5502 → 5505 outlet-rightwai） | 4.5 kPa / 0.88 | 改 UDF |
+| cas 未注册 execute_at_end（RCR 状态从不更新，四出口全 ≈0） | LU_FU_SHAN-0/after（另 UDF 入口面积 364.92→354.92 mm²）、SUN_XU_XIA-1/after、SUN_YU_SHENG-0/after | 0.9–5.1 kPa | `(udf/execute-at-end-fcns ("execute_at_end::libudf"))` |
+| 运行态正常但导出死（1140 步起全零 / 全零） | GUO_AI_JUN-0/after、GUO_AI_JUN-0/before、LIU_BAO_JUN-0/after（2.jou 用 2026-01 的 LIU_BAO_JUN.cas.gz，旧 _1.cas 不用）、XUE_YOU_TANG-0/before（根目录那 81 帧是**体场格式**不是壁面，已归入 `volume_frames_root_recalc/`） | 0 | 只修路径，整例重跑 |
+
+15 例终检（脚本内置断言 + 独立复核）：2.jou 指向本目录 cas、UDF 四个线程号与 cas 上同名 pressure_out* 挂接一致、execute_at_end 已注册、入口挂 my_inlet、无旧路径串、导出前缀指向本目录。UDF 入口面积常量 vs 网格入口面积 13 例核过（`inlet_area_consts_13.log`）：除 LU_FU_SHAN 已修外全部 1.0000。冒烟 `smoke3_20260921.slurm`（作业 15356，8 min）：15 例全部读入成功、libudf 从本目录源码重编并装载（每例 2 次 Opening library）、mesh/check 通过、无错误。**已于 07:1x 按 [`submit_batch2.sh`](submit_batch2.sh) 分两波提交**：波 1 作业 **15358–15365**（8 例立即开跑，node01/02/03/05），波 2 **15366–15372**（各 afterany 依赖波 1 的一例，控制同时在跑 ≤ 8 例）；作业表见 `rerun_jobs.md`。验收口径同 §3a（vf-in 峰值 1.0727e-4、四出口末周期压力 ≥ 10 kPa、L/R ≈ 0.5、质量守恒、壁面 1162 步压力 p99 13–20 kPa），跑完再用 `rcr_runtime_audit.py` + `wall_scan` 复核。
+
+不修、留在 C 层：`LI_FA_XIANG-1/before`（目录里没有 .cas，壁面 p99 1.2 kPa 也是坏的）、`LI_JIE-1`。仅监视器命名问题（vf-in 定义成压力）不影响标签：GUO_YU_SHU-0/after、LIU_YUE_DONG-0/after、DONG_KE_QIN-0/before、WANG_LI_MIN-0/before、GUO_YU_YING。YANG_QING_REN-1/after 末周期 L/R 0.43/0.57 但挂接与 R 值均正常（DC 份额 0.500）、壁面 18.3 kPa，按正常收。
+
+**A 层因此从 89 变为 89 − 15（转入重跑）− 1（LI_FA_XIANG-1/before 无 cas）= 73 单元可直接入库；重跑 15 + 首批 7 = 22 单元走 CFD。**
+
+## 3c. 第二批验收（2026-09-21；15/15 COMPLETED，`rcr_runtime_audit.py` 15/15 ok）
+
+波 1 八例 + 波 2 的 LIU_BAO_JUN-0/after、XUE_YOU_TANG-0/before 已 COMPLETED（1.5–2.9 h），`rcr_runtime_audit.py` 10/10 ok：
+
+| 单元 | 作业 | 末周期 L/R | 四出口末周期压力 kPa | 质量守恒 | 1162 步壁面 p99 kPa / WSS p99 Pa / max | 修复前 |
+|---|---|---|---|---|---|---|
+| WANG_JIN_MING-0/after | 15358 | 0.500/0.500 | 13.0–13.1 | 1.000 | 13.6 / 12.5 / 59.9 | 1.7 kPa，L/R 0.88 |
+| ZHANG_JIN_CHUN-1/after | 15359 | 0.498/0.502 | 12.9–13.2 | 1.000 | 14.3 / 28.7 / 132.9 | 2.4 kPa |
+| ZHANG_YONG_SHENG-0/after | 15360 | 0.501/0.499 | 13.0–13.0 | 1.000 | 13.5 / 8.2 / 28.0 | 1.5 kPa |
+| ZHAO_JIAN_PING-0/after | 15361 | 0.502/0.498 | 13.0–13.3 | 1.000 | 15.1 / 39.0 / 92.1 | 3.1 kPa |
+| ZHAO_JIAN_PING-0/before | 15362 | 0.501/0.499 | 13.1–13.4 | 1.000 | 15.6 / 40.5 / 131.0 | 3.6 kPa |
+| SHEN_CHUN_WANG-0/before | 15363 | 0.482/0.518 | 12.4–13.2 | 1.000 | 14.3 / 26.9 / 70.6 | 1.7 kPa |
+| ZHANG_YAN_SHAN-0/after | 15364 | 0.507/0.493 | 13.0–13.3 | 1.000 | 15.2 / 27.9 / 109.9 | 4.0 kPa（leftnei 未挂 RCR） |
+| YANG_QING_REN-1/before | 15365 | 0.505/0.495 | 12.7–13.2 | 1.000 | 15.9 / 53.7 / 122.4 | 4.5 kPa（outre 错 id） |
+| LIU_BAO_JUN-0/after | 15371 | 0.509/0.491 | 12.3–13.2 | 1.000 | 14.3 / 31.7 / 134.9 | 导出死 |
+| XUE_YOU_TANG-0/before | 15372 | 0.547/0.453 | 10.9–14.1 | 1.000 | 19.2 / 90.7 / 356.4 | 导出死 |
+
+备注：LIU_BAO_JUN-0/after 的 vf-in 峰值 1.0645e-4（−0.8 %）来自 UDF 入口面积常量 678.00 mm² 对网格 672.80 mm²（比 0.992），属在库已接受的 `A_udf≠A_mesh` 小偏差族（最大 35.6 %），不重跑。XUE_YOU_TANG-0/before L/R 0.547 在 ±0.05 门内、out-ri 10.9 kPa 略低但远高于坏例的 0–5 kPa，壁面 WSS p99 90.7 / max 356 Pa 是真实狭窄射流（与 ILO 射流例同量级），收。全部 81/81 帧。
+
+波 2 剩余五例（3.2–4.0 h，全部 COMPLETED）：
+
+| 单元 | 作业 | 末周期 L/R | 四出口末周期压力 kPa | 质量守恒 | vf-in 峰值 | 1162 步壁面 p99 kPa / WSS p99 Pa / max | 修复前 |
+|---|---|---|---|---|---|---|---|
+| LU_FU_SHAN-0/after | 15366 | 0.500/0.500 | 13.0–13.1 | 1.000 | 1.0727e-4 | 13.7 / 17.2 / 57.6 | 0.9 kPa（未注册 execute_at_end） |
+| SUN_XU_XIA-1/after | 15367 | 0.516/0.484 | 12.8–13.5 | 1.000 | 1.0727e-4 | 18.0 / 13.2 / 153.2（混合区导出，见下） | 5.1 kPa |
+| SUN_YU_SHENG-0/after | 15368 | 0.497/0.503 | 13.0–13.2 | 1.000 | 1.0727e-4 | 13.9 / 13.5 / 59.3 | 1.1 kPa |
+| GUO_AI_JUN-0/after | 15369 | 0.521/0.479 | 11.1–13.2 | 1.000 | 1.0727e-4 | 15.4 / 39.4 / 105.6 | 导出 1140 步起全零 |
+| GUO_AI_JUN-0/before | 15370 | 0.501/0.499 | 12.9–13.2 | 1.000 | 1.0727e-4 | 14.7 / 31.5 / 75.5 | 导出全零 |
+
+两处后处理：(a) GUO_AI_JUN 两例的 `fluent.slurm` 变体不清理 `ascii_in/`，跑完各留 1280 帧体场（160 GB / 153 GB），已用 `thin_exports.sh` 瘦到 81 帧（/public 从 2.8 回到 3.5 TB）。(b) SUN_XU_XIA-1/after 的壁面导出仍是**百万点混合区格式**（1,781,877 行，wall-shear > 0 的只有 109,722 行 = 6.2 %）——推断为 cas 壁面导出的 surfaces 列表含内部面（scheme 文本布局与常规例不同，本次未逐字核出），与其解无关，与 A1 已登记的另 6 例混合区单元同类，入库时统一按"过滤 wall-shear > 0 / 或重导出"处理（待用户拍板）。
+
+**第二批结论：15/15 重跑成功且验收通过；连同首批 7 例（含 LV_GUO_YOU 重提），22 个走 CFD 的单元全部就绪。** 全部 22 例：81/81 帧、vf-in 峰值 1.0727e-4（LIU_BAO_JUN 1.0645e-4 属面积常量 0.8 % 小偏差）、末周期 L/R 在 0.48–0.55、四出口 10.9–14.6 kPa、质量守恒 0.999–1.001、壁面 1162 步压力 p99 13.5–19.2 kPa。
+
+## 3d. 新单元总账、混合区导出的真相、磁盘清理（2026-09-21 晚）
+
+**总账**（`new_units_manifest.json`，与在库 170 无交集）：
+
+| 来源 | 单元数 | 构成 |
+|---|---:|---|
+| A 层直接入库（导出与运行态均正常） | **73** | ILO after 50、ILO before 13、AG 7、AAA 3 |
+| CFD 重跑完成并验收（首批 7 + 第二批 15） | **22** | ILO after 10、ILO before 5、AG 4、AAA 3 |
+| **新单元合计** | **95** | **ILO after 60、ILO before 18、AG 11、AAA 6** |
+| 合并后总库 | **265** | ILO before 59 / ILO after 60 / AAA 60 / AG 86；ILO 患者 60 人，其中 41 人术前已在库、术后为新 |
+
+A 层剔除 2：`ILO/LI_JIE-1/after`（从未导出）、`ILO/LI_FA_XIANG-1/before`（无 .cas）。用户 2026-09-21 裁定：**ILO 术后（after）单元允许入库**（同患者术前术后同折）。
+
+另两例格式问题待处理（不在 95 内 / 需再动 CFD）：`ILO/LIU_CHUN_YANG-1/before` 壁面导出是 **面心（cellnumber）** 格式，V5 读取器只收节点导出 → 要把 cas 的 export-2 改成节点导出后重跑（第 23 个 CFD 单元）；`AAA/ruputer/SHI_YUN_XI`（历史上被单独排除，不在 170 也不在 95）壁面 81 帧正常但**体场导出是节点格式**（V5 要 cellnumber）→ 只想要 WSS 标签的话可在读取器放开体场，否则重跑。
+
+**混合区导出到底是什么**（3 例用 `fluent_topology` 实测）：
+
+| 单元 | 导出行数 | cas 全域节点数 | wall-shear > 0 行 | cas 壁面 zone 节点 |
+|---|---:|---:|---:|---:|
+| AG/slow/WANG_BAO_SHAN | 346,290 | 346,291 | **28,246** | **28,246** |
+| ILO/SUN_XU_XIA-1/after | 1,781,877 | 1,781,878 | 109,722 | 89,708（+ 5 段 wall-extending） |
+| ILO/DONG_JIA_JU-1/before | 1,692,859 | 1,826,139 | 102,026 | 64,692（+ wall-extending） |
+
+结论：这些 cas 的壁面导出把**整个网格的节点**都写了出来（行数 = 全域节点数 − 1），内部节点的 wall-shear 一律为 0（Fluent 只在壁面定义 wall-shear），所以 92–94 % 是零行；**wall-shear > 0 的行正是壁面（含延伸段壁面）节点**，WANG_BAO_SHAN 与 cas 壁面 zone 节点数**逐个相等**。标签信息完整，不需要重跑。处理方式：按坐标与 cas 解剖壁面节点匹配（`wss_v5/raw_frames.read_wall_frames` 本就这么做）、把多余的内部/延伸段行**丢弃并记录比例**，而不是让 `wall_rows_outside_anatomy_zero` 门直接判失败；不用 wall-shear > 0 做筛选（会把真实 WSS 恰为 0 的壁面点也丢掉，且延伸段壁面也是 > 0）。涉及 8 单元：LIU_CHUN_YANG-1/after、SUN_DONG_XIN-0/after、SUN_XU_XIA-1/after、DONG_JIA_JU-1/before、LI_BO_JUN-1/before、XIONG_DONG_SUO-0/before、WANG_BAO_SHAN、ZHANG_HUAN_LI。
+
+**磁盘清理**（`cleanup_20260921.log`）：22 例重跑验收通过后，删除其被替代的旧导出 `ascii_old_20260921`（22 个，36 GB）、`ascii_in_old_20260921`（21 个，175 GB）、LV_GUO_YOU 坏跑 `*_bad_rcr_20260921`（7.4 GB）、冒烟编译产物 `libudf_smoke_20260921`（22 个）、XUE_YOU_TANG 根目录旧体场重算 `volume_frames_root_recalc`（6 GB，已被 15372 的 81 帧替代）。删除前逐例核对新 `ascii/`、`ascii_in/` 均 ≥ 81 帧，0 例跳过。**共删 68 个目录、释放 229 GB，/public 可用 3.4 → 3.7 TB。** 保留：`Global_conditions_old_20260921`（旧监视 + transcript，0.7 GB，审计证据）、`libudf_old_20260921`、所有 `*.orig_2026092*` 文本备份。
+
+## 3e. 入库前分布预检：新 95 vs 在库 170（2026-09-21；`precheck_distribution.py` → `precheck_distribution.csv`，只读原始导出）
+
+用户要求：入库前必须确认新数据的量级与分布与 170 例一致、坐标对齐/朝向一致、审查与预处理与 170 例一模一样。本节是第一道（原始导出层）预检；坐标架/朝向由 V5 视图的 `v5_atlas_frame_v1`（原点 = 分叉点、+Z = 主干指向入口、X = 左侧外侧方向，来自 atlas 与出口语义）在建库时统一生成，与 170 例同一代码路径，不做人工配准；正确性取决于出口语义（UDF 线程号 → le/li/re/ri）与 atlas 质量，因此入库链里出口命名要与 `propose_outlets` 几何判定交叉核对，不一致者人工确认。
+
+峰值步 1162 壁面导出，p10 / 中位 / p90：
+
+| 队列 | 组 | n | 壁面点数 | 点间距 mm | Z 向范围 mm | WSS p50 | WSS p90 | WSS p99 | WSS max | 壁压 p99 kPa | 入口面积 mm² |
+|---|---|---:|---|---|---|---|---|---|---|---|---|
+| AG | 在库 | 75 | 10.2k/12.7k/15.8k | 0.92/1.18/1.34 | 215/251/288 | 2.1/3.1/5.2 | 5.9/10.9/21 | 12.4/20.2/43 | 26/48/112 | 15.5/16.4/17.5 | 323/427/552 |
+| AG | 新 | 11 | 10.5k/13.4k/25.4k | 0.90/1.11/1.20 | 191/258/480 | 1.4/3.0/4.3 | 5.1/11.0/14.7 | 9.5/22.9/35.4 | 26/48/71 | 15.3/16.3/16.6 | 308/386/471 |
+| AAA | 在库 | 54 | 14k/57k/85k | 0.40/0.47/1.27 | 245/259/301 | 0.8/1.6/3.1 | 4.1/9.9/20.5 | 9.3/25.9/47 | 25/57/172 | 13.1/14.2/15.5 | 358/510/687 |
+| AAA | 新 | 6 | 33k/62k/77k | 0.47/0.48/0.85 | 239/257/262 | 0.5/1.2/2.5 | 4.5/6.4/9.6 | 10.2/14.6/22.3 | 31/41/47 | 13.3/13.6/14.1 | 507/643/982 |
+| ILO before | 在库 | 41 | 51k/66k/85k | 0.41/0.46/0.50 | 272/316/375 | 1.2/1.9/2.8 | 5.2/9.9/22.3 | 12.6/23.6/53 | 37/75/182 | 13.5/14.1/16.7 | 386/482/583 |
+| ILO before | 新 | 18 | 55k/83k/119k | 0.40/0.45/0.58 | 268/313/472 | 0.9/1.6/2.7 | 5.0/11.3/22.5 | 14.7/30.3/60.5 | 42/76/205 | 13.5/14.5/16.9 | 369/543/673 |
+| ILO after | 新 | 60 | 71k/92k/126k | 0.37/0.42/0.48 | 287/321/427 | 1.2/1.6/2.1 | 4.6/6.9/11.5 | 11.3/17.3/37.1 | 33/70/171 | 13.4/13.9/15.3 | 401/476/656 |
+
+读法：三个队列的点间距、壁压、WSS 中位与尾部都落在在库同队列的分布带内（AG 点间距 1.11 vs 1.18 mm、壁压 p99 16.3 vs 16.4 kPa；ILO 术前 WSS p99 30 vs 24 Pa 略高 = 回收的射流例；ILO 术后 WSS p99 17 Pa 低于术前 24 Pa 是手术效应、max 70 与术前同量级；AAA 新例 n=6 偏低但仍在带内）。**没有量级错误（10 倍、1000 倍）残留**。8 例混合区按 wall-shear > 0 子集统计。
+
+逐例超出同队列在库 [min, max] 的项（`precheck` 末段），分三类：
+1. **网格更密 / 血管段更长**（不是噪声，但要目视确认切口层面）：ILO 术后 20 余例壁面点 109k–169k（在库上限 108k）、Z 向 421–534 mm（在库上限 415）：BAO_EN_YUN-0/after、LIU_CHUN_YANG-1、LI_YU_GANG-0、WANG_CAI-0（前后）、ZHANG_WAN_ZENG-1（前后）、WENG_ZHAO_GUANG-0/after、SUN_XU_XIA-1/after、DONG_JIA_JU-1、LI_BO_JUN-1、XIONG_DONG_SUO-0；AG WANG_BAO_SHAN / ZHANG_HUAN_LI Z 向 480–488 mm；NIE_QUAN_ZHONG Z 向仅 142 mm、8.2k 点（最短最稀）。
+2. **点间距偏粗**：LIU_CHUN_YANG-1/before 0.78 mm（面心导出，本就要重跑）、LI_YU_GANG-0/before 0.62 mm（在库 ILO 上限 0.55）。
+3. **物理量偏低/偏高，需逐例目视 + 与运行态复核**：LI_YOU_ZHI-0/after（WSS p99 5.7 Pa、壁压 p99 11.8 kPa、入口 778 mm²：大血管低流速，可能真实）、WANG_LI_MIN-0 前后（WSS p99 7.5–9.2 Pa）、ZHANG_YONG_SHENG-0/after（8.2 Pa）、ZHANG_WAN_ZENG-1/before 壁压 20.8 kPa、SU_KAI_LI 入口 1216 mm²（破裂 AAA，可能真实）、XUE_YOU_TANG-0 max 307/356 Pa（狭窄射流）。
+
+这些只是"超出在库极值"的提示，不是否决；入库链里每例还要过与 170 例相同的门：拓扑审计（六流体区、导出行数 = 网格实体数、单位核对）→ 壁面审计（壁面与体场同解、缺失节点 ≤ 限、wall-shear 标量列）→ 求解收敛分层 → 中心线 V2 硬门 → atlas 门（七段、曲率、半径、无折点）→ V5 build 门（pc-v3：召回 ≥ 0.99、切面外 ≤ 2 %、壳层 ≤ 2 %、法向翻转 ≤ 0.2 %）→ `v5_atlas_frame_v1` 坐标架（记录 x 轴世界符号，在库 4/170 反号）→ V6 三层几何自动筛查 + 接触图目视（同 07-10 / 07-17 / 09-15 做法）→ 建库后 local_radius / 曲率 / 法向分布再与 170 对比。最后用冻结的 X5D_v51 五 seed 对新 95 作**独立集评估**（不进统计量、不进训练），逐例 R² 远低于同队列预期者单独查因，确认不是数据噪声后才并入。
+
+## 4. 入库链改造与 5 例 pilot（2026-09-22，用户 09-21 拍板"可以进行下一步"）
+
+**改动原则**：不另起一套流程，新病例走 170 例走过的同一条链、同一组门；所有改动只在"旧清单缺失"时启用回退，170 例的行为逐位不变（回归：`AG/slow/QIN_SI_FU` 用改后代码重审，拓扑/壁面审计的 tangency / provenance / identity / per_frame 数值块与缓存逐字相同，rows_outside = 0，门全过）。
+
+| 文件 | 改动 |
+|---|---|
+| `wss_pinn/v4/new_case_sources.py`（新） | 无旧清单时从原始目录解析：出口语义 = UDF `t1..t4 = Lookup_Thread` 线程号（与 172 例冻结审计对照 168 一致，4 例不一致者是 09-15/09-21 修正过 UDF 的病例，以当前 UDF 为准）；`.cas` = journal read-case 指向的文件；峰值步 = 合同常量 1162（172 例审计全为 1162）；病例清单 = 冻结 split + `--extra-cases` |
+| `tools/centerline_v2_meshwall.py` | `_outlet_semantics` / `_case_file` 走上述回退（standalone 加载，不引 torch） |
+| `audit_anatomy_topology.py` | 清单回退、`--extra-cases/--cases-file`、`--centerline-root`（多根查 surface_selection.json）；**全域节点导出**：先按坐标筛出解剖壁面节点再做同一性匹配，记录 `export_scope`（anatomy_wall / whole_domain / anatomy_wall_plus_extra_rows）与 `export_rows_outside_anatomy_wall`；门 `wall_export_covers_anatomy_wall` 保持原判据，仅 whole_domain 时允许多余行 |
+| `audit_wall_wss.py` | 同上回退与预筛；切向性/压力差/覆盖只在匹配到的壁面行上算；门 `covers_anatomy_wall_exactly` 同样只对 whole_domain 放行 |
+| `audit_solver_convergence.py`、`build_feature_atlas.py` | 清单回退 + `--extra-cases/--cases-file` |
+| `wss_v5/contract.py` | `SPLIT_PATH` 可由环境变量 `WSS_V5_SPLIT_PATH` 覆盖（默认不变） |
+| `wss_v5/raw_frames.py`、`build_case.py` | `WallFrames.export_scope`；门 `wall_rows_outside_anatomy_zero` 对 whole_domain 放行（壁面覆盖仍由 `wall_missing_nodes_within_limit` 把关）；报告多一个 `export_scope` 字段 |
+| `training_wss_min/dataset.py` + 测试 | ILO 单元允许 `after`（`before|after`），其余校验不变；`test_q2v_ilo_matrix` 11 项通过 |
+| `wss_v5/views/wss_min_view.py` | `id_format` 文案改为 before\|after（只影响新写出的 split 文本） |
+
+**pilot split**：`wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_v5_2_pilot5_train141_test34_s1234.json` = v5.1 + 5 个 pilot 单元登记为 train（也进各折 train，不参与留出；正式 v5.2 split 另行重划、术前术后同折），test34 逐字不变。
+
+**pilot 5 例**（`pilot5_cases.txt`）：`ILO/AN_GUANG_JIE-0/after`（普通术后）、`ILO/LI_BO_JUN-1/before`（全域节点导出 189 万行）、`AG/slow/ZHAO_XIU_XUAN`（AG）、`AAA/unruputer/CAO_DIAN_HE`（当年 STL 朝向旗标）、`ILO/ZHAO_JIAN_PING-0/before`（本轮 CFD 重跑例）。
+
+**作业** `pilot_ingest_20260922.slurm` → Slurm **15468**（CPU 16 核）：① meshwall 中心线 V2（VMTK）→ `outputs/centerline_v2_meshwall_20260922_pilot/` ② atlas ③ 拓扑审计 ④ 壁面审计 ⑤ 求解审计（③–⑤ 全量列表 + 新单元，旧例走缓存，三份汇总重建，运行前备份 `*.bak_20260922`）⑥ V5 build → 独立快照根 `data_wss_v5/anatomy_pointcloud_v5_2_pilot_20260922/`（不碰 v5.1）。每步产物与门结果在各自目录；跑完看：中心线硬门/复核、atlas 七段与折点、三审计 gate、build 的 pc-v3 点云门、`export_scope`、出口重标记 `atlas_relabel`。之后：视图（train136 统计量，不重算）→ 冻结 X5D_v51 五 seed 独立评估 → 目视接触图。
+
+### 4.1 pilot 六步链结果（2026-09-22；作业 15468 → 15472 → 15478 → 15479，5/5 通过 V5 全部门）
+
+| 单元 | ① 中心线 V2 | ② atlas | ③ 拓扑审计 | ④ 壁面审计 | ⑤ 求解分层 | ⑥ V5 build（pc-v3） |
+|---|---|---|---|---|---|---|
+| ILO/AN_GUANG_JIE-0/after | pass，无需复核 | 七段/曲率/半径/折点全过 | pass | pass | B | pass：召回 0.9996、切面外 0、壳层 1.9 %、PCA 法向中位 1.4°/翻转 0、缺节点 0/70636、壁面压力差 −0.17 Pa |
+| ILO/LI_BO_JUN-1/before（全域节点导出） | pass | 全过 | pass（`export_scope=whole_domain`，多余行 1,808,924） | pass（统计只在 85,356 个壁面行上算：p50 1.37 / p99 37.3 Pa） | B | pass：召回 0.9996、法向 1.1°、缺节点 0/85356、压力差 −0.04 Pa |
+| AG/slow/ZHAO_XIU_XUAN | pass | 全过 | pass | pass | A | pass：召回 0.9991、壳层 0.6 %、法向 1.8°、缺节点 0/13442 |
+| AAA/unruputer/CAO_DIAN_HE（当年 STL 朝向旗标） | pass | 全过 | pass（单位核 STL=mm 精确 ×1000） | pass | A（见备注） | pass：召回 0.9999、法向 1.1°、缺节点 0/76321 |
+| ILO/ZHAO_JIAN_PING-0/before（本轮 CFD 重跑） | pass | 全过 | pass（修匹配器后） | pass | B | pass：召回 0.9984、法向 1.1°、缺节点 0/56376 |
+
+五例 cas SHA 与审计一致；atlas 出口按几何重标记 0 改动、0 未解析；出口语义全部由 UDF 线程号给出且与中心线/网格接口对得上。中心线复核图 `pilot5_centerline_contact_sheet.png`（我目视：五例均为主干→分叉→四髂支的正常 Y 形，中心线贯穿管腔与瘤囊，无错追）。
+
+**过程中修的四处（都是"旧例逐位不变、新情形才触发"）**：
+1. 匹配器 `fluent_topology.match_points`：近重合小单元对的贪心分配没把"已被非歧义行占用的参考点"计入 → ZHAO_JIAN_PING 有一对 4.8e-12 m³ 的小单元被分配两次（一行距两单元 18.7/19.5 µm）→ 现在已占用的参考点不再空闲；QIN_SI_FU 改前后 cell_identity 逐字相同。
+2. 拓扑审计单位核：全域导出含延伸段节点，STL 跨度比要只用解剖壁面行（LI_BO_JUN 初次判成 0.358 偏差）。
+3. 壁面审计：`ascii/` 里的 `fluent-999999-error.log` 让步号正则报错（AN_GUANG_JIE-0/after、LI_YU_GANG-0/before 目录里都有）→ 只认 `-数字` 结尾；全域导出的分位/切向/压力差统计改在匹配到的壁面行上算（LI_BO_JUN 初次 p50=0 判失败）。
+4. 求解审计残差行正则允许额外列：CAO_DIAN_HE 的 cas 把 UDS-0 当输运方程求解（`uds/solve? (#t …)`，其余病例都是 #f），transcript 多一列 `uds-0` → 原来解析不到、分层 unknown；放宽后 A 层（continuity max 6.8e-4）。**备注**：这是该例与协议的一处设置差异，运行态 RCR 审计 L/R 0.500、四出口 13.0 kPa、质量守恒 1.000，标签未受影响，入库时记为 audit_only 例外。
+
+另：Slurm 脚本里审计步骤改为不因"汇总里在库历史失败例"的非零退出码中断（`|| echo`），逐例门由报告读取。
+
+### 4.2 pilot 视图与冻结模型独立评估（2026-09-22；视图 15486、评估 15487（GPU 被占且 node04 DOWN，改 CPU，1 min 47 s））
+
+视图：`wss_min_view --no-cohort-files`（只建病例 bundle，不重算 train 统计）+ `wall_geom_v2` + `wall_flowref_v1 --skip-prior`，写到独立视图根 `data_wss_v5/views_v5_2_pilot_20260922/`（`WSS_V5_SNAPSHOT_ROOT` 指向 pilot 快照）。五例坐标架 x 来源都是 `left_minus_right_cia`，`left_axis_world_x_sign` 全为 −1 —— **与在库 170 例一致**（v5.1 视图 166/170 为 −1，+1 的 4 例是 WANG_KUI_WU、LI_ZHEN_SHAN、LI_ZHI_LIN、ZHANG_WEI_XIAN），朝向统一由 atlas 坐标架自动完成。
+
+评估：冻结 X5D_v51 五 seed（统计量 = run 自带 train136，`evaluate --split-path/--data-root/--point-features-root` 只读覆盖），Pa 均值集成；参照 = 同队列 cv3 折外逐例 R² 的均值与 p10–p90：
+
+| 单元 | 壁面点 | 真值 p99 Pa | 五 seed R² | 集成 R² | top10 幅值比 | 同队列折外参照 | 判读 |
+|---|---:|---:|---|---:|---:|---|---|
+| AAA/unruputer/CAO_DIAN_HE | 76321 | 9.1 | 0.718–0.777 | **0.776** | 0.79 | AAA 0.715（0.59–0.83） | 带内 |
+| AG/slow/ZHAO_XIU_XUAN | 13442 | 16.4 | 0.801–0.837 | **0.840** | 0.83 | AG 0.744（0.63–0.84） | 带内 |
+| ILO/LI_BO_JUN-1/before（全域导出） | 85356 | 37.3 | 0.734–0.748 | **0.766** | 0.76 | ILO 0.684（0.58–0.77） | 带内 |
+| ILO/ZHAO_JIAN_PING-0/before（重跑） | 56376 | 40.5 | 0.769–0.810 | **0.820** | 0.77 | ILO 0.684 | 带内 |
+| ILO/AN_GUANG_JIE-0/after | 70636 | 43.4 | 0.342–0.418 | **0.391** | 0.45 | ILO 0.684 | **远低于 p10 → 查因** |
+
+AN_GUANG_JIE-0/after 查因：CFD 峰值出口分流 le/li/re/ri = 0.370/0.291/**0.005**/0.333，右髂外几乎不流；UDF 里 `pressure_outre` 的 R2 = 1.368e7、C = 1.287e-7（其余三口 R2 1.1–1.5e6、C ~1e-6；τ 因两者同时错 10 倍而不变 1.79）→ **R2/C 小数点错一位的 RCR 录入错误**，与 09-15 在库 23 例同类。术前单元（在库）折外 R² 0.75。模型按 Murray r³ 先验给右髂外正常流量份额，标签却接近零流 → 整支尺度错 → 0.39。这不是模型或几何问题，是标签的 CFD 边界条件错；该例须按协议重算 R1/R2/C（`rcr_corrected_values.py` 配方）后重跑。
+
+**由此新增一道门（95 个新单元都要过，在库 170 例 09-15 已过）**：`rcr_protocol_audit_new.py` —— 从 UDF 解析 R1/R2/C，从网格算出口面积，核 τ≈1.79、每侧髂外/髂内电导份额 vs r³ 份额（|偏差|>0.05）、R1 幂律隐含半径 vs 网格半径（面积比 ∉[1/1.5,1.5]）、R_total 队列常量、左右电导 50/50。运行态审计（末周期左右分流 ±0.05）抓不到这类"同侧内外互换/单口 10 倍"错误（AN_GUANG_JIE-0/after 左右 0.527/0.473 过门），必须两道一起用。
+
+5 单元合并病例等权 R²_cb（集成）0.6705（含坏例）；去掉 AN_GUANG_JIE 后四例都在带内。**pilot 结论：链路可用；新单元入库前必须补 RCR 协议审计；标记例走"协议重算 + CFD 重跑"。**
+
+### 4.3 RCR 协议审计（95 新单元）：81 过、14 标记；13 例按协议重算后进第三批 CFD（2026-09-22）
+
+`rcr_protocol_audit_new.py`（R1 幂律在库拟合：AG log R1 = 14.95 − 2.24 log r、AAA 15.05 − 2.30、ILO 15.05 − 2.30，内点 676/680）→ `rcr_protocol_audit_new.csv`。标记 14：
+
+| 单元 | 问题 | 处置 |
+|---|---|---|
+| AN_GUANG_JIE-0/after、GUO_AI_JUN-0 after+before、GUO_QING_SHAN-0/after、LI_YU_GANG-0/after、XUE_YOU_TANG-0/before | 某一口 R1 或 R2 小数点错一位（×10 / ×0.1），同侧份额偏离 r³ 0.3–0.9 | 协议重算该侧两口 |
+| SHEN_CHUN_WANG-0/before | 左侧髂内/髂外面积互换（le ×2.49、li ×0.40） | 重算左侧 |
+| WANG_LI_MIN-0/before、ZHANG_WAN_ZENG-1/before、LI_FA_XIANG-1/after（四口 R 几乎相同，模板值）、ZHANG_MAO_JIN-0/after（偏 0.07） | 面积录错 / 未按病例算 | 重算偏离侧 |
+| PENG_JI_MING | R1 隐含面积 = 真实 ×10（其 cas 本身小 1000 倍，运行时 journal 放大）；同侧份额 0.53 vs 0.83 | 用真实面积（cas×1e6）重算四口 |
+| XUE_YOU_TANG-0/after | 目录里的 UDF 线程号 5511/5510/5508/5502 在本 cas 不存在（是别的病例的号；1 月那次运行用的源码已不在），R 值无法溯源 | 线程号改到本 cas 出口区（11524/11523/11521/11522）+ 两侧按协议重算（A1 取 ILO ok 例中位 0.0330） |
+| **YANG_QING_REN-1/after（已剔除）** | 左侧两口只有 7.3 / 5.1 mm²，协议公式 R1 = 13.3/(2r)^0.3/s 超过 R_total、R2 为负 | 不能套公式；原 UDF 是模板 R 值（份额 0.44 vs r³ 0.63）。**2026-09-22 用户裁定剔除**：不入库；`new_units_manifest.json` 移入 `excluded`（新单元 95 → **94**），登记 split 记入 `excluded_cases`；原始目录不动 |
+
+A1 由各例 UDF 反推（四口一致，cv ≤ 4e-5；AG 0.0284、ILO 0.0330 kg/s）。重算值（`rcr_correct_new.py --apply`，原件 `*.orig_20260922_rcr`；复核 `rcr_protocol_audit_batch3_after_fix.csv`）：
+
+| 病例 | A1 kg/s（四口反推 cv） | 出口 | 网格面积 mm² | 原 R1 / R2 / C | 新 R1 / R2 / C | 该侧髂外份额 原 → 新 |
+|---|---|---|---|---|---|---|
+| `AG/fast/PENG_JI_MING` | 0.02842（cv 3.6e-05） | le | 55.3 | 9.789e+03 / 1.648e+06 / 1.08e-06 | 1.270e+05 / 9.302e+05 / 1.69e-06 | 0.53 → 0.83 |
+| `AG/fast/PENG_JI_MING` | 0.02842（cv 3.6e-05） | li | 19.6 | 1.064e+04 / 1.836e+06 / 9.69e-07 | 4.197e+05 / 4.610e+06 / 3.56e-07 | 0.53 → 0.83 |
+| `AG/fast/PENG_JI_MING` | 0.02842（cv 3.6e-05） | re | 46.3 | 9.992e+03 / 1.660e+06 / 1.07e-06 | 1.559e+05 / 9.010e+05 / 1.69e-06 | 0.52 → 0.83 |
+| `AG/fast/PENG_JI_MING` | 0.02842（cv 3.6e-05） | ri | 16.4 | 1.072e+04 / 1.820e+06 / 9.78e-07 | 5.158e+05 / 4.518e+06 / 3.56e-07 | 0.52 → 0.83 |
+| `ILO/AN_GUANG_JIE-0/after` | 0.03300（cv 1.6e-05） | re | 33.8 | 2.242e+05 / 1.368e+07 / 1.29e-07 | 2.242e+05 / 9.442e+05 / 1.53e-06 | 0.05 → 0.64 |
+| `ILO/AN_GUANG_JIE-0/after` | 0.03300（cv 1.6e-05） | ri | 22.7 | 2.499e+04 / 7.703e+05 / 2.25e-06 | 3.530e+05 / 1.760e+06 / 8.47e-07 | 0.05 → 0.64 |
+| `ILO/GUO_AI_JUN-0/after` | 0.03300（cv 1.2e-05） | le | 35.1 | 1.508e+04 / 7.442e+05 / 2.36e-06 | 2.145e+05 / 7.696e+05 / 1.82e-06 | 0.99 → 0.76 |
+| `ILO/GUO_AI_JUN-0/after` | 0.03300（cv 1.2e-05） | li | 16.0 | 5.441e+05 / 8.103e+07 / 2.19e-08 | 5.290e+05 / 2.666e+06 / 5.60e-07 | 0.99 → 0.76 |
+| `ILO/GUO_AI_JUN-0/after` | 0.03300（cv 1.2e-05） | re | 60.2 | 1.159e+05 / 1.877e+06 / 8.98e-07 | 1.153e+05 / 6.786e+05 / 2.25e-06 | 0.38 → 0.95 |
+| `ILO/GUO_AI_JUN-0/after` | 0.03300（cv 1.2e-05） | ri | 8.7 | 7.903e+04 / 1.130e+06 / 1.48e-06 | 1.061e+06 / 1.330e+07 / 1.25e-07 | 0.38 → 0.95 |
+| `ILO/GUO_AI_JUN-0/before` | 0.03300（cv 1.3e-05） | le | 67.2 | 7.204e+03 / 7.505e+05 / 2.36e-06 | 1.016e+05 / 8.237e+05 / 1.93e-06 | 0.99 → 0.81 |
+| `ILO/GUO_AI_JUN-0/before` | 0.03300（cv 1.3e-05） | li | 25.2 | 3.181e+05 / 1.056e+08 / 1.69e-08 | 3.135e+05 / 3.710e+06 / 4.45e-07 | 0.99 → 0.81 |
+| `ILO/GUO_QING_SHAN-0/after` | 0.03300（cv 1.3e-05） | le | 58.5 | 8.442e+03 / 7.581e+05 / 2.34e-06 | 1.191e+05 / 1.092e+06 / 1.48e-06 | 0.98 → 0.62 |
+| `ILO/GUO_QING_SHAN-0/after` | 0.03300（cv 1.3e-05） | li | 42.1 | 1.763e+05 / 4.019e+07 / 4.43e-08 | 1.739e+05 / 1.811e+06 / 9.02e-07 | 0.98 → 0.62 |
+| `ILO/LI_FA_XIANG-1/after` | 0.03300（cv 1.0e-05） | le | 36.7 | 1.212e+05 / 1.375e+06 / 1.20e-06 | 2.035e+05 / 1.160e+06 / 1.31e-06 | 0.50 → 0.55 |
+| `ILO/LI_FA_XIANG-1/after` | 0.03300（cv 1.0e-05） | li | 32.0 | 1.223e+05 / 1.391e+06 / 1.18e-06 | 2.386e+05 / 1.440e+06 / 1.07e-06 | 0.50 → 0.55 |
+| `ILO/LI_FA_XIANG-1/after` | 0.03300（cv 1.0e-05） | re | 45.5 | 1.191e+05 / 1.341e+06 / 1.23e-06 | 1.588e+05 / 8.593e+05 / 1.76e-06 | 0.52 → 0.74 |
+| `ILO/LI_FA_XIANG-1/after` | 0.03300（cv 1.0e-05） | ri | 22.8 | 1.248e+05 / 1.427e+06 / 1.15e-06 | 3.527e+05 / 2.529e+06 / 6.21e-07 | 0.52 → 0.74 |
+| `ILO/LI_YU_GANG-0/after` | 0.03300（cv 1.9e-05） | re | 120.3 | 7.326e+05 / 7.185e+06 / 2.26e-07 | 5.199e+04 / 9.593e+05 / 1.77e-06 | 0.10 → 0.74 |
+| `ILO/LI_YU_GANG-0/after` | 0.03300（cv 1.9e-05） | ri | 59.1 | 1.302e+05 / 7.011e+05 / 2.15e-06 | 1.178e+05 / 2.820e+06 / 6.09e-07 | 0.10 → 0.74 |
+| `ILO/SHEN_CHUN_WANG-0/before` | 0.03300（cv 2.6e-05） | le | 22.3 | 1.267e+05 / 8.178e+05 / 1.90e-06 | 3.610e+05 / 3.369e+06 / 4.80e-07 | 0.80 → 0.20 |
+| `ILO/SHEN_CHUN_WANG-0/before` | 0.03300（cv 2.6e-05） | li | 55.8 | 3.607e+05 / 3.337e+06 / 4.84e-07 | 1.257e+05 / 8.166e+05 / 1.90e-06 | 0.80 → 0.20 |
+| `ILO/WANG_LI_MIN-0/before` | 0.03300（cv 1.1e-05） | re | 88.0 | 5.038e+04 / 8.192e+05 / 2.06e-06 | 7.450e+04 / 1.260e+06 / 1.34e-06 | 0.87 → 0.56 |
+| `ILO/WANG_LI_MIN-0/before` | 0.03300（cv 1.1e-05） | ri | 74.2 | 2.095e+05 / 5.370e+06 / 3.21e-07 | 9.061e+04 / 1.633e+06 / 1.04e-06 | 0.87 → 0.56 |
+| `ILO/XUE_YOU_TANG-0/before` | 0.03300（cv 1.5e-05） | re | 30.2 | 2.556e+05 / 5.019e+06 / 3.39e-07 | 2.544e+05 / 6.504e+05 / 1.98e-06 | 0.14 → 0.83 |
+| `ILO/XUE_YOU_TANG-0/before` | 0.03300（cv 1.5e-05） | ri | 10.4 | 6.461e+04 / 8.128e+05 / 2.04e-06 | 8.647e+05 / 3.598e+06 / 4.01e-07 | 0.14 → 0.83 |
+| `ILO/ZHANG_MAO_JIN-0/after` | 0.03300（cv 6.2e-06） | le | 75.0 | 9.009e+04 / 8.638e+05 / 1.88e-06 | 8.953e+04 / 9.567e+05 / 1.71e-06 | 0.79 → 0.72 |
+| `ILO/ZHANG_MAO_JIN-0/after` | 0.03300（cv 6.2e-06） | li | 40.1 | 2.472e+05 / 3.312e+06 / 5.03e-07 | 1.840e+05 / 2.494e+06 / 6.68e-07 | 0.79 → 0.72 |
+| `ILO/ZHANG_WAN_ZENG-1/before` | 0.03300（cv 1.0e-05） | re | 6.0 | 1.461e+05 / 9.356e+05 / 1.65e-06 | 1.623e+06 / 7.036e+06 / 2.07e-07 | 0.70 → 0.09 |
+| `ILO/ZHANG_WAN_ZENG-1/before` | 0.03300（cv 1.0e-05） | ri | 29.0 | 2.752e+05 / 2.195e+06 / 7.25e-07 | 2.674e+05 / 5.565e+05 / 2.17e-06 | 0.70 → 0.09 |
+| `ILO/XUE_YOU_TANG-0/after` | 0.03300（cv nan） | le | 35.3 | 2.141e+05 / 6.566e+05 / 2.06e-06 | 2.129e+05 / 6.589e+05 / 2.05e-06 | 0.86 → 0.86 |
+| `ILO/XUE_YOU_TANG-0/after` | 0.03300（cv nan） | li | 10.4 | 8.833e+05 / 4.647e+06 / 3.24e-07 | 8.727e+05 / 4.617e+06 / 3.26e-07 | 0.86 → 0.86 |
+| `ILO/XUE_YOU_TANG-0/after` | 0.03300（cv nan） | re | 30.2 | 2.556e+05 / 5.019e+06 / 3.39e-07 | 2.544e+05 / 6.504e+05 / 1.98e-06 | 0.14 → 0.83 |
+| `ILO/XUE_YOU_TANG-0/after` | 0.03300（cv nan） | ri | 10.4 | 6.461e+04 / 8.128e+05 / 2.04e-06 | 8.647e+05 / 3.599e+06 / 4.01e-07 | 0.14 → 0.83 |
+
+第三批 CFD = 上表 13 例（`rerun_batch3_cases.txt`；其中 GUO_AI_JUN-0 前后、SHEN_CHUN_WANG-0/before、XUE_YOU_TANG-0/before 是第二批已跑过的，再跑一次；PENG_JI_MING 是首批已跑过的）。
+
+**提交前核查与提交（2026-09-22 13:18）**：13 例路径核（`fix_rcr_cases.py` 同一套断言，只做路径不改 R 值）：5 例（AN_GUANG_JIE-0/after、GUO_QING_SHAN-0/after、LI_FA_XIANG-1/after、LI_YU_GANG-0/after、ZHANG_MAO_JIN-0/after、XUE_YOU_TANG-0/after）cas 里的壁面/体场导出前缀还是 1 月的旧串 `data/ILO/ILO/<病例>/…` → 改回本目录（cas/2.jou 备份 `*.orig_20260922_paths`）；13/13 终检 = 2.jou read-case 为本目录绝对路径且文件存在、UDF 四线程号与 cas 的 pressure_out* 挂接一致、execute_at_end 已注册、入口挂 my_inlet、无旧路径串。`prepare_rerun_20260922.sh`：旧 `ascii/ ascii_in/ libudf/ Global_conditions/` 挪成 `*_old_20260922`（13 例共约 130 GB，验收后删）、重建空 `ascii/`、fluent.slurm 去 `-w`（Slurm 自选空闲节点）+ 64 核（备份 `fluent.slurm.orig_20260922`）。冒烟 `smoke_batch3_20260922.slurm`（作业 15490，node01，7 min 18 s）：13/13 read-case 成功、libudf 从本目录修正后源码重编（host/node 两端 `libudf.so` 均生成，node01 有 30 s 时钟偏差只出 make 警告）、mesh/check 通过、退出码全 0、无错误（`smoke_b3_15490.out`；`head -40` 截断了域范围行，不影响判定）。**已按 [`submit_batch3.sh`](submit_batch3.sh) 分两波提交**：波 1 **15491–15498**（8 例立即开跑：node06 ×3、node07 ×3、node01 ×2），波 2 **15499–15503**（各 afterany 依赖波 1 的一例，同时在跑 ≤ 8 例）；作业表见 `rerun_jobs.md`。验收口径同 §3c：`rcr_runtime_audit.py`（末周期 L/R 0.5±0.05、四出口 ≥ 10 kPa、质量守恒 ±5 %）+ `wall_scan_1162.py`（壁面 1162 步压力 p99 13–20 kPa）+ `rcr_protocol_audit_new.py --cases-file rerun_batch3_cases.txt` 再跑一遍（PENG_JI_MING 的隐含面积项需按 ×1e6 解读）。
+
+**第三批结论（2026-09-22 19:2x）：13/13 COMPLETED（1 h 20 min – 3 h 50 min），13/13 按三条线验收通过**（`accept_one.sh` 逐例：81/81 帧、运行态 RCR ok（末周期 L/R 0.49–0.51、四出口 12.6–15.2 kPa、质量守恒 1.000；WANG_LI_MIN-0/before 的 vf-in 监视器是压力属已知命名问题，按 report-def-2 与出口压力收）、壁面 1162 步压力 p99 12.9–19.6 kPa、vf-in 峰值 1.0727e-4；`rcr_protocol_audit_new.py` 复核 `rcr_protocol_audit_batch3_final.csv` 12 ok + PENG_JI_MING 仅隐含面积项按 ×1e6 解读的假阳性；逐例数据在 `rerun_jobs.md`）。其中 **XUE_YOU_TANG-0/after 在 §4.5 判定为术前网格副本而剔除 → 有效 12 例**。清理 `cleanup_20260922_batch3.log`：13 例的 `ascii_old_20260922`、`ascii_in_old_20260922`、`libudf_smoke_20260922` 共 39 个目录、**释放 128 GB**（删前逐例核对新 ascii/ascii_in ≥ 81 帧），保留 `Global_conditions_old_20260922`、`libudf_old_20260922`、`*.orig_20260922_*`。
+
+**第三批验收进度（2026-09-22 16:4x）**：已完成 8/13 且 8/8 通过（`accept_one.sh` 逐例：81 帧、运行态 ok、L/R 0.50、四出口 12.7–15.2 kPa、壁面 1162 步 p99 13.7–16.3 kPa、vf-in 1.0727e-4；逐例数据见 `rerun_jobs.md`）。**发现**：GUO_AI_JUN-0 前后两例的 cas 把体场导出直接写进 `ascii_in/`（不是先落在病例目录），fluent.slurm 的清理循环只抽稀病例目录和 `ascii/`，因此 `ascii_in/` 留下全部 1280 帧（各 153 GB）；已按同一保留规则（1120 + 1122…1280 偶数步 = 81 帧，删除前核对 81 帧齐全）手工抽稀，释放约 285 GB。其余第三批例需在完成后逐例核对 `ascii_in` 帧数。
+
+### 4.4 入库链第 2 波：81 个协议审计 ok 的新单元（2026-09-22 13:23 提交，与第三批 CFD 并行）
+
+- 清单 `ingest_wave2_cases.txt` = 94（95 − 剔除 1）− 第三批 13 = **81**（ILO 63 / AG 9 / AAA 5；含 pilot 已建的 4 例，重建到 v5.2 快照根以便一处收齐）。第三批 13 例 CFD 完成验收后用同一脚本（`CASES_FILE=rerun_batch3_cases.txt`、`WAVE_TAG=batch3`）补建。
+- 登记 split `wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_v5_2_new94_train230_test34_s1234.json`：v5.1 train136/test34 + 94 个新单元以 train 身份登记（V5 build/views 需要 role），test34 逐字不变；`new_units_2026_09_22` 字段记录 ok / rerun_batch3 两类，YANG_QING_REN-1/after 记在 `excluded_cases`（首版 new95 文件已删，首提 15505/15506 随之取消重提）。**不是正式 v5.2 split**（正式版另行按患者分组、术前术后同折重划）。
+- 作业 **15508**（`ingest_wave2_20260922.slurm`，node02，16 核 160 GB；15504 落在满载 node05、15505 用的还是 new95 登记 split，均已取消）：与 pilot 完全相同的六步链 → 中心线根 `outputs/centerline_v2_meshwall_20260922_new95`、三审计 + atlas 并入共享 prep 根（汇总备份 `.bak_20260922b`）、快照根 **`data_wss_v5/anatomy_pointcloud_v5_2_20260922`**（不碰 v5.1）。
+- 作业 **15509**（`ingest_wave2_views_eval_20260922.slurm`，afterok:15508）：从快照 manifest 取 `gates.pass` 的单元 → `ingest_wave2_gate_pass.txt` + eval-only split `split_new95_wave2_eval_only_20260922.json`（未过门 / 未建的单元记在 `gate_failed` / `not_built`）→ 视图根 `data_wss_v5/views_v5_2_20260922`（`--no-cohort-files`，统计量仍是 train136）→ 冻结 X5D_v51 五 seed 只读评估 → `training_wss_min/experiments/wss_v52_new95_20260922/eval_wave2/`；读数脚本 `analyze_new_units_eval.py --eval-dir …/eval_wave2`（pilot 自检：4 带内 + AN_GUANG_JIE 0.391 与 §4.2 一致）。
+- 预期结果分三类：带内直接候选入库；低于同队列 p10 的逐例查因（先看 RCR 运行态与出口语义）；已知会不过门的 LIU_CHUN_YANG-1/before（壁面导出是面心 `cellnumber`，42 558 行）等到报告后再定 cas 改导出重跑。
+
+**中心线步结果（15508，1 h 43 min，81 例）**：77 pass、2 pass_review（`AG/slow/LIN_SHU_TIAN` 一出口终点离开口 8.1 mm、`ILO/GUO_YU_SHU-0/after` 4.9 mm；硬门全过，软标记 `opening_endpoint_gt_0p5r`，三视图目视中心线走向正常、只是末端提前停在开口内侧，先走完 V5 门再定）、2 error。作业因工具对非 hard_pass 退出 1 而中止（`set -e`）→ slurm 改为容错并在步骤 2–6 只对 hard_pass 单元继续（`ingest_wave2_cl_pass.txt` 79 例 / `_cl_failed.txt`），**续跑 15528（START_STEP=2，node01）→ 视图评估 15529**。
+
+**两例 error 同一根因：解剖区不是名为 `blood` 的那个 fluid zone。** `ILO/WANG_CAI-0/before` 六个 fluid zone 全是自动名 `fluid-NNNN`（报 no fluid zone named 'blood'）；`AG/slow/NIE_QUAN_ZHONG` 里名为 `blood` 的 255k 单元区是**入口延伸段**（其壁面 `wall1` 16 096 面），真正解剖区是 `blood2`（接 `in+`/`out-*+` 五个界面、壁面 `wall` 16 285 面），读取器按名字取 blood 后其余延伸段两两"相触"而报错。**改法（不改旧例行为）**：`fluent_topology.resolve_anatomy_zone()`——名为 `blood` 的区若是所有 fluid-zone 界面共同接触的 hub 则照旧（172 例全是），否则取唯一 hub，并在拓扑结果/审计报告里记 `anatomy_zone_resolution`（`method=name|hub_topology`）；`audit_anatomy_topology` 与 `wss_v5/mesh_topology` 改为从拓扑结果取 `anatomy_zone_id`，`six_fluid_zones_blood_blood1_5` 门允许"六区 + hub 解析"同构、无 `wall` 名时主壁面区取解剖区邻接面最多的壁面区。回归：QIN_SI_FU、AN_GUANG_JIE-0/before、CAO_DIAN_HE 拓扑结果逐位相同（`method=name`）；NIE_QUAN_ZHONG → `blood2`（五界面 in/out-le/li/ri/re，壁面 16 285 面，无直连流动边界），WANG_CAI → `fluid-6173`（五界面 velocity-inlet + 4 pressure-outlet，壁面 67 247 面）。两例中心线补算到独立根 `centerline_v2_meshwall_20260922_wave3`（`centerline_hubfix_20260922.slurm`），随第三批 13 例一起作第 3 波入库（`CL_ROOT`/`CASES_FILE`/`WAVE_TAG` 环境变量，等 15528 结束后再提，避免与共享 prep 汇总并发写）。备份 `*.bak_20260922_hub`。
+
+
+**第 2 波拓扑审计（15528 步 3，79 例）：75 例全门通过，4 例抛异常**（`audits/topology/summary.json.failures`）：
+
+| 单元 | 异常 | 根因 | 处置 |
+|---|---|---|---|
+| `ILO/WANG_SHU_SHENG-0/after` | 体场 690 243 行里 2 行超出身份容差（0.2×单元尺寸；距离 25 / 10 µm，单元 0.04–0.12 mm 的薄片单元） | Fluent 的薄片单元质心与我们按节点平均算的质心差一小截，且其中一对相邻薄片互相"抢"最近点 | `fluent_topology.match_points` 加**有上限的薄片例外**：≤ 10 行、超差 ≤ 5 倍、仍需一一对应且无歧义时，把这些行分给尚未被占用的最近单元并记入 `tolerance_exception_rows`/`sliver_reassigned`（本例 4 行改派、5 行例外，最大超差 1.9 倍）；QIN_SI_FU、ZHAO_JIAN_PING-0/before 的映射与全部旧诊断量逐位相同。第 3 波重跑其审计与 build |
+| `ILO/WANG_LI_MIN-0/after` | 体场导出只有 726 行且全在 blood1 | cas 的体场导出定义写成 `(surfaces inlet)`——只导了入口面 | **改 cas 重跑（第四批）**：`(surfaces inlet)` → `(surfaces)` |
+| `ILO/WEI_QING_FENG-1/after` | 体场导出无 x/y/z-velocity 列 | 体场导出 quantities 只有 "Static Pressure" | **改 cas 重跑（第四批）**：补 Velocity Magnitude / X / Y / Z Velocity（与正常 ILO 例逐字相同） |
+| `ILO/LIU_CHUN_YANG-1/before` | 壁面导出 41 317 行是面心（`cellnumber`） | 壁面导出 `(cellzones blood blood1..5)` + cell-centered | **改 cas 重跑（第四批）**：`(cellzones blood)` + node-based（与正常 ILO 例逐字相同） |
+
+**第 2 波 V5 build（15528 步 6）中途读数：前 32 例里 23 过门、8 例 ILO 术后单元卡 `domain_shell_rejected`、LIU_CHUN_YANG-1/before 无拓扑审计（预期）。** 该门 = 沿外法向放在壁外 1–3 mm 的壳层点被点云内外分类器判为"内部"的比例 ≤ 2%（pc-v3）。8 例为 2.1–5.3%，且 vote / winding / hybrid 三种判法一致，不像分类器漏判。真值核查（用 CFD 体网格：壳层点到最近单元质心 ≤ 0.8×单元尺寸即在腔内）：HOU_SHI_GUO-0/after 4.5% 的壳层点真落在本例解剖区单元里（指标 5.3%）、GUO_YU_SHU-0/after 3.7%（4.8%）、CUI_WEI_PING-0/after 1.9%（2.75%）；在库最高的 ZHANG_WEI_XIAN 1.5%（1.87%）同一成因，AN_GUANG_JIE-0/before 0.4%。**结论：术后两条髂支（或支架肢）并排贴得近，一支壁外 1–3 mm 的点落进邻支管腔，是真内部，不该算"误判"。** 改法（`wss_v5/build_case.py`，备份 `.bak_20260922_shell`）：壳层子样保持同一随机序列，另加 `shell_1_3mm_outside_true_outside`（剔除落入体网格单元的点）供门判定，原 `shell_1_3mm_outside` 指标保留以便与在库报告可比，并记 `shell_in_cfd_volume_fraction`；旧例指标只会下降（在库 170 例全过，最高 1.87%）。回归：15551（QIN_SI_FU、ZHANG_WEI_XIAN 对 v5.1 报告：门与计数一致、bundle 摘要不同——原因是 09-16 之后判定子样本从 6000 改到 10000 的既有变动，非本次）→ 改为同日代码 A/B `regress_shell_ab2_20260922.slurm`（15571：pilot 快照的 ZHAO_XIU_XUAN、CAO_DIAN_HE 用改后代码重建）：**inside_test 全部条目、门、计数、dataset digest 逐位一致，只多出 `shell_1_3mm_outside_true_outside`/`shell_in_cfd_volume_fraction`/薄片例外两个字段和一个耗时字段**（第一次 A/B 15561 发现我把壳层抽样提前改变了随机序列，已恢复原顺序）；临时根已删。15528 结束后 **15552** 用 `--resume` 只重建未过门单元（`ingest_wave2_rebuild_20260922.slurm`），随后 **15553** 视图 + 冻结模型评估（15529 已取消）。
+
+**第 2 波重建结果（15567，2 h 06 min，`--resume` 建 42 例）：78 例 73 过门**；未过 5 = 第四批 3 例 + WANG_SHU_SHENG-0/after（无拓扑审计，第 3/4 波补）+ **SUN_XU_XIA-1/after 卡 `pca_normals_ok`：翻转法向比例 0.517% 对门 0.5%**（中位角 1.5°、p95 4.4° 都远在门内；在库 + 新单元 245 份报告里翻转比例最高的前四都是 ILO 术后例 0.40–0.52%，同样是并排邻支让 PCA 邻域跨到对面壁）。改门前 8 例 shell 失败的 ILO 术后单元现全部过门。因 build 对"任一例不过"退出 1，afterok 的视图作业 15568 永不满足 → 无依赖重提 **15581**（自动只取 73 个过门单元）。
+
+**第 2 波冻结模型独立评估（15581，31 min；73 个过门单元，X5D_v51 五 seed Pa 均值集成，统计量 train136）**：病例均衡 R²_cb **0.749**（对照：cv3 折外 136 例 0.710、test34 0.775）；逐例集成 R² 均值 0.747 / 中位 0.767；按队列 AG 0.719（n=8）、AAA 0.830（n=6）、ILO 0.743（n=59）。判定：**69 例在同队列折外 p10–p90 带内**、2 例低于 p10 待看（AG/slow/WANG_DENG_FENG 0.615、ILO/ZHANG_JIN_CHUN-1/after 0.569）、**2 例明显异常**：`AG/slow/LIN_SHU_TIAN` 0.084（五 seed −0.08…0.14，幅值 top10 比 1.10 正常 → 空间分布错，正是中心线 pass_review 那例）、`ILO/YANG_WEN_TAI-0/after` 0.350（真值 p99 仅 11.7 Pa、p50 0.94 Pa，五 seed 0.27–0.35）。四例运行态 RCR 审计、协议审计、壁面 1162 步压力全正常。读数：`experiments/wss_v52_new95_20260922/eval_readout_eval_wave2.md/.json`。
+
+第四批 = `rerun_batch4_cases.txt` 3 例：`fix_export_cases.py`（复用 `fix_cfd_cases.py` 的路径与字节替换、断言与回读校验；三例 2.jou/cas 内路径也还是 1 月的 `GNN/data/ILO/ILO/…`，一并改回本目录；备份 `*.orig_20260922_export`，日志 `fix_export_cases_log.md`）→ 终检（read-case、UDF 线程号↔pressure_out 挂接、execute_at_end、my_inlet、无旧路径、体场/壁面导出定义、`ascii/` 前缀）→ `prepare_rerun_20260922.sh`（旧导出挪 `*_old_20260922`）→ 冒烟 `smoke_batch4_20260922.slurm`（作业 15538，1 min 42 s，3/3 读入成功、libudf 重编、mesh/check 过、无错误）→ **已提交：15539（WANG_LI_MIN-0/after，node07）、15540（WEI_QING_FENG-1/after，node01）、15541（LIU_CHUN_YANG-1/before，node02）**。三例的 RCR 协议审计与运行态审计此前均 ok，只是导出错。验收口径同第三批，另加：体场导出行数 = 网格单元数、列含 x/y/z-velocity、壁面导出 `nodenumber`。 **结果（19:5x）：3/3 COMPLETED（1 h 51 min – 2 h 36 min），3/3 验收通过**：81/81 帧、运行态 ok（L/R 0.50、四出口 13.0–13.1 kPa、质量守恒 1.000）、壁面 1162 步 p99 13.2–14.5 kPa、vf-in 1.0727e-4；导出格式：WANG_LI_MIN-0/after 体场 608 143 行 = 单元数（原 726）、WEI_QING_FENG-1/after 体场 923 927 行且含 x/y/z-velocity、LIU_CHUN_YANG-1/before 壁面 `nodenumber` 85 051 节点（原面心 42 557）。旧导出与冒烟产物已删（`cleanup_20260922_batch3.log` 第四批段）；第 2 波里基于坏导出算出的三例壁面/求解审计缓存报告移到 `audits/_stale_20260922/`，第 4 波（`ingest_wave4_cases.txt`，排在第 3 波 15576 之后）重算。
+### 4.5 重复网格扫描：3 个新单元是别的单元的网格副本（2026-09-22 傍晚，剔除；新单元 94 → **91**）
+
+起因：第三批 XUE_YOU_TANG-0/before 验收数字与 after 几乎逐位相同（壁面 p99 18072 vs 18074 Pa、WSS p99 82.0 两者、四出口份额一样）。写了 [`scan_duplicate_units.py`](scan_duplicate_units.py)（壁面导出 1162 步节点坐标哈希 + wall-shear 哈希，新单元 + 在库 170 全扫，`duplicate_units_scan.csv`），255 个有 1162 帧的单元里发现 **3 组同网格**，再用各目录 STL 的 bbox 判定网格属于哪副解剖：
+
+| 组 | 判定 | 处置 |
+|---|---|---|
+| `ILO/XUE_YOU_TANG-0/after` = `…/before`（55 116 节点） | 网格 bbox = 术前 STL `0XUE_YOU_TANG-sq.stl`（逐位），本目录术后 STL `-sh` bbox 不同（x −32.7 vs −25.7 等） | **剔除 after**（cas 是术前网格副本；术后 STL 在，可重划网重算后收回）。第三批两例都跑了，before 收 |
+| `ILO/WANG_CAI-0/before` = `…/after`（133 885 节点，WSS 也逐位相同） | 网格 bbox = 术后 STL `after/WANG_CAI.stl.stl`，本目录术前 STL `WANG_CAI-sq.stl` bbox 完全不同（y 85–200 / z −69–364 vs y −207–−91 / z −705–−279） | **剔除 before**（首批重跑的是术后网格；术前 STL 在，可重划网重算后收回）。after 保留（1 月导出与 09-21 重跑逐位相同，说明当年 after 的入口是挂了 UDF 的） |
+| `AG/slow/LIU_XI_QUAN` = 在库 `AG/slow/LI_BING_YI`（13 910 节点） | 两目录 STL 三角数 27 663、bbox 逐位相同 → 同一副解剖记成两个患者 | **剔除 LIU_XI_QUAN**（保留在库 LI_BING_YI；无独立 STL 可重算，需回溯影像。首批重跑白做） |
+
+在库 170 例内部无重复（09-15 已剔除 LIU_WEN_QI、HOU_SHEN_QIAN）。落地：`new_units_manifest.json` `excluded` +3（新单元 **91** = AAA 6 / AG 10 / ILO after 58 / before 17）；登记 split 改 `split_WSS_PINN_AG_AAA_ILO_v5_2_new91_train227_test34_s1234.json`（new94 文件删除，`excluded_cases` +3）；`ingest_wave2_cases/cl_pass`、`ingest_wave3_cases` 去掉对应单元（第 2 波 78 例、第 3 波 15 例）；15552/15553 因 split 改名取消，重提 **15567（重建）→ 15568（视图评估）**；LIU_XI_QUAN、WANG_CAI-0/after 已在 15528 里建了 V5 bundle，LIU_XI_QUAN 的 bundle 在 15528 结束后移到快照根 `_excluded_20260922/`（WANG_CAI-0/after 保留）。**这道扫描今后作为入库前必过门**（与 RCR 协议审计并列）。
+
+### 4.6 第 2 波异常两例的根因 + 开口半径新门；第 3 波结果（2026-09-22 夜）
+
+**LIN_SHU_TIAN（R² 0.084）**：误差 78% 在段 3（右髂内，沿程半径 2.6 mm）——预测 WSS 是真值的 2 倍多，段 4（右髂外）预测偏低。原因：pc-v3 点云开口检测把 out-ri 的开口半径估成 **6.8 mm**（网格界面面积 25.5 mm² 换算只有 2.85 mm，比值 2.39），capfit/Murray 分流先验因此把右髂内当成大口子（先验份额 0.37 对 0.13），并非 CFD 错（运行态与协议审计都正常）。这正是中心线 pass_review 那例（该支末端卷曲、终点离开口 8 mm）。**新筛查：点云开口半径 / 网格界面等效半径**（报告里 `pointcloud.cap_offsets.radius_ratio_cap_over_sqrt_area`，此前只记录不设门）：新单元 86 份 + 在库 170 份 + pilot 5 份，p50 1.11、p90 1.17–1.18；超出 [0.8, 1.25] 的有 **LIN_SHU_TIAN 2.39**、在库 **LI_BING_JIANG 2.29（cv3 折外 R² 0.31，在库最差之一）**、LIN_JIAN_RONG 2.06（0.74）、LI_GUI_YING 1.72（0.60）、LIU_FENG 1.61（0.82）、GUO_YU_SHU-0/after 1.31（0.675，新）、YANG_BEN_RUI 1.30、LI_CHONG_ZENG 1.25。处置：**LIN_SHU_TIAN 暂不入库（hold）**，等几何程序侧修开口检测（改 pc-v3 会牵动在库 bundle，另立任务）；在库 4 例记入待修清单。
+
+**YANG_WEN_TAI-0/after（R² 0.350）**：开口半径正常；误差 62% 在段 3（真值 p50 1.6 Pa、预测 4.5）、25% 在段 4（真值 4.8、预测 2.5）。术后两条髂支沿程半径几乎相等（4.24 / 4.46 mm），模型用的 Murray 先验按沿程半径分流 56/44，而 CFD 按出口面积分流 78/22（出口 53.6 / 22.9 mm²）——先验与真实分流在术后几何上不一致，是模型局限不是数据错误；数据各项审计正常，**照常入库**。WANG_DENG_FENG（0.615）、ZHANG_JIN_CHUN-1/after（0.569）是射流低估族（一段真值 p99 89 Pa），照常入库。
+
+**第 3 波（15576，1 h 03 min）**：中心线 14/14、build 11/14 过门；未过 3 例：`AG/fast/PENG_JI_MING` 拓扑审计"668 809 行超出身份容差 0.5 m"= cas 网格比导出小 1000 倍（运行时 journal `/mesh/scale 1000` 放大，导出是放大后坐标）→ 用 Fluent 读入→缩放→写出 `PENG_JI_MING_scaled.cas.gz`（作业 15589），journal 改读它并删缩放行，之后与其余病例走同一代码路径；`ILO/WANG_LI_MIN-0/before` 体场导出 quantities 是壁面剪切那组、无速度列（第三批重跑时未察觉）→ **第五批**：改 cas（体场速度列、壁面 `cellzones blood`，`fix_export_cases.py` 扩展 ONLY_CASES/FIX_STAMP）→ 冒烟 → 重跑；`ILO/AN_GUANG_JIE-0/after` 的拓扑/壁面审计缓存是 pilot 时（cas 改路径前）算的，cas sha 不符 → 缓存移到 `_stale_20260922/`，与 PENG 一起作第 3b 波重审重建。第 3 波 11 个过门单元的视图评估重提 15587（15577 因 build 退出码 1 永不满足）。
+
+**第 3 / 2b / 4 波冻结模型评估（15587 / 15586 / 15579）**：第 3 波 11 例 R²_cb 0.676，9 例带内、2 例低于 p10 待看（NIE_QUAN_ZHONG 0.629 对 AG p10 0.630；ZHANG_MAO_JIN-0/after 0.541，真值 p99 13 Pa 低 WSS 例，五 seed 0.39–0.57）、无异常；SUN_XU_XIA-1/after（用户豁免 pca 门，`contract.CASE_GATE_WAIVERS` 记录理由，重建 15585 pass）0.748 带内；第 4 波 3 例 0.765 / 0.681 / 0.691 全部带内。读数 `experiments/wss_v52_new95_20260922/eval_readout_eval_wave{3,2b,4}.md`。
+
+**第 3b 波（15592→15593）**：PENG_JI_MING（放大后 cas，全链重算）0.795 带内；**AN_GUANG_JIE-0/after 0.749 带内——pilot 时 0.391，RCR 小数点错位修正重跑后回到带内，证明 §4.2 的查因与协议审计门是对的**。
+
+**新单元总账（2026-09-22 23:3x）**：91 个新单元里 **90 已过全部门并完成独立评估**（第 2 波 73 + 2b 1 + 第 3 波 11 + 第 3b 波 2 + 第 4 波 3）；在跑：WANG_LI_MIN-0/before（第五批 CFD 15591 → 第 5 波，afterany 已排）；**hold 1**：LIN_SHU_TIAN（开口半径误检，等几何程序修）。评估口径：90 例里带内 84、低于 p10 待看 5（WANG_DENG_FENG、ZHANG_JIN_CHUN-1/after、NIE_QUAN_ZHONG、ZHANG_MAO_JIN-0/after + YANG_WEN_TAI-0/after 已查为模型先验局限）、无未解释异常。
+
+### 4.7 端点半径修正（2026-09-23 凌晨；用户要求「能修就修好数据再入库」）
+
+**机制**：中心线开口端点的内切球半径会"逃出开口"而被高估（LIN_SHU_TIAN out-ri 8.5 mm 对网格界面 2.85 mm；LI_BING_JIANG 两口 9.9 / 10.0 对 5.0 / 3.5），09-06 冻结的端区持值只持切向/曲率、没持半径；开口拟合（`pointcloud._rim_plane`）又以端点半径作搜索尺度并以 0.8×端点半径为下限，于是开口半径跟着错 → `local_radius` 特征、Murray 分流先验（取叶段末端 10 mm 中位半径）、capfit 先验三处一起错。
+
+**检测规则的校准**（全部 1300 个有网格真值的开口端）：单用「端点半径 / 往里一段中位半径 > 1.25」会标 25 个端，但真值核对只有 11 个是真膨胀（端点/界面 1.4–3.0），其余 14 个端点半径是对的、往里一段反而窄（出口前狭窄或出口外扩，端点/界面 0.9–1.1）——所以不能按 atlas 自身判定。**改为以壁面点云量到的开口半径为准**：(1) 开口拟合搜索尺度 = min(端点半径, 带状中位半径)，端点 ≤ 带状时与原来逐位相同；(2) 小尺度下拟不到轮廓（LIN_SHU_TIAN：端点离开口 8 mm、周围是卷曲段）则开口半径退回带状中位数（`cap_source=atlas_band_radius`）而不是被邻壁污染的大尺度拟合；(3) V5 build 阶段（`patch_atlas_end_radius`，在 relabel 之后、壁面/体场 atlas 特征之前）：端点半径 > 1.25 × 开口半径 才把该端区（与曲率持值同一 zone）半径持到开口半径，同步改 `dr_ds`=0、`curvature_times_radius`、`radius_over_case_median`，记入报告 `metrics.atlas_end_radius_patch` 与 h5 `geometry` 属性 `geometry_program_patches`。部署侧（`wss_features` 包是训练侧同一段代码的镜像）**已同步**：`wss_features/atlas.py`（endpoints 带状半径）、`wss_features/cloud.py`（virtual_caps 尺度与退路 + `patch_atlas_end_radius`）、`wss_deploy/geometry.py`（build_case 在 map_points 前打补丁并记入 diag）；`tests/` 354 项全过（1 项黄金回归需 GPU 未跑），训练/部署等价测试 5/5，`python -m wss_features record` 已登记新合同哈希（发布包未钉死哈希，加载不受影响）；**运行中的部署服务（:8765）需重启才生效**，未擅自重启。
+
+**干跑（260 例）**：持值命中 **8 例 9 端**（在库 LI_BING_JIANG×2、LIN_JIAN_RONG、HE_SHU_ZHEN、LIU_FENG、LI_CHONG_ZENG、LI_GUI_YING；新 LIN_SHU_TIAN、GUO_YU_SHU-0/after），持值后与界面半径之比 0.93–1.23；其余 252 例 atlas 表逐位不变。开口半径变化 >1% 的共 **18 例**（上述 8 + 仅搜索尺度变化的 10 例，变化 1–8%，ZHAO_JIAN_PING-0/after 4.70→3.75 更接近真值 4.08）= 重建清单 `ingest_endradius_rebuild_cases.txt`（`end_radius_patch_dryrun.json`、`end_radius_fix_rebuild_list.json`）。开口半径/界面半径全体分布不变（p50 1.06、p90 1.12）。单元测试 62 + 8 通过。**重建作业 15600（18 例 → v5.2 快照，含 6 例在库病例的新版 bundle）：18/18 过门，8 例持值如干跑，开口半径/界面半径全部回到 ±24% 以内（原最差 2.39）。** 视图评估 15601 失败：`wss_min_view --no-cohort-files` 每次运行都用本次病例覆盖 `view_manifest.json`，与第 5 波（15595）并发写同一视图根后评估读不到 LI_BING_JIANG → 视图工具改为**合并**已有清单（`wss_min_view.py`，备份 `.bak_20260923_manifest`），并按各病例 `view_report.json` 重生成 v5.2 视图根清单（102 例），重提 **15612**。第 5 波 WANG_LI_MIN-0/before 评估 0.700 带内（15595）。
+
+**关于第二个问题（术后分流先验）**：数据无错。X5D_v51 用的 `log_q_branch_murray` 按叶段沿程半径分流，术后两条髂支沿程半径相近而出口面积差 2–5 倍时与 CFD（按出口面积）不一致；flowref 视图里已有按开口半径的 `murray_cap` / `capfit` 先验（YANG_WEN_TAI-0/after：capfit 0.09/0.41 与 CFD 0.22/0.78 同向），v5.2 重训时把先验换成开口半径版即可覆盖——这是训练侧实验，不改数据。
+
+### 4.8 新单元入库终账（2026-09-23 02:xx）
+
+**91 / 91 个新单元全部通过与 170 例相同的全套门并完成冻结 X5D_v51 五 seed 独立评估**（`new_units_final_eval.csv`；每例取最新一轮评估）：逐例集成 R² 均值 0.747 / 中位 0.760；按队列 AAA 0.830（6）、AG 0.791（10）、ILO 0.735（75）；**86 例在同队列折外 p10–p90 带内**，5 例偏低且均已查因、数据无错：NIE_QUAN_ZHONG 0.630（AG p10 0.630 边缘）、WANG_DENG_FENG 0.615 与 ZHANG_JIN_CHUN-1/after 0.569（射流低估族）、ZHANG_MAO_JIN-0/after 0.541 与 YANG_WEN_TAI-0/after 0.350（术后分流先验局限，§4.6/4.7）。端点半径修正（§4.7）把 LIN_SHU_TIAN 从 0.084 拉到 **0.818**，同批重建的 18 例全部带内（`eval_readout_eval_endradius.md`，18 例 R²_cb 0.810）。剔除 4（YANG_QING_REN-1/after 协议不可行；XUE_YOU_TANG-0/after、WANG_CAI-0/before、LIU_XI_QUAN 重复网格），豁免 1（SUN_XU_XIA-1/after pca 门）。
+
+**v5.2 数据面**：快照根 `data_wss_v5/anatomy_pointcloud_v5_2_20260922`（91 新 + 11 例在库病例的端点半径修正版；`_excluded_20260922/` 存被剔单元的 bundle），训练视图根 **`data_wss_v5/views_v5_2_full_20260923`**（`assemble_views_v5_2.py` 符号链接：在库 159 例 → v5.1、在库 11 例重建版 + 91 新 → v5.2；三个视图各 261 例，`wss_min_view_v1/view_manifest.json` 合并 261 份报告）。**尚未生成**：正式 v5.2 split 与其 train 统计文件（等 split 方案拍板后用 `wss_min_view` 的 write_split / write_wss_stats 生成）。
+
+**待拍板（split 方案）**：(a) 患者分组 5 折 CV 覆盖 261 例（ILO 术前术后同折、同名去重），test34 不再单列；(b) 保留 test34 作历史对照 + 其余 227 例患者分组 5 折；(c) 170 在库训练、91 新单元作独立测试（= 本次冻结模型评估的口径，已有结果 0.749）。论文主结果建议 (a)+(c) 双口径。
+
+### 4.9 v5.2 基线重训（2026-09-23 凌晨提交；用户拍板 split 方案 1 + 3，多 GPU 并行）
+
+- **数据**：训练视图根 `data_wss_v5/views_v5_2_full_20260923`（wss_min_view_v1 / wss_min_geom_v2 / wss_min_flowref_v1 / wss_min_density_v1，各 261 例；密度侧车为 102 个 v5.2 病例新建后与 v5.1 的合并，1044 个链接）。
+- **两种协议**（`training_wss_min/tools/prepare_wss_v52.py`）：**IND** = 在库 170 例训练、91 个新单元作独立测试（`split_v52_ind_train170_test91.json`，`wss_global_stats_ind_train170.json`），5 seed（1234/7/2025/11/2026）；**CV5** = 261 例患者分组分层 5 折（`cv5_v52/fold{k}.json`，同名/术前术后同折，分层 AAA/ruputer、AAA/unruputer、AG/fast、AG/slow、ILO/0、ILO/1；确定性 SHA256 轮转，seed 20260923），每折自己的 train 统计与特征 z-score，3 seed。登记 split 同步写到 `wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_v5_2_{ind_train170_test91,cv5_261}_s20260923.json`。
+- **两种配方**：X5D（= X5D_v51 配方逐字复制，只改数据路径/split/统计）与 X5Dcap（同配方但 Murray 先验改用开口半径 `log_q_branch_murray_cap`/`log_tau0_murray_cap`，即 §4.7 里对术后分流的对策）。共 **40 个训练臂 + 80 次评估**（IND 2×5、CV5 2×5×3），配置在 `training_wss_min/configs/wss_v52_20260923/`（matrix.json 含每臂与锚点 C1 的逐字段差异）。
+- **执行**：冻结副本 `GNN_v52_frozen_20260923`（代码 rsync，data/configs/experiments/runs 符号链接），作业链 **15616（CPU 生成；首提 15613 因冻结副本缺新脚本失败）→ 15617（GPU 预检：X5D_v51_s1234 锚点用当前代码复评 + 两臂冒烟）→ 15618（队列，gres 4090×3、每卡 2 槽；master 第 4 张卡被他人作业占用）**；生成 15616（4 min：CV5 五折各 49–57 例、约 40 患者组、六分层均衡、术前术后无跨折；12 份特征统计）；预检 15617 通过（锚点 X5D_v51_s1234 用冻结 v5.2 代码复评 5622 个字段最大差 3.3e-5；两臂冒烟训练 + 评估通过）；队列 15618 于 00:55 开跑，首轮 6 臂（IND 五 seed X5D + X5Dcap_s1234）并行，每卡 2 槽时单臂实测 6.0–6.1 h（4 臂并行时 3.4 h）。**中途读数（09-23 10:2x，`readout_ckpt_best.md`）**：IND 协议 X5D 五 seed 单模型 0.724–0.735、**五 seed 集成 0.7514**（对照冻结 X5D_v51 在同 91 例上的 0.749；训练集同为 170 例，差别只在 11 例在库病例的端点半径修正与统计重拟，持平在 seed 噪声内）；X5Dcap 已完成 2 seed 单模型 0.742 / 0.747（比 X5D 同 seed 高 +0.007 / +0.017）、两 seed 集成 0.7567，逐例配对差均值 +0.011 但中位 −0.002（42/91 例改善），低于带的例从 3 例降到 1 例——YANG_WEN_TAI-0/after 0.38 → 带内、ZHANG_MAO_JIN-0/after 0.51 → 带内，正是 §4.6 判定的术后分流先验局限两例，方向与预期一致；**IND 终读（13:1x，十臂齐，`readout_ckpt_best.md`）：X5D 五 seed 集成 0.7514（last 0.7530）；X5Dcap 单模型 0.733–0.753（每个 seed 都高于同 seed 的 X5D，+0.008…+0.022）、五 seed 集成 0.7644（last 0.7655）；逐例配对差均值 +0.023、中位 +0.009，61/91 例改善，三队列都升（AG 0.772→0.780、AAA 0.852→0.865、ILO 0.743→0.757），低于带的例 3 → 1（只剩射流低估的 WANG_DENG_FENG）。** 结论：在独立集上，开口半径版分流先验（X5Dcap）比原配方高 +0.013（集成），五个 seed 方向一致，超出单 seed 噪声带；等 CV5 三 seed 折外配对结果再定 v5.2 基线配方。**队列切换到 4 卡（09-23 13:04，用户要求用上空出的第四张卡）**：CV5 的 30 臂拆成独立队列 `configs/wss_v52_20260923_cv5`（配置逐字复制、run 名不变，IND 十臂作外部参照）→ 预检 15629（第四张卡上并行做，锚点复评通过）→ 看守脚本在 15618 的 IND 十臂全部 complete 的瞬间取消 15618（45 s 窗口内它已启动的 3 个 CV 臂目录删除）→ 提交 **15636（gres 4090×4，每卡 2 槽 = 8 臂并行）**，30 臂预计 09-24 中午前后出齐。IND 十臂结果留在 `runs/wss_v52_20260923/`。**CV5 中途读数（09-24 11:4x，24/30 臂完成，X5Dcap 的 f3/f4 六臂在跑）**：X5D 三 seed 折外汇总（261 例每例一次）**0.7538 ± 0.0022**（单 seed 0.751 / 0.755 / 0.755；分折 0.72–0.79，折 4 最低）；X5Dcap 已完成的 9 个 (fold, seed) 与 X5D 配对差 **均值 +0.0085、sd 0.0073、8/9 为正**，与 IND 上 +0.013 方向一致。对照：v5.1 的 cv3 折外（136 例）0.7100。读数口径：IND 用五 seed Pa 均值集成在 91 例上的 R²_cb（对照冻结 X5D_v51 0.749）；CV5 按折外汇总（每例一次）三 seed 均值±sd；X5Dcap 对 X5D 按 (fold, seed) 配对差。
+
+### 4.10 v5.2 基线重训终读与裁定（2026-09-24 15:xx；40/40 臂完成，队列 15618 + 15636 共约 40 h GPU，无报错）
+
+**IND（170 训 / 91 独立测）**：X5D 五 seed 单模型 0.724–0.735、集成 **0.751**（冻结 X5D_v51 0.749 持平）；X5Dcap 单模型 0.733–0.753（每 seed 都高于同 seed X5D）、集成 **0.764**；逐例配对差均值 +0.023、61/91 改善；低于带 3 → 1 例。
+
+**CV5（261 例患者分组 5 折，折外每例一次）**：
+
+| 配方 | 三 seed 折外 R²_cb（best） | last | 三 seed 折外集成 | AG / AAA / ILO | 射流子集（p99>40，37 例） |
+|---|---|---|---|---|---|
+| X5D | **0.7538 ± 0.0022** | 0.7532 ± 0.0026 | 0.771 | 0.806 / 0.788 / 0.736 | 0.718 |
+| X5Dcap | **0.7608 ± 0.0019** | 0.7613 ± 0.0010 | 0.777 | 0.813 / 0.793 / 0.741 | 0.717 |
+
+配对差 X5Dcap − X5D：15 个 (fold, seed) 均值 **+0.0075**、sd 0.0073、12/15 为正（last：+0.0085，13/15）；折外集成按子集：在库 170 例 +0.006、回收 91 例 +0.004、原 test34 +0.005。对照 v5.1：cv3 折外 0.710（136 例）→ CV5 折外 0.754（261 例），与 learning curve（每翻倍 +0.03）一致；原 test34 子集折外集成 0.781 / 0.786 对 v5.1 五 seed 集成 0.775（口径不同：那是 136 例训的专用测试集，这里是折外）。折外集成逐例中位 0.80 / 0.81，p10 0.69 / 0.71；最差五例（MENG_GUANG_QIN 0.42、ZHAO_CHANG_SHAN-0/before 0.51、WANG_JIN_MING-0/before 0.52、GUO_BAO_CHUN 0.54、ZHANG_YONG_SHENG-0/before 0.57）均为低 WSS 瘤腔/射流低估族，待后续优化。读数文件：`experiments/wss_v52_20260923/readout_ckpt_{best,last}.md`、`cv5_oof_ensemble_readout.json`。
+
+**裁定**：**v5.2 基线配方 = X5Dcap**（开口半径版 Murray 先验）——CV5 15 对 + IND 5 对共 20 个配对差方向一致、均值 +0.008 / +0.013，超出单 seed 噪声带（三 seed sd 0.002）；X5D 保留为对照。**用户裁定：不启动 261 例全量训练臂**（后续还要优化配方），部署权重待优化定稿后再训；全量模型的准确度由 CV5 折外 + IND 代言。汇报口径：CV5 折外 X5Dcap 0.761 ± 0.002（三 seed 单模型）/ 0.777（三 seed 集成），IND 独立集集成 0.764。
+
+**2026-09-29 更新**：§36 尾部损失 T2 过两级门后，用户裁定 **底座配方改为 X5Dcap_asym2**（X5Dcap + `loss_asym_under_weight=2.0`；CV5 pooled 0.7714、IND 五 seed 集成 0.7758），见 [01 块跟踪 §36.5](../../01-X5D主线与新数据/X5D主线_实验跟踪.md)。数据版本仍为 v5.2；59 例形变合成子例已入库但不进训练底座（搁置至 cfd_auto 走通）。
+
+### 4.11 数据版本 v5.2p4 full265：v5.2 的 261 + YANG_BAO_KUI + 3 个恢复单元（2026-09-30，用户批准）
+
+**组成**：训练 265 = v5.2 的 261 例（IND train170 + test91）+ `AAA/ruputer/YANG_BAO_KUI`（cfd_auto 重建，09-30 替换进 data_new）+ recover11 里同一病人另一期已在 v5.2 的 3 例（`ILO/XUE_YOU_TANG-0/after`、`ILO/LI_FA_XIANG-1/before`、`ILO/WANG_CAI-0/before`）；验证集空（选模按训练损失，同 IND）；测试 = recover8（8 例，见 [cfd_auto 文档 §10.8](../STL全自动CFD工程cfd_auto_试算_2026-09-27.md)）。按 `wss_v5.sources.Registry.patient_group` 核对：265 例属 203 个病人组，recover8 的 7 个病人组（LI_JIE 两期同组）无一在训练集。
+
+**视图根** `data_wss_v5/views_v5_2p4_full265_20260930/`（只有符号链接 + split / 统计 / 合并 manifest，`prepare_full265.py assemble`）：wss_min_view_v1 / wss_min_geom_v2 / wss_min_flowref_v1 各 273 个链接（261 例指向 v5.2 全量视图的源目录，YANG 指向隔离根 E 的 `views_v5_2_yang_20260930`，3 个搭档单元与 recover8 指向 E 的 `views_v5_2_recover_20260929`）；view_manifest 合并 273 份报告；wss_min_density_v1 只含 265 个训练例（261 链 v5.2，4 个新单元链 `data_wss_v5/density_v5_2p4_new4_20260930/`，参数同 v5.2：L70/50/35/25、seed 20260915）；recover8 不建密度侧车（评估不用）。phys1d / cycle 侧车未建（X5Dcap_asym2 不用）。
+
+**split 与统计**：`split_v52p4_full265_train265_test8.json`、`wss_global_stats_full265_train265.json`（log_z：log 均值 0.649 → 0.572、std 1.297 → 1.211；p99 34.8 → 31.1 Pa；1416 万壁面点）、特征 z-score `training_wss_min/experiments/wss_v52p4_full265_20260930/feature_stats/full265_X5Dcap_train_feature_stats.json`。代码路径与 `prepare_wss_v52.py` 相同（`write_wss_stats`；`load_partition(strict) + compute_feature_stats`），先用同一代码在 IND train170 上重算，与 v5.2 的两个文件**逐位一致**（最大差 0.0，`verify_codepath/verify_codepath.json`）。数据检查 `data_checks.json`：265 例 × 4 档密度侧车全部可加载，新 4 例抽稀比例 0.69–0.70 / 0.50 / 0.35 / 0.25。
+
+**执行**：CPU 作业 16188（密度 → 链接 → 代码路径复现 → split/统计 → 检查 → 配置，2 min）；只写新目录，v5.2 视图 / 快照、data_new、共享 PREP 本会话 `find -newermt` 核查为 0。训练与读数见 [01 块跟踪 §37](../../01-X5D主线与新数据/X5D主线_实验跟踪.md)：X5Dcap_asym2 三 seed（队列 16192，约 4 h）在 recover8 上集成 R²_cb 0.8393（同 8 例 IND 三 seed 0.8352），逐例中位 0.843；权重 `training_wss_min/runs/wss_v52p4_full265_20260930/`，未打包、部署未切换。
+
+### 4.12 标签修正版 v5.2c / v5.2p5：此后训练和测试的统一数据（2026-09-30，用户要求「后续均在正确的数据集中训练和测试」）
+
+> **同日晚更新**：v5.2p5 已并入 v5.2c，成为唯一统一根（332 单元，快照 `anatomy_pointcloud_v5_2c_20260930`）；recover 10 单元换入库；旧快照 / 视图根、旧缓存、库内 processed/、data_wss_min 已按用户批准删除。见 [数据统一与旧版本清理](../数据统一与旧版本清理_2026-09-30.md)。本节表中 v5.2p5 那一行已过时。
+
+**起因**：cfd_auto 查出库内 9 个单元的边界条件不合协议（RCR 挂到同侧相邻出口 4 例、RCR 整块复制 1 例、入口除数与网格入口面积不符 5 例，CHEN_SHU_LIN 两项都有）。同网格、只改边界条件重算后逐点比对，严重的 4 例髂支流量互换或入流 −22 %，见 [标签核查](../库内标签问题核查_RCR挂错与入口除数_2026-09-30.md)。
+
+**库内**：9 个重算换入 data_new，每个单元目录写 `LABEL_FIX_20260930.json`；旧文件先整体移到 `data_new/_archive/label_fix_20260930/`（`SWAP_LOG.json`），再删掉大文件 110.6 GB（`PURGE_LOG.json`），只留旧 UDF 和日志，共 35 MB。共享 PREP 里这 9 例的审计报告已刷新。4 例出口命名用覆盖表 `wss_pinn/configs/outlet_semantics_overrides_20260930.json` 固定成与 v5.2 相同。
+
+**数据版本**（只写新目录，旧快照和视图保留，只用于复现历史数字）：
+
+| 版本 | 视图根 | 取代 | 分区 |
+|---|---|---|---|
+| **v5.2c** | `data_wss_v5/views_v5_2c_20260930` | v5.2 `views_v5_2_full_20260923` | IND train170 / test91、CV5 五折、syn（合成 60） |
+| **v5.2p5** | `data_wss_v5/views_v5_2p5_full265_20260930` | v5.2p4 `views_v5_2p4_full265_20260930` | train265 / recover8 |
+
+- 9 例链到修正视图 `views_v5_2c_labelfix9_20260930`（快照 `anatomy_pointcloud_v5_2c_labelfix_20260930`），其余病例链到前身的同一个真实目录。split、统计文件、manifest、`assembly_plan.json` 与前身**同名**，旧配置只要换根目录前缀：`python -m training_wss_min.tools.repoint_data_root`。
+- 与 v5.2 逐数组比对：几何和输入特征逐位相同，变的只有标签（峰值 WSS 及其向量、壁面压力、周期量、体场速度和压力）。密度侧车沿用原文件：只含几何，而且重建不可复现，原因见标签核查 §6.3。
+- 统计重算前，先用同一代码在旧根上复现原文件，逐位一致。WSS log 均值只高 0.001–0.006；输入特征 z-score 不变（0 差）。
+- 主线 X5Dcap_asym2 的 23 个配置已生成在 `training_wss_min/configs/wss_v52c_labelfix_20260930/`（IND 5 seed、CV5 15 臂、full265 3 seed，附 `matrix.json`），**未训练**。
+- 全周期线的缓存另建为 `training_wss_min/experiments/joint_cycle_v52c_20260930/data_audit_cache`，用法见标签核查 §6.5。
+- 执行脚本和核验文件都在 `training_wss_min/experiments/wss_v52c_labelfix_20260930/`：`prepare_v52c.py`、`verify_codepath.json`、`stats_report.json`、`feature_stats_check.json`、`make_configs.py`、`load_check_16372.out`。
+
+**未完成**：3 个合成单元（CHEN_SHU_LIN~m25、SUN_ZONG_GE~m43、LI_YU_GANG-0~m01/after）继承了父例的错误边界条件，正在重算（`_label_fix_syn/`）。完成前 v5.2c 的 syn 分区不可用；完成后跑 `prepare_v52c.py finish-syn`。
+
+**口径说明**：此前所有 v5.2 / v5.2p4 读数（v5.2 基线、§36、full265 作业 16192 在 recover8 上的 0.8393）都是在含 9 个错标签单元的数据上训练的；IND test91 里 3 个单元的评估标签也变了。新数字以 v5.2c / v5.2p5 重训为准。
+
+## 4-旧. A 层（不重跑 CFD）入库的前置条件——2026-09-21 分析（已由 §4 落实）
+
+V5 构建（`wss_v5.build --cases`）不是直接读原始目录，它要求每例已有：拓扑审计 JSON（`audits/topology/cases/<id>.json`，gate_pass）、壁面/求解审计汇总里的条目、feature atlas（`atlas/cases/<id>/atlas.npz`）、以及在正式 split 里登记（`Registry.role` 对不在册的 id 直接报错）。而这些 V4 审计工具依赖的两个输入树 `data_wss_pinn/volume_uvwp_bc_rcr_v4_train138_test35` 与 `volume_uvwp_peak_qs_smooth_v3_*`（出口 zone id ↔ le/li/re/ri 映射、峰值步）**已在 09-03 清理中删除**，中心线 V2（VMTK，`tools/centerline_v2_pilot.py`）也只覆盖原 173 例。
+
+因此 A 层 86 单元 + 上表 3 例的入库 = 为新病例重建这条链：出口命名（可用部署工具的 `propose_outlets` + 人工确认）→ 中心线 V2 → 三个审计 → atlas → 扩展 split → V5 build → views。工具都在、都接受 `--cases`，但 ILO 术后 id、百万点混合区导出、缺 centerline 例都没走过这条链。建议先用 5 例 pilot（1 个 ILO after、1 个混合区、ZHAO_XIU_XUAN、CHEN_FU、GUO_YU_YING）把链打通，再上全量。估计 2–3 天工程 + 数小时计算。

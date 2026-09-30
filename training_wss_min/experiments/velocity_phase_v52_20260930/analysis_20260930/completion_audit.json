@@ -1,0 +1,6469 @@
+{
+  "schema": "velocity_phase_completion_audit_v1",
+  "created_at": "2026-09-30T12:22:48.612126+08:00",
+  "host": "node03",
+  "slurm_job_id": "16330",
+  "scope": "existing artifacts only; no model construction, training, or inference",
+  "runs": {
+    "D1": {
+      "status": "passed",
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D1_f0_s1234",
+      "slurm_job_id": "16269",
+      "array_task_id": "0",
+      "history_rows": 150,
+      "last_epoch": 150,
+      "last_step": 7800,
+      "all_history_metrics_finite": true,
+      "checkpoint": {
+        "schema": "velocity_phase_v52_v1",
+        "epoch": 149,
+        "step": 7800,
+        "config_sha256": "ad0225e8ed278ffb181588e75047b99d4f5f5d87db5551a93850451a68bd2090",
+        "model_finite": true
+      },
+      "evaluation_units": 55,
+      "prediction_files": 55,
+      "predictions": [
+        {
+          "unit_id": "AAA/ruputer/CHEN_FU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cfd9e79708f2c440a00380bb13a4b1dacd299a34f6d1520a95bd574a696e3781"
+        },
+        {
+          "unit_id": "AAA/ruputer/LIU_JI_XIN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "3722b97e15d784b023b34286417440d956f3d80e5732ab3d663b6c6444ed7ede"
+        },
+        {
+          "unit_id": "AAA/ruputer/LV_GUO_YOU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "bbfecc153d1446df6b8679f6db273b00ad37fb9fe6947afd0faa12532882dbf5"
+        },
+        {
+          "unit_id": "AAA/ruputer/SU_KAI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "257246ee4afba3f6a4d1fa3809c5b12bc7fd2c23e3a6c82c7cb6913b6be054ef"
+        },
+        {
+          "unit_id": "AAA/ruputer/TONG_XUE_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46c310920b6c9a2151d7b2d4ffd663b03ff1797ea89035773eb6c084873e6132"
+        },
+        {
+          "unit_id": "AAA/ruputer/YU_TIAN_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "d1e77a4dd98d299d15407c10e8d90b1c89e2a89dec6e1358a3c2b4318ab08c67"
+        },
+        {
+          "unit_id": "AAA/unruputer/GAO_WEI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb7e8618f75b96a321d6feef5ba436484178b05972bc7b91b3264931d9b15eea"
+        },
+        {
+          "unit_id": "AAA/unruputer/LIN_JIAN_RONG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "b15946864dc9304e1504d10ab5e2ffd97cc13f6d1d8f80c0d842ac521e14a16c"
+        },
+        {
+          "unit_id": "AAA/unruputer/LI_YOU_YU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63c7a8d94d43e3a8f75c584ef66b341b22af710cc6970f66222ddc2ae90ea4c5"
+        },
+        {
+          "unit_id": "AAA/unruputer/SHEN_CHUN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd63d20e38e7d563dc2db909492106a6d05e48915aa20c8ccf70c179f133ef7e"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "6f71b35e5624f15787208cf7c046df8f0859c604ecf39bea1f164c2bf9e836d2"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHU_ZI_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a751b73e054612495e7b3f2faed084bbc5ddb037f5d3014987aaeb5df6d24955"
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07bcae10976ac755d9548f34926ec2a4697951681ec476114b1c6334df2673e0"
+        },
+        {
+          "unit_id": "AG/fast/LIU_JUN_FENG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "c4b5f419f6036742b76cd693048777908526aece5556bad043b408d852500d55"
+        },
+        {
+          "unit_id": "AG/fast/LIU_LI_QUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07646b1c998a2991d91024790631bf7947d1d9e3857962b36e3920702f3d5df8"
+        },
+        {
+          "unit_id": "AG/fast/LOU_YANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0c443c982f224a8516061b4694ee5038309e18b01d4e63174bce45cc496ff3c3"
+        },
+        {
+          "unit_id": "AG/fast/WANG_CHUN_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4b662bcf8a2d8e83815e478810821c8699a353f9e4f4287c0c304e2b6bf64386"
+        },
+        {
+          "unit_id": "AG/slow/A_MIN_SE_HA_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90e99a6dd1dc69e941ba7fc967c11cf2858a3fbc54f0b7b2ebb7b12d20e3c1a1"
+        },
+        {
+          "unit_id": "AG/slow/CAO_FENG_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ad9d711e604367861b150e41a635f07bc7666475039759eb3f4aee5d63ceab6"
+        },
+        {
+          "unit_id": "AG/slow/GONG_HUI_XIA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ce441c76b76d4855eb134e79c26b071764322868386cd1613a174a9adebf9dc1"
+        },
+        {
+          "unit_id": "AG/slow/GUO_XI_JIANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ab5a583cef5bc8503f13f7fcd746134a89f4f1c5186cca0486210840b85991f"
+        },
+        {
+          "unit_id": "AG/slow/KANG_XI_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "44ef2ade7fb56093572a4740a1359b34141dc64ed6010153545e6f7bb4003c47"
+        },
+        {
+          "unit_id": "AG/slow/LIN_SHU_TIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daaa6b5db350af17702c958dbd8dc1eea6202241adb5438cd4b03e15d077476b"
+        },
+        {
+          "unit_id": "AG/slow/LI_GUI_YING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "749caa810d68a8bf5efc08b59cf305ee11826849119bf219b5d46bc4a581d35a"
+        },
+        {
+          "unit_id": "AG/slow/LI_HUAN_GE",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "eeab3f8d2e50993ff61ca7a5491003f5db597699b93c5cc9e5f54bb9323f80e6"
+        },
+        {
+          "unit_id": "AG/slow/TE_JIN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "079cbe81b47e46f2f1f6bad309d736d95e550fbde7a15fbcfa43dcf0978db33a"
+        },
+        {
+          "unit_id": "AG/slow/WEI_JUN_WEN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4da22f9cd9bd9ff1da46a832f39483b9127a716a0c07e7e7cb65585a72525940"
+        },
+        {
+          "unit_id": "AG/slow/WU_YI_FA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cee5f8468e6ed46fdbdfbe887f8a7fae6dcf87a2887195428c2e9279d6d0fcbb"
+        },
+        {
+          "unit_id": "AG/slow/ZHANG_LING_GUANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "92943cf6452d6a1c9c067a371de6cc762cec37794dd4ebf5399f51162d57fe42"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "895936e21c1d37e5fff4bf34cd524b7b01845d7f26eff03e7f69ba6ef715a455"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a4e828fd819aae6429437dbe853d0a9f479b059b58938cc0c762002d6a943769"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "5700265d9d95f75bad5dd844daf450435d66518fc9ff38767bd61efde6228b18"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb12a862b2722ebc3d6e13dda645179d6f1886b70352047950efc7017b3a531f"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4d7e2fe1ea26ec27248c6668df5d89976f497e28a20ecb95f91d40d519df0bca"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f9059f6bdfacc8c80d679d83cea3199b141ee2f6d202dbbed6221b12e7383bff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90bf2656572b2fdfde073e6001204d241d7b3a7cac51d34c9d47c3935828f9ff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ccda9895551b138acc7acc02cbcc76d05fa4ec6ad571a9f01387ae64dc73a277"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e3b041afbe43493526ff99ad658a1dea89ff0b6a58f049fab9677193ded202"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f96f8849d8aac470562bef590567edca4cc00b1897a0a4fededf7c634810954d"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daad6fefb3a0d971b5c95785938236cd63c13856303d2368f220f6a85bb9ee9c"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e98e38050b7d898700bc0322e2805e6c9a769eefcea89e4ebc7f5a45b00383"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a83975c9d9c10b67dc6d1db8f7ace3b6d101434e7c0b91f3b69d470a1aeabb71"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "deb6ecefbd769e6d01cead37bb53b7a22e947b2fdeec426c64ed6c0b2c23ac22"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63a00dc4afe6dab06cbc0ebb227632fa58f31574630e80590137ee52e57a7775"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "082765767c2d782cc3a4f0836f59495e3e77995a4d05bdc06e80d9aa6140358f"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e23854fd6c3bea71d358e09504c27f1c01dbb06641e85d932d728feea443ddeb"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ef1e2bc40f4a2bab9850a88e4feba5b11f355f5dca930ec43fc8bf809cc0b557"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "7a6b84ddc06e554b536e34737fa0f342a7f0ed2e96d0374bf375bfe72e1c4d4b"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0a82dad7aea852f043203b1580a2c60f97b2c37f188a7b85e549a1f6f0fc6180"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "93d0c0cccb5b66a3bbddf56f2326bdf9a8b6bbaf019453aef839767452a9167b"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "398ebfac55ea946bec5220240fde672b82ff9b4297b88b3faa0ed51cee82d54f"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46cb7a15dea2e007c2a1e1cad590e43b1e1a62a1dc2103d96e21e4297a7a9240"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "9f3471fb607ead3087e802b26bce9549ea92dbc844596297ed2960bf87cf2c96"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd66474fdbcfcf992dc5a117cd831524d39cd2407de90d2ca014ef5264bac730"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "213ca2b7922d4d95571bdf540a8ed1e854e034d396e442cf2d2d78d3b25d78ae"
+        }
+      ],
+      "parameter_count": 682143,
+      "config_sha256": "ad0225e8ed278ffb181588e75047b99d4f5f5d87db5551a93850451a68bd2090",
+      "config_differences_from_U0": {
+        "arm": {
+          "reference": "U0",
+          "candidate": "D1"
+        },
+        "data.geometry_root": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry"
+        },
+        "data.tail_stats_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry/tail_stats.json"
+        },
+        "eval.prediction_collapse_floor_m_s": {
+          "reference": null,
+          "candidate": 0.001
+        },
+        "eval.reverse_axial_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "eval.velocity_phase_diagnostics": {
+          "reference": null,
+          "candidate": true
+        },
+        "experiment_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930"
+        },
+        "model.frame_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.geometry_config_path": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/geometry_x5d.json",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/frozen/f0_s1234_v1/configs/geometry_x5d.json"
+        },
+        "model.graph_activation_checkpointing": {
+          "reference": null,
+          "candidate": false
+        },
+        "model.graph_anchor_count": {
+          "reference": null,
+          "candidate": 256
+        },
+        "model.graph_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.graph_layers": {
+          "reference": null,
+          "candidate": 2
+        },
+        "model.graph_neighbors": {
+          "reference": null,
+          "candidate": 16
+        },
+        "model.velocity_arm": {
+          "reference": null,
+          "candidate": "D1"
+        },
+        "out_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D1_f0_s1234"
+        },
+        "schema": {
+          "reference": "joint_cycle_round2_v52_v1",
+          "candidate": "velocity_phase_v52_v1"
+        },
+        "train.direction_epsilon_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.direction_gradient_ratio": {
+          "reference": null,
+          "candidate": 0.1
+        },
+        "train.direction_lambda_bounds": {
+          "reference": null,
+          "candidate": [
+            0.0001,
+            1.0
+          ]
+        },
+        "train.direction_lambda_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/calibration/direction_lambda.json"
+        },
+        "train.direction_probe_batches": {
+          "reference": null,
+          "candidate": 32
+        },
+        "train.direction_speed_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.tail_multiplier": {
+          "reference": null,
+          "candidate": 2.0
+        },
+        "train.tail_quantile": {
+          "reference": null,
+          "candidate": 0.8
+        }
+      },
+      "train_seconds": 1746.2659322710024,
+      "last_common_z_mse": 0.28516110604249156,
+      "D1_empty_case_phase_total": 0
+    },
+    "D2": {
+      "status": "passed",
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D2_f0_s1234",
+      "slurm_job_id": "16272",
+      "array_task_id": "1",
+      "history_rows": 150,
+      "last_epoch": 150,
+      "last_step": 7800,
+      "all_history_metrics_finite": true,
+      "checkpoint": {
+        "schema": "velocity_phase_v52_v1",
+        "epoch": 149,
+        "step": 7800,
+        "config_sha256": "529ce291a821956d147a466c2b7e5103bcba7499b5f23bfbf6b755d79181cad2",
+        "model_finite": true
+      },
+      "evaluation_units": 55,
+      "prediction_files": 55,
+      "predictions": [
+        {
+          "unit_id": "AAA/ruputer/CHEN_FU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cfd9e79708f2c440a00380bb13a4b1dacd299a34f6d1520a95bd574a696e3781"
+        },
+        {
+          "unit_id": "AAA/ruputer/LIU_JI_XIN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "3722b97e15d784b023b34286417440d956f3d80e5732ab3d663b6c6444ed7ede"
+        },
+        {
+          "unit_id": "AAA/ruputer/LV_GUO_YOU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "bbfecc153d1446df6b8679f6db273b00ad37fb9fe6947afd0faa12532882dbf5"
+        },
+        {
+          "unit_id": "AAA/ruputer/SU_KAI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "257246ee4afba3f6a4d1fa3809c5b12bc7fd2c23e3a6c82c7cb6913b6be054ef"
+        },
+        {
+          "unit_id": "AAA/ruputer/TONG_XUE_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46c310920b6c9a2151d7b2d4ffd663b03ff1797ea89035773eb6c084873e6132"
+        },
+        {
+          "unit_id": "AAA/ruputer/YU_TIAN_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "d1e77a4dd98d299d15407c10e8d90b1c89e2a89dec6e1358a3c2b4318ab08c67"
+        },
+        {
+          "unit_id": "AAA/unruputer/GAO_WEI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb7e8618f75b96a321d6feef5ba436484178b05972bc7b91b3264931d9b15eea"
+        },
+        {
+          "unit_id": "AAA/unruputer/LIN_JIAN_RONG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "b15946864dc9304e1504d10ab5e2ffd97cc13f6d1d8f80c0d842ac521e14a16c"
+        },
+        {
+          "unit_id": "AAA/unruputer/LI_YOU_YU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63c7a8d94d43e3a8f75c584ef66b341b22af710cc6970f66222ddc2ae90ea4c5"
+        },
+        {
+          "unit_id": "AAA/unruputer/SHEN_CHUN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd63d20e38e7d563dc2db909492106a6d05e48915aa20c8ccf70c179f133ef7e"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "6f71b35e5624f15787208cf7c046df8f0859c604ecf39bea1f164c2bf9e836d2"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHU_ZI_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a751b73e054612495e7b3f2faed084bbc5ddb037f5d3014987aaeb5df6d24955"
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07bcae10976ac755d9548f34926ec2a4697951681ec476114b1c6334df2673e0"
+        },
+        {
+          "unit_id": "AG/fast/LIU_JUN_FENG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "c4b5f419f6036742b76cd693048777908526aece5556bad043b408d852500d55"
+        },
+        {
+          "unit_id": "AG/fast/LIU_LI_QUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07646b1c998a2991d91024790631bf7947d1d9e3857962b36e3920702f3d5df8"
+        },
+        {
+          "unit_id": "AG/fast/LOU_YANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0c443c982f224a8516061b4694ee5038309e18b01d4e63174bce45cc496ff3c3"
+        },
+        {
+          "unit_id": "AG/fast/WANG_CHUN_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4b662bcf8a2d8e83815e478810821c8699a353f9e4f4287c0c304e2b6bf64386"
+        },
+        {
+          "unit_id": "AG/slow/A_MIN_SE_HA_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90e99a6dd1dc69e941ba7fc967c11cf2858a3fbc54f0b7b2ebb7b12d20e3c1a1"
+        },
+        {
+          "unit_id": "AG/slow/CAO_FENG_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ad9d711e604367861b150e41a635f07bc7666475039759eb3f4aee5d63ceab6"
+        },
+        {
+          "unit_id": "AG/slow/GONG_HUI_XIA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ce441c76b76d4855eb134e79c26b071764322868386cd1613a174a9adebf9dc1"
+        },
+        {
+          "unit_id": "AG/slow/GUO_XI_JIANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ab5a583cef5bc8503f13f7fcd746134a89f4f1c5186cca0486210840b85991f"
+        },
+        {
+          "unit_id": "AG/slow/KANG_XI_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "44ef2ade7fb56093572a4740a1359b34141dc64ed6010153545e6f7bb4003c47"
+        },
+        {
+          "unit_id": "AG/slow/LIN_SHU_TIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daaa6b5db350af17702c958dbd8dc1eea6202241adb5438cd4b03e15d077476b"
+        },
+        {
+          "unit_id": "AG/slow/LI_GUI_YING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "749caa810d68a8bf5efc08b59cf305ee11826849119bf219b5d46bc4a581d35a"
+        },
+        {
+          "unit_id": "AG/slow/LI_HUAN_GE",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "eeab3f8d2e50993ff61ca7a5491003f5db597699b93c5cc9e5f54bb9323f80e6"
+        },
+        {
+          "unit_id": "AG/slow/TE_JIN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "079cbe81b47e46f2f1f6bad309d736d95e550fbde7a15fbcfa43dcf0978db33a"
+        },
+        {
+          "unit_id": "AG/slow/WEI_JUN_WEN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4da22f9cd9bd9ff1da46a832f39483b9127a716a0c07e7e7cb65585a72525940"
+        },
+        {
+          "unit_id": "AG/slow/WU_YI_FA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cee5f8468e6ed46fdbdfbe887f8a7fae6dcf87a2887195428c2e9279d6d0fcbb"
+        },
+        {
+          "unit_id": "AG/slow/ZHANG_LING_GUANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "92943cf6452d6a1c9c067a371de6cc762cec37794dd4ebf5399f51162d57fe42"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "895936e21c1d37e5fff4bf34cd524b7b01845d7f26eff03e7f69ba6ef715a455"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a4e828fd819aae6429437dbe853d0a9f479b059b58938cc0c762002d6a943769"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "5700265d9d95f75bad5dd844daf450435d66518fc9ff38767bd61efde6228b18"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb12a862b2722ebc3d6e13dda645179d6f1886b70352047950efc7017b3a531f"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4d7e2fe1ea26ec27248c6668df5d89976f497e28a20ecb95f91d40d519df0bca"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f9059f6bdfacc8c80d679d83cea3199b141ee2f6d202dbbed6221b12e7383bff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90bf2656572b2fdfde073e6001204d241d7b3a7cac51d34c9d47c3935828f9ff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ccda9895551b138acc7acc02cbcc76d05fa4ec6ad571a9f01387ae64dc73a277"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e3b041afbe43493526ff99ad658a1dea89ff0b6a58f049fab9677193ded202"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f96f8849d8aac470562bef590567edca4cc00b1897a0a4fededf7c634810954d"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daad6fefb3a0d971b5c95785938236cd63c13856303d2368f220f6a85bb9ee9c"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e98e38050b7d898700bc0322e2805e6c9a769eefcea89e4ebc7f5a45b00383"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a83975c9d9c10b67dc6d1db8f7ace3b6d101434e7c0b91f3b69d470a1aeabb71"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "deb6ecefbd769e6d01cead37bb53b7a22e947b2fdeec426c64ed6c0b2c23ac22"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63a00dc4afe6dab06cbc0ebb227632fa58f31574630e80590137ee52e57a7775"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "082765767c2d782cc3a4f0836f59495e3e77995a4d05bdc06e80d9aa6140358f"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e23854fd6c3bea71d358e09504c27f1c01dbb06641e85d932d728feea443ddeb"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ef1e2bc40f4a2bab9850a88e4feba5b11f355f5dca930ec43fc8bf809cc0b557"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "7a6b84ddc06e554b536e34737fa0f342a7f0ed2e96d0374bf375bfe72e1c4d4b"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0a82dad7aea852f043203b1580a2c60f97b2c37f188a7b85e549a1f6f0fc6180"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "93d0c0cccb5b66a3bbddf56f2326bdf9a8b6bbaf019453aef839767452a9167b"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "398ebfac55ea946bec5220240fde672b82ff9b4297b88b3faa0ed51cee82d54f"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46cb7a15dea2e007c2a1e1cad590e43b1e1a62a1dc2103d96e21e4297a7a9240"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "9f3471fb607ead3087e802b26bce9549ea92dbc844596297ed2960bf87cf2c96"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd66474fdbcfcf992dc5a117cd831524d39cd2407de90d2ca014ef5264bac730"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "213ca2b7922d4d95571bdf540a8ed1e854e034d396e442cf2d2d78d3b25d78ae"
+        }
+      ],
+      "parameter_count": 682143,
+      "config_sha256": "529ce291a821956d147a466c2b7e5103bcba7499b5f23bfbf6b755d79181cad2",
+      "config_differences_from_U0": {
+        "arm": {
+          "reference": "U0",
+          "candidate": "D2"
+        },
+        "data.geometry_root": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry"
+        },
+        "data.tail_stats_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry/tail_stats.json"
+        },
+        "eval.prediction_collapse_floor_m_s": {
+          "reference": null,
+          "candidate": 0.001
+        },
+        "eval.reverse_axial_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "eval.velocity_phase_diagnostics": {
+          "reference": null,
+          "candidate": true
+        },
+        "experiment_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930"
+        },
+        "model.frame_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.geometry_config_path": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/geometry_x5d.json",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/frozen/f0_s1234_v1/configs/geometry_x5d.json"
+        },
+        "model.graph_activation_checkpointing": {
+          "reference": null,
+          "candidate": false
+        },
+        "model.graph_anchor_count": {
+          "reference": null,
+          "candidate": 256
+        },
+        "model.graph_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.graph_layers": {
+          "reference": null,
+          "candidate": 2
+        },
+        "model.graph_neighbors": {
+          "reference": null,
+          "candidate": 16
+        },
+        "model.velocity_arm": {
+          "reference": null,
+          "candidate": "D2"
+        },
+        "out_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/D2_f0_s1234"
+        },
+        "schema": {
+          "reference": "joint_cycle_round2_v52_v1",
+          "candidate": "velocity_phase_v52_v1"
+        },
+        "train.direction_epsilon_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.direction_gradient_ratio": {
+          "reference": null,
+          "candidate": 0.1
+        },
+        "train.direction_lambda_bounds": {
+          "reference": null,
+          "candidate": [
+            0.0001,
+            1.0
+          ]
+        },
+        "train.direction_lambda_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/calibration/direction_lambda.json"
+        },
+        "train.direction_probe_batches": {
+          "reference": null,
+          "candidate": 32
+        },
+        "train.direction_speed_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.tail_multiplier": {
+          "reference": null,
+          "candidate": 2.0
+        },
+        "train.tail_quantile": {
+          "reference": null,
+          "candidate": 0.8
+        }
+      },
+      "train_seconds": 1727.2419937270024,
+      "last_common_z_mse": 0.2910029410737232,
+      "D1_empty_case_phase_total": null
+    },
+    "A0": {
+      "status": "passed",
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A0_f0_s1234",
+      "slurm_job_id": "16274",
+      "array_task_id": "2",
+      "history_rows": 150,
+      "last_epoch": 150,
+      "last_step": 7800,
+      "all_history_metrics_finite": true,
+      "checkpoint": {
+        "schema": "velocity_phase_v52_v1",
+        "epoch": 149,
+        "step": 7800,
+        "config_sha256": "c27f6b0b412fbde912bf47c224e12ad8fcbc5c02d4de07bfab6952300a8ebe46",
+        "model_finite": true
+      },
+      "evaluation_units": 55,
+      "prediction_files": 55,
+      "predictions": [
+        {
+          "unit_id": "AAA/ruputer/CHEN_FU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cfd9e79708f2c440a00380bb13a4b1dacd299a34f6d1520a95bd574a696e3781"
+        },
+        {
+          "unit_id": "AAA/ruputer/LIU_JI_XIN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "3722b97e15d784b023b34286417440d956f3d80e5732ab3d663b6c6444ed7ede"
+        },
+        {
+          "unit_id": "AAA/ruputer/LV_GUO_YOU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "bbfecc153d1446df6b8679f6db273b00ad37fb9fe6947afd0faa12532882dbf5"
+        },
+        {
+          "unit_id": "AAA/ruputer/SU_KAI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "257246ee4afba3f6a4d1fa3809c5b12bc7fd2c23e3a6c82c7cb6913b6be054ef"
+        },
+        {
+          "unit_id": "AAA/ruputer/TONG_XUE_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46c310920b6c9a2151d7b2d4ffd663b03ff1797ea89035773eb6c084873e6132"
+        },
+        {
+          "unit_id": "AAA/ruputer/YU_TIAN_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "d1e77a4dd98d299d15407c10e8d90b1c89e2a89dec6e1358a3c2b4318ab08c67"
+        },
+        {
+          "unit_id": "AAA/unruputer/GAO_WEI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb7e8618f75b96a321d6feef5ba436484178b05972bc7b91b3264931d9b15eea"
+        },
+        {
+          "unit_id": "AAA/unruputer/LIN_JIAN_RONG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "b15946864dc9304e1504d10ab5e2ffd97cc13f6d1d8f80c0d842ac521e14a16c"
+        },
+        {
+          "unit_id": "AAA/unruputer/LI_YOU_YU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63c7a8d94d43e3a8f75c584ef66b341b22af710cc6970f66222ddc2ae90ea4c5"
+        },
+        {
+          "unit_id": "AAA/unruputer/SHEN_CHUN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd63d20e38e7d563dc2db909492106a6d05e48915aa20c8ccf70c179f133ef7e"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "6f71b35e5624f15787208cf7c046df8f0859c604ecf39bea1f164c2bf9e836d2"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHU_ZI_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a751b73e054612495e7b3f2faed084bbc5ddb037f5d3014987aaeb5df6d24955"
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07bcae10976ac755d9548f34926ec2a4697951681ec476114b1c6334df2673e0"
+        },
+        {
+          "unit_id": "AG/fast/LIU_JUN_FENG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "c4b5f419f6036742b76cd693048777908526aece5556bad043b408d852500d55"
+        },
+        {
+          "unit_id": "AG/fast/LIU_LI_QUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07646b1c998a2991d91024790631bf7947d1d9e3857962b36e3920702f3d5df8"
+        },
+        {
+          "unit_id": "AG/fast/LOU_YANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0c443c982f224a8516061b4694ee5038309e18b01d4e63174bce45cc496ff3c3"
+        },
+        {
+          "unit_id": "AG/fast/WANG_CHUN_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4b662bcf8a2d8e83815e478810821c8699a353f9e4f4287c0c304e2b6bf64386"
+        },
+        {
+          "unit_id": "AG/slow/A_MIN_SE_HA_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90e99a6dd1dc69e941ba7fc967c11cf2858a3fbc54f0b7b2ebb7b12d20e3c1a1"
+        },
+        {
+          "unit_id": "AG/slow/CAO_FENG_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ad9d711e604367861b150e41a635f07bc7666475039759eb3f4aee5d63ceab6"
+        },
+        {
+          "unit_id": "AG/slow/GONG_HUI_XIA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ce441c76b76d4855eb134e79c26b071764322868386cd1613a174a9adebf9dc1"
+        },
+        {
+          "unit_id": "AG/slow/GUO_XI_JIANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ab5a583cef5bc8503f13f7fcd746134a89f4f1c5186cca0486210840b85991f"
+        },
+        {
+          "unit_id": "AG/slow/KANG_XI_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "44ef2ade7fb56093572a4740a1359b34141dc64ed6010153545e6f7bb4003c47"
+        },
+        {
+          "unit_id": "AG/slow/LIN_SHU_TIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daaa6b5db350af17702c958dbd8dc1eea6202241adb5438cd4b03e15d077476b"
+        },
+        {
+          "unit_id": "AG/slow/LI_GUI_YING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "749caa810d68a8bf5efc08b59cf305ee11826849119bf219b5d46bc4a581d35a"
+        },
+        {
+          "unit_id": "AG/slow/LI_HUAN_GE",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "eeab3f8d2e50993ff61ca7a5491003f5db597699b93c5cc9e5f54bb9323f80e6"
+        },
+        {
+          "unit_id": "AG/slow/TE_JIN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "079cbe81b47e46f2f1f6bad309d736d95e550fbde7a15fbcfa43dcf0978db33a"
+        },
+        {
+          "unit_id": "AG/slow/WEI_JUN_WEN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4da22f9cd9bd9ff1da46a832f39483b9127a716a0c07e7e7cb65585a72525940"
+        },
+        {
+          "unit_id": "AG/slow/WU_YI_FA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cee5f8468e6ed46fdbdfbe887f8a7fae6dcf87a2887195428c2e9279d6d0fcbb"
+        },
+        {
+          "unit_id": "AG/slow/ZHANG_LING_GUANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "92943cf6452d6a1c9c067a371de6cc762cec37794dd4ebf5399f51162d57fe42"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "895936e21c1d37e5fff4bf34cd524b7b01845d7f26eff03e7f69ba6ef715a455"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a4e828fd819aae6429437dbe853d0a9f479b059b58938cc0c762002d6a943769"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "5700265d9d95f75bad5dd844daf450435d66518fc9ff38767bd61efde6228b18"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb12a862b2722ebc3d6e13dda645179d6f1886b70352047950efc7017b3a531f"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4d7e2fe1ea26ec27248c6668df5d89976f497e28a20ecb95f91d40d519df0bca"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f9059f6bdfacc8c80d679d83cea3199b141ee2f6d202dbbed6221b12e7383bff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90bf2656572b2fdfde073e6001204d241d7b3a7cac51d34c9d47c3935828f9ff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ccda9895551b138acc7acc02cbcc76d05fa4ec6ad571a9f01387ae64dc73a277"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e3b041afbe43493526ff99ad658a1dea89ff0b6a58f049fab9677193ded202"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f96f8849d8aac470562bef590567edca4cc00b1897a0a4fededf7c634810954d"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daad6fefb3a0d971b5c95785938236cd63c13856303d2368f220f6a85bb9ee9c"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e98e38050b7d898700bc0322e2805e6c9a769eefcea89e4ebc7f5a45b00383"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a83975c9d9c10b67dc6d1db8f7ace3b6d101434e7c0b91f3b69d470a1aeabb71"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "deb6ecefbd769e6d01cead37bb53b7a22e947b2fdeec426c64ed6c0b2c23ac22"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63a00dc4afe6dab06cbc0ebb227632fa58f31574630e80590137ee52e57a7775"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "082765767c2d782cc3a4f0836f59495e3e77995a4d05bdc06e80d9aa6140358f"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e23854fd6c3bea71d358e09504c27f1c01dbb06641e85d932d728feea443ddeb"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ef1e2bc40f4a2bab9850a88e4feba5b11f355f5dca930ec43fc8bf809cc0b557"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "7a6b84ddc06e554b536e34737fa0f342a7f0ed2e96d0374bf375bfe72e1c4d4b"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0a82dad7aea852f043203b1580a2c60f97b2c37f188a7b85e549a1f6f0fc6180"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "93d0c0cccb5b66a3bbddf56f2326bdf9a8b6bbaf019453aef839767452a9167b"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "398ebfac55ea946bec5220240fde672b82ff9b4297b88b3faa0ed51cee82d54f"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46cb7a15dea2e007c2a1e1cad590e43b1e1a62a1dc2103d96e21e4297a7a9240"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "9f3471fb607ead3087e802b26bce9549ea92dbc844596297ed2960bf87cf2c96"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd66474fdbcfcf992dc5a117cd831524d39cd2407de90d2ca014ef5264bac730"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "213ca2b7922d4d95571bdf540a8ed1e854e034d396e442cf2d2d78d3b25d78ae"
+        }
+      ],
+      "parameter_count": 704802,
+      "config_sha256": "c27f6b0b412fbde912bf47c224e12ad8fcbc5c02d4de07bfab6952300a8ebe46",
+      "config_differences_from_U0": {
+        "arm": {
+          "reference": "U0",
+          "candidate": "A0"
+        },
+        "data.geometry_root": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry"
+        },
+        "data.tail_stats_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry/tail_stats.json"
+        },
+        "eval.prediction_collapse_floor_m_s": {
+          "reference": null,
+          "candidate": 0.001
+        },
+        "eval.reverse_axial_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "eval.velocity_phase_diagnostics": {
+          "reference": null,
+          "candidate": true
+        },
+        "experiment_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930"
+        },
+        "model.frame_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.geometry_config_path": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/geometry_x5d.json",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/frozen/f0_s1234_v1/configs/geometry_x5d.json"
+        },
+        "model.graph_activation_checkpointing": {
+          "reference": null,
+          "candidate": false
+        },
+        "model.graph_anchor_count": {
+          "reference": null,
+          "candidate": 256
+        },
+        "model.graph_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.graph_layers": {
+          "reference": null,
+          "candidate": 2
+        },
+        "model.graph_neighbors": {
+          "reference": null,
+          "candidate": 16
+        },
+        "model.velocity_arm": {
+          "reference": null,
+          "candidate": "A0"
+        },
+        "out_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A0_f0_s1234"
+        },
+        "schema": {
+          "reference": "joint_cycle_round2_v52_v1",
+          "candidate": "velocity_phase_v52_v1"
+        },
+        "train.direction_epsilon_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.direction_gradient_ratio": {
+          "reference": null,
+          "candidate": 0.1
+        },
+        "train.direction_lambda_bounds": {
+          "reference": null,
+          "candidate": [
+            0.0001,
+            1.0
+          ]
+        },
+        "train.direction_lambda_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/calibration/direction_lambda.json"
+        },
+        "train.direction_probe_batches": {
+          "reference": null,
+          "candidate": 32
+        },
+        "train.direction_speed_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.tail_multiplier": {
+          "reference": null,
+          "candidate": 2.0
+        },
+        "train.tail_quantile": {
+          "reference": null,
+          "candidate": 0.8
+        }
+      },
+      "train_seconds": 1784.7598154250009,
+      "last_common_z_mse": 0.2750294717770178,
+      "D1_empty_case_phase_total": null
+    },
+    "A1": {
+      "status": "passed",
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A1_f0_s1234",
+      "slurm_job_id": "16265",
+      "array_task_id": "3",
+      "history_rows": 150,
+      "last_epoch": 150,
+      "last_step": 7800,
+      "all_history_metrics_finite": true,
+      "checkpoint": {
+        "schema": "velocity_phase_v52_v1",
+        "epoch": 149,
+        "step": 7800,
+        "config_sha256": "440812e74e5d12010283d5e5c65520956895e459f6e10ccd7f658e153770b5fd",
+        "model_finite": true
+      },
+      "evaluation_units": 55,
+      "prediction_files": 55,
+      "predictions": [
+        {
+          "unit_id": "AAA/ruputer/CHEN_FU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cfd9e79708f2c440a00380bb13a4b1dacd299a34f6d1520a95bd574a696e3781"
+        },
+        {
+          "unit_id": "AAA/ruputer/LIU_JI_XIN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "3722b97e15d784b023b34286417440d956f3d80e5732ab3d663b6c6444ed7ede"
+        },
+        {
+          "unit_id": "AAA/ruputer/LV_GUO_YOU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "bbfecc153d1446df6b8679f6db273b00ad37fb9fe6947afd0faa12532882dbf5"
+        },
+        {
+          "unit_id": "AAA/ruputer/SU_KAI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "257246ee4afba3f6a4d1fa3809c5b12bc7fd2c23e3a6c82c7cb6913b6be054ef"
+        },
+        {
+          "unit_id": "AAA/ruputer/TONG_XUE_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46c310920b6c9a2151d7b2d4ffd663b03ff1797ea89035773eb6c084873e6132"
+        },
+        {
+          "unit_id": "AAA/ruputer/YU_TIAN_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "d1e77a4dd98d299d15407c10e8d90b1c89e2a89dec6e1358a3c2b4318ab08c67"
+        },
+        {
+          "unit_id": "AAA/unruputer/GAO_WEI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb7e8618f75b96a321d6feef5ba436484178b05972bc7b91b3264931d9b15eea"
+        },
+        {
+          "unit_id": "AAA/unruputer/LIN_JIAN_RONG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "b15946864dc9304e1504d10ab5e2ffd97cc13f6d1d8f80c0d842ac521e14a16c"
+        },
+        {
+          "unit_id": "AAA/unruputer/LI_YOU_YU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63c7a8d94d43e3a8f75c584ef66b341b22af710cc6970f66222ddc2ae90ea4c5"
+        },
+        {
+          "unit_id": "AAA/unruputer/SHEN_CHUN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd63d20e38e7d563dc2db909492106a6d05e48915aa20c8ccf70c179f133ef7e"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "6f71b35e5624f15787208cf7c046df8f0859c604ecf39bea1f164c2bf9e836d2"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHU_ZI_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a751b73e054612495e7b3f2faed084bbc5ddb037f5d3014987aaeb5df6d24955"
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07bcae10976ac755d9548f34926ec2a4697951681ec476114b1c6334df2673e0"
+        },
+        {
+          "unit_id": "AG/fast/LIU_JUN_FENG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "c4b5f419f6036742b76cd693048777908526aece5556bad043b408d852500d55"
+        },
+        {
+          "unit_id": "AG/fast/LIU_LI_QUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07646b1c998a2991d91024790631bf7947d1d9e3857962b36e3920702f3d5df8"
+        },
+        {
+          "unit_id": "AG/fast/LOU_YANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0c443c982f224a8516061b4694ee5038309e18b01d4e63174bce45cc496ff3c3"
+        },
+        {
+          "unit_id": "AG/fast/WANG_CHUN_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4b662bcf8a2d8e83815e478810821c8699a353f9e4f4287c0c304e2b6bf64386"
+        },
+        {
+          "unit_id": "AG/slow/A_MIN_SE_HA_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90e99a6dd1dc69e941ba7fc967c11cf2858a3fbc54f0b7b2ebb7b12d20e3c1a1"
+        },
+        {
+          "unit_id": "AG/slow/CAO_FENG_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ad9d711e604367861b150e41a635f07bc7666475039759eb3f4aee5d63ceab6"
+        },
+        {
+          "unit_id": "AG/slow/GONG_HUI_XIA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ce441c76b76d4855eb134e79c26b071764322868386cd1613a174a9adebf9dc1"
+        },
+        {
+          "unit_id": "AG/slow/GUO_XI_JIANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ab5a583cef5bc8503f13f7fcd746134a89f4f1c5186cca0486210840b85991f"
+        },
+        {
+          "unit_id": "AG/slow/KANG_XI_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "44ef2ade7fb56093572a4740a1359b34141dc64ed6010153545e6f7bb4003c47"
+        },
+        {
+          "unit_id": "AG/slow/LIN_SHU_TIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daaa6b5db350af17702c958dbd8dc1eea6202241adb5438cd4b03e15d077476b"
+        },
+        {
+          "unit_id": "AG/slow/LI_GUI_YING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "749caa810d68a8bf5efc08b59cf305ee11826849119bf219b5d46bc4a581d35a"
+        },
+        {
+          "unit_id": "AG/slow/LI_HUAN_GE",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "eeab3f8d2e50993ff61ca7a5491003f5db597699b93c5cc9e5f54bb9323f80e6"
+        },
+        {
+          "unit_id": "AG/slow/TE_JIN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "079cbe81b47e46f2f1f6bad309d736d95e550fbde7a15fbcfa43dcf0978db33a"
+        },
+        {
+          "unit_id": "AG/slow/WEI_JUN_WEN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4da22f9cd9bd9ff1da46a832f39483b9127a716a0c07e7e7cb65585a72525940"
+        },
+        {
+          "unit_id": "AG/slow/WU_YI_FA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cee5f8468e6ed46fdbdfbe887f8a7fae6dcf87a2887195428c2e9279d6d0fcbb"
+        },
+        {
+          "unit_id": "AG/slow/ZHANG_LING_GUANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "92943cf6452d6a1c9c067a371de6cc762cec37794dd4ebf5399f51162d57fe42"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "895936e21c1d37e5fff4bf34cd524b7b01845d7f26eff03e7f69ba6ef715a455"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a4e828fd819aae6429437dbe853d0a9f479b059b58938cc0c762002d6a943769"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "5700265d9d95f75bad5dd844daf450435d66518fc9ff38767bd61efde6228b18"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb12a862b2722ebc3d6e13dda645179d6f1886b70352047950efc7017b3a531f"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4d7e2fe1ea26ec27248c6668df5d89976f497e28a20ecb95f91d40d519df0bca"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f9059f6bdfacc8c80d679d83cea3199b141ee2f6d202dbbed6221b12e7383bff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90bf2656572b2fdfde073e6001204d241d7b3a7cac51d34c9d47c3935828f9ff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ccda9895551b138acc7acc02cbcc76d05fa4ec6ad571a9f01387ae64dc73a277"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e3b041afbe43493526ff99ad658a1dea89ff0b6a58f049fab9677193ded202"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f96f8849d8aac470562bef590567edca4cc00b1897a0a4fededf7c634810954d"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daad6fefb3a0d971b5c95785938236cd63c13856303d2368f220f6a85bb9ee9c"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e98e38050b7d898700bc0322e2805e6c9a769eefcea89e4ebc7f5a45b00383"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a83975c9d9c10b67dc6d1db8f7ace3b6d101434e7c0b91f3b69d470a1aeabb71"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "deb6ecefbd769e6d01cead37bb53b7a22e947b2fdeec426c64ed6c0b2c23ac22"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63a00dc4afe6dab06cbc0ebb227632fa58f31574630e80590137ee52e57a7775"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "082765767c2d782cc3a4f0836f59495e3e77995a4d05bdc06e80d9aa6140358f"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e23854fd6c3bea71d358e09504c27f1c01dbb06641e85d932d728feea443ddeb"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ef1e2bc40f4a2bab9850a88e4feba5b11f355f5dca930ec43fc8bf809cc0b557"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "7a6b84ddc06e554b536e34737fa0f342a7f0ed2e96d0374bf375bfe72e1c4d4b"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0a82dad7aea852f043203b1580a2c60f97b2c37f188a7b85e549a1f6f0fc6180"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "93d0c0cccb5b66a3bbddf56f2326bdf9a8b6bbaf019453aef839767452a9167b"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "398ebfac55ea946bec5220240fde672b82ff9b4297b88b3faa0ed51cee82d54f"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46cb7a15dea2e007c2a1e1cad590e43b1e1a62a1dc2103d96e21e4297a7a9240"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "9f3471fb607ead3087e802b26bce9549ea92dbc844596297ed2960bf87cf2c96"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd66474fdbcfcf992dc5a117cd831524d39cd2407de90d2ca014ef5264bac730"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "213ca2b7922d4d95571bdf540a8ed1e854e034d396e442cf2d2d78d3b25d78ae"
+        }
+      ],
+      "parameter_count": 704802,
+      "config_sha256": "440812e74e5d12010283d5e5c65520956895e459f6e10ccd7f658e153770b5fd",
+      "config_differences_from_U0": {
+        "arm": {
+          "reference": "U0",
+          "candidate": "A1"
+        },
+        "data.geometry_root": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry"
+        },
+        "data.tail_stats_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry/tail_stats.json"
+        },
+        "eval.prediction_collapse_floor_m_s": {
+          "reference": null,
+          "candidate": 0.001
+        },
+        "eval.reverse_axial_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "eval.velocity_phase_diagnostics": {
+          "reference": null,
+          "candidate": true
+        },
+        "experiment_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930"
+        },
+        "model.frame_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.geometry_config_path": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/geometry_x5d.json",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/frozen/f0_s1234_v1/configs/geometry_x5d.json"
+        },
+        "model.graph_activation_checkpointing": {
+          "reference": null,
+          "candidate": false
+        },
+        "model.graph_anchor_count": {
+          "reference": null,
+          "candidate": 256
+        },
+        "model.graph_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.graph_layers": {
+          "reference": null,
+          "candidate": 2
+        },
+        "model.graph_neighbors": {
+          "reference": null,
+          "candidate": 16
+        },
+        "model.velocity_arm": {
+          "reference": null,
+          "candidate": "A1"
+        },
+        "out_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A1_f0_s1234"
+        },
+        "schema": {
+          "reference": "joint_cycle_round2_v52_v1",
+          "candidate": "velocity_phase_v52_v1"
+        },
+        "train.direction_epsilon_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.direction_gradient_ratio": {
+          "reference": null,
+          "candidate": 0.1
+        },
+        "train.direction_lambda_bounds": {
+          "reference": null,
+          "candidate": [
+            0.0001,
+            1.0
+          ]
+        },
+        "train.direction_lambda_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/calibration/direction_lambda.json"
+        },
+        "train.direction_probe_batches": {
+          "reference": null,
+          "candidate": 32
+        },
+        "train.direction_speed_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.tail_multiplier": {
+          "reference": null,
+          "candidate": 2.0
+        },
+        "train.tail_quantile": {
+          "reference": null,
+          "candidate": 0.8
+        }
+      },
+      "train_seconds": 1798.7768634509994,
+      "last_common_z_mse": 0.27599325023808524,
+      "D1_empty_case_phase_total": null
+    },
+    "G00": {
+      "status": "passed",
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G00_f0_s1234",
+      "slurm_job_id": "16275",
+      "array_task_id": "4",
+      "history_rows": 150,
+      "last_epoch": 150,
+      "last_step": 7800,
+      "all_history_metrics_finite": true,
+      "checkpoint": {
+        "schema": "velocity_phase_v52_v1",
+        "epoch": 149,
+        "step": 7800,
+        "config_sha256": "32c3861eeb682a353145a8938dfb641f9abefe18b6ea54dd5cec5f55cba54be3",
+        "model_finite": true
+      },
+      "evaluation_units": 55,
+      "prediction_files": 55,
+      "predictions": [
+        {
+          "unit_id": "AAA/ruputer/CHEN_FU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cfd9e79708f2c440a00380bb13a4b1dacd299a34f6d1520a95bd574a696e3781"
+        },
+        {
+          "unit_id": "AAA/ruputer/LIU_JI_XIN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "3722b97e15d784b023b34286417440d956f3d80e5732ab3d663b6c6444ed7ede"
+        },
+        {
+          "unit_id": "AAA/ruputer/LV_GUO_YOU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "bbfecc153d1446df6b8679f6db273b00ad37fb9fe6947afd0faa12532882dbf5"
+        },
+        {
+          "unit_id": "AAA/ruputer/SU_KAI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "257246ee4afba3f6a4d1fa3809c5b12bc7fd2c23e3a6c82c7cb6913b6be054ef"
+        },
+        {
+          "unit_id": "AAA/ruputer/TONG_XUE_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46c310920b6c9a2151d7b2d4ffd663b03ff1797ea89035773eb6c084873e6132"
+        },
+        {
+          "unit_id": "AAA/ruputer/YU_TIAN_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "d1e77a4dd98d299d15407c10e8d90b1c89e2a89dec6e1358a3c2b4318ab08c67"
+        },
+        {
+          "unit_id": "AAA/unruputer/GAO_WEI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb7e8618f75b96a321d6feef5ba436484178b05972bc7b91b3264931d9b15eea"
+        },
+        {
+          "unit_id": "AAA/unruputer/LIN_JIAN_RONG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "b15946864dc9304e1504d10ab5e2ffd97cc13f6d1d8f80c0d842ac521e14a16c"
+        },
+        {
+          "unit_id": "AAA/unruputer/LI_YOU_YU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63c7a8d94d43e3a8f75c584ef66b341b22af710cc6970f66222ddc2ae90ea4c5"
+        },
+        {
+          "unit_id": "AAA/unruputer/SHEN_CHUN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd63d20e38e7d563dc2db909492106a6d05e48915aa20c8ccf70c179f133ef7e"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "6f71b35e5624f15787208cf7c046df8f0859c604ecf39bea1f164c2bf9e836d2"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHU_ZI_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a751b73e054612495e7b3f2faed084bbc5ddb037f5d3014987aaeb5df6d24955"
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07bcae10976ac755d9548f34926ec2a4697951681ec476114b1c6334df2673e0"
+        },
+        {
+          "unit_id": "AG/fast/LIU_JUN_FENG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "c4b5f419f6036742b76cd693048777908526aece5556bad043b408d852500d55"
+        },
+        {
+          "unit_id": "AG/fast/LIU_LI_QUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07646b1c998a2991d91024790631bf7947d1d9e3857962b36e3920702f3d5df8"
+        },
+        {
+          "unit_id": "AG/fast/LOU_YANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0c443c982f224a8516061b4694ee5038309e18b01d4e63174bce45cc496ff3c3"
+        },
+        {
+          "unit_id": "AG/fast/WANG_CHUN_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4b662bcf8a2d8e83815e478810821c8699a353f9e4f4287c0c304e2b6bf64386"
+        },
+        {
+          "unit_id": "AG/slow/A_MIN_SE_HA_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90e99a6dd1dc69e941ba7fc967c11cf2858a3fbc54f0b7b2ebb7b12d20e3c1a1"
+        },
+        {
+          "unit_id": "AG/slow/CAO_FENG_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ad9d711e604367861b150e41a635f07bc7666475039759eb3f4aee5d63ceab6"
+        },
+        {
+          "unit_id": "AG/slow/GONG_HUI_XIA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ce441c76b76d4855eb134e79c26b071764322868386cd1613a174a9adebf9dc1"
+        },
+        {
+          "unit_id": "AG/slow/GUO_XI_JIANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ab5a583cef5bc8503f13f7fcd746134a89f4f1c5186cca0486210840b85991f"
+        },
+        {
+          "unit_id": "AG/slow/KANG_XI_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "44ef2ade7fb56093572a4740a1359b34141dc64ed6010153545e6f7bb4003c47"
+        },
+        {
+          "unit_id": "AG/slow/LIN_SHU_TIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daaa6b5db350af17702c958dbd8dc1eea6202241adb5438cd4b03e15d077476b"
+        },
+        {
+          "unit_id": "AG/slow/LI_GUI_YING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "749caa810d68a8bf5efc08b59cf305ee11826849119bf219b5d46bc4a581d35a"
+        },
+        {
+          "unit_id": "AG/slow/LI_HUAN_GE",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "eeab3f8d2e50993ff61ca7a5491003f5db597699b93c5cc9e5f54bb9323f80e6"
+        },
+        {
+          "unit_id": "AG/slow/TE_JIN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "079cbe81b47e46f2f1f6bad309d736d95e550fbde7a15fbcfa43dcf0978db33a"
+        },
+        {
+          "unit_id": "AG/slow/WEI_JUN_WEN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4da22f9cd9bd9ff1da46a832f39483b9127a716a0c07e7e7cb65585a72525940"
+        },
+        {
+          "unit_id": "AG/slow/WU_YI_FA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cee5f8468e6ed46fdbdfbe887f8a7fae6dcf87a2887195428c2e9279d6d0fcbb"
+        },
+        {
+          "unit_id": "AG/slow/ZHANG_LING_GUANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "92943cf6452d6a1c9c067a371de6cc762cec37794dd4ebf5399f51162d57fe42"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "895936e21c1d37e5fff4bf34cd524b7b01845d7f26eff03e7f69ba6ef715a455"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a4e828fd819aae6429437dbe853d0a9f479b059b58938cc0c762002d6a943769"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "5700265d9d95f75bad5dd844daf450435d66518fc9ff38767bd61efde6228b18"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb12a862b2722ebc3d6e13dda645179d6f1886b70352047950efc7017b3a531f"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4d7e2fe1ea26ec27248c6668df5d89976f497e28a20ecb95f91d40d519df0bca"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f9059f6bdfacc8c80d679d83cea3199b141ee2f6d202dbbed6221b12e7383bff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90bf2656572b2fdfde073e6001204d241d7b3a7cac51d34c9d47c3935828f9ff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ccda9895551b138acc7acc02cbcc76d05fa4ec6ad571a9f01387ae64dc73a277"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e3b041afbe43493526ff99ad658a1dea89ff0b6a58f049fab9677193ded202"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f96f8849d8aac470562bef590567edca4cc00b1897a0a4fededf7c634810954d"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daad6fefb3a0d971b5c95785938236cd63c13856303d2368f220f6a85bb9ee9c"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e98e38050b7d898700bc0322e2805e6c9a769eefcea89e4ebc7f5a45b00383"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a83975c9d9c10b67dc6d1db8f7ace3b6d101434e7c0b91f3b69d470a1aeabb71"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "deb6ecefbd769e6d01cead37bb53b7a22e947b2fdeec426c64ed6c0b2c23ac22"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63a00dc4afe6dab06cbc0ebb227632fa58f31574630e80590137ee52e57a7775"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "082765767c2d782cc3a4f0836f59495e3e77995a4d05bdc06e80d9aa6140358f"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e23854fd6c3bea71d358e09504c27f1c01dbb06641e85d932d728feea443ddeb"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ef1e2bc40f4a2bab9850a88e4feba5b11f355f5dca930ec43fc8bf809cc0b557"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "7a6b84ddc06e554b536e34737fa0f342a7f0ed2e96d0374bf375bfe72e1c4d4b"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0a82dad7aea852f043203b1580a2c60f97b2c37f188a7b85e549a1f6f0fc6180"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "93d0c0cccb5b66a3bbddf56f2326bdf9a8b6bbaf019453aef839767452a9167b"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "398ebfac55ea946bec5220240fde672b82ff9b4297b88b3faa0ed51cee82d54f"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46cb7a15dea2e007c2a1e1cad590e43b1e1a62a1dc2103d96e21e4297a7a9240"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "9f3471fb607ead3087e802b26bce9549ea92dbc844596297ed2960bf87cf2c96"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd66474fdbcfcf992dc5a117cd831524d39cd2407de90d2ca014ef5264bac730"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "213ca2b7922d4d95571bdf540a8ed1e854e034d396e442cf2d2d78d3b25d78ae"
+        }
+      ],
+      "parameter_count": 761465,
+      "config_sha256": "32c3861eeb682a353145a8938dfb641f9abefe18b6ea54dd5cec5f55cba54be3",
+      "config_differences_from_U0": {
+        "arm": {
+          "reference": "U0",
+          "candidate": "G00"
+        },
+        "data.geometry_root": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry"
+        },
+        "data.tail_stats_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry/tail_stats.json"
+        },
+        "eval.prediction_collapse_floor_m_s": {
+          "reference": null,
+          "candidate": 0.001
+        },
+        "eval.reverse_axial_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "eval.velocity_phase_diagnostics": {
+          "reference": null,
+          "candidate": true
+        },
+        "experiment_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930"
+        },
+        "model.frame_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.geometry_config_path": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/geometry_x5d.json",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/frozen/f0_s1234_v1/configs/geometry_x5d.json"
+        },
+        "model.graph_activation_checkpointing": {
+          "reference": null,
+          "candidate": true
+        },
+        "model.graph_anchor_count": {
+          "reference": null,
+          "candidate": 256
+        },
+        "model.graph_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.graph_layers": {
+          "reference": null,
+          "candidate": 2
+        },
+        "model.graph_neighbors": {
+          "reference": null,
+          "candidate": 16
+        },
+        "model.velocity_arm": {
+          "reference": null,
+          "candidate": "G00"
+        },
+        "out_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G00_f0_s1234"
+        },
+        "schema": {
+          "reference": "joint_cycle_round2_v52_v1",
+          "candidate": "velocity_phase_v52_v1"
+        },
+        "train.direction_epsilon_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.direction_gradient_ratio": {
+          "reference": null,
+          "candidate": 0.1
+        },
+        "train.direction_lambda_bounds": {
+          "reference": null,
+          "candidate": [
+            0.0001,
+            1.0
+          ]
+        },
+        "train.direction_lambda_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/calibration/direction_lambda.json"
+        },
+        "train.direction_probe_batches": {
+          "reference": null,
+          "candidate": 32
+        },
+        "train.direction_speed_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.tail_multiplier": {
+          "reference": null,
+          "candidate": 2.0
+        },
+        "train.tail_quantile": {
+          "reference": null,
+          "candidate": 0.8
+        }
+      },
+      "train_seconds": 1959.289309613996,
+      "last_common_z_mse": 0.2661832805397441,
+      "D1_empty_case_phase_total": null
+    },
+    "G01": {
+      "status": "passed",
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G01_f0_s1234",
+      "slurm_job_id": "16277",
+      "array_task_id": "5",
+      "history_rows": 150,
+      "last_epoch": 150,
+      "last_step": 7800,
+      "all_history_metrics_finite": true,
+      "checkpoint": {
+        "schema": "velocity_phase_v52_v1",
+        "epoch": 149,
+        "step": 7800,
+        "config_sha256": "0795780e896b2398fd836c55ee9e5161729a67fba3f5e29aff4d8773a317ad1e",
+        "model_finite": true
+      },
+      "evaluation_units": 55,
+      "prediction_files": 55,
+      "predictions": [
+        {
+          "unit_id": "AAA/ruputer/CHEN_FU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cfd9e79708f2c440a00380bb13a4b1dacd299a34f6d1520a95bd574a696e3781"
+        },
+        {
+          "unit_id": "AAA/ruputer/LIU_JI_XIN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "3722b97e15d784b023b34286417440d956f3d80e5732ab3d663b6c6444ed7ede"
+        },
+        {
+          "unit_id": "AAA/ruputer/LV_GUO_YOU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "bbfecc153d1446df6b8679f6db273b00ad37fb9fe6947afd0faa12532882dbf5"
+        },
+        {
+          "unit_id": "AAA/ruputer/SU_KAI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "257246ee4afba3f6a4d1fa3809c5b12bc7fd2c23e3a6c82c7cb6913b6be054ef"
+        },
+        {
+          "unit_id": "AAA/ruputer/TONG_XUE_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46c310920b6c9a2151d7b2d4ffd663b03ff1797ea89035773eb6c084873e6132"
+        },
+        {
+          "unit_id": "AAA/ruputer/YU_TIAN_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "d1e77a4dd98d299d15407c10e8d90b1c89e2a89dec6e1358a3c2b4318ab08c67"
+        },
+        {
+          "unit_id": "AAA/unruputer/GAO_WEI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb7e8618f75b96a321d6feef5ba436484178b05972bc7b91b3264931d9b15eea"
+        },
+        {
+          "unit_id": "AAA/unruputer/LIN_JIAN_RONG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "b15946864dc9304e1504d10ab5e2ffd97cc13f6d1d8f80c0d842ac521e14a16c"
+        },
+        {
+          "unit_id": "AAA/unruputer/LI_YOU_YU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63c7a8d94d43e3a8f75c584ef66b341b22af710cc6970f66222ddc2ae90ea4c5"
+        },
+        {
+          "unit_id": "AAA/unruputer/SHEN_CHUN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd63d20e38e7d563dc2db909492106a6d05e48915aa20c8ccf70c179f133ef7e"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "6f71b35e5624f15787208cf7c046df8f0859c604ecf39bea1f164c2bf9e836d2"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHU_ZI_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a751b73e054612495e7b3f2faed084bbc5ddb037f5d3014987aaeb5df6d24955"
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07bcae10976ac755d9548f34926ec2a4697951681ec476114b1c6334df2673e0"
+        },
+        {
+          "unit_id": "AG/fast/LIU_JUN_FENG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "c4b5f419f6036742b76cd693048777908526aece5556bad043b408d852500d55"
+        },
+        {
+          "unit_id": "AG/fast/LIU_LI_QUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07646b1c998a2991d91024790631bf7947d1d9e3857962b36e3920702f3d5df8"
+        },
+        {
+          "unit_id": "AG/fast/LOU_YANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0c443c982f224a8516061b4694ee5038309e18b01d4e63174bce45cc496ff3c3"
+        },
+        {
+          "unit_id": "AG/fast/WANG_CHUN_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4b662bcf8a2d8e83815e478810821c8699a353f9e4f4287c0c304e2b6bf64386"
+        },
+        {
+          "unit_id": "AG/slow/A_MIN_SE_HA_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90e99a6dd1dc69e941ba7fc967c11cf2858a3fbc54f0b7b2ebb7b12d20e3c1a1"
+        },
+        {
+          "unit_id": "AG/slow/CAO_FENG_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ad9d711e604367861b150e41a635f07bc7666475039759eb3f4aee5d63ceab6"
+        },
+        {
+          "unit_id": "AG/slow/GONG_HUI_XIA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ce441c76b76d4855eb134e79c26b071764322868386cd1613a174a9adebf9dc1"
+        },
+        {
+          "unit_id": "AG/slow/GUO_XI_JIANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ab5a583cef5bc8503f13f7fcd746134a89f4f1c5186cca0486210840b85991f"
+        },
+        {
+          "unit_id": "AG/slow/KANG_XI_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "44ef2ade7fb56093572a4740a1359b34141dc64ed6010153545e6f7bb4003c47"
+        },
+        {
+          "unit_id": "AG/slow/LIN_SHU_TIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daaa6b5db350af17702c958dbd8dc1eea6202241adb5438cd4b03e15d077476b"
+        },
+        {
+          "unit_id": "AG/slow/LI_GUI_YING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "749caa810d68a8bf5efc08b59cf305ee11826849119bf219b5d46bc4a581d35a"
+        },
+        {
+          "unit_id": "AG/slow/LI_HUAN_GE",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "eeab3f8d2e50993ff61ca7a5491003f5db597699b93c5cc9e5f54bb9323f80e6"
+        },
+        {
+          "unit_id": "AG/slow/TE_JIN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "079cbe81b47e46f2f1f6bad309d736d95e550fbde7a15fbcfa43dcf0978db33a"
+        },
+        {
+          "unit_id": "AG/slow/WEI_JUN_WEN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4da22f9cd9bd9ff1da46a832f39483b9127a716a0c07e7e7cb65585a72525940"
+        },
+        {
+          "unit_id": "AG/slow/WU_YI_FA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cee5f8468e6ed46fdbdfbe887f8a7fae6dcf87a2887195428c2e9279d6d0fcbb"
+        },
+        {
+          "unit_id": "AG/slow/ZHANG_LING_GUANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "92943cf6452d6a1c9c067a371de6cc762cec37794dd4ebf5399f51162d57fe42"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "895936e21c1d37e5fff4bf34cd524b7b01845d7f26eff03e7f69ba6ef715a455"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a4e828fd819aae6429437dbe853d0a9f479b059b58938cc0c762002d6a943769"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "5700265d9d95f75bad5dd844daf450435d66518fc9ff38767bd61efde6228b18"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb12a862b2722ebc3d6e13dda645179d6f1886b70352047950efc7017b3a531f"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4d7e2fe1ea26ec27248c6668df5d89976f497e28a20ecb95f91d40d519df0bca"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f9059f6bdfacc8c80d679d83cea3199b141ee2f6d202dbbed6221b12e7383bff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90bf2656572b2fdfde073e6001204d241d7b3a7cac51d34c9d47c3935828f9ff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ccda9895551b138acc7acc02cbcc76d05fa4ec6ad571a9f01387ae64dc73a277"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e3b041afbe43493526ff99ad658a1dea89ff0b6a58f049fab9677193ded202"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f96f8849d8aac470562bef590567edca4cc00b1897a0a4fededf7c634810954d"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daad6fefb3a0d971b5c95785938236cd63c13856303d2368f220f6a85bb9ee9c"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e98e38050b7d898700bc0322e2805e6c9a769eefcea89e4ebc7f5a45b00383"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a83975c9d9c10b67dc6d1db8f7ace3b6d101434e7c0b91f3b69d470a1aeabb71"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "deb6ecefbd769e6d01cead37bb53b7a22e947b2fdeec426c64ed6c0b2c23ac22"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63a00dc4afe6dab06cbc0ebb227632fa58f31574630e80590137ee52e57a7775"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "082765767c2d782cc3a4f0836f59495e3e77995a4d05bdc06e80d9aa6140358f"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e23854fd6c3bea71d358e09504c27f1c01dbb06641e85d932d728feea443ddeb"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ef1e2bc40f4a2bab9850a88e4feba5b11f355f5dca930ec43fc8bf809cc0b557"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "7a6b84ddc06e554b536e34737fa0f342a7f0ed2e96d0374bf375bfe72e1c4d4b"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0a82dad7aea852f043203b1580a2c60f97b2c37f188a7b85e549a1f6f0fc6180"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "93d0c0cccb5b66a3bbddf56f2326bdf9a8b6bbaf019453aef839767452a9167b"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "398ebfac55ea946bec5220240fde672b82ff9b4297b88b3faa0ed51cee82d54f"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46cb7a15dea2e007c2a1e1cad590e43b1e1a62a1dc2103d96e21e4297a7a9240"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "9f3471fb607ead3087e802b26bce9549ea92dbc844596297ed2960bf87cf2c96"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd66474fdbcfcf992dc5a117cd831524d39cd2407de90d2ca014ef5264bac730"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "213ca2b7922d4d95571bdf540a8ed1e854e034d396e442cf2d2d78d3b25d78ae"
+        }
+      ],
+      "parameter_count": 761769,
+      "config_sha256": "0795780e896b2398fd836c55ee9e5161729a67fba3f5e29aff4d8773a317ad1e",
+      "config_differences_from_U0": {
+        "arm": {
+          "reference": "U0",
+          "candidate": "G01"
+        },
+        "data.geometry_root": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry"
+        },
+        "data.tail_stats_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry/tail_stats.json"
+        },
+        "eval.prediction_collapse_floor_m_s": {
+          "reference": null,
+          "candidate": 0.001
+        },
+        "eval.reverse_axial_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "eval.velocity_phase_diagnostics": {
+          "reference": null,
+          "candidate": true
+        },
+        "experiment_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930"
+        },
+        "model.frame_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.geometry_config_path": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/geometry_x5d.json",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/frozen/f0_s1234_v1/configs/geometry_x5d.json"
+        },
+        "model.graph_activation_checkpointing": {
+          "reference": null,
+          "candidate": true
+        },
+        "model.graph_anchor_count": {
+          "reference": null,
+          "candidate": 256
+        },
+        "model.graph_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.graph_layers": {
+          "reference": null,
+          "candidate": 2
+        },
+        "model.graph_neighbors": {
+          "reference": null,
+          "candidate": 16
+        },
+        "model.velocity_arm": {
+          "reference": null,
+          "candidate": "G01"
+        },
+        "out_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G01_f0_s1234"
+        },
+        "schema": {
+          "reference": "joint_cycle_round2_v52_v1",
+          "candidate": "velocity_phase_v52_v1"
+        },
+        "train.direction_epsilon_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.direction_gradient_ratio": {
+          "reference": null,
+          "candidate": 0.1
+        },
+        "train.direction_lambda_bounds": {
+          "reference": null,
+          "candidate": [
+            0.0001,
+            1.0
+          ]
+        },
+        "train.direction_lambda_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/calibration/direction_lambda.json"
+        },
+        "train.direction_probe_batches": {
+          "reference": null,
+          "candidate": 32
+        },
+        "train.direction_speed_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.tail_multiplier": {
+          "reference": null,
+          "candidate": 2.0
+        },
+        "train.tail_quantile": {
+          "reference": null,
+          "candidate": 0.8
+        }
+      },
+      "train_seconds": 2082.71982228,
+      "last_common_z_mse": 0.2689978335667582,
+      "D1_empty_case_phase_total": null
+    },
+    "G10": {
+      "status": "passed",
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G10_f0_s1234",
+      "slurm_job_id": "16279",
+      "array_task_id": "6",
+      "history_rows": 150,
+      "last_epoch": 150,
+      "last_step": 7800,
+      "all_history_metrics_finite": true,
+      "checkpoint": {
+        "schema": "velocity_phase_v52_v1",
+        "epoch": 149,
+        "step": 7800,
+        "config_sha256": "ab338956d0bc121b1d3a6a92f982007a1243411d1dd0cdc6dc9542a440afcdc5",
+        "model_finite": true
+      },
+      "evaluation_units": 55,
+      "prediction_files": 55,
+      "predictions": [
+        {
+          "unit_id": "AAA/ruputer/CHEN_FU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cfd9e79708f2c440a00380bb13a4b1dacd299a34f6d1520a95bd574a696e3781"
+        },
+        {
+          "unit_id": "AAA/ruputer/LIU_JI_XIN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "3722b97e15d784b023b34286417440d956f3d80e5732ab3d663b6c6444ed7ede"
+        },
+        {
+          "unit_id": "AAA/ruputer/LV_GUO_YOU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "bbfecc153d1446df6b8679f6db273b00ad37fb9fe6947afd0faa12532882dbf5"
+        },
+        {
+          "unit_id": "AAA/ruputer/SU_KAI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "257246ee4afba3f6a4d1fa3809c5b12bc7fd2c23e3a6c82c7cb6913b6be054ef"
+        },
+        {
+          "unit_id": "AAA/ruputer/TONG_XUE_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46c310920b6c9a2151d7b2d4ffd663b03ff1797ea89035773eb6c084873e6132"
+        },
+        {
+          "unit_id": "AAA/ruputer/YU_TIAN_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "d1e77a4dd98d299d15407c10e8d90b1c89e2a89dec6e1358a3c2b4318ab08c67"
+        },
+        {
+          "unit_id": "AAA/unruputer/GAO_WEI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb7e8618f75b96a321d6feef5ba436484178b05972bc7b91b3264931d9b15eea"
+        },
+        {
+          "unit_id": "AAA/unruputer/LIN_JIAN_RONG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "b15946864dc9304e1504d10ab5e2ffd97cc13f6d1d8f80c0d842ac521e14a16c"
+        },
+        {
+          "unit_id": "AAA/unruputer/LI_YOU_YU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63c7a8d94d43e3a8f75c584ef66b341b22af710cc6970f66222ddc2ae90ea4c5"
+        },
+        {
+          "unit_id": "AAA/unruputer/SHEN_CHUN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd63d20e38e7d563dc2db909492106a6d05e48915aa20c8ccf70c179f133ef7e"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "6f71b35e5624f15787208cf7c046df8f0859c604ecf39bea1f164c2bf9e836d2"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHU_ZI_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a751b73e054612495e7b3f2faed084bbc5ddb037f5d3014987aaeb5df6d24955"
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07bcae10976ac755d9548f34926ec2a4697951681ec476114b1c6334df2673e0"
+        },
+        {
+          "unit_id": "AG/fast/LIU_JUN_FENG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "c4b5f419f6036742b76cd693048777908526aece5556bad043b408d852500d55"
+        },
+        {
+          "unit_id": "AG/fast/LIU_LI_QUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07646b1c998a2991d91024790631bf7947d1d9e3857962b36e3920702f3d5df8"
+        },
+        {
+          "unit_id": "AG/fast/LOU_YANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0c443c982f224a8516061b4694ee5038309e18b01d4e63174bce45cc496ff3c3"
+        },
+        {
+          "unit_id": "AG/fast/WANG_CHUN_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4b662bcf8a2d8e83815e478810821c8699a353f9e4f4287c0c304e2b6bf64386"
+        },
+        {
+          "unit_id": "AG/slow/A_MIN_SE_HA_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90e99a6dd1dc69e941ba7fc967c11cf2858a3fbc54f0b7b2ebb7b12d20e3c1a1"
+        },
+        {
+          "unit_id": "AG/slow/CAO_FENG_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ad9d711e604367861b150e41a635f07bc7666475039759eb3f4aee5d63ceab6"
+        },
+        {
+          "unit_id": "AG/slow/GONG_HUI_XIA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ce441c76b76d4855eb134e79c26b071764322868386cd1613a174a9adebf9dc1"
+        },
+        {
+          "unit_id": "AG/slow/GUO_XI_JIANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ab5a583cef5bc8503f13f7fcd746134a89f4f1c5186cca0486210840b85991f"
+        },
+        {
+          "unit_id": "AG/slow/KANG_XI_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "44ef2ade7fb56093572a4740a1359b34141dc64ed6010153545e6f7bb4003c47"
+        },
+        {
+          "unit_id": "AG/slow/LIN_SHU_TIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daaa6b5db350af17702c958dbd8dc1eea6202241adb5438cd4b03e15d077476b"
+        },
+        {
+          "unit_id": "AG/slow/LI_GUI_YING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "749caa810d68a8bf5efc08b59cf305ee11826849119bf219b5d46bc4a581d35a"
+        },
+        {
+          "unit_id": "AG/slow/LI_HUAN_GE",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "eeab3f8d2e50993ff61ca7a5491003f5db597699b93c5cc9e5f54bb9323f80e6"
+        },
+        {
+          "unit_id": "AG/slow/TE_JIN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "079cbe81b47e46f2f1f6bad309d736d95e550fbde7a15fbcfa43dcf0978db33a"
+        },
+        {
+          "unit_id": "AG/slow/WEI_JUN_WEN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4da22f9cd9bd9ff1da46a832f39483b9127a716a0c07e7e7cb65585a72525940"
+        },
+        {
+          "unit_id": "AG/slow/WU_YI_FA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cee5f8468e6ed46fdbdfbe887f8a7fae6dcf87a2887195428c2e9279d6d0fcbb"
+        },
+        {
+          "unit_id": "AG/slow/ZHANG_LING_GUANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "92943cf6452d6a1c9c067a371de6cc762cec37794dd4ebf5399f51162d57fe42"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "895936e21c1d37e5fff4bf34cd524b7b01845d7f26eff03e7f69ba6ef715a455"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a4e828fd819aae6429437dbe853d0a9f479b059b58938cc0c762002d6a943769"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "5700265d9d95f75bad5dd844daf450435d66518fc9ff38767bd61efde6228b18"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb12a862b2722ebc3d6e13dda645179d6f1886b70352047950efc7017b3a531f"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4d7e2fe1ea26ec27248c6668df5d89976f497e28a20ecb95f91d40d519df0bca"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f9059f6bdfacc8c80d679d83cea3199b141ee2f6d202dbbed6221b12e7383bff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90bf2656572b2fdfde073e6001204d241d7b3a7cac51d34c9d47c3935828f9ff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ccda9895551b138acc7acc02cbcc76d05fa4ec6ad571a9f01387ae64dc73a277"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e3b041afbe43493526ff99ad658a1dea89ff0b6a58f049fab9677193ded202"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f96f8849d8aac470562bef590567edca4cc00b1897a0a4fededf7c634810954d"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daad6fefb3a0d971b5c95785938236cd63c13856303d2368f220f6a85bb9ee9c"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e98e38050b7d898700bc0322e2805e6c9a769eefcea89e4ebc7f5a45b00383"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a83975c9d9c10b67dc6d1db8f7ace3b6d101434e7c0b91f3b69d470a1aeabb71"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "deb6ecefbd769e6d01cead37bb53b7a22e947b2fdeec426c64ed6c0b2c23ac22"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63a00dc4afe6dab06cbc0ebb227632fa58f31574630e80590137ee52e57a7775"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "082765767c2d782cc3a4f0836f59495e3e77995a4d05bdc06e80d9aa6140358f"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e23854fd6c3bea71d358e09504c27f1c01dbb06641e85d932d728feea443ddeb"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ef1e2bc40f4a2bab9850a88e4feba5b11f355f5dca930ec43fc8bf809cc0b557"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "7a6b84ddc06e554b536e34737fa0f342a7f0ed2e96d0374bf375bfe72e1c4d4b"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0a82dad7aea852f043203b1580a2c60f97b2c37f188a7b85e549a1f6f0fc6180"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "93d0c0cccb5b66a3bbddf56f2326bdf9a8b6bbaf019453aef839767452a9167b"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "398ebfac55ea946bec5220240fde672b82ff9b4297b88b3faa0ed51cee82d54f"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46cb7a15dea2e007c2a1e1cad590e43b1e1a62a1dc2103d96e21e4297a7a9240"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "9f3471fb607ead3087e802b26bce9549ea92dbc844596297ed2960bf87cf2c96"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd66474fdbcfcf992dc5a117cd831524d39cd2407de90d2ca014ef5264bac730"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "213ca2b7922d4d95571bdf540a8ed1e854e034d396e442cf2d2d78d3b25d78ae"
+        }
+      ],
+      "parameter_count": 761221,
+      "config_sha256": "ab338956d0bc121b1d3a6a92f982007a1243411d1dd0cdc6dc9542a440afcdc5",
+      "config_differences_from_U0": {
+        "arm": {
+          "reference": "U0",
+          "candidate": "G10"
+        },
+        "data.geometry_root": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry"
+        },
+        "data.tail_stats_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry/tail_stats.json"
+        },
+        "eval.prediction_collapse_floor_m_s": {
+          "reference": null,
+          "candidate": 0.001
+        },
+        "eval.reverse_axial_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "eval.velocity_phase_diagnostics": {
+          "reference": null,
+          "candidate": true
+        },
+        "experiment_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930"
+        },
+        "model.frame_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.geometry_config_path": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/geometry_x5d.json",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/frozen/f0_s1234_v1/configs/geometry_x5d.json"
+        },
+        "model.graph_activation_checkpointing": {
+          "reference": null,
+          "candidate": true
+        },
+        "model.graph_anchor_count": {
+          "reference": null,
+          "candidate": 256
+        },
+        "model.graph_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.graph_layers": {
+          "reference": null,
+          "candidate": 2
+        },
+        "model.graph_neighbors": {
+          "reference": null,
+          "candidate": 16
+        },
+        "model.velocity_arm": {
+          "reference": null,
+          "candidate": "G10"
+        },
+        "out_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G10_f0_s1234"
+        },
+        "schema": {
+          "reference": "joint_cycle_round2_v52_v1",
+          "candidate": "velocity_phase_v52_v1"
+        },
+        "train.direction_epsilon_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.direction_gradient_ratio": {
+          "reference": null,
+          "candidate": 0.1
+        },
+        "train.direction_lambda_bounds": {
+          "reference": null,
+          "candidate": [
+            0.0001,
+            1.0
+          ]
+        },
+        "train.direction_lambda_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/calibration/direction_lambda.json"
+        },
+        "train.direction_probe_batches": {
+          "reference": null,
+          "candidate": 32
+        },
+        "train.direction_speed_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.tail_multiplier": {
+          "reference": null,
+          "candidate": 2.0
+        },
+        "train.tail_quantile": {
+          "reference": null,
+          "candidate": 0.8
+        }
+      },
+      "train_seconds": 1983.8413292839978,
+      "last_common_z_mse": 0.2662575655770533,
+      "D1_empty_case_phase_total": null
+    },
+    "G11": {
+      "status": "passed",
+      "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G11_f0_s1234",
+      "slurm_job_id": "16266",
+      "array_task_id": "7",
+      "history_rows": 150,
+      "last_epoch": 150,
+      "last_step": 7800,
+      "all_history_metrics_finite": true,
+      "checkpoint": {
+        "schema": "velocity_phase_v52_v1",
+        "epoch": 149,
+        "step": 7800,
+        "config_sha256": "4dfecd62a337ee24b9cba4b9caf0f2fcd230740938e58dae073fb3c1a8f058f4",
+        "model_finite": true
+      },
+      "evaluation_units": 55,
+      "prediction_files": 55,
+      "predictions": [
+        {
+          "unit_id": "AAA/ruputer/CHEN_FU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cfd9e79708f2c440a00380bb13a4b1dacd299a34f6d1520a95bd574a696e3781"
+        },
+        {
+          "unit_id": "AAA/ruputer/LIU_JI_XIN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "3722b97e15d784b023b34286417440d956f3d80e5732ab3d663b6c6444ed7ede"
+        },
+        {
+          "unit_id": "AAA/ruputer/LV_GUO_YOU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "bbfecc153d1446df6b8679f6db273b00ad37fb9fe6947afd0faa12532882dbf5"
+        },
+        {
+          "unit_id": "AAA/ruputer/SU_KAI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "257246ee4afba3f6a4d1fa3809c5b12bc7fd2c23e3a6c82c7cb6913b6be054ef"
+        },
+        {
+          "unit_id": "AAA/ruputer/TONG_XUE_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46c310920b6c9a2151d7b2d4ffd663b03ff1797ea89035773eb6c084873e6132"
+        },
+        {
+          "unit_id": "AAA/ruputer/YU_TIAN_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "d1e77a4dd98d299d15407c10e8d90b1c89e2a89dec6e1358a3c2b4318ab08c67"
+        },
+        {
+          "unit_id": "AAA/unruputer/GAO_WEI_LI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb7e8618f75b96a321d6feef5ba436484178b05972bc7b91b3264931d9b15eea"
+        },
+        {
+          "unit_id": "AAA/unruputer/LIN_JIAN_RONG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "b15946864dc9304e1504d10ab5e2ffd97cc13f6d1d8f80c0d842ac521e14a16c"
+        },
+        {
+          "unit_id": "AAA/unruputer/LI_YOU_YU",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63c7a8d94d43e3a8f75c584ef66b341b22af710cc6970f66222ddc2ae90ea4c5"
+        },
+        {
+          "unit_id": "AAA/unruputer/SHEN_CHUN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd63d20e38e7d563dc2db909492106a6d05e48915aa20c8ccf70c179f133ef7e"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHANG_XUN_LIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "6f71b35e5624f15787208cf7c046df8f0859c604ecf39bea1f164c2bf9e836d2"
+        },
+        {
+          "unit_id": "AAA/unruputer/ZHU_ZI_HAI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a751b73e054612495e7b3f2faed084bbc5ddb037f5d3014987aaeb5df6d24955"
+        },
+        {
+          "unit_id": "AG/fast/HAN_JIAN_JUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07bcae10976ac755d9548f34926ec2a4697951681ec476114b1c6334df2673e0"
+        },
+        {
+          "unit_id": "AG/fast/LIU_JUN_FENG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "c4b5f419f6036742b76cd693048777908526aece5556bad043b408d852500d55"
+        },
+        {
+          "unit_id": "AG/fast/LIU_LI_QUN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "07646b1c998a2991d91024790631bf7947d1d9e3857962b36e3920702f3d5df8"
+        },
+        {
+          "unit_id": "AG/fast/LOU_YANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0c443c982f224a8516061b4694ee5038309e18b01d4e63174bce45cc496ff3c3"
+        },
+        {
+          "unit_id": "AG/fast/WANG_CHUN_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4b662bcf8a2d8e83815e478810821c8699a353f9e4f4287c0c304e2b6bf64386"
+        },
+        {
+          "unit_id": "AG/slow/A_MIN_SE_HA_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90e99a6dd1dc69e941ba7fc967c11cf2858a3fbc54f0b7b2ebb7b12d20e3c1a1"
+        },
+        {
+          "unit_id": "AG/slow/CAO_FENG_CHI",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ad9d711e604367861b150e41a635f07bc7666475039759eb3f4aee5d63ceab6"
+        },
+        {
+          "unit_id": "AG/slow/GONG_HUI_XIA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ce441c76b76d4855eb134e79c26b071764322868386cd1613a174a9adebf9dc1"
+        },
+        {
+          "unit_id": "AG/slow/GUO_XI_JIANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "8ab5a583cef5bc8503f13f7fcd746134a89f4f1c5186cca0486210840b85991f"
+        },
+        {
+          "unit_id": "AG/slow/KANG_XI_MING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "44ef2ade7fb56093572a4740a1359b34141dc64ed6010153545e6f7bb4003c47"
+        },
+        {
+          "unit_id": "AG/slow/LIN_SHU_TIAN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daaa6b5db350af17702c958dbd8dc1eea6202241adb5438cd4b03e15d077476b"
+        },
+        {
+          "unit_id": "AG/slow/LI_GUI_YING",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "749caa810d68a8bf5efc08b59cf305ee11826849119bf219b5d46bc4a581d35a"
+        },
+        {
+          "unit_id": "AG/slow/LI_HUAN_GE",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "eeab3f8d2e50993ff61ca7a5491003f5db597699b93c5cc9e5f54bb9323f80e6"
+        },
+        {
+          "unit_id": "AG/slow/TE_JIN_WANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "079cbe81b47e46f2f1f6bad309d736d95e550fbde7a15fbcfa43dcf0978db33a"
+        },
+        {
+          "unit_id": "AG/slow/WEI_JUN_WEN",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4da22f9cd9bd9ff1da46a832f39483b9127a716a0c07e7e7cb65585a72525940"
+        },
+        {
+          "unit_id": "AG/slow/WU_YI_FA",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cee5f8468e6ed46fdbdfbe887f8a7fae6dcf87a2887195428c2e9279d6d0fcbb"
+        },
+        {
+          "unit_id": "AG/slow/ZHANG_LING_GUANG",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "92943cf6452d6a1c9c067a371de6cc762cec37794dd4ebf5399f51162d57fe42"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "895936e21c1d37e5fff4bf34cd524b7b01845d7f26eff03e7f69ba6ef715a455"
+        },
+        {
+          "unit_id": "ILO/DONG_KE_QIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a4e828fd819aae6429437dbe853d0a9f479b059b58938cc0c762002d6a943769"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "5700265d9d95f75bad5dd844daf450435d66518fc9ff38767bd61efde6228b18"
+        },
+        {
+          "unit_id": "ILO/HOU_SHI_GUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "cb12a862b2722ebc3d6e13dda645179d6f1886b70352047950efc7017b3a531f"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "4d7e2fe1ea26ec27248c6668df5d89976f497e28a20ecb95f91d40d519df0bca"
+        },
+        {
+          "unit_id": "ILO/LIU_BAO_JUN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f9059f6bdfacc8c80d679d83cea3199b141ee2f6d202dbbed6221b12e7383bff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "90bf2656572b2fdfde073e6001204d241d7b3a7cac51d34c9d47c3935828f9ff"
+        },
+        {
+          "unit_id": "ILO/LIU_LIAN_YOU-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ccda9895551b138acc7acc02cbcc76d05fa4ec6ad571a9f01387ae64dc73a277"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e3b041afbe43493526ff99ad658a1dea89ff0b6a58f049fab9677193ded202"
+        },
+        {
+          "unit_id": "ILO/LIU_YUE_DONG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "f96f8849d8aac470562bef590567edca4cc00b1897a0a4fededf7c634810954d"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "daad6fefb3a0d971b5c95785938236cd63c13856303d2368f220f6a85bb9ee9c"
+        },
+        {
+          "unit_id": "ILO/LI_BO_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e9e98e38050b7d898700bc0322e2805e6c9a769eefcea89e4ebc7f5a45b00383"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "a83975c9d9c10b67dc6d1db8f7ace3b6d101434e7c0b91f3b69d470a1aeabb71"
+        },
+        {
+          "unit_id": "ILO/SHEN_CHUN_WANG-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "deb6ecefbd769e6d01cead37bb53b7a22e947b2fdeec426c64ed6c0b2c23ac22"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "63a00dc4afe6dab06cbc0ebb227632fa58f31574630e80590137ee52e57a7775"
+        },
+        {
+          "unit_id": "ILO/SUN_DONG_XIN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "082765767c2d782cc3a4f0836f59495e3e77995a4d05bdc06e80d9aa6140358f"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "e23854fd6c3bea71d358e09504c27f1c01dbb06641e85d932d728feea443ddeb"
+        },
+        {
+          "unit_id": "ILO/WAGN_LI_JUN-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "ef1e2bc40f4a2bab9850a88e4feba5b11f355f5dca930ec43fc8bf809cc0b557"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "7a6b84ddc06e554b536e34737fa0f342a7f0ed2e96d0374bf375bfe72e1c4d4b"
+        },
+        {
+          "unit_id": "ILO/WANG_TIAN_QING-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "0a82dad7aea852f043203b1580a2c60f97b2c37f188a7b85e549a1f6f0fc6180"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "93d0c0cccb5b66a3bbddf56f2326bdf9a8b6bbaf019453aef839767452a9167b"
+        },
+        {
+          "unit_id": "ILO/XIONG_DONG_SUO-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "398ebfac55ea946bec5220240fde672b82ff9b4297b88b3faa0ed51cee82d54f"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "46cb7a15dea2e007c2a1e1cad590e43b1e1a62a1dc2103d96e21e4297a7a9240"
+        },
+        {
+          "unit_id": "ILO/YAO_GUO_CHEN-0/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "9f3471fb607ead3087e802b26bce9549ea92dbc844596297ed2960bf87cf2c96"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/after",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "dd66474fdbcfcf992dc5a117cd831524d39cd2407de90d2ca014ef5264bac730"
+        },
+        {
+          "unit_id": "ILO/YU_XIANG_SHENG-1/before",
+          "shape": [
+            16384,
+            80,
+            3
+          ],
+          "finite": true,
+          "same_rows_U0": true,
+          "same_rows_cache": true,
+          "rows_sha256": "213ca2b7922d4d95571bdf540a8ed1e854e034d396e442cf2d2d78d3b25d78ae"
+        }
+      ],
+      "parameter_count": 761477,
+      "config_sha256": "4dfecd62a337ee24b9cba4b9caf0f2fcd230740938e58dae073fb3c1a8f058f4",
+      "config_differences_from_U0": {
+        "arm": {
+          "reference": "U0",
+          "candidate": "G11"
+        },
+        "data.geometry_root": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry"
+        },
+        "data.tail_stats_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry/tail_stats.json"
+        },
+        "eval.prediction_collapse_floor_m_s": {
+          "reference": null,
+          "candidate": 0.001
+        },
+        "eval.reverse_axial_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "eval.velocity_phase_diagnostics": {
+          "reference": null,
+          "candidate": true
+        },
+        "experiment_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930"
+        },
+        "model.frame_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.geometry_config_path": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_round2_v52_20260929/frozen/f0_s1234_v1/configs/geometry_x5d.json",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/frozen/f0_s1234_v1/configs/geometry_x5d.json"
+        },
+        "model.graph_activation_checkpointing": {
+          "reference": null,
+          "candidate": true
+        },
+        "model.graph_anchor_count": {
+          "reference": null,
+          "candidate": 256
+        },
+        "model.graph_hidden": {
+          "reference": null,
+          "candidate": 64
+        },
+        "model.graph_layers": {
+          "reference": null,
+          "candidate": 2
+        },
+        "model.graph_neighbors": {
+          "reference": null,
+          "candidate": 16
+        },
+        "model.velocity_arm": {
+          "reference": null,
+          "candidate": "G11"
+        },
+        "out_dir": {
+          "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234",
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G11_f0_s1234"
+        },
+        "schema": {
+          "reference": "joint_cycle_round2_v52_v1",
+          "candidate": "velocity_phase_v52_v1"
+        },
+        "train.direction_epsilon_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.direction_gradient_ratio": {
+          "reference": null,
+          "candidate": 0.1
+        },
+        "train.direction_lambda_bounds": {
+          "reference": null,
+          "candidate": [
+            0.0001,
+            1.0
+          ]
+        },
+        "train.direction_lambda_path": {
+          "reference": null,
+          "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/calibration/direction_lambda.json"
+        },
+        "train.direction_probe_batches": {
+          "reference": null,
+          "candidate": 32
+        },
+        "train.direction_speed_floor_m_s": {
+          "reference": null,
+          "candidate": 0.01
+        },
+        "train.tail_multiplier": {
+          "reference": null,
+          "candidate": 2.0
+        },
+        "train.tail_quantile": {
+          "reference": null,
+          "candidate": 0.8
+        }
+      },
+      "train_seconds": 2220.9675600860064,
+      "last_common_z_mse": 0.26411590486475567,
+      "D1_empty_case_phase_total": null
+    }
+  },
+  "hash_audits": {
+    "protected_legacy": {
+      "count": 58,
+      "changed": [],
+      "status": "passed"
+    },
+    "frozen": {
+      "count": 70,
+      "changed": [],
+      "status": "passed"
+    },
+    "source": {
+      "count": 33,
+      "changed": [],
+      "status": "passed"
+    },
+    "geometry_gate": {
+      "count": 2090,
+      "changed": [],
+      "status": "passed"
+    },
+    "calibration_gate": {
+      "count": 1,
+      "changed": [],
+      "status": "passed"
+    },
+    "cache_validation": {
+      "count": 5,
+      "changed": [],
+      "status": "passed"
+    }
+  },
+  "data_contract": {
+    "train_units": 206,
+    "development_holdout_units": 55,
+    "train_patient_groups": 163,
+    "holdout_patient_groups": 42,
+    "patient_overlap": [],
+    "split_sha256": "57862a4f09de4c4bec9adf0eed66cf2ce0d9e7da0528c0ee1d38e0fb0f202269",
+    "stats_sha256": "456cfb916a96d07c2f51f72549ff2e09fb671b4bb4043da9c69ac8d77ea8ced8",
+    "U0_reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/joint_cycle_round2_v52_20260929/U0_f0_s1234"
+  },
+  "calibration": {
+    "direction_lambda": 0.08607029602194903,
+    "train_probe_batches": 32,
+    "probe_units": 128,
+    "heldout_probe_units": [],
+    "tail_frames": 80
+  },
+  "pair_config_differences": {
+    "A1_vs_A0": {
+      "arm": {
+        "reference": "A0",
+        "candidate": "A1"
+      },
+      "model.velocity_arm": {
+        "reference": "A0",
+        "candidate": "A1"
+      },
+      "out_dir": {
+        "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A0_f0_s1234",
+        "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/A1_f0_s1234"
+      }
+    },
+    "G01_vs_G00": {
+      "arm": {
+        "reference": "G00",
+        "candidate": "G01"
+      },
+      "model.velocity_arm": {
+        "reference": "G00",
+        "candidate": "G01"
+      },
+      "out_dir": {
+        "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G00_f0_s1234",
+        "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G01_f0_s1234"
+      }
+    },
+    "G10_vs_G00": {
+      "arm": {
+        "reference": "G00",
+        "candidate": "G10"
+      },
+      "model.velocity_arm": {
+        "reference": "G00",
+        "candidate": "G10"
+      },
+      "out_dir": {
+        "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G00_f0_s1234",
+        "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G10_f0_s1234"
+      }
+    },
+    "G11_vs_G10": {
+      "arm": {
+        "reference": "G10",
+        "candidate": "G11"
+      },
+      "model.velocity_arm": {
+        "reference": "G10",
+        "candidate": "G11"
+      },
+      "out_dir": {
+        "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G10_f0_s1234",
+        "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G11_f0_s1234"
+      }
+    },
+    "G11_vs_G01": {
+      "arm": {
+        "reference": "G01",
+        "candidate": "G11"
+      },
+      "model.velocity_arm": {
+        "reference": "G01",
+        "candidate": "G11"
+      },
+      "out_dir": {
+        "reference": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G01_f0_s1234",
+        "candidate": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/velocity_phase_v52_20260930/G11_f0_s1234"
+      }
+    }
+  },
+  "interpretation_limits": [
+    "Single seed 1234 on a repeatedly exposed development holdout; not an independent confirmatory test.",
+    "U0 is a historical round2 reference on identical split/statistics/query rows and budget; no contemporaneous unchanged U0 retraining.",
+    "A1 versus A0 isolates residual coordinate choice at identical parameter count; A0 versus U0 also adds frame inputs and 22659 parameters.",
+    "G arms add both anchor information and capacity versus A0; graph versus pointwise and phase versus static must use within-G contrasts.",
+    "G active additional parameter mismatch is approximately 0.96%, not exact equality.",
+    "Wall-clock training/inference observations share cluster hardware; they are not a controlled throughput benchmark."
+  ],
+  "errors": [],
+  "status": "passed",
+  "seconds": 40.02775239944458
+}

@@ -1,0 +1,474 @@
+{
+  "generator": "render_velocity_previews.py",
+  "model": "V4_EMA",
+  "case_count": 3,
+  "preview_count": 6,
+  "contact_sheets": {
+    "physical": "plots/V4_EMA_volume_pointcloud_contact_sheet.png",
+    "selfmax": "plots/V4_EMA_volume_pointcloud_selfmax_contact_sheet.png"
+  },
+  "previews": [
+    {
+      "model": "V4_EMA",
+      "role": "best",
+      "case_id": "AG/fast/RAN_QING_BO",
+      "mode": "physical",
+      "preview": "plots/V4_EMA_best_volume_pointcloud_triptych.png",
+      "source": "V4_EMA/best/V4_EMA__best__AG__fast__RAN_QING_BO__interior_velocity.vtp",
+      "source_sha256": "e4d689f8c496476b889da0dbcaa2517f370b23ea24c6f8408b0ba9928d2b4b26",
+      "source_manifest": "V4_EMA/best/manifest.json",
+      "source_manifest_sha256": "a4b956c314106db2c02694867698927bc4d02c2bc2f4098b9a343528fe4eaa5b",
+      "field_keys": [
+        "speed_cfd",
+        "speed_pred",
+        "speed_error_pred_minus_cfd"
+      ],
+      "color_range": [
+        0.0,
+        1.8196236419665952
+      ],
+      "signed_error_range": [
+        -1.5427661536757016,
+        1.5427661536757016
+      ],
+      "color_range_scope": "full original interior point cloud, not plotting sample",
+      "full_point_count": 990613,
+      "plot_point_count": 30000,
+      "sample_indices": "plots/V4_EMA_best_plot_sample_indices.npy",
+      "sample_indices_sha256": "094e5b4be3ef4e95a5d8ab6fb1770854f0c2ace95cb5be182fee6dbae3a5a01c",
+      "sample_seed": 20260914,
+      "sampling": "uniform without replacement; independent of truth/prediction/error; identical indices for all panels and modes",
+      "camera": {
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          12.816944604999996,
+          -159.59964868499998,
+          1015.0745368
+        ]
+      },
+      "rendering": "opaque independent scatter points in back-to-front depth order; no surface cells or interpolation; not a continuous Slice",
+      "physical_metric_r2": -0.1695195123757003,
+      "metric_source": "manifest.visualization_metrics_speed.r2",
+      "normalized_metrics_recomputed": false,
+      "display_normalization": null
+    },
+    {
+      "model": "V4_EMA",
+      "role": "best",
+      "case_id": "AG/fast/RAN_QING_BO",
+      "mode": "selfmax",
+      "preview": "plots/V4_EMA_best_volume_pointcloud_selfmax_triptych.png",
+      "source": "V4_EMA/best/V4_EMA__best__AG__fast__RAN_QING_BO__interior_velocity.vtp",
+      "source_sha256": "e4d689f8c496476b889da0dbcaa2517f370b23ea24c6f8408b0ba9928d2b4b26",
+      "source_manifest": "V4_EMA/best/manifest.json",
+      "source_manifest_sha256": "a4b956c314106db2c02694867698927bc4d02c2bc2f4098b9a343528fe4eaa5b",
+      "field_keys": [
+        "speed_cfd_selfmax",
+        "speed_pred_selfmax",
+        "speed_selfmax_error_pred_minus_cfd"
+      ],
+      "color_range": [
+        0.0,
+        1.0
+      ],
+      "signed_error_range": [
+        -0.9757111475322967,
+        0.9757111475322967
+      ],
+      "color_range_scope": "full original interior point cloud, not plotting sample",
+      "full_point_count": 990613,
+      "plot_point_count": 30000,
+      "sample_indices": "plots/V4_EMA_best_plot_sample_indices.npy",
+      "sample_indices_sha256": "094e5b4be3ef4e95a5d8ab6fb1770854f0c2ace95cb5be182fee6dbae3a5a01c",
+      "sample_seed": 20260914,
+      "sampling": "uniform without replacement; independent of truth/prediction/error; identical indices for all panels and modes",
+      "camera": {
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          12.816944604999996,
+          -159.59964868499998,
+          1015.0745368
+        ]
+      },
+      "rendering": "opaque independent scatter points in back-to-front depth order; no surface cells or interpolation; not a continuous Slice",
+      "physical_metric_r2": -0.1695195123757003,
+      "metric_source": "manifest.visualization_metrics_speed.r2",
+      "normalized_metrics_recomputed": false,
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 990613,
+        "cfd_max": 1.8196236419665952,
+        "pred_max": 0.30058523955260047,
+        "cfd_denominator": {
+          "max": 1.8196236419665952,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.819623641966595e-12
+        },
+        "pred_denominator": {
+          "max": 0.30058523955260047,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      }
+    },
+    {
+      "model": "V4_EMA",
+      "role": "median",
+      "case_id": "ILO/LI_YOU_ZHI-0/before",
+      "mode": "physical",
+      "preview": "plots/V4_EMA_median_volume_pointcloud_triptych.png",
+      "source": "V4_EMA/median/V4_EMA__median__ILO__LI_YOU_ZHI-0__before__interior_velocity.vtp",
+      "source_sha256": "77fc853f95d2f589a127d6c619409435b20588b709fe1cf880239c5eac315365",
+      "source_manifest": "V4_EMA/median/manifest.json",
+      "source_manifest_sha256": "d5af1911944fc7547860efd981e0221cfd535051424ab622f827b858428ae1b8",
+      "field_keys": [
+        "speed_cfd",
+        "speed_pred",
+        "speed_error_pred_minus_cfd"
+      ],
+      "color_range": [
+        0.0,
+        0.8198592526743264
+      ],
+      "signed_error_range": [
+        -0.7668721967099515,
+        0.7668721967099515
+      ],
+      "color_range_scope": "full original interior point cloud, not plotting sample",
+      "full_point_count": 723465,
+      "plot_point_count": 30000,
+      "sample_indices": "plots/V4_EMA_median_plot_sample_indices.npy",
+      "sample_indices_sha256": "08442bcec0fd6526c3ebc29b39080150574b6252bda65dca1c517c6337c9ed77",
+      "sample_seed": 20260914,
+      "sampling": "uniform without replacement; independent of truth/prediction/error; identical indices for all panels and modes",
+      "camera": {
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          7.958782510000006,
+          134.945132935,
+          254.40914191
+        ]
+      },
+      "rendering": "opaque independent scatter points in back-to-front depth order; no surface cells or interpolation; not a continuous Slice",
+      "physical_metric_r2": -0.6142683650668441,
+      "metric_source": "manifest.visualization_metrics_speed.r2",
+      "normalized_metrics_recomputed": false,
+      "display_normalization": null
+    },
+    {
+      "model": "V4_EMA",
+      "role": "median",
+      "case_id": "ILO/LI_YOU_ZHI-0/before",
+      "mode": "selfmax",
+      "preview": "plots/V4_EMA_median_volume_pointcloud_selfmax_triptych.png",
+      "source": "V4_EMA/median/V4_EMA__median__ILO__LI_YOU_ZHI-0__before__interior_velocity.vtp",
+      "source_sha256": "77fc853f95d2f589a127d6c619409435b20588b709fe1cf880239c5eac315365",
+      "source_manifest": "V4_EMA/median/manifest.json",
+      "source_manifest_sha256": "d5af1911944fc7547860efd981e0221cfd535051424ab622f827b858428ae1b8",
+      "field_keys": [
+        "speed_cfd_selfmax",
+        "speed_pred_selfmax",
+        "speed_selfmax_error_pred_minus_cfd"
+      ],
+      "color_range": [
+        0.0,
+        1.0
+      ],
+      "signed_error_range": [
+        -0.9300897833348455,
+        0.9300897833348455
+      ],
+      "color_range_scope": "full original interior point cloud, not plotting sample",
+      "full_point_count": 723465,
+      "plot_point_count": 30000,
+      "sample_indices": "plots/V4_EMA_median_plot_sample_indices.npy",
+      "sample_indices_sha256": "08442bcec0fd6526c3ebc29b39080150574b6252bda65dca1c517c6337c9ed77",
+      "sample_seed": 20260914,
+      "sampling": "uniform without replacement; independent of truth/prediction/error; identical indices for all panels and modes",
+      "camera": {
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          7.958782510000006,
+          134.945132935,
+          254.40914191
+        ]
+      },
+      "rendering": "opaque independent scatter points in back-to-front depth order; no surface cells or interpolation; not a continuous Slice",
+      "physical_metric_r2": -0.6142683650668441,
+      "metric_source": "manifest.visualization_metrics_speed.r2",
+      "normalized_metrics_recomputed": false,
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 723465,
+        "cfd_max": 0.8198592526743264,
+        "pred_max": 0.1966386394970401,
+        "cfd_denominator": {
+          "max": 0.8198592526743264,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "pred_denominator": {
+          "max": 0.1966386394970401,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      }
+    },
+    {
+      "model": "V4_EMA",
+      "role": "worst",
+      "case_id": "AG/fast/LOU_YANG",
+      "mode": "physical",
+      "preview": "plots/V4_EMA_worst_volume_pointcloud_triptych.png",
+      "source": "V4_EMA/worst/V4_EMA__worst__AG__fast__LOU_YANG__interior_velocity.vtp",
+      "source_sha256": "fd1fba6c30952e6a8d1f3faccb8d992fef193fa1c77eb1765c0e64dc651a0fd8",
+      "source_manifest": "V4_EMA/worst/manifest.json",
+      "source_manifest_sha256": "e1a68e83518b4a66b96c07bb7023b91e9b780697afacbbb4244ba70a149dbbc8",
+      "field_keys": [
+        "speed_cfd",
+        "speed_pred",
+        "speed_error_pred_minus_cfd"
+      ],
+      "color_range": [
+        0.0,
+        1.4145151392453221
+      ],
+      "signed_error_range": [
+        -1.1086042675464898,
+        1.1086042675464898
+      ],
+      "color_range_scope": "full original interior point cloud, not plotting sample",
+      "full_point_count": 746864,
+      "plot_point_count": 30000,
+      "sample_indices": "plots/V4_EMA_worst_plot_sample_indices.npy",
+      "sample_indices_sha256": "c2d594342f0ffb76c77b6f4349c5d6563f25844157657599c4debb3df503ead9",
+      "sample_seed": 20260914,
+      "sampling": "uniform without replacement; independent of truth/prediction/error; identical indices for all panels and modes",
+      "camera": {
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          -9.160653244999999,
+          26.388129305000003,
+          -56.32278015
+        ]
+      },
+      "rendering": "opaque independent scatter points in back-to-front depth order; no surface cells or interpolation; not a continuous Slice",
+      "physical_metric_r2": -0.050013512203643584,
+      "metric_source": "manifest.visualization_metrics_speed.r2",
+      "normalized_metrics_recomputed": false,
+      "display_normalization": null
+    },
+    {
+      "model": "V4_EMA",
+      "role": "worst",
+      "case_id": "AG/fast/LOU_YANG",
+      "mode": "selfmax",
+      "preview": "plots/V4_EMA_worst_volume_pointcloud_selfmax_triptych.png",
+      "source": "V4_EMA/worst/V4_EMA__worst__AG__fast__LOU_YANG__interior_velocity.vtp",
+      "source_sha256": "fd1fba6c30952e6a8d1f3faccb8d992fef193fa1c77eb1765c0e64dc651a0fd8",
+      "source_manifest": "V4_EMA/worst/manifest.json",
+      "source_manifest_sha256": "e1a68e83518b4a66b96c07bb7023b91e9b780697afacbbb4244ba70a149dbbc8",
+      "field_keys": [
+        "speed_cfd_selfmax",
+        "speed_pred_selfmax",
+        "speed_selfmax_error_pred_minus_cfd"
+      ],
+      "color_range": [
+        0.0,
+        1.0
+      ],
+      "signed_error_range": [
+        -0.9606837648535602,
+        0.9606837648535602
+      ],
+      "color_range_scope": "full original interior point cloud, not plotting sample",
+      "full_point_count": 746864,
+      "plot_point_count": 30000,
+      "sample_indices": "plots/V4_EMA_worst_plot_sample_indices.npy",
+      "sample_indices_sha256": "c2d594342f0ffb76c77b6f4349c5d6563f25844157657599c4debb3df503ead9",
+      "sample_seed": 20260914,
+      "sampling": "uniform without replacement; independent of truth/prediction/error; identical indices for all panels and modes",
+      "camera": {
+        "basis_columns_right_up_depth": [
+          [
+            0.9396926207859084,
+            0.04760000393743934,
+            0.3386916268018251
+          ],
+          [
+            0.3420201433256687,
+            -0.13077993598406573,
+            -0.9305475967963663
+          ],
+          [
+            0.0,
+            0.9902680687415704,
+            -0.13917310096006547
+          ]
+        ],
+        "origin_mm": [
+          -9.160653244999999,
+          26.388129305000003,
+          -56.32278015
+        ]
+      },
+      "rendering": "opaque independent scatter points in back-to-front depth order; no surface cells or interpolation; not a continuous Slice",
+      "physical_metric_r2": -0.050013512203643584,
+      "metric_source": "manifest.visualization_metrics_speed.r2",
+      "normalized_metrics_recomputed": false,
+      "display_normalization": {
+        "version": 1,
+        "kind": "selfmax",
+        "prefix": "speed",
+        "unit": "dimensionless",
+        "source_unit": "m/s",
+        "denominator_scope": "interior",
+        "source_point_count": 746864,
+        "cfd_max": 1.4145151392453221,
+        "pred_max": 0.6099518657164192,
+        "cfd_denominator": {
+          "max": 1.4145151392453221,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1.4145151392453221e-12
+        },
+        "pred_denominator": {
+          "max": 0.6099518657164192,
+          "valid": true,
+          "reason": "valid",
+          "zero_tolerance": 1e-12
+        },
+        "formula": {
+          "speed_cfd_selfmax": "CFD / max(original CFD)",
+          "speed_pred_selfmax": "Pred / max(original Pred)",
+          "speed_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+          "speed_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+        },
+        "denominator_basis": "original full colocated case at selected frame, before interpolation",
+        "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+        "amplitude_difference_removed": true,
+        "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+        "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+        "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+      }
+    }
+  ]
+}

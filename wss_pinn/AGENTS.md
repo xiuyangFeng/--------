@@ -1,12 +1,12 @@
 # wss_pinn — 体域 `u,v,w,p` PINN 指令
 
-> **2026-09-07 更新**：V4 正式重建线已被 V5 取代。当前执行真源是 V5 设计方案 `docs/02-推进与变更/WSS_PINN/WSS_V5_几何点云与中心线驱动的WSS及流体场预测完整设计方案_2026-09-06.md`，数据母库代码在 `wss_v5/`（读本目录 `v4/fluent_topology.py`、`v4/centerline_atlas.py`、`v4/waveform.py`、`data/raw_io.py` 作库）。下文 V4 指令保留为历史边界。
+> **2026-09-07 更新**：V4 正式重建线已被 V5 取代。当前执行真源是 V5 设计方案 `docs/02-推进与变更/00-V5设计与历史跟踪/WSS_V5_几何点云与中心线驱动的WSS及流体场预测完整设计方案_2026-09-06.md`，数据母库代码在 `wss_v5/`（读本目录 `v4/fluent_topology.py`、`v4/centerline_atlas.py`、`v4/waveform.py`、`data/raw_io.py` 作库）。下文 V4 指令保留为历史边界。
 
 旧 `volume_uvwp_bc_rcr_v4` 已实现并提交受 Gate 保护训练链，但其数据与约 250k
 容量配平 PN/PNPP 均属于 pre-Centerline-V2 历史矩阵。2026-08-31 隔离 staging 已因
 后续 raw/真实 mm/anatomy-only 合同更新而过期；当前工程活动是 172 例 train138/test34
 formal 重建准备，尚未形成可提交训练的正式 route。设计真源为
-`docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md`。
+`docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md`。
 已完成的 `volume_uvwp_peak_field_v4` Stage 0–1 与
 `volume_uvwp_peak_qs_smooth_v3` 六臂均为冻结历史结果，不得覆盖或冒充新 V4。
 `volume_uvwp_peak_v1` 与 SAME5K-E7500 v2 保留为历史对照；旧“直接 WSS 输出 + 阶梯
@@ -151,7 +151,7 @@ F0/F1/F2”路线已归档。
   验证器；只允许在基于 validation 的 `u/v/w/speed/p`、区域、流量和压降指标确定主
   checkpoint 后做一次 sanity check，不得在本路线继续调 WSS 算法。
 - 下一轮科学合同已冻结在
-  `docs/02-推进与变更/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md`
+  `docs/02-推进与变更/_archive/WSS_PINN/_archive/核心代码诊断与下一轮设计建议_2026-08-05.md`
   的 `FROZEN FOR IMPLEMENTATION v1.0`（🧊 2026-09-02 归档；现行执行真源是 V4 设计方案）。实现必须先完成 Stage 0-a 的病例等权
   `S_field^cb`、validation 聚合、B0 atlas 与探针入库；任何 BC 实验前完成 Stage 0-b。
   Stage 1 不输入病例 BC、不使用 PDE、不读取 test35，且不得覆盖现有 V3 配置/产物。
@@ -257,13 +257,14 @@ IDW 导数退化限制，并用独立 query 作连续场审计；不得只看总
 ## 文档责任
 
 - 代码入口：`wss_pinn/README.md`
-- 路线真源：`docs/02-推进与变更/WSS_PINN/README.md`
-- 当前执行真源：`docs/02-推进与变更/WSS_PINN/WSS_V5_几何点云与中心线驱动的WSS及流体场预测完整设计方案_2026-09-06.md`（V5）
-- 历史合同（已归档 2026-09-07）：`docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md`
-- 历史 field-v4 Stage 0–1 提示词（🧊 已完成）：`docs/02-推进与变更/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md`
+- 文档导航：`docs/02-推进与变更/README.md`（2026-09-24 起按块组织；体域 PINN 已停）
+- 体域 PINN 路线史（归档，只读）：`docs/02-推进与变更/_archive/WSS_PINN/README.md`
+- 当前执行真源：`docs/02-推进与变更/00-V5设计与历史跟踪/WSS_V5_几何点云与中心线驱动的WSS及流体场预测完整设计方案_2026-09-06.md`（V5）
+- 历史合同（已归档 2026-09-07）：`docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4大重构设计方案_2026-08-08.md`
+- 历史 field-v4 Stage 0–1 提示词（🧊 已完成）：`docs/02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_下一智能体目标提示词_冻结诊断后执行Stage0至Stage1_已完成_2026-08-06.md`
 - WSS 详细推进记录：`docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`
 - 项目级短摘要：`docs/02-推进与变更/代码修改与实验推进记录.md`
-- 历史路线：`docs/02-推进与变更/WSS_PINN/_archive/wss_target_v1_20260730/`
+- 历史路线：`docs/02-推进与变更/_archive/WSS_PINN/_archive/wss_target_v1_20260730/`
 - 历史源码：`wss_pinn/archive/wss_target_v1_20260730/`
 
 修改本路线代码、数据合同、配置、Gate、作业入口或科学口径后，必须同步更新活动

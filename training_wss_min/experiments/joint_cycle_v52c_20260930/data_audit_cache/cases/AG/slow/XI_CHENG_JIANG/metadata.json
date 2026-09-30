@@ -1,0 +1,127 @@
+{
+  "canonical_id": "AG/slow/XI_CHENG_JIANG",
+  "assembly_source": "v5.1",
+  "n_wall": 12865,
+  "n_volume": 368592,
+  "sources": {
+    "h5": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_2c_20260930/cases/AG__slow__XI_CHENG_JIANG/case.h5",
+      "size": 534403427,
+      "mtime_ns": 1789506681424848183
+    },
+    "bundle": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AG/slow/XI_CHENG_JIANG/bundle.npz",
+      "size": 22578098,
+      "mtime_ns": 1789512680312110000
+    },
+    "volume": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AG/slow/XI_CHENG_JIANG/volume.npz",
+      "size": 46186406,
+      "mtime_ns": 1789512806436851365
+    },
+    "geom": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_geom_v2/AG/slow/XI_CHENG_JIANG/features.npz",
+      "size": 827312,
+      "mtime_ns": 1789512759844577494
+    },
+    "flowref": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/slow/XI_CHENG_JIANG/features.npz",
+      "size": 1293028,
+      "mtime_ns": 1790760137341226860
+    }
+  },
+  "boundary_conditions": {
+    "udf": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/XI_CHENG_JIANG/udf-inlet.c",
+      "sha256": "de63ea1724a902594dc40258d077de7170ec4346dd124daadf3115e26ad813e0"
+    },
+    "rcr": [
+      {
+        "outlet": "out-le",
+        "R1": 158340.0,
+        "R2": 1130600.0,
+        "C": 1.3887e-06
+      },
+      {
+        "outlet": "out-li",
+        "R1": 279900.0,
+        "R2": 2430100.0,
+        "C": 6.6051e-07
+      },
+      {
+        "outlet": "out-ri",
+        "R1": 200680.0,
+        "R2": 2811700.0,
+        "C": 5.9422e-07
+      },
+      {
+        "outlet": "out-re",
+        "R1": 101000.0,
+        "R2": 1129200.0,
+        "C": 1.455e-06
+      }
+    ],
+    "rheology": {
+      "mu_inf_pa_s": 0.0035,
+      "mu_zero_pa_s": 0.16,
+      "lambda_s": 8.2,
+      "a": 0.64,
+      "n": 0.2128
+    },
+    "period_s": 0.8,
+    "rho_kg_m3": 1060.0,
+    "A_inlet_udf_m2": 0.0004491572,
+    "resistance_units": "Pa*s/kg",
+    "capacitance_units": "kg/Pa",
+    "source": "case.h5 conditions attributes; frozen prescribed inputs, no CFD labels"
+  },
+  "schema": "joint_cycle_v52_v1",
+  "settings": {
+    "seed": 1234,
+    "train_volume": 8192,
+    "train_wall": 8192,
+    "eval_volume": 16384,
+    "eval_wall": 8192
+  },
+  "peak_consistency": {
+    "peak_velocity_abs_max": 0.0,
+    "peak_pressure_abs_max": 0.0,
+    "peak_wss_abs_max": 0.0
+  },
+  "endpoint_80_vs_0_abs_max": {
+    "train": {
+      "velocity": 0.0006539635360240936,
+      "pressure": 2.099884033203125,
+      "wss": 0.0035985708236694336
+    },
+    "eval": {
+      "velocity": 0.0006884485483169556,
+      "pressure": 2.100860595703125,
+      "wss": 0.0036923885345458984
+    }
+  },
+  "actual_pool_counts": {
+    "train_wall": 6432,
+    "eval_wall": 6433,
+    "train_volume": 8192,
+    "eval_volume": 16384
+  },
+  "normalization_input": "raw physical labels; WSS floor is applied only by normalizer",
+  "bc_note": "20 frozen prescribed input channels from conditions attrs; RCR resistance Pa*s/kg and capacitance kg/Pa; train-only normalization",
+  "signature_refreshed_20260930": [
+    {
+      "source": "flowref",
+      "old": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/slow/XI_CHENG_JIANG/features.npz",
+        "size": 1345033,
+        "mtime_ns": 1789512775976672319
+      },
+      "new": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AG/slow/XI_CHENG_JIANG/features.npz",
+        "size": 1293028,
+        "mtime_ns": 1790760137341226860
+      },
+      "reason": "flowref rebuilt with the refitted cap-area rule; only the capfit arrays changed (cached features use *_murray_cap)"
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "schema_version": 3,
+  "model": "X5X11",
+  "role": "best",
+  "case_id": "AG/fast/ZHANG_LIANG",
+  "run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234",
+  "checkpoint": "ckpt_best.pt",
+  "seed": 1234,
+  "split": "test",
+  "peak_step": 1162,
+  "peak_index": 21,
+  "frame": "v5_atlas_frame_v1",
+  "coordinate_unit": "mm",
+  "unit": "Pa",
+  "selection": {
+    "basis": "fixed three-seed mean of per-case R2 (1234,7,2025); not ensemble",
+    "r2_case_mean": 0.8777100320098787,
+    "statistical_median": 0.7457092916801726,
+    "median_rule": "closest actual case to statistical median; selected IDs retained from original package"
+  },
+  "visualization_metrics": {
+    "r2": 0.8710665338245429,
+    "nrmse_range": 0.03125097112467302,
+    "nrmse_mean": 0.3531026296889794,
+    "mae": 0.7980889568349014,
+    "nmae_range": 0.01707114578604848,
+    "rmse": 1.4610064993616994,
+    "n": 14399,
+    "seed": 1234,
+    "metric_source": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/eval/ckpt_best/metrics.json",
+    "metric_key": "test.per_case[AG/fast/ZHANG_LIANG].overall",
+    "basis": "whole evaluated case, not smoothed surface",
+    "cache_recomputed": {
+      "r2": 0.8710665338245429,
+      "mae": 0.7980889568349014,
+      "n": 14399
+    }
+  },
+  "pressure_reference": null,
+  "geometry": {
+    "stl_source": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/ZHANG_LIANG/ZHANG_LIANG.stl",
+    "stl_sha256": "cadcf77b62ac520503a99e2b8a953e830c75d7c3c31216757a2faee337bb89d4",
+    "snapshot_source": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_20260906/cases/AG__fast__ZHANG_LIANG/case.h5",
+    "stl_to_mm_scale": 1.0,
+    "scale_source": "identity units verified by bijective STL-to-CFD wall mapping; bbox not fitted",
+    "bbox_ratio_qc_only": 1.000000022611264,
+    "rotation_convention": "(raw_mm - centroid) @ rotation.T",
+    "rotation_determinant": 1.0000000000000002,
+    "centroid_mm": [
+      7.392953730099441,
+      -153.06816964043068,
+      -380.09822993582077
+    ],
+    "rotation": [
+      [
+        -0.8668549196551376,
+        -0.47294824074220115,
+        0.15774190897964255
+      ],
+      [
+        0.4979678878460557,
+        -0.8367668301654757,
+        0.22770431398847066
+      ],
+      [
+        0.024300842450889527,
+        0.27593701004700133,
+        0.9608684798360795
+      ]
+    ],
+    "reconstruction_max_abs_mm": 2.225692233537302e-05,
+    "stl_wall_identity_max_distance_mm": 3.4332275390625e-05,
+    "aligned_max_distance_mm": 3.389272144602394e-05,
+    "bijective_node_count": 14399,
+    "n_stl_triangles": 28678,
+    "n_cfd_triangles": 28678,
+    "triangles_dropped_invalid": 0,
+    "wall_crop_applied": false,
+    "frame_version": "v5_atlas_frame_v1",
+    "coordinate_unit": "mm",
+    "tolerance_mm": 0.001
+  },
+  "source_sha256": {
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/eval/ckpt_best/predictions/test/AG/fast/ZHANG_LIANG/predictions.npz": "9b26e0edbe1cbb74540e621647a66215cfc43be430031c3b72499490949a75d9",
+    "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views/wss_min_view_v1/AG/fast/ZHANG_LIANG/bundle.npz": "7d50305af2a0dd792d957dfad69e0eecbc1f2a1eb789bee999fa0e4319de93a9",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/eval/ckpt_best/metrics.json": "8595b618c43dba87b3ff2acf6c72d1eab7088f9d716e5b418a737b5ca23fcf1b",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/config.json": "11adfa2fc86ca0812540c1d8115e3ad5a6cfcdad989bcf06cffa322aa4d0b07b",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/ckpt_best.pt": "e8225072d110c1cfa50c0e44d71b78bab1823075ae767867971486ae37d7877f",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_local_wave2_20260912/X5X11_s1234/eval/ckpt_best/predictions/manifest.json": "384d1eee4311a31e8e2cdf6a9212a9ab992fcc61fdabe2c67720e2bf9666f228"
+  },
+  "display_normalization": {
+    "version": 1,
+    "kind": "selfmax",
+    "prefix": "wss",
+    "unit": "dimensionless",
+    "source_unit": "Pa",
+    "denominator_scope": "wall",
+    "source_point_count": 14399,
+    "cfd_max": 46.81153869628906,
+    "pred_max": 53.65800939896511,
+    "cfd_denominator": {
+      "max": 46.81153869628906,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 4.681153869628906e-11
+    },
+    "pred_denominator": {
+      "max": 53.65800939896511,
+      "valid": true,
+      "reason": "valid",
+      "zero_tolerance": 5.365800939896511e-11
+    },
+    "formula": {
+      "wss_cfd_selfmax": "CFD / max(original CFD)",
+      "wss_pred_selfmax": "Pred / max(original Pred)",
+      "wss_selfmax_error_pred_minus_cfd": "Pred/max(original Pred) - CFD/max(original CFD)",
+      "wss_selfmax_abs_error": "abs(Pred/max(original Pred) - CFD/max(original CFD))"
+    },
+    "denominator_basis": "original full colocated case at selected frame, before interpolation",
+    "surface_policy": "apply same original denominators after mapping physical CFD/Pred; no refitting",
+    "amplitude_difference_removed": true,
+    "formal_metrics": "retain original physical colocated metrics; selfmax is a display field",
+    "invalid_policy": "near-zero or nonfinite denominator: NaN field and zero validity mask; never substitute 1",
+    "signed_scalar_policy": "preserve reference zero and signs in source; divide by signed max, not maxabs or minmax; no clipping"
+  },
+  "verification": {
+    "truth_vs_mother_data": "exact",
+    "point_index_and_coordinate_identity": "exact",
+    "r2_matches_official_abs_tol": 1e-08,
+    "mae_matches_official_abs_tol": 1e-06,
+    "metric_tolerance_reason": "saved float32 raw cache versus evaluator precision",
+    "written_vtp_all_arrays_roundtrip": "exact"
+  },
+  "files": {
+    "pointcloud": "X5X11__best__AG__fast__ZHANG_LIANG__wall_wss.vtp",
+    "gaussian_surface": "surface_gaussian.vtp",
+    "mapping_report": "mapping_report.json",
+    "native_cfd_wall": "cfd_wall_native.vtp",
+    "aligned_geometry": "aligned_geometry.vtp",
+    "original_points_csv": "_export/same_point_fields.csv.gz"
+  },
+  "surface_display_purpose": "Wall scalar interpolated to original STL vertices",
+  "output_sha256": {
+    "X5X11__best__AG__fast__ZHANG_LIANG__wall_wss.vtp": "9c3fc88293560f7e389eb5e05f1d326a03f79175d3eb469a4104d52635102a21",
+    "surface_gaussian.vtp": "283225d247e033878d15460a2ddf6f02ee4e21acc46812e8c5643a1774380fa1",
+    "aligned_geometry.vtp": "9c3fb35e803f85ae8bac1112a742f296566dbeaa4e362089b1a8d1075459502f",
+    "cfd_wall_native.vtp": "53ac9691ae98af0d624c38226afc2adbfc00dd8a81aec85f456c4104b0d3d308"
+  }
+}

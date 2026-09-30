@@ -110,6 +110,10 @@ class VolumeTimeMetrics:
         self.peak_med, self.peak_p90, self.ts_corr, self.amp_err, self.cos = [], [], [], [], []
         self.n_cases = 0
         self.trough = trough_frames(q_norm)
+        self._nmae_abs = None
+        self._nmae_n = 0
+        self._nmae_min = None
+        self._nmae_max = None
 
     def add(self, y_true, y_pred) -> None:
         yt = np.asarray(y_true, np.float64)
@@ -123,6 +127,7 @@ class VolumeTimeMetrics:
         else:
             st, sp = yt, yp
         self.frame.add(st, sp)
+        self._add_pooled_nmae(st, sp)
         self.tmean.add(st.mean(axis=0), sp.mean(axis=0))
         d = np.abs(st.argmax(axis=0) - sp.argmax(axis=0))
         d = np.minimum(d, N_FRAMES - 1 - d)
@@ -135,8 +140,29 @@ class VolumeTimeMetrics:
         self.amp_err.append(float(np.median(np.abs((sp.max(0) - sp.min(0)) - (st.max(0) - st.min(0))))))
         self.n_cases += 1
 
+    def _add_pooled_nmae(self, st, sp) -> None:
+        """逐帧 pooled field.nmae_range：所有病例子采样点拉平后 MAE/(true_max−true_min)。"""
+        abs_sum = np.abs(st - sp).sum(axis=1)
+        tmin, tmax = st.min(axis=1), st.max(axis=1)
+        n = int(st.shape[1])
+        if self._nmae_abs is None:
+            self._nmae_abs, self._nmae_min, self._nmae_max, self._nmae_n = abs_sum, tmin, tmax, n
+            return
+        self._nmae_abs = self._nmae_abs + abs_sum
+        self._nmae_min = np.minimum(self._nmae_min, tmin)
+        self._nmae_max = np.maximum(self._nmae_max, tmax)
+        self._nmae_n += n
+
+    def _pooled_nmae(self) -> np.ndarray:
+        if self._nmae_abs is None or self._nmae_n <= 0:
+            return np.full(N_FRAMES, np.nan)
+        mae = self._nmae_abs / float(self._nmae_n)
+        rng = np.maximum(self._nmae_max - self._nmae_min, 1e-12)
+        return mae / rng
+
     def summary(self) -> dict:
         r2 = self.frame.r2()
+        nmae = self._pooled_nmae()
         out = dict(kind=self.kind, n_cases=self.n_cases,
                    cycle_r2cb=float(r2.mean()), peak_r2cb=float(r2[PEAK_INDEX]),
                    trough_r2cb=float(r2[self.trough].mean()),
@@ -146,7 +172,11 @@ class VolumeTimeMetrics:
                    peak_time_err_p90_frames=float(np.mean(self.peak_p90)),
                    ts_corr=float(np.nanmean(self.ts_corr)),
                    amp_err_med=float(np.mean(self.amp_err)),
-                   frame_r2cb=[float(v) for v in r2])
+                   frame_r2cb=[float(v) for v in r2],
+                   frame_nmae_range=[float(v) for v in nmae],
+                   cycle_nmae_range=float(nmae.mean()),
+                   peak_nmae_range=float(nmae[PEAK_INDEX]),
+                   trough_nmae_range=float(nmae[self.trough].mean()))
         if self.comp is not None:
             rc = self.comp.r2()
             out.update(comp_cycle_r2cb=float(rc.mean()), comp_peak_r2cb=float(rc[PEAK_INDEX]),

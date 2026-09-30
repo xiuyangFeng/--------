@@ -1,0 +1,171 @@
+{
+  "host": "node04",
+  "cuda_visible_devices": "1",
+  "executed_outside_slurm": true,
+  "package_root": "/public/newhome/cy/Digital_twin/GNN_osi_tail_frozen_20260924",
+  "started_at": "2026-09-24T15:41:27+0800",
+  "passed": true,
+  "anchor_reevaluation": {
+    "anchor_run": "/public/newhome/cy/Digital_twin/GNN_osi_tail_frozen_20260924/training_wss_min/runs/wss_cycle_m1_20260921/M1_f0_s1234",
+    "output_dir": "/public/newhome/cy/Digital_twin/GNN_osi_tail_frozen_20260924/training_wss_min/experiments/wss_osi_tail_20260924/preflight/20260924_154127/anchor_eval_M1_f0_best",
+    "compared_fields": 27784,
+    "only_in_stored": 0,
+    "only_in_fresh": 0,
+    "max_abs_diff": 0.00012077377655272947,
+    "max_abs_diff_field": "test.heads.osi.per_case.AG/fast/LI_ZHI_LIN.threshold_masks.above_0.1.precision",
+    "top5": [
+      [
+        0.00012077377655272947,
+        "test.heads.osi.per_case.AG/fast/LI_ZHI_LIN.threshold_masks.above_0.1.precision"
+      ],
+      [
+        8.744514346847865e-05,
+        "test.heads.osi.per_case.AG/slow/ZANG_YU_SHU.threshold_masks.above_0.1.precision"
+      ],
+      [
+        7.965053105751796e-05,
+        "test.heads.osi.per_case.AG/fast/LI_ZHI_LIN.threshold_masks.above_0.1.iou"
+      ],
+      [
+        7.118957784579827e-05,
+        "test.heads.osi.per_case.AG/fast/LI_ZHI_LIN.threshold_masks.above_0.1.pred_frac"
+      ],
+      [
+        7.118957784579827e-05,
+        "test.heads.osi.per_case.AG/fast/LI_ZHI_LIN.threshold_masks.above_0.1.frac_abs_err"
+      ]
+    ],
+    "nan_mismatch": [],
+    "tolerance": 0.0005,
+    "passed": true
+  },
+  "paired_construction": {
+    "K1_f0_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "K1_f1_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "K1_f2_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "K2_f0_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "K2_f1_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "K2_f2_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "K5_f0_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234.json",
+      "n_params": 630956,
+      "input_dim": 35
+    },
+    "K5_f1_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234.json",
+      "n_params": 630956,
+      "input_dim": 35
+    },
+    "K5_f2_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234.json",
+      "n_params": 630956,
+      "input_dim": 35
+    },
+    "M1r_f0_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f0_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1r_f1_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    },
+    "M1r_f2_s1234.json": {
+      "mode": "paired_fresh_random_initialization",
+      "shared_tensors_exact": true,
+      "reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v51_wave2a_20260916/X5D_v51_f2_s1234.json",
+      "n_params": 629676,
+      "input_dim": 27
+    }
+  },
+  "smoke": {
+    "M1r": {
+      "run": "/public/newhome/cy/Digital_twin/GNN_osi_tail_frozen_20260924/training_wss_min/runs/wss_osi_tail_20260924_smoke/20260924_154127_M1r",
+      "loss_components": [
+        "base",
+        "total"
+      ],
+      "n_prediction_files": 6,
+      "final_loss": null
+    },
+    "K1": {
+      "run": "/public/newhome/cy/Digital_twin/GNN_osi_tail_frozen_20260924/training_wss_min/runs/wss_osi_tail_20260924_smoke/20260924_154127_K1",
+      "loss_components": [
+        "base",
+        "osi_mask_bce",
+        "osi_mask_bce_weighted",
+        "total"
+      ],
+      "n_prediction_files": 6,
+      "final_loss": null
+    },
+    "K2": {
+      "run": "/public/newhome/cy/Digital_twin/GNN_osi_tail_frozen_20260924/training_wss_min/runs/wss_osi_tail_20260924_smoke/20260924_154127_K2",
+      "loss_components": [
+        "base",
+        "osi_tail_fraction",
+        "total"
+      ],
+      "n_prediction_files": 6,
+      "final_loss": null
+    },
+    "K5": {
+      "run": "/public/newhome/cy/Digital_twin/GNN_osi_tail_frozen_20260924/training_wss_min/runs/wss_osi_tail_20260924_smoke/20260924_154127_K5",
+      "loss_components": [
+        "base",
+        "total"
+      ],
+      "n_prediction_files": 6,
+      "final_loss": null
+    }
+  },
+  "finished_at": "2026-09-24T15:43:49+0800",
+  "preflight_dir": "/public/newhome/cy/Digital_twin/GNN_osi_tail_frozen_20260924/training_wss_min/experiments/wss_osi_tail_20260924/preflight/20260924_154127"
+}

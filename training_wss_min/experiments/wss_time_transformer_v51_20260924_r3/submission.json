@@ -1,0 +1,19 @@
+{
+  "submitted_at": "2026-09-24T04:20:15.860302+00:00",
+  "host": "node04",
+  "launcher_pid": 276085,
+  "command": [
+    "bash",
+    "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r3/run_queue.sh"
+  ],
+  "frozen_root": "/public/newhome/cy/Digital_twin/GNN_time_transformer_frozen_20260924_r3",
+  "config_dir": "/public/newhome/cy/Digital_twin/GNN_time_transformer_frozen_20260924_r3/training_wss_min/configs/wss_time_transformer_v51_20260924_r3",
+  "gpu_uuid": "GPU-e5c48469-8122-adf2-62f0-44d68a46fc22",
+  "script_sha256": "94bdd61272f9234d02d4e61a8f60ce424699aee62563f08bdb017841a137cafd",
+  "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r3/queue.log",
+  "queue_status": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_transformer_v51_20260924_r3/queue_status.json",
+  "gpu_snapshot_at_submission": "index, uuid, name, memory.used [MiB], memory.total [MiB]\n0, GPU-e5c48469-8122-adf2-62f0-44d68a46fc22, NVIDIA A100-PCIE-40GB, 745 MiB, 40960 MiB\n1, GPU-d0c62ff2-6402-879c-49a1-d231608df543, NVIDIA A100-PCIE-40GB, 745 MiB, 40960 MiB\n",
+  "compute_processes_at_submission": "gpu_uuid, pid, process_name, used_gpu_memory [MiB]\nGPU-e5c48469-8122-adf2-62f0-44d68a46fc22, 273215, /home/drc/ruochen/build_release/bend-model, 722 MiB\nGPU-d0c62ff2-6402-879c-49a1-d231608df543, 273213, /home/drc/ruochen/build_release/bend-model, 722 MiB\n",
+  "policy": "Wait until selected physical GPU has no compute processes; never terminate other users jobs. Serial 12 runs then strict report.",
+  "slurm": "node04 has no GPU GRES or partition; existing authorized SSH queue"
+}

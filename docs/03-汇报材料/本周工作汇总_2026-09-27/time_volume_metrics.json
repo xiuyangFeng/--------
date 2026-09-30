@@ -1,0 +1,109 @@
+{
+  "source": "docs/02-推进与变更/02-时间建模/时间建模_实验跟踪.md §31.3",
+  "notes": [
+    "Three-fold means, v5.1 cv3 seed1234, test34 unused. Pressure T-null cycle 0.4373/trough 0.3088; velocity T-null cycle 0.5569/trough 0.1178.",
+    "Pressure PT0 last conditional pass depended on checkpoint and fold0 instability; no deployment change."
+  ],
+  "rows": [
+    {
+      "target": "pressure",
+      "arm": "PF6_v51 baseline",
+      "checkpoint": "best",
+      "peak_r2_pa": 0.7439,
+      "cycle_r2_pa": null,
+      "delta_vs_tnull": null,
+      "trough_r2_pa": null,
+      "status": "baseline"
+    },
+    {
+      "target": "pressure",
+      "arm": "PT0",
+      "checkpoint": "best",
+      "peak_r2_pa": 0.773,
+      "cycle_r2_pa": 0.4771,
+      "delta_vs_tnull": 0.0398,
+      "trough_r2_pa": 0.4969,
+      "status": "No-Go (best selection)"
+    },
+    {
+      "target": "pressure",
+      "arm": "PT0",
+      "checkpoint": "last",
+      "peak_r2_pa": 0.7804,
+      "cycle_r2_pa": 0.5335,
+      "delta_vs_tnull": 0.0962,
+      "trough_r2_pa": 0.5524,
+      "status": "conditional pass; fold0 unstable"
+    },
+    {
+      "target": "pressure",
+      "arm": "PTB8",
+      "checkpoint": "best",
+      "peak_r2_pa": 0.6932,
+      "cycle_r2_pa": 0.5392,
+      "delta_vs_tnull": 0.1019,
+      "trough_r2_pa": 0.5828,
+      "status": "No-Go (peak loss)"
+    },
+    {
+      "target": "pressure",
+      "arm": "PTB16",
+      "checkpoint": "best",
+      "peak_r2_pa": 0.6816,
+      "cycle_r2_pa": 0.5395,
+      "delta_vs_tnull": 0.1022,
+      "trough_r2_pa": 0.5833,
+      "status": "No-Go (peak loss)"
+    },
+    {
+      "target": "velocity",
+      "arm": "VF6_v51 baseline",
+      "checkpoint": "best",
+      "peak_r2_pa": 0.7785,
+      "cycle_r2_pa": null,
+      "delta_vs_tnull": null,
+      "trough_r2_pa": null,
+      "status": "baseline"
+    },
+    {
+      "target": "velocity",
+      "arm": "VT0",
+      "checkpoint": "best",
+      "peak_r2_pa": 0.7668,
+      "cycle_r2_pa": 0.5589,
+      "delta_vs_tnull": 0.0021,
+      "trough_r2_pa": 0.2804,
+      "status": "No-Go"
+    },
+    {
+      "target": "velocity",
+      "arm": "VT0",
+      "checkpoint": "last",
+      "peak_r2_pa": 0.7721,
+      "cycle_r2_pa": 0.5612,
+      "delta_vs_tnull": 0.0043,
+      "trough_r2_pa": 0.2808,
+      "status": "No-Go"
+    },
+    {
+      "target": "velocity",
+      "arm": "VTB4",
+      "checkpoint": "best",
+      "peak_r2_pa": 0.7158,
+      "cycle_r2_pa": 0.5061,
+      "delta_vs_tnull": -0.0508,
+      "trough_r2_pa": 0.2374,
+      "status": "No-Go"
+    },
+    {
+      "target": "velocity",
+      "arm": "VTB8",
+      "checkpoint": "best",
+      "peak_r2_pa": 0.7174,
+      "cycle_r2_pa": 0.5188,
+      "delta_vs_tnull": -0.0381,
+      "trough_r2_pa": 0.257,
+      "status": "No-Go"
+    }
+  ]
+}

@@ -51,6 +51,9 @@ from scipy.spatial import cKDTree
 from wss_pinn.data.raw_io import read_interior, read_wall, step_file
 from wss_pinn.utils import ROOT, utc_now
 from wss_pinn.v4.fluent_topology import anatomy_topology, anatomy_wall_faces, match_points, read_fluent_mesh
+from wss_pinn.v4 import new_case_sources as ncs
+
+EXTRA_CASES: list[str] = []
 
 SPLIT = ROOT / "wss_pinn/configs/splits/split_WSS_PINN_AG_AAA_ILO_bc_rcr_v4_anatomy_only_train138_test34_s1234.json"
 BOUNDARY_ROOT = ROOT / "data_wss_pinn/volume_uvwp_peak_qs_smooth_v3_train123_val15_test35/cases"
@@ -70,9 +73,12 @@ TANGENCY_WARN = 0.2
 
 def _case_ids() -> list[dict[str, Any]]:
     payload = json.loads(SPLIT.read_text(encoding="utf-8"))
-    return [{"canonical_id": c, "role": "train"} for c in payload["train_cases"]] + [
+    rows = [{"canonical_id": c, "role": "train"} for c in payload["train_cases"]] + [
         {"canonical_id": c, "role": "test"} for c in payload["test_cases"]
     ]
+    seen = {r["canonical_id"] for r in rows}
+    rows += [{"canonical_id": c, "role": "new"} for c in EXTRA_CASES if c not in seen]  # 2026-09-22: new units
+    return rows
 
 
 def _step_candidates(case_dir: Path, step: int, subdir: str) -> list[Path]:
@@ -111,6 +117,39 @@ def _node_normals(mesh, wall: dict[str, np.ndarray]) -> tuple[np.ndarray, np.nda
     return ids, vectors / np.maximum(norm, 1.0e-300)[:, None]
 
 
+def _per_frame_stats(frames: dict) -> dict:
+    """Per-sampled-frame WSS/pressure statistics (2026-09-22: factored out so whole-domain exports can be
+    re-evaluated on the anatomy-wall rows only)."""
+    per_frame = {}
+    for step, frame in frames.items():
+        magnitude = np.asarray(frame["wss"], dtype=np.float64)
+        vector = np.asarray(frame["wss_vector"], dtype=np.float64)
+        norm = np.linalg.norm(vector, axis=1)
+        scale = max(float(np.percentile(magnitude, 99)), 1.0e-12)
+        # Fluent interpolates |tau| and the components to nodes independently, so
+        # at a node |vector| <= scalar, with the gap measuring local direction
+        # spread (separation/reattachment).  At face centres the two are equal.
+        gap = (magnitude - norm) / np.maximum(magnitude, 1.0e-12)
+        per_frame[str(step)] = {
+            "vector_norm_le_scalar_fraction": float(np.mean(norm <= magnitude + 1.0e-9)),
+            "scalar_minus_vector_rel_median": float(np.median(gap)),
+            "scalar_minus_vector_rel_p95": float(np.percentile(gap, 95)),
+            "scalar_minus_vector_rel_max": float(np.max(gap)),
+            "rows": int(len(magnitude)),
+            "finite": bool(np.isfinite(magnitude).all() and np.isfinite(vector).all() and np.isfinite(frame["pressure"]).all()),
+            "wss_negative_rows": int(np.sum(magnitude < 0.0)),
+            "wss_zero_fraction": float(np.mean(magnitude <= 0.0)),
+            "magnitude_vs_vector_max_rel": float(np.max(np.abs(magnitude - norm)) / scale),
+            "wss_mean_pa": float(magnitude.mean()),
+            "wss_p50_pa": float(np.percentile(magnitude, 50)),
+            "wss_p95_pa": float(np.percentile(magnitude, 95)),
+            "wss_p99_pa": float(np.percentile(magnitude, 99)),
+            "wss_max_pa": float(magnitude.max()),
+            "pressure_mean_pa": float(np.mean(frame["pressure"])),
+        }
+    return per_frame
+
+
 def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
     canonical_id = entry["canonical_id"]
     output = AUDIT_ROOT / "cases" / f"{canonical_id.replace('/', '__')}.json"
@@ -121,7 +160,7 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
     volume_dir = raw_dir / "ascii_in"
     wall_steps = _steps(wall_dir)
     volume_steps = _steps(volume_dir)
-    peak_step = int(json.loads((V4_ROOT / canonical_id / "manifest.json").read_text(encoding="utf-8"))["peak_step"])
+    peak_step = ncs.peak_step(canonical_id)  # legacy V4 manifest when present, else the frozen contract step 1162
     sample_steps = sorted({EXPECTED_STEPS[0], peak_step, EXPECTED_STEPS[-1]})
 
     # A re-run leaves the odd solver steps behind in ``ascii`` (the cleanup script
@@ -137,14 +176,14 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
         step for step in EXPECTED_STEPS if len(_step_candidates(raw_dir, step, "ascii")) > 1
     )
     extra = [
-        int(re.search(r"-(\d+)$", path.name).group(1))
+        int(re.search(r"-(\d+)$", path.name).group(1))  # noqa: E501
         for path in wall_dir.glob("*-[0-9]*")
-        if path.is_file() and int(re.search(r"-(\d+)$", path.name).group(1)) not in set(EXPECTED_STEPS)
+        if path.is_file() and re.search(r"-(\d+)$", path.name) and int(re.search(r"-(\d+)$", path.name).group(1)) not in set(EXPECTED_STEPS)
     ]
     extra_paths = [
         path
         for path in wall_dir.glob("*-[0-9]*")
-        if path.is_file() and int(re.search(r"-(\d+)$", path.name).group(1)) not in set(EXPECTED_STEPS)
+        if path.is_file() and re.search(r"-(\d+)$", path.name) and int(re.search(r"-(\d+)$", path.name).group(1)) not in set(EXPECTED_STEPS)
     ]
     extra_benign = False
     if extra_paths and mtimes:
@@ -233,47 +272,26 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
         for step in sample_steps
     )
 
-    per_frame = {}
-    for step, frame in frames.items():
-        magnitude = np.asarray(frame["wss"], dtype=np.float64)
-        vector = np.asarray(frame["wss_vector"], dtype=np.float64)
-        norm = np.linalg.norm(vector, axis=1)
-        scale = max(float(np.percentile(magnitude, 99)), 1.0e-12)
-        # Fluent interpolates |tau| and the components to nodes independently, so
-        # at a node |vector| <= scalar, with the gap measuring local direction
-        # spread (separation/reattachment).  At face centres the two are equal.
-        gap = (magnitude - norm) / np.maximum(magnitude, 1.0e-12)
-        per_frame[str(step)] = {
-            "vector_norm_le_scalar_fraction": float(np.mean(norm <= magnitude + 1.0e-9)),
-            "scalar_minus_vector_rel_median": float(np.median(gap)),
-            "scalar_minus_vector_rel_p95": float(np.percentile(gap, 95)),
-            "scalar_minus_vector_rel_max": float(np.max(gap)),
-            "rows": int(len(magnitude)),
-            "finite": bool(np.isfinite(magnitude).all() and np.isfinite(vector).all() and np.isfinite(frame["pressure"]).all()),
-            "wss_negative_rows": int(np.sum(magnitude < 0.0)),
-            "wss_zero_fraction": float(np.mean(magnitude <= 0.0)),
-            "magnitude_vs_vector_max_rel": float(np.max(np.abs(magnitude - norm)) / scale),
-            "wss_mean_pa": float(magnitude.mean()),
-            "wss_p50_pa": float(np.percentile(magnitude, 50)),
-            "wss_p95_pa": float(np.percentile(magnitude, 95)),
-            "wss_p99_pa": float(np.percentile(magnitude, 99)),
-            "wss_max_pa": float(magnitude.max()),
-            "pressure_mean_pa": float(np.mean(frame["pressure"])),
-        }
+    per_frame = _per_frame_stats(frames)
 
     # geometry: anatomy wall coverage + tangency + provenance
-    boundary = json.loads((BOUNDARY_ROOT / canonical_id / "manifest.json").read_text(encoding="utf-8"))
-    mesh = read_fluent_mesh(Path(boundary["provenance"]["fluent_case"]["path"]))
+    mesh = read_fluent_mesh(ncs.fluent_case(canonical_id))
     topology = anatomy_topology(mesh)
     wall = anatomy_wall_faces(mesh, topology)
     peak = frames[peak_step]
     unique_coords, inverse = np.unique(np.asarray(peak["coords"], dtype=np.float64), axis=0, return_inverse=True)
     if export_kind == "node":
         ids, normals = _node_normals(mesh, wall)
+        # 2026-09-22: whole-domain node exports (interior rows with WSS 0) — match only rows on anatomy wall nodes
+        _dist, _ = cKDTree(mesh.nodes_m[ids]).query(unique_coords, k=1)
+        inside_u = _dist <= NODE_TOLERANCE_M
+        rows_outside = int(np.sum(~inside_u))
         index, identity = match_points(
-            mesh.nodes_m[ids], unique_coords, label=f"{canonical_id}:wss-nodes", tolerance_m=NODE_TOLERANCE_M
+            mesh.nodes_m[ids], unique_coords[inside_u], label=f"{canonical_id}:wss-nodes", tolerance_m=NODE_TOLERANCE_M
         )
-        matched_normals = normals[index][inverse]
+        normals_u = np.full((len(unique_coords), 3), np.nan)
+        normals_u[inside_u] = normals[index]
+        matched_normals = normals_u[inverse]
         covered = set(ids[index].tolist()) == set(wall["node_ids"].tolist())
         entities = int(len(wall["node_ids"]))
     else:
@@ -286,20 +304,35 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
         matched_normals = normals[index][inverse]
         covered = len(unique_coords) == len(wall["centres_m"])
         entities = int(len(wall["centres_m"]))
+        inside_u = np.ones(len(unique_coords), dtype=bool)
+        rows_outside = 0
+    export_scope = "anatomy_wall" if rows_outside == 0 else ("whole_domain" if rows_outside >= 0.5 * len(unique_coords) else "anatomy_wall_plus_extra_rows")
+    inside_rows = inside_u[inverse]
+    rows_for_gate = rows
+    if export_scope == "whole_domain":
+        # interior rows carry WSS 0 and would swamp every bulk statistic: recompute on the matched wall rows
+        rows_for_gate = int(np.sum(inside_rows))
+        per_frame = _per_frame_stats({
+            step: {k: (v[inside_rows] if isinstance(v, np.ndarray) and len(v) == len(inside_rows) else v) for k, v in frame.items()}
+            for step, frame in frames.items()
+        })
     vector = np.asarray(peak["wss_vector"], dtype=np.float64)
     norm = np.linalg.norm(vector, axis=1)
-    valid = norm > 1.0e-12
+    valid = (norm > 1.0e-12) & inside_rows
     tangency = np.abs(np.einsum("ij,ij->i", vector[valid], matched_normals[valid])) / norm[valid]
 
     volume = read_interior(step_file(raw_dir, peak_step, "ascii_in"))
-    distance, nearest = cKDTree(volume["coords"]).query(peak["coords"], k=1)
-    pressure_delta = np.asarray(peak["pressure"], dtype=np.float64) - volume["pressure"][nearest]
+    _wall_rows = np.flatnonzero(inside_rows)
+    distance, nearest = cKDTree(volume["coords"]).query(np.asarray(peak["coords"])[_wall_rows], k=1)
+    pressure_delta = np.asarray(peak["pressure"], dtype=np.float64)[_wall_rows] - volume["pressure"][nearest]
     volume_pressure = float(np.mean(volume["pressure"][nearest]))
 
     report.update(
         {
             "status": "parsed",
             "export_kind": export_kind,
+            "export_scope": export_scope,
+            "rows_outside_anatomy_wall": rows_outside,
             "delimiter": delimiter,
             "columns": columns,
             "rows": rows,
@@ -316,7 +349,7 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
                 "rows_with_zero_wss": int(np.sum(~valid)),
             },
             "provenance": {
-                "wall_pressure_mean_pa": float(np.mean(peak["pressure"])),
+                "wall_pressure_mean_pa": float(np.mean(np.asarray(peak["pressure"], dtype=np.float64)[_wall_rows])),
                 "volume_pressure_at_wall_mean_pa": volume_pressure,
                 "pressure_delta_median_pa": float(np.median(pressure_delta)),
                 "pressure_delta_p95_abs_pa": float(np.percentile(np.abs(pressure_delta), 95)),
@@ -334,7 +367,7 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
         # solver steps.  Only stale/foreign extras are a defect.
         "no_stale_extra_wall_files": len(extra) == 0 or extra_benign,
         "step_to_file_unambiguous": len(ambiguous) == 0,
-        "row_count_constant": all(f["rows"] == rows for f in frame_values),
+        "row_count_constant": all(f["rows"] == rows_for_gate for f in frame_values),
         "coordinates_identical_across_frames": coord_delta <= 1.0e-12,
         "all_finite": all(f["finite"] for f in frame_values),
         "wss_non_negative": all(f["wss_negative_rows"] == 0 for f in frame_values),
@@ -348,7 +381,7 @@ def audit_case(entry: dict[str, Any]) -> dict[str, Any]:
             )
         ),
         "wss_tangential_to_wall": bool(report["tangency"]["p95"] is not None and report["tangency"]["p95"] <= TANGENCY_WARN),
-        "covers_anatomy_wall_exactly": bool(covered),
+        "covers_anatomy_wall_exactly": bool(covered) and (rows_outside == 0 or export_scope == "whole_domain"),
         "identity_bijective": bool(identity["bijective"] and identity["within_tolerance"]),
         "same_solution_as_volume": abs(report["provenance"]["pressure_delta_median_pa"]) <= 1.0,
         # The bulk of the wall must sit in the physiological band.  The upper tail
@@ -385,7 +418,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--cases", nargs="*", default=None)
+    parser.add_argument("--extra-cases", nargs="*", default=None, help="new canonical ids appended to the split list")
+    parser.add_argument("--cases-file", type=Path, default=None, help="text file of extra canonical ids, one per line")
     args = parser.parse_args()
+    EXTRA_CASES.extend(list(args.extra_cases or []) + ncs.read_case_list(args.cases_file))
     entries = _case_ids()
     if args.cases:
         wanted = set(args.cases)

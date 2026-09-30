@@ -1,0 +1,29 @@
+{
+ "schema": "time_adapter_probe_v1",
+ "name": "wss_time_adapter_v51_20260923/C-scalar_f1_s1234",
+ "experiment": "wss_time_adapter_v51_20260923",
+ "arm": "C-scalar",
+ "fold": 1,
+ "seed": 1234,
+ "title": "same head, peak_ln only (does the hidden representation add beyond the peak scalar)",
+ "cache_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_v51_20260923/cache/fold1",
+ "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold1.json",
+ "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1",
+ "frame_stats_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/wss_frame_stats_fold1.json",
+ "waveform_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/offline/protocol_inlet_waveform_v51.json",
+ "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_adapter_v51_20260923/C-scalar_f1_s1234",
+ "peak_index": 21,
+ "phase_features": [
+  "q_norm",
+  "dq_norm",
+  "t_sin",
+  "t_cos"
+ ],
+ "head": {
+  "type": "mlp",
+  "inputs": [
+   "peak_ln"
+  ],
+  "anchor": true
+ }
+}

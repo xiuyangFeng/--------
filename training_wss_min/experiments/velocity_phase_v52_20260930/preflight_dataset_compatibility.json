@@ -1,0 +1,110 @@
+{
+  "schema": "velocity_phase_dataset_compatibility_v1",
+  "status": "passed",
+  "recorded_at": "2026-09-30T03:20:23.661862+08:00",
+  "record_basis": "Recorded from successful read-only real-data assertion execution in this thread; this archival step does not rerun inference or training.",
+  "canonical_id": "AAA/ruputer/DING_JUN_FENG",
+  "partition": "train (first unit in frozen fold0 train list); training=False selects that same unit’s disjoint evaluation query pool, not a holdout patient",
+  "seed": 1234,
+  "dataset_classes": [
+    "JointCycleDataset",
+    "VelocityPhaseDataset"
+  ],
+  "base_cache_root": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_v52_20260929/data_audit_cache",
+  "partial_sidecar_root": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/preflight_geometry",
+  "partial_sidecar_manifest_sha256": "628b464e537d6195bb328132d85dbdfb87598a27a8df15977771e58b437bc06c",
+  "partial_sidecar_status": "partial",
+  "partial_sidecar_complete": false,
+  "partial_sidecar_geometry_slurm_job": "16257",
+  "dataset_arguments": {
+    "support_n": 5000,
+    "query_n": 1024,
+    "case_ids": [
+      "AAA/ruputer/DING_JUN_FENG"
+    ],
+    "include_anchors": true,
+    "allow_partial_geometry": true
+  },
+  "exact_comparison": {
+    "method": "numpy.array_equal on each field, no tolerance",
+    "support_fields": [
+      "pos",
+      "x",
+      "rows"
+    ],
+    "tasks": [
+      "velocity",
+      "pressure",
+      "wss"
+    ],
+    "query_fields": [
+      "pos",
+      "x",
+      "y",
+      "y_raw",
+      "weight",
+      "rows"
+    ],
+    "phase_bc": "Not compared explicitly in this audit; inherited unchanged from original superclass."
+  },
+  "checks": [
+    {
+      "training": true,
+      "epoch": 0,
+      "query_count_per_task": 1024,
+      "support_count": 5000,
+      "original_all_checked_fields_exact": true,
+      "velocity_frame_valid_fraction": 1.0,
+      "frame_orthonormal_atol": 2e-06,
+      "anchors_finite": true
+    },
+    {
+      "training": true,
+      "epoch": 1,
+      "query_count_per_task": 1024,
+      "support_count": 5000,
+      "original_all_checked_fields_exact": true,
+      "velocity_frame_valid_fraction": 1.0,
+      "frame_orthonormal_atol": 2e-06,
+      "anchors_finite": true
+    },
+    {
+      "training": false,
+      "epoch": 0,
+      "query_count_per_task": 1024,
+      "support_count": 5000,
+      "original_all_checked_fields_exact": true,
+      "velocity_frame_valid_fraction": 1.0,
+      "frame_orthonormal_atol": 2e-06,
+      "anchors_finite": true
+    },
+    {
+      "training": false,
+      "epoch": 1,
+      "query_count_per_task": 1024,
+      "support_count": 5000,
+      "original_all_checked_fields_exact": true,
+      "velocity_frame_valid_fraction": 1.0,
+      "frame_orthonormal_atol": 2e-06,
+      "anchors_finite": true
+    }
+  ],
+  "anchor_checks": {
+    "count": 256,
+    "edge_count": 4096,
+    "finite_fields": [
+      "pos",
+      "x",
+      "geom_extra",
+      "edge_index",
+      "edge_attr"
+    ],
+    "two_item_collate_second_edges_offset_min": 256,
+    "index_offset_check_passed": true
+  },
+  "scope_limit": "Single training unit with both original query-pool modes and epochs 0/1. This is compatibility evidence only; it does not replace formal 261-unit geometry preparation, full manifest fingerprints, the 206-unit q80 fit, or GPU smoke gates.",
+  "formal_geometry_job": "16263",
+  "formal_geometry_root": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/velocity_phase_v52_20260930/geometry",
+  "sourcecache_writes": false,
+  "training_or_model_inference_performed": false
+}

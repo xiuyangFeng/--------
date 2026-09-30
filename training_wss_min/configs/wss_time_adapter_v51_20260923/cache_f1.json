@@ -1,0 +1,14 @@
+{
+ "schema": "time_adapter_cache_v1",
+ "name": "wss_time_adapter_v51_20260923/cache_f1",
+ "donor_run": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234",
+ "checkpoint": "best",
+ "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_1/wss_min_view_v1/cv3_v51/fold1.json",
+ "partitions": [
+  "train",
+  "test"
+ ],
+ "out_dir": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_v51_20260923/cache/fold1",
+ "reference_predictions": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_v51_wave2a_20260916/X5D_v51_f1_s1234/eval/ckpt_best/predictions/test",
+ "notes": "frozen fold donor in eval mode; fixed_support + full_cloud_query; held-out peak predictions checked against the stored eval"
+}

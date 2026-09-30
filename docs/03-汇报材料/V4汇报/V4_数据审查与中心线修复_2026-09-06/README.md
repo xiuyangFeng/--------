@@ -1,7 +1,7 @@
 # V4 数据审查与中心线 / 标签修复图（2026-09-06）
 
 > 汇报用途：终审版 §5。数字与诊断来自
-> [`WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md`](../../../02-推进与变更/WSS_PINN/_archive/WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md)
+> [`WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md`](../../../02-推进与变更/_archive/WSS_PINN/_archive/WSS_PINN_V4_anatomy-only预处理准备与173例数据核查_2026-09-03.md)
 > §12–13 / §23 / §26–27。本目录只收图，不改 `outputs/` 真源。
 
 | 文件 | 说明 |

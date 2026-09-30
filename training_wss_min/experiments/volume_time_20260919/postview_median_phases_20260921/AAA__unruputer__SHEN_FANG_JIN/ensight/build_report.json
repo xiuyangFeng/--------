@@ -1,0 +1,606 @@
+{
+  "tool": "training_wss_min/tools/build_ensight_cfd_mesh_case.py",
+  "case": "AAA/unruputer/SHEN_FANG_JIN",
+  "cas_path": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/SHEN_FANG_JIN/SHEN_FANG_JIN.cas.gz",
+  "mesh": {
+    "zone": "blood",
+    "excluded": "blood1-5 extension zones",
+    "cells": 677082,
+    "nodes": 2103605,
+    "element_type": "nfaced (Fluent polyhedra and hex, faces outward)",
+    "volume_mm3": 369368.062642019,
+    "fluent_volume_mm3": 369368.08769580926,
+    "closed_consistently_oriented_cells": 677082,
+    "frame": "V5 aligned mm (@R.T), same as point clouds and aligned_geometry.stl"
+  },
+  "identity": {
+    "cell_centroid_vs_pointcloud_max_mm": 0.0021098561117377733,
+    "wall_nodes_vs_wall_pointcloud_max_mm": 1.0551275465786603e-05,
+    "wall_nodes": 85304
+  },
+  "interpolation": {
+    "interior_nodes": "inverse-distance (1/d) average of adjacent blood cells' point values",
+    "wall_nodes_velocity": "0 (no-slip boundary condition, not a prediction)",
+    "wall_nodes_pressure": "wall point-cloud value at the same Fluent node",
+    "speed": "|node velocity vector| so colour-by-speed equals EnSight vector magnitude",
+    "back_to_cell_r2_speed": {
+      "accel": {
+        "speed_CFD": 0.9995937672663294,
+        "speed_VT0": 0.9937723371441921,
+        "speed_VTB4": 0.9915447533998258
+      },
+      "peak": {
+        "speed_CFD": 0.9992039773860246,
+        "speed_VT0": 0.9956104543540998,
+        "speed_VTB4": 0.9910041111486317
+      },
+      "decel": {
+        "speed_CFD": 0.9980272160246461,
+        "speed_VT0": 0.9941662669640564,
+        "speed_VTB4": 0.9854701209403055
+      },
+      "trough": {
+        "speed_CFD": 0.9962939672012979,
+        "speed_VT0": 0.919804436255465,
+        "speed_VTB4": 0.9640817157366639
+      }
+    }
+  },
+  "time": {
+    "time_set": "cardiac_phase",
+    "values_s": {
+      "accel": 0.13,
+      "peak": 0.21,
+      "decel": 0.35,
+      "trough": 0.48
+    },
+    "frames": {
+      "accel": 13,
+      "peak": 21,
+      "decel": 35,
+      "trough": 48
+    },
+    "steps": {
+      "accel": 1146,
+      "peak": 1162,
+      "decel": 1190,
+      "trough": 1216
+    },
+    "q_norm": {
+      "accel": 0.4061965528497471,
+      "peak": 1.0,
+      "decel": 0.4313764633076023,
+      "trough": 0.0030448632687025755
+    },
+    "period_s": 0.8
+  },
+  "variables": [
+    {
+      "kind": "scalar",
+      "name": "speed_CFD",
+      "description": "|u| CFD m/s node-interpolated"
+    },
+    {
+      "kind": "scalar",
+      "name": "speed_VT0",
+      "description": "|u| VT0 m/s node-interpolated"
+    },
+    {
+      "kind": "scalar",
+      "name": "speed_VTB4",
+      "description": "|u| VTB4 m/s node-interpolated"
+    },
+    {
+      "kind": "scalar",
+      "name": "speed_err_VT0",
+      "description": "|u| VT0 minus CFD m/s"
+    },
+    {
+      "kind": "scalar",
+      "name": "speed_err_VTB4",
+      "description": "|u| VTB4 minus CFD m/s"
+    },
+    {
+      "kind": "vector",
+      "name": "velocity_CFD",
+      "description": "velocity CFD m/s (aligned mm frame)"
+    },
+    {
+      "kind": "vector",
+      "name": "velocity_VT0",
+      "description": "velocity VT0 m/s (aligned mm frame)"
+    },
+    {
+      "kind": "vector",
+      "name": "velocity_VTB4",
+      "description": "velocity VTB4 m/s (aligned mm frame)"
+    },
+    {
+      "kind": "scalar",
+      "name": "pressure_CFD",
+      "description": "p - p_volmean(t) CFD Pa"
+    },
+    {
+      "kind": "scalar",
+      "name": "pressure_PT0",
+      "description": "p - p_volmean(t) PT0 Pa"
+    },
+    {
+      "kind": "scalar",
+      "name": "pressure_PTB8",
+      "description": "p - p_volmean(t) PTB8 Pa"
+    },
+    {
+      "kind": "scalar",
+      "name": "pres_err_PT0",
+      "description": "pressure PT0 minus CFD Pa"
+    },
+    {
+      "kind": "scalar",
+      "name": "pres_err_PTB8",
+      "description": "pressure PTB8 minus CFD Pa"
+    }
+  ],
+  "value_ranges": {
+    "speed_CFD": {
+      "accel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.21778513160356824,
+        "max": 0.3224565057738277
+      },
+      "peak": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.5773277538406516,
+        "max": 0.7653290879823768
+      },
+      "decel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.35782141066058315,
+        "max": 0.521444372056508
+      },
+      "trough": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.12776941884744666,
+        "max": 0.20235882472970806
+      }
+    },
+    "speed_VT0": {
+      "accel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.23229997685387663,
+        "max": 0.33460974638231006
+      },
+      "peak": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.5793370652362255,
+        "max": 0.8560098056203663
+      },
+      "decel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.25345363400278575,
+        "max": 0.4654176729254904
+      },
+      "trough": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.05682106225542446,
+        "max": 0.0796258688852088
+      }
+    },
+    "speed_VTB4": {
+      "accel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.23841907411842578,
+        "max": 0.3595007606443429
+      },
+      "peak": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.598115767856897,
+        "max": 0.8836354508905871
+      },
+      "decel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.24651939445192406,
+        "max": 0.3644142113567424
+      },
+      "trough": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.05724756268864673,
+        "max": 0.10181820882331784
+      }
+    },
+    "speed_err_VT0": {
+      "accel": {
+        "min": -0.18774417238262642,
+        "p01": -0.05778502638405158,
+        "p99": 0.07162442446501543,
+        "max": 0.14661655100645968
+      },
+      "peak": {
+        "min": -0.52293260293686,
+        "p01": -0.17815388425596115,
+        "p99": 0.15359518706063205,
+        "max": 0.43102413922136873
+      },
+      "decel": {
+        "min": -0.36803196856320347,
+        "p01": -0.20729970362862563,
+        "p99": 0.08580665132650568,
+        "max": 0.32146643872671266
+      },
+      "trough": {
+        "min": -0.1873190463471198,
+        "p01": -0.10652298017897374,
+        "p99": 0.033139328723754254,
+        "max": 0.0629727632072347
+      }
+    },
+    "speed_err_VTB4": {
+      "accel": {
+        "min": -0.2059481786055024,
+        "p01": -0.0649337728756251,
+        "p99": 0.07042659597668487,
+        "max": 0.1811948144737848
+      },
+      "peak": {
+        "min": -0.5620897145087375,
+        "p01": -0.16905110906172297,
+        "p99": 0.19619315311866586,
+        "max": 0.5228539502114884
+      },
+      "decel": {
+        "min": -0.3811691878351565,
+        "p01": -0.1957962929881971,
+        "p99": 0.0905697193865751,
+        "max": 0.23624149135299727
+      },
+      "trough": {
+        "min": -0.18736235163233866,
+        "p01": -0.10368618190531334,
+        "p99": 0.024750321593171438,
+        "max": 0.08258868642644993
+      }
+    },
+    "velocity_CFD": {
+      "accel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.21778513160356824,
+        "max": 0.3224565057738277
+      },
+      "peak": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.5773277538406516,
+        "max": 0.7653290879823768
+      },
+      "decel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.35782141066058315,
+        "max": 0.521444372056508
+      },
+      "trough": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.12776941884744666,
+        "max": 0.20235882472970806
+      }
+    },
+    "velocity_VT0": {
+      "accel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.23229997685387663,
+        "max": 0.33460974638231006
+      },
+      "peak": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.5793370652362255,
+        "max": 0.8560098056203663
+      },
+      "decel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.25345363400278575,
+        "max": 0.4654176729254904
+      },
+      "trough": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.05682106225542446,
+        "max": 0.0796258688852088
+      }
+    },
+    "velocity_VTB4": {
+      "accel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.23841907411842578,
+        "max": 0.3595007606443429
+      },
+      "peak": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.598115767856897,
+        "max": 0.8836354508905871
+      },
+      "decel": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.24651939445192406,
+        "max": 0.3644142113567424
+      },
+      "trough": {
+        "min": 0.0,
+        "p01": 0.0,
+        "p99": 0.05724756268864673,
+        "max": 0.10181820882331784
+      }
+    },
+    "pressure_CFD": {
+      "accel": {
+        "min": -565.1546630859375,
+        "p01": -510.9442988166817,
+        "p99": 276.64917299158526,
+        "max": 283.2740783691406
+      },
+      "peak": {
+        "min": -493.379638671875,
+        "p01": -376.4740367573407,
+        "p99": 30.97712595305166,
+        "max": 38.880123138427734
+      },
+      "decel": {
+        "min": -106.22901916503906,
+        "p01": -104.13076292564779,
+        "p99": 119.3420633111432,
+        "max": 161.91355895996094
+      },
+      "trough": {
+        "min": -23.235479119410552,
+        "p01": -16.412081302858237,
+        "p99": 52.580522595977314,
+        "max": 65.88380432128906
+      }
+    },
+    "pressure_PT0": {
+      "accel": {
+        "min": -595.3036191538646,
+        "p01": -500.5557657864692,
+        "p99": 330.46894247335837,
+        "max": 369.39093017578125
+      },
+      "peak": {
+        "min": -446.3855895996094,
+        "p01": -336.7204560321424,
+        "p99": 153.07875828193113,
+        "max": 200.85647329634392
+      },
+      "decel": {
+        "min": -82.6654052734375,
+        "p01": -65.81370791533953,
+        "p99": 102.18310095706734,
+        "max": 117.96950805077346
+      },
+      "trough": {
+        "min": -18.159812927246094,
+        "p01": -12.68169474235579,
+        "p99": 19.714192554511136,
+        "max": 24.796693801879883
+      }
+    },
+    "pressure_PTB8": {
+      "accel": {
+        "min": -648.0333251953125,
+        "p01": -538.4629070710316,
+        "p99": 296.7767985349857,
+        "max": 321.6430969238281
+      },
+      "peak": {
+        "min": -656.4381103515625,
+        "p01": -505.62905689158237,
+        "p99": 66.21666995679477,
+        "max": 116.32933712203042
+      },
+      "decel": {
+        "min": -124.60370945046111,
+        "p01": -114.42537298093036,
+        "p99": 130.2892229360857,
+        "max": 187.12464650573028
+      },
+      "trough": {
+        "min": -20.704439163208008,
+        "p01": -13.125452002206888,
+        "p99": 28.81223427250557,
+        "max": 38.69744706961801
+      }
+    },
+    "pres_err_PT0": {
+      "accel": {
+        "min": -92.79867341450125,
+        "p01": -52.36450748452326,
+        "p99": 126.73818391824534,
+        "max": 201.6766128540039
+      },
+      "peak": {
+        "min": -209.26882934570312,
+        "p01": -87.46646733449967,
+        "p99": 140.46504171891482,
+        "max": 243.41348266601562
+      },
+      "decel": {
+        "min": -68.97613092367031,
+        "p01": -31.621079257615868,
+        "p99": 53.52723057276437,
+        "max": 102.21803450515955
+      },
+      "trough": {
+        "min": -64.31676362055308,
+        "p01": -45.4445783651929,
+        "p99": 29.414788582979977,
+        "max": 39.47347831726074
+      }
+    },
+    "pres_err_PTB8": {
+      "accel": {
+        "min": -116.10751342773438,
+        "p01": -48.08648372968631,
+        "p99": 57.12822286181581,
+        "max": 98.3292362095977
+      },
+      "peak": {
+        "min": -355.9168701171875,
+        "p01": -236.44431074459607,
+        "p99": 88.28760833826216,
+        "max": 174.74339294433594
+      },
+      "decel": {
+        "min": -109.94461250305176,
+        "p01": -65.19848458635762,
+        "p99": 42.42110531092042,
+        "max": 124.49827363008518
+      },
+      "trough": {
+        "min": -32.75461774626991,
+        "p01": -24.185227103792624,
+        "p99": 20.52846345783999,
+        "max": 33.95500073911987
+      }
+    }
+  },
+  "recommended_planes": [
+    {
+      "label": "Z = 24.5 mm (transverse, widest aneurysm level; view X right, Y up)",
+      "origin": [
+        -2.6249098658345353,
+        10.51906539355551,
+        24.460135138657336
+      ],
+      "normal": [
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "label": "Y = 10.5 mm (longitudinal through aneurysm centre; view X right, Z up)",
+      "origin": [
+        -2.6249098658345353,
+        10.51906539355551,
+        24.460135138657336
+      ],
+      "normal": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    }
+  ],
+  "ens_checker": {
+    "ran": true,
+    "passed": true,
+    "no_warnings": true
+  },
+  "preview": {
+    "pngs": [
+      "preview_speed_Z.png",
+      "preview_pressure_Z.png",
+      "preview_speed_Y.png",
+      "preview_pressure_Y.png"
+    ],
+    "readback": {
+      "accel": {
+        "cells": 677082,
+        "points": 2103605,
+        "arrays": [
+          "pres_err_PT0",
+          "pres_err_PTB8",
+          "pressure_CFD",
+          "pressure_PT0",
+          "pressure_PTB8",
+          "speed_CFD",
+          "speed_VT0",
+          "speed_VTB4",
+          "speed_err_VT0",
+          "speed_err_VTB4",
+          "velocity_CFD",
+          "velocity_VT0",
+          "velocity_VTB4"
+        ]
+      },
+      "peak": {
+        "cells": 677082,
+        "points": 2103605,
+        "arrays": [
+          "pres_err_PT0",
+          "pres_err_PTB8",
+          "pressure_CFD",
+          "pressure_PT0",
+          "pressure_PTB8",
+          "speed_CFD",
+          "speed_VT0",
+          "speed_VTB4",
+          "speed_err_VT0",
+          "speed_err_VTB4",
+          "velocity_CFD",
+          "velocity_VT0",
+          "velocity_VTB4"
+        ]
+      },
+      "decel": {
+        "cells": 677082,
+        "points": 2103605,
+        "arrays": [
+          "pres_err_PT0",
+          "pres_err_PTB8",
+          "pressure_CFD",
+          "pressure_PT0",
+          "pressure_PTB8",
+          "speed_CFD",
+          "speed_VT0",
+          "speed_VTB4",
+          "speed_err_VT0",
+          "speed_err_VTB4",
+          "velocity_CFD",
+          "velocity_VT0",
+          "velocity_VTB4"
+        ]
+      },
+      "trough": {
+        "cells": 677082,
+        "points": 2103605,
+        "arrays": [
+          "pres_err_PT0",
+          "pres_err_PTB8",
+          "pressure_CFD",
+          "pressure_PT0",
+          "pressure_PTB8",
+          "speed_CFD",
+          "speed_VT0",
+          "speed_VTB4",
+          "speed_err_VT0",
+          "speed_err_VTB4",
+          "velocity_CFD",
+          "velocity_VT0",
+          "velocity_VTB4"
+        ]
+      }
+    },
+    "speed_p99_all": 0.598115767856897
+  },
+  "note": "display only; formal R2/MAE stay on the same-point CSV / point clouds",
+  "elapsed_s": 243.9
+}

@@ -1,0 +1,80 @@
+{
+ "schema_version": 1,
+ "experiment": "wss_time_transformer_v51_20260924",
+ "created": "2026-09-24",
+ "question": "Does true temporal self-attention add value beyond a frame-independent time MLP, and does frozen peak X5D query_x add value beyond raw geometry, under the same peak anchor and V5.1 protocol?",
+ "protocol": "V5.1 cv3 folds 0-2, seed 1234, four arms, one run per arm; 60 epochs x 30 steps; full 2x2 attention x spatial-input factorial",
+ "references": {
+  "probe_report": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_adapter_v51_20260923/report.json",
+  "stage2": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_time_ecc_20260918/stage2_report_best.json"
+ },
+ "execution": "node04 direct launch outside Slurm, one explicitly free A100 GPU; queue records GPU UUID/PID",
+ "arms": [
+  {
+   "id": "TT-warm_f0_s1234",
+   "config": "TT-warm_f0_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-warm_f0_s1234/metrics.json"
+  },
+  {
+   "id": "TT-warm-noattn_f0_s1234",
+   "config": "TT-warm-noattn_f0_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-warm-noattn_f0_s1234/metrics.json"
+  },
+  {
+   "id": "TT-raw_f0_s1234",
+   "config": "TT-raw_f0_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-raw_f0_s1234/metrics.json"
+  },
+  {
+   "id": "TT-raw-noattn_f0_s1234",
+   "config": "TT-raw-noattn_f0_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-raw-noattn_f0_s1234/metrics.json"
+  },
+  {
+   "id": "TT-warm_f1_s1234",
+   "config": "TT-warm_f1_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-warm_f1_s1234/metrics.json"
+  },
+  {
+   "id": "TT-warm-noattn_f1_s1234",
+   "config": "TT-warm-noattn_f1_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-warm-noattn_f1_s1234/metrics.json"
+  },
+  {
+   "id": "TT-raw_f1_s1234",
+   "config": "TT-raw_f1_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-raw_f1_s1234/metrics.json"
+  },
+  {
+   "id": "TT-raw-noattn_f1_s1234",
+   "config": "TT-raw-noattn_f1_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-raw-noattn_f1_s1234/metrics.json"
+  },
+  {
+   "id": "TT-warm_f2_s1234",
+   "config": "TT-warm_f2_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-warm_f2_s1234/metrics.json"
+  },
+  {
+   "id": "TT-warm-noattn_f2_s1234",
+   "config": "TT-warm-noattn_f2_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-warm-noattn_f2_s1234/metrics.json"
+  },
+  {
+   "id": "TT-raw_f2_s1234",
+   "config": "TT-raw_f2_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-raw_f2_s1234/metrics.json"
+  },
+  {
+   "id": "TT-raw-noattn_f2_s1234",
+   "config": "TT-raw-noattn_f2_s1234.json",
+   "done_marker": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/runs/wss_time_transformer_v51_20260924/TT-raw-noattn_f2_s1234/metrics.json"
+  }
+ ],
+ "gates": {
+  "G0": "peak frame anchor max abs error <= 1e-9 and finite metrics",
+  "A1": "TT-warm vs TT-warm-noattn: same spatial input, attention increment (three folds, descriptive)",
+  "A2": "TT-warm vs TT-raw: frozen peak representation increment (three folds, descriptive)",
+  "U": "cycle/trough/TAWSS, log-cycle, peak timing, temporal correlation and amplitude; no deployment gate in this development probe"
+ }
+}

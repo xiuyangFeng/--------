@@ -1,0 +1,127 @@
+{
+  "canonical_id": "AAA/unruputer/HAN_JIAN_FU",
+  "assembly_source": "v5.1",
+  "n_wall": 82417,
+  "n_volume": 599072,
+  "sources": {
+    "h5": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_2c_20260930/cases/AAA__unruputer__HAN_JIAN_FU/case.h5",
+      "size": 972719368,
+      "mtime_ns": 1789503945644767168
+    },
+    "bundle": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AAA/unruputer/HAN_JIAN_FU/bundle.npz",
+      "size": 144572310,
+      "mtime_ns": 1789512655143962060
+    },
+    "volume": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/AAA/unruputer/HAN_JIAN_FU/volume.npz",
+      "size": 75552834,
+      "mtime_ns": 1789512788732747300
+    },
+    "geom": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_geom_v2/AAA/unruputer/HAN_JIAN_FU/features.npz",
+      "size": 5278640,
+      "mtime_ns": 1789512756536558050
+    },
+    "flowref": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AAA/unruputer/HAN_JIAN_FU/features.npz",
+      "size": 8248228,
+      "mtime_ns": 1790760133369204329
+    }
+  },
+  "boundary_conditions": {
+    "udf": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_new/AAA/unruputer/HAN_JIAN_FU/udf-inlet4.c",
+      "sha256": "6967e810584a8134193f60b4343571075005ad5c5e2c7934652f8b0230843d5d"
+    },
+    "rcr": [
+      {
+        "outlet": "out-le",
+        "R1": 101950.0,
+        "R2": 1010700.0,
+        "C": 1.6088e-06
+      },
+      {
+        "outlet": "out-li",
+        "R1": 179270.0,
+        "R2": 2143700.0,
+        "C": 7.7055e-07
+      },
+      {
+        "outlet": "out-ri",
+        "R1": 284410.0,
+        "R2": 3243600.0,
+        "C": 5.0736e-07
+      },
+      {
+        "outlet": "out-re",
+        "R1": 104530.0,
+        "R2": 851650.0,
+        "C": 1.872e-06
+      }
+    ],
+    "rheology": {
+      "mu_inf_pa_s": 0.0035,
+      "mu_zero_pa_s": 0.16,
+      "lambda_s": 8.2,
+      "a": 0.64,
+      "n": 0.2128
+    },
+    "period_s": 0.8,
+    "rho_kg_m3": 1060.0,
+    "A_inlet_udf_m2": 0.0005159822,
+    "resistance_units": "Pa*s/kg",
+    "capacitance_units": "kg/Pa",
+    "source": "case.h5 conditions attributes; frozen prescribed inputs, no CFD labels"
+  },
+  "schema": "joint_cycle_v52_v1",
+  "settings": {
+    "seed": 1234,
+    "train_volume": 8192,
+    "train_wall": 8192,
+    "eval_volume": 16384,
+    "eval_wall": 8192
+  },
+  "peak_consistency": {
+    "peak_velocity_abs_max": 0.0,
+    "peak_pressure_abs_max": 0.0,
+    "peak_wss_abs_max": 0.0
+  },
+  "endpoint_80_vs_0_abs_max": {
+    "train": {
+      "velocity": 0.00028033251874148846,
+      "pressure": 0.04674720764160156,
+      "wss": 1.5652892589569092
+    },
+    "eval": {
+      "velocity": 0.00020755641162395477,
+      "pressure": 0.046749114990234375,
+      "wss": 1.6340306997299194
+    }
+  },
+  "actual_pool_counts": {
+    "train_wall": 8192,
+    "eval_wall": 8192,
+    "train_volume": 8192,
+    "eval_volume": 16384
+  },
+  "normalization_input": "raw physical labels; WSS floor is applied only by normalizer",
+  "bc_note": "20 frozen prescribed input channels from conditions attrs; RCR resistance Pa*s/kg and capacitance kg/Pa; train-only normalization",
+  "signature_refreshed_20260930": [
+    {
+      "source": "flowref",
+      "old": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AAA/unruputer/HAN_JIAN_FU/features.npz",
+        "size": 8578441,
+        "mtime_ns": 1789512774528663808
+      },
+      "new": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1/AAA/unruputer/HAN_JIAN_FU/features.npz",
+        "size": 8248228,
+        "mtime_ns": 1790760133369204329
+      },
+      "reason": "flowref rebuilt with the refitted cap-area rule; only the capfit arrays changed (cached features use *_murray_cap)"
+    }
+  ]
+}

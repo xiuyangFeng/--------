@@ -18,7 +18,7 @@ description: >-
 | `training_wss_min`，配置 `data_root` 指向 `data_wss_v5/` | V5 直接 WSS 或体场；读 [v5-analysis.md](v5-analysis.md)，并用 `data.target` 区分目标 |
 | `training_wss_min`，配置 `data_root` 指向 `data_wss_min/` | 旧 WSS-min；读 [v5-analysis.md](v5-analysis.md) 的产物/指标说明，再按实际配置定位历史协议；不能套 V5 split 与基线 |
 | `meta.exp_id` 为 `V3P-` / `V3D-`，`outputs/field/` | V3 历史线；读 [v3-analysis.md](v3-analysis.md) |
-| `outputs/wss_pinn/`，`volume_uvwp_*` | 体域 PINN 历史版本；按 run 的版本读 `wss_pinn/README.md` 与 `docs/02-推进与变更/WSS_PINN/README.md` 对应历史段落，不套 V5 或 V3 指标 |
+| `outputs/wss_pinn/`，`volume_uvwp_*` | 体域 PINN 历史版本；按 run 的版本读 `wss_pinn/README.md` 与 `docs/02-推进与变更/_archive/WSS_PINN/README.md` 对应历史段落，不套 V5 或 V3 指标 |
 | `outputs/wss_mri_calculator/` 或冻结算法实验目录 | velocity→WSS；读 `wss_mri_calculator/experiments/README.md` 对应版本 |
 | `external_baselines/`、V1/V2 或其他路线 | 读对应目录 README、配置和实验记录，只使用其自己的协议 |
 
@@ -54,7 +54,7 @@ description: >-
 
 | 路线 | 回填责任 |
 | --- | --- |
-| V5 | 对应 `training_wss_min/experiments/<批次>/` 报告及 `docs/02-推进与变更/WSS_PINN/WSS_V5_训练实验跟踪.md` 对应章节；有新结论/产物时在 WSS 专用推进记录文首记一条 |
+| V5 | 对应 `training_wss_min/experiments/<批次>/` 报告及 所属块的实验跟踪或矩阵（导航 `docs/02-推进与变更/README.md`；§0–§32 在 `00-V5设计与历史跟踪/` 历史卷）对应章节；有新结论/产物时在 WSS 专用推进记录文首记一条 |
 | 旧 WSS-min / PINN / velocity→WSS | 对应路线的活动记录 + `docs/02-推进与变更/WSS最小化_代码修改与实验推进记录.md`；冻结历史表不续写成当前计划 |
 | V3 | 见 [v3-analysis.md](v3-analysis.md) 的历史回填边界 |
 | 外部 baseline / 其他 | 该路线专用记录；不混入 V3 母版实验表 |

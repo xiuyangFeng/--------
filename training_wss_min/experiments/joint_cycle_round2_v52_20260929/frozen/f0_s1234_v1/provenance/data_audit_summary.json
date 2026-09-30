@@ -1,0 +1,177 @@
+{
+  "schema": "joint_cycle_v52_data_final_audit_v1",
+  "validated_at": "2026-09-29T10:05:21.871161+00:00",
+  "status": "complete",
+  "cache_cases": 261,
+  "train_cases": 206,
+  "test_cases": 55,
+  "patient_group_intersection": 0,
+  "assembly_sources": {
+    "v5.1": 159,
+    "v5.2-new": 91,
+    "v5.2-rebuilt": 11
+  },
+  "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+  "split_sha256": "57862a4f09de4c4bec9adf0eed66cf2ce0d9e7da0528c0ee1d38e0fb0f202269",
+  "stats_path": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/joint_cycle_v52_20260929/data_audit_cache/stats.json",
+  "stats_sha256": "456cfb916a96d07c2f51f72549ff2e09fb671b4bb4043da9c69ac8d77ea8ced8",
+  "current_data_code_sha256": "305cd2c3e56913046e2ca4d127ff67236f01c00ecff567e3957788eae6feb823",
+  "peak_consistency_max": {
+    "peak_velocity_abs_max": 0.0,
+    "peak_pressure_abs_max": 0.0,
+    "peak_wss_abs_max": 0.0
+  },
+  "pool_count_ranges": {
+    "train_wall": [
+      4100,
+      8192
+    ],
+    "eval_wall": [
+      4099,
+      8192
+    ],
+    "train_volume": [
+      8192,
+      8192
+    ],
+    "eval_volume": [
+      16384,
+      16384
+    ]
+  },
+  "endpoint_80_vs_0_largest": {
+    "velocity": {
+      "canonical_id": "AG/slow/WU_YI_FA",
+      "absolute_max": 0.22871139645576477
+    },
+    "pressure": {
+      "canonical_id": "AG/fast/WANG_DAO_CHUN",
+      "absolute_max": 136.7587432861328
+    },
+    "wss": {
+      "canonical_id": "AAA/ruputer/LI_LAO_PING",
+      "absolute_max": 2.6296770572662354
+    }
+  },
+  "smoke": {
+    "unit_id": "AAA/ruputer/DING_JUN_FENG",
+    "support": {
+      "pos": [
+        10000,
+        3
+      ],
+      "x": [
+        10000,
+        27
+      ],
+      "rows": [
+        10000
+      ],
+      "batch": [
+        10000
+      ]
+    },
+    "queries": {
+      "velocity": {
+        "pos": [
+          1024,
+          3
+        ],
+        "x": [
+          1024,
+          20
+        ],
+        "y": [
+          1024,
+          80,
+          3
+        ],
+        "y_raw": [
+          1024,
+          80,
+          3
+        ],
+        "weight": [
+          1024
+        ],
+        "rows": [
+          1024
+        ],
+        "batch": [
+          1024
+        ]
+      },
+      "pressure": {
+        "pos": [
+          1024,
+          3
+        ],
+        "x": [
+          1024,
+          20
+        ],
+        "y": [
+          1024,
+          80,
+          1
+        ],
+        "y_raw": [
+          1024,
+          80,
+          1
+        ],
+        "weight": [
+          1024
+        ],
+        "rows": [
+          1024
+        ],
+        "batch": [
+          1024
+        ]
+      },
+      "wss": {
+        "pos": [
+          1024,
+          3
+        ],
+        "x": [
+          1024,
+          27
+        ],
+        "y": [
+          1024,
+          80,
+          1
+        ],
+        "y_raw": [
+          1024,
+          80,
+          1
+        ],
+        "weight": [
+          1024
+        ],
+        "rows": [
+          1024
+        ],
+        "batch": [
+          1024
+        ]
+      }
+    },
+    "phase": [
+      2,
+      80,
+      4
+    ],
+    "bc": [
+      2,
+      20
+    ],
+    "passed": true,
+    "train_eval_queries_disjoint": true,
+    "eval_epoch_invariant": true
+  },
+  "slurm_job": 16147
+}
