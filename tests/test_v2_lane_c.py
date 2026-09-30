@@ -3,7 +3,8 @@ state, notices, in-place re-login, upload additions (PHASE2_LANES.md §5 C).
 
 Node scenarios reuse the stub DOM / canned service harness of ``test_v2_workspace_js.py`` with ``ws_admin.js``
 loaded in bundle order; the pure helpers are compared with the classic ``workbench_core.js`` where the classic
-workbench has the same rule.  The one server change (``owner_name`` in the administrator's all-users list) is tested
+workbench has the same rule.  S7 retired that file; its outputs for these inputs are frozen in ``CLASSIC_CORE``
+(computed with workbench_core.js at 866cf02 before it was deleted).  The one server change (``owner_name`` in the administrator's all-users list) is tested
 against a live test server.
 """
 from __future__ import annotations
@@ -13,9 +14,18 @@ import subprocess
 
 from tests._c_helpers import Service, call, finished
 from tests.test_v2_workspace_js import _HARNESS, V2, _need_node
-from wss_deploy.paths import STATIC_DIR
 from wss_deploy.users import UserStore
 
+# Classic ``workbench_core.js`` (866cf02, deleted in S7) on the inputs of test_pure_helpers_match_the_classic_workbench_core.
+CLASSIC_CORE = {'edges': [3.2, 6.6, 10, 13.399999999999999, 16.8, 20.2, 23.599999999999998, 27, 30.4, 33.8, 37.2, 40.6, 44, 47.4, 50.800000000000004, 54.2, 57.6],
+ 'hist': [2, 2, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+ 'pop': {'release_id': 'X5D', 'values': [5, 6, 7, 8], 'case_count': 136},
+ 'rerun': [True, False, False, False, False],
+ 'merged': {'upload': {'units': 'cm', 'device': 'cpu'}, 'x': 1, 'notifications': {'enabled': False}, 'schema_version': 'wss-deploy.preferences/v1'},
+ 'chk': [[True, True], [False, False], [False, False], [False, False], [True, True], [True, False]],
+ 'validN': 3,
+ 'chunks': [2, 20, 20, 3],
+ 'tags': ['AAA', '随访', 'ILO']}
 LANE_FILES = ["ws_rail.js", "ws_admin.js", "ws_upload.js", "ws_main.js"]
 WS = ["ws_icons.js", "ws_ui.js", "ws_store.js", "ws_api.js", "ws_rail.js", "ws_admin.js", "ws_overview.js", "ws_lens.js",
       "ws_bookmarks.js", "ws_questions.js", "ws_compare.js", "ws_upload.js", "ws_input.js", "ws_export.js", "ws_shell.js", "ws_main.js"]
@@ -63,23 +73,23 @@ def test_lane_files_parse_and_load_in_bundle_order():
 def test_pure_helpers_match_the_classic_workbench_core():
     out = _run(r"""
       for (const f of WS) require(f);
-      const WB = require(__CORE__);
+      const WB = __CLASSIC__;   // frozen classic outputs (workbench_core.js was retired in S7)
       const AD = ns.admin, UP = ns.upload, R = ns.rail;
       const vals = [3.2, 7.1, 7.1, 12.5, null, 'x', 20.65, 5.21, 57.6];
-      const edges = AD.binEdges(vals, 16), wbEdges = WB.binEdges(vals, 16);
-      const hist = AD.histogram(vals, edges), wbHist = WB.histogram(vals, wbEdges);
+      const edges = AD.binEdges(vals, 16), wbEdges = WB.edges;
+      const hist = AD.histogram(vals, edges), wbHist = WB.hist;
       const pop = {X5D: {values_pa: [5, 6, 7, 8], case_count: 136}, M1: {values_pa: []}};
       const rows = [{release_id: 'X5D'}, {release_id: 'X5D'}, {release_id: 'M1'}];
-      const popSame = JSON.stringify(AD.populationValues(pop, rows, '')) === JSON.stringify((({release_id, values, case_count}) => ({release_id, values, case_count}))(WB.populationValues(pop, rows, '')));
+      const popSame = JSON.stringify(AD.populationValues(pop, rows, '')) === JSON.stringify(WB.pop);
       const jobsForRerun = [{status: 'done', mapping: {'3': 'out-le'}, a: {}}, {status: 'done', mapping: {}}, {status: 'failed'}, {status: 'done', mapping: {'3': 'x'}}, null];
-      const rerun = jobsForRerun.map(j => [AD.rerunSkipReason(j) === null, WB.rerunSkipReason(j) === null]);
+      const rerun = jobsForRerun.map((j, i) => [AD.rerunSkipReason(j) === null, WB.rerun[i]]);
       const merged = [AD.mergePrefs({upload: {units: 'mm', device: 'cpu'}, x: 1}, {upload: {units: 'cm'}, notifications: {enabled: false}}),
-                      WB.mergePreferences({upload: {units: 'mm', device: 'cpu'}, x: 1}, {upload: {units: 'cm'}, notifications: {enabled: false}})];
+                      WB.merged];
       const files = [{name: 'LV_GUO_YOU.stl', size: 10}, {name: 'a.txt', size: 5}, {name: 'e.stl', size: 0}, {name: 'big.stl', size: 200 * 1048576}, {name: 'lv_guo_you.STL', size: 3}, {name: 'P-001.stl', size: 4}];
-      const chk = UP.checkFiles(files, {}), wbChk = WB.checkUploadFiles(files, {});
+      const chk = UP.checkFiles(files, {});
       const chunks = UP.uploadChunks(Array.from({length: 45}, (_, i) => ({size: i < 3 ? 100 * 1048576 : 1})), {maxFiles: 20, maxBytes: 240 * 1048576}).map(c => c.length);
-      const wbChunks = WB.uploadChunks(Array.from({length: 45}, (_, i) => ({size: i < 3 ? 100 * 1048576 : 1})), {maxFiles: 20, maxBytes: 240 * 1048576}).map(c => c.length);
-      const tags = [UP.parseTags('AAA, 随访，AAA、ILO'), WB.parseTags('AAA, 随访，AAA、ILO')];
+      const wbChunks = WB.chunks;
+      const tags = [UP.parseTags('AAA, 随访，AAA、ILO'), WB.tags];
       const ids = [UP.caseIdFor('', {name: 'x.stl'}, false), UP.caseIdFor('CT', {name: 'x.stl'}, true), UP.caseIdFor('', {name: 'y.STL'}, true), UP.caseIdFor('K1', {name: 'y.stl'}, false)];
       // task list model: status buckets, quick filters, sort with blanks sinking, paging
       const list = [syn(1), syn(2), syn(3, {review: {status: 'reviewed'}}), syn(4, {status: 'awaiting_confirmation'}), syn(5, {status: 'running'}), syn(6), syn(7, {status: 'cancelled'})];
@@ -102,10 +112,10 @@ def test_pure_helpers_match_the_classic_workbench_core():
         AD.shouldNotify({job_id: 'J4', status: 'failed', action: 'restored'}, known), AD.shouldNotify({job_id: 'J5', status: 'done', action: 'metadata_updated'}, known)];
       const counts = R.homeCounts([syn(1, {created_at: '2026-09-30T08:00:00+08:00'}), syn(2, {status: 'running'}), syn(3, {status: 'done'}), syn(4, {status: 'awaiting_input'}), syn(5, {status: 'interrupted'})], Date.parse('2026-09-30T12:00:00+08:00'));
       const pick = R.attnPick([['c1'], ['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7'], [], ['r1', 'r2']], 5);
-      done({edges: [edges, wbEdges], hist: [hist, wbHist], popSame, rerun, merged, chk: chk.rows.map(r => [r.ok, Boolean(r.warn)]), wbChk: wbChk.rows.map(r => [r.ok, Boolean(r.warn)]),
-        validN: [chk.valid.length, wbChk.valid.length], chunks, wbChunks, tags, ids, byStatus, quick, byPatient, paged: [paged.page, paged.pages, paged.rows.length], clamp: clamp.page,
+      done({edges: [edges, wbEdges], hist: [hist, wbHist], popSame, rerun, merged, chk: chk.rows.map(r => [r.ok, Boolean(r.warn)]), wbChk: WB.chk,
+        validN: [chk.valid.length, WB.validN], chunks, wbChunks, tags, ids, byStatus, quick, byPatient, paged: [paged.page, paged.pages, paged.rows.length], clamp: clamp.page,
         cohort, notes, counts, pick});
-    """.replace("__CORE__", json.dumps(str(STATIC_DIR / "workbench_core.js"))))
+    """.replace("__CLASSIC__", json.dumps(CLASSIC_CORE, ensure_ascii=False)))
     assert out["errors"] == [], out["errors"]
     assert out["edges"][0] == out["edges"][1] and out["hist"][0] == out["hist"][1] and sum(out["hist"][0]) == 7
     assert out["popSame"] is True

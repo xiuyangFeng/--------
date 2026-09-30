@@ -299,7 +299,9 @@ def test_static_whitelist_pages_and_example(service, tmp_path, monkeypatch):
         for name in ("secret.js", "absent.js", "bundle.json", "example_report.html", "sub/x.js", "..%2Fapp.js", "%2e%2e/app.js",
                      "sub%2Fx.js", "three.min.js"):
             assert _get(api, f"/static/v2/{name}", {})[0] == 404, name
-        assert _get(api, "/static/app.js", {})[0] == 200                             # the classic workbench is unchanged
+        assert _get(api, "/static/app.js", {})[0] == 404                             # S7: the classic workbench is retired …
+        status, _, response = _get(api, "/", {})
+        assert status == 302 and response.getheader("Location") == "/v2/"          # … and its address opens the workspace
         status, body, response = _get(api, "/v2/example", {"Cookie": cookie})
         assert status == 200 and "'unsafe-inline'" in response.getheader("Content-Security-Policy")
         (v2 / "example_report.html").unlink()

@@ -291,7 +291,7 @@ def test_v014_one_palette_source_rainbow_unchanged():
     assert out["turboEnds"] == [[48 / 255, 18 / 255, 59 / 255], [122 / 255, 4 / 255, 3 / 255]]
     assert out["tables"] == ["rainbow", "turbo", "bwr", "viridis"] and out["unknown"] == [0, 0, 143 / 255]
     # nobody else carries a stop table any more (turbo's first stop is a fingerprint of a local copy)
-    for name in ("report.py", "volume_report.py", "static/volume_viewer.js", "static/app.js", "static/compare.js"):
+    for name in ("report.py", "volume_report.py", "static/volume_viewer.js"):   # S7 retired static/app.js and static/compare.js
         text = (root / name).read_text(encoding="utf-8")
         assert "[48,18,59]" not in text and "[68,1,84]" not in text and "[31,78,156]" not in text, name
 

@@ -37,7 +37,7 @@ MAX_SNAPSHOT_IMAGES = 12
 FIRST_PAGE_SNAPSHOTS = 4
 FIRST_PAGE_FINDINGS = 5
 TIMELINE_ROWS = 4
-NO_SNAPSHOTS_HINT = "在三维报告「导出」菜单点「生成一页纸配图」可为本页配图。"
+NO_SNAPSHOTS_HINT = "在工作区打开结果，点「导出」→「一页纸」生成配图，可为本页配图。"
 
 # C4 (2026-09-30): the standard inflow condition comes first.  Protocol mean inflow 30.38 mL/s = cfd_auto/sanity.py
 # PROTOCOL_Q_M3S; period 0.8 s = release.json cycle.period_s / cfd_auto journals.

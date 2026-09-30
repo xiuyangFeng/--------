@@ -5,6 +5,11 @@ directory: the one-page HTML is rendered on the fly from summary.json.
 
 v0.14: the service writes bundles to a temporary file (:func:`write_job_bundle` / :func:`write_multi_bundle`)
 instead of building them in memory; :func:`job_bundle` / :func:`multi_bundle` keep the byte-returning API.
+
+S7 (PHASE3_LANES.md §3 lane 6 item 6): the page to open offline is the workspace's single-file offline report
+(``v2_offline.build_offline_html``, passed in as ``offline_html``) under :data:`OFFLINE_NAME`; it replaces the classic
+``report.html`` in the zip (that file stays in the job directory as the workspace's data source).  When the service
+could not build the offline page, the classic ``report.html`` is packed as before.
 """
 from __future__ import annotations
 
@@ -20,6 +25,8 @@ STORED_SUFFIXES = {".npz", ".zip", ".gz", ".png"}
 SIDECARS = ("annotations.json", "findings_review.json", "snapshots.json", "narrative.json")
 SNAPSHOT_FILE = re.compile(r"snapshot_[a-z0-9_-]{1,32}\.png")
 MAX_BUNDLE_JOBS = 50
+OFFLINE_NAME = "offline_report.html"
+CLASSIC_REPORT = "report.html"
 
 
 def _safe(name: str, fallback: str) -> str:
@@ -51,16 +58,27 @@ def readme_text(job: Mapping[str, Any], summary: Mapping[str, Any], files: list[
         scope,
         "- 主指标是预测点云的空间 p99；最大值只作参考并标出位置。",
         "- 面积占比 = 点占比 × 输入壁面面积（估计值）；压力是相对量，只有压差有意义。",
-        "- report.html 可离线打开（three.js 内嵌）；onepage.html 为 A4 一页纸；summary.json / run_manifest.json 记录来源链与文件哈希。",
+        offline_line(files),
+        "- onepage.html 为 A4 一页纸；summary.json / run_manifest.json 记录来源链与文件哈希。",
         "- annotations.json / findings_review.json（若存在）是审阅人的标注与发现判定。",
         "- narrative.json（若存在）是自动结论（auto）与审阅人改写（edited）；一页纸「结论（参考）」以改写优先。",
         "- summary.json 的 morphology 是壁面网格每 1 mm 一站的截面测量（最大 Feret / 等效直径、瘤体与瘤颈、体积）。",
-        "- snapshots.json 与 snapshot_*.png（若存在）是三维报告导出的一页纸配图，已内嵌在 onepage.html 中。",
+        "- snapshots.json 与 snapshot_*.png（若存在）是工作区「导出 → 一页纸」生成的配图，已内嵌在 onepage.html 中。",
         "",
         "文件：",
         *[f"- {name}" for name in files],
     ]
     return "\n".join(lines) + "\n"
+
+
+def offline_line(files: list[str]) -> str:
+    """README line about the page that opens without the service (S7: the workspace offline page, else the classic one)."""
+    if OFFLINE_NAME in files:
+        return (f"- {OFFLINE_NAME} 是单文件离线报告（与工作区同一个查看器）：用浏览器直接打开，不需要网络和服务，"
+                "可切换字段、看截面、读数和导出图片。")
+    if CLASSIC_REPORT in files:
+        return f"- {CLASSIC_REPORT} 可离线打开（three.js 内嵌，旧版报告页）。"
+    return "- 本包没有可离线打开的报告页。"
 
 
 def bundle_files(job_dir: Path, allowed: set[str]) -> list[str]:
@@ -87,14 +105,17 @@ def estimate_bytes(job_dir: Path, allowed: set[str]) -> int:
     return total
 
 
-def job_bundle(job_dir: Path, job: Mapping[str, Any], allowed: set[str], *, onepage_html: str | None = None) -> bytes:
-    """Zip bytes of one finished job: white-listed files that exist, sidecars, onepage.html and README.txt."""
+def job_bundle(job_dir: Path, job: Mapping[str, Any], allowed: set[str], *, onepage_html: str | None = None,
+               offline_html: str | None = None) -> bytes:
+    """Zip bytes of one finished job: white-listed files that exist, sidecars, onepage.html, the offline page and
+    README.txt (with ``offline_html`` the classic report.html is left out)."""
     buffer = io.BytesIO()
-    write_job_bundle(buffer, job_dir, job, allowed, onepage_html=onepage_html)
+    write_job_bundle(buffer, job_dir, job, allowed, onepage_html=onepage_html, offline_html=offline_html)
     return buffer.getvalue()
 
 
-def write_job_bundle(target, job_dir: Path, job: Mapping[str, Any], allowed: set[str], *, onepage_html: str | None = None) -> None:
+def write_job_bundle(target, job_dir: Path, job: Mapping[str, Any], allowed: set[str], *, onepage_html: str | None = None,
+                     offline_html: str | None = None) -> None:
     """Write one job's zip to ``target`` (a path or a seekable binary file); same members as :func:`job_bundle`."""
     job_dir = Path(job_dir).resolve()
     summary_path = job_dir / "summary.json"
@@ -105,6 +126,8 @@ def write_job_bundle(target, job_dir: Path, job: Mapping[str, Any], allowed: set
     if not isinstance(summary, Mapping):
         summary = {}
     names = bundle_files(job_dir, allowed)
+    if offline_html:
+        names = [name for name in names if name != CLASSIC_REPORT]
     with zipfile.ZipFile(target, "w") as archive:
         for name in names:
             method = zipfile.ZIP_STORED if Path(name).suffix in STORED_SUFFIXES else zipfile.ZIP_DEFLATED
@@ -113,6 +136,9 @@ def write_job_bundle(target, job_dir: Path, job: Mapping[str, Any], allowed: set
         if onepage_html:
             archive.writestr("onepage.html", onepage_html.encode("utf-8"), compress_type=zipfile.ZIP_DEFLATED)
             listed.append("onepage.html")
+        if offline_html:
+            archive.writestr(OFFLINE_NAME, offline_html.encode("utf-8"), compress_type=zipfile.ZIP_DEFLATED)
+            listed.append(OFFLINE_NAME)
         listed.append("README.txt")
         archive.writestr("README.txt", readme_text(job, summary, listed).encode("utf-8"), compress_type=zipfile.ZIP_DEFLATED)
 
@@ -149,5 +175,5 @@ def write_multi_bundle(target, parts: list[tuple[str, Path]]) -> None:
             archive.write(path, arcname=unique, compress_type=zipfile.ZIP_STORED)
 
 
-__all__ = ["MAX_BUNDLE_JOBS", "SIDECARS", "bundle_files", "bundle_name", "estimate_bytes", "job_bundle", "multi_bundle",
+__all__ = ["CLASSIC_REPORT", "MAX_BUNDLE_JOBS", "OFFLINE_NAME", "SIDECARS", "offline_line", "bundle_files", "bundle_name", "estimate_bytes", "job_bundle", "multi_bundle",
            "readme_text", "write_job_bundle", "write_multi_bundle"]

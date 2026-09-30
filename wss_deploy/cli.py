@@ -310,7 +310,7 @@ def _submit(args) -> int:
         if item.get("job"):
             job = item["job"]; created += 1
             reused = f"，复用 {item['reused_from']} 的中心线" if item.get("reused_from") else ""
-            print(f"✓ {name} → 任务 {job['id']}（病例 {job.get('case_id')}，{job.get('phase') or job.get('status')}{reused}）  {base}/#job={job['id']}")
+            print(f"✓ {name} → 任务 {job['id']}（病例 {job.get('case_id')}，{job.get('phase') or job.get('status')}{reused}）  {base}/v2/#/job/{job['id']}")
         elif item.get("duplicate"):
             duplicates += 1
             existing = item.get("existing") or []

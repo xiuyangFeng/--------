@@ -248,11 +248,13 @@
         {label: '一页操作卡', href: '/static/v2/help_quickstart.html', newTab: true},
         {label: '报错对照表', href: '/static/v2/help_errors.html', newTab: true},
         {separator: true},
-        {label: '快捷键', hint: '?', run: shortcutsDialog}
+        {label: '快捷键', hint: '?', run: shortcutsDialog},
+        {label: '反馈问题', href: '/support', newTab: true}   // P3 lane 6 (S7): the support page (工单)
       ]);
     });
-    var classicHref = cur && cur.jobId ? api().urls.classic(cur.jobId) : '/';
     var sess = S.session || {};
+    // P3 lane 6 (S7): the operations console for administrators (and the single operator of a local service).
+    var opsItem = !sess.shared || sess.role === 'admin' ? {label: '运维中心', href: '/ops', newTab: true} : null;
     var initial = String(sess.username || '本机').slice(0, 1).toUpperCase();
     var userBtn = h('button', {type: 'button', 'class': 'top-avatar', title: sess.username || '本机服务', 'aria-label': '账户与设置', text: initial});
     userBtn.setAttribute('aria-haspopup', 'menu');
@@ -267,8 +269,8 @@
         {label: '浅色视口', checked: stage === 'light', run: function () { setStage('light'); }},
         {separator: true},
       ].concat(extMenuItems('userMenu'), [
-        {label: '经典工作台', href: classicHref},
-        sess.login && sess.login !== 'none' ? {separator: true} : null,
+        opsItem,
+        sess.login && sess.login !== 'none' && opsItem ? {separator: true} : null,
         sess.login && sess.login !== 'none' ? {label: '退出登录', run: logout} : null
       ]));
     });
@@ -393,7 +395,7 @@
     });
   }
   function loadResult(jobId, seq, signal, r) {
-    if (!ns.data || !ns.viewer) { stageMessage('查看器没有加载。请刷新页面；仍不行时用经典报告。', true); return Promise.resolve(); }
+    if (!ns.data || !ns.viewer) { stageMessage('查看器没有加载。请刷新页面；仍不行时下载数据包，用里面的离线报告查看。', true); return Promise.resolve(); }
     var source = ns.data.createOnlineSource(jobId, {fetch: api().dataFetch});
     return Promise.resolve(ns.data.loadResult(source, {signal: signal})).then(function (result) {
       if (!store().isLatest(seq)) return null;
@@ -508,7 +510,10 @@
     var el = S.els.stageMsg;
     if (!text) { el.hidden = true; el.textContent = ''; el.className = 'stage-msg'; S.els.grid.classList.remove('dim'); return; }
     el.hidden = false; el.className = 'stage-msg' + (isError ? ' err' : '');
-    ui().fill(el, h('p', {text: text}), isError && S.cur && S.cur.jobId && api() ? ui().link('在经典报告中打开', api().urls.report(S.cur.jobId), {newTab: true}) : null);
+    // P3 lane 6 (S7): the fallback is 重试 and, for a finished result, its data package (with the offline page).
+    var jobId = isError && S.cur && S.cur.jobId && api() ? S.cur.jobId : null, done = Boolean(jobId && S.cur.job && S.cur.job.status === 'done');
+    ui().fill(el, h('p', {text: text}), jobId ? h('div', {'class': 'sec-actions stage-actions', style: {pointerEvents: 'auto', marginTop: '0'}}, ui().button('重试', function () { reloadCurrent(); }, {cls: 'btn-sm'}),
+      done ? h('a', {'class': 'btn btn-sm', href: api().urls.bundle(jobId), download: '', title: '结果文件和离线报告（zip）', text: '下载数据包'}) : null) : null);
     S.els.grid.classList.toggle('dim', !keepGrid);
   }
 
@@ -1534,13 +1539,14 @@
     ui().dialog.open({title: '模型说明 · ' + ((card && card.display_name) || cur.manifest.result.display_name || ''), wide: true, body: ns.overview.modelCardBody(card, cur.manifest).concat([h('p', {'class': 'research', text: (card && card.caveat) || '研究用途，非诊断。'})]),
       actions: [ui().button('关闭', function () { ui().dialog.close('done'); })]});
   }
-  function shortcutsDialog() {
+  function shortcutsDialog() {   // P3 lane 6 (S7): the last note names the keys that changed from the classic pages
     var rows = [['J / K', '下一例 / 上一例'], ['1–9', '切换字段（按工具栏顺序）'], ['← / →', '游标打开时沿血管移动 1 mm，Shift 5 mm'], ['[ / ]', '上一个 / 下一个发现'],
       ['L', '光照：平涂 / 柔和'], ['B', '保存书签'], ['G', '沿血管游标开关'], ['S', '截面开关（体场结果）'], ['M', '测量开关'],
       ['↑ / ↓', '截面打开时沿中心线（或法向）移动 1 mm，Shift 5 mm'], ['← / → · PgUp / PgDn', '截面打开时转动截面 2°，Shift 10°'], ['[ / ]（截面）', '截面打开时改厚度 0.4 mm'], ['Esc', '退出当前工具或关闭对话框'], ['?', '这张表']];
     if (ns.detail) rows.splice(rows.length - 2, 0, ['N', '新建（上传 STL）'], ['/', '搜索病例'], ['O', '打开一页纸']);   // lane D keys
     ui().dialog.open({title: '快捷键', body: [ui().table([{key: 'k', label: '键'}, {key: 'v', label: '作用'}], rows.map(function (r) { return {k: r[0], v: r[1]}; }), {cls: 'tbl-keys'}),
-      ui().note('在输入框和对话框里不响应；不占用浏览器自己的组合键。')], actions: [ui().button('关闭', function () { ui().dialog.close('done'); })]});
+      ui().note('在输入框和对话框里不响应；不占用浏览器自己的组合键。'),
+      ui().note('和旧版不同：G 是沿血管游标（旧版工作台的 G 是一页纸，现在用 O）；O 打开一页纸（旧版是打开三维报告）；复位视角按 0，R 不再复位。')], actions: [ui().button('关闭', function () { ui().dialog.close('done'); })]});
   }
 
   // ------------------------------------------------------------------ bookmarks D10
@@ -1792,8 +1798,6 @@
     var full = store().prefs().tier === 'full';
     var jobId = cur.jobId;
     var parts = [];
-    parts.push(ui().section('经典报告', {}, ui().note('需要与经典报告对照时，可以在这里打开。'),
-      h('div', {'class': 'sec-actions'}, ui().button('在经典报告中打开', function () { root.open(api().urls.report(jobId), '_blank', 'noopener'); }, {icon: 'external'}))));
     parts.push(ui().section('导出', {}, ui().note('图片、拼图、一页纸配图、复核数据与离线报告。'), h('div', {'class': 'sec-actions'}, ui().button('导出…', openExport, {icon: 'download'}))));
     if (full) {
       var m = cur.manifest, pv = m.provenance || {}, mp = m.mapping || {}, di = mp.display_interpolation || {};
