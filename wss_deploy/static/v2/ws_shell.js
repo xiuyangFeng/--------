@@ -13,7 +13,7 @@
   var store = function () { return ns.store; };
   var api = function () { return ns.api; };
   var VIEWS = ['wall', 'volume', 'compare', 'input'];
-  var CLASSIC_TOOLS = '标注、六视角、出版级导图、分支展开图';
+  var CLASSIC_TOOLS = '六视角、出版级导图、分支展开图';
 
   // ------------------------------------------------------------------ routing (pure)
   function parseHash(hash) {
@@ -269,6 +269,8 @@
     if (S.cur && S.cur.measure) { try { S.cur.measure.dispose(); } catch (_) {} S.cur.measure = null; }
     if (S.cur && S.cur.region) { try { S.cur.region.dispose(); } catch (_) {} S.cur.region = null; }
     if (S.cur && S.cur.probe && ns.probe) { try { ns.probe.clear(S.viewerA); } catch (_) {} S.cur.probe = null; }
+    cancelPickOnce();
+    if (ns.annot && S.viewerA) { try { ns.annot.clearAll(S.viewerA); } catch (_) {} }
     if (S.cur && S.cur.cursor) { try { S.viewerA.setCursor(null); } catch (_) {} }
     S.cur = null; S.lensRef = null; S.question = null;
     ns.questions && ns.questions.bar(S.els.qbar, null, {});
@@ -279,7 +281,7 @@
     S.abort = typeof root.AbortController === 'function' ? new root.AbortController() : null;
     var signal = S.abort ? S.abort.signal : undefined;
     S.cur = {seq: seq, jobId: jobId, job: null, result: null, manifest: null};
-    if (S.tab === 'reading' || S.tab === 'compare' || S.tab === 'slice' || S.tab === 'measure' || S.tab === 'region') S.tab = null;
+    if (S.tab === 'reading' || S.tab === 'compare' || S.tab === 'slice' || S.tab === 'measure' || S.tab === 'region' || S.tab === 'annot') S.tab = null;
     S.lensRef = null;
     if (S.rail) S.rail.setCurrent(jobId);
     showMode('result');
@@ -339,6 +341,11 @@
     v.on('contextrestored', function () { var vp = side === 'a' ? S.els.vpA : S.els.vpB; vp.msg.hidden = true; });
     v.on('change', function (e) { if (e && (e.what === 'field' || e.what === 'result' || e.what === 'branches')) updateColorbar(side); });
     v.on('error', function (e) { ui().toast('三维显示出错：' + (e && e.message || e), {kind: 'error'}); });
+    v.on('marker', function (e) {   // a finding marker in 3-D: select that finding
+      if (side !== 'a' || !e || !S.cur || !S.cur.manifest) return;
+      var it = ns.overview.findingsModel(S.cur.manifest).items.filter(function (x) { return x.id === e.id; })[0];
+      if (it) selectFinding(it);
+    });
   }
   function showResult(result, seq, r) {
     var cur = S.cur;
@@ -381,6 +388,7 @@
   function afterShown(r) {
     var cur = S.cur;
     loadTimeline(cur);
+    drawLabels();
     if (r) applyRouteExtras(r);
   }
   function safeFit(v) { try { v.fit(); } catch (_) {} }
@@ -497,6 +505,11 @@
       measBtn.disabled = Boolean(cur.compare || cur.split);
       tools.push(measBtn);
     }
+    if (ns.annot && S.viewerA && !S.offline) {
+      var anBtn = ui().iconButton('pin', cur.annotTool ? '关闭标注' : '标注：在管壁上钉文字，存到服务', toggleAnnot, {pressed: Boolean(cur.annotTool)});
+      anBtn.disabled = Boolean(cur.compare || cur.split);
+      tools.push(anBtn);
+    }
     if (ns.region && cur.result && ns.region.supported(cur.result)) {
       var regBtn = ui().iconButton('region', cur.region ? '关闭区域统计' : '区域统计：分支上一段或球形区域的均值、p99、最大', toggleRegion, {pressed: Boolean(cur.region)});
       regBtn.disabled = !S.viewerA || Boolean(cur.compare || cur.split);
@@ -578,6 +591,11 @@
       item('outline', '轮廓线'), item('centerline', '中心线'), item('points', '预测点'), item('trust', '可信度标记（斜纹）'),
       volume ? item('streamlines', '流线') : null, volume ? item('wall', '血管外壁') : null, volume ? item('interior', '体内点') : null,
       {label: '分支显隐…', run: function () { branchDialog(); }},
+      {separator: true}, {heading: '标注与自动标签'},
+      {label: '标注', checked: Boolean(store().prefs().labels.annotations), run: function () { setLabelPref({annotations: !store().prefs().labels.annotations}); }},
+      {label: '分支名', checked: Boolean(store().prefs().labels.branches), run: function () { setLabelPref({branches: !store().prefs().labels.branches}); }},
+      {label: '发现标签（前 5 条）', checked: store().prefs().labels.findings > 0, run: function () { setLabelPref({findings: store().prefs().labels.findings > 0 ? 0 : 5}); }},
+      {label: '管腔最大直径环', checked: Boolean(store().prefs().labels.maxd), run: function () { setLabelPref({maxd: !store().prefs().labels.maxd}); }},
       {separator: true}, {heading: '视口背景'},
       {label: '深色', checked: store().prefs().stage !== 'light', run: function () { setStage('dark'); }},
       {label: '浅色', checked: store().prefs().stage === 'light', run: function () { setStage('light'); }},
@@ -680,6 +698,7 @@
     if (S.cur && S.cur.slice) tabs.push({id: 'slice', label: '截面'});
     if (S.cur && S.cur.measure) tabs.push({id: 'measure', label: '测量'});
     if (S.cur && S.cur.region) tabs.push({id: 'region', label: '区域'});
+    if (S.cur && S.cur.annotTool) tabs.push({id: 'annot', label: '标注'});
     tabs.push({id: 'reading', label: '读数'}, {id: 'bookmarks', label: '书签'});
     if (!S.offline) tabs.push({id: 'tools', label: '工具'});
     if (S.cur && S.cur.compare) tabs.push({id: 'compare', label: '比较'});
@@ -687,7 +706,7 @@
   }
   function setInspector(open) { store().setPrefs({inspector: open}); applyPanels(); renderToolbar(); if (open) renderInspector(); }
   // The reading tab is a transient answer to one click; a new result opens on the overview again.
-  function setTab(id) { S.tab = id; if (['compare', 'reading', 'slice', 'measure', 'region'].indexOf(id) < 0) store().setPrefs({tab: id}); renderInspector(); }
+  function setTab(id) { S.tab = id; if (['compare', 'reading', 'slice', 'measure', 'region', 'annot'].indexOf(id) < 0) store().setPrefs({tab: id}); renderInspector(); }
   function renderInspector() {
     var cur = S.cur;
     var E = S.els;
@@ -704,6 +723,7 @@
     else if (tab === 'slice') renderSlice(body);
     else if (tab === 'measure') renderMeasure(body);
     else if (tab === 'region') renderRegion(body);
+    else if (tab === 'annot') renderAnnot(body);
     else if (tab === 'reading') renderReading(body);
     else if (tab === 'bookmarks') renderBookmarks(body);
     else if (tab === 'tools') renderTools(body);
@@ -748,7 +768,8 @@
       tier: store().prefs().tier, locked: locked, selectedFinding: cur.findingSel, findingsExpanded: cur.findingsExpanded,
       onLens: openLens, onFinding: selectFinding, onOpenResult: function (id) { go(id); },
       onReview: S.offline ? null : reviewDialog, onEditNarrative: S.offline || locked ? null : narrativeDialog, onModelCard: modelCardDialog,
-      onConfirmRest: S.offline ? null : confirmRest, onToggleFindings: function () { cur.findingsExpanded = !cur.findingsExpanded; renderInspector(); }};
+      onConfirmRest: S.offline ? null : confirmRest, onToggleFindings: function () { cur.findingsExpanded = !cur.findingsExpanded; renderInspector(); },
+      onAddFinding: S.offline || !ns.review ? null : startAddFinding, onLegacy: legacyDialog};
   }
   function openLens(ref) {
     S.lensRef = ref;
@@ -759,6 +780,7 @@
     var cur = S.cur;
     var parts = [];
     if (cur.cursor) parts.push(cursorPanel());
+    if (ns.review && S.lensRef && S.lensRef.kind === 'finding' && S.lensRef.item && S.lensRef.item.id) parts.push(decisionBar(S.lensRef.item));
     var probeOn = Boolean(cur.probe && ns.probe && S.lensRef && S.lensRef.kind === 'point' && S.lensRef.side !== 'b');
     if (probeOn) { try { parts.push(ns.probe.card(cur.result, cur.probe, probeCtx())); } catch (e) { parts.push(ui().note('探针读数失败：' + (e && e.message || e))); } }
     var lensBox = h('div', {'class': 'lens-box' + (probeOn && !S.lensOpen ? ' folded' : '')});
@@ -829,6 +851,185 @@
     if (cur.slice) { cur.slice.set(st); cur.slice.look(true); setTab('slice'); return; }
     cur.sliceState = Object.assign({}, cur.sliceState || {}, st);
     toggleSlice();
+  }
+
+  // ------------------------------------------------------------------ findings review, annotations, labels (S4)
+  function isLocked(cur) { return ui().reviewInfo((cur.job && cur.job.review) || (cur.manifest.job && cur.manifest.job.review)).key === 'reviewed'; }
+  function editable(cur) { return !S.offline && !isLocked(cur); }
+  var LOCKED_TEXT = '已复核锁定：判定、人工发现和标注只读；需要修改请先「重新打开」。';
+  function reviewDoc(cur) { return ns.review.docOf(cur.manifest); }
+  function reviewSaver(cur) {
+    if (!cur.reviewSaver) cur.reviewSaver = ns.review.saver({
+      put: function (payload) { return api().findingsReview(cur.jobId, payload); },
+      version: function () { return cur.job && cur.job.version; },
+      onSaved: function (doc, version) {
+        if (S.cur !== cur) return;
+        cur.manifest.analysis.findings.review = doc;
+        if (cur.job && version !== undefined) cur.job.version = version;
+        cur.reviewStatus = '已保存';
+        if (currentTab() === 'reading' || currentTab() === 'overview') renderInspector();
+        drawLabels();
+      },
+      onError: function (e) { if (S.cur !== cur) return; cur.reviewStatus = null; conflictOr(e, '保存发现判定失败'); }
+    });
+    return cur.reviewSaver;
+  }
+  // Local update first (the list and the bar follow at once), then the debounced save.
+  function applyReview(cur, doc) {
+    var a = cur.manifest.analysis || (cur.manifest.analysis = {});
+    var f = a.findings || (a.findings = {items: []});
+    f.review = Object.assign({}, f.review || {}, {items: doc.items, added: doc.added});
+    cur.reviewStatus = '保存中…';
+    reviewSaver(cur).save({items: doc.items, added: doc.added});
+    renderInspector();
+    drawLabels();
+  }
+  function decisionBar(item) {
+    var cur = S.cur, id = item.id;
+    return ns.review.bar({ui: ui(), item: item, doc: reviewDoc(cur), editable: editable(cur), lockedText: S.offline ? '离线报告：只读' : LOCKED_TEXT, status: cur.reviewStatus,
+      onDecision: function (d) { applyReview(cur, ns.review.setDecision(reviewDoc(cur), id, d)); },
+      onNote: function (t) { applyReview(cur, ns.review.setNote(reviewDoc(cur), id, t)); },
+      onRemove: item.manual ? function () {
+        ui().confirm('删除人工发现 ' + id + '？', ['「' + (item.text || '') + '」'], {confirmLabel: '删除', danger: true}).then(function (ok) {
+          if (!ok || S.cur !== cur) return;
+          S.lensRef = null; cur.findingSel = null;
+          try { S.viewerA.setMarkers([]); } catch (_) {}
+          applyReview(cur, ns.review.removeManual(reviewDoc(cur), id));
+        });
+      } : null});
+  }
+  // One click on the wall, then cb(xyz).  Used by 新增人工发现 and by 钉标注.
+  function pickOnce(message, cb) {
+    var v = S.viewerA;
+    if (!v || !v.canvasElement) return;
+    cancelPickOnce();
+    var cv = v.canvasElement, press = null;
+    var down = function (e) { if (e.button === 0) press = {x: e.clientX, y: e.clientY, id: e.pointerId}; };
+    var up = function (e) {
+      var click = press && press.id === e.pointerId && Math.hypot(e.clientX - press.x, e.clientY - press.y) < 6;
+      press = null;
+      if (!click) return;
+      S.pickTakenAt = Date.now();
+      var hit = v.surfaceAt(e.clientX, e.clientY);
+      if (!hit || !hit.xyz) { ui().toast('没有点到管壁。', {kind: 'info', ms: 2500}); return; }
+      var fn = S.pickOnceCb;
+      cancelPickOnce();
+      fn(hit.xyz);
+    };
+    cv.addEventListener('pointerdown', down, true);
+    cv.addEventListener('pointerup', up, true);
+    S.pickOnce = {cv: cv, down: down, up: up}; S.pickOnceCb = cb;
+    cv.style.cursor = 'crosshair';
+    var hud = S.els.vpA.hud; hud.hidden = false; hud.textContent = message + ' · Esc 取消';
+  }
+  function cancelPickOnce() {
+    if (!S.pickOnce) return;
+    var p = S.pickOnce;
+    p.cv.removeEventListener('pointerdown', p.down, true); p.cv.removeEventListener('pointerup', p.up, true);
+    p.cv.style.cursor = '';
+    S.pickOnce = null; S.pickOnceCb = null;
+    if (S.cur && S.cur.slice) sliceChanged(S.cur); else S.els.vpA.hud.hidden = true;
+    if (S.cur && S.cur.annotTool && currentTab() === 'annot') renderInspector();
+  }
+  function withCenterline(cur, fn) {
+    var keys = ns.probe ? ns.probe.requiredArrays(cur.result).filter(function (k) { return !cur.result.has(k); }) : [];
+    Promise.resolve(keys.length ? cur.result.preload(keys) : null).then(function () { if (S.cur === cur) fn(); }, function (e) { ui().toast('读取中心线失败：' + (e && e.message || e), {kind: 'error'}); });
+  }
+  function whereText(cur, xyz) {
+    var c = root.WssReportCommon, groups = ns.probe ? ns.probe.groups(cur.result) : [], pr = null;
+    try { pr = c && groups.length ? c.projectToCenterline(groups, xyz) : null; } catch (_) { pr = null; }
+    return (pr ? pr.name + ' · ' : '') + '(' + xyz.map(function (v) { return v.toFixed(1); }).join(', ') + ') mm';
+  }
+  function startAddFinding() {
+    var cur = S.cur;
+    if (!cur || !cur.result || !editable(cur)) return;
+    withCenterline(cur, function () {
+      pickOnce('在管壁上点一处，新增一条人工发现', function (xyz) {
+        ns.review.addDialog(ui(), whereText(cur, xyz), function (v) {
+          var fm = ns.overview.findingsModel(cur.manifest);
+          var r = ns.review.addManual(reviewDoc(cur), cur.result, fm.items, xyz, v.text, v.severity);
+          if (r.error) { ui().toast(r.error, {kind: 'error'}); return; }
+          applyReview(cur, r.doc);
+          selectFinding(ns.review.manualItem(r.item));
+        });
+      });
+    });
+  }
+  function legacyDialog(list) {
+    var dec = {confirmed: '已确认', rejected: '已驳回'};
+    ui().dialog.open({title: '规则更新前的判定', body: [ui().note('分析规则更新后没能对上新发现的旧判定。只读，服务端一直保留；一页纸附录里也有。'),
+      h('div', {'class': 'legacy-list'}, list.map(function (x) {
+        return h('div', {'class': 'meas-row'}, h('b', {'class': 'meas-id', text: x.id || ''}),
+          h('span', {'class': 'meas-text', text: [x.label || x.kind || '', x.branch || '', x.value !== undefined ? ui().num(x.value, x.units) : '', dec[x.decision] || '', x.note || ''].filter(Boolean).join(' · ')}));
+      }))]});
+  }
+  // Annotation pins and automatic labels, from the result and the prefs; redrawn after every change.
+  function annotItems(cur) { if (!cur.annotItems) cur.annotItems = ns.annot.itemsOf(cur.manifest); return cur.annotItems; }
+  function drawLabels() {
+    var cur = S.cur, v = S.viewerA;
+    if (!cur || !cur.result || !v || !ns.annot) return;
+    var L = store().prefs().labels || {};
+    withCenterline(cur, function () {
+      try { ns.annot.drawPins(v, cur.result, L.annotations ? annotItems(cur) : []); } catch (_) {}
+      var fm = ns.overview.findingsModel(cur.manifest), rv = fm.review;
+      var list = fm.items.filter(function (it) { return !(rv[it.id] && rv[it.id].decision === 'rejected'); });
+      try { ns.annot.drawAuto(v, cur.result, cur.manifest, {branches: L.branches, findings: L.findings, maxd: L.maxd, findingsList: list}); } catch (_) {}
+    });
+  }
+  function setLabelPref(patch) {
+    store().setPrefs({labels: Object.assign({}, store().prefs().labels, patch)});
+    drawLabels();
+  }
+  function annotSaver(cur) {
+    if (!cur.annotSaver) cur.annotSaver = ns.annot.saver({
+      put: function (payload) { return api().annotations(cur.jobId, payload); },
+      version: function () { return cur.job && cur.job.version; },
+      onSaved: function (items, version) {
+        if (S.cur !== cur) return;
+        cur.annotItems = items;
+        cur.manifest.analysis.annotations = Object.assign({}, cur.manifest.analysis.annotations || {}, {items: items});
+        if (cur.job && version !== undefined) cur.job.version = version;
+        drawLabels();
+        if (currentTab() === 'annot') renderInspector();
+      },
+      onError: function (e) { if (S.cur !== cur) return; cur.annotItems = null; conflictOr(e, '保存标注失败'); }
+    });
+    return cur.annotSaver;
+  }
+  function setAnnots(cur, items) {
+    cur.annotItems = items;
+    annotSaver(cur).save(items);
+    drawLabels();
+    if (currentTab() === 'annot') renderInspector();
+  }
+  function toggleAnnot() {
+    var cur = S.cur;
+    if (!cur || !cur.result || !ns.annot) return;
+    if (cur.annotTool) { cur.annotTool = false; cancelPickOnce(); if (S.tab === 'annot') S.tab = null; renderToolbar(); renderInspector(); return; }
+    if (!store().prefs().labels.annotations) setLabelPref({annotations: true});
+    cur.annotTool = true;
+    setTab('annot'); renderToolbar();
+  }
+  function renderAnnot(body) {
+    var cur = S.cur;
+    if (!cur.annotTool) { ui().fill(body, ui().empty('标注已关闭。')); return; }
+    ns.annot.panel(body, {ui: ui(), items: annotItems(cur), editable: editable(cur), lockedText: S.offline ? '离线报告：只读' : LOCKED_TEXT, placing: Boolean(S.pickOnce),
+      onClose: toggleAnnot, onFly: function (xyz) { flyTo(xyz, 10); },
+      onEdit: function (id, text) { setAnnots(cur, ns.annot.edit(annotItems(cur), id, text)); },
+      onRemove: function (id) { setAnnots(cur, ns.annot.remove(annotItems(cur), id)); },
+      onPlace: function () {
+        if (S.pickOnce) { cancelPickOnce(); return; }
+        withCenterline(cur, function () {
+          pickOnce('在管壁上点一处放标注', function (xyz) {
+            ns.annot.addDialog(ui(), whereText(cur, xyz), function (text) {
+              var r = ns.annot.add(annotItems(cur), cur.result, xyz, text);
+              if (r.error) { ui().toast(r.error, {kind: 'error'}); return; }
+              setAnnots(cur, r.items);
+            });
+          });
+          renderInspector();
+        });
+      }});
   }
 
   // ------------------------------------------------------------------ measurement and regions (S3)
@@ -942,6 +1143,7 @@
     if (!cur || !cur.manifest) return;
     if (side !== 'b' && cur.slice && cur.slice.clickTaken()) return;   // the click placed a section point
     if (side !== 'b' && ((cur.measure && cur.measure.clickTaken()) || (cur.region && cur.region.clickTaken()))) return;   // a measuring / region point
+    if (side !== 'b' && (S.pickOnce || Date.now() - (S.pickTakenAt || 0) < 500)) return;   // a manual finding / annotation point
     if (side !== 'b') pinProbe(e);
     var fid = side === 'b' ? (cur.compare ? cur.compare.field : cur.split && cur.split.field) : cur.field;
     if (side !== 'b') cur.selection = e.pointIndex === undefined ? null : e.pointIndex;
@@ -1148,8 +1350,9 @@
     var cur = S.cur;
     var f = cur.manifest.analysis.findings || {};
     var review = f.review || {};
-    var items = Object.assign({}, review.items || {});
-    fm.undecided.forEach(function (it) { items[it.id] = {decision: 'confirmed', note: ''}; });
+    // the notes of undecided findings stay (they were wiped before S4)
+    var items = ns.review ? ns.review.confirmRest({items: review.items || {}, added: review.added || []}, fm.undecided.map(function (it) { return it.id; })).items
+      : Object.assign({}, review.items || {});
     api().findingsReview(cur.jobId, {items: items, added: review.added || [], version: cur.job && cur.job.version}).then(function (r) {
       if (S.cur !== cur) return;
       f.review = r.findings_review || {items: items, added: review.added || []};
@@ -1557,6 +1760,7 @@
     if (key === 'Escape') {
       if (ui().menuOpen()) { ui().closeMenu(); return; }
       if (ui().dialog.isOpen()) return;          // the <dialog> handles its own Esc
+      if (S.pickOnce) { cancelPickOnce(); return; }
       if (S.cur && S.cur.measure && S.cur.measure.cancelPending()) { if (currentTab() === 'measure') renderInspector(); return; }
       if (S.cur && S.cur.region && S.cur.region.picking()) { S.cur.region.setPicking(false); return; }
       if (S.cur && S.cur.slice) { if (S.cur.slice.picking()) S.cur.slice.setPicking(false); else exitSlice(); return; }

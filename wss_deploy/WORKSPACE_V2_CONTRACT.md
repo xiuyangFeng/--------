@@ -426,6 +426,8 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 | `ws_probe.js` | 探针（第二期 S3）：点一下血管钉住探针。壁面：离命中点精确最近的预测点，过命中点、垂直中心线的截面上各字段环上均值（`WssReportCommon.sectionMeans`，逐段取最近预测点、按长度加权）与环上最低 → 最高；体场：体内点记录与该截面的面积积分（`stationSection` + `ws_slice.integrate`）。中心线分支组按经典报告的方式建（不用游标的）。「记录」按经典行格式存本机，`probeToTSV` / `probeToCSV` 导出；三维画截面环 |
 | `ws_measure.js` | 测量（S3，M 键）：距离、弧长、管径、分段，经典 `buildMeasurement` 的算法与标签（管径两族都用真实截面，退回 2 × 内切半径时注明）；点击取管壁原始命中点；三维线、点、截面轮廓与文字标签；列表可定位 / 复制 / 删除，复制全部用经典体场报告的列；按结果存本机 |
 | `ws_region.js` | 壁面区域统计（S3）：分支上一段（距入口 mm，按预测点 `s_from_root`）或球形区域；当前字段的等权均值 / p99 / 最大（`VolumeViewerCore.statistics`），顶点按经典规则归属后高亮、其余变淡；面积为显示网格面积 |
+| `ws_review.js` | 发现判定（第二期 S4）：经典 findings_review 文档（items {id: {decision, note}}，added 人工发现 ≤ 30）；无判定无备注的条目去掉；人工发现编号 M<k> 避开所有发现；带任务版本号的去抖保存（0.6 s），409 读回；读数页判定条、新增人工发现对话框；锁定或离线只读 |
+| `ws_annot.js` | 标注与自动标签（S4）：经典 annotations 文档（≤ 50 条，文字 ≤ 200）；三维常驻显示（点、朝头侧的竖线、`A1 · 文字`）；「标注」页钉、改、删、定位，去抖保存；自动标签：分支名、前 N 条未驳回的发现、管腔最大直径环（`prefs.labels`） |
 | `ws_lens.js` | 证据透镜 D9：结果 → 位置 / 区域 → 值（预测 / 派生 / 几何）→ 映射与聚合方法（显示插值、2 mm 分箱、点等权、面积估计）→ 支撑（trust 位、几何参照、插值覆盖）→ 该量留出集一致性（卡片）→ 人群位置（只在同口径参照存在时）。未知就写未知 |
 | `ws_bookmarks.js` | 书签 D10：保存（名称 + 一句备注）、列表、恢复、排序、删除、导入 / 导出 JSON；随离线导出。记录 `run_identity` / `data_version` / `viewer_version` / 字段 / 窗 / 相机 / 游标 / 选中点 / `time_index`。结果或数据版本不符时提示不兼容，不强行套用 |
 | `ws_questions.js` | 按问题打开 D8，三个问题：<br>「低值区域在哪里」：TAWSS（无则 WSS）+ 低值窗 + 低值发现；<br>「同一位置的 TAWSS 与 OSI」：双视口联动；<br>「比较两次结果」：进比较。<br>显示当前套用了什么，可撤销，回到自由浏览 |
@@ -443,7 +445,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 - 顶部写「离线报告 · 导出于 … · 导出时复核状态 …」。
 - 数据来自 `createEmbeddedSource(document)`；`wssv2-offline` JSON 里带 `bookmarks`、`view`、`hide_name`、`exported_at`。
 
-**未迁移的工具**：在检查器「工具」区给「在经典报告中打开」（`/api/jobs/<id>/report`，新窗口）。还没迁的：标注、六视角、出版级导图、分支展开图（截面在 S1、S2，测量、探针、区域统计、分支显隐在 S3 迁入）。
+**未迁移的工具**：在检查器「工具」区给「在经典报告中打开」（`/api/jobs/<id>/report`，新窗口）。还没迁的：六视角、出版级导图、分支展开图（截面在 S1、S2，测量、探针、区域统计、分支显隐在 S3，发现判定与标注在 S4 迁入）。
 
 ### 6.4 状态合同 A8（`ws_store.js`）
 

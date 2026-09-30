@@ -15,7 +15,8 @@
   'use strict';
 
   var PREFS_KEY = 'wssv2:prefs:2';   // :2 — 2026-09-30 look: lit by default, dark stage
-  var DEFAULTS = {schema: 'wssv2.prefs/2', tier: 'basic', lighting: 'soft', stage: 'dark', cmap: 'rainbow', rail: true, inspector: true, tab: 'overview'};
+  var DEFAULTS = {schema: 'wssv2.prefs/2', tier: 'basic', lighting: 'soft', stage: 'dark', cmap: 'rainbow', rail: true, inspector: true, tab: 'overview',
+    labels: {branches: false, findings: 0, maxd: false, annotations: true}};   // S4: automatic labels in 3-D, annotation pins shown
   var TIERS = ['basic', 'full'], LIGHTS = ['flat', 'soft'], STAGES = ['dark', 'light'], CMAPS = ['rainbow', 'viridis', 'turbo'], TABS = ['overview', 'reading', 'bookmarks', 'tools', 'compare'];
 
   function storage() { try { return root.localStorage || null; } catch (_) { return null; } }
@@ -40,6 +41,11 @@
     if (typeof raw.rail === 'boolean') p.rail = raw.rail;
     if (typeof raw.inspector === 'boolean') p.inspector = raw.inspector;
     if (TABS.indexOf(raw.tab) >= 0 && raw.tab !== 'compare') p.tab = raw.tab;
+    var L = raw.labels && typeof raw.labels === 'object' ? raw.labels : {};
+    p.labels = {branches: typeof L.branches === 'boolean' ? L.branches : DEFAULTS.labels.branches,
+      findings: [0, 3, 5, 10].indexOf(L.findings) >= 0 ? L.findings : DEFAULTS.labels.findings,
+      maxd: typeof L.maxd === 'boolean' ? L.maxd : DEFAULTS.labels.maxd,
+      annotations: typeof L.annotations === 'boolean' ? L.annotations : DEFAULTS.labels.annotations};
     return p;
   }
   var prefsCache = null;

@@ -160,6 +160,7 @@
     review: function (id, payload) { return request(jobPath(id, '/review'), {method: 'POST', body: payload}); },
     findingsReview: function (id, payload) { return request(jobPath(id, '/findings_review'), {method: 'PUT', body: payload}); },
     narrative: function (id, payload) { return request(jobPath(id, '/narrative'), {method: 'PUT', body: payload}); },
+    annotations: function (id, payload) { return request(jobPath(id, '/annotations'), {method: 'PUT', body: payload}); },
     metadata: function (id, payload) { return request(jobPath(id, '/metadata'), {method: 'POST', body: payload}); },
     offline: function (id, body) { return download('/api/v2/jobs/' + enc(id) + '/offline', {method: 'POST', body: body, filename: 'WSS_病例.html'}); },
     bundle: function (id) { return download(jobPath(id, '/bundle.zip'), {filename: 'wss_' + id + '.zip'}); },

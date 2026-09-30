@@ -100,12 +100,19 @@
     stagnation_cluster: '滞留区', high_osi_cluster: '高 OSI 区', low_tawss_cluster: '低 TAWSS 区', max_speed: '最大速度', min_pressure: '最低相对压力',
     pressure_drop: '沿程压降', low_speed_region: '低速区'};
   var KIND_ORDER = ['low_tawss_cluster', 'stagnation_cluster', 'high_osi_cluster', 'low_wss_cluster', 'high_wss_cluster', 'max_wss', 'max_speed', 'min_pressure', 'pressure_drop', 'low_speed_region', 'max_diameter', 'min_radius'];
+  // Automatic findings plus the reviewer's manual ones (review.added); rejected ones go last (classic reports) and
+  // never stand for their kind in the short list.
   function findingsModel(manifest) {
     var f = analysis(manifest).findings;
-    var items = (f && Array.isArray(f.items)) ? f.items.filter(function (it) { return it && typeof it === 'object'; }) : [];
+    var auto = (f && Array.isArray(f.items)) ? f.items.filter(function (it) { return it && typeof it === 'object'; }) : [];
     var review = (f && f.review && f.review.items) || {};
+    var added = (f && f.review && Array.isArray(f.review.added) ? f.review.added : []).filter(function (a) { return a && a.id && Array.isArray(a.xyz_mm); });
+    var manual = added.map(function (a) { return ns.review ? ns.review.manualItem(a) : Object.assign({ manual: true, kind: 'manual', label: a.text }, a); });
+    var rejected = function (it) { return Boolean(review[it.id] && review[it.id].decision === 'rejected'); };
+    var all = auto.concat(manual);
+    var items = all.filter(function (it) { return !rejected(it); }).concat(all.filter(rejected));
     var byKind = {};
-    items.forEach(function (it, i) {
+    auto.filter(function (it) { return !rejected(it); }).forEach(function (it, i) {
       var k = it.kind || 'other';
       var cur = byKind[k];
       var rank = it.rank !== undefined ? it.rank : i + 1;
@@ -118,11 +125,15 @@
       var ia = KIND_ORDER.indexOf(a.kind), ib = KIND_ORDER.indexOf(b.kind);
       return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
     });
-    var undecided = items.filter(function (it) { return it.id && !(review[it.id] && review[it.id].decision); });
-    return {items: items, top: top, review: review, undecided: undecided, total: items.length};
+    // the reviewer's own findings follow the automatic 关注 ones, so the short list keeps them in view
+    var attn = top.filter(function (it) { return it.severity === 'attention'; });
+    top = attn.concat(manual.filter(function (it) { return !rejected(it); }), top.filter(function (it) { return it.severity !== 'attention'; }));
+    var undecided = auto.filter(function (it) { return it.id && !(review[it.id] && review[it.id].decision); });
+    return {items: items, top: top, review: review, undecided: undecided, total: items.length, manual: manual.length,
+      rejected: all.filter(rejected).length, legacy: f && f.review && Array.isArray(f.review.legacy) ? f.review.legacy : []};
   }
   function isGeometryFinding(item) { return Boolean(item && (item.source === 'morphology' || item.kind === 'max_diameter' || item.kind === 'min_radius')); }
-  function kindLabel(item) { return KIND_LABEL[item && item.kind] || (item && item.label) || '发现'; }
+  function kindLabel(item) { return item && item.manual ? '人工' : (KIND_LABEL[item && item.kind] || (item && item.label) || '发现'); }
   function severityText(item) {
     if (!item) return null;
     if (item.severity === 'attention') return {tone: 'warn', label: '关注'};
@@ -131,6 +142,7 @@
   }
   function findingValue(item) {
     if (!item) return '—';
+    if (item.manual) return item.text && item.text.length > 14 ? item.text.slice(0, 13) + '…' : (item.text || '');
     if (item.units === 'cm²' || item.units === 'cm2') return ui().num(item.value, 'cm²');
     return ui().num(item.value, item.units);
   }
@@ -408,21 +420,28 @@
         var sev = severityText(it);
         var decision = fm.review[it.id] && fm.review[it.id].decision;
         var tone = sev ? sev.tone : 'idle';
-        var row = h('button', {type: 'button', 'class': 'finding tone-' + tone + (ctx.selectedFinding === it.id ? ' on' : ''), dataset: {findingId: it.id || ''},
+        var row = h('button', {type: 'button', 'class': 'finding tone-' + tone + (ctx.selectedFinding === it.id ? ' on' : '') + (decision ? ' dec-' + decision : '') + (it.manual ? ' manual' : ''), dataset: {findingId: it.id || ''},
           title: [sev ? sev.label : (isGeometryFinding(it) ? '几何' : ''), it.contains_global_max ? '含全场最大值' : '', decision === 'confirmed' ? '已确认' : decision === 'rejected' ? '已驳回' : '', it.definition || ''].filter(Boolean).join(' · ')},
           h('span', {'class': 'f-mark'}),
           h('span', {'class': 'f-kind', text: kindLabel(it)}),
           h('span', {'class': 'f-where', text: it.branch || ''}),
-          h('span', {'class': 'f-val', text: findingValue(it)}));
+          h('span', {'class': 'f-val', text: findingValue(it)}),
+          decision === 'confirmed' ? h('span', {'class': 'f-dec', title: '已确认'}, ui().icon('check', {size: 14})) : decision === 'rejected' ? h('span', {'class': 'f-dec', title: '已驳回'}, ui().icon('close', {size: 14})) : h('span', {'class': 'f-dec'}));
         row.addEventListener('click', function () { if (ctx.onFinding) ctx.onFinding(it); });
         rows.appendChild(row);
       });
       var more = fm.total > list.length || expanded ? ui().button(expanded ? '收起' : '全部 ' + fm.total, function () { if (ctx.onToggleFindings) ctx.onToggleFindings(); }, {kind: 'link', cls: 'btn-sm'}) : null;
       var confirmRest = null;
       if (ctx.onConfirmRest && fm.undecided.length && ctx.tier === 'full') confirmRest = ui().button((fm.undecided.length === fm.total ? '全部 ' : '其余 ') + fm.undecided.length + ' 条按自动结果确认', function () { ctx.onConfirmRest(fm); }, {kind: 'link', cls: 'btn-sm', disabled: Boolean(ctx.locked)});
+      var addBtn = ctx.onAddFinding ? ui().iconButton('plus', ctx.locked ? '已复核锁定，不能新增' : '新增人工发现：在管壁上点一处', ctx.onAddFinding, {cls: 'btn-xs'}) : null;
+      if (addBtn && ctx.locked) addBtn.disabled = true;
       var fhead = h('div', {'class': 'sec-head'}, h('h3', {'class': 'sec-title', text: '发现'}), h('span', {'class': 'sec-count', text: String(fm.total)}),
-        ui().infoTip('自动发现只是候选位置；「关注」「提示」不是临床分级。橙色点 = 关注，空心点 = 提示。'), h('span', {'class': 'sec-fill'}), more);
-      out.push(h('section', {'class': 'sec sec-findings'}, fhead, rows, confirmRest ? h('div', {'class': 'sec-actions'}, confirmRest) : null));
+        ui().infoTip('自动发现只是候选位置；「关注」「提示」不是临床分级。橙色点 = 关注，空心点 = 提示。点一条可以确认、驳回或写备注；驳回的排到最后。'), h('span', {'class': 'sec-fill'}), addBtn, more);
+      var legacy = fm.legacy.length && ctx.onLegacy ? ui().button(fm.legacy.length + ' 条规则更新前的判定', function () { ctx.onLegacy(fm.legacy); }, {kind: 'link', cls: 'btn-sm'}) : null;
+      out.push(h('section', {'class': 'sec sec-findings'}, fhead, rows, confirmRest || legacy ? h('div', {'class': 'sec-actions'}, confirmRest, legacy) : null));
+    } else if (ctx.onAddFinding && !ctx.locked) {
+      out.push(h('section', {'class': 'sec sec-findings'}, h('div', {'class': 'sec-head'}, h('h3', {'class': 'sec-title', text: '发现'}), h('span', {'class': 'sec-fill'}),
+        ui().iconButton('plus', '新增人工发现：在管壁上点一处', ctx.onAddFinding, {cls: 'btn-xs'})), ui().note('没有自动发现。')));
     }
     // conclusion: collapsed to three lines
     var nar = narrativeModel(m);
