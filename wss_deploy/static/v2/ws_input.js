@@ -81,17 +81,17 @@
     var T = root.THREE;
     if (!T || !T.WebGLRenderer || !container) return null;
     var renderer;
-    try { renderer = new T.WebGLRenderer({antialias: true, preserveDrawingBuffer: true}); } catch (_) { return null; }
+    try { renderer = new T.WebGLRenderer({antialias: true, alpha: true, preserveDrawingBuffer: true}); } catch (_) { return null; }
     var disposables = [];
     renderer.setPixelRatio(Math.min(root.devicePixelRatio || 1, 2));
-    renderer.setClearColor(0xeceef0, 1);
+    renderer.setClearColor(0x000000, 0);   // the stage behind paints the background
     var canvas = renderer.domElement;
     canvas.className = 'mv-canvas';
     container.appendChild(canvas);
     var scene = new T.Scene();
     var camera = new T.PerspectiveCamera(35, 1, 0.1, 10000);
-    scene.add(new T.AmbientLight(0xffffff, 0.55));
-    var key = new T.DirectionalLight(0xffffff, 0.6);
+    scene.add(new T.HemisphereLight(0xffffff, 0x8a93a3, 0.6));
+    var key = new T.DirectionalLight(0xffffff, 0.62);
     camera.add(key); key.position.set(0.3, 0.6, 1);
     scene.add(camera);
     var group = new T.Group(); scene.add(group);
@@ -115,7 +115,7 @@
       g.setAttribute('position', new T.BufferAttribute(mesh.vertices, 3));
       g.setIndex(new T.BufferAttribute(mesh.faces, 1));
       g.computeVertexNormals(); g.computeBoundingSphere();
-      var mat = new T.MeshLambertMaterial({color: 0xd3d8dd, side: T.DoubleSide, transparent: true, opacity: 0.92});
+      var mat = new T.MeshPhongMaterial({color: 0xdfe4ea, specular: 0x333333, shininess: 30, side: T.DoubleSide});
       disposables.push(g, mat);
       group.add(new T.Mesh(g, mat));
       var s = g.boundingSphere;

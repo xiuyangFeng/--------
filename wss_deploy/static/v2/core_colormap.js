@@ -190,6 +190,16 @@
   // log = null → the field default: the adaptive window follows the release's display hint
   //   (field.display.log_scale, e.g. TAWSS / RRT / ECAP — the classic report shows them on a log
   //   scale, otherwise a sac full of low values paints as one colour); named and fixed windows stay linear.
+  // Whether the adaptive window of a field opens on a log scale: the release's display hint when it states one;
+  // otherwise the wall shear family (WSS, TAWSS, RRT, ECAP), whose values span two decades so a linear 0–p99 paints
+  // a whole sac in one colour.  OSI, pressures and speeds stay linear.
+  var LOG_FIELDS = { wss: true, tawss: true, rrt: true, ecap: true };
+  function logHint(field) {
+    var d = field && field.display;
+    if (d && d.log_scale === true) return true;
+    if (d && d.log_scale === false) return false;
+    return Boolean(field && LOG_FIELDS[field.id]);
+  }
   function resolve(field, spec, stats) {
     field = field || {};
     spec = spec || {};
@@ -224,8 +234,7 @@
       if (typeof win === 'string' && win !== 'adaptive') info.fallback = '窗「' + win + '」不适用于该量，已用本例自适应';
     }
     var wantLog = spec.log === true ||
-      (spec.log !== false && (spec.log === null || spec.log === undefined) && info.kind === 'adaptive' &&
-       !crossesZero && field.display && field.display.log_scale === true);
+      (spec.log !== false && (spec.log === null || spec.log === undefined) && info.kind === 'adaptive' && !crossesZero && logHint(field));
     var sc = scale({ range: range, log: wantLog, bands: spec.bands, cmap: spec.cmap, units: field.units, fieldMin: fieldMin, floor: spec.floor, trim: info.kind !== 'adaptive' });
     info.text = info.label + (info.provisional ? '（暂定）' : '') + ' ' + (U ? U.fmtRange(sc.log ? sc.floor : sc.range[0], sc.range[1], field.units, { trim: info.kind !== 'adaptive', trimLo: sc.log || info.kind !== 'adaptive' }) : '');
     return {
@@ -236,6 +245,6 @@
 
   return {
     MISSING_HEX: MISSING_HEX, names: names, label: label, rgb: rgb, hexToRgb: hexToRgb, rgbToHex: rgbToHex,
-    scale: scale, histogram: histogram, logAllowed: logAllowed, resolve: resolve
+    scale: scale, histogram: histogram, logAllowed: logAllowed, resolve: resolve, logHint: logHint
   };
 });

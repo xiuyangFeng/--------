@@ -52,7 +52,7 @@
   function fieldById(m, id) { return visibleFields(m).filter(function (f) { return f.id === id; })[0] || null; }
   function fieldName(m, id) { var f = fieldById(m, id) || ((m && m.fields) || []).filter(function (x) { return x && x.id === id; })[0]; return f ? (f.short_label || f.label || f.id) : (id || ''); }
   function windowOptions(f) {
-    var logHint = Boolean(f && f.display && f.display.log_scale === true);
+    var logHint = Boolean(ns.colormap && ns.colormap.logHint ? ns.colormap.logHint(f) : (f && f.display && f.display.log_scale === true));
     var opts = [{value: 'adaptive', label: logHint ? '本例自适应（对数）' : '本例自适应'}];
     if (logHint) opts.push({value: 'adaptive-linear', label: '本例自适应（线性）'});
     ((f && f.windows) || []).forEach(function (w) {
@@ -66,7 +66,7 @@
       var d = f && f.display || {};
       var hi = Array.isArray(d.range) ? d.range[1] : d.p99;
       var lo = Array.isArray(d.range) ? d.range[0] : 0;
-      var mode = spec === 'adaptive-linear' ? '（线性）' : (d.log_scale === true ? '（对数）' : '');
+      var mode = spec === 'adaptive-linear' ? '（线性）' : ((ns.colormap && ns.colormap.logHint ? ns.colormap.logHint(f) : d.log_scale === true) ? '（对数）' : '');
       return '本例自适应' + mode + (hi !== undefined && hi !== null ? ' ' + ui().range(lo, hi, f && f.units) : '');
     }
     if (typeof spec === 'object' && Array.isArray(spec.range)) return '固定范围 ' + ui().range(spec.range[0], spec.range[1], f && f.units);
@@ -82,7 +82,7 @@
     return {offline: Boolean(opts && opts.offline), offlineMeta: (opts && opts.offlineMeta) || null, session: (opts && opts.session) || null,
       jobs: [], cards: {}, releases: [], cur: null, els: {}, viewerA: null, viewerB: null, colorbarA: null, colorbarB: null, orientA: null, orientB: null,
       unlink: null, inputView: null, pollTimer: null, closeEvents: null, abort: null, cmpSeq: 0, listTimer: null, lensRef: null, saveTimer: null,
-      layers: {centerline: false, points: false, trust: false, outline: true, streamlines: true, wall: true, interior: true}};
+      layers: {centerline: false, points: false, trust: false, outline: false, streamlines: true, wall: true, interior: true}};
   }
 
   // ------------------------------------------------------------------ layout
@@ -93,7 +93,8 @@
     E.topCase = h('span', {'class': 'top-case'});
     E.topNote = h('span', {'class': 'top-note'});
     E.topRight = h('div', {'class': 'top-right'});
-    E.top = h('header', {'class': 'ws-top'}, h('div', {'class': 'top-left'}, h('span', {'class': 'mark', text: 'WSS'}), E.topCase, E.topNote), E.topRight);
+    var brand = h('span', {'class': 'brand'}, ns.icons ? ns.icons.icon('logo', {size: 18}) : null, h('span', {'class': 'mark', text: 'WSS'}));
+    E.top = h('header', {'class': 'ws-top'}, h('div', {'class': 'top-left'}, brand, E.topCase, E.topNote), E.topRight);
     E.rail = h('aside', {'class': 'ws-rail', 'aria-label': '病例'});
     E.toolbar = h('div', {'class': 'ws-toolbar', role: 'toolbar', 'aria-label': '视图工具'});
     E.qbar = h('div', {'class': 'ws-qbar', hidden: true});
@@ -103,10 +104,10 @@
     E.vpB.root.hidden = true;
     E.inputHost = h('div', {'class': 'ws-inputhost', hidden: true});
     E.stageMsg = h('div', {'class': 'stage-msg', hidden: true});
-    E.stage = h('div', {'class': 'ws-stage'}, E.grid, E.inputHost, E.stageMsg);
+    E.stage = h('div', {'class': 'ws-stage'}, E.grid, E.inputHost, E.stageMsg, E.toolbar, E.qbar);
     E.timebar = h('div', {'class': 'ws-timebar', hidden: true});
     E.home = h('div', {'class': 'ws-home', hidden: true});
-    E.main = h('main', {'class': 'ws-main'}, E.toolbar, E.qbar, E.stage, E.timebar, E.home);
+    E.main = h('main', {'class': 'ws-main'}, E.stage, E.timebar, E.home);
     E.inspHead = h('div', {'class': 'insp-head'});
     E.tabs = h('div', {'class': 'insp-tabs', role: 'tablist', 'aria-label': '检查器'});
     E.inspBody = h('div', {'class': 'insp-body'});
@@ -135,6 +136,7 @@
     if (!body) return;
     body.classList.toggle('rail-off', S.offline || !p.rail || (narrow && !S.railOpenNarrow));
     body.classList.toggle('insp-off', !p.inspector);
+    if (S.els.app) { S.els.app.classList.toggle('stage-dark', p.stage !== 'light'); S.els.app.classList.toggle('stage-light', p.stage === 'light'); }
     resizeViewers();
   }
   function resizeViewers() {
@@ -156,11 +158,8 @@
     }
     E.topNote.textContent = '';
     var full = store().prefs().tier === 'full';
-    var tier = h('div', {'class': 'seg seg-tier', role: 'group', 'aria-label': '显示档'},
-      h('button', {type: 'button', 'class': 'seg-btn' + (full ? '' : ' on'), 'aria-pressed': String(!full), text: '基本', title: '只显示上传、核对、看结果、出一页纸用得到的东西', onclick: function () { setTier('basic'); }}),
-      h('button', {type: 'button', 'class': 'seg-btn' + (full ? ' on' : ''), 'aria-pressed': String(full), text: '完整', title: '加上换模型重跑、技术信息、完整统计和经典工作台入口', onclick: function () { setTier('full'); }}));
-    var upload = ui().button('上传', openUpload, {icon: 'upload'});
-    var helpBtn = ui().button('帮助', null, {icon: 'info', cls: 'btn-flat', title: '帮助'});
+    var upload = ui().button('上传 STL', openUpload, {icon: 'upload', kind: 'primary', cls: 'top-upload'});
+    var helpBtn = ui().iconButton('help', '帮助', null, {cls: 'top-icon'});
     helpBtn.setAttribute('aria-haspopup', 'menu');
     helpBtn.addEventListener('click', function () {
       ui().menu(helpBtn, [
@@ -172,23 +171,28 @@
       ]);
     });
     var classicHref = cur && cur.jobId ? api().urls.classic(cur.jobId) : '/';
-    var classic = h('a', {'class': 'btn btn-flat top-classic', href: classicHref, text: '经典工作台'});
     var sess = S.session || {};
-    var userBtn = ui().button(sess.username || '本机', null, {icon: 'user', cls: 'btn-flat'});
+    var initial = String(sess.username || '本机').slice(0, 1).toUpperCase();
+    var userBtn = h('button', {type: 'button', 'class': 'top-avatar', title: sess.username || '本机服务', 'aria-label': '账户与设置', text: initial});
     userBtn.setAttribute('aria-haspopup', 'menu');
     userBtn.addEventListener('click', function () {
+      var stage = store().prefs().stage;
       ui().menu(userBtn, [
         {heading: sess.username ? sess.username + (sess.role === 'admin' ? ' · 管理员' : '') : '本机服务'},
         {label: '基本档', checked: !full, run: function () { setTier('basic'); }},
         {label: '完整档', checked: full, run: function () { setTier('full'); }},
+        {separator: true},
+        {label: '深色视口', checked: stage !== 'light', run: function () { setStage('dark'); }},
+        {label: '浅色视口', checked: stage === 'light', run: function () { setStage('light'); }},
         {separator: true},
         {label: '经典工作台', href: classicHref},
         sess.login && sess.login !== 'none' ? {separator: true} : null,
         sess.login && sess.login !== 'none' ? {label: '退出登录', run: logout} : null
       ]);
     });
-    ui().fill(E.topRight, tier, upload, helpBtn, classic, userBtn);
+    ui().fill(E.topRight, full ? h('span', {'class': 'top-tier', text: '完整档'}) : null, upload, helpBtn, userBtn);
   }
+  function setStage(v) { store().setPrefs({stage: v === 'light' ? 'light' : 'dark'}); applyPanels(); [S.viewerA, S.viewerB].forEach(function (x) { if (x && x.renderNow) { try { x.renderNow(); } catch (_) {} } }); }
   function setTier(t) { store().setPrefs({tier: t}); renderTop(); if (S.rail) S.rail.setFull(t === 'full'); if (S.cur && S.cur.manifest) renderInspector(); }
   function hideName() { return Boolean(S.offline && S.offlineMeta && S.offlineMeta.hide_name); }
 
@@ -211,7 +215,12 @@
   function renderHome() {
     var E = S.els;
     showMode('home');
-    if (ns.rail) ns.rail.todo(E.home, S.jobs, {cards: S.cards, onOpen: go, onUpload: openUpload});
+    if (ns.rail) ns.rail.todo(E.home, S.jobs, {cards: S.cards, onOpen: go, onUpload: openUpload, q: S.homeQuery || '', focusSearch: Boolean(S.homeFocus),
+      fetchThumb: api() ? function (job) {
+        if (job.status === 'done' && ns.data) return ns.data.loadResult(ns.data.createOnlineSource(job.id)).then(function (res) { return {kind: 'result', result: res}; });
+        return api().geometry(job.id);
+      } : null,
+      onSearch: function (v) { S.homeQuery = v; S.homeFocus = true; renderHome(); S.homeFocus = false; }});
     else E.home.replaceChildren(ui().empty('离线报告没有病例列表。'));
     renderTop();
   }
@@ -266,6 +275,8 @@
     S.abort = typeof root.AbortController === 'function' ? new root.AbortController() : null;
     var signal = S.abort ? S.abort.signal : undefined;
     S.cur = {seq: seq, jobId: jobId, job: null, result: null, manifest: null};
+    if (S.tab === 'reading' || S.tab === 'compare') S.tab = null;
+    S.lensRef = null;
     if (S.rail) S.rail.setCurrent(jobId);
     showMode('result');
     stageMessage('正在读取…');
@@ -441,7 +452,7 @@
     var m = cur.manifest;
     var p = store().prefs();
     var kids = [];
-    if (!S.offline && (E.body.classList.contains('rail-off'))) kids.push(ui().iconButton('chevron-right', '展开病例栏', function () { toggleRail(true); }));
+    if (!S.offline && (E.body.classList.contains('rail-off'))) kids.push(ui().iconButton('panel-left', '展开病例栏', function () { toggleRail(true); }, {cls: 'tb-solo'}));
     var seg = h('div', {'class': 'seg seg-fields', role: 'tablist', 'aria-label': '字段'});
     visibleFields(m).forEach(function (f, i) {
       var b = h('button', {type: 'button', role: 'tab', 'class': 'seg-btn' + (f.id === cur.field ? ' on' : ''), 'aria-selected': String(f.id === cur.field),
@@ -468,17 +479,19 @@
         kids.push(qb);
       }
     }
+    var tools = [];
     var cursorBtn = ui().iconButton('probe', '沿血管游标（G）', toggleCursor, {pressed: Boolean(cur.cursor)});
     cursorBtn.disabled = !ns.cursor || !S.viewerA;
-    kids.push(cursorBtn);
-    kids.push(ui().iconButton('light', p.lighting === 'soft' ? '光照：柔和（L 切换为平涂）' : '光照：平涂（L 切换为柔和，只用于看形状）', toggleLighting, {pressed: p.lighting === 'soft'}));
-    var layerBtn = ui().iconButton('layers', '图层与色表', null);
+    tools.push(cursorBtn);
+    tools.push(ui().iconButton('light', p.lighting === 'soft' ? '光照：柔和（L 切换为平涂，读色更准）' : '光照：平涂（L 切换为柔和光照）', toggleLighting, {pressed: p.lighting === 'soft'}));
+    var layerBtn = ui().iconButton('layers', '图层、色表与背景', null);
     layerBtn.addEventListener('click', function () { layersMenu(layerBtn); });
-    kids.push(layerBtn);
-    kids.push(ui().iconButton('bookmark', '保存书签（B）', saveBookmark));
-    if (!S.offline && ns.compare) kids.push(ui().iconButton('compare', cur.compare ? '退出比较' : '比较两次结果', function () { if (cur.compare) exitCompare(); else openCompare(); }, {pressed: Boolean(cur.compare)}));
-    kids.push(ui().iconButton('download', '导出', openExport));
-    if (!p.inspector) kids.push(ui().iconButton('chevron-left', '展开检查器', function () { setInspector(true); }, {cls: 'tb-insp'}));
+    tools.push(layerBtn);
+    tools.push(ui().iconButton('bookmark', '保存书签（B）', saveBookmark));
+    if (!S.offline && ns.compare) tools.push(ui().iconButton('compare', cur.compare ? '退出比较' : '比较两次结果', function () { if (cur.compare) exitCompare(); else openCompare(); }, {pressed: Boolean(cur.compare)}));
+    tools.push(ui().iconButton('download', '导出', openExport));
+    kids.push(h('div', {'class': 'tb-group', role: 'group', 'aria-label': '工具'}, tools));
+    if (!p.inspector) kids.push(ui().iconButton('panel-right', '展开检查器', function () { setInspector(true); }, {cls: 'tb-insp tb-solo'}));
     ui().fill(E.toolbar, kids);
   }
   function scaleSpec(windowSpec) {
@@ -501,7 +514,7 @@
     else if (S.viewerA) { try { S.viewerA.setField(fieldId, scaleSpec(cur.window)); } catch (e) { ui().toast('切换字段失败：' + e.message, {kind: 'error'}); } }
     updateColorbar('a');
     renderToolbar(); renderStatusLine();
-    if (currentTab() === 'reading') renderInspector();
+    if (currentTab() === 'reading' || currentTab() === 'overview') renderInspector();
     if (!opts || opts.save !== false) { replaceRoute({f: fieldId}); saveViewSoon(); }
     return true;
   }
@@ -537,6 +550,9 @@
       {heading: '图层'},
       item('outline', '轮廓线'), item('centerline', '中心线'), item('points', '预测点'), item('trust', '可信度标记（斜纹）'),
       volume ? item('streamlines', '流线') : null, volume ? item('wall', '血管外壁') : null, volume ? item('interior', '体内点') : null,
+      {separator: true}, {heading: '视口背景'},
+      {label: '深色', checked: store().prefs().stage !== 'light', run: function () { setStage('dark'); }},
+      {label: '浅色', checked: store().prefs().stage === 'light', run: function () { setStage('light'); }},
       {separator: true}, {heading: '色表'},
       {label: '彩虹（默认）', checked: cm === 'rainbow', run: function () { setCmap('rainbow'); }},
       {label: 'viridis', checked: cm === 'viridis', run: function () { setCmap('viridis'); }},
@@ -577,19 +593,8 @@
         cur.compare.mode === 'each' ? h('span', {'class': 'vp-warn', text: '色标各自'}) : null);
       return;
     }
-    parts.push(h('span', {'class': 'vp-result', text: (m.result && m.result.display_name) || ''}));
-    if (!S.offline) {
-      parts.push(ui().statusDot(job.status || 'done'));
-      parts.push(ui().reviewDot(job.review || m.job.review));
-      var t = job.timing && (job.timing.compute_s || job.timing.compute_seconds);
-      if (t === undefined && m.provenance && m.provenance.timing_s) t = m.provenance.timing_s.total;
-      if (t !== undefined && t !== null) {
-        var ts = (m.provenance && m.provenance.timing_s) || {};
-        var detail = Object.keys(ts).filter(function (k) { return k !== 'total' && typeof ts[k] === 'number'; }).slice(0, 8).map(function (k) { return k + ' ' + ui().sig(ts[k]) + ' s'; }).join('，');
-        parts.push(h('span', {'class': 'vp-time', title: detail ? '分解：' + detail : '计算耗时，不含排队与人工确认', text: '计算 ' + ui().duration(t)}));
-      }
-    } else parts.push(ui().dot(ui().reviewInfo(m.job.review).tone, '导出时' + ui().reviewInfo(m.job.review).label));
-    ui().fill(S.els.vpA.status, parts);
+    // single view: nothing on the stage — the top bar and the inspector carry result, status and review
+    S.els.vpA.status.replaceChildren();
   }
   function splitFieldSelect() {
     var cur = S.cur;
@@ -620,7 +625,8 @@
     return tabs;
   }
   function setInspector(open) { store().setPrefs({inspector: open}); applyPanels(); renderToolbar(); if (open) renderInspector(); }
-  function setTab(id) { S.tab = id; if (id !== 'compare') store().setPrefs({tab: id}); renderInspector(); }
+  // The reading tab is a transient answer to one click; a new result opens on the overview again.
+  function setTab(id) { S.tab = id; if (id !== 'compare' && id !== 'reading') store().setPrefs({tab: id}); renderInspector(); }
   function renderInspector() {
     var cur = S.cur;
     var E = S.els;
@@ -667,7 +673,14 @@
   function overviewCtx() {
     var cur = S.cur;
     var locked = ui().reviewInfo((cur.job && cur.job.review) || cur.manifest.job.review).key === 'reviewed';
-    return {job: cur.job, manifest: cur.manifest, cards: S.cards, siblings: siblings(), timeline: cur.timeline || null, offline: S.offline, hideName: hideName(),
+    var tsec = cur.job && cur.job.timing && (cur.job.timing.compute_s || cur.job.timing.compute_seconds);
+    if (tsec === undefined || tsec === null) tsec = cur.job && cur.job.compute_seconds;
+    if ((tsec === undefined || tsec === null) && cur.manifest.provenance && cur.manifest.provenance.timing_s) tsec = cur.manifest.provenance.timing_s.total;
+    return {job: cur.job, manifest: cur.manifest, cards: S.cards, siblings: siblings(), timeline: cur.timeline || null, offline: S.offline, hideName: hideName(), computeSeconds: tsec,
+      onZone: zoneHighlight, fieldScale: fieldScaleFor, zoneMetric: cur.zoneMetric, zoneTable: Boolean(cur.zoneTable), narrativeOpen: Boolean(cur.narrativeOpen),
+      onZoneMetric: function (id) { cur.zoneMetric = id; renderInspector(); },
+      onZoneTable: function () { cur.zoneTable = !cur.zoneTable; renderInspector(); },
+      onToggleNarrative: function () { cur.narrativeOpen = !cur.narrativeOpen; renderInspector(); },
       tier: store().prefs().tier, locked: locked, selectedFinding: cur.findingSel, findingsExpanded: cur.findingsExpanded,
       onLens: openLens, onFinding: selectFinding, onOpenResult: function (id) { go(id); },
       onReview: S.offline ? null : reviewDialog, onEditNarrative: S.offline || locked ? null : narrativeDialog, onModelCard: modelCardDialog,
@@ -697,6 +710,39 @@
     var key = m && m.geometry && m.geometry.display_mesh && m.geometry.display_mesh.trust;
     if (!key || typeof result.array !== 'function') return null;
     try { var a = result.array(key); return a && vertexIndex < a.length ? a[vertexIndex] : null; } catch (_) { return null; }
+  }
+  // Colour of a value under the field's current scale (the vessel's colours), for the overview's zone map and chips.
+  function fieldScaleFor(fieldId) {
+    var cur = S.cur;
+    if (!cur || !cur.manifest || !ns.colormap) return null;
+    var f = (cur.manifest.fields || []).filter(function (x) { return x && x.id === fieldId; })[0];
+    if (!f) return null;
+    // Resolved the way the viewer resolves it (same window, log hint and colour table), from the manifest's own
+    // statistics, so the colour never depends on which field the viewport happens to show at this moment.
+    var st = f.statistics || {}, disp = f.display || {};
+    var stats = {p99: disp.p99 !== undefined && disp.p99 !== null ? disp.p99 : st.p99, min: st.min, max: st.max};
+    var spec = scaleSpec(cur.field === fieldId && !cur.compare ? cur.window : 'adaptive');
+    var sc = null;
+    try { sc = ns.colormap.resolve(f, spec, stats).scale; } catch (_) { sc = null; }
+    if (!sc) return null;
+    return {scale: sc, color: function (v) { var n = Number(v); return Number.isFinite(n) ? ns.colormap.rgbToHex(sc.color(n)) : null; }};
+  }
+  // Hovering a zone in the overview marks its prediction points on the vessel; null clears the mark.
+  function zoneHighlight(zone) {
+    var v = S.viewerA, cur = S.cur;
+    if (!v || !cur || !cur.result || typeof v.highlight !== 'function') return;
+    if (!zone) { try { v.highlight(null); } catch (_) {} return; }
+    var seg = null, s = null;
+    try { seg = cur.result.array('ps'); } catch (_) { seg = null; }
+    try { s = cur.result.array('p_s'); } catch (_) { s = null; }
+    if (!seg) return;
+    var sid = zone.segment_id, rg = Array.isArray(zone.s_range_mm) ? zone.s_range_mm : null, idx = [];
+    for (var i = 0; i < seg.length; i++) {
+      if (seg[i] !== sid) continue;
+      if (rg && s && !(s[i] >= rg[0] && s[i] <= rg[1])) continue;
+      idx.push(i);
+    }
+    try { v.highlight(idx, {}); } catch (_) {}   // the rest of the wall fades; the zone keeps its true colours
   }
   function onPick(e, side) {
     var cur = S.cur;

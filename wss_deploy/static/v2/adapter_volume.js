@@ -53,7 +53,7 @@
 
   function glassMaterial(THREE) {
     return new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color('#6f7c88') }, uBase: { value: 0.05 }, uRim: { value: 0.55 } },
+      uniforms: { uColor: { value: new THREE.Color('#a9b6c4') }, uBase: { value: 0.07 }, uRim: { value: 0.55 } },   // mid grey: reads on a dark and on a light stage
       vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
       fragmentShader: 'uniform vec3 uColor; uniform float uBase; uniform float uRim; varying vec3 vN; varying vec3 vV;' +
         'void main(){ float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); gl_FragColor = vec4(uColor, clamp(uBase + uRim * f * f * f, 0.0, 0.9)); }',
@@ -91,7 +91,7 @@
     geom.setAttribute('aFlag', new THREE.BufferAttribute(flag, 1));
     var glass = glassMaterial(THREE);
     var flat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
-    var soft = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    var soft = new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide, shininess: 26, specular: new THREE.Color(0x262626) });
     var wall = new THREE.Mesh(geom, glass); wall.name = 'volume-wall'; wall.renderOrder = 3; group.add(wall);
     var outlineMat = gfx.outlineMaterial({ sign: gfx.windingSign(V, F), width: 1.4, color: gfx.INK_HEX });
     outlineMat.userData.baseWidth = 1.4;

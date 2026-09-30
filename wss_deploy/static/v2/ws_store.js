@@ -14,9 +14,9 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (ns, root) {
   'use strict';
 
-  var PREFS_KEY = 'wssv2:prefs';
-  var DEFAULTS = {schema: 'wssv2.prefs/1', tier: 'basic', lighting: 'flat', cmap: 'rainbow', rail: true, inspector: true, tab: 'overview'};
-  var TIERS = ['basic', 'full'], LIGHTS = ['flat', 'soft'], CMAPS = ['rainbow', 'viridis', 'turbo'], TABS = ['overview', 'reading', 'bookmarks', 'tools', 'compare'];
+  var PREFS_KEY = 'wssv2:prefs:2';   // :2 — 2026-09-30 look: lit by default, dark stage
+  var DEFAULTS = {schema: 'wssv2.prefs/2', tier: 'basic', lighting: 'soft', stage: 'dark', cmap: 'rainbow', rail: true, inspector: true, tab: 'overview'};
+  var TIERS = ['basic', 'full'], LIGHTS = ['flat', 'soft'], STAGES = ['dark', 'light'], CMAPS = ['rainbow', 'viridis', 'turbo'], TABS = ['overview', 'reading', 'bookmarks', 'tools', 'compare'];
 
   function storage() { try { return root.localStorage || null; } catch (_) { return null; } }
   function read(key) {
@@ -35,6 +35,7 @@
     if (!raw || typeof raw !== 'object') return p;
     if (TIERS.indexOf(raw.tier) >= 0) p.tier = raw.tier;
     if (LIGHTS.indexOf(raw.lighting) >= 0) p.lighting = raw.lighting;
+    if (STAGES.indexOf(raw.stage) >= 0) p.stage = raw.stage;
     if (CMAPS.indexOf(raw.cmap) >= 0) p.cmap = raw.cmap;
     if (typeof raw.rail === 'boolean') p.rail = raw.rail;
     if (typeof raw.inspector === 'boolean') p.inspector = raw.inspector;

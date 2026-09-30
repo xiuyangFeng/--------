@@ -543,7 +543,9 @@ def _field(report: _Report, field_id: str, *, card: dict | None) -> dict:
     statistics: dict | None = None
     tier, source, derived_from, temporal = "model", "prediction", [], "frame"
     definition = FIELD_DEFINITION.get(field_id)
-    block = {"thresholds": None, "threshold_direction": None, "log_scale": False, "range": None, "p99": None, "max": None}
+    # log_scale None = the release does not say (the viewer then uses its per-field default: WSS / TAWSS / RRT / ECAP
+    # open on a log scale, others linear); True / False only when a descriptor or the cycle spec states it.
+    block = {"thresholds": None, "threshold_direction": None, "log_scale": None, "range": None, "p99": None, "max": None}
     if field_id == "wss":
         field_pa = _dict(meta.get("wss_field_pa")); peak = _dict(meta.get("peak"))
         thresholds = field_pa.get("thresholds_pa") or [0.4, 4.0, 7.0]
@@ -563,7 +565,7 @@ def _field(report: _Report, field_id: str, *, card: dict | None) -> dict:
         clip = spec.get("clip") or (0.0, None)
         block.update(thresholds=[float(t) for t in (display.get("thresholds") or spec["thresholds"])],
                      threshold_direction=display.get("threshold_direction") or ("above" if field_id in ABOVE_FIELDS else "below"),
-                     log_scale=bool(display.get("log_scale", spec.get("log_scale"))),
+                     log_scale=(lambda v: None if v is None else bool(v))(display.get("log_scale", spec.get("log_scale"))),
                      range=display.get("range") if display.get("range") is not None else ([float(clip[0]), float(clip[1])] if clip[1] is not None else None),
                      p99=_num(display.get("p99", cycle_stats.get("p99"))), max=_num(display.get("max", cycle_stats.get("max"))))
         if block["p99"] is None and arrays.get("read"):

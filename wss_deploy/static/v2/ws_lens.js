@@ -174,7 +174,11 @@
       method.push(['聚合', r.definition || '沿中心线每 2 mm 一箱，箱内预测点统计。']);
     } else if (ref.kind === 'stat') {
       value.push([ref.label || fl, ref.text || ui().num(ref.value, ref.units)]);
-      method.push(['聚合', '体内采样点等权统计。' + (fieldId === 'pressure' ? '压力是相对压，只用于比较差值。' : '')]);
+      var vol = m && m.result && m.result.family === 'volume' && (fieldId === 'pressure' || fieldId === 'speed' || fieldId === 'velocity');
+      var aggText = vol ? '体内采样点等权统计。' + (fieldId === 'pressure' ? '压力是相对压，只用于比较差值。' : '')
+        : ref.pct ? '全壁面预测点中满足条件的比例（点占比，面积按点占比 × 输入壁面面积估计）。' : '全壁面预测点等权统计。';
+      if (ref.definition) aggText += ' ' + ref.definition;
+      method.push(['聚合', aggText]);
     }
     if (where.length) steps.push({step: 'where', label: '位置 / 区域', rows: where});
     steps.push({step: 'value', label: '值', rows: value, tier: tier});

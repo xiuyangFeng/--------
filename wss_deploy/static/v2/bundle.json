@@ -1,7 +1,11 @@
 {
   "schema": "wss-deploy.v2-bundle/v1",
   "viewer_version": "v2.0.0",
-  "legacy_scripts": ["three.min.js", "OrbitControls.js", "report_common.js"],
+  "legacy_scripts": [
+    "three.min.js",
+    "OrbitControls.js",
+    "report_common.js"
+  ],
   "scripts": [
     "core_util.js",
     "core_data.js",
@@ -16,6 +20,7 @@
     "ws_ui.js",
     "ws_store.js",
     "ws_api.js",
+    "ws_thumbs.js",
     "ws_rail.js",
     "ws_overview.js",
     "ws_lens.js",
@@ -28,11 +33,33 @@
     "ws_shell.js",
     "ws_main.js"
   ],
-  "offline_exclude": ["ws_api.js", "ws_rail.js", "ws_upload.js", "ws_input.js", "ws_compare.js"],
-  "styles": ["v2.css"],
-  "pages": ["index.html", "help_input.html", "help_quickstart.html", "help_errors.html"],
-  "assets": ["help.css", "example_aaa.stl"],
-  "dev": ["dev_viewer.html", "dev_viewer.js"],
-  "generated": ["example_report.html"],
+  "offline_exclude": [
+    "ws_api.js",
+    "ws_rail.js",
+    "ws_upload.js",
+    "ws_input.js",
+    "ws_compare.js",
+    "ws_thumbs.js"
+  ],
+  "styles": [
+    "v2.css"
+  ],
+  "pages": [
+    "index.html",
+    "help_input.html",
+    "help_quickstart.html",
+    "help_errors.html"
+  ],
+  "assets": [
+    "help.css",
+    "example_aaa.stl"
+  ],
+  "dev": [
+    "dev_viewer.html",
+    "dev_viewer.js"
+  ],
+  "generated": [
+    "example_report.html"
+  ],
   "notes": "legacy_scripts live in static/ and are served from /static/<name>; everything else lives in static/v2/ and is served from /static/v2/<name>. Load order = legacy_scripts then scripts. The offline package inlines legacy_scripts + scripts minus offline_exclude, and styles. 'generated' files are served only through their own routes (/v2/example), never through /static/v2/."
 }

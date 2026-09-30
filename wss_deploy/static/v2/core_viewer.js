@@ -18,7 +18,7 @@
   var VIEW_LABELS = { anterior: '前', posterior: '后', left: '左', right: '右', superior: '头', inferior: '足' };
   // Free viewport area (CSS px) for fitting: status line on top, colour bar on the right; `corner` is the
   // orientation marker at the bottom left — the fit only gives way to it when the vessel would run into it.
-  var DEFAULT_INSETS = { main: { top: 36, right: 168, bottom: 20, left: 20, corner: { width: 112, height: 108 } }, thumb: { top: 4, right: 4, bottom: 4, left: 4, corner: null } };
+  var DEFAULT_INSETS = { main: { top: 64, right: 116, bottom: 24, left: 64, corner: { width: 104, height: 104 } }, thumb: { top: 4, right: 4, bottom: 4, left: 4, corner: null } };
 
   function U() { return ns.util; }
   function T() { var t = root.THREE; if (!t) throw new Error('three.js (THREE) is not loaded'); return t; }
@@ -155,7 +155,7 @@
     return out;
   }
   var DEFAULT_LAYERS = {
-    wall: { outline: true, centerline: false, points: false, trust: false, wall: true, interior: false, streamlines: false },
+    wall: { outline: false, centerline: false, points: false, trust: false, wall: true, interior: false, streamlines: false },
     volume: { outline: true, centerline: false, points: false, trust: false, wall: true, interior: true, streamlines: false }
   };
   function normalizeLayers(family, cur, next) {
@@ -305,16 +305,15 @@
     // DOM
     var wrap = doc.createElement('div');
     wrap.className = 'wssv2-viewport wssv2-viewport-' + kind;
-    wrap.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:var(--viewport,' + VIEWPORT_HEX + ');touch-action:none;';
+    wrap.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:transparent;touch-action:none;';
     container.appendChild(wrap);
     var labels = doc.createElement('div');
     labels.className = 'wssv2-labels';
     labels.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:hidden;';
 
-    var renderer = new THREE.WebGLRenderer({ antialias: kind === 'main', alpha: false, preserveDrawingBuffer: false });
+    var renderer = new THREE.WebGLRenderer({ antialias: kind === 'main', alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: false });
     renderer.setPixelRatio(kind === 'thumb' ? 1 : Math.min(root.devicePixelRatio || 1, 2));
-    var bg = cssVar(wrap, '--viewport', VIEWPORT_HEX);
-    renderer.setClearColor(new THREE.Color(bg), 1);
+    renderer.setClearColor(0x000000, 0);
     var canvas = renderer.domElement;
     canvas.style.cssText = 'display:block;width:100%;height:100%;outline:none;';
     canvas.setAttribute('role', 'img');
@@ -326,9 +325,12 @@
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(30, 1, 0.1, 5000);
     scene.add(camera);
-    var ambient = new THREE.AmbientLight(0xffffff, 0.46);
+    var ambient = new THREE.HemisphereLight(0xffffff, 0x8a93a3, 0.62);
     scene.add(ambient);
-    var headlight = new THREE.DirectionalLight(0xffffff, 0.62);
+    var fill = new THREE.DirectionalLight(0xffffff, 0.16);
+    fill.position.set(-0.4, -0.6, 0.2);
+    camera.add(fill);
+    var headlight = new THREE.DirectionalLight(0xffffff, 0.58);
     headlight.position.set(0.35, 0.5, 0);
     camera.add(headlight);
     camera.add(headlight.target);
@@ -364,7 +366,7 @@
     var S = {
       result: null, handle: null, adapter: null, token: 0,
       fieldId: null, spec: { window: 'adaptive', log: null, bands: 0, cmap: 'rainbow' }, resolved: null,
-      lighting: 'flat', layers: null, cursor: null, cursorHelper: null, selection: null, branches: null,
+      lighting: 'soft', layers: null, cursor: null, cursorHelper: null, selection: null, branches: null,
       markers: [], highlight: null, stats: {}, hist: null, histKey: '', branchVersion: 0
     };
     var applyingCamera = false;
@@ -675,9 +677,9 @@
           chip.type = 'button';
           chip.className = 'wssv2-marker wssv2-marker-' + String(m.kind).replace(/[^a-z0-9_-]/gi, '');
           chip.textContent = m.label;
-          chip.style.cssText = 'position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;white-space:nowrap;' +
-            'font:12px/1.3 system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-variant-numeric:tabular-nums;color:var(--ink,#1b2430);' +
-            'background:var(--panel,#fff);border:1px solid var(--line-2,#c6ccd2);border-radius:2px;padding:1px 5px;margin-top:-9px;';
+          chip.style.cssText = 'position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;white-space:nowrap;margin-top:-10px;' +
+            'font:12px/1.3 system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-variant-numeric:tabular-nums;' +
+            'color:var(--hud-ink,#1b2430);background:var(--hud-chip,#fff);border:1px solid var(--hud-line,#c6ccd2);border-radius:6px;padding:2px 7px;';
           chip.addEventListener('click', function (e) { e.stopPropagation(); ev.emit('marker', { id: m.id }); });
           labels.appendChild(chip);
           markerChips.push({ el: chip, m: m, idx: i });
@@ -921,7 +923,11 @@
       return new Promise(function (resolve, reject) {
         try {
           updateOutlineResolution();
-          var r = root.WssReportCommon.renderOffscreen({ renderer: renderer, scene: scene, camera: camera, THREE: THREE, scale: Math.max(1, Math.min(4, +o.scale || 2)), width: size.w, height: size.h, background: o.transparent ? 'transparent' : undefined });
+          var prevBg = scene.background;
+          if (!o.transparent) scene.background = new THREE.Color(o.background || cssVar(wrap, '--snapshot-bg', '#ffffff'));
+          var r;
+          try { r = root.WssReportCommon.renderOffscreen({ renderer: renderer, scene: scene, camera: camera, THREE: THREE, scale: Math.max(1, Math.min(4, +o.scale || 2)), width: size.w, height: size.h, background: o.transparent ? 'transparent' : undefined }); }
+          finally { scene.background = prevBg; }
           updateOutlineResolution();
           requestRender();
           resolve(dataURLToBlob(r.dataURL));

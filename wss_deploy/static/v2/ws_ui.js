@@ -215,6 +215,8 @@
     return h('div', {'class': 'empty'}, h('p', {text: text}), actions && actions.length ? h('div', {'class': 'empty-actions'}, actions) : null);
   }
   function note(text, kind) { return h('p', {'class': 'note' + (kind ? ' note-' + kind : ''), text: text}); }
+  // A small ⓘ that carries an explanation as a tooltip instead of a line of grey text.
+  function infoTip(text) { return text ? h('span', {'class': 'info-tip', title: text, 'aria-label': text, tabindex: '0', role: 'note', text: 'i'}) : null; }
   // Rows: array of objects; columns: [{key,label,num,cls,render(row)}]; opts.onRow(row, tr)
   function table(columns, rows, opts) {
     opts = opts || {};
@@ -384,11 +386,12 @@
     return typeof target.closest === 'function' && Boolean(target.closest('dialog[open], [contenteditable="true"]'));
   }
 
+  var _infoTip = infoTip;
   return {h: h, clear: clear, fill: fill, icon: icon, appendKids: appendKids,
     sig: sig, trim: trim, num: num, pct: pct, range: range, unitText: unitText, time: time, duration: duration,
     statusInfo: statusInfo, reviewInfo: reviewInfo, dot: dot, statusDot: statusDot, reviewDot: reviewDot, tierTag: tierTag, tierHelp: tierHelp, TIERS: TIERS,
     releaseIdOf: releaseIdOf, kindOf: kindOf, resultName: resultName, displayName: displayName,
     button: button, iconButton: iconButton, setPressed: setPressed, link: link, select: select, section: section, empty: empty, note: note, table: table, evidence: evidence,
     host: host, dialog: {open: openDialog, close: closeDialog, isOpen: dialogOpen}, confirm: confirm, menu: menu, closeMenu: closeMenu, menuOpen: menuOpen,
-    toast: toast, hideToast: hideToast, downloadBlob: downloadBlob, isTyping: isTyping};
+    toast: toast, hideToast: hideToast, downloadBlob: downloadBlob, isTyping: isTyping, infoTip: _infoTip};
 });

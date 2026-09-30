@@ -12,7 +12,8 @@
   'use strict';
 
   var FONT = 'system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif';
-  var INK = 'var(--ink, #1b2430)', INK2 = 'var(--ink-2, #465361)', INK3 = 'var(--ink-3, #77828e)', LINE2 = 'var(--line-2, #c6ccd2)';
+  // On screen the bar sits on the viewport stage, so it takes the stage's HUD colours (dark or light stage).
+  var INK = 'var(--hud-ink, #1b2430)', INK2 = 'var(--hud-ink-2, #465361)', INK3 = 'var(--hud-ink-3, #77828e)', LINE2 = 'var(--hud-line, #c6ccd2)';
   var INK_HEX = '#1b2430', INK2_HEX = '#465361', INK3_HEX = '#77828e', LINE2_HEX = '#c6ccd2';
 
   function U() { return ns.util; }
@@ -73,7 +74,7 @@
     opts = opts || {};
     var sc = info.scale, h = info.histogram, css = opts.css !== false;
     var ink = css ? INK : INK_HEX, ink2 = css ? INK2 : INK2_HEX, ink3 = css ? INK3 : INK3_HEX, line2 = css ? LINE2 : LINE2_HEX;
-    var histW = W >= 120 ? 34 : 22, gap = 3, barW = 12, histX0 = 1, barX = histX0 + histW + gap, labelX = barX + barW + 7;
+    var histW = W >= 120 ? 26 : 18, gap = 4, barW = 10, histX0 = 1, barX = histX0 + histW + gap, labelX = barX + barW + 7;
     var arrow = 7, top = arrow + 5, bottom = H - arrow - 5, barH = Math.max(40, bottom - top);
     var yOf = function (f) { return top + barH * (1 - f); };
     var s = [];
@@ -92,7 +93,7 @@
           var y0 = yOf(f1), y1 = yOf(f0), len = Math.max(0.8, histW * h.counts[k] / mx);
           d.push('M' + (barX - 1).toFixed(1) + ' ' + y0.toFixed(2) + 'h' + (-len).toFixed(2) + 'V' + y1.toFixed(2) + 'h' + len.toFixed(2) + 'Z');
         }
-        s.push('<path d="' + d.join('') + '" fill="' + ink3 + '" fill-opacity="0.5"><title>' + esc(info.histogramSource === 'vertices' ? '显示网格顶点分布' : '采样点分布') + '</title></path>');
+        s.push('<path d="' + d.join('') + '" fill="' + ink3 + '" fill-opacity="0.45"><title>' + esc(info.histogramSource === 'vertices' ? '显示网格顶点分布' : '采样点分布') + '</title></path>');
       }
     }
     // colour bar: exact band blocks, or 64 thin slices (no gradient interpolation: the slices are the scale's own colours)
@@ -101,7 +102,7 @@
       var fa = i / nSlices, fb = (i + 1) / nSlices, c = hex(sc.colorT((fa + fb) / 2));
       s.push('<rect x="' + barX + '" y="' + yOf(fb).toFixed(2) + '" width="' + barW + '" height="' + (barH / nSlices + 0.35).toFixed(2) + '" fill="' + c + '" shape-rendering="crispEdges"/>');
     }
-    s.push('<rect x="' + (barX - 0.5) + '" y="' + (top - 0.5) + '" width="' + (barW + 1) + '" height="' + (barH + 1) + '" fill="none" stroke="' + line2 + '"/>');
+    s.push('<rect x="' + (barX - 0.5) + '" y="' + (top - 0.5) + '" width="' + (barW + 1) + '" height="' + (barH + 1) + '" rx="2" fill="none" stroke="' + line2 + '"/>');
     // end-colour arrows when values fall outside the range
     var above = h && h.nAbove > 0, below = h && h.nBelow > 0;
     var cx = barX + barW / 2;
@@ -111,7 +112,7 @@
     var marks = thresholdMarks(info), taken = [];
     marks.forEach(function (m) {
       var y = yOf(m.f);
-      s.push('<line x1="' + (histX0) + '" y1="' + y.toFixed(2) + '" x2="' + (barX + barW + 4) + '" y2="' + y.toFixed(2) + '" stroke="' + ink + '" stroke-width="2"/>');
+      s.push('<line x1="' + (barX - 3) + '" y1="' + y.toFixed(2) + '" x2="' + (barX + barW + 4) + '" y2="' + y.toFixed(2) + '" stroke="' + ink + '" stroke-width="1.6"/>');
       if (taken.some(function (t) { return Math.abs(t - y) < 13; })) return;
       taken.push(y);
       s.push('<text x="' + labelX + '" y="' + (y + 4).toFixed(2) + '" fill="' + ink + '" font-weight="600">' + esc(U().fmtTrim(m.v)) + '</text>');
@@ -142,31 +143,24 @@
     var box = doc.createElement('div');
     box.className = 'wssv2-colorbar';
     box.setAttribute('role', 'img');
-    box.style.cssText = 'font:13px/1.35 ' + FONT + ';color:' + INK + ';font-variant-numeric:tabular-nums;user-select:none;width:100%;';
+    box.style.cssText = 'font:12px/1.35 ' + FONT + ';color:' + INK + ';font-variant-numeric:tabular-nums;user-select:none;width:100%;';
     el.appendChild(box);
     function render(info) {
       if (disposed) return;
       last = info || null;
       if (!info || !info.scale) { box.innerHTML = ''; box.setAttribute('aria-label', '无色标'); return; }
-      var W = Math.max(96, Math.round(el.clientWidth || 148));
-      var Htot = Math.round(el.clientHeight || 340);
-      var notes = noteLines(info), tp = titleParts(info), wt = windowText(info), tag = scaleTag(info.scale);
-      // header ~ 38 px, notes ~ 17 px per line (they may wrap: budget 1.5 lines each)
-      var lines = notes.reduce(function (a, n) { return a + (n.sub ? 2 : 1); }, 0);
-      var gH = Math.max(120, Math.min(420, Htot - 44 - lines * 17 - notes.length * 3));
+      var W = Math.max(84, Math.round(el.clientWidth || 104));
+      var Htot = Math.round(el.clientHeight || 300);
+      var notes = noteLines(info), tp = titleParts(info), tag = scaleTag(info.scale);
+      var gH = Math.max(120, Math.min(300, Htot - 40));
+      var tip = [windowText(info)].concat(notes.map(function (n) { return n.text + (n.sub ? '：' + n.sub : ''); })).filter(Boolean).join('\n');
       var html = [];
-      html.push('<div class="wssv2-cb-title" style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(tp.title) +
-        (tp.units ? ' <span style="font-weight:400;color:' + INK3 + ';font-size:12px">' + esc(tp.units) + '</span>' : '') + '</div>');
-      html.push('<div class="wssv2-cb-window" style="font-size:12px;color:' + INK2 + ';margin-bottom:4px">' + esc(wt) + (tag ? '<span style="color:' + INK3 + '"> · ' + esc(tag) + '</span>' : '') + '</div>');
+      html.push('<div class="wssv2-cb-title">' + esc(tp.title) + (tp.units ? '<span class="wssv2-cb-units">' + esc(tp.units) + '</span>' : '') +
+        '<span class="wssv2-cb-info" title="' + esc(tip) + '" aria-label="' + esc(tip) + '">i</span></div>');
+      if (tag) html.push('<div class="wssv2-cb-tag">' + esc(tag) + '</div>');
       html.push('<div class="wssv2-cb-graphic">' + graphicSVG(info, W, gH) + '</div>');
-      html.push('<div class="wssv2-cb-notes" style="font-size:12px;color:' + INK3 + ';margin-top:2px;line-height:1.35">');
-      notes.forEach(function (n) {
-        html.push('<div class="wssv2-cb-note" data-kind="' + n.kind + '" style="margin-top:3px">' + (n.swatch ? '<span style="display:inline-block;width:10px;height:10px;background:' + n.swatch + ';border:1px solid ' + LINE2 + ';vertical-align:-1px;margin-right:4px"></span>' : '') + esc(n.text) +
-          (n.sub ? '<br><span style="color:' + INK2 + '">' + esc(n.sub) + '</span>' : '') + '</div>');
-      });
-      html.push('</div>');
       box.innerHTML = html.join('');
-      box.setAttribute('aria-label', ariaText(info));
+      box.setAttribute('aria-label', ariaText(info) + (tip ? '。' + tip.replace(/\n/g, '；') : ''));
     }
     return {
       element: box,

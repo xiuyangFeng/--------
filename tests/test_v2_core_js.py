@@ -170,7 +170,7 @@ def test_scale_missing_clamping_bands_and_log():
 def test_resolve_adaptive_named_fixed_windows_and_null_p99():
     out = _node("""
       const f={id:'tawss',units:'Pa',display:{p99:4.36,thresholds:[0.4,4,7]},windows:[{id:'low',label:'低剪切窗',range:[0,1],provisional:true}]};
-      const a=ns.colormap.resolve(f,{window:'adaptive'},{min:0.1});
+      const a=ns.colormap.resolve(f,{window:'adaptive',log:false},{min:0.1});   // linear here; the log default has its own test
       const n=ns.colormap.resolve(f,{window:'low'},{min:0.1});
       const x=ns.colormap.resolve(f,{window:{range:[5,1]}},{min:0.1});
       const u=ns.colormap.resolve(f,{window:'nope'},{min:0.1});
@@ -213,7 +213,7 @@ def test_colorbar_svg_marks_histogram_thresholds_window_and_clipping():
     svg, notes = out["svg"], out["notes"]
     assert svg.startswith("<svg") and "TAWSS &lt;x&gt;" in svg and "<x>" not in svg
     assert "低剪切窗（暂定）" in svg
-    assert svg.count('stroke-width="2"') == 2                 # 0.4 and 4 inside the range, 7 outside
+    assert svg.count('stroke-width="1.6"') == 2               # threshold notches: 0.4 and 4 inside the range, 7 outside
     assert "高于上限的值按上端色" in svg and "低于下限" not in svg   # arrow only on the clipped end
     kinds = [n["kind"] for n in notes]
     assert kinds == ["hist", "clip", "missing", "thr"]
@@ -546,7 +546,10 @@ def test_adaptive_window_follows_the_release_log_hint():
       const lin=ns.colormap.resolve(f, {window:'adaptive', log:false}, st);
       const named=ns.colormap.resolve(f, {window:'low', log:null}, st);
       const plain=ns.colormap.resolve({id:'wss', units:'Pa', display:{p99:17}}, {window:'adaptive', log:null}, {p99:17, min:0.1, max:52});
+      const osi=ns.colormap.resolve({id:'osi', units:'1', display:{p99:0.35}}, {window:'adaptive', log:null}, {p99:0.35, min:0.002, max:0.39});
+      const off=ns.colormap.resolve({id:'wss', units:'Pa', display:{p99:17, log_scale:false}}, {window:'adaptive', log:null}, {p99:17, min:0.1, max:52});
       const pz=ns.colormap.resolve({id:'pressure', units:'Pa', display:{log_scale:true}}, {window:'adaptive', log:null}, {p99:900, p1:-800, min:-1200, max:1300});
-      console.log(JSON.stringify({a:a.scale.log, aLabel:a.window.label, lin:lin.scale.log, named:named.scale.log, plain:plain.scale.log, pz:pz.scale.log}));
+      console.log(JSON.stringify({a:a.scale.log, aLabel:a.window.label, lin:lin.scale.log, named:named.scale.log, plain:plain.scale.log, osi:osi.scale.log, off:off.scale.log, pz:pz.scale.log}));
     """)
-    assert out == {"a": True, "aLabel": "本例自适应", "lin": False, "named": False, "plain": False, "pz": False}
+    # the wall shear family (WSS / TAWSS / RRT / ECAP) opens on log unless the release says otherwise; OSI stays linear
+    assert out == {"a": True, "aLabel": "本例自适应", "lin": False, "named": False, "plain": True, "osi": False, "off": False, "pz": False}

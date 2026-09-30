@@ -12,7 +12,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (ns, root) {
   'use strict';
 
-  var INK = 'var(--ink, #1b2430)', INK3 = 'var(--ink-3, #77828e)';
+  var INK = 'var(--hud-ink, #1b2430)', INK3 = 'var(--hud-ink-3, #77828e)';
   var FONT = 'system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif';
   var FROM = { anterior: '从前方看', posterior: '从后方看', left: '从左侧看', right: '从右侧看', superior: '从头侧看', inferior: '从足侧看' };
 
@@ -46,29 +46,63 @@
     if (!lrConfirmed) notes.push('左右为推断');
     if (!apConfirmed) notes.push('前后为推断');
     if (notes.length) caption.push(notes.join('，'));
-    return { available: true, axes: axes, caption: caption, view: bv > 0.8 ? best : null };
+    // screen-space basis of the three anatomical axes, for the orientation cube
+    var proj = function (v) { return [dot(v, b.right), dot(v, b.up), dot(v, b.forward)]; };
+    var cube = { left: proj(ax.left), superior: proj(ax.superior), anterior: proj(anterior), lrInferred: !lrConfirmed, apInferred: !apConfirmed };
+    return { available: true, axes: axes, caption: caption, view: bv > 0.8 ? best : null, cube: cube };
   }
 
   function esc(x) { return ns.util.escapeHtml(x); }
 
+  // Orientation cube: the six faces of a unit cube aligned with the anatomical axes, drawn back to front with the
+  // faces turned towards the viewer labelled.  A face whose direction is only inferred gets a dashed edge and a
+  // lighter label.  Each face carries data-view so a click can turn the camera to that standard view.
+  var FACES = [
+    { key: 'left', axis: 'left', sign: 1, label: '左', view: 'left', inferred: 'lr' },
+    { key: 'right', axis: 'left', sign: -1, label: '右', view: 'right', inferred: 'lr' },
+    { key: 'superior', axis: 'superior', sign: 1, label: '头', view: 'superior', inferred: null },
+    { key: 'inferior', axis: 'superior', sign: -1, label: '足', view: 'inferior', inferred: null },
+    { key: 'anterior', axis: 'anterior', sign: 1, label: '前', view: 'anterior', inferred: 'ap' },
+    { key: 'posterior', axis: 'anterior', sign: -1, label: '后', view: 'posterior', inferred: 'ap' }
+  ];
   function svg(lay, size) {
-    var S = size || 84, c = S / 2, R = S * 0.34, lab = S * 0.45;
-    var out = ['<svg xmlns="http://www.w3.org/2000/svg" width="' + S + '" height="' + S + '" viewBox="0 0 ' + S + ' ' + S + '" font-family=\'' + FONT + '\' font-size="12" style="display:block;overflow:visible">'];
-    // back-to-front so the axis pointing at the viewer is drawn last
-    lay.axes.slice().sort(function (a, b) { return b.depth - a.depth; }).forEach(function (a) {
-      var ux = a.length > 1e-6 ? a.x / a.length : 0, uy = a.length > 1e-6 ? a.y / a.length : 0, L = R * Math.min(1, a.length);
-      var x1 = c + ux * L, y1 = c - uy * L, x0 = c - ux * L, y0 = c + uy * L;
-      var col = a.dashed ? INK3 : INK;
-      out.push('<line x1="' + x0.toFixed(1) + '" y1="' + y0.toFixed(1) + '" x2="' + x1.toFixed(1) + '" y2="' + y1.toFixed(1) + '" stroke="' + col + '" stroke-width="1.2"' + (a.dashed ? ' stroke-dasharray="3 2.5"' : '') + ' opacity="' + (a.visible ? 1 : 0.35) + '"/>');
-      if (!a.visible) return;
-      var d = lab * Math.min(1, a.length) + 2;
-      [[1, a.pos], [-1, a.neg]].forEach(function (e) {
-        var tx = c + e[0] * ux * d, ty = c - e[0] * uy * d + 4;
-        out.push('<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="middle" fill="' + col + '" font-weight="' + (a.dashed ? 400 : 600) + '"' +
-          ' paint-order="stroke" stroke="var(--viewport, #eceef0)" stroke-width="3" stroke-linejoin="round">' + esc(e[1]) + '</text>');
+    var S = size || 76, c = S / 2, R = S * 0.25;
+    var out = ['<svg xmlns="http://www.w3.org/2000/svg" width="' + S + '" height="' + S + '" viewBox="0 0 ' + S + ' ' + S + '" font-family=\'' + FONT + '\' style="display:block;overflow:visible">'];
+    var cb = lay && lay.cube;
+    if (!cb) { out.push('</svg>'); return out.join(''); }
+    // A small constant tilt (yaw 22°, pitch 16°) so three faces always show and the cube reads as a solid; the
+    // labelled face turned most towards the viewer is still the view the camera is taken from.
+    var tilt = function (v) {
+      var cy = Math.cos(0.38), sy = Math.sin(0.38), cp = Math.cos(0.28), sp = Math.sin(0.28);
+      var x = v[0] * cy + v[2] * sy, z = -v[0] * sy + v[2] * cy, y = v[1];
+      return [x, y * cp - z * sp, y * sp + z * cp];
+    };
+    var A = { left: tilt(cb.left), superior: tilt(cb.superior), anterior: tilt(cb.anterior) };
+    var others = { left: ['superior', 'anterior'], superior: ['left', 'anterior'], anterior: ['left', 'superior'] };
+    var faces = FACES.map(function (f) {
+      var n = A[f.axis].map(function (x) { return x * f.sign; });
+      var o = others[f.axis], u = A[o[0]], v = A[o[1]];
+      var corners = [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(function (k) {
+        return [n[0] + k[0] * u[0] + k[1] * v[0], n[1] + k[0] * u[1] + k[1] * v[1], n[2] + k[0] * u[2] + k[1] * v[2]];
       });
+      var inferred = f.inferred === 'lr' ? cb.lrInferred : f.inferred === 'ap' ? cb.apInferred : false;
+      return { f: f, n: n, corners: corners, facing: -n[2], inferred: inferred };
+    }).filter(function (x) { return x.facing > 0.02; });
+    faces.sort(function (a, b) { return a.facing - b.facing; });
+    faces.forEach(function (x) {
+      var pts = x.corners.map(function (p) { return (c + p[0] * R).toFixed(1) + ',' + (c - p[1] * R).toFixed(1); }).join(' ');
+      var shade = (0.38 + 0.56 * x.facing).toFixed(2);
+      out.push('<g class="oc-face" data-view="' + x.f.view + '" style="cursor:pointer"><title>' + esc('转到' + (FROM[x.f.view] || '').replace('看', '') + '视角' + (x.inferred ? '（方向为推断）' : '')) + '</title>' +
+        '<polygon points="' + pts + '" fill="var(--hud-cube, #ffffff)" fill-opacity="' + shade + '" stroke="#5b6674" stroke-opacity="0.55" stroke-width="1"' +
+        (x.inferred ? ' stroke-dasharray="3 2"' : '') + ' stroke-linejoin="round"/>');
+      if (x.facing > 0.35) {
+        var tx = c + x.n[0] * R, ty = c - x.n[1] * R;
+        var fs = (9 + 5 * x.facing).toFixed(1);
+        out.push('<text x="' + tx.toFixed(1) + '" y="' + (ty + fs * 0.36).toFixed(1) + '" text-anchor="middle" font-size="' + fs + '" font-weight="' + (x.inferred ? 400 : 600) + '" fill="' +
+          (x.inferred ? '#6b7785' : '#1b2430') + '" style="pointer-events:none">' + esc(x.f.label) + '</text>');
+      }
+      out.push('</g>');
     });
-    out.push('<circle cx="' + c + '" cy="' + c + '" r="1.6" fill="' + INK + '"/>');
     out.push('</svg>');
     return out.join('');
   }
@@ -78,7 +112,11 @@
     var doc = el.ownerDocument || root.document, disposed = false;
     var box = doc.createElement('div');
     box.className = 'wssv2-orientation';
-    box.style.cssText = 'font:12px/1.35 ' + FONT + ';color:' + INK + ';user-select:none;pointer-events:none;';
+    box.style.cssText = 'font:12px/1.35 ' + FONT + ';color:' + INK + ';user-select:none;pointer-events:auto;';
+    box.addEventListener('click', function (e) {
+      var g = e.target && e.target.closest ? e.target.closest('[data-view]') : null;
+      if (g && viewer.standardView) { try { viewer.standardView(g.getAttribute('data-view'), { animate: true }); } catch (_) {} }
+    });
     box.setAttribute('role', 'img');
     el.appendChild(box);
     var pending = false, lastKey = '';
@@ -95,7 +133,8 @@
         box.setAttribute('aria-label', lay.caption[0]);
         return;
       }
-      box.innerHTML = svg(lay, 84) + '<div class="wssv2-orientation-caption" style="color:' + INK3 + ';margin-top:2px;white-space:nowrap">' + lay.caption.map(esc).join('<br>') + '</div>';
+      box.innerHTML = svg(lay, 76);
+      box.title = lay.caption.join('；');
       box.setAttribute('aria-label', '方位：' + lay.caption.join('；'));
     }
     function schedule() {

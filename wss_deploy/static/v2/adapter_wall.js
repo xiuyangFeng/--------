@@ -75,7 +75,7 @@
     if (MT) for (i = 0; i < nV; i++) flag[i] = MT[i] ? 1 : 0;
     geom.setAttribute('aFlag', new THREE.BufferAttribute(flag, 1));
     var flat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
-    var soft = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    var soft = new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide, shininess: 26, specular: new THREE.Color(0x262626) });
     var mesh = new THREE.Mesh(geom, flat);
     mesh.name = 'wall-surface';
     group.add(mesh);

@@ -293,42 +293,50 @@ def test_login_form_then_list():
       user.value = 'admin'; pass.value = 'secret';
       fire(walk(app(), e => e.tagName === 'FORM')[0], 'submit');
       await wait(150);
-      done({loginShown, railBefore, rail: byClass(app(), 'rail-result').map(textOf), todo: byClass(app(), 'todo-row').length, home: textOf(byClass(app(), 'todo-head')[0])});
+      done({loginShown, railBefore, rail: byClass(app(), 'rail-result').map(textOf), cards: byClass(app(), 'case-card').length, attn: byClass(app(), 'attn-card').length, home: textOf(byClass(app(), 'home-head')[0])});
     """)
     assert out["errors"] == [], out["errors"]
     assert out["loginShown"] is True and out["railBefore"] == 0
     assert "POST /api/session" in out["calls"] and "GET /api/jobs" in out["calls"]
-    assert len(out["rail"]) == 4 and out["todo"] >= 3 and out["home"].startswith("待办")
+    # home = case gallery (2026-09-30 look): one card per case, a strip for the jobs that need an action
+    assert len(out["rail"]) == 4 and out["cards"] >= 1 and out["attn"] >= 1 and out["home"].startswith("病例"), out
 
 
 def test_open_result_overview_and_no_internal_words():
+    # 2026-09-30 look: key numbers, a zone map, compact findings, a collapsed conclusion; notes live in ⓘ tooltips
     out = _run(r"""
       await boot();
       await hashTo('#/job/A', 150);
       const insp = byClass(app(), 'ws-inspector')[0];
       const secs = byClass(insp, 'sec-title').map(textOf);
       const fields = walk(app(), e => e.dataset && e.dataset.field).map(e => e.dataset.field);
-      const zoneRows = walk(byClass(insp, 'tbl-zones')[0], e => e.tagName === 'TR').length;
-      const findings = byClass(insp, 'finding').map(textOf);
+      const kpis = byClass(insp, 'kpi-label').map(textOf);
+      const zones = walk(insp, e => e.attrs && e.attrs['data-zone']).map(e => e.attrs['data-zone']);
+      const findings = byClass(insp, 'finding').map(e => textOf(e) + ' | ' + (e.attrs.title || e.title || ''));
       const txt = visibleText();
-      // click the first zone value → evidence lens
-      const val = byClass(insp, 'val-link')[0]; fire(val, 'click'); await wait(30);
+      const head = textOf(byClass(app(), 'insp-head')[0]);
+      const titles = walk(byClass(app(), 'insp-head')[0], e => (e.attrs && e.attrs.title) || e.title).map(e => (e.attrs && e.attrs.title) || e.title);
+      // click the first zone of the map → evidence lens
+      const z = walk(insp, e => e.attrs && e.attrs['data-zone'])[0]; fire(z, 'click'); await wait(30);
       const lensSteps = byClass(app(), 'lens-step').map(e => e.dataset.step);
       const lensText = textOf(byClass(app(), 'lens')[0]);
-      done({secs, fields, zoneRows, findings, research: (txt.match(/研究用途，非诊断/g) || []).length, internal: /M1_3head|run-A|Feret|Gaussian/.test(txt),
-        header: textOf(byClass(app(), 'insp-name')[0]), status: textOf(byClass(app(), 'vp-status')[0]), lensSteps, lensText, cb: cbInfos.slice(-1)[0], cur: shellState().cur.field});
+      done({secs, fields, kpis, zones, findings, research: (txt.match(/研究用途，非诊断/g) || []).length, internal: /M1_3head|run-A|Feret|Gaussian/.test(txt),
+        header: textOf(byClass(app(), 'insp-name')[0]), head, titles, status: textOf(byClass(app(), 'vp-status')[0]), lensSteps, lensText, cb: cbInfos.slice(-1)[0], cur: shellState().cur.field});
     """)
     assert out["errors"] == [], out["errors"]
     assert out["header"] == "CASE_A"
-    assert out["secs"][:5] == ["结论", "分区", "左右对比 · TAWSS 均值", "形态", "发现"]
+    assert out["secs"][:3] == ["分区", "发现", "结论"], out["secs"]
+    assert "管腔最大直径" in out["kpis"], out["kpis"]        # the fixture carries no field statistics: only geometry
     assert out["fields"] == ["wss", "tawss", "osi", "rrt"] and out["cur"] == "tawss"
-    assert out["zoneRows"] == 3                          # header + two zones
+    assert len(out["zones"]) == 2                        # the two zones of the fixture on the map
     assert len(out["findings"]) == 4                     # one per kind (two high clusters → one)
     assert any("含全场最大值" in f and "提示 · 无队列参照" in f for f in out["findings"])
     assert out["research"] == 1 and out["internal"] is False
-    assert "周期指标 TAWSS · OSI" in out["status"] and "未复核" in out["status"] and "计算 8 秒" in out["status"]
+    assert out["status"] == ""                           # single view: no status text on the stage
+    assert "周期指标 TAWSS · OSI" in out["head"] and "技术复核" in out["head"]
+    assert any("计算 8 秒" in t for t in out["titles"]), out["titles"]
     assert out["lensSteps"] == ["result", "where", "value", "method", "support", "consistency", "population"]
-    assert "近端瘤颈" in out["lensText"] and "R² 0.74" in out["lensText"] and "暂无同口径参照" in out["lensText"]
+    assert "R² 0.74" in out["lensText"] and "暂无同口径参照" in out["lensText"]
     assert out["cb"] == "tawss"
     assert "GET /api/v2/jobs/A/manifest" in out["calls"]
 
@@ -589,7 +597,7 @@ def test_pure_helpers():
     assert out["names"] == [True, True, False, False, False]
     assert out["hints"] == [False, False, False, False, True]
     assert out["swapped"] == {"3": "out-re", "4": "out-ri", "5": "out-le", "6": "out-li"} and out["valid"] == [True, False]
-    assert out["prefs"]["tier"] == "full" and out["prefs"]["lighting"] == "flat" and out["prefs"]["tab"] == "overview" and out["prefs"]["rail"] is False
+    assert out["prefs"]["tier"] == "full" and out["prefs"]["lighting"] == "soft" and out["prefs"]["stage"] == "dark" and out["prefs"]["tab"] == "overview" and out["prefs"]["rail"] is False
     assert out["nar"] == {"edited": False, "sentences": ["一。"]}             # the disclaimer lives once, at the inspector bottom
     assert out["edited"]["edited"] is True and out["edited"]["sentences"] == ["人工写的。"]
     assert out["choices"][0] == ["M1", "周期指标 TAWSS · OSI", "34 例留出，与 CFD 的 R²：TAWSS 0.74，OSI 0.56"]

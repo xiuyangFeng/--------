@@ -172,46 +172,87 @@
     Object.keys(out).forEach(function (k) { out[k].sort(function (a, b) { return created(b) - created(a); }); });
     return out;
   }
+  // Home: a gallery of cases (vessel thumbnail, name, scans, one chip per result) under a short strip of the jobs
+  // that need an action (outlets to confirm, failures, running).  Pure layout; thumbnails come from ns.thumbs.
+  function chipTone(job) {
+    var b = bucket(job);
+    return {reviewed: 'ok', unreviewed: 'idle', confirm: 'warn', failed: 'error', running: 'busy'}[b] || 'idle';
+  }
   function todo(el, jobs, opts) {
     opts = opts || {};
     var h = ui().h;
-    var m = todoModel(jobs);
     var cards = opts.cards || {};
-    var total = m.confirm.length + m.failed.length + m.review.length + m.running.length;
-    var wrap = h('div', {'class': 'todo'});
-    wrap.appendChild(h('div', {'class': 'todo-head'}, h('h2', {text: '待办'}),
-      h('span', {'class': 'todo-sum', text: total ? total + ' 项' : ''}), h('span', {'class': 'sec-fill'}),
-      opts.onUpload ? ui().button('上传 STL', opts.onUpload, {icon: 'upload', kind: 'primary'}) : null));
-    function group(title, rows, action, hint) {
-      if (!rows.length) return null;
-      var sec = h('section', {'class': 'todo-sec'}, h('div', {'class': 'todo-sec-head'}, h('h3', {text: title}), h('span', {'class': 'todo-count', text: String(rows.length)}),
-        hint ? h('span', {'class': 'todo-hint', text: hint}) : null));
-      var list = h('div', {'class': 'todo-list'});
-      rows.slice(0, 30).forEach(function (job) {
-        var detail = job.status === 'awaiting_input' ? '核对单位与尺寸' : job.status === 'awaiting_confirmation' ? '核对出口命名' : (job.status === 'failed' || job.status === 'interrupted') ? (job.error && (job.error.message || job.error) || job.detail || '')
-          : job.status === 'done' ? [job.patient_id ? '患者 ' + job.patient_id : '', job.scan_label || ''].filter(Boolean).join(' · ') : (job.phase || '');
-        var row = h('div', {'class': 'todo-row'},
-          h('span', {'class': 'todo-name', text: ui().displayName(job)}),
-          h('span', {'class': 'todo-result', text: ui().resultName(job, cards)}),
-          h('span', {'class': 'todo-detail', text: typeof detail === 'string' ? detail : ''}),
-          h('span', {'class': 'todo-time', text: ui().time(job.updated_at || job.created_at)}),
-          ui().button(action, function () { if (opts.onOpen) opts.onOpen(job.id); }, {cls: 'todo-go'}));
-        list.appendChild(row);
+    var m = todoModel(jobs);
+    var q = opts.q || '';
+    var tree = model(jobs, {q: q, cards: cards});
+    var wrap = h('div', {'class': 'home'});
+    var search = h('input', {type: 'search', 'class': 'home-search', placeholder: '搜索病例、患者编号', 'aria-label': '搜索病例', value: q});
+    var timer = null;
+    search.addEventListener('input', function () { if (timer) clearTimeout(timer); timer = setTimeout(function () { if (opts.onSearch) opts.onSearch(search.value); }, 160); });
+    wrap.appendChild(h('div', {'class': 'home-head'}, h('h2', {text: '病例'}), h('span', {'class': 'sec-count', text: String(tree.length)}), h('span', {'class': 'sec-fill'}),
+      h('label', {'class': 'home-search-wrap'}, ui().icon('search'), search)));
+    // needs an action
+    var attn = m.confirm.map(function (j) { return {job: j, tone: 'warn', what: j.status === 'awaiting_input' ? '核对单位与尺寸' : '确认出口', action: '去确认'}; })
+      .concat(m.failed.map(function (j) { return {job: j, tone: 'error', what: '失败', action: '查看原因'}; }))
+      .concat(m.running.map(function (j) { return {job: j, tone: 'busy', what: j.phase || '计算中', action: '查看进度'}; }));
+    if (attn.length) {
+      var strip = h('div', {'class': 'attn'});
+      attn.slice(0, 8).forEach(function (a) {
+        var card = h('button', {type: 'button', 'class': 'attn-card tone-' + a.tone, title: a.action},
+          ui().dot(a.tone, '', 'attn-dot'),
+          h('span', {'class': 'attn-text'}, h('span', {'class': 'attn-name', text: ui().displayName(a.job)}),
+            h('span', {'class': 'attn-what', text: a.what + ' · ' + ui().resultName(a.job, cards, {short: true})})),
+          h('span', {'class': 'attn-go', text: a.action}));
+        card.addEventListener('click', function () { if (opts.onOpen) opts.onOpen(a.job.id); });
+        strip.appendChild(card);
       });
-      sec.appendChild(list);
-      if (rows.length > 30) sec.appendChild(ui().note('只列出最近 30 项；其余在左侧病例栏里按状态筛选。'));
-      return sec;
+      wrap.appendChild(h('section', {'class': 'home-sec'}, h('h3', {'class': 'home-sub', text: '需要处理'}), strip));
     }
-    [group('待确认', m.confirm, '去确认', '确认后才会开始预测'), group('失败', m.failed, '查看原因'), group('未复核', m.review, '打开'),
-      group('计算中', m.running, '查看进度')].forEach(function (sec) { if (sec) wrap.appendChild(sec); });
-    if (!total) {
-      wrap.appendChild(ui().empty('没有待办。上传一份管腔 STL 开始新病例，或在左侧打开已有结果。', [
-        opts.onUpload ? ui().button('上传 STL', opts.onUpload, {icon: 'upload'}) : null,
-        ui().link('输入要求', '/static/v2/help_input.html', {newTab: true}),
-        ui().link('示例报告', '/v2/example', {newTab: true})
-      ].filter(Boolean)));
-    }
+    // gallery
+    var grid = h('div', {'class': 'gallery'});
+    tree.forEach(function (c) {
+      var all = [];
+      c.scans.forEach(function (s) { s.jobs.forEach(function (j) { all.push(j); }); });
+      var done = all.filter(function (j) { return j.status === 'done'; });
+      var primary = done[0] || all[0];
+      var thumbJob = all.filter(function (j) { return j.status !== 'failed'; })[0] || all[0];
+      var thumb = h('div', {'class': 'case-thumb'});
+      var card = h('article', {'class': 'case-card', tabindex: '0', role: 'button', 'aria-label': c.name});
+      var scanText = c.scans.length > 1 ? c.scans.length + ' 次扫描 · ' + (c.scans[0].label || '') : (c.scans[0] && c.scans[0].label) || '';
+      var chips = h('div', {'class': 'case-results'});
+      c.scans[0].jobs.forEach(function (j) {
+        var chip = h('button', {type: 'button', 'class': 'res-chip', title: ui().resultName(j, cards) + ' · ' + rowStatus(j).label},
+          h('span', {'class': 'res-dot tone-' + chipTone(j)}), h('span', {text: ui().resultName(j, cards, {short: true})}));
+        chip.addEventListener('click', function (e) { e.stopPropagation(); if (opts.onOpen) opts.onOpen(j.id); });
+        chips.appendChild(chip);
+      });
+      card.appendChild(thumb);
+      card.appendChild(h('div', {'class': 'case-body'},
+        h('div', {'class': 'case-name', text: c.name}),
+        h('div', {'class': 'case-meta', text: [c.patientId && c.patientId !== c.name ? c.patientId : '', scanText].filter(Boolean).join(' · ')}),
+        chips));
+      var open = function () { if (opts.onOpen && primary) opts.onOpen(primary.id); };
+      card.addEventListener('click', open);
+      card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+      grid.appendChild(card);
+      // thumbnail: a wall result reads best (cycle metrics first, then peak WSS); a volume result only when alone
+      var rank = function (j) { var k = ui().kindOf ? ui().kindOf(j) : null; return k === 'cycle' ? 0 : k === 'wall' ? 1 : 2; };
+      var tj = done.slice().sort(function (a, b) { return rank(a) - rank(b); })[0] || thumbJob;
+      if (ns.thumbs && opts.fetchThumb && tj && tj.status !== 'failed') {
+        var cached = ns.thumbs.cached(tj.id);
+        var put = function (url) { if (url) thumb.replaceChildren(h('img', {src: url, alt: '', draggable: 'false'})); else thumb.classList.add('no-thumb'); };
+        if (cached) put(cached);
+        else ns.thumbs.request(tj.id, function () { return opts.fetchThumb(tj); }, put);
+      } else thumb.classList.add('no-thumb');
+    });
+    if (tree.length) wrap.appendChild(h('section', {'class': 'home-sec'}, attn.length ? h('h3', {'class': 'home-sub', text: '全部病例'}) : null, grid));
+    else wrap.appendChild(ui().empty(q ? '没有符合搜索的病例。' : '还没有病例。上传一份管腔 STL 开始第一例。', [
+      opts.onUpload ? ui().button('上传 STL', opts.onUpload, {icon: 'upload', kind: 'primary'}) : null,
+      ui().link('输入要求', '/static/v2/help_input.html', {newTab: true}),
+      ui().link('示例报告', '/v2/example', {newTab: true})
+    ].filter(Boolean)));
     el.replaceChildren(wrap);
+    if (opts.focusSearch) { try { search.focus(); search.setSelectionRange(search.value.length, search.value.length); } catch (_) {} }
     return m;
   }
 
