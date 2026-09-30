@@ -1,1 +1,56 @@
-/* Lane E (S6e) display options — owned by that lane (PHASE2_LANES.md). */
+/* Lane E (S6e) display options — owned by that lane (PHASE2_LANES.md).
+   Floating panels over the stage take the HUD colours (dark or light stage); the section stations sit in the white
+   inspector and use its ink. */
+
+/* colour bar: the adjust button beside the title (the legend itself lets clicks through) */
+.wssv2-cb-adjust { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-left: 1px; padding: 0; border: 0; border-radius: 5px;
+  background: transparent; color: var(--hud-ink-3); cursor: pointer; pointer-events: auto; }
+.wssv2-cb-adjust:hover, .wssv2-cb-adjust:focus-visible { color: var(--hud-ink); background: var(--hud-hover); }
+/* a longer display unit (mmHg, cm/s) plus the button: the title may use the legend's right margin instead of being cut */
+.vp-legend .wssv2-cb-title { gap: 3px; margin-right: -12px; }
+
+/* floating panels */
+.wsd-pop { position: fixed; z-index: 40; width: 272px; padding: 6px 10px 10px; color: var(--hud-ink); background: var(--hud-bg); border: 1px solid var(--hud-border);
+  border-radius: 12px; box-shadow: var(--hud-shadow); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); font-size: 12px; }
+.wsd-head { display: flex; align-items: center; gap: 6px; height: 28px; }
+.wsd-title { flex: 1 1 auto; font-weight: 700; font-size: 12px; letter-spacing: .02em; }
+.wsd-pop .btn-icon { width: 24px; height: 24px; color: var(--hud-ink-3); border-radius: 6px; }
+.wsd-pop .btn-icon:hover { background: var(--hud-hover); color: var(--hud-ink); }
+.wsd-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.wsd-body > * { min-width: 0; }
+.wsd-row { display: flex; align-items: center; gap: 8px; min-height: 28px; }
+.wsd-k { flex: none; width: 30px; color: var(--hud-ink-3); }
+.wsd-pop select, .wsd-num { height: 26px; padding: 0 6px; color: var(--hud-ink); background: transparent; border: 1px solid var(--hud-line); border-radius: 6px; font-size: 12px; }
+.wsd-pop select { flex: 1 1 auto; min-width: 0; }
+.wsd-pop select option { color: #101828; }
+.wsd-thr { display: flex; align-items: center; gap: 4px; flex: 1 1 auto; min-width: 0; }
+.wsd-num { width: 52px; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+.wsd-num::-webkit-inner-spin-button { -webkit-appearance: none; }
+.wsd-unit, .wsd-val { color: var(--hud-ink-3); white-space: nowrap; }
+.wsd-val { min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+.wsd-val.off { opacity: .35; }
+.wsd-fracs { display: flex; gap: 10px; padding-left: 38px; margin-top: -3px; font-variant-numeric: tabular-nums; }
+.wsd-frac { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
+.wsd-frac-k { color: var(--hud-ink-3); }
+.wsd-frac b { font-weight: 600; }
+.wsd-range { display: flex; align-items: center; gap: 6px; flex: 1 1 auto; min-width: 0; }
+.wsd-range input[type="range"] { flex: 1 1 auto; min-width: 0; accent-color: var(--hud-ink-2); }
+.wsd-range input[type="range"][disabled] { opacity: .35; }
+.wsd-check { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; color: var(--hud-ink-2); }
+.wsd-foot { display: flex; align-items: center; gap: 6px; padding-top: 6px; border-top: 1px solid var(--hud-line); }
+.wsd-foot .btn { color: var(--hud-ink); background: transparent; border-color: var(--hud-line); }
+.wsd-foot .btn:hover { background: var(--hud-hover); }
+.wsd-foot .btn-link { color: var(--hud-ink-2); border-color: transparent; }
+.wsd-pop .info-tip { border-color: var(--hud-line); color: var(--hud-ink-3); background: transparent; }
+
+/* section tool: the six classic stations of the current branch */
+.slice-stations { display: flex; align-items: center; gap: 4px; margin: -4px 0 10px; }
+.slice-stations .st-k { flex: none; font-size: 12px; color: var(--ink-3); margin-right: 2px; }
+.slice-station { flex: 1 1 0; min-width: 0; height: 24px; padding: 0; border: 1px solid var(--line-2); border-radius: 6px; background: var(--panel); color: var(--ink-2);
+  font-size: 12px; font-variant-numeric: tabular-nums; cursor: pointer; }
+.slice-station:hover { border-color: var(--ink-3); color: var(--ink); }
+.slice-station.end { color: var(--ink-3); border-style: dashed; }
+.slice-station.on { background: var(--ink); border-color: var(--ink); color: #fff; border-style: solid; }
+
+/* compare panel: 以左为准 / 以右为准 */
+.cmp-push { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }

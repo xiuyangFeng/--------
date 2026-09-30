@@ -1,7 +1,9 @@
 /* WSS workspace v2 — compare D11 + two viewports D3 (contract §6.3 ws_compare.js).
  * Before two results are read side by side, the conditions are listed one by one (field, units, time, model,
  * geometry, statistics, orientation) with 一致 / 不一致 / 未知.  Same-scale mode only for compatible fields;
- * camera sync on by default only for the same input geometry.  No point-by-point difference. */
+ * camera sync on by default only for the same input geometry.  No point-by-point difference.
+ * Second phase lane E: 以左为准 / 以右为准 (classic push-left / push-right, through ws_display.pushSide) and, in the
+ * same-scale mode, one set of colour bands and thresholds for both sides (ws_display follows the mode). */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -98,19 +100,28 @@
     var modeName = 'cmp-mode-' + Math.floor(Math.random() * 1e6);
     var radio = function (value, label, disabled, title) {
       var input = h('input', {type: 'radio', name: modeName, value: value, checked: ctx.mode === value, disabled: Boolean(disabled)});
-      input.addEventListener('change', function () { if (input.checked && ctx.onMode) ctx.onMode(value); });
+      input.addEventListener('change', function () {
+        if (!input.checked || !ctx.onMode) return;
+        if (value === 'each' && ctx.mode === 'same' && ns.display && ns.display.keepShared) ns.display.keepShared();   // the right side keeps what it showed
+        ctx.onMode(value);
+      });
       return h('label', {'class': 'radio' + (disabled ? ' disabled' : ''), title: title || null}, input, h('span', {text: label}));
     };
     var modes = h('div', {'class': 'cmp-modes', role: 'radiogroup', 'aria-label': '比较方式'},
-      radio('same', '同尺度看幅值', !allow.ok, allow.ok ? '两侧用同一个色标范围' : '条件不一致，不能同尺度：' + allow.reasons.join('、')),
+      radio('same', '同尺度看幅值', !allow.ok, allow.ok ? '两侧用同一个色标范围、分段和阈值' : '条件不一致，不能同尺度：' + allow.reasons.join('、')),
       radio('each', '各自增强细节'));
+    var D = ns.display && typeof ns.display.pushSide === 'function' ? ns.display : null;
+    var push = D ? h('div', {'class': 'cmp-push'},
+      ui().button('以左为准', function () { D.pushSide('a'); }, {cls: 'btn-sm', title: '把左侧的字段、色标窗、分段和阈值用到右侧'}),
+      ui().button('以右为准', function () { D.pushSide('b'); }, {cls: 'btn-sm', title: '把右侧的字段、色标窗、分段和阈值用到左侧'}),
+      ui().infoTip ? ui().infoTip('只照搬显示方式，不改数值。图层、单位和外壁透明度两侧本来就共用。') : null) : null;
     var sync = h('input', {type: 'checkbox', checked: Boolean(ctx.sync)});
     sync.addEventListener('change', function () { if (ctx.onSync) ctx.onSync(sync.checked); });
     var syncRow = h('label', {'class': 'check'}, sync, h('span', {text: '同步视角'}));
     var parts = [
       h('div', {'class': 'cmp-pair'}, who('左', ctx.left), who('右', ctx.right)),
       ui().section('比较条件', {}, table),
-      ui().section('怎么看', {}, modes, ctx.mode === 'each' ? ui().note('两侧色标范围不同，同一种颜色不代表同一个数。', 'warn') : ui().note('两侧用同一个色标范围：' + (ctx.rangeText || '—') + '。')),
+      ui().section('怎么看', {}, modes, ctx.mode === 'each' ? ui().note('两侧色标范围不同，同一种颜色不代表同一个数。', 'warn') : ui().note('两侧用同一个色标范围：' + (ctx.rangeText || '—') + (D ? '；分段和阈值也一起改' : '') + '。'), push),
       ui().section('视角', {}, syncRow, geo ? ui().note('同一输入几何：视角同步后，同一屏幕位置是同一处血管。') : ui().note('不同输入：只同步视角，不代表位置对应。', 'warn')),
       ui().note('不做逐点差值：两份结果的预测点不一一对应。'),
       h('div', {'class': 'sec-actions'}, ctx.onSwap ? ui().button('左右互换', ctx.onSwap, {cls: 'btn-sm'}) : null, ctx.onClose ? ui().button('退出比较', ctx.onClose, {cls: 'btn-sm'}) : null)

@@ -949,6 +949,109 @@
     }
 
     // ==== lane E ==== (second phase: display options; PHASE2_LANES.md §3)
+    // Display options come from one provider the workspace installs (ns.viewer.displayProvider, ws_display.js); every
+    // call receives this viewer first:
+    //   bands(v, fieldId) → int | null            colour bands of that field (null: leave the caller's spec alone)
+    //   thresholds(v, fieldId) → [3] | null       observation thresholds drawn on the colour bar (display only)
+    //   units(v, field) → {units, factor} | null  display units of a field: numbers × factor, the data are untouched
+    //   flags(v) → {…}                            adapter display flags (input STL, stagnation hatch, wall opacity,
+    //                                             streamline density / width, velocity arrows)
+    //   markers(v) → [{xyz, kind, text, segmentId}]   persistent markers (field maximum, TAWSS minimum)
+    //   state(v) → {…} / restore(v, state)        the display part of getState / applyState
+    // Without a provider (the kernel dev page, the kernel tests) everything here is a pass-through.  The viewer's own
+    // functions are wrapped by reassigning their bindings, so internal callers (applyState → setField, setResult →
+    // applyField) go through the wrappers as well; the exported object below picks the wrapped bindings up.
+    function displayProvider() { var p = ns.viewer && ns.viewer.displayProvider; return p && typeof p === 'object' ? p : null; }
+    function dpCall(name, a, b) {
+      var p = displayProvider();
+      if (!p || typeof p[name] !== 'function') return null;
+      try { return p[name](viewer, a, b); } catch (err) { ev.emit('error', err); return null; }
+    }
+    function dpBands(fieldId) { var b = dpCall('bands', fieldId); return b === null || b === undefined || !Number.isFinite(+b) ? null : Math.max(0, Math.floor(+b)); }
+    function pushDisplayFlags() {
+      if (!S.handle || typeof S.handle.setDisplay !== 'function' || !displayProvider()) return;
+      try { S.handle.setDisplay(dpCall('flags') || {}); } catch (err) { ev.emit('error', err); }
+    }
+    var peakGroup = null;
+    function clearPeaks() {
+      if (peakGroup) { gfx.disposeObject(peakGroup); peakGroup = null; }
+      if (toolChips.peak) setToolLabels('peak', []);
+    }
+    // Persistent markers: an ink ring around a yellow (maximum) or white (minimum) dot, constant on-screen size,
+    // drawn over the vessel like the finding markers; the value chip goes with the tool labels (decluttered).
+    function drawPeaks() {
+      clearPeaks();
+      if (!S.handle || !displayProvider()) return;
+      var list = (dpCall('markers') || []).filter(function (m) {
+        return m && Array.isArray(m.xyz) && m.xyz.length === 3 && m.xyz.every(function (x) { return Number.isFinite(+x); }) &&
+          !(S.branches && m.segmentId !== null && m.segmentId !== undefined && S.branches.indexOf(Number(m.segmentId)) < 0);
+      });
+      if (!list.length) { requestRender(); return; }
+      peakGroup = new THREE.Group(); peakGroup.name = 'peaks';
+      var geo = new THREE.SphereGeometry(1, 14, 10), halo = new THREE.SphereGeometry(1.7, 14, 10);
+      // transparent (opacity 1) so they draw after the transparent overlays of the wall (trust / stagnation hatch)
+      var mInk = new THREE.MeshBasicMaterial({ color: new THREE.Color(INK_HEX), depthTest: false, transparent: true });
+      list.forEach(function (m) {
+        var g = new THREE.Group();
+        var h = new THREE.Mesh(halo, mInk), d = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: new THREE.Color(m.kind === 'min' ? '#ffffff' : '#ffd400'), depthTest: false, transparent: true }));
+        h.renderOrder = 16; d.renderOrder = 17;
+        g.add(h); g.add(d);
+        g.position.set(+m.xyz[0], +m.xyz[1], +m.xyz[2]);
+        g.userData.screenPx = 3.5;
+        peakGroup.add(g);
+      });
+      overlay.add(peakGroup);
+      setToolLabels('peak', list.filter(function (m) { return m.text; }).map(function (m) { return { xyz: m.xyz, text: m.text }; }));
+    }
+    // Re-applies everything the provider decides for the current result: adapter flags, the current field with its
+    // bands (the colour bar follows through the 'change' event), markers.
+    function refreshDisplay() {
+      if (!S.handle) return;
+      pushDisplayFlags();
+      if (S.fieldId && S.resolved) {
+        var b = dpBands(S.fieldId);
+        applyField(S.fieldId, { window: S.spec.window, log: S.spec.log, bands: b === null ? S.spec.bands : b, cmap: S.spec.cmap });
+      } else drawPeaks();
+      requestRender();
+    }
+    var laneE = { setField: setField, applyField: applyField, colorbarInfo: colorbarInfo, getState: getState, applyState: applyState, setResult: setResult, setBranchVisibility: setBranchVisibility };
+    setField = function (fieldId, scaleSpec) {
+      var b = displayProvider() ? dpBands(fieldId) : null;
+      if (b === null) return laneE.setField(fieldId, scaleSpec);
+      var spec = scaleSpec ? Object.assign({}, scaleSpec) : (fieldId === S.fieldId ? { window: S.spec.window, log: S.spec.log, cmap: S.spec.cmap } : {});
+      spec.bands = b;
+      return laneE.setField(fieldId, spec);
+    };
+    applyField = function (fieldId, spec) { laneE.applyField(fieldId, spec); drawPeaks(); };
+    colorbarInfo = function () {
+      var info = laneE.colorbarInfo();
+      if (!info || !displayProvider()) return info;
+      var th = dpCall('thresholds', info.fieldId);
+      if (Array.isArray(th)) info.thresholds = th.slice();
+      var u = dpCall('units', S.result ? S.result.field(info.fieldId) : null);
+      if (u && typeof u.units === 'string' && Number.isFinite(+u.factor) && +u.factor > 0 && +u.factor !== 1) { info.displayUnits = u.units; info.unitFactor = +u.factor; }
+      var fl = dpCall('flags');
+      if (fl && fl.stl) info.stl = true;
+      return info;
+    };
+    getState = function () {
+      var st = laneE.getState();
+      var d = S.handle ? dpCall('state') : null;
+      if (d && typeof d === 'object') st.display = d;
+      return st;
+    };
+    applyState = function (state, o) {
+      if (state && typeof state === 'object' && state.display && typeof state.display === 'object' && S.handle) { dpCall('restore', state.display); pushDisplayFlags(); }
+      return laneE.applyState(state, o);
+    };
+    setResult = function (result) {
+      clearPeaks();
+      return laneE.setResult(result).then(function (r) {
+        if (r && S.result === r && S.handle) { pushDisplayFlags(); drawPeaks(); requestRender(); }
+        return r;
+      });
+    };
+    setBranchVisibility = function (ids) { laneE.setBranchVisibility(ids); if (peakGroup || toolChips.peak) drawPeaks(); };
     // ==== end lane E ====
 
     // ---- state
@@ -1072,6 +1175,8 @@
       renderNow: function () { if (rafId) { (root.cancelAnimationFrame || clearTimeout)(rafId); rafId = 0; } frame(); },
       stats: function () { var i = renderer.info; return { geometries: i.memory.geometries, textures: i.memory.textures, calls: i.render.calls, triangles: i.render.triangles, programs: (i.programs || []).length }; },
       // lane E exports
+      refreshDisplay: refreshDisplay,
+      peakMarkers: function () { return peakGroup ? peakGroup.children.map(function (g) { return g.position.toArray(); }) : []; },
       dispose: dispose,
       isDisposed: function () { return disposed; }
     };

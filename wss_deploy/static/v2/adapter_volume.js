@@ -51,16 +51,45 @@
   function opt(result, key) { return key && result.has(key) ? result.array(key) : null; }
   function fail(msg) { throw (ns.data && ns.data.DataError ? ns.data.DataError(msg, { code: 'geometry' }) : new Error(msg)); }
 
-  // The glass takes the viewer's clipping planes (the section tool's cut), hence the clipping chunks.
+  // The glass takes the viewer's clipping planes (the section tool's cut), hence the clipping chunks.  uGain scales its
+  // opacity (lane E 外壁不透明度: the classic slider value / its default 0.1, so the default look is unchanged).
+  var OPACITY_DEFAULT = 0.1;   // classic volume-opacity default (0 … 0.5)
   function glassMaterial(THREE) {
     return new THREE.ShaderMaterial({
       clipping: true,
-      uniforms: { uColor: { value: new THREE.Color('#a9b6c4') }, uBase: { value: 0.07 }, uRim: { value: 0.55 } },   // mid grey: reads on a dark and on a light stage
+      uniforms: { uColor: { value: new THREE.Color('#a9b6c4') }, uBase: { value: 0.07 }, uRim: { value: 0.55 }, uGain: { value: 1 } },   // mid grey: reads on a dark and on a light stage
       vertexShader: '#include <clipping_planes_pars_vertex>\nvarying vec3 vN; varying vec3 vV; void main(){ vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mvPosition.xyz); gl_Position = projectionMatrix * mvPosition;\n#include <clipping_planes_vertex>\n}',
-      fragmentShader: '#include <clipping_planes_pars_fragment>\nuniform vec3 uColor; uniform float uBase; uniform float uRim; varying vec3 vN; varying vec3 vV;' +
-        'void main(){\n#include <clipping_planes_fragment>\n float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); gl_FragColor = vec4(uColor, clamp(uBase + uRim * f * f * f, 0.0, 0.9)); }',
+      fragmentShader: '#include <clipping_planes_pars_fragment>\nuniform vec3 uColor; uniform float uBase; uniform float uRim; uniform float uGain; varying vec3 vN; varying vec3 vV;' +
+        'void main(){\n#include <clipping_planes_fragment>\n float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); gl_FragColor = vec4(uColor, clamp((uBase + uRim * f * f * f) * uGain, 0.0, 0.9)); }',
       transparent: true, depthWrite: false, side: THREE.DoubleSide
     });
+  }
+  // Classic planeBasis (unit u ⟂ direction), for the arrow heads; VolumeViewerCore's when loaded.
+  function sideOf(d) {
+    var VC = root.VolumeViewerCore;
+    if (VC && typeof VC.planeBasis === 'function') return VC.planeBasis(d).u;
+    var a = Math.abs(d[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+    var u = [a[1] * d[2] - a[2] * d[1], a[2] * d[0] - a[0] * d[2], a[0] * d[1] - a[1] * d[0]], n = Math.hypot(u[0], u[1], u[2]) || 1;
+    return [u[0] / n, u[1] / n, u[2] / n];
+  }
+  // Velocity arrows on interior points (classic addVectors): at most 600 (stride ⌈n / 600⌉ over the shown points),
+  // length diag × 0.025 × √(|v| / top of the speed scale), a two-stroke head, coloured by |v| on that scale.
+  // Returns {positions, colors, count} (Float32Arrays of segment ends).
+  function arrowSegments(P, VEL, indices, diag, scale) {
+    var n = indices.length, stride = Math.max(1, Math.ceil(n / 600)), top = Math.max(scale.range[1], 1e-9), pos = [], col = [], count = 0;
+    for (var j = 0; j < n; j += stride) {
+      var i = indices[j], vx = VEL[3 * i], vy = VEL[3 * i + 1], vz = VEL[3 * i + 2], len = Math.sqrt(vx * vx + vy * vy + vz * vz);
+      if (!(len >= 1e-8)) continue;
+      var d = [vx / len, vy / len, vz / len], size = diag * 0.025 * Math.sqrt(len / top);
+      var s = [P[3 * i], P[3 * i + 1], P[3 * i + 2]], e = [s[0] + d[0] * size, s[1] + d[1] * size, s[2] + d[2] * size];
+      var u = sideOf(d), b = [e[0] - d[0] * size * 0.24, e[1] - d[1] * size * 0.24, e[2] - d[2] * size * 0.24], w = size * 0.1;
+      var c = scale.color(len);
+      [[s, e], [e, [b[0] + u[0] * w, b[1] + u[1] * w, b[2] + u[2] * w]], [e, [b[0] - u[0] * w, b[1] - u[1] * w, b[2] - u[2] * w]]].forEach(function (seg) {
+        pos.push(seg[0][0], seg[0][1], seg[0][2], seg[1][0], seg[1][1], seg[1][2]); col.push(c[0], c[1], c[2], c[0], c[1], c[2]);
+      });
+      count++;
+    }
+    return { positions: new Float32Array(pos), colors: new Float32Array(col), count: count };
   }
 
   function build(result, ctx) {
@@ -128,19 +157,89 @@
       if (lines) return true;
       var X = opt(result, k.slxyz), S = opt(result, k.slspeed), O = opt(result, k.sloff);
       if (!X || !O) return false;
-      var nL = Math.floor(X.length / 3), idx = [];
-      for (var l = 0; l + 1 < O.length; l++) { var a = O[l], b = Math.min(O[l + 1], nL); for (var j = a; j + 1 < b; j++) idx.push(j, j + 1); }
+      var nL = Math.floor(X.length / 3);
       var lg = new THREE.BufferGeometry();
       lg.setAttribute('position', new THREE.BufferAttribute(X, 3));
       lineColors = new Float32Array(3 * nL);
       lg.setAttribute('color', new THREE.BufferAttribute(lineColors, 3));
-      lg.setIndex(new THREE.BufferAttribute(new Uint32Array(idx), 1));
       lineSpeed = S && S.length === nL ? S : null;
       lines = new THREE.LineSegments(lg, neutralLine); lines.name = 'volume-streamlines'; lines.renderOrder = 2; lines.visible = false;
       group.add(lines);
-      if (hidden) applyLineFilter();
+      applyLineFilter();
       return true;
     }
+    // Lane E display: streamline density (every n-th line, classic stride 1 / 2 / 3 / 5) and width (classic lit tubes,
+    // radius = diagonal / 900 × width; 细线 keeps the line layer), glass opacity, velocity arrows, input STL.
+    var diagC = Math.max(Math.hypot(mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]), 1);   // classic `diagonal`
+    var dsp = { stl: false, opacity: OPACITY_DEFAULT, density: 1, width: 1, thin: true, vectors: false };
+    var tubes = null, tubeKey = '', arrows = null, arrowKey = '';
+    var tubeMat = new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 35, specular: new THREE.Color(0x333333) });
+    // uncoloured tubes (another field is shown) stay in the background, like the neutral line layer
+    var tubeGreyMat = new THREE.MeshPhongMaterial({ color: new THREE.Color('#8a94a6'), shininess: 20, transparent: true, opacity: 0.4, depthWrite: false });
+    var arrowMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9 });
+    var stlMat = new THREE.MeshPhongMaterial({ color: new THREE.Color(0.72, 0.75, 0.8), side: THREE.DoubleSide, shininess: 20, specular: new THREE.Color(0x1f1f1f) });
+    function lineKept(l, ls) { return l % dsp.density === 0 && !(ls && ls[l] >= 0 && hidden && hidden(ls[l])); }
+    function disposeTubes() { if (tubes) { tubes.children.forEach(function (o) { o.geometry.dispose(); }); group.remove(tubes); tubes = null; tubeKey = ''; } }
+    function buildTubes() {
+      var X = opt(result, k.slxyz), O = opt(result, k.sloff);
+      if (!X || !O) return;
+      var key = [dsp.density, dsp.width, hidden ? branchVersion : 0].join('|');
+      if (tubes && key === tubeKey) return;
+      disposeTubes();
+      var nL = Math.floor(X.length / 3), ls = hidden ? lineSegments() : null, radius = diagC / 900 * dsp.width;
+      tubes = new THREE.Group(); tubes.name = 'volume-streamtubes'; tubes.renderOrder = 2;
+      for (var l = 0; l + 1 < O.length; l++) {
+        if (!lineKept(l, ls)) continue;
+        var a = O[l], b = Math.min(O[l + 1], nL), n = b - a;
+        if (n < 2) continue;
+        var pts = [];
+        for (var j = a; j < b; j++) pts.push(new THREE.Vector3(X[3 * j], X[3 * j + 1], X[3 * j + 2]));
+        var segs = Math.max(2, Math.min(n - 1, 160)), radial = 5;
+        var tg = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), segs, radius, radial, false);
+        tg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(tg.attributes.position.count * 3), 3));
+        var mesh = new THREE.Mesh(tg, tubeMat);
+        mesh.userData.line = { a: a, n: n, segs: segs, radial: radial };
+        tubes.add(mesh);
+      }
+      group.add(tubes);
+      tubeKey = key;
+      colorTubes();
+    }
+    // Rings of a tube take the speed of the line vertex at the same fraction (classic); neutral grey unless the field is speed.
+    function colorTubes() {
+      if (!tubes) return;
+      var coloured = Boolean(cur.fieldId === 'speed' && lineSpeed && cur.scale);
+      tubes.children.forEach(function (mesh) {
+        mesh.material = coloured ? tubeMat : tubeGreyMat;
+        if (!coloured) return;
+        var L = mesh.userData.line, col = mesh.geometry.attributes.color.array;
+        for (var i = 0; i <= L.segs; i++) {
+          var c = cur.scale.color(lineSpeed[L.a + Math.round(i / L.segs * (L.n - 1))]);
+          for (var j = 0; j <= L.radial; j++) { var o = 3 * (i * (L.radial + 1) + j); col[o] = c[0]; col[o + 1] = c[1]; col[o + 2] = c[2]; }
+        }
+        mesh.geometry.attributes.color.needsUpdate = true;
+      });
+    }
+    function disposeArrows() { if (arrows) { arrows.geometry.dispose(); group.remove(arrows); arrows = null; arrowKey = ''; } }
+    function buildArrows() {
+      var VEL = null, f = result.field('velocity');
+      if (f && f.arrays && typeof f.arrays.read === 'string' && result.has(f.arrays.read)) VEL = result.array(f.arrays.read);
+      if (!dsp.vectors || dsp.stl || !VEL || VEL.length !== 3 * nP || cur.fieldId !== 'speed' || !cur.scale) { disposeArrows(); return false; }   // also with the points hidden: arrows alone read better
+      var key = [cur.scale.range.join(','), cur.scale.cmap, cur.scale.log, cur.scale.bands, hidden ? branchVersion : 0].join('|');
+      if (arrows && key === arrowKey) return true;
+      disposeArrows();
+      var shown = [];
+      for (var j = 0; j < nI; j++) { var q = interiorIdx[j]; if (!hidden || !pointMask || pointMask[q]) shown.push(q); }
+      var seg = arrowSegments(P, VEL, shown, diagC, cur.scale);
+      var ag = new THREE.BufferGeometry();
+      ag.setAttribute('position', new THREE.BufferAttribute(seg.positions, 3));
+      ag.setAttribute('color', new THREE.BufferAttribute(seg.colors, 3));
+      arrows = new THREE.LineSegments(ag, arrowMat); arrows.name = 'volume-arrows'; arrows.renderOrder = 5; arrows.userData.count = seg.count;
+      group.add(arrows);
+      arrowKey = key;
+      return true;
+    }
+    var branchVersion = 0;
 
     // centreline
     var clObj = null, clKeys = geo(m).centerline || {}, CV = opt(result, clKeys.xyz), CE = opt(result, clKeys.edges), CS = opt(result, clKeys.segment);
@@ -155,20 +254,25 @@
     var cur = { fieldId: null, scale: null, wallField: false, read: null, disp: null };
     var L = {}, lighting = 'flat', hidden = null, pointMask = null, hlObj = null;
     function applyVisibility() {
-      var wallOn = L.wall !== false;
+      var wallOn = L.wall !== false || dsp.stl, opaque = cur.wallField || dsp.stl;
       wall.visible = wallOn;
-      wall.material = cur.wallField ? (lighting === 'soft' ? soft : flat) : glass;
-      wall.renderOrder = cur.wallField ? 0 : 3;
+      wall.material = dsp.stl ? stlMat : cur.wallField ? (lighting === 'soft' ? soft : flat) : glass;
+      wall.renderOrder = opaque ? 0 : 3;
       glass.uniforms.uRim.value = L.outline ? 0.55 : 0.12;
-      outline.visible = wallOn && cur.wallField && !!L.outline;
-      hatch.visible = wallOn && cur.wallField && !!L.trust && !!MT;
-      cloud.visible = !cur.wallField && L.interior !== false;
-      if (L.streamlines) buildStreamlines();
+      glass.uniforms.uGain.value = Math.max(0, dsp.opacity) / OPACITY_DEFAULT;
+      outline.visible = wallOn && opaque && !!L.outline;
+      hatch.visible = wallOn && cur.wallField && !dsp.stl && !!L.trust && !!MT;
+      cloud.visible = !opaque && L.interior !== false;
+      if (L.streamlines && !opaque) buildStreamlines();
+      var tubesOn = Boolean(L.streamlines && !opaque && !dsp.thin);
       if (lines) {
-        lines.visible = !!L.streamlines && !cur.wallField;
+        lines.visible = !!L.streamlines && !opaque && dsp.thin;
         var coloured = cur.fieldId === 'speed' && lineSpeed;
         lines.material = coloured ? colouredLine : neutralLine;
       }
+      if (tubesOn && lines) buildTubes();
+      if (tubes) tubes.visible = tubesOn;
+      buildArrows();
       if (clObj) clObj.visible = !!L.centerline;
     }
     function recolor() {
@@ -179,6 +283,7 @@
         cur.scale.fill(ivals, pcolors, null, null); pcolorAttr.needsUpdate = true;
       }
       if (lines && lineSpeed && cur.fieldId === 'speed') { cur.scale.fill(lineSpeed, lineColors, null, null); lines.geometry.attributes.color.needsUpdate = true; }
+      colorTubes();
     }
     function setField(fieldId, scale) {
       var f = result.field(fieldId);
@@ -230,13 +335,14 @@
       if (!lines) return;
       var X = opt(result, k.slxyz), O = opt(result, k.sloff), nL = Math.floor(X.length / 3), idx = [], ls = hidden ? lineSegments() : null;
       for (var l = 0; l + 1 < O.length; l++) {
-        if (ls && ls[l] >= 0 && hidden(ls[l])) continue;
+        if (!lineKept(l, ls)) continue;
         var a = O[l], b = Math.min(O[l + 1], nL); for (var j = a; j + 1 < b; j++) idx.push(j, j + 1);
       }
       lines.geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(idx), 1));
     }
     function setBranchVisibility(set) {
       hidden = set && PSEG ? function (sid) { return !set.has(Number(sid)); } : null;
+      branchVersion++;
       var vs = hidden ? vertexSegments() : null;
       if (!hidden || !vs) geom.setIndex(new THREE.BufferAttribute(F, 1));
       else {
@@ -252,6 +358,7 @@
         pgeom.setIndex(new THREE.BufferAttribute(new Uint32Array(keep), 1));
       }
       pgeom.computeBoundingSphere();
+      applyVisibility();
     }
     function pick(raycaster) {
       if (cur.wallField) {
@@ -297,6 +404,17 @@
       hlObj.renderOrder = 7;
       group.add(hlObj);
     }
+    // o = {stl, opacity (classic 0 … 0.5), density (1 / 2 / 3 / 5), width (0.4 … 3), thin, vectors}; returns what is shown.
+    function setDisplay(o) {
+      o = o || {};
+      var d = Math.floor(Number(o.density)), w = Number(o.width), op = Number(o.opacity);
+      var next = { stl: Boolean(o.stl), opacity: Number.isFinite(op) ? Math.max(0, Math.min(0.5, op)) : OPACITY_DEFAULT,
+        density: [1, 2, 3, 5].indexOf(d) >= 0 ? d : 1, width: Number.isFinite(w) ? Math.max(0.4, Math.min(3, w)) : 1, thin: o.thin !== false, vectors: Boolean(o.vectors) };
+      if (next.density !== dsp.density) { dsp.density = next.density; applyLineFilter(); }
+      dsp = next;
+      applyVisibility();
+      return { stl: dsp.stl, arrows: arrows ? arrows.userData.count : 0, tubes: tubes && tubes.visible ? tubes.children.length : 0 };
+    }
     function histogramValues(fieldId) {
       var f = result.field(fieldId);
       if (isWallField(f, result)) return { values: result.fieldArray(fieldId, 'display'), source: 'vertices', mask: null, scope: 'all' };
@@ -312,14 +430,17 @@
       bounds: bounds,
       setField: setField, setLighting: setLighting, setLayers: setLayers, setBranchVisibility: setBranchVisibility,
       pick: pick, pickSurface: pickSurface, highlight: highlight, histogramValues: histogramValues,
+      setDisplay: setDisplay,
+      displayState: function () { return { stl: dsp.stl, opacity: dsp.opacity, density: dsp.density, width: dsp.width, thin: dsp.thin, vectors: dsp.vectors,
+        arrows: arrows ? arrows.userData.count : 0, tubes: tubes && tubes.visible ? tubes.children.length : 0 }; },
       fitPoints: function () { return V; },
       pointXYZ: function (q) { return q >= 0 && q < nP ? [P[3 * q], P[3 * q + 1], P[3 * q + 2]] : null; },
       sectionMesh: function () { return { vertices: V, faces: F }; },
-      arraysLoaded: function () { if (L.streamlines) { buildStreamlines(); applyVisibility(); recolor(); } },
+      arraysLoaded: function () { if (L.streamlines) buildStreamlines(); applyVisibility(); if (L.streamlines) recolor(); },
       counts: { vertices: nV, faces: F.length / 3, points: nP, interior: nI },
       dispose: function () {
         gfx.disposeObject(group);
-        [glass, flat, soft, neutralLine, colouredLine].forEach(function (mm) { mm.dispose(); });
+        [glass, flat, soft, neutralLine, colouredLine, tubeMat, tubeGreyMat, arrowMat, stlMat].forEach(function (mm) { mm.dispose(); });
         dotTex.dispose();
       }
     };

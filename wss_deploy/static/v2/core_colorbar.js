@@ -1,7 +1,10 @@
 /* WSSV2 core · colour bar (contract §6.2, §7; discussion V7).
    Vertical bar with ticks, bold observation-threshold lines, the embedded sample-point histogram (labelled as
    such), the window name, end-colour arrows when values fall outside the range, and the missing fraction.
-   create(el) renders HTML + inline SVG into el; toSVG(info) returns a standalone SVG for exports. */
+   create(el) renders HTML + inline SVG into el; toSVG(info) returns a standalone SVG for exports.
+   Lane E (display options): info.displayUnits / info.unitFactor show the numbers in another unit (ticks are nice
+   numbers in that unit, placed on the same scale; the data are untouched); info.stl shows the input-STL title only;
+   an installed adjust handler (setAdjustHandler) adds a small button beside the title. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -26,9 +29,23 @@
     return w ? String(w) : '';
   }
   function titleParts(info) {
-    var u = U().unitText(info.units);
+    var u = U().unitText(info.displayUnits || info.units);
     return { title: String(info.label || ''), units: u };
   }
+  // Display-unit factor (numbers shown × k); 1 when the bar shows the stored unit.
+  function unitK(info) { var k = Number(info && info.unitFactor); return info && info.displayUnits && Number.isFinite(k) && k > 0 ? k : 1; }
+  // Ticks in the display unit: nice numbers of the scaled range, positioned on the same bar (norm(v·k) on the scaled
+  // scale = norm(v) on the stored one, linear or log).
+  function barTicks(sc, n, k) {
+    if (k === 1 || !ns.colormap || typeof ns.colormap.scale !== 'function') return sc.ticks(n);
+    var shown = ns.colormap.scale({ range: [sc.range[0] * k, sc.range[1] * k], log: sc.log, bands: sc.bands, cmap: sc.cmap, floor: sc.floor ? sc.floor * k : undefined, trim: true });
+    return shown.ticks(n);
+  }
+  var adjustHandler = null;
+  // The workspace's display options (ws_display.js): fn(legendElement, info) opens its colour-scale panel.
+  function setAdjustHandler(fn) { adjustHandler = typeof fn === 'function' ? fn : null; }
+  var ADJUST_SVG = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">' +
+    '<path d="M2 4.5h7M12.5 4.5H14M2 11.5h1.75M7.25 11.5H14"/><circle cx="10.75" cy="4.5" r="1.6"/><circle cx="5.5" cy="11.5" r="1.6"/></svg>';
   // Lines shown under the bar (plain text + optional swatch colour).  Every number keeps its unit / percent.
   function noteLines(info) {
     var sc = info.scale || null, h = info.histogram || null, out = [];
@@ -110,14 +127,15 @@
     if (below) s.push('<path d="M' + barX + ' ' + (bottom + 1) + 'L' + cx + ' ' + (bottom + 1 + arrow) + 'L' + (barX + barW) + ' ' + (bottom + 1) + 'Z" fill="' + hex(sc.colorT(0)) + '" stroke="' + line2 + '" stroke-width="0.8"><title>低于下限的值按下端色</title></path>');
     // thresholds first (their labels win), then ticks that do not collide with them
     var marks = thresholdMarks(info), taken = [];
+    var k = unitK(info);
     marks.forEach(function (m) {
       var y = yOf(m.f);
       s.push('<line x1="' + (barX - 3) + '" y1="' + y.toFixed(2) + '" x2="' + (barX + barW + 4) + '" y2="' + y.toFixed(2) + '" stroke="' + ink + '" stroke-width="1.6"/>');
       if (taken.some(function (t) { return Math.abs(t - y) < 13; })) return;
       taken.push(y);
-      s.push('<text x="' + labelX + '" y="' + (y + 4).toFixed(2) + '" fill="' + ink + '" font-weight="600">' + esc(U().fmtTrim(m.v)) + '</text>');
+      s.push('<text x="' + labelX + '" y="' + (y + 4).toFixed(2) + '" fill="' + ink + '" font-weight="600">' + esc(U().fmtTrim(m.v * k)) + '</text>');
     });
-    var ticks = sc.ticks(Math.max(3, Math.round(barH / 48)));
+    var ticks = barTicks(sc, Math.max(3, Math.round(barH / 48)), k);
     ticks.forEach(function (t) {
       var y = yOf(t.f);
       if (!t.major) { s.push('<line x1="' + (barX + barW) + '" y1="' + y.toFixed(2) + '" x2="' + (barX + barW + 2.5) + '" y2="' + y.toFixed(2) + '" stroke="' + ink3 + '"/>'); return; }
@@ -131,10 +149,10 @@
   }
 
   function ariaText(info) {
-    var sc = info.scale, tp = titleParts(info);
+    var sc = info.scale, tp = titleParts(info), k = unitK(info);
     if (!sc) return tp.title;
     var d = sc.describe();
-    return '色标 ' + tp.title + '：' + U().fmtRange(d.shown[0], d.shown[1], info.units) + (d.log ? '，对数' : '') + '。' + windowText(info);
+    return '色标 ' + tp.title + '：' + U().fmtRange(d.shown[0] * k, d.shown[1] * k, info.displayUnits || info.units) + (d.log ? '，对数' : '') + '。' + windowText(info);
   }
 
   function create(el) {
@@ -145,9 +163,22 @@
     box.setAttribute('role', 'img');
     box.style.cssText = 'font:12px/1.35 ' + FONT + ';color:' + INK + ';font-variant-numeric:tabular-nums;user-select:none;width:100%;';
     el.appendChild(box);
+    box.addEventListener('click', function (e) {
+      var t = e && e.target, hit = false;
+      while (t && t !== box) { if (t.className && String(t.className.baseVal !== undefined ? t.className.baseVal : t.className).indexOf('wssv2-cb-adjust') >= 0) { hit = true; break; } t = t.parentNode; }
+      if (hit && adjustHandler && last) { if (e.stopPropagation) e.stopPropagation(); adjustHandler(el, last); }
+    });
+    function adjustButton(info) {
+      return adjustHandler && info && info.adjustable !== false ? '<button type="button" class="wssv2-cb-adjust" title="色标：分段、阈值、单位" aria-label="调整色标">' + ADJUST_SVG + '</button>' : '';
+    }
     function render(info) {
       if (disposed) return;
       last = info || null;
+      if (info && info.stl) {   // input-STL view: geometry only, no colour scale
+        box.innerHTML = '<div class="wssv2-cb-title">输入 STL<span class="wssv2-cb-units">mm</span></div><div class="wssv2-cb-tag">只显示几何</div>';
+        box.setAttribute('aria-label', '输入 STL：只显示几何，没有色标');
+        return;
+      }
       if (!info || !info.scale) { box.innerHTML = ''; box.setAttribute('aria-label', '无色标'); return; }
       var W = Math.max(84, Math.round(el.clientWidth || 104));
       var Htot = Math.round(el.clientHeight || 300);
@@ -156,7 +187,7 @@
       var tip = [windowText(info)].concat(notes.map(function (n) { return n.text + (n.sub ? '：' + n.sub : ''); })).filter(Boolean).join('\n');
       var html = [];
       html.push('<div class="wssv2-cb-title">' + esc(tp.title) + (tp.units ? '<span class="wssv2-cb-units">' + esc(tp.units) + '</span>' : '') +
-        '<span class="wssv2-cb-info" title="' + esc(tip) + '" aria-label="' + esc(tip) + '">i</span></div>');
+        '<span class="wssv2-cb-info" title="' + esc(tip) + '" aria-label="' + esc(tip) + '">i</span>' + adjustButton(info) + '</div>');
       if (tag) html.push('<div class="wssv2-cb-tag">' + esc(tag) + '</div>');
       html.push('<div class="wssv2-cb-graphic">' + graphicSVG(info, W, gH) + '</div>');
       box.innerHTML = html.join('');
@@ -189,5 +220,5 @@
     return s.join('');
   }
 
-  return { create: create, toSVG: toSVG, noteLines: noteLines, graphicSVG: graphicSVG };
+  return { create: create, toSVG: toSVG, noteLines: noteLines, graphicSVG: graphicSVG, setAdjustHandler: setAdjustHandler, barTicks: barTicks };
 });
