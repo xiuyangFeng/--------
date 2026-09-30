@@ -50,11 +50,11 @@
 .fu-chart figcaption { display: flex; align-items: baseline; gap: 6px; font-size: 12px; color: var(--ink-2); font-weight: 600; }
 .fu-svg { display: block; width: 100%; height: auto; overflow: visible; }
 .fu-axis { stroke: var(--line-2); stroke-width: 1; }
-.fu-line { fill: none; stroke: var(--ink-2); stroke-width: 1.5; stroke-linejoin: round; }
-.fu-pt circle { fill: var(--panel); stroke: var(--ink-2); stroke-width: 1.6; }
-.fu-pt.current circle { fill: var(--accent); stroke: var(--accent); }
+.fu-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }   /* colour per line (P3 lane 3) */
+.fu-pt circle { stroke-width: 2; }
+.fu-pt:not(.current) circle { fill: var(--panel); }
 .fu-pt.link { cursor: pointer; outline: none; }
-.fu-pt.link:hover circle, .fu-pt.link:focus circle { stroke: var(--accent); stroke-width: 2.4; }
+.fu-pt.link:hover circle, .fu-pt.link:focus circle { stroke-width: 3; }
 .fu-val { font-size: 10px; font-weight: 700; fill: var(--ink); font-variant-numeric: tabular-nums; }
 .fu-date { font-size: 9px; fill: var(--ink-3); font-variant-numeric: tabular-nums; }
 .tbl-follow tr.current td { font-weight: 600; }
@@ -145,3 +145,73 @@
 .stage-item.cached i { background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .75) 0 1.5px, transparent 1.5px 3px); }
 .stage-item.cached .stage-name { color: var(--ink-3); }
 .input-grade { margin: -2px 0 6px; }
+
+/* ================================================================ phase 3 lane 3 (info & safety) — PHASE3_LANES.md §3 */
+/* the warning bar on the stage (ws_notice.js): classic wording, status colour only for the warning itself */
+.ws-notices { position: absolute; z-index: 5; top: 56px; left: 50%; transform: translateX(-50%); width: max-content; max-width: min(760px, calc(100% - 300px)); pointer-events: none; }
+.ws-notices:empty { display: none; }
+.ws-qbar:not([hidden]) ~ .ws-notices { top: 100px; }
+.ws-notice { pointer-events: auto; display: flex; align-items: flex-start; gap: 8px; padding: 6px 6px 6px 11px; font-size: 12px; line-height: 1.5;
+  color: #fde6c4; background: rgba(62, 40, 12, .9); border: 1px solid rgba(240, 168, 72, .5); border-radius: 12px; box-shadow: var(--hud-shadow);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.stage-light .ws-notice { color: #7a3a07; background: rgba(254, 244, 236, .97); border-color: #f3b27c; }
+.ws-notice-icon { flex: none; display: inline-flex; margin-top: 2px; color: #f7a84e; }
+.stage-light .ws-notice-icon { color: var(--warn); }
+.ws-notice-text { flex: 1 1 auto; min-width: 0; padding-top: 1px; }
+.ws-notice .ws-notice-more { flex: none; height: 22px; color: inherit; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
+.ws-notice .ws-notice-close { flex: none; width: 22px; height: 22px; color: inherit; opacity: .8; }
+.ws-notice .ws-notice-close:hover { opacity: 1; background: rgba(255, 255, 255, .12); color: inherit; }
+.stage-light .ws-notice .ws-notice-close:hover { background: rgba(196, 87, 13, .1); }
+@media (max-width: 760px) { .ws-notices { max-width: calc(100% - 24px); width: calc(100% - 24px); top: 52px; } }
+.dlg-notice h4.notice-h { display: flex; align-items: center; gap: 8px; }
+.notice-list { margin: 4px 0 6px; padding-left: 18px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.notice-list li { margin: 2px 0; }
+
+/* overview: quality & reference rows */
+.qref { display: grid; gap: 2px; }
+.qref-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: baseline; gap: 8px; padding: 4px 6px; margin: 0 -6px; border: 0; border-radius: 6px; background: none;
+  text-align: left; cursor: pointer; color: var(--ink); font-size: 12px; }
+.qref-row:hover { background: var(--panel-2); }
+.qref-k { color: var(--ink-3); white-space: nowrap; }
+.qref-row .st { white-space: normal; align-items: baseline; }
+.qref-row .st-dot { transform: translateY(-1px); }
+
+/* overview: geometry parameters and outlet shares (collapsed) */
+.sec-geo .geo-body { margin-top: 4px; }
+.tbl-geo th, .tbl-geo td { font-size: 12px; padding-right: 6px; font-variant-numeric: tabular-nums; }
+.tbl-geo td:first-child { white-space: nowrap; }
+.sec-geo .sub-head { margin-top: 12px; }
+
+/* overview: volume terms and notes */
+.vterms { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.vterms + .vterms { margin-top: 6px; }
+.vterm { font-size: 12px; line-height: 20px; padding: 0 8px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-2); cursor: help; white-space: nowrap; }
+.vterm:hover, .vterm:focus { border-color: var(--accent); color: var(--accent); outline: none; }
+.vterm.vnote { background: var(--panel); border-style: dashed; }
+
+/* overview: follow-up growth and multi-release charts */
+.fu-growth-row { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 2px 0 8px; }
+.fu-growth { display: grid; grid-template-columns: auto; gap: 0; min-width: 0; cursor: default; }
+.fu-g-v { display: inline-flex; align-items: baseline; gap: 4px; }
+.fu-g-k { font-size: 11px; color: var(--ink-3); }
+.fu-g-recent { font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.fu-chart { position: relative; }
+.fu-legend { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-top: 2px; font-size: 10.5px; color: var(--ink-2); }
+.fu-leg { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.fu-leg i { width: 10px; height: 2px; border-radius: 1px; flex: none; }
+.fu-table { margin-top: 6px; overflow-x: auto; }
+.fu-table .note { margin-top: 4px; }
+
+/* footer: 技术信息 next to 模型说明 */
+.insp-foot .foot-tech { margin-left: 2px; }
+.dlg-tech .tbl-tech td:first-child { width: 96px; }
+.dlg-tech .tbl-tech td { font-size: 12px; word-break: break-all; }
+.tech-status { font-size: 12px; }
+
+/* technical review: the facts above the three checks (#82) */
+.review-facts { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 4px 10px; margin: 10px 0 12px; padding: 10px 12px; border-radius: 8px; background: var(--panel-2); font-size: 12px; }
+.review-facts dt { margin: 0; color: var(--ink-3); }
+.review-facts dd { margin: 0; color: var(--ink); }
+
+/* 「沿程」: the open section's station on the curves (V41) */
+.along-mark-slice { stroke: #eb6834; stroke-width: 2; }

@@ -159,6 +159,93 @@
       flags: [].concat(ic.errors || [], ic.flags || []).filter(function (t, i, a) { return typeof t === 'string' && t && a.indexOf(t) === i; })};
   }
 
+  // ------------------------------------------------------------------ P3 lane 3: technical information (W62 / V46)
+  // The classic 技术信息 popover rows (report.py renderTech, volume_viewer.js techRows) plus the workspace's own
+  // versions, from the manifest only — the same in every tier and in the offline report.  Times: the classic rule
+  // (a naive created_at borrows the offset of an ISO stamp of the same run, VolumeViewerCore.withOffset) and
+  // WssReportCommon.localTime, followed by the stored text.
+  function stampText(raw, hint) {
+    if (!raw) return null;
+    var V = root.VolumeViewerCore, C = root.WssReportCommon, iso = raw;
+    if (V && typeof V.withOffset === 'function') { try { iso = V.withOffset(raw, hint || '') || raw; } catch (_) { iso = raw; } }
+    var local = C && typeof C.localTime === 'function' ? C.localTime(iso, {seconds: true}) : String(iso);
+    return local + '（' + raw + '）';
+  }
+  var DIRECTION_TEXT = {unknown_stl: '按解剖坐标架推断（STL 无患者方向）'};
+  function techRows(m, job) {
+    m = m || {};
+    var pv = m.provenance || {}, mr = pv.model_release || {}, res = m.result || {}, fc = pv.feature_contract || {}, mj = m.job || {};
+    var t = m.time || {}, ax = (Array.isArray(t.axis) && t.axis[0]) || {}, mf = res.model_frame || {}, cy = t.cycle, di = (m.mapping && m.mapping.display_interpolation) || {};
+    var set = function (v) { return v !== null && v !== undefined && v !== ''; };
+    var n = num(pv.n_models);
+    var frameTime = set(ax.time_s) ? ax.time_s : mf.time_s;
+    var rows = [
+      ['发布包', mr.registry_id || mr.name || mr.release || res.release_id],
+      ['发布包哈希', pv.release_hash || pv.release_fingerprint],
+      ['模型族', [pv.model_family, n !== null ? n + ' 个模型' : null].filter(Boolean).join(' · ')],
+      ['特征合同', [fc.version, fc.source_hash].filter(Boolean).join(' · ')],
+      ['运行身份', res.run_identity],
+      ['输入 SHA256', mj.input_sha256 || (job && job.input_sha256)],
+      ['模型帧', [ax.label || mf.label || mf.target, set(ax.step) ? 'step ' + ax.step : null, set(frameTime) ? frameTime + ' s' : null].filter(Boolean).join(' · ')],
+      ['周期定义', cy ? [cy.frames, set(cy.period_s) ? '周期 ' + cy.period_s + ' s' : null].filter(Boolean).join(' · ') : null],
+      ['生成时间', stampText(pv.created_at, pv.time_hint)],
+      ['报告重建', stampText(pv.report_rebuilt_at)],
+      ['摘要版本', pv.report_schema],
+      ['数据版本', m.data_version], ['分析版本', res.analysis_version], ['部署版本', res.deploy_version], ['代码', pv.git_describe],
+      ['显示插值', di.method ? di.method + (set(di.sigma_mm) ? '，σ ' + di.sigma_mm + ' mm' : '') + (set(di.max_dist_mm) ? '，最大距离 ' + di.max_dist_mm + ' mm' : '') : null],
+      ['计算设备', [pv.device, pv.gpu && pv.gpu !== pv.device ? pv.gpu : null].filter(Boolean).join(' · ')],
+      ['坐标架方向来源', m.frame ? (DIRECTION_TEXT[m.frame.direction_source] || m.frame.direction_source) : null]];
+    return rows.filter(function (r) { return set(r[1]); }).map(function (r) { return [r[0], String(r[1])]; });
+  }
+  var TECH_TERMS = {'发布包': 'release', '特征合同': 'feature_contract', '运行身份': 'run_identity'};
+  // ctx = {manifest, job, offline, fileUrl(name) | null}
+  function techDialog(ctx) {
+    ctx = ctx || {};
+    var h = ui().h, rows = techRows(ctx.manifest, ctx.job), status = h('span', {'class': 'muted tech-status'});
+    var term = function (k) { return ns.lens && ns.lens.termText ? ns.lens.termText(TECH_TERMS[k], '') : ''; };
+    var tbl = ui().table([{key: 'k', label: '', render: function (r) { var tip = TECH_TERMS[r.k] ? term(r.k) : ''; return tip ? h('span', {}, r.k, ' ', ui().infoTip(tip)) : r.k; }},
+      {key: 'v', label: '', render: function (r) { return /\s/.test(r.v) && !/^[0-9a-f]{16,}/.test(r.v) ? r.v : h('span', {'class': 'mono', text: r.v}); }}],
+      rows.map(function (r) { return {k: r[0], v: r[1]}; }), {cls: 'tbl-kv tbl-nohead tbl-tech'});
+    var text = rows.map(function (r) { return r[0] + '\t' + r[1]; }).join('\n');
+    var copy = ui().button('复制', function () {
+      var ok = function () { status.textContent = '已复制到剪贴板。'; }, fail = function () { status.textContent = '剪贴板不可用。'; };
+      try { if (root.navigator && root.navigator.clipboard && root.navigator.clipboard.writeText) { root.navigator.clipboard.writeText(text).then(ok, fail); return; } } catch (_) {}
+      fail();
+    }, {icon: 'copy'});
+    var links = !ctx.offline && ctx.fileUrl ? [ui().link('完整统计 JSON', ctx.fileUrl('summary.json'), {newTab: true}), ui().link('运行清单', ctx.fileUrl('run_manifest.json'), {newTab: true})] : [];
+    return ui().dialog.open({title: '技术信息', cls: 'dlg-tech', body: [tbl, ui().note('标识与哈希可以全选复制。')],
+      actions: [copy, status].concat(links, [h('span', {'class': 'sec-fill'}), ui().button('关闭', function () { ui().dialog.close('done'); })])});
+  }
+
+  // ------------------------------------------------------------------ P3 lane 3: sections at a centreline station (V15, V41)
+  function sliceOk(api, segmentId) {
+    var cur = api && api.cur && api.cur();
+    if (!cur || !cur.result || !cur.manifest || !ns.slice || !ns.slice.supported(cur.result) || !api.viewer || !api.viewer() || !api.openSliceAt) return false;
+    if (cur.compare || cur.split) return false;
+    if (segmentId === undefined || segmentId === null) return true;
+    return ((cur.manifest.geometry && cur.manifest.geometry.branches) || []).some(function (b) { return Number(b.id) === Number(segmentId); });
+  }
+  function canSliceAt(segmentId) { return sliceOk(shell(), segmentId); }
+  // The section tool at a fraction of a branch's centreline (classic slice-basis 'centerline'), through the shell's
+  // openSliceAt (a {segment, fraction} station): opens the tool when it is closed, shows its tab.
+  function sliceStation(api, segmentId, fraction) {
+    api = remember(api) || shell();
+    if (!sliceOk(api, segmentId)) return false;
+    api.openSliceAt({segment: Number(segmentId), fraction: Math.max(0, Math.min(1, Number(fraction) || 0))});
+    return true;
+  }
+  // Classic activateFinding (volume_viewer.js): a branch pressure drop puts the section at its proximal 10 %.
+  function pressureDropSlice(item, api, fraction) {
+    api = remember(api) || shell();
+    if (!item || item.kind !== 'pressure_drop' || item.segment_id === undefined || item.segment_id === null) return false;
+    var f = fraction === undefined ? 0.1 : fraction;
+    if (!sliceStation(api, item.segment_id, f)) return false;
+    var name = item.branch || (ns.lens ? ns.lens.branchName(api.cur().manifest, item.segment_id) : '');
+    ui().toast(f < 0.5 ? '压降定义：' + name + ' 近端 10% 与远端 10% 弧长段的平均压差。截面已放在近端 10%；把位置滑到 90% 查看远端。'
+      : '截面已放在' + name + '弧长的 90%（压降的远端段）。', {kind: 'info', ms: 9000});
+    return true;
+  }
+
   // ------------------------------------------------------------------ 沿程 tab (profiles + radius + unrolled map)
   function alongAvailable(cur) {
     if (!cur || !cur.result || !cur.manifest) return false;
@@ -351,7 +438,32 @@
         var i = P.binAt(md, c.s_from_root_mm);
         if (i >= 0) { setRead('游标 · ' + binText(i), [ui().button('来源', function () { lensBin(i); }, {kind: 'link', cls: 'btn-sm'})]); return; }
       }
-      setRead((cur.cursor ? '点曲线移动游标' : '悬停读数；点曲线标出该箱') + (grid ? '，点展开图飞到该点。' : '。'), null, true);
+      var ss = sliceS();
+      if (ss !== null && md) { setRead('截面 · ' + md.name + ' 距入口 ' + ui().sig(ss) + ' mm；点曲线把截面移过去。', null, true); return; }
+      setRead((sliceOn() ? '点曲线把截面移到那里' : cur.cursor ? '点曲线移动游标' : '悬停读数；点曲线标出该箱') + (grid ? '，点展开图飞到该点。' : '。'), null, true);
+    }
+    // P3 lane 3 (V41): with the section open a click on the curves moves the section there (classic sliceAtArc:
+    // centreline basis, fraction = branch-local arc / the branch's centreline length, angles and offsets reset);
+    // the section's station is drawn on the curves.  Arc lengths: curves are from the root, the section local.
+    function sliceOn() { var sl = cur.slice; return Boolean(sl && !(sl.disposed && sl.disposed()) && md); }
+    function localOffset() {
+      for (var q = 0; q < md.x.length; q++) if (Number.isFinite(md.x[q]) && Number.isFinite(md.xLocal[q])) return md.x[q] - md.xLocal[q];
+      return 0;
+    }
+    function sliceS() {
+      if (!sliceOn()) return null;
+      var st = null; try { st = cur.slice.state(); } catch (_) { return null; }
+      if (!st || st.basis === 'pick' || Number(st.segment) !== Number(seg)) return null;
+      var L = cur.slice.arcOf(seg);
+      return L > 0 ? st.fraction * L + localOffset() : null;
+    }
+    function moveSlice(s) {
+      var L = cur.slice.arcOf(seg);
+      if (!(L > 0)) { ui().toast('这条分支没有中心线，截面不能放在这里。', {kind: 'info'}); return; }
+      var fraction = Math.max(0, Math.min(1, (s - localOffset()) / L));
+      cur.slice.set({basis: 'centerline', segment: Number(seg), fraction: fraction, pick: null, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0});
+      A.pin = null; A.pick = null;
+      sync();
     }
     function setMapMark(elm, s) {
       if (!elm || !grid) return;
@@ -362,7 +474,8 @@
       var c = null; try { c = cur.cursor ? cur.cursor.state() : null; } catch (_) {}
       var cs = c && c.segmentId === seg ? c.s_from_root_mm : null;
       var ps = A.pin && A.pin.seg === seg && md ? md.x[A.pin.i] : null;
-      marks.forEach(function (ch) { ch.setMark('cursor', cs); ch.setMark('pin', ps); });
+      var sls = sliceS();
+      marks.forEach(function (ch) { ch.setMark('cursor', cs); ch.setMark('pin', ps); ch.setMark('slice', sls); });
       setMapMark(mapMark, cs !== null ? cs : ps);
       var dot = views.dot;
       if (dot && grid) {
@@ -402,6 +515,7 @@
     }
     function clickBin(s) {
       if (!md) return;
+      if (sliceOn()) { moveSlice(s); return; }
       var i = P.binAt(md, s);
       if (i < 0) return;
       if (cur.cursor) { try { cur.cursor.set(seg, md.xLocal[i]); } catch (_) {} A.pin = null; A.pick = null; sync(); return; }
@@ -453,6 +567,12 @@
     ui().fill(body, h('section', {'class': 'sec sec-along'}, head, plot, read));
     A.view.repaint();
     sync();
+    // the section moved elsewhere (keys, drag, its own panel): its line follows while this view is the one on screen
+    var view = A.view;
+    if (cur.slice && typeof cur.slice.addPanel === 'function' && md) {
+      cur.slice.addPanel({alive: function () { var sh = shell(); return Boolean(sh && sh.cur() === cur && A.view === view && sh.currentTab() === 'along'); },
+        update: function () { sync(); }});
+    }
   }
   function clearHighlight(api) { var v = api && api.viewer(); try { if (v) v.highlight(null); } catch (_) {} }
   function clearMarks(api) {
@@ -840,5 +960,7 @@
   return {shell: shell, ext: EXT, metadataDialog: metadataDialog, deleteJob: deleteJob, restoreJob: restoreJob, renderAlong: renderAlong, alongAvailable: alongAvailable,
     timingModel: timingModel, eventRows: eventRows, eventText: eventText, parseTags: parseTags, tagsText: tagsText, metadataPayload: metadataPayload,
     identifierIssue: identifierIssue, metadataError: metadataError, swapMapping: swapMapping, validMapping: validMapping, sameMapping: sameMapping,
-    outletModel: outletModel, inputModel: inputModel, onKey: onKey, toolsSections: toolsSections, OUTLET_NAMES: OUTLET_NAMES};
+    outletModel: outletModel, inputModel: inputModel, onKey: onKey, toolsSections: toolsSections, OUTLET_NAMES: OUTLET_NAMES,
+    // P3 lane 3
+    techRows: techRows, techDialog: techDialog, stampText: stampText, canSliceAt: canSliceAt, sliceStation: sliceStation, pressureDropSlice: pressureDropSlice};
 });

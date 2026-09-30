@@ -14,6 +14,38 @@
 
   var TRUST_BITS = {1: '插值未覆盖', 2: '表面粗糙', 4: '几何超出参考范围', 8: '采样支撑弱', 16: '靠近开口'};
   function analysis(m) { return (m && m.analysis) || {}; }
+
+  // ------------------------------------------------------------------ glossary (P3 lane 3, W63 / V38)
+  // The classic reports' terms (static/glossary.json, built by glossary.py; the one-pager's term list uses the same
+  // file): read once online, from the embedded copy (#wss-glossary) in the offline report.  Until it is here, and for
+  // a key it does not have, a tip keeps its built-in text.
+  var GLOSS = {terms: null, loading: null};
+  function embeddedGlossary() {
+    var doc = root.document, el = doc && typeof doc.getElementById === 'function' ? doc.getElementById('wss-glossary') : null;
+    if (!el) return null;
+    try { var d = JSON.parse(el.textContent); return (d && d.terms) || null; } catch (_) { return null; }
+  }
+  function loadGlossary(opts) {
+    if (GLOSS.terms) return Promise.resolve(GLOSS.terms);
+    if (GLOSS.loading) return GLOSS.loading;
+    var emb = embeddedGlossary();
+    if (emb) { GLOSS.terms = emb; return Promise.resolve(emb); }
+    if ((opts && opts.offline) || typeof root.fetch !== 'function') return Promise.resolve(null);
+    GLOSS.loading = Promise.resolve(root.fetch('/static/glossary.json', {credentials: 'same-origin', headers: {Accept: 'application/json'}}))
+      .then(function (r) { return r && r.ok ? r.json() : null; })
+      .then(function (d) { GLOSS.terms = (d && d.terms && typeof d.terms === 'object') ? d.terms : {}; GLOSS.loading = null; return GLOSS.terms; },
+        function () { GLOSS.terms = {}; GLOSS.loading = null; return GLOSS.terms; });
+    return GLOSS.loading;
+  }
+  function setGlossary(doc) { GLOSS.terms = doc ? (doc.terms || doc) : null; GLOSS.loading = null; }
+  function term(key) { var t = GLOSS.terms && GLOSS.terms[key]; return t && typeof t === 'object' && t.zh_desc ? {key: key, name: t.zh || key, text: t.zh_desc} : null; }
+  function termText(key, fallback) { var t = term(key); return t ? t.text : (fallback || ''); }
+  function termTip(key, fallback) { return ui().infoTip(termText(key, fallback)); }
+  // The classic volume page's 「压力参考：…」 text (volume_viewer.js), from analysis.pressure_reference.
+  function pressureReference(m) {
+    var r = analysis(m).pressure_reference;
+    return typeof r === 'string' && r ? r : r && typeof r === 'object' && (r.label || r.description) ? String(r.label || r.description) : '请参阅该发布包的参考压定义；不能直接解释为绝对血压。';
+  }
   function branchName(m, segmentId) {
     var list = (m && m.geometry && m.geometry.branches) || [];
     for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === segmentId) return list[i].name;
@@ -188,7 +220,9 @@
     }
     if (where.length) steps.push({step: 'where', label: '位置 / 区域', rows: where});
     steps.push({step: 'value', label: '值', rows: value, tier: tier});
-    if (f && f.definition && ref.kind !== 'morph') method.push(['定义', f.definition]);
+    // volume pressures: the field definition is the release's pressure reference — named as the classic page names it
+    if (res.family === 'volume' && (fieldId === 'pressure' || fieldId === 'wall_pressure') && ref.kind !== 'morph') method.push(['压力参考', pressureReference(m)]);
+    else if (f && f.definition && ref.kind !== 'morph') method.push(['定义', f.definition]);
     steps.push({step: 'method', label: '映射与聚合', rows: method});
     steps.push({step: 'support', label: '支撑', rows: tier === 'geometry' ? [['来源', '直接从输入表面测量，不经过模型。']] : trustRows(m, ref, ctx)});
     steps.push({step: 'consistency', label: '留出集一致性', rows: [['', consistencyRow(m, fieldId, tier)]]});
@@ -219,8 +253,15 @@
       s.rows.forEach(function (r) { if (r[0]) body.appendChild(h('dt', {text: r[0]})); body.appendChild(h('dd', {'class': r[0] ? '' : 'wide', text: r[1] === undefined || r[1] === null || r[1] === '' ? '未知' : String(r[1])})); });
       list.appendChild(h('li', {'class': 'lens-step', dataset: {step: s.step}}, head, body));
     });
-    ui().fill(el, list, ctx.onClear ? h('div', {'class': 'sec-actions'}, ui().button('清除', ctx.onClear, {kind: 'link', cls: 'btn-sm'})) : null);
+    // P3 lane 3 (V15): a branch pressure drop puts the section at the proximal 10 % (and 90 % for the distal end)
+    var it = ref.kind === 'finding' ? ref.item : null, D = ns.detail;
+    var drop = it && it.kind === 'pressure_drop' && D && D.canSliceAt && D.canSliceAt(it.segment_id) ? [
+      ui().button('截面：近端 10%', function () { D.pressureDropSlice(it, null, 0.1); }, {kind: 'link', cls: 'btn-sm', title: '截面放到这条分支弧长的 10% 处'}),
+      ui().button('远端 90%', function () { D.pressureDropSlice(it, null, 0.9); }, {kind: 'link', cls: 'btn-sm', title: '截面放到这条分支弧长的 90% 处'})] : [];
+    ui().fill(el, list, ctx.onClear || drop.length ? h('div', {'class': 'sec-actions'}, drop, drop.length ? h('span', {'class': 'sec-fill'}) : null,
+      ctx.onClear ? ui().button('清除', ctx.onClear, {kind: 'link', cls: 'btn-sm'}) : null) : null);
   }
 
-  return {chain: chain, render: render, TRUST_BITS: TRUST_BITS, branchName: branchName, fieldLabel: fieldLabel};
+  return {chain: chain, render: render, TRUST_BITS: TRUST_BITS, branchName: branchName, fieldLabel: fieldLabel,
+    loadGlossary: loadGlossary, setGlossary: setGlossary, term: term, termText: termText, termTip: termTip, pressureReference: pressureReference};
 });

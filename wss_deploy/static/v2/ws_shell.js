@@ -498,7 +498,7 @@
   function loadTimeline(cur) {
     var pid = (cur.manifest && cur.manifest.job && cur.manifest.job.patient_id) || (cur.job && cur.job.patient_id);
     if (S.offline || !pid || !api()) return;
-    api().timeline(pid, S.session && S.session.role === 'admin').then(function (t) {
+    api().timeline(pid, Boolean(S.session && S.session.role === 'admin' && ns.admin && ns.admin.viewAll && ns.admin.viewAll())).then(function (t) {   // P3 lane 3: all users only with 「看全部用户」
       if (S.cur !== cur) return;
       cur.timeline = t;
       if (currentTab() === 'overview') renderInspector();
@@ -943,7 +943,8 @@
   function openSliceAt(plane) {
     var cur = S.cur;
     if (!cur || !plane) return;
-    var st = {basis: 'pick', pick: {origin: plane.origin, normal: plane.normal, picks: 1}, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0};
+    var st = plane.segment !== undefined && typeof plane.fraction === 'number' ? {basis: 'centerline', segment: plane.segment, fraction: plane.fraction, pick: null, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0}   // P3 lane 3: a centreline station
+      : {basis: 'pick', pick: {origin: plane.origin, normal: plane.normal, picks: 1}, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0};
     if (cur.slice) { cur.slice.set(st); cur.slice.look(true); setTab('slice'); return; }
     cur.sliceState = Object.assign({}, cur.sliceState || {}, st);
     toggleSlice();
@@ -1494,6 +1495,7 @@
     checks.forEach(function (c) { c.addEventListener('change', function () { submit.disabled = !checks.every(function (x) { return x.checked; }); }); });
     ui().dialog.open({title: '技术复核', body: [
       ui().note('技术复核是操作者对输入、出口和质量的核对，不是临床签字。通过后结果锁定，结论和发现不能再改，直到重新打开。'),
+      ns.review && ns.review.checklist ? ns.review.checklist(ui(), cur.manifest, cur.job) : null,   // P3 lane 3 (#82)
       h('div', {'class': 'checks-form'}, checks.map(function (c, i) { return h('label', {'class': 'check'}, c, h('span', {text: c.getAttribute('aria-label')})); })),
       h('label', {'class': 'fld'}, h('span', {text: '复核人'}), who), h('label', {'class': 'fld'}, h('span', {text: '备注（可空）'}), note)],
       actions: [ui().button('取消', function () { ui().dialog.close('cancel'); }), submit]});
@@ -1797,7 +1799,7 @@
     parts.push(ui().section('导出', {}, ui().note('图片、拼图、一页纸配图、复核数据与离线报告。'), h('div', {'class': 'sec-actions'}, ui().button('导出…', openExport, {icon: 'download'}))));
     if (full) {
       var m = cur.manifest, pv = m.provenance || {}, mp = m.mapping || {}, di = mp.display_interpolation || {};
-      var rows = [
+      var rows = ns.detail && ns.detail.techRows ? ns.detail.techRows(m, cur.job) : [   // P3 lane 3 (W62)
         ['发布包', m.result && m.result.release_id], ['结果身份', m.result && m.result.run_identity], ['数据版本', m.data_version], ['分析版本', m.result && m.result.analysis_version],
         ['部署版本', m.result && m.result.deploy_version], ['显示插值', di.method ? di.method + (di.sigma_mm !== undefined ? '，σ ' + di.sigma_mm + ' mm' : '') + (di.max_dist_mm !== undefined ? '，最大距离 ' + di.max_dist_mm + ' mm' : '') : null],
         ['方向来源', m.frame && m.frame.direction_source], ['发布包哈希', pv.release_hash], ['代码', pv.git_describe], ['输入 SHA256', m.job && m.job.input_sha256]];
