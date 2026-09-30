@@ -314,6 +314,7 @@
     var renderer = new THREE.WebGLRenderer({ antialias: kind === 'main', alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: false });
     renderer.setPixelRatio(kind === 'thumb' ? 1 : Math.min(root.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 0);
+    renderer.localClippingEnabled = true;   // the section tool cuts the vessel at its plane (setClipPlane)
     var canvas = renderer.domElement;
     canvas.style.cssText = 'display:block;width:100%;height:100%;outline:none;';
     canvas.setAttribute('role', 'img');
@@ -397,6 +398,7 @@
       }
       updateOutlineResolution();
       updateScreenSized();
+      applyClip();
       renderer.render(scene, camera);
       dirty = false;
       placeLabels();
@@ -643,7 +645,7 @@
       ev.emit('change', { what: 'selection' });
     }
     function highlight(indices, o) {
-      S.highlight = indices ? { indices: indices, color: o && o.color || null } : null;
+      S.highlight = indices ? { indices: indices, color: o && o.color || null, size: o && o.size || null, opacity: o && o.opacity || null } : null;
       if (S.handle) S.handle.highlight(S.highlight ? S.highlight.indices : null, S.highlight || {});
       requestRender();
     }
@@ -849,6 +851,32 @@
       return S.handle.pickSurface(raycaster);
     }
     function setControlsEnabled(on) { if (controls) controls.enabled = Boolean(on); }
+    // One clipping plane on the result's own objects (not on the tool overlay): keeps the side where
+    // side · normal · (p − origin) ≥ 0.  The plane object is reused, so moving it recompiles nothing.
+    var clipPlane = null, clipList = null, clipSeen = false, pointPlane = null, pointList = null;
+    function setClipPlane(p) {
+      if (!p || !Array.isArray(p.normal) || !Array.isArray(p.origin)) { clipList = null; pointList = null; }
+      else {
+        var n = new THREE.Vector3(p.normal[0], p.normal[1], p.normal[2]).multiplyScalar(p.side < 0 ? -1 : 1).normalize();
+        clipPlane = clipPlane || new THREE.Plane();
+        clipPlane.setFromNormalAndCoplanarPoint(n, new THREE.Vector3(p.origin[0], p.origin[1], p.origin[2]));
+        clipList = clipList || [clipPlane];
+        // point sprites: the plane moved into the kept side by p.pointGap mm (their radius)
+        pointPlane = pointPlane || new THREE.Plane();
+        pointPlane.copy(clipPlane); pointPlane.constant -= Math.max(0, Number(p.pointGap) || 0);
+        pointList = pointList || [pointPlane];
+      }
+      requestRender();
+    }
+    function applyClip() {
+      if (!clipList && !clipSeen) return;
+      content.traverse(function (o) {
+        var mats = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+        var want = o.isPoints ? pointList : clipList;
+        mats.forEach(function (m) { if (m.clippingPlanes !== want) { m.clippingPlanes = want; m.needsUpdate = true; } });
+      });
+      clipSeen = Boolean(clipList);
+    }
 
     // ---- result lifecycle
     function clearResult() {
@@ -1010,6 +1038,7 @@
       mmPerPixelAt: mmPerPixelAt,
       surfaceAt: surfaceAt,
       setControlsEnabled: setControlsEnabled,
+      setClipPlane: setClipPlane,
       resize: function () { size = { w: 0, h: 0 }; resize(); },
       render: function () { requestRender(); },
       renderNow: function () { if (rafId) { (root.cancelAnimationFrame || clearTimeout)(rafId); rafId = 0; } frame(); },

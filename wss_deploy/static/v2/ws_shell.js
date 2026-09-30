@@ -575,7 +575,7 @@
     [S.viewerA, S.viewerB].forEach(function (v) {
       if (!v || !v.setLayers) return;
       // while a section is shown the interior points would hide it: the map on the plane stands for them
-      var L = Object.assign({}, S.layers, v === S.viewerA && S.cur && S.cur.slice ? {interior: false} : {});
+      var L = Object.assign({}, S.layers, v === S.viewerA && S.cur && S.cur.slice && S.cur.slice.cut() === 'none' ? {interior: false} : {});
       try { v.setLayers(L); } catch (_) {}
     });
   }
@@ -796,7 +796,7 @@
       myCur.slice = ns.slice.create(S.viewerA, myCur.result, {
         hint: {xyz: mm && Array.isArray(mm.xyz_mm) ? mm.xyz_mm : null, field: myCur.field}, state: myCur.sliceState || null,
         cmap: function () { return store().prefs().cmap; }, global: sliceGlobal,
-        onChange: function () { sliceChanged(myCur); }, onNote: function (t) { ui().toast(t, {kind: 'info', ms: 4000}); }
+        onChange: function (what) { sliceChanged(myCur, what); }, onNote: function (t) { ui().toast(t, {kind: 'info', ms: 4000}); }
       });
       setLayers();
       myCur.slice.look(true);
@@ -814,8 +814,9 @@
     if (S.tab === 'slice') S.tab = null;
     renderToolbar(); renderInspector();
   }
-  function sliceChanged(cur) {
+  function sliceChanged(cur, what) {
     if (!cur || S.cur !== cur || !cur.slice) return;
+    if (what === 'cut') setLayers();   // a cut shows the interior points again, clipped at the plane
     var t = cur.slice.hudText(), hud = S.els.vpA.hud;
     hud.hidden = !t; hud.textContent = t;
     updateColorbar('a');
@@ -827,12 +828,17 @@
     if (q === 'normal') { var m = Math.max(Math.abs(sc.range[0]), Math.abs(sc.range[1])); return {min: -m, max: m}; }
     return {min: sc.log && sc.floor ? sc.floor : sc.range[0], max: sc.range[1], log: Boolean(sc.log)};
   }
+  function sliceFileCtx(cur) {
+    var name = (cur.manifest.job && cur.manifest.job.display_name) || '';
+    return {ui: ui(), caseName: hideName() ? '' : name, fileBase: hideName() || !name ? 'case' : name};
+  }
   function renderSlice(body) {
     var cur = S.cur;
     if (!cur.slice) { ui().fill(body, ui().empty('截面已关闭。')); return; }
     var s = cur.slice;
     ns.slice.panel(body, s, {ui: ui(), onClose: exitSlice,
-      onZoom: function () { ns.slice.openZoom(s, {ui: ui(), caseName: hideName() ? '' : ((cur.manifest.job && cur.manifest.job.display_name) || ''), fileBase: hideName() ? 'case' : ((cur.manifest.job && cur.manifest.job.display_name) || 'case')}); },
+      onZoom: function () { ns.slice.openZoom(s, sliceFileCtx(cur)); },
+      onSeries: function (n) { ns.slice.openSeries(s, Object.assign(sliceFileCtx(cur), {count: n, onGo: function () { s.look(true); }})); },
       onQuantity: function (q) {
         var fid = q === 'pressure' ? 'pressure' : 'speed';
         if (cur.field !== fid && fieldById(cur.manifest, fid)) applyField(fid, 'adaptive');

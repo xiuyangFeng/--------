@@ -18,7 +18,7 @@
   var LIMIT = { thickness: [0.2, 12], angle: [-85, 85], offset: [-30, 30], shift: [-25, 25] };
   var GRID = 120, ZOOM_GRID = 240, TEX = 512;
   var LOW_FADE = 0.28;                       // classic cell fallback: cells filled from the wall fade towards white
-  var FRAME_HEX = 0x5bb8cc, ACTIVE_HEX = 0xf2a33a;
+  var FRAME_HEX = 0x5bb8cc, ACTIVE_HEX = 0xf2a33a, REGION_HEX = 0x3ccf7a, REGION_CSS = '#3ccf7a';
   var SOURCE_LABEL = { section: '本截面 p2–p98', global: '与三维同', manual: '手动', fallback: '本截面样本不足，用三维色标' };
   var QUANTITIES = [{ id: 'speed', label: '速度' }, { id: 'normal', label: '穿面速度' }, { id: 'pressure', label: '压力' }];
 
@@ -97,7 +97,7 @@
     hint = hint || {};
     var A = M.A;
     var st = { basis: 'centerline', segment: null, fraction: 0.5, pick: null, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0,
-      thickness: 2, quantity: 'speed', range: 'section', manual: { min: null, max: null }, fill: true, arrows: true };
+      thickness: 2, quantity: 'speed', range: 'section', manual: { min: null, max: null }, fill: true, arrows: true, cut: 'none' };
     var near = Array.isArray(hint.xyz) && M.groups.length ? core().nearestTangent(M.groups, hint.xyz) : null;
     var g = near ? groupOf(M, near.segment) : null;
     if (g && arcOf(g) > 0) { st.segment = g.segment; st.fraction = clamp(near.arc / arcOf(g), 0, 1); }
@@ -202,6 +202,66 @@
       section: section, integral: integral, grid: c.sliceGrid(data, GRID, GRID), gridN: GRID, branchFilter: filter,
       outlineState: !outline.loop ? 'none' : outline.loop.open ? 'open' : outline.loop.synthetic ? 'synthetic' : 'closed'
     };
+  }
+
+  // ------------------------------------------------------------------ series and regions (classic exportSliceSeries / updateRegion)
+  // The branch a series or a region runs along: the plane's own branch on the centreline, else the branch nearest to it.
+  function branchAt(st, M) {
+    if (st.basis !== 'pick' && groupOf(M, st.segment)) return st.segment;
+    var P = planeOf(st, M), near = P && M.groups.length ? core().nearestTangent(M.groups, P.origin) : null;
+    return near ? near.segment : (M.groups[0] ? M.groups[0].segment : null);
+  }
+  // Stations at the classic series fractions (6 → 5/20/40/60/80/95 %), perpendicular to the centreline, with the current
+  // thickness / quantity / fill.  In 本截面 mode the whole series shares one colour range spanning every station's own
+  // range (±the larger end when signed), so the panels stay comparable (classic seriesScale).
+  function series(st, M, count, o) {
+    var c = core(), g = groupOf(M, branchAt(st, M));
+    if (!g || arcOf(g) <= 0) return null;
+    var L = arcOf(g), fractions = c.seriesFractions(count);
+    var stations = fractions.map(function (f) {
+      var s2 = Object.assign({}, st, { basis: 'centerline', segment: g.segment, fraction: f, pick: null, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0 });
+      return { fraction: f, s_mm: f * L, comp: compute(s2, M, o) };
+    });
+    var first = stations.filter(function (x) { return x.comp; })[0], quantity = first ? first.comp.quantity : effectiveQuantity(st, M.A);
+    var range;
+    if (st.range !== 'section') range = scaleFor(st, quantity, [], o);
+    else {
+      var parts = stations.map(function (x) { return x.comp && x.comp.range; }).filter(function (r) { return r && r.source === 'section'; });
+      if (!parts.length) range = scaleFor(Object.assign({}, st, { range: 'global' }), quantity, [], o);
+      else {
+        var lo = Math.min.apply(null, parts.map(function (r) { return r.min; })), hi = Math.max.apply(null, parts.map(function (r) { return r.max; }));
+        if (quantity === 'normal') { var m = Math.max(Math.abs(lo), Math.abs(hi)); lo = -m; hi = m; }
+        range = { min: lo, max: hi, log: false, diverging: quantity === 'normal', source: 'section', map: (o && o.cmap) || 'rainbow', shared: true };
+      }
+    }
+    stations.forEach(function (x) { if (x.comp) x.comp.range = range; });
+    return { segment: g.segment, name: branchName(M, g.segment), length_mm: L, quantity: quantity, stations: stations, range: range };
+  }
+  // Arc length of every interior point along its own branch (nearest centreline sample of that branch), computed once.
+  function pointArcs(M) {
+    if (!M.pointArc) { var c = core(); M.interior = c.insideIndices(M.A.pts, M.A.walls); M.pointArc = c.arcAlongBranch(M.groups, M.A.pts, M.A.segs, M.interior); }
+    return M.pointArc;
+  }
+  // The wall outline of a perpendicular centreline plane, in world coordinates (drawing only), or null.
+  function ringAt(M, base) {
+    var c = core(), cc = common(), r = c.rotatePlane(base.normal, 0, 0);
+    var P = { origin: base.origin, normal: r.normal, u: r.u, v: r.v, segment: base.segment };
+    var d = c.sliceMapCore(M.A.pts, [], M.A.speedCalc || M.A.pressure, P, { fill: true, isVelocityField: true, vertices: M.A.V, faces: M.A.F, loopRadius: Math.max(gizmoSide(M, P.origin) * 0.5, 8) });
+    if (!d.loop || d.loop.open || !cc || typeof cc.loopPolygon !== 'function') return { plane: P, ring: null };
+    return { plane: P, ring: cc.loopPolygon(d.contour).map(function (q) { return add(P.origin, add(mul(P.u, q[0]), mul(P.v, q[1]))); }) };
+  }
+  // A stretch of one branch between two positions (% of the branch arc, as the classic sliders): its interior points,
+  // point-equal statistics and the pressure drop = mean relative pressure of the proximal 10 % of the stretch − that of
+  // the distal 10 % (classic updateRegion / regionPressureDrop).  reg = {segment, lo, hi}.
+  function region(M, reg) {
+    var c = core(), g = groupOf(M, reg.segment);
+    if (!g || arcOf(g) <= 0) return null;
+    var L = arcOf(g), lo = Math.min(reg.lo, reg.hi) / 100 * L, hi = Math.max(reg.lo, reg.hi) / 100 * L;
+    var arc = pointArcs(M), sel = c.regionIndices(M.interior, M.A.segs, arc, g.segment, lo, hi);
+    return { segment: g.segment, name: branchName(M, g.segment), length_mm: L, lo_mm: lo, hi_mm: hi, count: sel.length, indices: sel,
+      speed: M.A.speedCalc ? c.statistics(M.A.speedCalc, sel) : null, pressure: M.A.pressure ? c.statistics(M.A.pressure, sel) : null,
+      drop: M.A.pressure ? c.regionPressureDrop(sel, arc, M.A.pressure, lo, hi) : null,
+      ends: [lo, hi].map(function (s) { return ringAt(M, c.centerlinePlane(g, s / L)); }) };
   }
 
   // ------------------------------------------------------------------ 2-D map (classic renderSliceMap, less the chrome)
@@ -370,14 +430,31 @@
       var ray = viewer.rayAt(clientX, clientY);
       return Boolean(ray && ray.intersectObject(quad, false).length);
     }
+    // The two ends of a region: its wall outlines, drawn over everything.
+    var rings = null, ringMat = new THREE.LineBasicMaterial({ color: REGION_HEX, depthTest: false, transparent: true, opacity: 0.95 });
+    function setRings(ends) {
+      if (rings) { rings.children.forEach(function (o) { o.geometry.dispose(); }); if (rings.parent) rings.parent.remove(rings); rings = null; }
+      if (ends && ends.length) {
+        attach();
+        rings = new THREE.Group(); rings.name = 'region-ends';
+        ends.forEach(function (e) {
+          if (!e || !e.ring || e.ring.length < 3) return;
+          var loop = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(e.ring.map(function (q) { return new THREE.Vector3(q[0], q[1], q[2]); })), ringMat);
+          loop.renderOrder = 10; rings.add(loop);
+        });
+        viewer.toolOverlay().add(rings);
+      }
+      viewer.render();
+    }
     function dispose() {
+      setRings(null); ringMat.dispose();
       if (group.parent) group.parent.remove(group);
       [quad.geometry, edge.geometry, quadMat, edgeMat].forEach(function (x) { x.dispose(); });
       if (map) { map.geometry.dispose(); map.material.dispose(); tex.dispose(); }
       arrow.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
       viewer.render();
     }
-    return { update: update, style: style, hit: hit, dispose: dispose, group: group };
+    return { update: update, style: style, hit: hit, setRings: setRings, dispose: dispose, group: group };
   }
 
   // ------------------------------------------------------------------ session (one result, one viewer)
@@ -391,14 +468,17 @@
     var comp = null, picking = false, hover = false, dragging = false, raf = 0, disposed = false, panels = [], pickNote = '', pickedAt = 0;
     var ov = THREE && viewer && typeof viewer.toolOverlay === 'function' ? overlay(viewer, THREE) : null;
     var detach = viewer && viewer.canvasElement ? bind() : function () {};
+    var reg = { on: false, segment: branchAt(st, M), lo: 10, hi: 90 }, regRes = null, more = null, lastCut = null;
+    function scaleOpts() { return { cmap: typeof opts.cmap === 'function' ? opts.cmap() : 'rainbow', global: opts.global }; }
 
     function emit(what) { if (typeof opts.onChange === 'function') { try { opts.onChange(what); } catch (_) {} } }
     function recompute() {
       raf = 0;
       if (disposed) return;
-      try { comp = compute(st, M, { cmap: typeof opts.cmap === 'function' ? opts.cmap() : 'rainbow', global: opts.global }); }
+      try { comp = compute(st, M, scaleOpts()); }
       catch (e) { comp = null; if (opts.onNote) opts.onNote('截面计算失败：' + (e && e.message || e)); }
       if (ov) ov.update(comp, M);
+      applyCut();
       panels = panels.filter(function (p) { return p.alive(); });
       panels.forEach(function (p) { p.update(); });
       emit('slice');
@@ -409,6 +489,45 @@
       if (typeof rq === 'function') raf = rq(recompute); else { raf = -1; recompute(); }
     }
     function set(partial) { Object.assign(st, partial || {}); schedule(); }
+    // 切开: the vessel's own objects are clipped at the plane and follow it; the map on the plane closes the cut.
+    function applyCut() {
+      var side = st.cut === 'pos' ? 1 : st.cut === 'neg' ? -1 : 0;
+      if (viewer && typeof viewer.setClipPlane === 'function') viewer.setClipPlane(side && comp ? { normal: comp.plane.normal, origin: comp.plane.origin, side: side, pointGap: M.diag / 300 } : null);
+      if (lastCut !== st.cut) {
+        var first = lastCut !== null;
+        lastCut = st.cut;
+        if (first && side) look(true, -side);   // face the cut from the side that was taken away
+        emit('cut');
+      }
+    }
+    var regRaf = 0;
+    function setRegion(partial) {
+      Object.assign(reg, partial || {});
+      reg.lo = clamp(Number(reg.lo) || 0, 0, 100); reg.hi = clamp(Number(reg.hi) || 0, 0, 100);
+      if (regRaf) return;
+      var rq = root.requestAnimationFrame;
+      if (typeof rq === 'function') regRaf = rq(regionNow); else { regRaf = -1; regionNow(); }
+    }
+    function regionNow() {
+      regRaf = 0;
+      if (disposed) return;
+      regRes = null;
+      if (reg.on) { try { regRes = region(M, reg); } catch (e) { regRes = null; if (opts.onNote) opts.onNote('区域统计失败：' + (e && e.message || e)); } }
+      if (viewer && typeof viewer.highlight === 'function') { try { viewer.highlight(regRes && regRes.indices.length ? regRes.indices : null, { color: REGION_CSS, size: 0.8, opacity: 0.45 }); } catch (_) {} }
+      if (ov) ov.setRings(regRes ? regRes.ends : null);
+      panels.forEach(function (p) { if (p.alive() && p.regionUpdate) p.regionUpdate(); });
+      emit('region');
+    }
+    // The current plane as the proximal ('lo') or distal ('hi') end of the region, on its branch.
+    function regionFromSlice(which) {
+      var P = comp ? comp.plane : planeOf(st, M), c = core(), seg, pct;
+      if (st.basis !== 'pick' && groupOf(M, st.segment) && !st.pitch && !st.yaw && !st.offU && !st.offV) { seg = st.segment; pct = st.fraction * 100; }
+      else { var near = P ? c.nearestTangent(M.groups, P.origin) : null, g = near ? groupOf(M, near.segment) : null; if (!g || !(arcOf(g) > 0)) return; seg = g.segment; pct = near.arc / arcOf(g) * 100; }
+      var patch = { on: true };
+      if (seg !== reg.segment) { patch.segment = seg; patch.lo = 0; patch.hi = 100; }   // another branch: the other end starts at that branch's end
+      patch[which] = +pct.toFixed(1);
+      setRegion(patch);
+    }
     function moveAlong(dMm) {
       if (!dMm) return;
       if (st.basis === 'pick' && st.pick) st.shift = clamp((st.shift || 0) + dMm, LIMIT.shift[0], LIMIT.shift[1]);
@@ -468,13 +587,14 @@
     function reset() { Object.assign(st, { pitch: 0, yaw: 0, offU: 0, offV: 0, shift: 0 }); schedule(); }
     // Turns the view to 45° above the section's upstream face (the normal points downstream on the centreline),
     // from the side the camera is on now, and comes closer when the vessel is far larger than the section.
-    function look(animate) {
+    // side: −1 = from the upstream side of the plane (−normal; the default), +1 = from downstream.
+    function look(animate, side) {
       if (!viewer || !comp || typeof viewer.getCamera !== 'function' || typeof viewer.setCamera !== 'function') return false;
       var cam = viewer.getCamera(), P = comp.plane, n = P.normal;
       if (!cam || !cam.position || !cam.target) return false;
       var off = sub(cam.position, cam.target), d0 = norm(off) || 300;
-      var side = sub(off, mul(n, dot(off, n))), sl = norm(side), sgn = dot(off, n) > 0.2 * d0 ? 1 : -1;
-      var s1 = sl > 1e-6 ? mul(side, 1 / sl) : P.u, a = Math.PI / 4;
+      var lat = sub(off, mul(n, dot(off, n))), sl = norm(lat), sgn = side === 1 ? 1 : -1;
+      var s1 = sl > 1e-6 ? mul(lat, 1 / sl) : P.u, a = Math.PI / 4;
       var dir = add(mul(s1, Math.cos(a)), mul(n, sgn * Math.sin(a))), b = comp.data.bounds;
       var d = clamp(Math.max(b[1] - b[0], b[3] - b[2]) * 4, 120, Math.max(d0, 120));
       viewer.setCamera({ position: add(P.origin, mul(dir, d)), target: P.origin.slice(), up: cam.up }, { animate: animate !== false });
@@ -584,7 +704,10 @@
       if (disposed) return;
       disposed = true;
       if (raf > 0 && root.cancelAnimationFrame) root.cancelAnimationFrame(raf);
+      if (regRaf > 0 && root.cancelAnimationFrame) root.cancelAnimationFrame(regRaf);
       detach();
+      if (viewer && typeof viewer.setClipPlane === 'function') viewer.setClipPlane(null);
+      if (reg.on && viewer && typeof viewer.highlight === 'function') { try { viewer.highlight(null); } catch (_) {} }
       if (ov) ov.dispose();
       panels = [];
     }
@@ -599,6 +722,10 @@
       key: key, colorbarInfo: colorbarInfo, hudText: hudText, branches: function () { return branchList(M); },
       branchName: function (sid) { return branchName(M, sid); }, arcOf: function (sid) { return arcOf(groupOf(M, sid)); },
       addPanel: function (p) { panels.push(p); }, refresh: schedule, recomputeNow: recompute,
+      cut: function () { return st.cut || 'none'; },
+      region: function () { return Object.assign({}, reg); }, regionResult: function () { return regRes; }, setRegion: setRegion, regionFromSlice: regionFromSlice, regionNow: regionNow, regionPending: function () { return regRaf !== 0; },
+      series: function (count) { return series(st, M, count, scaleOpts()); }, branchAt: function () { return branchAt(st, M); },
+      more: function () { return more; }, setMore: function (m) { more = m || null; if (more !== 'region' && reg.on) setRegion({ on: false }); if (more === 'region' && !reg.on) setRegion({ on: true, segment: branchAt(st, M) }); },
       dispose: dispose, disposed: function () { return disposed; }
     };
     recompute();
@@ -619,7 +746,10 @@
     var rows = h('div', { 'class': 'slice-rows' });
     var ctrls = h('div', { 'class': 'slice-ctrls' });
     var outlineNote = h('p', { 'class': 'slice-note' });
-    var lastMap = null, built = false;
+    var morePills = h('div', { 'class': 'slice-pills', role: 'tablist', 'aria-label': '截面的更多用法' });
+    var moreBody = h('div', { 'class': 'slice-more-body' });
+    var moreBox = h('div', { 'class': 'slice-more' }, morePills, moreBody);
+    var regionOut = null, lastMap = null, built = false;
     var pickBtn = ui.button('点选', function () { session.setPicking(!session.picking()); }, { cls: 'btn-sm', title: '在血管壁上点 1 点（垂直中心线）或 2 点（过两点的斜截面）' });
     var head = ui.section('截面', { cls: 'sec-slice', actions: [
       pickBtn,
@@ -627,7 +757,7 @@
       ui.iconButton('refresh', '回正：取消倾斜和偏移', function () { session.reset(); }),
       ui.iconButton('expand', '放大截面图（可导出 PNG / CSV）', function () { if (ctx.onZoom) ctx.onZoom(); }),
       ui.iconButton('close', '关闭截面（S）', function () { if (ctx.onClose) ctx.onClose(); })] },
-      pos, mapBox, qseg, kpis, rows, ctrls, outlineNote);
+      pos, mapBox, qseg, kpis, rows, moreBox, ctrls, outlineNote);
     ui.fill(body, head);
 
     canvas.addEventListener('pointermove', function (e) {
@@ -692,6 +822,75 @@
         h('label', { 'class': 'slice-ctl' }, h('span', { 'class': 'slice-ctl-k', text: '色标' }), rsel, manual),
         h('div', { 'class': 'slice-ctl slice-checks' }, check('fill', '补全到管壁'), check('arrows', '面内流向箭头', !isVel))];
     }
+    // ---- more: 系列 / 两截面之间 / 切开 (one open at a time)
+    var MORE = [{ id: 'series', label: '截面系列' }, { id: 'region', label: '两截面之间' }, { id: 'cut', label: '切开' }];
+    function buildMore() {
+      var cur = session.more(), st = session.state();
+      ui.fill(morePills, MORE.map(function (m) {
+        var on = cur === m.id, b = h('button', { type: 'button', role: 'tab', 'class': 'pill' + (on ? ' on' : ''), 'aria-selected': String(on), text: m.label });
+        if (m.id === 'cut' && session.cut() !== 'none') b.appendChild(h('span', { 'class': 'pill-dot' }));
+        b.addEventListener('click', function () { session.setMore(on ? null : m.id); buildMore(); });
+        return b;
+      }));
+      regionOut = null;
+      if (cur === 'series') ui.fill(moreBody, seriesBody(st));
+      else if (cur === 'region') ui.fill(moreBody, regionBody());
+      else if (cur === 'cut') ui.fill(moreBody, cutBody(st));
+      else ui.fill(moreBody, null);
+      moreBody.hidden = !cur;
+    }
+    function seriesBody(st) {
+      var count = h('select', { 'aria-label': '截面个数' });
+      [4, 6, 8, 12].forEach(function (n) { count.appendChild(h('option', { value: String(n), text: n + ' 个' })); });
+      count.value = String(ctx.seriesCount || 6);
+      count.addEventListener('change', function () { ctx.seriesCount = Number(count.value); });
+      var name = session.branchName(session.branchAt());
+      return [h('div', { 'class': 'slice-ctl' }, h('span', { text: '沿' }), h('b', { text: name }), h('span', { text: '等距取' }), count, h('span', { 'class': 'sec-fill' }),
+        ui.button('看系列', function () { if (ctx.onSeries) ctx.onSeries(Number(count.value)); }, { kind: 'primary', cls: 'btn-sm' })),
+        ui.note('每个截面垂直于中心线，厚度、物理量和色标跟当前截面一致；本截面自适应时全系列共用一个色标。')];
+    }
+    function regionBody() {
+      var r = session.region(), list = session.branches();
+      var sel = ui.select(list.map(function (b) { return { value: String(b.id), label: b.name }; }), String(r.segment), function (v) { session.setRegion({ segment: Number(v) }); regionBody2(); }, { 'aria-label': '区域所在分支' });
+      var slider = function (k, label) {
+        var val = h('span', { 'class': 'slice-thv' });
+        var inp = h('input', { type: 'range', min: '0', max: '100', step: '1', value: String(Math.round(r[k])), 'aria-label': label });
+        var show = function () { var L = session.arcOf(session.region().segment); val.textContent = fmt(Number(inp.value) / 100 * L) + ' mm'; };
+        inp.addEventListener('input', function () { show(); var p = {}; p[k] = Number(inp.value); session.setRegion(p); });
+        show();
+        return h('label', { 'class': 'slice-ctl' }, h('span', { 'class': 'slice-ctl-k', text: label }), inp, val,
+          ui.iconButton('slice', '用当前截面作' + label, function () { session.regionFromSlice(k); regionBody2(); }));
+      };
+      regionOut = h('div', { 'class': 'slice-region-out' });
+      function regionBody2() { ui.fill(moreBody, regionBody()); }
+      var box = [h('label', { 'class': 'slice-ctl' }, h('span', { 'class': 'slice-ctl-k', text: '分支' }), sel), slider('lo', '近端'), slider('hi', '远端'), regionOut];
+      setTimeout0(regionUpdate);
+      return box;
+    }
+    function regionUpdate() {
+      if (!regionOut) return;
+      var R = session.regionResult();
+      if (!R) { ui.fill(regionOut, ui.note(session.regionPending() ? '正在统计…' : '这一段没有可用的中心线。')); return; }
+      var dp = R.drop && R.drop.drop !== null ? R.drop.drop : null;
+      ui.fill(regionOut, [h('div', { 'class': 'kpis' },
+          kpi('近端−远端压差', dp, 'Pa', R.drop ? '两端各取这一段的 10%' : null),
+          kpi('体内点', R.count, null, fmt(R.lo_mm) + '–' + fmt(R.hi_mm) + ' mm')),
+        R.speed ? row('速度', R.speed.count ? '均值 ' + fmt(R.speed.mean) + ' · 最大 ' + fmt(R.speed.max) + ' m/s' : '—') : null,
+        R.pressure ? row('压力', R.pressure.count ? '均值 ' + fmt(R.pressure.mean) + ' · 最低 ' + fmt(R.pressure.min) + ' Pa' : '—',
+          '压差 = 这一段近端 10% 弧长内的点的平均相对压力 − 远端 10% 内的平均；统计按预测点等权，与经典报告「区域统计」相同。三维里绿色点是这一段的体内点，绿圈是两端的截面。') : null]);
+    }
+    function cutBody(st) {
+      var pick = st.basis === 'pick';
+      var opts = [{ id: 'none', label: '不切' }, { id: 'neg', label: pick ? '保留 A 侧' : '保留上游' }, { id: 'pos', label: pick ? '保留 B 侧' : '保留下游' }];
+      var seg = h('div', { 'class': 'seg seg-slice' }, opts.map(function (o) {
+        var on = session.cut() === o.id, b = h('button', { type: 'button', 'class': 'seg-btn' + (on ? ' on' : ''), 'aria-pressed': String(on), text: o.label });
+        b.addEventListener('click', function () { session.set({ cut: o.id }); setTimeout0(buildMore); });
+        return b;
+      }));
+      return [seg, ui.note('在截面处把血管切开，只留一侧；截面图正好盖在切口上，移动截面时切口跟着走。只改显示，不改任何数值。')];
+    }
+    function setTimeout0(fn) { if (typeof root.setTimeout === 'function') root.setTimeout(fn, 0); else fn(); }
+
     // Structure is rebuilt when the state's shape changes (basis, range mode, quantity); numbers every update.
     var shapeKey = '';
     function build() {
@@ -706,6 +905,7 @@
         return b;
       }));
       ui.fill(ctrls, controls(st, comp));
+      buildMore();
       shapeKey = [st.basis, st.range, comp && comp.quantity, st.segment, st.pick && st.pick.picks].join('|');
       built = true;
     }
@@ -736,7 +936,7 @@
       outlineNote.textContent = o === 'synthetic' ? '截面经过血管开口，轮廓缺口按直线封闭（虚线）。' : o === 'open' ? '轮廓不闭合，不算面积和积分。' : o === 'none' ? '这里没有切到管壁轮廓（截面可能越过了血管末端）。' : '';
       outlineNote.hidden = !outlineNote.textContent;
     }
-    var handle = { update: update, alive: function () { return Boolean(canvas.isConnected === undefined ? body.contains && body.contains(canvas) : canvas.isConnected) && !session.disposed(); } };
+    var handle = { update: update, regionUpdate: regionUpdate, alive: function () { return Boolean(canvas.isConnected === undefined ? body.contains && body.contains(canvas) : canvas.isConnected) && !session.disposed(); } };
     session.addPanel(handle);
     build(); update();
     return handle;
@@ -793,9 +993,81 @@
     return dlg;
   }
 
+  // ------------------------------------------------------------------ series view (classic exportSliceSeries, shown before it is saved)
+  // ctx = {ui, caseName, fileBase, count, onGo(station)}
+  function openSeries(session, ctx) {
+    var ui = ctx.ui, h = ui.h, count = ctx.count || 6;
+    var S = session.series(count);
+    if (!S || !S.stations.length) { ui.toast('这条分支没有可用的中心线，不能取系列。', { kind: 'info' }); return null; }
+    var st = session.state(), q = S.quantity, range = S.range;
+    var tiles = S.stations.map(function (x, i) {
+      var c = h('canvas', { 'class': 'series-canvas', width: 440, height: 400 });
+      var label = String.fromCharCode(97 + i), comp = x.comp, it = comp && comp.integral;
+      if (comp) paint(c, comp, { background: '#ffffff', outline: '#33475b', lineWidth: 2, arrows: st.arrows !== false, velocity: session.model.A.velocity, maxArrows: 80, arrowWidth: 1.6, pad: { left: 10, top: 10, right: 10, bottom: 10 }, scaleBar: true, font: 14, ink: '#536a80' });
+      var main = !it ? null : q === 'pressure' ? (it.pressure_mean_pa === null ? null : '压力 ' + fmt(it.pressure_mean_pa) + ' Pa') : (it.flow_ml_s === null ? null : 'Q ' + fmt(it.flow_ml_s) + ' mL/s');
+      var tile = h('button', { type: 'button', 'class': 'series-tile', title: '把截面移到这里' }, c,
+        h('span', { 'class': 'series-cap' }, h('b', { text: label }), h('span', { text: fmt(x.s_mm) + ' mm（' + Math.round(x.fraction * 100) + '%）' }), main ? h('span', { 'class': 'muted', text: main }) : null));
+      tile.addEventListener('click', function () {
+        session.set({ basis: 'centerline', segment: S.segment, fraction: x.fraction, pick: null, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0 });
+        if (dlg) dlg.close('done');
+        if (ctx.onGo) ctx.onGo(x);
+      });
+      return tile;
+    });
+    var ends = core().scaleEnds(range);
+    var bar = h('div', { 'class': 'series-bar' }, h('span', { text: fmt(ends[0]) }),
+      h('span', { 'class': 'series-grad', style: 'background:' + gradientCSS(range) }), h('span', { text: fmt(ends[1]) + ' ' + unitsOf(q) }),
+      h('span', { 'class': 'muted', text: range.shared ? '全系列共用色标' : (SOURCE_LABEL[range.source] || '') }));
+    var png = ui.button('导出拼图 PNG', function () { exportSeries(S, st, ctx, session); }, { icon: 'download' });
+    var dlg = ui.dialog.open({ title: '截面系列 · ' + S.name + ' · ' + quantityLabel(q), wide: true, cls: 'dlg-series',
+      body: [bar, h('div', { 'class': 'series-grid' }, tiles)], actions: [h('span', { 'class': 'muted', text: '点一个截面，主视图就移到那里' }), h('span', { 'class': 'sec-fill' }), png] });
+    return dlg;
+  }
+  function gradientCSS(range) {
+    var c = core(), stops = [];
+    for (var i = 0; i <= 10; i++) { var col = c.colorAtT(i / 10, range); stops.push('rgb(' + col.map(function (v) { return Math.round(v * 255); }).join(',') + ') ' + (i * 10) + '%'); }
+    return 'linear-gradient(90deg,' + stops.join(',') + ')';
+  }
+  // A vertical colour bar as an image for the montage (classic series: one bar for the whole series).
+  function colorbarCanvas(range, q, doc) {
+    var c = core(), cv = doc.createElement('canvas'); cv.width = 190; cv.height = 620;
+    var ctx = cv.getContext && cv.getContext('2d'); if (!ctx) return null;
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cv.width, cv.height);
+    var x = 20, y = 60, w = 34, hgt = 500;
+    for (var i = 0; i < hgt; i++) { var col = c.colorAtT(1 - i / (hgt - 1), range); ctx.fillStyle = 'rgb(' + col.map(function (v) { return Math.round(v * 255); }).join(',') + ')'; ctx.fillRect(x, y + i, w, 1); }
+    ctx.strokeStyle = '#8093a2'; ctx.strokeRect(x, y, w, hgt);
+    var ends = c.scaleEnds(range);
+    ctx.fillStyle = '#20374d'; ctx.font = '20px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(fmt(ends[1]), x + w + 10, y); ctx.fillText(fmt(ends[0]), x + w + 10, y + hgt);
+    if (range.diverging) ctx.fillText(fmt(c.scaleValueAt(0.5, range)), x + w + 10, y + hgt / 2);
+    ctx.textBaseline = 'alphabetic'; ctx.font = '600 20px sans-serif'; ctx.fillText(quantityLabel(q), x, 26); ctx.font = '18px sans-serif'; ctx.fillStyle = '#536a80'; ctx.fillText(unitsOf(q), x, 50);
+    return cv;
+  }
+  function exportSeries(S, st, ctx, session) {
+    var ui = ctx.ui, cc = common(), doc = root.document;
+    if (!cc || typeof cc.composeMontage !== 'function' || typeof cc.loadImage !== 'function' || !doc) { ui.toast('拼图需要共享库。', { kind: 'error' }); return; }
+    var c = core(), jobs = [];
+    S.stations.forEach(function (x, i) {
+      if (!x.comp) return;
+      var cv = doc.createElement('canvas'); cv.width = 700; cv.height = 620;
+      paint(cv, x.comp, { background: '#ffffff', grid: c.sliceGrid(x.comp.data, 160, 160), outline: '#33475b', lineWidth: 2.2, arrows: st.arrows !== false, velocity: session.model.A.velocity,
+        maxArrows: 120, arrowWidth: 2, pad: { left: 20, top: 15, right: 20, bottom: 20 }, scaleBar: true, font: 18, ink: '#33475b' });
+      jobs.push(cc.loadImage(cv.toDataURL('image/png'), doc).then(function (img) { return { image: img, label: String.fromCharCode(97 + i), caption: 's = ' + x.s_mm.toFixed(1) + ' mm (' + Math.round(x.fraction * 100) + '%)' }; }));
+    });
+    var bar = colorbarCanvas(S.range, S.quantity, doc);
+    var barJob = bar ? cc.loadImage(bar.toDataURL('image/png'), doc).then(function (img) { return { image: img }; }) : Promise.resolve(null);
+    Promise.all([Promise.all(jobs), barJob]).then(function (r) {
+      var canvas = cc.composeMontage({ columns: 3, panels: r[0], colorbar: r[1], document: doc, background: '#ffffff',
+        title: [ctx.caseName || '', S.name, quantityLabel(S.quantity) + ' · ' + unitsOf(S.quantity), S.range.shared ? '系列共用色标' : ''].filter(Boolean).join(' · ') });
+      if (!canvas || typeof canvas.toBlob !== 'function') throw new Error('拼图画布不可用');
+      canvas.toBlob(function (blob) { if (blob) ui.downloadBlob(blob, (ctx.fileBase || 'case') + '_slices_' + S.segment + '_' + S.quantity + '.png'); }, 'image/png');
+    }).catch(function (e) { ui.toast('导出失败：' + (e && e.message || e), { kind: 'error' }); });
+  }
+
   return {
     supported: supported, requiredArrays: requiredArrays, keys: keys, model: model, defaultState: defaultState, planeOf: planeOf,
     compute: compute, scaleFor: scaleFor, sectionOf: sectionOf, integrate: integrate, paint: paint, readAt: readAt, gizmoSide: gizmoSide,
-    create: create, panel: panel, openZoom: openZoom, quantityLabel: quantityLabel, unitsOf: unitsOf, LIMIT: LIMIT, GRID: GRID
+    series: series, region: region, pointArcs: pointArcs, branchAt: branchAt, ringAt: ringAt,
+    create: create, panel: panel, openZoom: openZoom, openSeries: openSeries, quantityLabel: quantityLabel, unitsOf: unitsOf, LIMIT: LIMIT, GRID: GRID
   };
 });

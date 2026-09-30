@@ -51,12 +51,14 @@
   function opt(result, key) { return key && result.has(key) ? result.array(key) : null; }
   function fail(msg) { throw (ns.data && ns.data.DataError ? ns.data.DataError(msg, { code: 'geometry' }) : new Error(msg)); }
 
+  // The glass takes the viewer's clipping planes (the section tool's cut), hence the clipping chunks.
   function glassMaterial(THREE) {
     return new THREE.ShaderMaterial({
+      clipping: true,
       uniforms: { uColor: { value: new THREE.Color('#a9b6c4') }, uBase: { value: 0.07 }, uRim: { value: 0.55 } },   // mid grey: reads on a dark and on a light stage
-      vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
-      fragmentShader: 'uniform vec3 uColor; uniform float uBase; uniform float uRim; varying vec3 vN; varying vec3 vV;' +
-        'void main(){ float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); gl_FragColor = vec4(uColor, clamp(uBase + uRim * f * f * f, 0.0, 0.9)); }',
+      vertexShader: '#include <clipping_planes_pars_vertex>\nvarying vec3 vN; varying vec3 vV; void main(){ vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mvPosition.xyz); gl_Position = projectionMatrix * mvPosition;\n#include <clipping_planes_vertex>\n}',
+      fragmentShader: '#include <clipping_planes_pars_fragment>\nuniform vec3 uColor; uniform float uBase; uniform float uRim; varying vec3 vN; varying vec3 vV;' +
+        'void main(){\n#include <clipping_planes_fragment>\n float f = 1.0 - abs(dot(normalize(vN), normalize(vV))); gl_FragColor = vec4(uColor, clamp(uBase + uRim * f * f * f, 0.0, 0.9)); }',
       transparent: true, depthWrite: false, side: THREE.DoubleSide
     });
   }
@@ -242,7 +244,10 @@
       var pos = [];
       for (var j = 0; j < indices.length; j++) { var q = indices[j]; if (q >= 0 && q < nP) pos.push(P[3 * q], P[3 * q + 1], P[3 * q + 2]); }
       var g2 = new THREE.BufferGeometry(); g2.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pos), 3));
-      hlObj = new THREE.Points(g2, new THREE.PointsMaterial({ color: new THREE.Color(o && o.color || gfx.ACCENT_HEX), size: pointSize * 1.8 * fovK, sizeAttenuation: true, map: dotTex, alphaTest: 0.5 }));
+      // o.size: diameter relative to the interior points (1.8 by default), o.opacity < 1: see-through (a region)
+      var op = o && Number(o.opacity) > 0 && Number(o.opacity) < 1 ? Number(o.opacity) : 1;
+      hlObj = new THREE.Points(g2, new THREE.PointsMaterial({ color: new THREE.Color(o && o.color || gfx.ACCENT_HEX), size: pointSize * (o && Number(o.size) > 0 ? Number(o.size) : 1.8) * fovK,
+        sizeAttenuation: true, map: dotTex, alphaTest: op < 1 ? 0.1 : 0.5, transparent: op < 1, opacity: op, depthWrite: op >= 1 }));
       hlObj.renderOrder = 7;
       group.add(hlObj);
     }

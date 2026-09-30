@@ -620,3 +620,25 @@ ellipse.zmap-edge { fill: rgba(16, 24, 40, .22); stroke: none; }
 .ws-dialog.dlg-slice { width: min(1100px, calc(100vw - 32px)); }
 .slice-zoom-canvas { display: block; width: auto; height: auto; max-width: 100%; max-height: calc(100vh - 230px); margin: 0 auto; border-radius: 8px; border: 1px solid var(--line); cursor: crosshair; }
 .slice-zoom-read { min-height: 18px; font-variant-numeric: tabular-nums; }
+/* section tool, second phase S2: series / region / cut */
+.slice-more { margin: 4px 0 12px; }
+.slice-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.slice-pills .pill { position: relative; height: 28px; padding: 0 12px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--panel); color: var(--ink-2); font-size: 12px; font-weight: 600; cursor: pointer; }
+.slice-pills .pill:hover { border-color: var(--accent); color: var(--accent-2); }
+.slice-pills .pill.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.slice-pills .pill-dot { position: absolute; top: 3px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
+.slice-more-body { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--panel-2); display: grid; gap: 8px; }
+.slice-more-body .slice-ctl b { font-weight: 700; color: var(--ink); }
+.slice-more-body .note { margin: 0; }
+.slice-region-out .kpis { margin-bottom: 4px; }
+.slice-region-out .kpi { padding: 6px 0 8px; }
+.slice-region-out .kpi-num { font-size: 20px; }
+.ws-dialog.dlg-series { width: min(1180px, calc(100vw - 32px)); }
+.series-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.series-tile { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; text-align: left; }
+.series-tile:hover { border-color: var(--accent); box-shadow: var(--shadow-1); }
+.series-canvas { display: block; width: 100%; height: auto; }
+.series-cap { display: flex; gap: 8px; align-items: baseline; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+.series-cap b { font-size: 14px; color: var(--ink); }
+.series-bar { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.series-grad { flex: 0 0 220px; height: 10px; border-radius: 2px; border: 1px solid var(--line-2); }

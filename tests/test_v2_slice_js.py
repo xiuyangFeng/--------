@@ -191,3 +191,53 @@ def test_map_paints_inside_the_outline_only():
     assert out["mid"] == 255 and out["corner"] == 0
     assert out["centre"]["value"] == pytest.approx(1.0, abs=0.08) and not out["centre"]["fromWall"]
     assert out["cornerRead"] is None
+
+
+def test_series_stations_follow_the_classic_fractions_and_share_one_range():
+    out = _node("""
+      const r=tube(), M=SL.model(r), st=SL.defaultState(M,{xyz:[0,0,20]});
+      const S=SL.series(st,M,6,{}), N=SL.series(Object.assign({},st,{quantity:'normal'}),M,6,{}), E=SL.series(st,M,4,{});
+      const own=S.stations.map(x=>SL.compute(Object.assign({},st,{fraction:x.fraction}),M,{}).range);
+      out({fractions:S.stations.map(x=>x.fraction),z:S.stations.map(x=>x.comp.plane.origin[2]),seg:S.segment,range:S.range,
+        lo:Math.min(...own.map(r=>r.min)),hi:Math.max(...own.map(r=>r.max)),same:S.stations.every(x=>x.comp.range===S.range),
+        normal:N.range,four:E.stations.map(x=>x.fraction),q:S.stations.map(x=>x.comp.integral.flow_ml_s)});
+    """)
+    assert out["fractions"] == [0.05, 0.2, 0.4, 0.6, 0.8, 0.95] and out["seg"] == 0
+    assert out["z"] == pytest.approx([2, 8, 16, 24, 32, 38])
+    assert out["range"]["shared"] and out["same"]
+    assert (out["range"]["min"], out["range"]["max"]) == pytest.approx((out["lo"], out["hi"]))
+    assert out["normal"]["diverging"] and out["normal"]["min"] == pytest.approx(-out["normal"]["max"])
+    assert out["four"] == pytest.approx([0.05, 0.35, 0.65, 0.95])
+    assert max(out["q"]) - min(out["q"]) < 0.05 * max(out["q"])   # same flow through every station of a straight tube
+
+
+def test_region_between_two_positions_and_its_pressure_drop():
+    # pressure 100 − 2 z; region 25–75 % of the 40 mm tube = z 10–30 mm; the proximal / distal 10 % (2 mm) of the
+    # stretch sit around z ≈ 11 and z ≈ 29, so the drop ≈ 2 × 18 = 36 Pa
+    out = _node("""
+      const r=tube(), M=SL.model(r), R=SL.region(M,{segment:0,lo:75,hi:25});
+      const arc=SL.pointArcs(M), direct=VC.regionIndices(M.interior,M.A.segs,arc,0,10,30);
+      out({lo:R.lo_mm,hi:R.hi_mm,count:R.count,direct:direct.length,drop:R.drop,speed:R.speed,pressure:R.pressure,
+        ends:R.ends.map(e=>({n:e.ring?e.ring.length:0,z:e.ring?e.ring.reduce((s,q)=>s+q[2],0)/e.ring.length:null}))});
+    """)
+    assert (out["lo"], out["hi"]) == pytest.approx((10, 30))
+    assert out["count"] == out["direct"] > 1000
+    assert out["drop"]["drop"] == pytest.approx(36, abs=1.5)
+    assert out["drop"]["proximal"] > out["drop"]["distal"]
+    assert out["pressure"]["min"] == pytest.approx(100 - 2 * 30, abs=1.5)
+    assert 0 < out["speed"]["mean"] < out["speed"]["max"] <= 1
+    assert [e["z"] for e in out["ends"]] == pytest.approx([10, 30], abs=1e-3) and all(e["n"] >= 40 for e in out["ends"])
+
+
+def test_session_region_and_cut_state():
+    out = _node("""
+      const r=tube(), s=SL.create(null,r,{hint:{xyz:[0,0,20]}});
+      s.setMore('region'); const on=s.region(), res=s.regionResult();
+      s.regionFromSlice('lo'); const fromSlice=s.region();
+      s.setMore(null); const off=s.region(), offRes=s.regionResult();
+      s.set({cut:'pos'}); s.recomputeNow(); const cut=s.cut();
+      out({on:on.on,seg:on.segment,count:res&&res.count,lo:fromSlice.lo,hi:fromSlice.hi,off:off.on,offRes,cut});
+    """)
+    assert out["on"] and out["seg"] == 0 and out["count"] > 0
+    assert out["lo"] == pytest.approx(50) and out["hi"] == 90
+    assert not out["off"] and out["offRes"] is None and out["cut"] == "pos"
