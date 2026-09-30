@@ -515,8 +515,7 @@
   // ------------------------------------------------------------------ input page (non-finished jobs)
   function showInput(job) {
     showMode('input');
-    ui().fill(S.els.toolbar, h('span', {'class': 'tb-title', text: ui().statusInfo(job.status).label}), h('span', {'class': 'sec-fill'}),
-      api() ? ui().link('在经典工作台中处理', api().urls.classic(job.id), {newTab: true}) : null);
+    ui().fill(S.els.toolbar, h('span', {'class': 'tb-title', text: ui().statusInfo(job.status).label}), h('span', {'class': 'sec-fill'}));
     S.els.inspHead.replaceChildren(); S.els.tabs.replaceChildren();
     S.els.qbar.hidden = true; S.els.timebar.hidden = true;
     stageMessage(null);
