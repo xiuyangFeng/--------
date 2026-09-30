@@ -20,7 +20,7 @@
   // result hooks without editing this file:
   //   (ns.ext = ns.ext || []).push({id, toolbar(api) → [buttons], tabs(api) → [{id, label}], renderTab(tabId, body, api) → true,
   //     layers(api) / userMenu(api) → [menu items], tools(api) → [sections], key(event, api) → true, page(name, container, api) → true,
-  //     onResult(api), onClose(api), onField(api)})
+  //     onResult(api), onClose(api), onField(api), onStart(api), onEvent(event, api), onConnection('up'|'down', api)})
   // `api` (shellApi below) is the last argument of every hook.  A hook that handles the call returns true; errors are
   // caught and logged, so one extension cannot break the page.
   function exts() { return Array.isArray(ns.ext) ? ns.ext : []; }
@@ -67,6 +67,7 @@
       toggleCursor: function () { toggleCursor(); }, cursorMoved: function () { cursorMoved(); }, toggleSlice: function () { toggleSlice(); }, exitSlice: function () { exitSlice(); },
       // lane B
       // lane C
+      reopenEvents: function () { if (!S || S.offline || !api()) return; if (S.closeEvents) { try { S.closeEvents(); } catch (_) {} } S.closeEvents = openEvents(); },
       // lane D
       openLens: function (ref) { if (S.cur && S.cur.manifest) openLens(ref); }, openUpload: function () { openUpload(); },
       focusSearch: function () {
@@ -266,7 +267,8 @@
   function refreshJobs() {
     if (S.offline || !api()) return Promise.resolve();
     var all = S.session && S.session.role === 'admin' ? 1 : null;
-    return api().jobs({all: all}).then(function (r) {
+    var load = ns.admin && ns.admin.loadJobs ? ns.admin.loadJobs() : api().jobs({all: all});   // lane C: the whole list, 「看全部用户」
+    return load.then(function (r) {
       S.jobs = Array.isArray(r) ? r : (r.jobs || []);
       store().state.jobs = S.jobs;
       if (S.rail) S.rail.setJobs(S.jobs);
@@ -1920,14 +1922,19 @@
     });
     var cardsP = api().modelCards().then(function (r) { S.cards = (r && r.cards) || {}; store().state.cards = S.cards; }, function () { S.cards = {}; });
     var relP = api().releases().then(function (r) { S.releases = Array.isArray(r) ? r : (r.releases || []); }, function () { S.releases = []; });
-    S.closeEvents = api().events(function (ev) {
-      scheduleRefresh();
-      if (S.cur && ev && ev.job_id === S.cur.jobId && !S.cur.result && ev.status === 'done') openJob(S.cur.jobId, {});
-    });
+    S.closeEvents = openEvents();
     return Promise.all([cardsP, relP]).then(function () {
       if (S.rail) S.rail.setCards(S.cards);
       return refreshJobs();
-    }).then(function () { route(); return S; });
+    }).then(function () { route(); extCall('onStart'); return S; });   // lane C: onStart
+  }
+  // Owner-level event stream; lane C: extensions see every event (onEvent) and the stream state (onConnection).
+  function openEvents() {
+    return api().events(function (ev) {
+      scheduleRefresh();
+      if (S.cur && ev && ev.job_id === S.cur.jobId && !S.cur.result && ev.status === 'done') openJob(S.cur.jobId, {});
+      extCall('onEvent', ev);
+    }, function (st) { extCall('onConnection', st); });
   }
   function startOffline(opts) {
     opts = opts || {};

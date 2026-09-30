@@ -1,6 +1,9 @@
 /* WSS workspace v2 — case rail and the to-do home (contract §6.3 ws_rail.js).
  * Three layers: case (patient) → scan (one input geometry) → result (one release run).  Names, scans and result
- * titles come from the job records and model cards; no release code is shown. */
+ * titles come from the job records and model cards; no release code is shown.
+ * Lane C (S6c): the home carries a head with the four home pages (病例 / 任务 / 队列 / 回收站, the last three live in
+ * ws_admin.js), four counts (今日 / 进行中 / 待处理 / 失败), 待复核 in 「需要处理」, unread marks and, in the
+ * administrator's all-users view, the owner of each case. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -30,9 +33,11 @@
   }
   function created(job) { var t = Date.parse(job && (job.created_at || job.updated_at) || ''); return isNaN(t) ? 0 : t; }
   function caseKey(job) {
-    if (job.patient_id) return 'p:' + String(job.patient_id).trim();
-    return 'c:' + ui().displayName(job);
+    var owner = job.owner_name !== undefined ? 'o:' + (job.owner_name || '') + '|' : '';   // all-users view: one card per owner
+    if (job.patient_id) return owner + 'p:' + String(job.patient_id).trim();
+    return owner + 'c:' + ui().displayName(job);
   }
+  function unread(id) { return Boolean(ns.admin && ns.admin.isUnread && ns.admin.isUnread(id)); }
   function scanKey(job) { return job.input_sha256 ? 's:' + job.input_sha256 : 'j:' + job.id; }
   function scanLabel(job) {
     var parts = [];
@@ -60,7 +65,7 @@
       if (!matches(job, opts.q, cards)) return;
       var ck = caseKey(job);
       var c = cases[ck];
-      if (!c) { c = cases[ck] = {key: ck, name: ui().displayName(job), patientId: job.patient_id || '', latest: 0, scans: {}, scanOrder: []}; order.push(ck); }
+      if (!c) { c = cases[ck] = {key: ck, name: ui().displayName(job), patientId: job.patient_id || '', owner: job.owner_name, latest: 0, scans: {}, scanOrder: []}; order.push(ck); }
       var sk = scanKey(job);
       var s = c.scans[sk];
       if (!s) { s = c.scans[sk] = {key: sk, label: scanLabel(job), latest: 0, jobs: []}; c.scanOrder.push(sk); }
@@ -79,7 +84,7 @@
           s.label = first && first.created_at ? '首次上传 ' + ui().time(first.created_at, false) : s.label;
         }
       });
-      return {key: c.key, name: c.name, patientId: c.patientId, latest: c.latest, scans: scans};
+      return {key: c.key, name: c.name, patientId: c.patientId, owner: c.owner, latest: c.latest, scans: scans};
     });
   }
   function order(tree) {
@@ -120,6 +125,7 @@
         var box = h('div', {'class': 'rail-case'});
         var title = h('div', {'class': 'rail-case-name'}, h('span', {text: c.name}));
         if (c.patientId && c.patientId !== c.name) title.appendChild(h('span', {'class': 'rail-pid', text: c.patientId}));
+        if (c.owner !== undefined) title.appendChild(h('span', {'class': 'rail-pid rail-owner', text: c.owner || '旧会话', title: '属主'}));
         box.appendChild(title);
         c.scans.forEach(function (s) {
           if (c.scans.length > 1 || s.label) box.appendChild(h('div', {'class': 'rail-scan', text: s.label || '扫描'}));
@@ -132,19 +138,19 @@
             var label = names[sname] > 1 && job.created_at ? sname + ' · ' + ui().time(job.created_at).slice(5) : sname;
             var row = h('button', {type: 'button', 'class': 'rail-result' + (job.id === st.current ? ' current' : ''), dataset: {jobId: job.id},
               'aria-current': job.id === st.current ? 'true' : null, title: rname + ' · ' + status.label + (job.created_at ? ' · ' + ui().time(job.created_at) : '')},
+              unread(job.id) ? h('span', {'class': 'rail-unread', title: '有新状态', 'aria-label': '未读'}) : null,
               h('span', {'class': 'rail-result-name', text: label}),
               ui().dot(status.tone, status.label, 'rail-st'));
-            row.addEventListener('click', function () { if (opts.onOpen) opts.onOpen(job.id); });
+            row.addEventListener('click', function () { if (ns.admin && ns.admin.markRead) ns.admin.markRead(job.id); if (opts.onOpen) opts.onOpen(job.id); });
             box.appendChild(row);
           });
         });
         list.appendChild(box);
       });
-      foot.replaceChildren();
-      if (st.full) {
-        foot.appendChild(h('p', {'class': 'rail-foot-text', text: '队列总览、回收站、批量上传仍在经典工作台。'}));
-        foot.appendChild(ui().link('打开经典工作台', '/', {newTab: true}));
-      }
+      // lane C: the other home pages, one click away from any case
+      ui().fill(foot, ns.admin ? h('nav', {'class': 'rail-pages', 'aria-label': '工作台页面'}, PAGES.slice(1).map(function (p) {
+        return h('a', {'class': 'rail-page', href: p.href}, ui().icon(p.icon, {size: 14}), h('span', {text: p.label}));
+      })) : null);
       st.tree = tree;
     }
     return {
@@ -157,6 +163,25 @@
       focusSearch: function () { try { search.focus(); } catch (_) {} },
       render: render
     };
+  }
+
+  // ------------------------------------------------------------------ home pages (lane C): shared head
+  var PAGES = [
+    {id: '', label: '病例', href: '#/', icon: 'logo'},
+    {id: 'tasks', label: '任务', href: '#/tasks', icon: 'list'},
+    {id: 'cohort', label: '队列', href: '#/cohort', icon: 'chart'},
+    {id: 'trash', label: '回收站', href: '#/trash', icon: 'trash'}];
+  // The four home pages as big title tabs, the count of the active one, then the page's own controls on the right.
+  // Without the workbench module (ns.admin) only the case gallery exists and the head is its plain title.
+  function homeHead(active, count, right) {
+    var h = ui().h;
+    var pages = ns.admin ? PAGES : PAGES.slice(0, 1);
+    var countEl = count && typeof count === 'object' ? count : h('span', {'class': 'sec-count', text: count === undefined || count === null ? '' : String(count)});
+    var tabs = h('nav', {'class': 'home-tabs', 'aria-label': '工作台页面'}, pages.map(function (p) {
+      var on = p.id === (active || '');
+      return on ? h('h2', {'class': 'home-tab on', 'aria-current': 'page'}, p.label, countEl) : h('a', {'class': 'home-tab', href: p.href}, p.label);
+    }));
+    return h('div', {'class': 'home-head'}, tabs, h('span', {'class': 'sec-fill'}), right || null);
   }
 
   // ------------------------------------------------------------------ to-do home (no case selected)
@@ -172,15 +197,54 @@
     Object.keys(out).forEach(function (k) { out[k].sort(function (a, b) { return created(b) - created(a); }); });
     return out;
   }
-  // Home: a gallery of cases (vessel thumbnail, name, scans, one chip per result) under a short strip of the jobs
-  // that need an action (outlets to confirm, failures, running).  Pure layout; thumbnails come from ns.thumbs.
+  // Pure: the four home counts.  今日 = created today (local day); 进行中 = queued / running; 待处理 = outlets or
+  // input to confirm + finished and not yet reviewed; 失败 = failed or interrupted.
+  function homeCounts(jobs, nowMs) {
+    var now = new Date(nowMs === undefined ? Date.now() : nowMs);
+    var out = {today: 0, active: 0, todo: 0, failed: 0};
+    (jobs || []).forEach(function (job) {
+      var t = created(job);
+      if (t) { var d = new Date(t); if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()) out.today += 1; }
+      var b = bucket(job);
+      if (b === 'running') out.active += 1;
+      else if (b === 'confirm' || b === 'unreviewed') out.todo += 1;
+      else if (b === 'failed') out.failed += 1;
+    });
+    return out;
+  }
+  // Home: a gallery of cases (vessel thumbnail, name, scans, one chip per result) under the counts and a short strip
+  // of the jobs that need an action (outlets to confirm, failures, running, results to review).  Pure layout;
+  // thumbnails come from ns.thumbs.  A page route (#/tasks …) is drawn by the workbench module instead.
   function chipTone(job) {
     var b = bucket(job);
     return {reviewed: 'ok', unreviewed: 'idle', confirm: 'warn', failed: 'error', running: 'busy'}[b] || 'idle';
   }
+  var ATTN_MAX = 8, GALLERY_STEP = 48, galleryShown = GALLERY_STEP;
+  // The shell redraws the home after every list refresh (renderHome → todo); on a page route (#/tasks, #/cohort …, or
+  // another lane's page) the page's own extension redraws itself instead of the gallery replacing it.
+  function pageHandled(name, el) {
+    var sa = ns.admin && ns.admin.shellApi ? ns.admin.shellApi() : undefined;
+    return (Array.isArray(ns.ext) ? ns.ext : []).some(function (x) {
+      if (!x || typeof x.page !== 'function') return false;
+      try { return x.page(name, el, sa) === true; }
+      catch (e) { if (root.console && root.console.error) root.console.error('extension ' + (x.id || '?') + '.page: ' + (e && e.stack || e)); return false; }
+    });
+  }
+  // Pure: up to ``max`` items, taking one from each non-empty group in turn, then shown in group order.
+  function attnPick(groups, max) {
+    var take = groups.map(function () { return 0; }), left = max, more = true;
+    while (left > 0 && more) {
+      more = false;
+      for (var g = 0; g < groups.length && left > 0; g++) if (take[g] < groups[g].length) { take[g] += 1; left -= 1; more = true; }
+    }
+    return [].concat.apply([], groups.map(function (list, g) { return list.slice(0, take[g]); }));
+  }
   function todo(el, jobs, opts) {
     opts = opts || {};
     var h = ui().h;
+    var page = /^#\/([a-z][a-z0-9-]{1,30})\/?$/.exec((root.location && root.location.hash) || '');
+    if (page && page[1] !== 'job' && pageHandled(page[1], el)) return todoModel(jobs);
+    if (ns.admin && ns.admin.leftPage) ns.admin.leftPage();
     var cards = opts.cards || {};
     var m = todoModel(jobs);
     var q = opts.q || '';
@@ -189,28 +253,47 @@
     var search = h('input', {type: 'search', 'class': 'home-search', placeholder: '搜索病例、患者编号', 'aria-label': '搜索病例', value: q});
     var timer = null;
     search.addEventListener('input', function () { if (timer) clearTimeout(timer); timer = setTimeout(function () { if (opts.onSearch) opts.onSearch(search.value); }, 160); });
-    wrap.appendChild(h('div', {'class': 'home-head'}, h('h2', {text: '病例'}), h('span', {'class': 'sec-count', text: String(tree.length)}), h('span', {'class': 'sec-fill'}),
-      h('label', {'class': 'home-search-wrap'}, ui().icon('search'), search)));
-    // needs an action
-    var attn = m.confirm.map(function (j) { return {job: j, tone: 'warn', what: j.status === 'awaiting_input' ? '核对单位与尺寸' : '确认出口', action: '去确认'}; })
-      .concat(m.failed.map(function (j) { return {job: j, tone: 'error', what: '失败', action: '查看原因'}; }))
-      .concat(m.running.map(function (j) { return {job: j, tone: 'busy', what: j.phase || '计算中', action: '查看进度'}; }));
+    wrap.appendChild(homeHead('', String(tree.length), h('label', {'class': 'home-search-wrap'}, ui().icon('search'), search)));
+    // counts (lane C): each opens the task list with that filter
+    if (ns.admin && ns.admin.openTasks && (jobs || []).length) {
+      var n = homeCounts(jobs);
+      var tile = function (label, value, tone, filter, tip) {
+        var b = h('button', {type: 'button', 'class': 'kpi-tile' + (value && tone ? ' tone-' + tone : ''), title: tip},
+          h('span', {'class': 'kpi-tile-value', text: String(value)}), h('span', {'class': 'kpi-tile-label', text: label}));
+        b.addEventListener('click', function () { ns.admin.openTasks(filter); });
+        return b;
+      };
+      wrap.appendChild(h('div', {'class': 'home-kpis'},
+        tile('今日', n.today, '', {quick: 'today'}, '今天上传的任务'),
+        tile('进行中', n.active, 'busy', {status: 'active'}, '排队或计算中'),
+        tile('待处理', n.todo, 'warn', {quick: 'todo'}, '待确认出口或输入，以及已完成待复核'),
+        tile('失败', n.failed, 'error', {status: 'failed'}, '失败或中断')));
+    }
+    // needs an action (待复核 included); when there are more than fit, every kind keeps a place (round robin in this order)
+    var groups = [m.confirm.map(function (j) { return {job: j, tone: 'warn', what: j.status === 'awaiting_input' ? '核对单位与尺寸' : '确认出口', action: '去确认'}; }),
+      m.failed.map(function (j) { return {job: j, tone: 'error', what: '失败', action: '查看原因'}; }),
+      m.running.map(function (j) { return {job: j, tone: 'busy', what: j.phase || '计算中', action: '查看进度'}; }),
+      m.review.map(function (j) { return {job: j, tone: 'idle', what: '待复核', action: '去复核'}; })];
+    var attn = [].concat.apply([], groups), shownAttn = attnPick(groups, ATTN_MAX);
     if (attn.length) {
       var strip = h('div', {'class': 'attn'});
-      attn.slice(0, 8).forEach(function (a) {
+      shownAttn.forEach(function (a) {
         var card = h('button', {type: 'button', 'class': 'attn-card tone-' + a.tone, title: a.action},
           ui().dot(a.tone, '', 'attn-dot'),
-          h('span', {'class': 'attn-text'}, h('span', {'class': 'attn-name', text: ui().displayName(a.job)}),
+          h('span', {'class': 'attn-text'}, h('span', {'class': 'attn-name'}, unread(a.job.id) ? h('span', {'class': 'rail-unread', 'aria-label': '未读'}) : null, h('span', {text: ui().displayName(a.job)})),
             h('span', {'class': 'attn-what', text: a.what + ' · ' + ui().resultName(a.job, cards, {short: true})})),
           h('span', {'class': 'attn-go', text: a.action}));
-        card.addEventListener('click', function () { if (opts.onOpen) opts.onOpen(a.job.id); });
+        card.addEventListener('click', function () { if (ns.admin && ns.admin.markRead) ns.admin.markRead(a.job.id); if (opts.onOpen) opts.onOpen(a.job.id); });
         strip.appendChild(card);
       });
-      wrap.appendChild(h('section', {'class': 'home-sec'}, h('h3', {'class': 'home-sub', text: '需要处理'}), strip));
+      var more = attn.length > ATTN_MAX && ns.admin && ns.admin.openTasks
+        ? ui().button('全部 ' + attn.length + ' 条', function () { ns.admin.openTasks({quick: 'attn'}); }, {kind: 'link', cls: 'btn-sm', iconAfter: 'chevron-right'}) : null;
+      wrap.appendChild(h('section', {'class': 'home-sec'}, h('div', {'class': 'home-sub-row'}, h('h3', {'class': 'home-sub', text: '需要处理'}), h('span', {'class': 'sec-fill'}), more), strip));
     }
-    // gallery
+    // gallery: the newest cases first; more on request (every card queues a thumbnail, so a long history is not all drawn at once)
     var grid = h('div', {'class': 'gallery'});
-    tree.forEach(function (c) {
+    var limit = q ? tree.length : Math.max(GALLERY_STEP, galleryShown);
+    tree.slice(0, limit).forEach(function (c) {
       var all = [];
       c.scans.forEach(function (s) { s.jobs.forEach(function (j) { all.push(j); }); });
       var done = all.filter(function (j) { return j.status === 'done'; });
@@ -221,15 +304,15 @@
       var scanText = c.scans.length > 1 ? c.scans.length + ' 次扫描 · ' + (c.scans[0].label || '') : (c.scans[0] && c.scans[0].label) || '';
       var chips = h('div', {'class': 'case-results'});
       c.scans[0].jobs.forEach(function (j) {
-        var chip = h('button', {type: 'button', 'class': 'res-chip', title: ui().resultName(j, cards) + ' · ' + rowStatus(j).label},
+        var chip = h('button', {type: 'button', 'class': 'res-chip' + (unread(j.id) ? ' unread' : ''), title: ui().resultName(j, cards) + ' · ' + rowStatus(j).label + (unread(j.id) ? ' · 有新状态' : '')},
           h('span', {'class': 'res-dot tone-' + chipTone(j)}), h('span', {text: ui().resultName(j, cards, {short: true})}));
-        chip.addEventListener('click', function (e) { e.stopPropagation(); if (opts.onOpen) opts.onOpen(j.id); });
+        chip.addEventListener('click', function (e) { e.stopPropagation(); if (ns.admin && ns.admin.markRead) ns.admin.markRead(j.id); if (opts.onOpen) opts.onOpen(j.id); });
         chips.appendChild(chip);
       });
       card.appendChild(thumb);
       card.appendChild(h('div', {'class': 'case-body'},
         h('div', {'class': 'case-name', text: c.name}),
-        h('div', {'class': 'case-meta', text: [c.patientId && c.patientId !== c.name ? c.patientId : '', scanText].filter(Boolean).join(' · ')}),
+        h('div', {'class': 'case-meta', text: [c.patientId && c.patientId !== c.name ? c.patientId : '', scanText, c.owner !== undefined ? (c.owner || '旧会话') : ''].filter(Boolean).join(' · ')}),
         chips));
       var open = function () { if (opts.onOpen && primary) opts.onOpen(primary.id); };
       card.addEventListener('click', open);
@@ -245,8 +328,11 @@
         else ns.thumbs.request(tj.id, function () { return opts.fetchThumb(tj); }, put);
       } else thumb.classList.add('no-thumb');
     });
-    if (tree.length) wrap.appendChild(h('section', {'class': 'home-sec'}, attn.length ? h('h3', {'class': 'home-sub', text: '全部病例'}) : null, grid));
-    else wrap.appendChild(ui().empty(q ? '没有符合搜索的病例。' : '还没有病例。上传一份管腔 STL 开始第一例。', [
+    var moreCases = tree.length > limit ? ui().button('再显示 ' + Math.min(GALLERY_STEP, tree.length - limit) + ' 个病例（共 ' + tree.length + ' 个）', function () {
+      galleryShown = limit + GALLERY_STEP; todo(el, jobs, opts);
+    }, {cls: 'gallery-more'}) : null;
+    if (tree.length) wrap.appendChild(h('section', {'class': 'home-sec'}, attn.length ? h('h3', {'class': 'home-sub', text: '全部病例'}) : null, grid, moreCases));
+    else wrap.appendChild(ui().empty(q ? '没有符合搜索的病例。' : '还没有病例。上传一份管腔 STL，或把 STL 拖进页面。', [
       opts.onUpload ? ui().button('上传 STL', opts.onUpload, {icon: 'upload', kind: 'primary'}) : null,
       ui().link('输入要求', '/static/v2/help_input.html', {newTab: true}),
       ui().link('示例报告', '/v2/example', {newTab: true})
@@ -256,5 +342,5 @@
     return m;
   }
 
-  return {create: create, model: model, order: order, todo: todo, todoModel: todoModel, bucket: bucket, FILTERS: FILTERS};
+  return {create: create, model: model, order: order, todo: todo, todoModel: todoModel, bucket: bucket, FILTERS: FILTERS, homeHead: homeHead, homeCounts: homeCounts, attnPick: attnPick, PAGES: PAGES};
 });

@@ -1168,6 +1168,14 @@ class Handler(BaseHTTPRequestHandler):
             manager.unsubscribe_owner(owner, listener)
 
     # ------------------------------------------------------------------ helpers
+    def _owner_names(self, jobs: list) -> None:
+        """Administrator's all-users list (workspace v2 lane C, 「看全部用户」): ``owner_name`` = the registered user
+        name that owns each job, '' for an anonymous (token / loopback) session owner.  The owner key itself is never sent."""
+        manager, sessions = self.server.manager, self.server.sessions
+        for job in jobs:
+            owner = manager.owner_of(str(job.get("id") or "")) or ""
+            job["owner_name"] = owner if owner and sessions._registered(owner) else ""
+
     def _job_dir(self, job_id: str) -> Path:
         manager = self.server.manager
         job_dir = (manager.root / job_id).resolve()
@@ -1540,10 +1548,14 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/jobs":
             keys = {"q", "status", "patient_id", "tag", "page", "page_size"}
             if not (keys & set(query)):
-                return self._json({"jobs": manager.list(row["owner"], all_owners=all_owners)})
-            return self._json(manager.query(row["owner"], q=one("q"), status=one("status"),
-                                            patient_id=one("patient_id"), tag=one("tag"),
-                                            page=integer("page", 1), page_size=integer("page_size", 25), all_owners=all_owners))
+                listing = {"jobs": manager.list(row["owner"], all_owners=all_owners)}
+            else:
+                listing = manager.query(row["owner"], q=one("q"), status=one("status"),
+                                        patient_id=one("patient_id"), tag=one("tag"),
+                                        page=integer("page", 1), page_size=integer("page_size", 25), all_owners=all_owners)
+            if all_owners:
+                self._owner_names(listing["jobs"])
+            return self._json(listing)
         match = re.fullmatch(rf"/api/jobs/({JOB_ID_PATTERN})", path)
         if match: return self._json(manager.get(match[1], row["owner"], any_owner=admin))
         match = re.fullmatch(rf"/api/jobs/({JOB_ID_PATTERN})/events", path)
