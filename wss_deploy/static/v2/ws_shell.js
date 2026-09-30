@@ -75,6 +75,14 @@
         S.rail.focusSearch(); return true;
       },
       // lane E
+      // phase 3 (PHASE3_LANES.md): each lane adds its helpers after its own marker, one line per helper
+      noticeHost: function () { return S && S.els ? S.els.notices : null; },
+      // P3 lane 1 (input)
+      // P3 lane 2 (workbench)
+      // P3 lane 3 (info)
+      // P3 lane 4 (display)
+      // P3 lane 5 (export)
+      // P3 lane 6 (S7)
       _: null
     };
     return SHELL_API;
@@ -170,13 +178,14 @@
     E.rail = h('aside', {'class': 'ws-rail', 'aria-label': '病例'});
     E.toolbar = h('div', {'class': 'ws-toolbar', role: 'toolbar', 'aria-label': '视图工具'});
     E.qbar = h('div', {'class': 'ws-qbar', hidden: true});
+    E.notices = h('div', {'class': 'ws-notices', role: 'status', 'aria-live': 'polite'});   // phase 3: result notices (ws_notice.js)
     E.vpA = viewportShell('a');
     E.vpB = viewportShell('b');
     E.grid = h('div', {'class': 'vp-grid'}, E.vpA.root, E.vpB.root);
     E.vpB.root.hidden = true;
     E.inputHost = h('div', {'class': 'ws-inputhost', hidden: true});
     E.stageMsg = h('div', {'class': 'stage-msg', hidden: true});
-    E.stage = h('div', {'class': 'ws-stage'}, E.grid, E.inputHost, E.stageMsg, E.toolbar, E.qbar);
+    E.stage = h('div', {'class': 'ws-stage'}, E.grid, E.inputHost, E.stageMsg, E.toolbar, E.qbar, E.notices);
     E.timebar = h('div', {'class': 'ws-timebar', hidden: true});
     E.home = h('div', {'class': 'ws-home', hidden: true});
     E.main = h('main', {'class': 'ws-main'}, E.stage, E.timebar, E.home);
@@ -305,6 +314,7 @@
     E.stage.hidden = mode === 'home';
     E.insp.hidden = mode === 'home';
     if (mode === 'home') { E.qbar.hidden = true; E.timebar.hidden = true; }
+    if (mode !== 'result') E.notices.replaceChildren();
     E.grid.hidden = mode !== 'result';
     E.inputHost.hidden = mode !== 'input';
     S.els.body.classList.toggle('is-home', mode === 'home');

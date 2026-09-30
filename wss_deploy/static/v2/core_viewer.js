@@ -1139,6 +1139,9 @@
     setBranchVisibility = function (ids) { laneE.setBranchVisibility(ids); if (peakGroup || toolChips.peak) drawPeaks(); };
     // ==== end lane E ====
 
+    // ==== P3 lane 4 ==== (phase 3: hover readout, iso-lines, highlight, clipping, trust greying; PHASE3_LANES.md §3)
+    // ==== end P3 lane 4 ====
+
     // ---- state
     function getState() {
       return {
@@ -1263,6 +1266,7 @@
       // lane E exports
       refreshDisplay: refreshDisplay,
       peakMarkers: function () { return peakGroup ? peakGroup.children.map(function (g) { return g.position.toArray(); }) : []; },
+      // P3 lane 4 exports
       dispose: dispose,
       isDisposed: function () { return disposed; }
     };
