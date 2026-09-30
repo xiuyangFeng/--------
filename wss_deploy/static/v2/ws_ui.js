@@ -344,7 +344,12 @@
       var left = Math.max(8, Math.min(rect.right - width, vw - width - 8));
       if (rect.left + width < vw - 8 && rect.left < vw / 2) left = Math.max(8, rect.left);
       el.style.left = left + 'px';
-      el.style.top = (rect.bottom + 4) + 'px';
+      // a long menu (图层) stays inside the window: it moves up as far as needed and scrolls when taller than the window
+      var vh = root.innerHeight || 800, top = rect.bottom + 4;
+      el.style.maxHeight = Math.max(160, vh - 16) + 'px';
+      var tall = el.offsetHeight || 0;
+      if (tall && top + tall > vh - 8) top = Math.max(8, vh - 8 - tall);
+      el.style.top = top + 'px';
     }
     return el;
   }

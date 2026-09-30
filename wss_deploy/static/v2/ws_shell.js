@@ -13,7 +13,6 @@
   var store = function () { return ns.store; };
   var api = function () { return ns.api; };
   var VIEWS = ['wall', 'volume', 'compare', 'input'];
-  var CLASSIC_TOOLS = '六视角、出版级导图、分支展开图';
 
   // ------------------------------------------------------------------ extensions (second phase, parallel lanes)
   // Other modules add toolbar buttons, inspector tabs, menu items, sections of the 工具 tab, keys, pages (#/name) and
@@ -117,13 +116,20 @@
   }
   function fieldById(m, id) { return visibleFields(m).filter(function (f) { return f.id === id; })[0] || null; }
   function fieldName(m, id) { var f = fieldById(m, id) || ((m && m.fields) || []).filter(function (x) { return x && x.id === id; })[0]; return f ? (f.short_label || f.label || f.id) : (id || ''); }
+  // Colour-window range in the display unit (volume Pa / m/s follow the 单位 choice of the colour-scale panel).
+  function rangeText(lo, hi, f) {
+    var fam = S && S.cur && S.cur.result && S.cur.result.family, cv = ns.display && ns.display.toDisplay;
+    if (!cv || !f) return ui().range(lo, hi, f && f.units);
+    var a = cv(lo, f.units, fam), b = cv(hi, f.units, fam);
+    return ui().range(a.value, b.value, b.units);
+  }
   function windowOptions(f) {
     var logHint = Boolean(ns.colormap && ns.colormap.logHint ? ns.colormap.logHint(f) : (f && f.display && f.display.log_scale === true));
     var opts = [{value: 'adaptive', label: logHint ? '本例自适应（对数）' : '本例自适应'}];
     if (logHint) opts.push({value: 'adaptive-linear', label: '本例自适应（线性）'});
     ((f && f.windows) || []).forEach(function (w) {
       if (!w || !w.id || !Array.isArray(w.range)) return;
-      opts.push({value: w.id, label: w.label + ' ' + ui().range(w.range[0], w.range[1], f.units) + (w.provisional ? '（暂定）' : '')});
+      opts.push({value: w.id, label: w.label + ' ' + rangeText(w.range[0], w.range[1], f) + (w.provisional ? '（暂定）' : '')});
     });
     return opts;
   }
@@ -133,11 +139,11 @@
       var hi = Array.isArray(d.range) ? d.range[1] : d.p99;
       var lo = Array.isArray(d.range) ? d.range[0] : 0;
       var mode = spec === 'adaptive-linear' ? '（线性）' : ((ns.colormap && ns.colormap.logHint ? ns.colormap.logHint(f) : d.log_scale === true) ? '（对数）' : '');
-      return '本例自适应' + mode + (hi !== undefined && hi !== null ? ' ' + ui().range(lo, hi, f && f.units) : '');
+      return '本例自适应' + mode + (hi !== undefined && hi !== null ? ' ' + rangeText(lo, hi, f) : '');
     }
-    if (typeof spec === 'object' && Array.isArray(spec.range)) return '固定范围 ' + ui().range(spec.range[0], spec.range[1], f && f.units);
+    if (typeof spec === 'object' && Array.isArray(spec.range)) return '固定范围 ' + rangeText(spec.range[0], spec.range[1], f);
     var w = ((f && f.windows) || []).filter(function (x) { return x && x.id === spec; })[0];
-    return w ? w.label + ' ' + ui().range(w.range[0], w.range[1], f.units) + (w.provisional ? '（暂定）' : '') : String(spec);
+    return w ? w.label + ' ' + rangeText(w.range[0], w.range[1], f) + (w.provisional ? '（暂定）' : '') : String(spec);
   }
 
   // ------------------------------------------------------------------ the shell instance
@@ -1575,6 +1581,8 @@
     if (!cur || !cur.runIdentity || !cur.result) return;
     var st = null;
     try { st = S.viewerA && S.viewerA.getState ? S.viewerA.getState() : null; } catch (_) { st = null; }
+    // An open section hides the interior points in the viewer only (setLayers); the reading position keeps the choice.
+    if (st && st.layers && S.layers && typeof S.layers.interior === 'boolean') st.layers.interior = S.layers.interior;
     // A comparison paints both sides on a shared range; that range belongs to the comparison, not to this result's
     // reading position (reopening the result alone must not come back on 「固定范围」).
     if (st && cur.compare) { delete st.scale; delete st.field; }
@@ -1666,7 +1674,7 @@
       var sameGeo = ns.compare.sameGeometry(cur.manifest, mB) === true;
       cur.compare = {jobId: otherId, job: jobB, result: resB, manifest: mB, field: fidB, window: 'adaptive', mode: allowed ? 'same' : 'each', sync: sameGeo};
       var rg0 = allowed ? ns.compare.commonRange(cur.manifest, mB, cur.field, fidB) : null;
-      cur.compare.rangeText = rg0 ? ui().range(rg0[0], rg0[1], (fieldById(cur.manifest, cur.field) || {}).units) : '';
+      cur.compare.rangeText = rg0 ? rangeText(rg0[0], rg0[1], fieldById(cur.manifest, cur.field)) : '';
       var v = ensureViewerB();
       S.els.vpB.root.hidden = false; S.els.grid.classList.add('split');
       resizeViewers();
@@ -1693,7 +1701,7 @@
     var specA = scaleSpec(cur.window), specB = scaleSpec(c.window);
     if (c.mode === 'same') {
       var rg = ns.compare.commonRange(cur.manifest, c.manifest, cur.field, c.field);
-      if (rg) { specA = scaleSpec({range: rg}); specB = scaleSpec({range: rg}); c.rangeText = ui().range(rg[0], rg[1], (fieldById(cur.manifest, cur.field) || {}).units); }
+      if (rg) { specA = scaleSpec({range: rg}); specB = scaleSpec({range: rg}); c.rangeText = rangeText(rg[0], rg[1], fieldById(cur.manifest, cur.field)); }
       else { c.mode = 'each'; c.rangeText = ''; }
     }
     if (S.viewerA) { try { S.viewerA.setField(cur.field, specA); } catch (_) {} }
@@ -1774,9 +1782,9 @@
     var full = store().prefs().tier === 'full';
     var jobId = cur.jobId;
     var parts = [];
-    parts.push(ui().section('经典报告里的工具', {}, ui().note('这些工具还没有搬到新工作区：' + CLASSIC_TOOLS + '。'),
+    parts.push(ui().section('经典报告', {}, ui().note('需要与经典报告对照时，可以在这里打开。'),
       h('div', {'class': 'sec-actions'}, ui().button('在经典报告中打开', function () { root.open(api().urls.report(jobId), '_blank', 'noopener'); }, {icon: 'external'}))));
-    parts.push(ui().section('导出', {}, ui().note('汇报图、复核数据、离线报告、一页纸。'), h('div', {'class': 'sec-actions'}, ui().button('导出…', openExport, {icon: 'download'}))));
+    parts.push(ui().section('导出', {}, ui().note('图片、拼图、一页纸配图、复核数据与离线报告。'), h('div', {'class': 'sec-actions'}, ui().button('导出…', openExport, {icon: 'download'}))));
     if (full) {
       var m = cur.manifest, pv = m.provenance || {}, mp = m.mapping || {}, di = mp.display_interpolation || {};
       var rows = [

@@ -242,6 +242,13 @@
     if (!UNITS[kind] || !u) return null;
     return { units: u, factor: unitFactor(kind, u) };
   }
+  // A number of a volume result in its display unit, for the overview, the lens, the along-vessel curves and the colour
+  // window labels: {value, units}.  Wall shear stress and every other quantity come back unchanged.
+  function toDisplay(value, units, family) {
+    var kind = unitKind({ units: units }, family), d = kind ? displayUnit(kind) : null;
+    if (!d || !(d.factor > 0) || d.factor === 1 || value === null || value === undefined || !Number.isFinite(+value)) return { value: value, units: units };
+    return { value: +value * d.factor, units: d.units };
+  }
 
   // ------------------------------------------------------------------ floating panels (HUD style, over the stage)
   var pop = null;
@@ -325,7 +332,10 @@
     var P = prefs(); if (!UNITS[kind] || !UNITS[kind][u]) return;
     P.units[kind] = u; savePrefs(P);
     refreshAll();
-    if (API && ['reading', 'slice'].indexOf(API.currentTab()) >= 0) API.renderInspector();
+    if (!API) return;
+    if (typeof API.renderToolbar === 'function') API.renderToolbar();   // the colour-window labels carry the unit
+    if (typeof API.drawLabels === 'function') API.drawLabels();         // automatic finding labels in the viewer
+    if (['reading', 'slice', 'overview', 'along'].indexOf(API.currentTab()) >= 0) API.renderInspector();
   }
   function openScale(legendEl, info) {
     var v = viewerForLegend(legendEl), r = resultOf(v);
@@ -508,7 +518,7 @@
   }
 
   return {
-    provider: provider, prefs: prefs, savePrefs: savePrefs, sanitizePrefs: sanitizePrefs, session: session, reset: reset, displayUnit: displayUnit,
+    provider: provider, prefs: prefs, savePrefs: savePrefs, sanitizePrefs: sanitizePrefs, session: session, reset: reset, displayUnit: displayUnit, toDisplay: toDisplay,
     validThresholds: validThresholds, thresholdFractions: thresholdFractions, peakMarkers: peakMarkers, stagnationCriteria: stagnationCriteria,
     hasStagnation: hasStagnation, unitFactor: unitFactor, unitKind: unitKind, unitOptions: unitOptions, sanitizeSessionState: sanitizeSessionState,
     openScale: openScale, openVolume: openVolume, closePop: closePop, isOpen: function () { return pop ? pop.kind : null; },

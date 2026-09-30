@@ -143,11 +143,15 @@
     if (item.severity === 'note') return {tone: 'idle', label: item.grading === 'no_reference' ? '提示 · 无队列参照' : '提示'};
     return null;
   }
+  // Volume pressures and speeds in the display unit chosen on the colour-scale panel (ws_display); raw without it.
+  var VOLUME_KINDS = {max_speed: 1, min_pressure: 1, pressure_drop: 1, low_speed_region: 1};
+  function qty(value, units, family) { var cv = ns.display && ns.display.toDisplay; return cv ? cv(value, units, family) : {value: value, units: units}; }
   function findingValue(item) {
     if (!item) return '—';
     if (item.manual) return item.text && item.text.length > 14 ? item.text.slice(0, 13) + '…' : (item.text || '');
     if (item.units === 'cm²' || item.units === 'cm2') return ui().num(item.value, 'cm²');
-    return ui().num(item.value, item.units);
+    var q = qty(item.value, item.units, VOLUME_KINDS[item.kind] ? 'volume' : null);
+    return ui().num(q.value, q.units);
   }
   var DISCLAIMER = /非诊断|not a diagnosis|for reference only/i;
   function narrativeModel(manifest) {
@@ -616,9 +620,11 @@
     var kpis = kpiModel(m);
     if (kpis.length) {
       var grid = h('div', {'class': 'kpis'});
+      var fam = m.result && m.result.family;
       kpis.forEach(function (k) {
-        var valText = k.pct ? ui().pct(k.value) : ui().num(k.value, null);
-        var unit = k.pct ? '' : ui().unitText ? ui().unitText(k.units) : (k.units || '');
+        var dq = k.pct ? null : qty(k.value, k.units, fam);
+        var valText = k.pct ? ui().pct(k.value) : ui().num(dq.value, null);
+        var unit = k.pct ? '' : ui().unitText ? ui().unitText(dq.units) : (dq.units || '');
         var visual = null;
         if (k.pct) visual = h('span', {'class': 'kpi-bar'}, h('span', {'class': 'kpi-bar-fill', style: 'width:' + Math.max(0, Math.min(100, k.value * 100)).toFixed(1) + '%;background:' + fracColor(k.value)}));
         else if (k.chip && ctx.fieldScale) { var fs = ctx.fieldScale(k.field); var c = fs && fs.color(k.value); if (c) visual = h('span', {'class': 'kpi-chip', style: 'background:' + c, title: '在当前色标上的颜色'}); }

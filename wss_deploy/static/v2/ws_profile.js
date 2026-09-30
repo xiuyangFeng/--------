@@ -35,6 +35,15 @@
   // What the curve shows for the coloured field: {id, label, units, primary, secondary, band, hlines, missing}.
   // primary / secondary: {key, name, get(branch) → array}; the band spans the two.
   function spec(m, fieldId) {
+    var sp = rawSpec(m, fieldId), cv = ns.display && ns.display.toDisplay;
+    if (!sp || !cv || !(m && m.result && m.result.family === 'volume')) return sp;
+    // volume curves in the display unit of the colour-scale panel (ws_display: Pa / mmHg, m/s / cm/s)
+    var k = cv(1, sp.units, 'volume');
+    if (k.units === sp.units) return sp;
+    var scaled = function (s) { return {key: s.key, name: s.name, get: function (b) { return s.get(b).map(function (v) { return v * k.value; }); }}; };
+    return Object.assign({}, sp, {units: k.units, primary: scaled(sp.primary), secondary: scaled(sp.secondary)});
+  }
+  function rawSpec(m, fieldId) {
     var volume = m && m.result && m.result.family === 'volume';
     if (volume) {
       var q = fieldId === 'pressure' || fieldId === 'wall_pressure' ? 'pressure' : 'speed';

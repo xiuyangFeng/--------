@@ -94,6 +94,8 @@
     var steps = [];
     var job = m.job || {};
     var res = m.result || {};
+    // volume pressures and speeds in the display unit of the colour-scale panel (ws_display); refs stay raw
+    var qn = function (v, u) { var cv = ns.display && ns.display.toDisplay, q = cv ? cv(v, u, res.family) : {value: v, units: u}; return ui().num(q.value, q.units); };
     var fieldId = ref.field || ref.fieldId || null;
     var tier = ref.kind === 'morph' ? 'geometry' : ref.kind === 'finding' && ov().isGeometryFinding(ref.item) ? 'geometry' : (ref.tier || (fieldId ? ov().fieldTier(m, fieldId) : 'model'));
     if (ref.kind === 'finding' && ref.item && /stagnation/.test(ref.item.kind || '')) tier = 'derived';
@@ -116,7 +118,7 @@
       where.push(['位置', branchName(m, ref.segmentId) + (ref.s_from_root_mm !== undefined && ref.s_from_root_mm !== null ? '，距主动脉入口 ' + ui().num(ref.s_from_root_mm, 'mm') + '（沿中心线）' : '')]);
       if (ref.theta_rad !== undefined && ref.theta_rad !== null && isFinite(ref.theta_rad)) where.push(['周向角', (ref.theta_rad >= 0 ? '+' : '−') + Math.round(Math.abs(ref.theta_rad) * 180 / Math.PI) + '°（展开图纵轴）']);
       if (ref.xyz) where.push(['坐标', xyzText(ref.xyz)]);
-      value.push([fl, isNaN(Number(ref.value)) || ref.value === null ? '缺失（该点没有预测值）' : ui().num(ref.value, f && f.units)]);
+      value.push([fl, isNaN(Number(ref.value)) || ref.value === null ? '缺失（该点没有预测值）' : qn(ref.value, f && f.units)]);
       if (ref.values && typeof ref.values === 'object') {
         Object.keys(ref.values).forEach(function (id) {
           if (id === fieldId) return;
@@ -124,7 +126,7 @@
           if (!of || of.kind === 'vector') return;
           var when = f && of.temporal && f.temporal && of.temporal !== f.temporal ? (of.temporal === 'frame' ? '峰值帧' : '周期') : '';
           var note = [when, of.tier === 'derived' ? '派生' : ''].filter(Boolean).join('，');
-          value.push([fieldLabel(m, id), (v === null || v === undefined || isNaN(Number(v)) ? '缺失' : ui().num(v, of.units)) + (note ? '（' + note + '）' : '')]);
+          value.push([fieldLabel(m, id), (v === null || v === undefined || isNaN(Number(v)) ? '缺失' : qn(v, of.units)) + (note ? '（' + note + '）' : '')]);
         });
       }
       if (ref.valueSource === 'display') method.push(['读数', '这个量只有显示网格上的值，读数取最近的显示顶点，不从屏幕颜色反推。']);
@@ -176,7 +178,7 @@
       Object.keys(r.stats || {}).forEach(function (k) { value.push([statLabel(k), typeof r.stats[k] === 'number' ? ui().sig(r.stats[k]) : String(r.stats[k])]); });
       method.push(['聚合', r.definition || '沿中心线每 2 mm 一箱，箱内预测点统计。']);
     } else if (ref.kind === 'stat') {
-      value.push([ref.label || fl, ref.text || ui().num(ref.value, ref.units)]);
+      value.push([ref.label || fl, ref.text || qn(ref.value, ref.units)]);
       (Array.isArray(ref.also) ? ref.also : []).forEach(function (r) { if (r && r[0]) value.push([r[0], r[1]]); });
       var vol = m && m.result && m.result.family === 'volume' && (fieldId === 'pressure' || fieldId === 'speed' || fieldId === 'velocity');
       var aggText = vol ? '体内采样点等权统计。' + (fieldId === 'pressure' ? '压力是相对压，只用于比较差值。' : '')
