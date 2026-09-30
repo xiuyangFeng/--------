@@ -1,8 +1,12 @@
-/* WSS workspace v2 — export by purpose O6 (contract §6.3 ws_export.js).
- *   汇报图   snapshot + colour bar + window name + display name (the name can be hidden)
- *   复核数据 the existing CSV / VTP / zip
- *   离线阅读 POST /api/v2/jobs/<id>/offline, bookmarks included, name can be hidden
- *   打印报告 the existing one-page report */
+/* WSS workspace v2 — export by purpose O6 (contract §6.3 ws_export.js), second phase S5a (lane A).
+ * One dialog, four pages:
+ *   图片     publication figure of the current view: 1× / 2× / 4×, viewport / white / transparent background, Chinese or
+ *           English words, colour bar / title / labels; colour bar as SVG; print the view (ns.figure)
+ *   拼图     six standard views or a chosen set (+ current view, + section map) with one colour bar (ns.figure)
+ *   一页纸   figures for the one-page report (classic snapshots format) and the one-pager itself
+ *   数据     the existing CSV / VTP / zip, and the offline HTML (/api/v2/.../offline, bookmarks, name can be hidden)
+ * The footer copies the reproducible link.  Without ns.figure (tests, a trimmed bundle) the 图片 page falls back to the
+ * first-phase 汇报图: snapshot + colour bar + window name + display name. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -24,8 +28,6 @@
       img.onerror = reject; img.src = url;
     });
   }
-
-
   function svgImage(svg) {
     return new Promise(function (resolve, reject) {
       var url = root.URL.createObjectURL(new root.Blob([svg], {type: 'image/svg+xml'}));
@@ -35,10 +37,10 @@
       img.src = url;
     });
   }
-  // Compose the figure: caption on top, the WebGL snapshot, the kernel's own colour bar (ns.colorbar.toSVG, the same
-  // drawing as on screen) on the right, one research line at the bottom.
+  // First-phase 汇报图 (fallback): caption on top, the WebGL snapshot, the kernel's colour bar on the right, one
+  // research line at the bottom.
   function composeFigure(opts) {
-    var s = opts.scale || 2;   // re-derived from the snapshot below: text and colour bar follow its pixel size
+    var s = opts.scale || 2;
     var svg = null;
     try { svg = opts.info && ns.colorbar && typeof ns.colorbar.toSVG === 'function' ? ns.colorbar.toSVG(opts.info, {width: 190, graphicHeight: 300, background: '#ffffff'}) : null; } catch (_) { svg = null; }
     return Promise.all([loadImage(opts.snapshot), svg ? svgImage(svg).catch(function () { return null; }) : Promise.resolve(null)]).then(function (imgs) {
@@ -61,15 +63,8 @@
       return new Promise(function (resolve) { c.toBlob(resolve, 'image/png'); });
     });
   }
-
-  // ctx: {job, manifest, viewer, info(), fieldLabel, units, windowLabel, displayName, bookmarks:[], offline, hideName}
-  function open(ctx) {
-    var h = ui().h;
-    var api = ns.api;
-    var m = ctx.manifest || {};
-    var jobId = (ctx.job && ctx.job.id) || (m.job && m.job.id);
-    var name = ctx.displayName || '病例';
-    var blocks = [];
+  function fallbackFigure(el, ctx) {
+    var h = ui().h, m = ctx.manifest || {}, name = ctx.displayName || '病例';
     var hideFig = h('input', {type: 'checkbox', checked: Boolean(ctx.hideName)});
     var figBtn = ui().button('下载 PNG', function () {
       if (!ctx.viewer || typeof ctx.viewer.snapshot !== 'function') { ui().toast('三维视图不可用，不能出图。', {kind: 'error'}); return; }
@@ -85,37 +80,89 @@
         ui().downloadBlob(png, 'WSS_' + safeName(shown) + '_' + (ctx.fieldId || 'field') + '_' + stamp() + '.png');
       }, function (e) { ui().toast('出图失败：' + (e && e.message || e), {kind: 'error'}); }).then(function () { figBtn.disabled = false; });
     }, {icon: 'download', cls: 'btn-sm'});
-    blocks.push(block('汇报图', '当前视口的截图，带色标、窗名和病例名，适合放进幻灯片。', [h('label', {'class': 'check'}, hideFig, h('span', {text: '隐藏病例名'})), figBtn]));
-    if (!ctx.offline && api && jobId) {
-      var exportsList = (ctx.job && ctx.job.summary && ctx.job.summary.exports) || {};
-      var vtp = Object.keys(exportsList).map(function (k) { return exportsList[k]; }).filter(function (v) { return typeof v === 'string' && /\.vtp$/i.test(v); })[0] || (m.result && m.result.family === 'volume' ? null : 'wall_wss.vtp');
-      var links = [h('a', {'class': 'lnk', href: api.urls.table(jobId, 'csv'), download: '', text: '统计表 CSV'})];
-      if (vtp) links.push(h('a', {'class': 'lnk', href: api.urls.file(jobId, String(vtp).replace(/^.*\//, '')), download: '', text: '壁面数据 VTP'}));
-      links.push(h('a', {'class': 'lnk', href: api.urls.bundle(jobId), download: '', text: '全部文件 zip'}));
-      if (ctx.full) links.push(h('a', {'class': 'lnk', href: api.urls.file(jobId, 'summary.json'), target: '_blank', rel: 'noopener', text: '完整统计 JSON'}));
-      blocks.push(block('复核数据', '原始统计和网格数据，保留全精度，给自己或同事复算。', [h('div', {'class': 'exp-links'}, links)]));
-      var hideOff = h('input', {type: 'checkbox', checked: Boolean(ctx.hideName)});
-      var bms = ctx.bookmarks || [];
-      var withBm = h('input', {type: 'checkbox', checked: bms.length > 0, disabled: !bms.length});
-      var offBtn = ui().button('下载离线报告', function () {
-        offBtn.disabled = true;
-        var view = null; try { view = ctx.viewState ? ctx.viewState() : null; } catch (_) { view = null; }
-        api.offline(jobId, {hide_name: hideOff.checked, bookmarks: withBm.checked ? bms : [], view: view || {}}).then(function (r) {
-          ui().downloadBlob(r.blob, r.filename || ('WSS_' + safeName(hideOff.checked ? '病例' : name) + '_' + stamp() + '.html'));
-          ui().toast('离线报告已下载。', {kind: 'ok'});
-        }, function (e) { ui().toast('离线报告没有生成：' + e.message, {kind: 'error'}); }).then(function () { offBtn.disabled = false; });
-      }, {icon: 'download', cls: 'btn-sm'});
-      blocks.push(block('离线阅读', '一个 HTML 文件，在没有服务的电脑上用浏览器直接打开；显示导出时的复核状态。', [
-        h('label', {'class': 'check'}, hideOff, h('span', {text: '隐藏病例名'})),
-        h('label', {'class': 'check'}, withBm, h('span', {text: bms.length ? '带上书签（' + bms.length + ' 条）' : '带上书签（还没有书签）'})), offBtn]));
-      blocks.push(block('打印报告', '一页纸报告，可直接打印或另存为 PDF。', [ui().button('打开一页纸', function () { root.open(api.urls.onepage(jobId), '_blank', 'noopener'); }, {icon: 'print', cls: 'btn-sm'})]));
-    }
-    ui().dialog.open({title: '导出', wide: true, body: blocks, actions: [ui().button('关闭', function () { ui().dialog.close('done'); })]});
-  }
-  function block(title, text, controls) {
-    var h = ui().h;
-    return h('section', {'class': 'exp-block'}, h('h4', {text: title}), h('p', {'class': 'muted', text: text}), h('div', {'class': 'exp-controls'}, controls));
+    ui().fill(el, h('div', {'class': 'exp-controls'}, h('label', {'class': 'check'}, hideFig, h('span', {text: '隐藏病例名'})), figBtn));
   }
 
-  return {open: open, composeFigure: composeFigure, safeName: safeName};
+  function dataPane(el, ctx, state) {
+    var h = ui().h, api = ns.api, m = ctx.manifest || {};
+    var jobId = (ctx.job && ctx.job.id) || (m.job && m.job.id);
+    var name = ctx.displayName || '病例';
+    var exportsList = (ctx.job && ctx.job.summary && ctx.job.summary.exports) || {};
+    var vtp = Object.keys(exportsList).map(function (k) { return exportsList[k]; }).filter(function (v) { return typeof v === 'string' && /\.vtp$/i.test(v); })[0] || (m.result && m.result.family === 'volume' ? null : 'wall_wss.vtp');
+    var links = [h('a', {'class': 'lnk', href: api.urls.table(jobId, 'csv'), download: '', text: '统计表 CSV'})];
+    if (vtp) links.push(h('a', {'class': 'lnk', href: api.urls.file(jobId, String(vtp).replace(/^.*\//, '')), download: '', text: '壁面数据 VTP'}));
+    links.push(h('a', {'class': 'lnk', href: api.urls.bundle(jobId), download: '', text: '全部文件 zip'}));
+    if (ctx.full) links.push(h('a', {'class': 'lnk', href: api.urls.file(jobId, 'summary.json'), target: '_blank', rel: 'noopener', text: '完整统计 JSON'}));
+    var hideOff = h('input', {type: 'checkbox', checked: Boolean(state.hideName)});
+    var bms = ctx.bookmarks || [];
+    var withBm = h('input', {type: 'checkbox', checked: bms.length > 0, disabled: !bms.length});
+    var offBtn = ui().button('下载离线报告', function () {
+      offBtn.disabled = true;
+      var view = null; try { view = ctx.viewState ? ctx.viewState() : null; } catch (_) { view = null; }
+      api.offline(jobId, {hide_name: hideOff.checked, bookmarks: withBm.checked ? bms : [], view: view || {}}).then(function (r) {
+        ui().downloadBlob(r.blob, r.filename || ('WSS_' + safeName(hideOff.checked ? '病例' : name) + '_' + stamp() + '.html'));
+        ui().toast('离线报告已下载。', {kind: 'ok'});
+      }, function (e) { ui().toast('离线报告没有生成：' + e.message, {kind: 'error'}); }).then(function () { offBtn.disabled = false; });
+    }, {icon: 'download', cls: 'btn-sm'});
+    ui().fill(el,
+      block('复核数据', '原始统计和网格数据，保留全精度，给自己或同事复算。', [h('div', {'class': 'exp-links'}, links)]),
+      block('离线阅读', '一个 HTML 文件，在没有服务的电脑上用浏览器直接打开；显示导出时的复核状态。', [
+        h('label', {'class': 'check'}, hideOff, h('span', {text: '隐藏病例名'})),
+        h('label', {'class': 'check'}, withBm, h('span', {text: bms.length ? '带上书签（' + bms.length + ' 条）' : '带上书签（还没有书签）'})), offBtn]));
+  }
+  function block(title, tip, controls) {
+    var h = ui().h;
+    return h('section', {'class': 'exp-block'}, h('h4', {}, h('span', {text: title}), ui().infoTip(tip)), h('div', {'class': 'exp-controls'}, controls));
+  }
+
+  // ctx: {job, manifest, viewer, info(), fieldId, fieldLabel, units, windowLabel, displayName, bookmarks:[], offline, hideName, full, viewState()}
+  // mod.pendingTab (set by the 工具 tab's buttons) picks the first page.
+  var lastTab = 'figure';
+  function open(ctx) {
+    var h = ui().h;
+    var api = ns.api, m = ctx.manifest || {};
+    var jobId = (ctx.job && ctx.job.id) || (m.job && m.job.id);
+    var F = ns.figure && typeof ns.figure.pane === 'function' && ns.figure.available && ns.figure.available() ? ns.figure : null;
+    var online = Boolean(!ctx.offline && api && jobId);
+    var tabs = [{id: 'figure', label: '图片'}];
+    if (F) tabs.push({id: 'montage', label: '拼图'});
+    if (online && F) tabs.push({id: 'onepage', label: '一页纸'});
+    if (online) tabs.push({id: 'data', label: '数据'});
+    var want = mod.pendingTab || lastTab;
+    mod.pendingTab = null;
+    if (!tabs.some(function (t) { return t.id === want; })) want = 'figure';
+    var state = {hideName: Boolean(ctx.hideName)};
+    var fctx = {hideName: Boolean(ctx.hideName), offline: Boolean(ctx.offline), jobId: jobId, state: state};
+    var bar = h('div', {'class': 'seg exp-tabs', role: 'tablist', 'aria-label': '导出用途'});
+    var paneEl = h('div', {'class': 'exp-pane', role: 'tabpanel'});
+    var buttons = {};
+    function show(id) {
+      lastTab = id;
+      Object.keys(buttons).forEach(function (k) { var on = k === id; buttons[k].classList.toggle('on', on); buttons[k].setAttribute('aria-selected', String(on)); });
+      if (F) F.disposePane();
+      if (id === 'data') dataPane(paneEl, ctx, state);
+      else if (F) F.pane(id, paneEl, fctx);
+      else fallbackFigure(paneEl, ctx);
+    }
+    tabs.forEach(function (t) {
+      var b = h('button', {type: 'button', role: 'tab', 'class': 'seg-btn', text: t.label, dataset: {tab: t.id}});
+      b.addEventListener('click', function () { show(t.id); });
+      buttons[t.id] = b; bar.appendChild(b);
+    });
+    var linkBox = h('input', {type: 'text', readOnly: true, 'class': 'exp-link-text', 'aria-label': '复现链接', hidden: true});
+    var linkBtn = F ? ui().button('复现链接', function () {
+      F.copyLink(null, function (url, copied) {
+        linkBox.value = url; linkBox.hidden = false;
+        try { linkBox.focus(); linkBox.select(); } catch (_) {}
+        if (copied) ui().toast('已复制复现链接：打开它就回到这个字段、色标窗、视角、游标和截面。', {kind: 'ok', ms: 4000});
+      });
+    }, {icon: 'fig-link', kind: 'link', title: '复制一个链接：打开后回到这个字段、色标窗、视角、游标和截面'}) : null;
+    ui().dialog.open({title: '导出', wide: true, cls: 'dlg-export', body: [bar, paneEl],
+      actions: [linkBtn, linkBox, h('span', {'class': 'sec-fill'}), ui().button('关闭', function () { ui().dialog.close('done'); })],
+      onClose: function () { if (F) F.disposePane(); }});
+    show(want);
+  }
+
+  var mod = {open: open, composeFigure: composeFigure, safeName: safeName, pendingTab: null};
+  return mod;
 });

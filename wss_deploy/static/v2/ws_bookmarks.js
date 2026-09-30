@@ -1,7 +1,9 @@
 /* WSS workspace v2 — evidence bookmarks D10 (contract §6.3 ws_bookmarks.js).
  * A bookmark records the result identity, data and viewer versions, field, window, camera, cursor, selection and
  * time index.  Stored per result in this browser; import / export as JSON; carried into the offline export.
- * A bookmark from another result or another data version is never applied — it is shown as incompatible. */
+ * A bookmark from another result or another data version is never applied — it is shown as incompatible.
+ * S5a (lane A): on a volume result it also keeps the section (`slice`: the section tool's plane state, or null when the
+ * tool was closed); after the shell restored a bookmark, ns.figure.afterBookmark opens / moves / closes the section. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -22,12 +24,29 @@
   function make(ctx, meta) {
     meta = meta || {};
     var st = ctx.state || {};
-    return {schema: SCHEMA, id: uid(), name: String(meta.name || '').slice(0, 80) || '未命名书签', note: String(meta.note || '').slice(0, 300),
+    var bm = {schema: SCHEMA, id: uid(), name: String(meta.name || '').slice(0, 80) || '未命名书签', note: String(meta.note || '').slice(0, 300),
       created_at: new Date().toISOString(), job_id: ctx.jobId || null, run_identity: ctx.runIdentity || null,
       arrays_version: ctx.arraysVersion || null, data_version: ctx.dataVersion || null,
       viewer_version: ctx.viewerVersion || null, field: ctx.field || st.field || null, window: ctx.window || null, window_label: ctx.windowLabel || '',
       camera: st.camera || null, cursor: st.cursor || null, selection: st.selection === undefined ? null : st.selection,
       time_index: st.time_index === undefined ? 0 : st.time_index, layout: ctx.layout || null, state: st};
+    var extra = ctx.slice !== undefined ? {slice: ctx.slice} : sectionExtra(ctx.runIdentity);
+    if (extra && extra.slice !== undefined) bm.slice = extra.slice;
+    return bm;
+  }
+  // The section of the result on screen (lane A): only for the result the bookmark belongs to.
+  function sectionExtra(runIdentity) {
+    var F = ns.figure;
+    if (!F || typeof F.bookmarkExtra !== 'function') return undefined;
+    try { return F.bookmarkExtra(runIdentity); } catch (_) { return undefined; }
+  }
+  function restoreWith(ctx) {
+    return function (bm) {
+      if (ctx.onRestore) ctx.onRestore(bm);
+      if (bm && bm.slice !== undefined && ns.figure && typeof ns.figure.afterBookmark === 'function' && compatible(bm, ctx).ok) {
+        try { ns.figure.afterBookmark(bm); } catch (_) {}
+      }
+    };
   }
   function compatible(bm, ctx) {
     var reasons = [];
@@ -131,7 +150,7 @@
         h('div', {'class': 'bm-meta', text: meta}),
         c.ok ? null : h('div', {'class': 'bm-why', text: '不能套用：' + c.reasons.join('；')}),
         h('div', {'class': 'bm-actions'},
-          ui().button('打开', function () { if (ctx.onRestore) ctx.onRestore(bm); }, {cls: 'btn-sm', disabled: !c.ok}),
+          ui().button('打开', function () { restoreWith(ctx)(bm); }, {cls: 'btn-sm', disabled: !c.ok}),
           ui().button('上移', function () { move(ctx.runIdentity, bm.id, -1); render(el, ctx); }, {kind: 'link', cls: 'btn-sm', disabled: i === 0}),
           ui().button('下移', function () { move(ctx.runIdentity, bm.id, 1); render(el, ctx); }, {kind: 'link', cls: 'btn-sm', disabled: i === items.length - 1}),
           ui().button('删除', function () { remove(ctx.runIdentity, bm.id); render(el, ctx); if (ctx.onChanged) ctx.onChanged(); }, {kind: 'link', cls: 'btn-sm'})));
@@ -151,7 +170,7 @@
       if (onDone) onDone(bm);
     }, {kind: 'primary'});
     ui().dialog.open({title: '保存书签', body: [h('label', {'class': 'fld'}, h('span', {text: '名称'}), name), h('label', {'class': 'fld'}, h('span', {text: '备注'}), note),
-      ui().note('记录：' + [ctx.fieldLabel ? ctx.fieldLabel(ctx.field) : ctx.field, ctx.windowLabel, '当前视角', ctx.hasCursor ? '游标位置' : '', ctx.hasSelection ? '选中点' : ''].filter(Boolean).join('、') + '。')],
+      ui().note('记录：' + [ctx.fieldLabel ? ctx.fieldLabel(ctx.field) : ctx.field, ctx.windowLabel, '当前视角', ctx.hasCursor ? '游标位置' : '', ctx.hasSelection ? '选中点' : '', (sectionExtra(ctx.runIdentity) || {}).slice ? '截面位置' : ''].filter(Boolean).join('、') + '。')],
       actions: [ui().button('取消', function () { ui().dialog.close('cancel'); }), ok], focus: name});
   }
 
