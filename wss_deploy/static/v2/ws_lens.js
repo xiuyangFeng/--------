@@ -114,6 +114,7 @@
     var fl = fieldId ? fieldLabel(m, fieldId) : '';
     if (ref.kind === 'point') {
       where.push(['位置', branchName(m, ref.segmentId) + (ref.s_from_root_mm !== undefined && ref.s_from_root_mm !== null ? '，距主动脉入口 ' + ui().num(ref.s_from_root_mm, 'mm') + '（沿中心线）' : '')]);
+      if (ref.theta_rad !== undefined && ref.theta_rad !== null && isFinite(ref.theta_rad)) where.push(['周向角', (ref.theta_rad >= 0 ? '+' : '−') + Math.round(Math.abs(ref.theta_rad) * 180 / Math.PI) + '°（展开图纵轴）']);
       if (ref.xyz) where.push(['坐标', xyzText(ref.xyz)]);
       value.push([fl, isNaN(Number(ref.value)) || ref.value === null ? '缺失（该点没有预测值）' : ui().num(ref.value, f && f.units)]);
       if (ref.values && typeof ref.values === 'object') {
@@ -146,10 +147,12 @@
       method.push(['聚合', '该侧分区内预测点等权平均；比值 = 左均值 ÷ 右均值。']);
     } else if (ref.kind === 'branch') {
       where.push(['区域', ref.name || '']);
-      value.push([fl + ' 均值', ui().num(ref.value, ref.units)]);
-      method.push(['聚合', '分支内预测点等权平均。']);
+      if (ref.n !== undefined && ref.n !== null) where.push(['预测点', String(Math.round(ref.n)) + ' 个']);
+      if (ref.area_mm2 !== undefined && ref.area_mm2 !== null && !(ref.units === 'cm²')) where.push(['面积（估计）', ui().num(ref.area_mm2 / 100, 'cm²')]);
+      value.push([ref.label || (fl + ' 均值'), ref.pct ? ui().pct(ref.value) : ui().num(ref.value, ref.units)]);
+      method.push(['聚合', '分支内全部预测点等权统计' + (ref.pct ? '；占比是点占比（观察阈值，不是临床界值）' : '') + (ref.units === 'cm²' ? '；面积 = 点占比 × 输入壁面面积，是估计值' : '') + '。']);
     } else if (ref.kind === 'morph') {
-      where.push(['位置', ref.label === '管腔最大直径' && analysis(m).morphology && analysis(m).morphology.aorta && analysis(m).morphology.aorta.max
+      where.push(['位置', ref.where ? ref.where : ref.label === '管腔最大直径' && analysis(m).morphology && analysis(m).morphology.aorta && analysis(m).morphology.aorta.max
         ? '主动脉，入口下 ' + ui().num(analysis(m).morphology.aorta.max.s_from_root_mm, 'mm') : '主动脉']);
       value.push([ref.label, ui().num(ref.value, ref.units)]);
       method.push(['测量', ref.definition || '由输入表面的截面计算。']);
@@ -168,12 +171,13 @@
       fieldId = fieldId || findingField(it);
     } else if (ref.kind === 'cursor') {
       var r = ref.readout || {};
-      where.push(['位置', branchName(m, r.segmentId) + (r.s_mm !== undefined ? '，分支内 ' + ui().num(r.s_mm, 'mm') : '')]);
+      where.push(['位置', branchName(m, r.segmentId) + (r.s_mm !== undefined ? '，分支内 ' + ui().num(r.s_mm, 'mm') : '') + (r.s_from_root_mm !== undefined && r.s_from_root_mm !== null ? '（距入口 ' + ui().num(r.s_from_root_mm, 'mm') + '）' : '')]);
       if (Array.isArray(r.bin)) where.push(['分箱', ui().trim(r.bin[0]) + '–' + ui().trim(r.bin[1]) + ' mm']);
       Object.keys(r.stats || {}).forEach(function (k) { value.push([statLabel(k), typeof r.stats[k] === 'number' ? ui().sig(r.stats[k]) : String(r.stats[k])]); });
       method.push(['聚合', r.definition || '沿中心线每 2 mm 一箱，箱内预测点统计。']);
     } else if (ref.kind === 'stat') {
       value.push([ref.label || fl, ref.text || ui().num(ref.value, ref.units)]);
+      (Array.isArray(ref.also) ? ref.also : []).forEach(function (r) { if (r && r[0]) value.push([r[0], r[1]]); });
       var vol = m && m.result && m.result.family === 'volume' && (fieldId === 'pressure' || fieldId === 'speed' || fieldId === 'velocity');
       var aggText = vol ? '体内采样点等权统计。' + (fieldId === 'pressure' ? '压力是相对压，只用于比较差值。' : '')
         : ref.pct ? '全壁面预测点中满足条件的比例（点占比，面积按点占比 × 输入壁面面积估计）。' : '全壁面预测点等权统计。';
