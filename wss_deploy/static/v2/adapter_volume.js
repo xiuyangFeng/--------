@@ -228,6 +228,14 @@
         value: Number.isFinite(cur.read[qi]) ? cur.read[qi] : NaN, valueSource: 'read', values: values, vector: result.vectorAt('velocity', qi)
       };
     }
+    // The wall surface under a ray whatever the field (the section tool places its points on the glass wall).
+    function pickSurface(raycaster) {
+      var hits = raycaster.intersectObject(wall, false);
+      if (!hits.length) return null;
+      var h = hits[0], p = h.point, best = h.face.a, bd = Infinity;
+      [h.face.a, h.face.b, h.face.c].forEach(function (vi) { var dx = V[3 * vi] - p.x, dy = V[3 * vi + 1] - p.y, dz = V[3 * vi + 2] - p.z, d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = vi; } });
+      return { xyz: [p.x, p.y, p.z], vertexIndex: best };
+    }
     function highlight(indices, o) {
       if (hlObj) { gfx.disposeObject(hlObj); hlObj = null; }
       if (!indices || !indices.length) return;
@@ -252,7 +260,7 @@
       fields: displayable(result),
       bounds: bounds,
       setField: setField, setLighting: setLighting, setLayers: setLayers, setBranchVisibility: setBranchVisibility,
-      pick: pick, highlight: highlight, histogramValues: histogramValues,
+      pick: pick, pickSurface: pickSurface, highlight: highlight, histogramValues: histogramValues,
       fitPoints: function () { return V; },
       pointXYZ: function (q) { return q >= 0 && q < nP ? [P[3 * q], P[3 * q + 1], P[3 * q + 2]] : null; },
       sectionMesh: function () { return { vertices: V, faces: F }; },
@@ -267,7 +275,7 @@
   }
 
   return {
-    supports: { fields: ['interior', 'wall'], tools: ['pick', 'cursor', 'streamlines', 'outline', 'lighting', 'markers', 'highlight', 'branches', 'trust'] },
+    supports: { fields: ['interior', 'wall'], tools: ['pick', 'cursor', 'streamlines', 'outline', 'lighting', 'markers', 'highlight', 'branches', 'trust', 'slice'] },
     displayable: displayable, defaultField: defaultField, requiredArrays: requiredArrays, optionalArrays: optionalArrays, build: build
   };
 });

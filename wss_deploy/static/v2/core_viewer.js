@@ -833,13 +833,30 @@
       listen(canvas, 'pointerleave', function () { hoverT.cancel(); if (ev.count('hover')) ev.emit('hover', null); });
     }
 
+    // ---- tool hooks (second phase S1, the section tool): a group for a tool's own objects, a ray at client
+    // coordinates, screen projection and scale, the orbit controls switch while a tool drags, the wall under the pointer.
+    var toolGroup = null;
+    function toolOverlay() { if (!toolGroup) { toolGroup = new THREE.Group(); toolGroup.name = 'tool'; overlay.add(toolGroup); } return toolGroup; }
+    function toolRay(clientX, clientY) { if (lost) return null; rayAt(clientX, clientY); return raycaster; }
+    function projectPoint(xyz) {
+      var v = new THREE.Vector3(xyz[0], xyz[1], xyz[2]).project(camera);
+      return { x: (v.x + 1) / 2 * size.w, y: (1 - v.y) / 2 * size.h, inFront: v.z > -1 && v.z < 1 };
+    }
+    function mmPerPixelAt(xyz) { return worldPerPixel(camera.position.distanceTo(new THREE.Vector3(xyz[0], xyz[1], xyz[2]))); }
+    function surfaceAt(clientX, clientY) {
+      if (!S.handle || lost || typeof S.handle.pickSurface !== 'function') return null;
+      rayAt(clientX, clientY);
+      return S.handle.pickSurface(raycaster);
+    }
+    function setControlsEnabled(on) { if (controls) controls.enabled = Boolean(on); }
+
     // ---- result lifecycle
     function clearResult() {
       if (S.handle) { try { S.handle.dispose(); } catch (err) { ev.emit('error', err); } }
       S.handle = null; S.adapter = null; S.cursorHelper = null; S.stats = {}; S.hist = null; S.histKey = '';
       S.cursor = null; S.selection = null; S.highlight = null; S.markers = [];
-      [selGroup, cursorGroup, markerGroup].forEach(function (g) { if (g) gfx.disposeObject(g); });
-      selGroup = cursorGroup = markerGroup = null;
+      [selGroup, cursorGroup, markerGroup, toolGroup].forEach(function (g) { if (g) gfx.disposeObject(g); });
+      selGroup = cursorGroup = markerGroup = toolGroup = null;
       markerChips.forEach(function (c) { if (c.el.parentNode) c.el.parentNode.removeChild(c.el); });
       markerChips = [];
       while (content.children.length) gfx.disposeObject(content.children[content.children.length - 1]);
@@ -986,6 +1003,13 @@
       colorbarInfo: colorbarInfo,
       snapshot: snapshot,
       pickAt: pickAt,
+      canvasElement: canvas,
+      toolOverlay: toolOverlay,
+      rayAt: toolRay,
+      projectPoint: projectPoint,
+      mmPerPixelAt: mmPerPixelAt,
+      surfaceAt: surfaceAt,
+      setControlsEnabled: setControlsEnabled,
       resize: function () { size = { w: 0, h: 0 }; resize(); },
       render: function () { requestRender(); },
       renderNow: function () { if (rafId) { (root.cancelAnimationFrame || clearTimeout)(rafId); rafId = 0; } frame(); },

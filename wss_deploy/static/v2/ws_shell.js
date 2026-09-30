@@ -13,7 +13,7 @@
   var store = function () { return ns.store; };
   var api = function () { return ns.api; };
   var VIEWS = ['wall', 'volume', 'compare', 'input'];
-  var CLASSIC_TOOLS = '测量、标注、区域统计、六视角、出版级导图、截面与补全、截面系列、按截面切割、分支展开图';
+  var CLASSIC_TOOLS = '测量、标注、区域统计、六视角、出版级导图、截面系列、按截面切割、分支展开图';
 
   // ------------------------------------------------------------------ routing (pure)
   function parseHash(hash) {
@@ -265,6 +265,7 @@
     stopPoll();
     if (S.inputView) { S.inputView.dispose(); S.inputView = null; }
     exitSplit(true); exitCompare(true);
+    if (S.cur && S.cur.slice) { try { S.cur.slice.dispose(); } catch (_) {} S.cur.slice = null; S.els.vpA.hud.hidden = true; }
     if (S.cur && S.cur.cursor) { try { S.viewerA.setCursor(null); } catch (_) {} }
     S.cur = null; S.lensRef = null; S.question = null;
     ns.questions && ns.questions.bar(S.els.qbar, null, {});
@@ -275,7 +276,7 @@
     S.abort = typeof root.AbortController === 'function' ? new root.AbortController() : null;
     var signal = S.abort ? S.abort.signal : undefined;
     S.cur = {seq: seq, jobId: jobId, job: null, result: null, manifest: null};
-    if (S.tab === 'reading' || S.tab === 'compare') S.tab = null;
+    if (S.tab === 'reading' || S.tab === 'compare' || S.tab === 'slice') S.tab = null;
     S.lensRef = null;
     if (S.rail) S.rail.setCurrent(jobId);
     showMode('result');
@@ -483,6 +484,11 @@
     var cursorBtn = ui().iconButton('probe', '沿血管游标（G）', toggleCursor, {pressed: Boolean(cur.cursor)});
     cursorBtn.disabled = !ns.cursor || !S.viewerA;
     tools.push(cursorBtn);
+    if (ns.slice && cur.result && ns.slice.supported(cur.result)) {
+      var sliceBtn = ui().iconButton('slice', cur.slice ? '关闭截面（S）' : '截面（S）：在血管里切一刀，看截面上的速度和压力', toggleSlice, {pressed: Boolean(cur.slice)});
+      sliceBtn.disabled = !S.viewerA || Boolean(cur.compare || cur.split);
+      tools.push(sliceBtn);
+    }
     tools.push(ui().iconButton('light', p.lighting === 'soft' ? '光照：柔和（L 切换为平涂，读色更准）' : '光照：平涂（L 切换为柔和光照）', toggleLighting, {pressed: p.lighting === 'soft'}));
     var layerBtn = ui().iconButton('layers', '图层、色表与背景', null);
     layerBtn.addEventListener('click', function () { layersMenu(layerBtn); });
@@ -512,6 +518,12 @@
       if (currentTab() === 'compare') renderInspector();
     }
     else if (S.viewerA) { try { S.viewerA.setField(fieldId, scaleSpec(cur.window)); } catch (e) { ui().toast('切换字段失败：' + e.message, {kind: 'error'}); } }
+    if (cur.slice) {
+      var sq = cur.slice.state().quantity;
+      var want = fieldId === 'pressure' || fieldId === 'wall_pressure' ? 'pressure' : (fieldId === 'speed' && sq === 'pressure' ? 'speed' : sq);
+      if (want !== sq) cur.slice.set({quantity: want});
+      else cur.slice.refresh();
+    }
     updateColorbar('a');
     renderToolbar(); renderStatusLine();
     if (currentTab() === 'reading' || currentTab() === 'overview') renderInspector();
@@ -522,7 +534,7 @@
     var v = side === 'a' ? S.viewerA : S.viewerB, cb = side === 'a' ? S.colorbarA : S.colorbarB;
     if (!v || !cb || typeof v.colorbarInfo !== 'function') return;
     try {
-      var info = v.colorbarInfo();
+      var info = side === 'a' && S.cur && S.cur.slice ? (S.cur.slice.colorbarInfo() || v.colorbarInfo()) : v.colorbarInfo();
       var m = side === 'a' ? S.cur.manifest : (S.cur.compare ? S.cur.compare.manifest : S.cur.manifest);
       var fid = side === 'a' ? S.cur.field : (S.cur.compare ? S.cur.compare.field : S.cur.split && S.cur.split.field);
       var win = side === 'a' ? S.cur.window : (S.cur.compare ? S.cur.compare.window : S.cur.split && S.cur.split.window);
@@ -560,7 +572,12 @@
     ]);
   }
   function setLayers() {
-    [S.viewerA, S.viewerB].forEach(function (v) { if (v && v.setLayers) { try { v.setLayers(Object.assign({}, S.layers)); } catch (_) {} } });
+    [S.viewerA, S.viewerB].forEach(function (v) {
+      if (!v || !v.setLayers) return;
+      // while a section is shown the interior points would hide it: the map on the plane stands for them
+      var L = Object.assign({}, S.layers, v === S.viewerA && S.cur && S.cur.slice ? {interior: false} : {});
+      try { v.setLayers(L); } catch (_) {}
+    });
   }
   function setCmap(c) {
     store().setPrefs({cmap: c});
@@ -619,14 +636,16 @@
     return tabs.some(function (x) { return x.id === t; }) ? t : 'overview';
   }
   function tabList() {
-    var tabs = [{id: 'overview', label: '概览'}, {id: 'reading', label: '读数'}, {id: 'bookmarks', label: '书签'}];
+    var tabs = [{id: 'overview', label: '概览'}];
+    if (S.cur && S.cur.slice) tabs.push({id: 'slice', label: '截面'});
+    tabs.push({id: 'reading', label: '读数'}, {id: 'bookmarks', label: '书签'});
     if (!S.offline) tabs.push({id: 'tools', label: '工具'});
     if (S.cur && S.cur.compare) tabs.push({id: 'compare', label: '比较'});
     return tabs;
   }
   function setInspector(open) { store().setPrefs({inspector: open}); applyPanels(); renderToolbar(); if (open) renderInspector(); }
   // The reading tab is a transient answer to one click; a new result opens on the overview again.
-  function setTab(id) { S.tab = id; if (id !== 'compare' && id !== 'reading') store().setPrefs({tab: id}); renderInspector(); }
+  function setTab(id) { S.tab = id; if (id !== 'compare' && id !== 'reading' && id !== 'slice') store().setPrefs({tab: id}); renderInspector(); }
   function renderInspector() {
     var cur = S.cur;
     var E = S.els;
@@ -640,6 +659,7 @@
     }), h('span', {'class': 'sec-fill'}), ui().iconButton('chevron-right', '收起检查器', function () { setInspector(false); }, {cls: 'tab-collapse'}));
     var body = E.inspBody;
     if (tab === 'overview') ns.overview.render(body, overviewCtx());
+    else if (tab === 'slice') renderSlice(body);
     else if (tab === 'reading') renderReading(body);
     else if (tab === 'bookmarks') renderBookmarks(body);
     else if (tab === 'tools') renderTools(body);
@@ -747,6 +767,7 @@
   function onPick(e, side) {
     var cur = S.cur;
     if (!cur || !cur.manifest) return;
+    if (side !== 'b' && cur.slice && cur.slice.clickTaken()) return;   // the click placed a section point
     var fid = side === 'b' ? (cur.compare ? cur.compare.field : cur.split && cur.split.field) : cur.field;
     if (side !== 'b') cur.selection = e.pointIndex === undefined ? null : e.pointIndex;
     var pv = side === 'b' ? S.viewerB : S.viewerA;
@@ -755,6 +776,67 @@
       value: e.value, valueSource: e.valueSource || null, values: e.values || null, distance_mm: e.distance_mm, vertexBits: typeof e.trust === 'number' ? e.trust : undefined};
     if (store().prefs().inspector) setTab('reading');
     saveViewSoon();
+  }
+
+  // ------------------------------------------------------------------ section (second phase S1)
+  // Volume results: a plane through the vessel with the filled map on it; numbers from the classic report's core.
+  function toggleSlice() {
+    var cur = S.cur;
+    if (!cur || !cur.result || !ns.slice || !S.viewerA) return;
+    if (cur.slice) { exitSlice(); return; }
+    if (cur.compare || cur.split) { ui().toast('截面在单视口里用。请先退出比较或并排。', {kind: 'info'}); return; }
+    if (!ns.slice.supported(cur.result)) { ui().toast('这份结果没有体内预测点，不能看截面。', {kind: 'info'}); return; }
+    if (cur.cursor) toggleCursor();
+    var myCur = cur;
+    var keys = ns.slice.requiredArrays(cur.result).filter(function (k) { return !cur.result.has(k); });
+    Promise.resolve(keys.length ? cur.result.preload(keys) : null).then(function () {
+      if (S.cur !== myCur || myCur.slice) return;
+      if (myCur.field === 'wall_pressure' && fieldById(myCur.manifest, 'pressure')) applyField('pressure', 'adaptive');
+      var a = myCur.manifest.analysis || {}, mm = a.morphology && a.morphology.aorta && a.morphology.aorta.max;
+      myCur.slice = ns.slice.create(S.viewerA, myCur.result, {
+        hint: {xyz: mm && Array.isArray(mm.xyz_mm) ? mm.xyz_mm : null, field: myCur.field}, state: myCur.sliceState || null,
+        cmap: function () { return store().prefs().cmap; }, global: sliceGlobal,
+        onChange: function () { sliceChanged(myCur); }, onNote: function (t) { ui().toast(t, {kind: 'info', ms: 4000}); }
+      });
+      setLayers();
+      myCur.slice.look(true);
+      setTab('slice'); renderToolbar(); sliceChanged(myCur);
+    }).catch(function (e) { if (S.cur === myCur) ui().toast('截面不可用：' + (e && e.message || e), {kind: 'error'}); });
+  }
+  function exitSlice() {
+    var cur = S.cur;
+    if (!cur || !cur.slice) return;
+    try { cur.sliceState = cur.slice.state(); } catch (_) {}
+    try { cur.slice.dispose(); } catch (_) {}
+    cur.slice = null;
+    S.els.vpA.hud.hidden = true;
+    setLayers(); updateColorbar('a');
+    if (S.tab === 'slice') S.tab = null;
+    renderToolbar(); renderInspector();
+  }
+  function sliceChanged(cur) {
+    if (!cur || S.cur !== cur || !cur.slice) return;
+    var t = cur.slice.hudText(), hud = S.els.vpA.hud;
+    hud.hidden = !t; hud.textContent = t;
+    updateColorbar('a');
+  }
+  // 「与三维同」: the viewer's scale of that field (±the larger end for the through-plane velocity).
+  function sliceGlobal(q) {
+    var fs = fieldScaleFor(q === 'pressure' ? 'pressure' : 'speed'), sc = fs && fs.scale;
+    if (!sc || !Array.isArray(sc.range)) return null;
+    if (q === 'normal') { var m = Math.max(Math.abs(sc.range[0]), Math.abs(sc.range[1])); return {min: -m, max: m}; }
+    return {min: sc.log && sc.floor ? sc.floor : sc.range[0], max: sc.range[1], log: Boolean(sc.log)};
+  }
+  function renderSlice(body) {
+    var cur = S.cur;
+    if (!cur.slice) { ui().fill(body, ui().empty('截面已关闭。')); return; }
+    var s = cur.slice;
+    ns.slice.panel(body, s, {ui: ui(), onClose: exitSlice,
+      onZoom: function () { ns.slice.openZoom(s, {ui: ui(), caseName: hideName() ? '' : ((cur.manifest.job && cur.manifest.job.display_name) || ''), fileBase: hideName() ? 'case' : ((cur.manifest.job && cur.manifest.job.display_name) || 'case')}); },
+      onQuantity: function (q) {
+        var fid = q === 'pressure' ? 'pressure' : 'speed';
+        if (cur.field !== fid && fieldById(cur.manifest, fid)) applyField(fid, 'adaptive');
+      }});
   }
 
   // ------------------------------------------------------------------ cursor D1
@@ -974,7 +1056,8 @@
   }
   function shortcutsDialog() {
     var rows = [['J / K', '下一例 / 上一例'], ['1–9', '切换字段（按工具栏顺序）'], ['← / →', '游标打开时沿血管移动 1 mm，Shift 5 mm'], ['[ / ]', '上一个 / 下一个发现'],
-      ['L', '光照：平涂 / 柔和'], ['B', '保存书签'], ['G', '沿血管游标开关'], ['Esc', '退出当前工具或关闭对话框'], ['?', '这张表']];
+      ['L', '光照：平涂 / 柔和'], ['B', '保存书签'], ['G', '沿血管游标开关'], ['S', '截面开关（体场结果）'],
+      ['↑ / ↓', '截面打开时沿中心线（或法向）移动 1 mm，Shift 5 mm'], ['← / → · PgUp / PgDn', '截面打开时转动截面 2°，Shift 10°'], ['[ / ]（截面）', '截面打开时改厚度 0.4 mm'], ['Esc', '退出当前工具或关闭对话框'], ['?', '这张表']];
     ui().dialog.open({title: '快捷键', body: [ui().table([{key: 'k', label: '键'}, {key: 'v', label: '作用'}], rows.map(function (r) { return {k: r[0], v: r[1]}; }), {cls: 'tbl-keys'}),
       ui().note('在输入框和对话框里不响应；不占用浏览器自己的组合键。')], actions: [ui().button('关闭', function () { ui().dialog.close('done'); })]});
   }
@@ -1055,6 +1138,7 @@
     var cur = S.cur;
     if (!spec) { exitSplit(); return; }
     if (cur.compare) exitCompare(true);
+    if (cur.slice) exitSlice();
     var v = ensureViewerB();
     if (!v) { ui().toast('三维不可用，不能并排。', {kind: 'error'}); return; }
     cur.split = {field: spec.field, window: spec.window || 'adaptive', link: spec.link !== false};
@@ -1094,6 +1178,7 @@
     var cur = S.cur;
     if (!cur || !cur.result || !ns.compare) return;
     if (cur.split) exitSplit(true);
+    if (cur.slice) exitSlice();
     var n = ++S.cmpSeq;
     var jobB;
     api().job(otherId).then(function (r) {
@@ -1291,6 +1376,7 @@
     if (key === 'Escape') {
       if (ui().menuOpen()) { ui().closeMenu(); return; }
       if (ui().dialog.isOpen()) return;          // the <dialog> handles its own Esc
+      if (S.cur && S.cur.slice) { if (S.cur.slice.picking()) S.cur.slice.setPicking(false); else exitSlice(); return; }
       if (S.cur && S.cur.cursor) { toggleCursor(); return; }
       if (S.question) { S.question = null; ns.questions.bar(S.els.qbar, null, {}); return; }
       if (S.cur && S.cur.compare) { exitCompare(); return; }
@@ -1300,7 +1386,11 @@
     if (ui().dialog.isOpen() || ui().isTyping(e.target)) return;
     var done = true;
     var cur = S.cur;
-    if (key === 'j' || key === 'J' || key === 'k' || key === 'K') {
+    if (cur && cur.slice && cur.slice.key(e)) { if (e.preventDefault) e.preventDefault(); return; }
+    if (key === 's' || key === 'S') {
+      if (!cur || !cur.result || !ns.slice || !ns.slice.supported(cur.result)) return;
+      toggleSlice();
+    } else if (key === 'j' || key === 'J' || key === 'k' || key === 'K') {
       if (!S.rail) return;
       var order = S.rail.order();
       if (!order.length) return;

@@ -923,7 +923,95 @@
     const all=auto.concat(added),rank=x=>reviewDecision(review,x.id)==='rejected'?1:0;
     return all.map((x,i)=>({x,i})).sort((a,b)=>rank(a.x)-rank(b.x)||a.i-b.i).map(o=>o.x);
   }
-  const core={planeBasis,rotatePlane,groupCenterline,centerlinePlane,automaticPlanes,nearestTangent,planeFromPicks,slabIndices,insideIndices,moduleSummary,moduleIndices,sideIndices,interactionDelta,dragAlong,positionStep,planeContour,contourLoops,selectLoop,closeChain,pointInLoop,scaleBarLength,scanlineInside,fillSection,bilinearGrid,lowFade,speedField,statistics,
+  // Slice map data (v0.16: shared with the workspace v2): the samples of ``indices`` in plane coordinates (u, v), the
+  // wall contour chosen around the plane origin (loops reaching within ``o.loopRadius`` mm) and the median sample
+  // spacing.  o = {fill, isVelocityField, vertices, faces, wallValues (per vertex; ignored for velocity), loopRadius}.
+  function sliceMapCore(pts,indices,values,plane,o={}) {
+    const isVelocityField=Boolean(o.isVelocityField),fillOn=Boolean(o.fill),vertices=o.vertices,faces=o.faces,wallValues=o.wallValues||null;
+    const xy=indices.map(i=>{const p=sub(point(pts,i),plane.origin);return [dot(p,plane.u),dot(p,plane.v)];});
+    let extent=1;for(const p of xy)extent=Math.max(extent,Math.abs(p[0]),Math.abs(p[1]));
+    let finite=xy.map((p,j)=>({p,v:values[indices[j]],i:indices[j]})).filter(x=>Number.isFinite(x.v));
+    let contour=[],loop=null,bounds=[-extent,extent,-extent,extent];
+    if(fillOn&&vertices&&faces&&faces.length){
+      // Every contour of the plane is chained first; a radius cut before chaining would turn far loops into
+      // stray arcs. Candidate loops are then limited to a neighbourhood of the origin.
+      const all=planeContour(vertices,faces,plane,isVelocityField?null:wallValues,Infinity);
+      loop=all.length?selectLoop(contourLoops(all),all,[0,0],o.loopRadius):null;
+      if(loop){
+        contour=loop.segs;
+        if(!loop.closed){const closed=closeChain(contour);if(closed){contour=closed;loop.synthetic=true;}else loop.open=true;}
+        // only this cross-section's samples: points cut from a neighbouring vessel would stretch the map
+        const kept=finite.filter(x=>pointInLoop(contour,x.p[0],x.p[1]));if(kept.length)finite=kept;
+        let [minx,maxx,miny,maxy]=loop.bbox;for(const x of finite){minx=Math.min(minx,x.p[0]);maxx=Math.max(maxx,x.p[0]);miny=Math.min(miny,x.p[1]);maxy=Math.max(maxy,x.p[1]);}
+        const cx=(minx+maxx)/2,cy=(miny+maxy)/2,half=Math.max(maxx-minx,maxy-miny,2)/2*1.08;bounds=[cx-half,cx+half,cy-half,cy+half];
+      }
+    }
+    const nearest=[];for(let i=0;i<finite.length;i++){let best=Infinity;for(let j=0;j<finite.length;j++)if(i!==j)best=Math.min(best,Math.hypot(finite[i].p[0]-finite[j].p[0],finite[i].p[1]-finite[j].p[1]));if(Number.isFinite(best))nearest.push(best);}
+    nearest.sort((a,b)=>a-b);const median=nearest.length?nearest[Math.floor(nearest.length/2)]:0;
+    return {finite,contour,loop,bounds,median,fillOn,isVelocityField,extent,plane};
+  }
+  function sliceGrid(data,nx,ny) {
+    const {finite,contour,bounds,median,fillOn,isVelocityField}=data;
+    if(fillOn&&contour.length>=3&&!(data.loop&&data.loop.open)){
+      const inside=scanlineInside(contour,bounds,nx,ny);
+      // the wall as segments: the ramp to the wall condition measures true distances to the outline
+      const boundary=contour.map(sg=>[sg[0],sg[1],sg[2],sg[3],sg[5]<0?NaN:(isVelocityField?0:sg[4])]);
+      // With no interior samples (a station beyond the sampled region) the median spacing is 0; a hash cell
+      // of one grid step would then make the neighbour search walk ~n rings per cell, so scale it to the outline.
+      const cell=median>0?median*1.5:Math.max((bounds[1]-bounds[0])/12,1e-6);
+      const filled=fillSection(finite.map(x=>x.p),finite.map(x=>x.v),boundary,bounds,nx,ny,inside,{directRadius:median>0?median*3.2:Infinity,cell});
+      return {values:filled.values,mask:inside,nx,ny,validCount:filled.filled,low:filled.low,display:filled.display,support:filled.support,directRadius:filled.directRadius,
+        stats:{inside:filled.filled,directCells:filled.directCells,wallSamples:boundary.filter(b=>Number.isFinite(b[4])).length}};
+    }
+    const g=interpolateIDW(finite.map(x=>x.p),finite.map(x=>x.v),{bounds,nx,ny,minNeighbors:Math.min(4,finite.length),maxDistance:median>0?median*3.2:0});
+    g.stats=null;return g;
+  }
+  // Per-pixel paint of a filled section (v0.15.12): values (not colours) are read bilinearly from the grid, coloured
+  // through a 1024-entry table of the current scale, shaded where no interior sample is near, and clipped to the
+  // wall outline with 4 sub-scanlines of coverage, so the lumen edge is anti-aliased instead of a staircase of cells.
+  // Returns false when the context has no pixel access (Node stubs); the caller then draws cells.
+  function paintSection(ctx,width,height,grid,contour,bounds,range,scale,cx,cy) {
+    if(typeof ctx.getImageData!=='function'||typeof ctx.putImageData!=='function'||!contour.length)return false;
+    const px=contour.map(sg=>[cx+sg[0]*scale,cy-sg[1]*scale,cx+sg[2]*scale,cy-sg[3]*scale]);
+    let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+    for(const s of px){x0=Math.min(x0,s[0],s[2]);x1=Math.max(x1,s[0],s[2]);y0=Math.min(y0,s[1],s[3]);y1=Math.max(y1,s[1],s[3]);}
+    const X0=Math.max(0,Math.floor(x0)-1),X1=Math.min(width,Math.ceil(x1)+1),Y0=Math.max(0,Math.floor(y0)-1),Y1=Math.min(height,Math.ceil(y1)+1),W=X1-X0,H=Y1-Y0;
+    if(!(W>0&&H>0))return false;
+    let img=null;try{img=ctx.getImageData(X0,Y0,W,H);}catch(_){img=null;}
+    if(!img||!img.data||img.data.length<4*W*H)return false;
+    const SS=4,rows=Array.from({length:H},()=>[]);
+    px.forEach((s,k)=>{const r0=Math.max(0,Math.floor(Math.min(s[1],s[3]))-Y0),r1=Math.min(H-1,Math.floor(Math.max(s[1],s[3]))-Y0);for(let r=r0;r<=r1;r++)rows[r].push(k);});
+    const lut=new Uint8ClampedArray(3*1024);for(let i=0;i<1024;i++){const c=colorAtT(i/1023,range);lut[3*i]=c[0]*255;lut[3*i+1]=c[1]*255;lut[3*i+2]=c[2]*255;}
+    const [lo,hi]=scaleEnds(range),log=Boolean(range&&range.log),la=log?Math.log(lo):0,lb=log?Math.log(hi):1;
+    const {nx,ny,display,support,directRadius}=grid,[xmin,xmax,ymin,ymax]=bounds,gdx=(xmax-xmin)/nx,gdy=(ymax-ymin)/ny;
+    const cov=new Float32Array(W),xs=[],d=img.data;
+    for(let r=0;r<H;r++){
+      cov.fill(0);let any=false;
+      for(let s=0;s<SS;s++){
+        const yy=Y0+r+(s+.5)/SS;xs.length=0;
+        for(const k of rows[r]){const g=px[k];if((g[1]<=yy)!==(g[3]<=yy))xs.push(g[0]+(g[2]-g[0])*(yy-g[1])/(g[3]-g[1]));}
+        if(xs.length<2)continue;xs.sort((a,b)=>a-b);
+        for(let q=0;q+1<xs.length;q+=2){
+          const a=Math.max(0,xs[q]-X0),b=Math.min(W,xs[q+1]-X0);if(!(b>a))continue;any=true;
+          const ia=Math.floor(a),ib=Math.min(W-1,Math.floor(b));
+          if(ia===ib)cov[ia]+=(b-a)/SS;else{cov[ia]+=(ia+1-a)/SS;for(let c=ia+1;c<ib;c++)cov[c]+=1/SS;cov[ib]+=(b-ib)/SS;}
+        }
+      }
+      if(!any)continue;
+      const fy=((cy-(Y0+r+.5))/scale-ymin)/gdy-.5;
+      for(let c=0;c<W;c++){
+        const a=Math.min(1,cov[c]);if(a<=0)continue;
+        const fx=((X0+c+.5-cx)/scale-xmin)/gdx-.5,v=bilinearGrid(display,nx,ny,fx,fy);if(!Number.isFinite(v))continue;
+        let t=log?(Math.log(Math.max(v,lo))-la)/(lb-la):(v-lo)/(hi-lo);t=t<0?0:t>1?1:t;
+        const li=3*Math.round(t*1023),f=lowFade(bilinearGrid(support,nx,ny,fx,fy),directRadius),o=4*(r*W+c);
+        for(let k=0;k<3;k++){const col=lut[li+k]+(255-lut[li+k])*f;d[o+k]=d[o+k]+(col-d[o+k])*a;}
+        d[o+3]=d[o+3]+(255-d[o+3])*a;
+      }
+    }
+    ctx.putImageData(img,X0,Y0);
+    return true;
+  }
+  const core={sliceMapCore,sliceGrid,paintSection,planeBasis,rotatePlane,groupCenterline,centerlinePlane,automaticPlanes,nearestTangent,planeFromPicks,slabIndices,insideIndices,moduleSummary,moduleIndices,sideIndices,interactionDelta,dragAlong,positionStep,planeContour,contourLoops,selectLoop,closeChain,pointInLoop,scaleBarLength,scanlineInside,fillSection,bilinearGrid,lowFade,speedField,statistics,
     color,setColormap,setBands,colormapNames,colormapCSS,desaturate,convertUnit,unitOptions,frameFromMeta,dirFromAligned,dirToAligned,worldFromAligned,alignedFromWorld,STANDARD_VIEWS,standardCamera,cameraToAligned,cameraFromAligned,
     viewDirections,fittedStandardCamera,formatNumber,frameText,releaseShort,withOffset,referenceLabel,warningItems,warningText,
     scaleEnds,scaleT,scaleValueAt,scaleColor,colorAtT,quantile,robustRange,symmetricRange,throughPlane,inPlane,arrowSamples,
@@ -932,7 +1020,8 @@
     nearestLabels,filterFaces,sectionIntegral,sliceGridToRows,seriesFractions,probeToTSV,probeToCSV,labelText,colorbarSVGLocal,exportFilenameLocal,normalizeReview,reviewDecision,findingsWithReview,TRUST_GLOSS};
   root.VolumeViewerCore=core;
   if(typeof module!=='undefined'&&module.exports) module.exports=core;
-  if(typeof document==='undefined') return;
+  // Pages without a classic volume report (the workspace v2 loads this file for the numerical core) stop here.
+  if(typeof document==='undefined'||!document.getElementById('wss-report-meta')||!document.getElementById('volume-arrays')) return;
 
   const $=id=>document.getElementById(id);
   const meta=JSON.parse($('wss-report-meta').textContent), raw=JSON.parse($('volume-arrays').textContent);
@@ -1733,94 +1822,13 @@
   let sliceLast=null,sliceZoomOpen=false,sliceZoomLast=null,sliceSection=null,sliceSeries=null;
   let compactOn=false,compactOverride=null,sliceBodyUser=null;
   function sliceMapData(indices,values,plane,field,opts={}) {
-    const isVelocityField=field==='velocity',fillOn=opts.fill!==undefined?Boolean(opts.fill):Boolean($('slice-fill')&&$('slice-fill').checked);
-    const xy=indices.map(i=>{const p=sub(point(pts,i),plane.origin);return [dot(p,plane.u),dot(p,plane.v)];});
-    let extent=1;for(const p of xy)extent=Math.max(extent,Math.abs(p[0]),Math.abs(p[1]));
-    let finite=xy.map((p,j)=>({p,v:values[indices[j]],i:indices[j]})).filter(x=>Number.isFinite(x.v));
-    let contour=[],loop=null,bounds=[-extent,extent,-extent,extent];
-    if(fillOn&&vertices&&faces&&faces.length){
-      // Every contour of the plane is chained first; a radius cut before chaining would turn far loops into
-      // stray arcs. Candidate loops are then limited to a neighbourhood of the origin.
-      const all=planeContour(vertices,faces,plane,isVelocityField?null:wallPressure,Infinity);
-      loop=all.length?selectLoop(contourLoops(all),all,[0,0],Math.max(gizmoSide(plane.origin)*.5,8)):null;
-      if(loop){
-        contour=loop.segs;
-        if(!loop.closed){const closed=closeChain(contour);if(closed){contour=closed;loop.synthetic=true;}else loop.open=true;}
-        // only this cross-section's samples: points cut from a neighbouring vessel would stretch the map
-        const kept=finite.filter(x=>pointInLoop(contour,x.p[0],x.p[1]));if(kept.length)finite=kept;
-        let [minx,maxx,miny,maxy]=loop.bbox;for(const x of finite){minx=Math.min(minx,x.p[0]);maxx=Math.max(maxx,x.p[0]);miny=Math.min(miny,x.p[1]);maxy=Math.max(maxy,x.p[1]);}
-        const cx=(minx+maxx)/2,cy=(miny+maxy)/2,half=Math.max(maxx-minx,maxy-miny,2)/2*1.08;bounds=[cx-half,cx+half,cy-half,cy+half];
-      }
-    }
-    const nearest=[];for(let i=0;i<finite.length;i++){let best=Infinity;for(let j=0;j<finite.length;j++)if(i!==j)best=Math.min(best,Math.hypot(finite[i].p[0]-finite[j].p[0],finite[i].p[1]-finite[j].p[1]));if(Number.isFinite(best))nearest.push(best);}
-    nearest.sort((a,b)=>a-b);const median=nearest.length?nearest[Math.floor(nearest.length/2)]:0;
-    return {finite,contour,loop,bounds,median,fillOn,isVelocityField,extent,plane};
-  }
-  function sliceGrid(data,nx,ny) {
-    const {finite,contour,bounds,median,fillOn,isVelocityField}=data;
-    if(fillOn&&contour.length>=3&&!(data.loop&&data.loop.open)){
-      const inside=scanlineInside(contour,bounds,nx,ny);
-      // the wall as segments: the ramp to the wall condition measures true distances to the outline
-      const boundary=contour.map(sg=>[sg[0],sg[1],sg[2],sg[3],sg[5]<0?NaN:(isVelocityField?0:sg[4])]);
-      // With no interior samples (a station beyond the sampled region) the median spacing is 0; a hash cell
-      // of one grid step would then make the neighbour search walk ~n rings per cell, so scale it to the outline.
-      const cell=median>0?median*1.5:Math.max((bounds[1]-bounds[0])/12,1e-6);
-      const filled=fillSection(finite.map(x=>x.p),finite.map(x=>x.v),boundary,bounds,nx,ny,inside,{directRadius:median>0?median*3.2:Infinity,cell});
-      return {values:filled.values,mask:inside,nx,ny,validCount:filled.filled,low:filled.low,display:filled.display,support:filled.support,directRadius:filled.directRadius,
-        stats:{inside:filled.filled,directCells:filled.directCells,wallSamples:boundary.filter(b=>Number.isFinite(b[4])).length}};
-    }
-    const g=interpolateIDW(finite.map(x=>x.p),finite.map(x=>x.v),{bounds,nx,ny,minNeighbors:Math.min(4,finite.length),maxDistance:median>0?median*3.2:0});
-    g.stats=null;return g;
+    const fillOn=opts.fill!==undefined?Boolean(opts.fill):Boolean($('slice-fill')&&$('slice-fill').checked);
+    return sliceMapCore(pts,indices,values,plane,{fill:fillOn,isVelocityField:field==='velocity',vertices,faces,wallValues:wallPressure,loopRadius:Math.max(gizmoSide(plane.origin)*.5,8)});
   }
   function fillSummary(stats,isVelocityField,language) {
     if(!stats)return null;const en=(language||lang)==='en',pct=stats.inside?Math.round(100*stats.directCells/stats.inside):0;
     return en?`${stats.inside} cells inside the wall contour · ${pct}% directly supported by samples · rest filled from the wall ${isVelocityField?'no-slip (0)':'pressure'} condition (faded)`
              :`壁面轮廓内 ${stats.inside} 格 · 邻点直接支撑 ${pct}% · 其余按壁面${isVelocityField?'无滑移（0）':'压力'}边界补全（淡色）`;
-  }
-  // Per-pixel paint of a filled section (v0.15.12): values (not colours) are read bilinearly from the grid, coloured
-  // through a 1024-entry table of the current scale, shaded where no interior sample is near, and clipped to the
-  // wall outline with 4 sub-scanlines of coverage, so the lumen edge is anti-aliased instead of a staircase of cells.
-  // Returns false when the context has no pixel access (Node stubs); the caller then draws cells.
-  function paintSection(ctx,width,height,grid,contour,bounds,range,scale,cx,cy) {
-    if(typeof ctx.getImageData!=='function'||typeof ctx.putImageData!=='function'||!contour.length)return false;
-    const px=contour.map(sg=>[cx+sg[0]*scale,cy-sg[1]*scale,cx+sg[2]*scale,cy-sg[3]*scale]);
-    let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
-    for(const s of px){x0=Math.min(x0,s[0],s[2]);x1=Math.max(x1,s[0],s[2]);y0=Math.min(y0,s[1],s[3]);y1=Math.max(y1,s[1],s[3]);}
-    const X0=Math.max(0,Math.floor(x0)-1),X1=Math.min(width,Math.ceil(x1)+1),Y0=Math.max(0,Math.floor(y0)-1),Y1=Math.min(height,Math.ceil(y1)+1),W=X1-X0,H=Y1-Y0;
-    if(!(W>0&&H>0))return false;
-    let img=null;try{img=ctx.getImageData(X0,Y0,W,H);}catch(_){img=null;}
-    if(!img||!img.data||img.data.length<4*W*H)return false;
-    const SS=4,rows=Array.from({length:H},()=>[]);
-    px.forEach((s,k)=>{const r0=Math.max(0,Math.floor(Math.min(s[1],s[3]))-Y0),r1=Math.min(H-1,Math.floor(Math.max(s[1],s[3]))-Y0);for(let r=r0;r<=r1;r++)rows[r].push(k);});
-    const lut=new Uint8ClampedArray(3*1024);for(let i=0;i<1024;i++){const c=colorAtT(i/1023,range);lut[3*i]=c[0]*255;lut[3*i+1]=c[1]*255;lut[3*i+2]=c[2]*255;}
-    const [lo,hi]=scaleEnds(range),log=Boolean(range&&range.log),la=log?Math.log(lo):0,lb=log?Math.log(hi):1;
-    const {nx,ny,display,support,directRadius}=grid,[xmin,xmax,ymin,ymax]=bounds,gdx=(xmax-xmin)/nx,gdy=(ymax-ymin)/ny;
-    const cov=new Float32Array(W),xs=[],d=img.data;
-    for(let r=0;r<H;r++){
-      cov.fill(0);let any=false;
-      for(let s=0;s<SS;s++){
-        const yy=Y0+r+(s+.5)/SS;xs.length=0;
-        for(const k of rows[r]){const g=px[k];if((g[1]<=yy)!==(g[3]<=yy))xs.push(g[0]+(g[2]-g[0])*(yy-g[1])/(g[3]-g[1]));}
-        if(xs.length<2)continue;xs.sort((a,b)=>a-b);
-        for(let q=0;q+1<xs.length;q+=2){
-          const a=Math.max(0,xs[q]-X0),b=Math.min(W,xs[q+1]-X0);if(!(b>a))continue;any=true;
-          const ia=Math.floor(a),ib=Math.min(W-1,Math.floor(b));
-          if(ia===ib)cov[ia]+=(b-a)/SS;else{cov[ia]+=(ia+1-a)/SS;for(let c=ia+1;c<ib;c++)cov[c]+=1/SS;cov[ib]+=(b-ib)/SS;}
-        }
-      }
-      if(!any)continue;
-      const fy=((cy-(Y0+r+.5))/scale-ymin)/gdy-.5;
-      for(let c=0;c<W;c++){
-        const a=Math.min(1,cov[c]);if(a<=0)continue;
-        const fx=((X0+c+.5-cx)/scale-xmin)/gdx-.5,v=bilinearGrid(display,nx,ny,fx,fy);if(!Number.isFinite(v))continue;
-        let t=log?(Math.log(Math.max(v,lo))-la)/(lb-la):(v-lo)/(hi-lo);t=t<0?0:t>1?1:t;
-        const li=3*Math.round(t*1023),f=lowFade(bilinearGrid(support,nx,ny,fx,fy),directRadius),o=4*(r*W+c);
-        for(let k=0;k<3;k++){const col=lut[li+k]+(255-lut[li+k])*f;d[o+k]=d[o+k]+(col-d[o+k])*a;}
-        d[o+3]=d[o+3]+(255-d[o+3])*a;
-      }
-    }
-    ctx.putImageData(img,X0,Y0);
-    return true;
   }
   // Draws one slice map into ``ctx``; returns the mapping (for hover read-outs) and the footer text.
   function renderSliceMap(ctx,width,height,data,range,field,opts={}) {

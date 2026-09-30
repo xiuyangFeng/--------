@@ -585,3 +585,38 @@ ellipse.zmap-edge { fill: rgba(16, 24, 40, .22); stroke: none; }
   border: 1px solid var(--hud-border); box-shadow: var(--hud-shadow); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: var(--hud-ink); font-weight: 600; }
 .ws-toolbar > .lnk { color: var(--hud-ink-2); font-weight: 500; }
 .ws-toolbar > .lnk:hover { color: var(--hud-ink); text-decoration: none; }
+/* section tool (second phase S1): the map, the position row, the key numbers and the controls */
+.sec-slice .sec-head .btn.on { background: var(--accent-weak); color: var(--accent-2); border-color: var(--accent); }
+.slice-pos { display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+.slice-pos select { flex: 1 1 auto; min-width: 0; }
+.slice-where { flex: 1 1 auto; font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slice-s { min-width: 96px; text-align: center; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.slice-map { position: relative; border-radius: 12px; overflow: hidden; background: radial-gradient(120% 100% at 50% 35%, #ffffff 0%, #f1f4f7 70%, #e8ecf1 100%); border: 1px solid var(--line); }
+.slice-canvas { display: block; width: 100%; height: auto; aspect-ratio: 32 / 30; cursor: crosshair; }
+.slice-read { position: absolute; left: 8px; right: 8px; bottom: 6px; min-height: 16px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; text-align: right; pointer-events: none; text-shadow: 0 0 3px #fff, 0 0 3px #fff; }
+.seg-slice { display: flex; width: 100%; margin: 12px 0 4px; }
+.seg-slice .seg-btn { flex: 1 1 0; min-width: 0; }
+.seg-slice .seg-btn:disabled { opacity: .4; cursor: default; }
+.slice-kpis { margin-top: 6px; }
+.kpi-static { cursor: default; }
+.kpi-static:hover .kpi-num { color: inherit; }
+.slice-rows { display: grid; gap: 4px; margin: 6px 0 10px; }
+.slice-row { display: flex; align-items: baseline; gap: 8px; font-size: 12px; min-width: 0; }
+.slice-row-k { color: var(--ink-3); flex: none; width: 56px; }
+.slice-row b { font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.slice-ctrls { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.slice-ctl { display: flex; align-items: center; gap: 8px; font-size: 12px; flex-wrap: wrap; }
+.slice-ctl-k { color: var(--ink-3); width: 32px; flex: none; }
+.slice-ctl input[type=range] { flex: 1 1 120px; accent-color: var(--accent); }
+.slice-thv { min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.slice-ctl select { flex: 1 1 auto; }
+.slice-manual { display: inline-flex; align-items: center; gap: 4px; }
+.slice-num { width: 72px; height: 26px; padding: 0 6px; border: 1px solid var(--line-2); border-radius: var(--r-sm); background: var(--panel); color: var(--ink); font-variant-numeric: tabular-nums; }
+.slice-checks { gap: 14px; padding-left: 40px; }
+.slice-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+.slice-check.off { opacity: .45; cursor: default; }
+.slice-check input { accent-color: var(--accent); }
+.slice-note { margin: 8px 0 0; font-size: 12px; color: var(--warn); }
+.ws-dialog.dlg-slice { width: min(1100px, calc(100vw - 32px)); }
+.slice-zoom-canvas { display: block; width: auto; height: auto; max-width: 100%; max-height: calc(100vh - 230px); margin: 0 auto; border-radius: 8px; border: 1px solid var(--line); cursor: crosshair; }
+.slice-zoom-read { min-height: 18px; font-variant-numeric: tabular-nums; }

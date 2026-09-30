@@ -47,7 +47,7 @@ SESSION_SECONDS = 7 * 24 * 3600
 SSE_KEEPALIVE_SECONDS = 15
 SSE_MAX_SECONDS = 3600  # the browser reconnects transparently; bounds a forgotten tab's thread
 STATIC_FILES = {"index.html", "app.js", "app.css", "three.min.js", "OrbitControls.js", "compare.html", "compare.js",
-                "batch_export.js", "report_common.js", "workbench_core.js", "glossary.json",
+                "batch_export.js", "report_common.js", "volume_viewer.js", "workbench_core.js", "glossary.json",
                 "ops.html", "ops.js", "ops.css", "support.html", "support.js"}
 # Responses that may be embedded by our own pages (side-by-side comparison, one-page preview).
 EMBEDDABLE_HTML = {"report.html", "onepage.html"}

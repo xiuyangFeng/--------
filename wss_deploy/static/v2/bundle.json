@@ -4,7 +4,8 @@
   "legacy_scripts": [
     "three.min.js",
     "OrbitControls.js",
-    "report_common.js"
+    "report_common.js",
+    "volume_viewer.js"
   ],
   "scripts": [
     "core_util.js",
@@ -24,6 +25,7 @@
     "ws_rail.js",
     "ws_overview.js",
     "ws_lens.js",
+    "ws_slice.js",
     "ws_bookmarks.js",
     "ws_questions.js",
     "ws_compare.js",
@@ -61,5 +63,5 @@
   "generated": [
     "example_report.html"
   ],
-  "notes": "legacy_scripts live in static/ and are served from /static/<name>; everything else lives in static/v2/ and is served from /static/v2/<name>. Load order = legacy_scripts then scripts. The offline package inlines legacy_scripts + scripts minus offline_exclude, and styles. 'generated' files are served only through their own routes (/v2/example), never through /static/v2/."
+  "notes": "legacy_scripts live in static/ and are served from /static/<name>; everything else lives in static/v2/ and is served from /static/v2/<name>. Load order = legacy_scripts then scripts. The offline package inlines legacy_scripts + scripts minus offline_exclude, and styles. 'generated' files are served only through their own routes (/v2/example), never through /static/v2/. volume_viewer.js is loaded for its numerical core only (VolumeViewerCore; it stops before its classic page code when the page has no classic volume report)."
 }

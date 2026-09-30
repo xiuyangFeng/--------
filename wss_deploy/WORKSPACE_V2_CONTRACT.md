@@ -39,6 +39,7 @@
 - 前端路由用 hash（离线 `file://` 也能用）：`#/`（待办）、`#/job/<job_id>`，查询参数 `?v=<view>&f=<field>&cmp=<job_id>&q=<question>&bm=<bookmark_id>`。`view ∈ {wall, volume, compare, input}`，缺省按结果族。
 - 旧工作台 `/` 顶栏加入口「新版工作区」→ `/v2/`；新工作区顶栏有「经典工作台」→ `/`。
 - `static/v2/bundle.json` 已由主会话写好，**文件名和加载顺序以它为准**。不许新增或改名文件；需要新代码就放进你名下已有的文件。
+- 第二期 S1（2026-09-30）：`legacy_scripts` 加入 `volume_viewer.js`（只用它的数值核心 `VolumeViewerCore`；页面上没有经典体场报告的 `wss-report-meta` / `volume-arrays` 时它在页面代码之前返回），`scripts` 加入 `ws_slice.js`；`/static/volume_viewer.js` 进 `STATIC_FILES`。
 
 ## 2. 数据接口（第 3 路实现）
 
@@ -392,6 +393,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 - **资源**：`dispose` 要释放几何、材质、纹理、控件、监听和定时器；连续切 20 次结果内存不能单调增长。
 - **按需渲染**：只在相机或状态变化时画，不开常驻 rAF 循环；不可见的视口不画。
 - **调试页**：第 4 路可在 `static/v2/dev_viewer.html` + `dev_viewer.js` 做一个只加载内核的页面（`?job=<id>`），用来自己截图检查。
+- **工具接口**（第二期 S1，截面工具用）：`viewer.canvasElement`；`toolOverlay()` 给工具放自己三维对象的组（换结果时随结果释放）；`rayAt(clientX, clientY)` → 已按该点设置好的 Raycaster；`projectPoint(xyz)` → 视口内 CSS 像素 `{x, y, inFront}`；`mmPerPixelAt(xyz)`；`setControlsEnabled(bool)`（工具拖动期间关掉旋转缩放）；`surfaceAt(clientX, clientY)` → 适配器的 `pickSurface`（体场：半透明管壁上的点 `{xyz, vertexIndex}`，与当前字段无关）。体场适配器 `supports.tools` 加 `slice`。
 
 ### 6.3 工作区（第 5 路）
 
@@ -418,6 +420,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 | `ws_icons.js` | 约 24 个 16 px、1.5 px 描边的内联 SVG 图标：上传、搜索、左右下箭头、关闭、图层、快照、书签、书签实心、比较、探针、尺子、眼睛、眼睛关、光照、下载、打印、外链、信息、警告、对勾、刷新、播放、暂停、用户、设置 |
 | `ws_rail.js` | 病例栏：病例 → 扫描 → 结果三层；搜索、状态筛选；没选病例时主区显示待办（待确认出口、失败、未复核） |
 | `ws_overview.js` | 概览检查器，按顺序：<br>1. 显示名、扫描、结果切换（同输入的其他结果，含 companions）、状态行；<br>2. 结论（标注是否人工编辑）；<br>3. 分区表（U10，列按 `zones.primary_fields` 选三个量）；<br>4. 左右对比；<br>5. 形态（管腔最大直径等，来源档「几何」）；<br>6. 发现：每类最重一条，「全部 N 条」可展开，「其余按自动结果确认」按钮调用现有 findings_review；<br>7. 随访表（同一 patient_id 有两次以上扫描时，U17）；<br>8. 模型说明入口与「研究用途，非诊断」一句。<br>每个数都可点，点了进证据透镜 |
+| `ws_slice.js` | 体场截面（第二期 S1）：平面定义与经典体场报告相同（中心线分支 + 位置、1 点垂直中心线 / 2 点斜截面、俯仰 / 偏航、面内偏移、厚度 0.2–12 mm）；数值全部调用 `VolumeViewerCore`（取片层、壁面轮廓、补全、按点统计、Voronoi 面积积分），同一平面与经典报告逐项一致；三维里画截面框、法向箭头和贴在平面上的补全图，拖动框移动（Shift 旋转、Alt 平移），滚轮移动（Shift 改厚度），点选模式在管壁上放点；检查器「截面」页：补全图（悬停读数）、物理量（速度 / 穿面速度 / 压力）、关键数字（面积、等效直径、面积平均、流量 Q）、色标（本截面 p2–p98 / 与三维同 / 手动）、补全与箭头开关；放大图可导出 PNG / CSV。截面打开时体内点隐藏，舞台色条换成截面色标 |
 | `ws_lens.js` | 证据透镜 D9：结果 → 位置 / 区域 → 值（预测 / 派生 / 几何）→ 映射与聚合方法（显示插值、2 mm 分箱、点等权、面积估计）→ 支撑（trust 位、几何参照、插值覆盖）→ 该量留出集一致性（卡片）→ 人群位置（只在同口径参照存在时）。未知就写未知 |
 | `ws_bookmarks.js` | 书签 D10：保存（名称 + 一句备注）、列表、恢复、排序、删除、导入 / 导出 JSON；随离线导出。记录 `run_identity` / `data_version` / `viewer_version` / 字段 / 窗 / 相机 / 游标 / 选中点 / `time_index`。结果或数据版本不符时提示不兼容，不强行套用 |
 | `ws_questions.js` | 按问题打开 D8，三个问题：<br>「低值区域在哪里」：TAWSS（无则 WSS）+ 低值窗 + 低值发现；<br>「同一位置的 TAWSS 与 OSI」：双视口联动；<br>「比较两次结果」：进比较。<br>显示当前套用了什么，可撤销，回到自由浏览 |
@@ -435,7 +438,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 - 顶部写「离线报告 · 导出于 … · 导出时复核状态 …」。
 - 数据来自 `createEmbeddedSource(document)`；`wssv2-offline` JSON 里带 `bookmarks`、`view`、`hide_name`、`exported_at`。
 
-**未迁移的工具**：在检查器「工具」区给「在经典报告中打开」（`/api/jobs/<id>/report`，新窗口）。包括测量、标注、区域统计、六视角、出版级导图、截面 gizmo 与补全、截面系列、按截面切割、分支展开图。
+**未迁移的工具**：在检查器「工具」区给「在经典报告中打开」（`/api/jobs/<id>/report`，新窗口）。包括测量、标注、区域统计、六视角、出版级导图、截面系列、按截面切割、分支展开图（截面 gizmo 与补全已在第二期 S1 迁入，见 `ws_slice.js`）。
 
 ### 6.4 状态合同 A8（`ws_store.js`）
 
@@ -461,6 +464,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 | L | 光照 |
 | B | 存书签 |
 | G | 游标开关 |
+| S | 截面开关（体场结果）；截面打开时 ↑ / ↓ 沿中心线或法向移动 1 mm（Shift 5 mm），← / → 偏航、PgUp / PgDn 俯仰 2°（Shift 10°），[ / ] 厚度 ∓0.4 mm，Esc 先结束点选再关截面 |
 | Esc | 退出当前工具或关闭对话框 |
 | ? | 快捷键说明 |
 
