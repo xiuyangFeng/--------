@@ -38,6 +38,21 @@
   }
   function opt(result, key) { return typeof key === 'string' && key && result.declared(key) && result.has(key) ? result.array(key) : null; }
   function fail(msg) { var e = ns.data && ns.data.DataError ? ns.data.DataError(msg, { code: 'geometry' }) : new Error(msg); throw e; }
+  // Magenta hatch over the stagnation vertices (attribute aStag), stripes on the x − y diagonal of the screen (the
+  // trust hatch runs on x + y).  uSpacing / uLine carry userData.basePx so the viewer scales them with the pixel ratio.
+  var STAG_HEX = '#d91a8c';   // classic STAG_RGB (0.85, 0.10, 0.55)
+  function stagnationMaterial(THREE) {
+    var m = new THREE.ShaderMaterial({
+      uniforms: { uColor: { value: new THREE.Color(STAG_HEX) }, uOpacity: { value: 0.85 }, uSpacing: { value: 6 }, uLine: { value: 2.2 } },
+      vertexShader: 'attribute float aStag; varying float vStag; void main(){ vStag = aStag; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: 'uniform vec3 uColor; uniform float uOpacity; uniform float uSpacing; uniform float uLine; varying float vStag;' +
+        'void main(){ if (vStag < 0.5) discard; float d = mod(gl_FragCoord.x - gl_FragCoord.y + 4096.0, uSpacing); if (d > uLine) discard; gl_FragColor = vec4(uColor, uOpacity); }',
+      side: THREE.DoubleSide, transparent: true, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4
+    });
+    m.userData.basePx = { spacing: 6, line: 2.2 };
+    return m;
+  }
 
   function build(result, ctx) {
     var THREE = ctx.THREE, gfx = ctx.gfx, util = ns.util, m = result.manifest;
@@ -93,6 +108,21 @@
     hatch.visible = false;
     group.add(hatch);
 
+    // Lane E display options.  Input STL (classic 输入 STL view): the same display mesh in the classic neutral grey
+    // (0.72, 0.75, 0.80), always lit so the shape reads; the field colours stay computed underneath.  Stagnation
+    // (classic §19.2 overlay): display vertices with TAWSS < criterion and OSI > criterion carry a magenta hatch,
+    // drawn in screen space like the trust hatch but on the other diagonal so the two stay distinguishable.
+    var stlMat = new THREE.MeshPhongMaterial({ color: new THREE.Color(0.72, 0.75, 0.8), side: THREE.DoubleSide, shininess: 20, specular: new THREE.Color(0x1f1f1f) });
+    var stag = new Float32Array(nV);
+    geom.setAttribute('aStag', new THREE.BufferAttribute(stag, 1));
+    var stagMat = stagnationMaterial(THREE);
+    var stagMesh = new THREE.Mesh(geom, stagMat);
+    stagMesh.name = 'wall-stagnation';
+    stagMesh.renderOrder = 3;
+    stagMesh.visible = false;
+    group.add(stagMesh);
+    var disp = { stl: false, stagnation: null }, stagState = 'off', lightMode = 'flat', layerState = {};
+
     // prediction points
     var pgeom = new THREE.BufferGeometry();
     pgeom.setAttribute('position', new THREE.BufferAttribute(PV, 3));
@@ -145,14 +175,39 @@
       cur = { fieldId: fieldId, scale: scale, disp: disp, read: read };
       recolor();
     }
-    function setLighting(mode) { mesh.material = mode === 'soft' ? soft : flat; }
+    function setLighting(mode) { lightMode = mode === 'soft' ? 'soft' : 'flat'; mesh.material = disp.stl ? stlMat : (lightMode === 'soft' ? soft : flat); }
     function setLayers(L) {
+      layerState = Object.assign({}, L);
       mesh.visible = L.wall !== false;
       outline.visible = !!L.outline && mesh.visible;
       hatch.visible = !!L.trust && !!MT && mesh.visible;
+      stagMesh.visible = stagState === 'on' && mesh.visible && !disp.stl;
       pointsObj.visible = !!L.points;
       if (clObj) clObj.visible = !!L.centerline;
       return { trust: !!L.trust && !!MT, centerline: !!L.centerline && !!clObj, streamlines: false, interior: false };
+    }
+    // Stagnation mask on the display vertices from the TAWSS / OSI display arrays (classic stagnationMask('m')); a NaN
+    // on either side is not stagnant.  'pending' until both arrays are loaded, 'unavailable' without them.
+    function stagnationMask(c) {
+      var ft = result.field('tawss'), fo = result.field('osi');
+      var kt = ft && ft.arrays && ft.arrays.display, ko = fo && fo.arrays && fo.arrays.display;
+      if (!kt || !ko || !result.declared(kt) || !result.declared(ko)) return 'unavailable';
+      if (!result.has(kt) || !result.has(ko)) return 'pending';
+      var T = result.array(kt), O = result.array(ko);
+      if (T.length !== nV || O.length !== nV) return 'unavailable';
+      var lt = Number.isFinite(+c.tawss_lt_pa) ? +c.tawss_lt_pa : 0.4, gt = Number.isFinite(+c.osi_gt) ? +c.osi_gt : 0.1;
+      for (var q = 0; q < nV; q++) stag[q] = T[q] < lt && O[q] > gt ? 1 : 0;
+      geom.attributes.aStag.needsUpdate = true;
+      return 'on';
+    }
+    // o = {stl, stagnation: null | {tawss_lt_pa, osi_gt}}; returns what is shown.
+    function setDisplay(o) {
+      o = o || {};
+      disp = { stl: Boolean(o.stl), stagnation: o.stagnation && typeof o.stagnation === 'object' ? o.stagnation : null };
+      stagState = disp.stagnation ? stagnationMask(disp.stagnation) : 'off';
+      setLighting(lightMode);
+      setLayers(layerState);
+      return { stl: disp.stl, stagnation: stagState };
     }
     function setBranchVisibility(set) {
       hidden = set ? function (sid) { return !set.has(Number(sid)); } : null;
@@ -256,13 +311,16 @@
       bounds: bounds,
       setField: setField, setLighting: setLighting, setLayers: setLayers, setBranchVisibility: setBranchVisibility,
       pick: pick, pickSurface: pickSurface, highlight: highlight, histogramValues: histogramValues,
+      setDisplay: setDisplay,
+      displayState: function () { return { stl: disp.stl, stagnation: stagState }; },
+      arraysLoaded: function () { if (stagState === 'pending' && disp.stagnation) setDisplay(disp); },
       fitPoints: function () { return visibleVerts || V; },
       pointXYZ: function (q) { return q >= 0 && q < nP ? [PV[3 * q], PV[3 * q + 1], PV[3 * q + 2]] : null; },
       sectionMesh: function () { return { vertices: V, faces: geom.index.array }; },
       counts: { vertices: nV, faces: F.length / 3, points: nP },
       dispose: function () {
         gfx.disposeObject(group);
-        soft.dispose(); flat.dispose();
+        soft.dispose(); flat.dispose(); stlMat.dispose();
         dotTex.dispose();
         grid = null; v2p = null;
       }

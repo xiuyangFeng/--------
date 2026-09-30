@@ -5,7 +5,10 @@
  * prediction points, the wall contour, the filled map (Barnes interior field + ≤ 0.5 mm wall layer, v0.15.12), the
  * point statistics and the area integrals (Voronoi cells clipped to the contour).  The same plane therefore gives the
  * same map and the same readings in both pages.  This module adds the plane state, the 3-D frame with the map drawn
- * on the plane, the inspector panel and the zoom view.  Display only; nothing is written back. */
+ * on the plane, the inspector panel and the zoom view.  Display only; nothing is written back.
+ * Second phase lane E: the six classic stations per branch (automaticPlanes: 5 / 20 / 40 / 60 / 80 / 95 %) under the
+ * branch row, and the display units of ws_display (Pa / mmHg, m/s / cm/s, classic factors) on every number shown;
+ * the CSV keeps the raw units, as the classic export does. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -356,11 +359,11 @@
       ctx.fillRect(barX + i, barY, 1, barH);
     }
     ctx.strokeStyle = '#8093a2'; ctx.strokeRect(barX, barY, barW, barH); ctx.fillStyle = '#536a80';
-    var ends = c.scaleEnds(range);
-    ctx.textAlign = 'left'; ctx.fillText(fmt(ends[0]), barX, barY - 3);
-    ctx.textAlign = 'right'; ctx.fillText(fmt(ends[1]), barX + barW, barY - 3);
-    if (range.diverging) { ctx.textAlign = 'center'; ctx.fillText(fmt(c.scaleValueAt(0.5, range)), barX + barW / 2, barY - 3); }
-    ctx.textAlign = 'center'; ctx.fillText(quantityLabel(comp.quantity) + ' · ' + unitsOf(comp.quantity), barX + barW / 2, barY + barH + font + 2);
+    var ends = c.scaleEnds(range), q = comp.quantity;
+    ctx.textAlign = 'left'; ctx.fillText(fmtQ(ends[0], q), barX, barY - 3);
+    ctx.textAlign = 'right'; ctx.fillText(fmtQ(ends[1], q), barX + barW, barY - 3);
+    if (range.diverging) { ctx.textAlign = 'center'; ctx.fillText(fmtQ(c.scaleValueAt(0.5, range), q), barX + barW / 2, barY - 3); }
+    ctx.textAlign = 'center'; ctx.fillText(quantityLabel(q) + ' · ' + shownUnit(q).units, barX + barW / 2, barY + barH + font + 2);
     ctx.textAlign = 'left';
   }
   // The value the pixel at canvas (px, py) was painted with (bilinear on the display grid), or null.
@@ -375,7 +378,22 @@
     return Number.isFinite(v) ? { x_mm: wx, y_mm: wy, value: v, fromWall: Boolean(g.low && g.low[at]) } : null;
   }
   function quantityLabel(q) { return q === 'normal' ? '穿面速度' : q === 'pressure' ? '相对压力' : '速度大小'; }
-  function unitsOf(q) { return q === 'pressure' ? 'Pa' : 'm/s'; }
+  function unitsOf(q) { return q === 'pressure' ? 'Pa' : 'm/s'; }   // stored (raw) units
+  // Display unit of a quantity (ws_display): numbers shown × factor; the data, the maps and the CSV stay raw.
+  function shownUnit(q) {
+    var d = ns.display && typeof ns.display.displayUnit === 'function' ? ns.display.displayUnit(q === 'pressure' ? 'pressure' : 'velocity') : null;
+    return d && typeof d.units === 'string' && Number.isFinite(+d.factor) && +d.factor > 0 ? { units: d.units, factor: +d.factor } : { units: unitsOf(q), factor: 1 };
+  }
+  function shown(v, q) { return v === null || v === undefined || !Number.isFinite(+v) ? null : +v * shownUnit(q).factor; }
+  function fmtQ(v, q) { var x = shown(v, q); return x === null ? '—' : fmt(x); }
+  // The classic automatic stations of one branch (VolumeViewerCore.automaticPlanes), as {segment, fraction, s_mm, nearEnd}.
+  function stations(M, segment) {
+    var c = core();
+    if (typeof c.automaticPlanes !== 'function') return [];
+    return c.automaticPlanes(M.groups).filter(function (p) { return p.segment === Number(segment); }).map(function (p) {
+      return { segment: p.segment, fraction: p.fraction, s_mm: p.fraction * arcOf(groupOf(M, p.segment)), nearEnd: Boolean(p.nearEnd), origin: p.origin, normal: p.normal };
+    });
+  }
 
   // ------------------------------------------------------------------ 3-D: the frame and the map on the plane
   function overlay(viewer, THREE) {
@@ -689,9 +707,11 @@
       if (!comp || !ns.colormap) return null;
       var r = comp.range, ends = core().scaleEnds(r);
       var sc = ns.colormap.scale({ range: ends, log: Boolean(r.log), cmap: r.diverging ? 'bwr' : r.map, units: unitsOf(comp.quantity) });
-      var src = SOURCE_LABEL[r.source] || '';
-      return { fieldId: 'slice', label: quantityLabel(comp.quantity), fullLabel: '截面 · ' + quantityLabel(comp.quantity), units: unitsOf(comp.quantity), scale: sc,
+      var src = SOURCE_LABEL[r.source] || '', su = shownUnit(comp.quantity);
+      var info = { fieldId: 'slice', label: quantityLabel(comp.quantity), fullLabel: '截面 · ' + quantityLabel(comp.quantity), units: unitsOf(comp.quantity), scale: sc, adjustable: false,
         histogram: null, thresholds: [], windowLabel: { id: 'slice', kind: r.source, label: '截面色标：' + src + (comp.quantity === 'normal' ? '；顺流为正' : ''), text: src } };
+      if (su.factor !== 1) { info.displayUnits = su.units; info.unitFactor = su.factor; }
+      return info;
     }
     function hudText() {
       if (picking) return pickNote;
@@ -725,6 +745,8 @@
       cut: function () { return st.cut || 'none'; },
       region: function () { return Object.assign({}, reg); }, regionResult: function () { return regRes; }, setRegion: setRegion, regionFromSlice: regionFromSlice, regionNow: regionNow, regionPending: function () { return regRaf !== 0; },
       series: function (count) { return series(st, M, count, scaleOpts()); }, branchAt: function () { return branchAt(st, M); },
+      stations: function (segment) { return stations(M, segment === undefined ? branchAt(st, M) : segment); },
+      goStation: function (p) { set({ basis: 'centerline', segment: p.segment, fraction: p.fraction, pick: null, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0 }); },
       more: function () { return more; }, setMore: function (m) { more = m || null; if (more !== 'region' && reg.on) setRegion({ on: false }); if (more === 'region' && !reg.on) setRegion({ on: true, segment: branchAt(st, M) }); },
       dispose: dispose, disposed: function () { return disposed; }
     };
@@ -741,6 +763,7 @@
     var read = h('div', { 'class': 'slice-read' });
     var mapBox = h('div', { 'class': 'slice-map' }, canvas, read);
     var pos = h('div', { 'class': 'slice-pos' });
+    var stationsBox = h('div', { 'class': 'slice-stations', role: 'group', 'aria-label': '预设站位' });
     var qseg = h('div', { 'class': 'seg seg-slice', role: 'tablist', 'aria-label': '截面物理量' });
     var kpis = h('div', { 'class': 'kpis slice-kpis' });
     var rows = h('div', { 'class': 'slice-rows' });
@@ -757,7 +780,7 @@
       ui.iconButton('refresh', '回正：取消倾斜和偏移', function () { session.reset(); }),
       ui.iconButton('expand', '放大截面图（可导出 PNG / CSV）', function () { if (ctx.onZoom) ctx.onZoom(); }),
       ui.iconButton('close', '关闭截面（S）', function () { if (ctx.onClose) ctx.onClose(); })] },
-      pos, mapBox, qseg, kpis, rows, moreBox, ctrls, outlineNote);
+      pos, stationsBox, mapBox, qseg, kpis, rows, moreBox, ctrls, outlineNote);
     ui.fill(body, head);
 
     canvas.addEventListener('pointermove', function (e) {
@@ -765,7 +788,7 @@
       if (!lastMap || !comp || !canvas.getBoundingClientRect) return;
       var rect = canvas.getBoundingClientRect();
       var r = readAt(lastMap, comp, (e.clientX - rect.left) * canvas.width / Math.max(1, rect.width), (e.clientY - rect.top) * canvas.height / Math.max(1, rect.height));
-      read.textContent = r ? fmt(r.value) + ' ' + unitsOf(comp.quantity) + (r.fromWall ? ' · 壁面补全' : '') + ' · (' + r.x_mm.toFixed(1) + ', ' + r.y_mm.toFixed(1) + ') mm' : '';
+      read.textContent = r ? fmtQ(r.value, comp.quantity) + ' ' + shownUnit(comp.quantity).units + (r.fromWall ? ' · 壁面补全' : '') + ' · (' + r.x_mm.toFixed(1) + ', ' + r.y_mm.toFixed(1) + ') mm' : '';
     });
     canvas.addEventListener('pointerleave', function () { read.textContent = ''; });
 
@@ -786,6 +809,20 @@
         h('span', { 'class': 'slice-s', text: fmt(st.fraction * L) + ' / ' + fmt(L) + ' mm' }),
         ui.iconButton('chevron-right', '向远端 1 mm（↑）', function () { session.moveAlong(1); })];
     }
+    // The six classic stations of the branch the plane is on; the current one is marked.  Stations within 10 % of an
+    // end are dashed (classic 端部内侧: the plane may run into an opening).
+    function stationRow(st) {
+      var list = session.stations(), flat = !st.pitch && !st.yaw && !st.offU && !st.offV;
+      if (!list.length) { ui.fill(stationsBox, null); stationsBox.hidden = true; return; }
+      stationsBox.hidden = false;
+      ui.fill(stationsBox, h('span', { 'class': 'st-k', text: '站位' }), list.map(function (p) {
+        var on = st.basis !== 'pick' && flat && st.segment === p.segment && Math.abs(st.fraction - p.fraction) < 1e-6;
+        var b = h('button', { type: 'button', 'class': 'slice-station' + (on ? ' on' : '') + (p.nearEnd ? ' end' : ''), 'aria-pressed': String(on), text: Math.round(p.fraction * 100) + '%',
+          title: session.branchName(p.segment) + ' ' + fmt(p.s_mm) + ' mm' + (p.nearEnd ? '（端部内侧）' : '') + '，垂直中心线' });
+        b.addEventListener('click', function () { session.goStation(p); });
+        return b;
+      }), ui.infoTip ? ui.infoTip('经典体场报告的自动截面：每条分支在 5 / 20 / 40 / 60 / 80 / 95 % 弧长处垂直中心线各取一个。') : null);
+    }
     function kpi(label, value, units, sub) {
       return h('div', { 'class': 'kpi kpi-static' }, h('span', { 'class': 'kpi-label', text: label }),
         h('span', { 'class': 'kpi-value' }, h('span', { 'class': 'kpi-num', text: value === null || value === undefined ? '—' : fmt(value) }), units ? h('span', { 'class': 'kpi-unit', text: units }) : null),
@@ -805,12 +842,13 @@
       }, { 'aria-label': '截面色标' });
       var manual = null;
       if (st.range === 'manual') {
+        var mq = comp ? comp.quantity : st.quantity, mf = shownUnit(mq).factor;   // typed in display units, kept raw
         var mk = function (k) {
-          var inp = h('input', { type: 'number', step: 'any', value: st.manual[k] === null ? '' : String(st.manual[k]), 'aria-label': k === 'min' ? '下限' : '上限', 'class': 'slice-num' });
-          inp.addEventListener('change', function () { var m = { min: st.manual.min, max: st.manual.max }; m[k] = inp.value === '' ? null : Number(inp.value); session.set({ manual: m }); });
+          var inp = h('input', { type: 'number', step: 'any', value: st.manual[k] === null ? '' : String(+(st.manual[k] * mf).toPrecision(4)), 'aria-label': k === 'min' ? '下限' : '上限', 'class': 'slice-num' });
+          inp.addEventListener('change', function () { var m = { min: st.manual.min, max: st.manual.max }; m[k] = inp.value === '' ? null : Number(inp.value) / mf; session.set({ manual: m }); });
           return inp;
         };
-        manual = h('span', { 'class': 'slice-manual' }, mk('min'), h('span', { text: '–' }), mk('max'), h('span', { 'class': 'muted', text: unitsOf(comp ? comp.quantity : st.quantity) }));
+        manual = h('span', { 'class': 'slice-manual' }, mk('min'), h('span', { text: '–' }), mk('max'), h('span', { 'class': 'muted', text: shownUnit(mq).units }));
       }
       var check = function (keyName, label, disabled) {
         var cb = h('input', { type: 'checkbox', checked: st[keyName] !== false, disabled: Boolean(disabled) });
@@ -871,12 +909,12 @@
       if (!regionOut) return;
       var R = session.regionResult();
       if (!R) { ui.fill(regionOut, ui.note(session.regionPending() ? '正在统计…' : '这一段没有可用的中心线。')); return; }
-      var dp = R.drop && R.drop.drop !== null ? R.drop.drop : null;
+      var dp = R.drop && R.drop.drop !== null ? R.drop.drop : null, uP = shownUnit('pressure').units, uV = shownUnit('speed').units;
       ui.fill(regionOut, [h('div', { 'class': 'kpis' },
-          kpi('近端−远端压差', dp, 'Pa', R.drop ? '两端各取这一段的 10%' : null),
+          kpi('近端−远端压差', shown(dp, 'pressure'), uP, R.drop ? '两端各取这一段的 10%' : null),
           kpi('体内点', R.count, null, fmt(R.lo_mm) + '–' + fmt(R.hi_mm) + ' mm')),
-        R.speed ? row('速度', R.speed.count ? '均值 ' + fmt(R.speed.mean) + ' · 最大 ' + fmt(R.speed.max) + ' m/s' : '—') : null,
-        R.pressure ? row('压力', R.pressure.count ? '均值 ' + fmt(R.pressure.mean) + ' · 最低 ' + fmt(R.pressure.min) + ' Pa' : '—',
+        R.speed ? row('速度', R.speed.count ? '均值 ' + fmtQ(R.speed.mean, 'speed') + ' · 最大 ' + fmtQ(R.speed.max, 'speed') + ' ' + uV : '—') : null,
+        R.pressure ? row('压力', R.pressure.count ? '均值 ' + fmtQ(R.pressure.mean, 'pressure') + ' · 最低 ' + fmtQ(R.pressure.min, 'pressure') + ' ' + uP : '—',
           '压差 = 这一段近端 10% 弧长内的点的平均相对压力 − 远端 10% 内的平均；统计按预测点等权，与经典报告「区域统计」相同。三维里绿色点是这一段的体内点，绿圈是两端的截面。') : null]);
     }
     function cutBody(st) {
@@ -896,6 +934,7 @@
     function build() {
       var st = session.state(), comp = session.comp();
       ui.fill(pos, positionRow(st));
+      stationRow(st);
       ui.fill(qseg, QUANTITIES.map(function (q) {
         var A = session.model.A, ok = q.id === 'pressure' ? Boolean(A.pressure) : q.id === 'normal' ? Boolean(A.velocity) : Boolean(A.speedCalc);
         var on = comp ? comp.quantity === q.id : st.quantity === q.id;
@@ -914,22 +953,23 @@
       var key = [st.basis, st.range, comp && comp.quantity, st.segment, st.pick && st.pick.picks].join('|');
       if (!built || key !== shapeKey) build();
       else { var s = pos.querySelector ? pos.querySelector('.slice-s') : null; if (s) s.textContent = st.basis === 'pick' ? (st.shift >= 0 ? '+' : '') + fmt(st.shift || 0) + ' mm' : fmt(st.fraction * session.arcOf(st.segment)) + ' / ' + fmt(session.arcOf(st.segment)) + ' mm';
-        else ui.fill(pos, positionRow(st)); }
+        else ui.fill(pos, positionRow(st)); stationRow(st); }
       if (pickBtn.classList) pickBtn.classList.toggle('on', session.picking());
       pickBtn.setAttribute('aria-pressed', String(session.picking()));
       if (!comp) { ui.fill(kpis, null); ui.fill(rows, ui.note('这里算不出截面。换一个位置试试。')); lastMap = null; return; }
       lastMap = paint(canvas, comp, { background: null, outline: '#33475b', lineWidth: 1.6 * dpr, arrows: st.arrows !== false, velocity: session.model.A.velocity,
         maxArrows: 90, arrowWidth: 1.3 * dpr, scaleBar: true, font: 11 * dpr, ink: '#536a80' });
       var sec = comp.section, it = comp.integral;
-      var main = comp.quantity === 'pressure' ? { label: '面积平均压力', v: it && it.pressure_mean_pa, u: 'Pa' }
-        : comp.quantity === 'normal' ? { label: '平均穿面速度', v: it && it.normal_mean_m_s, u: 'm/s' } : { label: '面积平均速度', v: it && it.speed_mean_m_s, u: 'm/s' };
+      var main = comp.quantity === 'pressure' ? { label: '面积平均压力', v: shown(it && it.pressure_mean_pa, 'pressure'), u: shownUnit('pressure').units }
+        : comp.quantity === 'normal' ? { label: '平均穿面速度', v: shown(it && it.normal_mean_m_s, 'normal'), u: shownUnit('normal').units } : { label: '面积平均速度', v: shown(it && it.speed_mean_m_s, 'speed'), u: shownUnit('speed').units };
       ui.fill(kpis, [kpi('截面面积', sec && sec.area_mm2, 'mm²'), kpi('等效直径', sec && sec.equivalent_diameter_mm, 'mm'),
         kpi(main.label, main.v, main.u), it && it.flow_ml_s !== null ? kpi('流量 Q', it.flow_ml_s, 'mL/s', '顺流为正') : kpi('最大径', sec && sec.max_diameter_mm, 'mm')]);
       var S = comp.stats, list = [];
       if (it && it.flow_ml_s !== null) list.push(row('最大径', sec ? fmt(sec.max_diameter_mm) + ' mm' : '—', '中心线垂直截面上管腔的最长径（倾斜时为此平面上的最长径）'));
       if (it) list.push(row('面积加权', it.samples + ' 个体内点' + (it.direct_fraction !== null ? ' · 邻点直接支撑 ' + Math.round(100 * it.direct_fraction) + '%' : ''),
         '每个体内点代表离它最近的那部分截面面积（截到管腔轮廓为止），再按面积加权平均；流量 = 平均穿面速度 × 截面面积。'));
-      list.push(row('按点统计', S.count ? '均值 ' + fmt(S.mean) + ' · p99 ' + fmt(S.p99) + ' · 最大 ' + fmt(S.max) + ' ' + (comp.field === 'velocity' ? 'm/s' : 'Pa') : '厚度内没有点',
+      var sq = comp.field === 'velocity' ? 'speed' : 'pressure';
+      list.push(row('按点统计', S.count ? '均值 ' + fmtQ(S.mean, sq) + ' · p99 ' + fmtQ(S.p99, sq) + ' · 最大 ' + fmtQ(S.max, sq) + ' ' + shownUnit(sq).units : '厚度内没有点',
         '厚度内全部体内预测点等权统计（' + S.count + ' 点），与经典报告截面页的统计相同。' + (comp.field === 'velocity' ? '这里统计的是速度大小。' : '')));
       ui.fill(rows, list);
       var o = comp.outlineState;
@@ -966,7 +1006,7 @@
       if (!zmap || !canvas.getBoundingClientRect) return;
       var rect = canvas.getBoundingClientRect();
       var r = readAt(zmap, comp, (e.clientX - rect.left) * canvas.width / Math.max(1, rect.width), (e.clientY - rect.top) * canvas.height / Math.max(1, rect.height));
-      read.textContent = r ? '面内坐标 (' + r.x_mm.toFixed(1) + ', ' + r.y_mm.toFixed(1) + ') mm · ' + fmt(r.value) + ' ' + unitsOf(comp.quantity) + (r.fromWall ? ' · 壁面边界补全值' : '') : '';
+      read.textContent = r ? '面内坐标 (' + r.x_mm.toFixed(1) + ', ' + r.y_mm.toFixed(1) + ') mm · ' + fmtQ(r.value, comp.quantity) + ' ' + shownUnit(comp.quantity).units + (r.fromWall ? ' · 壁面边界补全值' : '') : '';
     });
     var base = (ctx.fileBase || 'slice') + '_slice_' + comp.quantity;
     var pts = h('input', { type: 'checkbox', checked: true });
@@ -987,7 +1027,7 @@
         'x_mm / y_mm 为截面平面内以截面中心为原点的格心坐标（u 轴、v 轴）。']);
       if (typeof root.Blob === 'function') ui.downloadBlob(new root.Blob([text], { type: 'text/csv;charset=utf-8' }), base + '.csv');
     }, { icon: 'download' });
-    var dlg = ui.dialog.open({ title: '截面 · ' + quantityLabel(comp.quantity) + ' · ' + unitsOf(comp.quantity), wide: true, cls: 'dlg-slice',
+    var dlg = ui.dialog.open({ title: '截面 · ' + quantityLabel(comp.quantity) + ' · ' + shownUnit(comp.quantity).units, wide: true, cls: 'dlg-slice',
       body: [canvas, read], actions: [h('label', { 'class': 'slice-check' }, pts, h('span', { text: '显示预测点' })), h('span', { 'class': 'sec-fill' }), csv, png] });
     draw();
     return dlg;
@@ -1004,7 +1044,7 @@
       var c = h('canvas', { 'class': 'series-canvas', width: 440, height: 400 });
       var label = String.fromCharCode(97 + i), comp = x.comp, it = comp && comp.integral;
       if (comp) paint(c, comp, { background: '#ffffff', outline: '#33475b', lineWidth: 2, arrows: st.arrows !== false, velocity: session.model.A.velocity, maxArrows: 80, arrowWidth: 1.6, pad: { left: 10, top: 10, right: 10, bottom: 10 }, scaleBar: true, font: 14, ink: '#536a80' });
-      var main = !it ? null : q === 'pressure' ? (it.pressure_mean_pa === null ? null : '压力 ' + fmt(it.pressure_mean_pa) + ' Pa') : (it.flow_ml_s === null ? null : 'Q ' + fmt(it.flow_ml_s) + ' mL/s');
+      var main = !it ? null : q === 'pressure' ? (it.pressure_mean_pa === null ? null : '压力 ' + fmtQ(it.pressure_mean_pa, 'pressure') + ' ' + shownUnit('pressure').units) : (it.flow_ml_s === null ? null : 'Q ' + fmt(it.flow_ml_s) + ' mL/s');
       var tile = h('button', { type: 'button', 'class': 'series-tile', title: '把截面移到这里' }, c,
         h('span', { 'class': 'series-cap' }, h('b', { text: label }), h('span', { text: fmt(x.s_mm) + ' mm（' + Math.round(x.fraction * 100) + '%）' }), main ? h('span', { 'class': 'muted', text: main }) : null));
       tile.addEventListener('click', function () {
@@ -1015,8 +1055,8 @@
       return tile;
     });
     var ends = core().scaleEnds(range);
-    var bar = h('div', { 'class': 'series-bar' }, h('span', { text: fmt(ends[0]) }),
-      h('span', { 'class': 'series-grad', style: 'background:' + gradientCSS(range) }), h('span', { text: fmt(ends[1]) + ' ' + unitsOf(q) }),
+    var bar = h('div', { 'class': 'series-bar' }, h('span', { text: fmtQ(ends[0], q) }),
+      h('span', { 'class': 'series-grad', style: 'background:' + gradientCSS(range) }), h('span', { text: fmtQ(ends[1], q) + ' ' + shownUnit(q).units }),
       h('span', { 'class': 'muted', text: range.shared ? '全系列共用色标' : (SOURCE_LABEL[range.source] || '') }));
     var png = ui.button('导出拼图 PNG', function () { exportSeries(S, st, ctx, session); }, { icon: 'download' });
     var dlg = ui.dialog.open({ title: '截面系列 · ' + S.name + ' · ' + quantityLabel(q), wide: true, cls: 'dlg-series',
@@ -1038,9 +1078,9 @@
     ctx.strokeStyle = '#8093a2'; ctx.strokeRect(x, y, w, hgt);
     var ends = c.scaleEnds(range);
     ctx.fillStyle = '#20374d'; ctx.font = '20px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText(fmt(ends[1]), x + w + 10, y); ctx.fillText(fmt(ends[0]), x + w + 10, y + hgt);
-    if (range.diverging) ctx.fillText(fmt(c.scaleValueAt(0.5, range)), x + w + 10, y + hgt / 2);
-    ctx.textBaseline = 'alphabetic'; ctx.font = '600 20px sans-serif'; ctx.fillText(quantityLabel(q), x, 26); ctx.font = '18px sans-serif'; ctx.fillStyle = '#536a80'; ctx.fillText(unitsOf(q), x, 50);
+    ctx.fillText(fmtQ(ends[1], q), x + w + 10, y); ctx.fillText(fmtQ(ends[0], q), x + w + 10, y + hgt);
+    if (range.diverging) ctx.fillText(fmtQ(c.scaleValueAt(0.5, range), q), x + w + 10, y + hgt / 2);
+    ctx.textBaseline = 'alphabetic'; ctx.font = '600 20px sans-serif'; ctx.fillText(quantityLabel(q), x, 26); ctx.font = '18px sans-serif'; ctx.fillStyle = '#536a80'; ctx.fillText(shownUnit(q).units, x, 50);
     return cv;
   }
   function exportSeries(S, st, ctx, session) {
@@ -1058,7 +1098,7 @@
     var barJob = bar ? cc.loadImage(bar.toDataURL('image/png'), doc).then(function (img) { return { image: img }; }) : Promise.resolve(null);
     Promise.all([Promise.all(jobs), barJob]).then(function (r) {
       var canvas = cc.composeMontage({ columns: 3, panels: r[0], colorbar: r[1], document: doc, background: '#ffffff',
-        title: [ctx.caseName || '', S.name, quantityLabel(S.quantity) + ' · ' + unitsOf(S.quantity), S.range.shared ? '系列共用色标' : ''].filter(Boolean).join(' · ') });
+        title: [ctx.caseName || '', S.name, quantityLabel(S.quantity) + ' · ' + shownUnit(S.quantity).units, S.range.shared ? '系列共用色标' : ''].filter(Boolean).join(' · ') });
       if (!canvas || typeof canvas.toBlob !== 'function') throw new Error('拼图画布不可用');
       canvas.toBlob(function (blob) { if (blob) ui.downloadBlob(blob, (ctx.fileBase || 'case') + '_slices_' + S.segment + '_' + S.quantity + '.png'); }, 'image/png');
     }).catch(function (e) { ui.toast('导出失败：' + (e && e.message || e), { kind: 'error' }); });
@@ -1068,6 +1108,7 @@
     supported: supported, requiredArrays: requiredArrays, keys: keys, model: model, defaultState: defaultState, planeOf: planeOf,
     compute: compute, scaleFor: scaleFor, sectionOf: sectionOf, integrate: integrate, paint: paint, readAt: readAt, gizmoSide: gizmoSide,
     series: series, region: region, pointArcs: pointArcs, branchAt: branchAt, ringAt: ringAt,
-    create: create, panel: panel, openZoom: openZoom, openSeries: openSeries, quantityLabel: quantityLabel, unitsOf: unitsOf, LIMIT: LIMIT, GRID: GRID
+    create: create, panel: panel, openZoom: openZoom, openSeries: openSeries, quantityLabel: quantityLabel, unitsOf: unitsOf, LIMIT: LIMIT, GRID: GRID,
+    stations: stations, shownUnit: shownUnit
   };
 });

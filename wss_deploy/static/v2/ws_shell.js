@@ -657,7 +657,8 @@
       {heading: '图层'},
       item('outline', '轮廓线'), item('centerline', '中心线'), item('points', '预测点'), item('trust', '可信度标记（斜纹）'),
       volume ? item('streamlines', '流线') : null, volume ? item('wall', '血管外壁') : null, volume ? item('interior', '体内点') : null,
-      {label: '分支显隐…', run: function () { branchDialog(); }},
+      {label: '分支显隐…', run: function () { branchDialog(); }}
+    ].concat(extMenuItems('layers'), [   // lane E: extension layers sit in the 图层 group (the menu runs past short screens)
       {separator: true}, {heading: '标注与自动标签'},
       {label: '标注', checked: Boolean(store().prefs().labels.annotations), run: function () { setLabelPref({annotations: !store().prefs().labels.annotations}); }},
       {label: '分支名', checked: Boolean(store().prefs().labels.branches), run: function () { setLabelPref({branches: !store().prefs().labels.branches}); }},
@@ -670,7 +671,7 @@
       {label: '彩虹（默认）', checked: cm === 'rainbow', run: function () { setCmap('rainbow'); }},
       {label: 'viridis', checked: cm === 'viridis', run: function () { setCmap('viridis'); }},
       {label: 'turbo', checked: cm === 'turbo', run: function () { setCmap('turbo'); }}
-    ].concat(extMenuItems('layers')));
+    ]));
   }
   // Branch visibility (classic 分支显隐 / 血管模块): display only, every statistic keeps all branches.
   function branchDialog() {

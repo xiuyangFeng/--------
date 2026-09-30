@@ -242,6 +242,13 @@
       h('i', { 'class': 'pc-mean', style: 'left:' + pos(m.mean) }), Number.isFinite(x) ? h('i', { 'class': 'pc-pt' + (out ? ' out' : ''), style: 'left:' + pos(Math.max(m.min, Math.min(m.max, x))) }) : null);
     return h('span', { 'class': 'pc-range-wrap' }, h('span', { 'class': 'pc-lo', text: fmt(m.min) }), bar, h('span', { 'class': 'pc-hi', text: fmt(m.max) }));
   }
+  // Display units of the volume readings (lane E, ws_display: Pa / mmHg, m/s / cm/s); the record and exports stay raw.
+  function qv(x, kind) {
+    var d = ns.display && typeof ns.display.displayUnit === 'function' ? ns.display.displayUnit(kind) : null;
+    var u = d && Number.isFinite(+d.factor) && +d.factor > 0 ? d : { units: kind === 'pressure' ? 'Pa' : 'm/s', factor: 1 };
+    var one = function (v) { return fmt(Number.isFinite(+v) ? +v * u.factor : v); };
+    return (Array.isArray(x) ? x.map(one).join(', ') : one(x)) + ' ' + u.units;
+  }
   function card(result, pb, ctx) {
     var ui = ctx.ui, h = ui.h, X = model(result), k = X.k;
     var acts = [ui.button('记录', ctx.onRecord, { cls: 'btn-sm', title: '把此点和截面读数加入探针记录' })];
@@ -270,19 +277,19 @@
       if (pb.kind === 'interior') {
         var rec = record(result, pb.index);
         head = [rec.segment !== undefined ? branchName(X, rec.segment) : '—', rec.s !== undefined ? '距入口 ' + fmt(rec.s) + ' mm' : null, rec.radius !== undefined ? '半径 ' + fmt(rec.radius) + ' mm' : null].filter(Boolean).join(' · ');
-        if (rec.speed !== undefined) kv.push(['速度大小', fmt(rec.speed) + ' m/s'], ['速度分量', rec.velocity.map(fmt).join(', ') + ' m/s']);
-        if (rec.pressure !== undefined) kv.push(['相对压力', fmt(rec.pressure) + ' Pa']);
+        if (rec.speed !== undefined) kv.push(['速度大小', qv(rec.speed, 'velocity')], ['速度分量', qv(rec.velocity, 'velocity')]);
+        if (rec.pressure !== undefined) kv.push(['相对压力', qv(rec.pressure, 'pressure')]);
         if (rec.distWall !== undefined) kv.push(['到壁距离', fmt(rec.distWall) + ' mm']);
       } else {
         var wp = arr(result, k.wallP);
         head = sec && sec.found ? branchName(X, sec.segment_id) + ' · 壁面' : '壁面';
-        kv.push(['壁面压力', wp && Number.isFinite(wp[pb.index]) ? fmt(wp[pb.index]) + ' Pa' : '无插值支撑']);
+        kv.push(['壁面压力', wp && Number.isFinite(wp[pb.index]) ? qv(wp[pb.index], 'pressure') : '无插值支撑']);
       }
       if (sec && sec.found && sec.integrated) {
         kv.push(['截面面积', fmt(sec.area_mm2) + ' mm² · 等效直径 ' + fmt(sec.equivalent_diameter_mm) + ' mm']);
-        if (sec.speed_mean_m_s !== null) kv.push(['面积平均速度', fmt(sec.speed_mean_m_s) + ' m/s']);
-        if (sec.normal_mean_m_s !== null) kv.push(['平均穿面速度', fmt(sec.normal_mean_m_s) + ' m/s（顺流为正）'], ['截面流量 Q', fmt(sec.flow_ml_s) + ' mL/s']);
-        if (sec.pressure_mean_pa !== null) kv.push(['面积平均压力', fmt(sec.pressure_mean_pa) + ' Pa']);
+        if (sec.speed_mean_m_s !== null) kv.push(['面积平均速度', qv(sec.speed_mean_m_s, 'velocity')]);
+        if (sec.normal_mean_m_s !== null) kv.push(['平均穿面速度', qv(sec.normal_mean_m_s, 'velocity') + '（顺流为正）'], ['截面流量 Q', fmt(sec.flow_ml_s) + ' mL/s']);
+        if (sec.pressure_mean_pa !== null) kv.push(['面积平均压力', qv(sec.pressure_mean_pa, 'pressure')]);
       }
       body.push(h('div', { 'class': 'pc-kv' }, kv.map(function (r) { return h('div', { 'class': 'slice-row' }, h('span', { 'class': 'slice-row-k', text: r[0] }), h('b', { text: r[1] })); })));
     }
