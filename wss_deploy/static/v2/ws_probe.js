@@ -5,7 +5,9 @@
  * (WssReportCommon.sectionMeans, as the classic wall report).  Volume results: the point's values and the area
  * integrals of that section (WssReportCommon.stationSection + the classic sectionIntegral through ws_slice).
  * 「记录」 keeps a row with the classic row schema; copy TSV / export CSV use WssReportCommon.probeToTSV / CSV, so the
- * files are the same as the classic reports'.  The log is kept per result in this browser.  Display only. */
+ * files are the same as the classic reports'.  The log is kept per result in this browser.  Display only.
+ * Phase 3 lane 4: the hover readout (classic #tip / probeAt, W41 / V17) — a small chip next to the pointer while it rests
+ * on the vessel, switched with P or the layers menu — and wall stresses in the display unit (Pa / dyn/cm²) on the card. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -260,7 +262,10 @@
       head = [PS ? branchName(X, PS[i]) : '—', PSR ? '距入口 ' + fmt(PSR[i]) + ' mm' : null, PR ? '半径 ' + fmt(PR[i]) + ' mm' : null].filter(Boolean).join(' · ');
       var ok = Boolean(sec && sec.found);
       var rows = wallFields(result).map(function (f) {
-        var x = pb.fields[f.id] ? pb.fields[f.id][i] : NaN, m = ok ? sec.means[f.id] : null, units = ui.unitText ? ui.unitText(f.units) : (f.units || '');
+        // P3 lane 4: stresses in Pa follow the display unit (× k), the record keeps Pa
+        var q1 = conv(1, f.units, 'wall'), kk = Number.isFinite(+q1.value) && +q1.value > 0 ? +q1.value : 1;
+        var x0 = pb.fields[f.id] ? pb.fields[f.id][i] : NaN, m0 = ok ? sec.means[f.id] : null, units = ui.unitText ? ui.unitText(q1.units) : (q1.units || '');
+        var x = Number.isFinite(x0) ? x0 * kk : x0, m = m0 && kk !== 1 ? { mean: m0.mean * kk, min: m0.min * kk, max: m0.max * kk } : m0;
         var tr = h('tr', { 'class': f.id === ctx.field ? 'on' : null, title: '按 ' + (f.short_label || f.label || f.id) + ' 着色' },
           h('th', null, f.short_label || f.label || f.id, units ? h('small', { text: units }) : null), h('td', { text: fmt(x) }),
           ok ? h('td', { 'class': 'pc-sec', text: fmt(m && m.mean) }) : null, ok ? h('td', null, rangeBar(h, x, m)) : null);
@@ -322,9 +327,98 @@
       h('div', { 'class': 'tscroll' }, table), ui.note('表里只列一两个数；复制或导出的文件含全部字段和截面读数，格式与经典报告相同。'));
   }
 
+  // ------------------------------------------------------------------ hover readout (phase 3 lane 4: W41, V17)
+  // A number in its display unit (ws_display: Pa / dyn/cm², Pa / mmHg, m/s / cm/s), {value, units}.
+  function conv(v, units, fam) { var cv = ns.display && typeof ns.display.toDisplay === 'function' ? ns.display.toDisplay : null; return cv ? cv(v, units, fam) : { value: v, units: units }; }
+  function qtext(q) { var U2 = ns.ui; return U2 && typeof U2.num === 'function' ? U2.num(q.value, q.units) : fmt(q.value) + (q.units ? ' ' + q.units : ''); }
+  var TRUST_LABELS = { 1: '插值无支撑', 2: '表面粗糙', 4: '几何越界', 8: '采样支撑弱', 16: '邻近切口' };
+  function trustText(m, bits, mask) {
+    bits = Number(bits) & (mask || 31);
+    if (!bits) return null;
+    var src = (m && m.analysis && m.analysis.trust && Array.isArray(m.analysis.trust.sources)) ? m.analysis.trust.sources : [], out = [];
+    [1, 2, 4, 8, 16].forEach(function (b) {
+      if (!(bits & b)) return;
+      var s0 = src.filter(function (x) { return Number(x && x.bit) === b; })[0];
+      out.push((s0 && s0.label) || TRUST_LABELS[b]);
+    });
+    return out.length ? '可信提示：' + out.join('、') : null;
+  }
+  function fieldLabel(f, id) { return f ? (f.short_label || f.label || f.id) : id; }
+  // The lines of the readout for a viewer pick e on result with field fieldId: [{text, kind: 'value'|'where'|'trust'|'xyz'}],
+  // or null when there is nothing to read there.  Pure (tests).
+  function hoverModel(result, e, fieldId) {
+    if (!result || !e || e.marker !== undefined) return null;
+    var m = result.manifest || {}, f = result.field ? result.field(fieldId) : null, fam = family(result), X = model(result), lines = [];
+    var where = function (sid, s) { var t = [sid !== null && sid !== undefined && Number.isFinite(+sid) ? branchName(X, sid) : null, s !== null && s !== undefined && Number.isFinite(+s) ? '距入口 ' + fmt(s) + ' mm' : null].filter(Boolean).join(' · '); return t ? { text: t, kind: 'where' } : null; };
+    if (fam === 'wall') {
+      var disp = null, vi = e.vertexIndex;
+      try { disp = result.fieldArray(fieldId, 'display'); } catch (_) { disp = null; }
+      if (!disp || !(vi >= 0)) return null;
+      var ok = Number.isFinite(disp[vi]) && (!Array.isArray(e.face) || e.face.every(function (q) { return Number.isFinite(disp[q]); }));   // classic: a partly unsupported triangle has no value
+      lines.push(ok ? { text: fieldLabel(f, fieldId) + ' ' + qtext(conv(disp[vi], f && f.units, 'wall')), kind: 'value', note: '壁面插值' } : { text: '插值覆盖范围外：无读值', kind: 'value' });
+      lines.push(where(e.segmentId, e.s_from_root_mm));
+      lines.push(trustText(m, e.trust, 7) ? { text: trustText(m, e.trust, 7), kind: 'trust' } : null);
+      if (X.V && 3 * vi + 2 < X.V.length) lines.push({ text: '(' + [0, 1, 2].map(function (c) { return X.V[3 * vi + c].toFixed(1); }).join(', ') + ') mm', kind: 'xyz' });
+    } else if (e.pointIndex !== null && e.pointIndex !== undefined && e.pointIndex >= 0) {
+      var i = e.pointIndex, vals = e.values || {}, ids = Object.keys(vals);
+      ids.sort(function (a, b) { return (b === fieldId) - (a === fieldId); });
+      ids.forEach(function (id) {
+        var ff = result.field(id), x = vals[id];
+        if (!ff || !Number.isFinite(x)) return;
+        lines.push({ text: (id === 'pressure' ? '相对压力' : fieldLabel(ff, id)) + ' ' + qtext(conv(x, ff.units, 'volume')), kind: id === fieldId ? 'value' : 'also' });
+      });
+      if (!lines.length) return null;
+      lines.push(where(e.segmentId, e.s_from_root_mm));
+      var PT = arr(result, X.k.PT);
+      if (PT && i < PT.length && trustText(m, PT[i], 28)) lines.push({ text: trustText(m, PT[i], 28), kind: 'trust' });
+    } else if (e.vertexIndex !== null && e.vertexIndex !== undefined && e.vertexIndex >= 0) {
+      if (!Number.isFinite(e.value)) lines.push({ text: '壁面压力：无插值支撑', kind: 'value' });
+      else lines.push({ text: fieldLabel(f, fieldId) + ' ' + qtext(conv(e.value, f && f.units, 'volume')), kind: 'value' });
+      lines.push(trustText(m, e.trust, 7) ? { text: trustText(m, e.trust, 7), kind: 'trust' } : null);
+    } else return null;
+    return lines.filter(Boolean);
+  }
+  function hoverOn() { try { return !(ns.display && ns.display.prefs && ns.display.prefs().opts && ns.display.prefs().opts.hover === false); } catch (_) { return true; } }
+  var hovers = {};
+  function shellState() { return ns.shell && typeof ns.shell.state === 'function' ? ns.shell.state() : null; }
+  function sideOfViewer(v) { var S = shellState(); return S && v ? (v === S.viewerA ? 'a' : v === S.viewerB ? 'b' : null) : null; }
+  function hideHover(side) { Object.keys(hovers).forEach(function (k) { if (!side || k === side) { var el = hovers[k]; if (el) el.hidden = true; } }); }
+  function showHover(v, e) {
+    var side = sideOfViewer(v), S = shellState();
+    if (!side || !S || !S.els) return;
+    if (!e || !e.screen || !hoverOn()) { hideHover(side); return; }
+    var lines = null;
+    try { lines = hoverModel(v.result(), e, v.field()); } catch (_) { lines = null; }
+    if (!lines || !lines.length) { hideHover(side); return; }
+    var vp = side === 'b' ? S.els.vpB : S.els.vpA, host = vp && vp.legend && vp.legend.parentNode, U2 = ns.ui;
+    if (!host || !U2) return;
+    var el = hovers[side];
+    if (!el || el.parentNode !== host) { if (el && el.parentNode) el.parentNode.removeChild(el); el = U2.h('div', { 'class': 'wsp-hover', role: 'status', 'aria-live': 'off' }); host.appendChild(el); hovers[side] = el; }
+    U2.fill(el, lines.map(function (l) { return U2.h('div', { 'class': 'wsp-hover-' + l.kind, title: l.note || null, text: l.text }); }));
+    el.hidden = false;
+    var W = host.clientWidth || 800, H = host.clientHeight || 600, w = el.offsetWidth || 160, hh = el.offsetHeight || 60;
+    var x = e.screen.x + 14, y = e.screen.y + 16;
+    if (x + w > W - 6) x = Math.max(6, e.screen.x - w - 14);
+    if (y + hh > H - 6) y = Math.max(6, e.screen.y - hh - 12);
+    el.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+  }
+  function wireHover(v) {
+    if (!v || v.__wspHover || typeof v.on !== 'function') return;
+    v.__wspHover = true;
+    v.on('hover', function (e) { showHover(v, e); });
+  }
+  (ns.ext = ns.ext || []).push({
+    id: 'hover',
+    onResult: function (api) { var S = api.state(); hideHover(); if (S) { wireHover(S.viewerA); wireHover(S.viewerB); } },
+    onField: function () { hideHover(); },
+    onClose: function () { hideHover(); }
+  });
+
   return {
     requiredArrays: requiredArrays, groups: groups, model: model, wallFields: wallFields, pick: pick, sectionIntegralAt: sectionIntegralAt, record: record,
     row: row, wallRow: wallRow, volumeRow: volumeRow, nextId: nextId, loadLog: loadLog, saveLog: saveLog, tsv: tsv, csv: csv,
-    draw: draw, clear: clear, card: card, logSection: logSection, ROW_KEY: ROW_KEY
+    draw: draw, clear: clear, card: card, logSection: logSection, ROW_KEY: ROW_KEY,
+    // phase 3 lane 4
+    hoverModel: hoverModel, showHover: showHover, hideHover: function () { hideHover(); }, trustText: trustText
   };
 });

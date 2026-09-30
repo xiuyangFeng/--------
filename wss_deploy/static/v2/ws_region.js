@@ -159,7 +159,9 @@
       state: function () { return JSON.parse(JSON.stringify(reg)); }, result: function () { return res; }, branches: function () { return M.branches.slice(); },
       set: set, refresh: schedule, recomputeNow: recompute,
       picking: function () { return picking; }, setPicking: function (on) { picking = Boolean(on); emit('picking'); },
-      clickTaken: function () { return picking || Date.now() - pickedAt < 500; }, dispose: dispose
+      clickTaken: function () { return picking || Date.now() - pickedAt < 500; }, dispose: dispose,
+      // P3 lane 4: the stored units of the coloured field, for the display unit of the numbers
+      rawUnits: function () { var fid = opts.field ? opts.field() : null, f = fid && result.field ? result.field(fid) : null; return { units: f ? f.units : null, family: result.family || 'wall' }; }
     };
   }
 
@@ -205,8 +207,13 @@
       var st = session.state(), key = [st.mode, st.segment, st.center && st.center.join(','), session.picking()].join('|');
       if (key !== shape) { shape = key; build(); }
       var R = session.result(), units = ctx.units ? ctx.units() : '';
+      // P3 lane 4: stresses in the display unit of ws_display (Pa / dyn/cm²); the statistics stay the stored ones
+      var raw = session.rawUnits ? session.rawUnits() : null, cv = ns.display && typeof ns.display.toDisplay === 'function' ? ns.display.toDisplay : null;
+      var q1 = raw && raw.units && cv ? cv(1, raw.units, raw.family) : null, k = q1 && Number.isFinite(+q1.value) && +q1.value > 0 ? +q1.value : 1;
+      if (q1 && k !== 1) units = ui.unitText ? ui.unitText(q1.units) : q1.units;
+      var sc = function (x) { return x === null || x === undefined || !Number.isFinite(+x) ? x : +x * k; };
       ui.fill(outBox, R ? [h('p', { 'class': 'region-label', text: R.label }),
-        h('div', { 'class': 'kpis' }, kpi((ctx.fieldLabel ? ctx.fieldLabel() : '') + ' 均值', R.stats.mean, units), kpi('p99', R.stats.p99, units), kpi('最大', R.stats.max, units),
+        h('div', { 'class': 'kpis' }, kpi((ctx.fieldLabel ? ctx.fieldLabel() : '') + ' 均值', sc(R.stats.mean), units), kpi('p99', sc(R.stats.p99), units), kpi('最大', sc(R.stats.max), units),
           kpi('区域面积', R.area_mm2 / 100, 'cm²', R.stats.count + ' 个预测点')),
         ui.note('均值、p99、最大按区域里的预测点等权统计（与经典报告相同），跟着当前字段换；面积是显示网格落在区域里的面积。')]
         : ui.note(st.mode === 'sphere' ? '在管壁上点一下选区域中心。' : '这条分支没有可用的预测点。'));

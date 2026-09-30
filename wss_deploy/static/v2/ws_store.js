@@ -17,7 +17,7 @@
   var PREFS_KEY = 'wssv2:prefs:2';   // :2 — 2026-09-30 look: lit by default, dark stage
   var DEFAULTS = {schema: 'wssv2.prefs/2', tier: 'basic', lighting: 'soft', stage: 'dark', cmap: 'rainbow', rail: true, inspector: true, tab: 'overview',
     labels: {branches: false, findings: 0, maxd: false, annotations: true}};   // S4: automatic labels in 3-D, annotation pins shown
-  var TIERS = ['basic', 'full'], LIGHTS = ['flat', 'soft'], STAGES = ['dark', 'light'], CMAPS = ['rainbow', 'viridis', 'turbo'], TABS = ['overview', 'reading', 'bookmarks', 'tools', 'compare'];
+  var TIERS = ['basic', 'full'], LIGHTS = ['flat', 'soft'], STAGES = ['dark', 'light'], CMAPS = ['rainbow', 'viridis', 'turbo', 'bwr'], TABS = ['overview', 'reading', 'bookmarks', 'tools', 'compare'];
 
   function storage() { try { return root.localStorage || null; } catch (_) { return null; } }
   function read(key) {

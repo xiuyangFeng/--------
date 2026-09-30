@@ -51,6 +51,10 @@
   function opt(result, key) { return key && result.has(key) ? result.array(key) : null; }
   function fail(msg) { throw (ns.data && ns.data.DataError ? ns.data.DataError(msg, { code: 'geometry' }) : new Error(msg)); }
 
+  // Phase 3 lane 4 (classic 可信区域, V12): with the trust layer on, interior points flagged geometry out of range (4),
+  // weak sample support (8) or near an opening (16) are desaturated exactly as the classic desaturate(c, 0.7):
+  // c · 0.3 + 0.62 · 0.7.  Only colours change.
+  var TRUST_INTERIOR = 4 | 8 | 16, TRUST_DIM = [0.62, 0.62, 0.62, 0.3];
   // The glass takes the viewer's clipping planes (the section tool's cut), hence the clipping chunks.  uGain scales its
   // opacity (lane E 外壁不透明度: the classic slider value / its default 0.1, so the default look is unchanged).
   var OPACITY_DEFAULT = 0.1;   // classic volume-opacity default (0 … 0.5)
@@ -252,7 +256,17 @@
     }
 
     var cur = { fieldId: null, scale: null, wallField: false, read: null, disp: null };
-    var L = {}, lighting = 'flat', hidden = null, pointMask = null, hlObj = null;
+    var L = {}, lighting = 'flat', hidden = null, pointMask = null, hlObj = null, trustMask = null;
+    // 1 = keep the colour, 0 = grey (interior order); null while the trust array is not loaded or nothing is flagged.
+    function interiorTrustMask() {
+      if (trustMask !== null) return trustMask || null;
+      var PT = opt(result, k.ptrust);
+      if (!PT || PT.length !== nP) return null;
+      var mk = new Uint8Array(nI), any = false;
+      for (var j = 0; j < nI; j++) { var bad = (PT[interiorIdx[j]] & TRUST_INTERIOR) !== 0; mk[j] = bad ? 0 : 1; if (bad) any = true; }
+      trustMask = any ? mk : false;
+      return trustMask || null;
+    }
     function applyVisibility() {
       var wallOn = L.wall !== false || dsp.stl, opaque = cur.wallField || dsp.stl;
       wall.visible = wallOn;
@@ -280,7 +294,8 @@
       if (cur.wallField) { cur.scale.fill(cur.disp, wcolors, null, null); wcolorAttr.needsUpdate = true; }
       else {
         for (var j = 0; j < nI; j++) ivals[j] = cur.read[interiorIdx[j]];
-        cur.scale.fill(ivals, pcolors, null, null); pcolorAttr.needsUpdate = true;
+        var tm = L.trust ? interiorTrustMask() : null;
+        cur.scale.fill(ivals, pcolors, tm, tm ? TRUST_DIM : null); pcolorAttr.needsUpdate = true;
       }
       if (lines && lineSpeed && cur.fieldId === 'speed') { cur.scale.fill(lineSpeed, lineColors, null, null); lines.geometry.attributes.color.needsUpdate = true; }
       colorTubes();
@@ -297,11 +312,12 @@
     }
     function setLighting(mode) { lighting = mode === 'soft' ? 'soft' : 'flat'; applyVisibility(); }
     function setLayers(layers) {
+      var trustBefore = Boolean(L.trust);
       L = Object.assign({}, layers);
       applyVisibility();
-      if (L.streamlines && lines && cur.fieldId === 'speed') recolor();
+      if ((L.streamlines && lines && cur.fieldId === 'speed') || Boolean(L.trust) !== trustBefore) recolor();
       var hasLines = !!(k.slxyz && k.sloff);
-      return { streamlines: !!L.streamlines && hasLines, trust: !!L.trust && !!MT, centerline: !!L.centerline && !!clObj, points: false };
+      return { streamlines: !!L.streamlines && hasLines, trust: !!L.trust && (!!MT || !!k.ptrust), centerline: !!L.centerline && !!clObj, points: false };
     }
     // Hidden branches (classic volume report): the interior points of those branches, the wall faces whose three
     // vertices all belong to them (vertex branch = that of the nearest wall prediction point, else of the nearest
@@ -436,7 +452,8 @@
       fitPoints: function () { return V; },
       pointXYZ: function (q) { return q >= 0 && q < nP ? [P[3 * q], P[3 * q + 1], P[3 * q + 2]] : null; },
       sectionMesh: function () { return { vertices: V, faces: F }; },
-      arraysLoaded: function () { if (L.streamlines) buildStreamlines(); applyVisibility(); if (L.streamlines) recolor(); },
+      arraysLoaded: function () { if (L.streamlines) buildStreamlines(); applyVisibility(); if (L.streamlines || L.trust) recolor(); },
+      trustGrey: function () { var tm = L.trust ? interiorTrustMask() : null; if (!tm) return 0; var n = 0; for (var j = 0; j < tm.length; j++) if (!tm[j]) n++; return n; },
       counts: { vertices: nV, faces: F.length / 3, points: nP, interior: nI },
       dispose: function () {
         gfx.disposeObject(group);

@@ -43,16 +43,33 @@
   var STAG_HEX = '#d91a8c';   // classic STAG_RGB (0.85, 0.10, 0.55)
   function stagnationMaterial(THREE) {
     var m = new THREE.ShaderMaterial({
+      clipping: true,
       uniforms: { uColor: { value: new THREE.Color(STAG_HEX) }, uOpacity: { value: 0.85 }, uSpacing: { value: 6 }, uLine: { value: 2.2 } },
-      vertexShader: 'attribute float aStag; varying float vStag; void main(){ vStag = aStag; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: 'uniform vec3 uColor; uniform float uOpacity; uniform float uSpacing; uniform float uLine; varying float vStag;' +
-        'void main(){ if (vStag < 0.5) discard; float d = mod(gl_FragCoord.x - gl_FragCoord.y + 4096.0, uSpacing); if (d > uLine) discard; gl_FragColor = vec4(uColor, uOpacity); }',
+      vertexShader: '#include <clipping_planes_pars_vertex>\nattribute float aStag; varying float vStag; void main(){ vStag = aStag; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mvPosition;\n#include <clipping_planes_vertex>\n}',
+      fragmentShader: '#include <clipping_planes_pars_fragment>\nuniform vec3 uColor; uniform float uOpacity; uniform float uSpacing; uniform float uLine; varying float vStag;' +
+        'void main(){\n#include <clipping_planes_fragment>\n if (vStag < 0.5) discard; float d = mod(gl_FragCoord.x - gl_FragCoord.y + 4096.0, uSpacing); if (d > uLine) discard; gl_FragColor = vec4(uColor, uOpacity); }',
       side: THREE.DoubleSide, transparent: true, depthWrite: false,
       polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4
     });
     m.userData.basePx = { spacing: 6, line: 2.2 };
     return m;
   }
+  // Phase 3 lane 4 (剖切): the shared outline and trust-hatch shaders (core_viewer gfx) do not read clipping planes; the
+  // wall's copies get the three.js clipping chunks, so the Z cut removes them with the surface.  Without a plane the
+  // chunks compile to nothing (the picture is unchanged).  A shader of another shape is left as it is.
+  function clipAware(mat) {
+    var vs = mat && mat.vertexShader, fs = mat && mat.fragmentShader;
+    if (typeof vs !== 'string' || typeof fs !== 'string' || /clipping_planes/.test(vs)) return mat;
+    var vEnd = vs.lastIndexOf('}'), fMain = fs.indexOf('void main(){');
+    if (vEnd < 0 || fMain < 0 || /mvPosition/.test(vs)) return mat;
+    mat.vertexShader = '#include <clipping_planes_pars_vertex>\n' + vs.slice(0, vEnd) + '\n  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n#include <clipping_planes_vertex>\n' + vs.slice(vEnd);
+    fMain += 'void main(){'.length;
+    mat.fragmentShader = '#include <clipping_planes_pars_fragment>\n' + fs.slice(0, fMain) + '\n#include <clipping_planes_fragment>\n' + fs.slice(fMain);
+    mat.clipping = true;
+    return mat;
+  }
+  // The kept side of the Z cut: n · (p − o) ≥ 0 (p = {x, y, z}).
+  function keptBy(clip, p) { return !clip || (clip.normal[0] * (p.x - clip.origin[0]) + clip.normal[1] * (p.y - clip.origin[1]) + clip.normal[2] * (p.z - clip.origin[2])) >= 0; }
 
   function build(result, ctx) {
     var THREE = ctx.THREE, gfx = ctx.gfx, util = ns.util, m = result.manifest;
@@ -95,12 +112,12 @@
     mesh.name = 'wall-surface';
     group.add(mesh);
     var sign = gfx.windingSign(V, F);
-    var outlineMat = gfx.outlineMaterial({ sign: sign, width: 1.4, color: gfx.INK_HEX });
+    var outlineMat = clipAware(gfx.outlineMaterial({ sign: sign, width: 1.4, color: gfx.INK_HEX }));
     outlineMat.userData.baseWidth = 1.4;
     var outline = new THREE.Mesh(geom, outlineMat);
     outline.name = 'wall-outline';
     group.add(outline);
-    var hatchMat = gfx.hatchMaterial({ color: gfx.INK_HEX, opacity: 0.6, spacing: 7, line: 2 });
+    var hatchMat = clipAware(gfx.hatchMaterial({ color: gfx.INK_HEX, opacity: 0.6, spacing: 7, line: 2 }));
     hatchMat.userData.basePx = { spacing: 7, line: 2 };
     var hatch = new THREE.Mesh(geom, hatchMat);
     hatch.name = 'wall-trust';
@@ -151,7 +168,7 @@
     // state
     var cur = { fieldId: null, scale: null, disp: null, read: null };
     var hidden = null, pointMask = null, vertexMask = null, visibleVerts = null;
-    var hl = null, hlMask = null, grid = null, v2p = null;
+    var hl = null, hlMask = null, grid = null, v2p = null, pickClip = null;
 
     function pointGrid() {
       if (!grid) grid = util.gridIndex(PV, { cell: 1.5 });
@@ -247,19 +264,24 @@
       return out;
     }
     // The wall under a ray, the raw hit (measurement and region centres; the classic report used hit.point).
+    function firstHit(raycaster) {
+      var hits = raycaster.intersectObject(mesh, false);
+      for (var q = 0; q < hits.length; q++) if (keptBy(pickClip, hits[q].point)) return hits[q];
+      return null;
+    }
     function pickSurface(raycaster) {
       if (!mesh.visible) return null;
-      var hits = raycaster.intersectObject(mesh, false);
-      if (!hits.length) return null;
-      var h = hits[0], p = h.point, best = h.face.a, bd = Infinity;
+      var h = firstHit(raycaster);
+      if (!h) return null;
+      var p = h.point, best = h.face.a, bd = Infinity;
       [h.face.a, h.face.b, h.face.c].forEach(function (vi) { var dx = V[3 * vi] - p.x, dy = V[3 * vi + 1] - p.y, dz = V[3 * vi + 2] - p.z, d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = vi; } });
       return { xyz: [p.x, p.y, p.z], vertexIndex: best };
     }
     function pick(raycaster) {
       if (!mesh.visible) return null;
-      var hits = raycaster.intersectObject(mesh, false);
-      if (!hits.length) return null;
-      var h = hits[0], p = h.point, face = h.face;
+      var h = firstHit(raycaster);
+      if (!h) return null;
+      var p = h.point, face = h.face;
       var best = -1, bd = Infinity;
       [face.a, face.b, face.c].forEach(function (vi) { var dx = V[3 * vi] - p.x, dy = V[3 * vi + 1] - p.y, dz = V[3 * vi + 2] - p.z, d = dx * dx + dy * dy + dz * dz; if (d < bd) { bd = d; best = vi; } });
       var pi = pointGrid().nearest(p.x, p.y, p.z, { maxDist: 6, accept: pointMask ? function (j) { return pointMask[j] === 1; } : null });
@@ -271,7 +293,7 @@
         segmentId: pi >= 0 && PS ? Number(PS[pi]) : (MS ? Number(MS[best]) : null),
         s_from_root_mm: pi >= 0 && PSR ? (Number.isFinite(PSR[pi]) ? PSR[pi] : null) : null,
         value: NaN, valueSource: null, values: pi >= 0 ? pointValues(pi) : {},
-        trust: MT ? MT[best] : 0
+        trust: MT ? MT[best] : 0, face: [face.a, face.b, face.c]
       };
       if (cur.read && pi >= 0) { out.value = Number.isFinite(cur.read[pi]) ? cur.read[pi] : NaN; out.valueSource = 'read'; }
       else if (!cur.read && cur.disp) { out.value = Number.isFinite(cur.disp[best]) ? cur.disp[best] : NaN; out.valueSource = 'display'; }
@@ -313,6 +335,7 @@
       pick: pick, pickSurface: pickSurface, highlight: highlight, histogramValues: histogramValues,
       setDisplay: setDisplay,
       displayState: function () { return { stl: disp.stl, stagnation: stagState }; },
+      setPickClip: function (c) { pickClip = c && Array.isArray(c.normal) && Array.isArray(c.origin) ? { normal: c.normal.slice(), origin: c.origin.slice() } : null; },
       arraysLoaded: function () { if (stagState === 'pending' && disp.stagnation) setDisplay(disp); },
       fitPoints: function () { return visibleVerts || V; },
       pointXYZ: function (q) { return q >= 0 && q < nP ? [PV[3 * q], PV[3 * q + 1], PV[3 * q + 2]] : null; },
