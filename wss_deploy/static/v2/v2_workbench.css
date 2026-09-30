@@ -2,7 +2,10 @@
    Home pages (病例 / 任务 / 队列 / 回收站), counts, task list and selection bar, trash, cohort table + histogram,
    service banners, the upload dialog's extra parts, the whole-page drop target and the in-place re-login.
    Uses the variables of v2.css; the chart colours are data colours (validated pair, blue bars / orange reference). */
-:root { --wsc-series: #2a78d6; --wsc-series-strong: #1c5cab; --wsc-ref: #eb6834; }
+/* Chart colours (validated with the dataviz palette checker on the white panel): the data blue for the one series,
+   a de-emphasis gray that still clears 3:1, the orange reference; status colours (warn / error) only for states. */
+:root { --viz-1: #2a78d6; --viz-1-strong: #1c5cab; --viz-1-track: #dce9fb; --viz-muted: #8a94a6; --viz-muted-strong: #6b7585; --viz-ref: #eb6834;
+  --wsc-series: var(--viz-1); --wsc-series-strong: var(--viz-1-strong); --wsc-ref: var(--viz-ref); }
 
 /* ---------------------------------------------------------------- home head: the four pages as title tabs */
 .home-head { min-height: 40px; }
@@ -15,16 +18,75 @@ a.home-tab:hover { color: var(--ink); text-decoration: none; }
 .home-tab .sec-count { margin-left: 8px; vertical-align: 5px; font-size: 11px; letter-spacing: 0; font-weight: 600; }
 .wsc-head-note { display: inline-flex; align-items: center; gap: 6px; }
 
-/* ---------------------------------------------------------------- counts */
-.home-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 150px)); gap: 10px; margin-top: 18px; }
-.kpi-tile { display: grid; gap: 0; justify-items: start; padding: 10px 14px 9px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--panel); cursor: pointer; text-align: left;
-  box-shadow: var(--shadow-1); transition: border-color .12s, box-shadow .12s; }
-.kpi-tile:hover { border-color: var(--line-2); box-shadow: var(--shadow-2); }
-.kpi-tile-value { font-size: 24px; font-weight: 700; line-height: 1.15; color: var(--ink); font-variant-numeric: normal; }
-.kpi-tile-label { font-size: 12px; color: var(--ink-3); }
-.kpi-tile.tone-warn .kpi-tile-value { color: var(--warn); }
-.kpi-tile.tone-error .kpi-tile-value { color: var(--error); }
-.kpi-tile.tone-busy .kpi-tile-value { color: var(--accent); }
+/* ---------------------------------------------------------------- overview cards (home band, cohort cards) */
+.home-kpis { display: grid; grid-template-columns: minmax(0, 1.9fr) repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.ov-card { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 132px; padding: 14px 16px 12px; border: 1px solid var(--line); border-radius: var(--r-lg);
+  background: var(--panel); box-shadow: var(--shadow-1); text-align: left; transition: border-color .12s, box-shadow .12s; }
+.ov-card[role="button"] { cursor: pointer; }
+.ov-card[role="button"]:hover { border-color: var(--line-2); box-shadow: 0 6px 18px rgba(16, 24, 40, .08); }
+.ov-top { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.ov-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--ink-3); }
+.ov-dot.tone-busy { background: var(--accent); }
+.ov-dot.tone-warn { background: var(--warn); }
+.ov-dot.tone-error { background: var(--error); }
+.ov-value { margin-top: 6px; font-size: 30px; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; color: var(--ink); font-variant-numeric: normal; white-space: nowrap; }
+.ov-unit { margin-left: 4px; font-size: 13px; font-weight: 600; letter-spacing: 0; color: var(--ink-3); }
+.ov-sub { font-size: 12px; line-height: 1.45; color: var(--ink-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-strong { color: var(--ink-2); font-weight: 600; }
+.ov-card > .ov-sub, .ov-card > .ov-list, .ov-card > .ov-bars, .ov-foot { margin-top: auto; padding-top: 10px; }
+.ov-foot { display: grid; gap: 6px; min-width: 0; }
+.ov-axis { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+/* 今日: the value on the left, the last 14 days as columns on the right */
+.ov-split { flex: 1; display: flex; gap: 22px; min-height: 0; margin-top: 6px; }
+.ov-main { display: flex; flex-direction: column; justify-content: space-between; min-width: 92px; }
+.ov-main .ov-value { margin-top: 0; }
+.ov-chart { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ov-cols { flex: 1; display: flex; align-items: flex-end; gap: 2px; min-height: 64px; border-bottom: 1px solid var(--line-2); }
+.ov-col { flex: 1 1 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.ov-col-bar { width: 100%; max-width: 14px; background: var(--viz-muted); border-radius: 4px 4px 0 0; transition: background .12s; }
+.ov-col:hover .ov-col-bar { background: var(--viz-muted-strong); }
+.ov-col.today .ov-col-bar { background: var(--viz-1); }
+.ov-col.today:hover .ov-col-bar { background: var(--viz-1-strong); }
+/* 进行中: the running jobs by name */
+.ov-list { display: grid; gap: 3px; min-width: 0; }
+.ov-run { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-size: 12px; }
+.ov-run-name { font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-run-what { color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* meters: a split meter (待处理) and a single fill on a lighter step of the same hue (cohort) */
+.ov-meter { display: flex; gap: 2px; height: 8px; border-radius: 4px; overflow: hidden; background: var(--line); }
+.ov-seg { height: 100%; min-width: 4px; }
+.seg-confirm { background: var(--warn); }
+.seg-review { background: var(--viz-muted); }
+.ov-meter-fill { display: block; height: 100%; border-radius: 4px; }
+.ov-meter.m-review { background: var(--viz-1-track); }
+.m-review .ov-meter-fill { background: var(--viz-1); }
+.ov-meter.m-attn { background: #fbe3d1; }
+.m-attn .ov-meter-fill { background: var(--warn); }
+.ov-keys { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); }
+.ov-key { display: inline-flex; align-items: center; gap: 6px; }
+.ov-swatch { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+/* cohort: results by kind as small bars, the diameters as a strip */
+.ov-bars { display: grid; gap: 5px; min-width: 0; }
+.ov-bar-row { display: grid; grid-template-columns: minmax(0, 5.6em) minmax(0, 1fr) 2.2em; align-items: center; gap: 8px; font-size: 12px; }
+.ov-bar-label { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-bar-track { display: block; height: 6px; }
+.ov-bar-fill { display: block; min-width: 2px; height: 6px; border-radius: 0 3px 3px 0; background: var(--viz-1); }
+.ov-bar-n { text-align: right; color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ov-strip { position: relative; height: 20px; margin: 2px 6px 0; }
+.ov-strip-line { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--line-2); }
+.ov-strip-iqr { position: absolute; top: 50%; height: 10px; margin-top: -5px; min-width: 2px; border-radius: 3px; background: var(--viz-1-track); }
+.ov-strip-iqr::after { content: ""; position: absolute; inset: -7px 0; }
+.ov-strip-med { position: absolute; top: 1px; bottom: 1px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--ink); pointer-events: none; }
+.ov-strip-dot { position: absolute; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--viz-1); box-shadow: 0 0 0 2px var(--panel); }
+.ov-strip-dot::after { content: ""; position: absolute; inset: -8px; }
+.ov-strip-dot:hover { background: var(--viz-1-strong); }
+.ov-foot > .ov-axis { margin: 0 2px; }
+/* chart tooltip (ws_ui.chartTip): the value leads, the label follows */
+.chart-tip { position: absolute; z-index: 6; transform: translate(-50%, calc(-100% - 8px)); display: grid; gap: 1px; padding: 6px 9px; border-radius: 8px; background: #101828; color: #ffffff;
+  font-size: 12px; line-height: 1.35; white-space: nowrap; box-shadow: 0 6px 16px rgba(16, 24, 40, .22); pointer-events: none; }
+.chart-tip[hidden] { display: none; }
+.chart-tip strong { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.chart-tip span { color: #c3cad4; }
 .home-sub-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .home-sub-row .home-sub { margin: 0; }
 .attn-card.tone-idle .attn-go { color: var(--ink-2); }
@@ -100,24 +162,41 @@ th.num .wsc-sort { flex-direction: row-reverse; }
 .wsc-sel-count { font-weight: 700; margin-right: 8px; }
 .wsc-sel-sep { width: 1px; height: 18px; background: rgba(255, 255, 255, .18); margin: 0 4px; }
 
-/* ---------------------------------------------------------------- cohort chart */
-.wsc-chart { margin-top: 14px; max-width: 720px; padding: 12px 14px 8px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
-.wsc-chart:empty { display: none; }
-.wsc-chart-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.wsc-hist { display: block; width: 100%; height: auto; margin-top: 6px; }
+/* ---------------------------------------------------------------- cohort: cards, then the distribution and the scatter side by side */
+.wsc-exports { display: inline-flex; gap: 8px; }
+.wsc-field { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
+.wsc-sep { width: 1px; height: 20px; margin: 0 2px; background: var(--line-2); }
+.wsc-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.wsc-kpis:empty, .wsc-charts:empty { display: none; }
+.wsc-charts { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 12px; margin-top: 12px; }
+.wsc-charts.single { grid-template-columns: minmax(0, 1fr); }
+.wsc-card { position: relative; min-width: 0; padding: 14px 16px 8px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+.wsc-card-head { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.wsc-card-titles { display: grid; gap: 1px; min-width: 0; }
+.wsc-card-title { margin: 0; font-size: 13px; font-weight: 700; color: var(--ink); }
+.wsc-card-sub { font-size: 12px; color: var(--ink-3); }
+.wsc-plot { margin-top: 8px; min-width: 0; }
+.wsc-plot > .note { margin: 18px 0 20px; }
+.wsc-hist, .wsc-scat { display: block; max-width: 100%; overflow: visible; }
 .wsc-axis { stroke: var(--line-2); stroke-width: 1; }
 .wsc-grid { stroke: var(--line); stroke-width: 1; }
 .wsc-tick { fill: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
-.wsc-bar { fill: var(--wsc-series); }
+.wsc-bar { fill: var(--viz-1); transition: fill .12s; }
 .wsc-bin .wsc-hit { fill: transparent; cursor: pointer; outline: none; }
-.wsc-bin:hover .wsc-bar, .wsc-bin .wsc-hit:focus-visible + .wsc-bar { fill: var(--wsc-series-strong); }
-.wsc-bin.on .wsc-bar { fill: var(--wsc-series-strong); }
+.wsc-bin:hover .wsc-bar, .wsc-bin.on .wsc-bar { fill: var(--viz-1-strong); }
+.wsc-bin .wsc-hit:focus-visible { stroke: var(--accent); stroke-width: 2; }
 .wsc-bin.dim .wsc-bar { opacity: .35; }
-.wsc-ref { fill: none; stroke: var(--wsc-ref); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
+.wsc-ref-area { fill: var(--viz-ref); fill-opacity: .1; pointer-events: none; }
+.wsc-ref { fill: none; stroke: var(--viz-ref); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
+.wsc-dot { fill: var(--viz-1); stroke: var(--panel); stroke-width: 2; transition: fill .12s; }
+.wsc-pt:hover .wsc-dot, .wsc-pt.on .wsc-dot { fill: var(--viz-1-strong); }
+.wsc-pt.dim .wsc-dot { fill: var(--viz-muted); opacity: .45; }
+.wsc-pt-hit { fill: transparent; cursor: pointer; outline: none; }
+.wsc-pt-hit:focus-visible { stroke: var(--accent); stroke-width: 2; }
 .wsc-legend { display: flex; align-items: center; gap: 14px; font-size: 12px; color: var(--ink-2); }
 .wsc-key { display: inline-flex; align-items: center; gap: 6px; }
-.wsc-swatch { width: 10px; height: 10px; border-radius: 2px; background: var(--wsc-series); }
-.wsc-linekey { width: 16px; height: 2px; border-radius: 1px; background: var(--wsc-ref); }
+.wsc-swatch { width: 10px; height: 10px; border-radius: 2px; background: var(--viz-1); }
+.wsc-linekey { width: 16px; height: 2px; border-radius: 1px; background: var(--viz-ref); }
 .wsc-cohort-table td.num { font-variant-numeric: tabular-nums; }
 
 /* ---------------------------------------------------------------- service banners (reconnect, update) */
@@ -168,13 +247,22 @@ th.num .wsc-sort { flex-direction: row-reverse; }
 .relogin-form .dlg-body { max-height: none; }
 .relogin-other { font-size: 12px; }
 
+@media (max-width: 1000px) {
+  .wsc-charts { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .home-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .home-kpis .ov-wide { grid-column: 1 / -1; }
+  .wsc-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .home-kpis, .wsc-kpis { grid-template-columns: minmax(0, 1fr); }
+  .ov-split { flex-direction: column; gap: 10px; }
+}
 @media (max-width: 760px) {
   .home-tabs { gap: 12px; }
   .home-tab { font-size: 20px; }
   a.home-tab { font-size: 15px; }
-  .home-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-  .kpi-tile { padding: 8px 10px; }
-  .kpi-tile-value { font-size: 20px; }
   .wsc-hide-sm { display: none; }
   .wsc-input, .wsc-input-sm { width: calc(50% - 4px) !important; }
   .wsc-td-name { max-width: 150px; }

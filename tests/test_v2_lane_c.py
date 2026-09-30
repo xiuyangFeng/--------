@@ -134,7 +134,7 @@ def test_home_tabs_counts_full_list_and_review_in_attention():
       canned['/api/jobs'] = {body: {jobs: [jobRecord('A'), jobRecord('B', {review: {status: 'reviewed'}}), jobRecord('C', {status: 'awaiting_confirmation'}), jobRecord('D', {status: 'failed'})]}};
       await boot();
       const head = byClass(app(), 'home-head')[0];
-      done({tabs: byClass(head, 'home-tab').map(textOf), kpis: byClass(app(), 'kpi-tile').map(textOf), attn: byClass(app(), 'attn-card').map(textOf),
+      done({tabs: byClass(head, 'home-tab').map(textOf), kpis: byClass(app(), 'ov-card').map(e => textOf(byClass(e, 'ov-value')[0]) + textOf(byClass(e, 'ov-label')[0])), attn: byClass(app(), 'attn-card').map(textOf),
         listUrls: urls.filter(u => u.startsWith('GET /api/jobs') && !u.includes('/api/jobs/')), pages: byClass(app(), 'rail-page').map(e => e.attrs.href || e.href)});
     """)
     assert out["errors"] == [], out["errors"]

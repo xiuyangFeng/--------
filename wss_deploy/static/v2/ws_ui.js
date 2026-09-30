@@ -391,8 +391,35 @@
     return typeof target.closest === 'function' && Boolean(target.closest('dialog[open], [contenteditable="true"]'));
   }
 
+  // ------------------------------------------------------------------ chart tooltip (home overview, cohort charts)
+  // One tooltip per chart card (``host`` is positioned): the value leads, the label follows; text only.  Marks call
+  // bind(mark, value, label) and get the same readout on hover and on keyboard focus.  It never gates a value: every
+  // number it shows is also in a table (task list, cohort table).
+  function chartTip(host) {
+    var el = h('div', {'class': 'chart-tip', role: 'tooltip'});
+    el.hidden = true;
+    host.appendChild(el);
+    function show(anchor, value, label) {
+      fill(el, h('strong', {text: value}), label ? h('span', {text: label}) : null);
+      el.hidden = false;
+      var hr = host.getBoundingClientRect(), ar = anchor.getBoundingClientRect();
+      var w = el.offsetWidth || 0, x = ar.left + ar.width / 2 - hr.left, y = ar.top - hr.top;
+      if (w) x = Math.max(w / 2 + 4, Math.min(hr.width - w / 2 - 4, x));
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+    }
+    function hide() { el.hidden = true; }
+    function bind(mark, value, label) {
+      var on = function () { show(mark, typeof value === 'function' ? value() : value, typeof label === 'function' ? label() : label); };
+      mark.addEventListener('pointerenter', on); mark.addEventListener('focus', on);
+      mark.addEventListener('pointerleave', hide); mark.addEventListener('blur', hide);
+      return mark;
+    }
+    return {show: show, hide: hide, bind: bind, el: el};
+  }
+
   var _infoTip = infoTip;
-  return {h: h, clear: clear, fill: fill, icon: icon, appendKids: appendKids,
+  return {h: h, clear: clear, fill: fill, icon: icon, appendKids: appendKids, chartTip: chartTip,
     sig: sig, trim: trim, num: num, pct: pct, range: range, unitText: unitText, time: time, duration: duration,
     statusInfo: statusInfo, reviewInfo: reviewInfo, dot: dot, statusDot: statusDot, reviewDot: reviewDot, tierTag: tierTag, tierHelp: tierHelp, TIERS: TIERS,
     releaseIdOf: releaseIdOf, kindOf: kindOf, resultName: resultName, displayName: displayName,

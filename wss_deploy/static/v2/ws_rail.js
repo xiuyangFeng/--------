@@ -212,6 +212,87 @@
     });
     return out;
   }
+  // Pure: what the home overview draws — the four counts plus the last 14 local days of uploads (oldest first), the
+  // running jobs, the split of 待处理 into outlets / input to confirm and results to review, and the latest failure.
+  var DAYS = 14, WEEKDAY = '日一二三四五六';
+  function dayKey(t) { var d = new Date(t); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function homeStats(jobs, nowMs) {
+    var now = nowMs === undefined ? Date.now() : nowMs;
+    var out = homeCounts(jobs, now), index = {}, days = [];
+    var noon = new Date(now); noon.setHours(12, 0, 0, 0);
+    for (var i = DAYS - 1; i >= 0; i--) {
+      var d = new Date(noon.getTime() - i * 86400000);
+      var e = {key: dayKey(d.getTime()), month: d.getMonth() + 1, day: d.getDate(), weekday: d.getDay(), n: 0, failed: 0, today: i === 0};
+      index[e.key] = e; days.push(e);
+    }
+    out.days = days; out.running = []; out.queued = 0; out.confirm = 0; out.review = 0; out.lastFailed = null;
+    (jobs || []).forEach(function (job) {
+      var t = created(job), b = bucket(job), day = t ? index[dayKey(t)] : null;
+      if (day) { day.n += 1; if (b === 'failed') day.failed += 1; }
+      if (b === 'running') { if (/^queued/.test(job.status || '')) out.queued += 1; else out.running.push(job); }
+      else if (b === 'confirm') out.confirm += 1;
+      else if (b === 'unreviewed') out.review += 1;
+      else if (b === 'failed' && (!out.lastFailed || t > created(out.lastFailed))) out.lastFailed = job;
+    });
+    out.running.sort(function (a, b) { return created(b) - created(a); });
+    out.recent = days.reduce(function (sum, x) { return sum + x.n; }, 0);
+    return out;
+  }
+  // The overview band: four cards across the full width, each opening the task list with its filter.  今日 carries the
+  // last 14 days as columns (today in the data blue, the other days in the de-emphasis gray); 待处理 a split meter.
+  function overview(n) {
+    var h = ui().h;
+    var card = function (cls, label, tone, value, body, filter, tip) {
+      var el = h('div', {'class': 'ov-card ' + cls, role: 'button', tabindex: '0', title: tip},
+        h('div', {'class': 'ov-top'}, tone ? h('span', {'class': 'ov-dot tone-' + tone, 'aria-hidden': 'true'}) : null, h('span', {'class': 'ov-label', text: label})),
+        value !== null ? h('div', {'class': 'ov-value', text: String(value)}) : null, body);
+      var open = function () { ns.admin.openTasks(filter); };
+      el.addEventListener('click', open);
+      el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { if (e.preventDefault) e.preventDefault(); open(); } });
+      return el;
+    };
+    // 今日: value + the 14-day columns
+    var peak = Math.max.apply(null, [1].concat(n.days.map(function (d) { return d.n; })));
+    var chart = h('div', {'class': 'ov-chart'});
+    var cols = h('div', {'class': 'ov-cols', role: 'img', 'aria-label': '近 14 天每天上传的任务数：' + n.days.map(function (d) { return d.month + '月' + d.day + '日 ' + d.n; }).join('，')});
+    chart.appendChild(cols);
+    var tip = ui().chartTip ? ui().chartTip(chart) : null;
+    n.days.forEach(function (d) {
+      var col = h('span', {'class': 'ov-col' + (d.today ? ' today' : '')},
+        h('span', {'class': 'ov-col-bar' + (d.n ? '' : ' zero'), style: 'height:' + (d.n ? Math.max(8, Math.round(d.n / peak * 100)) : 0) + '%'}));
+      if (tip) tip.bind(col, d.n + ' 个', (d.today ? '今天' : d.month + '月' + d.day + '日') + ' 周' + WEEKDAY[d.weekday] + (d.failed ? ' · 失败 ' + d.failed : ''));
+      cols.appendChild(col);
+    });
+    chart.appendChild(h('div', {'class': 'ov-axis'}, h('span', {text: n.days[0].month + '/' + n.days[0].day}), h('span', {text: '今天'})));
+    var today = card('ov-wide', '今日上传', null, null, h('div', {'class': 'ov-split'},
+      h('div', {'class': 'ov-main'}, h('div', {'class': 'ov-value', text: String(n.today)}), h('div', {'class': 'ov-sub', text: '近 14 天共 ' + n.recent + ' 个'})), chart),
+      {quick: 'today'}, '今天上传的任务；柱子是近 14 天每天的数量');
+    // 进行中: the running jobs by name
+    var runBody = n.running.length || n.queued
+      ? h('div', {'class': 'ov-list'}, n.running.slice(0, 2).map(function (j) {
+          return h('div', {'class': 'ov-run'}, h('span', {'class': 'ov-run-name', text: ui().displayName(j)}), h('span', {'class': 'ov-run-what', text: j.phase || '计算中'}));
+        }), n.running.length > 2 ? h('div', {'class': 'ov-sub', text: '另有 ' + (n.running.length - 2) + ' 个在算'}) : null,
+          n.queued ? h('div', {'class': 'ov-sub', text: '排队 ' + n.queued + ' 个'}) : null)
+      : h('div', {'class': 'ov-sub', text: '当前空闲'});
+    var active = card('', '进行中', n.active ? 'busy' : null, n.active, runBody, {status: 'active'}, '排队或计算中');
+    // 待处理: split meter (outlets / input to confirm, results to review)
+    var total = n.confirm + n.review;
+    var seg = function (cls, k) { return k ? h('span', {'class': 'ov-seg ' + cls, style: 'flex-grow:' + k}) : null; };
+    var todoBody = h('div', {'class': 'ov-foot'},
+      h('div', {'class': 'ov-meter' + (total ? '' : ' empty')}, seg('seg-confirm', n.confirm), seg('seg-review', n.review)),
+      h('div', {'class': 'ov-keys'},
+        h('span', {'class': 'ov-key'}, h('span', {'class': 'ov-swatch seg-confirm'}), h('span', {text: '待确认 ' + n.confirm})),
+        h('span', {'class': 'ov-key'}, h('span', {'class': 'ov-swatch seg-review'}), h('span', {text: '待复核 ' + n.review}))));
+    var todoCard = card('', '待处理', total ? 'warn' : null, n.todo, todoBody, {quick: 'todo'}, '待确认出口或输入，以及已完成待复核');
+    // 失败: the latest failure
+    var lf = n.lastFailed;
+    var failBody = lf
+      ? h('div', {'class': 'ov-list'}, h('div', {'class': 'ov-sub', text: '最近一次'}),
+          h('div', {'class': 'ov-run'}, h('span', {'class': 'ov-run-name', text: ui().displayName(lf)}), h('span', {'class': 'ov-run-what', text: ui().time(lf.created_at, false).slice(5)})))
+      : h('div', {'class': 'ov-sub', text: '没有失败的任务'});
+    var failed = card('', '失败', n.failed ? 'error' : null, n.failed, failBody, {status: 'failed'}, '失败或中断');
+    return h('section', {'class': 'home-kpis', 'aria-label': '概况'}, today, active, todoCard, failed);
+  }
   // Home: a gallery of cases (vessel thumbnail, name, scans, one chip per result) under the counts and a short strip
   // of the jobs that need an action (outlets to confirm, failures, running, results to review).  Pure layout;
   // thumbnails come from ns.thumbs.  A page route (#/tasks …) is drawn by the workbench module instead.
@@ -254,21 +335,8 @@
     var timer = null;
     search.addEventListener('input', function () { if (timer) clearTimeout(timer); timer = setTimeout(function () { if (opts.onSearch) opts.onSearch(search.value); }, 160); });
     wrap.appendChild(homeHead('', String(tree.length), h('label', {'class': 'home-search-wrap'}, ui().icon('search'), search)));
-    // counts (lane C): each opens the task list with that filter
-    if (ns.admin && ns.admin.openTasks && (jobs || []).length) {
-      var n = homeCounts(jobs);
-      var tile = function (label, value, tone, filter, tip) {
-        var b = h('button', {type: 'button', 'class': 'kpi-tile' + (value && tone ? ' tone-' + tone : ''), title: tip},
-          h('span', {'class': 'kpi-tile-value', text: String(value)}), h('span', {'class': 'kpi-tile-label', text: label}));
-        b.addEventListener('click', function () { ns.admin.openTasks(filter); });
-        return b;
-      };
-      wrap.appendChild(h('div', {'class': 'home-kpis'},
-        tile('今日', n.today, '', {quick: 'today'}, '今天上传的任务'),
-        tile('进行中', n.active, 'busy', {status: 'active'}, '排队或计算中'),
-        tile('待处理', n.todo, 'warn', {quick: 'todo'}, '待确认出口或输入，以及已完成待复核'),
-        tile('失败', n.failed, 'error', {status: 'failed'}, '失败或中断')));
-    }
+    // overview band (lane C counts): each card opens the task list with that filter
+    if (ns.admin && ns.admin.openTasks && (jobs || []).length) wrap.appendChild(overview(homeStats(jobs)));
     // needs an action (待复核 included); when there are more than fit, every kind keeps a place (round robin in this order)
     var groups = [m.confirm.map(function (j) { return {job: j, tone: 'warn', what: j.status === 'awaiting_input' ? '核对单位与尺寸' : '确认出口', action: '去确认'}; }),
       m.failed.map(function (j) { return {job: j, tone: 'error', what: '失败', action: '查看原因'}; }),
@@ -342,5 +410,5 @@
     return m;
   }
 
-  return {create: create, model: model, order: order, todo: todo, todoModel: todoModel, bucket: bucket, FILTERS: FILTERS, homeHead: homeHead, homeCounts: homeCounts, attnPick: attnPick, PAGES: PAGES};
+  return {create: create, model: model, order: order, todo: todo, todoModel: todoModel, bucket: bucket, FILTERS: FILTERS, homeHead: homeHead, homeCounts: homeCounts, homeStats: homeStats, attnPick: attnPick, PAGES: PAGES};
 });

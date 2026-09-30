@@ -969,23 +969,35 @@
     if (!(A.els && A.els.kind === 'cohort' && A.els.wrap.parentNode === el)) {
       var E = A.els = {kind: 'cohort'};
       E.count = h('span', {'class': 'sec-count'});
-      E.head = head('cohort', E.count, h('span', {'class': 'wsc-head-note'}, ui().infoTip('已完成任务的关键数字，来自汇总表（与导出的 CSV 同源）。点表头排序，点直方图的柱子只看那一段。'),
+      E.head = head('cohort', E.count, h('span', {'class': 'wsc-head-note'}, ui().infoTip('已完成任务的关键数字，来自汇总表（与导出的 CSV 同源）。筛选作用于下面的卡片、图和表；点分布图的柱子只看那一段，点散点打开那个结果。'),
         ui().iconButton('refresh', '刷新', function () { loadCohort(true); })));
       E.filters = h('div', {'class': 'wsc-filters'});
-      E.chart = h('div', {'class': 'wsc-chart'});
+      E.kpis = h('div', {'class': 'wsc-kpis'});
+      E.chart = h('div', {'class': 'wsc-charts'});
       E.body = h('div', {'class': 'wsc-tablewrap'});
-      E.wrap = h('div', {'class': 'home wsc-page wsc-cohort'}, E.head, E.filters, E.chart, E.body);
+      E.wrap = h('div', {'class': 'home wsc-page wsc-cohort'}, E.head, E.filters, E.kpis, E.chart, E.body);
       el.replaceChildren(E.wrap);
     }
     A.mounted = 'cohort';
+    watchResize();
     if (!C.data || C.stale) loadCohort(true);
     renderCohort();
+  }
+  // The charts are drawn in pixels for the width they get; a window resize redraws them.
+  var resizeTimer = null, resizeBound = false;
+  function watchResize() {
+    if (resizeBound || typeof root.addEventListener !== 'function') return;
+    resizeBound = true;
+    root.addEventListener('resize', function () {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () { if (A.mounted === 'cohort' && A.cohort.data) renderCohort(); }, 160);
+    });
   }
   function metricCols(rows) { return COHORT_COLS.filter(function (c) { return !c.text && rows.some(function (r) { return num(r[c.key]) !== null; }); }); }
   function renderCohort() {
     var E = A.els, C = A.cohort;
     if (!E || E.kind !== 'cohort') return;
-    if (!C.data) { E.count.textContent = ''; E.filters.replaceChildren(); E.chart.replaceChildren(); ui().fill(E.body, ui().empty('正在读取…')); return; }
+    if (!C.data) { E.count.textContent = ''; E.filters.replaceChildren(); E.kpis.replaceChildren(); E.chart.replaceChildren(); ui().fill(E.body, ui().empty('正在读取…')); return; }
     var all = C.data.rows;
     var releases = {}; all.forEach(function (r) { if (r.release_id) releases[r.release_id] = true; });
     var relOpts = [{value: '', label: '全部模型'}].concat(Object.keys(releases).sort().map(function (id) { var c = cards()[id]; return {value: id, label: (c && c.display_name) || ui().resultName({model_release: {id: id}}, cards())}; }));
@@ -997,14 +1009,22 @@
     var rows = cohortModel(all, C);
     E.count.textContent = rows.length === all.length ? String(all.length) : rows.length + ' / ' + all.length;
     var picked = rows.filter(function (r) { return r.job_id; }).map(function (r) { return {id: r.job_id, status: 'done'}; });
-    ui().fill(E.filters, fam, rel, rev,
+    // the metric the two charts show sits with the other filters (one row scopes everything below it)
+    var metrics = metricCols(rowsNoBin);
+    if (metrics.length && !metrics.some(function (c) { return c.key === C.metric; })) C.metric = (metrics.filter(function (c) { return c.key === 'wss_p99_pa'; })[0] || metrics[0]).key;
+    var col = metrics.filter(function (c) { return c.key === C.metric; })[0] || null;
+    var pickMetric = metrics.length ? h('label', {'class': 'wsc-field'}, h('span', {text: '指标'}),
+      ui().select(metrics.map(function (c) { return {value: c.key, label: c.label}; }), C.metric, function (v) { C.metric = v; C.bin = null; renderCohort(); }, {'class': 'wsc-select', 'aria-label': '图上的量'})) : null;
+    ui().fill(E.filters, fam, rel, rev, pickMetric ? h('span', {'class': 'wsc-sep', 'aria-hidden': 'true'}) : null, pickMetric,
       C.bin ? h('span', {'class': 'wsc-chip'}, h('span', {text: C.bin.label}), ui().iconButton('close', '清除', function () { C.bin = null; renderCohort(); }, {cls: 'wsc-chip-x'})) : null,
       h('span', {'class': 'sec-fill'}),
-      ui().button('CSV', function () { exportSummary(picked, 'csv'); }, {cls: 'btn-sm', icon: 'download', disabled: !picked.length}),
-      ui().button('Excel', function () { exportSummary(picked, 'xlsx'); }, {cls: 'btn-sm', disabled: !picked.length}));
-    if (C.error) { E.chart.replaceChildren(); ui().fill(E.body, ui().empty(C.error)); return; }
-    if (!all.length) { E.chart.replaceChildren(); ui().fill(E.body, ui().empty('还没有已完成的任务。')); return; }
-    renderHistogram(E.chart, rowsNoBin);
+      h('span', {'class': 'wsc-exports'},
+        ui().button('CSV', function () { exportSummary(picked, 'csv'); }, {cls: 'btn-sm', icon: 'download', disabled: !picked.length}),
+        ui().button('Excel', function () { exportSummary(picked, 'xlsx'); }, {cls: 'btn-sm', disabled: !picked.length})));
+    if (C.error) { E.kpis.replaceChildren(); E.chart.replaceChildren(); ui().fill(E.body, ui().empty(C.error)); return; }
+    if (!all.length) { E.kpis.replaceChildren(); E.chart.replaceChildren(); ui().fill(E.body, ui().empty('还没有已完成的任务。')); return; }
+    renderKpis(E.kpis, cohortStats(rows));
+    if (col) renderCharts(E.chart, rowsNoBin, col); else E.chart.replaceChildren();
     var shownCols = metricCols(rows.length ? rows : rowsNoBin);
     var cols = COHORT_COLS.filter(function (c) { return c.text || shownCols.indexOf(c) >= 0; });
     var thead = h('tr', {}, cols.map(function (c) {
@@ -1029,8 +1049,82 @@
       rows.length > 500 ? ui().note('表格显示前 500 行；导出包含全部筛选结果（每次最多 ' + LIMITS.export + ' 个）。') : null,
       !rows.length ? ui().empty('没有符合条件的任务。') : null);
   }
-  // One histogram of one metric over the filtered rows.  With 「WSS p99」 and a population reference of the same
-  // release the reference is a step line; each series is scaled to its own peak (as in the classic cohort panel).
+
+  // ------------------------------------------------------------------ cohort cards (the filtered rows)
+  function median(values) {
+    var s = values.slice().sort(function (a, b) { return a - b; }), n = s.length;
+    return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null;
+  }
+  // Pure: what the four cards show.  Results by kind (most first), review progress, results with an 「关注」 finding
+  // (rows without the column are not counted either way), and the lumen diameters.
+  function quantile(sorted, q) {
+    if (!sorted.length) return null;
+    var p = (sorted.length - 1) * q, i = Math.floor(p), f = p - i;
+    return i + 1 < sorted.length ? sorted[i] + (sorted[i + 1] - sorted[i]) * f : sorted[i];
+  }
+  function cohortStats(rows) {
+    var byKind = {}, kinds = [];
+    rows.forEach(function (r) { var k = cohortText(r, {key: 'result'}); if (!(k in byKind)) { byKind[k] = 0; kinds.push(k); } byKind[k] += 1; });
+    kinds.sort(function (a, b) { return byKind[b] - byKind[a]; });
+    var known = rows.filter(function (r) { return num(r.findings_attention) !== null; });
+    var diam = rows.map(function (r) { return {r: r, v: num(r.max_diameter_mm)}; }).filter(function (x) { return x.v !== null; });
+    var dv = diam.map(function (x) { return x.v; }), ds = dv.slice().sort(function (a, b) { return a - b; });
+    return {n: rows.length, kinds: kinds.map(function (k) { return {label: k, n: byKind[k]}; }),
+      reviewed: rows.filter(function (r) { return r.review_status === 'reviewed'; }).length,
+      attention: known.filter(function (r) { return num(r.findings_attention) > 0; }).length, findingsKnown: known.length,
+      diameters: diam, dMedian: median(dv), dMin: dv.length ? ds[0] : null, dMax: dv.length ? ds[ds.length - 1] : null, dQ1: quantile(ds, 0.25), dQ3: quantile(ds, 0.75)};
+  }
+  function rowName(r) { return cohortText(r, {key: 'name'}) + ' · ' + cohortText(r, {key: 'result'}); }
+  function statCard(label, value, unit, body, tone) {
+    return h('div', {'class': 'ov-card ov-static'},
+      h('div', {'class': 'ov-top'}, tone ? h('span', {'class': 'ov-dot tone-' + tone, 'aria-hidden': 'true'}) : null, h('span', {'class': 'ov-label', text: label})),
+      h('div', {'class': 'ov-value'}, h('span', {text: value}), unit ? h('span', {'class': 'ov-unit', text: unit}) : null), body);
+  }
+  function meter(frac, cls, label) {
+    var f = Math.max(0, Math.min(1, frac || 0));
+    return h('div', {'class': 'ov-meter ' + cls, role: 'img', 'aria-label': label}, f > 0 ? h('span', {'class': 'ov-meter-fill', style: 'width:' + (f * 100).toFixed(1) + '%'}) : null);
+  }
+  function renderKpis(host, st) {
+    var n = st.n;
+    // 1 results by kind: one bar per kind, one colour (the bars compare counts; the names are the labels)
+    var top = st.kinds.slice(0, 3), rest = st.kinds.slice(3).reduce(function (s, k) { return s + k.n; }, 0), peak = Math.max.apply(null, [1].concat(st.kinds.map(function (k) { return k.n; })));
+    var kinds = h('div', {'class': 'ov-bars'}, top.map(function (k) {
+      return h('div', {'class': 'ov-bar-row'}, h('span', {'class': 'ov-bar-label', text: k.label}),
+        h('span', {'class': 'ov-bar-track'}, h('span', {'class': 'ov-bar-fill', style: 'width:' + (k.n / peak * 100).toFixed(1) + '%'})), h('span', {'class': 'ov-bar-n', text: String(k.n)}));
+    }), rest ? h('div', {'class': 'ov-sub', text: '其他 ' + rest}) : null);
+    var c1 = statCard('已完成结果', String(n), null, n ? kinds : h('div', {'class': 'ov-sub', text: '没有符合条件的结果'}));
+    // 2 review progress
+    var c2 = statCard('已复核', n ? Math.round(st.reviewed / n * 100) + '%' : '—', null, h('div', {'class': 'ov-foot'},
+      meter(n ? st.reviewed / n : 0, 'm-review', '已复核 ' + st.reviewed + ' / ' + n), h('div', {'class': 'ov-sub', text: st.reviewed + ' / ' + n + ' 个结果'})));
+    // 3 results with an 「关注」 finding
+    var k = st.findingsKnown;
+    var c3 = statCard('有「关注」发现', k ? String(st.attention) : '—', null, h('div', {'class': 'ov-foot'},
+      k ? meter(st.attention / k, 'm-attn', st.attention + ' / ' + k) : null,
+      h('div', {'class': 'ov-sub', text: k ? st.attention + ' / ' + k + ' 个结果' : '这些结果没有发现记录'})), k && st.attention ? 'warn' : null);
+    // 4 lumen diameter: median, and every result as a dot on the min–max strip
+    var c4body = h('div', {'class': 'ov-foot'});
+    var c4 = statCard('管腔最大直径 · 中位', st.dMedian === null ? '—' : ui().sig(st.dMedian), st.dMedian === null ? null : 'mm', c4body);
+    host.replaceChildren(c1, c2, c3, c4);
+    if (st.dMedian !== null) {
+      var span = st.dMax - st.dMin, pos = function (v) { return (span > 0 ? (v - st.dMin) / span * 100 : 50).toFixed(2) + '%'; };
+      var tip = ui().chartTip ? ui().chartTip(c4) : null;
+      var iqr = h('span', {'class': 'ov-strip-iqr', style: 'left:' + pos(st.dQ1) + ';width:' + (span > 0 ? (st.dQ3 - st.dQ1) / span * 100 : 0).toFixed(2) + '%'});
+      var strip = h('div', {'class': 'ov-strip', role: 'img', 'aria-label': '管腔最大直径 ' + st.diameters.length + ' 例，' + ui().sig(st.dMin) + '–' + ui().sig(st.dMax) + ' mm，四分位 ' + ui().sig(st.dQ1) + '–' + ui().sig(st.dQ3) + ' mm'},
+        h('span', {'class': 'ov-strip-line'}), iqr);
+      if (tip) tip.bind(iqr, ui().sig(st.dQ1) + '–' + ui().sig(st.dQ3) + ' mm', '中间一半（四分位）· 中位 ' + ui().sig(st.dMedian) + ' mm');
+      // one dot per result while they stay apart; past that the quartile band carries the spread
+      if (st.diameters.length <= 24) st.diameters.forEach(function (d) {
+        var dot = h('span', {'class': 'ov-strip-dot', style: 'left:' + pos(d.v)});
+        if (tip) tip.bind(dot, ui().sig(d.v) + ' mm', rowName(d.r));
+        strip.appendChild(dot);
+      });
+      strip.appendChild(h('span', {'class': 'ov-strip-med', style: 'left:' + pos(st.dMedian)}));
+      c4body.appendChild(strip);
+      c4body.appendChild(h('div', {'class': 'ov-axis'}, h('span', {text: ui().sig(st.dMin)}), h('span', {text: st.diameters.length + ' 例'}), h('span', {text: ui().sig(st.dMax) + ' mm'})));
+    }
+  }
+
+  // ------------------------------------------------------------------ cohort charts: distribution + scatter
   var SVGNS = 'http://www.w3.org/2000/svg';
   function svg(tag, attrs, kids) {
     var el = root.document.createElementNS(SVGNS, tag);
@@ -1043,56 +1137,140 @@
     var edges = binEdges(values.concat(refValues || []), 16);
     return {edges: edges, counts: histogram(values, edges), ref: refValues ? histogram(refValues, edges) : null};
   }
-  function renderHistogram(host, rows) {
+  // Pure: round axis ticks (1 / 2 / 5 × 10^k, the step nearest to the asked count as d3 picks it) covering [lo, hi].
+  function niceTicks(lo, hi, count) {
+    if (!(hi > lo)) { var p = Math.abs(lo) * 0.1 || 1; lo -= p; hi += p; }
+    var raw = (hi - lo) / Math.max(1, count || 4), mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / mag;
+    var step = (f >= 7.07 ? 10 : f >= 3.16 ? 5 : f >= 1.41 ? 2 : 1) * mag;
+    var a = Math.floor(lo / step + 1e-9) * step, b = Math.ceil(hi / step - 1e-9) * step, ticks = [];
+    for (var i = 0; a + i * step <= b + step * 1e-6; i++) ticks.push(+(a + i * step).toPrecision(12));
+    var decimals = (String(+step.toPrecision(6)).split('.')[1] || '').length;
+    return {lo: a, hi: b, step: step, ticks: ticks, decimals: decimals, fmt: function (v) { return Number(v).toFixed(decimals); }};
+  }
+  function inBin(r, bin) {
+    var v = num(r[bin.metric]);
+    return v !== null && v >= bin.lo && (v < bin.hi || (bin.last && v <= bin.hi));
+  }
+  function chartCard(cls, title, sub, right) {
+    return h('section', {'class': 'wsc-card ' + cls},
+      h('div', {'class': 'wsc-card-head'}, h('div', {'class': 'wsc-card-titles'}, h('h3', {'class': 'wsc-card-title', text: title}), sub ? h('span', {'class': 'wsc-card-sub', text: sub}) : null),
+        h('span', {'class': 'sec-fill'}), right || null));
+  }
+  function plotWidth(el, fallback) { var w = Number(el && el.clientWidth); return Math.max(280, Math.round(isFinite(w) && w > 0 ? w : fallback)); }
+  function renderCharts(host, rows, col) {
     var C = A.cohort;
-    var metrics = metricCols(rows);
-    if (!metrics.length) { host.replaceChildren(); return; }
-    if (!metrics.some(function (c) { return c.key === C.metric; })) C.metric = (metrics.filter(function (c) { return c.key === 'wss_p99_pa'; })[0] || metrics[0]).key;
-    var col = metrics.filter(function (c) { return c.key === C.metric; })[0];
     var values = rows.map(function (r) { return num(r[col.key]); }).filter(function (v) { return v !== null; });
     var pop = col.key === 'wss_p99_pa' ? populationValues(C.data.population, rows, C.release) : null;
+    var unit = col.units && !col.pct ? ui().unitText(col.units) : '';
+    var legend = pop ? h('div', {'class': 'wsc-legend'},
+      h('span', {'class': 'wsc-key'}, h('span', {'class': 'wsc-swatch'}), h('span', {text: '这些任务 ' + values.length + ' 例'})),
+      h('span', {'class': 'wsc-key'}, h('span', {'class': 'wsc-linekey'}), h('span', {text: '人群参照 ' + pop.case_count + ' 例'})),
+      ui().infoTip('人群参照是模型发布时的同口径病例。纵轴是各自的占比，两组放在同一把尺上比较分布形状。')) : h('div', {'class': 'wsc-legend'}, h('span', {'class': 'wsc-muted', text: values.length + ' 例'}));
+    var dist = chartCard('wsc-dist', '分布', col.label + (unit ? ' · ' + unit : ''), legend);
+    var ycol = col.key === 'max_diameter_mm' ? metricCols(rows).filter(function (c) { return c.key !== 'max_diameter_mm'; })[0] || null : col;
+    var hasX = rows.some(function (r) { return num(r.max_diameter_mm) !== null; });
+    var scat = ycol && hasX ? chartCard('wsc-scatter', '与管腔最大直径', ycol.label + '，每个点一个结果') : null;
+    host.classList.toggle('single', !scat);
+    if (scat) host.replaceChildren(dist, scat); else host.replaceChildren(dist);
+    drawDistribution(dist, rows, col, values, pop);
+    if (scat) drawScatter(scat, rows, ycol);
+  }
+  function drawDistribution(card, rows, col, values, pop) {
+    var C = A.cohort;
     var hm = histModel(values, pop ? pop.values : null), edges = hm.edges, counts = hm.counts, ref = hm.ref;
-    var W = 640, H = 176, pad = {l: 34, r: 12, t: 14, b: 26}, pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
-    var peak = Math.max.apply(null, [1].concat(counts)), refPeak = ref ? Math.max.apply(null, [1].concat(ref)) : 1;
-    var slot = pw / Math.max(1, counts.length), bw = Math.min(24, Math.max(2, slot - 2));
+    var plot = h('div', {'class': 'wsc-plot'});
+    card.appendChild(plot);
+    var tip = ui().chartTip ? ui().chartTip(card) : null;
+    var W = plotWidth(plot, 560), H = 236, pad = {l: 40, r: 10, t: 10, b: 28}, pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+    var n = values.length, refN = pop ? pop.values.length : 0;
+    var share = counts.map(function (c) { return n ? c / n : 0; }), rshare = ref ? ref.map(function (c) { return refN ? c / refN : 0; }) : null;
+    var yt = niceTicks(0, Math.max.apply(null, [0.05].concat(share, rshare || [])), 4);
+    var Y = function (v) { return pad.t + ph - v / yt.hi * ph; };
+    var e0 = edges[0], eN = edges[edges.length - 1], X = function (v) { return pad.l + (eN > e0 ? (v - e0) / (eN - e0) : 0.5) * pw; };
     var unit = col.units && !col.pct ? ' ' + ui().unitText(col.units) : '';
     var fmt = function (v) { return col.pct ? ui().pct(v) : ui().sig(v); };
     var kids = [];
-    kids.push(svg('line', {x1: pad.l, x2: W - pad.r, y1: pad.t + ph + 0.5, y2: pad.t + ph + 0.5, 'class': 'wsc-axis'}));
-    kids.push(svg('line', {x1: pad.l, x2: W - pad.r, y1: pad.t + 0.5, y2: pad.t + 0.5, 'class': 'wsc-grid'}));
-    kids.push(svgText(pad.l - 6, pad.t + 4, String(peak), {'class': 'wsc-tick', 'text-anchor': 'end'}));
-    kids.push(svgText(pad.l - 6, pad.t + ph + 4, '0', {'class': 'wsc-tick', 'text-anchor': 'end'}));
-    counts.forEach(function (n, i) {
+    yt.ticks.forEach(function (t) {
+      kids.push(svg('line', {x1: pad.l, x2: W - pad.r, y1: Math.round(Y(t)) + 0.5, y2: Math.round(Y(t)) + 0.5, 'class': t === 0 ? 'wsc-axis' : 'wsc-grid'}));
+      kids.push(svgText(pad.l - 8, Y(t) + 4, Math.round(t * 100) + '%', {'class': 'wsc-tick', 'text-anchor': 'end'}));
+    });
+    var xt = niceTicks(e0, eN, Math.max(3, Math.floor(pw / 90)));
+    xt.ticks.forEach(function (t) {
+      if (t < e0 - 1e-9 || t > eN + 1e-9) return;
+      kids.push(svgText(X(t), H - 8, col.pct ? ui().pct(t) : xt.fmt(t), {'class': 'wsc-tick', 'text-anchor': 'middle'}));
+    });
+    var slot = pw / Math.max(1, counts.length), bw = Math.min(24, Math.max(3, slot - 2));
+    if (rshare) {   // the reference first, as a 10 % wash under a 2 px step line; the bars sit on top
+      var area = ['M' + pad.l + ',' + Y(0)];
+      rshare.forEach(function (v, i) { var x0 = pad.l + i * slot, x1 = x0 + slot, y = Y(v); area.push('L' + x0 + ',' + y, 'L' + x1 + ',' + y); });
+      area.push('L' + (pad.l + pw) + ',' + Y(0), 'Z');
+      kids.push(svg('path', {d: area.join(''), 'class': 'wsc-ref-area'}));
+    }
+    counts.forEach(function (c, i) {
       var lo = edges[i], hi = edges[i + 1], x = pad.l + i * slot + (slot - bw) / 2;
-      var hgt = n ? Math.max(2, n / peak * ph) : 0, y = pad.t + ph - hgt, r = Math.min(4, hgt, bw / 2);
+      var hgt = c ? Math.max(2, share[i] / yt.hi * ph) : 0, y = pad.t + ph - hgt, r = Math.min(4, hgt, bw / 2);
       var active = Boolean(C.bin && C.bin.metric === col.key && Math.abs(C.bin.lo - lo) < 1e-12);
       var d = 'M' + x + ',' + (pad.t + ph) + 'V' + (y + r) + 'Q' + x + ',' + y + ' ' + (x + r) + ',' + y + 'H' + (x + bw - r) + 'Q' + (x + bw) + ',' + y + ' ' + (x + bw) + ',' + (y + r) + 'V' + (pad.t + ph) + 'Z';
-      var tip = fmt(lo) + '–' + fmt(hi) + unit + '：' + n + ' 例';
-      var title = svg('title'); title.textContent = tip;
-      var hit = svg('rect', {x: pad.l + i * slot, y: pad.t, width: slot, height: ph, 'class': 'wsc-hit', tabindex: n ? '0' : null, role: n ? 'button' : null, 'aria-label': tip}, [title]);
+      var range = fmt(lo) + '–' + fmt(hi) + unit;
+      var valueText = c + ' 例 · ' + Math.round(share[i] * 100) + '%';
+      var label = range + (rshare ? ' · 人群 ' + Math.round(rshare[i] * 100) + '%' : '');
+      var hit = svg('rect', {x: pad.l + i * slot, y: pad.t, width: slot, height: ph, 'class': 'wsc-hit', tabindex: c ? '0' : null, role: c ? 'button' : null, 'aria-label': range + '：' + c + ' 例'});
       var choose = function () {
-        if (!n) return;
-        C.bin = active ? null : {metric: col.key, lo: lo, hi: hi, last: i === counts.length - 1, label: col.label + ' ' + fmt(lo) + '–' + fmt(hi) + unit};
+        if (!c) return;
+        C.bin = active ? null : {metric: col.key, lo: lo, hi: hi, last: i === counts.length - 1, label: col.label + ' ' + range};
         renderCohort();
       };
       hit.addEventListener('click', choose);
       hit.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { if (e.preventDefault) e.preventDefault(); choose(); } });
-      kids.push(svg('g', {'class': 'wsc-bin' + (active ? ' on' : '') + (C.bin && !active ? ' dim' : '')}, [n ? svg('path', {d: d, 'class': 'wsc-bar'}) : null, hit]));
+      if (tip) tip.bind(hit, valueText, label);
+      kids.push(svg('g', {'class': 'wsc-bin' + (active ? ' on' : '') + (C.bin && !active ? ' dim' : '')}, [c ? svg('path', {d: d, 'class': 'wsc-bar'}) : null, hit]));
     });
-    if (ref) {
+    if (rshare) {
       var pts = [];
-      ref.forEach(function (n, i) { var y = pad.t + ph - n / refPeak * ph; pts.push((pad.l + i * slot) + ',' + y, (pad.l + (i + 1) * slot) + ',' + y); });
+      rshare.forEach(function (v, i) { var y = Y(v); pts.push((pad.l + i * slot) + ',' + y, (pad.l + (i + 1) * slot) + ',' + y); });
       kids.push(svg('polyline', {points: pts.join(' '), 'class': 'wsc-ref'}));
     }
-    kids.push(svgText(pad.l, H - 6, fmt(edges[0]), {'class': 'wsc-tick'}));
-    kids.push(svgText(W - pad.r, H - 6, fmt(edges[edges.length - 1]) + unit, {'class': 'wsc-tick', 'text-anchor': 'end'}));
-    var chart = svg('svg', {viewBox: '0 0 ' + W + ' ' + H, 'class': 'wsc-hist', role: 'img', 'aria-label': col.label + ' 分布，' + values.length + ' 例'}, kids);
-    var pickMetric = ui().select(metrics.map(function (c) { return {value: c.key, label: c.label}; }), col.key, function (v) { C.metric = v; C.bin = null; renderCohort(); }, {'class': 'wsc-select', 'aria-label': '直方图的量'});
-    var legend = ref ? h('div', {'class': 'wsc-legend'},
-      h('span', {'class': 'wsc-key'}, h('span', {'class': 'wsc-swatch'}), h('span', {text: '这些任务 ' + values.length + ' 例'})),
-      h('span', {'class': 'wsc-key'}, h('span', {'class': 'wsc-linekey'}), h('span', {text: '人群参照 ' + pop.case_count + ' 例'})),
-      ui().infoTip('人群参照是模型发布时的同口径病例；两组各按自己的峰值缩放，只比较分布形状。')) : h('div', {'class': 'wsc-legend'}, h('span', {'class': 'wsc-muted', text: values.length + ' 例'}));
-    ui().fill(host, h('div', {'class': 'wsc-chart-head'}, pickMetric, h('span', {'class': 'sec-fill'}), legend), chart);
+    plot.appendChild(svg('svg', {width: W, height: H, viewBox: '0 0 ' + W + ' ' + H, 'class': 'wsc-hist', role: 'img', 'aria-label': col.label + ' 分布，' + n + ' 例'}, kids));
+  }
+  function drawScatter(card, rows, ycol) {
+    var C = A.cohort;
+    var pts = rows.map(function (r) { return {r: r, x: num(r.max_diameter_mm), y: num(r[ycol.key])}; }).filter(function (p) { return p.x !== null && p.y !== null; });
+    var plot = h('div', {'class': 'wsc-plot'});
+    card.appendChild(plot);
+    if (pts.length < 2) { plot.appendChild(ui().note('至少要有两个结果同时有「管腔最大直径」和「' + ycol.label + '」才画这张图。')); return; }
+    var tip = ui().chartTip ? ui().chartTip(card) : null;
+    var W = plotWidth(plot, 420), H = 236, pad = {l: 46, r: 14, t: 10, b: 28}, pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+    var ext = function (vals) {
+      var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), m = (hi - lo) * 0.08 || Math.abs(hi) * 0.1 || 1;
+      return [Math.max(0, lo - m), hi + m];
+    };
+    var xe = ext(pts.map(function (p) { return p.x; })), ye = ext(pts.map(function (p) { return p.y; }));
+    var xt = niceTicks(xe[0], xe[1], Math.max(3, Math.floor(pw / 90))), yt = niceTicks(ye[0], ye[1], 4);
+    var X = function (v) { return pad.l + (v - xt.lo) / (xt.hi - xt.lo) * pw; }, Y = function (v) { return pad.t + ph - (v - yt.lo) / (yt.hi - yt.lo) * ph; };
+    var fy = function (v) { return ycol.pct ? ui().pct(v) : ui().sig(v); };
+    var yunit = ycol.units && !ycol.pct ? ' ' + ui().unitText(ycol.units) : '';
+    var kids = [];
+    yt.ticks.forEach(function (t, i) {
+      kids.push(svg('line', {x1: pad.l, x2: W - pad.r, y1: Math.round(Y(t)) + 0.5, y2: Math.round(Y(t)) + 0.5, 'class': i === 0 ? 'wsc-axis' : 'wsc-grid'}));
+      kids.push(svgText(pad.l - 8, Y(t) + 4, ycol.pct ? ui().pct(t) : yt.fmt(t), {'class': 'wsc-tick', 'text-anchor': 'end'}));
+    });
+    xt.ticks.forEach(function (t, i) {
+      var last = i === xt.ticks.length - 1;
+      kids.push(svgText(X(t), H - 8, xt.fmt(t) + (last ? ' mm' : ''), {'class': 'wsc-tick', 'text-anchor': last ? 'end' : 'middle'}));
+    });
+    // points in the chosen distribution bin stay blue, the rest step back; the hit area is 24 px
+    pts.sort(function (a, b) { return b.x - a.x; }).forEach(function (p) {
+      var sel = C.bin ? inBin(p.r, C.bin) : null;
+      var hit = svg('circle', {cx: X(p.x), cy: Y(p.y), r: 12, 'class': 'wsc-pt-hit', tabindex: p.r.job_id ? '0' : null, role: p.r.job_id ? 'link' : null,
+        'aria-label': rowName(p.r) + '：' + fy(p.y) + yunit + '，' + ui().sig(p.x) + ' mm'});
+      if (p.r.job_id) {
+        hit.addEventListener('click', function () { go(p.r.job_id); });
+        hit.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(p.r.job_id); });
+      }
+      if (tip) tip.bind(hit, fy(p.y) + yunit + ' · ' + ui().sig(p.x) + ' mm', rowName(p.r));
+      kids.push(svg('g', {'class': 'wsc-pt' + (sel === true ? ' on' : sel === false ? ' dim' : '')}, [svg('circle', {cx: X(p.x), cy: Y(p.y), r: 4.5, 'class': 'wsc-dot'}), hit]));
+    });
+    plot.appendChild(svg('svg', {width: W, height: H, viewBox: '0 0 ' + W + ' ' + H, 'class': 'wsc-scat', role: 'img', 'aria-label': ycol.label + ' 与管腔最大直径，' + pts.length + ' 个结果'}, kids));
   }
 
   // ------------------------------------------------------------------ pages (#/tasks, #/trash, #/cohort)
@@ -1123,7 +1301,7 @@
     loadJobs: loadJobs, renderPage: renderPage, leftPage: leftPage, shellApi: function () { return A.sh; }, isUnread: isUnread, markRead: markRead, unreadIds: unreadIds, viewAll: viewAll,
     prefs: prefs, savePrefs: savePrefs, openTasks: openTasks, resumed: resumed, start: start, onEvent: onEvent, onConnection: onConnection, checkVersion: checkVersion, checkHealth: checkHealth,
     // pure helpers (tests)
-    taskModel: taskModel, cohortModel: cohortModel, binEdges: binEdges, histogram: histogram, histModel: histModel, populationValues: populationValues,
+    taskModel: taskModel, cohortModel: cohortModel, binEdges: binEdges, histogram: histogram, histModel: histModel, populationValues: populationValues, cohortStats: cohortStats, niceTicks: niceTicks,
     rerunSkipReason: rerunSkipReason, mergePrefs: mergePrefs, quickMatch: quickMatch, shouldNotify: shouldNotify, STATUS_FILTERS: STATUS_FILTERS, _state: A
   };
 });
