@@ -42,7 +42,8 @@
     });
     return done;
   }
-  function extMenuItems(hook) { var items = extCall(hook); return items.length ? [{separator: true}].concat(items) : []; }
+  // Layers menu: the extension items follow a separator; user menu: they sit after its own separator and before one.
+  function extMenuItems(hook) { var items = extCall(hook); if (!items.length) return []; return hook === 'userMenu' ? items.concat([{separator: true}]) : [{separator: true}].concat(items); }
   var SHELL_API = null;
   function shellApi() {
     if (SHELL_API) return SHELL_API;
