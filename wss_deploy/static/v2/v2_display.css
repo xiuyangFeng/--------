@@ -6,6 +6,8 @@
 .wssv2-cb-adjust { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-left: 1px; padding: 0; border: 0; border-radius: 5px;
   background: transparent; color: var(--hud-ink-3); cursor: pointer; pointer-events: auto; }
 .wssv2-cb-adjust:hover, .wssv2-cb-adjust:focus-visible { color: var(--hud-ink); background: var(--hud-hover); }
+/* a longer display unit (mmHg, cm/s) plus the button: the title may use the legend's right margin instead of being cut */
+.vp-legend .wssv2-cb-title { gap: 3px; margin-right: -12px; }
 
 /* floating panels */
 .wsd-pop { position: fixed; z-index: 40; width: 272px; padding: 6px 10px 10px; color: var(--hud-ink); background: var(--hud-bg); border: 1px solid var(--hud-border);
