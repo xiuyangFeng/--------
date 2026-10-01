@@ -229,7 +229,8 @@
         el.hidden = !issue; el.textContent = issue ? issue.text : ''; el.className = 'fld-hint up-hint' + (issue && issue.level === 'error' ? ' err' : '');
         if (issue && issue.level === 'error') inp.setAttribute('aria-invalid', 'true'); else inp.removeAttribute('aria-invalid');
       });
-      if (moreBox && r.blocking && (r.blocking.key === 'scan_label' || r.blocking.key === 'tags')) moreBox.open = true;
+      var err = function (k) { return Boolean(r.issues[k] && r.issues[k].level === 'error'); };
+      if (moreBox && (err('scan_label') || err('tags'))) moreBox.open = true;
       return r;
     }
     function paintFiles() {

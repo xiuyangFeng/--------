@@ -200,8 +200,12 @@ def test_upload_dialog_hints_block_and_release_the_send():
         invalid: field('患者编号').getAttribute('aria-invalid'), disabled: submit.disabled};
       ctl.send(); await wait(60);
       const blockedPosts = urls.filter(u => u === 'POST /api/jobs').length, said = textOf(byClass(D, 'upload-progress')[0]);
-      type('患者编号', 'P-007');
+      // a second error inside the closed 「扫描标签、标签、备注」 opens it, even while the first one blocks
+      const closedBefore = more.open;
       type('标签', Array.from({length: 13}, (_, i) => 't' + i).join(','));
+      const both = more.open;
+      more.open = false;
+      type('患者编号', 'P-007');
       const tagsBad = {hint: textOf(hintOf(field('标签'))), open: more.open, disabled: submit.disabled};
       type('标签', 'AAA');
       type('病例名称', '张三');
@@ -210,7 +214,7 @@ def test_upload_dialog_hints_block_and_release_the_send():
       const clear = [field('患者编号'), field('标签'), field('病例名称')].map(f => hintOf(f).hidden);
       fire(submit, 'click'); await wait(120);
       const fd = bodies['POST /api/jobs'];
-      done({ready, bad, blockedPosts, said, tagsBad, warn, clear, sent: fd ? {patient: fd.get('patient_id'), tags: fd.get('tags'), caseId: fd.get('case_id')} : null});
+      done({ready, bad, blockedPosts, said, closedBefore, both, tagsBad, warn, clear, sent: fd ? {patient: fd.get('patient_id'), tags: fd.get('tags'), caseId: fd.get('case_id')} : null});
     """)
     assert out["errors"] == [], out["errors"]
     assert out["ready"] is False
@@ -218,6 +222,7 @@ def test_upload_dialog_hints_block_and_release_the_send():
     assert b["hint"].startswith("患者编号含有换行、制表符等不可见字符") and "err" in b["cls"] and b["hidden"] is False
     assert b["invalid"] == "true" and b["disabled"] is True
     assert out["blockedPosts"] == 0 and out["said"].startswith("患者编号含有")          # nothing sent: the STL stays in the browser
+    assert out["closedBefore"] is False and out["both"] is True
     assert out["tagsBad"] == {"hint": "最多 12 个标签。", "open": True, "disabled": True}
     w = out["warn"]
     assert w["hint"] == "「张三」看起来像真实姓名，请改用匿名编号。" and "err" not in w["cls"] and w["disabled"] is False and w["invalid"] is None
