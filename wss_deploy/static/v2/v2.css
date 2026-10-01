@@ -48,6 +48,12 @@ a:hover { text-decoration: underline; }
 .ws-boot { margin: auto; display: flex; gap: 12px; align-items: baseline; }
 .ws-noscript { margin: auto; padding: 24px; }
 .brand { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); }
+.brand.is-link { cursor: pointer; border-radius: 6px; }
+.brand.is-link:hover .mark { color: var(--accent-2); }
+.top-back { display: inline-flex; align-items: center; gap: 2px; height: 30px; margin-left: 14px; padding: 0 12px 0 6px; border: 1px solid var(--line); border-radius: 15px;
+  background: var(--panel); color: var(--ink-2); font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+.top-back:hover { border-color: var(--line-2); color: var(--ink); background: var(--panel-2); }
+.top-back[hidden] { display: none; }
 .mark { font-weight: 700; font-size: 15px; letter-spacing: .04em; color: var(--ink); }
 .ws-top { height: 48px; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 12px 0 16px;
   background: var(--panel); border-bottom: 1px solid var(--line); position: relative; z-index: 3; }
@@ -715,3 +721,7 @@ ellipse.zmap-edge { fill: rgba(16, 24, 40, .22); stroke: none; }
 .legacy-list { display: grid; gap: 2px; margin-top: 8px; }
 .wssv2-toollabel-annot { border-color: #e0a84a !important; }
 .wssv2-toollabel-auto { font-weight: 500 !important; opacity: .92; }
+@media (max-width: 760px) {
+  .top-back { margin-left: 8px; padding: 0 6px 0 4px; }
+  .top-back-text { display: none; }   /* the arrow alone; the label stays in aria-label / title */
+}
