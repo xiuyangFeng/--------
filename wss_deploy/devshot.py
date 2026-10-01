@@ -7,7 +7,8 @@ reported, so a layout change can be checked without asking a person for a screen
     python -m wss_deploy.devshot http://127.0.0.1:8799/ out.png [--width 1440 --height 900 --wait 4 --full]
         [--js "document.querySelector('[data-job-id]').click()" --after 6]   # run script, wait, then shoot
     python -m wss_deploy.devshot suite --base http://127.0.0.1:8799 --jobs <id,…> --out <dir>
-        # standard page set (workbench / details / reports / one-pagers / compare / narrow widths) + index.json of JS errors
+        # standard page set of the workspace /v2/ (home / results / one-pagers / compare / a classic report address /
+        # narrow widths) + index.json of JS errors
     python -m wss_deploy.devshot sandbox --jobs 20260922_173705_27065942b465,... --dir <scratch>/jobs --port 8799
         # copy finished jobs from outputs/wss_deploy_jobs and start a loopback server on the copy (CPU only)
     python -m wss_deploy.devshot sandbox ... --login admin:sandbox-pass     # v0.15: user-name login mode (like the
@@ -131,13 +132,20 @@ class Browser:
         element = self.cmd("WebDriver:FindElement", {"using": "css selector", "value": css})["value"]
         return self.cmd("WebDriver:SwitchToFrame", {"element": list(element.values())[0], "focus": True})
 
+    # S7: the workspace login form (ws_shell.showLogin: #wsl-user in user-name mode, #wsl-pass = password or token).
+    LOGIN_JS = ("var p=document.getElementById('wsl-pass');if(!p||!p.form)return false;var u=document.getElementById('wsl-user');"
+                "if(u)u.value=arguments[0];p.value=arguments[1];p.form.requestSubmit();return true;")
+
     def login(self, base, user, password, wait=4.0):
-        """Log in through the page's own form (user-name mode); a page without a visible login form is left alone."""
-        self.go(base.rstrip("/") + "/", 3)
-        self.js("var p=document.getElementById('login-panel');if(!p||p.hidden)return false;"
-                "document.getElementById('login-username').value=arguments[0];document.getElementById('login-password').value=arguments[1];"
-                "document.getElementById('login-form').requestSubmit();return true;", [user, password])
+        """Log in through the workspace's own form at ``/v2/``.  Returns False when the page shows no login form (already
+        logged in, or a local service without login); raises when the form is still there after ``wait`` seconds."""
+        self.go(base.rstrip("/") + "/v2/", 3)
+        if not self.js(self.LOGIN_JS, [user, password]):
+            return False
         time.sleep(wait)
+        if self.js("return Boolean(document.getElementById('wsl-pass'));"):
+            raise RuntimeError("登录失败：工作区的登录表单仍在（用户名或口令不对？）")
+        return True
 
     def errors(self):
         """JavaScript error lines printed to the console so far."""
@@ -242,9 +250,10 @@ def sandbox(jobs: list[str], target: Path, port: int, *, source: Path | None = N
 def suite(base: str, jobs: list[str], out: Path, *, marionette_port: int = 2828, report_wait: float = 25.0, login: str | None = None) -> dict:
     """Capture the standard page set against a running (sandbox) server; returns and writes ``index.json``.
 
-    Pages: workbench home (1440 / 1024 / 390 wide), the detail view of every job, every job's report and
-    one-pager, and a side-by-side compare of the first two jobs.  Each entry records the JavaScript errors
-    printed while that page was open, so ``errors`` must be empty before a UI change is handed over.
+    Pages (S7: the workspace ``/v2/``; the classic workbench, report and compare pages are retired): home (1440 / 1024
+    / 390 wide), every job's result page and one-pager, the comparison of the first two jobs, and the classic report
+    address of the first job (it must land on the workspace; ``url`` is recorded).  Each entry records the JavaScript
+    errors printed while that page was open, so ``errors`` must be empty before a UI change is handed over.
     """
     base = base.rstrip("/")
     out = Path(out); out.mkdir(parents=True, exist_ok=True)
@@ -254,23 +263,28 @@ def suite(base: str, jobs: list[str], out: Path, *, marionette_port: int = 2828,
         path = browser.shot(out / f"{name}.png", full=extra.pop("full", False))
         rows.append({"name": name, "file": Path(path).name, "errors": browser.errors()[before:], **extra})
 
+    def url(browser):
+        try:
+            return browser.cmd("WebDriver:GetCurrentURL").get("value")
+        except Exception:
+            return None
+
+    home = base + "/v2/"
     credentials = parse_login(login)
     with Browser(width=1440, height=900, marionette_port=marionette_port) as browser:
         if credentials:   # v0.15: user-name mode — the login page is part of the set, then log in through the form
-            n = len(browser.errors()); browser.go(base + "/", 3); record("login", browser, n)
+            n = len(browser.errors()); browser.go(home, 3); record("login", browser, n)
             browser.login(base, *credentials)
-        n = len(browser.errors()); browser.go(base + "/", 4); record("workbench_home", browser, n)
+        n = len(browser.errors()); browser.go(home, 4); record("home", browser, n)
         for job in jobs:
-            n = len(browser.errors()); browser.go(f"{base}/#job={job}", 4)
-            browser.js("var e=document.querySelector('[data-job-id=\"'+arguments[0]+'\"]'); if(e) e.click(); return !!e;", [job])
-            time.sleep(4); record(f"detail_{job}", browser, n, full=True)
-        for job in jobs:
-            n = len(browser.errors()); browser.go(f"{base}/api/jobs/{job}/report", report_wait); record(f"report_{job}", browser, n)
+            n = len(browser.errors()); browser.go(f"{home}#/job/{job}", report_wait); record(f"result_{job}", browser, n)
             n = len(browser.errors()); browser.go(f"{base}/api/jobs/{job}/onepage", 4); record(f"onepage_{job}", browser, n, full=True)
         if len(jobs) >= 2:
-            n = len(browser.errors()); browser.go(f"{base}/compare?left={jobs[0]}&right={jobs[1]}", report_wait + 10); record("compare", browser, n)
+            n = len(browser.errors()); browser.go(f"{home}#/job/{jobs[0]}?v=compare&cmp={jobs[1]}", report_wait + 10); record("compare", browser, n)
+        if jobs:   # S7: a classic report address lands on the workspace result
+            n = len(browser.errors()); browser.go(f"{base}/api/jobs/{jobs[0]}/report", report_wait); record("classic_report_address", browser, n, url=url(browser))
         for width, height in ((1024, 768), (390, 844)):
-            browser.resize(width, height); n = len(browser.errors()); browser.go(base + "/", 4); record(f"workbench_{width}", browser, n)
+            browser.resize(width, height); n = len(browser.errors()); browser.go(home, 4); record(f"home_{width}", browser, n)
     index = {"base": base, "jobs": jobs, "pages": rows, "pages_with_errors": [r["name"] for r in rows if r["errors"]]}
     (out / "index.json").write_text(json.dumps(index, ensure_ascii=False, indent=1), encoding="utf-8")
     return index
@@ -287,7 +301,7 @@ def main(argv=None) -> int:
         ap.add_argument("--login", default=None, help="用户名:口令 —— 以用户名登录模式启动（沙箱自己的 users.json，管理员）")
         args = ap.parse_args(argv[1:])
         proc = sandbox([j for j in args.jobs.split(",") if j], Path(args.dir), args.port, source=Path(args.source) if args.source else None, login=args.login)
-        print(json.dumps({"pid": proc.pid, "url": f"http://127.0.0.1:{args.port}/", "jobs_root": str(Path(args.dir).resolve()),
+        print(json.dumps({"pid": proc.pid, "url": f"http://127.0.0.1:{args.port}/v2/", "jobs_root": str(Path(args.dir).resolve()),
                           "stop": f"kill {proc.pid}"}, ensure_ascii=False))
         return 0
     if argv[:1] == ["suite"]:
@@ -305,18 +319,18 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="wss_deploy.devshot")
     ap.add_argument("url"); ap.add_argument("out")
     ap.add_argument("--width", type=int, default=1440); ap.add_argument("--height", type=int, default=900)
-    ap.add_argument("--wait", type=float, default=4.0, help="导航后等待秒数（三维报告约 20–30 s）")
+    ap.add_argument("--wait", type=float, default=4.0, help="导航后等待秒数（工作区结果页的三维约 10–30 s）")
     ap.add_argument("--js", default=None, help="截图前执行的脚本（函数体）"); ap.add_argument("--after", type=float, default=2.0)
     ap.add_argument("--full", action="store_true", help="整页截图"); ap.add_argument("--marionette-port", type=int, default=2828)
-    ap.add_argument("--login", default=None, help="用户名:口令 —— 先在工作台登录（用户名登录模式的沙箱）")
+    ap.add_argument("--login", default=None, help="用户名:口令 —— 先在工作区 /v2/ 登录（用户名登录模式的沙箱）")
     args = ap.parse_args(argv)
     with Browser(width=args.width, height=args.height, marionette_port=args.marionette_port) as browser:
         parts = urlsplit(args.url)
         credentials = parse_login(args.login)
         if credentials and parts.scheme in ("http", "https"):
             browser.login(f"{parts.scheme}://{parts.netloc}", *credentials)
-        elif parts.scheme in ("http", "https") and (parts.path.startswith("/api/") or parts.path.startswith("/compare")):
-            browser.go(f"{parts.scheme}://{parts.netloc}/", 3)   # reports and compare need the session cookie of the workbench
+        elif parts.scheme in ("http", "https") and parts.path.startswith("/api/"):
+            browser.go(f"{parts.scheme}://{parts.netloc}/v2/", 3)   # result files need the session cookie of the workspace
         browser.go(args.url, args.wait)
         if args.js:
             print(json.dumps({"js": browser.js(args.js)}, ensure_ascii=False))

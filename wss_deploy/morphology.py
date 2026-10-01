@@ -998,7 +998,7 @@ def _aorta_block(entry: Mapping[str, Any], table: Mapping[str, Any], dmax: np.nd
     if oblique[imax]:
         notes.append(f"管腔最大直径站（距入口 {s_local[imax]:.0f} mm）的截面明显斜切："
                      f"截面最小宽度 {dmin_series[imax]:.1f} mm 远大于中心线内切直径 {inscribed[imax]:.1f} mm，"
-                     "该处管腔最大直径可能高估，请以三维报告中的截面环核对")
+                     "该处管腔最大直径可能高估，请在工作区三维视图里用截面环核对")
     threshold = SAC_FACTOR * reference
     wide = usable & np.isfinite(equivalent) & (equivalent >= threshold)
     runs = _runs(wide)

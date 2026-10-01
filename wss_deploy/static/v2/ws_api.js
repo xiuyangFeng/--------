@@ -165,12 +165,13 @@
     offline: function (id, body) { return download('/api/v2/jobs/' + enc(id) + '/offline', {method: 'POST', body: body, filename: 'WSS_病例.html'}); },
     bundle: function (id) { return download(jobPath(id, '/bundle.zip'), {filename: 'wss_' + id + '.zip'}); },
     urls: {
-      report: function (id) { return jobPath(id, '/report'); },
       onepage: function (id) { return jobPath(id, '/onepage'); },
       file: function (id, name) { return jobPath(id, '/files/' + encodeURIComponent(name)); },
       bundle: function (id) { return jobPath(id, '/bundle.zip'); },
       table: function (id, format) { return '/api/jobs/export?ids=' + enc(id) + '&format=' + (format || 'csv'); },
-      classic: function (id) { return id ? '/#job=' + enc(id) : '/'; }
+      // S7: the classic pages are gone (urls.report removed).  Kept only for the input page's toolbar link, which phase 3
+      // lane 1 removes; it now names the workspace route itself.  Delete once nothing calls it.
+      classic: function (id) { return id ? '/v2/#/job/' + enc(id) : '/v2/'; }
     }
   };
   return api;

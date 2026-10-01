@@ -8,8 +8,10 @@ before ``service upgrade`` — one command, nothing of the production service or
    random free port, CPU only (``CUDA_VISIBLE_DEVICES=``), no model preloading unless ``--preload``, no
    background precompute, and ``WSS_DEPLOY_TRUST_PROXY=1`` so the loopback service requires login exactly like the
    shared production service;
-4. smoke test with ``urllib``: ``/api/ready`` (anonymous) → login → job list → job detail → open a report and its
-   one-pager → ``/api/ready`` as administrator (the ``summary`` block);
+4. smoke test with ``urllib``: ``/api/ready`` (anonymous) → login → job list → job detail → the workspace page
+   ``/v2/`` (scripts named with their build), each job's workspace data (``/api/v2/jobs/<id>/manifest``, read from its
+   report.html), the classic report address landing on the workspace (S7) and the one-pager → ``/api/ready`` as
+   administrator (the ``summary`` block);
 5. stop the server (SIGTERM, then SIGKILL) and delete the directory (``--keep`` keeps it for inspection).
 
 Every step reports pass / fail and seconds; on failure the last lines of the server log are included.
@@ -176,26 +178,39 @@ def smoke(base: str, *, user: str, password: str, jobs: list[str], timeout: floa
                 raise RehearsalError(f"GET /api/jobs/{job_id} 返回 HTTP {status}")
         return f"{len(ids)} 个任务，详情 {len(jobs)} 个"
 
-    def fetch(path: str) -> tuple[int, str, bytes]:
+    def fetch(path: str) -> tuple[int, str, bytes, str]:
+        """A page visit (``Accept: text/html``, redirects followed): status, type, body and the final address."""
         headers = {"Accept": "text/html"}
         if client.cookie:
             headers["Cookie"] = client.cookie
         request = urllib.request.Request(base.rstrip("/") + path, headers=headers)
         try:
             with http_opener().open(request, timeout=120) as response:
-                return response.status, response.headers.get("Content-Type") or "", response.read()
+                return response.status, response.headers.get("Content-Type") or "", response.read(), response.geturl()
         except urllib.error.HTTPError as exc:
-            return exc.code, exc.headers.get("Content-Type") or "", exc.read()
+            return exc.code, exc.headers.get("Content-Type") or "", exc.read(), exc.geturl()
 
-    def report():
+    def workspace():
+        status, ctype, page, _ = fetch("/v2/")
+        if status != 200 or not ctype.startswith("text/html") or b'id="ws-app"' not in page:
+            raise RehearsalError(f"GET /v2/ 返回 HTTP {status}（{ctype}，{len(page)} 字节）")
+        if b".js?v=" not in page:
+            raise RehearsalError("/v2/ 的脚本地址没有带构建号（?v=）")
         sizes = []
         for job_id in jobs:
-            for path, marker in ((f"/api/jobs/{job_id}/report", b"<html"), (f"/api/jobs/{job_id}/onepage", b"<html")):
-                status, ctype, body = fetch(path)
-                if status != 200 or not ctype.startswith("text/html") or marker not in body[:4096].lower():
-                    raise RehearsalError(f"GET {path} 返回 HTTP {status}（{ctype}，{len(body)} 字节）")
-                sizes.append(len(body))
-        return f"报告与一页纸 {len(sizes)} 份，{sum(sizes) / 1e6:.1f} MB"
+            status, manifest = client.request("GET", f"/api/v2/jobs/{job_id}/manifest")
+            if status != 200 or not isinstance(manifest, dict) or not manifest.get("fields") or not manifest.get("arrays"):
+                raise RehearsalError(f"GET /api/v2/jobs/{job_id}/manifest 返回 HTTP {status}")
+            sizes.append(len(json.dumps(manifest, ensure_ascii=False)))
+            # S7: the classic report address is a visit of the workspace now
+            status, _, _, final = fetch(f"/api/jobs/{job_id}/report")
+            if status != 200 or not final.endswith(f"/v2/?job={job_id}"):
+                raise RehearsalError(f"旧报告地址 /api/jobs/{job_id}/report 没有转到工作区（HTTP {status}，{final}）")
+            status, ctype, body, _ = fetch(f"/api/jobs/{job_id}/onepage")
+            if status != 200 or not ctype.startswith("text/html") or b"<html" not in body[:4096].lower():
+                raise RehearsalError(f"GET /api/jobs/{job_id}/onepage 返回 HTTP {status}（{ctype}，{len(body)} 字节）")
+            sizes.append(len(body))
+        return f"工作区页面、结果数据与一页纸 {len(jobs)} 个任务，{sum(sizes) / 1e6:.1f} MB"
 
     def ready_admin():
         status, payload = client.request("GET", "/api/ready")
@@ -213,7 +228,7 @@ def smoke(base: str, *, user: str, password: str, jobs: list[str], timeout: floa
     step("就绪（未登录）", ready_anonymous)
     step("登录", login)
     step("任务列表与详情", listing)
-    step("打开报告与一页纸", report)
+    step("打开工作区与一页纸", workspace)
     step("就绪（管理员摘要）", ready_admin)
 
 

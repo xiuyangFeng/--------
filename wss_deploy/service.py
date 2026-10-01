@@ -595,7 +595,7 @@ def status(root: Path, port: int | None = None) -> dict:
     token_file = read_token(root) is not None
     out.update(maintenance=maintenance_summary(root), last_start=record.get("started_at"), tz=_tz_brief(root))
     if not info:
-        out.update(host=cfg["host"], address=f"http://{cfg['host']}:{port}/", log_file=cfg["log_file"], token_file=token_file,
+        out.update(host=cfg["host"], address=f"http://{cfg['host']}:{port}/v2/", log_file=cfg["log_file"], token_file=token_file,
                    queue=queue_from_disk(root), disk_free_gb=disk_free_gb(root), gpu=gpu_summary(cfg["env"].get("CUDA_VISIBLE_DEVICES")),
                    login=login_mode(root, cfg["host"], cfg.get("env")))
         if out.get("stale_pid_file"):
@@ -612,7 +612,7 @@ def status(root: Path, port: int | None = None) -> dict:
     health = probe_health(info["host"], info["port"])
     now = time.time()
     log_file = info.get("log_file") or ((info.get("pid_record") or {}).get("log_file") if info["managed"] else None)
-    out.update(pid=info["pid"], managed=info["managed"], own=info["own"], host=info["host"], address=f"http://{info['host']}:{info['port']}/",
+    out.update(pid=info["pid"], managed=info["managed"], own=info["own"], host=info["host"], address=f"http://{info['host']}:{info['port']}/v2/",
                shared=not is_loopback(info["host"]), started_at=info["started_at"],
                uptime_s=round(now - info["started_ts"]) if info.get("started_ts") else None,
                healthy=bool(health and health.get("ok")), version=(health or {}).get("version"), legacy=bool((health or {}).get("legacy")),
@@ -1081,7 +1081,7 @@ def start(root: Path, *, timeout: float = HEALTH_TIMEOUT_S, out=print, **overrid
             (root / PID_FILE).unlink(missing_ok=True)
             out(f"服务启动失败，进程已退出。{reason}\n{log_file} 最后 {LOG_TAIL_LINES} 行：\n{tail}\n控制台输出：{console_path}")
         raise ServiceError("新服务未能就绪：" + (reason or "请根据上面的日志修正后执行 `python -m wss_deploy.cli service start`。"))
-    address = f"http://{cfg['host']}:{cfg['port']}/"
+    address = f"http://{cfg['host']}:{cfg['port']}/v2/"   # S7: the workspace (``/`` redirects there too)
     out(f"服务已就绪：{address}（版本 {health.get('version')}，PID {proc.pid}，日志 {log_file}）")
     if not is_loopback(cfg["host"]):
         out("共享模式：令牌见 `python -m wss_deploy.cli service token`" + ("；已启用用户名登录（users.json）。" if (root / "users.json").is_file() else "。"))

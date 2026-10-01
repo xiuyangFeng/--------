@@ -28,7 +28,7 @@
     app.className = 'ws-app is-login';
     app.replaceChildren(ui.h('section', {'class': 'ws-login'}, ui.h('div', {'class': 'login-form'},
       ui.h('div', {'class': 'login-mark'}, ui.h('span', {'class': 'mark', text: 'WSS'})),
-      ui.h('p', {text: text}), ui.h('p', {}, ui.button('重试', function () { root.location.reload(); }), ' ', ui.link('经典工作台', '/')))));
+      ui.h('p', {text: text}), ui.h('p', {}, ui.button('重试', function () { root.location.reload(); })))));
   }
   function startApp(session) {
     ns.api.setCsrf(session.csrf_token || '');

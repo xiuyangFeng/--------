@@ -107,8 +107,11 @@ def test_example_stl_is_anonymous_and_passes_the_input_check(tmp_path):
 
 
 def test_workbench_links_resolve_to_files():
-    html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
-    for name in re.findall(r'href="/static/v2/([^"]+)"', html):
+    # S7: the classic workbench (static/index.html) is retired; the workspace's help menu (ws_shell.js) links the pages.
+    html = (V2 / "ws_shell.js").read_text(encoding="utf-8")
+    names = re.findall(r"href: '/static/v2/([^']+)'", html)
+    assert {"help_input.html", "help_quickstart.html", "help_errors.html"} <= set(names)
+    for name in names:
         if name.startswith("example_") and not (V2 / name).is_file():
             continue   # generated on the server (wss_deploy.v2_examples), never committed
         assert (V2 / name).is_file(), name

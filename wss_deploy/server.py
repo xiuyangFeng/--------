@@ -46,9 +46,13 @@ COOKIE_NAME = "wss_session"
 SESSION_SECONDS = 7 * 24 * 3600
 SSE_KEEPALIVE_SECONDS = 15
 SSE_MAX_SECONDS = 3600  # the browser reconnects transparently; bounds a forgotten tab's thread
-STATIC_FILES = {"index.html", "app.js", "app.css", "three.min.js", "OrbitControls.js", "compare.html", "compare.js",
-                "batch_export.js", "report_common.js", "volume_viewer.js", "workbench_core.js", "glossary.json",
+# S7 (PHASE3_LANES.md §3 lane 6): the classic workbench and comparison pages are retired; ``/``, ``/compare`` and
+# browser visits of the classic report redirect into the workspace.  What stays in static/: the operations console and
+# the support page with their shared app.css, and the report scripts the workspace and every report.html embed.
+STATIC_FILES = {"app.css", "three.min.js", "OrbitControls.js", "report_common.js", "volume_viewer.js", "glossary.json",
                 "ops.html", "ops.js", "ops.css", "support.html", "support.js"}
+STANDALONE_PAGES = {"/ops": "ops.html", "/ops/": "ops.html", "/support": "support.html", "/support/": "support.html"}
+V2_HOME = "/v2/"
 # Responses that may be embedded by our own pages (side-by-side comparison, one-page preview).
 EMBEDDABLE_HTML = {"report.html", "onepage.html"}
 _STATIC_BUILD: dict = {}
@@ -124,7 +128,36 @@ def static_build_id(scope: str = "classic") -> str:
         return _STATIC_BUILD[scope].get("value", "")
     except OSError:
         return ""
-OUTPUT_FILES = {"report.html", "summary.json", "run_manifest.json", "quality_audit.json", "wall_wss.vtp", "points_wss.csv", "field.npz",
+
+
+def v2_page(index: Path) -> tuple[bytes, str]:
+    """``static/v2/index.html`` as served at ``/v2/`` (S7): every ``/static/….js|css`` reference carries
+    ``?v=<static_build_id("v2")>`` so the files can be cached as immutable; the file on disk (and the offline package
+    built from it) is unchanged.  Returns (body, weak ETag of the body); cached by the file's stat and the build."""
+    build = static_build_id("v2")
+    stat = index.stat()
+    key = (str(index), stat.st_size, stat.st_mtime_ns, build)
+    cached = _V2_PAGE.get("value")
+    if not cached or cached[0] != key:
+        text = index.read_text(encoding="utf-8")
+        if build:
+            text = _ASSET_URL.sub(lambda m: f"{m[1]}{m[2]}?v={build}{m[3]}", text)
+        body = text.encode("utf-8")
+        cached = (key, body, 'W/"i-' + hashlib.sha256(body).hexdigest()[:24] + '"')
+        _V2_PAGE["value"] = cached
+    return cached[1], cached[2]
+
+
+def v2_versioned(name: str, *, legacy: bool) -> bool:
+    """Whether ``/static/v2/<name>`` (``legacy=False``) or ``/static/<name>`` (``legacy=True``) is part of the v2
+    build digest, i.e. whether ``?v=<build>`` identifies its content."""
+    if not legacy:
+        return name in v2_static_files()
+    scripts = v2_bundle().get("legacy_scripts")
+    return isinstance(scripts, list) and name in scripts and name in STATIC_FILES
+
+
+OUTPUT_FILES ={"report.html", "summary.json", "run_manifest.json", "quality_audit.json", "wall_wss.vtp", "points_wss.csv", "field.npz",
                 "volume_fields.vtp", "points_volume.csv", "wall_pressure.vtp", "streamlines.vtp",
                 "annotations.json", "findings_review.json", "snapshots.json", "narrative.json"}
 # One-page pictures are written by the report page itself; the whitelist stays strict (PNG only, fixed prefix).
@@ -184,6 +217,11 @@ GZIP_LEVEL = 6
 DEFAULT_GZIP_CACHE_MB = 256
 GZIP_TYPES = ("text/html", "application/javascript", "text/css", "application/json")
 STATIC_CACHE = "private, max-age=0, must-revalidate"
+# S7 loading speed: /v2/ names every script and style with ``?v=<static_build_id("v2")>``; a request that carries the
+# current build is content-addressed and cached for a year without revalidation (the page itself still revalidates).
+IMMUTABLE_CACHE = "private, max-age=31536000, immutable"
+_ASSET_URL = re.compile(r'(\b(?:src|href)=")(/static/[A-Za-z0-9_./-]+\.(?:js|css))(")')
+_V2_PAGE: dict = {}
 REPORT_CACHE = "private, no-cache"
 # S6 per-route Content-Security-Policy.  Workbench pages carry no inline script; the 3-D reports are
 # self-contained pages with inline three.js + viewer (hashes computed from the served page would allow
@@ -1219,9 +1257,21 @@ class Handler(BaseHTTPRequestHandler):
         try: onepage = self._onepage(job_id, job)
         except JobError: onepage = None
         return job, onepage, self._job_dir(job_id)
+    def _bundle_offline(self, job_id: str, row: dict) -> str | None:
+        """S7: the workspace's single-file offline page for a job's zip (built inside the caller's bundle slot), or None
+        when it cannot be built (the zip then keeps the classic report.html as its offline page)."""
+        from . import v2_data, v2_offline
+        try:
+            data, record, manifest, filename = self._v2_manifest(job_id, row)
+            return v2_offline.build_offline_html(data, manifest, record={**record, "filename": filename})
+        except (JobError, v2_data.DataError, v2_offline.OfflineBuildError, OSError, ValueError, KeyError, TypeError) as exc:
+            LOG.warning("Bundle of %s keeps the classic report.html (offline page not built: %s)", job_id, exc)
+            return None
     def _send_bundle(self, ids: list[str], row: dict, *, download: str | None = None) -> None:
         """S5: zips are built in ``<jobs root>/.tmp`` (never in memory), one build at a time, capped in size,
-        sent with Content-Length and deleted.  One id → that job's zip; several → an outer zip of per-job zips."""
+        sent with Content-Length and deleted.  One id → that job's zip; several → an outer zip of per-job zips.
+        S7: each job's zip carries the workspace offline page in place of the classic report.html (built one job at a
+        time; the size estimate keeps counting report.html, which the offline page replaces at a similar size)."""
         from .bundle import bundle_name, estimate_bytes, write_job_bundle, write_multi_bundle
         slots, cap = self.server.bundle_slots, self.server.max_bundle_bytes
         if not slots.acquire(timeout=BUNDLE_WAIT_SECONDS): raise JobError("正在生成其他打包下载，请稍后重试。", 429)
@@ -1237,12 +1287,16 @@ class Handler(BaseHTTPRequestHandler):
             if estimate > cap: raise too_big(estimate)
             if len(sources) == 1 and download is None:
                 job, onepage, job_dir = sources[0]
-                with temp("bundle_") as handle: write_job_bundle(handle, job_dir, job, OUTPUT_FILES, onepage_html=onepage)
+                offline = self._bundle_offline(job["id"], row)
+                with temp("bundle_") as handle: write_job_bundle(handle, job_dir, job, OUTPUT_FILES, onepage_html=onepage, offline_html=offline)
+                del offline
                 name = bundle_name(job)
             else:
                 inner = []
                 for job, onepage, job_dir in sources:
-                    with temp("bundle_part_") as handle: write_job_bundle(handle, job_dir, job, OUTPUT_FILES, onepage_html=onepage)
+                    offline = self._bundle_offline(job["id"], row)
+                    with temp("bundle_part_") as handle: write_job_bundle(handle, job_dir, job, OUTPUT_FILES, onepage_html=onepage, offline_html=offline)
+                    del offline
                     inner.append((bundle_name(job), Path(handle.name)))
                     if sum(path.stat().st_size for _, path in inner) > cap: raise too_big(sum(path.stat().st_size for _, path in inner))
                 with temp("bundle_") as handle: write_multi_bundle(handle, inner)
@@ -1302,8 +1356,54 @@ class Handler(BaseHTTPRequestHandler):
             raise JobError("文件不存在。", 404)
         sid, _, fresh = self._session(local_create=page)
         ctype = STATIC_TYPES.get(file.suffix.lower(), "application/octet-stream")
-        return self._send_path(file, ctype, cookie=sid if fresh else None, cache=STATIC_CACHE, etag_prefix="s",
+        if page:   # S7: the page names its scripts and styles with the build; it is itself revalidated every time
+            body, etag = v2_page(file)
+            if etag_matches(self.headers.get("If-None-Match"), etag):
+                return self._not_modified(etag, STATIC_CACHE, vary=True, cookie=sid if fresh else None)
+            return self._send(200, body, ctype, cookie=sid if fresh else None, cache=STATIC_CACHE, etag=etag, compress=True)
+        return self._send_path(file, ctype, cookie=sid if fresh else None, cache=self._asset_cache(name, legacy=False), etag_prefix="s",
                                compress=ctype.split(";", 1)[0] in GZIP_TYPES)
+
+    def _asset_cache(self, name: str, *, legacy: bool) -> str:
+        """S7: ``IMMUTABLE_CACHE`` when the request names the current v2 build (``?v=``) of a file that build digests;
+        otherwise the revalidated ``STATIC_CACHE`` (no version, an older or unknown one, or a file outside the digest)."""
+        version = parse_qs(urlsplit(self.path).query).get("v", [""])[-1]
+        if version and v2_versioned(name, legacy=legacy) and version == static_build_id("v2"):
+            return IMMUTABLE_CACHE
+        return STATIC_CACHE
+
+    def _document_navigation(self, *, require_dest: bool = False) -> bool:
+        """S7: a top-level page visit.  ``Sec-Fetch-Dest: document`` decides when the browser sends fetch metadata;
+        without it (older browsers, ``require_dest`` off) an ``Accept`` naming ``text/html`` counts as a visit."""
+        dest = (self.headers.get("Sec-Fetch-Dest") or "").strip().lower()
+        if dest:
+            return dest == "document"
+        return not require_dest and "text/html" in (self.headers.get("Accept") or "").lower()
+
+    def _classic_redirect(self, path: str, parsed_request) -> str | None:
+        """S7 (PHASE3_LANES.md §3 lane 6 item 1): where a retired classic address goes, or None to serve it as before.
+
+        ``/`` → ``/v2/`` (the browser keeps the ``#…`` fragment, which ``ws_legacy.js`` converts); ``/compare?left=A
+        &right=B`` → the workspace comparison; a page visit of ``/api/jobs/<id>/report`` or ``/jobs/<id>/report.html``
+        → ``/v2/?job=<id>``; ``/api/jobs/<id>/files/report.html`` only with ``Sec-Fetch-Dest: document`` (it stays a
+        plain download otherwise).  Nothing here reads the session: the workspace asks for a login itself."""
+        if path == "/":
+            return V2_HOME + ("?" + parsed_request.query if parsed_request.query else "")
+        if path == "/compare":
+            _, one, _ = self._query(parsed_request)
+            left, right = one("left").strip(), one("right").strip()
+            if not re.fullmatch(JOB_ID_PATTERN, left):
+                return V2_HOME
+            if re.fullmatch(JOB_ID_PATTERN, right) and right != left:
+                return f"{V2_HOME}#/job/{left}?v=compare&cmp={right}"
+            return f"{V2_HOME}#/job/{left}"
+        match = re.fullmatch(rf"/api/jobs/({JOB_ID_PATTERN})/report", path) or re.fullmatch(rf"/jobs/({JOB_ID_PATTERN})/report\.html", path)
+        if match and self._document_navigation():
+            return f"{V2_HOME}?job={match[1]}"
+        match = re.fullmatch(rf"/api/jobs/({JOB_ID_PATTERN})/files/report\.html", path)
+        if match and self._document_navigation(require_dest=True):
+            return f"{V2_HOME}?job={match[1]}"
+        return None
 
     V2_RECORD_KEYS = ("id", "status", "stage", "phase", "detail", "version", "error", "case_id", "patient_id", "scan_label",
                       "scan_date", "created_at", "review", "companions", "companion_of", "narrative", "display_name",
@@ -1496,14 +1596,18 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(301, b"", "text/plain; charset=utf-8", headers={"Location": location})
         if path in {"/v2/", V2_EXAMPLE_ROUTE} or path.startswith("/static/v2/"):
             return self._v2_static(path)
-        if path in {"/", "/compare", "/ops", "/ops/", "/support", "/support/"} or path.startswith("/static/"):
+        location = self._classic_redirect(path, parsed_request)
+        if location:   # S7: retired classic pages and page visits of the classic report
+            return self._send(302, b"", "text/plain; charset=utf-8", headers={"Location": location})
+        if path in STANDALONE_PAGES or path.startswith("/static/"):
             # Page shells contain no user data and provide their own login. Every operations API is admin-gated.
-            name = {"/": "index.html", "/compare": "compare.html", "/ops": "ops.html", "/ops/": "ops.html",
-                    "/support": "support.html", "/support/": "support.html"}.get(path) or path.removeprefix("/static/"); file = contained_file(STATIC_DIR, name, STATIC_FILES)
+            name = STANDALONE_PAGES.get(path) or path.removeprefix("/static/"); file = contained_file(STATIC_DIR, name, STATIC_FILES)
             if not file: raise JobError("文件不存在。", 404)
             sid, _, fresh = self._session(local_create=not path.startswith("/static/")); ctype = {".js": "application/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".html": "text/html; charset=utf-8", ".json": "application/json; charset=utf-8"}.get(file.suffix, "application/octet-stream")
-            # S10: revalidated with ETag (304) and gzipped; S6: workbench pages allow no inline script.
-            return self._send_path(file, ctype, cookie=sid if fresh else None, cache=STATIC_CACHE, etag_prefix="s",
+            # S10: revalidated with ETag (304) and gzipped; S6: workbench pages allow no inline script; S7: the report
+            # scripts the workspace loads with ``?v=<build>`` are immutable.
+            cache = self._asset_cache(name, legacy=True) if path.startswith("/static/") else STATIC_CACHE
+            return self._send_path(file, ctype, cookie=sid if fresh else None, cache=cache, etag_prefix="s",
                                    compress=ctype.split(";", 1)[0] in GZIP_TYPES)
         row = self._require_session(); manager = self.server.manager; admin = self._admin(row)
         query, one, integer = self._query(parsed_request)

@@ -188,7 +188,7 @@ def test_user_menu_opens_the_template_dialog_and_saves_the_classic_payload():
     """)
     assert out["errors"] == [], out["errors"]
     labels = out["labels"]
-    assert "报告模板…" in labels and labels.index("报告模板…") < labels.index("经典工作台")
+    assert "报告模板…" in labels and labels.index("报告模板…") < labels.index("运维中心")   # S7: 运维中心 replaced 经典工作台
     assert "GET /api/report-template" in out["calls"]
     assert out["loaded"] == {"open": True, "title": "报告模板", "inst": "某某医院", "sign": "报告人，审阅人", "foot": "仅限内部", "gloss": "all", "appx": False,
                              "sketch": "某某医院", "sketchSign": 2, "back": True}
