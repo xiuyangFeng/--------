@@ -450,7 +450,7 @@ def test_boot_rewrite_and_the_state_applied_when_the_result_opens(tmp_path):
       globalThis.WSSV2.figure={encodeState:s=>Buffer.from(JSON.stringify(s)).toString('base64'), decodeState:t=>JSON.parse(Buffer.from(t,'base64').toString()),
         applyView:(api, st)=>{ applied.push(st); return Promise.resolve(['链接来自这份结果的另一次计算，已按可用项恢复']); }};
       const manifest={result:{family:'wall'}, fields:[{id:'wss'},{id:'tawss', display:{log_scale:true}},{id:'osi'}], geometry:{branches:[{id:0},{id:2},{id:4}]}};
-      const api=(id)=>({cur:()=>({jobId:id, manifest}), ui:{toast:(t,o)=>toasts.push([t,o.kind])}});
+      const api=(id)=>{ const cur={jobId:id, manifest}; return {cur:()=>cur, ui:{toast:(t,o)=>toasts.push([t,o.kind])}}; };
       const other=await L.applyPending(api('OTHER'));
       L.rewrite(win('?job=J1', C.viewHash(Object.assign({}, S, {colormap:'turbo'}))));
       const res=await L.applyPending(api('J1'));
@@ -476,6 +476,35 @@ def test_boot_rewrite_and_the_state_applied_when_the_result_opens(tmp_path):
     assert out["res"] is True and out["again"] is None and out["hooks"] == 1
     assert out["toasts"][0] == ["已按旧版链接打开。链接来自这份结果的另一次计算，已按可用项恢复；旧版链接里的配色没有带过来。", "info"]
     assert out["toasts"][1] == ["旧版链接里的视图无法读取，已按默认打开。", "info"]
+
+
+def test_classic_state_waits_for_the_saved_view_restore(tmp_path):
+    """The shell restores this browser's saved reading position asynchronously after onResult; the classic link must be
+    applied after it, or the restore overwrites camera and shown branches (seen in the sandbox walk-through)."""
+    program = """
+      require(@@core@@);
+      const C=globalThis.WssReportCore, S=@@state@@;
+      const handlers=[], applied=[];
+      const viewer={on:(n,f)=>{ handlers.push(f); return ()=>{ handlers.length=0; }; }};
+      globalThis.WSSV2.store={readView:run=>run==='R1'?{run_identity:'R1', viewer:{camera:{position:[1,2,3]}}}:null};
+      globalThis.WSSV2.figure={applyView:(api, st)=>{ applied.push(Date.now()); return Promise.resolve([]); }};
+      const manifest={result:{family:'wall'}, fields:[{id:'tawss'}], geometry:{branches:[{id:0},{id:2}]}};
+      const cur={jobId:'J1', runIdentity:'R1', manifest};
+      const api={cur:()=>cur, viewer:()=>viewer, ui:{toast(){}}};
+      L.rewrite({location:{search:'?job=J1', hash:C.viewHash(S), pathname:'/v2/'}, history:{replaceState(){}}});
+      const p=L.applyPending(api);
+      await new Promise(r=>setTimeout(r, 50));
+      const before=applied.length, subscribed=handlers.length;
+      const t=Date.now(); handlers.forEach(f=>f({what:'branches'}));
+      await p;
+      // no saved view: applied at once
+      const cur2={jobId:'J2', runIdentity:'R2', manifest};
+      L.rewrite({location:{search:'?job=J2', hash:C.viewHash(S), pathname:'/v2/'}, history:{replaceState(){}}});
+      await L.applyPending({cur:()=>cur2, viewer:()=>viewer, ui:{toast(){}}});
+      out({before, subscribed, after:applied.length, unsubscribed:handlers.length===0, order:applied[0]>=t});
+    """.replace("@@state@@", json.dumps(WALL_STATE, ensure_ascii=False))
+    out = _node(program, core=_wall_core(tmp_path))
+    assert out == {"before": 0, "subscribed": 1, "after": 2, "unsubscribed": True, "order": True}
 
 
 def _harness(scenario: str, files: list[str], *, before: str = "") -> dict:

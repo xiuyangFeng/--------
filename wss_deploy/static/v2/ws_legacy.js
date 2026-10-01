@@ -286,6 +286,26 @@
     if (!text || !U || typeof U.toast !== 'function') return;
     U.toast(text, { kind: 'info', ms: 9000 });
   }
+  // The shell restores this browser's saved reading position of the result (ws_shell showResult → viewer.applyState,
+  // asynchronous: it waits for the field arrays) without waiting for it before onResult.  A link applied at once would
+  // be overwritten by that restore, so with a saved view wait for its last step (the 'branches' change it always emits,
+  // camera set in the same turn), then apply.  3 s at most.
+  function settled(api, cur) {
+    var v = api && api.viewer ? api.viewer() : null;
+    var saved = ns.store && typeof ns.store.readView === 'function' ? ns.store.readView(cur.runIdentity) : null;
+    if (!saved || !saved.viewer || !v || typeof v.on !== 'function') return Promise.resolve();
+    return new Promise(function (resolve) {
+      var off = null, done = false;
+      var finish = function () {
+        if (done) return;
+        done = true;
+        try { if (typeof off === 'function') off(); } catch (_) { /* nothing to undo */ }
+        setTimeout(resolve, 0);
+      };
+      off = v.on('change', function (e) { if (e && e.what === 'branches') finish(); });
+      setTimeout(finish, 3000);
+    });
+  }
   function applyPending(api) {
     var p = pending;
     pending = null;
@@ -298,8 +318,11 @@
     if (F && typeof F.encodeState === 'function' && typeof F.decodeState === 'function') {
       try { state = F.decodeState(F.encodeState(state)); } catch (_) { state = conv.state; }
     }
-    var applied = F && typeof F.applyView === 'function' ? Promise.resolve(F.applyView(api, state)) : Promise.resolve([]);
-    return applied.then(function (notes) {
+    return settled(api, cur).then(function () {
+      if (api.cur() !== cur) return null;
+      return F && typeof F.applyView === 'function' ? F.applyView(api, state) : [];
+    }).then(function (notes) {
+      if (notes === null) return null;
       var parts = [];
       if (Array.isArray(notes) && notes.length) parts.push(notes.join('；'));
       if (conv.dropped.length) parts.push('旧版链接里的' + conv.dropped.join('、') + '没有带过来');
