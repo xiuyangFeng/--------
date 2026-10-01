@@ -436,3 +436,23 @@ def test_input_files_parse_and_are_bundled():
     css = (V2 / "v2_input.css").read_text(encoding="utf-8")
     assert ".eta-fill" in css and ".admin-detail" in css and ".input-stage-tools" in css
     assert "经典工作台中处理" not in (V2 / "ws_shell.js").read_text(encoding="utf-8")
+
+
+def test_cancelled_hides_idle_openings_and_done_race_is_neutral():
+    """A cancelled job with five normal openings shows no openings table; a record that says done while the
+    result files are not readable yet (409 race) gets a neutral panel, not an error card."""
+    out = run(r"""
+      canned['/api/jobs/C3'] = {body: {job: jobRecord('C3', {status: 'cancelled', error: null, a: {input_check: IC, centerline: {openings: OPENINGS}}})}};
+      canned['/api/v2/jobs/C3/inputcheck'] = {body: {status: 'cancelled', input_check: IC, mesh: null, openings: OPENINGS}};
+      canned['/api/v2/jobs/R/manifest'] = {status: 409, body: {error: 'not done', status: 'running'}};
+      canned['/api/jobs/R'] = {body: {job: jobRecord('R')}};
+      await boot();
+      await hashTo('#/job/C3', 200);
+      const c = {openings: byClass(inspector(), 'tbl-openings').length, retry: buttons(inspector(), '重试').length};
+      await hashTo('#/job/R', 200);
+      const r = {title: textOf(byClass(inspector(), 'sec-title')[0]), errors: byClass(inspector(), 'note-error').length, open: buttons(inspector(), '打开结果').length};
+      done({c, r});
+    """)
+    assert out["errors"] == [], out["errors"]
+    assert out["c"] == {"openings": 0, "retry": 1}
+    assert out["r"] == {"title": "已完成", "errors": 0, "open": 1}
