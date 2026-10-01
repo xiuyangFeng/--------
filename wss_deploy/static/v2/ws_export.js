@@ -4,7 +4,9 @@
  *           English words, colour bar / title / labels; colour bar as SVG; print the view (ns.figure)
  *   拼图     six standard views or a chosen set (+ current view, + section map) with one colour bar (ns.figure)
  *   一页纸   figures for the one-page report (classic snapshots format) and the one-pager itself
- *   数据     the existing CSV / VTP / zip, and the offline HTML (/api/v2/.../offline, bookmarks, name can be hidden)
+ *   数据     statistics CSV, the classic result card's single files by family (phase 3 lane 5: wall VTP / point CSV;
+ *           volume VTP / wall-pressure VTP / volume CSV / streamlines VTP), zip, and the offline HTML
+ *           (/api/v2/.../offline, bookmarks, name can be hidden)
  * The footer copies the reproducible link.  Without ns.figure (tests, a trimmed bundle) the 图片 page falls back to the
  * first-phase 汇报图: snapshot + colour bar + window name + display name. */
 (function (root, factory) {

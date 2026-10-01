@@ -9,7 +9,11 @@
  *              the volume section; read back in onResult (the shell's parseHash is not changed)
  *   一页纸配图  POST /api/jobs/<id>/snapshots in the classic buildSnapshots / makeOnepageShots format
  *   打印        the current view on a print-only A4 page
- * Shell hooks through ns.ext (the 工具 tab section, onResult / onClose); the export dialog (ws_export.js) shows the panes. */
+ * Shell hooks through ns.ext (the 工具 tab section, onResult / onClose); the export dialog (ws_export.js) shows the panes.
+ * Phase 3 lane 5 (PHASE3_LANES.md): the link also carries the display (d: colour map, lighting, labels, bands,
+ * thresholds, units, display layers, volume options) and extension states (x, ns.ext linkState / applyLinkState), still
+ * v:1 — an older link without d leaves the display alone; the chosen views as separate PNGs in a zip (拼图 page 「分成
+ * 单张」); the store-mode zip writer; headless(ctx) for a result that is not on screen (ws_batch.js). */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};

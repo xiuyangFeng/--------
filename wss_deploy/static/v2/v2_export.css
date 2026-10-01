@@ -66,7 +66,8 @@
 .wsb-num { width: 76px; height: 28px; font-size: 12px; }
 .wsb-linkrow { display: inline-flex; align-items: center; gap: 8px; flex: 0 1 560px; min-width: 0; }
 .wsb-link { flex: 1 1 auto; min-width: 0; width: 420px; height: 28px; font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-.wsb-link-line { padding-left: 46px; min-height: 16px; font-size: 12px; }
+.wsb-link-line { padding-left: 46px; font-size: 12px; }
+.wsb-link-line:has(.wsb-link-note:empty) { display: none; }
 .wsb-bad { color: var(--danger, #c0392b) !important; }
 .wsb-style { display: flex; flex-direction: column; gap: 8px; }
 .wsb-run { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
@@ -87,6 +88,7 @@
 .cmp-id-text { overflow: hidden; text-overflow: ellipsis; }
 .cmp-scalars { display: flex; flex-direction: column; gap: 6px; }
 .cmp-kind { margin: 0; font-size: 12px; }
+.tbl-scalar { font-size: 12px; }
 .tbl-scalar td.num, .tbl-scalar th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dlg-pick .pick-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .dlg-pick .pick-search { flex: 1 1 auto; min-width: 0; height: 30px; }
