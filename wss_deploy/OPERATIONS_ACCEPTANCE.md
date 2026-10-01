@@ -1,6 +1,6 @@
 # 运维系统验收
 
-本次新增 `/ops` 运维中心和 `/support` 用户工单。原有 `index.html`、`app.js`、`app.css` 与主页面管理员入口保持原样。使用规则、接口和留存说明见 [OPERATIONS.md](OPERATIONS.md)。
+本次新增 `/ops` 运维中心和 `/support` 用户工单。原有 `index.html`、`app.js`、`app.css` 与主页面管理员入口保持原样（09-29 验收时的状态；S7 起 `index.html`、`app.js` 已随旧工作台删除，`app.css` 保留给本页和工单页）。使用规则、接口和留存说明见 [OPERATIONS.md](OPERATIONS.md)。
 
 ## 打开验收实例
 

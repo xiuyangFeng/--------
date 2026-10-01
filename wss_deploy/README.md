@@ -21,9 +21,9 @@ $PY -m wss_deploy.cli service start --host 0.0.0.0 --port 8765 --env CUDA_VISIBL
 CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --token-file ~/.wss_deploy_token
 ```
 
-浏览器打开 `http://master:8765/`（校园网内直接访问 master 的地址，或本机 `ssh -L 8765:localhost:8765 <user>@master` 后打开 `http://localhost:8765/`）。
+浏览器打开 `http://master:8765/`（会跳到新工作区 `/v2/`；校园网内直接访问 master 的地址，或本机 `ssh -L 8765:localhost:8765 <user>@master` 后打开 `http://localhost:8765/`）。
 
-独立运维中心：同一服务下打开 `/ops`，管理员可跨账号查看任务、回收站、审计、工单和 STL 素材库；用户通过 `/support` 提交与跟进工单。现有主页保持原样。使用、权限、素材留存及备份见 [运维中心说明](OPERATIONS.md)。
+独立运维中心：同一服务下打开 `/ops`，管理员可跨账号查看任务、回收站、审计、工单和 STL 素材库；用户通过 `/support` 提交与跟进工单。主页是新工作区 `/v2/`：管理员在头像菜单进入运维中心，帮助菜单里有「反馈问题」（S7 起旧工作台已下线，旧地址自动跳转）。使用、权限、素材留存及备份见 [运维中心说明](OPERATIONS.md)。
 
 | 模块 | 作用 | 备注 |
 |---|---|---|

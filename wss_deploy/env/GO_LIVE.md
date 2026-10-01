@@ -31,7 +31,7 @@ $PY -m wss_deploy.cli service upgrade --drain 600 --env CUDA_VISIBLE_DEVICES=1 -
 
 （`--env` 写入 service.json 后，之后的 `service upgrade` 不必重复；`WSS_DEPLOY_UMASK=077` 是 2026-09-26 用户裁定：新建的任务目录与文件只给本账号。）
 
-判定：依次出现「升级预检通过」→「排空完成」→「服务已就绪：http://0.0.0.0:8765/」→「报告模板：刷新 N 个」，退出码 0。
+判定：依次出现「升级预检通过」→「排空完成」→「服务已就绪：http://0.0.0.0:8765/v2/」→「报告模板：刷新 N 个」，退出码 0。
 
 - 预检 ✗：旧服务未停、未改任何东西；按 ✗ 行修复后重跑。
 - 「新服务未能就绪」：旧服务已停。看输出里的日志尾 30 行，修复后 `$PY -m wss_deploy.cli service start`（维护请求保留，启动后执行）。
@@ -41,12 +41,12 @@ $PY -m wss_deploy.cli service upgrade --drain 600 --env CUDA_VISIBLE_DEVICES=1 -
 
 | 项 | 命令 | 标准 |
 |---|---|---|
-| health | `curl -s --noproxy '*' http://127.0.0.1:8765/api/health` | `{"ok": true, "version": "0.15.0"}`（只有这两个字段） |
+| health | `curl -s --noproxy '*' http://127.0.0.1:8765/api/health` | `{"ok": true, "version": "<当前版本>"}`（只有这两个字段） |
 | ready | `curl -s --noproxy '*' -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8765/api/ready` | `200` |
 | status | `$PY -m wss_deploy.cli service status` | 「运行中（由 service 管理）」；登录 = 用户名登录；写锁 = 服务持有；GPU = `CUDA_VISIBLE_DEVICES='1'`；时区 = Asia/Shanghai（service.json）；最近升级 = 刚才的时间 |
 | 日志时区 | `$PY -m wss_deploy.cli service logs -n 5` | 时间带 `+0800` |
-| 登录 | 浏览器打开 `http://<服务器 IP>:8765/`，admin 登录 | 进入工作台；勾「全部用户」能看到全部任务 |
-| 一例烟测 | 打开任一已完成任务的三维报告与一页纸 | 三维模型与色标正常显示 |
+| 登录 | 浏览器打开 `http://<服务器 IP>:8765/`（会跳到 `/v2/`），admin 登录 | 进入新工作区；头像菜单开「看全部用户」能看到全部任务 |
+| 一例烟测 | 打开任一已完成结果与它的一页纸 | 三维模型与色标正常显示；旧报告地址 `/api/jobs/<id>/report` 跳到同一结果 |
 | 可选：一例计算 | 网页上传一个已知 STL（或 `$PY -m wss_deploy.cli submit x.stl --units mm --user admin`） | 完成，GPU 端到端约 1 min |
 
 ## 4. 日常
