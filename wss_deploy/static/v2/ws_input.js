@@ -8,7 +8,10 @@
  * person, retry of failed jobs with the typed error card (category, CPU hint, diagnostic id, admin-only detail),
  * input facts, re-picking the inlet (/confirm {inlet}), outlet details (plain-words reasons, 3-D pick, changes,
  * remaining time), 「下一例」 after confirming or signing, and where a job came from (companions / reuse / rerun).
- * Every request is the classic one with the classic payload. */
+ * Every request is the classic one with the classic payload.
+ * P4 lane A: the outlet viewer draws the centreline (#73, classic createViewer); 「输入检查与计算过程」 on queued / running /
+ * waiting pages (#78, ws_detail's sections with the centreline rows #102); the naming confidence's caveat (W30) and the
+ * summary flags among the outlet reasons (W35). */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -82,6 +85,17 @@
       return {vertices: vv, faces: ff};
     }
     return null;
+  }
+  // P4 lane A (#73): centreline polylines of the outlet viewer, as the classic createViewer: the /geometry payload's
+  // preview_polylines, else the stage-A proposal's; each line = its finite xyz points (two or more).
+  function polylinesFrom(geometry, proposal) {
+    var g = geometry && Array.isArray(geometry.preview_polylines) && geometry.preview_polylines.length ? geometry.preview_polylines : null;
+    var src = g || (proposal && Array.isArray(proposal.preview_polylines) ? proposal.preview_polylines : []);
+    var fin = function (v) { return typeof v === 'number' && isFinite(v); };
+    var ok = function (p) { return Array.isArray(p) && p.length >= 3 && fin(p[0]) && fin(p[1]) && fin(p[2]); };
+    return src.map(function (line) {
+      return line && Array.isArray(line.xyz) ? line.xyz.filter(ok).map(function (p) { return [p[0], p[1], p[2]]; }) : [];
+    }).filter(function (pts) { return pts.length > 1; });
   }
 
   // ------------------------------------------------------------------ pure: status rules (classic app.js renderJob / cancelJob)
@@ -245,6 +259,12 @@
     var headline = pct === null ? '请结合原始影像核对出口命名' : required ? '自动命名置信度 ' + pct + '%，需要人工核对' : '自动命名置信度 ' + pct + '%，已自动通过';
     return {headline: headline, confidence: confidence, required: required, reasons: reasons};
   }
+  // P4 lane A (W30): the caveat beside 「自动命名置信度 x%」 — ws_detail's rule (classic report gate card), else the
+  // classic workbench sentence for a proxy value.
+  function confidenceCaveat(gate) {
+    var D = ns.detail;
+    return D && typeof D.confidenceCaveat === 'function' ? D.confidenceCaveat(gate) : humanOutletReason('代理值');
+  }
   function mappingChanges(mapping, proposal) {
     return Object.keys(mapping || {}).filter(function (k) { return mapping[k] !== (proposal || {})[k]; }).sort(function (a, b) { return Number(a) - Number(b); });
   }
@@ -381,6 +401,7 @@
     camera.add(key); key.position.set(0.3, 0.6, 1);
     scene.add(camera);
     var group = new T.Group(); scene.add(group);
+    var lineGroup = new T.Group(); scene.add(lineGroup);
     var markerGroup = new T.Group(); scene.add(markerGroup);
     var controls = T.OrbitControls ? new T.OrbitControls(camera, canvas) : null;
     var radius = 100, frame = 0, home = null, pickCb = null, targets = [];
@@ -402,8 +423,19 @@
       if (controls) controls.update();
       request();
     }
+    // Framing on a bounding sphere (the wall's, or the centreline's when the job has no display mesh).
+    function frameOn(s) {
+      radius = s.radius || 100;
+      var vfov = camera.fov * Math.PI / 180, hfov = 2 * Math.atan(Math.tan(vfov / 2) * (camera.aspect || 1));
+      var dist = radius / Math.sin(Math.min(vfov, hfov) / 2) * 1.02;
+      camera.near = radius / 100; camera.far = radius * 20;
+      home = {position: new T.Vector3(s.center.x, s.center.y - dist, s.center.z), target: s.center.clone()};
+      applyHome();
+    }
+    var hasMesh = false;
     function setMesh(mesh) {
       while (group.children.length) group.remove(group.children[0]);
+      hasMesh = Boolean(mesh);
       if (!mesh) { request(); return; }
       var g = new T.BufferGeometry();
       g.setAttribute('position', new T.BufferAttribute(mesh.vertices, 3));
@@ -412,13 +444,27 @@
       var mat = new T.MeshPhongMaterial({color: 0xdfe4ea, specular: 0x333333, shininess: 30, side: T.DoubleSide});
       disposables.push(g, mat);
       group.add(new T.Mesh(g, mat));
-      var s = g.boundingSphere;
-      radius = s.radius || 100;
-      var vfov = camera.fov * Math.PI / 180, hfov = 2 * Math.atan(Math.tan(vfov / 2) * (camera.aspect || 1));
-      var dist = radius / Math.sin(Math.min(vfov, hfov) / 2) * 1.02;
-      camera.near = radius / 100; camera.far = radius * 20;
-      home = {position: new T.Vector3(s.center.x, s.center.y - dist, s.center.z), target: s.center.clone()};
-      applyHome();
+      frameOn(g.boundingSphere);
+    }
+    // P4 lane A (#73): the centreline polylines ([[x, y, z], …] each) over the wall, colour and see-through drawing of
+    // the classic outlet viewer (0x567891, opacity 0.9, no depth test); under the endpoint markers.
+    function setLines(lines) {
+      while (lineGroup.children.length) lineGroup.remove(lineGroup.children[0]);
+      var all = [];
+      (lines || []).forEach(function (pts) {
+        if (!Array.isArray(pts) || pts.length < 2) return;
+        var vecs = pts.map(function (p) { return new T.Vector3(p[0], p[1], p[2]); });
+        var g = new T.BufferGeometry().setFromPoints(vecs);
+        var mat = new T.LineBasicMaterial({color: 0x567891, transparent: true, opacity: 0.9, depthTest: false});
+        disposables.push(g, mat);
+        var line = new T.Line(g, mat);
+        line.renderOrder = 3;
+        lineGroup.add(line);
+        all = all.concat(vecs);
+      });
+      if (!hasMesh && all.length && T.Sphere) frameOn(new T.Sphere().setFromPoints(all));
+      request();
+      return lineGroup.children.length;
     }
     function pill(text, color) {
       var c = root.document.createElement('canvas');
@@ -493,7 +539,7 @@
       return {x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height};
     }
     size();
-    return {setMesh: setMesh, setMarkers: setMarkers, render: request, canvas: canvas, markerScreen: markerScreen,
+    return {setMesh: setMesh, setLines: setLines, lineCount: function () { return lineGroup.children.length; }, setMarkers: setMarkers, render: request, canvas: canvas, markerScreen: markerScreen,
       onPick: function (cb) { pickCb = typeof cb === 'function' ? cb : null; canvas.style.cursor = pickCb && targets.length ? 'pointer' : ''; },
       reset: applyHome,
       snapshot: function () { try { renderer.render(scene, camera); return canvas.toDataURL('image/png'); } catch (_) { return null; } },
@@ -539,7 +585,8 @@
   function create(ctx) {
     var h = ui().h;
     var st = {job: ctx.job, etaAt: Date.now(), view: null, mesh: null, inputcheck: null, geometry: null, mapping: null, selected: null, disposed: false,
-      inletMode: false, inletChoice: '', reasonsOpen: false, etaOpen: false, factsOpen: false, busy: false, eta: null, etaNote: null, rows: {}, ticker: null, poll: null};
+      inletMode: false, inletChoice: '', reasonsOpen: false, etaOpen: false, factsOpen: false, busy: false, eta: null, etaNote: null, rows: {}, ticker: null, poll: null,
+      lines: [], procOpen: false, eventsOpen: false, checksOpen: false};
     var stageBox = h('div', {'class': 'input-stage'});
     var viewHost = h('div', {'class': 'input-view'});
     var stageMsg = h('div', {'class': 'input-stage-msg'});
@@ -576,9 +623,12 @@
       return Promise.all(tasks).then(function () {
         if (st.disposed) return;
         st.mesh = meshFrom(st.inputcheck, st.geometry);
+        // #73: the outlet viewer draws the centreline the outlets were named on (classic createViewer)
+        var outletPage = st.job.status === 'awaiting_confirmation' || st.job.status === 'awaiting_outlets';
+        st.lines = outletPage ? polylinesFrom(st.geometry, stageA().proposal) : [];
         var v = ensureView();
-        if (v) { v.setMesh(st.mesh); stageMsg.textContent = st.mesh ? '' : '没有可显示的网格。'; }
-        stageTools.hidden = !(v && st.mesh);
+        if (v) { v.setMesh(st.mesh); v.setLines(st.lines); stageMsg.textContent = st.mesh || st.lines.length ? '' : '没有可显示的网格。'; }
+        stageTools.hidden = !(v && (st.mesh || st.lines.length));
         drawMarkers();
       });
     }
@@ -779,6 +829,8 @@
         body.push(failureCard(job));
         if (inputRecovery(job)) body.push(unitsCard(job));
       }
+      var proc = processCard(job);
+      if (proc) body.push(proc);
       ui().fill(panel, head, h('div', {'class': 'input-body'}, body));
       syncTitle();
       startTicker();
@@ -813,6 +865,26 @@
         if (!ok || st.disposed || st.job.id !== job.id) return null;
         return act(api().cancel(job.id, {version: st.job.version})).then(function (j) { if (j) ui().toast('任务已取消。之后可以点「重试」继续。', {kind: 'ok'}); return j; });
       });
+    }
+    // P4 lane A (#78 / #102): 「输入检查与计算过程」 behind one toggle, as the classic processCard (shown whenever stage A
+    // has an input check, except while the units wait for a person) — the same 输入检查 / 计算过程 sections as the tools
+    // tab of a finished result (ws_detail), with the centreline check rows.  A failed page already lists its input facts
+    // and checks, so it adds the process only.
+    function processCard(job) {
+      var D = ns.detail, status = job.status || '';
+      if (!D || typeof D.processSectionFor !== 'function' || status === 'awaiting_input' || status === 'done') return null;
+      var a = stageA(), ic = (st.inputcheck && st.inputcheck.input_check) || a.input_check || null;
+      if (!ic) return null;
+      var failed = RECOVER.indexOf(status) >= 0;
+      var openings = (a.centerline && a.centerline.openings) || (st.inputcheck && st.inputcheck.openings) || [];
+      var parts = [failed ? null : D.inputSectionFor(ic, openings, st), D.processSectionFor(job, st, {quiet: true})].filter(Boolean);
+      if (!parts.length) return null;
+      var more = h('div', {'class': 'proc-more', hidden: !st.procOpen}, parts);
+      var btn = ui().button(failed ? '计算过程' : '输入检查与计算过程', function () {
+        st.procOpen = !st.procOpen; more.hidden = !st.procOpen; ui().setPressed(btn, st.procOpen);
+      }, {kind: 'link', cls: 'btn-sm'});
+      ui().setPressed(btn, st.procOpen);
+      return h('div', {'class': 'input-proc'}, h('div', {'class': 'sec-actions'}, btn), more);
     }
     function unitsCard(job) {
       var ic = (st.inputcheck && st.inputcheck.input_check) || (job.a || {}).input_check || {};
@@ -861,6 +933,11 @@
       var eps = endpoints();
       var outlets = eps.filter(function (e) { return e.kind !== 'inlet'; }).map(function (e) { return String(e.segment_id); });
       var review = outletReview(p, job.detail, p.direction_note || (a.input_check || {}).direction_note);
+      // W35: a summary's top-level flags (the naming suggestion's warnings, normally the proposal's own) join the reasons
+      ((job.summary && Array.isArray(job.summary.flags)) ? job.summary.flags : []).forEach(function (t) {
+        var x = humanOutletReason(t);
+        if (x && review.reasons.indexOf(x) < 0) review.reasons.push(x);
+      });
       var ack = h('input', {type: 'checkbox'});
       var goBtn = ui().button('确认出口并开始预测', function () {
         goBtn.disabled = true;
@@ -904,8 +981,10 @@
       var moreBtn = more ? ui().button('更多原因 · ' + (reasons.length - 1), function () { st.reasonsOpen = !st.reasonsOpen; more.hidden = !st.reasonsOpen; ui().setPressed(moreBtn, st.reasonsOpen); }, {kind: 'link', cls: 'btn-sm'}) : null;
       if (moreBtn) ui().setPressed(moreBtn, st.reasonsOpen);
       st.etaNote = etaNoteEl();
+      // W30: the percentage in the headline is a geometric proxy — said first in the ⓘ beside it
       var tag = h('span', {'class': 'sec-tagrow'}, h('span', {'class': 'sec-note', text: review.headline}),
-        ui().infoTip('STL 不带患者方向，出口名称决定模型用的左右坐标；名称错了，左右分支的结果会对调。请对照原始影像核对。三维里的 X / Y / Z 是 STL 世界坐标，不是患者方位。'));
+        ui().infoTip((review.confidence !== null ? confidenceCaveat(p.confidence_gate) + ' ' : '') +
+          'STL 不带患者方向，出口名称决定模型用的左右坐标；名称错了，左右分支的结果会对调。请对照原始影像核对。三维里的 X / Y / Z 是 STL 世界坐标，不是患者方位。'));
       return h('div', {}, ui().section('确认出口', {tag: tag},
         reasons.length ? ui().note(reasons[0], review.required ? 'warn' : null) : null,
         moreBtn ? h('div', {'class': 'reasons-more'}, moreBtn) : null, more,
@@ -1037,5 +1116,7 @@
   return {create: create, swap: swap, validMapping: validMapping, openingHints: openingHints, normalizeOpenings: normalizeOpenings, meshFrom: meshFrom, NAMES: NAMES,
     etaView: etaView, formatDuration: formatDuration, stageRemaining: stageRemaining, errorModel: errorModel, canCancel: canCancel, cancelLines: cancelLines,
     humanOutletReason: humanOutletReason, outletReview: outletReview, mappingChanges: mappingChanges, inputFacts: inputFacts, boxSize: boxSize, referenceText: referenceText,
-    provenance: provenance, nextJob: nextJob, offerNext: offerNext, watchReview: watchReview, inputRecovery: inputRecovery};
+    provenance: provenance, nextJob: nextJob, offerNext: offerNext, watchReview: watchReview, inputRecovery: inputRecovery,
+    // P4 lane A
+    polylinesFrom: polylinesFrom, confidenceCaveat: confidenceCaveat};
 });

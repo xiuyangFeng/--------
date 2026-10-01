@@ -6,7 +6,9 @@
  *    compute process (stage timings, event log), the input check of a finished job, delete to the trash (with undo);
  *  · keys N (upload), / (search), O (one-pager).
  * Everything goes through the shell's extension registry (ws_shell.js 「extensions」); numbers come from the job record
- * and the manifest, the same sources as the classic workbench / report. */
+ * and the manifest, the same sources as the classic workbench / report.
+ * P4 lane A: 计算过程 gets the classic centreline rows (#102) and, with 输入检查, serves the input page too (#78); 出口命名
+ * shows the confidence caveat (W30) and the naming suggestion's flags (W35). */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -134,7 +136,25 @@
     var source = last ? ({automatic_high_confidence: '自动确认', manual_confirmation: '人工确认', manual_override: '人工修改后重算'}[last.source] || '已确认') : (job && job.mapping ? '已确认' : '未确认');
     return {endpoints: eps.map(function (e) { return {sid: String(e.segment_id), kind: e.kind, radius: e.radius_mm, center: e.center_mm}; }),
       mapping: Object.assign({}, (job && job.mapping) || p.mapping || {}), proposal: Object.assign({}, p.mapping || {}),
-      confidence: typeof p.confidence === 'number' ? p.confidence : null, source: source, available: eps.length > 0 && Boolean(p.mapping)};
+      confidence: typeof p.confidence === 'number' ? p.confidence : null, gate: p.confidence_gate && typeof p.confidence_gate === 'object' ? p.confidence_gate : null,
+      source: source, available: eps.length > 0 && Boolean(p.mapping)};
+  }
+  // P4 lane A (W30): the naming confidence is a geometric proxy, not a probability — the classic report's gate card
+  // (report.py: validated profile or not) in the classic workbench's words (workbench_core.humanOutletReason).
+  function confidenceCaveat(gate) {
+    return gate && gate.calibration_status === 'validated' ? '已绑定独立校准 profile。' : '把握度由几何形态估算，不是经过临床数据校准的概率。';
+  }
+  // P4 lane A (W35): the naming suggestion's own warnings — manifest analysis.flags (= summary flags, the classic
+  // report's 「需关注的输入信息」), the summary and the stage-A proposal — in the classic workbench's plain words
+  // (ws_input.humanOutletReason, ported from workbench_core), each once.
+  function outletFlags(manifest, job) {
+    var a = (job && (job.a || job.stage_a)) || {}, p = a.proposal || {};
+    var an = manifest && manifest.analysis, sm = job && job.summary;
+    var raw = [].concat(an && Array.isArray(an.flags) ? an.flags : [], sm && Array.isArray(sm.flags) ? sm.flags : [], Array.isArray(p.flags) ? p.flags : []);
+    var human = ns.input && typeof ns.input.humanOutletReason === 'function' ? ns.input.humanOutletReason : function (t) { return String(t || '').trim(); };
+    var out = [];
+    raw.forEach(function (t) { if (typeof t !== 'string') return; var x = human(t); if (x && out.indexOf(x) < 0) out.push(x); });
+    return out;
   }
 
   // ------------------------------------------------------------------ pure: input check of a finished job
@@ -742,20 +762,30 @@
       }) : []);
     } catch (_) {}
   }
+  // W35: the naming suggestion's warnings under the outlet names (nothing when there are none).
+  function outletFlagList(flags) {
+    var h = ui().h;
+    if (!flags || !flags.length) return null;
+    return h('div', {'class': 'outlet-flags'}, h('span', {'class': 'muted outlet-flags-head', text: '命名时的核对提示'}),
+      h('ul', {'class': 'reasons'}, flags.map(function (t) { return h('li', {text: t}); })));
+  }
   function outletSection(api) {
     var h = ui().h, cur = api.cur(), job = cur.job || {}, model = outletModel(job);
     var outlets = model.endpoints.filter(function (e) { return e.kind !== 'inlet'; });
     var ids = outlets.map(function (e) { return e.sid; });
     var ed = cur.outletEdit || null;
+    var flags = outletFlags(cur.manifest, job);
     var chip = function (sid, name) { return h('span', {'class': 'outlet-chip'}, h('i', {style: 'background:' + (OUTLET_COLORS[name] || '#98a2b3')}), h('span', {text: '#' + sid + ' ' + (OUTLET_NAMES[name] || '未命名')})); };
     var tip = ui().infoTip('STL 不带患者方向，出口名称决定左右；名称错了，左右分支的结果会对调。修改后按新命名重新计算这个结果，原结果被替换；同时预测的其他结果不会自动重算。');
     if (!ed) {
-      if (!model.available) return ui().section('出口命名', {tag: tip}, ui().note('这份结果没有出口命名建议的记录，不能在这里修改。'));
+      if (!model.available) return ui().section('出口命名', {tag: tip}, ui().note('这份结果没有出口命名建议的记录，不能在这里修改。'), outletFlagList(flags));
       var go = ui().button('修改并重算…', function () { cur.outletEdit = {mapping: Object.assign({}, model.mapping), ack: false}; outletLabels(api, model, cur.outletEdit.mapping); api.renderInspector(); },
         {kind: 'link', cls: 'btn-sm', disabled: locked(api) || job.status !== 'done', title: locked(api) ? LOCK_TITLE : null});
       return ui().section('出口命名', {tag: tip, actions: go, cls: 'sec-outlets'},
         h('div', {'class': 'outlet-chips'}, outlets.map(function (e) { return chip(e.sid, model.mapping[e.sid]); })),
-        h('p', {'class': 'note', text: model.source + (model.confidence !== null ? ' · 自动命名把握度 ' + Math.round(model.confidence * 100) + '%' : '')}));
+        h('p', {'class': 'note outlet-source'}, h('span', {text: model.source + (model.confidence !== null ? ' · 自动命名把握度 ' + Math.round(model.confidence * 100) + '%' : '')}),
+          model.confidence !== null ? ui().infoTip(confidenceCaveat(model.gate)) : null),
+        outletFlagList(flags));
     }
     var mapping = ed.mapping;
     var ack = h('input', {type: 'checkbox', checked: Boolean(ed.ack)});
@@ -783,7 +813,7 @@
     var sw = function (label, kind, title) { return ui().button(label, function () { set(swapMapping(mapping, kind)); }, {cls: 'btn-sm', title: title}); };
     var diff = Object.keys(mapping).filter(function (k) { return mapping[k] !== model.mapping[k]; });
     return ui().section('出口命名', {tag: h('span', {'class': 'sec-tagrow'}, tip, h('span', {'class': 'sec-note', text: '修改中'})), cls: 'sec-outlets editing'},
-      tbl,
+      tbl, outletFlagList(flags),
       h('div', {'class': 'swap-row'}, sw('左右互换', 'lr', '左右两侧整体互换'), sw('左侧内 / 外', 'left', '左侧髂内与髂外互换'), sw('右侧内 / 外', 'right', '右侧髂内与髂外互换'),
         ui().button('恢复', function () { set(Object.assign({}, model.mapping)); }, {kind: 'link', cls: 'btn-sm', title: '恢复当前结果使用的命名'})),
       !ok ? ui().note('四个出口名称各用一次，同一髂总下的两个出口属于同侧。', 'warn') : diff.length ? h('p', {'class': 'note', text: '已改 ' + diff.length + ' 个：' + diff.map(function (k) { return '#' + k + ' → ' + (OUTLET_NAMES[mapping[k]] || '未命名'); }).join('；')}) : ui().note('命名没有变化。'),
@@ -792,13 +822,27 @@
   }
 
   var STAGE_SHADES = ['#0e6e8a', '#3f8fa6', '#79b3c3', '#a9cfd9', '#5a6b7d', '#8795a4', '#b7c0ca', '#d5dbe1'];
-  function processSection(api) {
-    var h = ui().h, cur = api.cur(), job = cur.job || {}, t = timingModel(job);
+  // P4 lane A (#102): the classic processCard rows 「中心线检查 通过 / 未通过」「中心线端点 / 分叉」 (stage-A centreline
+  // hard_pass, topology.endpoints / junctions).  An empty record (the step never ran) shows nothing.
+  function centerlineRows(job) {
+    var a = (job && (job.a || job.stage_a)) || {}, c = a.centerline;
+    if (!c || typeof c !== 'object') c = job && job.summary && job.summary.centerline;
+    if (!c || typeof c !== 'object' || (c.hard_pass === undefined && !(c.topology && typeof c.topology === 'object'))) return [];
+    var t = c.topology && typeof c.topology === 'object' ? c.topology : {};
+    var v = function (x) { return x === null || x === undefined ? '—' : String(x); };
+    return [{k: '中心线检查', v: c.hard_pass ? '通过' : '未通过', ok: Boolean(c.hard_pass)}, {k: '中心线端点 / 分叉', v: v(t.endpoints) + ' / ' + v(t.junctions)}];
+  }
+  function processSection(api) { var cur = api.cur(); return processSectionFor(cur.job || {}, cur); }
+  // ``holder`` keeps the open / closed state of the event list (the result's ``cur`` on the tools tab, the input
+  // page's own state on unfinished jobs, P4 lane A #78).
+  function processSectionFor(job, holder, opts) {
+    var h = ui().h, cur = holder || {}, t = timingModel(job);
+    opts = opts || {};
     var parts = [];
     if (t.stages.length) {
       var total = t.stages.reduce(function (a, s) { return a + s.s; }, 0) || 1;
       parts.push(h('div', {'class': 'stage-bar', role: 'img', 'aria-label': '各阶段耗时'}, t.stages.map(function (s, i) {
-        return h('span', {'class': 'stage-seg', style: 'flex-grow:' + Math.max(s.s, total * 0.004).toFixed(3) + ';background:' + STAGE_SHADES[i % STAGE_SHADES.length], title: s.label + ' ' + ui().sig(s.s) + ' 秒' + (s.cached ? ' · 已预计算' : '')});
+        return h('span', {'class': 'stage-seg', style: 'flex-grow:' + Math.max(s.s / total * 100, 0.4).toFixed(3) + ';background:' + STAGE_SHADES[i % STAGE_SHADES.length], title: s.label + ' ' + ui().sig(s.s) + ' 秒' + (s.cached ? ' · 已预计算' : '')});
       })));
       parts.push(h('div', {'class': 'stage-legend'}, t.stages.map(function (s, i) {
         return h('span', {'class': 'stage-item' + (s.cached ? ' cached' : ''), title: s.label + (s.cached ? '：确认出口期间已在后台算好' : '')}, h('i', {style: 'background:' + STAGE_SHADES[i % STAGE_SHADES.length]}),
@@ -813,6 +857,8 @@
     if (t.wall !== null) line.push('任务历时 ' + ui().duration(t.wall));
     if (t.device) line.push('设备 ' + t.device + (t.gpu ? ' · ' + t.gpu : ''));
     if (line.length) parts.push(h('p', {'class': 'note', text: line.join(' · ')}));
+    var cl = centerlineRows(job);
+    if (cl.length) parts.push(kvTable(cl.map(function (r) { return {k: r.k, v: r.ok === undefined ? r.v : ui().dot(r.ok ? 'ok' : 'error', r.v)}; })));
     var evs = eventRows(job, 12);
     if (evs.length) {
       var list = h('ol', {'class': 'event-list', hidden: !cur.eventsOpen}, evs.map(function (e) { return h('li', {}, h('span', {'class': 'ev-time', text: ui().time(e.at)}), h('span', {text: e.text})); }));
@@ -820,7 +866,10 @@
       var tg = ui().button(label(), function () { cur.eventsOpen = !cur.eventsOpen; list.hidden = !cur.eventsOpen; ui().fill(tg, h('span', {text: label()})); }, {kind: 'link', cls: 'btn-sm'});
       parts.push(h('div', {'class': 'sec-actions'}, tg), list);
     }
-    if (!parts.length) parts.push(ui().note('这份结果没有计时记录。'));
+    if (!parts.length) {
+      if (opts.quiet) return null;
+      parts.push(ui().note('这份结果没有计时记录。'));
+    }
     var headNote = t.compute !== null ? h('span', {'class': 'sec-note', text: '计算 ' + ui().duration(t.compute)}) : null;
     return ui().section('计算过程', {tag: h('span', {'class': 'sec-tagrow'}, ui().infoTip('条形 = 流水线各阶段' + (t.pipeline !== null ? '（合计 ' + ui().sig(t.pipeline) + ' 秒）' : '') + '；计算耗时不含排队与人工确认；图例里的浅色斜纹 = 确认出口期间已在后台算好。'), headNote), cls: 'sec-process'}, parts);
   }
@@ -830,11 +879,10 @@
     try { v.setToolLabels('openings', on ? ops.filter(function (o) { return o.center; }).map(function (o) { return {xyz: o.center, text: '开口 ' + o.i + ' · r ' + ui().num(o.radius, 'mm')}; }) : []); } catch (_) {}
   }
   function inputSection(api) {
-    var h = ui().h, cur = api.cur(), job = cur.job || {}, a = job.a || job.stage_a || {};
+    var cur = api.cur(), job = cur.job || {}, a = job.a || job.stage_a || {};
     var ic = a.input_check || (cur.inputcheck && cur.inputcheck.input_check) || null;
     var openings = (a.centerline && a.centerline.openings) || (cur.inputcheck && cur.inputcheck.openings) || [];
-    var im = inputModel(ic, openings);
-    if (!im) {
+    if (!inputModel(ic, openings)) {
       // older records keep the input check only in the stage-A snapshot: the v2 input-check route reads it for any status
       if (!cur.inputcheckLoading && !cur.inputcheck && api.api && api.api().inputcheck) {
         cur.inputcheckLoading = true;
@@ -843,6 +891,18 @@
       }
       return ui().section('输入检查', {}, ui().note(cur.inputcheckLoading ? '正在读取…' : '这份结果没有输入检查记录。'));
     }
+    var im = inputModel(ic, openings);
+    var showOps = im.openings.some(function (o) { return o.center; }) ? ui().button(cur.openingsShown ? '隐藏开口' : '在三维标出开口', function () {
+      cur.openingsShown = !cur.openingsShown; openingLabels(api, im.openings, cur.openingsShown); api.renderInspector();
+    }, {kind: 'link', cls: 'btn-sm'}) : null;
+    return inputSectionFor(ic, openings, cur, {actions: showOps});
+  }
+  // The 输入检查 section from a stage-A input check; ``holder`` keeps the check list open / closed (P4 lane A #78: the
+  // input page of a queued / running / waiting job shows the same section).  null without an input check.
+  function inputSectionFor(ic, openings, holder, opts) {
+    var h = ui().h, cur = holder || {}, im = inputModel(ic, openings);
+    opts = opts || {};
+    if (!im) return null;
     var facts = [];
     if (im.units) facts.push('单位 ' + im.units + (im.auto ? '（自动' + (im.confidence !== null ? '，把握度 ' + ui().pct(im.confidence) : '') + '）' : '') + (im.scale !== null && im.scale !== 1 ? ' · × ' + ui().trim(im.scale) : ''));
     if (im.bbox) facts.push('外包 ' + im.bbox.map(function (x) { return ui().sig(x); }).join(' × ') + ' mm');
@@ -855,11 +915,8 @@
     }));
     var tlabel = function () { return cur.checksOpen ? '收起' : '全部 ' + im.checks.length + ' 项'; };
     var tg = im.checks.length ? ui().button(tlabel(), function () { cur.checksOpen = !cur.checksOpen; list.hidden = !cur.checksOpen; ui().fill(tg, h('span', {text: tlabel()})); }, {kind: 'link', cls: 'btn-sm'}) : null;
-    var showOps = im.openings.some(function (o) { return o.center; }) ? ui().button(cur.openingsShown ? '隐藏开口' : '在三维标出开口', function () {
-      cur.openingsShown = !cur.openingsShown; openingLabels(api, im.openings, cur.openingsShown); api.renderInspector();
-    }, {kind: 'link', cls: 'btn-sm'}) : null;
     var tone = {pass: 'ok', pass_with_limits: 'ok', review: 'warn', fail: 'error'}[im.grade] || 'idle';
-    return ui().section('输入检查', {actions: showOps, cls: 'sec-input'},
+    return ui().section('输入检查', {actions: opts.actions || null, cls: 'sec-input'},
       im.gradeLabel ? h('div', {'class': 'input-grade'}, ui().dot(tone, im.gradeLabel)) : null,
       facts.length ? h('p', {'class': 'input-facts', text: facts.join(' · ')}) : null,
       im.flags.length ? h('ul', {'class': 'reasons'}, im.flags.map(function (t) { return h('li', {text: t}); })) : null,
@@ -967,6 +1024,8 @@
     timingModel: timingModel, eventRows: eventRows, eventText: eventText, parseTags: parseTags, tagsText: tagsText, metadataPayload: metadataPayload,
     identifierIssue: identifierIssue, metadataError: metadataError, swapMapping: swapMapping, validMapping: validMapping, sameMapping: sameMapping,
     outletModel: outletModel, inputModel: inputModel, onKey: onKey, toolsSections: toolsSections, OUTLET_NAMES: OUTLET_NAMES,
+    // P4 lane A
+    confidenceCaveat: confidenceCaveat, outletFlags: outletFlags, centerlineRows: centerlineRows, processSectionFor: processSectionFor, inputSectionFor: inputSectionFor,
     // P3 lane 3
     techRows: techRows, techDialog: techDialog, stampText: stampText, canSliceAt: canSliceAt, sliceStation: sliceStation, pressureDropSlice: pressureDropSlice};
 });

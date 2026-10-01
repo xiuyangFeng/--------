@@ -58,3 +58,16 @@
 .input-stage-msg { left: 50%; top: 14px; transform: translateX(-50%); max-width: calc(100% - 280px); padding: 6px 14px; border-radius: 16px;
   background: var(--hud-bg); border: 1px solid var(--hud-border); color: var(--hud-ink-2); box-shadow: var(--hud-shadow); text-align: center; }
 .input-stage-msg:empty { display: none; }
+
+/* P4 lane A: 「输入检查与计算过程」 on unfinished jobs (#78, centreline rows #102) and the outlet-naming caveat /
+   warnings (W30, W35; the tools tab's 出口命名 section uses them too) */
+.input-proc { padding-top: 4px; }
+.input-proc > .sec-actions { margin-top: 6px; }
+.proc-more > .sec { padding: 12px 0 4px; }
+.proc-more > .sec:last-child { border-bottom: 0; }
+.sec-process .tbl-detail td { font-size: 12px; }
+.sec-process .tbl-detail td:first-child { width: 112px; vertical-align: middle; padding-top: 2px; }
+.outlet-source { display: flex; align-items: center; gap: 6px; }
+.outlet-flags { margin-top: 8px; }
+.outlet-flags-head { font-size: 11px; }
+.outlet-flags .reasons { margin: 2px 0 0; color: var(--warn); }
