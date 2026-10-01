@@ -842,7 +842,7 @@
     if (t.stages.length) {
       var total = t.stages.reduce(function (a, s) { return a + s.s; }, 0) || 1;
       parts.push(h('div', {'class': 'stage-bar', role: 'img', 'aria-label': '各阶段耗时'}, t.stages.map(function (s, i) {
-        return h('span', {'class': 'stage-seg', style: 'flex-grow:' + Math.max(s.s, total * 0.004).toFixed(3) + ';background:' + STAGE_SHADES[i % STAGE_SHADES.length], title: s.label + ' ' + ui().sig(s.s) + ' 秒' + (s.cached ? ' · 已预计算' : '')});
+        return h('span', {'class': 'stage-seg', style: 'flex-grow:' + Math.max(s.s / total * 100, 0.4).toFixed(3) + ';background:' + STAGE_SHADES[i % STAGE_SHADES.length], title: s.label + ' ' + ui().sig(s.s) + ' 秒' + (s.cached ? ' · 已预计算' : '')});
       })));
       parts.push(h('div', {'class': 'stage-legend'}, t.stages.map(function (s, i) {
         return h('span', {'class': 'stage-item' + (s.cached ? ' cached' : ''), title: s.label + (s.cached ? '：确认出口期间已在后台算好' : '')}, h('i', {style: 'background:' + STAGE_SHADES[i % STAGE_SHADES.length]}),
