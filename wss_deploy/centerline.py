@@ -19,6 +19,13 @@ IE_SCALE = np.array([16.2, 12.5, 0.77, 10.56])   # median |Δ| of (y, lateral, r
 IE_WEIGHT = np.array([1.0, 1.0, 0.3, 0.3])
 CONFIDENCE_THRESHOLD = 0.95
 CONFIDENCE_METHOD = "geometry_margin_proxy_v1"
+# 2026-10-01: convention-free left/right check.  The anatomical frame's +Y is +Z × (assigned left), i.e. posterior when
+# the left/right assignment is right.  The internal iliac runs posterior into the pelvis, so in the internal/external
+# score the anterior-posterior term agrees with the mirror-invariant terms (lateral, radius, height); with the sides
+# swapped by a mirrored STL it disagrees on both sides.  Library: 240 / 252 correct units agree (the 12 that do not
+# all score below 0.94), the one mirrored STL (ZHANG_WEI_XIAN) disagrees.
+HANDEDNESS_METHOD = "internal_iliac_posterior_v1"
+VESSEL_GEOM_PRESET = "frozen-aortoiliac"         # the centreline preset the training atlases were built with
 
 
 def _release_name(release) -> str | None:
@@ -35,21 +42,66 @@ def _release_name(release) -> str | None:
     return None
 
 
+NAMING_PROFILE_DIR = Path(__file__).resolve().parent / "naming_profiles"
+_NAMING_FINGERPRINT: str | None = None
+
+
+def naming_fingerprint() -> str:
+    """Identity of everything that decides an outlet name (2026-10-01): the proposal rules, both confidence maps,
+    the anatomical frame, the constants and the frozen centreline toolkit.  Outlet naming runs in stage A and never
+    reads model weights, so a naming profile holds for any release — as long as this fingerprint is unchanged; any
+    edit of that code changes it and closes the gate until the library calibration is rerun."""
+    global _NAMING_FINGERPRINT
+    if _NAMING_FINGERPRINT is None:
+        import hashlib
+        import inspect
+        parts = [inspect.getsource(fn) for fn in (propose_outlets, _confidence_from_score, _confidence_from_x_gap,
+                                                   _tree, _subtree, anatomical_frame)]
+        parts += [repr(IE_SCALE.tolist()), repr(IE_WEIGHT.tolist()), repr(CONFIDENCE_THRESHOLD), CONFIDENCE_METHOD,
+                  HANDEDNESS_METHOD, Path(VESSEL_GEOM_DIR).resolve().name, VESSEL_GEOM_PRESET]
+        _NAMING_FINGERPRINT = hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()[:16]
+    return _NAMING_FINGERPRINT
+
+
+def _sidecar_profile(release_id: str | None) -> dict | None:
+    """A validated profile under ``naming_profiles/`` for ``release_id`` (2026-10-01).
+
+    The release folders are fingerprinted and never edited, so a profile made after a release was frozen lives
+    here.  ``"releases": "*"`` binds it to the naming code instead of to release ids (naming never reads weights):
+    it then holds for every release, including later ones, while ``naming_fingerprint`` matches; a list binds
+    the named releases only.
+    """
+    if not release_id or not NAMING_PROFILE_DIR.is_dir():
+        return None
+    for path in sorted(NAMING_PROFILE_DIR.glob("*.json")):
+        try:
+            profile = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(profile, dict):
+            continue
+        releases = profile.get("releases")
+        if releases == "*" or (isinstance(releases, list) and str(release_id) in [str(r) for r in releases]):
+            return {**profile, "release": str(release_id), "source_file": path.name}
+    return None
+
+
 def release_confidence_profile(release) -> dict | None:
-    """Read the explicitly validated naming profile from a model release.
+    """Read the explicitly validated naming profile of a model release.
 
     A geometry margin is useful for ranking suggestions, but is not a
-    probability.  The profile is deliberately opt-in and lives next to the
-    release metadata so replacing weights cannot silently reuse a calibration
+    probability.  The profile is deliberately opt-in: in the release metadata, or (2026-10-01) a sidecar under
+    ``naming_profiles/`` that names the release id, so replacing weights cannot silently reuse a calibration
     belonging to another release.
     """
     if release is None:
         return None
     info = getattr(release, "info", release if isinstance(release, dict) else None)
-    if not isinstance(info, dict):
-        return None
-    profile = info.get("confidence_profile") or info.get("outlet_naming_confidence_profile")
-    return dict(profile) if isinstance(profile, dict) else None
+    if isinstance(info, dict):
+        profile = info.get("confidence_profile") or info.get("outlet_naming_confidence_profile")
+        if isinstance(profile, dict):
+            return dict(profile)
+    return _sidecar_profile(_release_name(release))
 
 
 def evaluate_confidence_gate(proposal: dict | None, *, orientation_source: str = "unknown_stl",
@@ -68,6 +120,11 @@ def evaluate_confidence_gate(proposal: dict | None, *, orientation_source: str =
         threshold = max(CONFIDENCE_THRESHOLD, requested_threshold) if np.isfinite(requested_threshold) else CONFIDENCE_THRESHOLD
     except (TypeError, ValueError):
         threshold = CONFIDENCE_THRESHOLD
+    profile = release_confidence_profile(release)
+    try:
+        threshold = max(threshold, float((profile or {}).get("proxy_threshold", threshold)))
+    except (TypeError, ValueError):
+        pass
     raw = proposal.get("confidence")
     reasons: list[str] = []
     if proposal.get("auto_ok") is not True:
@@ -82,7 +139,6 @@ def evaluate_confidence_gate(proposal: dict | None, *, orientation_source: str =
     if proposal.get("confirmation_required") is True:
         reasons.append("命名建议自身标记为需要确认")
 
-    profile = release_confidence_profile(release)
     release_id = _release_name(release)
     profile_id = profile.get("id") if profile else None
     profile_version = profile.get("version") if profile else None
@@ -106,6 +162,18 @@ def evaluate_confidence_gate(proposal: dict | None, *, orientation_source: str =
     elif str(profile_release) != str(release_id):
         reasons.append(f"命名 profile 属于 {profile_release}，当前发布包为 {release_id}")
 
+    # The profile holds for the naming code it was measured with (2026-10-01): another proxy or handedness method
+    # is not covered by it; a profile that relies on the handedness check needs a consistent one.
+    if profile and profile.get("proxy_method") and proposal.get("confidence_method", CONFIDENCE_METHOD) != profile["proxy_method"]:
+        reasons.append("命名置信度的计算方法与 profile 校准时不同")
+    if profile and profile.get("naming_fingerprint") and profile["naming_fingerprint"] != naming_fingerprint():
+        reasons.append("出口命名代码在 profile 校准之后改过，需要重新校准")
+    if profile and profile.get("require_handedness"):
+        hand = proposal.get("handedness") if isinstance(proposal.get("handedness"), dict) else {}
+        if hand.get("method") != profile.get("handedness_method", HANDEDNESS_METHOD):
+            reasons.append("缺少与 profile 一致的左右解剖朝向检查")
+        elif hand.get("consistent") is not True:
+            reasons.append("左右解剖朝向检查不一致（可能是镜像或另一种坐标约定的 STL）")
     allowed_orientation = (profile or {}).get("allowed_orientation_sources")
     if allowed_orientation is None and profile:
         source = profile.get("orientation_source")
@@ -168,7 +236,7 @@ TERMINATE_GRACE_SECONDS = 2.0   # SIGTERM -> SIGKILL grace for the whole process
 
 def vessel_geom_command(stl_path: Path, out_dir: Path, *, inlet: int | None = None, smooth_iterations: int = 0) -> list[str]:
     """The vessel_geom CLI invocation.  Factored out so tests can substitute a harmless child."""
-    cmd = [str(VMTK_PYTHON), "-m", "vessel_geom.cli", "--surface", str(stl_path), "--out", str(out_dir), "--preset", "frozen-aortoiliac",
+    cmd = [str(VMTK_PYTHON), "-m", "vessel_geom.cli", "--surface", str(stl_path), "--out", str(out_dir), "--preset", VESSEL_GEOM_PRESET,
            "--no-surface-features", "--smooth-iterations", str(smooth_iterations)]
     if inlet is not None:
         cmd += ["--inlet", str(inlet)]
@@ -283,6 +351,7 @@ def propose_outlets(atlas: Atlas, *, orientation_source: str = "unknown_stl") ->
         proposal["side_confidence"]["left_right"] = round(x_confidence, 4)
         if x_confidence < 0.95:
             proposal["flags"].append(f"左右髂总在 x 轴上只差 {x_gap:.1f} mm，左右判定置信度 {x_confidence:.1%}，请人工核对")
+        handedness = 0.0
         sem = {int(s["segment_id"]): -1 for s in atlas.segments}; sem[root] = 0
         for k in _subtree(kids, left): sem[k] = 1
         for k in _subtree(kids, right): sem[k] = 2
@@ -295,7 +364,10 @@ def propose_outlets(atlas: Atlas, *, orientation_source: str = "unknown_stl") ->
                 feats[k] = np.array([d[1], d[0] * side, float(np.median(atlas.col("radius_mm")[seg == k])), d[2]])
             a, b = leaves_of[c]
             delta = np.array([feats[b][0] - feats[a][0], feats[b][1] - feats[a][1], feats[b][2] - feats[a][2], feats[a][3] - feats[b][3]])
-            score = float((delta / IE_SCALE) @ IE_WEIGHT)
+            terms = delta / IE_SCALE * IE_WEIGHT
+            score = float(terms.sum())
+            ap, rest = float(terms[0]), float(terms[1:].sum())
+            handedness += abs(ap + rest) - abs(rest - ap)        # > 0: the AP term agrees with the mirror-invariant ones
             internal, external = (a, b) if score > 0 else (b, a)
             proposal["mapping"][str(internal)] = names[0]; proposal["mapping"][str(external)] = names[1]
             proposal["scores"][str(c)] = score; proposal["sides"][str(c)] = "left" if side == 1 else "right"
@@ -303,6 +375,10 @@ def propose_outlets(atlas: Atlas, *, orientation_source: str = "unknown_stl") ->
             proposal["side_confidence"][str(c)] = round(confidence, 4)
             if confidence < 0.95:
                 proposal["flags"].append(f"{'左' if side==1 else '右'}侧髂内/髂外区分置信度 {confidence:.1%}（score {score:.2f}），请人工核对")
+        proposal["handedness"] = {"evidence": round(handedness, 4), "consistent": bool(handedness > 0),
+                                  "method": HANDEDNESS_METHOD}
+        if handedness <= 0:
+            proposal["flags"].append("按当前左右判定，髂内动脉朝向腹侧，与解剖不符：STL 可能是镜像坐标，请对照原始影像核对左右")
         # Keep the unrounded value for the strict 0.95 routing gate; the UI
         # formats it for display.
         proposal["confidence"] = float(min(
@@ -312,13 +388,12 @@ def propose_outlets(atlas: Atlas, *, orientation_source: str = "unknown_stl") ->
         proposal["confidence_reasons"] = list(proposal["flags"])
         proposal["confidence_reasons"].append("几何间隔置信度只是未校准的代理值")
         if proposal["orientation_source"] == "unknown_stl":
-            proposal["confidence_reasons"].append("STL 未提供患者方向，左右语义必须人工核对")
+            proposal["confidence_reasons"].append("STL 未提供患者方向：左右由坐标 x 方向与解剖朝向（髂内动脉向后）交叉判定")
         # This flag is intentionally conservative.  A validated release
         # profile is checked later by evaluate_confidence_gate; the centreline
         # stage alone must never claim that its proxy is a true probability.
-        proposal["confirmation_required"] = bool(
-            proposal["flags"] or proposal["confidence"] < CONFIDENCE_THRESHOLD
-            or proposal["orientation_source"] == "unknown_stl")
+        # The orientation source is judged by the release's validated profile (evaluate_confidence_gate), not here.
+        proposal["confirmation_required"] = bool(proposal["flags"] or proposal["confidence"] < CONFIDENCE_THRESHOLD)
         proposal["auto_ok"] = True
     # endpoints + 2-D preview (PCA plane of the centreline)
     c0 = xyz.mean(0); _, _, vt = np.linalg.svd(xyz - c0, full_matrices=False); P = vt[:2]

@@ -1,0 +1,78 @@
+{
+ "id": "outlet_naming_library_v52d_20261001",
+ "version": "1",
+ "status": "validated",
+ "releases": "*",
+ "naming_fingerprint": "2bfcd3daefb3abe1",
+ "proxy_method": "geometry_margin_proxy_v1",
+ "proxy_threshold": 0.95,
+ "handedness_method": "internal_iliac_posterior_v1",
+ "require_handedness": true,
+ "allowed_orientation_sources": [
+  "unknown_stl"
+ ],
+ "validation_set": "CFD library v5.2d real units (anatomy_pointcloud_v5_2d_20261001); reference names = the library atlas outlet names (re-corresponded to the CFD outlet faces); deployment stage A on the unit's STL, outlets matched after aligning the five end points",
+ "population": "STL from the AG / AAA / ILO segmentation pipeline of the library cohorts; other sources are not covered",
+ "sample_unit": "patient",
+ "sample_count": 109,
+ "joint_correct": 109,
+ "joint_lower_bound": 0.9729,
+ "lower_bound_method": "one-sided 95 % Clopper-Pearson",
+ "statistics": {
+  "units": 273,
+  "scored": 253,
+  "reference_certain": 245,
+  "errors_total": 4,
+  "errors_passed": 0,
+  "all": {
+   "units": 245,
+   "passed": 133,
+   "correct": 133,
+   "lower_bound": 0.9777,
+   "patients": 109,
+   "patients_correct": 109,
+   "patient_lower_bound": 0.9729
+  },
+  "independent": {
+   "units": 78,
+   "passed": 50,
+   "correct": 50,
+   "lower_bound": 0.9418,
+   "patients": 45,
+   "patients_correct": 45,
+   "patient_lower_bound": 0.9356
+  },
+  "fit_set": {
+   "units": 167,
+   "passed": 83,
+   "correct": 83,
+   "lower_bound": 0.9646,
+   "patients": 83,
+   "patients_correct": 83,
+   "patient_lower_bound": 0.9646
+  }
+ },
+ "coordinate_tests": {
+  "rot_z180": {
+   "scored": 245,
+   "left_right_wrong": 244,
+   "passed": 2,
+   "passed_wrong": 2,
+   "handedness_inconsistent": 232
+  },
+  "mirror_x": {
+   "scored": 245,
+   "left_right_wrong": 244,
+   "passed": 133,
+   "passed_wrong": 133,
+   "handedness_inconsistent": 13
+  }
+ },
+ "notes": [
+  "internal/external errors change only report labels; left/right errors change the anatomical frame",
+  "a left-handed (mirrored) export defeats both left/right rules (x sign and internal-iliac-posterior); none was seen in the library",
+  "the four naming constants (IE_SCALE) were fitted on the fit_set units; the independent subset is reported apart"
+ ],
+ "created_at": "2026-10-01",
+ "tool": "wss_deploy.naming_calibration"
+}
