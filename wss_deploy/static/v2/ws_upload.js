@@ -4,7 +4,9 @@
  * name that looks like a person's name gets a reminder.  Duplicate handling follows the existing service flow.
  * Lane C (S6c): several files at once (POST /api/jobs/batch in chunks, like the classic workbench), the remaining
  * metadata (scan label, tags, notes, 「记住患者」 in the account preferences), device / models / threads in the full
- * tier, and STL files dropped anywhere on the page. */
+ * tier, and STL files dropped anywhere on the page.
+ * P4 lane A (#26): case / patient / scan label / tags are checked while typing with the result page's rule; an error
+ * blocks 「上传并检查」 before the STL is sent. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -117,6 +119,49 @@
     return out;
   }
 
+  // ------------------------------------------------------------------ P4 lane A (#26): identifiers checked while typing
+  // The result page's rule (ws_detail identifierIssue / metadataError, = classic WssWorkbenchCore.identifierIssue):
+  // invisible characters and over-long values are errors that block 「上传并检查」 (the service refuses them only after
+  // the STL has been sent); a bare Chinese name is a reminder.  The local copy serves when ws_detail.js is absent.
+  var CONTROL_RE = /[\u0000-\u001f\u007f-\u009f]/;
+  function identifierIssue(value, opts) {
+    var D = ns.detail;
+    if (D && typeof D.identifierIssue === 'function') return D.identifierIssue(value, opts);
+    opts = opts || {};
+    var label = opts.label || '编号', max = opts.max || 160, text = String(value === null || value === undefined ? '' : value);
+    if (!text.trim()) return null;
+    if (CONTROL_RE.test(text)) return {level: 'error', text: label + '含有换行、制表符等不可见字符（常见于从表格复制），请删掉后重新输入。'};
+    if (text.trim().length > max) return {level: 'error', text: label + '最多 ' + max + ' 个字符（当前 ' + text.trim().length + ' 个）。'};
+    if (/^[一-龥·]{2,4}$/.test(text.trim())) return {level: 'warn', text: '「' + text.trim() + '」看起来像真实姓名，请改用匿名编号。'};
+    return null;
+  }
+  // Tags: at most 12, each at most 40 characters (result page metadataError, service jobs._metadata); a tab inside a
+  // tag is refused by the service too.
+  function tagsIssue(text) {
+    var tags = parseTags(text);
+    if (tags.length > 12) return {level: 'error', text: '最多 12 个标签。'};
+    var long = tags.filter(function (t) { return t.length > 40; })[0];
+    if (long) return {level: 'error', text: '标签「' + long.slice(0, 12) + '…」超过 40 个字符。'};
+    if (tags.some(function (t) { return CONTROL_RE.test(t); })) return {level: 'error', text: '标签含有制表符等不可见字符（常见于从表格复制），请删掉后重新输入。'};
+    return null;
+  }
+  // Pure: the form values → {issues: {key: issue|null}, blocking: first error {key, issue} | null}.  Several files
+  // make the case name a prefix (「前缀-文件名」).
+  var ID_FIELDS = [['case_id', '病例名称', 160], ['patient_id', '患者编号', 80], ['scan_label', '扫描标签', 120]];
+  function fieldIssues(values, opts) {
+    values = values || {}; opts = opts || {};
+    var issues = {}, blocking = null;
+    ID_FIELDS.forEach(function (f) {
+      var label = f[0] === 'case_id' && opts.many ? '名称前缀' : f[1];
+      issues[f[0]] = identifierIssue(values[f[0]], {label: label, max: f[2]});
+    });
+    issues.tags = tagsIssue(values.tags);
+    ['case_id', 'patient_id', 'scan_label', 'tags'].forEach(function (k) {
+      if (!blocking && issues[k] && issues[k].level === 'error') blocking = {key: k, issue: issues[k]};
+    });
+    return {issues: issues, blocking: blocking};
+  }
+
   // ------------------------------------------------------------------ dialog
   var current = null;   // the open dialog's controller (whole-page drop adds files to it)
   function open(ctx) {
@@ -173,6 +218,20 @@
         batchBytes: Math.floor((session.max_batch_bytes || DEFAULT_BATCH_BYTES) * 15 / 16)};
     }
     function check() { return checkFiles(st.files, {maxBytes: limits().maxBytes, nameHint: !patient.value.trim() && !(st.files.length === 1 && caseId.value.trim())}); }
+    // #26: one hint under each identifier field; an error blocks 「上传并检查」 before anything is sent.
+    var inputs = {case_id: caseId, patient_id: patient, scan_label: scanLabel, tags: tags}, hints = {};
+    Object.keys(inputs).forEach(function (k) { hints[k] = h('span', {'class': 'fld-hint up-hint', hidden: true, 'aria-live': 'polite'}); });
+    var moreBox = null;   // 「扫描标签、标签、备注」: opened when its field has the error
+    function paintIssues() {
+      var r = fieldIssues({case_id: caseId.value, patient_id: patient.value, scan_label: scanLabel.value, tags: tags.value}, {many: st.files.length > 1});
+      Object.keys(inputs).forEach(function (k) {
+        var issue = r.issues[k], el = hints[k], inp = inputs[k];
+        el.hidden = !issue; el.textContent = issue ? issue.text : ''; el.className = 'fld-hint up-hint' + (issue && issue.level === 'error' ? ' err' : '');
+        if (issue && issue.level === 'error') inp.setAttribute('aria-invalid', 'true'); else inp.removeAttribute('aria-invalid');
+      });
+      if (moreBox && r.blocking && (r.blocking.key === 'scan_label' || r.blocking.key === 'tags')) moreBox.open = true;
+      return r;
+    }
     function paintFiles() {
       var c = check(), many = st.files.length > 1;
       caseLabel.textContent = many ? '名称前缀' : '病例名称';
@@ -187,7 +246,7 @@
           h('span', {'class': 'up-file-name', text: r.name}), h('span', {'class': 'up-file-size', text: formatBytes(r.size)}),
           h('span', {'class': 'up-file-state', text: res ? res.text : (r.reason || r.warn || '')}), res && res.actions ? h('span', {'class': 'up-file-act'}, res.actions) : null);
       }));
-      submit.disabled = st.busy || !c.valid.length || !opts.length;
+      submit.disabled = st.busy || !c.valid.length || !opts.length || Boolean(paintIssues().blocking);
       return c;
     }
     function setFiles(list, append) {
@@ -206,7 +265,15 @@
       var fs = Array.prototype.slice.call((ev.dataTransfer && ev.dataTransfer.files) || []).filter(function (f) { return /\.stl$/i.test(f.name); });
       if (fs.length) setFiles(fs, st.files.length > 0 && !st.busy); else ui().toast('只接受 .stl 文件。', {kind: 'error'});
     });
-    [caseId, patient].forEach(function (inp) { inp.addEventListener('input', function () { if (st.files.length) paintFiles(); else nameWarn.hidden = !(caseId.value && looksLikeName(caseId.value)); }); });
+    [caseId, patient, scanLabel, tags].forEach(function (inp) { inp.addEventListener('input', function () { if (st.files.length) paintFiles(); else { paintIssues(); nameWarn.hidden = !(caseId.value && looksLikeName(caseId.value)); } }); });
+    // Refuse to send while an identifier is wrong (the button is disabled too; this covers the scripted send).
+    function idBlocked() {
+      var b = paintIssues().blocking;
+      if (!b) return false;
+      say(b.issue.text);
+      try { inputs[b.key].focus(); } catch (_) {}
+      return true;
+    }
 
     var submit = ui().button('上传并检查', function () { send(); }, {kind: 'primary', disabled: true});
     var cancelBtn = ui().button('取消', function () { ui().dialog.close('cancel'); });
@@ -245,7 +312,7 @@
     function send() {
       if (st.busy) return;
       var c = paintFiles(), files = c.valid;
-      if (!files.length) return;
+      if (!files.length || idBlocked()) return;
       st.busy = true; submit.disabled = true;
       var idx = c.rows.filter(function (r) { return r.ok; }).map(function (r) { return r.index; });
       st.results = [];
@@ -343,7 +410,7 @@
           ui().button('重新计算', function () { resend(f, 'force'); }, {cls: 'btn-sm'})));
     }
     function resend(f, mode) {
-      if (st.busy) return;
+      if (st.busy || idBlocked()) return;
       st.busy = true; submit.disabled = true;
       sendOne(f, mode, '正在上传 ' + f.name).then(function (result) {
         st.busy = false; rememberPrefs();
@@ -362,13 +429,14 @@
         h('a', {'class': 'lnk', href: '/static/v2/example_aaa.stl', download: 'example_aaa.stl', text: '下载示例 STL'})));
     var grid = h('div', {'class': 'form-grid'},
       h('label', {'class': 'fld'}, h('span', {text: '单位'}), units),
-      h('label', {'class': 'fld'}, caseLabel, caseId),
-      h('label', {'class': 'fld'}, h('span', {}, '患者编号', h('em', {'class': 'fld-tag', text: '随访需要'})), patient),
+      h('label', {'class': 'fld'}, caseLabel, caseId, hints.case_id),
+      h('label', {'class': 'fld'}, h('span', {}, '患者编号', h('em', {'class': 'fld-tag', text: '随访需要'})), patient, hints.patient_id),
       h('label', {'class': 'fld'}, h('span', {}, '扫描日期', h('em', {'class': 'fld-tag', text: '随访需要'})), scanDate));
     var more = h('details', {'class': 'up-more', open: Boolean(scanLabel.value || tags.value)},
       h('summary', {text: '扫描标签、标签、备注'}),
-      h('div', {'class': 'form-grid'}, h('label', {'class': 'fld'}, h('span', {text: '扫描标签'}), scanLabel), h('label', {'class': 'fld'}, h('span', {text: '标签'}), tags)),
+      h('div', {'class': 'form-grid'}, h('label', {'class': 'fld'}, h('span', {text: '扫描标签'}), scanLabel, hints.scan_label), h('label', {'class': 'fld'}, h('span', {text: '标签'}), tags, hints.tags)),
       h('label', {'class': 'fld'}, h('span', {text: '备注'}), notes));
+    moreBox = more;
     var compute = full ? h('details', {'class': 'up-more'}, h('summary', {text: '计算设置'}),
       h('div', {'class': 'form-grid form-grid-3'}, h('label', {'class': 'fld'}, h('span', {text: '设备'}), device), h('label', {'class': 'fld'}, h('span', {text: '集成模型数'}), seeds),
         h('label', {'class': 'fld'}, h('span', {text: 'CPU 线程'}), threads))) : null;
@@ -381,6 +449,7 @@
       progress],
       actions: [cancelBtn, submit],
       onClose: function () { if (current === ctl) current = null; }});
+    paintIssues();   // remembered values (「记住患者」) are checked at once
     if (Array.isArray(ctx.files) && ctx.files.length) setFiles(ctx.files);
     var ctl = {setFile: setFile, setFiles: setFiles, addFiles: function (fs) { if (!st.busy) setFiles(fs, true); }, send: send, choices: opts, busy: function () { return st.busy; }};
     current = ctl;
@@ -435,5 +504,6 @@
 
   return {open: open, choices: choices, looksLikeName: looksLikeName, validationLine: validationLine, REQUIREMENTS: REQUIREMENTS,
     checkFiles: checkFiles, uploadChunks: uploadChunks, caseIdFor: caseIdFor, parseTags: parseTags, formatBytes: formatBytes, installDrop: installDrop, dropFiles: dropFiles,
+    identifierIssue: identifierIssue, tagsIssue: tagsIssue, fieldIssues: fieldIssues,
     current: function () { return current; }};
 });
