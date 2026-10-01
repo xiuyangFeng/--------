@@ -344,7 +344,7 @@
     if (need.length) {
       ui().fill(body, ui().empty('正在读取预测点…'));
       res.preload(need).then(function () { var sh = shell(); if (sh && sh.cur() === cur && sh.currentTab() === 'along') sh.renderInspector(); },
-        function (e) { ui().toast('沿程数据读取失败：' + (e && e.message || e), {kind: 'error'}); });
+        function (e) { var sh = shell(); if (sh && sh.cur() === cur && !(e && e.name === 'AbortError')) ui().toast('沿程数据读取失败：' + (e && e.message || e), {kind: 'error'}); });
       return;
     }
     wire(api, cur);

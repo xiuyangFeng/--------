@@ -158,6 +158,8 @@
     wall: { outline: false, centerline: false, points: false, trust: false, wall: true, interior: false, streamlines: false },
     volume: { outline: true, centerline: false, points: false, trust: false, wall: true, interior: true, streamlines: false }
   };
+  // A load cut short (the next result was opened, AbortController): not an error to show.
+  function isAbort(e) { return Boolean(e && e.name === 'AbortError'); }
   function normalizeLayers(family, cur, next) {
     var base = Object.assign({}, DEFAULT_LAYERS[family] || DEFAULT_LAYERS.wall, cur || {});
     if (next && typeof next === 'object') Object.keys(base).forEach(function (k) { if (typeof next[k] === 'boolean') base[k] = next[k]; });
@@ -1028,9 +1030,9 @@
         (adapter.optionalArrays ? adapter.optionalArrays(result) : []).forEach(function (k) { if (!result.has(k) && result.declared(k)) rest.push(k); });
         if (rest.length) result.preload(rest).then(function () {
           if (token === S.token && S.handle && S.handle.arraysLoaded) { S.handle.arraysLoaded(); requestRender(); }
-        }, function (err) { if (token === S.token) ev.emit('error', err); });
+        }, function (err) { if (token === S.token && !isAbort(err)) ev.emit('error', err); });
         return result;
-      }, function (err) { if (token === S.token) ev.emit('error', err); throw err; });
+      }, function (err) { if (token === S.token && !isAbort(err)) ev.emit('error', err); throw err; });
     }
 
     // ==== lane E ==== (second phase: display options; PHASE2_LANES.md §3)
@@ -1288,9 +1290,11 @@
       if (!state || typeof state !== 'object') return Promise.resolve(false);
       if (!S.handle) return Promise.reject(new Error('no result'));
       var st = sanitizeState(state, stateContext());
-      var jobs = [];
+      var jobs = [], token = S.token;
       if (st.field) jobs.push(setField(st.field, st.scale || { window: 'adaptive', log: null }));
       return Promise.all(jobs).then(function () {
+        // the next result arrived meanwhile: this state (layers, camera …) belongs to the one it replaced
+        if (token !== S.token || disposed) return null;
         if (st.lighting) setLighting(st.lighting);
         if (st.layers) setLayers(st.layers);
         if (st.branches !== undefined) setBranchVisibility(st.branches);
