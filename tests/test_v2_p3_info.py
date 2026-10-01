@@ -192,30 +192,35 @@ def test_details_quality_rows_and_no_dispersion_numbers():
 
 
 # ---------------------------------------------------------------------------------------------------------------- review checklist
+# The classic workbench's checklist (app.js reviewChecklist) and alert title (workbench_core.alertModel) for the
+# cases below, computed at 866cf02 before S7 deleted both files (P4 lane A, F6: the comparison used to be skipped
+# once the files were gone, and ``alertTitle`` had no assertion left).
+CLASSIC_REVIEW = [
+    {"f": "one", "j": "auto", "items": [["出口命名", "自动确认（置信度 98.8%）"], ["结果质量", "存在不确定性，建议复核"], ["几何参考范围", "有超出范围的测量，请看结果页提示"],
+                                       ["需要注意", "1 项几何测量超出模型训练范围，模型集成存在不确定性，结果需要复核。"]],
+     "title": "1 项几何测量超出模型训练范围，模型集成存在不确定性，结果需要复核。"},
+    {"f": "two", "j": "manual", "items": [["出口命名", "已人工确认"], ["结果质量", "多模型一致（一致不代表准确）"], ["几何参考范围", "有超出范围的测量，请看结果页提示"],
+                                         ["需要注意", "2 项几何测量超出模型训练范围，结果需要复核。"]],
+     "title": "2 项几何测量超出模型训练范围，结果需要复核。"},
+    {"f": "statusOnly", "j": "none", "items": [["出口命名", "—"], ["几何参考范围", "有超出范围的测量，请看结果页提示"], ["需要注意", "几何测量超出模型训练范围，结果需要复核。"]],
+     "title": "几何测量超出模型训练范围，结果需要复核。"},
+    {"f": "poor", "j": "manual", "items": [["出口命名", "已人工确认"], ["结果质量", "不稳定，建议复核"], ["几何参考范围", "当前发布包未配置"], ["需要注意", "模型集成离散度较高，结果需要复核。"]],
+     "title": "模型集成离散度较高，结果需要复核。"},
+    {"f": "good", "j": "auto", "items": [["出口命名", "自动确认（置信度 98.8%）"], ["结果质量", "多模型一致（一致不代表准确）"], ["几何参考范围", "在参考范围内"]], "title": None},
+    {"f": "none", "j": "none", "items": [["出口命名", "—"], ["几何参考范围", "当前发布包未配置"]], "title": None},
+]
+
+
 def test_review_checklist_is_the_classic_workbench_list():
-    _need_node()
-    wb = STATIC_DIR / "workbench_core.js"
-    app = STATIC_DIR / "app.js"
-    classic = ""
-    if wb.is_file() and app.is_file():
-        fmt_line = next(line for line in app.read_text(encoding="utf-8").splitlines() if line.strip().startswith("const fmt = (value, digits = 1)"))
-        classic = ("const WB=require(" + json.dumps(str(wb)) + ");const node=(t,a,...k)=>({t,a,k:k.flat()});" + fmt_line + "\n" +
-                   _classic("  function reviewChecklist(job) {", "  function reviewDialog(job) {", "app.js") +
-                   "\nglobalThis.classicItems=job=>{const k=reviewChecklist(job).k;const o=[];for(let i=0;i<k.length;i+=2)o.push([k[i].a.text,k[i+1].a.text]);return o;};\n")
     out = _node(FIXTURES + r"""
       const jobs = {auto: {mapping_history: [{source: 'manual_confirmation'}, {source: 'automatic_high_confidence', confidence: 0.9876}]}, manual: {mapping_history: [{source: 'manual_override'}]}, none: {}};
       const cases = [['one', 'auto'], ['two', 'manual'], ['statusOnly', 'none'], ['poor', 'manual'], ['good', 'auto'], ['none', 'none']];
-      const r = cases.map(([f, j]) => {
-        const mine = R.checklistModel({analysis: F[f]}, jobs[j]);
-        const classic = globalThis.classicItems ? classicItems(Object.assign({summary: F[f]}, jobs[j])) : null;
-        return {f, j, mine, classic, title: R.alertTitle({analysis: F[f]}), wbTitle: globalThis.classicItems ? ((require('WB_PATH').alertModel(F[f]) || {}).title || null) : null};
-      });
-      out(r);
-    """.replace("WB_PATH", str(wb)), pre=classic)
-    for r in out:
-        if r["classic"] is not None:
-            assert r["mine"] == r["classic"], r
-            assert r["title"] == r["wbTitle"], r
+      out(cases.map(([f, j]) => ({f, j, mine: R.checklistModel({analysis: F[f]}, jobs[j]), title: R.alertTitle({analysis: F[f]})})));
+    """)
+    assert [(r["f"], r["j"]) for r in out] == [(c["f"], c["j"]) for c in CLASSIC_REVIEW]
+    for mine, classic in zip(out, CLASSIC_REVIEW):
+        assert mine["mine"] == classic["items"], mine
+        assert mine["title"] == classic["title"], mine
     one = out[0]["mine"]
     assert one == [["出口命名", "自动确认（置信度 98.8%）"], ["结果质量", "存在不确定性，建议复核"], ["几何参考范围", "有超出范围的测量，请看结果页提示"],
                    ["需要注意", "1 项几何测量超出模型训练范围，模型集成存在不确定性，结果需要复核。"]]

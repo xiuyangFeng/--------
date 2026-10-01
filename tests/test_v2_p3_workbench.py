@@ -19,7 +19,29 @@ from wss_deploy.paths import STATIC_DIR
 LANE_FILES = ["ws_rail.js", "ws_admin.js", "ws_thumbs.js", "ws_upload.js", "ws_shell.js"]
 WS = ["ws_icons.js", "ws_ui.js", "ws_store.js", "ws_api.js", "ws_rail.js", "ws_admin.js", "ws_overview.js", "ws_lens.js", "ws_detail.js", "ws_unroll.js",
       "ws_profile.js", "ws_bookmarks.js", "ws_questions.js", "ws_compare.js", "ws_upload.js", "ws_input.js", "ws_export.js", "ws_batch.js", "ws_shell.js", "ws_main.js"]
-CORE = STATIC_DIR / "workbench_core.js"
+# The classic workbench_core.js (866cf02, deleted in S7) on the inputs below: etaView (picked fields) and
+# etaRowSummary for every ETAS case at age 0 / 20 s, formatDuration, cohortFilter.  P4 lane A (F6): the comparison
+# used to run only while the file existed, so after S7 it silently stopped; the values are frozen here instead.
+CLASSIC_ETA = {
+    'running@0': {'view': {'status': 'running', 'progress': 47, 'headline': '预计还需约 1 分 20 秒', 'remaining': 80, 'cur': 1, 'segs': [['done', 20, 100, False], ['running', 66.667, 40, False], ['pending', 13.333, 0, False]]}, 'row': {'pct': 47, 'text': '还需约 1 分 20 秒', 'state': 'running'}},
+    'running@20': {'view': {'status': 'running', 'progress': 60, 'headline': '预计还需约 1 分钟', 'remaining': 60, 'cur': 1, 'segs': [['done', 20, 100, False], ['running', 66.667, 60, False], ['pending', 13.333, 0, False]]}, 'row': {'pct': 60, 'text': '还需约 1 分钟', 'state': 'running'}},
+    'queued@0': {'view': {'status': 'queued', 'progress': 0, 'headline': '前面 2 个，约 1 分 30 秒后开始', 'remaining': 130, 'cur': -1, 'segs': [['pending', 23.077, 0, False], ['pending', 76.923, 0, False]]}, 'row': {'pct': None, 'text': '前面 2 个', 'state': 'queued'}},
+    'queued@20': {'view': {'status': 'queued', 'progress': 0, 'headline': '前面 2 个，约 1 分 10 秒后开始', 'remaining': 130, 'cur': -1, 'segs': [['pending', 23.077, 0, False], ['pending', 76.923, 0, False]]}, 'row': {'pct': None, 'text': '前面 2 个', 'state': 'queued'}},
+    'waiting@0': {'view': {'status': 'queued', 'progress': 23, 'headline': '等前一个任务算完后开始', 'remaining': 100, 'cur': -1, 'segs': [['done', 23.077, 100, False], ['pending', 76.923, 0, False]]}, 'row': {'pct': None, 'text': '等待前一个任务', 'state': 'queued'}},
+    'waiting@20': {'view': {'status': 'queued', 'progress': 23, 'headline': '等前一个任务算完后开始', 'remaining': 100, 'cur': -1, 'segs': [['done', 23.077, 100, False], ['pending', 76.923, 0, False]]}, 'row': {'pct': None, 'text': '等待前一个任务', 'state': 'queued'}},
+    'confirm@0': {'view': {'status': 'awaiting_confirmation', 'progress': 33, 'headline': '确认后约 1 分 15 秒出结果', 'remaining': 75, 'cur': -1, 'segs': [['done', 33.333, 100, False], ['pending', 66.667, 0, False]]}, 'row': {'pct': None, 'text': '确认后约 1 分 15 秒', 'state': 'waiting'}},
+    'confirm@20': {'view': {'status': 'awaiting_confirmation', 'progress': 33, 'headline': '确认后约 1 分 15 秒出结果', 'remaining': 75, 'cur': -1, 'segs': [['done', 33.333, 100, False], ['pending', 66.667, 0, False]]}, 'row': {'pct': None, 'text': '确认后约 1 分 15 秒', 'state': 'waiting'}},
+    'overdue@0': {'view': {'status': 'running', 'progress': 99, 'headline': '即将完成', 'remaining': 0.533333, 'cur': 1, 'segs': [['done', 75, 100, False], ['running', 25, 96, True]]}, 'row': {'pct': 99, 'text': '即将完成', 'state': 'running'}},
+    'overdue@20': {'view': {'status': 'running', 'progress': 99, 'headline': '即将完成', 'remaining': 0.32, 'cur': 1, 'segs': [['done', 75, 100, False], ['running', 25, 96, True]]}, 'row': {'pct': 99, 'text': '即将完成', 'state': 'running'}},
+    'input@0': {'view': {'status': 'awaiting_input', 'progress': 0, 'headline': '确认后约 40 秒完成中心线提取', 'remaining': 200, 'cur': -1, 'segs': [['pending', 100, 0, False]]}, 'row': None},
+    'input@20': {'view': {'status': 'awaiting_input', 'progress': 0, 'headline': '确认后约 40 秒完成中心线提取', 'remaining': 200, 'cur': -1, 'segs': [['pending', 100, 0, False]]}, 'row': None},
+    'segA@0': {'view': {'status': 'running', 'progress': 6, 'headline': '预计还需约 2 分 30 秒（不含人工确认出口）', 'remaining': 150, 'cur': 0, 'segs': [['running', 37.5, 16.7, False], ['pending', 62.5, 0, False]]}, 'row': {'pct': 6, 'text': '还需约 2 分 30 秒', 'state': 'running'}},
+    'segA@20': {'view': {'status': 'running', 'progress': 19, 'headline': '预计还需约 2 分 10 秒（不含人工确认出口）', 'remaining': 130, 'cur': 0, 'segs': [['running', 37.5, 50, False], ['pending', 62.5, 0, False]]}, 'row': {'pct': 19, 'text': '还需约 2 分 10 秒', 'state': 'running'}},
+    'empty@0': {'view': None, 'row': None},
+    'empty@20': {'view': None, 'row': None}}
+CLASSIC_FMT = ['几秒', '约 10 秒', '约 45 秒', '约 1 分钟', '约 1 分钟', '约 2 分 5 秒', '约 9 分 30 秒', '约 10 分钟', '约 50 分钟', '', '']
+CLASSIC_COHORT_LOWER = [['b', 'd'], ['b', 'd'], ['b', 'd'], ['c'], ['b', 'c'], ['b']]
+CLASSIC_COHORT_REOPENED = ['b']
 
 _EXTRA = r"""
 const urls = [], bodies = {};
@@ -53,7 +75,6 @@ def _pure(script: str) -> dict:
     _need_node()
     prelude = ("global.WSSV2 = {};\n" + "".join("require(" + json.dumps(str(V2 / f)) + ");\n" for f in ["ws_icons.js", "ws_ui.js", "ws_rail.js", "ws_admin.js"])
                + "const ns = global.WSSV2, R = ns.rail, AD = ns.admin;\n"
-               + "const CORE = " + json.dumps(str(CORE)) + ", WB = require('fs').existsSync(CORE) ? require(CORE) : null;\n"
                + "const out = x => console.log(JSON.stringify(x));\n")
     result = subprocess.run(["node", "-e", prelude + "(async () => {\n" + script + "\n})().catch(e => { console.error(e && e.stack || e); process.exit(1); });"],
                             text=True, capture_output=True, timeout=60)
@@ -86,14 +107,13 @@ def test_remaining_time_rules_match_the_classic_workbench():
     out = _pure("const stage = (key, e, el, state) => ({key, label: key.toUpperCase(), expected_s: e, elapsed_s: el, state});\n" + ETAS + r"""
       const pick = v => v && {status: v.status, progress: v.progress, headline: v.headline, remaining: v.remaining === null || v.remaining === undefined ? null : +v.remaining.toFixed(6),
         cur: v.currentIndex, segs: v.segments.map(s => [s.state, s.width, s.fill, s.overdue])};
-      const rows = {}, heads = {}, same = [];
+      const rows = {}, heads = {}, views = {};
       for (const [k, e] of Object.entries(E)) for (const age of [0, 20]) {
         rows[k + '@' + age] = R.etaRowSummary(e, {ageS: age});
-        const v = R.etaView(e, {ageS: age}); heads[k + '@' + age] = v && v.headline;
-        if (WB) same.push(JSON.stringify(pick(v)) === JSON.stringify(pick(WB.etaView(e, {ageS: age}))) && JSON.stringify(rows[k + '@' + age]) === JSON.stringify(WB.etaRowSummary(e, {ageS: age})));
+        const v = R.etaView(e, {ageS: age}); heads[k + '@' + age] = v && v.headline; views[k + '@' + age] = pick(v);
       }
       const secs = [3, 12, 44, 57.5, 61, 125, 569, 570, 3000, null, 'x'];
-      out({rows, heads, same, fmt: secs.map(R.formatDuration), wbFmt: WB ? secs.map(WB.formatDuration) : null,
+      out({rows, heads, views, fmt: secs.map(R.formatDuration),
         rem: [[100, 50], [100, 85], [100, 200], [0, 5]].map(([e, t]) => +R.stageRemaining(e, t).toFixed(6))});
     """)
     r = out["rows"]
@@ -108,8 +128,11 @@ def test_remaining_time_rules_match_the_classic_workbench():
     assert out["heads"]["input@0"] == "确认后约 40 秒完成中心线提取"
     assert out["fmt"] == ["几秒", "约 10 秒", "约 45 秒", "约 1 分钟", "约 1 分钟", "约 2 分 5 秒", "约 9 分 30 秒", "约 10 分钟", "约 50 分钟", "", ""]
     assert out["rem"] == [50, 18.823529, 8, 0]
-    if out["wbFmt"] is not None:                                                            # the classic file, while it exists
-        assert out["fmt"] == out["wbFmt"] and out["same"] and all(out["same"])
+    assert out["fmt"] == CLASSIC_FMT                                                         # the classic workbench_core, frozen
+    assert sorted(out["views"]) == sorted(CLASSIC_ETA)
+    for key, classic in CLASSIC_ETA.items():
+        assert out["views"][key] == classic["view"], key
+        assert out["rows"][key] == classic["row"], key
 
 
 def test_case_facts_missing_results_recent_and_queue_ranges():
@@ -136,9 +159,9 @@ def test_case_facts_missing_results_recent_and_queue_ranges():
       const cases = [
         [{wss_p99_pa: {lo: 18}}, {p99_min: 18}], [{area_frac_high: {lo: 0.05}}, {high_min: 5}], [{area_frac_very_high: {lo: 0.02}}, {very_high_min: 2}],
         [{speed_p99_m_s: {lo: 1}}, {speed_min: 1}], [{max_diameter_mm: {lo: 50}}, {diameter_min: 50}], [{wss_p99_pa: {lo: 15}, max_diameter_mm: {lo: 40}}, {p99_min: 15, diameter_min: 40}]];
-      const lower = cases.map(([rg, wb]) => [C({ranges: rg}), WB ? WB.cohortFilter(rows, wb).map(r => r.job_id).sort() : null]);
+      const lower = cases.map(([rg]) => C({ranges: rg}));   // the classic cohortFilter arguments stay beside them (CLASSIC_COHORT_LOWER)
       const upper = [C({ranges: {wss_p99_pa: {lo: 15, hi: 25}}}), C({ranges: {max_diameter_mm: {hi: 55}}}), C({ranges: {wss_p99_pa: {lo: null, hi: null}}})];
-      const reopened = [C({review: 'reopened'}), C({review: 'unreviewed'}), WB ? WB.cohortFilter(rows, {review_status: 'reopened'}).map(r => r.job_id) : null];
+      const reopened = [C({review: 'reopened'}), C({review: 'unreviewed'})];
       const cols = AD.COHORT_COLS.map(c => c.key);
       const col = k => AD.COHORT_COLS.filter(c => c.key === k)[0];
       const texts = [AD.rangeText(col('wss_p99_pa'), {lo: 18}), AD.rangeText(col('area_frac_high'), {lo: 0.05, hi: 0.2}), AD.rangeText(col('max_diameter_mm'), {hi: 55})];
@@ -151,12 +174,10 @@ def test_case_facts_missing_results_recent_and_queue_ranges():
     assert out["m3"] == {"src": None, "miss": 0, "un": ["X5D", "PF6"]}   # outlets not confirmed yet: nothing offered
     assert out["facts"] == {"diameter": 52.14, "tags": ["AAA", "随访"]} and out["none"] == {"diameter": None, "tags": []}
     assert out["recent"] == ["c", "d", "a"]                         # by finish time, the creation time standing in
-    for mine, classic in out["lower"]:
-        if classic is not None:
-            assert mine == classic
-    assert [x[0] for x in out["lower"]] == [["b", "d"], ["b", "d"], ["b", "d"], ["c"], ["b", "c"], ["b"]]
+    assert out["lower"] == CLASSIC_COHORT_LOWER                                            # classic cohortFilter, frozen
+    assert out["lower"] == [["b", "d"], ["b", "d"], ["b", "d"], ["c"], ["b", "c"], ["b"]]
     assert out["upper"] == [["b"], ["a", "b"], ["a", "b", "c", "d"]]
-    assert out["reopened"][0] == ["b"] and out["reopened"][1] == ["a", "d"] and (out["reopened"][2] in (None, ["b"]))
+    assert out["reopened"][0] == CLASSIC_COHORT_REOPENED == ["b"] and out["reopened"][1] == ["a", "d"]
     assert out["cols"].index("area_frac_very_high") == out["cols"].index("area_frac_high") + 1
     assert out["texts"] == ["WSS p99 ≥ 18 Pa", "高 WSS 占比 5%–20%", "管腔最大直径 ≤ 55 mm"]
     assert out["bounds"] == [0.05, 18.5, None, None]
