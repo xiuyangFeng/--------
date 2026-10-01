@@ -29,17 +29,16 @@
   var DENSITY = [{ v: 1, label: '全部' }, { v: 2, label: '一半' }, { v: 3, label: '三分之一' }, { v: 5, label: '五分之一' }];
   var MIN_FIELDS = { tawss: true };                                     // classic: TAWSS also marks its lowest point
   var ABOVE = { osi: true, rrt: true, ecap: true };
-  var DEFAULTS = { schema: 'wssv2.display/1', defaults: {}, units: { pressure: 'Pa', velocity: 'm/s' },
+  var DEFAULTS = { schema: 'wssv2.display/1', defaults: {}, units: { pressure: 'Pa', velocity: 'm/s', wss: 'Pa' },
     layers: { stl: false, peaks: true, stagnation: false, vectors: false }, volume: { opacity: 0.1, density: 1, width: 1, thin: true } };
   var ID_RE = /^[A-Za-z0-9_.-]{1,40}$/;
   // Phase 3 lane 4 options, kept apart from the lane E keys (their stored shape is unchanged).
-  var OPTS = { wssUnit: 'Pa', contours: false, top: false, topPct: 1, hover: true, speedLog: false, fixed: {}, imported: {} };
+  var OPTS = { contours: false, top: false, topPct: 1, hover: true, speedLog: false, fixed: {}, imported: {} };
   var TOP_PCT = { min: 0.5, max: 10, step: 0.5 };                     // classic highlight-pct slider
   function cleanPct(x) { x = Number(x); return Number.isFinite(x) ? Math.max(TOP_PCT.min, Math.min(TOP_PCT.max, Math.round(x / TOP_PCT.step) * TOP_PCT.step)) : 1; }
   function sanitizeOpts(o) {
     var p = JSON.parse(JSON.stringify(OPTS));
     if (!o || typeof o !== 'object') return p;
-    if (UNITS.wss[o.wssUnit]) p.wssUnit = o.wssUnit;
     ['contours', 'top', 'hover', 'speedLog'].forEach(function (k) { if (typeof o[k] === 'boolean') p[k] = o[k]; });
     if (o.topPct !== undefined && o.topPct !== null && o.topPct !== '') p.topPct = cleanPct(o.topPct);
     Object.keys(o.fixed || {}).forEach(function (id) { var v = Number(o.fixed[id]); if (ID_RE.test(id) && Number.isFinite(v) && v > 0) p.fixed[id] = v; });
@@ -151,6 +150,7 @@
     var u = raw.units || {};
     if (UNITS.pressure[u.pressure]) p.units.pressure = u.pressure;
     if (UNITS.velocity[u.velocity]) p.units.velocity = u.velocity;
+    if (UNITS.wss[u.wss]) p.units.wss = u.wss;                          // P3 lane 4
     var L = raw.layers || {};
     Object.keys(p.layers).forEach(function (k) { if (typeof L[k] === 'boolean') p.layers[k] = L[k]; });
     var V = raw.volume || {};
@@ -230,7 +230,7 @@
   function fmtNum(v) { return ns.util && ns.util.fmtSig ? ns.util.fmtSig(v) : String(+(+v).toPrecision(3)); }
   function fmtCut(v) { return ns.util && ns.util.fmtTrim ? ns.util.fmtTrim(v) : String(+(+v).toPrecision(3)); }   // thresholds: 0.4 not 0.400
   function unitText(u) { return ns.util && ns.util.unitText ? ns.util.unitText(u) : (u || ''); }
-  function unitOf(kind) { return kind === 'wss' ? prefs().opts.wssUnit : prefs().units[kind]; }
+  function unitOf(kind) { return prefs().units[kind]; }
   var provider = {
     bands: function (v, fieldId) { var s = sessionFor(v); return s ? effBands(s, fieldId) : null; },
     thresholds: function (v, fieldId) { var s = sessionFor(v); return s ? effThresholds(s, fieldId) : null; },
@@ -371,8 +371,7 @@
   }
   function setUnit(kind, u) {
     var P = prefs(); if (!UNITS[kind] || !UNITS[kind][u]) return;
-    if (kind === 'wss') P.opts.wssUnit = u; else P.units[kind] = u;
-    savePrefs(P);
+    P.units[kind] = u; savePrefs(P);
     refreshAll();
     rerender(['reading', 'slice', 'overview', 'along', 'region']);
   }
@@ -622,6 +621,31 @@
     v.on('change', function (e) { if (e && (e.what === 'layers' || e.what === 'result')) updateLegend(sideOf(v) || 'a'); });
   }
 
+  // ---- reproduction links (lane 5's x.<ext id>): {v: 1, contours, top, topPct, speedLog, clip}; an old or partial state only
+  // changes what it names, anything malformed is ignored.
+  function linkState(api) {
+    var cur = api && api.cur && api.cur(), v = api && api.viewer && api.viewer();
+    if (!cur || !cur.manifest) return undefined;
+    var o = prefs().opts, s = v ? sessionFor(v, true) : null, out = { v: 1, contours: o.contours, top: o.top, topPct: o.topPct, speedLog: o.speedLog };
+    out.clip = s && s.clip !== undefined ? s.clip : null;
+    return out;
+  }
+  function applyLinkState(state, api) {
+    if (!state || typeof state !== 'object' || Array.isArray(state)) return false;
+    var patch = {};
+    ['contours', 'top', 'speedLog'].forEach(function (k) { if (typeof state[k] === 'boolean') patch[k] = state[k]; });
+    if (state.topPct !== undefined && state.topPct !== null && Number.isFinite(Number(state.topPct))) patch.topPct = cleanPct(state.topPct);
+    var v = api && api.viewer && api.viewer(), clipSet = false;
+    if (v && 'clip' in state) {
+      var c = state.clip === null ? null : Number(state.clip);
+      if (c === null || (Number.isFinite(c) && c >= 0)) { var sess = sessionFor(v, true); if (sess) { if (c === null || c >= 1) delete sess.clip; else sess.clip = +c.toFixed(4); clipSet = true; } }
+    }
+    if (!Object.keys(patch).length && !clipSet) return false;
+    setOpts(patch);                                     // refreshes every viewer (overlays, cut, scales)
+    rerender(['slice', 'overview']);
+    return true;
+  }
+
   // ---- remembered fixed upper limit: a field opened on 本例自适应 starts on the remembered range
   var lastField = null;
   function applyRemembered(api, opening) {
@@ -663,14 +687,14 @@
   function defaultsPlan(fam, d) {
     var text = [], skipped = [], jobs = [];
     if (!d || typeof d !== 'object') return { text: text, skipped: skipped, run: function () {} };
-    if (CMAPS.indexOf(d.colormap) >= 0) { text.push('色表 ' + (ns.colormap && ns.colormap.label ? ns.colormap.label(d.colormap) : d.colormap)); jobs.push(function () { if (API.store) API.store().setPrefs({ cmap: d.colormap }); }); }
+    if (CMAPS.indexOf(d.colormap) >= 0) { text.push('色表 ' + (ns.colormap && ns.colormap.label ? ns.colormap.label(d.colormap) : d.colormap)); jobs.push(function () { if (API && API.store) API.store().setPrefs({ cmap: d.colormap }); }); }
     var b = Number(d.bands);
     if (d.bands !== undefined && d.bands !== null && BAND_STEPS.indexOf(b) >= 0) {
       text.push(b ? b + ' 段' : '连续');
       jobs.push(function (P) { familyIds(fam).forEach(function (id) { if (!ID_RE.test(id)) return; var e = Object.assign({}, P.defaults[id] || {}); if (b) e.bands = b; else delete e.bands; if (Object.keys(e).length) P.defaults[id] = e; else delete P.defaults[id]; }); });
     }
     if (fam === 'wall') {
-      if (d.units === 'dyn' || d.units === 'Pa') { var wu = d.units === 'dyn' ? 'dyn/cm²' : 'Pa'; text.push('WSS 单位 ' + wu); jobs.push(function (P) { P.opts.wssUnit = wu; }); }
+      if (d.units === 'dyn' || d.units === 'Pa') { var wu = d.units === 'dyn' ? 'dyn/cm²' : 'Pa'; text.push('WSS 单位 ' + wu); jobs.push(function (P) { P.units.wss = wu; }); }
       var t = validThresholds(d.thresholds_pa);
       if (t) { text.push('WSS 阈值 ' + t.map(fmtCut).join(' / ') + ' Pa'); jobs.push(function (P) { P.defaults.wss = Object.assign({}, P.defaults.wss || {}, { thresholds: t }); }); }
       if (d.opacity !== undefined && d.opacity !== null && Number(d.opacity) !== 1) skipped.push('壁面透明度');
@@ -684,13 +708,14 @@
     if (d.lang === 'en') skipped.push('英文界面');
     return { text: text, skipped: skipped, run: function () {
       var P = prefs(); jobs.forEach(function (fn) { fn(P); }); savePrefs(P);
-      var cur = API.cur && API.cur();
+      var cur = API && API.cur && API.cur();
       if (cur && cur.field) API.applyField(cur.field, cur.window);
       refreshAll(); rerender(['reading', 'slice', 'overview', 'along', 'region']);
     } };
   }
   function signature(d) { try { return JSON.stringify(d).slice(0, 200); } catch (_) { return ''; } }
-  function applyDefaults(fam, d) {
+  function applyDefaults(fam, d, api) {
+    if (api) API = api;
     var plan = defaultsPlan(fam, d);
     if (!plan.text.length) { ui().toast('服务端的默认口径里没有新工作区能用的设置。', { kind: 'info' }); return false; }
     plan.run();
@@ -700,7 +725,8 @@
   }
   // A classic view state (wss-deploy.view/v1) on the current result.  The camera is taken only from a preset saved on this
   // same result; everything the workspace cannot show is listed in the notice.
-  function applyPreset(p) {
+  function applyPreset(p, api) {
+    if (api) API = api;
     var cur = API && API.cur && API.cur(), v = viewerA(), s = p && p.state;
     if (!cur || !cur.manifest || !v || !s || typeof s !== 'object') return false;
     var m = cur.manifest, fam = m.result && m.result.family, done = [], skipped = [], P = prefs(), sess = sessionFor(v, true);
@@ -714,7 +740,7 @@
     var b = Number(s.bands);
     if (s.bands !== undefined && s.bands !== null && BAND_STEPS.indexOf(b) >= 0 && sess) { sess.bands[fid] = b; done.push('分段'); }
     if (fam === 'wall') {
-      if (s.units === 'dyn' || s.units === 'Pa') { P.opts.wssUnit = s.units === 'dyn' ? 'dyn/cm²' : 'Pa'; done.push('单位'); }
+      if (s.units === 'dyn' || s.units === 'Pa') { P.units.wss = s.units === 'dyn' ? 'dyn/cm²' : 'Pa'; done.push('单位'); }
       var t = validThresholds(s.thresholds_pa);
       if (t && sess && has('wss')) sess.thresholds.wss = t;
       Object.keys(s.field_thresholds || {}).forEach(function (id) { var tv = validThresholds(s.field_thresholds[id]); if (tv && sess && id !== 'wss' && has(id)) sess.thresholds[id] = tv; });
@@ -869,6 +895,10 @@
       return false;
     },
     tools: function (api) { return classicSection(api); },
+    // P3 lane 4 × lane 5 (复现链接): what the link must carry beyond lane 5's d — iso-lines, the highlight, the velocity log
+    // scale and this result's wall cut.  The WSS unit travels in d.units (prefs().units.wss), the fixed upper limit in w.
+    linkState: function (api) { API = api; return linkState(api); },
+    applyLinkState: function (state, api) { API = api; return applyLinkState(state, api); },
     onResult: function (api) {
       API = api; closePop();
       var P = prefs(), S = shell();
@@ -919,6 +949,6 @@
     // phase 3 lane 4
     displayKind: displayKind, sanitizeOpts: sanitizeOpts, setOpts: setOpts, openTop: openTop, openClip: openClip, setClip: setClip, toggleHover: toggleHover,
     trustRows: trustRows, updateLegends: updateLegends, defaultsPlan: defaultsPlan, applyDefaults: applyDefaults, applyPreset: applyPreset,
-    loadServerPrefs: loadServerPrefs, applyRemembered: applyRemembered, layersButton: layersButton, openPanel: function (kind, title, anchorEl, build) { return openPop(kind, title, rectOf(anchorEl), placeRightOf, build); }
+    loadServerPrefs: loadServerPrefs, applyRemembered: applyRemembered, layersButton: layersButton, linkState: linkState, applyLinkState: applyLinkState, openPanel: function (kind, title, anchorEl, build) { return openPop(kind, title, rectOf(anchorEl), placeRightOf, build); }
   };
 });
