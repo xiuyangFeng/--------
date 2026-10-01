@@ -68,6 +68,7 @@
 /* trust legend (可信度标记 on): bottom right of the viewport */
 .wsd-trust { position: absolute; right: 14px; bottom: 12px; z-index: 3; min-width: 150px; padding: 6px 10px 7px; font-size: 12px; color: var(--hud-ink);
   background: var(--hud-bg); border: 1px solid var(--hud-border); border-radius: 10px; box-shadow: var(--hud-shadow); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.vp-grid.split .wsd-trust { bottom: 46px; }                      /* two viewports: the side / result line sits at the bottom */
 .wsd-trust-head { display: flex; align-items: center; gap: 6px; font-weight: 700; margin-bottom: 3px; }
 .wsd-trust .info-tip { border-color: var(--hud-line); color: var(--hud-ink-3); background: transparent; }
 .wsd-trust-row { display: flex; align-items: center; gap: 7px; line-height: 1.6; font-variant-numeric: tabular-nums; }

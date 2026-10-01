@@ -410,6 +410,7 @@
   (ns.ext = ns.ext || []).push({
     id: 'hover',
     onResult: function (api) { var S = api.state(); hideHover(); if (S) { wireHover(S.viewerA); wireHover(S.viewerB); } },
+    toolbar: function (api) { var S = api.state(); if (S) { wireHover(S.viewerA); wireHover(S.viewerB); } return []; },   // viewer B appears with compare / split
     onField: function () { hideHover(); },
     onClose: function () { hideHover(); }
   });

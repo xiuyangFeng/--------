@@ -884,6 +884,7 @@
     id: 'display',
     toolbar: function (api) {
       API = api;
+      var S0 = shell(); if (S0) { wireViewer(S0.viewerA); wireViewer(S0.viewerB); }   // P3 lane 4: viewer B appears with compare / split
       if (!api.viewer() || !api.cur() || !api.cur().result) return [];
       return [ui().iconButton('home', '复位视角：前视并撑满（0）', resetView)];
     },
