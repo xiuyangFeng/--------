@@ -1,0 +1,92 @@
+{
+  "schema": "wss-deploy.v2-bundle/v1",
+  "viewer_version": "v2.0.0",
+  "legacy_scripts": [
+    "three.min.js",
+    "OrbitControls.js",
+    "report_common.js",
+    "volume_viewer.js"
+  ],
+  "scripts": [
+    "core_util.js",
+    "core_data.js",
+    "core_colormap.js",
+    "core_colorbar.js",
+    "core_viewer.js",
+    "core_orientation.js",
+    "core_cursor.js",
+    "adapter_wall.js",
+    "adapter_volume.js",
+    "core_contour.js",
+    "ws_icons.js",
+    "ws_ui.js",
+    "ws_store.js",
+    "ws_api.js",
+    "ws_thumbs.js",
+    "ws_rail.js",
+    "ws_admin.js",
+    "ws_overview.js",
+    "ws_lens.js",
+    "ws_detail.js",
+    "ws_unroll.js",
+    "ws_profile.js",
+    "ws_slice.js",
+    "ws_probe.js",
+    "ws_measure.js",
+    "ws_region.js",
+    "ws_review.js",
+    "ws_annot.js",
+    "ws_display.js",
+    "ws_bookmarks.js",
+    "ws_questions.js",
+    "ws_compare.js",
+    "ws_upload.js",
+    "ws_onepage.js",
+    "ws_input.js",
+    "ws_export.js",
+    "ws_figure.js",
+    "ws_batch.js",
+    "ws_notice.js",
+    "ws_shell.js",
+    "ws_legacy.js",
+    "ws_main.js"
+  ],
+  "offline_exclude": [
+    "ws_api.js",
+    "ws_rail.js",
+    "ws_upload.js",
+    "ws_input.js",
+    "ws_compare.js",
+    "ws_thumbs.js",
+    "ws_admin.js",
+    "ws_batch.js",
+    "ws_legacy.js"
+  ],
+  "styles": [
+    "v2.css",
+    "v2_export.css",
+    "v2_onepage.css",
+    "v2_workbench.css",
+    "v2_detail.css",
+    "v2_display.css",
+    "v2_input.css"
+  ],
+  "pages": [
+    "index.html",
+    "help_input.html",
+    "help_quickstart.html",
+    "help_errors.html"
+  ],
+  "assets": [
+    "help.css",
+    "example_aaa.stl"
+  ],
+  "dev": [
+    "dev_viewer.html",
+    "dev_viewer.js"
+  ],
+  "generated": [
+    "example_report.html"
+  ],
+  "notes": "legacy_scripts live in static/ and are served from /static/<name>; everything else lives in static/v2/ and is served from /static/v2/<name>. Load order = legacy_scripts then scripts. The offline package inlines legacy_scripts + scripts minus offline_exclude, and styles. 'generated' files are served only through their own routes (/v2/example), never through /static/v2/. volume_viewer.js is loaded for its numerical core only (VolumeViewerCore; it stops before its classic page code when the page has no classic volume report)."
+}

@@ -6,6 +6,7 @@ unit-testable without a manager and never changes the job model.
 from __future__ import annotations
 
 from .jobs import FAMILY_OF_PROTOCOL, family_of_release
+from .schema import display_name
 
 
 def _run(job: dict) -> dict:
@@ -14,6 +15,8 @@ def _run(job: dict) -> dict:
     return {"job_id": job.get("id"), "release_id": release.get("id"), "family": job.get("family") or family_of_release(release),
             "status": job.get("status"), "review": review.get("status") or "unreviewed", "created_at": job.get("created_at") or "",
             "run_identity": job.get("run_identity"), "version": job.get("version"), "case_id": job.get("case_id"),
+            # C7 (2026-09-30): patient id when entered, else case id.
+            "display_name": job.get("display_name") or display_name(job.get("case_id"), job.get("patient_id")),
             "reusable": bool(job.get("reusable")), "reused_from": job.get("reused_from"), "source_job_id": job.get("source_job_id"),
             # §19.2 display labels from the light snapshot (absent on hand-built records → None / False).
             "family_label": job.get("family_label"), "release_short": job.get("release_short"), "has_cycle": bool(job.get("has_cycle"))}
@@ -59,6 +62,7 @@ def group_cases(jobs: list[dict], releases: list[dict] | None = None) -> list[di
             return next((job.get(field) for job in members if job.get(field)), "")
         reusable = next((run["job_id"] for run in runs if run["reusable"]), None)
         cards.append({"input_sha256": key if not key.startswith("job:") else None, "group_key": key, "case_ids": case_ids,
+                      "display_name": display_name(case_ids[0] if case_ids else "", first("patient_id")),
                       "patient_id": first("patient_id"), "scan_label": first("scan_label"), "scan_date": first("scan_date"),
                       "tags": tags, "latest_at": newest.get("created_at") or "",
                       "pending_review": sum(1 for run in runs if run["status"] == "done" and run["review"] != "reviewed"),

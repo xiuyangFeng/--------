@@ -1,0 +1,88 @@
+{
+ "schema_version": "wss-deploy.model-card/v1",
+ "release_id": "PF6_VF6_peak_3seed_20260920",
+ "display_name": "体内压力与速度",
+ "short_name": "体场",
+ "version_date": "2026-09-20",
+ "purpose": "预测收缩期峰值时刻（周期内 0.21 s）血管腔内的相对压力与速度，并算出壁面相对压力与流线",
+ "training": {
+  "n_train": null,
+  "n_holdout": null,
+  "n_total": null,
+  "cohorts": null,
+  "centers": null,
+  "note": "release.json 只写了归一化统计来自 train138（input_contract.normalization），没有单独声明训练例数、留出例数和队列，这里都写 null。"
+ },
+ "protocol": [
+  "所有病例用同一条入口流量波形（协议平均 30.38 mL/s，约 1.8 L/min；周期 0.8 s），不是该患者实测；边界条件是固定的训练协议族。",
+  "预测对象是收缩期峰值单帧（周期内 0.21 s），不是全周期。",
+  "压力是相对量：相对该帧体积平均压力，STL 里没有绝对参考压力，不能解释为血压；只有压差有意义。",
+  "四个出口为 RCR 边界：左右各半，同侧按出口口径的 Murray 规律分配，不是患者实测。",
+  "血液黏度按 Carreau 非牛顿模型，密度 1060 kg/m³。",
+  "壁面是否按刚性处理：待核对。"
+ ],
+ "protocol_sources": {
+  "inlet_mean_flow": "cfd_auto/sanity.py PROTOCOL_Q_M3S = 30.38e-6 m³/s",
+  "boundary": "release.json input_contract.boundary_protocol：fixed training flow/boundary-condition family, not patient-specific flow measurements",
+  "peak_frame": "release.json time_axis[0]（step 1162，time_s 0.21）",
+  "pressure_reference": "release.json pressure_reference：p_rel = p - peak volume-weighted anatomy mean",
+  "outlets": "cfd_auto/sanity.py 文档：left share (protocol 50/50)，within-side shares vs the Murray d^3 split",
+  "blood": "cfd_auto/__init__.py 与 udf.py：Carreau viscosity；密度 RHO = 1060.0（cfd_auto/sanity.py、preflight.py）",
+  "wall": "未在 cfd_auto 或发布包中找到明确记录，待核对"
+ },
+ "validation": {
+  "holdout_n": null,
+  "r2_note": "本发布包没有可引用的一致性数字。",
+  "note": "部署体内采样与 CFD 网格口径是否等价尚未建立（release.json validation：Deployment integration only; STL interior sampling has not been established as equivalent to the CFD-cell evaluation protocol）。训练记录里的数字核对过口径以后再填，不能直接搬。",
+  "fields": {
+   "pressure": {"r2_pa": null, "summary": "无（口径未建立）", "source": "release.json validation"},
+   "speed": {"r2_pa": null, "summary": "无（口径未建立）", "source": "release.json validation"},
+   "velocity": {"r2_pa": null, "summary": "无（口径未建立）", "source": "release.json validation"},
+   "wall_pressure": {"r2_pa": null, "summary": "无（口径未建立）", "source": "release.json validation"},
+   "max_diameter": {"summary": "几何测量，不经过模型", "source": "输入表面截面测量"}
+  },
+  "source": "release.json 的 validation 字段（没有 metrics 块）"
+ },
+ "field_labels": {"max_diameter": "管腔最大直径、瘤体体积", "pressure": "体内相对压力", "speed": "速度大小",
+                  "velocity": "速度向量", "wall_pressure": "壁面相对压力", "streamlines": "流线"},
+ "field_tiers": {"max_diameter": "geometry", "pressure": "model", "speed": "model", "velocity": "model",
+                 "wall_pressure": "model", "streamlines": "derived", "sac_volume": "geometry", "lumen_volume": "geometry"},
+ "usage": {
+  "max_diameter": "可以直接引用，注意是管腔（不含附壁血栓与管壁）",
+  "pressure": "只看压差和相对分布，不是血压",
+  "speed": "只看分布形态，没有验证数字",
+  "velocity": "只看流向与分布形态，没有验证数字",
+  "wall_pressure": "只看相对分布",
+  "streamlines": "固定帧稳态积分的示意，不是粒子轨迹"
+ },
+ "usage_note": "「怎么用」一栏的措辞待导师或医生过目。",
+ "weaknesses": [
+  "没有与 CFD 口径一致的验证数字：部署时的体内采样与 CFD 网格口径是否等价尚未建立。",
+  "压力为相对量（相对该帧体积平均压），不能解释为绝对血压。",
+  "边界条件是固定的训练协议，不是患者实测的流量。"
+ ],
+ "weakness_sources": [
+  "release.json validation",
+  "release.json pressure_reference",
+  "release.json input_contract.boundary_protocol"
+ ],
+ "not_applicable": [
+  "开口数不是 5 的输入（入口 + 四个髂支出口；三出口不支持）",
+  "腹主—髂动脉以外的血管",
+  "含附壁血栓或管壁的外轮廓（输入必须是管腔面）",
+  "需要绝对血压的用途"
+ ],
+ "display_windows": {
+  "pressure": [],
+  "wall_pressure": [],
+  "speed": [
+   {"id": "standard", "label": "常规窗", "range": [0, 1.5], "provisional": true}
+  ],
+  "velocity": [
+   {"id": "standard", "label": "常规窗", "range": [0, 1.5], "provisional": true}
+  ]
+ },
+ "display_windows_note": "相对压力不设固定窗，只有「本例自适应」。",
+ "population_reference": "无",
+ "caveat": "研究用途，不是诊断"
+}

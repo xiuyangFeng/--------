@@ -1,0 +1,42 @@
+/* Lane B (S5b) one-page report — owned by that lane (PHASE2_LANES.md).
+   The 「报告模板」 dialog: the classic fields on the left, a sketch of the printed page on the right showing where the
+   institution, title, signature lines and footer land (the appendix shows as a second sheet behind). */
+.ws-dialog.dlg-onepage { width: min(660px, calc(100vw - 32px)); }
+.otp { display: grid; grid-template-columns: minmax(0, 1fr) 176px; gap: 22px; align-items: start; }
+.otp-form .fld:first-child, .otp-form .otp-pair:first-child .fld { margin-top: 0; }
+.otp-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.otp-lab { display: inline-flex; align-items: center; gap: 6px; }
+.otp-opts { align-items: end; }
+.otp-appx { display: flex; align-items: center; gap: 6px; margin: 10px 0; height: 30px; }
+.otp-appx .check { margin: 0; align-items: center; }
+.otp-appx .check input { margin: 0; }
+.otp-form textarea { min-height: 52px; }
+
+/* the page sketch: an A4 sheet in miniature (168 × 238 px) */
+.otp-preview { position: sticky; top: 0; }
+.otp-stack { position: relative; width: 176px; height: 246px; }
+.otp-sheet, .otp-back { position: absolute; width: 168px; height: 238px; border: 1px solid var(--line-2); border-radius: 2px; background: var(--panel); }
+.otp-sheet { left: 0; top: 0; padding: 12px 11px 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-1); }
+.otp-back { left: 8px; top: 8px; background: var(--panel-2); }
+.otp-head { padding-bottom: 5px; margin-bottom: 7px; border-bottom: 1.2px solid var(--ink); }
+.otp-inst { font-size: 8px; line-height: 1.3; font-weight: 600; color: var(--accent-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.otp-title { font-size: 10px; line-height: 1.3; font-weight: 700; color: var(--ink); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.otp-title.auto { font-weight: 500; font-style: italic; color: var(--ink-3); }
+.otp-bars { display: flex; flex-direction: column; gap: 5px; }
+.otp-bar { display: block; height: 4px; border-radius: 2px; background: var(--line); }
+.otp-bar.w90 { width: 90%; } .otp-bar.w80 { width: 80%; } .otp-bar.w70 { width: 70%; } .otp-bar.w60 { width: 60%; }
+.otp-kpis, .otp-shots { display: grid; gap: 3px; margin: 2px 0; }
+.otp-kpis { grid-template-columns: repeat(4, 1fr); }
+.otp-kpis i { display: block; height: 14px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.otp-shots { grid-template-columns: repeat(3, 1fr); }
+.otp-shots i { display: block; height: 22px; border: 1px solid var(--line); border-radius: 1px; background: var(--panel-2); }
+.otp-sign { display: grid; gap: 5px; margin-top: auto; padding-top: 8px; }
+.otp-line { display: flex; align-items: flex-end; gap: 3px; font-size: 7.5px; line-height: 1; color: var(--ink-2); }
+.otp-line b { font-weight: 500; white-space: nowrap; max-width: 60px; overflow: hidden; text-overflow: ellipsis; }
+.otp-line i { flex: 1 1 auto; border-bottom: 1px solid var(--ink); height: 7px; }
+.otp-line i.short { flex: 0 0 24px; }
+.otp-foot { margin-top: 7px; padding-top: 3px; border-top: 1px solid var(--line); font-size: 7px; line-height: 1.35; color: var(--ink-3);
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.otp-sign[hidden] + .otp-foot { margin-top: auto; }
+.otp-cap { margin-top: 6px; font-size: 11px; color: var(--ink-3); text-align: center; }
+@media (max-width: 620px) { .otp { grid-template-columns: minmax(0, 1fr); } .otp-preview { display: none; } }

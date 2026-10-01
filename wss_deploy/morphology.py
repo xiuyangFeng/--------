@@ -46,14 +46,15 @@ METHOD = {
     "max_diameter": "环上最大 Feret 直径",
     "equivalent_diameter": "2·sqrt(面积/π)",
     "reference_diameter": "主动脉等效直径的第 10 百分位（正常管径的稳健估计）",
-    "sac": "等效直径 ≥ 1.5 × 参考直径的连续区段（AAA 常用定义）",
-    "neck": "入口到瘤体起点之间、等效直径 < 1.2 × 参考直径的近端区段",
+    "sac": "等效直径 ≥ 1.5 × 参考直径的连续区段（AAA 常用定义；按管腔判定，不含附壁血栓与管壁）",
+    "neck": "入口到瘤体起点之间、等效直径 < 1.2 × 参考直径的近端区段（按管腔判定）",
+    "lumen": "输入是管腔面：所有直径、长度和体积都是管腔的，不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径",
     "volume": "开口用扇形封盖后散度定理求全腔体积；瘤体体积 = 瘤体区段截面面积沿弧长积分",
     "inscribed_diameter": "中心线该处最大内切球直径（2 × atlas radius_mm），用于判断截面是否斜切",
     "obliquity": "截面最小宽度 > 1.6 × 内切直径时判为斜切（多见于瘤体肩部与分叉近端），其直径偏大",
     "reliability": "可疑站 = 斜切、或最大/最小 Feret > 2.2（细长切片）、或面积/凸包面积 < 0.8（钥匙孔形，多见于分叉处切到母血管）",
     "reorientation": "可疑站在同一中心线点上绕切线 15°/30°/45° × 8 方位共 24 个候选法向重切，取闭合截面面积最小者（最接近垂直），原值留在 raw_max_diameter_mm",
-    "statistics": "参考直径、最大直径、瘤体、瘤颈与分支直径统计只用可靠站（闭合且重定向后仍不可疑）",
+    "statistics": "参考直径、管腔最大直径、瘤体、瘤颈与分支直径统计只用可靠站（闭合且重定向后仍不可疑）",
 }
 
 
@@ -995,9 +996,9 @@ def _aorta_block(entry: Mapping[str, Any], table: Mapping[str, Any], dmax: np.nd
                     "oblique": bool(oblique[imax]),
                     "polygon_world": _subsample_polygon(polygons[imax]) if polygons and polygons[imax] is not None else []}
     if oblique[imax]:
-        notes.append(f"最大直径站（距入口 {s_local[imax]:.0f} mm）的截面明显斜切："
+        notes.append(f"管腔最大直径站（距入口 {s_local[imax]:.0f} mm）的截面明显斜切："
                      f"截面最小宽度 {dmin_series[imax]:.1f} mm 远大于中心线内切直径 {inscribed[imax]:.1f} mm，"
-                     "该处最大直径可能高估，请以三维报告中的截面环核对")
+                     "该处管腔最大直径可能高估，请在工作区三维视图里用截面环核对")
     threshold = SAC_FACTOR * reference
     wide = usable & np.isfinite(equivalent) & (equivalent >= threshold)
     runs = _runs(wide)
@@ -1005,7 +1006,8 @@ def _aorta_block(entry: Mapping[str, Any], table: Mapping[str, Any], dmax: np.nd
     if run is None and runs:
         run = max(runs, key=lambda r: r[1] - r[0])
     if run is None:
-        notes.append(f"无瘤样扩张（主动脉最大等效直径 {np.nanmax(equivalent):.1f} mm < {SAC_FACTOR:g} × 参考直径 {reference:.1f} mm）")
+        notes.append(f"管腔无瘤样扩张（主动脉管腔最大等效直径 {np.nanmax(equivalent):.1f} mm < {SAC_FACTOR:g} × 参考直径 {reference:.1f} mm），"
+                     "不能据此排除动脉瘤")
         return block
     lo, hi = run
     span = slice(lo, hi + 1)

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>WSS 工作区</title>
+  <link rel="stylesheet" href="/static/v2/v2.css">
+  <link rel="stylesheet" href="/static/v2/v2_export.css">
+  <link rel="stylesheet" href="/static/v2/v2_onepage.css">
+  <link rel="stylesheet" href="/static/v2/v2_workbench.css">
+  <link rel="stylesheet" href="/static/v2/v2_detail.css">
+  <link rel="stylesheet" href="/static/v2/v2_display.css">
+  <link rel="stylesheet" href="/static/v2/v2_input.css">
+  <!-- Load order = bundle.json: legacy_scripts, then scripts.  No inline script (CSP script-src 'self'). -->
+  <script src="/static/three.min.js" defer></script>
+  <script src="/static/OrbitControls.js" defer></script>
+  <script src="/static/report_common.js" defer></script>
+  <script src="/static/volume_viewer.js" defer></script>
+  <script src="/static/v2/core_util.js" defer></script>
+  <script src="/static/v2/core_data.js" defer></script>
+  <script src="/static/v2/core_colormap.js" defer></script>
+  <script src="/static/v2/core_colorbar.js" defer></script>
+  <script src="/static/v2/core_viewer.js" defer></script>
+  <script src="/static/v2/core_orientation.js" defer></script>
+  <script src="/static/v2/core_cursor.js" defer></script>
+  <script src="/static/v2/adapter_wall.js" defer></script>
+  <script src="/static/v2/adapter_volume.js" defer></script>
+  <script src="/static/v2/core_contour.js" defer></script>
+  <script src="/static/v2/ws_icons.js" defer></script>
+  <script src="/static/v2/ws_ui.js" defer></script>
+  <script src="/static/v2/ws_store.js" defer></script>
+  <script src="/static/v2/ws_api.js" defer></script>
+  <script src="/static/v2/ws_thumbs.js" defer></script>
+  <script src="/static/v2/ws_rail.js" defer></script>
+  <script src="/static/v2/ws_admin.js" defer></script>
+  <script src="/static/v2/ws_overview.js" defer></script>
+  <script src="/static/v2/ws_lens.js" defer></script>
+  <script src="/static/v2/ws_detail.js" defer></script>
+  <script src="/static/v2/ws_unroll.js" defer></script>
+  <script src="/static/v2/ws_profile.js" defer></script>
+  <script src="/static/v2/ws_slice.js" defer></script>
+  <script src="/static/v2/ws_probe.js" defer></script>
+  <script src="/static/v2/ws_measure.js" defer></script>
+  <script src="/static/v2/ws_region.js" defer></script>
+  <script src="/static/v2/ws_review.js" defer></script>
+  <script src="/static/v2/ws_annot.js" defer></script>
+  <script src="/static/v2/ws_display.js" defer></script>
+  <script src="/static/v2/ws_bookmarks.js" defer></script>
+  <script src="/static/v2/ws_questions.js" defer></script>
+  <script src="/static/v2/ws_compare.js" defer></script>
+  <script src="/static/v2/ws_upload.js" defer></script>
+  <script src="/static/v2/ws_onepage.js" defer></script>
+  <script src="/static/v2/ws_input.js" defer></script>
+  <script src="/static/v2/ws_export.js" defer></script>
+  <script src="/static/v2/ws_figure.js" defer></script>
+  <script src="/static/v2/ws_batch.js" defer></script>
+  <script src="/static/v2/ws_notice.js" defer></script>
+  <script src="/static/v2/ws_shell.js" defer></script>
+  <script src="/static/v2/ws_legacy.js" defer></script>
+  <script src="/static/v2/ws_main.js" defer></script>
+</head>
+<body>
+  <div id="ws-app" class="ws-app">
+    <div class="ws-boot"><span class="mark">WSS</span><span class="muted">正在打开工作区…</span></div>
+    <noscript><p class="ws-noscript">这个页面需要 JavaScript。请在浏览器设置里允许本站运行脚本后刷新。</p></noscript>
+  </div>
+  <dialog id="ws-dialog" class="ws-dialog" aria-labelledby="ws-dialog-title"></dialog>
+  <div id="ws-menu" class="ws-menu" role="menu" hidden></div>
+  <div id="ws-toast" class="ws-toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

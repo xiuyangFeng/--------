@@ -8,8 +8,9 @@ from pathlib import Path
 from wss_deploy.glossary import GLOSSARY, SCHEMA_VERSION, glossary_document, glossary_json
 from wss_deploy.paths import STATIC_DIR
 
+# S7 retired the classic workbench (static/index.html, app.js) and comparison page (compare.js).
 PAGE_SOURCES = ("wss_deploy/report.py", "wss_deploy/volume_report.py", "wss_deploy/static/volume_viewer.js", "wss_deploy/static/report_common.js",
-                "wss_deploy/static/index.html", "wss_deploy/static/app.js", "wss_deploy/onepager.py", "wss_deploy/static/compare.js")
+                "wss_deploy/onepager.py")
 ROOT = Path(__file__).resolve().parents[1]
 
 

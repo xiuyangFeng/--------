@@ -1,0 +1,73 @@
+/* Phase 3 lane 1 (input): unfinished jobs — failure card, cancel, re-pick inlet, input facts (PHASE3_LANES.md). */
+
+/* head: status + a quiet cancel */
+.input-head .insp-status .btn-cancel { color: var(--error); }
+.input-head .insp-status .btn-cancel:hover { color: var(--error); text-decoration: underline; }
+
+/* where the job came from (companions, reuse, rerun) */
+.input-prov { padding: 10px 0 0; }
+.prov-list { list-style: none; margin: 0; padding: 0; font-size: 12px; color: var(--ink-2); }
+.prov-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; padding: 2px 0; }
+.prov-list .btn-sm { height: auto; padding: 0; }
+
+/* progress: segments sized by expected seconds, the running one fills on the browser clock */
+.input-panel .eta-headrow { display: flex; align-items: center; gap: 6px; }
+.input-panel .eta-sub { margin: 2px 0 0; font-size: 12px; }
+.input-panel .eta-extra { margin: 4px 0 0; font-size: 12px; }
+.input-panel .eta-bar { display: flex; gap: 3px; margin-top: 10px; height: 8px; }
+.input-panel .eta-seg { position: relative; flex: 0 1 auto; min-width: 3px; overflow: hidden; background: var(--line); border-radius: 3px; }
+.input-panel .eta-seg.done, .input-panel .eta-seg.running { background: var(--line); }
+.input-panel .eta-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--ok); border-radius: 3px; transition: width .9s linear; }
+.input-panel .eta-seg.running .eta-fill { background: var(--accent); }
+.input-panel .eta-seg.overdue .eta-fill { background: var(--warn); }
+.input-panel .eta-seg.precomputed { background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgba(16, 24, 40, .08) 3px 5px); }
+.input-panel .eta-foot { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.tbl-eta { margin-top: 6px; font-size: 12px; }
+.tbl-eta tr.on td { font-weight: 600; }
+.tbl-eta tr.overdue td { color: var(--warn); }
+.eta-note { font-size: 12px; }
+
+/* input facts */
+.tbl-facts { margin-top: 8px; }
+.tbl-facts td:last-child { text-align: right; }
+.facts-more { margin-top: 4px; }
+
+/* outlet confirmation */
+.sec-tagrow { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.reasons-more { margin-top: 2px; }
+.tbl-outlets tr.sel td { background: var(--accent-weak); }
+.mapping-changes { margin: 8px 0 0; font-size: 12px; color: var(--ink-2); }
+.sec-inlet .inlet-row { display: flex; gap: 8px; align-items: center; }
+.sec-inlet .inlet-row select { flex: 1 1 auto; min-width: 0; }
+
+/* failure card */
+.sec-failure .diag { display: flex; align-items: center; gap: 4px; margin: 8px 0 0; font-size: 12px; }
+.sec-failure .btn-copy { width: 24px; height: 24px; }
+.admin-detail { margin-top: 8px; font-size: 12px; }
+.admin-detail summary { cursor: pointer; color: var(--ink-2); }
+.admin-detail pre { max-height: 220px; overflow: auto; margin: 6px 0 0; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-sm);
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+
+/* floating viewport tools on the input stage (reset view, snapshot) */
+.input-stage-tools { position: absolute; z-index: 7; right: 12px; top: 12px; display: flex; gap: 2px; padding: 3px;
+  background: var(--hud-bg); border: 1px solid var(--hud-border); border-radius: 10px; box-shadow: var(--hud-shadow); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.input-stage-tools .btn-icon { width: 30px; height: 30px; border-radius: 7px; color: var(--hud-ink-2); }
+.input-stage-tools .btn-icon:hover { background: var(--hud-hover); color: var(--hud-ink); }
+
+/* stage message (no WebGL, no mesh, waiting for the result): a centred chip clear of the title pill and the tools */
+.input-stage-msg { left: 50%; top: 14px; transform: translateX(-50%); max-width: calc(100% - 280px); padding: 6px 14px; border-radius: 16px;
+  background: var(--hud-bg); border: 1px solid var(--hud-border); color: var(--hud-ink-2); box-shadow: var(--hud-shadow); text-align: center; }
+.input-stage-msg:empty { display: none; }
+
+/* P4 lane A: 「输入检查与计算过程」 on unfinished jobs (#78, centreline rows #102) and the outlet-naming caveat /
+   warnings (W30, W35; the tools tab's 出口命名 section uses them too) */
+.input-proc { padding-top: 4px; }
+.input-proc > .sec-actions { margin-top: 6px; }
+.proc-more > .sec { padding: 12px 0 4px; }
+.proc-more > .sec:last-child { border-bottom: 0; }
+.sec-process .tbl-detail td { font-size: 12px; }
+.sec-process .tbl-detail td:first-child { width: 112px; vertical-align: middle; padding-top: 2px; }
+.outlet-source { display: flex; align-items: center; gap: 6px; }
+.outlet-flags { margin-top: 8px; }
+.outlet-flags-head { font-size: 11px; }
+.outlet-flags .reasons { margin: 2px 0 0; color: var(--warn); }

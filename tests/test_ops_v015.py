@@ -455,14 +455,27 @@ def _source_root(tmp_path: Path) -> tuple[Path, str]:
     return src, job["id"]
 
 
+def _fixture_root(tmp_path: Path) -> tuple[Path, str]:
+    """S7: the smoke test reads the workspace data of the job (parsed from its report.html), so it needs a real finished
+    job: the checked-in LV_GUO_YOU copy (tests/fixtures, see test_report_freshness.py)."""
+    import shutil
+    job_id = "20260920_173929_a9ec139d6cdd"
+    fixture = Path(__file__).resolve().parent / "fixtures" / job_id
+    target = tmp_path / "source" / job_id
+    target.mkdir(parents=True)
+    for name in ("job.json", "summary.json", "report.html", "run_manifest.json"):
+        shutil.copy2(fixture / name, target / name)
+    return tmp_path / "source", job_id
+
+
 def test_rehearse_runs_the_code_on_disk_against_a_copy_and_cleans_up(tmp_path):
-    src, job_id = _source_root(tmp_path)
+    src, job_id = _fixture_root(tmp_path)
     before = _snapshot(src)
     lines = []
     result = __import__("wss_deploy.rehearse", fromlist=["rehearse"]).rehearse(src, workdir=tmp_path, timeout=120, out=lines.append)
     assert result["ok"], json.dumps(result, ensure_ascii=False)[:3000]
     names = [row["name"] for row in result["steps"]]
-    assert names == ["复制任务", "临时账号", "启动临时服务", "就绪（未登录）", "登录", "任务列表与详情", "打开报告与一页纸", "就绪（管理员摘要）"]
+    assert names == ["复制任务", "临时账号", "启动临时服务", "就绪（未登录）", "登录", "任务列表与详情", "打开工作区与一页纸", "就绪（管理员摘要）"]
     assert result["jobs"] == [job_id] and not Path(result["dir"]).exists()          # cleaned up
     assert _snapshot(src) == before                                                # the source is only read
     assert "演练通过" in lines[-1]

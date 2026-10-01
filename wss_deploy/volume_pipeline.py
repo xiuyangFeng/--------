@@ -224,6 +224,8 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
     mesh_trust, cloud_trust, meta["trust"] = A.trust_volume(vertices, vertex_pressure, vertex_segment, points,
                                                             interior_feats["segment_id"], caps,
                                                             meta["reference_assessment"], branch_names)
+    from .schema import summary_display_name
+    meta["display_name"] = summary_display_name(meta)          # C7 (2026-09-30)
     meta["narrative"] = NARR.build_narrative(meta)
     meta["results"] = build_results(time_axis=axis, fields=fields, statistics=stats, compatibility={})
     meta["geometry_cache"] = cache_record(cache)

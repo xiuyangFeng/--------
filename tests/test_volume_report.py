@@ -1205,10 +1205,10 @@ def test_slice_zoom_exports_csv_and_the_statistics_carry_the_section_geometry(tm
         assert fragment in joined, fragment
     assert "已导出" in result["status"] and "TUBE_slice_speed.csv" in result["status"]
     labels = [row[0] for row in result["stats"]]
-    assert labels == ["预测点数", "均值", "第 99 百分位", "最大值", "轮廓面积", "最大直径", "等效直径"]
+    assert labels == ["预测点数", "均值", "第 99 百分位", "最大值", "轮廓面积", "管腔最大直径", "等效直径"]
     area = float(dict(result["stats"])["轮廓面积"].split()[0])
     assert 300 <= area <= 320                                             # π·10² with a 48-gon outline
-    assert 19.0 <= float(dict(result["stats"])["最大直径"].split()[0]) <= 20.1
+    assert 19.0 <= float(dict(result["stats"])["管腔最大直径"].split()[0]) <= 20.1
     assert "轮廓面积" in result["caption"] and "等效直径" in result["caption"]
     assert result["section"]["synthetic"] is False
 
@@ -1499,10 +1499,10 @@ def test_max_diameter_marker_row_ring_label_and_profile_series(tmp_path):
           equiv:svgs.radius.svg.includes('等效直径'),radius:svgs.radius.svg.includes('半径'),svg:svgs.radius.svg.slice(0,4)}}));
     """, "")
     assert result["row"]["hidden"] is False
-    assert result["row"]["text"] == "最大直径 63.4 mm（等效 58.9 mm） · 入口下 20.0 mm"
+    assert result["row"]["text"] == "管腔最大直径 63.4 mm（等效 58.9 mm） · 入口下 20.0 mm"
     assert result["row"]["ringBox"] is True and result["row"]["flyDisabled"] is False
     assert result["marker"] == {"max_diameter_mm": 63.4, "ring": True, "xyz": [0, 0, 0]}
-    assert result["ring"] == ["最大直径 63.4 mm"] and result["en"] == ["Max diameter 63.4 mm"]
+    assert result["ring"] == ["管腔最大直径 63.4 mm"] and result["en"] == ["Max lumen diameter 63.4 mm"]
     assert result["series"]["max"] == [20.0, 30.0, 63.4, 30.0, 20.0] and result["series"]["offset_mm"] == 0
     assert result["series"]["equiv"][2] == 58.9
     assert result["radius"]["svg"] == "<svg" and result["radius"]["max"] and result["radius"]["equiv"] and result["radius"]["radius"]
@@ -1559,7 +1559,7 @@ def test_volume_template_and_viewer_carry_the_section17_controls_and_label_compo
     for marker in ('id="labels-findings"', 'id="labels-branches"', 'id="labels-max-diameter"', 'id="profile-morphology"',
                    'id="max-diameter-text"', 'id="max-diameter-fly"', 'id="narrative-card"', 'id="narrative-body"',
                    'id="narrative-edited"', 'data-gloss="narrative"', 'data-gloss="max_diameter"', '自动标注发现', '分支名',
-                   '显示最大直径环', '飞到', '结论（参考）', '审阅人已修改', '#labels div.flabel', '#labels div.blabel'):
+                   '显示管腔最大直径环', '飞到', '结论（参考）', '审阅人已修改', '#labels div.flabel', '#labels div.blabel'):
         assert marker in TEMPLATE, marker
     source = VIEWER.read_text(encoding="utf-8")
     # the chips ride the shared compositing path (PNG export, montage panels, one-pager snapshots)

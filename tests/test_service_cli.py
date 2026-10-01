@@ -202,8 +202,8 @@ def test_cli_submit_and_jobs_list_against_a_sandbox_service(sandbox, tmp_path, c
         code = cli_main(["submit", str(stl), "--server", url, "--patient-id", "P-9", "--scan-date", "2026-01-02", "--tags", "AAA,随访",
                          "--units", "mm", "--scan-label", "基线"])
         out = capsys.readouterr().out
-        assert code == 0 and "✓ LV_copy.stl → 任务" in out and f"{url}/#job=" in out and "新建 1" in out
-        job_id = re.search(r"#job=([A-Za-z0-9_-]+)", out)[1]
+        assert code == 0 and "✓ LV_copy.stl → 任务" in out and f"{url}/v2/#/job/" in out and "新建 1" in out   # S7: the workspace link
+        job_id = re.search(r"#/job/([A-Za-z0-9_-]+)", out)[1]
         assert cli_main(["jobs", "list", "--server", url, "--json"]) == 0
         jobs = json.loads(capsys.readouterr().out)
         job = next(item for item in jobs if item["id"] == job_id)

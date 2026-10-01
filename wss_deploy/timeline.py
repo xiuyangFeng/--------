@@ -15,7 +15,7 @@ SCHEMA = "wss-deploy.timeline/v1"
 MAX_PATIENT_ID = 80
 MIN_GROWTH_DAYS = 30
 FAMILY_LABELS = {"wall": "壁面 WSS", "wall_cycle": "WSS + TAWSS + OSI", "volume": "压力 + 速度体场"}
-GEOMETRY_SERIES = (("max_diameter_mm", "最大直径", "mm"), ("sac_volume_ml", "瘤体体积", "mL"),
+GEOMETRY_SERIES = (("max_diameter_mm", "管腔最大直径", "mm"), ("sac_volume_ml", "瘤体体积", "mL"),
                    ("sac_length_mm", "瘤体长度", "mm"), ("neck_diameter_mm", "瘤颈直径", "mm"),
                    ("neck_length_mm", "瘤颈长度", "mm"), ("lumen_volume_ml", "管腔体积", "mL"))
 MODEL_SERIES = (("wss_p99_pa", "WSS p99", "Pa"), ("wss_low_frac", "低 WSS 面积占比", "1"),

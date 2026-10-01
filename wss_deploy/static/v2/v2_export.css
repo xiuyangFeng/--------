@@ -1,0 +1,127 @@
+/* Lane A (S5a) figure exports — owned by that lane (PHASE2_LANES.md); phase 3 lane 5 (PHASE3_LANES.md).
+   The export dialog's pages (图片 / 拼图 / 一页纸 / 数据), the 工具 tab's 出图 row and the print-only page;
+   phase 3: the batch figure dialog (ws_batch.js), the comparison's identity lines, scalar table and searchable picker. */
+
+/* ---------------------------------------------------------------- dialog */
+.ws-dialog.dlg-export { width: min(880px, calc(100vw - 32px)); }
+.dlg-export .dlg-body { min-height: 360px; }
+.exp-tabs { margin: 0 0 14px; }
+.exp-tabs .seg-btn { min-width: 64px; }
+.exp-pane { min-height: 300px; }
+.exp-block h4 { display: flex; align-items: center; gap: 6px; }
+.dlg-export .dlg-foot { justify-content: flex-start; }
+.exp-link-text { flex: 0 1 380px; height: 28px !important; font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink-2); }
+
+/* 图片: preview on the left, options on the right */
+.exp-figure { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.exp-preview { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.exp-preview-img { display: block; max-width: 100%; max-height: 360px; margin: 0 auto; border: 1px solid var(--line); border-radius: 4px;
+  /* checks under the image show what is transparent */
+  background-color: #ffffff; background-image: linear-gradient(45deg, #eef0f3 25%, transparent 25%), linear-gradient(-45deg, #eef0f3 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eef0f3 75%), linear-gradient(-45deg, transparent 75%, #eef0f3 75%);
+  background-size: 14px 14px; background-position: 0 0, 0 7px, 7px -7px, -7px 0; }
+.exp-preview.is-loading .exp-preview-img { opacity: .55; transition: opacity .15s; }
+.exp-preview-foot { display: flex; justify-content: center; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; min-height: 16px; }
+.exp-opts { display: flex; flex-direction: column; gap: 10px; }
+.exp-row { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.exp-k { flex: none; width: 36px; font-size: 12px; color: var(--ink-3); }
+.exp-seg .seg-btn { height: 28px; padding: 0 12px; font-size: 12px; }
+.exp-pills { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.exp-pill[disabled] { opacity: .45; cursor: default; }
+.exp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.exp-sub { display: flex; align-items: center; gap: 10px; font-size: 12px; margin: 4px 0; }
+.exp-status { margin: 8px 0 0; font-size: 12px; min-height: 16px; font-variant-numeric: tabular-nums; }
+.btn.is-busy { cursor: progress; }
+
+/* 拼图 */
+.exp-montage { display: flex; flex-direction: column; gap: 10px; }
+.exp-thumb:empty { display: none; }
+.exp-thumb-img { display: block; max-width: 100%; max-height: 260px; border: 1px solid var(--line); border-radius: 4px; }
+
+/* 一页纸 */
+.exp-onepage { display: flex; flex-direction: column; gap: 10px; }
+.exp-tag { display: inline-block; font-size: 12px; line-height: 20px; padding: 0 7px; border: 1px solid var(--line-2); border-radius: 2px; color: var(--ink-2); }
+.exp-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.exp-strip:empty { display: none; }
+.exp-shot { margin: 0; }
+.exp-shot img { display: block; width: 100%; height: 120px; object-fit: contain; background: #ffffff; border: 1px solid var(--line); border-radius: 4px; }
+.exp-shot figcaption { margin-top: 3px; font-size: 11px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 工具 tab: the 出图 row */
+.fig-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------------------------------------------------------------- phase 3 lane 5: batch figures (ws_batch.js) */
+.dlg-batch .dlg-foot { justify-content: stretch; }
+.wsb-foot { display: flex; flex: 1 1 auto; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wsb { display: flex; flex-direction: column; gap: 10px; }
+.wsb-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 13px; }
+.wsb-skip { font-size: 12px; color: var(--warn, #b86e00); cursor: help; }
+.wsb-form { display: flex; flex-direction: column; gap: 8px; }
+.wsb-form.is-running { opacity: .55; pointer-events: none; }
+.wsb-sub { margin: 6px 0 0; font-size: 12px; font-weight: 600; color: var(--ink-2); letter-spacing: .02em; }
+.wsb-fams { display: flex; flex-direction: column; gap: 8px; }
+.wsb-fam { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.wsb-sel { height: 28px; font-size: 12px; }
+.wsb-range { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.wsb-num { width: 76px; height: 28px; font-size: 12px; }
+.wsb-linkrow { display: inline-flex; align-items: center; gap: 8px; flex: 0 1 560px; min-width: 0; }
+.wsb-link { flex: 1 1 auto; min-width: 0; width: 420px; height: 28px; font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.wsb-link-line { padding-left: 46px; font-size: 12px; }
+.wsb-link-line:has(.wsb-link-note:empty) { display: none; }
+.wsb-bad { color: var(--danger, #c0392b) !important; }
+.wsb-style { display: flex; flex-direction: column; gap: 8px; }
+.wsb-run { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+.wsb-progress { width: 100%; height: 6px; }
+.wsb-progress[hidden] { display: none; }
+.wsb-log { margin: 0; padding: 0 0 0 20px; max-height: 180px; overflow: auto; font-size: 12px; font-variant-numeric: tabular-nums; }
+.wsb-log:empty { display: none; }
+.wsb-li { margin: 2px 0; color: var(--ink-2); }
+.wsb-li.is-busy { color: var(--ink); }
+.wsb-li.is-ok::marker { color: #2a78d6; }
+.wsb-li.is-bad { color: var(--danger, #c0392b); }
+.wsb-li.is-skip { color: var(--ink-3); }
+.wsb-offscreen { position: fixed; left: -20000px; top: 0; }
+
+/* ---------------------------------------------------------------- phase 3 lane 5: comparison */
+.cmp-who { flex-wrap: wrap; }
+.cmp-id { flex: 1 0 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding-left: 28px; font-size: 12px; color: var(--ink-3); }
+.cmp-id-text { overflow: hidden; text-overflow: ellipsis; }
+.cmp-scalars { display: flex; flex-direction: column; gap: 6px; }
+.cmp-kind { margin: 0; font-size: 12px; }
+.tbl-scalar { font-size: 12px; }
+.tbl-scalar td.num, .tbl-scalar th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dlg-pick .pick-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.dlg-pick .pick-search { flex: 1 1 auto; min-width: 0; height: 30px; }
+.dlg-pick .pick-count { flex: none; font-size: 12px; font-variant-numeric: tabular-nums; }
+.dlg-pick .pick-groups { max-height: min(56vh, 520px); overflow: auto; }
+.dlg-pick .pick { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, .8fr) auto; }
+.dlg-pick .pick-scan { color: var(--ink-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .exp-figure { grid-template-columns: minmax(0, 1fr); }
+  .exp-link-text { flex-basis: 100%; }
+  .wsb-link-line { padding-left: 0; }
+  .dlg-pick .pick { grid-template-columns: minmax(0, 1fr) auto; }
+  .dlg-pick .pick-result, .dlg-pick .pick-scan { display: none; }
+}
+
+/* ---------------------------------------------------------------- print-only page (打印当前视图) */
+.ws-print { display: none; }
+@media print {
+  body.ws-printing { background: #ffffff !important; }
+  body.ws-printing > *:not(.ws-print) { display: none !important; }
+  body.ws-printing > .ws-print { display: block; color: #1b2430; font: 12px/1.45 system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+  .ws-print .wp-head h1 { margin: 0 0 2px; font-size: 16px; font-weight: 600; }
+  .ws-print .wp-head p { margin: 0 0 8px; font-size: 12px; color: #465361; }
+  .ws-print .wp-img { display: block; max-width: 100%; margin: 0 auto; }
+  .ws-print.wp-land .wp-img { max-height: 150mm; }
+  .ws-print.wp-port .wp-img { max-height: 235mm; }
+  .ws-print .wp-foot { margin: 8px 0 0; font-size: 10px; color: #77828e; }
+}
+
+/* ---------------------------------------------------------------- the browser's own print (W59, final round lane B)
+   WebGL keeps no drawing buffer, so on beforeprint ws_figure lays a 2-D copy over each 3-D viewport; shown only in print. */
+.ws-print-snap { display: none; }
+@media print {
+  .ws-print-snap { display: block; position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+}

@@ -44,7 +44,8 @@ def test_findings_without_cycle_are_byte_identical_and_cycle_items_are_appended(
     atlas, pts, feats, wss, cycle, masks = tube
     base = A.findings_wall(pts, wss, feats, atlas, {}, **KW)
     assert json.dumps(A.findings_wall(pts, wss, feats, atlas, {}, cycle=None, **KW), sort_keys=True) == json.dumps(base, sort_keys=True)
-    out = A.findings_wall(pts, wss, feats, atlas, {}, cycle=cycle, **KW)
+    # The historical listing (no area floor) first; the 2026-09-30 1 cm² floor is checked at the end.
+    out = A.findings_wall(pts, wss, feats, atlas, {}, cycle=cycle, area_floor_mm2=0.0, **KW)
     n_base = len(base["items"])
     assert json.dumps(out["items"][:n_base], sort_keys=True) == json.dumps(base["items"], sort_keys=True)   # prefix unchanged
     extra = out["items"][n_base:]
@@ -64,8 +65,16 @@ def test_findings_without_cycle_are_byte_identical_and_cycle_items_are_appended(
     assert "cycle_criteria" not in base
     json.dumps(out, allow_nan=False)
     # OSI alone still yields the high-OSI clusters; malformed arrays fail loudly.
-    osi_only = A.findings_wall(pts, wss, feats, atlas, {}, cycle={"osi": cycle["osi"]}, **KW)
+    osi_only = A.findings_wall(pts, wss, feats, atlas, {}, cycle={"osi": cycle["osi"]}, area_floor_mm2=0.0, **KW)
     assert [i["kind"] for i in osi_only["items"][n_base:]] == ["high_osi_cluster"]
+    # U12 (2026-09-30): with the default 1 cm² floor the small stagnation (≈ 31 mm²) and high-OSI (≈ 31 mm²)
+    # clusters are not listed; the big one stays first (and stays 'attention'); the drop is recorded.
+    floored = A.findings_wall(pts, wss, feats, atlas, {}, cycle=cycle, **KW)
+    assert [i["kind"] for i in floored["items"][n_base:]] == ["stagnation_cluster"]
+    assert floored["items"][n_base]["severity"] == "attention" and floored["items"][n_base]["n_points"] == big["n_points"]
+    suppressed = floored["listing_rules"]["suppressed"]
+    assert suppressed["stagnation_cluster"]["count"] == 1 and suppressed["high_osi_cluster"]["count"] == 1
+    assert floored["listing_rules"]["area_floor_mm2"] == 100.0
     with pytest.raises(ValueError):
         A.findings_wall(pts, wss, feats, atlas, {}, cycle={"tawss": cycle["tawss"][:-1], "osi": cycle["osi"]}, **KW)
 
@@ -99,13 +108,17 @@ def test_narrative_adds_one_cycle_sentence_and_keeps_the_single_frame_text():
     plain = N.build_narrative(WALL)
     summary = {**copy.deepcopy(WALL), "cycle": _cycle_block()}
     out = N.build_narrative(summary)
-    assert out["zh"][:-2] == plain["zh"][:-1] and out["en"][:-2] == plain["en"][:-1]
-    assert out["zh"][-1] == N.CYCLE_DISCLAIMER_ZH == "以上为收缩期峰值 WSS 与单周期 TAWSS / OSI 预测的参考描述，非诊断结论。"
+    # C2 (2026-09-30): morphology → cycle quantities → one peak-frame sentence; the peak low-WSS fraction is gone.
+    assert out["zh"][0] == plain["zh"][0] and out["en"][0] == plain["en"][0] and len(out["zh"]) == 4
+    assert out["zh"][-1] == N.CYCLE_DISCLAIMER_ZH == "以上为标准血流条件下单周期 TAWSS / OSI 与收缩期峰值 WSS 预测的参考描述，非诊断结论。"
     assert out["en"][-1] == N.CYCLE_DISCLAIMER_EN and plain["zh"][-1] == N.DISCLAIMER_ZH
     # 650 aortic points at 0.3 Pa (50 at 3.3 Pa) → 65 % low TAWSS, mean 0.72 Pa; OSI > 0.1 on the aortic 700 → 70 %.
-    assert out["zh"][-2] == ("周期平均 TAWSS 均值 0.72 Pa，低 TAWSS（< 0.4 Pa）区占壁面 65%，以主动脉为主；OSI > 0.1 占 70%；"
-                             "滞留区（TAWSS < 0.4 Pa 且 OSI > 0.1）占 65%（约 221 cm²），主要位于主动脉。")
-    assert out["en"][-2].startswith("Cycle-averaged TAWSS has a mean of 0.72 Pa, low TAWSS (< 0.4 Pa) covers 65% of the wall, mostly in the aorta;")
+    assert out["zh"][1] == ("周期平均 TAWSS 均值 0.72 Pa，低 TAWSS（< 0.4 Pa）区占壁面 65%，以主动脉为主；OSI > 0.1 占 70%；"
+                            "滞留区（TAWSS < 0.4 Pa 且 OSI > 0.1）占 65%（约 221 cm²），主要位于主动脉。")
+    assert out["en"][1].startswith("Cycle-averaged TAWSS has a mean of 0.72 Pa, low TAWSS (< 0.4 Pa) covers 65% of the wall, mostly in the aorta;")
+    assert out["zh"][2] == "收缩期峰值帧：峰值 WSS 最高的区域（不低于本例 p99，16.6 Pa）2 处，最高 21.9 Pa 位于左髂内；p99 处于 136 例参照人群第 32 百分位。"
+    assert out["en"][2].startswith("At the peak-systolic frame there are 2 region(s) of highest peak WSS (at or above this case's p99, 16.6 Pa)")
+    assert "低 WSS（" not in "".join(out["zh"]) and "Low WSS" not in "".join(out["en"])
     # The volume family ignores a stray cycle block; its sentences stay identical.
     volume = N.build_narrative(VOLUME)
     assert N.build_narrative({**copy.deepcopy(VOLUME), "cycle": _cycle_block()})["zh"] == volume["zh"]
@@ -195,10 +208,15 @@ def test_m1_onepage_cards_limitations_model_count_and_findings():
     summary = m1_summary()
     html = render_onepage(summary, {"id": "job-m1"})
     page1 = html.split('<article class="page appendix">')[0]
-    for text in ("TAWSS 均值", "0.72 Pa", "OSI 均值", "滞留区面积", "221 cm²", "3 个模型离散度在常规范围内", "WSS + TAWSS + OSI", "M1 · WSS + TAWSS + OSI"):
+    # U13 (2026-09-30): three significant digits; U14: the model card name instead of the release code;
+    # C2: the cycle cards come before the peak-frame cards.
+    for text in ("TAWSS 均值", "0.720 Pa", "OSI 均值", "滞留区面积", "221 cm²", "3 个模型离散度在常规范围内", "周期指标 TAWSS · OSI",
+                 "峰值帧 WSS 全场 p99", "多模型一致", "一致不代表准确", '<span class="tier">模型</span>', '<span class="tier">派生</span>'):
         assert text in page1, text
+    assert "M1 · WSS + TAWSS + OSI" not in page1 and page1.index("TAWSS 均值") < page1.index("峰值帧 WSS 全场 p99")
     assert LIMIT_CYCLE_FRAME in html and LIMIT_SINGLE_FRAME not in html and "没有 TAWSS" not in html and "五模型" not in html
-    assert "主动脉滞留区" in page1 and "121.6 cm²" in page1 and "0.36" in page1
+    assert "主动脉滞留区" in page1 and "122 cm²" in page1 and "0.357" in page1
+    assert "<h2>模型验证" in html and "R² 0.74，一致性系数 0.93" in html and "34 例留出" in html
     kinds = [item["kind"] for item in top_findings(summary)]
     assert kinds[:3] == ["high_wss_cluster", "low_wss_cluster", "stagnation_cluster"] and "max_wss" not in kinds[:4]
     assert "high_osi_cluster" in kinds and len(kinds) == 5

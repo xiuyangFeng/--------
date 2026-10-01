@@ -13,7 +13,7 @@ from .paths import OUTLET_CN
 from .io_utils import file_sha256, portable_job_path, resolve_job_path
 from .schema import (build_results, field_descriptor, model_release_metadata,
                      single_frame_time_axis, write_run_manifest, wss_compatibility)
-from .schema import stable_run_identity, summary_provenance
+from .schema import stable_run_identity, summary_display_name, summary_provenance
 from .quality import ensemble_quality, model_count_phrase
 from . import analysis as A, morphology as MORPH, narrative as NARR
 from .cycle_fields import derived_display_arrays
@@ -547,6 +547,11 @@ def stage_b_wall(job_dir: Path, mapping: dict[str, str], release: Release, *, sm
                                          section_cache=cache)
     T["morphology"] = time.perf_counter() - t
     t = time.perf_counter()
+    # U10 (2026-09-30): anatomical zone statistics (neck / sac / iliac pairs) from the same cloud; a new block.
+    zones_block = A.zones_wall(geom["segment_id"], geom["s_from_root_mm"], {"wss": wss, **cycle_arrays},
+                               morphology=morphology_block, branch_names=met["branch_names"],
+                               total_area_mm2=a["input_check"]["area_mm2"],
+                               thresholds={"wss": tuple(thresholds[:2])})
     findings_block = A.findings_wall(pts, wss, geom, atlas, met["geometry"], thresholds=thresholds,
                                      total_area_mm2=a["input_check"]["area_mm2"], spacing_mm=diag["spacing_mm"],
                                      branch_names=met["branch_names"], morphology=morphology_block,
@@ -615,6 +620,7 @@ def stage_b_wall(job_dir: Path, mapping: dict[str, str], release: Release, *, sm
             "feature_contract": feature_contract(),
             "quality": quality["quality"],
             "profiles": profiles_block, "findings": findings_block, "morphology": morphology_block,
+            "zones": zones_block,
             "audit": {"mapping_history": mapping_history, "mapping_history_count": len(mapping_history),
                       "previous_run_archive": previous_archive,
                       "quality_audit": quality["audit"], "quality_audit_path": "quality_audit.json"},
@@ -624,9 +630,13 @@ def stage_b_wall(job_dir: Path, mapping: dict[str, str], release: Release, *, sm
         meta["cycle"] = cycle_block(extra_fields, geom["segment_id"], met["branch_names"], a["input_check"]["area_mm2"])
         if isinstance(pred.get("cycle"), dict):
             meta["cycle"]["definition"] = {**meta["cycle"]["definition"], **pred["cycle"]}
-    from .reference import evaluate as evaluate_reference
-    release_info = getattr(release, "info", {})
+    from .reference import evaluate as evaluate_reference, merge_sidecar_v2
+    release_info = merge_sidecar_v2(getattr(release, "info", {}), getattr(release, "dir", None),
+                                    getattr(release, "release_id", None))
     meta["reference_assessment"] = evaluate_reference(meta, release_info)
+    # U11 (2026-09-30): high-WSS findings are graded against the same-protocol cohort p90 (none → 提示).
+    A.grade_high_findings(meta["findings"], meta["reference_assessment"])
+    meta["display_name"] = summary_display_name(meta)
     # Trust mask (contract §3) needs the reference assessment for the geometry-out-of-range bit.
     trust_vertices, meta["trust"] = A.trust_wall(vertices, vw, pts, geom["surface_variation"], vseg,
                                                  meta["reference_assessment"], met["branch_names"])

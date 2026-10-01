@@ -144,8 +144,8 @@ def test_loopback_cookieless_requests_do_not_write_sessions(tmp_path):
     path = tmp_path / "sessions.json"
     api = service.api()
     try:
-        for _ in range(5):
-            status, _, response = call(api, "GET", "/", {})
+        for _ in range(5):   # S7: the page that opens a local session is the workspace (``/`` redirects there)
+            status, _, response = call(api, "GET", "/v2/", {})
             assert status == 200 and response.getheader("Set-Cookie")
         assert not path.exists() or json.loads(path.read_text(encoding="utf-8")) == {}
         assert len(service.sessions.sessions) == 5
@@ -450,18 +450,19 @@ def test_headers_csp_gzip_and_etags(tmp_path, monkeypatch):
         report = service.manager.root / job["id"] / "report.html"
         page = "<html><body>" + "<p>WSS 报告</p>" * 4000 + "</body></html>"
         report.write_text(page, encoding="utf-8")
-        # static workbench page: no inline script, gzip, ETag + revalidation
-        api.request("GET", "/static/app.js", headers={"Accept-Encoding": "gzip, deflate"})
+        # static workbench file: no inline script, gzip, ETag + revalidation (S7: the classic app.js is retired; a
+        # workspace script without ``?v=`` is served the same way)
+        api.request("GET", "/static/v2/ws_shell.js", headers={"Accept-Encoding": "gzip, deflate"})
         response = api.getresponse(); body = response.read()
         assert response.status == 200 and response.getheader("Content-Encoding") == "gzip" and response.getheader("Server") is None
-        assert gzip.decompress(body) == (S.STATIC_DIR / "app.js").read_bytes()
+        assert gzip.decompress(body) == (S.V2_DIR / "ws_shell.js").read_bytes()
         assert response.getheader("Cache-Control") == S.STATIC_CACHE and response.getheader("Vary") == "Accept-Encoding"
         etag = response.getheader("ETag")
         csp = response.getheader("Content-Security-Policy")
         assert "script-src 'self';" in csp and "unsafe-inline'; style" not in csp
-        api.request("GET", "/static/app.js", headers={"If-None-Match": etag})
+        api.request("GET", "/static/v2/ws_shell.js", headers={"If-None-Match": etag})
         response = api.getresponse(); assert response.status == 304 and response.read() == b""
-        status, index, response = call(api, "GET", "/", {"Cookie": cookie})
+        status, index, response = call(api, "GET", "/v2/", {"Cookie": cookie})
         assert "script-src 'self';" in response.getheader("Content-Security-Policy") and "frame-ancestors 'none'" in response.getheader("Content-Security-Policy")
         # report: gzip, private no-cache + ETag, inline scripts allowed, embeddable by our origin
         api.request("GET", f"/api/jobs/{job['id']}/report", headers={"Cookie": cookie, "Accept-Encoding": "gzip"})

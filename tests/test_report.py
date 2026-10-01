@@ -703,8 +703,8 @@ def test_diameter_measurement_cuts_a_real_cross_section_on_a_tube(tmp_path):
     assert m["area"] == pytest.approx(27.95, abs=.3) and m["eq"] == pytest.approx(5.97, abs=.05)
     assert m["value"] == pytest.approx(m["eq"])
     assert m["poly"] >= 20 and all(z == pytest.approx(12.5, abs=1e-3) for z in m["zs"])
-    assert "最大直径" in out["label"] and "面积" in out["label"] and "mm²" in out["label"]
-    assert out["en"].startswith("Max diameter") and "Aorta" in out["en"]
+    assert "管腔最大直径" in out["label"] and "面积" in out["label"] and "mm²" in out["label"]
+    assert out["en"].startswith("Max lumen diameter") and "Aorta" in out["en"]
     assert out["status"] == out["label"]
     assert out["redrawn"] == m["poly"]  # the polygon travels in the view state and redraws on apply
     from wss_deploy.report import TEMPLATE
@@ -941,12 +941,12 @@ def test_max_diameter_marker_row_ring_and_profile_series(tmp_path):
     """)
     assert out["errors"] == []
     assert out["hidden"] == [False, False]
-    assert "最大直径 63.4 mm" in out["row"] and "等效 58.9 mm" in out["row"] and "入口下 120 mm" in out["row"]
-    assert out["chip"] == {"kind": "maxd", "text": "最大直径 63.4 mm", "ring": 4}
-    assert out["label"] == ["最大直径 63.4 mm"]
-    assert out["tip"] == "最大直径站 63.4 mm · 距入口 120 mm"  # 「飞到」 ran and reported the station
+    assert "管腔最大直径 63.4 mm" in out["row"] and "等效 58.9 mm" in out["row"] and "入口下 120 mm" in out["row"]
+    assert out["chip"] == {"kind": "maxd", "text": "管腔最大直径 63.4 mm", "ring": 4}      # C1: the 3-D label names the lumen
+    assert out["label"] == ["管腔最大直径 63.4 mm"]
+    assert out["tip"] == "管腔最大直径站 63.4 mm · 距入口 120 mm"  # 「飞到」 ran and reported the station
     assert out["svg"]["keys"] == ["wss", "radius"] and out["svg"]["names"][1].endswith("_radius.svg")
-    assert "最大直径" in out["svg"]["radius"] and "等效直径" in out["svg"]["radius"] and "半径" in out["svg"]["radius"]
+    assert "管腔最大直径" in out["svg"]["radius"] and "等效直径" in out["svg"]["radius"] and "半径" in out["svg"]["radius"]
     assert out["offRing"] == [False, 0, 0]  # the checkbox is part of the view state
 
 
@@ -1306,7 +1306,7 @@ def test_hint_is_short_closable_and_remembered_while_readouts_still_show(tmp_pat
     assert out["errors"] == []
     assert out["first"][1] is False and len(out["first"][0]) <= 30 and "Gaussian" not in out["first"][0]
     assert out["closed"] == [True, "1"]
-    assert out["data"] == [False, "最大直径站 63.4 mm · 距入口 120 mm"]  # real readouts still appear
+    assert out["data"] == [False, "管腔最大直径站 63.4 mm · 距入口 120 mm"]  # real readouts still appear
     remembered = _DOMLESS_GL.replace("global.localStorage={_d:{},", "global.localStorage={_d:{'wss-report-tip-off':'1'},")
     out = _domless_gl(tmp_path, _labels_meta(meta), "console.log(JSON.stringify({errors,hidden:g('tip').hidden}));", stub=remembered)
     assert out == {"errors": [], "hidden": True}
@@ -1689,3 +1689,13 @@ def test_v015_colour_bar_has_a_text_alternative_that_follows_the_field(tmp_path)
     label = out["first"]["label"]
     assert label.startswith("色标 ") and "Pa" in label and "0 – 3.00" in label and "阈值 0.4" in label
     assert out["after"] and out["after"].startswith("色标 ")
+
+
+def test_c_line_lumen_and_ensemble_wording_in_the_wall_template():
+    """WORKSPACE_V2_CONTRACT §5.4 C1 / C5: every 「最大直径」 names the lumen; a good ensemble reads 「多模型一致」."""
+    from wss_deploy.report import TEMPLATE
+    assert "显示管腔最大直径环" in TEMPLATE and "'管腔最大直径 '" in TEMPLATE and "'Max lumen diameter '" in TEMPLATE
+    assert "不含附壁血栓与管壁" in TEMPLATE
+    assert "多模型一致（一致不代表准确）" in TEMPLATE and "quality.label==='模型集成稳定'" in TEMPLATE
+    import re
+    assert not re.search(r"(?<!管腔)(?<!内切)最大直径", TEMPLATE.replace("最大内切直径", ""))

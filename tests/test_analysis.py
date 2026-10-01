@@ -110,16 +110,20 @@ def test_findings_wall_clusters_geometry_and_severity(tube):
                           spacing_mm=spacing, branch_names=NAMES, min_cluster_points=20)
     kinds = [i["kind"] for i in out["items"]]
     assert kinds.count("high_wss_cluster") == 1 and kinds.count("low_wss_cluster") == 1
-    assert kinds.count("max_wss") == 1 and kinds.count("max_diameter") == 1 and kinds.count("min_radius") == 1
+    # 2026-09-30 (U12): the global maximum lies in the hot cluster, so it is merged into it, not listed on its own.
+    assert kinds.count("max_wss") == 0 and kinds.count("max_diameter") == 1 and kinds.count("min_radius") == 1
     high = next(i for i in out["items"] if i["kind"] == "high_wss_cluster")
     assert high["branch"] == "左髂总" and high["n_points"] == 240 and high["value"] == pytest.approx(12.0)
-    assert high["area_mm2"] == pytest.approx(1000.0 * 240 / n) and high["severity"] == "attention"
+    assert high["contains_global_max"] is True and high["global_max_pa"] == pytest.approx(12.0) and "含全场最大值" in high["label"]
+    # U11: no same-protocol cohort reference → 提示, marked ungraded (the 7 Pa level no longer grades).
+    assert high["area_mm2"] == pytest.approx(1000.0 * 240 / n) and high["severity"] == "note" and high["grading"] == "no_reference"
+    assert out["high_grading"]["status"] == "no_reference" and out["listing_rules"]["global_max_merged"] is True
     assert len(high["point_indices"]) == 240 and high["extent_mm"] > 0
     lo = next(i for i in out["items"] if i["kind"] == "low_wss_cluster")
     assert lo["branch"] == "主动脉" and lo["n_points"] == 21 * 48 and lo["severity"] == ("attention" if out["low_wss_total_fraction"] > 0.2 else "note")
     assert out["low_wss_total_fraction"] == pytest.approx(21 * 48 / n)
     md = next(i for i in out["items"] if i["kind"] == "max_diameter")
-    assert md["branch"] == "主动脉" and md["value"] == pytest.approx(28.0) and md["severity"] == "info"
+    assert md["branch"] == "主动脉" and md["value"] == pytest.approx(28.0) and md["severity"] == "info" and "管腔" in md["label"]
     assert "中心线内切半径" in md["definition"] and "source" not in md
     mr = next(i for i in out["items"] if i["kind"] == "min_radius")
     assert mr["branch"] == "右髂总" and mr["value"] == pytest.approx(1.5) and mr["stenosis_index"] == pytest.approx(0.5)

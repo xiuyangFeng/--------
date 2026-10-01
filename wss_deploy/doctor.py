@@ -323,7 +323,7 @@ def check_reports(root: Path) -> list[dict]:
     stale = stale_jobs(root)
     if not stale:
         return [_check("reports", "报告模板", "ok", "所有已完成任务的报告都是当前模板")]
-    mode = "打开报告时会自动刷新" if auto_enabled() else "自动刷新已关闭（WSS_DEPLOY_AUTO_REFRESH_REPORTS=0）"
+    mode = "升级服务时会自动刷新" if auto_enabled() else "自动刷新已关闭（WSS_DEPLOY_AUTO_REFRESH_REPORTS=0）"
     return [_check("reports", "报告模板", "warn", f"{len(stale)} 个报告不是当前模板（{mode}）",
                    "也可一次刷新：python -m wss_deploy.cli reports refresh --all。")]
 

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>报错对照表 · WSS</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<nav class="help-top" aria-label="帮助页">
+  <a class="help-mark" href="/v2/">WSS</a>
+  <div class="help-nav">
+    <a href="help_input.html">输入说明</a>
+    <a href="help_quickstart.html">操作卡</a>
+    <a href="help_errors.html" aria-current="page">报错对照表</a>
+  </div>
+</nav>
+<main class="help-page">
+<header>
+  <h1>报错对照表</h1>
+  <p class="lead">左列是页面上显示的报错原文，<var>N</var>、<var>x%</var> 处是具体数字。输入检查失败时，页面显示为「输入检查未通过：」加上一条或几条下表中的原文，用「; 」隔开。</p>
+</header>
+
+<section class="block" aria-labelledby="t-input">
+  <h2 id="t-input">输入检查（上传后几秒内）</h2>
+  <p class="note">这一类是 STL 本身的问题，重试不会改变结果；修正几何后重新上传。判据见<a href="help_input.html#s-checks">输入说明第 2 节</a>。</p>
+  <div class="table-wrap"><table class="errtab">
+    <thead><tr><th scope="col">报错原文</th><th scope="col">原因</th><th scope="col">怎么办</th></tr></thead>
+    <tbody>
+      <tr><td class="msg">开口数 <var>N</var> ≠ 5；需要主动脉入口与四个髂动脉出口，且切口保持开放。</td><td>开放边界环的数量不是 5。大于 5：分支残端没封闭或表面有破洞；小于 5：端口没切开（导出的是封闭面），或一侧髂内闭塞只剩 3 个出口</td><td>封闭多余残端、补洞；在入口和四个髂支末端切开。三出口几何目前不支持</td></tr>
+      <tr><td class="msg">有 <var>N</var> 个连通片；较小部分占总面积 <var>x%</var>，可能含断裂分支，不能自动删除。</td><td>表面不是一整块，除最大一块外其余部分合计超过总面积的 1%</td><td>在分割软件里检查断开处（常见于细小髂内动脉），连成一整块后重新导出</td></tr>
+      <tr><td class="msg">换算后的整体尺寸超出工具预检范围（包围盒对角 50–1500 mm）；请重新核对单位或血管范围。</td><td>按所选单位换算后，整体尺寸不像腹主—髂动脉</td><td>核对导出时的单位，重新上传并选对单位；检查是否导出了整张 CT 或只导出了一小段</td></tr>
+      <tr><td class="msg">表面含退化面片或无效面积，请修复后重新导出。</td><td>有面积为 0 或无法计算面积的三角面</td><td>在网格软件里删除退化面片后重新导出</td></tr>
+      <tr><td class="msg">表面含重复三角面，请修复后重新导出。</td><td>同一个三角面出现了两次，常见于合并多个网格</td><td>删除重复面片后重新导出</td></tr>
+      <tr><td class="msg">存在 <var>N</var> 条非流形边，请修复表面。</td><td>有边连接了三个或更多面片，常见于两段血管粘连或合并网格没有焊接</td><td>修复网格（分离粘连处、焊接重合顶点）后重新导出</td></tr>
+      <tr><td class="msg">边界含 <var>N</var> 个非环状连接点，不能视为有效开口。</td><td>某个开口的边界不是一个简单的环，例如两个切口相碰，或切口边缘有悬挂的面片</td><td>重新切开该处，使每个开口是一圈独立的边界</td></tr>
+      <tr><td class="msg">STL 文件为空、不可读或超过 128 MiB 上限。</td><td>文件太小（不足一个 STL 头）、不存在或过大</td><td>重新导出；过大时抽稀网格</td></tr>
+      <tr><td class="msg">STL 面片数超过 2,000,000 上限或没有面片。</td><td>二进制 STL 的面片数为 0 或超过 2,000,000</td><td>抽稀到 2,000,000 面以内，或检查导出是否为空</td></tr>
+      <tr><td class="msg">STL 面片数超过 2,000,000 上限。</td><td>面片过多</td><td>抽稀网格；一般几万到几十万面足够</td></tr>
+      <tr><td class="msg">STL 二进制长度不匹配，或 ASCII 格式不正确。</td><td>文件被截断、不是 STL，或 ASCII 格式有误</td><td>重新导出为二进制 STL</td></tr>
+      <tr><td class="msg">无法读取 STL，请导出有效的 ASCII 或二进制 STL。</td><td>文件结构无法解析</td><td>重新导出；换用二进制 STL</td></tr>
+      <tr><td class="msg">STL 坐标含 NaN/Inf 或维数不正确。</td><td>有无效坐标</td><td>修复网格后重新导出</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="block" aria-labelledby="t-ask">
+  <h2 id="t-ask">需要你确认的提示（任务暂停在「确认输入」）</h2>
+  <div class="table-wrap"><table class="errtab">
+    <thead><tr><th scope="col">提示原文</th><th scope="col">原因</th><th scope="col">怎么办</th></tr></thead>
+    <tbody>
+      <tr><td class="msg">自动单位有多个合理候选，请确认 STL 原始单位。</td><td>按 mm 和按 cm 换算，尺寸都说得通</td><td>对照影像里的血管尺寸，选实际单位后勾选确认</td></tr>
+      <tr><td class="msg">自动单位没有唯一的合理候选，请明确选择 mm、cm 或 m。</td><td>mm、cm、m 都不能让尺寸落进 50–1500 mm，或按尺寸自动建议的单位不在其中</td><td>选实际单位；若三种单位都不对，检查导出范围</td></tr>
+      <tr><td class="msg">自动单位接近尺寸判定边界，请确认 STL 原始单位。</td><td>换算后尺寸靠近 50 mm 或 1500 mm 的边界</td><td>核对「换算后尺寸 · mm」后确认</td></tr>
+      <tr><td class="msg">有 <var>N</var> 个连通片；删除小片将移除 <var>x%</var> 的面积，请核对后确认。</td><td>有小碎片，面积合计不超过 1%</td><td>确认碎片不是断开的血管分支后，勾选删除孤立片并确认</td></tr>
+    </tbody>
+  </table></div>
+  <h3>只提示、不阻断</h3>
+  <div class="table-wrap"><table class="errtab">
+    <thead><tr><th scope="col">提示原文</th><th scope="col">原因</th><th scope="col">怎么办</th></tr></thead>
+    <tbody>
+      <tr><td class="msg"><var>N</var> 条内部边的相邻面片绕序不一致，建议复核法向。</td><td>部分面片朝向与邻居相反</td><td>可以继续；方便时在网格软件里统一法向</td></tr>
+      <tr><td class="msg"><var>N</var> 个面片极度狭长，建议复核网格质量。</td><td>形状很差的细长三角面</td><td>可以继续；中心线提取失败时先重划网格</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="block" aria-labelledby="t-cl">
+  <h2 id="t-cl">中心线与出口命名</h2>
+  <div class="table-wrap"><table class="errtab">
+    <thead><tr><th scope="col">报错或提示原文</th><th scope="col">原因</th><th scope="col">怎么办</th></tr></thead>
+    <tbody>
+      <tr><td class="msg">中心线提取超时（超过 900 秒）。请检查网格是否异常大或含大量碎片。<br>中心线提取超时。请检查网格是否异常大或含大量碎片。</td><td>面片过多、碎片多，或表面形状异常</td><td>抽稀、去碎片后重新上传；仍超时请联系维护者</td></tr>
+      <tr><td class="msg">中心线提取失败（VMTK / vessel_geom 出错）。请检查表面质量后重试，或联系维护者。</td><td>中心线工具没有正常完成，常见于表面自交、局部塌陷或切口附近形状异常</td><td>检查并修复表面后重新上传；表面正常仍失败时，把诊断编号发给维护者</td></tr>
+      <tr><td class="msg">中心线提取没有生成完整结果，请重试或联系维护者。</td><td>工具退出了，但结果文件不完整</td><td>点「重试任务」；仍失败时把诊断编号发给维护者</td></tr>
+      <tr><td class="msg">输入或中心线未通过检查，请检查 STL 和开口。</td><td>中心线提取完成，但没有通过完整性检查</td><td>核对 5 个开口的位置是否正确（入口 + 四个髂支），修正后重新上传</td></tr>
+      <tr><td class="msg">自动命名未满足已校准的 95% 自动门控，请结合原始影像核对开口名称。</td><td>不是错误：自动命名需要人工核对</td><td>对照影像核对四个出口的名称，必要时用互换按钮改正，然后确认</td></tr>
+      <tr><td class="msg">拓扑不是 1 入口 → 2 髂总 → 各 2 出口（髂总 <var>N</var> 条，出口 [ … ]），无法自动命名</td><td>中心线树不是「主动脉分成左右髂总、每侧再分成两支」的形状，常见于入口选错或某个开口位置不对</td><td>先检查入口是否是主动脉近端，错了就「重新选择入口」；形状本身不对时修正 STL</td></tr>
+      <tr><td class="msg">四个出口必须分别且唯一对应左外、左内、右外、右内。</td><td>出口命名有重复或缺漏</td><td>每个出口各选一个不同的名称</td></tr>
+      <tr><td class="msg">髂总 <var>N</var> 下面的两个出口 [ … ] 不在同一侧；同一侧必须是 左内+左外 或 右内+右外</td><td>同一条髂总下面的两个出口被命名成了不同侧</td><td>同侧两个出口应为「左内 + 左外」或「右内 + 右外」；用「左右互换」整体对调</td></tr>
+      <tr><td class="msg">入口必须是当前几何中有效的开口编号。</td><td>所选入口编号不在本几何的开口里</td><td>在入口下拉框里重新选择</td></tr>
+      <tr><td class="msg">请确认出口命名及其对计算的影响。</td><td>没有勾选确认</td><td>勾选确认后再提交</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="block" aria-labelledby="t-run">
+  <h2 id="t-run">计算过程</h2>
+  <div class="table-wrap"><table class="errtab">
+    <thead><tr><th scope="col">报错原文</th><th scope="col">原因</th><th scope="col">怎么办</th></tr></thead>
+    <tbody>
+      <tr><td class="msg">GPU 显存不足，已改用 CPU 重试。</td><td>显卡显存不够，程序已自动改用 CPU</td><td>不用处理，只是耗时变长</td></tr>
+      <tr><td class="msg">内存不足，请稍后重试。</td><td>服务器内存暂时不够</td><td>稍后点「重试任务」</td></tr>
+      <tr><td class="msg">磁盘空间不足，请联系维护者清理后重试。</td><td>服务器磁盘已满</td><td>联系维护者</td></tr>
+      <tr><td class="msg">计算环境缺少必要模块，请联系维护者。</td><td>服务安装不完整</td><td>联系维护者</td></tr>
+      <tr><td class="msg">计算未完成，请重试；如仍失败，请向维护者提供诊断编号。</td><td>未归类的内部错误</td><td>点「重试任务」；仍失败时把页面上的诊断编号发给维护者</td></tr>
+      <tr><td class="msg">输入检查尚未通过，不能开始预测。</td><td>输入检查没有通过就进入了计算</td><td>回到「确认输入」完成确认；仍出现时联系维护者</td></tr>
+      <tr><td class="msg">必须确认出口命名后才能开始预测。</td><td>出口还没确认</td><td>在出口确认页确认后再计算</td></tr>
+      <tr><td class="msg">历史任务缺少发布包指纹，不能安全重试。</td><td>旧任务没有记录所用模型的指纹</td><td>重新上传同一个 STL 新建任务</td></tr>
+      <tr><td class="msg">绑定的发布包指纹已变化，不能继续重试。</td><td>任务所用的模型文件已被替换</td><td>用「用其他发布包重跑」新建任务，原结果保留</td></tr>
+      <tr><td class="msg">仅失败、取消或中断的任务可以重试。</td><td>任务正在排队、计算或已完成</td><td>不需要重试；已完成的任务要换模型请用「用其他发布包重跑」</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="block" aria-labelledby="t-op">
+  <h2 id="t-op">上传与日常操作</h2>
+  <div class="table-wrap"><table class="errtab">
+    <thead><tr><th scope="col">报错原文</th><th scope="col">原因</th><th scope="col">怎么办</th></tr></thead>
+    <tbody>
+      <tr><td class="msg">请上传非空 STL 文件。</td><td>没有选文件，或文件是空的</td><td>重新选择文件</td></tr>
+      <tr><td class="msg">同一几何已有任务。</td><td>上传内容与已有任务逐字节相同</td><td>在弹出的对话框里选择打开已有任务、只跑新发布包，或强制重算</td></tr>
+      <tr><td class="msg">同一几何的已有任务没有可复用的中心线与出口确认，请选择强制重算。</td><td>已有任务还没完成中心线或出口确认</td><td>选择「强制重算」，或先完成已有任务</td></tr>
+      <tr><td class="msg">文件未能保存，请重试或提供诊断编号给维护者。</td><td>批量上传中某个文件没能写入服务器</td><td>单独重新上传该文件；仍失败时把诊断编号发给维护者</td></tr>
+      <tr><td class="msg">排队和计算中的任务已达上限（<var>N</var> 个，当前 <var>M</var> 个）；请等部分任务完成后再提交。</td><td>同一用户同时排队和计算的任务数有上限</td><td>等部分任务完成后再上传</td></tr>
+      <tr><td class="msg">匿名患者编号最多 80 个字符，不能含控制字符。</td><td>编号太长，或含从表格复制带来的换行、制表符</td><td>删掉不可见字符后重新输入；病例编号、扫描标签、备注同理</td></tr>
+      <tr><td class="msg">扫描日期必须是有效的 YYYY-MM-DD 日期。</td><td>日期格式不对</td><td>用日期选择器选日期</td></tr>
+      <tr><td class="msg">该结果已审阅签字并锁定，不能<var>操作</var>；请先「重新打开」并说明原因。</td><td>已签字的结果不能重算、改出口或删除</td><td>在审阅区「重新打开」并写明原因，再修改</td></tr>
+      <tr><td class="msg">任务状态已更新，请刷新后再操作。</td><td>页面上的任务版本落后，别处已经改过</td><td>刷新页面后重做这一步</td></tr>
+      <tr><td class="msg">任务阶段已改变，请刷新后再操作。</td><td>任务已进入下一步</td><td>刷新页面</td></tr>
+      <tr><td class="msg">该任务正在后台按新版分析重建（升级后自动执行），请稍后再操作。</td><td>服务升级后正在重新生成报告，不重新计算</td><td>稍等片刻再操作</td></tr>
+      <tr><td class="msg">任务不存在或不属于当前会话。</td><td>任务已删除，或属于其他账号</td><td>回到列表；需要别人的任务请联系管理员</td></tr>
+      <tr><td class="msg">任务正在计算，请先取消并等待其停止后再删除。</td><td>计算中的任务不能删除</td><td>先「取消任务」，停止后再删除</td></tr>
+      <tr><td class="msg">只有已完成且确认出口的任务才能换模型重跑。</td><td>任务未完成</td><td>等任务完成后再重跑</td></tr>
+      <tr><td class="msg">同名任务已存在，不能恢复。</td><td>回收站里的任务与现有任务同名</td><td>联系维护者处理</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">页面上出现「诊断编号」时，把它连同任务名称一起发给维护者，便于查找服务器日志。</p>
+</section>
+</main>
+</body>
+</html>

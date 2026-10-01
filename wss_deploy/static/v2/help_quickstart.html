@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>操作卡 · WSS</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<nav class="help-top" aria-label="帮助页">
+  <a class="help-mark" href="/v2/">WSS</a>
+  <div class="help-nav">
+    <a href="help_input.html">输入说明</a>
+    <a href="help_quickstart.html" aria-current="page">操作卡</a>
+    <a href="help_errors.html">报错对照表</a>
+  </div>
+</nav>
+<main class="help-page quickstart">
+<header>
+  <h1>操作卡：从 STL 到一页纸</h1>
+  <p class="lead">四步：上传 → 核对单位和出口 → 看结果 → 出一页纸。可打印在一页 A4 上。</p>
+</header>
+<ol class="steps">
+  <li>
+    <span class="n" aria-hidden="true">1</span>
+    <h2>上传</h2>
+    <p>点顶栏的「上传 STL」，选一个或多个 STL，也可以直接拖进页面。选单位，不确定就选「不确定，先检查尺寸」；选想看的结果；点「上传并检查」。</p>
+    <p class="check">STL 要求：腹主—髂动脉管腔面，入口和四个髂支出口切开，共 5 个开口，其余分支封闭，详见「输入说明」。随访需要填写患者编号和扫描日期；文件名像姓名时会提醒你改填患者编号。</p>
+  </li>
+  <li>
+    <span class="n" aria-hidden="true">2</span>
+    <h2>核对单位和出口</h2>
+    <p>停在「确认输入」时：看「换算后尺寸 · mm」是否与影像一致，选对单位，勾选确认后继续。</p>
+    <p>停在「确认出口」时：旋转三维血管，对照原始影像核对左髂外、左髂内、右髂外、右髂内；不对就用互换按钮改正，入口错了就重新选择入口，然后点「确认出口并开始预测」。</p>
+    <p class="check">任务失败时，页面上的报错原文可以在「报错对照表」里查到原因和处理办法。</p>
+  </li>
+  <li>
+    <span class="n" aria-hidden="true">3</span>
+    <h2>看结果</h2>
+    <p>完成后列表显示「待审阅」。先读结论和形态（管腔最大直径、瘤体、瘤颈），再看 TAWSS、OSI 等周期量，最后看峰值 WSS。需要测量、看截面时用结果页左侧的工具条。</p>
+    <ul class="check">
+      <li>直径、长度和体积都是管腔的，通常小于 CT 报告的瘤体直径。</li>
+      <li>「多模型一致」只说明几个模型的预测接近，一致不代表准确。</li>
+      <li>OSI 与滞留区只用来定位，边界不准；所有病例用同一条标准入口流量，不是患者实测。</li>
+    </ul>
+  </li>
+  <li>
+    <span class="n" aria-hidden="true">4</span>
+    <h2>出一页纸</h2>
+    <p>核对无误后点「审阅签字」（新版工作区叫「技术复核」），结果锁定。点「一页纸」（新版工作区在「导出 → 打印报告」），用浏览器打印或存成 PDF。</p>
+    <p class="check">要改自动结论，先点「编辑结论」；改过的文字在报告和一页纸上标「审阅人已修改」。锁定后要修改，先「重新打开」并写明原因。</p>
+  </li>
+</ol>
+<div class="card-foot"><span>输入要求：<a href="help_input.html">输入说明</a> · 报错：<a href="help_errors.html">报错对照表</a></span><span>研究用途，非诊断</span></div>
+</main>
+</body>
+</html>

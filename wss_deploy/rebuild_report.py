@@ -110,6 +110,9 @@ def _refresh_reference(meta: dict) -> dict:
                 load_reference_sidecar(release_dir, str(info.get("release", release_id)), info)
             except ValueError:
                 info = {}
+            if info:
+                from .reference import merge_sidecar_v2   # E4: v2 population_references (listing only)
+                info = merge_sidecar_v2(info, release_dir, str(info.get("release", release_id)))
     view = dict(meta)
     if "geometry" not in view and isinstance(view.get("branch_geometry"), dict):
         view["geometry"] = view["branch_geometry"]   # volume family stores the branch table under this key
@@ -121,6 +124,7 @@ def rebuild_volume(job_dir: Path, *, streamlines: bool = True) -> dict:
     from .volume_geometry import close_lumen, make_inside_test
     from .volume_report import build_html
     record, meta, atlas = _load_job(job_dir)
+    previous_findings = _previous_findings(meta)
     z = np.load(job_dir / "field.npz")
     vertices = np.asarray(z["vertices"], np.float64); faces = np.asarray(z["faces"], np.int64)
     pts = np.asarray(z["pts"], np.float32); internal = np.asarray(z["internal_pts"], np.float32)
@@ -196,7 +200,7 @@ def rebuild_volume(job_dir: Path, *, streamlines: bool = True) -> dict:
                    centerline=_centerline_arrays(atlas), streamlines=lines)
     return _finish(job_dir, record, meta, ["summary.json", "report.html", "field.npz", "stage_a.json", "volume_fields.vtp",
                                             "wall_pressure.vtp", "points_volume.csv"] + (["streamlines.vtp"] if lines else []),
-                   {"streamlines": len(lines), "regenerated": bool(streamlines)})
+                   {"streamlines": len(lines), "regenerated": bool(streamlines)}, previous=previous_findings)
 
 
 def _load_streamlines(vtp: Path) -> list:
@@ -273,6 +277,7 @@ def rebuild_wall(job_dir: Path) -> dict:
     from wss_features.atlas import map_points
     from wss_features.frame import anatomical_frame
     record, meta, atlas = _load_job(job_dir)
+    previous_findings = _previous_findings(meta)
     z = _NpzArrays(job_dir / "field.npz")
     pts = np.asarray(z["pts"], np.float64); wss = np.asarray(z["wss_pa"], np.float32)
     vertices = np.asarray(z["vertices"], np.float64); faces = np.asarray(z["faces"], np.int64)
@@ -303,8 +308,13 @@ def rebuild_wall(job_dir: Path) -> dict:
     meta["findings"] = A.findings_wall(pts, wss, feats, atlas, geometry_table, thresholds=thresholds,
                                        total_area_mm2=area, spacing_mm=spacing, branch_names=branch_names,
                                        morphology=meta["morphology"], cycle=cycle or None)
+    # U10 (2026-09-30): anatomical zones from the stored cloud labels (the arrays stage B used).
+    meta["zones"] = A.zones_wall(np.asarray(z["segment_id"]), np.asarray(z["s_from_root_mm"]), {"wss": wss, **cycle},
+                                 morphology=meta["morphology"], branch_names=branch_names, total_area_mm2=area,
+                                 thresholds={"wss": tuple(thresholds[:2])})
     variation = _surface_variation(job_dir, pts, atlas)
     meta["reference_assessment"] = _refresh_reference(meta)
+    A.grade_high_findings(meta["findings"], meta["reference_assessment"])    # U11
     trust_vertices, meta["trust"] = A.trust_wall(vertices, vw, pts, variation, vseg, meta.get("reference_assessment"), branch_names)
     frame = anatomical_frame(atlas.table, list(atlas.columns), {str(k): v for k, v in atlas.semantic_of_segment.items()})
     previous = meta.get("frame_transform") if isinstance(meta.get("frame_transform"), dict) else {}
@@ -334,7 +344,8 @@ def rebuild_wall(job_dir: Path) -> dict:
                      cloud={"pts": pts, "wss": wss, "segment": z["segment_id"], "s_from_root_mm": z["s_from_root_mm"], "theta_rad": z["theta_rad"],
                             "radius_mm": z["radius_mm"], "dist_to_junction_mm": feats["dist_to_junction_mm"], "extra": extra_c},
                      centerline={"xyz": atlas.xyz, "radius_mm": atlas.col("radius_mm"), "edges": _centerline_arrays(atlas)["edges"], "segment": seg.astype(np.int16)})
-    return _finish(job_dir, record, meta, outputs, {"derived_fields": sorted(derived)} if derived else {})
+    return _finish(job_dir, record, meta, outputs, {"derived_fields": sorted(derived)} if derived else {},
+                   previous=previous_findings)
 
 
 def _embedded_json(html: str, script_id: str) -> tuple[str, dict]:
@@ -475,6 +486,41 @@ def refresh_ui_only(job_dir: Path) -> dict:
     return {"job": job_dir.name, "report_bytes": report_path.stat().st_size, "ui_only": True}
 
 
+def _previous_findings(meta: dict) -> dict:
+    """The stored findings list and analysis version, kept before a rebuild re-derives them (review remap)."""
+    findings = meta.get("findings") if isinstance(meta.get("findings"), dict) else {}
+    items = [dict(item) for item in (findings.get("items") or []) if isinstance(item, dict)]
+    return {"items": items, "analysis_version": meta.get("analysis_version")}
+
+
+def remap_findings_review(job_dir: Path, meta: dict, previous: dict | None, record: dict | None = None) -> dict | None:
+    """Move reviewer decisions of ``findings_review.json`` onto the re-derived findings ids (2026-09-30).
+
+    Decisions are keyed by finding id; new listing rules renumber the list.  ``analysis.remap_review``
+    matches every decided old finding by kind + position; unmatched decisions are kept under ``legacy``
+    (「规则更新前的判定」) and never applied to another finding.  The sidecar (and the job record's copy) is
+    rewritten only when something moved.  Returns the report of ``remap_review`` or None without a review.
+    """
+    path = Path(job_dir) / "findings_review.json"
+    if previous is None or not path.is_file():
+        return None
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(doc, dict):
+        return None
+    from .schema import ANALYSIS_VERSION
+    new_items = ((meta.get("findings") or {}).get("items") or []) if isinstance(meta.get("findings"), dict) else []
+    remapped, report = A.remap_review(doc, previous.get("items"), new_items,
+                                      from_version=previous.get("analysis_version"), to_version=ANALYSIS_VERSION)
+    if remapped is not doc and isinstance(remapped, dict):
+        atomic_json(path, remapped)
+        if isinstance(record, dict):
+            record["findings_review"] = remapped
+    return report
+
+
 def embed_sidecars(job_dir: Path, meta: dict) -> dict:
     """Carry the reviewer's sidecars into the rebuilt page: ``annotations.json`` → ``meta.annotations``,
     ``findings_review.json`` → ``meta.findings.review``, ``narrative.json`` → the edited conclusion
@@ -502,12 +548,15 @@ def embed_sidecars(job_dir: Path, meta: dict) -> dict:
     return meta
 
 
-def _finish(job_dir: Path, record: dict, meta: dict, outputs: list, extra: dict) -> dict:
+def _finish(job_dir: Path, record: dict, meta: dict, outputs: list, extra: dict, *, previous: dict | None = None) -> dict:
     from .clock import now_iso
-    from .schema import redact_paths
+    from .schema import redact_paths, summary_display_name
     stamp = now_iso()
     meta = redact_paths(meta)     # v0.15.2: no server paths anywhere in summary / manifest / report META (strings only)
+    meta["display_name"] = summary_display_name(meta)      # C7 (2026-09-30)
     meta["narrative"] = NARR.build_narrative(meta)
+    # 2026-09-30: reviewer decisions follow their findings across the new listing rules (kind + position).
+    review_report = remap_findings_review(job_dir, meta, previous, record)
     embed_sidecars(job_dir, meta)
     meta.setdefault("audit", {})["report_rebuilt_at"] = stamp
     # v0.14: a rebuild re-derives the analysis layer, so it records the analysis / code version it ran with.
@@ -527,8 +576,14 @@ def _finish(job_dir: Path, record: dict, meta: dict, outputs: list, extra: dict)
     # The job record is owned by the running service (stop it, or restart afterwards).  Keep the few
     # summary mirrors it shows in step with the rebuilt summary: the conclusion text always, the export
     # set when streamlines were regenerated; ``findings_top`` is dropped so the service re-derives it.
+    review_moved = bool(review_report and (review_report.get("moved") or review_report.get("legacy")))
+    if review_moved:
+        # remap_findings_review updated record["findings_review"]; the record must reach job.json either way.
+        extra = {**extra, "findings_review": {"moved": review_report["moved"], "legacy": review_report["legacy"]}}
+        if not isinstance(summary, dict):
+            atomic_json(job_dir / "job.json", record)
     if isinstance(summary, dict):
-        changed = summary.get("narrative") != meta.get("narrative") or "findings_top" in summary
+        changed = summary.get("narrative") != meta.get("narrative") or "findings_top" in summary or review_moved
         if "narrative" in meta:
             summary["narrative"] = meta["narrative"]
         summary.pop("findings_top", None)

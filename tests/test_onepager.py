@@ -6,7 +6,8 @@ import json
 import threading
 
 from wss_deploy.jobs import JobManager
-from wss_deploy.onepager import LIMITATIONS, LIMIT_PRESSURE, LIMIT_SINGLE_FRAME, family_of, limitations, render_onepage
+from wss_deploy.onepager import (LIMITATIONS, LIMIT_FLOW, LIMIT_LUMEN, LIMIT_PRESSURE, LIMIT_SINGLE_FRAME, family_of,
+                                  limitations, render_onepage)
 from wss_deploy.server import ServiceHTTPServer, SessionStore
 
 
@@ -39,13 +40,17 @@ def wall_summary():
 def test_wall_onepage_contains_key_numbers_findings_trust_review_and_escapes(tmp_path):
     html = render_onepage(wall_summary(), {"id": "job-1"})
     assert "<script" not in html and "CASE-&lt;b&gt;1&lt;/b&gt;" in html
-    for text in ("16.64 Pa", "48.60 Pa", "43.3%", "16.9%", "左髂内高 WSS 区", "主动脉低 WSS 区", "插值无支撑", "5.0%",
+    # U13 (2026-09-30): three significant digits, whole percentages; C5: 「多模型一致（一致不代表准确）」 while the
+    # stored quality.label stays; C3: evidence tiers and the model-validation table; C7: patient id names the case.
+    for text in ("16.6 Pa", "48.6 Pa", "43%", "17%", "左髂内高 WSS 区", "主动脉低 WSS 区", "插值无支撑", "5%",
                  "已审阅签字", "R-01", "X5D_v51_5seed_20260916", "wss-features/1.0", "cdcdcdcdcdcdcdcd", "63.4", "@page{size:A4",
-                 "模型集成稳定", "job-1", "RTX 4090"):
+                 "多模型一致", "一致不代表准确", "job-1", "RTX 4090", '<span class="tier">模型</span>', "<h2>模型验证",
+                 "R² 0.77（逐例均值 0.79）", "患者编号 <b>P-01</b>", "病例名（取自上传文件名，可能含姓名）"):
         assert text in html, text
+    assert "模型集成稳定" not in html and "匿名病例编号" not in html and "<title>壁面 WSS 一页纸报告 · P-01</title>" in html
     assert html.index("F1") < html.index("F2")  # findings ordered by rank
     # Limitations follow the fields: a WSS-only result keeps the single-frame line and drops the pressure one.
-    assert limitations(wall_summary())[0] == LIMIT_SINGLE_FRAME
+    assert limitations(wall_summary())[:2] == [LIMIT_FLOW, LIMIT_SINGLE_FRAME] and LIMIT_LUMEN in limitations(wall_summary())
     for item in limitations(wall_summary()):
         assert item in html
     assert LIMIT_PRESSURE not in html and LIMIT_PRESSURE in LIMITATIONS
@@ -79,8 +84,8 @@ def test_onepage_leads_with_the_conclusion_and_lists_the_morphology(tmp_path):
     assert "<h2>结论（参考）" in html and '<span class="badge auto">自动生成</span>' in html
     assert '<span class="badge">审阅人已修改</span>' not in html
     assert html.index("<h2>结论（参考）") < html.index("<h2>关键数字")
-    for text in ("瘤体形态", "63.4 mm", "85 mm", "96 mL", "19.1", "158 mL", "18.2", "斜切",
-                 "分支统计", "211", "1.06", "15.1–63.4", "最大 Feret 直径"):
+    for text in ("瘤体形态（管腔）", "管腔最大直径", "63.4 mm", "85.0 mm", "96.3 mL", "19.1", "158 mL", "18.2", "斜切",
+                 "分支统计", "211", "1.06", "15.1–63.4", "最大 Feret 直径", '<span class="tier">几何</span>'):
         assert text in html, text
     # §19.5: branch statistics, the vessel table and the geometry table are one appendix table.
     assert html.index("<h2>瘤体形态") < html.index("<h2>分支统计") and "<h2>几何" not in html and "血管分支表" not in html
@@ -102,25 +107,27 @@ def test_volume_onepage_branch_table_uses_the_volume_columns():
                                                           "delta_p_pa": 266.6, "speed_mean_m_s": 0.21, "speed_max_m_s": 0.69,
                                                           "wss_p99_pa": None, "wss_mean_pa": None}]}}
     html = render_onepage(summary, {})
-    assert "分支统计" in html and "ΔP Pa" in html and "266.6" in html and "0.690" in html and "WSS p99" not in html
+    assert "分支统计" in html and "ΔP Pa" in html and "267" in html and "0.690" in html and "WSS p99" not in html
 
 
 def test_volume_onepage_uses_volume_numbers_and_pressure_drops():
     summary = {"case_id": "V", "fields": {"pressure": {"units": "Pa"}, "velocity": {"units": "m/s"}},
+               "model_release": {"registry_id": "PF6_VF6_peak_3seed_20260920"},
                "volume_statistics": {"speed_m_s": {"p99": 0.597, "mean": 0.21, "max": 0.69}, "pressure_interior_pa": {"min": -489.5, "max": 321.0},
                                      "pressure_wall_pa": {"min": -480.0, "max": 328.0}},
                "streamlines": {"line_count": 521}, "notes": ["PF6 压力相对于当前帧体积平均压力；不能恢复绝对血压。"],
                "findings": {"items": [{"id": "F3", "kind": "pressure_drop", "label": "主动脉压差", "branch": "主动脉", "value": 266.6, "units": "Pa", "rank": 3, "severity": "note", "definition": "近端 10% 与远端 10% 平均压差"}]}}
     html = render_onepage(summary, {})
     assert family_of(summary) == "volume"
-    for text in ("0.597 m/s", "-490 ～ 321 Pa", "521 条", "各分支近远端压差", "266.6", "2.00", "未审阅", "PF6 压力相对于当前帧体积平均压力"):
+    for text in ("0.597 m/s", "-490 ～ 321 Pa", "521 条", "各分支近远端压差", "267 Pa", "2.00", "未审阅", "PF6 压力相对于当前帧体积平均压力",
+                 "<h2>模型验证", "无（口径未建立）"):
         assert text in html, text
     assert "全场 p99" not in html
 
 
 def test_onepage_tolerates_minimal_summary():
     html = render_onepage({}, None)
-    assert "匿名病例" in html and "局限性声明" in html and "无数据" in html
+    assert "未命名病例" in html and "局限性声明" in html and "无数据" in html and "该发布包没有模型说明卡" in html
 
 
 def test_http_onepage_route_and_embeddable_headers(tmp_path):
@@ -150,7 +157,7 @@ def test_http_onepage_route_and_embeddable_headers(tmp_path):
         assert response.status == 200 and response.getheader("Content-Type").startswith("text/html")
         assert "frame-ancestors 'self'" in response.getheader("Content-Security-Policy")
         assert response.getheader("X-Frame-Options") == "SAMEORIGIN"
-        assert "16.64 Pa" in body and "左髂内高 WSS 区" in body and job["id"] in body
+        assert "16.6 Pa" in body and "左髂内高 WSS 区" in body and job["id"] in body
         assert not (job_dir / "onepage.html").exists()  # rendered on demand only
         api.request("GET", f"/api/jobs/{job['id']}/report", headers={"Cookie": cookie})
         response = api.getresponse(); response.read()

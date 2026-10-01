@@ -234,7 +234,7 @@ def _reports(args) -> int:
             marker = F.read_marker(job_dir)
             print(f"{job_dir.name}  {'已记录模板 ' + str(marker.get('fingerprint'))[:12] if marker else '无 report_ui.json'}")
         print(f"当前模板指纹 {current[:12]}；{len(dirs)} 个报告中 {len(stale)} 个需要刷新。")
-        if not args.check: print("刷新请加 --all 或 --job <任务号>（服务运行时刷新同样安全：打开报告时也会自动刷新）。")
+        if not args.check: print("刷新请加 --all 或 --job <任务号>（服务运行时刷新同样安全；升级服务时也会自动刷新）。")
         return 0
     targets = dirs if args.force else stale
     failed = 0
@@ -310,7 +310,7 @@ def _submit(args) -> int:
         if item.get("job"):
             job = item["job"]; created += 1
             reused = f"，复用 {item['reused_from']} 的中心线" if item.get("reused_from") else ""
-            print(f"✓ {name} → 任务 {job['id']}（病例 {job.get('case_id')}，{job.get('phase') or job.get('status')}{reused}）  {base}/#job={job['id']}")
+            print(f"✓ {name} → 任务 {job['id']}（病例 {job.get('case_id')}，{job.get('phase') or job.get('status')}{reused}）  {base}/v2/#/job/{job['id']}")
         elif item.get("duplicate"):
             duplicates += 1
             existing = item.get("existing") or []
@@ -325,7 +325,7 @@ def _submit(args) -> int:
         print("提示：未指定 --units，任务会停在「请确认输入」，需在网页确认单位后继续。")
     login = session.get("login")
     if login == "token":
-        print("提示：令牌登录的任务属于这个命令行会话；网页里看不到它们时，请启用用户名登录（cli user add）后用 --user 提交，或在网页登录用户后点「认领」。")
+        print("提示：令牌登录的任务属于这个命令行会话；网页里看不到它们时，请启用用户名登录（cli user add）后用 --user 提交，或停服务后用 `python -m wss_deploy.cli jobs claim --owner <旧 owner> --user <用户名>` 认领。")
     elif login == "none":
         print("提示：本机回环模式下任务属于命令行这次会话；若网页会话看不到，可用 WSS_DEPLOY_LEGACY_OWNER 固定 owner 启动服务。")
     if args.json: _print_json(rows)
@@ -445,7 +445,7 @@ def main(argv=None) -> int:
     d.add_argument("--host", default=None, help="按这个绑定地址判断共享登录（默认读 service.json；upgrade 预检会传入 --host 覆盖值）")
     rp = sub.add_parser("reports", help="报告模板刷新"); rp.add_argument("action", choices=("refresh",)); rp.add_argument("--job", action="append", default=None)
     rp.add_argument("--all", action="store_true"); rp.add_argument("--check", action="store_true", help="只列出过期报告")
-    rp.add_argument("--force", action="store_true", help="未过期也刷新；服务持有写锁时也执行（运行中的服务打开报告时本就会自动刷新）")
+    rp.add_argument("--force", action="store_true", help="未过期也刷新；服务持有写锁时也执行（升级服务时本就会自动刷新）")
     rp.add_argument("--jobs-root", default=None)
     t = sub.add_parser("template", help="机构报告模板（一页纸页眉、签字栏、术语、附录）"); t.add_argument("action", choices=("show", "set")); t.add_argument("--jobs-root", default=None)
     t.add_argument("--institution", default=None); t.add_argument("--department", default=None); t.add_argument("--title", default=None); t.add_argument("--footer", default=None)

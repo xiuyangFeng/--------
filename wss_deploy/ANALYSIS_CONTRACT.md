@@ -554,6 +554,8 @@ body `{"version": n, "case_id": "…", "patient_id": "…", "scan_label": "…",
 
 ## 19.7 报告模板自动刷新（W2，`report_freshness.py`）
 
+> S7（2026-10-01）起浏览器打开 `/api/jobs/<id>/report` 会跳到新工作区，不再触发打开时刷新；程序读取这个地址（非页面访问）时仍会刷新。过期报告由 `service upgrade` 和 `cli reports refresh` 刷新。`report.html` 现在是新工作区的数据来源，不再作为页面提供。
+
 - `ui_fingerprint()` = sha256(`report.py`、`volume_report.py`、`static/report_common.js`、`static/volume_viewer.js`、`static/three.min.js`、`static/OrbitControls.js`、`static/glossary.json` 的字节)，进程内缓存、源文件 mtime 变化时重算。任务目录旁写 `report_ui.json {"fingerprint", "refreshed_at", "source": "auto|cli"}`。
 - `GET /api/jobs/<id>/report`：任务 `done`、存在 `report.html`、`report_ui.json` 缺失或指纹不同 → 在该任务的锁内调用 `rebuild_report.refresh_ui_only(job_dir)`（约 0.3 s），成功写 `report_ui.json` 后返回新报告；失败记日志、返回原报告（不 500）。`WSS_DEPLOY_AUTO_REFRESH_REPORTS=0` 关闭。锁定（已审阅）任务同样刷新（只换呈现模板，数据与嵌入 JSON 原样）。
 - `python -m wss_deploy.cli reports refresh [--job ID | --all] [--check]`：`--check` 只列出过期任务。以后改完报告界面**不再需要手工 rebuild + 重启服务**（Python 模块变更仍需重启，用 `cli service upgrade`：停服务 → 重建/刷新报告 → 启动；运行中的服务发现模板模块已变更时也只提示执行它）。
@@ -563,6 +565,8 @@ body `{"version": n, "case_id": "…", "patient_id": "…", "scan_label": "…",
 `python -m wss_deploy.devshot sandbox --jobs <id,…> --dir <自己的 scratch>/jobs --port <端口>` 复制正式任务到沙箱并起回环 CPU 服务；`python -m wss_deploy.devshot <url> <out.png> [--width --height --wait --full --js "…" --after 秒 --marionette-port <端口>]` 截图，页面 JS 错误打印到 stderr 并以退出码 3 返回。Python 中可 `from wss_deploy.devshot import Browser`（`go / js / shot / frame / errors / resize`）。三维报告在软件渲染下首帧约 20–30 s（`--wait 25`）。沙箱里的报告改完模板后用 `from wss_deploy.rebuild_report import refresh_ui_only; refresh_ui_only(Path(job_dir))` 刷新。**端口分配**：W3 = HTTP 8801 / Marionette 2841–2849；W4 = 8802 / 2851–2859；W5 = 8803 / 2861–2869；主会话 8799 / 2830–2839。**绝不指向正式 `outputs/wss_deploy_jobs`，也不要重启正式 8765 服务**。
 
 ## 19.9 界面约定（W3 / W4 / W5）
+
+> 本节描述的是经典报告与经典工作台，S7（2026-10-01）起已下线，只作历史记录；新工作区的约定见 `WORKSPACE_V2_CONTRACT.md`。
 
 - **默认配色恢复彩虹**（用户 2026-09-20 明确偏好「配色要彩虹」；v0.11.2 改成 Viridis 未见用户要求），Viridis / Turbo / 蓝白红保留可选；已保存的偏好照旧优先。
 - **默认视角 = 解剖前视并撑满视口**（两报告一致）：用 `FRAME.rotation`（或体场的等价坐标架）的 `front` 方向 + `fitView(margin 1.12)`；「复位视角」与 `0` 键回到它；没有坐标架的旧报告回退到现有逻辑再 `fitView`。
