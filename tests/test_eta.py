@@ -149,6 +149,8 @@ def test_awaiting_confirmation_gives_the_stage_b_total_and_final_states_nothing(
 
 def test_queue_wait_and_stl_faces():
     assert E.queue_wait([]) == 0.0
+    # v0.16.1: stage B overlapping (only the GPU section serialised): half of all work ahead
+    assert E.queue_wait([{"segment": "B", "segment_remaining_s": 20}, {"segment": "A", "segment_remaining_s": 10}], serial_b=False) == 15.0
     assert E.queue_wait([{"segment": "B", "segment_remaining_s": 20}, {"segment": "A", "segment_remaining_s": 10}]) == 20.0
     assert E.queue_wait([{"segment": "A", "segment_remaining_s": 30}, {"segment": "A", "segment_remaining_s": 10}]) == 20.0
     binary = b"\0" * 80 + (3).to_bytes(4, "little") + b"\0" * 150
@@ -194,6 +196,7 @@ def test_manager_history_from_finished_jobs_with_the_current_hash(tmp_path, monk
 
 def test_manager_tracks_stages_while_running_and_queue_ahead(tmp_path, monkeypatch):
     monkeypatch.setattr(E, "current_feature_hash", lambda: None)
+    monkeypatch.setenv("WSS_DEPLOY_STAGE_B_LOCK", "stage")          # the serial queue estimate (v0.6–v0.16 mode)
     seen, release = {}, threading.Event()
 
     def stage_b(job_dir, mapping, rel, *, progress, cancelled, **_kwargs):
@@ -261,6 +264,7 @@ def test_old_records_load_without_estimate_errors(tmp_path):
 
 def test_second_stage_b_job_reports_waiting_behind_the_first(tmp_path, monkeypatch):
     monkeypatch.setattr(E, "current_feature_hash", lambda: None)
+    monkeypatch.setenv("WSS_DEPLOY_STAGE_B_LOCK", "stage")          # whole-stage serialisation (v0.6–v0.16 mode)
     gate, entered = threading.Event(), threading.Event()
 
     def stage_b(job_dir, mapping, rel, *, progress, cancelled, **_kwargs):
@@ -370,3 +374,40 @@ def test_cache_assisted_runs_leave_their_reused_stages_out_of_the_history(tmp_pa
     assert stages["smooth_resample"] == pytest.approx(4.0, abs=0.05) and stages["morphology"] == pytest.approx(2.0, abs=0.05)
     assert stages["features"] == pytest.approx(3.0, abs=0.05)                     # not dragged towards the cache hits
     mgr.close()
+
+
+def test_two_stage_b_jobs_overlap_and_neither_reports_waiting(tmp_path, monkeypatch):
+    """v0.16.1 default: two stage-B runs proceed together (the GPU section is serialised in pipeline.run_inference)."""
+    monkeypatch.setattr(E, "current_feature_hash", lambda: None)
+    monkeypatch.delenv("WSS_DEPLOY_STAGE_B_LOCK", raising=False)
+    gate, inside, lock = threading.Event(), [], threading.Lock()
+
+    def stage_b(job_dir, mapping, rel, *, progress, cancelled, **_kwargs):
+        progress("geometry", "正在平滑表面并重采样")
+        with lock:
+            inside.append(job_dir.name)
+        gate.wait(10)
+        return {"peak": {"p99_pa": 1.0}, "fields": {"wss": {}}, "timing_s": {}, "run_identity": "r" * 64}
+
+    mgr = manager(tmp_path, stage_b=stage_b)
+    assert mgr._b_mode == "inference"
+    ids = [mgr.create("owner", content=name.encode(), filename=f"{name}.stl")["id"] for name in ("one", "two")]
+    mgr.run_next(); mgr.run_next()                                                       # stage A of both
+    for job_id in ids:
+        waiting = mgr.get(job_id, "owner")
+        mgr.confirm(job_id, "owner", {"version": waiting["version"], "mapping": dict(MAPPING), "acknowledged": True})
+    mgr.start()
+    try:
+        deadline = time.time() + 10
+        while time.time() < deadline and len(inside) < 2:
+            time.sleep(0.05)
+        assert sorted(inside) == sorted(ids)                                              # both inside stage B at once
+        etas = [mgr.get(i, "owner")["eta"] for i in ids]
+        assert not any(e.get("waiting") for e in etas) and mgr._b_active == 2 and mgr._stage_b_busy()
+    finally:
+        gate.set()
+        deadline = time.time() + 10
+        while time.time() < deadline and not all(mgr.get(i, "owner")["status"] == "done" for i in ids):
+            time.sleep(0.05)
+        mgr.close()
+    assert all(mgr.get(i, "owner")["status"] == "done" for i in ids) and mgr._b_active == 0

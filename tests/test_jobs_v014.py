@@ -679,3 +679,126 @@ def test_claim_owner_none_moves_ownerless_cli_jobs(tmp_path):
         mgr.claim_owner("", "admin")
     with pytest.raises(JobError):
         mgr.claim_owner(None, "")
+
+
+def test_a_report_rebuild_waits_for_overlapping_stage_b_runs(tmp_path):
+    """v0.16.1 (inference mode): stage B no longer holds the slot, so a rebuild waits for the running ones."""
+    mgr = make(tmp_path)
+    job = finished(mgr, case_id="A")
+    with mgr._pc_cond:
+        mgr._b_active = 1                                            # a stage B is running
+    started = threading.Event()
+    worker = threading.Thread(target=lambda: mgr.rebuild_analysis(job["id"], rebuild_fn=lambda d: started.set()))
+    worker.start()
+    time.sleep(0.6)
+    assert not started.is_set() and mgr._stage_b_lock.locked()      # holds the slot (no new stage B), waits
+    with mgr._pc_cond:
+        mgr._b_active = 0
+        mgr._pc_cond.notify_all()
+    worker.join(5)
+    assert started.is_set() and not mgr._stage_b_lock.locked()
+
+
+# ------------------------------------------------------------------------------------------ v0.16.1 volume precompute
+def _volume_manager(tmp_path, volume_fn, **kwargs):
+    mgr = make(tmp_path, precompute_fn=lambda job_dir, job, *, release, cancel_event=None: {"steps": ["mesh"]},
+               volume_precompute_fn=volume_fn, **kwargs)
+    mgr._volume_companion_pending = lambda job: True            # a PF6/VF6 companion will be spawned
+    return mgr
+
+
+def test_volume_step_follows_the_mesh_precompute_and_the_job_s_own_stage_b_does_not_wait(tmp_path):
+    seen, started, release_it, order = {}, threading.Event(), threading.Event(), []
+
+    def volume(job_dir, job, *, mapping, cancel_event=None):
+        seen.update(job_id=job["id"], mapping=mapping)
+        started.set()
+        release_it.wait(5)
+        return {"ok": True}
+
+    def stage_b(job_dir, mapping, release, **kwargs):
+        order.append("B")
+        return stage_b_stub(job_dir, mapping, release, **kwargs)
+
+    mgr = _volume_manager(tmp_path, volume, stage_b_fn=stage_b)
+    try:
+        snap = awaiting(mgr)
+        assert started.wait(5) and seen["job_id"] == snap["id"] and seen["mapping"] == dict(MAPPING)   # the proposal
+        assert mgr._pc_state[snap["id"]] == "volume"
+        mgr.confirm(snap["id"], "owner", {"version": snap["version"], "acknowledged": True, "mapping": dict(MAPPING)})
+        assert mgr.run_next(timeout=1) and order == ["B"]            # not held back by the companion's geometry
+        release_it.set()
+        deadline = time.time() + 5
+        while mgr._pc_state and time.time() < deadline:
+            time.sleep(0.05)
+        record = mgr.jobs[snap["id"]]
+        assert record["precompute"]["volume"]["status"] == "done"
+        assert any(event["action"] == "precompute_volume_done" for event in record["events"])
+    finally:
+        release_it.set()
+        mgr.close()
+
+
+def test_no_volume_step_without_a_volume_companion(tmp_path):
+    calls = []
+    mgr = make(tmp_path, precompute_fn=lambda job_dir, job, *, release, cancel_event=None: {"steps": ["mesh"]},
+               volume_precompute_fn=lambda *a, **k: calls.append(1) or {"ok": True})
+    try:
+        snap = awaiting(mgr)
+        deadline = time.time() + 3
+        while mgr.jobs[snap["id"]].get("precompute", {}).get("status") != "done" and time.time() < deadline:
+            time.sleep(0.05)
+        time.sleep(0.3)
+        assert calls == [] and "volume" not in mgr.jobs[snap["id"]]["precompute"]
+    finally:
+        mgr.close()
+
+
+def test_a_companion_waits_for_the_volume_step_only_on_the_same_mapping(tmp_path):
+    mgr = make(tmp_path)
+    source, companion = awaiting(mgr), awaiting(mgr)
+    record = mgr.jobs[companion["id"]]
+    record["source_job_id"] = source["id"]
+    with mgr._pc_cond:
+        mgr._pc_state[source["id"]] = "volume"
+        mgr._pc_cancel[source["id"]] = threading.Event()
+        mgr._pc_volume_mapping[source["id"]] = {k: MAPPING[k] for k in reversed(list(MAPPING))}   # another order
+    other = dict(MAPPING); keys = list(other); other[keys[0]], other[keys[1]] = other[keys[1]], other[keys[0]]
+    record["mapping"] = other                                        # confirmed differently: no wait
+    t = time.time(); mgr._inherit_geometry_cache(record)
+    assert time.time() - t < 0.5
+    record["mapping"] = dict(MAPPING)                                # the proposal: wait for the volume step
+    worker = threading.Thread(target=mgr._inherit_geometry_cache, args=(record,))
+    worker.start()
+    time.sleep(0.5)
+    assert worker.is_alive()
+    with mgr._pc_cond:
+        mgr._pc_state.pop(source["id"]); mgr._pc_cond.notify_all()
+    worker.join(5)
+    assert not worker.is_alive()
+
+
+def test_stage_a_stops_the_volume_step(tmp_path):
+    mgr = make(tmp_path)
+    snap = awaiting(mgr)
+    cancel = threading.Event()
+    with mgr._pc_cond:
+        mgr._pc_state[snap["id"]] = "volume"; mgr._pc_cancel[snap["id"]] = cancel
+    mgr._precompute_barrier(mgr.jobs[snap["id"]], "B")                # the job's own stage B: no wait
+    assert not cancel.is_set()
+
+    def finish():
+        cancel.wait(5)
+        with mgr._pc_cond:
+            mgr._pc_state.pop(snap["id"]); mgr._pc_cond.notify_all()
+    threading.Thread(target=finish).start()
+    mgr._precompute_barrier(mgr.jobs[snap["id"]], "A")                # stage A: cancel and wait
+    assert cancel.is_set() and snap["id"] not in mgr._pc_state
+
+
+def test_mapping_order_does_not_change_the_volume_cache_key_input():
+    from wss_deploy import volume_cache as VC
+    a = {"4": "out-li", "3": "out-le", "5": "out-ri", "6": "out-re"}
+    b = {"3": "out-le", "4": "out-li", "5": "out-ri", "6": "out-re"}
+    assert list(VC._canonical_mapping(a).items()) == list(VC._canonical_mapping(b).items())
+    assert J._same_mapping(a, b) and not J._same_mapping(a, {**b, "3": "out-li", "4": "out-le"})

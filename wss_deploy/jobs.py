@@ -72,6 +72,25 @@ MAINTENANCE_FILE = ".maintenance.json"
 MAINTENANCE_RESULT = "maintenance_result.json"
 GENERIC_FAILURE = "计算未完成，请重试；如仍失败，请向维护者提供诊断编号。"
 WORKER_COUNT = 2
+
+
+def _same_mapping(a, b) -> bool:
+    """Two outlet mappings with the same pairs (order and key type aside)."""
+    if not isinstance(a, dict) or not isinstance(b, dict):
+        return False
+    return {str(k): v for k, v in a.items()} == {str(k): v for k, v in b.items()}
+
+
+def stage_b_lock_mode() -> str:
+    """How stage B is serialised (v0.16.1).
+
+    ``inference`` (default): stage B of different jobs overlaps on the CPU; only the GPU / model section
+    (``pipeline.run_inference``) runs one at a time, so the device memory peak is that of one job.  Measured on
+    LV_GUO_YOU wall + volume: 22.2 s serial → 15.0 s overlapped, geometry arrays bit-identical, predictions within
+    the GPU run-to-run jitter.  ``stage`` (``WSS_DEPLOY_STAGE_B_LOCK=stage``): the whole stage B one at a time, as
+    in v0.6–v0.16.
+    """
+    return "stage" if os.environ.get("WSS_DEPLOY_STAGE_B_LOCK", "").strip().lower() == "stage" else "inference"
 # Server temp files (spooled uploads, bundles) and streamed upload staging live in ``<jobs_root>/.tmp``; like every
 # dot-entry of the jobs root it is never a job.  ``<job>/.report_ui_stage_*`` are report_freshness staging dirs.
 TMP_DIR = ".tmp"
@@ -296,11 +315,12 @@ def _validate_mapping(job_dir: Path, mapping: dict) -> list[str]:
 class JobManager:
     def __init__(self, root: Path, *, release=None, registry=None, stage_a_fn=None, stage_b_fn=None,
                  mapping_validator=None, legacy_owner: str | None = None, clock=None, offline: bool = False,
-                 precompute_fn=None, audit_sink=None):
+                 precompute_fn=None, audit_sink=None, volume_precompute_fn=None):
         """``offline`` (v0.14, J3): a maintenance process (``cli jobs claim``) that must not act as the service —
         nothing is marked interrupted or re-queued, no trash / unfinished deletion is purged, and ``start()`` is
         refused.  ``precompute_fn`` overrides ``pipeline.precompute_geometry_cache`` (J2); managers built with
-        injected stage functions (tests) precompute only when one is given."""
+        injected stage functions (tests) precompute only when one is given.  ``volume_precompute_fn`` overrides
+        ``volume_pipeline.precompute_volume_case`` (v0.16.1), with the same rule."""
         self.root = Path(root).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
         self.offline = bool(offline)
@@ -315,10 +335,15 @@ class JobManager:
         self.jobs: dict[str, dict] = {}
         self.lock = threading.RLock()
         self.tasks: queue.Queue = queue.Queue()
-        # Stage B touches the legacy geometry capfit override and the model
-        # runtime.  Keep it serialized while allowing two CPU-heavy Stage-A
-        # preprocessing tasks to overlap with it.
+        # The stage-B slot.  ``stage`` mode (WSS_DEPLOY_STAGE_B_LOCK=stage): held for the whole stage B, as in
+        # v0.6–v0.16.  ``inference`` mode (default, v0.16.1): a stage B only passes through it on the way in (so a
+        # drain or a report rebuild holding it still keeps new stage-B work out) and is then counted in
+        # ``_b_active``; the GPU section is serialised by ``pipeline.run_inference``.  The geometry no longer reads
+        # a process-wide capfit override (the rule is an argument since v0.6), the kNN / input memos are
+        # thread-local and the models only run forward passes, so two stage-B runs may overlap.
         self._stage_b_lock = threading.Lock()
+        self._b_mode = stage_b_lock_mode()
+        self._b_active = 0                  # stage-B runs in progress (inference mode), under ``_pc_cond``
         self.stop_event = threading.Event()
         self.thread: threading.Thread | None = None
         self._workers: list[threading.Thread] = []
@@ -341,6 +366,13 @@ class JobManager:
         self._pc_state: dict[str, str] = {}
         self._pc_cancel: dict[str, threading.Event] = {}
         self._pc_thread: threading.Thread | None = None
+        # v0.16.1: after the mesh precompute, a job with a volume companion has its PF6/VF6 geometry precomputed on the
+        # proposed mapping (state "volume"; the job's own stage B does not wait for it, a companion on that mapping does).
+        self._volume_precompute_fn = volume_precompute_fn
+        self._volume_precompute_enabled = (volume_precompute_fn is not None or (precompute_fn is None and stage_a_fn is None
+                                                                                and stage_b_fn is None)) \
+            and os.environ.get("WSS_DEPLOY_VOLUME_PRECOMPUTE", "1").strip().lower() not in {"0", "false", "off", "no"}
+        self._pc_volume_mapping: dict[str, dict] = {}
         # J6: the drain flag is a file (written by ``service … --drain``); cached for a second.
         self._drain_cache = (0.0, False)
         # J6: analysis rebuilds run inside the service after an upgrade; mutations of a job being rebuilt get a 409.
@@ -847,7 +879,7 @@ class JobManager:
             ahead = [other for other in self.jobs.values() if other is not job and (
                 other["status"] == "running" or (other["status"] == "queued" and other.get("queued_ts", 0) < mine))]
             blocks = [block for block in (self._eta(other, now=now, with_queue=False) for other in ahead) if block]
-            queue_ahead, queue_ahead_s = len(ahead), queue_wait(blocks)
+            queue_ahead, queue_ahead_s = len(ahead), queue_wait(blocks, serial_b=self._b_mode == "stage")
         elif with_queue and waiting:
             # Taken by a worker but queued behind the stage-B job that holds the lock.
             ahead = [other for other in self.jobs.values() if other is not job and other["status"] == "running"
@@ -2579,7 +2611,10 @@ class JobManager:
         announced = False
         while valid():
             with self._pc_cond:
-                running = self._pc_state.get(source_id) == "running"
+                state = self._pc_state.get(source_id)
+                # v0.16.1: the source's volume step is this companion's geometry when it runs on the same mapping
+                running = state == "running" or (state == "volume" and _same_mapping(
+                    self._pc_volume_mapping.get(source_id), job.get("mapping")))
                 cancel = self._pc_cancel.get(source_id)
                 running = running and not (cancel is not None and cancel.is_set())
             remaining = deadline - time.monotonic()
@@ -2589,7 +2624,7 @@ class JobManager:
                 self._progress(job, "geometry", "等待共享几何预计算完成")
                 announced = True
             with self._pc_cond:
-                if self._pc_state.get(source_id) == "running":
+                if self._pc_state.get(source_id) in ("running", "volume"):
                     self._pc_cond.wait(min(0.25, remaining))
         if valid():
             copied = copy_committed(self.root, source_id, target_id, valid=valid)
@@ -2633,15 +2668,18 @@ class JobManager:
             if state == "pending":
                 self._pc_state[job_id] = "skipped"
                 return
-            if state != "running":
+            # v0.16.1: the volume step (a companion's geometry) is not this job's input: stage B goes ahead; stage A
+            # (which rewrites the geometry) stops it like the mesh precompute.
+            if state != "running" and not (state == "volume" and stage == "A"):
                 return
             if stage == "A":
                 self._pc_cancel[job_id].set()
         if stage == "B":
             self._progress(job, "geometry", "等待后台几何预计算完成")
         deadline = time.monotonic() + PRECOMPUTE_WAIT_S
+        waiting = ("running", "volume") if stage == "A" else ("running",)
         with self._pc_cond:
-            while self._pc_state.get(job_id) == "running":
+            while self._pc_state.get(job_id) in waiting:
                 if time.monotonic() > deadline and job_id in self._pc_cancel:
                     self._pc_cancel[job_id].set()
                 self._pc_cond.wait(0.5)
@@ -2665,7 +2703,7 @@ class JobManager:
                     self._pc_cancel.pop(job_id, None)
                     self._pc_cond.notify_all()
                     continue
-                busy = self._stage_b_lock.locked()
+                busy = self._stage_b_busy()
                 if not busy:
                     self._pc_queue.pop(0)
                     self._pc_state[job_id] = "running"
@@ -2675,13 +2713,79 @@ class JobManager:
                 continue
             try:
                 self._run_precompute(job_id, cancel)
+                self._run_volume_precompute(job_id, cancel)
             except Exception:  # noqa: BLE001 — a precompute must never take the service down
                 LOG.exception("Geometry precompute of %s failed outside the pipeline", job_id)
             finally:
                 with self._pc_cond:
                     self._pc_state.pop(job_id, None)
                     self._pc_cancel.pop(job_id, None)
+                    self._pc_volume_mapping.pop(job_id, None)
                     self._pc_cond.notify_all()
+
+    def _volume_precompute_callable(self):
+        if not self._volume_precompute_enabled:
+            return None
+        if self._volume_precompute_fn is not None:
+            return self._volume_precompute_fn
+        from . import volume_pipeline
+        return getattr(volume_pipeline, "precompute_volume_case", None)
+
+    def _volume_companion_pending(self, job: dict) -> bool:
+        """The job will spawn a PF6/VF6 companion when its outlets are confirmed (called under ``self.lock``)."""
+        for entry in job.get("companions") or []:
+            if not isinstance(entry, dict) or entry.get("job_id") or not entry.get("release_id"):
+                continue
+            try:
+                from .families import family_for_release
+                descriptor = self.registry.describe(entry["release_id"]) if self.registry is not None else None
+                if descriptor is not None and family_for_release(descriptor).protocol == "single_frame_volume":
+                    return True
+            except Exception:  # noqa: BLE001 — an unknown companion only means no volume precompute
+                continue
+        return False
+
+    def _run_volume_precompute(self, job_id: str, cancel: threading.Event) -> None:
+        """v0.16.1: the PF6/VF6 geometry of a volume companion, on the proposed mapping, while the outlets are checked.
+
+        Only after a completed mesh precompute, only while the job still awaits confirmation with a volume companion
+        to spawn and a complete proposal.  Speculative and exact: the companion's stage B reuses it only when the
+        confirmed mapping is the proposal (the cache key), else it computes as before.
+        """
+        fn = self._volume_precompute_callable()
+        if fn is None or cancel.is_set():
+            return
+        with self.lock:
+            job = self.jobs.get(job_id)
+            if job is None or job.get("status") != "awaiting_confirmation" or cancel.is_set():
+                return
+            if (job.get("precompute") or {}).get("status") != "done" or not self._volume_companion_pending(job):
+                return
+            mapping = ((job.get("a") or {}).get("proposal") or {}).get("mapping")
+            if not isinstance(mapping, dict) or len(mapping) != 4 or set(mapping.values()) != LABELS:
+                return
+            record, mapping = copy.deepcopy(job), {str(k): v for k, v in mapping.items()}
+        with self._pc_cond:
+            if self._pc_state.get(job_id) != "running":
+                return
+            self._pc_state[job_id] = "volume"
+            self._pc_volume_mapping[job_id] = mapping
+            self._pc_cond.notify_all()
+        started = time.perf_counter()
+        try:
+            result = fn(self.root / job_id, record, mapping=mapping, cancel_event=cancel)
+            status = ("failed" if isinstance(result, dict) and result.get("error") else
+                      "cancelled" if cancel.is_set() or (isinstance(result, dict) and result.get("cancelled")) else
+                      "skipped" if isinstance(result, dict) and result.get("skipped") else "done")
+        except Exception as exc:  # noqa: BLE001 — the companion computes it itself
+            status = "failed"
+            LOG.warning("Volume geometry precompute of %s failed (the companion will compute it): %s", job_id, exc)
+        seconds = round(time.perf_counter() - started, 2)
+        with self.lock:
+            job = self.jobs.get(job_id)
+            if job is not None and isinstance(job.get("precompute"), dict):
+                job["precompute"]["volume"] = {"status": status, "seconds": seconds}
+                self._event(job, "precompute_volume_" + status, version=False, durable=False, seconds=seconds)
 
     def _run_precompute(self, job_id: str, cancel: threading.Event) -> None:
         with self.lock:
@@ -2737,9 +2841,20 @@ class JobManager:
             job["precompute"] = entry
             self._event(job, "precompute_" + status, version=False, durable=False, seconds=seconds)
 
+    def _stage_b_busy(self) -> bool:
+        """A stage B (or a report rebuild) is running: background geometry work waits (lowest priority)."""
+        return self._stage_b_lock.locked() or self._b_active > 0
+
+    def _wait_stage_b_idle(self) -> None:
+        """Called with the stage-B slot held: wait for the overlapping stage-B runs (inference mode) to finish."""
+        with self._pc_cond:
+            while self._b_active > 0 and not self.stop_event.is_set():
+                self._pc_cond.wait(0.5)
+
     def run_next(self, timeout: float = 0.1) -> bool:
         deferred_stage = None
         stage_lock_acquired = False
+        b_registered = False
         aborted = False
         if self.clock() >= self._next_trash_scan:
             try:
@@ -2780,6 +2895,13 @@ class JobManager:
                     with self.lock:
                         self._requeue_for_drain(job, stage)
                     return True
+                if self._b_mode == "inference":
+                    # v0.16.1: the slot is only a gate; the stage runs alongside another one (GPU section serialised).
+                    with self._pc_cond:
+                        self._b_active += 1
+                    b_registered = True
+                    self._stage_b_lock.release()
+                    stage_lock_acquired = False
                 with self.lock:
                     if isinstance(job.get("stage_clock"), dict):
                         job["stage_clock"].update(waiting=False, attempt_started_ts=time.time())
@@ -2954,6 +3076,10 @@ class JobManager:
         finally:
             if stage_lock_acquired:
                 self._stage_b_lock.release()
+            if b_registered:
+                with self._pc_cond:
+                    self._b_active -= 1
+                    self._pc_cond.notify_all()
             self.tasks.task_done()
 
     def start(self) -> None:
@@ -3160,6 +3286,7 @@ class JobManager:
             if rebuild_fn is None:
                 from .rebuild_report import rebuild as rebuild_fn
             with self._stage_b_lock:
+                self._wait_stage_b_idle()
                 rebuild_fn(self.root / job_id)
             with self.lock:
                 fresh = self._restore_record(self.root / job_id / "job.json", None)

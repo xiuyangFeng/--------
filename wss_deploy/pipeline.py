@@ -1,6 +1,6 @@
 """Orchestration: stage A (ingest + centreline + naming proposal, CPU) -> [human confirms outlets] -> stage B (geometry + inference + report)."""
 from __future__ import annotations
-import contextlib, hashlib, json, os, secrets, time, datetime, shutil
+import contextlib, hashlib, json, os, secrets, threading, time, datetime, shutil
 from pathlib import Path
 import numpy as np
 from wss_features import contract as feature_contract
@@ -74,16 +74,24 @@ def torch_threads(count: int | None):
                 pass
 
 
-def run_inference(release, case: dict) -> dict:
+# v0.16.1: the model section of stage B runs one at a time in this process (two stage-B runs overlap on the CPU,
+# jobs.stage_b_lock_mode): the device memory peak stays that of one ensemble, and torch's process-wide CPU thread
+# count is set and restored inside it, so an overlapping run never changes it under another one's forward pass.
+_INFERENCE_LOCK = threading.Lock()
+
+
+def run_inference(release, case: dict, *, threads: int | None = None) -> dict:
     """``release.predict`` with foreign failures typed (errors.classify): CUDA out-of-memory becomes a
-    retryable ``ResourceError`` (retry_hint "cpu") that the job manager retries on the CPU."""
-    try:
-        return release.predict(case)
-    except Exception as exc:
-        typed = classify_error(exc)
-        if isinstance(typed, ResourceError):
-            raise typed from exc
-        raise
+    retryable ``ResourceError`` (retry_hint "cpu") that the job manager retries on the CPU.  ``threads``: the CPU
+    intra-op thread count for this call (``inference_threads``; None leaves torch's setting alone)."""
+    with _INFERENCE_LOCK, torch_threads(threads):
+        try:
+            return release.predict(case)
+        except Exception as exc:
+            typed = classify_error(exc)
+            if isinstance(typed, ResourceError):
+                raise typed from exc
+            raise
 
 
 def _tmp_sibling(path: Path) -> Path:
@@ -484,8 +492,7 @@ def stage_b_wall(job_dir: Path, mapping: dict[str, str], release: Release, *, sm
     # v0.14: CPU inference without an explicit thread count uses min(32, cores) instead of torch's
     # one-per-core default (WSS_DEPLOY_CPU_THREADS overrides); the GPU path is unchanged.
     cpu_threads = inference_threads(getattr(release, "device", None), threads)
-    with torch_threads(cpu_threads):
-        t = time.perf_counter(); pred = run_inference(release, case); T["inference_5_models"] = time.perf_counter() - t
+    t = time.perf_counter(); pred = run_inference(release, case, threads=cpu_threads); T["inference_5_models"] = time.perf_counter() - t
     wss = pred["wss_pa"]; geom = aux["geom"]; diag = aux["diag"]
     # Extra wall scalar fields (e.g. TAWSS / OSI from a three-head release) ride along with the prediction;
     # everything below treats them generically: descriptor, statistics, npz/csv/vtp arrays and report colouring.

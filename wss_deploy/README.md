@@ -64,6 +64,18 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 
 验收与计时：`training_wss_min/experiments/wss_deploy_timing_20260917/`（分段计时、指标演示、`acceptance_test34/` 34 例回归）。设计与讨论：`docs/02-推进与变更/05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md`。
 
+## v0.16.1（2026-10-01）：B 段只串行 GPU 推理，确认期间预算体场几何——组合上传确认后 13–16 s → 6–8 s，结果不变
+
+起因：审查发现两个工作线程里 B 段被一把锁整段串行（`_stage_b_lock`），而 B 段 90% 以上是 CPU（LV_GUO_YOU：壁面推理 0.55 s / 体场 0.22 s）；09-29 那次体场伴随任务白等了约 4 s。锁注释给的理由「旧 capfit 全局覆盖」自 v0.6 起已不存在（规则作为参数传入）；kNN / 输入复用是线程局部的，模型只做前向。
+
+- **A 锁只包推理**（`jobs.stage_b_lock_mode`，`WSS_DEPLOY_STAGE_B_LOCK=stage` 退回整段串行）：B 段只在入口经过槽位（排空或报告重建持有它时照样挡住新的 B 段），之后计入 `_b_active`；`pipeline.run_inference` 用进程锁串行模型段，显存峰值仍是一个集成；CPU 推理的 `torch.set_num_threads` 移到锁内，避免两个任务互改进程级线程数。后台预计算与报告重建仍让位于运行中的 B 段；排队估计 `eta.queue_wait(serial_b=False)` 改为全部剩余工作的一半。
+- **C 确认期间预算体场几何**（`volume_pipeline.precompute_volume_case`，`WSS_DEPLOY_VOLUME_PRECOMPUTE=0` 关）：带体场伴随任务的上传，网格预计算完成后若仍在等确认，就按**建议映射**算 PF6/VF6 几何（状态 `volume`）。本任务的 B 段不等它；伴随任务继承缓存前只在确认映射与建议相同时等它。体场缓存键里的映射改为按键排序（`apply_mapping` 按图谱分段遍历，几何与映射顺序无关；建议是树序、确认是页面顺序，原来永远对不上）。任务锁只在缓存读写时持有。
+- **B 体场复用形态测量：不需要做**。正常流程下伴随任务已经通过缓存接力复用形态截面（形态 0.01 s）；生产记录里的 1.46 s 来自 10-01 分析重建（代码哈希变了，重算一次）。
+
+实测（LV_GUO_YOU 壁面 + 体场，2 号 GPU，与训练共用）：点确认到两份结果都完成，现状串行 13.1–15.7 s → 只做 A 9.1–11.7 s → A + C 6.2–8.3 s；冷启动无预计算时串行 22.2 s → 并行 15.0 s。几何数组（点、分段、网格、体内点）逐位相同；预测与串行之差和两次串行之间的 GPU 抖动同量级（壁面 WSS ≤ 1.1e-5 Pa，体场压力 ≤ 5e-4 Pa / 1400 Pa），摘要派生块（形态、发现、流线、可信、沿程、体场几何诊断）1e-4 内一致；黄金回归 6/6。
+
+出口命名自动门（同一次审查）：属实，三个发布包都没有经过验证的命名 profile，ingest 方向恒为 `unknown_stl`，每例都停下等确认；这是安全设计，是否用母库 CFD 出口标签做校准待用户决定。
+
 ## v0.16（2026-09-30）：新工作区 `/v2/` 与内容口径（分支 `wss-ui-v2`，待验收）
 
 - **新工作区 `/v2/`**（第三期起是唯一的界面：旧工作台、比较页、旧报告页已下线，旧地址自动跳过来；运维中心 `/ops`、工单 `/support` 保留为独立页面）：
@@ -414,6 +426,8 @@ TLS 由用户拍板；systemd / cron / 备份；tag 部署；中心线抽稀；a
 | `WSS_DEPLOY_WARMUP` | 1 | 预加载后预热推理 |
 | `WSS_DEPLOY_GEOMETRY_CACHE` | 1 | 几何缓存读写 |
 | `WSS_DEPLOY_PRECOMPUTE` | 1 | 确认出口期间后台预计算 |
+| `WSS_DEPLOY_VOLUME_PRECOMPUTE` | 1 | v0.16.1：确认期间按建议映射预算体场伴随任务的几何 |
+| `WSS_DEPLOY_STAGE_B_LOCK` | inference | v0.16.1：`inference` 只串行模型推理；`stage` 整段 B 串行（旧行为） |
 | `WSS_DEPLOY_MORPH_PREFILTER` | 1 | 形态截面按簇预筛 |
 | `WSS_DEPLOY_RELEASE_VERIFY_TTL` | 600 s | 发布包全量校验信任期 |
 | `WSS_DEPLOY_SESSION_IDLE_HOURS` | 12 | 会话空闲超时 |

@@ -289,11 +289,12 @@ def cache_reused_stages(geometry_cache: Mapping[str, Any] | None) -> set[str]:
     return {CACHE_KIND_STAGES[kind] for kind in (reused or ()) if kind in CACHE_KIND_STAGES}
 
 
-def queue_wait(ahead: Iterable[Mapping[str, Any]]) -> float:
+def queue_wait(ahead: Iterable[Mapping[str, Any]], *, serial_b: bool = True) -> float:
     """Seconds until a queued job can start, from the segment work still ahead of it.
 
-    Two workers share the queue; stage B is serialised, stage A is not.  So the wait is at least the stage-B
-    work ahead and at least half of all work ahead.
+    Two workers share the queue.  With ``serial_b`` (``WSS_DEPLOY_STAGE_B_LOCK=stage``) stage B runs one at a
+    time, so the wait is at least the stage-B work ahead and at least half of all work ahead; otherwise (v0.16.1,
+    only the GPU section is serialised) both segments overlap and the wait is half of all work ahead.
     """
     a_work = b_work = 0.0
     for item in ahead:
@@ -302,7 +303,7 @@ def queue_wait(ahead: Iterable[Mapping[str, Any]]) -> float:
             b_work += seconds
         else:
             a_work += seconds
-    return max(b_work, (a_work + b_work) / 2.0)
+    return max(b_work if serial_b else 0.0, (a_work + b_work) / 2.0)
 
 
 def stl_faces(content: bytes) -> int | None:
