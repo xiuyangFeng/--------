@@ -1252,7 +1252,7 @@
     }, {icon: 'snapshot', kind: 'primary'});
     ui().fill(el, h('div', {'class': 'exp-onepage'},
       optRow('配图', h('div', {'class': 'exp-pills exp-plan'}, plan.map(function (t) { return h('span', {'class': 'exp-tag', text: t}); })),
-        '按经典报告的一页纸配图：前视、左视、头侧视、当前视角（截面打开时加截面图），白底 2×、带色条；替换已有配图。复核锁定不影响配图。'),
+        '一页纸配图：前视、左视、头侧视、当前视角（截面打开时加截面图），白底 2×、带色条；替换已有配图。复核锁定不影响配图。'),
       h('div', {'class': 'exp-actions'}, go, open), status, strip));
     return {dispose: function () {}};
   }

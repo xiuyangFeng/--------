@@ -467,10 +467,16 @@
       stageMessage(null);
       applyField(cur.field, cur.window, {save: false});
       applyLighting();
-      if (saved && saved.viewer) { try { v.applyState(Object.assign({}, saved.viewer, {field: cur.field}), {animate: false}); } catch (_) { safeFit(v); } }
+      // the saved reading position loads its fields first (asynchronous): wait for it, so a link applied in onResult
+      // (repro link, classic address) lands after it instead of being overwritten by it
+      var restored = null;
+      if (saved && saved.viewer) { try { restored = v.applyState(Object.assign({}, saved.viewer, {field: cur.field}), {animate: false}); } catch (_) { safeFit(v); } }
       else safeFit(v);
-      if (typeof v.getState === 'function') { try { var ls = v.getState().layers; if (ls) Object.keys(ls).forEach(function (k) { S.layers[k] = ls[k]; }); } catch (_) {} }
-      afterShown(r);
+      return Promise.resolve(restored).then(null, function () { safeFit(v); }).then(function () {
+        if (!store().isLatest(seq) || S.cur !== cur) return;
+        if (typeof v.getState === 'function') { try { var ls = v.getState().layers; if (ls) Object.keys(ls).forEach(function (k) { S.layers[k] = ls[k]; }); } catch (_) {} }
+        afterShown(r);
+      });
     }, function (e) {
       if (!store().isLatest(seq)) return;
       stageMessage('三维显示失败：' + (e && e.message || e) + '。右侧的数字仍可使用。', true);
@@ -1543,7 +1549,7 @@
   }
   function shortcutsDialog() {   // P3 lane 6 (S7): the last note names the keys that changed from the classic pages
     var rows = [['J / K', '下一例 / 上一例'], ['1–9', '切换字段（按工具栏顺序）'], ['← / →', '游标打开时沿血管移动 1 mm，Shift 5 mm'], ['[ / ]', '上一个 / 下一个发现'],
-      ['L', '光照：平涂 / 柔和'], ['B', '保存书签'], ['G', '沿血管游标开关'], ['S', '截面开关（体场结果）'], ['M', '测量开关'],
+      ['L', '光照：平涂 / 柔和'], ['B', '保存书签'], ['G', '沿血管游标开关'], ['S', '截面开关（体场结果）'], ['M', '测量开关'], ['P', '悬停读数开关'], ['0', '复位视角'],
       ['↑ / ↓', '截面打开时沿中心线（或法向）移动 1 mm，Shift 5 mm'], ['← / → · PgUp / PgDn', '截面打开时转动截面 2°，Shift 10°'], ['[ / ]（截面）', '截面打开时改厚度 0.4 mm'], ['Esc', '退出当前工具或关闭对话框'], ['?', '这张表']];
     if (ns.detail) rows.splice(rows.length - 2, 0, ['N', '新建（上传 STL）'], ['/', '搜索病例'], ['O', '打开一页纸']);   // lane D keys
     ui().dialog.open({title: '快捷键', body: [ui().table([{key: 'k', label: '键'}, {key: 'v', label: '作用'}], rows.map(function (r) { return {k: r[0], v: r[1]}; }), {cls: 'tbl-keys'}),
@@ -1819,7 +1825,7 @@
       }
       if (!ns.detail || !ns.detail.metadataDialog) parts.push(ui().section('病例信息', {}, ui().note('改病例名称、患者编号、扫描日期；不影响计算。'), h('div', {'class': 'sec-actions'}, ui().button('编辑信息…', metadataDialog, {cls: 'btn-sm'}))));
     } else {
-      parts.push(ui().note('换模型重跑、技术信息和完整统计在「完整」档。'));
+      parts.push(ui().note('换模型重跑和完整统计在「完整」档。'));
     }
     parts = parts.concat(extCall('tools'));
     ui().fill(body, parts);

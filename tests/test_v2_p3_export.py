@@ -160,7 +160,8 @@ def test_link_state_carries_the_effective_display():
     assert d["cmap"] == "viridis" and d["light"] == "flat" and d["labels"] == {"branches": True, "findings": 5, "maxd": False, "annotations": True}
     assert d["bands"] == {"wss": 0, "tawss": 6, "osi": 8}             # this result's choice, else 「设为默认」, else continuous
     assert d["thr"] == {"wss": [0.4, 4, 7], "tawss": [0.3, 3, 6], "osi": [0.05, 0.15, 0.25]}
-    assert d["units"] == {"pressure": "mmHg", "velocity": "m/s"} and d["layers"]["stagnation"] is True
+    # merged with lane 4: wall stresses have a display unit too (Pa / dyn/cm²)
+    assert d["units"] == {"pressure": "mmHg", "velocity": "m/s", "wss": "Pa"} and d["layers"]["stagnation"] is True
     assert out["wallVolume"] is False and out["volD"]["volume"]["opacity"] == 0.1
     assert out["volD"]["bands"] == {"pressure": 0, "speed": 0} and out["volD"]["thr"] == {}
 
@@ -205,7 +206,8 @@ def test_extension_link_states():
       const notes = await F.applyView(fakeApi({}), {v: 1, x: {contour: {on: false}, gone: {a: 1}}});
       out({x: st.x, seen, notes});
     """)
-    assert out["x"] == {"contour": {"on": True, "levels": [1, 2]}}
+    # merged with lane 4: its real display extension rides along under x.display; the test stub keeps its own slot
+    assert out["x"]["contour"] == {"on": True, "levels": [1, 2]} and set(out["x"]) <= {"contour", "display"}
     assert out["seen"] == [{"on": False}]
     assert out["notes"] == ["链接里有这里没有的显示设置（gone），已跳过"]
 

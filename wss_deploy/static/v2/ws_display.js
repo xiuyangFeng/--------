@@ -422,7 +422,7 @@
       try { values = r.fieldArray(fieldId, 'read'); } catch (_) { values = null; }
       if (values) {
         var fr = thresholdFractions(values, t, above).fractions, sign = [above ? '>' : '<', '>', '>'];
-        parts.push(h('div', { 'class': 'wsd-fracs', title: '预测点等权占比（与经典报告同一口径）' }, t.map(function (x, j) {
+        parts.push(h('div', { 'class': 'wsd-fracs', title: '预测点等权占比' }, t.map(function (x, j) {
           return h('span', { 'class': 'wsd-frac' }, h('span', { 'class': 'wsd-frac-k', text: sign[j] + ' ' + fmtCut(x * k) }), h('b', { text: ui().pct(fr[j]) }));
         })));
       }
@@ -436,7 +436,7 @@
       var lg = h('input', { type: 'checkbox', checked: prefs().opts.speedLog, 'aria-label': '对数色标' });
       lg.addEventListener('change', function () { setOpts({ speedLog: lg.checked }); rerender(['slice']); });
       parts.push(row('对数', h('label', { 'class': 'wsd-check' }, lg, h('span', { text: '速度对数色标' })),
-        '下限 = max(范围下限, 上限 / 200, 0.001 m/s)，与经典体场报告相同；截面的速度色标也跟着换。只改颜色。'));
+        '下限 = max(范围下限, 上限 / 200, 0.001 m/s)；截面的速度色标也跟着换。只改颜色。'));
     }
     var fx = fixedRow(v, r, field, k, shownUnits);
     if (fx) parts.push(fx);
@@ -480,7 +480,7 @@
     });
     return row('上限', h('span', { 'class': 'wsd-thr' }, inp, shownUnits ? h('span', { 'class': 'wsd-unit', text: shownUnits }) : null,
         h('label', { 'class': 'wsd-check' }, keep, h('span', { text: '所有结果' }))),
-      '色标固定为 0 至这个数（经典「固定上限」）；空着就是本例自适应。勾「所有结果」后，以后打开的结果这个字段也从它开始。');
+      '色标固定为 0 至这个数；空着就是本例自适应。勾「所有结果」后，以后打开的结果这个字段也从它开始。');
   }
   function setDefault(fieldId, bands, thresholds) {
     var P = prefs(), e = {};
@@ -522,8 +522,8 @@
     wd.addEventListener('input', function () { wdv.textContent = (+wd.value).toFixed(1) + '×'; setVolume({ width: +wd.value }, true); });
     var dens = ui().select(DENSITY.map(function (d) { return { value: String(d.v), label: d.label }; }), String(V.density), function (x) { setVolume({ density: Number(x) }, true); }, { 'aria-label': '流线密度' });
     ui().fill(body, [
-      row('外壁', h('span', { 'class': 'wsd-range' }, op, opv), '外壁不透明度；经典体场报告默认 0.10。'),
-      row('流线', h('span', { 'class': 'wsd-range' }, h('label', { 'class': 'wsd-check' }, thin, h('span', { text: '细线' })), wd, wdv), '不勾细线时画成管子：半径 = 模型对角线 / 900 × 倍数（经典体场报告的流线）。'),
+      row('外壁', h('span', { 'class': 'wsd-range' }, op, opv), '外壁不透明度，默认 0.10。'),
+      row('流线', h('span', { 'class': 'wsd-range' }, h('label', { 'class': 'wsd-check' }, thin, h('span', { text: '细线' })), wd, wdv), '不勾细线时画成管子：半径 = 模型对角线 / 900 × 倍数。'),
       row('密度', dens)]);
   }
 
@@ -559,7 +559,7 @@
     on.addEventListener('change', function () { setOpts({ top: on.checked }, 'p3'); info.textContent = topText(v); });
     sl.addEventListener('input', function () { val.textContent = fmtCut(+sl.value) + '%'; on.checked = true; setOpts({ topPct: +sl.value, top: true }, 'p3'); info.textContent = topText(v); });
     ui().fill(body, [row('显示', h('label', { 'class': 'wsd-check' }, on, h('span', { text: '品红点' }))),
-      row('比例', h('span', { 'class': 'wsd-range' }, sl, val), '当前字段预测点值排在最高 x% 的点（与经典报告同一算法：排序后取第 ⌈(1 − x%)·n⌉ 个值为门槛）。隐藏的分支不画。'), info]);
+      row('比例', h('span', { 'class': 'wsd-range' }, sl, val), '当前字段预测点值排在最高 x% 的点（排序后取第 ⌈(1 − x%)·n⌉ 个值为门槛）。隐藏的分支不画。'), info]);
   }
 
   // ---- Z cut of wall results (classic 剖切高度, W17): per result, travels with the view state
@@ -579,7 +579,7 @@
     var sl = h('input', { type: 'range', min: '0', max: '100', step: '1', value: String(Math.round(t * 100)), 'aria-label': '剖切高度' });
     var val = h('output', { 'class': 'wsd-val wsd-val-wide', text: clipText(v) });
     sl.addEventListener('input', function () { setClip(v, +sl.value >= 100 ? null : +sl.value / 100); val.textContent = clipText(v); });
-    ui().fill(body, [row('高度', h('span', { 'class': 'wsd-range' }, sl, val), '沿 STL 的 Z 轴只留下切面以下的部分（经典「剖切高度」）；悬停、探针和测量只读留下的部分。只改显示。'),
+    ui().fill(body, [row('高度', h('span', { 'class': 'wsd-range' }, sl, val), '沿 STL 的 Z 轴只留下切面以下的部分；悬停、探针和测量只读留下的部分。只改显示。'),
       h('div', { 'class': 'wsd-foot' }, h('span', { 'class': 'sec-fill' }), ui().button('不剖切', function () { sl.value = '100'; setClip(v, null); val.textContent = clipText(v); }, { kind: 'link', cls: 'btn-sm' }))]);
   }
 
@@ -823,11 +823,11 @@
           h('span', { 'class': 'wsd-classic-v', text: p.name + (p.created_at ? ' · ' + String(p.created_at).slice(0, 10) : '') }),
           U.button('应用', function () { applyPreset(p); }, { cls: 'btn-sm', title: '按这个预设显示当前结果' })));
       });
-      if (!parts.length) parts.push(U.note('服务端没有经典报告存的' + (fam === 'volume' ? '体场' : '壁面') + '预设和默认口径。'));
+      if (!parts.length) parts.push(U.note('服务端没有旧版报告存的' + (fam === 'volume' ? '体场' : '壁面') + '预设和默认口径。'));
       U.fill(body, parts);
     }
     loadServerPrefs().then(render, function (e) { U.fill(body, U.note('读不到服务端偏好：' + (e && e.message || e))); });
-    return [U.section('经典设置', { tag: U.infoTip('经典报告的「预设」和「设为默认口径」存在服务端偏好里。这里读出来：默认口径可以套用到这台电脑的显示设置；预设可以按它显示当前结果。') }, body)];
+    return [U.section('旧版报告的设置', { tag: U.infoTip('旧版报告的「预设」和「设为默认口径」存在服务端偏好里。这里读出来：默认口径可以套用到这台电脑的显示设置；预设可以按它显示当前结果。') }, body)];
   }
 
   // ------------------------------------------------------------------ layers menu, toolbar, keys

@@ -65,16 +65,43 @@
     var mode = (fresh && fresh.login) === 'password' || before.login === 'password' ? 'password' : 'token';
     var dlg = ui.host('ws-relogin', 'dialog', 'ws-dialog ws-relogin');
     var user = h('input', {type: 'text', autocomplete: 'username', 'aria-label': '用户名', value: before.username || ''});
-    var pass = h('input', {type: 'password', autocomplete: mode === 'password' ? 'current-password' : 'off', 'aria-label': mode === 'password' ? '口令' : '访问令牌'});
+    var noun = mode === 'password' ? '口令' : '访问令牌';
+    var pass = h('input', {type: 'password', autocomplete: mode === 'password' ? 'current-password' : 'off', 'aria-label': noun});
     var err = h('p', {'class': 'login-err', role: 'alert', hidden: true});
     var submit = h('button', {type: 'submit', 'class': 'btn btn-primary', text: '登录'});
+    // the same helps as the login page (ws_shell showLogin): show / hide, Caps Lock, the wait a 429 names, 5xx as maintenance
+    var reveal = ui.iconButton('eye', '显示' + noun, function () {
+      var show = pass.type === 'password';
+      pass.type = show ? 'text' : 'password';
+      ui.fill(reveal, ui.icon(show ? 'eye-off' : 'eye'));
+      reveal.setAttribute('aria-label', (show ? '隐藏' : '显示') + noun); reveal.title = (show ? '隐藏' : '显示') + noun;
+      reveal.setAttribute('aria-pressed', String(show));
+      try { pass.focus(); } catch (_) {}
+    }, {cls: 'login-reveal', pressed: false});
+    var caps = h('p', {'class': 'login-caps', role: 'status', hidden: true, text: '大写锁定已打开，' + noun + '区分大小写。'});
+    var capsCheck = function (ev) { caps.hidden = !(ev && typeof ev.getModifierState === 'function' && ev.getModifierState('CapsLock')); };
+    pass.addEventListener('keydown', capsCheck); pass.addEventListener('keyup', capsCheck);
+    pass.addEventListener('blur', function () { caps.hidden = true; });
+    var waitTimer = null;
+    var cooldown = function (seconds) {
+      if (waitTimer) clearInterval(waitTimer);
+      var until = Date.now() + Math.max(1, Math.round(seconds)) * 1000;
+      var paint = function () {
+        var left = Math.ceil((until - Date.now()) / 1000);
+        if (left > 0) { submit.disabled = true; submit.textContent = left + ' 秒后可再试'; err.hidden = false; err.textContent = '尝试过于频繁。（' + left + ' 秒后可再试）'; return; }
+        clearInterval(waitTimer); waitTimer = null; submit.disabled = false; submit.textContent = '登录'; err.hidden = true;
+      };
+      paint();
+      waitTimer = setInterval(paint, 1000);
+      if (waitTimer && waitTimer.unref) waitTimer.unref();
+    };
     var form = h('form', {'class': 'relogin-form'},
       h('div', {'class': 'dlg-head'}, h('h2', {text: '登录已过期'})),
       h('div', {'class': 'dlg-body'},
         h('p', {'class': 'note', text: '页面和对话框里的内容都还在，登录后继续。'}),
         mode === 'password' ? h('label', {'class': 'fld'}, h('span', {text: '用户名'}), user) : null,
-        h('label', {'class': 'fld'}, h('span', {text: mode === 'password' ? '口令' : '访问令牌'}), pass),
-        err),
+        h('label', {'class': 'fld'}, h('span', {text: noun}), h('span', {'class': 'login-secret'}, pass, reveal)),
+        caps, err),
       h('div', {'class': 'dlg-foot'}, h('a', {'class': 'lnk relogin-other', href: '/v2/', text: '换个账号'}), h('span', {'class': 'sec-fill'}), submit));
     form.addEventListener('submit', function (ev) {
       if (ev && ev.preventDefault) ev.preventDefault();
@@ -91,9 +118,11 @@
         if (ns.admin && ns.admin.resumed) ns.admin.resumed();
         ui.toast('已重新登录。刚才没有完成的操作，请再点一次。', {kind: 'ok'});
       }, function (e) {
+        if (e.status === 429) { var after = Number(e.body && e.body.retry_after); cooldown(isFinite(after) && after > 0 ? Math.ceil(after) : 60); return; }
         submit.disabled = false; err.hidden = false;
-        err.textContent = e.status === 401 ? '用户名或口令不正确（区分大小写）。' : e.status === 429 ? '尝试过于频繁，请一分钟后再试。' : e.message;
-        try { pass.focus(); if (pass.select) pass.select(); } catch (_) {}
+        err.textContent = e.status === 401 ? (mode === 'password' ? '用户名或口令不正确（区分大小写）。' : '访问令牌不正确。')
+          : e.status === 502 || e.status === 503 || e.status === 504 ? '服务正在启动或维护，请稍后再试。' : e.message;
+        if (e.status === 401) { try { pass.focus(); if (pass.select) pass.select(); } catch (_) {} }
       });
     });
     ui.fill(dlg, form);
@@ -129,7 +158,9 @@
       }
       return startApp(s);
     }, function (e) {
-      fatal('暂时连不上服务：' + (e && e.message || e) + ' 已保存的结果不会丢失。');
+      var st = e && e.status;
+      fatal(st === 502 || st === 503 || st === 504 ? '服务正在启动或维护，请稍后再试。已保存的结果不会丢失。'
+        : '暂时连不上服务：' + (e && e.message || e) + ' 已保存的结果不会丢失。');
       return null;
     });
   }

@@ -576,7 +576,9 @@ def test_a_classic_report_link_opens_the_result_in_the_workspace(tmp_path):
     assert out["field"] == "tawss" and out["win"] == "adaptive-linear"
     assert "GET /api/v2/jobs/A/manifest" in out["calls"]
     assert out["applyStates"] >= 1                                                  # camera / shown branches through the viewer
-    assert "已按旧版链接打开" in out["toast"] and "分段色带" in out["toast"] and "另一次计算" in out["toast"]
+    assert "已按旧版链接打开" in out["toast"] and "另一次计算" in out["toast"]
+    # merged with lane 5: the repro state has a display block, so the classic bands travel in `d` (not listed as dropped)
+    assert "分段色带" not in out["toast"]
 
 
 # ----------------------------------------------------------------------------------------------- shell entries
@@ -643,16 +645,11 @@ def test_no_workspace_source_links_a_classic_page():
             line = re.sub(r"(^|\s)//.*$", "", line)
             if pattern.search(line):
                 offenders.setdefault(path.name, []).append(number)
-    # phase 3 lane 1 removes the input page's 「在经典工作台中处理」 (ws_shell.js showInput) and lane 2 the login footer
-    # link (showLogin); both are theirs to delete (PHASE3_LANES.md §2).  Nothing else may remain.
-    allowed = {"ws_shell.js"}
-    assert set(offenders) <= allowed, offenders
-    shell = (V2 / "ws_shell.js").read_text(encoding="utf-8").splitlines()
-    for number in offenders.get("ws_shell.js", []):
-        line = shell[number - 1]
-        assert "在经典工作台中处理" in line or "login-foot" in line, (number, line)
+    # after the phase-3 merge the input page's 「在经典工作台中处理」 (lane 1) and the login footer link (lane 2) are gone
+    # too: no workspace source may name a retired page
+    assert offenders == {}, offenders
     api = (V2 / "ws_api.js").read_text(encoding="utf-8")
-    assert "report: function" not in api and "classic: function (id) { return id ? '/v2/#/job/'" in api
+    assert "report: function" not in api and "classic: function" not in api        # both classic URL helpers are gone
     assert "经典" not in (V2 / "ws_main.js").read_text(encoding="utf-8").split("*/", 1)[1]
     assert "经典" not in (V2 / "index.html").read_text(encoding="utf-8") and "经典" not in (V2 / "help_quickstart.html").read_text(encoding="utf-8")
 

@@ -125,7 +125,7 @@
     input.value = note;
     input.addEventListener('change', function () { if (ctx.onNote) ctx.onNote(input.value); });
     var foot = h('div', { 'class': 'dec-foot' },
-      h('span', { 'class': 'muted', text: !ctx.editable ? (ctx.lockedText || '只读') : ctx.status || (it.manual ? '人工发现 · 判定和备注自动保存' : '判定和备注自动保存，与经典报告同一份') }),
+      h('span', { 'class': 'muted', text: !ctx.editable ? (ctx.lockedText || '只读') : ctx.status || (it.manual ? '人工发现 · 判定和备注自动保存' : '判定和备注自动保存') }),
       h('span', { 'class': 'sec-fill' }),
       it.manual && ctx.editable && ctx.onRemove ? ui.button('删除这条人工发现', ctx.onRemove, { kind: 'link', cls: 'btn-sm' }) : null);
     return h('section', { 'class': 'sec sec-decision' }, h('div', { 'class': 'sec-head' }, h('h3', { 'class': 'sec-title', text: '判定' }), it.manual ? h('span', { 'class': 'tag tag-manual', text: '人工' }) : null), seg, input, foot);

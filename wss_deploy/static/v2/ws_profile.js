@@ -30,18 +30,20 @@
     var c = (m && m.analysis && m.analysis.cycle && m.analysis.cycle.stagnation && m.analysis.cycle.stagnation.criteria) || {};
     return {t: Number.isFinite(+c.tawss_lt_pa) ? +c.tawss_lt_pa : 0.4, o: Number.isFinite(+c.osi_gt) ? +c.osi_gt : 0.1};
   }
-  function wssTitle() { var c = common(); return (c && c.englishLabel ? c.englishLabel('wss_short', 'zh') : 'WSS') + ' · Pa'; }
+  function wssTitle(units) { var c = common(); return (c && c.englishLabel ? c.englishLabel('wss_short', 'zh') : 'WSS') + ' · ' + (units || 'Pa'); }
 
   // What the curve shows for the coloured field: {id, label, units, primary, secondary, band, hlines, missing}.
   // primary / secondary: {key, name, get(branch) → array}; the band spans the two.
   function spec(m, fieldId) {
     var sp = rawSpec(m, fieldId), cv = ns.display && ns.display.toDisplay;
-    if (!sp || !cv || !(m && m.result && m.result.family === 'volume')) return sp;
-    // volume curves in the display unit of the colour-scale panel (ws_display: Pa / mmHg, m/s / cm/s)
-    var k = cv(1, sp.units, 'volume');
+    if (!sp || !cv) return sp;
+    // curves in the display unit of the colour-scale panel (ws_display: volume Pa / mmHg, m/s / cm/s; wall stresses
+    // Pa / dyn/cm²); RRT / ECAP (1/Pa) and OSI keep theirs
+    var k = cv(1, sp.units, m && m.result && m.result.family === 'volume' ? 'volume' : 'wall');
     if (k.units === sp.units) return sp;
     var scaled = function (s) { return {key: s.key, name: s.name, get: function (b) { return s.get(b).map(function (v) { return v * k.value; }); }}; };
-    return Object.assign({}, sp, {units: k.units, primary: scaled(sp.primary), secondary: scaled(sp.secondary)});
+    return Object.assign({}, sp, {units: k.units, primary: scaled(sp.primary), secondary: scaled(sp.secondary),
+      hlines: (sp.hlines || []).map(function (l) { return Object.assign({}, l, {v: l.v * k.value}); })});
   }
   function rawSpec(m, fieldId) {
     var volume = m && m.result && m.result.family === 'volume';
@@ -159,7 +161,7 @@
       hline(sp.label + ' ' + trim3(sp.hlines[0].v) + (sp.units === '1/Pa' ? ' Pa⁻¹' : ''), sp.hlines[0].v, '#8aa0b5');
     }
     var kept = series.filter(function (s) { return s.y.some(Number.isFinite); });
-    var yTitle = sp.id === 'wss' ? wssTitle() : sp.id === 'osi' ? 'OSI' : sp.units === '1/Pa' ? sp.label + ' · Pa⁻¹' : sp.label + ' · ' + sp.units;
+    var yTitle = sp.id === 'wss' ? wssTitle(sp.units) : sp.id === 'osi' ? 'OSI' : sp.units === '1/Pa' ? sp.label + ' · Pa⁻¹' : sp.label + ' · ' + sp.units;
     var xLabel = '距入口弧长 (mm)', safe = c.safeName || function (x) { return String(x); };
     var stem = safe(caseName) + '_profile_' + safe(name);
     var out = [{key: sp.id, branch: name, filename: stem + '_' + sp.id + '.svg', svg: c.profileSVG({series: kept, xLabel: xLabel, yLabel: yTitle, title: caseName + ' · ' + name + ' · ' + yTitle})}];

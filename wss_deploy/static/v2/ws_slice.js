@@ -878,7 +878,7 @@
           title: session.branchName(p.segment) + ' ' + fmt(p.s_mm) + ' mm' + (p.nearEnd ? '（端部内侧）' : '') + '，垂直中心线' });
         b.addEventListener('click', function () { session.goStation(p); });
         return b;
-      }), ui.infoTip ? ui.infoTip('经典体场报告的自动截面：每条分支在 5 / 20 / 40 / 60 / 80 / 95 % 弧长处垂直中心线各取一个。') : null);
+      }), ui.infoTip ? ui.infoTip('自动截面：每条分支在 5 / 20 / 40 / 60 / 80 / 95 % 弧长处垂直中心线各取一个。') : null);
     }
     function kpi(label, value, units, sub) {
       return h('div', { 'class': 'kpi kpi-static' }, h('span', { 'class': 'kpi-label', text: label }),
@@ -988,7 +988,7 @@
           kpi('体内点', R.count, null, fmt(R.lo_mm) + '–' + fmt(R.hi_mm) + ' mm')),
         R.speed ? row('速度', R.speed.count ? '均值 ' + fmtQ(R.speed.mean, 'speed') + ' · 最大 ' + fmtQ(R.speed.max, 'speed') + ' ' + uV : '—') : null,
         R.pressure ? row('压力', R.pressure.count ? '均值 ' + fmtQ(R.pressure.mean, 'pressure') + ' · 最低 ' + fmtQ(R.pressure.min, 'pressure') + ' ' + uP : '—',
-          '压差 = 这一段近端 10% 弧长内的点的平均相对压力 − 远端 10% 内的平均；统计按预测点等权，与经典报告「区域统计」相同。三维里绿色点是这一段的体内点，绿圈是两端的截面。') : null]);
+          '压差 = 这一段近端 10% 弧长内的点的平均相对压力 − 远端 10% 内的平均；统计按预测点等权。三维里绿色点是这一段的体内点，绿圈是两端的截面。') : null]);
     }
     function cutBody(st) {
       var pick = st.basis === 'pick';
@@ -1047,7 +1047,7 @@
         '每个体内点代表离它最近的那部分截面面积（截到管腔轮廓为止），再按面积加权平均；流量 = 平均穿面速度 × 截面面积。'));
       var sq = comp.field === 'velocity' ? 'speed' : 'pressure';
       list.push(row('按点统计', S.count ? '均值 ' + fmtQ(S.mean, sq) + ' · p99 ' + fmtQ(S.p99, sq) + ' · 最大 ' + fmtQ(S.max, sq) + ' ' + shownUnit(sq).units : '厚度内没有点',
-        '厚度内全部体内预测点等权统计（' + S.count + ' 点），与经典报告截面页的统计相同。' + (comp.field === 'velocity' ? '这里统计的是速度大小。' : '')));
+        '厚度内全部体内预测点等权统计（' + S.count + ' 点）。' + (comp.field === 'velocity' ? '这里统计的是速度大小。' : '')));
       ui.fill(rows, list);
       var o = comp.outlineState;
       outlineNote.textContent = o === 'synthetic' ? '截面经过血管开口，轮廓缺口按直线封闭（虚线）。' : o === 'open' ? '轮廓不闭合，不算面积和积分。' : o === 'none' ? '这里没有切到管壁轮廓（截面可能越过了血管末端）。' : '';

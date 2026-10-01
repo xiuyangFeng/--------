@@ -215,7 +215,7 @@
       ui.fill(outBox, R ? [h('p', { 'class': 'region-label', text: R.label }),
         h('div', { 'class': 'kpis' }, kpi((ctx.fieldLabel ? ctx.fieldLabel() : '') + ' 均值', sc(R.stats.mean), units), kpi('p99', sc(R.stats.p99), units), kpi('最大', sc(R.stats.max), units),
           kpi('区域面积', R.area_mm2 / 100, 'cm²', R.stats.count + ' 个预测点')),
-        ui.note('均值、p99、最大按区域里的预测点等权统计（与经典报告相同），跟着当前字段换；面积是显示网格落在区域里的面积。')]
+        ui.note('均值、p99、最大按区域里的预测点等权统计，跟着当前字段换；面积是显示网格落在区域里的面积。')]
         : ui.note(st.mode === 'sphere' ? '在管壁上点一下选区域中心。' : '这条分支没有可用的预测点。'));
     }
     ui.fill(body, ui.section('区域统计', { cls: 'sec-region', actions: [ui.iconButton('close', '关闭区域统计', ctx.onClose)] }, ctrlBox, outBox));

@@ -146,6 +146,7 @@
   // Volume pressures and speeds in the display unit chosen on the colour-scale panel (ws_display); raw without it.
   var VOLUME_KINDS = {max_speed: 1, min_pressure: 1, pressure_drop: 1, low_speed_region: 1};
   function qty(value, units, family) { var cv = ns.display && ns.display.toDisplay; return cv ? cv(value, units, family) : {value: value, units: units}; }
+  function famOf(m) { return m && m.result && m.result.family; }
   function findingValue(item) {
     if (!item) return '—';
     if (item.manual) return item.text && item.text.length > 14 ? item.text.slice(0, 13) + '…' : (item.text || '');
@@ -631,7 +632,7 @@
       return {key: c.key, label: c.label, num: true, render: function (r) {
         var v = r.stats[c.key];
         if (v === undefined || v === null) return '—';
-        var text = c.pct ? ui().pct(v) : c.area ? ui().sig(Number(v) / 100) : ui().sig(v);
+        var text = c.pct ? ui().pct(v) : c.area ? ui().sig(Number(v) / 100) : ui().sig(qty(v, c.units, famOf(m)).value);   // dyn/cm² when chosen
         return ui().evidence(text, lens ? function () {
           lens({kind: 'branch', name: r.name, field: bt.field, stat: c.key, value: c.area ? Number(v) / 100 : v, units: c.pct ? null : c.area ? 'cm²' : c.units, pct: Boolean(c.pct),
             label: bt.label + ' ' + (c.pct ? (c.side === 'low' ? '低于 ' : '高于 ') + ui().trim(c.threshold) + ' 的占比' : c.area ? '分支面积（估计）' : c.label), n: r.stats.n_points, area_mm2: r.stats.area_mm2});
@@ -644,7 +645,7 @@
       tr.addEventListener('mouseleave', function () { onZone(null); });
     } : null});
     return h('div', {'class': 'branch-block'}, h('div', {'class': 'sub-head'}, h('span', {'class': 'sub-title', text: '逐分支 · ' + bt.label}),
-      bt.units && bt.units !== '1' ? h('span', {'class': 'sec-unit', text: ui().unitText ? ui().unitText(bt.units) : bt.units}) : null,
+      bt.units && bt.units !== '1' ? h('span', {'class': 'sec-unit', text: ui().unitText ? ui().unitText(qty(1, bt.units, famOf(m)).units) : bt.units}) : null,
       ui().infoTip('分支内全部预测点等权统计；占比是点占比；面积 = 点占比 × 输入壁面面积（估计）。跟随当前显示的字段。')), tbl);
   }
   // Small line chart per follow-up quantity (P3 lane 3: one line per release, time-scaled x when every scan has a
@@ -801,7 +802,7 @@
       if (!zs.zones.some(function (z) { return zoneValue(z, metric) !== null; })) metric = metrics.filter(function (x) { return zs.zones.some(function (z) { return zoneValue(z, x) !== null; }); })[0] || metric;
       var fsz = metric.pct ? null : (ctx.fieldScale ? ctx.fieldScale(metric.field) : null);
       var colorOf = metric.pct ? fracColor : function (v) { return fsz ? fsz.color(v) : '#8a94a3'; };
-      var fmt = metric.pct ? function (v) { return ui().pct(v); } : function (v) { return ui().sig(v); };
+      var fmt = metric.pct ? function (v) { return ui().pct(v); } : function (v) { return ui().sig(qty(v, metric.units, famOf(m)).value); };   // colours stay on the stored values
       var pills = h('div', {'class': 'pills', role: 'tablist', 'aria-label': '分区着色'});
       metrics.forEach(function (x) {
         var b = h('button', {type: 'button', role: 'tab', 'class': 'pill' + (x.id === metric.id ? ' on' : ''), 'aria-selected': String(x.id === metric.id), text: x.label});
@@ -819,7 +820,7 @@
         }
       });
       if (svgEl) mapBox.appendChild(svgEl);
-      var unitNote = metric.pct ? '' : ui().unitText ? ui().unitText(metric.units) : '';
+      var unitNote = metric.pct ? '' : ui().unitText ? ui().unitText(qty(1, metric.units, famOf(m)).units) : '';
       var tipText = (zs.definition || '') + '悬停一个分区，血管上会标出它；点一下看这个数的来源。前面观：屏幕左侧是患者右侧。';
       var strip = morphStrip(m, lens);
       var morph = strip ? '' : morphLine(m);
@@ -1022,9 +1023,10 @@
     var zm = zonesModel(m);
     if (!zm) return null;
     var cols = [{key: 'label', label: '分区', render: function (r) { return r.zone.label || r.zone.id; }}].concat(zm.columns.map(function (c, i) {
-      return {key: 'c' + i, label: c.label + (c.units && !c.pct && c.units !== '1' ? ' ' + c.units : ''), num: true, render: function (r) {
+      var cu = c.units && !c.pct ? qty(1, c.units, famOf(m)).units : c.units;
+      return {key: 'c' + i, label: c.label + (cu && !c.pct && cu !== '1' ? ' ' + cu : ''), num: true, render: function (r) {
         var cell = r.cells[i];
-        var text = c.pct ? ui().pct(cell.value) : ui().num(cell.value, null);
+        var text = c.pct ? ui().pct(cell.value) : ui().num(c.units ? qty(cell.value, c.units, famOf(m)).value : cell.value, null);
         return ui().evidence(text, lens && cell.value !== undefined && cell.value !== null ? function () { lens({kind: 'zone', zone: r.zone, field: c.field, stat: c.stat, value: cell.value, units: c.pct ? null : c.units, pct: Boolean(c.pct), label: c.label}); } : null);
       }};
     }));

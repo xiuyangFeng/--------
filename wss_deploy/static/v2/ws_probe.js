@@ -324,7 +324,7 @@
       })));
     return ui.section('探针记录', { tag: h('span', { 'class': 'badge', text: String(rows.length) }), actions: [
       ui.button('复制 TSV', ctx.onCopy, { kind: 'link', cls: 'btn-sm' }), ui.button('导出 CSV', ctx.onCsv, { kind: 'link', cls: 'btn-sm' }), ui.button('清空', ctx.onClear, { kind: 'link', cls: 'btn-sm' })] },
-      h('div', { 'class': 'tscroll' }, table), ui.note('表里只列一两个数；复制或导出的文件含全部字段和截面读数，格式与经典报告相同。'));
+      h('div', { 'class': 'tscroll' }, table), ui.note('表里只列一两个数；复制或导出的文件含全部字段和截面读数，格式与以前导出的探针记录相同。'));
   }
 
   // ------------------------------------------------------------------ hover readout (phase 3 lane 4: W41, V17)
