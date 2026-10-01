@@ -174,7 +174,17 @@
     E.topNote = h('span', {'class': 'top-note'});
     E.topRight = h('div', {'class': 'top-right'});
     var brand = h('span', {'class': 'brand'}, ns.icons ? ns.icons.icon('logo', {size: 18}) : null, h('span', {'class': 'mark', text: 'WSS'}));
-    E.top = h('header', {'class': 'ws-top'}, h('div', {'class': 'top-left'}, brand, E.topCase, E.topNote), E.topRight);
+    // 10-01: with a case open, a back button returns to the workbench page it was opened from (首页 / 任务 / 队列 / 回收站,
+    // filters kept); the brand goes to the home.  Neither exists in the offline report (no workbench there).
+    E.topBackText = h('span', {'class': 'top-back-text'});
+    E.topBack = h('button', {type: 'button', 'class': 'top-back', hidden: true}, ui().icon('chevron-left', {size: 16}), E.topBackText);
+    E.topBack.addEventListener('click', function () { goBack(); });
+    if (!S.offline) {
+      brand.className = 'brand is-link'; brand.setAttribute('role', 'link'); brand.setAttribute('tabindex', '0'); brand.setAttribute('title', '回到工作台首页');
+      brand.addEventListener('click', function () { root.location.hash = '#/'; });
+      brand.addEventListener('keydown', function (e) { if (e.key === 'Enter') root.location.hash = '#/'; });
+    }
+    E.top = h('header', {'class': 'ws-top'}, h('div', {'class': 'top-left'}, brand, E.topBack, E.topCase, E.topNote), E.topRight);
     E.rail = h('aside', {'class': 'ws-rail', 'aria-label': '病例'});
     E.toolbar = h('div', {'class': 'ws-toolbar', role: 'toolbar', 'aria-label': '视图工具'});
     E.qbar = h('div', {'class': 'ws-qbar', hidden: true});
@@ -309,6 +319,18 @@
     else E.home.replaceChildren(ui().empty('离线报告没有病例列表。'));
     renderTop();
   }
+  // The workbench page a case was opened from (route() records it) and the back button that returns to it.
+  var BACK_LABEL = {'#/tasks': '返回任务列表', '#/cohort': '返回队列', '#/trash': '返回回收站'};
+  function backTarget() { return S && S.homeHash && /^#\/[a-z-]*$/.test(S.homeHash) ? S.homeHash : '#/'; }
+  function goBack() { root.location.hash = backTarget(); }
+  function updateBack(mode) {
+    var b = S.els.topBack;
+    if (!b) return;
+    b.hidden = mode === 'home' || Boolean(S.offline);
+    var label = BACK_LABEL[backTarget()] || '返回工作台';
+    S.els.topBackText.textContent = label;
+    b.setAttribute('aria-label', label); b.title = label;
+  }
   function showMode(mode) {
     var E = S.els;
     E.home.hidden = mode !== 'home';
@@ -321,6 +343,7 @@
     E.inputHost.hidden = mode !== 'input';
     S.els.body.classList.toggle('is-home', mode === 'home');
     S.mode = mode;
+    updateBack(mode);
   }
   function go(jobId, extra) {
     var r = Object.assign({jobId: jobId}, extra || {});
@@ -341,6 +364,7 @@
     var r = parseHash(root.location.hash);
     if (S.offline) return;
     var page = /^#\/([a-z][a-z0-9-]{1,30})\/?$/.exec(root.location.hash || '');   // #/trash, #/cohort … : a page of an extension
+    if (!r.jobId) S.homeHash = page && page[1] !== 'job' ? '#/' + page[1] : '#/';   // where the back button returns to
     if (!r.jobId && page && page[1] !== 'job') {
       closeCurrent(); showMode('home'); if (S.rail) S.rail.setCurrent(null);
       if (extHandled('page', page[1], S.els.home)) { renderTop(); return; }
