@@ -21,6 +21,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import threading
 from collections import OrderedDict
 from pathlib import Path
@@ -631,6 +632,23 @@ def _findings(summary: dict, meta: dict) -> dict:
     return findings
 
 
+def _tech_provenance(meta: dict, record: dict) -> dict:
+    """Model family and size, the summary's creation time with the offset hint the classic wall report borrows (the
+    first ISO stamp with an offset in summary.audit.mapping_history), the report rebuild time and the GPU — as the classic
+    技术信息 popover shows them (report.py renderTech, volume_viewer.js techRows)."""
+    model_release = _dict(meta.get("model_release"))
+    models = model_release.get("models") if isinstance(model_release.get("models"), list) else model_release.get("weights")
+    history = _dict(meta.get("audit")).get("mapping_history")
+    if not isinstance(history, list):
+        history = record.get("mapping_history")
+    hint = next((str(item.get("at")) for item in (history if isinstance(history, list) else [])
+                 if isinstance(item, dict) and re.search(r"([+-]\d{2}:\d{2}|Z)$", str(item.get("at") or ""))), None)
+    return {"model_family": model_release.get("model_family") or model_release.get("family"),
+            "n_models": len(models) if isinstance(models, list) and models else None,
+            "created_at": meta.get("created_at"), "time_hint": hint,
+            "report_rebuilt_at": _dict(meta.get("audit")).get("report_rebuilt_at"), "gpu": meta.get("gpu")}
+
+
 def _display_name(record: dict) -> str:
     for key in ("display_name", "patient_id", "case_id"):
         value = record.get(key)
@@ -708,10 +726,12 @@ def build_manifest(data: JobData, record: dict, *, card: dict | None = None, com
                      "flags": list(meta.get("flags") or [])},
         "model_card": card if isinstance(card, dict) else None,
         "provenance": {"release_hash": meta.get("release_hash"), "release_fingerprint": release.get("fingerprint"),
-                       "model_release": {k: model_release.get(k) for k in ("name", "release", "frozen_on", "git_commit", "target") if model_release.get(k) is not None},
+                       "model_release": {k: model_release.get(k) for k in ("name", "release", "frozen_on", "git_commit", "target", "registry_id") if model_release.get(k) is not None},
                        "feature_contract": _dict(meta.get("feature_contract")), "git_describe": meta.get("git_describe"),
                        "code_source_hash": meta.get("code_source_hash"), "timing_s": _dict(meta.get("timing_s")),
-                       "interpolation": interpolation, "device": meta.get("device"), "report_schema": meta.get("schema_version")},
+                       "interpolation": interpolation, "device": meta.get("device"), "report_schema": meta.get("schema_version"),
+                       # phase 3 lane 3 (W62): the rest of the classic 技术信息 popover (report.py renderTech)
+                       **_tech_provenance(meta, record)},
         "reserved": {"time_series": None},
     }
     return manifest

@@ -145,6 +145,49 @@
     return dlg;
   }
 
+  // ------------------------------------------------------------------ P3 lane 3 (#82): facts above the sign-off
+  // The classic workbench's reviewChecklist (app.js) item by item: outlet naming source and confidence, result quality,
+  // geometry reference range, and 「需要注意」 = the title of WssWorkbenchCore.alertModel (ported here; that file goes
+  // with the classic workbench).  Quality words only — never the ensemble's dispersion numbers.
+  function obj(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
+  function numOrNull(v) { if (v === null || v === undefined || v === '' || typeof v === 'boolean') return null; var n = Number(v); return Number.isFinite(n) ? n : null; }
+  function fmt(v, d) { var n = numOrNull(v); return n === null ? '—' : n.toFixed(d === undefined ? 1 : d); }
+  function alertTitle(manifest) {
+    var a = obj(manifest && manifest.analysis), ref = obj(a.reference_assessment), q = obj(a.quality);
+    var outside = (Array.isArray(ref.checks) ? ref.checks : []).filter(function (c) { return c && typeof c === 'object' && c.status === 'review'; });
+    var refCount = outside.length;
+    if (ref.status === 'review' && !outside.length) refCount = (Array.isArray(ref.reasons) ? ref.reasons : []).filter(function (r) { return typeof r === 'string' && r.trim(); }).length;
+    var qualityAlert = Boolean(q.level && q.level !== 'good');
+    var parts = [];
+    if (refCount) parts.push(outside.length ? outside.length + ' 项几何测量超出模型训练范围' : '几何测量超出模型训练范围');
+    if (qualityAlert) parts.push(q.level === 'poor' ? '模型集成离散度较高' : '模型集成存在不确定性');
+    return parts.length ? parts.join('，') + '，结果需要复核。' : null;
+  }
+  function checklistModel(manifest, job) {
+    var a = obj(manifest && manifest.analysis), items = [];
+    var hist = job && Array.isArray(job.mapping_history) ? job.mapping_history : [];
+    var mapping = hist.length ? hist[hist.length - 1] : null;
+    items.push(['出口命名', mapping && mapping.source === 'automatic_high_confidence' ? '自动确认（置信度 ' + fmt(Number(mapping.confidence) * 100, 1) + '%）' : mapping ? '已人工确认' : '—']);
+    var q = a.quality && typeof a.quality === 'object' && Object.keys(a.quality).length ? a.quality : null;
+    if (q) items.push(['结果质量', q.level === 'good' || q.label === '模型集成稳定' ? '多模型一致（一致不代表准确）' : (q.label || q.level || '未评估')]);
+    var ref = obj(a.reference_assessment);
+    items.push(['几何参考范围', ref.status === 'pass' ? '在参考范围内' : ref.status === 'review' ? '有超出范围的测量，请看结果页提示' : '当前发布包未配置']);
+    var alert = alertTitle(manifest);
+    if (alert) items.push(['需要注意', alert]);
+    return items;
+  }
+  // ui = ns.ui → the facts as a definition list (the sign-off dialog's first block)
+  function checklist(ui, manifest, job) {
+    var h = ui.h, items = checklistModel(manifest, job), dl = h('dl', { 'class': 'review-facts' });
+    items.forEach(function (it) {
+      var warn = it[0] === '需要注意' || (it[0] === '几何参考范围' && /超出/.test(it[1])) || (it[0] === '结果质量' && !/多模型一致/.test(it[1]));
+      dl.appendChild(h('dt', { text: it[0] }));
+      dl.appendChild(h('dd', { 'class': warn ? 'warn-text' : null, text: it[1] }));
+    });
+    return dl;
+  }
+
   return { LIMIT: LIMIT, docOf: docOf, decisionOf: decisionOf, noteOf: noteOf, setDecision: setDecision, setNote: setNote, confirmRest: confirmRest,
-    addManual: addManual, removeManual: removeManual, manualItem: manualItem, nextManualId: nextManualId, saver: saver, bar: bar, addDialog: addDialog };
+    addManual: addManual, removeManual: removeManual, manualItem: manualItem, nextManualId: nextManualId, saver: saver, bar: bar, addDialog: addDialog,
+    alertTitle: alertTitle, checklistModel: checklistModel, checklist: checklist };
 });

@@ -86,7 +86,7 @@
     var rows = [];
     var max = a.max || {};
     if (max.max_diameter_mm !== undefined) rows.push({key: 'max_diameter', label: '管腔最大直径', value: max.max_diameter_mm, units: 'mm',
-      sub: max.s_from_root_mm !== undefined ? '入口下 ' + ui().sig(max.s_from_root_mm) + ' mm' : '', definition: '中心线每 1 mm 一站取截面，环上最大 Feret 直径；只含管腔，不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径。'});
+      sub: max.s_from_root_mm !== undefined ? '入口下 ' + ui().sig(max.s_from_root_mm) + ' mm' : '', definition: termText('max_diameter', '中心线每 1 mm 一站取截面，环上最大 Feret 直径；只含管腔，不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径。')});
     var sac = a.sac || {};
     if (sac.present) rows.push({key: 'sac', label: '瘤体', value: sac.length_mm, units: 'mm', prefix: '长 ',
       sub: sac.volume_ml !== undefined ? '体积 ' + ui().num(sac.volume_ml, 'mL') : '', definition: '等效直径 ≥ 1.5 × 参考直径的连续区段；按管腔判定。'});
@@ -162,35 +162,139 @@
     var zh = Array.isArray(n.zh) ? n.zh.filter(function (s) { return typeof s === 'string' && s.trim() && !DISCLAIMER.test(s); }) : [];
     return zh.length ? {edited: false, sentences: zh} : null;
   }
+  // Follow-up (U17; P3 lane 3 #103: sac-volume growth, the most recent interval, every release's curve).  Model
+  // quantities connect within one release only (timeline.py); the current release's metric comes first.
+  var FU_METRICS = [['tawss_mean_pa', 'TAWSS 均值', 'Pa'], ['wss_p99_pa', 'WSS p99', 'Pa'], ['speed_p99_m_s', '速度 p99', 'm/s']];
+  function fuNum(v) { if (v === null || v === undefined || v === '' || typeof v === 'boolean') return null; var n = Number(v); return Number.isFinite(n) ? n : null; }
+  // classic WssWorkbenchCore.timelineModel growthOf: {perYear, delta, days, from, to}
+  function growthOf(block) {
+    if (!block || typeof block !== 'object') return null;
+    var perYear = fuNum(block.per_year);
+    if (perYear === null) return null;
+    return {perYear: perYear, delta: fuNum(block.delta), days: fuNum(block.days), from: block.from && typeof block.from === 'object' ? block.from.date || '' : '',
+      to: block.to && typeof block.to === 'object' ? block.to.date || '' : ''};
+  }
   function followupModel(timeline, releaseId) {
     if (!timeline || !Array.isArray(timeline.scans) || timeline.scans.length < 2) return null;
     var metricKey = null, metricLabel = '', metricUnits = '';
-    var candidates = [['tawss_mean_pa', 'TAWSS 均值', 'Pa'], ['wss_p99_pa', 'WSS p99', 'Pa'], ['speed_p99_m_s', '速度 p99', 'm/s']];
-    for (var i = 0; i < candidates.length && !metricKey; i++) {
-      var key = candidates[i][0];
-      if (timeline.scans.some(function (s) { return s.models && s.models[releaseId] && s.models[releaseId][key] !== undefined; })) { metricKey = key; metricLabel = candidates[i][1]; metricUnits = candidates[i][2]; }
+    for (var i = 0; i < FU_METRICS.length && !metricKey; i++) {
+      var key = FU_METRICS[i][0];
+      if (timeline.scans.some(function (s) { return s.models && s.models[releaseId] && s.models[releaseId][key] !== undefined; })) { metricKey = key; metricLabel = FU_METRICS[i][1]; metricUnits = FU_METRICS[i][2]; }
     }
+    // releases in the order they appear (classic timelineModel), labelled by the timeline's family label
+    var releases = [];
+    var addRelease = function (id, label, family) {
+      if (!id || releases.some(function (r) { return r.id === id; })) return;
+      releases.push({id: id, label: label || id, family: family || null, current: id === releaseId});
+    };
+    timeline.scans.forEach(function (s) {
+      (Array.isArray(s.jobs) ? s.jobs : []).forEach(function (j) { if (j && typeof j === 'object') addRelease(j.release_id, j.release_label, j.family); });
+      Object.keys((s.models && typeof s.models === 'object') ? s.models : {}).forEach(function (id) { addRelease(id, null, null); });
+    });
     var rows = timeline.scans.map(function (s) {
       var g = s.geometry || {};
       var m = (s.models && s.models[releaseId]) || {};
       var jobs = Array.isArray(s.jobs) ? s.jobs.filter(function (j) { return j && j.job_id; }) : [];
       var own = jobs.filter(function (j) { return j.release_id === releaseId; })[0] || jobs[0] || null;
-      return {date: s.date || '', label: s.scan_label || '', diameter: g.max_diameter_mm, sacVolume: g.sac_volume_ml, metric: metricKey ? m[metricKey] : undefined,
-        jobId: own ? own.job_id : null, jobIds: jobs.map(function (j) { return j.job_id; })};
+      var byRelease = {};
+      releases.forEach(function (r) { var j = jobs.filter(function (x) { return x.release_id === r.id; })[0]; byRelease[r.id] = {values: (s.models && s.models[r.id]) || {}, jobId: j ? j.job_id : null}; });
+      return {date: s.date || '', dateSource: s.date_source || '', label: s.scan_label || '', diameter: g.max_diameter_mm, sacVolume: g.sac_volume_ml, metric: metricKey ? m[metricKey] : undefined,
+        jobId: own ? own.job_id : null, jobIds: jobs.map(function (j) { return j.job_id; }), byRelease: byRelease};
     });
     var growth = timeline.growth && timeline.growth.max_diameter_mm;
-    return {rows: rows, metricLabel: metricLabel, metricUnits: metricUnits, growth: growth || null, notes: timeline.notes || []};
+    var recent = timeline.growth_recent || {};
+    return {rows: rows, metricKey: metricKey, metricLabel: metricLabel, metricUnits: metricUnits, growth: growth || null, releaseId: releaseId, releases: releases,
+      growthAll: {diameter: growthOf(timeline.growth && timeline.growth.max_diameter_mm), volume: growthOf(timeline.growth && timeline.growth.sac_volume_ml),
+        diameterRecent: growthOf(recent.max_diameter_mm), volumeRecent: growthOf(recent.sac_volume_ml)},
+      notes: timeline.notes || []};
   }
-  // Follow-up curves (lane D): lumen diameter and this release's metric per scan, oldest first; the open scan is marked.
+  // Follow-up curves (lane D; P3 lane 3): lumen diameter and sac volume per scan, then the current release's metric and
+  // the classic cross-release WSS p99 / speed p99 — one line per release, the current one first.  Oldest first; the
+  // open scan is marked.  `points` of a chart = its first (current / geometry) line.
   function followupCharts(fu, currentJobId) {
     if (!fu) return [];
-    var mk = function (label, units, pick, tier) {
-      var pts = fu.rows.map(function (r) { var v = Number(pick(r)); return {date: r.date || r.label || '', value: v, jobId: r.jobId, current: r.jobIds.indexOf(currentJobId) >= 0}; })
+    var line = function (id, label, pick, isCurrent) {
+      var pts = fu.rows.map(function (r) { var raw = pick(r), v = raw === null || raw === undefined || raw === '' ? NaN : Number(raw);
+        return {date: r.date || r.label || '', value: v, jobId: pick.jobOf ? pick.jobOf(r) : r.jobId, current: r.jobIds.indexOf(currentJobId) >= 0}; })
         .filter(function (p) { return Number.isFinite(p.value); });
-      return pts.length >= 2 ? {label: label, units: units, tier: tier, points: pts} : null;
+      return pts.length >= 2 ? {id: id, label: label, current: Boolean(isCurrent), points: pts} : null;
     };
-    return [mk('管腔最大直径', 'mm', function (r) { return r.diameter; }, 'geometry'),
-      fu.metricLabel ? mk(fu.metricLabel, fu.metricUnits, function (r) { return r.metric; }, 'model') : null].filter(Boolean);
+    var geo = function (label, units, pick) { var l = line('geometry', label, pick, true); return l ? {label: label, units: units, tier: 'geometry', points: l.points, lines: [l]} : null; };
+    var charts = [geo('管腔最大直径', 'mm', function (r) { return r.diameter; }), geo('瘤体体积', 'mL', function (r) { return r.sacVolume; })];
+    var metricChart = function (key, label, units) {
+      var lines = [];
+      var order = fu.releases.filter(function (r) { return r.current; }).concat(fu.releases.filter(function (r) { return !r.current; }));
+      order.forEach(function (r) {
+        var pick = function (row) { var b = row.byRelease && row.byRelease[r.id]; return b ? b.values[key] : undefined; };
+        pick.jobOf = function (row) { var b = row.byRelease && row.byRelease[r.id]; return b ? b.jobId : null; };
+        var l = line(r.id, r.label, pick, r.current);
+        if (l) lines.push(l);
+      });
+      if (!lines.length) return null;
+      return {label: label, units: units, tier: 'model', points: lines[0].points, lines: lines, key: key};
+    };
+    if (fu.metricLabel) charts.push(metricChart(fu.metricKey, fu.metricLabel, fu.metricUnits));
+    ['wss_p99_pa', 'speed_p99_m_s'].forEach(function (key) {
+      if (key === fu.metricKey) return;
+      var spec = FU_METRICS.filter(function (x) { return x[0] === key; })[0];
+      charts.push(metricChart(key, spec[1], spec[2]));
+    });
+    return charts.filter(Boolean);
+  }
+
+  // ------------------------------------------------------------------ P3 lane 3: quality & reference, geometry, outlets
+  function termText(key, fallback) { return ns.lens && ns.lens.termText ? ns.lens.termText(key, fallback) : fallback; }
+  function termTip(key, fallback) { return ui().infoTip(termText(key, fallback)); }
+  // Ensemble consistency (W29) and the reference / population position (W31), classic wording (ns.notice).
+  function qualityRows(m) {
+    var N = ns.notice;
+    if (!N || !N.qualityModel) return [];
+    var rows = [], qm = N.qualityModel(m), rm = N.referenceModel(m);
+    if (qm) rows.push({key: 'quality', label: qm.title, text: qm.text, tone: qm.good ? 'ok' : 'warn',
+      tip: termText('quality_grade', '多个模型之间的一致程度；一致不代表准确。') + (qm.reasons.length ? ' ' + qm.reasons.join('；') : '')});
+    if (rm) {
+      rows.push({key: 'geometry', label: '几何参考', text: rm.status === 'review' && rm.reviewCount ? rm.reviewCount + ' 项超出已声明几何参考范围，请复核' : rm.geometry,
+        tone: rm.status === 'pass' ? 'ok' : rm.status === 'review' ? 'warn' : 'idle', tip: rm.statusLine});
+      rows.push({key: 'population', label: '人群参照', text: rm.population, tone: rm.popStatus === 'pass' ? 'ok' : rm.popStatus === 'review' ? 'warn' : 'idle',
+        tip: termText('population_percentile', '') + (rm.popNote ? ' ' + rm.popNote : '')});
+    }
+    return rows;
+  }
+  // classic report.py fmt(x, d): toFixed, '—' when missing
+  function fx(v, d) { var n = v === null || v === undefined ? NaN : Number(v); return Number.isFinite(n) ? n.toFixed(d === undefined ? 2 : d) : '—'; }
+  // W37: analysis.branch_geometry (summary.geometry), rows in the manifest's branch order (classic 几何参数 table).
+  function geometryModel(m) {
+    var g = analysis(m).branch_geometry;
+    if (!g || typeof g !== 'object' || !Object.keys(g).length) return null;
+    var names = ((m.geometry && m.geometry.branches) || []).map(function (b) { return b.name; }).filter(function (n) { return g[n]; });
+    Object.keys(g).forEach(function (n) { if (names.indexOf(n) < 0 && g[n] && typeof g[n] === 'object') names.push(n); });
+    return names.map(function (n) { var x = g[n]; return {name: n, length: fx(x.length_mm, 0), rmin: fx(x.radius_min_mm, 1), rmed: fx(x.radius_median_mm, 1), dmax: fx(x.max_diameter_mm, 1), tort: fx(x.tortuosity)}; });
+  }
+  // W36: cap radius and Murray flow share of every opening (classic 出口确认与 Murray 分流), and whether a person confirmed
+  // the names — from the job's mapping history online, the manifest's orientation offline.
+  function outletShareModel(m, job) {
+    var ops = ((m && m.geometry && m.geometry.openings) || []).filter(function (o) { return o && (o.radius_mm !== null && o.radius_mm !== undefined); });
+    if (!ops.length) return null;
+    var hist = job && Array.isArray(job.mapping_history) ? job.mapping_history : null, last = hist && hist.length ? hist[hist.length - 1] : null;
+    var confirmed;
+    if (last) confirmed = last.source === 'automatic_high_confidence' ? '出口映射为自动确认（高把握度，未经人工核对）' : '出口映射已人工确认';
+    else confirmed = m.frame && m.frame.orientation && m.frame.orientation.left_right === 'confirmed' ? '出口映射已人工确认' : '出口映射为自动建议';
+    return {rows: ops.map(function (o) { return {name: o.label || o.name || '', kind: o.kind, radius: fx(o.radius_mm, 1), share: o.flow_share === null || o.flow_share === undefined ? null : fx(o.flow_share * 100, 0) + '%'}; }),
+      anyShare: ops.some(function (o) { return o.flow_share !== null && o.flow_share !== undefined; }), confirmed: confirmed};
+  }
+  // V38 / V39: the volume report's terms, pressure reference, statistics protocol and the streamline caveat.
+  var VOLUME_TERMS = [['relative_pressure', '相对压力'], ['delta_p', 'ΔP 压差'], ['speed', '速度大小'], ['trust_low_sample_support', '采样支撑'],
+    ['trust_near_opening', '近切口'], ['trust_geometry_out_of_range', '几何越界'], ['trust_interpolation_uncovered', '插值无支撑']];
+  function volumeNotesModel(m) {
+    if (!m || !m.result || m.result.family !== 'volume') return null;
+    var sl = analysis(m).streamlines, n = sl && Number(sl.line_count);
+    var pr = ns.lens && ns.lens.pressureReference ? ns.lens.pressureReference(m) : '';
+    return {terms: VOLUME_TERMS.map(function (t) { return {key: t[0], label: t[1], text: termText(t[0], '') + (t[0] === 'relative_pressure' && pr ? ' 压力参考：' + pr : '')}; }),
+      pressure: '压力参考：' + pr,
+      protocol: '统计基于体内预测点，采用点权重；截面不报告未经体积或面积加权的通量。坐标与厚度单位：mm。',
+      streamlines: (Number.isFinite(n) && n > 0 ? '已载入 ' + n + ' 条由预测速度向量积分的流线；离开有效支撑区域即停止。' : '本报告没有已积分流线；可查看体内速度点云、方向箭头和截面。') +
+        termText('streamlines', '单个预测时相的流线不是粒子随时间运动的轨迹。'), lineCount: Number.isFinite(n) && n > 0 ? n : null,
+      caveat: '速度主要查看体内点、向量和流线；壁面无滑移速度不作为主要展示。压力可以同时查看体内与壁面。单个预测时相的流线不是粒子随时间运动的轨迹。'};
   }
 
   // ------------------------------------------------------------------ lane D: cycle metrics, morphology strip, per-branch table
@@ -209,7 +313,7 @@
       var tier = fieldTier(manifest, c.id);
       out.push({id: c.id, label: (f && f.short_label) || c.label, units: (f && f.units) || st.units || '', tier: tier, mean: Number(st.mean),
         p99: st.p99, frac: Number.isFinite(frac) ? frac : null, threshold: t ? Number(t[0]) : null,
-        definition: CYCLE_DEF[c.id] + (tier === 'derived' ? '由预测的 TAWSS 与 OSI 逐点计算，没有单独验证。' : '') + (t ? '占比 = 高于 ' + t[0] + ' 的预测点占比（观察阈值，不是临床界值）。' : '')});
+        definition: termText(c.id, CYCLE_DEF[c.id] + (tier === 'derived' ? '由预测的 TAWSS 与 OSI 逐点计算，没有单独验证。' : '')) + (t ? '占比 = 高于 ' + t[0] + ' 的预测点占比（观察阈值，不是临床界值）。' : '')});
     });
     return out;
   }
@@ -227,14 +331,14 @@
     var max = a.max || {}, sac = a.sac || {}, neck = a.neck || {};
     var facts = [];
     if (sac.present) facts.push({key: 'sac', label: '瘤体', value: sac.length_mm, units: 'mm', extra: sac.volume_ml !== undefined ? {value: sac.volume_ml, units: 'mL'} : null,
-      definition: '等效直径 ≥ 1.5 × 参考直径的连续区段；体积 = 区段截面面积沿弧长积分；按管腔判定。'});
+      definition: termText('aneurysm_sac', '等效直径 ≥ 1.5 × 参考直径的连续区段；体积 = 区段截面面积沿弧长积分；按管腔判定。')});
     else if (a.sac) facts.push({key: 'sac', label: '瘤体', text: '未见', definition: '管腔等效直径没有达到 1.5 × 参考直径；按管腔判定，不能据此排除动脉瘤。'});
     if (neck.present) facts.push({key: 'neck', label: '瘤颈', value: neck.length_mm, units: 'mm', extra: neck.diameter_mean_mm !== undefined ? {value: neck.diameter_mean_mm, units: 'mm', prefix: 'Ø'} : null,
-      definition: '入口到瘤体起点之间、等效直径 < 1.2 × 参考直径的近端区段；长度与平均管腔直径。'});
+      definition: termText('aneurysm_neck', '入口到瘤体起点之间、等效直径 < 1.2 × 参考直径的近端区段；长度与平均管腔直径。')});
     if (a.reference_diameter_mm !== undefined && a.reference_diameter_mm !== null) facts.push({key: 'reference_diameter', label: '参考直径', value: a.reference_diameter_mm, units: 'mm',
-      definition: '主动脉管腔等效直径的第 10 百分位，用来估计正常管径（瘤体、瘤颈按它判定）。'});
+      definition: termText('reference_diameter', '主动脉管腔等效直径的第 10 百分位，用来估计正常管径（瘤体、瘤颈按它判定）。')});
     if (mo.lumen_volume_ml !== undefined && mo.lumen_volume_ml !== null) facts.push({key: 'lumen_volume', label: '全腔体积', value: mo.lumen_volume_ml, units: 'mL', where: '全部管腔',
-      definition: '开口封盖后按散度定理求出的全管腔体积。'});
+      definition: termText('lumen_volume', '开口封盖后按散度定理求出的全管腔体积。')});
     return {points: pts, reference: Number.isFinite(Number(a.reference_diameter_mm)) ? Number(a.reference_diameter_mm) : null,
       sac: sac.present ? [Number(sac.s_start_mm), Number(sac.s_end_mm)] : null, neck: neck.present ? [Number(neck.s_start_mm), Number(neck.s_end_mm)] : null,
       max: Number.isFinite(Number(max.max_diameter_mm)) ? {s: Number(max.s_from_root_mm), d: Number(max.max_diameter_mm)} : null,
@@ -297,7 +401,7 @@
     var family = manifest && manifest.result && manifest.result.family;
     var morph = a.morphology && a.morphology.aorta && a.morphology.aorta.max;
     var diam = morph && morph.max_diameter_mm !== undefined ? {key: 'max_diameter', label: '管腔最大直径', value: morph.max_diameter_mm, units: 'mm', tier: 'geometry',
-      kind: 'morph', definition: '中心线垂直截面上管腔的最长径；不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径。'} : null;
+      kind: 'morph', definition: termText('max_diameter', '中心线垂直截面上管腔的最长径；不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径。')} : null;
     if (family === 'volume') {
       var vs = a.volume_statistics || {}, sp = vs.speed_m_s || statsOf(manifest, 'speed'), pr = vs.pressure_interior_pa || statsOf(manifest, 'pressure');
       if (sp && sp.p99 !== undefined) out.push({key: 'speed_p99', label: '体内速度 p99', value: sp.p99, units: 'm/s', tier: 'model', field: 'speed', stat: 'p99', chip: true});
@@ -543,32 +647,81 @@
       bt.units && bt.units !== '1' ? h('span', {'class': 'sec-unit', text: ui().unitText ? ui().unitText(bt.units) : bt.units}) : null,
       ui().infoTip('分支内全部预测点等权统计；占比是点占比；面积 = 点占比 × 输入壁面面积（估计）。跟随当前显示的字段。')), tbl);
   }
-  // Small line chart per follow-up metric; the open scan ringed, the others open their result.
-  function followSparks(charts, onOpen) {
+  // Small line chart per follow-up quantity (P3 lane 3: one line per release, time-scaled x when every scan has a
+  // date, legend + direct end labels for two or more lines, hover tips).  Colours: the current release / a geometry
+  // quantity blue, other releases grey (the validated workspace chart palette).  The open scan is ringed; the other
+  // points open their result.  opts = {onOpen(jobId), labelOf(line) → text}
+  var FU_BLUE = '#2a78d6', FU_GREY = '#8a94a6';
+  function dateMs(d) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d || '')); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : null; }
+  function followSparks(charts, onOpen, opts) {
     if (!charts.length || !root.document || typeof root.document.createElementNS !== 'function') return null;
     var h = ui().h;
+    opts = opts || {};
+    var labelOf = opts.labelOf || function (l) { return l.label; };
     return h('div', {'class': 'fu-charts'}, charts.map(function (c) {
-      var W = 150, H = 70, L = 8, R = 8, T = 16, B = 16;
-      var vals = c.points.map(function (p) { return p.value; }), lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+      var W = 150, H = 74, L = 8, R = 8, T = 16, B = 16;
+      var lines = c.lines && c.lines.length ? c.lines : [{id: 'main', label: c.label, current: true, points: c.points}];
+      var all = [];
+      lines.forEach(function (l) { l.points.forEach(function (p) { all.push(p); }); });
+      var vals = all.map(function (p) { return p.value; }), lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
       if (!(hi > lo)) { var pad = Math.abs(lo) * 0.05 || 1; lo -= pad; hi += pad; } else { var pd = (hi - lo) * 0.15; lo -= pd; hi += pd; }
-      var X = function (i) { return L + (c.points.length > 1 ? i / (c.points.length - 1) : 0.5) * (W - L - R); };
+      // x: by scan date when every point has one, else by the scans' order
+      var dates = [];
+      all.forEach(function (p) { if (dates.indexOf(p.date) < 0) dates.push(p.date); });
+      dates.sort();
+      var ms = dates.map(dateMs), timed = ms.every(function (x) { return x !== null; }) && ms.length > 1 && ms[ms.length - 1] > ms[0];
+      var X = function (p) {
+        var f = timed ? (dateMs(p.date) - ms[0]) / (ms[ms.length - 1] - ms[0]) : (dates.length > 1 ? dates.indexOf(p.date) / (dates.length - 1) : 0.5);
+        return L + f * (W - L - R);
+      };
       var Y = function (v) { return T + (1 - (v - lo) / (hi - lo)) * (H - T - B); };
       var svg = svgNode('svg', {'class': 'fu-svg', viewBox: '0 0 ' + W + ' ' + H, width: '100%', role: 'img', 'aria-label': c.label + '随扫描的变化'});
       svg.appendChild(svgNode('line', {x1: L, x2: W - R, y1: H - B + 0.5, y2: H - B + 0.5, 'class': 'fu-axis'}));
-      svg.appendChild(svgNode('path', {d: c.points.map(function (p, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.value).toFixed(1); }).join(''), 'class': 'fu-line'}));
-      c.points.forEach(function (p, i) {
-        var g = svgNode('g', {'class': 'fu-pt' + (p.current ? ' current' : '') + (p.jobId && !p.current ? ' link' : ''), tabindex: p.jobId && !p.current ? 0 : null, role: p.jobId && !p.current ? 'button' : null},
-          [svgNode('title', {}, [(p.date || '') + '：' + ui().num(p.value, c.units) + (p.current ? '（当前）' : p.jobId ? ' · 点击打开' : '')]),
-            svgNode('circle', {cx: X(i).toFixed(1), cy: Y(p.value).toFixed(1), r: p.current ? 4.2 : 3.4})]);
-        if (p.jobId && !p.current && onOpen && g.addEventListener) g.addEventListener('click', function () { onOpen(p.jobId); });
-        svg.appendChild(g);
-        if (i === 0 || i === c.points.length - 1) {
-          svg.appendChild(svgNode('text', {x: X(i).toFixed(1), y: Math.max(9, Y(p.value) - 7).toFixed(1), 'text-anchor': i === 0 ? 'start' : 'end', 'class': 'fu-val'}, [ui().sig(p.value)]));
-          svg.appendChild(svgNode('text', {x: X(i).toFixed(1), y: H - 3, 'text-anchor': i === 0 ? 'start' : 'end', 'class': 'fu-date'}, [p.date || '']));
-        }
+      var fig = h('figure', {'class': 'fu-chart'});
+      var tip = ui().chartTip ? ui().chartTip(fig) : null;
+      var multi = lines.length > 1, placed = [], pending = [];
+      // an end label that would sit on another one goes under its point; when that is taken too it is left out
+      // (the value stays in the tip and the table)
+      var endLabel = function (x, y, text, anchor) {
+        var clash = function (yy) { return placed.some(function (q) { return Math.abs(q.x - x) < 30 && Math.abs(q.y - yy) < 10; }); };
+        var yy = Math.max(9, y - 7);
+        if (clash(yy)) { yy = Math.min(H - B - 2, y + 13); if (clash(yy)) return; }
+        placed.push({x: x, y: yy});
+        svg.appendChild(svgNode('text', {x: x.toFixed(1), y: yy.toFixed(1), 'text-anchor': anchor, 'class': 'fu-val'}, [text]));
+      };
+      // grey lines first so the current release draws on top
+      lines.slice().sort(function (a, b) { return (a.current ? 1 : 0) - (b.current ? 1 : 0); }).forEach(function (l) {
+        var col = l.current ? FU_BLUE : FU_GREY, name = labelOf(l);
+        svg.appendChild(svgNode('path', {d: l.points.map(function (p, i) { return (i ? 'L' : 'M') + X(p).toFixed(1) + ' ' + Y(p.value).toFixed(1); }).join(''), 'class': 'fu-line', stroke: col}));
+        l.points.forEach(function (p, i) {
+          var link = p.jobId && !(p.current && l.current);
+          var g = svgNode('g', {'class': 'fu-pt' + (p.current ? ' current' : '') + (link ? ' link' : ''), tabindex: link ? 0 : null, role: link ? 'button' : null,
+            'aria-label': (multi ? name + ' ' : '') + (p.date || '') + '：' + ui().num(p.value, c.units)},
+            [tip ? null : svgNode('title', {}, [(multi ? name + ' · ' : '') + (p.date || '') + '：' + ui().num(p.value, c.units) + (p.current ? '（当前）' : link ? ' · 点击打开' : '')]),
+              svgNode('circle', {cx: X(p).toFixed(1), cy: Y(p.value).toFixed(1), r: p.current ? 4.2 : 3.4, stroke: col, fill: p.current ? col : null})]);
+          if (link && onOpen && g.addEventListener) g.addEventListener('click', function () { onOpen(p.jobId); });
+          if (tip) tip.bind(g, ui().num(p.value, c.units), (multi ? name + ' · ' : '') + (p.date || '') + (p.current ? '（当前）' : link ? ' · 点击打开' : ''));
+          svg.appendChild(g);
+          var last = i === l.points.length - 1;
+          if (last || (!multi && i === 0)) {
+            var x = X(p), anchor = x > W * 0.7 ? 'end' : x < W * 0.3 ? 'start' : 'middle';
+            pending.push({x: x, y: Y(p.value), text: ui().sig(p.value), anchor: anchor, current: l.current});
+          }
+        });
       });
+      // the current release's labels are placed first
+      pending.sort(function (a, b) { return (b.current ? 1 : 0) - (a.current ? 1 : 0); }).forEach(function (q) { endLabel(q.x, q.y, q.text, q.anchor); });
+      if (dates.length) {
+        svg.appendChild(svgNode('text', {x: L, y: H - 3, 'text-anchor': 'start', 'class': 'fu-date'}, [dates[0] || '']));
+        if (dates.length > 1) svg.appendChild(svgNode('text', {x: W - R, y: H - 3, 'text-anchor': 'end', 'class': 'fu-date'}, [dates[dates.length - 1] || '']));
+      }
       var unit = c.units && c.units !== '1' ? (ui().unitText ? ui().unitText(c.units) : c.units) : '';
-      return h('figure', {'class': 'fu-chart'}, h('figcaption', {}, h('span', {text: c.label}), unit ? h('span', {'class': 'sec-unit', text: unit}) : null), svg);
+      fig.appendChild(h('figcaption', {}, h('span', {text: c.label}), unit ? h('span', {'class': 'sec-unit', text: unit}) : null));
+      fig.appendChild(svg);
+      if (multi) fig.appendChild(h('div', {'class': 'fu-legend'}, lines.map(function (l) {
+        return h('span', {'class': 'fu-leg'}, h('i', {style: 'background:' + (l.current ? FU_BLUE : FU_GREY)}), h('span', {text: labelOf(l) + (l.current ? '（本结果）' : '')}));
+      })));
+      return fig;
     }));
   }
 
@@ -704,7 +857,11 @@
           h('span', {'class': 'f-where', text: it.branch || ''}),
           h('span', {'class': 'f-val', text: findingValue(it)}),
           decision === 'confirmed' ? h('span', {'class': 'f-dec', title: '已确认'}, ui().icon('check', {size: 14})) : decision === 'rejected' ? h('span', {'class': 'f-dec', title: '已驳回'}, ui().icon('close', {size: 14})) : h('span', {'class': 'f-dec'}));
-        row.addEventListener('click', function () { if (ctx.onFinding) ctx.onFinding(it); });
+        row.addEventListener('click', function () {
+          if (ctx.onFinding) ctx.onFinding(it);
+          // P3 lane 3 (V15, classic activateFinding): a branch pressure drop also puts the section at its proximal 10 %
+          if (it.kind === 'pressure_drop' && ns.detail && ns.detail.pressureDropSlice) ns.detail.pressureDropSlice(it);
+        });
         rows.appendChild(row);
       });
       var more = fm.total > list.length || expanded ? ui().button(expanded ? '收起' : '全部 ' + fm.total, function () { if (ctx.onToggleFindings) ctx.onToggleFindings(); }, {kind: 'link', cls: 'btn-sm'}) : null;
@@ -727,36 +884,127 @@
       var edit = ctx.onEditNarrative ? ui().button('编辑', ctx.onEditNarrative, {kind: 'link', cls: 'btn-sm'}) : null;
       var toggle = ui().button(open ? '收起' : '展开', function () { if (ctx.onToggleNarrative) ctx.onToggleNarrative(); }, {kind: 'link', cls: 'btn-sm'});
       var nhead = h('div', {'class': 'sec-head'}, h('h3', {'class': 'sec-title', text: '结论'}), nar.edited ? h('span', {'class': 'sec-count', text: '人工编辑'}) : null,
-        ui().infoTip(nar.edited ? '人工编辑的结论' + (nar.by ? '（' + nar.by + '）' : '') : '根据形态和统计量自动生成，供书写报告参考。'), h('span', {'class': 'sec-fill'}), edit, toggle);
+        ui().infoTip(nar.edited ? '人工编辑的结论' + (nar.by ? '（' + nar.by + '）' : '') : termText('narrative', '根据形态和统计量自动生成，供书写报告参考。')), h('span', {'class': 'sec-fill'}), edit, toggle);
       out.push(h('section', {'class': 'sec sec-conclusion' + (open ? ' open' : '')}, nhead, h('div', {'class': 'narr'}, nar.sentences.map(function (t) { return h('p', {text: t}); }))));
     }
-    // follow-up (U17)
+    // P3 lane 3: ensemble consistency and reference position (W29, W31)
+    var qsec = qualitySection(m, ctx);
+    if (qsec) out.push(qsec);
+    // follow-up (U17; P3 lane 3 #103)
     var fu = followupModel(ctx.timeline, m.result && m.result.release_id);
-    if (fu) {
-      var fcols = [{key: 'date', label: '扫描', render: function (r) { return r.date || r.label; }},
-        {key: 'd', label: '管腔最大直径 mm', num: true, render: function (r) { return ui().num(r.diameter, null); }}];
-      if (fu.metricLabel) fcols.push({key: 'm', label: fu.metricLabel + (fu.metricUnits && fu.metricUnits !== '1' ? ' ' + fu.metricUnits : ''), num: true, render: function (r) { return ui().num(r.metric, null); }});
-      var g = fu.growth && fu.growth.per_year !== undefined ? h('div', {'class': 'fu-growth'}, h('span', {'class': 'kpi-num', text: (fu.growth.per_year > 0 ? '+' : '') + ui().sig(fu.growth.per_year)}), h('span', {'class': 'kpi-unit', text: 'mm/年'}), h('span', {'class': 'muted', text: '管腔最大直径'})) : null;
-      var curJob = (ctx.job && ctx.job.id) || (m.job && m.job.id) || null;
-      var sparks = followSparks(followupCharts(fu, curJob), ctx.offline ? null : ctx.onOpenResult);
-      var ftable = ui().table(fcols, fu.rows.map(function (r) { return Object.assign({_cls: r.jobIds.indexOf(curJob) >= 0 ? 'current' : null}, r); }), {cls: 'tbl-follow'});
-      var fbtn = null;
-      if (sparks) {
-        ftable.hidden = true;
-        fbtn = ui().button('表格', function () { ftable.hidden = !ftable.hidden; ui().fill(fbtn, h('span', {text: ftable.hidden ? '表格' : '收起表格'})); }, {kind: 'link', cls: 'btn-sm'});
-      }
-      out.push(h('section', {'class': 'sec sec-follow'}, h('div', {'class': 'sec-head'}, h('h3', {'class': 'sec-title', text: '随访'}), h('span', {'class': 'sec-count', text: fu.rows.length + ' 次扫描'}),
-        ui().infoTip((fu.notes[0] || '') + ' 年增长率按首末两次扫描计算。点曲线上的其他扫描打开它的结果。'), h('span', {'class': 'sec-fill'}), fbtn),
-        g, sparks, ftable));
-    }
-    // model + the only research-use line
+    if (fu) out.push(followSection(fu, m, ctx));
+    // P3 lane 3: geometry parameters and outlet Murray shares (W37, W36), the volume terms (V38, V39)
+    var gsec = geometrySection(m, ctx);
+    if (gsec) out.push(gsec);
+    var vsec = volumeNotesSection(m);
+    if (vsec) out.push(vsec);
+    // model + the only research-use line; 技术信息 in every tier and offline (W62)
     var card = m.model_card || (ctx.cards && m.result && ctx.cards[m.result.release_id]) || null;
     out.push(h('footer', {'class': 'insp-foot'},
       h('span', {text: ((card && card.display_name) || (m.result && m.result.display_name) || '模型') + (card && card.version_date ? ' · ' + card.version_date : '')}),
       ctx.onModelCard ? ui().button('模型说明', ctx.onModelCard, {kind: 'link', cls: 'btn-sm'}) : null,
+      ns.detail && ns.detail.techDialog ? ui().button('技术信息', function () { openTech(m, ctx); }, {kind: 'link', cls: 'btn-sm foot-tech'}) : null,
       h('span', {'class': 'sec-fill'}), h('span', {'class': 'research', text: '研究用途，非诊断'})));
     ui().fill(el, out);
     return {findings: fm, zones: zonesModel(m), kpis: kpis};
+  }
+  // ------------------------------------------------------------------ P3 lane 3 renderers
+  function openTech(m, ctx) {
+    var A = ns.api;
+    ns.detail.techDialog({manifest: m, job: ctx.job, offline: Boolean(ctx.offline),
+      fileUrl: !ctx.offline && A && A.urls && A.urls.file && m.job && m.job.id ? function (name) { return A.urls.file(m.job.id, name); } : null});
+  }
+  function openNoticeDetails(m) { if (ns.notice && ns.notice.openDetails) ns.notice.openDetails(m); }
+  // W29 + W31: one row per fact, the classic sentences; a click opens the reference / quality details.
+  function qualitySection(m) {
+    var rows = qualityRows(m);
+    if (!rows.length) return null;
+    var h = ui().h;
+    var list = h('div', {'class': 'qref'}, rows.map(function (r) {
+      var b = h('button', {type: 'button', 'class': 'qref-row tone-' + r.tone, title: r.tip, dataset: {q: r.key}}, h('span', {'class': 'qref-k', text: r.label}), ui().dot(r.tone, r.text));
+      b.addEventListener('click', function () { openNoticeDetails(m); });
+      return b;
+    }));
+    return h('section', {'class': 'sec sec-quality'}, h('div', {'class': 'sec-head'}, h('h3', {'class': 'sec-title', text: '质量与参照'}),
+      ui().infoTip('模型集成的一致程度，以及输入几何是否在发布包声明的参考范围内。参考范围用于复核，不代表校准概率或临床风险。'), h('span', {'class': 'sec-fill'}),
+      ui().button('详情', function () { openNoticeDetails(m); }, {kind: 'link', cls: 'btn-sm'})), list);
+  }
+  var GEO_OPEN = {};
+  var GEO_TIP = '中心线测量，不经过模型。最大内切直径 = 2 × 最大内切半径（管腔）。';
+  var MURRAY_TIP = '盖面半径 = 出口封盖的等效半径；分流 = 按盖面半径三次方（Murray 定律）分配的出口流量比例，是血流先验的假设，不是实测流量。';
+  // W37 + W36, collapsed until asked for (classic 「几何参数」「出口确认与 Murray 分流」).
+  function geometrySection(m, ctx) {
+    var geo = geometryModel(m), os = outletShareModel(m, ctx.job);
+    if (!geo && !os) return null;
+    var h = ui().h, key = (m.job && m.job.id) || '—', open = Boolean(GEO_OPEN[key]);
+    var body = h('div', {'class': 'geo-body'});
+    body.hidden = !open;
+    if (geo) body.appendChild(ui().table([{key: 'name', label: '分支'}, {key: 'length', label: '长 mm', num: true}, {key: 'rmin', label: '最小 r', num: true},
+      {key: 'rmed', label: '中位 r', num: true}, {key: 'dmax', label: '最大内切直径', num: true}, {key: 'tort', label: '迂曲', num: true}], geo, {cls: 'tbl-geo'}));
+    if (os) {
+      body.appendChild(h('div', {'class': 'sub-head'}, h('span', {'class': 'sub-title', text: os.anyShare ? '出口与 Murray 分流' : '开口'}), ui().infoTip(MURRAY_TIP)));
+      var cols = [{key: 'name', label: '开口'}, {key: 'radius', label: '盖面半径 mm', num: true}];
+      if (os.anyShare) cols.push({key: 'share', label: '分流', num: true, render: function (r) { return r.share || (r.kind === 'inlet' ? '' : '—'); }, blank: true});
+      body.appendChild(ui().table(cols, os.rows, {cls: 'tbl-geo tbl-outlet-share'}));
+      body.appendChild(ui().note(os.confirmed));
+    }
+    var toggle = ui().button(open ? '收起' : '展开', function () {
+      GEO_OPEN[key] = !GEO_OPEN[key]; body.hidden = !GEO_OPEN[key]; ui().fill(toggle, h('span', {text: GEO_OPEN[key] ? '收起' : '展开'}));
+    }, {kind: 'link', cls: 'btn-sm'});
+    return h('section', {'class': 'sec sec-geo'}, h('div', {'class': 'sec-head'}, h('h3', {'class': 'sec-title', text: '几何参数'}), ui().tierTag('geometry'),
+      ui().infoTip(GEO_TIP + termText('tortuosity', '迂曲 = 分支中心线弧长 ÷ 两端直线距离。')), h('span', {'class': 'sec-fill'}), toggle), body);
+  }
+  // V38 + V39: the volume report's term chips and its notes, each explained in its tip.
+  function volumeNotesSection(m) {
+    var vn = volumeNotesModel(m);
+    if (!vn) return null;
+    var h = ui().h;
+    var chip = function (label, text, cls) { return h('span', {'class': 'vterm' + (cls ? ' ' + cls : ''), title: text, 'aria-label': label + '：' + text, tabindex: '0', role: 'note', text: label}); };
+    return h('section', {'class': 'sec sec-vnotes'}, h('div', {'class': 'sec-head'}, h('h3', {'class': 'sec-title', text: '术语与口径'}),
+      ui().infoTip('悬停一个词看它的定义。')),
+      h('div', {'class': 'vterms'}, vn.terms.filter(function (t) { return t.text; }).map(function (t) { return chip(t.label, t.text); })),
+      h('div', {'class': 'vterms vnotes'}, chip('压力参考', vn.pressure, 'vnote'), chip('统计口径', vn.protocol + ' ' + vn.caveat, 'vnote'),
+        chip(vn.lineCount ? '流线 ' + vn.lineCount + ' 条' : '流线', vn.streamlines, 'vnote')));
+  }
+  // #103: growth of the lumen diameter and the sac volume (first → last, and the last two scans when there are more),
+  // one small chart per quantity with every release's line, the table behind 「表格」.
+  function growthFact(label, g, units, recent) {
+    var h = ui().h, sign = function (v) { return Number(v) > 0 ? '+' : ''; };
+    var detail = (g.from || '—') + ' → ' + (g.to || '—') + (g.days !== null ? '，' + fx(g.days, 0) + ' 天' : '') + (g.delta !== null ? '，共 ' + sign(g.delta) + fx(g.delta, 1) + ' ' + units : '');
+    var rec = recent && (recent.from !== g.from || recent.to !== g.to) ? recent : null;
+    return h('div', {'class': 'fu-growth', title: label + '年增长率：' + detail},
+      h('span', {'class': 'fu-g-v'}, h('span', {'class': 'kpi-num', text: sign(g.perYear) + fx(g.perYear, 1)}), h('span', {'class': 'kpi-unit', text: units + '/年'})),
+      h('span', {'class': 'fu-g-k', text: label}),
+      rec ? h('span', {'class': 'fu-g-recent', title: '最近两次：' + (rec.from || '—') + ' → ' + (rec.to || '—') + (rec.days !== null ? '，' + fx(rec.days, 0) + ' 天' : ''),
+        text: '最近两次 ' + sign(rec.perYear) + fx(rec.perYear, 1) + ' ' + units + '/年'}) : null);
+  }
+  function followSection(fu, m, ctx) {
+    var h = ui().h;
+    var cardName = function (id) { var c = ctx.cards && ctx.cards[id]; return (c && (c.short_name || c.display_name)) || null; };
+    var labelOf = function (l) { return l.id === 'geometry' ? l.label : (cardName(l.id) || l.label || l.id); };
+    var fcols = [{key: 'date', label: '扫描', render: function (r) { return (r.date || r.label) + (r.dateSource === 'created_at' ? ' *' : ''); }},
+      {key: 'd', label: '管腔最大直径 mm', num: true, render: function (r) { return ui().num(r.diameter, null); }}];
+    if (fu.rows.some(function (r) { return r.sacVolume !== undefined && r.sacVolume !== null; })) fcols.push({key: 'v', label: '瘤体体积 mL', num: true, render: function (r) { return ui().num(r.sacVolume, null); }});
+    if (fu.metricLabel) fcols.push({key: 'm', label: fu.metricLabel + (fu.metricUnits && fu.metricUnits !== '1' ? ' ' + fu.metricUnits : ''), num: true, render: function (r) { return ui().num(r.metric, null); }});
+    var ga = fu.growthAll || {}, facts = [];
+    if (ga.diameter) facts.push(growthFact('管腔最大直径', ga.diameter, 'mm', ga.diameterRecent));
+    else if (fu.growth && fu.growth.per_year !== undefined) facts.push(growthFact('管腔最大直径', growthOf(fu.growth) || {perYear: fu.growth.per_year, delta: null, days: null, from: '', to: ''}, 'mm', null));
+    if (ga.volume) facts.push(growthFact('瘤体体积', ga.volume, 'mL', ga.volumeRecent));
+    var g = facts.length ? h('div', {'class': 'fu-growth-row'}, facts) : null;
+    var curJob = (ctx.job && ctx.job.id) || (m.job && m.job.id) || null;
+    var sparks = followSparks(followupCharts(fu, curJob), ctx.offline ? null : ctx.onOpenResult, {labelOf: labelOf});
+    var undated = fu.rows.some(function (r) { return r.dateSource === 'created_at'; });
+    var ftable = h('div', {'class': 'fu-table'}, ui().table(fcols, fu.rows.map(function (r) { return Object.assign({_cls: r.jobIds.indexOf(curJob) >= 0 ? 'current' : null}, r); }), {cls: 'tbl-follow'}),
+      undated ? ui().note('* 未填写扫描日期，按任务创建日期排序，不参与年增长率计算。') : null);
+    var fbtn = null;
+    if (sparks) {
+      ftable.hidden = true;
+      fbtn = ui().button('表格', function () { ftable.hidden = !ftable.hidden; ui().fill(fbtn, h('span', {text: ftable.hidden ? '表格' : '收起表格'})); }, {kind: 'link', cls: 'btn-sm'});
+    }
+    var tip = [termText('growth_rate', '年增长率按首末两次扫描计算。'), termText('follow_up_timeline', '')].filter(Boolean).join(' ') +
+      (fu.notes.length ? ' ' + fu.notes.join(' ') : '') + ' 点曲线上的其他扫描打开它的结果。';
+    return h('section', {'class': 'sec sec-follow'}, h('div', {'class': 'sec-head'}, h('h3', {'class': 'sec-title', text: '随访'}), h('span', {'class': 'sec-count', text: fu.rows.length + ' 次扫描'}),
+      ui().infoTip(tip), h('span', {'class': 'sec-fill'}), fbtn), g, sparks, ftable);
   }
   function morphLine(m) {
     var a = analysis(m).morphology && analysis(m).morphology.aorta;
@@ -844,5 +1092,8 @@
     cycleRows: cycleRows, morphStripModel: morphStripModel, reliabilityModel: reliabilityModel, branchTableModel: branchTableModel, followupCharts: followupCharts,
     zonesModel: zonesModel, zoneColumns: zoneColumns, pairsModel: pairsModel, branchModel: branchModel, morphologyModel: morphologyModel,
     findingsModel: findingsModel, narrativeModel: narrativeModel, followupModel: followupModel, fieldOf: fieldOf, fieldTier: fieldTier,
-    kindLabel: kindLabel, isGeometryFinding: isGeometryFinding, findingValue: findingValue, severityText: severityText, thresholdOf: thresholdOf};
+    kindLabel: kindLabel, isGeometryFinding: isGeometryFinding, findingValue: findingValue, severityText: severityText, thresholdOf: thresholdOf,
+    // P3 lane 3
+    qualityRows: qualityRows, geometryModel: geometryModel, outletShareModel: outletShareModel, volumeNotesModel: volumeNotesModel, growthOf: growthOf,
+    qualitySection: qualitySection, geometrySection: geometrySection, volumeNotesSection: volumeNotesSection, followSection: followSection, followSparks: followSparks};
 });

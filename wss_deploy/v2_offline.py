@@ -2,13 +2,14 @@
 
 The page is the workspace shell ``static/v2/index.html`` with every external reference removed and the code inlined
 in ``bundle.json`` order: the ``styles`` as one ``<style>``, then the ``legacy_scripts`` (three.js, OrbitControls,
-report_common.js from ``static/``) and the ``scripts`` minus ``offline_exclude``.  The data travels in three JSON
+report_common.js from ``static/``) and the ``scripts`` minus ``offline_exclude``.  The data travels in four JSON
 script elements the viewer core reads (``core_data.createEmbeddedSource``):
 
 * ``wssv2-manifest`` — the §3 manifest with every array ``url`` set to ``"embedded"``;
 * ``wssv2-arrays``   — ``{key: base64}``; the report's own base64 strings are reused as they are, so the numbers
   are the ones embedded in ``report.html`` (only RRT / ECAP, speed and the streamline concatenation are encoded here);
-* ``wssv2-offline``  — ``{exported_at, hide_name, bookmarks, view, review, …}``.
+* ``wssv2-offline``  — ``{exported_at, hide_name, bookmarks, view, review, …}``;
+* ``wss-glossary``   — the classic reports' glossary (``glossary.glossary_document()``) for the term tips.
 
 JSON is escaped with ``report._script_json`` (``<``, ``>``, ``&`` and the line separators), inline code has
 ``</script`` / ``</style`` broken up, so neither a case name nor a bookmark note can end an element early.  With
@@ -24,6 +25,7 @@ from pathlib import Path
 
 from . import __version__
 from .paths import STATIC_DIR
+from .glossary import glossary_document
 from .report import _script_json
 from .v2_data import PLACEHOLDER_NAME, JobData, arrays_b64, hide_names
 
@@ -145,7 +147,9 @@ def build_offline_html(data: JobData, manifest: dict, *, record: dict | None = N
     page = re.sub(r"</head\s*>", lambda _m: style + "</head>", page, count=1, flags=re.I)
     data_block = ('<script type="application/json" id="wssv2-manifest">' + _script_json(manifest) + "</script>\n"
                   + '<script type="application/json" id="wssv2-arrays">' + _script_json(arrays) + "</script>\n"
-                  + '<script type="application/json" id="wssv2-offline">' + _script_json(offline) + "</script>\n")
+                  + '<script type="application/json" id="wssv2-offline">' + _script_json(offline) + "</script>\n"
+                  # phase 3 lane 3 (W63): the term tips read the classic glossary; offline they read this copy
+                  + '<script type="application/json" id="wss-glossary">' + _script_json(glossary_document()) + "</script>\n")
     code = "".join(f"<script>/* {script_name} */\n{_inline_js(text)}\n</script>\n"
                    for script_name, text in zip(sources["script_names"], sources["scripts"]))
     return _insert_before_body_end(page, "\n" + data_block + code)
