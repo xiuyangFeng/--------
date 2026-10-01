@@ -37,7 +37,10 @@
 - 工作区入口 `GET /v2/`（`/v2` 301 到 `/v2/`）→ `static/v2/index.html`，与 `/` 相同的会话处理，CSP `workbench`（**不允许内联脚本**；内联样式允许）。
 - 静态文件 `GET /static/v2/<name>`：白名单 = `static/v2/bundle.json` 里列出的全部文件名（`scripts`、`styles`、`pages`、`assets`、`dev`）。目录扁平，不允许子目录。
 - 前端路由用 hash（离线 `file://` 也能用）：`#/`（待办）、`#/job/<job_id>`，查询参数 `?v=<view>&f=<field>&cmp=<job_id>&q=<question>&bm=<bookmark_id>`。`view ∈ {wall, volume, compare, input}`，缺省按结果族。
-- 旧工作台 `/` 顶栏加入口「新版工作区」→ `/v2/`；新工作区顶栏有「经典工作台」→ `/`。
+- S7（第三期，2026-10-01）：旧工作台、比较页、旧报告页下线。
+  - 旧地址 302 跳到新工作区：`/` → `/v2/`；`/compare?left&right` → 比较视图；`/api/jobs/<id>/report` 的页面访问 → `/v2/?job=<id>`。`ws_legacy.js` 再把经典的 `#job=`、`#view=` 转成新工作区的路由和视图状态。
+  - 运维中心 `/ops`、工单 `/support` 保留为独立页面。新工作区里，头像菜单（管理员）有「运维中心」，帮助菜单有「反馈问题」。
+  - 任务目录里的 `report.html` 照常生成：它是新工作区的数据来源（`v2_data.py`），只是不再作为页面提供。下载的数据包改放新版单文件离线页 `offline_report.html`。
 - `static/v2/bundle.json` 已由主会话写好，**文件名和加载顺序以它为准**。不许新增或改名文件；需要新代码就放进你名下已有的文件。
 - 第二期 S1（2026-09-30）：`legacy_scripts` 加入 `volume_viewer.js`（只用它的数值核心 `VolumeViewerCore`；页面上没有经典体场报告的 `wss-report-meta` / `volume-arrays` 时它在页面代码之前返回），`scripts` 加入 `ws_slice.js`；`/static/volume_viewer.js` 进 `STATIC_FILES`。
 
@@ -403,7 +406,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 
 | 区域 | 规格 |
 |---|---|
-| 顶栏 | 40 px。左：「WSS」字标 + 当前病例显示名；右：上传、帮助、经典工作台、用户菜单 |
+| 顶栏 | 40 px。左：「WSS」字标 + 当前病例显示名；右：上传、帮助（含「反馈问题」）、用户菜单（管理员含「运维中心」） |
 | 左栏 | 病例栏 240 px，可收起 |
 | 中间 | 视口，一个或两个 |
 | 右栏 | 检查器 360 px，可收起 |
@@ -445,7 +448,7 @@ ns.adapters.wall / ns.adapters.volume           Viewer 内部使用；接口 {su
 - 顶部写「离线报告 · 导出于 … · 导出时复核状态 …」。
 - 数据来自 `createEmbeddedSource(document)`；`wssv2-offline` JSON 里带 `bookmarks`、`view`、`hide_name`、`exported_at`。
 
-**未迁移的工具**：在检查器「工具」区给「在经典报告中打开」（`/api/jobs/<id>/report`，新窗口）。还没迁的：六视角、出版级导图、分支展开图（截面在 S1、S2，测量、探针、区域统计、分支显隐在 S3，发现判定与标注在 S4 迁入）。
+**经典页面**：第三期（S7）已下线，新工作区里不再有指向经典页面的链接。经典功能的去向见 `lanes/p3_audit_*.md` 和各路报告 `lanes/p3_*.md`。
 
 ### 6.4 状态合同 A8（`ws_store.js`）
 
