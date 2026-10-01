@@ -432,6 +432,40 @@ def test_classic_volume_link_converts_to_the_workspace_state():
     assert out["drops"] == ["对数色标", "单位", "外壁透明度", "流线粗细和密度", "速度箭头", "区域统计", "选中的发现"]
 
 
+def test_classic_display_settings_go_into_the_link_display_block():
+    """Phase 3 lane 5 added ``d`` (display) to the workspace link state (p3_export.md §2); when the page's link format
+    carries it, the classic colour map, bands, thresholds, labels, units, overlays and volume display are mapped
+    there instead of being named as not carried."""
+    wall = dict(WALL_STATE, colormap="viridis", bands=8, units="dyn", thresholds_pa=[0.5, 4, 7], field_thresholds={"osi": [0.1, 0.25, 0.35], "bad": [3, 2, 1]},
+                overlay={"trust": True, "contours": True, "stagnation": True}, labels={"findings": 5, "branches": True, "max_diameter": False},
+                highlight={"branch": -1, "top_pct": 1, "top": True, "peak": False, "feature": "wss"}, opacity=0.6, lang="en")
+    vol = dict(VOLUME_STATE, units_by_field={"pressure": "mmHg", "velocity": "cm/s"}, opacity=0.3, vectors=True,
+               streamlines={"width": 2, "density": "3", "thin": True})
+    out = _node("""
+      const W=@@wall@@, V=@@vol@@;
+      const units={pressure:['Pa','mmHg'], velocity:['m/s','cm/s'], wss:['Pa','dyn/cm²']};
+      const ctx={family:'wall', fields:['wss','tawss','osi'], logFields:['wss','tawss'], branches:[0,1,2,3], display:true, units};
+      out({wall:L.classicToV2(W, ctx), noDyn:L.classicToV2(W, Object.assign({}, ctx, {units:{pressure:['Pa','mmHg']}})),
+           pa:L.classicToV2(Object.assign({}, W, {units:'Pa'}), ctx).state.d.units,
+           vol:L.classicToV2(V, {family:'volume', fields:['speed','pressure','wall_pressure'], branches:[0,2,3], display:true, units}),
+           volNoKinds:L.classicToV2(V, {family:'volume', display:true}).dropped,
+           off:L.classicToV2(W, Object.assign({}, ctx, {display:false})).state.d === undefined});
+    """.replace("@@wall@@", json.dumps(wall, ensure_ascii=False)).replace("@@vol@@", json.dumps(vol, ensure_ascii=False)))
+    w = out["wall"]
+    assert w["state"]["d"] == {"cmap": "viridis", "bands": {"tawss": 8}, "thr": {"wss": [0.5, 4, 7], "osi": [0.1, 0.25, 0.35]},
+                               "labels": {"findings": 5, "branches": True, "maxd": False}, "layers": {"stagnation": True, "peaks": False},
+                               "units": {"wss": "dyn/cm²"}}
+    assert w["dropped"] == ["等值线", "壁面透明度", "高亮最高区域", "英文标注"]       # lane 4 features and the wall opacity stay named
+    assert "dyn/cm² 单位" in out["noDyn"]["dropped"] and "units" not in out["noDyn"]["state"]["d"]
+    assert out["pa"] == {"wss": "Pa"}
+    v = out["vol"]
+    assert v["state"]["d"] == {"cmap": "rainbow", "bands": {"speed": 0}, "labels": {"findings": 0, "branches": False, "maxd": True},
+                               "layers": {"vectors": True}, "units": {"pressure": "mmHg", "velocity": "cm/s"},
+                               "volume": {"opacity": 0.3, "width": 2, "density": 3, "thin": True}}
+    assert v["dropped"] == []
+    assert out["volNoKinds"] == ["单位"] and out["off"] is True
+
+
 def test_boot_rewrite_and_the_state_applied_when_the_result_opens(tmp_path):
     program = """
       require(@@core@@);

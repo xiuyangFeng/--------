@@ -143,16 +143,85 @@
     return out;
   }
 
+  // Unit of a kind of the reader (ctx.units = {kind: [unit names]}) matching ``test``; null when the reader has none.
+  function unitOf(units, kind, test) {
+    var list = units && Array.isArray(units[kind]) ? units[kind] : [];
+    for (var i = 0; i < list.length; i++) if (test(String(list[i]))) return String(list[i]);
+    return null;
+  }
+  function validThr(t) { return Array.isArray(t) && t.length === 3 && t.every(function (x) { return num(x) !== null; }) && +t[0] < +t[1] && +t[1] < +t[2] ? t.map(Number) : null; }
+  // The classic display settings → the link's ``d`` block (p3_export.md §2: colormap → cmap, bands → bands[f],
+  // thresholds_pa / field_thresholds → thr, labels → labels {findings, branches, maxd}, overlay.stagnation /
+  // highlight.peak / vectors → layers, volume opacity and streamlines → volume, units → units[kind]).  Returns
+  // {d, carried: {label: true}} with the words of the settings it carries (so the notice does not list them).
+  function convertDisplay(classic, family, field, ctx) {
+    var d = {}, carried = {};
+    var carry = function (label) { carried[label] = true; };
+    if (typeof classic.colormap === 'string' && classic.colormap) { d.cmap = classic.colormap; carry('配色'); }
+    if (field && num(classic.bands) !== null && num(classic.bands) >= 0) { d.bands = {}; d.bands[field] = Math.round(num(classic.bands)); carry('分段色带'); }
+    var thr = {}, anyThr = false;
+    if (family === 'wall') {
+      var t0 = validThr(classic.thresholds_pa);
+      if (t0) { thr.wss = t0; anyThr = true; }
+      var ft = classic.field_thresholds && typeof classic.field_thresholds === 'object' ? classic.field_thresholds : {};
+      Object.keys(ft).forEach(function (id) { var t = validThr(ft[id]); if (t && id !== 'wss') { thr[id] = t; anyThr = true; } });
+    }
+    if (anyThr) { d.thr = thr; carry('阈值'); }
+    var lb = classic.labels && typeof classic.labels === 'object' ? classic.labels : null;
+    if (lb) {
+      d.labels = {};
+      if (num(lb.findings) !== null) d.labels.findings = Math.round(num(lb.findings));
+      if (typeof lb.branches === 'boolean') d.labels.branches = lb.branches;
+      if (typeof lb.max_diameter === 'boolean') d.labels.maxd = lb.max_diameter;
+      carry('自动标注');
+    }
+    var layers = {};
+    var overlay = classic.overlay && typeof classic.overlay === 'object' ? classic.overlay : {};
+    var hl = classic.highlight && typeof classic.highlight === 'object' ? classic.highlight : {};
+    if (family === 'wall' && typeof overlay.stagnation === 'boolean') { layers.stagnation = overlay.stagnation; carry('滞留区叠加'); }
+    if (family === 'wall' && typeof hl.peak === 'boolean') layers.peaks = hl.peak;
+    if (family === 'volume' && typeof classic.vectors === 'boolean') { layers.vectors = classic.vectors; carry('速度箭头'); }
+    if (Object.keys(layers).length) d.layers = layers;
+    var units = {};
+    if (family === 'wall' && (classic.units === 'dyn' || classic.units === 'Pa')) {
+      var kinds = ctx.units && typeof ctx.units === 'object' ? Object.keys(ctx.units) : [];
+      var kind = null, dyn = null;
+      kinds.forEach(function (k) { var u = unitOf(ctx.units, k, function (x) { return /^dyn/.test(x); }); if (u && !kind) { kind = k; dyn = u; } });
+      if (kind) { units[kind] = classic.units === 'dyn' ? dyn : (unitOf(ctx.units, kind, function (x) { return x === 'Pa'; }) || 'Pa'); carry('dyn/cm² 单位'); }
+    }
+    if (family === 'volume') {
+      var ub = classic.units_by_field && typeof classic.units_by_field === 'object' ? classic.units_by_field : {};
+      var okP = !ub.pressure || unitOf(ctx.units, 'pressure', function (x) { return x === ub.pressure; });
+      var okV = !ub.velocity || unitOf(ctx.units, 'velocity', function (x) { return x === ub.velocity; });
+      if (okP && ub.pressure) units.pressure = ub.pressure;
+      if (okV && ub.velocity) units.velocity = ub.velocity;
+      if (okP && okV) carry('单位');
+      var vol = {};
+      if (num(classic.opacity) !== null) { vol.opacity = num(classic.opacity); carry('外壁透明度'); }
+      var sls = classic.streamlines && typeof classic.streamlines === 'object' ? classic.streamlines : null;
+      if (sls) {
+        if (num(sls.width) !== null) vol.width = num(sls.width);
+        if (num(sls.density) !== null) vol.density = num(sls.density);
+        if (typeof sls.thin === 'boolean') vol.thin = sls.thin;
+        carry('流线粗细和密度');
+      }
+      if (Object.keys(vol).length) d.volume = vol;
+    }
+    if (Object.keys(units).length) d.units = units;
+    return { d: Object.keys(d).length ? d : null, carried: carried };
+  }
+
   // classicToV2(classic, ctx) → {state: {v:1, run, f, w, L, cam, br?, sl?}, dropped: [labels], hiddenBranches, family}
-  //   ctx (optional, from the open result): {family, fields: [ids], branches: [ids], logFields: [ids], fov}.
+  //   ctx (optional, from the open result): {family, fields: [ids], branches: [ids], logFields: [ids], fov,
+  //   display: the reader's link state carries ``d`` (phase 3 lane 5), units: {kind: [unit names]} of the reader}.
   // Without ctx.branches the classic hidden branches cannot become the workspace's list of shown branches: ``br`` is
   // left out and ``hiddenBranches`` keeps them.  ``dropped`` names, in words, the non-default classic settings the
   // workspace state does not carry (PHASE3_LANES.md §3 lane 6 item 2; p3_audit_reports.md §F).
   function classicToV2(classic, ctx) {
     ctx = ctx || {};
     classic = classic && typeof classic === 'object' ? classic : {};
-    var dropped = [];
-    var drop = function (label) { if (dropped.indexOf(label) < 0) dropped.push(label); };
+    var dropped = [], carried = {};
+    var drop = function (label) { if (!carried[label] && dropped.indexOf(label) < 0) dropped.push(label); };
     var family = familyOf(classic, ctx);
     var st = { v: 1 };
     if (classic.run_identity) st.run = String(classic.run_identity).slice(0, 16);
@@ -174,6 +243,12 @@
     }
     if (field && Array.isArray(ctx.fields) && ctx.fields.indexOf(field) < 0) field = null;
     if (field) st.f = field;
+    // ---- display settings (``d``), when the reader's link format carries them (phase 3 lane 5); else named below
+    if (ctx.display) {
+      var shown = convertDisplay(classic, family, field, ctx);
+      if (shown.d) st.d = shown.d;
+      carried = shown.carried;
+    }
     var overlay = classic.overlay && typeof classic.overlay === 'object' ? classic.overlay : {};
     if (typeof overlay.trust === 'boolean') L.trust = overlay.trust;
     if (overlay.contours === true) drop('等值线');
@@ -260,6 +335,24 @@
     };
   }
 
+  // The reader's unit kinds (ws_display: its UNITS table when exported, else unitOptions of the known kinds).
+  function unitKinds() {
+    var D = ns.display, out = {};
+    if (!D) return null;
+    if (D.UNITS && typeof D.UNITS === 'object') Object.keys(D.UNITS).forEach(function (k) { out[k] = Object.keys(D.UNITS[k] || {}); });
+    else if (typeof D.unitOptions === 'function') ['pressure', 'velocity', 'wss'].forEach(function (k) { var u = D.unitOptions(k); if (u && u.length) out[k] = u.slice(); });
+    return Object.keys(out).length ? out : null;
+  }
+  // ctx for classicToV2 in the page: the manifest's, plus whether this page's link state carries ``d`` (a probe of
+  // ws_figure.viewState) and the unit kinds it knows.
+  function pageContext(api, manifest) {
+    var ctx = manifestContext(manifest), F = ns.figure;
+    try { var probe = F && typeof F.viewState === 'function' ? F.viewState(api) : null; ctx.display = Boolean(probe && probe.d && typeof probe.d === 'object'); }
+    catch (_) { ctx.display = false; }
+    ctx.units = unitKinds();
+    return ctx;
+  }
+
   // ------------------------------------------------------------------ boot rewrite (runs once, before the shell)
   var pending = null;   // {jobId, classic | null, unreadable}
   function rewrite(win) {
@@ -312,7 +405,7 @@
     var cur = api && api.cur ? api.cur() : null;
     if (!p || !cur || cur.jobId !== p.jobId || !cur.manifest) return Promise.resolve(null);
     if (p.unreadable) { notice(api, '旧版链接里的视图无法读取，已按默认打开。'); return Promise.resolve(null); }
-    var conv = classicToV2(p.classic, manifestContext(cur.manifest));
+    var conv = classicToV2(p.classic, pageContext(api, cur.manifest));
     var F = ns.figure, state = conv.state;
     // Through the workspace link decoder, so the state is read exactly as a pasted reproducible link would be.
     if (F && typeof F.encodeState === 'function' && typeof F.decodeState === 'function') {
@@ -343,7 +436,7 @@
   return {
     CLASSIC_SCHEMA: CLASSIC_SCHEMA, parseAddress: parseAddress, jobFromSearch: jobFromSearch, classicHash: classicHash,
     decodeClassicView: decodeClassicView, classicToV2: classicToV2, convertCamera: convertCamera, routeHash: routeHash,
-    searchWithoutJob: searchWithoutJob, manifestContext: manifestContext, rewrite: rewrite, applyPending: applyPending,
+    searchWithoutJob: searchWithoutJob, manifestContext: manifestContext, convertDisplay: convertDisplay, rewrite: rewrite, applyPending: applyPending,
     pending: function () { return pending; }
   };
 });
