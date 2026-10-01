@@ -762,7 +762,9 @@
     var St = ns.store, D = ns.display, changed = [], redraw = false;
     if (St && typeof St.prefs === 'function' && typeof St.setPrefs === 'function') {
       var P = St.prefs(), patch = {};
-      if (typeof d.cmap === 'string' && d.cmap !== P.cmap) patch.cmap = d.cmap;
+      // a colour map this workspace does not know would reset the preference to the default: leave it and say so
+      var known = function (c) { try { return typeof St.sanitizePrefs !== 'function' || St.sanitizePrefs(Object.assign({}, P, {cmap: c})).cmap === c; } catch (_) { return false; } };
+      if (typeof d.cmap === 'string' && d.cmap !== P.cmap) { if (known(d.cmap)) patch.cmap = d.cmap; else notes.push('这里没有色表 ' + d.cmap); }
       if ((d.light === 'soft' || d.light === 'flat') && d.light !== P.lighting) patch.lighting = d.light;
       if (d.labels && typeof d.labels === 'object') {
         var L = Object.assign({}, P.labels);
@@ -771,7 +773,7 @@
       }
       if (Object.keys(patch).length) {
         var next = St.setPrefs(patch);
-        if (patch.cmap) { if (next.cmap === d.cmap) { changed.push('色表'); redraw = true; } else notes.push('这里没有色表 ' + d.cmap); }
+        if (patch.cmap && next.cmap === d.cmap) { changed.push('色表'); redraw = true; }
         if (patch.lighting) {
           changed.push('光照');
           try { var v0 = api.viewer(); if (v0 && v0.setLighting) v0.setLighting(next.lighting); } catch (_) {}
@@ -781,11 +783,11 @@
       }
     }
     if (D && typeof D.prefs === 'function') {
-      var DP = D.prefs();
+      var DP = function () { return D.prefs(); };   // read afresh: every setter below replaces the stored object
       if (d.units && typeof d.units === 'object' && typeof D.setUnit === 'function') {
         Object.keys(d.units).forEach(function (kind) {
           var u = d.units[kind];
-          if (!DP.units || DP.units[kind] === u) return;
+          if (!DP().units || DP().units[kind] === u) return;
           var table = D.UNITS && D.UNITS[kind];
           if (!table || !Object.prototype.hasOwnProperty.call(table, u)) { notes.push('这里不能用单位 ' + u); return; }
           D.setUnit(kind, u); changed.push('单位');
@@ -793,12 +795,13 @@
       }
       if (d.layers && typeof d.layers === 'object' && typeof D.toggleLayer === 'function') {
         Object.keys(d.layers).forEach(function (k) {
-          if (typeof d.layers[k] === 'boolean' && DP.layers && typeof DP.layers[k] === 'boolean' && DP.layers[k] !== d.layers[k]) { D.toggleLayer(k); changed.push('图层'); }
+          var L = DP().layers;
+          if (typeof d.layers[k] === 'boolean' && L && typeof L[k] === 'boolean' && L[k] !== d.layers[k]) { D.toggleLayer(k); changed.push('图层'); }
         });
       }
-      if (d.volume && typeof d.volume === 'object' && DP.volume && typeof D.savePrefs === 'function') {
-        var vol = Object.assign({}, DP.volume, d.volume);
-        if (!sameJSON(vol, DP.volume)) { D.savePrefs(Object.assign({}, DP, {volume: vol})); if (D.refreshAll) D.refreshAll(); changed.push('外壁与流线'); }
+      if (d.volume && typeof d.volume === 'object' && DP().volume && typeof D.savePrefs === 'function') {
+        var vol = Object.assign({}, DP().volume, d.volume);
+        if (!sameJSON(vol, DP().volume)) { D.savePrefs(Object.assign({}, DP(), {volume: vol})); if (D.refreshAll) D.refreshAll(); changed.push('外壁与流线'); }
       }
     }
     if ((d.bands && typeof d.bands === 'object') || (d.thr && typeof d.thr === 'object')) {
