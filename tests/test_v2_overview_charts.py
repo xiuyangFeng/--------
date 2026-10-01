@@ -77,7 +77,7 @@ def test_home_band_and_cohort_page_draw():
       done({cardsHome, cols, today, runText, failText, segs, tipBefore, tipAfter, kp, bars, ref, area, yTicks, pts: pts.length, titles, metricSel, hash: location.hash});
     """)
     assert out["errors"] == [], out["errors"]
-    assert out["cardsHome"] == ["今日上传", "进行中", "待处理", "失败"]
+    assert out["cardsHome"] == ["今日上传", "进行中", "待处理", "失败", "最近完成"]
     assert out["cols"] == 14 and out["today"] == 1
     assert "RUN_ME" in out["runText"] and "阶段 A" in out["runText"] and "BAD_ONE" in out["failText"]
     assert out["segs"] == ["ov-seg seg-confirm", "ov-seg seg-review"]

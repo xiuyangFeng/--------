@@ -149,9 +149,10 @@ def test_home_tabs_counts_full_list_and_review_in_attention():
     """)
     assert out["errors"] == [], out["errors"]
     assert out["tabs"][0].startswith("病例") and out["tabs"][1:] == ["任务", "队列", "回收站"]
-    assert [t[-2:] if not t.endswith("进行中") else t for t in out["kpis"]] and len(out["kpis"]) == 4
+    assert len(out["kpis"]) == 5 and out["kpis"][4].endswith("最近完成")
     assert out["kpis"][2] == "2待处理" and out["kpis"][3] == "1失败"             # awaiting + unreviewed; failed
-    assert any("待复核" in a for a in out["attn"]) and any("确认出口" in a for a in out["attn"])
+    # 10-01: the home lists nothing behind the cards — 需要处理 / 最近完成 open from their cards (task list)
+    assert out["attn"] == []
     assert out["listUrls"] and all(u == "GET /api/jobs" for u in out["listUrls"])   # the whole list, not the first 100
     assert out["pages"] == ["#/tasks", "#/cohort", "#/trash"]
 

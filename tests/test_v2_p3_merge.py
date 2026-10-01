@@ -76,3 +76,26 @@ def test_shortcut_table_lists_hover_readout_and_reset():
     keys = out["keys"]
     assert "P" in keys and keys[keys.index("P") + 1] == "悬停读数开关"
     assert "0" in keys and keys[keys.index("0") + 1] == "复位视角"
+
+
+def test_recent_card_and_its_task_filter():
+    out = _run(r"""
+      canned['/api/jobs'] = {body: {jobs: [jobRecord('A'), jobRecord('B', {review: {status: 'reviewed'}})]}};
+      await boot();
+      const now = Date.parse('2026-10-01T12:00:00+08:00');
+      const j = (id, extra) => Object.assign({id: id, status: 'done'}, extra);
+      const Q = ns.admin.quickMatch;
+      const fin = [Q(j('a', {finished_at: '2026-09-29T08:00:00+08:00'}), 'recent', now), Q(j('b', {finished_at: '2026-09-20T08:00:00+08:00'}), 'recent', now),
+        Q(j('c', {status: 'failed', created_at: '2026-09-30T08:00:00+08:00'}), 'recent', now), Q(j('d', {created_at: '2026-09-30T20:00:00+08:00'}), 'recent', now)];
+      const cards = byClass(byClass(app(), 'home-kpis')[0], 'ov-card');
+      fire(cards[4], 'click'); await wait(20);
+      const hash = location.hash;
+      await hashTo('#/tasks', 150);   // the stub location does not fire hashchange by itself
+      const chipEl = byClass(app(), 'wsc-chip')[0];
+      done({fin, label: textOf(byClass(cards[4], 'ov-label')[0]), hash, chip: chipEl ? textOf(chipEl) : '',
+        lists: byClass(app(), 'attn-card').length + byClass(app(), 'recent-row').length});
+    """)
+    assert out["errors"] == [], out["errors"]
+    assert out["fin"] == [True, False, False, True]                          # done within 7 days; failed never
+    assert out["label"] == "最近完成" and out["hash"] == "#/tasks" and "近 7 天完成" in out["chip"]
+    assert out["lists"] == 0

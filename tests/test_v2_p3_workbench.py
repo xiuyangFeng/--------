@@ -248,7 +248,7 @@ def test_home_guide_recent_case_facts_fill_missing_and_live_eta():
       await boot();
       const guide = byClass(app(), 'home-guide')[0];
       const g = {steps: byClass(guide, 'guide-step').length, close: walk(guide, e => String(e.className).includes('guide-close')).length, upload: Boolean(button(guide, '上传 STL'))};
-      const recent = byClass(app(), 'recent-row').map(textOf);
+      const recent = textOf(byClass(byClass(app(), 'home-kpis')[0], 'ov-card')[4]);   // 10-01: the 最近完成 card (no list on the home)
       const cardOf = name => byClass(app(), 'case-card').filter(c => textOf(byClass(c, 'case-name')[0]) === name)[0];
       const A = cardOf('P-1'), Bc = cardOf('CASE_B');
       const facts = {dia: textOf(byClass(A, 'case-dia')[0]), tags: textOf(byClass(A, 'case-tags')[0]), addA: byClass(A, 'res-add').map(textOf), addB: byClass(Bc, 'res-add').length,
@@ -272,7 +272,7 @@ def test_home_guide_recent_case_facts_fill_missing_and_live_eta():
     """)
     assert out["errors"] == [], out["errors"]
     assert out["g"] == {"steps": 3, "close": 1, "upload": False}
-    assert len(out["recent"]) == 2 and out["recent"][0].startswith("CASE_B") and "已复核" in out["recent"][0] and "待复核" in out["recent"][1]
+    assert out["recent"].startswith("最近完成") and "最近一次" in out["recent"] and "CASE_B" in out["recent"]   # the newest finished result
     f = out["facts"]
     assert f["dia"] == "52.1 mm" and f["tags"] == "#AAA #随访" and f["addA"] == ["体场"] and f["addB"] == 0 and f["diaB"] == 0
     assert "RUN_ME" in out["band"] and "还需约 40 秒" in out["band"]                           # the 进行中 card reads the estimate

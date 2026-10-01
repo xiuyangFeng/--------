@@ -397,6 +397,14 @@
     });
     out.running.sort(function (a, b) { return created(b) - created(a); });
     out.recent = days.reduce(function (sum, x) { return sum + x.n; }, 0);
+    // 最近完成 card: results finished in the last 7 days (classic quick filter 「近 7 天完成」) and the newest of them
+    out.done7 = 0; out.lastDone = null;
+    (jobs || []).forEach(function (job) {
+      if (!job || job.status !== 'done') return;
+      var t = finishedMs(job);
+      if (t && now - t <= 7 * 86400000 && t <= now + 60000) out.done7 += 1;
+      if (!out.lastDone || t > finishedMs(out.lastDone)) out.lastDone = job;
+    });
     return out;
   }
   // The overview band: four cards across the full width, each opening the task list with its filter.  今日 carries the
@@ -449,11 +457,18 @@
     // 失败: the latest failure
     var lf = n.lastFailed;
     var failBody = lf
-      ? h('div', {'class': 'ov-list'}, h('div', {'class': 'ov-sub', text: '最近一次'}),
-          h('div', {'class': 'ov-run'}, h('span', {'class': 'ov-run-name', text: ui().displayName(lf)}), h('span', {'class': 'ov-run-what', text: ui().time(lf.created_at, false).slice(5)})))
+      ? h('div', {'class': 'ov-list'}, h('div', {'class': 'ov-sub', text: '最近一次 · ' + ui().time(lf.created_at, false).slice(5)}),
+          h('div', {'class': 'ov-run'}, h('span', {'class': 'ov-run-name', title: ui().displayName(lf), text: ui().displayName(lf)})))
       : h('div', {'class': 'ov-sub', text: '没有失败的任务'});
     var failed = card('', '失败', n.failed ? 'error' : null, n.failed, failBody, {status: 'failed'}, '失败或中断');
-    return h('section', {'class': 'home-kpis', 'aria-label': '概况'}, today, active, todoCard, failed);
+    // 最近完成: results finished in the last 7 days; the list opens the task page with that quick filter
+    var ld = n.lastDone, ldAt = ld && (ld.finished_at || ld.created_at);
+    var doneBody = ld
+      ? h('div', {'class': 'ov-list'}, h('div', {'class': 'ov-sub', text: '最近一次' + (ldAt ? ' · ' + shortWhen(ldAt) : '')}),
+          h('div', {'class': 'ov-run'}, h('span', {'class': 'ov-run-name', title: ui().displayName(ld), text: ui().displayName(ld)})))
+      : h('div', {'class': 'ov-sub', text: '还没有完成的结果'});
+    var doneCard = card('', '最近完成', n.done7 ? 'ok' : null, n.done7, doneBody, {quick: 'recent'}, '近 7 天完成的结果；点开按任务列出');
+    return h('section', {'class': 'home-kpis', 'aria-label': '概况'}, today, active, todoCard, failed, doneCard);
   }
   // Home: a gallery of cases (vessel thumbnail, name, scans, one chip per result) under the counts and a short strip
   // of the jobs that need an action (outlets to confirm, failures, running, results to review).  Pure layout;
@@ -538,8 +553,10 @@
     var timer = null;
     search.addEventListener('input', function () { if (timer) clearTimeout(timer); timer = setTimeout(function () { if (opts.onSearch) opts.onSearch(search.value); }, 160); });
     wrap.appendChild(homeHead('', String(tree.length), h('label', {'class': 'home-search-wrap'}, ui().icon('search'), search)));
-    // overview band (lane C counts): each card opens the task list with that filter
-    if (ns.admin && ns.admin.openTasks && (jobs || []).length) wrap.appendChild(overview(homeStats(jobs)));
+    // overview band (lane C counts): each card opens the task list with that filter.  The home lists nothing else:
+    // 需要处理 / 最近完成 live behind their cards (user 10-01); only without the workbench module the strip stays.
+    var band = Boolean(ns.admin && ns.admin.openTasks && (jobs || []).length);
+    if (band) wrap.appendChild(overview(homeStats(jobs)));
     // P3 lane 2: 「三步上手」 — open while the library is empty and until it is closed once (classic 'wss-guide-closed')
     var emptyLib = !(jobs || []).length;
     if (!q && (emptyLib || !guideClosed())) wrap.appendChild(guideCard(opts, emptyLib, function () { setGuideClosed(true); todo(el, jobs, opts); }));
@@ -548,8 +565,8 @@
       m.failed.map(function (j) { return {job: j, tone: 'error', what: '失败', action: '查看原因'}; }),
       m.running.map(function (j) { return {job: j, tone: 'busy', what: j.phase || '计算中', action: '查看进度'}; }),
       m.review.map(function (j) { return {job: j, tone: 'idle', what: '待复核', action: '去复核'}; })];
-    var attn = [].concat.apply([], groups), shownAttn = attnPick(groups, ATTN_MAX), attnSec = null, recentSec = null;
-    if (attn.length) {
+    var attn = [].concat.apply([], groups), shownAttn = attnPick(groups, ATTN_MAX), attnSec = null;
+    if (attn.length && !band) {
       var strip = h('div', {'class': 'attn'});
       shownAttn.forEach(function (a) {
         var eta = a.tone === 'busy' || a.tone === 'warn' ? etaBadge(a.job, {bar: false}) : null;   // P3 lane 2: remaining time instead of the phase
@@ -566,26 +583,7 @@
         ? ui().button('全部 ' + attn.length + ' 条', function () { ns.admin.openTasks({quick: 'attn'}); }, {kind: 'link', cls: 'btn-sm', iconAfter: 'chevron-right'}) : null;
       attnSec = h('section', {'class': 'home-sec'}, h('div', {'class': 'home-sub-row'}, h('h3', {'class': 'home-sub', text: '需要处理'}), h('span', {'class': 'sec-fill'}), more), strip);
     }
-    // P3 lane 2: the newest finished results with their review state (classic 今日概览「最近完成」)
-    var recent = q ? [] : recentDone(jobs, RECENT_MAX);
-    if (recent.length) {
-      var rlist = h('div', {'class': 'recent', role: 'list'});
-      recent.forEach(function (j) {
-        var rv = bucket(j) === 'reviewed' ? {tone: 'ok', label: '已复核'} : {tone: 'idle', label: '待复核'};
-        var at = j.finished_at || j.created_at;
-        var row = h('button', {type: 'button', 'class': 'recent-row', role: 'listitem', title: ui().resultName(j, cards) + (at ? ' · 完成于 ' + ui().time(at) : '')},
-          h('span', {'class': 'recent-main'},
-            h('span', {'class': 'recent-name'}, unread(j.id) ? h('span', {'class': 'rail-unread', 'aria-label': '未读'}) : null, h('span', {text: ui().displayName(j)})),
-            h('span', {'class': 'recent-what', text: ui().resultName(j, cards, {short: true}) + (at ? ' · ' + shortWhen(at) : '')})),
-          ui().dot(rv.tone, rv.label, 'recent-st'));
-        row.addEventListener('click', function () { if (ns.admin && ns.admin.markRead) ns.admin.markRead(j.id); if (opts.onOpen) opts.onOpen(j.id); });
-        rlist.appendChild(row);
-      });
-      recentSec = h('section', {'class': 'home-sec home-recent'}, h('div', {'class': 'home-sub-row'}, h('h3', {'class': 'home-sub', text: '最近完成'}), h('span', {'class': 'sec-fill'})), rlist);
-    }
-    // 需要处理 and 最近完成 side by side (stacked on narrow screens)
-    if (attnSec && recentSec) wrap.appendChild(h('div', {'class': 'home-split'}, attnSec, recentSec));
-    else if (attnSec || recentSec) wrap.appendChild(attnSec || recentSec);
+    if (attnSec) wrap.appendChild(attnSec);
     // gallery: the newest cases first; more on request (every card queues a thumbnail, so a long history is not all drawn at once)
     var grid = h('div', {'class': 'gallery'});
     var releases = releasesNow();
@@ -645,7 +643,7 @@
     var moreCases = tree.length > limit ? ui().button('再显示 ' + Math.min(GALLERY_STEP, tree.length - limit) + ' 个病例（共 ' + tree.length + ' 个）', function () {
       galleryShown = limit + GALLERY_STEP; todo(el, jobs, opts);
     }, {cls: 'gallery-more'}) : null;
-    if (tree.length) wrap.appendChild(h('section', {'class': 'home-sec'}, attn.length || recent.length ? h('h3', {'class': 'home-sub', text: '全部病例'}) : null, grid, moreCases));
+    if (tree.length) wrap.appendChild(h('section', {'class': 'home-sec'}, band || attnSec ? h('h3', {'class': 'home-sub', text: '全部病例'}) : null, grid, moreCases));
     else if (!(emptyLib && !q)) wrap.appendChild(ui().empty(q ? '没有符合搜索的病例。' : '还没有病例。上传一份管腔 STL，或把 STL 拖进页面。', [
       opts.onUpload ? ui().button('上传 STL', opts.onUpload, {icon: 'upload', kind: 'primary'}) : null,
       ui().link('输入要求', '/static/v2/help_input.html', {newTab: true}),

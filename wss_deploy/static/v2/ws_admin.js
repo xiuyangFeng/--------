@@ -453,13 +453,17 @@
     {value: 'reviewed', label: '已复核', bucket: 'reviewed', server: 'done'},
     {value: 'failed', label: '失败', bucket: 'failed'},
     {value: 'cancelled', label: '已取消', bucket: 'cancelled', server: 'cancelled'}];
-  var QUICK = {today: '今日', todo: '待处理', attn: '需要处理'};
+  var QUICK = {today: '今日', todo: '待处理', attn: '需要处理', recent: '近 7 天完成'};
   function statusSpec(v) { return STATUS_FILTERS.filter(function (s) { return s.value === v; })[0] || STATUS_FILTERS[0]; }
   function quickMatch(job, key, now) {
     var b = bucket(job);
     if (key === 'today') return sameDay(job.created_at, now);
     if (key === 'todo') return b === 'confirm' || b === 'unreviewed';
     if (key === 'attn') return b === 'confirm' || b === 'unreviewed' || b === 'failed' || b === 'running';
+    if (key === 'recent') {   // finished in the last 7 days (the home's 最近完成 card; classic quick filter)
+      var t = timeMs(job.finished_at || job.created_at), at = now === undefined ? nowMs() : now;
+      return job.status === 'done' && t !== null && at - t <= 7 * 86400000 && t <= at + 60000;
+    }
     return true;
   }
   function needsServer(t) { return Boolean(String(t.q || '').trim() || String(t.patient || '').trim() || String(t.tag || '').trim()); }
