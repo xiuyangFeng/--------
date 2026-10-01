@@ -433,3 +433,67 @@ def test_overview_volume_statistics_table():
     assert out["head"] == ["物理量", "点数", "均值", "p99", "最大"]
     assert out["cells"] == [["速度 m/s", "20000", "0.422", "1.37", "1.57"], ["相对压力 Pa", "20000", "−304", "99.1", "131"]]
     assert out["where"] == 0
+
+
+# ----------------------------------------------------------------------------------------------- W58 / W59
+def test_ctrl_p_goes_to_the_print_view_and_the_browser_print_gets_a_snapshot():
+    _need_node()
+    program = r"""
+      const winEv = {}, docEv = {};
+      class El { constructor(t) { this.tagName = t.toUpperCase(); this.children = []; this.parentNode = null; this.attrs = {}; this.className = ''; this.width = 0; this.height = 0; this.drawn = []; }
+        insertBefore(x, ref) { const i = ref ? this.children.indexOf(ref) : -1; x.parentNode = this; if (i < 0) this.children.push(x); else this.children.splice(i, 0, x); return x; }
+        removeChild(x) { this.children.splice(this.children.indexOf(x), 1); x.parentNode = null; return x; }
+        appendChild(x) { x.parentNode = this; this.children.push(x); return x; }
+        setAttribute(k, v) { this.attrs[k] = String(v); }
+        get nextSibling() { const p = this.parentNode; return p ? p.children[p.children.indexOf(this) + 1] || null : null; }
+        getContext(kind) { const self = this; return kind === '2d' ? {drawImage(src) { self.drawn.push(src); }} : null; } }
+      const cls = new Set();
+      globalThis.document = {body: {classList: {add: c => cls.add(c), remove: c => cls.delete(c), contains: c => cls.has(c)}}, createElement: t => new El(t),
+        addEventListener: (n, f, cap) => { (docEv[n] = docEv[n] || []).push([f, cap]); }};
+      globalThis.addEventListener = (n, f) => { (winEv[n] = winEv[n] || []).push(f); };
+      globalThis.WSSV2 = {ui: {toast() {}}};
+      const F = require(@@fig@@);
+      const wrap = new El('div'), gl = new El('canvas'), labels = new El('div'); gl.width = 800; gl.height = 600; wrap.appendChild(gl); wrap.appendChild(labels);
+      const renders = [];
+      const viewerA = {canvasElement: gl, renderNow() { renders.push('A'); }, renderPose() {}, isDisposed: () => false};
+      const viewerB = {canvasElement: new El('canvas'), renderNow() { renders.push('B'); }};      // hidden: 0 × 0
+      let cur = {manifest: {result: {family: 'wall'}}};
+      const api = {cur: () => cur, viewer: () => viewerA, state: () => ({viewerA, viewerB}), hideName: () => true};
+      F._setApi(api);
+      const printed = [];
+      F.printView = (a, o) => { printed.push(o.hideName); return Promise.resolve(); };
+      const key = (k, extra) => { const e = Object.assign({key: k, prevented: false, preventDefault() { this.prevented = true; }}, extra || {}); docEv.keydown.forEach(([f]) => f(e)); return e.prevented; };
+      const r = {capture: docEv.keydown.map(x => x[1]), ctrlP: key('p', {ctrlKey: true}), metaP: key('P', {metaKey: true}), plainP: key('p'), shiftP: key('p', {ctrlKey: true, shiftKey: true})};
+      await new Promise(res => setTimeout(res, 10));
+      r.printed = printed.slice();
+      cur = null; r.home = key('p', {ctrlKey: true}); cur = {manifest: {result: {family: 'wall'}}};
+      // the browser's menu: beforeprint lays a copy over the WebGL canvas (drawn now, same task), afterprint removes it
+      winEv.beforeprint.forEach(f => f());
+      const snap = wrap.children[1];
+      r.before = {order: wrap.children.map(c => c.tagName + ':' + c.className), drawn: snap.drawn.length && snap.drawn[0] === gl, size: [snap.width, snap.height], renders: renders.slice(),
+        hidden: snap.attrs['aria-hidden'], count: F.printSnaps().length};
+      winEv.afterprint.forEach(f => f());
+      r.after = {order: wrap.children.map(c => c.tagName), count: F.printSnaps().length};
+      cls.add('ws-printing'); winEv.beforeprint.forEach(f => f()); r.duringPrintView = wrap.children.length; cls.delete('ws-printing');
+      console.log(JSON.stringify(r));
+    """.replace("@@fig@@", json.dumps(str(V2 / "ws_figure.js")))
+    result = subprocess.run(["node", "-e", "(async()=>{" + program + "})().catch(e=>{console.error(e&&e.stack||e);process.exit(1);});"],
+                            text=True, capture_output=True, timeout=60)
+    assert result.returncode == 0, result.stderr[-3000:]
+    r = json.loads(result.stdout.strip().splitlines()[-1])
+    assert r["capture"] == [True]                                         # before the shell's own key handling
+    assert r["ctrlP"] is True and r["metaP"] is True and r["plainP"] is False and r["shiftP"] is False
+    assert r["printed"] == [True, True]                                   # the print-view page, presentation name hidden
+    assert r["home"] is False                                             # no result open: the browser prints
+    b = r["before"]
+    assert b["order"] == ["CANVAS:", "CANVAS:ws-print-snap", "DIV:"]     # over the WebGL canvas, under the label chips
+    assert b["drawn"] is True and b["size"] == [800, 600] and b["renders"] == ["A"] and b["hidden"] == "true" and b["count"] == 1
+    assert r["after"] == {"order": ["CANVAS", "DIV"], "count": 0}
+    assert r["duringPrintView"] == 2                                      # printView's own A4 page needs no copy
+
+
+def test_print_snapshot_is_print_only_css():
+    css = (V2 / "v2_export.css").read_text(encoding="utf-8")
+    assert ".ws-print-snap { display: none; }" in css
+    tail = css[css.index("the browser's own print"):]
+    assert "@media print" in tail and "position: absolute; inset: 0;" in tail
