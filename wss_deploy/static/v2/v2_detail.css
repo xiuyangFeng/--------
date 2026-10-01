@@ -216,3 +216,18 @@
 
 /* 「沿程」: the open section's station on the curves (V41) */
 .along-mark-slice { stroke: #eb6834; stroke-width: 2; }
+
+/* ================================================================ final migration round, lane B (results) */
+/* compare: each side's result warning in the 比较 tab and a badge on its viewport (C+1); status colour only */
+.cmp-warns { display: grid; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.cmp-warn { display: flex; align-items: flex-start; gap: 6px; padding: 6px 8px; border-radius: var(--r-sm); background: var(--warn-bg); color: var(--warn); font-size: 12px; line-height: 1.5; }
+.cmp-warn-icon { flex: none; display: inline-flex; margin-top: 2px; }
+.cmp-warn-text { flex: 1 1 auto; min-width: 0; }
+.cmp-warn-text b { font-weight: 700; }
+.cmp-warn .btn { flex: none; height: 20px; color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.vp-notice { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 11px; border: 1px solid rgba(240, 168, 72, .55);
+  background: rgba(62, 40, 12, .9); color: #fde6c4; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; pointer-events: auto; }
+.vp-notice svg { color: #f7a84e; }
+.vp-notice:hover { border-color: #f7a84e; }
+.stage-light .vp-notice { color: #7a3a07; background: rgba(254, 244, 236, .97); border-color: #f3b27c; }
+.stage-light .vp-notice svg { color: var(--warn); }

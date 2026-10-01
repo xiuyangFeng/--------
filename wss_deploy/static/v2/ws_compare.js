@@ -6,7 +6,8 @@
  * same-scale mode, one set of colour bands and thresholds for both sides (ws_display follows the mode).
  * Phase 3 lane 5: both sides' identity (patient, scan, date, review; classic compare.js renderIdentity, #112), the
  * scalar table of POST /api/compare — left, right, right − left of the declared-compatible statistics, the reasons when
- * they are not (classic renderComparison, C5) — and a searchable picker without the 20-result cap (#98). */
+ * they are not (classic renderComparison, C5) — and a searchable picker without the 20-result cap (#98).
+ * Final round lane B (C+1): each side's result warning (ns.notice.model) under the identities, with its details. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -185,6 +186,33 @@
     ui().fill(body, parts);
   }
 
+  // ------------------------------------------------------------------ warnings of both sides (P4 C+1)
+  // The result-page warning (geometry outside the reference range, population review, ensemble quality not good;
+  // ns.notice.model, the classic banner's trigger and sentence) of each side.  The bar on top of the stage only speaks
+  // for the left result; the classic comparison page showed both full reports, each with its own bar.  No dispersion
+  // numbers (the notice model has none).  Pure.
+  function sideWarnings(mA, mB) {
+    var N = ns.notice;
+    if (!N || typeof N.model !== 'function') return [];
+    var out = [];
+    [['left', '左侧', mA], ['right', '右侧', mB]].forEach(function (x) {
+      var md = null;
+      try { md = x[2] ? N.model(x[2]) : null; } catch (_) { md = null; }
+      if (md) out.push({side: x[0], label: x[1], text: md.text, target: md.target, items: md.items.map(function (it) { return it.text; }), manifest: x[2]});
+    });
+    return out;
+  }
+  function warningSection(ctx) {
+    var h = ui().h, list = sideWarnings(ctx.left.manifest, ctx.right.manifest);
+    if (!list.length) return null;
+    return h('div', {'class': 'cmp-warns', role: 'alert'}, list.map(function (w) {
+      var more = ns.notice && ns.notice.openDetails ? ui().button('详情', function () { ns.notice.openDetails(w.manifest); }, {kind: 'link', cls: 'btn-sm'}) : null;
+      return h('div', {'class': 'cmp-warn', dataset: {side: w.side, target: w.target}},
+        ui().icon ? h('span', {'class': 'cmp-warn-icon', 'aria-hidden': 'true'}, ui().icon('warning', {size: 14})) : null,
+        h('span', {'class': 'cmp-warn-text'}, h('b', {text: w.label + '结果 '}), h('span', {text: w.text})), more);
+    }));
+  }
+
   // ------------------------------------------------------------------ inspector panel
   function render(el, ctx) {
     var h = ui().h;
@@ -224,6 +252,7 @@
     var syncRow = h('label', {'class': 'check'}, sync, h('span', {text: '同步视角'}));
     var parts = [
       h('div', {'class': 'cmp-pair'}, who('左', ctx.left), who('右', ctx.right)),
+      warningSection(ctx),
       ui().section('比较条件', {}, table),
       ctx.scalars === false ? null : scalarSection(ctx),
       ui().section('怎么看', {}, modes, ctx.mode === 'each' ? ui().note('两侧色标范围不同，同一种颜色不代表同一个数。', 'warn') : ui().note('两侧用同一个色标范围：' + (ctx.rangeText || '—') + (D ? '；分段和阈值也一起改' : '') + '。'), push),
@@ -294,5 +323,7 @@
 
   return {conditions: conditions, sameScaleAllowed: sameScaleAllowed, sameGeometry: sameGeometry, commonRange: commonRange, render: render, candidates: candidates, pickDialog: pickDialog, timeText: timeText,
     // P3 lane 5
-    identity: identity, matches: matches, scalarModel: scalarModel, reasonText: reasonText, fetchScalars: fetchScalars, _clearScalars: function () { scalarCache = {}; }};
+    identity: identity, matches: matches, scalarModel: scalarModel, reasonText: reasonText, fetchScalars: fetchScalars, _clearScalars: function () { scalarCache = {}; },
+    // P4 lane B (C+1)
+    sideWarnings: sideWarnings};
 });

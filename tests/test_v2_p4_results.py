@@ -166,3 +166,64 @@ def test_a_classic_link_switches_the_display_options_on_in_the_workspace():
     assert "已按旧版链接打开" in out["toast"]
     for word in ("等值线", "剖切", "高亮最高区域"):
         assert word not in out["toast"]
+
+
+# ----------------------------------------------------------------------------------------------- C+1
+_WARN = r"""
+  const B = id => canned['/api/v2/jobs/' + id + '/manifest'].body;
+  const warn = id => { const b = B(id); b.analysis.reference_assessment = {status: 'review', note: '仅检查已声明的几何参考范围。',
+      checks: [{path: 'geometry.左髂总.length_mm', units: 'mm', value: 177.82, min: 21.116, max: 141.016, status: 'review'}], population: {status: 'review', reasons: ['参照队列不足']}};
+    b.analysis.quality = {level: 'review', label: '存在不确定性，建议复核', reasons: ['3 个模型离散度超过常规范围，建议复核热点和分支']};
+    b.provenance = Object.assign({}, b.provenance, {n_models: 3}); };
+  const btn = (root, text) => walk(root, e => e.tagName === 'BUTTON' && textOf(e).trim() === text)[0];
+"""
+
+
+def test_compare_shows_the_right_hand_warnings_in_the_tab_and_on_its_viewport():
+    out = _harness(_WARN + r"""
+      warn('B');
+      await boot();
+      await hashTo('#/job/A', 200);
+      const topBefore = textOf(byClass(app(), 'ws-notices')[0]);
+      await hashTo('#/job/A?v=compare&cmp=B', 300);
+      const S = shellState(), body = byClass(app(), 'insp-body')[0];
+      const warns = byClass(body, 'cmp-warn').map(e => ({side: e.dataset.side, target: e.dataset.target, text: textOf(e)}));
+      const badgeB = byClass(S.els.vpB.status, 'vp-notice')[0], badgeA = byClass(S.els.vpA.status, 'vp-notice')[0];
+      const expected = ns.notice.model(S.cur.compare.manifest).text;
+      fire(badgeB, 'click', {stopPropagation() {}}); await wait(20);
+      const dlg = textOf(byId('ws-dialog')); if (byId('ws-dialog')) byId('ws-dialog').close();
+      fire(btn(byClass(body, 'cmp-warn')[0], '详情'), 'click'); await wait(20);
+      const dlg2 = textOf(byId('ws-dialog')); if (byId('ws-dialog')) byId('ws-dialog').close();
+      // the right side keeps its badge whatever tab is open; exiting the comparison removes it
+      fire(walk(app(), e => e.dataset && e.dataset.tab === 'overview')[0], 'click'); await wait(20);
+      const stillThere = byClass(S.els.vpB.status, 'vp-notice').length, tabNow = S.tab, warnsNow = byClass(byClass(app(), 'insp-body')[0], 'cmp-warn').length;
+      await hashTo('#/job/A', 200);
+      done({topBefore, warns, badge: badgeB ? {text: textOf(badgeB), title: badgeB.title} : null, badgeA: Boolean(badgeA), expected, dlg, dlg2, stillThere, tabNow, warnsNow,
+            after: byClass(S.els.vpB.status, 'vp-notice').length, compare: Boolean(S.cur.compare)});
+    """, _files("ws_notice.js"))
+    assert out["errors"] == [], out["errors"]
+    assert out["topBefore"] == ""                                               # A itself has nothing to say
+    assert len(out["warns"]) == 1 and out["warns"][0]["side"] == "right"
+    w = out["warns"][0]["text"]
+    assert w.startswith("右侧结果 注意：输入几何有 1 项超出发布包参考范围（左髂总长度 178 mm，参考 21.1–141 mm）；人群参照需要复核；模型集成质量：存在不确定性，建议复核。")
+    assert out["expected"] in w                                                 # the classic banner sentence, ns.notice.model
+    assert out["badge"]["text"] == "需复核" and out["badge"]["title"] == "右侧结果：" + out["expected"]
+    assert out["badgeA"] is False
+    for d in (out["dlg"], out["dlg2"]):
+        assert "参考范围与质量" in d and "左髂总长度 178 mm（参考 21.1–141 mm）" in d and "3 个模型一致性" in d
+        assert "逐点离散度只保存在质量审计文件里" in d                           # no dispersion numbers
+    assert out["tabNow"] == "overview" and out["warnsNow"] == 0 and out["stillThere"] == 1
+    assert out["after"] == 0 and out["compare"] is False
+
+
+def test_side_warnings_model_both_sides_and_none():
+    out = _harness(_WARN + r"""
+      warn('A');
+      await boot();
+      const C = ns.compare, mA = B('A'), mB = B('B');
+      done({both: C.sideWarnings(mA, mA).map(w => [w.side, w.label, w.target, w.items.length]), left: C.sideWarnings(mA, mB).map(w => w.side),
+            none: C.sideWarnings(mB, mB), missing: C.sideWarnings(null, undefined)});
+    """, _files("ws_notice.js"))
+    assert out["errors"] == [], out["errors"]
+    assert out["both"] == [["left", "左侧", "reference", 3], ["right", "右侧", "reference", 3]]
+    assert out["left"] == ["left"] and out["none"] == [] and out["missing"] == []

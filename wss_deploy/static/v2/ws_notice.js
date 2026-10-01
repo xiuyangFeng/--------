@@ -9,7 +9,9 @@
  * Numbers are formatted with WssReportCommon.formatValue, the function both classic pages use.  The bar sits in the
  * shell's notice host (shellApi.noticeHost()), shows in the offline report too (the manifest is embedded), 「详情」
  * opens the reference / quality dialog, 「×」 closes it for this opening of the result (classic: 仅本次打开).
- * Also asks ws_lens for the glossary (term tips) once the workspace starts. */
+ * Also asks ws_lens for the glossary (term tips) once the workspace starts.
+ * Final round lane B (C+1): badge(manifest, {side}) — the same warning as a 「需复核」 badge on a viewport of a comparison
+ * (the shell's status line puts it on each side); ws_compare lists each side's sentence in the 比较 tab. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -142,6 +144,19 @@
     return h('div', {'class': 'ws-notice', role: 'alert', dataset: {target: md.target}},
       h('span', {'class': 'ws-notice-icon', 'aria-hidden': 'true'}, ui().icon ? ui().icon('warning', {size: 15}) : '!'), text, more, close);
   }
+  // P4 (C+1): the same warning as a small badge on a viewport of a comparison (left or right), so each side's warning
+  // stays in sight whatever tab is open; 「需复核」 with the classic sentence as its tip, a click opens that side's details.
+  // Returns null when that result has nothing to say.  opts = {side: '左' | '右'}.
+  function badge(manifest, opts) {
+    var md = model(manifest);
+    if (!md) return null;
+    opts = opts || {};
+    var h = ui().h, who = opts.side ? opts.side + '侧结果' : '这份结果';
+    var b = h('button', {type: 'button', 'class': 'vp-notice', title: who + '：' + md.text, 'aria-label': who + '需复核：' + md.text, dataset: {target: md.target}},
+      ui().icon ? ui().icon('warning', {size: 13}) : null, h('span', {text: '需复核'}));
+    b.addEventListener('click', function (e) { if (e && e.stopPropagation) e.stopPropagation(); openDetails(manifest); });
+    return b;
+  }
   // Fill the shell's host for the current result (or empty it).
   function show(api) {
     var host = api && api.noticeHost ? api.noticeHost() : null;
@@ -176,5 +191,6 @@
   (ns.ext = ns.ext || []).push(EXT);
 
   return {model: model, referenceLabel: referenceLabel, referenceItems: referenceItems, referenceModel: referenceModel, qualityModel: qualityModel,
-    modelCount: modelCount, ensembleWord: ensembleWord, detailsBody: detailsBody, openDetails: openDetails, bar: bar, show: show, ext: EXT, QUALITY_GOOD: QUALITY_GOOD};
+    modelCount: modelCount, ensembleWord: ensembleWord, detailsBody: detailsBody, openDetails: openDetails, bar: bar, show: show, ext: EXT, QUALITY_GOOD: QUALITY_GOOD,
+    badge: badge};
 });
