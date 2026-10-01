@@ -308,7 +308,7 @@ def test_notices_unread_banner_and_view_all():
       const menu = walk(byId('ws-menu'), e => String(e.className).includes('menu-item')).map(textOf);
       fire(walk(byId('ws-menu'), e => String(e.className).includes('menu-item') && textOf(e) === '看全部用户')[0], 'click'); await wait(80);
       await hashTo('#/tasks', 100);
-      const owners = byClass(app(), 'wsc-row').map(r => r.children[r.children.length - 1].textContent);
+      const owners = byClass(app(), 'wsc-row').map(r => textOf(byClass(r, 'wsc-owner')[0]));   // P3 lane 2: the row ends with its 「⋯」 menu now
       const notMine = byClass(app(), 'not-mine').length;
       done({afterReview, afterDone, afterOpen, blip, down, up, update, menu, owners, notMine, listUrls: urls.filter(u => /^GET \/api\/jobs(\?|$)/.test(u))});
     """)
