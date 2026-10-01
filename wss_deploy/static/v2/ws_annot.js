@@ -4,7 +4,9 @@
  * reports read and write the same file.  Pins are drawn whenever the result has any (a dot, a short leader and
  * 「A1 · text」); the 标注 tool places, edits and deletes them; saves are debounced and carry the job version.
  * Automatic labels (layers menu): branch names at mid-branch, the first N findings that are not rejected, and the
- * largest lumen section ring of the aorta.  Display only. */
+ * largest lumen section ring of the aorta.  Display only.
+ * Phase 3 lane 4 (W20): the number of finding labels is chosen from the classic 关 / 前 3 / 前 5 / 前 10 (layers menu item
+ * 「发现标签…」 → a small menu of the four choices). */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -161,7 +163,7 @@
     ui.fill(body, ui.section('标注', { cls: 'sec-annot', tag: items.length ? h('span', { 'class': 'badge', text: String(items.length) }) : null,
         actions: [ui.iconButton('close', '关闭标注', ctx.onClose)] },
       h('div', { 'class': 'slice-ctl' }, place, h('span', { 'class': 'muted', text: ctx.editable ? '最多 ' + LIMIT.items + ' 条，每条 ≤ ' + LIMIT.text + ' 字；自动保存到服务' : (ctx.lockedText || '只读') })),
-      rows.length ? h('div', { 'class': 'annot-list' }, rows) : ui.note('还没有标注。标注存在服务上，经典报告里也能看到。')));
+      rows.length ? h('div', { 'class': 'annot-list' }, rows) : ui.note('还没有标注。标注保存在服务上，换一台电脑打开也在。')));
   }
   // Text for a new pin.  cb(text).
   function addDialog(ui, where, cb) {
@@ -172,5 +174,28 @@
     return dlg;
   }
 
-  return { LIMIT: LIMIT, itemsOf: itemsOf, add: add, edit: edit, remove: remove, drawPins: drawPins, drawAuto: drawAuto, clearAll: clearAll, saver: saver, panel: panel, addDialog: addDialog };
+  // ------------------------------------------------------------------ automatic finding labels: how many (classic #lbl-findings)
+  var COUNTS = [0, 3, 5, 10];
+  function labelCount(api) { var n = Number(api && api.store && api.store().prefs().labels && api.store().prefs().labels.findings); return COUNTS.indexOf(n) >= 0 ? n : 0; }
+  function setLabelCount(api, n) {
+    if (!api || !api.store || COUNTS.indexOf(n) < 0) return;
+    var st = api.store();
+    st.setPrefs({ labels: Object.assign({}, st.prefs().labels, { findings: n }) });
+    if (typeof api.drawLabels === 'function') api.drawLabels();
+  }
+  // The layers-menu item: its run opens the four choices as a second menu at the same button (after the first one closed).
+  function findingsItem(api) {
+    var n = labelCount(api);
+    return { label: '发现标签…', checked: n > 0, hint: n ? '前 ' + n + ' 条' : '关', run: function () { chooseCount(api); } };
+  }
+  function chooseCount(api) {
+    var U = api.ui(), n = labelCount(api), anchor = ns.display && typeof ns.display.layersButton === 'function' ? ns.display.layersButton() : null;
+    if (!anchor || !U || typeof U.menu !== 'function') { setLabelCount(api, COUNTS[(COUNTS.indexOf(n) + 1) % COUNTS.length]); return; }
+    var items = [{ heading: '自动标注发现' }].concat(COUNTS.map(function (c) { return { label: c ? '前 ' + c + ' 条' : '关', checked: c === n, run: function () { setLabelCount(api, c); } }; }));
+    setTimeout(function () { U.menu(anchor, items); }, 0);
+  }
+
+  return { LIMIT: LIMIT, itemsOf: itemsOf, add: add, edit: edit, remove: remove, drawPins: drawPins, drawAuto: drawAuto, clearAll: clearAll, saver: saver, panel: panel, addDialog: addDialog,
+    // phase 3 lane 4
+    COUNTS: COUNTS, labelCount: labelCount, setLabelCount: setLabelCount, findingsItem: findingsItem, chooseCount: chooseCount };
 });

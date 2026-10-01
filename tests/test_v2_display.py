@@ -153,7 +153,7 @@ def test_pure_helpers_thresholds_fractions_units_and_prefs():
     assert out["kinds"] == ["pressure", "velocity", None, None]                 # wall shear keeps Pa
     p = out["prefs"]
     assert p["defaults"] == {"tawss": {"bands": 8, "thresholds": [0.5, 3, 6]}}   # invalid bands / keys / thresholds dropped
-    assert p["units"] == {"pressure": "mmHg", "velocity": "m/s"}
+    assert p["units"] == {"pressure": "mmHg", "velocity": "m/s", "wss": "Pa"}   # phase 3 lane 4 (W8): WSS display unit, default Pa
     assert p["layers"] == {"stl": True, "peaks": True, "stagnation": False, "vectors": False}
     assert p["volume"] == {"opacity": 0.1, "density": 2, "width": 1, "thin": False}
     assert out["session"] == {"bands": {"tawss": 6}, "thresholds": {"tawss": [0.3, 4, 7]}}

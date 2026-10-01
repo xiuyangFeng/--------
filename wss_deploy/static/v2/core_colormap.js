@@ -194,12 +194,26 @@
   // otherwise the wall shear family (WSS, TAWSS, RRT, ECAP), whose values span two decades so a linear 0–p99 paints
   // a whole sac in one colour.  OSI, pressures and speeds stay linear.
   var LOG_FIELDS = { wss: true, tawss: true, rrt: true, ecap: true };
+  // Phase 3 lane 4: the workspace's display options may override the hint per field (the classic volume report's
+  // 速度对数色标 checkbox); the hook returns true / false, or null to leave the release's hint alone.
+  var hintHook = null;
+  function setLogHint(fn) { hintHook = typeof fn === 'function' ? fn : null; }
   function logHint(field) {
+    if (hintHook) { var o = null; try { o = hintHook(field); } catch (_) { o = null; } if (o === true || o === false) return o; }
     var d = field && field.display;
     if (d && d.log_scale === true) return true;
     if (d && d.log_scale === false) return false;
     return Boolean(field && LOG_FIELDS[field.id]);
   }
+  // Classic volume report scaleEnds: a log speed scale starts at max(lower end, upper end / 200, 0.001 m/s)
+  // (VolumeViewerCore's own function when it is loaded).  Other fields keep the wall report's floor rule.
+  var SPEED_LOG = { span: 200, floor: 1e-3 };
+  function speedLogFloor(lo, hi) {
+    var VC = root.VolumeViewerCore;
+    if (VC && typeof VC.scaleEnds === 'function') { var e = VC.scaleEnds({ min: lo, max: hi, log: true }); if (e && Number.isFinite(e[0]) && e[0] > 0) return e[0]; }
+    return Math.max(lo, hi / SPEED_LOG.span, SPEED_LOG.floor);
+  }
+  function isSpeed(field) { return Boolean(field && (field.id === 'speed' || (field.units === 'm/s' && (Number(field.components) || 1) === 1))); }
   function resolve(field, spec, stats) {
     field = field || {};
     spec = spec || {};
@@ -235,7 +249,9 @@
     }
     var wantLog = spec.log === true ||
       (spec.log !== false && (spec.log === null || spec.log === undefined) && info.kind === 'adaptive' && !crossesZero && logHint(field));
-    var sc = scale({ range: range, log: wantLog, bands: spec.bands, cmap: spec.cmap, units: field.units, fieldMin: fieldMin, floor: spec.floor, trim: info.kind !== 'adaptive' });
+    var floor = spec.floor;
+    if (wantLog && !(Number(floor) > 0) && isSpeed(field)) floor = speedLogFloor(range[0], range[1]);
+    var sc = scale({ range: range, log: wantLog, bands: spec.bands, cmap: spec.cmap, units: field.units, fieldMin: fieldMin, floor: floor, trim: info.kind !== 'adaptive' });
     info.text = info.label + (info.provisional ? '（暂定）' : '') + ' ' + (U ? U.fmtRange(sc.log ? sc.floor : sc.range[0], sc.range[1], field.units, { trim: info.kind !== 'adaptive', trimLo: sc.log || info.kind !== 'adaptive' }) : '');
     return {
       scale: sc, window: info, crossesZero: crossesZero,
@@ -245,6 +261,8 @@
 
   return {
     MISSING_HEX: MISSING_HEX, names: names, label: label, rgb: rgb, hexToRgb: hexToRgb, rgbToHex: rgbToHex,
-    scale: scale, histogram: histogram, logAllowed: logAllowed, resolve: resolve, logHint: logHint
+    scale: scale, histogram: histogram, logAllowed: logAllowed, resolve: resolve, logHint: logHint,
+    // phase 3 lane 4
+    setLogHint: setLogHint, speedLogFloor: speedLogFloor
   };
 });

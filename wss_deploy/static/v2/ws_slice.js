@@ -8,7 +8,11 @@
  * on the plane, the inspector panel and the zoom view.  Display only; nothing is written back.
  * Second phase lane E: the six classic stations per branch (automaticPlanes: 5 / 20 / 40 / 60 / 80 / 95 %) under the
  * branch row, and the display units of ws_display (Pa / mmHg, m/s / cm/s, classic factors) on every number shown;
- * the CSV keeps the raw units, as the classic export does. */
+ * the CSV keeps the raw units, as the classic export does.
+ * Phase 3 lane 4: planes perpendicular to the X / Y / Z axis (classic slice-basis x / y / z: through the mesh's bounding-box
+ * centre, position = a fraction of the extent on that axis), typed tilt and offset (classic pitch / yaw / offset-u / -v
+ * sliders), a drag-mode switch (move along the normal / rotate / slide in the plane; mouse and touch), and the classic
+ * velocity log scale on the section's speed map when it is switched on in the colour-scale panel. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -24,6 +28,12 @@
   var FRAME_HEX = 0x5bb8cc, ACTIVE_HEX = 0xf2a33a, REGION_HEX = 0x3ccf7a, REGION_CSS = '#3ccf7a';
   var SOURCE_LABEL = { section: '本截面 p2–p98', global: '与三维同', manual: '手动', fallback: '本截面样本不足，用三维色标' };
   var QUANTITIES = [{ id: 'speed', label: '速度' }, { id: 'normal', label: '穿面速度' }, { id: 'pressure', label: '压力' }];
+  var AXES = { x: 0, y: 1, z: 2 };
+  var BASES = [{ id: 'centerline', label: '中心线' }, { id: 'x', label: '垂直 X 轴' }, { id: 'y', label: '垂直 Y 轴' }, { id: 'z', label: '垂直 Z 轴' }];
+  var DRAG_MODES = [{ id: 'move', label: '移动', title: '拖动截面框：沿法向移动' }, { id: 'rotate', label: '旋转', title: '拖动截面框：绕截面中心旋转（鼠标也可按住 Shift）' },
+    { id: 'offset', label: '平移', title: '拖动截面框：在截面内平移（鼠标也可按住 Alt）' }];
+  // Classic 速度对数色标 (ws_display option): the section's speed scales use the classic log floor.
+  function speedLog() { try { return Boolean(ns.display && typeof ns.display.prefs === 'function' && ns.display.prefs().opts && ns.display.prefs().opts.speedLog); } catch (_) { return false; } }
 
   function core() {
     var c = root.VolumeViewerCore;
@@ -78,7 +88,7 @@
     for (var i = 0; i < A.V.length; i++) { var j = i % 3; if (A.V[i] < mn[j]) mn[j] = A.V[i]; if (A.V[i] > mx[j]) mx[j] = A.V[i]; }
     var names = {};
     ((m.geometry && m.geometry.branches) || []).forEach(function (b) { if (b && b.name) names[b.id] = b.name; });
-    return { result: result, manifest: m, A: A, groups: groups, names: names, diag: Math.max(norm(sub(mx, mn)), 1) };
+    return { result: result, manifest: m, A: A, groups: groups, names: names, diag: Math.max(norm(sub(mx, mn)), 1), bounds: { min: mn, max: mx }, center: mul(add(mn, mx), 0.5) };
   }
   function groupOf(M, sid) { for (var i = 0; i < M.groups.length; i++) if (M.groups[i].segment === Number(sid)) return M.groups[i]; return null; }
   function arcOf(g) { return g && g.arc.length ? g.arc[g.arc.length - 1] : 0; }
@@ -117,6 +127,7 @@
   function planeOf(st, M) {
     var c = core(), base;
     if (st.basis === 'pick' && st.pick) base = { origin: add(st.pick.origin, mul(st.pick.normal, st.shift || 0)), normal: st.pick.normal.slice(), segment: null };
+    else if (AXES[st.basis] !== undefined && M.bounds) base = axisPlane(M, st.basis, st.fraction);
     else {
       var g = groupOf(M, st.segment) || M.groups[0];
       if (!g) return null;
@@ -126,6 +137,14 @@
     var plane = { origin: base.origin.slice(), normal: r.normal, u: r.u, v: r.v, segment: base.segment === undefined ? null : base.segment };
     plane.origin = add(plane.origin, add(mul(plane.u, st.offU || 0), mul(plane.v, st.offV || 0)));
     return plane;
+  }
+  // Classic currentPlane for slice-basis x / y / z: through the bounding-box centre of the display mesh, normal = that axis,
+  // at min + fraction × extent on it.
+  function axisPlane(M, basis, fraction) {
+    var ax = AXES[basis], origin = M.center.slice(), normal = [0, 0, 0];
+    normal[ax] = 1;
+    origin[ax] = M.bounds.min[ax] + clamp(Number(fraction) || 0, 0, 1) * (M.bounds.max[ax] - M.bounds.min[ax]);
+    return { origin: origin, normal: normal, segment: null };
   }
   function effectiveQuantity(st, A) {
     var q = st.quantity;
@@ -138,8 +157,8 @@
   // 与三维同 = the viewer's scale of that field, 手动 = typed bounds (raw units).  Only colours depend on it.
   function scaleFor(st, quantity, samples, o) {
     o = o || {};
-    var c = core(), signed = quantity === 'normal', cmap = o.cmap || 'rainbow';
-    var out = function (r, source) { return { min: r.min, max: r.max, log: Boolean(r.log) && !signed, diverging: signed, source: source, map: cmap, count: r.count || null }; };
+    var c = core(), signed = quantity === 'normal', cmap = o.cmap || 'rainbow', lg = quantity === 'speed' && Boolean(o.log);
+    var out = function (r, source) { return { min: r.min, max: r.max, log: (Boolean(r.log) || lg) && !signed, diverging: signed, source: source, map: cmap, count: r.count || null }; };
     var g = null;
     if (typeof o.global === 'function') { try { g = o.global(quantity); } catch (_) { g = null; } }
     if (st.range === 'manual') {
@@ -210,7 +229,7 @@
   // ------------------------------------------------------------------ series and regions (classic exportSliceSeries / updateRegion)
   // The branch a series or a region runs along: the plane's own branch on the centreline, else the branch nearest to it.
   function branchAt(st, M) {
-    if (st.basis !== 'pick' && groupOf(M, st.segment)) return st.segment;
+    if (st.basis === 'centerline' && groupOf(M, st.segment)) return st.segment;
     var P = planeOf(st, M), near = P && M.groups.length ? core().nearestTangent(M.groups, P.origin) : null;
     return near ? near.segment : (M.groups[0] ? M.groups[0].segment : null);
   }
@@ -234,7 +253,7 @@
       else {
         var lo = Math.min.apply(null, parts.map(function (r) { return r.min; })), hi = Math.max.apply(null, parts.map(function (r) { return r.max; }));
         if (quantity === 'normal') { var m = Math.max(Math.abs(lo), Math.abs(hi)); lo = -m; hi = m; }
-        range = { min: lo, max: hi, log: false, diverging: quantity === 'normal', source: 'section', map: (o && o.cmap) || 'rainbow', shared: true };
+        range = { min: lo, max: hi, log: quantity === 'speed' && Boolean(o && o.log), diverging: quantity === 'normal', source: 'section', map: (o && o.cmap) || 'rainbow', shared: true };
       }
     }
     stations.forEach(function (x) { if (x.comp) x.comp.range = range; });
@@ -482,12 +501,13 @@
     var M = model(result), THREE = root.THREE;
     var st = opts.state ? Object.assign(defaultState(M, opts.hint), JSON.parse(JSON.stringify(opts.state))) : defaultState(M, opts.hint);
     if (st.basis === 'pick' && !st.pick) st.basis = 'centerline';
-    if (!groupOf(M, st.segment) && st.basis !== 'pick') st = defaultState(M, opts.hint);
-    var comp = null, picking = false, hover = false, dragging = false, raf = 0, disposed = false, panels = [], pickNote = '', pickedAt = 0;
+    if (AXES[st.basis] === undefined && st.basis !== 'pick' && st.basis !== 'centerline') st.basis = 'centerline';
+    if (!groupOf(M, st.segment) && st.basis === 'centerline') st = defaultState(M, opts.hint);
+    var comp = null, picking = false, hover = false, dragging = false, raf = 0, disposed = false, panels = [], pickNote = '', pickedAt = 0, dragMode = 'move';
     var ov = THREE && viewer && typeof viewer.toolOverlay === 'function' ? overlay(viewer, THREE) : null;
     var detach = viewer && viewer.canvasElement ? bind() : function () {};
     var reg = { on: false, segment: branchAt(st, M), lo: 10, hi: 90 }, regRes = null, more = null, lastCut = null;
-    function scaleOpts() { return { cmap: typeof opts.cmap === 'function' ? opts.cmap() : 'rainbow', global: opts.global }; }
+    function scaleOpts() { return { cmap: typeof opts.cmap === 'function' ? opts.cmap() : 'rainbow', global: opts.global, log: speedLog() }; }
 
     function emit(what) { if (typeof opts.onChange === 'function') { try { opts.onChange(what); } catch (_) {} } }
     function recompute() {
@@ -539,7 +559,7 @@
     // The current plane as the proximal ('lo') or distal ('hi') end of the region, on its branch.
     function regionFromSlice(which) {
       var P = comp ? comp.plane : planeOf(st, M), c = core(), seg, pct;
-      if (st.basis !== 'pick' && groupOf(M, st.segment) && !st.pitch && !st.yaw && !st.offU && !st.offV) { seg = st.segment; pct = st.fraction * 100; }
+      if (st.basis === 'centerline' && groupOf(M, st.segment) && !st.pitch && !st.yaw && !st.offU && !st.offV) { seg = st.segment; pct = st.fraction * 100; }
       else { var near = P ? c.nearestTangent(M.groups, P.origin) : null, g = near ? groupOf(M, near.segment) : null; if (!g || !(arcOf(g) > 0)) return; seg = g.segment; pct = near.arc / arcOf(g) * 100; }
       var patch = { on: true };
       if (seg !== reg.segment) { patch.segment = seg; patch.lo = 0; patch.hi = 100; }   // another branch: the other end starts at that branch's end
@@ -549,6 +569,7 @@
     function moveAlong(dMm) {
       if (!dMm) return;
       if (st.basis === 'pick' && st.pick) st.shift = clamp((st.shift || 0) + dMm, LIMIT.shift[0], LIMIT.shift[1]);
+      else if (AXES[st.basis] !== undefined) { var ax = AXES[st.basis], ext = M.bounds.max[ax] - M.bounds.min[ax]; if (ext > 0) st.fraction = clamp(st.fraction + dMm / ext, 0, 1); }   // classic positionStep
       else { var g = groupOf(M, st.segment); var L = arcOf(g); if (L > 0) st.fraction = clamp(st.fraction + dMm / L, 0, 1); }
       schedule();
     }
@@ -603,6 +624,23 @@
       schedule();
     }
     function reset() { Object.assign(st, { pitch: 0, yaw: 0, offU: 0, offV: 0, shift: 0 }); schedule(); }
+    // P3 lane 4: the plane's basis (中心线 / X / Y / Z); an axis plane starts where the current plane's origin is on that axis.
+    function setBasis(b) {
+      if (b === st.basis) return;
+      if (b === 'centerline') { toCenterline(); return; }
+      if (AXES[b] === undefined) return;
+      var P = comp ? comp.plane : planeOf(st, M), ax = AXES[b], lo = M.bounds.min[ax], hi = M.bounds.max[ax], o = P ? P.origin[ax] : (lo + hi) / 2;
+      Object.assign(st, { basis: b, pick: null, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0, fraction: clamp((o - lo) / ((hi - lo) || 1), 0, 1) });
+      schedule();
+    }
+    // Typed tilt / offset (classic sliders): clamped to the classic ranges.
+    function setAngles(patch) {
+      var p = {};
+      ['pitch', 'yaw'].forEach(function (k) { if (patch && patch[k] !== undefined && Number.isFinite(+patch[k])) p[k] = clamp(+patch[k], LIMIT.angle[0], LIMIT.angle[1]); });
+      ['offU', 'offV'].forEach(function (k) { if (patch && patch[k] !== undefined && Number.isFinite(+patch[k])) p[k] = clamp(+patch[k], LIMIT.offset[0], LIMIT.offset[1]); });
+      set(p);
+    }
+    function setDragMode(m) { if (DRAG_MODES.some(function (d) { return d.id === m; })) { dragMode = m; emit('drag'); } }
     // Turns the view to 45° above the section's upstream face (the normal points downstream on the centreline),
     // from the side the camera is on now, and comes closer when the vessel is far larger than the section.
     // side: −1 = from the upstream side of the plane (−normal; the default), +1 = from downstream.
@@ -641,7 +679,7 @@
         if (e.button !== 0 || disposed) return;
         press = { x: e.clientX, y: e.clientY, id: e.pointerId };
         if (picking || !ov || !ov.hit(e.clientX, e.clientY)) return;
-        drag0 = { x: e.clientX, y: e.clientY, id: e.pointerId, kind: e.shiftKey ? 'rotate' : e.altKey ? 'offset' : 'move' };
+        drag0 = { x: e.clientX, y: e.clientY, id: e.pointerId, kind: e.shiftKey ? 'rotate' : e.altKey ? 'offset' : dragMode };
         dragging = true;
         viewer.setControlsEnabled(false);
         try { if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId); } catch (_) {}
@@ -717,8 +755,14 @@
       if (picking) return pickNote;
       if (!comp) return '';
       var s = st.basis === 'pick' ? (st.picks.length >= 2 || (st.pick && st.pick.picks === 2) ? '两点斜截面' : '选点处垂直截面') + (st.shift ? ' · 偏移 ' + fmt(st.shift) + ' mm' : '')
+        : AXES[st.basis] !== undefined ? axisText(st)
         : branchName(M, st.segment) + ' ' + fmt(st.fraction * arcOf(groupOf(M, st.segment))) + ' mm';
-      return s + ' · 厚 ' + fmt(st.thickness) + ' mm · 拖动截面框或 ↑↓ 移动，Shift 拖动旋转';
+      var how = dragMode === 'rotate' ? '拖动截面框旋转' : dragMode === 'offset' ? '拖动截面框平移' : '拖动截面框或 ↑↓ 移动，Shift 拖动旋转';
+      return s + ' · 厚 ' + fmt(st.thickness) + ' mm · ' + how;
+    }
+    function axisText(st2) {
+      var ax = AXES[st2.basis], v0 = M.bounds.min[ax] + st2.fraction * (M.bounds.max[ax] - M.bounds.min[ax]);
+      return '垂直 ' + st2.basis.toUpperCase() + ' 轴 · ' + st2.basis + ' = ' + fmt(v0) + ' mm';
     }
     function dispose() {
       if (disposed) return;
@@ -747,6 +791,7 @@
       series: function (count) { return series(st, M, count, scaleOpts()); }, branchAt: function () { return branchAt(st, M); },
       stations: function (segment) { return stations(M, segment === undefined ? branchAt(st, M) : segment); },
       goStation: function (p) { set({ basis: 'centerline', segment: p.segment, fraction: p.fraction, pick: null, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0 }); },
+      setBasis: setBasis, setAngles: setAngles, setDragMode: setDragMode, dragMode: function () { return dragMode; }, axisText: function () { return AXES[st.basis] !== undefined ? axisText(st) : ''; },
       more: function () { return more; }, setMore: function (m) { more = m || null; if (more !== 'region' && reg.on) setRegion({ on: false }); if (more === 'region' && !reg.on) setRegion({ on: true, segment: branchAt(st, M) }); },
       dispose: dispose, disposed: function () { return disposed; }
     };
@@ -772,7 +817,7 @@
     var morePills = h('div', { 'class': 'slice-pills', role: 'tablist', 'aria-label': '截面的更多用法' });
     var moreBody = h('div', { 'class': 'slice-more-body' });
     var moreBox = h('div', { 'class': 'slice-more' }, morePills, moreBody);
-    var regionOut = null, lastMap = null, built = false;
+    var regionOut = null, lastMap = null, built = false, numInputs = {};
     var pickBtn = ui.button('点选', function () { session.setPicking(!session.picking()); }, { cls: 'btn-sm', title: '在血管壁上点 1 点（垂直中心线）或 2 点（过两点的斜截面）' });
     var head = ui.section('截面', { cls: 'sec-slice', actions: [
       pickBtn,
@@ -792,10 +837,22 @@
     });
     canvas.addEventListener('pointerleave', function () { read.textContent = ''; });
 
+    // P3 lane 4: 中心线 / 垂直 X / Y / Z 轴 (classic slice-basis); a picked plane shows 选点 while it lasts.
+    function basisSelect(st) {
+      var list = BASES.slice();
+      if (st.basis === 'pick') list.unshift({ id: 'pick', label: '选点' });
+      return ui.select(list.map(function (b) { return { value: b.id, label: b.label }; }), st.basis, function (b) { if (b !== 'pick') session.setBasis(b); }, { 'aria-label': '截面定位', 'class': 'slice-basis' });
+    }
     function positionRow(st) {
+      if (AXES[st.basis] !== undefined) {
+        return [basisSelect(st),
+          ui.iconButton('chevron-left', '沿轴 −1 mm（↓）', function () { session.moveAlong(-1); }),
+          h('span', { 'class': 'slice-s', text: session.axisText().replace(/^垂直 . 轴 · /, '') }),
+          ui.iconButton('chevron-right', '沿轴 +1 mm（↑）', function () { session.moveAlong(1); })];
+      }
       if (st.basis === 'pick') {
         var what = st.pick && st.pick.picks === 2 ? '两点斜截面' : '选点处垂直截面';
-        return [h('span', { 'class': 'slice-where', text: what }),
+        return [basisSelect(st), h('span', { 'class': 'slice-where', text: what }),
           ui.iconButton('chevron-left', '沿法向 −1 mm（↓）', function () { session.moveAlong(-1); }),
           h('span', { 'class': 'slice-s', text: (st.shift >= 0 ? '+' : '') + fmt(st.shift || 0) + ' mm' }),
           ui.iconButton('chevron-right', '沿法向 +1 mm（↑）', function () { session.moveAlong(1); }),
@@ -804,7 +861,7 @@
       var list = session.branches();
       var sel = ui.select(list.map(function (b) { return { value: String(b.id), label: b.name }; }), String(st.segment), function (v) { session.set({ segment: Number(v), fraction: 0.5 }); }, { 'aria-label': '分支' });
       var L = session.arcOf(st.segment);
-      return [sel,
+      return [basisSelect(st), sel,
         ui.iconButton('chevron-left', '向近端 1 mm（↓）', function () { session.moveAlong(-1); }),
         h('span', { 'class': 'slice-s', text: fmt(st.fraction * L) + ' / ' + fmt(L) + ' mm' }),
         ui.iconButton('chevron-right', '向远端 1 mm（↑）', function () { session.moveAlong(1); })];
@@ -856,7 +913,23 @@
         return h('label', { 'class': 'slice-check' + (disabled ? ' off' : '') }, cb, h('span', { text: label }));
       };
       var isVel = comp && comp.field === 'velocity';
-      return [h('label', { 'class': 'slice-ctl' }, h('span', { 'class': 'slice-ctl-k', text: '厚度' }), th, thv),
+      // P3 lane 4: typed tilt and offset (classic pitch / yaw / offset-u / offset-v sliders), and what a drag on the frame does
+      var num = function (key, label, lim, step, unit) {
+        var inp = h('input', { type: 'number', min: String(lim[0]), max: String(lim[1]), step: String(step), value: String(+(+(st[key] || 0)).toFixed(1)), 'aria-label': label, title: label, 'class': 'slice-num slice-num-s' });
+        inp.addEventListener('change', function () { var p = {}; p[key] = inp.value === '' ? 0 : Number(inp.value); session.setAngles(p); });
+        numInputs[key] = inp;
+        return h('span', { 'class': 'slice-numwrap' }, inp, h('span', { 'class': 'muted', text: unit }));
+      };
+      numInputs = {};
+      var dseg = h('div', { 'class': 'seg seg-slice seg-drag', role: 'group', 'aria-label': '拖动截面框' }, DRAG_MODES.map(function (d) {
+        var on = session.dragMode() === d.id, b = h('button', { type: 'button', 'class': 'seg-btn' + (on ? ' on' : ''), 'aria-pressed': String(on), text: d.label, title: d.title });
+        b.addEventListener('click', function () { session.setDragMode(d.id); ui.fill(ctrls, controls(session.state(), session.comp())); });
+        return b;
+      }));
+      return [h('div', { 'class': 'slice-ctl' }, h('span', { 'class': 'slice-ctl-k', text: '拖动' }), dseg, ui.infoTip ? ui.infoTip('拖动截面框时做什么；触屏也能用。鼠标还可以：Shift 拖动旋转，Alt 拖动平移，滚轮沿法向移动。') : null),
+        h('div', { 'class': 'slice-ctl' }, h('span', { 'class': 'slice-ctl-k', text: '倾角' }), num('pitch', '绕横轴旋转（°）', LIMIT.angle, 1, '°'), num('yaw', '绕纵轴旋转（°）', LIMIT.angle, 1, '°')),
+        h('div', { 'class': 'slice-ctl' }, h('span', { 'class': 'slice-ctl-k', text: '偏移' }), num('offU', '左右偏移（mm）', LIMIT.offset, 0.2, 'mm'), num('offV', '上下偏移（mm）', LIMIT.offset, 0.2, 'mm')),
+        h('label', { 'class': 'slice-ctl' }, h('span', { 'class': 'slice-ctl-k', text: '厚度' }), th, thv),
         h('label', { 'class': 'slice-ctl' }, h('span', { 'class': 'slice-ctl-k', text: '色标' }), rsel, manual),
         h('div', { 'class': 'slice-ctl slice-checks' }, check('fill', '补全到管壁'), check('arrows', '面内流向箭头', !isVel))];
     }
@@ -952,8 +1025,12 @@
       var st = session.state(), comp = session.comp();
       var key = [st.basis, st.range, comp && comp.quantity, st.segment, st.pick && st.pick.picks].join('|');
       if (!built || key !== shapeKey) build();
-      else { var s = pos.querySelector ? pos.querySelector('.slice-s') : null; if (s) s.textContent = st.basis === 'pick' ? (st.shift >= 0 ? '+' : '') + fmt(st.shift || 0) + ' mm' : fmt(st.fraction * session.arcOf(st.segment)) + ' / ' + fmt(session.arcOf(st.segment)) + ' mm';
+      else { var s = pos.querySelector ? pos.querySelector('.slice-s') : null; if (s) s.textContent = st.basis === 'pick' ? (st.shift >= 0 ? '+' : '') + fmt(st.shift || 0) + ' mm' : AXES[st.basis] !== undefined ? session.axisText().replace(/^垂直 . 轴 · /, '') : fmt(st.fraction * session.arcOf(st.segment)) + ' / ' + fmt(session.arcOf(st.segment)) + ' mm';
         else ui.fill(pos, positionRow(st)); stationRow(st); }
+      Object.keys(numInputs).forEach(function (key) {   // P3 lane 4: typed tilt / offset follow drags and keys (not while typed in)
+        var inp = numInputs[key], act = doc && doc.activeElement;
+        if (inp && act !== inp) inp.value = String(+(+(st[key] || 0)).toFixed(1));
+      });
       if (pickBtn.classList) pickBtn.classList.toggle('on', session.picking());
       pickBtn.setAttribute('aria-pressed', String(session.picking()));
       if (!comp) { ui.fill(kpis, null); ui.fill(rows, ui.note('这里算不出截面。换一个位置试试。')); lastMap = null; return; }
@@ -1109,6 +1186,8 @@
     compute: compute, scaleFor: scaleFor, sectionOf: sectionOf, integrate: integrate, paint: paint, readAt: readAt, gizmoSide: gizmoSide,
     series: series, region: region, pointArcs: pointArcs, branchAt: branchAt, ringAt: ringAt,
     create: create, panel: panel, openZoom: openZoom, openSeries: openSeries, quantityLabel: quantityLabel, unitsOf: unitsOf, LIMIT: LIMIT, GRID: GRID,
-    stations: stations, shownUnit: shownUnit
+    stations: stations, shownUnit: shownUnit,
+    // phase 3 lane 4
+    axisPlane: axisPlane, AXES: AXES, DRAG_MODES: DRAG_MODES
   };
 });

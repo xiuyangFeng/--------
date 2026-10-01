@@ -692,7 +692,7 @@
       {separator: true}, {heading: '标注与自动标签'},
       {label: '标注', checked: Boolean(store().prefs().labels.annotations), run: function () { setLabelPref({annotations: !store().prefs().labels.annotations}); }},
       {label: '分支名', checked: Boolean(store().prefs().labels.branches), run: function () { setLabelPref({branches: !store().prefs().labels.branches}); }},
-      {label: '发现标签（前 5 条）', checked: store().prefs().labels.findings > 0, run: function () { setLabelPref({findings: store().prefs().labels.findings > 0 ? 0 : 5}); }},
+      ns.annot && ns.annot.findingsItem ? ns.annot.findingsItem(shellApi()) : {label: '发现标签（前 5 条）', checked: store().prefs().labels.findings > 0, run: function () { setLabelPref({findings: store().prefs().labels.findings > 0 ? 0 : 5}); }},   // P3 lane 4: 关 / 3 / 5 / 10
       {label: '管腔最大直径环', checked: Boolean(store().prefs().labels.maxd), run: function () { setLabelPref({maxd: !store().prefs().labels.maxd}); }},
       {separator: true}, {heading: '视口背景'},
       {label: '深色', checked: store().prefs().stage !== 'light', run: function () { setStage('dark'); }},
@@ -700,7 +700,8 @@
       {separator: true}, {heading: '色表'},
       {label: '彩虹（默认）', checked: cm === 'rainbow', run: function () { setCmap('rainbow'); }},
       {label: 'viridis', checked: cm === 'viridis', run: function () { setCmap('viridis'); }},
-      {label: 'turbo', checked: cm === 'turbo', run: function () { setCmap('turbo'); }}
+      {label: 'turbo', checked: cm === 'turbo', run: function () { setCmap('turbo'); }},
+      {label: '蓝白红', checked: cm === 'bwr', run: function () { setCmap('bwr'); }}   // P3 lane 4 (classic 蓝白红)
     ]));
   }
   // Branch visibility (classic 分支显隐 / 血管模块): display only, every statistic keeps all branches.

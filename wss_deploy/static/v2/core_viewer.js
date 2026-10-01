@@ -1140,6 +1140,128 @@
     // ==== end lane E ====
 
     // ==== P3 lane 4 ==== (phase 3: hover readout, iso-lines, highlight, clipping, trust greying; PHASE3_LANES.md §3)
+    // More optional provider methods (ws_display.js), each asked with this viewer first, wall results only:
+    //   contours(v, fieldId) → bool     iso-lines at the colour bar's three thresholds on the display mesh (classic 等值线:
+    //                                   WssReportCore.marchingTriangles on the display values, ported to core_contour.js)
+    //   top(v, fieldId) → pct | null    the prediction points at or above the classic topThreshold of the field (高亮最高 x%)
+    //   clip(v) → t | null              keep z ≤ min z + t · (max z − min z) of the display mesh (classic 剖切高度, world Z)
+    // Display only: the lines, points and the cut follow the field, thresholds, branches and input-STL mode; no number
+    // changes.  The hover readout lives in ws_probe.js (it listens to the 'hover' event the viewer already emits).
+    var CONTOUR_HEX = '#203049', TOP_HEX = '#f233bf';   // classic contour colour 0x203049; classic highlight rgb(.95, .2, .75)
+    var contourObj = null, topObj = null, clipZ = null, overlayClipped = false, p3Top = null, p3Lines = 0;
+    function p3Wall() { return Boolean(S.handle && S.result && S.result.family === 'wall' && S.fieldId); }
+    function p3Stl() { var fl = displayProvider() ? dpCall('flags') : null; return Boolean(fl && fl.stl); }
+    function p3Thresholds(fieldId) {
+      var th = dpCall('thresholds', fieldId);
+      if (Array.isArray(th)) return th;
+      var f = S.result.field(fieldId), d = f && f.display;
+      return d && Array.isArray(d.thresholds) ? d.thresholds : [];
+    }
+    function p3Array(key) { try { return typeof key === 'string' && S.result.has(key) ? S.result.array(key) : null; } catch (_) { return null; } }
+    // Lines lie on the surface: drawn with the surface's depth, pulled 0.1 % of their distance toward the camera so the
+    // wall never hides them where they lie on it; they take the viewer's clipping planes (the Z cut).
+    function contourMaterial() {
+      return new THREE.ShaderMaterial({
+        clipping: true, uniforms: { uColor: { value: new THREE.Color(CONTOUR_HEX) } },
+        vertexShader: '#include <clipping_planes_pars_vertex>\nvoid main(){ vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);\n#include <clipping_planes_vertex>\n gl_Position = projectionMatrix * vec4(mvPosition.xyz * 0.999, 1.0); }',
+        fragmentShader: '#include <clipping_planes_pars_fragment>\nuniform vec3 uColor; void main(){\n#include <clipping_planes_fragment>\n gl_FragColor = vec4(uColor, 1.0); }'
+      });
+    }
+    function drawContours() {
+      if (contourObj) { gfx.disposeObject(contourObj); contourObj = null; }
+      p3Lines = 0;
+      if (!p3Wall() || !displayProvider() || !ns.contour || p3Stl() || !dpCall('contours', S.fieldId)) return;
+      var values = null;
+      try { values = S.result.fieldArray(S.fieldId, 'display'); } catch (_) { values = null; }
+      var mesh = S.handle.sectionMesh ? S.handle.sectionMesh() : null;
+      if (!values || !mesh || !mesh.vertices || !mesh.faces) return;
+      var seg = ns.contour.segments(mesh.vertices, mesh.faces, values, p3Thresholds(S.fieldId));
+      p3Lines = seg.length / 6;
+      if (!seg.length) return;
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(seg, 3));
+      contourObj = new THREE.LineSegments(g, contourMaterial());
+      contourObj.name = 'p3-contours'; contourObj.renderOrder = 5;
+      contourObj.visible = !S.layers || S.layers.wall !== false;
+      content.add(contourObj);
+    }
+    // Magenta points on the prediction points of the highest pct % (hidden branches left out), drawn over the vessel
+    // like the classic highlight (depthTest off), at a constant screen size.
+    function drawTop() {
+      if (topObj) { gfx.disposeObject(topObj); topObj = null; }
+      p3Top = null;
+      if (!p3Wall() || !displayProvider() || !ns.contour || p3Stl()) return;
+      var pct = dpCall('top', S.fieldId);
+      if (!(Number(pct) > 0)) return;
+      pct = ns.contour.cleanPct(pct);
+      var read = null;
+      try { read = S.result.fieldArray(S.fieldId, 'read'); } catch (_) { read = null; }
+      var pk = (S.result.manifest.geometry && S.result.manifest.geometry.points) || {}, PV = p3Array(pk.xyz), PS = p3Array(pk.segment);
+      if (!read || !PV || PV.length !== 3 * read.length) return;
+      var shown = S.branches && PS ? S.branches : null;
+      var r = ns.contour.topIndices(read, pct, shown ? function (i) { return shown.indexOf(Number(PS[i])) >= 0; } : null);
+      p3Top = { pct: pct, threshold: r.threshold, count: r.indices.length };
+      if (!r.indices.length) return;
+      var pos = new Float32Array(3 * r.indices.length);
+      r.indices.forEach(function (i, j) { pos[3 * j] = PV[3 * i]; pos[3 * j + 1] = PV[3 * i + 1]; pos[3 * j + 2] = PV[3 * i + 2]; });
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      var mat = new THREE.PointsMaterial({ size: 4 * renderer.getPixelRatio(), sizeAttenuation: false, color: new THREE.Color(TOP_HEX), map: gfx.roundPointTexture(),
+        alphaTest: 0.5, transparent: true, opacity: 0.95, depthTest: false });
+      topObj = new THREE.Points(g, mat);
+      topObj.name = 'p3-top'; topObj.renderOrder = 8;
+      topObj.visible = !S.layers || S.layers.wall !== false;
+      content.add(topObj);
+    }
+    function drawP3() { drawContours(); drawTop(); requestRender(); }
+    // The wall Z cut through the viewer's one clipping plane (the section tool owns it on volume results, where this stays
+    // off); the adapter's picking skips the removed part, overlay objects and label chips above the cut are hidden.
+    function applyWallClip() {
+      var wall = Boolean(S.handle && S.result && S.result.family === 'wall');
+      var z = wall && displayProvider() && ns.contour ? ns.contour.clipLevel(S.handle.bounds, dpCall('clip')) : null;
+      if (z === clipZ) return;
+      clipZ = z;
+      if (z === null) setClipPlane(null);
+      else setClipPlane({ normal: [0, 0, -1], origin: [0, 0, z], side: 1, pointGap: 0 });
+      if (S.handle && typeof S.handle.setPickClip === 'function') S.handle.setPickClip(z === null ? null : { normal: [0, 0, -1], origin: [0, 0, z] });
+      requestRender();
+    }
+    var p3 = { applyField: applyField, setBranchVisibility: setBranchVisibility, setResult: setResult, refreshDisplay: refreshDisplay, setLayers: setLayers, applyClip: applyClip };
+    applyClip = function () {
+      p3.applyClip();
+      var want = clipZ !== null && clipList ? clipList : null;
+      if (!want && !overlayClipped) return;
+      overlay.traverse(function (o) {
+        (o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []).forEach(function (m) { if (m.clippingPlanes !== want) { m.clippingPlanes = want; m.needsUpdate = true; } });
+      });
+      overlayClipped = Boolean(want);
+    };
+    ev.on('render', function () {
+      if (clipZ === null) return;
+      allChips().forEach(function (c) { if (c.m && c.m.xyz && c.m.xyz[2] > clipZ + 1e-6) c.el.style.display = 'none'; });
+    });
+    applyField = function (fieldId, spec) { p3.applyField(fieldId, spec); drawP3(); };
+    setBranchVisibility = function (ids) { p3.setBranchVisibility(ids); drawP3(); };
+    setLayers = function (layers) {
+      p3.setLayers(layers);
+      var on = !S.layers || S.layers.wall !== false;
+      if (contourObj) contourObj.visible = on;
+      if (topObj) topObj.visible = on;
+    };
+    setResult = function (result) {
+      if (clipZ !== null) { clipZ = null; setClipPlane(null); }
+      contourObj = null; topObj = null; p3Top = null; p3Lines = 0;   // the content group is emptied with the old result
+      return p3.setResult(result).then(function (r) {
+        if (r && S.result === r && S.handle) { applyWallClip(); drawP3(); }
+        return r;
+      });
+    };
+    refreshDisplay = function () {
+      if (!S.handle) return;
+      applyWallClip();
+      p3.refreshDisplay();
+      if (!(S.fieldId && S.resolved)) drawP3();
+    };
     // ==== end P3 lane 4 ====
 
     // ---- state
@@ -1267,6 +1389,8 @@
       refreshDisplay: refreshDisplay,
       peakMarkers: function () { return peakGroup ? peakGroup.children.map(function (g) { return g.position.toArray(); }) : []; },
       // P3 lane 4 exports
+      p3Display: function () { return { contours: p3Lines, top: p3Top ? Object.assign({}, p3Top) : null, clipZ: clipZ }; },
+      refreshP3: function () { if (S.handle) drawP3(); }, refreshClip: function () { if (S.handle) applyWallClip(); },
       dispose: dispose,
       isDisposed: function () { return disposed; }
     };
