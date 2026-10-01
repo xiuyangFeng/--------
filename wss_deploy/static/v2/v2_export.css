@@ -118,3 +118,10 @@
   .ws-print.wp-port .wp-img { max-height: 235mm; }
   .ws-print .wp-foot { margin: 8px 0 0; font-size: 10px; color: #77828e; }
 }
+
+/* ---------------------------------------------------------------- the browser's own print (W59, final round lane B)
+   WebGL keeps no drawing buffer, so on beforeprint ws_figure lays a 2-D copy over each 3-D viewport; shown only in print. */
+.ws-print-snap { display: none; }
+@media print {
+  .ws-print-snap { display: block; position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+}

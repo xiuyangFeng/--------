@@ -13,7 +13,9 @@
  * Phase 3 lane 5 (PHASE3_LANES.md): the link also carries the display (d: colour map, lighting, labels, bands,
  * thresholds, units, display layers, volume options) and extension states (x, ns.ext linkState / applyLinkState), still
  * v:1 — an older link without d leaves the display alone; the chosen views as separate PNGs in a zip (拼图 page 「分成
- * 单张」); the store-mode zip writer; headless(ctx) for a result that is not on screen (ws_batch.js). */
+ * 单张」); the store-mode zip writer; headless(ctx) for a result that is not on screen (ws_batch.js).
+ * Final round lane B (W58 / W59): Ctrl / ⌘ + P on an open result goes to the print-view page (printView); a print started
+ * from the browser's menu prints a 2-D copy of every 3-D viewport (beforeprint), removed again on afterprint. */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -1080,6 +1082,65 @@
     });
   }
 
+  // ------------------------------------------------------------------ P4 lane B (W58 / W59): Ctrl+P and the browser's print
+  // The viewports draw with WebGL without a kept drawing buffer (preserveDrawingBuffer false), so the browser's own print
+  // would show a blank 3-D view.  Ctrl / ⌘ + P on an open result therefore goes to the print-view page (printView: the
+  // current view, colour bar and caption on one A4 page — the 工具 tab's 打印).  A print started another way (the
+  // browser's menu) gets a picture all the same: on beforeprint every shown viewport is drawn now and copied, in the same
+  // task, into a 2-D canvas laid over its WebGL canvas (.ws-print-snap, shown only in print); afterprint removes them.
+  var printSnaps = [];
+  function isPrintKey(e) {
+    return Boolean(e && !e.altKey && !e.shiftKey && (e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P'));
+  }
+  function printKey(e) {
+    if (!isPrintKey(e)) return false;
+    var api = API, cur = api && typeof api.cur === 'function' ? api.cur() : null, doc = root.document;
+    if (!cur || !cur.manifest) return false;                                            // home page: the browser's own print
+    var v = api.viewer ? api.viewer() : null;
+    if (!v || typeof v.renderPose !== 'function') return false;                         // no 3-D view to draw
+    if (e.preventDefault) e.preventDefault();
+    if (doc && doc.body && doc.body.classList && doc.body.classList.contains('ws-printing')) return true;   // already printing
+    var o = options(); o.hideName = Boolean(api.hideName && api.hideName());
+    Promise.resolve().then(function () { return mod.printView(api, o); }).catch(function (err) { failToast('打印失败', err); });
+    return true;
+  }
+  function clearSnaps() {
+    printSnaps.forEach(function (c) { if (c.parentNode) c.parentNode.removeChild(c); });
+    printSnaps = [];
+  }
+  // Copies of the shown viewports; returns how many.  Not while printView's own page is printing.
+  function snapViewports(api) {
+    var doc = root.document;
+    clearSnaps();
+    if (!doc || !doc.body || (doc.body.classList && doc.body.classList.contains('ws-printing'))) return 0;
+    var S = api && typeof api.state === 'function' ? api.state() : null;
+    if (!S || !api.cur || !api.cur()) return 0;
+    [S.viewerA, S.viewerB].forEach(function (v) {
+      var gl = v && v.canvasElement;
+      if (!gl || !gl.parentNode || typeof v.renderNow !== 'function' || !(gl.width > 0 && gl.height > 0)) return;
+      if (typeof v.isDisposed === 'function' && v.isDisposed()) return;
+      var copy = doc.createElement('canvas'), g = null;
+      copy.width = gl.width; copy.height = gl.height;
+      try { g = copy.getContext('2d'); } catch (_) { g = null; }
+      if (!g) return;
+      try { v.renderNow(); g.drawImage(gl, 0, 0); } catch (_) { return; }               // same task: the frame is still there
+      copy.className = 'ws-print-snap';
+      copy.setAttribute('aria-hidden', 'true');
+      gl.parentNode.insertBefore(copy, gl.nextSibling);
+      printSnaps.push(copy);
+    });
+    return printSnaps.length;
+  }
+  function bindPrint() {
+    var doc = root.document;
+    if (bindPrint.done || !doc || typeof root.addEventListener !== 'function' || typeof doc.addEventListener !== 'function') return;
+    bindPrint.done = true;
+    doc.addEventListener('keydown', function (e) { printKey(e); }, true);
+    root.addEventListener('beforeprint', function () { snapViewports(API); });
+    root.addEventListener('afterprint', function () { clearSnaps(); });
+  }
+  bindPrint();
+
   // ------------------------------------------------------------------ panes of the export dialog
   // ctx (from ws_export) = {hideName (forced in an offline copy with the name hidden), offline, jobId, state: {hideName}}
   var paneToken = 0;
@@ -1365,7 +1426,9 @@
     // P3 lane 5
     zipStore: zipStore, crc32: crc32, blobBytes: blobBytes, toBlob: toBlob, viewFiles: viewFiles, downloadViews: downloadViews, viewsOutput: viewsOutput, setViewsOutput: setViewsOutput,
     displayState: displayState, applyDisplay: applyDisplay, effectiveScale: effectiveScale, headless: headless, styleRows: commonRows, styleText: styleText, hasFrame: hasFrame,
-    _setApi: function (a) { API = a; }, _api: function () { return API; }, _print: null
+    _setApi: function (a) { API = a; }, _api: function () { return API; }, _print: null,
+    // P4 lane B (W58 / W59)
+    printKey: printKey, isPrintKey: isPrintKey, snapViewports: snapViewports, clearSnaps: clearSnaps, printSnaps: function () { return printSnaps.slice(); }
   };
   return mod;
 });

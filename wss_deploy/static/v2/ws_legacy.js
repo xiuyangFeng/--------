@@ -9,6 +9,8 @@
  * kept in memory and, once that result is open, converted with the result's manifest (classicToV2, pure) into the
  * workspace's reproducible-view state {v:1, …} (ws_figure.js) and applied through ws_figure's decode + applyView,
  * exactly like a workspace link.  Settings the workspace cannot carry are named in one notice.
+ * P4 (W55 ②): the classic iso-lines, highlight of the highest x %, wall cut and velocity log scale go into the
+ * link's x.display (ws_display's link state) instead of being named as not carried.
  * Online only (bundle.json offline_exclude). */
 (function (root, factory) {
   'use strict';
@@ -211,9 +213,38 @@
     return { d: Object.keys(d).length ? d : null, carried: carried };
   }
 
-  // classicToV2(classic, ctx) → {state: {v:1, run, f, w, L, cam, br?, sl?}, dropped: [labels], hiddenBranches, family}
+  // P4 (W55 ②): the classic iso-lines, highlight of the highest x %, wall cut and velocity log scale → the link's
+  // ``x.display`` (phase 3 lane 4: ws_display linkState / applyLinkState {v: 1, contours, top, topPct, clip, speedLog}).
+  // Only what the classic state names goes in (a partial state changes only what it names), read as the classic
+  // applyViewState read it:
+  //   wall    overlay.contours → contours (!!contours when the overlay block is there); highlight.top → top (!!top),
+  //           highlight.top_pct → topPct (clamped to 0.5–10 %);
+  //           slice.clip → clip (clamped to 0–1, the same Z fraction of the display mesh; 1 = no cut → null)
+  //   volume  log → speedLog (the classic volume page's 速度对数色标; pressure ignores it there and here)
+  // Returns {x: state | null, carried: {label: true}} with the notice words of the settings it carries.
+  function convertDisplayExt(classic, family) {
+    var x = { v: 1 }, carried = {};
+    if (family === 'wall') {
+      var overlay = classic.overlay && typeof classic.overlay === 'object' ? classic.overlay : null;
+      if (overlay) { x.contours = Boolean(overlay.contours); carried['等值线'] = true; }   // classic: showContours = !!overlay.contours
+      var hl = classic.highlight && typeof classic.highlight === 'object' ? classic.highlight : null;
+      if (hl) {
+        x.top = Boolean(hl.top);
+        if (num(hl.top_pct) !== null) x.topPct = Math.max(0.5, Math.min(10, num(hl.top_pct)));
+        carried['高亮最高区域'] = true;
+      }
+      var clip = classic.slice && typeof classic.slice === 'object' ? num(classic.slice.clip) : null;
+      if (clip !== null) { var t = Math.max(0, Math.min(1, clip)); x.clip = t >= 1 ? null : round(t); carried['剖切'] = true; }
+    } else if (classic.log !== undefined && classic.log !== null) {
+      x.speedLog = Boolean(classic.log); carried['对数色标'] = true;
+    }
+    return { x: Object.keys(x).length > 1 ? x : null, carried: carried };
+  }
+
+  // classicToV2(classic, ctx) → {state: {v:1, run, f, w, L, cam, br?, sl?, d?, x?}, dropped: [labels], hiddenBranches, family}
   //   ctx (optional, from the open result): {family, fields: [ids], branches: [ids], logFields: [ids], fov,
-  //   display: the reader's link state carries ``d`` (phase 3 lane 5), units: {kind: [unit names]} of the reader}.
+  //   display: the reader's link state carries ``d`` (phase 3 lane 5), units: {kind: [unit names]} of the reader,
+  //   xDisplay: the reader's display module takes ``x.display`` (phase 3 lane 4; P4 W55 ②)}.
   // Without ctx.branches the classic hidden branches cannot become the workspace's list of shown branches: ``br`` is
   // left out and ``hiddenBranches`` keeps them.  ``dropped`` names, in words, the non-default classic settings the
   // workspace state does not carry (PHASE3_LANES.md §3 lane 6 item 2; p3_audit_reports.md §F).
@@ -248,6 +279,12 @@
       var shown = convertDisplay(classic, family, field, ctx);
       if (shown.d) st.d = shown.d;
       carried = shown.carried;
+    }
+    // ---- iso-lines, highlight, wall cut, velocity log (``x.display``), when the reader's display module takes them
+    if (ctx.xDisplay) {
+      var ext = convertDisplayExt(classic, family);
+      if (ext.x) st.x = { display: ext.x };
+      Object.keys(ext.carried).forEach(function (label) { carried[label] = true; });
     }
     var overlay = classic.overlay && typeof classic.overlay === 'object' ? classic.overlay : {};
     if (typeof overlay.trust === 'boolean') L.trust = overlay.trust;
@@ -343,13 +380,18 @@
     else if (typeof D.unitOptions === 'function') ['pressure', 'velocity', 'wss'].forEach(function (k) { var u = D.unitOptions(k); if (u && u.length) out[k] = u.slice(); });
     return Object.keys(out).length ? out : null;
   }
+  // Whether this page has an extension that takes ``x.<id>`` from a link (ns.ext linkState / applyLinkState).
+  function linkExtension(id) {
+    return (Array.isArray(ns.ext) ? ns.ext : []).some(function (e) { return e && e.id === id && typeof e.linkState === 'function' && typeof e.applyLinkState === 'function'; });
+  }
   // ctx for classicToV2 in the page: the manifest's, plus whether this page's link state carries ``d`` (a probe of
-  // ws_figure.viewState) and the unit kinds it knows.
+  // ws_figure.viewState), the unit kinds it knows and whether ws_display takes ``x.display`` (P4 W55 ②).
   function pageContext(api, manifest) {
     var ctx = manifestContext(manifest), F = ns.figure;
     try { var probe = F && typeof F.viewState === 'function' ? F.viewState(api) : null; ctx.display = Boolean(probe && probe.d && typeof probe.d === 'object'); }
     catch (_) { ctx.display = false; }
     ctx.units = unitKinds();
+    ctx.xDisplay = linkExtension('display');
     return ctx;
   }
 
@@ -437,6 +479,7 @@
     CLASSIC_SCHEMA: CLASSIC_SCHEMA, parseAddress: parseAddress, jobFromSearch: jobFromSearch, classicHash: classicHash,
     decodeClassicView: decodeClassicView, classicToV2: classicToV2, convertCamera: convertCamera, routeHash: routeHash,
     searchWithoutJob: searchWithoutJob, manifestContext: manifestContext, convertDisplay: convertDisplay, rewrite: rewrite, applyPending: applyPending,
+    convertDisplayExt: convertDisplayExt, pageContext: pageContext, linkExtension: linkExtension,
     pending: function () { return pending; }
   };
 });

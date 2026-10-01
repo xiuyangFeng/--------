@@ -3,7 +3,10 @@
  * (one per kind) → follow-up (U17) → model card.  Every number opens the evidence lens (D9).
  * Second phase lane D (S6d): OSI / RRT / ECAP means and fractions under the key numbers, the aorta's lumen diameter
  * strip with sac / neck / reference diameter / full-lumen volume / section reliability under the zone map, the
- * per-branch table of the coloured field behind 「表格」 (classic 分支统计 / cycle-card tables), follow-up curves. */
+ * per-branch table of the coloured field behind 「表格」 (classic 分支统计 / cycle-card tables), follow-up curves.
+ * Final round lane B: the key numbers follow the field on screen (a three-head result shows the WSS p99 set while WSS is
+ * shown, W27), the markers' locations under them (classic 最大值位置 / 最小值位置, W13), and the volume statistics table
+ * of the classic volume page (V37). */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -397,7 +400,9 @@
   // ------------------------------------------------------------------ pure models for the 2026-09-30 look
   function statsOf(manifest, id) { var f = fieldOf(manifest, id); return (f && f.statistics) || {}; }
   // Up to four key numbers, each tied to a field (colour chip) or a fraction (bar), plus the lumen diameter.
-  function kpiModel(manifest) {
+  // fieldId (optional, P4 lane B W27): the field on screen.  A result with TAWSS shows the TAWSS numbers, except while
+  // its peak-frame WSS is on screen: then the WSS set (whole-field p99 from analysis.peak, as the classic p99 card).
+  function kpiModel(manifest, fieldId) {
     var a = analysis(manifest), out = [];
     var family = manifest && manifest.result && manifest.result.family;
     var morph = a.morphology && a.morphology.aorta && a.morphology.aorta.max;
@@ -409,7 +414,7 @@
       if (sp && sp.max !== undefined) out.push({key: 'speed_max', label: '最大速度', value: sp.max, units: 'm/s', tier: 'model', field: 'speed', stat: 'max', chip: true});
       if (pr && pr.min !== undefined && pr.max !== undefined) out.push({key: 'pressure_range', label: '相对压力跨度', value: pr.max - pr.min, units: 'Pa', tier: 'model', field: 'pressure', stat: 'range',
         definition: '体内最高与最低相对压力之差；压力是相对当前帧体积平均的相对压，不是血压。'});
-    } else if (fieldOf(manifest, 'tawss')) {
+    } else if (fieldOf(manifest, 'tawss') && !(fieldId === 'wss' && fieldOf(manifest, 'wss'))) {
       var t = statsOf(manifest, 'tawss'), cyc = a.cycle || {}, stag = cyc.stagnation || {};
       var tl = (t.area_frac && t.area_frac.low !== undefined) ? t.area_frac.low : (cyc.fields && cyc.fields.tawss && cyc.fields.tawss.area_frac ? cyc.fields.tawss.area_frac.low : undefined);
       if (t.mean !== undefined) out.push({key: 'tawss_mean', label: 'TAWSS 均值', value: t.mean, units: 'Pa', tier: 'model', field: 'tawss', stat: 'mean', chip: true});
@@ -428,6 +433,83 @@
     if (diam) out.push(diam);
     return out.slice(0, 4);
   }
+  // ------------------------------------------------------------------ P4 lane B: marker locations (W13) and volume statistics (V37)
+  // Where the field's maximum (yellow marker) and, for TAWSS, minimum (white marker) are: the classic report's
+  // 「最大值位置 / 最小值位置」 rows (report.py fieldPeak with the p99 card and cycleCard).  Peak WSS at the summary's point
+  // (analysis.peak: branch, s_from_inlet_mm, dist_to_junction_mm, local_radius_mm, xyz_mm); any other wall field at its
+  // first largest finite prediction-point value (np.argmax order), TAWSS also at its first smallest (np.argmin order),
+  // with the point's branch, arc length from the inlet, distance to the junction and radius — the points the markers
+  // sit on (ws_display.peakMarkers).  get(key) → the loaded array or null.  Pure.
+  var MIN_FIELDS = {tawss: true};
+  function pointKeys(manifest) { return (manifest && manifest.geometry && manifest.geometry.points) || {}; }
+  function finite(v) { return v !== null && v !== undefined && v !== '' && typeof v !== 'boolean' && isFinite(Number(v)); }
+  function summaryPeak(manifest) {
+    var pk = analysis(manifest).peak;
+    return pk && Array.isArray(pk.xyz_mm) && pk.xyz_mm.length === 3 && pk.xyz_mm.every(finite) && finite(pk.max_pa) ? pk : null;
+  }
+  function branchLabel(manifest, sid) {
+    var list = (manifest && manifest.geometry && manifest.geometry.branches) || [];
+    for (var i = 0; i < list.length; i++) if (list[i] && Number(list[i].id) === Number(sid) && typeof list[i].name === 'string') return list[i].name;
+    return '分支 ' + sid;   // classic branchName
+  }
+  // The arrays extremesModel reads for this field (the summary's peak needs none).
+  function extremeKeys(manifest, fieldId) {
+    var f = fieldOf(manifest, fieldId), p = pointKeys(manifest);
+    if (!f || !manifest.result || manifest.result.family !== 'wall') return [];
+    if (fieldId === 'wss' && summaryPeak(manifest) && !MIN_FIELDS[fieldId]) return [];
+    return [f.arrays && f.arrays.read, p.xyz, p.segment, p.s_from_root_mm, p.dist_to_junction_mm, p.radius_mm]
+      .filter(function (k, i, a) { return typeof k === 'string' && k && a.indexOf(k) === i && Boolean(manifest.arrays && manifest.arrays[k]); });
+  }
+  function extremesModel(manifest, fieldId, get) {
+    var f = fieldOf(manifest, fieldId);
+    if (!f || !manifest.result || manifest.result.family !== 'wall') return [];
+    get = typeof get === 'function' ? get : function () { return null; };
+    var p = pointKeys(manifest), out = [], pk = fieldId === 'wss' ? summaryPeak(manifest) : null;
+    var v = f.arrays && f.arrays.read ? get(f.arrays.read) : null, PV = get(p.xyz), PS = get(p.segment), PSR = get(p.s_from_root_mm), PDJ = get(p.dist_to_junction_mm), PR = get(p.radius_mm);
+    var at = function (i, kind) {
+      if (i < 0) return null;
+      return {kind: kind, field: fieldId, units: f.units, value: v[i], index: i, branch: PS ? branchLabel(manifest, PS[i]) : null,
+        s: PSR ? PSR[i] : null, dj: PDJ ? PDJ[i] : null, r: PR ? PR[i] : null, xyz: PV && 3 * i + 2 < PV.length ? [PV[3 * i], PV[3 * i + 1], PV[3 * i + 2]] : null};
+    };
+    if (pk) out.push({kind: 'max', field: fieldId, units: f.units, value: Number(pk.max_pa), index: finite(pk.index) ? Number(pk.index) : null, branch: pk.branch || null,
+      s: finite(pk.s_from_inlet_mm) ? Number(pk.s_from_inlet_mm) : null, dj: finite(pk.dist_to_junction_mm) ? Number(pk.dist_to_junction_mm) : null,
+      r: finite(pk.local_radius_mm) ? Number(pk.local_radius_mm) : null, xyz: pk.xyz_mm.map(Number), source: 'summary'});
+    else if (v) {
+      var best = -1;
+      for (var i = 0; i < v.length; i++) { var x = v[i]; if (Number.isFinite(x) && (best < 0 || x > v[best])) best = i; }
+      var mx = at(best, 'max'); if (mx) out.push(mx);
+    }
+    if (MIN_FIELDS[fieldId] && v) {
+      var lo = -1;
+      for (var j = 0; j < v.length; j++) { var y = v[j]; if (Number.isFinite(y) && (lo < 0 || y < v[lo])) lo = j; }
+      var mn = at(lo, 'min'); if (mn) out.push(mn);
+    }
+    return out;
+  }
+  function fixed(x, d) { return x === null || x === undefined || !Number.isFinite(+x) ? '—' : (+x).toFixed(d); }   // classic fmt
+  // The classic sentence: 「<分支>，距入口 <s> mm；距分叉 <dj> mm」 and 「局部半径 <r> mm」.
+  function extremeWhere(e) {
+    var parts = [];
+    if (e.branch !== null || e.s !== null || e.dj !== null) parts.push((e.branch || '—') + '，距入口 ' + fixed(e.s, 0) + ' mm；距分叉 ' + fixed(e.dj, 0) + ' mm');
+    if (e.r !== null) parts.push('局部半径 ' + fixed(e.r, 1) + ' mm');
+    return parts.join('；');
+  }
+  // V37: the classic volume page's statistics (setStats: 预测点数, 均值, 第 99 百分位, 最大值 of VolumeViewerCore.statistics over
+  // the interior points) for speed and relative pressure; analysis.volume_statistics holds the same numbers (else the
+  // field's own statistics).  Pure.
+  var VOL_STATS = [{key: 'speed_m_s', field: 'speed', label: '速度', units: 'm/s'}, {key: 'pressure_interior_pa', field: 'pressure', label: '相对压力', units: 'Pa'}];
+  function volumeStatsModel(manifest) {
+    if (!manifest || !manifest.result || manifest.result.family !== 'volume') return null;
+    var vs = analysis(manifest).volume_statistics || {};
+    var rows = VOL_STATS.map(function (r) {
+      var st = vs[r.key] && typeof vs[r.key] === 'object' ? vs[r.key] : statsOf(manifest, r.field);
+      if (!st || !(finite(st.count) || finite(st.mean))) return null;
+      return {key: r.key, field: r.field, label: r.label, units: r.units, count: finite(st.count) ? Number(st.count) : null,
+        mean: finite(st.mean) ? Number(st.mean) : null, p99: finite(st.p99) ? Number(st.p99) : null, max: finite(st.max) ? Number(st.max) : null};
+    }).filter(Boolean);
+    return rows.length ? {rows: rows, definition: '统计基于体内预测点，采用点权重（不含壁面点）；压力是相对当前帧体积平均的相对压，不是血压。'} : null;
+  }
+
   // Metrics the zone map can colour by, per result family (first one is the default).
   function zoneMetrics(manifest) {
     if (fieldOf(manifest, 'tawss')) return [
@@ -531,7 +613,7 @@
   // ------------------------------------------------------------------ lane D renderers (DOM + createElementNS only)
   function currentField(ctx) {
     if (ctx && ctx.field) return ctx.field;
-    var sh = ns.detail && typeof ns.detail.shell === 'function' ? ns.detail.shell() : null;
+    var sh = shellApi();
     var cur = sh && sh.cur ? sh.cur() : null;
     return cur && cur.field ? cur.field : null;
   }
@@ -561,6 +643,53 @@
       });
       return tile;
     }));
+  }
+  // P4 lane B (W13): under the key numbers, where the field's maximum / minimum markers sit (classic 最大值位置 rows).  The
+  // prediction-point arrays are read from the open result; missing ones are loaded once and the overview drawn again.
+  var SHELL = null;   // the shell's helper API, from this module's own extension hooks (below)
+  function shellApi() { return SHELL || (ns.detail && typeof ns.detail.shell === 'function' ? ns.detail.shell() : null); }
+  var EXT_ASKED = {};
+  function extremesEl(m, fieldId) {
+    if (!fieldId || !m.result || m.result.family !== 'wall') return null;
+    var sh = shellApi(), cur = sh && sh.cur ? sh.cur() : null, res = cur && cur.manifest === m ? cur.result : null;
+    var keys = extremeKeys(m, fieldId), missing = keys.filter(function (k) { return !(res && typeof res.has === 'function' && res.has(k)); });
+    if (missing.length) {
+      var tag = String((m.result && m.result.run_identity) || (m.job && m.job.id) || '') + '|' + missing.join(',');
+      if (res && typeof res.preload === 'function' && !EXT_ASKED[tag]) {
+        EXT_ASKED[tag] = true;
+        Promise.resolve(res.preload(missing)).then(function () {
+          var s2 = shellApi();
+          if (s2 && s2.cur() === cur && s2.currentTab() === 'overview') s2.renderInspector();
+        }, function () {});
+      }
+      return null;
+    }
+    var list = extremesModel(m, fieldId, function (k) { try { return k && res && res.has(k) ? res.array(k) : null; } catch (_) { return null; } });
+    if (!list.length) return null;
+    var h = ui().h, f = fieldOf(m, fieldId), name = f ? (f.short_label || f.label || fieldId) : fieldId;
+    return h('div', {'class': 'kpi-where'}, list.map(function (e) {
+      var q = qty(e.value, e.units, 'wall'), unit = ui().unitText ? ui().unitText(q.units) : (q.units || '');
+      var mark = e.kind === 'min' ? '白色标记：' + name + ' 全场最小值预测点' : '黄色标记：' + name + ' 全场最大值预测点';
+      var row = h('button', {type: 'button', 'class': 'kpi-where-row', dataset: {kind: e.kind}, title: mark + (e.xyz ? '；点一下转到这里' : '')},
+        h('span', {'class': 'kpi-where-dot ' + e.kind, 'aria-hidden': 'true'}),
+        h('span', {'class': 'kpi-where-k', text: (e.kind === 'min' ? '最小 ' : '最大 ') + ui().sig(q.value) + (unit ? ' ' + unit : '')}),
+        h('span', {'class': 'kpi-where-v', text: extremeWhere(e)}));
+      if (e.xyz && sh && typeof sh.flyTo === 'function') row.addEventListener('click', function () { sh.flyTo(e.xyz, 10); });
+      return row;
+    }));
+  }
+  // P4 lane B (V37): the volume statistics table under the key numbers, in the display units of the colour-scale panel.
+  function volumeStatsEl(m) {
+    var vs = volumeStatsModel(m);
+    if (!vs) return null;
+    var h = ui().h, unitText = function (u) { return ui().unitText ? ui().unitText(u) : (u || ''); };
+    var rows = vs.rows.map(function (r) {
+      var f = function (x) { return x === null ? null : ui().sig(qty(x, r.units, 'volume').value); };
+      return {label: r.label + ' ' + unitText(qty(1, r.units, 'volume').units), count: r.count === null ? null : String(r.count), mean: f(r.mean), p99: f(r.p99), max: f(r.max), _cls: 'vstat-' + r.field};
+    });
+    return h('div', {'class': 'vstats'}, h('div', {'class': 'sub-head'}, h('span', {'class': 'sub-title', text: '体内统计'}), ui().infoTip(vs.definition)),
+      ui().table([{key: 'label', label: '物理量'}, {key: 'count', label: '点数', num: true}, {key: 'mean', label: '均值', num: true}, {key: 'p99', label: 'p99', num: true},
+        {key: 'max', label: '最大', num: true}], rows, {cls: 'tbl-geo tbl-vstats'}));
   }
   // The aorta's lumen diameter strip: sac / neck shaded, reference dashed, the largest diameter marked; four facts below.
   var MORPH_TIP = '中心线每 1 mm 一站取截面的管腔最大直径；灰虚线 = 参考直径；阴影 = 瘤颈、瘤体。所有直径、长度和体积都是管腔的，不含附壁血栓与管壁，通常小于 CT 报告的瘤体直径。';
@@ -770,9 +899,11 @@
     var m = ctx.manifest || {};
     var lens = ctx.onLens || null;
     var out = [];
-    // key numbers
-    var kpis = kpiModel(m);
-    if (kpis.length) {
+    // key numbers (P4 lane B: they follow the field on screen, W27), the markers' locations (W13), volume statistics (V37)
+    var fieldNow = currentField(ctx);
+    var kpis = kpiModel(m, fieldNow);
+    var kpiExtra = [extremesEl(m, fieldNow), volumeStatsEl(m)].filter(Boolean);
+    if (kpis.length || kpiExtra.length) {
       var grid = h('div', {'class': 'kpis'});
       var fam = m.result && m.result.family;
       kpis.forEach(function (k) {
@@ -793,7 +924,7 @@
         });
         grid.appendChild(tile);
       });
-      out.push(h('section', {'class': 'sec sec-kpis'}, grid, cycleSub(m, lens)));
+      out.push(h('section', {'class': 'sec sec-kpis'}, kpis.length ? grid : null, kpiExtra, cycleSub(m, lens)));
     }
     // zone map
     var zs = mapZones(m), metrics = zoneMetrics(m);
@@ -1090,7 +1221,12 @@
     return parts;
   }
 
-  return {render: render, header: header, modelCardBody: modelCardBody, kpiModel: kpiModel, zoneMetrics: zoneMetrics, mapZones: mapZones, zoneMapEl: zoneMapEl, fracColor: fracColor, morphLine: morphLine,
+  // P4 lane B: keep the shell API (open result's arrays, flyTo, redraw) without depending on another module.
+  var grab = function (api) { if (api) SHELL = api; };
+  (ns.ext = ns.ext || []).push({id: 'overview', onStart: grab, onResult: grab, onField: grab});
+
+  return {extremesModel: extremesModel, extremeKeys: extremeKeys, extremeWhere: extremeWhere, volumeStatsModel: volumeStatsModel,   // P4 lane B
+    render: render, header: header, modelCardBody: modelCardBody, kpiModel: kpiModel, zoneMetrics: zoneMetrics, mapZones: mapZones, zoneMapEl: zoneMapEl, fracColor: fracColor, morphLine: morphLine,
     cycleRows: cycleRows, morphStripModel: morphStripModel, reliabilityModel: reliabilityModel, branchTableModel: branchTableModel, followupCharts: followupCharts,
     zonesModel: zonesModel, zoneColumns: zoneColumns, pairsModel: pairsModel, branchModel: branchModel, morphologyModel: morphologyModel,
     findingsModel: findingsModel, narrativeModel: narrativeModel, followupModel: followupModel, fieldOf: fieldOf, fieldTier: fieldTier,

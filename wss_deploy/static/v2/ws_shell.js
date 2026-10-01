@@ -763,6 +763,7 @@
       if (cur.compare) parts.push(h('span', {'class': 'vp-result', text: (m.result && m.result.display_name) || ''}));
       parts.push(h('span', {'class': 'vp-field', text: fieldName(m, cur.field)}));
       if (cur.compare && cur.compare.mode === 'each') parts.push(h('span', {'class': 'vp-warn', text: '色标各自'}));
+      if (cur.compare && ns.notice && ns.notice.badge) parts.push(ns.notice.badge(m, {side: '左'}));   // P4 lane B (C+1)
       ui().fill(S.els.vpA.status, parts);
     }
     if (cur.split) { S.els.vpB.status.replaceChildren(splitFieldSelect()); return; }
@@ -770,7 +771,8 @@
       var cm = cur.compare.manifest;
       ui().fill(S.els.vpB.status, h('span', {'class': 'vp-side', text: '右'}), twoCases ? h('span', {'class': 'vp-case', text: cm.job.display_name}) : null,
         h('span', {'class': 'vp-result', text: cm.result.display_name || ''}), h('span', {'class': 'vp-field', text: fieldName(cm, cur.compare.field)}),
-        cur.compare.mode === 'each' ? h('span', {'class': 'vp-warn', text: '色标各自'}) : null);
+        cur.compare.mode === 'each' ? h('span', {'class': 'vp-warn', text: '色标各自'}) : null,
+        ns.notice && ns.notice.badge ? ns.notice.badge(cm, {side: '右'}) : null);   // P4 lane B (C+1)
       return;
     }
     // single view: nothing on the stage — the top bar and the inspector carry result, status and review
