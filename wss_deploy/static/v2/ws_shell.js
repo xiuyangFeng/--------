@@ -376,6 +376,7 @@
 
   // ------------------------------------------------------------------ opening a result
   function closeCurrent() {
+    if (S.saveTimer) { clearTimeout(S.saveTimer); S.saveTimer = null; saveView(); }   // the last turn of the view, for this result
     if (S.cur) extCall('onClose');
     if (S.abort) { try { S.abort.abort(); } catch (_) {} S.abort = null; }
     stopPoll();
@@ -456,7 +457,7 @@
     v.on('contextlost', function () { var vp = side === 'a' ? S.els.vpA : S.els.vpB; vp.msg.hidden = false; vp.msg.textContent = '三维显示中断，正在恢复。数字和发现不受影响。'; });
     v.on('contextrestored', function () { var vp = side === 'a' ? S.els.vpA : S.els.vpB; vp.msg.hidden = true; });
     v.on('change', function (e) { if (e && (e.what === 'field' || e.what === 'result' || e.what === 'branches')) updateColorbar(side); });
-    v.on('error', function (e) { ui().toast('三维显示出错：' + (e && e.message || e), {kind: 'error'}); });
+    v.on('error', function (e) { if (!isAbort(e)) ui().toast('三维显示出错：' + (e && e.message || e), {kind: 'error'}); });   // a load cut short by the next result is no error
     v.on('marker', function (e) {   // a finding marker in 3-D: select that finding
       if (side !== 'a' || !e || !S.cur || !S.cur.manifest) return;
       var it = ns.overview.findingsModel(S.cur.manifest).items.filter(function (x) { return x.id === e.id; })[0];
@@ -488,17 +489,18 @@
     stageMessage('正在准备三维…');
     return Promise.resolve(v.setResult(result)).then(function () {
       if (!store().isLatest(seq) || S.cur !== cur) return;
+      syncLayers(v);   // this result's own layers from now on, not the previous result's (a wall result has no interior)
       stageMessage(null);
       applyField(cur.field, cur.window, {save: false});
       applyLighting();
       // the saved reading position loads its fields first (asynchronous): wait for it, so a link applied in onResult
       // (repro link, classic address) lands after it instead of being overwritten by it
-      var restored = null;
-      if (saved && saved.viewer) { try { restored = v.applyState(Object.assign({}, saved.viewer, {field: cur.field}), {animate: false}); } catch (_) { safeFit(v); } }
+      var restored = null, sv = savedViewer(saved, cur);
+      if (sv) { try { restored = v.applyState(Object.assign({}, sv, {field: cur.field}), {animate: false}); } catch (_) { safeFit(v); } }
       else safeFit(v);
       return Promise.resolve(restored).then(null, function () { safeFit(v); }).then(function () {
         if (!store().isLatest(seq) || S.cur !== cur) return;
-        if (typeof v.getState === 'function') { try { var ls = v.getState().layers; if (ls) Object.keys(ls).forEach(function (k) { S.layers[k] = ls[k]; }); } catch (_) {} }
+        syncLayers(v);
         afterShown(r);
       });
     }, function (e) {
@@ -509,12 +511,28 @@
   }
   function afterShown(r) {
     var cur = S.cur;
+    cur.shown = true;   // from here on the viewer shows this result: its reading position may be saved
     loadTimeline(cur);
     drawLabels();
     extCall('onResult');
     if (r) applyRouteExtras(r);
   }
   function safeFit(v) { try { v.fit(); } catch (_) {} }
+  function syncLayers(v) {
+    if (typeof v.getState !== 'function') return;
+    try { var ls = v.getState().layers; if (ls) Object.keys(ls).forEach(function (k) { S.layers[k] = ls[k]; }); } catch (_) {}
+  }
+  // The viewer part of a saved reading position, or null when it belongs to another result: before 2026-10-01 a save
+  // could fire while the next result was still loading and store the previous result's view under the new one (a wall
+  // result's field and layers on a volume result: no interior points, no outline). The field and window stay usable.
+  function savedViewer(saved, cur) {
+    var sv = saved && saved.viewer;
+    if (!sv || typeof sv !== 'object') return null;
+    if (saved.family && cur.result && saved.family !== cur.result.family) return null;
+    if (sv.field && !fieldById(cur.manifest, sv.field)) return null;
+    return sv;
+  }
+  function isAbort(e) { return Boolean(e && e.name === 'AbortError'); }
   function applyRouteExtras(r) {
     var cur = S.cur;
     if (!cur || !cur.result) return;
@@ -1067,7 +1085,7 @@
   }
   function withCenterline(cur, fn) {
     var keys = ns.probe ? ns.probe.requiredArrays(cur.result).filter(function (k) { return !cur.result.has(k); }) : [];
-    Promise.resolve(keys.length ? cur.result.preload(keys) : null).then(function () { if (S.cur === cur) fn(); }, function (e) { ui().toast('读取中心线失败：' + (e && e.message || e), {kind: 'error'}); });
+    Promise.resolve(keys.length ? cur.result.preload(keys) : null).then(function () { if (S.cur === cur) fn(); }, function (e) { if (S.cur === cur && !isAbort(e)) ui().toast('读取中心线失败：' + (e && e.message || e), {kind: 'error'}); });
   }
   function whereText(cur, xyz) {
     var c = root.WssReportCommon, groups = ns.probe ? ns.probe.groups(cur.result) : [], pr = null;
@@ -1623,12 +1641,16 @@
   }
   function saveViewSoon() {
     if (S.saveTimer) clearTimeout(S.saveTimer);
-    S.saveTimer = setTimeout(saveView, 600);
+    var cur = S.cur;
+    S.saveTimer = setTimeout(function () { S.saveTimer = null; if (S.cur === cur) saveView(); }, 600);
     if (S.saveTimer && S.saveTimer.unref) S.saveTimer.unref();
   }
   function saveView() {
     var cur = S.cur;
-    if (!cur || !cur.runIdentity || !cur.result) return;
+    // only once this result is shown, and only from a viewer that shows it: the viewer keeps the previous result until
+    // the next one's arrays have arrived, and its view saved under the next result hid that result's interior points
+    if (!cur || !cur.runIdentity || !cur.result || !cur.shown) return;
+    if (S.viewerA && typeof S.viewerA.result === 'function' && S.viewerA.result() !== cur.result) return;
     var st = null;
     try { st = S.viewerA && S.viewerA.getState ? S.viewerA.getState() : null; } catch (_) { st = null; }
     // An open section hides the interior points in the viewer only (setLayers); the reading position keeps the choice.
@@ -1636,7 +1658,7 @@
     // A comparison paints both sides on a shared range; that range belongs to the comparison, not to this result's
     // reading position (reopening the result alone must not come back on 「固定范围」).
     if (st && cur.compare) { delete st.scale; delete st.field; }
-    store().writeView(cur.runIdentity, {field: cur.field, window: cur.window, viewer: st, split: cur.split ? {field: cur.split.field, window: cur.split.window} : null});
+    store().writeView(cur.runIdentity, {field: cur.field, window: cur.window, viewer: st, split: cur.split ? {field: cur.split.field, window: cur.split.window} : null, family: cur.result.family || null});
   }
 
   // ------------------------------------------------------------------ split (same result, two fields) and compare

@@ -834,7 +834,7 @@
   function toggleLayer(key) {
     var P = prefs(); P.layers[key] = !P.layers[key]; savePrefs(P);
     refreshAll();
-    ensureArrays().then(function () { refreshAll(); }, function (e) { ui().toast('读取数据失败：' + (e && e.message || e), { kind: 'error' }); });
+    ensureArrays().then(function () { refreshAll(); }, function (e) { if (!(e && e.name === 'AbortError')) ui().toast('读取数据失败：' + (e && e.message || e), { kind: 'error' }); });
   }
   function layerItems(api) {
     API = api;
