@@ -88,3 +88,24 @@ def test_a_load_cut_short_is_not_reported_as_an_error():
     assert out["errors"] == [], out["errors"]
     assert "三维显示出错" not in out["afterAbort"]
     assert "三维显示出错：shader failed" in out["afterError"]
+
+
+def test_a_layer_switched_in_the_menu_is_saved_without_turning_the_view():
+    # user report 10-01: 体内点 was off; switched on and reloaded without turning the view, the old 「off」 came back
+    out = _run(VOLUME + r"""
+      await boot();
+      ns.store.writeView('run-V', {field: 'speed', window: 'adaptive', family: 'volume', viewer: {field: 'speed', layers: {interior: false}}});
+      await hashTo('#/job/V', 200);
+      shellState().layers.interior = false;            // as restored from that reading position (the stub viewer keeps no layers)
+      await wait(700);
+      const before = shellState().layers.interior;
+      const layerBtn = walk(app(), e => e.getAttribute && e.getAttribute('aria-label') === '图层、色表与背景')[0];
+      layerBtn.click(); await wait(20);
+      const it = byClass(byId('ws-menu'), 'menu-label').find(e => textOf(e) === '体内点');
+      fire(it.parentNode || it, 'click'); await wait(700);
+      const saved = ns.store.readView('run-V');
+      done({before, after: shellState().layers.interior, saved: saved && saved.viewer && saved.viewer.layers && saved.viewer.layers.interior});
+    """)
+    assert out["errors"] == [], out["errors"]
+    assert out["before"] is False and out["after"] is True
+    assert out["saved"] is True
