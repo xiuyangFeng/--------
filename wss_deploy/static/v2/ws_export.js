@@ -4,7 +4,9 @@
  *           English words, colour bar / title / labels; colour bar as SVG; print the view (ns.figure)
  *   拼图     six standard views or a chosen set (+ current view, + section map) with one colour bar (ns.figure)
  *   一页纸   figures for the one-page report (classic snapshots format) and the one-pager itself
- *   数据     the existing CSV / VTP / zip, and the offline HTML (/api/v2/.../offline, bookmarks, name can be hidden)
+ *   数据     statistics CSV, the classic result card's single files by family (phase 3 lane 5: wall VTP / point CSV;
+ *           volume VTP / wall-pressure VTP / volume CSV / streamlines VTP), zip, and the offline HTML
+ *           (/api/v2/.../offline, bookmarks, name can be hidden)
  * The footer copies the reproducible link.  Without ns.figure (tests, a trimmed bundle) the 图片 page falls back to the
  * first-phase 汇报图: snapshot + colour bar + window name + display name. */
 (function (root, factory) {
@@ -87,10 +89,11 @@
     var h = ui().h, api = ns.api, m = ctx.manifest || {};
     var jobId = (ctx.job && ctx.job.id) || (m.job && m.job.id);
     var name = ctx.displayName || '病例';
-    var exportsList = (ctx.job && ctx.job.summary && ctx.job.summary.exports) || {};
-    var vtp = Object.keys(exportsList).map(function (k) { return exportsList[k]; }).filter(function (v) { return typeof v === 'string' && /\.vtp$/i.test(v); })[0] || (m.result && m.result.family === 'volume' ? null : 'wall_wss.vtp');
+    var exportsMap = (ctx.job && ctx.job.summary && ctx.job.summary.exports) || {};
+    var family = m.result && m.result.family === 'volume' ? 'volume' : 'wall';
     var links = [h('a', {'class': 'lnk', href: api.urls.table(jobId, 'csv'), download: '', text: '统计表 CSV'})];
-    if (vtp) links.push(h('a', {'class': 'lnk', href: api.urls.file(jobId, String(vtp).replace(/^.*\//, '')), download: '', text: '壁面数据 VTP'}));
+    // P3 lane 5 (#93): the classic result card's single files, by family (summary.exports holds flags, not names)
+    dataFiles(family, exportsMap).forEach(function (f) { links.push(h('a', {'class': 'lnk', href: api.urls.file(jobId, f.file), download: '', text: f.label})); });
     links.push(h('a', {'class': 'lnk', href: api.urls.bundle(jobId), download: '', text: '全部文件 zip'}));
     if (ctx.full) links.push(h('a', {'class': 'lnk', href: api.urls.file(jobId, 'summary.json'), target: '_blank', rel: 'noopener', text: '完整统计 JSON'}));
     var hideOff = h('input', {type: 'checkbox', checked: Boolean(state.hideName)});
@@ -105,10 +108,21 @@
       }, function (e) { ui().toast('离线报告没有生成：' + e.message, {kind: 'error'}); }).then(function () { offBtn.disabled = false; });
     }, {icon: 'download', cls: 'btn-sm'});
     ui().fill(el,
-      block('复核数据', '原始统计和网格数据，保留全精度，给自己或同事复算。', [h('div', {'class': 'exp-links'}, links)]),
+      block('复核数据', '原始统计和网格数据，保留全精度，给自己或同事复算。VTP 可在 ParaView 打开；CSV 是逐点数值。', [h('div', {'class': 'exp-links'}, links)]),
       block('离线阅读', '一个 HTML 文件，在没有服务的电脑上用浏览器直接打开；显示导出时的复核状态。', [
         h('label', {'class': 'check'}, hideOff, h('span', {text: '隐藏病例名'})),
         h('label', {'class': 'check'}, withBm, h('span', {text: bms.length ? '带上书签（' + bms.length + ' 条）' : '带上书签（还没有书签）'})), offBtn]));
+  }
+  // The classic workbench result card (app.js resultCard): wall VTP + point CSV; volume VTP, wall-pressure VTP, volume CSV,
+  // and the streamlines VTP only when the run wrote it.  summary.exports = {vtp, csv, wall_pressure, streamlines, …}: flags.
+  var DATA_FILES = {
+    wall: [{file: 'wall_wss.vtp', label: '壁面 VTP', flag: 'vtp'}, {file: 'points_wss.csv', label: '点云 CSV', flag: 'csv'}],
+    volume: [{file: 'volume_fields.vtp', label: '体场 VTP', flag: 'vtp'}, {file: 'wall_pressure.vtp', label: '壁面压力 VTP', flag: 'wall_pressure'},
+      {file: 'points_volume.csv', label: '体场 CSV', flag: 'csv'}, {file: 'streamlines.vtp', label: '流线 VTP', flag: 'streamlines', only: true}]
+  };
+  function dataFiles(family, exportsMap) {
+    var ex = exportsMap && typeof exportsMap === 'object' ? exportsMap : {};
+    return (DATA_FILES[family] || DATA_FILES.wall).filter(function (f) { return f.only ? Boolean(ex[f.flag]) : ex[f.flag] !== false; });
   }
   function block(title, tip, controls) {
     var h = ui().h;
@@ -154,15 +168,15 @@
       F.copyLink(null, function (url, copied) {
         linkBox.value = url; linkBox.hidden = false;
         try { linkBox.focus(); linkBox.select(); } catch (_) {}
-        if (copied) ui().toast('已复制复现链接：打开它就回到这个字段、色标窗、视角、游标和截面。', {kind: 'ok', ms: 4000});
+        if (copied) ui().toast('已复制复现链接：打开它就回到同样的字段、色标、视角、游标和截面。', {kind: 'ok', ms: 4000});
       });
-    }, {icon: 'fig-link', kind: 'link', title: '复制一个链接：打开后回到这个字段、色标窗、视角、游标和截面'}) : null;
+    }, {icon: 'fig-link', kind: 'link', title: '复制一个链接：打开后回到同样的字段、色标（色表、分段、阈值、单位）、标签、视角、游标和截面'}) : null;
     ui().dialog.open({title: '导出', wide: true, cls: 'dlg-export', body: [bar, paneEl],
       actions: [linkBtn, linkBox, h('span', {'class': 'sec-fill'}), ui().button('关闭', function () { ui().dialog.close('done'); })],
       onClose: function () { if (F) F.disposePane(); }});
     show(want);
   }
 
-  var mod = {open: open, composeFigure: composeFigure, safeName: safeName, pendingTab: null};
+  var mod = {open: open, composeFigure: composeFigure, safeName: safeName, dataFiles: dataFiles, DATA_FILES: DATA_FILES, pendingTab: null};
   return mod;
 });

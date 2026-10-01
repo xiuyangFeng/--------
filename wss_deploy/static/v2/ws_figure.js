@@ -9,7 +9,11 @@
  *              the volume section; read back in onResult (the shell's parseHash is not changed)
  *   一页纸配图  POST /api/jobs/<id>/snapshots in the classic buildSnapshots / makeOnepageShots format
  *   打印        the current view on a print-only A4 page
- * Shell hooks through ns.ext (the 工具 tab section, onResult / onClose); the export dialog (ws_export.js) shows the panes. */
+ * Shell hooks through ns.ext (the 工具 tab section, onResult / onClose); the export dialog (ws_export.js) shows the panes.
+ * Phase 3 lane 5 (PHASE3_LANES.md): the link also carries the display (d: colour map, lighting, labels, bands,
+ * thresholds, units, display layers, volume options) and extension states (x, ns.ext linkState / applyLinkState), still
+ * v:1 — an older link without d leaves the display alone; the chosen views as separate PNGs in a zip (拼图 page 「分成
+ * 单张」); the store-mode zip writer; headless(ctx) for a result that is not on screen (ws_batch.js). */
 (function (root, factory) {
   'use strict';
   var ns = root.WSSV2 = root.WSSV2 || {};
@@ -65,6 +69,98 @@
     try { if (ns.store && typeof ns.store.write === 'function') ns.store.write(PREF_KEY, next); else if (root.localStorage) root.localStorage.setItem(PREF_KEY, JSON.stringify(next)); } catch (_) {}
     return next;
   }
+  // P3 lane 5: how the chosen views leave the 拼图 page — one montage, or one PNG per view in a zip (the classic
+  // 「导出六视角」 wrote six files).  Kept apart from the figure options (their shape is part of lane A's contract).
+  var OUT_KEY = 'wssv2:export:views';
+  function viewsOutput() {
+    var raw = null;
+    try { raw = ns.store && typeof ns.store.read === 'function' ? ns.store.read(OUT_KEY) : JSON.parse((root.localStorage && root.localStorage.getItem(OUT_KEY)) || 'null'); } catch (_) { raw = null; }
+    return raw && raw.output === 'files' ? 'files' : 'montage';
+  }
+  function setViewsOutput(v) {
+    var val = {output: v === 'files' ? 'files' : 'montage'};
+    try { if (ns.store && typeof ns.store.write === 'function') ns.store.write(OUT_KEY, val); else if (root.localStorage) root.localStorage.setItem(OUT_KEY, JSON.stringify(val)); } catch (_) {}
+    return val.output;
+  }
+
+  // ------------------------------------------------------------------ zip (store mode, CRC-32; the classic batch_export.js writer)
+  // files: [{name, bytes: Uint8Array | string, mtime?}] → Uint8Array.  Repeated names get _2, _3 …; names are UTF-8 (flag 0x0800).
+  var CRC_TABLE = null;
+  function crc32(bytes) {
+    if (!CRC_TABLE) {
+      CRC_TABLE = new Uint32Array(256);
+      for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; CRC_TABLE[n] = c >>> 0; }
+    }
+    var crc = 0xFFFFFFFF;
+    for (var i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+  function utf8Bytes(text) {
+    if (typeof root.TextEncoder === 'function') return new root.TextEncoder().encode(String(text));
+    var bin = unescape(encodeURIComponent(String(text))), out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function dosDateTime(date) {
+    var d = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
+    var year = Math.min(Math.max(d.getFullYear(), 1980), 2107);
+    return {time: ((d.getHours() & 31) << 11) | ((d.getMinutes() & 63) << 5) | ((d.getSeconds() >> 1) & 31),
+      day: (((year - 1980) & 127) << 9) | (((d.getMonth() + 1) & 15) << 5) | (d.getDate() & 31)};
+  }
+  function toBytes(value) {
+    if (value instanceof Uint8Array) return value;
+    if (typeof value === 'string') return utf8Bytes(value);
+    if (value && value.buffer instanceof ArrayBuffer) return new Uint8Array(value.buffer, value.byteOffset || 0, value.byteLength);
+    if (value instanceof ArrayBuffer) return new Uint8Array(value);
+    throw new Error('zip entry bytes must be a Uint8Array or string');
+  }
+  function zipStore(files) {
+    var entries = [], offset = 0, seen = {};
+    (files || []).forEach(function (file) {
+      var name = String(file.name || '').replace(/\\/g, '/').replace(/^\/+/, '');
+      if (!name) throw new Error('zip entry needs a name');
+      var unique = name, n = 2;
+      while (seen[unique]) { var dot = name.lastIndexOf('.'); unique = dot > 0 ? name.slice(0, dot) + '_' + n + name.slice(dot) : name + '_' + n; n++; }
+      seen[unique] = true;
+      var nameBytes = utf8Bytes(unique), bytes = toBytes(file.bytes), crc = crc32(bytes), dt = dosDateTime(file.mtime);
+      var local = new Uint8Array(30 + nameBytes.length), v = new DataView(local.buffer);
+      v.setUint32(0, 0x04034b50, true); v.setUint16(4, 20, true); v.setUint16(6, 0x0800, true); v.setUint16(8, 0, true);
+      v.setUint16(10, dt.time, true); v.setUint16(12, dt.day, true); v.setUint32(14, crc, true);
+      v.setUint32(18, bytes.length, true); v.setUint32(22, bytes.length, true); v.setUint16(26, nameBytes.length, true); v.setUint16(28, 0, true);
+      local.set(nameBytes, 30);
+      entries.push({local: local, bytes: bytes, nameBytes: nameBytes, crc: crc, time: dt.time, day: dt.day, offset: offset});
+      offset += local.length + bytes.length;
+    });
+    var centralStart = offset, central = [];
+    entries.forEach(function (e) {
+      var rec = new Uint8Array(46 + e.nameBytes.length), v = new DataView(rec.buffer);
+      v.setUint32(0, 0x02014b50, true); v.setUint16(4, 20, true); v.setUint16(6, 20, true); v.setUint16(8, 0x0800, true); v.setUint16(10, 0, true);
+      v.setUint16(12, e.time, true); v.setUint16(14, e.day, true); v.setUint32(16, e.crc, true);
+      v.setUint32(20, e.bytes.length, true); v.setUint32(24, e.bytes.length, true); v.setUint16(28, e.nameBytes.length, true);
+      v.setUint16(30, 0, true); v.setUint16(32, 0, true); v.setUint16(34, 0, true); v.setUint16(36, 0, true); v.setUint32(38, 0, true); v.setUint32(42, e.offset, true);
+      rec.set(e.nameBytes, 46);
+      central.push(rec); offset += rec.length;
+    });
+    var end = new Uint8Array(22), ev = new DataView(end.buffer);
+    ev.setUint32(0, 0x06054b50, true); ev.setUint16(4, 0, true); ev.setUint16(6, 0, true);
+    ev.setUint16(8, entries.length, true); ev.setUint16(10, entries.length, true);
+    ev.setUint32(12, offset - centralStart, true); ev.setUint32(16, centralStart, true); ev.setUint16(20, 0, true);
+    var out = new Uint8Array(offset + 22), at = 0;
+    entries.forEach(function (e) { out.set(e.local, at); at += e.local.length; out.set(e.bytes, at); at += e.bytes.length; });
+    central.forEach(function (r) { out.set(r, at); at += r.length; });
+    out.set(end, at);
+    return out;
+  }
+  // A PNG blob (canvas.toBlob) as bytes for the zip.
+  function blobBytes(blob) {
+    if (blob && typeof blob.arrayBuffer === 'function') return blob.arrayBuffer().then(function (b) { return new Uint8Array(b); });
+    return new Promise(function (resolve, reject) {
+      var r = new root.FileReader();
+      r.onload = function () { resolve(new Uint8Array(r.result)); };
+      r.onerror = function () { reject(r.error || new Error('读取图片失败')); };
+      r.readAsArrayBuffer(blob);
+    });
+  }
 
   // ------------------------------------------------------------------ words: Chinese → English for figures
   // Longest first.  Branch and finding names fall through to WssReportCommon.englishLabel (the classic table).
@@ -80,6 +176,7 @@
     ['灰柱：显示网格顶点分布', 'Grey bars: display-vertex distribution'], ['灰柱：采样点分布', 'Grey bars: sample-point distribution'], ['显示网格顶点分布', 'display-vertex distribution'], ['采样点分布', 'sample-point distribution'],
     ['超出范围按端色', 'Out of range: end colours'], ['高于上限的值按上端色', 'Values above the range take the top colour'], ['低于下限的值按下端色', 'Values below the range take the bottom colour'],
     ['高于上限', 'above'], ['低于下限', 'below'], ['缺失（灰）', 'Missing (grey) '], ['粗线：观察阈值', 'Bold lines: observation thresholds'], ['非临床界值', 'not clinical cut-offs'],
+    ['最大 ', 'Max '], ['最小 ', 'Min '],   // P3 lane 5: the persistent maximum / minimum markers (ws_display)
     ['研究用途，非诊断', 'Research use only, not for diagnosis'], ['导出于', 'exported'], ['当前视角', 'Current view'], ['病例', 'Case'], ['截面', 'Section'], ['对数', 'log'], [' 至 ', ' to '],
     ['，', ', '], ['：', ': '], ['（', ' ('], ['）', ')'], ['、', ', '], ['。', '.']
   ];
@@ -189,11 +286,14 @@
     var fid = info.fieldId || cur.field, f = api.fieldById ? api.fieldById(m, cur.field) : null;
     var slice = fid === 'slice';
     var long = !slice && info.fullLabel && info.label !== info.fullLabel ? info.fullLabel : '';
-    var short = lang === 'en' ? (slice ? tr(info.fullLabel || info.label, 'en') : [FIELD_EN[fid] || tr(info.label, 'en'), long ? tr(long, 'en') : ''].filter(Boolean).join(' '))
+    var enShort = FIELD_EN[fid] || tr(info.label, 'en'), enLong = long ? tr(long, 'en') : '';
+    var short = lang === 'en' ? (slice ? tr(info.fullLabel || info.label, 'en') : [enShort, enLong !== enShort ? enLong : ''].filter(Boolean).join(' '))
       : (long ? info.label + ' ' + long : (info.fullLabel || info.label || ''));
     var units = ui().unitText(info.units !== undefined ? info.units : (f && f.units));
-    // the toolbar's words for the window (with its range); a section's own scale keeps the section wording
-    var wtext = !slice && f && ns.shell && typeof ns.shell.windowLabel === 'function' && !(cur.compare && cur.compare.mode === 'same') ? ns.shell.windowLabel(f, cur.window) : '';
+    // the toolbar's words for the window (with its range); a section's own scale keeps the section wording.
+    // api.windowLabel: a result that is not the one on screen (batch figures) names its window in its own units.
+    var wlabel = typeof api.windowLabel === 'function' ? api.windowLabel : (ns.shell && typeof ns.shell.windowLabel === 'function' ? ns.shell.windowLabel : null);
+    var wtext = !slice && f && wlabel && !(cur.compare && cur.compare.mode === 'same') ? wlabel(f, cur.window) : '';
     var win = tr(wtext || (info.windowLabel && info.windowLabel.text) || windowText(info.windowLabel), lang);
     var when = ui().time(new Date().toISOString());
     return {name: name, result: result, fieldShort: lang === 'en' ? (FIELD_EN[fid] || tr(info.label, 'en')) : (info.label || ''), units: units,
@@ -359,9 +459,11 @@
     api = currentApi(api);
     var viewer = api.viewer(), th = themeOf(o.background, api), info = stageInfo(api);
     var cap = captions(api, {lang: o.lang, hideName: o.hideName, info: info});
+    // a standard view says which one it is (six views as files, batch figures)
+    var sub = cap.subtitle + (o.view && o.view !== 'current' && VIEW_ZH[o.view] ? ' · ' + (o.lang === 'en' ? VIEW_EN : VIEW_ZH)[o.view] : '');
     return renderView(viewer, o.view || 'current', {scale: o.scale, theme: th, labels: o.labels}).then(function (r) {
       return composeFigure({render: r, info: o.colorbar ? info : null, lang: o.lang, theme: th, labels: o.labels, crop: o.crop,
-        title: o.title ? cap.title : null, subtitle: o.title ? cap.subtitle : null, footer: o.title ? cap.footer : null}).then(function (canvas) {
+        title: o.title ? cap.title : null, subtitle: o.title ? sub : null, footer: o.title ? cap.footer : null}).then(function (canvas) {
         return {canvas: canvas, render: r, captions: cap, info: info};
       });
     });
@@ -504,6 +606,48 @@
     download(new root.Blob([svg], {type: 'image/svg+xml'}), name);
     return {name: name, svg: svg};
   }
+  // P3 lane 5 (W51): the chosen views as separate PNG files — each one the 图片 page's figure (colour bar, title with the
+  // view's name, labels, crop), the section map (when open and chosen) with its own colour bar — in one zip.
+  // o = options() + {views, hideName, onStep(i, n, label)}; resolves {files: [{name, bytes, view, width, height}], skipped, scale, info}.
+  function viewFiles(api, o) {
+    api = currentApi(api);
+    var views = (o.views || []).filter(function (v, i, a) { return (v === 'current' || v === 'slice' || VIEWS.indexOf(v) >= 0) && a.indexOf(v) === i; });
+    var order = views.filter(function (v) { return v !== 'slice'; });
+    var files = [], skipped = [], k = o.scale, info = stageInfo(api), lang = o.lang;
+    var chain = Promise.resolve();
+    order.forEach(function (view, i) {
+      chain = chain.then(function () {
+        if (o.onStep) o.onStep(i, views.length, lang === 'en' ? VIEW_EN[view] : VIEW_ZH[view]);
+        return figure(api, Object.assign({}, o, {view: view})).then(function (f) {
+          k = f.render.scale;
+          return toBlob(f.canvas).then(blobBytes).then(function (bytes) {
+            files.push({name: fileName(api, {hideName: o.hideName, info: f.info}, view, 'png', f.render.scale), bytes: bytes, view: view, width: f.canvas.width, height: f.canvas.height});
+          });
+        }, function () { skipped.push(view); });
+      });
+    });
+    return chain.then(function () {
+      if (views.indexOf('slice') < 0) return null;
+      if (o.onStep) o.onStep(views.length - 1, views.length, lang === 'en' ? VIEW_EN.slice : VIEW_ZH.slice);
+      var cv = sliceOpen(api) ? sliceCanvas(api, 700 * k, 600 * k, {k: k, withBar: true, transparent: o.background === 'transparent', caption: sliceCaption(api, lang)}) : null;
+      if (!cv) { skipped.push('slice'); return null; }
+      return toBlob(cv).then(blobBytes).then(function (bytes) {
+        files.push({name: fileName(api, {hideName: o.hideName, info: null}, 'section', 'png', k), bytes: bytes, view: 'slice', width: cv.width, height: cv.height});
+      });
+    }).then(function () {
+      if (!files.length) throw new Error('没有可用的视角');
+      return {files: files, skipped: skipped, scale: k, info: info};
+    });
+  }
+  function downloadViews(api, o) {
+    api = currentApi(api);
+    return viewFiles(api, o).then(function (r) {
+      var zip = zipStore(r.files.map(function (f) { return {name: f.name, bytes: f.bytes}; }));
+      var name = fileName(api, {hideName: o.hideName, info: null}, 'views', 'zip', r.scale);
+      download(new root.Blob([zip], {type: 'application/zip'}), name);
+      return {name: name, count: r.files.length, skipped: r.skipped, files: r.files.map(function (f) { return f.name; }), bytes: zip.length};
+    });
+  }
 
   // ------------------------------------------------------------------ reproducible link
   function round(x, d) {
@@ -541,7 +685,149 @@
     out.sel = st.selection === undefined ? null : st.selection;
     out.br = st.branches === undefined ? null : st.branches;
     out.sl = cur.slice ? round(cur.slice.state()) : null;
+    var d = displayState(api, cur, st);
+    if (d) out.d = d;
+    var x = extensionStates(api);
+    if (x) out.x = x;
     return out;
+  }
+
+  // ------------------------------------------------------------------ P3 lane 5 (W55): the display in the link
+  // d = what the colour scale and the labels look like, so that the link shows the same picture in another browser:
+  //   cmap    colour map (the layers menu 色表; store prefs)            light   'soft' | 'flat' (L)
+  //   labels  {branches, findings, maxd, annotations} (the layers menu 标注与自动标签; store prefs)
+  //   bands   {field id: n}          effective colour bands of every field of the result (0 = continuous)
+  //   thr     {field id: [t0,t1,t2]} effective observation thresholds of every field that has them
+  //   units   {kind: unit}           display units (ws_display: pressure Pa | mmHg, velocity m/s | cm/s, and any kind
+  //                                  the display module adds later)
+  //   layers  {stl, peaks, stagnation, vectors}          ws_display's layers   (and any key it adds later)
+  //   volume  {opacity, density, width, thin}            volume results only
+  // Effective = this result's own choice, else the field's 「设为默认」, else the release (thresholds) / 0 (bands): the
+  // receiver sees these values even when its own defaults differ.  A link without d (older links) leaves the display
+  // as the receiver has it.  x = {extension id: state} from ns.ext hooks linkState(api) / applyLinkState(state, api).
+  function plain(o) { return o && typeof o === 'object' ? JSON.parse(JSON.stringify(o)) : null; }
+  function displayState(api, cur, st) {
+    var d = {}, P = null, D = ns.display;
+    try { P = ns.store && typeof ns.store.prefs === 'function' ? ns.store.prefs() : null; } catch (_) { P = null; }
+    if (P) {
+      if (typeof P.cmap === 'string') d.cmap = P.cmap;
+      if (typeof P.lighting === 'string') d.light = P.lighting;
+      if (P.labels && typeof P.labels === 'object') d.labels = plain(P.labels);
+    }
+    if (D && typeof D.prefs === 'function') {
+      var DP = null;
+      try { DP = D.prefs(); } catch (_) { DP = null; }
+      if (DP) {
+        if (DP.units) d.units = plain(DP.units);
+        if (DP.layers) d.layers = plain(DP.layers);
+        if (DP.volume && cur.manifest && cur.manifest.result && cur.manifest.result.family === 'volume') d.volume = plain(DP.volume);
+        var eff = effectiveScale(cur, st, DP.defaults || {});
+        if (eff) { d.bands = eff.bands; d.thr = eff.thr; }
+      }
+    }
+    return Object.keys(d).length ? round(d) : null;
+  }
+  function validThr(t) {
+    var D = ns.display;
+    if (D && typeof D.validThresholds === 'function') return D.validThresholds(t);
+    t = Array.isArray(t) ? t.map(Number) : [];
+    return t.length === 3 && t.every(Number.isFinite) && t[0] >= 0 && t[0] < t[1] && t[1] < t[2] ? t : null;
+  }
+  function shownFields(m) {
+    var S = ns.shell;
+    if (S && typeof S.visibleFields === 'function') return S.visibleFields(m);
+    return ((m && m.fields) || []).filter(function (f) { return f && f.id && f.kind !== 'vector'; });
+  }
+  function effectiveScale(cur, st, defaults) {
+    var m = cur && cur.manifest;
+    if (!m) return null;
+    var sess = (st && st.display) || {}, sb = sess.bands || {}, stt = sess.thresholds || {}, out = {bands: {}, thr: {}};
+    shownFields(m).forEach(function (f) {
+      var def = defaults[f.id] || {};
+      out.bands[f.id] = sb[f.id] !== undefined ? +sb[f.id] : (def.bands !== undefined ? +def.bands : 0);
+      var base = validThr(f.display && f.display.thresholds);
+      if (base) out.thr[f.id] = (validThr(stt[f.id]) || validThr(def.thresholds) || base).slice();
+    });
+    return out;
+  }
+  function extensionStates(api) {
+    var x = {};
+    (Array.isArray(ns.ext) ? ns.ext : []).forEach(function (e) {
+      if (!e || !e.id || typeof e.linkState !== 'function') return;
+      try { var s = e.linkState(api); if (s !== undefined && s !== null) x[e.id] = plain(s); } catch (_) {}
+    });
+    return Object.keys(x).length ? x : null;
+  }
+  function sameJSON(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  // Apply d: the browser's own preferences as if chosen in the menus (they stay chosen), this result's bands and
+  // thresholds through the viewer (its display state).  Returns true when the field must be drawn again.
+  function applyDisplay(api, cur, d, notes) {
+    if (!d || typeof d !== 'object') return false;
+    var St = ns.store, D = ns.display, changed = [], redraw = false;
+    if (St && typeof St.prefs === 'function' && typeof St.setPrefs === 'function') {
+      var P = St.prefs(), patch = {};
+      // a colour map this workspace does not know would reset the preference to the default: leave it and say so
+      var known = function (c) { try { return typeof St.sanitizePrefs !== 'function' || St.sanitizePrefs(Object.assign({}, P, {cmap: c})).cmap === c; } catch (_) { return false; } };
+      if (typeof d.cmap === 'string' && d.cmap !== P.cmap) { if (known(d.cmap)) patch.cmap = d.cmap; else notes.push('这里没有色表 ' + d.cmap); }
+      if ((d.light === 'soft' || d.light === 'flat') && d.light !== P.lighting) patch.lighting = d.light;
+      if (d.labels && typeof d.labels === 'object') {
+        var L = Object.assign({}, P.labels);
+        ['branches', 'findings', 'maxd', 'annotations'].forEach(function (k) { if (d.labels[k] !== undefined) L[k] = d.labels[k]; });
+        if (!sameJSON(L, P.labels)) patch.labels = L;
+      }
+      if (Object.keys(patch).length) {
+        var next = St.setPrefs(patch);
+        if (patch.cmap && next.cmap === d.cmap) { changed.push('色表'); redraw = true; }
+        if (patch.lighting) {
+          changed.push('光照');
+          try { var v0 = api.viewer(); if (v0 && v0.setLighting) v0.setLighting(next.lighting); } catch (_) {}
+          if (typeof api.renderToolbar === 'function') api.renderToolbar();
+        }
+        if (patch.labels) { changed.push('标签'); if (typeof api.drawLabels === 'function') api.drawLabels(); }
+      }
+    }
+    if (D && typeof D.prefs === 'function') {
+      var DP = function () { return D.prefs(); };   // read afresh: every setter below replaces the stored object
+      if (d.units && typeof d.units === 'object' && typeof D.setUnit === 'function') {
+        Object.keys(d.units).forEach(function (kind) {
+          var u = d.units[kind];
+          if (!DP().units || DP().units[kind] === u) return;
+          var table = D.UNITS && D.UNITS[kind];
+          if (!table || !Object.prototype.hasOwnProperty.call(table, u)) { notes.push('这里不能用单位 ' + u); return; }
+          D.setUnit(kind, u); changed.push('单位');
+        });
+      }
+      if (d.layers && typeof d.layers === 'object' && typeof D.toggleLayer === 'function') {
+        Object.keys(d.layers).forEach(function (k) {
+          var L = DP().layers;
+          if (typeof d.layers[k] === 'boolean' && L && typeof L[k] === 'boolean' && L[k] !== d.layers[k]) { D.toggleLayer(k); changed.push('图层'); }
+        });
+      }
+      if (d.volume && typeof d.volume === 'object' && DP().volume && typeof D.savePrefs === 'function') {
+        var vol = Object.assign({}, DP().volume, d.volume);
+        if (!sameJSON(vol, DP().volume)) { D.savePrefs(Object.assign({}, DP(), {volume: vol})); if (D.refreshAll) D.refreshAll(); changed.push('外壁与流线'); }
+      }
+    }
+    if ((d.bands && typeof d.bands === 'object') || (d.thr && typeof d.thr === 'object')) {
+      var v = api.viewer();
+      if (v && typeof v.applyState === 'function') {
+        try { v.applyState({display: {v: 1, bands: d.bands || {}, thresholds: d.thr || {}}}, {animate: false}); } catch (_) {}
+        redraw = true;
+      }
+    }
+    if (changed.length) notes.push('已按链接设置' + changed.filter(function (c, i, a) { return a.indexOf(c) === i; }).join('、'));
+    return redraw;
+  }
+  function applyExtensions(api, x, notes) {
+    if (!x || typeof x !== 'object') return Promise.resolve();
+    var jobs = [];
+    (Array.isArray(ns.ext) ? ns.ext : []).forEach(function (e) {
+      if (!e || !e.id || x[e.id] === undefined || typeof e.applyLinkState !== 'function') return;
+      try { jobs.push(Promise.resolve(e.applyLinkState(x[e.id], api)).catch(function () {})); } catch (_) {}
+    });
+    var unknown = Object.keys(x).filter(function (id) { return !(ns.ext || []).some(function (e) { return e && e.id === id && typeof e.applyLinkState === 'function'; }); });
+    if (unknown.length) notes.push('链接里有这里没有的显示设置（' + unknown.join('、') + '），已跳过');
+    return Promise.all(jobs);
   }
   function linkURL(api) {
     api = currentApi(api);
@@ -567,16 +853,18 @@
     if (!cur || !cur.manifest || !st) return Promise.resolve(false);
     var notes = [];
     if (st.run && cur.runIdentity && String(cur.runIdentity).slice(0, st.run.length) !== st.run) notes.push('链接来自这份结果的另一次计算，已按可用项恢复');
+    // P3 lane 5: the display first (colour map, bands, thresholds, units …), so the field is drawn once with it
+    var redraw = st.d ? applyDisplay(api, cur, st.d, notes) : false;
     if (!o.skipField && st.f) {
-      if (api.fieldById(cur.manifest, st.f)) { if (st.f !== cur.field || JSON.stringify(st.w || 'adaptive') !== JSON.stringify(cur.window)) api.applyField(st.f, st.w || 'adaptive'); }
-      else notes.push('这份结果没有字段 ' + st.f);
-    }
+      if (api.fieldById(cur.manifest, st.f)) { if (redraw || st.f !== cur.field || JSON.stringify(st.w || 'adaptive') !== JSON.stringify(cur.window)) api.applyField(st.f, st.w || 'adaptive'); }
+      else { notes.push('这份结果没有字段 ' + st.f); if (redraw) api.applyField(cur.field, cur.window); }
+    } else if (redraw) api.applyField(cur.field, cur.window);
     if (st.L && typeof st.L === 'object') {
       var S = api.state(), changed = false;
       LAYER_KEYS.forEach(function (k) { if (typeof st.L[k] === 'boolean' && S.layers && S.layers[k] !== st.L[k]) { S.layers[k] = st.L[k]; changed = true; } });
       if (changed) api.setLayers();
     }
-    var chain = Promise.resolve();
+    var chain = st.x ? applyExtensions(api, st.x, notes) : Promise.resolve();
     if (st.sl !== undefined) chain = chain.then(function () { return applySlice(api, cur, st.sl, notes); });
     if (st.cu !== undefined) chain = chain.then(function () { return applyCursor(api, cur, st.cu); });
     return chain.then(function () {
@@ -616,7 +904,7 @@
     api = currentApi(api);
     var url;
     try { url = linkURL(api); } catch (e) { ui().toast('链接没有生成：' + (e && e.message || e), {kind: 'error'}); return null; }
-    var ok = function () { ui().toast('已复制复现链接：打开它就回到这个字段、色标窗、视角' + (api.cur().slice ? '和截面' : '') + '。', {kind: 'ok', ms: 4000}); if (done) done(url, true); };
+    var ok = function () { ui().toast('已复制复现链接：打开它就回到同样的字段、色标、视角' + (api.cur().slice ? '和截面' : '') + '。', {kind: 'ok', ms: 4000}); if (done) done(url, true); };
     var fail = function () { if (done) done(url, false); else ui().toast('浏览器不允许复制；链接在导出对话框底部。', {kind: 'info'}); };
     try { if (root.navigator && root.navigator.clipboard && root.navigator.clipboard.writeText) { root.navigator.clipboard.writeText(url).then(ok, fail); return url; } } catch (_) {}
     fail();
@@ -894,20 +1182,34 @@
       picked = VIEWS.slice(); save();
       pills.forEach(function (p, i) { var on = i < 6; p.classList.toggle('on', on); p.setAttribute('aria-pressed', String(on)); });
     }, {kind: 'link', cls: 'btn-sm', disabled: !frame, title: '前、后、左、右、头、足'});
-    var go = ui().button('导出拼图 PNG', function () {
+    var out = viewsOutput(), files = out === 'files';
+    var go = ui().button(files ? '导出单张 zip' : '导出拼图 PNG', function () {
       var views = VIEWS.concat(['current', 'slice']).filter(function (v) { return picked.indexOf(v) >= 0 && (frame || VIEWS.indexOf(v) < 0); });
       if (!views.length) { status.textContent = '至少选一个视角。'; return; }
       busy(go, true);
       var run = Object.assign(figureOpts(ctx), {views: views, columns: options().columns, onStep: function (i, n, label) { status.textContent = '正在渲染 ' + label + '（' + (i + 1) + ' / ' + n + '）…'; }});
+      var skippedText = function (r) { return r.skipped.length ? ' · 跳过 ' + r.skipped.map(function (v) { return VIEW_ZH[v]; }).join('、') : ''; };
+      if (files) {
+        downloadViews(api, run).then(function (r) {
+          status.textContent = '已导出 ' + r.count + ' 张 PNG（zip）' + skippedText(r);
+          ui().fill(thumb);
+        }, function (e) { status.textContent = ''; failToast('导出失败', e); }).then(function () { busy(go, false); });
+        return;
+      }
       downloadMontage(api, run).then(function (r) {
-        status.textContent = '已导出 ' + r.count + ' 幅 · ' + r.width + ' × ' + r.height + ' px' + (r.skipped.length ? ' · 跳过 ' + r.skipped.map(function (v) { return VIEW_ZH[v]; }).join('、') : '');
+        status.textContent = '已导出 ' + r.count + ' 幅 · ' + r.width + ' × ' + r.height + ' px' + skippedText(r);
         if (root.URL && root.URL.createObjectURL) ui().fill(thumb, h('img', {src: root.URL.createObjectURL(r.blob), alt: '拼图', 'class': 'exp-thumb-img'}));
       }, function (e) { status.textContent = ''; failToast('拼图失败', e); }).then(function () { busy(go, false); });
-    }, {icon: 'fig-montage', kind: 'primary'});
+    }, {icon: files ? 'download' : 'fig-montage', kind: 'primary'});
+    var outSeg = segControl([{value: 'montage', label: '一张拼图'}, {value: 'files', label: '分成单张'}], out, function (v) {
+      setViewsOutput(v); paneMontage(el, ctx);
+    }, '输出');
     ui().fill(el, h('div', {'class': 'exp-montage'},
       optRow('视角', h('div', {'class': 'exp-pills'}, pills, six), '选几个视角拼成一张图；标准视角按解剖坐标架对准并撑满画幅，「当前」即视口里的视角。'),
-      optRow('列数', segControl([{value: 2, label: '2'}, {value: 3, label: '3'}, {value: 4, label: '4'}], o.columns, function (v) { setOptions({columns: +v}); }, '列数')),
-      h('div', {'class': 'exp-sub'}, h('span', {'class': 'exp-k', text: '样式'}), h('span', {'class': 'muted', text: styleText()}), ui().infoTip('倍率、背景、文字和标签跟「图片」页一致；全图共用一条色条，面板按 a、b、c 标号。')),
+      optRow('输出', outSeg, '分成单张：每个视角一张 PNG（色条、标题带视角名，同「图片」页样式），打成一个 zip；截面图单独一张。'),
+      files ? null : optRow('列数', segControl([{value: 2, label: '2'}, {value: 3, label: '3'}, {value: 4, label: '4'}], o.columns, function (v) { setOptions({columns: +v}); }, '列数')),
+      h('div', {'class': 'exp-sub'}, h('span', {'class': 'exp-k', text: '样式'}), h('span', {'class': 'muted', text: styleText()}),
+        ui().infoTip(files ? '倍率、背景、文字、色条、标题、标签和裁边跟「图片」页一致。' : '倍率、背景、文字和标签跟「图片」页一致；全图共用一条色条，面板按 a、b、c 标号。')),
       h('div', {'class': 'exp-actions'}, go), status, thumb));
     return {dispose: function () {}};
   }
@@ -972,6 +1274,23 @@
   function disposePane() { if (livePane && livePane.dispose) { try { livePane.dispose(); } catch (_) {} } livePane = null; }
   function available() { return Boolean(API && API.cur && API.cur() && API.cur().manifest); }
 
+  // ------------------------------------------------------------------ P3 lane 5: a result that is not on screen
+  // What figure(), montage(), captions() and fileName() read from the shell, for ws_batch's offscreen viewer.
+  // ctx = {jobId, manifest, result, viewer, field, window, info() (colour-bar info), hideName, windowLabel(field, spec)}
+  function headless(ctx) {
+    var cur = {jobId: ctx.jobId, manifest: ctx.manifest, result: ctx.result || null, field: ctx.field, window: ctx.window || 'adaptive',
+      runIdentity: ctx.result && ctx.result.runIdentity, compare: null, split: null, slice: null, cursor: null};
+    var shellState = null;
+    try { shellState = ns.shell && typeof ns.shell.state === 'function' ? ns.shell.state() : null; } catch (_) { shellState = null; }
+    return {
+      cur: function () { return cur; }, viewer: function () { return ctx.viewer; }, offline: function () { return false; },
+      state: function () { return {colorbarA: {info: function () { return typeof ctx.info === 'function' ? ctx.info() : null; }}, els: shellState && shellState.els, layers: {}}; },
+      fieldById: function (m, id) { return shownFields(m).filter(function (f) { return f.id === id; })[0] || null; },
+      hideName: function () { return Boolean(ctx.hideName); }, windowLabel: typeof ctx.windowLabel === 'function' ? ctx.windowLabel : null,
+      ui: function () { return ns.ui; }, h: ns.ui && ns.ui.h
+    };
+  }
+
   // ------------------------------------------------------------------ shell hooks
   function openTab(tab) {
     if (!API) return;
@@ -985,6 +1304,12 @@
     if (what === 'six') {
       if (!hasFrame(api.viewer())) { ui().toast('没有解剖坐标架，不能取标准视角。', {kind: 'info'}); return; }
       ui().toast('正在渲染六视角…', {kind: 'info', ms: 0});
+      if (viewsOutput() === 'files') {
+        downloadViews(api, Object.assign(o, {views: VIEWS.slice()})).then(function (r) {
+          ui().toast('已导出六视角 ' + r.count + ' 张 PNG（zip）。', {kind: 'ok', ms: 3500});
+        }, function (e) { failToast('导出失败', e); });
+        return;
+      }
       downloadMontage(api, Object.assign(o, {views: VIEWS.slice(), columns: 3})).then(function (r) {
         ui().toast('已导出六视角拼图 ' + r.width + ' × ' + r.height + ' px。', {kind: 'ok', ms: 3500});
       }, function (e) { failToast('拼图失败', e); });
@@ -1004,9 +1329,9 @@
       return [U.section('出图', {tag: U.infoTip('出版级 PNG、拼图、色标 SVG、一页纸配图和打印都按当前字段、色标窗与视角；复现链接把这些连同游标和截面写进一个地址。')},
         h('div', {'class': 'sec-actions fig-tools'},
           b('导图…', 'snapshot', function () { openTab('figure'); }, '出版级导图与自选拼图：倍率、背景、语言、色条、标题、标签', !gl),
-          b('六视角', 'fig-montage', function () { quick('six'); }, '前后左右头足六幅 + 共用色条，按上次的导图设置', !gl || !hasFrame(v)),
+          b('六视角', 'fig-montage', function () { quick('six'); }, viewsOutput() === 'files' ? '前后左右头足六张 PNG（zip），按上次的导图设置；在「拼图」页可改成一张拼图' : '前后左右头足六幅 + 共用色条，按上次的导图设置；在「拼图」页可改成分成单张', !gl || !hasFrame(v)),
           b('色标 SVG', 'fig-colorbar', function () { quick('colorbar'); }, '当前色条存成 SVG'),
-          b('复现链接', 'fig-link', function () { quick('link'); }, '复制一个链接：打开后回到这个字段、色标窗、视角、游标和截面'),
+          b('复现链接', 'fig-link', function () { quick('link'); }, '复制一个链接：打开后回到同样的字段、色标（色表、分段、阈值、单位）、标签、视角、游标和截面'),
           api.offline() ? null : b('一页纸配图…', 'snapshot', function () { openTab('onepage'); }, '生成一页纸里的配图', !gl),
           b('打印', 'print', function () { quick('print'); }, '当前视图单独排成一页打印', !gl)))];
     },
@@ -1037,6 +1362,9 @@
     bookmarkExtra: bookmarkExtra, afterBookmark: afterBookmark,
     onepagePlan: onepagePlan, onepageImages: onepageImages, uploadOnepage: uploadOnepage, checkSizes: checkSizes, snapshotCaption: snapshotCaption,
     printView: printView, pane: pane, disposePane: disposePane, available: available, openTab: openTab, ext: ext,
+    // P3 lane 5
+    zipStore: zipStore, crc32: crc32, blobBytes: blobBytes, toBlob: toBlob, viewFiles: viewFiles, downloadViews: downloadViews, viewsOutput: viewsOutput, setViewsOutput: setViewsOutput,
+    displayState: displayState, applyDisplay: applyDisplay, effectiveScale: effectiveScale, headless: headless, styleRows: commonRows, styleText: styleText, hasFrame: hasFrame,
     _setApi: function (a) { API = a; }, _api: function () { return API; }, _print: null
   };
   return mod;
