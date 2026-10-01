@@ -231,3 +231,15 @@
 .vp-notice:hover { border-color: #f7a84e; }
 .stage-light .vp-notice { color: #7a3a07; background: rgba(254, 244, 236, .97); border-color: #f3b27c; }
 .stage-light .vp-notice svg { color: var(--warn); }
+/* overview: where the maximum / minimum markers sit (W13) — the same yellow / white dots as the 3-D markers */
+.kpi-where { display: grid; gap: 2px; margin-top: 8px; }
+.kpi-where-row { display: grid; grid-template-columns: 12px auto minmax(0, 1fr); align-items: baseline; column-gap: 6px; padding: 3px 6px; margin: 0 -6px; border: 0; border-radius: 6px;
+  background: none; text-align: left; font: inherit; font-size: 12px; color: var(--ink); cursor: pointer; }
+.kpi-where-row:hover { background: var(--panel-2); }
+.kpi-where-dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #1f2937; background: #ffd400; transform: translateY(1px); }
+.kpi-where-dot.min { background: #ffffff; }
+.kpi-where-k { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kpi-where-v { min-width: 0; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+/* overview: the volume statistics table (V37) */
+.vstats .sub-head { margin-top: 10px; }
+.tbl-vstats td:first-child { white-space: nowrap; }

@@ -227,3 +227,209 @@ def test_side_warnings_model_both_sides_and_none():
     assert out["errors"] == [], out["errors"]
     assert out["both"] == [["left", "左侧", "reference", 3], ["right", "右侧", "reference", 3]]
     assert out["left"] == ["left"] and out["none"] == [] and out["missing"] == []
+
+
+# ----------------------------------------------------------------------------------------------- W13 / W27 / V37
+JOB_ROOTS = [Path(__file__).resolve().parents[1] / "outputs" / "wss_deploy_jobs", Path(__file__).resolve().parents[1] / "outputs" / "wss_deploy_preview_jobs"]
+CYCLE_JOB, PEAK_JOB, VOLUME_JOB = "20260929_230442_a7273f1670e4", "20260920_144135_673ccd0e36b1", "20260929_230450_d1428792b846"
+PURE = [STATIC_DIR / "report_common.js", STATIC_DIR / "volume_viewer.js", V2 / "core_util.js", V2 / "ws_ui.js", V2 / "ws_icons.js", V2 / "ws_overview.js"]
+
+
+def _job(job_id: str, keys=()) -> tuple[dict, dict, dict]:
+    import base64
+
+    from wss_deploy import v2_data
+    for root in JOB_ROOTS:
+        d = root / job_id
+        if (d / "report.html").is_file() and (d / "job.json").is_file():
+            data = v2_data.load(d)
+            manifest = v2_data.build_manifest(data, json.loads((d / "job.json").read_text(encoding="utf-8")))
+            arrays = {}
+            for key in keys:
+                spec = data.report.specs.get(key)
+                if spec is not None:
+                    arrays[key] = {"dtype": spec.dtype, "b64": base64.b64encode(data.report.array(key).tobytes()).decode("ascii")}
+            return manifest, arrays, data.report.meta
+    pytest.skip(f"job {job_id} is not in this working copy")
+
+
+def _pure(script: str, data: dict, tmp_path: Path, pre: str = "") -> dict:
+    _need_node()
+    blob = tmp_path / "data.json"
+    blob.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    program = ("globalThis.document={getElementById:()=>null};\n" + "".join("require(" + json.dumps(str(f)) + ");\n" for f in PURE) +
+               "const ns=globalThis.WSSV2, OV=ns.overview, U=ns.ui, C=globalThis.WssReportCommon, VV=globalThis.VolumeViewerCore;\n"
+               "const out=x=>console.log(JSON.stringify(x));\n"
+               "const DATA=JSON.parse(require('fs').readFileSync(" + json.dumps(str(blob)) + ",'utf8'));\n"
+               "const TYPES={float32:Float32Array,uint32:Uint32Array,int32:Int32Array,uint8:Uint8Array};\n"
+               "const ARR={};for(const [k,a] of Object.entries(DATA.arrays||{})){const b=Buffer.from(a.b64,'base64');ARR[k]=new TYPES[a.dtype](b.buffer.slice(b.byteOffset,b.byteOffset+b.length));}\n"
+               + pre + "(async()=>{\n" + script + "\n})().catch(e=>{console.error(e&&e.stack||e);process.exit(1);});")
+    path = tmp_path / "prog.js"
+    path.write_text(program, encoding="utf-8")
+    result = subprocess.run(["node", str(path)], text=True, capture_output=True, timeout=180)
+    if result.returncode:
+        raise AssertionError(result.stderr[-4000:])
+    return json.loads(result.stdout.strip().splitlines()[-1])
+
+
+def _cut(src: str, start: str, end: str) -> str:
+    a = src.index(start)
+    return src[a:src.index(end, a)]
+
+
+def test_marker_locations_equal_the_classic_report(tmp_path):
+    """W13: branch, distance from the inlet, distance to the junction and local radius of every wall field's maximum (and
+    TAWSS's minimum) equal the classic report's fieldPeak rows (its source cut out of report.py and run on the same
+    embedded arrays); the value reads the same through the workspace's number format."""
+    src = (Path(__file__).resolve().parents[1] / "wss_deploy" / "report.py").read_text(encoding="utf-8")
+    keys = ["f.wss.r", "f.tawss.r", "f.osi.r", "f.rrt.r", "f.ecap.r", "pv", "ps", "p_s", "p_dj", "p_r"]
+    manifest, arrays, meta = _job(CYCLE_JOB, keys)
+    classic = ("function fmt(x,d=2){return x===null||x===undefined||!Number.isFinite(+x)?'—':(+x).toFixed(d);}\n"
+               + _cut(src, "const DERIVED_DEF=", "(function deriveInViewer(){") + "\n"
+               + "const BRANCH_NAMES=DATA.branch_names;\n" + _cut(src, "const branchName=sid=>", "\n") + "\n"
+               "const PEAK=DATA.peak,PV=ARR.pv,PS=ARR.ps,P_S=ARR.p_s,P_DJ=ARR.p_dj,P_R=ARR.p_r;\n"
+               # the classic viewer's derive step (deriveInViewer calc) on the embedded TAWSS / OSI point arrays
+               "const calc=(f,ta,oa)=>{const out=new Float32Array(ta.length);for(let i=0;i<ta.length;i++){const t=ta[i],o=oa[i];out[i]=Number.isFinite(t)&&Number.isFinite(o)?f(Math.max(t,.01),Math.min(Math.max(o,0),.5)):NaN;}return out;};\n"
+               "const XP={wss:ARR['f.wss.r'],tawss:ARR['f.tawss.r'],osi:ARR['f.osi.r']};XP.rrt=calc(DERIVED_DEF.rrt.f,XP.tawss,XP.osi);XP.ecap=calc(DERIVED_DEF.ecap.f,XP.tawss,XP.osi);\n"
+               "function fieldArrays(id){return {id,p:XP[id]};}\n"
+               + _cut(src, "const PEAK_CACHE={}", "const HAS_STAG=") + "\n")
+    out = _pure("""
+      const M=DATA.manifest, rows={};
+      for (const fid of ['wss','tawss','osi','rrt','ecap']) {
+        const v2=OV.extremesModel(M, fid, k=>ARR[k]||null).map(e=>({kind:e.kind, value:e.value, where:OV.extremeWhere(e), text:U.sig(e.value)}));
+        const cl=[fieldPeak(fid), fid==='tawss'?fieldPeak(fid,true):null].filter(Boolean).map((pk,i)=>({kind:i?'min':'max', value:pk.value,
+          where:`${pk.branch}，距入口 ${fmt(pk.s,0)} mm；距分叉 ${fmt(pk.dj,0)} mm；局部半径 ${fmt(pk.r,1)} mm`, text:C.formatValue(pk.value).replace('-','−')}));
+        rows[fid]={v2, cl, keys:OV.extremeKeys(M, fid)};
+      }
+      out(rows);
+    """, {"manifest": manifest, "arrays": arrays, "branch_names": meta.get("branch_names"), "peak": meta.get("peak")}, tmp_path, pre=classic)
+    for fid, row in out.items():
+        assert row["v2"], fid
+        assert [r["kind"] for r in row["v2"]] == [r["kind"] for r in row["cl"]], fid
+        for a, b in zip(row["v2"], row["cl"]):
+            assert a["where"] == b["where"], (fid, a, b)
+            assert a["value"] == pytest.approx(b["value"], rel=1e-6), fid
+            assert a["text"] == b["text"], fid
+    assert out["wss"]["v2"][0]["where"] == "左髂内，距入口 263 mm；距分叉 14 mm；局部半径 2.6 mm" and out["wss"]["keys"] == []   # analysis.peak
+    assert [r["kind"] for r in out["tawss"]["v2"]] == ["max", "min"]                                               # the white marker too
+    assert "f.osi.r" in out["osi"]["keys"] and "p_dj" in out["osi"]["keys"]
+
+
+def test_key_numbers_follow_the_field_and_show_the_wss_p99(tmp_path):
+    """W27: a three-head result shows the TAWSS numbers, and while its peak-frame WSS is on screen the whole-field WSS
+    p99 (analysis.peak.p99_pa, the classic p99 card) with the low / high fractions; a single-frame result is unchanged."""
+    cycle, _, _ = _job(CYCLE_JOB)
+    peak, _, _ = _job(PEAK_JOB)
+    out = _pure("""
+      const k=(m,f)=>OV.kpiModel(m,f).map(x=>[x.key, x.value]);
+      out({def:k(DATA.cycle), tawss:k(DATA.cycle,'tawss'), osi:k(DATA.cycle,'osi'), wss:k(DATA.cycle,'wss'), peak:k(DATA.peak), peakWss:k(DATA.peak,'wss')});
+    """, {"cycle": cycle, "peak": peak}, tmp_path)
+    assert [x[0] for x in out["def"]] == ["tawss_mean", "tawss_low", "stagnation", "max_diameter"]
+    assert out["tawss"] == out["def"] and out["osi"] == out["def"]
+    wss = dict(out["wss"])
+    assert list(wss) == ["wss_p99", "wss_low", "wss_high", "max_diameter"]
+    assert wss["wss_p99"] == cycle["analysis"]["peak"]["p99_pa"] == pytest.approx(17.006174, rel=1e-6)
+    assert wss["wss_low"] == cycle["fields"][0]["statistics"]["area_frac_low"]
+    assert out["peak"] == out["peakWss"] and out["peak"][0] == ["wss_p99", peak["analysis"]["peak"]["p99_pa"]]
+
+
+def test_volume_statistics_equal_the_classic_volume_page(tmp_path):
+    """V37: point count, mean, p99 and maximum of speed and relative pressure equal the classic volume page's setStats
+    rows (VolumeViewerCore.statistics over the interior points, speedField of the embedded velocity) as formatted there."""
+    manifest, arrays, _ = _job(VOLUME_JOB, ["vpts", "vis_wall", "f.velocity.r", "f.pressure.r"])
+    out = _pure("""
+      const M=DATA.manifest, inside=VV.insideIndices(ARR.vpts, ARR.vis_wall);
+      const speed=VV.speedField(ARR['f.velocity.r']), classic={speed:VV.statistics(speed, inside), pressure:VV.statistics(ARR['f.pressure.r'], inside)};
+      const fmt=v=>C.formatValue(v);
+      const rows=OV.volumeStatsModel(M).rows.map(r=>({field:r.field, label:r.label, units:r.units, count:String(r.count), mean:fmt(r.mean), p99:fmt(r.p99), max:fmt(r.max), sig:[U.sig(r.mean),U.sig(r.p99),U.sig(r.max)]}));
+      const cl=Object.fromEntries(Object.entries(classic).map(([k,s])=>[k,{count:String(s.count), mean:fmt(s.mean), p99:fmt(s.p99), max:fmt(s.max)}]));
+      out({rows, cl, wall:OV.volumeStatsModel({result:{family:'wall'}}), none:OV.volumeStatsModel({result:{family:'volume'}, analysis:{}, fields:[]})});
+    """, {"manifest": manifest, "arrays": arrays}, tmp_path)
+    rows = {r["field"]: r for r in out["rows"]}
+    assert list(rows) == ["speed", "pressure"] and rows["speed"]["label"] == "速度" and rows["pressure"]["label"] == "相对压力"
+    for field in ("speed", "pressure"):
+        for key in ("count", "mean", "p99", "max"):
+            assert rows[field][key] == out["cl"][field][key], (field, key)
+        assert [x.replace("−", "-") for x in rows[field]["sig"]] == [out["cl"][field][k] for k in ("mean", "p99", "max")]   # what the table shows
+    assert rows["speed"]["count"] == "20000"
+    assert out["wall"] is None and out["none"] is None
+
+
+_TABLES = r"""
+const TABLES = {
+  pv: new Float32Array([0, 0, 0, 1, 0, 10, 2, 0, 20, 3, 0, 30]), ps: new Uint8Array([0, 0, 2, 2]),
+  p_s: new Float32Array([5.4, 12.6, 40.2, 61.7]), p_dj: new Float32Array([30.1, 22.5, 3.44, 18.0]), p_r: new Float32Array([9.84, 9.5, 4.26, 4.0]),
+  'f.tawss.r': new Float32Array([0.3, 0.05, 2.5, NaN]), 'f.osi.r': new Float32Array([0.1, 0.2, 0.3, 0.3])};
+const preloads = [];
+const _load = ns.data.loadResult;
+ns.data.loadResult = (source, o) => _load(source, o).then(r => {
+  const loaded = new Set(), arr = r.array;
+  r.has = k => TABLES[k] ? loaded.has(k) : true;
+  r.preload = async keys => { (keys || []).forEach(k => loaded.add(k)); preloads.push((keys || []).slice()); return r; };
+  r.array = k => TABLES[k] || arr(k);
+  return r;
+});
+const patchCycle = id => {
+  const m = canned['/api/v2/jobs/' + id + '/manifest'].body;
+  m.geometry.points = {xyz: 'pv', segment: 'ps', s_from_root_mm: 'p_s', dist_to_junction_mm: 'p_dj', radius_mm: 'p_r'};
+  Object.keys(TABLES).forEach(k => { m.arrays[k] = {dtype: 'float32', shape: [TABLES[k].length]}; });
+  m.analysis.peak = {p99_pa: 17.006, max_pa: 52.6, branch: '左髂内', s_from_inlet_mm: 263.43, dist_to_junction_mm: 14.43, local_radius_mm: 2.61, xyz_mm: [1, 2, 3]};
+  m.fields[0].statistics = {p99: 17.006, area_frac_low: 0.408, area_frac_high: 0.166};
+  m.fields[1].statistics = {mean: 0.66, area_frac: {low: 0.6}};
+  m.analysis.cycle = {stagnation: {area_frac: 0.31, area_mm2: 12000}};
+};
+"""
+
+
+def test_overview_shows_marker_locations_key_numbers_by_field_and_flies_to_the_marker():
+    out = _harness(_TABLES + r"""
+      patchCycle('A');
+      await boot();
+      await hashTo('#/job/A?f=tawss', 300);
+      const S = shellState(), ov = () => byClass(app(), 'insp-body')[0];
+      const rows = () => byClass(ov(), 'kpi-where-row').map(e => ({kind: e.dataset.kind, text: textOf(e), title: e.title}));
+      const kpis = () => byClass(ov(), 'kpi-label').map(textOf);
+      const tawss = {rows: rows(), kpis: kpis(), preloads: preloads.slice()};
+      vcalls.length = 0;
+      fire(byClass(ov(), 'kpi-where-row')[0], 'click'); await wait(30);
+      const flew = vcalls.filter(c => c.endsWith(':setCamera')).length;
+      await hashTo('#/job/A?f=wss', 300);
+      const wss = {field: S.cur.field, rows: rows(), kpis: kpis()};
+      await hashTo('#/job/A?f=osi', 300);
+      const osi = {rows: rows(), kpis: kpis()};
+      done({tawss, flew, wss, osi});
+    """, _files())
+    assert out["errors"] == [], out["errors"]
+    t = out["tawss"]
+    assert [r["kind"] for r in t["rows"]] == ["max", "min"]
+    assert t["rows"][0]["text"] == "最大 2.50 Pa左髂总，距入口 40 mm；距分叉 3 mm；局部半径 4.3 mm"
+    assert t["rows"][1]["text"] == "最小 0.0500 Pa主动脉，距入口 13 mm；距分叉 23 mm；局部半径 9.5 mm"
+    assert t["rows"][0]["title"].startswith("黄色标记：TAWSS 全场最大值预测点") and t["rows"][1]["title"].startswith("白色标记：TAWSS 全场最小值预测点")
+    assert t["kpis"][:2] == ["TAWSS 均值", "低剪切占比"]
+    assert any("f.tawss.r" in p and "p_dj" in p for p in t["preloads"])          # loaded once, then drawn again
+    assert out["flew"] == 1
+    w = out["wss"]
+    assert w["field"] == "wss" and w["kpis"][:3] == ["WSS p99", "低 WSS 占比", "高 WSS 占比"]          # W27
+    assert w["rows"] == [{"kind": "max", "text": "最大 52.6 Pa左髂内，距入口 263 mm；距分叉 14 mm；局部半径 2.6 mm",
+                          "title": "黄色标记：WSS 全场最大值预测点；点一下转到这里"}]
+    assert out["osi"]["kpis"][:2] == ["TAWSS 均值", "低剪切占比"] and [r["kind"] for r in out["osi"]["rows"]] == ["max"]
+
+
+def test_overview_volume_statistics_table():
+    out = _harness(r"""
+      const m = canned['/api/v2/jobs/A/manifest'].body;
+      m.result.family = 'volume';
+      m.fields = [{id: 'pressure', short_label: '压力', units: 'Pa', kind: 'scalar', temporal: 'frame', tier: 'model', display: {}, statistics: {count: 20000, mean: -303.87, p99: 99.1, max: 130.56}},
+                  {id: 'speed', short_label: '速度', units: 'm/s', kind: 'scalar', temporal: 'frame', tier: 'model', display: {p99: 1.37}}];
+      m.analysis.zones = null;
+      m.analysis.volume_statistics = {speed_m_s: {count: 20000, mean: 0.4221, p99: 1.3719, max: 1.5715}};
+      await boot();
+      await hashTo('#/job/A', 300);
+      const tbl = byClass(byClass(app(), 'insp-body')[0], 'tbl-vstats')[0];
+      done({head: walk(tbl, e => e.tagName === 'TH').map(textOf), cells: walk(tbl, e => e.tagName === 'TR').slice(1).map(tr => walk(tr, e => e.tagName === 'TD').map(textOf)),
+            where: byClass(app(), 'kpi-where').length});
+    """, _files())
+    assert out["errors"] == [], out["errors"]
+    assert out["head"] == ["物理量", "点数", "均值", "p99", "最大"]
+    assert out["cells"] == [["速度 m/s", "20000", "0.422", "1.37", "1.57"], ["相对压力 Pa", "20000", "−304", "99.1", "131"]]
+    assert out["where"] == 0
