@@ -55,7 +55,7 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
                    confirmed=False, case_id=None, device="auto", seed_count=None, threads=None,
                    progress=None, cancelled=None):
     from .pipeline import (_archive_previous_run, _clean_mesh, _now, _resampled, VertexInterpolation, cache_record,
-                           inference_threads, prune_geometry_cache, run_inference, save_npz_atomic, torch_threads)
+                           inference_threads, prune_geometry_cache, run_inference, save_npz_atomic)
     from . import geometry_cache as GC
     from .volume_geometry import make_inside_test
     from .volume_cache import build_volume_case_cached
@@ -104,9 +104,8 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
     progress("inference", "正在分别预测相对压力与体内速度")
     # v0.14: CPU inference without an explicit thread count uses min(32, cores) (WSS_DEPLOY_CPU_THREADS).
     cpu_threads = inference_threads(getattr(release, "device", None), threads)
-    with torch_threads(cpu_threads):
-        start = time.perf_counter(); prediction = run_inference(release, case)
-        timing["inference_volume"] = time.perf_counter()-start
+    start = time.perf_counter(); prediction = run_inference(release, case, threads=cpu_threads)
+    timing["inference_volume"] = time.perf_counter()-start
     check()
     n_wall = int(case["n_wall"])
     all_points = case["wall_coords_raw"]
@@ -264,3 +263,58 @@ def stage_b_volume(job_dir, mapping, release, *, smooth_mm=1., spacing_mm=.5,
     write_run_manifest(job_dir, meta, outputs=names)
     prune_geometry_cache(cache)
     return meta
+
+
+def precompute_volume_case(job_dir, job, *, mapping, cancel_event=None) -> dict:
+    """Fill ``<job_dir>/geometry_cache`` with the PF6/VF6 geometry of the *proposed* outlet mapping (v0.16.1).
+
+    Runs in the background precompute thread after ``pipeline.precompute_geometry_cache`` while the outlets of a
+    job with a volume companion are being confirmed.  The companion's stage B builds the same case from the same
+    clean mesh, resampled wall, atlas and sampling seed; when the confirmed mapping equals the proposal (whatever
+    its order) the exact-input key matches and stage B reuses the entry, otherwise it misses and computes as
+    before — the result is the same either way.  The input features are the PF6/VF6 contract
+    (``families.VOLUME_FEATURES``, checked for every volume release), so no release is loaded.  The job lock is
+    held only for cache I/O, never during the computation.  Never raises: returns ``{"ok", ...}``.
+    """
+    from .pipeline import DEFAULT_SMOOTH_MM, DEFAULT_SPACING_MM, _clean_mesh, _resampled, _stage_a_record
+    from . import geometry_cache as GC, volume_cache as VC
+    from .families import VOLUME_FEATURES
+    from .volume_geometry import build_volume_case
+    started = time.perf_counter()
+    cancelled = lambda: bool(cancel_event is not None and cancel_event.is_set())
+    out = {"ok": False, "seconds": 0.0}
+    if not GC.enabled():
+        return {**out, "skipped": "disabled"}
+    job_dir = Path(job_dir).resolve()
+    cache, lock = GC.GeometryCache(job_dir), GC.job_lock(job_dir)
+    try:
+        a = _stage_a_record(job_dir, job)
+        if a.get("stage") != "A" or not (a.get("input_check") or {}).get("ok"):
+            return {**out, "skipped": "stage A not passed"}
+        params = (job or {}).get("params") or {}
+        smooth_mm = float(params.get("smooth_mm", DEFAULT_SMOOTH_MM))
+        spacing_mm = float(params.get("spacing_mm", DEFAULT_SPACING_MM))
+        seed = G.stable_sampling_seed(a["input_sha256"])
+        clean_stl = resolve_job_path(job_dir, a["input_check"]["clean_stl"])
+        with lock:
+            vertices, faces = _clean_mesh(job_dir, clean_stl, cache)
+        vertices, faces = np.asarray(vertices, np.float64), np.asarray(faces, np.int64)
+        with lock:
+            smoothed, wall = _resampled(vertices, faces, smooth_mm=smooth_mm, spacing_mm=spacing_mm, seed=seed, cache=cache)
+        if cancelled():
+            return {**out, "cancelled": True}
+        atlas = CL.apply_mapping(CL.load_vessel_geom_atlas(job_dir / "centerline"), mapping)
+        kwargs = dict(target="pressure_velocity", case_name="input-" + a["input_sha256"][:24], n_internal=20000, seed=seed)
+        key = VC.volume_case_key(wall, smoothed, faces, atlas, VOLUME_FEATURES, mapping=mapping, **kwargs)
+        with lock:
+            hit = VC.load_volume_case(cache, key)
+        if hit is None:
+            if cancelled():
+                return {**out, "cancelled": True}
+            result = build_volume_case(wall, smoothed, faces, atlas, VOLUME_FEATURES, **kwargs)
+            with lock:
+                VC.store_volume_case(cache, key, result)
+        return {**out, "ok": True, "cancelled": False, "reused": hit is not None,
+                "seconds": round(time.perf_counter() - started, 2), "cache": cache.summary()}
+    except Exception as exc:  # noqa: BLE001 — a failed precompute only means the companion computes it itself
+        return {**out, "error": f"{type(exc).__name__}: {exc}"[:500], "seconds": round(time.perf_counter() - started, 2)}

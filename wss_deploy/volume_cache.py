@@ -1,8 +1,10 @@
 """Exact, pickle-free cache for confirmed PF6/VF6 geometry.
 
 Only the array/dictionary result of ``build_volume_case`` is persisted.  VTK
-surfaces and query objects are rebuilt by their existing consumers.  This is
-a stage-B cache: it does not precompute geometry before outlet confirmation.
+surfaces and query objects are rebuilt by their existing consumers.  Stage B
+reads and fills it; since v0.16.1 ``volume_pipeline.precompute_volume_case``
+also fills it on the proposed outlet mapping while the outlets are being
+confirmed (a stage B on the same confirmed mapping then finds it).
 """
 from __future__ import annotations
 
@@ -101,18 +103,66 @@ def _atlas_inputs(atlas):
                  "partition": partition(tree.tree)}}
 
 
+def _canonical_mapping(mapping):
+    """The mapping in key order: ``CL.apply_mapping`` walks the atlas segments, so the mapped atlas (and
+    the geometry) does not depend on the order of the mapping, and neither does the key — the proposal
+    lists outlets in tree order, a confirmation in the order the page sent them."""
+    if not isinstance(mapping, dict):
+        return mapping
+    return {str(key): mapping[key] for key in sorted(mapping, key=str)}
+
+
 def _cache_key(wall, vertices, faces, atlas, input_features, *, mapping, target,
                case_name, n_internal, seed):
     # Packing inputs rejects unknown objects instead of hashing their repr or
     # silently dropping metadata that may affect geometry in future versions.
     inputs = _pack((wall, vertices, faces, _atlas_inputs(atlas), input_features,
-                    mapping, target, case_name, n_internal, seed))
+                    _canonical_mapping(mapping), target, case_name, n_internal, seed))
     return GC.key_of(SCHEMA, inputs,
                      GC.source_hash(__name__, "wss_deploy.volume_geometry", "wss_deploy.streamlines", "wss_deploy.geometry_cache",
                                     "wss_features.atlas", "wss_features.cloud", "wss_features.flowref",
                                     "wss_features.frame"),
                      GC.feature_program_hash(),
                      {name: version(name) for name in ("numpy", "scipy", "pyvista", "vtk")})
+
+
+def volume_case_key(wall, vertices, faces, atlas, input_features, *, mapping=None,
+                    target="pressure_velocity", case_name="case", n_internal=20000, seed=0):
+    """The exact-input key of a ``build_volume_case`` call (raises on inputs it cannot pack)."""
+    return _cache_key(wall, vertices, faces, atlas, input_features, mapping=mapping, target=target,
+                      case_name=case_name, n_internal=n_internal, seed=seed)
+
+
+def load_volume_case(cache, key):
+    """The cached ``(case, aux)`` for ``key``, or None (missing, or a damaged entry: then counted a miss)."""
+    hits_before = len(cache.stats["hits"])
+    payload = cache.load(KIND, key)
+    if payload is None:
+        return None
+    try:
+        digest = str(payload.pop("__payload_hash__"))
+        if GC.key_of(payload) != digest:
+            raise ValueError("volume cache payload checksum mismatch")
+        return _unpack(payload)
+    except Exception as exc:
+        # GeometryCache validates NPZ storage; the typed payload is our
+        # responsibility.  A semantically invalid archive is a miss too.
+        del cache.stats["hits"][hits_before:]
+        cache.used.discard(cache.path(KIND, key).name)
+        cache.stats["errors"].append(f"{KIND} payload: {type(exc).__name__}")
+        cache.stats["misses"].append(KIND)
+        return None
+
+
+def store_volume_case(cache, key, result) -> None:
+    """Persist ``result`` under ``key``; a payload that cannot be stored is only recorded in the stats."""
+    try:
+        payload = _pack(result)
+        _unpack(payload)  # reject unsupported root types before writing
+        payload["__payload_hash__"] = np.asarray(GC.key_of(payload))
+        cache.save(KIND, key, payload)
+    except Exception as exc:
+        cache.stats["errors"].append(f"{KIND} payload: {type(exc).__name__}")
 
 
 def build_volume_case_cached(wall, vertices, faces, atlas, input_features, *, cache=None,
@@ -132,27 +182,9 @@ def build_volume_case_cached(wall, vertices, faces, atlas, input_features, *, ca
         cache.stats["errors"].append(f"{KIND} key: {type(exc).__name__}")
         cache.stats["misses"].append(KIND)
         return VG.build_volume_case(wall, vertices, faces, atlas, input_features, **kwargs)
-    hits_before = len(cache.stats["hits"])
-    payload = cache.load(KIND, key)
-    if payload is not None:
-        try:
-            digest = str(payload.pop("__payload_hash__"))
-            if GC.key_of(payload) != digest:
-                raise ValueError("volume cache payload checksum mismatch")
-            return _unpack(payload)
-        except Exception as exc:
-            # GeometryCache validates NPZ storage; the typed payload is our
-            # responsibility.  A semantically invalid archive is a miss too.
-            del cache.stats["hits"][hits_before:]
-            cache.used.discard(cache.path(KIND, key).name)
-            cache.stats["errors"].append(f"{KIND} payload: {type(exc).__name__}")
-            cache.stats["misses"].append(KIND)
+    hit = load_volume_case(cache, key)
+    if hit is not None:
+        return hit
     result = VG.build_volume_case(wall, vertices, faces, atlas, input_features, **kwargs)
-    try:
-        payload = _pack(result)
-        _unpack(payload)  # reject unsupported root types before writing
-        payload["__payload_hash__"] = np.asarray(GC.key_of(payload))
-        cache.save(KIND, key, payload)
-    except Exception as exc:
-        cache.stats["errors"].append(f"{KIND} payload: {type(exc).__name__}")
+    store_volume_case(cache, key, result)
     return result

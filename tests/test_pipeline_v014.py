@@ -504,3 +504,26 @@ def test_rebuild_reads_each_npz_array_once_and_caches_the_surface_variation(tmp_
     second = RB._surface_variation(tmp_path, pts, atlas)
     assert np.array_equal(first, expected) and np.array_equal(second, expected) and len(calls) == 1
     assert any(p.name.startswith("rebuildvar-") for p in (tmp_path / "geometry_cache").iterdir())
+
+
+def test_inference_sections_run_one_at_a_time_and_set_threads_inside(monkeypatch):
+    """v0.16.1: stage B overlaps, the model section does not; the CPU thread count is set inside it."""
+    import threading
+    import time
+    import torch
+    active, peak, seen, lock = [0], [0], [], threading.Lock()
+
+    class Slow:
+        def predict(self, case):
+            with lock:
+                active[0] += 1; peak[0] = max(peak[0], active[0])
+            seen.append(torch.get_num_threads())
+            time.sleep(0.1)
+            with lock:
+                active[0] -= 1
+            return {"ok": case}
+
+    before = torch.get_num_threads()
+    threads = [threading.Thread(target=P.run_inference, args=(Slow(), i), kwargs={"threads": 2}) for i in range(3)]
+    [t.start() for t in threads]; [t.join() for t in threads]
+    assert peak[0] == 1 and seen == [2, 2, 2] and torch.get_num_threads() == before
