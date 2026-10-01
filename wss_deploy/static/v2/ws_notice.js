@@ -96,7 +96,7 @@
       statusLine: (GEO_STATUS[ra.status] || '参考范围检查状态未知。') + (ra.note ? ' ' + ra.note : ''),
       items: referenceItems(ra), reviewCount: reviewChecks(ra).length, reasons: (Array.isArray(ra.reasons) ? ra.reasons : []).filter(Boolean),
       popReasons: (Array.isArray(pop.reasons) ? pop.reasons : []).filter(Boolean),
-      note: ra.note || pop.note || '参考范围用于复核，不代表校准概率或临床风险。', popNote: pop.note || ''};
+      note: ra.note || pop.note || '参考范围用于复核，不代表校准概率或临床风险。', popNote: pop.note || '', hasNote: Boolean(ra.note || pop.note)};
   }
 
   // ------------------------------------------------------------------ rendering
@@ -121,7 +121,7 @@
       if (qm.reasons.length) parts.push(list(qm.reasons));
       parts.push(ui().note('逐点离散度只保存在质量审计文件里，这里不显示，避免被误读为预测概率。'));
     }
-    if (rm) parts.push(ui().note(rm.note));
+    if (rm && !rm.hasNote) parts.push(ui().note(rm.note));   // the status line / population note already carry it otherwise
     if (!parts.length) parts.push(ui().note('这份结果没有参考范围检查和质量分级。'));
     return parts;
   }

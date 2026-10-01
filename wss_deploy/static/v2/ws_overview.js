@@ -679,7 +679,16 @@
       svg.appendChild(svgNode('line', {x1: L, x2: W - R, y1: H - B + 0.5, y2: H - B + 0.5, 'class': 'fu-axis'}));
       var fig = h('figure', {'class': 'fu-chart'});
       var tip = ui().chartTip ? ui().chartTip(fig) : null;
-      var multi = lines.length > 1;
+      var multi = lines.length > 1, placed = [], pending = [];
+      // an end label that would sit on another one goes under its point; when that is taken too it is left out
+      // (the value stays in the tip and the table)
+      var endLabel = function (x, y, text, anchor) {
+        var clash = function (yy) { return placed.some(function (q) { return Math.abs(q.x - x) < 30 && Math.abs(q.y - yy) < 10; }); };
+        var yy = Math.max(9, y - 7);
+        if (clash(yy)) { yy = Math.min(H - B - 2, y + 13); if (clash(yy)) return; }
+        placed.push({x: x, y: yy});
+        svg.appendChild(svgNode('text', {x: x.toFixed(1), y: yy.toFixed(1), 'text-anchor': anchor, 'class': 'fu-val'}, [text]));
+      };
       // grey lines first so the current release draws on top
       lines.slice().sort(function (a, b) { return (a.current ? 1 : 0) - (b.current ? 1 : 0); }).forEach(function (l) {
         var col = l.current ? FU_BLUE : FU_GREY, name = labelOf(l);
@@ -696,10 +705,12 @@
           var last = i === l.points.length - 1;
           if (last || (!multi && i === 0)) {
             var x = X(p), anchor = x > W * 0.7 ? 'end' : x < W * 0.3 ? 'start' : 'middle';
-            svg.appendChild(svgNode('text', {x: x.toFixed(1), y: Math.max(9, Y(p.value) - 7).toFixed(1), 'text-anchor': anchor, 'class': 'fu-val'}, [ui().sig(p.value)]));
+            pending.push({x: x, y: Y(p.value), text: ui().sig(p.value), anchor: anchor, current: l.current});
           }
         });
       });
+      // the current release's labels are placed first
+      pending.sort(function (a, b) { return (b.current ? 1 : 0) - (a.current ? 1 : 0); }).forEach(function (q) { endLabel(q.x, q.y, q.text, q.anchor); });
       if (dates.length) {
         svg.appendChild(svgNode('text', {x: L, y: H - 3, 'text-anchor': 'start', 'class': 'fu-date'}, [dates[0] || '']));
         if (dates.length > 1) svg.appendChild(svgNode('text', {x: W - R, y: H - 3, 'text-anchor': 'end', 'class': 'fu-date'}, [dates[dates.length - 1] || '']));

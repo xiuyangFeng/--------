@@ -462,8 +462,14 @@
       if (!(L > 0)) { ui().toast('这条分支没有中心线，截面不能放在这里。', {kind: 'info'}); return; }
       var fraction = Math.max(0, Math.min(1, (s - localOffset()) / L));
       cur.slice.set({basis: 'centerline', segment: Number(seg), fraction: fraction, pick: null, picks: [], shift: 0, pitch: 0, yaw: 0, offU: 0, offV: 0});
+      if (A.pin) clearHighlight(api);
       A.pin = null; A.pick = null;
       sync();
+      // the classic page kept the camera; here the section may land outside the view: then turn to it once computed
+      var sl = cur.slice, v = api.viewer();
+      setTimeout(function () {
+        try { var c = sl && !sl.disposed() && sl.comp ? sl.comp() : null; if (c && c.plane && !onScreen(v, c.plane.origin)) sl.look(true); } catch (_) {}
+      }, 120);
     }
     function setMapMark(elm, s) {
       if (!elm || !grid) return;

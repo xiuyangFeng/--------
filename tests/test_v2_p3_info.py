@@ -428,6 +428,7 @@ def test_banner_on_the_stage_details_close_and_reopen():
     assert out["errors"] == [], out["errors"]
     assert out["bar"].startswith("注意：输入几何有 1 项超出发布包参考范围（左髂总长度 178 mm，参考 21.1–141 mm）；模型集成质量：存在不确定性，建议复核。") and out["role"] == "alert"
     assert "左髂总长度 178 mm（参考 21.1–141 mm）" in out["details"] and "3 个模型一致性" in out["details"] and "逐点离散度只保存在质量审计文件里" in out["details"]
+    assert out["details"].count("仅检查已声明的几何参考范围。") == 1                 # the note once
     assert out["dlgOpen"] is True
     assert "质量与参照" in out["qsec"] and "1 项超出已声明几何参考范围，请复核" in out["qsec"] and "存在不确定性，建议复核" in out["qsec"]
     assert out["closed"] == "" and out["other"] == ""                        # × hides it for this opening; B has nothing to say
@@ -597,3 +598,25 @@ def test_pressure_drop_puts_the_section_at_ten_percent_and_the_profile_click_mov
     # x range 10–210 mm from the root, local = root − 10; the middle (110 mm) is local 100 of a 200 mm centreline
     assert set_[-1][1]["fraction"] == pytest.approx(0.5, abs=0.02)
     assert out["mark"] == "visible"
+
+
+def test_followup_end_labels_never_overlap():
+    out = _shell(r"""
+      await boot();
+      const OVm = ns.overview;
+      const charts = [{label: 'WSS p99', units: 'Pa', tier: 'model', points: [], lines: [
+        {id: 'M1', label: 'M1', current: true, points: [{date: '2024-03-15', value: 11, jobId: 'a'}, {date: '2025-09-20', value: 17.0, jobId: 'b'}]},
+        {id: 'X5D', label: 'X5D', current: false, points: [{date: '2023-09-01', value: 10, jobId: 'c'}, {date: '2025-09-20', value: 16.6, jobId: 'd'}]},
+        {id: 'PF6', label: 'PF6', current: false, points: [{date: '2023-09-01', value: 16.8, jobId: 'e'}, {date: '2025-09-20', value: 16.8, jobId: 'f'}]}]}];
+      const el = OVm.followSparks(charts, () => {}, {});
+      const vals = walk(el, e => String((e.attrs && e.attrs.class) || '').split(/\s+/).includes('fu-val')).map(e => [Number(e.attrs.x), Number(e.attrs.y), textOf(e)]);
+      const legend = walk(el, e => String(e.className || '').split(/\s+/).includes('fu-leg')).map(textOf);
+      done({vals, legend});
+    """)
+    assert out["errors"] == [], out["errors"]
+    vals = out["vals"]
+    assert vals[0][2] == "17.0"                                                     # the current release keeps its label above
+    for i, a in enumerate(vals):
+        for b in vals[i + 1:]:
+            assert not (abs(a[0] - b[0]) < 30 and abs(a[1] - b[1]) < 10), vals    # no two labels on top of each other
+    assert len(vals) == 2 and out["legend"] == ["M1（本结果）", "X5D", "PF6"]          # the third is left to the tip and the table
