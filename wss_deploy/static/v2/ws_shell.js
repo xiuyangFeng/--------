@@ -783,6 +783,7 @@
       var L = Object.assign({}, S.layers, v === S.viewerA && S.cur && S.cur.slice && S.cur.slice.cut() === 'none' ? {interior: false} : {});
       try { v.setLayers(L); } catch (_) {}
     });
+    saveViewSoon();   // a layer switched on or off is part of the reading position (it waited for the next turn of the view)
   }
   function setCmap(c) {
     store().setPrefs({cmap: c});
