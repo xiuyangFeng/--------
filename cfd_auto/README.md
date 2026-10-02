@@ -5,6 +5,9 @@ Rebuilds a patient CFD case from its wall STL with the library's protocol (Fluen
 Design notes, the reverse-engineered library protocol, pitfalls and all comparison results:
 `docs/02-推进与变更/04-数据处理与CFD/STL全自动CFD工程cfd_auto_试算_2026-09-27.md`.
 
+Cross-vessel design proposal (2026-09-30, for review; not implemented):
+[跨血管通用化方案与交叉论证](../docs/02-推进与变更/04-数据处理与CFD/_archive/04块过程文档_2026-10-02/cfd_auto_跨血管通用化方案与交叉论证_2026-09-30.md).
+
 ## Managed batches (2026-09-30): `orchestrate` + protocol files
 
 One resumable queue from STL (or a library mesh) to checked exports; replaces the hand-made watch / janitor / restage
@@ -25,6 +28,11 @@ Batch file: `{"batch", "protocol", "library", "work_root", "profiles", "resource
 id that starts with its cohort (e.g. `AAA/new/CASE`): template, mesh family, density reference, naming (deployment
 proposal + confidence gate), extension rule and direction come from the protocol. Library units take the recover-plan
 specs (`"plan": ".../plan.json"` imports them). Example: `outputs/cfd_auto_trial_20260927/_orch_validation/batch.json`.
+`resources.exclude` applies to every job of the batch (drivers, the small Fluent mesh / setup / smoke jobs, the managed
+fluent.slurm and its ladder rewrites); `""` = every CPU node, omitted = node05 as before. A unit with
+`"validate_against_library": true` is compared with `library/<unit>` after the run, or with `library/<library_unit>` when
+the spec names one (a library STL run as a new case under another id; 2026-10-02 validation
+`outputs/cfd_auto_validation_20261002/`).
 
 Unit states: pending → preparing → ready → cfd → post_pending → post → checked | flagged; side exits
 needs_confirmation (opening names below the protocol confidence: look at `naming.png`, then `confirm`), blocked (set-up

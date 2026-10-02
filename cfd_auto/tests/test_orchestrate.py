@@ -324,7 +324,8 @@ def batch(tmp_path, monkeypatch):
         return real_tick(dry_run)
     b.tick = tick
     from cfd_auto import prepare
-    monkeypatch.setattr(prepare, "rewrite_schedule", lambda work, proto, name, cores, jn: schedule.write_run_files(work, work / "c.cas.gz", schedule.make(name, proto), cores, jn, "fluent/231"))
+    monkeypatch.setattr(prepare, "rewrite_schedule", lambda work, proto, name, cores, jn, exclude="node05": schedule.write_run_files(work, work / "c.cas.gz", schedule.make(name, proto), cores, jn, "fluent/231",
+                                                                                                                  exclude=exclude or None))
     return b, fake
 
 
@@ -458,3 +459,20 @@ def test_old_journals_unchanged_by_default(tmp_path):
     assert journals.meshing_poly(*a, 0.0004, 0.002) == old.meshing_poly(*a, 0.0004, 0.002)
     assert journals.smoke(tmp_path, tmp_path / "c.cas.gz") == old.smoke(tmp_path, tmp_path / "c.cas.gz")
     assert journals.run(tmp_path, tmp_path / "c.cas.gz") == old.run(tmp_path, tmp_path / "c.cas.gz")
+
+
+def test_exclude_resource_reaches_fluent_scripts(tmp_path, monkeypatch):
+    """Batch ``resources.exclude`` "" -> no --exclude line in the managed fluent.slurm nor in the small Fluent jobs."""
+    from cfd_auto import protocol, schedule, slurm
+    proto = protocol.load("aortoiliac_rcr4_v1")
+    (tmp_path / "c.cas.gz").write_text("")
+    schedule.write_run_files(tmp_path, tmp_path / "c.cas.gz", schedule.make("library", proto), 92, "j", "fluent/231", exclude=None)
+    assert "--exclude" not in (tmp_path / "fluent.slurm").read_text()
+    schedule.write_run_files(tmp_path, tmp_path / "c.cas.gz", schedule.make("library", proto), 92, "j", "fluent/231")
+    assert "#SBATCH --exclude=node05" in (tmp_path / "fluent.slurm").read_text()      # default unchanged
+    calls = []
+    monkeypatch.setattr(slurm.subprocess, "run", lambda cmd, **kw: calls.append(cmd) or type("R", (), {"stdout": "7\n"})())
+    monkeypatch.setattr(slurm, "EXCLUDE", "")
+    jou = tmp_path / "x.jou"; jou.write_text("/exit yes\n")
+    slurm.submit(tmp_path, jou)
+    assert "--exclude" not in (tmp_path / "logs" / "_x.slurm").read_text()

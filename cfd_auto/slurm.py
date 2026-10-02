@@ -30,10 +30,10 @@ def submit(workdir: Path, journal: Path, mode: str = "solver", ntasks: int = 4, 
     tflag, slots = ("", 1) if ntasks == 0 else (f"-t{ntasks}", ntasks)
     mflag = "-meshing" if mode == "meshing" else ""
     script = logs / f"_{tag}.slurm"
+    excl = f"#SBATCH --exclude={EXCLUDE}\n" if EXCLUDE else ""      # EXCLUDE "" (batch resources): every CPU node
     script.write_text(f"""#!/bin/bash
 #SBATCH --partition=CPU
-#SBATCH --exclude={EXCLUDE}
-#SBATCH --ntasks-per-node={slots}
+{excl}#SBATCH --ntasks-per-node={slots}
 #SBATCH --job-name=cfdauto_{tag}
 #SBATCH --output={logs}/{tag}_%j.out
 #SBATCH --time={time_limit}

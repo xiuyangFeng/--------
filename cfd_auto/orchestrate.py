@@ -29,7 +29,7 @@ Batch file (JSON):
   {"batch": "name", "protocol": "aortoiliac_rcr4_v1", "protocol_overrides": {},
    "library": ".../data_new", "work_root": ".../units", "profiles": "<optional dir of refcase profiles>",
    "resources": {"cfd_cores": 92, "max_parallel_cfd": 6, "max_parallel_prepare": 6, "driver_cores": 4, "driver_mem": "48G",
-                 "exclude": "node05", "cfd_time_limit": null},
+                 "exclude": "node05", "cfd_time_limit": null},     # exclude: driver, mesh and CFD jobs ("" = every CPU node)
    "units": {"<unit id>": {<spec: see cfd_auto.prepare>}}  or  "plan": "<recover plan.json whose units to take>",
    "hooks": [{"name": "eval", "script": "<sbatch script>", "units": "checked", "env": {}}]}
 """
@@ -336,7 +336,7 @@ class Batch:
                 st.update(state="failed", message=f"diverged on every schedule of the ladder (last: {a.get('schedule')}: {h.get('reason') or a.get('cancelled')}); attempts in {arch}")
             else:
                 nxt = ladder[st["ladder_index"]]
-                prepare.rewrite_schedule(work, self.proto, nxt, self.res["cfd_cores"], self.job_name(st["unit"], "cfd", 0))
+                prepare.rewrite_schedule(work, self.proto, nxt, self.res["cfd_cores"], self.job_name(st["unit"], "cfd", 0), exclude=self.res["exclude"])
                 st.update(state="ready", message=f"{a.get('schedule')} diverged at step {h.get('last_step')} ({h.get('reason') or a.get('cancelled')}) -> {nxt}")
         else:
             arch = self._archive_attempt(work, a)
@@ -452,13 +452,15 @@ def _write_result(work: Path, kind: str, res: dict) -> None:
 def driver_prepare(batch_file: Path, unit: str, expect: str | None) -> None:
     from cfd_auto import prepare
     b = Batch(batch_file)
+    slurm.EXCLUDE = b.res["exclude"] or ""               # the unit's small Fluent jobs (mesh / finalize / setup / smoke)
     work = b.work(unit)
     try:
         fp = _check_fingerprint(b.file, expect)
     except RuntimeError as exc:
         _write_result(work, "prepare", {"status": "retry", "message": str(exc)}); raise SystemExit(1)
     try:
-        rep = prepare.prepare_unit(unit, b.units[unit], b.proto, b.work_root, b.library, b.profiles, b.res["cfd_cores"], b.job_name(unit, "cfd", 0), fp)
+        rep = prepare.prepare_unit(unit, b.units[unit], b.proto, b.work_root, b.library, b.profiles, b.res["cfd_cores"], b.job_name(unit, "cfd", 0), fp,
+                                   exclude=b.res["exclude"])
         _write_result(work, "prepare", {"status": "ready", "message": f"ready; preflight warnings {rep['preflight']['warn']}", "preflight": rep["preflight"]})
     except prepare.Blocked as exc:
         _write_result(work, "prepare", {"status": "needs_confirmation" if exc.kind == "naming" else "blocked", "kind": exc.kind, "message": str(exc), "detail": exc.detail})
@@ -494,7 +496,9 @@ def driver_post(batch_file: Path, unit: str, expect: str | None) -> None:
         out = {"status": "checked" if rep["ok"] else "flagged", "flags": rep["flags"], "warnings": rep.get("warnings", []), "relabel": rel, "layout": layout,
                "message": ("sanity ok" if rep["ok"] else f"sanity flags: {rep['flags']}") + (f"; warnings {rep.get('warnings')}" if rep.get("warnings") else "")}
         if spec.get("validate_against_library"):
-            res = compare.compare(b.library / unit, work, "v2", None, None, spec.get("compare_volume", True), "wall", spec.get("compare_ref_case", True))
+            # library_unit: the library solution of a unit run under another id (e.g. a library STL run as a new case)
+            res = compare.compare(b.library / spec.get("library_unit", unit), work, "v2", None, None, spec.get("compare_volume", True), "wall",
+                                  spec.get("compare_ref_case", True))
             (work / "comparison.json").write_text(json.dumps(res, indent=1))
             out["comparison_all_pass"] = res["all_pass"]
         st = b.load(unit)

@@ -200,7 +200,8 @@ def outlet_key_of_atlas(work: Path, openings: list[dict], keys: dict[int, str]) 
 
 
 def prepare_unit(unit: str, spec: dict, proto: dict, work_root: Path, library: Path, prof_dir: Path, cores: int, job_name: str,
-                 fingerprint: str = "") -> dict:
+                 fingerprint: str = "", exclude: str | None = "node05") -> dict:
+    """``exclude``: nodes the managed fluent.slurm avoids (batch ``resources.exclude``; None / "" = every CPU node)."""
     s = resolve_spec(unit, spec, proto, library)
     work = (work_root / unit).resolve(); work.mkdir(parents=True, exist_ok=True); guard.assert_inside(work, work)
     case_dir = library / unit
@@ -307,16 +308,18 @@ def prepare_unit(unit: str, spec: dict, proto: dict, work_root: Path, library: P
     rp = settings_diff.sections(settings_diff.case_text(final))["rp"]
     sch = schedule.make(proto["schedules"]["ladder"][0], proto)
     rep["run_files"] = schedule.write_run_files(work, final, sch, cores, job_name, proto["solver"]["fluent_module"],
-                                                make_dirs=tuple(sorted({"export", *schedule.autosave_dirs(rp.get("autosave/filename", ""))})))
+                                                make_dirs=tuple(sorted({"export", *schedule.autosave_dirs(rp.get("autosave/filename", ""))})),
+                                                exclude=exclude or None)
     rep["case"] = str(final)
     _dump(work / "prepare_report.json", rep)
     return rep
 
 
-def rewrite_schedule(work: Path, proto: dict, name: str, cores: int, job_name: str) -> dict:
+def rewrite_schedule(work: Path, proto: dict, name: str, cores: int, job_name: str, exclude: str | None = "node05") -> dict:
     """Same prepared case, another schedule of the divergence ladder (new 2.jou / fluent.slurm / kept steps)."""
     fr = json.loads((work / schedule.FRAMES_FILE).read_text())
     case = Path(fr["case"])
     rp = settings_diff.sections(settings_diff.case_text(case))["rp"]
     return schedule.write_run_files(work, case, schedule.make(name, proto), cores, job_name, proto["solver"]["fluent_module"],
-                                    make_dirs=tuple(sorted({"export", *schedule.autosave_dirs(rp.get("autosave/filename", ""))})))
+                                    make_dirs=tuple(sorted({"export", *schedule.autosave_dirs(rp.get("autosave/filename", ""))})),
+                                    exclude=exclude or None)
