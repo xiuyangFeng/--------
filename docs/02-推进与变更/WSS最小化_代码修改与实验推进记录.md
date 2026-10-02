@@ -26,7 +26,7 @@
 - **本次主要修改**（用户 10-03：新体场模型部署上线、旧的下线）：新工具 `wss_deploy/build_v52d_volume_release.py` 冻结 `PF6_VF6_v52d_3seed_20261003`（§43 full265 PF6 / VF6 × 3 seed；验证块读自重训读数，读数一致性不过即拒绝冻结）；几何参照 `build_reference_profiles --data v52d --geometry-only`；新说明卡 `model_cards/PF6_VF6_v52d_3seed_20261003.json`（CV5 折外集成压力 0.808、速率 0.843，注明 CFD 网格口径）；旧包 `PF6_VF6_peak_3seed_20260920` 移到 `outputs/wss_deploy_release_retired/`，旧卡改「（旧版）」+ `retired`；`env/releases*.sha256` 更新；版本 0.16.4；`tests/test_c_line_v2.py` 加新卡清单与数字核对测试。下线机制沿用 v0.16.3，代码未改。
 - **对应代码/文档**：上述文件；[01 块跟踪 §44](01-X5D主线与新数据/X5D主线_实验跟踪.md)、[05 框架文档 §29.14](05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md)、05 README、`wss_deploy/README.md` v0.16.4；验收记录 `training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_recover8_volume_v52d_20261003/`。
 - **推进到实验步骤**：加载器等价（作业 16975：压力 ≤ 8.6e-4 Pa、速度 ≤ 1.5e-6 m/s）；recover8 STL 端到端同查询点旧 → 新压力 0.913 → 0.930（6/8）、速率 0.870 → 0.889（8/8）；黄金回归 6/6（作业 16976，2 个任务经归档目录回退）；全套测试 1072 通过；01:09 `service upgrade` → PID 1161932，预加载只有现役三包。
-- **当前状态判断**：现役三包 X5Dcap_asym2_v52d（默认）、M1cap_v52d、PF6_VF6_v52d。部署体内采样与 CFD 网格口径的等价性仍未建立（说明卡已写明）。代码改动未提交。
+- **当前状态判断**：现役三包 X5Dcap_asym2_v52d（默认）、M1cap_v52d、PF6_VF6_v52d。部署体内采样与 CFD 网格口径的等价性仍未建立（说明卡已写明）。10-03 已提交并推送 origin/codex/clean-initial-commit（45ccaed..9326964，8 个提交；10 MB 以上的 98 个生成文件与 synth_geom/ 未提交）。
 
 ## 2026-10-02｜体场 PF6 / VF6 v5.2d 复验 · 完成与新旧对比（指针）
 
