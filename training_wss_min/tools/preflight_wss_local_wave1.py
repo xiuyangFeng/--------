@@ -74,8 +74,19 @@ def numeric_leaves(value, prefix=""):
         yield prefix, float(value)
 
 
-def anchor_reevaluation(tolerance=5e-4, anchor_run=None):
-    """Re-evaluate the anchor's best checkpoint (default C1) with the current code and compare every number."""
+def _is_pred_count(key):
+    """Prediction-dependent point counts (e.g. hotspot n_high_pred): one point crossing a quantile threshold changes them by 1."""
+    leaf = key.rsplit(".", 1)[-1]
+    return leaf.startswith("n_") and "pred" in leaf
+
+
+def anchor_reevaluation(tolerance=5e-4, anchor_run=None, pred_count_tolerance=None):
+    """Re-evaluate the anchor's best checkpoint (default C1) with the current code and compare every number.
+
+    pred_count_tolerance (opt-in, default None = every field under ``tolerance`` exactly as before): prediction-dependent
+    point counts may differ by at most this many points (GPU float jitter flips single points across quantile thresholds);
+    all other fields keep ``tolerance``. Added 2026-10-02 for the PF6/VF6 v5.2d preflight.
+    """
     anchor_run = Path(anchor_run) if anchor_run else ANCHOR_RUN
     cfg, feat_stats, model, _ = load_model_from_run(anchor_run, "cuda", "best")
     stats = load_wss_stats_for_run(anchor_run)
@@ -91,15 +102,23 @@ def anchor_reevaluation(tolerance=5e-4, anchor_run=None):
     new_leaves = dict(numeric_leaves(result))
     skipped = {key for key in stored_leaves if key.startswith("efficiency") or key.startswith("evaluation_split")}
     common = [key for key in stored_leaves if key in new_leaves and key not in skipped]
+    count_keys = {k for k in common if pred_count_tolerance is not None and _is_pred_count(k)}
     worst = max(((abs(stored_leaves[k] - new_leaves[k]), k) for k in common
-                 if math.isfinite(stored_leaves[k]) and math.isfinite(new_leaves[k])), default=(0.0, ""))
+                 if k not in count_keys and math.isfinite(stored_leaves[k]) and math.isfinite(new_leaves[k])), default=(0.0, ""))
     missing = sorted(set(stored_leaves) - set(new_leaves) - skipped)
     evidence = {"anchor_run": str(anchor_run), "compared_fields": len(common), "max_abs_diff": worst[0], "max_abs_diff_field": worst[1],
                 "missing_fields": missing[:20], "tolerance": tolerance,
                 "pa_r2_cb_stored": stored["field_casebalanced"]["r2"],
                 "pa_r2_cb_now": result["field_casebalanced"]["r2"],
                 "seconds": time.monotonic() - started}
-    evidence["passed"] = bool(worst[0] <= tolerance and not missing and len(common) > 1000)
+    counts_ok = True
+    if pred_count_tolerance is not None:
+        differing = sorted((k, stored_leaves[k], new_leaves[k]) for k in count_keys if stored_leaves[k] != new_leaves[k])
+        worst_count = max((abs(s - n) for _, s, n in differing), default=0.0)
+        counts_ok = worst_count <= pred_count_tolerance
+        evidence.update(pred_count_tolerance=pred_count_tolerance, pred_count_fields=len(count_keys),
+                        pred_count_max_abs_diff=worst_count, pred_count_fields_differing=differing[:20])
+    evidence["passed"] = bool(worst[0] <= tolerance and not missing and len(common) > 1000 and counts_ok)
     del model
     return evidence
 
@@ -114,6 +133,9 @@ def main(argv=None):
     parser.add_argument("--control-arm", default="X0", help="arm config used to pick the smoke cases/split")
     parser.add_argument("--anchor-run", type=Path, default=ANCHOR_RUN,
                         help="trained run whose stored best metrics must be reproduced by the current code (default C1)")
+    parser.add_argument("--anchor-pred-count-tolerance", type=int, default=None,
+                        help="opt-in: prediction-dependent point counts (n_*pred*) of the anchor may differ by this many points "
+                             "(default: every field under the 5e-4 tolerance, unchanged)")
     args = parser.parse_args(argv)
     CONFIGS, EXP = Path(args.config_dir), Path(args.experiment_dir)
     SMOKE_ARMS = tuple(a for a in args.smoke_arms.split(",") if a)
@@ -126,7 +148,8 @@ def main(argv=None):
     save_json(EXP / "runtime_preflight_progress.json", evidence)
 
     # 1) anchor compatibility: C1 best must reproduce its stored metrics with the new code
-    evidence["anchor_reevaluation"] = anchor_reevaluation(anchor_run=args.anchor_run)
+    evidence["anchor_reevaluation"] = anchor_reevaluation(anchor_run=args.anchor_run,
+                                                          pred_count_tolerance=args.anchor_pred_count_tolerance)
     save_json(EXP / "runtime_preflight_progress.json", evidence)
     print("anchor re-evaluation", evidence["anchor_reevaluation"], flush=True)
     if not evidence["anchor_reevaluation"]["passed"]:
