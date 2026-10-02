@@ -1,0 +1,197 @@
+{
+  "name": "wss_v52d_retrain_20261001/X5Dcap_asym2_full265_s2025",
+  "notes": "2026-09-30 label fix: wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s2025.json verbatim on the corrected data (unified v5.2c, full265 split; 9 library units re-simulated with protocol-correct BCs); only data roots / name / notes changed (training_wss_min/tools/repoint_data_root.py). | 2026-10-01 v5.2d retrain: wss_v52c_retrain_20260930/X5Dcap_asym2_full265_s2025.json with data roots repointed to v5.2d (library audit merge); recipe unchanged",
+  "data": {
+    "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1",
+    "required_frame_version": "v5_atlas_frame_v1",
+    "split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/split_v52p4_full265_train265_test8.json",
+    "wss_stats_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/wss_global_stats_full265_train265.json",
+    "wall_n_points": 5000,
+    "sampling": "random",
+    "support_n_points": 5000,
+    "support_sampling": "random",
+    "query_mode": "independent",
+    "query_n_points": 5000,
+    "query_sampling": "random",
+    "resample_each_epoch": true,
+    "rot_aug": false,
+    "input_features": [
+      "x",
+      "y",
+      "z",
+      "abscissa_norm",
+      "local_radius",
+      "curvature",
+      "log_local_radius",
+      "rho",
+      "theta_sin",
+      "theta_cos",
+      "dr_ds",
+      "dist_to_junction_mm",
+      "dist_to_endpoint_mm",
+      "end_zone",
+      "nx_aligned",
+      "ny_aligned",
+      "nz_aligned",
+      "curv_k1",
+      "curv_k2",
+      "curv_gauss",
+      "curvedness",
+      "curv_k1_c",
+      "curv_k2_c",
+      "curv_gauss_c",
+      "tn_dot",
+      "log_q_branch_murray_cap",
+      "log_tau0_murray_cap"
+    ],
+    "curvature_transform": "signed_log1p",
+    "timesteps": "peak",
+    "target": "wss",
+    "target_normalization": "global_stats",
+    "num_workers": 4,
+    "persistent_workers": false,
+    "feature_stats_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/feature_stats/full265_X5Dcap_train_feature_stats.json",
+    "case_features_path": null,
+    "point_features_root": [
+      "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_geom_v2",
+      "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1"
+    ],
+    "local_geometry": true,
+    "query_patch_nsample": 16,
+    "density_aug_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_density_v1",
+    "density_aug_levels": [
+      70,
+      50,
+      35,
+      25
+    ],
+    "density_aug_prob": 0.6
+  },
+  "model": {
+    "name": "pointnetpp",
+    "width": 32,
+    "sa_ratios": [
+      0.25,
+      0.25,
+      0.25
+    ],
+    "sa_radius": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "sa_nsample": [
+      64,
+      16,
+      16
+    ],
+    "sa_blocks": [
+      1,
+      1,
+      0
+    ],
+    "sa_center_sampling": "fps",
+    "sa_center_counts": [
+      125,
+      125,
+      32
+    ],
+    "fp_knn": 3,
+    "head_hidden": 64,
+    "out_dim": 1,
+    "dropout": 0,
+    "sa_grouping": [
+      "knn_cover",
+      "ball",
+      "ball"
+    ],
+    "invres_expansion": 2,
+    "residual_scale_init": 0.001,
+    "invres_radius_scale": 1.0,
+    "query_decoder": "interpolate",
+    "local_geope": true,
+    "local_geope_feature_indices": [
+      3,
+      4,
+      5
+    ],
+    "drop_path_rate": 0.1,
+    "local_transformer_stages": [
+      2
+    ],
+    "coarse_attention": false,
+    "coarse_attention_heads": 4,
+    "sep_hidden": 32,
+    "sep_beta_init": 2.0,
+    "neighbor_drop_rate": 0.0,
+    "local_transformer_heads": 4,
+    "local_transformer_ffn_ratio": 2,
+    "local_transformer_dropout": 0.0,
+    "edgeconv_stages": [],
+    "local_branch": true,
+    "local_branch_radii": [
+      0.015,
+      0.03,
+      0.06
+    ],
+    "local_branch_nsample": [
+      16,
+      16,
+      16
+    ],
+    "local_branch_channels": 32,
+    "local_branch_feature_indices": [
+      14,
+      15,
+      16
+    ],
+    "local_branch_directional": true,
+    "query_patch_film": true,
+    "query_patch_k": 16,
+    "query_patch_hidden": 64
+  },
+  "train": {
+    "epochs": 400,
+    "batch_cases": 8,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 10,
+    "min_lr": 1e-05,
+    "grad_clip": 1,
+    "seed": 2025,
+    "loss": "mse",
+    "loss_geom_weight": false,
+    "loss_weight_target": false,
+    "loss_weight_fixed_quantiles": true,
+    "loss_raw_huber_lambda": 0,
+    "amp": true,
+    "eval_every": 400,
+    "ckpt_metric": "train_loss",
+    "selection_rule": "train_loss",
+    "ckpt_top_k": 3,
+    "early_stop_patience": 0,
+    "min_epoch": 400,
+    "log_every_steps": 0,
+    "loss_hotspot_bce_lambda": 0.0,
+    "hotspot_quantile": 0.9,
+    "loss_pinball_lambda": 0.2,
+    "pinball_quantile": 0.9,
+    "log_loss_components": true,
+    "init_reference_config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json",
+    "loss_asym_under_weight": 2.0
+  },
+  "eval": {
+    "fixed_support": true,
+    "full_cloud_query": true,
+    "query_chunk_size": 16384,
+    "support_seed": 1234,
+    "surface_metric_mode": "legacy_vertex",
+    "stability_seeds": [
+      1234,
+      2025,
+      3407,
+      7919,
+      104729
+    ]
+  }
+}

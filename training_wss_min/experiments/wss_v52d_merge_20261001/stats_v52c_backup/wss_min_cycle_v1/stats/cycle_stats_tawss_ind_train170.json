@@ -1,0 +1,30 @@
+{
+ "schema_version": 1,
+ "generated_at": "2026-09-30T08:12:56.541816+00:00",
+ "pack": "wss_min_cycle_v1",
+ "pack_version": "v1.0",
+ "statistics_scope": "train partition only (ind_train170, valid anatomy wall nodes)",
+ "scope": "ind_train170",
+ "split_path": "data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/split_v52_ind_train170_test91.json",
+ "split_sha256": "490d6177a4b1f0b15eac04d1839ed5f21a857b1a41d992750e12cfec6525b96e",
+ "n_cases": 170,
+ "n_points": 6631970,
+ "definition": "TAWSS=(1/80)sum_k|tau_k| over frames 0..79 (steps 1120..1278; frame 80 = frame 0 + T); OSI=0.5*(1-|sum_k tau_k|/sum_k|tau_k|); RRT=1/((1-2*OSI)*max(TAWSS,0.05Pa)); rev_frac=(1/80)sum_k[tau_k.tau_peak<0]",
+ "target": "tawss",
+ "method": "log_z",
+ "eps": 1e-06,
+ "floor": 0.05,
+ "timesteps_scope": "cycle_0_79",
+ "zero_frac": 0.0,
+ "linear": {
+  "mean": 1.3074455729692736,
+  "std": 1.9555802650473397
+ },
+ "log": {
+  "mean": -0.2621119058564675,
+  "std": 0.9798916608811467
+ },
+ "raw_min": 0.004045108798891306,
+ "raw_max": 131.53433227539062,
+ "below_floor_frac": 0.00059590136867326
+}

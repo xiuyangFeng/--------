@@ -1,0 +1,141 @@
+{
+  "abscissa_norm": {
+    "mean": 0.5795134768429656,
+    "std": 0.2698104557369654,
+    "transform": "none"
+  },
+  "local_radius": {
+    "mean": 8.356041833232787,
+    "std": 4.78238988886779,
+    "transform": "none"
+  },
+  "curvature": {
+    "mean": 0.04172992215145622,
+    "std": 0.02954425026019505,
+    "clip": 0.14597927297406557,
+    "transform": "signed_log1p"
+  },
+  "log_local_radius": {
+    "mean": 1.9761749573229732,
+    "std": 0.5473727474000546,
+    "transform": "none"
+  },
+  "rho": {
+    "mean": 1.1438822115881258,
+    "std": 0.20178003752970364,
+    "transform": "none"
+  },
+  "theta_sin": {
+    "mean": 0.002930735080151362,
+    "std": 0.7094260448979581,
+    "transform": "none"
+  },
+  "theta_cos": {
+    "mean": -0.003725497998445367,
+    "std": 0.7047659514226853,
+    "transform": "none"
+  },
+  "dr_ds": {
+    "mean": -0.024612472421793277,
+    "std": 0.17256593404581078,
+    "transform": "none"
+  },
+  "dist_to_junction_mm": {
+    "mean": 55.13927305805915,
+    "std": 51.665470327928396,
+    "transform": "none"
+  },
+  "dist_to_endpoint_mm": {
+    "mean": 86.52733082201328,
+    "std": 55.71607924460335,
+    "transform": "none"
+  },
+  "end_zone": {
+    "mean": 0.07724422554832447,
+    "std": 0.2669795668696343,
+    "transform": "none"
+  },
+  "nx_aligned": {
+    "mean": 0.0023955387472413396,
+    "std": 0.6418889729631222,
+    "transform": "none"
+  },
+  "ny_aligned": {
+    "mean": -0.012998042101820359,
+    "std": 0.628705666772514,
+    "transform": "none"
+  },
+  "nz_aligned": {
+    "mean": -0.01185786535822789,
+    "std": 0.4386295164716454,
+    "transform": "none"
+  },
+  "curv_k1": {
+    "mean": 0.16651560827701697,
+    "std": 0.12196602278596153,
+    "clip": 0.5515988975025294,
+    "transform": "signed_log1p"
+  },
+  "curv_k2": {
+    "mean": -0.031976311055200914,
+    "std": 0.11636106779345025,
+    "clip": 0.5217443903123786,
+    "transform": "signed_log1p"
+  },
+  "curv_gauss": {
+    "mean": -0.0006569977233421458,
+    "std": 0.030906166207084432,
+    "clip": 0.18417969422770053,
+    "transform": "signed_log1p"
+  },
+  "curvedness": {
+    "mean": 0.15021120618247577,
+    "std": 0.09196418058585351,
+    "clip": 0.5044112677842195,
+    "transform": "signed_log1p"
+  },
+  "curv_k1_c": {
+    "mean": 0.16423087866724723,
+    "std": 0.1111148135848518,
+    "clip": 0.5079319787394514,
+    "transform": "signed_log1p"
+  },
+  "curv_k2_c": {
+    "mean": -0.01458849461052808,
+    "std": 0.08704605454277392,
+    "clip": 0.35468956016482167,
+    "transform": "signed_log1p"
+  },
+  "curv_gauss_c": {
+    "mean": -4.252622895444977e-05,
+    "std": 0.025905706280042157,
+    "clip": 0.1480835605935043,
+    "transform": "signed_log1p"
+  },
+  "tn_dot": {
+    "mean": 0.032503427598051214,
+    "std": 0.24386629028548373,
+    "transform": "none"
+  },
+  "log_q_branch_murray_cap": {
+    "mean": -0.6473657478470365,
+    "std": 0.6991260123854852,
+    "transform": "none"
+  },
+  "log_tau0_murray_cap": {
+    "mean": -6.575890619279049,
+    "std": 1.1900038447704941,
+    "transform": "none"
+  },
+  "_provenance": {
+    "train_split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/split_v52p4_full265_train265_test8.json",
+    "n_cases": 265,
+    "wss_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_view_v1/wss_global_stats_full265_train265.json",
+    "sidecar_roots": [
+      "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_geom_v2",
+      "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2p4_full265_20260930/wss_min_flowref_v1"
+    ],
+    "curvature_transform": "signed_log1p",
+    "note": "v5.2p4 full265: train-partition z-scores for every non-xyz input feature (same code path as prepare_wss_v52.feature_stats)"
+  }
+}

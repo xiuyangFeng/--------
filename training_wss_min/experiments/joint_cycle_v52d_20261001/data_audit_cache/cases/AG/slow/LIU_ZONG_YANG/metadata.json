@@ -1,0 +1,111 @@
+{
+  "canonical_id": "AG/slow/LIU_ZONG_YANG",
+  "assembly_source": "v5.2c-labelfix",
+  "n_wall": 12138,
+  "n_volume": 355419,
+  "sources": {
+    "h5": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_2d_20261001/cases/AG__slow__LIU_ZONG_YANG/case.h5",
+      "size": 515391376,
+      "mtime_ns": 1790834852769059928
+    },
+    "bundle": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/AG/slow/LIU_ZONG_YANG/bundle.npz",
+      "size": 21302932,
+      "mtime_ns": 1790835280223484676
+    },
+    "volume": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/AG/slow/LIU_ZONG_YANG/volume.npz",
+      "size": 44533961,
+      "mtime_ns": 1790835285803516327
+    },
+    "geom": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_geom_v2/AG/slow/LIU_ZONG_YANG/features.npz",
+      "size": 780784,
+      "mtime_ns": 1790835287039523338
+    },
+    "flowref": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1/AG/slow/LIU_ZONG_YANG/features.npz",
+      "size": 1220328,
+      "mtime_ns": 1790839209381773005
+    }
+  },
+  "boundary_conditions": {
+    "udf": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/slow/LIU_ZONG_YANG/udf-inlet.c",
+      "sha256": "cd2621092c90feb8c610f845a827220f1bd2fd1377f534d9b794e0154116abb2"
+    },
+    "rcr": [
+      {
+        "outlet": "out-le",
+        "R1": 139880.0,
+        "R2": 979480.0,
+        "C": 1.5991e-06
+      },
+      {
+        "outlet": "out-li",
+        "R1": 369710.0,
+        "R2": 3607300.0,
+        "C": 4.5009e-07
+      },
+      {
+        "outlet": "out-ri",
+        "R1": 512600.0,
+        "R2": 1916800.0,
+        "C": 7.3681e-07
+      },
+      {
+        "outlet": "out-re",
+        "R1": 329280.0,
+        "R2": 1034600.0,
+        "C": 1.3124e-06
+      }
+    ],
+    "rheology": {
+      "mu_inf_pa_s": 0.0035,
+      "mu_zero_pa_s": 0.16,
+      "lambda_s": 8.2,
+      "a": 0.64,
+      "n": 0.2128
+    },
+    "period_s": 0.8,
+    "rho_kg_m3": 1060.0,
+    "A_inlet_udf_m2": 0.000420403524,
+    "resistance_units": "Pa*s/kg",
+    "capacitance_units": "kg/Pa",
+    "source": "case.h5 conditions attributes; frozen prescribed inputs, no CFD labels"
+  },
+  "schema": "joint_cycle_v52_v1",
+  "settings": {
+    "seed": 1234,
+    "train_volume": 8192,
+    "train_wall": 8192,
+    "eval_volume": 16384,
+    "eval_wall": 8192
+  },
+  "peak_consistency": {
+    "peak_velocity_abs_max": 0.0,
+    "peak_pressure_abs_max": 0.0,
+    "peak_wss_abs_max": 0.0
+  },
+  "endpoint_80_vs_0_abs_max": {
+    "train": {
+      "velocity": 0.013498485088348389,
+      "pressure": 14.883373260498047,
+      "wss": 0.3597249984741211
+    },
+    "eval": {
+      "velocity": 0.0173434317111969,
+      "pressure": 14.875560760498047,
+      "wss": 0.18038368225097656
+    }
+  },
+  "actual_pool_counts": {
+    "train_wall": 6069,
+    "eval_wall": 6069,
+    "train_volume": 8192,
+    "eval_volume": 16384
+  },
+  "normalization_input": "raw physical labels; WSS floor is applied only by normalizer",
+  "bc_note": "20 frozen prescribed input channels from conditions attrs; RCR resistance Pa*s/kg and capacitance kg/Pa; train-only normalization"
+}

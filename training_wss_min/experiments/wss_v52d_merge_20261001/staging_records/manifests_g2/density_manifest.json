@@ -1,0 +1,62 @@
+{
+ "pack": "wss_min_density_v1",
+ "version": "v1.0",
+ "levels": [
+  70,
+  50,
+  35,
+  25
+ ],
+ "seed": 20260915,
+ "view_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/_merge_20261001/views_g2/wss_min_view_v1",
+ "decimation": "voxel (one point per occupied voxel, nearest the centroid); voxel size by bisection to the target fraction",
+ "recomputed": [
+  "wall_normal_pca_aligned (pca_normals k=16 + centreline orientation)",
+  "principal curvature families k=32/128 (wall_geom_v2.principal_curvatures)",
+  "wall_tn_dot"
+ ],
+ "deployment_inputs_only": true,
+ "cases": 1,
+ "seconds": 3.8,
+ "reports": [
+  {
+   "canonical_id": "ILO/WANG_TIAN_QING-1/after",
+   "n_full": 40990,
+   "levels": {
+    "70": {
+     "n": 28799,
+     "fraction": 0.7025859965845328,
+     "normal_cos_vs_full_median": 0.9988628472823099,
+     "fine_neighbourhood_mm_median": 3.3928624584423313,
+     "coarse_neighbourhood_mm_median": 6.591944968630938,
+     "surface_variation_median": 0.009317783645655772
+    },
+    "50": {
+     "n": 20343,
+     "fraction": 0.49629177848255673,
+     "normal_cos_vs_full_median": 0.9980332613064518,
+     "fine_neighbourhood_mm_median": 4.086752365251684,
+     "coarse_neighbourhood_mm_median": 7.906991803326389,
+     "surface_variation_median": 0.011282508869854185
+    },
+    "35": {
+     "n": 14416,
+     "fraction": 0.35169553549646254,
+     "normal_cos_vs_full_median": 0.9964180705976844,
+     "fine_neighbourhood_mm_median": 4.843232295769587,
+     "coarse_neighbourhood_mm_median": 9.312793126480205,
+     "surface_variation_median": 0.014203324412435596
+    },
+    "25": {
+     "n": 10338,
+     "fraction": 0.25220785557453035,
+     "normal_cos_vs_full_median": 0.9945215234514562,
+     "fine_neighbourhood_mm_median": 5.6942653218253625,
+     "coarse_neighbourhood_mm_median": 10.88143445078841,
+     "surface_variation_median": 0.01714842560285776
+    }
+   },
+   "seconds": 3.8
+  }
+ ]
+}

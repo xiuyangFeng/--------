@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "split_version": "split_anchor_recover7_old_code_compatible",
+  "source_split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/split_v52p4_full265_train265_test8.json",
+  "source_split_sha256": "93936a2fbed51be71bd4cc8c6142bd2d00060d42f214c4f05df49f634405bf85",
+  "train_cases": [],
+  "val_cases": [],
+  "test_cases": [
+    "AAA/ruputer/FU_GUO_JUN",
+    "AAA/ruputer/LIU_YU_MING",
+    "AAA/ruputer/SHI_YUN_XI",
+    "AAA/ruputer/WANG_SHUN_WEN",
+    "AAA/ruputer/ZHANG_ZAO_SHUAN",
+    "AAA/unruputer/LIU_WEN_QI",
+    "ILO/LI_JIE-1/before"
+  ],
+  "counts": {
+    "train": 0,
+    "val": 0,
+    "test": 7
+  },
+  "expected_counts": {
+    "train": 0,
+    "val": 0,
+    "test": 7
+  },
+  "note": "preflight anchors only: recover8 minus ILO 'after' units, because the old code's split loader (GNN_voltime_frozen_20260919, canonical_unit_id) rejects ILO 'after' labels; E5 uses full recover8"
+}

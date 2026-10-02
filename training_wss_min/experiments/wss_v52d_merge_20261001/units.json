@@ -1,0 +1,10 @@
+{
+ "purpose": "2026-10-01 library audit: one merged data update after every fix is in (docs/02-推进与变更/04-数据处理与CFD/母库全量审计_2026-10-01.md)",
+ "recomputed_same_mesh": {"AAA/unruputer/HAN_JIAN_FU": {"work": "outputs/cfd_auto_trial_20260927/_label_fix_han/units/AAA/unruputer/HAN_JIAN_FU", "batch": "outputs/cfd_auto_trial_20260927/_label_fix_han", "case": "HAN_JIAN_FU.cas.gz",
+   "why": "wall frames 1122-1280 came from the 01-20 solve whose outlet pressure never built up; volume frames from the 01-29 solve"}},
+ "rebuilt_from_stl": {"ILO/WANG_TIAN_QING-1/after": {"work": "outputs/cfd_auto_trial_20260927/_rebuild_wtq/units/ILO/WANG_TIAN_QING-1/after", "batch": "outputs/cfd_auto_trial_20260927/_rebuild_wtq", "case": "WANG_TIAN_QING.cas.gz",
+   "why": "the library mesh was DONG_JIA_JU-1/after's (wall nodes bit-identical; 2.9 mm from this unit's own STL after registration)"}},
+ "renamed_outlets": ["AAA/ruputer/MENG_GUANG_QIN", "AAA/ruputer/WANG_KUI_WU", "AAA/unruputer/CHEN_SHU_LIN", "AG/fast/LIU_LI_QUN", "AG/fast/LIU_YI_BING", "AG/fast/LI_SHI_QIANG",
+   "AG/fast/LI_ZHEN_SHAN", "AG/fast/LI_ZHI_LIN", "AG/slow/LIU_ZONG_YANG", "AG/slow/SUN_ZONG_GE", "AG/slow/SUN_ZONG_GE~m43", "AG/slow/XI_CHENG_JIANG",
+   "ILO/SHEN_CHUN_WANG-0/before", "ILO/WU_JUN-0/after", "ILO/YAO_GUO_CHEN-0/after", "ILO/ZHANG_YONG_SHENG-0/before"]
+}

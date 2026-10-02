@@ -1,0 +1,64 @@
+{
+ "rule": "log(Q_ext/Q_int) = a * log((r_cap_ext / r_cap_int)^2) + b",
+ "a": 1.2624027994376297,
+ "b": 0.1001784229970471,
+ "feature": "virtual-cap radii of the geometry program (geometry/cap_radius_mm), external over internal iliac",
+ "target": "log(Q_ext/Q_int) at peak step 1162 from interfaces/*/flux_outward_m3s (labels only)",
+ "fit_on": "train136 sides only (v5.1 train136 = IND train170 minus nothing new; same protocol as the 09-15 rule)",
+ "n_train_sides": 272,
+ "n_test_sides": 68,
+ "train_r2": 0.9076842541957181,
+ "test_r2": 0.8968156017718749,
+ "murray_raw_r2_train": 0.8752778433051435,
+ "murray_raw_r2_test": 0.7976330800323159,
+ "residual_sd_train": 0.22456038577969062,
+ "residual_sd_test": 0.1943398124440965,
+ "target_sd": 0.7144370305398261,
+ "per_cohort": {
+  "AAA": {
+   "n_sides": 108,
+   "r2_rule": 0.9111138222754167,
+   "r2_murray_raw": 0.8535350053262656
+  },
+  "AG": {
+   "n_sides": 150,
+   "r2_rule": 0.929057316669495,
+   "r2_murray_raw": 0.9023577472764305
+  },
+  "ILO": {
+   "n_sides": 82,
+   "r2_rule": 0.837011612686435,
+   "r2_murray_raw": 0.7823772441793155
+  }
+ },
+ "protocol_shares": {
+  "root": 1.0,
+  "common_iliac": 0.5
+ },
+ "cases_with_missing_sides": [],
+ "deployment_inputs_only_geometry": true,
+ "created_at": "2026-10-01T15:17:43+0800",
+ "sources": "each unit's v5.2d case.h5 (data_wss_v5/anatomy_pointcloud_v5_2d_20261001)",
+ "units_changed_since_v52c": [
+  "AAA/ruputer/MENG_GUANG_QIN",
+  "AAA/ruputer/WANG_KUI_WU",
+  "AAA/unruputer/CHEN_SHU_LIN",
+  "AAA/unruputer/HAN_JIAN_FU",
+  "AG/fast/LIU_LI_QUN",
+  "AG/fast/LIU_YI_BING",
+  "AG/fast/LI_SHI_QIANG",
+  "AG/fast/LI_ZHEN_SHAN",
+  "AG/fast/LI_ZHI_LIN",
+  "AG/slow/LIU_ZONG_YANG",
+  "AG/slow/SUN_ZONG_GE",
+  "AG/slow/XI_CHENG_JIANG",
+  "ILO/ZHANG_YONG_SHENG-0/before"
+ ],
+ "supersedes": {
+  "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1/flow_split_rule_v52c_train136.json",
+  "a": 1.2645199673919005,
+  "b": 0.0961294675703845,
+  "reproduced_bit_exactly_from_pre_merge_sources": true
+ },
+ "script": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52d_merge_20261001/05_refit_rule.py"
+}

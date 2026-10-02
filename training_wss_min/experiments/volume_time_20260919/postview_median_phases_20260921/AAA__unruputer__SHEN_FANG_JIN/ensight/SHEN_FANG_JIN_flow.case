@@ -1,0 +1,27 @@
+FORMAT
+type: ensight gold
+
+GEOMETRY
+model: SHEN_FANG_JIN_lumen.geo
+
+VARIABLE
+scalar per node: 1 speed_CFD vars/speed_CFD.****
+scalar per node: 1 speed_VT0 vars/speed_VT0.****
+scalar per node: 1 speed_VTB4 vars/speed_VTB4.****
+scalar per node: 1 speed_err_VT0 vars/speed_err_VT0.****
+scalar per node: 1 speed_err_VTB4 vars/speed_err_VTB4.****
+vector per node: 1 velocity_CFD vars/velocity_CFD.****
+vector per node: 1 velocity_VT0 vars/velocity_VT0.****
+vector per node: 1 velocity_VTB4 vars/velocity_VTB4.****
+scalar per node: 1 pressure_CFD vars/pressure_CFD.****
+scalar per node: 1 pressure_PT0 vars/pressure_PT0.****
+scalar per node: 1 pressure_PTB8 vars/pressure_PTB8.****
+scalar per node: 1 pres_err_PT0 vars/pres_err_PT0.****
+scalar per node: 1 pres_err_PTB8 vars/pres_err_PTB8.****
+
+TIME
+time set: 1 cardiac_phase
+number of steps: 4
+filename start number: 0
+filename increment: 1
+time values: 0.13 0.21 0.35 0.48

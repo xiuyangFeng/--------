@@ -1,0 +1,53 @@
+{
+ "schema_version": 1,
+ "split_version": "test34_v50_units_on_v52d",
+ "train_cases": [],
+ "val_cases": [],
+ "test_cases": [
+  "AAA/ruputer/KANG_YONG",
+  "AAA/ruputer/LI_ZHEN_HUA",
+  "AAA/ruputer/WANG_FU_SHUN",
+  "AAA/ruputer/YU_TIAN_HAI",
+  "AAA/unruputer/GAO_DIAN_WEN",
+  "AAA/unruputer/LIU_KANG_WEN",
+  "AAA/unruputer/MA_JIN_HE",
+  "AAA/unruputer/SUN_SHU_MING",
+  "AAA/unruputer/WANG_MAN_TIAN",
+  "AAA/unruputer/ZHANG_YONG_ZHI",
+  "AG/fast/FAN_JIAN_MING",
+  "AG/fast/LOU_YANG",
+  "AG/fast/RAN_QING_BO",
+  "AG/fast/SUN_ZHI_YU",
+  "AG/fast/YAO_CUN_HONG",
+  "AG/fast/ZHANG_CHUN",
+  "AG/fast/ZHANG_LIANG",
+  "AG/slow/BAI_WEN_JIE",
+  "AG/slow/CHEN_JING_RU",
+  "AG/slow/GUO_XI_JIANG",
+  "AG/slow/HE_SHU_ZHEN",
+  "AG/slow/LI_HUAN_GE",
+  "AG/slow/MA_TIAN_YI",
+  "AG/slow/MA_YU",
+  "AG/slow/ZHANG_WEI_XIAN",
+  "ILO/LI_YOU_ZHI-0/before",
+  "ILO/LU_FU_SHAN-0/before",
+  "ILO/SUN_DONG_XIN-0/before",
+  "ILO/SUN_XU_XIA-1/before",
+  "ILO/YANG_WEN_TAI-0/before",
+  "ILO/YU_XIANG_SHENG-1/before",
+  "ILO/ZHANG_HE_PING-0/before",
+  "ILO/ZHANG_JIN_CHUN-1/before",
+  "ILO/ZHANG_YONG_SHENG-0/before"
+ ],
+ "counts": {
+  "train": 0,
+  "val": 0,
+  "test": 34
+ },
+ "expected_counts": {
+  "train": 0,
+  "val": 0,
+  "test": 34
+ },
+ "note": "2026-10-02 old-vs-new comparison: the 34 v5.0 test units (never seen by the deployed v5.0 PF6/VF6), scored on v5.2d labels; new models use their CV5 out-of-fold predictions on the same units"
+}

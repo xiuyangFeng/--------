@@ -1,0 +1,111 @@
+{
+ "abscissa_norm": {
+  "mean": 0.5732841939546226,
+  "std": 0.2723459451005578,
+  "transform": "none"
+ },
+ "local_radius": {
+  "mean": 8.384019735717837,
+  "std": 4.902341855333099,
+  "transform": "none"
+ },
+ "curvature": {
+  "mean": 0.040537291604343426,
+  "std": 0.028814176529784102,
+  "clip": 0.14270380882609562,
+  "transform": "signed_log1p"
+ },
+ "log_local_radius": {
+  "mean": 1.9749332288532016,
+  "std": 0.5544529204398305,
+  "transform": "none"
+ },
+ "rho": {
+  "mean": 0.9995700294165136,
+  "std": 0.28032029391505164,
+  "transform": "none"
+ },
+ "theta_sin": {
+  "mean": 0.0027112092352507837,
+  "std": 0.7084748260736011,
+  "transform": "none"
+ },
+ "theta_cos": {
+  "mean": -0.0024984040406805233,
+  "std": 0.7057284578262011,
+  "transform": "none"
+ },
+ "dr_ds": {
+  "mean": -0.026197443917915664,
+  "std": 0.1732724222292465,
+  "transform": "none"
+ },
+ "dist_to_junction_mm": {
+  "mean": 54.07783011279624,
+  "std": 50.38183129904615,
+  "transform": "none"
+ },
+ "dist_to_endpoint_mm": {
+  "mean": 83.13011533056121,
+  "std": 54.271162884752634,
+  "transform": "none"
+ },
+ "end_zone": {
+  "mean": 0.0824776027152901,
+  "std": 0.2750919808874765,
+  "transform": "none"
+ },
+ "nx_aligned": {
+  "mean": 0.002875250807415104,
+  "std": 0.6459670477659079,
+  "transform": "none"
+ },
+ "ny_aligned": {
+  "mean": 0.00496308427931882,
+  "std": 0.6382770264100869,
+  "transform": "none"
+ },
+ "nz_aligned": {
+  "mean": 0.005099983662004087,
+  "std": 0.4186567895643294,
+  "transform": "none"
+ },
+ "dist_to_wall_mm": {
+  "mean": 0.9841148948280987,
+  "std": 1.5373282713645888,
+  "transform": "none"
+ },
+ "log_q_branch_murray": {
+  "mean": -0.6348298136185218,
+  "std": 0.6836515054007134,
+  "transform": "none"
+ },
+ "log_tau0_murray": {
+  "mean": -6.559629499527735,
+  "std": 1.205729971270382,
+  "transform": "none"
+ },
+ "_provenance": {
+  "train_split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/cv5_v52/fold3.json",
+  "split_sha256": "67023fe6f37716fb04bb216d3c6c7942caa6b61dbe4f918441ffb58df0224553",
+  "n_cases": 211,
+  "n_rows": 111258241,
+  "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_volview_v1",
+  "volume_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_volview_v1/stats/volume_stats_cv5_fold3_train211.json",
+  "target": "pressure_mixed",
+  "point_features_root": [
+   "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1"
+  ],
+  "scope": "volume point set (wall nodes + interior cells) of the training partition",
+  "builder": "dataset.load_partition + dataset.compute_feature_stats (same call as train.py)",
+  "generated_at": "2026-10-02T16:21:52+0800",
+  "context": {
+   "host": "node04",
+   "pid": 1451480,
+   "slurm_job_id": null,
+   "executed_outside_slurm": true,
+   "at": "2026-10-02T16:21:52+0800"
+  },
+  "load_seconds": 66.50975108146667
+ }
+}

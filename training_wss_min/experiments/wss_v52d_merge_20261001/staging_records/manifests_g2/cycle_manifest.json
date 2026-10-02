@@ -1,0 +1,42 @@
+{
+ "pack": "wss_min_cycle_v1",
+ "version": "v1.0",
+ "created_at": "2026-10-01T07:16:47.909600+00:00",
+ "view_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/_merge_20261001/views_g2/wss_min_view_v1",
+ "out_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/_merge_20261001/views_g2/wss_min_cycle_v1",
+ "definition": "TAWSS=(1/80)sum_k|tau_k| over frames 0..79 (steps 1120..1278; frame 80 = frame 0 + T); OSI=0.5*(1-|sum_k tau_k|/sum_k|tau_k|); RRT=1/((1-2*OSI)*max(TAWSS,0.05Pa)); rev_frac=(1/80)sum_k[tau_k.tau_peak<0]",
+ "n_frames_used": 80,
+ "steps_used": [
+  1120,
+  1278
+ ],
+ "floor_pa": 0.05,
+ "period_wrap_flag_threshold": 0.05,
+ "n_cases": 1,
+ "n_failed": 0,
+ "period_wrap_flagged": [],
+ "seconds": 0.2,
+ "cases": [
+  {
+   "case": "ILO/WANG_TIAN_QING-1/after",
+   "n_points": 40990,
+   "seconds": 0.22,
+   "frame_version": "v5_atlas_frame_v1",
+   "sha256": "0e632cccec6e6ba47f6cd8d727a377e714576102bde862c916a955ff4d87aaa9",
+   "source_bundle_size": 71909332,
+   "source_bundle_mtime": 1790839142.0893912,
+   "period_wrap_rel_diff": 0.001969243798587274,
+   "period_wrap_ln_corr": 0.999986728822009,
+   "tawss_below_floor_frac": 0.00021956574774335203,
+   "tawss_median_pa": 0.47128506875319187,
+   "tawss_p10_pa": 0.24747377301308113,
+   "osi_median": 0.17371293224107642,
+   "osi_gt_0p1_frac": 0.6654061966333252,
+   "osi_gt_0p3_frac": 0.22817760429373019,
+   "stagnation_frac": 0.3531349109538912,
+   "tawss81_vs_80_max_rel_diff": 0.1569904677728959,
+   "vec_scalar_ratio_median_peak": 0.9905735565007928
+  }
+ ],
+ "failures": []
+}

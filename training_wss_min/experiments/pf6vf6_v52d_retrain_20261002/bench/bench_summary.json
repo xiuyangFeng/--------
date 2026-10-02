@@ -1,0 +1,84 @@
+{
+ "what": "PF6 cv5 fold0 recipe on 60 train units, 8 epochs; solo = one arm on a GPU, pairA/B = two arms sharing one GPU; A100 on node04 (outside Slurm), 4090 on master (Slurm job 16850)",
+ "runs": {
+  "a100_pairA": {
+   "epoch_elapsed_s": [
+    10.8,
+    14.7,
+    18.8,
+    22.9,
+    26.9,
+    31.0,
+    35.1,
+    39.2
+   ],
+   "median_epoch_s_ep2plus": 4.100000000000001
+  },
+  "a100_pairB": {
+   "epoch_elapsed_s": [
+    10.7,
+    14.8,
+    18.8,
+    23.0,
+    26.9,
+    31.1,
+    35.1,
+    39.2
+   ],
+   "median_epoch_s_ep2plus": 4.050000000000001
+  },
+  "a100_solo": {
+   "epoch_elapsed_s": [
+    9.3,
+    11.4,
+    13.5,
+    15.7,
+    17.9,
+    20.1,
+    22.2,
+    24.4
+   ],
+   "median_epoch_s_ep2plus": 2.1999999999999993
+  },
+  "g4090_pairA": {
+   "epoch_elapsed_s": [
+    4.9,
+    8.4,
+    12.3,
+    16.3,
+    19.9,
+    23.9,
+    27.7,
+    31.9
+   ],
+   "median_epoch_s_ep2plus": 3.95
+  },
+  "g4090_pairB": {
+   "epoch_elapsed_s": [
+    4.8,
+    8.5,
+    12.3,
+    16.0,
+    19.9,
+    24.0,
+    27.8,
+    32.0
+   ],
+   "median_epoch_s_ep2plus": 3.8499999999999996
+  },
+  "g4090_solo": {
+   "epoch_elapsed_s": [
+    3.8,
+    5.9,
+    8.1,
+    10.3,
+    12.6,
+    15.0,
+    17.3,
+    19.4
+   ],
+   "median_epoch_s_ep2plus": 2.25
+  }
+ },
+ "decision": "one arm per GPU on all 6 GPUs: A100 ~ 4090 for this model; doubling gains only +8 % (A100) / +15 % (4090) throughput in this short test while each arm is ~1.8x slower and CPU/memory per GPU double (earlier long X5D runs: doubling lost 6-13 %)"
+}

@@ -1,0 +1,143 @@
+{
+  "canonical_id": "AG/fast/WANG_CHUN_MING",
+  "assembly_source": "v5.1",
+  "n_wall": 10030,
+  "n_volume": 290060,
+  "sources": {
+    "h5": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/anatomy_pointcloud_v5_2d_20261001/cases/AG__fast__WANG_CHUN_MING/case.h5",
+      "size": 420956991,
+      "mtime_ns": 1789511863555309074
+    },
+    "bundle": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/AG/fast/WANG_CHUN_MING/bundle.npz",
+      "size": 17605508,
+      "mtime_ns": 1789512672120061847
+    },
+    "volume": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/AG/fast/WANG_CHUN_MING/volume.npz",
+      "size": 36347226,
+      "mtime_ns": 1789512793484775233
+    },
+    "geom": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_geom_v2/AG/fast/WANG_CHUN_MING/features.npz",
+      "size": 645872,
+      "mtime_ns": 1789512757280562423
+    },
+    "flowref": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1/AG/fast/WANG_CHUN_MING/features.npz",
+      "size": 1009528,
+      "mtime_ns": 1790839208097765722
+    }
+  },
+  "boundary_conditions": {
+    "udf": {
+      "path": "/public/newhome/cy/Digital_twin/GNN/data_new/AG/fast/WANG_CHUN_MING/udf-inlet.c",
+      "sha256": "af168fceea19fdd3f9cec216490cb9c705cbf7d14c000292b765eb0296215823"
+    },
+    "rcr": [
+      {
+        "outlet": "out-le",
+        "R1": 142210.0,
+        "R2": 1130200.0,
+        "C": 1.4068e-06
+      },
+      {
+        "outlet": "out-li",
+        "R1": 259350.0,
+        "R2": 2526900.0,
+        "C": 6.4245e-07
+      },
+      {
+        "outlet": "out-ri",
+        "R1": 233760.0,
+        "R2": 2045500.0,
+        "C": 7.8533e-07
+      },
+      {
+        "outlet": "out-re",
+        "R1": 162310.0,
+        "R2": 1254000.0,
+        "C": 1.2639e-06
+      }
+    ],
+    "rheology": {
+      "mu_inf_pa_s": 0.0035,
+      "mu_zero_pa_s": 0.16,
+      "lambda_s": 8.2,
+      "a": 0.64,
+      "n": 0.2128
+    },
+    "period_s": 0.8,
+    "rho_kg_m3": 1060.0,
+    "A_inlet_udf_m2": 0.000396212,
+    "resistance_units": "Pa*s/kg",
+    "capacitance_units": "kg/Pa",
+    "source": "case.h5 conditions attributes; frozen prescribed inputs, no CFD labels"
+  },
+  "schema": "joint_cycle_v52_v1",
+  "settings": {
+    "seed": 1234,
+    "train_volume": 8192,
+    "train_wall": 8192,
+    "eval_volume": 16384,
+    "eval_wall": 8192
+  },
+  "peak_consistency": {
+    "peak_velocity_abs_max": 0.0,
+    "peak_pressure_abs_max": 0.0,
+    "peak_wss_abs_max": 0.0
+  },
+  "endpoint_80_vs_0_abs_max": {
+    "train": {
+      "velocity": 0.040426190942525864,
+      "pressure": 1.4733734130859375,
+      "wss": 0.1982821822166443
+    },
+    "eval": {
+      "velocity": 0.03932692110538483,
+      "pressure": 1.4743499755859375,
+      "wss": 0.2108977735042572
+    }
+  },
+  "actual_pool_counts": {
+    "train_wall": 5015,
+    "eval_wall": 5015,
+    "train_volume": 8192,
+    "eval_volume": 16384
+  },
+  "normalization_input": "raw physical labels; WSS floor is applied only by normalizer",
+  "bc_note": "20 frozen prescribed input channels from conditions attrs; RCR resistance Pa*s/kg and capacitance kg/Pa; train-only normalization",
+  "signature_refreshed_20260930": [
+    {
+      "source": "flowref",
+      "old": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1/AG/fast/WANG_CHUN_MING/features.npz",
+        "size": 1050193,
+        "mtime_ns": 1789512775356668675
+      },
+      "new": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1/AG/fast/WANG_CHUN_MING/features.npz",
+        "size": 1009528,
+        "mtime_ns": 1790760135189214654
+      },
+      "reason": "flowref rebuilt with the refitted cap-area rule; only the capfit arrays changed (cached features use *_murray_cap)"
+    }
+  ],
+  "signature_refreshed_20261001": [
+    {
+      "source": "flowref",
+      "old": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1/AG/fast/WANG_CHUN_MING/features.npz",
+        "size": 1009528,
+        "mtime_ns": 1790760135189214654
+      },
+      "new": {
+        "path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1/AG/fast/WANG_CHUN_MING/features.npz",
+        "size": 1009528,
+        "mtime_ns": 1790839208097765722
+      },
+      "reason": "flowref rebuilt with the v5.2d cap-area rule; only the capfit arrays changed (cached features use *_murray_cap)"
+    }
+  ]
+}

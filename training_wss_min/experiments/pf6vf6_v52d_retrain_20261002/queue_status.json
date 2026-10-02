@@ -1,0 +1,1849 @@
+{
+  "job_id": "16867",
+  "started_at": "2026-10-02T01:37:43-0700",
+  "status": "complete",
+  "gpus": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "slots_per_gpu": 1,
+  "launch_interval_seconds": 45.0,
+  "arms": {
+    "PF6_v52cv_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T01:37:43-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s1234.json"
+          ],
+          "pid": 1941284,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:22:14-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T02:22:14-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2447693,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:25:07-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T02:25:07-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2458324,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:27:42-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "VF6_v52cv_f0_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T01:37:43-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f0_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s1234.json"
+          ],
+          "pid": 1941294,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:24:15-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T02:24:15-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f0_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2456895,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:26:23-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T02:26:23-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f0_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2460031,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:28:46-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "PF6_v52cv_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T01:37:44-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s1234.json"
+          ],
+          "pid": 1941298,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:20:21-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T02:20:21-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2431370,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:23:48-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T02:23:48-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2455356,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:26:41-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "VF6_v52cv_f1_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T01:37:44-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f1_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s1234.json"
+          ],
+          "pid": 1941302,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:23:05-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T02:23:05-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f1_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2452642,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:25:28-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T02:25:28-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f1_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2458822,
+          "returncode": 0,
+          "ended_at": "2026-10-02T02:27:54-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "PF6_v52cv_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T02:26:41-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s1234.json"
+          ],
+          "pid": 2460417,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:11:25-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T03:11:25-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2931090,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:13:50-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T03:13:50-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2950513,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:16:10-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "VF6_v52cv_f2_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T02:27:42-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f2_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s1234.json"
+          ],
+          "pid": 2461977,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:14:57-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T03:14:57-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f2_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2956966,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:16:55-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T03:16:55-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f2_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2964251,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:18:50-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "PF6_v52cv_f3_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T02:27:55-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f3_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s1234.json"
+          ],
+          "pid": 2462476,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:13:35-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T03:13:35-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f3_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2949158,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:15:54-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T03:15:54-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f3_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2960708,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:18:11-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "VF6_v52cv_f3_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T02:28:46-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f3_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s1234.json"
+          ],
+          "pid": 2465846,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:17:50-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T03:17:50-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f3_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2969121,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:19:52-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T03:19:52-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f3_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 2978774,
+          "returncode": 0,
+          "ended_at": "2026-10-02T03:21:50-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "PF6_v52cv_f4_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T03:16:10-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f4_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s1234.json"
+          ],
+          "pid": 2961477,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:01:31-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T04:01:32-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f4_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3423585,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:03:54-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T04:03:54-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f4_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3441983,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:06:16-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "VF6_v52cv_f4_s1234": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s1234.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s1234",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T03:18:11-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f4_s1234_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s1234.json"
+          ],
+          "pid": 2970240,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:05:58-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T04:05:58-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f4_s1234_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3454086,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:07:51-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T04:07:51-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f4_s1234_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s1234",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3462417,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:10:10-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "PF6_v52cv_f0_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T03:18:51-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f0_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s7.json"
+          ],
+          "pid": 2972824,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:03:14-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T04:03:15-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f0_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3438080,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:06:01-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T04:06:01-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f0_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f0_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3454124,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:08:39-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "VF6_v52cv_f0_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T03:21:50-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f0_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s7.json"
+          ],
+          "pid": 2995677,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:10:28-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T04:10:28-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f0_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3479395,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:12:41-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T04:12:41-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f0_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3497091,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:14:55-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "PF6_v52cv_f1_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T04:06:17-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f1_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s7.json"
+          ],
+          "pid": 3455168,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:48:49-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T04:48:49-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f1_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3891169,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:51:45-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T04:51:45-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f1_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f1_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3915979,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:54:44-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "VF6_v52cv_f1_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T04:08:39-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f1_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s7.json"
+          ],
+          "pid": 3467460,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:54:07-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T04:54:07-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f1_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3936734,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:56:33-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T04:56:33-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f1_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3951120,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:58:56-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "PF6_v52cv_f2_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T04:10:10-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f2_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s7.json"
+          ],
+          "pid": 3477007,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:55:32-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T04:55:32-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f2_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3945082,
+          "returncode": 0,
+          "ended_at": "2026-10-02T04:57:52-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T04:57:52-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f2_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f2_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3959235,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:00:32-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "VF6_v52cv_f2_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T04:14:55-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f2_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s7.json"
+          ],
+          "pid": 3516410,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:02:09-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T05:02:09-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f2_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 3991401,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:04:07-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T05:04:07-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f2_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 4008513,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:06:06-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "PF6_v52cv_f3_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T04:54:44-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f3_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s7.json"
+          ],
+          "pid": 3940357,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:39:29-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T05:39:29-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f3_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 192825,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:41:48-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T05:41:48-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f3_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f3_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 212283,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:44:07-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "VF6_v52cv_f3_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T04:58:56-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f3_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s7.json"
+          ],
+          "pid": 3966027,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:46:48-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T05:46:48-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f3_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 255101,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:48:43-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T05:48:43-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f3_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 266304,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:50:36-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "PF6_v52cv_f4_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T05:00:32-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f4_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s7.json"
+          ],
+          "pid": 3976076,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:46:20-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T05:46:21-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f4_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 251549,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:48:37-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T05:48:37-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/PF6_v52cv_f4_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/PF6_v52cv_f4_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 265645,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:50:51-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "VF6_v52cv_f4_s7": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s7.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s7",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T05:06:06-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f4_s7_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s7.json"
+          ],
+          "pid": 4025099,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:53:50-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T05:53:50-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f4_s7_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 304032,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:55:45-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T05:55:45-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f4_s7_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s7",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 319257,
+          "returncode": 0,
+          "ended_at": "2026-10-02T05:57:40-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "VF6_v52cv_f0_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s2025.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s2025",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T05:44:07-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f0_s2025_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s2025.json"
+          ],
+          "pid": 232014,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:30:43-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T06:30:44-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f0_s2025_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 691300,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:32:57-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T06:32:57-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f0_s2025_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f0_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 708794,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:35:08-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    },
+    "VF6_v52cv_f1_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s2025.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s2025",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T05:50:36-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f1_s2025_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s2025.json"
+          ],
+          "pid": 276729,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:35:53-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T06:35:53-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f1_s2025_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 732014,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:38:19-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T06:38:19-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f1_s2025_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f1_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 748205,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:40:44-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "0"
+    },
+    "VF6_v52cv_f2_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s2025.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s2025",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T05:50:51-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f2_s2025_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s2025.json"
+          ],
+          "pid": 278377,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:37:45-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T06:37:45-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f2_s2025_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 745082,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:39:44-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T06:39:44-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f2_s2025_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f2_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 755789,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:41:45-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "3"
+    },
+    "VF6_v52cv_f3_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s2025.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s2025",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T05:57:40-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f3_s2025_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s2025.json"
+          ],
+          "pid": 334820,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:44:53-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T06:44:53-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f3_s2025_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 783714,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:46:44-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T06:46:45-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f3_s2025_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f3_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 789476,
+          "returncode": 0,
+          "ended_at": "2026-10-02T06:48:37-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "1"
+    },
+    "VF6_v52cv_f4_s2025": {
+      "config": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s2025.json",
+      "run_name": "pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s2025",
+      "phase": 0,
+      "status": "complete",
+      "stages": {
+        "train": {
+          "started_at": "2026-10-02T06:35:08-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f4_s2025_train.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.train",
+            "--config",
+            "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s2025.json"
+          ],
+          "pid": 726070,
+          "returncode": 0,
+          "ended_at": "2026-10-02T07:22:31-0700"
+        },
+        "eval_best": {
+          "started_at": "2026-10-02T07:22:31-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f4_s2025_eval_best.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "best",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 922115,
+          "returncode": 0,
+          "ended_at": "2026-10-02T07:24:23-0700"
+        },
+        "eval_last": {
+          "started_at": "2026-10-02T07:24:23-0700",
+          "log": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/logs/VF6_v52cv_f4_s2025_eval_last.log",
+          "cmd": [
+            "/public/newhome/cy/.conda/envs/GNN/bin/python",
+            "-u",
+            "-m",
+            "training_wss_min.evaluate",
+            "--run-dir",
+            "/public/newhome/cy/Digital_twin/GNN_pf6vf6_v52d_frozen_20261002/training_wss_min/runs/pf6vf6_v52d_retrain_20261002/VF6_v52cv_f4_s2025",
+            "--partitions",
+            "test",
+            "--allow-test",
+            "--checkpoint",
+            "last",
+            "--no-plots",
+            "--save-predictions"
+          ],
+          "pid": 924281,
+          "returncode": 0,
+          "ended_at": "2026-10-02T07:26:12-0700"
+        }
+      },
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "gpu": "2"
+    }
+  },
+  "matrix": "pf6vf6_v52d_retrain_20261002",
+  "expected_training_runs": 25,
+  "expected_evaluations": 50,
+  "preflight_verification": {
+    "preflight": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/runtime_preflight.json",
+    "sha256": "73b6b79f2a7d7a10d61899fc7f7b43ded1e49052f9bcaeacd913978414c6466d",
+    "job_id": "16866"
+  },
+  "ended_at": "2026-10-02T07:26:12-0700"
+}

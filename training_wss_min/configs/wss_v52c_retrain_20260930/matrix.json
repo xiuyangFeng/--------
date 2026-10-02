@@ -1,0 +1,739 @@
+{
+  "schema_version": 1,
+  "experiment": "wss_v52c_retrain_20260930",
+  "parent_experiment": "wss_v52c_labelfix_20260930",
+  "section": "v5.2c retrain after the 2026-09-30 label fix: X5Dcap_asym2 CV5 x 3 seeds + full265 x 3 seeds, and the M1cap three-head on full265 x 3 seeds; recover8 evaluation (user-confirmed matrix 2026-09-30)",
+  "data": {
+    "view_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930",
+    "cycle_view_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_cycle_v1",
+    "full265_split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/split_v52p4_full265_train265_test8.json",
+    "full265_split_sha256": "4cc4daa0b5295267c94456582db26d4a3615568dfd40949e25a068ce9e6fde29",
+    "multi_stats": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/stats/multi_stats_full265_train265.json"
+  },
+  "execution": "master 4x RTX 4090 (Slurm), one arm per GPU, frozen code copy GNN_v52c_frozen_20260930; train -> eval best -> eval last (--save-predictions); order B, C, A (long arms first)",
+  "expected_training_runs": 21,
+  "expected_evaluations": 42,
+  "arms": [
+    {
+      "id": "X5Dcap_asym2_full265_s1234",
+      "title": "X5Dcap_asym2 FULL265 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_full265_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_full265_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "B",
+      "evaluation": "recover8 (test partition of the full265 split)",
+      "source_config_sha256": "bb1f750a6ed1d8bfa1685acbdee15da0ca7e2662995d41387a22242e707206a7"
+    },
+    {
+      "id": "X5Dcap_asym2_full265_s7",
+      "title": "X5Dcap_asym2 FULL265 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_full265_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_full265_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "B",
+      "evaluation": "recover8 (test partition of the full265 split)",
+      "source_config_sha256": "03e84bcbc39abada9fe669cd8cbbd0ab95017958bc035eb2f1c5c25c53634344"
+    },
+    {
+      "id": "X5Dcap_asym2_full265_s2025",
+      "title": "X5Dcap_asym2 FULL265 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_full265_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_full265_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "B",
+      "evaluation": "recover8 (test partition of the full265 split)",
+      "source_config_sha256": "55202da5ebb49861f5c61805eebc205c5b4c84f48628d1df56dc449d1f4158d2"
+    },
+    {
+      "id": "M1cap_full265_s1234",
+      "group": "C",
+      "title": "M1cap three-head FULL265 seed 1234 on v5.2c",
+      "config": "M1cap_full265_s1234.json",
+      "run_name": "wss_v52c_retrain_20260930/M1cap_full265_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "M1cap",
+      "parent": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s1234.json (recipe) + X5Dcap_asym2_full265_s1234 (data / paired init)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "evaluation": "recover8, three channels (peak WSS / TAWSS / OSI)",
+      "config_diff_vs_same_seed_B": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/wss_global_stats_full265_train265.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/stats/multi_stats_full265_train265.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_direct_recovery_20260912/C1_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52c_retrain_20260930/X5Dcap_asym2_full265_s1234.json"
+        },
+        "train.loss_asym_under_weight": {
+          "anchor": 2.0,
+          "arm": null
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "config_diff_vs_recipe_parent": {
+        "data.cycle_view_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_cycle_v1"
+        },
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1"
+        },
+        "data.density_aug_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/feature_stats/full265_X5Dcap_train_feature_stats.json"
+        },
+        "data.point_features_root": {
+          "anchor": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ],
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/split_v52p4_full265_train265_test8.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold0.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/stats/multi_stats_full265_train265.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f0_s1234.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52c_retrain_20260930/X5Dcap_asym2_full265_s1234.json"
+        }
+      }
+    },
+    {
+      "id": "M1cap_full265_s7",
+      "group": "C",
+      "title": "M1cap three-head FULL265 seed 7 on v5.2c",
+      "config": "M1cap_full265_s7.json",
+      "run_name": "wss_v52c_retrain_20260930/M1cap_full265_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "M1cap",
+      "parent": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s7.json (recipe) + X5Dcap_asym2_full265_s7 (data / paired init)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "evaluation": "recover8, three channels (peak WSS / TAWSS / OSI)",
+      "config_diff_vs_same_seed_B": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/wss_global_stats_full265_train265.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/stats/multi_stats_full265_train265.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s7.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52c_retrain_20260930/X5Dcap_asym2_full265_s7.json"
+        },
+        "train.loss_asym_under_weight": {
+          "anchor": 2.0,
+          "arm": null
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "config_diff_vs_recipe_parent": {
+        "data.cycle_view_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_cycle_v1"
+        },
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1"
+        },
+        "data.density_aug_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/feature_stats/full265_X5Dcap_train_feature_stats.json"
+        },
+        "data.point_features_root": {
+          "anchor": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ],
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/split_v52p4_full265_train265_test8.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold0.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/stats/multi_stats_full265_train265.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f0_s7.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52c_retrain_20260930/X5Dcap_asym2_full265_s7.json"
+        }
+      }
+    },
+    {
+      "id": "M1cap_full265_s2025",
+      "group": "C",
+      "title": "M1cap three-head FULL265 seed 2025 on v5.2c",
+      "config": "M1cap_full265_s2025.json",
+      "run_name": "wss_v52c_retrain_20260930/M1cap_full265_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": null,
+      "protocol": "FULL265",
+      "arm": "M1cap",
+      "parent": "wss_cycle_m1_v52_20260925/M1cap_v52cv_f0_s2025.json (recipe) + X5Dcap_asym2_full265_s2025 (data / paired init)",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "evaluation": "recover8, three channels (peak WSS / TAWSS / OSI)",
+      "config_diff_vs_same_seed_B": {
+        "data.cycle_view_root": {
+          "anchor": null,
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_cycle_v1"
+        },
+        "data.target": {
+          "anchor": "wss",
+          "arm": "wss_cycle_multi"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/wss_global_stats_full265_train265.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/stats/multi_stats_full265_train265.json"
+        },
+        "model.out_dim": {
+          "anchor": 1,
+          "arm": 3
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_local_wave1b_20260912/refs/C1_s2025.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52c_retrain_20260930/X5Dcap_asym2_full265_s2025.json"
+        },
+        "train.loss_asym_under_weight": {
+          "anchor": 2.0,
+          "arm": null
+        },
+        "train.loss_pinball_lambda": {
+          "anchor": 0.2,
+          "arm": 0.0
+        },
+        "eval.threshold_masks_above": {
+          "anchor": null,
+          "arm": [
+            0.1,
+            0.3
+          ]
+        },
+        "eval.threshold_masks_below": {
+          "anchor": null,
+          "arm": [
+            0.4
+          ]
+        }
+      },
+      "config_diff_vs_recipe_parent": {
+        "data.cycle_view_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_cycle_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_cycle_v1"
+        },
+        "data.data_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1"
+        },
+        "data.density_aug_root": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_density_v1",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_density_v1"
+        },
+        "data.feature_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52_20260923/feature_stats/cv5_fold0_X5Dcap_train_feature_stats.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/feature_stats/full265_X5Dcap_train_feature_stats.json"
+        },
+        "data.point_features_root": {
+          "anchor": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_flowref_v1"
+          ],
+          "arm": [
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_geom_v2",
+            "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_flowref_v1"
+          ]
+        },
+        "data.split_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2_full_20260923/wss_min_view_v1/cv5_v52/fold0.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2c_20260930/wss_min_view_v1/split_v52p4_full265_train265_test8.json"
+        },
+        "data.wss_stats_path": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_cycle_m1_v52_20260925/stats/multi_stats_cv5_fold0.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/stats/multi_stats_full265_train265.json"
+        },
+        "train.init_reference_config": {
+          "anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52_20260923_cv5/X5Dcap_v52cv_f0_s2025.json",
+          "arm": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/configs/wss_v52c_retrain_20260930/X5Dcap_asym2_full265_s2025.json"
+        }
+      }
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f0_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 0 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f0_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f0_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 0,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "2d44361b96d33cd43562b5e905a77f4c9dd82b0e448435ab2c0f0c2cce7e73f4"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f1_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 1 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f1_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f1_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 1,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "a4a3c9ab1c70f47bf79a8203668a5b6d2f5b61dbaee24cbcaef55abc2820f2d7"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f2_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 2 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f2_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f2_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 2,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "d119dc3232dd8dfb31695b90061d526f0f1ce57ae2d760b92804d4828d76ecbc"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f3_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 3 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f3_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f3_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 3,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "8f7b4bef1444fa87228b1a08929b0a799ca76b340e3765d60fd2884b06378fd8"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f4_s1234",
+      "title": "X5Dcap_asym2 CV5 fold 4 seed 1234 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f4_s1234.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f4_s1234",
+      "phase": 0,
+      "seed": 1234,
+      "fold": 4,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s1234.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "4bea7451bbed93506e50d04d9a7b0937816b6bc06e6a6717acd10eb7c2e21a0f"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f0_s7",
+      "title": "X5Dcap_asym2 CV5 fold 0 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f0_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f0_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 0,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "bd666fb1c5e540bc58fc8399dd51c07b3d2747895cdec9d5dc127d0e4b51e446"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f1_s7",
+      "title": "X5Dcap_asym2 CV5 fold 1 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f1_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f1_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 1,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "c94073d406f9b07b2f2893b9ebf3cabb5eadc861b812db5e502b9e6b956a9129"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f2_s7",
+      "title": "X5Dcap_asym2 CV5 fold 2 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f2_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f2_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 2,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "f23325df1b3ec1310682cc4273ad1ec06ebd95fbefa688942ecf11007dcc18d9"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f3_s7",
+      "title": "X5Dcap_asym2 CV5 fold 3 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f3_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f3_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 3,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "09b48837abce3909933debf79774929278cf839f40facf9bfaf891186f0ff51b"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f4_s7",
+      "title": "X5Dcap_asym2 CV5 fold 4 seed 7 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f4_s7.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f4_s7",
+      "phase": 0,
+      "seed": 7,
+      "fold": 4,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s7.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "2ea4dacf1fcc6cdccb2accb0cdde905328f002b782dc094975a5238613291d38"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f0_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 0 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f0_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f0_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 0,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f0_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "c4e46522662f17876c26566215b2b6ec1c9a16d20e29ff78e0742830e2163c4c"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f1_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 1 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f1_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f1_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 1,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f1_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "506f297d7c76e9faf7fb1ba9bbe5679deb2bc9acf1f41a8e52cae41bd6ec9439"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f2_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 2 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f2_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f2_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 2,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f2_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "da551ff2c234f925a49399d223ef6b843f425ff836bc99b0e4d8d71d5e8e5e4a"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f3_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 3 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f3_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f3_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 3,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f3_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "c5fa4b4ab269c6bf044ed9f118b68ba8e298c0326d7b28e9a0c0b64faf1d80dd"
+    },
+    {
+      "id": "X5Dcap_asym2_v52cv_f4_s2025",
+      "title": "X5Dcap_asym2 CV5 fold 4 seed 2025 on the corrected data",
+      "config": "X5Dcap_asym2_v52cv_f4_s2025.json",
+      "run_name": "wss_v52c_labelfix_20260930/X5Dcap_asym2_v52cv_f4_s2025",
+      "phase": 0,
+      "seed": 2025,
+      "fold": 4,
+      "protocol": "CV5",
+      "arm": "X5Dcap_asym2",
+      "parent": "wss_v52_phys2_20260927/X5Dcap_asym2_v52cv_f4_s2025.json",
+      "depends_on": [],
+      "evaluate": [
+        "best",
+        "last"
+      ],
+      "single_change": false,
+      "config_diff_vs_parent": "data roots only (config_diff_vs_source.json)",
+      "group": "A",
+      "evaluation": "held-out CV5 fold (pooled out-of-fold over 261); E3 adds recover8",
+      "source_config_sha256": "a88b8c88112c6fe7aeb9dbb17f01a7cba6049df24ff35dd58400179088815cd4"
+    }
+  ],
+  "not_scheduled": {
+    "IND X5Dcap_asym2 s1234/s7/s2025/s11/s2026": "prepared in wss_v52c_labelfix_20260930, not requested"
+  },
+  "preflight_anchor": "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/anchor/X5Dcap_asym2_full265_s1234_v52c",
+  "post_queue": {
+    "E3": "the 15 CV5 fold models (best) on recover8 via --split-path full265 -> experiments/<exp>/recover8_cv5/",
+    "E5": {
+      "what": "deployed M1_3head_3seed_20260922 (v5.1 train136) on recover8 -> experiments/<exp>/e5_deployed_m1/*/eval",
+      "run_dirs": [
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/e5_deployed_m1/M1_s1234",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/e5_deployed_m1/M1_s7",
+        "/public/newhome/cy/Digital_twin/GNN/training_wss_min/experiments/wss_v52c_retrain_20260930/e5_deployed_m1/M1_s2025"
+      ]
+    }
+  },
+  "reading_rule": "recover8 has n = 8: descriptive only, no gates. B: per seed + three-seed ensemble physical R2_cb and per-case median vs the pre-label-fix full265 runs (job 16192, same seeds / GPU type: 0.8295 / 0.8171 / 0.8311, ensemble 0.8393; recover8 labels unchanged, so the difference = training labels of 9 units + run-to-run noise). A: CV5 pooled out-of-fold over 261 per seed (mean +- sd) and three-seed OOF ensemble vs the pre-label-fix 0.7714 (the 9 fixed units are both training and held-out labels, so this mixes label change and seed noise). E3: per-seed five-fold ensemble and 15-model ensemble on recover8 vs B. C: per channel on recover8 (peak Pa / normalized R2_cb, TAWSS Pa R2_cb / CCC / <0.4 Pa IoU, OSI R2 / >0.1 and >0.3 IoU, low-TAWSS-high-OSI zone) per seed and ensemble; guard = peak channel normalized R2_cb vs the same-seed B run (drop <= 0.02, the historical M1 gate; the Pa tail is expected lower because C has no pinball / asym); E5 = the deployed three-head on the same 8 units as the TAWSS / OSI reference."
+}

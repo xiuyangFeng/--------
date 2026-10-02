@@ -1,0 +1,32 @@
+{
+ "schema_version": 1,
+ "generated_at": "2026-09-30T12:05:18.830348+00:00",
+ "pack": "wss_min_cycle_v1",
+ "pack_version": "v1.0",
+ "statistics_scope": "train partition only (full265_train265, valid anatomy wall nodes)",
+ "scope": "full265_train265",
+ "split_path": "data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/split_v52p4_full265_train265_test8.json",
+ "split_sha256": "4cc4daa0b5295267c94456582db26d4a3615568dfd40949e25a068ce9e6fde29",
+ "n_cases": 265,
+ "n_points": 14158314,
+ "definition": "TAWSS=(1/80)sum_k|tau_k| over frames 0..79 (steps 1120..1278; frame 80 = frame 0 + T); OSI=0.5*(1-|sum_k tau_k|/sum_k|tau_k|); RRT=1/((1-2*OSI)*max(TAWSS,0.05Pa)); rev_frac=(1/80)sum_k[tau_k.tau_peak<0]",
+ "target": "osi",
+ "method": "logit_z",
+ "eps": 0.0,
+ "range": [
+  0.0,
+  0.5
+ ],
+ "linear": {
+  "mean": 0.15888147767428235,
+  "std": 0.12650329048063294
+ },
+ "logit": {
+  "mean": -1.2369759039059234,
+  "std": 1.7948234796172993,
+  "scale": 0.5,
+  "clip": 0.001
+ },
+ "raw_min": 5.916525083193847e-07,
+ "raw_max": 0.4997161030769348
+}

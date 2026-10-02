@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "target": "wss_cycle_multi",
+  "checkpoint": "best",
+  "evaluation_split_path": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/split_v52p4_full265_train265_test8.json",
+  "partitions": {
+    "test": [
+      {
+        "unit_id": "AAA/ruputer/FU_GUO_JUN",
+        "file": "test/wss/AAA/ruputer/FU_GUO_JUN/predictions.npz",
+        "n_points": 13277,
+        "sha256": "8cfcbce7db26f9cf27d69349b892417c254479fdac3db3fd7cb15b6daa597624",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "wss"
+      },
+      {
+        "unit_id": "AAA/ruputer/LIU_YU_MING",
+        "file": "test/wss/AAA/ruputer/LIU_YU_MING/predictions.npz",
+        "n_points": 47369,
+        "sha256": "8c74a2208f78b050af11694a5dc9732fbc187953e47f372f98b3cecfb7e17b6b",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "wss"
+      },
+      {
+        "unit_id": "AAA/ruputer/SHI_YUN_XI",
+        "file": "test/wss/AAA/ruputer/SHI_YUN_XI/predictions.npz",
+        "n_points": 85026,
+        "sha256": "6939f3a7b4686cc620b348ee288df37f6fea1a49490560f7b5b9693343c6bc35",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "wss"
+      },
+      {
+        "unit_id": "AAA/ruputer/WANG_SHUN_WEN",
+        "file": "test/wss/AAA/ruputer/WANG_SHUN_WEN/predictions.npz",
+        "n_points": 16923,
+        "sha256": "848caf16b0662a0ac7462c3510c1f15ce1ffa6f22e332f50f9c08e9c9387f0bd",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "wss"
+      },
+      {
+        "unit_id": "AAA/ruputer/ZHANG_ZAO_SHUAN",
+        "file": "test/wss/AAA/ruputer/ZHANG_ZAO_SHUAN/predictions.npz",
+        "n_points": 16448,
+        "sha256": "0885e02bc97c2773407ce2f42d53638291ec0461c640c6b86647325377d35707",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "wss"
+      },
+      {
+        "unit_id": "AAA/unruputer/LIU_WEN_QI",
+        "file": "test/wss/AAA/unruputer/LIU_WEN_QI/predictions.npz",
+        "n_points": 12439,
+        "sha256": "5c7dc2d6bb96f7e3ae640abff784e7d7e342721fd1cb945e51fb84f20640b4a6",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "wss"
+      },
+      {
+        "unit_id": "ILO/LI_JIE-1/after",
+        "file": "test/wss/ILO/LI_JIE-1/after/predictions.npz",
+        "n_points": 91315,
+        "sha256": "81aea7f6bc81a6666deeb783098e2b1a5fbaf4d2a3ac379fb90a03640b458bfa",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "wss"
+      },
+      {
+        "unit_id": "ILO/LI_JIE-1/before",
+        "file": "test/wss/ILO/LI_JIE-1/before/predictions.npz",
+        "n_points": 76984,
+        "sha256": "1b5f1eba804a2460b11ae05e680add40f0bcb56c4bb848a2d6aef3837f88f4fa",
+        "target": "wss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "wss"
+      },
+      {
+        "unit_id": "AAA/ruputer/FU_GUO_JUN",
+        "file": "test/tawss/AAA/ruputer/FU_GUO_JUN/predictions.npz",
+        "n_points": 13277,
+        "sha256": "7163d7524aaebcc602955f3f01bf0448566a7fbebf232baf23844579d320ebc2",
+        "target": "tawss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "tawss"
+      },
+      {
+        "unit_id": "AAA/ruputer/LIU_YU_MING",
+        "file": "test/tawss/AAA/ruputer/LIU_YU_MING/predictions.npz",
+        "n_points": 47369,
+        "sha256": "4e9438413186d35ea9d0e3b35d8579a2e30b62f32b04642f6df8cf9b9c44c469",
+        "target": "tawss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "tawss"
+      },
+      {
+        "unit_id": "AAA/ruputer/SHI_YUN_XI",
+        "file": "test/tawss/AAA/ruputer/SHI_YUN_XI/predictions.npz",
+        "n_points": 85026,
+        "sha256": "601a80ae3788524df7e6b433e9f108f5bec1abae24e435b9e69545299e365602",
+        "target": "tawss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "tawss"
+      },
+      {
+        "unit_id": "AAA/ruputer/WANG_SHUN_WEN",
+        "file": "test/tawss/AAA/ruputer/WANG_SHUN_WEN/predictions.npz",
+        "n_points": 16923,
+        "sha256": "849274fe28733b809efaaaf2f339bdb919c79c7a9ea9fe6c632cd8f2657bcae1",
+        "target": "tawss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "tawss"
+      },
+      {
+        "unit_id": "AAA/ruputer/ZHANG_ZAO_SHUAN",
+        "file": "test/tawss/AAA/ruputer/ZHANG_ZAO_SHUAN/predictions.npz",
+        "n_points": 16448,
+        "sha256": "dd37344cdc79298344746059d2dff55b71c69a29a2b76ac7275dcf90e64175da",
+        "target": "tawss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "tawss"
+      },
+      {
+        "unit_id": "AAA/unruputer/LIU_WEN_QI",
+        "file": "test/tawss/AAA/unruputer/LIU_WEN_QI/predictions.npz",
+        "n_points": 12439,
+        "sha256": "b3202da258a5b00a8dcd7d5d7236c93f9f21e2e7a826affc5e8f56d0a0989180",
+        "target": "tawss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "tawss"
+      },
+      {
+        "unit_id": "ILO/LI_JIE-1/after",
+        "file": "test/tawss/ILO/LI_JIE-1/after/predictions.npz",
+        "n_points": 91315,
+        "sha256": "cb4568bcd77b30c7d81a06bcaa1c3fee5af1a0a1f4689be407096f6e9ae18754",
+        "target": "tawss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "tawss"
+      },
+      {
+        "unit_id": "ILO/LI_JIE-1/before",
+        "file": "test/tawss/ILO/LI_JIE-1/before/predictions.npz",
+        "n_points": 76984,
+        "sha256": "d574d325eda716d4eec34e42e93a5512f9c2ffb99a65d63b68c7093e59f16391",
+        "target": "tawss",
+        "metric_clipping": "nonnegative after inverse log_z",
+        "channel": "tawss"
+      },
+      {
+        "unit_id": "AAA/ruputer/FU_GUO_JUN",
+        "file": "test/osi/AAA/ruputer/FU_GUO_JUN/predictions.npz",
+        "n_points": 13277,
+        "sha256": "2232fc293b2ea770cb42eaab3ecbcb055f197de4d99b9ab727f69eb1fd2198bd",
+        "target": "osi",
+        "metric_clipping": "clipped to [0, 0.5] (OSI)",
+        "channel": "osi"
+      },
+      {
+        "unit_id": "AAA/ruputer/LIU_YU_MING",
+        "file": "test/osi/AAA/ruputer/LIU_YU_MING/predictions.npz",
+        "n_points": 47369,
+        "sha256": "072d258b6c40d6b1f5553741bc3b61d25dbb2e4851bc4b1131e4418f8a15b78c",
+        "target": "osi",
+        "metric_clipping": "clipped to [0, 0.5] (OSI)",
+        "channel": "osi"
+      },
+      {
+        "unit_id": "AAA/ruputer/SHI_YUN_XI",
+        "file": "test/osi/AAA/ruputer/SHI_YUN_XI/predictions.npz",
+        "n_points": 85026,
+        "sha256": "937d6ecbeb6ce89debb7a1e46e55e5e2f42eccfb1a182b7393a0d9e297d6d41a",
+        "target": "osi",
+        "metric_clipping": "clipped to [0, 0.5] (OSI)",
+        "channel": "osi"
+      },
+      {
+        "unit_id": "AAA/ruputer/WANG_SHUN_WEN",
+        "file": "test/osi/AAA/ruputer/WANG_SHUN_WEN/predictions.npz",
+        "n_points": 16923,
+        "sha256": "f1a2b0e4db8f33a20ee971dd692ea2e63d1ec30409897e62bc0225fc136b4931",
+        "target": "osi",
+        "metric_clipping": "clipped to [0, 0.5] (OSI)",
+        "channel": "osi"
+      },
+      {
+        "unit_id": "AAA/ruputer/ZHANG_ZAO_SHUAN",
+        "file": "test/osi/AAA/ruputer/ZHANG_ZAO_SHUAN/predictions.npz",
+        "n_points": 16448,
+        "sha256": "5890156cc3f1e3083179d9fde9bc191d48e32b9c5cdef3d8fadea3cba902183a",
+        "target": "osi",
+        "metric_clipping": "clipped to [0, 0.5] (OSI)",
+        "channel": "osi"
+      },
+      {
+        "unit_id": "AAA/unruputer/LIU_WEN_QI",
+        "file": "test/osi/AAA/unruputer/LIU_WEN_QI/predictions.npz",
+        "n_points": 12439,
+        "sha256": "ed005202e20e6ae9b09a2174e96c4e07d8fb36e04673c72a8f631fa37b7b5503",
+        "target": "osi",
+        "metric_clipping": "clipped to [0, 0.5] (OSI)",
+        "channel": "osi"
+      },
+      {
+        "unit_id": "ILO/LI_JIE-1/after",
+        "file": "test/osi/ILO/LI_JIE-1/after/predictions.npz",
+        "n_points": 91315,
+        "sha256": "0c3c05557eee3deb13f52db7d32e73012552a5407ac5e08189c7228a759e7c18",
+        "target": "osi",
+        "metric_clipping": "clipped to [0, 0.5] (OSI)",
+        "channel": "osi"
+      },
+      {
+        "unit_id": "ILO/LI_JIE-1/before",
+        "file": "test/osi/ILO/LI_JIE-1/before/predictions.npz",
+        "n_points": 76984,
+        "sha256": "c1c8e9ef3acdf8e11b3134611ca731de19a97bc59439b15beba0089fc6b589f6",
+        "target": "osi",
+        "metric_clipping": "clipped to [0, 0.5] (OSI)",
+        "channel": "osi"
+      }
+    ]
+  },
+  "checkpoint_sha256": "187fbee17eb4ff4be54e4c8549905b0820a2c3d1ddb21e841e45a3dbc12841e5",
+  "config_sha256": "afd4c0360735e0e40d2324036681c42c1cbcf857a247962b8738ceb0042f5d24",
+  "wss_stats_sha256": "9a64777124fb7dcfb7975ac1dc26217c716859d3be9cd0b11b1af24935c3da3e"
+}

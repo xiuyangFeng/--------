@@ -1,0 +1,32 @@
+{
+ "schema_version": 1,
+ "generated_at": "2026-09-30T08:13:00.059247+00:00",
+ "pack": "wss_min_cycle_v1",
+ "pack_version": "v1.0",
+ "statistics_scope": "train partition only (cv5_fold1, valid anatomy wall nodes)",
+ "scope": "cv5_fold1",
+ "split_path": "data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/cv5_v52/fold1.json",
+ "split_sha256": "f124114a04dbe2be76e5f8802cd16167b3f36a213cde6f1d9c93fdab27278bd5",
+ "n_cases": 204,
+ "n_points": 10532061,
+ "definition": "TAWSS=(1/80)sum_k|tau_k| over frames 0..79 (steps 1120..1278; frame 80 = frame 0 + T); OSI=0.5*(1-|sum_k tau_k|/sum_k|tau_k|); RRT=1/((1-2*OSI)*max(TAWSS,0.05Pa)); rev_frac=(1/80)sum_k[tau_k.tau_peak<0]",
+ "target": "osi",
+ "method": "logit_z",
+ "eps": 0.0,
+ "range": [
+  0.0,
+  0.5
+ ],
+ "linear": {
+  "mean": 0.15869825614568045,
+  "std": 0.1266255503916122
+ },
+ "logit": {
+  "mean": -1.242038369731146,
+  "std": 1.800449422136122,
+  "scale": 0.5,
+  "clip": 0.001
+ },
+ "raw_min": 5.916525083193847e-07,
+ "raw_max": 0.4997161030769348
+}

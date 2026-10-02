@@ -1,0 +1,111 @@
+{
+ "abscissa_norm": {
+  "mean": 0.5720969272474545,
+  "std": 0.2723777639169014,
+  "transform": "none"
+ },
+ "local_radius": {
+  "mean": 8.500997830892329,
+  "std": 5.097101167516179,
+  "transform": "none"
+ },
+ "curvature": {
+  "mean": 0.040251632846441864,
+  "std": 0.028629549445857935,
+  "clip": 0.14072811251332867,
+  "transform": "signed_log1p"
+ },
+ "log_local_radius": {
+  "mean": 1.9867448099042986,
+  "std": 0.5550555750882741,
+  "transform": "none"
+ },
+ "rho": {
+  "mean": 0.9994406054051563,
+  "std": 0.2839265321007221,
+  "transform": "none"
+ },
+ "theta_sin": {
+  "mean": 0.0022743053950672006,
+  "std": 0.7082766767466583,
+  "transform": "none"
+ },
+ "theta_cos": {
+  "mean": -0.0018168111579115497,
+  "std": 0.7059309484379831,
+  "transform": "none"
+ },
+ "dr_ds": {
+  "mean": -0.026260923100070617,
+  "std": 0.17596718133784325,
+  "transform": "none"
+ },
+ "dist_to_junction_mm": {
+  "mean": 54.05897305709745,
+  "std": 49.884684337533145,
+  "transform": "none"
+ },
+ "dist_to_endpoint_mm": {
+  "mean": 82.87837801827688,
+  "std": 53.5599231628436,
+  "transform": "none"
+ },
+ "end_zone": {
+  "mean": 0.08270591916488054,
+  "std": 0.2754381981050823,
+  "transform": "none"
+ },
+ "nx_aligned": {
+  "mean": 0.002518803340732637,
+  "std": 0.6466921568251411,
+  "transform": "none"
+ },
+ "ny_aligned": {
+  "mean": 0.004397026467766568,
+  "std": 0.637290153526846,
+  "transform": "none"
+ },
+ "nz_aligned": {
+  "mean": 0.005685378762735733,
+  "std": 0.419041667159357,
+  "transform": "none"
+ },
+ "dist_to_wall_mm": {
+  "mean": 1.0156336117579976,
+  "std": 1.5980894020912837,
+  "transform": "none"
+ },
+ "log_q_branch_murray": {
+  "mean": -0.6355642131439921,
+  "std": 0.6781197354011553,
+  "transform": "none"
+ },
+ "log_tau0_murray": {
+  "mean": -6.595798642480792,
+  "std": 1.217360653062032,
+  "transform": "none"
+ },
+ "_provenance": {
+  "train_split": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_view_v1/cv5_v52/fold4.json",
+  "split_sha256": "1de30a4c9ece8fd1ef6edf903def49c791a3edcb1bdddc1c96460b8c4983701f",
+  "n_cases": 212,
+  "n_rows": 111511136,
+  "data_root": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_volview_v1",
+  "volume_stats": "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_volview_v1/stats/volume_stats_cv5_fold4_train212.json",
+  "target": "velocity",
+  "point_features_root": [
+   "/public/newhome/cy/Digital_twin/GNN/data_wss_v5/views_v5_2d_20261001/wss_min_flowref_v1"
+  ],
+  "scope": "volume point set (wall nodes + interior cells) of the training partition",
+  "builder": "dataset.load_partition + dataset.compute_feature_stats (same call as train.py)",
+  "generated_at": "2026-10-02T16:21:54+0800",
+  "context": {
+   "host": "node04",
+   "pid": 1451479,
+   "slurm_job_id": null,
+   "executed_outside_slurm": true,
+   "at": "2026-10-02T16:21:54+0800"
+  },
+  "load_seconds": 65.5598554611206
+ }
+}
