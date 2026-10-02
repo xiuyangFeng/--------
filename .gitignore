@@ -94,3 +94,44 @@ docs/**/assets_*/
 # `python -m wss_deploy.v2_examples`, never committed
 wss_deploy/static/v2/example_aaa.stl
 wss_deploy/static/v2/example_report.html
+
+# Large regenerable exports kept only on disk (2026-10-03): files >= 10 MB, four above GitHub's 100 MB limit.
+# Postview / representative-case exports (point clouds, mapped vertices, EnSight variables, aligned geometry)
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/best/_export/same_point_fields.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/median/_export/same_point_fields.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/PF6/worst/_export/same_point_fields.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/best/_export/same_point_pressure.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/best/_export/same_point_speed.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/median/_export/same_point_pressure.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/median/_export/same_point_speed.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/median/pressure_surface_gaussian/mapped_vertices.csv
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/median/surface_gaussian/mapped_vertices.csv
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/worst/_export/same_point_pressure.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/V4_EMA/worst/_export/same_point_speed.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/best/_export/same_point_fields.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/median/_export/same_point_fields.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6/worst/_export/same_point_fields.csv.gz
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6_wss/median/surface_gaussian/mapped_vertices.csv
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/X5D_v51/worst/surface_gaussian/mapped_vertices.csv
+/docs/03-汇报材料/启发式实验汇报_2026-09-13/启发式v2_代表病例后处理_20260914/VF6_体内点云查看版_20260915/**/*__interior.csv.gz
+/training_wss_min/experiments/volume_time_20260919/postview_median_phases_20260921/**/_export/same_point_fields.csv.gz
+/training_wss_min/experiments/volume_time_20260919/postview_median_phases_20260921/**/ensight/*.geo
+/training_wss_min/experiments/volume_time_20260919/postview_median_phases_20260921/**/ensight/vars/velocity_*
+/training_wss_min/experiments/*/postview_median_phases_*/**/aligned_geometry.stl
+/training_wss_min/experiments/wss_time_ecc_20260918/postview_median_phases_20260920/**/_export/same_point_fields.csv
+/training_wss_min/experiments/wss_time_ecc_20260918/postview_median_phases_20260920/**/surface_gaussian.csv
+/training_wss_min/experiments/wss_time_ecc_20260918/postview_median_phases_20260920/**/same_point_fields__stl_mapped_all.csv
+# Deployment acceptance inputs re-derived from the library STL
+/training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_test34/jobs/AAA__ruputer__WANG_FU_SHUN/input_clean_mm.stl
+/training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_test34/jobs/AAA__unruputer__WANG_MAN_TIAN/input_clean_mm.stl
+/training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_test34/jobs/ILO__LI_YOU_ZHI-0__before/input_clean_mm.stl
+/training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_test34/jobs/ILO__LU_FU_SHAN-0__before/input_clean_mm.stl
+/training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_test34/jobs/ILO__YANG_WEN_TAI-0__before/input_clean_mm.stl
+/training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_test34/jobs/ILO__ZHANG_HE_PING-0__before/input_clean_mm.stl
+/training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_test34/jobs/ILO__ZHANG_JIN_CHUN-1__before/input_clean_mm.stl
+# Large single reports / diagnostics / font
+/training_wss_min/experiments/velocity_phase_v52_20260930/report.json
+/training_wss_min/experiments/wss_time_mae_20260927/summary.json
+/training_wss_min/experiments/m2_optimization_20260909/diagnostics/provenance.json
+/training_wss_min/experiments/m2_optimization_20260909/diagnostics_collection/provenance.json
+/training_wss_min/experiments/v6_followup_20260909/assets/NotoSansCJK-Regular.ttc
