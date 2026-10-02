@@ -509,3 +509,55 @@ def test_thumbnails_persist_in_indexeddb_and_work_without_it():
     assert out["u1"] == url and out["log1"] == ["K1"] and out["rows"] == 1
     assert out["u2"] == url and out["log2"] == []                       # from IndexedDB: no geometry fetch, no drawing
     assert out["u3"] == url and out["log3"] == ["K3"]
+
+
+def test_package_names_and_the_result_right_click_menu():
+    """2026-10-02 (user request): the task rows and every rerun choice name the package a result came from (old and new
+    packages of one kind otherwise read the same); right-click on a result in the left rail or on a case card opens the
+    row menu at the pointer with the package in its heading; deleting the open result from it moves to another result of
+    the same scan."""
+    out = _run(r"""
+      canned['/api/v2/model-cards'].body.cards.M1_3head_3seed_20260922.version_date = '2026-09-22';
+      const vol = {model_release: {id: 'PF6_VF6_peak_3seed_20260920', contract: {protocol: 'single_frame_volume', fields: {velocity: {}}}}, family: 'volume'};
+      canned['/api/jobs'] = {body: {jobs: [jobRecord('A', {input_sha256: 'sha-1'}), jobRecord('V', Object.assign({input_sha256: 'sha-1'}, vol))]}};
+      serve('A', {input_sha256: 'sha-1'}); serve('V', Object.assign({input_sha256: 'sha-1'}, vol));
+      await boot();
+      await hashTo('#/tasks', 150);
+      const row = id => byClass(app(), 'wsc-row').filter(r => r.dataset.jobId === id)[0];
+      const cells = [textOf(byClass(row('A'), 'wsc-td-result')[0]), textOf(byClass(row('V'), 'wsc-td-result')[0])];
+      const pkgs = [textOf(byClass(row('A'), 'wsc-pkg')[0]), textOf(byClass(row('V'), 'wsc-pkg')[0])];
+      fire(byClass(row('A'), 'wsc-more')[0], 'click'); fire(menuItem('换模型重跑…'), 'click'); await wait(20);
+      const D = byId('ws-dialog');
+      const options = walk(D, e => e.tagName === 'OPTION').map(textOf);
+      const from = textOf(byClass(D, 'wsc-rerun-from')[0]);
+      ns.ui.dialog.close('cancel');
+      // the result page: right-click the rail row of A
+      await hashTo('#/job/A', 200);
+      const railA = byClass(app(), 'rail-result').filter(r => r.dataset.jobId === 'A')[0];
+      fire(railA, 'contextmenu', {clientX: 120, clientY: 300});
+      const M = byId('ws-menu');
+      const head = byClass(M, 'menu-head').map(textOf);
+      const items = menuItems().map(e => textOf(byClass(e, 'menu-label')[0]));
+      const pos = [M.style.left, M.style.top, M.hidden];
+      // a second right-click elsewhere moves the menu instead of closing it
+      fire(railA, 'contextmenu', {clientX: 140, clientY: 320});
+      const moved = [M.style.left, M.style.top, M.hidden];
+      // the context-menu key opens it under the row
+      ns.ui.closeMenu();
+      fire(railA, 'keydown', {key: 'ContextMenu'});
+      const byKey = !M.hidden && textOf(byClass(M, 'menu-head')[0]) === head[0];
+      // delete from the menu: confirm, then the other result of the scan opens
+      canned['POST /api/jobs/delete'] = {body: {results: [{id: 'A', deleted: true}]}};
+      fire(menuItem('删除…'), 'click'); await wait(20);
+      fire(button(byId('ws-dialog'), '移入回收站'), 'click'); await wait(120);
+      done({cells, pkgs, options, from, head, items, pos, moved, byKey, hash: location.hash, title: railA.title || railA.attrs.title});
+    """)
+    assert out["errors"] == [], out["errors"]
+    assert out["pkgs"] == ["M1_3head · 09-22", "PF6_VF6_peak"] and out["cells"][0].startswith("周期指标")
+    assert out["options"] == ["周期指标 TAWSS · OSI（默认，M1_3head · 09-22）", "体内压力与速度（PF6_VF6_peak）"], out["options"]
+    assert out["from"] == "当前结果：周期指标 TAWSS · OSI（M1_3head · 09-22）"
+    assert out["head"] == ["周期指标 TAWSS · OSI", "模型包 M1_3head · 09-22"]
+    assert out["items"] == ["打开", "一页纸", "打包下载", "编辑信息…", "换模型重跑…", "删除…"], out["items"]
+    assert out["pos"] == ["120px", "300px", False] and out["moved"] == ["140px", "320px", False] and out["byKey"] is True
+    assert "模型包 M1_3head · 09-22" in out["title"] and "右键" in out["title"]
+    assert out["hash"] == "#/job/V"

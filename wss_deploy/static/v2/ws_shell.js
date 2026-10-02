@@ -1867,8 +1867,11 @@
         h('div', {'class': 'sec-actions'}, ui().link('完整统计 JSON', api().urls.file(jobId, 'summary.json'), {newTab: true}), ui().link('运行清单', api().urls.file(jobId, 'run_manifest.json'), {newTab: true}))));
       var rel = (S.releases || []).filter(function (r) { return (r.id || r.release) !== (m.result && m.result.release_id); });
       if (rel.length) {
-        var sel = ui().select(rel.map(function (r) { var id = r.id || r.release; var card = S.cards[id]; return {value: id, label: (card && card.display_name) || ui().resultName({model_release: r}, S.cards)}; }), null, null, {'aria-label': '换一个模型'});
-        parts.push(ui().section('换模型重跑', {}, ui().note('沿用这份输入的中心线和出口确认，只重新预测。'), h('div', {'class': 'sec-actions'}, sel, ui().button('开始', function () {
+        // 2026-10-02: each choice names its package (ns.admin.choiceLabel), and the note says which package this result came from
+        var sel = ui().select(rel.map(function (r) { var id = r.id || r.release; var card = S.cards[id];
+          return {value: id, label: ns.admin && ns.admin.choiceLabel ? ns.admin.choiceLabel(r, Boolean(r.default)) : (card && card.display_name) || ui().resultName({model_release: r}, S.cards)}; }), null, null, {'aria-label': '换一个模型'});
+        var fromPkg = ui().packageName(cur.job || {model_release: {id: m.result && m.result.release_id}}, S.cards);
+        parts.push(ui().section('换模型重跑', {}, ui().note('沿用这份输入的中心线和出口确认，只重新预测。' + (fromPkg ? '当前结果的模型包：' + fromPkg + '。' : '')), h('div', {'class': 'sec-actions'}, sel, ui().button('开始', function () {
           api().rerun(jobId, {version: cur.job && cur.job.version, release_id: sel.value}).then(function (r) { var j = r.job || r; ui().toast('已建立新任务。', {kind: 'ok'}); scheduleRefresh(); if (j && j.id) go(j.id); }, function (e) { conflictOr(e, '没有建立新任务'); });
         }, {cls: 'btn-sm'}))));
       }

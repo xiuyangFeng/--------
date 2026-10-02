@@ -629,6 +629,13 @@
         t.page = 1; saveTaskPrefs(); updateTasks();
       }));
   }
+  // 结果 column: the result's short name and, muted, the package it came from (2026-10-02: old and new packages of one
+  // kind share a short name otherwise).
+  function resultCell(j) {
+    var pkg = ui().packageName(j, cards()), full = ui().resultName(j, cards());
+    return h('td', {'class': 'wsc-td-result', title: full + (pkg ? ' · 模型包 ' + pkg : '')},
+      h('span', {text: ui().resultName(j, cards(), {short: true})}), pkg ? h('span', {'class': 'wsc-pkg', text: pkg}) : null);
+  }
   function renderTaskTable(host, m, server) {
     var t = A.tasks, all = viewAll();
     var pageIds = m.rows.map(function (j) { return j.id; });
@@ -663,7 +670,7 @@
         h('td', {'class': 'wsc-cb'}, cb),
         h('td', {'class': 'wsc-td-name'}, name),
         h('td', {'class': 'wsc-hide-sm wsc-muted', text: who}),
-        h('td', {text: ui().resultName(j, cards(), {short: true}), title: ui().resultName(j, cards())}),
+        resultCell(j),
         h('td', {'class': 'wsc-td-status'}, ui().dot(st.tone, st.label), eta ? eta.el : null),
         h('td', {'class': 'wsc-hide-sm wsc-tags', text: tags.map(function (g) { return '#' + g; }).join(' ')}),
         h('td', {'class': 'num wsc-hide-sm', text: dia === null ? '' : ui().sig(dia), title: dia === null ? null : '管腔最大直径'}),
@@ -739,7 +746,7 @@
         var undo = deleted.length ? [{label: '撤销', run: function () { undoDelete(deleted); }}] : [];
         if (failures.length) ui().toast('已移入回收站 ' + deleted.length + ' 个；未删除：' + failures.join('；'), {kind: 'error', actions: undo});
         else ui().toast('已移入回收站 ' + deleted.length + ' 个任务。', {kind: 'ok', actions: undo});
-        return refreshJobs();
+        return refreshJobs().then(function () { return deleted; });     // resolves with the ids moved to the trash
       }, function (e) { ui().toast('删除失败：' + errText(e), {kind: 'error'}); });
     });
   }
@@ -765,12 +772,23 @@
     if (!isObj(job.a) && !isObj(job.stage_a)) return '缺少可复用的中心线结果';
     return null;
   }
+  // A model choice reads 「name（默认，package）」 so two packages of one kind can be told apart.
+  function choiceLabel(r, isDefault) {
+    var id = r.id || r.release, c = cards()[id], pkg = ui().packageName({model_release: r}, cards());
+    var extra = [isDefault ? '默认' : '', pkg].filter(Boolean).join('，');
+    return ((c && c.display_name) || ui().resultName({model_release: r}, cards())) + (extra ? '（' + extra + '）' : '');
+  }
   function releaseChoices() {
     var rel = (A.sh && A.sh.releases()) || [];
     return rel.map(function (r) {
-      var id = r.id || r.release, c = cards()[id];
-      return {value: id, label: ((c && c.display_name) || ui().resultName({model_release: r}, cards())) + (r.default ? '（默认）' : ''), isDefault: Boolean(r.default)};
+      var id = r.id || r.release;
+      return {value: id, label: choiceLabel(r, Boolean(r.default)), isDefault: Boolean(r.default)};
     }).filter(function (o) { return o.value; });
+  }
+  function currentLine(list) {
+    if (list.length !== 1) return null;
+    var pkg = ui().packageName(list[0], cards());
+    return h('p', {'class': 'note wsc-rerun-from', text: '当前结果：' + ui().resultName(list[0], cards()) + (pkg ? '（' + pkg + '）' : '')});
   }
   function rerunDialog(list) {
     list = (list || []).filter(function (j) { return j.status === 'done' && own(j); });
@@ -806,7 +824,7 @@
       });
     }, {kind: 'primary'});
     ui().dialog.open({title: list.length === 1 ? '换模型重跑' : '重跑 ' + list.length + ' 个任务', body: [
-      progress, h('label', {'class': 'fld'}, h('span', {text: '模型'}), pick), log], actions: [cancel, startBtn]});
+      currentLine(list), progress, h('label', {'class': 'fld'}, h('span', {text: '模型'}), pick), log], actions: [cancel, startBtn]});
   }
   function exportSummary(list, format) {
     var ids = (list || []).filter(function (j) { return j.status === 'done'; }).map(function (j) { return j.id; });
@@ -850,7 +868,8 @@
   function fillMissing(source, releaseId, label) {
     if (!source || !releaseId) return Promise.resolve(null);
     var name = label || ui().resultName({model_release: {id: releaseId}}, cards());
-    return ui().confirm('补跑' + name, ['沿用 ' + ui().displayName(source) + ' 这次扫描已确认的中心线和出口，新建一个「' + name + '」任务。', '原有结果不变。'],
+    var pkg = ui().packageName({model_release: {id: releaseId}}, cards());
+    return ui().confirm('补跑' + name, ['沿用 ' + ui().displayName(source) + ' 这次扫描已确认的中心线和出口，新建一个「' + name + '」任务' + (pkg ? '（模型包 ' + pkg + '）' : '') + '。', '原有结果不变。'],
       {confirmLabel: '开始'}).then(function (yes) {
       if (!yes) return null;
       return api().job(source.id).then(function (r) {
@@ -881,6 +900,43 @@
     items.push({separator: true});
     items.push({label: '删除…', disabled: !deletable(job), hint: isRunning(job) ? '计算中' : lock ? '已复核锁定' : !mine ? '别人的任务' : '', run: function () { deleteJobs([job]); }});
     return items;
+  }
+  function resultMenu(job) {
+    var pkg = ui().packageName(job, cards());
+    var items = rowMenu(job).map(function (item) {
+      if (!item || item.label !== '删除…' || item.disabled) return item;
+      return Object.assign({}, item, {run: function () {
+        return deleteJobs([job]).then(function (deleted) {
+          var cur = A.sh && A.sh.cur ? A.sh.cur() : null;
+          if (!Array.isArray(deleted) || deleted.indexOf(job.id) < 0 || !cur || cur.jobId !== job.id) return;
+          var next = jobs().filter(function (x) { return x && x.id !== job.id && x.input_sha256 && x.input_sha256 === job.input_sha256 && x.status === 'done'; })[0];
+          if (next) go(next.id); else root.location.hash = '#/';
+        });
+      }});
+    });
+    if (job.status === 'done') {          // 打包下载 (the selection bar's 打包) right after 一页纸
+      var at = items.map(function (it) { return it && it.label; }).indexOf('一页纸');
+      items.splice(at >= 0 ? at + 1 : 1, 0, {label: '打包下载', run: function () { bundleJobs([job]); }});
+    }
+    return [{heading: ui().resultName(job, cards())}, pkg ? {heading: '模型包 ' + pkg} : null].concat(items);
+  }
+  // Right-click (or the context-menu key / Shift+F10) on a result row or chip opens resultMenu at the pointer.
+  function bindResultMenu(el, job) {
+    if (!el || !job) return el;
+    el.addEventListener('contextmenu', function (e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+      var at = e && isFinite(e.clientX) && isFinite(e.clientY) && (e.clientX || e.clientY) ? {x: e.clientX, y: e.clientY} : null;
+      ui().menu(el, resultMenu(job), at ? {at: at} : undefined);
+    });
+    el.addEventListener('keydown', function (e) {
+      if (!e || !(e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey))) return;
+      if (e.preventDefault) e.preventDefault();
+      ui().menu(el, resultMenu(job));
+    });
+    // no aria-haspopup: the shell keeps a menu open on clicks inside such elements, and a left click here opens the result
+    el.setAttribute('aria-keyshortcuts', 'Shift+F10');
+    return el;
   }
   // 编辑信息 on a task that is not open: the result page's own dialog (ws_detail.metadataDialog, same fields, checks
   // and POST /api/jobs/<id>/metadata) sees this job as the current one while it is open, the real one afterwards.
@@ -1516,6 +1572,7 @@
     rerunSkipReason: rerunSkipReason, mergePrefs: mergePrefs, quickMatch: quickMatch, shouldNotify: shouldNotify, STATUS_FILTERS: STATUS_FILTERS, _state: A,
     // P3 lane 2
     fillMissing: fillMissing, canChange: canChange, rowMenu: rowMenu, editInfo: editInfo, openTimeline: openTimeline, openGuide: openGuide, openBatch: openBatch,
+    resultMenu: resultMenu, bindResultMenu: bindResultMenu, choiceLabel: choiceLabel,
     inRanges: inRanges, rangeText: rangeText, parseBound: parseBound, COHORT_COLS: COHORT_COLS
   };
 });

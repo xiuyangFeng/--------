@@ -137,7 +137,9 @@
     return {geometry: '从输入表面量出，不经过模型', model: '模型预测，一致性见模型说明', derived: '由预测量计算得到，没有单独验证'}[tier] || '';
   }
 
-  // ------------------------------------------------------------------ identities (never a release code on screen)
+  // ------------------------------------------------------------------ identities (no release code in the reading text of a result;
+  // the task list, the rerun choices and the result menus name the package — user request 2026-10-02, old and new packages
+  // of one kind otherwise look the same)
   function releaseIdOf(job) {
     if (!job) return '';
     var r = job.model_release || {};
@@ -155,6 +157,16 @@
     return job.family === 'wall' ? 'wall' : (job.family || null);
   }
   var KIND_NAME = {volume: ['体内压力与速度', '体场'], cycle: ['周期指标 TAWSS · OSI', '周期指标'], wall: ['峰值 WSS', '峰值 WSS']};
+  // The package a result (or a release record wrapped as {model_release: r}) came from: the release id without its seed
+  // count and freeze date (as jobs.release_short) and the card's version date, e.g. 「M1cap_v52d · 10-02」.
+  function packageName(job, cards) {
+    var id = releaseIdOf(job);
+    if (!id) return '';
+    var short = String(id).replace(/_20\d{6}$/, '').replace(/_\d+seeds?(?=_|$)/, '') || String(id);
+    var card = cards ? cards[id] : null;
+    var date = card && typeof card.version_date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(card.version_date) ? card.version_date.slice(5, 10) : '';
+    return short + (date ? ' · ' + date : '');
+  }
   function resultName(job, cards, opts) {
     var id = releaseIdOf(job);
     var card = cards && id ? cards[id] : null;
@@ -310,9 +322,12 @@
     m.el.hidden = true; m.el.replaceChildren();
     if (m.anchor) { m.anchor.setAttribute('aria-expanded', 'false'); }
   }
-  function menu(anchor, items) {
+  // ``opts.at`` = {x, y} (client px): a context menu at the pointer instead of below the anchor; a second right-click
+  // on the same anchor moves it rather than closing it.
+  function menu(anchor, items, opts) {
+    var at = opts && opts.at && isFinite(opts.at.x) && isFinite(opts.at.y) ? opts.at : null;
     var el = host('ws-menu', 'div', 'ws-menu');
-    if (menuState && menuState.anchor === anchor) { closeMenu(); return; }
+    if (menuState && menuState.anchor === anchor && !at) { closeMenu(); return; }
     closeMenu();
     el.setAttribute('role', 'menu');
     el.replaceChildren();
@@ -339,7 +354,14 @@
     menuState = {el: el, anchor: anchor};
     if (anchor) anchor.setAttribute('aria-expanded', 'true');
     var rect = anchor && typeof anchor.getBoundingClientRect === 'function' ? anchor.getBoundingClientRect() : null;
-    if (rect) {
+    if (at) {
+      var vw0 = root.innerWidth || 1280, vh0 = root.innerHeight || 800, w0 = 240;
+      el.style.left = Math.max(8, Math.min(at.x, vw0 - w0 - 8)) + 'px';
+      el.style.maxHeight = Math.max(160, vh0 - 16) + 'px';
+      var tall0 = el.offsetHeight || 0, top0 = at.y;
+      if (tall0 && top0 + tall0 > vh0 - 8) top0 = Math.max(8, vh0 - 8 - tall0);
+      el.style.top = top0 + 'px';
+    } else if (rect) {
       var width = 240, vw = root.innerWidth || 1280;
       var left = Math.max(8, Math.min(rect.right - width, vw - width - 8));
       if (rect.left + width < vw - 8 && rect.left < vw / 2) left = Math.max(8, rect.left);
@@ -422,7 +444,7 @@
   return {h: h, clear: clear, fill: fill, icon: icon, appendKids: appendKids, chartTip: chartTip,
     sig: sig, trim: trim, num: num, pct: pct, range: range, unitText: unitText, time: time, duration: duration,
     statusInfo: statusInfo, reviewInfo: reviewInfo, dot: dot, statusDot: statusDot, reviewDot: reviewDot, tierTag: tierTag, tierHelp: tierHelp, TIERS: TIERS,
-    releaseIdOf: releaseIdOf, kindOf: kindOf, resultName: resultName, displayName: displayName,
+    releaseIdOf: releaseIdOf, kindOf: kindOf, resultName: resultName, packageName: packageName, displayName: displayName,
     button: button, iconButton: iconButton, setPressed: setPressed, link: link, select: select, section: section, empty: empty, note: note, table: table, evidence: evidence,
     host: host, dialog: {open: openDialog, close: closeDialog, isOpen: dialogOpen}, confirm: confirm, menu: menu, closeMenu: closeMenu, menuOpen: menuOpen,
     toast: toast, hideToast: hideToast, downloadBlob: downloadBlob, isTyping: isTyping, infoTip: _infoTip};

@@ -301,6 +301,10 @@ th.num .wsc-sort { flex-direction: row-reverse; }
 .eta-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 2px; background: var(--accent); transition: width .9s linear; }
 .eta-live.eta-waiting { color: var(--warn); }
 .wsc-td-status .st + .eta-live { margin-left: 10px; }
+/* 2026-10-02: the package a result came from, under its name (old and new packages of one kind) */
+.wsc-td-result { white-space: nowrap; }
+.wsc-pkg { display: block; margin-top: 1px; color: var(--ink-3); font-size: 11.5px; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.wsc-rerun-from { color: var(--ink-2); }
 /* the rail: the text replaces the status word, the bar runs along the row's foot */
 .rail-result.has-eta { position: relative; }
 .rail-result .rail-eta { gap: 0; color: var(--ink-2); }

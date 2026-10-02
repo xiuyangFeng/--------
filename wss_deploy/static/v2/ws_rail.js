@@ -297,12 +297,15 @@
             var label = names[sname] > 1 && job.created_at ? sname + ' · ' + ui().time(job.created_at).slice(5) : sname;
             // P3 lane 2: a running (or queued) result shows its remaining time and a thin progress line
             var eta = FINAL.indexOf(job.status) < 0 ? etaBadge(job, {cls: 'rail-eta'}) : null;
+            var pkg = ui().packageName(job, st.cards);
             var row = h('button', {type: 'button', 'class': 'rail-result' + (job.id === st.current ? ' current' : '') + (eta ? ' has-eta' : ''), dataset: {jobId: job.id},
-              'aria-current': job.id === st.current ? 'true' : null, title: rname + ' · ' + status.label + (job.created_at ? ' · ' + ui().time(job.created_at) : '')},
+              'aria-current': job.id === st.current ? 'true' : null,
+              title: rname + (pkg ? ' · 模型包 ' + pkg : '') + ' · ' + status.label + (job.created_at ? ' · ' + ui().time(job.created_at) : '') + (ns.admin && ns.admin.bindResultMenu ? ' · 右键：重跑、删除等' : '')},
               unread(job.id) ? h('span', {'class': 'rail-unread', title: '有新状态', 'aria-label': '未读'}) : null,
               h('span', {'class': 'rail-result-name', text: label}),
               eta ? h('span', {'class': 'st st-' + status.tone + ' rail-st'}, h('span', {'class': 'st-dot', 'aria-hidden': 'true'}), eta.el) : ui().dot(status.tone, status.label, 'rail-st'));
             row.addEventListener('click', function () { if (ns.admin && ns.admin.markRead) ns.admin.markRead(job.id); if (opts.onOpen) opts.onOpen(job.id); });
+            if (ns.admin && ns.admin.bindResultMenu) ns.admin.bindResultMenu(row, job);     // 2026-10-02: right-click menu
             box.appendChild(row);
           });
         });
@@ -599,9 +602,12 @@
       var scanText = c.scans.length > 1 ? c.scans.length + ' 次扫描 · ' + (c.scans[0].label || '') : (c.scans[0] && c.scans[0].label) || '';
       var chips = h('div', {'class': 'case-results'});
       c.scans[0].jobs.forEach(function (j) {
-        var chip = h('button', {type: 'button', 'class': 'res-chip' + (unread(j.id) ? ' unread' : ''), title: ui().resultName(j, cards) + ' · ' + rowStatus(j).label + (unread(j.id) ? ' · 有新状态' : '')},
+        var cpkg = ui().packageName(j, cards);
+        var chip = h('button', {type: 'button', 'class': 'res-chip' + (unread(j.id) ? ' unread' : ''),
+          title: ui().resultName(j, cards) + (cpkg ? ' · 模型包 ' + cpkg : '') + ' · ' + rowStatus(j).label + (unread(j.id) ? ' · 有新状态' : '')},
           h('span', {'class': 'res-dot tone-' + chipTone(j)}), h('span', {text: ui().resultName(j, cards, {short: true})}));
         chip.addEventListener('click', function (e) { e.stopPropagation(); if (ns.admin && ns.admin.markRead) ns.admin.markRead(j.id); if (opts.onOpen) opts.onOpen(j.id); });
+        if (ns.admin && ns.admin.bindResultMenu) ns.admin.bindResultMenu(chip, j);       // same menu as the result rail
         chips.appendChild(chip);
       });
       // P3 lane 2: 「补跑缺少的结果」 — one dashed chip per release this scan has no finished result of
@@ -609,7 +615,8 @@
         var miss = missingResults(c.scans[0].jobs, releases, {canRun: ns.admin.canChange});
         miss.missing.forEach(function (x) {
           var short = ui().resultName({model_release: x.release}, cards, {short: true}), full = ui().resultName({model_release: x.release}, cards);
-          var add = h('button', {type: 'button', 'class': 'res-chip res-add', title: '补跑「' + full + '」：沿用这次扫描已确认的中心线和出口', 'aria-label': '补跑' + full},
+          var apkg = ui().packageName({model_release: x.release}, cards);
+          var add = h('button', {type: 'button', 'class': 'res-chip res-add', title: '补跑「' + full + '」' + (apkg ? '（模型包 ' + apkg + '）' : '') + '：沿用这次扫描已确认的中心线和出口', 'aria-label': '补跑' + full},
             ui().icon('plus', {size: 12}), h('span', {text: short}));
           add.addEventListener('click', function (e) { e.stopPropagation(); ns.admin.fillMissing(miss.source, x.releaseId, full); });
           add.addEventListener('keydown', function (e) { if (e && e.stopPropagation) e.stopPropagation(); });
