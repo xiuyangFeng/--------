@@ -400,6 +400,15 @@ def is_retired(release_id: str) -> bool:
         return False
 
 
+def retired_release_ids() -> list[str]:
+    """Ids of the retired packages (folders with ``release.json`` below ``RETIRED_RELEASE_ROOT``), sorted."""
+    try:
+        return sorted(p.name for p in RETIRED_RELEASE_ROOT.iterdir()
+                      if RELEASE_ID_RE.fullmatch(p.name) and (p / "release.json").is_file())
+    except OSError:
+        return []
+
+
 def retired_registry(*, device: str = "auto") -> "ReleaseRegistry | None":
     """Read-only registry of the retired packages (golden regression of results bound to them), or None."""
     root = RETIRED_RELEASE_ROOT

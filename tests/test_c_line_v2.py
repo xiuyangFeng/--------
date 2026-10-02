@@ -123,7 +123,7 @@ def test_release_dir_card_wins_and_bad_cards_fail_closed(tmp_path):
     for bad in ({**own, "release_id": "OTHER"}, {**own, "field_tiers": {"wss": "guess"}},
                 {**own, "display_windows": {"wss": [{"id": "x", "label": "x", "range": [5, 1]}]}}, {"schema_version": "v0"}):
         (tmp_path / "model_card.json").write_text(json.dumps(bad, ensure_ascii=False), encoding="utf-8")
-        assert MC.load("X5D_v51_5seed_20260916", tmp_path)["display_name"] == "峰值 WSS"
+        assert MC.load("X5D_v51_5seed_20260916", tmp_path)["display_name"] == "（旧版）峰值 WSS"
     assert set(MC.all_cards(["X5D_v51_5seed_20260916", "NOPE"])) == {"X5D_v51_5seed_20260916", "NOPE"}
     assert MC.all_cards(["NOPE"])["NOPE"] is None and MC.all_cards(None) == {}
     assert MC.all_cards({"X5D_v51_5seed_20260916": None})["X5D_v51_5seed_20260916"]["release_id"] == "X5D_v51_5seed_20260916"
@@ -137,7 +137,18 @@ def test_all_cards_reads_a_registry(tmp_path):
         def describe(self, rid):
             raise KeyError(rid)
     cards = MC.all_cards(Registry())
-    assert cards["M1_3head_3seed_20260922"]["short_name"] == "周期指标" and cards["ZZZ"] is None
+    assert cards["M1_3head_3seed_20260922"]["short_name"] == "周期指标（旧）" and cards["ZZZ"] is None
+
+
+def test_retired_cards_are_marked_and_point_at_their_replacement():
+    """2026-10-02: the cards of retired packages say so in their names, so old and new results never share a name."""
+    live = {rid: MC.load(rid) for rid in ("X5Dcap_asym2_v52d_3seed_20261002", "M1cap_v52d_3seed_20261002")}
+    for rid, new in (("X5D_v51_5seed_20260916", "X5Dcap_asym2_v52d_3seed_20261002"), ("M1_3head_3seed_20260922", "M1cap_v52d_3seed_20261002")):
+        card = MC.load(rid)
+        assert card["retired"]["on"] == "2026-10-02" and card["retired"]["replaced_by"] == new
+        assert card["display_name"].startswith("（旧版）") and "旧" in card["short_name"] and card["weaknesses"][0] == card["retired"]["note"]
+        assert card["display_name"] != live[new]["display_name"] and card["short_name"] != live[new]["short_name"]
+        assert "retired" not in live[new]
 
 
 # ----------------------------------------------------------------------------- reference v2 (§4 end)

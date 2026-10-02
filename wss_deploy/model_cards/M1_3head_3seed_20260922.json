@@ -1,15 +1,19 @@
 {
  "schema_version": "wss-deploy.model-card/v1",
  "release_id": "M1_3head_3seed_20260922",
- "display_name": "周期指标 TAWSS · OSI",
- "short_name": "周期指标",
+ "display_name": "（旧版）周期指标 TAWSS · OSI",
+ "short_name": "周期指标（旧）",
  "version_date": "2026-09-22",
  "purpose": "一次预测峰值 WSS、TAWSS、OSI；RRT、ECAP 与滞留区由预测的 TAWSS / OSI 逐点算出",
  "training": {
   "n_train": 136,
   "n_holdout": 34,
   "n_total": 170,
-  "cohorts": ["AAA", "AG", "ILO"],
+  "cohorts": [
+   "AAA",
+   "AG",
+   "ILO"
+  ],
   "centers": null,
   "note": "release.json data：与峰值 WSS 发布包同一份 v5.1 数据（训练 136 / 留出 34）；三个队列名同峰值 WSS 发布包。TAWSS / OSI 标签取自 81 帧 CFD 壁面切应力向量的第 0–79 帧（release.json cycle），没有额外 CFD。中心数 release.json 未记录，写 null。"
  },
@@ -83,10 +87,26 @@
   },
   "source": "release.json 的 metrics 块（test34 留出集三模型集成）"
  },
- "field_labels": {"max_diameter": "管腔最大直径、瘤体体积", "tawss": "TAWSS", "wss": "峰值 WSS", "osi": "OSI",
-                  "stagnation": "滞留区", "rrt": "RRT", "ecap": "ECAP"},
- "field_tiers": {"max_diameter": "geometry", "tawss": "model", "wss": "model", "osi": "model", "stagnation": "derived",
-                 "rrt": "derived", "ecap": "derived", "sac_volume": "geometry", "lumen_volume": "geometry"},
+ "field_labels": {
+  "max_diameter": "管腔最大直径、瘤体体积",
+  "tawss": "TAWSS",
+  "wss": "峰值 WSS",
+  "osi": "OSI",
+  "stagnation": "滞留区",
+  "rrt": "RRT",
+  "ecap": "ECAP"
+ },
+ "field_tiers": {
+  "max_diameter": "geometry",
+  "tawss": "model",
+  "wss": "model",
+  "osi": "model",
+  "stagnation": "derived",
+  "rrt": "derived",
+  "ecap": "derived",
+  "sac_volume": "geometry",
+  "lumen_volume": "geometry"
+ },
  "usage": {
   "max_diameter": "可以直接引用，注意是管腔（不含附壁血栓与管壁）",
   "tawss": "高低分布可信，绝对值有误差",
@@ -98,6 +118,7 @@
  },
  "usage_note": "「怎么用」一栏的措辞待导师或医生过目。",
  "weaknesses": [
+  "v5.1（训练 136 例）的旧模型，2026-10-02 下线；现役「周期指标 TAWSS · OSI」是 v5.2d 全量 265 例训练的 M1cap_v52d_3seed_20261002。用旧模型算出的结果保留可看，换新模型重跑沿用同一次扫描的中心线和出口确认。",
   "峰值 WSS 通道比单独的峰值 WSS 模型（同样三个种子）低 0.034（Pa 口径 R²），差距全部在最高 10% 的尾部。",
   "OSI 的一致性明显低于 TAWSS：R² 0.56，最差十分之一病例 0.36；OSI 与滞留区的边界只能用来定位。",
   "没有三折交叉验证折外预测，因此峰值 WSS、TAWSS、OSI 都没有人群参照分位。",
@@ -105,6 +126,7 @@
   "小口径髂支的高值容易被低估；瘤腔内绝对误差小但相对误差大（09-21 最差病例分析，定性结论）。"
  ],
  "weakness_sources": [
+  "wss_deploy/README.md v0.16.3；outputs/wss_deploy_release_retired/",
   "release.json metrics.known_cost 与 metrics.references.peak_wss_ensemble_X5D_v51_3seed.pa_r2cb = 0.7736 对 metrics.test34_ensemble.wss.pa_r2cb = 0.7399",
   "release.json metrics.test34_ensemble.osi",
   "reference.json population.reason",
@@ -120,24 +142,93 @@
  ],
  "display_windows": {
   "wss": [
-   {"id": "low", "label": "低值窗", "range": [0, 1], "provisional": true},
-   {"id": "standard", "label": "常规窗", "range": [0, 10], "provisional": true}
+   {
+    "id": "low",
+    "label": "低值窗",
+    "range": [
+     0,
+     1
+    ],
+    "provisional": true
+   },
+   {
+    "id": "standard",
+    "label": "常规窗",
+    "range": [
+     0,
+     10
+    ],
+    "provisional": true
+   }
   ],
   "tawss": [
-   {"id": "low", "label": "低剪切窗", "range": [0, 1], "provisional": true},
-   {"id": "standard", "label": "常规窗", "range": [0, 4], "provisional": true}
+   {
+    "id": "low",
+    "label": "低剪切窗",
+    "range": [
+     0,
+     1
+    ],
+    "provisional": true
+   },
+   {
+    "id": "standard",
+    "label": "常规窗",
+    "range": [
+     0,
+     4
+    ],
+    "provisional": true
+   }
   ],
   "osi": [
-   {"id": "full", "label": "全范围", "range": [0, 0.5], "provisional": true},
-   {"id": "high", "label": "高振荡窗", "range": [0.1, 0.5], "provisional": true}
+   {
+    "id": "full",
+    "label": "全范围",
+    "range": [
+     0,
+     0.5
+    ],
+    "provisional": true
+   },
+   {
+    "id": "high",
+    "label": "高振荡窗",
+    "range": [
+     0.1,
+     0.5
+    ],
+    "provisional": true
+   }
   ],
   "rrt": [
-   {"id": "standard", "label": "常规窗", "range": [0, 20], "provisional": true}
+   {
+    "id": "standard",
+    "label": "常规窗",
+    "range": [
+     0,
+     20
+    ],
+    "provisional": true
+   }
   ],
   "ecap": [
-   {"id": "standard", "label": "常规窗", "range": [0, 3], "provisional": true}
+   {
+    "id": "standard",
+    "label": "常规窗",
+    "range": [
+     0,
+     3
+    ],
+    "provisional": true
+   }
   ]
  },
  "population_reference": "无：三头模型没有按折训练的模型，不提供人群分位（reference.json population.status = unknown）",
- "caveat": "研究用途，不是诊断"
+ "caveat": "研究用途，不是诊断",
+ "retired": {
+  "on": "2026-10-02",
+  "replaced_by": "M1cap_v52d_3seed_20261002",
+  "note": "v5.1（训练 136 例）的旧模型，2026-10-02 下线；现役「周期指标 TAWSS · OSI」是 v5.2d 全量 265 例训练的 M1cap_v52d_3seed_20261002。用旧模型算出的结果保留可看，换新模型重跑沿用同一次扫描的中心线和出口确认。"
+ }
 }

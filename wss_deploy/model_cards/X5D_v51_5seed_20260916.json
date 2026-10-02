@@ -1,8 +1,8 @@
 {
  "schema_version": "wss-deploy.model-card/v1",
  "release_id": "X5D_v51_5seed_20260916",
- "display_name": "峰值 WSS",
- "short_name": "峰值 WSS",
+ "display_name": "（旧版）峰值 WSS",
+ "short_name": "峰值 WSS（旧）",
  "version_date": "2026-09-17",
  "purpose": "预测收缩期峰值时刻（周期内 0.21 s）的壁面切应力 WSS",
  "training": {
@@ -71,6 +71,7 @@
  },
  "usage_note": "「怎么用」一栏的措辞待导师或医生过目。",
  "weaknesses": [
+  "v5.1（训练 136 例）的旧模型，2026-10-02 下线；现役「峰值 WSS」是 v5.2d 全量 265 例训练的 X5Dcap_asym2_v52d_3seed_20261002。用旧模型算出的结果保留可看，换新模型重跑沿用同一次扫描的中心线和出口确认。",
   "最高 10% 的高值整体偏低：留出集上这部分预测均值约为 CFD 的 0.75。",
   "三折交叉验证折外 R² 0.71，低于留出集的 0.77；新病例预期在 0.71–0.77 之间。",
   "ILO（髂支闭塞）队列的折外 R² 0.62，低于 AAA 0.74 与 AG 0.76。",
@@ -78,6 +79,7 @@
   "小口径髂支的高值容易被低估（09-21 最差病例分析，定性结论）。"
  ],
  "weakness_sources": [
+  "wss_deploy/README.md v0.16.3；outputs/wss_deploy_release_retired/",
   "metrics/x5d_v51_five_seed_test34.json values.test34_summary.calibration_pooled.top10_pred_true_ratio = 0.750",
   "release.json metrics.cv3_v51_out_of_fold_pooled = 0.71、metrics.test34_pa_r2_cb_ensemble = 0.7749、metrics.expected_new_case_range",
   "metrics/x5d_v51_five_seed_test34.json values.cv3_cohort = {AAA 0.742, AG 0.756, ILO 0.624}",
@@ -114,5 +116,10 @@
   ]
  },
  "population_reference": "有：train136 三折交叉验证折外预测的空间 p99（136 例，reference.json population_reference）",
- "caveat": "研究用途，不是诊断"
+ "caveat": "研究用途，不是诊断",
+ "retired": {
+  "on": "2026-10-02",
+  "replaced_by": "X5Dcap_asym2_v52d_3seed_20261002",
+  "note": "v5.1（训练 136 例）的旧模型，2026-10-02 下线；现役「峰值 WSS」是 v5.2d 全量 265 例训练的 X5Dcap_asym2_v52d_3seed_20261002。用旧模型算出的结果保留可看，换新模型重跑沿用同一次扫描的中心线和出口确认。"
+ }
 }

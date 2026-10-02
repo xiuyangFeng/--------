@@ -1469,6 +1469,11 @@ class Handler(BaseHTTPRequestHandler):
             registry = getattr(manager, "registry", None)
             ids = [item.get("id") for item in manager.releases()] if registry is not None else \
                 [item.get("id") for item in getattr(manager, "_known_releases", lambda: [])()]
+            if registry is not None:
+                # 2026-10-02: results bound to a retired package keep its card (named 「（旧版）」), so they are not
+                # shown under the same name as the package that replaced them.  Upload choices come from /api/releases.
+                from .registry import retired_release_ids
+                ids += [rid for rid in retired_release_ids() if rid not in ids]
             return self._json({"cards": v2_data.all_cards(registry, ids)})
         match = re.fullmatch(rf"/api/v2/jobs/({JOB_ID_PATTERN})/manifest", path)
         if match:

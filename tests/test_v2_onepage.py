@@ -106,7 +106,8 @@ def test_patient_banner_keeps_the_words_and_separators():
     banner = html.split('<p class="idline">')[1].split("</p>")[0]
     assert banner.count('<span class="sep"> · </span>') == 3 and '<span class="idf">患者编号 <b>P-01</b></span>' in banner
     words = "".join(_text(banner).parts)
-    assert words == "患者编号 P-01 · 扫描 基线 / 2026-09-01 · 模型 峰值 WSS · 生成 2026-09-20 10:00", words
+    # the fixture is bound to X5D_v51, retired on 2026-10-02: its card names it 「（旧版）峰值 WSS」
+    assert words == "患者编号 P-01 · 扫描 基线 / 2026-09-01 · 模型 （旧版）峰值 WSS · 生成 2026-09-20 10:00", words
 
 
 def test_print_rules_keep_page_one_on_one_sheet_and_the_screen_tokens_are_v2():

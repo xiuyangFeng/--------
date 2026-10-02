@@ -328,12 +328,21 @@ def test_example_requires_a_session_in_shared_mode(jobs_root, tmp_path, monkeypa
         api.close(); svc.close()
 
 
-def test_model_cards_and_health_build_ids(service, monkeypatch):
+def test_model_cards_and_health_build_ids(service, monkeypatch, tmp_path):
+    from wss_deploy import registry as REG
+    monkeypatch.setattr(REG, "RETIRED_RELEASE_ROOT", tmp_path / "retired")       # no retired packages
     api = service.api(); headers = service.session(api)
     try:
         status, body, _ = _get(api, "/api/v2/model-cards", {"Cookie": headers["Cookie"]})
         cards = json.loads(body)["cards"]
         assert status == 200 and set(cards) == {"REL_A"}
+        # 2026-10-02: a retired package's card is sent too (old results keep their own, marked name)
+        (tmp_path / "retired" / "X5D_v51_5seed_20260916").mkdir(parents=True)
+        (tmp_path / "retired" / "X5D_v51_5seed_20260916" / "release.json").write_text("{}", encoding="utf-8")
+        status, body, _ = _get(api, "/api/v2/model-cards", {"Cookie": headers["Cookie"]})
+        cards = json.loads(body)["cards"]
+        assert set(cards) == {"REL_A", "X5D_v51_5seed_20260916"} and cards["X5D_v51_5seed_20260916"]["short_name"] == "峰值 WSS（旧）"
+        (tmp_path / "retired" / "X5D_v51_5seed_20260916" / "release.json").unlink()
 
         class Cards:
             @staticmethod

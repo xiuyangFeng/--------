@@ -78,6 +78,7 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 
 **下线**：`X5D_v51_5seed_20260916`、`M1_3head_3seed_20260922` 从发布根移到 `outputs/wss_deploy_release_retired/`（`paths.RETIRED_RELEASE_ROOT`，可用 `WSS_DEPLOY_RETIRED_RELEASE_ROOT` 改）。目录原样移动，指纹不变。
 - 服务不扫描归档根：上传、重跑、补跑、预加载都只看现役三包；组合上传「周期指标 ＋ 体内压力与速度」自动变成 M1cap ＋ PF6/VF6。
+- **新旧同名区分**（用户 10-02 追加）：两张旧说明卡改名为「（旧版）峰值 WSS」「（旧版）周期指标 TAWSS · OSI」、简称「峰值 WSS（旧）」「周期指标（旧）」，并记 `retired: {on, replaced_by, note}`（说明卡「薄弱处」第一条写下线说明）；`/api/v2/model-cards` 除现役包外也下发已下线包的卡（`registry.retired_release_ids`），所以病例卡、左侧结果列表、结果切换下拉、任务列表、一页纸里旧结果都带「旧」字，新包保持原名。「（旧版）」放在前面，下拉框截断时也看得到。
 - 绑定旧包的历史任务：结果、报告、说明卡（仓库里的旧卡保留）照常查看；重试会提示「发布包已下线：…，请用现役发布包重跑」（`registry.is_retired`）；「用发布包重跑」复用中心线和已确认出口。
 - 只读回退：`regress` 在现役根找不到任务绑定的包时到归档根加载（黄金回归基线 20260920 的 6 个任务有 5 个绑定旧包）；`rebuild_report` 重算参考评估时同样回退，历史结果的几何越界与人群分位不丢。
 

@@ -146,5 +146,6 @@ def test_retired_release_is_not_listed_and_says_so(tmp_path, monkeypatch):
         registry.describe("never_existed")
     assert REG.is_retired("old_release") and not REG.is_retired("new_release") and not REG.is_retired("../x")
     assert [r["id"] for r in REG.retired_registry().list()] == ["old_release"]
+    assert REG.retired_release_ids() == ["old_release"]
     monkeypatch.setattr(REG, "RETIRED_RELEASE_ROOT", tmp_path / "missing")
-    assert REG.retired_registry() is None
+    assert REG.retired_registry() is None and REG.retired_release_ids() == []
