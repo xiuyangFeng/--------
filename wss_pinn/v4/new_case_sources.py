@@ -63,12 +63,14 @@ def outlet_semantics_from_udf(raw_case: Path) -> dict[int, str]:
     return out
 
 
-OUTLET_SEMANTICS_OVERRIDES = ROOT / "wss_pinn/configs/outlet_semantics_overrides_20260930.json"
+OUTLET_SEMANTICS_OVERRIDES = ROOT / "wss_pinn/configs/outlet_semantics_overrides_20261001.json"
 
 
 def outlet_semantics(canonical_id: str) -> dict[int, str]:
-    """Explicit override (2026-09-30: units whose dataset naming came from the since-removed legacy manifest and differs
-    from the UDF keys), else the legacy qs-smooth-v3 manifest when present (existing cases), else the UDF."""
+    """Explicit override, else the legacy qs-smooth-v3 manifest when present (existing cases), else the UDF.
+    2026-10-01 table (library audit, docs/02-…/04-数据处理与CFD/母库全量审计_2026-10-01.md §9): units whose operator
+    names do not match the anatomy (internal / external swapped on a side, or left / right against the library convention);
+    it replaces the 2026-09-30 table, whose four units now follow their UDF keys."""
     if OUTLET_SEMANTICS_OVERRIDES.is_file():
         row = json.loads(OUTLET_SEMANTICS_OVERRIDES.read_text(encoding="utf-8"))["cases"].get(canonical_id)
         if row:
@@ -78,6 +80,16 @@ def outlet_semantics(canonical_id: str) -> dict[int, str]:
         payload = json.loads(manifest.read_text(encoding="utf-8"))
         return {int(row["mesh_zone_id"]): label for label, row in payload["outlets"].items()}
     return outlet_semantics_from_udf(raw_dir(canonical_id))
+
+
+def udf_to_dataset_outlets(canonical_id: str, raw_case: Path | None = None) -> dict[str, str]:
+    """UDF outlet name (t1..t4 -> out-le|li|ri|re) -> dataset outlet name of the zone that thread points at.
+    Identity for every unit without an override."""
+    udf = outlet_semantics_from_udf(raw_case if raw_case is not None else raw_dir(canonical_id))
+    data = outlet_semantics(canonical_id)
+    if set(udf) != set(data):
+        raise ValueError(f"{canonical_id}: outlet zones of the UDF {sorted(udf)} and of the dataset naming {sorted(data)} differ")
+    return {udf[zone]: data[zone] for zone in udf}
 
 
 def fluent_case_from_raw(raw_case: Path) -> Path:

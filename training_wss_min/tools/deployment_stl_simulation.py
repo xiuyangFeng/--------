@@ -48,13 +48,46 @@ DATA_NEW = ROOT / "data_new"
 FINE_MAP = {"curv_k1": "k1", "curv_k2": "k2", "curv_mean": "mean", "curv_gauss": "gauss", "curvedness": "curvedness", "shape_index": "shape_index"}
 
 
-def find_stl(unit_id: str) -> Path | None:
+_STL_MANIFEST = None
+
+
+def _stl_manifest():
+    """tools/stl_manifest.py loaded by file path (``tools`` is a plain folder at the repository root, not a package on every
+    caller's sys.path; in a frozen code copy it is a symlink to the main tree)."""
+    global _STL_MANIFEST
+    if _STL_MANIFEST is None:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("_stl_manifest_for_deployment_tests", ROOT / "tools/stl_manifest.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _STL_MANIFEST = module
+    return _STL_MANIFEST
+
+
+def find_stl_in_folder(unit_id: str) -> Path | None:
+    """The first ``*.stl`` of the unit's ``data_new`` folder (the rule ``find_stl`` used until 2026-10-02)."""
     cohort, subset, case = unit_id.split("/")
-    if cohort == "ILO":
-        candidates = sorted(glob.glob(str(DATA_NEW / "ILO" / subset / case / "*.stl")))
-    else:
-        candidates = sorted(glob.glob(str(DATA_NEW / cohort / subset / case / "*.stl")))
+    candidates = sorted(glob.glob(str(DATA_NEW / cohort / subset / case / "*.stl")))
     return Path(candidates[0]) if candidates else None
+
+
+def find_stl(unit_id: str) -> Path | None:
+    """The surface a deployment-style test of a library unit starts from.
+
+    Units listed in the canonical STL manifest (the 273 real units of v5.2d; ``tools/stl_manifest.py``) get their canonical
+    surface: the ``data_new`` STL when the CFD wall lies on it, otherwise the CFD wall exported from ``case.h5`` (24 units
+    whose folder holds a pre-processing assembly, a file in another frame or unit, a capped surface, or no STL at all).
+    "First ``*.stl`` of the folder" returned those wrong files; it gives the same file as the manifest for 248 units.
+    Units outside the manifest (synthetic children) keep the folder rule."""
+    module = _stl_manifest()
+    if not module.MANIFEST.is_file():
+        raise FileNotFoundError(f"canonical STL manifest missing: {module.MANIFEST}")
+    stl = module.canonical_stl(unit_id)
+    if stl is None:
+        return find_stl_in_folder(unit_id)
+    if not stl.is_file():
+        raise FileNotFoundError(f"{unit_id}: canonical surface listed in the manifest is missing: {stl}")
+    return stl
 
 
 def sample_surface(vertices: np.ndarray, faces: np.ndarray, spacing: float, seed: int) -> np.ndarray:

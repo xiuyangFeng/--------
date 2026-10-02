@@ -21,9 +21,14 @@ import json
 from pathlib import Path
 
 G = Path("/public/newhome/cy/Digital_twin/GNN")
-MAP = {str(G / "data_wss_v5/views_v5_2_full_20260923"): str(G / "data_wss_v5/views_v5_2c_20260930"),
-       str(G / "data_wss_v5/views_v5_2p4_full265_20260930"): str(G / "data_wss_v5/views_v5_2c_20260930"),
-       str(G / "data_wss_v5/views_v5_2p5_full265_20260930"): str(G / "data_wss_v5/views_v5_2c_20260930")}
+# 2026-10-01: the unified root is v5.2d (library audit merge; views_v5_2c_20260930 was renamed, so every older root maps to it)
+NEW_ROOT = str(G / "data_wss_v5/views_v5_2d_20261001")
+MAP = {str(G / "data_wss_v5/views_v5_2_full_20260923"): NEW_ROOT,
+       str(G / "data_wss_v5/views_v5_2p4_full265_20260930"): NEW_ROOT,
+       str(G / "data_wss_v5/views_v5_2p5_full265_20260930"): NEW_ROOT,
+       str(G / "data_wss_v5/views_v5_2c_20260930"): NEW_ROOT,
+       str(G / "data_wss_v5/anatomy_pointcloud_v5_2c_20260930"): str(G / "data_wss_v5/anatomy_pointcloud_v5_2d_20261001"),
+       str(G / "training_wss_min/experiments/joint_cycle_v52c_20260930/data_audit_cache"): str(G / "training_wss_min/experiments/joint_cycle_v52d_20261001/data_audit_cache")}
 # relative spellings used inside some split files
 MAP.update({k.replace(str(G) + "/", ""): v.replace(str(G) + "/", "") for k, v in list(MAP.items())})
 
@@ -57,7 +62,7 @@ def main() -> None:
             if a.name_prefix and isinstance(new.get("name"), str):
                 new["name"] = a.name_prefix + "/" + new["name"].split("/", 1)[-1]
             new["notes"] = (str(new.get("notes", "")) + " | 2026-09-30 label fix: data roots repointed to the corrected versions "
-                            "(unified v5.2c) by training_wss_min/tools/repoint_data_root.py; recipe unchanged").strip(" |")
+                            "(unified v5.2d since 2026-10-01) by training_wss_min/tools/repoint_data_root.py; recipe unchanged").strip(" |")
         report.append({"config": str(f), "repointed_fields": len(hits)})
         if not a.dry_run:
             a.out.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,95 @@
+{
+ "schema_version": 2,
+ "created": "2026-10-01",
+ "purpose": "Dataset outlet names (mesh zone id -> out-le/out-li/out-ri/out-re) for units whose operator naming (UDF keys) does not match the anatomy; found by the 2026-10-01 library audit (four-cue geometric vote + wss_deploy proposal + same-patient partner / operator zone names). The library convention is kept: 'left' = the viewer's left (the patient's right). CFD labels do not depend on these names; model inputs (wall semantics, flow-split prior, aligned frame) and conditions.rcr (relabelled through new_case_sources.udf_to_dataset_outlets) do.",
+ "replaces": "outlet_semantics_overrides_20260930.json — its four units (MENG_GUANG_QIN, CHEN_SHU_LIN, LIU_ZONG_YANG, ZHANG_YONG_SHENG-0/before) kept the legacy manifest naming, which crosses internal / external on one side; they now follow their UDF keys (no entry).",
+ "docs": "docs/02-推进与变更/04-数据处理与CFD/母库全量审计_2026-10-01.md §9",
+ "reason": {
+  "AAA/ruputer/WANG_KUI_WU": "T1 髂内两支跨侧对调",
+  "ILO/SHEN_CHUN_WANG-0/before": "T1 左侧髂内外对调（区名对、UDF 挂反）",
+  "ILO/YAO_GUO_CHEN-0/after": "T1 右侧髂内外对调",
+  "AG/fast/LIU_YI_BING": "T1 两侧髂内外对调",
+  "ILO/WU_JUN-0/after": "T1 左右对调（改成全库口径）",
+  "AG/fast/LI_ZHEN_SHAN": "T1 左右对调（改成全库口径）",
+  "AG/fast/LI_ZHI_LIN": "T1 左右对调（改成全库口径）",
+  "AG/fast/LIU_LI_QUN": "T2 左侧：两套判别一致",
+  "AG/slow/XI_CHENG_JIANG": "T2 左侧：两套判别一致",
+  "AG/fast/LI_SHI_QIANG": "T2 左侧：两套判别一致",
+  "AG/slow/SUN_ZONG_GE": "T2 右侧：两套判别一致",
+  "AG/slow/SUN_ZONG_GE~m43": "T2 右侧：两套判别一致（随父例）"
+ },
+ "cases": {
+  "AAA/ruputer/WANG_KUI_WU": {
+   "7179": "out-le",
+   "7180": "out-ri",
+   "7181": "out-li",
+   "7182": "out-re"
+  },
+  "ILO/SHEN_CHUN_WANG-0/before": {
+   "6625": "out-li",
+   "6622": "out-le",
+   "6620": "out-ri",
+   "6618": "out-re"
+  },
+  "ILO/YAO_GUO_CHEN-0/after": {
+   "11524": "out-le",
+   "11523": "out-li",
+   "11521": "out-re",
+   "11522": "out-ri"
+  },
+  "AG/fast/LIU_YI_BING": {
+   "4396": "out-li",
+   "4393": "out-le",
+   "4391": "out-re",
+   "4395": "out-ri"
+  },
+  "ILO/WU_JUN-0/after": {
+   "15902": "out-re",
+   "15904": "out-ri",
+   "15903": "out-li",
+   "15900": "out-le"
+  },
+  "AG/fast/LI_ZHEN_SHAN": {
+   "4396": "out-re",
+   "4393": "out-ri",
+   "4391": "out-li",
+   "4395": "out-le"
+  },
+  "AG/fast/LI_ZHI_LIN": {
+   "4396": "out-re",
+   "4393": "out-ri",
+   "4391": "out-li",
+   "4395": "out-le"
+  },
+  "AG/fast/LIU_LI_QUN": {
+   "4396": "out-li",
+   "4393": "out-le",
+   "4391": "out-ri",
+   "4395": "out-re"
+  },
+  "AG/slow/XI_CHENG_JIANG": {
+   "4396": "out-li",
+   "4393": "out-le",
+   "4391": "out-ri",
+   "4395": "out-re"
+  },
+  "AG/fast/LI_SHI_QIANG": {
+   "4396": "out-li",
+   "4393": "out-le",
+   "4391": "out-ri",
+   "4395": "out-re"
+  },
+  "AG/slow/SUN_ZONG_GE": {
+   "4396": "out-le",
+   "4393": "out-li",
+   "4391": "out-re",
+   "4395": "out-ri"
+  },
+  "AG/slow/SUN_ZONG_GE~m43": {
+   "4396": "out-le",
+   "4393": "out-li",
+   "4391": "out-re",
+   "4395": "out-ri"
+  }
+ }
+}

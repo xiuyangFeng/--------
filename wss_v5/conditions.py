@@ -71,8 +71,17 @@ def waveform_samples() -> dict[str, np.ndarray]:
             "q_nom_peak_m3s": np.array(float(qf.max())), "q_nom_mean_m3s": np.array(float(np.trapz(qf, fine) / C.PERIOD_S))}
 
 
-def read_conditions(udf_path: Path, inlet_bc_face_area_m2: float, interface_areas_m2: dict[str, float], cohort: str | None = None) -> dict[str, Any]:
+def read_conditions(udf_path: Path, inlet_bc_face_area_m2: float, interface_areas_m2: dict[str, float], cohort: str | None = None,
+                    outlet_relabel: dict[str, str] | None = None) -> dict[str, Any]:
+    """``outlet_relabel`` (2026-10-01): UDF outlet name -> dataset outlet name, for units whose dataset naming differs from
+    the operator's UDF keys (``new_case_sources.udf_to_dataset_outlets``). The R1/R2/C of a UDF profile then sit under the
+    name of the interface the profile is hooked on. None / identity: the rows as the UDF names them (every other unit)."""
     udf = parse_udf(udf_path)
+    if outlet_relabel and any(k != v for k, v in outlet_relabel.items()):
+        by = {outlet_relabel[row["outlet"]]: {**row, "outlet": outlet_relabel[row["outlet"]]} for row in udf["rcr"]}
+        if set(by) != set(C.OUTLET_ORDER):
+            raise ValueError(f"outlet relabel is not a permutation of the four outlets: {outlet_relabel}")
+        udf["rcr"] = [by[o] for o in C.OUTLET_ORDER]
     a_udf = float(udf["a_udf_m2"])
     cond = {
         "udf": {"path": str(udf_path), "sha256": sha256_file(udf_path)},

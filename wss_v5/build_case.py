@@ -15,6 +15,7 @@ from wss_pinn.utils import git_state, sha256_file, utc_now
 from . import contract as C
 from .centerline_features import POINT_FEATURES, alignment_metrics, load_atlas, map_points, relabel_outlets
 from .conditions import read_conditions, waveform_samples
+from wss_pinn.v4.new_case_sources import udf_to_dataset_outlets
 from .mesh_topology import MeshData, distance_to_wall, load_mesh, wall_triangles
 from .pointcloud import build_oriented_cloud, generate_internal_queries, inside_hybrid, inside_score_vote, patch_atlas_end_radius, winding_number
 from .raw_frames import VolumeFrames, WallFrames, read_volume_frames, read_wall_frames
@@ -256,7 +257,8 @@ def build_case(canonical_id: str, registry: Registry, out_root: Path, *, hash_fi
         p_vol_mean = np.einsum("tn,n->t", vol.pressure.astype(np.float64), volumes) / volumes.sum()
         wave = waveform_samples()
         p_cycle = float(np.trapz(p_vol_mean, wave["time_s"]) / (wave["time_s"][-1] - wave["time_s"][0]))
-        cond = read_conditions(src.udf_path, md.inlet_bc_face_area_m2, {k: v["area_m2"] for k, v in interfaces.items()}, src.cohort)
+        cond = read_conditions(src.udf_path, md.inlet_bc_face_area_m2, {k: v["area_m2"] for k, v in interfaces.items()}, src.cohort,
+                               outlet_relabel=udf_to_dataset_outlets(src.canonical_id, src.raw_dir))
         t = time.time()
         pc = _pointcloud_gate(md, vol, atlas, wall_xyz_mm, interfaces, seed, domain_subsample, n_generate)
         timings["pointcloud_gate"] = time.time() - t
