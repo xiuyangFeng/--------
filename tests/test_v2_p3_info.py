@@ -183,9 +183,9 @@ def test_details_quality_rows_and_no_dispersion_numbers():
     """)
     rows = dict(out["rows"])
     assert rows["one"] == [["quality", "3 个模型一致性", "存在不确定性，建议复核", "warn"], ["geometry", "几何参考", "1 项超出已声明几何参考范围，请复核", "warn"],
-                           ["population", "人群参照", "已计算同协议 CV3 折外经验分位 45.6%", "ok"]]
+                           ["population", "人群参照", "已计算同协议交叉验证折外经验分位 45.6%", "ok"]]
     assert rows["two"][0] == ["quality", "3 个模型一致性", "多模型一致（一致不代表准确）", "ok"]
-    assert rows["good"][1:] == [["geometry", "几何参考", "在已声明几何参考范围内", "ok"], ["population", "人群参照", "已计算同协议 CV3 折外经验分位 —%", "ok"]]
+    assert rows["good"][1:] == [["geometry", "几何参考", "在已声明几何参考范围内", "ok"], ["population", "人群参照", "已计算同协议交叉验证折外经验分位 —%", "ok"]]
     assert rows["none"] == [] and rows["poor"][0][1] == "五模型一致性"
     assert out["rm"]["items"] == ["右髂外中位半径 3.46 mm（参考 3.60–9.10 mm）"] and out["rm"]["status"].startswith("部分几何测量超出本发布包声明的参考范围")
     assert out["qm"]["reasons"] == ["五模型离散度较高，结果需要人工复核"] and out["words"] == ["五模型", "3 个模型", "五模型"]

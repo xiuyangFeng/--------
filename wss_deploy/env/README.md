@@ -7,7 +7,8 @@
 |---|---|
 | `GNN.yml` | `conda env export -n GNN --no-builds` 原样导出：服务、测试、推理和几何特征都在这个环境里跑 |
 | `GNN_vmtk.yml` | `conda env export -n GNN_vmtk --no-builds` 原样导出：只用来跑 vessel_geom / VMTK 中心线子进程 |
-| `releases.sha256` | 三个发布包的 `release.json` 与 `MANIFEST.sha256` 的 sha256（路径相对 `outputs/wss_deploy_release/`） |
+| `releases.sha256` | 现役三个发布包（2026-10-02 起：`X5Dcap_asym2_v52d_3seed_20261002`、`M1cap_v52d_3seed_20261002`、`PF6_VF6_peak_3seed_20260920`）的 `release.json` 与 `MANIFEST.sha256` 的 sha256（路径相对 `outputs/wss_deploy_release/`） |
+| `releases_retired.sha256` | 已下线发布包（`X5D_v51_5seed_20260916`、`M1_3head_3seed_20260922`）的同样两份文件（路径相对 `outputs/wss_deploy_release_retired/`）；服务不扫描该目录，只有黄金回归与历史报告重建会读 |
 | `vessel_geom_toolkit.sha256` | vessel_geom 工具包 `vessel_geom/*.py` 的 sha256（路径相对工具包根目录） |
 
 ## 1. 两个环境
@@ -50,17 +51,19 @@ conda env create -n GNN -f wss_deploy/env/GNN.yml
 
 在新机器的仓库根目录依次执行：
 
-1. **拷贝目录**：`rsync -a <源机器>:<仓库根>/outputs/wss_deploy_release/ outputs/wss_deploy_release/`，vessel_geom 工具包同理（保持目录名，或用上表的环境变量指过去）。
+1. **拷贝目录**：`rsync -a <源机器>:<仓库根>/outputs/wss_deploy_release/ outputs/wss_deploy_release/`，vessel_geom 工具包同理（保持目录名，或用上表的环境变量指过去）。要跑黄金回归或重建绑定旧包的历史结果时，再拷 `outputs/wss_deploy_release_retired/`（可用 `WSS_DEPLOY_RETIRED_RELEASE_ROOT` 指到别处）。
 2. **核对发布包清单本身**（确认拿到的是同一份 `release.json` 与 `MANIFEST.sha256`）：
    ```bash
    (cd outputs/wss_deploy_release && sha256sum -c ../../wss_deploy/env/releases.sha256)
+   (cd outputs/wss_deploy_release_retired && sha256sum -c ../../wss_deploy/env/releases_retired.sha256)   # 只在拷了已下线包时
    ```
 3. **按清单逐文件核对权重**（三个包都应输出 all OK）：
    ```bash
    for d in outputs/wss_deploy_release/*/; do (cd "$d" && awk '{print $1"  "$2}' MANIFEST.sha256 | sha256sum -c --quiet && echo "$d all OK"); done
    ```
    发布包指纹（`release.json` + `MANIFEST.sha256` 的联合哈希，写进每个任务的 `model_release.fingerprint`）应为：
-   X5D_v51_5seed_20260916 `bf875ba6ccd8…`、M1_3head_3seed_20260922 `c40326c1c0a0…`、PF6_VF6_peak_3seed_20260920 `e210ca93e4f3…`。
+   现役 X5Dcap_asym2_v52d_3seed_20261002 `66052d5886f4…`、M1cap_v52d_3seed_20261002 `682d2367a256…`、PF6_VF6_peak_3seed_20260920 `e210ca93e4f3…`；
+   已下线 X5D_v51_5seed_20260916 `bf875ba6ccd8…`、M1_3head_3seed_20260922 `c40326c1c0a0…`（移到归档目录后指纹不变）。
 4. **核对 vessel_geom 代码**：
    ```bash
    (cd outputs/vessel_geom_toolkit_2026-09-17 && sha256sum -c ../../wss_deploy/env/vessel_geom_toolkit.sha256)

@@ -159,9 +159,9 @@
   },
   "population_percentile": {
    "en": "Population percentile",
-   "en_desc": "Position of this case's p99 within the out-of-fold p99 distribution of the 136-case training cohort; the reference comes from model predictions, not CFD.",
+   "en_desc": "Position of this case's p99 within the cross-validation out-of-fold p99 distribution of the release's training cohort (peak-WSS release: 261 units, five folds); the reference comes from model predictions, not CFD.",
    "zh": "人群分位",
-   "zh_desc": "本例 p99 在 136 例训练队列折外预测 p99 分布中的位置；参照来自模型折外预测，不是 CFD。"
+   "zh_desc": "本例 p99 在该发布包训练队列的交叉验证折外预测 p99 分布中的位置（峰值 WSS 发布包：261 例五折折外）；参照来自模型折外预测，不是 CFD。"
   },
   "pressure_units": {
    "en": "Pressure units",
@@ -189,9 +189,9 @@
   },
   "release": {
    "en": "Release package",
-   "en_desc": "Frozen weights plus inference contract (e.g. X5D_v51_5seed_20260916); a job is bound to one release and reruns never overwrite history.",
+   "en_desc": "Frozen weights plus inference contract (e.g. X5Dcap_asym2_v52d_3seed_20261002); a job is bound to one release and reruns never overwrite history.",
    "zh": "发布包",
-   "zh_desc": "冻结的权重与推理合同目录（如 X5D_v51_5seed_20260916）；任务固定绑定，重跑不覆盖历史结果。"
+   "zh_desc": "冻结的权重与推理合同目录（如 X5Dcap_asym2_v52d_3seed_20261002）；任务固定绑定，重跑不覆盖历史结果。"
   },
   "review_status": {
    "en": "Review status",

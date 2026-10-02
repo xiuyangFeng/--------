@@ -926,7 +926,7 @@ function renderPanel(){const m=META,p=PEAK,ic=m.input_check||{},cloud=m.cloud||{
  const reference=m.reference_assessment||{}, population=reference.population||{};
  if(reference.status||population.status){
    const geometryText=reference.status==='pass'?'在已声明几何参考范围内':reference.status==='review'?'超出已声明几何参考范围，请复核':'未配置几何参考范围';
-   const populationText=population.status==='pass'?'已计算同协议 CV3 折外经验分位 '+fmt(population.percentile,1)+'%':population.status==='review'?'人群参照需要复核':'未配置可核验的人群参照';
+   const populationText=population.status==='pass'?'已计算同协议交叉验证折外经验分位 '+fmt(population.percentile,1)+'%':population.status==='review'?'人群参照需要复核':'未配置可核验的人群参照';
    h+=`<section class="card" id="ref-card"><h3>参考范围与人群位置</h3><div class="kv"><b>几何参考</b><span>${esc(geometryText)}</span><b>人群参照<button type="button" class="gloss" data-gloss="population_percentile">?</button></b><span>${esc(populationText)}</span></div><small>${esc(reference.note||population.note||'参考范围用于复核，不代表校准概率或临床风险。')}</small>${(reference.reasons||[]).length?'<div class="flag">'+esc(reference.reasons.join('；'))+'</div>':''}${(population.reasons||[]).length?'<div class="flag">'+esc(population.reasons.join('；'))+'</div>':''}</section>`;
  }
  const w=CORE.thresholdAreas(PW,thresholdsPa,AREA),t=thresholdsPa,stat=m.wss_field_pa||{};

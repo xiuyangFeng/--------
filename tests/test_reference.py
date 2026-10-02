@@ -112,10 +112,18 @@ def test_population_rank_uses_empirical_midrank_and_bound_protocol():
     assert evaluate_population(meta, release)["percentile"] == 0.
 
 
+def test_population_accepts_a_cv5_reference_whose_fold_count_matches():
+    meta, release = fixture()
+    release["population_reference"].update(source="cv5_oof_predictions", fold_count=5)
+    assert evaluate_population(meta, release)["status"] == "pass"
+
+
 @pytest.mark.parametrize("patch", [
     {"source": "CFD peak-frame wall WSS, train136"},
     {"source": "in_sample_predictions"},
     {"fold_count": 5},
+    {"source": "cv5_oof_predictions"},
+    {"source": "oof_predictions"},
     {"metric": "max_pa"},
     {"field": {"units": "kPa", "location": "wall", "kind": "scalar"}},
     {"time_axis": [{"index": 0, "step": 1163, "time_s": .22}]},

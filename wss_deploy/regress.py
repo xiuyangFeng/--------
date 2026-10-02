@@ -99,7 +99,7 @@ def run_job(src: Path, dst: Path, *, device: str, atol: float, release_root: str
     ``precompute`` (v0.14) first fills the job's geometry cache the way the service does while outlets are
     being confirmed, so the comparison also covers the cache-hit path of stage B.
     """
-    from .registry import ReleaseRegistry
+    from .registry import ReleaseRegistry, retired_registry
     from .pipeline import precompute_geometry_cache, stage_b
     reference = Path(reference) if reference is not None else src
     if dst.exists():
@@ -119,6 +119,11 @@ def run_job(src: Path, dst: Path, *, device: str, atol: float, release_root: str
     compute = job.get("compute") or {}
     release_id = (job.get("model_release") or {}).get("id")
     registry = ReleaseRegistry(release_root, device=device)
+    if release_root is None and release_id not in {r["id"] for r in registry.list()}:
+        # 2026-10-02: results bound to a retired package (golden baseline 20260920) still re-run against it, read-only.
+        retired = retired_registry(device=device)
+        if retired is not None and release_id in {r["id"] for r in retired.list()}:
+            registry = retired
     release = registry.load(release_id, device=device, seed_count=compute.get("seed_count"))
     precomputed = None
     if precompute:

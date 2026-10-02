@@ -1,14 +1,21 @@
-"""Build ``reference.json`` (geometry ranges + CV3 out-of-fold p99 population) for a WSS release.
+"""Build ``reference.json`` (geometry ranges + k-fold out-of-fold p99 population) for a WSS release.
 
     PYTHONPATH=. python -m wss_deploy.build_reference_profiles --release X5D_v51_5seed_20260916 [--write]
     PYTHONPATH=. python -m wss_deploy.build_reference_profiles --release M1_3head_3seed_20260922 --geometry-only \
         --geometry-note "…" --population-note "M1 无 CV3 折外预测…" --write
+    PYTHONPATH=. python -m wss_deploy.build_reference_profiles --data v52d --release X5Dcap_asym2_v52d_3seed_20261002 --write
 
-Sources (read-only, training side):
+Sources (read-only, training side), ``--data v51`` (default; the v5.1 releases):
 * population: ``data_wss_v5/views_v5_1/wss_min_cascade_v1/<case>/features.npz::wall_log_wss_base`` =
   natural-log peak-frame WSS predicted for every train136 case by the CV3 fold model that did *not*
   train on it (X5D_v51 fold runs, seed 1234).  The per-case spatial p99 of exp(.) is the reference value.
 * geometry: per-branch centreline radius/length of the same 136 training atlases (case.h5).
+
+``--data v52d`` (2026-10-02; the full265 releases of the v5.2d retrain):
+* population: the 261 CV5 units, each predicted by the three X5Dcap_asym2 fold models (seeds 1234 / 7 / 2025)
+  that did *not* train on it (``training_wss_min/runs/wss_v52d_retrain_20261001/X5Dcap_asym2_v52cv_f*_s*``,
+  ``eval/ckpt_best/predictions``); the per-case spatial p99 of the three-seed Pa mean is the reference value.
+* geometry: per-branch centreline radius/length of the 265 full265 training atlases (v5.2d snapshot).
 
 The file is a sidecar next to ``release.json``: it does not enter the release fingerprint, so jobs
 bound to the release keep validating, and every run records its SHA256.  It is *not* copied into
@@ -44,9 +51,7 @@ def population_protocol(spacing_placeholder: float = 1.0) -> dict:
 
 def collect(project_root: Path = PROJECT_ROOT, *, population: bool = True) -> dict:
     """Training-side sources; ``population=False`` reads only the centreline atlases (geometry-only sidecar)."""
-    import h5py
     from scipy.stats import spearmanr
-    from wss_features.atlas import semantics
     root = Path(project_root)
     split_path = root / "data_wss_v5/views_v5_1/wss_min_view_v1/split_V5_train136_test34.json"
     split = json.loads(split_path.read_text(encoding="utf-8"))
@@ -66,22 +71,7 @@ def collect(project_root: Path = PROJECT_ROOT, *, population: bool = True) -> di
             steps = bundle["steps"].tolist()
             peak = bundle["wall_wss"][steps.index(int(bundle["peak_step"]))].astype(np.float64)
             oof[cid] = float(np.quantile(pred, .99)); truth[cid] = float(np.quantile(peak, .99))
-        with h5py.File(snapshot / cid.replace("/", "__") / "case.h5", "r") as h5:
-            g = h5["geometry"]; table = g["atlas_table"][()]
-            cols = json.loads(g.attrs["atlas_columns"]); segs = json.loads(g.attrs["atlas_segments"])
-            col = lambda n: table[:, cols.index(n)]
-            sem = semantics(segs)
-            for s in segs:
-                sid = int(s["segment_id"]); name = SEMANTIC_CN.get(sem.get(sid, -1))
-                if name is None:
-                    continue
-                mask = col("segment_id").astype(int) == sid
-                if mask.sum() < 3:
-                    continue
-                r = col("radius_mm")[mask]
-                d = geometry.setdefault(name, {k: [] for k in GEOMETRY_FIELDS})
-                d["length_mm"].append(float(s.get("length_mm", 0.0))); d["radius_min_mm"].append(float(r.min()))
-                d["radius_median_mm"].append(float(np.median(r))); d["radius_max_mm"].append(float(r.max()))
+    _atlas_geometry(snapshot, train, geometry)
     if not population:
         return {"train_cases": train, "oof_p99_pa": {}, "cfd_p99_pa": {}, "geometry": geometry, "validation": {},
                 "split_version": split.get("split_version"), "split_sha256": split.get("source_split_sha256")}
@@ -99,6 +89,97 @@ def collect(project_root: Path = PROJECT_ROOT, *, population: bool = True) -> di
             "split_version": split.get("split_version"), "split_sha256": split.get("source_split_sha256")}
 
 
+V51_LABELS = {
+    "geometry_id": "geometry-train136", "geometry_set": "train136 centreline atlases (v5.1 snapshot)",
+    "population_id": "population-cv3-oof-p99", "population_set": "train136 CV3 out-of-fold predictions (X5D_v51 fold models, seed 1234)",
+    "source": "cv3_oof_predictions", "fold_count": 3,
+    "caveat_ensemble": "参照为单 seed 折模型的折外预测，部署为五 seed 集成，集成会略压低极值",
+}
+V52D_LABELS = {
+    "geometry_id": "geometry-full265", "geometry_set": "full265 centreline atlases (v5.2d snapshot)",
+    "population_id": "population-cv5-oof-p99",
+    "population_set": "CV5 out-of-fold predictions of 261 units (v5.2d, X5Dcap_asym2 fold models, three-seed Pa mean)",
+    "source": "cv5_oof_predictions", "fold_count": 5,
+    "caveat_ensemble": "参照为三 seed 折模型的折外集成（每折约 206 例训练），部署为全量 265 例训练的三 seed 集成",
+}
+V52D_EXPERIMENT = "wss_v52d_retrain_20261001"
+V52D_SEEDS = (1234, 7, 2025)
+
+
+def _atlas_geometry(snapshot: Path, cases, geometry: dict) -> None:
+    """Append per-branch centreline length / radius statistics of ``cases`` (case.h5 atlases) to ``geometry``."""
+    import h5py
+    from wss_features.atlas import semantics
+    for cid in cases:
+        with h5py.File(snapshot / cid.replace("/", "__") / "case.h5", "r") as h5:
+            g = h5["geometry"]; table = g["atlas_table"][()]
+            cols = json.loads(g.attrs["atlas_columns"]); segs = json.loads(g.attrs["atlas_segments"])
+            col = lambda n: table[:, cols.index(n)]
+            sem = semantics(segs)
+            for s in segs:
+                sid = int(s["segment_id"]); name = SEMANTIC_CN.get(sem.get(sid, -1))
+                if name is None:
+                    continue
+                mask = col("segment_id").astype(int) == sid
+                if mask.sum() < 3:
+                    continue
+                r = col("radius_mm")[mask]
+                d = geometry.setdefault(name, {k: [] for k in GEOMETRY_FIELDS})
+                d["length_mm"].append(float(s.get("length_mm", 0.0))); d["radius_min_mm"].append(float(r.min()))
+                d["radius_median_mm"].append(float(np.median(r))); d["radius_max_mm"].append(float(r.max()))
+
+
+def collect_v52d(project_root: Path = PROJECT_ROOT, *, population: bool = True) -> dict:
+    """``--data v52d``: full265 atlases (geometry) and the CV5 three-seed out-of-fold p99 of 261 units (population)."""
+    from scipy.stats import spearmanr
+    root = Path(project_root)
+    view = root / "data_wss_v5/views_v5_2d_20261001/wss_min_view_v1"
+    split = json.loads((view / "split_v52p4_full265_train265_test8.json").read_text(encoding="utf-8"))
+    train = list(split["train_cases"])
+    geometry: dict = {}
+    _atlas_geometry(root / "data_wss_v5/anatomy_pointcloud_v5_2d_20261001/cases", train, geometry)
+    base = {"train_cases": train, "geometry": geometry, "labels": V52D_LABELS,
+            "split_version": split.get("split_version"), "split_sha256": None}
+    if not population:
+        return {**base, "oof_p99_pa": {}, "cfd_p99_pa": {}, "validation": {}, "population_cases": []}
+    runs = root / "training_wss_min/runs" / V52D_EXPERIMENT
+    preds: dict = {}
+    truth_arrays: dict = {}
+    fold_runs = []
+    for fold in range(5):
+        for seed in V52D_SEEDS:
+            run = runs / f"X5Dcap_asym2_v52cv_f{fold}_s{seed}"
+            test = run / "eval/ckpt_best/predictions/test"
+            manifest = json.loads((test / "manifest.json").read_text(encoding="utf-8"))
+            fold_runs.append(run.relative_to(root).as_posix())
+            for case in manifest["cases"]:
+                with np.load(test / case["file"]) as z:
+                    preds.setdefault(case["unit_id"], []).append(z["pred_pa"].astype(np.float64))
+                    true = z["true_pa"].astype(np.float64)
+                uid = case["unit_id"]
+                if uid in truth_arrays and not np.array_equal(truth_arrays[uid], true):
+                    raise ValueError(f"{uid}: fold runs disagree on the CFD rows")
+                truth_arrays[uid] = true
+    cases = sorted(preds)
+    if any(len(preds[c]) != len(V52D_SEEDS) for c in cases):
+        raise ValueError("every CV5 unit must be held out once per seed")
+    oof = {c: float(np.quantile(np.mean(preds[c], axis=0), .99)) for c in cases}
+    truth = {c: float(np.quantile(truth_arrays[c], .99)) for c in cases}
+    p = np.array([oof[c] for c in cases]); t = np.array([truth[c] for c in cases])
+    validation = {
+        "n_cases": int(len(cases)), "spearman_oof_vs_cfd_p99": float(spearmanr(p, t).correlation),
+        "median_ratio_oof_over_cfd_p99": float(np.median(p / t)), "log_ratio_sd": float(np.std(np.log(p / t))),
+        "oof_p99_pa_p10_p50_p90": [float(x) for x in np.percentile(p, [10, 50, 90])],
+        "cfd_p99_pa_p10_p50_p90": [float(x) for x in np.percentile(t, [10, 50, 90])],
+        "fold_runs": fold_runs, "cascade_pack": f"{V52D_EXPERIMENT} eval/ckpt_best predictions (CV5 held-out folds)",
+        "seed": list(V52D_SEEDS),
+    }
+    cv5 = json.loads((view / "cv5_v52/fold0.json").read_text(encoding="utf-8"))
+    return {**base, "oof_p99_pa": oof, "cfd_p99_pa": truth, "validation": validation, "population_cases": cases,
+            "split_sha256": cv5.get("source_split_sha256"),
+            "population_split_version": "cv5_v52 (patient-grouped, 261 units, split seed 20260923)"}
+
+
 def build(release_id: str, collected: dict, *, today: str | None = None, geometry_only: bool = False,
           geometry_note: str | None = None, population_note: str | None = None) -> dict:
     """Assemble the sidecar.  ``geometry_only`` omits the WSS population (e.g. for the PF6/VF6 volume release or
@@ -108,6 +189,7 @@ def build(release_id: str, collected: dict, *, today: str | None = None, geometr
         from .clock import now_local
         today = now_local().date().isoformat()
     v = collected.get("validation") or {}
+    labels = collected.get("labels") or V51_LABELS
     bounds = [{"path": "cloud.spacing_mm", "units": "mm", "min": 0.4, "max": 0.6,
                "note": "部署合同：0.5 mm 重采样；粗于 0.8 mm 精度明显下降"}]
     for branch, fields in collected["geometry"].items():
@@ -119,8 +201,8 @@ def build(release_id: str, collected: dict, *, today: str | None = None, geometr
                            "min": round(float(values.min()) * (1 - MARGIN), 3), "max": round(float(values.max()) * (1 + MARGIN), 3),
                            "train_min": round(float(values.min()), 3), "train_max": round(float(values.max()), 3), "n": int(len(values))})
     geometry_reference = {
-        "schema_version": "wss-deploy.geometry-reference/v1", "id": f"geometry-train136-{today}", "status": "validated",
-        "release": release_id, "reference_set": "train136 centreline atlases (v5.1 snapshot)",
+        "schema_version": "wss-deploy.geometry-reference/v1", "id": f"{labels['geometry_id']}-{today}", "status": "validated",
+        "release": release_id, "reference_set": labels["geometry_set"],
         "rule": f"bounds = training min × {1 - MARGIN:.2f} to training max × {1 + MARGIN:.2f}; outside → review",
         "bounds": bounds, "built_on": today, "split_version": collected.get("split_version"),
         **({"note": geometry_note} if geometry_note else {}),
@@ -131,18 +213,19 @@ def build(release_id: str, collected: dict, *, today: str | None = None, geometr
         if population_note:
             out["population"] = {"status": "unknown", "reason": population_note}
         return out
-    values = [collected["oof_p99_pa"][c] for c in collected["train_cases"]]
+    population_cases = list(collected.get("population_cases") or collected["train_cases"])
+    values = [collected["oof_p99_pa"][c] for c in population_cases]
     population_reference = {
-        "schema_version": "wss-deploy.population-reference/v1", "id": f"population-cv3-oof-p99-{today}", "status": "validated",
-        "release": release_id, "reference_set": "train136 CV3 out-of-fold predictions (X5D_v51 fold models, seed 1234)",
-        "source": "cv3_oof_predictions", "fold_count": 3, "metric": "p99_pa",
+        "schema_version": "wss-deploy.population-reference/v1", "id": f"{labels['population_id']}-{today}", "status": "validated",
+        "release": release_id, "reference_set": labels["population_set"],
+        "source": labels["source"], "fold_count": labels["fold_count"], "metric": "p99_pa",
         "field": {"units": "Pa", "location": "wall", "kind": "scalar", "components": 1},
         "time_axis": [{"index": 0, "step": 1162, "time_s": 0.21, "label": "peak_systole"}],
         "statistics_protocol": population_protocol(),
-        "values_pa": [round(x, 4) for x in values], "case_ids": list(collected["train_cases"]),
+        "values_pa": [round(x, 4) for x in values], "case_ids": population_cases,
         "reference_support": "折外预测取自 CFD 壁面节点（中位间距约 0.41 mm），部署预测取自 STL 0.5 mm 重采样点云；两者都是模型预测的空间 p99",
         "caveats": [
-            "参照为单 seed 折模型的折外预测，部署为五 seed 集成，集成会略压低极值",
+            labels["caveat_ensemble"],
             "参照病例来自训练集三队列（AG / AAA / ILO），与临床人群分布不同",
             "分位只表示在该参照分布中的位置，不是风险概率或临床阈值",
         ],
@@ -155,7 +238,8 @@ def build(release_id: str, collected: dict, *, today: str | None = None, geometr
             "seed": v["seed"], "cascade_pack": v["cascade_pack"], "fold_runs": v["fold_runs"],
         },
         "thresholds_pa": [LOW_PA, HIGH_PA, VERY_HIGH_PA], "built_on": today,
-        "split_version": collected.get("split_version"), "split_sha256": collected.get("split_sha256"),
+        "split_version": collected.get("population_split_version") or collected.get("split_version"),
+        "split_sha256": collected.get("split_sha256"),
     }
     return {"schema_version": "wss-deploy.reference-sidecar/v1", "release": release_id, "built_on": today,
             "geometry_reference": geometry_reference, "population_reference": population_reference}
@@ -164,6 +248,8 @@ def build(release_id: str, collected: dict, *, today: str | None = None, geometr
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--release", default=RELEASE_DIR.name)
+    parser.add_argument("--data", choices=("v51", "v52d"), default="v51",
+                        help="training data the release was built from (v51: train136 + CV3; v52d: full265 + CV5)")
     parser.add_argument("--release-root", default=str(RELEASE_DIR.parent))
     parser.add_argument("--write", action="store_true", help="write <release>/reference.json (refuses to overwrite)")
     parser.add_argument("--out", default=None, help="write the JSON here instead (for inspection)")
@@ -171,7 +257,7 @@ def main(argv=None) -> int:
     parser.add_argument("--geometry-note", default=None, help="provenance note stored with a geometry-only profile")
     parser.add_argument("--population-note", default=None, help="why a geometry-only sidecar has no population profile")
     args = parser.parse_args(argv)
-    collected = collect(population=not args.geometry_only)
+    collected = (collect_v52d if args.data == "v52d" else collect)(population=not args.geometry_only)
     profile = build(args.release, collected, geometry_only=args.geometry_only, geometry_note=args.geometry_note,
                     population_note=args.population_note)
     text = json.dumps(profile, ensure_ascii=False, indent=1) + "\n"

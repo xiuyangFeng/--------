@@ -248,8 +248,10 @@ def test_m1_reference_sidecar_is_geometry_only_and_bound_to_the_release(tmp_path
     (tmp_path / "reference.json").write_text(json.dumps(profile), encoding="utf-8")
     info = {"release": "M1_3head_3seed_20260922"}
     assert load_reference_sidecar(tmp_path, "M1_3head_3seed_20260922", info) and set(info) == {"release", "geometry_reference"}
-    shipped = Path(__file__).resolve().parents[1] / "outputs/wss_deploy_release/M1_3head_3seed_20260922/reference.json"
-    if shipped.is_file():
+    outputs = Path(__file__).resolve().parents[1] / "outputs"
+    shipped = next((p for p in (outputs / "wss_deploy_release/M1_3head_3seed_20260922/reference.json",
+                                outputs / "wss_deploy_release_retired/M1_3head_3seed_20260922/reference.json") if p.is_file()), None)
+    if shipped is not None:
         info = {"release": "M1_3head_3seed_20260922"}
         assert load_reference_sidecar(shipped.parent, "M1_3head_3seed_20260922", info)
         assert info["geometry_reference"]["status"] == "validated" and "population_reference" not in info

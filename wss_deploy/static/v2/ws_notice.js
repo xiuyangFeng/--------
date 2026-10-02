@@ -93,7 +93,7 @@
     var pct = pop.percentile === null || pop.percentile === undefined ? NaN : Number(pop.percentile);
     return {status: ra.status || 'unknown', popStatus: pop.status || 'unknown',
       geometry: ra.status === 'pass' ? '在已声明几何参考范围内' : ra.status === 'review' ? '超出已声明几何参考范围，请复核' : '未配置几何参考范围',
-      population: pop.status === 'pass' ? '已计算同协议 CV3 折外经验分位 ' + (Number.isFinite(pct) ? pct.toFixed(1) : '—') + '%' : pop.status === 'review' ? '人群参照需要复核' : '未配置可核验的人群参照',
+      population: pop.status === 'pass' ? '已计算同协议交叉验证折外经验分位 ' + (Number.isFinite(pct) ? pct.toFixed(1) : '—') + '%' : pop.status === 'review' ? '人群参照需要复核' : '未配置可核验的人群参照',
       percentile: pop.status === 'pass' && Number.isFinite(pct) ? pct : null, referenceCount: pop.reference_count || null,
       statusLine: (GEO_STATUS[ra.status] || '参考范围检查状态未知。') + (ra.note ? ' ' + ra.note : ''),
       items: referenceItems(ra), reviewCount: reviewChecks(ra).length, reasons: (Array.isArray(ra.reasons) ? ra.reasons : []).filter(Boolean),

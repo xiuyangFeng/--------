@@ -3,7 +3,11 @@ import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-RELEASE_DIR = Path(os.environ.get("WSS_DEPLOY_RELEASE", PROJECT_ROOT / "outputs/wss_deploy_release/X5D_v51_5seed_20260916"))
+RELEASE_DIR = Path(os.environ.get("WSS_DEPLOY_RELEASE", PROJECT_ROOT / "outputs/wss_deploy_release/X5Dcap_asym2_v52d_3seed_20261002"))
+# Retired releases (2026-10-02: the v5.1 X5D_v51 / M1_3head packages) live here, outside the release root: they are
+# never listed, preloaded or offered for new work.  Finished jobs bound to them keep their files; the golden
+# regression and report rebuilds may still read them (read-only).
+RETIRED_RELEASE_ROOT = Path(os.environ.get("WSS_DEPLOY_RETIRED_RELEASE_ROOT", PROJECT_ROOT / "outputs/wss_deploy_release_retired"))
 VESSEL_GEOM_DIR = Path(os.environ.get("WSS_DEPLOY_VESSEL_GEOM", PROJECT_ROOT / "outputs/vessel_geom_toolkit_2026-09-17"))
 VMTK_PYTHON = Path(os.environ.get("WSS_DEPLOY_VMTK_PYTHON", Path.home() / ".conda/envs/GNN_vmtk/bin/python"))
 STATIC_DIR = Path(__file__).resolve().parent / "static"

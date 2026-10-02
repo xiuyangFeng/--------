@@ -1,4 +1,4 @@
-# wss_deploy — 从 STL 到 WSS / TAWSS / OSI / RRT / ECAP、压力与速度体场（v0.16，2026-09-30）
+# wss_deploy — 从 STL 到 WSS / TAWSS / OSI / RRT / ECAP、压力与速度体场（v0.16.3，2026-10-02）
 
 只做推理。链路：`ingest`（单位/拓扑检查）→ `centerline`（vessel_geom/VMTK 子进程 + 出口自动命名 + 人工确认）→ `geometry`（1 mm Taubin 平滑 → 0.5 mm 重采样 → 27 维特征，全部来自冻结特征库 `wss_features/`）→ `infer`（可替换的发布包，按模型族适配器 `families.py` 推理与集成）→ `metrics` + `report`（summary.json / run_manifest.json / report.html / wall_wss.vtp / points_wss.csv / field.npz）。
 
@@ -27,7 +27,7 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 
 | 模块 | 作用 | 备注 |
 |---|---|---|
-| `paths.py` | 发布包、vessel_geom、VMTK 解释器路径（可用环境变量 `WSS_DEPLOY_RELEASE / WSS_DEPLOY_VESSEL_GEOM / WSS_DEPLOY_VMTK_PYTHON` 覆盖） | 权重只从 `outputs/wss_deploy_release/<release>/` 读 |
+| `paths.py` | 发布包、vessel_geom、VMTK 解释器路径（可用环境变量 `WSS_DEPLOY_RELEASE / WSS_DEPLOY_VESSEL_GEOM / WSS_DEPLOY_VMTK_PYTHON` 覆盖）；默认发布包 `X5Dcap_asym2_v52d_3seed_20261002`；已下线包的归档根 `RETIRED_RELEASE_ROOT`（`WSS_DEPLOY_RETIRED_RELEASE_ROOT`） | 权重只从 `outputs/wss_deploy_release/<release>/` 读；归档根只给黄金回归和历史报告重建读 |
 | `ingest.py` | 显式单位确认、文件/面片上限、连通片、流形和开口计数、写干净的二进制 STL | 单位不再静默猜测；开口 ≠ 5、非流形、异常尺寸 → 阻断 |
 | `centerline.py` | vessel_geom `--preset frozen-aortoiliac` 子进程（GNN_vmtk 环境）；`propose_outlets` 自动命名（左右按 x，髂内外四项加权，170 例验证 166/169 与 325/340）；`validate_mapping` / `apply_mapping` 把确认后的命名写回 atlas | `--inlet` 可改入口 |
 | `geometry.py` | `build_deployment_case` 的无真值版，全部几何调用冻结特征库 `wss_features/`；capfit 规则从发布包内文件显式传入 | 不读 bundle / case.h5，不改任何全局状态 |
@@ -63,6 +63,36 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 | `server.py` / `jobs.py` | 本地优先 HTTP 服务：上传 → 输入确认 → 三维出口确认 → B 段 → 报告；状态机、事件、取消、重试和重启恢复 | 默认回环；共享需 token；任务落盘 `outputs/wss_deploy_jobs/<job>/job.json` |
 
 验收与计时：`training_wss_min/experiments/wss_deploy_timing_20260917/`（分段计时、指标演示、`acceptance_test34/` 34 例回归）。设计与讨论：`docs/02-推进与变更/05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md`。
+
+## v0.16.3（2026-10-02）：模型换成 v5.2d 全量训练的新包，v5.1 的两个旧包下线
+
+用户 10-02 要求：新三头模型和峰值 WSS 模型训练完成（v5.2d 重训，01 块跟踪 §41），重新发布上线，旧模型下线。
+
+**现役发布包**（`outputs/wss_deploy_release/`）：
+
+| 发布包 | 内容 | 训练 | 验证 |
+|---|---|---|---|
+| `X5Dcap_asym2_v52d_3seed_20261002`（**默认**） | 峰值 WSS，X5Dcap_asym2 三 seed | v5.2d full265（265 例，无验证集） | 同配方 CV5 折外 261 例：三 seed 集成 0.793（单 seed 0.776 ± 0.002）；recover8（8 例）0.839 |
+| `M1cap_v52d_3seed_20261002` | 峰值 WSS + TAWSS + OSI，M1cap 三 seed | 同上 | recover8：峰值 0.823、TAWSS 0.849、OSI 0.542、滞留区 IoU 0.555 |
+| `PF6_VF6_peak_3seed_20260920` | 压力 + 速度体场（未重训，保留） | v5.1 | 不变 |
+
+**下线**：`X5D_v51_5seed_20260916`、`M1_3head_3seed_20260922` 从发布根移到 `outputs/wss_deploy_release_retired/`（`paths.RETIRED_RELEASE_ROOT`，可用 `WSS_DEPLOY_RETIRED_RELEASE_ROOT` 改）。目录原样移动，指纹不变。
+- 服务不扫描归档根：上传、重跑、补跑、预加载都只看现役三包；组合上传「周期指标 ＋ 体内压力与速度」自动变成 M1cap ＋ PF6/VF6。
+- 绑定旧包的历史任务：结果、报告、说明卡（仓库里的旧卡保留）照常查看；重试会提示「发布包已下线：…，请用现役发布包重跑」（`registry.is_retired`）；「用发布包重跑」复用中心线和已确认出口。
+- 只读回退：`regress` 在现役根找不到任务绑定的包时到归档根加载（黄金回归基线 20260920 的 6 个任务有 5 个绑定旧包）；`rebuild_report` 重算参考评估时同样回退，历史结果的几何越界与人群分位不丢。
+
+**打包**（`python -m wss_deploy.build_v52d_releases`，只读来源、拒绝覆盖、暂存目录自校验后改名）：
+- 每包 3 × {`ckpt_best.pt`, `config.json`, `feature_stats.json`, `wss_global_stats.json`, `target_normalization.json`}；`rules/flow_split_rule_train136.json` 是 v5.2d 重拟合的规则（a 1.2624 / b 0.1002，模型只用 Murray 虚拟盖面两列，规则只在算 capfit 键时读）；`metrics/` 放重训读数和本包验证汇总（从保存的预测只读重算，与读数逐位一致）。
+- 两个包都在 `release.json` 声明 `feature_contract`（wss_features 源码哈希 `b4b87e2b…`），特征程序一变就拒绝加载。
+- 参考侧车：峰值包 `python -m wss_deploy.build_reference_profiles --data v52d --release … --write`，几何范围取 full265 的 265 份中心线 atlas，人群参照取 CV5 折外三 seed 集成的空间 p99（261 例，与 CFD p99 的 Spearman 0.973，中位比 0.957）；三头包只有几何范围（没有按折训练的部署模型）。
+- `reference.evaluate_population` 原来只认 CV3：现在接受 `cv<k>_oof_predictions` 且 `fold_count == k`（CV3 / CV5），来源与折数对不上仍然拒绝；界面与一页纸的「CV3 折外经验分位」改为「交叉验证折外经验分位」，术语表「人群分位」不再写死 136 例。
+- 说明卡 `model_cards/X5Dcap_asym2_v52d_3seed_20261002.json`（主数字 = CV5 折外 261 例）、`model_cards/M1cap_v52d_3seed_20261002.json`（recover8 8 例，附旧包同 8 例对照）；数字由 `tests/test_c_line_v2.py::test_v52d_card_numbers_match_the_release_packages` 对照 release.json。
+- 清单：`env/releases.sha256` 改为现役三包，`env/releases_retired.sha256` 记两个旧包。
+
+**验收**（`training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_recover8_v52d_20261002/`）：
+- 模型级等价：训练侧 recover8 输入喂部署加载器，与训练评估保存的逐点预测比，两包所有通道最大相对差 ≤ 1.1e-6。
+- 端到端：recover8 的 STL 走完整部署链路（自动命名、无人工），同链路新旧包病例等权 Pa R²_cb：峰值 0.830 → **0.854**；三头峰值 0.808 → **0.839**、TAWSS 0.809 → **0.850**、OSI 0.445 → **0.489**。命名 8/8 全对，自动放行 5/8。
+- 黄金回归（现役根不含旧包，旧包经归档根回退）6/6；全套测试见下。
 
 ## v0.16.2（2026-10-01）：出口命名有把握就自动放行——母库校准 133/133，下界 97.3%
 

@@ -51,7 +51,7 @@ LIMIT_PRESSURE = "压力为相对量（相对于该帧体积平均压力），�
 LIMIT_AREA = "面积与占比按预测点占比乘输入壁面面积估计，统计按点等权，不是体积或面积积分。"
 LIMIT_DOMAIN = "模型只在腹主动脉—髂动脉五开口几何上训练；其它血管或超出参考范围的几何不适用。"
 LIMIT_ORIENTATION = "输入 STL 不含患者方向；左右语义按解剖坐标架推断并经人工确认，请结合原始影像核对。"
-LIMIT_CYCLE_REFERENCE = ("TAWSS / OSI 没有人群参照分位（该发布包没有 CV3 折外预测）；OSI 的预测一致性低于 TAWSS 与峰值 WSS，"
+LIMIT_CYCLE_REFERENCE = ("TAWSS / OSI 没有人群参照分位（该发布包没有交叉验证折外预测）；OSI 的预测一致性低于 TAWSS 与峰值 WSS，"
                          "滞留区与高 OSI 区的边界只作定位参考。")
 # Full historical list (single-frame wording, every family); ``limitations(summary)`` picks the lines per field.
 LIMITATIONS = (LIMIT_FLOW, LIMIT_SINGLE_FRAME, LIMIT_PRESSURE, LIMIT_LUMEN, LIMIT_AREA, LIMIT_DOMAIN, LIMIT_ORIENTATION)

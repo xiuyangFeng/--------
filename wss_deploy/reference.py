@@ -16,7 +16,8 @@ Example geometry declaration (``geometry.*`` checks every reported branch)::
 
 ``population_reference`` uses schema ``wss-deploy.population-reference/v1``
 and the same id/status/release/reference_set keys, plus
-``source: cv3_oof_predictions``, ``fold_count: 3``, ``metric: p99_pa``,
+``source: cv<k>_oof_predictions`` with the same ``fold_count: <k>`` (CV3 for the
+v5.1 releases, CV5 from the v5.2d releases on), ``metric: p99_pa``,
 ``field: {units: Pa, location: wall, kind: scalar, components: 1}``,
 ``time_axis``, ``statistics_protocol`` and finite ``values_pa``.  The latter
 three contracts must match the current result; CFD distributions are rejected.
@@ -180,8 +181,16 @@ def _canonical_protocol(value: Any) -> dict:
     return {str(k): v for k, v in _map(value).items() if str(k) not in _VOLATILE_PROTOCOL_KEYS}
 
 
+def _cv_folds(source: str) -> int | None:
+    """``k`` of a ``cv<k>_oof_predictions`` (or ``cv<k>_oof`` / ``…distribution``) source, else None."""
+    match = re.fullmatch(r"cv([2-9])_oof(?:_(?:pred\w*|distribution\w*))?", source)
+    if match is None and "oof" in source and ("pred" in source or "distribution" in source):
+        match = re.search(r"cv([2-9])(?!\d)", source)
+    return int(match.group(1)) if match else None
+
+
 def evaluate_population(meta: Mapping, release_info: Mapping) -> dict:
-    """Rank p99 against explicitly bound CV3 out-of-fold predictions only."""
+    """Rank p99 against explicitly bound k-fold (CV3 / CV5) out-of-fold predictions only."""
     meta, release_info = _map(meta), _map(release_info)
     profile, reasons = _profile(meta, release_info, "population_reference",
                                 "wss-deploy.population-reference/v1")
@@ -191,13 +200,11 @@ def evaluate_population(meta: Mapping, release_info: Mapping) -> dict:
     if reasons:
         return result
     source = str(profile.get("source", "")).strip().lower().replace("-", "_")
-    source_ok = (("cv3" in source and "oof" in source and
-                  ("pred" in source or "distribution" in source)) or
-                 source in {"cv3_oof", "cv3_oof_predictions"})
-    if (not source_ok or
-            type(profile.get("fold_count")) is not int or profile["fold_count"] != 3 or
+    folds = _cv_folds(source)
+    if (folds is None or
+            type(profile.get("fold_count")) is not int or profile["fold_count"] != folds or
             profile.get("metric") != "p99_pa"):
-        reasons.append("人群参照必须明确来自 CV3 折外预测的空间 p99。")
+        reasons.append("人群参照必须明确来自交叉验证（CV3 / CV5）折外预测的空间 p99，且折数与来源一致。")
     meta_fields = _map(meta.get("fields"))
     field = _field_contract(meta_fields.get("wss") or meta_fields.get("wss_pa"))
     profile_field = profile.get("field")

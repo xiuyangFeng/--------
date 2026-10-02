@@ -103,7 +103,7 @@ class Release:
                 raise ValueError("发布包声明的特征程序哈希与当前 wss_features 不一致，拒绝加载；"
                                  "请使用与该发布包配套的特征程序版本。")
             self.feature_contract["pinned_by_release"] = True
-        # Optional reference profiles (geometry ranges, CV3 out-of-fold p99 population) ship as a
+        # Optional reference profiles (geometry ranges, CV3 / CV5 out-of-fold p99 population) ship as a
         # sidecar so adding them never changes the release fingerprint that finished jobs are bound to.
         # The file's hash is recorded with every run (schema.model_release_metadata).
         self.reference_sha256 = load_reference_sidecar(self.dir, self.release_id, self.info)

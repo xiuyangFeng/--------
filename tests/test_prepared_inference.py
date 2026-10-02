@@ -12,18 +12,22 @@ from wss_deploy import pipeline as P
 from wss_deploy.prepared_inference import PreparedInference, _fingerprint
 
 RELEASES = Path(__file__).resolve().parents[1] / "outputs" / "wss_deploy_release"
+RETIRED = Path(__file__).resolve().parents[1] / "outputs" / "wss_deploy_release_retired"   # 2026-10-02: the v5.1 packages
 
 
 def _release_or_skip(name):
-    if not (RELEASES / name / "release.json").is_file():
+    root = next((r for r in (RELEASES, RETIRED) if (r / name / "release.json").is_file()), None)
+    if root is None:
         pytest.skip(f"release {name} not available")
     from wss_deploy.infer import Release
-    return Release(RELEASES / name, device="cpu")
+    return Release(root / name, device="cpu")
 
 
 @pytest.mark.parametrize("name, keys", [
     ("M1_3head_3seed_20260922", ("wss_pa", "seed_pred_pa", "tawss_pa", "seed_tawss_pa", "osi", "seed_osi")),
     ("X5D_v51_5seed_20260916", ("wss_pa", "seed_pred_pa", "seed_sd_pa")),
+    ("M1cap_v52d_3seed_20261002", ("wss_pa", "seed_pred_pa", "tawss_pa", "seed_tawss_pa", "osi", "seed_osi")),
+    ("X5Dcap_asym2_v52d_3seed_20261002", ("wss_pa", "seed_pred_pa", "seed_sd_pa")),
     ("PF6_VF6_peak_3seed_20260920", ("pressure_pa", "seed_pressure_pa", "velocity_m_s", "seed_velocity_m_s")),
 ])
 def test_real_ensembles_are_bit_identical_with_prepared_inputs_on_the_cpu(monkeypatch, name, keys):

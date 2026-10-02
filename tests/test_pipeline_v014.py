@@ -20,6 +20,7 @@ from wss_deploy import geometry as G, geometry_cache as GC, input_memo, morpholo
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASES = ROOT / "outputs" / "wss_deploy_release"
+RETIRED = ROOT / "outputs" / "wss_deploy_release_retired"     # 2026-10-02: the v5.1 packages
 GOLDEN = ROOT / "outputs" / "wss_deploy_golden" / "20260920_baseline"
 
 
@@ -131,10 +132,11 @@ def test_input_memo_budget_caps_memory(monkeypatch):
 
 def _release_or_skip(name):
     pytest.importorskip("torch")
-    if not (RELEASES / name / "release.json").is_file():
+    root = next((r for r in (RELEASES, RETIRED) if (r / name / "release.json").is_file()), None)
+    if root is None:
         pytest.skip(f"release {name} not available")
     from wss_deploy.infer import Release
-    return Release(RELEASES / name, device="cpu")
+    return Release(root / name, device="cpu")
 
 
 def test_memo_and_warm_up_leave_real_ensemble_predictions_bit_identical(monkeypatch):

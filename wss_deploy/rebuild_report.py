@@ -97,13 +97,15 @@ def _refresh_reference(meta: dict) -> dict:
     was bound to; no weights are loaded.  Unknown release → assessment stays ``unknown``.
     """
     from .infer import load_reference_sidecar
-    from .paths import RELEASE_DIR
+    from .paths import RELEASE_DIR, RETIRED_RELEASE_ROOT
     from .reference import evaluate
     release = meta.get("model_release") or {}
     release_id = release.get("registry_id") or release.get("release") or release.get("name") or meta.get("release")
     info = {}
     if isinstance(release_id, str) and release_id:
         release_dir = RELEASE_DIR.parent / release_id
+        if not (release_dir / "release.json").is_file() and (RETIRED_RELEASE_ROOT / release_id / "release.json").is_file():
+            release_dir = RETIRED_RELEASE_ROOT / release_id      # 2026-10-02: a retired package keeps its reference sidecar
         if (release_dir / "release.json").is_file():
             info = json.loads((release_dir / "release.json").read_text(encoding="utf-8"))
             try:

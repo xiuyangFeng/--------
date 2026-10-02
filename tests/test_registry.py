@@ -128,3 +128,23 @@ def test_v0122_cache_holds_every_release_and_preload_loads_default_first(tmp_pat
     monkeypatch.setenv("WSS_DEPLOY_PRELOAD", "0")
     loaded.clear()
     assert R.preload_all(reg) == {} and loaded == []
+
+
+def test_retired_release_is_not_listed_and_says_so(tmp_path, monkeypatch):
+    """2026-10-02: a package moved below RETIRED_RELEASE_ROOT is not offered; asking for it names the retirement."""
+    from wss_deploy import registry as REG
+    live, retired = tmp_path / "live", tmp_path / "retired"
+    live.mkdir(); retired.mkdir()
+    _release(live, "new_release")
+    _release(retired, "old_release")
+    monkeypatch.setattr(REG, "RETIRED_RELEASE_ROOT", retired)
+    registry = ReleaseRegistry(live)
+    assert [r["id"] for r in registry.list()] == ["new_release"]
+    with pytest.raises(ReleaseError, match="已下线"):
+        registry.describe("old_release")
+    with pytest.raises(ReleaseError, match="不存在"):
+        registry.describe("never_existed")
+    assert REG.is_retired("old_release") and not REG.is_retired("new_release") and not REG.is_retired("../x")
+    assert [r["id"] for r in REG.retired_registry().list()] == ["old_release"]
+    monkeypatch.setattr(REG, "RETIRED_RELEASE_ROOT", tmp_path / "missing")
+    assert REG.retired_registry() is None

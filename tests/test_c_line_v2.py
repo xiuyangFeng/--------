@@ -15,6 +15,12 @@ from wss_deploy import analysis as A, model_cards as MC, reference as REF
 from wss_deploy.schema import display_name, summary_display_name
 
 RELEASE_ROOT = Path(__file__).resolve().parents[1] / "outputs" / "wss_deploy_release"
+RETIRED_ROOT = Path(__file__).resolve().parents[1] / "outputs" / "wss_deploy_release_retired"   # 2026-10-02: v5.1 packages
+
+
+def _release_dir(name):
+    """A release folder from the live root, else from the retired root (cards of retired packages stay in the repo)."""
+    return next((root / name for root in (RELEASE_ROOT, RETIRED_ROOT) if (root / name / "release.json").is_file()), RELEASE_ROOT / name)
 KW = dict(thresholds=[0.4, 4, 7], total_area_mm2=1000.0, spacing_mm=1.0, branch_names=NAMES, min_cluster_points=20)
 
 
@@ -27,7 +33,8 @@ def tube():
 
 # ----------------------------------------------------------------------------- model cards (§4)
 def test_repository_cards_load_validate_and_carry_provisional_windows():
-    assert MC.card_ids() == ["M1_3head_3seed_20260922", "PF6_VF6_peak_3seed_20260920", "X5D_v51_5seed_20260916"]
+    assert MC.card_ids() == ["M1_3head_3seed_20260922", "M1cap_v52d_3seed_20261002", "PF6_VF6_peak_3seed_20260920",
+                             "X5D_v51_5seed_20260916", "X5Dcap_asym2_v52d_3seed_20261002"]
     for rid in MC.card_ids():
         card = MC.load(rid)
         assert card is not None and card["schema_version"] == MC.SCHEMA_VERSION and card["release_id"] == rid
@@ -52,7 +59,7 @@ def test_repository_cards_load_validate_and_carry_provisional_windows():
 
 def test_card_numbers_match_the_release_packages():
     """Every validation number of the shipped cards is the release.json / metrics value (rounded to 4 decimals)."""
-    x5d_dir, m1_dir, pf6_dir = (RELEASE_ROOT / n for n in ("X5D_v51_5seed_20260916", "M1_3head_3seed_20260922", "PF6_VF6_peak_3seed_20260920"))
+    x5d_dir, m1_dir, pf6_dir = (_release_dir(n) for n in ("X5D_v51_5seed_20260916", "M1_3head_3seed_20260922", "PF6_VF6_peak_3seed_20260920"))
     if not (x5d_dir / "release.json").is_file() or not (m1_dir / "release.json").is_file():
         pytest.skip("release packages not present")
     close = lambda a, b: a == pytest.approx(round(b, 4), abs=6e-5)
@@ -78,6 +85,31 @@ def test_card_numbers_match_the_release_packages():
         pf6 = json.loads((pf6_dir / "release.json").read_text(encoding="utf-8"))
         assert "metrics" not in pf6 and "not been established" in pf6["validation"]
         assert MC.load("PF6_VF6_peak_3seed_20260920")["version_date"] == pf6["frozen_on"]
+
+
+def test_v52d_card_numbers_match_the_release_packages():
+    """2026-10-02 releases: peak card = CV5 out-of-fold ensemble (+ recover8), three-head card = recover8."""
+    peak_dir, cycle_dir = (_release_dir(n) for n in ("X5Dcap_asym2_v52d_3seed_20261002", "M1cap_v52d_3seed_20261002"))
+    if not (peak_dir / "release.json").is_file() or not (cycle_dir / "release.json").is_file():
+        pytest.skip("v5.2d release packages not present")
+    close = lambda a, b: a == pytest.approx(round(b, 4), abs=6e-5)
+    peak = json.loads((peak_dir / "release.json").read_text(encoding="utf-8"))
+    card = MC.load("X5Dcap_asym2_v52d_3seed_20261002")
+    wss, cv, r8 = card["validation"]["fields"]["wss"], peak["metrics"]["cv5_oof"], peak["metrics"]["recover8_ensemble"]
+    assert card["validation"]["holdout_n"] == cv["n_units"] == 261 and card["version_date"] == peak["frozen_on"]
+    assert close(wss["r2_pa"], cv["ensemble"]["pa_r2cb"]) and close(wss["r2_case_mean"], cv["ensemble"]["r2_casemean"])
+    assert close(wss["r2_case_p10"], cv["ensemble"]["r2_casep10"]) and close(wss["top10_pred_over_cfd"], cv["ensemble"]["top10_pred_true_ratio"])
+    assert close(wss["recover8_r2_pa"], r8["pa_r2cb"]) and close(wss["cv5_single_seed_mean"], cv["single_seed_mean"])
+    cycle = json.loads((cycle_dir / "release.json").read_text(encoding="utf-8"))
+    ens, card = cycle["metrics"]["recover8_ensemble"], MC.load("M1cap_v52d_3seed_20261002")
+    fields = card["validation"]["fields"]
+    assert card["validation"]["holdout_n"] == 8 and card["version_date"] == cycle["frozen_on"]
+    for key in ("wss", "tawss", "osi"):
+        assert close(fields[key]["r2_pa"], ens[key]["pa_r2cb"]) and close(fields[key]["r2_case_mean"], ens[key]["r2_casemean"])
+        assert close(fields[key]["r2_case_p10"], ens[key]["r2_casep10"])
+    assert close(fields["tawss"]["ccc"], ens["tawss"]["ccc_casemedian"]) and close(fields["osi"]["ccc"], ens["osi"]["ccc_casemedian"])
+    assert close(fields["stagnation"]["iou_case_mean"], cycle["metrics"]["recover8_stagnation"]["iou_casemean"])
+    assert fields["rrt"]["r2_pa"] is None and fields["ecap"]["r2_pa"] is None
 
 
 def test_release_dir_card_wins_and_bad_cards_fail_closed(tmp_path):

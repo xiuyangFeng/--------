@@ -20,7 +20,7 @@ from typing import Any, Callable
 
 from .families import (FAMILIES, ReleaseError, VOLUME_FEATURES, VOLUME_FIELDS,  # noqa: F401  (re-exported)
                        _validate_volume_model, family_for_info, family_for_protocol)
-from .paths import RELEASE_DIR
+from .paths import RELEASE_DIR, RETIRED_RELEASE_ROOT
 
 LOG = logging.getLogger("wss_deploy.registry")
 RELEASE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
@@ -296,6 +296,8 @@ class ReleaseRegistry:
         try:
             record = self._records[rid]
         except KeyError:
+            if is_retired(rid):
+                raise ReleaseError(f"发布包已下线：{rid}。请用现役发布包重跑（复用中心线与已确认出口）。")
             raise ReleaseError("发布包不存在或未被支持。")
         if _release_fingerprint(record.path / "release.json", record.path / "MANIFEST.sha256") != record.fingerprint:
             raise ReleaseError("发布包身份已变化；请使用新的 release 标识。")
@@ -387,6 +389,23 @@ class ReleaseRegistry:
                          *evicted_key)
                 _release_resident_models(evicted)
             return obj
+
+
+def is_retired(release_id: str) -> bool:
+    """Whether ``release_id`` is a retired package (a folder with ``release.json`` below ``RETIRED_RELEASE_ROOT``)."""
+    try:
+        rid = _safe_id(release_id)
+        return (RETIRED_RELEASE_ROOT / rid / "release.json").is_file()
+    except (ReleaseError, OSError):
+        return False
+
+
+def retired_registry(*, device: str = "auto") -> "ReleaseRegistry | None":
+    """Read-only registry of the retired packages (golden regression of results bound to them), or None."""
+    root = RETIRED_RELEASE_ROOT
+    if not root.is_dir() or not any((p / "release.json").is_file() for p in root.iterdir()):
+        return None
+    return ReleaseRegistry(root, device=device)
 
 
 def preload_all(registry: "ReleaseRegistry", *, log=None) -> dict:
