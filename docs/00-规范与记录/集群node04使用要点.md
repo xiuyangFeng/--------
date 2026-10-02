@@ -1,6 +1,6 @@
 # 集群 node04 使用要点
 
-> 更新：2026-08-02
+> 更新：2026-08-02；§7 训练矩阵与两机并行补记：2026-10-02
 >
 > 给人或 Agent：用户说「去 node04 跑实验」时按本文操作。
 >
@@ -97,7 +97,18 @@ $PY calculate_wss_cfd.py \
 
 当时结果摘要：`truth_usable=true`，`raw_r2≈0.828`，Spearman≈0.981。
 
-## 7. 相关规范
+## 7. 跑训练矩阵（2026-09 起的做法）
+
+node04 不在 Slurm 分区里，ssh 上去在 Slurm 之外跑；记录里要如实写「Slurm 之外执行」，不要伪造作业号。
+
+- **用谁的卡**：09-30 用户裁定 node04 的 A100 留给全周期时间建模线，主线默认放 master 4090；其他线要用 node04 先征得用户同意（例：10-02 体场 PF6 / VF6 复验经用户允许用了两张 A100 和 node04 的 CPU，当时 cfd_auto 占满 CPU 分区）。
+- **启动方式**：`ssh node04 "cd <仓库或冻结副本> && nohup bash <驱动脚本> > <日志> 2>&1 < /dev/null &"`，本地 ssh 套 `timeout 20`（否则会挂住）。代码在冻结副本里跑，产物写主树的 `runs/` 与 `experiments/`。
+- **标准矩阵**：`training_wss_min/cluster/node04_run_matrix.sh`（预检 + 队列一起跑；工具要求纯数字 `SLURM_JOB_ID`，脚本手工设 `9MMDDHHMM`）；或直接 `python -m training_wss_min.tools.run_local_train_queue --config-dir <configs/实验> --gpus 0,1 --slots-per-gpu 1 --only <臂列表> --status-file <状态文件名>`（可续跑，拒绝覆盖未完成的 run）。
+- **与 master 共用一个实验目录**（10-02 体场复验的做法）：master 用 Slurm 队列 `run_wss_local_wave1_queue --matrix matrix_master.json`（它独占 `.queue.lock` 与 `queue_status.json`），node04 用 `run_local_train_queue --only <node04 的臂> --status-file queue_status_node04.json`；node04 的驱动先等 Slurm 预检写出 `runtime_preflight.json` 通过，再调用 `run_wss_local_wave1_queue.verify_preflight` 复核同一套指纹；收尾作业轮询 node04 状态文件的 `finished_at` 后再做评估。拆分用的子矩阵文件名里不能有 `_s`（会被 `*_s*.json` 当成臂配置）。示例：`training_wss_min/cluster/node04_pf6vf6_v52d_queue.sh`、`post_pf6vf6_v52d.slurm`。
+- **速度与槽数**：node04 空闲时，PF6 每轮一卡一臂 A100 2.2 s、4090 2.25 s（同速）；一卡两臂总吞吐只多 8 %（A100）/ 15 %（4090），单臂慢约 1.8 倍，默认每卡一臂。与他人进程分时时 A100 会明显变慢（09-24 X5D 三槽约 130 s/轮）。A100 与 4090 训练的臂只在 seed 噪声意义上可比，评估差约 1e-4。
+- **停机风险**：node04 曾在 09-29 下午停机（下一次开机 22:07），当时在跑的剂量对照 ×1.5 三臂中断在第 392–397 / 400 轮；长队列要能续跑，状态文件里没有 `finished_at` 就要去查。
+
+## 8. 相关规范
 
 - `.cursor/rules/cluster.mdc` — 集群提交与 node03
 - `.cursor/rules/gpu.mdc` — GPU 占用检查（在目标节点上执行）

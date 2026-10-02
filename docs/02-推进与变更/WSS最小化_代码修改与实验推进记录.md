@@ -6,6 +6,79 @@
 > **滚动切卷**：本文件只保留 2026-08 以来的条目；2026-07 条目（PointNet 矩阵、新队列审计、WSS-PINN F0/F1）见历史卷
 > [2026-07卷](_archive/WSS最小化_代码修改与实验推进记录_2026-07卷.md)。主文件超过约 1500 行或跨季度时，把最旧月份整月切入 `_archive/` 新卷并更新本索引。
 
+## 2026-10-02｜cfd_auto 全流程抽样验证 · 完成 · 15 / 15 自动走通（指针）
+
+- **本次主要修改**（用户要求：AG / AAA / ILO 各随机 5 例，从 STL 全自动走到 Fluent 结果，与库内原解和原网格对比，介入要登记）：
+  - 15 例只给 STL、按新病例默认走编排器，15 / 15 走通，人工修复 0 次；7 例只需确认出口命名，自动提议 7 / 7 正确；LOU_YANG 发散后自动降级两次走通。
+  - 与库内原解比较：十门全过 8 / 15，峰值 WSS R² 中位 0.974。
+  - 不过关的 7 例各额外跑一次（用户规则），6 / 7 转为全过。原因都是协议对新病例的默认与库内口径不同：斜切口延伸方向、AAA 一律 P 族、P 族四面体对库内 poly-hexcore。
+- **对应代码/文档**：
+  - [验证报告](04-数据处理与CFD/cfd_auto全流程抽样验证_2026-10-02.md)，配交互页面与图；[04 块跟踪 §5、§8 第 9–13 项](04-数据处理与CFD/数据处理与CFD_跟踪.md)。
+  - cfd_auto 改了 `orchestrate.py`（`library_unit` 比对）、`prepare.py` / `slurm.py`（`resources.exclude` 透传），以及测试和 README，**未提交**。
+  - 批次与脚本在 `outputs/cfd_auto_validation_20261002/`。
+- **推进到实验步骤**：
+  - CPU 分区每例 92 核：主批次 00:37–02:38 PDT，归因运行到 04:18 PDT；
+  - Slurm 作业 16618–16968（编排器提交）；产物 328 GB。
+- **当前状态判断**：流程能用。新病例口径的四项改动、代码提交和批次清理待用户定。
+
+## 2026-10-03｜wss_deploy v0.16.4：v5.2d 体场新包上线，v5.0 体场包下线 · 已上线
+
+- **本次主要修改**（用户 10-03：新体场模型部署上线、旧的下线）：新工具 `wss_deploy/build_v52d_volume_release.py` 冻结 `PF6_VF6_v52d_3seed_20261003`（§43 full265 PF6 / VF6 × 3 seed；验证块读自重训读数，读数一致性不过即拒绝冻结）；几何参照 `build_reference_profiles --data v52d --geometry-only`；新说明卡 `model_cards/PF6_VF6_v52d_3seed_20261003.json`（CV5 折外集成压力 0.808、速率 0.843，注明 CFD 网格口径）；旧包 `PF6_VF6_peak_3seed_20260920` 移到 `outputs/wss_deploy_release_retired/`，旧卡改「（旧版）」+ `retired`；`env/releases*.sha256` 更新；版本 0.16.4；`tests/test_c_line_v2.py` 加新卡清单与数字核对测试。下线机制沿用 v0.16.3，代码未改。
+- **对应代码/文档**：上述文件；[01 块跟踪 §44](01-X5D主线与新数据/X5D主线_实验跟踪.md)、[05 框架文档 §29.14](05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md)、05 README、`wss_deploy/README.md` v0.16.4；验收记录 `training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_recover8_volume_v52d_20261003/`。
+- **推进到实验步骤**：加载器等价（作业 16975：压力 ≤ 8.6e-4 Pa、速度 ≤ 1.5e-6 m/s）；recover8 STL 端到端同查询点旧 → 新压力 0.913 → 0.930（6/8）、速率 0.870 → 0.889（8/8）；黄金回归 6/6（作业 16976，2 个任务经归档目录回退）；全套测试 1072 通过；01:09 `service upgrade` → PID 1161932，预加载只有现役三包。
+- **当前状态判断**：现役三包 X5Dcap_asym2_v52d（默认）、M1cap_v52d、PF6_VF6_v52d。部署体内采样与 CFD 网格口径的等价性仍未建立（说明卡已写明）。代码改动未提交。
+
+## 2026-10-02｜体场 PF6 / VF6 v5.2d 复验 · 完成与新旧对比（指针）
+
+- **本次主要修改**：36 臂全部完成（master 16867 至 22:27、node04 至 22:19，收尾 16868 22:57）；CV5 折外三 seed 集成压力 R²_cb 0.808、速率 0.843（单 seed 0.7997 ± 0.0008 / 0.8295 ± 0.0013）；recover8 full265 集成 0.939 / 0.903。与旧 v5.0 权重同单元同标签对比（旧模型 test34 重评作业 16973）：test34 压力 0.821 → 0.851、速率 0.825 → 0.848，recover8 0.921 → 0.939、0.883 → 0.903。
+- **对应文档**：[01 块跟踪 §43.2](01-X5D主线与新数据/X5D主线_实验跟踪.md)；读数 `training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/readout_ckpt_{best,last}.md`、`compare_old_test34/compare_old_new.md`。10-03 已回填工作簿「速度与压力实验矩阵」140–229 行（`tools/update_pf6vf6_v52d_xlsx.py` + 说明层 3 条规则）与消融待办 §2 登记。
+
+## 2026-10-02｜文档全量同步到 10-02 状态（指针）
+
+- **本次主要修改**（用户要求把需要更新的文档全部更新到最新状态）：根导航、实验设计总纲、02 总览、01–05 各块 README、03 跟踪 §34.12 标题、04 块跟踪 §1、§36 矩阵文档、论文框架 README、消融待办状态块、任务 A 入口、node04 使用要点；把「部署底座 X5D_v51 / 未切换」「数据只用 v5.2c」「M1_3head 已部署」「PF6 / VF6 需复验」「v0.16 未上线」等过时表述改为现状（v5.2d、X5Dcap_asym2_v52d 与 M1cap_v52d 已上线、体场复验训练中、v0.16.3）。
+- **核查中发现并改正**：(1) 剂量对照 ×1.5（`runs/wss_v52_phys2nb_20260927/`）三臂在 09-29 14:47–15:08 停在第 392–397 / 400 轮，没有完成也没有评估，与 node04 当天停机吻合——此前文档写「约 09-29 下午完」；(2) §36 矩阵文档里两行底座指针表格和三条 09-29 执行记录被挤到了文件末尾，已归位；(3) 部署服务 10-02 下午又有两次界面提交（98d5853、d906e13），16:41 重启后 PID 是 1981427，05 块 README 与框架文档已补；(4) 任务 A 入口原把 V1–V3 时期的状态表当作 V5「现在该做什么」，已改指各块跟踪。
+- **推进到实验步骤**：只读核查 run 目录、队列状态、git 与进程；没有训练、评估或数据改动。
+
+## 2026-10-02｜体场 PF6 / VF6 在 v5.2d 上复验 · 数据准备完成，36 臂已提交
+
+- **本次主要修改**（用户 10-02 确认 §43 矩阵）：PF6 / VF6 各 CV5 五折 × seed 1234 / 7 / 2025 + full265 × 3 seed（评 recover8），配方逐字不变只换数据；收尾 E3（30 个折模型评 recover8）+ E5（已部署 v5.0 体场权重评 recover8）；不设门、只建基线。
+- **数据**：新建体场数据根 `data_wss_v5/views_v5_2d_20261001/wss_min_volview_v1/`（273 真实单元；bundle 链接主视图；volume 159 链主视图、102 链全周期缓存、12 新建）。273 个全部从 v5.2d 快照重建逐数组比对：已有 261 份全部一致，无替换。六个训练分区的体场统计（按分区改名）与特征归一化（PF6 = VF6）。主视图根与全周期缓存未改。数据准备在 node04 CPU 上跑（cfd_auto 占着 CPU 分区）。
+- **对应代码/文档**：新工具 `training_wss_min/tools/prepare_pf6vf6_v52d_retrain.py`（build / compare / assemble / stats / featstats / configs / cleanup）、`tools/report_pf6vf6_v52d_retrain.py`（读数；逐单元充分统计量合并，在存档预测上与 metrics.json 一致到 1e-10）、`tools/check_pf6vf6_anchor.py`；`tools/preflight_wss_local_wave1.py` 新增默认关闭的 `--anchor-pred-count-tolerance`（只放宽依赖预测的点计数，旧用法逐位不变）；Slurm `cluster/{preflight,run,post}_pf6vf6_v52d*.slurm`、node04 驱动 `cluster/node04_pf6vf6_v52d_queue.sh`；冻结副本 `GNN_pf6vf6_v52d_frozen_20261002`；配置 `configs/pf6vf6_v52d_retrain_20261002/`。文档：[01 块跟踪 §43 / §43.1](01-X5D主线与新数据/X5D主线_实验跟踪.md)、01 README、04 块跟踪 §1。
+- **推进到实验步骤**：测速后定为六卡每卡一臂（A100 ≈ 4090）；预检 16853（旧代码拒 ILO after）、16857（一个点越过热点阈值）失败于训练前，16866 通过（两个跨版本锚点、36 臂、两个冒烟）；16:37 起 master 队列 16867（25 臂）与 node04（11 臂）训练，收尾 16868 afterany。
+- **当前状态判断**：预计 10-02 约 23:15 训完、10-03 约 01:00 出读数；读数后回填 §43、消融待办与工作簿，再决定体场部署包是否换。
+
+## 2026-10-02｜wss_deploy v0.16.3：v5.2d 发布包上线、旧包下线；下午界面追加（指针）
+
+- **本次主要修改**：默认 `X5Dcap_asym2_v52d_3seed_20261002`、三头 `M1cap_v52d_3seed_20261002` 上线，`X5D_v51_5seed_20260916` 与 `M1_3head_3seed_20260922` 移到 `outputs/wss_deploy_release_retired/`；recover8 的 STL 走部署链路，峰值 0.830 → 0.854、三头 TAWSS 0.809 → 0.850（提交 01efd0f）。下午追加：已下线包结果改名「（旧版）…」（98d5853）、结果旁显示模型包名与右键菜单（d906e13），16:41 重启后 PID 1981427。
+- **对应文档**：[01 块跟踪 §42](01-X5D主线与新数据/X5D主线_实验跟踪.md)、[05 块框架文档 §29.13](05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md)、[05 README](05-部署工具/README.md)。
+
+## 2026-10-02｜v5.2d 重训读数完成，底座数字改用 v5.2d（指针）
+
+- **本次主要修改**：21 臂（队列 16460）与收尾 16461 完成：X5Dcap_asym2 CV5 折外三 seed 0.7761 ± 0.0017、集成 0.7926（与 v5.2 持平，修正作用在评估标签上 +0.004）；full265 → recover8 集成 0.8393；三头 full265 集成 TAWSS 0.849、OSI 0.542。用户确认底座数字改用 v5.2d 读数；工作簿 WSS 页 606–626 行已回填。
+- **对应文档**：[01 块跟踪 §41](01-X5D主线与新数据/X5D主线_实验跟踪.md)、[03 块跟踪 §34.17](03-周期量TAWSS_OSI/TAWSS_OSI_实验跟踪.md)、消融待办状态块。
+
+## 2026-10-02｜合成几何数据扩充暂停；04 块整理为一份跟踪（指针）
+
+- **本次主要修改**：用户裁定暂停形变 + cfd_auto 重算的数据扩充（不能提高真实病人上的整体精度）；04 块只留[数据处理与 CFD 跟踪](04-数据处理与CFD/数据处理与CFD_跟踪.md)、[合成几何分析报告](04-数据处理与CFD/合成几何数据扩充_分析报告_2026-10-02.md)和 README，过程文档归档到 `04-数据处理与CFD/_archive/`；`find_stl` 改读标准 STL 清单 `data_wss_v5/stl_canonical_v5_2d_20261001/`。
+
+## 2026-10-01｜wss_deploy v0.16.0–v0.16.2 上线（指针）
+
+- **本次主要修改**：v0.16.0 新前端工作区 `/v2/` 上线、旧工作台 / 比较页 / 报告页下线（合并 795ae98）；v0.16.1 B 段只串行 GPU 推理 + 确认期间预算体场几何（934b4d8）；v0.16.2 出口命名经母库校准后自动放行（13ac860）。
+- **对应文档**：[05 README](05-部署工具/README.md)、[框架文档 §29.11–§29.12](05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md)、[前端重构范围说明 §11](05-部署工具/前端重构_范围说明_2026-09-30.md)。
+
+## 2026-10-01｜母库全量审计 → 唯一数据版本 v5.2d；重训提交（指针）
+
+- **本次主要修改**：332 单元全量审计后在 v5.2c 上合并为 v5.2d（HAN_JIAN_FU 壁面标签重算、WANG_TIAN_QING-1/after 从本例 STL 重建、16 个单元出口命名修正、分流规则重拟合、统计重算）；150 个提前退出迭代的单元用户决定先不动；16:33 提交 v5.2d 重训 21 臂。
+- **对应文档**：[01 块跟踪 §40–§41](01-X5D主线与新数据/X5D主线_实验跟踪.md)、[04 块跟踪 §1–§2](04-数据处理与CFD/数据处理与CFD_跟踪.md)、脚本 `training_wss_min/experiments/wss_v52d_merge_20261001/`。
+
+## 2026-10-01｜时间建模批判性复核：等待新数据全链验收后重建矩阵
+
+- **本次主要修改**：将母库新审计及实际staging进展接入02时间建模主文档；纠正“09-30修正缓存可直接接续”的过期指引，保留旧三轮数字，标明跨名近重复几何对fold0独立性的影响。
+- **对应文档**：[跟踪§30.29](02-时间建模/时间建模_实验跟踪.md#s30-29)、[思路§10](02-时间建模/时间建模_研究思路与文献.md#critical-review-20261001)、[02入口](02-时间建模/README.md)。
+- **用户本轮明确**：先解决速度谷底与减速段，再扩展到三场；入口可提供流量波形或采用标准波形。首批重设计收窄为速度，给定波形泛化与标准协议预测分开，出口阻抗不假定已知。
+- **推进到实验步骤**：只读现有指标JSON、求解对照、更新批清单及代码。明确通量闭合不能推出局部标签无偏、周期接缝/实际出口算子/低剪切截断/患者权重及固定相位条件的局限；列出版本、派生包、统计、分区和全周期数值验收条件。
+- **当前状态判断**：14:17北京时间的产物快照显示17例staging完成，最终整合及缓存/统计未交付，WTQ与AG强收敛对照尚未完成。按用户要求等待数据更新后重新设计矩阵；本次未运行训练、CFD、新推理或测试集评估，不修改生产数据、配置和旧成绩。
+
 ## 2026-09-30｜数据统一：唯一数据版本 v5.2c 统一根，旧口径数据删除
 
 - **本次主要修改**（用户要求所有实验的数据基础一致、旧口径数据处理掉，改库与删除清单经用户逐项批准）：
@@ -15,7 +88,7 @@
   - **分流规则与特征包**：开口半径分流规则按修正数据重拟合（a 1.150 → 1.265，b 0.147 → 0.096，train R² 0.814 → 0.906；旧规则用了错标签和端点半径修正前的开口半径）。flowref / phys1d 对 332 单元按新规则重建，去掉 v5.1 那份由标签派生的图谱先验。
   - **删除**：库内 processed/（V1–V3 旧管线）、*_old_* / *.orig* 备份、data_wss_min 共 586.9 GB；旧快照 / 视图根、旧实验缓存、recover 变体、隔离根在统一根自检通过后删除。
 - **对应代码/文档**：
-  - 文档：[数据统一与旧版本清理](04-数据处理与CFD/数据统一与旧版本清理_2026-09-30.md)。
+  - 文档：[数据统一与旧版本清理](./04-数据处理与CFD/_archive/04块过程文档_2026-10-02/数据统一与旧版本清理_2026-09-30.md)。
   - 脚本：`training_wss_min/experiments/wss_v52c_labelfix_20260930/`（`consolidate_v52c.py`、`refit_flow_split_rule.py`、`swap_flowref_phys1d.py`、`verify_unified.py`、`verify_after_move.py`、`make_configs.py`）、`outputs/cfd_auto_trial_20260927/_recover/`（`swap_into_data_new.py`、`merge_prep_into_main.py`）、`data_new/_archive/cleanup_20260930/cleanup_library.py`。
   - 代码：`training_wss_min/joint_cycle_data.py` 读取 `unified_snapshot_root`（旧计划文件不含该键，行为不变）；`repoint_data_root` 把 v5.2 / v5.2p4 / v5.2p5 都映射到 v5.2c。
 - **推进到实验步骤**：统一根上 IND、CV5 五折、full265 严格加载通过，X5Dcap 特征 z-score 与原文件 0 差（主线输入不变）；23 个主线配置指向统一根。
@@ -31,7 +104,7 @@
   - **全周期缓存**：重建 joint_cycle 缓存。
   - **配置**：生成 23 个主线 X5Dcap_asym2 重训配置。
 - **对应代码/文档**：
-  - 文档：[标签核查 §6](04-数据处理与CFD/库内标签问题核查_RCR挂错与入口除数_2026-09-30.md)、[数据回收 README §4.12](04-数据处理与CFD/数据回收_2026-09-20/README.md)、[01 块跟踪 §38](01-X5D主线与新数据/X5D主线_实验跟踪.md)。
+  - 文档：[标签核查 §6](./04-数据处理与CFD/_archive/04块过程文档_2026-10-02/库内标签问题核查_RCR挂错与入口除数_2026-09-30.md)、[数据回收 README §4.12](./04-数据处理与CFD/_archive/04块过程文档_2026-10-02/数据回收记录_2026-09-20.md)、[01 块跟踪 §38](01-X5D主线与新数据/X5D主线_实验跟踪.md)。
   - 代码改动：`wss_pinn/v4/new_case_sources.py` 优先读出口语义覆盖表 `wss_pinn/configs/outlet_semantics_overrides_20260930.json`；`training_wss_min/joint_cycle_data.py` 加 `GNN_JOINT_VIEW_ROOT` 和 plan 标签 `v5.2c-labelfix`。两处都是不设或不登记时行为不变。
   - 新工具：`training_wss_min/tools/repoint_data_root.py`；`training_wss_min/experiments/wss_v52c_labelfix_20260930/`（`prepare_v52c.py`、`make_configs.py`）。
 - **推进到实验步骤**：
@@ -57,7 +130,7 @@
 
 ## 2026-09-30｜v5.2p4 full265 数据版本 + X5Dcap_asym2 三 seed 全量训练（评估集 recover8）· 完成并回填工作簿
 
-- **用户裁定**：评估集 recover11 → recover8（3 例同病人另一期在 v5.2 → 放回训练）；YANG_BAO_KUI 入训练；训练 265 = v5.2 261 + YANG + 3，val 空，test = recover8；X5Dcap_asym2 × seed 1234/7/2025。详见 [01 块跟踪 §37](01-X5D主线与新数据/X5D主线_实验跟踪.md)、[数据回收 README §4.11](04-数据处理与CFD/数据回收_2026-09-20/README.md)、[cfd_auto §10.8](04-数据处理与CFD/STL全自动CFD工程cfd_auto_试算_2026-09-27.md)。
+- **用户裁定**：评估集 recover11 → recover8（3 例同病人另一期在 v5.2 → 放回训练）；YANG_BAO_KUI 入训练；训练 265 = v5.2 261 + YANG + 3，val 空，test = recover8；X5Dcap_asym2 × seed 1234/7/2025。详见 [01 块跟踪 §37](01-X5D主线与新数据/X5D主线_实验跟踪.md)、[数据回收 README §4.11](./04-数据处理与CFD/_archive/04块过程文档_2026-10-02/数据回收记录_2026-09-20.md)、[cfd_auto §10.8](./04-数据处理与CFD/_archive/04块过程文档_2026-10-02/STL全自动CFD工程cfd_auto_试算_2026-09-27.md)。
 - **结果**：recover8 三 seed 集成 R²_cb 0.8393（同 8 例 IND 三 seed 0.8352、五 seed 0.8393），逐例中位 0.843，6/8 改善；n = 8 只作描述。权重 `training_wss_min/runs/wss_v52p4_full265_20260930/`，未打包、部署未切换。工作簿 WSS实验矩阵 603–605 行（ΔR² 相对同一 recover8 上的 IND 同 seed：+0.007 / −0.007 / +0.015）。
 - **新增**：`training_wss_min/experiments/wss_v52p4_full265_20260930/`（`prepare_full265.py` 拼视图根 / 密度链接 / 代码路径复现 / split·统计 / 检查 / 配置；`ref_ind_recover8.slurm`）；`training_wss_min/cluster/{prepare,preflight,run}_wss_v52p4_full265*.slurm`；`outputs/cfd_auto_trial_20260927/_recover/eval/` 下 recover8 三件（split、EVAL_SET、`evaluate_recover8.sh`）、`stage_yang_20260930.py`、`compare_recover8.py`、`eval_recover8_full265.slurm`。
 - **改动（全部向后兼容）**：`_recover/eval/chain.slurm` 加 `REC_CL/REC_SNAP/REC_VROOT/REC_SPLIT/REC_RUN` 环境覆盖（不设时路径逐字不变）；`readout_generic.py` 加 `--title`（默认 recover11，旧读数重跑逐字相同）；`training_wss_min/tools/update_wss_local_wave1_xlsx.py` 加 full265 组专用分支（协议 / 备注 / IND 同 seed 配对参照，只对 `wss_v52p4_full265*` 生效）；`tools/annotate_workbook_methods.py` 加 1 条 GLOSS。`training_wss_min/*.py` 未改；训练在冻结副本 `GNN_v52p_frozen_20260926` 里执行。
@@ -565,7 +638,7 @@ NLL 的收益全部在回变换（同一权重 exp(μ) 0.558 → 逐点 Jensen 0
 - `wss_v5/`（contract/sources/mesh_topology/raw_frames/centerline_features/pointcloud/conditions/store/build_case/build/refresh_geometry/views）：B-Full HDF5 母库；部署侧几何程序 = PCA 法向 + kNN-MST 一致定向（跨壁边惩罚、中心线置信区还原）+ rim 平面拟合虚拟盖 + 自校准 winding 内外判定；atlas 出口命名按几何最近接口重对应（8 例）。gate 定义与 172 例结果见 [V5 数据重建记录](./_archive/WSS_PINN/_archive/WSS_V5_数据重建_Pilot与全量构建记录_2026-09-06.md)。
 - `wss_v5/views/wss_min_view.py`：V5 → `training_wss_min` 旧 schema 视图（atlas 解剖坐标架、[−1,1] 归一、train138 log_z 统计、train138/test34 split）；`training_wss_min/config.py` 加 `V5_POINT_FEATURE_KEYS`，`dataset.load_case` 读 `wall_<name>`/`wall_normal_pca_aligned` 可选字段（旧 bundle 不受影响）。
 - 配置 `training_wss_min/configs/v5_rerun_20260906/`、提交 `cluster/run_v5_rerun_wave{1,2}.slurm`（作业 13095/13098，GPU 0/1/3）、汇报 `tools/report_v5_rerun.py`、旧 ckpt 34 例交集重评 `experiments/v5_rerun_20260906/legacy_overlap34/`。结果与判读见 [V5 训练实验跟踪](00-V5设计与历史跟踪/WSS_V5_训练实验跟踪_历史卷_2026-09-06至09-20.md)。
-- 文档：V4 四份文档归档至 `_archive/WSS_PINN/_archive/`（文首结案说明），全仓库链接同步；新开 [Centerline V5 记录](04-数据处理与CFD/Centerline_V5_点云atlas接入与出口命名修正记录_2026-09-07.md)。
+- 文档：V4 四份文档归档至 `_archive/WSS_PINN/_archive/`（文首结案说明），全仓库链接同步；新开 [Centerline V5 记录](./04-数据处理与CFD/_archive/04块过程文档_2026-10-02/Centerline_V5_点云atlas接入与出口命名修正记录_2026-09-07.md)。
 - 工作簿：`tools/update_v5_rerun_xlsx.py` 把 V5 Wave 1/2 的 8 个 run + 5 个旧 ckpt 交集参照回填到《WSS_PointNet实验矩阵与结果汇总last.xlsx》三张表（总览行 195–207、教师视图第 Ⅹ 节、汇总对比 2026-09-07 节），备份在 `experiments/v5_rerun_20260906/`。
 
 ## 2026-09-06｜V5 v0.3-review 局部几何输入主线 · 设计修订 / 实施待决定

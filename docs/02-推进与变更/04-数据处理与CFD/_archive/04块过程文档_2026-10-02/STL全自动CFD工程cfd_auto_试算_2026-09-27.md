@@ -1,5 +1,7 @@
 # STL → 网格 → Fluent → 导出 全自动工程 `cfd_auto`：单例试算（2026-09-27）
 
+> **2026-10-02 归档：** 04 块文档整理，当前状态见 [数据处理与 CFD 跟踪](../../数据处理与CFD_跟踪.md)。本文保留历史内容，链接已改到归档位置。
+
 > 用户要求（09-27）：求解器用 Fluent；不动现有数据；选一个病例单独目录试；先适配现有数据口径，扩展以后再补；试算一例与原数据比对是否在误差范围内。
 > 代码 `cfd_auto/`（仓库根，2026-09-29 提交并推送 04aa035，仅含该目录），测试 `cfd_auto/tests/test_cfd_auto.py`（5 项），试算目录 `outputs/cfd_auto_trial_20260927/AG/slow/QIN_SI_FU/`（`outputs/` 不入库）。
 
@@ -323,7 +325,7 @@ YANG_BAO_KUI（第一轮）：WSS 全过且是三例最好（R² 0.990、相对 
 - **recover8 文件**（`_recover/eval/`）：`split_eval_recover8.json`（train/val 空）、`EVAL_SET_recover8.json`（放回训练的 3 例及搭档、病人隔离说明、基线）、`evaluate_recover8.sh <tag> <run 目录…>`（由 evaluate_recover11.sh 只改 split 与读数标题；`readout_generic.py` 新增 `--title`，默认 recover11，旧读数逐字不变）。同口径基线（X5Dcap_asym2 IND，取 recover11 预测的 8 例子集）：**五 seed 集成 R²_cb 0.8393、seed 1234/7/2025 集成 0.8352**（单 seed 0.8194 / 0.8239 / 0.8188），逐例中位 0.830 / 0.827。recover8 的 8 个病人都不在 v5.2 的 261 例里 → 所有 IND / CV5 模型在 recover8 上都干净。
 - **YANG 的视图（隔离根 E 里跑同一条链，作业 16180，约 10 min）**：先按 LIU_WEN_QI 的做法清掉 E 里 YANG 的 v4 旧条目（`stage_yang_20260930.py`：E 的 PREP 副本 atlas / 求解审计 / raw_hash 三项移到 `E/<PREP>/_stale_v4_YANG_BAO_KUI_20260930/`；E 的旧中心线根 `cases/AAA/ruputer` 由整目录链接改为逐单元链接并排除 YANG；主树的旧中心线根与 PREP 未动），构建用 split `split_build_yang_20260930.json`（YANG 加进 test_cases、移出 excluded_cases）。`chain.slurm` 加 `REC_CL / REC_SNAP / REC_VROOT / REC_SPLIT / REC_RUN` 环境覆盖（不设时路径与原来逐字相同），产物单独放 `centerline_v2_meshwall_20260930_yang`、`anatomy_pointcloud_v5_2_yang_20260930`、`views_v5_2_yang_20260930`。结果：中心线 pass（meshwall，attempt_1_standard）；拓扑 / 壁面 / 求解三审计 gate_pass，求解 A 层（81/81 收敛、末步连续性 p95 9.9e-4）；拓扑与 atlas 用的是新中心线根；V5 门 19 项全过、无豁免；case sha256 与 data_new 一致。顺带的冻结 IND 五 seed 单例读数 0.80–0.82（`pred_yang/`）。
 - **data_new 里 YANG 的数值检查**（`python -m cfd_auto.sanity data_new/AAA/ruputer/YANG_BAO_KUI`，作业 16181，`_recover/eval/sanity_YANG_BAO_KUI_data_new_20260930.json`）：81 + 81 帧、无 NaN；入流比 1.1030、左侧份额 0.503、出口平均压力 +6.3 %、末两周期份额差 0.0005 / 压力差 1.6 %、末周期 160/160 步收敛。唯一旗标 `side_share_abs_dev_max=None` 是因为 YANG 用自己 1 月的 RCR 常数、目录里没有 `protocol_bc.json`，Murray 侧内份额无从比较，不是数值问题。
-- **全量数据版本与训练**：见 [01 块跟踪 §37](../01-X5D主线与新数据/X5D主线_实验跟踪.md) 与 [数据回收 README §4.11](./数据回收_2026-09-20/README.md)（视图根 `data_wss_v5/views_v5_2p4_full265_20260930`，X5Dcap_asym2 三 seed，队列 16192，读数作业 16193）。
+- **全量数据版本与训练**：见 [01 块跟踪 §37](../../../01-X5D主线与新数据/X5D主线_实验跟踪.md) 与 [数据回收 README §4.11](./数据回收记录_2026-09-20.md)（视图根 `data_wss_v5/views_v5_2p4_full265_20260930`，X5Dcap_asym2 三 seed，队列 16192，读数作业 16193）。
 - **recover8 读数（09-30 06:11）**：full265 三 seed 集成 R²_cb **0.8393**（同 8 例 IND 三 seed 0.8352、五 seed 0.8393），逐例中位 0.843，6/8 例改善；变差的是 ZHANG_ZAO_SHUAN（−0.017，射流高值低估）与 LIU_WEN_QI（−0.009），LIU_YU_MING 仍最差（0.670）。n = 8 只作描述；读数 `_recover/eval/readout_recover8_full265_vs_ind.md`。
 - 未写 data_new、共享 PREP、v5.2 视图与快照（09-29 10:30 PDT 起 `find -newermt` 逐目录核查为 0）。
 
