@@ -123,6 +123,18 @@ DESCRIPTIONS = {
     **{f"wss_v52p4_full265_20260930:X5Dcap_asym2_full265_s{sd}": f"全量 265 例 X5Dcap_asym2 seed {sd}：配方 = wss_v52_phys_20260926/X5Dcap_asym2_s{sd} 逐位不变，只换数据（v5.2 261 + YANG_BAO_KUI + 3 个同病人搭档单元；val 空、按训练损失选模）；test = recover8（8 例，病人不在训练集）" for sd in (1234, 7, 2025)},
 }
 FULL265 = "wss_v52p4_full265"  # 2026-09-30: rows of the full265 data-version training (protocol / note / paired IND reference)
+V52D = "wss_v52d_retrain"       # 2026-10-02: the v5.2d retrain (full265 x3, three-head x3, CV5 x15); matrix has no C1 anchor_run
+
+
+def v52d_kind(arm):
+    return "C" if arm["id"].startswith("M1cap") else ("A" if arm.get("fold") is not None else "B")
+
+
+def v52d_describe(arm):
+    seed, fold = arm.get("seed", 1234), arm.get("fold")
+    return {"B": f"v5.2d 全量 265 例 X5Dcap_asym2 seed {seed}：配方不变，只换数据版本（母库全量审计后的 v5.2d）；test = recover8",
+            "C": f"v5.2d 全量 265 例三头 M1cap seed {seed}：out_dim 3 = [峰值 WSS, TAWSS, OSI]，等权 MSE、无 pinball / 低估加罚；表内为峰值通道，TAWSS / OSI 见备注；test = recover8",
+            "A": f"v5.2d CV5 fold{fold} 留出 X5Dcap_asym2 seed {seed}：配方不变，只换数据版本；261 例患者分组五折"}[v52d_kind(arm)]
 
 
 def describe(aid):
@@ -132,6 +144,13 @@ def describe(aid):
 
 def external_refs_for(arm, matrix):
     """Paired references declared in matrix.json (wave 2): same-seed X5 for X5X11, X5q/X5 for the F6 variants."""
+    if NAME.startswith(V52D):
+        seed, fold, runs_root = arm.get("seed", 1234), arm.get("fold"), ROOT / "training_wss_min/runs"
+        name, ref = {"B": (f"v5.2p4同seed{seed}（修正前数据，同一recover8）", runs_root / f"wss_v52p4_full265_20260930/X5Dcap_asym2_full265_s{seed}"),
+                     "C": (f"同seed{seed} X5Dcap_asym2 full265（v5.2d，峰值通道护栏）", runs_root / NAME / f"X5Dcap_asym2_full265_s{seed}"),
+                     "A": (f"v5.2同折同seed{seed}（旧标签、旧 WANG_TIAN_QING 几何）", runs_root / f"wss_v52_phys2m_20260927/X5Dcap_asym2_v52cv_f{fold}_s{seed}")}[v52d_kind(arm)]
+        ref = ref / "eval/ckpt_best/metrics.json"
+        return [(name, str(ref))] if ref.is_file() else []
     if NAME.startswith(FULL265):
         # the X5Dcap_asym2 IND (train170) run of the same seed, evaluated on recover8 like the queue evaluated this arm
         # (frozen copy, GPU, best checkpoint, full265 view root; experiments/<name>/ref_ind_recover8.slurm)
@@ -202,8 +221,11 @@ def arm_records():
             if queue["arms"].get(aid, {}).get("status") != "complete" and rec.get("status") == "complete":
                 queue["arms"][aid] = rec
     for arm in matrix["arms"]:
+        if NAME.startswith(V52D):
+            DESCRIPTIONS[f"{NAME}:{arm['id']}"] = v52d_describe(arm)
         DESCRIPTIONS.setdefault(arm["id"], arm["title"])
-    anchor = read_json(Path(matrix["anchor_run"]) / "eval/ckpt_best/metrics.json")["test"]
+    # 2026-10-02: a matrix without the historical C1 anchor (v5.2d retrain) simply has no "C1历史" reference
+    anchor = read_json(Path(matrix["anchor_run"]) / "eval/ckpt_best/metrics.json")["test"] if matrix.get("anchor_run") else None
     items = []
     for arm in matrix["arms"]:
         aid = arm["id"]
@@ -263,7 +285,11 @@ def update_workbook(book: Path):
         values = [MISSING] * 168
         is_cycle = NAME.startswith("wss_cycle")
         is_osi = is_cycle and arm["id"].startswith("O")
-        protocol = ("v5.2p4 full265：train 265 / val 0 → test recover8（8 例，病人不在训练集）；峰值1162；n=8 描述性读数"
+        protocol = (("v5.2d CV5：261 例患者分组五折，fold%s 留出；峰值1162；折外开发读数" % arm.get("fold")
+                     if v52d_kind(arm) == "A" else
+                     "v5.2d full265：train 265 / val 0 → test recover8（8 例，病人不在训练集）；峰值1162；n=8 描述性读数")
+                    if NAME.startswith(V52D) else
+                    "v5.2p4 full265：train 265 / val 0 → test recover8（8 例，病人不在训练集）；峰值1162；n=8 描述性读数"
                     if NAME.startswith(FULL265) else
                     "V5.1 cv3 留出折 81 帧；test34 未用；表内 R²_cb=峰值帧 1162，周期指标见备注"
                     if NAME.startswith("wss_time_ecc") else
@@ -275,7 +301,8 @@ def update_workbook(book: Path):
                       ("OSI · 无量纲" if is_osi else "TAWSS · Pa") if is_cycle else "WSS · Pa",
                       "best主结果；last/ema见逐指标批注" if arm["accepted"] else "尚无完整结果",
                       protocol]
-        values[13] = "X0（同期对照）；C1（历史锚点）" if (arm["id"] != "X0" and control_best is not None) else "C1（历史锚点）"
+        values[13] = ("X0（同期对照）；C1（历史锚点）" if (arm["id"] != "X0" and control_best is not None) else
+                      "C1（历史锚点）" if anchor is not None else MISSING)
         if NAME.startswith("wss_time_ecc"):
             note = (f"Job {queue.get('job_id', '尚未提交')}；{arm['status']}；history {arm['history_rows']}/{arm['epochs']}。"
                     f"cv3_v51 fold{arm.get('fold')} 留出折 81 帧，test34 未用；表内物理/归一化 R²_cb 是峰值帧 1162，不是全周期。"
@@ -284,6 +311,18 @@ def update_workbook(book: Path):
             note = (f"Job {queue.get('job_id', '尚未提交')}；{arm['status']}；history {arm['history_rows']}/{arm['epochs']}。"
                     f"cv3_v51 fold{arm.get('fold')} 留出折，test34 未用；目标 = {'OSI（无量纲，表内「Pa」列实为 OSI）' if is_osi else 'TAWSS（Pa）'}，"
                     f"标签 wss_min_cycle_v1（wall_wss_vec 帧 0–79 各权 1/80）。单seed{arm.get('seed', 1234)}，只作阶段 1 筛选；{arm['title']}。")
+        elif NAME.startswith(V52D):
+            kind = v52d_kind(arm)
+            note = (f"Job {queue.get('job_id', '尚未提交')}；{arm['status']}；history {arm['history_rows']}/{arm['epochs']}。"
+                    f"数据版本 v5.2d（母库全量审计后合并：HAN_JIAN_FU 壁面标签重算、WANG_TIAN_QING-1/after 从本例 STL 重建、16 个单元出口命名修正；"
+                    f"150 个每步迭代提前退出的单元标签保持原样）。单seed{arm.get('seed', 1234)}；配方与 v5.2c / v5.2 同名配置相同，只换数据路径。"
+                    + {"B": "ΔR²列相对 v5.2p4 同 seed（recover8 标签未变，差值 = 训练数据修正 + 训练随机性）。三 seed 集成 0.8393（v5.2p4 同口径 0.8401）；15 个 CV5 折模型集成 0.8444。",
+                       "C": "表内是峰值 WSS 通道；ΔR²列相对同 seed X5Dcap_asym2 full265（护栏：归一化 R²_cb 掉幅 ≤ 0.02，三 seed 全过）。"
+                            "三 seed 集成 recover8：峰值 0.823、TAWSS Pa R²_cb 0.849（CCC 中位 0.912）、OSI R²_cb 0.542、OSI>0.1 IoU 0.678、滞留区 IoU 0.555；"
+                            "已部署三头（v5.1 train136）同 8 例 0.792 / 0.805 / 0.490 / 0.651 / 0.502。逐通道逐 seed 见 readout_ckpt_best.md。",
+                       "A": "ΔR²列相对 v5.2 同折同 seed 模型在旧标签上的读数（本折留出标签若有修正则两边真值不同；WANG_TIAN_QING-1/after 在 fold0 换了几何）。"
+                            "折外 261 例三 seed：0.7750 / 0.7752 / 0.7780（均值 0.7761 ± 0.0017），集成 0.7926；v5.2 模型旧标签 0.7713、换修正后标签 0.7752（可配对 260 例）。"}[kind]
+                    + f"读数与规则：experiments/{NAME}/readout_ckpt_best.md，01 块跟踪 §41；{arm['title']}。")
         elif NAME.startswith(FULL265):
             note = (f"Job {queue.get('job_id', '尚未提交')}；{arm['status']}；history {arm['history_rows']}/{arm['epochs']}。"
                     f"全量训练 train 265（v5.2 261 + YANG_BAO_KUI + 3 个同病人搭档单元），val 空（按训练损失选模），test = recover8；"
@@ -295,7 +334,8 @@ def update_workbook(book: Path):
             note = (f"Job {queue.get('job_id', '尚未提交')}；{arm['status']}；history {arm['history_rows']}/{arm['epochs']}。"
                     f"单seed{arm.get('seed', 1234)}、已暴露test34：只作筛选，不作显著性或泛化结论；单seed对单seed 95%带约±0.034 Pa R²/±0.009归一化。"
                     f"底座C1（E2＋E3），init_reference_config=C1（继承张量初始权重逐位相同）；{arm['title']}。")
-        sources = [arm["config_path"], str(Path(arm["run_dir"]) / "history.jsonl"), str(EXP / "results.json")]
+        sources = [arm["config_path"], str(Path(arm["run_dir"]) / "history.jsonl"),
+                   str(EXP / ("readout_ckpt_best.json" if NAME.startswith(V52D) else "results.json"))]
         other = {}
         if arm["accepted"]:
             best = arm["metrics"]["best"]["metrics"]
@@ -314,7 +354,8 @@ def update_workbook(book: Path):
                 refs.append(("X0", control_best, arm and control["metrics"]["best"]["path"]))
             for ref_name, ref_path in external_refs_for(arm, matrix):
                 refs.append((ref_name, read_json(ref_path)["test"], ref_path))
-            refs.append(("C1历史", anchor, str(Path(matrix["anchor_run"]) / "eval/ckpt_best/metrics.json")))
+            if anchor is not None:
+                refs.append(("C1历史", anchor, str(Path(matrix["anchor_run"]) / "eval/ckpt_best/metrics.json")))
             for j, (ref, ref_metrics, ref_path) in enumerate(refs[:4]):
                 base = 64 + j * 6
                 values[base] = f"{ref}；{ref_path}"
