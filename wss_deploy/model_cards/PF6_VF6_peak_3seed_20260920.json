@@ -1,8 +1,8 @@
 {
  "schema_version": "wss-deploy.model-card/v1",
  "release_id": "PF6_VF6_peak_3seed_20260920",
- "display_name": "体内压力与速度",
- "short_name": "体场",
+ "display_name": "（旧版）体内压力与速度",
+ "short_name": "体场（旧）",
  "version_date": "2026-09-20",
  "purpose": "预测收缩期峰值时刻（周期内 0.21 s）血管腔内的相对压力与速度，并算出壁面相对压力与流线",
  "training": {
@@ -57,11 +57,13 @@
  },
  "usage_note": "「怎么用」一栏的措辞待导师或医生过目。",
  "weaknesses": [
+  "v5.0（训练 138 例）的旧体场模型，2026-10-03 下线；现役「体内压力与速度」是 v5.2d 全量 265 例训练的 PF6_VF6_v52d_3seed_20261003。用旧模型算出的结果保留可看，换新模型重跑沿用同一次扫描的中心线和出口确认。",
   "没有与 CFD 口径一致的验证数字：部署时的体内采样与 CFD 网格口径是否等价尚未建立。",
   "压力为相对量（相对该帧体积平均压），不能解释为绝对血压。",
   "边界条件是固定的训练协议，不是患者实测的流量。"
  ],
  "weakness_sources": [
+  "wss_deploy/README.md v0.16.4；outputs/wss_deploy_release_retired/",
   "release.json validation",
   "release.json pressure_reference",
   "release.json input_contract.boundary_protocol"
@@ -84,5 +86,10 @@
  },
  "display_windows_note": "相对压力不设固定窗，只有「本例自适应」。",
  "population_reference": "无",
- "caveat": "研究用途，不是诊断"
+ "caveat": "研究用途，不是诊断",
+ "retired": {
+  "on": "2026-10-03",
+  "replaced_by": "PF6_VF6_v52d_3seed_20261003",
+  "note": "v5.0（训练 138 例）的旧体场模型，2026-10-03 下线；现役「体内压力与速度」是 v5.2d 全量 265 例训练的 PF6_VF6_v52d_3seed_20261003。用旧模型算出的结果保留可看，换新模型重跑沿用同一次扫描的中心线和出口确认。"
+ }
 }

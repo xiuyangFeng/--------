@@ -1,4 +1,4 @@
-# wss_deploy — 从 STL 到 WSS / TAWSS / OSI / RRT / ECAP、压力与速度体场（v0.16.3，2026-10-02）
+# wss_deploy — 从 STL 到 WSS / TAWSS / OSI / RRT / ECAP、压力与速度体场（v0.16.4，2026-10-03）
 
 只做推理。链路：`ingest`（单位/拓扑检查）→ `centerline`（vessel_geom/VMTK 子进程 + 出口自动命名 + 人工确认）→ `geometry`（1 mm Taubin 平滑 → 0.5 mm 重采样 → 27 维特征，全部来自冻结特征库 `wss_features/`）→ `infer`（可替换的发布包，按模型族适配器 `families.py` 推理与集成）→ `metrics` + `report`（summary.json / run_manifest.json / report.html / wall_wss.vtp / points_wss.csv / field.npz）。
 
@@ -63,6 +63,14 @@ CUDA_VISIBLE_DEVICES=1 $PY -m wss_deploy.cli serve --host 0.0.0.0 --port 8765 --
 | `server.py` / `jobs.py` | 本地优先 HTTP 服务：上传 → 输入确认 → 三维出口确认 → B 段 → 报告；状态机、事件、取消、重试和重启恢复 | 默认回环；共享需 token；任务落盘 `outputs/wss_deploy_jobs/<job>/job.json` |
 
 验收与计时：`training_wss_min/experiments/wss_deploy_timing_20260917/`（分段计时、指标演示、`acceptance_test34/` 34 例回归）。设计与讨论：`docs/02-推进与变更/05-部署工具/WSS_部署演示工具_从STL到峰值WSS_整体框架与计时_2026-09-17.md`。
+
+## v0.16.4（2026-10-03）：体场换成 v5.2d 全量训练的新包，v5.0 旧体场包下线
+
+用户 10-03 要求：新的体场模型（PF6 压力 / VF6 速度在 v5.2d 上重训，01 块跟踪 §43）部署上线，旧的下线。
+
+- **新包** `PF6_VF6_v52d_3seed_20261003`（`python -m wss_deploy.build_v52d_volume_release`，从 `training_wss_min/runs/pf6vf6_v52d_retrain_20261002` 的 full265 三 seed 冻结）：配方与旧包相同（18 维体场几何特征 + Murray 分流先验），v5.2d 全部 265 例训练；验证块取自重训读数：同配方 CV5 折外 261 例三 seed 集成压力 R²_cb 0.808（壁面 0.806）、速率 0.843、向量误差 0.157 m/s、方向余弦 0.921；recover8 压力 0.939、速率 0.903。几何参照 `reference.json` 用 full265 中心线（`build_reference_profiles --data v52d --geometry-only`）。说明卡 `model_cards/PF6_VF6_v52d_3seed_20261003.json`；数字是 CFD 网格口径，说明卡写明部署体内采样与 CFD 网格口径的等价性尚未建立。
+- **下线**：`PF6_VF6_peak_3seed_20260920` 移到 `outputs/wss_deploy_release_retired/`（原样移动，指纹不变）；旧卡改名「（旧版）体内压力与速度」/「体场（旧）」并记 `retired`。现役三包：`X5Dcap_asym2_v52d_3seed_20261002`（默认）、`M1cap_v52d_3seed_20261002`、`PF6_VF6_v52d_3seed_20261003`；组合上传「＋ 体内压力与速度」自动用新包。
+- **验收**（`training_wss_min/experiments/wss_deploy_timing_20260917/acceptance_recover8_volume_v52d_20261003/`）：部署加载器对训练评估逐点（recover8 8 例、全部点）压力最大差 ≤ 8.6e-4 Pa、速度 ≤ 1.5e-6 m/s；recover8 的 STL 走完整部署链路，同几何同查询点上旧 → 新：压力 R²_cb 0.913 → 0.930（6/8 例改善）、速率 0.870 → 0.889（8/8），与训练侧读数同带；黄金回归 6/6（其中 2 个任务绑旧体场包，经归档目录回退）；全套测试 1072 通过。
 
 ## v0.16.3（2026-10-02）：模型换成 v5.2d 全量训练的新包，v5.1 的两个旧包下线
 

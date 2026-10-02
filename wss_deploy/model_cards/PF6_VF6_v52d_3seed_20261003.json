@@ -1,0 +1,145 @@
+{
+ "schema_version": "wss-deploy.model-card/v1",
+ "release_id": "PF6_VF6_v52d_3seed_20261003",
+ "display_name": "体内压力与速度",
+ "short_name": "体场",
+ "version_date": "2026-10-03",
+ "purpose": "预测收缩期峰值时刻（周期内 0.21 s）血管腔内的相对压力与速度，并算出壁面相对压力与流线",
+ "training": {
+  "n_train": 265,
+  "n_holdout": 8,
+  "n_total": 273,
+  "cohorts": [
+   "AAA",
+   "AG",
+   "ILO"
+  ],
+  "centers": null,
+  "note": "release.json training / data：v5.2d 数据全部 265 例训练（与峰值 WSS、三头发布包同一份），recover8 8 例从未参与训练；配方与旧体场包相同（18 维体场几何特征 + Murray 分流先验），只换数据。中心数 release.json 未记录，写 null。"
+ },
+ "protocol": [
+  "所有病例用同一条入口流量波形（协议平均 30.38 mL/s，约 1.8 L/min；周期 0.8 s），不是该患者实测；边界条件是固定的训练协议族。",
+  "预测对象是收缩期峰值单帧（周期内 0.21 s），不是全周期。",
+  "压力是相对量：相对该帧体积平均压力，STL 里没有绝对参考压力，不能解释为血压；只有压差有意义。",
+  "四个出口为 RCR 边界：左右各半，同侧按出口口径的 Murray 规律分配，不是患者实测。",
+  "血液黏度按 Carreau 非牛顿模型，密度 1060 kg/m³。",
+  "壁面是否按刚性处理：待核对。"
+ ],
+ "protocol_sources": {
+  "inlet_mean_flow": "cfd_auto/sanity.py PROTOCOL_Q_M3S = 30.38e-6 m³/s",
+  "boundary": "release.json input_contract.boundary_protocol",
+  "peak_frame": "release.json time_axis[0]（step 1162，time_s 0.21）",
+  "pressure_reference": "release.json pressure_reference：p_rel = p - peak volume-weighted anatomy mean",
+  "outlets": "cfd_auto/sanity.py 文档：left share (protocol 50/50)，within-side shares vs the Murray d^3 split",
+  "blood": "cfd_auto/__init__.py 与 udf.py：Carreau viscosity；密度 RHO = 1060.0（cfd_auto/sanity.py、preflight.py）",
+  "wall": "未在 cfd_auto 或发布包中找到明确记录，待核对"
+ },
+ "validation": {
+  "holdout_n": 261,
+  "r2_note": "R² 为 1 表示与 CFD 完全一致。主数字是同配方 CV5 患者分组五折的折外预测（261 例，每例由没见过它的折模型预测，三 seed 集成），在 CFD 网格上逐单元、病例等权计算；recover8（8 例）另列，只作描述。",
+  "note": "这些数字是在 CFD 几何与 CFD 网格单元上算的；部署时在 STL 内部重新采样查询点，这种采样与 CFD 网格口径是否等价尚未建立，所以它们描述的是模型本身，不是部署后的精度。",
+  "fields": {
+   "pressure": {
+    "r2_pa": 0.8084,
+    "extra": "单模型 0.80，recover8 0.94",
+    "summary": "R² 0.81（CV5 折外 261 例）",
+    "source": "release.json validation.cv5_oof.pressure_r2cb_ensemble3"
+   },
+   "speed": {
+    "r2_pa": 0.8425,
+    "extra": "单模型 0.83，recover8 0.90",
+    "summary": "R² 0.84（CV5 折外 261 例）",
+    "source": "release.json validation.cv5_oof.speed_r2cb_ensemble3"
+   },
+   "velocity": {
+    "r2_pa": null,
+    "extra": "向量误差 0.16 m/s，方向余弦 0.92",
+    "summary": "向量误差 0.16 m/s，方向一致度（余弦）0.92",
+    "source": "release.json validation.cv5_oof.velocity_vector_rmse_m_s_ensemble3 / velocity_direction_cosine_ensemble3"
+   },
+   "wall_pressure": {
+    "r2_pa": 0.8061,
+    "summary": "R² 0.81（CV5 折外，壁面节点）",
+    "source": "release.json validation.cv5_oof.pressure_wall_r2cb_ensemble3"
+   },
+   "max_diameter": {
+    "summary": "几何测量，不经过模型",
+    "source": "输入表面截面测量"
+   }
+  },
+  "previous_release_same_cases": "旧包 PF6_VF6_peak_3seed_20260920 在 recover8 同 8 例上：压力 0.92、速度 0.88（新包 0.94 / 0.90）；旧包训练时没见过的 test34 上，同一套 v5.2d 标签：压力 0.82 → 新包折外 0.85，速度 0.82 → 0.85",
+  "source": "release.json validation（读数 training_wss_min/experiments/pf6vf6_v52d_retrain_20261002/readout_ckpt_best.json；新旧对比 compare_old_test34/compare_old_new.md）"
+ },
+ "field_labels": {
+  "max_diameter": "管腔最大直径、瘤体体积",
+  "pressure": "体内相对压力",
+  "speed": "速度大小",
+  "velocity": "速度向量",
+  "wall_pressure": "壁面相对压力",
+  "streamlines": "流线"
+ },
+ "field_tiers": {
+  "max_diameter": "geometry",
+  "pressure": "model",
+  "speed": "model",
+  "velocity": "model",
+  "wall_pressure": "model",
+  "streamlines": "derived",
+  "sac_volume": "geometry",
+  "lumen_volume": "geometry"
+ },
+ "usage": {
+  "max_diameter": "可以直接引用，注意是管腔（不含附壁血栓与管壁）",
+  "pressure": "只看压差和相对分布，不是血压",
+  "speed": "看分布形态；与 CFD 的一致性见验证数字（CFD 网格口径）",
+  "velocity": "看流向与分布形态；与 CFD 的一致性见验证数字（CFD 网格口径）",
+  "wall_pressure": "只看相对分布",
+  "streamlines": "固定帧稳态积分的示意，不是粒子轨迹"
+ },
+ "usage_note": "「怎么用」一栏的措辞待导师或医生过目。",
+ "weaknesses": [
+  "验证数字是在 CFD 网格上算的；部署时的体内采样与 CFD 网格口径是否等价尚未建立。",
+  "压力为相对量（相对该帧体积平均压），不能解释为绝对血压。",
+  "边界条件是固定的训练协议，不是患者实测的流量。"
+ ],
+ "weakness_sources": [
+  "release.json validation.deployment_note",
+  "release.json pressure_reference",
+  "release.json input_contract.boundary_protocol"
+ ],
+ "not_applicable": [
+  "开口数不是 5 的输入（入口 + 四个髂支出口；三出口不支持）",
+  "腹主—髂动脉以外的血管",
+  "含附壁血栓或管壁的外轮廓（输入必须是管腔面）",
+  "需要绝对血压的用途"
+ ],
+ "display_windows": {
+  "pressure": [],
+  "wall_pressure": [],
+  "speed": [
+   {
+    "id": "standard",
+    "label": "常规窗",
+    "range": [
+     0,
+     1.5
+    ],
+    "provisional": true
+   }
+  ],
+  "velocity": [
+   {
+    "id": "standard",
+    "label": "常规窗",
+    "range": [
+     0,
+     1.5
+    ],
+    "provisional": true
+   }
+  ]
+ },
+ "display_windows_note": "相对压力不设固定窗，只有「本例自适应」。",
+ "population_reference": "无",
+ "caveat": "研究用途，不是诊断"
+}

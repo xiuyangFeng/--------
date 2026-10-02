@@ -34,7 +34,7 @@ def tube():
 # ----------------------------------------------------------------------------- model cards (§4)
 def test_repository_cards_load_validate_and_carry_provisional_windows():
     assert MC.card_ids() == ["M1_3head_3seed_20260922", "M1cap_v52d_3seed_20261002", "PF6_VF6_peak_3seed_20260920",
-                             "X5D_v51_5seed_20260916", "X5Dcap_asym2_v52d_3seed_20261002"]
+                             "PF6_VF6_v52d_3seed_20261003", "X5D_v51_5seed_20260916", "X5Dcap_asym2_v52d_3seed_20261002"]
     for rid in MC.card_ids():
         card = MC.load(rid)
         assert card is not None and card["schema_version"] == MC.SCHEMA_VERSION and card["release_id"] == rid
@@ -85,6 +85,23 @@ def test_card_numbers_match_the_release_packages():
         pf6 = json.loads((pf6_dir / "release.json").read_text(encoding="utf-8"))
         assert "metrics" not in pf6 and "not been established" in pf6["validation"]
         assert MC.load("PF6_VF6_peak_3seed_20260920")["version_date"] == pf6["frozen_on"]
+
+
+def test_v52d_volume_card_numbers_match_the_release_package():
+    """2026-10-03 volume release: card numbers = release.json validation (CV5 out-of-fold ensemble + recover8)."""
+    vol_dir = _release_dir("PF6_VF6_v52d_3seed_20261003")
+    if not (vol_dir / "release.json").is_file():
+        pytest.skip("v5.2d volume release not present")
+    close = lambda a, b: a == pytest.approx(round(b, 4), abs=6e-5)
+    rel = json.loads((vol_dir / "release.json").read_text(encoding="utf-8"))
+    card = MC.load("PF6_VF6_v52d_3seed_20261003")
+    cv, fields = rel["validation"]["cv5_oof"], card["validation"]["fields"]
+    assert card["version_date"] == rel["frozen_on"] and card["validation"]["holdout_n"] == cv["n_units"] == 261
+    assert close(fields["pressure"]["r2_pa"], cv["pressure_r2cb_ensemble3"]) and close(fields["speed"]["r2_pa"], cv["speed_r2cb_ensemble3"])
+    assert close(fields["wall_pressure"]["r2_pa"], cv["pressure_wall_r2cb_ensemble3"]) and fields["velocity"]["r2_pa"] is None
+    assert card["training"]["n_train"] == rel["training"]["n_train"] == 265 and "retired" not in card
+    old = MC.load("PF6_VF6_peak_3seed_20260920")
+    assert old["retired"]["replaced_by"] == "PF6_VF6_v52d_3seed_20261003" and old["display_name"].startswith("（旧版）")
 
 
 def test_v52d_card_numbers_match_the_release_packages():

@@ -7,7 +7,7 @@ from tests._c_helpers import Service, call, finished
 
 
 def test_version_is_0_15():
-    assert wss_deploy.__version__ == "0.16.3"
+    assert wss_deploy.__version__ == "0.16.4"
 
 
 def test_health_without_session_is_minimal_and_with_session_is_detailed(tmp_path):

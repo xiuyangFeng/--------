@@ -7,8 +7,8 @@
 |---|---|
 | `GNN.yml` | `conda env export -n GNN --no-builds` 原样导出：服务、测试、推理和几何特征都在这个环境里跑 |
 | `GNN_vmtk.yml` | `conda env export -n GNN_vmtk --no-builds` 原样导出：只用来跑 vessel_geom / VMTK 中心线子进程 |
-| `releases.sha256` | 现役三个发布包（2026-10-02 起：`X5Dcap_asym2_v52d_3seed_20261002`、`M1cap_v52d_3seed_20261002`、`PF6_VF6_peak_3seed_20260920`）的 `release.json` 与 `MANIFEST.sha256` 的 sha256（路径相对 `outputs/wss_deploy_release/`） |
-| `releases_retired.sha256` | 已下线发布包（`X5D_v51_5seed_20260916`、`M1_3head_3seed_20260922`）的同样两份文件（路径相对 `outputs/wss_deploy_release_retired/`）；服务不扫描该目录，只有黄金回归与历史报告重建会读 |
+| `releases.sha256` | 现役三个发布包（2026-10-03 起：`X5Dcap_asym2_v52d_3seed_20261002`、`M1cap_v52d_3seed_20261002`、`PF6_VF6_v52d_3seed_20261003`）的 `release.json` 与 `MANIFEST.sha256` 的 sha256（路径相对 `outputs/wss_deploy_release/`） |
+| `releases_retired.sha256` | 已下线发布包（`X5D_v51_5seed_20260916`、`M1_3head_3seed_20260922`、`PF6_VF6_peak_3seed_20260920`）的同样两份文件（路径相对 `outputs/wss_deploy_release_retired/`）；服务不扫描该目录，只有黄金回归与历史报告重建会读 |
 | `vessel_geom_toolkit.sha256` | vessel_geom 工具包 `vessel_geom/*.py` 的 sha256（路径相对工具包根目录） |
 
 ## 1. 两个环境
